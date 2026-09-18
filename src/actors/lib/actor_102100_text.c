@@ -563,7 +563,297 @@ cleanup:
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn016EC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn01FF0);
+void Actor02100_Fn02924(Actor02100* arg0, s32 arg1);
+void Actor02100_Fn034E0(Actor02100* arg0);
+
+/// Points the actor at its stored target. Rotates a fixed forward offset by the
+/// coordinate's matrix, maps it back into the coordinate's own frame, and hands
+/// the vector from there to the target position to `Gp_OrientAlong`, which
+/// writes the facing matrix at `field_144`.
+static __inline__ void Actor02100_OrientScratch(Actor02100* arg0)
+{
+    Actor02100Fn01FF0Scratch* scratch;
+    Actor02100Work*           work;
+    GsCOORDINATE2*            coord;
+    u8*                       head;
+
+    coord                 = arg0->field_2C->field_8;
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    work                  = arg0->field_1C;
+    scratch               = (Actor02100Fn01FF0Scratch*)(head - 0x28);
+    *(u8**)G_SCRATCH_HEAD = (u8*)scratch;
+
+    scratch->shortVec.vx = 0;
+    scratch->shortVec.vy = 0;
+    scratch->shortVec.vz = 0x12C;
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&scratch->shortVec);
+    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_stlvnl(&scratch->transformed);
+    scratch->transformed.vx += coord->workm.t[0];
+    scratch->transformed.vy += coord->workm.t[1];
+    scratch->transformed.vz += coord->workm.t[2];
+    ApplyTransposeMatrixLV(&coord->workm, &scratch->transformed, &scratch->delta);
+    scratch->transformed.vx = work->field_108.vx - scratch->delta.vx;
+    scratch->transformed.vy = work->field_108.vy - scratch->delta.vy;
+    scratch->transformed.vz = work->field_108.vz - scratch->delta.vz;
+    Gp_OrientAlong(&scratch->transformed, &work->field_144, 0);
+}
+
+/// Refreshes the two vectors the actor's facing matrix defines: the near one at
+/// `field_128[1]`, rotated from the length in `field_182` and advanced by 0x12C
+/// each frame, and the far one at `field_B0`, a fixed 0x2710 ahead, which is
+/// mirrored into `field_E8`. Both rotations borrow an `SVECTOR` from
+/// `G_SCRATCH_HEAD`; the first reuses the block `Actor02100_OrientScratch` just
+/// released.
+static __inline__ void Actor02100_UpdateVectors(Actor02100* arg0)
+{
+    Actor02100Fn01FF0Scratch* scratch;
+    Actor02100Fn014E4Scratch* inner;
+    Actor02100Work*           work;
+    Actor02100Work*           work2;
+    SVECTOR*                  shortVec;
+    u8*                       head;
+    u8*                       head2;
+    u16                       vz;
+
+    head    = *(u8**)G_SCRATCH_HEAD;
+    work    = arg0->field_1C;
+    scratch = (Actor02100Fn01FF0Scratch*)head;
+    inner   = (Actor02100Fn014E4Scratch*)(head + 0x10);
+
+    work->field_128[0].vx = 0;
+    work->field_128[0].vy = 0;
+    work->field_128[0].vz = 0x12C;
+    inner->shortVec.vx    = 0;
+    inner->shortVec.vy    = 0;
+    vz                    = work->field_182;
+    SOFT_COMPILER_BARRIER();
+    *(u8**)G_SCRATCH_HEAD = head + 0x28;
+    SOFT_COMPILER_BARRIER();
+    *(u8**)G_SCRATCH_HEAD = (u8*)inner;
+    inner->shortVec.vz    = vz;
+    gte_SetRotMatrix(&work->field_144);
+    gte_ldv0(&scratch->shortVec);
+    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_stsv(&work->field_128[1]);
+    head2                  = *(u8**)G_SCRATCH_HEAD;
+    work->field_128[1].vz += 0x12C;
+
+    work2                 = arg0->field_1C;
+    shortVec              = (SVECTOR*)(head2 + 0x10);
+    *(u8**)G_SCRATCH_HEAD = head2 + 0x18;
+    SOFT_COMPILER_BARRIER();
+    *(u8**)G_SCRATCH_HEAD = (u8*)shortVec;
+    shortVec->vx          = 0;
+    shortVec->vy          = 0;
+    shortVec->vz          = 0x2710;
+    gte_SetRotMatrix(&work2->field_144);
+    gte_ldv0(shortVec);
+    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_stsv(&work2->field_B0);
+    work2->field_E8        = work2->field_B0;
+    *(u8**)G_SCRATCH_HEAD += 8;
+}
+
+/// Rewrites the far vector alone, without the per-frame near vector: the same
+/// 0x2710 offset through the facing matrix into `field_B0`, mirrored into
+/// `field_E8`.
+static __inline__ void Actor02100_SetVector(Actor02100* arg0)
+{
+    Actor02100Work* work;
+    SVECTOR*        shortVec;
+    u8*             head;
+
+    head     = *(u8**)G_SCRATCH_HEAD;
+    work     = arg0->field_1C;
+    shortVec = (SVECTOR*)(head - 8);
+    SOFT_TOUCH_REG(head);
+    ((SVECTOR*)(head - 8))->vx = 0;
+    shortVec->vz               = 0x2710;
+    *(u8**)G_SCRATCH_HEAD      = (u8*)shortVec;
+    shortVec->vy               = 0;
+    gte_SetRotMatrix(&work->field_144);
+    gte_ldv0(shortVec);
+    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_stsv(&work->field_B0);
+    work->field_E8         = work->field_B0;
+    *(u8**)G_SCRATCH_HEAD += 8;
+}
+
+static __inline__ void Actor02100_ReleaseScratch28(void)
+{
+    *(u8**)G_SCRATCH_HEAD += 0x28;
+}
+
+/// Seven-state attack cycle, run from `Actor02100_Fn031C4`. State 0 holds the
+/// wind-up: it re-aims each frame, refreshes both direction vectors, starts the
+/// looping sound on the second frame and shows the two objects, until the
+/// wind-up frame count in `Actor02100_D03D88` runs out. State 1 stops that
+/// sound and waits four frames; state 2 emits the two effects with a randomised
+/// parameter, plays the strike sound and re-aims once; states 3 and 4 set and
+/// clear the pair table entry and the colour word that make the strike hit,
+/// counting one hit in `field_17C`; state 5 loops back to state 2 until ten
+/// hits, then hides both objects; state 6 waits out the recovery frame count
+/// and returns to state 0. `Actor02100_Fn014E4` failing at any aim point drops
+/// straight to state 6.
+void Actor02100_Fn01FF0(Actor02100* arg0)
+{
+    Actor02100Fn01FF0Block* root;
+    Actor02100Work*         work;
+    GsCOORDINATE2*          coord;
+    u8*                     rootHead;
+    s32                     pan0;
+    s32                     pan2;
+    s32                     sound2;
+    u32                     random;
+    s32                     packed2;
+    s32                     packed3;
+    s32                     shifted;
+    s32                     orTmp;
+    s32                     result3;
+    s16                     state;
+    s16                     frame0;
+    s16                     frame1;
+    s16                     frame6;
+    u16                     flags96;
+    u16                     flagsE6;
+
+    rootHead              = *(u8**)G_SCRATCH_HEAD - 0x48;
+    *(u8**)G_SCRATCH_HEAD = rootHead;
+    root                  = (Actor02100Fn01FF0Block*)rootHead;
+    work                  = arg0->field_1C;
+    state                 = work->field_174;
+    coord                 = arg0->field_2C->field_8;
+
+    switch (state) {
+        case 0:
+            if (work->field_17A != 0) {
+                if (Actor02100_Fn014E4(arg0) == 0) {
+                    work->field_174 = 6;
+                    work->field_17A = 0;
+                    if (work->field_188 == 2) {
+                        SndEvt_EnqueueType7(work->field_168, 1);
+                        work->field_188 = 0;
+                    }
+                    break;
+                }
+
+                Actor02100_OrientScratch(arg0);
+                Actor02100_UpdateVectors(arg0);
+            }
+
+            if (work->field_17A == 1) {
+                work->field_168 = (((u16)arg0->field_20->field_8 >> 12) << 8) | 0x40150001;
+                pan0            = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(work->field_168, pan0, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                work->field_188 = 2;
+            }
+            if (work->field_17A >= 2) {
+                Actor02100_Fn034E0(arg0);
+                Actor02100_Fn02924(arg0, 0);
+            }
+            work->field_78.flags |= 0x8000;
+            frame0                = (u16)work->field_17A + 1;
+            work->field_17A       = frame0;
+            work->field_C8.flags |= 0x8000;
+            work->field_78.flags |= 0x4000;
+            work->field_C8.flags |= 0x4000;
+            if (frame0 >= Actor02100_D03D88[work->field_178].field_0) {
+                work->field_17A = 0;
+                work->field_174 = 1;
+            }
+            break;
+
+        case 1:
+            if (work->field_17A == 1) {
+                SndEvt_EnqueueType7(work->field_168, 1);
+                work->field_188 = 0;
+            }
+            frame1          = (u16)work->field_17A + 1;
+            work->field_17A = frame1;
+            if (frame1 >= 4) {
+                work->field_17A = 0;
+                Actor02100_SetVector(arg0);
+                work->field_174 = 2;
+            }
+            break;
+
+        case 2:
+            root->shortVec.vx = 0;
+            root->shortVec.vy = 0;
+            root->shortVec.vz = 0x12C;
+            random            = Gp_LcgState * 5 + 0x71357911;
+            packed2           = ((random >> 16) & 0x1FF) | 0x200;
+            Gp_LcgState       = random;
+            Gp_SpawnEff(0x60034, coord, packed2, &root->shortVec);
+            Gp_SpawnEff(0x60072, coord, packed2, &root->shortVec);
+            sound2 = (((u16)arg0->field_20->field_8 >> 12) << 8) | 0x4015000B;
+            pan2   = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(sound2, pan2, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            work->field_174 = 3;
+            if (Actor02100_Fn014E4(arg0) == 0) {
+                work->field_174 = 6;
+                work->field_17A = 0;
+            } else {
+                Actor02100_OrientScratch(arg0);
+                Actor02100_ReleaseScratch28();
+            }
+            break;
+
+        case 3:
+            result3 = Gp_PackPair(&Actor02100_D03D64, work->field_178);
+            packed3 = work->field_178;
+            SOFT_TOUCH_REG_USE(result3, packed3);
+            work->field_78.field_18 = result3;
+            work->field_174         = 4;
+            packed3                += 0x26;
+            shifted                 = packed3 << 8;
+            orTmp                   = packed3 | 0x20000;
+            work->field_C8.field_18 = shifted | orTmp;
+            work->field_17C         = (u16)work->field_17C + 1;
+            break;
+
+        case 4:
+            work->field_78.field_18 = 0;
+            work->field_C8.field_18 = 0;
+            work->field_174         = 5;
+            break;
+
+        case 5:
+            if (work->field_17C < 10) {
+                work->field_174 = 2;
+                SOFT_COMPILER_BARRIER();
+                Actor02100_SetVector(arg0);
+                break;
+            }
+            work->field_174 = 6;
+            work->field_17A = 0;
+            flags96         = work->field_78.flags & 0x7FFF;
+            flagsE6         = work->field_C8.flags & 0x7FFF;
+            SOFT_TOUCH_REG2(flags96, flagsE6);
+            work->field_78.flags = flags96;
+            work->field_C8.flags = flagsE6;
+            work->field_78.flags = flags96 & 0xBFFF;
+            work->field_C8.flags = flagsE6 & 0xBFFF;
+            break;
+
+        case 6:
+            frame6          = (u16)work->field_17A + 1;
+            work->field_17A = frame6;
+            if (frame6 >= Actor02100_D03D88[work->field_178].field_2) {
+                work->field_17A = 0;
+                work->field_174 = 0;
+                work->field_172 = work->field_176 != 0;
+                work->field_118 = (u16)work->field_120;
+                work->field_11A = (u16)work->field_122;
+                work->field_11C = (u16)work->field_124;
+            }
+            break;
+    }
+
+    *(u8**)G_SCRATCH_HEAD += 0x48;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn02924);
 

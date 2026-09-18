@@ -129668,3 +129668,84 @@ the match. Getting this one decision right moved a long-stuck function from
 97.6% to 99.8% and turned its `reorder` penalty to zero; every statement-order
 experiment before it was noise, because the wrong variable count had made the
 whole block's dependence graph wrong.
+
+## The scratch score ignores immediates, so check that the `_diff` is empty (Actor02100_Fn01FF0, 2026-09-18)
+
+`dist.py` compares rows whose immediates have been normalised away - it inherits
+decomp-permuter's scorer, which is looking for register, branch and ordering
+differences, not for constants. Two objects that differ only in a load/store
+displacement score **100.000% (0 differences)** with every penalty zero:
+
+```
+$ printf 'lhu v0,0x134(a0)\n' > t1.s ; printf 'lhu v0,0x132(a0)\n' > t2.s
+$ dist.py t1.s t2.s
+Score: 100.000% (0 differences)
+```
+
+The same two lines in `<name>_diff` are a normal `-`/`+` pair, so the evidence is
+already on disk; only the headline number hides it. This bites hardest during the
+post-match cleanup, when pointer arithmetic is rewritten as struct members and a
+field is picked one slot off - the wrong offset compiles, scores 100% and only
+fails at the overlay checksum, where nothing points at the field.
+
+Before porting a match, confirm `wc -c <name>_diff` is 0. A score of 100% with a
+non-empty diff means the difference is in a constant.
+
+## A memory barrier restores one scratch-head dependence without retyping the head (Actor02100_Fn01FF0, 2026-09-18)
+
+`true_dependence` (sched.c) suppresses the dependence between a `MEM_IN_STRUCT`
+reference at a varying address and a non-`MEM_IN_STRUCT` reference at a fixed
+address, so the scratch-head slot - a plain dereference of an absolute address -
+floats freely against every struct access. That freedom is usually what the ROM
+shows, and it is why the head must stay a plain dereference. But a single function
+can need the dependence at one point and the freedom at another: a head load that
+must stay *below* a state store, a field load that must stay *above* a head store,
+and three release sites where the head load must hoist over a struct copy.
+
+Expressing the head as a struct member reinstates the dependence everywhere, which
+fixes the first two sites and breaks the last three (the hoist is gone, a load-delay
+`nop` appears, and the overlay grows). A `SOFT_COMPILER_BARRIER()` at the two points
+that need ordering does the same job locally and leaves the other sites alone; here
+it took a 98.9% body to 99.8% with every ordering penalty at zero.
+
+Read the requirement per site before reaching for the type change: retyping the head
+is global, the barrier is not.
+
+## `fold` associates a constant with the left operand, so split the operands into statements (Actor02100_Fn01FF0, 2026-09-18)
+
+Written as one expression, `(x << 8) | (x | 0x20000)` does not emit the tree it
+spells. `fold` pulls the constant out of the right operand and into the left one,
+emitting `((x << 8) | 0x20000) | x` - the ROM's two `or`s in the other order, with
+the register assignment that follows from it. Swapping the operands does not help;
+the transformation is on the constant, not on the source order.
+
+Giving each operand its own statement removes the expression `fold` would rewrite:
+
+```c
+shifted = x << 8;
+orTmp   = x | 0x20000;
+work->field.value = shifted | orTmp;
+```
+
+Statement order then decides evaluation order, which is the second half of the
+match: the ROM computed the shift first. One statement per operand recovered both.
+
+## A decompiled switch needs its jump table's rodata cut, even when the table is in the header block (Actor02100_Fn01FF0, 2026-09-18)
+
+Decompiling a function whose jump table lives in the *leading* rodata block - ahead
+of the unit's own rodata subsegment, beside the overlay id and the state-function
+table - grows the overlay by the size of the table. The compiler emits its table
+into the C object's `.rodata`, which the linker script places at the unit's rodata
+offset, while the original bytes are still incbin'd at their own offset.
+
+The fix is the manifest's `rodata` key: move the unit's cut back to the table's
+offset so the C object owns everything from there on. No `units` key is needed when
+the decompiled function is already the first in its unit with a table, because the
+compiler emits tables in function order and the first one lands at object offset 0,
+where its `.align 3` pads nothing. The `.align 3` before the *second* table is the
+word of zeros the disassembly shows between them - evidence that both tables belong
+to one object and that the cut is at the right place.
+
+Symptom to recognise: the overlay is exactly one padded jump table too long, the
+function itself diffs clean, and `RODATA_SIZE` in the `.elf.map` exceeds the offset
+where `.text` starts in the manifest's `shared` span.

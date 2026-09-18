@@ -2,6 +2,7 @@
 #define ACTOR_102100_H
 
 #include "common.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -64,6 +65,40 @@ typedef struct Actor02100Screen {
     /* 0x4 */ s32     sz;
 } Actor02100Screen;
 STATIC_ASSERT_SIZEOF(Actor02100Screen, 8);
+
+/// 0x28-byte scratch `Actor02100_Fn01FF0` takes from `G_SCRATCH_HEAD` while it
+/// re-aims the actor. `shortVec` is the local offset fed to the GTE,
+/// `transformed` that offset rotated by the coordinate's matrix and translated
+/// by its position, and `delta` the same point mapped back into the
+/// coordinate's own frame; the difference between `delta` and the stored target
+/// position is what `Gp_OrientAlong` turns into the actor's facing matrix.
+typedef struct Actor02100Fn01FF0Scratch {
+    /* 0x00 */ VECTOR  transformed;
+    /* 0x10 */ VECTOR  delta;
+    /* 0x20 */ SVECTOR shortVec;
+} Actor02100Fn01FF0Scratch;
+STATIC_ASSERT_SIZEOF(Actor02100Fn01FF0Scratch, 0x28);
+
+/// 0x48-byte block `Actor02100_Fn01FF0` reserves on entry and releases on
+/// return. Only `shortVec` is read - it is the spawn offset passed to the two
+/// effects state 2 emits; the leading bytes are never touched, and the helpers
+/// the function inlines allocate their own scratch below this block.
+typedef struct Actor02100Fn01FF0Block {
+    /* 0x00 */ byte    pad_0[0x40];
+    /* 0x40 */ SVECTOR shortVec;
+} Actor02100Fn01FF0Block;
+STATIC_ASSERT_SIZEOF(Actor02100Fn01FF0Block, 0x48);
+
+/// Entry of `Actor02100_D03D88`, selected by `Actor02100Work::field_178`. Both
+/// fields bound the per-state frame counter `field_17A`: state 0 advances to
+/// state 1 once the counter reaches `field_0`, and state 6 returns to state 0
+/// once it reaches `field_2`. The remaining bytes are not read here.
+typedef struct Actor02100Fn01FF0Timing {
+    /* 0x0 */ s16  field_0;
+    /* 0x2 */ s16  field_2;
+    /* 0x4 */ byte pad_4[0xC];
+} Actor02100Fn01FF0Timing;
+STATIC_ASSERT_SIZEOF(Actor02100Fn01FF0Timing, 0x10);
 
 struct Actor02100;
 
@@ -152,6 +187,10 @@ typedef struct {
     Actor02100StateFunc funcs[3];
 } Actor02100StateFuncTable3;
 
+extern u32 Gp_LcgState;
+
+extern GpU16Pair                 Actor02100_D03D64;
+extern Actor02100Fn01FF0Timing   Actor02100_D03D88[];
 extern s16                       Actor02100_D03E00[];
 extern s16                       Actor02100_D03E2C[];
 extern Actor02100StateFuncTable3 Actor02100_D00004;
