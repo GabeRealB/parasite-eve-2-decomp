@@ -129621,3 +129621,50 @@ entry and the argument handed to the enqueue call, where the ROM has `or s1,v0,v
 one path and `or s1,s2,v0` on the other — the fix is in the C, not the allocator. The
 ROM's register assignment is evidence about how many variables the original source
 had. Splitting the two uses into two locals reproduced both forms.
+
+## A run of stores that is copied elsewhere tells you how many C variables held it (Actor02100_Fn00048, 2026-09-18)
+
+When code computes several values, stores them to consecutive struct fields, and
+later copies that whole run to another field group, the *copies* say how the
+values were held in C. CSE records "this memory cell equals that register" at
+each store and drops the entry when the register is written again, so whether a
+copy reloads with `lh`/`lhu` or reuses a register is decided entirely by how
+many C variables the producing code used.
+
+```
+sra   v0,a3,0xc
+sh    v0,0x118(s5)      /* first result  */
+...
+sh    v0,0x11a(s5)      /* second result */
+...
+sh    v0,0x11c(s5)      /* third result  */
+lhu   v0,0x118(s5)      /* reloaded      */
+sh    v0,0x138(s5)
+lhu   v1,0x11a(s5)      /* reloaded      */
+sh    v1,0x13a(s5)
+move  a2,v0             /* third value kept in a register, preserved */
+sh    a2,0x13c(s5)
+```
+
+Reloads for every cell but the last mean **one** variable was reused for all
+three results: each reassignment killed the previous equivalence, so only the
+final value is still live when the copies are written. It also explains the
+otherwise puzzling `move` — the surviving register has to be preserved across
+whatever reuses it next.
+
+Read the pattern off the target before writing the C:
+
+* every copy reloads → the values went straight into memory, or the variables
+  died before the copy run;
+* no copy reloads → a distinct variable per value, all still live;
+* all but the last reload → one variable reused, which is the case above;
+* a middle one reuses a register → the variable that produced it was not
+  overwritten afterwards, so that value has its own variable.
+
+Write the last copy as the plain field-to-field assignment
+(`dst->c = src->c;`) and let CSE fold the load into the register; spelling it
+`dst->c = (s16)var;` produces the same value but a different pseudo and costs
+the match. Getting this one decision right moved a long-stuck function from
+97.6% to 99.8% and turned its `reorder` penalty to zero; every statement-order
+experiment before it was noise, because the wrong variable count had made the
+whole block's dependence graph wrong.
