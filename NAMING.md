@@ -350,6 +350,27 @@ HP" invites confirming that rather than establishing it independently. The
 failure is quiet: a plausible but wrong claim gets copied into a better-formatted
 comment and now looks freshly verified.
 
+### As general as the subject allows
+
+A comment states what something is and why it exists. Keep it at that level, and
+reach for a specific only where the specific is what makes the thing
+understandable.
+
+Naming the mechanism is the usual way this goes wrong. "Frames left before the
+body is released" says what the field is; "counted down by
+`Task_CountdownCallback`" adds the name of the function that happens to do it,
+which the reader can find and which changes if the code is reorganised. The same
+comment is better without it.
+
+Specifics earn their place when the meaning is otherwise unavailable. A small
+set of values has to be enumerated, because nothing else tells you what a 2
+means — `Body kind (0 none, 1 TMD model, 2 2D display)`. A cross-reference earns
+its place when the other symbol *is* the explanation rather than merely a user
+of this one.
+
+The test: if the sentence would still be true and still be useful after a
+neighbouring function is renamed or moved, it is at the right altitude.
+
 ### What not to write
 
 How a meaning was originally worked out is scaffolding, not documentation. It

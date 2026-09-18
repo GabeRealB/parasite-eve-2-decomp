@@ -153,7 +153,18 @@ Everything below is specified in NAMING.md; read it if anything here is unclear.
    lowerCamelCase, no separators, opening with the owning module or package. A
    leading g marks a global, a leading _ marks something private to its
    translation unit, PascalCase is reserved for types.
-3. Document it. What it is and why, never how you worked it out. Mentions of
+3. Document it. What it is and why, never how you worked it out.
+
+   **As general as the subject allows, and only as specific as it needs.**
+   Naming the mechanism is the usual mistake: "frames left before the body is
+   released" is the field; "counted down by \`Task_CountdownCallback\`" adds a
+   function name the reader can find and that will not survive a
+   reorganisation. A specific earns its place when the meaning is otherwise
+   unavailable - a small set of values has to be enumerated, because nothing
+   else says what a 2 means. The test: would the sentence still be true and
+   still be useful if a neighbouring function were renamed?
+
+   Mentions of
    the old name in comments elsewhere are rewritten by rename_item.py; check
    that what they now say is still true, since a renamed mention can leave a
    sentence describing the old idea. Functions and

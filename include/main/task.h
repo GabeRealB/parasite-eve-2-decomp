@@ -116,19 +116,19 @@ typedef struct Task {
     struct Task* firstChild;    // Head of the child ring; NULL when childless
     struct Task* nextSibling;   // Next child in that ring; the task itself when it is an only child
     TaskFunc     callback;      // Per-frame entry point, called by the exec passes
-    TaskFunc     exitCallback;  // Runs as the task is torn down; spawned tasks get `Task_Kill`
+    TaskFunc     exitCallback;  // Runs as the task is torn down
     void*        work;          // The per-task work block, allocated by the spawner and freed on kill
     void*        spawnArg2;     // Second spawn argument; its meaning is the spawned type's
     void*        field_24;      // The task's `GpMsgEntry` id/handler table, walked by `Gp_DispatchMsg`
     u8           spawnType;     // Body kind (0 none, 1 TMD model, 2 2D display); 0xFF marks a task to collect
-    u8           priority;      // List position, lower runs earlier; also the bucket the filtered passes select by
-    s16          killCountdown; // Frames left before the body is released, counted down by `Task_CountdownCallback`
+    u8           priority;      // List position; lower runs earlier, and selects which pass picks the task up
+    s16          killCountdown; // Frames left before the body is released
     void*        extra;         // The body the task owns, attached and released according to `spawnType`
-    s32          state;         // Task state; handlers dispatch through `funcs[state]` of a copied `TaskFuncTableN`
+    s32          state;         // Index a handler dispatches on to pick its per-state function
     s32          spawnArg1;     // First spawn argument; its meaning is the spawned type's
-    u8           flags;         // Flag byte; `Task_RequestKill` writes 0xFF here and `Task_PollKill` consumes it
+    u8           flags;         // Set to 0xFF to request a kill, cleared when the request is taken
     byte         unknown_39[3];
-    s32          extraState;    // Kill-request payload, set by `Task_RequestKill` and returned by `Task_PollKill`
+    s32          extraState;    // Payload carried alongside a kill request
     byte         unknown_40[8];
 } Task;
 STATIC_ASSERT_SIZEOF(Task, 0x48);
