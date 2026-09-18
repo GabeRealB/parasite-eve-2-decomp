@@ -546,7 +546,43 @@ void Actor00400_Fn08DFC(Actor100400* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn08E50);
+void Actor00400_Fn08E50(Actor100400* arg0)
+{
+    Actor100400Ctx*  ctx;
+    Actor100400Work* work;
+    GsCOORDINATE2*   coord;
+    VECTOR           scale;
+    SVECTOR          pos;
+
+    work  = arg0->field_1C;
+    ctx   = arg0->field_2C;
+    coord = ctx->field_8;
+
+    work->field_648 -= 7;
+    if (work->field_648 < 0) {
+        work->field_648 = 0;
+    }
+    work->field_61E -= 0x40;
+    scale.vx         = 0x1000;
+    scale.vy         = work->field_61E;
+    scale.vz         = 0x1000;
+    coord->coord     = work->field_5BC;
+    ScaleMatrix(&coord->coord, &scale);
+    coord->flg = 0;
+    if (++work->field_636 == 4) {
+        pos.vx = 0;
+        pos.vy = 0;
+        pos.vz = 0;
+        Gp_SpawnEff(0x600A5, coord, 4, &pos);
+    }
+    if (work->field_636 == 0x10) {
+        Gp_SetLightMode(arg0->field_20, 2);
+    }
+    if (work->field_636 >= 0x21) {
+        ctx->field_C |= 0x80;
+        work->field_638++;
+    }
+}
 
 void Actor00400_Fn08FB0(Actor100400* arg0)
 {
