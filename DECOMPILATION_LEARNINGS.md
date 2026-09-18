@@ -128513,3 +128513,45 @@ A ternary is the same RTL as the `if`/`else` and matches identically — the
 deciding property is that both adds are emitted *inside the arms*, not the
 statement syntax. Evidence:
 `tools/permuter_findings/func_actor_120500_80132028/`.
+
+## Duplicated `switch` arms want their *own* locals: a shared pointer temp loses the callee-saved register (Actor03800_Fn003B8, 2026-09-18)
+
+`Actor03800_Fn003B8` dispatches on a spawn variant, and two of its four arms are
+the same 90-instruction body apart from two constants. Each arm needs two
+matrix-pointer temps: `&work->coord.coord`, which the identity splat writes
+through and `gte_SetRotMatrix` / `gte_stclmv` read back *after* a `RotMatrix`
+call, and `&src->coord`, which dies immediately.
+
+Writing the body twice with **one** pair of C locals shared by both arms matched
+every instruction — `blocks=18/18 instructions=367/367`, `branch = insert =
+delete = 0` — and still scored 93.99% on registers alone: the long-lived pointer
+landed in `$s2` and `work` in `$s1`, where the ROM has `$s0` and `$s2`.
+
+The cause is `global.c`'s priority, `floor_log2(n_refs) * n_refs /
+live_length`, not `local_alloc`'s. The two arms are mutually exclusive, so a
+variable named in both is still **one** allocno, and `live_length` sums both
+ranges while `n_refs` only doubles — the ratio moves the wrong way, and the
+pointer sinks below `work` (live across the whole function, but with enough
+refs to stay ahead). Declaring a separate pointer per arm halves each
+`live_length`, lifts both above `work`, and the function matches 100%
+unchanged otherwise.
+
+Variants worth knowing apart, since their leftovers look similar:
+
+| shared-temp shape | score | symptom |
+|---|---|---|
+| one temp per *value*, shared across both arms | 93.99% | `$s0`/`$s2` permuted with `work` |
+| one temp for *both* values (reassigned) | 94.71% | value computed into `$a3`, then an extra `move $s1, $a3` |
+| one temp per value **per arm** | 100% | — |
+
+The middle row is the giveaway for the second failure mode: a single C variable
+holding two unrelated addresses is one allocno with two disjoint ranges, and
+`local_alloc` splits it back out as a register copy rather than allocating the
+call-crossing half directly.
+
+This is the cross-block counterpart of "A named index temp can *win* the
+register allocation by shortening a live range". That entry is about
+`local_alloc` ordering two quantities inside one block; this one is about
+`global.c` ranking an allocno that spans arms. When duplicated `case` bodies
+match instruction-for-instruction but permute `$sN`, split the locals per arm
+before looking at the schedule.

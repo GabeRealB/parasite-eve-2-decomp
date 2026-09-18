@@ -9,6 +9,7 @@
 #include "main/mem.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+#include <psyq/inline_c.h>
 
 void Actor03800_Fn00974(Actor103800* arg0);
 void Actor03800_Fn00A98(Actor103800* arg0);
@@ -28,6 +29,8 @@ void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
+
+#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
 
 extern u8  D_801153F2;
 extern u8  D_801153F4;
@@ -133,7 +136,163 @@ void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
     arg1->state     = 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_103800_init", Actor03800_Fn003B8);
+/// Applies the spawn variant (`GpAreaPlace::field_2`) to the freshly allocated
+/// work block: the tens digit picks the mode (`field_350`) and the units digit
+/// of mode 0 the idle pose, seeding the look-around countdown from the LCG.
+/// Modes 1 and 2 instead detach the model: the work block's own coordinate is
+/// seeded from the model's, parented to `Gfx_ViewCoord` and published on
+/// `field_344`, while the model's coordinate is reset to an identity rotation
+/// at the origin and re-parented under it. `Gp_MulMatrix0`-style GTE column
+/// products then turn the detached coordinate by 0x400 / 0x800 about X.
+void Actor03800_Fn003B8(Task* arg0)
+{
+    Actor103800Work*     work;
+    Actor103800Ctx*      ctx;
+    GsCOORDINATE2*       src;
+    Actor103800MatWords* mtx;
+    Actor103800MatWords* srcmtx;
+    Actor103800MatWords* mtx2;
+    Actor103800MatWords* srcmtx2;
+    SVECTOR              rot;
+    MATRIX               mat;
+    s16                  mode;
+    s16                  kind;
+
+    ctx  = (Actor103800Ctx*)arg0->spawnArg2;
+    work = (Actor103800Work*)arg0->idMap;
+    src  = ((Actor103800Obj2C*)arg0->extra)->field_8;
+    mode = ctx->field_3C->field_2 / 10;
+
+    work->field_350 = mode;
+    switch (mode) {
+        case 0:
+            kind            = ctx->field_3C->field_2 % 10;
+            work->field_352 = kind;
+            switch (kind) {
+                case 0:
+                    work->field_348 = 1;
+                    work->field_37A = 0;
+                    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                    work->field_356 = (((u32)Gp_LcgState >> 0x10) & 0xFF) + 0x5A;
+                    break;
+                case 1:
+                    work->field_348 = 2;
+                    work->field_356 = 0;
+                    work->field_37A = 1;
+                    break;
+            }
+            work->field_366 = 0x80;
+            work->field_372 = 0x80;
+            work->field_344 = ((Actor103800Obj2C*)arg0->extra)->field_8;
+            break;
+        case 1:
+            work->field_352 = 8;
+            work->field_372 = -1;
+            work->field_366 = 0;
+            work->field_344 = &work->coord;
+            work->field_36E = 1;
+            work->field_37A = 0;
+            work->field_2CC = src->coord;
+
+            mtx                = (Actor103800MatWords*)&work->coord.coord;
+            mtx->ident.m00_m01 = 0x1000;
+            mtx->ident.m02_m10 = 0;
+            mtx->ident.m11_m12 = 0x1000;
+            mtx->ident.m20_m21 = 0;
+            mtx->ident.m22     = 0x1000;
+
+            work->coord.sub        = &Gfx_ViewCoord;
+            work->coord.coord      = src->coord;
+            work->coord.coord.t[0] = src->coord.t[0];
+            work->coord.coord.t[1] = src->coord.t[1];
+            work->coord.coord.t[2] = src->coord.t[2];
+
+            srcmtx                = (Actor103800MatWords*)&src->coord;
+            srcmtx->ident.m00_m01 = 0x1000;
+            srcmtx->ident.m02_m10 = 0;
+            srcmtx->ident.m11_m12 = 0x1000;
+            srcmtx->ident.m20_m21 = 0;
+            srcmtx->ident.m22     = 0x1000;
+
+            src->sub        = &work->coord;
+            src->coord.t[0] = 0;
+            src->coord.t[1] = 0;
+            src->coord.t[2] = 0;
+
+            rot.vx = 0x400;
+            rot.vy = 0;
+            rot.vz = 0;
+            RotMatrix(&rot, &mat);
+
+            gte_SetRotMatrix(&work->coord.coord);
+            gte_ldclmv(&mat.m[0][0]);
+            gte_rtir_real();
+            gte_stclmv(&work->coord.coord.m[0][0]);
+            gte_ldclmv(&mat.m[0][1]);
+            gte_rtir_real();
+            gte_stclmv(&work->coord.coord.m[0][1]);
+            gte_ldclmv(&mat.m[0][2]);
+            gte_rtir_real();
+            gte_stclmv(&work->coord.coord.m[0][2]);
+            break;
+        case 2:
+            work->field_352 = 9;
+            work->field_372 = -1;
+            work->field_366 = 0;
+            work->field_344 = &work->coord;
+            work->field_36E = 1;
+            work->field_37A = 0;
+            work->field_2CC = src->coord;
+
+            mtx2                = (Actor103800MatWords*)&work->coord.coord;
+            mtx2->ident.m00_m01 = 0x1000;
+            mtx2->ident.m02_m10 = 0;
+            mtx2->ident.m11_m12 = 0x1000;
+            mtx2->ident.m20_m21 = 0;
+            mtx2->ident.m22     = 0x1000;
+
+            work->coord.sub        = &Gfx_ViewCoord;
+            work->coord.coord      = src->coord;
+            work->coord.coord.t[0] = src->coord.t[0];
+            work->coord.coord.t[1] = src->coord.t[1];
+            work->coord.coord.t[2] = src->coord.t[2];
+
+            srcmtx2                = (Actor103800MatWords*)&src->coord;
+            srcmtx2->ident.m00_m01 = 0x1000;
+            srcmtx2->ident.m02_m10 = 0;
+            srcmtx2->ident.m11_m12 = 0x1000;
+            srcmtx2->ident.m20_m21 = 0;
+            srcmtx2->ident.m22     = 0x1000;
+
+            src->sub        = &work->coord;
+            src->coord.t[0] = 0;
+            src->coord.t[1] = 0;
+            src->coord.t[2] = 0;
+
+            rot.vx = 0x800;
+            rot.vy = 0;
+            rot.vz = 0;
+            RotMatrix(&rot, &mat);
+
+            gte_SetRotMatrix(&work->coord.coord);
+            gte_ldclmv(&mat.m[0][0]);
+            gte_rtir_real();
+            gte_stclmv(&work->coord.coord.m[0][0]);
+            gte_ldclmv(&mat.m[0][1]);
+            gte_rtir_real();
+            gte_stclmv(&work->coord.coord.m[0][1]);
+            gte_ldclmv(&mat.m[0][2]);
+            gte_rtir_real();
+            gte_stclmv(&work->coord.coord.m[0][2]);
+            break;
+        case 3:
+            work->field_352 = 0xB;
+            work->field_366 = 0;
+            work->field_372 = -1;
+            work->field_344 = ((Actor103800Obj2C*)arg0->extra)->field_8;
+            break;
+    }
+}
 
 void Actor03800_Fn00974(Actor103800* arg0)
 {

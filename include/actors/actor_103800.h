@@ -25,6 +25,21 @@ typedef struct Actor103800Obj2C {
     /* 0x20 */ MATRIX*        field_20;
 } Actor103800Obj2C;
 
+/// A `MATRIX` plus the word-wise view `Actor03800_Fn003B8` splats an identity
+/// rotation through: five aligned stores rather than nine halfword ones (the
+/// same idiom as `Actor342000MatWords`).
+typedef union Actor103800MatWords {
+    MATRIX mat;
+    struct {
+        /* 0x00 */ s32 m00_m01;
+        /* 0x04 */ s32 m02_m10;
+        /* 0x08 */ s32 m11_m12;
+        /* 0x0C */ s32 m20_m21;
+        /* 0x10 */ s16 m22;
+    } ident;
+} Actor103800MatWords;
+STATIC_ASSERT_SIZEOF(Actor103800MatWords, 0x20);
+
 typedef struct Actor103800Work {
     /* 0x000 */ GpAnimCtx      anim;
     /* 0x014 */ GpAnimSlot     slots[6];
@@ -71,9 +86,13 @@ typedef struct Actor103800Work {
     /* 0x2EC */ s16            field_2EC;
     /* 0x2EE */ s16            field_2EE;
     /* 0x2F0 */ s16            field_2F0;
-    /* 0x2F2 */ byte           pad_2F2[0x1A];
-    /* 0x30C */ VECTOR3        field_30C;
-    /* 0x318 */ byte           pad_318[0x2C];
+    /* 0x2F2 */ byte           pad_2F2[2];
+    /// Coordinate node `Actor03800_Fn003B8` publishes on `field_344` for the
+    /// detached modes (spawn kinds 1 and 2): it is seeded from the model's own
+    /// `Actor103800Obj2C::field_8`, parented to `Gfx_ViewCoord` and then turned
+    /// by 0x400 / 0x800 about X. `coord.coord.t` is the saved world translation
+    /// the idle and detach ticks restore after rebuilding the rotation.
+    /* 0x2F4 */ GsCOORDINATE2  coord;
     /* 0x344 */ GsCOORDINATE2* field_344;
     /* 0x348 */ u16            field_348;
     /* 0x34A */ s16            field_34A;
@@ -111,12 +130,15 @@ typedef struct Actor103800Ctx {
     /* 0x08 */ u16             field_8;
     /* 0x0A */ byte            pad_A[6];
     /* 0x10 */ Actor103800Node node;
-    /* 0x18 */ byte            pad_18[0x28];
-    /* 0x40 */ s16             field_40;
-    /* 0x42 */ byte            pad_42[0xA];
-    /* 0x4C */ u8              field_4C;
-    /* 0x4D */ byte            pad_4D[7];
-    /* 0x54 */ s32             field_54;
+    /* 0x18 */ byte            pad_18[0x24];
+    /// `GpAreaPlace*` placement record (`GpEnemy::field_3C`); `field_2` is the
+    /// spawn variant `Actor03800_Fn003B8` splits into `field_350` / `field_352`.
+    /* 0x3C */ GpAreaPlace* field_3C;
+    /* 0x40 */ s16          field_40;
+    /* 0x42 */ byte         pad_42[0xA];
+    /* 0x4C */ u8           field_4C;
+    /* 0x4D */ byte         pad_4D[7];
+    /* 0x54 */ s32          field_54;
 } Actor103800Ctx;
 STATIC_ASSERT_SIZEOF(Actor103800Ctx, 0x58);
 

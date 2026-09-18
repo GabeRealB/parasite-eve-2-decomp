@@ -434,9 +434,9 @@ void Actor03800_Fn01C50(Actor103800* arg0)
             gte_stclmv(&work->field_2CC.m[0][2]);
             coord->sub        = &Gfx_ViewCoord;
             coord->coord      = work->field_2CC;
-            coord->coord.t[0] = work->field_30C.vx;
-            coord->coord.t[1] = work->field_30C.vy;
-            coord->coord.t[2] = work->field_30C.vz;
+            coord->coord.t[0] = work->coord.coord.t[0];
+            coord->coord.t[1] = work->coord.coord.t[1];
+            coord->coord.t[2] = work->coord.coord.t[2];
             coord->flg        = 0;
             Gp_UpdateCoord(coord);
             work->field_356 = 0xF;
