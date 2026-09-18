@@ -14,6 +14,7 @@ extern u8  D_801153F2[2];
 void       Gp_SetObjFlag1(Actor100400Obj* arg0);
 void       Gp_SetObjFlag2(Actor100400Obj* arg0, s32 arg1, s32 arg2);
 void       Gp_SetObjFlag4(Actor100400Obj* arg0, s32 arg1, s32 arg2);
+s32        Gp_TickObjFlag2(Actor100400Obj* arg0);
 s32        Gp_TickObjFlag4(Actor100400Obj* arg0);
 s32        Gp_ObjFlag4Expired(Actor100400Obj* arg0);
 u32        Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3);
@@ -866,7 +867,45 @@ void Actor00400_Fn098A8(Actor100400* arg0)
     work->field_63A = work->field_63A + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn09924);
+void Actor00400_Fn09924(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Work* state;
+    s32              cond;
+    s32              mode;
+
+    work = arg0->field_1C;
+    mode = work->field_642;
+    work->field_636++;
+    if (mode == 1) {
+        state            = arg0->field_1C;
+        state->field_63C = 2;
+        state->field_632 = 0x10;
+        state->field_628 = 0x12;
+        state->field_624 = mode;
+    } else {
+        state = arg0->field_1C;
+        if ((state->flags_62C.half & 1) || (state->flags_62C.word & 0x102)) {
+            cond = 1;
+        } else {
+            cond = 0;
+        }
+        if (cond) {
+            state            = arg0->field_1C;
+            state->field_63C = 8;
+            state->field_632 = 0x10;
+            state->field_628 = 0x10;
+            state->field_624 = 1;
+        }
+    }
+    if (Gp_TickObjFlag2(arg0->field_20) != 0) {
+        work->field_610  = 0;
+        work->field_664  = 4;
+        state            = arg0->field_1C;
+        state->field_638 = 4;
+        state->field_63A = 0;
+    }
+}
 
 void Actor00400_Fn09A1C(Actor100400* arg0)
 {
