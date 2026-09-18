@@ -393,9 +393,15 @@ def _sibling_functions(c_file: Path, func_name: str, limit: int = 4) -> list[str
 
 
 def _struct_field_hits(needles: Iterable[str], limit_lines: int = 36) -> str:
-    catalog = REPO_ROOT / "STRUCT_FIELDS.md"
-    if not catalog.is_file():
-        return ""
+    """Declarations from the headers for the names a function mentions.
+
+    This used to read a hand-written catalogue of field roles. The headers now
+    carry that information, derived from the code and kept current by the naming
+    pass, while the catalogue could only go stale - it was still describing a
+    field as a "byte count" after the real meaning had been established and
+    written down. One source beats two, and a second copy of a field's meaning
+    is something for a reader to anchor on when it is wrong.
+    """
     keys: list[str] = []
     seen: set[str] = set()
     for raw in needles:
@@ -408,20 +414,52 @@ def _struct_field_hits(needles: Iterable[str], limit_lines: int = 36) -> str:
         keys.append(name)
     if not keys:
         return ""
-    pattern = re.compile(r"(?:^#+\s+`?|(?<![A-Za-z0-9_]))(" + "|".join(re.escape(k) for k in keys) + r")(?:`|\b)")
-    lines = _read_text(catalog).splitlines()
+
+    try:
+        out = subprocess.run(
+            ["grep", "-rnw", "--include=*.h"] +
+            [a for k in keys for a in ("-e", k)] + ["include"],
+            cwd=REPO_ROOT, capture_output=True, text=True, timeout=120,
+        ).stdout.splitlines()
+    except Exception:
+        return ""
+
+    def rank(text: str) -> int:
+        """A line that declares the name beats one that merely mentions it."""
+        for k in keys:
+            if re.search(rf"typedef\s+(struct|union|enum)\s+{re.escape(k)}\b", text):
+                return 0
+            if re.search(rf"\}}\s*{re.escape(k)}\s*;", text):
+                return 0
+            if re.search(rf"\b{re.escape(k)}\s*(\[[^\]]*\])?\s*;", text):
+                return 1
+        return 2
+
+    cache: dict[str, list[str]] = {}
     hits: list[str] = []
     used = 0
-    for i, line in enumerate(lines):
-        if not pattern.search(line):
+    rows = sorted(out, key=lambda r: rank(r.split(":", 2)[-1]))
+    for row in rows:
+        try:
+            path, lineno, text = row.split(":", 2)
+        except ValueError:
             continue
-        start = max(0, i)
-        end = min(len(lines), i + 4)
-        chunk = "\n".join(lines[start:end])
+        # A declaration, not prose about one.
+        if not re.search(r"[;{(\[]", text) or text.lstrip().startswith(("///", "//", "*")):
+            continue
+        if path not in cache:
+            cache[path] = _read_text(REPO_ROOT / path).splitlines()
+        lines = cache[path]
+        i = int(lineno) - 1
+        # Carry the doc comment sitting above it.
+        j = i
+        while j > 0 and lines[j - 1].lstrip().startswith(("///", "//")):
+            j -= 1
+        chunk = f"{path}:{lineno}\n" + "\n".join(lines[j:i + 1])
         if chunk in hits:
             continue
         hits.append(chunk)
-        used += end - start
+        used += i + 1 - j + 1
         if used >= limit_lines:
             break
     return "\n--\n".join(hits)
@@ -544,7 +582,7 @@ def pack_context(func_name: str, version: Optional[str] = None) -> str:
         "## Similar matched bodies (candidates to read, not equalities)",
         similar_bodies(loc.name),
         "",
-        "## STRUCT_FIELDS.md hits",
+        "## Declarations for the names this function mentions",
         fields or "(none)",
         "",
         "Search learnings with `python3 tools/learn.py <terms>` (ranks whole sections; "

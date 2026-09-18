@@ -5,7 +5,7 @@ with a per-frame callback, optional parent/child links, and an optional 3D or
 2D body. There is no separate entity list. Enemies, UI, camera, memcard, title,
 and room overlays are all spawned the same way.
 
-Field-level layouts: [`STRUCT_FIELDS.md`](../STRUCT_FIELDS.md) (Task system).
+Field-level layouts: [`include/main/task.h`](../include/main/task.h).
 Overlay RAM slots that many callbacks live in: [`OVERLAYS.md`](OVERLAYS.md).
 Naming: [`NAMING.md`](../NAMING.md) (`Task_` / `TaskDesc`).
 
@@ -317,7 +317,7 @@ These are real actors too; they just skip `Task_DescBanks`.
 ## 7. Work that hangs off a task
 
 The `Task` is the actor. Specific systems stash extra state in the leftover
-slots (see [`STRUCT_FIELDS.md`](../STRUCT_FIELDS.md)):
+slots (see [`include/main/task.h`](../include/main/task.h)):
 
 | Slot | Typical payload |
 |------|-----------------|

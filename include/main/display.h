@@ -16,7 +16,7 @@
 // Types — dual DISPENV/DRAWENV + system flags
 // =============================================================================
 
-/// Dual DISPENV/DRAWENV + system flags. Known fields: see also STRUCT_FIELDS.md.
+/// Dual DISPENV/DRAWENV + system flags.
 typedef struct _DisplayState {
     /* 0x000 */ s32         field_0;
     /* 0x004 */ s32         field_4;

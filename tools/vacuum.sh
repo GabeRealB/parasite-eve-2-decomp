@@ -34,7 +34,7 @@ MATCH_LAND_PATHS=(
   configs
   DECOMPILATION_LEARNINGS.md
   CODEGEN_MODEL.md
-  STRUCT_FIELDS.md
+  include/ headers (field roles are documented at the declaration)
   NAMING.md
 )
 CLI="${VACUUM_CLI:-claude}"
