@@ -41074,7 +41074,9 @@ Audit for the whole tree:
 # sym table defines that address under a different name, they disagree
 ```
 
-`tools/rename_overlay_imports.py` is the pass that fixed the 53.
+A one-off pass fixed the 53; it has since been removed, along with the other
+single-use rename scripts, in favour of `tools/refactor/`. Use `git log` if the
+exact rename list is ever needed.
 
 
 ## A named symbol added to the sym map does not remove the old alias

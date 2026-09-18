@@ -28,7 +28,7 @@ than an invented visual description:
 | Family | Pattern | Dispatched by |
 |---|---|---|
 | Gameplay effect tasks | `Gp_Eff<Kind>Task<ID>` (`Gp_EffSprTask34`) | `Task_Spawn(6, ID, …)` via the bank-6 `TaskDesc` table `D_8010FC2C`; `Gp_SpawnEff(0x6xxxx, …)` passes the same ID. `Kind` is the primitive the body draws: `Spr` (animated textured billboard), `Line`, `Tile`, `Poly` (gouraud tris/quads), `Model`, `Attach`, or `Ctl` when the task only spawns and steps other effects. |
-| Player actor states | `Gp_Player<Mode>State<N>` (`Gp_PlayerNormalState5`) | `GameActor.field_956` indexes `D_8009794C` in mode 0 (`Gp_TickPlayerNormal`) and `Gp_PlayerMode2States` in mode 2; `field_954` picks the mode through `Gp_PlayerModeFns`. |
+| Player actor states | `Gp_Player<Mode>State<N>` (`Gp_PlayerNormalState5`) | `GameActor.field_956` indexes `D_8009794C` in mode 0 (`Gp_TickPlayerNormal`) and `Gp_PlayerMode2States` in mode 2; `field_954` picks the mode through `Gp_PlayerModeFns`, which also has a mode 1 (`Gp_TickPlayerMode1`). `Gp_PlayerWorkStates` is a separate four-entry `Task::state` dispatcher, not a mode. |
 
 A handler shared by several slots takes a behavioural name instead
 (`Gp_EffModelTask` covers bank-6 0x36/0x66/0x67/0x68/0x91).
@@ -76,9 +76,14 @@ A handler shared by several slots takes a behavioural name instead
 | `Tmd_` | TMD model lists / stream | `src/main/tmd.c` | `include/main/tmd.h` |
 | `Stream_` | Stream channel slots | `src/main/stream.c` | `include/main/stream.h` |
 | `Game_` | Main session object | globals | `GameSession`, `Game_Session` |
+| `Player_` | Player character state: position, HP/MP, equipped items | `src/main/wipsyscfg.c` | `include/main/wipsys.h` |
 | `Wip` / `Wip_` | Weak-evidence placeholders | `wipsyscfg.c`, etc. | rename when proven |
 
-`Wip*` types and `Wip_*` globals are provisional: keep them only until a better role name is proven. Prefer replacing a `Wip` name over inventing a second provisional alias.
+`Wip*` types and `Wip_*` globals are provisional: keep them only until a better
+role name is proven, and prefer replacing one over inventing a second
+provisional alias. The file and prefix are historical — the block that gave them
+their name turned out to be the player state and now uses `Player_`, while the
+remaining `Wip_` symbols are unrelated to it and to each other.
 
 Main-executable types live in module headers under `include/main/` (not a kitchen-sink header). Stage/file overlays may use a different `src/` / `include/` layout when decompiled:
 
@@ -86,7 +91,7 @@ Main-executable types live in module headers under `include/main/` (not a kitche
 |---|---|
 | `session.h` | `GameSession`, `GameActor*`, `GBytes*` |
 | `stage.h` | `StageCtx` |
-| `wipsys.h` | `WipSysFlags`, `WipSysConfig` |
+| `wipsys.h` | `PlayerStatus`, `PlayerPos`, `WipSysFlags` |
 | `gfx.h` | `GfxImageSlot` |
 | `sound.h` / `ui.h` / `text.h` / `display.h` / … | subsystem types |
 
@@ -121,23 +126,48 @@ Category tables:
 
 ## What not to do
 
-- Do **not** invent names for unanalyzed `GStructN` / `func_800*` just to “clean up.”
-- Prefer **one rename PR/commit per subsystem** so `sym.main.txt` + `.s` basenames stay consistent.
-- When renaming a `glabel`, also rename `asm/.../nonmatchings|matchings/.../<name>.s` and update `INCLUDE_ASM`.
-- Use **whole-token** renames so `GStruct3` does not clobber `UiPanel`.
+- Do **not** invent names for unanalyzed `func_800*` / `D_800*` just to “clean up.”
+  Record the evidence for a field whose role is unproven and leave the name alone.
+- Prefer **one rename commit per subsystem**, so the sources and the symbol maps
+  move together and a regression is easy to attribute.
+- Renaming in a symbol map is enough for a **matched** function: the unit
+  re-splits and the generated `.s` files are renamed and pruned automatically.
+  An **unmatched** one also needs its `INCLUDE_ASM` argument updated, because
+  that name is written in the C file and nothing regenerates it.
+- A name that resolves to a matched body is not the same as one that resolves to
+  an address. Before trusting an address, check whether it is unique — images
+  that load at a shared base give one address several meanings.
 
 ## Tooling
 
-Bulk renames live in:
+Finding references and renaming go through `tools/refactor/`, which resolves
+symbols with libclang and the compilation database instead of matching text:
 
-- `tools/rename_fs_syms.py` — FS / CD / boot
-- `tools/rename_task_mc_pad_syms.py` — Task / Pad / Mc / Display
-- `tools/rename_cdstream_syms.py` — CdStream / CdReady / MtsSector types + APIs
-- `tools/rename_snd_font_syms.py` — Snd / Spu / AsyncCb / Font / TextStream / Prim / GameOt
-- `tools/rename_sndscript_midi_syms.py` — SndScript / SndVoice / Midi / LinInterp / dialog UI types
-- `tools/rename_evtuipanel_tmd_syms.py` — SndEvt / UiPanel / Tmd / TaskIdMap / GameSession
-- `tools/rename_cdaudio_tick_syms.py` — CdAudio / AudioTick / SpuVoiceRange / StreamSlot / StageCtx
-- `tools/rename_remaining_wip_syms.py` — last GStruct leftovers (+ Wip* provisional names)
-- `tools/rename_naming_pass.py` — leftover F-prefix splat names + typed FS/GPU/SPU globals
+- `find_references.py <spec>` — every reference, each classified as read,
+  write, read-write, address-of, call, declaration or definition. `--asm` adds
+  assembly references and reports whether the symbol's address is unique or
+  shared between images.
+- `rename_item.py <spec> <newName>` — rewrites the declaration and every
+  reference at the exact locations the parser reports. `--dry-run` shows the
+  plan; `--sidecars` also rewrites the symbol maps and linker scripts, which
+  belong to no translation unit.
 
-Idempotent only if old names are already gone. Extend the map rather than hand-editing hundreds of `.s` files.
+A spec is a source path with the symbol appended:
+
+```
+<header>/<Type>::<member>      <source>/<function>::<param>
+<header>/<Type>               <source>/<name>
+<header>                       (renames the header and every include of it)
+```
+
+Both tools take `--version` (default `USA`).
+
+Why a parser and not a search-and-replace: hundreds of unrelated types here
+declare a member of the same placeholder name, and one function may declare the
+same identifier in several nested blocks with different types. Only the resolved
+declaration distinguishes them, so text substitution silently edits the wrong
+struct.
+
+**A symbol that is still `INCLUDE_ASM` cannot be renamed this way.** It has no C
+declaration, so there is nothing for the parser to resolve. Rename it in the
+symbol map, update the `INCLUDE_ASM` argument, and re-split.
