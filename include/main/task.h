@@ -9,8 +9,13 @@
 
 struct Task;
 
-/// Callback function in a `_Task`.
-typedef void (*TaskFunc)(struct Task*);
+/// A function the task system calls with the task that owns the slot.
+///
+/// Both the per-frame step and the teardown are one of these (`Task::callback`
+/// and `Task::exitCallback`), as are the per-state handlers a dispatcher picks
+/// out by `Task::state`. The task is the only argument: whatever a body needs
+/// it reaches through that, in `Task::work`, `Task::extra` or `Task::spawnArg2`.
+typedef void (*TaskFunc)(struct Task* task);
 
 /// Fixed-size table of `TaskFunc` callbacks. Copied onto the stack by state
 /// dispatchers (e.g. `GameFlow_DispatchTable`) so the call uses a local jump table.

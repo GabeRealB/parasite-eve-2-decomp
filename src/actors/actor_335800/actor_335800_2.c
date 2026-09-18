@@ -332,14 +332,14 @@ void func_actor_335800_80162640(Task* arg0)
     arg0->state       += 1;
 }
 
-void func_actor_335800_80162FF4(void);
+void func_actor_335800_80162FF4(Task* arg0);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 void func_actor_335800_80162844(Task* task)
 {
     TmdObject*           ext      = task->extra;
     Actor335800MainWork* work     = (Actor335800MainWork*)task->work;
-    TaskFunc             funcs[2] = { (TaskFunc)func_actor_335800_80162FF4, ActorsShared801327f8 };
+    TaskFunc             funcs[2] = { func_actor_335800_80162FF4, ActorsShared801327f8 };
     VECTOR3              pos;
     GsCOORDINATE2*       coord;
     GpAnimRec*           rec;

@@ -109,7 +109,7 @@ void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 /// The empty handler that fills entry 0 of the parent's per-frame handler pair
 /// `{func_actor_135600_80132DF8, ActorsShared801327f8}`, selected by
 /// `Actor135600Work::field_4F8`. Defined in `actor_135600_3.c`.
-void func_actor_135600_80132DF8(void);
+void func_actor_135600_80132DF8(Task* arg0);
 
 /// Per-frame tick handler (state 1) of `D_actor_135600_80131E24`, the body
 /// `func_actor_120400_80132050` and `func_actor_350700_80162D5C` also run.

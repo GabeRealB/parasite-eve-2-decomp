@@ -154,7 +154,7 @@ void func_actor_350700_80162494(Task* arg0);
 /// The empty first entry of the parent's two-handler table, selected by
 /// `Actor350700MainWork::field_4F8` -- the no-op half of the pair whose other
 /// entry is the shared `ActorsShared801327f8`.
-void func_actor_350700_801633F8(void);
+void func_actor_350700_801633F8(Task* arg0);
 
 void func_actor_350700_801624B4(Task* arg0);
 

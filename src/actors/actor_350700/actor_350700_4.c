@@ -4,6 +4,6 @@
 #include "main/tmd.h"
 #include "gameplay/1BC.h"
 
-void func_actor_350700_801633F8(void)
+void func_actor_350700_801633F8(Task* arg0)
 {
 }

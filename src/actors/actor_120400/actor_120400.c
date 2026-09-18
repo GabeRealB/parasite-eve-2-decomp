@@ -126,7 +126,7 @@ void func_actor_120400_80132050(Task* arg0)
 {
     TmdObject*           ext      = arg0->extra;
     Actor120400MainWork* work     = (Actor120400MainWork*)arg0->work;
-    TaskFunc             funcs[2] = { (TaskFunc)func_actor_120400_801327F0, ActorsShared801327f8 };
+    TaskFunc             funcs[2] = { func_actor_120400_801327F0, ActorsShared801327f8 };
     VECTOR3              pos;
     GsCOORDINATE2*       coord;
     s32                  i;

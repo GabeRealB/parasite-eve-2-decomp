@@ -286,7 +286,7 @@ void      func_actor_503500_80145C50(Actor503500* arg0);
 void      func_actor_503500_80145E98(Task* arg0);
 void      func_actor_503500_80145F18(Actor503500* arg0);
 void      func_actor_503500_8014618C(Task* arg0);
-void      func_actor_503500_80146524(void);
+void      func_actor_503500_80146524(Task* arg0);
 /// Reports whether the boss-wide gate is open; the body ignores its
 /// argument, and callers pass unrelated pointers they already hold.
 s32       func_actor_503500_8013608C(void* arg0);
@@ -788,7 +788,7 @@ void func_actor_503500_80145FDC(Actor503500* task)
     VECTOR                pos;
     TmdObject*            ext      = task->extra;
     Actor503500Effect4CC* work     = (Actor503500Effect4CC*)task->field_1C;
-    TaskFunc              funcs[2] = { (TaskFunc)func_actor_503500_80146524, func_actor_503500_8014618C };
+    TaskFunc              funcs[2] = { func_actor_503500_80146524, func_actor_503500_8014618C };
     GsCOORDINATE2*        coord;
     s32                   i;
 

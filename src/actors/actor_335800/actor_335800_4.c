@@ -162,7 +162,7 @@ s32 func_actor_335800_8016354C(Task* arg0, s32 arg1, Actor335800Msg* arg2, s32 a
 }
 
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
-void func_actor_335800_80163B70(void);
+void func_actor_335800_80163B70(Task* arg0);
 void func_actor_335800_80163B78(Task* arg0);
 
 /// Per-frame tick of the child block: runs the motion handler `field_4C0`
@@ -174,7 +174,7 @@ void func_actor_335800_80163568(Task* task)
 {
     TmdObject*       ext      = task->extra;
     Actor335800Work* work     = (Actor335800Work*)task->work;
-    TaskFunc         funcs[2] = { (TaskFunc)func_actor_335800_80163B70, func_actor_335800_80163B78 };
+    TaskFunc         funcs[2] = { func_actor_335800_80163B70, func_actor_335800_80163B78 };
     VECTOR3          pos;
     GsCOORDINATE2*   coord;
     s32              i;
@@ -366,7 +366,7 @@ void func_actor_335800_80163B54(Task* arg0)
     ext->field_20 = &work->color;
 }
 
-void func_actor_335800_80163B70(void)
+void func_actor_335800_80163B70(Task* arg0)
 {
 }
 

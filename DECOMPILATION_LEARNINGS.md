@@ -47287,7 +47287,7 @@ void func_dryfield_motel_balcony_8017DBD0(Task* task)
 
 const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC = {
     func_dryfield_motel_balcony_8017DB84,
-    (TaskFunc)func_dryfield_motel_balcony_8017DBC8,
+    func_dryfield_motel_balcony_8017DBC8,
     Task_Kill,
 };
 ```
@@ -130567,3 +130567,35 @@ evidence about the value's *source* rather than the destination: off a pointer
 of another type it is the parameter that does not fit, off an integer it is the
 caller's field that is declared as one. The fix for the second case belongs to
 the item that owns the field, not to the step processing the function.
+
+## A callback cast at a slot store marks a per-overlay view of `Task`
+
+`TaskFunc` is `void (*)(struct Task*)` and that is the whole of it: the exec
+passes call `Task::callback` and `Task::exitCallback` with the task, and every
+state dispatcher indexes its local copy of a table and calls it with the same
+`Task*`. So a `(TaskFunc)` cast in front of a named function is never a fact
+about `TaskFunc` — it is the callee's declared parameter failing to be the task,
+which the slot's own type already said from the assembly side.
+
+The tree's casts come in two shapes, and they belong to different steps:
+
+- **`void f(void)`.** An empty state stub whose body ignores the argument, with
+  the sibling entry of the same table usually already declared `Task*`. Adding
+  the parameter emits nothing — an unused parameter costs nothing, as the
+  bare-stub entry above records — so the cast simply goes, and the stub then
+  reads like the entry next to it. This one belongs to the step processing the
+  callback type, because the table is the only thing that marks the stub as a
+  task callback at all.
+- **A view of `Task`.** `Mm1StateFn` and the `ActorNNNN` windows take the task
+  as their parameter but spell it as a struct that is a `pad_0[…]` plus the
+  slots that overlay reaches. Under a slot's call they receive a `Task*`, so
+  the cast is the only sign the declared type is not the object passed. Folding
+  one into `Task` rewrites every use in its overlay, which makes it the view
+  type's own step: these casts are how that step finds its windows, and the
+  thing it changes is the parameter, not the cast.
+
+How much of `Task` a window names varies: `Mm1Task`'s is one field
+(`pad_0[0x30]` then `Task::state`), `Actor107600`'s two (`pad_0[0x1C]` then the
+work slot), and `Actor503500`'s the whole layout with three slots retyped. The
+smaller the window, the fewer the uses, and the closer its step is to just
+deleting it and letting `Task` and its own work type say the same thing.

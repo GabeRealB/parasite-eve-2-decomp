@@ -36,7 +36,7 @@ void func_actor_141000_801339DC(Task* arg0)
     ext->field_20 = &work->color;
 }
 
-void func_actor_141000_801339F8(void)
+void func_actor_141000_801339F8(Task* arg0)
 {
 }
 

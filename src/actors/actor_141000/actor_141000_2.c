@@ -224,7 +224,7 @@ void func_actor_141000_80133260(Actor141000* arg0)
     func_actor_141000_80131E94(arg0, sp10, spD0);
 }
 
-void func_actor_141000_801339F8(void);
+void func_actor_141000_801339F8(Task* arg0);
 void func_actor_141000_80133A00(Task* arg0);
 void func_actor_141000_801335D4(GpActorWork* arg0);
 
@@ -237,7 +237,7 @@ void func_actor_141000_801332A0(Task* task)
 {
     TmdObject*       ext      = task->extra;
     Actor141000Work* work     = (Actor141000Work*)task->work;
-    TaskFunc         funcs[2] = { (TaskFunc)func_actor_141000_801339F8, func_actor_141000_80133A00 };
+    TaskFunc         funcs[2] = { func_actor_141000_801339F8, func_actor_141000_80133A00 };
     VECTOR3          pos;
     GsCOORDINATE2*   coord;
     s32              i;

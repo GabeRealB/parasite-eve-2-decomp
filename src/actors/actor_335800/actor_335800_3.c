@@ -67,6 +67,6 @@ void func_actor_335800_80162F9C(Task* arg0)
     work->field_504 = 1;
 }
 
-void func_actor_335800_80162FF4(void)
+void func_actor_335800_80162FF4(Task* arg0)
 {
 }

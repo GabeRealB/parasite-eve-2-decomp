@@ -13,7 +13,7 @@
 /// `func_actor_350700_80162404`; terminator id 0x7FFFFFFF.
 extern GpMsgEntry D_actor_350700_80169D1C[];
 
-void func_actor_350700_801624D0(void);
+void func_actor_350700_801624D0(Task* arg0);
 void func_actor_350700_801624D8(Task* arg0);
 
 /// Per-frame tick of the enemy actor, the same body as
@@ -30,7 +30,7 @@ void func_actor_350700_80161E88(Task* arg0)
 {
     TmdObject*       ext      = arg0->extra;
     Actor350700Work* work     = (Actor350700Work*)arg0->work;
-    TaskFunc         funcs[2] = { (TaskFunc)func_actor_350700_801624D0, func_actor_350700_801624D8 };
+    TaskFunc         funcs[2] = { func_actor_350700_801624D0, func_actor_350700_801624D8 };
     VECTOR3          pos;
     GsCOORDINATE2*   coord;
     s32              i;
@@ -190,7 +190,7 @@ void func_actor_350700_801624B4(Task* arg0)
     ext->field_20 = &work->color;
 }
 
-void func_actor_350700_801624D0(void)
+void func_actor_350700_801624D0(Task* arg0)
 {
 }
 

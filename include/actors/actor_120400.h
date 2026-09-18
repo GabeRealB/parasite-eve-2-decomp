@@ -98,7 +98,7 @@ STATIC_ASSERT_SIZEOF(Actor120400SpawnAnim, 0x8);
 /// ActorsShared801327f8}[work->field_4F8]`, so the pair's address is also the
 /// switch the placement handler leaves in `field_4F8`. Its counterparts in the
 /// sibling actors are `func_actor_350700_801633F8` / `func_actor_335800_80163B70`.
-void func_actor_120400_801327F0(void);
+void func_actor_120400_801327F0(Task* arg0);
 
 /// Draws the ground-effect quad `func_800EA1A8` filled in, at the splash id
 /// the caller selects and the current ground-shade row `Gp_State1C->field_8`.
