@@ -1038,11 +1038,11 @@ found:
         work->field_E8C = Gp_GetIdParam2(sc->id);
         Gp_GetIdParam0(sc->id);
 
-        sc->delta.vx = cfg->field_4->t[0] - ((TmdObject*)task->extra)->field_8->coord.t[0];
+        sc->delta.vx = cfg->coordMtx->t[0] - ((TmdObject*)task->extra)->field_8->coord.t[0];
         dx2          = sc->delta.vx * sc->delta.vx;
-        sc->delta.vy = cfg->field_4->t[1] - ((TmdObject*)task->extra)->field_8->coord.t[1];
+        sc->delta.vy = cfg->coordMtx->t[1] - ((TmdObject*)task->extra)->field_8->coord.t[1];
         dy2          = sc->delta.vy * sc->delta.vy;
-        sc->delta.vz = cfg->field_4->t[2] - ((TmdObject*)task->extra)->field_8->coord.t[2];
+        sc->delta.vz = cfg->coordMtx->t[2] - ((TmdObject*)task->extra)->field_8->coord.t[2];
         dz2          = sc->delta.vz * sc->delta.vz;
         sc->dist     = SquareRoot0(dx2 + dy2 + dz2);
         sc->damage   = Gp_ComputeDamage(sc->id, sc->dist, 0, 0);
@@ -1225,11 +1225,11 @@ hit:
                 break;
         }
 
-        sc->delta.vx = cfg->field_4->t[0] - ((TmdObject*)task->extra)->field_8->coord.t[0];
+        sc->delta.vx = cfg->coordMtx->t[0] - ((TmdObject*)task->extra)->field_8->coord.t[0];
         dx2          = sc->delta.vx * sc->delta.vx;
-        sc->delta.vy = cfg->field_4->t[1] - ((TmdObject*)task->extra)->field_8->coord.t[1];
+        sc->delta.vy = cfg->coordMtx->t[1] - ((TmdObject*)task->extra)->field_8->coord.t[1];
         dy2          = sc->delta.vy * sc->delta.vy;
-        sc->delta.vz = cfg->field_4->t[2] - ((TmdObject*)task->extra)->field_8->coord.t[2];
+        sc->delta.vz = cfg->coordMtx->t[2] - ((TmdObject*)task->extra)->field_8->coord.t[2];
         dz2          = sc->delta.vz * sc->delta.vz;
         sc->dist     = SquareRoot0(dx2 + dy2 + dz2);
         sc->damage   = Gp_ComputeDamage(sc->id, sc->dist, 0, 0);
@@ -1406,11 +1406,11 @@ body:
     work->field_E8E = Gp_GetIdParam2(sc->id);
     Gp_GetIdParam0(sc->id);
 
-    sc->delta.vx = (cfg->field_4->t[0] - ((TmdObject*)task->extra)->field_8->coord.t[0]) + 0x51F;
+    sc->delta.vx = (cfg->coordMtx->t[0] - ((TmdObject*)task->extra)->field_8->coord.t[0]) + 0x51F;
     dx2          = sc->delta.vx * sc->delta.vx;
-    sc->delta.vy = (cfg->field_4->t[1] - ((TmdObject*)task->extra)->field_8->coord.t[1]) - 0xFA;
+    sc->delta.vy = (cfg->coordMtx->t[1] - ((TmdObject*)task->extra)->field_8->coord.t[1]) - 0xFA;
     dy2          = sc->delta.vy * sc->delta.vy;
-    sc->delta.vz = (cfg->field_4->t[2] - ((TmdObject*)task->extra)->field_8->coord.t[2]) + 0x25F;
+    sc->delta.vz = (cfg->coordMtx->t[2] - ((TmdObject*)task->extra)->field_8->coord.t[2]) + 0x25F;
     dz2          = sc->delta.vz * sc->delta.vz;
     sc->dist     = SquareRoot0(dx2 + dy2 + dz2);
     sc->damage   = Gp_ComputeDamage(sc->id, sc->dist, 0, 0);
@@ -1609,11 +1609,11 @@ body:
     work->field_E90 = Gp_GetIdParam2(sc->id);
     Gp_GetIdParam0(sc->id);
 
-    sc->delta.vx = (cfg->field_4->t[0] - ((TmdObject*)task->extra)->field_8->coord.t[0]) - 0x51F;
+    sc->delta.vx = (cfg->coordMtx->t[0] - ((TmdObject*)task->extra)->field_8->coord.t[0]) - 0x51F;
     dx2          = sc->delta.vx * sc->delta.vx;
-    sc->delta.vy = (cfg->field_4->t[1] - ((TmdObject*)task->extra)->field_8->coord.t[1]) - 0xFA;
+    sc->delta.vy = (cfg->coordMtx->t[1] - ((TmdObject*)task->extra)->field_8->coord.t[1]) - 0xFA;
     dy2          = sc->delta.vy * sc->delta.vy;
-    sc->delta.vz = (cfg->field_4->t[2] - ((TmdObject*)task->extra)->field_8->coord.t[2]) + 0x25F;
+    sc->delta.vz = (cfg->coordMtx->t[2] - ((TmdObject*)task->extra)->field_8->coord.t[2]) + 0x25F;
     dz2          = sc->delta.vz * sc->delta.vz;
     sc->dist     = SquareRoot0(dx2 + dy2 + dz2);
     sc->damage   = Gp_ComputeDamage(sc->id, sc->dist, 0, 0);
@@ -1936,9 +1936,9 @@ void func_actor_444000_8013E058(Actor444000* task)
     cfg        = &Player_Status;
     facing     = ((TmdObject*)task->extra)->field_8;
     dirp       = &sc->dir;
-    sc->dir.vx = *(u16*)&cfg->field_4->t[0] - *(u16*)&facing->coord.t[0];
-    dirp->vy   = *(u16*)&cfg->field_4->t[1] - *(u16*)&facing->coord.t[1];
-    dz         = *(u16*)&cfg->field_4->t[2] - *(u16*)&facing->coord.t[2];
+    sc->dir.vx = *(u16*)&cfg->coordMtx->t[0] - *(u16*)&facing->coord.t[0];
+    dirp->vy   = *(u16*)&cfg->coordMtx->t[1] - *(u16*)&facing->coord.t[1];
+    dz         = *(u16*)&cfg->coordMtx->t[2] - *(u16*)&facing->coord.t[2];
     dirp->vz   = dz;
     yawCoord   = ((TmdObject*)task->extra)->field_8;
     angle      = ratan2(sc->dir.vx, dz) - ratan2(-yawCoord->coord.m[2][0], yawCoord->coord.m[2][2]);
@@ -2656,7 +2656,7 @@ scanned:
                     if (work->field_ECA != 1 && (s16)work->field_7CA >= 0x17) {
                         work->anim.field_0         = D_actor_444000_80161670;
                         D_actor_444000_80161670[4] = ((Actor444000AnimTable*)Gp_PlayerAnimBlkTbl
-                                                          [Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.field_21])
+                                                          [Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.weapon])
                                                          ->sets[7];
                         work->anim.field_4 = 4;
                         work->anim.field_8 = 1;
@@ -3255,9 +3255,9 @@ void func_actor_444000_80141618(Actor444000* task)
     }
     cfg          = &Player_Status;
     coord        = ((TmdObject*)task->extra)->field_8;
-    sc->delta.vx = cfg->field_4->t[0] - coord->coord.t[0];
-    sc->delta.vy = cfg->field_4->t[1] - coord->coord.t[1];
-    sc->delta.vz = cfg->field_4->t[2] - coord->coord.t[2];
+    sc->delta.vx = cfg->coordMtx->t[0] - coord->coord.t[0];
+    sc->delta.vy = cfg->coordMtx->t[1] - coord->coord.t[1];
+    sc->delta.vz = cfg->coordMtx->t[2] - coord->coord.t[2];
     facing       = ((TmdObject*)task->extra)->field_8;
     angle        = ratan2(sc->delta.vx, sc->delta.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     if (angle < 0) {

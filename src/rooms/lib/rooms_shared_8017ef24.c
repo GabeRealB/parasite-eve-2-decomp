@@ -45,7 +45,7 @@ void RoomsShared8017ef24(Task* task)
     req0.field_E    = 1;
     func_8002E53C(&req0, RoomsShared8017f938Bp);
 
-    Text_ItoaUnsigned((u8*)digits, cfg->field_C);
+    Text_ItoaUnsigned((u8*)digits, cfg->bp);
     Text_DrawPrompt(obj, col, y + 0x19, (u8*)digits, 0x606060, 3, 2);
 
     y2              = y + 0x28;

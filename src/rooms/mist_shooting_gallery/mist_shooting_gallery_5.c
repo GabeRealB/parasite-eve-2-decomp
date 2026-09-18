@@ -521,10 +521,10 @@ void func_mist_shooting_gallery_80182C58(Task* arg0)
 
     if (work->field_1E == 0) {
         limit = 2;
-        if (Player_Status.field_21 == 2) {
+        if (Player_Status.weapon == 2) {
             limit = 4;
         }
-        if (Gp_ConsumeSlotQty(Player_Status.field_21 + 0x7F, 0) < limit) {
+        if (Gp_ConsumeSlotQty(Player_Status.weapon + 0x7F, 0) < limit) {
             prev           = work->field_04;
             work->field_04 = 0x10;
             work->field_1E = 1;

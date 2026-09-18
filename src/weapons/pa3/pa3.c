@@ -54,7 +54,7 @@ void func_pa3_8011D1DC(GpActorWork* arg0)
             actor->field_934 = 0x1F;
             func_80106238(arg0, 0, 0);
             actor->field_12A |= 0x400;
-            if (Player_Status.field_22 == 0xE) {
+            if (Player_Status.weaponSlotItem == 0xE) {
                 actor->field_12A |= 0x800;
             } else {
                 actor->field_12A &= ~0x800;
@@ -77,24 +77,24 @@ void func_pa3_8011D1DC(GpActorWork* arg0)
             actor->field_12A |= 0xC000;
             Gp_ConsumeSlotQty(0x8C, 1);
             Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8,
-                          ((Player_Status.field_22 - 0xD) << 0x18) | 0x200D0005, 1);
+                          ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x200D0005, 1);
             Gp_SpawnEff(0x600A1,
                         (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8,
-                        (Player_Status.field_22 << 0x10) | 0xD, NULL);
+                        (Player_Status.weaponSlotItem << 0x10) | 0xD, NULL);
             Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 3);
             break;
         case 3:
             actor->field_95E++;
             actor->field_12A &= 0x3FFF;
-            if (Player_Status.field_22 != 0xD) {
+            if (Player_Status.weaponSlotItem != 0xD) {
                 hit = Gp_PickNearestRec18(actor->field_32C, coord, spot);
-                if (Player_Status.field_22 == 0xE) {
+                if (Player_Status.weaponSlotItem == 0xE) {
                     if (hit != 0 || Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
                         spot->workm.t[0] = actor->field_32C[0].field_8;
                         spot->workm.t[1] = actor->field_32C[0].field_A;
                         spot->workm.t[2] = actor->field_32C[0].field_C;
                         Gp_PlayObjSfx((GpObj38*)spot,
-                                      ((Player_Status.field_22 - 0xD) << 0x18) | 0x200D0004, 1);
+                                      ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x200D0004, 1);
                     }
                 } else if (hit != 0) {
                     Gp_PlayObjSfx((GpObj38*)spot, 0x17, 1);
@@ -105,7 +105,7 @@ void func_pa3_8011D1DC(GpActorWork* arg0)
             if (--actor->field_934 == 0) {
                 actor->field_95E++;
                 Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8,
-                              ((Player_Status.field_22 - 0xD) << 0x18) | 0x200D0002, 0);
+                              ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x200D0002, 0);
             }
             /* fallthrough */
         case 5:

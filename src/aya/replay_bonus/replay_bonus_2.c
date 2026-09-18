@@ -281,7 +281,7 @@ s32 func_replay_bonus_801175F0(UiList* list, ReplayBonusCtx* ctx)
             p++;
         } while (i < limit);
     }
-    sum += cfg->field_C;
+    sum += cfg->bp;
     if (sum > 0x05F5E0FF) {
         sum = 0x05F5E0FF;
     }

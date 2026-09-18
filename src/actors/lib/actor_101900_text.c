@@ -1131,11 +1131,11 @@ void Actor01900_Fn02A50(Actor01900* arg0)
                 arg0->field_2C->field_8->coord.t[2] += s->dir.vz;
                 arg0->field_2C->field_8->flg         = 0;
             }
-            dx        = config->field_4->t[0] - arg0->field_2C->field_8->coord.t[0];
+            dx        = config->coordMtx->t[0] - arg0->field_2C->field_8->coord.t[0];
             s->dx     = dx;
-            dy        = config->field_4->t[1] - arg0->field_2C->field_8->coord.t[1];
+            dy        = config->coordMtx->t[1] - arg0->field_2C->field_8->coord.t[1];
             s->dy     = dy;
-            dz        = config->field_4->t[2] - arg0->field_2C->field_8->coord.t[2];
+            dz        = config->coordMtx->t[2] - arg0->field_2C->field_8->coord.t[2];
             s->dz     = dz;
             s->dist   = SquareRoot0(dx * dx + dy * dy + dz * dz);
             s->damage = Gp_ComputeDamage(s->id, s->dist, 0, 0);

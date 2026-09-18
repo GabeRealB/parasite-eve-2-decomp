@@ -539,9 +539,9 @@ void Actor02500_Fn00DD8(Actor02500* actor)
             break;
         case 1:
             work->field_326   = (s16)Actor02500_D05B78[actor->field_20->field_3C->field_F];
-            scratchEnd[-1].vx = Player_Status.field_4->t[0] - coord->coord.t[0];
+            scratchEnd[-1].vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
             vector->vy        = 0;
-            vector->vz        = Player_Status.field_4->t[2] - coord->coord.t[2];
+            vector->vz        = Player_Status.coordMtx->t[2] - coord->coord.t[2];
             work->field_32A   = ratan2((s16)scratchEnd[-1].vx, (s16)vector->vz) & 0xFFF;
             dx                = scratchEnd[-1].vx;
             dz                = vector->vz;
@@ -564,9 +564,9 @@ void Actor02500_Fn00DD8(Actor02500* actor)
                 timer           = (u16)work->field_32E - 1;
                 work->field_32E = timer;
                 if (timer <= 0) {
-                    scratchEnd[-1].vx = Player_Status.field_4->t[0] - work->field_314;
+                    scratchEnd[-1].vx = Player_Status.coordMtx->t[0] - work->field_314;
                     vector->vy        = 0;
-                    homeDz            = Player_Status.field_4->t[2] - work->field_318;
+                    homeDz            = Player_Status.coordMtx->t[2] - work->field_318;
                     vector->vz        = homeDz;
                     homeDx            = scratchEnd[-1].vx;
                     if (SquareRoot0((homeDx * homeDx) + (homeDz * homeDz)) >= 0x7D1) {

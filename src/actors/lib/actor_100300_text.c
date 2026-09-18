@@ -820,9 +820,9 @@ void Actor00300_Fn019C0(Actor100300* arg0)
             timer           = (u16)work->field_688 - 1;
             work->field_688 = timer;
             if (timer <= 0) {
-                scratchEnd[-1].vx = Player_Status.field_4->t[0] - coord->coord.t[0];
+                scratchEnd[-1].vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
                 vec->vy           = 0;
-                vec->vz           = Player_Status.field_4->t[2] - coord->coord.t[2];
+                vec->vz           = Player_Status.coordMtx->t[2] - coord->coord.t[2];
                 distance          = SquareRoot0(scratchEnd[-1].vx * scratchEnd[-1].vx + vec->vz * vec->vz);
                 angle             = ratan2((s16)scratchEnd[-1].vx, (s16)vec->vz) & 0xFFF;
                 work->field_680   = angle;
@@ -850,9 +850,9 @@ void Actor00300_Fn019C0(Actor100300* arg0)
             work->field_67C   = 0x3C;
             work->field_67A   = 0x19;
             work->field_66E   = 2;
-            scratchEnd[-1].vx = Player_Status.field_4->t[0] - coord->coord.t[0];
+            scratchEnd[-1].vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
             vec->vy           = 0;
-            vec->vz           = Player_Status.field_4->t[2] - coord->coord.t[2];
+            vec->vz           = Player_Status.coordMtx->t[2] - coord->coord.t[2];
             distance          = SquareRoot0(scratchEnd[-1].vx * scratchEnd[-1].vx + vec->vz * vec->vz);
             angle             = ratan2((s16)scratchEnd[-1].vx, (s16)vec->vz) & 0xFFF;
             work->field_680   = angle;
@@ -928,9 +928,9 @@ void Actor00300_Fn01D60(Actor100300* arg0)
             work->field_688 = ((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 31) + 60;
         }
     } else {
-        sc->vec.vx = Player_Status.field_4->t[0] - coord->coord.t[0];
+        sc->vec.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
         sc->vec.vy = 0;
-        sc->vec.vz = Player_Status.field_4->t[2] - coord->coord.t[2];
+        sc->vec.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
         if (SquareRoot0(sc->vec.vx * sc->vec.vx + sc->vec.vz * sc->vec.vz) < 3000) {
             work->field_684 = 3;
             work->field_686 = 0;
@@ -988,9 +988,9 @@ void Actor00300_Fn01F9C(Actor100300* arg0)
             work->field_67A = 0;
             work->field_66E = 3;
             scratchEnd[-1].vec.vx =
-                (s32)(Player_Status.field_4->t[0] - coord->coord.t[0]);
+                (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
             scratch->vec.vy = 0;
-            scratch->vec.vz = (s32)(Player_Status.field_4->t[2] - coord->coord.t[2]);
+            scratch->vec.vz = (s32)(Player_Status.coordMtx->t[2] - coord->coord.t[2]);
             yaw             = ratan2((s32)(s16)scratchEnd[-1].vec.vx, (s32)(s16)scratch->vec.vz) &
                   0xFFF;
             work->field_680 = yaw;
@@ -1019,9 +1019,9 @@ void Actor00300_Fn01F9C(Actor100300* arg0)
             ((Actor00300ByteView*)&D_80115418)->value = 0;
             work->field_67C                           = 0xF;
             scratchEnd[-1].vec.vx =
-                (s32)(Player_Status.field_4->t[0] - coord->coord.t[0]);
+                (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
             scratch->vec.vy = 0;
-            scratch->vec.vz = (s32)(Player_Status.field_4->t[2] - coord->coord.t[2]);
+            scratch->vec.vz = (s32)(Player_Status.coordMtx->t[2] - coord->coord.t[2]);
             work->field_680 =
                 ratan2((s32)(s16)scratchEnd[-1].vec.vx, (s32)(s16)scratch->vec.vz) &
                 0xFFF;
@@ -1146,9 +1146,9 @@ void Actor00300_Fn02620(Actor100300* arg0)
             work->field_67C   = 0x3C;
             work->field_67A   = 0;
             work->field_66E   = 3;
-            scratchEnd[-1].vx = Player_Status.field_4->t[0] - coord->coord.t[0];
+            scratchEnd[-1].vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
             vec->vy           = 0;
-            vec->vz           = Player_Status.field_4->t[2] - coord->coord.t[2];
+            vec->vz           = Player_Status.coordMtx->t[2] - coord->coord.t[2];
             angle             = ratan2((s16)scratchEnd[-1].vx, (s16)vec->vz) & 0xFFF;
             work->field_680   = angle;
             delta             = (u16)angle - (u16)work->field_67E;
@@ -2134,9 +2134,9 @@ void Actor00300_Fn04528(Actor100300* arg0)
 
     coord      = arg0->field_2C->field_8;
     sc         = (Actor100300RotScratch*)(*(u32*)0x1F8003FC -= 0x18);
-    sc->vec.vx = Player_Status.field_4->t[0] - coord->coord.t[0];
+    sc->vec.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     sc->vec.vy = 0;
-    sc->vec.vz = Player_Status.field_4->t[2] - coord->coord.t[2];
+    sc->vec.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     want       = ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF;
     ang        = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
     cur        = ang;

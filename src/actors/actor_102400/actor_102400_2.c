@@ -62,9 +62,9 @@ void func_actor_102400_801339B0(Actor02400Scale* arg0)
             break;
         case 1:
             work->field_13A   = 0x19;
-            scratchEnd[-1].vx = Player_Status.field_4->t[0] - coord->coord.t[0];
+            scratchEnd[-1].vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
             delta->vy         = 0;
-            delta->vz         = Player_Status.field_4->t[2] - coord->coord.t[2];
+            delta->vz         = Player_Status.coordMtx->t[2] - coord->coord.t[2];
             work->field_146   = ratan2((s16)scratchEnd[-1].vx, (s16)delta->vz) & 0xFFF;
             if (work->field_142 == 0) {
                 work->field_12A += 0x80;

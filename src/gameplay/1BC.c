@@ -3724,24 +3724,24 @@ void func_800B65B0(Task* task)
                 desc = &D_8010F010;
                 break;
             case 8:
-                coord      = (GpCoordYaw*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
-                temp       = coord->field_18;
-                p          = &Player_Status.field_10;
-                p->field_0 = temp;
-                p->field_2 = coord->field_1C;
-                p->field_4 = coord->field_20;
-                angle      = ratan2(coord->field_8, coord->field_14);
-                p->field_6 = angle;
+                coord  = (GpCoordYaw*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+                temp   = coord->field_18;
+                p      = &Player_Status.pos;
+                p->x   = temp;
+                p->y   = coord->field_1C;
+                p->z   = coord->field_20;
+                angle  = ratan2(coord->field_8, coord->field_14);
+                p->yaw = angle;
                 if ((s16)angle >= 0x801) {
-                    p->field_6 = angle - 0x1000;
+                    p->yaw = angle - 0x1000;
                 } else if ((s16)angle < -0x800) {
-                    p->field_6 = angle + 0x1000;
+                    p->yaw = angle + 0x1000;
                 }
                 Display_State.field_11e = 0xFF;
                 cfg                     = &Player_Status;
                 save                    = &Mc_SaveData;
-                save->field_14          = cfg->field_8;
-                save->field_18          = cfg->field_C;
+                save->field_14          = cfg->exp;
+                save->field_18          = cfg->bp;
                 save->field_12          = Gp_PubItemLoc;
                 Stage_InitPrimBufOnce();
                 desc = &D_8010D348;

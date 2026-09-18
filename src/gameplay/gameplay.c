@@ -4923,16 +4923,16 @@ void func_800A087C(Task* arg0)
             D_80114BE2 = 0;
             D_80114BE4 = 0;
         }
-        cfg->field_C += D_80114BDC;
-        if (cfg->field_C > 999999) {
-            cfg->field_C = 999999;
+        cfg->bp += D_80114BDC;
+        if (cfg->bp > 999999) {
+            cfg->bp = 999999;
         }
-        if (cfg->field_C < 0) {
-            cfg->field_C = 0;
+        if (cfg->bp < 0) {
+            cfg->bp = 0;
         }
-        cfg->field_8 += D_80114BDE;
-        if (cfg->field_8 > 999999) {
-            cfg->field_8 = 999999;
+        cfg->exp += D_80114BDE;
+        if (cfg->exp > 999999) {
+            cfg->exp = 999999;
         }
         cfg->mp += D_80114BE0 + D_80114BE4;
         if (cfg->mp > cfg->mpMax) {
@@ -5111,7 +5111,7 @@ void func_800A087C(Task* arg0)
         req10.glyphTable = 0;
         req10.centerMode = 2;
         req10.field_E    = 3;
-        func_8002E53C(&req10, Text_ItoaUnsigned(buf, cfg->field_C));
+        func_8002E53C(&req10, Text_ItoaUnsigned(buf, cfg->bp));
     }
     y -= step;
     if (arg0->killCountdown >= 0x33) {
@@ -5122,7 +5122,7 @@ void func_800A087C(Task* arg0)
         req11.glyphTable = 0;
         req11.centerMode = 2;
         req11.field_E    = 3;
-        func_8002E53C(&req11, Text_ItoaUnsigned(buf, cfg->field_8));
+        func_8002E53C(&req11, Text_ItoaUnsigned(buf, cfg->exp));
     }
 
     if (obj->status == 1) {
@@ -5304,7 +5304,7 @@ u16 Gp_GetAttachParam(s32 arg0)
         if (ret == 0) {
             ret = 1;
         }
-        if (p->field_25 & 0x80) {
+        if (p->peStateFlags & 0x80) {
             if (ret < 3) {
                 ret++;
             }
@@ -5356,7 +5356,7 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
         if (ret == 0) {
             ret = 1;
         }
-        if (p->field_25 & 0x80) {
+        if (p->peStateFlags & 0x80) {
             if (ret < 3) {
                 ret++;
             }
@@ -5444,7 +5444,7 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     s32           t;
 
     cfg    = &Player_Status;
-    slot   = Gp_GetItemSlot(cfg->field_21 + 0x7F);
+    slot   = Gp_GetItemSlot(cfg->weapon + 0x7F);
     count2 = -1;
     if (Pad_RemapState->field_A != 0) {
         return;
@@ -5455,7 +5455,7 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     if (Game_Session->field_68 != 0) {
         return;
     }
-    t = cfg->field_21;
+    t = cfg->weapon;
     if (t == 0) {
         return;
     }
@@ -5655,7 +5655,7 @@ s32 Gp_CheckAttachThreshold(s32 arg0)
         if (ret == 0) {
             ret = 1;
         }
-        if (p->field_25 & 0x80) {
+        if (p->peStateFlags & 0x80) {
             if (ret < 3) {
                 ret++;
             }
@@ -5686,10 +5686,10 @@ s32 Gp_CheckAttachThreshold(s32 arg0)
             result = 1;
         }
     } else if (arg0 < 0xC) {
-        if (cfg->field_25 & 0x10) {
+        if (cfg->peStateFlags & 0x10) {
             result = 1;
         } else {
-            if (!(cfg->field_25 & 0x80)) {
+            if (!(cfg->peStateFlags & 0x80)) {
                 recs = Gp_IdParamHi;
                 off  = (arg0 * 3 + n) * 16;
                 TOUCH_REG(off);
@@ -5727,7 +5727,7 @@ s32 Gp_CheckAttachThreshold(s32 arg0)
                     goto done;
                 }
             }
-            if (cfg->field_25 & 0x80) {
+            if (cfg->peStateFlags & 0x80) {
                 if (arg0 >= 6) {
                     result = 1;
                 } else {
@@ -5797,7 +5797,7 @@ void Gp_SetAttachState(s32 arg0)
         if (ret == 0) {
             ret = 1;
         }
-        if (cfg->field_25 & 0x80) {
+        if (cfg->peStateFlags & 0x80) {
             if (ret < 3) {
                 ret++;
             }
@@ -5933,7 +5933,7 @@ static __inline__ s32 getAttachWheelLevel(s32 idx)
         if (lvl == 0) {
             lvl = 1;
         }
-        if ((p->field_25 & 0x80) && lvl < 3) {
+        if ((p->peStateFlags & 0x80) && lvl < 3) {
             lvl++;
         }
     }
@@ -6074,7 +6074,7 @@ s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
         q     = n / 3;
         item  = ((s8)q << 4) + ((s8)(n - q * 3) << 2) + 0x300;
         param = getAttachWheelTextParam(n);
-        if (cfg->field_25 & 0x80) {
+        if (cfg->peStateFlags & 0x80) {
             param <<= 1;
         }
 
@@ -6335,7 +6335,7 @@ static __inline__ s32 getAttachLevel(s32 idx)
         if (lvl == 0) {
             lvl = 1;
         }
-        if ((p->field_25 & 0x80) && lvl < 3) {
+        if ((p->peStateFlags & 0x80) && lvl < 3) {
             lvl++;
         }
     }
@@ -6558,7 +6558,7 @@ void Gp_UseItemTask(GpIdMapC* arg0)
                 Gp_StateC08.field_3  = 1;
                 Gp_ItemGrantCooldown = 0x14;
                 CdCmd_EnqueueLoadFile(0, 0, 4);
-                if (cfg->field_25 & 0x80) {
+                if (cfg->peStateFlags & 0x80) {
                     cfg->hp -= Gp_GetAttachParam(2) * 2;
                     if (cfg->hp <= 0) {
                         cfg->hp = 1;
@@ -6807,7 +6807,7 @@ void Gp_HudTask(GpIdMapC* arg0)
             if (ok == 0) {
                 goto after;
             }
-            if (Player_Status.field_23 == 0) {
+            if (Player_Status.armor == 0) {
                 goto after;
             }
             arg0->field_14 = 0x42;
@@ -6896,7 +6896,7 @@ after:
                     goto inc1;
                 }
                 work = Game_GetPtrSlot(3);
-                func_80106350(work, Player_Status.field_21, 0);
+                func_80106350(work, Player_Status.weapon, 0);
                 if (Game_Session->field_69 & 0x40) {
                     Gp_MsgPlayerWeapon(0);
                 }
@@ -6986,7 +6986,7 @@ after:
                 }
             }
             p    = &Player_Status;
-            item = p->field_21 + 0x7F;
+            item = p->weapon + 0x7F;
             Gp_FillRelated(item, 0);
             Gp_FillRelated(item, 1);
             if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
@@ -7702,7 +7702,7 @@ void func_800A57B0(GpIdMapC* arg0)
         y -= (s8)Game_Session->field_139 * 3;
     }
 
-    if (cfg->field_25 & 0x80) {
+    if (cfg->peStateFlags & 0x80) {
         pendingHp = arg0->field_10 << 1;
     } else {
         pendingMp = arg0->field_10;
@@ -7979,18 +7979,18 @@ void func_800A57B0(GpIdMapC* arg0)
     loc.rect.w = 0x5A;
     loc.rect.h = 0x14;
     rectMode   = 2;
-    if (cfg->field_25 != 0) {
+    if (cfg->peStateFlags != 0) {
         rectMode = 4;
     }
     Ui_DrawTextInRect(&loc.rect, -1, rectMode, NULL);
 
-    if (cfg->field_25 != 0) {
+    if (cfg->peStateFlags != 0) {
         iconX           = x;
         iconY           = y + 0x14;
         loc.icons.flags = D_8009389C;
         for (i = 0; i < 7; i++) {
             flags = loc.icons.flags.bits;
-            if (cfg->field_25 & flags[i]) {
+            if (cfg->peStateFlags & flags[i]) {
                 sp5            = (SPRT*)Gpu_PrimCursor;
                 Gpu_PrimCursor = (DR_TPAGE*)(sp5 + 1);
                 sp5->x0        = iconX;
@@ -8828,7 +8828,7 @@ s32 Gp_GetAttachLevel(s32 arg0)
         if (ret == 0) {
             ret = 1;
         }
-        if (p->field_25 & 0x80) {
+        if (p->peStateFlags & 0x80) {
             if (ret < 3) {
                 ret++;
             }

@@ -476,10 +476,10 @@ void func_mist_shooting_gallery_8017E854(Task* task)
         bonus = func_mist_shooting_gallery_80184470(score);
         cfg   = &Player_Status;
         if (bonus > 0) {
-            total        = cfg->field_C + bonus;
-            cfg->field_C = total;
+            total   = cfg->bp + bonus;
+            cfg->bp = total;
             if (total > 999999) {
-                cfg->field_C = 999999;
+                cfg->bp = 999999;
             }
         }
         task->state = task->state + 1;
@@ -855,8 +855,8 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
     if (task->state == 0) {
         obj = Ui_SpawnFromDesc(&D_mist_shooting_gallery_80185060, 0, 1, 1, NULL);
         if (obj != NULL) {
-            D_mist_shooting_gallery_8018E0C0 = cfg->field_C;
-            D_mist_shooting_gallery_8018E0BC = cfg->field_8;
+            D_mist_shooting_gallery_8018E0C0 = cfg->bp;
+            D_mist_shooting_gallery_8018E0BC = cfg->exp;
             GameMain_SetFrameTiming(0);
             task->spawnArg2 = obj;
             task->state     = task->state + 1;
@@ -888,7 +888,7 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
                 bp = 999999;
             }
         store_bp:
-            cfg->field_8 = bp;
+            cfg->exp = bp;
 
             savedExp = D_mist_shooting_gallery_8018E0C0;
             switch (D_80072177) {
@@ -909,7 +909,7 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
                 exp = 999999;
             }
         store_exp:
-            cfg->field_C = exp;
+            cfg->bp = exp;
             Gp_FillHpMp();
             task->state = task->state + 1;
         }

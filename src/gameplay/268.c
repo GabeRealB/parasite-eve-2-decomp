@@ -282,8 +282,8 @@ void Gp_RecalcMaxMp(void)
         i++;
         base += 3;
     }
-    if (cfg->field_23 != 0) {
-        acc += Gp_ModStatAttrs[cfg->field_23 - 1].field_6;
+    if (cfg->armor != 0) {
+        acc += Gp_ModStatAttrs[cfg->armor - 1].field_6;
     }
     rows       = Gp_StatRows;
     save       = &Mc_SaveData;
@@ -308,7 +308,7 @@ void Gp_EquipMod(s32 arg0)
 
     cfg = &Player_Status;
     if ((u32)(arg0 - 0x60) < 0x20U) {
-        if (cfg->field_23 != (arg0 - 0x5F)) {
+        if (cfg->armor != (arg0 - 0x5F)) {
             GpItemRec* found;
             s32        neg;
 
@@ -316,13 +316,13 @@ void Gp_EquipMod(s32 arg0)
             if (found != NULL) {
                 neg            = -1;
                 found->field_1 = neg;
-                if (cfg->field_23 != 0) {
-                    found = Gp_FindItemById(cfg->field_23 + 0x5F);
+                if (cfg->armor != 0) {
+                    found = Gp_FindItemById(cfg->armor + 0x5F);
                     if (found != NULL) {
                         found->field_1 = 0;
                     }
                 }
-                cfg->field_23 = arg0 - 0x5F;
+                cfg->armor = arg0 - 0x5F;
 
                 {
                     PlayerStatus* p;
@@ -337,8 +337,8 @@ void Gp_EquipMod(s32 arg0)
                     p->hpMax = val;
                     val     += save->field_26;
                     p->hpMax = val;
-                    if (p->field_23 != 0) {
-                        val     += Gp_ModStatAttrs[p->field_23 - 1].field_4;
+                    if (p->armor != 0) {
+                        val     += Gp_ModStatAttrs[p->armor - 1].field_4;
                         p->hpMax = val;
                     }
                     if (p->hpMax >= 0xFB) {
@@ -397,8 +397,8 @@ void Gp_EquipMod(s32 arg0)
         cfg->hpMax = val;
         val       += save->field_26;
         cfg->hpMax = val;
-        if (cfg->field_23 != 0) {
-            val       += Gp_ModStatAttrs[cfg->field_23 - 1].field_4;
+        if (cfg->armor != 0) {
+            val       += Gp_ModStatAttrs[cfg->armor - 1].field_4;
             cfg->hpMax = val;
         }
         if (cfg->hpMax >= 0xFB) {
@@ -495,7 +495,7 @@ void Gp_InitStarterInv(void)
     Gp_ApplyItemMap();
     Gp_GiveItem(scan, 0x63, 1);
     Game_Session->field_11C = -1;
-    cfg->field_21           = 0;
+    cfg->weapon             = 0;
     cfg->field_26           = three;
     Gp_EquipMod(0x63);
     added          = Gp_GiveItem(scan, 0x40, 1);
@@ -624,7 +624,7 @@ void func_800B8014(void)
     playerSave->unknown_850[0] = 1;
     cfg                        = &Player_Status;
     if (playerSave->field_E == 0) {
-        cfg->field_C = 0xC8;
+        cfg->bp = 0xC8;
     }
     Gp_ClearScanItems(scan);
     Gp_GiveItem(scan, 0x60, 1);
@@ -1417,7 +1417,7 @@ s32 Gp_NthRelatedId(GpItemScan* arg0, s32 arg1, s32 arg2)
                     if (((GpItemQty*)(temp + (s32)table0))->field_1 == arg2) {
                         if ((s8)rec2->field_1 > 0) {
                             arg1--;
-                        } else if (cfg->field_21 == item) {
+                        } else if (cfg->weapon == item) {
                             arg1--;
                         }
                         break;
@@ -1436,7 +1436,7 @@ s32 Gp_NthRelatedId(GpItemScan* arg0, s32 arg1, s32 arg2)
                         if ((s8)rec2->field_1 > 0) {
                             goto decrement;
                         }
-                        if (cfg->field_21 != item) {
+                        if (cfg->weapon != item) {
                             goto next;
                         }
                     decrement:
@@ -1475,7 +1475,7 @@ void Gp_RefreshItemRow(GpItemRec* arg0)
     }
 
     item = arg0->field_0;
-    if (item == Player_Status.field_21 + 0x7F) {
+    if (item == Player_Status.weapon + 0x7F) {
         return;
     }
 
@@ -1665,7 +1665,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     char*        notice;
 
     obj  = arg0;
-    sel  = Player_Status.field_23;
+    sel  = Player_Status.armor;
     task = arg1;
     item = sel + 0x5F;
     if (task->state == 0) {
@@ -1811,8 +1811,8 @@ void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
         cfg->hpMax = val;
         val       += save->field_26;
         cfg->hpMax = val;
-        if (cfg->field_23 != 0) {
-            val       += Gp_ModStatAttrs[cfg->field_23 - 1].field_4;
+        if (cfg->armor != 0) {
+            val       += Gp_ModStatAttrs[cfg->armor - 1].field_4;
             cfg->hpMax = val;
         }
         if (cfg->hpMax >= 0xFB) {
@@ -1881,8 +1881,8 @@ s32 func_800B9D80(s32 arg0)
     stateA = ret;
     stateB = ret;
     cfg    = &Player_Status;
-    if (cfg->field_23 != 0) {
-        flags  = cfg->field_23;
+    if (cfg->armor != 0) {
+        flags  = cfg->armor;
         flags  = flags * (s32)sizeof(GpItemAttr);
         flags += (s32)&Gp_RelatedQty0[0x1E];
         flags  = *(s32*)flags;
@@ -2144,7 +2144,7 @@ void Gp_ResetInventory(void)
     s32                  val;
 
     cfg = &Player_Status;
-    val = cfg->field_21;
+    val = cfg->weapon;
     if (val != 0) {
         SCHED_BARRIER();
         asm("addiu %0, %1, 0x7F" : "=r"(item) : "r"(val));
@@ -2169,7 +2169,7 @@ void Gp_ResetInventory(void)
             }
             USE_REG(i);
         }
-        cfg->field_21 = 0;
+        cfg->weapon = 0;
     }
 
     scan = &Gp_DefaultScan;
@@ -2267,7 +2267,7 @@ void Gp_ClearInventory(void)
 
     cfg = &Player_Status;
     USE_REG(cfg);
-    val = cfg->field_21;
+    val = cfg->weapon;
     if (val != 0) {
         SCHED_BARRIER();
         item = val + 0x7F;
@@ -2292,7 +2292,7 @@ void Gp_ClearInventory(void)
             }
             USE_REG(i);
         }
-        cfg->field_21 = 0;
+        cfg->weapon = 0;
     }
 
     scan = &Gp_DefaultScan;
@@ -2351,14 +2351,14 @@ void Gp_ClearInventory(void)
                 id = rec->field_0;
                 if ((u32)(id - 0x60) < 0x20U) {
                     SCHED_BARRIER();
-                    cfg->field_23 = id - 0x5F;
-                    hpCfg         = &Player_Status;
-                    hpVal         = rows[save2->field_F].base.half;
-                    hpCfg->hpMax  = hpVal;
-                    hpVal        += save2->field_26;
-                    hpCfg->hpMax  = hpVal;
-                    if (hpCfg->field_23 != 0) {
-                        idx          = hpCfg->field_23;
+                    cfg->armor   = id - 0x5F;
+                    hpCfg        = &Player_Status;
+                    hpVal        = rows[save2->field_F].base.half;
+                    hpCfg->hpMax = hpVal;
+                    hpVal       += save2->field_26;
+                    hpCfg->hpMax = hpVal;
+                    if (hpCfg->armor != 0) {
+                        idx          = hpCfg->armor;
                         idx          = idx - 1;
                         hpVal       += attrs[idx].field_4;
                         hpCfg->hpMax = hpVal;
@@ -2408,7 +2408,7 @@ void Gp_InitModeEquip(void)
 
     cfg = &Player_Status;
     acc = 0;
-    if (cfg->field_21 == 0) {
+    if (cfg->weapon == 0) {
         scan = &Mc_SaveData.field_5BC;
         item = 0x81;
         switch (scan->field_2) {
@@ -2442,7 +2442,7 @@ void Gp_InitModeEquip(void)
             Gp_EquipHeld(0x81);
         }
     }
-    if (cfg->field_21 == 2) {
+    if (cfg->weapon == 2) {
         slots    = Mc_SaveData.field_1C8;
         slotItem = slots[0x81].field_0;
         if ((slotItem == 0) || (slotItem == 0xA0)) {
@@ -3322,23 +3322,23 @@ void Gp_SavePlayerPos(void)
     PlayerStatus* cfg;
     McSaveData*   save;
 
-    coord      = (GpCoordYaw*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
-    temp       = coord->field_18;
-    p          = &Player_Status.field_10;
-    p->field_0 = temp;
-    p->field_2 = coord->field_1C;
-    p->field_4 = coord->field_20;
-    angle      = ratan2(coord->field_8, coord->field_14);
-    p->field_6 = angle;
+    coord  = (GpCoordYaw*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    temp   = coord->field_18;
+    p      = &Player_Status.pos;
+    p->x   = temp;
+    p->y   = coord->field_1C;
+    p->z   = coord->field_20;
+    angle  = ratan2(coord->field_8, coord->field_14);
+    p->yaw = angle;
     if ((s16)angle >= 0x801) {
-        p->field_6 = angle - 0x1000;
+        p->yaw = angle - 0x1000;
     } else if ((s16)angle < -0x800) {
-        p->field_6 = angle + 0x1000;
+        p->yaw = angle + 0x1000;
     }
     cfg            = &Player_Status;
     save           = &Mc_SaveData;
-    save->field_14 = cfg->field_8;
-    save->field_18 = cfg->field_C;
+    save->field_14 = cfg->exp;
+    save->field_18 = cfg->bp;
 }
 
 GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpEnemyPlace* arg1)
@@ -3547,16 +3547,16 @@ void Gp_SyncHeldRelated(void)
     u8            item;
 
     p = &Player_Status;
-    if (p->field_21 == 0) {
-        p->field_22 = 0;
+    if (p->weapon == 0) {
+        p->weaponSlotItem = 0;
     } else {
         slots = Mc_SaveData.field_1C8;
-        idx   = p->field_21 + 0x7F;
+        idx   = p->weapon + 0x7F;
         item  = slots[idx].field_0;
         if (item == 0) {
-            p->field_22 = 0;
+            p->weaponSlotItem = 0;
         } else {
-            p->field_22 = item + 0x61;
+            p->weaponSlotItem = item + 0x61;
         }
     }
     func_801061F0();
@@ -3628,8 +3628,8 @@ void Gp_RecalcMaxHp(void)
     cfg->hpMax = val;
     val       += save->field_26;
     cfg->hpMax = val;
-    if (cfg->field_23 != 0) {
-        val       += Gp_ModStatAttrs[cfg->field_23 - 1].field_4;
+    if (cfg->armor != 0) {
+        val       += Gp_ModStatAttrs[cfg->armor - 1].field_4;
         cfg->hpMax = val;
     }
     if (cfg->hpMax >= 0xFB) {

@@ -12,7 +12,7 @@
 /// (`Mem_Calloc(0x14, 0)` in its state 0). Laid out like the observatory's
 /// `AobStreamWork`, which drives the same kind of scene.
 ///
-/// `mtx` is `Player_Status.field_4`, the player actor's coordinate matrix; the
+/// `mtx` is `Player_Status.coordMtx`, the player actor's coordinate matrix; the
 /// task walks its translation along `D_acropolis_promenade_80181184` once per
 /// frame while the stream runs. `target` is the slot-3 task every message the
 /// scene sends is addressed to, captured once from `Game_GetPtrSlot(3)`.

@@ -25,7 +25,7 @@ STATIC_ASSERT_SIZEOF(AobSceneWork, 8);
 /// (`func_acropolis_observatory_8017DD3C`) keeps at `Task::idMap`
 /// (`Mem_Calloc(0x14, 0)` in its state 0).
 ///
-/// `mtx` is `Player_Status.field_4`, the player actor's coordinate matrix; the
+/// `mtx` is `Player_Status.coordMtx`, the player actor's coordinate matrix; the
 /// task walks its translation along `D_acropolis_observatory_8017F16C` once per
 /// frame while the stream runs. `target` is the slot-3 task every message the
 /// scene sends is addressed to, captured once from `Game_GetPtrSlot(3)`.

@@ -970,11 +970,11 @@ void Actor00100_Fn0375C(Actor00100* arg0)
                     }
                     break;
             }
-            dx                = config->field_4->t[0] - arg0->field_2C->field_8->coord.t[0];
+            dx                = config->coordMtx->t[0] - arg0->field_2C->field_8->coord.t[0];
             scratch->field_0  = dx;
-            dy                = config->field_4->t[1] - arg0->field_2C->field_8->coord.t[1];
+            dy                = config->coordMtx->t[1] - arg0->field_2C->field_8->coord.t[1];
             scratch->field_4  = dy;
-            dz                = config->field_4->t[2] - arg0->field_2C->field_8->coord.t[2];
+            dz                = config->coordMtx->t[2] - arg0->field_2C->field_8->coord.t[2];
             scratch->field_8  = dz;
             distance          = SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
             scratch->field_28 = distance;

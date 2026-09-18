@@ -1166,10 +1166,10 @@ void func_actor_510900_8013864C(Actor510900* arg0)
     delta               = (VECTOR*)((u8*)head - 0x10);
 
     for (i = 0; i < 4; i++) {
-        if (D_actor_510900_80167BA4[i].minX < Player_Status.field_4->t[0] &&
-            Player_Status.field_4->t[0] < D_actor_510900_80167BA4[i].maxX &&
-            D_actor_510900_80167BA4[i].minZ < Player_Status.field_4->t[2] &&
-            Player_Status.field_4->t[2] < D_actor_510900_80167BA4[i].maxZ) {
+        if (D_actor_510900_80167BA4[i].minX < Player_Status.coordMtx->t[0] &&
+            Player_Status.coordMtx->t[0] < D_actor_510900_80167BA4[i].maxX &&
+            D_actor_510900_80167BA4[i].minZ < Player_Status.coordMtx->t[2] &&
+            Player_Status.coordMtx->t[2] < D_actor_510900_80167BA4[i].maxZ) {
             work->field_5AA = i;
             break;
         }
@@ -1178,10 +1178,10 @@ void func_actor_510900_8013864C(Actor510900* arg0)
     work->field_5B0 = __builtin_abs(work->field_5A8 * 13200 - work->field_5A6);
     work->field_5AE = __builtin_abs((work->field_5A8 + 1) * 13200 - work->field_5A6);
 
-    dx                 = Player_Status.field_4->t[0] - coord->field_0.coord.t[0];
+    dx                 = Player_Status.coordMtx->t[0] - coord->field_0.coord.t[0];
     delta->vx          = dx;
     delta->vy          = 0;
-    dz                 = Player_Status.field_4->t[2] - coord->field_0.coord.t[2];
+    dz                 = Player_Status.coordMtx->t[2] - coord->field_0.coord.t[2];
     delta->vz          = dz;
     work->field_5AC    = SquareRoot0(dx * dx + dz * dz);
     *(u32*)0x1F8003FC += 0x10;
@@ -1336,10 +1336,10 @@ void func_actor_510900_80138BF0(Actor510900* arg0)
     scratch                 = (Actor510900AimScratch*)*(void**)G_SCRATCH_HEAD;
 
     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &head->workm, &scratch->view);
-    scratch->delta.vx = Player_Status.field_4->t[0] - scratch->view.t[0];
+    scratch->delta.vx = Player_Status.coordMtx->t[0] - scratch->view.t[0];
     offsetY           = scratch->view.t[1] + 0x600;
-    scratch->delta.vy = Player_Status.field_4->t[1] - offsetY;
-    scratch->delta.vz = Player_Status.field_4->t[2] - scratch->view.t[2];
+    scratch->delta.vy = Player_Status.coordMtx->t[1] - offsetY;
+    scratch->delta.vz = Player_Status.coordMtx->t[2] - scratch->view.t[2];
     ApplyTransposeMatrixLV(&coord->coord, &scratch->delta, &scratch->local);
 
     if (scratch->local.vx < -0x400) {
@@ -1788,10 +1788,10 @@ void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
     gte_rtir_real();
     gte_stclmv(&coord->coord.m[0][2]);
 
-    dx              = Player_Status.field_4->t[0] - coord->coord.t[0];
+    dx              = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     scratch->pos.vy = 0;
     scratch->pos.vx = dx;
-    dz              = Player_Status.field_4->t[2] - coord->coord.t[2];
+    dz              = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     scratch->pos.vz = dz;
     idx             = SquareRoot0((dx * dx) + (dz * dz)) / 1000;
     if (idx >= 0xC) {

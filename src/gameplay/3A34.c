@@ -90,9 +90,9 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
             if (actor->field_954 != 2) {
                 rec       = NULL;
                 scanEquip = &Mc_SaveData.field_5BC;
-                prevId    = cfg->field_21 + 0x7F;
+                prevId    = cfg->weapon + 0x7F;
 
-                cfg->field_21 = id - 0x7F;
+                cfg->weapon = id - 0x7F;
 
                 table = Gp_GetItemTable(scanEquip);
                 table = &table[scanEquip->field_0];
@@ -113,16 +113,16 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
         } else if ((u32)(id - 0xA0) < 0x20U) {
             relId = 0;
             qty   = 0;
-            held  = cfg->field_21 + 0x7F;
+            held  = cfg->weapon + 0x7F;
             slot  = Gp_GetItemSlot(held);
             if (Gp_EquipRelatedBank(0, held, id, 0) == 0) {
                 Gp_PendingRelatedId = id;
                 Gp_RelatedPending   = flag;
                 relId               = slot->field_0;
                 if (relId != id) {
-                    cfg->field_22 = id + 0x61;
-                    slot->field_0 = id;
-                    slot->field_1 = 0;
+                    cfg->weaponSlotItem = id + 0x61;
+                    slot->field_0       = id;
+                    slot->field_1       = 0;
                 }
                 Gp_SetItemSeenBit(id, 1);
                 ret = 1;
@@ -330,7 +330,7 @@ s32 Gp_ItemIsUnusable(s32 arg0, GpItemRec* arg1)
             scan = &Mc_SaveData.field_5BC;
             val  = arg1->field_2 - Gp_CountEquippedRelated(scan, arg0);
             if (val > 0) {
-                if (Gp_EquipRelatedItem(scan, cfg->field_21 + 0x7F, arg0, 0) == 0) {
+                if (Gp_EquipRelatedItem(scan, cfg->weapon + 0x7F, arg0, 0) == 0) {
                     ret = 0;
                 }
             }
@@ -426,7 +426,7 @@ void func_800D6334(Task* task)
     s32         labelY;
 
     scan            = NULL;
-    armor           = Player_Status.field_23 + 0x5F;
+    armor           = Player_Status.armor + 0x5F;
     panel           = task->spawnArg2;
     panel->field_2E = 0;
     panel->field_E  = 0x1C - Display_State.vramYOffset;
@@ -1892,7 +1892,7 @@ void Gp_DebugPanTask(Task* arg0)
                     colorMtx->m[1][0] = colorMtx->m[1][1] = colorMtx->m[1][2] = 0x2000;
                     colorMtx->m[2][0] = colorMtx->m[2][1] = colorMtx->m[2][2] = 0x400;
                 }
-                if (cfg->field_25 & 0x80) {
+                if (cfg->peStateFlags & 0x80) {
                     colorMtx          = extra->field_20;
                     colorMtx->m[0][0] = colorMtx->m[0][1] = colorMtx->m[0][2] = 0x2000;
                     colorMtx->m[1][0] = colorMtx->m[1][1] = colorMtx->m[1][2] = 0x400;
@@ -6649,7 +6649,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
         raw  = Gp_IdParamLo[lo].field_0;
         base = raw << 8;
         if (flag != 0) {
-            if ((Player_Status.field_25 & 0x80) != 0) {
+            if ((Player_Status.peStateFlags & 0x80) != 0) {
                 base = base * 150 / 100;
             }
         }

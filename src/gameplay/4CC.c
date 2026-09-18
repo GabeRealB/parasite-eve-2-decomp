@@ -353,7 +353,7 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
                     item = 8;
                 } else if (arg1->owner->spawnArg1 == 1) {
                     cfg = &Player_Status;
-                    if ((item2 == cfg->field_21 + 0x7F) || (item2 == cfg->field_23 + 0x5F)) {
+                    if ((item2 == cfg->weapon + 0x7F) || (item2 == cfg->armor + 0x5F)) {
                         item = 0xA;
                     }
                 }
@@ -567,14 +567,14 @@ void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1)
             if (restricted != 0) {
                 prompt = 0x1E;
             } else if ((u32)(item - 0x80) < 0x20U) {
-                if ((arg1->owner->spawnArg1 != 1) || (item != (Player_Status.field_21 + 0x7F))) {
+                if ((arg1->owner->spawnArg1 != 1) || (item != (Player_Status.weapon + 0x7F))) {
                     if (prompt == -1) {
                         Gp_ClearEquipSlot(item);
                     }
                 } else {
                     prompt = 7;
                 }
-            } else if (((u32)(item - 0x60) < 0x20U) && (arg1->owner->spawnArg1 == 1) && (item == (Player_Status.field_23 + 0x5F))) {
+            } else if (((u32)(item - 0x60) < 0x20U) && (arg1->owner->spawnArg1 == 1) && (item == (Player_Status.armor + 0x5F))) {
                 prompt = 7;
             }
         } else {
@@ -640,7 +640,7 @@ void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1)
                 arg1->status = 0;
             } else if (arg1->owner->spawnArg1 == 1) {
                 cfg = &Player_Status;
-                if ((item == cfg->field_21 + 0x7F) || (item == cfg->field_23 + 0x5F)) {
+                if ((item == cfg->weapon + 0x7F) || (item == cfg->armor + 0x5F)) {
                     Gp_SpawnItemPrompt(arg1, 7, 0, 0);
                     arg1->status = 0;
                 } else {

@@ -66,7 +66,7 @@ void Gp_EnqueueWeaponCd(void)
     s32 temp;
     s32 flag;
 
-    item = Player_Status.field_21;
+    item = Player_Status.weapon;
     if (item == 0) {
         return;
     }
@@ -75,43 +75,43 @@ void Gp_EnqueueWeaponCd(void)
     switch (item) {
         case 0xB:
             param1[0] = 1;
-            if (Player_Status.field_22 == 0xB) {
+            if (Player_Status.weaponSlotItem == 0xB) {
                 param1[0] = 2;
             }
-            if (Player_Status.field_22 == 0xC) {
+            if (Player_Status.weaponSlotItem == 0xC) {
                 param1[0] = 3;
             }
             break;
         case 0xC:
             param1[0] = 4;
-            if (Player_Status.field_22 == 0xB) {
+            if (Player_Status.weaponSlotItem == 0xB) {
                 param1[0] = 5;
             }
-            if (Player_Status.field_22 == 0xC) {
+            if (Player_Status.weaponSlotItem == 0xC) {
                 param1[0] = 6;
             }
             break;
         case 0xD:
             param1[0] = 7;
-            if (Player_Status.field_22 == 0xE) {
+            if (Player_Status.weaponSlotItem == 0xE) {
                 param1[0] = 8;
             }
-            if (Player_Status.field_22 == 0xF) {
+            if (Player_Status.weaponSlotItem == 0xF) {
                 param1[0] = 9;
             }
             break;
         case 0xE:
             param1[0] = 0xA;
-            if (Player_Status.field_22 == 0xE) {
+            if (Player_Status.weaponSlotItem == 0xE) {
                 param1[0] = 0xB;
             }
-            if (Player_Status.field_22 == 0xF) {
+            if (Player_Status.weaponSlotItem == 0xF) {
                 param1[0] = 0xC;
             }
             break;
         case 0xF:
             param1[0] = 0xD;
-            val       = Player_Status.field_22;
+            val       = Player_Status.weaponSlotItem;
             if (val == 0xE) {
                 param1[0] = val;
             }
@@ -121,10 +121,10 @@ void Gp_EnqueueWeaponCd(void)
             break;
         case 0x17:
             param1[0] = 0x13;
-            if (Player_Status.field_22 == 0xE) {
+            if (Player_Status.weaponSlotItem == 0xE) {
                 param1[0] = 0x14;
             }
-            if (Player_Status.field_22 == 0xF) {
+            if (Player_Status.weaponSlotItem == 0xF) {
                 param1[0] = 0x15;
             }
             break;
@@ -406,7 +406,7 @@ void Gp_EnqueueHeldWeaponCd(void)
     u8  val;
     s32 flag;
 
-    val = Player_Status.field_21;
+    val = Player_Status.weapon;
     if (val == 0) {
         val = 1;
     }

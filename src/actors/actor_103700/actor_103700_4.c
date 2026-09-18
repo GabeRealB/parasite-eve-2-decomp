@@ -112,10 +112,10 @@ void func_actor_103700_801347E0(Task* task)
             }
             break;
         case 3:
-            work->field_23C.vx = Player_Status.field_4->t[0];
+            work->field_23C.vx = Player_Status.coordMtx->t[0];
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->field_23C.vy = Player_Status.field_4->t[1] - (((Gp_LcgState >> 16) & 0x3FF) + 800);
-            work->field_23C.vz = Player_Status.field_4->t[2];
+            work->field_23C.vy = Player_Status.coordMtx->t[1] - (((Gp_LcgState >> 16) & 0x3FF) + 800);
+            work->field_23C.vz = Player_Status.coordMtx->t[2];
             work->field_254    = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->field_F];
             ActorsShared80133d68((ActorShared80133d68*)task);
 

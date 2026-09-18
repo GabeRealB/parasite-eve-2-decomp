@@ -316,9 +316,9 @@ void func_actor_204000_8014B4AC(Actor104000Ctx* arg0, Actor104000* arg1)
     head          = (Actor104000AimScratch*)SCRATCH_SP;
     sc            = (Actor104000AimScratch*)(SCRATCH_SP -= sizeof(Actor104000AimScratch));
     pos           = arg1->field_2C->field_8;
-    head[-1].d.vx = Player_Status.field_4->t[0] - pos->coord.t[0];
-    sc->d.vy      = Player_Status.field_4->t[1] - pos->coord.t[1];
-    sc->d.vz      = Player_Status.field_4->t[2] - pos->coord.t[2];
+    head[-1].d.vx = Player_Status.coordMtx->t[0] - pos->coord.t[0];
+    sc->d.vy      = Player_Status.coordMtx->t[1] - pos->coord.t[1];
+    sc->d.vz      = Player_Status.coordMtx->t[2] - pos->coord.t[2];
     coord         = arg1->field_2C->field_8;
     angle         = ratan2(head[-1].d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle     = Actor204000_WrapAngle(angle);
@@ -624,9 +624,9 @@ void func_actor_204000_8014C710(Actor104000Ctx* arg0, Actor104000* arg1)
     sc   = (Actor104000TurnScratch*)(SCRATCH_SP -= sizeof(Actor104000TurnScratch));
     func_actor_204000_8014AC8C(arg1);
     pos           = arg1->field_2C->field_8;
-    head[-1].d.vx = Player_Status.field_4->t[0] - pos->coord.t[0];
-    sc->d.vy      = Player_Status.field_4->t[1] - pos->coord.t[1];
-    sc->d.vz      = Player_Status.field_4->t[2] - pos->coord.t[2];
+    head[-1].d.vx = Player_Status.coordMtx->t[0] - pos->coord.t[0];
+    sc->d.vy      = Player_Status.coordMtx->t[1] - pos->coord.t[1];
+    sc->d.vz      = Player_Status.coordMtx->t[2] - pos->coord.t[2];
     coord         = arg1->field_2C->field_8;
     angle         = ratan2(head[-1].d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle     = Actor204000_WrapAngle(angle);
@@ -655,9 +655,9 @@ void func_actor_204000_8014C710(Actor104000Ctx* arg0, Actor104000* arg1)
         work->field_0 = 8;
     }
     target    = arg1->field_2C->field_8;
-    sc->d.vx  = Player_Status.field_4->t[0] - target->coord.t[0];
-    sc->d.vy  = Player_Status.field_4->t[1] - target->coord.t[1];
-    sc->d.vz  = Player_Status.field_4->t[2] - target->coord.t[2];
+    sc->d.vx  = Player_Status.coordMtx->t[0] - target->coord.t[0];
+    sc->d.vy  = Player_Status.coordMtx->t[1] - target->coord.t[1];
+    sc->d.vz  = Player_Status.coordMtx->t[2] - target->coord.t[2];
     coord     = arg1->field_2C->field_8;
     angle     = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = Actor204000_WrapAngle(angle);
@@ -1121,9 +1121,9 @@ void func_actor_204000_8014E14C(Actor104000Ctx* arg0, Actor104000* arg1)
     }
     func_actor_204000_8014A06C(arg1->field_2C->field_8, work->hits, 8, &sc->d);
     target   = arg1->field_2C->field_8;
-    sc->d.vx = Player_Status.field_4->t[0] - target->coord.t[0];
-    sc->d.vy = Player_Status.field_4->t[1] - target->coord.t[1];
-    sc->d.vz = Player_Status.field_4->t[2] - target->coord.t[2];
+    sc->d.vx = Player_Status.coordMtx->t[0] - target->coord.t[0];
+    sc->d.vy = Player_Status.coordMtx->t[1] - target->coord.t[1];
+    sc->d.vz = Player_Status.coordMtx->t[2] - target->coord.t[2];
     if (!Actor204000_OutOfRange(&sc->d, 2000)) {
         coord = arg1->field_2C->field_8;
         angle = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -1198,9 +1198,9 @@ void func_actor_204000_8014E7E0(Actor104000Ctx* arg0, Actor104000* arg1)
     }
     func_actor_204000_8014A06C(arg1->field_2C->field_8, work->hits, 8, &sc->d);
     target   = arg1->field_2C->field_8;
-    sc->d.vx = Player_Status.field_4->t[0] - target->coord.t[0];
-    sc->d.vy = Player_Status.field_4->t[1] - target->coord.t[1];
-    sc->d.vz = Player_Status.field_4->t[2] - target->coord.t[2];
+    sc->d.vx = Player_Status.coordMtx->t[0] - target->coord.t[0];
+    sc->d.vy = Player_Status.coordMtx->t[1] - target->coord.t[1];
+    sc->d.vz = Player_Status.coordMtx->t[2] - target->coord.t[2];
     if (!Actor204000_OutOfRange(&sc->d, 2000)) {
         coord = arg1->field_2C->field_8;
         angle = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -1685,7 +1685,7 @@ void func_actor_204000_801501A0(Actor204000Task* arg0)
         for (; j < 6; j++) {
             if (D_actor_204000_80156538[j] != NULL && D_actor_204000_80156538[j]->field_1C->field_0 == 0xE) {
                 coord    = D_actor_204000_80156538[j]->field_2C->field_8;
-                m        = cfg->field_4;
+                m        = cfg->coordMtx;
                 d.vx     = m->t[0] - coord->coord.t[0];
                 d.vy     = m->t[1] - coord->coord.t[1];
                 d.vz     = m->t[2] - coord->coord.t[2];

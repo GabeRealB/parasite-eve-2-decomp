@@ -189,9 +189,9 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                 break;
             }
             ((AfrStreamWork*)task->idMap)->target = Game_GetPtrSlot(3);
-            ((AfrStreamWork*)task->idMap)->mtx    = Player_Status.field_4;
+            ((AfrStreamWork*)task->idMap)->mtx    = Player_Status.coordMtx;
             Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
-            weaponId     = Player_Status.field_21;
+            weaponId     = Player_Status.weapon;
             rec.field_0  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.field_4  = 1;
             rec.field_8  = 0;

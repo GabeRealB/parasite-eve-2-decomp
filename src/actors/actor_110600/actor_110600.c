@@ -119,9 +119,9 @@ u8 func_actor_110600_801327EC(Actor110600Walker* work, s32 actor)
     block->cfg  = &D_80073B08[(s16)actor];
     block->best = -1;
     for (block->node = 0; block->node < work->nav->count; block->node++) {
-        block->dx   = *(u16*)&block->cfg->field_4->t[0] - work->nav->nodes[block->node].x;
-        block->dy   = *(u16*)&block->cfg->field_4->t[1] - work->nav->nodes[block->node].y;
-        dz          = *(u16*)&block->cfg->field_4->t[2] - work->nav->nodes[block->node].z;
+        block->dx   = *(u16*)&block->cfg->coordMtx->t[0] - work->nav->nodes[block->node].x;
+        block->dy   = *(u16*)&block->cfg->coordMtx->t[1] - work->nav->nodes[block->node].y;
+        dz          = *(u16*)&block->cfg->coordMtx->t[2] - work->nav->nodes[block->node].z;
         block->dz   = dz;
         block->dist = block->dx * block->dx + dz * dz;
         if (block->dist < block->best || block->best == -1) {
@@ -475,9 +475,9 @@ static __inline__ void Actor110600_WalkerStep(Actor110600Walker* walker, u8* hea
         case 1:
             cfg                            = &D_80073B08[walker->field_6E];
             pos                            = (SVECTOR3*)(head - 0x24);
-            ((SVECTOR3*)(head - 0x24))->vx = *(u16*)&cfg->field_4->t[0];
-            pos->vy                        = *(u16*)&cfg->field_4->t[1];
-            pos->vz                        = *(u16*)&cfg->field_4->t[2];
+            ((SVECTOR3*)(head - 0x24))->vx = *(u16*)&cfg->coordMtx->t[0];
+            pos->vy                        = *(u16*)&cfg->coordMtx->t[1];
+            pos->vz                        = *(u16*)&cfg->coordMtx->t[2];
             break;
         case 2:
             *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD - 4;

@@ -369,11 +369,11 @@ found:
         work->field_E92 = param;
         Gp_GetIdParam0(sc->id);
 
-        sc->delta.vx = cfg->field_4->t[0] - ((TmdObject*)arg0->extra)->field_8->coord.t[0];
+        sc->delta.vx = cfg->coordMtx->t[0] - ((TmdObject*)arg0->extra)->field_8->coord.t[0];
         dx2          = sc->delta.vx * sc->delta.vx;
-        sc->delta.vy = cfg->field_4->t[1] - ((TmdObject*)arg0->extra)->field_8->coord.t[1];
+        sc->delta.vy = cfg->coordMtx->t[1] - ((TmdObject*)arg0->extra)->field_8->coord.t[1];
         dy2          = sc->delta.vy * sc->delta.vy;
-        sc->delta.vz = cfg->field_4->t[2] - ((TmdObject*)arg0->extra)->field_8->coord.t[2];
+        sc->delta.vz = cfg->coordMtx->t[2] - ((TmdObject*)arg0->extra)->field_8->coord.t[2];
         dz2          = sc->delta.vz * sc->delta.vz;
         sc->dist     = SquareRoot0(dx2 + dy2 + dz2);
         sc->damage   = Gp_ComputeDamage(sc->id, sc->dist, 0, 0);
@@ -587,11 +587,11 @@ hit:
                 break;
         }
 
-        sc->delta.vx = cfg->field_4->t[0] - ((TmdObject*)arg0->extra)->field_8->coord.t[0];
+        sc->delta.vx = cfg->coordMtx->t[0] - ((TmdObject*)arg0->extra)->field_8->coord.t[0];
         dx2          = sc->delta.vx * sc->delta.vx;
-        sc->delta.vy = cfg->field_4->t[1] - ((TmdObject*)arg0->extra)->field_8->coord.t[1];
+        sc->delta.vy = cfg->coordMtx->t[1] - ((TmdObject*)arg0->extra)->field_8->coord.t[1];
         dy2          = sc->delta.vy * sc->delta.vy;
-        sc->delta.vz = cfg->field_4->t[2] - ((TmdObject*)arg0->extra)->field_8->coord.t[2];
+        sc->delta.vz = cfg->coordMtx->t[2] - ((TmdObject*)arg0->extra)->field_8->coord.t[2];
         dz2          = sc->delta.vz * sc->delta.vz;
         sc->dist     = SquareRoot0(dx2 + dy2 + dz2);
         sc->damage   = Gp_ComputeDamage(sc->id, sc->dist, 0, 0);
@@ -793,11 +793,11 @@ body:
     work->field_E92 = param;
     Gp_GetIdParam0(sc->id);
 
-    sc->delta.vx = (cfg->field_4->t[0] - ((TmdObject*)arg0->extra)->field_8->coord.t[0]) + 0x51F;
+    sc->delta.vx = (cfg->coordMtx->t[0] - ((TmdObject*)arg0->extra)->field_8->coord.t[0]) + 0x51F;
     dx2          = sc->delta.vx * sc->delta.vx;
-    sc->delta.vy = (cfg->field_4->t[1] - ((TmdObject*)arg0->extra)->field_8->coord.t[1]) - 0xFA;
+    sc->delta.vy = (cfg->coordMtx->t[1] - ((TmdObject*)arg0->extra)->field_8->coord.t[1]) - 0xFA;
     dy2          = sc->delta.vy * sc->delta.vy;
-    sc->delta.vz = (cfg->field_4->t[2] - ((TmdObject*)arg0->extra)->field_8->coord.t[2]) + 0x25F;
+    sc->delta.vz = (cfg->coordMtx->t[2] - ((TmdObject*)arg0->extra)->field_8->coord.t[2]) + 0x25F;
     dz2          = sc->delta.vz * sc->delta.vz;
     sc->dist     = SquareRoot0(dx2 + dy2 + dz2);
     sc->damage   = Gp_ComputeDamage(sc->id, sc->dist, 0, 0);
@@ -1027,9 +1027,9 @@ void func_actor_403200_8013B3C8(Task* arg0)
         work->field_F06 = 1;
     }
     model      = ((TmdObject*)arg0->extra)->field_8;
-    sc->dir.vx = Player_Status.field_4->t[0] - model->coord.t[0];
-    sc->dir.vy = Player_Status.field_4->t[1] - model->coord.t[1];
-    sc->dir.vz = Player_Status.field_4->t[2] - model->coord.t[2];
+    sc->dir.vx = Player_Status.coordMtx->t[0] - model->coord.t[0];
+    sc->dir.vy = Player_Status.coordMtx->t[1] - model->coord.t[1];
+    sc->dir.vz = Player_Status.coordMtx->t[2] - model->coord.t[2];
     facing     = ((TmdObject*)arg0->extra)->field_8;
     ang        = ratan2(sc->dir.vx, sc->dir.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     if (ang < 0) {
@@ -2019,9 +2019,9 @@ void func_actor_403200_8013EB64(Task* arg0)
 
     coord    = ((TmdObject*)arg0->extra)->field_8;
     view     = &sc->view;
-    view->vx = Player_Status.field_4->t[0] - coord->coord.t[0];
-    view->vy = Player_Status.field_4->t[1] - coord->coord.t[1];
-    view->vz = Player_Status.field_4->t[2] - coord->coord.t[2];
+    view->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    view->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    view->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     facing   = ((TmdObject*)arg0->extra)->field_8;
     angle    = ratan2(view->vx, view->vz) -
             ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);

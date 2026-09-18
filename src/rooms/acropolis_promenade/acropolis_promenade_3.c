@@ -79,8 +79,8 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             }
             Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
             ((ApmStreamWork*)task->idMap)->target = Game_GetPtrSlot(3);
-            ((ApmStreamWork*)task->idMap)->mtx    = Player_Status.field_4;
-            weaponId                              = Player_Status.field_21;
+            ((ApmStreamWork*)task->idMap)->mtx    = Player_Status.coordMtx;
+            weaponId                              = Player_Status.weapon;
             rec.field_0                           = (Mc_SaveData.field_22 == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.field_4                           = 1;
             rec.field_8                           = 0;

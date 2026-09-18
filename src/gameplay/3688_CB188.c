@@ -574,9 +574,9 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 slotDst->field_3 = slotSrc->field_3;
             }
             Gp_ClearEquipSlotSel(src, 0);
-            if (cfg->field_21 == (src - 0x7F)) {
-                temp          = result;
-                cfg->field_21 = temp - 0x7F;
+            if (cfg->weapon == (src - 0x7F)) {
+                temp        = result;
+                cfg->weapon = temp - 0x7F;
             }
             if (extra != 0) {
                 Gp_GiveItem(&Mc_SaveData.field_5BC, extra, -1);
@@ -931,7 +931,7 @@ void Gp_PeListPanelTask(Task* arg0)
     req2.glyphTable = 0;
     req2.centerMode = 0;
     req2.field_E    = 3;
-    func_8002E53C(&req2, Text_ItoaUnsigned(buf, cfg->field_8));
+    func_8002E53C(&req2, Text_ItoaUnsigned(buf, cfg->exp));
     x               = xOff + 0x7A;
     req3.x          = obj->baseX + x;
     req3.y          = obj->baseY + (y - 2);
@@ -1999,11 +1999,11 @@ s32 Gp_IsEquippedItem(s32 arg0)
 
     ret = 0;
     p   = &Player_Status;
-    if ((((u32)(arg0 - 0x80) < 0x20U) && (p->field_21 == arg0 - 0x7F)) ||
-        (((u32)(arg0 - 0x60) < 0x20U) && (p->field_23 == arg0 - 0x5F)) ||
-        (((u32)(arg0 - 0xA0) < 0x20U) && (p->field_21 != 0) &&
-         ((Gp_GetItemSlot(p->field_21 + 0x7F)->field_0 == arg0) ||
-          (Gp_GetItemSlot(p->field_21 + 0x7F)->field_2 == arg0)))) {
+    if ((((u32)(arg0 - 0x80) < 0x20U) && (p->weapon == arg0 - 0x7F)) ||
+        (((u32)(arg0 - 0x60) < 0x20U) && (p->armor == arg0 - 0x5F)) ||
+        (((u32)(arg0 - 0xA0) < 0x20U) && (p->weapon != 0) &&
+         ((Gp_GetItemSlot(p->weapon + 0x7F)->field_0 == arg0) ||
+          (Gp_GetItemSlot(p->weapon + 0x7F)->field_2 == arg0)))) {
         ret = 1;
     }
     return ret;
@@ -2022,9 +2022,9 @@ s32 func_800CEC5C(GpItemRec* arg0)
     id    = arg0->field_0;
     if (count != 0) {
         ret = 0;
-    } else if (((u32)(id - 0x60) < 0x20U) && (p->field_23 == id - 0x5F)) {
+    } else if (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) {
         ret = 0;
-    } else if (((u32)(id - 0x80) < 0x20U) && (p->field_21 == id - 0x7F)) {
+    } else if (((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F)) {
         ret = 0;
     }
     return ret;
@@ -2056,9 +2056,9 @@ GpItemRec* func_800CECC0(GpItemScan* arg0, s32 arg1)
             id = table->field_0;
             if ((s8)table->field_1 != 0) {
                 ok = 0;
-            } else if (((u32)(id - 0x60) < 0x20U) && (p->field_23 == id - 0x5F)) {
+            } else if (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) {
                 ok = 0;
-            } else if (((u32)(id - 0x80) < 0x20U) && (p->field_21 == id - 0x7F)) {
+            } else if (((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F)) {
                 ok = 0;
             }
             if (ok == one) {
@@ -2186,7 +2186,7 @@ void func_800CF090(UiList* arg0, UiObject* arg1)
     i     = 0;
     table = &table[scan->field_0];
     for (; i < scan->field_1; i++) {
-        if (((u32)(table->field_0 - 0x60) < 0x20U) && (p->field_23 != table->field_0 - 0x5F)) {
+        if (((u32)(table->field_0 - 0x60) < 0x20U) && (p->armor != table->field_0 - 0x5F)) {
             count++;
         }
         table++;
@@ -2329,7 +2329,7 @@ void Gp_EquipHeld(s32 arg0)
 
     p       = &Player_Status;
     rec     = Gp_FindItemById(arg0);
-    field21 = p->field_21;
+    field21 = p->weapon;
     if (field21 != arg0 - 0x7F) {
         if (field21 != 0) {
             prev = Gp_FindItemById(field21 + 0x7F);
@@ -2339,7 +2339,7 @@ void Gp_EquipHeld(s32 arg0)
                 Gp_ClearEquipSlotSel(prev->field_0, 0);
             }
         }
-        p->field_21 = arg0 - 0x7F;
+        p->weapon = arg0 - 0x7F;
         Gp_RefreshItemRow(rec);
         Gp_SetItemSeenBit(arg0, 1);
     }
@@ -2759,7 +2759,7 @@ void Gp_DrawMapCursor(Task* arg0)
     pos->field_12 = 0;
     pos->field_10 = 0;
 
-    mat                               = cfg->field_4;
+    mat                               = cfg->coordMtx;
     origin                            = mat->t[0];
     off                               = rec->field_0 - origin;
     scale                             = rec->field_8;
@@ -2768,7 +2768,7 @@ void Gp_DrawMapCursor(Task* arg0)
     off                               = base - off;
     pos->x                            = off;
     *(GpMapCursorPos**)G_SCRATCH_HEAD = pos;
-    mat                               = cfg->field_4;
+    mat                               = cfg->coordMtx;
     origin                            = mat->t[2];
     off                               = rec->field_2 - origin;
     scale                             = rec->field_A;
@@ -3818,8 +3818,8 @@ void Gp_DiscardWarnTask(Task* arg0)
                     cfg  = &Player_Status;
                     Gp_ClearEquipSlot(a0id);
                     slot->field_4 = 0;
-                    if (cfg->field_21 == (id - 0x7F)) {
-                        cfg->field_21 = 0;
+                    if (cfg->weapon == (id - 0x7F)) {
+                        cfg->weapon = 0;
                     }
                 } else if ((u32)(id - 0xA0) < 0x20U) {
                     s32         i;
@@ -3844,8 +3844,8 @@ void Gp_DiscardWarnTask(Task* arg0)
                     Mc_SaveData.field_908[id - 0x60] = 0;
                     SCHED_BARRIER();
                     cfg = &Player_Status;
-                    if (cfg->field_23 == (id - 0x5F)) {
-                        cfg->field_23 = 0;
+                    if (cfg->armor == (id - 0x5F)) {
+                        cfg->armor = 0;
                     }
                 }
                 Gp_RemoveItem(&Mc_SaveData.field_5BC, (GpItemRec*)rec, -1);
@@ -4106,7 +4106,7 @@ void Gp_NoticePanelTask(Task* arg0)
 
 /// Level-up / strengthen dialog. Draws the "EXP / COST" and "MP / BONUS" rows
 /// for the slot selected by `Task::spawnArg1`, then watches the child prompts:
-/// choosing 0x33 pays the cost out of `Player_Status.field_8` and bumps the
+/// choosing 0x33 pays the cost out of `Player_Status.exp` and bumps the
 /// stored level in `Mc_SaveData.unknown_850`.
 void Gp_PeUpgradePanelTask(Task* arg0)
 {
@@ -4228,7 +4228,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
                     } else if (Mc_SaveData.field_E > 0) {
                         price = (price * 2) / 5;
                     }
-                    if (cfg->field_8 < (price & 0xFFFF)) {
+                    if (cfg->exp < (price & 0xFFFF)) {
                         Ui_SpawnFromDesc(&D_8010F788, 0xC, 1, 1, obj);
                         Ui_TeardownTree(childObj, childObj->owner);
                     } else {
@@ -4238,7 +4238,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
                         } else if (Mc_SaveData.field_E > 0) {
                             price = (price * 2) / 5;
                         }
-                        cfg->field_8                                                       -= price & 0xFFFF;
+                        cfg->exp                                                           -= price & 0xFFFF;
                         Mc_SaveData.unknown_850[((id & 0xC) >> 2) + ((id & 0x30) >> 4) * 3] = (id & 3) + 1;
                         Gp_RecalcMaxMp();
                         cfg->mp             = cfg->mpMax;

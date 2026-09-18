@@ -388,9 +388,9 @@ void func_actor_444000_8013482C(Actor444000* task)
     work->field_7D8 = work->slots0[2].field_2 & 0x3FF;
 
     model      = ((TmdObject*)task->extra)->field_8;
-    sc->dir.vx = Player_Status.field_4->t[0] - model->coord.t[0];
-    sc->dir.vy = Player_Status.field_4->t[1] - model->coord.t[1];
-    sc->dir.vz = Player_Status.field_4->t[2] - model->coord.t[2];
+    sc->dir.vx = Player_Status.coordMtx->t[0] - model->coord.t[0];
+    sc->dir.vy = Player_Status.coordMtx->t[1] - model->coord.t[1];
+    sc->dir.vz = Player_Status.coordMtx->t[2] - model->coord.t[2];
 
     facing = ((TmdObject*)task->extra)->field_8;
     ang    = ratan2(sc->dir.vx, sc->dir.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);

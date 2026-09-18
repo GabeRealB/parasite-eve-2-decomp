@@ -205,9 +205,9 @@ void func_actor_207200_8014A588(Task* arg0)
                 arg0->state         = 2;
                 break;
             case 0x20000:
-                sc->delta.vx.w = Player_Status.field_4->t[0] - coord->coord.t[0];
-                sc->delta.vy.w = Player_Status.field_4->t[1] - coord->coord.t[1];
-                sc->delta.vz.w = Player_Status.field_4->t[2] - coord->coord.t[2];
+                sc->delta.vx.w = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+                sc->delta.vy.w = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+                sc->delta.vz.w = Player_Status.coordMtx->t[2] - coord->coord.t[2];
                 damage         = Gp_ComputeDamage(work->field_1A4[i].field_4,
                                                   SquareRoot0(sc->delta.vx.w * sc->delta.vx.w +
                                                               sc->delta.vy.w * sc->delta.vy.w +

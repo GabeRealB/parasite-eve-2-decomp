@@ -23,13 +23,13 @@ void ActorsShared801333fc(Actor101500* actor)
     work->field_366           = 0x80;
     head                      = *(VECTOR**)G_SCRATCH_HEAD;
     blk                       = head - 1;
-    head[-1].vx               = coord->coord.t[0] - Player_Status.field_4->t[0];
+    head[-1].vx               = coord->coord.t[0] - Player_Status.coordMtx->t[0];
     blk->vy                   = 0;
-    blk->vz                   = coord->coord.t[2] - Player_Status.field_4->t[2];
+    blk->vz                   = coord->coord.t[2] - Player_Status.coordMtx->t[2];
     *(VECTOR**)G_SCRATCH_HEAD = blk;
     work->field_372           = ratan2((s16)head[-1].vx, (s16)blk->vz) & 0xFFF;
-    if (coord->coord.t[1] > Player_Status.field_4->t[1] + 500 ||
-        coord->coord.t[1] < Player_Status.field_4->t[1] - 1800 ||
+    if (coord->coord.t[1] > Player_Status.coordMtx->t[1] + 500 ||
+        coord->coord.t[1] < Player_Status.coordMtx->t[1] - 1800 ||
         ++work->field_362 > 1800) {
         work->field_378 = 1;
     }

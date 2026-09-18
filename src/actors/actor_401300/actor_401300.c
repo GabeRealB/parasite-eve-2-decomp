@@ -1298,11 +1298,11 @@ void func_actor_401300_80134F90(Actor401300* arg0)
                 arg0->field_2C->field_8->coord.t[2] += s->dir.vz;
                 arg0->field_2C->field_8->flg         = 0;
             }
-            dx        = config->field_4->t[0] - arg0->field_2C->field_8->coord.t[0];
+            dx        = config->coordMtx->t[0] - arg0->field_2C->field_8->coord.t[0];
             s->dx     = dx;
-            dy        = config->field_4->t[1] - arg0->field_2C->field_8->coord.t[1];
+            dy        = config->coordMtx->t[1] - arg0->field_2C->field_8->coord.t[1];
             s->dy     = dy;
-            dz        = config->field_4->t[2] - arg0->field_2C->field_8->coord.t[2];
+            dz        = config->coordMtx->t[2] - arg0->field_2C->field_8->coord.t[2];
             s->dz     = dz;
             s->dist   = SquareRoot0(dx * dx + dy * dy + dz * dz);
             s->damage = Gp_ComputeDamage(s->id, s->dist, 0, 0);
@@ -1681,9 +1681,9 @@ static __inline__ void Actor401300_RescaleYaw(GsCOORDINATE2* coord, s16 scale)
 
 static __inline__ void Actor401300_ConfigPositionDelta(PlayerStatus* config, GsCOORDINATE2* coord, SVECTOR* pos)
 {
-    pos->vx = config->field_4->t[0] - coord->coord.t[0];
-    pos->vy = config->field_4->t[1] - coord->coord.t[1];
-    pos->vz = config->field_4->t[2] - coord->coord.t[2];
+    pos->vx = config->coordMtx->t[0] - coord->coord.t[0];
+    pos->vy = config->coordMtx->t[1] - coord->coord.t[1];
+    pos->vz = config->coordMtx->t[2] - coord->coord.t[2];
 }
 
 /// Yaw from the actor's facing to the player, wrapped; `pos` receives the offset.
@@ -2026,9 +2026,9 @@ void func_actor_401300_80138160(Actor401300* arg0)
         func_actor_401300_80133A3C(arg0);
         Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, Actor401300_PositionYaw(arg0, &pos, config), 0);
         Actor401300_RescaleYaw(arg0->field_2C->field_8, 0x1964);
-        pos.vx                       = arg0->field_2C->field_8->coord.t[0] - config->field_4->t[0];
+        pos.vx                       = arg0->field_2C->field_8->coord.t[0] - config->coordMtx->t[0];
         pos.vy                       = 0;
-        pos.vz                       = arg0->field_2C->field_8->coord.t[2] - config->field_4->t[2];
+        pos.vz                       = arg0->field_2C->field_8->coord.t[2] - config->coordMtx->t[2];
         work->field_8B2              = 0;
         work->field_8B4              = 0;
         arg0->field_2C->field_8->flg = 0;
@@ -2060,9 +2060,9 @@ void func_actor_401300_80138160(Actor401300* arg0)
     }
     if ((work->field_5E & 0x3FF) > 0x10) {
         p      = &pos;
-        pos.vx = arg0->field_2C->field_8->coord.t[0] - config->field_4->t[0];
+        pos.vx = arg0->field_2C->field_8->coord.t[0] - config->coordMtx->t[0];
         pos.vy = 0;
-        pos.vz = arg0->field_2C->field_8->coord.t[2] - config->field_4->t[2];
+        pos.vz = arg0->field_2C->field_8->coord.t[2] - config->coordMtx->t[2];
         if (!Actor401300_OutOfRange(p, 0x578)) {
             VectorNormalSS(p, p);
             gte_lddp(10);
@@ -3131,17 +3131,17 @@ void func_actor_401300_8013CBAC(Actor401300* arg0)
     }
     config                       = &Player_Status;
     root                         = arg0->field_2C->field_8;
-    head[-1].delta.vx            = config->field_4->t[0] - root->coord.t[0];
-    aim->delta.vy                = config->field_4->t[1] - root->coord.t[1];
-    aim->delta.vz                = config->field_4->t[2] - root->coord.t[2];
+    head[-1].delta.vx            = config->coordMtx->t[0] - root->coord.t[0];
+    aim->delta.vy                = config->coordMtx->t[1] - root->coord.t[1];
+    aim->delta.vz                = config->coordMtx->t[2] - root->coord.t[2];
     arg0->field_2C->field_8->flg = 0;
     func_actor_401300_80133A3C(arg0);
     aim->pad_8        = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][0],
                                ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][2]);
     root2             = arg0->field_2C->field_8;
-    head[-1].delta.vx = config->field_4->t[0] - root2->coord.t[0];
-    aim->delta.vy     = config->field_4->t[1] - root2->coord.t[1];
-    aim->delta.vz     = config->field_4->t[2] - root2->coord.t[2];
+    head[-1].delta.vx = config->coordMtx->t[0] - root2->coord.t[0];
+    aim->delta.vy     = config->coordMtx->t[1] - root2->coord.t[1];
+    aim->delta.vz     = config->coordMtx->t[2] - root2->coord.t[2];
     yaw               = ratan2(head[-1].delta.vx, aim->delta.vz) + 0x800;
     aim->pad_A        = yaw;
     aim->pad_A        = Actor401300_NormalizeYaw(yaw);
@@ -3454,10 +3454,10 @@ void func_actor_401300_8013DADC(Actor401300* arg0)
     work->field_6++;
     root              = arg0->field_2C->field_8;
     head              = (Actor401300AimScratch*)*scratch;
-    head[-1].delta.vx = config->field_4->t[0] - root->coord.t[0];
+    head[-1].delta.vx = config->coordMtx->t[0] - root->coord.t[0];
     aim               = (Actor401300AimScratch*)(*scratch = (SVECTOR*)(head - 1));
-    aim->delta.vy     = config->field_4->t[1] - root->coord.t[1];
-    aim->delta.vz     = config->field_4->t[2] - root->coord.t[2];
+    aim->delta.vy     = config->coordMtx->t[1] - root->coord.t[1];
+    aim->delta.vz     = config->coordMtx->t[2] - root->coord.t[2];
     save              = &Mc_SaveData;
     func_actor_401300_80133A3C(arg0);
     switch (work->field_8A2) {
@@ -3697,11 +3697,11 @@ void func_actor_401300_8013E930(Actor401300* arg0)
     work->field_6++;
     root              = arg0->field_2C->field_8;
     head              = (Actor401300LungeScratch*)*scratch;
-    head[-1].delta.vx = config->field_4->t[0] - root->coord.t[0];
+    head[-1].delta.vx = config->coordMtx->t[0] - root->coord.t[0];
     delta             = &head[-1].delta;
-    delta->vy         = config->field_4->t[1] - root->coord.t[1];
+    delta->vy         = config->coordMtx->t[1] - root->coord.t[1];
     blk               = (Actor401300LungeScratch*)(*scratch = (SVECTOR*)(head - 1));
-    delta->vz         = config->field_4->t[2] - root->coord.t[2];
+    delta->vz         = config->coordMtx->t[2] - root->coord.t[2];
     func_actor_401300_80133A3C(arg0);
     switch (work->field_8A2) {
         case 0x1F:
@@ -3714,9 +3714,9 @@ void func_actor_401300_8013E930(Actor401300* arg0)
             if (work->field_6 >= 0xB) {
                 work->field_8A2 = 0x20;
                 work->field_89C = 1;
-                blk->dist.vx    = config->field_4->t[0] - arg0->field_2C->field_8->coord.t[0];
-                blk->dist.vy    = config->field_4->t[1] - arg0->field_2C->field_8->coord.t[1];
-                blk->dist.vz    = config->field_4->t[2] - arg0->field_2C->field_8->coord.t[2];
+                blk->dist.vx    = config->coordMtx->t[0] - arg0->field_2C->field_8->coord.t[0];
+                blk->dist.vy    = config->coordMtx->t[1] - arg0->field_2C->field_8->coord.t[1];
+                blk->dist.vz    = config->coordMtx->t[2] - arg0->field_2C->field_8->coord.t[2];
                 blk->range      = SquareRoot0(blk->dist.vx * blk->dist.vx + blk->dist.vy * blk->dist.vy + blk->dist.vz * blk->dist.vz) + 1000;
                 if (blk->range > 5000) {
                     blk->range = 5000;
@@ -3896,10 +3896,10 @@ void func_actor_401300_8013F628(Actor401300* arg0)
     work->field_6++;
     root        = arg0->field_2C->field_8;
     head        = *scratch;
-    head[-1].vx = config->field_4->t[0] - root->coord.t[0];
+    head[-1].vx = config->coordMtx->t[0] - root->coord.t[0];
     vec         = head - 1;
-    vec->vy     = config->field_4->t[1] - root->coord.t[1];
-    vec->vz     = config->field_4->t[2] - root->coord.t[2];
+    vec->vy     = config->coordMtx->t[1] - root->coord.t[1];
+    vec->vz     = config->coordMtx->t[2] - root->coord.t[2];
     *scratch    = head - 3;
     if (work->field_6 < 0x12) {
         Actor401300_ScaleMatrix(&work->field_C48, (work->field_6 << 12) / 30);

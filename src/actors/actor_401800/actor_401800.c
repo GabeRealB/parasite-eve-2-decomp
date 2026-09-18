@@ -998,9 +998,9 @@ void func_actor_401800_80135DAC(Actor401800* arg0)
 /// out this way is what keeps each access out of a register CSE would share.
 static __inline__ void Actor401800_ConfigPositionDelta(PlayerStatus* config, GsCOORDINATE2* coord, SVECTOR* pos)
 {
-    pos->vx = config->field_4->t[0] - coord->coord.t[0];
-    pos->vy = config->field_4->t[1] - coord->coord.t[1];
-    pos->vz = config->field_4->t[2] - coord->coord.t[2];
+    pos->vx = config->coordMtx->t[0] - coord->coord.t[0];
+    pos->vy = config->coordMtx->t[1] - coord->coord.t[1];
+    pos->vz = config->coordMtx->t[2] - coord->coord.t[2];
 }
 
 /// Wraps a 12-bit angle difference into `[-0x800, 0x800]`.

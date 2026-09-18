@@ -21,7 +21,7 @@
 /// consumes and `field_2E` the sub-state counter reset alongside it.
 ///
 /// `func_dryfield_motel_room_1_8017DFD0` copies the player matrix translation
-/// (`Player_Status.field_4->t[0..2]`) into `field_14` .. `field_1C` and hands
+/// (`Player_Status.coordMtx->t[0..2]`) into `field_14` .. `field_1C` and hands
 /// `&field_14` to the slot-4 task as the three-word payload of message 0x3E9;
 /// `field_24` / `field_26` / `field_28` are the halfwords it stages next to that
 /// payload, still as `0` / `0x500` / `0`. `field_20` stays unidentified.

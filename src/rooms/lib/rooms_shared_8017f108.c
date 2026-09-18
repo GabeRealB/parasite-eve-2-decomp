@@ -44,7 +44,7 @@ void RoomsShared8017f108(DialogPrompt* prompt, UiObject* obj)
         price = Gp_ItemDescs[itemId].price;
         scan  = &D_80072724;
         SndEvt_EnqueueType6(0x16, 0, 0);
-        if (cfg->field_C >= price) {
+        if (cfg->bp >= price) {
             if (Gp_CanAddItem(scan, itemId) == 0) {
                 if ((u32)(itemId - 0xA0) < 0x20U && Gp_SumScanQty(scan, itemId) != 0) {
                     Ui_SpawnFromDesc(&RoomsShared8017f108NoticeDesc, 2, 1, 1, obj);
@@ -59,7 +59,7 @@ void RoomsShared8017f108(DialogPrompt* prompt, UiObject* obj)
                     obj->status = 0;
                 }
             } else {
-                cfg->field_C -= price;
+                cfg->bp -= price;
                 Gp_GiveItem(scan, itemId, -1);
                 obj->field_2E = 6;
             }

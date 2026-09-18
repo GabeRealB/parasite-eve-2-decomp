@@ -745,9 +745,9 @@ s32 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 arg2)
 calc:
     scratch            = --*(Actor403000FacingScratch**)G_SCRATCH_HEAD;
     coord              = ((TmdObject*)arg0->extra)->field_8;
-    scratch->target.vx = Player_Status.field_4->t[0] - coord->coord.t[0];
-    scratch->target.vy = Player_Status.field_4->t[1] - coord->coord.t[1];
-    scratch->target.vz = Player_Status.field_4->t[2] - coord->coord.t[2];
+    scratch->target.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    scratch->target.vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    scratch->target.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     coord2             = ((TmdObject*)arg0->extra)->field_8;
     angle              = ratan2(scratch->target.vx, scratch->target.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
     if (angle < 0) {
@@ -1304,11 +1304,11 @@ void func_actor_403000_80134F44(Actor403000* arg0)
                     }
                     break;
             }
-            dx              = config->field_4->t[0] - arg0->field_2C->field_8->coord.t[0];
+            dx              = config->coordMtx->t[0] - arg0->field_2C->field_8->coord.t[0];
             scratch->d.vx   = dx;
-            dy              = config->field_4->t[1] - arg0->field_2C->field_8->coord.t[1];
+            dy              = config->coordMtx->t[1] - arg0->field_2C->field_8->coord.t[1];
             scratch->d.vy   = dy;
-            dz              = config->field_4->t[2] - arg0->field_2C->field_8->coord.t[2];
+            dz              = config->coordMtx->t[2] - arg0->field_2C->field_8->coord.t[2];
             scratch->d.vz   = dz;
             scratch->dist   = SquareRoot0(dx * dx + dy * dy + dz * dz);
             scratch->damage = Gp_ComputeDamage(scratch->id, scratch->dist, 0, 0);
@@ -1812,9 +1812,9 @@ void func_actor_403000_80137084(Actor403000* arg0)
     if (work->field_AC6 == 4) {
         t     = &scratch->target;
         pos   = arg0->field_2C->field_8;
-        t->vx = wip->field_4->t[0] - pos->coord.t[0];
-        t->vy = wip->field_4->t[1] - pos->coord.t[1];
-        t->vz = wip->field_4->t[2] - pos->coord.t[2];
+        t->vx = wip->coordMtx->t[0] - pos->coord.t[0];
+        t->vy = wip->coordMtx->t[1] - pos->coord.t[1];
+        t->vz = wip->coordMtx->t[2] - pos->coord.t[2];
         rot   = arg0->field_2C->field_8;
         angle = ratan2(t->vx, t->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
         if (angle < 0) {
@@ -1849,9 +1849,9 @@ void func_actor_403000_80137084(Actor403000* arg0)
         func_actor_403000_80132348(arg0->field_2C->field_8, work->objD18.rec, 5);
         t     = &scratch->target;
         pos2  = arg0->field_2C->field_8;
-        t->vx = Player_Status.field_4->t[0] - pos2->coord.t[0];
-        t->vy = Player_Status.field_4->t[1] - pos2->coord.t[1];
-        t->vz = Player_Status.field_4->t[2] - pos2->coord.t[2];
+        t->vx = Player_Status.coordMtx->t[0] - pos2->coord.t[0];
+        t->vy = Player_Status.coordMtx->t[1] - pos2->coord.t[1];
+        t->vz = Player_Status.coordMtx->t[2] - pos2->coord.t[2];
         rot2  = arg0->field_2C->field_8;
         angle = ratan2(t->vx, t->vz) - ratan2(-rot2->coord.m[2][0], rot2->coord.m[2][2]);
         if (angle < 0) {
@@ -1882,9 +1882,9 @@ void func_actor_403000_80137084(Actor403000* arg0)
             Actor403000_PopVec();
         }
         arg0->field_2C->field_8->flg = 0;
-        scratch->d.vx                = wip->field_4->t[0] - arg0->field_2C->field_8->coord.t[0];
+        scratch->d.vx                = wip->coordMtx->t[0] - arg0->field_2C->field_8->coord.t[0];
         scratch->d.vy                = 0;
-        scratch->d.vz                = wip->field_4->t[2] - arg0->field_2C->field_8->coord.t[2];
+        scratch->d.vz                = wip->coordMtx->t[2] - arg0->field_2C->field_8->coord.t[2];
         scratch->dist = dist = SquareRoot0(scratch->d.vx * scratch->d.vx + scratch->d.vy * scratch->d.vy + scratch->d.vz * scratch->d.vz);
         dist                -= 0x1964;
         if (dist < 0) {
@@ -1993,9 +1993,9 @@ void func_actor_403000_801377C8(Actor403000* arg0)
         if ((s16)work->field_6 == 0xA) {
             t     = &scratch->target;
             pos   = arg0->field_2C->field_8;
-            t->vx = Player_Status.field_4->t[0] - pos->coord.t[0];
-            t->vy = Player_Status.field_4->t[1] - pos->coord.t[1];
-            t->vz = Player_Status.field_4->t[2] - pos->coord.t[2];
+            t->vx = Player_Status.coordMtx->t[0] - pos->coord.t[0];
+            t->vy = Player_Status.coordMtx->t[1] - pos->coord.t[1];
+            t->vz = Player_Status.coordMtx->t[2] - pos->coord.t[2];
             rot   = arg0->field_2C->field_8;
             angle = ratan2(t->vx, t->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
             if (angle < 0) {
@@ -2038,9 +2038,9 @@ void func_actor_403000_801377C8(Actor403000* arg0)
                     scratch->playerYaw = ratan2(-((Actor403000*)Game_GetPtrSlot(3))->field_2C->field_8->coord.m[2][0], ((Actor403000*)Game_GetPtrSlot(3))->field_2C->field_8->coord.m[2][2]);
                     t                  = &scratch->target;
                     pos                = arg0->field_2C->field_8;
-                    t->vx              = Player_Status.field_4->t[0] - pos->coord.t[0];
-                    t->vy              = Player_Status.field_4->t[1] - pos->coord.t[1];
-                    t->vz              = Player_Status.field_4->t[2] - pos->coord.t[2];
+                    t->vx              = Player_Status.coordMtx->t[0] - pos->coord.t[0];
+                    t->vy              = Player_Status.coordMtx->t[1] - pos->coord.t[1];
+                    t->vz              = Player_Status.coordMtx->t[2] - pos->coord.t[2];
                     scratch->aimYaw    = ratan2(scratch->target.vx, scratch->target.vz) + 0x800;
                     angle              = scratch->aimYaw;
                     if (angle < 0) {
@@ -2329,9 +2329,9 @@ void func_actor_403000_801386E8(Actor403000* arg0)
     if ((u16)(work->field_6 - 5) < 10) {
         t      = &scratch->target;
         coord3 = arg0->field_2C->field_8;
-        t->vx  = Player_Status.field_4->t[0] - coord3->coord.t[0];
-        t->vy  = Player_Status.field_4->t[1] - coord3->coord.t[1];
-        t->vz  = Player_Status.field_4->t[2] - coord3->coord.t[2];
+        t->vx  = Player_Status.coordMtx->t[0] - coord3->coord.t[0];
+        t->vy  = Player_Status.coordMtx->t[1] - coord3->coord.t[1];
+        t->vz  = Player_Status.coordMtx->t[2] - coord3->coord.t[2];
         coord2 = arg0->field_2C->field_8;
         angle  = ratan2(t->vx, t->vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
         if (angle < 0) {
@@ -2467,9 +2467,9 @@ void func_actor_403000_80138DB0(Actor403000* arg0)
         arg0->field_2C->field_8->coord.t[1] = player->field_2C->field_8->coord.t[1] - scratch->target.vy;
         arg0->field_2C->field_8->coord.t[2] = player->field_2C->field_8->coord.t[2] - scratch->target.vz;
         pos                                 = arg0->field_2C->field_8;
-        t1->vx                              = Player_Status.field_4->t[0] - pos->coord.t[0];
-        t1->vy                              = Player_Status.field_4->t[1] - pos->coord.t[1];
-        t1->vz                              = Player_Status.field_4->t[2] - pos->coord.t[2];
+        t1->vx                              = Player_Status.coordMtx->t[0] - pos->coord.t[0];
+        t1->vy                              = Player_Status.coordMtx->t[1] - pos->coord.t[1];
+        t1->vz                              = Player_Status.coordMtx->t[2] - pos->coord.t[2];
         rot                                 = arg0->field_2C->field_8;
         angle                               = ratan2(t1->vx, t1->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
         if (angle < 0) {
@@ -2539,9 +2539,9 @@ void func_actor_403000_80138DB0(Actor403000* arg0)
     if ((s16)work->field_6 < 6) {
         t3     = &scratch->target;
         pos2   = arg0->field_2C->field_8;
-        t3->vx = Player_Status.field_4->t[0] - pos2->coord.t[0];
-        t3->vy = Player_Status.field_4->t[1] - pos2->coord.t[1];
-        t3->vz = Player_Status.field_4->t[2] - pos2->coord.t[2];
+        t3->vx = Player_Status.coordMtx->t[0] - pos2->coord.t[0];
+        t3->vy = Player_Status.coordMtx->t[1] - pos2->coord.t[1];
+        t3->vz = Player_Status.coordMtx->t[2] - pos2->coord.t[2];
         rot    = arg0->field_2C->field_8;
         angle  = ratan2(t3->vx, t3->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
         if (angle < 0) {

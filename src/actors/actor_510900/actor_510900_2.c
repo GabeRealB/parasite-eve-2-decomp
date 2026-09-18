@@ -61,9 +61,9 @@ void func_actor_510900_80135744(Actor510900* arg0)
                     dmg = (s16)Gp_ComputeDamage(work->rec49C[i].field_4, 0, 0, 0) >> 1;
                     func_800E2C78((GpObj40*)arg0->field_20, work->rec49C[i].field_4, dmg, 0);
                 } else {
-                    d->vx = Player_Status.field_4->t[0] - coord->field_0.coord.t[0];
-                    d->vy = Player_Status.field_4->t[1] - coord->field_0.coord.t[1];
-                    d->vz = Player_Status.field_4->t[2] - coord->field_0.coord.t[2];
+                    d->vx = Player_Status.coordMtx->t[0] - coord->field_0.coord.t[0];
+                    d->vy = Player_Status.coordMtx->t[1] - coord->field_0.coord.t[1];
+                    d->vz = Player_Status.coordMtx->t[2] - coord->field_0.coord.t[2];
                     full  = Gp_ComputeDamage(work->rec49C[i].field_4, SquareRoot0(d->vx * d->vx + d->vy * d->vy + d->vz * d->vz), 0, 0);
                     dmg   = full;
                     if ((u16)param == 5) {

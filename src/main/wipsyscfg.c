@@ -8,8 +8,8 @@ void Player_InitNewGameStats(void)
     Player_Status.hp       = 0x64;
     Player_Status.mpMax    = 0x64;
     Player_Status.mp       = 0x64;
-    Player_Status.field_21 = 2;
-    Player_Status.field_8  = 0;
+    Player_Status.weapon   = 2;
+    Player_Status.exp      = 0;
     Player_Status.field_20 = 0;
     Player_Status.field_26 = 4;
 }

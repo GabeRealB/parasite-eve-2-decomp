@@ -403,8 +403,8 @@ void Mc_InitDualBankBuffers(void)
     p->field_5C5 = two;
     p->field_22  = one;
     Player_InitNewGameStats();
-    idx                            = p->field_22 - 1;
-    (&Player_Status)[idx].field_21 = two;
+    idx                          = p->field_22 - 1;
+    (&Player_Status)[idx].weapon = two;
 }
 
 void Mc_InitBufferSlots(void)

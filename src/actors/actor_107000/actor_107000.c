@@ -474,7 +474,7 @@ void func_actor_107000_80132D8C(Task* arg0, s32 arg1)
 
 /// Turns the caged specimen toward the player, one 0x20 step a frame. The
 /// 0x18-byte scratch the model's heading is rebuilt in carries the XZ offset
-/// from the model's coordinate to the player (`Player_Status.field_4`), and the
+/// from the model's coordinate to the player (`Player_Status.coordMtx`), and the
 /// heading `field_2B0` is re-steered against it: at most 0x21 off, the target
 /// heading is taken outright; otherwise the field is stepped one 0x20 toward it,
 /// with a difference of 0x801 or more first folded through the 0x1000 wrap so
@@ -497,9 +497,9 @@ void func_actor_107000_80132E9C(Task* arg0)
     coord      = ((TmdObject*)arg0->extra)->field_8;
     work       = (Actor107000Work*)arg0->idMap;
     sc         = (Actor107000RotScratch*)(*(u32*)0x1F8003FC -= 0x18);
-    sc->vec.vx = Player_Status.field_4->t[0] - coord->coord.t[0];
+    sc->vec.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     sc->vec.vy = 0;
-    sc->vec.vz = Player_Status.field_4->t[2] - coord->coord.t[2];
+    sc->vec.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     want       = ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF;
     cur        = work->field_2B0 & 0xFFF;
     diff       = want - cur;

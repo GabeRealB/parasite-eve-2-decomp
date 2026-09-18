@@ -173,10 +173,10 @@ void func_actor_103700_80132FD4(Task* task)
 
     switch (work->field_250) {
         case 0:
-            work->field_23C.vx = Player_Status.field_4->t[0];
+            work->field_23C.vx = Player_Status.coordMtx->t[0];
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->field_23C.vy = Player_Status.field_4->t[1] - (((Gp_LcgState >> 16) & 0x3FF) + 800);
-            work->field_23C.vz = Player_Status.field_4->t[2];
+            work->field_23C.vy = Player_Status.coordMtx->t[1] - (((Gp_LcgState >> 16) & 0x3FF) + 800);
+            work->field_23C.vz = Player_Status.coordMtx->t[2];
             if (work->field_26A == 0) {
                 work->field_252 = 5;
             } else {
@@ -268,10 +268,10 @@ void func_actor_103700_80133370(Task* task)
             }
             break;
         case 2:
-            work->field_23C.vx = Player_Status.field_4->t[0];
+            work->field_23C.vx = Player_Status.coordMtx->t[0];
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->field_23C.vy = Player_Status.field_4->t[1] - (((Gp_LcgState >> 16) & 0x3FF) + 800);
-            work->field_23C.vz = Player_Status.field_4->t[2];
+            work->field_23C.vy = Player_Status.coordMtx->t[1] - (((Gp_LcgState >> 16) & 0x3FF) + 800);
+            work->field_23C.vz = Player_Status.coordMtx->t[2];
             work->field_252    = D_actor_103700_80139D3C[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
             work->field_254    = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->field_F];
             if (work->field_264 != 0) {
@@ -328,10 +328,10 @@ void func_actor_103700_801336E8(Task* task)
             }
             break;
         case 1:
-            work->field_23C.vx = Player_Status.field_4->t[0];
+            work->field_23C.vx = Player_Status.coordMtx->t[0];
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->field_23C.vy = Player_Status.field_4->t[1] - (((Gp_LcgState >> 16) & 0x3FF) + 800);
-            work->field_23C.vz = Player_Status.field_4->t[2];
+            work->field_23C.vy = Player_Status.coordMtx->t[1] - (((Gp_LcgState >> 16) & 0x3FF) + 800);
+            work->field_23C.vz = Player_Status.coordMtx->t[2];
             work->field_254    = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->field_F];
             if ((s16)--work->field_258 > 0) {
                 work->field_252 = -50;
@@ -346,10 +346,10 @@ void func_actor_103700_801336E8(Task* task)
             }
             break;
         case 2:
-            work->field_23C.vx = Player_Status.field_4->t[0];
+            work->field_23C.vx = Player_Status.coordMtx->t[0];
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->field_23C.vy = Player_Status.field_4->t[1] - (((Gp_LcgState >> 16) & 0x1FF) + 800);
-            work->field_23C.vz = Player_Status.field_4->t[2];
+            work->field_23C.vy = Player_Status.coordMtx->t[1] - (((Gp_LcgState >> 16) & 0x1FF) + 800);
+            work->field_23C.vz = Player_Status.coordMtx->t[2];
             work->field_254    = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->field_F];
             work->field_252    = 5;
             func_actor_103700_80135140(task, 20);

@@ -136,8 +136,8 @@ typedef struct _McSaveData {
     /* 0x011 */ byte       unknown_11;
     /* 0x012 */ u8         field_12;
     /* 0x013 */ s8         field_13; // 1-based index into Gp_AllyIdBase
-    /* 0x014 */ s32        field_14; // Player_Status.field_8 (`Gp_SavePlayerPos`)
-    /* 0x018 */ s32        field_18; // Player_Status.field_C (`Gp_SavePlayerPos`)
+    /* 0x014 */ s32        field_14; // Player_Status.exp (`Gp_SavePlayerPos`)
+    /* 0x018 */ s32        field_18; // Player_Status.bp (`Gp_SavePlayerPos`)
     /* 0x01C */ u16        field_1C;
     /* 0x01E */ u16        field_1E;
     /* 0x020 */ byte       unknown_20[0x1];

@@ -99,9 +99,9 @@ void func_actor_402200_80131F54(Actor402200* arg0)
                     work->field_6E8 = 1;
                     break;
                 }
-                sc->delta.vx.w  = Player_Status.field_4->t[0] - coord->field_0.coord.t[0];
-                sc->delta.vy.w  = Player_Status.field_4->t[1] - coord->field_0.coord.t[1];
-                sc->delta.vz.w  = Player_Status.field_4->t[2] - coord->field_0.coord.t[2];
+                sc->delta.vx.w  = Player_Status.coordMtx->t[0] - coord->field_0.coord.t[0];
+                sc->delta.vy.w  = Player_Status.coordMtx->t[1] - coord->field_0.coord.t[1];
+                sc->delta.vz.w  = Player_Status.coordMtx->t[2] - coord->field_0.coord.t[2];
                 work->field_6D2 = (u32) ~(sc->delta.vx.w * coord->field_0.coord.m[0][2] +
                                           sc->delta.vy.w * coord->field_0.coord.m[1][2] +
                                           sc->delta.vz.w * coord->field_0.coord.m[2][2]) >>

@@ -30,8 +30,8 @@ void ActorsShared80132688(ActorShared80132688* arg0)
             for (i = 0; i < work->field_6FA; i++) {
                 switch (work->field_6B4[i].field_0) {
                     case 0:
-                        sc->out.vx = work->field_6B4[i].field_4 - Player_Status.field_4->t[0];
-                        sc->out.vz = work->field_6B4[i].field_6 - Player_Status.field_4->t[2];
+                        sc->out.vx = work->field_6B4[i].field_4 - Player_Status.coordMtx->t[0];
+                        sc->out.vz = work->field_6B4[i].field_6 - Player_Status.coordMtx->t[2];
                         if (SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vz * sc->out.vz) < work->field_6B4[i].field_2) {
                             work->field_6CE = 1;
                             coord           = ((ActorShared80132688*)Game_GetPtrSlot(3))->field_2C->field_8;
@@ -43,20 +43,20 @@ void ActorsShared80132688(ActorShared80132688* arg0)
                             gte_ldv0(&sc->in);
                             gte_rtv0_real();
                             gte_stlvnl(&sc->out);
-                            work->field_6A4        = Player_Status.field_4->t[0] + sc->out.vx;
-                            work->field_6A8        = Player_Status.field_4->t[1];
+                            work->field_6A4        = Player_Status.coordMtx->t[0] + sc->out.vx;
+                            work->field_6A8        = Player_Status.coordMtx->t[1];
                             *(u8**)G_SCRATCH_HEAD += sizeof(ActorShared80132688Scratch);
-                            work->field_6AC        = Player_Status.field_4->t[2] + sc->out.vz;
+                            work->field_6AC        = Player_Status.coordMtx->t[2] + sc->out.vz;
                             work->field_5BA       |= 0x4000;
                             work->field_5DA       |= 0x4000;
                             return;
                         }
                         break;
                     case 1:
-                        if (work->field_6B4[i].field_8 < Player_Status.field_4->t[0] &&
-                            Player_Status.field_4->t[0] < work->field_6B4[i].field_C &&
-                            Player_Status.field_4->t[2] < work->field_6B4[i].field_A &&
-                            work->field_6B4[i].field_E < Player_Status.field_4->t[2]) {
+                        if (work->field_6B4[i].field_8 < Player_Status.coordMtx->t[0] &&
+                            Player_Status.coordMtx->t[0] < work->field_6B4[i].field_C &&
+                            Player_Status.coordMtx->t[2] < work->field_6B4[i].field_A &&
+                            work->field_6B4[i].field_E < Player_Status.coordMtx->t[2]) {
                             work->field_6CC        = 3;
                             work->field_6CE        = 0;
                             work->field_70E        = 3;

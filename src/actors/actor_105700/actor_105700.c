@@ -476,9 +476,9 @@ void func_actor_105700_80132B28(Actor105700* arg0)
     work                      = arg0->field_1C;
     head                      = *(VECTOR**)G_SCRATCH_HEAD;
     delta                     = head - 1;
-    head[-1].vx               = (s32)(Player_Status.field_4->t[0] - self->coord.t[0]);
+    head[-1].vx               = (s32)(Player_Status.coordMtx->t[0] - self->coord.t[0]);
     delta->vy                 = 0;
-    dz                        = Player_Status.field_4->t[2] - self->coord.t[2];
+    dz                        = Player_Status.coordMtx->t[2] - self->coord.t[2];
     delta->vz                 = dz;
     dx                        = head[-1].vx;
     trigger                   = 0;

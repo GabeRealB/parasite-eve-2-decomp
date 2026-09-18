@@ -614,9 +614,9 @@ void func_actor_356100_801653F4(Actor356100* arg0)
         work->field_98E = 0;
         func_actor_356100_80163508(arg0);
         cur                                       = arg0->field_2C->field_8;
-        head[-1].delta.vx                         = Player_Status.field_4->t[0] - cur->coord.t[0];
-        s->delta.vy                               = Player_Status.field_4->t[1] - cur->coord.t[1];
-        s->delta.vz                               = Player_Status.field_4->t[2] - cur->coord.t[2];
+        head[-1].delta.vx                         = Player_Status.coordMtx->t[0] - cur->coord.t[0];
+        s->delta.vy                               = Player_Status.coordMtx->t[1] - cur->coord.t[1];
+        s->delta.vz                               = Player_Status.coordMtx->t[2] - cur->coord.t[2];
         coord                                     = arg0->field_2C->field_8;
         s->angle                                  = Actor356100_YawTo(coord, head[-1].delta.vx, s->delta.vz);
         facing                                    = arg0->field_2C->field_8;
@@ -631,9 +631,9 @@ void func_actor_356100_801653F4(Actor356100* arg0)
     s                                        = head - 1;
     func_actor_356100_80163508(arg0);
     cur               = arg0->field_2C->field_8;
-    head[-1].delta.vx = Player_Status.field_4->t[0] - cur->coord.t[0];
-    s->delta.vy       = Player_Status.field_4->t[1] - cur->coord.t[1];
-    s->delta.vz       = Player_Status.field_4->t[2] - cur->coord.t[2];
+    head[-1].delta.vx = Player_Status.coordMtx->t[0] - cur->coord.t[0];
+    s->delta.vy       = Player_Status.coordMtx->t[1] - cur->coord.t[1];
+    s->delta.vz       = Player_Status.coordMtx->t[2] - cur->coord.t[2];
     if (work->field_B48 == work->field_B4A) {
         if (work->field_B64 < 2 || Actor356100_OutOfRange(&s->delta, 0x384)) {
             value = 8;
@@ -805,9 +805,9 @@ void func_actor_356100_80166018(Actor356100* arg0)
         func_actor_356100_80163508(arg0);
         Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, Actor356100_PositionYaw(arg0, &pos, config), 0);
         Actor356100_RescaleYaw(arg0->field_2C->field_8, 0x1194);
-        pos.vx                       = arg0->field_2C->field_8->coord.t[0] - config->field_4->t[0];
+        pos.vx                       = arg0->field_2C->field_8->coord.t[0] - config->coordMtx->t[0];
         pos.vy                       = 0;
-        pos.vz                       = arg0->field_2C->field_8->coord.t[2] - config->field_4->t[2];
+        pos.vz                       = arg0->field_2C->field_8->coord.t[2] - config->coordMtx->t[2];
         work->field_98E              = 0;
         work->field_990              = 0;
         arg0->field_2C->field_8->flg = 0;
@@ -837,9 +837,9 @@ void func_actor_356100_80166018(Actor356100* arg0)
     }
     if ((work->field_5A & 0x3FF) > 0x10) {
         p      = &pos;
-        pos.vx = arg0->field_2C->field_8->coord.t[0] - config->field_4->t[0];
+        pos.vx = arg0->field_2C->field_8->coord.t[0] - config->coordMtx->t[0];
         pos.vy = 0;
-        pos.vz = arg0->field_2C->field_8->coord.t[2] - config->field_4->t[2];
+        pos.vz = arg0->field_2C->field_8->coord.t[2] - config->coordMtx->t[2];
         if (!Actor356100_OutOfRange(p, 0x578)) {
             VectorNormalSS(p, p);
             gte_lddp(10);
@@ -1383,10 +1383,10 @@ void func_actor_356100_801684F0(Actor356100* arg0)
     scratch           = (SVECTOR**)G_SCRATCH_HEAD;
     cur               = arg0->field_2C->field_8;
     head              = (Actor356100AimScratch*)*scratch;
-    head[-1].delta.vx = Player_Status.field_4->t[0] - cur->coord.t[0];
+    head[-1].delta.vx = Player_Status.coordMtx->t[0] - cur->coord.t[0];
     aim               = (Actor356100AimScratch*)(*scratch = (SVECTOR*)(head - 1));
-    aim->delta.vy     = Player_Status.field_4->t[1] - cur->coord.t[1];
-    aim->delta.vz     = Player_Status.field_4->t[2] - cur->coord.t[2];
+    aim->delta.vy     = Player_Status.coordMtx->t[1] - cur->coord.t[1];
+    aim->delta.vz     = Player_Status.coordMtx->t[2] - cur->coord.t[2];
     aim->angle        = Actor356100_YawTo(arg0->field_2C->field_8, head[-1].delta.vx, aim->delta.vz);
     work->field_98E   = aim->angle;
     if (ABS(aim->angle) <= 0x80 && work->field_97E == 2) {

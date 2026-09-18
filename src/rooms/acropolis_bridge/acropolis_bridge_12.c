@@ -378,9 +378,9 @@ u8 func_acropolis_bridge_801843A0(AcropolisBridgeWalkerWork* work, s32 actor)
     block->cfg  = &D_80073B08[(s16)actor];
     block->best = -1;
     for (block->node = 0; block->node < work->nav->count; block->node++) {
-        block->dx   = *(u16*)&block->cfg->field_4->t[0] - work->nav->nodes[block->node].x;
-        block->dy   = *(u16*)&block->cfg->field_4->t[1] - work->nav->nodes[block->node].y;
-        dz          = *(u16*)&block->cfg->field_4->t[2] - work->nav->nodes[block->node].z;
+        block->dx   = *(u16*)&block->cfg->coordMtx->t[0] - work->nav->nodes[block->node].x;
+        block->dy   = *(u16*)&block->cfg->coordMtx->t[1] - work->nav->nodes[block->node].y;
+        dz          = *(u16*)&block->cfg->coordMtx->t[2] - work->nav->nodes[block->node].z;
         block->dz   = dz;
         block->dist = block->dx * block->dx + dz * dz;
         if (block->dist < block->best || block->best == -1) {
@@ -926,9 +926,9 @@ static __inline__ void walkerStep(AcropolisBridgeWalkerWork* walker, u8* head,
         case 1:
             cfg                            = &D_80073B08[walker->field_6E];
             pos                            = (SVECTOR3*)(head - 0x24);
-            ((SVECTOR3*)(head - 0x24))->vx = *(u16*)&cfg->field_4->t[0];
-            pos->vy                        = *(u16*)&cfg->field_4->t[1];
-            pos->vz                        = *(u16*)&cfg->field_4->t[2];
+            ((SVECTOR3*)(head - 0x24))->vx = *(u16*)&cfg->coordMtx->t[0];
+            pos->vy                        = *(u16*)&cfg->coordMtx->t[1];
+            pos->vz                        = *(u16*)&cfg->coordMtx->t[2];
             break;
         case 2:
             *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD - 4;
@@ -1484,7 +1484,7 @@ void func_acropolis_bridge_80185F28(Task* task)
     }
     func_acropolis_bridge_8018532C(&work->walker);
     func_acropolis_bridge_8018581C(task);
-    if (cfg->field_4->t[1] >= 0x2BD) {
+    if (cfg->coordMtx->t[1] >= 0x2BD) {
         work->field_0 = 2;
     }
 }
@@ -1587,7 +1587,7 @@ void func_acropolis_bridge_801861A0(Task* task)
     if (done != 0) {
         work->field_0 = 3;
     }
-    if (cfg->field_4->t[1] < 0x321) {
+    if (cfg->coordMtx->t[1] < 0x321) {
         work->field_0 = 1;
     }
 }
@@ -1641,7 +1641,7 @@ void func_acropolis_bridge_801863A8(Task* task)
     func_acropolis_bridge_8018532C(&work->walker);
     func_acropolis_bridge_8018581C(task);
     if (work->walker.routeData.cursor != 0) {
-        if (cfg->field_4->t[1] < 0x321) {
+        if (cfg->coordMtx->t[1] < 0x321) {
             work->field_0 = 1;
         } else {
             work->field_0 = 2;

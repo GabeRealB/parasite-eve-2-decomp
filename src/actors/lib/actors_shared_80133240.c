@@ -33,9 +33,9 @@ void ActorsShared80133240(ActorsShared80133240Actor* arg0)
             flag = 1;
         }
     }
-    scratchEnd[-1].vx = (s32)(Player_Status.field_4->t[0] - coord->coord.t[0]);
+    scratchEnd[-1].vx = (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
     delta->vy         = 0;
-    dz                = Player_Status.field_4->t[2] - coord->coord.t[2];
+    dz                = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     delta->vz         = dz;
     dx                = scratchEnd[-1].vx;
     if (SquareRoot0((dx * dx) + (dz * dz)) < 0x5DC) {

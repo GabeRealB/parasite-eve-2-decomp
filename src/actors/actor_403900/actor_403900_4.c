@@ -348,14 +348,14 @@ void func_actor_403900_80134194(Actor403900* arg0)
     switch (state) {
         case 0:
             coord->field_0.coord.t[0] = work->field_6B4[work->field_708].field_4;
-            coord->field_0.coord.t[1] = Player_Status.field_4->t[1];
+            coord->field_0.coord.t[1] = Player_Status.coordMtx->t[1];
             coord->field_0.coord.t[2] = work->field_6B4[work->field_708].field_6;
             sc->in.vx                 = 0;
             sc->in.vy                 = work->field_6B4[work->field_708].field_2;
             sc->in.vz                 = 0;
             RotMatrix(&sc->in, &coord->field_0.coord);
-            sc->out.vx = Player_Status.field_4->t[0] - coord->field_0.coord.t[0];
-            sc->out.vz = Player_Status.field_4->t[2] - coord->field_0.coord.t[2];
+            sc->out.vx = Player_Status.coordMtx->t[0] - coord->field_0.coord.t[0];
+            sc->out.vz = Player_Status.coordMtx->t[2] - coord->field_0.coord.t[2];
             if ((s16)SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vz * sc->out.vz) < 0xDAC) {
                 work->field_6C0 = 4;
                 work->field_6CE = 1;
@@ -407,8 +407,8 @@ void func_actor_403900_80134194(Actor403900* arg0)
                 work->field_6D6--;
                 func_actor_403900_80135D5C(arg0);
             }
-            sc->out.vx = Player_Status.field_4->t[0] - coord->field_0.coord.t[0];
-            sc->out.vz = Player_Status.field_4->t[2] - coord->field_0.coord.t[2];
+            sc->out.vx = Player_Status.coordMtx->t[0] - coord->field_0.coord.t[0];
+            sc->out.vz = Player_Status.coordMtx->t[2] - coord->field_0.coord.t[2];
             if ((s16)SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vz * sc->out.vz) < 0xA8C) {
                 work->field_6C0  = 7;
                 work->field_6CE  = 3;

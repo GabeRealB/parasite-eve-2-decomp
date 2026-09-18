@@ -495,9 +495,9 @@ static __inline__ s16 Actor401000_NormalizeYaw(s16 input)
 /// body as `Actor401300_ConfigPositionDelta`.
 static __inline__ void Actor401000_ConfigPositionDelta(PlayerStatus* config, GsCOORDINATE2* coord, SVECTOR* pos)
 {
-    pos->vx = config->field_4->t[0] - coord->coord.t[0];
-    pos->vy = config->field_4->t[1] - coord->coord.t[1];
-    pos->vz = config->field_4->t[2] - coord->coord.t[2];
+    pos->vx = config->coordMtx->t[0] - coord->coord.t[0];
+    pos->vy = config->coordMtx->t[1] - coord->coord.t[1];
+    pos->vz = config->coordMtx->t[2] - coord->coord.t[2];
 }
 
 /// Yaw from the actor's facing to the player, wrapped; `pos` receives the
@@ -742,7 +742,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8
 /// two animation nodes, the frame counter and the `field_C06` clip phase.
 /// Once `field_8` has counted 7 frames the arm aims at the player - the yaw
 /// toward `Game_GetPtrSlot(3)` goes in `pad_8`, the wrapped yaw toward
-/// `Player_Status.field_4` in `pad_A` - and the root is turned by the facing
+/// `Player_Status.coordMtx` in `pad_A` - and the root is turned by the facing
 /// yaw plus a +-0x60 clamp of the turn's 1000 bias. The forward draw
 /// `field_C04` is the doubled frame parameter (halved while `field_89A` is
 /// up, forced to 2 while the frame counter runs), and the actor slides along
@@ -1687,7 +1687,7 @@ void func_actor_401000_801394EC(Actor401000* arg0)
 
 /// Walk the actor at the player: on the live-actor flag it restarts the
 /// 0x12 clip and clears the spawn pose, then takes a 0xC-byte `G_SCRATCH_HEAD`
-/// turn block, aims it at `Player_Status.field_4` through
+/// turn block, aims it at `Player_Status.coordMtx` through
 /// `Actor401000_PositionYaw`, clamps the turn to +-0x40 and adds the facing
 /// yaw back in before rebuilding the root coordinate. The obstacle walk
 /// `func_actor_401000_801323EC` runs against `field_A30` and hands

@@ -705,7 +705,7 @@ STATIC_ASSERT_SIZEOF(GpPickScratch, 0x68);
 
 /// 8-byte rotation row (`SVECTOR` layout). `D_801131B4` is indexed by
 /// `Gp_AimPitchRec` arg1 (`D_80167218[Mc_SaveData.field_5C7]`) and by
-/// `Player_Status.field_21` in `Gp_AimYawToLock`.
+/// `Player_Status.weapon` in `Gp_AimYawToLock`.
 typedef struct _GpAimRot {
     /* 0x0 */ s16 vx;
     /* 0x2 */ s16 vy;
@@ -718,7 +718,7 @@ STATIC_ASSERT_SIZEOF(GpAimRot, 8);
 /// The first 0x50 bytes are a temp `GsCOORDINATE2`. `delta` is
 /// `Gp_GetLockPos` output minus that coord's translation (computed in
 /// place). `rot` is the `SVECTOR` passed to `Gp_PlaceCoordOffset` (table row
-/// `D_801131B4[Player_Status.field_21]`). `angle` holds `ratan2` then
+/// `D_801131B4[Player_Status.weapon]`). `angle` holds `ratan2` then
 /// the wrapped, clamped yaw delta applied to `GameActor.field_52`.
 typedef struct _GpYawScratch {
     /* 0x00 */ byte     pad_0[0x50];
@@ -887,7 +887,7 @@ extern TaskFuncTable4 Gp_PlayerWorkStates;
 /// `func_8010B5E4`, `func_8010B5F0`.
 extern TaskFuncTable4 D_80097AB0;
 
-/// `Player_Status.field_21` dispatcher copied by `func_8010615C`. Unused
+/// `Player_Status.weapon` dispatcher copied by `func_8010615C`. Unused
 /// slots are `func_801065A0`; others are weapon-overlay entry points.
 extern GpActorFuncTable33 D_800978BC;
 
@@ -926,7 +926,7 @@ extern u16 D_80112E20[];
 /// `D_80112E2C[Mc_SaveData.field_22 - 1][arg0]`.
 extern u8 D_80112E2C[][2];
 
-/// u16 turn-rate rows indexed by `Player_Status.field_21`. `Gp_AimYawToLock`
+/// u16 turn-rate rows indexed by `Player_Status.weapon`. `Gp_AimYawToLock`
 /// clamps the wrapped yaw delta to this value (or 1.5x when
 /// `func_800B9D80(0x2000)` is set).
 extern u16 D_80112E30[];
@@ -937,12 +937,12 @@ extern u16 D_80112E30[];
 extern struct _GpImgRec** D_80112E74[];
 extern struct _GpImgRec** D_80112EB4[];
 
-/// Per-item flag byte indexed by `Player_Status.field_21`. Nonzero makes
+/// Per-item flag byte indexed by `Player_Status.weapon`. Nonzero makes
 /// `Gp_PlayerNormalState2` / `Gp_PlayerMode2StateA` pass `GameActor.field_97F` (the current
 /// aim direction) to `func_80106264` instead of the default 1.
 extern u8 D_80112EF8[];
 
-/// 2-wide rows indexed by `Player_Status.field_21`. Zero at `[i][0]`
+/// 2-wide rows indexed by `Player_Status.weapon`. Zero at `[i][0]`
 /// makes `func_801088D4` abort the item-use path (`field_95E = 0x3E8`).
 extern u8 D_80112F1C[][2];
 

@@ -112,7 +112,7 @@ STATIC_ASSERT_SIZEOF(GpOverlayIds, 6);
 
 /// 0x14-byte payload copied from `Gp_WeaponMsgRec` by `Gp_MsgPlayerWeapon` (arg 0)
 /// and sent as slot-3 msg `0x3E8`. `field_0` is overwritten with
-/// `Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.field_21`
+/// `Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.weapon`
 /// (same value `Gp_PlayerWeaponId` writes). `Gp_MsgAllyWeapon` copies the same
 /// record to slot 0xA and overwrites `field_0` with
 /// `Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7`
@@ -533,7 +533,7 @@ void Gp_DrawFxQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3);
 void func_800EB6E8(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3);
 void Gp_DrawBand(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 void Gp_DrawBandEx(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
-/// Grayscale fade task controlled by `Player_Status.field_25` bit 0.
+/// Grayscale fade task controlled by `Player_Status.peStateFlags` bit 0.
 /// Alternates LCG-selected brightness targets, then fades out and releases
 /// its `GpEffWork` when the flag stays clear.
 void func_800EC47C(Task* arg0);

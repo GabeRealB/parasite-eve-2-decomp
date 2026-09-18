@@ -28,11 +28,11 @@ void Gp_EvtCapWeaponTask(Task* arg0)
         case 0:
             if ((flags & 1) && (flags != 0xFF)) {
                 recA         = Gp_WeaponMsgRec;
-                recA.field_0 = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.field_21;
+                recA.field_0 = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.weapon;
                 Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&recA, 0);
             }
             recB         = D_8010FB10;
-            recB.field_0 = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.field_21;
+            recB.field_0 = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.weapon;
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FA, 0, 0);
             arg0->state++;
             break;
@@ -79,7 +79,7 @@ void Gp_EvtCapWeaponTask(Task* arg0)
                 Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F2, (s32)arg0->spawnArg2 + 0x64, 0);
             }
             recB         = D_8010FB24;
-            recB.field_0 = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.field_21;
+            recB.field_0 = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.weapon;
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FA, 1, 0);
             arg0->state++;
             break;

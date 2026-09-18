@@ -139,9 +139,9 @@ void func_dryfield_motel_room_1_8017DFD0(void)
     msg.field_10 = 0;
     Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
     cfg            = &Player_Status;
-    work->field_14 = cfg->field_4->t[0];
-    work->field_18 = cfg->field_4->t[1];
-    work->field_1C = cfg->field_4->t[2];
+    work->field_14 = cfg->coordMtx->t[0];
+    work->field_18 = cfg->coordMtx->t[1];
+    work->field_1C = cfg->coordMtx->t[2];
     work->field_24 = 0;
     work->field_26 = 0x500;
     work->field_28 = 0;

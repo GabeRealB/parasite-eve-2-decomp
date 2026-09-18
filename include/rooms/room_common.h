@@ -213,7 +213,7 @@ STATIC_ASSERT_SIZEOF(RoomPeUsage, 0xC4);
 /// both are set to their "dirty" values (`-1` / `0`) as the task starts so the
 /// first frame always rebuilds. `light` and `color` are the matrices hung off
 /// the clone's `TmdObject`, `field_A0` is the screen-space clip rectangle
-/// (-160, 160, -120, 120) and `configRev` caches `Player_Status.field_21`.
+/// (-160, 160, -120, 120) and `configRev` caches `Player_Status.weapon`.
 typedef struct RoomMirrorWork {
     /* 0x00 */ s32           viewFlg;
     /* 0x04 */ s32           field_4;

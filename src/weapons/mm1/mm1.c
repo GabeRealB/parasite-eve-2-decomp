@@ -47,12 +47,12 @@ void func_mm1_8011D1D4(GpActorWork* arg0)
             actor->field_981 = 0;
             actor->field_940 = 0x28;
             Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8,
-                          ((Player_Status.field_22 - 0xA) << 24) | 0x200C0004, 1);
+                          ((Player_Status.weaponSlotItem - 0xA) << 24) | 0x200C0004, 1);
             Gp_SpawnEff(0x6006C,
                         (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8, 0xC,
                         NULL);
             Gp_ConsumeSlotQty(0x8B, 1);
-            func_80104490(arg0, 0, 2, Player_Status.field_22 | 0x10C00);
+            func_80104490(arg0, 0, 2, Player_Status.weaponSlotItem | 0x10C00);
             Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 3);
             break;
         case 3:

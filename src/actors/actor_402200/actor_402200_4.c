@@ -80,9 +80,9 @@ void func_actor_402200_80132E34(Actor402200* arg0)
         gte_ldv0(&sc->in);
         gte_rtv0_real();
         gte_stlvnl(&sc->out);
-        work->field_6A4  = Player_Status.field_4->t[0] + sc->out.vx;
-        work->field_6A8  = Player_Status.field_4->t[1];
-        work->field_6AC  = Player_Status.field_4->t[2] + sc->out.vz;
+        work->field_6A4  = Player_Status.coordMtx->t[0] + sc->out.vx;
+        work->field_6A8  = Player_Status.coordMtx->t[1];
+        work->field_6AC  = Player_Status.coordMtx->t[2] + sc->out.vz;
         work->field_5DE  = -0x3E8;
         work->field_5E0  = -0x7D0;
         work->field_5DC  = 0;
@@ -108,9 +108,9 @@ void func_actor_402200_80132E34(Actor402200* arg0)
         work->field_6E6  = (work->field_6E6 + (ratan2(coord->field_0.coord.m[0][2], coord->field_0.coord.m[2][2]) & 0xFFF)) & 0xFFF;
         sc->in.vx        = (u32)(rsin(work->field_6E6) * 0x4B) >> 8;
         sc->in.vz        = (u32)(rcos(work->field_6E6) * 0x4B) >> 8;
-        work->field_6A4  = Player_Status.field_4->t[0] + sc->in.vx;
-        work->field_6A8  = Player_Status.field_4->t[1];
-        work->field_6AC  = Player_Status.field_4->t[2] + sc->in.vz;
+        work->field_6A4  = Player_Status.coordMtx->t[0] + sc->in.vx;
+        work->field_6A8  = Player_Status.coordMtx->t[1];
+        work->field_6AC  = Player_Status.coordMtx->t[2] + sc->in.vz;
         work->field_5BA |= 0x4000;
     }
     *(u8**)G_SCRATCH_HEAD += sizeof(Actor402200OffsetScratch);
@@ -417,14 +417,14 @@ void func_actor_402200_80134194(Actor402200* arg0)
     switch (state) {
         case 0:
             coord->field_0.coord.t[0] = work->field_6B4[work->field_708].field_4;
-            coord->field_0.coord.t[1] = Player_Status.field_4->t[1];
+            coord->field_0.coord.t[1] = Player_Status.coordMtx->t[1];
             coord->field_0.coord.t[2] = work->field_6B4[work->field_708].field_6;
             sc->in.vx                 = 0;
             sc->in.vy                 = work->field_6B4[work->field_708].field_2;
             sc->in.vz                 = 0;
             RotMatrix(&sc->in, &coord->field_0.coord);
-            sc->out.vx = Player_Status.field_4->t[0] - coord->field_0.coord.t[0];
-            sc->out.vz = Player_Status.field_4->t[2] - coord->field_0.coord.t[2];
+            sc->out.vx = Player_Status.coordMtx->t[0] - coord->field_0.coord.t[0];
+            sc->out.vz = Player_Status.coordMtx->t[2] - coord->field_0.coord.t[2];
             if ((s16)SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vz * sc->out.vz) < 0xDAC) {
                 work->field_6C0 = 4;
                 work->field_6CE = 1;
@@ -476,8 +476,8 @@ void func_actor_402200_80134194(Actor402200* arg0)
                 work->field_6D6--;
                 func_actor_402200_80135D5C(arg0);
             }
-            sc->out.vx = Player_Status.field_4->t[0] - coord->field_0.coord.t[0];
-            sc->out.vz = Player_Status.field_4->t[2] - coord->field_0.coord.t[2];
+            sc->out.vx = Player_Status.coordMtx->t[0] - coord->field_0.coord.t[0];
+            sc->out.vz = Player_Status.coordMtx->t[2] - coord->field_0.coord.t[2];
             if ((s16)SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vz * sc->out.vz) < 0xA8C) {
                 work->field_6C0  = 7;
                 work->field_6CE  = 3;

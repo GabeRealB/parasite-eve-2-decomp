@@ -476,9 +476,9 @@ static __inline__ s16 Actor356100_NormalizeYaw(s16 input)
 /// the overlay's own `D_80073B8C` copy of the player coordinate.
 static __inline__ void Actor356100_ConfigPositionDelta(PlayerStatus* config, GsCOORDINATE2* coord, SVECTOR* pos)
 {
-    pos->vx = config->field_4->t[0] - coord->coord.t[0];
-    pos->vy = config->field_4->t[1] - coord->coord.t[1];
-    pos->vz = config->field_4->t[2] - coord->coord.t[2];
+    pos->vx = config->coordMtx->t[0] - coord->coord.t[0];
+    pos->vy = config->coordMtx->t[1] - coord->coord.t[1];
+    pos->vz = config->coordMtx->t[2] - coord->coord.t[2];
 }
 
 /// Yaw from the actor's facing to the player, wrapped; `pos` receives the

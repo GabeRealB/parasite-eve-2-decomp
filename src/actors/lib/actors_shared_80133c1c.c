@@ -32,8 +32,8 @@ s32 ActorsShared80133c1c(ActorShared80133c1c* arg0)
     head     = *scratch;
     vec      = (SVECTOR*)(head - 8);
     coord    = arg0->field_2C->field_8;
-    vec->vx  = (u16)Player_Status.field_4->t[0] - (u16)coord->coord.t[0];
-    dz       = (u16)Player_Status.field_4->t[2] - (u16)coord->coord.t[2];
+    vec->vx  = (u16)Player_Status.coordMtx->t[0] - (u16)coord->coord.t[0];
+    dz       = (u16)Player_Status.coordMtx->t[2] - (u16)coord->coord.t[2];
     *scratch = vec;
     vec->vz  = dz;
     dx       = ((SVECTOR*)(head - 8))->vx;

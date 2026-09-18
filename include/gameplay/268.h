@@ -159,7 +159,7 @@ STATIC_ASSERT_SIZEOF(GpCoordYaw, 0x22);
 /// 8-byte item attribute row. `Gp_ItemAttrs` is indexed by raw item id
 /// (`Gp_GetModLevel`); ids 0x60–0x7F land in the `Gp_ModStatAttrs` slice.
 /// field_4 is the unsigned bonus added to `Player_Status.hpMax` by
-/// `Gp_RecalcMaxHp` when `Player_Status.field_23` (item id − 0x5F) is
+/// `Gp_RecalcMaxHp` when `Player_Status.armor` (item id − 0x5F) is
 /// non-zero. field_5 is the unsigned base added to
 /// `Mc_SaveData.field_908[id-0x60]` and clamped to 10. field_6 is the
 /// unsigned bonus added to `Player_Status.mpMax` by `Gp_RecalcMaxMp`
@@ -249,7 +249,7 @@ extern char* Gp_ItemTextHi[];
 
 s32  func_800B7420(s32 arg0);
 void Gp_RecalcMaxMp(void);
-/// Equips item `arg0` (ids `0x60..0x7F`) as `Player_Status.field_23`
+/// Equips item `arg0` (ids `0x60..0x7F`) as `Player_Status.armor`
 /// (item id − 0x5F). Marks the new row's `field_1` as −1 and clears the
 /// previous selection, then recomputes max HP/MP (same bodies as
 /// `Gp_RecalcMaxHp` / `Gp_RecalcMaxMp`), refreshes every inventory row with
@@ -261,7 +261,7 @@ void       Gp_InitStarterInv(void);
 GpItemRec* Gp_GiveItem(GpItemScan* arg0, s32 arg1, s32 arg2);
 s32        Gp_RemoveItem(GpItemScan* arg0, GpItemRec* arg1, s32 arg2);
 /// Confirmation UI for raising `Mc_SaveData.field_908` of the equipped
-/// 0x60–0x7F item (`Player_Status.field_23`). If the clamped level is
+/// 0x60–0x7F item (`Player_Status.armor`). If the clamped level is
 /// already 10, `Gp_NoticePanelTask` is shown with spawnArg1 0x1A. Otherwise
 /// consumes `Gp_SelItemRec` and draws "More <item> attachments available."
 void Gp_UiBoostAttach(struct _UiObject* arg0, Task* arg1);
@@ -272,13 +272,13 @@ void Gp_UiBoostMp(struct _UiObject* arg0, Task* arg1);
 /// `Gp_BoostPanelDesc`. `Gp_NoticePanelTask` is called with `spawnArg1` forced to 0x1C.
 void Gp_UiBoostHp(struct _UiObject* arg0, Task* arg1);
 s32  func_800B9D80(s32 arg0);
-/// Unequips `Player_Status.field_21` (ids 1..32 use the same slot clear as
+/// Unequips `Player_Status.weapon` (ids 1..32 use the same slot clear as
 /// `Gp_ClearEquipSlot`), resets the `Gp_DefaultScan` item table, copies that scan
 /// into `Mc_SaveData.field_5BC`, adds one of item 0x6C, heals current HP/MP
 /// to max, zeros the 4x3 `Gp_DebugAttachLevels` table, and clears `Gp_StateC08.field_5`
 /// / `field_B`.
 void Gp_ResetInventory(void);
-/// Unequips `Player_Status.field_21` (same slot clear as `Gp_ResetInventory`),
+/// Unequips `Player_Status.weapon` (same slot clear as `Gp_ResetInventory`),
 /// zeros the `Gp_DefaultScan` item table, writes `{0, 0x14, 0}` into
 /// `Mc_SaveData.field_5BC`, and if that table has an equipped 0x60–0x7F
 /// item (`field_1 == -1`) sets `field_23` and recomputes max HP/MP

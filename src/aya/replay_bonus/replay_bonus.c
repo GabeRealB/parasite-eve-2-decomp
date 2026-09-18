@@ -163,7 +163,7 @@ s32 func_replay_bonus_80115CA4(void)
     s32 flag;
 
     levels = Mc_SaveData.unknown_850;
-    spend  = Player_Status.field_8;
+    spend  = Player_Status.exp;
     SOFT_USE_REG(spend);
     i = 0;
     do {
@@ -405,7 +405,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
                 ipInit++;
             } while (iInit < limitInit);
         }
-        acc = acc + cfg2->field_C;
+        acc = acc + cfg2->bp;
         if (acc > 0x05F5E0FF) {
             acc = 0x05F5E0FF;
         }
@@ -414,7 +414,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
         totals->field_C                  = acc;
         list->field_9                    = list->field_4 - list->field_5;
         tmp                              = func_replay_bonus_80115CA4();
-        exp                              = cfg->field_8;
+        exp                              = cfg->exp;
         D_replay_bonus_80119274.unk0     = tmp;
         *(volatile s32*)&totals->field_8 = exp;
         SOFT_TOUCH_REG(exp);
@@ -625,7 +625,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
             ip++;
         } while (i < nDraw);
     }
-    sum += cfgDraw->field_C;
+    sum += cfgDraw->bp;
     if (sum > 0x05F5E0FF) {
         sum = 0x05F5E0FF;
     }
@@ -694,7 +694,7 @@ void func_replay_bonus_801166AC(Task* arg0)
     req.field_E    = 1;
     req.otIndex    = ot + 1;
     func_8002E53C(&req, D_replay_bonus_801157C4);
-    value = cfg->field_8;
+    value = cfg->exp;
     if (arg0->spawnArg1 == 1) {
         value = D_replay_bonus_8011927C;
     }
@@ -1051,12 +1051,12 @@ void func_replay_bonus_80116EC0(void)
     if (sum > 0x98967F) {
         sum = 0x98967F;
     }
-    cfg->field_C   = sum;
+    cfg->bp        = sum;
     save->field_12 = 0xF;
     exp            = D_replay_bonus_80119274.field_8;
-    cfg->field_8   = exp;
+    cfg->exp       = exp;
     save->field_14 = exp;
-    save->field_18 = cfg->field_C;
+    save->field_18 = cfg->bp;
     if (copy.field_F >= 2) {
         save->field_92A = 2;
     } else if (save->field_92A <= 0) {
