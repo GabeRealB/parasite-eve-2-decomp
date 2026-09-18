@@ -936,7 +936,102 @@ void Actor01900_Fn02018(GpEnemy* enemy, Actor01900* actor)
     actor->field_30++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn02664);
+/// Spawns the hit-reaction effect for a blow arriving at `yaw`: carves one
+/// `SVECTOR` off the scratch head, fills it with one of the twelve presets in
+/// `Actor01900_D1722C` picked from the magnitude and sign of `yaw` plus a
+/// random draw, hands it to `func_800FDB18` together with the parameter of
+/// `id`, and releases the scratch again.
+void Actor01900_Fn02664(Actor01900* arg0, s16 yaw, s32 id)
+{
+    SVECTOR*        head;
+    SVECTOR*        carved;
+    SVECTOR*        dir;
+    Actor01900Work* work;
+    GsCOORDINATE2*  coord;
+    s32             ang;
+    s32             absAng;
+    s32             headOn;
+    s32             pick;
+    u32             rnd;
+
+    ang    = yaw;
+    head   = *(SVECTOR**)G_SCRATCH_HEAD;
+    carved = head - 1;
+    TOUCH_REG(carved);
+    *(SVECTOR**)G_SCRATCH_HEAD = carved;
+    dir                        = carved;
+    SOFT_BARRIER();
+    absAng = ang;
+    if (yaw < 0) {
+        SOFT_TOUCH_REG(absAng);
+        absAng = -absAng;
+    }
+    headOn = absAng < 0x200;
+    work   = arg0->field_1C;
+    if (headOn) {
+        rnd         = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState = rnd;
+        SOFT_BARRIER();
+        pick = (rnd >> 0x10) & 3;
+        switch (pick) {
+            case 0:
+                head[-1] = Actor01900_D1722C[0];
+                break;
+            case 1:
+                head[-1] = Actor01900_D1722C[1];
+                break;
+            case 2:
+                head[-1] = Actor01900_D1722C[2];
+                break;
+            case 3:
+                head[-1] = Actor01900_D1722C[3];
+                break;
+            default:
+                *dir = Actor01900_D1722C[4];
+                break;
+        }
+    } else if (absAng >= 0x601) {
+        rnd         = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState = rnd;
+        SOFT_BARRIER();
+        pick = (rnd >> 0x10) & 2;
+        switch (pick) {
+            case 0:
+                head[-1] = Actor01900_D1722C[5];
+                break;
+            case 1:
+                head[-1] = Actor01900_D1722C[6];
+                break;
+            default:
+                *dir = Actor01900_D1722C[7];
+                break;
+        }
+    } else if (yaw > 0) {
+        rnd         = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState = rnd;
+        SOFT_BARRIER();
+        if ((rnd >> 0x10) & 1) {
+            head[-1] = Actor01900_D1722C[8];
+        } else {
+            head[-1] = Actor01900_D1722C[9];
+        }
+    } else {
+        rnd         = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState = rnd;
+        SOFT_BARRIER();
+        if ((rnd >> 0x10) & 1) {
+            head[-1] = Actor01900_D1722C[10];
+        } else {
+            head[-1] = Actor01900_D1722C[11];
+        }
+    }
+    coord                   = arg0->field_2C->field_8;
+    work->field_8B8.field_4 = 0x300;
+    work->field_8B8.field_6 = 2;
+    work->field_8B8.field_0 = coord + 1;
+    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, arg0->field_2C->field_8 + dir->pad, dir, &work->field_8B8);
+    *(SVECTOR**)G_SCRATCH_HEAD = *(SVECTOR**)G_SCRATCH_HEAD + 1;
+}
 
 /// First `GpRec18` among the twelve at `records` whose id has high word 2,
 /// copying its position to `pos`; 0 at the first empty record.

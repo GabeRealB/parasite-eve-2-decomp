@@ -129342,3 +129342,78 @@ longer live range and therefore the lower priority.
 
 `base_7` 97.627% from 96.894%, no asm helper involved. Input hash
 `d44719096c55b6cdfce0b00b4c486b4937d82bf58b26e322cd9bbc6a170eff3d` (`base_7.i`).
+
+## `x = y; if (...) x = -x;` comes out as `neg x, y` — invalidate the quantity *after* the branch (Actor01900_Fn02664, 2026-09-18)
+
+A copy followed by an in-place operation on the copy is the natural way to write
+an absolute value:
+
+```c
+absAng = ang;
+if (yaw < 0) {
+    absAng = -absAng;
+}
+```
+
+but cse2 rewrites the negation's operand. `make_regs_eqv` in `cse.c` joins the
+two pseudos into one quantity and keeps as its canonical register the one that
+lives longest; the copy's *source* usually wins, because the original value is
+still needed further down (here for a later sign test). `canon_reg` then
+substitutes that canonical register into every later reference, so
+`(set P (neg P))` becomes `(set P (neg S))` and the object shows `negu v1,a1`
+where the ROM has `negu v1,v1`. Nothing downstream undoes it: the copy and the
+negation are in one cse extended basic block, which ends only at a `CODE_LABEL`,
+and the conditional branch between them does not break the block.
+
+Writing the destination from an `asm` invalidates the quantity, and *where* the
+`asm` goes decides whether the rest of the schedule survives. Placed right after
+the copy it is between the copy and the branch, so the copy can no longer reach
+the branch's delay slot: reorg fills the slot by duplicating the branch target's
+first instruction instead, costing an insn. Placed inside the conditional block,
+after the branch and before the negation, it invalidates the quantity in time
+and leaves the copy free to be the delay slot:
+
+```c
+absAng = ang;
+if (yaw < 0) {
+    SOFT_TOUCH_REG(absAng);
+    absAng = -absAng;
+}
+```
+
+This generalises to any in-place update of a copy — `x = -x`, `x = ~x`, `x >>= n`
+— whose operand the object dump shows as the copy's source.
+
+## sched ties on priority are broken by insn order, so hoist the compare to put it first (Actor01900_Fn02664, 2026-09-18)
+
+A block holding a compare, an unrelated load and the branch schedules the load
+first even though the branch depends on the compare. Both candidates carry
+`priority = 1` in the `.sched`/`.sched2` ready-list dump, and `rank_for_schedule`
+falls through to `INSN_LUID (y) - INSN_LUID (x)`: the higher LUID is picked
+first by the backward list scheduler and therefore *emitted last*. The load,
+written before the `if`, has the lower LUID and comes out first.
+
+Computing the condition into its own local puts the `slt` ahead of the load in
+the insn chain and reverses the tie:
+
+```c
+headOn = absAng < 0x200;
+work   = actor->field_1C;
+if (headOn) {
+```
+
+MIPS already splits a conditional branch into `slt` plus `branch_zero`, so the
+extra local costs nothing — it only moves where the `slt` is generated. Reach
+for this whenever two independent instructions in one block come out in the
+wrong order and the dump shows them tied on priority.
+
+## A `self = arg0` copy moves the address constant ahead of the register save (Actor01900_Fn02664, 2026-09-18)
+
+Copying a parameter into a local for readability is not free at the top of a
+function. With `self = arg0;` the copy is an ordinary insn late in the chain,
+and sched2 hands the earliest slots to whatever else is ready — here the
+`lui`/`ori` pair materialising a scratch-head address, which landed before the
+`sw` of the callee-saved register and its `move`. Using the parameter directly
+leaves the copy as the entry copy from the argument register, at the head of the
+chain, and the two instructions swap back into ROM order. The rest of the
+function was unchanged; this was the last reorder between 99.5% and 100%.

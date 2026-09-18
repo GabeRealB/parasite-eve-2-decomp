@@ -350,11 +350,14 @@ extern void*                 Actor01900_D171B4;
 extern MATRIX*               D_80073B8C;
 extern u32                   Gp_LcgState;
 extern Actor01900HeightClamp Actor01900_D172CC[];
-extern char                  Actor01900_D10B68;
-extern s16                   Actor01900_D172FC;
-extern void*                 D_80114B78[1];
-extern u8                    D_801153F2[2];
-extern u8                    D_801153F4;
+/// Twelve preset hit-reaction directions `Actor01900_Fn02664` copies from;
+/// `pad` carries the index of the coordinate the effect is attached to.
+extern SVECTOR Actor01900_D1722C[];
+extern char    Actor01900_D10B68;
+extern s16     Actor01900_D172FC;
+extern void*   D_80114B78[1];
+extern u8      D_801153F2[2];
+extern u8      D_801153F4;
 
 s32  Actor01900_Fn00E00(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
 void Actor01900_Fn02A50(Actor01900* arg0);
