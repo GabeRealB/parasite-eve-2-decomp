@@ -51,7 +51,250 @@ void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern u8 D_801153F4;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn0006C);
+void Actor05500_Fn0006C(Actor105500* arg0)
+{
+    u32              lastId;
+    GpDeltaScratch*  normal;
+    Actor105500Work* work;
+    s32              i;
+
+    Actor105500HitScratch* hit;
+    Actor105500HitScratch* scratch;
+    Actor105500HitScratch* allocated;
+    s32                    amount;
+    GsCOORDINATE2*         coord;
+    s32                    id;
+    s32                    wallDz;
+    s32                    dx;
+    s32                    dy;
+    s32                    dz;
+    s32                    wallDx;
+    s32                    wallDy;
+    s32                    hitId;
+
+    s32 mask;
+    s32 push;
+    s32 result;
+    s32 boundedDepth;
+    s32 value;
+    s32 one;
+    s16 cooldown;
+
+    u32             kind;
+    u32             effect;
+    u32             damage;
+    s32             flag;
+    GsCOORDINATE2*  sourceCoord;
+    Actor105500Ctx* ctx;
+
+    push      = 0;
+    lastId    = 0;
+    work      = arg0->field_1C;
+    damage    = *(u32*)0x1F8003FC;
+    allocated = (Actor105500HitScratch*)(damage - 0x38);
+    SOFT_TOUCH_REG(allocated);
+    scratch                       = allocated;
+    coord                         = arg0->field_2C->field_8;
+    ctx                           = arg0->field_20;
+    *(GpDeltaScratch**)0x1F8003FC = (GpDeltaScratch*)scratch;
+    work->field_3CC               = 0;
+    result                        = func_800E0C10(work->field_234, &scratch->delta, 4, NULL);
+    if (result != 0) {
+        if (work->field_39A == 2) {
+            work->field_3CC = 1;
+        }
+        switch (result) {
+            case 0:
+                break;
+            case 1:
+                coord->coord.t[0] += *(s16*)(damage - 0x36);
+                coord->coord.t[1] += scratch->delta.vy.h.hi;
+                coord->coord.t[2] += scratch->delta.vz.h.hi;
+                break;
+            case 2:
+                coord->coord.t[0] = work->field_35C.vx;
+                coord->coord.t[1] = work->field_35C.vy;
+                coord->coord.t[2] = work->field_35C.vz;
+                break;
+        }
+    }
+    Gp_ClearRec18Occupied(work->field_234);
+    if (work->field_390 != 0) {
+        cooldown        = (u16)work->field_390 - 1;
+        work->field_390 = cooldown;
+        if ((cooldown << 0x10) <= 0) {
+            work->field_390 = 0;
+        }
+    }
+    one = 1;
+    hit = scratch;
+    __asm__ volatile("" : "+r"(result) : "r"(hit));
+    normal          = (GpDeltaScratch*)&hit->normal;
+    work->field_3D0 = 0;
+    work->field_3BA = 0;
+    for (i = 0; i < 2; i++) {
+        id   = work->field_2B4[i].field_4;
+        kind = (u32)id >> 0x10;
+        if (kind == one)
+            goto physical;
+        if (kind == 0)
+            goto block_59;
+        if (kind == 2)
+            goto damage;
+        if (kind == 3)
+            goto physical;
+        goto block_59;
+    damage: {
+        if (work->field_390 == 0) {
+            result = 0;
+            if ((((u32)id >> 8) & 0x3F) == 0x24) {
+                if ((id & 0x3F) == 0x24)
+                    result = 1;
+            }
+            if ((result != one) || (work->field_3B2 == 0)) {
+                sourceCoord     = ((Actor105500*)Gp_ActorSlots[((u32)id >> 7) & 1])->field_2C->field_8;
+                dx              = sourceCoord->coord.t[0] - coord->coord.t[0];
+                hit->delta.vx.w = dx;
+                dy              = sourceCoord->coord.t[1] - coord->coord.t[1];
+                hit->delta.vy.w = dy;
+                dz              = sourceCoord->coord.t[2] - coord->coord.t[2];
+                hit->delta.vz.w = dz;
+                value           = SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
+                TOUCH_REG(value);
+                amount = Gp_ComputeDamage((u32)work->field_2B4[i].field_4, value, 0, 0);
+                damage = amount;
+                if (result == 0) {
+                    if (work->field_3CA != 0) {
+                        damage = (u32)(amount << 0x10) >> 0xF;
+                        Gp_SpawnEff(0x6009C, arg0->field_2C->field_8 + 1, 3, NULL);
+                    }
+                    if (Gp_RollEnemyChance((GpEnemy*)ctx, (u32)work->field_2B4[i].field_4, 0) != 0) {
+                        damage = (u32)(damage << 0x10) >> 0xE;
+                        if (work->field_3CA == 0) {
+                            Gp_SpawnEff(0x6009C, arg0->field_2C->field_8 + 1, 0, NULL);
+                        }
+                    }
+                    func_800E2C78((GpObj40*)ctx, work->field_2B4[i].field_4, (s32)(s16)damage, 0);
+                }
+                func_800DA6E8(&ctx->field_10, (s32)(s16)damage, 0);
+                value         = (u16)ctx->field_40 - damage;
+                ctx->field_40 = value;
+                if (work->field_3C8 != one) {
+                    if ((s16)value <= 0) {
+                        work->field_39A = 9;
+                        work->field_39C = 0;
+                        arg0->field_30  = 2;
+                    } else if (result == 0) {
+                        work->field_39A = 6;
+                        work->field_39C = 0;
+                    }
+                }
+                if (work->field_3C8 == 2) {
+                    if ((work->field_39A == 9) || (result == 0)) {
+                        work->field_3C8 = 0;
+                        work->field_3A2 = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;
+                        hit->rot.vx     = 0;
+                        hit->rot.vy     = (s16)((u16)work->field_3A2 + 0x800);
+                        hit->rot.vz     = 0;
+                        RotMatrix(&hit->rot, &coord->coord);
+                        goto block_41;
+                    }
+                } else {
+                block_41:
+                    if (result == 0) {
+                        work->field_3D0        = one;
+                        work->field_2E4.flags &= 0x3FFF;
+                    }
+                }
+                effect = Gp_GetIdParam0(work->field_2B4[i].field_4) & 0xFFFF;
+                switch (effect) {
+                    case 0:
+                    case 1:
+                    case 5:
+                    case 8:
+                    case 9:
+                        break;
+                    case 2:
+                        Gp_SetObjFlag2((GpObj5D*)ctx, work->field_2B4[i].field_4, 0);
+                        break;
+                    case 3:
+                        Gp_SetObjFlag4((GpObj5C*)ctx, work->field_2B4[i].field_4, 0);
+                        break;
+                    case 4:
+                    case 6:
+                        if (work->field_3C8 != one) {
+                            work->field_3BA = one;
+                        }
+                        break;
+                    case 7:
+                        if (work->field_3B0 == 0) {
+                            work->field_3B0        = one;
+                            work->field_3BE        = 0;
+                            work->field_3B2        = 0;
+                            work->field_31C.flags |= 0x8000;
+                            Gp_SetLightMode((GpObj4C*)arg0->field_20, 3);
+                        }
+                        break;
+                }
+                hitId = work->field_2B4[i].field_4;
+                if (lastId != hitId) {
+                    hit->rot.vx = 0;
+                    hit->rot.vy = -0xC8;
+                    hit->rot.vz = 0;
+                    lastId      = hitId;
+                    func_800FDB18(Gp_GetIdParam1(work->field_2B4[i].field_4) & 0xFFFF, arg0->field_2C->field_8 + 1, &hit->rot, &work->field_354);
+                }
+                result = Gp_GetIdParam2(work->field_2B4[i].field_4);
+                if (result > 0) {
+                    work->field_390 = (s16)result;
+                }
+            }
+        }
+    }
+        goto block_59;
+    physical: {
+        wallDx          = coord->workm.t[0] - work->field_2B4[i].field_8;
+        hit->delta.vx.w = wallDx;
+        wallDy          = coord->workm.t[1] - work->field_2B4[i].field_A;
+        hit->delta.vy.w = wallDy;
+        wallDz          = coord->workm.t[2] - work->field_2B4[i].field_C;
+        hit->delta.vz.w = wallDz;
+        amount          = work->field_2B4[i].field_2 - SquareRoot0((wallDx * wallDx) + (wallDy * wallDy) + (wallDz * wallDz));
+        boundedDepth    = amount;
+        if (amount <= 0) {
+            boundedDepth = 0;
+        }
+        TOUCH_REG_USE(boundedDepth, amount);
+        amount = boundedDepth;
+        if (push < amount) {
+            push = amount;
+            VectorNormal((VECTOR*)hit, (VECTOR*)normal);
+            ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, (VECTOR*)normal, &hit->local);
+        }
+    }
+    block_59:;
+    }
+    if (push > 0) {
+        flag               = 1;
+        coord->coord.t[0] += (s32)(push * hit->local.vx) >> 0xC;
+        coord->coord.t[2] += (s32)(push * hit->local.vz) >> 0xC;
+    } else {
+        flag = 1;
+    }
+    Gp_ClearRec18Occupied(work->field_2B4);
+    work->field_3CE = 0;
+    if (work->field_304[0].field_0 & 1) {
+        mask = work->field_304[0].field_4 & 0xFFFF0000;
+        if ((mask == 0x10000) || ((mask == 0x100000) && (work->field_304[0].field_12 == 0))) {
+            work->field_3CE = flag;
+        }
+        work->field_2E4.flags &= 0x3FFF;
+        Gp_ClearRec18Occupied(work->field_304);
+    }
+    *(u8**)0x1F8003FC += 0x38;
+}
+INCLUDE_RODATA("actors/nonmatchings/lib/actor_105500_text", Actor05500_D0002C);
+INCLUDE_RODATA("actors/nonmatchings/lib/actor_105500_text", Actor05500_D00038);
 
 void Actor05500_Fn00754(Actor105500* arg0)
 {

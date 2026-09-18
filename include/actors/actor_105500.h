@@ -9,6 +9,17 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+/// Scratchpad block the collision handler allocates below the scratchpad top:
+/// the delta vector reported by func_800E0C10, the normalised push direction and
+/// its grid-space image, plus a rotation used when re-aiming the actor.
+typedef struct Actor105500HitScratch {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ VECTOR         normal;
+    /* 0x20 */ VECTOR         local;
+    /* 0x30 */ SVECTOR        rot;
+} Actor105500HitScratch;
+STATIC_ASSERT_SIZEOF(Actor105500HitScratch, 0x38);
+
 typedef struct Actor105500Obj2C {
     /* 0x00 */ byte           pad_0[8];
     /* 0x08 */ GsCOORDINATE2* field_8;
@@ -48,7 +59,7 @@ typedef struct Actor105500Work {
     /* 0x368 */ byte      pad_368[4];
     /* 0x36C */ TaskDesc* field_36C;
     /* 0x370 */ MATRIX    field_370;
-    /* 0x390 */ byte      pad_390[2];
+    /* 0x390 */ s16       field_390;
     /* 0x392 */ s16       field_392;
     /* 0x394 */ s16       field_394;
     /* 0x396 */ u16       field_396;

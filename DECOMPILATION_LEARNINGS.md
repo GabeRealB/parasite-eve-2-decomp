@@ -128927,3 +128927,104 @@ statement-level edits cannot move.
   the unit's `.rodata` start to the first table (0x4 here), so GCC's tables own
   and start the object's section and its `.align 3` reproduces the 4-byte gap
   before the next table.
+
+## m2c reuses one variable for several roles, and each role's *last use* decides a register (Actor05500_Fn0006C, 2026-09-18)
+
+m2c names a temporary after the register it occupied, so one name can cover
+several unrelated values that merely shared a register. Splitting or merging
+those roles is not cosmetic: `cse.c`'s `make_regs_eqv` picks a quantity's
+canonical register, and its test is
+
+```c
+((uid_cuid[REGNO_LAST_UID (new)] > cse_basic_block_end
+  || uid_cuid[REGNO_FIRST_UID (new)] < cse_basic_block_start)
+ && uid_cuid[REGNO_LAST_UID (new)] > uid_cuid[REGNO_LAST_UID (firstr)])
+```
+
+so for `dst = src;` the *destination* takes over as the class representative
+whenever it outlives the source, and every later mention of `src` is rewritten
+to `dst`. That is what collapses
+
+```
+move  v1, v0        /* damage = Gp_ComputeDamage(...) */
+move  s1, v1        /* scaled = damage */
+...
+sll   v0, v1, 0x10  /* uses damage */
+```
+
+into a single `move s1,v0` with `sll v0,s1,0x10`: m2c had given the scaled
+value the same name as an unrelated post-loop constant, whose use at the end of
+the function made it outlive the raw result. Splitting only that trailing role
+into its own variable restored both registers. The lever is the *source
+position* of the last use, not the number of uses, and it is cheap to test.
+
+The same reuse matters for a second reason. `update_equiv_regs` in
+`local-alloc.c` bails out at `REG_N_SETS (regno) != 1`, so a variable assigned
+once from a constant and read once (`REG_N_REFS == 2`, `REG_BASIC_BLOCK < 0`)
+has its definition deleted and the constant rematerialized at the use. A
+variable that carries two roles has two sets and keeps its hard register - which
+is why `li s1,1` can sit in a delay slot far from its store in the target and
+come out as `li v0,1` right before the store from otherwise identical C.
+Giving the flag a second role (here: the same variable as the scratchpad head)
+is the fix; adding a second *use* is not, because cross-jumping merges the
+duplicate stores again before `REG_N_REFS` is computed.
+
+## A `for` loop over `work->field[i]` and a pointer walk are not interchangeable (Actor05500_Fn0006C, 2026-09-18)
+
+An exit test against `work + 2*stride` while the body addresses `0x2b8(p)` is
+strength reduction on an index, not a hand-written pointer walk: GCC eliminated
+the biv and rewrote `i < 2` in terms of the giv. Writing it as m2c's pointer
+walk reproduces the same instructions but not the same *preheader*, because
+`loop.c` emits hoisted movables immediately before `NOTE_INSN_LOOP_BEG` and
+`strength_reduce` emits giv initialisations after them. As a plain biv the
+`move s3,s0` is an ordinary preheader statement and sorts *before* the hoisted
+constant; as a giv init it sorts after, which is what the target shows. When a
+loop's preheader instructions come out in the wrong order, check whether the
+induction variable should be an index before trying to steer the scheduler.
+
+Its corollary bit us once more: a preheader source statement can never follow a
+hoisted movable, so the loop constant cannot be made to precede one. `loop.c`
+will not rescue that either - a user variable is only movable when
+`reg_in_basic_block_p` holds (set and all uses in one block), and even then
+`move_movables` refuses when `threshold * savings * m->lifetime < insn_count`,
+with `threshold` dropping by 3 for every movable already moved and
+`m->savings` counting matched movables rather than uses. Ours missed at
+`life 11, savings 1` against 327 insns. The way out was not the loop pass at
+all but the sibling idiom below.
+
+## Duplicating the join statement into both arms is how the target gets a constant into a delay slot (Actor05500_Fn0006C, 2026-09-18)
+
+`func_actor_300700_801637E4`, a matched sibling of the same actor family, writes
+
+```c
+if (work->cooldown != 0) {
+    c = (u16)work->cooldown - 1;
+    work->cooldown = c;
+    one = 1;                       /* -> the bgtz delay slot */
+    if ((c << 0x10) <= 0) { work->cooldown = 0; goto have_one; }
+} else {
+have_one:
+    one = 1;                       /* -> the join label */
+}
+```
+
+and that, not a `dbr` steal, is where the pair of identical `li` comes from: the
+then-arm copy is backward-filled into the branch's delay slot and the else-arm
+copy is the join. Written once after the `if`, `dbr` leaves a `nop` in the slot,
+because the join label has two references and the thread is not owned. The
+sibling is also the source of the scratchpad idiom
+(`allocated = head - N; SOFT_TOUCH_REG(allocated); scratch = allocated;`),
+which keeps the bump as its own pseudo and emits the `addiu`/`move` pair that a
+single assignment coalesces away - that one edit moved this function from 98.9%
+to 99.3% and fixed three register choices at once. Read the family's matched
+bodies before reasoning about the allocator.
+
+## Declaration order changes allocno tie-breaks; rename in place (Actor05500_Fn0006C, 2026-09-18)
+
+`global.c`'s `allocno_compare` ranks by
+`floor_log2 (n_refs) * n_refs / live_length` and breaks ties by allocno number,
+which follows pseudo number and therefore the order locals are first expanded.
+Reflowing a matched function's declaration block into a tidy grouped list -
+without touching a single statement - moved two allocnos and cost 100% ->
+99.93%. Rename identifiers in place and leave the order alone; clean up the
+declarations only if you are willing to re-verify.
