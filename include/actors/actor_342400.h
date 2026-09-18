@@ -132,7 +132,7 @@ typedef struct Actor342400Slot {
 STATIC_ASSERT_SIZEOF(Actor342400Slot, 0x8);
 
 /// 4-byte record in the table at `D_actor_342400_8016C010`, indexed (1..16)
-/// by `gGameSession->field_136`. `func_actor_342400_801626CC` compares
+/// by `gGameSession->enemyCullZone`. `func_actor_342400_801626CC` compares
 /// an enemy's x against `limit` when `axis` is 0 and its z otherwise.
 typedef struct Actor342400Limit {
     /* 0x0 */ s16 axis;

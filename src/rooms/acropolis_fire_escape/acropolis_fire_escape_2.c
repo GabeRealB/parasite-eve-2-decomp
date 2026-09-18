@@ -97,7 +97,7 @@ void func_acropolis_fire_escape_8017FB40(Task* task)
                 pair->field_0         = 1;
                 pair->field_2         = 1;
                 Task_SpawnFromTable(&D_80062774, 0, 0, 0);
-                gGameSession->field_69 = 0;
+                gGameSession->flowFlags = 0;
             }
             break;
         case 2:

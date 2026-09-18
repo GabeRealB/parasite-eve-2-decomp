@@ -97,7 +97,7 @@ void func_actor_548100_80132550(Task* task)
     Actor548100Hotspot* hs     = D_actor_548100_801357E8;
     Actor548100Work*    work   = (Actor548100Work*)task->work;
 
-    gGameSession->field_68   = 1;
+    gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     if (Gp_CapBusy() != 0) {
         prompt->mode     = 0;

@@ -105,7 +105,7 @@ s32 func_aya_20900_80115A14(Task* arg0)
     showLogo = 1;
     switch ((s16)work->index) {
         case 0:
-            if (gGameSession->field_128 == 3) {
+            if (gGameSession->restartMode == 3) {
                 showLogo     = 0;
                 work->fade   = 0;
                 work->index += 1;

@@ -12,7 +12,7 @@ extern s8  D_8011540A;
 extern u8  D_80062735;
 
 /// Room setup task tick: install the message table and pointer slot, raise the
-/// `0x15` script key on the first visit (`gGameSession::field_9 == 1`) while flag
+/// `0x15` script key on the first visit (`gGameSession::loc.place == 1`) while flag
 /// nibble `0xC5` is set, and on the first pass through flag nibble `0xBE == 2`
 /// arm nibble `0x166`, clear nibble `0xB5` and spawn the room's cap event. Then
 /// arm the "among us" byte and advance state.

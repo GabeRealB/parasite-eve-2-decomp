@@ -1644,7 +1644,7 @@ void func_actor_204000_8014FD2C(GpEnemy* arg0, Actor104000* arg1)
         pan = (s8)Gp_GetObjPan((GpObj38*)arg1->field_2C->field_8);
         SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)arg1->field_2C->field_8));
     }
-    if (gGameSession->field_4D != 0) {
+    if (gGameSession->viewReady != 0) {
         arg1->field_2C->field_8->flg = 0;
     }
 }

@@ -277,7 +277,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
 /// block's task and starts stream slot 4; state 4 runs
 /// `D_acropolis_plaza_80182C90` / `..._80182F18` once the CD queue reports in.
 /// State 5 waits out the session transition and starts stream slot 5, unless
-/// `GameSession::field_5F` says to skip the scene, in which case it blanks the
+/// `GameSession::evtSkipped` says to skip the scene, in which case it blanks the
 /// display and jumps straight to state 8.
 ///
 /// States 6 and 8 both look the room's own work object up by location: they
@@ -286,7 +286,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
 /// State 6 releases slot 3 (msg 0x3F1), re-places the player at
 /// (0x3DE, 0, 0x439E) and hands the room a 0x7D3 record; state 8 sends it 0x7D7
 /// and rebuilds the graphics state (`Gpu_ResetGraphAndOt`, the aux heap from
-/// `GameSession::field_7` / `field_6`, `Tmd_AllocMissingBuffers`). State 7
+/// `GameSession::loc.stage` / `loc.area`, `Tmd_AllocMissingBuffers`). State 7
 /// waits 0x3D frames, playing 0x51050003 at frame 0x1E and spawning table entry
 /// 7 at the end.
 ///
@@ -368,7 +368,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             if (gGameSession->eventState != 0) {
                 return;
             }
-            if (gGameSession->field_5F != 0) {
+            if (gGameSession->evtSkipped != 0) {
                 SetDispMask(0);
                 task->state = 8;
                 return;
@@ -401,7 +401,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             sessionKey       = &gGameSession->loc;
             buf.key.field_3  = sessionKey->stage;
             buf.key.field_2  = sessionKey->area;
-            buf.key.field_1  = gGameSession->field_74;
+            buf.key.field_1  = gGameSession->sprtVariant;
             buf.key.field_0  = gGameSession->loc.view;
             buf.key.field_5  = sessionKey->place;
             entry            = (GpCdRec10*)Gp_GetNestedAreaRec(&buf.key)->field_0;
@@ -446,7 +446,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 sessionKey      = &gGameSession->loc;
                 buf.key.field_3 = sessionKey->stage;
                 buf.key.field_2 = sessionKey->area;
-                buf.key.field_1 = gGameSession->field_74;
+                buf.key.field_1 = gGameSession->sprtVariant;
                 buf.key.field_0 = gGameSession->loc.view;
                 buf.key.field_5 = sessionKey->place;
                 entry           = (GpCdRec10*)Gp_GetNestedAreaRec(&buf.key)->field_0;

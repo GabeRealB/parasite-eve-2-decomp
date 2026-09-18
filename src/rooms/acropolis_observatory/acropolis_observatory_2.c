@@ -61,11 +61,11 @@ void func_acropolis_observatory_8017D834(Task* task)
 
 void func_acropolis_observatory_8017D8AC(void)
 {
-    if ((D_acropolis_observatory_8017E7D8 == 0) && (gGameSession->loc.field_4 == 3)) {
+    if ((D_acropolis_observatory_8017E7D8 == 0) && (gGameSession->loc.warp == 3)) {
         D_acropolis_observatory_8017E7D8 = 1;
         Task_SpawnFromTable(&D_acropolis_observatory_8017E7DC, 1, 0, 0);
     }
-    if ((D_acropolis_observatory_8017E7D8 == 0) && (gGameSession->loc.field_4 == 4)) {
+    if ((D_acropolis_observatory_8017E7D8 == 0) && (gGameSession->loc.warp == 4)) {
         D_acropolis_observatory_8017E7D8 = 1;
         Task_SpawnFromTable(&D_acropolis_observatory_8017E7DC, 0, 0, 0);
     }

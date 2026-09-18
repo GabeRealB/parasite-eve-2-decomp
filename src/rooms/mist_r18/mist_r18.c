@@ -179,7 +179,7 @@ void func_mist_r18_8017DA8C(Task* task)
         case 2:
             shade = 0;
             task->spawnArg1--;
-            if ((task->spawnArg1 <= 0) || (gGameSession->field_5F != 0)) {
+            if ((task->spawnArg1 <= 0) || (gGameSession->evtSkipped != 0)) {
                 task->state++;
             }
             break;

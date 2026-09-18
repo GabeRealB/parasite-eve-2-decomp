@@ -73,7 +73,7 @@ s32 Actor01900_Fn0056C(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     Actor01900RepelScratch* blk;
     SVECTOR*                offset;
 
-    if (D_80072729 == 1 || gGameSession->field_4D == 1) {
+    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                                = 0;
@@ -163,7 +163,7 @@ s32 Actor01900_Fn008B4(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
     s16                     t;
     s32                     mag;
 
-    if (gGameSession->field_4D == 1 || D_80072729 == 1) {
+    if (gGameSession->viewReady == 1 || D_80072729 == 1) {
         return 0;
     }
 
@@ -328,7 +328,7 @@ s32 Actor01900_Fn00FA4(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
     s32                         t;
     s32                         hit;
 
-    if (gGameSession->field_4D == 1) {
+    if (gGameSession->viewReady == 1) {
         return 0;
     }
 
@@ -1573,7 +1573,7 @@ s32 Actor01900_Fn03FF8(Actor01900* arg0, GpRec18* recs, s16 count)
     Actor01900PushScratch* s;
     Actor01900PushScratch* blk;
 
-    if (D_80072729 == 1 || gGameSession->field_4D == 1) {
+    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     arg0->field_2C->field_8[1].flg           = 0;

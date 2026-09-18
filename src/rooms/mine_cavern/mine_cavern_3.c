@@ -12,9 +12,9 @@ void func_mine_cavern_8017DFAC(s32 arg0)
     if ((GameFlag_GetNibble(0xE6) == 1 && D_mine_cavern_8018EB54 == 0) ||
         (GameFlag_GetNibble(0xE6) == 2 && D_mine_cavern_8018EB54 == 1)) {
         Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1E);
-        D_801153F1              = arg0;
-        gGameSession->field_69 |= 0x80;
-        D_mine_cavern_8018EB54 += 1;
+        D_801153F1               = arg0;
+        gGameSession->flowFlags |= 0x80;
+        D_mine_cavern_8018EB54  += 1;
         return;
     }
     if (arg0 < Gp_StateF0.field_1) {
@@ -39,9 +39,9 @@ void func_mine_cavern_8017E0B4(void)
 void func_mine_cavern_8017E0F4(s32 arg0)
 {
     if (arg0 != 0) {
-        gGameSession->field_69 &= 0xFD;
+        gGameSession->flowFlags &= 0xFD;
         return;
     }
-    gGameSession->field_69 |= 2;
-    gGameSession->field_69 |= 8;
+    gGameSession->flowFlags |= 2;
+    gGameSession->flowFlags |= 8;
 }

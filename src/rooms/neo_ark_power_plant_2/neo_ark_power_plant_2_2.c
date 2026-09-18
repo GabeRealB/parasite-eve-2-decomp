@@ -25,7 +25,7 @@ void func_neo_ark_power_plant_2_8017D6F4(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     temp_v1 = gGameSession->loc.place;
     if (temp_v1 == 1) {
-        gGameSession->field_69 = temp_v1;
+        gGameSession->flowFlags = temp_v1;
     }
     arg0->state = arg0->state + 1;
 }

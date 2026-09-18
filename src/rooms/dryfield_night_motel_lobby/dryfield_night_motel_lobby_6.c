@@ -45,7 +45,7 @@ void func_dryfield_night_motel_lobby_80180E98(Task* task)
     for (; i >= 0; i--) {
         *p-- = empty;
     }
-    gGameSession->field_66   = 1;
-    gGameSession->field_68   = 1;
-    gGameSession->eventState = 1;
+    gGameSession->cutsceneHold = 1;
+    gGameSession->hideHud      = 1;
+    gGameSession->eventState   = 1;
 }

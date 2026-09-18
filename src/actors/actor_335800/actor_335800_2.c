@@ -64,7 +64,7 @@ void func_actor_335800_801620C0(void)
 void func_actor_335800_801620F0(u8 arg0)
 {
     gGameSession->loc.room = D_8007216D = arg0;
-    gGameSession->field_76              = 1;
+    gGameSession->roomObjsDirty         = 1;
 }
 
 void func_actor_335800_80162114(void)
@@ -133,10 +133,10 @@ void func_actor_335800_8016224C(void)
         if (coord->coord.t[2] >= 0xC53) {
             areaId = 5;
         }
-        D_8007216C             = areaId;
-        gGameSession->loc.view = areaId;
-        gGameSession->field_52 = 1;
-        gGameSession->field_76 = 1;
+        D_8007216C                  = areaId;
+        gGameSession->loc.view      = areaId;
+        gGameSession->viewDirty     = 1;
+        gGameSession->roomObjsDirty = 1;
     }
 }
 
@@ -149,7 +149,7 @@ void func_actor_335800_801622C0(s32 arg0)
 
     g    = gGameSession;
     sess = &g->loc;
-    rec  = (Actor335800SprtRec*)Gp_SprtTables[sess->stage - 1][g->field_74 - 1].field_0[sess->area - 1];
+    rec  = (Actor335800SprtRec*)Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
     switch (arg0) {
         case 0:
             view           = rec->field_1CC;
@@ -238,8 +238,8 @@ void func_actor_335800_80162588(Task* arg0)
     u8  temp_v1;
     s32 count;
 
-    if ((gGameSession->eventState != 0) && (gGameSession->field_5F == 0)) {
-        temp_v1 = gGameSession->field_13B;
+    if ((gGameSession->eventState != 0) && (gGameSession->evtSkipped == 0)) {
+        temp_v1 = gGameSession->padScriptFlags;
         var_a0  = 0;
         if (temp_v1 & 1) {
             count  = (u16)arg0->killCountdown;
@@ -388,7 +388,7 @@ void func_actor_335800_80162844(Task* task)
             }
         }
     }
-    if (gGameSession->field_4D != 0) {
+    if (gGameSession->viewReady != 0) {
         work->field_504 = 1;
         Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
         func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);

@@ -74,9 +74,9 @@ void func_dryfield_underpass_8017DA08(void)
             }
         }
     }
-    session                = gGameSession;
-    room                   = dst.field_3;
-    session->loc.room      = room;
-    D_8007216D             = room;
-    gGameSession->field_76 = 1;
+    session                     = gGameSession;
+    room                        = dst.field_3;
+    session->loc.room           = room;
+    D_8007216D                  = room;
+    gGameSession->roomObjsDirty = 1;
 }

@@ -88,7 +88,7 @@ void func_dryfield_garage_8017DB18(Task* arg0)
 {
     arg0->field_24 = D_dryfield_garage_8017DC7C;
     Game_SetPtrSlot(arg0, 7);
-    if ((Game_GetPtrSlot(0xA) != NULL) && (gGameSession->loc.field_4 == 2)) {
+    if ((Game_GetPtrSlot(0xA) != NULL) && (gGameSession->loc.warp == 2)) {
         Gp_DispatchMsg(Game_GetPtrSlot(0xA), 0x3E9, (s32)&D_dryfield_garage_8017DCC4, 0);
     }
     if (GameFlag_GetNibble(0x155) == 1) {

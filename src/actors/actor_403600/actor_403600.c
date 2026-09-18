@@ -3073,7 +3073,7 @@ void func_actor_403600_8013F0C0(Actor403600* arg0)
             temp_a0->coord.t[2] =
                 (s32)(temp_a0->coord.t[2] +
                       ((s32)(temp_a0->coord.m[2][2] * temp_a1->field_762) >> 0xC));
-            if (((s16)temp_s3->field_760 >= 0xC) || (gGameSession->field_4D != 0)) {
+            if (((s16)temp_s3->field_760 >= 0xC) || (gGameSession->viewReady != 0)) {
                 temp_s3->field_760 = 0;
                 if (func_actor_403600_8013E7D4((s32)arg0, 3) == 0) {
                     D_8007216C = 7;

@@ -50,19 +50,19 @@ s32 func_neo_ark_submarine_tunnel_8017F064(s32 arg0, s32 arg1, RoomEventMsg* arg
         }
     }
     temp_s0_3 = arg2->field_2;
-    if ((temp_s0_3 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->loc.field_4 == 2) && (GameFlag_GetNibble(0xFF) == 0) && (gGameSession->loc.place == temp_s0_3)) {
+    if ((temp_s0_3 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->loc.warp == 2) && (GameFlag_GetNibble(0xFF) == 0) && (gGameSession->loc.place == temp_s0_3)) {
         GameFlag_SetNibble(0xFF, 1);
         func_800E8614((s32)&D_80136108, 0);
         D_neo_ark_submarine_tunnel_80181DF0 = 1;
     }
     if ((arg2->field_2 == 2) && (D_neo_ark_submarine_tunnel_80181DF0 == 0)) {
-        temp_s0_4 = gGameSession->loc.field_4;
+        temp_s0_4 = gGameSession->loc.warp;
         if (temp_s0_4 == 1) {
             Gp_MsgPlayerWeapon(1);
             D_neo_ark_submarine_tunnel_80181DF0 = temp_s0_4;
         }
     }
-    if ((arg2->field_2 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->loc.field_4 == 2)) {
+    if ((arg2->field_2 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->loc.warp == 2)) {
         Gp_MsgPlayerWeapon(1);
         D_neo_ark_submarine_tunnel_80181DF0 = 1;
     }

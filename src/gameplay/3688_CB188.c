@@ -1759,7 +1759,7 @@ void Gp_ItemMenuInit(UiObject* arg0, Task* arg1)
     mem          = Mem_Calloc(4, 0);
     if (mem != NULL) {
         arg1->work = mem;
-        if (gGameSession->field_66 == 1) {
+        if (gGameSession->cutsceneHold == 1) {
             Gp_ClearPreviewItems();
             Ui_SpawnFromDesc(&D_8010EB94, 0, 1, 8, arg0);
             scale = 2;
@@ -3205,8 +3205,8 @@ void Gp_EnqueueMapRoomCd(void)
     s32 room;
     u8  stage;
 
-    Gp_MapRoomOff           = 0;
-    gGameSession->field_129 = 0;
+    Gp_MapRoomOff             = 0;
+    gGameSession->loadedSndId = 0;
     if ((gGameSession->loc.stage == 4) && ((s8)Gp_MapRoomId == 6) && (GameFlag_GetNibble(0xB7) == 0)) {
         Gp_MapRoomOff = 1;
     }

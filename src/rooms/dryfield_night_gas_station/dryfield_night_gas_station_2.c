@@ -100,7 +100,7 @@ s32 func_dryfield_night_gas_station_8017F7E0(s32 arg0, s32 arg1, s32 arg2)
 
         if (found != 0) {
             gGameSession->eventState = 1;
-            gGameSession->field_68   = 1;
+            gGameSession->hideHud    = 1;
             Task_SpawnOnDefaultList(D_dryfield_night_gas_station_8018406C, 0, 0, 0);
             return 1;
         }
@@ -151,7 +151,7 @@ s32 func_dryfield_night_gas_station_8017F990(Task* task, s32 msgId, GpMsg13EF* m
 
 /// Arms the room's night sequence, once: while nibble 0x63 is still clear it
 /// sets that nibble, plays the script blob at
-/// `D_dryfield_night_gas_station_80188B64`, raises `gGameSession->field_69`
+/// `D_dryfield_night_gas_station_80188B64`, raises `gGameSession->flowFlags`
 /// bit 0x80, applies the room's area records, clears nibbles 0x62 and 0x45 and
 /// queues sound event 0x64.
 s32 func_dryfield_night_gas_station_8017F9E8(void)
@@ -159,7 +159,7 @@ s32 func_dryfield_night_gas_station_8017F9E8(void)
     if (GameFlag_GetNibble(0x63) == 0) {
         GameFlag_SetNibble(0x63, 1);
         func_800E8614((s32)&D_dryfield_night_gas_station_80188B64, 1);
-        gGameSession->field_69 |= 0x80;
+        gGameSession->flowFlags |= 0x80;
         Gp_ApplyAreaRecs(&D_dryfield_night_gas_station_801907A0);
         GameFlag_SetNibble(0x62, 0);
         GameFlag_SetNibble(0x45, 0);
@@ -168,13 +168,13 @@ s32 func_dryfield_night_gas_station_8017F9E8(void)
     return 0;
 }
 
-/// Tears the room's scripted sequence down: raises `gGameSession->field_68`
+/// Tears the room's scripted sequence down: raises `gGameSession->hideHud`
 /// and `D_80115768`, hides the display, clears collection bit 0x117, installs
 /// the room's two cap files, runs the 0xA2/0x16 event and kills its own task.
 void func_dryfield_night_gas_station_8017FA6C(Task* arg0)
 {
-    gGameSession->field_68 = 1;
-    D_80115768             = 1;
+    gGameSession->hideHud = 1;
+    D_80115768            = 1;
     SetDispMask(0);
     Gp_ClearCollectedBit(0x117);
     func_800E8634((s32)&D_dryfield_night_gas_station_801840AC, 0, (s32)&D_dryfield_night_gas_station_801841FC);

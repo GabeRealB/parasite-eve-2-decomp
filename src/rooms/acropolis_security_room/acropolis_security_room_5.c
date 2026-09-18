@@ -408,9 +408,9 @@ void func_acropolis_security_room_8017FA18(Task* task)
     st->field_0 = 0;
     st->frames  = 0;
     func_acropolis_security_room_8017FD64(GameFlag_GetNibble(9) & 0xFF);
-    gGameSession->field_66   = 1;
-    gGameSession->field_68   = 1;
-    gGameSession->eventState = 1;
+    gGameSession->cutsceneHold = 1;
+    gGameSession->hideHud      = 1;
+    gGameSession->eventState   = 1;
     Display_AcquireRef();
     for (hs = D_acropolis_security_room_801826DC; hs->id != -1; hs++) {
         hs->hit = 0;
@@ -479,10 +479,10 @@ void func_acropolis_security_room_8017FC30(Task* task)
 {
     D_80114D08 = 0xA;
     Gp_MsgPlayer3F3(1);
-    gGameSession->eventState = 0;
-    gGameSession->field_68   = 0;
-    gGameSession->field_66   = 0;
-    D_8007216C               = 3;
+    gGameSession->eventState   = 0;
+    gGameSession->hideHud      = 0;
+    gGameSession->cutsceneHold = 0;
+    D_8007216C                 = 3;
     Display_ReleaseRef();
     Task_Kill((Task*)task->spawnArg2);
     Task_RequestKill(task, 0);
@@ -521,7 +521,7 @@ void func_acropolis_security_room_8017FD64(s32 flags)
     GameSessionFrom4* sess = &g->loc;
     GpSprtCmd*        cmd;
 
-    cmd = Gp_SprtTables[sess->stage - 1][g->field_74 - 1].field_0[sess->area - 1][5].field_4;
+    cmd = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1][5].field_4;
     switch (flags & 0xFF) {
         case 0:
             cmd[1].field_4 = 1;
@@ -636,9 +636,9 @@ void func_acropolis_security_room_80180030(Task* task)
     D_80114D08 = 0xA;
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->field_68   = 0;
-    gGameSession->field_66   = 0;
-    gGameSession->eventState = 0;
+    gGameSession->hideHud      = 0;
+    gGameSession->cutsceneHold = 0;
+    gGameSession->eventState   = 0;
     func_800E9BDC(0, 0xF9FF);
     Task_RequestKill(task, 0);
 }
@@ -696,9 +696,9 @@ void func_acropolis_security_room_80180218(Task* task)
     Display_ReleaseRef();
     func_800E9BDC(0, 0xF9FF);
     Task_RequestKill(task, 0);
-    gGameSession->field_68   = 0;
-    gGameSession->field_66   = 0;
-    gGameSession->eventState = 0;
+    gGameSession->hideHud      = 0;
+    gGameSession->cutsceneHold = 0;
+    gGameSession->eventState   = 0;
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_5", D_acropolis_security_room_8017D6AC);

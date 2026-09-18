@@ -27,7 +27,7 @@ void func_dryfield_night_driveway_8017DCFC(Task* arg0)
 {
     arg0->field_24 = &D_dryfield_night_driveway_8017F7A4;
     Game_SetPtrSlot(arg0, 7);
-    if ((Game_GetPtrSlot(0xA) != 0) && (gGameSession->loc.field_4 == 4)) {
+    if ((Game_GetPtrSlot(0xA) != 0) && (gGameSession->loc.warp == 4)) {
         func_800E8634((s32)&D_dryfield_night_driveway_8017FB00, 0, (s32)&D_dryfield_night_driveway_8017F998);
     }
     arg0->state = (s32)(arg0->state + 1);

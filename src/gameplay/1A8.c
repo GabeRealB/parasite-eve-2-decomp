@@ -235,7 +235,7 @@ void Gp_PostMsg13EF(void)
     D_80114CD4      = 0;
     D_80114CF8      = 0;
     if (D_80114CDC == 0) {
-        gGameSession->field_13A = 0;
+        gGameSession->dirActionBusy = 0;
     }
 }
 

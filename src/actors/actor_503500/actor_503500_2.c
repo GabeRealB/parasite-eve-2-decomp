@@ -230,7 +230,7 @@ void func_actor_503500_80132778(Task* task)
                 Task_Kill(task);
                 return;
             }
-            done = gGameSession->field_5F;
+            done = gGameSession->evtSkipped;
             break;
         case 2:
         case 3:
@@ -272,7 +272,7 @@ void func_actor_503500_80132990(Task* task)
                 task->state++;
                 break;
             case 1:
-                if (--task->spawnArg1 < 0 || gGameSession->field_5F != 0) {
+                if (--task->spawnArg1 < 0 || gGameSession->evtSkipped != 0) {
                     task->state++;
                 }
                 break;

@@ -66,16 +66,16 @@ void func_actor_143000_801324C8(Task* arg0)
             p++;
         } while (p->field_8 != -1);
     }
-    work->field_7          = 0;
-    work->field_12         = 1;
-    work->field_13         = 0;
-    work->field_16         = 0xA00;
-    work->field_C          = 0;
-    work->field_10         = 0;
-    work->field_18         = 0x10;
-    work->field_1A         = 0;
-    gGameSession->field_66 = 1;
-    gGameSession->field_68 = 1;
+    work->field_7              = 0;
+    work->field_12             = 1;
+    work->field_13             = 0;
+    work->field_16             = 0xA00;
+    work->field_C              = 0;
+    work->field_10             = 0;
+    work->field_18             = 0x10;
+    work->field_1A             = 0;
+    gGameSession->cutsceneHold = 1;
+    gGameSession->hideHud      = 1;
     Gp_MsgPlayerWeapon(0);
     Gp_MsgPlayer3F3(0);
 }
@@ -98,7 +98,7 @@ void func_actor_143000_801325F0(Actor143000* arg0)
     u8                vh;
 
     work                     = arg0->field_1C;
-    gGameSession->field_68   = 1;
+    gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     p                        = D_actor_143000_80134580;
     D_801153F4               = 2;

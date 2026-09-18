@@ -85,7 +85,7 @@ void func_shelter_b2_laboratory_8017F4D8(Task* task)
             } else {
                 D_80115694 = -p->field_0;
             }
-            gGameSession->field_68   = 1;
+            gGameSession->hideHud    = 1;
             gGameSession->eventState = 1;
             D_801153F4               = 2;
             Gp_MsgPlayer3F3(0);
@@ -204,7 +204,7 @@ void func_shelter_b2_laboratory_8017F4D8(Task* task)
             if (Mc_SaveData.field_13 == 1) {
                 Gp_MsgAllyWeapon(1);
             }
-            gGameSession->field_68   = 0;
+            gGameSession->hideHud    = 0;
             gGameSession->eventState = 0;
             D_801153F4               = 0;
             if (p->field_3 != 0) {

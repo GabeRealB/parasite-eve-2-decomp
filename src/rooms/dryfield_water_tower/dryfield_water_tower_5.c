@@ -105,8 +105,8 @@ void func_dryfield_water_tower_8017F908(void)
     if (state->field_78 == 0) {
         SndEvt_EnqueueType6(0x5214000C, 0, 0);
     }
-    D_8007216C             = Gp_FindViewIndex(7);
-    gGameSession->field_52 = 1;
+    D_8007216C              = Gp_FindViewIndex(7);
+    gGameSession->viewDirty = 1;
     Gp_DispatchMsg(state->field_44, 0x7D4, (s32)&D_dryfield_water_tower_80181A58, 0);
     state->field_44->state = 1;
     Gp_HaltPadScripts();
@@ -139,8 +139,8 @@ void func_dryfield_water_tower_8017F9AC(void)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
-    Mc_SaveData.field_4    = state->field_68;
-    gGameSession->field_52 = 1;
+    Mc_SaveData.field_4     = state->field_68;
+    gGameSession->viewDirty = 1;
     Gp_DispatchMsg(state->field_44, 0x7D4, (s32)&D_dryfield_water_tower_80181A40, 0);
     state->field_44->state = 1;
     Gp_HaltPadScripts();

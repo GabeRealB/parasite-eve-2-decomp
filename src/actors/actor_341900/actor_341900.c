@@ -535,7 +535,7 @@ void func_actor_341900_80162AD4(Task* arg0)
 /// id, hands that id to slot 4 as message 0x7DA, spawns the five child script
 /// tasks (table entries 3..7, spawn arguments 1..5) under `field_8` and the
 /// two effect actors (entries 8 and 9) under the task itself, then sets the
-/// two `GameSession.field_69` flags that suppress the bank-load spawn of the
+/// two `GameSession.flowFlags` flags that suppress the bank-load spawn of the
 /// ending and area-enter tasks. State 1 arms the stage-3 sound byte and spawns
 /// the two blob tasks. State 2 waits for `GameSession.eventState` to clear -- it
 /// sets game flag nibble 0x11D and kills the task when it does -- and
@@ -574,9 +574,9 @@ void func_actor_341900_80162EFC(Task* arg0)
                 temp_a2 = var_s0 & 0xFFFF;
                 Task_SpawnFromTable(&D_actor_341900_80164190, temp_a2 + 3, temp_a2 + 1, (s32)seqWork->field_8);
             }
-            seqWork->field_C        = Task_SpawnFromTable(&D_actor_341900_80164190, 8, 0, (s32)arg0);
-            seqWork->field_10       = Task_SpawnFromTable(&D_actor_341900_80164190, 9, 0, (s32)arg0);
-            gGameSession->field_69 |= 3;
+            seqWork->field_C         = Task_SpawnFromTable(&D_actor_341900_80164190, 8, 0, (s32)arg0);
+            seqWork->field_10        = Task_SpawnFromTable(&D_actor_341900_80164190, 9, 0, (s32)arg0);
+            gGameSession->flowFlags |= 3;
             goto next;
         case 1:
             D_80062735 = 4;

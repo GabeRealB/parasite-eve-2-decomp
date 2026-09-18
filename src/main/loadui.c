@@ -54,7 +54,7 @@ void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
                     param1[3] = gGameSession->loc.stage;
                     param1[2] = gGameSession->loc.area;
                     param1[0] = Gp_GetViewIndex();
-                    f74       = gGameSession->field_74;
+                    f74       = gGameSession->sprtVariant;
                     param2[1] = 1;
                     param2[3] = 0;
                     param2[2] = 0;

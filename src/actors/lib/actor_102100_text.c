@@ -317,7 +317,7 @@ void Actor02100_Fn00DCC(Actor02100* arg0)
     self = arg0->field_2C->field_8;
     work = arg0->field_1C;
 
-    if (gGameSession->field_4D == 1) {
+    if (gGameSession->viewReady == 1) {
         work->field_186 = 5;
     }
     if (work->field_186 != 0) {

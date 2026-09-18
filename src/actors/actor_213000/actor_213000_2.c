@@ -113,7 +113,7 @@ void func_actor_213000_8014A5D0(Task* task)
             Gp_AnimTickIndex((GpAnimCtx*)work, i);
         }
     }
-    if (gGameSession->field_4D != 0) {
+    if (gGameSession->viewReady != 0) {
         coords->flg = 0;
         Gp_UpdateCoord(coords);
         func_800D7A9C(extra, (VECTOR*)coords->workm.t, 0, 3);

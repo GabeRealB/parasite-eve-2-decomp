@@ -127,8 +127,8 @@ s32 func_dryfield_night_driveway_8017D7A0(s32 arg0, s32 arg1, RoomEventMsg* in,
 void func_dryfield_night_driveway_8017DAF4(Task* arg0)
 {
     if (arg0->state == 0) {
-        gGameSession->field_68 = 1;
-        D_80115768             = 1;
+        gGameSession->hideHud = 1;
+        D_80115768            = 1;
         SetDispMask(0);
         func_800E3FAC(0xA2, 0x10);
         func_800E8634((s32)&D_dryfield_night_driveway_8017F54C, 0, (s32)&D_dryfield_night_driveway_8017F6CC);
@@ -142,8 +142,8 @@ void func_dryfield_night_driveway_8017DAF4(Task* arg0)
 /// Task callback: a four-step script. State 0 queues the weapon message and the
 /// captioned command, state 1 waits one tick, state 2 starts the cutscene at
 /// `D_dryfield_night_driveway_8017F3D4`, and state 3 - reached by falling out of
-/// state 2 - clears the session's `field_4` area flag and kills the task once the
-/// session reports `field_1` is zero.
+/// state 2 - clears area flag 4 for the current location and kills the task once
+/// `eventState` is zero.
 void func_dryfield_night_driveway_8017DB8C(Task* arg0)
 {
     s32 temp_v1;

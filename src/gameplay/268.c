@@ -494,9 +494,9 @@ void Gp_InitStarterInv(void)
     three = 3;
     Gp_ApplyItemMap();
     Gp_GiveItem(scan, 0x63, 1);
-    gGameSession->field_11C = -1;
-    cfg->weapon             = 0;
-    cfg->field_26           = three;
+    gGameSession->loadedWeaponFamily = -1;
+    cfg->weapon                      = 0;
+    cfg->field_26                    = three;
     Gp_EquipMod(0x63);
     added          = Gp_GiveItem(scan, 0x40, 1);
     added->field_1 = 1;

@@ -27,14 +27,14 @@ void func_actor_444000_80132778(void)
     Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
 
     if (work->field_30 == 0) {
-        Gp_StateF0.field_6      = 0;
-        Gp_StateF0.field_1      = 0xF;
-        Gp_StateF0.field_0      = 0;
-        Gp_StateF0.field_2      = 0;
-        Gp_StateF0.field_3      = 0;
-        gGameSession->field_69 |= 0x80;
-        D_8007272D              = 0xD;
-        work->field_30          = 1;
+        Gp_StateF0.field_6       = 0;
+        Gp_StateF0.field_1       = 0xF;
+        Gp_StateF0.field_0       = 0;
+        Gp_StateF0.field_2       = 0;
+        Gp_StateF0.field_3       = 0;
+        gGameSession->flowFlags |= 0x80;
+        D_8007272D               = 0xD;
+        work->field_30           = 1;
     }
 }
 

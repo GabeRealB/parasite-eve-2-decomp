@@ -37,7 +37,7 @@ s32 func_actor_312200_80162868(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
     s32                         t;
     s32                         hit;
 
-    if (gGameSession->field_4D == 1) {
+    if (gGameSession->viewReady == 1) {
         return 0;
     }
 
@@ -339,7 +339,7 @@ void func_actor_312200_80163370(GpEnemy* enemy, Task* task)
             obj = (TmdObject*)task->extra;
             func_800D7A9C(obj, (VECTOR*)obj->field_8->workm.t, 0, 3);
         }
-        if (gGameSession->field_4D != 0) {
+        if (gGameSession->viewReady != 0) {
             ((TmdObject*)task->extra)->field_8->flg = 0;
             if ((Gp_GetViewIndex() == 0x10) && (work->field_8B8 == 1)) {
                 pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);

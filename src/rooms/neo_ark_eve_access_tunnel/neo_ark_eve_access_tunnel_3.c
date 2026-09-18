@@ -17,7 +17,7 @@ void func_neo_ark_eve_access_tunnel_8017E090(s32 arg0, s32 arg1);
 /// State 0 of the tunnel's message task: park the room's message table in
 /// `Task::field_24` and publish the task in pointer slot 7, as every room-entry
 /// task does. Then, once the session has reached state 0xB, set bit 15 of every
-/// 16-bit half of the 0x25800-byte image buffer and latch `GameSession::field_69`
+/// 16-bit half of the 0x25800-byte image buffer and latch `GameSession::flowFlags`
 /// bit 0 - the flag that suppresses the bank-load spawn when the task ends.
 void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0)
 {
@@ -32,7 +32,7 @@ void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0)
             i   += 1;
             ptr += 1;
         } while (i <= 0x12BFF);
-        gGameSession->field_69 = 1;
+        gGameSession->flowFlags = 1;
     }
     arg0->state = (s32)(arg0->state + 1);
 }

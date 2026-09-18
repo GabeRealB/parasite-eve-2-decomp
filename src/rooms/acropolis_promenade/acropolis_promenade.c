@@ -28,7 +28,7 @@ void func_acropolis_promenade_8017D5E4(void)
     u8 f0;
 
     if (D_acropolis_promenade_80181140 == 0) {
-        if (gGameSession->loc.field_4 == 4) {
+        if (gGameSession->loc.warp == 4) {
             D_acropolis_promenade_80181140 = 1;
             Task_SpawnFromTable(&D_acropolis_promenade_80181148, 2, 0, 0);
         }
@@ -38,8 +38,8 @@ void func_acropolis_promenade_8017D5E4(void)
     }
     temp = gGameSession->loc.place;
     if (temp == 1) {
-        gGameSession->field_69 = 0xA;
-        f0                     = Gp_StateF0.field_0;
+        gGameSession->flowFlags = 0xA;
+        f0                      = Gp_StateF0.field_0;
         if (f0 == temp) {
             D_acropolis_promenade_80181144 = f0;
         }

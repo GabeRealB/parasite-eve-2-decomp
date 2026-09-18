@@ -316,7 +316,7 @@ void func_actor_135600_801324D0(Task* arg0)
                 Gp_AnimTickIndex((GpAnimCtx*)work, i);
             }
         }
-        if (gGameSession->field_4D != 0) {
+        if (gGameSession->viewReady != 0) {
             ((TmdObject*)arg0->extra)->field_8[1].flg = 0;
             Gp_UpdateCoord(&((TmdObject*)arg0->extra)->field_8[1]);
             func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->field_8[1].workm.t, 0, 3);

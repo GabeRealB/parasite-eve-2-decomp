@@ -233,7 +233,7 @@ void func_shelter_r47_80185098(Task* task)
         if (state->field_2A != 1) {
             gGameSession->eventState = 0;
         }
-        gGameSession->field_66 = 0;
+        gGameSession->cutsceneHold = 0;
         Task_Kill((Task*)task->spawnArg2);
         Task_RequestKill(task, 0);
     }

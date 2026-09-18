@@ -51,7 +51,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
                 func_dryfield_water_tank_8017DB48();
             } else {
                 gGameSession->eventState = 0;
-                gGameSession->field_68   = 0;
+                gGameSession->hideHud    = 0;
                 D_801153F4               = 0;
                 D_8007216C               = (u8)D_dryfield_water_tank_80188D48;
                 Gp_MsgPlayerWeapon(1);

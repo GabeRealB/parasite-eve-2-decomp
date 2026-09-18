@@ -32,7 +32,7 @@ void func_dryfield_water_tower_8017F808(Task* task, s32 msgId, DwtwMsg7DB* msg)
 /// `func_dryfield_water_tower_8017FA5C` on the 0x8018227C record.
 ///
 /// One-shot, latched by `DryfieldWaterTowerState::field_76`: the first call
-/// raises bit 0x80 of `gGameSession->field_69` and drops bit 0x40, releases one
+/// raises bit 0x80 of `gGameSession->flowFlags` and drops bit 0x40, releases one
 /// ref of the slot-4 game object, and sets the latch.
 /// `func_shelter_b3_dumping_hole_801818E0` runs the same latch / release /
 /// `|= 0x80` sequence for its room.
@@ -41,8 +41,8 @@ void func_dryfield_water_tower_8017F82C(void)
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
     if (state->field_76 == 0) {
-        gGameSession->field_69 |= 0x80;
-        gGameSession->field_69 &= 0xBF;
+        gGameSession->flowFlags |= 0x80;
+        gGameSession->flowFlags &= 0xBF;
         Gp_ReleaseStateF0Add((GpObj20E*)Gp_LookupSlot4(0), 1);
         state->field_76 = 1;
     }

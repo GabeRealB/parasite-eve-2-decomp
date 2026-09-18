@@ -93,7 +93,7 @@ void Stage_LoadOrCountdownTask(Task* arg0)
         param1[2] = 4;
         entry     = (TaskIdPair*)((temp->index << 1) + (u32)temp->table);
         param1[0] = entry->id;
-        param2[0] = gGameSession->field_74;
+        param2[0] = gGameSession->sprtVariant;
         param2[3] = 0;
         param2[2] = 0;
         param2[1] = 0;
@@ -137,7 +137,7 @@ void Stage_ApplyTableEntryWhenIdle(Task* arg0)
         if (type != 3) {
             if (type != 2) {
                 if (arg0->spawnArg1 == 0) {
-                    if (gGameSession->field_4D != 1) {
+                    if (gGameSession->viewReady != 1) {
                         return;
                     }
                 }

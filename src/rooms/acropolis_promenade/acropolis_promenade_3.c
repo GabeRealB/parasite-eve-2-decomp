@@ -94,9 +94,9 @@ void func_acropolis_promenade_8017DB9C(Task* task)
 
         case 1:
             if (queue->field_1FA != 0) {
-                work->script             = Gp_SpawnScript18((s32)&D_acropolis_promenade_80186224,
-                                                            (s32)&D_acropolis_promenade_8018623C);
-                gGameSession->field_13B |= 0x80;
+                work->script                  = Gp_SpawnScript18((s32)&D_acropolis_promenade_80186224,
+                                                                 (s32)&D_acropolis_promenade_8018623C);
+                gGameSession->padScriptFlags |= 0x80;
                 Task_Reparent(task, work->script);
                 task->state = task->state + 1;
             }
@@ -140,8 +140,8 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                 Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA5, 0, 0);
                 Mc_SaveData.field_4 = 2;
                 func_800E9BDC(2, 0x9FF);
-                Gp_StateF0.field_4       = 0;
-                gGameSession->field_13B &= 0x7F;
+                Gp_StateF0.field_4            = 0;
+                gGameSession->padScriptFlags &= 0x7F;
                 Task_Kill(task);
             }
             break;

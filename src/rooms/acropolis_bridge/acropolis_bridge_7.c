@@ -27,7 +27,7 @@ void func_acropolis_bridge_8017F2D0(s32 flags)
     GpSprtRec*        rec;
     GpSprtCmd*        cmd;
 
-    rec = Gp_SprtTables[sess->stage - 1][g->field_74 - 1].field_0[sess->area - 1];
+    rec = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
 
     cmd = rec[1].field_4;
     if ((flags & 0xFF) == 0) {
@@ -56,7 +56,7 @@ void func_acropolis_bridge_8017F358(s32 state)
     GpSprtCmd*        cmd;
     s32               mode;
 
-    rec  = Gp_SprtTables[sess->stage - 1][g->field_74 - 1].field_0[sess->area - 1];
+    rec  = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
     cmd  = rec[9].field_4;
     mode = state & 0xFF;
 
@@ -173,8 +173,8 @@ void func_acropolis_bridge_8017F658(Task* task)
     func_acropolis_bridge_8017E60C(0xFFF, 0);
     Task_Kill((Task*)task->spawnArg2);
     Task_RequestKill(task, D_acropolis_bridge_801917A8);
-    gGameSession->eventState = 0;
-    gGameSession->field_68   = 0;
-    gGameSession->field_66   = 0;
-    D_80114D08               = 0xA;
+    gGameSession->eventState   = 0;
+    gGameSession->hideHud      = 0;
+    gGameSession->cutsceneHold = 0;
+    D_80114D08                 = 0xA;
 }

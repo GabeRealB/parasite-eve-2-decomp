@@ -62,7 +62,7 @@ void func_dryfield_night_motel_balcony_8017DC30(Task* task)
         GameFlag_SetNibble(0x10E, 1);
         GameFlag_SetNibble(3, 0);
         GameFlag_SetNibble(0x155, 1);
-        gGameSession->field_69 = 0x85;
+        gGameSession->flowFlags = 0x85;
     }
     task->state = task->state + 1;
 }

@@ -51,7 +51,7 @@ extern s32      D_acropolis_patio_80182BE4;
 /// actors need for the current point in the story: the first visit
 /// (`GameFlag_GetNibble(0) < 2`) arms the two hotspots and spawns the arrival
 /// cutscene, and the second-visit branches replace them according to
-/// `gGameSession::field_9`.
+/// `gGameSession::loc.place`.
 void func_acropolis_patio_8017D5EC(Task* arg0)
 {
     AcropolisPatioSlotMsg msg;
@@ -212,8 +212,8 @@ void func_acropolis_patio_8017DBAC(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2)
     if ((arg2->field_2 == 0) && (GameFlag_GetNibble(0x21) < 2)) {
         GameFlag_SetNibble(0x21, 3);
         func_800E8634((s32)&D_acropolis_patio_80180484, 0, (s32)&D_acropolis_patio_801806AC);
-        D_8007272D             = 3;
-        gGameSession->field_69 = 0xC1;
+        D_8007272D              = 3;
+        gGameSession->flowFlags = 0xC1;
     }
     if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x21) == 3) &&
         (Gp_DispatchMsg((Task*)Gp_LookupSlot4(1), 0x7D6, 0, 0) == 0)) {

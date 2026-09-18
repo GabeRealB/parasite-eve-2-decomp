@@ -23,7 +23,7 @@ s32 func_dryfield_motel_room_1_8017D61C(void)
     return 0;
 }
 /// Message gate for the room's hotspot registered under id 0x13EF - the id the
-/// sanctuary's own gate uses. On the phase-3 visit (`gGameSession::field_9`)
+/// sanctuary's own gate uses. On the phase-3 visit (`gGameSession::loc.place`)
 /// whose sub-id (`RoomEventMsg::field_2`) is 1 and that has not yet latched
 /// nibble 0x5C, it arms the room's script task and latches the nibble. The
 /// record is not copied to the outgoing one: this handler only ever consumes

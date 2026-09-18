@@ -263,7 +263,7 @@ void Actor01600_Fn00674(Actor01600Ctx* arg0, Actor01600* arg1)
         Gp_UpdateCoord(coord);
         count           = work->field_550 + 1;
         work->field_550 = count;
-        if (((s16)count >= 5) || (gGameSession->field_52 == 1)) {
+        if (((s16)count >= 5) || (gGameSession->viewDirty == 1)) {
             work->field_550 = 0;
             Actor01600_Fn06810(arg0, arg1);
         }

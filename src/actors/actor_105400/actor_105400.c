@@ -20,7 +20,7 @@ extern u16 D_actor_105400_8013CE34[];
 /// Sound-event base the spawn ORs `(enemy id >> 12) << 8` into.
 extern s32 D_actor_105400_8013CE60;
 
-/// One pan/volume row per `gGameSession::field_4`, played at spawn.
+/// One pan/volume row per `gGameSession::loc.view`, played at spawn.
 extern Actor05400SndRow D_actor_105400_8013CE64[];
 
 /// Task descriptors the spawn hands `Gp_SpawnEnemyFromTable` (entry 1 is the

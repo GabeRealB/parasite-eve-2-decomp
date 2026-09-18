@@ -86,7 +86,7 @@ void func_actor_341300_80161E84(void)
 /// snaps to the exact angle and the task ends.
 ///
 /// The task's own argument is only ever the `Task_Kill` target, reached both
-/// when the work lookup or `gGameSession::field_1` fails and on the frame the
+/// when the work lookup or `gGameSession::eventState` fails and on the frame the
 /// facing settles.
 void func_actor_341300_80162278(Task* task)
 {

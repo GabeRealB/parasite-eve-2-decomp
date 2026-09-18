@@ -62,7 +62,7 @@ void func_acropolis_fire_escape_8017FE50(Task* task)
     Game_SetPtrSlot(task, 7);
     Task_SpawnFromTable(&D_acropolis_fire_escape_80181D64, 0, 0, 0);
     if (D_8007272D == 5) {
-        gGameSession->field_69 = 8;
+        gGameSession->flowFlags = 8;
     }
     task->state = task->state + 1;
 }

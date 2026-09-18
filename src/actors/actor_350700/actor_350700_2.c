@@ -254,7 +254,7 @@ void func_actor_350700_80162B30(Task* arg0)
 /// and truncates the accumulators back to 16 bits. Ticks the animation slots
 /// while `field_474` is set; and, unless the display object's `field_C` carries
 /// 0x80, draws the ground-shadow quad from the second part's world matrix.
-/// While `gGameSession->field_4D` is set it also clears that part's `flg`,
+/// While `gGameSession->viewReady` is set it also clears that part's `flg`,
 /// rebuilds its coordinate and rebuilds the actor colour; the colour rebuild
 /// runs once more unconditionally. The `field_508` countdown then runs while it
 /// is non-negative, freeing the model buffers on the frame it reaches zero; the
@@ -290,7 +290,7 @@ void func_actor_350700_80162D5C(Task* arg0)
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
         }
     }
-    if (gGameSession->field_4D != 0) {
+    if (gGameSession->viewReady != 0) {
         ((TmdObject*)arg0->extra)->field_8[1].flg = 0;
         Gp_UpdateCoord(&((TmdObject*)arg0->extra)->field_8[1]);
         func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->field_8[1].workm.t, 0, 3);

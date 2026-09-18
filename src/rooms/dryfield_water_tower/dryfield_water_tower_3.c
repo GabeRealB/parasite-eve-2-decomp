@@ -552,7 +552,7 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", fu
 /// also raises bit 0x40 of the room's 4A object, as `func_acropolis_fountain_8017DA1C`
 /// does for the fountain's. Commands 4 and 2 share their tail: 4 sends 0x3E9
 /// (with `80181AD0`) only when `field_66` is 2, then both stash
-/// `field_68` in `D_8007216C` and raise the session's `field_52`, the pair
+/// `field_68` in `D_8007216C` and raise the session's `viewDirty`, the pair
 /// `func_dryfield_water_tower_8017D948` undoes.
 ///
 /// The last three commands start a script-18 pair each -- the cutscene
@@ -584,8 +584,8 @@ void func_dryfield_water_tower_8017E93C(Task* arg0)
             Gp_DispatchMsg(state->field_40, 0x3F3, 1, 0);
 
         case 2:
-            D_8007216C             = state->field_68;
-            gGameSession->field_52 = 1;
+            D_8007216C              = state->field_68;
+            gGameSession->viewDirty = 1;
             break;
 
         case 3: {

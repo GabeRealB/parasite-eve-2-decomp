@@ -123,11 +123,11 @@ void func_acropolis_observatory_8017E19C(Task* task)
             rec.field_C  = 0;
             rec.field_10 = 0;
             Gp_DispatchMsg(work->target, 0x3E8, (s32)&rec, 0);
-            D_8007216D             = 1;
-            gGameSession->loc.room = 1;
-            gGameSession->field_76 = 1;
-            gGameSession->field_52 = 1;
-            task->state            = task->state + 1;
+            D_8007216D                  = 1;
+            gGameSession->loc.room      = 1;
+            gGameSession->roomObjsDirty = 1;
+            gGameSession->viewDirty     = 1;
+            task->state                 = task->state + 1;
             break;
         case 6:
             Gp_DispatchMsg(work->target, 0x3F1, 0, 0);

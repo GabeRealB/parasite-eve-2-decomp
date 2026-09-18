@@ -113,12 +113,12 @@ void Gp_ScriptTaskState1(Task* arg0)
         if (D_801156F4 != NULL) {
             CdCmd_CancelReplaceAndActivate();
         }
-        D_801156A4             = 0;
-        st->wait               = 0;
-        st->pc                 = (GpEvsCmd*)D_801156D0;
-        D_801156D0             = 0;
-        D_80115688             = 1;
-        gGameSession->field_5F = 1;
+        D_801156A4               = 0;
+        st->wait                 = 0;
+        st->pc                   = (GpEvsCmd*)D_801156D0;
+        D_801156D0               = 0;
+        D_80115688               = 1;
+        gGameSession->evtSkipped = 1;
         if (D_801156CC != 0) {
             return;
         }
@@ -202,7 +202,7 @@ void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 48:
-                gGameSession->field_52 = 1;
+                gGameSession->viewDirty = 1;
                 /* fallthrough */
 
             case 3:
@@ -606,7 +606,7 @@ void func_800E8614(s32 arg0, s32 arg1)
 void func_800E8634(s32 arg0, s32 arg1, s32 arg2)
 {
     gGameSession->eventState = 1;
-    gGameSession->field_5F   = 0;
+    gGameSession->evtSkipped = 0;
     D_8010FBE0               = 0;
     D_8010FBE4               = 0;
     D_801156D0               = arg2;
@@ -686,10 +686,10 @@ void func_800E8888(Task* arg0)
             }
             tmp = arg0->killCountdown;
             if (tmp < 0) {
-                gGameSession->field_139 = 0;
+                gGameSession->hudShakeY = 0;
                 Task_Kill(arg0);
             } else {
-                gGameSession->field_139 = tmp * 2;
+                gGameSession->hudShakeY = tmp * 2;
             }
             break;
     }
@@ -903,10 +903,10 @@ void Gp_SpawnPadLerpScaled(s16 arg0, u8 arg1, u8 arg2, s16 arg3)
 
 void Gp_HaltPadScripts(void)
 {
-    Gp_PadScriptHalt        = 1;
-    Gp_PadHoldHalt          = 1;
-    Gp_PadLerpHalt          = 1;
-    gGameSession->field_13B = 0;
+    Gp_PadScriptHalt             = 1;
+    Gp_PadHoldHalt               = 1;
+    Gp_PadLerpHalt               = 1;
+    gGameSession->padScriptFlags = 0;
     Pad_ClearEvents(0);
 }
 
@@ -985,7 +985,7 @@ void Gp_Script18Task(Task* arg0)
     TaskFuncTable3 sp;
 
     sp = Gp_Script18States;
-    if (Gp_StateF0.field_4 == 0 || (gGameSession->field_13B & 0x80)) {
+    if (Gp_StateF0.field_4 == 0 || (gGameSession->padScriptFlags & 0x80)) {
         if (Gp_PadScriptHalt != 0) {
             arg0->state = 2;
         }
@@ -1043,13 +1043,13 @@ void Gp_ScriptBState4(Task* task)
 
 void Gp_PadHoldTask(Task* task)
 {
-    if (Gp_StateF0.field_4 == 0 || (gGameSession->field_13B & 0x80)) {
+    if (Gp_StateF0.field_4 == 0 || (gGameSession->padScriptFlags & 0x80)) {
         if (task->spawnArg1 != 0 && Gp_PadHoldHalt == 0) {
             task->spawnArg1--;
             Pad_PostEvent(0, 0, 1, 1);
-            gGameSession->field_13B |= 1;
+            gGameSession->padScriptFlags |= 1;
         } else {
-            gGameSession->field_13B &= ~1;
+            gGameSession->padScriptFlags &= ~1;
             Task_Kill(task);
         }
     }
@@ -1060,14 +1060,14 @@ void Gp_PadLerpTask(Task* task)
     GpState0C* state;
 
     state = (GpState0C*)task->work;
-    if (Gp_StateF0.field_4 == 0 || (gGameSession->field_13B & 0x80)) {
+    if (Gp_StateF0.field_4 == 0 || (gGameSession->padScriptFlags & 0x80)) {
         if (state->field_8 != 0 && Gp_PadLerpHalt == 0) {
             state->field_8--;
             Pad_PostEvent(0, 1, state->field_4.bytes.as_u8, 1);
-            state->field_4.as_s32   += state->field_0;
-            gGameSession->field_13B |= 2;
+            state->field_4.as_s32        += state->field_0;
+            gGameSession->padScriptFlags |= 2;
         } else {
-            gGameSession->field_13B &= ~2;
+            gGameSession->padScriptFlags &= ~2;
             Task_Kill(task);
         }
     }
@@ -1094,8 +1094,8 @@ void Gp_UpdatePadInput(void)
     actor = work->actor;
     Gp_ClearPadHalt();
     if (Gp_MenuLockHold == 0) {
-        if (actor->field_954 == 0 && gGameSession->eventState == 0 && gGameSession->field_66 == 0 &&
-            actor->field_956 != 6 && cfg->hp > 0 && gGameSession->field_0 == 0) {
+        if (actor->field_954 == 0 && gGameSession->eventState == 0 && gGameSession->cutsceneHold == 0 &&
+            actor->field_956 != 6 && cfg->hp > 0 && gGameSession->deathVariant == 0) {
             if (Gp_MenuLockDelay > 0) {
                 Gp_MenuLockDelay--;
                 Gp_MenuLockNow = 1;

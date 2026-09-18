@@ -531,7 +531,7 @@ resumeView:
         }
     processEvent:
         savedViewPhase = D_801155BB;
-        if (savedViewPhase != 0 && gGameSession->field_4D != 0) {
+        if (savedViewPhase != 0 && gGameSession->viewReady != 0) {
             D_801155BB = 0;
         }
         if (eventFlags & 0x80) {
@@ -1044,9 +1044,9 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
                             Gp_MsgPlayer3F3(0);
                             Gp_MsgAlly3F3(0);
                         }
-                        Mc_SaveData.field_4    = sel;
-                        gGameSession->field_68 = 1;
-                        Gp_StateF0.field_4     = 2;
+                        Mc_SaveData.field_4   = sel;
+                        gGameSession->hideHud = 1;
+                        Gp_StateF0.field_4    = 2;
                     }
                 }
                 i++;
@@ -1243,8 +1243,8 @@ void Gp_CapExit(Task* arg0)
         Gp_StateF0.field_4 = 0;
     }
     if (gGameSession->eventState == 0) {
-        gGameSession->field_68 = 0;
-        Mc_SaveData.field_4    = D_8011566C;
+        gGameSession->hideHud = 0;
+        Mc_SaveData.field_4   = D_8011566C;
         Gp_MsgPlayer3F3(1);
         Gp_MsgAlly3F3(1);
         if (Display_State.field_112 != 0) {
@@ -1922,7 +1922,7 @@ s32 func_800E7378(void)
         }
         D_801156B8 = Task_Spawn(9, 8, 0, 0);
     } else {
-        gGameSession->field_68 = 1;
+        gGameSession->hideHud = 1;
     }
     return 0;
 }
@@ -1939,7 +1939,7 @@ s32 func_800E73E8(void)
             return 0;
         }
     } else {
-        gGameSession->field_68 = 0;
+        gGameSession->hideHud = 0;
     }
     return 0;
 }
@@ -1953,7 +1953,7 @@ s32 func_800E7434(void)
         Task_Kill(D_801156B8);
         D_801156B8 = NULL;
     } else {
-        gGameSession->field_68 = 0;
+        gGameSession->hideHud = 0;
     }
     return 0;
 }
@@ -1970,7 +1970,7 @@ s32 func_800E7498(s32 arg0, s32 arg1, GpOverlayIds* arg2)
 
 s32 func_800E74EC(s32 arg0, s32 arg1, s32 arg2)
 {
-    if (gGameSession->field_5F == 0) {
+    if (gGameSession->evtSkipped == 0) {
         if (D_801156B1 != 0) {
             func_8001D580();
             D_801156B0 = 1;

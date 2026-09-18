@@ -118,7 +118,7 @@ void func_actor_120400_80131E5C(Task* arg0)
 /// `field_474` set every animation slot is ticked. Unless the model is hidden
 /// (bit 0x80 of `TmdObject::field_C`), the second coordinate's work matrix
 /// feeds `func_800EA1A8` and a non-zero result draws the ground-effect quad;
-/// when `gGameSession->field_4D` is set the same coordinate is flagged stale,
+/// when `gGameSession->viewReady` is set the same coordinate is flagged stale,
 /// updated and re-ranked through `func_800D7A9C`. The body ends decrementing
 /// the `field_500` teardown timer, freeing the model's buffers on the frame it
 /// reaches zero.
@@ -153,7 +153,7 @@ void func_actor_120400_80132050(Task* arg0)
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
         }
     }
-    if (gGameSession->field_4D != 0) {
+    if (gGameSession->viewReady != 0) {
         ((TmdObject*)arg0->extra)->field_8[1].flg = 0;
         Gp_UpdateCoord(&((TmdObject*)arg0->extra)->field_8[1]);
         func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->field_8[1].workm.t, 0, 3);

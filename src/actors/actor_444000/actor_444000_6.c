@@ -2351,9 +2351,9 @@ void func_actor_444000_8013EC84(Actor444000* arg0)
                 Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 3), 0);
                 if (cfg->hp <= 0) {
                     ((GameActor*)player->work)->field_956 = 0xA;
-                    gGameSession->field_12D               = 0x1E;
+                    gGameSession->areaBgmCountdown        = 0x1E;
                     gGameSession->field_12E               = 0x36;
-                    gGameSession->field_12F               = 0x5A;
+                    gGameSession->deathRestartDelay       = 0x5A;
                 }
             }
             frame = work->slots0[3].field_2 & 0x3FF;

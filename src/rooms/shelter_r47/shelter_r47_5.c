@@ -77,10 +77,10 @@ void func_shelter_r47_80185510(Task* task)
     Gp_MsgPlayer3F3(1);
     SndEvt_EnqueueType7(0x542F0005, 1);
     Display_ReleaseRef();
-    D_8007216C               = state->field_29;
-    gGameSession->eventState = 0;
-    gGameSession->field_68   = 0;
-    gGameSession->field_66   = 0;
+    D_8007216C                 = state->field_29;
+    gGameSession->eventState   = 0;
+    gGameSession->hideHud      = 0;
+    gGameSession->cutsceneHold = 0;
     Task_Kill((Task*)task->spawnArg2);
     Task_RequestKill(task, 0);
 }

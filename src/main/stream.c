@@ -246,7 +246,7 @@ s32 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
             f6        = g->loc.area;
             param1[0] = 0;
             param1[2] = f6;
-            f74       = g->field_74;
+            f74       = g->sprtVariant;
             param2[1] = 5;
             param2[2] = 0;
             param2[3] = 0;

@@ -77,7 +77,7 @@ void func_actor_113000_80132070(Task* task)
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
         }
     }
-    if (gGameSession->field_4D != 0) {
+    if (gGameSession->viewReady != 0) {
         coords        = ((TmdObject*)task->extra)->field_8;
         coords[1].flg = 0;
         Gp_UpdateCoord(&coords[1]);

@@ -33,7 +33,7 @@ void func_neo_ark_altar_8017D668(Task* task)
     switch (task->state) {
         case 0:
             D_8007216C               = 5;
-            gGameSession->field_68   = 1;
+            gGameSession->hideHud    = 1;
             gGameSession->eventState = 1;
             D_801153F4               = 2;
             Gp_MsgPlayerWeapon(0);
@@ -97,7 +97,7 @@ void func_neo_ark_altar_8017D668(Task* task)
         case 10:
             SetDispMask(1);
             D_8007216C               = 2;
-            gGameSession->field_68   = 0;
+            gGameSession->hideHud    = 0;
             gGameSession->eventState = 0;
             D_801153F4               = 0;
             Gp_MsgPlayerWeapon(1);

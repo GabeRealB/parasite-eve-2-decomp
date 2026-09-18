@@ -15,7 +15,7 @@
 /// The first three fields are the tasks the room's script dispatches its
 /// messages to: `field_0` is the slot-3 game pointer (`Game_GetPtrSlot(3)`),
 /// and `field_4` / `field_8` are `Gp_FindWorkById(...)->field_0` for two ids
-/// built from the session's `field_6` / `field_7` bytes (the second id has
+/// built from the session's `loc.area` / `loc.stage` bytes (the second id has
 /// 0x1000 OR'd in). `func_dryfield_water_tower_80180220` sends the 0x7D4 pair
 /// to `field_8` / `field_4` and the 0x3F3 / 0x3E9 messages to `field_0`.
 ///
@@ -85,7 +85,7 @@ typedef union DwtwVec {
 /// the shape `AcropolisBridgeMsg7DB` gives them on the receiving side.
 ///
 /// `func_dryfield_water_tower_80180194` is the send side: it fills the two id
-/// bytes from the session's `field_7` / `field_6` and zeroes the halfword
+/// bytes from the session's `loc.stage` / `loc.area` and zeroes the halfword
 /// before handing the record to `Gp_DispatchMsg` as message 0x7DA.
 typedef struct DwtwMsg7DB {
     /* 0x0 */ u8  field_0;

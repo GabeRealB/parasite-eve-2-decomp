@@ -95,7 +95,7 @@ void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
 /// Per-frame update of the enemy task's model. While the `field_50` countdown
 /// armed by the 0x7D3 handler is running, the model's coordinate translation
 /// is stepped by the work block's three velocity words and marked dirty; the
-/// countdown is clamped at zero once it expires. When `gGameSession->field_4D`
+/// countdown is clamped at zero once it expires. When `gGameSession->viewReady`
 /// is set, the model is hidden (bit 0x80 of `field_C`) in every camera view
 /// whose entry in the per-view table is zero and shown again otherwise.
 void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
@@ -114,7 +114,7 @@ void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
     } else {
         work->field_50 = 0;
     }
-    if (gGameSession->field_4D != 0) {
+    if (gGameSession->viewReady != 0) {
         if (D_acropolis_helicopter_landing_pad_80182370[(u8)gGameSession->loc.view] != 0) {
             obj->field_C &= 0xFF7F;
         } else {
@@ -227,7 +227,7 @@ INCLUDE_RODATA("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_he
 /// Room state-machine task. State 0 resets the player weapon, posts 0x7D5 to
 /// slot-4 entry 1 on a second-or-later visit (`Mc_SaveData.field_9`), stamps
 /// the save location with 0x12 and sets the override vector. States 1-4 wait
-/// for `gGameSession->field_4D`, post 0x7D9 to slot 4 on a first visit, then
+/// for `gGameSession->viewReady`, post 0x7D9 to slot 4 on a first visit, then
 /// call `func_800A99B4`. State 5 asks slot 4 to spawn the enemy task (0x7D8),
 /// positions it (0x7D3), pushes the slot-3 weapon record with `field_4 = 9`
 /// and hands the enemy's coordinate to slot 3 (0x3F5). State 6 queues CD
@@ -259,7 +259,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             Gp_SetOverrideVec(&vec);
             break;
         case 1:
-            if (gGameSession->field_4D != 0) {
+            if (gGameSession->viewReady != 0) {
                 task->state += 1;
             }
             break;

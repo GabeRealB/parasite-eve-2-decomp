@@ -26,7 +26,7 @@ extern s32 D_80115758;
 /// 0..13 by the first-frame burst below.
 extern SVECTOR D_acropolis_forked_road_80182178[14];
 
-/// One bit per in-game day (shifted by `GameSession::field_4 - 1`) for each of
+/// One bit per in-game day (shifted by `GameSession::loc.view - 1`) for each of
 /// the sixteen ambient-effect slots: which of the room's lamps are lit today.
 extern u16 D_acropolis_forked_road_801821E8[16];
 

@@ -32,7 +32,7 @@ void func_shelter_b2_elevator_8017D5E8(Task* task)
             func_800E8634((s32)&D_801378D0, 0, (s32)&D_801380F8);
             func_800E3FAC(0xA2, 0x24);
         } else {
-            gGameSession->field_68   = 1;
+            gGameSession->hideHud    = 1;
             gGameSession->eventState = 1;
             Task_SpawnFromTable(&D_shelter_b2_elevator_8017DF70, 2, 0, 0);
             Gp_RunCapCmd(3, 0);

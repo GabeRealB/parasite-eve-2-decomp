@@ -754,7 +754,7 @@ void Gp_EnqueueSndCd(u8 arg0)
     u8  param2[8];
     s32 flag;
 
-    if (gGameSession->field_129 != arg0) {
+    if (gGameSession->loadedSndId != arg0) {
         SndEvt_EnqueueType7(0xE0000000, 8);
         flag      = 1;
         param1[3] = 0;
@@ -765,8 +765,8 @@ void Gp_EnqueueSndCd(u8 arg0)
         param2[2] = 0;
         param2[1] = 0;
         CdCmd_Enqueue(0x21, param1, param2);
-        D_800626E8              = flag;
-        gGameSession->field_129 = arg0;
+        D_800626E8                = flag;
+        gGameSession->loadedSndId = arg0;
     }
 }
 
@@ -796,7 +796,7 @@ void Gp_StartStageLoad(Task* task)
         } while ((u8)i < 0x32);
 
         fileId = 0xA;
-        if (gGameSession->field_128 != 0xFF) {
+        if (gGameSession->restartMode != 0xFF) {
             param1[2] = 4;
             param1[0] = 0x62;
             param1[3] = 0;
@@ -817,7 +817,7 @@ void Gp_FinishStageLoad(Task* task)
 {
     if (CdCmd_IsIdle() & 0xFFFF) {
         Display_State.field_100 = 1;
-        if (gGameSession->field_128 == 0xFF) {
+        if (gGameSession->restartMode == 0xFF) {
             Task_SpawnFromTable(D_8011922C, 0, 0, 0);
             Task_Kill(task);
         } else {
@@ -1967,7 +1967,7 @@ void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
             slot->field_16 = 0;
         }
     } else {
-        if (gGameSession->field_0 != 0) {
+        if (gGameSession->deathVariant != 0) {
             base          = slot->field_C - 1;
             slot->field_C = base - (((s8)slot->field_9 - 1) >> 1);
         } else {

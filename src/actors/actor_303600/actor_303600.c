@@ -114,7 +114,7 @@ void func_actor_303600_80161F40(Task* arg0)
 /// `field_0` and publishes itself in `D_actor_303600_8016E4C0` with
 /// `D_actor_303600_8016E4C4` cleared, then falls into state 1, which hands the
 /// overlay's two cutscene script blocks to `func_800E8634`. State 2 waits for
-/// the session's `field_1` to clear -- the cutscene having finished -- and then
+/// the session's `eventState` to clear -- the cutscene having finished -- and then
 /// arms the four `Mc_SaveData` bytes and the `D_80071076` latch the way
 /// `func_actor_150400_80131ECC` does, starts the stage-0 type-0x11 task and
 /// kills itself; while the cutscene is still up it steps the state machine

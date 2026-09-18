@@ -46,9 +46,9 @@ void func_actor_342000_80164154(void)
 {
     gGameSession->loc.room       = 7;
     D_8007216D                   = 7;
-    gGameSession->unknown_133[1] = 6;
-    gGameSession->unknown_133[0] = 1;
-    gGameSession->field_76       = 1;
+    gGameSession->eventRoomIndex = 6;
+    gGameSession->field_133      = 1;
+    gGameSession->roomObjsDirty  = 1;
     Gp_ApplyAreaRecs(D_8018FB6C);
 }
 
@@ -115,14 +115,14 @@ void func_actor_342000_801642F4(void)
 
     work = (Actor342000EventWork*)D_actor_342000_80165070->work;
     if (work->field_7C == 0) {
-        Gp_StateF0.field_6      = 0;
-        Gp_StateF0.field_1      = 0xF;
-        Gp_StateF0.field_0      = 0;
-        Gp_StateF0.field_2      = 0;
-        Gp_StateF0.field_3      = 0;
-        gGameSession->field_69 |= 0x80;
-        D_8007272D              = 0xD;
-        work->field_7C          = 1;
+        Gp_StateF0.field_6       = 0;
+        Gp_StateF0.field_1       = 0xF;
+        Gp_StateF0.field_0       = 0;
+        Gp_StateF0.field_2       = 0;
+        Gp_StateF0.field_3       = 0;
+        gGameSession->flowFlags |= 0x80;
+        D_8007272D               = 0xD;
+        work->field_7C           = 1;
     }
 }
 

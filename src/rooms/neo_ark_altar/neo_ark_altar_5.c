@@ -337,17 +337,17 @@ void func_neo_ark_altar_8017EE90(Task* arg0)
 
     temp_s1 = arg0->work;
     Gp_MsgPlayer3F3(0);
-    gGameSession->field_68 = 1;
-    *temp_s1               = Task_SpawnFromTable(&RoomsShared8018397cDesc, 0, 2, 0);
-    arg0->state            = (s32)(arg0->state + 1);
+    gGameSession->hideHud = 1;
+    *temp_s1              = Task_SpawnFromTable(&RoomsShared8018397cDesc, 0, 2, 0);
+    arg0->state           = (s32)(arg0->state + 1);
 }
 
 void func_neo_ark_altar_8017EF00(Task* arg0)
 {
-    *(s16*)((u8*)gGameSession + OFFSET_OF(GameSession, field_52)) = 1;
-    D_8007216D                                                    = 2;
-    gGameSession->loc.room                                        = 2;
-    arg0->state                                                   = (s32)(arg0->state + 1);
+    *(s16*)((u8*)gGameSession + OFFSET_OF(GameSession, viewDirty)) = 1;
+    D_8007216D                                                     = 2;
+    gGameSession->loc.room                                         = 2;
+    arg0->state                                                    = (s32)(arg0->state + 1);
 }
 
 void func_neo_ark_altar_8017EF34(Task* arg0)
@@ -355,8 +355,8 @@ void func_neo_ark_altar_8017EF34(Task* arg0)
     SetDispMask(1);
     Gp_MsgPlayer3F3(1);
     Gp_MsgPlayerWeapon(1);
-    gGameSession->field_68 = 0;
-    arg0->state            = 2;
+    gGameSession->hideHud = 0;
+    arg0->state           = 2;
 }
 
 void func_neo_ark_altar_8017EF84(void)

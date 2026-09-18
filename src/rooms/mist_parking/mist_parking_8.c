@@ -28,7 +28,7 @@ void func_mist_parking_80183100(s32 arg0)
 void func_mist_parking_8018312C(s32 arg0)
 {
     Task_SpawnFromTable(&RoomsShared8018397cDesc, 0, arg0, 0);
-    gGameSession->field_64 = 1;
+    gGameSession->freezeRoomObjs = 1;
 }
 
 void func_mist_parking_8018316C(s32 arg0)

@@ -74,8 +74,8 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
             return;
         case 1:
             if (D_dryfield_warehouse_801821C4 != 0) {
-                gGameSession->field_52 = arg0;
-                gGameSession->field_76 = arg0;
+                gGameSession->viewDirty     = arg0;
+                gGameSession->roomObjsDirty = arg0;
             }
             return;
     }

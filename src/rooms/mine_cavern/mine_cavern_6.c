@@ -8,9 +8,9 @@ extern u8  D_8007216D;
 
 void func_mine_cavern_8017E330(void)
 {
-    D_8007216D             = 2;
-    gGameSession->loc.room = 2;
-    gGameSession->field_76 = 1;
+    D_8007216D                  = 2;
+    gGameSession->loc.room      = 2;
+    gGameSession->roomObjsDirty = 1;
 }
 
 void func_mine_cavern_8017E358(void)

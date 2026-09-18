@@ -15,7 +15,7 @@
 /// Main-executable globals with no module header yet: `D_8007216C` is the
 /// 1-based index of the area record the room is showing, the value
 /// `Gp_FindViewIndex` returns and the view gate reads back next to
-/// `GameSession.field_52`; `D_80073BA9` is the equipped-weapon index the slot-3
+/// `GameSession.viewDirty`; `D_80073BA9` is the equipped-weapon index the slot-3
 /// msg 0x3E8 record is keyed on; and `D_8007218A` picks which of the two
 /// weapon-id bases that record uses. `D_80071075` gates the "everything is
 /// dead" message and `D_80114C12` the cutscene/among-us mode flag: the second
@@ -137,10 +137,10 @@ extern s32 D_dryfield_breezeway_80181F90;
 /// `field_0` off the equipped-weapon index in `D_80073BA9`, `field_4` and
 /// `field_8` both 1, `field_C` 0xA and `field_10` zero) and starts the room's
 /// opening cutscene through `func_800E8634`, which is what raises
-/// `gGameSession::field_1`. It then advances to state 1.
+/// `gGameSession::eventState`. It then advances to state 1.
 ///
 /// State 1 runs the sequencer every frame until the cutscene clears
-/// `gGameSession::field_1`, at which point the task kills itself. Any other
+/// `gGameSession::eventState`, at which point the task kills itself. Any other
 /// state goes straight to the sequencer.
 void func_dryfield_breezeway_8017E114(Task* arg0)
 {
@@ -308,11 +308,11 @@ void func_dryfield_breezeway_8017E464(Task* arg0)
     ext->field_1C = &work->light;
     coord->sub    = NULL;
 
-    gGameSession->eventState = 1;
-    gGameSession->field_66   = 1;
-    gGameSession->field_68   = 1;
-    work->cursorX            = 0;
-    work->cursorY            = 0x20;
+    gGameSession->eventState   = 1;
+    gGameSession->cutsceneHold = 1;
+    gGameSession->hideHud      = 1;
+    work->cursorX              = 0;
+    work->cursorY              = 0x20;
 
     {
         DbwEventWork* eventWork = (DbwEventWork*)arg0->work;
@@ -421,7 +421,7 @@ void func_dryfield_breezeway_8017E65C(Task* task)
     func_8004BFF8(rsin(D_80070F70 * 0x10), m);
     coord->flg = 0;
     func_dryfield_breezeway_8017EB8C(task, 0, 0x20);
-    gGameSession->field_68   = 1;
+    gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     if (Gp_CapBusy() != 0) {
         prompt->mode     = 0;

@@ -386,7 +386,7 @@ s32 Gp_PollAreaCdLoads(void);
 /// Sets `Pad_RemapState->field_3`. When the CD queue is idle and
 /// `func_80042500` returns 0: sets `CdCmd_Queue.field_22E`, starts the
 /// boot load if a command is queued, clears `Stream_Slots`, refreshes
-/// `GameSession.field_11C` / `field_11E` from save/config (enqueueing
+/// `GameSession.loadedWeaponFamily` / `loadedConfigSet` from save/config (enqueueing
 /// CdCmd 0x21 via `Gp_EnqueueConfigCd` / `Gp_EnqueueHeldWeaponCd` if stale), then
 /// `Gp_EnqueueAttach7Cd` and advances `task->state`.
 void Gp_LoadWaitBoot(Task* task);
@@ -402,8 +402,8 @@ void Gp_LoadWaitStage(Task* task);
 /// `Mem_ConfigureAuxHeap(loc.stage, loc.area)`, `Mem_SetActiveAuxHeap(1)` when
 /// the save is in stage 5 / area 1, `Mem_InitAux`, `Gp_ApplyNpcRoomSnd`,
 /// `Snd_InitFromStage`. Sets `D_80062735` when in stage 3 with game flag
-/// nibble 0x7A >= 4, primes `GameSession.field_12D/12E/12F` (1 / -0x80 /
-/// 0x1E) and `D_8007A39C` (0x3C / 0), spawns table `D_80062774` entry 0,
+/// nibble 0x7A >= 4, primes `GameSession.areaBgmCountdown` / `field_12E` /
+/// `deathRestartDelay` (1 / -0x80 / 0x1E) and `D_8007A39C` (0x3C / 0), spawns table `D_80062774` entry 0,
 /// then advances `task->state`.
 void Gp_LoadState2(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
@@ -418,7 +418,7 @@ void Gp_LoadWaitCompanion(Task* task);
 /// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
 /// When the CD queue is idle, if the session location high word is
 /// `0x3010000` and `loc.room >= 4`, re-inits stage sound and enqueues
-/// CdCmd 0x21 (`param1[0] = 0x16`). If `field_4C` is 1, applies
+/// CdCmd 0x21 (`param1[0] = 0x16`). If `applySavePlace` is 1, applies
 /// `Mc_SaveData.field_9` via `Gp_SetAreaObjId` and clears the flag. Then
 /// applies the save location (`Gp_MarkAreaVisited` / `Gp_SyncAreaKeyIndex`), copies
 /// `Mc_SaveData.field_9` into `GameSession.loc.place`, builds the stream
@@ -447,7 +447,7 @@ void Gp_ClearFlagBank(s32 arg0);
 void Gp_MarkAreaVisited(struct _GpAreaKey* arg0);
 s32  Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// Same room-object link as `Gp_LinkRoomObjects`, then spawn type 0x1B as a
-/// child, clear `GameSession.field_76`, and increment `task->state`.
+/// child, clear `GameSession.roomObjsDirty`, and increment `task->state`.
 void Gp_LinkRoomObjectsSpawn(Task* task);
 void Gp_LinkViewSprts(void);
 /// Build merged `DR_TPAGE`+`SPRT` packets into `Gpu_PrimCursor` from

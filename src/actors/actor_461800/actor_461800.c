@@ -179,8 +179,8 @@ void func_actor_461800_8013229C(void)
             Gp_SetCollectedBit(0x12F);
         }
         if (GameFlag_GetNibble(0x112) == 0 && GameFlag_GetNibble(0x113) == 0) {
-            gGameSession->field_128 = 0xFF;
-            gGameSession->field_12E = 0xF;
+            gGameSession->restartMode = 0xFF;
+            gGameSession->field_12E   = 0xF;
             return;
         }
         Mc_SaveData.field_7 = 4;

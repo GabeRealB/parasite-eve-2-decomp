@@ -19,7 +19,7 @@
 /// snaps to the exact angle and the task ends.
 ///
 /// The task's own argument is only ever the `Task_Kill` target, reached both
-/// when the work lookup or `gGameSession::field_1` fails and on the frame the
+/// when the work lookup or `gGameSession::eventState` fails and on the frame the
 /// facing settles.
 void func_dryfield_main_street_8017E1C0(Task* task)
 {

@@ -59,7 +59,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
                 SndEvt_EnqueueType6(0x52140009, 0, 0);
             } else {
                 gGameSession->eventState = 0;
-                gGameSession->field_68   = 0;
+                gGameSession->hideHud    = 0;
                 D_801153F4               = 0;
                 D_8007216C               = D_dryfield_water_tower_8018768C;
                 Gp_MsgPlayerWeapon(1);

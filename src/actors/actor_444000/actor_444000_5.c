@@ -579,7 +579,7 @@ static __inline__ void Actor444000_SquashRotation(GsCOORDINATE2* coord, s16 y)
 ///
 /// A reset request re-arms the block on animation 0x12, clears the enemy's link
 /// state, the model's flag word and the four counters, marks the session
-/// (`gGameSession::field_9` 3) and plays the death cue at half depth.
+/// (`gGameSession::loc.place` 3) and plays the death cue at half depth.
 ///
 /// The rest of the tick splits on bit 0x100 of the second animation slot --
 /// whether the collapse animation is still running or has finished.

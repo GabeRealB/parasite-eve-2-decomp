@@ -10,7 +10,7 @@
 extern Task* D_dryfield_water_tank_80188D4C;
 
 /// 1-based index of the area record the room is showing, `Gp_FindViewIndex`'s
-/// result. The view gate reads it back next to `GameSession.field_52` when it
+/// result. The view gate reads it back next to `GameSession.viewDirty` when it
 /// commits a view switch.
 extern s8 D_8007216C;
 
@@ -44,7 +44,7 @@ void func_dryfield_water_tank_8017E194(s16 request)
 
 /// Second sibling entry point into the script driver, the one that ends the
 /// water-tank scene: publishes view 3's area-record index, asks the view gate
-/// for a switch through `GameSession.field_52`, dispatches message 0x3F3 with
+/// for a switch through `GameSession.viewDirty`, dispatches message 0x3F3 with
 /// argument 1 to the driver's `owner` task, and fires the scene's sound event.
 void func_dryfield_water_tank_8017E1B4(void)
 {
@@ -57,6 +57,6 @@ void func_dryfield_water_tank_8017E1B4(void)
      * D_8007216C's store (`%lo` addresses do not vary), so the store sinks into
      * Gp_DispatchMsg's delay slot. Dropping the flag keeps the edge. */
     Gp_DispatchMsg(*(Task**)((u8*)work + OFFSET_OF(DwtScriptWork, owner)), 0x3F3, 1, 0);
-    gGameSession->field_52 = 1;
+    gGameSession->viewDirty = 1;
     SndEvt_EnqueueType7(0x52150002, 0xA);
 }

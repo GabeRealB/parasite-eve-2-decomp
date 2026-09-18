@@ -75,7 +75,7 @@ extern void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1);
 /// 0x3E8 weapon record for the equipped weapon, the scene's sound event is
 /// enqueued and its script pair is started.
 ///
-/// State 1 drives the scene. `GameSession::field_1` reaching 0 instead stops
+/// State 1 drives the scene. `GameSession::eventState` reaching 0 instead stops
 /// the sound, writes the room's exit into the save and hands off to task 0x11
 /// before the task kills itself. Otherwise the scene fires exactly
 /// once, when `func_acropolis_sanctuary_8017DCE0` has armed `phase` at 2 and
@@ -248,7 +248,7 @@ void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1)
     GameSessionFrom4* sess = &g->loc;
     GpSprtCmd*        cmd;
 
-    cmd = Gp_SprtTables[sess->stage - 1][g->field_74 - 1].field_0[sess->area - 1][(arg1 & 0xFF) - 1].field_4;
+    cmd = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1][(arg1 & 0xFF) - 1].field_4;
     if ((arg0 & 0xFF) == 0) {
         cmd[1].field_4 = 0;
         cmd[2].field_4 = 1;

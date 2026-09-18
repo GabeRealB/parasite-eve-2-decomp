@@ -73,7 +73,7 @@ void func_acropolis_security_room_8017EE44(Task* task)
     RoomHotspot*                hs     = D_acropolis_security_room_801826DC;
     AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->work;
 
-    gGameSession->field_68   = 1;
+    gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     if (Gp_CapBusy() != 0) {
         prompt->mode     = 0;

@@ -137,7 +137,7 @@ s32 func_actor_401300_80132910(Actor401300* arg0, GpRec18* recs, s16 count)
     Actor401300PushScratch* s;
     Actor401300PushScratch* blk;
 
-    if (D_80072729 == 1 || gGameSession->field_4D == 1) {
+    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     arg0->field_2C->field_8[1].flg            = 0;
@@ -227,7 +227,7 @@ s32 func_actor_401300_80132C78(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16
     s16               vy;
     SVECTOR*          step;
 
-    if (D_80072729 == 1 || gGameSession->field_4D == 1) {
+    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     head                                = *(Actor401300Delta**)G_SCRATCH_HEAD;

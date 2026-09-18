@@ -340,8 +340,8 @@ void func_actor_402200_8013314C(Actor402200* arg0)
                 ((GpActorWork*)player)->actor->field_956 = 0xA;
                 work->field_6CE                          = 7;
                 work->field_6D4                          = 0;
-                gGameSession->field_12F                  = 0x5A;
-                gGameSession->field_12D                  = 0x7F;
+                gGameSession->deathRestartDelay          = 0x5A;
+                gGameSession->areaBgmCountdown           = 0x7F;
                 sc->in.vy                                = -0x96;
                 sc->in.vx                                = 0;
                 sc->in.vz                                = 0xC8;

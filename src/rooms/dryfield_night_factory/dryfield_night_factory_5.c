@@ -31,7 +31,7 @@ extern void Room_Util16(s32);
 /// Room entry task tick: publish the room's message table in `Task::field_24`
 /// and claim game pointer slot 7, then park the `Mem_Calloc` slot the poller
 /// `func_dryfield_night_factory_8018076C` watches in it. Session variant
-/// `gGameSession::field_7 == 2` (the night factory) picks the larger spawn
+/// `gGameSession::loc.stage == 2` (the night factory) picks the larger spawn
 /// tables and the second progress-nibble interpretation; every other variant
 /// picks the day set. The entry's own task and callback are spawned from the
 /// selected table at index 4 and 5, then nibble 0x48 is read -- under variant
@@ -80,7 +80,7 @@ void func_dryfield_night_factory_80180438(Task* arg0)
 /// "just asking", so no prompt is started and the side effects are skipped.
 ///
 /// `0x19` asks which visit to the factory this is: under the night session
-/// (`gGameSession::field_7 == 2`) it answers `2` once nibble `0x3A` has counted
+/// (`gGameSession::loc.stage == 2`) it answers `2` once nibble `0x3A` has counted
 /// two, and otherwise `1`; every other session variant answers nibble `0x61`
 /// plus one. `0x19` also offers the gate a request that runs CAP command `0xE`
 /// under flag nibble `-0x30` (fire while the nibble is *clear*, no item

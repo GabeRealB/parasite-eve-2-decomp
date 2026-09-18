@@ -152,7 +152,7 @@ void func_actor_503500_80132D60(void)
 
 void func_actor_503500_80132D7C(void)
 {
-    gGameSession->field_52 = 1;
+    gGameSession->viewDirty = 1;
 }
 
 void func_actor_503500_80132D90(s32 arg0)
@@ -218,7 +218,7 @@ void func_actor_503500_80132EF4(void)
 void func_actor_503500_80132F28(void)
 {
     Gp_HaltPadScripts();
-    gGameSession->field_13B = 0;
+    gGameSession->padScriptFlags = 0;
 }
 
 void func_actor_503500_80132F58(void)
@@ -959,7 +959,7 @@ s32 func_actor_503500_80134284(Actor503500* arg0, Actor503500Work* work)
 
 /// Two-step state of the boss block. Step 0 hides the second body part,
 /// unlinks the enemy node, stores the summed `field_40` of occupied slots
-/// 1..16 in `gGameSession->field_12A` and plays sound 0x40230010 at the
+/// 1..16 in `gGameSession->bossPartsHpSum` and plays sound 0x40230010 at the
 /// part's position. Step 1 counts 0x1F frames, then posts message 0x13F4
 /// under the same gates as `func_actor_503500_80133684`.
 void func_actor_503500_80134408(Actor503500* arg0)
@@ -986,8 +986,8 @@ void func_actor_503500_80134408(Actor503500* arg0)
                     sum += work->enemies[i]->field_40;
                 }
             }
-            gGameSession->field_12A = sum;
-            work->field_7E0         = 0;
+            gGameSession->bossPartsHpSum = sum;
+            work->field_7E0              = 0;
             func_actor_503500_80135FB4(arg0, 0xE, 0x20);
             pan = (s8)Gp_GetObjPan((GpObj38*)&arg0->extra->field_8[3]);
             SndEvt_EnqueueType6(0x40230010, pan,

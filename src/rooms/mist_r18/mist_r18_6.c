@@ -19,7 +19,7 @@ extern s32 D_mist_r18_80186E9C;
 
 void func_mist_r18_8017EC98(void)
 {
-    if (gGameSession->field_4D != 1) {
+    if (gGameSession->viewReady != 1) {
         D_801156F9 = 0;
     }
 }

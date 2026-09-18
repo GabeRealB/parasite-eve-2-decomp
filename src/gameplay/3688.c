@@ -4432,7 +4432,7 @@ void Gp_UseKeyItemRow(Task* arg0)
             } else if ((arg0->killCountdown <= 0) ||
                        (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
                 if (arg0->spawnArg1 == -1) {
-                    if (gGameSession->field_66 == 1) {
+                    if (gGameSession->cutsceneHold == 1) {
                         obj->field_2E = 6;
                     } else {
                         obj->field_2E = 9;
@@ -4554,7 +4554,7 @@ void Gp_DrawCollectedRow(DialogPrompt* arg0, UiObject* arg1)
     if (flag == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
-            if (gGameSession->field_66 == flag) {
+            if (gGameSession->cutsceneHold == flag) {
                 Ui_SpawnFromDesc(&D_8010EF84, 0, 1, 1, arg1);
                 arg1->status = 0;
             } else {
@@ -4632,7 +4632,7 @@ void Gp_KeyItemMenuTask(Task* arg0)
                 if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
                     obj->field_2E = -1;
                 } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-                    if (gGameSession->field_66 == 1) {
+                    if (gGameSession->cutsceneHold == 1) {
                         SndEvt_EnqueueType6(4, 0, 0);
                         obj->field_2E = -1;
                     } else {

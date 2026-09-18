@@ -19,7 +19,7 @@ s32 func_shelter_b3_dumping_hole_8017D760(s32 arg0, s32 arg1, RoomEventMsg* in, 
             return 0;
         }
         if (in->field_5 == 0) {
-            out->field_3 = (u8)gGameSession->unknown_133[1] + 1;
+            out->field_3 = (u8)gGameSession->eventRoomIndex + 1;
         }
         return 1;
     }

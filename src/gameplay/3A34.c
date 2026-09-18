@@ -2650,7 +2650,7 @@ void Gp_DrawTargetCursor(void)
     if (sess->eventState != 0) {
         return;
     }
-    if (sess->field_68 != 0) {
+    if (sess->hideHud != 0) {
         return;
     }
     if (node != NULL) {
@@ -3640,7 +3640,7 @@ void Gp_ReleaseStateF0Add(GpObj20E* arg0, s32 arg1)
             p->field_2         = 0;
             p->field_3         = 0;
             p->field_1         = 0x3C;
-            if (!(gGameSession->field_69 & 2)) {
+            if (!(gGameSession->flowFlags & 2)) {
                 SndEvt_EnqueueType2(0, 0xB4);
             }
         }
@@ -3669,7 +3669,7 @@ void Gp_ReleaseStateF0Clear(void)
             p->field_8         = 0;
             p->field_C         = 0;
             p->field_10        = 0;
-            if (!(gGameSession->field_69 & 2)) {
+            if (!(gGameSession->flowFlags & 2)) {
                 SndEvt_EnqueueType2(0, 0xB4);
             }
         }
@@ -3688,7 +3688,7 @@ void Gp_ReleaseStateF0(GpObj20E* arg0, s32 arg1)
             p->field_2         = 0;
             p->field_3         = 0;
             p->field_1         = 0x3C;
-            if (!(gGameSession->field_69 & 2)) {
+            if (!(gGameSession->flowFlags & 2)) {
                 SndEvt_EnqueueType2(0, 0xB4);
             }
         }
@@ -7193,16 +7193,16 @@ void func_800E31E8(Task* arg0)
     s32         slot;
 
     gGameSession->eventState = 0;
-    gGameSession->field_68   = 0;
+    gGameSession->hideHud    = 0;
     D_80115598               = 0;
-    gGameSession->field_69   = 0;
+    gGameSession->flowFlags  = 0;
     flag                     = GameFlag_GetNibble(0x11F);
     switch (flag) {
         case 1:
             if (gGameSession->loc.stage == 3) {
                 D_80062735 = 1;
             } else {
-                gGameSession->field_69 = 3;
+                gGameSession->flowFlags = 3;
             }
             break;
         case 2:

@@ -169,8 +169,8 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
                     if (player->field_2C->field_8->coord.t[1] >= 0x1770) {
                         if (config->hp > 0) {
                             for (i = 0; i < 10; i++) {
-                                gGameSession->field_12D = 0x7F;
-                                playerSlot              = Game_GetPtrSlot(3);
+                                gGameSession->areaBgmCountdown = 0x7F;
+                                playerSlot                     = Game_GetPtrSlot(3);
                                 if (Gp_DispatchMsg(playerSlot, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 4), 0) == 1)
                                     break;
                             }

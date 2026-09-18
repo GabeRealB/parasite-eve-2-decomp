@@ -604,7 +604,7 @@ void func_actor_223600_8014CA00(GpEnemy* enemy, Task* task)
         func_800D7A9C((TmdObject*)task->extra,
                       (VECTOR*)((TmdObject*)task->extra)->field_8->workm.t, 0, 3);
     }
-    if (gGameSession->field_4D != 0) {
+    if (gGameSession->viewReady != 0) {
         ((TmdObject*)task->extra)->field_8->flg = 0;
     }
     if (((TmdObject*)task->extra)->field_8->flg == 0) {

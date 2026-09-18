@@ -37,9 +37,9 @@ void func_mist_parking_80182750(s32 arg0)
     if (GameFlag_GetNibble(0x7A) != 0) {
         arg0 += 2;
     }
-    D_8007216D             = arg0;
-    gGameSession->loc.room = arg0;
-    gGameSession->field_76 = 1;
+    D_8007216D                  = arg0;
+    gGameSession->loc.room      = arg0;
+    gGameSession->roomObjsDirty = 1;
 }
 
 void func_mist_parking_801827A0(s32 arg0)

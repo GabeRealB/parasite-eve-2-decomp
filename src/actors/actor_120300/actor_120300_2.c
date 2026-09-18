@@ -28,5 +28,5 @@ void func_actor_120300_80133D04(s32 arg0)
 void func_actor_120300_80133DA4(void)
 {
     CdCmd_EnqueueReplaceOverlay82();
-    gGameSession->field_52 = 1;
+    gGameSession->viewDirty = 1;
 }

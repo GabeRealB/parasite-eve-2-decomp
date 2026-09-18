@@ -23,7 +23,7 @@
 ///
 /// Message 3 asks a background cutscene to advance: it is answered with 2 and
 /// cap command 0x15 only while the session is on this very message
-/// (`gGameSession::field_7 == msgId`) in play mode (`field_9 == 1`) with
+/// (`gGameSession::loc.stage == msgId`) in play mode (`field_9 == 1`) with
 /// `Gp_StateF0.field_0` in the same state. Otherwise nibble `0x3B` decides
 /// between returning 0 - after cap command 7 plus a nibble write, which re-arms
 /// nibble `field_6` - and falling through to the message-2 test. `field_5`

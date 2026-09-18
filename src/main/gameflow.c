@@ -48,12 +48,12 @@ void GameFlow_StateByField34(Task* arg0)
                     *clearPtr++ = 0;
                 }
             }
-            ds                     = &Display_State;
-            ds->field_101          = 0;
-            ds->field_12e          = 0;
-            one                    = 1;
-            gGameSession->field_4C = one;
-            gGameSession->field_80 = 0;
+            ds                           = &Display_State;
+            ds->field_101                = 0;
+            ds->field_12e                = 0;
+            one                          = 1;
+            gGameSession->applySavePlace = one;
+            gGameSession->field_80       = 0;
             Snd_SetMutedVolumes(1);
             ds->field_101 = 0;
             ds->field_10b = one;
@@ -92,12 +92,12 @@ void GameFlow_StateByField34(Task* arg0)
                     *clearPtr++ = 0;
                 }
             }
-            Display_State.field_12e = 1;
-            Display_State.field_101 = 0;
-            p->field_248            = 1;
-            p->field_244            = 1;
-            Wip_SysFlags.field_4    = 1;
-            gGameSession->field_4C  = 1;
+            Display_State.field_12e      = 1;
+            Display_State.field_101      = 0;
+            p->field_248                 = 1;
+            p->field_244                 = 1;
+            Wip_SysFlags.field_4         = 1;
+            gGameSession->applySavePlace = 1;
         }
         Display_State.field_10b = 1;
         Task_Kill(arg0);

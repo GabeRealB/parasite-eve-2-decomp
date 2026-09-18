@@ -1189,9 +1189,9 @@ void func_actor_403200_8013C84C(Task* arg0)
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 3), 0);
             if (cfg->hp <= 0) {
                 ((GameActor*)task->work)->field_956 = 0xA;
-                gGameSession->field_12D             = 0x1E;
+                gGameSession->areaBgmCountdown      = 0x1E;
                 gGameSession->field_12E             = 0x36;
-                gGameSession->field_12F             = 0x5A;
+                gGameSession->deathRestartDelay     = 0x5A;
             }
         }
         if (((work->field_9A & 0x3FF) == 0x19) && (work->field_7A8 != (work->field_9A & 0x3FF))) {

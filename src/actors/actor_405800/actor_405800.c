@@ -453,7 +453,7 @@ void func_actor_405800_801334B8(Task* arg0)
     w3            = (Actor405800Work*)arg0->work;
     w3->field_846 = 0;
     w3->field_848 = 0;
-    if (gGameSession->loc.field_4 == 1) {
+    if (gGameSession->loc.warp == 1) {
         coord->coord.t[0] = 0x14B4;
         coord->coord.t[2] = 0xD7A;
         coord->coord.t[1] = 0;

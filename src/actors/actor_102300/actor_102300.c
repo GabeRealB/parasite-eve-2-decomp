@@ -33,7 +33,7 @@ extern s32 D_actor_102300_80147918;
 
 /// The `GpPairSrcE` the enemy parks in its own `field_50` slot.
 extern GpPairSrcE D_actor_102300_801477F8;
-/// Per-room voice-stream sector tables, indexed by `GameSession::field_7` then
+/// Per-room voice-stream sector tables, indexed by `GameSession::loc.stage` then
 /// `field_6`; a NULL row means this room has no cue.
 extern u16* D_actor_102300_80147AA0[];
 /// The overlay's own spawn table: entry 0 is this enemy, 1 and 2 the two

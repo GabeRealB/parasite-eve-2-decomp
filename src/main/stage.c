@@ -262,23 +262,23 @@ void Display_TransitionTask(Task* arg0)
                     Mc_SaveData.field_4 = gGameSession->loc.view;
                     Pad_SetCooldown(0);
                     Gp_SpawnCurView(2);
-                    gGameSession->field_4D = 0;
+                    gGameSession->viewReady = 0;
                     Task_Spawn(0, 0x1E, 2, 0);
                 } else {
                     Tmd_AllocMissingBuffers();
-                    gGameSession->field_4D = 1;
+                    gGameSession->viewReady = 1;
                 }
                 Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
                 break;
             case 1:
                 ed   = gGameSession;
-                flag = ed->field_4D;
+                flag = ed->viewReady;
                 if (flag == 1) {
                     disp = Display_State.frameMode;
                     g    = Stage_Ctx;
                     if (disp == g->field_24) {
-                        f11          = g->field_11;
-                        ed->field_4D = 0;
+                        f11           = g->field_11;
+                        ed->viewReady = 0;
                         if (f11 == 0) {
                             arg0->killCountdown = flag;
                             Stage_Ctx->field_28 = Stage_Ctx->field_28 + 2;

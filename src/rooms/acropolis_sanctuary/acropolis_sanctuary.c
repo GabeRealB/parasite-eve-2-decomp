@@ -33,7 +33,7 @@ void func_acropolis_sanctuary_8017D5E0(void)
     GpObj4A* p9;
     GpObj4A* p10;
 
-    if (GameFlag_GetNibble(2) == 0 && gGameSession->loc.field_4 == 3) {
+    if (GameFlag_GetNibble(2) == 0 && gGameSession->loc.warp == 3) {
         GameFlag_SetNibble(2, 2);
         func_800E8634((s32)&D_acropolis_sanctuary_80180B0C, 0, (s32)&D_acropolis_sanctuary_80181664);
         Gp_ApplyAreaRecs(D_acropolis_sanctuary_80186418);

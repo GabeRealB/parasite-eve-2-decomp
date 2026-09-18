@@ -4,5 +4,5 @@
 
 void func_mine_mesa_8017E91C(void)
 {
-    gGameSession->field_69 |= 3;
+    gGameSession->flowFlags |= 3;
 }

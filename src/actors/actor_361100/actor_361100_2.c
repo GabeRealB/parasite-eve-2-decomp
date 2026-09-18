@@ -51,7 +51,7 @@ void func_actor_361100_80162A54(Task* arg0)
         Display_ClampField126((countdown & 1) ? 0 : -1);
         Gp_SpawnScript18((s32)&D_actor_361100_80166AD0, (s32)&D_actor_361100_80166AD8);
     }
-    if ((arg0->spawnArg1 <= 0) || (gGameSession->field_5F != 0)) {
+    if ((arg0->spawnArg1 <= 0) || (gGameSession->evtSkipped != 0)) {
         Display_ClampField126(0);
         Task_Kill(arg0);
     }

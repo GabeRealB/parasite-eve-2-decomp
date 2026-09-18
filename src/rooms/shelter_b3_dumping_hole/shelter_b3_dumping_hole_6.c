@@ -200,7 +200,7 @@ void func_shelter_b3_dumping_hole_801836E0(DumpingHoleState* arg0)
     DumpingHoleEntity* work;
     s32                i;
 
-    if ((u8)gGameSession->unknown_130[0] == 2) {
+    if ((u8)gGameSession->spawnPhase[0] == 2) {
         Task_Kill((Task*)arg0);
         return;
     }
@@ -237,7 +237,7 @@ void func_shelter_b3_dumping_hole_80183824(DumpingHoleState* arg0)
     DumpingHoleEntityD* ent = (DumpingHoleEntityD*)arg0->field_1C;
     if ((s16)(ent->field_0 += 1) == 0xF) {
         ((void (*)(s32))Gp_IncStateF0Ref)(0);
-        gGameSession->unknown_130[0] = 1;
+        gGameSession->spawnPhase[0] = 1;
         Gp_ArmStateF0(1);
         arg0->field_30 += 1;
     }
@@ -258,7 +258,7 @@ void func_shelter_b3_dumping_hole_801838A0(DumpingHoleState* arg0)
         }
         if (count == 0x10) {
             ((void (*)(Task*, s32))Gp_ReleaseStateF0Clear)((Task*)arg0, 0);
-            gGameSession->unknown_130[0] = 2;
+            gGameSession->spawnPhase[0] = 2;
             Task_Kill((Task*)arg0);
         }
     }

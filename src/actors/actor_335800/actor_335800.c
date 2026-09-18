@@ -16,7 +16,7 @@ void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 /// and moves it along Z at `killCountdown` (100) per frame; once past the pose
 /// height the velocity drops by 6 a frame until it falls below -60, which ends
 /// the move. A ground shadow is drawn every frame. The
-/// task kills itself once the session's `field_4D` flag is set, or a few
+/// task kills itself once the session's `viewReady` flag is set, or a few
 /// frames into state 2.
 void func_actor_335800_80161E88(Task* task)
 {
@@ -47,13 +47,13 @@ void func_actor_335800_80161E88(Task* task)
                 }
             }
             coord->coord.t[2] += task->killCountdown;
-            if (gGameSession->field_4D != 0) {
+            if (gGameSession->viewReady != 0) {
                 Task_Kill(task);
             }
             break;
         case 2:
             if (++task->killCountdown < 4) {
-                if (gGameSession->field_4D != 0) {
+                if (gGameSession->viewReady != 0) {
                     Task_Kill(task);
                 }
             } else {

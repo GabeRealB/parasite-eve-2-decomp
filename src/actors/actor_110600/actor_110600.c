@@ -1985,7 +1985,7 @@ block_24:
     Gp_ClearRec18Occupied(work->recs_970);
     Gp_ClearRec18Occupied(work->recs_8D8);
     Gp_ClearRec18Occupied(work->recs);
-    if (gGameSession->field_4D != 0) {
+    if (gGameSession->viewReady != 0) {
         arg1->field_2C->field_8->flg = 0;
     }
     if (arg1->field_2C->field_8->flg == 0) {

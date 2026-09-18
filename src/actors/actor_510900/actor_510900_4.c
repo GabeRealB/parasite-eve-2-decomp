@@ -813,8 +813,8 @@ void func_actor_510900_80137868(Actor510900* arg0)
                 work->obj4E4.field_18 = pair;
                 work->obj504.field_18 = pair;
 
-                gGameSession->field_12F = 0x80;
-                gGameSession->field_12D = 0x7F;
+                gGameSession->deathRestartDelay = 0x80;
+                gGameSession->areaBgmCountdown  = 0x7F;
             }
             if (work->field_58A == 0x53) {
                 if (work->field_594 == 1) {

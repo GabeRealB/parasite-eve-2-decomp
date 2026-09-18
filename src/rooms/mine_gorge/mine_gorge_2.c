@@ -37,7 +37,7 @@ s32 func_mine_gorge_8017D7F4(s32 arg0, s32 arg1, s32 arg2)
 }
 
 /// Tears the mine gorge sequence down: the first pass raises `D_80115768` and
-/// the session's `field_68`, hides the display and starts the script blob pair
+/// the session's `hideHud`, hides the display and starts the script blob pair
 /// `D_mine_gorge_8017E2F0` / `D_mine_gorge_8017E500`; the next pass kills the
 /// task and clears collection bit `0x11F`.
 void func_mine_gorge_8017D828(Task* arg0)
@@ -45,7 +45,7 @@ void func_mine_gorge_8017D828(Task* arg0)
     if (arg0->state == 0) {
         D_80115768 = 1;
         SetDispMask(0);
-        gGameSession->field_68 = 1;
+        gGameSession->hideHud = 1;
         func_800E8634((s32)&D_mine_gorge_8017E2F0, 0, (s32)&D_mine_gorge_8017E500);
     } else {
         Task_Kill(arg0);

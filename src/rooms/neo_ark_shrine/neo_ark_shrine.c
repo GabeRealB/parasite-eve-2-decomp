@@ -169,7 +169,7 @@ void func_neo_ark_shrine_8017D9A0(Task* task)
     u16                 id;
 
     func_neo_ark_shrine_8017EAC0(task);
-    gGameSession->field_68 = 1;
+    gGameSession->hideHud = 1;
     if (Gp_CapBusy() != 0) {
         prompt->mode     = 0;
         prompt->targetId = 0;

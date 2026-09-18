@@ -153,7 +153,7 @@ typedef struct Actor342000EventWork {
 STATIC_ASSERT_SIZEOF(Actor342000EventWork, 0x80);
 
 /// Session id payload of message 0x7DA, sent to the `Game_GetPtrSlot(4)` task
-/// by `func_actor_342000_8016382C`: `GameSession::field_7`, then `field_6`.
+/// by `func_actor_342000_8016382C`: `GameSession::loc.stage`, then `loc.area`.
 typedef struct Actor342000Msg7DA {
     /* 0x0 */ u8  field_0;
     /* 0x1 */ u8  field_1;

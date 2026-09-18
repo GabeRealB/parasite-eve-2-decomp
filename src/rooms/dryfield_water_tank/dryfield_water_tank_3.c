@@ -152,8 +152,8 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             Gp_DispatchMsg(work->child, 0x7DB, (s32)&msg, 0);
             break;
         case 2:
-            D_8007216C             = Gp_FindViewIndex(3);
-            gGameSession->field_52 = 1;
+            D_8007216C              = Gp_FindViewIndex(3);
+            gGameSession->viewDirty = 1;
             /* The raw load is what makes this match: as `work->owner` it carries
              * MEM_IN_STRUCT_P, and sched1's true_dependence then disregards it
              * against D_8007216C's store, so the store sinks into the call's

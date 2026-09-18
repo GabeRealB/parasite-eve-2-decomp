@@ -482,7 +482,7 @@ extern TaskDesc D_8018B83C;
 /// The overlay's event/controller task. Idles while the session or any of
 /// the global pause flags hold it. State 0 allocates the work block and
 /// publishes the task, then picks state 1 or 2 from
-/// `gGameSession->unknown_130[0]`; state 1 waits on flag 0x11E and pending
+/// `gGameSession->spawnPhase[0]`; state 1 waits on flag 0x11E and pending
 /// object 5, and states 1 and 2 both move to 3 once `field_120` has dropped
 /// to zero while the player still has HP. State 3 ticks
 /// `func_actor_342100_80162F54` until it reports done.
@@ -519,7 +519,7 @@ void func_actor_342100_801630A4(Task* arg0)
             }
             Task_SpawnFromTable(&D_8018B57C, 0, 0xD0, 0);
             SndEvt_EnqueueType6(0x54270007, 0, 0);
-            switch ((u8)gGameSession->unknown_130[0]) {
+            switch ((u8)gGameSession->spawnPhase[0]) {
                 case 0:
                     arg0->state++;
                     break;
@@ -538,7 +538,7 @@ void func_actor_342100_801630A4(Task* arg0)
                 }
             }
             cfg = &Player_Status;
-            if (gGameSession->field_120 > 0 || cfg->hp <= 0) {
+            if (gGameSession->sceneClock > 0 || cfg->hp <= 0) {
                 ready = 0;
             } else {
                 ready = 1;
@@ -549,7 +549,7 @@ void func_actor_342100_801630A4(Task* arg0)
             break;
         case 2:
             cfg = &Player_Status;
-            if (gGameSession->field_120 > 0 || cfg->hp <= 0) {
+            if (gGameSession->sceneClock > 0 || cfg->hp <= 0) {
                 ready = 0;
             } else {
                 ready = 1;
@@ -645,6 +645,6 @@ void func_actor_342100_80163454(s32 arg0)
 
 void func_actor_342100_80163518(void)
 {
-    D_80073BA0              = 0;
-    gGameSession->field_128 = 3;
+    D_80073BA0                = 0;
+    gGameSession->restartMode = 3;
 }

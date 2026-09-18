@@ -149,7 +149,7 @@ void func_neo_ark_forest_zone_8017DA80(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-/// Room entry task tick: on the first visit (`gGameSession::field_9 == 1`) with
+/// Room entry task tick: on the first visit (`gGameSession::loc.place == 1`) with
 /// flag 0xBD unset, broadcast message 0x7DB to the room's own task carrying its
 /// first payload record, then advance state.
 void func_neo_ark_forest_zone_8017DB40(Task* arg0)

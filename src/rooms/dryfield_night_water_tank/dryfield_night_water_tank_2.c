@@ -70,7 +70,7 @@ s32 func_dryfield_night_water_tank_8017D76C(s32 arg0, s32 arg1, RoomEventMsg* in
 /// publish the message table the room's handlers hang off (0x13EE..0x13F1) in
 /// `Task::field_24`, claim game pointer slot 7, spawn the task entry 0 of
 /// `8017EE28` describes, then branch on the visit sub-id
-/// (`gGameSession::field_9`).
+/// (`gGameSession::loc.place`).
 ///
 /// Sub-ids 0xA and 0xB -- the two visits that reach this room -- both run the
 /// prop updater `func_dryfield_night_water_tank_8017D9DC` on its zero argument;

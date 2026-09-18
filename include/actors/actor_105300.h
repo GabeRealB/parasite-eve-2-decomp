@@ -124,7 +124,7 @@ typedef struct Actor05300Clip {
 STATIC_ASSERT_SIZEOF(Actor05300Clip, 0x4);
 
 /// One row of the per-area sound table `D_actor_105300_8013D3C4`, indexed by
-/// `GameSession::field_4`. `field_0` and `field_2` are the two s8 parameters
+/// `GameSession::loc.view`. `field_0` and `field_2` are the two s8 parameters
 /// `SndEvt_EnqueueTypeA` is handed with the work block's sound id.
 typedef struct Actor05300SndRow {
     /* 0x0 */ s8 field_0;

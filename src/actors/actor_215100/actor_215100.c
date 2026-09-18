@@ -180,7 +180,7 @@ void func_actor_215100_80149F2C(Task* task)
             }
             break;
         case 0x34:
-            gGameSession->field_69 &= 0x7F;
+            gGameSession->flowFlags &= 0x7F;
             Task_SpawnFromTable(&D_801856B8, 0, D_actor_215100_8015E670 - 1, 0);
             D_actor_215100_8014D03C = 1;
             Task_Kill(task);

@@ -92,7 +92,7 @@ STATIC_ASSERT_SIZEOF(Actor215100CharRec, 0x8);
 /// the actor waits to be talked to.
 ///
 /// The entry whose window contains the session's caption clock
-/// (`GameSession::field_120`, which that function ticks down once the caption
+/// (`GameSession::sceneClock`, which that function ticks down once the caption
 /// system goes idle) names the script to start and the line key to start it at:
 /// it is taken when `field_0 * 30 >= clock` and `field_4 * 30 < clock`, and the
 /// table is ordered by descending `field_0`, so the first match wins. A

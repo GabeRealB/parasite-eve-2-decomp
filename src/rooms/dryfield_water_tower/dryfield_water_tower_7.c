@@ -60,8 +60,8 @@ void func_dryfield_water_tower_80180220(void)
     Gp_DispatchMsg(work->field_4, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[1], 0);
     Gp_DispatchMsg(work->field_0, 0x3F3, 1, 0);
     Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_dryfield_water_tower_801823A8, 0);
-    D_8007216C             = Gp_FindViewIndex(4);
-    gGameSession->field_52 = 1;
+    D_8007216C              = Gp_FindViewIndex(4);
+    gGameSession->viewDirty = 1;
     CdCmd_CancelReplaceAndActivate();
     Gp_RestoreStreamRng();
 }

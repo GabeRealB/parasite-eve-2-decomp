@@ -28,7 +28,7 @@ s32 func_dryfield_night_toilet_8017D688(void)
 
 /// Room entry task tick: park the room's hotspot table in `Task::field_24`,
 /// register the task in pointer slot 7, then - on the visit whose session
-/// sub-id (`gGameSession::field_9`) is 1 and that has not yet latched nibble
+/// sub-id (`gGameSession::loc.place`) is 1 and that has not yet latched nibble
 /// 0xAF - latch the nibble and start the follow-up task. Advances to state 1
 /// either way.
 void func_dryfield_night_toilet_8017D690(Task* task)

@@ -47,8 +47,8 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbag
 
 void func_shelter_b3_garbage_incinerator_8017FA3C(void)
 {
-    D_80073BA0              = 0;
-    gGameSession->field_128 = 3;
+    D_80073BA0                = 0;
+    gGameSession->restartMode = 3;
 }
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_3", func_shelter_b3_garbage_incinerator_8017FA58);

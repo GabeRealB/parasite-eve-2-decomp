@@ -147,7 +147,7 @@ void func_actor_310600_80161FA0(Task* task)
         }
         Gp_ClearRec18Occupied(&work->rec);
     }
-    if (gGameSession->field_4D != 0) {
+    if (gGameSession->viewReady != 0) {
         ((TmdObject*)task->extra)->field_8[1].flg = 0;
         Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
         func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);

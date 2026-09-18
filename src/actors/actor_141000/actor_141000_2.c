@@ -189,7 +189,7 @@ void func_actor_141000_801330C0(Task* arg0)
             Gp_SpawnEff(0x60070, coord, 0x14200, NULL);
         }
     }
-    if ((gGameSession->field_4D != 0) || (gGameSession->field_5F != 0)) {
+    if ((gGameSession->viewReady != 0) || (gGameSession->evtSkipped != 0)) {
         Task_Kill(arg0);
     }
 }

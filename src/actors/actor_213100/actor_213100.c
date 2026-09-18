@@ -50,7 +50,7 @@ void func_actor_213100_80149E3C(Task* task)
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
         }
     }
-    if (gGameSession->field_4D != 0) {
+    if (gGameSession->viewReady != 0) {
         ((TmdObject*)task->extra)->field_8[1].flg = 0;
         Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
         func_800D7A9C(extra, (VECTOR*)((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);

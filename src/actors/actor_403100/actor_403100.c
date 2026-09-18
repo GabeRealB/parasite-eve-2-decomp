@@ -1751,7 +1751,7 @@ void func_actor_403100_80136830(Task* arg0)
                 } else {
                     D_actor_403100_80155808->field_658 = -1;
                     D_actor_403100_80155808->field_618 = 0x1400;
-                    gGameSession->field_127            = 0;
+                    gGameSession->suppressDeathChecks  = 0;
                     Gp_StateC08.field_6                = (u8)(Gp_StateC08.field_6 | 1);
                     gGameSession->field_12C            = 0;
                     D_actor_403100_8015580C->field_4C  = 0;

@@ -431,7 +431,7 @@ extern u16 D_80111EB4[];
 extern u16 Gp_FadeQuadColors[];
 
 /// Suspends pad-driven scripting: raises the script, hold and lerp halt
-/// flags, clears `GameSession::field_13B` and flushes the pad event queue.
+/// flags, clears `GameSession::padScriptFlags` and flushes the pad event queue.
 void  Gp_HaltPadScripts(void);
 Task* Gp_SpawnScript18(s32 arg0, s32 arg1);
 s32   Gp_LookupSlot4(s32 arg0);

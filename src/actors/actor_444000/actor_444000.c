@@ -37,7 +37,7 @@ extern s8 D_8007272D;
 
 /// Gameplay-resident globals the state-3 hand-off touches: `D_80187150` is the
 /// task table the successor is spawned from, `D_8018FBC8` the view id copied
-/// into `GameSession::field_120`, and `D_801855DE` a counter cleared with it.
+/// into `GameSession::sceneClock`, and `D_801855DE` a counter cleared with it.
 extern s16      D_801855DE;
 extern TaskDesc D_80187150;
 extern u16      D_8018FBC8;
@@ -128,8 +128,8 @@ void func_actor_444000_801321FC(s32 arg0)
     work = (Actor444000EventWork*)D_actor_444000_80161860->work;
     switch (arg0) {
         case 0:
-            gGameSession->field_52 = 1;
-            D_8007216C             = work->field_28.b;
+            gGameSession->viewDirty = 1;
+            D_8007216C              = work->field_28.b;
             break;
         case 1:
         case 2:
@@ -148,15 +148,15 @@ void func_actor_444000_801321FC(s32 arg0)
                     D_8007216D             = 6;
                     break;
             }
-            gGameSession->unknown_133[1] = gGameSession->loc.room - 1;
-            gGameSession->unknown_133[0] = 1;
-            gGameSession->field_76       = 1;
+            gGameSession->eventRoomIndex = gGameSession->loc.room - 1;
+            gGameSession->field_133      = 1;
+            gGameSession->roomObjsDirty  = 1;
             D_8007216C                   = work->field_28.b;
             Gp_ApplyAreaRecs(D_8018FB6C);
             if (arg0 == 1) {
                 work->field_24 = Task_Spawn(1, 0x2D, 0x10, 0);
             }
-            gGameSession->field_52 = 1;
+            gGameSession->viewDirty = 1;
             break;
     }
 }
@@ -226,14 +226,14 @@ void func_actor_444000_80132358(Task* task)
                 Gp_MsgPlayerWeapon(0);
                 other = (Actor444000EventWork*)D_actor_444000_80161860->work;
                 if (other->field_30 == 0) {
-                    Gp_StateF0.field_6      = 0;
-                    Gp_StateF0.field_1      = 0xF;
-                    Gp_StateF0.field_0      = 0;
-                    Gp_StateF0.field_2      = 0;
-                    Gp_StateF0.field_3      = 0;
-                    gGameSession->field_69 |= 0x80;
-                    D_8007272D              = 0xD;
-                    other->field_30         = state;
+                    Gp_StateF0.field_6       = 0;
+                    Gp_StateF0.field_1       = 0xF;
+                    Gp_StateF0.field_0       = 0;
+                    Gp_StateF0.field_2       = 0;
+                    Gp_StateF0.field_3       = 0;
+                    gGameSession->flowFlags |= 0x80;
+                    D_8007272D               = 0xD;
+                    other->field_30          = state;
                 }
                 task->killCountdown = 0;
                 task->state        += 1;
@@ -250,8 +250,8 @@ void func_actor_444000_80132358(Task* task)
             break;
         case 3:
             if (gGameSession->eventState == 0) {
-                D_801855DE              = 0;
-                gGameSession->field_120 = D_8018FBC8;
+                D_801855DE               = 0;
+                gGameSession->sceneClock = D_8018FBC8;
                 Task_SpawnFromTable(&D_80187150, 0, 1, 0);
                 Task_Kill(task);
                 return;

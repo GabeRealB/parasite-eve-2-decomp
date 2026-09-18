@@ -146,7 +146,7 @@ void func_acropolis_roof_garden_8017DBEC(void)
 {
     GpAreaKey key;
 
-    if ((gGameSession->loc.field_4 == 2) && (D_acropolis_roof_garden_8018432C == 0)) {
+    if ((gGameSession->loc.warp == 2) && (D_acropolis_roof_garden_8018432C == 0)) {
         D_acropolis_roof_garden_8018432C = 1;
         func_800E8634((s32)&D_acropolis_roof_garden_80183D74, 0, (s32)&D_acropolis_roof_garden_80184194);
         GameFlag_SetNibble(6, 1);

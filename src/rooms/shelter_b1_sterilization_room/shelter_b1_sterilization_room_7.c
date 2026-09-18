@@ -35,7 +35,7 @@ void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
             if (Gp_GetCapEventKey() == 1) {
                 func_800E8634((s32)&D_shelter_b1_sterilization_room_80188C94, 0, (s32)&D_shelter_b1_sterilization_room_80188E14);
                 GameFlag_SetNibble(0x77, 1);
-                gGameSession->field_128 = 0;
+                gGameSession->restartMode = 0;
             } else {
                 gGameSession->eventState = 0;
                 Gp_MsgPlayerWeapon(1);

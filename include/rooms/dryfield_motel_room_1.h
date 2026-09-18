@@ -96,7 +96,7 @@ void func_dryfield_motel_room_1_8017D7AC(Task* arg0);
 /// weapon record as message 0x3E8 and hands the cutscene's two script blocks to
 /// `func_800E8634`. States 0 and 1 then advance the state and step the driver;
 /// state 1 does that only while the session is still up, and state 2 only once
-/// the session's `field_4` has reached 2, which is where the task kills itself.
+/// the session's `loc.view` has reached 2, which is where the task kills itself.
 void func_dryfield_motel_room_1_8017DD3C(Task* arg0);
 
 /// Install the player's weapon animation set on slot 3 (message 0x3E8: the

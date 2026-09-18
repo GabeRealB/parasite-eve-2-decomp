@@ -88,7 +88,7 @@ void func_acropolis_patio_8017DF38(s32 arg0)
 void func_acropolis_patio_8017DF48(void)
 {
     gGameSession->loc.room = D_8007216D = 2;
-    gGameSession->field_76              = 1;
+    gGameSession->roomObjsDirty         = 1;
 }
 void func_acropolis_patio_8017DF70(u8 arg0)
 {

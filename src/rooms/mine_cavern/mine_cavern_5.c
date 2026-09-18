@@ -25,7 +25,7 @@ void func_mine_cavern_8017E18C(Task* task)
             SndEvt_EnqueueType6(0x10000039, 0, 0x30);
             break;
     }
-    if ((gGameSession->field_5F != 0) || (task->killCountdown >= 0x219)) {
+    if ((gGameSession->evtSkipped != 0) || (task->killCountdown >= 0x219)) {
         Task_Kill(task);
     }
 }

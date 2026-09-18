@@ -26,7 +26,7 @@ extern s32 Gp_LcgState;
 /// space. The first three double as the jitter centres for the mist burst.
 extern SVECTOR D_acropolis_patio_80182DDC[14];
 
-/// Per-anchor camera-view mask, one bit per 1-based `GameSession::field_4`
+/// Per-anchor camera-view mask, one bit per 1-based `GameSession::loc.view`
 /// view: anchor `i` only draws while the room is being seen from a view its
 /// mask names.
 extern u16 D_acropolis_patio_80182E4C[14];

@@ -1200,7 +1200,7 @@ void func_actor_503500_80137678(Actor503500* arg0)
                 break;
         }
     }
-    if (gGameSession->eventState != 0 && gGameSession->field_4D != 0 && work->field_15D >= 3) {
+    if (gGameSession->eventState != 0 && gGameSession->viewReady != 0 && work->field_15D >= 3) {
         SndEvt_EnqueueType7(0xD, 1);
         arg0->state = 2;
     }
@@ -1884,7 +1884,7 @@ void func_actor_503500_80139014(Actor503500* arg0)
             j = (j < 3) ? j : 0;
         }
     }
-    if (gGameSession->eventState != 0 && gGameSession->field_4D != 0 && work->field_2E4 > 0) {
+    if (gGameSession->eventState != 0 && gGameSession->viewReady != 0 && work->field_2E4 > 0) {
         SndEvt_EnqueueType7(0xD, 1);
         arg0->state = 2;
     }

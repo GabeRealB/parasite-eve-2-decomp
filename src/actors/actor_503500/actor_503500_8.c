@@ -2441,7 +2441,7 @@ void func_actor_503500_80140654(Actor503500* arg0)
             j = (j < 3) ? j : 0;
         }
     }
-    if (gGameSession->eventState != 0 && gGameSession->field_4D != 0 && work->field_3D0 > 0) {
+    if (gGameSession->eventState != 0 && gGameSession->viewReady != 0 && work->field_3D0 > 0) {
         SndEvt_EnqueueType7(0xD, 1);
         arg0->state = 2;
     }
@@ -3504,7 +3504,7 @@ void func_actor_503500_80142980(Actor503500* arg0)
             }
         }
     }
-    if (gGameSession->eventState != 0 && gGameSession->field_4D != 0 && work->field_222 >= 2) {
+    if (gGameSession->eventState != 0 && gGameSession->viewReady != 0 && work->field_222 >= 2) {
         SndEvt_EnqueueType7(0xD, 1);
         arg0->state = 2;
     }

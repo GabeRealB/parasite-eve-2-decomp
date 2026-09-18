@@ -694,15 +694,15 @@ static inline void Actor342000_EnterArea(void)
 {
     gGameSession->loc.room       = 7;
     D_8007216D                   = 7;
-    gGameSession->unknown_133[1] = 6;
-    gGameSession->unknown_133[0] = 1;
-    gGameSession->field_76       = 1;
+    gGameSession->eventRoomIndex = 6;
+    gGameSession->field_133      = 1;
+    gGameSession->roomObjsDirty  = 1;
     Gp_ApplyAreaRecs(D_8018FB6C);
 }
 
 /// Event/sequence task body, idle while a cutscene, pause or mode switch is up.
 /// State 0 allocates the `Actor342000EventWork` block and spawns the effect
-/// actors (a spawn with `GameSession::unknown_137[0]` set skips to state 4);
+/// actors (a spawn with `GameSession::skipEventIntro` set skips to state 4);
 /// states 1..10 spawn the script tasks, seed the placements and run the timed
 /// hand-off to area 0x21, and state 11 kills the task. `SOFT_BARRIER()` keeps
 /// state 7's `D_8007216C` store ahead of the state load, as in retail.
@@ -723,7 +723,7 @@ void func_actor_342000_8016382C(Task* arg0)
     if (D_801855DE != 0 || gGameSession->field_65 != 0 || D_80114C11 != 0 || D_801153F4 != 0) {
         return;
     }
-    if (gGameSession->field_136 != 0) {
+    if (gGameSession->enemyCullZone != 0) {
         if (work->field_7E != 0) {
             SndEvt_EnqueueType7(0x5428000B, 0xA);
             work->field_7E = 0;
@@ -743,7 +743,7 @@ void func_actor_342000_8016382C(Task* arg0)
                 alloc->field_4C         = (s32)Gp_FindWorkById(gGameSession->loc.area | (gGameSession->loc.stage << 8))->field_0;
             }
             work = (Actor342000EventWork*)arg0->work;
-            if ((u8)gGameSession->unknown_137[0] == 0) {
+            if ((u8)gGameSession->skipEventIntro == 0) {
                 msg.field_0 = gGameSession->loc.stage;
                 msg.field_1 = gGameSession->loc.area;
                 msg.field_2 = 0;
@@ -775,7 +775,7 @@ void func_actor_342000_8016382C(Task* arg0)
             goto next;
         case 3:
             if (gGameSession->eventState == 0) {
-                gGameSession->field_120 = D_8018FBC8;
+                gGameSession->sceneClock = D_8018FBC8;
                 Task_SpawnFromTable(&D_80187150, 0, 1, 0);
                 gGameSession->field_135 = 2;
                 Task_RequestKill(arg0, 0);

@@ -255,7 +255,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200", func_actor_123200_8
 /// (`field_4` restarting the model when it changed), dispatches the display
 /// mode's handler from `D_actor_123200_80131E24`, and plays the sound that
 /// handler reports, panned and depth-tagged from the model's coordinate. A
-/// raised `gGameSession->field_4D` flags the coordinate for rebuild again.
+/// raised `gGameSession->viewReady` flags the coordinate for rebuild again.
 void func_actor_123200_80133BA0(Actor123200Ctx* arg0, Task* arg1)
 {
     VECTOR                pos;
@@ -307,7 +307,7 @@ void func_actor_123200_80133BA0(Actor123200Ctx* arg0, Task* arg1)
         pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg1->extra)->field_8);
         SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg1->extra)->field_8));
     }
-    if (gGameSession->field_4D != 0) {
+    if (gGameSession->viewReady != 0) {
         ((TmdObject*)arg1->extra)->field_8->flg = 0;
     }
 }

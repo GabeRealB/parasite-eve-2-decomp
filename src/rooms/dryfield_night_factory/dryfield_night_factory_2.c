@@ -124,7 +124,7 @@ void func_dryfield_night_factory_8017F4F4(Task* task)
             }
             goto bump;
         case 4:
-            gGameSession->field_52 = 1;
+            gGameSession->viewDirty = 1;
             GameFlag_SetNibble(0x47, 1);
             fade = gGameSession->loc.stage;
             if (fade == 2) {
@@ -133,9 +133,9 @@ void func_dryfield_night_factory_8017F4F4(Task* task)
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             goto advance;
         case 5:
-            D_8007216D             = 2;
-            gGameSession->loc.room = 2;
-            gGameSession->field_76 = 1;
+            D_8007216D                  = 2;
+            gGameSession->loc.room      = 2;
+            gGameSession->roomObjsDirty = 1;
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             goto advance;
         case 1:

@@ -49,10 +49,10 @@ void func_acropolis_bridge_8017DDEC(Task* arg0)
 
     if (Task_PollKill(D_acropolis_bridge_8019179C, &killed) != 0) {
         Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, 1, 0x7D5);
-        Mc_SaveData.field_4    = 6;
-        Mc_SaveData.field_5    = 2;
-        gGameSession->loc.room = 2;
-        gGameSession->field_76 = 1;
+        Mc_SaveData.field_4         = 6;
+        Mc_SaveData.field_5         = 2;
+        gGameSession->loc.room      = 2;
+        gGameSession->roomObjsDirty = 1;
         GameFlag_SetNibble(2, 3);
         Gp_MsgPlayerWeapon(1);
         arg0->state = arg0->state + 1;
@@ -62,8 +62,8 @@ void func_acropolis_bridge_8017DDEC(Task* arg0)
 void func_acropolis_bridge_8017DE94(Task* arg0)
 {
     func_acropolis_bridge_8017F2D0(GameFlag_GetNibble(0x10) & 0xFF);
-    gGameSession->field_68 = 0;
-    arg0->state            = (s32)(arg0->state + 1);
+    gGameSession->hideHud = 0;
+    arg0->state           = (s32)(arg0->state + 1);
 }
 
 void func_acropolis_bridge_8017DEE4(Task* arg0)
@@ -149,13 +149,13 @@ void func_acropolis_bridge_8017E04C(Task* task)
     sess            = &gGameSession->loc;
     task->state++;
     view                                  = Gp_GetViewIndex();
-    rec                                   = Gp_SprtTables[sess->stage - 1][gGameSession->field_74 - 1].field_0[sess->area - 1];
+    rec                                   = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1];
     rec[(u8)view - 1].field_4[35].field_4 = 1;
-    gGameSession->field_66                = 1;
+    gGameSession->cutsceneHold            = 1;
     Gp_MsgPlayer3F3(0);
     Display_AcquireRef();
     gGameSession->eventState = 1;
-    gGameSession->field_68   = 1;
+    gGameSession->hideHud    = 1;
     for (hs = D_acropolis_bridge_8018983C; hs->id != -1; hs++) {
         hs->hit = 0;
     }
@@ -176,7 +176,7 @@ void func_acropolis_bridge_8017E1D0(Task* task)
     RoomHotspot*               hs     = D_acropolis_bridge_8018983C;
     RoomActionPrompt*          prompt = &D_80114D28;
 
-    gGameSession->field_68   = 1;
+    gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     if (Gp_CapBusy() != 0) {
         prompt->mode     = 0;
@@ -246,7 +246,7 @@ void func_acropolis_bridge_8017E3A0(Task* task)
     s32                        step;
 
     view                                  = Gp_GetViewIndex();
-    rec                                   = Gp_SprtTables[sess->stage - 1][gGameSession->field_74 - 1].field_0[sess->area - 1];
+    rec                                   = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1];
     rec[(u8)view - 1].field_4[35].field_4 = 0;
 
     tick = work->field_A;
@@ -344,7 +344,7 @@ void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt)
     u8                lo;
 
     Gp_GetViewIndex();
-    cmd = Gp_SprtTables[sess->stage - 1][gGameSession->field_74 - 1].field_0[sess->area - 1][7].field_4;
+    cmd = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1][7].field_4;
 
     if ((s16)hidePrompt != 0) {
         cmd[35].field_4 = 1;
@@ -416,7 +416,7 @@ void func_acropolis_bridge_8017E81C(void)
     s32               i;
 
     Gp_GetViewIndex();
-    cmd = Gp_SprtTables[sess->stage - 1][gGameSession->field_74 - 1].field_0[sess->area - 1][7].field_4;
+    cmd = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1][7].field_4;
 
     for (i = 0x15; i < 0x1F; i++) {
         cmd[i].field_4 = 1;

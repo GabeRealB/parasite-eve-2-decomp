@@ -15,7 +15,7 @@ void Room_Util16(s32 arg0)
     g    = gGameSession;
     sess = &g->loc;
     if (sess->stage == 2) {
-        cmd = Gp_SprtTables[sess->stage - 1][g->field_74 - 1].field_0[sess->area - 1][8].field_4;
+        cmd = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1][8].field_4;
         if (!(arg0 & 0xFF)) {
             cmd[1].field_4 = 1;
             return;
