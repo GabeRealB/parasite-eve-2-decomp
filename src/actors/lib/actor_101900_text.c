@@ -1387,7 +1387,74 @@ void Actor01900_Fn03710(Actor01900* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn03854);
+/// Raises the player's weapon when the player is not already in state 2 and
+/// stands within 0x1F4 of the actor in Y. Nonzero when it armed.
+static __inline__ s32 Actor01900_ArmIfPlayerLevel(Actor01900* arg0)
+{
+    GpActorWork* player;
+    s32          dy;
+
+    player = Game_GetPtrSlot(3);
+    if (player->actor->field_954 != 2) {
+        dy = arg0->field_2C->field_8->coord.t[1] - player->extra->field_8->coord.t[1];
+        if (ABS(dy) < 0x1F4) {
+            Gp_ArmStateF0(1);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/// Entered from a state change: rebuilds the model buffers, arms the player if
+/// they are level with the actor, then each step turns the root coordinate
+/// toward the player by at most 0x10 and rescales it by 0x1194.
+void Actor01900_Fn03854(Actor01900* arg0)
+{
+    Actor01900Work*       work;
+    Actor01900AimScratch* yaw;
+    GsCOORDINATE2*        coord;
+    TmdObject*            obj;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_898       = 1;
+        work->field_8A2       = 0x10;
+        work->field_89E       = 9;
+        work->field_89A       = 0;
+        work->field_B48.flags = (u16)(work->field_B48.flags & 0x7FFF);
+        work->field_A08.flags = (u16)(work->field_A08.flags & 0xBFFF);
+        Actor01900_Fn01C94(arg0);
+        work->field_8C8.field_1C = 0x180;
+        if (*(u16*)work->field_C34 != 0x301) {
+            Actor01900_ArmIfPlayerLevel(arg0);
+        }
+    } else {
+        *(Actor01900AimScratch**)G_SCRATCH_HEAD -= 1;
+        yaw                                      = *(Actor01900AimScratch**)G_SCRATCH_HEAD;
+        arg0->field_2C->field_8->flg             = 0;
+        if (work->field_68 & 0x100) {
+            work->field_0 = 7;
+        }
+        yaw->angle      = Actor01900_PositionYaw(arg0, &yaw->delta, &Wip_SysConfig);
+        work->field_8AE = yaw->angle;
+        if (yaw->angle >= 0x11) {
+            yaw->angle = 0x10;
+        }
+        if (yaw->angle < -0x10) {
+            yaw->angle = -0x10;
+        }
+        coord       = arg0->field_2C->field_8;
+        yaw->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+        Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, yaw->angle, 1);
+        Actor01900_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+        Actor01900_Fn01C94(arg0);
+        *(Actor01900AimScratch**)G_SCRATCH_HEAD += 1;
+    }
+}
 
 void Actor01900_Fn03C04(GameSessionFrom4* session, GsCOORDINATE2* coord)
 {
@@ -1569,22 +1636,6 @@ static __inline__ s32 Actor01900_OutOfRange(SVECTOR* d, s16 r)
     *(u8**)G_SCRATCH_HEAD                        = head;
     ret                                          = ((Actor01900RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
     return ret;
-}
-
-static __inline__ s32 Actor01900_ArmIfPlayerLevel(Actor01900* arg0)
-{
-    GpActorWork* player;
-    s32          dy;
-
-    player = Game_GetPtrSlot(3);
-    if (player->actor->field_954 != 2) {
-        dy = arg0->field_2C->field_8->coord.t[1] - player->extra->field_8->coord.t[1];
-        if (ABS(dy) < 0x1F4) {
-            Gp_ArmStateF0(1);
-            return 1;
-        }
-    }
-    return 0;
 }
 
 /// Circling state: turns toward the player at most 0x30 per step while walking,

@@ -129417,3 +129417,36 @@ and sched2 hands the earliest slots to whatever else is ready — here the
 leaves the copy as the entry copy from the argument register, at the head of the
 chain, and the two instructions swap back into ROM order. The rest of the
 function was unchanged; this was the last reorder between 99.5% and 100%.
+
+## When a local-alloc priority cannot be inverted, look for the TU's inline helper (Actor01900_Fn03854, 2026-09-18)
+
+Two values loaded in the same block and subtracted came out of the wrong
+registers: the ROM reuses each pointer in place (`lw v0,0x1c(v0)` /
+`lw v1,0x1c(v1)` / `subu v0,v0,v1`) while the attempt produced
+`lw a0,0x1c(v0)` / `lw v0,0x1c(v1)` / `subu v0,a0,v0`. `QTY_CMP_PRI` explains it
+exactly: written as two `s32` locals both values are local quantities with two
+refs each, and the *second* one is born one insn later, so its shorter span gives
+it twice the priority. It is allocated first, takes `$v0`, and the first value —
+now conflicting with both `$v0` and the other walking pointer's `$v1` — falls to
+`$a0`. With the instruction order fixed by sched1 there is no source rewrite that
+inverts that ranking, and the previous session had already burned attempts on
+names, split statements and `TOUCH_REG` around it.
+
+The value that could not be produced by editing the expression was produced by
+deleting it. The same translation unit already held a matched
+`static __inline__` helper containing this exact body, written for a sibling
+state function; calling it makes the second value a *global* pseudo instead of a
+local quantity, local-alloc then allocates the survivors in birth order, and the
+in-place form appears. The remaining `reorder` in the same function had the same
+shape: a hand-rolled scratch-arena epilogue ended in an input-only `__asm__`
+(implicitly volatile, hence a sched2 barrier) which pinned the call's argument
+copy behind it, where the ROM schedules that copy four instructions earlier —
+and the TU's inline helper does the same arena access in plain C, with no
+barrier.
+
+So when a near-match in an overlay family sits on a register or scheduling
+leftover inside a stanza that reads like boilerplate — scratch alloc/free, a
+facing or rescale computation, a clamp — grep the TU and its header for
+`static __inline__` before modelling the allocator. A helper that other matched
+functions already call reproduces the original translation unit's structure,
+which is what the register allocator and the scheduler actually saw.
