@@ -487,6 +487,55 @@ def prefilter_tus(root: str, token: str, candidates: list[str], decl_file: str |
 
 
 # --------------------------------------------------------------------------
+# references in prose
+# --------------------------------------------------------------------------
+
+
+def comment_refs(root: str, token: str, owner: str | None = None) -> list:
+    """Whole-word mentions of the identifier inside comments.
+
+    These are not references the compiler knows about, so they never affect
+    dependency order - but they are how the codebase talks about a symbol, and a
+    rename that leaves them behind turns every one of them into a lie pointing
+    at a name that no longer exists.
+    """
+    try:
+        out = subprocess.run(
+            ["grep", "-rnw", "--include=*.c", "--include=*.h", token, "src", "include"],
+            cwd=root, capture_output=True, text=True, timeout=300,
+        ).stdout.splitlines()
+    except Exception:
+        return []
+    # A bare word in prose is not evidence that the symbol is meant: renaming
+    # every mention of "work" would rewrite unrelated sentences. Require the
+    # mention to be qualified - `Type::field`, `->field`, `.field` - or set in
+    # backticks, which is how this codebase cites a symbol.
+    t = re.escape(token)
+    pats = [rf"`{t}`", rf"->\s*{t}\b", rf"\.{t}\b", rf"\b\w+::{t}\b"]
+    if owner:
+        pats.append(rf"\b{re.escape(owner)}::{t}\b")
+    word = re.compile("|".join(pats))
+    refs = []
+    for row in out:
+        try:
+            path, lineno, text = row.split(":", 2)
+        except ValueError:
+            continue
+        stripped = text.lstrip()
+        line_comment = text.find("//")
+        for m in word.finditer(text):
+            # Inside a `///`, `//`, `*` or `/*` line, or after a trailing `//`.
+            in_block = stripped.startswith(("///", "//", "*", "/*"))
+            in_trailing = line_comment != -1 and m.start() > line_comment
+            if in_block or in_trailing:
+                # Point at the identifier, not at the qualifier that precedes it.
+                col = text.index(token, m.start()) + 1
+                refs.append(Ref(path, int(lineno), col, "comment", text.strip(), ""))
+                break
+    return refs
+
+
+# --------------------------------------------------------------------------
 # reference collection
 # --------------------------------------------------------------------------
 
@@ -522,6 +571,36 @@ _REF_KINDS = {
     ci.CursorKind.TYPE_REF,
     ci.CursorKind.CALL_EXPR,
 }
+
+
+def _cast_around(cur, parents) -> bool:
+    """Is this reference wrapped in, or assigned from, an explicit cast?
+
+    A field every user has to cast is a field whose declared type is wrong, so
+    counting the casts turns that judgement into an observation.
+    """
+    node, hops = cur, 0
+    while node is not None and hops < 4:
+        if node.kind == ci.CursorKind.CSTYLE_CAST_EXPR:
+            return True
+        node = parents.get(node.hash)
+        hops += 1
+    p = parents.get(cur.hash)
+    while p is not None and p.kind in (ci.CursorKind.UNEXPOSED_EXPR,
+                                       ci.CursorKind.PAREN_EXPR):
+        p = parents.get(p.hash)
+    if p is not None and p.kind in (ci.CursorKind.BINARY_OPERATOR,
+                                    ci.CursorKind.VAR_DECL):
+        for kid in p.get_children():
+            stack = [kid]
+            depth = 0
+            while stack and depth < 40:
+                n = stack.pop()
+                depth += 1
+                if n.kind == ci.CursorKind.CSTYLE_CAST_EXPR:
+                    return True
+                stack.extend(n.get_children())
+    return False
 
 
 def _usage(cur, parents) -> str:
@@ -659,6 +738,8 @@ def collect_in_tu(job):
             use = "definition" if cur.is_definition() else "declaration"
         else:
             use = _usage(cur, parents)
+            if _cast_around(cur, parents):
+                use = f"{use} (cast)"
         if fname not in src_cache:
             try:
                 src_cache[fname] = open(os.path.join(root, fname), errors="replace").read().splitlines()

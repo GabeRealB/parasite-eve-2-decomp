@@ -117,7 +117,7 @@ typedef struct Task {
     struct Task* nextSibling;   // Next child in that ring; the task itself when it is an only child
     TaskFunc     callback;      // Per-frame entry point, called by the exec passes
     TaskFunc     exitCallback;  // Runs as the task is torn down; spawned tasks get `Task_Kill`
-    TaskIdMap*   work;          // The per-task work block, allocated by the spawner and freed on kill
+    void*        work;          // The per-task work block, allocated by the spawner and freed on kill
     void*        spawnArg2;     // Second spawn argument; its meaning is the spawned type's
     void*        field_24;      // The task's `GpMsgEntry` id/handler table, walked by `Gp_DispatchMsg`
     u8           spawnType;     // Body kind (0 none, 1 TMD model, 2 2D display); 0xFF marks a task to collect

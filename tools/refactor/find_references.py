@@ -37,6 +37,8 @@ def main() -> int:
                     help="parse every translation unit, not only those spelling the identifier")
     ap.add_argument("--summary", action="store_true", help="counts per use kind and per file only")
     ap.add_argument("--files", action="store_true", help="list matching files only")
+    ap.add_argument("--no-comments", action="store_true",
+                    help="omit mentions of the name in comments")
     ap.add_argument("--asm", action="store_true",
                     help="also report assembly references and address sharing")
     ap.add_argument("-q", "--quiet", action="store_true", help="suppress progress")
@@ -67,6 +69,9 @@ def main() -> int:
             print(f)
         return 0
 
+    if not args.no_comments:
+        refs = refs + cref.comment_refs(root, spec.token, spec.owner)
+        refs.sort(key=lambda r: (r.file, r.line, r.col))
     by_use = collections.Counter(r.use for r in refs)
     by_file = collections.Counter(r.file for r in refs)
 

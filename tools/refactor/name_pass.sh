@@ -129,8 +129,23 @@ $line
 Everything below is specified in NAMING.md; read it if anything here is unclear.
 
 1. Work out what each item is and why it exists, from the code that defines and
-   uses it. **Do not trust the comments already on it** - they may be guesses,
-   or about a neighbouring symbol. Derive the answer and ignore the prose.
+   uses it. **Trust nothing that is already written about it** - not the
+   comments, not its current name, not its declared type. Each is an earlier
+   reader's hypothesis.
+
+   The name is the most dangerous of the three, because it silently supplies
+   the vocabulary for your description: a field called \`idMap\` invites you to
+   describe an id map even when every write stores something else. Read the
+   uses first, decide what the thing is, and only then ask whether the existing
+   name survives that reading. If it does not, the new name comes from the
+   evidence.
+
+   The declared type is the second. **If the uses have to cast, the type is
+   wrong.** The reference listing above marks each use that sits in a cast, so
+   count them: a field whose reads and writes are nearly all casts is not the
+   type it claims to be, and the honest declaration is the one that makes the
+   casts unnecessary - often \`void*\` for a pointer whose target is the
+   caller's business. Change it, and rebuild to confirm.
 2. If the item's state above is \`current\` its name already follows the
    convention: **do not rename it**, only document it. Otherwise rename to the
    convention with:
@@ -138,7 +153,10 @@ Everything below is specified in NAMING.md; read it if anything here is unclear.
    lowerCamelCase, no separators, opening with the owning module or package. A
    leading g marks a global, a leading _ marks something private to its
    translation unit, PascalCase is reserved for types.
-3. Document it. What it is and why, never how you worked it out. Functions and
+3. Document it. What it is and why, never how you worked it out. Mentions of
+   the old name in comments elsewhere are rewritten by rename_item.py; check
+   that what they now say is still true, since a renamed mention can leave a
+   sentence describing the old idea. Functions and
    types take a /// block; struct fields take aligned trailing // comments and
    no offset annotations.
 4. Visibility: a private item's declaration belongs in the .c that uses it, not

@@ -146,6 +146,8 @@ def main() -> int:
     ap.add_argument("-n", "--dry-run", action="store_true", help="show edits, change nothing")
     ap.add_argument("--sidecars", action="store_true",
                     help="also rewrite whole-word hits in symbol maps and linker scripts")
+    ap.add_argument("--no-comments", action="store_true",
+                    help="leave mentions of the name in comments alone")
     ap.add_argument("-q", "--quiet", action="store_true")
     ap.add_argument("--guard", action="store_true",
                     help="header rename: also rewrite the include guard macro")
@@ -184,11 +186,14 @@ def main() -> int:
     decl_file, decl_line = where.rsplit(":", 1)
     # A macro-expansion site carries the invocation's position, not the
     # identifier's, so it cannot be edited here; the macro body is the place.
+    # Prose mentions are not compiler references, but a rename that skips them
+    # leaves the codebase describing a name that no longer exists.
+    comments = [] if args.no_comments else cref.comment_refs(root, spec.token, spec.owner)
     via_macro = [r for r in refs if "via macro" in r.use]
     refs = [r for r in refs if "via macro" not in r.use]
     sites = {(r.file, r.line, r.col) for r in refs}
     edits = collections.defaultdict(list)  # file -> [(line, col)]
-    for r in refs:
+    for r in refs + comments:
         edits[r.file].append((r.line, r.col))
     decl_cols = _decl_columns(root, decl_file, int(decl_line), spec.name)
     for col in decl_cols:
@@ -202,7 +207,8 @@ def main() -> int:
     for f in sorted(edits):
         n = len(edits[f])
         print(f"  {n:>5}  {f}")
-    print(f"{total} edit(s) in {len(edits)} file(s): {spec.name} -> {args.new_name}")
+    print(f"{total} edit(s) in {len(edits)} file(s): {spec.name} -> {args.new_name}"
+          + (f"  ({len(comments)} in comments)" if comments else ""))
 
     if via_macro:
         print(f"\n{len(via_macro)} reference(s) reached through a macro; the macro "
