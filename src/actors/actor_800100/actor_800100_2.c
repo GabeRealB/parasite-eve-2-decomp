@@ -1580,13 +1580,13 @@ s32 func_actor_800100_80166B40(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2
             *scratch = p;
         }
         do {
-            if (rec->field_4 & 0x100000) {
+            if (rec->key & 0x100000) {
                 s32 fy;
                 s32 dy;
                 {
                     register s32 dx asm("v0");
-                    dx   = arg1->workm.t[0] - rec->field_8;
-                    fy   = rec->field_A;
+                    dx   = arg1->workm.t[0] - rec->point.vx;
+                    fy   = rec->point.vy;
                     dist = dx;
                     if (dx < 0) {
                         dist = -dist;
@@ -1600,7 +1600,7 @@ s32 func_actor_800100_80166B40(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2
                     if (dy < 0) {
                         dy = -dy;
                     }
-                    fz    = rec->field_C;
+                    fz    = rec->point.vz;
                     dist += dy;
                     t2    = t2 - fz;
                     TOUCH_REG2(t2, dist);
@@ -1629,9 +1629,9 @@ s32 func_actor_800100_80166B40(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2
             picked           = (GpRec18*)(bestIdx * 0x18 + (s32)arg0);
             block->sub       = 0;
             block->flg       = i;
-            block->t[0]      = picked->field_8;
-            block->t[1]      = picked->field_A;
-            block->t[2]      = picked->field_C;
+            block->t[0]      = picked->point.vx;
+            block->t[1]      = picked->point.vy;
+            block->t[2]      = picked->point.vz;
             block->offset.vx = rand() & 7;
             block->offset.vy = rand() & 7;
             block->offset.vz = rand() & 7;
@@ -1721,12 +1721,12 @@ s32 func_actor_800100_8016709C(GsCOORDINATE2* arg0, GpRec18* arg1, GpRec18* arg2
 {
     s32 ret;
 
-    if (arg1->field_4 != 0) {
-        ret = func_80103D8C(arg0->workm.t[0] - arg1->field_8, arg0->workm.t[2] - arg1->field_C);
+    if (arg1->key != 0) {
+        ret = func_80103D8C(arg0->workm.t[0] - arg1->point.vx, arg0->workm.t[2] - arg1->point.vz);
         if (arg2 != NULL) {
-            arg2->field_0 = arg1->field_8;
-            arg2->field_2 = arg1->field_A;
-            arg2->field_0 = arg1->field_C;
+            arg2->flags = arg1->point.vx;
+            arg2->depth = arg1->point.vy;
+            arg2->flags = arg1->point.vz;
         }
     } else {
         ret = 0;

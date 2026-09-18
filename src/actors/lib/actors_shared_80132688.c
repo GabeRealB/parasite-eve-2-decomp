@@ -69,7 +69,7 @@ void ActorsShared80132688(ActorShared80132688* arg0)
             }
             break;
         case 1:
-            if (work->field_5F4.field_4 == 0) {
+            if (work->field_5F4.key == 0) {
                 work->field_6CC = 1;
                 work->field_70E = 1;
             }

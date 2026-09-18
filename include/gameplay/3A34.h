@@ -602,7 +602,7 @@ STATIC_ASSERT_SIZEOF(GpObj3A, 0x3C);
 /// four halfwords index `GpGridParams.field_8` (the face corners); a `verts[3]`
 /// of 0xFFFF marks a triangle instead of a quad. `field_8` indexes
 /// `GpGridParams.field_4` (the face normal) and `field_A` is the face id stored
-/// into `GpRec18.field_4` alongside the 0x100000 kind bits.
+/// into `GpRec18.key` alongside the 0x100000 kind bits.
 typedef struct _GpGridFace {
     /* 0x0 */ u16 verts[4];
     /* 0x8 */ u16 field_8;
@@ -877,12 +877,12 @@ typedef struct _GpDistScratch {
 STATIC_ASSERT_SIZEOF(GpDistScratch, 0x20);
 
 /// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_800E0FEC`.
-/// Each `GpRec18` whose `field_4` high halfword is `0x10` contributes to
-/// one accumulator, selected by `field_4` bits `0xF00`: kind 0 sums
-/// `field_2 * field_10/12/14` into `acc[0]`, kind 1 writes the lift
-/// `-(field_2 << 12)` into `acc[1].vy`, and kind 2 writes the slide
-/// `field_2 * field_10/14` into `acc[2]` for the record with the smallest
-/// `field_2`. `acc[3]` holds the pairwise XZ products of the kind-0
+/// Each `GpRec18` whose `key` high halfword is `0x10` contributes to
+/// one accumulator, selected by `key` bits `0xF00`: kind 0 sums
+/// `depth * at10.normal` into `acc[0]`, kind 1 writes the lift
+/// `-(depth << 12)` into `acc[1].vy`, and kind 2 writes the slide
+/// `depth * at10.normal.vx` / `.vz` into `acc[2]` for the record with the
+/// smallest `depth`. `acc[3]` holds the pairwise XZ products of the kind-0
 /// records used to detect opposing pushes.
 typedef struct _GpPushScratch {
     /* 0x00 */ VECTOR acc[4];
@@ -890,8 +890,8 @@ typedef struct _GpPushScratch {
 STATIC_ASSERT_SIZEOF(GpPushScratch, 0x40);
 
 /// 0x34-byte scratch from `G_SCRATCH_HEAD` used by `func_800E0C10`.
-/// `acc[0]` sums `field_10/12/14 * field_2` for every contributing
-/// `GpRec18` that sits at or above the floor cutoff (`field_12 >=
+/// `acc[0]` sums `at10.normal * depth` for every contributing
+/// `GpRec18` that sits at or above the floor cutoff (`at10.normal.vy >=
 /// -0xDDA`); records below it instead accumulate into `acc[1].vy` and
 /// bump `count`, so the average of that column can be folded in at the
 /// end. `acc[2]` holds the pairwise XZ products used to detect two
@@ -1064,9 +1064,9 @@ STATIC_ASSERT_SIZEOF(GpDirMatScratch, 0x4C);
 /// `delta` is `pos0 - pos1`. On overlap, `src` / `extra` / `rsum` are
 /// filled for `func_800DBA20` (other object's truncated position, a
 /// zeroed extra SVECTOR, and the summed radii). `func_800DBA20` writes
-/// `src` / `extra` into the chosen `GpRec18` at `field_8` / `field_10`,
-/// stores `arg1->field_18` at `field_4`, and ORs `(flags & 0xF0) + 1`
-/// into `field_0`.
+/// `src` / `extra` into the chosen `GpRec18` at `point` / `at10`,
+/// stores `arg1->field_18` at `key`, and ORs `(flags & 0xF0) + 1`
+/// into `flags`.
 typedef struct _GpSphereScratch {
     /* 0x00 */ SVECTOR src;
     /* 0x08 */ SVECTOR extra;
@@ -1511,20 +1511,20 @@ void            Gp_ClearPendingObj4C(void);
 void            Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1);
 /// Averages the first `arg2` `GpRec18` records of `arg0` into `arg1`
 /// (a 16.16 delta scaled by 16) and, when `arg3` is non-NULL, stores the
-/// `1 << field_4` bitmask of the contributing records there. Records
+/// `1 << key` bitmask of the contributing records there. Records
 /// below the floor cutoff are averaged separately and added on top.
 /// Returns 0 when nothing contributed, 2 when two records push in
 /// opposing directions, and 1 otherwise.
 s32 func_800E0C10(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
 /// Accumulates the push-back of the first `arg2` `GpRec18` records of
 /// `arg0` into `arg1` (a 16.16 delta scaled by 16) and, when `arg3` is
-/// non-NULL, stores the `1 << field_4` bitmask of the contributing
+/// non-NULL, stores the `1 << key` bitmask of the contributing
 /// records there. Returns 0 when nothing contributed, 2 when two kind-0
 /// records push in opposing directions, and 1 otherwise.
 s32 func_800E0FEC(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
 /// Transforms `arg0`'s local offset (`GpActorD4Rec` at `field_C` plus the
 /// 0x10 SVECTOR) by `field_8->workm` and returns the 1-based index of the
-/// closest occupied `GpRec18` in `rec->field_14` whose `field_4` high 16
+/// closest occupied `GpRec18` in `rec->field_14` whose `key` high 16
 /// bits match `arg1`, or 0 if none match.
 s32  Gp_FindNearestSlot(GpObj* arg0, s32 arg1);
 void Gp_LinkObj(s32 arg0, GpObj* arg1);
@@ -1551,7 +1551,7 @@ void Gp_OrientAlong(VECTOR* arg0, MATRIX* arg1, s32 arg2);
 /// Packed-id enemy damage roll. `arg0` must have high bits `0x20000`. Ids
 /// without bit 0x8000 read `Gp_IdParamLo`, scale by a random 100..119 percent,
 /// by the `D_80113568` row for `(arg0 >> 8) & 0x3F`, and by `arg3` when
-/// `arg2` matches the record's `field_4`; ids with bit 0x8000 read
+/// `arg2` matches the record's `key`; ids with bit 0x8000 read
 /// `Gp_IdParamHi` and scale by a random 100..109 percent. `arg1` is a hit
 /// count that selects the `D_80113568` column through `D_80113864`.
 u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3);

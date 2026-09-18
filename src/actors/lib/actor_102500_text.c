@@ -26,13 +26,13 @@ void  Gp_AnimResetSlot(Actor02500Work* arg0, s32 arg1, s32 arg2);
 void  Gp_IncStateF0Ref(s32 arg0);
 void  Gp_SetLightMode(Actor02500Ctx* arg0, s32 arg1);
 void  Gp_LinkObj(s32 arg0, Actor02500Obj* arg1);
-void  Gp_InitRec18Table(Actor02500Rec18* arg0, s32 arg1, s32 arg2);
+void  Gp_InitRec18Table(GpRec18* arg0, s32 arg1, s32 arg2);
 s32   Gp_PackPair(void* arg0, s32 arg1);
 void  Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
-void  Gp_ClearRec18Occupied(Actor02500Rec18* arg0);
-s32   Gp_FindRec18(Actor02500Rec18* arg0, s32 arg1);
-s32   Gp_CountRec18Hi(Actor02500Rec18* arg0, s32 arg1);
-s32   func_800E0C10(Actor02500Rec18* arg0, Actor02500MoveScratch* arg1, s32 arg2, s32 arg3);
+void  Gp_ClearRec18Occupied(GpRec18* arg0);
+s32   Gp_FindRec18(GpRec18* arg0, s32 arg1);
+s32   Gp_CountRec18Hi(GpRec18* arg0, s32 arg1);
+s32   func_800E0C10(GpRec18* arg0, Actor02500MoveScratch* arg1, s32 arg2, s32 arg3);
 s32   Gp_ComputeDamage(u32 arg0, s32 arg1, s32 arg2, s32 arg3);
 s32   Gp_GetIdParam0(u32 arg0);
 s32   Gp_GetIdParam1(u32 arg0);
@@ -186,7 +186,7 @@ void Actor02500_Fn00494(Actor02500* actor)
     u32                     lastId;
     VECTOR*                 normal;
     Actor02500Ctx*          ctx;
-    Actor02500Rec18*        rec2C4;
+    GpRec18*                rec2C4;
     Actor02500Work*         work;
     Actor02500Work*         walk;
     GsCOORDINATE2*          coord;
@@ -281,7 +281,7 @@ move_done:
     do {
         SOFT_TOUCH_REG2(walk, frame);
         SOFT_TOUCH_REG(frame);
-        recId   = walk->field_1C4[0].field_4;
+        recId   = walk->field_1C4[0].key;
         recKind = recId >> 0x10;
         switch (recKind) {
             default:
@@ -297,23 +297,23 @@ move_done:
                     frame->vy.v = ay;
                     az          = targetCoord->coord.t[2] - coord->coord.t[2];
                     frame->vz.v = az;
-                    damage      = Gp_ComputeDamage(walk->field_1C4[0].field_4,
+                    damage      = Gp_ComputeDamage(walk->field_1C4[0].key,
                                                    SquareRoot0((frame->vx.v * frame->vx.v) + (frame->vy.v * frame->vy.v) +
                                                                (frame->vz.v * frame->vz.v)),
                                                    0, 0);
-                    param0      = Gp_GetIdParam0(walk->field_1C4[0].field_4);
+                    param0      = Gp_GetIdParam0(walk->field_1C4[0].key);
                     kind        = param0 & 0xFFFF;
                     if (kind == 5) {
                         damage *= 2;
                         Gp_SpawnEff(0x6009C, coord, 2, NULL);
                     }
-                    if (Gp_RollEnemyChance(ctx, walk->field_1C4[0].field_4, 0) != 0) {
+                    if (Gp_RollEnemyChance(ctx, walk->field_1C4[0].key, 0) != 0) {
                         damage *= 4;
                         if (kind != 5) {
                             Gp_SpawnEff(0x6009C, coord, 0, NULL);
                         }
                     }
-                    func_800E2C78(ctx, walk->field_1C4[0].field_4, damage, 0);
+                    func_800E2C78(ctx, walk->field_1C4[0].key, damage, 0);
                     func_800DA6E8(&ctx->node, damage, 0);
                     hp            = (u16)ctx->field_40 - damage;
                     ctx->field_40 = hp;
@@ -350,7 +350,7 @@ move_done:
                             work->field_2A4.flags &= 0x7FFF;
                             break;
                         case 2:
-                            Gp_SetObjFlag2(ctx, walk->field_1C4[0].field_4, 0);
+                            Gp_SetObjFlag2(ctx, walk->field_1C4[0].key, 0);
                             work->field_2A4.flags &= 0x7FFF;
                             break;
                         case 4:
@@ -360,12 +360,12 @@ move_done:
                             }
                             break;
                     }
-                    id = walk->field_1C4[0].field_4;
+                    id = walk->field_1C4[0].key;
                     if (lastId != id) {
                         lastId = id;
                         func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, 0, &work->field_2DC);
                     }
-                    cooldown = Gp_GetIdParam2(walk->field_1C4[0].field_4);
+                    cooldown = Gp_GetIdParam2(walk->field_1C4[0].key);
                     if (cooldown > 0) {
                         work->field_334 = cooldown;
                     }
@@ -375,13 +375,13 @@ move_done:
                 break;
             case 1:
             case 3:
-                dx          = coord->workm.t[0] - walk->field_1C4[0].field_8;
+                dx          = coord->workm.t[0] - walk->field_1C4[0].point.vx;
                 frame->vx.v = dx;
-                dy          = coord->workm.t[1] - walk->field_1C4[0].field_A;
+                dy          = coord->workm.t[1] - walk->field_1C4[0].point.vy;
                 frame->vy.v = dy;
-                dz          = coord->workm.t[2] - walk->field_1C4[0].field_C;
+                dz          = coord->workm.t[2] - walk->field_1C4[0].point.vz;
                 frame->vz.v = dz;
-                push        = walk->field_1C4[0].field_2 -
+                push        = walk->field_1C4[0].depth -
                        SquareRoot0((frame->vx.v * frame->vx.v) + (frame->vy.v * frame->vy.v) +
                                    (frame->vz.v * frame->vz.v));
                 pushClamped = push;
@@ -398,8 +398,8 @@ move_done:
                 }
                 goto rec_done;
         }
-        walk = (Actor02500Work*)((Actor02500Rec18*)walk + 1);
-    } while ((s32)walk < (s32)((Actor02500Rec18*)work + 3));
+        walk = (Actor02500Work*)((GpRec18*)walk + 1);
+    } while ((s32)walk < (s32)((GpRec18*)work + 3));
     if (bestPush > 0) {
         coord->coord.t[0] += (bestPush * frame->dir.vx) >> 0xC;
         coord->coord.t[2] += (bestPush * frame->dir.vz) >> 0xC;

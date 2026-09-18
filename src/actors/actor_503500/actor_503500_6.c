@@ -1234,9 +1234,9 @@ void func_actor_503500_80137C90(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
     work  = arg0->field_1C;
     coord = arg0->extra->coords;
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].field_4;
+        id = arg2[i].key;
         for (j = 0; j < i; j++) {
-            if (arg2[j].field_4 == id) {
+            if (arg2[j].key == id) {
                 goto next;
             }
         }
@@ -1286,9 +1286,9 @@ void func_actor_503500_80137C90(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
                 break;
         }
         TRANSPOSE_ROT(&coord->workm, &rot);
-        pos.vx = arg2[i].field_8 - coord->workm.t[0];
-        pos.vy = arg2[i].field_A - coord->workm.t[1];
-        pos.vz = arg2[i].field_C - coord->workm.t[2];
+        pos.vx = arg2[i].point.vx - coord->workm.t[0];
+        pos.vy = arg2[i].point.vy - coord->workm.t[1];
+        pos.vz = arg2[i].point.vz - coord->workm.t[2];
         scale  = 0x320000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
         pos.vx = pos.vx * scale / 4096;
         pos.vy = pos.vy * scale / 4096;
@@ -2043,9 +2043,9 @@ void func_actor_503500_80139A20(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
     work  = arg0->field_1C;
     coord = &arg0->extra->coords[8];
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].field_4;
+        id = arg2[i].key;
         for (j = 0; j < i; j++) {
-            if (arg2[j].field_4 == id) {
+            if (arg2[j].key == id) {
                 goto next;
             }
         }
@@ -2096,9 +2096,9 @@ void func_actor_503500_80139A20(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
             }
         }
         TRANSPOSE_ROT(&coord->workm, &rot);
-        pos.vx = arg2[i].field_8 - coord->workm.t[0];
-        pos.vy = arg2[i].field_A - coord->workm.t[1];
-        pos.vz = arg2[i].field_C - coord->workm.t[2];
+        pos.vx = arg2[i].point.vx - coord->workm.t[0];
+        pos.vy = arg2[i].point.vy - coord->workm.t[1];
+        pos.vz = arg2[i].point.vz - coord->workm.t[2];
         scale  = 0x320000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
         pos.vx = pos.vx * scale / 4096;
         pos.vy = pos.vy * scale / 4096;

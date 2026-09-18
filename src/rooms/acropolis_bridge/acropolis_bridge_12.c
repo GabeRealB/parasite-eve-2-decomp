@@ -738,12 +738,12 @@ void func_acropolis_bridge_80184B94(AcropolisBridgeWalkerWork* work)
     s->count  = 0;
 
     for (s->i = 0; s->i < work->field_58; s->i++) {
-        if (work->recs[s->i].field_4 == 0) {
+        if (work->recs[s->i].key == 0) {
             break;
         }
-        s->kind = work->recs[s->i].field_4 & 0xFFFF0000;
+        s->kind = work->recs[s->i].key & 0xFFFF0000;
         if (s->kind != 0x10000) {
-            if (s->kind != 0x30000 && (u16)work->recs[s->i].field_4 != 0) {
+            if (s->kind != 0x30000 && (u16)work->recs[s->i].key != 0) {
                 continue;
             }
         } else {
@@ -752,10 +752,10 @@ void func_acropolis_bridge_80184B94(AcropolisBridgeWalkerWork* work)
 
         if (ABS(s->dir.vz) < 0x818) {
             s->angle[s->count] =
-                acropolisBridgeBearingXZ((SVECTOR3*)&work->recs[s->i].field_8, &s->eye);
+                acropolisBridgeBearingXZ((SVECTOR3*)&work->recs[s->i].point, &s->eye);
         } else {
             s->angle[s->count] =
-                acropolisBridgeBearingXY((SVECTOR3*)&work->recs[s->i].field_8, &s->eye);
+                acropolisBridgeBearingXY((SVECTOR3*)&work->recs[s->i].point, &s->eye);
         }
         s->ok[s->count] = 1;
         s->count++;
@@ -1578,7 +1578,7 @@ void func_acropolis_bridge_801861A0(Task* task)
     }
     func_acropolis_bridge_8018532C(&work->walker);
     func_acropolis_bridge_8018581C(task);
-    if (((AcropolisBridgeEnemyWork*)task->work)->hitRecs[0].field_4 == 0) {
+    if (((AcropolisBridgeEnemyWork*)task->work)->hitRecs[0].key == 0) {
         done = 0;
         SOFT_BARRIER();
     } else {
@@ -1651,17 +1651,17 @@ void func_acropolis_bridge_801863A8(Task* task)
 
 /// Reports whether the bridge enemy is standing on a kind-1 surface: the first
 /// three collision records are scanned in order and the scan stops at the first
-/// empty one, so an occupied record whose `field_4` high halfword is 1 has to
+/// empty one, so an occupied record whose `key` high halfword is 1 has to
 /// come before any gap in the table.
 static __inline__ s32 bridge_rec_kind1(GpRec18* recs)
 {
     s16 i;
 
     for (i = 0; i < 3; i++) {
-        if (recs[i].field_4 == 0) {
+        if (recs[i].key == 0) {
             return 0;
         }
-        if ((recs[i].field_4 & 0xFFFF0000) == 0x10000) {
+        if ((recs[i].key & 0xFFFF0000) == 0x10000) {
             return 1;
         }
     }
@@ -2224,14 +2224,14 @@ body:
     recs                   = work->recs;
     i                      = 0;
     do {
-        if (recs[i].field_4 == 0) {
+        if (recs[i].key == 0) {
             goto missed;
         }
-        if ((recs[i].field_4 & 0xFFFF0000) == 0x20000) {
-            block->x = recs[i].field_8;
-            block->y = recs[i].field_A;
-            block->z = recs[i].field_C;
-            hit      = recs[i].field_4;
+        if ((recs[i].key & 0xFFFF0000) == 0x20000) {
+            block->x = recs[i].point.vx;
+            block->y = recs[i].point.vy;
+            block->z = recs[i].point.vz;
+            hit      = recs[i].key;
             goto hitTaken;
         }
         i++;

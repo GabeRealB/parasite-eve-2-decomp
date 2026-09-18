@@ -23,7 +23,7 @@
 typedef struct ActorsShared801351d4Work {
     /* 0x00 */ GpObj        obj_0;
     /* 0x20 */ GpObj        obj_20;
-    /* 0x40 */ GpRec18      rec_40; // `field_0` bit 0 forces the death effect to spawn
+    /* 0x40 */ GpRec18      rec_40; // `flags` bit 0 forces the death effect to spawn
     /* 0x58 */ GpObj        obj_58;
     /* 0x78 */ GpActorD4Rec pose_78;
     /* 0x90 */ GpRec18      field_90; // collision record wiped on every tick

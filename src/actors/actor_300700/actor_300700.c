@@ -907,7 +907,7 @@ move_done:
     contactWork = work;
 contact_loop: {
     USE_REG2(contactWork, contactWork);
-    id   = contactWork->field_22C.contacts.recs[0].field_4;
+    id   = contactWork->field_22C.contacts.recs[0].key;
     kind = id >> 0x10;
     if (kind == 1)
         goto physical_contact;
@@ -928,14 +928,14 @@ damage_contact:
         scratch->vy.w = dy;
         dz            = sourceCoord->coord.t[2] - coord->coord.t[2];
         scratch->vz.w = dz;
-        damage        = Gp_ComputeDamage(contactWork->field_22C.contacts.recs[0].field_4, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
+        damage        = Gp_ComputeDamage(contactWork->field_22C.contacts.recs[0].key, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
         USE_REG(damage);
-        if (Gp_RollEnemyChance((GpEnemy*)actor->field_20, contactWork->field_22C.contacts.recs[0].field_4, 0) != 0) {
+        if (Gp_RollEnemyChance((GpEnemy*)actor->field_20, contactWork->field_22C.contacts.recs[0].key, 0) != 0) {
             damage *= 4;
             Gp_SpawnEff(0x6009C, actor->field_2C->field_8, 0, NULL);
         }
         func_800DA6E8(&actor->field_20->field_10, (s32)damage, 0);
-        func_800E2C78((GpObj40*)actor->field_20, (s32)contactWork->field_22C.contacts.recs[0].field_4, (s32)damage, 0);
+        func_800E2C78((GpObj40*)actor->field_20, (s32)contactWork->field_22C.contacts.recs[0].key, (s32)damage, 0);
         health        = (u16)ctx->field_40 - damage;
         ctx->field_40 = health;
         if ((health << 0x10) <= 0) {
@@ -947,7 +947,7 @@ damage_contact:
             work->field_37C = 0;
         }
         work->field_31A &= 0x7FFF;
-        effect           = Gp_GetIdParam0(contactWork->field_22C.contacts.recs[0].field_4) & 0xFFFF;
+        effect           = Gp_GetIdParam0(contactWork->field_22C.contacts.recs[0].key) & 0xFFFF;
         switch (effect) {
             case 0:
             case 4:
@@ -957,35 +957,35 @@ damage_contact:
             case 8:
                 break;
             case 2:
-                Gp_SetObjFlag2((GpObj5D*)actor->field_20, contactWork->field_22C.contacts.recs[0].field_4, 0);
+                Gp_SetObjFlag2((GpObj5D*)actor->field_20, contactWork->field_22C.contacts.recs[0].key, 0);
                 break;
             case 3:
-                Gp_SetObjFlag4((GpObj5C*)actor->field_20, contactWork->field_22C.contacts.recs[0].field_4, 0);
+                Gp_SetObjFlag4((GpObj5C*)actor->field_20, contactWork->field_22C.contacts.recs[0].key, 0);
                 break;
             case 1:
             case 9:
                 Gp_SetObjFlag1((GpObj4C*)actor->field_20);
                 break;
         }
-        hitId = contactWork->field_22C.contacts.recs[0].field_4;
+        hitId = contactWork->field_22C.contacts.recs[0].key;
         if (lastId != hitId) {
             lastId = hitId;
             func_800FDB18(Gp_GetIdParam1((s32)hitId) & 0xFFFF, coord, NULL, (GpEffArg*)&work->pad_31C[0x18]);
         }
-        cooldownParam = Gp_GetIdParam2(contactWork->field_22C.contacts.recs[0].field_4);
+        cooldownParam = Gp_GetIdParam2(contactWork->field_22C.contacts.recs[0].key);
         if (cooldownParam > 0) {
             work->field_378 = cooldownParam;
         }
     }
     goto next_contact;
 physical_contact:
-    wallDx        = coord->workm.t[0] - contactWork->field_22C.contacts.recs[0].field_8;
+    wallDx        = coord->workm.t[0] - contactWork->field_22C.contacts.recs[0].point.vx;
     scratch->vx.w = wallDx;
-    wallDy        = coord->workm.t[1] - contactWork->field_22C.contacts.recs[0].field_A;
+    wallDy        = coord->workm.t[1] - contactWork->field_22C.contacts.recs[0].point.vy;
     scratch->vy.w = wallDy;
-    wallDz        = coord->workm.t[2] - contactWork->field_22C.contacts.recs[0].field_C;
+    wallDz        = coord->workm.t[2] - contactWork->field_22C.contacts.recs[0].point.vz;
     scratch->vz.w = wallDz;
-    depth         = contactWork->field_22C.contacts.recs[0].field_2 - SquareRoot0((wallDx * wallDx) + (wallDy * wallDy) + (wallDz * wallDz));
+    depth         = contactWork->field_22C.contacts.recs[0].depth - SquareRoot0((wallDx * wallDx) + (wallDy * wallDy) + (wallDz * wallDz));
     boundedDepth  = depth;
     if (depth <= 0) {
         boundedDepth = 0;

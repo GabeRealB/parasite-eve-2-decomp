@@ -1108,13 +1108,13 @@ static inline s32 func_actor_403000_FindHit(SVECTOR* pos, GpRec18* records)
 {
     s16 i;
     for (i = 0; i < 5; i++) {
-        if (!records[i].field_4)
+        if (!records[i].key)
             break;
-        if ((records[i].field_4 & 0xFFFF0000) == 0x20000) {
-            pos->vx = records[i].field_8;
-            pos->vy = records[i].field_A;
-            pos->vz = records[i].field_C;
-            return records[i].field_4;
+        if ((records[i].key & 0xFFFF0000) == 0x20000) {
+            pos->vx = records[i].point.vx;
+            pos->vy = records[i].point.vy;
+            pos->vz = records[i].point.vz;
+            return records[i].key;
         }
     }
     return 0;
@@ -2018,7 +2018,7 @@ void func_actor_403000_801377C8(Actor403000* arg0)
             if (ABS(mag) < 0x400) {
                 recs = work->objC80.rec;
                 for (i = 0; i < 5; i++) {
-                    value = recs[i].field_4;
+                    value = recs[i].key;
                     if (value == 0) {
                         break;
                     }
@@ -2359,7 +2359,7 @@ void func_actor_403000_801386E8(Actor403000* arg0)
     recs = work->recordsE98;
     if ((s16)work->field_6 == 0x17) {
         for (i = 0; i < 5; i++) {
-            value = recs[i].field_4;
+            value = recs[i].key;
             if (value == 0) {
                 break;
             }

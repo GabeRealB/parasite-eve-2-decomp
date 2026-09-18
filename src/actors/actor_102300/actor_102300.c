@@ -133,7 +133,7 @@ void func_actor_102300_80131EA4(Actor102300* arg0)
     }
 
     for (i = 0; i < 5; i++) {
-        switch ((u32)work->field_4EC[i].field_4 >> 16) {
+        switch ((u32)work->field_4EC[i].key >> 16) {
             case 0:
             case 1:
                 break;
@@ -141,24 +141,24 @@ void func_actor_102300_80131EA4(Actor102300* arg0)
                 if (work->field_69A != 0) {
                     break;
                 }
-                other               = Gp_ActorSlots[((u32)work->field_4EC[i].field_4 >> 7) & 1]->extra->coords;
+                other               = Gp_ActorSlots[((u32)work->field_4EC[i].key >> 7) & 1]->extra->coords;
                 scratch->delta.vx.w = other->coord.t[0] - self->coord.t[0];
                 scratch->delta.vy.w = other->coord.t[1] - self->coord.t[1];
                 dz                  = other->coord.t[2] - self->coord.t[2];
                 scratch->delta.vz.w = dz;
                 val                 = (scratch->delta.vx.w * self->coord.m[0][2]) + (scratch->delta.vy.w * self->coord.m[1][2]) + (dz * self->coord.m[2][2]);
                 work->field_6AA     = val >= 0;
-                damage              = Gp_ComputeDamage(work->field_4EC[i].field_4,
+                damage              = Gp_ComputeDamage(work->field_4EC[i].key,
                                                        SquareRoot0((scratch->delta.vx.w * scratch->delta.vx.w) + (scratch->delta.vy.w * scratch->delta.vy.w) + (scratch->delta.vz.w * scratch->delta.vz.w)),
                                                        0, 0);
-                kind                = Gp_GetIdParam0(work->field_4EC[i].field_4);
+                kind                = Gp_GetIdParam0(work->field_4EC[i].key);
                 if (work->field_6CE != 0 && work->field_6AA == 1 && work->field_6B8 == 0) {
-                    if (work->field_4EC[i].field_4 & 0x8000) {
-                        if (D_actor_102300_80147864[work->field_4EC[i].field_4 & 0x7F] != 0) {
+                    if (work->field_4EC[i].key & 0x8000) {
+                        if (D_actor_102300_80147864[work->field_4EC[i].key & 0x7F] != 0) {
                             hit              = 1;
                             work->field_6D0 -= damage;
                         }
-                    } else if (D_actor_102300_80147808[work->field_4EC[i].field_4 & 0x7F] != 0) {
+                    } else if (D_actor_102300_80147808[work->field_4EC[i].key & 0x7F] != 0) {
                         hit              = 1;
                         work->field_6D0 -= damage;
                     }
@@ -175,7 +175,7 @@ void func_actor_102300_80131EA4(Actor102300* arg0)
                             }
                         }
                         func_800DA6E8(&enemy->node, 0, 0);
-                        cooldown = Gp_GetIdParam2(work->field_4EC[i].field_4);
+                        cooldown = Gp_GetIdParam2(work->field_4EC[i].key);
                         if (cooldown > 0) {
                             work->field_69A = cooldown;
                         }
@@ -188,7 +188,7 @@ void func_actor_102300_80131EA4(Actor102300* arg0)
                         Gp_SpawnEff(0x6009C, &arg0->field_2C->coords[3], 2, NULL);
                     }
                 }
-                if (Gp_RollEnemyChance(enemy, work->field_4EC[i].field_4, 0) != 0) {
+                if (Gp_RollEnemyChance(enemy, work->field_4EC[i].key, 0) != 0) {
                     damage *= 4;
                     if ((kind & 0xFFFF) != 5) {
                         Gp_SpawnEff(0x6009C, &arg0->field_2C->coords[3], 0, NULL);
@@ -197,11 +197,11 @@ void func_actor_102300_80131EA4(Actor102300* arg0)
                         result = 1;
                     }
                 }
-                if (work->field_6C4 != 0 && (work->field_4EC[i].field_4 & 0x8000)) {
+                if (work->field_6C4 != 0 && (work->field_4EC[i].key & 0x8000)) {
                     damage >>= 2;
                 }
                 func_800DA6E8(&enemy->node, damage, 0);
-                func_800E2C78((GpObj40*)enemy, work->field_4EC[i].field_4, damage, 0);
+                func_800E2C78((GpObj40*)enemy, work->field_4EC[i].key, damage, 0);
                 enemy->field_40 -= damage;
                 if (enemy->field_40 <= 0) {
                     if (work->field_6B8 == 0) {
@@ -227,7 +227,7 @@ void func_actor_102300_80131EA4(Actor102300* arg0)
                         break;
                     case 2:
                         if (work->field_6C4 == 0 && work->field_6B8 == 0 && result < 3) {
-                            Gp_SetObjFlag2((GpObj5D*)enemy, work->field_4EC[i].field_4, 0);
+                            Gp_SetObjFlag2((GpObj5D*)enemy, work->field_4EC[i].key, 0);
                             result = 1;
                         }
                         break;
@@ -241,15 +241,15 @@ void func_actor_102300_80131EA4(Actor102300* arg0)
                     case 9:
                         break;
                 }
-                if (lastId != work->field_4EC[i].field_4) {
-                    lastId             = work->field_4EC[i].field_4;
+                if (lastId != work->field_4EC[i].key) {
+                    lastId             = work->field_4EC[i].key;
                     scratch->effOfs.vx = 0;
                     scratch->effOfs.vy = 0;
                     scratch->effOfs.vz = (work->field_6AA == 1) ? 0x12C : -0x96;
-                    func_800FDB18(Gp_GetIdParam1(work->field_4EC[i].field_4) & 0xFFFF, &arg0->field_2C->coords[3],
+                    func_800FDB18(Gp_GetIdParam1(work->field_4EC[i].key) & 0xFFFF, &arg0->field_2C->coords[3],
                                   &scratch->effOfs, &work->field_670);
                 }
-                cooldown = Gp_GetIdParam2(work->field_4EC[i].field_4);
+                cooldown = Gp_GetIdParam2(work->field_4EC[i].key);
                 if (cooldown > 0) {
                     work->field_69A = cooldown;
                 }
@@ -315,13 +315,13 @@ void func_actor_102300_80131EA4(Actor102300* arg0)
                 break;
             case 3:
                 part                = &arg0->field_2C->coords[3];
-                x                   = part->workm.t[0] - work->field_4EC[i].field_8;
+                x                   = part->workm.t[0] - work->field_4EC[i].point.vx;
                 scratch->delta.vx.w = x;
-                y                   = part->workm.t[1] - work->field_4EC[i].field_A;
+                y                   = part->workm.t[1] - work->field_4EC[i].point.vy;
                 scratch->delta.vy.w = y;
-                z                   = part->workm.t[2] - work->field_4EC[i].field_C;
+                z                   = part->workm.t[2] - work->field_4EC[i].point.vz;
                 scratch->delta.vz.w = z;
-                push                = work->field_4EC[i].field_2 - SquareRoot0((x * x) + (y * y) + (z * z));
+                push                = work->field_4EC[i].depth - SquareRoot0((x * x) + (y * y) + (z * z));
                 clamped             = push;
                 if (push <= 0) {
                     clamped = 0;
@@ -341,7 +341,7 @@ void func_actor_102300_80131EA4(Actor102300* arg0)
         self->coord.t[2] += (maxPush * scratch->push.vz) >> 12;
     }
     Gp_ClearRec18Occupied(work->field_4EC);
-    if (work->field_604[0].field_0 & 1) {
+    if (work->field_604[0].flags & 1) {
         work->field_5E4.flags &= 0x7FFF;
         Gp_ClearRec18Occupied(work->field_604);
     }

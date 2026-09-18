@@ -1074,14 +1074,14 @@ void func_actor_107600_80133DC4(Task* arg0)
     work->field_156        = 0;
     if (Gp_FindRec18(work->obj.field_C, 0) != 0) {
         for (i = 0; i < 8; i++) {
-            if ((work->rec18[i].field_4 & 0xFFFF0000) == 0x20000) {
+            if ((work->rec18[i].key & 0xFFFF0000) == 0x20000) {
                 work->field_156                        = 1;
-                ((Actor107600HitPos*)&work->pitch)->vx = work->rec18[i].field_10;
-                ((Actor107600HitPos*)&work->pitch)->vy = work->rec18[i].field_12;
-                ((Actor107600HitPos*)&work->pitch)->vz = work->rec18[i].field_14;
+                ((Actor107600HitPos*)&work->pitch)->vx = work->rec18[i].at10.normal.vx;
+                ((Actor107600HitPos*)&work->pitch)->vy = work->rec18[i].at10.normal.vy;
+                ((Actor107600HitPos*)&work->pitch)->vz = work->rec18[i].at10.normal.vz;
                 func_actor_107600_80134D9C(arg0);
-                damage          = Gp_ComputeDamage(work->rec18[i].field_4, work->field_14C, 0, 0);
-                work->field_150 = Gp_GetIdParam2(work->rec18[i].field_4);
+                damage          = Gp_ComputeDamage(work->rec18[i].key, work->field_14C, 0, 0);
+                work->field_150 = Gp_GetIdParam2(work->rec18[i].key);
                 work->field_160 = damage;
                 func_800DA6E8(&enemy->node, damage, 0);
                 enemy->field_40 -= damage;

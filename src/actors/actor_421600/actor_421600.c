@@ -556,10 +556,10 @@ static __inline__ s16 Actor421600_HasRecord10(Actor421600* arg0)
     s16              i;
 
     for (i = 0; i < 0xC; i++) {
-        if (!work->field_CE4[i].field_4) {
+        if (!work->field_CE4[i].key) {
             break;
         }
-        if ((work->field_CE4[i].field_4 & 0xFFFF0000) == 0x100000) {
+        if ((work->field_CE4[i].key & 0xFFFF0000) == 0x100000) {
             found = 1;
         }
     }

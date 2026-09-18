@@ -759,7 +759,7 @@ s32 Actor01600_Fn04C64(Actor01600* arg0, s32 distance, s32 angle)
     gte_stsv(out);
     work->field_42C = (s16)scratch->out.vx;
     work->field_430 = (s16)scratch->out.vz;
-    if ((u16)(work->field_444.field_4 >> 16) != 0x10) {
+    if ((u16)(work->field_444.key >> 16) != 0x10) {
         if (angle == 0) {
             temp_v0_3 = work->field_4E8;
             if (work->ranges[temp_v0_3].low == 0xFFFF) {

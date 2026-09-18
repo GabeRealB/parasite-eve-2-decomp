@@ -32,7 +32,7 @@ STATIC_ASSERT_SIZEOF(RoomsShared80182078Walk, 0x20);
 /// position and `aim` the world point one unit (0x1000) in front of it, both
 /// produced by walking the parent chain; `delta` is the scratch difference fed
 /// to `ratan2` and later the GPF-scaled push applied to `coord.t[0]` /
-/// `coord.t[2]`. `kind` is the record's `field_4` high halfword, `angle[]` the
+/// `coord.t[2]`. `kind` is the record's `key` high halfword, `angle[]` the
 /// per-record bearing relative to the facing direction (0x7FFE marks "no more
 /// records", 0x7FFF "record does not count"), `i` / `j` the two loop counters,
 /// `diff` the wrapped bearing difference between a pair of records and `hit`

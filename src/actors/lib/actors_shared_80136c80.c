@@ -70,9 +70,9 @@ case2:
     part->flags = 0x80;
     return;
 default_body:
-    rec->field_8      = -work->field_0;
-    rec->field_A      = -work->field_2;
-    rec->field_C      = -work->field_4;
+    rec->point.vx     = -work->field_0;
+    rec->point.vy     = -work->field_2;
+    rec->point.vz     = -work->field_4;
     coord->coord.t[0] = coord->coord.t[0] + (s16)work->field_0;
     recs              = &work->recs[1];
     coord->coord.t[1] = coord->coord.t[1] + (s16)work->field_2;
@@ -91,7 +91,7 @@ default_body:
         SndEvt_EnqueueType6(0x40460007, (s8)Gp_GetObjPan((GpObj38*)coord),
                             (s8)Gp_GetObjDepth((GpObj38*)coord));
         if (child != NULL) {
-            if (hit->field_12 >= -0xC00) {
+            if (hit->at10.normal.vy >= -0xC00) {
                 child->spawnArg1 = 3;
             } else {
                 child->spawnArg1 = 2;

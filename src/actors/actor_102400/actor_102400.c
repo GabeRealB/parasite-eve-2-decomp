@@ -86,17 +86,17 @@ move_done:
     }
     i = 0;
     do {
-        switch ((u32)work->records[i].field_4 >> 16) {
+        switch ((u32)work->records[i].key >> 16) {
             case 2:
                 if (work->field_136 != 0) {
                     break;
                 }
                 kind   = 0;
                 damage = 0;
-                if (!(work->records[i].field_4 & 0x8000)) {
-                    kind = D_actor_102400_801363FC[work->records[i].field_4 & 0x7F];
+                if (!(work->records[i].key & 0x8000)) {
+                    kind = D_actor_102400_801363FC[work->records[i].key & 0x7F];
                 }
-                switch (Gp_GetIdParam0(work->records[i].field_4) & 0xFFFF) {
+                switch (Gp_GetIdParam0(work->records[i].key) & 0xFFFF) {
                     case 3:
                     case 4:
                         kind = 3;
@@ -115,11 +115,11 @@ move_done:
                 }
                 switch (kind) {
                     case 0:
-                        src                 = Gp_ActorSlots[(work->records[i].field_4 >> 7) & 1]->extra->coords;
+                        src                 = Gp_ActorSlots[(work->records[i].key >> 7) & 1]->extra->coords;
                         scratch->delta.vx.w = src->coord.t[0] - coord->coord.t[0];
                         scratch->delta.vy.w = src->coord.t[1] - coord->coord.t[1];
                         scratch->delta.vz.w = src->coord.t[2] - coord->coord.t[2];
-                        work->field_150    += Gp_ComputeDamage(work->records[i].field_4, SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w), 0, 0);
+                        work->field_150    += Gp_ComputeDamage(work->records[i].key, SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w), 0, 0);
                         if ((s16)work->field_150 >= 20 || work->field_13C == 5) {
                             work->field_13C = 5;
                             work->field_13E = 0;
@@ -136,29 +136,29 @@ move_done:
                         work->field_134 = 0;
                         break;
                     case 1:
-                        src                 = Gp_ActorSlots[(work->records[i].field_4 >> 7) & 1]->extra->coords;
+                        src                 = Gp_ActorSlots[(work->records[i].key >> 7) & 1]->extra->coords;
                         scratch->delta.vx.w = src->coord.t[0] - coord->coord.t[0];
                         scratch->delta.vy.w = src->coord.t[1] - coord->coord.t[1];
                         scratch->delta.vz.w = src->coord.t[2] - coord->coord.t[2];
-                        damage              = Gp_ComputeDamage(work->records[i].field_4, SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w), 0, 0);
+                        damage              = Gp_ComputeDamage(work->records[i].key, SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w), 0, 0);
                         work->field_13C     = 4;
                         work->field_13E     = 0;
                         work->field_140     = 0;
                         work->field_138     = 0;
                         work->field_13A     = 0;
                         work->field_134     = 0;
-                        param               = Gp_GetIdParam1(work->records[i].field_4) & 0xFFFF;
-                        if (D_actor_102400_8013645C[param] == 0 && lastId != work->records[i].field_4) {
-                            lastId = work->records[i].field_4;
+                        param               = Gp_GetIdParam1(work->records[i].key) & 0xFFFF;
+                        if (D_actor_102400_8013645C[param] == 0 && lastId != work->records[i].key) {
+                            lastId = work->records[i].key;
                             func_800FDB18(param, coord, NULL, &work->field_F8);
                         }
                         break;
                     case 2:
-                        src                 = Gp_ActorSlots[(work->records[i].field_4 >> 7) & 1]->extra->coords;
+                        src                 = Gp_ActorSlots[(work->records[i].key >> 7) & 1]->extra->coords;
                         scratch->delta.vx.w = src->coord.t[0] - coord->coord.t[0];
                         scratch->delta.vy.w = src->coord.t[1] - coord->coord.t[1];
                         scratch->delta.vz.w = src->coord.t[2] - coord->coord.t[2];
-                        damage              = (s16)Gp_ComputeDamage(work->records[i].field_4, SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w), 0, 0) * 5;
+                        damage              = (s16)Gp_ComputeDamage(work->records[i].key, SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w), 0, 0) * 5;
                         work->field_13C     = 4;
                         work->field_13E     = 0;
                         work->field_140     = 0;
@@ -182,12 +182,12 @@ move_done:
                         break;
                 }
                 dmg = damage;
-                func_800E2C78((GpObj40*)arg0->field_20, work->records[i].field_4, dmg, 0);
+                func_800E2C78((GpObj40*)arg0->field_20, work->records[i].key, dmg, 0);
                 func_800DA6E8(&arg0->field_20->node, dmg, 0);
                 if ((enemy->field_40 -= damage) <= 0) {
                     arg0->field_30 = 2;
                 }
-                stun = Gp_GetIdParam2(work->records[i].field_4);
+                stun = Gp_GetIdParam2(work->records[i].key);
                 if (stun > 0) {
                     work->field_136 = stun;
                 }
@@ -199,10 +199,10 @@ move_done:
             case 1:
                 break;
             case 3:
-                scratch->delta.vx.w = coord->workm.t[0] - work->records[i].field_8;
-                scratch->delta.vy.w = coord->workm.t[1] - work->records[i].field_A;
-                scratch->delta.vz.w = coord->workm.t[2] - work->records[i].field_C;
-                reach               = work->records[i].field_2 - SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w);
+                scratch->delta.vx.w = coord->workm.t[0] - work->records[i].point.vx;
+                scratch->delta.vy.w = coord->workm.t[1] - work->records[i].point.vy;
+                scratch->delta.vz.w = coord->workm.t[2] - work->records[i].point.vz;
+                reach               = work->records[i].depth - SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w);
                 val                 = reach;
                 if (reach <= 0) {
                     val = 0;

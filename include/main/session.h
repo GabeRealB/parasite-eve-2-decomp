@@ -138,28 +138,29 @@ struct _GpLinkNode;
 struct _GpActorD4;
 struct _GpAnimRec;
 
-/// 0x18 record wiped by `Gp_InitRec18Table`. That helper zeros `count` entries
-/// and writes 2 to the last element's `field_0`. `field_0` bit 0x1 marks an
-/// occupied slot; bit 0x2 marks the last element. `Gp_FindRec18` returns the
-/// 1-based index of the last occupied slot whose `field_4` equals `arg1`,
-/// or 1 as soon as any occupied slot is seen when `arg1` is 0.
-/// `Gp_CountRec18Hi` counts occupied slots whose `field_4` high 16 bits match
-/// `arg1`. `Gp_ClearRec18Occupied` walks until bit 0x2, and for each occupied slot
-/// keeps only that last-element bit and zeros the payload halfwords / word
-/// (leaving 0xE and 0x16 untouched). Embedded as `GameActor.field_17C[18]`;
-/// `func_801041B4` tests `field_4` bits 0x100100.
-typedef struct _GpRec18 {
-    /* 0x00 */ u16  field_0;
-    /* 0x02 */ s16  field_2;
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ s16  field_8;
-    /* 0x0A */ s16  field_A;
-    /* 0x0C */ s16  field_C;
-    /* 0x0E */ byte pad_E[2];
-    /* 0x10 */ s16  field_10;
-    /* 0x12 */ s16  field_12;
-    /* 0x14 */ s16  field_14;
-    /* 0x16 */ byte pad_16[2];
+/// One contact a collider made with the world, in the fixed table the collider
+/// owns: `Gp_InitRec18Table` clears the table and writes 2 to its last entry,
+/// the collision tests fill the first entry whose `flags` bit 0 is clear, and
+/// every walk over the table stops at the entry carrying bit 1.
+///
+/// `key` names what was contacted, `depth` how far the collider is into it, and
+/// `point` / `at10` where it is, which is what the push-out and slide helpers
+/// resolve the overlap from. A node whose flags carry 0x800 wants the contact to
+/// name it, and then the responder's entry holds that node's address in `at10`
+/// instead of a direction.
+typedef struct {
+    u16     flags;      // bit 0 entry in use; bit 1 last entry of the table; bits 4-7 the node the contact came from
+    s16     depth;      // overlap: penetration into the surface, or the contacted colliders' combined radius
+    s32     key;        // what was contacted, class << 16 | id (classes 1/2/3/6 a body, 0x10 a face of the collision grid)
+    SVECTOR point;      // contact position, zero where the producer records only the normal
+    union {
+        SVECTOR normal; // surface normal at the contact, or the direction to push the collider in
+        struct {
+            u16 low;    // low halfword of the node's address
+            s16 high;   // high halfword
+            s16 pad;
+        } node;
+    } at10;
 } GpRec18;
 STATIC_ASSERT_SIZEOF(GpRec18, 0x18);
 

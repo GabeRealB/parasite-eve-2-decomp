@@ -660,7 +660,7 @@ typedef struct Actor503500WorkC0 {
     /* 0xBA */ u16               field_BA; // sub-state frame counter
     /* 0xBC */ s8                field_BC; // sub-state index, -1 finishes the task
     /* 0xBD */ byte              pad_BD[0x1];
-    /* 0xBE */ s8                field_BE; // set when a record's kind (field_4 high half) is 1
+    /* 0xBE */ s8                field_BE; // set when a record's kind (key high half) is 1
     /* 0xBF */ s8                field_BF; // nonzero skips the push-back step
 } Actor503500WorkC0;
 STATIC_ASSERT_SIZEOF(Actor503500WorkC0, 0xC0);

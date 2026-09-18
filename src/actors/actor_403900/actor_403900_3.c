@@ -78,7 +78,7 @@ void func_actor_403900_801329A4(Actor403900* arg0)
             func_actor_403900_80132E34(arg0);
             break;
         case 3:
-            if (work->field_5F4.field_4 == 0) {
+            if (work->field_5F4.key == 0) {
                 work->field_6CC = 1;
                 work->field_6CE = 0;
                 work->field_70E = 1;
@@ -96,7 +96,7 @@ void func_actor_403900_801329A4(Actor403900* arg0)
             Gp_ClearRec18Occupied(&work->field_5F4);
             break;
         case 4:
-            if (work->field_5F4.field_4 == 0) {
+            if (work->field_5F4.key == 0) {
                 work->field_6CC = 2;
                 work->field_6CE = 0;
                 work->field_70E = 2;

@@ -5123,7 +5123,7 @@ s32 func_801041B4(GpActorWork* arg0)
 
     actor = arg0->actor;
     for (i = 0; i < 0x12; i++) {
-        if ((actor->field_17C[i].field_4 & 0x100100) == 0x100000) {
+        if ((actor->field_17C[i].key & 0x100100) == 0x100000) {
             return 1;
         }
     }
@@ -6175,13 +6175,13 @@ s32 Gp_PickNearestRec18(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
             *scratch = p;
         }
         do {
-            if (rec->field_4 & 0x100000) {
+            if (rec->key & 0x100000) {
                 s32 fy;
                 s32 dy;
                 {
                     register s32 dx asm("v0");
-                    dx   = arg1->workm.t[0] - rec->field_8;
-                    fy   = rec->field_A;
+                    dx   = arg1->workm.t[0] - rec->point.vx;
+                    fy   = rec->point.vy;
                     dist = dx;
                     if (dx < 0) {
                         dist = -dist;
@@ -6195,7 +6195,7 @@ s32 Gp_PickNearestRec18(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
                     if (dy < 0) {
                         dy = -dy;
                     }
-                    fz    = rec->field_C;
+                    fz    = rec->point.vz;
                     dist += dy;
                     t2    = t2 - fz;
                     TOUCH_REG2(t2, dist);
@@ -6224,9 +6224,9 @@ s32 Gp_PickNearestRec18(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
             picked           = (GpRec18*)(bestIdx * 0x18 + (s32)arg0);
             block->sub       = 0;
             block->flg       = i;
-            block->t[0]      = picked->field_8;
-            block->t[1]      = picked->field_A;
-            block->t[2]      = picked->field_C;
+            block->t[0]      = picked->point.vx;
+            block->t[1]      = picked->point.vy;
+            block->t[2]      = picked->point.vz;
             block->offset.vx = rand() & 7;
             block->offset.vy = rand() & 7;
             block->offset.vz = rand() & 7;

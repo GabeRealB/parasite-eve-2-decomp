@@ -1124,11 +1124,11 @@ void func_actor_444000_8013799C(GpEnemy* enemy, Actor444000Grab* task)
     gteDir                     = dir;
 
     if (work->field_1A8 != 0) {
-        work->field_1AC    = 0;
-        work->field_1B0    = 0x400;
-        work->field_1A8    = 0;
-        work->rec0.field_4 = 0;
-        work->obj0.flags  |= 0x8000;
+        work->field_1AC   = 0;
+        work->field_1B0   = 0x400;
+        work->field_1A8   = 0;
+        work->rec0.key    = 0;
+        work->obj0.flags |= 0x8000;
     }
 
     if (D_801153F4 == 0) {

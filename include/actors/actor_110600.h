@@ -409,7 +409,7 @@ typedef struct Actor110600Work {
     /// The actor's own `GpRec18` table, the one the spawn handler links behind
     /// `field_A90` and initialises with a count of **one** record, so it spans
     /// 0xAB0..0xAC8 and the three matrices below start where it ends.
-    /// `func_actor_110600_80135B84` reads the only record's `field_4` as the
+    /// `func_actor_110600_80135B84` reads the only record's `key` as the
     /// 0x10000 kind tag the sound cue is gated on.
     /* 0xAB0 */ GpRec18 recs[1];
     /// The light matrix the spawn handler binds to the model object's

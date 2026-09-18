@@ -26,7 +26,7 @@ void  Gp_AnimResetSlot(Actor02500Work* arg0, s32 arg1, s32 arg2);
 void  Gp_IncStateF0Ref(s32 arg0);
 void  Gp_SetLightMode(Actor02500Ctx* arg0, s32 arg1);
 void  Gp_LinkObj(s32 arg0, Actor02500Obj* arg1);
-void  Gp_InitRec18Table(Actor02500Rec18* arg0, s32 arg1, s32 arg2);
+void  Gp_InitRec18Table(GpRec18* arg0, s32 arg1, s32 arg2);
 s32   Gp_PackPair(void* arg0, s32 arg1);
 void  Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
@@ -683,7 +683,7 @@ void Actor02500_Fn025D0(Actor02500Ctx* ctx, Actor02500* task)
 {
     Actor02500EffWork* work;
     GsCOORDINATE2*     coord;
-    Actor02500Rec18*   rec;
+    GpRec18*           rec;
     GsCOORDINATE2*     parentCoord;
     void*              effect;
 
@@ -723,7 +723,7 @@ void Actor02500_Fn02750(Actor02500Ctx* ctx, Actor02500* task)
 {
     s32                sound;
     GsCOORDINATE2*     coord;
-    Actor02500Rec18*   rec;
+    GpRec18*           rec;
     s32                done;
     s32                pan;
     u16                timer;

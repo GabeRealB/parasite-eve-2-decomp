@@ -139,7 +139,7 @@ extern u8 D_801153F4;
 /// The state move is recorded on the way in: `field_4` takes 1 when `field_0`
 /// differs from the latched `field_2`, which is then re-latched from `field_0`.
 /// The tail re-syncs the model with the actor: the display node's `GpRec18`
-/// record is cleared while it is occupied (`recs[0].field_4`), the root
+/// record is cleared while it is occupied (`recs[0].key`), the root
 /// coordinate's translation is re-propagated over the three part coordinates
 /// (`func_800D7A9C`, start 0, count 3) while `field_8AD` is set, and `field_8AD`
 /// is then refreshed from that coordinate's `flg` - so the propagation runs on

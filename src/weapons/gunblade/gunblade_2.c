@@ -179,9 +179,9 @@ void func_gunblade_8011E040(GpActorWork* arg0)
                 hit = Gp_PickNearestRec18(actor->field_32C, coord, &blk->coord);
                 if (Player_Status.weaponSlotItem == 0xE) {
                     if (hit != 0 || Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
-                        blk->coord.workm.t[0] = actor->field_32C[0].field_8;
-                        blk->coord.workm.t[1] = actor->field_32C[0].field_A;
-                        blk->coord.workm.t[2] = actor->field_32C[0].field_C;
+                        blk->coord.workm.t[0] = actor->field_32C[0].point.vx;
+                        blk->coord.workm.t[1] = actor->field_32C[0].point.vy;
+                        blk->coord.workm.t[2] = actor->field_32C[0].point.vz;
                         Gp_PlayObjSfx((GpObj38*)blk, sfx | 0x20170004, 1);
                     }
                 } else if (hit != 0) {

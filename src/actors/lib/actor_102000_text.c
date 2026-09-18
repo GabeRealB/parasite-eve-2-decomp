@@ -1239,7 +1239,7 @@ void                 func_800B3F84(Actor02000Work* arg0, void* arg1, TmdObject* 
 void                 Gp_AnimResetSlot(Actor02000Work* arg0, s32 arg1, s32 arg2);
 void                 Gp_IncStateF0Ref(s32 arg0);
 void                 Gp_LinkObj(s32 arg0, Actor02000Obj* arg1);
-void                 Gp_InitRec18Table(Actor02000Rec18* arg0, s32 arg1, s32 arg2);
+void                 Gp_InitRec18Table(GpRec18* arg0, s32 arg1, s32 arg2);
 Actor02000Eff*       Gp_SpawnEnemyFromTable(void* table, s32 idx, s32 arg2, void* parent);
 void                 Gp_SyncAreaKeyIndex(GpAreaKey* arg0);
 Actor02000AreaTable* Gp_GetNestedAreaRec(GpAreaKey* arg0);
@@ -1255,7 +1255,7 @@ extern Actor02000Desc Actor02000_D15D10[];
 /// copying that model's texture page and CLUT row out of the current area
 /// record. `Actor02000Ctx.field_4B` then selects the variant: 0 builds the
 /// full object set (list node, the four `Gp_LinkObj` nodes and their
-/// `Actor02000Rec18` tables, and the optional CD prefetch of `field_6D6`),
+/// `GpRec18` tables, and the optional CD prefetch of `field_6D6`),
 /// while 1 and 2 only prime the animation state and hand the task to state 2.
 void Actor02000_Fn0251C(Actor02000Ctx* ctx, Actor02000* actor)
 {

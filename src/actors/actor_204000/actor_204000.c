@@ -83,10 +83,10 @@ s32 func_actor_204000_8014A06C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
     s->count  = 0;
 
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].field_4 == 0) {
+        if (recs[s->i].key == 0) {
             break;
         }
-        s->kind = recs[s->i].field_4 & 0xFFFF0000;
+        s->kind = recs[s->i].key & 0xFFFF0000;
         switch (s->kind) {
             case 0x10000:
                 s->blocked = 1;
@@ -97,9 +97,9 @@ s32 func_actor_204000_8014A06C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
         }
 
         if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] = Actor204000_BearingXZ((SVECTOR3*)&recs[s->i].field_8, &s->eye);
+            s->angle[s->count] = Actor204000_BearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
         } else {
-            s->angle[s->count] = Actor204000_BearingXY((SVECTOR3*)&recs[s->i].field_8, &s->eye);
+            s->angle[s->count] = Actor204000_BearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
         }
         s->ok[s->count] = 1;
         s->count++;

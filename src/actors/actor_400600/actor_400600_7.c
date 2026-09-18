@@ -1334,20 +1334,20 @@ void func_actor_400600_8013C6B0(SVECTOR* pos, GpRec18* rec, SVECTOR* out)
     s32    dist;
     s32    t;
 
-    dx   = pos->vx - rec->field_8;
+    dx   = pos->vx - rec->point.vx;
     v.vy = 0;
     v.vx = dx;
-    dz   = pos->vz - rec->field_C;
+    dz   = pos->vz - rec->point.vz;
     v.vz = dz;
-    dist = rec->field_2 - SquareRoot0(dx * dx + dz * dz);
+    dist = rec->depth - SquareRoot0(dx * dx + dz * dz);
     t    = dist;
     if (dist <= 0) {
         t = 0;
     }
     dist = t;
-    v.vx = pos->vx - rec->field_8;
-    v.vy = pos->vy - rec->field_A;
-    v.vz = pos->vz - rec->field_C;
+    v.vx = pos->vx - rec->point.vx;
+    v.vy = pos->vy - rec->point.vy;
+    v.vz = pos->vz - rec->point.vz;
     VectorNormal(&v, &n);
     ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &n, &v);
     out->vx = (dist * v.vx) >> 12;

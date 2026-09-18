@@ -332,9 +332,9 @@ void func_hypervelocity_8011D830(Task* task)
             beam->obj.field_18 = 0x2161A;
             beam->obj.flags    = 1;
             Gp_LinkObj(1, &beam->obj);
-            beam->rec[0].field_0 = 2;
-            beam->obj.flags     |= 0x8000;
-            eff                  = Gp_SpawnEff(0x6000D, coord, 0, NULL);
+            beam->rec[0].flags = 2;
+            beam->obj.flags   |= 0x8000;
+            eff                = Gp_SpawnEff(0x6000D, coord, 0, NULL);
             if (eff != NULL) {
                 Task_Reparent(task, eff->field_0);
             }

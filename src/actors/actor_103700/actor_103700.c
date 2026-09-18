@@ -166,16 +166,16 @@ move_done:
     i               = 0;
     work->field_264 = 0;
     do {
-        id = work->records[i].field_4;
+        id = work->records[i].key;
         switch (id >> 16) {
             case 0:
                 break;
             case 1:
                 work->field_264     = id >> 16;
-                scratch->delta.vx.w = coord->workm.t[0] - work->records[i].field_8;
-                scratch->delta.vy.w = coord->workm.t[1] - work->records[i].field_A;
-                scratch->delta.vz.w = coord->workm.t[2] - work->records[i].field_C;
-                reach               = work->records[i].field_2 - SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w);
+                scratch->delta.vx.w = coord->workm.t[0] - work->records[i].point.vx;
+                scratch->delta.vy.w = coord->workm.t[1] - work->records[i].point.vy;
+                scratch->delta.vz.w = coord->workm.t[2] - work->records[i].point.vz;
+                reach               = work->records[i].depth - SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w);
                 val                 = reach;
                 if (reach <= 0) {
                     val = 0;
@@ -195,8 +195,8 @@ move_done:
                 scratch->delta.vy.w = ey;
                 ez                  = src->coord.t[2] - coord->coord.t[2];
                 scratch->delta.vz.w = ez;
-                damage              = Gp_ComputeDamage(work->records[i].field_4, SquareRoot0(ex * ex + ey * ey + ez * ez), 0, 0);
-                id                  = work->records[i].field_4;
+                damage              = Gp_ComputeDamage(work->records[i].key, SquareRoot0(ex * ex + ey * ey + ez * ez), 0, 0);
+                id                  = work->records[i].key;
                 if (id & 0x8000) {
                     if (D_actor_103700_80139E94[id & 0x7F] == 3) {
                         broke  = 1;
@@ -206,20 +206,20 @@ move_done:
                         if ((u32)(broke - 0xC) < 2) {
                             func_800FDB18(broke, coord, NULL, &work->field_224);
                         }
-                        work->field_268 = D_actor_103700_80139E94[work->records[i].field_4 & 0x7F];
+                        work->field_268 = D_actor_103700_80139E94[work->records[i].key & 0x7F];
                         broke           = 0;
                     }
                 } else {
                     work->field_268 = (Gp_GetIdParam1(id) & 0xFFFF) == 7;
                 }
                 func_800DA6E8(&((GpEnemy*)task->spawnArg2)->node, damage, 0);
-                func_800E2C78((GpObj40*)task->spawnArg2, work->records[i].field_4, damage, 0);
+                func_800E2C78((GpObj40*)task->spawnArg2, work->records[i].key, damage, 0);
                 if ((s32)damage > 0) {
                     ((GpEnemy*)task->spawnArg2)->field_40 = 0;
                     work->field_24E                       = 6;
                     work->field_250                       = 0;
                     task->state                           = 2;
-                } else if (((Gp_GetIdParam0(work->records[i].field_4) & 0xFFFF) == 8 || broke == 1) &&
+                } else if (((Gp_GetIdParam0(work->records[i].key) & 0xFFFF) == 8 || broke == 1) &&
                            (u16)(work->field_24E - 1) >= 2) {
                     if (work->field_262 == 0) {
                         work->field_24E = 5;

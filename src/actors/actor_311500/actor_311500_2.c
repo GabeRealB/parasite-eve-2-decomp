@@ -33,14 +33,14 @@ s16 func_actor_311500_80162DDC(Actor311500* arg0)
     pp    = &pos;
     recs  = work->rec18;
     for (i = 0; i < 1; i++) {
-        if (recs[i].field_4 == 0) {
+        if (recs[i].key == 0) {
             break;
         }
-        if ((recs[i].field_4 & 0xFFFF0000) == 0x20000) {
-            pp->vx = recs[i].field_8;
-            pp->vy = recs[i].field_A;
-            pp->vz = recs[i].field_C;
-            v      = recs[i].field_4;
+        if ((recs[i].key & 0xFFFF0000) == 0x20000) {
+            pp->vx = recs[i].point.vx;
+            pp->vy = recs[i].point.vy;
+            pp->vz = recs[i].point.vz;
+            v      = recs[i].key;
             goto done;
         }
     }

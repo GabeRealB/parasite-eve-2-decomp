@@ -1270,9 +1270,9 @@ void func_actor_503500_80134EAC(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
     work  = arg0->field_1C;
     coord = arg0->extra->coords;
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].field_4;
+        id = arg2[i].key;
         for (j = 0; j < i; j++) {
-            if (arg2[j].field_4 == id) {
+            if (arg2[j].key == id) {
                 goto next;
             }
         }

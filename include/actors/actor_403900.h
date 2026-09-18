@@ -144,7 +144,7 @@ typedef struct Actor403900Work {
     /* 0x5EE */ s16      field_5EE;
     /* 0x5F0 */ GpRec18* field_5F0;
     /// Head of the actor's first collision-record table; the settle states
-    /// branch on its `field_4` before handing the table to
+    /// branch on its `key` before handing the table to
     /// `Gp_ClearRec18Occupied`.
     /* 0x5F4 */ GpRec18  field_5F4;
     /* 0x60C */ byte     field_60C[8];

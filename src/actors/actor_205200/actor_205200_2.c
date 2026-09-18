@@ -231,9 +231,9 @@ void func_actor_205200_8014BD4C(Actor205200* arg0)
         }
     }
     for (i = 0; i < 3; i++) {
-        if ((work->field_49C[i].field_4 & 0xFFFF0000) == 0x20000) {
+        if ((work->field_49C[i].key & 0xFFFF0000) == 0x20000) {
             func_800DA6E8(&arg0->field_20->node, 0, 0);
-            switch (Gp_GetIdParam0(work->field_49C[i].field_4) & 0xFFFF) {
+            switch (Gp_GetIdParam0(work->field_49C[i].key) & 0xFFFF) {
                 case 1:
                     found = 1;
                     break;
@@ -245,20 +245,20 @@ void func_actor_205200_8014BD4C(Actor205200* arg0)
             }
             work->field_584 = 1;
             work->field_586 = 0;
-            if (last != work->field_49C[i].field_4) {
-                last = work->field_49C[i].field_4;
+            if (last != work->field_49C[i].key) {
+                last = work->field_49C[i].key;
                 func_800FDB18(Gp_GetIdParam1(last) & 0xFFFF, &arg0->field_2C->field_8[3], NULL,
                               (GpEffArg*)&work->field_554);
             }
-            if ((n = Gp_GetIdParam2(work->field_49C[i].field_4)) > 0) {
+            if ((n = Gp_GetIdParam2(work->field_49C[i].key)) > 0) {
                 work->field_57C = n;
             }
         }
     }
 end:
     Gp_ClearRec18Occupied(work->field_49C);
-    if (work->field_504.field_0 & 1) {
-        if ((work->field_504.field_4 & 0xFFFF0000) == 0x10000 && D_80073BA0 > 0) {
+    if (work->field_504.flags & 1) {
+        if ((work->field_504.key & 0xFFFF0000) == 0x10000 && D_80073BA0 > 0) {
             work->field_588      = 1;
             Gp_StateC08.field_6 |= 1;
         }

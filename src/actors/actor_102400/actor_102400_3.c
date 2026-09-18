@@ -162,7 +162,7 @@ void func_actor_102400_80134910(GpEnemy* arg0, Task* arg1)
             coord->flg         = 0;
             Gp_UpdateCoord(coord);
             func_actor_102400_80131E84(coord, 0x100);
-            rec = work->field_90.field_4;
+            rec = work->field_90.key;
             if ((rec != 0) &&
                 (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1]
                                    [func_800E1B24(rec)]
@@ -172,7 +172,7 @@ void func_actor_102400_80134910(GpEnemy* arg0, Task* arg1)
             Gp_ClearRec18Occupied(&work->field_90);
             timer          = work->field_B0 - 1;
             work->field_B0 = timer;
-            if (((timer << 0x10) <= 0) || (work->rec_40.field_0 & 1) || (spawn != 0)) {
+            if (((timer << 0x10) <= 0) || (work->rec_40.flags & 1) || (spawn != 0)) {
                 Gp_SpawnEff(D_80115754, coord, 0, NULL);
                 arg1->state    = 2;
                 work->field_B2 = 0;

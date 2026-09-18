@@ -128,7 +128,7 @@ s32 func_actor_401300_8013267C(GsCOORDINATE2* coord, s16 arg1, s16 arg2)
 }
 
 /// Pushes the root coordinate by a quarter of each kind 0x10000 / 0x30000 record's
-/// offset (skipping 0x3000D), walking `recs` until `count` or a zero `field_4`.
+/// offset (skipping 0x3000D), walking `recs` until `count` or a zero `key`.
 /// The duplicated coordinate update keeps `count`'s sign extension in the loop,
 /// as in `Actor01900_Fn03FF8`.
 s32 func_actor_401300_80132910(Actor401300* arg0, GpRec18* recs, s16 count)
@@ -151,12 +151,12 @@ s32 func_actor_401300_80132910(Actor401300* arg0, GpRec18* recs, s16 count)
     s->pos.vz = arg0->field_2C->coords[1].workm.t[2];
     s->hit    = 0;
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].field_4 == 0) {
+        if (recs[s->i].key == 0) {
             s->dist[s->i] = 0x7FFE;
             break;
         }
-        s->kind = recs[s->i].field_4 & 0xFFFF0000;
-        if ((s->kind == 0x10000 || s->kind == 0x30000) && recs[s->i].field_4 != 0x3000D) {
+        s->kind = recs[s->i].key & 0xFFFF0000;
+        if ((s->kind == 0x10000 || s->kind == 0x30000) && recs[s->i].key != 0x3000D) {
             if (s->kind == 0x10000) {
                 s->hit = 1;
             }
@@ -1205,13 +1205,13 @@ static __inline__ s32 Actor401300_FindHit(SVECTOR* pos, GpRec18* records)
     s16 i;
 
     for (i = 0; i < 12; i++) {
-        if (!records[i].field_4)
+        if (!records[i].key)
             break;
-        if ((records[i].field_4 & 0xFFFF0000) == 0x20000) {
-            pos->vx = records[i].field_8;
-            pos->vy = records[i].field_A;
-            pos->vz = records[i].field_C;
-            return records[i].field_4;
+        if ((records[i].key & 0xFFFF0000) == 0x20000) {
+            pos->vx = records[i].point.vx;
+            pos->vy = records[i].point.vy;
+            pos->vz = records[i].point.vz;
+            return records[i].key;
         }
     }
     return 0;
@@ -4141,9 +4141,9 @@ static __inline__ s32 Actor401300_HasRec10000(GpRec18* recs)
     s16 i;
 
     for (i = 0; i < 1; i++) {
-        if (!recs[i].field_4)
+        if (!recs[i].key)
             break;
-        if ((recs[i].field_4 & 0xFFFF0000) == 0x10000) {
+        if ((recs[i].key & 0xFFFF0000) == 0x10000) {
             return 1;
         }
     }

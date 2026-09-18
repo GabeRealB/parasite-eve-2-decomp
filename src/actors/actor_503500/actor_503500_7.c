@@ -369,9 +369,9 @@ void func_actor_503500_8013AF60(Actor503500* arg0, Actor503500Work* arg1, GpRec1
     work  = arg0->field_1C;
     coord = arg0->extra->coords;
     for (i = 0; i < count; i++) {
-        id = rec[i].field_4;
+        id = rec[i].key;
         for (j = 0; j < i; j++) {
-            if (rec[j].field_4 == id) {
+            if (rec[j].key == id) {
                 goto next;
             }
         }
@@ -421,9 +421,9 @@ void func_actor_503500_8013AF60(Actor503500* arg0, Actor503500Work* arg1, GpRec1
                 break;
         }
         TRANSPOSE_ROT(&coord->workm, &rot);
-        pos.vx = rec[i].field_8 - coord->workm.t[0];
-        pos.vy = rec[i].field_A - coord->workm.t[1];
-        pos.vz = rec[i].field_C - coord->workm.t[2];
+        pos.vx = rec[i].point.vx - coord->workm.t[0];
+        pos.vy = rec[i].point.vy - coord->workm.t[1];
+        pos.vz = rec[i].point.vz - coord->workm.t[2];
         scale  = 0x640000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
         pos.vx = pos.vx * scale / 4096;
         pos.vy = pos.vy * scale / 4096;

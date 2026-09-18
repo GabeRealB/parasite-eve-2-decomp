@@ -93,9 +93,9 @@ void func_as12_8011D1DC(GpActorWork* arg0)
                 hit = Gp_PickNearestRec18(actor->field_32C, coord, spot);
                 if (Player_Status.weaponSlotItem == 0xE) {
                     if (hit != 0 || Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
-                        spot->workm.t[0] = actor->field_32C[0].field_8;
-                        spot->workm.t[1] = actor->field_32C[0].field_A;
-                        spot->workm.t[2] = actor->field_32C[0].field_C;
+                        spot->workm.t[0] = actor->field_32C[0].point.vx;
+                        spot->workm.t[1] = actor->field_32C[0].point.vy;
+                        spot->workm.t[2] = actor->field_32C[0].point.vz;
                         Gp_PlayObjSfx((GpObj38*)spot,
                                       ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x200F0004, 1);
                     }

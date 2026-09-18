@@ -97,10 +97,10 @@ s32 Actor00100_Fn00508(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
     s->count  = 0;
 
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].field_4 == 0) {
+        if (recs[s->i].key == 0) {
             break;
         }
-        s->kind = recs[s->i].field_4 & 0xFFFF0000;
+        s->kind = recs[s->i].key & 0xFFFF0000;
         switch (s->kind) {
             case 0x10000:
                 s->blocked = 1;
@@ -111,9 +111,9 @@ s32 Actor00100_Fn00508(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
         }
 
         if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] = Actor00100_BearingXZ((SVECTOR3*)&recs[s->i].field_8, &s->eye);
+            s->angle[s->count] = Actor00100_BearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
         } else {
-            s->angle[s->count] = Actor00100_BearingXY((SVECTOR3*)&recs[s->i].field_8, &s->eye);
+            s->angle[s->count] = Actor00100_BearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
         }
         s->ok[s->count] = 1;
         s->count++;
@@ -428,7 +428,7 @@ s32 Actor00100_Fn00E58(Actor00100* arg0, s32 arg1, Actor00100Msg* arg2)
 
 /// Collects bearings from the obstacles in `recs` into a 16-slot scratch and
 /// steps `coord` along each survivor. Same walk as `Actor00100_Fn00508`, but
-/// `blocked` is raised only for a kind 0x10000 record whose `field_4` bit 0x80
+/// `blocked` is raised only for a kind 0x10000 record whose `key` bit 0x80
 /// is clear. The scratch is carved before the early-out, so that path leaks it.
 s32 Actor00100_Fn01388(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
@@ -466,11 +466,11 @@ s32 Actor00100_Fn01388(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
     s->count  = 0;
 
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].field_4 == 0) {
+        if (recs[s->i].key == 0) {
             break;
         }
-        s->kind  = recs[s->i].field_4 & 0xFFFF0000;
-        s->flags = recs[s->i].field_4 & 0x80;
+        s->kind  = recs[s->i].key & 0xFFFF0000;
+        s->flags = recs[s->i].key & 0x80;
         switch (s->kind) {
             case 0x10000:
                 if (s->flags == 0) {
@@ -483,9 +483,9 @@ s32 Actor00100_Fn01388(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
         }
 
         if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] = Actor00100_BearingXZ((SVECTOR3*)&recs[s->i].field_8, &s->eye);
+            s->angle[s->count] = Actor00100_BearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
         } else {
-            s->angle[s->count] = Actor00100_BearingXY((SVECTOR3*)&recs[s->i].field_8, &s->eye);
+            s->angle[s->count] = Actor00100_BearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
         }
         s->ok[s->count] = 1;
         s->count++;

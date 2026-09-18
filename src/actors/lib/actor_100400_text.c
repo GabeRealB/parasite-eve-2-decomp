@@ -675,31 +675,31 @@ void Actor00400_Fn01B90(Actor100400* arg0)
     obj             = arg0->field_20;
     work->field_642 = 0;
     for (i = 0; i < 6; i++) {
-        if ((work->field_39C[i].field_4 & 0xFFFF0000) == 0x20000) {
+        if ((work->field_39C[i].key & 0xFFFF0000) == 0x20000) {
             if (work->field_61C == 0) {
                 work->field_642 = 1;
                 work->field_65D = 1;
-                dmg             = Gp_ComputeDamage(work->field_39C[i].field_4, work->field_640, 0, 0);
+                dmg             = Gp_ComputeDamage(work->field_39C[i].key, work->field_640, 0, 0);
                 amount          = dmg;
-                work->field_61C = Gp_GetIdParam2(work->field_39C[i].field_4);
-                if (Gp_RollEnemyChance(obj, work->field_39C[i].field_4, work->field_610) != 0) {
+                work->field_61C = Gp_GetIdParam2(work->field_39C[i].key);
+                if (Gp_RollEnemyChance(obj, work->field_39C[i].key, work->field_610) != 0) {
                     amount = ((u32)dmg << 16) >> 14;
                     kind   = 1;
                 }
-                func_800FDB18(Gp_GetIdParam1(work->field_39C[i].field_4) & 0xFFFF,
+                func_800FDB18(Gp_GetIdParam1(work->field_39C[i].key) & 0xFFFF,
                               &arg0->field_2C->field_8[work->field_664], 0, &work->field_5DC);
                 work->field_644 = (amount < 0x3C) ? 5 : 2;
-                switch (Gp_GetIdParam0(work->field_39C[i].field_4) & 0xFFFF) {
+                switch (Gp_GetIdParam0(work->field_39C[i].key) & 0xFFFF) {
                     case 0:
                         break;
                     case 1:
                         Gp_SetObjFlag1(obj);
                         break;
                     case 2:
-                        Gp_SetObjFlag2(obj, work->field_39C[i].field_4, 0);
+                        Gp_SetObjFlag2(obj, work->field_39C[i].key, 0);
                         break;
                     case 3:
-                        Gp_SetObjFlag4(obj, work->field_39C[i].field_4, 0);
+                        Gp_SetObjFlag4(obj, work->field_39C[i].key, 0);
                         break;
                     case 4:
                         work->field_644 = 4;
@@ -723,7 +723,7 @@ void Actor00400_Fn01B90(Actor100400* arg0)
                         work->field_644 = 1;
                         break;
                 }
-                if ((work->field_39C[i].field_4 & 0x7F) == 0x1C && (work->field_39C[i].field_4 & 0x8000) == 0) {
+                if ((work->field_39C[i].key & 0x7F) == 0x1C && (work->field_39C[i].key & 0x8000) == 0) {
                     obj->field_4C  &= 0xFE;
                     work->field_644 = 5;
                 }
@@ -736,13 +736,13 @@ void Actor00400_Fn01B90(Actor100400* arg0)
                         Gp_SpawnEff(0x6009C, &arg0->field_2C->field_8[work->field_664], 2, 0);
                         break;
                 }
-                func_800E2C78(obj, work->field_39C[i].field_4, amount, 0);
+                func_800E2C78(obj, work->field_39C[i].key, amount, 0);
                 func_800DA6E8(&obj->field_10, amount, 0);
                 obj->field_40 -= amount;
                 if ((s16)obj->field_40 < 0) {
                     obj->field_40 = 0;
                 }
-            } else if ((Gp_GetIdParam1(work->field_39C[i].field_4) & 0xFFFF) == 0xD) {
+            } else if ((Gp_GetIdParam1(work->field_39C[i].key) & 0xFFFF) == 0xD) {
                 func_800FDB18(0xD, &arg0->field_2C->field_8[1], 0, &work->field_5DC);
             }
         }
@@ -1274,7 +1274,7 @@ void Actor00400_Fn02D48(Task* arg0)
             coord->coord.t[2] += work->field_5C;
             if (Gp_FindRec18(work->recs, 0) != 0) {
                 for (i = 0; i < 2; i++) {
-                    switch (work->recs[i].field_4 & 0xFFFF0000) {
+                    switch (work->recs[i].key & 0xFFFF0000) {
                         case 0x10000:
                             hidden = 1;
                             break;

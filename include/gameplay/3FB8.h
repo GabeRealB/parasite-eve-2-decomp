@@ -21,8 +21,8 @@ struct _GsCOORDINATE2;
 /// `Gp_FindNearestSlot` treats `field_C` as a `GpActorD4Rec*` whose `field_14`
 /// is the `GpRec18` table walked for the nearest matching slot.
 /// `func_800DEC80` uses that same table: flag `0x800` copies the first
-/// occupied slot's `field_8/A/C` (unless `arg3 != 0`), flag `0x400`
-/// copies the first occupied slot whose `field_4` high 16 bits equal
+/// occupied slot's `point` (unless `arg3 != 0`), flag `0x400`
+/// copies the first occupied slot whose `key` high 16 bits equal
 /// `0x10`. Remaining of two world points come from `field_C` as
 /// `SVECTOR[2]` plus this object's 0x10 SVECTOR, rotated by `workm`.
 /// `func_800DBA20` selects that table from `flags & 7`: 1 is `field_C`
@@ -627,10 +627,10 @@ STATIC_ASSERT_SIZEOF(GpTurnScratch, 0x14);
 /// reads it: `flags` bit 0 marks the slot occupied and its high nibble is
 /// the index of the `GpObj` node in `GameActor.field_AC` that produced the
 /// hit, `dist` is the contact radius, and `id` / `kind` are the low / high
-/// halves of `GpRec18.field_4`. `kind` 3 is the push-back case (only for
+/// halves of `GpRec18.key`. `kind` 3 is the push-back case (only for
 /// `id < 0x46` entries whose `D_80113F9C` entry is 1), 4 and 5 dispatch to
 /// `func_8010B2D4` / `func_8010B348`. `x` / `y` / `z` are the world-space
-/// contact point (`GpRec18.field_8`).
+/// contact point (`GpRec18.point`).
 typedef struct _GpHitRec {
     /* 0x00 */ u16  flags;
     /* 0x02 */ s16  dist;

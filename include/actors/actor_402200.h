@@ -197,7 +197,7 @@ typedef struct Actor402200Work {
     /* 0x5EE */ s16      field_5EE;
     /* 0x5F0 */ GpRec18* field_5F0;
     /// Head of the actor's first `GpRec18` table; `func_actor_402200_801329A4`
-    /// branches on its `field_4` before clearing it.
+    /// branches on its `key` before clearing it.
     /* 0x5F4 */ GpRec18  field_5F4;
     /* 0x60C */ byte     field_60C[8];
     /* 0x614 */ void*    field_614;

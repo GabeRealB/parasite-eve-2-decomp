@@ -52,14 +52,14 @@ void ActorsShared8014c738(Actor201200Ctx* arg0, Actor201200* arg1)
     mask = 0xFFFF0000;
     kind = 0x20000;
 scan:
-    if (recs[i].field_4 == 0) {
+    if (recs[i].key == 0) {
         goto missed;
     }
-    if ((recs[i].field_4 & mask) == kind) {
-        pos->vx = recs[i].field_8;
-        pos->vy = recs[i].field_A;
-        pos->vz = recs[i].field_C;
-        id      = recs[i].field_4;
+    if ((recs[i].key & mask) == kind) {
+        pos->vx = recs[i].point.vx;
+        pos->vy = recs[i].point.vy;
+        pos->vz = recs[i].point.vz;
+        id      = recs[i].key;
         goto found;
     }
     i++;

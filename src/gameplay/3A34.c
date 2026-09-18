@@ -3797,8 +3797,8 @@ void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2)
         empty_or: /* between case 3 and 4 so the empty-slot trampoline matches */
         {
             register s32 tmp asm("v0");
-            tmp           = a3v & 0xF0;
-            slot->field_0 = recFlags | (tmp + 1);
+            tmp         = a3v & 0xF0;
+            slot->flags = recFlags | (tmp + 1);
             goto fill;
         }
         case 4:
@@ -3812,14 +3812,14 @@ void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2)
 
     a3v = arg0->flags;
     if (a3v & 0x800) {
-        recFlags = slot->field_0;
+        recFlags = slot->flags;
         if (recFlags & 1) {
             {
                 register s32 cmp asm("v0");
                 cmp = 0x100000;
                 a3v = 0xFFFF0000;
-                if ((slot->field_4 & a3v) != cmp) {
-                    a3v    = (((s32)slot->field_12 << 16) & a3v) | (u16)slot->field_10;
+                if ((slot->key & a3v) != cmp) {
+                    a3v    = (((s32)slot->at10.node.high << 16) & a3v) | slot->at10.node.low;
                     otable = NULL;
                     switch (((GpObj*)a3v)->flags & 7) {
                         case 0:
@@ -3843,35 +3843,35 @@ void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2)
                     }
                     key = arg0->field_18;
                 loop:
-                    if (otherSlot->field_4 != key) {
-                        if (otherSlot->field_0 & 2) {
+                    if (otherSlot->key != key) {
+                        if (otherSlot->flags & 2) {
                             return;
                         }
                         otherSlot++;
                         goto loop;
                     }
-                    f0                  = otherSlot->field_0;
-                    otherSlot->field_4  = 0;
-                    otherSlot->field_2  = 0;
-                    otherSlot->field_8  = 0;
-                    otherSlot->field_A  = 0;
-                    otherSlot->field_C  = 0;
-                    otherSlot->field_10 = 0;
-                    otherSlot->field_12 = 0;
-                    otherSlot->field_14 = 0;
-                    otherSlot->field_0  = f0 & 0xFFFE;
+                    f0                        = otherSlot->flags;
+                    otherSlot->key            = 0;
+                    otherSlot->depth          = 0;
+                    otherSlot->point.vx       = 0;
+                    otherSlot->point.vy       = 0;
+                    otherSlot->point.vz       = 0;
+                    otherSlot->at10.normal.vx = 0;
+                    otherSlot->at10.normal.vy = 0;
+                    otherSlot->at10.normal.vz = 0;
+                    otherSlot->flags          = f0 & 0xFFFE;
                 }
             }
-            recFlags      = slot->field_0;
-            recFlags      = recFlags | ((arg0->flags & 0xF0) + 1);
-            slot->field_0 = recFlags;
+            recFlags    = slot->flags;
+            recFlags    = recFlags | ((arg0->flags & 0xF0) + 1);
+            slot->flags = recFlags;
             goto fill;
         } else {
             goto empty_or;
         }
     } else {
         while (1) {
-            recFlags = slot->field_0;
+            recFlags = slot->flags;
             if (!(recFlags & 1)) {
                 break;
             }
@@ -3880,14 +3880,14 @@ void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2)
             }
             slot++;
         }
-        slot->field_0 = recFlags | ((arg0->flags & 0xF0) + 1);
+        slot->flags = recFlags | ((arg0->flags & 0xF0) + 1);
     }
 
 fill:
-    slot->field_4              = arg1->field_18;
-    slot->field_2              = (u16)arg2->rsum;
-    *(SVECTOR*)&slot->field_8  = arg2->src;
-    *(SVECTOR*)&slot->field_10 = arg2->extra;
+    slot->key                     = arg1->field_18;
+    slot->depth                   = (u16)arg2->rsum;
+    slot->point                   = arg2->src;
+    *(SVECTOR*)&slot->at10.normal = arg2->extra;
 }
 
 s32 Gp_PairHandler1(GpObj* arg0, GpObj* arg1)
@@ -4212,13 +4212,13 @@ void Gp_CollideObjGrid(GpObj* arg0)
                 goto edges_done;
 
             fill:
-                slot->field_0              = flags | 1;
-                slot->field_2              = (u16)arg0->field_1C - dist;
-                slot->field_4              = face->field_A | 0x100000;
-                slot->field_8              = 0;
-                slot->field_A              = 0;
-                slot->field_C              = 0;
-                *(SVECTOR*)&slot->field_10 = Gp_GridParams->field_4[face->field_8];
+                slot->flags       = flags | 1;
+                slot->depth       = (u16)arg0->field_1C - dist;
+                slot->key         = face->field_A | 0x100000;
+                slot->point.vx    = 0;
+                slot->point.vy    = 0;
+                slot->point.vz    = 0;
+                slot->at10.normal = Gp_GridParams->field_4[face->field_8];
                 continue;
 
             edges:
@@ -4265,7 +4265,7 @@ void Gp_CollideObjGrid(GpObj* arg0)
 
                 slot = arg0->field_C;
                 for (;;) {
-                    flags = slot->field_0;
+                    flags = slot->flags;
                     if (!(flags & 1)) {
                         goto fill;
                     }
@@ -4422,30 +4422,30 @@ void Gp_CollideObjGridDir(GpObj* arg0)
 
                 slot = ((GpObjDirRec*)arg0->field_C)->field_8;
                 for (;;) {
-                    flags = slot->field_0;
+                    flags = slot->flags;
                     if (flags & 1) {
-                        if ((slot->field_4 & -0x100) == (extra | 0x100000)) {
-                            if (slot->field_10 == Gp_GridParams->field_4[face->field_8].vx &&
-                                slot->field_12 == Gp_GridParams->field_4[face->field_8].vy &&
-                                slot->field_14 == Gp_GridParams->field_4[face->field_8].vz) {
-                                if (slot->field_2 < (s32)(u16)arg0->field_1C - (s16)dist) {
-                                    slot->field_2 = (u16)arg0->field_1C - dist;
+                        if ((slot->key & -0x100) == (extra | 0x100000)) {
+                            if (slot->at10.normal.vx == Gp_GridParams->field_4[face->field_8].vx &&
+                                slot->at10.normal.vy == Gp_GridParams->field_4[face->field_8].vy &&
+                                slot->at10.normal.vz == Gp_GridParams->field_4[face->field_8].vz) {
+                                if (slot->depth < (s32)(u16)arg0->field_1C - (s16)dist) {
+                                    slot->depth = (u16)arg0->field_1C - dist;
                                 }
                                 goto next_face;
                             }
                         }
                     } else {
-                        slot->field_0              = flags | 1;
-                        slot->field_2              = (u16)arg0->field_1C - dist;
-                        faceKind                   = face->field_A | 0x100000;
-                        slot->field_4              = extra | faceKind;
-                        slot->field_8              = 0;
-                        slot->field_A              = 0;
-                        slot->field_C              = 0;
-                        *(SVECTOR*)&slot->field_10 = Gp_GridParams->field_4[face->field_8];
+                        slot->flags       = flags | 1;
+                        slot->depth       = (u16)arg0->field_1C - dist;
+                        faceKind          = face->field_A | 0x100000;
+                        slot->key         = extra | faceKind;
+                        slot->point.vx    = 0;
+                        slot->point.vy    = 0;
+                        slot->point.vz    = 0;
+                        slot->at10.normal = Gp_GridParams->field_4[face->field_8];
                         goto next_face;
                     }
-                    if (slot->field_0 & 2) {
+                    if (slot->flags & 2) {
                         goto done;
                     }
                     slot++;
@@ -4587,25 +4587,25 @@ void func_800DD940(GpObj* arg0)
             Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8].vy < -0xDDA &&
             func_800DD324(i, block->seg, block->ray, (s32)arg0)) {
             slot  = ((GpObjDirRec*)arg0->field_C)->field_8;
-            flags = slot->field_0;
+            flags = slot->flags;
             if (flags & 1) {
-                if ((u32)(slot->field_4 & 0xF) < (u32)Gp_GridParams->field_C[i].field_A) {
-                    slot->field_4 = Gp_GridParams->field_C[i].field_A | 0x100100;
+                if ((u32)(slot->key & 0xF) < (u32)Gp_GridParams->field_C[i].field_A) {
+                    slot->key = Gp_GridParams->field_C[i].field_A | 0x100100;
                 }
             } else {
-                slot->field_0 = flags | 1;
-                slot->field_4 = Gp_GridParams->field_C[i].field_A | 0x100100;
+                slot->flags = flags | 1;
+                slot->key   = Gp_GridParams->field_C[i].field_A | 0x100100;
             }
-            *(SVECTOR*)&slot->field_8  = block->ray[1];
-            *(SVECTOR*)&slot->field_10 = Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8];
-            block->delta.vx            = block->origin.vx - block->ray[1].vx;
-            block->delta.vy            = block->origin.vy - block->ray[1].vy;
-            block->delta.vz            = block->origin.vz - block->ray[1].vz;
-            slot->field_2              = SquareRoot0(block->delta.vx * block->delta.vx +
-                                                     block->delta.vy * block->delta.vy + block->delta.vz * block->delta.vz);
-            block->seg[0].vx           = block->ray[1].vx;
-            block->seg[0].vy           = block->ray[1].vy;
-            block->seg[0].vz           = block->ray[1].vz;
+            slot->point       = block->ray[1];
+            slot->at10.normal = Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8];
+            block->delta.vx   = block->origin.vx - block->ray[1].vx;
+            block->delta.vy   = block->origin.vy - block->ray[1].vy;
+            block->delta.vz   = block->origin.vz - block->ray[1].vz;
+            slot->depth       = SquareRoot0(block->delta.vx * block->delta.vx +
+                                            block->delta.vy * block->delta.vy + block->delta.vz * block->delta.vz);
+            block->seg[0].vx  = block->ray[1].vx;
+            block->seg[0].vy  = block->ray[1].vy;
+            block->seg[0].vz  = block->ray[1].vz;
         }
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
@@ -4725,34 +4725,34 @@ void func_800DDDF8(GpObj* node)
                                               [gGameSession->at4.loc.area - 1]
                                               [Gp_GridParams->field_C[i].field_A]
                                                   ->field_1 == 0) {
-                            mask                       = 0x100000;
-                            slot->field_2              = 0;
-                            slot->field_0             |= 1;
-                            idx                        = Gp_GridParams->field_C[i].field_A;
-                            slot->field_4              = idx | mask;
-                            *(SVECTOR*)&slot->field_8  = block->ray[1];
-                            grid2                      = Gp_GridParams;
-                            *(SVECTOR*)&slot->field_10 = grid2->field_4[grid2->field_C[i].field_8];
-                            block->pos[0].vx           = block->ray[1].vx;
-                            block->pos[0].vy           = block->ray[1].vy;
-                            block->pos[0].vz           = block->ray[1].vz;
+                            mask              = 0x100000;
+                            slot->depth       = 0;
+                            slot->flags      |= 1;
+                            idx               = Gp_GridParams->field_C[i].field_A;
+                            slot->key         = idx | mask;
+                            slot->point       = block->ray[1];
+                            grid2             = Gp_GridParams;
+                            slot->at10.normal = grid2->field_4[grid2->field_C[i].field_8];
+                            block->pos[0].vx  = block->ray[1].vx;
+                            block->pos[0].vy  = block->ray[1].vy;
+                            block->pos[0].vz  = block->ray[1].vz;
                         }
                     } else {
                         t    = i * sizeof(GpGridFace);
                         head = (void**)G_SCRATCH_HEAD;
                         for (;;) {
-                            flags = slot->field_0;
+                            flags = slot->flags;
                             TOUCH_REG(flags);
                             if (!(flags & 1)) {
-                                slot->field_0              = flags | 1;
-                                slot->field_2              = 0;
-                                mask                       = 0x100000;
-                                idx                        = ((GpGridFace*)(t + (s32)Gp_GridParams->field_C))->field_A;
-                                slot->field_4              = idx | mask;
-                                *(SVECTOR*)&slot->field_8  = block->ray[1];
-                                grid2                      = Gp_GridParams;
-                                *(SVECTOR*)&slot->field_10 = grid2->field_4[((GpGridFace*)(t + (s32)grid2->field_C))->field_8];
-                                if (slot->field_0 & 2) {
+                                slot->flags       = flags | 1;
+                                slot->depth       = 0;
+                                mask              = 0x100000;
+                                idx               = ((GpGridFace*)(t + (s32)Gp_GridParams->field_C))->field_A;
+                                slot->key         = idx | mask;
+                                slot->point       = block->ray[1];
+                                grid2             = Gp_GridParams;
+                                slot->at10.normal = grid2->field_4[((GpGridFace*)(t + (s32)grid2->field_C))->field_8];
+                                if (slot->flags & 2) {
                                     *head = (u8*)*head + 0x30;
                                     return;
                                 }
@@ -5038,11 +5038,11 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
             TOUCH_REG(temp);
             slot = ((GpActorD4Rec*)temp)->field_14;
             for (;;) {
-                flags = slot->field_0;
+                flags = slot->flags;
                 if (flags & 1) {
-                    arg1->vx = slot->field_8;
-                    arg1->vy = slot->field_A;
-                    arg1->vz = slot->field_C;
+                    arg1->vx = slot->point.vx;
+                    arg1->vy = slot->point.vy;
+                    arg1->vz = slot->point.vz;
                     found    = 1;
                     goto done_search;
                 }
@@ -5054,16 +5054,16 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
         } else if (obj->flags & 0x400) {
             slot = ((GpActorD4Rec*)obj->field_C)->field_14;
             for (;;) {
-                if (slot->field_0 & 1) {
-                    if ((slot->field_4 & 0xFFFF0000) == 0x100000) {
-                        arg1->vx = slot->field_8;
-                        arg1->vy = slot->field_A;
-                        arg1->vz = slot->field_C;
+                if (slot->flags & 1) {
+                    if ((slot->key & 0xFFFF0000) == 0x100000) {
+                        arg1->vx = slot->point.vx;
+                        arg1->vy = slot->point.vy;
+                        arg1->vz = slot->point.vz;
                         found    = 1;
                         goto done_search;
                     }
                 }
-                if (slot->field_0 & 2) {
+                if (slot->flags & 2) {
                     goto done_search;
                 }
                 slot++;
@@ -5072,16 +5072,16 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
     } else if (obj->flags & 0x400) {
         slot = ((GpActorD4Rec*)obj->field_C)->field_14;
         for (;;) {
-            if (slot->field_0 & 1) {
-                if ((slot->field_4 & 0xFFFF0000) == 0x100000) {
-                    arg1->vx = slot->field_8;
-                    arg1->vy = slot->field_A;
-                    arg1->vz = slot->field_C;
+            if (slot->flags & 1) {
+                if ((slot->key & 0xFFFF0000) == 0x100000) {
+                    arg1->vx = slot->point.vx;
+                    arg1->vy = slot->point.vy;
+                    arg1->vz = slot->point.vz;
                     found    = 1;
                     goto done_search;
                 }
             }
-            if (slot->field_0 & 2) {
+            if (slot->flags & 2) {
                 break;
             }
             slot++;
@@ -5969,17 +5969,17 @@ s32 func_800E0C10(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
 
         for (i = 0; i < arg2; i++) {
             rec = &arg0[i];
-            if ((rec->field_0 & 1) && (rec->field_4 & 0xFFFF0000) == 0x100000) {
-                mask |= 1 << rec->field_4;
-                if (Gp_RoomParams[rec->field_4 & 7] == 0) {
-                    if (rec->field_12 >= -0xDDA) {
-                        s->acc[0].vx += rec->field_10 * rec->field_2;
-                        s->acc[0].vy += rec->field_12 * rec->field_2;
-                        s->acc[0].vz += rec->field_14 * rec->field_2;
+            if ((rec->flags & 1) && (rec->key & 0xFFFF0000) == 0x100000) {
+                mask |= 1 << rec->key;
+                if (Gp_RoomParams[rec->key & 7] == 0) {
+                    if (rec->at10.normal.vy >= -0xDDA) {
+                        s->acc[0].vx += rec->at10.normal.vx * rec->depth;
+                        s->acc[0].vy += rec->at10.normal.vy * rec->depth;
+                        s->acc[0].vz += rec->at10.normal.vz * rec->depth;
                         list[count++] = i;
                     } else {
                         s->acc[1].vx  = 0;
-                        s->acc[1].vy += rec->field_12 * rec->field_2;
+                        s->acc[1].vy += rec->at10.normal.vy * rec->depth;
                         s->acc[1].vz  = 0;
                         s->count++;
                     }
@@ -5994,8 +5994,8 @@ s32 func_800E0C10(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
 
         for (i = 0; i < count; i++) {
             for (j = 1; j < count; j++) {
-                s->acc[2].vx = arg0[list[i]].field_10 * arg0[list[j]].field_10;
-                s->acc[2].vz = arg0[list[i]].field_14 * arg0[list[j]].field_14;
+                s->acc[2].vx = arg0[list[i]].at10.normal.vx * arg0[list[j]].at10.normal.vx;
+                s->acc[2].vz = arg0[list[i]].at10.normal.vz * arg0[list[j]].at10.normal.vz;
                 if (s->acc[2].vx < -0x800000 || s->acc[2].vz < -0x800000) {
                     ret = 2;
                 }
@@ -6051,27 +6051,27 @@ s32 func_800E0FEC(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
 
     for (i = 0; i < arg2; i++) {
         rec = &arg0[i];
-        if ((rec->field_0 & 1) && (rec->field_4 & 0xFFFF0000) == 0x100000) {
-            mask |= 1 << rec->field_4;
-            if (Gp_RoomParams[rec->field_4 & 7] == 0) {
-                switch ((u32)(rec->field_4 & 0xF00) >> 8) {
+        if ((rec->flags & 1) && (rec->key & 0xFFFF0000) == 0x100000) {
+            mask |= 1 << rec->key;
+            if (Gp_RoomParams[rec->key & 7] == 0) {
+                switch ((u32)(rec->key & 0xF00) >> 8) {
                     case 0:
-                        s->acc[0].vx += rec->field_2 * rec->field_10;
-                        s->acc[0].vy += rec->field_2 * rec->field_12;
-                        s->acc[0].vz += rec->field_2 * rec->field_14;
+                        s->acc[0].vx += rec->depth * rec->at10.normal.vx;
+                        s->acc[0].vy += rec->depth * rec->at10.normal.vy;
+                        s->acc[0].vz += rec->depth * rec->at10.normal.vz;
                         list[count++] = i;
                         break;
                     case 1:
                         s->acc[1].vx = 0;
-                        s->acc[1].vy = -(rec->field_2 << 12);
+                        s->acc[1].vy = -(rec->depth << 12);
                         s->acc[1].vz = 0;
                         break;
                     case 2:
-                        if (rec->field_12 == 0 && ((s16)prev == 0 || rec->field_2 < (s16)prev)) {
-                            s->acc[2].vx = rec->field_2 * rec->field_10;
+                        if (rec->at10.normal.vy == 0 && ((s16)prev == 0 || rec->depth < (s16)prev)) {
+                            s->acc[2].vx = rec->depth * rec->at10.normal.vx;
                             s->acc[2].vy = 0;
-                            s->acc[2].vz = rec->field_2 * rec->field_14;
-                            prev         = (u16)rec->field_2;
+                            s->acc[2].vz = rec->depth * rec->at10.normal.vz;
+                            prev         = (u16)rec->depth;
                         }
                         break;
                 }
@@ -6082,8 +6082,8 @@ s32 func_800E0FEC(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
 
     for (i = 0; i < count; i++) {
         for (j = 1; j < count; j++) {
-            s->acc[3].vx = arg0[list[i]].field_10 * arg0[list[j]].field_10;
-            s->acc[3].vz = arg0[list[i]].field_14 * arg0[list[j]].field_14;
+            s->acc[3].vx = arg0[list[i]].at10.normal.vx * arg0[list[j]].at10.normal.vx;
+            s->acc[3].vz = arg0[list[i]].at10.normal.vz * arg0[list[j]].at10.normal.vz;
             if (s->acc[3].vx < -0x800000 || s->acc[3].vz < -0x800000) {
                 ret = 2;
             }
@@ -6145,12 +6145,12 @@ s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
     block->world.vz = block->vec.vz + ((GsCOORDINATE2*)arg0->field_8)->workm.t[2];
 
     for (;;) {
-        if ((slot->field_0 & 1) && ((slot->field_4 & 0xFFFF0000) == arg1)) {
-            dx            = slot->field_8 - block->world.vx;
+        if ((slot->flags & 1) && ((slot->key & 0xFFFF0000) == arg1)) {
+            dx            = slot->point.vx - block->world.vx;
             block->vec.vx = dx;
-            dy            = slot->field_A - block->world.vy;
+            dy            = slot->point.vy - block->world.vy;
             block->vec.vy = dy;
-            dz            = slot->field_C - block->world.vz;
+            dz            = slot->point.vz - block->world.vz;
             block->vec.vz = dz;
             dist          = SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
             if ((u32)dist < (u32)minDist) {
@@ -6158,7 +6158,7 @@ s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
                 best    = index + 1;
             }
         }
-        if (slot->field_0 & 2) {
+        if (slot->flags & 2) {
             break;
         }
         slot++;
@@ -6379,7 +6379,7 @@ void Gp_ClearObj3AList(s32 arg0)
 void Gp_InitRec18Table(GpRec18* arg0, s32 arg1, s32 arg2)
 {
     Mem_Set(arg0, 0, arg1 * 0x18);
-    arg0[arg1 - 1].field_0 = 2;
+    arg0[arg1 - 1].flags = 2;
 }
 
 void Gp_LoadRoomParams(void)
@@ -6406,15 +6406,15 @@ s32 Gp_FindRec18(GpRec18* arg0, s32 arg1)
 
     result = 0;
     for (index = 1;; index++) {
-        if (arg0->field_0 & 1) {
+        if (arg0->flags & 1) {
             if (arg1 == 0) {
                 return 1;
             }
-            if (arg0->field_4 == arg1) {
+            if (arg0->key == arg1) {
                 result = index;
             }
         }
-        if ((arg0++)->field_0 & 2) {
+        if ((arg0++)->flags & 2) {
             break;
         }
     }
@@ -6427,28 +6427,28 @@ s32 Gp_CountRec18Hi(GpRec18* arg0, s32 arg1)
 
     count = 0;
     do {
-        if ((arg0->field_0 & 1) && ((arg0->field_4 & 0xFFFF0000) == arg1)) {
+        if ((arg0->flags & 1) && ((arg0->key & 0xFFFF0000) == arg1)) {
             count += 1;
         }
-    } while (!((arg0++)->field_0 & 2));
+    } while (!((arg0++)->flags & 2));
     return count;
 }
 
 void Gp_ClearRec18Occupied(GpRec18* arg0)
 {
     for (;;) {
-        if (arg0->field_0 & 1) {
-            arg0->field_0 &= 2;
-            arg0->field_2  = 0;
-            arg0->field_4  = 0;
-            arg0->field_8  = 0;
-            arg0->field_A  = 0;
-            arg0->field_C  = 0;
-            arg0->field_10 = 0;
-            arg0->field_12 = 0;
-            arg0->field_14 = 0;
+        if (arg0->flags & 1) {
+            arg0->flags         &= 2;
+            arg0->depth          = 0;
+            arg0->key            = 0;
+            arg0->point.vx       = 0;
+            arg0->point.vy       = 0;
+            arg0->point.vz       = 0;
+            arg0->at10.normal.vx = 0;
+            arg0->at10.normal.vy = 0;
+            arg0->at10.normal.vz = 0;
         }
-        if (arg0->field_0 & 2) {
+        if (arg0->flags & 2) {
             break;
         }
         arg0++;

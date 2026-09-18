@@ -1014,14 +1014,14 @@ void func_actor_444000_8013C060(Actor444000* task)
     mask  = 0xFFFF0000;
     kind  = 0x20000;
 scan:
-    if (recs[i].field_4 == 0) {
+    if (recs[i].key == 0) {
         goto missed;
     }
-    if ((recs[i].field_4 & mask) == kind) {
-        pos->vx = recs[i].field_8;
-        pos->vy = recs[i].field_A;
-        pos->vz = recs[i].field_C;
-        id      = recs[i].field_4;
+    if ((recs[i].key & mask) == kind) {
+        pos->vx = recs[i].point.vx;
+        pos->vy = recs[i].point.vy;
+        pos->vz = recs[i].point.vz;
+        id      = recs[i].key;
         goto found;
     }
     i++;
@@ -1147,14 +1147,14 @@ void func_actor_444000_8013C4B0(Actor444000* task)
     pos  = &sc->pos;
     recs = work->hits[1].recs;
     for (i = 0; i < 5; i++) {
-        if (recs[i].field_4 == 0) {
+        if (recs[i].key == 0) {
             goto missed1;
         }
-        if ((recs[i].field_4 & 0xFFFF0000) == 0x20000) {
-            pos->vx = recs[i].field_8;
-            pos->vy = recs[i].field_A;
-            pos->vz = recs[i].field_C;
-            id      = recs[i].field_4;
+        if ((recs[i].key & 0xFFFF0000) == 0x20000) {
+            pos->vx = recs[i].point.vx;
+            pos->vy = recs[i].point.vy;
+            pos->vz = recs[i].point.vz;
+            id      = recs[i].key;
             goto found1;
         }
     }
@@ -1170,14 +1170,14 @@ found1:
     pos2  = &sc->pos;
     recs2 = work->hits[2].recs;
     for (i2 = 0; i2 < 5; i2++) {
-        if (recs2[i2].field_4 == 0) {
+        if (recs2[i2].key == 0) {
             goto missed2;
         }
-        if ((recs2[i2].field_4 & 0xFFFF0000) == 0x20000) {
-            pos2->vx = recs2[i2].field_8;
-            pos2->vy = recs2[i2].field_A;
-            pos2->vz = recs2[i2].field_C;
-            id       = recs2[i2].field_4;
+        if ((recs2[i2].key & 0xFFFF0000) == 0x20000) {
+            pos2->vx = recs2[i2].point.vx;
+            pos2->vy = recs2[i2].point.vy;
+            pos2->vz = recs2[i2].point.vz;
+            id       = recs2[i2].key;
             goto found2;
         }
     }
@@ -1330,14 +1330,14 @@ void func_actor_444000_8013CA60(Actor444000* task)
     pos  = &sc->pos;
     recs = work->hits[3].recs;
     for (i = 0; i < 5; i++) {
-        if (recs[i].field_4 == 0) {
+        if (recs[i].key == 0) {
             goto missed1;
         }
-        if ((recs[i].field_4 & 0xFFFF0000) == 0x20000) {
-            pos->vx = recs[i].field_8;
-            pos->vy = recs[i].field_A;
-            pos->vz = recs[i].field_C;
-            id      = recs[i].field_4;
+        if ((recs[i].key & 0xFFFF0000) == 0x20000) {
+            pos->vx = recs[i].point.vx;
+            pos->vy = recs[i].point.vy;
+            pos->vz = recs[i].point.vz;
+            id      = recs[i].key;
             goto found1;
         }
     }
@@ -1353,14 +1353,14 @@ found1:
     pos2  = &sc->pos;
     recs2 = work->hits[4].recs;
     for (i2 = 0; i2 < 5; i2++) {
-        if (recs2[i2].field_4 == 0) {
+        if (recs2[i2].key == 0) {
             goto missed2;
         }
-        if ((recs2[i2].field_4 & 0xFFFF0000) == 0x20000) {
-            pos2->vx = recs2[i2].field_8;
-            pos2->vy = recs2[i2].field_A;
-            pos2->vz = recs2[i2].field_C;
-            id       = recs2[i2].field_4;
+        if ((recs2[i2].key & 0xFFFF0000) == 0x20000) {
+            pos2->vx = recs2[i2].point.vx;
+            pos2->vy = recs2[i2].point.vy;
+            pos2->vz = recs2[i2].point.vz;
+            id       = recs2[i2].key;
             goto found2;
         }
     }
@@ -1380,14 +1380,14 @@ found2:
     pos3  = &sc->pos;
     recs3 = work->hits[5].recs;
     for (i3 = 0; i3 < 5; i3++) {
-        if (recs3[i3].field_4 == 0) {
+        if (recs3[i3].key == 0) {
             goto missed3;
         }
-        if ((recs3[i3].field_4 & 0xFFFF0000) == 0x20000) {
-            pos3->vx = recs3[i3].field_8;
-            pos3->vy = recs3[i3].field_A;
-            pos3->vz = recs3[i3].field_C;
-            id       = recs3[i3].field_4;
+        if ((recs3[i3].key & 0xFFFF0000) == 0x20000) {
+            pos3->vx = recs3[i3].point.vx;
+            pos3->vy = recs3[i3].point.vy;
+            pos3->vz = recs3[i3].point.vz;
+            id       = recs3[i3].key;
             goto found3;
         }
     }
@@ -1533,14 +1533,14 @@ void func_actor_444000_8013D128(Actor444000* task)
     pos  = &sc->pos;
     recs = work->hits[6].recs;
     for (i = 0; i < 5; i++) {
-        if (recs[i].field_4 == 0) {
+        if (recs[i].key == 0) {
             goto missed1;
         }
-        if ((recs[i].field_4 & 0xFFFF0000) == 0x20000) {
-            pos->vx = recs[i].field_8;
-            pos->vy = recs[i].field_A;
-            pos->vz = recs[i].field_C;
-            id      = recs[i].field_4;
+        if ((recs[i].key & 0xFFFF0000) == 0x20000) {
+            pos->vx = recs[i].point.vx;
+            pos->vy = recs[i].point.vy;
+            pos->vz = recs[i].point.vz;
+            id      = recs[i].key;
             goto found1;
         }
     }
@@ -1556,14 +1556,14 @@ found1:
     pos2  = &sc->pos;
     recs2 = work->hits[7].recs;
     for (i2 = 0; i2 < 5; i2++) {
-        if (recs2[i2].field_4 == 0) {
+        if (recs2[i2].key == 0) {
             goto missed2;
         }
-        if ((recs2[i2].field_4 & 0xFFFF0000) == 0x20000) {
-            pos2->vx = recs2[i2].field_8;
-            pos2->vy = recs2[i2].field_A;
-            pos2->vz = recs2[i2].field_C;
-            id       = recs2[i2].field_4;
+        if ((recs2[i2].key & 0xFFFF0000) == 0x20000) {
+            pos2->vx = recs2[i2].point.vx;
+            pos2->vy = recs2[i2].point.vy;
+            pos2->vz = recs2[i2].point.vz;
+            id       = recs2[i2].key;
             goto found2;
         }
     }
@@ -1583,14 +1583,14 @@ found2:
     pos3  = &sc->pos;
     recs3 = work->hits[8].recs;
     for (i3 = 0; i3 < 5; i3++) {
-        if (recs3[i3].field_4 == 0) {
+        if (recs3[i3].key == 0) {
             goto missed3;
         }
-        if ((recs3[i3].field_4 & 0xFFFF0000) == 0x20000) {
-            pos3->vx = recs3[i3].field_8;
-            pos3->vy = recs3[i3].field_A;
-            pos3->vz = recs3[i3].field_C;
-            id       = recs3[i3].field_4;
+        if ((recs3[i3].key & 0xFFFF0000) == 0x20000) {
+            pos3->vx = recs3[i3].point.vx;
+            pos3->vy = recs3[i3].point.vy;
+            pos3->vz = recs3[i3].point.vz;
+            id       = recs3[i3].key;
             goto found3;
         }
     }
@@ -2605,10 +2605,10 @@ void func_actor_444000_8013FB74(Actor444000* arg0)
 
     recs = work->recs2;
     for (k = 0; k < 5; k++) {
-        if (recs[k].field_4 == 0) {
+        if (recs[k].key == 0) {
             goto missed;
         }
-        if ((recs[k].field_4 & 0xFFFF0000) == 0x10000) {
+        if ((recs[k].key & 0xFFFF0000) == 0x10000) {
             found = 1;
             goto scanned;
         }

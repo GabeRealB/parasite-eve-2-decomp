@@ -153,7 +153,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             work->obj.field_1C = mem->field_26;
             work->obj.flags    = 1;
             Gp_LinkObj(1, &work->obj);
-            work->rec.field_0   = 2;
+            work->rec.flags     = 2;
             work->obj2.field_8  = coord;
             work->obj2.field_C  = &work->rec;
             work->obj2.field_18 = 0;

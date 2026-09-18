@@ -66,7 +66,7 @@ void func_actor_510900_8013B0D8(Task* arg0)
             break;
         case 1:
             ctx->node.field_4 = Gp_StateF0.field_0 != 1;
-            hit               = work->rec20.field_4;
+            hit               = work->rec20.key;
             work->obj0.flags |= 0x8000;
             if ((hit & ~0x7FFF) == 0x20000) {
                 tag = ctx->node.field_5;

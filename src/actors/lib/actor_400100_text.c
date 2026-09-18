@@ -290,7 +290,7 @@ void Actor00100_Fn04864(Actor00100* arg0)
         Actor00100_Fn02788(arg0);
         Actor00100_Fn02788(arg0);
         work->field_6                  = 0;
-        work->objs[3].field_20.field_C = 0x26C;
+        work->objs[3].field_20.point.vz = 0x26C;
         return;
     }
     head            = *(Actor00100PatrolScratch**)G_SCRATCH_HEAD;
@@ -481,7 +481,7 @@ void Actor00100_Fn0503C(Actor00100* arg0)
         work->objs[2].flags   |= 0x4000;
         work->field_832        = work->field_834;
         Actor00100_Fn02788(arg0);
-        work->objs[3].field_20.field_C           = 0x320;
+        work->objs[3].field_20.point.vz           = 0x320;
         work->field_6                            = 0;
         work->field_8                            = 0;
         work->field_C1A                          = 0;
@@ -948,7 +948,7 @@ void Actor00100_Fn06654(Actor00100* arg0)
         z                              = vec->vz;
         work->field_8E8                = 7;
         work->field_8EA                = 1;
-        work->objs[3].field_20.field_C = 0x320;
+        work->objs[3].field_20.point.vz = 0x320;
         work->field_8E0                = z;
         Gp_SpawnPadLerp(3, 0xFFU, 8U);
     }
@@ -1008,7 +1008,7 @@ void Actor00100_Fn06C10(Actor00100* arg0)
         Actor00100_Fn02788(arg0);
         work->field_6                  = 0;
         work->field_8                  = 0;
-        work->objs[3].field_20.field_C = -0x2D0;
+        work->objs[3].field_20.point.vz = -0x2D0;
     }
     work->field_6 += 1;
     Actor00100_Fn02788(arg0);
@@ -1360,7 +1360,7 @@ void Actor00100_Fn0782C(Actor00100* arg0)
         ((Actor00100MoveWork*)work)->pos[0][0]    = (s16)((u16)scratch->vec.vx + arg0->field_2C->coords->coord.t[0]);
         *(Actor00100MoveScratch**)G_SCRATCH_HEAD += 1;
         ((Actor00100MoveWork*)work)->pos[0][1]    = (s16)((u16)scratch->vec.vz + arg0->field_2C->coords->coord.t[2]);
-        work->objs[3].field_20.field_C            = 0x26C;
+        work->objs[3].field_20.point.vz            = 0x26C;
         return;
     }
     work->field_8      += 1;

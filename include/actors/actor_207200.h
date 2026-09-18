@@ -168,7 +168,7 @@ typedef struct Actor207200DmgScratch {
 } Actor207200DmgScratch;
 STATIC_ASSERT_SIZEOF(Actor207200DmgScratch, 0x48);
 
-/// A `GpRec18` collision record read either whole (`rec.field_4` is the hit
+/// A `GpRec18` collision record read either whole (`rec.key` is the hit
 /// id) or split as a `GpHitRec` (`hit.kind` is the id's high half).
 typedef union Actor207200HitRec {
     GpRec18  rec;

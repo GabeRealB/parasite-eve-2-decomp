@@ -901,12 +901,12 @@ void func_actor_105700_80134374(Actor105700* arg0)
     scratch->rot.vx = work->field_63C;
     scratch->rot.vy = work->field_63E;
     if (Gp_FindRec18(work->field_654, 0) != 0) {
-        scratch->pos.vx = work->field_654[0].field_8 - scratch->vec.vx;
-        scratch->pos.vy = work->field_654[0].field_A - scratch->vec.vy;
-        scratch->pos.vz = work->field_654[0].field_C - scratch->vec.vz;
+        scratch->pos.vx = work->field_654[0].point.vx - scratch->vec.vx;
+        scratch->pos.vy = work->field_654[0].point.vy - scratch->vec.vy;
+        scratch->pos.vz = work->field_654[0].point.vz - scratch->vec.vz;
         scratch->rot.vz = SquareRoot0(scratch->pos.vx * scratch->pos.vx + scratch->pos.vy * scratch->pos.vy +
                                       scratch->pos.vz * scratch->pos.vz);
-        if ((work->field_654[0].field_4 & 0xFFFF0000) == 0x10000) {
+        if ((work->field_654[0].key & 0xFFFF0000) == 0x10000) {
             scratch->rot.vz += 1000;
         }
     } else {
@@ -1227,14 +1227,14 @@ void func_actor_105700_8013541C(GpEnemy* arg0, Task* arg1)
     pos.vz = coord->workm.t[2];
     Gp_UpdateActorColor(arg1->spawnArg2, &pos, 0, 0);
 
-    if (work->recD0[0].field_4 != 0) {
-        idx = func_800E1B24(work->recD0[0].field_4);
+    if (work->recD0[0].key != 0) {
+        idx = func_800E1B24(work->recD0[0].key);
         if (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1][idx]->field_1 == 0) {
             found = 1;
         }
         Gp_ClearRec18Occupied(work->recD0);
     }
-    if (work->rec60[0].field_4 != 0 || found || ++work->field_EA >= 0x5A) {
+    if (work->rec60[0].key != 0 || found || ++work->field_EA >= 0x5A) {
         Gp_SpawnEff(D_80115750, coord, work->field_EE, NULL);
         ((TmdObject*)arg1->extra)->flags = 0x80;
         ctx                              = arg1->spawnArg2;
@@ -1242,7 +1242,7 @@ void func_actor_105700_8013541C(GpEnemy* arg0, Task* arg1)
         pan                              = (s8)Gp_GetObjPan((GpObj38*)coord);
         SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
         arg1->state = 2;
-        if ((work->rec60[0].field_4 & 0xFFFF0080) == 0x10000) {
+        if ((work->rec60[0].key & 0xFFFF0080) == 0x10000) {
             Gp_SpawnPadLerp(0xA, 0xFF, 8);
         }
     }

@@ -90,7 +90,7 @@ typedef struct Actor403000Work {
     /// Record table `func_actor_403000_8013D48C` scans: the same five-entry
     /// `GpRec18` run the display nodes carry at +0x20, here standing on its own
     /// after the four nodes. `func_actor_403000_8013C864` hands it back to
-    /// `Gp_ClearRec18Occupied` twice, and the scan reads a record's `field_4`
+    /// `Gp_ClearRec18Occupied` twice, and the scan reads a record's `key`
     /// the way the shared hit-record walkers do -- 0 means the run has ended,
     /// high half 0x10 is the kind that counts as present.
     /* 0xDE8 */ GpRec18      records[5];
@@ -490,7 +490,7 @@ s32 func_actor_403000_8013D364(Task* task, s32 arg1, ActorShared80164954Placemen
 s32 func_actor_403000_8013D464(Task* task, s32 arg1, Actor403000Msg* msg);
 
 /// Report whether the work block's five-entry record run holds a live entry:
-/// the walk stops at the first empty `field_4` and answers 1 if any record it
+/// the walk stops at the first empty `key` and answers 1 if any record it
 /// passed carried the 0x10 kind bits.
 s16 func_actor_403000_8013D48C(Task* task);
 

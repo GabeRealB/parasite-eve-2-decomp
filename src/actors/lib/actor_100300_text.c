@@ -2099,7 +2099,7 @@ void Actor00300_Fn04370(Actor100300Ctx* arg0, Actor100300* arg1)
             coord->coord.t[2] += (coord->coord.m[2][2] * 0x19) >> 8;
             Gp_UpdateCoord(coord);
             Actor00300_Fn00078(coord, 0x200);
-            id = work->field_70.field_4;
+            id = work->field_70.key;
             if (id != 0 && Gp_RoomParamTables[gGameSession->at4.loc.stage - 1]
                                              [gGameSession->at4.loc.area - 1][func_800E1B24(id)]
                                                  ->field_1 == 0) {

@@ -30,7 +30,7 @@ static __inline__ s16 pick_step(s16 step, s16 push)
 }
 
 /// Push-out of the model from contact record `rec`: how far `coord` sits
-/// inside the record's radius (`field_2`), along the direction from the
+/// inside the record's radius (`depth`), along the direction from the
 /// record's centre to the root part, carried into grid space.
 ///
 /// `rec` must stay an inline argument: `integrate.c` expands it with
@@ -48,20 +48,20 @@ static __inline__ void calc_push(Task* arg0, GsCOORDINATE2* coord, GpRec18* rec,
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
     c2     = ((TmdObject*)arg0->extra)->coords;
-    d.vx   = pos.vx - rec->field_8;
+    d.vx   = pos.vx - rec->point.vx;
     d.vy   = 0;
-    d.vz   = pos.vz - rec->field_C;
+    d.vz   = pos.vz - rec->point.vz;
     pen    = SquareRoot0(d.vx * d.vx + d.vz * d.vz);
-    pen    = rec->field_2 - pen;
+    pen    = rec->depth - pen;
     if (pen <= 0) {
         t = 0;
     } else {
         t = pen;
     }
     pen  = t;
-    d.vx = c2->workm.t[0] - rec->field_8;
-    d.vy = c2->workm.t[1] - rec->field_A;
-    d.vz = c2->workm.t[2] - rec->field_C;
+    d.vx = c2->workm.t[0] - rec->point.vx;
+    d.vy = c2->workm.t[1] - rec->point.vy;
+    d.vz = c2->workm.t[2] - rec->point.vz;
     VectorNormal(&d, &n);
     ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &n, &d);
     out->vx = (pen * d.vx) >> 12;
@@ -105,7 +105,7 @@ void func_actor_342400_801653DC(Task* arg0, s16 arg1)
     *(u8**)G_SCRATCH_HEAD -= 8;
     work->field_41E        = 0;
     for (i = 0; i < 8; i++) {
-        switch (work->rec_2EC[i].field_4 & 0xFFFF0000) {
+        switch (work->rec_2EC[i].key & 0xFFFF0000) {
             case 0x10000:
                 if (arg1 != 0) {
                     break;
@@ -122,37 +122,37 @@ void func_actor_342400_801653DC(Task* arg0, s16 arg1)
             case 0x20000:
                 if (work->field_40E == 0) {
                     work->field_41E = 1;
-                    dmg             = Gp_ComputeDamage(work->rec_2EC[i].field_4, work->field_43A, 0, 0);
+                    dmg             = Gp_ComputeDamage(work->rec_2EC[i].key, work->field_43A, 0, 0);
                     amount          = dmg;
-                    work->field_40E = Gp_GetIdParam2(work->rec_2EC[i].field_4);
-                    if (Gp_RollEnemyChance(enemy, work->rec_2EC[i].field_4, 0) != 0) {
+                    work->field_40E = Gp_GetIdParam2(work->rec_2EC[i].key);
+                    if (Gp_RollEnemyChance(enemy, work->rec_2EC[i].key, 0) != 0) {
                         amount = ((u32)dmg << 16) >> 14;
                         Gp_SpawnEff(0x6009C, &((TmdObject*)arg0->extra)->coords[3], 0, NULL);
                     }
-                    func_800E2C78((GpObj40*)enemy, work->rec_2EC[i].field_4, amount, 0);
+                    func_800E2C78((GpObj40*)enemy, work->rec_2EC[i].key, amount, 0);
                     func_800DA6E8(&enemy->node, amount, 0);
                     enemy->field_40 -= amount;
                     if (enemy->field_40 < 0) {
                         enemy->field_40 = 0;
                     }
-                    func_800FDB18(Gp_GetIdParam1(work->rec_2EC[i].field_4) & 0xFFFF,
+                    func_800FDB18(Gp_GetIdParam1(work->rec_2EC[i].key) & 0xFFFF,
                                   &((TmdObject*)arg0->extra)->coords[1], NULL, &work->eff_3FC);
                     if (amount >= 0x28) {
                         work->field_448 = 2;
                     } else {
                         work->field_448 = 1;
                     }
-                    switch (Gp_GetIdParam0(work->rec_2EC[i].field_4) & 0xFFFF) {
+                    switch (Gp_GetIdParam0(work->rec_2EC[i].key) & 0xFFFF) {
                         case 0:
                             break;
                         case 1:
                             Gp_SetObjFlag1((GpObj4C*)enemy);
                             break;
                         case 2:
-                            Gp_SetObjFlag2((GpObj5D*)enemy, work->rec_2EC[i].field_4, 0);
+                            Gp_SetObjFlag2((GpObj5D*)enemy, work->rec_2EC[i].key, 0);
                             break;
                         case 3:
-                            Gp_SetObjFlag4((GpObj5C*)enemy, work->rec_2EC[i].field_4, 0);
+                            Gp_SetObjFlag4((GpObj5C*)enemy, work->rec_2EC[i].key, 0);
                             break;
                         case 4:
                             work->field_448 = 4;
@@ -173,7 +173,7 @@ void func_actor_342400_801653DC(Task* arg0, s16 arg1)
                             work->field_448 = 3;
                             break;
                     }
-                } else if ((Gp_GetIdParam1(work->rec_2EC[i].field_4) & 0xFFFF) == 0xD) {
+                } else if ((Gp_GetIdParam1(work->rec_2EC[i].key) & 0xFFFF) == 0xD) {
                     func_800FDB18(0xD, &((TmdObject*)arg0->extra)->coords[1], NULL, &work->eff_3FC);
                 }
                 break;

@@ -2506,10 +2506,10 @@ s32 func_actor_403600_8013D9A8(Actor403600* arg0)
     work  = arg0->field_1C;
     entry = (u8*)work;
     do {
-        if ((((u32)(((volatile GpRec18*)(entry + 0x5F8))->field_4 & mask)) >> 16) == kind) {
+        if ((((u32)(((volatile GpRec18*)(entry + 0x5F8))->key & mask)) >> 16) == kind) {
             if (work->field_786 == 0) {
                 work->field_786++;
-                callResult = func_800E1B24(((volatile GpRec18*)(entry + 0x5F8))->field_4);
+                callResult = func_800E1B24(((volatile GpRec18*)(entry + 0x5F8))->key);
                 three      = 3;
                 if (callResult == three) {
                     return 2;

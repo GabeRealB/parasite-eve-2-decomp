@@ -34,7 +34,7 @@ void Actor01900_Fn00260(GsCOORDINATE2* coord, s16 yaw)
 }
 
 /// Same body as `Actor04400_CalcPush`: push-out of `pos` from contact record
-/// `rec`, how far it sits inside the record's radius (`field_2`) along the
+/// `rec`, how far it sits inside the record's radius (`depth`) along the
 /// direction from the record's centre, carried into grid space.
 static __inline__ void Actor01900_CalcPush(SVECTOR* pos, GpRec18* rec, SVECTOR* out)
 {
@@ -43,20 +43,20 @@ static __inline__ void Actor01900_CalcPush(SVECTOR* pos, GpRec18* rec, SVECTOR* 
     s32    t;
     s32    pen;
 
-    d.vx = pos->vx - rec->field_8;
+    d.vx = pos->vx - rec->point.vx;
     d.vy = 0;
-    d.vz = pos->vz - rec->field_C;
+    d.vz = pos->vz - rec->point.vz;
     pen  = SquareRoot0(d.vx * d.vx + d.vz * d.vz);
-    pen  = rec->field_2 - pen;
+    pen  = rec->depth - pen;
     if (pen <= 0) {
         t = 0;
     } else {
         t = pen;
     }
     pen  = t;
-    d.vx = pos->vx - rec->field_8;
-    d.vy = pos->vy - rec->field_A;
-    d.vz = pos->vz - rec->field_C;
+    d.vx = pos->vx - rec->point.vx;
+    d.vy = pos->vy - rec->point.vy;
+    d.vz = pos->vz - rec->point.vz;
     VectorNormal(&d, &n);
     ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &n, &d);
     out->vx = (pen * d.vx) >> 12;
@@ -65,7 +65,7 @@ static __inline__ void Actor01900_CalcPush(SVECTOR* pos, GpRec18* rec, SVECTOR* 
 }
 
 /// Updates `coord` and computes the push-out of the last kind 0x10000 / 0x30000 record
-/// in `recs`, walking until `count` or a zero `field_4`; nonzero when any hit.
+/// in `recs`, walking until `count` or a zero `key`; nonzero when any hit.
 s32 Actor01900_Fn0056C(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 {
     Actor01900RepelScratch* head;
@@ -90,11 +90,11 @@ s32 Actor01900_Fn0056C(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     s->last.vx = 0;
     s->hit     = 0;
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].field_4 == 0) {
+        if (recs[s->i].key == 0) {
             s->dist[s->i] = 0x7FFE;
             break;
         }
-        s->kind = recs[s->i].field_4 & 0xFFFF0000;
+        s->kind = recs[s->i].key & 0xFFFF0000;
         if (s->kind == 0x10000 || s->kind == 0x30000) {
             s->hit = 1;
             Actor01900_CalcPush(&s->pos, &recs[s->i], &s->offset);
@@ -190,10 +190,10 @@ s32 Actor01900_Fn008B4(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
     s->count  = 0;
 
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].field_4 == 0) {
+        if (recs[s->i].key == 0) {
             break;
         }
-        s->kind = recs[s->i].field_4 & 0xFFFF0000;
+        s->kind = recs[s->i].key & 0xFFFF0000;
         switch (s->kind) {
             case 0x10000:
                 s->blocked = 1;
@@ -204,9 +204,9 @@ s32 Actor01900_Fn008B4(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
         }
 
         if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] = Actor01900_BearingXZ((SVECTOR3*)&recs[s->i].field_8, &s->eye);
+            s->angle[s->count] = Actor01900_BearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
         } else {
-            s->angle[s->count] = Actor01900_BearingXY((SVECTOR3*)&recs[s->i].field_8, &s->eye);
+            s->angle[s->count] = Actor01900_BearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
         }
         s->ok[s->count] = 1;
         s->count++;
@@ -354,17 +354,17 @@ s32 Actor01900_Fn00FA4(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
     RoomsShared80182078ToWorld2(coord, &st->aim);
 
     for (st->i = 0; st->i < count; st->i++) {
-        if (recs[st->i].field_4 == 0) {
+        if (recs[st->i].key == 0) {
             st->angle[st->i] = 0x7FFE;
             break;
         }
-        st->kind = recs[st->i].field_4 & 0xFFFF0000;
+        st->kind = recs[st->i].key & 0xFFFF0000;
         if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
             st->angle[st->i] = 0x7FFF;
         } else {
-            st->delta.vx     = *(u16*)&recs[st->i].field_8 - *(u16*)&st->eye.vx;
-            st->delta.vy     = *(u16*)&recs[st->i].field_A - *(u16*)&st->eye.vy;
-            dz               = *(u16*)&recs[st->i].field_C - *(u16*)&st->eye.vz;
+            st->delta.vx     = *(u16*)&recs[st->i].point.vx - *(u16*)&st->eye.vx;
+            st->delta.vy     = *(u16*)&recs[st->i].point.vy - *(u16*)&st->eye.vy;
+            dz               = *(u16*)&recs[st->i].point.vz - *(u16*)&st->eye.vz;
             st->delta.vz     = dz;
             st->angle[st->i] = ratan2(st->delta.vx, dz);
 
@@ -1040,13 +1040,13 @@ static __inline__ s32 Actor01900_FindHit(GpRec18* records, SVECTOR* pos)
     s16 i;
 
     for (i = 0; i < 12; i++) {
-        if (!records[i].field_4)
+        if (!records[i].key)
             break;
-        if ((records[i].field_4 & 0xFFFF0000) == 0x20000) {
-            pos->vx = records[i].field_8;
-            pos->vy = records[i].field_A;
-            pos->vz = records[i].field_C;
-            return records[i].field_4;
+        if ((records[i].key & 0xFFFF0000) == 0x20000) {
+            pos->vx = records[i].point.vx;
+            pos->vy = records[i].point.vy;
+            pos->vz = records[i].point.vz;
+            return records[i].key;
         }
     }
     return 0;
@@ -1564,7 +1564,7 @@ s32 Actor01900_Fn03C98(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16 arg3)
 }
 
 /// Pushes the actor's root coordinate by half of each nearby kind 0x10000 /
-/// 0x30000 record's offset, walking `recs` until `count` or a zero `field_4`.
+/// 0x30000 record's offset, walking `recs` until `count` or a zero `key`.
 /// The duplicated coordinate update is load-bearing: loop.c counts both copies
 /// before cross-jumping merges them, which keeps `count`'s sign extension in the loop.
 s32 Actor01900_Fn03FF8(Actor01900* arg0, GpRec18* recs, s16 count)
@@ -1587,11 +1587,11 @@ s32 Actor01900_Fn03FF8(Actor01900* arg0, GpRec18* recs, s16 count)
     s->pos.vz = arg0->field_2C->coords[1].workm.t[2];
     s->hit    = 0;
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].field_4 == 0) {
+        if (recs[s->i].key == 0) {
             s->dist[s->i] = 0x7FFE;
             break;
         }
-        s->kind = recs[s->i].field_4 & 0xFFFF0000;
+        s->kind = recs[s->i].key & 0xFFFF0000;
         if (s->kind == 0x10000 || s->kind == 0x30000) {
             s->hit = 1;
             Gp_MakeDirOffset(&s->pos, (GpDirSrc*)&recs[s->i], &s->offset);

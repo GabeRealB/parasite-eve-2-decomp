@@ -183,7 +183,7 @@ void func_actor_207200_8014A588(Task* arg0)
     sndHit  = 0x40480009;
     sndHit2 = 0x402E0008;
     do {
-        switch (work->field_1A4[i].field_4 & 0xFFFF0000) {
+        switch (work->field_1A4[i].key & 0xFFFF0000) {
             case 0x10000:
                 if (work->field_2AC != 0) {
                     snd = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 12) << 8) | sndHit;
@@ -208,15 +208,15 @@ void func_actor_207200_8014A588(Task* arg0)
                 sc->delta.vx.w = Player_Status.coordMtx->t[0] - coord->coord.t[0];
                 sc->delta.vy.w = Player_Status.coordMtx->t[1] - coord->coord.t[1];
                 sc->delta.vz.w = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-                damage         = Gp_ComputeDamage(work->field_1A4[i].field_4,
+                damage         = Gp_ComputeDamage(work->field_1A4[i].key,
                                                   SquareRoot0(sc->delta.vx.w * sc->delta.vx.w +
                                                               sc->delta.vy.w * sc->delta.vy.w +
                                                               sc->delta.vz.w * sc->delta.vz.w),
                                                   0, 0);
-                if (Gp_RollEnemyChance(arg0->spawnArg2, work->field_1A4[i].field_4, 0) != 0) {
+                if (Gp_RollEnemyChance(arg0->spawnArg2, work->field_1A4[i].key, 0) != 0) {
                     damage *= 4;
                 }
-                func_800E2C78((GpObj40*)enemy, work->field_1A4[i].field_4, damage, 0);
+                func_800E2C78((GpObj40*)enemy, work->field_1A4[i].key, damage, 0);
                 func_800DA6E8(&enemy->node, damage, 0);
                 if (damage != 0) {
                     if (work->field_2AC != 0) {
@@ -238,10 +238,10 @@ void func_actor_207200_8014A588(Task* arg0)
                     arg0->state         = 2;
                     break;
                 }
-                switch ((u16)Gp_GetIdParam0(work->field_1A4[i].field_4)) {
+                switch ((u16)Gp_GetIdParam0(work->field_1A4[i].key)) {
                     case 2:
                     case 9:
-                        Gp_SetObjFlag2((GpObj5D*)enemy, work->field_1A4[i].field_4, 0);
+                        Gp_SetObjFlag2((GpObj5D*)enemy, work->field_1A4[i].key, 0);
                         break;
                     case 8:
                         work->field_2A6 = 1;

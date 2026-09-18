@@ -454,7 +454,7 @@ void func_actor_503500_801454E0(Actor503500* arg0)
     work = (Actor503500WorkRec4*)arg0->field_1C;
     rec  = work->rec;
     for (i = 0; i < 4; i++) {
-        if ((rec[i].field_4 & 0xFFFF0000) == 0x10000) {
+        if ((rec[i].key & 0xFFFF0000) == 0x10000) {
             work->obj.flags &= 0x7FFF;
         }
     }
@@ -765,7 +765,7 @@ void func_actor_503500_80145F18(Actor503500* arg0)
     work = (Actor503500WorkRec4*)arg0->field_1C;
     rec  = work->rec;
     for (i = 0; i < 4; i++) {
-        if ((rec[i].field_4 & 0xFFFF0000) == 0x10000) {
+        if ((rec[i].key & 0xFFFF0000) == 0x10000) {
             work->obj.flags &= 0x7FFF;
         }
     }

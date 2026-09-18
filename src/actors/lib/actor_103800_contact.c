@@ -57,8 +57,8 @@ void Actor03800_Fn00A98(Actor103800* arg0)
     if (result != 0) {
         for (i = 0; i < 4; i++) {
             wallWork = (Actor103800Work*)((u8*)work + i * 0x18);
-            if ((wallWork->field_22C[0].field_4 & 0xFFFF0000) == 0x100000) {
-                if (wallWork->field_22C[0].field_12 >= -0xDDA) {
+            if ((wallWork->field_22C[0].key & 0xFFFF0000) == 0x100000) {
+                if (wallWork->field_22C[0].at10.normal.vy >= -0xDDA) {
                     if (work->field_36E == 0) {
                         work->field_370 = 1;
                         break;
@@ -100,7 +100,7 @@ void Actor03800_Fn00A98(Actor103800* arg0)
     one         = 1;
     contactWork = work;
 contact_loop: {
-    id   = contactWork->field_1C4[0].field_4;
+    id   = contactWork->field_1C4[0].key;
     kind = (u32)id >> 0x10;
     if (kind == one)
         goto physical_contact;
@@ -122,31 +122,31 @@ damage_contact:
         dz            = sourceCoord->coord.t[2] - coord->coord.t[2];
         scratch->vz.w = dz;
         damage        = SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
-        damage        = Gp_ComputeDamage(contactWork->field_1C4[0].field_4, damage, 0, 0);
+        damage        = Gp_ComputeDamage(contactWork->field_1C4[0].key, damage, 0, 0);
         if (work->field_36E == 0) {
-            if (Gp_RollEnemyChance((GpEnemy*)ctx, (u32)contactWork->field_1C4[0].field_4, 0) != 0) {
+            if (Gp_RollEnemyChance((GpEnemy*)ctx, (u32)contactWork->field_1C4[0].key, 0) != 0) {
                 damage *= 4;
                 Gp_SpawnEff(0x6009C, coord, 0, NULL);
             }
-        } else if (!(contactWork->field_1C4[0].field_4 & 0x8000) && (damage != 0)) {
+        } else if (!(contactWork->field_1C4[0].key & 0x8000) && (damage != 0)) {
             damage *= 3;
             Gp_SpawnEff(0x6009C, coord, 4, NULL);
         }
         func_800DA6E8(&ctx->node, (s32)damage, 0);
-        func_800E2C78((GpObj40*)ctx, contactWork->field_1C4[0].field_4, (s32)damage, 0);
+        func_800E2C78((GpObj40*)ctx, contactWork->field_1C4[0].key, (s32)damage, 0);
         health        = (u16)ctx->field_40 - damage;
         ctx->field_40 = health;
         if ((health << 0x10) <= 0) {
             reaction = 2;
         }
-        effect = Gp_GetIdParam0(contactWork->field_1C4[0].field_4) & 0xFFFF;
+        effect = Gp_GetIdParam0(contactWork->field_1C4[0].key) & 0xFFFF;
         switch (effect) {
             case 0:
                 break;
             default:
                 break;
             case 3:
-                Gp_SetObjFlag4((GpObj5C*)ctx, contactWork->field_1C4[0].field_4, 0);
+                Gp_SetObjFlag4((GpObj5C*)ctx, contactWork->field_1C4[0].key, 0);
                 break;
             case 4:
                 if (ctx->field_40 > 0) {
@@ -166,7 +166,7 @@ damage_contact:
                 break;
             case 8:
                 if ((work->field_36E == 0) && (reaction == 0)) {
-                    Gp_SetObjFlag2((GpObj5D*)ctx, contactWork->field_1C4[0].field_4, 0);
+                    Gp_SetObjFlag2((GpObj5D*)ctx, contactWork->field_1C4[0].key, 0);
                 }
                 break;
             case 1:
@@ -204,25 +204,25 @@ damage_contact:
     state_reset:
         work->field_354 = 0;
     state_done:
-        hitId = contactWork->field_1C4[0].field_4;
+        hitId = contactWork->field_1C4[0].key;
         if (lastId != hitId) {
             lastId = hitId;
             func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, arg0->field_2C->field_8 + 3, NULL, (GpEffArg*)&work->field_2C4);
         }
-        result = Gp_GetIdParam2(contactWork->field_1C4[0].field_4);
+        result = Gp_GetIdParam2(contactWork->field_1C4[0].key);
         if (result > 0) {
             work->field_34E = (s16)result;
         }
     }
     goto next_contact;
 physical_contact:
-    dx2           = coord->workm.t[0] - contactWork->field_1C4[0].field_8;
+    dx2           = coord->workm.t[0] - contactWork->field_1C4[0].point.vx;
     scratch->vx.w = dx2;
-    dy2           = coord->workm.t[1] - contactWork->field_1C4[0].field_A;
+    dy2           = coord->workm.t[1] - contactWork->field_1C4[0].point.vy;
     scratch->vy.w = dy2;
-    dz2           = coord->workm.t[2] - contactWork->field_1C4[0].field_C;
+    dz2           = coord->workm.t[2] - contactWork->field_1C4[0].point.vz;
     scratch->vz.w = dz2;
-    depth         = contactWork->field_1C4[0].field_2 - SquareRoot0((dx2 * dx2) + (dy2 * dy2) + (dz2 * dz2));
+    depth         = contactWork->field_1C4[0].depth - SquareRoot0((dx2 * dx2) + (dy2 * dy2) + (dz2 * dz2));
     boundedDepth  = depth;
     if (depth <= 0) {
         boundedDepth = 0;

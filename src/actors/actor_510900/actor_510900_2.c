@@ -43,7 +43,7 @@ void func_actor_510900_80135744(Actor510900* arg0)
         }
     }
     for (i = 0; i < 3; i++) {
-        switch ((u16)(work->rec49C[i].field_4 >> 16)) {
+        switch ((u16)(work->rec49C[i].key >> 16)) {
             case 0:
             case 1:
             case 3:
@@ -53,24 +53,24 @@ void func_actor_510900_80135744(Actor510900* arg0)
                 if (work->field_58C != 0) {
                     break;
                 }
-                param = Gp_GetIdParam0(work->rec49C[i].field_4);
-                if (work->rec49C[i].field_4 & 0x8000) {
-                    if ((u8)work->rec49C[i].field_4 - 1 < 6U) {
+                param = Gp_GetIdParam0(work->rec49C[i].key);
+                if (work->rec49C[i].key & 0x8000) {
+                    if ((u8)work->rec49C[i].key - 1 < 6U) {
                         reaction = 2;
                     }
-                    dmg = (s16)Gp_ComputeDamage(work->rec49C[i].field_4, 0, 0, 0) >> 1;
-                    func_800E2C78((GpObj40*)arg0->field_20, work->rec49C[i].field_4, dmg, 0);
+                    dmg = (s16)Gp_ComputeDamage(work->rec49C[i].key, 0, 0, 0) >> 1;
+                    func_800E2C78((GpObj40*)arg0->field_20, work->rec49C[i].key, dmg, 0);
                 } else {
                     d->vx = Player_Status.coordMtx->t[0] - coord->field_0.coord.t[0];
                     d->vy = Player_Status.coordMtx->t[1] - coord->field_0.coord.t[1];
                     d->vz = Player_Status.coordMtx->t[2] - coord->field_0.coord.t[2];
-                    full  = Gp_ComputeDamage(work->rec49C[i].field_4, SquareRoot0(d->vx * d->vx + d->vy * d->vy + d->vz * d->vz), 0, 0);
+                    full  = Gp_ComputeDamage(work->rec49C[i].key, SquareRoot0(d->vx * d->vx + d->vy * d->vy + d->vz * d->vz), 0, 0);
                     dmg   = full;
                     if ((u16)param == 5) {
                         dmg = full * 2;
                         Gp_SpawnEff(0x6009C, &arg0->field_2C->field_8[1].field_50, 2, NULL);
                     }
-                    if (Gp_RollEnemyChance(enemy, work->rec49C[i].field_4, 0) != 0) {
+                    if (Gp_RollEnemyChance(enemy, work->rec49C[i].key, 0) != 0) {
                         dmg *= 4;
                         if ((u16)param != 5) {
                             Gp_SpawnEff(0x6009C, &arg0->field_2C->field_8[1].field_50, 0, NULL);
@@ -98,7 +98,7 @@ void func_actor_510900_80135744(Actor510900* arg0)
                         break;
                     case 2:
                         if (work->field_5B4 == 0) {
-                            Gp_SetObjFlag2((GpObj5D*)enemy, work->rec49C[i].field_4, 0);
+                            Gp_SetObjFlag2((GpObj5D*)enemy, work->rec49C[i].key, 0);
                         }
                         break;
                     case 3:
@@ -186,18 +186,18 @@ void func_actor_510900_80135744(Actor510900* arg0)
                         }
                         break;
                 }
-                if (lastId != work->rec49C[i].field_4) {
-                    lastId = work->rec49C[i].field_4;
+                if (lastId != work->rec49C[i].key) {
+                    lastId = work->rec49C[i].key;
                     func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, &arg0->field_2C->field_8[1].field_50, NULL, (GpEffArg*)&work->field_53C);
                 }
-                wait = Gp_GetIdParam2(work->rec49C[i].field_4);
+                wait = Gp_GetIdParam2(work->rec49C[i].key);
                 if (wait > 0) {
                     work->field_58C = wait;
                 }
                 break;
             case 5:
                 hit = 0;
-                switch ((u32)(u16)work->rec49C[i].field_4) {
+                switch ((u32)(u16)work->rec49C[i].key) {
                     case 2:
                         hit             = 1;
                         work->field_58E = 10;
@@ -217,7 +217,7 @@ void func_actor_510900_80135744(Actor510900* arg0)
                 if (hit) {
                     work->obj4E4.flags &= 0x7FFF;
                     work->obj504.flags &= 0x7FFF;
-                    loss                = Gp_LookupIdField((u16)work->rec49C[i].field_4, 1);
+                    loss                = Gp_LookupIdField((u16)work->rec49C[i].key, 1);
                     enemy->field_40    -= loss;
                     func_800DA6E8(&enemy->node, loss, 0);
                     if (enemy->field_40 <= 0) {
@@ -233,8 +233,8 @@ void func_actor_510900_80135744(Actor510900* arg0)
         }
     }
     Gp_ClearRec18Occupied(work->rec49C);
-    if (work->rec524[0].field_0 & 1) {
-        if ((work->rec524[0].field_4 & 0xFFFF0000) == 0x10000) {
+    if (work->rec524[0].flags & 1) {
+        if ((work->rec524[0].key & 0xFFFF0000) == 0x10000) {
             work->field_5B2     = 1;
             work->obj4E4.flags &= 0x7FFF;
             work->obj504.flags &= 0x7FFF;

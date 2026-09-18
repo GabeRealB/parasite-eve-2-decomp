@@ -521,11 +521,11 @@ void func_actor_207200_8014BEF4(Task* arg0)
                 damage           = SquareRoot0(sc->d.delta.vx.w * sc->d.delta.vx.w +
                                                sc->d.delta.vy.w * sc->d.delta.vy.w +
                                                sc->d.delta.vz.w * sc->d.delta.vz.w);
-                Gp_GetIdParam0(((Actor207200HitView*)work)->rec2[i].rec.field_4);
-                damage = Gp_ComputeDamage(((Actor207200HitView*)work)->rec2[i].rec.field_4, damage, 0, 0);
-                func_800FDB18((u16)Gp_GetIdParam1(((Actor207200HitView*)work)->rec2[i].rec.field_4),
+                Gp_GetIdParam0(((Actor207200HitView*)work)->rec2[i].rec.key);
+                damage = Gp_ComputeDamage(((Actor207200HitView*)work)->rec2[i].rec.key, damage, 0, 0);
+                func_800FDB18((u16)Gp_GetIdParam1(((Actor207200HitView*)work)->rec2[i].rec.key),
                               ((TmdObject*)arg0->extra)->coords + 1, &D_actor_207200_80153F10, &work->field_3EC);
-                n = Gp_GetIdParam2(((Actor207200HitView*)work)->rec2[i].rec.field_4);
+                n = Gp_GetIdParam2(((Actor207200HitView*)work)->rec2[i].rec.key);
                 if ((s16)n > 0) {
                     work->field_49E = n;
                 }
@@ -582,7 +582,7 @@ void func_actor_207200_8014BEF4(Task* arg0)
 
     if (work->field_4A6 == 0) {
         for (i = 0; i < 6; i++) {
-            if ((((Actor207200HitView*)work)->rec3[i].rec.field_4 & 0xFFFF0000) != 0x20000) {
+            if ((((Actor207200HitView*)work)->rec3[i].rec.key & 0xFFFF0000) != 0x20000) {
                 continue;
             }
             if (work->field_49E != 0) {
@@ -593,8 +593,8 @@ void func_actor_207200_8014BEF4(Task* arg0)
             sc->d.delta.vz.w = Player_Status.coordMtx->t[2] - coord->coord.t[2];
             damage           = SquareRoot0(sc->d.delta.vx.w * sc->d.delta.vx.w + sc->d.delta.vy.w * sc->d.delta.vy.w +
                                            sc->d.delta.vz.w * sc->d.delta.vz.w);
-            param            = Gp_GetIdParam0(((Actor207200HitView*)work)->rec3[i].rec.field_4);
-            damage           = Gp_ComputeDamage(((Actor207200HitView*)work)->rec3[i].rec.field_4, damage, 0, 0);
+            param            = Gp_GetIdParam0(((Actor207200HitView*)work)->rec3[i].rec.key);
+            damage           = Gp_ComputeDamage(((Actor207200HitView*)work)->rec3[i].rec.key, damage, 0, 0);
             switch ((u16)param) {
                 case 1:
                 case 4:
@@ -609,20 +609,20 @@ void func_actor_207200_8014BEF4(Task* arg0)
                     return;
                 case 8:
                 case 9:
-                    Gp_SetObjFlag2((GpObj5D*)enemy, ((Actor207200HitView*)work)->rec3[i].rec.field_4, 0);
+                    Gp_SetObjFlag2((GpObj5D*)enemy, ((Actor207200HitView*)work)->rec3[i].rec.key, 0);
                 default:
-                    if ((Gp_RollEnemyChance(arg0->spawnArg2, ((Actor207200HitView*)work)->rec3[i].rec.field_4, 0) != 0 ||
+                    if ((Gp_RollEnemyChance(arg0->spawnArg2, ((Actor207200HitView*)work)->rec3[i].rec.key, 0) != 0 ||
                          work->field_486 == 3) &&
                         damage != 0) {
-                        func_800E2C78((GpObj40*)enemy, ((Actor207200HitView*)work)->rec3[i].rec.field_4, damage, 0);
+                        func_800E2C78((GpObj40*)enemy, ((Actor207200HitView*)work)->rec3[i].rec.key, damage, 0);
                         func_actor_207200_8014CFEC((Actor207200*)arg0);
                         return;
                     }
-                    func_800E2C78((GpObj40*)enemy, ((Actor207200HitView*)work)->rec3[i].rec.field_4, damage, 0);
+                    func_800E2C78((GpObj40*)enemy, ((Actor207200HitView*)work)->rec3[i].rec.key, damage, 0);
                     func_actor_207200_8014C870((Actor207200*)arg0, damage);
-                    func_800FDB18((u16)Gp_GetIdParam1(((Actor207200HitView*)work)->rec3[i].rec.field_4),
+                    func_800FDB18((u16)Gp_GetIdParam1(((Actor207200HitView*)work)->rec3[i].rec.key),
                                   ((TmdObject*)arg0->extra)->coords + 3, &D_actor_207200_80153F08, &work->field_3E4);
-                    n = Gp_GetIdParam2(((Actor207200HitView*)work)->rec3[i].rec.field_4);
+                    n = Gp_GetIdParam2(((Actor207200HitView*)work)->rec3[i].rec.key);
                     if ((s16)n > 0) {
                         work->field_49E = n;
                     }

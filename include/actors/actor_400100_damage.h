@@ -72,13 +72,13 @@ static __inline__ s32 Actor00100_FindDamageHit(GpRec18* records, SVECTOR* pos)
 {
     s16 i;
     for (i = 0; i < 5; i++) {
-        if (!records[i].field_4)
+        if (!records[i].key)
             break;
-        if ((records[i].field_4 & 0xFFFF0000) == 0x20000) {
-            pos->vx = records[i].field_8;
-            pos->vy = records[i].field_A;
-            pos->vz = records[i].field_C;
-            return records[i].field_4;
+        if ((records[i].key & 0xFFFF0000) == 0x20000) {
+            pos->vx = records[i].point.vx;
+            pos->vy = records[i].point.vy;
+            pos->vz = records[i].point.vz;
+            return records[i].key;
         }
     }
     return 0;

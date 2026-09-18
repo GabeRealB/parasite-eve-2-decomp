@@ -180,9 +180,9 @@ void func_actor_101500_8013230C(Actor101500* actor)
             Gp_LcgState              = Gp_LcgState * 5 + 0x71357911;
             work->field_362          = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
             for (i = 0; i < 5; i++) {
-                if ((work->field_264[i].field_4 & 0xFFFF0000) == 0x100000) {
-                    frame->dx       = work->field_264[i].field_10;
-                    frame->dz       = work->field_264[i].field_14;
+                if ((work->field_264[i].key & 0xFFFF0000) == 0x100000) {
+                    frame->dx       = work->field_264[i].at10.normal.vx;
+                    frame->dz       = work->field_264[i].at10.normal.vz;
                     work->field_372 = (ratan2(frame->dx, frame->dz) + 0x800) & 0xFFF;
                     break;
                 }
@@ -219,7 +219,7 @@ void func_actor_101500_8013230C(Actor101500* actor)
     }
     normal = &frame->normal;
     for (i = 0; i < 3; i++) {
-        id = work->field_1FC[i].field_4;
+        id = work->field_1FC[i].key;
         switch (id >> 0x10) {
             case 0:
             case 1:
@@ -233,15 +233,15 @@ void func_actor_101500_8013230C(Actor101500* actor)
                     frame->delta.vy.w = dy;
                     dz                = sourceCoord->coord.t[2] - coord->coord.t[2];
                     frame->delta.vz.w = dz;
-                    damage            = Gp_ComputeDamage(work->field_1FC[i].field_4, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
-                    if (Gp_RollEnemyChance(actor->field_20, work->field_1FC[i].field_4, 0) != 0) {
+                    damage            = Gp_ComputeDamage(work->field_1FC[i].key, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
+                    if (Gp_RollEnemyChance(actor->field_20, work->field_1FC[i].key, 0) != 0) {
                         damage *= 4;
                         Gp_SpawnEff(0x6009C, actor->field_2C->coords, 0, NULL);
                     }
                     func_800DA6E8(&actor->field_20->node, damage, 0);
-                    func_800E2C78((GpObj40*)actor->field_20, work->field_1FC[i].field_4, damage, 0);
+                    func_800E2C78((GpObj40*)actor->field_20, work->field_1FC[i].key, damage, 0);
                     func_actor_101500_8013291C(actor, damage);
-                    switch (Gp_GetIdParam0(work->field_1FC[i].field_4) & 0xFFFF) {
+                    switch (Gp_GetIdParam0(work->field_1FC[i].key) & 0xFFFF) {
                         case 0:
                         case 5:
                         case 7:
@@ -250,7 +250,7 @@ void func_actor_101500_8013230C(Actor101500* actor)
                             Gp_SetObjFlag1((GpObj4C*)actor->field_20);
                             break;
                         case 3:
-                            Gp_SetObjFlag4((GpObj5C*)actor->field_20, work->field_1FC[i].field_4, 0);
+                            Gp_SetObjFlag4((GpObj5C*)actor->field_20, work->field_1FC[i].key, 0);
                             break;
                         case 4:
                         case 6:
@@ -261,28 +261,28 @@ void func_actor_101500_8013230C(Actor101500* actor)
                         case 2:
                         case 8:
                         case 9:
-                            Gp_SetObjFlag2((GpObj5D*)actor->field_20, work->field_1FC[i].field_4, 0);
+                            Gp_SetObjFlag2((GpObj5D*)actor->field_20, work->field_1FC[i].key, 0);
                             break;
                     }
-                    hitId = work->field_1FC[i].field_4;
+                    hitId = work->field_1FC[i].key;
                     if (lastId != hitId) {
                         lastId = hitId;
                         func_800FDB18(Gp_GetIdParam1(hitId) & 0xFFFF, coord, NULL, (GpEffArg*)&work->field_314);
                     }
-                    damage = Gp_GetIdParam2(work->field_1FC[i].field_4);
+                    damage = Gp_GetIdParam2(work->field_1FC[i].key);
                     if ((s32)damage > 0) {
                         work->field_350 = damage;
                     }
                 }
                 break;
             case 3:
-                wallDx            = coord->workm.t[0] - work->field_1FC[i].field_8;
+                wallDx            = coord->workm.t[0] - work->field_1FC[i].point.vx;
                 frame->delta.vx.w = wallDx;
-                wallDy            = coord->workm.t[1] - work->field_1FC[i].field_A;
+                wallDy            = coord->workm.t[1] - work->field_1FC[i].point.vy;
                 frame->delta.vy.w = wallDy;
-                wallDz            = coord->workm.t[2] - work->field_1FC[i].field_C;
+                wallDz            = coord->workm.t[2] - work->field_1FC[i].point.vz;
                 frame->delta.vz.w = wallDz;
-                depth             = work->field_1FC[i].field_2 - SquareRoot0((wallDx * wallDx) + (wallDy * wallDy) + (wallDz * wallDz));
+                depth             = work->field_1FC[i].depth - SquareRoot0((wallDx * wallDx) + (wallDy * wallDy) + (wallDz * wallDz));
                 boundedDepth      = depth;
                 if (depth <= 0) {
                     boundedDepth = 0;

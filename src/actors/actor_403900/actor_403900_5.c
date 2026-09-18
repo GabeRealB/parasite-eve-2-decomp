@@ -91,12 +91,12 @@ void func_actor_403900_80135D5C(Actor403900* arg0)
         sc->pts[0].vx = 0;
         sc->pts[0].vy = -0x514;
         if (Gp_FindRec18(&work->field_644, 0) != 0) {
-            sc->out.vx    = work->field_644.field_8 - sc->pts[1].vx;
-            sc->out.vy    = work->field_644.field_A - sc->pts[1].vy;
-            sc->out.vz    = work->field_644.field_C - sc->pts[1].vz;
+            sc->out.vx    = work->field_644.point.vx - sc->pts[1].vx;
+            sc->out.vy    = work->field_644.point.vy - sc->pts[1].vy;
+            sc->out.vz    = work->field_644.point.vz - sc->pts[1].vz;
             dist          = SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vy * sc->out.vy + sc->out.vz * sc->out.vz);
             sc->pts[0].vz = dist;
-            if ((work->field_644.field_4 & 0xFFFF0000) == 0x10000) {
+            if ((work->field_644.key & 0xFFFF0000) == 0x10000) {
                 sc->pts[0].vz = dist + 0x12C;
             }
             Gp_ClearRec18Occupied(&work->field_644);

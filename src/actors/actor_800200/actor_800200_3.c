@@ -1600,12 +1600,12 @@ s32 func_actor_800200_801660E8(GsCOORDINATE2* arg0, GpRec18* arg1, GpRec18* arg2
 {
     s32 dist;
 
-    if (arg1->field_4 != 0) {
-        dist = func_80103D8C(arg0->workm.t[0] - arg1->field_8, arg0->workm.t[2] - arg1->field_C);
+    if (arg1->key != 0) {
+        dist = func_80103D8C(arg0->workm.t[0] - arg1->point.vx, arg0->workm.t[2] - arg1->point.vz);
         if (arg2 != NULL) {
-            arg2->field_0 = arg1->field_8;
-            arg2->field_2 = arg1->field_A;
-            arg2->field_0 = arg1->field_C;
+            arg2->flags = arg1->point.vx;
+            arg2->depth = arg1->point.vy;
+            arg2->flags = arg1->point.vz;
         }
     } else {
         dist = 0;

@@ -11,7 +11,7 @@
 /// parks in `Task::work`. It leads with the `GpObj` list node
 /// `WeaponsShared8011e4ac` hands back to `Gp_UnlinkObj` on teardown; `rec` is
 /// the single-entry `GpRec18` collision table `obj.field_C` points at, and its
-/// `field_0` is set to 2 (the last-element bit) instead of going through
+/// `flags` is set to 2 (the last-element bit) instead of going through
 /// `Gp_InitRec18Table`.
 typedef struct M4a1PykeBeam {
     /* 0x00 */ GpObj   obj;

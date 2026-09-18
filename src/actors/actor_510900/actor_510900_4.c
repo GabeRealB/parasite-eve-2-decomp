@@ -1919,14 +1919,14 @@ void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
     if (work->field_CA != 0 && coord->coord.t[1] >= -0x513) {
         done = 1;
     }
-    if (done != 0 || (work->rec60.field_4 & 0xFFFF0000) == 0x10000 || work->recB0.field_4 != 0) {
+    if (done != 0 || (work->rec60.key & 0xFFFF0000) == 0x10000 || work->recB0.key != 0) {
         Gp_SpawnEff(0x6005C, coord, 0x10002200, NULL);
         Gp_SpawnEff(0x60070, coord, 0xC1001200, NULL);
         eff = Gp_SpawnEff(0x80060185, coord, 0, NULL);
         if (eff != NULL) {
             Task_Reparent(task, eff->field_0);
         }
-        if (work->rec60.field_4 != 0) {
+        if (work->rec60.key != 0) {
             work->field_CA = 2;
         } else {
             work->field_CA = 0;
@@ -1989,7 +1989,7 @@ void func_actor_510900_8013A100(GpEnemy* enemy, Task* task)
                 }
                 break;
             case 1:
-                if ((work->rec60.field_4 & 0xFFFF0000) == 0x10000) {
+                if ((work->rec60.key & 0xFFFF0000) == 0x10000) {
                     work->field_CA     = 2;
                     work->field_CC     = 0;
                     work->obj40.flags &= 0x7FFF;
@@ -2316,7 +2316,7 @@ case0:
         goto end;
     }
     ctx->node.field_4   = Gp_StateF0.field_0 != 1;
-    dmg                 = work->rec2DC.field_4;
+    dmg                 = work->rec2DC.key;
     work->obj2BC.flags |= 0x8000;
     if ((dmg & 0xFFFF8000) == 0x20000 && ctx->node.field_5 == one &&
         Gp_ComputeDamage(dmg, 0x3E8, 0, 0) != 0) {

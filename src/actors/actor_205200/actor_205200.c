@@ -234,18 +234,18 @@ void func_actor_205200_8014B048(Actor205200* arg0, s32 arg1)
     }
     if (part->field_70 == 0) {
         for (i = 0; i < 3; i++) {
-            if ((part->recs[i].field_4 & 0xFFFF0000) != 0x20000) {
+            if ((part->recs[i].key & 0xFFFF0000) != 0x20000) {
                 continue;
             }
-            if (part->recs[i].field_4 & 0x8000) {
+            if (part->recs[i].key & 0x8000) {
                 func_800DA6E8(&enemy->node, 0, 0);
                 break;
             }
             vec->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
             vec->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
             vec->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-            damage  = Gp_ComputeDamage(part->recs[i].field_4, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
-            if (Gp_RollEnemyChance(enemy, part->recs[i].field_4, 0) != 0) {
+            damage  = Gp_ComputeDamage(part->recs[i].key, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
+            if (Gp_RollEnemyChance(enemy, part->recs[i].key, 0) != 0) {
                 damage *= 4;
                 Gp_SpawnEff(0x6009C, coord, 0, NULL);
             }
@@ -266,7 +266,7 @@ void func_actor_205200_8014B048(Actor205200* arg0, s32 arg1)
                 Gp_SpawnPadLerp(10, 0xFF, 0x80);
             } else if (damage > 0) {
                 if (part->field_76 == 0) {
-                    if ((Gp_GetIdParam0(part->recs[i].field_4) & 0xFFFF) == 7) {
+                    if ((Gp_GetIdParam0(part->recs[i].key) & 0xFFFF) == 7) {
                         func_800FDB18(3, coord, NULL, (GpEffArg*)&part->field_68);
                     }
                     func_800FDB18(7, coord, NULL, (GpEffArg*)&part->field_68);
@@ -278,7 +278,7 @@ void func_actor_205200_8014B048(Actor205200* arg0, s32 arg1)
                     clamped = 200;
                 }
                 part->field_74 = (clamped * 120) / 200 + 30;
-                hitTime        = Gp_GetIdParam2(part->recs[i].field_4);
+                hitTime        = Gp_GetIdParam2(part->recs[i].key);
                 if (hitTime > 0) {
                     part->field_70 = hitTime;
                 }

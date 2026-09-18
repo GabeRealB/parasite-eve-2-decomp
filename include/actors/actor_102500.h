@@ -17,30 +17,15 @@ typedef union Actor02500Fixed {
 } Actor02500Fixed;
 STATIC_ASSERT_SIZEOF(Actor02500Fixed, 0x4);
 
-/// 0x18-byte slot record; `Gp_InitRec18Table` zeroes `count` of them.
-/// `field_4` is the packed id `Gp_ComputeDamage` and the `Gp_GetIdParam*`
-/// helpers decode, whose high half selects the record kind; `field_8` /
-/// `field_A` / `field_C` are the recorded world position.
-typedef struct Actor02500Rec18 {
-    /* 0x00 */ u16  field_0;
-    /* 0x02 */ s16  field_2;
-    /* 0x04 */ u32  field_4;
-    /* 0x08 */ s16  field_8;
-    /* 0x0A */ s16  field_A;
-    /* 0x0C */ s16  field_C;
-    /* 0x0E */ byte pad_E[0xA];
-} Actor02500Rec18;
-STATIC_ASSERT_SIZEOF(Actor02500Rec18, 0x18);
-
 /// Collision/proximity list node this overlay embeds four times in
 /// `Actor02500Work`. `Gp_LinkObj` appends it to one of the global object
 /// lists and `Gp_UnlinkObj` takes it back off; `field_C` points at the
-/// `Actor02500Rec18` table that follows the node in the work block.
+/// `GpRec18` table that follows the node in the work block.
 typedef struct Actor02500Obj {
     /* 0x00 */ struct Actor02500Obj* next;
     /* 0x04 */ struct Actor02500Obj* prev;
     /* 0x08 */ void*                 field_8;
-    /* 0x0C */ Actor02500Rec18*      field_C;
+    /* 0x0C */ GpRec18*              field_C;
     /* 0x10 */ s16                   field_10;
     /* 0x12 */ s16                   field_12;
     /* 0x14 */ s16                   field_14;
@@ -71,7 +56,7 @@ typedef struct Actor02500Obj2C {
 /// 0x348-byte work block `Actor02500_Fn00078` allocates and hangs off
 /// `Actor02500.field_1C`. It opens with the animation context (`func_800B3F84`
 /// arg0) and its five slots, and carries the four list nodes plus their
-/// `Actor02500Rec18` tables.
+/// `GpRec18` tables.
 typedef struct Actor02500Work {
     /* 0x000 */ byte                pad_0[0x14];
     /* 0x014 */ Actor02500AnimSlots field_14;
@@ -79,13 +64,13 @@ typedef struct Actor02500Work {
     /* 0x12C */ byte                field_12C[0x20];
     /* 0x14C */ byte                field_14C[0x20];
     /* 0x16C */ Actor02500Obj       field_16C;
-    /* 0x18C */ Actor02500Rec18     field_18C[1];
+    /* 0x18C */ GpRec18             field_18C[1];
     /* 0x1A4 */ Actor02500Obj       field_1A4;
-    /* 0x1C4 */ Actor02500Rec18     field_1C4[3];
+    /* 0x1C4 */ GpRec18             field_1C4[3];
     /* 0x20C */ Actor02500Obj       field_20C;
-    /* 0x22C */ Actor02500Rec18     field_22C[5];
+    /* 0x22C */ GpRec18             field_22C[5];
     /* 0x2A4 */ Actor02500Obj       field_2A4;
-    /* 0x2C4 */ Actor02500Rec18     field_2C4[1];
+    /* 0x2C4 */ GpRec18             field_2C4[1];
     /* 0x2DC */ GsCOORDINATE2*      field_2DC;
     /* 0x2E0 */ s16                 field_2E0;
     /* 0x2E2 */ s16                 field_2E2;
@@ -142,14 +127,14 @@ typedef struct Actor02500Eff {
 
 /// Work block of the small helper task `Actor02500_L02634` spawns, also parked
 /// at `Actor02500.field_1C`. It opens with a list node and its one-entry
-/// `Actor02500Rec18` table, then the spawned effect and the countdown/state
+/// `GpRec18` table, then the spawned effect and the countdown/state
 /// pair `Actor02500_Fn02874` runs on.
 typedef struct Actor02500EffWork {
-    /* 0x00 */ Actor02500Obj   obj;
-    /* 0x20 */ Actor02500Rec18 rec18[1];
-    /* 0x38 */ Actor02500Eff*  field_38;
-    /* 0x3C */ s16             field_3C;
-    /* 0x3E */ s16             field_3E;
+    /* 0x00 */ Actor02500Obj  obj;
+    /* 0x20 */ GpRec18        rec18[1];
+    /* 0x38 */ Actor02500Eff* field_38;
+    /* 0x3C */ s16            field_3C;
+    /* 0x3E */ s16            field_3E;
 } Actor02500EffWork;
 STATIC_ASSERT_SIZEOF(Actor02500EffWork, 0x40);
 
@@ -179,25 +164,25 @@ typedef struct Actor02500Kind {
 } Actor02500Kind;
 
 typedef struct Actor02500Ctx {
-    /* 0x00 */ byte             pad_0[4];
-    /* 0x04 */ MATRIX*          field_4;
-    /* 0x08 */ u16              field_8;
-    /* 0x0A */ byte             pad_A[6];
-    /* 0x10 */ Actor02500Node   node;
-    /* 0x18 */ GsCOORDINATE2*   field_18;
-    /* 0x1C */ s32              field_1C;
-    /* 0x20 */ s32              field_20;
-    /* 0x24 */ s32              field_24;
-    /* 0x28 */ byte             pad_28[0x14];
-    /* 0x3C */ Actor02500Kind*  field_3C;
-    /* 0x40 */ s16              field_40;
-    /* 0x42 */ byte             pad_42[6];
-    /* 0x48 */ u8               field_48;
-    /* 0x49 */ byte             pad_49[3];
-    /* 0x4C */ u8               field_4C;
-    /* 0x4D */ byte             pad_4D[3];
-    /* 0x50 */ Actor02500Desc*  field_50;
-    /* 0x54 */ Actor02500Rec18* field_54;
+    /* 0x00 */ byte            pad_0[4];
+    /* 0x04 */ MATRIX*         field_4;
+    /* 0x08 */ u16             field_8;
+    /* 0x0A */ byte            pad_A[6];
+    /* 0x10 */ Actor02500Node  node;
+    /* 0x18 */ GsCOORDINATE2*  field_18;
+    /* 0x1C */ s32             field_1C;
+    /* 0x20 */ s32             field_20;
+    /* 0x24 */ s32             field_24;
+    /* 0x28 */ byte            pad_28[0x14];
+    /* 0x3C */ Actor02500Kind* field_3C;
+    /* 0x40 */ s16             field_40;
+    /* 0x42 */ byte            pad_42[6];
+    /* 0x48 */ u8              field_48;
+    /* 0x49 */ byte            pad_49[3];
+    /* 0x4C */ u8              field_4C;
+    /* 0x4D */ byte            pad_4D[3];
+    /* 0x50 */ Actor02500Desc* field_50;
+    /* 0x54 */ GpRec18*        field_54;
 } Actor02500Ctx;
 STATIC_ASSERT_SIZEOF(Actor02500Ctx, 0x58);
 
@@ -251,8 +236,8 @@ extern Actor02500StateF0    Gp_StateF0;
 void Gp_ArmStateF0(s32 active);
 void Actor02500_Fn012F0(Actor02500* actor);
 
-void Gp_ClearRec18Occupied(Actor02500Rec18* rec);
-s32  Gp_CountRec18Hi(Actor02500Rec18* rec, s32 mask);
+void Gp_ClearRec18Occupied(GpRec18* rec);
+s32  Gp_CountRec18Hi(GpRec18* rec, s32 mask);
 s32  Gp_GetObjDepth(GsCOORDINATE2* coord);
 s32  Gp_GetObjPan(GsCOORDINATE2* coord);
 s32  SndEvt_EnqueueType6(s32 sound, s32 pan, s32 depth);

@@ -484,7 +484,7 @@ s32 func_actor_401000_80132590(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
 s32 func_actor_401000_80132824(Actor401000* arg0);
 
 /// Walk a `GpRec18` table and push `coord` back out of the obstacles it
-/// overlaps, returning the record's `field_10`. The same helper as
+/// overlaps, returning the record's `at10.normal.vx`. The same helper as
 /// `func_actor_401300_801323B0`, whose second argument is the sibling's
 /// `field_990` run.
 s32 func_actor_401000_801323EC(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);

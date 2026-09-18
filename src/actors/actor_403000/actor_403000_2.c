@@ -48,7 +48,7 @@ s16 func_actor_403000_8013D48C(Task* task)
     s32              value;
 
     for (i = 0; i < 5; i++) {
-        value = work->records[i].field_4;
+        value = work->records[i].key;
         if (value == 0) {
             break;
         }

@@ -437,22 +437,22 @@ s32 func_actor_400600_801376EC(Task* arg0)
     work  = (Actor400600Work*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
     for (i = 0; i < 8; i++) {
-        if ((work->rec_63C[i].field_4 & 0xFFFF0000) != 0x100000) {
+        if ((work->rec_63C[i].key & 0xFFFF0000) != 0x100000) {
             dist = 0;
         } else {
             if (work->field_76A == 0) {
                 dist = 1;
             } else if (work->field_76A == 1) {
-                v.vx = work->rec_63C[i].field_8 - coord->workm.t[0];
+                v.vx = work->rec_63C[i].point.vx - coord->workm.t[0];
                 v.vy = 0;
-                v.vz = work->rec_63C[i].field_C - coord->workm.t[2];
+                v.vz = work->rec_63C[i].point.vz - coord->workm.t[2];
                 dist = SquareRoot0(v.vx * v.vx + v.vz * v.vz);
                 if (dist == 0) {
                     dist = 1;
                 }
             } else if (work->field_76A == 2) {
-                v.vx = work->rec_63C[i].field_8 - coord->workm.t[0];
-                v.vy = work->rec_63C[i].field_A - coord->workm.t[1];
+                v.vx = work->rec_63C[i].point.vx - coord->workm.t[0];
+                v.vy = work->rec_63C[i].point.vy - coord->workm.t[1];
                 v.vz = 0;
                 dist = SquareRoot0(v.vx * v.vx + v.vy * v.vy);
                 if (dist == 0) {

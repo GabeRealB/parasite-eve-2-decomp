@@ -484,7 +484,7 @@ void func_actor_206100_8014B8B4(Task* task)
         coord->coord.t[2] += child->field_5C;
         if (Gp_FindRec18(child->rec, 0) != 0) {
             for (i = 0; i < 2; i++) {
-                switch (child->rec[i].field_4 & 0xFFFF0000) {
+                switch (child->rec[i].key & 0xFFFF0000) {
                     case 0x10000:
                     case 0x30000:
                     case 0x50000:
@@ -567,35 +567,35 @@ void func_actor_206100_8014BAA8(Task* task)
     enemy           = (GpEnemy*)task->spawnArg2;
     work->field_52A = 0;
     for (i = 0; i < 6; i++) {
-        if ((work->rec_384[i].field_4 & 0xFFFF0000) == 0x20000) {
+        if ((work->rec_384[i].key & 0xFFFF0000) == 0x20000) {
             if (work->field_504 == 0) {
                 work->field_52A = hit;
                 work->field_54B = hit;
-                dmg             = Gp_ComputeDamage(work->rec_384[i].field_4, work->field_528, 0, 0);
+                dmg             = Gp_ComputeDamage(work->rec_384[i].key, work->field_528, 0, 0);
                 amount          = dmg;
-                work->field_504 = Gp_GetIdParam2(work->rec_384[i].field_4);
-                if (Gp_RollEnemyChance(enemy, work->rec_384[i].field_4, 0) != 0) {
+                work->field_504 = Gp_GetIdParam2(work->rec_384[i].key);
+                if (Gp_RollEnemyChance(enemy, work->rec_384[i].key, 0) != 0) {
                     amount = ((u32)dmg << 16) >> 14;
                     kind   = 1;
                 }
-                func_800FDB18(Gp_GetIdParam1(work->rec_384[i].field_4) & 0xFFFF,
+                func_800FDB18(Gp_GetIdParam1(work->rec_384[i].key) & 0xFFFF,
                               &((TmdObject*)task->extra)->coords[work->field_557], 0, &work->eff_4C0);
                 if (amount >= 0xB4) {
                     work->field_52C = heavy;
                 } else {
                     work->field_52C = hit;
                 }
-                switch (Gp_GetIdParam0(work->rec_384[i].field_4) & 0xFFFF) {
+                switch (Gp_GetIdParam0(work->rec_384[i].key) & 0xFFFF) {
                     case 0:
                         break;
                     case 1:
                         Gp_SetObjFlag1((GpObj4C*)enemy);
                         break;
                     case 2:
-                        Gp_SetObjFlag2((GpObj5D*)enemy, work->rec_384[i].field_4, 0);
+                        Gp_SetObjFlag2((GpObj5D*)enemy, work->rec_384[i].key, 0);
                         break;
                     case 3:
-                        Gp_SetObjFlag4((GpObj5C*)enemy, work->rec_384[i].field_4, 0);
+                        Gp_SetObjFlag4((GpObj5C*)enemy, work->rec_384[i].key, 0);
                         break;
                     case 4:
                         work->field_52C = 4;
@@ -617,7 +617,7 @@ void func_actor_206100_8014BAA8(Task* task)
                         work->field_52C = hit;
                         break;
                 }
-                if ((work->rec_384[i].field_4 & 0x7F) == 0x1C && (work->rec_384[i].field_4 & 0x8000) == 0) {
+                if ((work->rec_384[i].key & 0x7F) == 0x1C && (work->rec_384[i].key & 0x8000) == 0) {
                     enemy->field_4C &= 0xFE;
                     work->field_52C  = hit;
                 }
@@ -630,13 +630,13 @@ void func_actor_206100_8014BAA8(Task* task)
                         Gp_SpawnEff(0x6009C, &((TmdObject*)task->extra)->coords[work->field_557], 2, 0);
                         break;
                 }
-                func_800E2C78((GpObj40*)enemy, work->rec_384[i].field_4, amount, 0);
+                func_800E2C78((GpObj40*)enemy, work->rec_384[i].key, amount, 0);
                 func_800DA6E8(&enemy->node, amount, 0);
                 enemy->field_40 -= amount;
                 if ((s16)enemy->field_40 < 0) {
                     enemy->field_40 = 0;
                 }
-            } else if ((Gp_GetIdParam1(work->rec_384[i].field_4) & 0xFFFF) == 0xD) {
+            } else if ((Gp_GetIdParam1(work->rec_384[i].key) & 0xFFFF) == 0xD) {
                 func_800FDB18(0xD, &((TmdObject*)task->extra)->coords[1], 0, &work->eff_4C0);
             }
         }

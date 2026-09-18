@@ -1144,10 +1144,10 @@ static __inline__ s32 Actor110600_HasRec10000(GpRec18* recs)
     s16 i;
 
     for (i = 0; i < 1; i++) {
-        if (!recs[i].field_4) {
+        if (!recs[i].key) {
             break;
         }
-        if ((recs[i].field_4 & 0xFFFF0000) == 0x10000) {
+        if ((recs[i].key & 0xFFFF0000) == 0x10000) {
             return 1;
         }
     }

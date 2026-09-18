@@ -52,21 +52,21 @@ void Actor02100_Fn004C4(Actor02100* arg0)
     }
 
     if (work->field_170 == 0) {
-        if ((work->field_60.field_4 & 0xFFFF0000) == 0x20000) {
-            if (work->field_60.field_4 & 0x8000) {
+        if ((work->field_60.key & 0xFFFF0000) == 0x20000) {
+            if (work->field_60.key & 0x8000) {
                 func_800DA6E8(&enemy->field_10, 0, 0);
-            } else if ((((u32)work->field_60.field_4 >> 8) & 0x3F) < 0x21U) {
-                src             = Gp_ActorSlots[((u32)work->field_60.field_4 >> 7) & 1]->extra->coords;
+            } else if ((((u32)work->field_60.key >> 8) & 0x3F) < 0x21U) {
+                src             = Gp_ActorSlots[((u32)work->field_60.key >> 7) & 1]->extra->coords;
                 scratch->vec.vx = src->coord.t[0] - coord->coord.t[0];
                 scratch->vec.vy = src->coord.t[1] - coord->coord.t[1];
                 scratch->vec.vz = src->coord.t[2] - coord->coord.t[2];
-                damage          = Gp_ComputeDamage(work->field_60.field_4,
+                damage          = Gp_ComputeDamage(work->field_60.key,
                                                    SquareRoot0(scratch->vec.vx * scratch->vec.vx +
                                                                scratch->vec.vy * scratch->vec.vy +
                                                                scratch->vec.vz * scratch->vec.vz),
                                                    0, 0);
                 if (Gp_RollEnemyChance((struct _GpEnemy*)arg0->field_20,
-                                       work->field_60.field_4, 0) != 0) {
+                                       work->field_60.key, 0) != 0) {
                     damage *= 4;
                     Gp_SpawnEff(0x6009C, coord, 0, 0);
                 }
@@ -91,7 +91,7 @@ void Actor02100_Fn004C4(Actor02100* arg0)
                         scratch->shortVec.vx = 0;
                         scratch->shortVec.vy = 0;
                         scratch->shortVec.vz = 0xC8;
-                        if ((Gp_GetIdParam0(work->field_60.field_4) & 0xFFFF) == 7) {
+                        if ((Gp_GetIdParam0(work->field_60.key) & 0xFFFF) == 7) {
                             Gp_SpawnEff(0x6007F, coord,
                                         work->field_100.field_4 | (work->field_100.field_6 << 16),
                                         &scratch->shortVec);
@@ -103,7 +103,7 @@ void Actor02100_Fn004C4(Actor02100* arg0)
                     pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
                     depth = (s8)Gp_GetObjDepth((GpObj38*)coord);
                     SndEvt_EnqueueType6(sound, pan, depth);
-                    stun = Gp_GetIdParam2(work->field_60.field_4);
+                    stun = Gp_GetIdParam2(work->field_60.key);
                     if (stun > 0) {
                         work->field_170 = stun;
                     }
@@ -115,7 +115,7 @@ void Actor02100_Fn004C4(Actor02100* arg0)
     Gp_ClearRec18Occupied(&work->field_60);
     work->field_184 = 0;
     if (Gp_CountRec18Hi(&work->field_98, 0x100000) != 0) {
-        index = func_800E1B24(work->field_98.field_4);
+        index = func_800E1B24(work->field_98.key);
         param = Gp_RoomParamTables[gGameSession->at4.loc.stage - 1]
                                   [gGameSession->at4.loc.area - 1][index];
         if (param->field_1 == 0) {
@@ -123,8 +123,8 @@ void Actor02100_Fn004C4(Actor02100* arg0)
         }
     }
 
-    if ((work->field_98.field_4 & 0xFFFF0000) == 0x10000 ||
-        (work->field_98.field_4 & 0xFFFF0000) == 0x30000 || work->field_184 == 1) {
+    if ((work->field_98.key & 0xFFFF0000) == 0x10000 ||
+        (work->field_98.key & 0xFFFF0000) == 0x30000 || work->field_184 == 1) {
         scratch->shortVec.vx = 0;
         scratch->shortVec.vy = 0;
         scratch->shortVec.vz = 0x12C;
@@ -135,9 +135,9 @@ void Actor02100_Fn004C4(Actor02100* arg0)
         scratch->vec.vx += coord->workm.t[0];
         scratch->vec.vy += coord->workm.t[1];
         scratch->vec.vz += coord->workm.t[2];
-        scratch->vec.vx  = work->field_98.field_8 - scratch->vec.vx;
-        scratch->vec.vy  = work->field_98.field_A - scratch->vec.vy;
-        scratch->vec.vz  = work->field_98.field_C - scratch->vec.vz;
+        scratch->vec.vx  = work->field_98.point.vx - scratch->vec.vx;
+        scratch->vec.vy  = work->field_98.point.vy - scratch->vec.vy;
+        scratch->vec.vz  = work->field_98.point.vz - scratch->vec.vz;
         work->field_182  = SquareRoot0(scratch->vec.vx * scratch->vec.vx +
                                        scratch->vec.vy * scratch->vec.vy +
                                        scratch->vec.vz * scratch->vec.vz);

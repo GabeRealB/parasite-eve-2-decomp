@@ -24984,8 +24984,8 @@ for (;;) {
 ```
 
 `Gp_ClearRec18Occupied` is the example. The sibling `Gp_CountRec18Hi` *does* match
-as `do … while (!((arg0++)->field_0 & 2))` because it never stores
-`field_0` and the target uses the post-increment form.
+as `do … while (!((arg0++)->flags & 2))` because it never stores
+`flags` and the target uses the post-increment form.
 
 ## Adjacent stack words must be an array (or struct) to escape together
 
@@ -34710,7 +34710,7 @@ if (arg2 == 1) {
 
 ## Pin the walking element pointer so GCC does not form `p+field`
 
-A loop that both reads `rec->field_4/8/A/C` and passes `rec` to a call
+A loop that both reads `rec->key` / `rec->point` and passes `rec` to a call
 forms a second walking pointer at `rec+0xC` (`lw -8(s2)` / `lh 0(s2)`)
 and keeps both in `$s` regs. That extra live value spills `arg0` off
 `$fp` (`sw a0, 0x40(sp)`). Pin the element pointer so every access is
@@ -34720,8 +34720,8 @@ an offset from one base:
 register GpRec18* rec asm("s1");
 rec = arg0;
 do {
-    if (rec->field_4 & 0x100000) {
-        dx = arg1->workm.t[0] - rec->field_8;
+    if (rec->key & 0x100000) {
+        dx = arg1->workm.t[0] - rec->point.vx;
         /* ... */
         func_800E0FEC((s32)rec, ...);
     }
@@ -34736,15 +34736,15 @@ onto `$s0`–`$s7`+`$fp` with `arg0` in `$fp`.
 
 `dx` and a later `t2 = arg1->workm.t[2]` both want `$v0`. Declaring
 both in one block reserves `$v0` for the whole block, so `t[2]` cannot
-fill the `lw t[1]` delay (`nop` / `lh field_A` into `$v0` instead of
+fill the `lw t[1]` delay (`nop` / `lh point.vy` into `$v0` instead of
 `lw v0, 0x40`). Close the `dx` scope first, then pin `t2` to `$v0` and
 assign it next to `dy`:
 
 ```c
 {
     register s32 dx asm("v0");
-    dx   = arg1->workm.t[0] - rec->field_8;
-    fy   = rec->field_A;
+    dx   = arg1->workm.t[0] - rec->point.vx;
+    fy   = rec->point.vy;
     dist = dx;
     if (dx < 0) {
         dist = -dist;
@@ -34791,13 +34791,13 @@ second `addiu`. `Gp_PickNearestRec18` is the example.
 
 ## Barrier after `a - b` so an independent add fills the preceding load
 
-`dist += dy` does not use `t2 - fz`, so it can fill either `lh field_C`
+`dist += dy` does not use `t2 - fz`, so it can fill either `lh point.vz`
 or `bgez t2`. The target wants it in the `lh` delay and a `nop` in the
 `bgez` delay. A volatile `+r` on `t2` / `dist` after the subtract keeps
 the add from sinking:
 
 ```c
-fz = rec->field_C;
+fz = rec->point.vz;
 dist += dy;
 t2 = t2 - fz;
 asm volatile("" : "+r"(t2), "+r"(dist));
@@ -35731,7 +35731,7 @@ src  = (SVECTOR*)(temp + (s32)rec);
 ```
 
 Walk occupied `GpRec18` slots with `for (;;)` and `goto` out on a hit so
-GCC emits a real loop and hoists `&slot->field_C` (`lh -4/-2/0`). `break`
+GCC emits a real loop and hoists `&slot->point.vz` (`lh -4/-2/0`). `break`
 from the occupied arm unrolls the body and keeps `lh 8/0xA/0xC(slot)`.
 `func_800DEC80` is the example.
 
@@ -56922,9 +56922,9 @@ predecessors carrying different values, so GCC cannot constant-fold it. Write
 the store once, at the join:
 
 ```c
-        if ((recs[i].field_4 & 0xFFFF0000) == 0x20000) {
+        if ((recs[i].key & 0xFFFF0000) == 0x20000) {
             ...
-            hit = recs[i].field_4;
+            hit = recs[i].key;
             goto hitTaken;
         }
         ...
@@ -67357,7 +67357,7 @@ that sits at offset 0x38 of the enemy's work block, then hands the same table to
 
 ```c
 for (i = 0; i < 4; i++) {
-    if ((work->rec[i].field_4 & 0xFFFF0000) == 0x10000) { ... }
+    if ((work->rec[i].key & 0xFFFF0000) == 0x10000) { ... }
 }
 Gp_ClearRec18Occupied(work->rec);
 ```
@@ -67378,7 +67378,7 @@ the call argument too.
 ```c
 rec = work->rec;
 for (i = 0; i < 4; i++) {
-    if ((rec[i].field_4 & 0xFFFF0000) == 0x10000) { ... }
+    if ((rec[i].key & 0xFFFF0000) == 0x10000) { ... }
 }
 Gp_ClearRec18Occupied(rec);
 ```
@@ -72201,10 +72201,10 @@ than once:
     mask = 0xFFFF0000;
     kind = 0x20000;
 scan:
-    if (recs[i].field_4 == 0) {
+    if (recs[i].key == 0) {
         goto missed;
     }
-    if ((recs[i].field_4 & mask) == kind) {
+    if ((recs[i].key & mask) == kind) {
         ...
         goto found;
     }
@@ -91961,7 +91961,7 @@ What does work is splitting the `switch` that sets the flag so each label gets
 its own assignment:
 
 ```c
-switch (work->recs[i].field_4 & 0xFFFF0000) {
+switch (work->recs[i].key & 0xFFFF0000) {
     case 0x10000: hidden = 1; break;     /* not: case 0x10000: */
     case 0x30000: hidden = 1; break;     /*      case 0x30000: */
     case 0x50000: hidden = 1; break;     /*      case 0x50000: hidden = 1; break; */
@@ -95644,10 +95644,11 @@ func_actor_403000_801343B8:  sw  $v0, 0xDE4($s6)       ; v0 = work + 0xDE8
 ```
 
 `Gp_ClearRec18Occupied` takes a table *start* and walks to the last-element bit,
-so 0xDE8 is the base — and 0xDEC is then 0xDE8 + 4, i.e. `GpRec18.field_4`, which
-is also the field the 0x100000 test belongs to: 3A34.h documents `field_4`'s high
+so 0xDE8 is the base — and 0xDEC is then 0xDE8 + 4, i.e. `GpRec18.key`, which
+is also the field the 0x100000 test belongs to: the record's declaration
+documents `key`'s high
 halfword as the record *kind*, and the hit-record walkers read it that way
-(`(records[i].field_4 & 0xFFFF0000) == 0x20000` in `actor_101900_text.c`).
+(`(records[i].key & 0xFFFF0000) == 0x20000` in `actor_101900_text.c`).
 
 Both spellings compile to the identical `lw 0xDEC($v0)` — GCC folds the `+4` into
 the displacement — so the match cannot choose between them and a 100% score is
@@ -108757,7 +108758,7 @@ across the `jal` and the copy disappears with it.
 ## A hard-register pin on the walking pointer suppresses loop.c's address givs
 
 `func_actor_800100_80166B40` is `Gp_PickNearestRec18` minus its `Wip_SysConfig`
-tail: `do { ... rec->field_4/8/A/C ... rec++; } while (i < 6)`. Written
+tail: `do { ... rec->key / rec->point ... rec++; } while (i < 6)`. Written
 unpinned the score stops at 83.7% with `regs=54 insert=14 delete=10`, and the
 `.loop` dump shows why:
 
@@ -108771,7 +108772,7 @@ giv at 127 reduced to (reg:SI 195)
 
 loop.c combines the four `rec + {4,8,A,C}` address givs into one new register,
 `r195 = rec + 0xC`, and expresses the field loads off it with **negative**
-offsets (`lh v1,-4(s2)` for `rec->field_8`) — a second induction variable, an
+offsets (`lh v1,-4(s2)` for `rec->point.vx`) — a second induction variable, an
 extra `addiu` per iteration, and one register too few, so the incoming `arg0`
 (the pointer `picked = bestIdx*0x18 + arg0` needs at the end) is spilled to
 `0x40(sp)` and reloaded twice. All nine caller-saved registers `$s0-$s7`/`$fp`
@@ -112707,10 +112708,10 @@ static __inline__ s32 Actor110600_HasRec10000(GpRec18* recs)
     s16 i;
 
     for (i = 0; i < 1; i++) {
-        if (!recs[i].field_4) {
+        if (!recs[i].key) {
             break;
         }
-        if ((recs[i].field_4 & 0xFFFF0000) == 0x10000) {
+        if ((recs[i].key & 0xFFFF0000) == 0x10000) {
             return 1;
         }
     }
@@ -130735,3 +130736,25 @@ function being renamed.
 Pass `--no-comments` for any rename whose name is not distinctive, and check
 `git status` for the notes afterwards. The C edits land either way; the comment
 pass is all the flag skips.
+
+A **field** rename is the case the flag exists for. The tool scopes a field's
+comment mentions to the files that really reference it, but not the markdown:
+`field_4`-style names carry an underscore, which is the tool's test for a
+"distinctive" name, so every `.md` mention is rewritten whether it means this
+type's field or another one's. Rename a field with `--no-comments` and update
+the notes by hand, grepping for the spellings the declaration retired.
+
+Two things a rename cannot reach, both because they are macro arguments rather
+than references:
+
+- `STATIC_ASSERT_SIZEOF(type, size)` pastes the name into an identifier
+  (`static_assertion_sizeof_##type`), so the line keeps the old name. It fails
+  to compile, which is the only reason it is safe to forget.
+- A reference inside a macro body is reported at the *invocation*, where the
+  identifier does not appear; the tool lists those sites rather than editing
+  them, and the macro definition is where the edit belongs.
+
+Renaming a *duplicate* type to merge it is a rename like any other - the tool
+rewrites the duplicate's declaration too, so the merged type arrives as a second
+`typedef` of the same name that has to be deleted by hand before the tree
+compiles again.

@@ -284,8 +284,8 @@ void func_actor_800100_801624F0(Task* task)
             Gp_LcgState        = ang1;
             beam->obj.flags    = 1;
             Gp_LinkObj(1, &beam->obj);
-            beam->rec[0].field_0 = 2;
-            beam->obj.flags     |= 0x8000;
+            beam->rec[0].flags = 2;
+            beam->obj.flags   |= 0x8000;
             /* fallthrough */
         case 1:
             work->field_24     = (u16)work->field_24 + 0x10;

@@ -208,7 +208,7 @@ void func_actor_202600_8014C5A0(Actor202600Ctx* arg0, Actor202600* arg1)
             return;
         default:
         default_case:
-            contact = work->rec.field_4;
+            contact = work->rec.key;
             if (contact != 0) {
                 if ((contact & 0xFFFF0000) != 0x100000) {
                     work->obj.flags &= 0x7FFF;

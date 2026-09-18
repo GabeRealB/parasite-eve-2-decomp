@@ -83,7 +83,7 @@ void func_actor_403900_80131F54(Actor403900* arg0)
     }
 
     for (i = 0; i < 3; i++) {
-        switch ((u32)work->field_49C[i].field_4 >> 16) {
+        switch ((u32)work->field_49C[i].key >> 16) {
             case 0:
                 break;
             case 1:
@@ -106,24 +106,24 @@ void func_actor_403900_80131F54(Actor403900* arg0)
                                           sc->delta.vy.w * coord->field_0.coord.m[1][2] +
                                           sc->delta.vz.w * coord->field_0.coord.m[2][2]) >>
                                   31;
-                damage = Gp_ComputeDamage(work->field_49C[i].field_4,
+                damage = Gp_ComputeDamage(work->field_49C[i].key,
                                           SquareRoot0(sc->delta.vx.w * sc->delta.vx.w +
                                                       sc->delta.vy.w * sc->delta.vy.w +
                                                       sc->delta.vz.w * sc->delta.vz.w),
                                           0, 0);
-                kind   = Gp_GetIdParam0(work->field_49C[i].field_4);
+                kind   = Gp_GetIdParam0(work->field_49C[i].key);
                 if ((u16)kind == 5) {
                     damage *= 2;
                     Gp_SpawnEff(0x6009C, &arg0->field_2C->field_8->field_F0, 2, NULL);
                 }
-                if (Gp_RollEnemyChance(enemy, work->field_49C[i].field_4, 0) != 0) {
+                if (Gp_RollEnemyChance(enemy, work->field_49C[i].key, 0) != 0) {
                     damage *= 4;
                     if ((u16)kind != 5) {
                         Gp_SpawnEff(0x6009C, &arg0->field_2C->field_8->field_F0, 0, NULL);
                     }
                 }
                 func_800DA6E8(&enemy->node, damage, 0);
-                func_800E2C78((GpObj40*)enemy, work->field_49C[i].field_4, damage, 0);
+                func_800E2C78((GpObj40*)enemy, work->field_49C[i].key, damage, 0);
                 enemy->field_40 -= damage;
                 work->field_70A += damage;
                 switch ((u16)kind) {
@@ -146,8 +146,8 @@ void func_actor_403900_80131F54(Actor403900* arg0)
                         work->field_70A += 0xFA;
                         break;
                 }
-                if (lastId != work->field_49C[i].field_4) {
-                    lastId     = work->field_49C[i].field_4;
+                if (lastId != work->field_49C[i].key) {
+                    lastId     = work->field_49C[i].key;
                     sc->ofs.vx = 0;
                     sc->ofs.vy = 0;
                     t          = -0x96;
@@ -155,11 +155,11 @@ void func_actor_403900_80131F54(Actor403900* arg0)
                         t = 0xC8;
                     }
                     sc->ofs.vz = t;
-                    func_800FDB18((u16)Gp_GetIdParam1(work->field_49C[i].field_4),
+                    func_800FDB18((u16)Gp_GetIdParam1(work->field_49C[i].key),
                                   &arg0->field_2C->field_8->field_F0, &sc->ofs,
                                   &work->field_65C);
                 }
-                wait = Gp_GetIdParam2(work->field_49C[i].field_4);
+                wait = Gp_GetIdParam2(work->field_49C[i].key);
                 if (wait > 0) {
                     work->field_6C6 = wait;
                 }
@@ -175,7 +175,7 @@ void func_actor_403900_80131F54(Actor403900* arg0)
         }
     }
     Gp_ClearRec18Occupied(work->field_49C);
-    if (work->field_584.field_0 & 1) {
+    if (work->field_584.flags & 1) {
         work->field_582 &= 0x7FFF;
         Gp_ClearRec18Occupied(&work->field_584);
     }

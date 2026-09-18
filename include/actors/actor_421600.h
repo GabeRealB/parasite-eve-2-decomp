@@ -145,7 +145,7 @@ typedef struct Actor421600Work {
     /* 0xCD8 */ s16  field_CD8;
     /* 0xCDA */ byte pad_CDA[0xA];
     /// The 12 0x18-byte slots `func_actor_421600_80138D24` scans for one whose
-    /// `field_4` reads 0x100000, stopping at the first empty one. A cursor into
+    /// `key` reads 0x100000, stopping at the first empty one. A cursor into
     /// the same run sits at 0xCE0, which `func_actor_421600_80134AD4` points at
     /// `field_CE4` itself.
     /* 0xCE4 */ GpRec18           field_CE4[12];

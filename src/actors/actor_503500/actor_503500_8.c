@@ -403,9 +403,9 @@ void func_actor_503500_8013C088(Actor503500* arg0, Actor503500Work* arg1, GpRec1
     work  = arg0->field_1C;
     coord = arg0->extra->coords;
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].field_4;
+        id = arg2[i].key;
         for (j = 0; j < i; j++) {
-            if (arg2[j].field_4 == id) {
+            if (arg2[j].key == id) {
                 goto next;
             }
         }
@@ -455,9 +455,9 @@ void func_actor_503500_8013C088(Actor503500* arg0, Actor503500Work* arg1, GpRec1
                 break;
         }
         TRANSPOSE_ROT(&coord->workm, &rot);
-        pos.vx = arg2[i].field_8 - coord->workm.t[0];
-        pos.vy = arg2[i].field_A - coord->workm.t[1];
-        pos.vz = arg2[i].field_C - coord->workm.t[2];
+        pos.vx = arg2[i].point.vx - coord->workm.t[0];
+        pos.vy = arg2[i].point.vy - coord->workm.t[1];
+        pos.vz = arg2[i].point.vz - coord->workm.t[2];
         scale  = 0x578000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
         pos.vx = pos.vx * scale / 4096;
         pos.vy = pos.vy * scale / 4096;
@@ -736,9 +736,9 @@ void func_actor_503500_8013CCBC(Actor503500* arg0, Actor503500Work* arg1, GpRec1
     work  = arg0->field_1C;
     coord = arg0->extra->coords;
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].field_4;
+        id = arg2[i].key;
         for (j = 0; j < i; j++) {
-            if (arg2[j].field_4 == id) {
+            if (arg2[j].key == id) {
                 goto next;
             }
         }
@@ -788,9 +788,9 @@ void func_actor_503500_8013CCBC(Actor503500* arg0, Actor503500Work* arg1, GpRec1
                 break;
         }
         TRANSPOSE_ROT(&coord->workm, &rot);
-        pos.vx = arg2[i].field_8 - coord->workm.t[0];
-        pos.vy = arg2[i].field_A - coord->workm.t[1];
-        pos.vz = arg2[i].field_C - coord->workm.t[2];
+        pos.vx = arg2[i].point.vx - coord->workm.t[0];
+        pos.vy = arg2[i].point.vy - coord->workm.t[1];
+        pos.vz = arg2[i].point.vz - coord->workm.t[2];
         scale  = 0xC8000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
         pos.vx = pos.vx * scale / 4096;
         pos.vy = pos.vy * scale / 4096;
@@ -1244,9 +1244,9 @@ void func_actor_503500_8013DEB4(Actor503500* arg0, Actor503500Work* arg1, GpRec1
     work  = arg0->field_1C;
     coord = arg0->extra->coords;
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].field_4;
+        id = arg2[i].key;
         for (j = 0; j < i; j++) {
-            if (arg2[j].field_4 == id) {
+            if (arg2[j].key == id) {
                 goto next;
             }
         }
@@ -1296,9 +1296,9 @@ void func_actor_503500_8013DEB4(Actor503500* arg0, Actor503500Work* arg1, GpRec1
                 break;
         }
         TRANSPOSE_ROT(&coord->workm, &rot);
-        pos.vx = arg2[i].field_8 - coord->workm.t[0];
-        pos.vy = arg2[i].field_A - coord->workm.t[1];
-        pos.vz = arg2[i].field_C - coord->workm.t[2];
+        pos.vx = arg2[i].point.vx - coord->workm.t[0];
+        pos.vy = arg2[i].point.vy - coord->workm.t[1];
+        pos.vz = arg2[i].point.vz - coord->workm.t[2];
         scale  = 0x258000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
         pos.vx = pos.vx * scale / 4096;
         pos.vy = pos.vy * scale / 4096;
@@ -1666,9 +1666,9 @@ void func_actor_503500_8013EE5C(Actor503500* arg0, Actor503500Work* arg1, GpRec1
     work  = arg0->field_1C;
     coord = arg0->extra->coords;
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].field_4;
+        id = arg2[i].key;
         for (j = 0; j < i; j++) {
-            if (arg2[j].field_4 == id) {
+            if (arg2[j].key == id) {
                 goto next;
             }
         }
@@ -1718,9 +1718,9 @@ void func_actor_503500_8013EE5C(Actor503500* arg0, Actor503500Work* arg1, GpRec1
                 break;
         }
         TRANSPOSE_ROT(&coord->workm, &rot);
-        pos.vx = arg2[i].field_8 - coord->workm.t[0];
-        pos.vy = arg2[i].field_A - coord->workm.t[1];
-        pos.vz = arg2[i].field_C - coord->workm.t[2];
+        pos.vx = arg2[i].point.vx - coord->workm.t[0];
+        pos.vy = arg2[i].point.vy - coord->workm.t[1];
+        pos.vz = arg2[i].point.vz - coord->workm.t[2];
         scale  = 0x190000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
         pos.vx = pos.vx * scale / 4096;
         pos.vy = pos.vy * scale / 4096;
@@ -2519,9 +2519,9 @@ void func_actor_503500_80140D38(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
     work  = (Actor503500Work3D8*)arg0->field_1C;
     coord = &arg0->extra->coords[8];
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].field_4;
+        id = arg2[i].key;
         for (j = 0; j < i; j++) {
-            if (arg2[j].field_4 == id) {
+            if (arg2[j].key == id) {
                 goto next;
             }
         }
@@ -2574,9 +2574,9 @@ void func_actor_503500_80140D38(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
             }
         }
         TRANSPOSE_ROT(&coord->workm, &rot);
-        pos.vx = arg2[i].field_8 - coord->workm.t[0];
-        pos.vy = arg2[i].field_A - coord->workm.t[1];
-        pos.vz = arg2[i].field_C - coord->workm.t[2];
+        pos.vx = arg2[i].point.vx - coord->workm.t[0];
+        pos.vy = arg2[i].point.vy - coord->workm.t[1];
+        pos.vz = arg2[i].point.vz - coord->workm.t[2];
         scale  = 0x1F4000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
         pos.vx = pos.vx * scale / 4096;
         pos.vy = pos.vy * scale / 4096;
@@ -3006,13 +3006,13 @@ void func_actor_503500_801420C4(Actor503500* arg0)
     Gp_ClearRec18Occupied(work->rec260);
 }
 /// Scans `count` `GpRec18` slots and clears bit 0x8000 of `obj->flags` for
-/// every slot whose `field_4` high half is 1.
+/// every slot whose `key` high half is 1.
 void func_actor_503500_8014215C(Actor503500* arg0, GpObj* obj, GpRec18* rec, s32 count)
 {
     s32 i;
 
     for (i = 0; i < count; i++, rec++) {
-        if ((rec->field_4 & 0xFFFF0000) == 0x10000) {
+        if ((rec->key & 0xFFFF0000) == 0x10000) {
             obj->flags &= 0x7FFF;
         }
     }
@@ -3543,9 +3543,9 @@ void func_actor_503500_801431EC(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
     work  = (Actor503500Work224*)arg0->field_1C;
     coord = arg0->extra->coords;
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].field_4;
+        id = arg2[i].key;
         for (j = 0; j < i; j++) {
-            if (arg2[j].field_4 == id) {
+            if (arg2[j].key == id) {
                 goto next;
             }
         }
@@ -3609,9 +3609,9 @@ void func_actor_503500_801431EC(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
             crit = 2;
         }
         TRANSPOSE_ROT(&coord->workm, &rot);
-        pos.vx = arg2[i].field_8 - coord->workm.t[0];
-        pos.vy = arg2[i].field_A - coord->workm.t[1];
-        pos.vz = arg2[i].field_C - coord->workm.t[2];
+        pos.vx = arg2[i].point.vx - coord->workm.t[0];
+        pos.vy = arg2[i].point.vy - coord->workm.t[1];
+        pos.vz = arg2[i].point.vz - coord->workm.t[2];
         scale  = 0x5DC000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
         pos.vx = pos.vx * scale / 4096;
         pos.vy = pos.vy * scale / 4096;
@@ -3641,7 +3641,7 @@ void func_actor_503500_801431EC(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
 }
 
 /// Scans the 0x224 enemy's shared record table. For each record whose
-/// `field_4` high half is 1 - unless the player task (`Game_GetPtrSlot(3)`)
+/// `key` high half is 1 - unless the player task (`Game_GetPtrSlot(3)`)
 /// is in mode 2 or answers message 0x3F8 - copies the parent's root rotation
 /// into `field_40` and turns it by +/-0x5DC with `func_8004BFF8` (sign from
 /// `field_220`), then takes the world position of parent coordinate 5 or 11
@@ -3668,7 +3668,7 @@ void func_actor_503500_801437D0(Actor503500* arg0, GpRec18* rec, s32 count)
     enemy = arg0->field_20;
     work  = (Actor503500Work224*)arg0->field_1C;
     for (i = 0; i < count; i++) {
-        if ((rec[i].field_4 & 0xFFFF0000) == 0x10000) {
+        if ((rec[i].key & 0xFFFF0000) == 0x10000) {
             player = Game_GetPtrSlot(3);
             pcoord = ((TmdObject*)player->extra)->coords;
             if (((GameActor*)player->work)->field_954 != 2 &&
@@ -4165,7 +4165,7 @@ void func_actor_503500_80144778(Actor503500* arg0)
         }
     }
     for (i = 0; i < 4; i++) {
-        if ((rec[i].field_4 & 0xFFFF0000) == 0x10000) {
+        if ((rec[i].key & 0xFFFF0000) == 0x10000) {
             work->field_BE = 1;
         }
     }

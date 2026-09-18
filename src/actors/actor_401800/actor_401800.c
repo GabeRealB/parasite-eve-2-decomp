@@ -18,7 +18,7 @@
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 /// Push-out of contact record `rec`: how far `pos` sits inside the record's
-/// radius (`field_2`) along the direction from the record's centre, carried
+/// radius (`depth`) along the direction from the record's centre, carried
 /// into grid space. Same body as `Actor01900_CalcPush`.
 static __inline__ void Actor401800_CalcPush(SVECTOR* pos, GpRec18* rec, SVECTOR* out)
 {
@@ -27,20 +27,20 @@ static __inline__ void Actor401800_CalcPush(SVECTOR* pos, GpRec18* rec, SVECTOR*
     s32    t;
     s32    pen;
 
-    d.vx = pos->vx - rec->field_8;
+    d.vx = pos->vx - rec->point.vx;
     d.vy = 0;
-    d.vz = pos->vz - rec->field_C;
+    d.vz = pos->vz - rec->point.vz;
     pen  = SquareRoot0(d.vx * d.vx + d.vz * d.vz);
-    pen  = rec->field_2 - pen;
+    pen  = rec->depth - pen;
     if (pen <= 0) {
         t = 0;
     } else {
         t = pen;
     }
     pen  = t;
-    d.vx = pos->vx - rec->field_8;
-    d.vy = pos->vy - rec->field_A;
-    d.vz = pos->vz - rec->field_C;
+    d.vx = pos->vx - rec->point.vx;
+    d.vy = pos->vy - rec->point.vy;
+    d.vz = pos->vz - rec->point.vz;
     VectorNormal(&d, &n);
     ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &n, &d);
     out->vx = (pen * d.vx) >> 12;
@@ -49,7 +49,7 @@ static __inline__ void Actor401800_CalcPush(SVECTOR* pos, GpRec18* rec, SVECTOR*
 }
 
 /// Updates `coord` and computes the push-out of the last kind 0x10000 / 0x30000
-/// record in `recs`, walking until `count` or a zero `field_4`; nonzero when any
+/// record in `recs`, walking until `count` or a zero `key`; nonzero when any
 /// hit. The push is clamped to length 0x100. Same body as `Actor01900_Fn0056C`.
 s32 func_actor_401800_801323D4(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 {
@@ -75,11 +75,11 @@ s32 func_actor_401800_801323D4(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     s->last.vx = 0;
     s->hit     = 0;
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].field_4 == 0) {
+        if (recs[s->i].key == 0) {
             s->dist[s->i] = 0x7FFE;
             break;
         }
-        s->kind = recs[s->i].field_4 & 0xFFFF0000;
+        s->kind = recs[s->i].key & 0xFFFF0000;
         if (s->kind == 0x10000 || s->kind == 0x30000) {
             s->hit = 1;
             Actor401800_CalcPush(&s->pos, &recs[s->i], &s->offset);
@@ -176,10 +176,10 @@ s32 func_actor_401800_8013271C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
     s->count  = 0;
 
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].field_4 == 0) {
+        if (recs[s->i].key == 0) {
             break;
         }
-        s->kind = recs[s->i].field_4 & 0xFFFF0000;
+        s->kind = recs[s->i].key & 0xFFFF0000;
         switch (s->kind) {
             case 0x10000:
                 s->blocked = 1;
@@ -190,9 +190,9 @@ s32 func_actor_401800_8013271C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
         }
 
         if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] = Actor401800_BearingXZ((SVECTOR3*)&recs[s->i].field_8, &s->eye);
+            s->angle[s->count] = Actor401800_BearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
         } else {
-            s->angle[s->count] = Actor401800_BearingXY((SVECTOR3*)&recs[s->i].field_8, &s->eye);
+            s->angle[s->count] = Actor401800_BearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
         }
         s->ok[s->count] = 1;
         s->count++;
@@ -291,17 +291,17 @@ s32 func_actor_401800_80132E0C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
     Actor401800_BisectorToWorld2(coord, &st->aim);
 
     for (st->i = 0; st->i < count; st->i++) {
-        if (recs[st->i].field_4 == 0) {
+        if (recs[st->i].key == 0) {
             st->angle[st->i] = 0x7FFE;
             break;
         }
-        st->kind = recs[st->i].field_4 & 0xFFFF0000;
+        st->kind = recs[st->i].key & 0xFFFF0000;
         if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
             st->angle[st->i] = 0x7FFF;
         } else {
-            st->delta.vx     = *(u16*)&recs[st->i].field_8 - *(u16*)&st->eye.vx;
-            st->delta.vy     = *(u16*)&recs[st->i].field_A - *(u16*)&st->eye.vy;
-            dz               = *(u16*)&recs[st->i].field_C - *(u16*)&st->eye.vz;
+            st->delta.vx     = *(u16*)&recs[st->i].point.vx - *(u16*)&st->eye.vx;
+            st->delta.vy     = *(u16*)&recs[st->i].point.vy - *(u16*)&st->eye.vy;
+            dz               = *(u16*)&recs[st->i].point.vz - *(u16*)&st->eye.vz;
             st->delta.vz     = dz;
             st->angle[st->i] = ratan2(st->delta.vx, dz);
 
@@ -1089,7 +1089,7 @@ void func_actor_401800_80135F58(Actor401800* arg0)
 
 /// Push the root coordinate out of a `GpRec18` table: take a 0x34 scratch, seed
 /// its position from the second coordinate, then walk the records until `count`
-/// or a zero `field_4`. Each kind 0x10000 / 0x30000 record contributes half its
+/// or a zero `key`. Each kind 0x10000 / 0x30000 record contributes half its
 /// offset along X and Z, normalised to length 0x96 first when it is longer than
 /// that; `hit` reports whether one was seen.
 /// Same body as `Actor01900_Fn03FF8` / `func_actor_401300_80132910`, with the
@@ -1114,11 +1114,11 @@ s32 func_actor_401800_8013629C(Actor401800* arg0, GpRec18* recs, s16 count)
     s->pos.vz = arg0->field_2C->coords[1].workm.t[2];
     s->hit    = 0;
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].field_4 == 0) {
+        if (recs[s->i].key == 0) {
             s->dist[s->i] = 0x7FFE;
             break;
         }
-        s->kind = recs[s->i].field_4 & 0xFFFF0000;
+        s->kind = recs[s->i].key & 0xFFFF0000;
         if (s->kind == 0x10000 || s->kind == 0x30000) {
             s->hit = 1;
             Gp_MakeDirOffset(&s->pos, (GpDirSrc*)&recs[s->i], &s->offset);

@@ -1903,7 +1903,7 @@ void func_actor_400600_80136968(Task* arg0)
     eff             = &coord[3];
 
     for (i = 0; i < 8; i++) {
-        switch (work->rec_4D4[i].field_4 & 0xFFFF0000) {
+        switch (work->rec_4D4[i].key & 0xFFFF0000) {
             case 0x10000:
             case 0x30000:
                 pos.vx = coord->workm.t[0];
@@ -1920,25 +1920,25 @@ void func_actor_400600_80136968(Task* arg0)
             case 0x20000:
                 if (work->field_74A == 0) {
                     work->field_72E = 1;
-                    dmg             = Gp_ComputeDamage(work->rec_4D4[i].field_4, work->field_728, 0, 0);
+                    dmg             = Gp_ComputeDamage(work->rec_4D4[i].key, work->field_728, 0, 0);
                     amount          = dmg;
-                    work->field_74A = Gp_GetIdParam2(work->rec_4D4[i].field_4);
-                    if (Gp_RollEnemyChance(enemy, work->rec_4D4[i].field_4, 0) != 0) {
+                    work->field_74A = Gp_GetIdParam2(work->rec_4D4[i].key);
+                    if (Gp_RollEnemyChance(enemy, work->rec_4D4[i].key, 0) != 0) {
                         amount = ((u32)dmg << 16) >> 14;
                         Gp_SpawnEff(0x6009C, &((TmdObject*)arg0->extra)->coords[3], 0, NULL);
                     }
-                    func_800E2C78((GpObj40*)enemy, work->rec_4D4[i].field_4, amount, 0);
+                    func_800E2C78((GpObj40*)enemy, work->rec_4D4[i].key, amount, 0);
                     func_800DA6E8(&enemy->node, amount, 0);
                     enemy->field_40 -= amount;
                     if (enemy->field_40 < 0) {
                         enemy->field_40 = 0;
                     }
-                    if ((work->rec_4D4[i].field_4 & 0x7F) == 0xE) {
-                        if (!(work->rec_4D4[i].field_4 & 0x8000)) {
+                    if ((work->rec_4D4[i].key & 0x7F) == 0xE) {
+                        if (!(work->rec_4D4[i].key & 0x8000)) {
                             work->field_75A = 0x258;
                         }
                     } else {
-                        func_800FDB18(Gp_GetIdParam1(work->rec_4D4[i].field_4) & 0xFFFF,
+                        func_800FDB18(Gp_GetIdParam1(work->rec_4D4[i].key) & 0xFFFF,
                                       &((TmdObject*)arg0->extra)->coords[4], NULL, &work->eff_6FC);
                     }
                     if (amount >= 0x64) {
@@ -1946,17 +1946,17 @@ void func_actor_400600_80136968(Task* arg0)
                     } else {
                         work->field_730 = 1;
                     }
-                    switch (Gp_GetIdParam0(work->rec_4D4[i].field_4) & 0xFFFF) {
+                    switch (Gp_GetIdParam0(work->rec_4D4[i].key) & 0xFFFF) {
                         case 0:
                             break;
                         case 1:
                             Gp_SetObjFlag1((GpObj4C*)enemy);
                             break;
                         case 2:
-                            Gp_SetObjFlag2((GpObj5D*)enemy, work->rec_4D4[i].field_4, 0);
+                            Gp_SetObjFlag2((GpObj5D*)enemy, work->rec_4D4[i].key, 0);
                             break;
                         case 3:
-                            Gp_SetObjFlag4((GpObj5C*)enemy, work->rec_4D4[i].field_4, 0);
+                            Gp_SetObjFlag4((GpObj5C*)enemy, work->rec_4D4[i].key, 0);
                             break;
                         case 4:
                             work->field_730 = 4;
@@ -1977,7 +1977,7 @@ void func_actor_400600_80136968(Task* arg0)
                             work->field_730 = 3;
                             break;
                     }
-                } else if ((Gp_GetIdParam1(work->rec_4D4[i].field_4) & 0xFFFF) == 0xD) {
+                } else if ((Gp_GetIdParam1(work->rec_4D4[i].key) & 0xFFFF) == 0xD) {
                     func_800FDB18(0xD, &((TmdObject*)arg0->extra)->coords[1], NULL, &work->eff_6FC);
                 }
                 break;
