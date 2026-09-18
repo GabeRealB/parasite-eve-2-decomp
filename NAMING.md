@@ -216,12 +216,11 @@ examples below are shown in the target naming rather than quoted verbatim.
 
 Doc comments use `///` and sit immediately above what they describe. That is
 already the house style — `///` outnumbers every alternative in the headers and
-`/** */` appears nowhere — so the convention is to keep it rather than introduce
-a second form. The `/* 0x18 */` comments inside a struct are offset annotations,
-not prose, and are unrelated.
+`/** */` appears nowhere — so the convention keeps it rather than introducing a
+second form.
 
-A comment opens with **one sentence** saying what the thing is. Anything further
-goes after a blank `///` line, so the summary can be read on its own:
+A comment says **what** something is and **why** it exists. Anything further goes
+after a blank `///` line, so the summary can be read on its own:
 
 ```c
 /// Allocates a block of memory.
@@ -236,26 +235,41 @@ goes after a blank `///` line, so the summary can be read on its own:
 Cross-references go in backticks so a reader can search for them, and so a
 rename can find them.
 
-### What a decompilation comment is for
+### Struct fields
 
-The reader's question is almost never "what does this do" — the body is right
-there. It is **"how do we know that"**. A comment earns its place by recording
-the evidence, and the evidence is what makes it safe to rely on later:
+Fields are documented the same way, with `///` above the field. There is room
+for a real sentence there, which is the point:
 
 ```c
-/* 0x1A */ s16 hpMax;   // `gpStatRows[level]` + bonus + armour, capped at 250
-/* 0x23 */ u8  armor;   // item id - 0x5F; feeds `gpModStatAttrs` into hpMax
+typedef struct {
+    /// Current health. Recomputing the maximum clamps this down to it.
+    s16 hp;
+    /// Maximum health: the level's base value plus bonuses from equipment,
+    /// capped at 250.
+    s16 hpMax;
+    /// Equipped weapon, or 0 when nothing is equipped.
+    u8  weapon;
+} PlayerStatus;
 ```
 
-Both say where the value comes from, so the next reader can check the claim
-instead of trusting it.
+**Do not annotate fields with their offsets.** The layout is already expressed
+by the field types and fixed by `STATIC_ASSERT_SIZEOF`, nothing reads the
+annotations, and a trailing `/* 0x1A */` crowds out the sentence that would
+actually help. Unproven fields keep their `field_XX` name, which carries the
+offset in the only place it is still needed.
 
-The same rule decides what *not* to write. A symbol whose role is unproven is
-left undocumented, or its comment states only what was observed and says the
-role is unproven. Do not promote a guess to a description; an unmarked comment
-is read as established fact. `mem.h` shows the honest form — a bare
-`extern int D_80068F98;` carrying no comment at all, and a `// TODO:` where the
-behaviour is suspected but unconfirmed.
+### What not to write
+
+How a meaning was originally worked out is scaffolding, not documentation. It
+matters while a symbol is being identified and becomes noise once the module is
+understood, so it belongs in the commit message that established it, not in the
+header that outlives it.
+
+A symbol whose role is unproven is left undocumented, or its comment states only
+what was observed and says the role is unproven. An unmarked comment is read as
+established fact, so a guess must never be promoted to a description. `mem.h`
+shows the honest form — a bare `extern int D_80068F98;` carrying no comment at
+all, and a `// TODO:` where the behaviour is suspected but unconfirmed.
 
 ### Where a comment lives
 
