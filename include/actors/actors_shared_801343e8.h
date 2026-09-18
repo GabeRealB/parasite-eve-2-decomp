@@ -6,7 +6,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Work block reached through `Task::idMap`: the flag word `field_1C2`, the
+/// Work block reached through `Task::work`: the flag word `field_1C2`, the
 /// target position `field_23C`, the mode `field_24E`, the phase `field_250`
 /// and its countdown `field_256`.
 typedef struct ActorShared801343e8Work {

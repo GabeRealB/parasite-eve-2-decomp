@@ -17,7 +17,7 @@ s32 func_actor_403000_8013D364(Task* task, s32 arg1, ActorShared80164954Placemen
     GsCOORDINATE2*   coord;
     Actor403000Work* work;
 
-    work                                           = (Actor403000Work*)task->idMap;
+    work                                           = (Actor403000Work*)task->work;
     ((TmdObject*)task->extra)->field_8->coord.t[0] = placement->pos.vx;
     ((TmdObject*)task->extra)->field_8->coord.t[1] = placement->pos.vy;
     ((TmdObject*)task->extra)->field_8->coord.t[2] = placement->pos.vz;
@@ -32,7 +32,7 @@ s32 func_actor_403000_8013D364(Task* task, s32 arg1, ActorShared80164954Placemen
 
 s32 func_actor_403000_8013D464(Task* task, s32 arg1, Actor403000Msg* msg)
 {
-    Actor403000Work* work = (Actor403000Work*)task->idMap;
+    Actor403000Work* work = (Actor403000Work*)task->work;
 
     work->field_AC6 = msg->field_4;
     work->field_0   = 1;
@@ -42,7 +42,7 @@ s32 func_actor_403000_8013D464(Task* task, s32 arg1, Actor403000Msg* msg)
 
 s16 func_actor_403000_8013D48C(Task* task)
 {
-    Actor403000Work* work  = (Actor403000Work*)task->idMap;
+    Actor403000Work* work  = (Actor403000Work*)task->work;
     s16              found = 0;
     s16              i;
     s32              value;
@@ -61,7 +61,7 @@ s16 func_actor_403000_8013D48C(Task* task)
 
 void func_actor_403000_8013D4F4(Task* task)
 {
-    Actor403000Work* work  = (Actor403000Work*)task->idMap;
+    Actor403000Work* work  = (Actor403000Work*)task->work;
     GpEnemy*         enemy = (GpEnemy*)task->spawnArg2;
 
     if (work != NULL) {

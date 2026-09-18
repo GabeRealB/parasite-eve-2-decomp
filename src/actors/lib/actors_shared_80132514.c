@@ -9,7 +9,7 @@ void ActorsShared80132514(Task* task)
     ActorsShared80132514Work* work;
     s32                       i;
 
-    work = (ActorsShared80132514Work*)task->idMap;
+    work = (ActorsShared80132514Work*)task->work;
     i    = 1;
     do {
         work->slots[i].field_9 = 1;

@@ -6,7 +6,7 @@
 #include "main/task.h"
 
 /// Head of the enemy work block `actor_104000`, `actor_204000` and
-/// `actor_304000` park in `Task::idMap` -- that slot is not a `TaskIdMap` here.
+/// `actor_304000` park in `Task::work` -- that slot is not a `TaskIdMap` here.
 /// `field_170` is the motion state the per-frame handler reads and `field_174`
 /// the requested animation id; each overlay's own `0x...87B4` sets the same
 /// pair directly. The type stops after the last field this shared body

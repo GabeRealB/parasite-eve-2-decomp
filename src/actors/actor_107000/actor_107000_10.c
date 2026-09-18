@@ -47,7 +47,7 @@ s32 func_actor_107000_801378D8(Task* arg0, s32 arg1, Actor107000Msg* arg2)
     word  = arg2->field_2;
     obj   = (TmdObject*)arg0->extra;
     ctx   = arg0->spawnArg2;
-    work  = (Actor107000Spawn2Work*)arg0->idMap;
+    work  = (Actor107000Spawn2Work*)arg0->work;
     mode  = word & 0xFFFF;
     coord = obj->field_8;
     if (mode == 4) {

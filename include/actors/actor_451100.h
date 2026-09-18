@@ -8,7 +8,7 @@
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
-/// Work block this overlay hangs off its task's `Task::idMap` slot (0x1C),
+/// Work block this overlay hangs off its task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. This overlay's own
 /// `ActorsShared80131e24Sub0` allocates it with `Mem_Calloc(0x4C0, 0)` and
 /// stores the result straight into that field, so the size below is the

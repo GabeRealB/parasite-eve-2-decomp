@@ -4599,7 +4599,7 @@ void Gp_InitPlayClock(Task* task)
     }
     Gp_ResetHudFx(&rec->extra);
     GameMain_SetFrameTiming(1);
-    task->idMap  = (TaskIdMap*)rec;
+    task->work   = (TaskIdMap*)rec;
     rec->field_0 = Mc_SaveData.field_C / 60;
     rec->field_4 = Mc_SaveData.field_C % 60;
     ds           = &Display_State;
@@ -4640,7 +4640,7 @@ void Gp_TickPlayClock(Task* task)
     s32           temp;
     s32           companion;
 
-    rec = (GpIdMap30*)task->idMap;
+    rec = (GpIdMap30*)task->work;
     cfg = &Player_Status;
     Gp_UpdatePadInput();
 
@@ -9145,8 +9145,8 @@ s32 Gp_SpawnViewCoordTask(GsCOORDINATE2* arg0, VECTOR* arg1)
         Task_Kill(task);
         return 0;
     }
-    task->idMap = (TaskIdMap*)pos;
-    coord       = ((TmdObject*)task->extra)->field_8;
+    task->work = (TaskIdMap*)pos;
+    coord      = ((TmdObject*)task->extra)->field_8;
     if (arg1 != NULL) {
         pos->vx = arg1->vx;
         pos->vy = arg1->vy;
@@ -9200,7 +9200,7 @@ void func_800A8654(Task* task)
     i              = 0;
     c1             = &Gfx_ViewOffsetCoord;
     extra          = task->extra;
-    vec            = (VECTOR*)task->idMap;
+    vec            = (VECTOR*)task->work;
     src            = extra->field_8;
     c1->coord.t[0] = vec->vx;
     c2             = &D_80070E40;

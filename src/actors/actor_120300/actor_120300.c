@@ -39,7 +39,7 @@ s32 func_actor_120300_80131EE0(Task* arg0)
     u16              i;
     u16              done;
 
-    work = (Actor120300Work*)arg0->idMap;
+    work = (Actor120300Work*)arg0->work;
     for (i = 1; i < 0x14; i++) {
         Gp_AnimTickIndex(&work->anim, i);
     }
@@ -54,7 +54,7 @@ check:
     if (done) {
         if (D_actor_120300_80140980[work->field_4D4] >= 0) {
             anim                = D_actor_120300_80140980[work->field_4D4];
-            animWork            = (Actor120300Work*)arg0->idMap;
+            animWork            = (Actor120300Work*)arg0->work;
             animWork->field_4D4 = anim;
             goto loop;
         fail:
@@ -72,7 +72,7 @@ check:
 
 /// Spawn tick of a child actor that keeps the model facing the player: state 0
 /// allocates the 0x4E4-byte `Actor120300Work` block, parks it in
-/// `Task::idMap`, points the model's light and colour matrices at the block's
+/// `Task::work`, points the model's light and colour matrices at the block's
 /// `field_474` / `field_494`, clears `TmdObject::field_C` and anchors the root
 /// coordinate `sub` under part 4 of the spawning task's model
 /// (`Task::spawnArg2->extra`); a failed allocation kills the task instead of
@@ -99,10 +99,10 @@ void func_actor_120300_80132004(Task* arg0)
     u8               id;
 
     if (arg0->state == 0) {
-        tmd         = arg0->extra;
-        coord       = tmd->field_8;
-        map         = Mem_Malloc(0x4E4, 0);
-        arg0->idMap = map;
+        tmd        = arg0->extra;
+        coord      = tmd->field_8;
+        map        = Mem_Malloc(0x4E4, 0);
+        arg0->work = map;
         if (map == NULL) {
             kill = 1;
         } else {
@@ -135,7 +135,7 @@ void func_actor_120300_80132004(Task* arg0)
         arg0->state += 1;
     }
     tmd2     = arg0->extra;
-    scaleRaw = ((Actor120300Work*)((Task*)arg0->spawnArg2)->idMap)->field_4E0;
+    scaleRaw = ((Actor120300Work*)((Task*)arg0->spawnArg2)->work)->field_4E0;
     vec.vx   = tmd2->field_8->workm.t[0];
     vec.vy   = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
     vec.vz   = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
@@ -148,7 +148,7 @@ void func_actor_120300_80132004(Task* arg0)
 }
 
 /// Spawn tick of a child actor. State 0 allocates the 0x4E4-byte
-/// `Actor120300Work` block, parks it in `Task::idMap`, points the model's
+/// `Actor120300Work` block, parks it in `Task::work`, points the model's
 /// light and colour matrices at the block's `field_474` / `field_494`, clears
 /// `TmdObject::field_C` and anchors the root coordinate `sub` under part 8 of
 /// the spawning task's model (`Task::spawnArg2->extra`). A failed allocation
@@ -171,10 +171,10 @@ void func_actor_120300_801321C8(Task* arg0)
     Actor120300Work* work;
 
     if (arg0->state == 0) {
-        tmd         = arg0->extra;
-        coord       = tmd->field_8;
-        map         = Mem_Malloc(0x4E4, 0);
-        arg0->idMap = map;
+        tmd        = arg0->extra;
+        coord      = tmd->field_8;
+        map        = Mem_Malloc(0x4E4, 0);
+        arg0->work = map;
         if (map == NULL) {
             kill = 1;
         } else {
@@ -197,7 +197,7 @@ void func_actor_120300_801321C8(Task* arg0)
         arg0->state += 1;
     }
     tmd2     = arg0->extra;
-    scaleRaw = ((Actor120300Work*)((Task*)arg0->spawnArg2)->idMap)->field_4E0;
+    scaleRaw = ((Actor120300Work*)((Task*)arg0->spawnArg2)->work)->field_4E0;
     vec.vx   = tmd2->field_8->workm.t[0];
     vec.vy   = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
     vec.vz   = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
@@ -236,11 +236,11 @@ void func_actor_120300_80133330(s32 arg0)
     s32              id;
 
     task                               = (Task*)D_actor_120300_80141BA8;
-    work                               = (Actor120300Work*)task->idMap;
+    work                               = (Actor120300Work*)task->work;
     ((TmdObject*)task->extra)->field_C = 0;
     Gp_DispatchMsg(task, 0x7D4, (s32)&D_actor_120300_80140B2C, 0);
 
-    animWork            = (Actor120300Work*)task->idMap;
+    animWork            = (Actor120300Work*)task->work;
     animWork->field_4D4 = 8;
     i                   = 1;
     do {
@@ -324,7 +324,7 @@ s32 func_actor_120300_801334A4(Actor120300* arg0)
 }
 
 /// Spawn tick: allocates the 0x4E4-byte `Actor120300Work` block, zeroes it and
-/// parks it in `Task::idMap`, then wires the model object up -- `Tmd_AllocBuffers`,
+/// parks it in `Task::work`, then wires the model object up -- `Tmd_AllocBuffers`,
 /// the work block's light/colour matrices into `TmdObject::field_1C` / `field_20`,
 /// bit 2 of `TmdObject::field_C` cleared and the animation context handed to
 /// `func_800B3F84` along with the work block's slot array.
@@ -344,10 +344,10 @@ void func_actor_120300_801335D8(Task* arg0)
     u8               id;
     s32              i;
 
-    tmd         = arg0->extra;
-    coord       = tmd->field_8;
-    map         = Mem_Malloc(0x4E4, 0);
-    arg0->idMap = map;
+    tmd        = arg0->extra;
+    coord      = tmd->field_8;
+    map        = Mem_Malloc(0x4E4, 0);
+    arg0->work = map;
     if (map == NULL) {
         Task_Kill(arg0);
         return;
@@ -372,7 +372,7 @@ void func_actor_120300_801335D8(Task* arg0)
     }
     Gp_SetTmdBytes(tmd, ((s8*)place)[0xD], ((s8*)place)[0xE]);
     func_800B3F84(&work->anim, &D_actor_120300_80140910, (GpAnimObj*)tmd, work->pad_334, work->slots);
-    animWork            = (Actor120300Work*)arg0->idMap;
+    animWork            = (Actor120300Work*)arg0->work;
     animWork->field_4D4 = 0xE;
     i                   = 1;
     do {

@@ -30,7 +30,7 @@ s32 func_actor_350700_80163840(Task* task, s32 arg1, s32 mode)
     u16                  flags;
     s32                  ret;
 
-    work = (Actor350700MainWork*)task->idMap;
+    work = (Actor350700MainWork*)task->work;
     obj  = task->extra;
     objA = work->field_4FC->extra;
     objB = work->field_500->extra;

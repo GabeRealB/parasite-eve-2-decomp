@@ -8,7 +8,7 @@
 #include <psyq/libgs.h>
 
 /// Work block the carriers hang off their context's 0x1C slot (the task's
-/// `Task::idMap`, which is not a `TaskIdMap` here). `coord` is the extra
+/// `Task::work`, which is not a `TaskIdMap` here). `coord` is the extra
 /// `GsCOORDINATE2` `ActorsShared80137e18` wires as `sub` of the model's
 /// second part; `field_34E` is that node's Y scale in 4096-per-unit fixed
 /// point, the middle of the X/Y/Z trio that spawn path arms to 0x1000.

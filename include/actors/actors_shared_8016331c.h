@@ -7,7 +7,7 @@
 #include "main/task.h"
 
 /// Animation view of the work block `actor_323000` and `actor_323400` park in
-/// `Task::idMap` -- that slot is not a `TaskIdMap` here. The pose context at
+/// `Task::work` -- that slot is not a `TaskIdMap` here. The pose context at
 /// 0x1C and its blend twin at 0x420 are each followed by 0x28-byte
 /// `GpAnimSlot`s, and 0x83C holds the blend weight the two are written with.
 /// The pads stand in for the rest of the block, which the two overlays name

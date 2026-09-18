@@ -23,11 +23,11 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     GsCOORDINATE2*   coord;
     TmdObject*       obj;
 
-    obj         = task->extra;
-    coord       = obj->field_8;
-    mem         = (Actor160600Work*)Mem_Calloc(0x4F8, false);
-    work        = mem;
-    task->idMap = (TaskIdMap*)mem;
+    obj        = task->extra;
+    coord      = obj->field_8;
+    mem        = (Actor160600Work*)Mem_Calloc(0x4F8, false);
+    work       = mem;
+    task->work = (TaskIdMap*)mem;
     if (mem == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;

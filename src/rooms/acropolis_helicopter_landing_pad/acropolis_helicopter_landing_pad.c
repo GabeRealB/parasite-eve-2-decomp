@@ -71,7 +71,7 @@ extern AhlpMsg7D3 D_acropolis_helicopter_landing_pad_80184E28;
 extern GpRec14    D_acropolis_helicopter_landing_pad_80184E3C;
 
 /// State-0 entry of the room's enemy task: allocates the 0x54-byte work block
-/// into `Task::idMap`, marks the model (`field_E = 8`, clears bit 0x80 of
+/// into `Task::work`, marks the model (`field_E = 8`, clears bit 0x80 of
 /// `field_C`), runs the placement setup and installs the message table.
 void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
 {
@@ -83,7 +83,7 @@ void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
         Gp_EnemyTaskExit(task);
         return;
     }
-    task->idMap   = mem;
+    task->work    = mem;
     obj->field_E  = 8;
     obj->field_C &= 0xFF7F;
     func_acropolis_helicopter_landing_pad_8017D7B0(task);
@@ -100,7 +100,7 @@ void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
 /// whose entry in the per-view table is zero and shown again otherwise.
 void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
 {
-    AhlpEnemyWork* work  = (AhlpEnemyWork*)task->idMap;
+    AhlpEnemyWork* work  = (AhlpEnemyWork*)task->work;
     RoomCoord*     coord = (RoomCoord*)((TmdObject*)task->extra)->field_8;
     TmdObject*     obj   = task->extra;
     s16            n;
@@ -127,7 +127,7 @@ void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
 /// and loads the room's three flat lights into them.
 void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task)
 {
-    AhlpEnemyWork* work = (AhlpEnemyWork*)task->idMap;
+    AhlpEnemyWork* work = (AhlpEnemyWork*)task->work;
     TmdObject*     obj  = task->extra;
     GsF_LIGHT*     light;
     s32            i;
@@ -145,7 +145,7 @@ void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task)
 /// returns to the first placement and clears the countdown.
 s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, AhlpMsg7D3* msg)
 {
-    AhlpEnemyWork* work = (AhlpEnemyWork*)task->idMap;
+    AhlpEnemyWork* work = (AhlpEnemyWork*)task->work;
 
     switch (msg->phase) {
         case 0:
@@ -415,7 +415,7 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
 /// the same registers as the original.
 void func_acropolis_helicopter_landing_pad_8017E0F8(Task* arg0)
 {
-    GameActor* actor = (GameActor*)((Task*)Game_GetPtrSlot(3))->idMap;
+    GameActor* actor = (GameActor*)((Task*)Game_GetPtrSlot(3))->work;
     s32        wrapped;
     s32        tmp;
     s32        dist;

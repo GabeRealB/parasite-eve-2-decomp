@@ -7,7 +7,7 @@
 
 #include "main/task.h"
 
-/// Work block the actors sharing this body hang off the task's `Task::idMap`
+/// Work block the actors sharing this body hang off the task's `Task::work`
 /// slot (0x1C), which is not a `TaskIdMap` here -- the same block
 /// `ActorsShared80132860Work` describes, seen through the three fields this
 /// body reaches. `step` is the per-frame translation the carrier's update loop

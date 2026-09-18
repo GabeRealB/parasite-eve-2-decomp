@@ -15,9 +15,9 @@
 
 /// Per-actor state block for the `actor_135400` overlay's enemy: the
 /// `Mem_Calloc(0x498, 0)` result `func_actor_135400_80132B60` stores in the
-/// `Task::idMap` slot (0x1C) -- so this actor reuses that pointer field for its
+/// `Task::work` slot (0x1C) -- so this actor reuses that pointer field for its
 /// own work block and it is *not* a `TaskIdMap` here. Reach it with
-/// `(Actor135400Work*)task->idMap`. (`func_actor_135400_80132064`, in the
+/// `(Actor135400Work*)task->work`. (`func_actor_135400_80132064`, in the
 /// `actor_135400` unit, carves a different, 0x4C8-byte block for its own spawn
 /// path; this is not that type.)
 ///
@@ -48,7 +48,7 @@ typedef struct Actor135400Work {
 } Actor135400Work;
 STATIC_ASSERT_SIZEOF(Actor135400Work, 0x498);
 
-/// Work block the actor's main task hangs off its `Task::idMap` slot (0x1C):
+/// Work block the actor's main task hangs off its `Task::work` slot (0x1C):
 /// `func_actor_135400_80132064` allocates it (`Mem_Calloc(0x4C8, 0)`) for its
 /// own spawn path, unlike the 0x498-byte `Actor135400Work` the sibling path
 /// `func_actor_135400_80132B60` carves for the task it sets up. The same

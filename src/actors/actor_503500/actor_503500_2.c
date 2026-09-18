@@ -104,7 +104,7 @@ void func_actor_503500_801324EC(Task* arg0)
     Actor503500ColorMtx* work;
 
     ext           = arg0->extra;
-    work          = (Actor503500ColorMtx*)arg0->idMap;
+    work          = (Actor503500ColorMtx*)arg0->work;
     ext->field_1C = &work->light;
     ext->field_20 = &work->color;
 }
@@ -129,9 +129,9 @@ s32 func_actor_503500_80132584(Task* task, s32 arg1, s32 mode)
             obj->field_C &= ~4;
             break;
         case 2:
-            obj->field_C                                 |= 0x80;
-            ((Actor503500ColorMtx*)task->idMap)->field_44 = mode;
-            obj->field_C                                 |= 4;
+            obj->field_C                                |= 0x80;
+            ((Actor503500ColorMtx*)task->work)->field_44 = mode;
+            obj->field_C                                |= 4;
             break;
         case 3:
             obj->field_C &= ~0x80;
@@ -148,7 +148,7 @@ s32 func_actor_503500_80132664(Task* task, s32 arg1, Actor503500ModeMsg* msg)
 {
     Actor503500ColorMtx* work;
 
-    work = (Actor503500ColorMtx*)task->idMap;
+    work = (Actor503500ColorMtx*)task->work;
     switch (msg->mode) {
         case 0:
             work->field_45 = 0;
@@ -209,13 +209,13 @@ void func_actor_503500_80132778(Task* task)
             Task_Kill(task);
             return;
         }
-        task->idMap     = (TaskIdMap*)work;
+        task->work      = (TaskIdMap*)work;
         work->field_0   = 0xC00;
         work->field_4   = 0x4000;
         work->field_8.w = 0x60000;
         task->state++;
     }
-    work = (Actor503500EffWork*)task->idMap;
+    work = (Actor503500EffWork*)task->work;
     if (D_801153F4 == 0) {
         if (work->field_8.h.hi < ++task->killCountdown) {
             task->killCountdown = 0;

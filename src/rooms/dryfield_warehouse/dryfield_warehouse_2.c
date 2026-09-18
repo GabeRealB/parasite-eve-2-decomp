@@ -49,7 +49,7 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
                 Task_Kill(D_dryfield_warehouse_801821C0);
             }
             SetDispMask(1);
-            work = (DwhWork*)RoomsShared80180b2cTask->idMap;
+            work = (DwhWork*)RoomsShared80180b2cTask->work;
             if (work->playerEffActive != 0) {
                 Gp_SpawnWeaponEff();
                 work->playerEffActive = 0;
@@ -86,7 +86,7 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse_2", func_d
 /// Main loop of the warehouse's cutscene task, the owner of the 0x10-byte
 /// `DwhWork` block. State 0 arms the script once: a `D_80114C12` of 1 or a live
 /// `D_80071075` both mean the cutscene is already up, so it does nothing.
-/// Otherwise it parks the zeroed work block in `Task::idMap` -- a failed
+/// Otherwise it parks the zeroed work block in `Task::work` -- a failed
 /// `Mem_Malloc` kills the task, but the record below is dispatched either way --
 /// fills `owner` from pointer slot 3 and republishes this task as
 /// `RoomsShared80180b2cTask` so the room's script helpers reach that block.
@@ -109,8 +109,8 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
     switch (arg0->state) {
         case 0:
             if ((D_80114C12 != 1) && (D_80071075 == 0)) {
-                work        = Mem_Malloc(0x10, false);
-                arg0->idMap = (TaskIdMap*)work;
+                work       = Mem_Malloc(0x10, false);
+                arg0->work = (TaskIdMap*)work;
                 if (work == NULL) {
                     Task_Kill(arg0);
                 } else {

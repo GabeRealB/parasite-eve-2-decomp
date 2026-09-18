@@ -15,7 +15,7 @@ s32 func_actor_350500_80162ABC(Task* task, s32 arg1, Actor350500Msg* msg)
 {
     Actor350500Work* work;
 
-    work = (Actor350500Work*)task->idMap;
+    work = (Actor350500Work*)task->work;
     switch (msg->field_2) {
         case 1:
             work->field_4C4 = 0;

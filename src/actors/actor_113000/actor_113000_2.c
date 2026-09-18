@@ -34,7 +34,7 @@ void func_actor_113000_80131F90(Task* task)
         Gp_EnemyTaskExit(task);
         return;
     }
-    task->idMap     = (TaskIdMap*)work;
+    task->work      = (TaskIdMap*)work;
     work->field_478 = -1;
     work->field_47C = -1;
     work->field_4C6 = 0;
@@ -65,7 +65,7 @@ void func_actor_113000_80132070(Task* task)
     VECTOR3          pos;
     s32              i;
 
-    work  = (Actor113000Work*)task->idMap;
+    work  = (Actor113000Work*)task->work;
     extra = (TmdObject*)task->extra;
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
@@ -101,7 +101,7 @@ void func_actor_113000_801321A8(Task* task)
     GsCOORDINATE2*   coords;
     TmdObject*       extra;
 
-    work            = (Actor113000Work*)task->idMap;
+    work            = (Actor113000Work*)task->work;
     extra           = (TmdObject*)task->extra;
     coords          = extra->field_8;
     extra->field_1C = &work->light;
@@ -116,7 +116,7 @@ void func_actor_113000_801321A8(Task* task)
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Start-preset handler of the `Actor113000Work` block `func_actor_113000_80131F90`
-/// parks in `Task::idMap`, and the twin of `func_actor_323300_80163718`: a preset
+/// parks in `Task::work`, and the twin of `func_actor_323300_80163718`: a preset
 /// bank the block is not already on re-seeds it -- the animation id is reset to
 /// -1, the bank is stored and the bank's animation source goes to `func_800B3F84`
 /// with the block's context, its matrix table and its slots. The preset's
@@ -129,7 +129,7 @@ s32 func_actor_113000_80132208(Task* task, s32 msgId, Actor113000AnimPreset* msg
     GpAnimObj*       ext;
     s32              i;
 
-    work = (Actor113000Work*)task->idMap;
+    work = (Actor113000Work*)task->work;
     ext  = task->extra;
     if (msg->field_0 != work->field_47C) {
         work->field_47C = msg->field_0;

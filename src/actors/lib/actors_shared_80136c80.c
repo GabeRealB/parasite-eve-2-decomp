@@ -37,7 +37,7 @@ void ActorsShared80136c80(Task* arg0)
     s32                       state;
     s32                       one;
 
-    work  = (ActorsShared80136c80Work*)arg0->idMap;
+    work  = (ActorsShared80136c80Work*)arg0->work;
     part  = (TmdObject*)arg0->extra;
     state = D_801153F4;
     child = arg0->firstChild;

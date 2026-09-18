@@ -13,7 +13,7 @@ void ActorsShared801324c8(Task* task)
     ActorsShared801324c8Work* work;
     s32                       i;
 
-    work = (ActorsShared801324c8Work*)task->idMap;
+    work = (ActorsShared801324c8Work*)task->work;
     i    = 1;
     do {
         func_800B4114(&work->anim, i, work->field_4B8, 0, work->field_4EC);

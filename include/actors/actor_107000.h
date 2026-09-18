@@ -36,7 +36,7 @@ typedef struct Actor107000RotScratch {
 } Actor107000RotScratch;
 STATIC_ASSERT_SIZEOF(Actor107000RotScratch, 0x18);
 
-/// Animation work reached through `Task::idMap`. `field_2B8`/`field_2BA`/
+/// Animation work reached through `Task::work`. `field_2B8`/`field_2BA`/
 /// `field_2BC` are the same (id, id the three helper slots last saw, frames
 /// spent on it) triple as `Actor207200Work`'s `field_28C`/`field_28E`/
 /// `field_290`; a non-zero `field_2D2` suppresses the per-frame rebind.

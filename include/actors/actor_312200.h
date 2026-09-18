@@ -17,7 +17,7 @@ typedef union Actor312200Rate {
 } Actor312200Rate;
 STATIC_ASSERT_SIZEOF(Actor312200Rate, 0x2);
 
-/// Private work block of the actor 312200 task, hanging off `Task::idMap`,
+/// Private work block of the actor 312200 task, hanging off `Task::work`,
 /// `Mem_Calloc(sizeof(Actor312200Work), 0)` in the spawn handler.
 ///
 /// Only the fields the matched code touches are named so far: `yaw` at 0x08 is
@@ -165,7 +165,7 @@ void func_actor_312200_801637CC(Task* task);
 void func_actor_312200_80163778(Task* task);
 
 /// Spawn handler and the task's create callback: allocates the work block and
-/// stores it in `Task::idMap`, then seeds the enemy object, the model's root
+/// stores it in `Task::work`, then seeds the enemy object, the model's root
 /// coordinate and the animation context from the `TmdObject` in `Task::extra` -
 /// its `field_1C` / `field_20` are pointed at the block's light and colour
 /// matrices, `GpEnemy::field_4` at the root coordinate's matrix, and

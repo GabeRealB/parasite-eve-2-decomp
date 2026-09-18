@@ -19,7 +19,7 @@ s32 ActorsShared80133528(Task* task, s32 arg1, ActorsShared80133528Args* args)
 {
     ActorsShared801330acWork* work;
 
-    work = (ActorsShared801330acWork*)task->idMap;
+    work = (ActorsShared801330acWork*)task->work;
     if (args->animId >= 6) {
         return -1;
     }

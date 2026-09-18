@@ -23,7 +23,7 @@ typedef union ActorShared80137ca4Mat {
 } ActorShared80137ca4Mat;
 STATIC_ASSERT_SIZEOF(ActorShared80137ca4Mat, 0x20);
 
-/// Work block the carriers hang off the task's `Task::idMap` slot (0x1C), which
+/// Work block the carriers hang off the task's `Task::work` slot (0x1C), which
 /// is not a `TaskIdMap` here -- the same block `Actor402200Work` describes, seen
 /// through the two fields this body reaches: the attach rotation at 0x674 and
 /// the per-axis scales at 0x694 that `ScaleMatrix` folds into it.

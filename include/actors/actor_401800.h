@@ -32,7 +32,7 @@ typedef struct Actor401800TintRow {
 } Actor401800TintRow;
 STATIC_ASSERT_SIZEOF(Actor401800TintRow, 0xC);
 
-/// Private work block of the actor 401800 task, hanging off `Task::idMap`.
+/// Private work block of the actor 401800 task, hanging off `Task::work`.
 ///
 /// Only the fields the decompiled code touches are named, so the struct is
 /// deliberately open-ended: the three `GpObj` display nodes the teardown hands
@@ -463,7 +463,7 @@ static __inline__ void Actor401800_BisectorToWorld2(GsCOORDINATE2* coord, SVECTO
 }
 
 /// Per-task actor context: `field_1C` is the work block above (the same
-/// pointer `Task::idMap` holds), `field_20` the `GpEnemy` in
+/// pointer `Task::work` holds), `field_20` the `GpEnemy` in
 /// `Task::spawnArg2`, and `field_2C` the actor's `TmdObject`. Same shape as
 /// `Actor01900`.
 typedef struct Actor401800 {

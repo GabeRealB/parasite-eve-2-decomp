@@ -623,6 +623,7 @@ def collect_in_tu(job):
         return []
     if "#param" in usr:
         return _collect_param(tu, root, usr, token)
+    _spellings = {token, f"struct {token}", f"union {token}", f"enum {token}"}
     refs: list[Ref] = []
     parents: dict[int, ci.Cursor] = {}
     src_cache: dict[str, list[str]] = {}
@@ -633,7 +634,9 @@ def collect_in_tu(job):
         for kid in cur.get_children():
             parents[kid.hash] = cur
             stack.append(kid)
-        if cur.spelling != token:
+        # A TYPE_REF to a tagged type spells itself "struct X", not "X", so an
+        # exact match finds the declarations and misses every use.
+        if cur.spelling not in _spellings:
             continue
         if cur.kind in _REF_KINDS:
             ref = cur.referenced
@@ -662,8 +665,22 @@ def collect_in_tu(job):
             except OSError:
                 src_cache[fname] = []
         lines = src_cache[fname]
-        text = lines[loc.line - 1].strip() if 0 < loc.line <= len(lines) else ""
-        refs.append(Ref(fname, loc.line, loc.column, use, text, _enclosing(cur, parents)))
+        raw = lines[loc.line - 1] if 0 < loc.line <= len(lines) else ""
+        text = raw.strip()
+        col = loc.column
+        if not raw[col - 1:].startswith(token):
+            # A reference to a tagged type is located at the keyword, so step
+            # over it to reach the identifier itself.
+            for kw in ("struct ", "union ", "enum "):
+                if raw[col - 1:].startswith(kw + token):
+                    col += len(kw)
+                    break
+        if not raw[col - 1:].startswith(token):
+            # A reference inside a macro body is reported at the *invocation*,
+            # where the identifier does not appear. The site is real, but the
+            # edit belongs in the macro definition rather than here.
+            use = f"{use} (via macro)"
+        refs.append(Ref(fname, loc.line, col, use, text, _enclosing(cur, parents)))
     return refs
 
 

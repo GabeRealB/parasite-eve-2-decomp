@@ -13,7 +13,7 @@ s32 ActorsShared80132710(Task* task, s32 arg1, s32 flags)
     TmdObject* other;
 
     self  = (TmdObject*)task->extra;
-    other = (TmdObject*)((ActorsShared80132710Work*)task->idMap)->field_4B8->extra;
+    other = (TmdObject*)((ActorsShared80132710Work*)task->work)->field_4B8->extra;
 
     if (flags & 1) {
         self->field_C  = 0;

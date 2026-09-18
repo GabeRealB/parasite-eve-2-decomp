@@ -20,7 +20,7 @@ void func_actor_341700_8016966C(Task* arg0)
     Actor341700Work* work;
     TmdObject*       model;
 
-    work            = (Actor341700Work*)arg0->idMap;
+    work            = (Actor341700Work*)arg0->work;
     model           = (TmdObject*)arg0->extra;
     ticks           = work->field_412 + 1;
     work->field_412 = ticks;
@@ -36,7 +36,7 @@ void func_actor_341700_801696C8(Task* arg0)
 {
     Actor341700Work* work;
 
-    work            = (Actor341700Work*)arg0->idMap;
+    work            = (Actor341700Work*)arg0->work;
     arg0->state     = 5;
     work->field_420 = 0;
     work->field_422 = 0;
@@ -47,7 +47,7 @@ void func_actor_341700_801696E0(Task* arg0)
     u16              ticks;
     Actor341700Work* work;
 
-    work            = (Actor341700Work*)arg0->idMap;
+    work            = (Actor341700Work*)arg0->work;
     ticks           = work->field_412 + 1;
     work->field_412 = ticks;
     if ((s16)ticks >= 2) {
@@ -61,7 +61,7 @@ void func_actor_341700_801697B8(Task* arg0)
 {
     Actor341700Work* work;
 
-    work            = (Actor341700Work*)arg0->idMap;
+    work            = (Actor341700Work*)arg0->work;
     work->field_412 = 0;
     work->field_420 = work->field_420 + 1;
 }
@@ -71,7 +71,7 @@ void func_actor_341700_801697D4(Task* arg0)
     Actor341700Work* work;
     u16              ticks;
 
-    work            = (Actor341700Work*)arg0->idMap;
+    work            = (Actor341700Work*)arg0->work;
     ticks           = work->field_412 + 1;
     work->field_412 = ticks;
     if ((s16)ticks >= 0x24) {
@@ -105,7 +105,7 @@ void func_actor_341700_80169D54(Task* arg0)
     Actor341700Work* work;
     TaskFuncTable4   sp;
 
-    work = (Actor341700Work*)arg0->idMap;
+    work = (Actor341700Work*)arg0->work;
     sp   = D_actor_341700_80161F94;
     sp.funcs[(s16)work->field_422](arg0);
 }

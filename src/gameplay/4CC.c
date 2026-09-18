@@ -62,7 +62,7 @@ void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
     s32              subB;
 
     obj = arg1->parent->spawnArg2;
-    mem = (GpItemMoveState*)arg1->parent->idMap;
+    mem = (GpItemMoveState*)arg1->parent->work;
     switch (arg0->field_2E) {
         case 0x26:
             scanSrc = &Gp_MoveScanSrc;
@@ -219,7 +219,7 @@ void Gp_ItemMoveTask(Task* arg0)
             goto end;
         }
         scans           = Gp_ScanPtrs;
-        arg0->idMap     = (TaskIdMap*)mem;
+        arg0->work      = (TaskIdMap*)mem;
         Gp_ItemMoveWork = mem;
         mem->field_C    = 0;
         do {
@@ -809,9 +809,9 @@ void func_800BDF6C(Task* task)
             obj->field_2E = 9;
             return;
         }
-        initScan    = &Gp_MoveScanSrc;
-        task->idMap = (TaskIdMap*)state;
-        srcTotal    = Gp_ScanStackQty(initScan, task->spawnArg1);
+        initScan   = &Gp_MoveScanSrc;
+        task->work = (TaskIdMap*)state;
+        srcTotal   = Gp_ScanStackQty(initScan, task->spawnArg1);
         TOUCH_REG(initScan);
         initScan       += 1;
         state->srcQty   = srcTotal;
@@ -824,7 +824,7 @@ void func_800BDF6C(Task* task)
         state->limit = Gp_StackLimits[task->spawnArg1 - 0xA0].field_2;
         task->state  = task->state + 1;
     }
-    state = (GpAmmoSplitState*)task->idMap;
+    state = (GpAmmoSplitState*)task->work;
     Gp_DrawItemLabel(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, task->spawnArg1, 0x606060, 0);
     task->flags = 0;
     totalQty    = state->srcQty + state->dstQty;
@@ -1202,7 +1202,7 @@ void Gp_ItemPickupTilt(Task* arg0)
             extra->field_20 = mem + 1;
             Gp_UpdateCoord((GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8);
             func_800D7A9C(extra, &vec, 0, 3);
-            arg0->idMap = (TaskIdMap*)mem;
+            arg0->work = (TaskIdMap*)mem;
         }
         arg0->field_24 = D_8010D828;
         arg0->flags    = 0;

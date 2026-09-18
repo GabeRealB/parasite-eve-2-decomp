@@ -12,6 +12,6 @@ void ActorsShared80131f9c(Task* task)
         ActorsShared80131f9cSub1,
     };
 
-    ActorsShared80131f9cWork = task->idMap;
+    ActorsShared80131f9cWork = task->work;
     fns[task->state](task->spawnArg2, task);
 }

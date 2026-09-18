@@ -9,7 +9,7 @@
 // Types — title / demo / main-menu overlay (src/title/title.c)
 // =============================================================================
 
-/// Title-screen work block stored at Task::idMap (Mem_Calloc 0x18).
+/// Title-screen work block stored at Task::work (Mem_Calloc 0x18).
 typedef struct _TitleWork {
     /* 0x00 */ s32 timer;          // frame / phase counter
     /* 0x04 */ s32 selection;      // menu cursor index

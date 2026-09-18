@@ -10,7 +10,7 @@ void func_actor_401300_80141758(Task* task)
     Actor401300Work* work;
     GpEnemy*         enemy;
 
-    work  = (Actor401300Work*)task->idMap;
+    work  = (Actor401300Work*)task->work;
     enemy = (GpEnemy*)task->spawnArg2;
     if (work != NULL) {
         if (work->field_D0C != NULL) {
@@ -248,7 +248,7 @@ void func_actor_401300_80141DF4(Actor401300* arg0)
 
 void func_actor_401300_80141EF8(Task* task)
 {
-    Actor401300Work* work  = (Actor401300Work*)task->idMap;
+    Actor401300Work* work  = (Actor401300Work*)task->work;
     GpEnemy*         enemy = task->spawnArg2;
 
     if (enemy->field_40 != -0x3E7 && work->field_C8A == 0) {

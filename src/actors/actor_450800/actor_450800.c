@@ -184,10 +184,10 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
     GpCdRec10*       entry2;
     GpAreaKey*       sessionKey2;
 
-    obj         = task->extra;
-    coord       = obj->field_8;
-    work        = Mem_Calloc(0x504, 0);
-    task->idMap = (TaskIdMap*)work;
+    obj        = task->extra;
+    coord      = obj->field_8;
+    work       = Mem_Calloc(0x504, 0);
+    task->work = (TaskIdMap*)work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
@@ -301,7 +301,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_8
 
 void func_actor_450800_80132868(Task* task)
 {
-    Actor450800Work* work = (Actor450800Work*)task->idMap;
+    Actor450800Work* work = (Actor450800Work*)task->work;
 
     Gp_DestroyEnemy(task->spawnArg2, task);
     Task_Kill(work->field_4F0);

@@ -6,7 +6,7 @@
 #include "main/task.h"
 
 /// The one field this handler touches in the carrier's work block, the
-/// `Task::idMap` slot each carrier parks its per-instance state in. The pad
+/// `Task::work` slot each carrier parks its per-instance state in. The pad
 /// stands in for the rest of the block, which `Actor317000Work` and
 /// `Actor113000Work` name differently; both spell this halfword `field_4C8`,
 /// `s16`, and both seed it to -1 out of their spawn handler.

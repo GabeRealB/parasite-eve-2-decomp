@@ -9,9 +9,9 @@
 /// Work block for the `actor_136100` overlay's cutscene actor.
 ///
 /// `func_actor_136100_80133A88` allocates it with `Mem_Malloc(0x4F0, 0)`,
-/// zeroes it with `Mem_Set` and parks the pointer in the task's `Task::idMap`
+/// zeroes it with `Mem_Set` and parks the pointer in the task's `Task::work`
 /// slot (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
-/// `(Actor136100Work*)task->idMap`.  The same function publishes the task
+/// `(Actor136100Work*)task->work`.  The same function publishes the task
 /// itself in `D_actor_136100_8014078C` and stores the `Game_GetPtrSlot(3)`
 /// task in `field_4B4`.
 ///
@@ -69,7 +69,7 @@ STATIC_ASSERT_SIZEOF(Actor136100Msg3F7, 0x8);
 /// (`func_actor_136100_80134588`).
 ///
 /// The task allocates it with `Mem_Malloc(8, 0)` on its first tick and parks it
-/// in `Task::idMap`, then advances all three channels by the task's
+/// in `Task::work`, then advances all three channels by the task's
 /// `spawnArg1` every frame and hands `r` and `g` to `Fade_DrawOverlay`.  It is
 /// the same 8-byte shape the room overlays use (see `DumpingHoleFadeWork` in
 /// `shelter_b3_dumping_hole`), and `r` is what the task's own

@@ -13,7 +13,7 @@
 /// Scratch state of the room's first cap script: the task family whose state
 /// table is `RoomsShared8017d8d0States` (dispatcher `func_shelter_r47_80182B18`).
 /// `Mem_Calloc(0x54)` in its state-0 entry `func_shelter_r47_8018138C`, stored
-/// at `Task::idMap`.
+/// at `Task::work`.
 typedef struct {
     /* 0x00 */ u8  pad_0[0x18];
     /* 0x18 */ s16 field_18; ///< committed to game flag 0xAC when the script ends
@@ -37,7 +37,7 @@ STATIC_ASSERT_SIZEOF(ShelterR47State, 0x54);
 /// Scratch state of the room's second cap script: the task family whose state
 /// table is `D_shelter_r47_8017D7DC` (dispatcher `func_shelter_r47_80185214`).
 /// `Mem_Calloc(0x30)` in its state-0 entry `func_shelter_r47_8018431C`, stored
-/// at `Task::idMap`.
+/// at `Task::work`.
 typedef struct {
     /* 0x00 */ u8  pad_0[0xA];
     /* 0x0A */ s16 field_A;

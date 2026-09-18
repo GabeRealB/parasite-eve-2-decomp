@@ -21,7 +21,7 @@ s16  func_actor_405800_8013836C(Task* arg0, s16 arg1);
 /// register CSE would otherwise hoist the address into.
 static __inline__ void Actor405800_RebuildRotation(Task* arg0)
 {
-    Actor405800Work* work  = (Actor405800Work*)arg0->idMap;
+    Actor405800Work* work  = (Actor405800Work*)arg0->work;
     GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
     MATRIX*          m;
     MATRIX*          dst;
@@ -56,7 +56,7 @@ static __inline__ void Actor405800_RebuildRotation(Task* arg0)
 /// request, then tick every model slot at the current rate.
 static __inline__ void Actor405800_TickAnim(Task* arg0)
 {
-    Actor405800Work* work = (Actor405800Work*)arg0->idMap;
+    Actor405800Work* work = (Actor405800Work*)arg0->work;
     s32              i;
 
     if (work->field_86E == 1) {

@@ -77,11 +77,11 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     s32              idx;
     u32              raw;
 
-    obj         = task->extra;
-    coord       = obj->field_8;
-    mem         = (Actor160700Work*)Mem_Calloc(0x4F8, false);
-    work        = mem;
-    task->idMap = (TaskIdMap*)mem;
+    obj        = task->extra;
+    coord      = obj->field_8;
+    mem        = (Actor160700Work*)Mem_Calloc(0x4F8, false);
+    work       = mem;
+    task->work = (TaskIdMap*)mem;
     if (mem == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;

@@ -46,7 +46,7 @@ void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->idMap    = (TaskIdMap*)work;
+    arg1->work     = (TaskIdMap*)work;
     obj->field_C   = 0;
     coord->flg     = 0;
     obj->field_1C  = &work->field_DC;
@@ -157,7 +157,7 @@ void func_actor_207200_8014A588(Task* arg0)
     u32                      damage;
     s32                      snd;
 
-    work                                     = (ActorShared8014df20Work*)arg0->idMap;
+    work                                     = (ActorShared8014df20Work*)arg0->work;
     head                                     = *(Actor207200HitScratch**)G_SCRATCH_HEAD;
     *(Actor207200HitScratch**)G_SCRATCH_HEAD = head - 1;
     sc                                       = head - 1;
@@ -272,7 +272,7 @@ void func_actor_207200_8014AA74(GpEnemy* arg0, Task* arg1)
     s32              i;
     Actor207200Work* anim;
 
-    work  = arg1->idMap;
+    work  = arg1->work;
     obj   = arg1->extra;
     coord = obj->field_8;
     switch (D_801153F4) {
@@ -307,7 +307,7 @@ void func_actor_207200_8014AA74(GpEnemy* arg0, Task* arg1)
         Gp_UnlinkObj(&work->field_FC.obj);
         Gp_UnlinkObj(&work->field_184.obj);
     }
-    anim = arg1->idMap;
+    anim = arg1->work;
     i    = 1;
     if (anim->field_28C != (s16)anim->field_28E) {
         anim->field_28E = anim->field_28C;

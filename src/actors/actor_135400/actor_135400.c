@@ -115,7 +115,7 @@ void func_actor_135400_80132064(Task* arg0)
         Gp_EnemyTaskExit(arg0);
         return;
     }
-    arg0->idMap     = (TaskIdMap*)work;
+    arg0->work      = (TaskIdMap*)work;
     work->field_475 = -1;
     work->field_476 = -1;
     spawned         = Task_SpawnFromTable(&D_actor_135400_8013A4AC, 1, 4, (s32)arg0);
@@ -191,7 +191,7 @@ void func_actor_135400_801322A8(Task* task)
     s32                  i;
     s32                  rate;
 
-    work = (Actor135400MainWork*)task->idMap;
+    work = (Actor135400MainWork*)task->work;
     ext  = task->extra;
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {

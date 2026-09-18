@@ -15,7 +15,7 @@ void func_actor_400600_80139A78(Task* arg0)
     Actor400600Work* work;
     s32              i;
 
-    work = (Actor400600Work*)arg0->idMap;
+    work = (Actor400600Work*)arg0->work;
     i    = 1;
     do {
         work->slots[i].field_9 = work->field_726;
@@ -34,7 +34,7 @@ void func_actor_400600_80139AE8(Task* arg0)
     Actor400600Work* work;
     s32              i;
 
-    work = (Actor400600Work*)arg0->idMap;
+    work = (Actor400600Work*)arg0->work;
     if (work->field_744 == work->field_746) {
         i = 1;
         do {
@@ -55,7 +55,7 @@ void func_actor_400600_80139AE8(Task* arg0)
 
 s16 func_actor_400600_80139BA0(Task* arg0, s16 arg1)
 {
-    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work = (Actor400600Work*)arg0->work;
 
     if (work->field_726 == 0) {
         return 0;

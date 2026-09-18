@@ -32,7 +32,7 @@ typedef struct ActorShared80137e18Obj2C {
 } ActorShared80137e18Obj2C;
 
 /// Work block the carriers hang off their context's 0x1C slot (the task's
-/// `Task::idMap`, which is not a `TaskIdMap` here). `coord` is the extra
+/// `Task::work`, which is not a `TaskIdMap` here). `coord` is the extra
 /// `GsCOORDINATE2` this body wires as `sub` of the model's second part;
 /// `scale` is that node's X/Y/Z in 4096-per-unit fixed point, which
 /// `ActorsShared80137ea8` then reads as `field_34E` for the Y component.

@@ -310,7 +310,7 @@ void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->idMap     = (TaskIdMap*)work;
+    task->work      = (TaskIdMap*)work;
     work->field_648 = 0;
     work->field_68C = 0U;
     for (areaIndex = 0; Actor00300_D16020[areaIndex].id != 0; areaIndex++) {
@@ -2018,13 +2018,13 @@ void Actor00300_Fn040A4(GpEnemy* arg0, Task* arg1)
     parent              = arg1->parent;
     coord               = ((Actor100300Obj2C*)arg1->extra)->field_8;
     parentCoord         = ((Actor100300Obj2C*)parent->extra)->field_8;
-    parentWork          = (Actor100300Work*)parent->idMap;
+    parentWork          = (Actor100300Work*)parent->work;
     work                = Mem_Calloc(0x8C, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->idMap        = (TaskIdMap*)work;
+    arg1->work         = (TaskIdMap*)work;
     scratch->offset.vx = 0;
     scratch->offset.vy = -0x5DC;
     scratch->offset.vz = 0x320;

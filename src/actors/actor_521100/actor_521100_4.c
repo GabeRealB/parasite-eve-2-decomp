@@ -18,7 +18,7 @@ void func_actor_521100_80135B80(GpEnemy* arg0, Task* task)
     Actor521100Work*  work;
     s16               mode;
 
-    work = (Actor521100Work*)task->parent->idMap;
+    work = (Actor521100Work*)task->parent->work;
     obj  = (Actor521100Obj2C*)task->extra;
     if (work->field_682 != 0) {
         mode         = ((work->field_692 & 1) == 0) << 7;

@@ -46,7 +46,7 @@ typedef struct Actor356100TurnScratch {
 } Actor356100TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor356100TurnScratch, 0xC);
 
-/// Head of the work block this overlay hangs off `Task::idMap`. `field_4` is
+/// Head of the work block this overlay hangs off `Task::work`. `field_4` is
 /// the live-actor flag `func_actor_356100_8016A1D8` tests, where
 /// `Actor00100Work::field_4` sits. `field_0` / `field_5A` / `field_68` are the
 /// same state, clip-id and flag halfwords `Actor01900Work` keeps at those
@@ -206,7 +206,7 @@ typedef union Actor356100Event {
 } Actor356100Event;
 
 /// Per-task actor context: `field_1C` is the work block above (the same
-/// pointer `Task::idMap` holds), `field_20` the `GpEnemy` in
+/// pointer `Task::work` holds), `field_20` the `GpEnemy` in
 /// `Task::spawnArg2`, and `field_2C` the actor's `TmdObject`. Same shape as
 /// `Actor01900` / `Actor401000`. The sibling teardown
 /// `func_actor_356100_8016A158` reaches those same slots as a `Task*`.

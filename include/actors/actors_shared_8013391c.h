@@ -5,7 +5,7 @@
 
 #include "main/task.h"
 
-/// Work block the enemies carrying this body reach as `task->idMap`, which is
+/// Work block the enemies carrying this body reach as `task->work`, which is
 /// not a `TaskIdMap` here. The carriers allocate blocks of different sizes, so
 /// only the halfword this body sets is described: the message selector's bit
 /// is ORed into it, one bit each for selectors 1, 2 and 3.

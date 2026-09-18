@@ -9,7 +9,7 @@
 /// part of the scene, which drops the sequence back to the shared state 0.
 void func_dryfield_night_factory_8017FD5C(Task* task)
 {
-    NightFactoryCutsceneWork*  work = (NightFactoryCutsceneWork*)task->idMap;
+    NightFactoryCutsceneWork*  work = (NightFactoryCutsceneWork*)task->work;
     NightFactoryCutsceneTable3 sp;
 
     sp = D_dryfield_night_factory_8017D5DC;

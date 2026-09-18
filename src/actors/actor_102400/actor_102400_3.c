@@ -51,13 +51,13 @@ void func_actor_102400_801345B0(GpEnemy* arg0, Task* arg1)
     parent              = arg1->parent;
     coord               = ((TmdObject*)arg1->extra)->field_8;
     parentCoord         = ((TmdObject*)parent->extra)->field_8;
-    parentWork          = (ActorsShared801351d4Parent*)parent->idMap;
+    parentWork          = (ActorsShared801351d4Parent*)parent->work;
     work                = Mem_Calloc(0xB4, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->idMap        = (TaskIdMap*)work;
+    arg1->work         = (TaskIdMap*)work;
     scratch->offset.vx = 0;
     scratch->offset.vy = -0x15E;
     scratch->offset.vz = 0;
@@ -147,7 +147,7 @@ void func_actor_102400_80134910(GpEnemy* arg0, Task* arg1)
     u16                       timer;
 
     coord = ((TmdObject*)arg1->extra)->field_8;
-    work  = (ActorsShared801351d4Work*)arg1->idMap;
+    work  = (ActorsShared801351d4Work*)arg1->work;
     spawn = 0;
     switch (D_801153F4) {
         case 1:

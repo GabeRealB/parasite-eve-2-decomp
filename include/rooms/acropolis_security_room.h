@@ -9,10 +9,10 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-/// 0xA work block of the security-monitor task, hung off the `Task::idMap`
+/// 0xA work block of the security-monitor task, hung off the `Task::work`
 /// slot (0x1C) -- that slot is *not* a `TaskIdMap` here, it is the
 /// `Mem_Calloc(0xA)` block `func_acropolis_security_room_8017D9DC` allocates.
-/// Reach it with `(AsrMonitorWork*)task->idMap`.
+/// Reach it with `(AsrMonitorWork*)task->work`.
 ///
 /// `cameraId` is the camera the monitor is currently showing, seeded from the
 /// `GameFlag_GetNibble(0x2A)` lookup table and offset by 0x7F before being
@@ -55,11 +55,11 @@ typedef struct AsrRect {
 } AsrRect;
 STATIC_ASSERT_SIZEOF(AsrRect, 0x8);
 
-/// Scratch state of the security-room cap script, stored at `Task::idMap`.
+/// Scratch state of the security-room cap script, stored at `Task::work`.
 ///
 /// `func_acropolis_security_room_8017FA18` -- state 0 of the family whose
 /// handler table is `D_acropolis_security_room_8017D63C` -- allocates it with
-/// `Mem_Calloc(0x10, 0)` and stores it straight into the `Task::idMap` slot,
+/// `Mem_Calloc(0x10, 0)` and stores it straight into the `Task::work` slot,
 /// so the size below is the allocation and not a guess; the same function
 /// parks the family's `GpMsgEntry[]` in `Task::field_24`. The overlay's other
 /// two allocators (`Mem_Calloc(0xA)` in `func_acropolis_security_room_8017D9DC`

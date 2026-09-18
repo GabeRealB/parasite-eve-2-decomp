@@ -38,7 +38,7 @@ static __inline__ void update_color(void* enemy, GsCOORDINATE2* coord)
 void func_actor_341700_80164CDC(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra;
-    Actor341700Work* work  = (Actor341700Work*)arg0->idMap;
+    Actor341700Work* work  = (Actor341700Work*)arg0->work;
     GsCOORDINATE2*   coord = obj->field_8;
     TaskFuncTable9   sp    = D_actor_341700_80161F0C;
 

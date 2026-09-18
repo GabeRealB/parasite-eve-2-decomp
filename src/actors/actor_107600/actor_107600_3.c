@@ -17,7 +17,7 @@
 /// starts the state at 8 and leaves the scale pair at 100 percent.
 void func_actor_107600_80134C54(Task* arg0)
 {
-    Actor107600Work* work = (Actor107600Work*)arg0->idMap;
+    Actor107600Work* work = (Actor107600Work*)arg0->work;
     GpObj4C*         obj  = arg0->spawnArg2;
 
     switch (work->field_162) {
@@ -79,7 +79,7 @@ void func_actor_107600_80134D9C(Task* arg0)
     VECTOR*          block;
     s32              dist;
 
-    work     = (Actor107600Work*)arg0->idMap;
+    work     = (Actor107600Work*)arg0->work;
     self     = ((TmdObject*)arg0->extra)->field_8;
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
@@ -130,7 +130,7 @@ void func_actor_107600_80134E5C(GsCOORDINATE2* arg0)
 /// and re-signed before the divide so the scale stays signed.
 void func_actor_107600_80134EF4(Task* arg0)
 {
-    Actor107600Work* work  = (Actor107600Work*)arg0->idMap;
+    Actor107600Work* work  = (Actor107600Work*)arg0->work;
     GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
     u16              x     = coord->coord.m[0][0];
     u16              y     = coord->coord.m[2][1];

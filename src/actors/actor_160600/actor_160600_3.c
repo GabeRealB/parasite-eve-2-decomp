@@ -21,7 +21,7 @@ s32 func_actor_160600_8013252C(Task* task, s32 arg1, Actor160600AnimArgs* args)
 {
     Actor160600Work* work;
 
-    work = (Actor160600Work*)task->idMap;
+    work = (Actor160600Work*)task->work;
     if (args->animId >= 0x10) {
         return -1;
     }

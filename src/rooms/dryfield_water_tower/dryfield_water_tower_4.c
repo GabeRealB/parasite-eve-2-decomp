@@ -15,7 +15,7 @@
 /// itself is never read, hence the named-but-unused `msgId`.
 void func_dryfield_water_tower_8017F808(Task* task, s32 msgId, DwtwMsg7DB* msg)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)task->idMap;
+    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)task->work;
 
     state->field_58     = 0;
     state->field_60     = 0;
@@ -38,7 +38,7 @@ void func_dryfield_water_tower_8017F808(Task* task, s32 msgId, DwtwMsg7DB* msg)
 /// `|= 0x80` sequence for its room.
 void func_dryfield_water_tower_8017F82C(void)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->idMap;
+    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
     if (state->field_76 == 0) {
         Game_Session->field_69 |= 0x80;

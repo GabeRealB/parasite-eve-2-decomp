@@ -36,7 +36,7 @@ static __inline__ void update_color(void* enemy, GsCOORDINATE2* coord)
 /// so the caller skips this frame's state handler.
 static __inline__ s16 take_hit(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->idMap;
+    Actor341700Work* work = (Actor341700Work*)arg0->work;
     s16              hit  = 0;
     Actor341700Work* w2;
 
@@ -44,7 +44,7 @@ static __inline__ s16 take_hit(Task* arg0)
         hit             = 1;
         work->field_44C = 0;
         arg0->state     = 7;
-        w2              = (Actor341700Work*)arg0->idMap;
+        w2              = (Actor341700Work*)arg0->work;
         w2->field_420   = 0;
         w2->field_422   = 0;
     }
@@ -56,7 +56,7 @@ static __inline__ s16 take_hit(Task* arg0)
 /// taken off `G_SCRATCH_HEAD`, copying the 3x3 into the root coordinate.
 static __inline__ void update_rotation(Task* arg0)
 {
-    Actor341700Work* work  = (Actor341700Work*)arg0->idMap;
+    Actor341700Work* work  = (Actor341700Work*)arg0->work;
     MATRIX*          m     = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
     GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
     MATRIX*          dst;
@@ -94,7 +94,7 @@ static __inline__ void update_rotation(Task* arg0)
 void func_actor_341700_80165DDC(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra;
-    Actor341700Work* work  = (Actor341700Work*)arg0->idMap;
+    Actor341700Work* work  = (Actor341700Work*)arg0->work;
     GsCOORDINATE2*   coord = obj->field_8;
     TaskFuncTable10  sp    = D_actor_341700_80161FA4;
 

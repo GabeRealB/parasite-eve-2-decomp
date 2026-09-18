@@ -291,8 +291,8 @@ void func_mist_shooting_gallery_80182B1C(Task* arg0)
     slot  = (GpActorWork*)Game_GetPtrSlot(3);
     actor = slot->actor;
 
-    work        = (MistShootingGalleryWork*)Mem_Calloc(0x24, 0);
-    arg0->idMap = (TaskIdMap*)work;
+    work       = (MistShootingGalleryWork*)Mem_Calloc(0x24, 0);
+    arg0->work = (TaskIdMap*)work;
     if (work == NULL) {
         Task_Kill(arg0);
         return;
@@ -347,7 +347,7 @@ void func_mist_shooting_gallery_80182C58(Task* arg0)
     u16                       prev;
     u8                        step;
 
-    work  = (MistShootingGalleryWork*)arg0->idMap;
+    work  = (MistShootingGalleryWork*)arg0->work;
     bonus = D_80072310;
     if (Pad_CheckButtons(0, 1, 0x100) != 0) {
         func_8014A9A0();
@@ -552,7 +552,7 @@ void func_mist_shooting_gallery_801831B0(Task* arg0)
     u16                       wave;
     u8                        step;
 
-    work = (MistShootingGalleryWork*)arg0->idMap;
+    work = (MistShootingGalleryWork*)arg0->work;
     if (Pad_CheckButtons(0, 1, 0x100) != 0) {
         func_8014A9A0();
         return;
@@ -645,7 +645,7 @@ void func_mist_shooting_gallery_8018341C(Task* arg0)
     u16                       ready;
     u8                        step;
 
-    work  = (MistShootingGalleryWork*)arg0->idMap;
+    work  = (MistShootingGalleryWork*)arg0->work;
     bonus = D_80072310;
 
     switch (work->field_04) {
@@ -825,7 +825,7 @@ void func_mist_shooting_gallery_801838FC(Task* arg0)
     u8                        step;
     u8                        hold;
 
-    work  = (MistShootingGalleryWork*)arg0->idMap;
+    work  = (MistShootingGalleryWork*)arg0->work;
     bonus = D_80072310;
 
     switch (work->field_04) {
@@ -1009,7 +1009,7 @@ void func_mist_shooting_gallery_80183E78(Task* arg0)
     u16                       key;
     u8                        step;
 
-    work = (MistShootingGalleryWork*)arg0->idMap;
+    work = (MistShootingGalleryWork*)arg0->work;
 
     switch (work->field_04) {
         case 0:
@@ -1156,7 +1156,7 @@ void func_mist_shooting_gallery_801842D0(Task* arg0)
     MistShootingGalleryWork* work;
     GameActor*               actor;
 
-    work  = (MistShootingGalleryWork*)arg0->idMap;
+    work  = (MistShootingGalleryWork*)arg0->work;
     actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
 
     switch (work->field_04) {
@@ -1205,7 +1205,7 @@ s32 func_mist_shooting_gallery_80184470(s32 score)
 {
     s32 bonus = 0;
 
-    switch (((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->idMap)->difficulty) {
+    switch (((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work)->difficulty) {
         case 0:
             if (score >= 0x2710) {
                 bonus = 0x12C;
@@ -1368,14 +1368,14 @@ void func_mist_shooting_gallery_801848B4(void)
 
 void func_mist_shooting_gallery_80184954(void)
 {
-    MistShootingGalleryWork* work = (MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->idMap;
+    MistShootingGalleryWork* work = (MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work;
 
     work->field_1F = 1;
 }
 
 s32 func_mist_shooting_gallery_80184970(s32 arg0)
 {
-    MistShootingGalleryWork* work = (MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->idMap;
+    MistShootingGalleryWork* work = (MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work;
     s32                      ret  = 0;
 
     if (work->difficulty < 3) {
@@ -1390,7 +1390,7 @@ INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_5", 
 
 void func_mist_shooting_gallery_80184A14(Task* arg0)
 {
-    MistShootingGalleryWork*  work   = (MistShootingGalleryWork*)arg0->idMap;
+    MistShootingGalleryWork*  work   = (MistShootingGalleryWork*)arg0->work;
     MistShootingGalleryRounds rounds = D_mist_shooting_gallery_8017DB8C;
 
     rounds.rounds[work->difficulty]();
@@ -1484,7 +1484,7 @@ GpEnemy* func_mist_shooting_gallery_80184CD0(Task* arg0, MistShootingGallerySpaw
     TmdObject*               obj;
     GpCoordPose*             coord;
 
-    work  = (MistShootingGalleryWork*)arg0->idMap;
+    work  = (MistShootingGalleryWork*)arg0->work;
     enemy = Gp_SpawnEnemyFromTable(&D_80134F94, 0, arg1->idLo | (arg1->idHi << 16), NULL);
     if (enemy != NULL) {
         enemy->task->parent = arg0;

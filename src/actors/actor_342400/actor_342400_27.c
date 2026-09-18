@@ -6,7 +6,7 @@ void func_actor_342400_8016BED8(Task* arg0)
 {
     Actor342400Work* work;
 
-    work            = (Actor342400Work*)arg0->idMap;
+    work            = (Actor342400Work*)arg0->work;
     arg0->state     = 5;
     work->field_420 = 0;
     work->field_422 = 0;

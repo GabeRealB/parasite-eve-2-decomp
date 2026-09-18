@@ -87,7 +87,7 @@ void func_actor_107000_801344DC(Task* arg0)
 
     enemy = arg0->spawnArg2;
     flags = enemy->field_4C;
-    work  = (Actor107000Work*)arg0->idMap;
+    work  = (Actor107000Work*)arg0->work;
     if (flags != 0) {
         if (flags & 1) {
             work->field_2D4 += 1;

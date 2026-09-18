@@ -190,9 +190,9 @@ void func_actor_503500_80132DEC(void)
      * anchors the whole function on `D_actor_503500_8017655C + 0x10`. */
     rot = &D_actor_503500_8017655C.rot;
 
-    rot->vx = ((GameActor*)slot3->idMap)->field_50;
-    rot->vy = ((GameActor*)slot3->idMap)->field_52;
-    rot->vz = ((GameActor*)slot3->idMap)->field_54;
+    rot->vx = ((GameActor*)slot3->work)->field_50;
+    rot->vy = ((GameActor*)slot3->work)->field_52;
+    rot->vz = ((GameActor*)slot3->work)->field_54;
 }
 void func_actor_503500_80132E7C(void)
 {
@@ -522,7 +522,7 @@ s32 func_actor_503500_80133684(Actor503500* arg0)
          (slots[7] == NULL) || (slots[8] == NULL) || (slots[10] == NULL) ||
          (slots[11] == NULL) || ((slots[9] == NULL) && (slot1 == NULL)) ||
          ((slots[4]->field_40 == 0) && (slots[5]->field_40 == 0)))) {
-        if ((((GameActor*)((Task*)Game_GetPtrSlot(3))->idMap)->field_954 != 2) &&
+        if ((((GameActor*)((Task*)Game_GetPtrSlot(3))->work)->field_954 != 2) &&
             (D_80073BA0 > 0) && (D_80114C12 != 1)) {
             ret = 1;
             if (D_80071075 == 0) {
@@ -996,7 +996,7 @@ void func_actor_503500_80134408(Actor503500* arg0)
             break;
         case 1:
             if (++work->field_7BC >= 0x1F &&
-                ((GameActor*)((Task*)Game_GetPtrSlot(3))->idMap)->field_954 != 2 &&
+                ((GameActor*)((Task*)Game_GetPtrSlot(3))->work)->field_954 != 2 &&
                 D_80073BA0 > 0 && D_80114C12 != 1 && D_80071075 == 0) {
                 Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, 0, 0);
                 SndEvt_EnqueueType7(0x40230010, 0x2D);

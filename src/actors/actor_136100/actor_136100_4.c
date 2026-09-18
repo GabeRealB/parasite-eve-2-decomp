@@ -23,7 +23,7 @@ void func_actor_136100_801348F8(void)
 
 void func_actor_136100_80134924(void)
 {
-    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->idMap;
+    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->work;
 
     if (work->field_4EC == 0) {
         work->field_4EC = 1;
@@ -33,7 +33,7 @@ void func_actor_136100_80134924(void)
 
 void func_actor_136100_80134964(void)
 {
-    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->idMap;
+    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->work;
 
     if (work->field_4EC != 0) {
         Gp_SpawnWeaponEff();
@@ -59,7 +59,7 @@ void func_actor_136100_801349B4(s32 arg0)
 /// the table and that count to message 0x3F7.
 void func_actor_136100_80134A18(Task* arg0)
 {
-    Actor136100Work*  work = (Actor136100Work*)arg0->idMap;
+    Actor136100Work*  work = (Actor136100Work*)arg0->work;
     Actor136100Msg3F7 msg;
     s32               n;
 

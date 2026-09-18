@@ -4,7 +4,7 @@
 #include "common.h"
 
 struct _GsCOORDINATE2;
-struct _Task;
+struct Task;
 
 /// Per-level band row. `field_2` is the starting inner radius (also the per-frame
 /// inner/outer step); `field_4` is the starting outer radius; `unk6` is the wedge
@@ -34,7 +34,7 @@ extern s16 D_lifedrain_80130AEC[];
 /// The cast's collector task, published by `func_lifedrain_8012EF48`. Every
 /// drain mote reparents itself onto it and adds its own `spawnArg1` to the
 /// running total there.
-extern struct _Task* D_lifedrain_80130B0C;
+extern struct Task* D_lifedrain_80130B0C;
 
 /// Two axis-aligned `POLY_FT4`s at `arg0`'s world position, projected through
 /// `GsWSMATRIX` by one `RTPS`. A negative `gte_stflg` drops both. `arg1` picks

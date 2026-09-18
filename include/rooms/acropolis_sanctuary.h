@@ -7,11 +7,11 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-/// 0xC work block of the sanctuary's cutscene task, hung off the `Task::idMap`
+/// 0xC work block of the sanctuary's cutscene task, hung off the `Task::work`
 /// slot (0x1C) -- that slot is *not* a `TaskIdMap` here, it is the
 /// `Mem_Calloc(0xC)` block `func_acropolis_sanctuary_8017DA40` allocates and
 /// zeroes before publishing the owning task in
-/// `D_acropolis_sanctuary_80186C90`. Reach it with `(AcsCutsceneWork*)task->idMap`.
+/// `D_acropolis_sanctuary_80186C90`. Reach it with `(AcsCutsceneWork*)task->work`.
 ///
 /// `target` is the slot-3 task the block's messages are addressed to, captured
 /// once from `Game_GetPtrSlot(3)`. `phase` is the script step the driver in

@@ -59,7 +59,7 @@ void func_actor_335800_80162F9C(Task* arg0)
     TmdObject*           ext;
     Actor335800MainWork* work;
 
-    work          = (Actor335800MainWork*)arg0->idMap;
+    work          = (Actor335800MainWork*)arg0->work;
     ext           = arg0->extra;
     ext->field_1C = &work->light;
     ext->field_20 = &work->color;

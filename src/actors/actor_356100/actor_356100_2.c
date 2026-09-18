@@ -39,7 +39,7 @@ void func_actor_356100_8016A158(Task* task)
     Actor356100Work* work;
     GpEnemy*         enemy;
 
-    work  = (Actor356100Work*)task->idMap;
+    work  = (Actor356100Work*)task->work;
     enemy = (GpEnemy*)task->spawnArg2;
     if (work != NULL) {
         if (work->field_B5C != NULL) {

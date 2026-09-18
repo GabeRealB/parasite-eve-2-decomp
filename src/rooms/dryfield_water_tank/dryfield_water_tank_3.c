@@ -59,10 +59,10 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            extra       = (TmdObject*)arg0->extra;
-            coord       = extra->field_8;
-            mtx         = (DwtColorMtx*)Mem_Malloc(0x58, 0);
-            arg0->idMap = (TaskIdMap*)mtx;
+            extra      = (TmdObject*)arg0->extra;
+            coord      = extra->field_8;
+            mtx        = (DwtColorMtx*)Mem_Malloc(0x58, 0);
+            arg0->work = (TaskIdMap*)mtx;
             if (mtx == NULL) {
                 Task_Kill(arg0);
             } else {
@@ -96,7 +96,7 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
 
 /// Per-frame script driver for the water-tank scene. It is the task parked in
 /// `D_dryfield_water_tank_80188D4C`, which is how the room's two sibling entry
-/// points reach the 0x58-byte `DwtScriptWork` it hangs off `Task::idMap`.
+/// points reach the 0x58-byte `DwtScriptWork` it hangs off `Task::work`.
 /// State 0 allocates that block, registers it with the slot-3 game task and
 /// spawns the model task from `D_dryfield_water_tank_8017FF88` as its `child`;
 /// state 1 sends the intro messages to both tasks; state 2 asks to be killed
@@ -110,11 +110,11 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
     DwtScriptWork* work;
     DwtMsg7DB      msg;
 
-    work = (DwtScriptWork*)arg0->idMap;
+    work = (DwtScriptWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            work        = (DwtScriptWork*)Mem_Malloc(0x58, 0);
-            arg0->idMap = (TaskIdMap*)work;
+            work       = (DwtScriptWork*)Mem_Malloc(0x58, 0);
+            arg0->work = (TaskIdMap*)work;
             if (work == NULL) {
                 Task_Kill(arg0);
             } else {
@@ -122,7 +122,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
                 work->owner                    = (Task*)Game_GetPtrSlot(3);
                 D_dryfield_water_tank_80188D4C = arg0;
             }
-            work        = (DwtScriptWork*)arg0->idMap;
+            work        = (DwtScriptWork*)arg0->work;
             work->child = Task_SpawnFromTable(&D_dryfield_water_tank_8017FF88, 1, 0, 0);
             arg0->state = arg0->state + 1;
             break;
@@ -138,7 +138,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             break;
     }
 
-    work = (DwtScriptWork*)arg0->idMap;
+    work = (DwtScriptWork*)arg0->work;
     switch (work->field_50) {
         /* This arm does nothing, and the switch needs it as written: it is what
          * puts four values in the case list, so the decision tree roots at the

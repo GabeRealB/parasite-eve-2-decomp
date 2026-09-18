@@ -101,7 +101,7 @@ void func_acropolis_bridge_8017F404(Task* task)
 void func_acropolis_bridge_8017F460(Task* task)
 {
     RoomActionPrompt*          prompt = &D_80114D28;
-    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->idMap;
+    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
 
     func_acropolis_bridge_8017E60C(work->field_4, 0);
     prompt->mode     = 0;
@@ -118,7 +118,7 @@ void func_acropolis_bridge_8017F460(Task* task)
 void func_acropolis_bridge_8017F4CC(Task* task)
 {
     RoomActionPrompt*          prompt = &D_80114D28;
-    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->idMap;
+    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
 
     func_acropolis_bridge_8017E60C(work->field_4, 0);
     prompt->mode     = 0;
@@ -139,7 +139,7 @@ void func_acropolis_bridge_8017F4CC(Task* task)
 void func_acropolis_bridge_8017F544(Task* task)
 {
     RoomActionPrompt*          prompt = &D_80114D28;
-    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->idMap;
+    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
     RoomHotspot*               hs     = D_acropolis_bridge_8018983C;
 
     if (work->field_A < 0xA) {

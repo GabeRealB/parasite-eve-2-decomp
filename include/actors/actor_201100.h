@@ -14,7 +14,7 @@ typedef struct Actor201100Model {
 } Actor201100Model;
 STATIC_ASSERT_SIZEOF(Actor201100Model, 0x20);
 
-/// Work block parked in `Task::idMap`.
+/// Work block parked in `Task::work`.
 typedef struct Actor201100Work {
     /* 0x00 */ byte             pad_0[0x8];
     /* 0x08 */ Actor201100Model model;

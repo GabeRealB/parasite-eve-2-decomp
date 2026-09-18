@@ -24,7 +24,7 @@ void func_actor_560800_801362B0(s32 arg0)
 
 void func_actor_560800_801362E0(s16 arg0)
 {
-    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
     Actor560800Msg   msg;
 
     msg.field_2 = arg0;
@@ -33,7 +33,7 @@ void func_actor_560800_801362E0(s16 arg0)
 
 void func_actor_560800_8013631C(s16 arg0)
 {
-    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
     Actor560800Msg   msg;
 
     msg.field_2 = arg0;
@@ -42,7 +42,7 @@ void func_actor_560800_8013631C(s16 arg0)
 
 void func_actor_560800_80136358(s16 arg0)
 {
-    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
 
     work->field_28 = arg0;
     work->field_2A = 0;
@@ -58,7 +58,7 @@ void func_actor_560800_80136378(s16 arg0)
     GpAnimArg        msg;
     u16              anim;
 
-    work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    work = (Actor560800Work*)D_actor_560800_8017578C->work;
     if (work->field_0 != NULL) {
         anim           = arg0;
         msg.field_0    = D_actor_560800_8016EA40;
@@ -82,8 +82,8 @@ void func_actor_560800_801363F8(u16 arg0)
     Actor560800AnimWork* anim;
     u16                  i;
 
-    work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
-    anim = (Actor560800AnimWork*)work->field_4->idMap;
+    work = (Actor560800Work*)D_actor_560800_8017578C->work;
+    anim = (Actor560800AnimWork*)work->field_4->work;
 
     anim->field_4B8 = arg0;
     anim->field_4C8 = 0x10;
@@ -114,8 +114,8 @@ void func_actor_560800_801364A0(u16 arg0)
     Actor560800AnimWork* anim;
     u16                  i;
 
-    work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
-    anim = (Actor560800AnimWork*)work->field_C->idMap;
+    work = (Actor560800Work*)D_actor_560800_8017578C->work;
+    anim = (Actor560800AnimWork*)work->field_C->work;
 
     anim->field_4B8 = arg0;
     anim->field_4C8 = 0x10;
@@ -150,7 +150,7 @@ void func_actor_560800_80136548(void)
 
 void func_actor_560800_801365B0(s16 arg0)
 {
-    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
 
     work->field_40 = arg0;
     work->field_42 = 0;
@@ -177,7 +177,7 @@ void func_actor_560800_801366B0(Task* arg0)
     RECT             rect;
     Actor560800Work* work;
 
-    work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    work = (Actor560800Work*)D_actor_560800_8017578C->work;
     switch (arg0->state) {
         case 0:
             D_8007106B = 2;
@@ -204,7 +204,7 @@ void func_actor_560800_801366B0(Task* arg0)
 
 void func_actor_560800_801367C0(s16 arg0)
 {
-    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
 
     work->field_58 = arg0;
     work->field_5A = 0;
@@ -212,7 +212,7 @@ void func_actor_560800_801367C0(s16 arg0)
 
 void func_actor_560800_801367E0(s16 arg0)
 {
-    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
 
     work->field_28 = arg0;
     work->field_2A = 0;
@@ -226,7 +226,7 @@ void func_actor_560800_801367E0(s16 arg0)
 
 void func_actor_560800_80136818(void)
 {
-    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
     PlayerStatus*    cfg  = &Player_Status;
     s16              hp;
 
@@ -249,7 +249,7 @@ void func_actor_560800_80136818(void)
 /// pending CD command and blanking the display.
 void func_actor_560800_80136878(void)
 {
-    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
     s16              hp;
 
     work->field_28 = 0;
@@ -258,7 +258,7 @@ void func_actor_560800_80136878(void)
     work->field_38 = 0;
     if ((u16)work->field_64 == 0) {
         PlayerStatus*    cfg   = &Player_Status;
-        Actor560800Work* work2 = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+        Actor560800Work* work2 = (Actor560800Work*)D_actor_560800_8017578C->work;
 
         Gp_KillPlayerEffs();
         if (cfg->hp < 0x33) {

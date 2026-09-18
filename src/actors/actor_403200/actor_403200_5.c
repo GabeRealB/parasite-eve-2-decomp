@@ -13,7 +13,7 @@ extern Task* D_actor_403200_8015F8F0;
 
 void func_actor_403200_801410F0(s8 arg0)
 {
-    ((Actor403200Work*)D_actor_403200_8015F8F0->idMap)->field_EAC = arg0;
+    ((Actor403200Work*)D_actor_403200_8015F8F0->work)->field_EAC = arg0;
 }
 
 void func_actor_403200_80141108(s16 arg0)
@@ -88,7 +88,7 @@ void func_actor_403200_8014123C(Task* arg0)
     Actor403200Work* work;
     GpEnemy*         enemy;
 
-    work  = (Actor403200Work*)arg0->idMap;
+    work  = (Actor403200Work*)arg0->work;
     enemy = arg0->spawnArg2;
     if (work->field_4 != 0) {
         work->field_6 = 0;

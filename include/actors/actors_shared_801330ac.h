@@ -6,7 +6,7 @@
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
-/// Work block the actors sharing this body hang off the task's `Task::idMap`
+/// Work block the actors sharing this body hang off the task's `Task::work`
 /// slot (0x1C), which is not a `TaskIdMap` here. Each overlay's spawn routine
 /// allocates it with `Mem_Calloc` and stores it into that field; the carriers
 /// ask for different sizes, so only the prefix this body reaches is described

@@ -236,7 +236,7 @@ void func_actor_800100_801624F0(Task* task)
     u32              ang2;
     u32              ang3;
 
-    beam  = (Actor800100Beam*)task->idMap;
+    beam  = (Actor800100Beam*)task->work;
     work  = task->spawnArg2;
     fade  = Gp_State1C->field_4;
     coord = ((TmdObject*)task->extra)->field_8;
@@ -276,7 +276,7 @@ void func_actor_800100_801624F0(Task* task)
             ang1               = Gp_LcgState * 5 + 0x71357911;
             work->field_26     = (ang1 >> 16) & 0xFFF;
             task->state        = 1;
-            task->idMap        = (TaskIdMap*)beam;
+            task->work         = (TaskIdMap*)beam;
             beam->obj.field_8  = coord;
             beam->obj.field_C  = beam->rec;
             beam->obj.field_18 = 0x21C9E;
@@ -501,7 +501,7 @@ void func_actor_800100_801631C8(Task* arg0)
     GpObj* temp_a0;
     void*  temp_s1;
 
-    temp_a0 = arg0->idMap;
+    temp_a0 = arg0->work;
     temp_s1 = arg0->spawnArg2;
     if (temp_a0 != NULL) {
         Gp_UnlinkObj(temp_a0);

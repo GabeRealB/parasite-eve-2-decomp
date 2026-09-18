@@ -26,7 +26,7 @@ void func_actor_460200_8013364C(Task* task)
     TmdObject*     obj    = task->extra;
     GsCOORDINATE2* coord  = obj->field_8;
     GsCOORDINATE2* sub    = &((TmdObject*)parent->extra)->field_8[7];
-    MATRIX*        work   = (MATRIX*)parent->idMap;
+    MATRIX*        work   = (MATRIX*)parent->work;
 
     switch (task->state) {
         case 0:
@@ -53,7 +53,7 @@ void func_actor_460200_801336B4(Task* task)
     ActorsShared8014c874Work* work;
     s16                       animId;
 
-    work = (ActorsShared8014c874Work*)task->idMap;
+    work = (ActorsShared8014c874Work*)task->work;
     if (work->state == 1) {
         func_actor_460200_80133C00(task);
         work->state = 3;
@@ -111,7 +111,7 @@ void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
     coord   = obj->field_8;
     workMem = Mem_Calloc(0x4F8, 0);
     work    = (Actor460200Work*)workMem;
-    if ((task->idMap = (TaskIdMap*)work) == NULL) {
+    if ((task->work = (TaskIdMap*)work) == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
@@ -170,7 +170,7 @@ void func_actor_460200_80133B88(Task* task)
     ActorsShared80132514Work* work;
     s32                       i;
 
-    work = (ActorsShared80132514Work*)task->idMap;
+    work = (ActorsShared80132514Work*)task->work;
     i    = 1;
     do {
         work->slots[i].field_9 = 1;
@@ -186,7 +186,7 @@ s32 func_actor_460200_80133C64(Task* task, s32 arg1, Actor460200AnimArgs* args)
 {
     Actor460200Work* work;
 
-    work = (Actor460200Work*)task->idMap;
+    work = (Actor460200Work*)task->work;
     if (args->animId >= 0x12) {
         return -1;
     }
@@ -219,7 +219,7 @@ s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags)
     TmdObject*             other;
 
     self = (TmdObject*)task->extra;
-    work = (Actor460200PairedWork*)task->idMap;
+    work = (Actor460200PairedWork*)task->work;
     if (task->spawnArg1 != 0) {
         other = (TmdObject*)work->field_4F0->extra;
     } else {

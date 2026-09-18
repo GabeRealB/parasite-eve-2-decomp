@@ -1261,7 +1261,7 @@ void Actor00400_Fn02D48(Task* arg0)
     u16                    kind;
 
     hidden             = 0;
-    work               = (Actor100400MarkerWork*)arg0->idMap;
+    work               = (Actor100400MarkerWork*)arg0->work;
     coord              = ((Actor100400Ctx*)arg0->extra)->field_8;
     *(u32*)&coord->flg = 0;
     kind               = 1;
@@ -1637,7 +1637,7 @@ void Actor00400_Fn03920(Actor100400* arg0)
                 if (quad == NULL) {
                     Task_Kill(task);
                 } else {
-                    task->idMap          = (TaskIdMap*)quad;
+                    task->work           = (TaskIdMap*)quad;
                     quad->vertices[0].vx = pos->x - 0x5DC;
                     quad->vertices[0].vy = y;
                     quad->vertices[0].vz = pos->z - 0x5DC;
@@ -2813,11 +2813,11 @@ static inline void Actor00400_SpawnMarker(Actor100400* arg0)
             tip.vz  = height;
             ActorCoordToView(span, &base);
             ActorCoordToView(span, &tip);
-            task->idMap = (TaskIdMap*)marker;
-            dst         = ((Actor100400Ctx*)task->extra)->field_8;
-            pos.vx      = 0;
-            pos.vy      = 0;
-            pos.vz      = 0;
+            task->work = (TaskIdMap*)marker;
+            dst        = ((Actor100400Ctx*)task->extra)->field_8;
+            pos.vx     = 0;
+            pos.vy     = 0;
+            pos.vz     = 0;
             ActorCoordToView(origin, &pos);
             dst->coord.t[0]  = pos.vx;
             dst->coord.t[1]  = pos.vy;

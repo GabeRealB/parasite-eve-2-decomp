@@ -11,7 +11,7 @@
 ///
 /// On the first frame (state 0) it aims the sub-model's light and colour
 /// matrices at the two `MATRIX`es the parent keeps at the head of the work block
-/// hung off `Task::idMap`, parents the sub-model's root coordinate to part 7 of
+/// hung off `Task::work`, parents the sub-model's root coordinate to part 7 of
 /// the parent's own model, then advances to state 1. From then on it only clears
 /// the coordinate's `flg`, so the coordinate is recomputed from its new parent
 /// every frame.

@@ -16,7 +16,7 @@
 
 void func_actor_341700_8016A0E0(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->idMap;
+    Actor341700Work* work = (Actor341700Work*)arg0->work;
 
     work->field_426 = 8;
     work->field_41C = 0x10;

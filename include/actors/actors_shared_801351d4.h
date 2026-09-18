@@ -7,7 +7,7 @@
 #include "gameplay/3A34.h"
 #include "main/task.h"
 
-/// Work block the actors sharing this body hang off the task's `Task::idMap`
+/// Work block the actors sharing this body hang off the task's `Task::work`
 /// slot (0x1C), which is not a `TaskIdMap` here. `func_actor_102400_801345B0`
 /// allocates it with `Mem_Calloc(0xB4, 0)`, so the size below is the
 /// allocation, not a guess.

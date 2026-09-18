@@ -55,7 +55,7 @@ void Gp_InitState1C(Task* arg0)
 
     Gp_State1CTask = arg0;
     Gp_State1C     = p;
-    arg0->idMap    = (TaskIdMap*)p;
+    arg0->work     = (TaskIdMap*)p;
     p->field_0     = 0;
     p->field_2     = 0;
     p->field_4     = 0;

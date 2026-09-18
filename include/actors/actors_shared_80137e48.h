@@ -16,7 +16,7 @@ typedef struct ActorShared80137e48Obj2C {
 } ActorShared80137e48Obj2C;
 
 /// Work block the carriers hang off their context's 0x1C slot (the task's
-/// `Task::idMap`, which is not a `TaskIdMap` here) -- the same block
+/// `Task::work`, which is not a `TaskIdMap` here) -- the same block
 /// `Actor402200Work` describes, seen through the fields this body reaches.
 ///
 /// `field_664`-`field_66C` latch the root translation before it moves, so the

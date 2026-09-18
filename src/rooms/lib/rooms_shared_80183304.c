@@ -32,7 +32,7 @@ void RoomsShared80183304(Task* task)
     line               = RoomsShared80183304Lines;
     table              = (s32)RoomsShared80183304Lines;
     off                = 8;
-    task->idMap        = (TaskIdMap*)block;
+    task->work         = (TaskIdMap*)block;
     task->exitCallback = Room_Script21;
 
     for (; i < 2; i++) {

@@ -68,7 +68,7 @@ void func_actor_107000_80131F0C(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->idMap    = (TaskIdMap*)work;
+    arg1->work     = (TaskIdMap*)work;
     obj->field_C   = 0;
     coord->flg     = 0;
     obj->field_1C  = &work->field_DC;
@@ -199,7 +199,7 @@ void func_actor_107000_80132298(Task* arg0)
     GpEnemy*         enemy;
     u16              frames;
 
-    work = (Actor107000Work*)arg0->idMap;
+    work = (Actor107000Work*)arg0->work;
     switch (work->field_2B2) {
         case 0:
             func_actor_107000_80132474(arg0);
@@ -291,7 +291,7 @@ void func_actor_107000_80132474(Task* arg0)
     u32              rng;
 
     coord              = ((TmdObject*)arg0->extra)->field_8;
-    work               = (Actor107000Work*)arg0->idMap;
+    work               = (Actor107000Work*)arg0->work;
     *(u32*)0x1F8003FC -= 8;
     if (Gp_CountRec18Hi(&work->field_11C, 0x10000) != 0) {
         work->field_2D8 = 1;
@@ -372,7 +372,7 @@ void func_actor_107000_80132674(Task* arg0)
     u32              rng;
 
     coord = ((TmdObject*)arg0->extra)->field_8;
-    work  = (Actor107000Work*)arg0->idMap;
+    work  = (Actor107000Work*)arg0->work;
     enemy = arg0->spawnArg2;
     mode  = work->field_2C8;
     switch (mode) {
@@ -440,7 +440,7 @@ void func_actor_107000_80132D8C(Task* arg0, s32 arg1)
     enemy            = arg0->spawnArg2;
     obj              = arg0->extra;
     coord            = obj->field_8;
-    work             = (Actor107000Work*)arg0->idMap;
+    work             = (Actor107000Work*)arg0->work;
     enemy->field_40 -= arg1;
     func_800DA6E8(&enemy->node, arg1, 0);
     if (enemy->field_40 < 0) {
@@ -495,7 +495,7 @@ void func_actor_107000_80132E9C(Task* arg0)
     s32                    current;
 
     coord      = ((TmdObject*)arg0->extra)->field_8;
-    work       = (Actor107000Work*)arg0->idMap;
+    work       = (Actor107000Work*)arg0->work;
     sc         = (Actor107000RotScratch*)(*(u32*)0x1F8003FC -= 0x18);
     sc->vec.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     sc->vec.vy = 0;
@@ -578,7 +578,7 @@ void func_actor_107000_80133690(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->idMap     = (TaskIdMap*)work;
+    arg1->work      = (TaskIdMap*)work;
     work->field_2DC = (s16)(arg1->spawnArg1 >> 16);
     work->field_2D6 = (u16)arg1->spawnArg1;
     obj->field_C    = 0x80;

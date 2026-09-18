@@ -13,7 +13,7 @@
 
 extern u8 D_80072729;
 
-/// Work block the actors sharing this body hang off the task's `Task::idMap`
+/// Work block the actors sharing this body hang off the task's `Task::work`
 /// slot (0x1C). Only the prefix this body reaches is described.
 ///
 /// `state` selects the start path: 1 and 2 run the two reseed bodies and

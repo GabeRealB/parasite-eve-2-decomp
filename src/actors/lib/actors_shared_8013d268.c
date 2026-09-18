@@ -10,7 +10,7 @@ s32 ActorsShared8013d268(Task* task, s32 arg1, s32 arg2)
     ActorsShared8013d268Work* work;
 
     obj  = (TmdObject*)task->extra;
-    work = (ActorsShared8013d268Work*)task->idMap;
+    work = (ActorsShared8013d268Work*)task->work;
     switch (arg2) {
         case 0:
             obj->field_C = 0x80;

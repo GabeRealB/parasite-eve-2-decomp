@@ -6,7 +6,7 @@
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
-/// Work block the actors sharing this body hang off the task's `Task::idMap`
+/// Work block the actors sharing this body hang off the task's `Task::work`
 /// slot (0x1C), which is not a `TaskIdMap` here. It is the same block
 /// `ActorsShared8013257c` walks - `anim` at 0x40 with its nineteen 0x28-byte
 /// slots at 0x54 - carried far enough to reach the two animation-set words at

@@ -22,7 +22,7 @@ typedef struct Actor05300Obj2C {
 } Actor05300Obj2C;
 
 /// Work block of the task this enemy hangs off -- the spawn reaches it as
-/// `task->parent->idMap`, the same slot `ActorsShared80133838` (the shared
+/// `task->parent->work`, the same slot `ActorsShared80133838` (the shared
 /// teardown of `actor_105300` / `actor_105400`) reads as the sound id
 /// `field_31C`. `field_334` is the enemy's sub-state index: it selects the
 /// spawn position in `D_actor_105300_80133A20` and also which of the two
@@ -60,7 +60,7 @@ typedef struct Actor05300Work {
 } Actor05300Work;
 
 /// 0x48-byte part object the spawn allocates with `Mem_Calloc` and parks in
-/// `Task::idMap`. It leads with the `GpObj` list node linked into
+/// `Task::work`. It leads with the `GpObj` list node linked into
 /// `Gp_ObjLists[2]` -- and the one the shared teardown hands back to
 /// `Gp_UnlinkObj` -- so `obj.field_C` is the single-entry `GpRec18` collision
 /// table at 0x20. `field_38` is the same coordinate `obj.field_8` points at,
@@ -80,7 +80,7 @@ typedef struct Actor05300Part {
 STATIC_ASSERT_SIZEOF(Actor05300Part, 0x48);
 
 /// The task whose work block is `Actor05300Work`, reached as `task->field_1C`
-/// (the `Task::idMap` slot). `field_20` is the `Task::spawnArg2` slot holding
+/// (the `Task::work` slot). `field_20` is the `Task::spawnArg2` slot holding
 /// the enemy: the sound events this enemy plays carry its actor id in the
 /// high nibble of `GpEnemy::field_8`. `field_2C` is the `Task::extra` model
 /// object.

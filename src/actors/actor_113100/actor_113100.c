@@ -61,7 +61,7 @@ void func_actor_113100_80131E58(Task* task)
         Gp_EnemyTaskExit(task);
         return;
     }
-    task->idMap     = work;
+    task->work      = work;
     work->field_475 = -1;
     work->field_476 = -1;
     work->field_53D = -1;
@@ -171,7 +171,7 @@ void func_actor_113100_801324DC(Task* task)
     s16                   diff;
 
     coord = ((TmdObject*)task->extra)->field_8;
-    work  = (Actor113100Work*)task->idMap;
+    work  = (Actor113100Work*)task->work;
     angle = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
     yaw   = (u16)work->field_53A;
     diff  = yaw - angle;
@@ -236,7 +236,7 @@ void func_actor_113100_8013264C(Task* task)
     s32                   dz;
     Actor113100AnimPreset preset;
 
-    work  = (Actor113100Work*)task->idMap;
+    work  = (Actor113100Work*)task->work;
     coord = ((TmdObject*)task->extra)->field_8;
     if (work->field_4F0 - coord->coord.t[0] >= 0) {
         dx = (u16)work->field_4F0 - (u16)coord->coord.t[0];
@@ -280,7 +280,7 @@ void func_actor_113100_8013264C(Task* task)
 /// `field_53D` -- the countdown `func_actor_113100_80132104` walks down to
 /// `Tmd_FreeBuffers` -- and raises 0x4; mode 3 shows it and raises 0x4.
 ///
-/// `work` and `work2` are the same `Task::idMap` read twice. The second read
+/// `work` and `work2` are the same `Task::work` read twice. The second read
 /// becomes a register copy at the entry, which is what leaves the block in
 /// `$v1` for the node base mode 3 folds out of `work` while the hoisted `head`
 /// and the `field_53D` latch run off the copy in `$a1`; one read and one local
@@ -296,9 +296,9 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
     s32              i;
     s32              ret;
 
-    work  = (Actor113100Work*)task->idMap;
+    work  = (Actor113100Work*)task->work;
     obj   = task->extra;
-    work2 = (Actor113100Work*)task->idMap;
+    work2 = (Actor113100Work*)task->work;
     head  = &work2->obj;
     ret   = 0;
 
@@ -363,7 +363,7 @@ s32 func_actor_113100_801328EC(Task* task, s32 msgId, Actor113100Placement* plac
     s32                    i;
     TmdObject*             ext;
 
-    w              = (Actor113100Work*)task->idMap;
+    w              = (Actor113100Work*)task->work;
     w->field_530   = 1;
     w->field_532   = 0;
     w->field_4F0   = place->pos.vx;
@@ -385,7 +385,7 @@ s32 func_actor_113100_801328EC(Task* task, s32 msgId, Actor113100Placement* plac
     preset.field_10 = 1;
 
     msg  = &preset;
-    work = (Actor113100Work*)task->idMap;
+    work = (Actor113100Work*)task->work;
     ext  = task->extra;
     if (msg->field_0 != work->field_476) {
         work->field_476 = msg->field_0;

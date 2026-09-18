@@ -9,9 +9,9 @@
 /// Work block for the `actor_121300` overlay's cutscene actor.
 ///
 /// `func_actor_121300_80133BFC` allocates it with `Mem_Malloc(0x4B0, 0)`,
-/// zeroes it with `Mem_Set` and parks the pointer in the task's `Task::idMap`
+/// zeroes it with `Mem_Set` and parks the pointer in the task's `Task::work`
 /// slot (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
-/// `(Actor121300Work*)task->idMap`.  The same function publishes the task
+/// `(Actor121300Work*)task->work`.  The same function publishes the task
 /// itself in `D_actor_121300_8013D418` and stores the
 /// `Game_GetPtrSlot(3)` task in `field_488`, which is the target of every
 /// `Gp_DispatchMsg` the overlay sends.
@@ -83,7 +83,7 @@ typedef union Actor121300Scratch {
 
 /// 8-byte fade block `func_actor_121300_8013400C` and
 /// `func_actor_121300_801326EC` each allocate with `Mem_Malloc(8, 0)` and park
-/// in `Task::idMap` -- a second, smaller idMap block in this overlay, distinct
+/// in `Task::work` -- a second, smaller work block in this overlay, distinct
 /// from `Actor121300Work`.
 ///
 /// The three halfwords are the RGB channels `Fade_DrawOverlay` draws.  The
@@ -124,7 +124,7 @@ extern SVECTOR D_actor_121300_8013CD48[];
 extern SVECTOR D_actor_121300_8013CDC8[];
 
 /// 0x5C work block of the debris task `func_actor_121300_8013293C`, allocated
-/// into `Task::idMap`.  The two matrices are published as the model's light
+/// into `Task::work`.  The two matrices are published as the model's light
 /// and colour matrices (`TmdObject::field_1C` / `field_20`); the rest is a
 /// per-frame spin and velocity, all rolled from `Gp_LcgState` on spawn, and a
 /// short random delay before the model's buffers are allocated.

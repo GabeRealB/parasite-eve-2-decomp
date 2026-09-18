@@ -57,7 +57,7 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
                 Task_Kill(task);
                 return;
             }
-            task->idMap       = (TaskIdMap*)car;
+            task->work        = (TaskIdMap*)car;
             car->field_0      = 0;
             obj->field_E      = 0x64;
             obj->field_C      = 0;
@@ -69,7 +69,7 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
             task->state++;
             break;
         case 1:
-            car          = (ShelterElevatorCar*)task->idMap;
+            car          = (ShelterElevatorCar*)task->work;
             car->field_0 = car->field_0 + task->spawnArg1 * 10;
             if (car->field_0 < 0) {
                 car->field_0 = 0;

@@ -17,7 +17,7 @@ extern SVECTOR D_acropolis_plaza_80198B90[8];
 /// scene work's world position.
 void func_acropolis_plaza_8017DD90(Task* arg0)
 {
-    AcropolisPlazaSceneWork* work = (AcropolisPlazaSceneWork*)arg0->idMap;
+    AcropolisPlazaSceneWork* work = (AcropolisPlazaSceneWork*)arg0->work;
     s32                      x    = work->pos.vx;
     s32                      y    = work->pos.vy;
     s32                      z    = work->pos.vz;
@@ -206,7 +206,7 @@ void func_acropolis_plaza_8017DFE0(Task* task)
     u16                      startView;
 
     q    = &CdCmd_Queue;
-    work = (AcropolisPlazaSceneWork*)task->idMap;
+    work = (AcropolisPlazaSceneWork*)task->work;
 
     if (task->state != 0) {
         switch (q->field_1F8) {
@@ -241,15 +241,15 @@ void func_acropolis_plaza_8017DFE0(Task* task)
     goto L_tail;
 
 L_case0:
-    block       = (TaskIdMap*)Mem_Malloc(0x34, 0);
-    task->idMap = block;
+    block      = (TaskIdMap*)Mem_Malloc(0x34, 0);
+    task->work = block;
     if (block == NULL) {
         Task_Kill(task);
         return;
     }
     Mem_Set(block, 0, 0x34);
     arg            = (AcropolisPlazaSceneArg*)task->spawnArg2;
-    work           = (AcropolisPlazaSceneWork*)task->idMap;
+    work           = (AcropolisPlazaSceneWork*)task->work;
     startView      = arg->view;
     q->field_1F8   = 0;
     q->field_1EE   = startView;
@@ -268,9 +268,9 @@ L_case0:
     } else {
         q->field_1F6 = 0;
     }
-    ((AcropolisPlazaSceneWork*)task->idMap)->mtx = D_80073B8C;
-    work->field_2E                               = 1;
-    task->state                                  = task->state + 1;
+    ((AcropolisPlazaSceneWork*)task->work)->mtx = D_80073B8C;
+    work->field_2E                              = 1;
+    task->state                                 = task->state + 1;
     goto L_tail;
 
 L_case1:
@@ -279,7 +279,7 @@ L_case1:
     }
     slot3       = (Task*)Game_GetPtrSlot(3);
     work->slot3 = slot3;
-    work->actor = (GameActor*)slot3->idMap;
+    work->actor = (GameActor*)slot3->work;
     SetDispMask(1);
     task->state = task->state + 1;
     goto L_tail;
@@ -290,7 +290,7 @@ L_case2:
         task->state = 6;
         goto L_tail;
     }
-    plaza_updateEdgeFlags((AcropolisPlazaSceneWork*)task->idMap);
+    plaza_updateEdgeFlags((AcropolisPlazaSceneWork*)task->work);
     if (work->fwd != 0) {
         work->prevSide = q->field_1F0;
         q->field_1F0   = 0;
@@ -371,7 +371,7 @@ L_case3:
     goto L_tail;
 
 L_case4:
-    plaza_updateEdgeFlags((AcropolisPlazaSceneWork*)task->idMap);
+    plaza_updateEdgeFlags((AcropolisPlazaSceneWork*)task->work);
     if (q->field_1F6 != 0) {
         task->state = 6;
         goto L_tail;
@@ -384,7 +384,7 @@ L_case4:
     goto L_tail;
 
 L_case5:
-    plaza_updateEdgeFlags((AcropolisPlazaSceneWork*)task->idMap);
+    plaza_updateEdgeFlags((AcropolisPlazaSceneWork*)task->work);
     if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
         goto L_tail;
     }
@@ -392,7 +392,7 @@ L_case5:
     goto L_case2;
 
 L_case6:
-    plaza_updateEdgeFlags((AcropolisPlazaSceneWork*)task->idMap);
+    plaza_updateEdgeFlags((AcropolisPlazaSceneWork*)task->work);
     switch (q->field_1F8) {
         case 0:
         case 2:

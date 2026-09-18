@@ -6,7 +6,7 @@
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
-/// Work block the enemies carrying this body reach as `task->idMap`, which is
+/// Work block the enemies carrying this body reach as `task->work`, which is
 /// not a `TaskIdMap` here. `field_42` is the despawn frame counter the body
 /// ticks and destroys the enemy at, and `field_46` selects which of the two
 /// per-enemy death flags the first tick raises. The third field is read from

@@ -50,7 +50,7 @@ void func_actor_107000_80134F84(Actor107000Ctx* arg0, Task* arg1)
 
     obj   = (TmdObject*)arg1->extra;
     state = D_801153F4;
-    work  = (Actor107000Work*)arg1->idMap;
+    work  = (Actor107000Work*)arg1->work;
     coord = obj->field_8;
     one   = 1;
     if (state == one) {
@@ -182,7 +182,7 @@ void func_actor_107000_80136094(Task* arg0, s32 arg1)
     enemy            = arg0->spawnArg2;
     obj              = arg0->extra;
     coord            = obj->field_8;
-    work             = (Actor107000Work*)arg0->idMap;
+    work             = (Actor107000Work*)arg0->work;
     enemy->field_40 -= arg1;
     func_800DA6E8(&enemy->node, arg1, 0);
     if (enemy->field_40 <= 0) {

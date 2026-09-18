@@ -182,6 +182,10 @@ def main() -> int:
     # The declaration itself is a reference site too; add it if libclang did not
     # already report it (it does for fields, not always for functions).
     decl_file, decl_line = where.rsplit(":", 1)
+    # A macro-expansion site carries the invocation's position, not the
+    # identifier's, so it cannot be edited here; the macro body is the place.
+    via_macro = [r for r in refs if "via macro" in r.use]
+    refs = [r for r in refs if "via macro" not in r.use]
     sites = {(r.file, r.line, r.col) for r in refs}
     edits = collections.defaultdict(list)  # file -> [(line, col)]
     for r in refs:
@@ -200,6 +204,11 @@ def main() -> int:
         print(f"  {n:>5}  {f}")
     print(f"{total} edit(s) in {len(edits)} file(s): {spec.name} -> {args.new_name}")
 
+    if via_macro:
+        print(f"\n{len(via_macro)} reference(s) reached through a macro; the macro "
+              f"body has to be edited by hand:")
+        for r in via_macro[:8]:
+            print(f"    {r.file}:{r.line}  {r.context[:70]}")
     cars = sidecar_hits(root, spec.name, args.version)
     if cars:
         verb = "will rewrite" if args.sidecars else "NOT touched (pass --sidecars)"
@@ -214,8 +223,13 @@ def main() -> int:
         print("\ndry run: nothing written")
         return 0
 
+    # Validate every position before writing anything: a rename that fails
+    # halfway leaves the tree half-renamed, which compiles in neither state.
+    staged = {}
     for f, positions in edits.items():
-        _apply(os.path.join(root, f), positions, spec.name, args.new_name)
+        staged[f] = _rewrite(os.path.join(root, f), positions, spec.name, args.new_name)
+    for f, text in staged.items():
+        open(os.path.join(root, f), "w").write(text)
     if args.sidecars:
         for c in cars:
             _apply_word(os.path.join(root, c), spec.name, args.new_name)
@@ -239,7 +253,8 @@ def _decl_columns(root: str, rel: str, line: int, name: str) -> list[int]:
     return [m.start() + 1 for m in re.finditer(rf"\b{re.escape(name)}\b", text[line - 1])]
 
 
-def _apply(path: str, positions, old: str, new: str) -> None:
+def _rewrite(path: str, positions, old: str, new: str) -> str:
+    """The file's new content, computed without writing anything."""
     lines = open(path, errors="replace").read().splitlines(keepends=True)
     per_line = collections.defaultdict(list)
     for line, col in positions:
@@ -258,7 +273,7 @@ def _apply(path: str, positions, old: str, new: str) -> None:
                 )
             s = s[:i] + new + s[i + len(old):]
         lines[line - 1] = s
-    open(path, "w").write("".join(lines))
+    return "".join(lines)
 
 
 def _apply_word(path: str, old: str, new: str) -> None:

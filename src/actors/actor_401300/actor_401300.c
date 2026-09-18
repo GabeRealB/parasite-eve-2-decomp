@@ -2013,7 +2013,7 @@ void func_actor_401300_80138160(Actor401300* arg0)
 
     enemy  = arg0->field_20;
     work   = arg0->field_1C;
-    player = (GameActor*)((Task*)Game_GetPtrSlot(3))->idMap;
+    player = (GameActor*)((Task*)Game_GetPtrSlot(3))->work;
     config = &Player_Status;
     if (work->field_4 != 0) {
         work->field_970.field_1C = 0x280;
@@ -2144,7 +2144,7 @@ void func_actor_401300_80138B24(Actor401300* arg0)
         work->field_8A2 = 6;
         work->field_89C = 2;
         if ((s16)Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 0), 0) == 1) {
-            ((GameActor*)player->idMap)->field_956 = 0xA;
+            ((GameActor*)player->work)->field_956 = 0xA;
         }
         work->field_CAC.field_4 = 2;
         Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
@@ -3426,7 +3426,7 @@ void func_actor_401300_8013DADC(Actor401300* arg0)
 
     work   = arg0->field_1C;
     task   = Game_GetPtrSlot(3);
-    player = (GameActor*)task->idMap;
+    player = (GameActor*)task->work;
     enemy  = arg0->field_20;
 
     if (work->field_4 != 0) {
@@ -3666,7 +3666,7 @@ void func_actor_401300_8013E930(Actor401300* arg0)
 
     work   = arg0->field_1C;
     task   = Game_GetPtrSlot(3);
-    player = (GameActor*)task->idMap;
+    player = (GameActor*)task->work;
     config = &Player_Status;
     save   = &Mc_SaveData;
     enemy  = arg0->field_20;

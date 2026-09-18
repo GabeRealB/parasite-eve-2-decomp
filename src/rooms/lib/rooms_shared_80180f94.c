@@ -45,7 +45,7 @@ void RoomsShared80180f94(UiList* list, UiObject* obj)
     count = 0;
     total = 0;
     i     = 0;
-    work  = (RoomPeUsage*)obj->owner->idMap;
+    work  = (RoomPeUsage*)obj->owner->work;
     p     = work->peIds;
     magic = 0x55555556;
 

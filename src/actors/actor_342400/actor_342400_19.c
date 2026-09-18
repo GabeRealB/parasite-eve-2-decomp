@@ -14,18 +14,18 @@ void func_actor_342400_8016A724(Task* arg0)
     s16              anim;
     s16              next;
 
-    work = (Actor342400Work*)arg0->idMap;
+    work = (Actor342400Work*)arg0->work;
     Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
     anim = work->field_418;
     if (anim == 8) {
         if (work->field_440 == 0) {
-            work2            = (Actor342400Work*)arg0->idMap;
+            work2            = (Actor342400Work*)arg0->work;
             work2->field_426 = 4;
             work2->field_41C = 0x10;
             work2->field_418 = 5;
             work2->field_414 = 1;
         } else {
-            work3            = (Actor342400Work*)arg0->idMap;
+            work3            = (Actor342400Work*)arg0->work;
             work3->field_426 = 4;
             work3->field_41C = 0x10;
             work3->field_418 = 6;
@@ -33,7 +33,7 @@ void func_actor_342400_8016A724(Task* arg0)
         }
     } else {
         next             = D_actor_342400_80173A98[anim - 1];
-        work4            = (Actor342400Work*)arg0->idMap;
+        work4            = (Actor342400Work*)arg0->work;
         work4->field_426 = 4;
         work4->field_41C = 0x10;
         work4->field_418 = next;

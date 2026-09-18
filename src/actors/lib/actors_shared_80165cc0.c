@@ -18,7 +18,7 @@ void ActorsShared80165cc0(Task* arg0)
     s32                       j;
     s32                       k;
 
-    work = (ActorsShared80168d3cWork*)arg0->idMap;
+    work = (ActorsShared80168d3cWork*)arg0->work;
     if (work->field_414 == 1) {
         start = work;
         if (start->field_416 == start->field_418) {

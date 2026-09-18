@@ -14,7 +14,7 @@ s32 func_actor_401300_80141614(Task* task, s32 arg1, ActorShared80169f74Placemen
     s32              mz;
     Actor401300Work* work;
 
-    work                                           = (Actor401300Work*)task->idMap;
+    work                                           = (Actor401300Work*)task->work;
     ((TmdObject*)task->extra)->field_8->coord.t[0] = placement->pos.vx;
     ((TmdObject*)task->extra)->field_8->coord.t[1] = placement->pos.vy;
     ((TmdObject*)task->extra)->field_8->coord.t[2] = placement->pos.vz;

@@ -6,9 +6,9 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-/// Work block of the parking-lot examine task, hung off the `Task::idMap` slot
+/// Work block of the parking-lot examine task, hung off the `Task::work` slot
 /// (0x1C) -- that slot is *not* a `TaskIdMap` here. Reach it with
-/// `(SbupExamineWork*)task->idMap`.
+/// `(SbupExamineWork*)task->work`.
 ///
 /// `func_shelter_b1_underground_parking_80184468` copies a matched hotspot's
 /// two table fields into `field_C` and `promptKind`;

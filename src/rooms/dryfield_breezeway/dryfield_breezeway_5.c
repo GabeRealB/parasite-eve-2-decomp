@@ -32,7 +32,7 @@ void func_dryfield_breezeway_8017FD68(Task* task)
 void func_dryfield_breezeway_8017FD9C(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
-    DbwEventWork*     work   = (DbwEventWork*)task->idMap;
+    DbwEventWork*     work   = (DbwEventWork*)task->work;
 
     func_dryfield_breezeway_8017EB8C(task, 0, 0x20);
     prompt->mode     = 0;
@@ -52,7 +52,7 @@ void func_dryfield_breezeway_8017FD9C(Task* task)
 void func_dryfield_breezeway_8017FE08(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
-    DbwEventWork*     work   = (DbwEventWork*)task->idMap;
+    DbwEventWork*     work   = (DbwEventWork*)task->work;
     s32               state;
 
     func_dryfield_breezeway_8017EB8C(task, 0, 0x20);

@@ -11,7 +11,7 @@
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 
-/// Work block this actor parks in `Task::idMap`. `func_actor_511000_80133034`
+/// Work block this actor parks in `Task::work`. `func_actor_511000_80133034`
 /// allocates it with `Mem_Calloc(0x70, 0)`. `light` / `color` are the matrices
 /// the TMD object's `field_1C` / `field_20` are republished from.
 /// `field_8` is the Tmd_FreeBuffers countdown (`-1` disables it);
@@ -43,7 +43,7 @@ typedef struct Actor511000Coord {
 STATIC_ASSERT_SIZEOF(Actor511000Coord, 0x4C);
 
 /// Work block of the spawner this overlay's model-attach handlers parent to,
-/// reached through the parent task's `Task::idMap`. The spawn handler
+/// reached through the parent task's `Task::work`. The spawn handler
 /// `func_actor_511000_80133958` allocates it (`Mem_Calloc(0x488, 0)`), hands
 /// `anim` / `slots` / `field_30C` to `func_800B3F84`, and points its own model
 /// at the two matrices; the three children it spawns do the same. The same
@@ -62,7 +62,7 @@ typedef struct Actor511000ParentWork {
 STATIC_ASSERT_SIZEOF(Actor511000ParentWork, 0x488);
 
 /// Work block `func_actor_511000_80132480` allocates (`Mem_Calloc(0x4D4, 0)`)
-/// and parks in that task's `Task::idMap` slot. Distinct from
+/// and parks in that task's `Task::work` slot. Distinct from
 /// `Actor511000Work`: this variant's light/color pair sits at 0x484 / 0x4A4
 /// and is republished onto model part 1, not the root coordinate.
 /// `func_actor_511000_80133DEC` treats the block as a `GpAnimCtx` at offset 0

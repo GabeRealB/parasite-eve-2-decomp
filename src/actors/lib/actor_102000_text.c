@@ -1955,7 +1955,7 @@ void Actor02000_Fn03644(void* arg0, Task* task)
     obj          = (TmdObject*)task->extra;
     parentCoords = ((TmdObject*)parent->extra)->field_8;
     coord        = obj->field_8;
-    work         = (Actor02000Work*)parent->idMap;
+    work         = (Actor02000Work*)parent->work;
 
     coord->flg      = 0;
     coord->sub      = &parentCoords[7];
@@ -1974,7 +1974,7 @@ void Actor02000_Fn03690(void* arg0, Task* task)
     s16             count;
 
     parent                             = task->parent;
-    work                               = (Actor02000Work*)parent->idMap;
+    work                               = (Actor02000Work*)parent->work;
     ((TmdObject*)task->extra)->field_C = (u16)((TmdObject*)parent->extra)->field_C;
     if (work->field_6D8 > 0) {
         count           = (u16)work->field_6D8 - 1;

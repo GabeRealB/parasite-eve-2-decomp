@@ -142,7 +142,7 @@ s32 func_actor_560800_80132340(Task* arg0)
     u16                  anim;
     u16                  anim2;
 
-    work = (Actor560800Work*)arg0->idMap;
+    work = (Actor560800Work*)arg0->work;
     if (work->field_0 == NULL) {
         return 1;
     }
@@ -173,7 +173,7 @@ s32 func_actor_560800_80132340(Task* arg0)
         if (entry2->field_2 < 0) {
             return 1;
         }
-        work = (Actor560800Work*)arg0->idMap;
+        work = (Actor560800Work*)arg0->work;
         if (work->field_0 != NULL) {
             anim2          = entry2->field_2;
             msg.field_0    = D_actor_560800_8016EA40;
@@ -198,7 +198,7 @@ static inline void Actor560800_ReseedAnim(Task* arg0, u16 id, s16 rate)
     Actor560800AnimWork* w;
     u16                  i;
 
-    w            = (Actor560800AnimWork*)arg0->idMap;
+    w            = (Actor560800AnimWork*)arg0->work;
     w->field_4B8 = id;
     w->field_4C8 = rate;
     w->field_4BE = 0;
@@ -222,7 +222,7 @@ s32 func_actor_560800_80132498(Task* arg0)
     u16                  i;
     u16                  done;
 
-    work = (Actor560800AnimWork*)arg0->idMap;
+    work = (Actor560800AnimWork*)arg0->work;
     if (((TmdObject*)arg0->extra)->field_C & 0x80) {
         return 0;
     }
@@ -263,7 +263,7 @@ s32 func_actor_560800_80132498(Task* arg0)
 /// draws the floor quad and ticks the animation script.
 void func_actor_560800_801326C4(Task* arg0)
 {
-    Actor560800AnimWork* work = (Actor560800AnimWork*)arg0->idMap;
+    Actor560800AnimWork* work = (Actor560800AnimWork*)arg0->work;
     SVECTOR              ofs;
     VECTOR               pos;
 
@@ -277,12 +277,12 @@ void func_actor_560800_801326C4(Task* arg0)
                 GpAreaPlace*         place;
                 u8                   id;
 
-                arg0->idMap = (TaskIdMap*)block;
+                arg0->work = (TaskIdMap*)block;
                 if (block == NULL) {
                     failed = 1;
                 } else {
                     coord->sub = &Gfx_ViewCoord;
-                    Mem_Set(arg0->idMap, 0, 0x4CC);
+                    Mem_Set(arg0->work, 0, 0x4CC);
                     tmd->field_1C  = &block->light;
                     tmd->field_20  = &block->color;
                     arg0->field_24 = &D_actor_560800_8016F34C;
@@ -305,7 +305,7 @@ void func_actor_560800_801326C4(Task* arg0)
                 return;
             }
             ((TmdObject*)arg0->extra)->field_C &= ~0x84;
-            work                                = (Actor560800AnimWork*)arg0->idMap;
+            work                                = (Actor560800AnimWork*)arg0->work;
             {
                 GpAnimObj* obj = arg0->extra;
                 func_800B3F84(&work->anim, &D_actor_560800_8016EB04, obj, work->animAux, work->slots);
@@ -313,7 +313,7 @@ void func_actor_560800_801326C4(Task* arg0)
             work->field_4BA = 0x13;
             work->field_4B4 = &D_actor_560800_8016ECAC;
             if (arg0->spawnArg1 == 0) {
-                Actor560800AnimWork* w = (Actor560800AnimWork*)arg0->idMap;
+                Actor560800AnimWork* w = (Actor560800AnimWork*)arg0->work;
                 u16                  i;
                 s32                  fade = 0x10;
 
@@ -325,7 +325,7 @@ void func_actor_560800_801326C4(Task* arg0)
                     Gp_AnimResetSlot(&w->anim, i, 0);
                 }
             } else {
-                Actor560800AnimWork* w = (Actor560800AnimWork*)arg0->idMap;
+                Actor560800AnimWork* w = (Actor560800AnimWork*)arg0->work;
                 u16                  i;
                 s32                  fade = 0x10;
 
@@ -368,7 +368,7 @@ void func_actor_560800_801326C4(Task* arg0)
 
 void func_actor_560800_80132A14(Task* arg0)
 {
-    Actor560800AnimWork* work = (Actor560800AnimWork*)arg0->idMap;
+    Actor560800AnimWork* work = (Actor560800AnimWork*)arg0->work;
     VECTOR               pos;
 
     if (arg0->state == 0) {
@@ -379,8 +379,8 @@ void func_actor_560800_80132A14(Task* arg0)
         GpAreaPlace*         place;
         u8                   id;
 
-        block       = Mem_Malloc(0x4CC, 0);
-        arg0->idMap = (TaskIdMap*)block;
+        block      = Mem_Malloc(0x4CC, 0);
+        arg0->work = (TaskIdMap*)block;
         if (block == NULL) {
             Task_Kill(arg0);
             return;
@@ -396,7 +396,7 @@ void func_actor_560800_80132A14(Task* arg0)
                 coord->sub = &((TmdObject*)parent->extra)->field_8[8];
                 break;
         }
-        Mem_Set(arg0->idMap, 0, 0x4CC);
+        Mem_Set(arg0->work, 0, 0x4CC);
         tmd->field_1C = &work->light;
         tmd->field_20 = &work->color;
         if (arg0->spawnArg1 < 2) {
@@ -441,7 +441,7 @@ void func_actor_560800_80132A14(Task* arg0)
 
 void func_actor_560800_80132C60(Task* arg0)
 {
-    Actor560800AnimWork* work = (Actor560800AnimWork*)arg0->idMap;
+    Actor560800AnimWork* work = (Actor560800AnimWork*)arg0->work;
     SVECTOR              ofs;
     VECTOR               pos;
 
@@ -454,12 +454,12 @@ void func_actor_560800_80132C60(Task* arg0)
             GpAreaPlace*         place;
             u8                   id;
 
-            arg0->idMap = (TaskIdMap*)block;
+            arg0->work = (TaskIdMap*)block;
             if (block == NULL) {
                 failed = 1;
             } else {
                 coord->sub = &Gfx_ViewCoord;
-                Mem_Set(arg0->idMap, 0, 0x4CC);
+                Mem_Set(arg0->work, 0, 0x4CC);
                 tmd->field_1C  = &block->light;
                 tmd->field_20  = &block->color;
                 arg0->field_24 = &D_actor_560800_8016F34C;
@@ -481,7 +481,7 @@ void func_actor_560800_80132C60(Task* arg0)
             Task_Kill(arg0);
             return;
         }
-        work = (Actor560800AnimWork*)arg0->idMap;
+        work = (Actor560800AnimWork*)arg0->work;
         {
             GpAnimObj* obj = arg0->extra;
             func_800B3F84(&work->anim, &D_actor_560800_8016EA74, obj, work->animAux, work->slots);
@@ -489,7 +489,7 @@ void func_actor_560800_80132C60(Task* arg0)
         work->field_4BA = 0x14;
         work->field_4B4 = &D_actor_560800_8016EC1C;
         {
-            Actor560800AnimWork* w = (Actor560800AnimWork*)arg0->idMap;
+            Actor560800AnimWork* w = (Actor560800AnimWork*)arg0->work;
             u16                  i;
             s32                  fade = 0x10;
 
@@ -531,7 +531,7 @@ void func_actor_560800_80132C60(Task* arg0)
 
 void func_actor_560800_80132F64(Task* arg0)
 {
-    Actor560800AnimWork* work = (Actor560800AnimWork*)arg0->idMap;
+    Actor560800AnimWork* work = (Actor560800AnimWork*)arg0->work;
     SVECTOR              ofs;
     VECTOR               pos;
 
@@ -544,12 +544,12 @@ void func_actor_560800_80132F64(Task* arg0)
             GpAreaPlace*         place;
             u8                   id;
 
-            arg0->idMap = (TaskIdMap*)block;
+            arg0->work = (TaskIdMap*)block;
             if (block == NULL) {
                 failed = 1;
             } else {
                 coord->sub = &Gfx_ViewCoord;
-                Mem_Set(arg0->idMap, 0, 0x4CC);
+                Mem_Set(arg0->work, 0, 0x4CC);
                 tmd->field_1C  = &block->light;
                 tmd->field_20  = &block->color;
                 arg0->field_24 = &D_actor_560800_8016F34C;
@@ -571,7 +571,7 @@ void func_actor_560800_80132F64(Task* arg0)
             Task_Kill(arg0);
             return;
         }
-        work = (Actor560800AnimWork*)arg0->idMap;
+        work = (Actor560800AnimWork*)arg0->work;
         {
             GpAnimObj* obj = arg0->extra;
             func_800B3F84(&work->anim, &D_actor_560800_8016EB30, obj, work->animAux, work->slots);
@@ -579,7 +579,7 @@ void func_actor_560800_80132F64(Task* arg0)
         work->field_4BA = 0x13;
         work->field_4B4 = &D_actor_560800_8016ECC4;
         {
-            Actor560800AnimWork* w = (Actor560800AnimWork*)arg0->idMap;
+            Actor560800AnimWork* w = (Actor560800AnimWork*)arg0->work;
             u16                  i;
             s32                  fade = 0x10;
 
@@ -612,7 +612,7 @@ void func_actor_560800_80132F64(Task* arg0)
 
 void func_actor_560800_80133204(void)
 {
-    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
     Task*            task;
     VECTOR           pos;
 
@@ -680,7 +680,7 @@ void func_actor_560800_80133204(void)
         func_800D7A9C(obj, &pos, 0, 3);
     }
     if (work->field_20 != NULL) {
-        Actor560800Work* w = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+        Actor560800Work* w = (Actor560800Work*)D_actor_560800_8017578C->work;
 
         ((SVECTOR*)&pos)->vy = 0;
         Gp_DispatchMsg(w->field_20, 0x7DB, (s32)&pos, 0);
@@ -689,7 +689,7 @@ void func_actor_560800_80133204(void)
 
 void func_actor_560800_80133540(u32 arg0)
 {
-    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
 
     switch (arg0) {
         case 0:
@@ -723,7 +723,7 @@ void func_actor_560800_80133540(u32 arg0)
 
 void func_actor_560800_80133648(u32 arg0)
 {
-    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
 
     switch (arg0) {
         case 0:
@@ -765,7 +765,7 @@ void func_actor_560800_80133750(s32 arg0)
     Actor560800Work* work;
     s32*             msg;
 
-    work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    work = (Actor560800Work*)D_actor_560800_8017578C->work;
     if (work->field_66 == 0) {
         Gp_PulseState1C();
     }
@@ -821,7 +821,7 @@ static inline void Actor560800_PlayAnim(Task* task, u16 anim)
     Actor560800Work* work;
     GpAnimArg        msg;
 
-    work = (Actor560800Work*)task->idMap;
+    work = (Actor560800Work*)task->work;
     if (work->field_0 != NULL) {
         msg.field_0    = D_actor_560800_8016EA40;
         work->field_60 = anim;
@@ -839,7 +839,7 @@ static inline void Actor560800_PlayAnimB(Task* task, u16 anim, s32 argC)
     Actor560800Work* work;
     GpAnimArg        msg;
 
-    work = (Actor560800Work*)task->idMap;
+    work = (Actor560800Work*)task->work;
     if (work->field_0 != NULL) {
         msg.field_0    = D_actor_560800_8016EA40;
         work->field_60 = anim;
@@ -885,7 +885,7 @@ static inline void Actor560800_SpawnSparksA(Task* task)
     Actor560800Work* work;
     SVECTOR          vec;
 
-    work   = (Actor560800Work*)task->idMap;
+    work   = (Actor560800Work*)task->work;
     vec.vx = 0x12C;
     vec.vy = 0;
     vec.vz = -0x1F4;
@@ -909,7 +909,7 @@ static inline void Actor560800_SpawnSparksB(Task* task)
     Actor560800Work* work;
     SVECTOR          vec;
 
-    work   = (Actor560800Work*)task->idMap;
+    work   = (Actor560800Work*)task->work;
     vec.vx = 0x12C;
     vec.vy = 0;
     vec.vz = -0xC8;
@@ -938,7 +938,7 @@ void func_actor_560800_80133970(Task* arg0)
 {
     Actor560800Work* work;
 
-    work = (Actor560800Work*)arg0->idMap;
+    work = (Actor560800Work*)arg0->work;
     func_actor_560800_80132340(arg0);
     switch ((u16)work->field_28) {
         case 0:
@@ -1043,13 +1043,13 @@ void func_actor_560800_80134258(Task* task)
     u16                  i;
     u16                  rate;
 
-    work = (Actor560800Work*)task->idMap;
+    work = (Actor560800Work*)task->work;
     switch ((u16)work->field_38) {
         case 0:
         case 38:
             break;
         case 1:
-            ctx            = (Actor560800AnimWork*)work->field_4->idMap;
+            ctx            = (Actor560800AnimWork*)work->field_4->work;
             ctx->field_4C0 = 0;
             ctx->field_4CA = 1;
             break;
@@ -1058,10 +1058,10 @@ void func_actor_560800_80134258(Task* task)
             Gp_DispatchMsg(work->field_20, 0x7D5, 2, 0);
             break;
         case 28:
-            ctx2            = (Actor560800AnimWork*)work->field_4->idMap;
+            ctx2            = (Actor560800AnimWork*)work->field_4->work;
             ctx2->field_4C0 = 0;
             ctx2->field_4CA = 0;
-            anim            = (Actor560800AnimWork*)work->field_4->idMap;
+            anim            = (Actor560800AnimWork*)work->field_4->work;
             i               = 1;
             anim->field_4B8 = 3;
             rate            = 0x10;
@@ -1098,8 +1098,8 @@ void func_actor_560800_80134B14(void)
     u16                  i;
     u16                  rate;
 
-    work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
-    anim = (Actor560800AnimWork*)work->field_8->idMap;
+    work = (Actor560800Work*)D_actor_560800_8017578C->work;
+    anim = (Actor560800AnimWork*)work->field_8->work;
 
     anim->field_4B8 = 0x20;
     rate            = 0x10;
@@ -1151,8 +1151,8 @@ void func_actor_560800_80135BD8(Task* arg0)
     Task*            sub6;
     SVECTOR          vec;
 
-    work        = (Actor560800Work*)Mem_Malloc(0x68, 0);
-    arg0->idMap = (TaskIdMap*)work;
+    work       = (Actor560800Work*)Mem_Malloc(0x68, 0);
+    arg0->work = (TaskIdMap*)work;
     if (work == NULL) {
         Task_Kill(arg0);
         return;
@@ -1218,7 +1218,7 @@ void func_actor_560800_80135D54(Task* arg0)
     func_actor_560800_80134258(arg0);
     func_actor_560800_80134384(arg0);
     func_actor_560800_80134BFC(arg0);
-    work = (Actor560800Work*)arg0->idMap;
+    work = (Actor560800Work*)arg0->work;
     switch ((u16)work->field_58) {
         case 0:
             break;
@@ -1245,11 +1245,11 @@ void func_actor_560800_80135FA0(Task* arg0)
     Actor560800FadeWork* work;
     Actor560800FadeWork* alloc;
 
-    work = (Actor560800FadeWork*)arg0->idMap;
+    work = (Actor560800FadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc       = (Actor560800FadeWork*)Mem_Malloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (Actor560800FadeWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 Task_Kill(arg0);
                 return;
@@ -1279,11 +1279,11 @@ void func_actor_560800_80136094(Task* arg0)
     Actor560800FadeWork* work;
     Actor560800FadeWork* alloc;
 
-    work = (Actor560800FadeWork*)arg0->idMap;
+    work = (Actor560800FadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc       = (Actor560800FadeWork*)Mem_Malloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (Actor560800FadeWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 Task_Kill(arg0);
                 return;

@@ -206,7 +206,7 @@ void func_actor_450900_80132518(s32 arg0)
 
 /// State handler of the save-point capture task `func_actor_450900_80131E38`
 /// spawns. State 0 allocates the head-aim record the capture cursor sweeps with
-/// (`Mem_Calloc(0xC, false)` into `Task::idMap`); state 1 ramps its `rate` one
+/// (`Mem_Calloc(0xC, false)` into `Task::work`); state 1 ramps its `rate` one
 /// 0x200 step per frame, up or down according to `Task::spawnArg1` (the flag
 /// `func_actor_450900_80132518` arms), and hands the record to `func_800B17D4`
 /// between the slot-3 task and the ally's own slot-0xA task. Any other state
@@ -225,13 +225,13 @@ void func_actor_450900_80132548(Task* task)
                 Task_Kill(task);
                 return;
             }
-            task->idMap     = (TaskIdMap*)aim;
+            task->work      = (TaskIdMap*)aim;
             aim->yawLimit   = 0x100;
             aim->pitchLimit = 0x200;
             task->state++;
             /* fallthrough */
         case 1:
-            aim = (Actor450900HeadAim*)task->idMap;
+            aim = (Actor450900HeadAim*)task->work;
             if (task->spawnArg1 != 0) {
                 rate      = aim->rate + 0x200;
                 aim->rate = rate;

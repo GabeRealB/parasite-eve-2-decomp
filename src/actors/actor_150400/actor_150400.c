@@ -72,7 +72,7 @@ void func_actor_150400_80131FB8(void)
 /// materialization next to its own call and `TOUCH_REG` makes the second a
 /// fresh computation, which is the ROM's `addiu $a0,$sp,0x28` twice. The
 /// `mem`/`work` pair is the same kind of pin on the `Mem_Calloc` result: the
-/// ROM keeps a short-lived copy for the `idMap` store, the NULL test and
+/// ROM keeps a short-lived copy for the `work` store, the NULL test and
 /// `field_4BC`, and a longer-lived one for everything after, which one variable
 /// cannot express.
 void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
@@ -93,11 +93,11 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     s32              idx;
     u32              raw;
 
-    obj         = task->extra;
-    coord       = obj->field_8;
-    mem         = (Actor150400Work*)Mem_Calloc(0x4C0, false);
-    work        = (Actor150400Work*)mem;
-    task->idMap = (TaskIdMap*)mem;
+    obj        = task->extra;
+    coord      = obj->field_8;
+    mem        = (Actor150400Work*)Mem_Calloc(0x4C0, false);
+    work       = (Actor150400Work*)mem;
+    task->work = (TaskIdMap*)mem;
     if (mem == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;

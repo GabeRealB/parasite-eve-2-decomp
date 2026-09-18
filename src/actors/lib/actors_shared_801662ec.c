@@ -18,7 +18,7 @@ void ActorsShared801662ec(Task* arg0)
     s32                       dist;
     s32                       dist2;
 
-    work              = (ActorsShared80168d3cWork*)arg0->idMap;
+    work              = (ActorsShared80168d3cWork*)arg0->work;
     coord             = ((TmdObject*)arg0->extra)->field_8;
     player            = Gp_ActorSlots[0];
     work->field_60.vx = coord->coord.t[0];

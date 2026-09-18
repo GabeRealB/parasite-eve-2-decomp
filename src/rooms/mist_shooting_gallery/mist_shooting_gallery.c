@@ -286,7 +286,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     rows  = 0;
     total = 0;
     obj   = task->spawnArg2;
-    work  = (MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->idMap;
+    work  = (MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work;
     xOff  = (s16)obj->field_1C + 2;
     y     = (s16)obj->field_18 + 0x17;
     do {

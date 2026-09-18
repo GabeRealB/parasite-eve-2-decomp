@@ -1042,7 +1042,7 @@ void func_actor_444000_80137594(GpEnemy* enemy, Actor444000Grab* task)
     SVECTOR              vec;
 
     owner = task->parent->spawnArg2;
-    host  = owner->task->idMap;
+    host  = owner->task->work;
 
     if (D_actor_444000_80144A68 == 1 || (s16)host->field_0 == 0x10 || (s16)host->field_0 == 5 ||
         (s16)host->field_0 == 0xC || (s16)host->field_0 == 0x12 ||
@@ -1109,7 +1109,7 @@ void func_actor_444000_8013799C(GpEnemy* enemy, Actor444000Grab* task)
 
     work  = task->field_1C;
     owner = task->parent->spawnArg2;
-    host  = owner->task->idMap;
+    host  = owner->task->work;
 
     if (D_actor_444000_80144A68 == 1 || (s16)host->field_0 == 0x10 || (s16)host->field_0 == 5 ||
         (s16)host->field_0 == 0xC || (s16)host->field_0 == 0x12) {
@@ -1251,7 +1251,7 @@ void func_actor_444000_80137D4C(GpEnemy* enemy, Actor444000Grab* task)
     s32                  pan;
 
     owner  = task->parent->spawnArg2;
-    host   = owner->task->idMap;
+    host   = owner->task->work;
     player = Game_GetPtrSlot(3);
 
     if (D_actor_444000_80144A68 == 1) {
@@ -1441,7 +1441,7 @@ void func_actor_444000_80138490(GpEnemy* enemy, Actor444000Grab* task)
 
     work   = task->field_1C;
     player = Game_GetPtrSlot(3);
-    actor  = (GameActor*)player->idMap;
+    actor  = (GameActor*)player->work;
     cfg    = &Player_Status;
 
     if (D_actor_444000_80144A68 == 1) {

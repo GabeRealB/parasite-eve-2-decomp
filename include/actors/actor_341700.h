@@ -24,10 +24,10 @@ STATIC_ASSERT_SIZEOF(Actor341700Flags, 0x4);
 /// Per-actor state block for the `actor_341700` overlay's main enemy.
 ///
 /// `func_actor_341700_80162974` and `func_actor_341700_80162B8C` both allocate
-/// it with `Mem_Calloc(0x454, 0)` and store it in the `Task::idMap` slot
+/// it with `Mem_Calloc(0x454, 0)` and store it in the `Task::work` slot
 /// (0x1C), so the size below is the allocation, not a guess: this actor reuses
 /// that pointer field for its own work block and it is *not* a `TaskIdMap`
-/// here. Reach it with `(Actor341700Work*)task->idMap`.
+/// here. Reach it with `(Actor341700Work*)task->work`.
 ///
 /// `field_420` / `field_422` are the state and sub-state indices the handler
 /// table walks; `field_412` is the per-state frame counter. `field_414` ..
@@ -87,7 +87,7 @@ STATIC_ASSERT_SIZEOF(Actor341700Work, 0x454);
 
 /// The overlay's *other* work block, for the task `func_actor_341700_8016D130`
 /// starts: that function calls `Mem_Calloc(0x80, 0)` and stores the result in
-/// the same `Task::idMap` slot, so the two blocks never coexist on one task.
+/// the same `Task::work` slot, so the two blocks never coexist on one task.
 ///
 /// `field_0` is the state index `func_actor_341700_8016CC9C` dispatches
 /// through its three-entry handler table; `field_2` holds the previous value

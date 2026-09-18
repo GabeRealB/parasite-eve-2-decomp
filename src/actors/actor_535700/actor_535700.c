@@ -61,7 +61,7 @@ void ActorsShared80132610(void);
 void func_actor_535700_80132108(Task* task)
 {
     GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->field_8;
-    Actor535700Work* work  = (Actor535700Work*)task->idMap;
+    Actor535700Work* work  = (Actor535700Work*)task->work;
 
     if (ActorsShared80131f9cWork->state == 1) {
         func_actor_535700_80132730();

@@ -89,7 +89,7 @@ void func_actor_521100_80135DDC(void* spawnArg2, Task* task)
     coord                   = obj->field_8;
     mem                     = Mem_Calloc(0x4B4, 0);
     D_actor_521100_8016A3D8 = mem;
-    task->idMap             = (TaskIdMap*)mem;
+    task->work              = (TaskIdMap*)mem;
     if (mem == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
@@ -170,7 +170,7 @@ void func_actor_521100_801360C4(void* spawnArg2, Task* task)
 
     obj   = task->extra;
     coord = obj->field_8;
-    work  = (Actor521100Work*)task->idMap;
+    work  = (Actor521100Work*)task->work;
     sp10  = *coord;
 
     switch (work->field_484) {
@@ -320,7 +320,7 @@ void func_actor_521100_80136604(Task* arg0)
     sp.field_10             = 2;
     sp.field_11             = 9;
     sp.field_12             = 1;
-    D_actor_521100_8016A3D8 = (Actor521100Work*)arg0->idMap;
+    D_actor_521100_8016A3D8 = (Actor521100Work*)arg0->work;
     sp.table.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 

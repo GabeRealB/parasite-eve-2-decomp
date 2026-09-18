@@ -13,7 +13,7 @@ void ActorsShared801625a8(Task* task)
 {
     GameActor* actor;
 
-    actor            = (GameActor*)task->idMap;
+    actor            = (GameActor*)task->work;
     Gp_ActorSlots[1] = NULL;
     Gp_UnlinkObj((GpObj*)actor->field_AC);
     Gp_UnlinkObj((GpObj*)actor->field_CC);

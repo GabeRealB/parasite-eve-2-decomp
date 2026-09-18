@@ -99,7 +99,7 @@ void func_actor_342400_801653DC(Task* arg0, s16 arg1)
     maxZ                   = 0;
     stepX                  = 0;
     blocked                = 0;
-    work                   = (Actor342400Work*)arg0->idMap;
+    work                   = (Actor342400Work*)arg0->work;
     coord                  = ((TmdObject*)arg0->extra)->field_8;
     enemy                  = arg0->spawnArg2;
     *(u8**)G_SCRATCH_HEAD -= 8;

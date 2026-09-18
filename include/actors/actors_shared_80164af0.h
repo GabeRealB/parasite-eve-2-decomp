@@ -6,7 +6,7 @@
 #include "main/task.h"
 
 /// Head of the enemy work block `actor_323000`, `actor_323400` and
-/// `actor_421600` park in `Task::idMap` -- that slot is not a `TaskIdMap` here.
+/// `actor_421600` park in `Task::work` -- that slot is not a `TaskIdMap` here.
 /// `field_0` is the animation state the per-frame handler reads and `field_2`
 /// its frame counter; `field_16` is the actor's cached yaw, taken back off the
 /// root coordinate by `ActorsShared80164954`; `field_82E` is the requested

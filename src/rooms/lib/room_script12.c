@@ -6,7 +6,7 @@
 
 extern s8 D_8007216C;
 
-/// Work block parked at `Task::idMap` by the factory rooms that link this
+/// Work block parked at `Task::work` by the factory rooms that link this
 /// body. `field_A` is the one-shot trigger `Room_Util34` raises; this script
 /// consumes it, parks `field_8` at 0xA, and steps the caller to state 2.
 typedef struct RoomScript12Work {
@@ -21,7 +21,7 @@ void Room_Script12(Task* task)
     RoomScript12Work* work;
 
     prompt           = &D_80114D28;
-    work             = (RoomScript12Work*)task->idMap;
+    work             = (RoomScript12Work*)task->work;
     prompt->targetId = 0;
     prompt->mode     = 0;
     if (work->field_A != 0) {

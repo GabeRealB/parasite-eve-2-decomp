@@ -3,7 +3,7 @@
 #include "actors/actors_shared_80132428.h"
 
 /// The `ActorsShared801325c8` walk through the published global instead of
-/// through `Task::idMap`: marks animation slots 1..0x12 as reset-pending and
+/// through `Task::work`: marks animation slots 1..0x12 as reset-pending and
 /// reseeds each of them from the current animation set, then records that set
 /// as the one now playing.
 void ActorsShared80132428(void)

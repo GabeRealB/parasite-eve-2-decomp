@@ -24,7 +24,7 @@ s32 ActorsShared8013852c(Task* task, s32 arg1, s32 flags)
     s32                      mode;
 
     mode  = flags ^ 1;
-    work  = (ActorShared8013852cWork*)task->idMap;
+    work  = (ActorShared8013852cWork*)task->work;
     model = (TmdObject*)task->extra;
     enemy = (GpEnemy*)task->spawnArg2;
     if (work->field_BA0 != mode) {

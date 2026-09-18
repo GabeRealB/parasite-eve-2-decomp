@@ -183,7 +183,7 @@ Task* Display_SpawnFromMode(void)
     block_case4:
         Stage_Ctx->field_11 = 2;
         slot                = Game_GetPtrSlot(3);
-        obj                 = (GameActor*)slot->idMap;
+        obj                 = (GameActor*)slot->work;
         flag                = obj->field_984 & 1;
         ptr                 = ((TmdObject*)slot->extra)->field_8;
         if (flag) {
@@ -216,7 +216,7 @@ block_default:
     Display_State.field_103 = 1;
     Display_State.field_100 = 3;
     slot                    = Game_GetPtrSlot(3);
-    obj                     = (GameActor*)slot->idMap;
+    obj                     = (GameActor*)slot->work;
     flag                    = obj->field_984 & 1;
     ptr                     = ((TmdObject*)slot->extra)->field_8;
     if (flag) {

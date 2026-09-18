@@ -355,7 +355,7 @@ void func_actor_460200_80132468(GpEnemy* enemy, Task* task)
     coord = obj->field_8;
     r     = rand();
     idx   = D_actor_460200_8013FCCC[(r * 11) >> 15];
-    work  = (Actor460200Work*)task->idMap;
+    work  = (Actor460200Work*)task->work;
     sub   = ((TmdObject*)task->extra)->field_8 + idx;
     Gp_UpdateCoord(coord);
     vec.vx = coord->workm.t[0];
@@ -385,7 +385,7 @@ void func_actor_460200_801325FC(Task* task)
     ActorsShared8014c874Work* work;
     s16                       animId;
 
-    work = (ActorsShared8014c874Work*)task->idMap;
+    work = (ActorsShared8014c874Work*)task->work;
     if (work->state == 1) {
         func_actor_460200_80132AC8(task);
         work->state = 3;
@@ -447,7 +447,7 @@ void func_actor_460200_80132808(GpEnemy* enemy, Task* task)
     coord   = obj->field_8;
     workMem = Mem_Calloc(0x4F8, 0);
     work    = (Actor460200Work*)workMem;
-    if ((task->idMap = (TaskIdMap*)work) == NULL) {
+    if ((task->work = (TaskIdMap*)work) == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
@@ -489,7 +489,7 @@ void func_actor_460200_80132A50(Task* task)
     ActorsShared80132514Work* work;
     s32                       i;
 
-    work = (ActorsShared80132514Work*)task->idMap;
+    work = (ActorsShared80132514Work*)task->work;
     i    = 1;
     do {
         work->slots[i].field_9 = 1;
@@ -517,7 +517,7 @@ s32 func_actor_460200_80132B2C(Task* task, s32 arg1, Actor460200AnimArgs* args)
 {
     Actor460200Work* work;
 
-    work = (Actor460200Work*)task->idMap;
+    work = (Actor460200Work*)task->work;
     if (args->animId >= 0x10) {
         return -1;
     }
@@ -548,7 +548,7 @@ s32 func_actor_460200_80132B98(Task* task, s32 arg1, s32 flags)
     TmdObject*             other;
 
     self = (TmdObject*)task->extra;
-    work = (Actor460200PairedWork*)task->idMap;
+    work = (Actor460200PairedWork*)task->work;
     if (task->spawnArg1 != 0) {
         other = (TmdObject*)work->field_4F0->extra;
     } else {

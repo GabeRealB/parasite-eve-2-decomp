@@ -82,7 +82,7 @@ void func_actor_205600_8014CFD0(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->idMap   = (TaskIdMap*)work;
+    arg1->work    = (TaskIdMap*)work;
     tmd->field_C  = 0;
     scratch       = (Actor205600PlaceScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x38);
     tmd->field_1C = &work->lightMtx;

@@ -16,7 +16,7 @@ void func_actor_342400_801679D4(Task* arg0)
     s16              angle;
     s16              speed;
 
-    work = (Actor342400Work*)arg0->idMap;
+    work = (Actor342400Work*)arg0->work;
     if ((s16)++work->field_412 == 1) {
         soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0009;
         pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
@@ -27,7 +27,7 @@ void func_actor_342400_801679D4(Task* arg0)
     ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
     ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
     ((TmdObject*)arg0->extra)->field_8->flg         = 0;
-    work2                                           = (Actor342400Work*)arg0->idMap;
+    work2                                           = (Actor342400Work*)arg0->work;
     if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
         cond = 1;
     } else {
@@ -35,11 +35,11 @@ void func_actor_342400_801679D4(Task* arg0)
     }
     if (cond) {
         work->obj_2CC.flags |= 0x4000;
-        next                 = (Actor342400Work*)arg0->idMap;
+        next                 = (Actor342400Work*)arg0->work;
         arg0->state          = 3;
         next->field_420      = 0;
         next->field_422      = 0;
-        next2                = (Actor342400Work*)arg0->idMap;
+        next2                = (Actor342400Work*)arg0->work;
         next2->field_420     = 5;
         next2->field_422     = 0;
     }

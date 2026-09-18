@@ -8,7 +8,7 @@
 #include "main/task.h"
 
 /// Work block the carriers hang off their context's 0x1C slot (the task's
-/// `Task::idMap`, which is not a `TaskIdMap` here). The three `GpObj`s are the
+/// `Task::work`, which is not a `TaskIdMap` here). The three `GpObj`s are the
 /// display nodes `ActorsShared80138570` unlinks on its own exit path.
 ///
 /// `field_36C` is the mode this body dispatches on - the sibling state machine

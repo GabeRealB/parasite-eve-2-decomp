@@ -47,7 +47,7 @@ void RoomsShared8017d5f0(Task* task)
         Task_Kill(task);
         return;
     }
-    task->idMap     = (TaskIdMap*)work;
+    task->work      = (TaskIdMap*)work;
     extra->field_24 = 6;
     Tmd_ProcessStream(extra);
     Tmd_ProcessStream(extra);
@@ -67,7 +67,7 @@ void RoomsShared8017d5f0(Task* task)
     extra->field_C |= 0x80;
     work->field_4   = 0;
     work->viewFlg   = -1;
-    actor           = (GameActor*)owner->idMap;
+    actor           = (GameActor*)owner->work;
     for (i = 0; i < 2; i++) {
         child = (&actor->field_920)[i];
         if (child != NULL) {

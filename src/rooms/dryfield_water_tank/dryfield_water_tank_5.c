@@ -35,7 +35,7 @@ extern s32 D_dryfield_water_tank_8018068C;
 
 /// Fade the water tank to white and tear the task down.
 ///
-/// State 0 allocates the ramp at `Task::idMap` and zeroes it; a failed
+/// State 0 allocates the ramp at `Task::work` and zeroes it; a failed
 /// allocation kills the task outright. State 1 runs every frame: it links a
 /// semi-transparent full-screen `TILE` (`-0xA0,-0x78`, `0x140x0xF0`) plus the
 /// `0xE1000240` `DR_TPAGE` into `Gpu_CurrentOt[-16]`, tinting the tile `r`/`g`/`r`,
@@ -51,11 +51,11 @@ void func_dryfield_water_tank_8017E3C4(Task* arg0)
     TILE*        tile;
     DR_TPAGE*    dr;
 
-    fade = (DwtFadeWork*)arg0->idMap;
+    fade = (DwtFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc       = (DwtFadeWork*)Mem_Malloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (DwtFadeWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 goto kill;
             }
@@ -177,7 +177,7 @@ void func_dryfield_water_tank_8017E78C(Task* task);
 
 /// Cutscene task state machine. State 0 refuses to run when the cutscene flag
 /// is already up or one is live, otherwise it parks the freshly zeroed
-/// `DwtWork` block in `Task::idMap`, republishes this task as
+/// `DwtWork` block in `Task::work`, republishes this task as
 /// `RoomsShared80180b2cTask` so the room's script helpers can reach that block,
 /// and hands slot 3 the 0x3E8 message carrying the animation set of the
 /// equipped weapon: `D_80073BA9 + 1` for the alternate block and
@@ -211,8 +211,8 @@ void func_dryfield_water_tank_8017E9F8(Task* task)
 
 L_case0:
     if ((D_80114C12 != 1) && (D_80071075 == 0)) {
-        work        = Mem_Malloc(0xC, false);
-        task->idMap = (TaskIdMap*)work;
+        work       = Mem_Malloc(0xC, false);
+        task->work = (TaskIdMap*)work;
         if (work == NULL) {
             Task_Kill(task);
         } else {

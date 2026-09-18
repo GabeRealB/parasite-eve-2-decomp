@@ -37,7 +37,7 @@ extern s8 D_8007216C;
 s32 func_acropolis_security_room_8017ECB4(RoomHotspot* table, s16 x, s16 y);
 
 /// Entry state of the security-monitor task: allocates the `AsrMonitorWork`
-/// block into the `Task::idMap` slot, spawns the monitor's companion task,
+/// block into the `Task::work` slot, spawns the monitor's companion task,
 /// seeds `cameraId` from the `GameFlag_GetNibble(0x2A)` camera table, and picks
 /// the next state from the `GameFlag_GetNibble(1)` progress nibble (state+1 and
 /// prompt kind 8 before chapter 3, state 6 and prompt kind 5 after). Finally it
@@ -56,7 +56,7 @@ void func_acropolis_security_room_8017D9DC(Task* task)
         return;
     }
     task->spawnArg2  = Task_SpawnFromTable(&D_acropolis_security_room_8018263C, 0, 1, 0);
-    task->idMap      = (TaskIdMap*)work;
+    task->work       = (TaskIdMap*)work;
     work->blinkTimer = 0;
     stateElse        = 6;
     flag             = GameFlag_GetNibble(0x2A);
@@ -104,7 +104,7 @@ void func_acropolis_security_room_8017DB30(Task* task)
 
     hs     = D_acropolis_security_room_80182648;
     prompt = &D_80114D28;
-    work   = (AsrMonitorWork*)task->idMap;
+    work   = (AsrMonitorWork*)task->work;
     func_acropolis_security_room_8017E0C4(work->cameraId - 0x7F);
     func_acropolis_security_room_8017E37C(task);
     Game_Session->field_68 = 1;
@@ -151,7 +151,7 @@ void func_acropolis_security_room_8017DC7C(Task* task)
     s16             sel;
     u16             usel;
 
-    work                = (AsrMonitorWork*)task->idMap;
+    work                = (AsrMonitorWork*)task->work;
     D_80114D28.mode     = 0;
     D_80114D28.targetId = 0;
     if (func_800D4EC0() != 0) {
@@ -354,7 +354,7 @@ void func_acropolis_security_room_8017E37C(Task* task)
     s16             y;
 
     tile           = (TILE*)Gpu_PrimCursor;
-    work           = (AsrMonitorWork*)task->idMap;
+    work           = (AsrMonitorWork*)task->work;
     Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
     setlen(tile, 3);
     setcode(tile, 0x42);

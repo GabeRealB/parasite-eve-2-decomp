@@ -19,7 +19,7 @@ void func_actor_342400_80162084(Task* arg0)
     if (work == NULL) {
         goto kill;
     }
-    arg0->idMap  = (TaskIdMap*)work;
+    arg0->work   = (TaskIdMap*)work;
     work->enemy0 = Gp_SpawnEnemyFromTable(&D_80151E60, 1, 1, 0);
     work->enemy1 = Gp_SpawnEnemyFromTable(&D_80151E60, 1, 1, 0);
     if (work->enemy0 == NULL && work->enemy1 == NULL) {
@@ -53,7 +53,7 @@ void func_actor_342400_80162084(Task* arg0)
 
 void func_actor_342400_801621D8(Task* arg0)
 {
-    Actor342400ChildWork* work = (Actor342400ChildWork*)arg0->idMap;
+    Actor342400ChildWork* work = (Actor342400ChildWork*)arg0->work;
     GpEnemy*              enemy;
     Task*                 task;
     GsCOORDINATE2*        coord;
@@ -95,7 +95,7 @@ void func_actor_342400_801621D8(Task* arg0)
 
 void func_actor_342400_80162324(Task* arg0)
 {
-    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->idMap;
+    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->work;
     s16                  count;
     s16                  i;
     s16                  idx;
@@ -161,7 +161,7 @@ s16 func_actor_342400_801624A4(void)
 
 void func_actor_342400_801626AC(Task* arg0, s32 arg1, Actor342400Msg* arg2)
 {
-    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->idMap;
+    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->work;
     u16                  id   = arg2->field_2;
 
     if (id == 4) {
@@ -247,7 +247,7 @@ void func_actor_342400_801628F0(Task* arg0)
         D_actor_342400_8016BF58[i].field_6 = 0;
     }
     D_actor_342400_80173AAC = 0;
-    arg0->idMap             = (TaskIdMap*)work;
+    arg0->work              = (TaskIdMap*)work;
     arg0->field_24          = D_actor_342400_8016BF48;
     arg0->state++;
 }
@@ -255,7 +255,7 @@ void func_actor_342400_801628F0(Task* arg0)
 void func_actor_342400_8016299C(Task* arg0)
 {
     s32                  i;
-    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->idMap;
+    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->work;
     Actor342400Slot*     slot;
 
     for (i = 0; i < 3; i++) {
@@ -268,7 +268,7 @@ void func_actor_342400_8016299C(Task* arg0)
 
 void func_actor_342400_80162A34(Task* arg0)
 {
-    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->idMap;
+    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->work;
 
     if (++work->field_0 == 15) {
         ((void (*)(s32))Gp_IncStateF0Ref)(0);
@@ -280,7 +280,7 @@ void func_actor_342400_80162A34(Task* arg0)
 
 void func_actor_342400_80162AB0(Task* arg0)
 {
-    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->idMap;
+    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->work;
     s16                  count;
     s32                  i;
 
@@ -307,8 +307,8 @@ void func_actor_342400_80162B60(Task* arg0)
 
     work = Mem_Calloc(8, 0);
     if (work != NULL) {
-        arg0->idMap = (TaskIdMap*)work;
-        enemy       = Gp_SpawnEnemyFromTable(&D_actor_342400_80173A54, 1, 0, 0);
+        arg0->work = (TaskIdMap*)work;
+        enemy      = Gp_SpawnEnemyFromTable(&D_actor_342400_80173A54, 1, 0, 0);
         if (enemy != NULL) {
             D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 1;
             work->enemy                                                   = enemy;
@@ -323,7 +323,7 @@ void func_actor_342400_80162B60(Task* arg0)
 
 void func_actor_342400_80162C10(Task* arg0)
 {
-    Actor342400SpawnWork* work = (Actor342400SpawnWork*)arg0->idMap;
+    Actor342400SpawnWork* work = (Actor342400SpawnWork*)arg0->work;
     GpEnemy*              enemy;
     Task*                 task;
     TmdObject*            obj;
@@ -351,7 +351,7 @@ void func_actor_342400_80162CA8(Task* arg0)
 
 void func_actor_342400_80162CBC(Task* arg0)
 {
-    Actor342400SpawnWork* work = (Actor342400SpawnWork*)arg0->idMap;
+    Actor342400SpawnWork* work = (Actor342400SpawnWork*)arg0->work;
     GpEnemy*              enemy;
     Task*                 task;
     GsCOORDINATE2*        coord;
@@ -383,8 +383,8 @@ void func_actor_342400_80162DA0(Task* arg0)
 
     work = Mem_Calloc(8, 0);
     if (work != NULL) {
-        arg0->idMap = (TaskIdMap*)work;
-        enemy       = Gp_SpawnEnemyFromTable(&D_801575F0, 2, 0, 0);
+        arg0->work = (TaskIdMap*)work;
+        enemy      = Gp_SpawnEnemyFromTable(&D_801575F0, 2, 0, 0);
         if (enemy != NULL) {
             D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 1;
             work->enemy                                                   = enemy;
@@ -402,7 +402,7 @@ void func_actor_342400_80162DA0(Task* arg0)
 
 void func_actor_342400_80162E6C(Task* arg0)
 {
-    Actor342400SpawnWork* work = (Actor342400SpawnWork*)arg0->idMap;
+    Actor342400SpawnWork* work = (Actor342400SpawnWork*)arg0->work;
     GpEnemy*              enemy;
     Task*                 task;
     TmdObject*            obj;
@@ -430,7 +430,7 @@ void func_actor_342400_80162F08(Task* arg0)
 
 void func_actor_342400_80162F1C(Task* arg0)
 {
-    Actor342400SpawnWork* work = (Actor342400SpawnWork*)arg0->idMap;
+    Actor342400SpawnWork* work = (Actor342400SpawnWork*)arg0->work;
     GpEnemy*              enemy;
     Task*                 task;
     GsCOORDINATE2*        coord;
@@ -461,7 +461,7 @@ void func_actor_342400_80162FFC(Task* arg0)
 
 void func_actor_342400_80163010(Task* arg0)
 {
-    Actor342400ChildWork* work = (Actor342400ChildWork*)arg0->idMap;
+    Actor342400ChildWork* work = (Actor342400ChildWork*)arg0->work;
     GpEnemy*              enemy;
     Task*                 task;
     TmdObject*            obj;
@@ -485,7 +485,7 @@ void func_actor_342400_80163010(Task* arg0)
 
 void func_actor_342400_801630A4(Task* arg0)
 {
-    Actor342400ChildWork* work = (Actor342400ChildWork*)arg0->idMap;
+    Actor342400ChildWork* work = (Actor342400ChildWork*)arg0->work;
     GpEnemy*              enemy;
     Task*                 task;
     TmdObject*            obj;
@@ -513,7 +513,7 @@ void func_actor_342400_801630A4(Task* arg0)
 
 void func_actor_342400_80163178(Task* arg0)
 {
-    Actor342400ChildWork* work = (Actor342400ChildWork*)arg0->idMap;
+    Actor342400ChildWork* work = (Actor342400ChildWork*)arg0->work;
 
     func_actor_342400_801621D8(arg0);
     if (work->field_A == 3) {
@@ -550,7 +550,7 @@ void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2)
 
 void func_actor_342400_801632D4(Task* arg0)
 {
-    Actor342400ChildWork* work = (Actor342400ChildWork*)arg0->idMap;
+    Actor342400ChildWork* work = (Actor342400ChildWork*)arg0->work;
 
     if (work->enemy0 != NULL) {
         if (work->enemy0->field_40 <= 0) {

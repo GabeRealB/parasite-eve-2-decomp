@@ -68,25 +68,25 @@ void func_acropolis_promenade_8017DB9C(Task* task)
     s32            weaponId;
 
     queue = &CdCmd_Queue;
-    work  = (ApmStreamWork*)task->idMap;
+    work  = (ApmStreamWork*)task->work;
     switch (task->state) {
         case 0:
-            blk         = Mem_Calloc(0x14, 0);
-            task->idMap = (TaskIdMap*)blk;
+            blk        = Mem_Calloc(0x14, 0);
+            task->work = (TaskIdMap*)blk;
             if (blk == NULL) {
                 Task_Kill(task);
                 break;
             }
             Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
-            ((ApmStreamWork*)task->idMap)->target = Game_GetPtrSlot(3);
-            ((ApmStreamWork*)task->idMap)->mtx    = Player_Status.coordMtx;
-            weaponId                              = Player_Status.weapon;
-            rec.field_0                           = (Mc_SaveData.field_22 == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.field_4                           = 1;
-            rec.field_8                           = 0;
-            rec.field_C                           = 0;
-            rec.field_10                          = 0;
-            Gp_DispatchMsg(((ApmStreamWork*)task->idMap)->target, 0x3E8, (s32)&rec, 0);
+            ((ApmStreamWork*)task->work)->target = Game_GetPtrSlot(3);
+            ((ApmStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
+            weaponId                             = Player_Status.weapon;
+            rec.field_0                          = (Mc_SaveData.field_22 == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.field_4                          = 1;
+            rec.field_8                          = 0;
+            rec.field_C                          = 0;
+            rec.field_10                         = 0;
+            Gp_DispatchMsg(((ApmStreamWork*)task->work)->target, 0x3E8, (s32)&rec, 0);
             func_800E9BDC(3, 0x9FF);
             Gp_StateF0.field_4 = 1;
             task->state        = task->state + 1;
@@ -114,7 +114,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                     place.rot.vz = 0;
                     place.rot.vx = 0;
                     place.rot.vy = 0xC00;
-                    dest         = (ApmStreamWork*)task->idMap;
+                    dest         = (ApmStreamWork*)task->work;
                     Gp_DispatchMsg(dest->target, 0x3E9, (s32)&place, 0);
                     Task_SpawnFromTable(&D_acropolis_promenade_80181148, 4, 0, 0);
                     task->state = task->state + 1;
@@ -128,7 +128,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                 place.pos.vx = 0x282;
                 place.pos.vy = 0x29;
                 place.pos.vz = D_acropolis_promenade_80181184[0x45 - queue->field_1EA].vz - 0xC8;
-                dest         = (ApmStreamWork*)task->idMap;
+                dest         = (ApmStreamWork*)task->work;
                 Gp_DispatchMsg(dest->target, 0x3F2, (s32)&place, 0);
                 task->state = task->state + 1;
             }

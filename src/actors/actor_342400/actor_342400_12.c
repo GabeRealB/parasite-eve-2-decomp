@@ -27,7 +27,7 @@ void func_actor_342400_80168B74(Task* arg0)
     s16              next;
 
     obj   = arg0->extra;
-    work  = (Actor342400Work*)arg0->idMap;
+    work  = (Actor342400Work*)arg0->work;
     enemy = (GpEnemy*)arg0->spawnArg2;
     coord = obj->field_8;
     work->field_412++;
@@ -78,14 +78,14 @@ void func_actor_342400_80168B74(Task* arg0)
             work->field_438 = 1;
             if (work->field_418 == 8) {
                 if (work->field_440 == 0) {
-                    Actor342400Work* w = (Actor342400Work*)arg0->idMap;
+                    Actor342400Work* w = (Actor342400Work*)arg0->work;
 
                     w->field_426 = 4;
                     w->field_41C = 0x10;
                     w->field_418 = 5;
                     w->field_414 = 1;
                 } else {
-                    Actor342400Work* w = (Actor342400Work*)arg0->idMap;
+                    Actor342400Work* w = (Actor342400Work*)arg0->work;
 
                     w->field_426 = 4;
                     w->field_41C = 0x10;
@@ -96,7 +96,7 @@ void func_actor_342400_80168B74(Task* arg0)
                 Actor342400Work* w;
 
                 next         = D_actor_342400_80173A98[work->field_418 - 1];
-                w            = (Actor342400Work*)arg0->idMap;
+                w            = (Actor342400Work*)arg0->work;
                 w->field_426 = 4;
                 w->field_41C = 0x10;
                 w->field_418 = next;
@@ -136,7 +136,7 @@ static __inline__ void update_color(void* enemy, GsCOORDINATE2* coord)
 void func_actor_342400_80168F14(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra;
-    Actor342400Work* work  = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* work  = (Actor342400Work*)arg0->work;
     GsCOORDINATE2*   coord = obj->field_8;
     TaskFuncTable5   sp    = D_actor_342400_80162028;
 
@@ -169,7 +169,7 @@ void func_actor_342400_80168F14(Task* arg0)
 void func_actor_342400_801690FC(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra;
-    Actor342400Work* work  = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* work  = (Actor342400Work*)arg0->work;
     GsCOORDINATE2*   coord = obj->field_8;
     TaskFuncTable7   sp    = D_actor_342400_8016203C;
 

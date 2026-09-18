@@ -25,7 +25,7 @@ STATIC_ASSERT_SIZEOF(Actor403000Obj, 0x98);
 /// Per-actor work block for the `actor_403000` overlay.
 ///
 /// `func_actor_403000_801343B8` allocates it with `Mem_Calloc(0xFDC, 0)` and
-/// parks it in the `Task::idMap` slot (0x1C) -- the same slot `Actor00100Work`
+/// parks it in the `Task::work` slot (0x1C) -- the same slot `Actor00100Work`
 /// and `Actor403100Work` use for the same job, so the overlay reaches its state
 /// through the task and not through the actor. `field_0` is the animation state
 /// the per-frame handler switches on and `field_2` its frame counter, both

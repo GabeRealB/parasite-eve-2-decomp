@@ -97,23 +97,23 @@ void func_acropolis_plaza_8017E7E4(Task* task)
     GpMsg3EE                place;
     GpMsg3EE                warp;
     CdCmdQueue*             q    = &CdCmd_Queue;
-    AcropolisPlazaWarpWork* work = (AcropolisPlazaWarpWork*)task->idMap;
+    AcropolisPlazaWarpWork* work = (AcropolisPlazaWarpWork*)task->work;
     AcropolisPlazaWarpWork* newWork;
 
     switch (task->state) {
         case 0:
-            newWork     = Mem_Malloc(8, 0);
-            task->idMap = (TaskIdMap*)newWork;
+            newWork    = Mem_Malloc(8, 0);
+            task->work = (TaskIdMap*)newWork;
             if (newWork == NULL) {
                 Task_Kill(task);
                 return;
             }
             Mem_Set(newWork, 0, 8);
-            ((AcropolisPlazaWarpWork*)task->idMap)->slot3 = Game_GetPtrSlot(3);
-            place.field_0                                 = 0x3804;
-            place.field_4                                 = 0;
-            place.field_8                                 = 0xFC8;
-            Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->idMap)->slot3, 0x3F2, (s32)&place, 0);
+            ((AcropolisPlazaWarpWork*)task->work)->slot3 = Game_GetPtrSlot(3);
+            place.field_0                                = 0x3804;
+            place.field_4                                = 0;
+            place.field_8                                = 0xFC8;
+            Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3F2, (s32)&place, 0);
             task->state = task->state + 1;
             return;
         case 1:
@@ -121,7 +121,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
                 return;
             }
             warp.field_12 = 0xD55;
-            Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->idMap)->slot3, 0x3EE, (s32)&warp, 0);
+            Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3EE, (s32)&warp, 0);
             task->state = task->state + 1;
             return;
         case 2:
@@ -169,7 +169,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
     AcropolisPlazaTailMsg   buf;
     GpRec14*                rec;
     CdCmdQueue*             q    = &CdCmd_Queue;
-    AcropolisPlazaWarpWork* work = (AcropolisPlazaWarpWork*)task->idMap;
+    AcropolisPlazaWarpWork* work = (AcropolisPlazaWarpWork*)task->work;
     AcropolisPlazaWarpWork* newWork;
     GsCOORDINATE2*          coord;
     s32                     weaponId;
@@ -177,18 +177,18 @@ void func_acropolis_plaza_8017E9A8(Task* task)
 
     switch (task->state) {
         case 0:
-            newWork     = Mem_Malloc(8, 0);
-            task->idMap = (TaskIdMap*)newWork;
+            newWork    = Mem_Malloc(8, 0);
+            task->work = (TaskIdMap*)newWork;
             if (newWork == NULL) {
                 Task_Kill(task);
                 return;
             }
             Mem_Set(newWork, 0, 8);
-            ((AcropolisPlazaWarpWork*)task->idMap)->slot3 = Game_GetPtrSlot(3);
-            place.field_0                                 = 0xF6E;
-            place.field_4                                 = 0;
-            place.field_8                                 = 0x2328;
-            Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->idMap)->slot3, 0x3F2, (s32)&place, 0);
+            ((AcropolisPlazaWarpWork*)task->work)->slot3 = Game_GetPtrSlot(3);
+            place.field_0                                = 0xF6E;
+            place.field_4                                = 0;
+            place.field_8                                = 0x2328;
+            Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3F2, (s32)&place, 0);
             task->state = task->state + 1;
             return;
         case 1:
@@ -196,7 +196,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
                 return;
             }
             warp.field_12 = 0xD55;
-            Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->idMap)->slot3, 0x3EE, (s32)&warp, 0);
+            Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3EE, (s32)&warp, 0);
             task->state = task->state + 1;
             return;
         case 2:
@@ -246,14 +246,14 @@ void func_acropolis_plaza_8017E9A8(Task* task)
                 buf.weapon.rec.field_10 = 0;
                 Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&buf.weapon.rec, 0);
 
-                coord            = ((TmdObject*)((AcropolisPlazaWarpWork*)task->idMap)->slot3->extra)->field_8;
+                coord            = ((TmdObject*)((AcropolisPlazaWarpWork*)task->work)->slot3->extra)->field_8;
                 buf.place.pos.vx = coord->coord.t[0];
                 buf.place.pos.vy = coord->coord.t[1];
                 buf.place.pos.vz = coord->coord.t[2];
                 buf.place.rot.vz = 0;
                 buf.place.rot.vx = 0;
                 buf.place.rot.vy = 0xEAA;
-                Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->idMap)->slot3, 0x3E9, (s32)&buf.place, 0);
+                Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3E9, (s32)&buf.place, 0);
                 task->state = task->state + 1;
             }
             break;
@@ -305,7 +305,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
     GpRec14                    roomRec;
     AcropolisPlazaOpeningBuf   buf;
     CdCmdQueue*                q    = &CdCmd_Queue;
-    AcropolisPlazaOpeningWork* work = (AcropolisPlazaOpeningWork*)task->idMap;
+    AcropolisPlazaOpeningWork* work = (AcropolisPlazaOpeningWork*)task->work;
     AcropolisPlazaOpeningWork* newWork;
     GameSessionFrom4*          sessionKey;
     GpCdRec10*                 entry;
@@ -313,18 +313,18 @@ void func_acropolis_plaza_8017ECF8(Task* task)
 
     switch (task->state) {
         case 0:
-            newWork     = Mem_Malloc(8, 0);
-            task->idMap = (TaskIdMap*)newWork;
+            newWork    = Mem_Malloc(8, 0);
+            task->work = (TaskIdMap*)newWork;
             if (newWork == NULL) {
                 Task_Kill(task);
                 return;
             }
             Mem_Set(newWork, 0, 8);
-            ((AcropolisPlazaOpeningWork*)task->idMap)->slot3 = Game_GetPtrSlot(3);
-            place.field_0                                    = 0x3DE;
-            place.field_4                                    = 0;
-            place.field_8                                    = 0x33FE;
-            Gp_DispatchMsg(((AcropolisPlazaOpeningWork*)task->idMap)->slot3, 0x3F2, (s32)&place, 0);
+            ((AcropolisPlazaOpeningWork*)task->work)->slot3 = Game_GetPtrSlot(3);
+            place.field_0                                   = 0x3DE;
+            place.field_4                                   = 0;
+            place.field_8                                   = 0x33FE;
+            Gp_DispatchMsg(((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3F2, (s32)&place, 0);
             task->state = task->state + 1;
             return;
         case 1:
@@ -332,7 +332,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 return;
             }
             warp.field_12 = 0x1000;
-            Gp_DispatchMsg(((AcropolisPlazaOpeningWork*)task->idMap)->slot3, 0x3EE, (s32)&warp, 0);
+            Gp_DispatchMsg(((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3EE, (s32)&warp, 0);
             task->state = task->state + 1;
             return;
         case 2:
@@ -392,7 +392,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             placeBack.field_4 = 0;
             placeBack.field_8 = 0x439E;
             Gp_DispatchMsg(
-                ((AcropolisPlazaOpeningWork*)task->idMap)->slot3, 0x3F2, (s32)&placeBack, 0);
+                ((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3F2, (s32)&placeBack, 0);
             roomRec.field_0  = 1;
             roomRec.field_4  = 8;
             roomRec.field_8  = 0;
@@ -701,7 +701,7 @@ void func_acropolis_plaza_8017F9EC(Task* task)
 {
     CdCmdQueue*         q     = &CdCmd_Queue;
     volatile u16*       frame = &CdCmd_Queue.field_1EE;
-    AcropolisPlazaWork* work  = (AcropolisPlazaWork*)task->idMap;
+    AcropolisPlazaWork* work  = (AcropolisPlazaWork*)task->work;
     s32                 pos;
     s32                 vol;
 
@@ -740,7 +740,7 @@ void func_acropolis_plaza_8017F9EC(Task* task)
 u16 func_acropolis_plaza_8017FB50(Task* task)
 {
     CdCmdQueue*         q    = &CdCmd_Queue;
-    AcropolisPlazaWork* work = (AcropolisPlazaWork*)task->idMap;
+    AcropolisPlazaWork* work = (AcropolisPlazaWork*)task->work;
     u16                 evtId;
     u8                  evtKind;
     u8                  evtSub;
@@ -917,7 +917,7 @@ void func_acropolis_plaza_8017FF18(void)
 void func_acropolis_plaza_80180054(Task* task)
 {
     CdCmdQueue*         q    = &CdCmd_Queue;
-    AcropolisPlazaWork* work = (AcropolisPlazaWork*)task->idMap;
+    AcropolisPlazaWork* work = (AcropolisPlazaWork*)task->work;
     AcropolisPlazaWork* newWork;
     SVECTOR             vec;
 
@@ -925,15 +925,15 @@ void func_acropolis_plaza_80180054(Task* task)
         case 0:
             func_800E9BDC(3, 0x9DF);
             Gp_ApplyView(D_acropolis_plaza_801838B8[0]);
-            newWork     = (AcropolisPlazaWork*)Mem_Malloc(0x28, 0);
-            task->idMap = (TaskIdMap*)newWork;
+            newWork    = (AcropolisPlazaWork*)Mem_Malloc(0x28, 0);
+            task->work = (TaskIdMap*)newWork;
             if (newWork == NULL) {
                 Task_Kill(task);
                 return;
             }
             Mem_Set(newWork, 0, 0x28);
-            ((AcropolisPlazaWork*)task->idMap)->slot3 = Game_GetPtrSlot(3);
-            ((AcropolisPlazaWork*)task->idMap)->field_C =
+            ((AcropolisPlazaWork*)task->work)->slot3 = Game_GetPtrSlot(3);
+            ((AcropolisPlazaWork*)task->work)->field_C =
                 Task_SpawnFromTable(&D_acropolis_plaza_80183824, 5, 0, 0);
             Gp_KillPlayerEffs();
             Task_SpawnFromTable(&D_acropolis_plaza_80183824, 0xB, 0, 0);

@@ -27,7 +27,7 @@ typedef struct EnergyBallStep {
 STATIC_ASSERT_SIZEOF(EnergyBallStep, 4);
 
 /// Collision block allocated by `func_energyball_8012F180` (`Mem_Calloc(0x38)`)
-/// and stored in `Task::idMap`: `obj` is linked on list 1 with `field_C`
+/// and stored in `Task::work`: `obj` is linked on list 1 with `field_C`
 /// pointing at the one-element `rec` table (terminator `field_0 = 2`).
 typedef struct EnergyBallWork {
     /* 0x00 */ GpObj   obj;

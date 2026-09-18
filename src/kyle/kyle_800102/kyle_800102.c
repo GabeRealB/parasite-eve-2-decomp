@@ -53,7 +53,7 @@ void func_kyle_800102_80167A84(Task* arg0)
         Task_Kill(arg0);
         return;
     }
-    arg0->idMap        = (TaskIdMap*)work;
+    arg0->work         = (TaskIdMap*)work;
     arg0->exitCallback = func_kyle_800102_80168270;
     arg0->state++;
     Mem_Set(work, 0, sizeof(Kyle800102Work));
@@ -144,7 +144,7 @@ void func_kyle_800102_80167DE0(Task* arg0)
     s32                sfxarg;
     s32                sfxbase;
 
-    work                    = (Kyle800102Work*)arg0->idMap;
+    work                    = (Kyle800102Work*)arg0->work;
     coord                   = ((TmdObject*)arg0->extra)->field_8;
     head                    = *(u8**)G_SCRATCH_HEAD;
     *(void**)G_SCRATCH_HEAD = head - sizeof(Kyle800102Scratch);
@@ -230,7 +230,7 @@ move:
 
 void func_kyle_800102_80168244(Task* arg0)
 {
-    Kyle800102Work* work  = (Kyle800102Work*)arg0->idMap;
+    Kyle800102Work* work  = (Kyle800102Work*)arg0->work;
     s32             timer = work->field_88.w - 1;
 
     work->field_88.w = timer;
@@ -241,7 +241,7 @@ void func_kyle_800102_80168244(Task* arg0)
 
 void func_kyle_800102_80168270(Task* arg0)
 {
-    Kyle800102Work* work = (Kyle800102Work*)arg0->idMap;
+    Kyle800102Work* work = (Kyle800102Work*)arg0->work;
 
     Gp_UnlinkObj(&work->obj);
     Gp_UnlinkObj(&work->obj2);

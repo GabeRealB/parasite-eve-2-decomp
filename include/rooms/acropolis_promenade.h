@@ -8,7 +8,7 @@
 #include "main/task.h"
 
 /// 0x14 work block the promenade's streamed-scene task
-/// (`func_acropolis_promenade_8017DB9C`) keeps at `Task::idMap`
+/// (`func_acropolis_promenade_8017DB9C`) keeps at `Task::work`
 /// (`Mem_Calloc(0x14, 0)` in its state 0). Laid out like the observatory's
 /// `AobStreamWork`, which drives the same kind of scene.
 ///

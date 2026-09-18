@@ -6,10 +6,10 @@
 #include "main/task.h"
 #include <psyq/libgte.h>
 
-/// Per-instance work block of actor_548100, parked in `Task::idMap` -- that
+/// Per-instance work block of actor_548100, parked in `Task::work` -- that
 /// slot is not a `TaskIdMap` here, it is the `Mem_Calloc(0x18, 0)` block
 /// `func_actor_548100_80132420` allocates at spawn and stores at
-/// `Task::idMap` (0x1C). Reach it with `(Actor548100Work*)task->idMap`.
+/// `Task::work` (0x1C). Reach it with `(Actor548100Work*)task->work`.
 ///
 /// `step` is the actor's 1-based progress step (0 while unset): the spawner
 /// `func_actor_548100_80132550` seeds it from the `field_8` of the first

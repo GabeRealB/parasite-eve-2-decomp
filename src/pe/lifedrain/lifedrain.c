@@ -69,8 +69,8 @@ void PeShared801305c0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
 /// until it drops below 0x11, then releases through state 4.
 /// Scratch for the drain ribbon, plus the task handle it spawns.
 /// lists an object in the linker script at its first subsegment, and this has
-s16           D_lifedrain_80130AEC[16] = { 0 };
-struct _Task* D_lifedrain_80130B0C     = NULL;
+s16          D_lifedrain_80130AEC[16] = { 0 };
+struct Task* D_lifedrain_80130B0C     = NULL;
 
 void func_lifedrain_8012EF48(Task* arg0)
 {

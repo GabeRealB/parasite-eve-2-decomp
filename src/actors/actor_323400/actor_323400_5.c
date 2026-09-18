@@ -7,7 +7,7 @@ void func_actor_323400_80164BD0(GpEnemy* enemy, Task* task)
     Actor323400Work* work;
     TmdObject*       obj;
 
-    work = (Actor323400Work*)task->idMap;
+    work = (Actor323400Work*)task->work;
     if (work->field_4 != 0) {
         obj                 = (TmdObject*)task->extra;
         enemy->node.field_4 = 0;
@@ -28,7 +28,7 @@ void func_actor_323400_80164C4C(GpEnemy* enemy, Task* task)
     Actor323400Work* work;
     TmdObject*       obj;
 
-    work = (Actor323400Work*)task->idMap;
+    work = (Actor323400Work*)task->work;
     if (work->field_4 != 0) {
         obj                 = (TmdObject*)task->extra;
         enemy->node.field_4 = 1;

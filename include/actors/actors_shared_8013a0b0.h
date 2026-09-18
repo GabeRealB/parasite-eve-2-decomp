@@ -5,7 +5,7 @@
 
 #include "main/task.h"
 
-/// Status flags at + 0xFC of the `Task::idMap` work block, read through two
+/// Status flags at + 0xFC of the `Task::work` work block, read through two
 /// widths: bit 0 as a halfword, then bits 0x102 as a word. In
 /// `Actor400600Work` the word sits over `slots[1].field_10`.
 typedef union ActorsShared8013a0b0Flags {

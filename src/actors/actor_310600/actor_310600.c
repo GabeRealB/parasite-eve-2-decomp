@@ -31,7 +31,7 @@ void func_actor_310600_80161E64(Task* task)
         Gp_EnemyTaskExit(task);
         return;
     }
-    task->idMap     = (TaskIdMap*)work;
+    task->work      = (TaskIdMap*)work;
     work->field_475 = -1;
     work->field_476 = -1;
     work->field_477 = -1;
@@ -85,7 +85,7 @@ void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void func_actor_310600_80161FA0(Task* task)
 {
     TmdObject*       ext               = task->extra;
-    Actor310600Work* work              = (Actor310600Work*)task->idMap;
+    Actor310600Work* work              = (Actor310600Work*)task->work;
     void             (*funcs[2])(void) = { func_actor_310600_80162A74, (void (*)(void))func_actor_310600_80162A7C };
     VECTOR3          pos;
     GsCOORDINATE2*   coord;
@@ -181,7 +181,7 @@ void func_actor_310600_8016231C(Task* arg0)
     s32               dz;
     Actor310600Cmd    cmd;
 
-    work  = (Actor310600Work*)arg0->idMap;
+    work  = (Actor310600Work*)arg0->work;
     coord = (Actor310600Coord*)((TmdObject*)arg0->extra)->field_8;
     if (work->field_4F8 - coord->coord.t[0] >= 0) {
         dx = (u16)work->field_4F8 - (u16)coord->coord.t[0];
@@ -237,7 +237,7 @@ s32 func_actor_310600_8016246C(Task* task, s32 arg1, Actor310600Cmd* cmd, s32 ar
     s32              i;
     s32              j;
 
-    work = (Actor310600Work*)task->idMap;
+    work = (Actor310600Work*)task->work;
     ext  = task->extra;
     if (cmd->animId != work->field_476) {
         work->field_476 = cmd->animId;
@@ -277,7 +277,7 @@ s32 func_actor_310600_8016246C(Task* task, s32 arg1, Actor310600Cmd* cmd, s32 ar
 /// `field_477` to 2. Returns 1 for a mode outside 0..3.
 ///
 /// `work` and `w` are the same block on purpose. cse turns the second load of
-/// `task->idMap` into a copy of the first and keeps the copy's register for the
+/// `task->work` into a copy of the first and keeps the copy's register for the
 /// mode 0..2 walks, because the only later use of the first load's register is
 /// the `obj` assignment in the entry block -- so mode 3's walk reads the first
 /// load's register and the other three read the copy's, the split the target
@@ -293,9 +293,9 @@ s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
     s32              i;
     s32              ret;
 
-    work = (Actor310600Work*)task->idMap;
+    work = (Actor310600Work*)task->work;
     ext  = task->extra;
-    w    = (Actor310600Work*)task->idMap;
+    w    = (Actor310600Work*)task->work;
     obj  = &work->obj;
     ret  = 0;
     switch (arg2) {

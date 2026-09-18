@@ -7,7 +7,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Head of the work block this overlay hangs behind `Task::idMap`; only the
+/// Head of the work block this overlay hangs behind `Task::work`; only the
 /// slots its handlers touch are known. `field_0` is the animation state the
 /// message handler below selects, the same slot `Actor323000Work` names
 /// `field_0`; `field_4` is the live flag the dispatcher

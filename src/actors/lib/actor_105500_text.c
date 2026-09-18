@@ -1252,7 +1252,7 @@ void Actor05500_Fn02FFC(GpEnemy* ctx, Task* actor)
         Gp_DestroyEnemy(ctx, actor);
         return;
     }
-    actor->idMap    = (void*)work;
+    actor->work     = (void*)work;
     obj->field_C    = 0;
     coord->flg      = 0;
     obj->field_1C   = &work->field_1F4;

@@ -24,7 +24,7 @@ void ActorsShared8014da70(void* arg0, Task* task)
     s16                       count;
 
     parent                             = task->parent;
-    work                               = (ActorsShared80135a24Work*)parent->idMap;
+    work                               = (ActorsShared80135a24Work*)parent->work;
     ((TmdObject*)task->extra)->field_C = (u16)((TmdObject*)parent->extra)->field_C;
     if (work->field_6D8 > 0) {
         count           = (u16)work->field_6D8 - 1;

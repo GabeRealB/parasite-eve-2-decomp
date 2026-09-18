@@ -10,7 +10,7 @@
 /// translation followed by the X/Y/Z Euler angles.
 typedef ActorShared8013411cPlacement ActorShared80169f74Placement;
 
-/// Work block hanging off `Task::idMap`. Only the prefix this body reaches is
+/// Work block hanging off `Task::work`. Only the prefix this body reaches is
 /// described: `yaw` is the heading taken from the root coordinate's Z-axis
 /// after the placement rotations are applied.
 typedef struct ActorsShared80169f74Work {

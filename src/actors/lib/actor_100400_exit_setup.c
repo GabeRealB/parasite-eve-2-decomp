@@ -16,7 +16,7 @@ extern GpU16Pair Actor00400_D0FDC0;
 /// First kill-path state, entered the frame the marker task is spawned:
 /// `Actor00400_Fn02D48` walks it afterwards and `Actor00400_Fn0A28C` retires it.
 ///
-/// `task->idMap` is the 0x64-byte `Actor100400MarkerWork` block
+/// `task->work` is the 0x64-byte `Actor100400MarkerWork` block
 /// `Actor00400_SpawnMarker` allocated, and `task->extra` the `Actor100400Ctx`
 /// whose `field_8` is the coordinate the marker is drawn at. That coordinate is
 /// re-parented to `Gfx_ViewCoord` here, and the object is linked to it with its
@@ -42,7 +42,7 @@ void Actor00400_Fn0A190(Task* task)
     GsCOORDINATE2*         coord;
 
     coord               = ((Actor100400Ctx*)task->extra)->field_8;
-    work                = (Actor100400MarkerWork*)task->idMap;
+    work                = (Actor100400MarkerWork*)task->work;
     task->killCountdown = 0;
     work->field_60      = 0;
     coord->sub          = &Gfx_ViewCoord;

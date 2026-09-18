@@ -57,7 +57,7 @@ s32 func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3)
     s32        ret;
 
     obj   = (TmdObject*)task->extra;
-    other = (TmdObject*)((Actor135400MainWork*)task->idMap)->field_4B8->extra;
+    other = (TmdObject*)((Actor135400MainWork*)task->work)->field_4B8->extra;
     ret   = 0;
     switch (mode) {
         case 0:
@@ -91,7 +91,7 @@ s32 func_actor_135400_801328DC(Task* task, s32 msgId, Actor135400Msg7DB* msg, s3
     Actor135400MainWork* work;
     TmdObject*           model;
 
-    work = (Actor135400MainWork*)task->idMap;
+    work = (Actor135400MainWork*)task->work;
     switch (msg->field_2) {
         case 0:
             if (work->field_4BC != NULL) {
@@ -144,7 +144,7 @@ void func_actor_135400_801329B0(Task* task)
     s32              step;
     u16              count;
 
-    work = (Actor135400Work*)task->idMap;
+    work = (Actor135400Work*)task->work;
     ext  = task->extra;
     if (work->field_43C != 0) {
         for (i = 1; i < 0x13; i++) {
@@ -190,7 +190,7 @@ void func_actor_135400_80132B60(Task* arg0)
         Gp_EnemyTaskExit(arg0);
         return;
     }
-    arg0->idMap     = (TaskIdMap*)work;
+    arg0->work      = (TaskIdMap*)work;
     work->field_43D = -1;
     work->field_43E = -1;
     work->field_494 = -1;
@@ -210,7 +210,7 @@ void func_actor_135400_80132C90(Task* arg0)
 
 void func_actor_135400_80132CB0(Task* task)
 {
-    Actor135400Work* work = (Actor135400Work*)task->idMap;
+    Actor135400Work* work = (Actor135400Work*)task->work;
     TmdObject*       obj  = (TmdObject*)task->extra;
     GsF_LIGHT*       light;
     s32              i;
@@ -251,9 +251,9 @@ s32 func_actor_135400_80132EBC(Task* task, s32 anim, s32 arg2, s32 arg3)
             obj->field_C &= ~4;
             break;
         case 2:
-            obj->field_C                              |= 0x80;
-            ((Actor135400Work*)task->idMap)->field_494 = arg2;
-            obj->field_C                              |= 4;
+            obj->field_C                             |= 0x80;
+            ((Actor135400Work*)task->work)->field_494 = arg2;
+            obj->field_C                             |= 4;
             break;
         case 3:
             obj->field_C &= ~0x80;

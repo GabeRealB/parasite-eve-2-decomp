@@ -11,7 +11,7 @@ void ActorsShared8016331c(Task* task)
     s16                          i;
     ActorShared8016331cAnimWork* work;
 
-    work   = (ActorShared8016331cAnimWork*)task->idMap;
+    work   = (ActorShared8016331cAnimWork*)task->work;
     weight = work->field_83C;
     anim   = &work->anim;
     for (i = 1; i < 0x12; i++) {

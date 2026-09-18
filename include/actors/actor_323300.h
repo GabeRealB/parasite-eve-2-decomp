@@ -13,7 +13,7 @@
 #include "gameplay/D4.h"
 
 /// Work block allocated by `func_actor_323300_80161E78` (`Mem_Calloc(0x504)`)
-/// and parked in that task's `Task::idMap` slot -- that slot is not a
+/// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_323300_801626D0` republishes the two matrices
 /// onto `TmdObject::field_1C` / `field_20`, the light/colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
@@ -121,7 +121,7 @@ typedef struct {
     /* 0x16 */ s16      field_16;
 } GpMimeSrc;
 
-/// The larger of the two work blocks this overlay parks in `Task::idMap`: the
+/// The larger of the two work blocks this overlay parks in `Task::work`: the
 /// `Mem_Calloc(0x6B0)` that `func_actor_323300_80162BE4` allocates, as opposed
 /// to the 0x504 `Actor323300Work` `func_actor_323300_80161E78` allocates. The
 /// two are different allocations of different sizes, but both carry a

@@ -14,7 +14,7 @@ void ActorsShared8016513c(Task* arg0)
     MATRIX*                   dst;
     ActorsShared80168d3cWork* anim;
 
-    work               = (ActorsShared80168d3cWork*)arg0->idMap;
+    work               = (ActorsShared80168d3cWork*)arg0->work;
     coord              = ((TmdObject*)arg0->extra)->field_8;
     src                = &rot;
     src->ident.m00_m01 = 0x1000;
@@ -41,7 +41,7 @@ void ActorsShared8016513c(Task* arg0)
     if (coord->coord.t[1] > 0) {
         work->field_412   = 0;
         coord->coord.t[1] = 0;
-        anim              = (ActorsShared80168d3cWork*)arg0->idMap;
+        anim              = (ActorsShared80168d3cWork*)arg0->work;
         anim->field_41C   = 0x20;
         anim->field_418   = 0xC;
         anim->field_414   = 2;

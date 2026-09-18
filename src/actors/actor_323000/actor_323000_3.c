@@ -7,7 +7,7 @@ s32 func_actor_323000_80164A54(Task* task, s32 arg1, Actor323000Msg* msg, s32 ar
     Actor323000Work*     work;
     Actor323000MsgBytes* bytes;
 
-    work  = (Actor323000Work*)task->idMap;
+    work  = (Actor323000Work*)task->work;
     bytes = (Actor323000MsgBytes*)msg;
 
     work->field_91C = bytes->b0;

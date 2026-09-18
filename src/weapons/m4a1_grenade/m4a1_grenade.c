@@ -193,7 +193,7 @@ void func_m4a1_grenade_8011D654(Task* arg0)
         Task_Kill(arg0);
         return;
     }
-    arg0->idMap        = (TaskIdMap*)work;
+    arg0->work         = (TaskIdMap*)work;
     arg0->exitCallback = WeaponsShared8011de24;
     arg0->state++;
     Mem_Set(work, 0, sizeof(M4a1GrenadeWork));
@@ -278,7 +278,7 @@ void func_m4a1_grenade_8011D994(Task* arg0)
     s32                 sfxbase;
     s32                 sfxarg;
 
-    work  = (M4a1GrenadeWork*)arg0->idMap;
+    work  = (M4a1GrenadeWork*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->field_8;
     slot  = Gp_GetItemSlot(D_80073BA9 + 0x7F);
     head  = *(u8**)G_SCRATCH_HEAD;

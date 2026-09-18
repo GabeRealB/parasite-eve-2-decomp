@@ -16,7 +16,7 @@ s32 func_actor_303600_80162870(Task* task, s32 msgId, Actor303600Msg7DA* msg)
 {
     Actor303600RigWork* work;
 
-    work = (Actor303600RigWork*)task->idMap;
+    work = (Actor303600RigWork*)task->work;
     switch (msg->field_2) {
         case 0:
             work->field_28 = 0x01800000;
@@ -39,7 +39,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_303600/actor_303600_3", D_actor_303600
 INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600_3", func_actor_303600_801628E4);
 
 /// Builds the actor's light / colour matrix pair, hangs it off the task's
-/// `idMap` slot, and splices this task's model root under its spawn parent's.
+/// `work` slot, and splices this task's model root under its spawn parent's.
 void func_actor_303600_80162950(Task* task)
 {
     Task*                 parent      = task->spawnArg2;
@@ -55,9 +55,9 @@ void func_actor_303600_80162950(Task* task)
         return;
     }
 
-    task->idMap = (TaskIdMap*)mats;
-    coord->sub  = parentCoord;
-    coord->flg  = 0;
+    task->work = (TaskIdMap*)mats;
+    coord->sub = parentCoord;
+    coord->flg = 0;
     func_actor_303600_80162A0C(task);
     Task_Reparent(parent, task);
     obj->field_C &= 0xFF7F;
@@ -72,7 +72,7 @@ void func_actor_303600_80162A04(void)
 /// block and loads the overlay's three flat lights into them.
 void func_actor_303600_80162A0C(Task* task)
 {
-    Actor303600LightMats* mats = (Actor303600LightMats*)task->idMap;
+    Actor303600LightMats* mats = (Actor303600LightMats*)task->work;
     TmdObject*            obj  = task->extra;
     GsF_LIGHT*            light;
     s32                   i;

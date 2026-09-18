@@ -101,7 +101,7 @@ void func_actor_403200_80138284(Task* arg0)
     Actor403200Work* work;
     s32              phase;
 
-    work = (Actor403200Work*)arg0->idMap;
+    work = (Actor403200Work*)arg0->work;
     if (work == NULL) {
         return;
     }
@@ -211,17 +211,17 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
     s16              i;
     s16              j;
 
-    work = (Actor403200Work*)task->idMap;
+    work = (Actor403200Work*)task->work;
     switch (arg2) {
         case 0:
-            buffers = (Actor403200Work*)task->idMap;
+            buffers = (Actor403200Work*)task->work;
             Tmd_AllocBuffers((TmdObject*)task->extra);
             for (j = 0; j < 7; j++) {
                 if (buffers->field_ECC[j] != NULL) {
                     Tmd_AllocBuffers((TmdObject*)buffers->field_ECC[j]->task->extra);
                 }
             }
-            escorts                            = (Actor403200Work*)task->idMap;
+            escorts                            = (Actor403200Work*)task->work;
             escorts->field_7F3                 = 0;
             ((TmdObject*)task->extra)->field_C = 0x80;
             for (i = 0; i < 7; i++) {
@@ -232,7 +232,7 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
             work->field_0 = 0;
             break;
         case 1:
-            escorts                            = (Actor403200Work*)task->idMap;
+            escorts                            = (Actor403200Work*)task->work;
             escorts->field_7F3                 = 0;
             ((TmdObject*)task->extra)->field_C = 0;
             for (i = 0; i < 7; i++) {
@@ -240,7 +240,7 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
                     ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)task->extra)->field_C;
                 }
             }
-            rebuilt = (Actor403200Work*)task->idMap;
+            rebuilt = (Actor403200Work*)task->work;
             Tmd_AllocBuffers((TmdObject*)task->extra);
             for (j = 0; j < 7; j++) {
                 if (rebuilt->field_ECC[j] != NULL) {
@@ -261,7 +261,7 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
             break;
         case 3:
             i                                  = 0;
-            escorts                            = (Actor403200Work*)task->idMap;
+            escorts                            = (Actor403200Work*)task->work;
             escorts->field_7F3                 = 0;
             ((TmdObject*)task->extra)->field_C = 0x80;
             for (; i < 7; i++) {
@@ -333,7 +333,7 @@ void func_actor_403200_80139A60(Task* arg0)
 
     cfg   = &Player_Status;
     enemy = (GpEnemy*)arg0->spawnArg2;
-    work  = (Actor403200Work*)arg0->idMap;
+    work  = (Actor403200Work*)arg0->work;
     sc    = (Actor403200HitScratch*)(SCRATCH_SP -= sizeof(Actor403200HitScratch));
     pos   = &sc->pos;
     recs  = work->hits[0].recs;
@@ -501,7 +501,7 @@ void func_actor_403200_80139E94(Task* arg0)
 
     cfg  = &Player_Status;
     host = (GpEnemy*)arg0->spawnArg2;
-    work = (Actor403200Work*)arg0->idMap;
+    work = (Actor403200Work*)arg0->work;
     sc   = (Actor403200HitScratch*)(SCRATCH_SP -= sizeof(Actor403200HitScratch));
     pos  = &sc->pos;
     recs = work->hits[1].recs;
@@ -708,7 +708,7 @@ void func_actor_403200_8013A4A0(Task* arg0)
 
     cfg  = &Player_Status;
     host = (GpEnemy*)arg0->spawnArg2;
-    work = (Actor403200Work*)arg0->idMap;
+    work = (Actor403200Work*)arg0->work;
     sc   = (Actor403200HitScratch*)(SCRATCH_SP -= sizeof(Actor403200HitScratch));
     pos  = &sc->pos;
     recs = work->hits[3].recs;
@@ -897,11 +897,11 @@ void func_actor_403200_8013B23C(Task* arg0)
     s16              i;
     s16              j;
 
-    work = (Actor403200Work*)arg0->idMap;
+    work = (Actor403200Work*)arg0->work;
     tmd  = (TmdObject*)arg0->extra;
     if (work->field_4 != 0) {
         tmd->field_C                       = 0x80;
-        escorts                            = (Actor403200Work*)arg0->idMap;
+        escorts                            = (Actor403200Work*)arg0->work;
         i                                  = 0;
         escorts->field_7F3                 = 0;
         ((TmdObject*)arg0->extra)->field_C = (flag = 0x80);
@@ -916,7 +916,7 @@ void func_actor_403200_8013B23C(Task* arg0)
     }
     if (work->field_6 == 2) {
         tmd->field_C                       = 0x80;
-        escorts                            = (Actor403200Work*)arg0->idMap;
+        escorts                            = (Actor403200Work*)arg0->work;
         modelFlag                          = 0x80;
         i                                  = 0;
         escorts->field_7F3                 = 0;
@@ -927,7 +927,7 @@ void func_actor_403200_8013B23C(Task* arg0)
                     ((TmdObject*)arg0->extra)->field_C;
             }
         }
-        dying = (Actor403200Work*)arg0->idMap;
+        dying = (Actor403200Work*)arg0->work;
         Tmd_FreeBuffers((TmdObject*)arg0->extra);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -967,12 +967,12 @@ void func_actor_403200_8013B3C8(Task* arg0)
     s16                     ang;
 
     sc   = (Actor403200TurnScratch*)(SCRATCH_SP -= sizeof(Actor403200TurnScratch));
-    work = (Actor403200Work*)arg0->idMap;
+    work = (Actor403200Work*)arg0->work;
     if (work->field_4 != 0) {
         work->field_F1D                    = 2;
         work->field_7B3                    = 3;
         work->field_7B0                    = 2;
-        escorts                            = (Actor403200Work*)arg0->idMap;
+        escorts                            = (Actor403200Work*)arg0->work;
         escorts->field_7F3                 = 0;
         ((TmdObject*)arg0->extra)->field_C = 0;
         for (i = 0; i < 7; i++) {
@@ -981,7 +981,7 @@ void func_actor_403200_8013B3C8(Task* arg0)
                     ((TmdObject*)arg0->extra)->field_C;
             }
         }
-        dying = (Actor403200Work*)arg0->idMap;
+        dying = (Actor403200Work*)arg0->work;
         Tmd_AllocBuffers((TmdObject*)arg0->extra);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -1103,7 +1103,7 @@ void func_actor_403200_8013C84C(Task* arg0)
     s16              j;
     s16              yaw;
 
-    work  = (Actor403200Work*)arg0->idMap;
+    work  = (Actor403200Work*)arg0->work;
     enemy = arg0->spawnArg2;
     task  = Game_GetPtrSlot(3);
     cfg   = &Player_Status;
@@ -1116,7 +1116,7 @@ void func_actor_403200_8013C84C(Task* arg0)
         SndEvt_EnqueueType7((((u16)enemy->field_8 >> 12) << 8) | 0x4020000A, 1);
         work->field_7B3                    = 0xF;
         work->field_7B0                    = 2;
-        escorts                            = (Actor403200Work*)arg0->idMap;
+        escorts                            = (Actor403200Work*)arg0->work;
         escorts->field_7F3                 = 0;
         ((TmdObject*)arg0->extra)->field_C = 0;
         for (i = 0; i < 7; i++) {
@@ -1125,7 +1125,7 @@ void func_actor_403200_8013C84C(Task* arg0)
                     ((TmdObject*)arg0->extra)->field_C;
             }
         }
-        dying = (Actor403200Work*)arg0->idMap;
+        dying = (Actor403200Work*)arg0->work;
         Tmd_AllocBuffers((TmdObject*)arg0->extra);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -1188,10 +1188,10 @@ void func_actor_403200_8013C84C(Task* arg0)
         if (cfg->hp > 0) {
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 3), 0);
             if (cfg->hp <= 0) {
-                ((GameActor*)task->idMap)->field_956 = 0xA;
-                Game_Session->field_12D              = 0x1E;
-                Game_Session->field_12E              = 0x36;
-                Game_Session->field_12F              = 0x5A;
+                ((GameActor*)task->work)->field_956 = 0xA;
+                Game_Session->field_12D             = 0x1E;
+                Game_Session->field_12E             = 0x36;
+                Game_Session->field_12F             = 0x5A;
             }
         }
         if (((work->field_9A & 0x3FF) == 0x19) && (work->field_7A8 != (work->field_9A & 0x3FF))) {
@@ -1307,7 +1307,7 @@ void func_actor_403200_8013D028(Task* arg0)
     s32              cueId;
     s32              cuePan;
 
-    work        = (Actor403200Work*)arg0->idMap;
+    work        = (Actor403200Work*)arg0->work;
     enemy       = arg0->spawnArg2;
     task        = Game_GetPtrSlot(3);
     SCRATCH_SP -= 0x30;
@@ -1316,7 +1316,7 @@ void func_actor_403200_8013D028(Task* arg0)
         work->field_F1D                    = 0xB;
         work->field_7B3                    = 4;
         work->field_7B0                    = 2;
-        escorts                            = (Actor403200Work*)arg0->idMap;
+        escorts                            = (Actor403200Work*)arg0->work;
         escorts->field_7F3                 = 0;
         ((TmdObject*)arg0->extra)->field_C = 0;
         for (i = 0; i < 7; i++) {
@@ -1325,7 +1325,7 @@ void func_actor_403200_8013D028(Task* arg0)
                     ((TmdObject*)arg0->extra)->field_C;
             }
         }
-        dying = (Actor403200Work*)arg0->idMap;
+        dying = (Actor403200Work*)arg0->work;
         Tmd_AllocBuffers((TmdObject*)arg0->extra);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -1453,7 +1453,7 @@ scanned:
         reply           = Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 4), 0);
         work->field_ECA = reply;
         if (reply == 1) {
-            ((GameActor*)task->idMap)->field_956 = 0xA;
+            ((GameActor*)task->work)->field_956 = 0xA;
         }
         work->field_EB0.field_0 = D_actor_403200_8015E6AC;
         work->field_EC8         = 1;
@@ -1507,11 +1507,11 @@ void func_actor_403200_8013D78C(Task* arg0)
     s16              j;
     s16              frame;
 
-    work = (Actor403200Work*)arg0->idMap;
+    work = (Actor403200Work*)arg0->work;
     if (work->field_4 != 0) {
         work->field_7B3                    = 1;
         work->field_7B0                    = 2;
-        escorts                            = (Actor403200Work*)arg0->idMap;
+        escorts                            = (Actor403200Work*)arg0->work;
         escorts->field_7F3                 = 0;
         ((TmdObject*)arg0->extra)->field_C = 0;
         for (i = 0; i < 7; i++) {
@@ -1520,7 +1520,7 @@ void func_actor_403200_8013D78C(Task* arg0)
                     ((TmdObject*)arg0->extra)->field_C;
             }
         }
-        dying = (Actor403200Work*)arg0->idMap;
+        dying = (Actor403200Work*)arg0->work;
         Tmd_AllocBuffers((TmdObject*)arg0->extra);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -1581,13 +1581,13 @@ void func_actor_403200_8013D9EC(Task* arg0)
     s32              sfx;
     s32              pan;
 
-    work  = (Actor403200Work*)arg0->idMap;
+    work  = (Actor403200Work*)arg0->work;
     enemy = arg0->spawnArg2;
     if (work->field_4 != 0) {
         work->field_F1D                    = 6;
         work->field_7B3                    = 6;
         work->field_7B0                    = 2;
-        escorts                            = (Actor403200Work*)arg0->idMap;
+        escorts                            = (Actor403200Work*)arg0->work;
         escorts->field_7F3                 = 0;
         ((TmdObject*)arg0->extra)->field_C = 0;
         for (i = 0; i < 7; i++) {
@@ -1596,7 +1596,7 @@ void func_actor_403200_8013D9EC(Task* arg0)
                     ((TmdObject*)arg0->extra)->field_C;
             }
         }
-        dying = (Actor403200Work*)arg0->idMap;
+        dying = (Actor403200Work*)arg0->work;
         Tmd_AllocBuffers((TmdObject*)arg0->extra);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -1675,13 +1675,13 @@ void func_actor_403200_8013DC3C(Task* arg0)
     s32              hitId;
     s32              hitPan;
 
-    work  = (Actor403200Work*)arg0->idMap;
+    work  = (Actor403200Work*)arg0->work;
     enemy = arg0->spawnArg2;
     if (work->field_4 != 0) {
         work->field_F1D                    = 7;
         work->field_7B3                    = 0xB;
         work->field_7B0                    = 2;
-        escorts                            = (Actor403200Work*)arg0->idMap;
+        escorts                            = (Actor403200Work*)arg0->work;
         escorts->field_7F3                 = 0;
         ((TmdObject*)arg0->extra)->field_C = 0;
         for (i = 0; i < 7; i++) {
@@ -1690,7 +1690,7 @@ void func_actor_403200_8013DC3C(Task* arg0)
                     ((TmdObject*)arg0->extra)->field_C;
             }
         }
-        dying = (Actor403200Work*)arg0->idMap;
+        dying = (Actor403200Work*)arg0->work;
         Tmd_AllocBuffers((TmdObject*)arg0->extra);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -1812,11 +1812,11 @@ void func_actor_403200_8013E5A8(Task* arg0)
     s32              state;
     s32              frame;
 
-    work  = (Actor403200Work*)arg0->idMap;
+    work  = (Actor403200Work*)arg0->work;
     enemy = arg0->spawnArg2;
     if (work->field_4 != 0) {
         obj                                = arg0->spawnArg2;
-        escorts                            = (Actor403200Work*)arg0->idMap;
+        escorts                            = (Actor403200Work*)arg0->work;
         work->field_7F3                    = 0;
         ((TmdObject*)arg0->extra)->field_C = 0;
         for (i = 0; i < 7; i++) {
@@ -1825,7 +1825,7 @@ void func_actor_403200_8013E5A8(Task* arg0)
                     ((TmdObject*)arg0->extra)->field_C;
             }
         }
-        dying = (Actor403200Work*)arg0->idMap;
+        dying = (Actor403200Work*)arg0->work;
         Tmd_AllocBuffers((TmdObject*)arg0->extra);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -1919,7 +1919,7 @@ void func_actor_403200_8013E9C0(Task* arg0)
     s32              id;
     s32              pan;
 
-    work = (Actor403200Work*)arg0->idMap;
+    work = (Actor403200Work*)arg0->work;
     if (work->field_4 != 0) {
         obj             = arg0->spawnArg2;
         state           = work->field_7B3;
@@ -1993,7 +1993,7 @@ void func_actor_403200_8013EB64(Task* arg0)
     SVECTOR*                    view;
     s16                         angle;
 
-    work   = (Actor403200Work*)arg0->idMap;
+    work   = (Actor403200Work*)arg0->work;
     enemy  = arg0->spawnArg2;
     player = Game_GetPtrSlot(3);
 
@@ -2141,7 +2141,7 @@ void func_actor_403200_80140E6C(Task* arg0)
 
     sp     = D_actor_403200_801321B8;
     player = Game_GetPtrSlot(3);
-    work   = (Actor403200Work*)arg0->idMap;
+    work   = (Actor403200Work*)arg0->work;
     enemy  = arg0->spawnArg2;
     if (work != NULL) {
         if (work->field_EE8 != NULL && work->field_EE8->field_40 <= 0) {

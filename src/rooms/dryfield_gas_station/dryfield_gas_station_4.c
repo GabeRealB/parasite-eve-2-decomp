@@ -117,7 +117,7 @@ L_case5:
 INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_4", func_dryfield_gas_station_801801E4);
 
 /// Runs the gas station's shaft sequence. State 0 parks the 4-byte child slot
-/// in `Task::idMap`, spawns the `D_dryfield_gas_station_80181E7C` entry 1
+/// in `Task::work`, spawns the `D_dryfield_gas_station_80181E7C` entry 1
 /// loader through `Display_SpawnWithOt` and turns the view tasks on; states 1
 /// and 2 only step, so state 3 spawns the cutscene task from
 /// `D_dryfield_gas_station_8018312C` entry 0 into that slot, and state 4 kills
@@ -130,7 +130,7 @@ void func_dryfield_gas_station_801802C0(Task* task)
     void*            child;
     s32              killed;
 
-    slot = (DgsCutsceneSlot*)task->idMap;
+    slot = (DgsCutsceneSlot*)task->work;
     switch (task->state) {
         case 0:
             goto L_case0;
@@ -146,8 +146,8 @@ void func_dryfield_gas_station_801802C0(Task* task)
     return;
 
 L_case0:
-    child       = Mem_Malloc(4, false);
-    task->idMap = (TaskIdMap*)child;
+    child      = Mem_Malloc(4, false);
+    task->work = (TaskIdMap*)child;
     if (child == NULL) {
         Task_Kill(task);
         return;
@@ -181,13 +181,13 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_4", fu
 /// Spawns the gas station's cutscene owner. State 0 refuses to run twice (a
 /// `D_80114C12` of 1 and a live `D_80071075` both mean the cutscene is already
 /// up), otherwise it parks the freshly zeroed 0x10-byte `DgsWork` block in
-/// `Task::idMap`, fills `owner` from pointer slot 3 and republishes this task as
+/// `Task::work`, fills `owner` from pointer slot 3 and republishes this task as
 /// `RoomsShared80180b2cTask` so the room's script helpers can reach that block.
 /// Two kills: a failed `Mem_Malloc` kills the task outright, and state 1 kills
 /// it once the session has torn down (`Game_Session->field_1`). Between the two
 /// it hands slot 3 the `D_dryfield_gas_station_80182E30` script record as msg
 /// 0x3F4 -- only when a previous state 0 already found an owner, since the
-/// reloaded `idMap` is dereferenced unconditionally.
+/// reloaded `work` is dereferenced unconditionally.
 void func_dryfield_gas_station_801807E0(Task* task)
 {
     DgsWork* work;
@@ -197,8 +197,8 @@ void func_dryfield_gas_station_801807E0(Task* task)
     switch (task->state) {
         case 0:
             if ((D_80114C12 != 1) && (D_80071075 == 0)) {
-                work        = Mem_Malloc(0x10, false);
-                task->idMap = (TaskIdMap*)work;
+                work       = Mem_Malloc(0x10, false);
+                task->work = (TaskIdMap*)work;
                 if (work == NULL) {
                     Task_Kill(task);
                 } else {
@@ -206,7 +206,7 @@ void func_dryfield_gas_station_801807E0(Task* task)
                     work->owner             = Game_GetPtrSlot(3);
                     RoomsShared80180b2cTask = task;
                 }
-                work2 = (DgsWork*)task->idMap;
+                work2 = (DgsWork*)task->work;
                 if (work2->owner != 0) {
                     script.field_0  = (s32)&D_dryfield_gas_station_80182E30;
                     script.field_4  = 0;
@@ -237,7 +237,7 @@ void func_dryfield_gas_station_801807E0(Task* task)
 /// before the branch and stored in the `jal` delay slot.
 void func_dryfield_gas_station_80180944(void)
 {
-    DgsWork* work = (DgsWork*)RoomsShared80180b2cTask->idMap;
+    DgsWork* work = (DgsWork*)RoomsShared80180b2cTask->work;
     if (work->playerEffActive == 0) {
         work->playerEffActive = 1;
         Gp_KillPlayerEffs();
@@ -260,14 +260,14 @@ void func_dryfield_gas_station_80180A60(void)
     GpRec14  script;
 
     task = RoomsShared80180b2cTask;
-    work = (DgsWork*)task->idMap;
+    work = (DgsWork*)task->work;
     if (work->playerEffActive != 0) {
         Gp_SpawnWeaponEff();
         work->playerEffActive = 0;
         Gp_MsgPlayerWeapon(0);
     }
     Gp_DispatchMsg((Task*)work->owner, 0x3E9, (s32)&D_dryfield_gas_station_80182E74, 0);
-    work2 = (DgsWork*)task->idMap;
+    work2 = (DgsWork*)task->work;
     if (work2->owner != 0) {
         script.field_0  = (s32)&D_dryfield_gas_station_80182E30;
         script.field_4  = 0;

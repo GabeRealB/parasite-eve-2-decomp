@@ -106,7 +106,7 @@ void func_actor_213000_8014A5D0(Task* task)
     s32              i;
 
     extra  = (TmdObject*)task->extra;
-    work   = (Actor213000Work*)task->idMap;
+    work   = (Actor213000Work*)task->work;
     coords = &extra->field_8[1];
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
@@ -135,7 +135,7 @@ void func_actor_213000_8014A6AC(Task* task)
     GsCOORDINATE2*   coords;
     TmdObject*       extra;
 
-    work            = (Actor213000Work*)task->idMap;
+    work            = (Actor213000Work*)task->work;
     extra           = (TmdObject*)task->extra;
     coords          = extra->field_8;
     extra->field_1C = &work->light;
@@ -165,7 +165,7 @@ s32 func_actor_213000_8014A70C(Task* task, s32 arg1, Actor213000AnimPreset* msg)
     TmdObject*       ext;
     s32              i;
 
-    work = (Actor213000Work*)task->idMap;
+    work = (Actor213000Work*)task->work;
     ext  = task->extra;
     if (msg->field_0 != work->field_476) {
         work->field_476 = msg->field_0;

@@ -19,7 +19,7 @@ void ActorsShared8014ae08(Task* arg0)
     u8               flags;
 
     enemy = (GpEnemy*)arg0->spawnArg2;
-    work  = arg0->idMap;
+    work  = arg0->work;
     flags = enemy->field_4C;
     if (flags != 0) {
         if (flags & 1) {

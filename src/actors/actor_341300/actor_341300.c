@@ -76,7 +76,7 @@ void func_actor_341300_80161E84(void)
 }
 
 /// Per-frame task that turns the player (`Game_GetPtrSlot(3)`, whose
-/// `Task::idMap` is the `GameActor` block) to face the object the area work
+/// `Task::work` is the `GameActor` block) to face the object the area work
 /// id resolves to, then kills itself once it is close enough.
 ///
 /// The aim angle is `ratan2` of the target's x/z pair minus the player's own
@@ -102,7 +102,7 @@ void func_actor_341300_80162278(Task* task)
     s32            wrapped;
 
     player = Game_GetPtrSlot(3);
-    actor  = (GameActor*)player->idMap;
+    actor  = (GameActor*)player->work;
     work   = Gp_FindWorkById(Game_Session->field_6 | (Game_Session->field_7 << 8));
     if ((work != NULL) && (Game_Session->field_1 != 0)) {
         self      = ((TmdObject*)player->extra)->field_8;

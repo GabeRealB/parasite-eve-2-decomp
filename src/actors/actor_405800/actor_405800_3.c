@@ -54,7 +54,7 @@ extern const TaskFuncTable3 D_actor_405800_80131F04;
 /// prologue block-copies it onto the stack.
 void func_actor_405800_80137C04(Task* task)
 {
-    Actor405800Work* work      = (Actor405800Work*)task->idMap;
+    Actor405800Work* work      = (Actor405800Work*)task->work;
     TaskFunc         states[3] = { func_actor_405800_80139358, func_actor_405800_801393E8,
                                    func_actor_405800_801394E4 };
 
@@ -64,7 +64,7 @@ void func_actor_405800_80137C04(Task* task)
 
 void func_actor_405800_80137C78(Task* task)
 {
-    Actor405800Work* work      = (Actor405800Work*)task->idMap;
+    Actor405800Work* work      = (Actor405800Work*)task->work;
     TaskFunc         states[2] = { func_actor_405800_80139550, func_actor_405800_80133DB0 };
 
     if ((s16)func_actor_405800_80136CE0(task) == 0) {
@@ -74,7 +74,7 @@ void func_actor_405800_80137C78(Task* task)
 
 void func_actor_405800_80137CEC(Task* task)
 {
-    Actor405800Work* work      = (Actor405800Work*)task->idMap;
+    Actor405800Work* work      = (Actor405800Work*)task->work;
     TaskFunc         states[2] = { func_actor_405800_801395E8, func_actor_405800_80133F48 };
 
     if ((s16)func_actor_405800_80136CE0(task) == 0) {
@@ -86,7 +86,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800_3", D_actor_405800
 
 void func_actor_405800_80137D60(Task* task)
 {
-    Actor405800Work* work   = (Actor405800Work*)task->idMap;
+    Actor405800Work* work   = (Actor405800Work*)task->work;
     TaskFuncTable5   states = D_actor_405800_80131EB8;
 
     func_actor_405800_80137948(task);
@@ -97,7 +97,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800_3", D_actor_405800
 
 void func_actor_405800_80137DE4(Task* task)
 {
-    Actor405800Work* work   = (Actor405800Work*)task->idMap;
+    Actor405800Work* work   = (Actor405800Work*)task->work;
     TaskFuncTable4   states = D_actor_405800_80131ECC;
 
     func_actor_405800_80137948(task);
@@ -110,13 +110,13 @@ void func_actor_405800_80137E64(Task* task)
     Actor405800Work* work2;
     s16              count;
 
-    work = (Actor405800Work*)task->idMap;
+    work = (Actor405800Work*)task->work;
     func_actor_405800_80137948(task);
     if ((s16)func_actor_405800_80136A1C(task) == 0) {
         count           = work->field_87C - 1;
         work->field_87C = count;
         if (count == 0) {
-            work2            = (Actor405800Work*)task->idMap;
+            work2            = (Actor405800Work*)task->work;
             work2->field_846 = 0xB;
             work2->field_848 = 0;
             return;
@@ -128,7 +128,7 @@ void func_actor_405800_80137E64(Task* task)
 
 void func_actor_405800_80137EF0(Task* task)
 {
-    Actor405800Work* work      = (Actor405800Work*)task->idMap;
+    Actor405800Work* work      = (Actor405800Work*)task->work;
     TaskFunc         states[2] = { func_actor_405800_80139844, func_actor_405800_80134C00 };
 
     func_actor_405800_80137948(task);
@@ -139,7 +139,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800_3", D_actor_405800
 
 void func_actor_405800_80137F58(Task* task)
 {
-    Actor405800Work* work   = (Actor405800Work*)task->idMap;
+    Actor405800Work* work   = (Actor405800Work*)task->work;
     TaskFuncTable3   states = D_actor_405800_80131EDC;
 
     func_actor_405800_80137948(task);
@@ -150,7 +150,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800_3", D_actor_405800
 
 void func_actor_405800_80137FCC(Task* task)
 {
-    Actor405800Work* work   = (Actor405800Work*)task->idMap;
+    Actor405800Work* work   = (Actor405800Work*)task->work;
     TaskFuncTable3   states = D_actor_405800_80131EE8;
 
     func_actor_405800_80137948(task);
@@ -161,7 +161,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800_3", D_actor_405800
 
 void func_actor_405800_80138040(Task* task)
 {
-    Actor405800Work* work   = (Actor405800Work*)task->idMap;
+    Actor405800Work* work   = (Actor405800Work*)task->work;
     TaskFuncTable4   states = D_actor_405800_80131EF4;
 
     func_actor_405800_80137948(task);
@@ -172,7 +172,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800_3", D_actor_405800
 
 void func_actor_405800_801380C0(Task* task)
 {
-    Actor405800Work* work   = (Actor405800Work*)task->idMap;
+    Actor405800Work* work   = (Actor405800Work*)task->work;
     TaskFuncTable3   states = D_actor_405800_80131F04;
 
     func_actor_405800_80137948(task);
@@ -183,7 +183,7 @@ void func_actor_405800_801380C0(Task* task)
 
 void func_actor_405800_80138154(Task* task)
 {
-    Actor405800Work* work      = (Actor405800Work*)task->idMap;
+    Actor405800Work* work      = (Actor405800Work*)task->work;
     TaskFunc         states[2] = { func_actor_405800_80139E2C, func_actor_405800_80139E48 };
 
     func_actor_405800_80137948(task);
@@ -192,7 +192,7 @@ void func_actor_405800_80138154(Task* task)
 
 void func_actor_405800_801381BC(Task* task)
 {
-    Actor405800Work* work      = (Actor405800Work*)task->idMap;
+    Actor405800Work* work      = (Actor405800Work*)task->work;
     TaskFunc         states[2] = { func_actor_405800_80139EAC, func_actor_405800_801356A8 };
 
     func_actor_405800_80137948(task);
@@ -204,7 +204,7 @@ void func_actor_405800_80138224(Task* task)
     Actor405800Work* work;
     s32              i;
 
-    work = (Actor405800Work*)task->idMap;
+    work = (Actor405800Work*)task->work;
     i    = 1;
     do {
         work->slots[i].field_9 = work->field_850;
@@ -223,7 +223,7 @@ void func_actor_405800_80138294(Task* arg0)
     Actor405800Work* work;
     s32              i;
 
-    work = (Actor405800Work*)arg0->idMap;
+    work = (Actor405800Work*)arg0->work;
     if (work->field_870 == work->field_872) {
         i = 1;
         do {
@@ -245,7 +245,7 @@ void func_actor_405800_80138294(Task* arg0)
 
 s16 func_actor_405800_8013836C(Task* arg0, s16 arg1)
 {
-    Actor405800Work* work = (Actor405800Work*)arg0->idMap;
+    Actor405800Work* work = (Actor405800Work*)arg0->work;
 
     if (work->field_850 == 0) {
         return 0;

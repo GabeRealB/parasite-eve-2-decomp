@@ -17,7 +17,7 @@ void func_actor_342400_8016A9AC(Task* arg0)
 {
     Actor342400Work* work;
 
-    work            = (Actor342400Work*)arg0->idMap;
+    work            = (Actor342400Work*)arg0->work;
     arg0->state     = 5;
     work->field_420 = 0;
     work->field_422 = 0;
@@ -39,11 +39,11 @@ void func_actor_342400_8016AA08(Task* arg0)
     func_actor_342400_801637DC(arg0);
     Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
     enemy->field_54 = 0;
-    work            = (Actor342400Work*)arg0->idMap;
+    work            = (Actor342400Work*)arg0->work;
     Gp_UnlinkObj(&work->obj_2AC);
     Gp_UnlinkObj(&work->obj_2CC);
     Gp_UnlinkObj(&work->obj_3AC);
-    work2            = (Actor342400Work*)arg0->idMap;
+    work2            = (Actor342400Work*)arg0->work;
     arg0->state      = 5;
     work2->field_420 = 0;
     work2->field_422 = 0;
@@ -53,7 +53,7 @@ void func_actor_342400_8016AA9C(Task* arg0)
 {
     Actor342400Work* work;
 
-    work            = (Actor342400Work*)arg0->idMap;
+    work            = (Actor342400Work*)arg0->work;
     work->field_412 = 0;
     work->field_420 = work->field_420 + 1;
 }
@@ -67,17 +67,17 @@ void func_actor_342400_8016AB6C(Task* arg0)
     s32              soundId;
     s32              pan;
 
-    work            = (Actor342400Work*)arg0->idMap;
+    work            = (Actor342400Work*)arg0->work;
     work->field_44F = D_actor_342400_80173A84[work->field_418 - 1];
     if (work->field_44F == 1) {
-        work2            = (Actor342400Work*)arg0->idMap;
+        work2            = (Actor342400Work*)arg0->work;
         work2->field_426 = 8;
         work2->field_41C = 0x10;
         work2->field_418 = 0xB;
         work2->field_414 = 1;
         SndEvt_EnqueueType7(0x402C0002, 1);
     } else {
-        work2            = (Actor342400Work*)arg0->idMap;
+        work2            = (Actor342400Work*)arg0->work;
         work2->field_426 = 8;
         work2->field_41C = 0x10;
         work2->field_418 = 0x11;
@@ -96,17 +96,17 @@ void func_actor_342400_8016AC80(Task* arg0)
     s32              soundId;
     s32              pan;
 
-    work            = (Actor342400Work*)arg0->idMap;
+    work            = (Actor342400Work*)arg0->work;
     work->field_44F = D_actor_342400_80173A84[work->field_418 - 1];
     if (work->field_44F == 1) {
-        work2            = (Actor342400Work*)arg0->idMap;
+        work2            = (Actor342400Work*)arg0->work;
         work2->field_426 = 2;
         work2->field_41C = 0x10;
         work2->field_418 = 0xC;
         work2->field_414 = 1;
         SndEvt_EnqueueType7(0x402C0002, 1);
     } else {
-        work2            = (Actor342400Work*)arg0->idMap;
+        work2            = (Actor342400Work*)arg0->work;
         work2->field_426 = 8;
         work2->field_41C = 0x10;
         work2->field_418 = 0x11;
@@ -123,7 +123,7 @@ void func_actor_342400_8016AD94(Task* arg0)
     Actor342400Work* work;
     s32              cond;
 
-    work = (Actor342400Work*)arg0->idMap;
+    work = (Actor342400Work*)arg0->work;
     if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
         cond = 1;
     } else {
@@ -131,12 +131,12 @@ void func_actor_342400_8016AD94(Task* arg0)
     }
     if (cond) {
         if (work->field_44F == 1) {
-            work            = (Actor342400Work*)arg0->idMap;
+            work            = (Actor342400Work*)arg0->work;
             work->field_420 = 3;
             work->field_422 = 0;
         } else {
             func_actor_342400_801694A8(arg0, 1);
-            work            = (Actor342400Work*)arg0->idMap;
+            work            = (Actor342400Work*)arg0->work;
             work->field_420 = 5;
             work->field_422 = 0;
         }
@@ -150,7 +150,7 @@ void func_actor_342400_8016AE24(Task* arg0)
     Actor342400Work* work;
     TaskFuncTable3   sp;
 
-    work = (Actor342400Work*)arg0->idMap;
+    work = (Actor342400Work*)arg0->work;
     sp   = D_actor_342400_80161FB4;
     if ((ActorsShared8016945c(arg0) << 0x10) == 0) {
         sp.funcs[(s16)work->field_422](arg0);
@@ -164,7 +164,7 @@ void func_actor_342400_8016AEAC(Task* arg0)
     Actor342400Work* work;
     TaskFuncTable3   sp;
 
-    work = (Actor342400Work*)arg0->idMap;
+    work = (Actor342400Work*)arg0->work;
     sp   = D_actor_342400_80161FC0;
     if ((ActorsShared8016945c(arg0) << 0x10) == 0) {
         sp.funcs[(s16)work->field_422](arg0);
@@ -173,7 +173,7 @@ void func_actor_342400_8016AEAC(Task* arg0)
 
 void func_actor_342400_8016AF34(Task* arg0)
 {
-    Actor342400Work* work                = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* work                = (Actor342400Work*)arg0->work;
     void             (*states[2])(Task*) = {
         func_actor_342400_8016B33C,
         ActorsShared8016b370,
@@ -191,7 +191,7 @@ void func_actor_342400_8016AFA8(Task* arg0)
     Actor342400Work* work;
     TaskFuncTable3   sp;
 
-    work = (Actor342400Work*)arg0->idMap;
+    work = (Actor342400Work*)arg0->work;
     sp   = D_actor_342400_80161FCC;
     if ((ActorsShared8016945c(arg0) << 0x10) != 0) {
         work->field_438 = 0;

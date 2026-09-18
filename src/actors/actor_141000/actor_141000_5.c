@@ -31,9 +31,9 @@ s32 func_actor_141000_80133E8C(Task* task, s32 arg1, s32 mode)
             obj->field_C &= ~4;
             break;
         case 2:
-            obj->field_C                              |= 0x80;
-            ((Actor141000Work*)task->idMap)->field_4C9 = mode;
-            obj->field_C                              |= 4;
+            obj->field_C                             |= 0x80;
+            ((Actor141000Work*)task->work)->field_4C9 = mode;
+            obj->field_C                             |= 4;
             break;
         case 3:
             obj->field_C &= ~0x80;
@@ -50,7 +50,7 @@ s32 func_actor_141000_80133F6C(Task* task, s32 arg1, Actor141000Msg* msg)
 {
     Actor141000Work* work;
 
-    work = (Actor141000Work*)task->idMap;
+    work = (Actor141000Work*)task->work;
     switch (msg->field_2) {
         case 1:
             work->field_4C8 = 0;
@@ -95,13 +95,13 @@ s32 func_actor_141000_80133FA8(Task* task, s32 arg1, s32 mode)
             rect.h = 0x14;
             break;
         case 3:
-            img                                        = &D_actor_141000_8013D72C;
-            rect.y                                     = 0x40;
-            rect.w                                     = 0x19;
-            rect.x                                     = 0;
-            rect.h                                     = 0x14;
-            ((Actor141000Work*)task->idMap)->field_4CA = 1;
-            ((Actor141000Work*)task->idMap)->field_4C4 = 1;
+            img                                       = &D_actor_141000_8013D72C;
+            rect.y                                    = 0x40;
+            rect.w                                    = 0x19;
+            rect.x                                    = 0;
+            rect.h                                    = 0x14;
+            ((Actor141000Work*)task->work)->field_4CA = 1;
+            ((Actor141000Work*)task->work)->field_4C4 = 1;
             break;
         case 4:
             img = &D_actor_141000_8013D72C;

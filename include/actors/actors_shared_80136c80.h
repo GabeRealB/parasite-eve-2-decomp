@@ -8,7 +8,7 @@
 #include "gameplay/3A34.h"
 #include "main/task.h"
 
-/// Movement work the tick reaches through `Task::idMap`. This is the head of the
+/// Movement work the tick reaches through `Task::work`. This is the head of the
 /// block each carrier's own work type overlays (`Actor107000Work` from 0x214
 /// on, `Actor207000Work` from its own), so the two are views of one block, not
 /// one layout.
@@ -34,7 +34,7 @@ STATIC_ASSERT_SIZEOF(ActorsShared80136c80Work, 0x58);
 extern u8 D_801153F4;
 
 /// Per-frame tick of the specimen's movement cycle; carried by `actor_107000`
-/// and `actor_207000`, which both reach the work through `Task::idMap`.
+/// and `actor_207000`, which both reach the work through `Task::work`.
 void ActorsShared80136c80(Task* arg0);
 
 #endif

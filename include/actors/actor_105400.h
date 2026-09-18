@@ -29,7 +29,7 @@ typedef struct Actor05400SndRow {
 STATIC_ASSERT_SIZEOF(Actor05400SndRow, 4);
 
 /// The 0x340-byte block the state-0 setup allocates and stores at
-/// `Task::idMap` (the same slot `Actor05400::field_1C` names). Its 0x14 prefix
+/// `Task::work` (the same slot `Actor05400::field_1C` names). Its 0x14 prefix
 /// is the `GpAnimCtx` handed to `func_800B3F84`; `slots`/`poses` are that
 /// call's last two arguments. The two `MATRIX`es at 0x244 / 0x264 are the
 /// model's colour and light matrices (`TmdObject::field_20` / `field_1C`),

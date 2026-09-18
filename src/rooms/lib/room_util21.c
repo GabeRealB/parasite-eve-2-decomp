@@ -4,7 +4,7 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-/// Work block parked at `Task::idMap` by the factory rooms that link this
+/// Work block parked at `Task::work` by the factory rooms that link this
 /// body. `promptKind` is the display mode forwarded to `func_800D4E78`.
 typedef struct RoomUtil21Work {
     /* 0x00 */ byte pad_0[0xE];
@@ -19,7 +19,7 @@ typedef struct RoomUtil21Work {
 void Room_Util21(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
-    RoomUtil21Work*   work   = (RoomUtil21Work*)task->idMap;
+    RoomUtil21Work*   work   = (RoomUtil21Work*)task->work;
 
     prompt->mode     = 0;
     prompt->targetId = 0;

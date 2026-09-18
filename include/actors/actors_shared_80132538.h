@@ -11,7 +11,7 @@
 /// the slots behind it and the pair of animation ids.
 ///
 /// This is the same walk `ActorsShared80132514` does, but reached through the
-/// published global instead of through `Task::idMap`, which is what makes it a
+/// published global instead of through `Task::work`, which is what makes it a
 /// second body rather than a second carrier of that one.
 typedef struct ActorsShared80132538Work {
     /* 0x000 */ byte       pad_0[0x40];

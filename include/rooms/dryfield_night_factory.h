@@ -8,7 +8,7 @@
 #include "rooms/room_common.h"
 
 /// Cutscene work block the room's factory task allocates as 0xC zeroed bytes in
-/// its state 0 and parks at `Task::idMap` (0x1C) -- that slot is *not* a
+/// its state 0 and parks at `Task::work` (0x1C) -- that slot is *not* a
 /// `TaskIdMap` here.
 ///
 /// `state` selects the handler out of `D_dryfield_night_factory_8017D5DC`,
@@ -58,7 +58,7 @@ STATIC_ASSERT_SIZEOF(NightFactoryCutsceneTable3, 0xC);
 extern const NightFactoryCutsceneTable3 D_dryfield_night_factory_8017D5DC;
 
 /// Work block the room's factory task allocates as 0x58 zeroed bytes in its
-/// state 0 and parks at `Task::idMap`. It is the same block the shared
+/// state 0 and parks at `Task::work`. It is the same block the shared
 /// `Room_Util20` body (src/rooms/lib/room_util20.c) reads its model light and
 /// color matrices out of at 0x18 / 0x38, so the tail is left unreferenced here.
 ///
@@ -92,9 +92,9 @@ typedef struct NightFactoryWork {
 STATIC_ASSERT_SIZEOF(NightFactoryWork, 0x58);
 
 /// Work block `func_dryfield_night_factory_8018182C` allocates (Mem_Calloc(0x10))
-/// and hangs off the `Task::idMap` slot (0x1C) -- that slot is *not* a
+/// and hangs off the `Task::work` slot (0x1C) -- that slot is *not* a
 /// `TaskIdMap` here, it is the block the task's init state allocated. Reach it
-/// with `(NightFactoryScriptWork*)task->idMap`.
+/// with `(NightFactoryScriptWork*)task->work`.
 ///
 /// `field_C` is the cap step `func_dryfield_night_factory_80180DE8` switches on
 /// (0..4) to pick the sound, the game flag and the cap slot for the step, and

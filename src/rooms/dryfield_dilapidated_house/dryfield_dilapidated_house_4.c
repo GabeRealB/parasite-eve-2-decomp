@@ -63,7 +63,7 @@ void func_dryfield_dilapidated_house_80181028(Task* task)
     MATRIX*        mtx;
 
     coord                = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
-    work                 = (DdhCoordWork*)task->idMap;
+    work                 = (DdhCoordWork*)task->work;
     node                 = (GsCOORDINATE2*)((TmdObject*)((Task*)task->spawnArg2)->extra)->field_8;
     mtx                  = &work->mtx;
     *(s32*)&work->mtx    = ONE;
@@ -112,7 +112,7 @@ void func_dryfield_dilapidated_house_8018118C(Task* arg0)
         Task_Kill(arg0);
         return;
     }
-    arg0->idMap    = (TaskIdMap*)work;
+    arg0->work     = (TaskIdMap*)work;
     work->field_20 = 0x1000;
     work->mtx      = coord->coord;
     obj->field_C  |= 0x80;
@@ -150,8 +150,8 @@ void func_dryfield_dilapidated_house_80181340(Task* arg0)
         Task_Kill(arg0);
         return;
     }
-    arg0->idMap = work;
-    coord->sub  = (GsCOORDINATE2*)((TmdObject*)((Task*)arg0->spawnArg2)->extra)->field_8;
+    arg0->work = work;
+    coord->sub = (GsCOORDINATE2*)((TmdObject*)((Task*)arg0->spawnArg2)->extra)->field_8;
     Task_Reparent((Task*)arg0->spawnArg2, arg0);
     arg0->exitCallback = func_dryfield_dilapidated_house_8018142C;
     arg0->state       += 1;
@@ -199,7 +199,7 @@ void func_dryfield_dilapidated_house_801814B4(Task* arg0)
         Task_Kill(arg0);
         return;
     }
-    arg0->idMap = (TaskIdMap*)work;
+    arg0->work = (TaskIdMap*)work;
     for (i = 0; i < 0x10; i++) {
         work->step[i] = (D_dryfield_dilapidated_house_80186804[i] * arg0->spawnArg1) & 0x3FFF;
     }

@@ -120,7 +120,7 @@ s32 Actor00100_Fn0B2B4(Task* task, s32 arg1, ActorShared80169f74Placement* place
     s32                       mz;
     ActorsShared80169f74Work* work;
 
-    work                                           = (ActorsShared80169f74Work*)task->idMap;
+    work                                           = (ActorsShared80169f74Work*)task->work;
     ((TmdObject*)task->extra)->field_8->coord.t[0] = placement->pos.vx;
     ((TmdObject*)task->extra)->field_8->coord.t[1] = placement->pos.vy;
     ((TmdObject*)task->extra)->field_8->coord.t[2] = placement->pos.vz;
@@ -494,7 +494,7 @@ void Actor00100_Fn0BCBC(s32 arg0, Task* task)
 {
     Actor00100Work* work;
 
-    work = (Actor00100Work*)task->idMap;
+    work = (Actor00100Work*)task->work;
     if (work->field_C2A == 1) {
         work->field_C2A = 0;
         Gp_ReleaseStateF0Add((struct _GpObj20E*)task, 1);

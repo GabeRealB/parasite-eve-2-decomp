@@ -86,7 +86,7 @@ extern u32 Gp_LcgState;
 INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80161E70);
 
 /// Fade-to-white driver of the encounter, six states over the eight-byte
-/// channel block it allocates into its own `Task::idMap` and hands the parent
+/// channel block it allocates into its own `Task::work` and hands the parent
 /// work block through `Task::spawnArg2`.
 ///
 /// State 0 allocates the ramp, zeroes the three channels and parks the
@@ -107,11 +107,11 @@ void func_actor_342100_80162748(Task* arg0)
     TILE*                tile;
     DR_TPAGE*            dr;
 
-    work = (Actor342100FadeWork*)arg0->idMap;
+    work = (Actor342100FadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc       = (Actor342100FadeWork*)Mem_Malloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (Actor342100FadeWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 Task_Kill(arg0);
                 return;
@@ -141,7 +141,7 @@ void func_actor_342100_80162748(Task* arg0)
             work->field_4 += 8;
             work->field_6 += 8;
             if ((s16)work->field_4 >= 0x100) {
-                parent           = (Actor342100Work*)((Task*)arg0->spawnArg2)->idMap;
+                parent           = (Actor342100Work*)((Task*)arg0->spawnArg2)->work;
                 parent->field_24 = 2;
                 Display_SetMode(0xD010);
                 Mem_Set(Fs_ImgBuffers, 0xFF, 0x25800);
@@ -202,7 +202,7 @@ s32 func_actor_342100_801629B8(Task* arg0)
     s32              weaponId;
     s32              setId;
 
-    work = (Actor342100Work*)arg0->idMap;
+    work = (Actor342100Work*)arg0->work;
     if (work->field_2C == NULL) {
     ret1:
         COMPILER_BARRIER();
@@ -218,7 +218,7 @@ s32 func_actor_342100_801629B8(Task* arg0)
         goto ret1;
     }
     anim         = (u16)D_actor_342100_80164910[work->field_3C - 0x2F] + 0x2F;
-    w            = (Actor342100Work*)arg0->idMap;
+    w            = (Actor342100Work*)arg0->work;
     weaponId     = D_80073BA9;
     setId        = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.field_0  = (void*)setId;
@@ -232,7 +232,7 @@ s32 func_actor_342100_801629B8(Task* arg0)
 }
 
 /// State 0 allocates the overlay's effect record -- eight bytes, scale 0x100,
-/// count 1, aimed at the model's root coordinate -- through `arg0->idMap`,
+/// count 1, aimed at the model's root coordinate -- through `arg0->work`,
 /// which is also where the null check reads it back: that is what leaves the
 /// copy into `eff` after the branch instead of before it. State 1 waits out
 /// `spawnArg1` and steps to 2. State 2 runs on every fourth frame, and builds
@@ -257,16 +257,16 @@ void func_actor_342100_80162AB0(Task* arg0)
     s32            vx;
     s32            vz;
 
-    eff   = (GpEffArg*)arg0->idMap;
+    eff   = (GpEffArg*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->field_8;
     switch (arg0->state) {
         case 0:
-            arg0->idMap = (TaskIdMap*)Mem_Malloc(8, 0);
-            if (arg0->idMap == NULL) {
+            arg0->work = (TaskIdMap*)Mem_Malloc(8, 0);
+            if (arg0->work == NULL) {
                 Task_Kill(arg0);
                 return;
             }
-            eff = (GpEffArg*)arg0->idMap;
+            eff = (GpEffArg*)arg0->work;
             Mem_Set(eff, 0, 8);
             eff->field_4 = 0x100;
             eff->field_0 = ((TmdObject*)arg0->extra)->field_8;
@@ -439,14 +439,14 @@ void func_actor_342100_80162DDC(Task* arg0)
 /// the task alive until `Game_Session->field_1` is set.
 s32 func_actor_342100_80162F54(Task* arg0)
 {
-    Actor342100Work*  work = (Actor342100Work*)arg0->idMap;
+    Actor342100Work*  work = (Actor342100Work*)arg0->work;
     Actor342100Work*  msgWork;
     Actor342100Msg3F7 msg;
     s32               n;
 
     switch (work->field_3E) {
         case 0:
-            msgWork = (Actor342100Work*)arg0->idMap;
+            msgWork = (Actor342100Work*)arg0->work;
             n       = 0;
             while (D_actor_342100_80164900[n & 0xFFFF] != 0) {
                 n += 1;
@@ -487,7 +487,7 @@ extern TaskDesc D_8018B83C;
 /// to zero while the player still has HP. State 3 ticks
 /// `func_actor_342100_80162F54` until it reports done.
 ///
-/// `work` is read from `idMap` before state 0 replaces it, so the two
+/// `work` is read from `work` before state 0 replaces it, so the two
 /// `field_30` stores go through the block the task held on entry.
 void func_actor_342100_801630A4(Task* arg0)
 {
@@ -499,7 +499,7 @@ void func_actor_342100_801630A4(Task* arg0)
     s32              ready;
     PlayerStatus*    cfg;
 
-    work = (Actor342100Work*)arg0->idMap;
+    work = (Actor342100Work*)arg0->work;
     if (Game_Session->field_65 != 0 || D_80114C11 != 0 || D_801153F4 != 0 || D_80114CF8 != 0) {
         return;
     }
@@ -508,8 +508,8 @@ void func_actor_342100_801630A4(Task* arg0)
             if (D_80114C12 == 1 || D_80071075 != 0) {
                 break;
             }
-            newWork     = Mem_Malloc(0x44, 0);
-            arg0->idMap = (TaskIdMap*)newWork;
+            newWork    = Mem_Malloc(0x44, 0);
+            arg0->work = (TaskIdMap*)newWork;
             if (newWork == NULL) {
                 Task_Kill(arg0);
             } else {
@@ -586,7 +586,7 @@ void func_actor_342100_8016334C(s32 arg0)
     s32              weaponId;
     s32              setId;
 
-    work           = (Actor342100Work*)D_actor_342100_80164BB8->idMap;
+    work           = (Actor342100Work*)D_actor_342100_80164BB8->work;
     anim           = arg0 + 0x2F;
     weaponId       = D_80073BA9;
     setId          = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
@@ -601,7 +601,7 @@ void func_actor_342100_8016334C(s32 arg0)
 
 void func_actor_342100_801633D0(s32 arg0)
 {
-    Actor342100Work* work = (Actor342100Work*)D_actor_342100_80164BB8->idMap;
+    Actor342100Work* work = (Actor342100Work*)D_actor_342100_80164BB8->work;
 
     Gp_DispatchMsg(work->field_34, 0x7DB, arg0, 0);
 }
@@ -610,7 +610,7 @@ void func_actor_342100_801633D0(s32 arg0)
 /// them, passing the block itself as `Task::spawnArg2`.
 void func_actor_342100_80163408(void)
 {
-    Actor342100Work* work = (Actor342100Work*)D_actor_342100_80164BB8->idMap;
+    Actor342100Work* work = (Actor342100Work*)D_actor_342100_80164BB8->work;
 
     work->field_20 = 0x258;
     work->field_22 = 0x100;
@@ -624,7 +624,7 @@ void func_actor_342100_80163408(void)
 /// `Task::spawnArg1`.
 void func_actor_342100_80163454(s32 arg0)
 {
-    Actor342100Work*  work = (Actor342100Work*)D_actor_342100_80164BB8->idMap;
+    Actor342100Work*  work = (Actor342100Work*)D_actor_342100_80164BB8->work;
     Actor342100Msg7DA msg;
 
     if (arg0 == 0) {

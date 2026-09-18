@@ -13,11 +13,11 @@
 #include "actors/actors_shared_80168d3c.h"
 
 /// Moves the task's state machine to `state`, sub-state 0. Each call site
-/// reloads `idMap`, and cross-jumping merges the identical stores, which is
+/// reloads `work`, and cross-jumping merges the identical stores, which is
 /// what leaves one `lw` per arm in front of a shared tail.
 static __inline__ void set_state(Task* arg0, s16 state)
 {
-    ActorsShared80168d3cWork* w = (ActorsShared80168d3cWork*)arg0->idMap;
+    ActorsShared80168d3cWork* w = (ActorsShared80168d3cWork*)arg0->work;
 
     w->field_420 = state;
     w->field_422 = 0;
@@ -25,7 +25,7 @@ static __inline__ void set_state(Task* arg0, s16 state)
 
 void ActorsShared801673f8(Task* arg0)
 {
-    ActorsShared80168d3cWork* work  = (ActorsShared80168d3cWork*)arg0->idMap;
+    ActorsShared80168d3cWork* work  = (ActorsShared80168d3cWork*)arg0->work;
     TmdObject*                obj   = arg0->extra;
     GpEnemy*                  enemy = arg0->spawnArg2;
     GsCOORDINATE2*            coord = obj->field_8;
@@ -67,7 +67,7 @@ void ActorsShared801673f8(Task* arg0)
         }
         work->field_428 = 0;
         work->field_42A = 100;
-        w2              = (ActorsShared80168d3cWork*)arg0->idMap;
+        w2              = (ActorsShared80168d3cWork*)arg0->work;
         w2->field_41C   = 0x10;
         w2->field_418   = 7;
         w2->field_414   = 2;

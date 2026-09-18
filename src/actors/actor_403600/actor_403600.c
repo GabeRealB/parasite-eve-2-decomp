@@ -382,7 +382,7 @@ void func_actor_403600_80134288(Task* arg0)
     register TaskIdMap*       temp_v0 asm("a3");
     register Actor403600Work* var_a2 asm("a2");
 
-    var_a2 = (Actor403600Work*)arg0->parent->idMap;
+    var_a2 = (Actor403600Work*)arg0->parent->work;
     if (arg0->state == 0) {
         temp_v0 = Mem_Calloc(0x11C, false);
         if (temp_v0 == NULL) {
@@ -390,19 +390,19 @@ void func_actor_403600_80134288(Task* arg0)
             return;
         }
         Game_Session->field_80 = 0;
-        arg0->idMap            = temp_v0;
+        arg0->work             = temp_v0;
         temp_v0_2              = Task_SpawnFromTable(&D_actor_403600_801421A0, 2, 0, 0);
         if (temp_v0_2 != NULL) {
             Task_Reparent(arg0, temp_v0_2);
         }
-        var_a2                  = (Actor403600Work*)arg0->parent->idMap;
+        var_a2                  = (Actor403600Work*)arg0->parent->work;
         var_a2->field_710       = arg0;
         D_actor_403600_801606A0 = 0;
         arg0->state            += 1;
         goto block_6;
     }
 block_6:
-    temp_a3                 = arg0->idMap;
+    temp_a3                 = arg0->work;
     D_actor_403600_8016069C = D_8005C374 + (D_8007107C * 0xC000);
     {
         register s32 field_742 asm("v1");
@@ -487,7 +487,7 @@ void func_actor_403600_80135C28(Task* arg0)
     if (arg0->state == 0) {
         temp_v0_2 = Mem_Calloc(0xE8, 0);
         if (temp_v0_2 != NULL) {
-            arg0->idMap         = (TaskIdMap*)temp_v0_2;
+            arg0->work          = (TaskIdMap*)temp_v0_2;
             temp_v0_2->field_E0 = 0;
             sp10                = D_actor_403600_80131E2C;
             Gp_CopyCoordOffset(arg0, &((TmdObject*)temp_s2->parent->extra)->field_8[1], &sp10);
@@ -611,7 +611,7 @@ void func_actor_403600_80135C28(Task* arg0)
             return;
         }
     }
-    temp_s0 = (Actor403600EffectState*)arg0->idMap;
+    temp_s0 = (Actor403600EffectState*)arg0->work;
     if (D_801153F4 == 0) {
         temp_v1_9 = arg0->spawnArg1;
         switch (temp_v1_9) { /* switch 1; irregular */
@@ -1944,12 +1944,12 @@ void func_actor_403600_80138C34(Task* arg0)
     Task* parent;
 
     parent = arg0->parent;
-    func_actor_403600_80132E40(parent, (Actor403600Work*)parent->parent->idMap, (Actor403600Work*)parent->idMap);
+    func_actor_403600_80132E40(parent, (Actor403600Work*)parent->parent->work, (Actor403600Work*)parent->work);
 }
 
 void func_actor_403600_80138C68(Task* arg0)
 {
-    Gp_UnlinkObj(&((Actor403600Work*)arg0->idMap)->obj);
+    Gp_UnlinkObj(&((Actor403600Work*)arg0->work)->obj);
     Task_Kill(arg0);
 }
 
@@ -2062,7 +2062,7 @@ u8* func_actor_403600_80138DCC(Actor403600* arg0)
 }
 
 /// Spawns this actor. `enemy` is the task's spawn argument and the 0x7B8-byte
-/// work block is parked in `task->idMap`; on allocation failure the enemy is
+/// work block is parked in `task->work`; on allocation failure the enemy is
 /// destroyed. The coordinate at `((TmdObject*)task->extra)->field_8` takes the
 /// work block's `field_4B8` as its `sub`, both are reset to the identity with
 /// the coordinate's translation raised to 0x744, and the coordinate's three
@@ -2102,7 +2102,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->idMap                                  = (TaskIdMap*)temp_v0;
+    task->work                                   = (TaskIdMap*)temp_v0;
     ACTOR_FIELD(temp_v0, GsCOORDINATE2**, 0x504) = &Gfx_ViewCoord;
     temp_v0_2                                    = temp_v0 + 0x4BC;
     ACTOR_FIELD(temp_v0, s32*, 0x4BC)            = 0x1000;

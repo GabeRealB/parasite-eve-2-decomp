@@ -26,7 +26,7 @@ void func_actor_511000_80133F48(void* enemy, Task* task)
     obj          = (TmdObject*)task->extra;
     parentCoords = ((TmdObject*)parent->extra)->field_8;
     coord        = obj->field_8;
-    work         = (Actor511000ParentWork*)parent->idMap;
+    work         = (Actor511000ParentWork*)parent->work;
 
     coord->sub    = &parentCoords[8];
     obj->field_1C = &work->field_45C;
@@ -63,7 +63,7 @@ void func_actor_511000_8013401C(void* enemy, Task* task)
     obj          = (TmdObject*)task->extra;
     parentCoords = ((TmdObject*)parent->extra)->field_8;
     coord        = obj->field_8;
-    work         = (Actor511000ParentWork*)parent->idMap;
+    work         = (Actor511000ParentWork*)parent->work;
 
     coord->sub    = &parentCoords[3];
     obj->field_1C = &work->field_45C;
@@ -100,7 +100,7 @@ void func_actor_511000_801340F0(void* enemy, Task* task)
     obj          = (TmdObject*)task->extra;
     parentCoords = ((TmdObject*)parent->extra)->field_8;
     coord        = obj->field_8;
-    work         = (Actor511000ParentWork*)parent->idMap;
+    work         = (Actor511000ParentWork*)parent->work;
 
     coord->sub    = &parentCoords[12];
     obj->field_1C = &work->field_45C;

@@ -11,7 +11,7 @@ void Actor00400_Fn0A2F4(Task* arg0)
     Actor100400QuadWork* work;
     Actor100400Obj*      object;
 
-    work   = (Actor100400QuadWork*)arg0->idMap;
+    work   = (Actor100400QuadWork*)arg0->work;
     object = work->field_0;
     Actor00400_Fn03318(&work->vertices[0], &work->vertices[1],
                        &work->vertices[2], &work->vertices[3], work->intensity);
@@ -25,7 +25,7 @@ void Actor00400_Fn0A364(Task* arg0)
     Actor100400QuadWork* work;
     u8                   intensity;
 
-    work = (Actor100400QuadWork*)arg0->idMap;
+    work = (Actor100400QuadWork*)arg0->work;
     Actor00400_Fn03318(&work->vertices[0], &work->vertices[1],
                        &work->vertices[2], &work->vertices[3], work->intensity);
     intensity       = work->intensity - 1;

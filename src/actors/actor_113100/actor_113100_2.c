@@ -28,6 +28,6 @@ void func_actor_113100_80132E98(Task* task)
 
 void func_actor_113100_80132EF0(Task* arg0)
 {
-    Gp_UnlinkObj(&((Actor113100Work*)arg0->idMap)->obj);
+    Gp_UnlinkObj(&((Actor113100Work*)arg0->work)->obj);
     Gp_EnemyTaskExit(arg0);
 }

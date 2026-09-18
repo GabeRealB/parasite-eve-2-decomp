@@ -65,7 +65,7 @@ void func_necrosis_8012EF34(Task* arg0)
     s32            tick;
     s16            fade;
 
-    work          = (NecrosisWork*)arg0->idMap;
+    work          = (NecrosisWork*)arg0->work;
     mem           = arg0->spawnArg2;
     coord         = ((TmdObject*)arg0->extra)->field_8;
     old           = mem->field_22;
@@ -109,7 +109,7 @@ void func_necrosis_8012EF34(Task* arg0)
             gte_stsv(&mem->field_10);
             rec               = &work->rec;
             mem->field_20     = (Gp_StateC08.field_0 % 10) - 1;
-            arg0->idMap       = (TaskIdMap*)work;
+            arg0->work        = (TaskIdMap*)work;
             work->obj.field_8 = coord;
             work->obj.field_C = rec;
             work->obj.field_18 =

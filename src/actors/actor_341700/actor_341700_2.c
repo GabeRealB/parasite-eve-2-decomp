@@ -21,7 +21,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700
 
 static __inline__ void set_state(Task* arg0, s32 state)
 {
-    Actor341700Work* w = (Actor341700Work*)arg0->idMap;
+    Actor341700Work* w = (Actor341700Work*)arg0->work;
 
     arg0->state  = state;
     w->field_420 = 0;
@@ -54,14 +54,14 @@ static __inline__ void update_color(void* enemy, GsCOORDINATE2* coord)
 /// disappears). A flag set to 0 up front and to 1 in each arm cross-jumps.
 static __inline__ s16 take_hit(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->idMap;
+    Actor341700Work* work = (Actor341700Work*)arg0->work;
     Actor341700Work* w2;
 
     if ((work->field_44C & 0xF) == 2) {
         if (work->field_438 == 0) {
             work->field_44C = 0;
             set_state(arg0, 3);
-            w2            = (Actor341700Work*)arg0->idMap;
+            w2            = (Actor341700Work*)arg0->work;
             w2->field_420 = 10;
             w2->field_422 = 0;
             return 1;
@@ -79,7 +79,7 @@ static __inline__ s16 take_hit(Task* arg0)
 /// (Z, then X, then the heading) in a matrix taken off `G_SCRATCH_HEAD`.
 static __inline__ void update_rotation(Task* arg0)
 {
-    Actor341700Work* work  = (Actor341700Work*)arg0->idMap;
+    Actor341700Work* work  = (Actor341700Work*)arg0->work;
     MATRIX*          m     = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
     GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
     MATRIX*          dst;
@@ -119,7 +119,7 @@ void func_actor_341700_80162DCC(Task* arg0)
 {
     GpEnemy*         enemy = arg0->spawnArg2;
     TmdObject*       obj   = arg0->extra;
-    Actor341700Work* work  = (Actor341700Work*)arg0->idMap;
+    Actor341700Work* work  = (Actor341700Work*)arg0->work;
     GsCOORDINATE2*   coord = obj->field_8;
     TaskFuncTable11  sp    = D_actor_341700_80161E64;
     s32              cur;

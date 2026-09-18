@@ -15,7 +15,7 @@ static inline void Actor103700_BobInline(Task* task, s32 arg1, s32 arg2)
     GsCOORDINATE2*   coord;
     u16              frame;
 
-    work  = (Actor103700Work*)task->idMap;
+    work  = (Actor103700Work*)task->work;
     coord = ((TmdObject*)task->extra)->field_8;
 
     frame           = work->field_25E + 1;
@@ -34,7 +34,7 @@ static inline void Actor103700_SwayInline(Task* task, s32 arg1)
     u16              frame;
     s32              amp;
 
-    work  = (Actor103700Work*)task->idMap;
+    work  = (Actor103700Work*)task->work;
     coord = ((TmdObject*)task->extra)->field_8;
 
     frame           = work->field_25C + 1;
@@ -62,7 +62,7 @@ void func_actor_103700_801347E0(Task* task)
     *(Actor103700SteerScratch**)G_SCRATCH_HEAD = scratch;
     obj                                        = (TmdObject*)task->extra;
     coord                                      = obj->field_8;
-    work                                       = (Actor103700Work*)task->idMap;
+    work                                       = (Actor103700Work*)task->work;
     mode                                       = work->field_250;
     ctx                                        = (Actor103700Ctx*)task->spawnArg2;
 

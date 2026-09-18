@@ -6,7 +6,7 @@
 #include "main/task.h"
 
 /// Work block of the enemy actors that share `ActorsShared80135b64`, reached
-/// through the *parent* task's `Task::idMap`. Only the two matrices the model
+/// through the *parent* task's `Task::work`. Only the two matrices the model
 /// object is pointed at are modelled here; the same pair sits at the same
 /// offsets in `Actor02000Work` (`include/actors/actor_102000.h`), which
 /// describes the rest of the block.

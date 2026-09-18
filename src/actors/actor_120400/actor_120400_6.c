@@ -12,7 +12,7 @@ s32 func_actor_120400_80132C38(Task* task, s32 arg1, s32 mode, s32 arg3)
     s32                  ret;
 
     obj  = task->extra;
-    work = (Actor120400MainWork*)task->idMap;
+    work = (Actor120400MainWork*)task->work;
     ret  = 0;
     switch (mode) {
         case 0:

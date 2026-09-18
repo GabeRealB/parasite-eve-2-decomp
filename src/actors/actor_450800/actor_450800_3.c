@@ -31,7 +31,7 @@ extern u8         D_actor_450800_801539F4[];
 /// scheduler pass cannot lift the loads into the entry block on its own.
 s32 func_actor_450800_80132CE0(Task* task, s32 arg1, Actor450800Msg* msg, s32 arg3)
 {
-    Actor450800Work* work  = (Actor450800Work*)task->idMap;
+    Actor450800Work* work  = (Actor450800Work*)task->work;
     TmdObject*       obj   = (TmdObject*)work->field_4F8->extra;
     GsCOORDINATE2*   coord = obj->field_8;
     TmdObject*       self  = (TmdObject*)task->extra;
@@ -77,7 +77,7 @@ s32 func_actor_450800_80132D74(Task* task, s32 arg1, VECTOR* target, s32 mode)
     s32              angle;
 
     coord           = ((TmdObject*)task->extra)->field_8;
-    work            = (Actor450800Work*)task->idMap;
+    work            = (Actor450800Work*)task->work;
     dx              = target->vx - coord->coord.t[0];
     dz              = target->vz - coord->coord.t[2];
     work->field_4FE = mode;
@@ -117,7 +117,7 @@ s32 func_actor_450800_80132D74(Task* task, s32 arg1, VECTOR* target, s32 mode)
 /// frame; `SOFT_BARRIER()` keeps each materialization next to its own call and
 /// `TOUCH_REG` makes the second a fresh computation. The `mem` / `work` pair is
 /// the same kind of pin on the `Mem_Calloc` result: the ROM keeps a short-lived
-/// copy for the `idMap` store, the NULL test and `field_4BC`, and a longer-lived
+/// copy for the `work` store, the NULL test and `field_4BC`, and a longer-lived
 /// one for everything after.
 void func_actor_450800_80132E9C(void* enemyArg, Task* task)
 {
@@ -138,11 +138,11 @@ void func_actor_450800_80132E9C(void* enemyArg, Task* task)
     s32                   idx;
     u32                   raw;
 
-    obj         = task->extra;
-    coord       = obj->field_8;
-    mem         = (Actor450800SpawnWork*)Mem_Calloc(0x4C0, false);
-    work        = mem;
-    task->idMap = (TaskIdMap*)mem;
+    obj        = task->extra;
+    coord      = obj->field_8;
+    mem        = (Actor450800SpawnWork*)Mem_Calloc(0x4C0, false);
+    work       = mem;
+    task->work = (TaskIdMap*)mem;
     if (mem == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;

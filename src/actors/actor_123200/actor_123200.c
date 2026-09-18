@@ -94,7 +94,7 @@ static __inline__ void Actor123200_ScaleForward(SVECTOR* dir)
 }
 
 /// Spawn state of this enemy: allocates the work block, publishes it as
-/// `Task::idMap`, reparents the model to `Gfx_ViewCoord`, seeds its animation
+/// `Task::work`, reparents the model to `Gfx_ViewCoord`, seeds its animation
 /// slots from `D_actor_123200_80137154` and hangs the enemy's display node off
 /// part 2 of the model's coordinate array. The context's top `field_8` nibble
 /// biases the three timers in `field_176`, `field_198` and `field_19A` -- up by
@@ -108,10 +108,10 @@ void func_actor_123200_8013352C(GpEnemy* enemy, Task* task)
     u32              scale;
     u32              flag;
 
-    obj         = (TmdObject*)task->extra;
-    coord       = obj->field_8;
-    work        = Mem_Calloc(sizeof(Actor123200Work), false);
-    task->idMap = (TaskIdMap*)work;
+    obj        = (TmdObject*)task->extra;
+    coord      = obj->field_8;
+    work       = Mem_Calloc(sizeof(Actor123200Work), false);
+    task->work = (TaskIdMap*)work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
@@ -218,7 +218,7 @@ void func_actor_123200_80133820(Actor123200Ctx* arg0, Task* task)
     TmdObject*       obj;
     GsCOORDINATE2*   coord;
 
-    work = (Actor123200Work*)task->idMap;
+    work = (Actor123200Work*)task->work;
     if (work->field_4 != 0) {
         obj            = (TmdObject*)task->extra;
         arg0->field_14 = 1;
@@ -265,7 +265,7 @@ void func_actor_123200_80133BA0(Actor123200Ctx* arg0, Task* arg1)
     s32                   pan;
     s32                   id;
 
-    work                                    = (Actor123200Work*)arg1->idMap;
+    work                                    = (Actor123200Work*)arg1->work;
     table                                   = D_actor_123200_80131E24;
     ((TmdObject*)arg1->extra)->field_8->flg = 0;
     Gp_UpdateCoord(((TmdObject*)arg1->extra)->field_8);
@@ -318,7 +318,7 @@ s32 func_actor_123200_80133E30(Task* task, s32 arg1, s32 arg2)
     Actor123200Work* work;
 
     obj  = (TmdObject*)task->extra;
-    work = (Actor123200Work*)task->idMap;
+    work = (Actor123200Work*)task->work;
     switch (arg2) {
         case 0:
             obj->field_C = 0x80;

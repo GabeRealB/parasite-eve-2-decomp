@@ -232,7 +232,7 @@ STATIC_ASSERT_SIZEOF(GpStateBE8, 0x8);
 extern GpStateBE8 Gp_HpMpWork;
 
 /// +0xC overlay of the 0x30-byte record `Gp_InitPlayClock` allocates with
-/// `Mem_Calloc(0x30, 0)` and stores at `Task::idMap`. `Gp_ResetHudFx` is
+/// `Mem_Calloc(0x30, 0)` and stores at `Task::work`. `Gp_ResetHudFx` is
 /// called with that pointer + 0xC; it writes `field_16 = -1` and clears
 /// `field_18`. `Gp_UseItemTask` clears `field_10` (word) and `field_E` (`sb`)
 /// on entry and reads `field_15` (`lb`) as a gate on the pad poll.
@@ -281,7 +281,7 @@ extern GpItemRec8 D_80113DC8[];
 extern GpItemRec8 D_80113E10[];
 extern GpItemRec8 D_80113E28[];
 
-/// 0x30-byte play-clock work `Gp_InitPlayClock` stores at `Task::idMap`.
+/// 0x30-byte play-clock work `Gp_InitPlayClock` stores at `Task::work`.
 /// `field_0` / `field_4` are `Mc_SaveData.field_C` split into minutes and
 /// seconds. `field_8` snapshots `Display_State.field_4`. `extra` is the
 /// +0xC overlay passed to `Gp_ResetHudFx`.

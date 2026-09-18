@@ -6,7 +6,7 @@
 #include "main/task.h"
 
 /// The 8-byte fade block the family's display-fade tasks allocate with
-/// `Mem_Malloc(8, 0)` and park in `Task::idMap`: two bytes of padding, then the
+/// `Mem_Malloc(8, 0)` and park in `Task::work`: two bytes of padding, then the
 /// three halfword colour channels.  `ActorsShared801344ac` seeds all three
 /// saturated and walks them *down* by `Task::spawnArg1`; the fade-out task
 /// beside it in `actor_136100` is the same shape walked up instead.

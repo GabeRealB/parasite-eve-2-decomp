@@ -112,14 +112,14 @@ void Actor05500_Fn03E34(GpEnemy* enemy, Task* task)
     parent      = task->parent;
     parentObj   = parent->extra;
     coord       = ((TmdObject*)task->extra)->field_8;
-    parentWork  = (ActorsShared80135c4cParentWork*)parent->idMap;
+    parentWork  = (ActorsShared80135c4cParentWork*)parent->work;
     parentCoord = &parentObj->field_8[4];
     work        = Mem_Calloc(sizeof(*work), false);
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->idMap       = (TaskIdMap*)work;
+    task->work        = (TaskIdMap*)work;
     Gfx_ViewCoord.flg = 0;
     Gp_UpdateCoord(&Gfx_ViewCoord);
     parentCoord->flg = 0;

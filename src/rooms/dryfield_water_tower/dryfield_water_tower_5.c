@@ -78,7 +78,7 @@ extern DwtwStep D_dryfield_water_tower_8018767C[];
 
 void func_dryfield_water_tower_8017F8E8(s16 arg0)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->idMap;
+    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
     state->field_5C = arg0;
     state->field_5E = 0;
@@ -100,7 +100,7 @@ void func_dryfield_water_tower_8017F8E8(s16 arg0)
 /// the latch when it re-arms the room.
 void func_dryfield_water_tower_8017F908(void)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->idMap;
+    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
     if (state->field_78 == 0) {
         SndEvt_EnqueueType6(0x5214000C, 0, 0);
@@ -137,7 +137,7 @@ void func_dryfield_water_tower_8017F908(void)
 /// aliasing.
 void func_dryfield_water_tower_8017F9AC(void)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->idMap;
+    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
     Mc_SaveData.field_4    = state->field_68;
     Game_Session->field_52 = 1;
@@ -164,7 +164,7 @@ void func_dryfield_water_tower_8017F9AC(void)
 /// `DECOMPILATION_LEARNINGS.md` on struct-typing and aliasing.
 void func_dryfield_water_tower_8017FA5C(void)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->idMap;
+    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
     Mc_SaveData.field_4 = Gp_FindViewIndex(9);
     Gp_DispatchMsg(state->field_48, 0x7D4, (s32)&D_dryfield_water_tower_80181AA0, 0);
@@ -175,7 +175,7 @@ void func_dryfield_water_tower_8017FA5C(void)
     Mem_CopyUnaligned(D_dryfield_water_tower_80181B10, D_dryfield_water_tower_801828DC, 0x10);
     Mem_CopyUnaligned(D_dryfield_water_tower_80181BA0, D_dryfield_water_tower_80182F44, 0x18);
     Mem_CopyUnaligned(D_dryfield_water_tower_80181B20, D_dryfield_water_tower_801829F4, 0x40);
-    ((DryfieldWaterTowerState*)state->field_48->idMap)->field_70 = 1;
+    ((DryfieldWaterTowerState*)state->field_48->work)->field_70 = 1;
 }
 
 /// The `DwtwStep` the rotation's step counter is on: the last entry of
@@ -186,7 +186,7 @@ void func_dryfield_water_tower_8017FA5C(void)
 /// back 30-fold with its low bit cleared.
 s32 func_dryfield_water_tower_8017FB4C(Task* task)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)task->idMap;
+    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)task->work;
     u16                      i;
 
     i = 0;
@@ -200,12 +200,12 @@ s32 func_dryfield_water_tower_8017FB4C(Task* task)
 
 void func_dryfield_water_tower_8017FBC8(Task* task)
 {
-    ((DryfieldWaterTowerState*)task->idMap)->field_6C = 1;
+    ((DryfieldWaterTowerState*)task->work)->field_6C = 1;
 }
 
 void func_dryfield_water_tower_8017FBD8(Task* task)
 {
-    ((DryfieldWaterTowerState*)task->idMap)->field_6E = 1;
+    ((DryfieldWaterTowerState*)task->work)->field_6E = 1;
 }
 
 /// The `RoomPlacement` run the room's 0x7D4 messages step the props through:
@@ -258,7 +258,7 @@ extern TaskDesc D_dryfield_water_tower_8018277C[];
 /// with the state itself rather than with `state - 1`.
 void func_dryfield_water_tower_8017FBE8(Task* task)
 {
-    DwtwWork* work  = (DwtwWork*)task->idMap;
+    DwtwWork* work  = (DwtwWork*)task->work;
     u16       state = work->field_C;
 
     switch (state) {
@@ -309,7 +309,7 @@ extern s32 D_dryfield_water_tower_80182674;
 /// Room entry point: install the player's weapon animation set on slot 3
 /// (message 0x3E8) unless `Gp_StateC08.field_A` says a battle is running or
 /// `D_80071075` says one has just ended, then allocate the `DwtwWork` the room
-/// task hangs off `Task::idMap` (killing the task if the allocation fails),
+/// task hangs off `Task::work` (killing the task if the allocation fails),
 /// zero it, park the slot-3 task in `field_0` and the room task itself in
 /// `D_dryfield_water_tower_801876AC`, and resolve `field_4` / `field_8` from
 /// the session id: the base id, then the id with the 0x1000 index of
@@ -348,8 +348,8 @@ void func_dryfield_water_tower_8017FD64(Task* task)
             msg.field_C  = 0xA;
             msg.field_10 = 0;
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
-            work        = (DwtwWork*)Mem_Malloc(0x18, 0);
-            task->idMap = (TaskIdMap*)work;
+            work       = (DwtwWork*)Mem_Malloc(0x18, 0);
+            task->work = (TaskIdMap*)work;
             if (work == NULL) {
                 Task_Kill(task);
             } else {

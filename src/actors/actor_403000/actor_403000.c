@@ -851,15 +851,15 @@ void func_actor_403000_801343B8(GpEnemy* arg0, Task* arg1)
     Actor403000Work* idWork;
     TmdObject*       tmd;
 
-    obj         = (TmdObject*)arg1->extra;
-    coord       = obj->field_8;
-    arg1->idMap = (TaskIdMap*)(work = Mem_Calloc(0xFDCU, false));
+    obj        = (TmdObject*)arg1->extra;
+    coord      = obj->field_8;
+    arg1->work = (TaskIdMap*)(work = Mem_Calloc(0xFDCU, false));
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
     arg1->exitCallback = func_actor_403000_8013D4F4;
-    idWork             = (Actor403000Work*)arg1->idMap;
+    idWork             = (Actor403000Work*)arg1->work;
     tmd                = (TmdObject*)arg1->extra;
     tmd->field_1C      = &idWork->field_F10;
     tmd->field_20      = &idWork->field_F30;

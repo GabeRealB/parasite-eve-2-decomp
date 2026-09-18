@@ -5,7 +5,7 @@
 
 #include "main/task.h"
 
-/// Work block the actors sharing this body hang off the task's `Task::idMap`
+/// Work block the actors sharing this body hang off the task's `Task::work`
 /// slot (0x1C), which is not a `TaskIdMap` here -- the same block
 /// `Actor402200Work` describes, seen through the one field this body reaches.
 /// `field_6F4` is the phase halfword the carriers' frame handlers branch on.

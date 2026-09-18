@@ -207,7 +207,7 @@ void func_inferno_8012F530(Task* arg0)
     s32            rng;
     s32            tz;
 
-    map   = (InfernoIdMap*)arg0->idMap;
+    map   = (InfernoIdMap*)arg0->work;
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->field_8;
     if ((D_80114C0B == -2) || (Gp_State1C->field_E >= 4)) {
@@ -223,7 +223,7 @@ void func_inferno_8012F530(Task* arg0)
                 mem->field_22 = 0;
                 return;
             }
-            arg0->idMap   = (TaskIdMap*)map;
+            arg0->work    = (TaskIdMap*)map;
             mem->field_24 = 0x80;
             i             = 0;
             do {

@@ -11,7 +11,7 @@ void ActorsShared8014cef8(Task* task)
     TmdObject*     obj    = task->extra;
     GsCOORDINATE2* coord  = obj->field_8;
     GsCOORDINATE2* sub    = &((TmdObject*)parent->extra)->field_8[4];
-    MATRIX*        work   = (MATRIX*)parent->idMap;
+    MATRIX*        work   = (MATRIX*)parent->work;
 
     switch (task->state) {
         case 0:

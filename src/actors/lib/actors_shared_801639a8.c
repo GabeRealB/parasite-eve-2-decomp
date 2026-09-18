@@ -21,7 +21,7 @@ void ActorsShared801639a8(Task* arg0)
     MATRIX*                       m4;
     MATRIX*                       m3;
 
-    work   = (ActorsShared80168d3cWork*)arg0->idMap;
+    work   = (ActorsShared80168d3cWork*)arg0->work;
     ident  = &mtx.ident;
     coords = ((TmdObject*)arg0->extra)->field_8;
 

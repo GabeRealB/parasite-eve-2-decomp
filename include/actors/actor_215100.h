@@ -31,7 +31,7 @@ typedef struct Actor215100Caption {
 } Actor215100Caption;
 STATIC_ASSERT_SIZEOF(Actor215100Caption, 0xC);
 
-/// Work block this overlay hangs off its task's `Task::idMap` slot (0x1C),
+/// Work block this overlay hangs off its task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. Only the prefix the animation script opcode
 /// `func_actor_215100_8014CCE0` and `ActorsShared8014c874` reach is
 /// described.

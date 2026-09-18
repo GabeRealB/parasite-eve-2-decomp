@@ -269,7 +269,7 @@ void func_actor_335800_80162640(Task* arg0)
         Gp_EnemyTaskExit(arg0);
         return;
     }
-    arg0->idMap     = (TaskIdMap*)work;
+    arg0->work      = (TaskIdMap*)work;
     work->field_475 = -1;
     work->field_476 = -1;
     work->field_506 = -1;
@@ -338,7 +338,7 @@ void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void func_actor_335800_80162844(Task* task)
 {
     TmdObject*           ext      = task->extra;
-    Actor335800MainWork* work     = (Actor335800MainWork*)task->idMap;
+    Actor335800MainWork* work     = (Actor335800MainWork*)task->work;
     TaskFunc             funcs[2] = { (TaskFunc)func_actor_335800_80162FF4, ActorsShared801327f8 };
     VECTOR3              pos;
     GsCOORDINATE2*       coord;
@@ -415,7 +415,7 @@ void func_actor_335800_80162B3C(Task* arg0)
     s32                   dz;
     Actor335800AnimPreset preset;
 
-    work  = (Actor335800MainWork*)arg0->idMap;
+    work  = (Actor335800MainWork*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->field_8;
     if (work->field_4B8 - coord->coord.t[0] >= 0) {
         dx = (u16)work->field_4B8 - (u16)coord->coord.t[0];
@@ -461,7 +461,7 @@ s32 func_actor_335800_80162C80(Task* task, s32 arg1, Actor335800Placement* place
     s32                    i;
     TmdObject*             ext;
 
-    w              = (Actor335800MainWork*)task->idMap;
+    w              = (Actor335800MainWork*)task->work;
     w->field_4F8   = 1;
     w->field_4FA   = 0;
     w->field_4B8   = place->pos.vx;
@@ -483,7 +483,7 @@ s32 func_actor_335800_80162C80(Task* task, s32 arg1, Actor335800Placement* place
     preset.field_10 = 1;
 
     msg  = &preset;
-    work = (Actor335800MainWork*)task->idMap;
+    work = (Actor335800MainWork*)task->work;
     ext  = task->extra;
     if (msg->field_0 != work->field_476) {
         work->field_476 = msg->field_0;

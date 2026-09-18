@@ -81,7 +81,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
     s16            amp;
     s32            tz;
 
-    work          = (PyroWork*)arg0->idMap;
+    work          = (PyroWork*)arg0->work;
     mem           = arg0->spawnArg2;
     tmdo          = arg0->extra;
     coord         = tmdo->field_8;
@@ -144,7 +144,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             } else if (arg0->spawnArg1 == 1) {
                 arg0->spawnArg1 = 0;
             }
-            arg0->idMap        = (TaskIdMap*)work;
+            arg0->work         = (TaskIdMap*)work;
             work->obj.field_8  = coord;
             work->obj.field_C  = &work->rec;
             work->obj.field_18 = ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 +

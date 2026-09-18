@@ -9,7 +9,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Private work block of the actor 01900 task, hanging off `Task::idMap`.
+/// Private work block of the actor 01900 task, hanging off `Task::work`.
 ///
 /// Only the fields the decompiled code touches are named, so the struct is
 /// deliberately open-ended: the three `GpObj` list nodes unlinked by the
@@ -128,7 +128,7 @@ typedef struct Actor01900AnimWork {
 } Actor01900AnimWork;
 
 /// Per-task actor context handed to the overlay's callbacks: `field_1C` is the
-/// work block above (the same pointer `Task::idMap` holds) and `field_2C` is
+/// work block above (the same pointer `Task::work` holds) and `field_2C` is
 /// the actor's `TmdObject`. Same shape as the other actor overlays' contexts.
 typedef struct Actor01900 {
     /* 0x00 */ byte            pad_0[0x18];

@@ -6,6 +6,6 @@
 /// and kills the task.
 void ActorsShared801511c8(Task* arg0)
 {
-    Gp_UnlinkObj(&((ActorShared801511c8Work*)arg0->idMap)->obj);
+    Gp_UnlinkObj(&((ActorShared801511c8Work*)arg0->work)->obj);
     Task_Kill(arg0);
 }

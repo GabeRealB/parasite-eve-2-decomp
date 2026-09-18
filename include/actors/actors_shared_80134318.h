@@ -9,7 +9,7 @@
 #include "gameplay/3A34.h"
 #include "main/task.h"
 
-/// Work block behind the task's `idMap` slot (0x1C) during the death sequence
+/// Work block behind the task's `work` slot (0x1C) during the death sequence
 /// run by `ActorsShared80134318`. `field_100` / `field_12A` are the
 /// matrix and Y scale `ActorsShared80135098` reads (`ActorShared80135098Work`);
 /// `field_13E` is the death sub-state and `field_140` its frame counter.

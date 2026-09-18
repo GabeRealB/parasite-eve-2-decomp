@@ -190,7 +190,7 @@ void func_actor_135600_80132234(Task* task)
         Gp_EnemyTaskExit(task);
         return;
     }
-    task->idMap     = (TaskIdMap*)work;
+    task->work      = (TaskIdMap*)work;
     work->field_475 = -1;
     work->field_476 = -1;
     work->field_508 = -1;
@@ -287,7 +287,7 @@ void func_actor_135600_80132234(Task* task)
 void func_actor_135600_801324D0(Task* arg0)
 {
     TmdObject*       ext      = arg0->extra;
-    Actor135600Work* work     = (Actor135600Work*)arg0->idMap;
+    Actor135600Work* work     = (Actor135600Work*)arg0->work;
     TaskFunc         funcs[2] = { (TaskFunc)func_actor_135600_80132DF8, ActorsShared801327f8 };
     VECTOR3          pos;
     GsCOORDINATE2*   coord;

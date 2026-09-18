@@ -8,7 +8,7 @@
 #include "gameplay/1BC.h"
 
 /// Head-aim record `func_actor_450900_80132548` allocates and parks in
-/// `Task::idMap`, handed straight to `func_800B17D4` as its `arg2`: the yaw and
+/// `Task::work`, handed straight to `func_800B17D4` as its `arg2`: the yaw and
 /// pitch clamps that function widens against the head's current pose, and the
 /// `rate` fraction of the remaining angle the save-point capture task ramps one
 /// 0x200 step per frame.

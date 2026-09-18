@@ -52,9 +52,9 @@ void func_actor_510900_8013B0D8(Task* arg0)
     s32                   next;
     u16                   left;
 
-    work   = (Actor510900ChildWork*)arg0->idMap;
+    work   = (Actor510900ChildWork*)arg0->work;
     coord  = ((Actor510900Obj2C*)arg0->extra)->field_8;
-    parent = (Actor510900Work*)arg0->parent->idMap;
+    parent = (Actor510900Work*)arg0->parent->work;
     ctx    = (Actor510900Ctx*)arg0->spawnArg2;
 
     switch (work->field_74) {

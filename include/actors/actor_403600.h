@@ -10,7 +10,7 @@
 
 #include "gameplay/3A34.h"
 
-/// Work block of the `actor_403600` task, parked in the task's `Task::idMap`
+/// Work block of the `actor_403600` task, parked in the task's `Task::work`
 /// slot (that slot is not a `TaskIdMap` here). The display node at +0x108 is
 /// the one the exit callback `func_actor_403600_80138C68` hands back to
 /// `Gp_UnlinkObj`.

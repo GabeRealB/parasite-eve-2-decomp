@@ -12,7 +12,7 @@
 
 /// Work block allocated by `func_actor_361100_80162D28` and
 /// `func_actor_361100_80163410` (`Mem_Calloc(0x4A4)`)
-/// and parked in that task's `Task::idMap` slot -- that slot is not a
+/// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_361100_80162E04` and
 /// `func_actor_361100_801634B4` republish the two matrices
 /// onto `TmdObject::field_1C` / `field_20`, the light/colour pair
@@ -114,7 +114,7 @@ typedef struct Actor361100Coord {
 STATIC_ASSERT_SIZEOF(Actor361100Coord, 0x4C);
 
 /// State block `func_actor_361100_80161E3C` allocates with `Mem_Calloc(0xE8)`
-/// and parks in `Task::idMap` -- that slot is not a `TaskIdMap` here. The body
+/// and parks in `Task::work` -- that slot is not a `TaskIdMap` here. The body
 /// seeds the two halfwords at `field_8E` / `field_E0` and then hands the block
 /// to the shared state tick and its coordinate upload, which this package calls
 /// as the absolute imports at 0x80138C9C and 0x801353D0. Those are the same two
@@ -140,7 +140,7 @@ typedef struct Actor361100EffectState {
 STATIC_ASSERT_SIZEOF(Actor361100EffectState, 0xE8);
 
 /// Head-aim record `func_actor_361100_801627D4` allocates and parks in
-/// `Task::idMap`, handed straight to `func_800B17D4` as its `arg2`: the yaw and
+/// `Task::work`, handed straight to `func_800B17D4` as its `arg2`: the yaw and
 /// pitch clamps that function widens against the head's current pose, and the
 /// `rate` fraction of the remaining angle this overlay ramps one 0x100 step per
 /// frame.
@@ -218,7 +218,7 @@ s32 func_actor_361100_801634D0(Task* task, s32 arg1, Actor361100AnimPreset* pres
 
 /// Head-aim state of the actor, run only while `D_801156F9` is clear: a looker
 /// task that is missing, or a target task that is, parks the state machine on
-/// -1. State 0 allocates the `Actor361100HeadAim` record into `Task::idMap` and
+/// -1. State 0 allocates the `Actor361100HeadAim` record into `Task::work` and
 /// seeds its clamps to 0x300 yaw and 0x200 pitch; state 1 ramps its `rate` up
 /// toward 0x1000 while `Task::spawnArg1` is set and back down toward 0 while it
 /// is not, then hands the record to `func_800B17D4` between the slot-3 task
@@ -228,7 +228,7 @@ s32 func_actor_361100_801634D0(Task* task, s32 arg1, Actor361100AnimPreset* pres
 /// falls out of its own `if` into that kill, rather than into state 1.
 void func_actor_361100_801627D4(Task* task);
 
-/// Spawn callback: allocates the work block into `Task::idMap`, seeds the
+/// Spawn callback: allocates the work block into `Task::work`, seeds the
 /// three -1 bytes, clears the first vector accumulator and arms the spawn
 /// argument `GpEnemy` with the coordinate's root matrix, then enters the
 /// `func_actor_361100_80162E04` state with `D_actor_361100_8016BAF0`

@@ -12,7 +12,7 @@ void ActorsShared8014c874(Task* task)
     ActorsShared8014c874Work* work;
     s16                       animId;
 
-    work = (ActorsShared8014c874Work*)task->idMap;
+    work = (ActorsShared8014c874Work*)task->work;
     if (work->state == 1) {
         ActorsShared801324c8(task);
         work->state = 3;

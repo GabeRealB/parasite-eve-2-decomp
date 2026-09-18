@@ -17,7 +17,7 @@
 /// scratch is handed back.
 ///
 /// Carried by two enemy slots - `actor_107000` and `actor_207000` - which both
-/// reach the block through `Task::idMap`, so the body takes the `Task` rather
+/// reach the block through `Task::work`, so the body takes the `Task` rather
 /// than either carrier's own context type; the shared span is in
 /// `configs/USA/overlays.toml`.
 void ActorsShared8013777c(Task* arg0)
@@ -27,7 +27,7 @@ void ActorsShared8013777c(Task* arg0)
     GsCOORDINATE2*               coord;
     s32                          movement;
 
-    work     = (ActorsShared8013777cWork*)arg0->idMap;
+    work     = (ActorsShared8013777cWork*)arg0->work;
     scratch  = (ActorsShared8013777cScratch*)(SCRATCH_SP -= 0x38);
     coord    = ((TmdObject*)arg0->extra)->field_8;
     movement = func_800E0C10(&work->field_24C[0], &scratch->delta, 4, NULL);

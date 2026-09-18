@@ -60,7 +60,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     coord                    = obj->field_8;
     work                     = Mem_Calloc(0x4F0, 0);
     ActorsShared80131f9cWork = work;
-    task->idMap              = (TaskIdMap*)work;
+    task->work               = (TaskIdMap*)work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
@@ -104,7 +104,7 @@ extern s16 D_actor_143900_801496C0;
 void func_actor_143900_80131FD4(Task* task)
 {
     GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->field_8;
-    Actor143900Work* work  = (Actor143900Work*)task->idMap;
+    Actor143900Work* work  = (Actor143900Work*)task->work;
 
     if (ActorsShared80131f9cWork->field_4B4 == 1) {
         func_actor_143900_801325A4();

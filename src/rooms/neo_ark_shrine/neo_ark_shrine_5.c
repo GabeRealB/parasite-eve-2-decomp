@@ -6,7 +6,7 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-/// Scratch state of the shrine's cap script, stored at `Task::idMap`
+/// Scratch state of the shrine's cap script, stored at `Task::work`
 /// (`Mem_Calloc(0x10)` in `func_neo_ark_shrine_8017ECC4`).
 typedef struct {
     /* 0x00 */ u8  pad_0[8];
@@ -35,7 +35,7 @@ void func_neo_ark_shrine_8017ECC4(Task* task)
         return;
     }
     task->spawnArg2 = Task_SpawnFromTable(D_neo_ark_shrine_80182404, 0, 1, 0);
-    task->idMap     = (TaskIdMap*)st;
+    task->work      = (TaskIdMap*)st;
     D_8007216C      = 0xB;
     /* The once-loop folds away, but flow counts its references at loop depth
        2: without it the parameter's priority (6*2/42) loses to the state

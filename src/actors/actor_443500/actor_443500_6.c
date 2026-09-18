@@ -17,7 +17,7 @@ s32 func_actor_443500_8013297C(Task* task, s32 anim, s32 mode, s32 arg3)
     Actor443500Work* work;
 
     obj  = task->extra;
-    work = (Actor443500Work*)task->idMap;
+    work = (Actor443500Work*)task->work;
     ret  = 0;
     switch (mode) {
         case 0:

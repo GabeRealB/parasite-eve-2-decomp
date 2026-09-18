@@ -6,7 +6,7 @@
 
 void ActorsShared80164b68(Task* task)
 {
-    ActorsShared80164b68Work* work = (ActorsShared80164b68Work*)task->idMap;
+    ActorsShared80164b68Work* work = (ActorsShared80164b68Work*)task->work;
 
     work->obj_2AC.field_8  = &((TmdObject*)task->extra)->field_8[1];
     work->obj_2AC.field_C  = work->rec_2EC;

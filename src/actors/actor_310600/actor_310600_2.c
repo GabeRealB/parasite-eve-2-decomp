@@ -26,7 +26,7 @@ void func_actor_310600_801629CC(Task* task)
 
 void func_actor_310600_80162A24(Task* arg0)
 {
-    Gp_UnlinkObj(&((Actor310600Work*)arg0->idMap)->obj);
+    Gp_UnlinkObj(&((Actor310600Work*)arg0->work)->obj);
     Gp_EnemyTaskExit(arg0);
 }
 
@@ -35,7 +35,7 @@ void func_actor_310600_80162A58(Task* arg0)
     TmdObject*       ext;
     Actor310600Work* work;
 
-    work          = (Actor310600Work*)arg0->idMap;
+    work          = (Actor310600Work*)arg0->work;
     ext           = arg0->extra;
     ext->field_1C = &work->light;
     ext->field_20 = &work->color;
@@ -56,7 +56,7 @@ void func_actor_310600_80162A7C(Task* task)
     Actor310600Work* work;
     TaskFuncTable3   fns;
 
-    work = (Actor310600Work*)task->idMap;
+    work = (Actor310600Work*)task->work;
     fns  = D_actor_310600_80161E48;
     fns.funcs[(s16)work->field_47E](task);
 }
@@ -74,7 +74,7 @@ void func_actor_310600_80162AD8(Task* task)
     SVECTOR           dir;
     SVECTOR           rot;
 
-    work  = (Actor310600Work*)task->idMap;
+    work  = (Actor310600Work*)task->work;
     coord = (Actor310600Coord*)((TmdObject*)task->extra)->field_8;
 
     delta.vx = work->field_4F8 - coord->coord.t[0];
@@ -108,7 +108,7 @@ void func_actor_310600_80162B98(Task* task)
     VECTOR           vec;
 
     coord = ((TmdObject*)task->extra)->field_8;
-    work  = (Actor310600Work*)task->idMap;
+    work  = (Actor310600Work*)task->work;
 
     vec = D_actor_310600_80161E54;
     ApplyMatrixLV(&coord->coord, &vec, (VECTOR*)&work->step);

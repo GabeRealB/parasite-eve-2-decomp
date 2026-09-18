@@ -85,7 +85,7 @@ void func_actor_205200_8014B9D4(GpEnemy* arg0, Actor205200* arg1)
     s32              one;
 
     work       = arg1->field_1C;
-    parentWork = (Actor205200Work*)arg1->field_8->idMap;
+    parentWork = (Actor205200Work*)arg1->field_8->work;
     state      = D_801153F4;
     one        = 1;
     if (state == one) {
@@ -157,7 +157,7 @@ void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->idMap     = (TaskIdMap*)work;
+    task->work      = (TaskIdMap*)work;
     tmd->field_C    = 0;
     coords->flg     = 0;
     tmd->field_1C   = &work->field_45C;
@@ -353,7 +353,7 @@ void func_actor_205200_8014C0C0(Actor205200* arg0)
 
     switch (work->field_58A) {
         case 0:
-            if (((GameActor*)player->idMap)->field_954 != 2) {
+            if (((GameActor*)player->work)->field_954 != 2) {
                 scratch->delta.vx      = target->coord.t[0] - coord->coord.t[0];
                 scratch->delta.vy      = 0;
                 scratch->delta.vz      = target->coord.t[2] - coord->coord.t[2];

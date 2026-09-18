@@ -14,7 +14,7 @@ s32 ActorsShared80133474(Task* task, s32 arg1, s32 flags)
     TmdObject*                other;
 
     self = (TmdObject*)task->extra;
-    work = (ActorsShared80133474Work*)task->idMap;
+    work = (ActorsShared80133474Work*)task->work;
     if (task->spawnArg1 != 0) {
         other = (TmdObject*)work->field_4F4->extra;
     } else {

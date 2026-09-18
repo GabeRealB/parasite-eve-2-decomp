@@ -29,7 +29,7 @@ void func_dryfield_night_factory_80180A4C(Task* task)
 {
     RoomActionPrompt*       prompt = &D_80114D28;
     RoomHotspot*            hs     = D_dryfield_night_factory_80186EBC;
-    NightFactoryScriptWork* st     = (NightFactoryScriptWork*)task->idMap;
+    NightFactoryScriptWork* st     = (NightFactoryScriptWork*)task->work;
 
     Game_Session->field_68 = 1;
     Game_Session->field_1  = 1;

@@ -70,7 +70,7 @@ void func_dryfield_dilapidated_house_8017EBB8(Task* task)
     s32      i;
 
     i   = 0;
-    mtx = &((DdhCoordWork*)((Task*)task->spawnArg2)->idMap)->mtx;
+    mtx = &((DdhCoordWork*)((Task*)task->spawnArg2)->work)->mtx;
     do {
         sc.vec.vx = D_dryfield_dilapidated_house_801866B4[i].vx;
         sc.vec.vy = D_dryfield_dilapidated_house_801866B4[i].vy;
@@ -174,8 +174,8 @@ void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
     v0 = verts;
     v1 = &verts[16];
 
-    work = (DdhAngleStep*)task->idMap;
-    src  = (DdhCoordWork*)((Task*)task->spawnArg2)->idMap;
+    work = (DdhAngleStep*)task->work;
+    src  = (DdhCoordWork*)((Task*)task->spawnArg2)->work;
 
     ofs       = D_dryfield_dilapidated_house_80186844;
     ofs2      = D_dryfield_dilapidated_house_80186844 + 1;
@@ -261,7 +261,7 @@ void func_dryfield_dilapidated_house_80180B84(Task* task)
         Task_Kill(task);
         return;
     }
-    task->idMap   = (TaskIdMap*)work;
+    task->work    = (TaskIdMap*)work;
     work->field_0 = 0;
     flags         = obj->field_C | 0x80;
     obj->field_C  = flags;
@@ -331,7 +331,7 @@ void func_dryfield_dilapidated_house_80180F5C(Task* arg0)
     DdhCoordWork* work;
     s32           temp_v0;
 
-    work = (DdhCoordWork*)arg0->idMap;
+    work = (DdhCoordWork*)arg0->work;
     func_dryfield_dilapidated_house_801810F8((TmdObject*)arg0->extra,
                                              (TmdObject*)((Task*)arg0->spawnArg2)->extra);
     func_dryfield_dilapidated_house_80181028(arg0);

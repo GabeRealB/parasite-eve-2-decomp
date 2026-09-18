@@ -23,7 +23,7 @@ void func_actor_103700_801328DC(Task* task)
     head                    = *(void**)G_SCRATCH_HEAD;
     vec                     = (SVECTOR*)((u8*)head - sizeof(SVECTOR));
     *(void**)G_SCRATCH_HEAD = vec;
-    work                    = (Actor103700Work*)task->idMap;
+    work                    = (Actor103700Work*)task->work;
     coord                   = ((TmdObject*)task->extra)->field_8;
 
     switch (work->field_250) {
@@ -70,7 +70,7 @@ void func_actor_103700_80132B7C(Task* task)
     s32              dist;
     s32              i;
 
-    work  = (Actor103700Work*)task->idMap;
+    work  = (Actor103700Work*)task->work;
     coord = ((TmdObject*)task->extra)->field_8;
 
     switch (work->field_250) {
@@ -116,7 +116,7 @@ void func_actor_103700_80132DA8(Task* task)
     s32              dist;
     s32              i;
 
-    work  = (Actor103700Work*)task->idMap;
+    work  = (Actor103700Work*)task->work;
     coord = ((TmdObject*)task->extra)->field_8;
 
     switch (work->field_250) {
@@ -168,7 +168,7 @@ void func_actor_103700_80132FD4(Task* task)
     coord                   = ((TmdObject*)task->extra)->field_8;
     head                    = *(void**)G_SCRATCH_HEAD;
     *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(SVECTOR);
-    work                    = (Actor103700Work*)task->idMap;
+    work                    = (Actor103700Work*)task->work;
     vec                     = *(void**)G_SCRATCH_HEAD;
 
     switch (work->field_250) {
@@ -238,7 +238,7 @@ void func_actor_103700_80133370(Task* task)
     GpAnimArg*       arg;
     s32              sound;
 
-    work                    = (Actor103700Work*)task->idMap;
+    work                    = (Actor103700Work*)task->work;
     obj                     = (GpObj38*)((TmdObject*)task->extra)->field_8;
     player                  = Game_GetPtrSlot(3);
     head                    = *(void**)G_SCRATCH_HEAD;
@@ -312,7 +312,7 @@ void func_actor_103700_801336E8(Task* task)
     s32              slot;
     s32              sound;
 
-    work   = (Actor103700Work*)task->idMap;
+    work   = (Actor103700Work*)task->work;
     obj    = (GpObj38*)((TmdObject*)task->extra)->field_8;
     period = 14;
 
@@ -399,7 +399,7 @@ void func_actor_103700_80133AB4(Task* task)
     s32              sound;
     s32              pan;
 
-    work                    = (Actor103700Work*)task->idMap;
+    work                    = (Actor103700Work*)task->work;
     obj                     = (GpObj38*)((TmdObject*)task->extra)->field_8;
     player                  = Game_GetPtrSlot(3);
     head                    = *(void**)G_SCRATCH_HEAD;

@@ -37,7 +37,7 @@ void func_actor_335800_801631A4(Task* arg0)
     s16                   diff;
 
     coord = ((TmdObject*)arg0->extra)->field_8;
-    work  = (Actor335800MainWork*)arg0->idMap;
+    work  = (Actor335800MainWork*)arg0->work;
 
     Gp_ExtractEuler(&vec, &coord->coord);
     diff = (u16)work->field_4F2 - (u16)vec.vy;
@@ -83,7 +83,7 @@ s32 func_actor_335800_801632A4(Task* task, s32 arg1, Actor335800AnimPreset* msg,
     TmdObject*           ext;
     s32                  i;
 
-    work = (Actor335800MainWork*)task->idMap;
+    work = (Actor335800MainWork*)task->work;
     ext  = task->extra;
     if (msg->field_0 != work->field_476) {
         work->field_476 = msg->field_0;
@@ -117,7 +117,7 @@ s32 func_actor_335800_8016343C(Task* task, s32 arg1, s32 mode)
     TmdObject*           objB;
     s32                  ret;
 
-    work = (Actor335800MainWork*)task->idMap;
+    work = (Actor335800MainWork*)task->work;
     obj  = task->extra;
     objA = work->field_4FC->extra;
     objB = work->field_500->extra;
@@ -154,7 +154,7 @@ s32 func_actor_335800_8016354C(Task* arg0, s32 arg1, Actor335800Msg* arg2, s32 a
 {
     Actor335800MainWork* work;
 
-    work = (Actor335800MainWork*)arg0->idMap;
+    work = (Actor335800MainWork*)arg0->work;
     if (arg2->field_2 == 0) {
         work->field_504 = 0;
     }
@@ -173,7 +173,7 @@ void func_actor_335800_80163B78(Task* arg0);
 void func_actor_335800_80163568(Task* task)
 {
     TmdObject*       ext      = task->extra;
-    Actor335800Work* work     = (Actor335800Work*)task->idMap;
+    Actor335800Work* work     = (Actor335800Work*)task->work;
     TaskFunc         funcs[2] = { (TaskFunc)func_actor_335800_80163B70, func_actor_335800_80163B78 };
     VECTOR3          pos;
     GsCOORDINATE2*   coord;
@@ -225,7 +225,7 @@ void func_actor_335800_8016373C(Task* arg0)
     s32                   dz;
     Actor335800AnimPreset preset;
 
-    work  = (Actor335800Work*)arg0->idMap;
+    work  = (Actor335800Work*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->field_8;
     if (work->target.vx - coord->coord.t[0] >= 0) {
         dx = (u16)work->target.vx - (u16)coord->coord.t[0];
@@ -271,7 +271,7 @@ s32 func_actor_335800_80163880(Task* task, s32 arg1, Actor335800Placement* place
     s32                    i;
     TmdObject*             ext;
 
-    w              = (Actor335800Work*)task->idMap;
+    w              = (Actor335800Work*)task->work;
     w->field_4C0   = 1;
     w->field_4C2   = 0;
     w->target.vx   = place->pos.vx;
@@ -293,7 +293,7 @@ s32 func_actor_335800_80163880(Task* task, s32 arg1, Actor335800Placement* place
     preset.field_10 = 1;
 
     msg  = &preset;
-    work = (Actor335800Work*)task->idMap;
+    work = (Actor335800Work*)task->work;
     ext  = task->extra;
     if (msg->field_0 != work->field_43E) {
         work->field_43E = msg->field_0;
@@ -320,7 +320,7 @@ s32 func_actor_335800_80163880(Task* task, s32 arg1, Actor335800Placement* place
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_4", func_actor_335800_80163A34);
 
 /// Spawn state of the enemy actor: allocates the 0x4C8-byte work block that
-/// every later handler reads through `Task::idMap`, seeds the two -1 bytes,
+/// every later handler reads through `Task::work`, seeds the two -1 bytes,
 /// the -1 halfword and three cleared words the work's own init expects,
 /// republishes the light and colour matrices onto the display object, then
 /// installs the message table and the exit handler. An allocation failure
@@ -335,7 +335,7 @@ void func_actor_335800_80163AA0(Task* arg0)
         return;
     }
 
-    arg0->idMap     = (TaskIdMap*)work;
+    arg0->work      = (TaskIdMap*)work;
     work->field_43D = -1;
     work->field_43E = -1;
     work->field_4C4 = -1;
@@ -361,7 +361,7 @@ void func_actor_335800_80163B54(Task* arg0)
     Actor335800Work* work;
 
     ext           = arg0->extra;
-    work          = (Actor335800Work*)arg0->idMap;
+    work          = (Actor335800Work*)arg0->work;
     ext->field_1C = &work->light;
     ext->field_20 = &work->color;
 }

@@ -459,7 +459,7 @@ void Actor00100_Fn0503C(Actor00100* arg0)
 
     work       = arg0->field_1C;
     player     = Game_GetPtrSlot(3);
-    playerWork = (GameActor*)player->idMap;
+    playerWork = (GameActor*)player->work;
     ctx        = arg0->field_20;
     if (work->field_4 != 0) {
         obj              = arg0->field_2C;
@@ -621,7 +621,7 @@ void Actor00100_Fn0503C(Actor00100* arg0)
                             scratch->messageResult = Actor00100_PlayerContactMessage(ctx, 1);
                         }
                         if (scratch->messageResult == 1) {
-                            ((GameActor*)player->idMap)->field_956 = 0xA;
+                            ((GameActor*)player->work)->field_956 = 0xA;
                         }
                         work->field_BFC = 1;
                         work->field_C00 = 0;

@@ -12,36 +12,36 @@ INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_14", func_actor_34240
 /// one shared local lands in `$a0` instead of `$v1`.
 s32 func_actor_342400_80169518(Task* arg0)
 {
-    ActorsShared80168d3cWork* work = (ActorsShared80168d3cWork*)arg0->idMap;
+    ActorsShared80168d3cWork* work = (ActorsShared80168d3cWork*)arg0->work;
 
     if (work->field_41E == 1) {
         switch ((s16)(work->field_448 - 1)) {
             case 0: {
-                ActorsShared80168d3cWork* w = (ActorsShared80168d3cWork*)arg0->idMap;
+                ActorsShared80168d3cWork* w = (ActorsShared80168d3cWork*)arg0->work;
                 w->field_420                = 6;
                 w->field_422                = 0;
                 break;
             }
             case 1: {
-                ActorsShared80168d3cWork* w = (ActorsShared80168d3cWork*)arg0->idMap;
+                ActorsShared80168d3cWork* w = (ActorsShared80168d3cWork*)arg0->work;
                 w->field_420                = 7;
                 w->field_422                = 0;
                 break;
             }
             case 2: {
-                ActorsShared80168d3cWork* w = (ActorsShared80168d3cWork*)arg0->idMap;
+                ActorsShared80168d3cWork* w = (ActorsShared80168d3cWork*)arg0->work;
                 w->field_420                = 8;
                 w->field_422                = 0;
                 break;
             }
             case 3: {
-                ActorsShared80168d3cWork* w = (ActorsShared80168d3cWork*)arg0->idMap;
+                ActorsShared80168d3cWork* w = (ActorsShared80168d3cWork*)arg0->work;
                 w->field_420                = 7;
                 w->field_422                = 0;
                 break;
             }
             case 4: {
-                ActorsShared80168d3cWork* w = (ActorsShared80168d3cWork*)arg0->idMap;
+                ActorsShared80168d3cWork* w = (ActorsShared80168d3cWork*)arg0->work;
                 w->field_420                = 9;
                 w->field_422                = 0;
                 break;
@@ -59,7 +59,7 @@ s32 func_actor_342400_80169518(Task* arg0)
 /// single `case 1 ... 5` becomes a range test.
 void func_actor_342400_801695C0(Task* arg0, s32 arg1, Actor342400Msg* arg2)
 {
-    Actor342400Work* work = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* work = (Actor342400Work*)arg0->work;
 
     if (arg2->field_0 == 0x2C00) {
         switch (arg2->field_2 & 0xF) {

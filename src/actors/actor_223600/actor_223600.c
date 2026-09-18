@@ -128,7 +128,7 @@ static __inline__ s16 Actor223600_NormalizeYaw(s16 input)
 }
 
 /// Spawn state of this enemy: allocates the 0x214 work block, publishes it as
-/// `Task::idMap`, reparents the model to `Gfx_ViewCoord`, seeds its animation
+/// `Task::work`, reparents the model to `Gfx_ViewCoord`, seeds its animation
 /// slots from `D_actor_223600_801509C0` and hangs the enemy's display node off
 /// part 2 of the model's coordinate array. HP and max HP both come from
 /// `D_actor_223600_8014CFCC`, which also picks the opening motion through
@@ -148,10 +148,10 @@ void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
     u32              flag;
     s32              hp;
 
-    obj         = (TmdObject*)task->extra;
-    coord       = obj->field_8;
-    work        = Mem_Calloc(sizeof(Actor223600Work), false);
-    task->idMap = (TaskIdMap*)work;
+    obj        = (TmdObject*)task->extra;
+    coord      = obj->field_8;
+    work       = Mem_Calloc(sizeof(Actor223600Work), false);
+    task->work = (TaskIdMap*)work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
@@ -237,7 +237,7 @@ void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
     TmdObject*       obj;
     u32              mode;
 
-    work = (Actor223600Work*)task->idMap;
+    work = (Actor223600Work*)task->work;
     if (work->field_4 != 0) {
         obj                 = (TmdObject*)task->extra;
         enemy->node.field_4 = 1;
@@ -324,7 +324,7 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
     s32               state;
     s16               frame;
 
-    work = (Actor223600Work*)task->idMap;
+    work = (Actor223600Work*)task->work;
     if (work->field_4 != 0) {
         obj                 = (TmdObject*)task->extra;
         enemy->node.field_4 = 1;
@@ -565,7 +565,7 @@ void func_actor_223600_8014CA00(GpEnemy* enemy, Task* task)
     s32                   cue;
     s32                   pan;
 
-    work = (Actor223600Work*)task->idMap;
+    work = (Actor223600Work*)task->work;
     fns  = D_actor_223600_80149E4C;
 
     switch (D_801153F4) {
@@ -623,7 +623,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_223600/actor_223600", ActorsShared8013
 s32 func_actor_223600_8014CC04(Task* task, s32 arg1, s32 arg2)
 {
     TmdObject*       obj  = task->extra;
-    Actor223600Work* work = (Actor223600Work*)task->idMap;
+    Actor223600Work* work = (Actor223600Work*)task->work;
 
     switch (arg2) {
         case 0:
@@ -657,7 +657,7 @@ s32 func_actor_223600_8014CCD4(Task* task, s32 arg1, Actor223600Event* event)
 {
     Actor223600Work* work;
 
-    work            = (Actor223600Work*)task->idMap;
+    work            = (Actor223600Work*)task->work;
     work->field_180 = event->bytes[0];
     work->field_181 = event->bytes[1];
     work->field_182 = event->bytes[2];

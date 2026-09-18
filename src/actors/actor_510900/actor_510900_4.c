@@ -1657,7 +1657,7 @@ void func_actor_510900_801395AC(void* enemy, Task* task)
     s16                     r;
     s32                     dy;
 
-    work  = (Actor510900Work*)task->parent->idMap;
+    work  = (Actor510900Work*)task->parent->work;
     obj   = (TmdObject*)task->extra;
     coord = obj->field_8;
     if (work->field_586 < 0x1C) {
@@ -1749,7 +1749,7 @@ void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->idMap   = (TaskIdMap*)work;
+    arg1->work    = (TaskIdMap*)work;
     tmd->field_C  = 0;
     scratch       = (Actor510900ChildFxScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor510900ChildFxScratch));
     tmd->field_1C = &work->lightMtx;
@@ -1859,9 +1859,9 @@ void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
     u16                            tick;
 
     tmd    = task->extra;
-    work   = (Actor510900ChildFx*)task->idMap;
+    work   = (Actor510900ChildFx*)task->work;
     coord  = tmd->field_8;
-    parent = (Actor510900Work*)task->parent->idMap;
+    parent = (Actor510900Work*)task->parent->work;
     done   = 0;
     switch (D_801153F4) {
         case 0:
@@ -1964,8 +1964,8 @@ void func_actor_510900_8013A100(GpEnemy* enemy, Task* task)
     Actor510900Work*    parent;
     u16                 tick;
 
-    work   = (Actor510900ChildFx*)task->idMap;
-    parent = (Actor510900Work*)task->parent->idMap;
+    work   = (Actor510900ChildFx*)task->work;
+    parent = (Actor510900Work*)task->parent->work;
     if (D_801153F4 == 0) {
         switch (work->field_CA) {
             case 0:
@@ -2044,8 +2044,8 @@ void func_actor_510900_8013A310(Task* task)
     s32                    snd;
     s32                    pan;
 
-    work                    = (Actor510900ChildFx*)task->idMap;
-    parent                  = (Actor510900Work*)task->parent->idMap;
+    work                    = (Actor510900ChildFx*)task->work;
+    parent                  = (Actor510900Work*)task->parent->work;
     player                  = Game_GetPtrSlot(3);
     head                    = *(void**)G_SCRATCH_HEAD;
     *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(Actor510900HitScratch);
@@ -2125,7 +2125,7 @@ void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->idMap         = (TaskIdMap*)work;
+    task->work          = (TaskIdMap*)work;
     tmd->field_C        = 0x80;
     coords->flg         = 0;
     tmd->field_1C       = &work->lightMtx;
@@ -2202,9 +2202,9 @@ void func_actor_510900_8013A85C(Actor510900Ctx* arg0, Task* arg1)
     s32                   one;
 
     obj    = (Actor510900Obj2C*)arg1->extra;
-    work   = (Actor510900ChildAnim*)arg1->idMap;
+    work   = (Actor510900ChildAnim*)arg1->work;
     coord  = obj->field_8;
-    parent = (Actor510900Work*)arg1->parent->idMap;
+    parent = (Actor510900Work*)arg1->parent->work;
     mode   = D_801153F4;
     one    = 1;
     if (mode == one) {
@@ -2289,10 +2289,10 @@ void func_actor_510900_8013A9BC(Task* task)
     coord               = &((TmdObject*)task->extra)->field_8[10];
     *(void**)0x1F8003FC = (u8*)head - 0x18;
     scratch             = (Actor510900GrabScratch*)((u8*)head - 0x18);
-    work                = (Actor510900ChildAnim*)task->idMap;
+    work                = (Actor510900ChildAnim*)task->work;
     ctx                 = (Actor510900Ctx*)task->spawnArg2;
     state               = work->field_330;
-    parent              = (Actor510900Work*)task->parent->idMap;
+    parent              = (Actor510900Work*)task->parent->work;
     one                 = 1;
     if (state == one) {
         goto case1;
@@ -2419,7 +2419,7 @@ void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
         return;
     }
     mat               = (Actor510900MatrixWords*)&coord->coord;
-    task->idMap       = (TaskIdMap*)work;
+    task->work        = (TaskIdMap*)work;
     mat->m00_m01      = 0x1000;
     mat->m11_m12      = 0x1000;
     mat->m22          = 0x1000;
@@ -2482,8 +2482,8 @@ void func_actor_510900_8013AF38(Actor510900Ctx* arg0, Task* arg1)
     u32                   random;
     Task*                 child;
 
-    work   = (Actor510900ChildWork*)arg1->idMap;
-    parent = (Actor510900Work*)arg1->parent->idMap;
+    work   = (Actor510900ChildWork*)arg1->work;
+    parent = (Actor510900Work*)arg1->parent->work;
     mode   = D_801153F4;
     one    = 1;
     if (mode == one) {

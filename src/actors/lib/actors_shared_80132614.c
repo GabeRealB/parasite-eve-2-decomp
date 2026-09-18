@@ -15,7 +15,7 @@ s32 ActorsShared80132614(Task* task, s32 arg1, ActorsShared80132614Placement* pl
     u16                       yaw;
 
     coord     = ((TmdObject*)task->extra)->field_8;
-    work      = (ActorsShared80132614Work*)task->idMap;
+    work      = (ActorsShared80132614Work*)task->work;
     yaw       = placement->rot.vy;
     work->yaw = yaw;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);

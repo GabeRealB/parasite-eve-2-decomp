@@ -10,7 +10,7 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017ecb4.h"
 
-/// Scratch state of the shrine's cap script, stored at `Task::idMap`
+/// Scratch state of the shrine's cap script, stored at `Task::work`
 /// (`Mem_Calloc(0x10)` in `func_neo_ark_shrine_8017ECC4`).
 typedef struct {
     /* 0x00 */ u8  pad_0[8];
@@ -165,7 +165,7 @@ void func_neo_ark_shrine_8017D9A0(Task* task)
 {
     RoomHotspot*        hs     = D_neo_ark_shrine_80182430;
     RoomActionPrompt*   prompt = &D_80114D28;
-    NeoArkShrineScript* st     = (NeoArkShrineScript*)task->idMap;
+    NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
     u16                 id;
 
     func_neo_ark_shrine_8017EAC0(task);
@@ -248,7 +248,7 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
     u16                 prev;
     NeoArkShrineScript* st;
 
-    st      = (NeoArkShrineScript*)arg0->idMap;
+    st      = (NeoArkShrineScript*)arg0->work;
     swapped = 0;
     func_neo_ark_shrine_8017EAC0();
     for (i = 0; i < 5; i++) {

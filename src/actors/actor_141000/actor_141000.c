@@ -46,7 +46,7 @@ void func_actor_141000_80131E94(Actor141000* arg0, Actor141000Point* arg1, s32 a
     s32       a, b, c, d;
 
     quad  = D_actor_141000_801347C8[0];
-    scale = ((Actor141000CtrlWork*)((Task*)((Task*)arg0)->spawnArg2)->idMap)->field_0;
+    scale = ((Actor141000CtrlWork*)((Task*)((Task*)arg0)->spawnArg2)->work)->field_0;
     if (((Task*)arg0)->killCountdown >= 0x800) {
         ((Task*)arg0)->killCountdown = 0;
     }
@@ -153,7 +153,7 @@ void func_actor_141000_80132C24(Task* task)
 
 /// Spawn state of the overlay's controller task: takes the display object's
 /// root coordinate, allocates the work block the later states read through
-/// `Task::idMap` and arms it at step 0xFFF, un-parks the model (`field_C` bit
+/// `Task::work` and arms it at step 0xFFF, un-parks the model (`field_C` bit
 /// 0x80 is the flag that keeps a `TmdObject` out of the coordinate update),
 /// republishes that coordinate onto the two scale helpers, spawns the attach
 /// task from `D_actor_141000_801348D8` and hands the controller the shared kill
@@ -172,7 +172,7 @@ void func_actor_141000_80132C7C(Task* task)
         Task_Kill(task);
         return;
     }
-    task->idMap   = (TaskIdMap*)work;
+    task->work    = (TaskIdMap*)work;
     work->field_0 = 0xFFF;
     obj->field_C &= 0xFF7F;
     func_actor_141000_80132FD0(coord, 0);
@@ -192,7 +192,7 @@ void func_actor_141000_80132D3C(Task* task)
     Actor141000CtrlWork* work;
     TaskFuncTable4       sp;
 
-    work = (Actor141000CtrlWork*)task->idMap;
+    work = (Actor141000CtrlWork*)task->work;
     sp   = D_actor_141000_80131E3C;
     sp.funcs[(s16)work->state](task);
     if (D_80070F70 & 1) {

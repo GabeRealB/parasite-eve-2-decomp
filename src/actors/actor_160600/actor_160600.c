@@ -42,7 +42,7 @@ void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
     obj   = (TmdObject*)task->extra;
     coord = obj->field_8;
     part  = &((TmdObject*)task->extra)->field_8[D_actor_160600_8013DFEC[(rand() * 11) >> 15]];
-    work  = (Actor160600Work*)task->idMap;
+    work  = (Actor160600Work*)task->work;
     Gp_UpdateCoord(coord);
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1] - 800;

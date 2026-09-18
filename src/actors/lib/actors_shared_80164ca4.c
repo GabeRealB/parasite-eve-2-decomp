@@ -21,7 +21,7 @@ void ActorsShared80164ca4(Task* arg0)
     s32                       pan;
     u32                       rand;
 
-    work = (ActorsShared80168d3cWork*)arg0->idMap;
+    work = (ActorsShared80168d3cWork*)arg0->work;
     if ((s16)++work->field_412 == 1) {
         soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0004;
         pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
@@ -32,11 +32,11 @@ void ActorsShared80164ca4(Task* arg0)
         rand             = Gp_LcgState * 5 + 0x71357911;
         work->field_44A  = ((rand >> 16) & 0x7F) + 0x5A;
         work->field_7A  += 0x800;
-        work2            = (ActorsShared80168d3cWork*)arg0->idMap;
+        work2            = (ActorsShared80168d3cWork*)arg0->work;
         work2->field_41C = 0x10;
         work2->field_418 = 0xD;
         work2->field_414 = 2;
-        work3            = (ActorsShared80168d3cWork*)arg0->idMap;
+        work3            = (ActorsShared80168d3cWork*)arg0->work;
         Gp_LcgState      = rand;
         arg0->state      = 1;
         work3->field_420 = 0;

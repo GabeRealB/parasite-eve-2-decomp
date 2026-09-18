@@ -18,7 +18,7 @@ typedef struct NeoArkAltarTile {
 STATIC_ASSERT_SIZEOF(NeoArkAltarTile, 0xC);
 
 /// Per-task work block of the altar task, allocated as 0x10 bytes by
-/// `func_neo_ark_altar_8017ED60` and parked in `Task::idMap` (so the slot holds
+/// `func_neo_ark_altar_8017ED60` and parked in `Task::work` (so the slot holds
 /// this overlay's own block, not a `TaskIdMap`). `field_8` is the tile the
 /// player currently stands on (`func_neo_ark_altar_8017EC34` of the player
 /// coordinate), `field_6` the value recorded on the previous frame, `field_C`

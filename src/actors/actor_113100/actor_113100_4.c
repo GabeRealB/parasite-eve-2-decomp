@@ -12,7 +12,7 @@ s32 func_actor_113100_801333B8(Task* task, s32 msgId, Actor113100Msg7DB* msg)
     Actor113100Work* work;
     TmdObject*       model;
 
-    work = (Actor113100Work*)task->idMap;
+    work = (Actor113100Work*)task->work;
 
     switch (msg->field_2) {
         case 0:

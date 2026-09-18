@@ -16,7 +16,7 @@ s32 ActorsShared80169f74(Task* task, s32 arg1, ActorShared80169f74Placement* pla
     s32                       mz;
     ActorsShared80169f74Work* work;
 
-    work                                           = (ActorsShared80169f74Work*)task->idMap;
+    work                                           = (ActorsShared80169f74Work*)task->work;
     ((TmdObject*)task->extra)->field_8->coord.t[0] = placement->pos.vx;
     ((TmdObject*)task->extra)->field_8->coord.t[1] = placement->pos.vy;
     ((TmdObject*)task->extra)->field_8->coord.t[2] = placement->pos.vz;

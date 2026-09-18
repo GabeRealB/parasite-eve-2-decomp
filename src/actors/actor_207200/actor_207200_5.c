@@ -148,7 +148,7 @@ void func_actor_207200_8014D41C(Task* arg0)
 
     obj   = arg0->spawnArg2;
     flags = obj->field_4C;
-    work  = arg0->idMap;
+    work  = arg0->work;
     if (flags != 0) {
         if (flags & 1) {
             obj->field_4C = flags & 0xFE;
@@ -183,7 +183,7 @@ void func_actor_207200_8014D49C(Task* arg0)
     Actor207200Work* work;
     s16              countdown;
 
-    work                = arg0->idMap;
+    work                = arg0->work;
     countdown           = (u16)arg0->killCountdown - 1;
     arg0->killCountdown = countdown;
     if (countdown < 0) {
@@ -232,7 +232,7 @@ void func_actor_207200_8014D5C4(Task* arg0)
     Actor207200Work* work;
     GsCOORDINATE2*   coord;
 
-    work  = arg0->idMap;
+    work  = arg0->work;
     coord = ((TmdObject*)arg0->extra)->field_8;
     if (work->field_4A6 == 0) {
         work->field_454 = coord->coord.t[0];
@@ -253,7 +253,7 @@ void func_actor_207200_8014D65C(Task* arg0)
     Actor207200Work* work;
     s32              i;
 
-    work = arg0->idMap;
+    work = arg0->work;
     i    = 1;
     if (work->field_48C != (s16)work->field_48E) {
         work->field_48E = work->field_48C;

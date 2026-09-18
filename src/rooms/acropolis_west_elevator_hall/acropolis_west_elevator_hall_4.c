@@ -28,7 +28,7 @@ extern u16      D_acropolis_west_elevator_hall_80184A04[];
 extern u16      D_acropolis_west_elevator_hall_80184C04[];
 extern u16      D_acropolis_west_elevator_hall_80184E04[];
 extern GpImgRec D_acropolis_west_elevator_hall_80185004[];
-/// Scratch state of the west-elevator-hall lift task, stored at `Task::idMap`.
+/// Scratch state of the west-elevator-hall lift task, stored at `Task::work`.
 /// `func_acropolis_west_elevator_hall_8017F64C` allocates it with
 /// `Mem_Calloc(4, 0)`, so the size below is the allocation and not a guess.
 typedef struct {
@@ -64,7 +64,7 @@ void func_acropolis_west_elevator_hall_8017F64C(Task* task)
         Task_Kill(task);
         return;
     }
-    task->idMap       = (TaskIdMap*)work;
+    task->work        = (TaskIdMap*)work;
     work->field_0     = 0;
     extra->field_C    = 0;
     coord->sub        = &Gfx_ViewCoord;
@@ -85,7 +85,7 @@ void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
     GsCOORDINATE2*     coord;
     AwehElevatorState* work;
 
-    work  = (AwehElevatorState*)task->idMap;
+    work  = (AwehElevatorState*)task->work;
     extra = (TmdObject*)task->extra;
     coord = extra->field_8;
 

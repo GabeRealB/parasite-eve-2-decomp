@@ -219,9 +219,9 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
     GpCdRec10*     entry2;
     GpAreaKey*     sessionKey2;
 
-    obj         = task->extra;
-    coord       = obj->field_8;
-    task->idMap = (TaskIdMap*)(D_actor_461800_80143894 = Mem_Calloc(0x4F8, false));
+    obj        = task->extra;
+    coord      = obj->field_8;
+    task->work = (TaskIdMap*)(D_actor_461800_80143894 = Mem_Calloc(0x4F8, false));
     if (D_actor_461800_80143894 == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
@@ -315,7 +315,7 @@ extern s16 D_actor_461800_8014389C;
 void func_actor_461800_80132660(Task* task)
 {
     GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->field_8;
-    Actor461800Work* work  = (Actor461800Work*)task->idMap;
+    Actor461800Work* work  = (Actor461800Work*)task->work;
 
     if (D_actor_461800_80143894->field_4B4 == 1) {
         func_actor_461800_80132D04();
@@ -364,7 +364,7 @@ void func_actor_461800_801329B0(Task* task)
         func_actor_461800_80132A0C,
     };
 
-    D_actor_461800_80143894 = (Actor461800Work*)task->idMap;
+    D_actor_461800_80143894 = (Actor461800Work*)task->work;
     fns[task->state](task->spawnArg2, task);
 }
 

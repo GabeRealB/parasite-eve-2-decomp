@@ -16,7 +16,7 @@ void ActorsShared8016a184(Task* arg0)
     s32                       soundId;
     s32                       pan;
 
-    work            = (ActorsShared80168d3cWork*)arg0->idMap;
+    work            = (ActorsShared80168d3cWork*)arg0->work;
     enemy           = (GpEnemy*)arg0->spawnArg2;
     work->field_426 = 4;
     work->field_41C = 0x10;

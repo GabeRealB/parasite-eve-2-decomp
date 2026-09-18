@@ -20,7 +20,7 @@ s32 func_actor_317000_80162CA0(Task* task, s32 arg1, Actor317000Msg* msg)
     SVECTOR          rot;
     s32              mode;
 
-    work  = (Actor317000Work*)task->idMap;
+    work  = (Actor317000Work*)task->work;
     coord = ((TmdObject*)task->extra)->field_8;
     mode  = msg->field_2;
     switch (mode) {

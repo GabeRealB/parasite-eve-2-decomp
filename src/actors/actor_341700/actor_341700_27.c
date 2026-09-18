@@ -68,7 +68,7 @@ const GpEnemyTaskFuncTable3 D_actor_341700_80162058 = { {
 void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1)
 {
     VECTOR                block;
-    Actor341700SubWork*   work = (Actor341700SubWork*)arg1->idMap;
+    Actor341700SubWork*   work = (Actor341700SubWork*)arg1->work;
     GpEnemyTaskFuncTable3 sp   = D_actor_341700_80162058;
 
     ((TmdObject*)arg1->extra)->field_8[1].flg = 0;
@@ -135,7 +135,7 @@ s32 func_actor_341700_8016CE28(Actor341700* arg0, s32 arg1, s32 arg2)
 /// come out in a different order.
 s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, Actor341700Cmd* cmd)
 {
-    Actor341700SubWork* work = (Actor341700SubWork*)task->idMap;
+    Actor341700SubWork* work = (Actor341700SubWork*)task->work;
 
     work->field_18 = cmd->bytes.field_0;
     work->field_19 = cmd->bytes.field_1;

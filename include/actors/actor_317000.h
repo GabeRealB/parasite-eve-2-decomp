@@ -19,7 +19,7 @@ typedef union Actor317000Fixed {
 } Actor317000Fixed;
 
 /// Work block allocated by `func_actor_317000_8016267C` (`Mem_Calloc(0x4CC)`)
-/// and parked in that task's `Task::idMap` slot -- that slot is not a
+/// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_317000_80162744` republishes the two matrices
 /// onto `TmdObject::field_1C` / `field_20`, the light/colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,

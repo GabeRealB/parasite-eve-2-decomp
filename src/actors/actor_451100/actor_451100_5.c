@@ -22,7 +22,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_451100/actor_451100_5", func_actor_451100
 /// then seeds the animation.
 ///
 /// `Mem_Calloc`'s result goes through an untyped `block` that `work` is copied
-/// from: the raw pointer is what the `Task::idMap` store and the null test read,
+/// from: the raw pointer is what the `Task::work` store and the null test read,
 /// so it stays a short-lived `$v0` quantity while the typed copy takes the
 /// callee-saved home it needs across the calls below. Assigning the call result
 /// straight to `work` - the shape the twin in `actor_161500` uses - collapses
@@ -36,11 +36,11 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     GpEnemy*         spawned;
     void*            block;
 
-    obj         = task->extra;
-    coord       = obj->field_8;
-    block       = Mem_Calloc(0x4C0, false);
-    work        = (Actor451100Work*)block;
-    task->idMap = (TaskIdMap*)block;
+    obj        = task->extra;
+    coord      = obj->field_8;
+    block      = Mem_Calloc(0x4C0, false);
+    work       = (Actor451100Work*)block;
+    task->work = (TaskIdMap*)block;
     if (block == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;

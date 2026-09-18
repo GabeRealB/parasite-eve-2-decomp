@@ -175,7 +175,7 @@ void func_dryfield_night_factory_8017FA08(Task* task)
     /* The model pointer is read twice on purpose: the second read is what
        leaves the target's `move s4, v0` copy. */
     coord = ((TmdObject*)task->extra)->field_8;
-    work  = (NightFactoryWork*)task->idMap;
+    work  = (NightFactoryWork*)task->work;
     obj   = (TmdObject*)task->extra;
     flag  = GameFlag_GetNibble(0x49);
     prev  = work->field_0;

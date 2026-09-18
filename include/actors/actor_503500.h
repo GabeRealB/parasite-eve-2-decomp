@@ -16,7 +16,7 @@
 #include "gameplay/3FB8.h"
 
 /// Work block allocated by `func_actor_503500_80132430`
-/// (`Mem_Calloc(0x48)`) and parked in that task's `Task::idMap` slot.
+/// (`Mem_Calloc(0x48)`) and parked in that task's `Task::work` slot.
 /// `func_actor_503500_801324EC` republishes the two matrices onto
 /// `TmdObject::field_1C` / `field_20` -- the colour/light matrix pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`
@@ -65,7 +65,7 @@ STATIC_ASSERT_SIZEOF(Actor503500PlaceArgs, 0x18);
 /// Message payload at `D_actor_503500_8017655C`. `func_actor_503500_80132DEC`
 /// fills it from the player actor: the three words are the translation of the
 /// `GsCOORDINATE2` at `TmdObject::field_8` (`MATRIX.t`), the three
-/// halfwords the rotation triple at +0x50/+0x52/+0x54 of that task's `idMap`
+/// halfwords the rotation triple at +0x50/+0x52/+0x54 of that task's `work`
 /// block. `func_actor_503500_80132DD4` clears the position;
 /// `func_actor_503500_80132E7C` hands the record to `Gp_DispatchMsg` as
 /// message 0x3E9 while any position word is non-zero.
@@ -82,7 +82,7 @@ typedef struct Actor503500MsgPos {
 STATIC_ASSERT_SIZEOF(Actor503500MsgPos, 0x18);
 
 /// Work block `func_actor_503500_80132778` allocates (`Mem_Calloc(0xC)`) and
-/// parks in `Task::idMap`. Each spawn packs `field_0 & 0xFFF` and
+/// parks in `Task::work`. Each spawn packs `field_0 & 0xFFF` and
 /// `field_4 & 0xF000` into the `Gp_SpawnEff` argument; `field_8` is a 16.16
 /// period whose integer half is the `Task::killCountdown` limit between
 /// spawns. Flag nibble 0x12A states 2..4 decay the first two and stretch the
@@ -118,7 +118,7 @@ STATIC_ASSERT_SIZEOF(Actor503500Slot40, 0x20);
 /// Shared field view of an `actor_503500` enemy work block.
 ///
 /// The overlay hosts a dozen separate enemies. Each parks its own work block in
-/// the `Task::idMap` slot -- that slot is *not* a `TaskIdMap` here -- and each
+/// the `Task::work` slot -- that slot is *not* a `TaskIdMap` here -- and each
 /// block is zeroed by its state-0 init, so every size below is anchored by the
 /// clearing call rather than inferred from the access spread:
 ///
@@ -555,7 +555,7 @@ typedef struct Actor503500Work2EC {
 STATIC_ASSERT_SIZEOF(Actor503500Work2EC, 0x2EC);
 
 /// Work block shape of the `actor_503500` effect tasks -- the ones whose
-/// state-0 init `Mem_Calloc`s the block instead of pointing `Task::idMap` at a
+/// state-0 init `Mem_Calloc`s the block instead of pointing `Task::work` at a
 /// static global: `func_actor_503500_80144300` (0xC0),
 /// `func_actor_503500_801448E8` (0xB4), `func_actor_503500_80144E8C` (0xD0),
 /// `func_actor_503500_801455A4` (0x44), `func_actor_503500_80145A2C` (0xAC)
@@ -898,7 +898,7 @@ typedef struct Actor503500Work774C0 {
 STATIC_ASSERT_SIZEOF(Actor503500Work774C0, 0xF0);
 
 /// The 0x4CC effect work block, allocated by `func_actor_503500_8014642C`
-/// (`Mem_Calloc(0x4CC)`) and parked in that task's `Task::idMap` slot -- that
+/// (`Mem_Calloc(0x4CC)`) and parked in that task's `Task::work` slot -- that
 /// slot is not a `TaskIdMap` here. Unlike the tasks covered by
 /// `Actor503500ObjWork` this one exits through `ActorsShared801327b4`, which
 /// only calls `Gp_EnemyTaskExit`, so the block does not open with a `GpObj`.
@@ -943,7 +943,7 @@ typedef struct Actor503500Effect4CC {
 STATIC_ASSERT_SIZEOF(Actor503500Effect4CC, 0x4CC);
 
 /// `Task` as this overlay's enemies use it. The layout is `Task`'s
-/// (`include/main/task.h`); only two slots are retyped: `idMap` holds the
+/// (`include/main/task.h`); only two slots are retyped: `work` holds the
 /// actor's own work block rather than a `TaskIdMap`, and `spawnArg2` is the
 /// `GpEnemy` that `Gp_AllocEnemy` parked there (the same object the gameplay
 /// code also reaches through its sparse `GpObj5D` view).

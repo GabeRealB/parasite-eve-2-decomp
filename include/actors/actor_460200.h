@@ -6,7 +6,7 @@
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
-/// Work block this overlay's actors hang off their task's `Task::idMap` slot
+/// Work block this overlay's actors hang off their task's `Task::work` slot
 /// (0x1C), which is not a `TaskIdMap` here. `ActorsShared80132514Work`
 /// describes the same block from the animation-reset path's side.
 ///
@@ -41,7 +41,7 @@ typedef struct Actor460200Work {
 STATIC_ASSERT_SIZEOF(Actor460200Work, 0x4F8);
 
 /// Work block of the actors whose spawn routine allocates it with
-/// `Mem_Calloc(0x4F8, 0)` and hangs it off `Task::idMap` (0x1C); the same
+/// `Mem_Calloc(0x4F8, 0)` and hangs it off `Task::work` (0x1C); the same
 /// `Actor460200Work` prefix through `animArg`. Past that it diverges from the
 /// 0x4FC-sized carriers `Actor460200Work` describes, so only the one field
 /// this body reaches is described rather than a whole-block size that would

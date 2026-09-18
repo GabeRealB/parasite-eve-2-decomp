@@ -6,7 +6,7 @@
 #include "main/tmd.h"
 
 /// Cutscene work block the linking rooms' factory task allocates as 0xC zeroed
-/// bytes in its state 0 and parks at `Task::idMap` (0x1C) -- that slot is *not*
+/// bytes in its state 0 and parks at `Task::work` (0x1C) -- that slot is *not*
 /// a `TaskIdMap` here. The same three bytes `RoomsShared8017fdc8` reads.
 typedef struct {
     /* 0x0 */ byte pad_0[0x8];
@@ -18,7 +18,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(RoomsShared8017fbf4Work, 0xC);
 
 /// State 0 of the linking rooms' factory task: allocates the 0xC cutscene work
-/// block into `Task::idMap` and re-dresses the task's model off the cap task in
+/// block into `Task::work` and re-dresses the task's model off the cap task in
 /// `Task::spawnArg2`. Both bits of the model's `field_C` follow the cap model's,
 /// the root coordinate is seeded with the factory's position and takes the cap
 /// model's coordinate as its `sub`, and the cap model's light and colour
@@ -40,7 +40,7 @@ void RoomsShared8017fbf4(Task* task)
         Task_Kill(task);
         return;
     }
-    task->idMap    = (TaskIdMap*)work;
+    task->work     = (TaskIdMap*)work;
     flags          = model->field_C | 0x80;
     model->field_C = flags;
     if (!(capModel->field_C & 0x80)) {

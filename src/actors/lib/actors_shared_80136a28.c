@@ -9,7 +9,7 @@ void ActorsShared80136a28(GpEnemy* arg0, Task* arg1)
     ActorsShared80136a28Work* work;
     u16                       temp_v0;
 
-    work = (ActorsShared80136a28Work*)arg1->idMap;
+    work = (ActorsShared80136a28Work*)arg1->work;
     switch (work->field_EC) {
         case 0:
             Gp_UnlinkObj(&work->obj40);

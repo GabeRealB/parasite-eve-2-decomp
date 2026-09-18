@@ -11,7 +11,7 @@
 #include "main/sound.h"
 #include "main/mem.h"
 
-/// The overlay's event/controller task, whose `idMap` holds an
+/// The overlay's event/controller task, whose `work` holds an
 /// `Actor444000EventWork`.
 extern Task* D_actor_444000_80161860;
 
@@ -60,7 +60,7 @@ extern GpAnimSet* D_actor_444000_8014430C[4];
 /// `field_2C`, then clear it so the action fires once.
 void func_actor_444000_80132054(Task* task)
 {
-    Actor444000EventWork* work = (Actor444000EventWork*)task->idMap;
+    Actor444000EventWork* work = (Actor444000EventWork*)task->work;
     Actor444000EventWork* other;
     Actor444000EventWork* target;
     GpAnimArg             msg;
@@ -94,7 +94,7 @@ void func_actor_444000_80132054(Task* task)
                 Gp_DispatchMsg(work->field_20, 0x3F4, (s32)&msg, 0);
             }
             /* Same one-shot cue as func_actor_444000_80132608. */
-            other = (Actor444000EventWork*)D_actor_444000_80161860->idMap;
+            other = (Actor444000EventWork*)D_actor_444000_80161860->work;
             if (other->field_2A == 0) {
                 SndEvt_EnqueueType6(0x54280005, 0, 0);
                 other->field_2A = 1;
@@ -103,7 +103,7 @@ void func_actor_444000_80132054(Task* task)
         case 3:
             Gp_PulseState1C();
             Gp_StateC08.field_6 |= 1;
-            target               = (Actor444000EventWork*)task->idMap;
+            target               = (Actor444000EventWork*)task->work;
             if (target->field_20 != NULL) {
                 msg.field_0  = D_actor_444000_8014430C;
                 msg.field_4  = 0;
@@ -125,7 +125,7 @@ void func_actor_444000_801321FC(s32 arg0)
 {
     Actor444000EventWork* work;
 
-    work = (Actor444000EventWork*)D_actor_444000_80161860->idMap;
+    work = (Actor444000EventWork*)D_actor_444000_80161860->work;
     switch (arg0) {
         case 0:
             Game_Session->field_52 = 1;
@@ -175,7 +175,7 @@ void func_actor_444000_801321FC(s32 arg0)
 /// this task.
 void func_actor_444000_80132358(Task* task)
 {
-    Actor444000EventWork* work = (Actor444000EventWork*)task->idMap;
+    Actor444000EventWork* work = (Actor444000EventWork*)task->work;
     Actor444000EventWork* alloc;
     Actor444000EventWork* other;
     s32                   state;
@@ -200,8 +200,8 @@ void func_actor_444000_80132358(Task* task)
             if (D_80071075 != 0) {
                 return;
             }
-            alloc       = (Actor444000EventWork*)Mem_Calloc(sizeof(Actor444000EventWork), false);
-            task->idMap = (TaskIdMap*)alloc;
+            alloc      = (Actor444000EventWork*)Mem_Calloc(sizeof(Actor444000EventWork), false);
+            task->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 Task_Kill(task);
             } else {
@@ -210,7 +210,7 @@ void func_actor_444000_80132358(Task* task)
                 D_actor_444000_80161860 = task;
             }
             if (task->spawnArg1 != 0) {
-                work             = (Actor444000EventWork*)task->idMap;
+                work             = (Actor444000EventWork*)task->work;
                 work->field_28.h = Game_Session->field_4;
                 Gp_MsgPlayerWeapon(0);
                 func_800E8634((s32)&D_actor_444000_80144634, 0, (s32)&D_actor_444000_8014488C);
@@ -224,7 +224,7 @@ void func_actor_444000_80132358(Task* task)
             task->killCountdown = timer;
             if (timer >= 0x2BD) {
                 Gp_MsgPlayerWeapon(0);
-                other = (Actor444000EventWork*)D_actor_444000_80161860->idMap;
+                other = (Actor444000EventWork*)D_actor_444000_80161860->work;
                 if (other->field_30 == 0) {
                     Gp_StateF0.field_6      = 0;
                     Gp_StateF0.field_1      = 0xF;
@@ -264,7 +264,7 @@ void func_actor_444000_80132358(Task* task)
 /// Play the event's sound cue once, latching a flag so a repeat call is a no-op.
 void func_actor_444000_80132608(void)
 {
-    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->idMap;
+    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
 
     if (work->field_2A == 0) {
         SndEvt_EnqueueType6(0x54280005, 0, 0);
@@ -275,7 +275,7 @@ void func_actor_444000_80132608(void)
 /// Forward a message to the slot-3 task the event work block carries.
 void func_actor_444000_8013265C(s32 arg0)
 {
-    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->idMap;
+    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
 
     Gp_DispatchMsg(work->field_20, 0x3F3, arg0, 0);
 }
@@ -283,7 +283,7 @@ void func_actor_444000_8013265C(s32 arg0)
 /// Kill the subordinate task the event work block carries, if it is still alive.
 void func_actor_444000_80132694(void)
 {
-    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->idMap;
+    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
 
     if (work->field_24 != NULL) {
         Task_Kill(work->field_24);

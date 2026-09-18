@@ -8,7 +8,7 @@ extern s8  D_8011540A;
 
 void func_actor_103700_8013537C(Task* task)
 {
-    Actor103700Work* work = (Actor103700Work*)task->idMap;
+    Actor103700Work* work = (Actor103700Work*)task->work;
     s32              state;
 
     switch (D_8011540A) {

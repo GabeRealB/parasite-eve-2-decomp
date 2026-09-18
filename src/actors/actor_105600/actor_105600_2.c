@@ -69,7 +69,7 @@ void func_actor_105600_80133C3C(Task* arg0)
     GsCOORDINATE2*   coord;
 
     delta = (VECTOR*)(*(u8**)G_SCRATCH_HEAD -= 0x20);
-    work  = (Actor105600Work*)arg0->idMap;
+    work  = (Actor105600Work*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->field_8;
     switch (work->field_6A8) {
         case 0:
@@ -248,7 +248,7 @@ void func_actor_105600_80134FD0(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->idMap   = (TaskIdMap*)work;
+    arg1->work    = (TaskIdMap*)work;
     tmd->field_C  = 0;
     scratch       = (Actor105600PlaceScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x38);
     tmd->field_1C = &work->lightMtx;
@@ -393,7 +393,7 @@ void func_actor_105600_80135744(GpEnemy* ctx, Task* actor)
         Gp_DestroyEnemy(ctx, actor);
         return;
     }
-    actor->idMap    = (TaskIdMap*)work;
+    actor->work     = (TaskIdMap*)work;
     obj->field_C    = 0;
     coord->flg      = 0;
     obj->field_1C   = &work->field_45C;
@@ -613,7 +613,7 @@ void func_actor_105600_80135CDC(GpEnemy* ctx, Task* actor)
     s32              i;
     u8               flags;
 
-    work  = (Actor105600Work*)actor->idMap;
+    work  = (Actor105600Work*)actor->work;
     model = (TmdObject*)actor->extra;
     coord = model->field_8;
     switch (D_801153F4) {
@@ -632,7 +632,7 @@ void func_actor_105600_80135CDC(GpEnemy* ctx, Task* actor)
     if (ctx->field_4C != 0) {
         spawn    = (Actor105600Ctx*)actor->spawnArg2;
         flags    = spawn->field_4C;
-        flagWork = (Actor105600Work*)actor->idMap;
+        flagWork = (Actor105600Work*)actor->work;
         if ((flags & 2) && (flagWork->field_6B8 == 0)) {
             spawn->field_4C     = flags & 0xFD;
             flagWork->field_6A6 = 0xA;
@@ -647,7 +647,7 @@ void func_actor_105600_80135CDC(GpEnemy* ctx, Task* actor)
         func_actor_105600_80133358(actor);
     }
     moveCoord              = ((TmdObject*)actor->extra)->field_8;
-    moveWork               = (Actor105600Work*)actor->idMap;
+    moveWork               = (Actor105600Work*)actor->work;
     moveWork->field_678    = moveCoord->coord.t[0];
     moveWork->field_67C    = moveCoord->coord.t[1];
     moveWork->field_680    = moveCoord->coord.t[2];
@@ -656,7 +656,7 @@ void func_actor_105600_80135CDC(GpEnemy* ctx, Task* actor)
         moveCoord->coord.t[1] += 0x80;
     }
     moveCoord->coord.t[2] += (s32)(moveCoord->coord.m[2][2] * moveWork->field_69C) >> 0xC;
-    animWork               = (Actor105600Work*)actor->idMap;
+    animWork               = (Actor105600Work*)actor->work;
     i                      = 1;
     if (animWork->field_694 != animWork->field_696) {
         animWork->field_696 = (s16)(u16)animWork->field_694;
@@ -725,7 +725,7 @@ void func_actor_105600_80136004(Task* arg0)
     head                  = *(u8**)G_SCRATCH_HEAD;
     delta                 = (VECTOR*)(head - 0x10);
     *(u8**)G_SCRATCH_HEAD = (u8*)delta;
-    work                  = (Actor105600Work*)arg0->idMap;
+    work                  = (Actor105600Work*)arg0->work;
     state                 = work->field_6A8;
     coord                 = ((TmdObject*)arg0->extra)->field_8;
     switch (state) {

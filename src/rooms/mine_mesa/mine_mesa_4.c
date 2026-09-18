@@ -18,7 +18,7 @@ extern Task* D_mine_mesa_80189B58;
 extern Task* RoomsShared8018459cTask;
 
 /// Head-aim record `func_mine_mesa_8017E2A4` allocates and parks in
-/// `Task::idMap`, handed straight to `func_800B17D4` as its `arg2`: the yaw and
+/// `Task::work`, handed straight to `func_800B17D4` as its `arg2`: the yaw and
 /// pitch clamps that function widens against the head's current pose, and the
 /// `rate` fraction of the remaining angle this overlay ramps one 0x100 step per
 /// frame.
@@ -78,7 +78,7 @@ void func_mine_mesa_8017E074(Task* arg0)
 
 /// Head-aim state of the mesa's run task, run only while `D_801156F9` is clear:
 /// a missing slot-3 or slot-0xA task parks the state machine on -1. State 0
-/// allocates the `MineMesaHeadAim` record into `Task::idMap` and seeds its
+/// allocates the `MineMesaHeadAim` record into `Task::work` and seeds its
 /// clamps to 0x300 yaw and 0x200 pitch; state 1 ramps its `rate` up toward
 /// 0x1000 while `Task::spawnArg1` is set and back down toward 0 while it is
 /// not, then hands the record to `func_800B17D4` between the slot-3 task whose
@@ -106,13 +106,13 @@ void func_mine_mesa_8017E15C(Task* arg0)
             case 0:
                 aim = Mem_Calloc(sizeof(MineMesaHeadAim), false);
                 if (aim != NULL) {
-                    arg0->idMap     = (TaskIdMap*)aim;
+                    arg0->work      = (TaskIdMap*)aim;
                     aim->yawLimit   = 0x300;
                     aim->pitchLimit = 0x200;
                     arg0->state++;
                         /* fallthrough */
                     case 1:
-                        aim = (MineMesaHeadAim*)arg0->idMap;
+                        aim = (MineMesaHeadAim*)arg0->work;
                         if (arg0->spawnArg1 != 0) {
                             rateUp    = aim->rate + 0x100;
                             aim->rate = rateUp;
@@ -140,7 +140,7 @@ void func_mine_mesa_8017E15C(Task* arg0)
 
 /// Head-aim state of the mesa's tracked task, run only while `D_801156F9` is
 /// clear: a missing `Game_GetPtrSlot(0xA)` task parks the state machine on -1.
-/// State 0 allocates the `MineMesaHeadAim` record into `Task::idMap` and seeds
+/// State 0 allocates the `MineMesaHeadAim` record into `Task::work` and seeds
 /// its clamps to 0x300 yaw and 0x100 pitch; state 1 ramps its `rate` up toward
 /// 0x1000 while `Task::spawnArg1` is set and back down toward 0 while it is
 /// not, then hands the record to `func_800B17D4` between the
@@ -164,13 +164,13 @@ void func_mine_mesa_8017E2A4(Task* arg0)
             case 0:
                 aim = Mem_Calloc(sizeof(MineMesaHeadAim), false);
                 if (aim != NULL) {
-                    arg0->idMap     = (TaskIdMap*)aim;
+                    arg0->work      = (TaskIdMap*)aim;
                     aim->yawLimit   = 0x300;
                     aim->pitchLimit = 0x100;
                     arg0->state++;
                         /* fallthrough */
                     case 1:
-                        aim = (MineMesaHeadAim*)arg0->idMap;
+                        aim = (MineMesaHeadAim*)arg0->work;
                         if (arg0->spawnArg1 != 0) {
                             rate      = aim->rate + 0x100;
                             aim->rate = rate;

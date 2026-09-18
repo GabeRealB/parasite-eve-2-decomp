@@ -7,10 +7,10 @@
 // Types — cooperative task system (src/main/task.c)
 // =============================================================================
 
-struct _Task;
+struct Task;
 
 /// Callback function in a `_Task`.
-typedef void (*TaskFunc)(struct _Task*);
+typedef void (*TaskFunc)(struct Task*);
 
 /// Fixed-size table of `TaskFunc` callbacks. Copied onto the stack by state
 /// dispatchers (e.g. `GameFlow_DispatchTable`) so the call uses a local jump table.
@@ -75,7 +75,7 @@ typedef struct {
 /// The head node is not an element in the linked list and points to the first
 /// and the last elements.
 typedef struct _TaskNode {
-    struct _Task*     next;
+    struct Task*      next;
     struct _TaskNode* prev;
 } TaskNode;
 
@@ -87,7 +87,7 @@ typedef struct _TaskIdPair {
 STATIC_ASSERT_SIZEOF(TaskIdPair, 0x2);
 
 /// Index + pointer into a TaskIdPair table. Allocated (Mem_Calloc(8)) and stored
-/// at Task::idMap by Task_AllocIdMap; read by Stage_ApplyTableEntryWhenIdle / Stage_LoadOrCountdownTask.
+/// at Task::work by Task_AllocIdMap; read by Stage_ApplyTableEntryWhenIdle / Stage_LoadOrCountdownTask.
 typedef struct _TaskIdMap {
     /* 0x0 */ u16         index;
     /* 0x2 */ byte        pad_2[2];
@@ -110,26 +110,26 @@ STATIC_ASSERT_SIZEOF(TaskIdMap, 0x8);
 /// model, from `Task_CountdownCallback` once `killCountdown` runs out) and marks
 /// the task with `spawnType` 0xFF, and the exec pass that sees the mark unlinks
 /// and frees the task once the callback has returned.
-typedef struct _Task {
-    TaskNode      node;          // Intrusive list links; a task is its own list node
-    struct _Task* parent;        // Owning task; NULL when the task sits at the top level
-    struct _Task* firstChild;    // Head of the child ring; NULL when childless
-    struct _Task* nextSibling;   // Next child in that ring; the task itself when it is an only child
-    TaskFunc      callback;      // Per-frame entry point, called by the exec passes
-    TaskFunc      exitCallback;  // Runs as the task is torn down; spawned tasks get `Task_Kill`
-    TaskIdMap*    idMap;         // Optional task-owned pointer, freed on kill; `Task_AllocIdMap` stores a `TaskIdMap`
-    void*         spawnArg2;     // Second spawn argument; its meaning is the spawned type's
-    void*         field_24;      // The task's `GpMsgEntry` id/handler table, walked by `Gp_DispatchMsg`
-    u8            spawnType;     // Body kind (0 none, 1 TMD model, 2 2D display); 0xFF marks a task to collect
-    u8            priority;      // List position, lower runs earlier; also the bucket the filtered passes select by
-    s16           killCountdown; // Frames left before the body is released, counted down by `Task_CountdownCallback`
-    void*         extra;         // The body the task owns, attached and released according to `spawnType`
-    s32           state;         // Task state; handlers dispatch through `funcs[state]` of a copied `TaskFuncTableN`
-    s32           spawnArg1;     // First spawn argument; its meaning is the spawned type's
-    u8            flags;         // Flag byte; `Task_RequestKill` writes 0xFF here and `Task_PollKill` consumes it
-    byte          unknown_39[3];
-    s32           extraState;    // Kill-request payload, set by `Task_RequestKill` and returned by `Task_PollKill`
-    byte          unknown_40[8];
+typedef struct Task {
+    TaskNode     node;          // Intrusive list links; a task is its own list node
+    struct Task* parent;        // Owning task; NULL when the task sits at the top level
+    struct Task* firstChild;    // Head of the child ring; NULL when childless
+    struct Task* nextSibling;   // Next child in that ring; the task itself when it is an only child
+    TaskFunc     callback;      // Per-frame entry point, called by the exec passes
+    TaskFunc     exitCallback;  // Runs as the task is torn down; spawned tasks get `Task_Kill`
+    TaskIdMap*   work;          // The per-task work block, allocated by the spawner and freed on kill
+    void*        spawnArg2;     // Second spawn argument; its meaning is the spawned type's
+    void*        field_24;      // The task's `GpMsgEntry` id/handler table, walked by `Gp_DispatchMsg`
+    u8           spawnType;     // Body kind (0 none, 1 TMD model, 2 2D display); 0xFF marks a task to collect
+    u8           priority;      // List position, lower runs earlier; also the bucket the filtered passes select by
+    s16          killCountdown; // Frames left before the body is released, counted down by `Task_CountdownCallback`
+    void*        extra;         // The body the task owns, attached and released according to `spawnType`
+    s32          state;         // Task state; handlers dispatch through `funcs[state]` of a copied `TaskFuncTableN`
+    s32          spawnArg1;     // First spawn argument; its meaning is the spawned type's
+    u8           flags;         // Flag byte; `Task_RequestKill` writes 0xFF here and `Task_PollKill` consumes it
+    byte         unknown_39[3];
+    s32          extraState;    // Kill-request payload, set by `Task_RequestKill` and returned by `Task_PollKill`
+    byte         unknown_40[8];
 } Task;
 STATIC_ASSERT_SIZEOF(Task, 0x48);
 

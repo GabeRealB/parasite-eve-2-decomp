@@ -8,11 +8,11 @@
 #include "actors/actors_shared_80168d3c.h"
 
 /// Moves the task to `state` and rewinds the work block's state machine.
-/// Inlined: each call reloads `idMap`, and the parameter copy is what puts
+/// Inlined: each call reloads `work`, and the parameter copy is what puts
 /// the task in `$a1` in `ActorsShared8016945c`.
 static inline void ActorsShared_SetTaskState(Task* task, s32 state)
 {
-    ActorsShared80168d3cWork* work = (ActorsShared80168d3cWork*)task->idMap;
+    ActorsShared80168d3cWork* work = (ActorsShared80168d3cWork*)task->work;
 
     task->state     = state;
     work->field_420 = 0;
@@ -22,7 +22,7 @@ static inline void ActorsShared_SetTaskState(Task* task, s32 state)
 /// Jumps the work block's state machine to `state`, sub-state 0.
 static inline void ActorsShared_SetWorkState(Task* task, s32 state)
 {
-    ActorsShared80168d3cWork* work = (ActorsShared80168d3cWork*)task->idMap;
+    ActorsShared80168d3cWork* work = (ActorsShared80168d3cWork*)task->work;
 
     work->field_420 = state;
     work->field_422 = 0;

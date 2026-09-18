@@ -19,7 +19,7 @@ void func_actor_341700_8016A630(Task* arg0);
 
 void func_actor_341700_80168124(Task* arg0)
 {
-    Actor341700Work* work                = (Actor341700Work*)arg0->idMap;
+    Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
         func_actor_341700_8016A568,
         func_actor_341700_8016A630,

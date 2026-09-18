@@ -31,7 +31,7 @@ s32 func_actor_510900_8013C240(Task* task)
     u8                    view;
 
     obj    = (Actor510900Obj2C*)task->extra;
-    work   = (Actor510900ChildAnim*)task->idMap;
+    work   = (Actor510900ChildAnim*)task->work;
     ctx    = (Actor510900Ctx*)task->spawnArg2;
     misses = 0;
     view   = Gp_GetViewIndex();

@@ -30,7 +30,7 @@ s32 func_actor_310100_80161E24(Task* task)
     s32              i;
     u16              step;
 
-    work = (Actor310100Work*)task->idMap;
+    work = (Actor310100Work*)task->work;
     obj  = (GpObj38*)((TmdObject*)task->extra)->field_8;
     rec  = Gp_AnimGetRec(&work->anim, &work->slots[1]);
     if (rec != work->field_4EC) {
@@ -73,11 +73,11 @@ void func_actor_310100_80161F80(Task* task)
     u16              ok;
     s32              i;
 
-    work = (Actor310100Work*)task->idMap;
+    work = (Actor310100Work*)task->work;
     if (func_actor_310100_80161E24(task) & 0xFFFF) {
         seed = D_actor_310100_8017989C[work->field_4F8][work->field_4FA];
         if (D_actor_310100_8017989C[work->field_4F8][work->field_4FA] >= 0) {
-            anim = (Actor310100Work*)task->idMap;
+            anim = (Actor310100Work*)task->work;
             i    = 1;
             do {
                 func_800B4114(&anim->anim, i & 0xFFFF, seed & 0xFFFF, 0, 8);
@@ -86,7 +86,7 @@ void func_actor_310100_80161F80(Task* task)
             work->field_4FA = seed;
         }
     }
-    player = ((Actor310100Work*)task->idMap)->field_4E8;
+    player = ((Actor310100Work*)task->work)->field_4E8;
     if (player == NULL || Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
         ok = 1;
     } else {
@@ -95,7 +95,7 @@ void func_actor_310100_80161F80(Task* task)
     if (ok) {
         seed = D_actor_310100_8017989C[0][work->field_4F6];
         if (D_actor_310100_8017989C[0][work->field_4F6] >= 0) {
-            msg = (Actor310100Work*)task->idMap;
+            msg = (Actor310100Work*)task->work;
             if (msg->field_4E8 != NULL) {
                 arg.field_0  = &D_actor_310100_801797FC;
                 arg.field_4  = seed;
@@ -127,7 +127,7 @@ void func_actor_310100_801620FC(Task* task)
     GpAreaPlace*     place;
     u8               mode;
 
-    work = (Actor310100Work*)((Task*)task->spawnArg2)->idMap;
+    work = (Actor310100Work*)((Task*)task->spawnArg2)->work;
     switch (task->state) {
         case 0:
             D_8007106B = 2;
@@ -164,7 +164,7 @@ void func_actor_310100_801620FC(Task* task)
             coord->coord.t[1] = place->field_6;
             coord->coord.t[2] = place->field_8;
             Gfx_RotMatrixY(&coord->coord, place->field_A, 0);
-            display            = (Actor310100Work*)work->field_4E4->idMap;
+            display            = (Actor310100Work*)work->field_4E4->work;
             display->field_4F0 = 0;
             Task_Kill(task);
             Display_ResetHeapWrapper();
@@ -191,7 +191,7 @@ void func_actor_310100_80162284(Task* task)
     GpAreaPlace*     place;
     u8               mode;
 
-    work = (Actor310100Work*)((Task*)task->spawnArg2)->idMap;
+    work = (Actor310100Work*)((Task*)task->spawnArg2)->work;
     switch (task->state) {
         case 0:
             D_8007106B = 2;
@@ -228,7 +228,7 @@ void func_actor_310100_80162284(Task* task)
             coord->coord.t[1] = place->field_6;
             coord->coord.t[2] = place->field_8;
             Gfx_RotMatrixY(&coord->coord, place->field_A, 0);
-            display            = (Actor310100Work*)work->field_4E4->idMap;
+            display            = (Actor310100Work*)work->field_4E4->work;
             display->field_4F0 = 0;
             Task_Kill(task);
             Display_ResetHeapWrapper();
@@ -239,7 +239,7 @@ void func_actor_310100_80162284(Task* task)
 void func_actor_310100_80161F80(Task* task);
 
 /// Spawns the display model for `D_actor_310100_801798FC`: allocates the 0x50C
-/// work block into `task->idMap`, hands it the view coordinate and the two TMD
+/// work block into `task->work`, hands it the view coordinate and the two TMD
 /// buffers, binds the animation set selected by the display id (0x6C or 0x6D),
 /// seeds its 18 slots, points `task->field_24` at `D_actor_310100_801798B4` and
 /// applies the nested area record matching that id through `Gp_SetTmdBytes`.
@@ -255,17 +255,17 @@ void func_actor_310100_80162414(Task* task, s32 arg1)
     u8               id;
     s32              i;
 
-    coord       = ((TmdObject*)task->extra)->field_8;
-    obj         = (TmdObject*)task->extra;
-    work        = (Actor310100Work*)Mem_Malloc(0x50C, false);
-    mode        = arg1;
-    task->idMap = (TaskIdMap*)work;
+    coord      = ((TmdObject*)task->extra)->field_8;
+    obj        = (TmdObject*)task->extra;
+    work       = (Actor310100Work*)Mem_Malloc(0x50C, false);
+    mode       = arg1;
+    task->work = (TaskIdMap*)work;
     if (work == NULL) {
         Task_Kill(task);
         return;
     }
     work->field_508 = arg1;
-    Mem_Set(task->idMap, 0U, 0x50CU);
+    Mem_Set(task->work, 0U, 0x50CU);
     work->field_4E8 = Game_GetPtrSlot(3);
     coord->sub      = &Gfx_ViewCoord;
     Tmd_AllocBuffers(obj);
@@ -281,7 +281,7 @@ void func_actor_310100_80162414(Task* task, s32 arg1)
     }
     i      = 1;
     active = task->spawnArg1;
-    work2  = (Actor310100Work*)task->idMap;
+    work2  = (Actor310100Work*)task->work;
     do {
         work2->slots[i & 0xFFFF].field_9 = 0x10;
         Gp_AnimResetSlot(&work2->anim, i & 0xFFFF, active);
@@ -315,17 +315,17 @@ void func_actor_310100_801625E4(Task* task, s32 arg1)
     u8               id;
     s32              i;
 
-    coord       = ((TmdObject*)task->extra)->field_8;
-    obj         = (TmdObject*)task->extra;
-    work        = (Actor310100Work*)Mem_Malloc(0x50C, false);
-    mode        = arg1;
-    task->idMap = (TaskIdMap*)work;
+    coord      = ((TmdObject*)task->extra)->field_8;
+    obj        = (TmdObject*)task->extra;
+    work       = (Actor310100Work*)Mem_Malloc(0x50C, false);
+    mode       = arg1;
+    task->work = (TaskIdMap*)work;
     if (work == NULL) {
         Task_Kill(task);
         return;
     }
     work->field_508 = arg1;
-    Mem_Set(task->idMap, 0U, 0x50CU);
+    Mem_Set(task->work, 0U, 0x50CU);
     work->field_4E8 = Game_GetPtrSlot(3);
     coord->sub      = &Gfx_ViewCoord;
     Tmd_AllocBuffers(obj);
@@ -342,7 +342,7 @@ void func_actor_310100_801625E4(Task* task, s32 arg1)
     i               = 1;
     work->field_504 = task->spawnArg1;
     active          = work->field_504;
-    work2           = (Actor310100Work*)task->idMap;
+    work2           = (Actor310100Work*)task->work;
     do {
         work2->slots[i & 0xFFFF].field_9 = 0x10;
         Gp_AnimResetSlot(&work2->anim, i & 0xFFFF, active);
@@ -381,8 +381,8 @@ void func_actor_310100_801627BC(Task* task)
     }
     switch (task->state) {
         case 0:
-            task->idMap = (TaskIdMap*)Mem_Malloc(0x50C, false);
-            if (task->idMap == NULL) {
+            task->work = (TaskIdMap*)Mem_Malloc(0x50C, false);
+            if (task->work == NULL) {
                 Gp_DestroyEnemy(task->spawnArg2, task);
                 return;
             }
@@ -398,7 +398,7 @@ void func_actor_310100_801627BC(Task* task)
                 on = 0;
             }
             if (on) {
-                work  = (Actor310100Work*)task->idMap;
+                work  = (Actor310100Work*)task->work;
                 place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
                 while (place->field_0 != 0xFF && place->field_0 != 0x6C) {
                     place++;
@@ -422,7 +422,7 @@ void func_actor_310100_801627BC(Task* task)
                 on = 0;
             }
             if (!on) {
-                work2 = (Actor310100Work*)task->idMap;
+                work2 = (Actor310100Work*)task->work;
                 task->state--;
                 Task_Kill(work2->field_4E4);
                 work2->field_4E4 = NULL;
@@ -446,14 +446,14 @@ void func_actor_310100_801629FC(Task* task)
     u16              st;
     u16              on;
 
-    work = (Actor310100Work*)task->idMap;
+    work = (Actor310100Work*)task->work;
     st   = CdCmd_Queue.field_1F8;
     if (st == 3) {
         task->state = st;
     }
     switch (task->state) {
         case 0:
-            task->idMap = (TaskIdMap*)(work = Mem_Malloc(0x50C, false));
+            task->work = (TaskIdMap*)(work = Mem_Malloc(0x50C, false));
             if (work == NULL) {
                 Gp_DestroyEnemy(task->spawnArg2, task);
                 return;
@@ -506,7 +506,7 @@ void func_actor_310100_801629FC(Task* task)
                 on = 0;
             }
             if (!on) {
-                work->field_504 = ((Actor310100Work*)work->field_4E4->idMap)->field_504;
+                work->field_504 = ((Actor310100Work*)work->field_4E4->work)->field_504;
                 task->state--;
                 Task_Kill(work->field_4E4);
                 work->field_4E4 = NULL;
@@ -519,7 +519,7 @@ void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, Actor310100Plac
 {
     Actor310100Work* work;
 
-    work = (Actor310100Work*)task->idMap;
+    work = (Actor310100Work*)task->work;
     if (work->field_4E4 != NULL) {
         Task_Kill(work->field_4E4);
     }
@@ -535,8 +535,8 @@ void func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2)
     Actor310100Work* work;
     Actor310100Work* display;
 
-    work    = (Actor310100Work*)task->idMap;
-    display = (Actor310100Work*)work->field_4E4->idMap;
+    work    = (Actor310100Work*)task->work;
+    display = (Actor310100Work*)work->field_4E4->work;
     if (arg2 == 3) {
         display->field_4F0 = 2;
         return;
@@ -568,13 +568,13 @@ void func_actor_310100_80162D50(Task* task, s32 msgId, Actor310100Placement* pla
     u16              active;
     s32              i;
 
-    work            = (Actor310100Work*)task->idMap;
+    work            = (Actor310100Work*)task->work;
     display         = work->field_4E4;
-    disp            = (Actor310100Work*)display->idMap;
+    disp            = (Actor310100Work*)display->work;
     disp->field_4F0 = 1;
     if (placement->pos.vx == 0) {
         disp->field_4F6 = placement->pos.vy;
-        msgDisp         = (Actor310100Work*)display->idMap;
+        msgDisp         = (Actor310100Work*)display->work;
         vy              = placement->pos.vy;
         vz              = placement->pos.vz;
         if (msgDisp->field_4E8 != NULL) {
@@ -588,7 +588,7 @@ void func_actor_310100_80162D50(Task* task, s32 msgId, Actor310100Placement* pla
     } else {
         active    = placement->pos.vy;
         blend     = placement->pos.vz;
-        resetDisp = (Actor310100Work*)display->idMap;
+        resetDisp = (Actor310100Work*)display->work;
         i         = 1;
         if (blend == 0) {
             do {
@@ -615,7 +615,7 @@ void func_actor_310100_80162EC8(Task* task, s32 msgId, Actor310100Placement* pla
     Actor310100Work* work;
     GsCOORDINATE2*   coord;
 
-    work              = (Actor310100Work*)task->idMap;
+    work              = (Actor310100Work*)task->work;
     coord             = ((TmdObject*)work->field_4E4->extra)->field_8;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
@@ -630,7 +630,7 @@ void func_actor_310100_80162F34(Task* task)
 {
     Actor310100Work* work;
 
-    work = (Actor310100Work*)task->idMap;
+    work = (Actor310100Work*)task->work;
     if (work->field_4E4 != NULL) {
         Task_Kill(work->field_4E4);
         work->field_4E4 = NULL;
@@ -656,7 +656,7 @@ void func_actor_310100_80162F88(Task* task)
     VECTOR           vec;
     TmdObject*       extra;
 
-    work = (Actor310100Work*)task->idMap;
+    work = (Actor310100Work*)task->work;
     switch (task->state) {
         case 0:
             func_actor_310100_80162414(task, 0x6C);
@@ -700,7 +700,7 @@ void func_actor_310100_8016309C(Task* task)
     VECTOR           vec;
     TmdObject*       extra;
 
-    work = (Actor310100Work*)task->idMap;
+    work = (Actor310100Work*)task->work;
     switch (task->state) {
         case 0:
             func_actor_310100_80162414(task, 0x6D);
@@ -740,7 +740,7 @@ void func_actor_310100_801631B0(Task* task)
     Actor310100Vec   pos;
     TmdObject*       extra;
 
-    work = (Actor310100Work*)task->idMap;
+    work = (Actor310100Work*)task->work;
     switch (task->state) {
         case 0:
             func_actor_310100_801625E4(task, 0x6C);
@@ -773,7 +773,7 @@ void func_actor_310100_801632B0(Task* task)
     Actor310100Vec   pos;
     TmdObject*       extra;
 
-    work = (Actor310100Work*)task->idMap;
+    work = (Actor310100Work*)task->work;
     switch (task->state) {
         case 0:
             func_actor_310100_801625E4(task, 0x6D);

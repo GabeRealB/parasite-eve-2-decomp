@@ -8,7 +8,7 @@
 #include "main/tmd.h"
 
 /// Per-frame task that turns the player (`Game_GetPtrSlot(3)`, whose
-/// `Task::idMap` is the `GameActor` block) to face the object the area work
+/// `Task::work` is the `GameActor` block) to face the object the area work
 /// id resolves to, then kills itself once it is close enough.
 ///
 /// The aim angle is `ratan2` of the translation of the *second*
@@ -35,7 +35,7 @@ void func_dryfield_main_street_8017E1C0(Task* task)
     s32            wrapped;
 
     player = Game_GetPtrSlot(3);
-    actor  = (GameActor*)player->idMap;
+    actor  = (GameActor*)player->work;
     work   = Gp_FindWorkById(Game_Session->field_6 | (Game_Session->field_7 << 8));
     if ((work != NULL) && (Game_Session->field_1 != 0)) {
         self      = ((TmdObject*)player->extra)->field_8;

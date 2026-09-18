@@ -5,7 +5,7 @@
 
 #include "main/task.h"
 
-/// Work block the actors sharing this body hang off `Task::idMap`. They
+/// Work block the actors sharing this body hang off `Task::work`. They
 /// allocate different total sizes, so only the prefix this body reaches is
 /// described rather than a whole-block size that would be wrong for one of
 /// them. `promptKind` is the display mode forwarded to `func_800D4E78`.

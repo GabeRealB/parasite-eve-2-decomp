@@ -14,7 +14,7 @@ void ActorsShared80168010(Task* arg0)
     s32                       speed;
     s32                       dx;
 
-    work                                            = (ActorsShared80168d3cWork*)arg0->idMap;
+    work                                            = (ActorsShared80168d3cWork*)arg0->work;
     angle                                           = work->field_7A;
     coord                                           = ((TmdObject*)arg0->extra)->field_8;
     dx                                              = rsin(angle) << 4;
@@ -30,7 +30,7 @@ void ActorsShared80168010(Task* arg0)
         work->field_451   = 0;
         work->field_412   = 0;
         coord->coord.t[1] = -0x3C;
-        anim              = (ActorsShared80168d3cWork*)arg0->idMap;
+        anim              = (ActorsShared80168d3cWork*)arg0->work;
         anim->field_41C   = 0x10;
         anim->field_418   = 0xC;
         anim->field_414   = 2;

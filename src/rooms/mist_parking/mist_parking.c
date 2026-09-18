@@ -164,7 +164,7 @@ void RoomsShared8017e90cFillList(RoomShopList* shop, UiObject* obj)
         }
     }
 
-    list = (RoomShopList*)obj->owner->idMap;
+    list = (RoomShopList*)obj->owner->work;
     for (i = 0; i < shop->list.field_4 - 1; i++) {
         key = Gp_ItemSortKey(list->items[i]);
         for (k = i + 1; k < shop->list.field_4; k++) {

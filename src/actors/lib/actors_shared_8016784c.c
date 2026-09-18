@@ -16,7 +16,7 @@ void ActorsShared8016784c(Task* arg0)
     s16                       angle;
     s16                       speed;
 
-    work  = (ActorsShared80168d3cWork*)arg0->idMap;
+    work  = (ActorsShared80168d3cWork*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->field_8;
     if ((s16)++work->field_412 == 1) {
         soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0009;

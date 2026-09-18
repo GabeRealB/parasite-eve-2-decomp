@@ -17,7 +17,7 @@ typedef struct Actor104600Ctx {
     /* 0x14 */ u8   field_14;
 } Actor104600Ctx;
 
-/// The actor's per-instance work block, reached through `Task::idMap`. Only
+/// The actor's per-instance work block, reached through `Task::work`. Only
 /// the fields the decompiled state machine touches are modelled so far: the
 /// state selector at 0x286, the frame counter it cycles at 0x28A, and the
 /// flags it clears alongside them.

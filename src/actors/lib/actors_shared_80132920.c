@@ -11,7 +11,7 @@ void ActorsShared80132920(Task* task)
     VECTOR                    vec;
 
     coord = ((TmdObject*)task->extra)->field_8;
-    work  = (ActorsShared80132920Work*)task->idMap;
+    work  = (ActorsShared80132920Work*)task->work;
 
     vec = ActorsShared80132920Offset;
     ApplyMatrixLV(&coord->coord, &vec, (VECTOR*)&work->step);

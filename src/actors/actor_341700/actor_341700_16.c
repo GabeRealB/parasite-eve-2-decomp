@@ -37,7 +37,7 @@ s32 func_actor_341700_80168234(Task* arg0);
 
 void func_actor_341700_80168684(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->idMap;
+    Actor341700Work* work = (Actor341700Work*)arg0->work;
 
     work->field_420 = 5;
     work->field_422 = 0;
@@ -45,7 +45,7 @@ void func_actor_341700_80168684(Task* arg0)
 
 void func_actor_341700_80168698(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->idMap;
+    Actor341700Work* work = (Actor341700Work*)arg0->work;
 
     work->field_420 = 5;
     work->field_422 = 0;
@@ -53,7 +53,7 @@ void func_actor_341700_80168698(Task* arg0)
 
 void func_actor_341700_801686AC(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->idMap;
+    Actor341700Work* work = (Actor341700Work*)arg0->work;
 
     work->field_420 = 5;
     work->field_422 = 0;
@@ -67,7 +67,7 @@ void func_actor_341700_801686C0(Task* arg0)
     Actor341700Work* work;
     TaskFuncTable3   sp;
 
-    work = (Actor341700Work*)arg0->idMap;
+    work = (Actor341700Work*)arg0->work;
     sp   = D_actor_341700_80161E9C;
     if ((func_actor_341700_80168234(arg0) << 0x10) == 0) {
         sp.funcs[(s16)work->field_422](arg0);
@@ -82,7 +82,7 @@ void func_actor_341700_80168748(Task* arg0)
     Actor341700Work* work;
     TaskFuncTable5   sp;
 
-    work = (Actor341700Work*)arg0->idMap;
+    work = (Actor341700Work*)arg0->work;
     sp   = D_actor_341700_80161EA8;
     sp.funcs[(s16)work->field_422](arg0);
 }
@@ -95,14 +95,14 @@ void func_actor_341700_801687B4(Task* arg0)
     Actor341700Work* work;
     TaskFuncTable5   sp;
 
-    work = (Actor341700Work*)arg0->idMap;
+    work = (Actor341700Work*)arg0->work;
     sp   = D_actor_341700_80161EBC;
     sp.funcs[(s16)work->field_422](arg0);
 }
 
 void func_actor_341700_80168820(Task* arg0)
 {
-    Actor341700Work* work                = (Actor341700Work*)arg0->idMap;
+    Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
         func_actor_341700_80169888,
         func_actor_341700_801651E0,
@@ -113,7 +113,7 @@ void func_actor_341700_80168820(Task* arg0)
 
 void func_actor_341700_80168874(Task* arg0)
 {
-    Actor341700Work* work                = (Actor341700Work*)arg0->idMap;
+    Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
         func_actor_341700_8016999C,
         func_actor_341700_80169AB0,
@@ -124,7 +124,7 @@ void func_actor_341700_80168874(Task* arg0)
 
 void func_actor_341700_801688C8(Task* arg0)
 {
-    Actor341700Work* work                = (Actor341700Work*)arg0->idMap;
+    Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
         func_actor_341700_80168A14,
         func_actor_341700_80168A48,
@@ -139,7 +139,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_16", func_actor_34170
 
 void func_actor_341700_80168A14(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->idMap;
+    Actor341700Work* work = (Actor341700Work*)arg0->work;
 
     work->field_426 = 8;
     work->field_41C = 0x10;
@@ -154,14 +154,14 @@ void func_actor_341700_80168A48(Task* arg0)
     Actor341700Work* work2;
 
     if ((ActorsShared8016974c() << 0x10) != 0) {
-        work            = (Actor341700Work*)arg0->idMap;
+        work            = (Actor341700Work*)arg0->work;
         work->field_426 = 4;
         work->field_41C = 0x10;
         work->field_418 = 0xB;
         work->field_414 = 1;
     }
     if (Gp_TickObjFlag2((GpObj5D*)arg0->spawnArg2) != 0) {
-        work2            = (Actor341700Work*)arg0->idMap;
+        work2            = (Actor341700Work*)arg0->work;
         work2->field_420 = 3;
         work2->field_422 = 0;
     }
@@ -175,16 +175,16 @@ void func_actor_341700_80168B40(Task* arg0)
     Actor341700Work* slow;
     Actor341700Work* fast;
 
-    work = (Actor341700Work*)arg0->idMap;
+    work = (Actor341700Work*)arg0->work;
     if ((ActorsShared8016974c() << 0x10) != 0) {
         if (work->field_44F == 1) {
-            fast            = (Actor341700Work*)arg0->idMap;
+            fast            = (Actor341700Work*)arg0->work;
             fast->field_426 = 0x32;
             fast->field_41C = 0x10;
             fast->field_418 = 7;
             fast->field_414 = 1;
         } else {
-            slow            = (Actor341700Work*)arg0->idMap;
+            slow            = (Actor341700Work*)arg0->work;
             slow->field_426 = 0x1E;
             slow->field_41C = 0x10;
             slow->field_418 = 1;

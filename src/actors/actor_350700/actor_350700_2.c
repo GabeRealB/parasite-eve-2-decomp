@@ -36,7 +36,7 @@ void func_actor_350700_8016261C(Task* arg0)
     VECTOR           vec;
 
     coord = ((TmdObject*)arg0->extra)->field_8;
-    work  = (Actor350700Work*)arg0->idMap;
+    work  = (Actor350700Work*)arg0->work;
 
     vec = D_actor_350700_80161E40;
     if (work->field_4C4 == 0) {
@@ -70,7 +70,7 @@ void func_actor_350700_80162764(Task* arg0)
     s16                   diff;
 
     coord = ((TmdObject*)arg0->extra)->field_8;
-    work  = (Actor350700Work*)arg0->idMap;
+    work  = (Actor350700Work*)arg0->work;
 
     Gp_ExtractEuler(&vec, &coord->coord);
     diff = (u16)work->field_4BA - (u16)vec.vy;
@@ -132,9 +132,9 @@ s32 func_actor_350700_80162A14(Task* task, s32 arg1, s32 mode)
             obj->field_C &= ~4;
             break;
         case 2:
-            obj->field_C                              |= 0x80;
-            ((Actor350700Work*)task->idMap)->field_4C5 = mode;
-            obj->field_C                              |= 4;
+            obj->field_C                             |= 0x80;
+            ((Actor350700Work*)task->work)->field_4C5 = mode;
+            obj->field_C                             |= 4;
             break;
         case 3:
             obj->field_C &= ~0x80;
@@ -174,7 +174,7 @@ void func_actor_350700_80162B30(Task* arg0)
         Gp_EnemyTaskExit(arg0);
         return;
     }
-    arg0->idMap     = (TaskIdMap*)work;
+    arg0->work      = (TaskIdMap*)work;
     work->field_475 = -1;
     work->field_476 = -1;
     work->field_508 = -1;
@@ -262,7 +262,7 @@ void func_actor_350700_80162B30(Task* arg0)
 void func_actor_350700_80162D5C(Task* arg0)
 {
     TmdObject*           ext      = arg0->extra;
-    Actor350700MainWork* work     = (Actor350700MainWork*)arg0->idMap;
+    Actor350700MainWork* work     = (Actor350700MainWork*)arg0->work;
     TaskFunc             funcs[2] = { (TaskFunc)func_actor_350700_801633F8, ActorsShared801327f8 };
     VECTOR3              pos;
     GsCOORDINATE2*       coord;

@@ -19,7 +19,7 @@ typedef struct ActorShared80132d78Region {
 STATIC_ASSERT_SIZEOF(ActorShared80132d78Region, 0x10);
 
 /// Work block the carriers hang off their context's 0x1C slot (the task's
-/// `Task::idMap`, which is not a `TaskIdMap` here) -- the same block
+/// `Task::work`, which is not a `TaskIdMap` here) -- the same block
 /// `Actor402200Work` describes, seen through the three fields this body
 /// reaches.
 ///

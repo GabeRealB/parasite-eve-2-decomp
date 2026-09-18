@@ -220,10 +220,10 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     TmdObject*       obj;
     GpEnemy*         spawned;
 
-    coord       = ((TmdObject*)task->extra)->field_8;
-    obj         = task->extra;
-    work        = (Actor161500Work*)Mem_Calloc(0x4FC, false);
-    task->idMap = (TaskIdMap*)work;
+    coord      = ((TmdObject*)task->extra)->field_8;
+    obj        = task->extra;
+    work       = (Actor161500Work*)Mem_Calloc(0x4FC, false);
+    task->work = (TaskIdMap*)work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
@@ -269,7 +269,7 @@ void func_actor_161500_8013252C(Task* task)
     Actor161500Work* work;
     s16              animId;
 
-    work = (Actor161500Work*)task->idMap;
+    work = (Actor161500Work*)task->work;
     if (work->state == 1) {
         ActorsShared801324c8(task);
         work->state = 3;

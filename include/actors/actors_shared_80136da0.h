@@ -6,7 +6,7 @@
 #include "main/task.h"
 
 /// Work block of the enemy actors that share `ActorsShared80136da0`, reached
-/// through `Task::idMap`. Only the animation selector, the frame counter, the
+/// through `Task::work`. Only the animation selector, the frame counter, the
 /// state field and the state-0 branch selector are modelled here; the same
 /// offsets sit in `Actor105700Work` (`include/actors/actor_105700.h`), which
 /// describes the rest of the block.

@@ -14,11 +14,11 @@ INCLUDE_RODATA("actors/nonmatchings/actor_111800/actor_111800", D_actor_111800_8
 INCLUDE_ASM("actors/nonmatchings/actor_111800/actor_111800", func_actor_111800_8013214C);
 
 /// Spawn/setup handler for the actor's model: allocates the 0x498-byte work
-/// block into `Task::idMap`, hands the model object the view coordinate and the
+/// block into `Task::work`, hands the model object the view coordinate and the
 /// block's two matrices, builds the animation context over the nineteen slots
 /// and applies the nested area record matching id 0x13 through `Gp_SetTmdBytes`.
 ///
-/// The allocation is parked in `Task::idMap` and read back before it is used, so
+/// The allocation is parked in `Task::work` and read back before it is used, so
 /// the first thing the block is named by is a reload: the `Mem_Calloc` result is
 /// stored straight from `$v0` and the failing branch tests that register, which
 /// is what leaves the surviving copy of it to be emitted *after* the branch --
@@ -32,14 +32,14 @@ void func_actor_111800_80132390(Task* task)
     GpAreaPlace*     place;
     s32              i;
 
-    coord       = ((TmdObject*)task->extra)->field_8;
-    obj         = (TmdObject*)task->extra;
-    task->idMap = (TaskIdMap*)Mem_Calloc(0x498, false);
-    if (task->idMap == NULL) {
+    coord      = ((TmdObject*)task->extra)->field_8;
+    obj        = (TmdObject*)task->extra;
+    task->work = (TaskIdMap*)Mem_Calloc(0x498, false);
+    if (task->work == NULL) {
         Task_Kill(task);
         return;
     }
-    work = (Actor111800Work*)task->idMap;
+    work = (Actor111800Work*)task->work;
     Mem_Set(work, 0U, 0x498U);
     coord->sub = &Gfx_ViewCoord;
     Tmd_AllocBuffers(obj);
@@ -51,7 +51,7 @@ void func_actor_111800_80132390(Task* task)
     work->field_47C  = Game_GetPtrSlot(3);
     work->field_480  = D_80073B8C[0];
     i                = 1;
-    work2            = (Actor111800Work*)task->idMap;
+    work2            = (Actor111800Work*)task->work;
     work2->field_492 = 0;
     do {
         work2->slots[i & 0xFFFF].field_9 = 0x10;

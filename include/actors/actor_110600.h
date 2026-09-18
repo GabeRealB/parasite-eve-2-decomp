@@ -331,7 +331,7 @@ STATIC_ASSERT_SIZEOF(Actor110600WalkScratch, 0x28);
 /// becomes the absolute yaw the model's saved scale matrix is rebuilt around.
 void func_actor_110600_80133550(Actor110600Walker* work, SVECTOR3* pos);
 
-/// Work block this overlay parks in the task's `Task::idMap` slot (0x1C),
+/// Work block this overlay parks in the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. `func_actor_110600_80134AB4` allocates it
 /// with `Mem_Calloc(0xBEC, 0)`, so the size below is the allocation.
 ///
@@ -498,7 +498,7 @@ typedef struct Actor110600AnimWork {
 STATIC_ASSERT_SIZEOF(Actor110600AnimWork, 0x8B0);
 
 /// Per-task actor context: `field_1C` is the work block above (the same
-/// pointer `Task::idMap` holds), `field_20` the `GpEnemy` in
+/// pointer `Task::work` holds), `field_20` the `GpEnemy` in
 /// `Task::spawnArg2`, and `field_2C` the actor's `TmdObject`. Same shape as
 /// `Actor01900` / `Actor401800`.
 typedef struct Actor110600 {
@@ -592,7 +592,7 @@ void func_actor_110600_80138A70(Actor110600* arg0);
 void func_actor_110600_80138AFC(Actor110600* arg0);
 void func_actor_110600_80138BD0(Actor110600* arg0);
 
-/// The actor's per-tick model update, driven from `Task::idMap` /
+/// The actor's per-tick model update, driven from `Task::work` /
 /// `Task::spawnArg2` off the pointer it is handed.
 void func_actor_110600_80134728(Actor110600* arg0);
 

@@ -15,7 +15,7 @@ void func_actor_342400_801694A8(Task* arg0, s32 arg1);
 /// block through the task as the original does.
 static __inline__ void set_state(Task* arg0, s32 state)
 {
-    Actor342400Work* w = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* w = (Actor342400Work*)arg0->work;
 
     w->field_420 = state;
     w->field_422 = 0;
@@ -26,7 +26,7 @@ static __inline__ void set_state(Task* arg0, s32 state)
 /// and returns 1; otherwise returns 0.
 static __inline__ s32 take_request(Task* arg0)
 {
-    Actor342400Work* work = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* work = (Actor342400Work*)arg0->work;
 
     if (work->field_41E == 1) {
         switch ((s16)(work->field_448 - 1)) {
@@ -54,7 +54,7 @@ static __inline__ s32 take_request(Task* arg0)
 
 static __inline__ s32 is_hit(Task* arg0)
 {
-    Actor342400Work* w = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* w = (Actor342400Work*)arg0->work;
 
     if ((w->flags_EC.half & 1) || (w->flags_EC.word & 0x102)) {
         return 1;
@@ -70,7 +70,7 @@ static __inline__ s32 is_hit(Task* arg0)
 /// register; writing `== work->field_44F` reloads the byte instead.
 void func_actor_342400_801664C4(Task* arg0)
 {
-    Actor342400Work* work = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* work = (Actor342400Work*)arg0->work;
 
     if (work->field_44F == 1) {
         if (work->field_41E != 0 && work->field_448 == 1) {
@@ -103,7 +103,7 @@ const TaskFuncTable5 D_actor_342400_80161F8C = { {
 /// above only moves the state index.
 static __inline__ void enter_state(Task* arg0, s32 state)
 {
-    Actor342400Work* w = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* w = (Actor342400Work*)arg0->work;
 
     arg0->state  = state;
     w->field_420 = 0;
@@ -129,14 +129,14 @@ static __inline__ void update_color(void* enemy, GsCOORDINATE2* coord)
 /// state 7; returns 1 when it did, so the caller skips the state handler.
 static __inline__ s16 take_hit(Task* arg0)
 {
-    Actor342400Work* work = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* work = (Actor342400Work*)arg0->work;
     Actor342400Work* w2;
 
     if ((work->field_44C & 0xF) == 2) {
         if (work->field_438 == 0) {
             work->field_44C = 0;
             enter_state(arg0, 3);
-            w2            = (Actor342400Work*)arg0->idMap;
+            w2            = (Actor342400Work*)arg0->work;
             w2->field_420 = 10;
             w2->field_422 = 0;
             return 1;
@@ -153,7 +153,7 @@ static __inline__ s16 take_hit(Task* arg0)
 /// rebuilds the model root's rotation from them in a scratch matrix.
 static __inline__ void update_rotation(Task* arg0)
 {
-    Actor342400Work* work  = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* work  = (Actor342400Work*)arg0->work;
     MATRIX*          m     = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
     GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
     MATRIX*          dst;
@@ -193,7 +193,7 @@ void func_actor_342400_8016666C(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra;
     GpEnemy*         enemy = arg0->spawnArg2;
-    Actor342400Work* work  = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* work  = (Actor342400Work*)arg0->work;
     GsCOORDINATE2*   coord = obj->field_8;
     TaskFuncTable5   sp    = D_actor_342400_80161F8C;
 

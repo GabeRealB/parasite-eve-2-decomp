@@ -7,7 +7,7 @@
 #include "gameplay/3A34.h"
 #include "main/task.h"
 
-/// Work block the four actor_105600-family overlays hang off `Task::idMap`
+/// Work block the four actor_105600-family overlays hang off `Task::work`
 /// (not a `TaskIdMap` here). The three display nodes at +0x40, +0x78 and
 /// +0x98 are the ones `ActorsShared80136a28` hands back to `Gp_UnlinkObj`
 /// on state 0. `field_E8` / `field_EC` are the death-timer / sub-state pair

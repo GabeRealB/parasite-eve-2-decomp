@@ -72,7 +72,7 @@ void func_actor_101100_80138374(Task* task)
 
     sp      = D_actor_101100_80131E24;
     enemy   = task->spawnArg2;
-    work    = task->idMap;
+    work    = task->work;
     scratch = (u8*)(SCRATCH_SP -= 0x68);
 
     scratch[0x64] = 0;

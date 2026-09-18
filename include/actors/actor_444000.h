@@ -40,7 +40,7 @@ typedef union Actor444000DropCoord {
 STATIC_ASSERT_SIZEOF(Actor444000DropCoord, 0x50);
 
 /// Per-actor work block for the enemy task `D_actor_444000_80161878` points
-/// at, reached through the `Task::idMap` slot (0x1C) rather than being a
+/// at, reached through the `Task::work` slot (0x1C) rather than being a
 /// `TaskIdMap` here.
 ///
 /// `func_actor_444000_8013AFF8` allocates it with `Mem_Calloc(0xF24, 0)` and
@@ -235,7 +235,7 @@ STATIC_ASSERT_SIZEOF(Actor444000Work, 0xF24);
 /// block than the enemy's `Actor444000Work` above.
 ///
 /// `func_actor_444000_80132358` allocates it with `Mem_Calloc(0x34, 0)`,
-/// `Mem_Set`s 0x34 bytes and parks it in that task's `Task::idMap` slot, so
+/// `Mem_Set`s 0x34 bytes and parks it in that task's `Task::work` slot, so
 /// the size is anchored; the same function stores the `Game_GetPtrSlot(3)`
 /// task in `field_20` and publishes its owning task in
 /// `D_actor_444000_80161860`. `field_20` is the target of every
@@ -344,7 +344,7 @@ STATIC_ASSERT_SIZEOF(Actor444000RunScratch, 0x2C);
 /// The overlay's enemy task: the same layout as `Task`, named for the two
 /// slots this overlay reaches through it. `field_20` is the `GpEnemy` the
 /// dispatchers already hand their handlers as `Task::spawnArg2`. Not the event task
-/// `D_actor_444000_80161860`, whose `idMap` holds an `Actor444000EventWork`.
+/// `D_actor_444000_80161860`, whose `work` holds an `Actor444000EventWork`.
 typedef struct Actor444000 {
     /* 0x00 */ byte             pad_0[0x18];
     /* 0x18 */ TaskFunc         exitCallback;
@@ -361,7 +361,7 @@ typedef struct Actor444000 {
 /// Work block of the overlay's *other* enemy, the one dispatched through
 /// `D_actor_444000_80131F30` rather than `D_actor_444000_80131E90`.
 /// `func_actor_444000_8013A1C4` allocates it with `Mem_Calloc(0xA0, 0)` and
-/// parks it in that task's `Task::idMap` slot, so the size is anchored rather
+/// parks it in that task's `Task::work` slot, so the size is anchored rather
 /// than guessed. The two matrices are this instance's own light and colour
 /// matrices: the spawn state points the model object's `field_1C` / `field_20`
 /// at them so it lights independently of the shared defaults. `field_9C` is the
@@ -384,7 +384,7 @@ typedef struct Actor444000SpinnerWork {
 STATIC_ASSERT_SIZEOF(Actor444000SpinnerWork, 0xA0);
 
 /// That enemy's task, the same `Task` layout as `Actor444000` above but with
-/// the smaller work block in the `idMap` slot.
+/// the smaller work block in the `work` slot.
 typedef struct Actor444000Spinner {
     /* 0x00 */ byte                    pad_0[0x1C];
     /* 0x1C */ Actor444000SpinnerWork* field_1C;
@@ -399,7 +399,7 @@ typedef struct Actor444000Spinner {
 /// Work block of the enemy dispatched through `D_actor_444000_80131F1C` -- the
 /// one that rises out of view and then slams back down onto the floor.
 /// `func_actor_444000_80139594` allocates it with `Mem_Calloc(0x1C0, 0)` and
-/// parks it in that task's `Task::idMap` slot, so the size is anchored rather
+/// parks it in that task's `Task::work` slot, so the size is anchored rather
 /// than guessed.
 ///
 /// `target` is the landing point the spawn state picks from the player's
@@ -463,7 +463,7 @@ typedef struct Actor444000Drop {
 /// one that seizes the player: its states install a scripted animation on the
 /// slot-3 task with message 0x3FF and cancel it again with message 0x3F1.
 /// `func_actor_444000_80137D4C` allocates it with `Mem_Calloc(0x1C0, 0)` and
-/// parks it in that task's `Task::idMap` slot, so the size is anchored rather
+/// parks it in that task's `Task::work` slot, so the size is anchored rather
 /// than guessed.
 ///
 /// `anim` is the `GpAnimArg` handed to the player as message 0x3FF's payload --
@@ -529,7 +529,7 @@ typedef struct Actor444000Grab {
 /// Work block of the enemy dispatched through `D_actor_444000_80131F0C` --
 /// named for that table because the creature itself is not identified yet.
 /// `func_actor_444000_80138B94` allocates it with `Mem_Calloc(0x1C0, 0)` and
-/// parks it in that task's `Task::idMap` slot, so the size is anchored rather
+/// parks it in that task's `Task::work` slot, so the size is anchored rather
 /// than guessed.
 ///
 /// The two named fields are the pair the dispatcher

@@ -5,12 +5,12 @@
 
 #include "main/task.h"
 
-/// Work block this overlay hangs off the task's `Task::idMap` slot (0x1C),
+/// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. The overlay's state-0 handler
 /// (`ActorsShared80131f9cSub0`, here at 0x80149FE0) allocates it
 /// with `Mem_Calloc(0x4F8, 0)` and stores it straight into that field, so the
 /// size below is the allocation and not a guess. Reach it with
-/// `(Actor260400Work*)task->idMap`.
+/// `(Actor260400Work*)task->work`.
 ///
 /// The task at +0x4F0 is the helper task this actor spawns; the exit callback
 /// `func_actor_260400_8014A630` kills it on teardown.
@@ -53,7 +53,7 @@ typedef struct Actor260400AnimPreset {
 STATIC_ASSERT_SIZEOF(Actor260400AnimPreset, 0x10);
 
 /// The block above, published by `ActorsShared80131f9c` from the task's
-/// `Task::idMap`. Declared here with the type the overlay reads it through,
+/// `Task::work`. Declared here with the type the overlay reads it through,
 /// the same way `include/actors/actor_143900.h` does; the shared header
 /// publishes the bare `void*`.
 extern Actor260400Work* ActorsShared80131f9cWork;

@@ -9,7 +9,7 @@
 #include "main/task.h"
 
 /// Work block for the gas-station cutscene task, allocated as 0x10 zeroed bytes
-/// by `func_dryfield_gas_station_801807E0` and hung off `Task::idMap` (0x1C).
+/// by `func_dryfield_gas_station_801807E0` and hung off `Task::work` (0x1C).
 ///
 /// `owner` is the slot-3 game pointer (`Game_GetPtrSlot(3)`) the task dispatches
 /// its messages to, and `playerEffActive` is the flag guarding
@@ -27,7 +27,7 @@ typedef struct DgsWork {
 STATIC_ASSERT_SIZEOF(DgsWork, 0x10);
 
 /// Work block the gas station's shaft sequencer (`func_dryfield_gas_station_801802C0`)
-/// allocates as 4 bytes in its state 0 and hangs off `Task::idMap` (0x1C) for
+/// allocates as 4 bytes in its state 0 and hangs off `Task::work` (0x1C) for
 /// the next run of the state machine to pick up. `child` is the task spawned
 /// from `D_dryfield_gas_station_8018312C` entry 0 in state 3 and polled with
 /// `Task_PollKill` in state 4.

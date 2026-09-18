@@ -59,7 +59,7 @@ extern GpAreaApplyRec D_acropolis_security_room_80184F50[];
 extern GpAreaApplyRec D_acropolis_security_room_80184F78[];
 extern GpAreaApplyRec D_acropolis_security_room_80184F7C[];
 extern GpAreaApplyRec D_acropolis_security_room_80184F80[];
-/// Scratch state of the security-room ambience task, stored at `Task::idMap`.
+/// Scratch state of the security-room ambience task, stored at `Task::work`.
 /// `func_acropolis_security_room_80180368` allocates it with `Mem_Calloc(4, 0)`,
 /// so the size below is the allocation and not a guess.
 typedef struct {
@@ -93,7 +93,7 @@ extern s16     D_acropolis_security_room_801839B8[];
 
 void func_acropolis_security_room_8017F1BC(Task* task)
 {
-    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->idMap;
+    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
     s32                         flag;
     s32                         step;
 
@@ -131,7 +131,7 @@ void func_acropolis_security_room_8017F1BC(Task* task)
 
 void func_acropolis_security_room_8017F300(Task* task)
 {
-    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->idMap;
+    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
     s32                         flag;
     s32                         step;
 
@@ -385,7 +385,7 @@ void func_acropolis_security_room_8017F9C8(Task* task)
 }
 
 /// State 0 of the security-room cap script: allocates the 0x10 state block into
-/// `Task::idMap`, spawns the script's child task, publishes the message table
+/// `Task::work`, spawns the script's child task, publishes the message table
 /// and the current pair-flag nibble, takes a display reference and clears every
 /// hotspot's `hit` flag before the first cursor scan. A failed allocation kills
 /// the task instead.
@@ -401,7 +401,7 @@ void func_acropolis_security_room_8017FA18(Task* task)
     }
     task->spawnArg2 = Task_SpawnFromTable(D_acropolis_security_room_801826C0, 0, 1, 0);
     task->field_24  = D_acropolis_security_room_801826CC;
-    task->idMap     = (TaskIdMap*)st;
+    task->work      = (TaskIdMap*)st;
     D_8007216C      = 6;
     SOFT_BARRIER();
     task->state++;
@@ -439,7 +439,7 @@ void func_acropolis_security_room_8017FB20(Task* task)
 void func_acropolis_security_room_8017FB54(Task* task)
 {
     RoomActionPrompt*           prompt = &D_80114D28;
-    AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->idMap;
+    AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->work;
 
     prompt->mode     = 0;
     prompt->targetId = 0;
@@ -458,7 +458,7 @@ void func_acropolis_security_room_8017FB54(Task* task)
 void func_acropolis_security_room_8017FBA4(Task* task)
 {
     RoomActionPrompt*           prompt = &D_80114D28;
-    AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->idMap;
+    AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->work;
 
     prompt->mode     = 0;
     prompt->targetId = 0;
@@ -550,7 +550,7 @@ void func_acropolis_security_room_8017FD64(s32 flags)
 /// and answers 0, which is the "cannot use that now" reply.
 s32 func_acropolis_security_room_8017FE24(Task* task, s32 msgId, s32 item, s32 arg3)
 {
-    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->idMap;
+    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
 
     if (item == 0x101) {
         st->field_0 = 3;
@@ -575,7 +575,7 @@ s32 func_acropolis_security_room_8017FE24(Task* task, s32 msgId, s32 item, s32 a
 /// counter is reset for the next state and `D_8007216C` is set to 0x10.
 void func_acropolis_security_room_8017FE6C(Task* task)
 {
-    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->idMap;
+    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
     u8                          level;
 
     level = st->frames;
@@ -596,7 +596,7 @@ void func_acropolis_security_room_8017FE6C(Task* task)
 
 void func_acropolis_security_room_8017FF0C(Task* task)
 {
-    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->idMap;
+    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
 
     if (st->frames == 1) {
         st->child   = Task_SpawnFromTable(D_acropolis_security_room_80182700, 0, 0, 0);
@@ -609,7 +609,7 @@ void func_acropolis_security_room_8017FF84(Task* task)
 {
     s32 killArg;
 
-    if (Task_PollKill(((AcropolisSecurityRoomState*)task->idMap)->child, &killArg) != 0) {
+    if (Task_PollKill(((AcropolisSecurityRoomState*)task->work)->child, &killArg) != 0) {
         task->state = task->state + 1;
     }
 }
@@ -645,7 +645,7 @@ void func_acropolis_security_room_80180030(Task* task)
 
 void func_acropolis_security_room_801800A4(Task* task)
 {
-    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->idMap;
+    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
     s32                         level;
     s16                         frames;
 
@@ -670,7 +670,7 @@ void func_acropolis_security_room_801800A4(Task* task)
 
 void func_acropolis_security_room_8018014C(Task* task)
 {
-    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->idMap;
+    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
 
     if (st->frames == 1) {
         st->child   = Task_SpawnFromTable(D_acropolis_security_room_80182700, 1, 0, 0);
@@ -683,7 +683,7 @@ void func_acropolis_security_room_801801C4(Task* task)
 {
     s32 killArg;
 
-    if (Task_PollKill(((AcropolisSecurityRoomState*)task->idMap)->child, &killArg) != 0) {
+    if (Task_PollKill(((AcropolisSecurityRoomState*)task->work)->child, &killArg) != 0) {
         Gp_MsgPlayer3F3(1);
         task->state = task->state + 1;
     }

@@ -102,7 +102,7 @@ void func_actor_120500_80132028(Task* arg0)
     s32              anim;
     s32              base;
 
-    work = (Actor120500Work*)arg0->idMap;
+    work = (Actor120500Work*)arg0->work;
     if (work->field_4B4 != NULL) {
         Gp_DispatchMsg(work->field_4B4, 0x3ED, 0, 0);
     }
@@ -117,7 +117,7 @@ void func_actor_120500_80132028(Task* arg0)
                     vec.vy = 0x960;
                     vec.vz = 0x960;
                     Gp_SetOverrideVec(&vec);
-                    w3 = (Actor120500Work*)arg0->idMap;
+                    w3 = (Actor120500Work*)arg0->work;
                     p  = &msg;
                     if (w3->field_4B4 != NULL) {
                         msg.field_0 = D_actor_120500_8013807C;
@@ -130,18 +130,18 @@ void func_actor_120500_80132028(Task* arg0)
                     work->field_4BA = work->field_4BA + 1;
                     /* fallthrough */
                 case 1:
-                    Gp_DispatchMsg(((Actor120500Work*)arg0->idMap)->field_4B4, 0x3E9,
+                    Gp_DispatchMsg(((Actor120500Work*)arg0->work)->field_4B4, 0x3E9,
                                    (s32)&D_actor_120500_80138090, 0);
                     return;
             }
             return;
         case 3:
             Task_SpawnFromTable(&D_actor_120500_80138418, 1, 8, 0);
-            w = (Actor120500Work*)arg0->idMap;
+            w = (Actor120500Work*)arg0->work;
             Gp_SetOverrideVec(NULL);
             Gp_DispatchMsg(w->field_4B4, 0x3F3, 1, 0);
             Gp_DispatchMsg(w->field_4B4, 0x3E9, (s32)&D_actor_120500_801380A8, 0);
-            w2 = (Actor120500Work*)arg0->idMap;
+            w2 = (Actor120500Work*)arg0->work;
             p  = &msg;
             if (w2->field_4B4 != NULL) {
                 msg.field_0 = D_actor_120500_8013807C;
@@ -153,7 +153,7 @@ void func_actor_120500_80132028(Task* arg0)
             }
             break;
         case 4:
-            w2 = (Actor120500Work*)arg0->idMap;
+            w2 = (Actor120500Work*)arg0->work;
             p  = &msg;
             if (w2->field_4B4 != NULL) {
                 msg.field_0 = D_actor_120500_8013807C;
@@ -207,10 +207,10 @@ void func_actor_120500_801322A0(Task* arg0)
     s32              i;
     u8               id;
 
-    tmd         = arg0->extra;
-    coord       = tmd->field_8;
-    map         = Mem_Malloc(0x4CC, 0);
-    arg0->idMap = map;
+    tmd        = arg0->extra;
+    coord      = tmd->field_8;
+    map        = Mem_Malloc(0x4CC, 0);
+    arg0->work = map;
     if (map == NULL) {
         Task_Kill(arg0);
         return;
@@ -234,7 +234,7 @@ void func_actor_120500_801322A0(Task* arg0)
     }
     Gp_SetTmdBytes(tmd, ((s8*)place)[0xD], ((s8*)place)[0xE]);
     func_800B3F84(&work->anim, D_actor_120500_80138088, (GpAnimObj*)tmd, work->field_334, work->slots);
-    slotsWork      = (Actor120500Work*)arg0->idMap;
+    slotsWork      = (Actor120500Work*)arg0->work;
     arg0->field_24 = &D_actor_120500_80138408;
     i              = 1;
     do {
@@ -302,7 +302,7 @@ void func_actor_120500_8013241C(Task* arg0)
     }
 
     func_actor_120500_80132028(arg0);
-    work      = (Actor120500Work*)arg0->idMap;
+    work      = (Actor120500Work*)arg0->work;
     slotsWork = work;
 
     i = 1;
@@ -329,7 +329,7 @@ loop_slots:
     }
     work->field_4C0 = 0;
 
-    w    = (Actor120500Work*)arg0->idMap;
+    w    = (Actor120500Work*)arg0->work;
     code = w->field_4C8;
     if (code != 1) {
         if (code >= 2) {

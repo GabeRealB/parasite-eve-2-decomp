@@ -6,7 +6,7 @@
 #include "main/task.h"
 
 /// The one field this handler touches in the carrier's work block, the
-/// `Task::idMap` slot both carriers park their per-actor state in.
+/// `Task::work` slot both carriers park their per-actor state in.
 typedef struct ActorsShared80164844Work {
     /* 0x0 */ s16 field_0;
 } ActorsShared80164844Work;

@@ -74,7 +74,7 @@ void func_actor_143000_801336E8(Actor143000* arg0)
 
 void func_actor_143000_80133800(Task* arg0)
 {
-    Actor143000Work* work = (Actor143000Work*)arg0->idMap;
+    Actor143000Work* work = (Actor143000Work*)arg0->work;
 
     Display_ReleaseRef();
     Game_Session->field_66 = 0;

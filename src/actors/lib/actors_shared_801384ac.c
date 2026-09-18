@@ -16,7 +16,7 @@ void ActorsShared801384ac(Task* task)
     s32                      i;
 
     enemy = task->spawnArg2;
-    work  = (ActorShared801384acWork*)task->idMap;
+    work  = (ActorShared801384acWork*)task->work;
     for (i = 0; i < 4; i++) {
         Gp_UnlinkObj(&work->field_9A8[i]);
     }

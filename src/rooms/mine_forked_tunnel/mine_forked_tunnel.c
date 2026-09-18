@@ -26,7 +26,7 @@ void func_mine_forked_tunnel_8017D5E8(Task* arg0)
         return;
     }
 
-    arg0->idMap    = work;
+    arg0->work     = work;
     work->field_44 = -1;
 
     if (GameFlag_GetNibble(0x75) == 0) {
@@ -78,11 +78,11 @@ void func_mine_forked_tunnel_8017D724(Task* arg0)
         func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->field_8->workm.t, 0, 3);
     }
 
-    if (((MineForkedTunnelWork*)arg0->idMap)->field_44 >= 0) {
-        if (((MineForkedTunnelWork*)arg0->idMap)->field_44 == 0) {
+    if (((MineForkedTunnelWork*)arg0->work)->field_44 >= 0) {
+        if (((MineForkedTunnelWork*)arg0->work)->field_44 == 0) {
             Tmd_FreeBuffers(ext);
         }
-        ((MineForkedTunnelWork*)arg0->idMap)->field_44--;
+        ((MineForkedTunnelWork*)arg0->work)->field_44--;
     }
 }
 
@@ -96,7 +96,7 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, MineForkedTunnelMsg7D
 
     switch (msg->field_2) {
         case 0:
-            work                = task->idMap;
+            work                = task->work;
             task->spawnArg1     = 0;
             task->killCountdown = 0;
             if (work->field_40 != 0) {
@@ -122,7 +122,7 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, MineForkedTunnelMsg7D
             coord->flg = 0;
             break;
         case 1:
-            work = task->idMap;
+            work = task->work;
             if (work->field_40 != 0) {
                 ((Task*)work->field_40)->spawnArg1 = 1;
             }
@@ -195,7 +195,7 @@ void func_mine_forked_tunnel_8017DC70(Task* arg0)
     MineForkedTunnelWork* work;
 
     ext           = arg0->extra;
-    work          = (MineForkedTunnelWork*)arg0->idMap;
+    work          = (MineForkedTunnelWork*)arg0->work;
     ext->field_1C = &work->light;
     ext->field_20 = &work->color;
 }

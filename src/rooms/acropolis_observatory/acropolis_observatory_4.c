@@ -77,22 +77,22 @@ void func_acropolis_observatory_8017E19C(Task* task)
     s32           weaponId;
     s32           id;
 
-    work = (AobSceneWork*)task->idMap;
+    work = (AobSceneWork*)task->work;
     switch (task->state) {
         case 0:
             if (D_80114C12 == 1 || D_80071075 != 0) {
                 return;
             }
-            blk         = Mem_Calloc(8, 0);
-            temp        = (blk == NULL);
-            task->idMap = (TaskIdMap*)blk;
+            blk        = Mem_Calloc(8, 0);
+            temp       = (blk == NULL);
+            task->work = (TaskIdMap*)blk;
             if (temp) {
                 Task_Kill(task);
             } else {
                 Mem_Set(blk, 0, 8);
                 blk->target = Game_GetPtrSlot(3);
             }
-            work = (AobSceneWork*)task->idMap;
+            work = (AobSceneWork*)task->work;
             if (work->target != NULL) {
                 rec.field_0  = (s32)&D_acropolis_observatory_8017FE60;
                 rec.field_4  = 1;
@@ -135,14 +135,14 @@ void func_acropolis_observatory_8017E19C(Task* task)
             break;
     }
 
-    tail = (AobSceneWork*)task->idMap;
+    tail = (AobSceneWork*)task->work;
     msg  = &arg;
     if (tail->target != NULL && Gp_DispatchMsg(tail->target, 0x3ED, 0, 0) == 0) {
         p     = &D_acropolis_observatory_8017FE68[tail->step];
         temp  = *p;
         entry = *p;
         if (temp >= 0) {
-            dest = (AobSceneWork*)task->idMap;
+            dest = (AobSceneWork*)task->work;
             if (dest->target != NULL) {
                 arg.field_0   = (s32)&D_acropolis_observatory_8017FE60;
                 arg.field_4   = entry;

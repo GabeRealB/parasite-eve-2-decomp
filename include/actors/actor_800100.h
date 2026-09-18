@@ -18,7 +18,7 @@
 #define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
 /// 0x38 block `func_actor_800100_801624F0` allocates with `Mem_Calloc` when
-/// its task enters state 0 and stores at `Task::idMap`: the launched
+/// its task enters state 0 and stores at `Task::work`: the launched
 /// projectile's object plus its one-entry collision table, whose `field_0` is
 /// armed with 2. `obj.field_C` points at `rec`, `obj.field_8` at the task's
 /// own coordinate, and `obj.field_18` is the hit payload `0x21C9E`. The

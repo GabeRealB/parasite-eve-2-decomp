@@ -51,7 +51,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(GpPromptTexts, 0x10);
 
 /// 0x1C work block allocated by `Gp_ItemMoveTask` (`Mem_Calloc(0x1C, 0)`)
-/// and stored at `Task::idMap` / `Gp_ItemMoveWork`. `objs` holds the first two
+/// and stored at `Task::work` / `Gp_ItemMoveWork`. `objs` holds the first two
 /// `Ui_SpawnFromDesc` results (the source / dest inventory panes); `field_8` is
 /// the index of the pane that currently has focus and is used to index `objs`
 /// (`Gp_ItemMoveChild` toggles it with `^ 1`).
@@ -66,7 +66,7 @@ typedef struct _GpItemMoveState {
 STATIC_ASSERT_SIZEOF(GpItemMoveState, 0x1C);
 
 /// Ammo quantity selector work block, allocated by func_800BDF6C and stored
-/// in Task::idMap. Equipped rounds stay in the destination inventory.
+/// in Task::work. Equipped rounds stay in the destination inventory.
 typedef struct _GpAmmoSplitState {
     /* 0x00 */ s32 srcOrig;
     /* 0x04 */ s32 dstOrig;

@@ -33,7 +33,7 @@ void RoomsShared8017df68(DialogPrompt* prompt, UiObject* obj)
     s32           itemId;
     s32           price;
 
-    shop    = (RoomShopList*)obj->owner->idMap;
+    shop    = (RoomShopList*)obj->owner->work;
     blocked = 0;
     itemId  = shop->items[prompt->field_8];
     /* &D_80072724 hoisted into a saved register here, as the original does,

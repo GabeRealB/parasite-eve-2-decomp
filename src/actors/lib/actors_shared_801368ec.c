@@ -21,7 +21,7 @@ void ActorsShared801368ec(void* arg0, Task* task)
     obj          = (TmdObject*)task->extra;
     parentCoords = ((TmdObject*)parent->extra)->field_8;
     coord        = obj->field_8;
-    work         = (ActorsShared801368ecWork*)parent->idMap;
+    work         = (ActorsShared801368ecWork*)parent->work;
 
     coord->flg    = 0;
     coord->sub    = &parentCoords[7];

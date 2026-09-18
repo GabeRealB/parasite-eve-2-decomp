@@ -10,7 +10,7 @@
 #include "main/tmd.h"
 
 /// Work block allocated by `func_actor_120400_80131E5C` (`Mem_Calloc(0x504)`)
-/// and parked in that task's `Task::idMap` slot -- that slot is not a
+/// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here, just as with `Actor335800MainWork` / `Actor350700MainWork`,
 /// which this body is a two-child copy of: the init seeds the two `sb` bytes at
 /// 0x475/0x476 and the `sh` at 0x500 to -1 and clears the three words at

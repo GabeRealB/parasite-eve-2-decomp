@@ -53,9 +53,9 @@ STATIC_ASSERT_SIZEOF(Actor342000MatWords, 0x20);
 ///
 /// `func_actor_342000_80162158` allocates it with `Mem_Malloc(0x2AC, 0)`,
 /// `Mem_Set`s it to zero over the same 0x2AC bytes and stores it in the
-/// `Task::idMap` slot (0x1C), so the size below is the allocation, not a
+/// `Task::work` slot (0x1C), so the size below is the allocation, not a
 /// guess: the actor reuses that pointer field for its own work block and it is
-/// *not* a `TaskIdMap` here. Reach it with `(Actor342000Work*)task->idMap`.
+/// *not* a `TaskIdMap` here. Reach it with `(Actor342000Work*)task->work`.
 ///
 /// `field_2A4` is the coordinate node the actor's model is re-parented to:
 /// `func_actor_342000_80162158` seeds it with `&Gfx_ViewCoord`, and the exit
@@ -118,10 +118,10 @@ STATIC_ASSERT_SIZEOF(Actor342000Work, 0x2AC);
 /// `D_actor_342000_80165070` points at.
 ///
 /// `func_actor_342000_8016382C` allocates it with `Mem_Calloc(0x80, 0)`,
-/// `Mem_Set`s 0x80 bytes and stores it in that task's `Task::idMap` slot, so
+/// `Mem_Set`s 0x80 bytes and stores it in that task's `Task::work` slot, so
 /// the size is anchored. The same function publishes its owning task in
 /// `D_actor_342000_80165070`, which is how the leaf helpers below reach it:
-/// `(Actor342000EventWork*)D_actor_342000_80165070->idMap`.
+/// `(Actor342000EventWork*)D_actor_342000_80165070->work`.
 ///
 /// `field_48` is the `Game_GetPtrSlot(3)` task every `Gp_DispatchMsg` in the
 /// overlay is aimed at; `field_50` / `field_5C` / `field_60` / `field_64` are
@@ -163,7 +163,7 @@ STATIC_ASSERT_SIZEOF(Actor342000Msg7DA, 0x4);
 
 /// Colour-matrix work block of the overlay's model actor:
 /// `func_actor_342000_8016201C` `Mem_Malloc`s 0x44 bytes for it and parks it in
-/// the task's `Task::idMap` slot (0x1C), which is *not* a `TaskIdMap` here.
+/// the task's `Task::work` slot (0x1C), which is *not* a `TaskIdMap` here.
 ///
 /// The two matrices are the light/colour pair `Tmd_SetupDraw` loads: the same
 /// function republishes them onto `((TmdObject*)task->extra)->field_1C` and
@@ -190,7 +190,7 @@ extern Actor342000Move D_actor_342000_801648B8;
 extern Actor342000Move D_actor_342000_80164948;
 
 /// Spawns the actor's work block (`Mem_Malloc(0x2AC, 0)`, zeroed over the same
-/// size), parks it in `Task::idMap`, seeds `field_2A4` and the model's part
+/// size), parks it in `Task::work`, seeds `field_2A4` and the model's part
 /// coordinate, then bumps the task's state.
 void func_actor_342000_80162158(Task* arg0);
 

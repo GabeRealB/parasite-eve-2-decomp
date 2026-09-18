@@ -59,7 +59,7 @@ typedef union Actor401000Flags68 {
 } Actor401000Flags68;
 STATIC_ASSERT_SIZEOF(Actor401000Flags68, 0x4);
 
-/// Private work block of the actor 401000 task, hanging off `Task::idMap`.
+/// Private work block of the actor 401000 task, hanging off `Task::work`.
 ///
 /// Only the fields the decompiled code touches are named, so the struct is
 /// deliberately open-ended: the three `GpObj` display nodes the teardown hands
@@ -232,7 +232,7 @@ typedef struct Actor401000Work {
 STATIC_ASSERT_SIZEOF(Actor401000Work, 0xC80);
 
 /// Per-task actor context: `field_1C` is the work block above (the same
-/// pointer `Task::idMap` holds), `field_20` the `GpEnemy` in
+/// pointer `Task::work` holds), `field_20` the `GpEnemy` in
 /// `Task::spawnArg2`, and `field_2C` the actor's `TmdObject`. Same shape as
 /// `Actor01900`.
 typedef struct Actor401000 {

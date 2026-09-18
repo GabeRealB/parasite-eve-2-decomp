@@ -44,7 +44,7 @@ void func_acropolis_cafeteria_801818DC(Task* task)
         Task_Kill(task);
         return;
     }
-    task->idMap        = (TaskIdMap*)work;
+    task->work         = (TaskIdMap*)work;
     task->exitCallback = func_acropolis_cafeteria_80181E3C;
     task->state        = task->state + 1;
     Mem_Set(work, 0, 0xD8);
@@ -80,7 +80,7 @@ void func_acropolis_cafeteria_80181A3C(Task* task)
 
     head                      = *(MATRIX**)G_SCRATCH_HEAD;
     *(MATRIX**)G_SCRATCH_HEAD = head - 1;
-    work                      = (AcropolisCafeteriaDebris*)task->idMap;
+    work                      = (AcropolisCafeteriaDebris*)task->work;
     coord                     = ((TmdObject*)task->extra)->field_8;
     work->field_B0--;
     coord->flg         = 0;
@@ -155,6 +155,6 @@ void func_acropolis_cafeteria_80181E30(Task* arg0)
 
 void func_acropolis_cafeteria_80181E3C(Task* arg0)
 {
-    Gp_UnlinkObj(arg0->idMap);
+    Gp_UnlinkObj(arg0->work);
     Task_Kill(arg0);
 }

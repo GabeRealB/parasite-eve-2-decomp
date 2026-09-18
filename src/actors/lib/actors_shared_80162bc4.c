@@ -12,7 +12,7 @@ s32 ActorsShared80162bc4(Task* task, s32 arg1, s32 mode, s32 arg3)
     s32                       ret;
 
     obj  = task->extra;
-    work = (ActorsShared80162bc4Work*)task->idMap;
+    work = (ActorsShared80162bc4Work*)task->work;
     ret  = 0;
     switch (mode) {
         case 0:

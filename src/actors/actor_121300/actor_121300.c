@@ -20,11 +20,11 @@ void func_actor_121300_801326EC(Task* arg0)
     Actor121300FadeWork* fade;
     Actor121300FadeWork* alloc;
 
-    fade = (Actor121300FadeWork*)arg0->idMap;
+    fade = (Actor121300FadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc       = (Actor121300FadeWork*)Mem_Malloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (Actor121300FadeWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 Task_Kill(arg0);
                 return;
@@ -71,7 +71,7 @@ s32 func_actor_121300_80132818(Task* arg0)
     u16              done;
     u16              anim;
 
-    work = (Actor121300Work*)arg0->idMap;
+    work = (Actor121300Work*)arg0->work;
     for (i = 1; i < 0x13; i++) {
         Gp_AnimTickIndex(&work->anim, i);
     }
@@ -86,7 +86,7 @@ check:
     if (done) {
         if (D_actor_121300_8013CC18[work->field_4A0] >= 0) {
             anim           = D_actor_121300_8013CC18[work->field_4A0];
-            ctx            = (Actor121300Work*)arg0->idMap;
+            ctx            = (Actor121300Work*)arg0->work;
             ctx->field_4A0 = anim;
             goto loop;
         fail:
@@ -115,7 +115,7 @@ void func_actor_121300_8013293C(Task* arg0)
     s16                    r;
     TmdObject*             tail;
 
-    work  = (Actor121300DebrisWork*)arg0->idMap;
+    work  = (Actor121300DebrisWork*)arg0->work;
     obj   = arg0->extra;
     coord = obj->field_8;
     if (D_actor_121300_8013D41C == 0) {
@@ -124,8 +124,8 @@ void func_actor_121300_8013293C(Task* arg0)
     }
     switch (arg0->state) {
         case 0:
-            alloc       = (Actor121300DebrisWork*)Mem_Malloc(0x5C, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (Actor121300DebrisWork*)Mem_Malloc(0x5C, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 Task_Kill(arg0);
                 return;

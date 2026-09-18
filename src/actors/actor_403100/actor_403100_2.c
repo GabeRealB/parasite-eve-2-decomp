@@ -1537,7 +1537,7 @@ void func_actor_403100_8013AC04(void)
     Actor403100Work* work;
 
     player   = (Task*)*Gp_ActorSlots;
-    actor    = (GameActor*)player->idMap;
+    actor    = (GameActor*)player->work;
     finished = 0;
     if ((s16)D_actor_403100_80155808->field_5EC == 0) {
         Gp_SpawnPadLerp(0xC, 0xFF, 0x80);

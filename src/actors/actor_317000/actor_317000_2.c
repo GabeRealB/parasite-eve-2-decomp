@@ -15,7 +15,7 @@
 extern GpMsgEntry D_actor_317000_8016CF50[];
 
 /// Spawn state of the enemy actor: allocates the 0x4CC-byte work block every
-/// later handler reads through `Task::idMap`, seeds the three -1 fields and the
+/// later handler reads through `Task::work`, seeds the three -1 fields and the
 /// three cleared words the work's own init expects, republishes the light and
 /// colour matrices onto the display object, raises display flag 0x80 through
 /// the mode-0 call, then installs the message table and the shared exit
@@ -31,7 +31,7 @@ void func_actor_317000_8016267C(Task* arg0)
         return;
     }
 
-    arg0->idMap     = (TaskIdMap*)work;
+    arg0->work      = (TaskIdMap*)work;
     work->field_43D = -1;
     work->field_43E = -1;
     work->field_4C8 = -1;

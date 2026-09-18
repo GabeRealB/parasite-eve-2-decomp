@@ -8,7 +8,7 @@ void func_actor_323000_80164C58(GpEnemy* enemy, Task* task)
     TmdObject*       obj;
     SVECTOR          unused; // never referenced; only reserves the frame slot the ROM has
 
-    work = (Actor323000Work*)task->idMap;
+    work = (Actor323000Work*)task->work;
     if (work->field_4 != 0) {
         obj                 = (TmdObject*)task->extra;
         enemy->node.field_4 = 1;

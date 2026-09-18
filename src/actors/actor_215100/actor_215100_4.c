@@ -19,7 +19,7 @@ s32 func_actor_215100_8014CCE0(Task* task, s32 arg1, Actor215100AnimArgs* args)
 {
     Actor215100Work* work;
 
-    work = (Actor215100Work*)task->idMap;
+    work = (Actor215100Work*)task->work;
     if (args->animId >= 0x19) {
         return -1;
     }

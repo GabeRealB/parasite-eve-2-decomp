@@ -21,10 +21,10 @@ STATIC_ASSERT_SIZEOF(Actor341900MsgPos, 0x18);
 ///
 /// `func_actor_341900_80162EFC` allocates it with `Mem_Calloc(0x70, 0)`,
 /// `Mem_Set`s the same 0x70 bytes over it and stores it in its own task's
-/// `Task::idMap` slot (0x1C), which is not a `TaskIdMap` here, then publishes
+/// `Task::work` slot (0x1C), which is not a `TaskIdMap` here, then publishes
 /// that task in `D_actor_341900_80164208`. Every helper in unit
 /// `actor_341900_3` reaches the block that way,
-/// `(Actor341900Work*)D_actor_341900_80164208->idMap`; the two dispatchers
+/// `(Actor341900Work*)D_actor_341900_80164208->work`; the two dispatchers
 /// `func_actor_341900_801628B8` / `func_actor_341900_80162AD4` in the base unit
 /// are handed the same task as their argument and index it identically.
 ///
@@ -79,7 +79,7 @@ typedef struct Actor341900Msg7DA {
 STATIC_ASSERT_SIZEOF(Actor341900Msg7DA, 0x4);
 
 /// Work block allocated by `func_actor_341900_80162200` (`Mem_Malloc(0x44, 0)`)
-/// and parked in that task's `Task::idMap` slot, which is not a `TaskIdMap`
+/// and parked in that task's `Task::work` slot, which is not a `TaskIdMap`
 /// here. The two matrices are the light/colour pair the function republishes
 /// onto `TmdObject::field_1C` / `field_20` -- the pair `Gp_BindDefaultMtx`
 /// otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2` -- and `field_40` is
@@ -93,7 +93,7 @@ typedef struct Actor341900ColorMtx {
 STATIC_ASSERT_SIZEOF(Actor341900ColorMtx, 0x44);
 
 /// Controller task of this overlay, published by `func_actor_341900_80162EFC`
-/// and read by the sequence helpers that hang their work off its `Task::idMap`.
+/// and read by the sequence helpers that hang their work off its `Task::work`.
 extern Task* D_actor_341900_80164208;
 
 /// 8-byte record of `D_actor_341900_80163A98`, indexed by `Task::spawnArg1`.
@@ -113,7 +113,7 @@ STATIC_ASSERT_SIZEOF(Actor341900SpawnPos, 0x8);
 extern Actor341900SpawnPos D_actor_341900_80163A98[6];
 
 /// Work block `func_actor_341900_80162330` allocates with `Mem_Malloc(0x258, 0)`
-/// and parks in its own task's `Task::idMap` slot, which is a `TaskIdMap*` only
+/// and parks in its own task's `Task::work` slot, which is a `TaskIdMap*` only
 /// by type. `field_248` is the task that spawned this actor, copied there from
 /// `Task::spawnArg2`; `func_actor_341900_801625B4` walks it to the spawner's
 /// model to inherit its spawn position and its colour flag.

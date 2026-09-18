@@ -8,9 +8,9 @@
 #include "main/task.h"
 
 /// Work block of the water tower's script task, allocated as 0x18 zeroed bytes
-/// by `func_dryfield_water_tower_8017FD64` and hung off `Task::idMap` (0x1C) --
+/// by `func_dryfield_water_tower_8017FD64` and hung off `Task::work` (0x1C) --
 /// that slot is *not* a `TaskIdMap` here. Reach it with
-/// `(DwtwWork*)task->idMap`.
+/// `(DwtwWork*)task->work`.
 ///
 /// The first three fields are the tasks the room's script dispatches its
 /// messages to: `field_0` is the slot-3 game pointer (`Game_GetPtrSlot(3)`),
@@ -40,9 +40,9 @@ typedef struct DwtwWork {
 STATIC_ASSERT_SIZEOF(DwtwWork, 0x18);
 
 /// Fade block `func_dryfield_water_tower_80180038` allocates with
-/// `Mem_Malloc(8, 0)` and parks in `Task::idMap` -- a second, smaller idMap
+/// `Mem_Malloc(8, 0)` and parks in `Task::work` -- a second, smaller work
 /// block in this room, distinct from `DwtwWork`. Reach it with
-/// `(DwtwFadeWork*)task->idMap`.
+/// `(DwtwFadeWork*)task->work`.
 ///
 /// The three halfwords are the RGB channels `Fade_DrawOverlay` draws: the task
 /// raises all three by `spawnArg1` each frame (so `spawnArg1` is the fade rate,
@@ -138,7 +138,7 @@ typedef struct DwtwStep {
 } DwtwStep;
 STATIC_ASSERT_SIZEOF(DwtwStep, 0x4);
 
-/// Scratch state of the room's cap script, stored at `Task::idMap`: the
+/// Scratch state of the room's cap script, stored at `Task::work`: the
 /// 0x7C-byte block `func_dryfield_water_tower_8017F128` allocates for its own
 /// task before it runs. Every task the room spawns off `D_..._80182384`
 /// allocates the same block, so the prop tasks reached through `field_44` /
@@ -206,12 +206,12 @@ typedef struct DryfieldWaterTowerState {
 STATIC_ASSERT_SIZEOF(DryfieldWaterTowerState, 0x7C);
 
 /// The water tower's script task, published by its state-0 init
-/// `func_dryfield_water_tower_8017FD64`. `DwtwWork` hangs off its `idMap`.
+/// `func_dryfield_water_tower_8017FD64`. `DwtwWork` hangs off its `work`.
 extern Task* D_dryfield_water_tower_801876AC;
 
 /// The water tower's cap-script task, published by
 /// `func_dryfield_water_tower_8017F128`, which allocates the cap script's
-/// 0x7C-byte scratch block into the task's `idMap` first.
+/// 0x7C-byte scratch block into the task's `work` first.
 extern Task* D_dryfield_water_tower_801876A4;
 
 #endif // ROOMS_DRYFIELD_WATER_TOWER_H

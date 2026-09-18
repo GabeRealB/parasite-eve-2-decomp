@@ -29,7 +29,7 @@ static __inline__ void update_color(void* enemy, GsCOORDINATE2* coord)
 void func_actor_342400_80164F3C(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra;
-    Actor342400Work* work  = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* work  = (Actor342400Work*)arg0->work;
     GpEnemy*         enemy = arg0->spawnArg2;
     GsCOORDINATE2*   coord = obj->field_8;
     TaskFunc         sp[1] = { func_actor_342400_8016A494 };
@@ -43,7 +43,7 @@ void func_actor_342400_80164F3C(Task* arg0)
             sp[(s16)work->field_420](arg0);
             func_actor_342400_801653DC(arg0, 1);
             if (work->field_41E != 0 && work->field_448 == 4 && enemy->field_40 <= 0) {
-                Actor342400Work* w = (Actor342400Work*)arg0->idMap;
+                Actor342400Work* w = (Actor342400Work*)arg0->work;
 
                 arg0->state  = work->field_448;
                 w->field_420 = 0;

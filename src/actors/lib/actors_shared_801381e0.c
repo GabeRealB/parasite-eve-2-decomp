@@ -8,7 +8,7 @@ extern s16 D_80073BA0;
 s32 ActorsShared801381e0(Task* task)
 {
     if (D_80073BA0 > 0) {
-        ((ActorsShared801381e0Work*)task->idMap)->field_6F4 = 1;
+        ((ActorsShared801381e0Work*)task->work)->field_6F4 = 1;
     }
     return 0;
 }

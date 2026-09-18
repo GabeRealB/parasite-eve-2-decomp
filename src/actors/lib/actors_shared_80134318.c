@@ -22,7 +22,7 @@ void ActorsShared80134318(GpEnemy* arg0, Task* arg1)
     GsCOORDINATE2*            cur;
 
     obj   = (TmdObject*)arg1->extra;
-    work  = (ActorsShared80134318Work*)arg1->idMap;
+    work  = (ActorsShared80134318Work*)arg1->work;
     coord = obj->field_8;
     switch (D_801153F4) {
         case 1:

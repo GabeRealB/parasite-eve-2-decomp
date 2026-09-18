@@ -40,7 +40,7 @@ void func_grenade_pistol_8011D6FC(Task* arg0)
     s32                   sfxarg;
     s32                   sfxbase;
 
-    work  = (M4a1GrenadeWork*)arg0->idMap;
+    work  = (M4a1GrenadeWork*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->field_8;
     head  = *(u8**)G_SCRATCH_HEAD;
     /* Pushed and then re-derived rather than stored from `blk`: the scratch

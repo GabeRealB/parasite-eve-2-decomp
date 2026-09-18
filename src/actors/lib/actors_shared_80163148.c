@@ -15,11 +15,11 @@ void ActorsShared80163148(Task* arg0)
     ActorsShared80163148Fade* fade;
     ActorsShared80163148Fade* alloc;
 
-    fade = (ActorsShared80163148Fade*)arg0->idMap;
+    fade = (ActorsShared80163148Fade*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc       = (ActorsShared80163148Fade*)Mem_Calloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (ActorsShared80163148Fade*)Mem_Calloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 Task_Kill(arg0);
                 return;

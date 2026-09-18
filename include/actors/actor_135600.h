@@ -10,7 +10,7 @@
 #include "main/task.h"
 
 /// Work block of the `actor_135600` enemy task, the `Mem_Calloc(0x50C, 0)`
-/// result `func_actor_135600_80132234` parks in `Task::idMap` -- that slot is
+/// result `func_actor_135600_80132234` parks in `Task::work` -- that slot is
 /// not a `TaskIdMap` here. The setup handler seeds `field_475` / `field_476`
 /// with -1 (the animation and "no id" sentinels `func_actor_135600_801330A8`
 /// fills) and `field_508` with -1, zeroes the three `field_4D8` / `field_4DC` /

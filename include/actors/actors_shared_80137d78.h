@@ -4,7 +4,7 @@
 #include "common.h"
 
 /// Work block the carriers hang off their context's 0x1C slot (the task's
-/// `Task::idMap`, which is not a `TaskIdMap` here) -- the same block
+/// `Task::work`, which is not a `TaskIdMap` here) -- the same block
 /// `Actor402200Work` describes, seen through the fields this body reaches.
 ///
 /// `field_6CE` is the state this body advances: 0 picks between two entrance

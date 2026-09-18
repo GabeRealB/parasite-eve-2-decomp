@@ -194,17 +194,17 @@ void func_actor_341300_80162878(Task* arg0)
     s32               v2;
     s32               v3;
 
-    work  = (Actor341300Shard*)arg0->idMap;
+    work  = (Actor341300Shard*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->field_8;
     switch (arg0->state) {
         case 0:
-            arg0->idMap = Mem_Calloc(0x30, 0);
-            if (arg0->idMap == NULL) {
+            arg0->work = Mem_Calloc(0x30, 0);
+            if (arg0->work == NULL) {
                 goto kill;
             }
-            work       = (Actor341300Shard*)arg0->idMap;
+            work       = (Actor341300Shard*)arg0->work;
             coord->sub = &Gfx_ViewCoord;
-            Mem_Set(arg0->idMap, 0, 0x30);
+            Mem_Set(arg0->work, 0, 0x30);
             Task_Reparent(arg0->spawnArg2, arg0);
             coord->coord.t[0] = D_actor_341300_80165A38[arg0->spawnArg1].vx;
             coord->coord.t[1] = D_actor_341300_80165A38[arg0->spawnArg1].vy;
@@ -352,17 +352,17 @@ void func_actor_341300_801631D4(Task* arg0)
     s32               v2;
     s32               v3;
 
-    work  = (Actor341300Shard*)arg0->idMap;
+    work  = (Actor341300Shard*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->field_8;
     switch (arg0->state) {
         case 0:
-            arg0->idMap = Mem_Calloc(0x30, 0);
-            if (arg0->idMap == NULL) {
+            arg0->work = Mem_Calloc(0x30, 0);
+            if (arg0->work == NULL) {
                 goto kill;
             }
-            work       = (Actor341300Shard*)arg0->idMap;
+            work       = (Actor341300Shard*)arg0->work;
             coord->sub = &Gfx_ViewCoord;
-            Mem_Set(arg0->idMap, 0, 0x30);
+            Mem_Set(arg0->work, 0, 0x30);
             Task_Reparent(arg0->spawnArg2, arg0);
             coord->coord.t[0] = D_actor_341300_80165A58[arg0->spawnArg1].vx;
             coord->coord.t[1] = D_actor_341300_80165A58[arg0->spawnArg1].vy;

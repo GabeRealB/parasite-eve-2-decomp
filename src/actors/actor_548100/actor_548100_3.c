@@ -31,7 +31,7 @@ void func_actor_548100_80134E0C(Task* arg0)
 
 void func_actor_548100_80134E94(Task* arg0)
 {
-    Actor548100Work* work = (Actor548100Work*)arg0->idMap;
+    Actor548100Work* work = (Actor548100Work*)arg0->work;
     s32              value;
 
     if (GameFlag_GetNibble(work->step + 0xBE) == 0) {
@@ -55,7 +55,7 @@ void func_actor_548100_80134E94(Task* arg0)
 
 void func_actor_548100_80134F64(Task* arg0)
 {
-    Actor548100Work* work = (Actor548100Work*)arg0->idMap;
+    Actor548100Work* work = (Actor548100Work*)arg0->work;
 
     if (Gp_CapBusy() == 0) {
         if (Gp_GetCurBit2Flag(work->bit2Slot) == 2) {
@@ -70,7 +70,7 @@ void func_actor_548100_80134F64(Task* arg0)
 
 void func_actor_548100_80134FEC(Task* arg0)
 {
-    Actor548100Work* work = (Actor548100Work*)arg0->idMap;
+    Actor548100Work* work = (Actor548100Work*)arg0->work;
 
     work->field_12 += 4;
     work->field_A  += 4;

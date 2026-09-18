@@ -7,7 +7,7 @@
 #include "main/task.h"
 
 /// Work block of the enemy actors that share `ActorsShared80136930`, reached
-/// through the *parent* task's `Task::idMap`. Only the spawn table and the
+/// through the *parent* task's `Task::work`. Only the spawn table and the
 /// request flag are modelled here; both sit at the same offsets in
 /// `Actor02000Work` (`include/actors/actor_102000.h`), which describes the
 /// rest of the block.

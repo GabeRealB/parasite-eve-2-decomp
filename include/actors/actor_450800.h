@@ -14,11 +14,11 @@
 /// overlay's symbol map and pulled in by its own `INCLUDE_RODATA`.
 extern SVECTOR D_actor_450800_80131E24;
 
-/// Work block this overlay hangs off the task's `Task::idMap` slot (0x1C),
+/// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. `func_actor_450800_80132160` allocates it
 /// with `Mem_Calloc(0x504, 0)` and stores it straight into that field, so the
 /// size below is the allocation and not a guess. Reach it with
-/// `(Actor450800Work*)task->idMap`.
+/// `(Actor450800Work*)task->work`.
 ///
 /// The three tasks at +0x4F0 .. +0x4F8 are the helper tasks this actor spawns;
 /// the exit callback `func_actor_450800_80132868` kills all three on teardown.
@@ -75,7 +75,7 @@ typedef struct Actor450800Work {
 } Actor450800Work;
 STATIC_ASSERT_SIZEOF(Actor450800Work, 0x504);
 
-/// The overlay's *second* work block, hung off the `Task::idMap` slot exactly
+/// The overlay's *second* work block, hung off the `Task::work` slot exactly
 /// as `Actor450800Work` is but never on the same task: this one is the enemy's,
 /// allocated by the spawn handler `func_actor_450800_80132E9C` with
 /// `Mem_Calloc(0x4C0, 0)` and driven by the state `ActorsShared801330ac`

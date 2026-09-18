@@ -198,13 +198,13 @@ void func_actor_105300_80132BAC(GpEnemy* arg0, Task* arg1)
 
     obj   = arg1->extra;
     coord = obj->field_8;
-    work  = (Actor05300Work*)arg1->parent->idMap;
+    work  = (Actor05300Work*)arg1->parent->work;
     part  = Mem_Calloc(0x48, 0);
     if (part == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->idMap       = (TaskIdMap*)part;
+    arg1->work        = (TaskIdMap*)part;
     coord->sub        = &Gfx_ViewCoord;
     coord->coord.t[0] = D_actor_105300_80133A20[work->field_334].x;
     coord->coord.t[1] = D_actor_105300_80133A20[work->field_334].y;
@@ -229,7 +229,7 @@ void func_actor_105300_80132BAC(GpEnemy* arg0, Task* arg1)
     part->obj.field_10 = 0;
     part->obj.field_12 = 0;
     part->obj.field_14 = 0;
-    part->obj.field_18 = ((Actor05300Work*)arg1->parent->idMap)->field_29C;
+    part->obj.field_18 = ((Actor05300Work*)arg1->parent->work)->field_29C;
     part->obj.field_1C = 0xC8;
     part->obj.flags    = 1;
     Gp_LinkObj(2, &part->obj);
@@ -258,7 +258,7 @@ void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
     s32             hitTime;
 
     coord = ((Actor05300Obj2C*)arg1->extra)->field_8;
-    part  = (Actor05300Part*)arg1->idMap;
+    part  = (Actor05300Part*)arg1->work;
     switch (D_801153F4) {
         case 1:
             return;
@@ -294,9 +294,9 @@ void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
             func_800DA6E8(&arg0->node, damage, 0);
             arg0->field_40 -= damage;
             if (arg0->field_40 <= 0) {
-                arg1->state                                       = 2;
-                part->field_42                                    = 0;
-                ((Actor05300Work*)arg1->parent->idMap)->field_336 = 1;
+                arg1->state                                      = 2;
+                part->field_42                                   = 0;
+                ((Actor05300Work*)arg1->parent->work)->field_336 = 1;
                 Gp_SpawnEff(0x6005C, coord, 0x10002400, NULL);
                 Gp_SpawnEff(0x60070, coord, 0x32FF1400, NULL);
                 snd  = D_actor_105300_8013D3B4;

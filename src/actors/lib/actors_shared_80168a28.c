@@ -19,7 +19,7 @@ void ActorsShared80168a28(Task* arg0)
     s32                       soundId;
     s32                       pan;
 
-    work            = (ActorsShared80168d3cWork*)arg0->idMap;
+    work            = (ActorsShared80168d3cWork*)arg0->work;
     enemy           = (GpEnemy*)arg0->spawnArg2;
     tmd             = (TmdObject*)arg0->extra;
     work->field_438 = 1;
@@ -34,7 +34,7 @@ void ActorsShared80168a28(Task* arg0)
     Gp_UnlinkNode(&enemy->node);
     Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
     enemy->field_54 = 0;
-    objs            = (ActorsShared80168d3cWork*)arg0->idMap;
+    objs            = (ActorsShared80168d3cWork*)arg0->work;
     Gp_UnlinkObj(&objs->obj_2AC);
     Gp_UnlinkObj(&objs->obj_2CC);
     Gp_UnlinkObj(&objs->obj_3AC);

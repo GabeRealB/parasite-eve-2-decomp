@@ -12,7 +12,7 @@
 /// mode into the work block's `field_477`, and 3 hides it while setting the
 /// flag. Anything else returns 1 and leaves the object alone; the handled
 /// modes return 0.
-/// The handler reads `idMap` before the switch even though mode 2 is its only
+/// The handler reads `work` before the switch even though mode 2 is its only
 /// use, so retail's `lw $v1,0x1C($a0)` sits in the entry block. The same body
 /// shape as `func_actor_511000_801327A0` / `func_actor_350700_80162A14`.
 s32 func_actor_213000_8014A8A4(Task* task, s32 arg1, s32 mode)
@@ -22,7 +22,7 @@ s32 func_actor_213000_8014A8A4(Task* task, s32 arg1, s32 mode)
     s32              ret;
 
     obj  = task->extra;
-    work = (Actor213000Work*)task->idMap;
+    work = (Actor213000Work*)task->work;
     ret  = 0;
 
     switch (mode) {
@@ -68,7 +68,7 @@ s32 func_actor_213000_8014A980(Task* task, s32 arg1, Actor213000Msg* msg)
     u16              mode;
 
     mode = msg->field_2;
-    work = (Actor213000Work*)task->idMap;
+    work = (Actor213000Work*)task->work;
 
     switch (mode) {
         case 0:

@@ -353,7 +353,7 @@ typedef struct _FsImageChunk {
 STATIC_ASSERT_SIZEOF(FsImageChunk, 0x10);
 
 // Forward decl for boot task callback (full type in task.h).
-struct _Task;
+struct Task;
 
 // =============================================================================
 // Functions — CD command queue
@@ -463,7 +463,7 @@ void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2);
 void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2);
 
 /// Boot path: scan ISO, parse HED, load initial CDF file (file id 1).
-void Boot_LoadInitialFile(struct _Task* task);
+void Boot_LoadInitialFile(struct Task* task);
 
 void Fs_ResetBootLoadState(void);
 void Fs_BeginBootLoad(u8* arg0, s16 arg1);

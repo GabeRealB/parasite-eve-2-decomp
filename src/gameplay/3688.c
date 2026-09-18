@@ -574,7 +574,7 @@ void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
     u8*       map;
 
     val = arg1->spawnArg1;
-    map = (u8*)arg1->idMap;
+    map = (u8*)arg1->work;
     if (val != 0) {
         if ((u32)val > 0xFFFF) {
             color = Ui_LookupTable(arg0, 1);
@@ -2081,7 +2081,7 @@ void Gp_ItemListTask(Task* arg0)
             Ui_TeardownTree(obj, arg0);
             return;
         }
-        arg0->idMap   = map;
+        arg0->work    = map;
         menu->field_6 = 0;
         countItemRows(menu);
         menu->field_5 = 9;
@@ -5015,7 +5015,7 @@ void Gp_EquipSummaryTask(Task* arg0)
     item   = 0;
     skip   = item;
     cfg    = &Player_Status;
-    stored = (s32*)arg0->idMap;
+    stored = (s32*)arg0->work;
     mode   = arg0->spawnArg1;
     obj    = arg0->spawnArg2;
     idx    = item;
@@ -5054,7 +5054,7 @@ void Gp_EquipSummaryTask(Task* arg0)
     if (arg0->state == 0) {
         stored           = Mem_Calloc(4, 0);
         Gp_ItemCountShow = 1;
-        arg0->idMap      = (TaskIdMap*)stored;
+        arg0->work       = (TaskIdMap*)stored;
         *stored          = item;
         arg0->state      = 2;
     }

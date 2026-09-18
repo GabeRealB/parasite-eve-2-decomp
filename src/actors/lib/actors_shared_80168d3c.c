@@ -11,9 +11,9 @@ void ActorsShared80168d3c(Task* arg0)
     ActorsShared80168d3cWork* work2;
     s16                       tmp;
 
-    work             = (ActorsShared80168d3cWork*)arg0->idMap;
+    work             = (ActorsShared80168d3cWork*)arg0->work;
     work->field_92   = *(u16*)&((TmdObject*)arg0->extra)->field_8->coord.t[1];
-    work2            = (ActorsShared80168d3cWork*)arg0->idMap;
+    work2            = (ActorsShared80168d3cWork*)arg0->work;
     tmp              = 8;
     work2->field_426 = tmp;
     work2->field_418 = tmp;

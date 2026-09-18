@@ -22,7 +22,7 @@ s32 func_actor_213100_8014A40C(Task* task, s32 arg1, s32 mode)
     s32              ret;
 
     obj   = (TmdObject*)task->extra;
-    work  = (Actor213100Work*)task->idMap;
+    work  = (Actor213100Work*)task->work;
     other = (TmdObject*)work->field_480->extra;
     ret   = 0;
     switch (mode) {

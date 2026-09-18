@@ -2350,10 +2350,10 @@ void func_actor_444000_8013EC84(Actor444000* arg0)
                 target = Game_GetPtrSlot(3);
                 Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 3), 0);
                 if (cfg->hp <= 0) {
-                    ((GameActor*)player->idMap)->field_956 = 0xA;
-                    Game_Session->field_12D                = 0x1E;
-                    Game_Session->field_12E                = 0x36;
-                    Game_Session->field_12F                = 0x5A;
+                    ((GameActor*)player->work)->field_956 = 0xA;
+                    Game_Session->field_12D               = 0x1E;
+                    Game_Session->field_12E               = 0x36;
+                    Game_Session->field_12F               = 0x5A;
                 }
             }
             frame = work->slots0[3].field_2 & 0x3FF;
@@ -2620,7 +2620,7 @@ scanned:
         target          = Game_GetPtrSlot(3);
         work->field_ECA = Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 4), 0);
         if (work->field_ECA == 1) {
-            ((GameActor*)player->idMap)->field_956 = 0xA;
+            ((GameActor*)player->work)->field_956 = 0xA;
         }
         work->anim.field_0 = D_actor_444000_80161670;
         work->field_EC8    = 1;

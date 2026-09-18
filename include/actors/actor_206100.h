@@ -178,10 +178,10 @@ STATIC_ASSERT_SIZEOF(Actor206100DistScratch, 0xC);
 /// Per-actor state block for the `actor_206100` overlay's enemy.
 ///
 /// `func_actor_206100_8014C274` allocates it with `Mem_Calloc(0x558, 0)` and
-/// stores it straight into the `Task::idMap` slot (0x1C), so the size below is
+/// stores it straight into the `Task::work` slot (0x1C), so the size below is
 /// the allocation and not a guess: this overlay reuses that pointer field for
 /// its own work block and it is *not* a `TaskIdMap` here.  Reach it with
-/// `(Actor206100Work*)task->idMap`.  (The overlay's only other allocation,
+/// `(Actor206100Work*)task->work`.  (The overlay's only other allocation,
 /// `Mem_Calloc(0x68, 0)` in `func_actor_206100_8014C458`, belongs to the child
 /// task that `Task_SpawnFromTable` returns there, so it is a different `Task`
 /// and a different block.)
@@ -437,7 +437,7 @@ STATIC_ASSERT_SIZEOF(Actor206100Work, 0x558);
 
 /// Work block of the beam task `func_actor_206100_8014C458` spawns off
 /// `D_actor_206100_80158B0C` when `Actor206100Work::field_555` is set: it
-/// `Mem_Calloc(0x68, 0)`s one and parks it in the child's `Task::idMap`, the
+/// `Mem_Calloc(0x68, 0)`s one and parks it in the child's `Task::work`, the
 /// same reuse `Actor206100Work` makes of the parent's slot.
 ///
 /// `obj` is the kind-1 `GpObj` the spawn state `func_actor_206100_8014EEC0`
@@ -544,7 +544,7 @@ void func_actor_206100_8014F18C(Task* task);
 
 /// Builds the child beam's collision state: links its `GpObj` and initializes
 /// the coordinate the beam is drawn at. `task` is the child spawned by
-/// `func_actor_206100_8014C458`, so its `Task::idMap` is the
+/// `func_actor_206100_8014C458`, so its `Task::work` is the
 /// `Actor206100ChildWork` above.
 void func_actor_206100_8014EEC0(Task* task);
 
@@ -601,7 +601,7 @@ void func_actor_206100_8014CD08(Task* task);
 /// coordinate's x and z, plays the weapon and 0x3F3 messages under light mode
 /// 2, and moves the actor to state 1 at sub-state 0.
 ///
-/// That last block reads `task->idMap` again instead of reusing the `work`
+/// That last block reads `task->work` again instead of reusing the `work`
 /// pointer, the same fresh load `set_state` makes, so the two stores stay a
 /// block-local quantity.
 void func_actor_206100_8014CE60(Task* task);
@@ -652,7 +652,7 @@ void func_actor_206100_8014D8E8(Task* task);
 ///   armed with a 0xB4-frame cooldown, and the fifth such release moves the
 ///   actor to state 2 with the state and sub-state indices cleared.
 ///
-/// The state change reads `task->idMap` again rather than reusing `work`, the
+/// The state change reads `task->work` again rather than reusing `work`, the
 /// same fresh load `set_state` makes.
 void func_actor_206100_8014DD3C(Task* task);
 #endif

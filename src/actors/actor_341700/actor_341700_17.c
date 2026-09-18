@@ -25,7 +25,7 @@ void func_actor_341700_80168F5C(Task* arg0)
     u16              ticks;
     Actor341700Work* work;
 
-    work            = (Actor341700Work*)arg0->idMap;
+    work            = (Actor341700Work*)arg0->work;
     ticks           = work->field_412;
     work->field_412 = ticks + 1;
     if ((s16)ticks >= 0x51) {
@@ -38,10 +38,10 @@ void func_actor_341700_80168F9C(Task* arg0)
     Actor341700Work* work;
     Actor341700Work* work2;
 
-    work = (Actor341700Work*)arg0->idMap;
+    work = (Actor341700Work*)arg0->work;
     if ((ActorsShared8016974c() << 0x10) != 0) {
         func_actor_341700_801681C4(arg0, 0);
-        work2            = (Actor341700Work*)arg0->idMap;
+        work2            = (Actor341700Work*)arg0->work;
         work2->field_426 = 8;
         work2->field_41C = 0x10;
         work2->field_418 = 0xF;
@@ -55,11 +55,11 @@ void func_actor_341700_80169018(Task* arg0)
     Actor341700Work* work;
     Actor341700Work* work2;
 
-    work = (Actor341700Work*)arg0->idMap;
+    work = (Actor341700Work*)arg0->work;
     if ((ActorsShared8016974c() << 0x10) != 0) {
         work->field_438  = 1;
         work->field_412  = 0;
-        work2            = (Actor341700Work*)arg0->idMap;
+        work2            = (Actor341700Work*)arg0->work;
         work2->field_426 = 4;
         work2->field_41C = 0x10;
         work2->field_418 = 4;
@@ -70,7 +70,7 @@ void func_actor_341700_80169018(Task* arg0)
 
 void func_actor_341700_8016908C(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->idMap;
+    Actor341700Work* work = (Actor341700Work*)arg0->work;
     s16              angle;
     s16              speed;
 
@@ -85,7 +85,7 @@ void func_actor_341700_8016908C(Task* arg0)
         Actor341700Work* next;
 
         work->field_438 = 0;
-        next            = (Actor341700Work*)arg0->idMap;
+        next            = (Actor341700Work*)arg0->work;
         next->field_420 = 3;
         next->field_422 = 0;
     }
@@ -99,7 +99,7 @@ void func_actor_341700_801691B0(Task* arg0)
     Actor341700Work* work;
     TaskFuncTable4   sp;
 
-    work = (Actor341700Work*)arg0->idMap;
+    work = (Actor341700Work*)arg0->work;
     sp   = D_actor_341700_80161ED0;
     sp.funcs[(s16)work->field_422](arg0);
 }
@@ -109,9 +109,9 @@ void func_actor_341700_80169218(Task* arg0)
     Actor341700Work* work;
     Actor341700Work* work2;
 
-    work             = (Actor341700Work*)arg0->idMap;
+    work             = (Actor341700Work*)arg0->work;
     work->field_432  = 1;
-    work2            = (Actor341700Work*)arg0->idMap;
+    work2            = (Actor341700Work*)arg0->work;
     work2->field_41C = 0x10;
     work2->field_418 = 7;
     work2->field_414 = 2;

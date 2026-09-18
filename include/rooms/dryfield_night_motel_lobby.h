@@ -6,10 +6,10 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-/// Work block the motel lobby's examine task keeps at `Task::idMap` (0x1C) --
+/// Work block the motel lobby's examine task keeps at `Task::work` (0x1C) --
 /// that slot is *not* a `TaskIdMap` here. `func_dryfield_night_motel_lobby_80180E98`
 /// allocates it with `Mem_Calloc(0xA, 0)`, and every examine state reaches it
-/// with `(DnmlExamineWork*)task->idMap`.
+/// with `(DnmlExamineWork*)task->work`.
 ///
 /// `promptKind` is the display mode `func_dryfield_night_motel_lobby_80180FD8`
 /// forwards to `func_800D4E78` as it re-spawns the action prompt over the
@@ -98,7 +98,7 @@ void func_dryfield_night_motel_lobby_801802A8(Task* task);
 s32 func_dryfield_night_motel_lobby_80180734(void);
 
 /// Task callback of the descriptor at `D_dryfield_night_motel_lobby_80182814`:
-/// allocates the examine work at `Task::idMap`, spawns the examine child task,
+/// allocates the examine work at `Task::work`, spawns the examine child task,
 /// bumps the state once and resets the room's per-visit state -- the hotspot
 /// hits, the keypad digits and three session flags.
 void func_dryfield_night_motel_lobby_80180E98(Task* task);

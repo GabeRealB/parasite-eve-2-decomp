@@ -44,7 +44,7 @@ s32 func_actor_110600_801387C0(Task* arg0)
 {
     Actor110600Work* work;
 
-    work = (Actor110600Work*)arg0->idMap;
+    work = (Actor110600Work*)arg0->work;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     work->field_0 = 4;
     return 1;
@@ -57,7 +57,7 @@ void func_actor_110600_801387F4(Task* task)
     Task*            helper;
     Task*            helper2;
 
-    work  = (Actor110600Work*)task->idMap;
+    work  = (Actor110600Work*)task->work;
     enemy = (GpEnemy*)task->spawnArg2;
     if (work != NULL) {
         helper = work->field_BD4;

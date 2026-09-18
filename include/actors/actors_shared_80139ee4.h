@@ -19,7 +19,7 @@ typedef struct ActorsShared80139ee4Scratch {
 STATIC_ASSERT_SIZEOF(ActorsShared80139ee4Scratch, 0x34);
 
 /// Work block of the enemies that share `ActorsShared80139ee4`, reached through
-/// the task's `Task::idMap` slot. Only what this body touches is modelled here;
+/// the task's `Task::work` slot. Only what this body touches is modelled here;
 /// the same offsets are described in full by `Actor444000DropWork`
 /// (`include/actors/actor_444000.h`).
 typedef struct ActorsShared80139ee4Work {

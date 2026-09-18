@@ -23,7 +23,7 @@
 /// handed back.
 ///
 /// Carried by four slots - `actor_104600`, `actor_107000`, `actor_204600` and
-/// `actor_207000` - which all reach the block through `Task::idMap`, so the
+/// `actor_207000` - which all reach the block through `Task::work`, so the
 /// body takes the `Task` rather than any carrier's own context type; the
 /// shared span is in `configs/USA/overlays.toml`.
 void ActorsShared80133cd0(Task* arg0)
@@ -33,7 +33,7 @@ void ActorsShared80133cd0(Task* arg0)
     GsCOORDINATE2*               coord;
     s32                          movement;
 
-    work     = (ActorsShared80133cd0Work*)arg0->idMap;
+    work     = (ActorsShared80133cd0Work*)arg0->work;
     scratch  = (ActorsShared80133cd0Scratch*)(SCRATCH_SP -= 0x48);
     coord    = ((TmdObject*)arg0->extra)->field_8;
     movement = func_800E0C10(&work->field_154[0], &scratch->delta, 4, NULL);

@@ -4,7 +4,7 @@
 #include "main/mem.h"
 #include "main/task.h"
 
-/// Fade block the task keeps at `Task::idMap` -- that slot is not a
+/// Fade block the task keeps at `Task::work` -- that slot is not a
 /// `TaskIdMap` here. The allocation below is `Mem_Malloc(8, 0)`, so the size is
 /// the allocation and not a guess. `field_0` is never touched.
 typedef struct {
@@ -33,11 +33,11 @@ void RoomsShared8017ff5c(Task* arg0)
     RoomsShared8017ff5cWork* work;
     RoomsShared8017ff5cWork* alloc;
 
-    work = (RoomsShared8017ff5cWork*)arg0->idMap;
+    work = (RoomsShared8017ff5cWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc       = (RoomsShared8017ff5cWork*)Mem_Malloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (RoomsShared8017ff5cWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 Task_Kill(arg0);
                 return;

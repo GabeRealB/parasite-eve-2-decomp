@@ -36,7 +36,7 @@ void RoomsShared8017e8b4(Task* task)
         if (work == NULL) {
             return;
         }
-        task->idMap = work;
+        task->work = work;
         Ui_SpawnFromDesc(&RoomsShared8017e8b4Desc, 0, 0, 1, obj);
         if (task->spawnArg1 == 0) {
             RoomsShared80180c98(list, obj);

@@ -15,7 +15,7 @@ extern GpEnemyTaskFuncTable3 D_actor_444000_80131E90;
 extern s16 D_actor_444000_80144A72;
 extern s8  D_8007272D;
 
-/// The overlay's event/controller task, whose `idMap` holds an
+/// The overlay's event/controller task, whose `work` holds an
 /// `Actor444000EventWork`.
 extern Task*        D_actor_444000_80161860;
 extern Actor444000* D_actor_444000_80161878;
@@ -24,7 +24,7 @@ extern Actor444000* D_actor_444000_80161878;
 /// call does nothing.
 void func_actor_444000_80132778(void)
 {
-    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->idMap;
+    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
 
     if (work->field_30 == 0) {
         Gp_StateF0.field_6      = 0;
@@ -42,7 +42,7 @@ void func_actor_444000_80132778(void)
 /// with it.
 void func_actor_444000_801327E8(s16 action)
 {
-    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->idMap;
+    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
 
     work->field_2C = action;
     work->field_2E = 0;

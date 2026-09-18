@@ -33,7 +33,7 @@ void func_actor_213100_8014A0C0(Task* task)
 }
 
 /// Spawn/setup handler: allocates the 0x488-byte work block, parks it in
-/// `Task::idMap` and seeds its two animation bytes to -1 - any `field_43D`
+/// `Task::work` and seeds its two animation bytes to -1 - any `field_43D`
 /// value then differs, so the first anim install always runs - then spawns the
 /// child the actor carries with it. Either allocation failing exits the task
 /// instead. The model child is flagged for the type-1 deferred kill, both
@@ -53,7 +53,7 @@ void func_actor_213100_8014A118(Task* arg0)
         Gp_EnemyTaskExit(arg0);
         return;
     }
-    arg0->idMap     = (TaskIdMap*)work;
+    arg0->work      = (TaskIdMap*)work;
     work->field_43D = -1;
     work->field_43E = -1;
     work->field_484 = -1;

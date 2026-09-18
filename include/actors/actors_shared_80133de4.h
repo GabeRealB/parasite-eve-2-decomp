@@ -5,7 +5,7 @@
 
 #include "main/task.h"
 
-/// Work block the actors sharing this body hang off the task's `idMap` slot
+/// Work block the actors sharing this body hang off the task's `work` slot
 /// (0x1C), which is not a `TaskIdMap` here. The carriers allocate blocks of
 /// different sizes, so only the one field this body reaches is described: the
 /// stored pitch the walk below steps toward its request.

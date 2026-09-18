@@ -18,7 +18,7 @@ s32 func_actor_150400_801326A4(Task* task, s32 arg1, Actor150400AnimArgs* args)
 {
     Actor150400Work* work;
 
-    work = (Actor150400Work*)task->idMap;
+    work = (Actor150400Work*)task->work;
     if (args->animId >= 6) {
         return -1;
     }

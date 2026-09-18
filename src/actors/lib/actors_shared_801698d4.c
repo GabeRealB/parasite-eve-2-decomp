@@ -6,7 +6,7 @@
 
 void ActorsShared801698d4(Task* arg0, s32 step)
 {
-    ActorsShared80168d3cWork* work = (ActorsShared80168d3cWork*)arg0->idMap;
+    ActorsShared80168d3cWork* work = (ActorsShared80168d3cWork*)arg0->work;
     SVECTOR                   vec;
     s32                       diff;
     u16                       angle;

@@ -7,7 +7,7 @@ extern Task* D_actor_136100_8014078C;
 
 void func_actor_136100_801347B8(void)
 {
-    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->idMap;
+    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->work;
     SVECTOR          unused;
     s32              i;
 
@@ -22,7 +22,7 @@ void func_actor_136100_801347B8(void)
 
 void func_actor_136100_80134838(s16 arg0)
 {
-    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->idMap;
+    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->work;
 
     work->field_4C4 = arg0;
     work->field_4C6 = 0;
@@ -30,7 +30,7 @@ void func_actor_136100_80134838(s16 arg0)
 
 void func_actor_136100_80134858(s16 arg0)
 {
-    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->idMap;
+    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->work;
 
     work->field_4CC = arg0;
     work->field_4CE = 0;
@@ -38,7 +38,7 @@ void func_actor_136100_80134858(s16 arg0)
 
 void func_actor_136100_80134878(s16 arg0)
 {
-    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->idMap;
+    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->work;
 
     work->field_4D4 = arg0;
     work->field_4D6 = 0;

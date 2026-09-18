@@ -9,7 +9,7 @@ void ActorsShared8013257c(Task* task)
     ActorsShared8013257cWork* work;
     s32                       i;
 
-    work = (ActorsShared8013257cWork*)task->idMap;
+    work = (ActorsShared8013257cWork*)task->work;
     i    = 1;
     do {
         Gp_AnimTickIndex(&work->anim, i);

@@ -11,7 +11,7 @@
 
 #include "main/task.h"
 
-/// Work block this actor parks in `Task::idMap` (`Mem_Calloc(0x4C4)`), the
+/// Work block this actor parks in `Task::work` (`Mem_Calloc(0x4C4)`), the
 /// 0x4C4-byte shape `Actor335800MainWork` has. It opens with the animation
 /// context the block itself is handed to as (`func_800B3F84` takes the block
 /// address), the 0x14 0x28-byte slots immediately above it and the 0x140-byte

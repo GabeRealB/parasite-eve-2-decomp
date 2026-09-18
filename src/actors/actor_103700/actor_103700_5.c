@@ -22,7 +22,7 @@ void func_actor_103700_80134E24(Actor103700Ctx* arg0, Task* task)
 
     obj   = (TmdObject*)task->extra;
     state = D_801153F4;
-    work  = (Actor103700Work*)task->idMap;
+    work  = (Actor103700Work*)task->work;
     coord = obj->field_8;
     one   = 1;
     if (state == one) {
@@ -84,7 +84,7 @@ s32 func_actor_103700_80134F50(Task* task)
     Actor103700HoldScratch* scratch;
     s32                     ret;
 
-    work                    = (Actor103700Work*)task->idMap;
+    work                    = (Actor103700Work*)task->work;
     player                  = Game_GetPtrSlot(3);
     head                    = *(void**)G_SCRATCH_HEAD;
     *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(Actor103700HoldScratch);

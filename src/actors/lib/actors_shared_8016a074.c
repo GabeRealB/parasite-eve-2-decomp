@@ -7,7 +7,7 @@
 /// 0xE while there is any left, 0x16 once it has run out.
 s32 ActorsShared8016a074(Task* task)
 {
-    ActorsShared8016a074Work* work = (ActorsShared8016a074Work*)task->idMap;
+    ActorsShared8016a074Work* work = (ActorsShared8016a074Work*)task->work;
     PlayerStatus*             cfg  = &Player_Status;
 
     if (work->field_0 == 0xD) {

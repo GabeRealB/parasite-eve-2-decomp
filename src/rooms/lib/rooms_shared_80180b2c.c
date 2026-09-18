@@ -5,7 +5,7 @@
 
 void RoomsShared80180b2c(s16 arg0)
 {
-    RoomsShared80180b2cWork* work = (RoomsShared80180b2cWork*)RoomsShared80180b2cTask->idMap;
+    RoomsShared80180b2cWork* work = (RoomsShared80180b2cWork*)RoomsShared80180b2cTask->work;
 
     work->field_4 = arg0;
     work->field_6 = 0;

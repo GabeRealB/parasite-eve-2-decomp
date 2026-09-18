@@ -46,7 +46,7 @@ void func_actor_361100_80162B0C(void)
 void func_actor_361100_80162B18(Task* task)
 {
     TmdObject*       ext  = task->extra;
-    Actor361100Work* work = (Actor361100Work*)task->idMap;
+    Actor361100Work* work = (Actor361100Work*)task->work;
     GsCOORDINATE2*   coord;
     VECTOR           pos;
     s32              i;
@@ -108,7 +108,7 @@ void func_actor_361100_80162D28(Task* arg0)
         return;
     }
 
-    arg0->idMap     = (TaskIdMap*)work;
+    arg0->work      = (TaskIdMap*)work;
     work->field_43D = -1;
     work->field_43E = -1;
     work->field_4A2 = -1;
@@ -138,7 +138,7 @@ void func_actor_361100_80162E04(Task* arg0)
     TmdObject*       ext;
     Actor361100Work* work;
 
-    work          = (Actor361100Work*)arg0->idMap;
+    work          = (Actor361100Work*)arg0->work;
     ext           = arg0->extra;
     ext->field_1C = &work->light;
     ext->field_20 = &work->color;
@@ -150,7 +150,7 @@ s32 func_actor_361100_80162E20(Task* task, s32 arg1, Actor361100AnimPreset* msg)
     TmdObject*       ext;
     s32              i;
 
-    work = (Actor361100Work*)task->idMap;
+    work = (Actor361100Work*)task->work;
     ext  = task->extra;
     if (msg->field_0 != work->field_43E) {
         work->field_43E = msg->field_0;
@@ -182,7 +182,7 @@ s32 func_actor_361100_80162F58(Task* task, s32 arg1, Actor361100Placement* place
     Actor361100Coord* coord;
     Actor361100Work*  work;
 
-    work              = (Actor361100Work*)task->idMap;
+    work              = (Actor361100Work*)task->work;
     coord             = (Actor361100Coord*)((TmdObject*)task->extra)->field_8;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
@@ -219,9 +219,9 @@ s32 func_actor_361100_80162FF4(Task* task, s32 arg1, s32 mode)
             obj->field_C &= ~4;
             break;
         case 2:
-            obj->field_C                              |= 0x80;
-            ((Actor361100Work*)task->idMap)->field_4A2 = mode;
-            obj->field_C                              |= 4;
+            obj->field_C                             |= 0x80;
+            ((Actor361100Work*)task->work)->field_4A2 = mode;
+            obj->field_C                             |= 4;
             break;
         case 3:
             obj->field_C &= ~0x80;
@@ -238,7 +238,7 @@ s32 func_actor_361100_801630D4(Task* task, s32 arg1, Actor361100Msg* msg)
 {
     Actor361100Work* work;
 
-    work = (Actor361100Work*)task->idMap;
+    work = (Actor361100Work*)task->work;
     switch (msg->field_2) {
         case 0:
             work->field_490 = 0;
@@ -284,7 +284,7 @@ s32 func_actor_361100_801630D4(Task* task, s32 arg1, Actor361100Msg* msg)
 void func_actor_361100_801631C4(Task* task)
 {
     TmdObject*       ext  = task->extra;
-    Actor361100Work* work = (Actor361100Work*)task->idMap;
+    Actor361100Work* work = (Actor361100Work*)task->work;
     GsCOORDINATE2*   coord;
     VECTOR3          pos;
     s32              i;
@@ -343,7 +343,7 @@ void func_actor_361100_80163410(Task* arg0)
         return;
     }
 
-    arg0->idMap     = (TaskIdMap*)work;
+    arg0->work      = (TaskIdMap*)work;
     work->field_43D = -1;
     work->field_43E = -1;
     work->field_4A2 = -1;
@@ -364,7 +364,7 @@ void func_actor_361100_801634B4(Task* arg0)
     Actor361100Work* work;
 
     ext           = arg0->extra;
-    work          = (Actor361100Work*)arg0->idMap;
+    work          = (Actor361100Work*)arg0->work;
     ext->field_1C = &work->light;
     ext->field_20 = &work->color;
 }
@@ -377,7 +377,7 @@ s32 func_actor_361100_801634D0(Task* task, s32 arg1, Actor361100AnimPreset* msg)
     TmdObject*       ext;
     s32              i;
 
-    work = (Actor361100Work*)task->idMap;
+    work = (Actor361100Work*)task->work;
     ext  = task->extra;
     if (msg->field_0 != work->field_43E) {
         work->field_43E = msg->field_0;

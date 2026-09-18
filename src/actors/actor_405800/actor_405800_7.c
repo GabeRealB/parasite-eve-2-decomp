@@ -12,7 +12,7 @@ s16  func_actor_405800_8013836C(Task* arg0, s16 arg1);
 
 void func_actor_405800_8013A0F4(Task* arg0)
 {
-    Actor405800Work* work = (Actor405800Work*)arg0->idMap;
+    Actor405800Work* work = (Actor405800Work*)arg0->work;
     s32              i;
 
     if (work->field_86E == 1) {
@@ -42,7 +42,7 @@ void func_actor_405800_8013A1E0(Task* task, s16 arg1, s16 arg2)
 {
     Actor405800Work* work;
 
-    work            = (Actor405800Work*)task->idMap;
+    work            = (Actor405800Work*)task->work;
     work->field_850 = arg2;
     work->field_872 = arg1;
     work->field_86E = 2;
@@ -52,7 +52,7 @@ void func_actor_405800_8013A1F8(Task* task, s16 arg1, s16 arg2, s16 arg3)
 {
     Actor405800Work* work;
 
-    work            = (Actor405800Work*)task->idMap;
+    work            = (Actor405800Work*)task->work;
     work->field_84A = arg3;
     work->field_850 = arg2;
     work->field_872 = arg1;

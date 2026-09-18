@@ -6,7 +6,7 @@ s32 ActorsShared8013391c(Task* task, s32 msgId, ActorsShared8013391cMsg* msg)
 {
     ActorsShared8013391cWork* work;
 
-    work = (ActorsShared8013391cWork*)task->idMap;
+    work = (ActorsShared8013391cWork*)task->work;
     switch (msg->field_2) {
         case 0:
             break;

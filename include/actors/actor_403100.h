@@ -116,7 +116,7 @@ STATIC_ASSERT_SIZEOF(Actor403100Req, 0x4);
 /// Per-actor work block for the `actor_403100` overlay.
 ///
 /// `func_actor_403100_80136610` allocates it with `Mem_Calloc(0x678, 0)` and
-/// stores the same pointer twice: into the `Task::idMap` slot (0x1C), which an
+/// stores the same pointer twice: into the `Task::work` slot (0x1C), which an
 /// enemy actor reuses for its own work block, and into the overlay-wide
 /// `D_actor_403100_80155808`. It also hands `work + 0x20` and `work` to the
 /// `TmdObject` at `Task::extra` (`field_1C` / `field_20`). Most of the overlay

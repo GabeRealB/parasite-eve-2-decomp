@@ -10,8 +10,8 @@
 
 /// 0x20-byte block `func_actor_160900_80133F90` allocates with
 /// `Mem_Calloc(0x20, 0)` for each of the two child tasks it spawns from index 7
-/// of `ActorsShared80136280Desc`, and parks in that child's `Task::idMap` slot
-/// (0x1C) -- a third idMap block in this overlay, not a `TaskIdMap`. The size
+/// of `ActorsShared80136280Desc`, and parks in that child's `Task::work` slot
+/// (0x1C) -- a third work block in this overlay, not a `TaskIdMap`. The size
 /// below is the allocation: the function zeroes all 0x20 bytes with `Mem_Set`.
 ///
 /// The four vectors are the corners of an axis-aligned rectangle in the Y/Z
@@ -28,9 +28,9 @@ typedef struct Actor160900ChildWork {
 } Actor160900ChildWork;
 STATIC_ASSERT_SIZEOF(Actor160900ChildWork, 0x20);
 
-/// Work block this overlay hangs off the task's `Task::idMap` slot (0x1C),
+/// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. Reach it with
-/// `(Actor160900Work*)task->idMap`.
+/// `(Actor160900Work*)task->work`.
 ///
 /// `func_actor_160900_8013418C` allocates it with `Mem_Malloc(0x68, 0)` and
 /// zeroes all 0x68 bytes, so the size below is the allocation. That function
@@ -94,7 +94,7 @@ typedef struct Actor160900AnimStep {
 STATIC_ASSERT_SIZEOF(Actor160900AnimStep, 0x4);
 
 /// 8-byte fade block `func_actor_160900_801343E4` allocates with
-/// `Mem_Malloc(8, 0)` and parks in `Task::idMap` -- a second, smaller idMap
+/// `Mem_Malloc(8, 0)` and parks in `Task::work` -- a second, smaller work
 /// block in this overlay, distinct from `Actor160900Work` and owned by the
 /// fade task that function drives.
 ///

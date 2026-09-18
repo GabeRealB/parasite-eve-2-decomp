@@ -11,7 +11,7 @@ void ActorsShared801433b8(Task* arg0)
     GpEnemy*                  enemy;
     s16                       i;
 
-    work  = (ActorsShared801433b8Work*)arg0->idMap;
+    work  = (ActorsShared801433b8Work*)arg0->work;
     enemy = arg0->spawnArg2;
     if (work != NULL) {
         for (i = 0; i < 7; i++) {

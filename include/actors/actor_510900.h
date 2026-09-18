@@ -217,7 +217,7 @@ typedef struct Actor510900Anim {
 } Actor510900Anim;
 STATIC_ASSERT_SIZEOF(Actor510900Anim, 0x43C);
 
-/// `Task::idMap` of the child task `func_actor_510900_8013A85C` drives: an
+/// `Task::work` of the child task `func_actor_510900_8013A85C` drives: an
 /// animation context `Gp_AnimTickIndex` ticks slots 1..10 of, with a pair of
 /// words past it. Below 2, `field_334` + 0xB is the game-flag nibble index
 /// `field_336` is written to; otherwise `field_336` goes to the parent work's
@@ -234,7 +234,7 @@ typedef struct Actor510900ChildAnim {
     /* 0x314 */ GpRec18    rec314;
     /// Task the frame handler releases (state 2) once the camera has cut
     /// away from every view this actor is visible in.
-    /* 0x32C */ struct _Task* field_32C;
+    /* 0x32C */ struct Task* field_32C;
     /// State the frame handler below dispatches on: 0 waits for the grab, 1
     /// runs the `field_332` countdown, 2 is done.
     /* 0x330 */ s16 field_330;
@@ -253,7 +253,7 @@ typedef struct Actor510900GrabScratch {
 } Actor510900GrabScratch;
 STATIC_ASSERT_SIZEOF(Actor510900GrabScratch, 0x18);
 
-/// 0xD0-byte `Task::idMap` block `func_actor_510900_801397F0` allocates for its
+/// 0xD0-byte `Task::work` block `func_actor_510900_801397F0` allocates for its
 /// child task: the child's colour and light matrices (handed to
 /// `TmdObject::field_20` / `field_1C`), two linked `GpObj`s with their `GpRec18`
 /// tables, and the timer/state trio `func_actor_510900_8013A100` runs its
@@ -340,7 +340,7 @@ typedef struct Actor510900MatrixWords {
     /* 0x10 */ s16 m22;
 } Actor510900MatrixWords;
 
-/// 0x7C-byte `Task::idMap` block `func_actor_510900_8013AD90` allocates: two
+/// 0x7C-byte `Task::work` block `func_actor_510900_8013AD90` allocates: two
 /// linked `GpObj`s, each with its one-entry `GpRec18` table, laid out as the
 /// head of `Actor510900Work` (`func_actor_510900_8013C430` unlinks both).
 typedef struct Actor510900ChildWork {

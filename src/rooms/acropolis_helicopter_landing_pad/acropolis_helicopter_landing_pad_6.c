@@ -113,7 +113,7 @@ void func_acropolis_helicopter_landing_pad_8017EF60(void)
 /// on the stack. Marks the player actor's `field_930` as 2 before every step.
 void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
 {
-    GameActor* actor     = (GameActor*)((Task*)Game_GetPtrSlot(3))->idMap;
+    GameActor* actor     = (GameActor*)((Task*)Game_GetPtrSlot(3))->work;
     TaskFunc   states[5] = {
         func_acropolis_helicopter_landing_pad_8017ED50,
         func_acropolis_helicopter_landing_pad_8017EDD4,

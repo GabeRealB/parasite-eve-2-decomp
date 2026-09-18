@@ -35,7 +35,7 @@ static __inline__ void Actor04400_UpdateColor(void* enemy, GsCOORDINATE2* coord)
 /// Moves the task to `state` with a fresh state machine.
 static __inline__ void Actor04400_SetState(Task* arg0, s32 state)
 {
-    Actor104400Work* w = (Actor104400Work*)arg0->idMap;
+    Actor104400Work* w = (Actor104400Work*)arg0->work;
 
     arg0->state  = state;
     w->field_420 = 0;
@@ -46,7 +46,7 @@ static __inline__ void Actor04400_SetState(Task* arg0, s32 state)
 /// task's own state; `Actor04400_TakeRequest` uses this one.
 static __inline__ void Actor04400_SetStateIndex(Task* arg0, s32 state)
 {
-    Actor104400Work* w = (Actor104400Work*)arg0->idMap;
+    Actor104400Work* w = (Actor104400Work*)arg0->work;
 
     w->field_420 = state;
     w->field_422 = 0;
@@ -57,7 +57,7 @@ static __inline__ void Actor04400_SetStateIndex(Task* arg0, s32 state)
 /// otherwise returns 0.
 static __inline__ s32 Actor04400_TakeRequest(Task* arg0)
 {
-    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
+    Actor104400Work* work = (Actor104400Work*)arg0->work;
 
     if (work->field_41E == 1) {
         switch ((s16)(work->field_448 - 1)) {
@@ -92,14 +92,14 @@ static __inline__ s32 Actor04400_TakeRequest(Task* arg0)
 /// set to 0 up front and to 1 in each arm cross-jumps the arms' stores.
 static __inline__ s16 Actor04400_TakeHit(Task* arg0)
 {
-    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
+    Actor104400Work* work = (Actor104400Work*)arg0->work;
     Actor104400Work* w2;
 
     if ((work->field_44C & 0xF) == 2) {
         if (work->field_438 == 0) {
             work->field_44C = 0;
             Actor04400_SetState(arg0, 3);
-            w2            = (Actor104400Work*)arg0->idMap;
+            w2            = (Actor104400Work*)arg0->work;
             w2->field_420 = 10;
             w2->field_422 = 0;
             return 1;
@@ -117,7 +117,7 @@ static __inline__ s16 Actor04400_TakeHit(Task* arg0)
 /// taken off `G_SCRATCH_HEAD`.
 static __inline__ void Actor04400_UpdateRotation(Task* arg0)
 {
-    Actor104400Work* work  = (Actor104400Work*)arg0->idMap;
+    Actor104400Work* work  = (Actor104400Work*)arg0->work;
     MATRIX*          m     = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
     GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
     MATRIX*          dst;
@@ -169,7 +169,7 @@ void Actor04400_Fn03538(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra;
     GpEnemy*         enemy = arg0->spawnArg2;
-    Actor104400Work* work  = (Actor104400Work*)arg0->idMap;
+    Actor104400Work* work  = (Actor104400Work*)arg0->work;
     GsCOORDINATE2*   coord = obj->field_8;
     TaskFuncTable5   sp    = Actor04400_D00128;
 

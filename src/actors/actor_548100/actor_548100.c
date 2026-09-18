@@ -95,7 +95,7 @@ void func_actor_548100_80132550(Task* task)
 {
     RoomActionPrompt*   prompt = &D_80114D28;
     Actor548100Hotspot* hs     = D_actor_548100_801357E8;
-    Actor548100Work*    work   = (Actor548100Work*)task->idMap;
+    Actor548100Work*    work   = (Actor548100Work*)task->work;
 
     Game_Session->field_68 = 1;
     Game_Session->field_1  = 1;
@@ -130,7 +130,7 @@ void func_actor_548100_80132550(Task* task)
 
 void func_actor_548100_80132684(Task* task)
 {
-    Actor548100Work* work = (Actor548100Work*)task->idMap;
+    Actor548100Work* work = (Actor548100Work*)task->work;
     s32              kind;
     s32              state;
     s32              cmd;
@@ -201,7 +201,7 @@ void func_actor_548100_80132684(Task* task)
 /// state 9.
 void func_actor_548100_80132808(Task* arg0)
 {
-    Actor548100Work* work = (Actor548100Work*)arg0->idMap;
+    Actor548100Work* work = (Actor548100Work*)arg0->work;
     s32              distA;
     s32              distB;
 
@@ -259,7 +259,7 @@ void func_actor_548100_80132A14(Task* task)
 
     i    = 0;
     rect = D_actor_548100_801357C0;
-    work = (Actor548100Work*)task->idMap;
+    work = (Actor548100Work*)task->work;
     for (; i < 4; i++, rect++) {
         if (GameFlag_GetNibble(i + 0xBF) != 0) {
             func_actor_548100_8013461C(rect);

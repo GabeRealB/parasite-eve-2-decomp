@@ -270,7 +270,7 @@ void Actor00300_Fn05278(GpEnemy* arg0, Task* arg1)
     Actor100300Work* work;
     u16              timer;
 
-    work = (Actor100300Work*)arg1->idMap;
+    work = (Actor100300Work*)arg1->work;
     switch (work->field_8A) {
         case 0:
             Gp_UnlinkObj(&work->obj0);

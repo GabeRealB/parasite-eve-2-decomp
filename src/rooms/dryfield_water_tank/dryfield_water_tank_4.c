@@ -21,7 +21,7 @@ void func_dryfield_water_tank_8017E174(Task* task, s32 msgId, DwtMsg7DB* msg)
     DwtScriptWork* work;
     s32            state;
 
-    work                = (DwtScriptWork*)task->idMap;
+    work                = (DwtScriptWork*)task->work;
     work->field_4C      = 0;
     work->field_54      = 0;
     state               = msg->field_2;
@@ -37,7 +37,7 @@ void func_dryfield_water_tank_8017E194(s16 request)
 {
     DwtScriptWork* work;
 
-    work           = (DwtScriptWork*)D_dryfield_water_tank_80188D4C->idMap;
+    work           = (DwtScriptWork*)D_dryfield_water_tank_80188D4C->work;
     work->field_50 = request;
     work->field_52 = 0;
 }
@@ -50,7 +50,7 @@ void func_dryfield_water_tank_8017E1B4(void)
 {
     DwtScriptWork* work;
 
-    work       = (DwtScriptWork*)D_dryfield_water_tank_80188D4C->idMap;
+    work       = (DwtScriptWork*)D_dryfield_water_tank_80188D4C->work;
     D_8007216C = Gp_FindViewIndex(3);
     /* The cast is what makes this match: as `work->owner` the load carries
      * MEM_IN_STRUCT_P, and sched1's true_dependence then disregards it against

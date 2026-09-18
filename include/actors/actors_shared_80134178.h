@@ -7,7 +7,7 @@
 #include "main/tmd.h"
 #include "gameplay/1BC.h"
 
-/// Partial view of the work block the actor keeps in `Task::idMap`. `field_4`
+/// Partial view of the work block the actor keeps in `Task::work`. `field_4`
 /// is the halfword flag this body tests; only its offset is known.
 typedef struct ActorShared80134178Work {
     /* 0x00 */ s16 field_0;

@@ -21,7 +21,7 @@ void func_actor_548100_801330EC(void);
 
 s32 func_actor_548100_80134778(Task* arg0, s16 arg1, s32 arg2)
 {
-    Actor548100Work* work = (Actor548100Work*)arg0->idMap;
+    Actor548100Work* work = (Actor548100Work*)arg0->work;
 
     if ((arg2 == 0x120 || arg2 == 0x12C) && ((u16)work->step - 1) < 4U) {
         work->collectBitId = arg2;

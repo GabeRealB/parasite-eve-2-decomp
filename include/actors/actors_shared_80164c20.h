@@ -7,7 +7,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Head of the work block these enemies hang off `Task::idMap`; only the flag
+/// Head of the work block these enemies hang off `Task::work`; only the flag
 /// this body tests is known. It sits where `Actor00100Work::field_4` does, and
 /// is read the same way, by the sibling body `Actor00100_Fn0B4D8`.
 typedef struct ActorsShared80164c20Work {

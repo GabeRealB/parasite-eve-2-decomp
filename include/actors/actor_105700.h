@@ -242,7 +242,7 @@ typedef struct Actor105700BeamScratch {
 } Actor105700BeamScratch;
 STATIC_ASSERT_SIZEOF(Actor105700BeamScratch, 0x48);
 
-/// 0xF0-byte body block `func_actor_105700_80134FDC` parks at `Task::idMap`.
+/// 0xF0-byte body block `func_actor_105700_80134FDC` parks at `Task::work`.
 /// The two leading matrices are the light/colour pair published on the model
 /// root's `TmdObject`; the three `GpObj` bodies collide against `rec60`
 /// (shared by the first two) and, through the `GpActorD4Rec` between them,

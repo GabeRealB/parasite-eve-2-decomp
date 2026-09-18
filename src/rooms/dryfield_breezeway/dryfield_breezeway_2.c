@@ -55,7 +55,7 @@ void func_dryfield_breezeway_8017DEC0(Task* arg0)
     s32       state;
     s32       id;
 
-    work  = (DbwWork*)arg0->idMap;
+    work  = (DbwWork*)arg0->work;
     state = work->field_C;
 
     switch (state) {
@@ -95,8 +95,8 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            work        = (DbwWork*)Mem_Malloc(0x14, 0);
-            arg0->idMap = (TaskIdMap*)work;
+            work       = (DbwWork*)Mem_Malloc(0x14, 0);
+            arg0->work = (TaskIdMap*)work;
             if (work == NULL) {
                 Task_Kill(arg0);
             } else {
@@ -153,8 +153,8 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
             if (D_80114C12 == 1 || D_80071075 != 0) {
                 return;
             }
-            work        = (DbwWork*)Mem_Malloc(0x14, 0);
-            arg0->idMap = (TaskIdMap*)work;
+            work       = (DbwWork*)Mem_Malloc(0x14, 0);
+            arg0->work = (TaskIdMap*)work;
             if (work == NULL) {
                 Task_Kill(arg0);
             } else {
@@ -191,7 +191,7 @@ void func_dryfield_breezeway_8017E2D4(void)
     DbwWork*  work;
     DbwMsg7DA msg;
 
-    work        = (DbwWork*)D_dryfield_breezeway_801843C0->idMap;
+    work        = (DbwWork*)D_dryfield_breezeway_801843C0->work;
     msg.field_0 = Game_Session->field_7;
     msg.field_1 = Game_Session->field_6;
     msg.field_2 = 2;
@@ -208,7 +208,7 @@ void func_dryfield_breezeway_8017E370(s16 arg0)
 {
     DbwWork* work;
 
-    work          = (DbwWork*)D_dryfield_breezeway_801843C0->idMap;
+    work          = (DbwWork*)D_dryfield_breezeway_801843C0->work;
     work->field_C = arg0;
     work->field_E = 0;
 }
@@ -227,7 +227,7 @@ void func_dryfield_breezeway_8017E390(void)
     buf.rec.field_10 = 0;
     Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&buf, 0);
 
-    work            = (DbwWork*)D_dryfield_breezeway_801843C0->idMap;
+    work            = (DbwWork*)D_dryfield_breezeway_801843C0->work;
     buf.msg.field_0 = Game_Session->field_7;
     buf.msg.field_1 = Game_Session->field_6;
     buf.msg.field_2 = 2;
@@ -237,7 +237,7 @@ void func_dryfield_breezeway_8017E390(void)
 
 /// Brings up the room's second task family, the key-item event the prompt in
 /// `func_dryfield_breezeway_8017E65C` rides on. The 0x60 `DbwEventWork` block
-/// is allocated and published in `Task::idMap`, the family's own `GpMsgEntry[]`
+/// is allocated and published in `Task::work`, the family's own `GpMsgEntry[]`
 /// (`D_dryfield_breezeway_80182DCC`, the one 0x13F1 record) goes to
 /// `Task::field_24` -- which is what routes the key-item query into this room
 /// at all -- and the room's own event task is spawned from
@@ -284,7 +284,7 @@ void func_dryfield_breezeway_8017E464(Task* arg0)
     arg0->spawnArg2 = Task_SpawnFromTable(&D_dryfield_breezeway_80182DC0, 0, 1, 0);
     do {
         arg0->field_24 = D_dryfield_breezeway_80182DCC;
-        arg0->idMap    = (TaskIdMap*)work;
+        arg0->work     = (TaskIdMap*)work;
         D_8007216C     = 6;
     } while (0);
     arg0->state   += 1;
@@ -315,7 +315,7 @@ void func_dryfield_breezeway_8017E464(Task* arg0)
     work->cursorY          = 0x20;
 
     {
-        DbwEventWork* eventWork = (DbwEventWork*)arg0->idMap;
+        DbwEventWork* eventWork = (DbwEventWork*)arg0->work;
         TmdObject*    eventObj  = (TmdObject*)arg0->extra;
         DbwMatWords*  light     = (DbwMatWords*)&eventWork->light;
         DbwMatWords*  color     = (DbwMatWords*)&eventWork->color;
@@ -401,7 +401,7 @@ void func_dryfield_breezeway_8017E65C(Task* task)
     MATRIX*           m;
 
     coord  = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
-    work   = (DbwEventWork*)task->idMap;
+    work   = (DbwEventWork*)task->work;
     hs     = D_dryfield_breezeway_80182E00;
     prompt = &D_80114D28;
 
@@ -468,7 +468,7 @@ void func_dryfield_breezeway_8017E81C(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     GsCOORDINATE2*    coord  = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
-    DbwEventWork*     work   = (DbwEventWork*)task->idMap;
+    DbwEventWork*     work   = (DbwEventWork*)task->work;
     RoomHotspot*      hs     = D_dryfield_breezeway_80182DDC;
     MATRIX*           m;
 

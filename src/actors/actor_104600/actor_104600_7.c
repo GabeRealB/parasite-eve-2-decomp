@@ -18,7 +18,7 @@ void func_actor_104600_80135B74(Task* task)
 {
     Actor104600Work* work;
 
-    work = (Actor104600Work*)task->idMap;
+    work = (Actor104600Work*)task->work;
     switch (work->field_286) {
         case 0:
             func_actor_104600_80134EC8(task);

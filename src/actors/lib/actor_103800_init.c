@@ -56,7 +56,7 @@ void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->idMap     = (TaskIdMap*)work;
+    arg1->work      = (TaskIdMap*)work;
     extra->field_1C = &work->field_184;
     extra->field_C  = 0;
     extra->field_20 = &work->field_164;
@@ -159,7 +159,7 @@ void Actor03800_Fn003B8(Task* arg0)
     s16                  kind;
 
     ctx  = (Actor103800Ctx*)arg0->spawnArg2;
-    work = (Actor103800Work*)arg0->idMap;
+    work = (Actor103800Work*)arg0->work;
     src  = ((Actor103800Obj2C*)arg0->extra)->field_8;
     mode = ctx->field_3C->field_2 / 10;
 

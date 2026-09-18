@@ -62,7 +62,7 @@ extern GpPairSrcE D_actor_107600_80135720;
 extern u16        D_actor_107600_80135750[];
 
 /* Remaining-enemy count, and the gallery controller task the room overlay
- * publishes (its `Task::idMap` is the `MistShootingGalleryWork`). */
+ * publishes (its `Task::work` is the `MistShootingGalleryWork`). */
 extern s16   D_80073BA0;
 extern Task* D_8018E0C4;
 
@@ -96,14 +96,14 @@ void func_actor_107600_80131F10(Task* arg0)
     if ((!(arg0->spawnArg1 & 0x40000000) && func_80103D8C(block->vx, block->vz) < 0x401) || (u8)arg0->spawnArg1 == 0xFF) {
     fail:
         if ((arg0->spawnArg1 & 0xF000) != 0x2000) {
-            ((MistShootingGalleryWork*)arg0->parent->idMap)->field_0E--;
+            ((MistShootingGalleryWork*)arg0->parent->work)->field_0E--;
         }
         *(u8**)G_SCRATCH_HEAD += 0x10;
         Gp_DestroyEnemy(enemy, arg0);
         return;
     }
-    work        = Mem_Calloc(0x14C, false);
-    arg0->idMap = (TaskIdMap*)work;
+    work       = Mem_Calloc(0x14C, false);
+    arg0->work = (TaskIdMap*)work;
     if (work == NULL) {
         goto fail;
     }
@@ -144,7 +144,7 @@ void func_actor_107600_80131F10(Task* arg0)
 /// back to 0 and advances the task state.
 void func_actor_107600_80132160(Task* arg0)
 {
-    Actor107600Work*     work  = (Actor107600Work*)arg0->idMap;
+    Actor107600Work*     work  = (Actor107600Work*)arg0->work;
     GpEnemy*             enemy = arg0->spawnArg2;
     GsCOORDINATE2*       coord = ((TmdObject*)arg0->extra)->field_8;
     Actor107600Waypoint* wp;
@@ -252,7 +252,7 @@ void func_actor_107600_80132160(Task* arg0)
 /// -0xF4C and -0xF3C instead of -0x10 and 0.
 void func_actor_107600_80132514(Task* arg0)
 {
-    Actor107600Work*     work  = (Actor107600Work*)arg0->idMap;
+    Actor107600Work*     work  = (Actor107600Work*)arg0->work;
     GpEnemy*             enemy = arg0->spawnArg2;
     GsCOORDINATE2*       coord = ((TmdObject*)arg0->extra)->field_8;
     Actor107600Waypoint* wp;
@@ -396,7 +396,7 @@ void func_actor_107600_80132930(Task* arg0)
 {
     TmdObject*       ext      = arg0->extra;
     GpCoordPose*     coord    = (GpCoordPose*)ext->field_8;
-    Actor107600Work* work     = (Actor107600Work*)arg0->idMap;
+    Actor107600Work* work     = (Actor107600Work*)arg0->work;
     TaskFunc         funcs[2] = { (TaskFunc)func_actor_107600_80132CB8, func_actor_107600_80132CD4 };
     TmdObject*       obj;
 
@@ -428,9 +428,9 @@ void func_actor_107600_80132A7C(Task* arg0)
     Actor107600Work* work;
 
     parent = arg0->parent;
-    work   = (Actor107600Work*)arg0->idMap;
+    work   = (Actor107600Work*)arg0->work;
     if (work->field_144 != 2) {
-        ((MistShootingGalleryWork*)parent->idMap)->field_0E--;
+        ((MistShootingGalleryWork*)parent->work)->field_0E--;
     }
     arg0->state++;
 }
@@ -439,7 +439,7 @@ void func_actor_107600_80132A7C(Task* arg0)
 /// has already reached phase 2, then hands the enemy back for destruction.
 void func_actor_107600_80132AC0(Task* arg0)
 {
-    Actor107600Work* work = (Actor107600Work*)arg0->idMap;
+    Actor107600Work* work = (Actor107600Work*)arg0->work;
 
     if (work->field_144 != 2) {
         Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
@@ -479,7 +479,7 @@ void func_actor_107600_80132B0C(Task* arg0)
 /// `func_actor_107600_80132C4C`.
 void func_actor_107600_80132B7C(Task* arg0)
 {
-    Actor107600Work* work  = (Actor107600Work*)arg0->idMap;
+    Actor107600Work* work  = (Actor107600Work*)arg0->work;
     GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
     MATRIX*          m;
 
@@ -530,7 +530,7 @@ void func_actor_107600_80132CB8(Actor107600* arg0)
 void func_actor_107600_80132CD4(Task* arg0)
 {
     TaskFuncTable3   sp;
-    Actor107600Work* work = (Actor107600Work*)arg0->idMap;
+    Actor107600Work* work = (Actor107600Work*)arg0->work;
 
     sp = D_actor_107600_80131E34;
     sp.funcs[work->field_144](arg0);
@@ -545,7 +545,7 @@ void func_actor_107600_80132CD4(Task* arg0)
 /// the bit set shrinks it by 8 until it reaches 0 and the task state advances.
 void func_actor_107600_80132D54(Task* arg0)
 {
-    Actor107600Work* work  = (Actor107600Work*)arg0->idMap;
+    Actor107600Work* work  = (Actor107600Work*)arg0->work;
     GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
     GpEnemy*         enemy = arg0->spawnArg2;
 
@@ -619,7 +619,7 @@ void func_actor_107600_80132ED0(Task* arg0)
     variant = *(u8*)&arg0->spawnArg1;
     enemy   = arg0->spawnArg2;
     coord   = obj->field_8;
-    if (variant == 0xFF || (work = (Actor107600Work*)Mem_Calloc(0x16C, false), arg0->idMap = (TaskIdMap*)work, work == NULL)) {
+    if (variant == 0xFF || (work = (Actor107600Work*)Mem_Calloc(0x16C, false), arg0->work = (TaskIdMap*)work, work == NULL)) {
         Gp_DestroyEnemy(enemy, arg0);
         return;
     }
@@ -668,7 +668,7 @@ void func_actor_107600_80133024(Task* arg0)
 
     enemy                  = arg0->spawnArg2;
     ext                    = arg0->extra;
-    work                   = (Actor107600Work*)arg0->idMap;
+    work                   = (Actor107600Work*)arg0->work;
     coord                  = ext->field_8;
     obj                    = ext;
     sp                     = D_actor_107600_80131E84;
@@ -697,7 +697,7 @@ void func_actor_107600_80133024(Task* arg0)
             break;
     }
     if (work->field_162 != 2) {
-        ((MistShootingGalleryWork*)D_8018E0C4->idMap)->field_1D = Gp_NodeSlotMask(&enemy->node);
+        ((MistShootingGalleryWork*)D_8018E0C4->work)->field_1D = Gp_NodeSlotMask(&enemy->node);
     }
     coord->flg = 0;
     func_actor_107600_80134A50(arg0);
@@ -726,7 +726,7 @@ void func_actor_107600_80133024(Task* arg0)
 /// `Game_GetPtrSlot(3)` actor's fifth coordinate and updates that actor.
 void func_actor_107600_801332D4(Task* arg0)
 {
-    Actor107600Work* work  = (Actor107600Work*)arg0->idMap;
+    Actor107600Work* work  = (Actor107600Work*)arg0->work;
     GpEnemy*         enemy = arg0->spawnArg2;
     GpActorWork*     player;
     GameActor*       actor;
@@ -815,8 +815,8 @@ void func_actor_107600_801332D4(Task* arg0)
                 SndEvt_EnqueueType6(0x5114000E, p, (s8)Gp_GetObjDepth(c));
                 if (actor->field_954 != 1) {
                     if (D_80073BA0 < 11) {
-                        ((MistShootingGalleryWork*)D_8018E0C4->idMap)->field_22 = 1;
-                        actor->field_96E                                        = 0;
+                        ((MistShootingGalleryWork*)D_8018E0C4->work)->field_22 = 1;
+                        actor->field_96E                                       = 0;
                     } else {
                         actor->field_96E = 10;
                     }
@@ -886,7 +886,7 @@ void func_actor_107600_80133668(Actor107600* arg0)
 /// raises bit 0x80 of `Task::spawnArg1`.
 void func_actor_107600_801337FC(Task* arg0)
 {
-    Actor107600Work* work  = (Actor107600Work*)arg0->idMap;
+    Actor107600Work* work  = (Actor107600Work*)arg0->work;
     GpEnemy*         enemy = arg0->spawnArg2;
     GpObj38*         obj;
     s32              pan;
@@ -942,11 +942,11 @@ void func_actor_107600_801337FC(Task* arg0)
 /// advancing `Task::state` and raising bit 0x80 of `Task::spawnArg1`.
 void func_actor_107600_801339A4(Task* arg0)
 {
-    Actor107600Work*         work  = (Actor107600Work*)arg0->idMap;
+    Actor107600Work*         work  = (Actor107600Work*)arg0->work;
     GpEnemy*                 enemy = arg0->spawnArg2;
     TmdObject*               tmd   = arg0->extra;
     GsCOORDINATE2*           obj   = tmd->field_8;
-    MistShootingGalleryWork* gal   = (MistShootingGalleryWork*)D_8018E0C4->idMap;
+    MistShootingGalleryWork* gal   = (MistShootingGalleryWork*)D_8018E0C4->work;
     Actor107600HitPos*       pos;
     s32                      id;
     s32                      pan;
@@ -1068,7 +1068,7 @@ void func_actor_107600_80133DC4(Task* arg0)
     s16              damage;
     s32              pan;
 
-    work                   = (Actor107600Work*)arg0->idMap;
+    work                   = (Actor107600Work*)arg0->work;
     enemy                  = arg0->spawnArg2;
     *(s32*)G_SCRATCH_HEAD -= 8;
     work->field_156        = 0;
@@ -1362,7 +1362,7 @@ void func_actor_107600_80134904(Task* arg0)
 
 void func_actor_107600_80134920(Task* arg0)
 {
-    Gp_UnlinkObj(&((Actor107600Work*)arg0->idMap)->obj);
+    Gp_UnlinkObj(&((Actor107600Work*)arg0->work)->obj);
     Gp_DestroyEnemy(arg0->spawnArg2, arg0);
 }
 
@@ -1372,7 +1372,7 @@ void func_actor_107600_80134920(Task* arg0)
 /// height, 0x220 for the `field_162 == 1` variant and 0x190 otherwise.
 void func_actor_107600_80134958(Task* arg0)
 {
-    Actor107600Work* work  = (Actor107600Work*)arg0->idMap;
+    Actor107600Work* work  = (Actor107600Work*)arg0->work;
     GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
     GpRec18*         rec   = work->rec18;
 
@@ -1419,7 +1419,7 @@ void func_actor_107600_801349E0(Task* arg0)
 /// scratch block back.
 void func_actor_107600_80134A50(Task* arg0)
 {
-    Actor107600Work* work  = (Actor107600Work*)arg0->idMap;
+    Actor107600Work* work  = (Actor107600Work*)arg0->work;
     GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
     MATRIX*          m;
 

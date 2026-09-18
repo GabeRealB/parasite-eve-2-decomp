@@ -23,7 +23,7 @@ void func_actor_141000_80133B28(Task* arg0)
     VECTOR           vec;
 
     coord = ((TmdObject*)arg0->extra)->field_8;
-    work  = (Actor141000Work*)arg0->idMap;
+    work  = (Actor141000Work*)arg0->work;
 
     vec = D_actor_141000_80131E68;
     if (work->field_4C8 == 0) {
@@ -57,7 +57,7 @@ void func_actor_141000_80133BD8(Task* arg0)
     s16                   diff;
 
     coord = ((TmdObject*)arg0->extra)->field_8;
-    work  = (Actor141000Work*)arg0->idMap;
+    work  = (Actor141000Work*)arg0->work;
 
     Gp_ExtractEuler(&vec, &coord->coord);
     diff = (u16)work->field_4BA - (u16)vec.vy;

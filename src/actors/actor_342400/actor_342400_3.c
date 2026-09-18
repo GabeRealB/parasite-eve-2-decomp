@@ -39,17 +39,17 @@ void func_actor_342400_80163C58(Task* task)
     Actor342400Work* w4;
     s32              one;
 
-    enemy       = task->spawnArg2;
-    root        = ((TmdObject*)task->extra)->field_8;
-    task->idMap = Mem_Calloc(0x454, 0);
-    work        = (Actor342400Work*)task->idMap;
+    enemy      = task->spawnArg2;
+    root       = ((TmdObject*)task->extra)->field_8;
+    task->work = Mem_Calloc(0x454, 0);
+    work       = (Actor342400Work*)task->work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
     ActorsShared801692e8();
     obj                = task->extra;
-    w                  = (Actor342400Work*)task->idMap;
+    w                  = (Actor342400Work*)task->work;
     e                  = task->spawnArg2;
     coord              = obj->field_8;
     task->field_24     = D_actor_342400_80173A3C;
@@ -62,7 +62,7 @@ void func_actor_342400_80163C58(Task* task)
     w->eff_3FC.field_6 = 2;
     e->field_40 = e->field_42 = D_actor_342400_80170588.field_4;
     func_800B3F84(&w->anim, D_actor_342400_801739E8, (GpAnimObj*)obj, w->field_21C, &w->slot_B4);
-    w2            = (Actor342400Work*)task->idMap;
+    w2            = (Actor342400Work*)task->work;
     w2->field_41C = 0x10;
     w2->field_418 = 7;
     w2->field_414 = 2;
@@ -82,12 +82,12 @@ void func_actor_342400_80163C58(Task* task)
     one                 = 1;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     if ((task->spawnArg1 & 0xF) == one) {
-        w3            = (Actor342400Work*)task->idMap;
+        w3            = (Actor342400Work*)task->work;
         task->state   = 2;
         w3->field_420 = 0;
         w3->field_422 = 0;
     } else {
-        w4            = (Actor342400Work*)task->idMap;
+        w4            = (Actor342400Work*)task->work;
         task->state   = one;
         w4->field_420 = 0;
         w4->field_422 = 0;
@@ -124,11 +124,11 @@ void func_actor_342400_80163E70(Task* task)
     s32              kind;
     s32              two;
 
-    model       = task->extra;
-    enemy       = task->spawnArg2;
-    root        = model->field_8;
-    task->idMap = Mem_Calloc(0x454, 0);
-    work        = (Actor342400Work*)task->idMap;
+    model      = task->extra;
+    enemy      = task->spawnArg2;
+    root       = model->field_8;
+    task->work = Mem_Calloc(0x454, 0);
+    work       = (Actor342400Work*)task->work;
     if (work == NULL) {
         goto destroy;
     }
@@ -145,7 +145,7 @@ void func_actor_342400_80163E70(Task* task)
         model->field_C |= 0x80;
     }
     obj                = task->extra;
-    w                  = (Actor342400Work*)task->idMap;
+    w                  = (Actor342400Work*)task->work;
     e                  = task->spawnArg2;
     coord              = obj->field_8;
     task->field_24     = D_actor_342400_80173A3C;
@@ -158,7 +158,7 @@ void func_actor_342400_80163E70(Task* task)
     w->eff_3FC.field_6 = two;
     e->field_40 = e->field_42 = D_actor_342400_80170588.field_4;
     func_800B3F84(&w->anim, D_actor_342400_801739E8, (GpAnimObj*)obj, w->field_21C, &w->slot_B4);
-    w2            = (Actor342400Work*)task->idMap;
+    w2            = (Actor342400Work*)task->work;
     w2->field_41C = 0x10;
     w2->field_418 = 7;
     w2->field_414 = two;
@@ -183,7 +183,7 @@ void func_actor_342400_80163E70(Task* task)
     work->field_451      = 1;
     work->obj_2AC.flags &= 0x7FFF;
     work->obj_2CC.flags &= 0xBFFF;
-    w3                   = (Actor342400Work*)task->idMap;
+    w3                   = (Actor342400Work*)task->work;
     task->state          = 6;
     w3->field_420        = 0;
     w3->field_422        = 0;
@@ -192,7 +192,7 @@ void func_actor_342400_80163E70(Task* task)
 /// Moves the task to `state` with a fresh state machine.
 static __inline__ void set_state(Task* arg0, s32 state)
 {
-    Actor342400Work* w = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* w = (Actor342400Work*)arg0->work;
 
     arg0->state  = state;
     w->field_420 = 0;
@@ -225,14 +225,14 @@ static __inline__ void update_color(void* enemy, GsCOORDINATE2* coord)
 /// disappears). A flag set to 0 up front and to 1 in each arm cross-jumps.
 static __inline__ s16 take_hit(Task* arg0)
 {
-    Actor342400Work* work = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* work = (Actor342400Work*)arg0->work;
     Actor342400Work* w2;
 
     if ((work->field_44C & 0xF) == 2) {
         if (work->field_438 == 0) {
             work->field_44C = 0;
             set_state(arg0, 3);
-            w2            = (Actor342400Work*)arg0->idMap;
+            w2            = (Actor342400Work*)arg0->work;
             w2->field_420 = 10;
             w2->field_422 = 0;
             return 1;
@@ -250,7 +250,7 @@ static __inline__ s16 take_hit(Task* arg0)
 /// (Z, then X, then the heading) in a matrix taken off `G_SCRATCH_HEAD`.
 static __inline__ void update_rotation(Task* arg0)
 {
-    Actor342400Work* work  = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* work  = (Actor342400Work*)arg0->work;
     MATRIX*          m     = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
     GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
     MATRIX*          dst;
@@ -290,7 +290,7 @@ void func_actor_342400_801640B0(Task* arg0)
 {
     GpEnemy*         enemy = arg0->spawnArg2;
     TmdObject*       obj   = arg0->extra;
-    Actor342400Work* work  = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* work  = (Actor342400Work*)arg0->work;
     GsCOORDINATE2*   coord = obj->field_8;
     TaskFuncTable11  sp    = D_actor_342400_80161EA8;
     s32              cur;

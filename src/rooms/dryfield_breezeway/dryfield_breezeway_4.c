@@ -41,7 +41,7 @@ void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2)
 /// `func_dryfield_breezeway_8017FE08` to pick its next state from.
 s32 func_dryfield_breezeway_8017FBC8(Task* task, s32 msgId, s32 item, s32 arg3)
 {
-    DbwEventWork* work = (DbwEventWork*)task->idMap;
+    DbwEventWork* work = (DbwEventWork*)task->work;
 
     if (item == 0x11B) {
         work->field_40 = 1;

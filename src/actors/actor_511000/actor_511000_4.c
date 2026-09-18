@@ -45,7 +45,7 @@ extern GpImgRec D_actor_511000_801472B4;
 /// aux buffers and clears the flag, 2 does both plus latching the mode into the
 /// work block's `field_480`, and 3 hides it while setting the flag. Anything
 /// else returns 1 and leaves the object alone; the handled modes return 0.
-/// The handler reads `idMap` before the switch even though mode 2 is its only
+/// The handler reads `work` before the switch even though mode 2 is its only
 /// use, so retail's `lw $v1,0x1C($a0)` sits in the entry block. The same body
 /// shape as `func_actor_141000_80133E8C` / `func_actor_503500_80132584`.
 s32 func_actor_511000_801327A0(GpActorWork* arg0, s32 arg1, s32 mode)
@@ -369,7 +369,7 @@ void func_actor_511000_80132E6C(Actor511000Work* work)
     Gp_LoadImages(&D_actor_511000_80147EA4);
 }
 
-/// Spawn/setup state: allocates the 0x70 work block, parks it in `idMap`,
+/// Spawn/setup state: allocates the 0x70 work block, parks it in `work`,
 /// arms the buffer-free countdown at -1, un-hides the model (`field_C` bit
 /// 0x80), places it at rot/trans index 0, binds light/color, installs the
 /// message table, and publishes `work->field_C` through
@@ -385,7 +385,7 @@ void func_actor_511000_80133034(Task* task)
         Task_Kill(task);
         return;
     }
-    task->idMap     = (TaskIdMap*)work;
+    task->work      = (TaskIdMap*)work;
     work->field_8   = -1;
     extra->field_C |= 0x80;
     func_actor_511000_801336E0(task, D_actor_511000_80147344, D_actor_511000_80147704, 0);
@@ -414,13 +414,13 @@ void func_actor_511000_801330F0(Task* task)
     s16              frame;
 
     obj   = (TmdObject*)task->extra;
-    work  = (Actor511000Work*)task->idMap;
+    work  = (Actor511000Work*)task->work;
     coord = obj->field_8;
 
     if (!(obj->field_C & 0x80)) {
         Gp_UpdateCoord(coord);
         func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3);
-        func_actor_511000_80132E6C((Actor511000Work*)task->idMap);
+        func_actor_511000_80132E6C((Actor511000Work*)task->work);
     }
     if (Game_Session->field_4 == 0x18) {
         frame               = task->killCountdown + 1;

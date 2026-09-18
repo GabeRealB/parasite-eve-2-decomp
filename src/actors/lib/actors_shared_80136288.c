@@ -24,7 +24,7 @@ void ActorsShared80136288(GpEnemy* arg0, Task* arg1)
 
     obj   = (TmdObject*)arg1->extra;
     state = D_801153F4;
-    work  = (ActorShared80136288Work*)arg1->idMap;
+    work  = (ActorShared80136288Work*)arg1->work;
     coord = obj->field_8;
     part  = &coord[1];
     one   = 1;
@@ -82,7 +82,7 @@ default_body:
             break;
     }
     Gp_SetLightMode((GpObj4C*)arg0, 1);
-    work2 = (ActorShared80136288Work*)arg1->idMap;
+    work2 = (ActorShared80136288Work*)arg1->work;
     i     = 1;
     if (work2->field_370 != (s16)work2->field_372) {
         work2->field_372 = work2->field_370;

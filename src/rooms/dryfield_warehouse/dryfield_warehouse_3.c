@@ -16,11 +16,11 @@ void func_dryfield_warehouse_8017E308(Task* arg0)
     DwhFadeWork* fade;
     DwhFadeWork* alloc;
 
-    fade = (DwhFadeWork*)arg0->idMap;
+    fade = (DwhFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc       = (DwhFadeWork*)Mem_Malloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (DwhFadeWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 Task_Kill(arg0);
                 return;

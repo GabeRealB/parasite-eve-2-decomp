@@ -8,7 +8,7 @@
 #include "main/task.h"
 
 /// Work block of the enemy actors that share `ActorsShared80135a24`, reached
-/// through the *parent* task's `Task::idMap`. Only the two matrices the model
+/// through the *parent* task's `Task::work`. Only the two matrices the model
 /// object is pointed at and the state field the spawn handler seeds are
 /// modelled here; the same offsets sit in `Actor02000Work`
 /// (`include/actors/actor_102000.h`), which describes the rest of the block.

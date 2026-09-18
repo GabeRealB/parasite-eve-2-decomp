@@ -15,7 +15,7 @@
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// Spawn handler: allocates the 0x540-byte work block and parks it in the
-/// task's `idMap` slot, seeds its head, shows the model by setting
+/// task's `work` slot, seeds its head, shows the model by setting
 /// `TmdObject::field_C` bit 0x80, sends the two script commands that place the
 /// actor (0x7D4 at the origin) and start its animation (0x7D3), draws the
 /// ground shadow under the model's second part, republishes the light/colour
@@ -38,7 +38,7 @@ void func_actor_210700_80149F90(Task* task)
         Gp_EnemyTaskExit(task);
         return;
     }
-    task->idMap     = (TaskIdMap*)work;
+    task->work      = (TaskIdMap*)work;
     work->field_478 = -1;
     work->field_47C = -1;
     work->field_53E = -1;
@@ -80,7 +80,7 @@ void func_actor_210700_8014A0AC(Task* task)
     s16              count;
     s32              i;
 
-    work = (Actor210700Work*)task->idMap;
+    work = (Actor210700Work*)task->work;
     ext  = task->extra;
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {

@@ -558,13 +558,13 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 break;
         }
         if (arg1->flags == 0xFF) {
-            cfg         = &Player_Status;
-            slotSrc     = Gp_GetItemSlot(src);
-            slotDst     = Gp_GetItemSlot(result);
-            rec         = Gp_FindItemById(src);
-            newWork     = (GpUseCreateWork*)Mem_Calloc(0x14, 0);
-            scanInit    = &Mc_SaveData.field_5BC;
-            arg1->idMap = (TaskIdMap*)newWork;
+            cfg        = &Player_Status;
+            slotSrc    = Gp_GetItemSlot(src);
+            slotDst    = Gp_GetItemSlot(result);
+            rec        = Gp_FindItemById(src);
+            newWork    = (GpUseCreateWork*)Mem_Calloc(0x14, 0);
+            scanInit   = &Mc_SaveData.field_5BC;
+            arg1->work = (TaskIdMap*)newWork;
             Gp_RemoveItem(scanInit, (GpItemRec*)Gp_SelItemRec, 1);
             rec->field_0 = (u8)result;
             Gp_ClearEquipSlotSel(result, 0);
@@ -613,7 +613,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     }
     color = 0x37A78;
     y     = (s16)arg0->field_18 + 0xF;
-    work  = (GpUseCreateWork*)arg1->idMap;
+    work  = (GpUseCreateWork*)arg1->work;
     x     = (s16)arg0->field_1C + 2;
     Ui_DrawText((UiPanel*)arg0, Gp_StrNotice);
     hiddenMode = 5;
@@ -1758,7 +1758,7 @@ void Gp_ItemMenuInit(UiObject* arg0, Task* arg1)
     Wip_UiHolder = (WipUiHolder*)arg0;
     mem          = Mem_Calloc(4, 0);
     if (mem != NULL) {
-        arg1->idMap = mem;
+        arg1->work = mem;
         if (Game_Session->field_66 == 1) {
             Gp_ClearPreviewItems();
             Ui_SpawnFromDesc(&D_8010EB94, 0, 1, 8, arg0);

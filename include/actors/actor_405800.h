@@ -88,11 +88,11 @@ STATIC_ASSERT_SIZEOF(Actor405800BeamScratch, 0x8C);
 /// Per-actor work block for the `actor_405800` overlay.
 ///
 /// `func_actor_405800_801334B8` allocates it with `Mem_Calloc(0x89C, 0)` and
-/// stores the result straight into the `Task::idMap` slot (0x1C), so the size
+/// stores the result straight into the `Task::work` slot (0x1C), so the size
 /// below is the allocation and not a guess: this actor reuses that pointer
 /// field for its own work block and it is *not* a `TaskIdMap` here. It is the
 /// only allocator in the overlay, so every function reaches the same block
-/// with `(Actor405800Work*)task->idMap`.
+/// with `(Actor405800Work*)task->work`.
 ///
 /// `field_846` / `field_848` are the state and sub-state indices the handler
 /// table walks and `field_842` is the per-state frame counter.

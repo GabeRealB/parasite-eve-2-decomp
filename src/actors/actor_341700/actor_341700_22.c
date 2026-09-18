@@ -25,9 +25,9 @@ void func_actor_341700_8016A1A8(Task* arg0)
     Actor341700Work* work;
     Actor341700Work* work2;
 
-    work = (Actor341700Work*)arg0->idMap;
+    work = (Actor341700Work*)arg0->work;
     if ((ActorsShared8016945c() << 0x10) == 0) {
-        work2            = (Actor341700Work*)arg0->idMap;
+        work2            = (Actor341700Work*)arg0->work;
         work2->field_426 = 8;
         work2->field_41C = 0x10;
         work2->field_418 = 0xF;

@@ -127,7 +127,7 @@ typedef struct RoomCoord {
 STATIC_ASSERT_SIZEOF(RoomCoord, 0x50);
 
 /// 0x20 work block a room's "show a two-line message" task allocates and parks
-/// in `Task::idMap`: a `TextBlockDesc` handed to `Ui_SpawnTextBlock` followed by
+/// in `Task::work`: a `TextBlockDesc` handed to `Ui_SpawnTextBlock` followed by
 /// the two `TextLineNode`s the descriptor's list points at, so one allocation
 /// carries both. The room picks which pair of strings to publish from
 /// `Task::spawnArg1`.
@@ -161,7 +161,7 @@ typedef struct RoomShopTask {
 } RoomShopTask;
 
 /// 0xA4 work block a shop / vending-machine panel task allocates and parks in
-/// `Task::idMap`: the `UiList` the panel is drawn from, followed by the ids of
+/// `Task::work`: the `UiList` the panel is drawn from, followed by the ids of
 /// the items the room currently offers. The overlay's list builder fills
 /// `items` while counting them into `list.field_4`, then sorts that prefix in
 /// place, so one allocation carries both the list state and its contents.
@@ -172,7 +172,7 @@ typedef struct RoomShopList {
 STATIC_ASSERT_SIZEOF(RoomShopList, 0xA4);
 
 /// 0xC4 work block the "Play Data" item-usage panel allocates and parks in
-/// `Task::idMap`. The builder walks item ids 0x80-0x9F, keeps the ones the save
+/// `Task::work`. The builder walks item ids 0x80-0x9F, keeps the ones the save
 /// has a non-zero use count for, and fills three parallel arrays indexed by the
 /// row the list is drawing: the item id, the share of all recorded uses in
 /// hundredths of a percent (0-10000, printed as `NN.NN%`), and the width of the
@@ -187,7 +187,7 @@ typedef struct RoomItemUsage {
 STATIC_ASSERT_SIZEOF(RoomItemUsage, 0xC4);
 
 /// 0xC4 work block the "Play Data" PE-usage panel allocates and parks in
-/// `Task::idMap`, laid out exactly like `RoomItemUsage`. The builder walks the
+/// `Task::work`, laid out exactly like `RoomItemUsage`. The builder walks the
 /// twelve Parasite Energy slots, keeps the ones the save has a non-zero use
 /// count for, and fills three parallel arrays indexed by the row the list is
 /// drawing: the id of the slot's known level, that slot's share of all recorded
@@ -202,7 +202,7 @@ typedef struct RoomPeUsage {
 } RoomPeUsage;
 STATIC_ASSERT_SIZEOF(RoomPeUsage, 0xC4);
 
-/// 0xAC work block the mirror-reflection task keeps at `Task::idMap`. Rooms
+/// 0xAC work block the mirror-reflection task keeps at `Task::work`. Rooms
 /// with a reflective surface (the Acropolis elevator halls and square, motel
 /// room 6, the Neo Ark observatory) spawn a task that re-attaches the player's
 /// own TMD source and draws it through `coord`, which is `Gfx_ViewCoord` with

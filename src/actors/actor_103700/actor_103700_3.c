@@ -47,7 +47,7 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
     u32            raw;
     GsCOORDINATE2* coord;
 
-    work   = (Actor103700Work*)task->idMap;
+    work   = (Actor103700Work*)task->work;
     obj    = ((TmdObject*)task->extra)->field_8;
     model  = (TmdObject*)task->extra;
     player = Game_GetPtrSlot(3);

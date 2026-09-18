@@ -8,7 +8,7 @@
 #include "main/session.h"
 
 /// 0x38 block the flying dart's spawn state allocates with `Mem_Calloc` and
-/// parks in `Task::idMap`. It leads with the `GpObj` list node
+/// parks in `Task::work`. It leads with the `GpObj` list node
 /// `WeaponsShared8011e4ac` hands back to `Gp_UnlinkObj` on teardown; `rec` is
 /// the single-entry `GpRec18` collision table `obj.field_C` points at, and its
 /// `field_0` is set to 2 (the last-element bit) instead of going through

@@ -3671,7 +3671,7 @@ void func_actor_503500_801437D0(Actor503500* arg0, GpRec18* rec, s32 count)
         if ((rec[i].field_4 & 0xFFFF0000) == 0x10000) {
             player = Game_GetPtrSlot(3);
             pcoord = ((TmdObject*)player->extra)->field_8;
-            if (((GameActor*)player->idMap)->field_954 != 2 &&
+            if (((GameActor*)player->work)->field_954 != 2 &&
                 Gp_DispatchMsg(player, 0x3F8, (s32)&D_actor_503500_80171544, 0) == 0) {
                 coord = ((TmdObject*)arg0->parent->extra)->field_8;
                 src   = (s32*)&coord->coord;
@@ -4009,7 +4009,7 @@ void func_actor_503500_80144300(Task* arg0)
         Task_Kill(arg0);
         return;
     }
-    arg0->idMap = (TaskIdMap*)work;
+    arg0->work = (TaskIdMap*)work;
 
     work->field_84.vx.w = coord->coord.t[0] << 16;
     work->field_84.vy.w = coord->coord.t[1] << 16;
@@ -4132,7 +4132,7 @@ void func_actor_503500_801446E4(Actor503500* arg0)
 void func_actor_503500_8014473C(Task* arg0)
 {
     func_actor_503500_801372AC(1);
-    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->idMap)->obj);
+    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
     Task_Kill(arg0);
 }
 
@@ -4197,7 +4197,7 @@ void func_actor_503500_801448E8(Task* arg0)
         Task_Kill(arg0);
         return;
     }
-    arg0->idMap = (TaskIdMap*)work;
+    arg0->work = (TaskIdMap*)work;
 
     work->field_84.vx = coord->coord.t[0] << 16;
     work->field_84.vy = coord->coord.t[1] << 16;
@@ -4330,12 +4330,12 @@ void func_actor_503500_80144DA8(Task* arg0)
     } else {
         SndEvt_EnqueueType7(0x40230007, 1);
     }
-    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->idMap)->obj);
+    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
     Task_Kill(arg0);
 }
 void func_actor_503500_80144E10(Task* arg0)
 {
-    Gp_ClearRec18Occupied(&((Actor503500ObjWork*)arg0->idMap)->rec);
+    Gp_ClearRec18Occupied(&((Actor503500ObjWork*)arg0->work)->rec);
 }
 
 void func_actor_503500_80144E34(Task* task)
@@ -4364,7 +4364,7 @@ void func_actor_503500_80144E8C(Task* arg0)
         Task_Kill(arg0);
         return;
     }
-    arg0->idMap    = (TaskIdMap*)work;
+    arg0->work     = (TaskIdMap*)work;
     work->field_C4 = 0x1000;
 
     m1     = (GpMtxWords*)&coord->coord;

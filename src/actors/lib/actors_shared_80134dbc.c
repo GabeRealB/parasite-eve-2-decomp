@@ -8,7 +8,7 @@
 void ActorsShared80134dbc(Task* task)
 {
     RoomActionPrompt*         prompt = &D_80114D28;
-    ActorsShared80134dbcWork* work   = (ActorsShared80134dbcWork*)task->idMap;
+    ActorsShared80134dbcWork* work   = (ActorsShared80134dbcWork*)task->work;
 
     prompt->mode     = 0;
     prompt->targetId = 0;

@@ -27,7 +27,7 @@ typedef struct Actor401300Msg3FF {
     /* 0x08 */ s32 field_8[3];
 } Actor401300Msg3FF;
 
-/// Private work block of the actor 401300 task, hanging off `Task::idMap`.
+/// Private work block of the actor 401300 task, hanging off `Task::work`.
 ///
 /// Only the fields the matched code touches are named so far: `yaw` at 0x18
 /// (the heading `func_actor_401300_80141614` reads back from the root
@@ -192,7 +192,7 @@ typedef struct Actor401300AnimWork {
     /* 0x8B0 */ s16        field_8B0;
 } Actor401300AnimWork;
 
-/// Per-task actor context: `field_1C` is the work block (`Task::idMap`) and
+/// Per-task actor context: `field_1C` is the work block (`Task::work`) and
 /// `field_2C` is the actor's `TmdObject`. Same shape as `Actor01900`.
 typedef struct Actor401300 {
     /* 0x00 */ byte             pad_0[0x1C];

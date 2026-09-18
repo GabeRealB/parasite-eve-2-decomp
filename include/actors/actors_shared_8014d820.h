@@ -6,7 +6,7 @@
 #include "main/task.h"
 
 /// The one field this handler touches in the carrier's work block, the
-/// `Task::idMap` slot each carrier parks its per-instance state in.
+/// `Task::work` slot each carrier parks its per-instance state in.
 typedef struct ActorsShared8014d820Work {
     /* 0x0 */ s16 field_0;
 } ActorsShared8014d820Work;

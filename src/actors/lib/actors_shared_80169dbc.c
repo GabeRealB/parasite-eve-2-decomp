@@ -8,7 +8,7 @@ void ActorsShared80169dbc(Task* arg0)
 {
     ActorsShared80169dbcWork* work;
 
-    work            = (ActorsShared80169dbcWork*)arg0->idMap;
+    work            = (ActorsShared80169dbcWork*)arg0->work;
     work->field_426 = 4;
     work->field_41C = 0x10;
     work->field_418 = 1;

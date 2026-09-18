@@ -9,9 +9,9 @@
 /// Work block for the `actor_303600` overlay's cutscene controller.
 ///
 /// `func_actor_303600_8016216C` allocates it with `Mem_Malloc(0x10, 0)`, zeroes
-/// it with `Mem_Set` and parks the pointer in the task's `Task::idMap` slot
+/// it with `Mem_Set` and parks the pointer in the task's `Task::work` slot
 /// (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
-/// `(Actor303600Work*)task->idMap`.  The same function publishes the task
+/// `(Actor303600Work*)task->work`.  The same function publishes the task
 /// itself in `D_actor_303600_8016E4C0` and stores the `Game_GetPtrSlot(3)` task
 /// in `field_0`.
 ///
@@ -33,8 +33,8 @@ typedef struct Actor303600Work {
 STATIC_ASSERT_SIZEOF(Actor303600Work, 0x10);
 
 /// Fade block `func_actor_303600_801623CC` allocates with `Mem_Malloc(8, 0)` and
-/// parks in its own task's `Task::idMap` slot (0x1C, again not a `TaskIdMap`),
-/// so reach it with `(Actor303600FadeWork*)task->idMap`.  The allocation size is
+/// parks in its own task's `Task::work` slot (0x1C, again not a `TaskIdMap`),
+/// so reach it with `(Actor303600FadeWork*)task->work`.  The allocation size is
 /// the struct size, and not a guess.  The three halfwords are the RGB channels
 /// `Fade_DrawOverlay` draws: the task steps them by `Task::spawnArg1` -- the
 /// fade rate, not a colour -- and hands `r` and `g` to that call, so only the
@@ -67,8 +67,8 @@ STATIC_ASSERT_SIZEOF(Actor303600Msg7DA, 0x4);
 
 /// Light / colour matrix pair the overlay's actor hands to its model: the pair
 /// `func_actor_303600_80162950` allocates with `Mem_Calloc(0x44, 0)` and parks
-/// in its own task's `Task::idMap` slot (0x1C, again not a `TaskIdMap`), so
-/// reach it with `(Actor303600LightMats*)task->idMap`.  The four bytes after
+/// in its own task's `Task::work` slot (0x1C, again not a `TaskIdMap`), so
+/// reach it with `(Actor303600LightMats*)task->work`.  The four bytes after
 /// the two matrices are part of the allocation and are never read here.
 typedef struct Actor303600LightMats {
     /* 0x00 */ MATRIX lightMtx;
@@ -91,7 +91,7 @@ typedef union Actor303600RigAngle {
 
 /// Work block of the task `func_actor_303600_80162A7C` dispatches through
 /// `D_actor_303600_80161E48`: `func_actor_303600_801626C0` allocates it with
-/// `Mem_Calloc(0x3C, 0)`, parks it in `Task::idMap` (0x1C, again not a
+/// `Mem_Calloc(0x3C, 0)`, parks it in `Task::work` (0x1C, again not a
 /// `TaskIdMap`), fills `children` with the five model tasks it spawns -- one
 /// `Task_SpawnFromTable` of `D_actor_303600_8016E468` entry 1 each, spread
 /// 8000 units apart in y and spliced under this task's own coordinate, so

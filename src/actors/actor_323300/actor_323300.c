@@ -23,7 +23,7 @@ void func_actor_323300_80161E78(Task* arg0)
         Gp_EnemyTaskExit(arg0);
         return;
     }
-    arg0->idMap     = (TaskIdMap*)work;
+    arg0->work      = (TaskIdMap*)work;
     work->field_43D = -1;
     work->field_43E = -1;
     work->field_500 = 1;
@@ -62,7 +62,7 @@ void func_actor_323300_80161E78(Task* arg0)
 void func_actor_323300_80161FE8(Task* arg0)
 {
     TmdObject*       extra               = (TmdObject*)arg0->extra;
-    Actor323300Work* work                = (Actor323300Work*)arg0->idMap;
+    Actor323300Work* work                = (Actor323300Work*)arg0->work;
     void             (*states[2])(Task*) = {
         func_actor_323300_801626EC,
         func_actor_323300_801626F4,
@@ -136,7 +136,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
     s32              ret;
 
     extra = arg0->extra;
-    work  = (Actor323300Work*)arg0->idMap;
+    work  = (Actor323300Work*)arg0->work;
     ret   = 0;
 
     switch (mode) {
@@ -192,7 +192,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_8
 
 void func_actor_323300_8016269C(Task* arg0)
 {
-    Gp_UnlinkObj(&((Actor323300Work*)arg0->idMap)->obj);
+    Gp_UnlinkObj(&((Actor323300Work*)arg0->work)->obj);
     Gp_EnemyTaskExit(arg0);
 }
 
@@ -202,7 +202,7 @@ void func_actor_323300_801626D0(Task* arg0)
     Actor323300Work* work;
 
     ext           = arg0->extra;
-    work          = (Actor323300Work*)arg0->idMap;
+    work          = (Actor323300Work*)arg0->work;
     ext->field_1C = &work->light;
     ext->field_20 = &work->color;
 }
@@ -213,7 +213,7 @@ void func_actor_323300_801626EC(Task* arg0)
 
 void func_actor_323300_801626F4(Task* arg0)
 {
-    Actor323300Work* work                = (Actor323300Work*)arg0->idMap;
+    Actor323300Work* work                = (Actor323300Work*)arg0->work;
     void             (*states[2])(Task*) = {
         func_actor_323300_80162748,
         func_actor_323300_801627B4,
@@ -227,7 +227,7 @@ void func_actor_323300_80162748(Task* arg0)
     Actor323300Work* work;
     s32              i;
 
-    work = (Actor323300Work*)arg0->idMap;
+    work = (Actor323300Work*)arg0->work;
     func_actor_323300_801628B8(arg0, 0x7D3, &D_actor_323300_801725C8, 0);
     for (i = 1; i < 0x13; i++) {
         work->slots[i].field_9 = 8;
@@ -260,7 +260,7 @@ void func_actor_323300_801627B4(Task* arg0)
     s32                i;
 
     coord = ((TmdObject*)arg0->extra)->field_8;
-    work  = (Actor323300Work*)arg0->idMap;
+    work  = (Actor323300Work*)arg0->work;
 
     Gp_ExtractEuler(&vec, &coord->coord);
     diff = (u16)work->field_4F6 - (u16)vec.vy;
@@ -327,7 +327,7 @@ void func_actor_323300_80162DF0(Task* arg0)
     s32                 blend;
     s32                 i;
 
-    work  = (Actor323300MtxWork*)arg0->idMap;
+    work  = (Actor323300MtxWork*)arg0->work;
     extra = (TmdObject*)arg0->extra;
 
     if (work->field_43C != 0) {
@@ -408,7 +408,7 @@ void func_actor_323300_801634B0(Task* arg0)
 }
 
 /// Splats an identity light/colour pair into the `Mem_Calloc(0x6B0)` work block
-/// `func_actor_323300_80162BE4` parked in `Task::idMap`, republishes them onto
+/// `func_actor_323300_80162BE4` parked in `Task::work`, republishes them onto
 /// `TmdObject::field_1C` / `field_20`, then re-derives model part 1's world
 /// matrix -- clearing its dirty flag, rebuilding it from its parent and
 /// rebinding the actor's shading to the part's translation.
@@ -421,7 +421,7 @@ void func_actor_323300_80163510(Task* arg0)
     TmdObject*          extra;
 
     extra  = arg0->extra;
-    work   = (Actor323300MtxWork*)arg0->idMap;
+    work   = (Actor323300MtxWork*)arg0->work;
     coords = extra->field_8;
 
     work->light.ident.m00_m01 = 0x1000;
@@ -481,7 +481,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_8
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Start-preset handler for the 0x6B0 `Actor323300MtxWork` block
-/// `func_actor_323300_80162BE4` parks in `Task::idMap`, and the twin of
+/// `func_actor_323300_80162BE4` parks in `Task::work`, and the twin of
 /// `func_actor_323300_801628B8` (which drives the 0x504 block the same way).
 /// A preset bank the block is not already on re-seeds it: the animation id is
 /// reset to -1, the bank is stored and the bank's animation source goes to
@@ -496,7 +496,7 @@ s32 func_actor_323300_80163718(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2
     TmdObject*          ext;
     s32                 i;
 
-    work = (Actor323300MtxWork*)arg0->idMap;
+    work = (Actor323300MtxWork*)arg0->work;
     ext  = arg0->extra;
     if (arg2->field_0 != work->field_440) {
         work->field_440 = arg2->field_0;

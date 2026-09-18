@@ -277,7 +277,7 @@ void func_actor_323000_80163A30(Task* task)
     s32              sound;
     s32              pan;
 
-    work  = (Actor323000Work*)task->idMap;
+    work  = (Actor323000Work*)task->work;
     state = work->field_828;
     if (state == 1) {
         if (work->field_82C != work->field_82E) {
@@ -314,7 +314,7 @@ void func_actor_323000_80163A30(Task* task)
         Mem_Set(work->field_848, 0U, 0x48U);
     }
     if (work->field_836 == 2) {
-        secondaryWork            = (Actor323000Work*)task->idMap;
+        secondaryWork            = (Actor323000Work*)task->work;
         secondaryIndex           = 1;
         secondaryWork->field_83A = 0x20;
         secondaryWork->field_83C = 0x800;
@@ -328,7 +328,7 @@ void func_actor_323000_80163A30(Task* task)
     }
     work->field_830 = (u16)(work->field_830 + 1);
     if (work->field_82A == 0) {
-        tickWork  = (Actor323000Work*)task->idMap;
+        tickWork  = (Actor323000Work*)task->work;
         tickIndex = 1;
         do {
             tickSlotIndex                      = tickIndex;
@@ -375,7 +375,7 @@ void func_actor_323000_80163A30(Task* task)
         ActorsShared80132808(&((TmdObject*)task->extra)->field_8[4], (s16)clampedAngle / 2);
         ((TmdObject*)task->extra)->field_8[4].flg = 0;
     }
-    turnWork     = (Actor323000Work*)task->idMap;
+    turnWork     = (Actor323000Work*)task->work;
     targetTurn   = (u16)turnWork->field_83E;
     originalTurn = targetTurn;
     if ((s16)targetTurn >= 0x201) {
@@ -426,17 +426,17 @@ void func_actor_323000_80163EA0(GpEnemy* enemy, Task* task)
     Actor323000Work* work2;
     Actor323000Work* mem;
 
-    obj         = (TmdObject*)task->extra;
-    coord       = obj->field_8;
-    mem         = (Actor323000Work*)Mem_Calloc(0x934, 0);
-    work        = mem;
-    task->idMap = (TaskIdMap*)mem;
+    obj        = (TmdObject*)task->extra;
+    coord      = obj->field_8;
+    mem        = (Actor323000Work*)Mem_Calloc(0x934, 0);
+    work       = mem;
+    task->work = (TaskIdMap*)mem;
     if (mem == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
     task->exitCallback = ActorsShared801366fc;
-    work2              = (Actor323000Work*)task->idMap;
+    work2              = (Actor323000Work*)task->work;
     tmd                = (TmdObject*)task->extra;
     tmd->field_1C      = &work2->light;
     tmd->field_20      = &work2->color;
@@ -489,7 +489,7 @@ void func_actor_323000_8016409C(GpEnemy* enemy, Task* task)
     TmdObject*       obj;
     SVECTOR          sp10;
 
-    work = (Actor323000Work*)task->idMap;
+    work = (Actor323000Work*)task->work;
     if (work->field_4 != 0) {
         obj                 = (TmdObject*)task->extra;
         enemy->node.field_4 = 0;
@@ -535,7 +535,7 @@ void func_actor_323000_8016420C(GpEnemy* enemy, Task* task)
     SVECTOR          ofs2;
     SVECTOR          ofs;
 
-    work = (Actor323000Work*)task->idMap;
+    work = (Actor323000Work*)task->work;
     if (work->field_4 != 0) {
         obj                 = (TmdObject*)task->extra;
         enemy->node.field_4 = 1;
@@ -627,7 +627,7 @@ void func_actor_323000_801645A4(GpEnemy* enemy, Task* task)
     GsCOORDINATE2*          walker;
     SVECTOR*                pos;
 
-    work = (Actor323000Work*)task->idMap;
+    work = (Actor323000Work*)task->work;
     Game_GetPtrSlot(3);
     sp                                      = D_actor_323000_80161E24;
     ((TmdObject*)task->extra)->field_8->flg = 0;

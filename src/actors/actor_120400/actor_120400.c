@@ -43,7 +43,7 @@ void func_actor_120400_80131E5C(Task* arg0)
         Gp_EnemyTaskExit(arg0);
         return;
     }
-    arg0->idMap     = (TaskIdMap*)work;
+    arg0->work      = (TaskIdMap*)work;
     work->field_475 = -1;
     work->field_476 = -1;
     work->field_500 = -1;
@@ -125,7 +125,7 @@ void func_actor_120400_80131E5C(Task* arg0)
 void func_actor_120400_80132050(Task* arg0)
 {
     TmdObject*           ext      = arg0->extra;
-    Actor120400MainWork* work     = (Actor120400MainWork*)arg0->idMap;
+    Actor120400MainWork* work     = (Actor120400MainWork*)arg0->work;
     TaskFunc             funcs[2] = { (TaskFunc)func_actor_120400_801327F0, ActorsShared801327f8 };
     VECTOR3              pos;
     GsCOORDINATE2*       coord;
@@ -189,7 +189,7 @@ s32 func_actor_120400_80132398(Task* task, s32 arg1, Actor120400Placement* place
     s32                    i;
     TmdObject*             ext;
 
-    w              = (Actor120400MainWork*)task->idMap;
+    w              = (Actor120400MainWork*)task->work;
     w->field_4F8   = 1;
     w->field_4FA   = 0;
     w->field_4B8   = place->pos.vx;
@@ -211,7 +211,7 @@ s32 func_actor_120400_80132398(Task* task, s32 arg1, Actor120400Placement* place
     preset.field_10 = 1;
 
     msg  = &preset;
-    work = (Actor120400MainWork*)task->idMap;
+    work = (Actor120400MainWork*)task->work;
     ext  = task->extra;
     if (msg->field_0 != work->field_476) {
         work->field_476 = msg->field_0;

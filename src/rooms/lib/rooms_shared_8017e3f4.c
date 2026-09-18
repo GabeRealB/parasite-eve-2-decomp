@@ -12,7 +12,7 @@ void RoomsShared8017e3f4(RoomShopList* shop, UiObject* obj, s32 item)
 {
     Task*         task = obj->owner;
     s32           mode = task->spawnArg1;
-    RoomShopList* list = (RoomShopList*)task->idMap;
+    RoomShopList* list = (RoomShopList*)task->work;
     s32           i;
 
     for (i = 0; i < shop->list.field_4; i++) {

@@ -33,7 +33,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     coord                    = obj->field_8;
     work                     = Mem_Calloc(0x55C, 0);
     ActorsShared80131f9cWork = work;
-    task->idMap              = work;
+    task->work               = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;

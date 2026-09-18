@@ -77,7 +77,7 @@ typedef struct AcropolisPlazaSceneArg {
 } AcropolisPlazaSceneArg;
 
 /// Work block the plaza's scene task (`func_acropolis_plaza_8017DFE0`) keeps at
-/// `Task::idMap`; it is a 0x34 allocation, distinct from the sequence task's
+/// `Task::work`; it is a 0x34 allocation, distinct from the sequence task's
 /// `AcropolisPlazaWork`. `pos` is the world position
 /// `func_acropolis_plaza_8017DD90` centres its vertex box on; it is refreshed
 /// every frame from the plaza's per-view position table, and `distX` is how far
@@ -106,7 +106,7 @@ typedef struct AcropolisPlazaSceneWork {
 STATIC_ASSERT_SIZEOF(AcropolisPlazaSceneWork, 0x34);
 
 /// Work block the plaza's sequence task (`func_acropolis_plaza_80180054`)
-/// allocates with `Mem_Malloc(0x28, 0)` and parks in `Task::idMap` -- that slot
+/// allocates with `Mem_Malloc(0x28, 0)` and parks in `Task::work` -- that slot
 /// is not a `TaskIdMap` here. State 0 caches the slot-3 task in `slot3` and the
 /// task it spawns from entry 5 of the room's table in `field_C`; state 3 spawns
 /// entry 1 into `field_8`, handing it `&field_10` as its spawn argument. The
@@ -142,7 +142,7 @@ typedef struct AcropolisPlazaWork {
 STATIC_ASSERT_SIZEOF(AcropolisPlazaWork, 0x28);
 
 /// Colour ramp the plaza's fade-out task (`func_acropolis_plaza_8017D8AC`)
-/// allocates with `Mem_Malloc(8, 0)` and parks in `Task::idMap` -- that slot is
+/// allocates with `Mem_Malloc(8, 0)` and parks in `Task::work` -- that slot is
 /// not a `TaskIdMap` here. All three channels start at 0 and step by
 /// `Task::spawnArg1` every frame, but the semi-transparent full-screen `TILE`
 /// the task links into `Gpu_CurrentOt[-16]` takes its blue from `r`, so `b` is
@@ -159,7 +159,7 @@ typedef struct AcropolisPlazaFadeWork {
 STATIC_ASSERT_SIZEOF(AcropolisPlazaFadeWork, 0x8);
 
 /// Work block the plaza's opening sequence (`func_acropolis_plaza_8017ECF8`)
-/// allocates with `Mem_Malloc(8, 0)` and parks in `Task::idMap` -- that slot is
+/// allocates with `Mem_Malloc(8, 0)` and parks in `Task::work` -- that slot is
 /// not a `TaskIdMap` here. `slot3` caches the slot-3 task every message in the
 /// sequence is addressed to; `timer` is the frame counter the waiting states
 /// step (0x3D frames in state 7, 0xB in state 11, 2 in state 12).
@@ -181,7 +181,7 @@ typedef union AcropolisPlazaOpeningBuf {
 } AcropolisPlazaOpeningBuf;
 
 /// Work block the plaza's warp task (`func_acropolis_plaza_8017E7E4`) allocates
-/// with `Mem_Malloc(8, 0)` and parks in `Task::idMap` -- that slot is not a
+/// with `Mem_Malloc(8, 0)` and parks in `Task::work` -- that slot is not a
 /// `TaskIdMap` here. It only caches the slot-3 task every message in the
 /// sequence (0x3F2 place, 0x3EE warp, 0x3F0 poll) is addressed to; the
 /// trailing four bytes are zeroed by `Mem_Set` and never read.

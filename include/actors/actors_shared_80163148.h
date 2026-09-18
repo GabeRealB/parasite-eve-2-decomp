@@ -6,7 +6,7 @@
 #include "main/task.h"
 
 /// Fade work block `ActorsShared80163148` allocates with `Mem_Calloc(8, 0)` and
-/// stores in its own task's `Task::idMap` slot -- an 8-byte block, not the
+/// stores in its own task's `Task::work` slot -- an 8-byte block, not the
 /// carrier overlay's own work struct. The three channels start at 0xFF and decay
 /// by the task's `Task::spawnArg1` every frame, drawn by `Fade_DrawOverlay`; the
 /// task kills itself once the red channel has gone negative.

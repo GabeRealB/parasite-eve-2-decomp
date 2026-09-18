@@ -8,7 +8,7 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-/// Scratch state of the task, stored at `Task::idMap`. The allocation below is
+/// Scratch state of the task, stored at `Task::work`. The allocation below is
 /// `Mem_Calloc(4, 0)`, so the size is the allocation and not a guess.
 typedef struct {
     /* 0x0 */ s32 field_0;
@@ -31,7 +31,7 @@ void RoomsShared8017daa4(Task* task)
         Task_Kill(task);
         return;
     }
-    task->idMap       = (TaskIdMap*)work;
+    task->work        = (TaskIdMap*)work;
     work->field_0     = 0;
     extra->field_C    = 0;
     coord->sub        = &Gfx_ViewCoord;

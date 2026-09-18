@@ -33,7 +33,7 @@ void RoomsShared8017f128(Task* task)
     }
     mirror      = (Task*)task->spawnArg2;
     mirrorPart  = &((TmdObject*)mirror->extra)->field_8[RoomsShared8017f128Parts[task->spawnArg1]];
-    work        = (RoomMirrorWork*)mirror->idMap;
+    work        = (RoomMirrorWork*)mirror->work;
     mirrorExtra = mirror->extra;
     if (task->state == 0) {
         src      = task->parent->extra;

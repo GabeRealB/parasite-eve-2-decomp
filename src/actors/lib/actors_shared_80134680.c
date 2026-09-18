@@ -14,14 +14,14 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 /// counter ticks and the slots are simply advanced by one.
 ///
 /// Carried by four enemy slots - `actor_104600`, `actor_107000`, `actor_204600`
-/// and `actor_207000` - which all reach the block through `Task::idMap`, so the
+/// and `actor_207000` - which all reach the block through `Task::work`, so the
 /// body takes the `Task` rather than any carrier's own context type.
 void ActorsShared80134680(Task* arg0)
 {
     ActorsShared80134680Work* work;
     s32                       i;
 
-    work = arg0->idMap;
+    work = arg0->work;
     if (work->field_2D2 == 0) {
         i = 1;
         if (work->field_2B8 != work->field_2BA) {

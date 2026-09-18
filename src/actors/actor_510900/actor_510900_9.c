@@ -26,7 +26,7 @@ void func_actor_510900_8013BEEC(void* enemy, Task* task)
     GsCOORDINATE2*   coord;
 
     obj            = (TmdObject*)task->extra;
-    work           = (Actor510900Work*)task->parent->idMap;
+    work           = (Actor510900Work*)task->parent->work;
     coord          = obj->field_8;
     obj->field_25 += 2;
     Tmd_ProcessStream(obj);
@@ -55,7 +55,7 @@ void func_actor_510900_8013BFE4(void* enemy, Task* task)
     Actor510900Work* work;
 
     obj               = (TmdObject*)task->extra;
-    work              = (Actor510900Work*)task->parent->idMap;
+    work              = (Actor510900Work*)task->parent->work;
     obj->field_C      = 0x80;
     obj->field_8->sub = &((TmdObject*)task->parent->extra)->field_8[8];
     obj->field_1C     = &work->field_45C;
@@ -86,7 +86,7 @@ void func_actor_510900_8013C0E4(void* enemy, Task* task)
     Actor510900Work* work;
 
     obj               = (TmdObject*)task->extra;
-    work              = (Actor510900Work*)task->parent->idMap;
+    work              = (Actor510900Work*)task->parent->work;
     obj->field_C      = 0x80;
     obj->field_8->sub = &((TmdObject*)task->parent->extra)->field_8[3];
     obj->field_1C     = &work->field_45C;

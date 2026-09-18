@@ -9,7 +9,7 @@
 
 #include <psyq/libgte.h>
 
-/// The actor's per-instance work block, reached through `Task::idMap`. Only
+/// The actor's per-instance work block, reached through `Task::work`. Only
 /// the fields the decompiled message handlers touch are modelled so far: the
 /// state word at 0x0 that every handler drives, the animation pair at
 /// 0x4A/0x58 the state dispatchers read, the motion state at 0x174, the three

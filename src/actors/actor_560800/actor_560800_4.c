@@ -42,9 +42,9 @@ void func_actor_560800_80136AA8(Task* arg0)
     s32                      a;
 
     top  = *(Actor560800ChainScratch**)0x1F8003FC;
-    work = (Actor560800ModelWork*)arg0->idMap;
+    work = (Actor560800ModelWork*)arg0->work;
     s = *(Actor560800ChainScratch**)0x1F8003FC = top - 1;
-    target                                     = (Actor560800PartsWork*)work->field_26C->idMap;
+    target                                     = (Actor560800PartsWork*)work->field_26C->work;
     Mem_Set(s, 0, sizeof(Actor560800ChainScratch));
     Mem_CopyUnaligned(work->rot, s->rot, sizeof(s->rot));
     if (work->field_280 & 1) {
@@ -213,7 +213,7 @@ void func_actor_560800_80136AA8(Task* arg0)
 }
 
 /// Sets up the animated model part the spawn argument names: allocates its
-/// `Actor560800ModelWork`, hangs it off `Task::idMap`, points the object's light
+/// `Actor560800ModelWork`, hangs it off `Task::work`, points the object's light
 /// and colour matrices into it, makes the named task this one's parent and hands
 /// the part to `func_800B3F84` with the overlay's animation bank. The three
 /// `Gp_LcgState` draws taken along the way seed the handlers' random headings,
@@ -226,16 +226,16 @@ void func_actor_560800_801376E0(Task* arg0)
     GsCOORDINATE2*        coord;
     Task*                 child;
 
-    obj         = (TmdObject*)arg0->extra;
-    coord       = obj->field_8;
-    mem         = (Actor560800ModelWork*)Mem_Malloc(0x28C, 0);
-    arg0->idMap = (TaskIdMap*)mem;
+    obj        = (TmdObject*)arg0->extra;
+    coord      = obj->field_8;
+    mem        = (Actor560800ModelWork*)Mem_Malloc(0x28C, 0);
+    arg0->work = (TaskIdMap*)mem;
     if (mem == NULL) {
         Task_Kill(arg0);
         return;
     }
     Mem_Set(mem, 0, 0x28C);
-    work            = (Actor560800ModelWork*)arg0->idMap;
+    work            = (Actor560800ModelWork*)arg0->work;
     child           = (Task*)arg0->spawnArg2;
     work->field_26C = child;
     coord->sub      = ((TmdObject*)child->extra)->field_8;
@@ -277,7 +277,7 @@ void func_actor_560800_80137820(Task* arg0)
 
     extra = (TmdObject*)arg0->extra;
     state = arg0->state;
-    work  = (Actor560800ModelWork*)arg0->idMap;
+    work  = (Actor560800ModelWork*)arg0->work;
     coord = extra->field_8;
     obj   = extra;
     switch (state) {
@@ -316,7 +316,7 @@ void func_actor_560800_80137820(Task* arg0)
             }
             i    = 1;
             id   = work->field_280;
-            anim = (Actor560800ModelWork*)arg0->idMap;
+            anim = (Actor560800ModelWork*)arg0->work;
             do {
                 anim->slots[i & 0xFFFF].field_9 = 0x10;
                 Gp_AnimResetSlot(&anim->anim, i & 0xFFFF, id);
@@ -325,7 +325,7 @@ void func_actor_560800_80137820(Task* arg0)
             arg0->state++;
             break;
         case 3:
-            anim = (Actor560800ModelWork*)arg0->idMap;
+            anim = (Actor560800ModelWork*)arg0->work;
             i    = 1;
             do {
                 Gp_AnimTickIndex(&anim->anim, i & 0xFFFF);
@@ -392,14 +392,14 @@ void func_actor_560800_80137BEC(Task* task)
     u16                   t286;
     u16                   t288;
 
-    work  = (Actor560800ModelWork*)task->idMap;
+    work  = (Actor560800ModelWork*)task->work;
     coord = ((TmdObject*)task->extra)->field_8;
     switch (task->state) {
         case 0:
             func_actor_560800_801376E0(task);
             coord->sub                         = ((TmdObject*)D_actor_560800_801757AC->extra)->field_8;
             ((TmdObject*)task->extra)->field_C = 0;
-            work                               = (Actor560800ModelWork*)task->idMap;
+            work                               = (Actor560800ModelWork*)task->work;
             i                                  = 1;
             do {
                 work->swingDir[i & 0xFFFF] = 0;
@@ -481,7 +481,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
     s32                   i;
     s32                   j;
 
-    work = (Actor560800PartsWork*)task->idMap;
+    work = (Actor560800PartsWork*)task->work;
     flag = 0;
     switch (work->field_46) {
         case 0:
@@ -507,7 +507,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
                     mat->ident.m20_m21 = 0;
                     mat->ident.m22     = 0x1000;
                     coord->sub         = &Gfx_ViewCoord;
-                    part               = (Actor560800ModelWork*)work->parts[i & 0xFFFF]->idMap;
+                    part               = (Actor560800ModelWork*)work->parts[i & 0xFFFF]->work;
                     part->field_254    = msg->vx + pose->pos.vx;
                     part->field_256    = msg->vy + pose->pos.vy;
                     part->field_258    = msg->vz + pose->pos.vz;
@@ -532,7 +532,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
             i    = 0;
             do {
                 if (work->parts[i & 0xFFFF] != NULL) {
-                    part            = (Actor560800ModelWork*)work->parts[i & 0xFFFF]->idMap;
+                    part            = (Actor560800ModelWork*)work->parts[i & 0xFFFF]->work;
                     coord           = ((TmdObject*)work->parts[i & 0xFFFF]->extra)->field_8;
                     coord->sub      = ((TmdObject*)D_actor_560800_801757AC->extra)->field_8;
                     part->field_254 = pose->pos.vx;
@@ -568,7 +568,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
     i = 0;
     do {
         if (work->parts[i & 0xFFFF] != NULL) {
-            part                                           = (Actor560800ModelWork*)work->parts[i & 0xFFFF]->idMap;
+            part                                           = (Actor560800ModelWork*)work->parts[i & 0xFFFF]->work;
             coord                                          = ((TmdObject*)work->parts[i & 0xFFFF]->extra)->field_8;
             ((TmdObject*)task->extra)->field_8->coord.t[0] = msg->vx;
             ((TmdObject*)task->extra)->field_8->coord.t[1] = msg->vy;
@@ -617,7 +617,7 @@ void func_actor_560800_801384EC(Task* task, s32 msgId, Actor560800Msg* msg)
     VECTOR                vec;
     s32                   i;
 
-    work = (Actor560800PartsWork*)task->idMap;
+    work = (Actor560800PartsWork*)task->work;
     switch (msg->field_2) {
         case 0:
             i = 0;
@@ -707,17 +707,17 @@ void func_actor_560800_801386D4(Task* task)
     s32                   n;
     s16                   k;
 
-    work = (Actor560800PartsWork*)task->idMap;
+    work = (Actor560800PartsWork*)task->work;
     switch (task->state) {
         case 0:
-            root        = ((TmdObject*)task->extra)->field_8;
-            w           = (Actor560800PartsWork*)Mem_Malloc(0x4C, 0);
-            task->idMap = (TaskIdMap*)w;
+            root       = ((TmdObject*)task->extra)->field_8;
+            w          = (Actor560800PartsWork*)Mem_Malloc(0x4C, 0);
+            task->work = (TaskIdMap*)w;
             if (w == NULL) {
                 Task_Kill(task);
             } else {
                 root->sub = &Gfx_ViewCoord;
-                Mem_Set(task->idMap, 0, 0x4C);
+                Mem_Set(task->work, 0, 0x4C);
                 i                 = 0;
                 spawned           = w;
                 spawned->field_40 = (Task*)task->spawnArg2;
@@ -741,7 +741,7 @@ void func_actor_560800_801386D4(Task* task)
             do {
                 part = grow->parts[n & 0xFFFF];
                 if (part != NULL) {
-                    model             = (Actor560800ModelWork*)part->idMap;
+                    model             = (Actor560800ModelWork*)part->work;
                     partCoord         = ((TmdObject*)part->extra)->field_8;
                     model->field_256 += D_actor_560800_801756EC[n & 0xFFFF];
                     if (D_actor_560800_80175314[n & 0xFFFF].pos.vy < (s16)model->field_256) {
@@ -772,12 +772,12 @@ void func_actor_560800_801386D4(Task* task)
             task->state = 1;
             break;
     }
-    w = (Actor560800PartsWork*)task->idMap;
+    w = (Actor560800PartsWork*)task->work;
     if (w->field_4A == 0x83) {
-        c = ((TmdObject*)((Actor560800Work*)w->field_40->idMap)->field_4->extra)->field_8;
+        c = ((TmdObject*)((Actor560800Work*)w->field_40->work)->field_4->extra)->field_8;
         Gp_ComposeParentWorld(&c[9], &w->world, &pos);
     } else if (w->field_4A == 0x22) {
-        c = ((TmdObject*)((Actor560800Work*)w->field_40->idMap)->field_C->extra)->field_8;
+        c = ((TmdObject*)((Actor560800Work*)w->field_40->work)->field_C->extra)->field_8;
         Gp_ComposeParentWorld(&c[9], &w->world, &pos);
     }
     w->world.t[0] = pos.vx;
@@ -795,7 +795,7 @@ void func_actor_560800_80138A4C(Task* task, s32 msgId, Actor560800Msg* msg)
     TmdObject*            extra;
     VECTOR                vec;
 
-    work = (Actor560800ModelWork*)task->idMap;
+    work = (Actor560800ModelWork*)task->work;
     switch (msg->field_2) {
         case 0:
             extra  = (TmdObject*)task->extra;
@@ -849,7 +849,7 @@ void func_actor_560800_80138BCC(Task* task)
     MATRIX*               m;
     VECTOR                scale;
 
-    work  = (Actor560800ModelWork*)task->idMap;
+    work  = (Actor560800ModelWork*)task->work;
     coord = ((TmdObject*)task->extra)->field_8;
     if (D_actor_560800_801752E8 & 1) {
         work->field_286++;
@@ -858,7 +858,7 @@ void func_actor_560800_80138BCC(Task* task)
     coord->coord.t[1] -= work->field_286;
     if (work->field_278 >= 0x800) {
         work->field_27C    = 0;
-        w                  = (Actor560800ModelWork*)task->idMap;
+        w                  = (Actor560800ModelWork*)task->work;
         c                  = ((TmdObject*)task->extra)->field_8;
         m                  = &c[1].coord;
         *(s32*)&m->m[0][0] = 0x1000;
@@ -892,7 +892,7 @@ void func_actor_560800_80138BCC(Task* task)
 /// pulses in steps of 0xC8 until `field_278` drops below 0x1000. Phase 3 sinks
 /// this part and the one `Actor560800Work::field_C` names together. Each case
 /// needs its own matrix pointer: a shared one is set twice, loses sched1's
-/// birthing priority, and swaps the `idMap`/`field_8` loads.
+/// birthing priority, and swaps the `work`/`field_8` loads.
 void func_actor_560800_80138D04(Task* task)
 {
     Actor560800ModelWork* work;
@@ -905,7 +905,7 @@ void func_actor_560800_80138D04(Task* task)
     VECTOR                scale;
     s32                   one;
 
-    work  = (Actor560800ModelWork*)task->idMap;
+    work  = (Actor560800ModelWork*)task->work;
     coord = ((TmdObject*)task->extra)->field_8;
     switch (work->field_282) {
         case 0:
@@ -916,7 +916,7 @@ void func_actor_560800_80138D04(Task* task)
         case 1:
             if (work->field_278 <= 0x1800) {
                 work->field_27C    = 1;
-                w                  = (Actor560800ModelWork*)task->idMap;
+                w                  = (Actor560800ModelWork*)task->work;
                 c                  = ((TmdObject*)task->extra)->field_8;
                 m                  = &c[1].coord;
                 one                = 0x1000;
@@ -949,7 +949,7 @@ void func_actor_560800_80138D04(Task* task)
         case 2:
             if (work->field_278 >= 0x1000) {
                 work->field_27C     = 0;
-                w                   = (Actor560800ModelWork*)task->idMap;
+                w                   = (Actor560800ModelWork*)task->work;
                 c                   = ((TmdObject*)task->extra)->field_8;
                 m2                  = &c[1].coord;
                 one                 = 0x1000;
@@ -980,7 +980,7 @@ void func_actor_560800_80138D04(Task* task)
             coord->flg = 0;
             return;
         case 3:
-            other              = ((TmdObject*)((Actor560800Work*)((Task*)task->spawnArg2)->idMap)->field_C->extra)->field_8;
+            other              = ((TmdObject*)((Actor560800Work*)((Task*)task->spawnArg2)->work)->field_C->extra)->field_8;
             coord->coord.t[1] -= 20;
             other->coord.t[1] -= 20;
             coord->flg         = 0;
@@ -1020,14 +1020,14 @@ void func_actor_560800_80138FC8(Task* task)
 
     switch (task->state) {
         case 0:
-            obj         = (TmdObject*)task->extra;
-            root        = obj->field_8;
-            task->idMap = Mem_Malloc(0x28C, 0);
-            if (task->idMap == NULL) {
+            obj        = (TmdObject*)task->extra;
+            root       = obj->field_8;
+            task->work = Mem_Malloc(0x28C, 0);
+            if (task->work == NULL) {
                 Task_Kill(task);
             } else {
-                Mem_Set(task->idMap, 0, 0x28C);
-                mem            = (Actor560800ModelWork*)task->idMap;
+                Mem_Set(task->work, 0, 0x28C);
+                mem            = (Actor560800ModelWork*)task->work;
                 root->sub      = &Gfx_ViewCoord;
                 mem->field_26C = (Task*)task->spawnArg2;
                 obj->field_1C  = &mem->light;
@@ -1049,12 +1049,12 @@ void func_actor_560800_80138FC8(Task* task)
             break;
         case 2:
             coord              = ((TmdObject*)task->extra)->field_8;
-            work               = (Actor560800ModelWork*)task->idMap;
+            work               = (Actor560800ModelWork*)task->work;
             coord->coord.t[1] += 5;
             if (work->field_278 <= 0x1800) {
                 work->field_27C     = 1;
                 c                   = ((TmdObject*)task->extra)->field_8;
-                w                   = (Actor560800ModelWork*)task->idMap;
+                w                   = (Actor560800ModelWork*)task->work;
                 m2                  = &c[1].coord;
                 *(s32*)&m2->m[0][0] = 0x1000;
                 *(s32*)&m2->m[0][2] = 0;
@@ -1082,12 +1082,12 @@ void func_actor_560800_80138FC8(Task* task)
             break;
         case 3:
             coord              = ((TmdObject*)task->extra)->field_8;
-            work               = (Actor560800ModelWork*)task->idMap;
+            work               = (Actor560800ModelWork*)task->work;
             coord->coord.t[1] += 1;
             if (work->field_278 >= 0x800) {
                 work->field_27C     = 0;
                 c                   = ((TmdObject*)task->extra)->field_8;
-                w                   = (Actor560800ModelWork*)task->idMap;
+                w                   = (Actor560800ModelWork*)task->work;
                 m3                  = &c[1].coord;
                 *(s32*)&m3->m[0][0] = 0x1000;
                 *(s32*)&m3->m[0][2] = 0;
@@ -1118,12 +1118,12 @@ void func_actor_560800_80138FC8(Task* task)
             break;
         case 5:
             coord              = ((TmdObject*)task->extra)->field_8;
-            work               = (Actor560800ModelWork*)task->idMap;
+            work               = (Actor560800ModelWork*)task->work;
             coord->coord.t[1] += 5;
             if (work->field_278 <= 0x1800) {
                 work->field_27C     = 1;
                 c                   = ((TmdObject*)task->extra)->field_8;
-                w                   = (Actor560800ModelWork*)task->idMap;
+                w                   = (Actor560800ModelWork*)task->work;
                 m5                  = &c[1].coord;
                 *(s32*)&m5->m[0][0] = 0x1000;
                 *(s32*)&m5->m[0][2] = 0;
@@ -1169,7 +1169,7 @@ void func_actor_560800_80139360(Task* task, s32 arg1, s32 arg2)
     Task*                 part;
     s32                   i;
 
-    work = (Actor560800PartsWork*)task->idMap;
+    work = (Actor560800PartsWork*)task->work;
     i    = 0;
     do {
         part = work->parts[i & 0xFFFF];

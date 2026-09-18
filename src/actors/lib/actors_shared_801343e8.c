@@ -23,7 +23,7 @@ void ActorsShared801343e8(Task* task)
     s32                       diff;
 
     ext              = (TmdObject*)task->extra;
-    work             = (ActorShared801343e8Work*)task->idMap;
+    work             = (ActorShared801343e8Work*)task->work;
     coord            = ext->field_8;
     spawn            = (ActorShared801343e8Spawn*)task->spawnArg2;
     obj              = ext;

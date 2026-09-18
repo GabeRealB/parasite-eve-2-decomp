@@ -11,7 +11,7 @@
 #include "gameplay/1BC.h"
 
 /// Work block allocated by `func_actor_335800_80163AA0` (`Mem_Calloc(0x4C8)`)
-/// and parked in that task's `Task::idMap` slot -- that slot is not a
+/// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_335800_80163B54` republishes the two matrices
 /// onto `TmdObject::field_1C` / `field_20`, the light/colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
@@ -57,7 +57,7 @@ STATIC_ASSERT_SIZEOF(Actor335800Work, 0x4C8);
 extern VECTOR D_actor_335800_80161E78;
 
 /// Work block allocated by `func_actor_335800_80162640` (`Mem_Calloc(0x50C)`)
-/// and parked in that task's `Task::idMap` slot -- that slot is not a
+/// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here, just as with `Actor335800Work`. This is the parent
 /// actor's block: the init seeds the two `sb` bytes at 0x475/0x476 and the
 /// `sh` at 0x506 to -1, clears the three words at 0x4D8..0x4E0, and stores the

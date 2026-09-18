@@ -71,7 +71,7 @@ void func_acropolis_security_room_8017EE44(Task* task)
 {
     RoomActionPrompt*           prompt = &D_80114D28;
     RoomHotspot*                hs     = D_acropolis_security_room_801826DC;
-    AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->idMap;
+    AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->work;
 
     Game_Session->field_68 = 1;
     Game_Session->field_1  = 1;

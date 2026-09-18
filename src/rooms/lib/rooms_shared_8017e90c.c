@@ -37,7 +37,7 @@ void RoomsShared8017e90c(Task* task)
             /* Keeps the allocation's own register distinct from the tested one,
                so the null test stays on $v0 and the copy fills its delay slot. */
             SOFT_TOUCH_REG(shop);
-            task->idMap        = (TaskIdMap*)shop;
+            task->work         = (TaskIdMap*)shop;
             shop->list.funcs   = RoomsShared8017e90cRowFuncs;
             shop->list.field_6 = 0;
             shop->list.field_7 = 0xF;
@@ -51,7 +51,7 @@ void RoomsShared8017e90c(Task* task)
             task->state += 1;
         }
     }
-    Ui_UpdateListNoAnim(task->idMap, obj);
+    Ui_UpdateListNoAnim(task->work, obj);
     Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 6);
 
     x              = obj->baseX - 2;

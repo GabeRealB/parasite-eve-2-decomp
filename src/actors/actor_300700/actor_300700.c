@@ -88,7 +88,7 @@ void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->idMap    = (TaskIdMap*)work;
+    arg1->work     = (TaskIdMap*)work;
     obj->field_C   = 0;
     coord->flg     = 0;
     obj->field_24 += 1;
@@ -743,7 +743,7 @@ void func_actor_300700_80163510(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->idMap    = (TaskIdMap*)work;
+    arg1->work     = (TaskIdMap*)work;
     obj->field_C   = 0;
     coord->flg     = 0;
     obj->field_1C  = &work->field_1BC;

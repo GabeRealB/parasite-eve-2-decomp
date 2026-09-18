@@ -7,7 +7,7 @@
 
 void ActorsShared80133de4(Task* task, s16 arg1)
 {
-    ActorsShared80133de4Work* work = (ActorsShared80133de4Work*)task->idMap;
+    ActorsShared80133de4Work* work = (ActorsShared80133de4Work*)task->work;
     s16                       value;
     s16                       pitch4;
     s16                       pitch3;

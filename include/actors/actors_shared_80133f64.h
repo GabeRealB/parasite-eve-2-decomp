@@ -6,7 +6,7 @@
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
-/// Work block the actors sharing this body hang off the task's `idMap` slot
+/// Work block the actors sharing this body hang off the task's `work` slot
 /// (0x1C), which is not a `TaskIdMap` here. The carriers allocate blocks of
 /// different sizes, so only the prefix this body reaches is described.
 ///

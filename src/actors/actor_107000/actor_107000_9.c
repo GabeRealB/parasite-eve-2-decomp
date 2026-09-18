@@ -66,7 +66,7 @@ void func_actor_107000_80136E88(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->idMap     = (TaskIdMap*)work;
+    arg1->work      = (TaskIdMap*)work;
     work->field_366 = (u16)arg1->spawnArg1;
     work->field_364 = (s16)(arg1->spawnArg1 >> 16);
     obj->field_C   |= 0x80;

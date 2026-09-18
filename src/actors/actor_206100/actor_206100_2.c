@@ -9,7 +9,7 @@ void func_actor_206100_8014F18C(Task* task)
 {
     Actor206100Work* work;
 
-    work = (Actor206100Work*)task->idMap;
+    work = (Actor206100Work*)task->work;
 
     work->obj_364.field_8  = &((TmdObject*)task->extra)->field_8[1];
     work->obj_364.field_C  = work->rec_384;
@@ -41,7 +41,7 @@ void func_actor_206100_8014F284(Task* task)
     Actor206100AnimStride* stride;
     s32                    i;
 
-    work   = (Actor206100Work*)task->idMap;
+    work   = (Actor206100Work*)task->work;
     i      = 1;
     stride = (Actor206100AnimStride*)work + 1;
     do {
@@ -70,7 +70,7 @@ void func_actor_206100_8014F2F0(Task* arg0)
     Actor206100Work* work;
     s32              i;
 
-    work = (Actor206100Work*)arg0->idMap;
+    work = (Actor206100Work*)arg0->work;
     if (work->field_50E == work->field_510) {
         i = 1;
         do {
@@ -91,7 +91,7 @@ void func_actor_206100_8014F2F0(Task* arg0)
 }
 s16 func_actor_206100_8014F3C8(Task* arg0, s16 arg1)
 {
-    Actor206100Work* work = (Actor206100Work*)arg0->idMap;
+    Actor206100Work* work = (Actor206100Work*)arg0->work;
 
     if (work->field_51A == 0) {
         return 0;

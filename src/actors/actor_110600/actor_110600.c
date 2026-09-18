@@ -627,7 +627,7 @@ s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorShared8013411cPlacemen
 {
     Actor110600Work* work;
 
-    work = (Actor110600Work*)task->idMap;
+    work = (Actor110600Work*)task->work;
 
     ((TmdObject*)task->extra)->field_8->coord.t[0] = placement->pos.vx;
     ((TmdObject*)task->extra)->field_8->coord.t[1] = placement->pos.vy;
@@ -2115,7 +2115,7 @@ s32 func_actor_110600_80138538(Task* arg0)
     GpEnemy*         enemy;
 
     enemy = (GpEnemy*)arg0->spawnArg2;
-    work  = (Actor110600Work*)arg0->idMap;
+    work  = (Actor110600Work*)arg0->work;
     if (enemy->field_40 > 0) {
         return 1;
     }

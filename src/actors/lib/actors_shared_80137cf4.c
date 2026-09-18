@@ -13,7 +13,7 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 /// counter ticks and the slots are simply advanced by one.
 ///
 /// Carried by two enemy slots - `actor_107000` and `actor_207000` - which both
-/// reach the block through `Task::idMap`, so the body takes the `Task` rather
+/// reach the block through `Task::work`, so the body takes the `Task` rather
 /// than either carrier's own context type; the shared span is in
 /// `configs/USA/overlays.toml`.
 void ActorsShared80137cf4(Task* arg0)
@@ -21,7 +21,7 @@ void ActorsShared80137cf4(Task* arg0)
     ActorsShared80137cf4Work* work;
     s32                       i;
 
-    work = arg0->idMap;
+    work = arg0->work;
     i    = 1;
     if (work->field_370 != (s16)work->field_372) {
         work->field_372 = work->field_370;

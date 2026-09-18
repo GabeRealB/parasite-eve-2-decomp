@@ -16,7 +16,7 @@ typedef struct Actor205200Obj2C {
 } Actor205200Obj2C;
 
 /// Work block this overlay hangs off `Actor205200.field_1C` (the task's
-/// `Task::idMap` slot, which is not a `TaskIdMap` here). The spawn handler
+/// `Task::work` slot, which is not a `TaskIdMap` here). The spawn handler
 /// `func_actor_205200_8014BAE8` allocates it and treats its head as the
 /// animation context (slots from +0x14), which is why the animation calls cast
 /// the block itself to `GpAnimCtx`. The two display nodes
@@ -75,7 +75,7 @@ typedef struct Actor205200Work {
 } Actor205200Work;
 
 /// Per-part block `func_actor_205200_8014AE0C` allocates for each child task
-/// and hangs off its `Task::idMap`. `field_78` is the slot the part took in the
+/// and hangs off its `Task::work`. `field_78` is the slot the part took in the
 /// parent's `Actor205200Work.field_0` / `field_18` arrays.
 typedef struct Actor205200Part {
     /* 0x00 */ GpObj          obj;
@@ -105,7 +105,7 @@ typedef struct Actor205200Ctx {
 /// - the actor whose work block keeps the 0x7DB flag `field_2E`.
 typedef struct Actor205200 {
     /* 0x00 */ byte              pad_0[0x8];
-    /* 0x08 */ struct _Task*     field_8;
+    /* 0x08 */ struct Task*      field_8;
     /* 0x0C */ byte              pad_C[0x10];
     /* 0x1C */ Actor205200Work*  field_1C;
     /* 0x20 */ Actor205200Ctx*   field_20;

@@ -27,7 +27,7 @@ void func_actor_317000_801621F4();
 void func_actor_317000_80161E68(Task* task)
 {
     TmdObject*       ext                 = task->extra;
-    Actor317000Work* work                = (Actor317000Work*)task->idMap;
+    Actor317000Work* work                = (Actor317000Work*)task->work;
     void             (*states[2])(Task*) = { func_actor_317000_80162760, func_actor_317000_80162768 };
     GsCOORDINATE2*   coord;
     s32              i;
@@ -88,7 +88,7 @@ void func_actor_317000_80161E68(Task* task)
 /// target already, which clears the work's dispatch index and its companion
 /// halfword; otherwise the matrix's yaw is stepped toward the target by that
 /// same 0x40 and `RotMatrix` rebuilds the node from the adjusted angles.
-/// `arg0->idMap` is the work block, not a `TaskIdMap`.
+/// `arg0->work` is the work block, not a `TaskIdMap`.
 void func_actor_317000_801620BC(Task* task)
 {
     Actor317000Work*  work;
@@ -104,7 +104,7 @@ void func_actor_317000_801620BC(Task* task)
 
     coord  = (Actor317000Coord*)((TmdObject*)task->extra)->field_8;
     target = (Actor317000Coord*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
-    work   = (Actor317000Work*)task->idMap;
+    work   = (Actor317000Work*)task->work;
 
     delta.vx = target->coord.t[0] - coord->coord.t[0];
     delta.vy = target->coord.t[1] - coord->coord.t[1];
@@ -245,7 +245,7 @@ s32 func_actor_317000_80162458(Task* task, s32 arg1, Actor317000Placement* place
     s32                    i;
     TmdObject*             ext;
 
-    w              = (Actor317000Work*)task->idMap;
+    w              = (Actor317000Work*)task->work;
     w->field_4C0   = 1;
     w->target.vx   = place->pos.vx;
     w->target.vy   = place->pos.vy;
@@ -266,7 +266,7 @@ s32 func_actor_317000_80162458(Task* task, s32 arg1, Actor317000Placement* place
     preset.field_10 = 1;
 
     msg  = &preset;
-    work = (Actor317000Work*)task->idMap;
+    work = (Actor317000Work*)task->work;
     ext  = task->extra;
     if (msg->field_0 != work->field_43E) {
         work->field_43E = msg->field_0;

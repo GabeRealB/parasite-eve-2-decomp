@@ -24,7 +24,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_350500/actor_350500", D_actor_350500_8
 INCLUDE_ASM("actors/nonmatchings/actor_350500/actor_350500", func_actor_350500_80162360);
 
 /// Spawn state of the enemy actor: allocates the 0x4C8-byte work block that
-/// every later handler reads through `Task::idMap`, seeds the three -1 bytes
+/// every later handler reads through `Task::work`, seeds the three -1 bytes
 /// and the three cleared words the work's own init expects, republishes the
 /// light and colour matrices onto the display object, then installs the
 /// message table and the shared exit handler. An allocation failure ends the
@@ -39,7 +39,7 @@ void func_actor_350500_801623CC(Task* arg0)
         return;
     }
 
-    arg0->idMap     = (TaskIdMap*)work;
+    arg0->work      = (TaskIdMap*)work;
     work->field_43D = -1;
     work->field_43E = -1;
     work->field_4C5 = -1;

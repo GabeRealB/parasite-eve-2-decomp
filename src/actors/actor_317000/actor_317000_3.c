@@ -19,7 +19,7 @@ void func_actor_317000_80162744(Task* arg0)
     Actor317000Work* work;
 
     ext           = arg0->extra;
-    work          = (Actor317000Work*)arg0->idMap;
+    work          = (Actor317000Work*)arg0->work;
     ext->field_1C = &work->light;
     ext->field_20 = &work->color;
 }
@@ -50,7 +50,7 @@ void func_actor_317000_801627D0(Task* arg0)
     s16                   diff;
 
     coord = ((TmdObject*)arg0->extra)->field_8;
-    work  = (Actor317000Work*)arg0->idMap;
+    work  = (Actor317000Work*)arg0->work;
 
     Gp_ExtractEuler(&vec, &coord->coord);
     diff = (u16)work->field_4BA - (u16)vec.vy;
@@ -96,7 +96,7 @@ void func_actor_317000_801628D8(Task* task)
     VECTOR           vec;
 
     coord = ((TmdObject*)task->extra)->field_8;
-    work  = (Actor317000Work*)task->idMap;
+    work  = (Actor317000Work*)task->work;
 
     vec = D_actor_317000_80161E40;
     ApplyMatrixLV(&coord->coord, &vec, (VECTOR*)&work->step);
@@ -120,7 +120,7 @@ void func_actor_317000_80162950(Task* arg0)
     s32                   pan;
 
     coord = ((TmdObject*)arg0->extra)->field_8;
-    work  = (Actor317000Work*)arg0->idMap;
+    work  = (Actor317000Work*)arg0->work;
     if (coord->coord.t[1] < -0x30) {
         return;
     }

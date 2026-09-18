@@ -14,7 +14,7 @@ void func_actor_400500_8013DFE4(Task* arg0);
 
 void func_actor_400500_8013DEFC(Task* arg0)
 {
-    Actor400500Work* work                = (Actor400500Work*)arg0->idMap;
+    Actor400500Work* work                = (Actor400500Work*)arg0->work;
     void             (*states[2])(Task*) = {
         func_actor_400500_8013DF74,
         func_actor_400500_8013DFE4,
@@ -25,7 +25,7 @@ void func_actor_400500_8013DEFC(Task* arg0)
 
 void func_actor_400500_8013DF50(Task* arg0)
 {
-    Actor400500Work* work = (Actor400500Work*)arg0->idMap;
+    Actor400500Work* work = (Actor400500Work*)arg0->work;
 
     work->field_A3C = 0;
     work->field_A3E = 0;
@@ -45,7 +45,7 @@ void func_actor_400500_8013DF74(Task* arg0)
     Task*            child;
     s32              i;
 
-    work = (Actor400500Work*)arg0->idMap;
+    work = (Actor400500Work*)arg0->work;
     for (i = 0; i < 2; i++) {
         child = work->field_9F0[i];
         if (child != NULL) {
@@ -61,7 +61,7 @@ void func_actor_400500_8013DFE4(Task* arg0)
     Actor400500Work* work;
     u16              frame;
 
-    work            = (Actor400500Work*)arg0->idMap;
+    work            = (Actor400500Work*)arg0->work;
     frame           = work->field_A04 + 1;
     work->field_A04 = frame;
     if ((s16)frame >= 0x12D) {

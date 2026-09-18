@@ -19,7 +19,7 @@ void func_actor_341700_8016AA58(Task* arg0)
     Actor341700Work* work;
     TmdObject*       model;
 
-    work  = (Actor341700Work*)arg0->idMap;
+    work  = (Actor341700Work*)arg0->work;
     model = (TmdObject*)arg0->extra;
 
     work->field_412++;

@@ -45,7 +45,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->idMap                     = (TaskIdMap*)work;
+    task->work                      = (TaskIdMap*)work;
     work->field_1E                  = kind;
     D_actor_205200_8015B458.field_4 = 2;
     for (i = 0; i < D_actor_205200_8014CA1C[work->field_1E]; i++) {
@@ -155,13 +155,13 @@ void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1)
     u16*             tbl;
 
     coord = ((TmdObject*)arg1->extra)->field_8;
-    pwork = (Actor205200Work*)arg1->parent->idMap;
+    pwork = (Actor205200Work*)arg1->parent->work;
     part  = Mem_Calloc(0x7CU, false);
     if (part == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->idMap    = (TaskIdMap*)part;
+    arg1->work     = (TaskIdMap*)part;
     part->field_78 = pwork->field_20;
     pwork->field_20++;
     pwork->field_0[part->field_78]  = coord;
@@ -252,10 +252,10 @@ void func_actor_205200_8014B048(Actor205200* arg0, s32 arg1)
             func_800DA6E8(&enemy->node, damage, 0);
             enemy->field_40 -= damage;
             if (enemy->field_40 <= 0) {
-                arg0->field_30                                                     = 2;
-                part->field_72                                                     = 0;
-                ((Actor205200Work*)arg0->field_8->idMap)->field_18[part->field_78] = 0;
-                ((Actor205200Work*)arg0->field_8->idMap)->field_0[part->field_78]  = NULL;
+                arg0->field_30                                                    = 2;
+                part->field_72                                                    = 0;
+                ((Actor205200Work*)arg0->field_8->work)->field_18[part->field_78] = 0;
+                ((Actor205200Work*)arg0->field_8->work)->field_0[part->field_78]  = NULL;
                 Gp_SpawnEff(0x6005C, coord, 0x01002600, NULL);
                 Gp_SpawnEff(0x6005C, coord, 0x01002600, NULL);
                 Gp_SpawnEff(0x6005C, coord, 0x01002600, NULL);
@@ -303,9 +303,9 @@ void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
     s32              pan;
     s32              vol;
 
-    part  = (Actor205200Part*)arg1->idMap;
+    part  = (Actor205200Part*)arg1->work;
     coord = ((TmdObject*)arg1->extra)->field_8;
-    work  = (Actor205200Work*)arg1->parent->idMap;
+    work  = (Actor205200Work*)arg1->parent->work;
     if (Gp_StateF0.field_4 != 0) {
         return;
     }

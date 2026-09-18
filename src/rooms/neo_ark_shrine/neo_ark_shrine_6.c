@@ -13,7 +13,7 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-/// Scratch state of the shrine's cap script, stored at `Task::idMap`
+/// Scratch state of the shrine's cap script, stored at `Task::work`
 /// (`Mem_Calloc(0x10)` in `func_neo_ark_shrine_8017ECC4`).
 typedef struct {
     /* 0x00 */ u8  pad_0[8];
@@ -24,7 +24,7 @@ typedef struct {
     /* 0x0F */ s8  field_F;
 } NeoArkShrineScript;
 
-/// Scratch state of the two falling-prop tasks, stored at `Task::idMap`
+/// Scratch state of the two falling-prop tasks, stored at `Task::work`
 /// (`Mem_Calloc(0x48)` in `func_neo_ark_shrine_8017F4C8` / `_8017F688`).
 /// `color` / `light` are the prop's own matrices, republished onto
 /// `TmdObject::field_1C` / `field_20` by the two spawn handlers; `speed` /
@@ -75,7 +75,7 @@ extern NeoArkShrineSlot D_neo_ark_shrine_8018688C[16];
 void func_neo_ark_shrine_8017EDE0(Task* task)
 {
     RoomActionPrompt*   prompt = &D_80114D28;
-    NeoArkShrineScript* work   = (NeoArkShrineScript*)task->idMap;
+    NeoArkShrineScript* work   = (NeoArkShrineScript*)task->work;
 
     func_neo_ark_shrine_8017EAC0();
     /* Without this local-alloc ranks `work` (2 refs over 6 insns) above `task`
@@ -111,7 +111,7 @@ void func_neo_ark_shrine_8017EED4(Task* task)
 void func_neo_ark_shrine_8017EF68(Task* task)
 {
     RoomActionPrompt*   prompt = &D_80114D28;
-    NeoArkShrineScript* st     = (NeoArkShrineScript*)task->idMap;
+    NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
 
     Gp_SpawnPadLerp(0x12, 0x30, 0x90);
     D_neo_ark_shrine_80186868 = 1;
@@ -136,7 +136,7 @@ void func_neo_ark_shrine_8017EF68(Task* task)
 void func_neo_ark_shrine_8017EFE4(Task* task)
 {
     RoomActionPrompt*   prompt = &D_80114D28;
-    NeoArkShrineScript* st     = (NeoArkShrineScript*)task->idMap;
+    NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
 
     prompt->mode     = 0;
     prompt->targetId = 0;
@@ -159,7 +159,7 @@ void func_neo_ark_shrine_8017F094(Task* task)
 {
     NeoArkShrineScript* st;
 
-    st                        = (NeoArkShrineScript*)task->idMap;
+    st                        = (NeoArkShrineScript*)task->work;
     D_neo_ark_shrine_8018686A = 1;
     func_neo_ark_shrine_8017EAC0();
     Task_Kill((Task*)task->spawnArg2);
@@ -172,7 +172,7 @@ void func_neo_ark_shrine_8017F0F0(Task* task)
     NeoArkShrineScript* st;
     u16                 timer;
 
-    st = (NeoArkShrineScript*)task->idMap;
+    st = (NeoArkShrineScript*)task->work;
     func_neo_ark_shrine_8017EAC0();
     timer     = st->timer + 1;
     st->timer = timer;
@@ -193,7 +193,7 @@ void func_neo_ark_shrine_8017F178(Task* task)
     u16                 timer;
     s32                 next;
 
-    st        = (NeoArkShrineScript*)task->idMap;
+    st        = (NeoArkShrineScript*)task->work;
     timer     = st->timer + 1;
     st->timer = timer;
     if (timer >= 0x5AU) {
@@ -215,7 +215,7 @@ void func_neo_ark_shrine_8017F21C(Task* task)
     NeoArkShrineScript* st;
     u16                 timer;
 
-    st        = (NeoArkShrineScript*)task->idMap;
+    st        = (NeoArkShrineScript*)task->work;
     timer     = st->timer + 1;
     st->timer = timer;
     if (timer == 0x1E) {
@@ -248,7 +248,7 @@ void func_neo_ark_shrine_8017F274(Task* task)
 void func_neo_ark_shrine_8017F320(Task* task)
 {
     RoomActionPrompt*   prompt = &D_80114D28;
-    NeoArkShrineScript* st     = (NeoArkShrineScript*)task->idMap;
+    NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
 
     Gp_SpawnPadLerp(0x12, 0x30, 0x90);
     D_neo_ark_shrine_80186868 = 0;
@@ -311,10 +311,10 @@ void func_neo_ark_shrine_8017F4C8(Task* task)
     GsCOORDINATE2*    coord;
     NeoArkShrineFall* st;
 
-    extra       = (TmdObject*)task->extra;
-    coord       = extra->field_8;
-    st          = (NeoArkShrineFall*)Mem_Calloc(sizeof(NeoArkShrineFall), 0);
-    task->idMap = (TaskIdMap*)st;
+    extra      = (TmdObject*)task->extra;
+    coord      = extra->field_8;
+    st         = (NeoArkShrineFall*)Mem_Calloc(sizeof(NeoArkShrineFall), 0);
+    task->work = (TaskIdMap*)st;
     if (st == NULL) {
         Task_Kill(task);
         return;
@@ -339,7 +339,7 @@ void func_neo_ark_shrine_8017F578(Task* task)
     u16               delta;
     s32               y;
 
-    st        = (NeoArkShrineFall*)task->idMap;
+    st        = (NeoArkShrineFall*)task->work;
     coord     = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
     ticks     = st->ticks + 1;
     st->ticks = ticks;
@@ -376,10 +376,10 @@ void func_neo_ark_shrine_8017F688(Task* task)
     GsCOORDINATE2*    coord;
     NeoArkShrineFall* st;
 
-    extra       = (TmdObject*)task->extra;
-    coord       = extra->field_8;
-    st          = (NeoArkShrineFall*)Mem_Calloc(sizeof(NeoArkShrineFall), 0);
-    task->idMap = (TaskIdMap*)st;
+    extra      = (TmdObject*)task->extra;
+    coord      = extra->field_8;
+    st         = (NeoArkShrineFall*)Mem_Calloc(sizeof(NeoArkShrineFall), 0);
+    task->work = (TaskIdMap*)st;
     if (st == NULL) {
         Task_Kill(task);
         return;
@@ -404,7 +404,7 @@ void func_neo_ark_shrine_8017F738(Task* task)
     u16               delta;
     s32               y;
 
-    st        = (NeoArkShrineFall*)task->idMap;
+    st        = (NeoArkShrineFall*)task->work;
     coord     = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
     ticks     = st->ticks + 1;
     st->ticks = ticks;

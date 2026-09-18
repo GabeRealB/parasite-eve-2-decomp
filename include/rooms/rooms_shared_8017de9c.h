@@ -16,7 +16,7 @@ extern u8 RoomsShared8017de9cHundred[];
 /// recorded uses as a percentage, and a gauge whose length is the row's
 /// `barWidths` fraction of the panel's inner width. The three parallel arrays
 /// come from the `RoomItemUsage` block the panel's task parked in
-/// `Task::idMap`; `RoomPeUsage` has the same layout, so the same row handler
+/// `Task::work`; `RoomPeUsage` has the same layout, so the same row handler
 /// serves the Parasite Energy panel.
 ///
 /// A share of 10000 (a full 100%) prints as `RoomsShared8017de9cHundred`;

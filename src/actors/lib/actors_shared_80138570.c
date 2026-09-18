@@ -12,7 +12,7 @@ void ActorsShared80138570(Task* task)
     GpEnemy*                 enemy;
 
     enemy = task->spawnArg2;
-    work  = (ActorShared80138570Work*)task->idMap;
+    work  = (ActorShared80138570Work*)task->work;
 
     enemy->node.field_4 = 1;
     enemy->field_54     = 0;

@@ -12,7 +12,7 @@
 
 #include <psyq/libgs.h>
 
-/// 0xF0-byte body block `func_actor_105600_80134FD0` parks at `Task::idMap`.
+/// 0xF0-byte body block `func_actor_105600_80134FD0` parks at `Task::work`.
 /// The two leading matrices are the light/colour pair published on the model
 /// root's `TmdObject`; the three `GpObj` bodies collide against `rec60`
 /// (shared by the first two) and, through the `GpActorD4Rec` between them,
@@ -76,7 +76,7 @@ typedef struct Actor105600Ctx {
 } Actor105600Ctx;
 
 /// 0x6E4-byte animation/state work block hung off the approach-cycle task's
-/// `Task::idMap`. It opens with the animation context and its nineteen
+/// `Task::work`. It opens with the animation context and its nineteen
 /// 0x28-byte slots, exactly like the `Actor105700Work` block of `actor_105700`
 /// and the `Actor02000Work` block of `actor_102000`; the halfwords around
 /// 0x694-0x6E0 keep those blocks' offsets and meaning.

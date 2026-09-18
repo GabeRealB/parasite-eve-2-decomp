@@ -99,8 +99,8 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
     switch (state) {
         case 0:
             if (D_80114C12 != 1 && D_80071075 == 0) {
-                work        = Mem_Calloc(0xC, 0);
-                arg0->idMap = (TaskIdMap*)work;
+                work       = Mem_Calloc(0xC, 0);
+                arg0->work = (TaskIdMap*)work;
                 if (work == NULL) {
                     Task_Kill(arg0);
                 } else {
@@ -108,7 +108,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                     work->target                   = Game_GetPtrSlot(3);
                     D_acropolis_sanctuary_80186C90 = arg0;
                 }
-                slot     = (AcsCutsceneWork*)arg0->idMap;
+                slot     = (AcsCutsceneWork*)arg0->work;
                 weaponId = D_80073BA9;
                 idx      = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
 
@@ -136,7 +136,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 Task_Kill(arg0);
                 break;
             }
-            cutscene = (AcsCutsceneWork*)arg0->idMap;
+            cutscene = (AcsCutsceneWork*)arg0->work;
             msg      = &rec;
             switch (cutscene->phase) {
                 case 0:
@@ -145,7 +145,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 case 2:
                     if (cutscene->step == 0) {
                         Gp_KillPlayerEffs();
-                        target = (AcsCutsceneWork*)arg0->idMap;
+                        target = (AcsCutsceneWork*)arg0->work;
                         if (target->target != NULL) {
                             rec.rec.field_0   = (s32)&D_acropolis_sanctuary_801820E4;
                             rec.rec.field_4   = 0;
@@ -176,7 +176,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
 /// is cued with.
 void func_acropolis_sanctuary_8017DCE0(s32 arg0)
 {
-    AcsCutsceneWork* work = (AcsCutsceneWork*)D_acropolis_sanctuary_80186C90->idMap;
+    AcsCutsceneWork* work = (AcsCutsceneWork*)D_acropolis_sanctuary_80186C90->work;
 
     switch (arg0) {
         case 0:

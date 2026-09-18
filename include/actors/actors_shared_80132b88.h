@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-/// Work block the actor parks in the task's `Task::idMap` slot (that slot is
+/// Work block the actor parks in the task's `Task::work` slot (that slot is
 /// not a `TaskIdMap` here). `field_4EE` is the second of the pair of angles at
 /// 0x4E6/0x4EA/0x4EE the neighbouring facing helpers write.
 typedef struct ActorShared80132b88Work {

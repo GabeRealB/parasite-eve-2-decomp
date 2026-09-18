@@ -133,7 +133,7 @@ void func_energyball_8012F180(Task* arg0)
     tail  = (GpCoordTail*)sc;
     coord = ((TmdObject*)arg0->extra)->field_8;
     fade  = Gp_State1C->field_E;
-    work  = (EnergyBallWork*)arg0->idMap;
+    work  = (EnergyBallWork*)arg0->work;
     mem   = arg0->spawnArg2;
     if (fade != 0) {
         if (fade >= 4) {
@@ -167,7 +167,7 @@ void func_energyball_8012F180(Task* arg0)
                 mem->field_22 = 0;
                 return;
             }
-            arg0->idMap   = (TaskIdMap*)work;
+            arg0->work    = (TaskIdMap*)work;
             mem->field_20 = (Gp_StateC08.field_0 % 10) - 1;
             mem->field_10 = 0;
             Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
@@ -190,7 +190,7 @@ void func_energyball_8012F180(Task* arg0)
                 Gp_UpdateCoord(coord);
             } else {
                 Gp_UpdateCoord(coord);
-                arg0->idMap        = (TaskIdMap*)work;
+                arg0->work         = (TaskIdMap*)work;
                 work->obj.field_C  = &work->rec;
                 work->obj.field_8  = coord;
                 work->obj.field_18 = ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 +

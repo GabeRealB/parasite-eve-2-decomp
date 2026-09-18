@@ -16,7 +16,7 @@ void func_actor_503500_80146508(Task* arg0)
     TmdObject*            ext;
     Actor503500Effect4CC* work;
 
-    work          = (Actor503500Effect4CC*)arg0->idMap;
+    work          = (Actor503500Effect4CC*)arg0->work;
     ext           = arg0->extra;
     ext->field_1C = &work->light;
     ext->field_20 = &work->color;
@@ -32,7 +32,7 @@ s32 func_actor_503500_8014652C(Task* task, s32 arg1, Actor503500AnimPreset* msg)
     TmdObject*            ext;
     s32                   i;
 
-    work = (Actor503500Effect4CC*)task->idMap;
+    work = (Actor503500Effect4CC*)task->work;
     ext  = task->extra;
     if (msg->field_0 != work->field_43E) {
         work->field_43E = msg->field_0;
@@ -78,9 +78,9 @@ s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode)
             ext->field_C &= ~4;
             break;
         case 2:
-            ext->field_C                                   |= 0x80;
-            ((Actor503500Effect4CC*)task->idMap)->field_4C8 = mode;
-            ext->field_C                                   |= 4;
+            ext->field_C                                  |= 0x80;
+            ((Actor503500Effect4CC*)task->work)->field_4C8 = mode;
+            ext->field_C                                  |= 4;
             break;
         case 3:
             ext->field_C = (ext->field_C & ~0x80) | 4;
@@ -96,7 +96,7 @@ s32 func_actor_503500_801467C0(Task* task, s32 arg1, Actor503500ModeMsg* msg)
 {
     Actor503500Effect4CC* work;
 
-    work = (Actor503500Effect4CC*)task->idMap;
+    work = (Actor503500Effect4CC*)task->work;
     switch (msg->mode) {
         case 0:
             work->field_4B0 = 0;

@@ -13,7 +13,7 @@
 void func_dryfield_night_motel_lobby_80180FD8(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
-    DnmlExamineWork*  work   = (DnmlExamineWork*)task->idMap;
+    DnmlExamineWork*  work   = (DnmlExamineWork*)task->work;
 
     func_dryfield_night_motel_lobby_801802A8(task);
     prompt->mode     = 0;
@@ -30,7 +30,7 @@ void func_dryfield_night_motel_lobby_80180FD8(Task* task)
 void func_dryfield_night_motel_lobby_8018103C(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
-    DnmlExamineWork*  work   = (DnmlExamineWork*)task->idMap;
+    DnmlExamineWork*  work   = (DnmlExamineWork*)task->work;
 
     func_dryfield_night_motel_lobby_801802A8(task);
     prompt->mode     = 0;

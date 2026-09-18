@@ -9,7 +9,7 @@
 
 void ActorsShared80139948(Task* arg0)
 {
-    ActorsShared80139948Work* work  = (ActorsShared80139948Work*)arg0->idMap;
+    ActorsShared80139948Work* work  = (ActorsShared80139948Work*)arg0->work;
     GsCOORDINATE2*            coord = ((TmdObject*)arg0->extra)->field_8;
     MATRIX*                   m;
     MATRIX*                   dst;

@@ -19,7 +19,7 @@ void ActorsShared80135d50(Task* task)
     ActorsShared80135d50Ctx*  ctx;
     TmdObject*                obj;
 
-    work = (ActorsShared80135d50Work*)task->idMap;
+    work = (ActorsShared80135d50Work*)task->work;
     ctx  = (ActorsShared80135d50Ctx*)task->spawnArg2;
     obj  = (TmdObject*)task->extra;
 

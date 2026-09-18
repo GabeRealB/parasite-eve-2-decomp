@@ -16,7 +16,7 @@ extern u8 D_actor_210600_8015A4CC[];
 void func_actor_210600_8014B2C0(Task* task);
 
 /// Spawn body: allocates the actor's 0x8D8-byte `Actor210600Work`, stores it in
-/// `Task::idMap`, and hands the task's `TmdObject` its light / colour matrices
+/// `Task::work`, and hands the task's `TmdObject` its light / colour matrices
 /// from the block's tail. The enemy object then takes the model's root
 /// coordinate (`TmdObject::field_8`) as `field_4` and its third part coordinate
 /// (`field_8[2]`, used by `Gp_UpdateLinkXforms`) as `field_18`; `field_1C` is
@@ -35,11 +35,11 @@ void func_actor_210600_8014B8C8(GpEnemy* enemy, Task* task)
     Actor210600Work* mem;
     TmdObject*       tmd;
 
-    obj         = task->extra;
-    coord       = obj->field_8;
-    mem         = (Actor210600Work*)Mem_Calloc(0x8D8, false);
-    work        = mem;
-    task->idMap = (TaskIdMap*)mem;
+    obj        = task->extra;
+    coord      = obj->field_8;
+    mem        = (Actor210600Work*)Mem_Calloc(0x8D8, false);
+    work       = mem;
+    task->work = (TaskIdMap*)mem;
     if (mem == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;

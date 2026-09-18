@@ -30,7 +30,7 @@ void func_actor_121300_8013322C(Task* arg0)
 
     switch (arg0->spawnArg1) {
         case 0:
-            page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->idMap)->field_4AC;
+            page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->work)->field_4AC;
             page <<= 6;
             page  += 0x180;
             rect.x = page;
@@ -38,7 +38,7 @@ void func_actor_121300_8013322C(Task* arg0)
             rect.w = 0x19;
             rect.h = 0x14;
             LoadImage(&rect, D_actor_121300_8013BBE8);
-            page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->idMap)->field_4AC;
+            page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->work)->field_4AC;
             page <<= 6;
             page  += 0x18C;
             rect.x = page;
@@ -51,7 +51,7 @@ void func_actor_121300_8013322C(Task* arg0)
         case 1:
             switch (arg0->state) {
                 case 0:
-                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->idMap)->field_4AC;
+                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->work)->field_4AC;
                     page <<= 6;
                     page  += 0x180;
                     rect.x = page;
@@ -62,7 +62,7 @@ void func_actor_121300_8013322C(Task* arg0)
                     arg0->state++;
                     break;
                 case 1:
-                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->idMap)->field_4AC;
+                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->work)->field_4AC;
                     page <<= 6;
                     page  += 0x180;
                     rect.x = page;
@@ -77,7 +77,7 @@ void func_actor_121300_8013322C(Task* arg0)
         case 2:
             switch (arg0->state) {
                 case 0:
-                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->idMap)->field_4AC;
+                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->work)->field_4AC;
                     page <<= 6;
                     page  += 0x180;
                     rect.x = page;
@@ -88,7 +88,7 @@ void func_actor_121300_8013322C(Task* arg0)
                     arg0->state++;
                     break;
                 case 1:
-                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->idMap)->field_4AC;
+                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->work)->field_4AC;
                     page <<= 6;
                     page  += 0x180;
                     rect.x = page;
@@ -104,7 +104,7 @@ void func_actor_121300_8013322C(Task* arg0)
             break;
         case 4:
         case 5:
-            page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->idMap)->field_4AC;
+            page   = ((Actor121300Work*)((Task*)arg0->spawnArg2)->work)->field_4AC;
             page <<= 6;
             page  += 0x18C;
             rect.x = page;
@@ -172,7 +172,7 @@ void func_actor_121300_80133580(Task* arg0, s16 arg1)
     SVECTOR*         tbl;
     s32              vx;
 
-    work = (Actor121300Work*)arg0->idMap;
+    work = (Actor121300Work*)arg0->work;
     if (arg1 != 0) {
         if (++work->field_4AA >= 20) {
             work->field_4AA = 0;
@@ -208,7 +208,7 @@ extern s16      D_actor_121300_8013D41C;
 /// waypoint index.
 void func_actor_121300_80133730(Task* arg0)
 {
-    Actor121300Work* work = (Actor121300Work*)arg0->idMap;
+    Actor121300Work* work = (Actor121300Work*)arg0->work;
 
     switch (work->field_4A2) {
         case 0:
@@ -242,7 +242,7 @@ extern s32   D_actor_121300_8013CC88;
 extern Task* D_actor_121300_8013D418;
 
 /// First tick of the cutscene actor: allocates the 0x4B0-byte
-/// `Actor121300Work` block, zeroes it and parks it in `Task::idMap`, then wires
+/// `Actor121300Work` block, zeroes it and parks it in `Task::work`, then wires
 /// the model object up -- the work block's light and colour matrices into
 /// `TmdObject::field_1C` / `field_20`, `field_C` cleared and the animation
 /// context handed to `func_800B3F84`, and slots 1..18 re-armed through
@@ -250,7 +250,7 @@ extern Task* D_actor_121300_8013D418;
 /// record at the nested area table's `field_0` list whose id matches neither
 /// 0xFF (end) nor 0x84 (the skip marker).
 ///
-/// The slot loop reaches the work block through `Task::idMap` again rather than
+/// The slot loop reaches the work block through `Task::work` again rather than
 /// through the pointer the setup above uses: the compiler cannot prove
 /// `Gp_AnimResetSlot` leaves the task alone, so it reloads, and the reload must
 /// stay a separate local for the reload to land in `$s0` as retail does.
@@ -265,10 +265,10 @@ void func_actor_121300_80133BFC(Task* arg0)
     s32              i;
     u8               id;
 
-    tmd         = arg0->extra;
-    coord       = tmd->field_8;
-    map         = Mem_Malloc(0x4B0, 0);
-    arg0->idMap = map;
+    tmd        = arg0->extra;
+    coord      = tmd->field_8;
+    map        = Mem_Malloc(0x4B0, 0);
+    arg0->work = map;
     if (map == NULL) {
         Task_Kill(arg0);
         return;
@@ -294,7 +294,7 @@ void func_actor_121300_80133BFC(Task* arg0)
     work->field_4AC = (s16)(s8)place->field_D;
     func_800B3F84(&work->anim, &D_actor_121300_8013CC08, (GpAnimObj*)tmd, work->field_30C,
                   work->slots);
-    slotsWork            = (Actor121300Work*)arg0->idMap;
+    slotsWork            = (Actor121300Work*)arg0->work;
     slotsWork->field_4A0 = 1;
     i                    = 1;
     do {
@@ -403,11 +403,11 @@ void func_actor_121300_8013400C(Task* arg0)
     Actor121300FadeWork* fade;
     Actor121300FadeWork* alloc;
 
-    fade = (Actor121300FadeWork*)arg0->idMap;
+    fade = (Actor121300FadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc       = (Actor121300FadeWork*)Mem_Malloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (Actor121300FadeWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 Task_Kill(arg0);
                 return;

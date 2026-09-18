@@ -22,11 +22,11 @@ void func_actor_136100_80134588(Task* arg0)
     Actor136100FadeWork* fade;
     Actor136100FadeWork* alloc;
 
-    fade = (Actor136100FadeWork*)arg0->idMap;
+    fade = (Actor136100FadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc       = (Actor136100FadeWork*)Mem_Malloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (Actor136100FadeWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 Task_Kill(arg0);
                 return;

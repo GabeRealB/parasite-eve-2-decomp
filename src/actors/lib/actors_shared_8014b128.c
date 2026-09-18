@@ -26,7 +26,7 @@ void ActorsShared8014b128(Task* arg0)
     Actor207200Work*            work;
 
     head                = *(MATRIX**)0x1F8003FC;
-    work                = arg0->idMap;
+    work                = arg0->work;
     scratch             = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
     *(void**)0x1F8003FC = scratch;
     coord               = (*(TmdObject**)&arg0->extra)->field_8;

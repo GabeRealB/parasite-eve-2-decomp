@@ -75,7 +75,7 @@ void func_actor_450200_80131E24(Task* task)
 }
 
 /// Head-aim record `func_actor_450200_80131FA8` allocates and parks in
-/// `Task::idMap`, handed straight to `func_800B17D4` as its `arg2`: the yaw
+/// `Task::work`, handed straight to `func_800B17D4` as its `arg2`: the yaw
 /// and pitch clamps that function widens against the head's current pose, and
 /// the `rate` fraction of the remaining angle this overlay ramps by 0x200 a
 /// frame. The twin of `Actor361100HeadAim`, and the same 12-byte reading of
@@ -94,7 +94,7 @@ typedef struct Actor450200HeadAim {
 STATIC_ASSERT_SIZEOF(Actor450200HeadAim, 0xC);
 
 /// Head-aim state of this actor's second sub-task: state 0 allocates the
-/// `Actor450200HeadAim` record into `Task::idMap` and seeds both clamps to
+/// `Actor450200HeadAim` record into `Task::work` and seeds both clamps to
 /// 0x100, state 1 ramps its `rate` up toward 0x1000 while `Task::spawnArg1` is
 /// set and back down toward 0 while it is not, then hands the record to
 /// `func_800B17D4` between the slot-3 task whose head turns and the
@@ -116,13 +116,13 @@ void func_actor_450200_80131FA8(Task* arg0)
                 Task_Kill(arg0);
                 return;
             }
-            arg0->idMap     = (TaskIdMap*)aim;
+            arg0->work      = (TaskIdMap*)aim;
             aim->yawLimit   = 0x100;
             aim->pitchLimit = 0x100;
             arg0->state++;
             /* fallthrough */
         case 1:
-            aim = (Actor450200HeadAim*)arg0->idMap;
+            aim = (Actor450200HeadAim*)arg0->work;
             if (arg0->spawnArg1 != 0) {
                 rate      = aim->rate + 0x200;
                 aim->rate = rate;

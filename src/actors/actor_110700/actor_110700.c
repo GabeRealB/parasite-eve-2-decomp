@@ -46,7 +46,7 @@ void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
     VECTOR*          block;
     s32              i;
 
-    work                    = (Actor110700Work*)task->idMap;
+    work                    = (Actor110700Work*)task->work;
     coord                   = &((TmdObject*)task->extra)->field_8[1];
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0x10;
     block                   = (VECTOR*)*(void**)G_SCRATCH_HEAD;
@@ -63,13 +63,13 @@ void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
 }
 
 /// Copies the animation id from `preset` into the work block parked in
-/// `task->idMap` and reseeds slots 1..0x12 through `Gp_AnimResetSlot`.
+/// `task->work` and reseeds slots 1..0x12 through `Gp_AnimResetSlot`.
 s32 func_actor_110700_8013201C(Task* task, s32 arg1, Actor110700AnimPreset* preset)
 {
     Actor110700Work* work;
     s32              i;
 
-    work            = (Actor110700Work*)task->idMap;
+    work            = (Actor110700Work*)task->work;
     work->field_47C = preset->field_4;
     i               = 1;
     do {

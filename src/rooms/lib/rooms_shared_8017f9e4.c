@@ -22,7 +22,7 @@ void RoomsShared8017f9e4(Task* task)
     SVECTOR*       vec;
     s32            i;
 
-    coords   = (GsCOORDINATE2*)task->idMap;
+    coords   = (GsCOORDINATE2*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = ((TmdObject*)task->extra)->field_8;
 
@@ -35,7 +35,7 @@ void RoomsShared8017f9e4(Task* task)
                     work->field_22 = 0;
                     return;
                 }
-                task->idMap          = (TaskIdMap*)coords;
+                task->work           = (TaskIdMap*)coords;
                 objCoord->sub        = work->field_8;
                 objCoord->coord.t[0] = RoomsShared8017f9e4Pos[0].vx;
                 objCoord->coord.t[1] = RoomsShared8017f9e4Pos[0].vy;

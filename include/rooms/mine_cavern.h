@@ -6,7 +6,7 @@
 #include "gameplay/3A34.h"
 #include "main/task.h"
 
-/// Work block a mine_cavern task parks at `Task::idMap`, allocated with
+/// Work block a mine_cavern task parks at `Task::work`, allocated with
 /// `Mem_Calloc(0x14C, 0)` by the state-0 handler `func_mine_cavern_80182E34`
 /// (and by `func_mine_cavern_801836D0`). It carries two `GpObj` display nodes:
 /// the `+0x40` one is what `func_mine_cavern_80183890` is given away by - it

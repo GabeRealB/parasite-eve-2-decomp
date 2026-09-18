@@ -39,7 +39,7 @@ s32 func_actor_143900_80132778(Task* task, s32 arg1, Actor143900Msg* msg)
 INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_5", func_actor_143900_8013279C);
 
 /// State-0 spawn routine of the actor's own variant: allocates the 0x4F8 work
-/// block and publishes it in `D_actor_143900_801496C4` and the task's `idMap`
+/// block and publishes it in `D_actor_143900_801496C4` and the task's `work`
 /// slot, binds the model's coordinate to the view (`sub`) and hands the object
 /// its light and colour matrices out of the block, then points the object at
 /// the part's world translation, dropped by 0x320 in y, for the colour matrix.
@@ -57,7 +57,7 @@ void func_actor_143900_801328D4(GpEnemy* enemy, Task* task)
     coord                   = obj->field_8;
     work                    = Mem_Calloc(0x4F8, false);
     D_actor_143900_801496C4 = work;
-    task->idMap             = (TaskIdMap*)work;
+    task->work              = (TaskIdMap*)work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
@@ -109,7 +109,7 @@ void func_actor_143900_80132DEC(Task* task)
     };
     u8 scratch[0x40]; /* never referenced; only reserves the frame */
 
-    D_actor_143900_801496C4 = (ActorsShared80132eccWork*)task->idMap;
+    D_actor_143900_801496C4 = (ActorsShared80132eccWork*)task->work;
     fns[task->state](task->spawnArg2, task);
 }
 

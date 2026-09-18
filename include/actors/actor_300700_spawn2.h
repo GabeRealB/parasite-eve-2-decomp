@@ -5,7 +5,7 @@
 #include "main/session.h"
 
 /// The 0x39C-byte allocation `func_actor_300700_80163510` makes with
-/// `Mem_Calloc` and stores in `Task::idMap`, then fills with the four `GpObj`
+/// `Mem_Calloc` and stores in `Task::work`, then fills with the four `GpObj`
 /// render nodes (`Gp_LinkObj`, shapes 3/2/2/3) and their `GpRec18` tables.
 ///
 /// This is the work block the overlay's second enemy variant runs on - the

@@ -7,7 +7,7 @@
 #include "rooms/dryfield_water_tower.h"
 
 /// The room's fade-out task: state 0 allocates the 8-byte `DwtwFadeWork` block
-/// into `Task::idMap` and clears its three channels, and every state-1 frame
+/// into `Task::work` and clears its three channels, and every state-1 frame
 /// draws them with `Fade_DrawOverlay` and raises each by `Task::spawnArg1`, the
 /// fade rate. The red channel is the one watched: once it passes 0x100 the fade
 /// has run its course and the task kills itself. The task is the second
@@ -23,11 +23,11 @@ void func_dryfield_water_tower_80180038(Task* arg0)
     DwtwFadeWork* work;
     DwtwFadeWork* alloc;
 
-    work = (DwtwFadeWork*)arg0->idMap;
+    work = (DwtwFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc       = (DwtwFadeWork*)Mem_Malloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (DwtwFadeWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 Task_Kill(arg0);
                 return;

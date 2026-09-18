@@ -11,7 +11,7 @@ void ActorsShared8013587c(Task* task)
     ActorsShared8013587cWork* work;
     s16                       state;
 
-    work  = (ActorsShared8013587cWork*)task->idMap;
+    work  = (ActorsShared8013587cWork*)task->work;
     state = work->field_6A8;
     switch (state) {
         case 0:

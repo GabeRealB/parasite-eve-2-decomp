@@ -6,9 +6,9 @@
 #include "gameplay/1BC.h"
 
 /// Work block the actors sharing this body publish as `ActorsShared80131f9cWork`
-/// (the same block they hang off the task's `Task::idMap` slot, 0x1C, which is
+/// (the same block they hang off the task's `Task::work` slot, 0x1C, which is
 /// not a `TaskIdMap` here). It is the block `ActorsShared801325c8` walks
-/// through `idMap` - `anim` at 0x40 with its nineteen 0x28-byte slots at 0x54 -
+/// through `work` - `anim` at 0x40 with its nineteen 0x28-byte slots at 0x54 -
 /// carried far enough to reach the two animation-set words at the tail. The
 /// overlays sharing it allocate different total sizes, so only the prefix this
 /// body reaches is described rather than a whole-block size that would be wrong

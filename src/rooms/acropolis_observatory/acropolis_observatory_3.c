@@ -55,25 +55,25 @@ void func_acropolis_observatory_8017D9A8(Task* task)
     s32            weaponId;
 
     queue = &CdCmd_Queue;
-    work  = (AobStreamWork*)task->idMap;
+    work  = (AobStreamWork*)task->work;
     switch (task->state) {
         case 0:
-            blk         = Mem_Calloc(0x14, 0);
-            task->idMap = (TaskIdMap*)blk;
+            blk        = Mem_Calloc(0x14, 0);
+            task->work = (TaskIdMap*)blk;
             if (blk == NULL) {
                 Task_Kill(task);
                 break;
             }
             Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
-            ((AobStreamWork*)task->idMap)->target = Game_GetPtrSlot(3);
-            ((AobStreamWork*)task->idMap)->mtx    = Player_Status.coordMtx;
-            weaponId                              = Player_Status.weapon;
-            rec.field_0                           = (Mc_SaveData.field_22 == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.field_4                           = 1;
-            rec.field_8                           = 0;
-            rec.field_C                           = 0;
-            rec.field_10                          = 0;
-            Gp_DispatchMsg(((AobStreamWork*)task->idMap)->target, 0x3E8, (s32)&rec, 0);
+            ((AobStreamWork*)task->work)->target = Game_GetPtrSlot(3);
+            ((AobStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
+            weaponId                             = Player_Status.weapon;
+            rec.field_0                          = (Mc_SaveData.field_22 == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.field_4                          = 1;
+            rec.field_8                          = 0;
+            rec.field_C                          = 0;
+            rec.field_10                         = 0;
+            Gp_DispatchMsg(((AobStreamWork*)task->work)->target, 0x3E8, (s32)&rec, 0);
             func_800E9BDC(3, 0x9FF);
             Gp_StateF0.field_4 = 1;
             task->state        = task->state + 1;
@@ -101,7 +101,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
                     place.rot.vz = 0;
                     place.rot.vx = 0;
                     place.rot.vy = 0x400;
-                    dest         = (AobStreamWork*)task->idMap;
+                    dest         = (AobStreamWork*)task->work;
                     Gp_DispatchMsg(dest->target, 0x3E9, (s32)&place, 0);
                     Task_SpawnFromTable(&D_acropolis_observatory_8017E7DC, 3, 0, 0);
                     task->state = task->state + 1;
@@ -115,7 +115,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
                 place.pos.vx = -0x968;
                 place.pos.vy = -0xBAD;
                 place.pos.vz = -0x6D4;
-                dest         = (AobStreamWork*)task->idMap;
+                dest         = (AobStreamWork*)task->work;
                 Gp_DispatchMsg(dest->target, 0x3F2, (s32)&place, 0);
                 task->state = task->state + 1;
             }
@@ -164,25 +164,25 @@ void func_acropolis_observatory_8017DD3C(Task* task)
     s32            weaponId;
 
     queue = &CdCmd_Queue;
-    work  = (AobStreamWork*)task->idMap;
+    work  = (AobStreamWork*)task->work;
     switch (task->state) {
         case 0:
-            blk         = Mem_Calloc(0x14, 0);
-            task->idMap = (TaskIdMap*)blk;
+            blk        = Mem_Calloc(0x14, 0);
+            task->work = (TaskIdMap*)blk;
             if (blk == NULL) {
                 Task_Kill(task);
                 break;
             }
             Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
-            ((AobStreamWork*)task->idMap)->target = Game_GetPtrSlot(3);
-            ((AobStreamWork*)task->idMap)->mtx    = Player_Status.coordMtx;
-            weaponId                              = Player_Status.weapon;
-            rec.field_0                           = (Mc_SaveData.field_22 == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.field_4                           = 1;
-            rec.field_8                           = 0;
-            rec.field_C                           = 0;
-            rec.field_10                          = 0;
-            Gp_DispatchMsg(((AobStreamWork*)task->idMap)->target, 0x3E8, (s32)&rec, 0);
+            ((AobStreamWork*)task->work)->target = Game_GetPtrSlot(3);
+            ((AobStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
+            weaponId                             = Player_Status.weapon;
+            rec.field_0                          = (Mc_SaveData.field_22 == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.field_4                          = 1;
+            rec.field_8                          = 0;
+            rec.field_C                          = 0;
+            rec.field_10                         = 0;
+            Gp_DispatchMsg(((AobStreamWork*)task->work)->target, 0x3E8, (s32)&rec, 0);
             func_800E9BDC(3, 0x9FF);
             Gp_StateF0.field_4 = 1;
             task->state        = task->state + 1;
@@ -210,7 +210,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
                     place.rot.vz = 0;
                     place.rot.vx = 0;
                     place.rot.vy = 0x400;
-                    dest         = (AobStreamWork*)task->idMap;
+                    dest         = (AobStreamWork*)task->work;
                     Gp_DispatchMsg(dest->target, 0x3E9, (s32)&place, 0);
                     Task_SpawnFromTable(&D_acropolis_observatory_8017E7DC, 3, 0, 0);
                     task->state = task->state + 1;
@@ -224,7 +224,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
                 place.pos.vx = -0x8F8;
                 place.pos.vy = -0xBAD;
                 place.pos.vz = -0x2936;
-                dest         = (AobStreamWork*)task->idMap;
+                dest         = (AobStreamWork*)task->work;
                 Gp_DispatchMsg(dest->target, 0x3F2, (s32)&place, 0);
                 task->state = task->state + 1;
             }

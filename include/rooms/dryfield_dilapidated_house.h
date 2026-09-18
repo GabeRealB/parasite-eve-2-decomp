@@ -12,9 +12,9 @@
 
 /// Work block of the task family whose state-0 init is
 /// `func_dryfield_dilapidated_house_80180B84`, which allocates it with
-/// `Mem_Malloc(0x6C, 0)` and parks it in the `Task::idMap` slot (0x1C) -- that
+/// `Mem_Malloc(0x6C, 0)` and parks it in the `Task::work` slot (0x1C) -- that
 /// slot is *not* a `TaskIdMap` here. Reach it with
-/// `(DdhCoordWork*)task->idMap`.
+/// `(DdhCoordWork*)task->work`.
 ///
 /// `func_dryfield_dilapidated_house_80180F5C` writes the same ramp value (from
 /// `func_dryfield_dilapidated_house_80180FD8`, 0..0x1000) into all three of
@@ -50,7 +50,7 @@ STATIC_ASSERT_SIZEOF(DdhRoomRec, 0x18);
 
 /// Work block of the handler table at `D_dryfield_dilapidated_house_8017D61C`,
 /// whose state 0 is `func_dryfield_dilapidated_house_8018118C`: allocated with
-/// `Mem_Malloc(0x24, 0)` and parked in the `Task::idMap` slot. It holds a
+/// `Mem_Malloc(0x24, 0)` and parked in the `Task::work` slot. It holds a
 /// snapshot of the placed model coordinate's matrix (`mtx`, copied from
 /// `RoomCoord::coord`) plus one 0x1000 word.
 typedef struct DdhModelWork {
@@ -61,7 +61,7 @@ STATIC_ASSERT_SIZEOF(DdhModelWork, 0x24);
 
 /// Work block of the state family at `D_dryfield_dilapidated_house_8017D634`,
 /// whose state 0 is `func_dryfield_dilapidated_house_801814B4`: allocated with
-/// `Mem_Malloc(0x40, 0)` and parked in the `Task::idMap` slot. One angle step per
+/// `Mem_Malloc(0x40, 0)` and parked in the `Task::work` slot. One angle step per
 /// model part, each the matching entry of `D_dryfield_dilapidated_house_80186804`
 /// scaled by the task's spawn arg 1 and wrapped into the 0x4000 angle period.
 /// `func_dryfield_dilapidated_house_80180738` advances the same table against a

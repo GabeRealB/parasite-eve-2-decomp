@@ -7,7 +7,7 @@
 
 #include "gameplay/3A34.h"
 
-/// Work block the enemy's spawn function parks in the task's `Task::idMap`
+/// Work block the enemy's spawn function parks in the task's `Task::work`
 /// slot (that slot is not a `TaskIdMap` here). Only the three `GpObj` display
 /// nodes are reached from this shared body -- `ActorsShared80138570` is the
 /// exit callback that unlinks all three -- so the type stops after the last

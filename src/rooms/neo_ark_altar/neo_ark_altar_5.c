@@ -57,7 +57,7 @@ void func_neo_ark_altar_8017DF0C(Task* task)
     s32              grow;
     s16              found;
 
-    work          = (NeoArkAltarWork*)task->idMap;
+    work          = (NeoArkAltarWork*)task->work;
     actor         = *Gp_ActorSlots;
     work->field_6 = work->field_8;
     grow          = 0;
@@ -292,8 +292,8 @@ void func_neo_ark_altar_8017ED60(Task* arg0)
 {
     TaskIdMap* work;
 
-    work        = Mem_Calloc(0x10, 0);
-    arg0->idMap = work;
+    work       = Mem_Calloc(0x10, 0);
+    arg0->work = work;
     if (work == NULL) {
         Task_Kill(arg0);
         return;
@@ -335,7 +335,7 @@ void func_neo_ark_altar_8017EE90(Task* arg0)
 {
     Task** temp_s1;
 
-    temp_s1 = arg0->idMap;
+    temp_s1 = arg0->work;
     Gp_MsgPlayer3F3(0);
     Game_Session->field_68 = 1;
     *temp_s1               = Task_SpawnFromTable(&RoomsShared8018397cDesc, 0, 2, 0);

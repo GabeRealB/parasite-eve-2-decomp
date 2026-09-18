@@ -25,7 +25,7 @@ void func_dryfield_night_motel_lobby_80180E98(Task* task)
         return;
     }
     task->spawnArg2 = Task_SpawnFromTable(D_dryfield_night_motel_lobby_80182814, 0, 1, 0);
-    task->idMap     = (TaskIdMap*)work;
+    task->work      = (TaskIdMap*)work;
     D_8007216C      = 6;
     /* The once-loop folds away, but `flow` counts its references at loop depth
        2: without it the state load is scheduled above the mode store. */

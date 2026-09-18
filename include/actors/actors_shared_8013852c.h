@@ -8,7 +8,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Work block the enemy's spawn function parks in the `Task::idMap` slot (0x1C),
+/// Work block the enemy's spawn function parks in the `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. The run of four `GpObj` display nodes at
 /// 0x9A8 is the same one `ActorsShared801384ac` unlinks on teardown; the two
 /// bytes this body reaches past it hold the visibility latch (`field_BA0`) and

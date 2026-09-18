@@ -37,7 +37,7 @@ void func_dryfield_night_factory_8017D6F8(Task* task)
         Task_Kill(task);
         return;
     }
-    task->idMap    = (TaskIdMap*)work;
+    task->work     = (TaskIdMap*)work;
     work->field_0  = GameFlag_GetNibble(0x49);
     work->field_16 = -1;
     work->field_17 = -1;
@@ -97,7 +97,7 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory", 
 /// `func_dryfield_factory_8017F8F4`.
 s32 func_dryfield_night_factory_8017F00C(Task* task)
 {
-    NightFactoryCutsceneWork* work  = (NightFactoryCutsceneWork*)task->idMap;
+    NightFactoryCutsceneWork* work  = (NightFactoryCutsceneWork*)task->work;
     GsCOORDINATE2*            coord = ((TmdObject*)task->extra)->field_8;
     MATRIX*                   m;
     s32                       ret = 0;

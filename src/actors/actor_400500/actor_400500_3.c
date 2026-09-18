@@ -48,13 +48,13 @@ void func_actor_400500_8013BA24(Task* arg0)
     Actor400500Work* work2;
     TaskFuncTable3   sp;
 
-    work = (Actor400500Work*)arg0->idMap;
+    work = (Actor400500Work*)arg0->work;
     sp   = D_actor_400500_80131EE4;
     sp.funcs[(s16)work->field_A08](arg0);
-    work2            = (Actor400500Work*)arg0->idMap;
+    work2            = (Actor400500Work*)arg0->work;
     work2->field_A3C = 0;
     work2->field_A3E = 0;
-    work2            = (Actor400500Work*)arg0->idMap;
+    work2            = (Actor400500Work*)arg0->work;
     work2->field_A49 = 0;
 }
 
@@ -63,14 +63,14 @@ void func_actor_400500_8013BAA4(Task* arg0)
     Actor400500Work* work;
     Actor400500Work* work2;
 
-    work = (Actor400500Work*)arg0->idMap;
+    work = (Actor400500Work*)arg0->work;
     if (work->field_A40 == 4) {
         work->field_A42 = 0;
         return;
     }
     if (!(work->field_A1E & 1)) {
         work->field_A42  = 1;
-        work2            = (Actor400500Work*)arg0->idMap;
+        work2            = (Actor400500Work*)arg0->work;
         work2->field_9F8 = 0x10;
         work2->field_9FE = 1;
         work2->field_9FA = 2;
@@ -93,7 +93,7 @@ void func_actor_400500_8013BB18(Task* arg0)
     u16              accum;
     s32              y;
 
-    work  = (Actor400500Work*)arg0->idMap;
+    work  = (Actor400500Work*)arg0->work;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     SCHED_BARRIER();
     step              = (u16)work->field_A10 + 2;
@@ -105,7 +105,7 @@ void func_actor_400500_8013BB18(Task* arg0)
     if (y >= -0x897) {
         coord->coord.t[1] = -0x898;
         work->field_A0A   = work->field_A0A + 1;
-        work2             = (Actor400500Work*)arg0->idMap;
+        work2             = (Actor400500Work*)arg0->work;
         work2->field_9F8  = 0x10;
         work2->field_9FE  = 0x13;
         work2->field_9FA  = 2;
@@ -123,14 +123,14 @@ void func_actor_400500_8013BBB0(Task* arg0)
     s32                 pan;
     s32                 cond;
 
-    work = (Actor400500Work*)arg0->idMap;
+    work = (Actor400500Work*)arg0->work;
     if ((s16)work->field_A04 == 0) {
         soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050006;
         pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
         SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
         work->field_A04 = work->field_A04 + 1;
     }
-    hit = (Actor400500HitView*)arg0->idMap;
+    hit = (Actor400500HitView*)arg0->work;
     if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
         cond = 1;
     } else {
@@ -143,7 +143,7 @@ void func_actor_400500_8013BBB0(Task* arg0)
 
 void func_actor_400500_8013BC9C(Task* arg0)
 {
-    Actor400500Work* work = (Actor400500Work*)arg0->idMap;
+    Actor400500Work* work = (Actor400500Work*)arg0->work;
 
     work->field_A42 = 1;
     work->field_A04 = 0;
@@ -162,7 +162,7 @@ void func_actor_400500_8013BCCC(Task* arg0)
     u16              accum;
     s32              y;
 
-    work  = (Actor400500Work*)arg0->idMap;
+    work  = (Actor400500Work*)arg0->work;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     SCHED_BARRIER();
     step              = (u16)work->field_A10 + 2;
@@ -174,7 +174,7 @@ void func_actor_400500_8013BCCC(Task* arg0)
     if (y >= -0x897) {
         coord->coord.t[1] = -0x898;
         work->field_A0A   = work->field_A0A + 1;
-        work2             = (Actor400500Work*)arg0->idMap;
+        work2             = (Actor400500Work*)arg0->work;
         work2->field_9F8  = 0x10;
         work2->field_9FE  = 0x13;
         work2->field_9FA  = 2;
@@ -192,14 +192,14 @@ void func_actor_400500_8013BD64(Task* arg0)
     s32                 pan;
     s32                 cond;
 
-    work = (Actor400500Work*)arg0->idMap;
+    work = (Actor400500Work*)arg0->work;
     if ((s16)work->field_A04 == 0) {
         soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050006;
         pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
         SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
         work->field_A04 = work->field_A04 + 1;
     }
-    hit = (Actor400500HitView*)arg0->idMap;
+    hit = (Actor400500HitView*)arg0->work;
     if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
         cond = 1;
     } else {
@@ -217,15 +217,15 @@ void func_actor_400500_8013BE50(Task* arg0)
     Actor400500Work* work3;
     s32              flag;
 
-    work            = (Actor400500Work*)arg0->idMap;
+    work            = (Actor400500Work*)arg0->work;
     work->field_9F8 = 0x10;
-    work2           = (Actor400500Work*)arg0->idMap;
+    work2           = (Actor400500Work*)arg0->work;
     if ((work2->field_A46 >= 0) || (((u8)work2->field_A46 & 0x7F) != 1)) {
         flag             = 0x81;
         work2->field_A46 = flag;
         work2->field_A47 = 0;
     }
-    work3            = (Actor400500Work*)arg0->idMap;
+    work3            = (Actor400500Work*)arg0->work;
     work3->field_9F8 = 0x10;
     work3->field_9FE = 1;
     work3->field_9FA = 2;
@@ -245,11 +245,11 @@ void func_actor_400500_8013BEC4(Task* arg0)
     Actor400500Work*   work2;
     s32                angle;
 
-    work                                = (Actor400500Work*)arg0->idMap;
+    work                                = (Actor400500Work*)arg0->work;
     src                                 = &rot;
     work->field_A26                     = work->field_A26 + 0x80;
     work->field_A04                     = work->field_A04 + 1;
-    child                               = ((Actor400500Work*)arg0->idMap)->field_9F0[1];
+    child                               = ((Actor400500Work*)arg0->work)->field_9F0[1];
     angle                               = work->field_A26;
     ((TmdObject*)child->extra)->field_C = 0;
     coord                               = ((TmdObject*)child->extra)->field_8;
@@ -261,7 +261,7 @@ void func_actor_400500_8013BEC4(Task* arg0)
     func_8004BFF8(angle, &src->mat);
     ActorsShared80132c4c(&src->mat, &coord->coord);
     if ((s16)work->field_A26 >= 0x200) {
-        work2            = (Actor400500Work*)arg0->idMap;
+        work2            = (Actor400500Work*)arg0->work;
         work2->field_9F8 = 0x10;
         work2->field_9FE = 8;
         work2->field_9FA = 2;
@@ -277,13 +277,13 @@ void func_actor_400500_8013BFB0(Task* arg0)
     Actor400500Work* work2;
     s32              flag;
 
-    work = (Actor400500Work*)arg0->idMap;
+    work = (Actor400500Work*)arg0->work;
     if ((work->field_A46 >= 0) || (((u8)work->field_A46 & 0x7F) != 1)) {
         flag            = 0x81;
         work->field_A46 = flag;
         work->field_A47 = 0;
     }
-    work2            = (Actor400500Work*)arg0->idMap;
+    work2            = (Actor400500Work*)arg0->work;
     work2->field_9F8 = 0x10;
     work2->field_9FE = 1;
     work2->field_9FA = 2;
@@ -303,11 +303,11 @@ void func_actor_400500_8013C018(Task* arg0)
     Actor400500Work*   work2;
     s32                angle;
 
-    work                                = (Actor400500Work*)arg0->idMap;
+    work                                = (Actor400500Work*)arg0->work;
     src                                 = &rot;
     work->field_A26                     = work->field_A26 + 0x80;
     work->field_A04                     = work->field_A04 + 1;
-    child                               = ((Actor400500Work*)arg0->idMap)->field_9F0[0];
+    child                               = ((Actor400500Work*)arg0->work)->field_9F0[0];
     angle                               = work->field_A26;
     ((TmdObject*)child->extra)->field_C = 0;
     coord                               = ((TmdObject*)child->extra)->field_8;
@@ -319,7 +319,7 @@ void func_actor_400500_8013C018(Task* arg0)
     func_8004BFF8(-angle, &src->mat);
     ActorsShared80132c4c(&src->mat, &coord->coord);
     if ((s16)work->field_A26 >= 0x200) {
-        work2            = (Actor400500Work*)arg0->idMap;
+        work2            = (Actor400500Work*)arg0->work;
         work2->field_9F8 = 0x10;
         work2->field_9FE = 7;
         work2->field_9FA = 2;
@@ -335,13 +335,13 @@ void func_actor_400500_8013C108(Task* arg0)
     Actor400500Work* work2;
     s32              flag;
 
-    work = (Actor400500Work*)arg0->idMap;
+    work = (Actor400500Work*)arg0->work;
     if ((work->field_A46 >= 0) || (((u8)work->field_A46 & 0x7F) != 1)) {
         flag            = 0x81;
         work->field_A46 = flag;
         work->field_A47 = 0;
     }
-    work2            = (Actor400500Work*)arg0->idMap;
+    work2            = (Actor400500Work*)arg0->work;
     work2->field_9F8 = 0x10;
     work2->field_9FE = 1;
     work2->field_9FA = 2;
@@ -361,7 +361,7 @@ void func_actor_400500_8013C174(Task* arg0)
     u16              accum;
     s32              y;
 
-    work  = (Actor400500Work*)arg0->idMap;
+    work  = (Actor400500Work*)arg0->work;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     SCHED_BARRIER();
     step              = (u16)work->field_A10 + 2;
@@ -373,7 +373,7 @@ void func_actor_400500_8013C174(Task* arg0)
     if (y >= -0x897) {
         coord->coord.t[1] = -0x898;
         work->field_A08   = work->field_A08 + 1;
-        work2             = (Actor400500Work*)arg0->idMap;
+        work2             = (Actor400500Work*)arg0->work;
         work2->field_9F8  = 0x10;
         work2->field_9FE  = 0x13;
         work2->field_9FA  = 2;
@@ -394,7 +394,7 @@ void func_actor_400500_8013C218(Task* arg0)
     s32                 pan;
     s32                 cond;
 
-    work  = (Actor400500Work*)arg0->idMap;
+    work  = (Actor400500Work*)arg0->work;
     enemy = (GpEnemy*)arg0->spawnArg2;
     if ((s16)work->field_A04 == 0) {
         soundId = ((enemy->field_8 >> 0xC) << 8) | 0x40050006;
@@ -402,7 +402,7 @@ void func_actor_400500_8013C218(Task* arg0)
         SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
         work->field_A04 = work->field_A04 + 1;
     }
-    hit = (Actor400500HitView*)arg0->idMap;
+    hit = (Actor400500HitView*)arg0->work;
     if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
         cond = 1;
     } else {
@@ -410,7 +410,7 @@ void func_actor_400500_8013C218(Task* arg0)
     }
     if (cond) {
         if (enemy->field_40 > 0) {
-            work2            = (Actor400500Work*)arg0->idMap;
+            work2            = (Actor400500Work*)arg0->work;
             work2->field_9F8 = 0x10;
             work2->field_9FE = 0x14;
             work2->field_9FA = 2;
@@ -428,7 +428,7 @@ void func_actor_400500_8013C348(Task* arg0)
     GpEnemy*            enemy;
     s32                 cond;
 
-    hit   = (Actor400500HitView*)arg0->idMap;
+    hit   = (Actor400500HitView*)arg0->work;
     enemy = (GpEnemy*)arg0->spawnArg2;
     if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
         cond = 1;
@@ -437,7 +437,7 @@ void func_actor_400500_8013C348(Task* arg0)
     }
     if (cond) {
         if (enemy->field_40 > 0) {
-            work2                              = (Actor400500Work*)arg0->idMap;
+            work2                              = (Actor400500Work*)arg0->work;
             work2->field_A06                   = 0xA;
             work2->field_A08                   = 0;
             ((Actor400500Work*)hit)->field_A1E = ((Actor400500Work*)hit)->field_A1E | 1;
@@ -457,7 +457,7 @@ void func_actor_400500_8013C3C4(Task* arg0)
     s32                 cond;
 
     enemy = (GpEnemy*)arg0->spawnArg2;
-    work  = (Actor400500Work*)arg0->idMap;
+    work  = (Actor400500Work*)arg0->work;
     if (enemy->field_40 > 0) {
         hit = (Actor400500HitView*)work;
         if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
@@ -467,12 +467,12 @@ void func_actor_400500_8013C3C4(Task* arg0)
         }
         if (cond) {
             if (!(work->field_A1E & 2)) {
-                work2            = (Actor400500Work*)arg0->idMap;
+                work2            = (Actor400500Work*)arg0->work;
                 work2->field_9F8 = 0x10;
                 work2->field_9FE = 0x10;
                 work2->field_9FA = 2;
             } else {
-                work3            = (Actor400500Work*)arg0->idMap;
+                work3            = (Actor400500Work*)arg0->work;
                 work3->field_9F8 = 0x10;
                 work3->field_9FE = 0x12;
                 work3->field_9FA = 2;
@@ -494,7 +494,7 @@ void func_actor_400500_8013C474(Task* arg0)
     s32                 cond;
 
     enemy = (GpEnemy*)arg0->spawnArg2;
-    work  = (Actor400500Work*)arg0->idMap;
+    work  = (Actor400500Work*)arg0->work;
     if (enemy->field_40 > 0) {
         hit = (Actor400500HitView*)work;
         if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
@@ -505,11 +505,11 @@ void func_actor_400500_8013C474(Task* arg0)
         if (cond) {
             work->field_A4A = 0;
             if (!(work->field_A1E & 2)) {
-                work2            = (Actor400500Work*)arg0->idMap;
+                work2            = (Actor400500Work*)arg0->work;
                 work2->field_A06 = 0;
                 work2->field_A08 = 0;
             } else {
-                work3            = (Actor400500Work*)arg0->idMap;
+                work3            = (Actor400500Work*)arg0->work;
                 work3->field_A06 = 0xA;
                 work3->field_A08 = 0;
             }
@@ -526,7 +526,7 @@ void func_actor_400500_8013C508(Task* arg0)
     GpEnemy*            enemy;
     s32                 cond;
 
-    hit   = (Actor400500HitView*)arg0->idMap;
+    hit   = (Actor400500HitView*)arg0->work;
     enemy = (GpEnemy*)arg0->spawnArg2;
     if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
         cond = 1;
@@ -552,7 +552,7 @@ void func_actor_400500_8013C578(Task* arg0)
     u16              accum;
     s32              y;
 
-    work  = (Actor400500Work*)arg0->idMap;
+    work  = (Actor400500Work*)arg0->work;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     SCHED_BARRIER();
     step              = (u16)work->field_A10 + 2;
@@ -564,7 +564,7 @@ void func_actor_400500_8013C578(Task* arg0)
     if (y >= -0x897) {
         coord->coord.t[1] = -0x898;
         work->field_A08   = work->field_A08 + 1;
-        work2             = (Actor400500Work*)arg0->idMap;
+        work2             = (Actor400500Work*)arg0->work;
         work2->field_9F8  = 0x10;
         work2->field_9FE  = 0x13;
         work2->field_9FA  = 2;
@@ -585,7 +585,7 @@ void func_actor_400500_8013C61C(Task* arg0)
     s32                 pan;
     s32                 cond;
 
-    work  = (Actor400500Work*)arg0->idMap;
+    work  = (Actor400500Work*)arg0->work;
     enemy = (GpEnemy*)arg0->spawnArg2;
     if ((s16)work->field_A04 == 0) {
         soundId = ((enemy->field_8 >> 0xC) << 8) | 0x40050006;
@@ -593,7 +593,7 @@ void func_actor_400500_8013C61C(Task* arg0)
         SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
         work->field_A04 = work->field_A04 + 1;
     }
-    hit = (Actor400500HitView*)arg0->idMap;
+    hit = (Actor400500HitView*)arg0->work;
     if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
         cond = 1;
     } else {
@@ -602,7 +602,7 @@ void func_actor_400500_8013C61C(Task* arg0)
     if (cond) {
         work->field_A4A = 0;
         if (enemy->field_40 > 0) {
-            work2            = (Actor400500Work*)arg0->idMap;
+            work2            = (Actor400500Work*)arg0->work;
             work2->field_9F8 = 0x10;
             work2->field_9FE = 0x14;
             work2->field_9FA = 2;
@@ -619,14 +619,14 @@ void func_actor_400500_8013C750(Task* arg0)
     Actor400500Work*    work2;
     s32                 cond;
 
-    work = (Actor400500HitView*)arg0->idMap;
+    work = (Actor400500HitView*)arg0->work;
     if ((work->flags_4C.half & 1) || (work->flags_4C.word & 0x102)) {
         cond = 1;
     } else {
         cond = 0;
     }
     if (cond) {
-        work2            = (Actor400500Work*)arg0->idMap;
+        work2            = (Actor400500Work*)arg0->work;
         work2->field_A06 = 0xA;
         work2->field_A08 = 0;
     }
@@ -639,15 +639,15 @@ void func_actor_400500_8013C7A4(Task* arg0)
     Actor400500Work* work3;
     s32              flag;
 
-    work            = (Actor400500Work*)arg0->idMap;
+    work            = (Actor400500Work*)arg0->work;
     work->field_9F8 = 0x10;
-    work2           = (Actor400500Work*)arg0->idMap;
+    work2           = (Actor400500Work*)arg0->work;
     if (((work2->field_A46 >= 0) || ((u8)work2->field_A46 & 0x7F)) && (work2->field_A30 == 0)) {
         flag             = 0x80;
         work2->field_A46 = flag;
         work2->field_A47 = 0;
     }
-    work3            = (Actor400500Work*)arg0->idMap;
+    work3            = (Actor400500Work*)arg0->work;
     work3->field_9F8 = 0x10;
     work3->field_9FE = 1;
     work3->field_9FA = 2;
@@ -664,10 +664,10 @@ void func_actor_400500_8013C818(Task* arg0)
 
     coord   = (Actor400500RootXZ*)((TmdObject*)arg0->extra)->field_8;
     soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050004;
-    work    = (Actor400500Work*)arg0->idMap;
+    work    = (Actor400500Work*)arg0->work;
     pan     = (s8)Gp_GetObjPan((GpObj38*)coord);
     SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
-    work2            = (Actor400500Work*)arg0->idMap;
+    work2            = (Actor400500Work*)arg0->work;
     work2->field_9F8 = 0x10;
     work2->field_9FE = 0x20;
     work2->field_9FA = 2;
@@ -688,11 +688,11 @@ void func_actor_400500_8013C908(Task* arg0)
     s32              soundId;
     s32              pan;
 
-    work    = (Actor400500Work*)arg0->idMap;
+    work    = (Actor400500Work*)arg0->work;
     soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050004;
     pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
     SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
-    work2            = (Actor400500Work*)arg0->idMap;
+    work2            = (Actor400500Work*)arg0->work;
     work2->field_9F8 = 0x10;
     work2->field_9FE = 0x15;
     work2->field_9FA = 2;
@@ -710,14 +710,14 @@ void func_actor_400500_8013C9D4(Task* arg0)
     Actor400500Work*    work2;
     s32                 cond;
 
-    work = (Actor400500HitView*)arg0->idMap;
+    work = (Actor400500HitView*)arg0->work;
     if ((work->flags_4C.half & 1) || (work->flags_4C.word & 0x102)) {
         cond = 1;
     } else {
         cond = 0;
     }
     if (cond) {
-        work2                                = (Actor400500Work*)arg0->idMap;
+        work2                                = (Actor400500Work*)arg0->work;
         work2->field_A06                     = 0;
         work2->field_A08                     = 0;
         ((Actor400500Work*)work)->field_A1E &= 0xFFFE;
@@ -736,10 +736,10 @@ void func_actor_400500_8013CA38(Task* arg0)
     s32                 masked;
     s32                 neg;
 
-    work             = (Actor400500Work*)arg0->idMap;
+    work             = (Actor400500Work*)arg0->work;
     heading          = (u16)work->field_94A;
     work->field_A04  = 0;
-    work2            = (Actor400500Work*)arg0->idMap;
+    work2            = (Actor400500Work*)arg0->work;
     work2->field_9F8 = 0x10;
     work2->field_9FE = 0x16;
     work2->field_9FA = 2;
@@ -766,7 +766,7 @@ void func_actor_400500_8013CB0C(Task* arg0)
     Actor400500Work* work3;
     s32              flag;
 
-    work = (Actor400500Work*)arg0->idMap;
+    work = (Actor400500Work*)arg0->work;
     if (work->field_A4A != 0) {
         work->field_A4A = 0;
         func_actor_400500_8013DB64(arg0, 5);
@@ -777,14 +777,14 @@ void func_actor_400500_8013CB0C(Task* arg0)
     if ((flag == 0) && ((func_actor_400500_8013DB78(arg0) << 0x10) == 0) &&
         ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
         if (((u16)work->field_94A & 0xFFF) == 0xC00) {
-            work2            = (Actor400500Work*)arg0->idMap;
+            work2            = (Actor400500Work*)arg0->work;
             work2->field_9F8 = 0x10;
             work2->field_9FE = 4;
             work2->field_9FA = 2;
             work->field_A08  = 3;
             return;
         }
-        work3            = (Actor400500Work*)arg0->idMap;
+        work3            = (Actor400500Work*)arg0->work;
         work3->field_A06 = 9;
         work3->field_A08 = 0;
     }
@@ -799,7 +799,7 @@ void func_actor_400500_8013CBD8(Task* arg0)
     s32              flag;
     s32              a1a;
 
-    work  = (Actor400500Work*)arg0->idMap;
+    work  = (Actor400500Work*)arg0->work;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (work->field_A4A != 0) {
         work->field_A4A = 0;
@@ -811,7 +811,7 @@ void func_actor_400500_8013CBD8(Task* arg0)
     if ((flag == 0) && ((func_actor_400500_8013DB78(arg0) << 0x10) == 0) &&
         ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
         if (((u16)work->field_94A & 0xFFF) != 0xC00) {
-            work2            = (Actor400500Work*)arg0->idMap;
+            work2            = (Actor400500Work*)arg0->work;
             work2->field_A06 = 9;
             work2->field_A08 = 0;
         } else {
@@ -821,7 +821,7 @@ void func_actor_400500_8013CBD8(Task* arg0)
                     work->field_A08 = a1a;
                 }
             } else if (work->field_9E0 >= 0xFA0) {
-                work3            = (Actor400500Work*)arg0->idMap;
+                work3            = (Actor400500Work*)arg0->work;
                 work3->field_A06 = 9;
                 work3->field_A08 = 0;
             }
@@ -838,7 +838,7 @@ void func_actor_400500_8013CCDC(Task* arg0)
     Actor400500Work* work3;
     s32              flag;
 
-    work = (Actor400500Work*)arg0->idMap;
+    work = (Actor400500Work*)arg0->work;
     if (work->field_A4A != 0) {
         work->field_A4A = 0;
         func_actor_400500_8013DB64(arg0, 5);
@@ -849,14 +849,14 @@ void func_actor_400500_8013CCDC(Task* arg0)
     if ((flag == 0) && ((func_actor_400500_8013DB78(arg0) << 0x10) == 0) &&
         ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
         if (((u16)work->field_94A & 0xFFF) == 0x400) {
-            work2            = (Actor400500Work*)arg0->idMap;
+            work2            = (Actor400500Work*)arg0->work;
             work2->field_9F8 = 0x10;
             work2->field_9FE = 4;
             work2->field_9FA = 2;
             work->field_A08  = 1;
             return;
         }
-        work3            = (Actor400500Work*)arg0->idMap;
+        work3            = (Actor400500Work*)arg0->work;
         work3->field_A06 = 9;
         work3->field_A08 = 0;
     }
@@ -869,7 +869,7 @@ void func_actor_400500_8013CDA8(Task* arg0)
     GsCOORDINATE2*   coord;
     s32              flag;
 
-    work  = (Actor400500Work*)arg0->idMap;
+    work  = (Actor400500Work*)arg0->work;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (work->field_A4A != 0) {
         work->field_A4A = 0;
@@ -881,7 +881,7 @@ void func_actor_400500_8013CDA8(Task* arg0)
     if ((flag == 0) && ((func_actor_400500_8013DB78(arg0) << 0x10) == 0) &&
         ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
         if ((u16)work->field_94A & 0xFFF) {
-            work2            = (Actor400500Work*)arg0->idMap;
+            work2            = (Actor400500Work*)arg0->work;
             work2->field_A06 = 9;
             work2->field_A08 = 0;
         } else {
@@ -905,7 +905,7 @@ void func_actor_400500_8013CE9C(Task* arg0)
     Actor400500Work* work3;
     s32              flag;
 
-    work = (Actor400500Work*)arg0->idMap;
+    work = (Actor400500Work*)arg0->work;
     if (work->field_A4A != 0) {
         work->field_A4A = 0;
         func_actor_400500_8013DB64(arg0, 5);
@@ -916,14 +916,14 @@ void func_actor_400500_8013CE9C(Task* arg0)
     if ((flag == 0) && ((func_actor_400500_8013DB78(arg0) << 0x10) == 0) &&
         ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
         if (((u16)work->field_94A & 0xFFF) == 0x800) {
-            work2            = (Actor400500Work*)arg0->idMap;
+            work2            = (Actor400500Work*)arg0->work;
             work2->field_9F8 = 0x10;
             work2->field_9FE = 4;
             work2->field_9FA = 2;
             work->field_A08  = 8;
             return;
         }
-        work3            = (Actor400500Work*)arg0->idMap;
+        work3            = (Actor400500Work*)arg0->work;
         work3->field_A06 = 9;
         work3->field_A08 = 0;
     }
@@ -936,7 +936,7 @@ void func_actor_400500_8013CF68(Task* arg0)
     GsCOORDINATE2*   coord;
     s32              flag;
 
-    work  = (Actor400500Work*)arg0->idMap;
+    work  = (Actor400500Work*)arg0->work;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if (work->field_A4A != 0) {
         work->field_A4A = 0;
@@ -948,7 +948,7 @@ void func_actor_400500_8013CF68(Task* arg0)
     if ((flag == 0) && ((func_actor_400500_8013DB78(arg0) << 0x10) == 0) &&
         ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
         if (((u16)work->field_94A & 0xFFF) != 0x800) {
-            work2            = (Actor400500Work*)arg0->idMap;
+            work2            = (Actor400500Work*)arg0->work;
             work2->field_A06 = 9;
             work2->field_A08 = 0;
         } else {
@@ -977,7 +977,7 @@ void func_actor_400500_8013D078(Task* arg0)
     Actor400500Work* work3;
     s32              flag;
 
-    work = (Actor400500Work*)arg0->idMap;
+    work = (Actor400500Work*)arg0->work;
     if (work->field_A4A != 0) {
         work->field_A4A = 0;
         func_actor_400500_8013DB64(arg0, 5);
@@ -988,14 +988,14 @@ void func_actor_400500_8013D078(Task* arg0)
     if ((flag == 0) && ((func_actor_400500_8013DB78(arg0) << 0x10) == 0) &&
         ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
         if (((u16)work->field_94A & 0xFFF) == 0xC00) {
-            work2            = (Actor400500Work*)arg0->idMap;
+            work2            = (Actor400500Work*)arg0->work;
             work2->field_9F8 = 0x10;
             work2->field_9FE = 4;
             work2->field_9FA = 2;
             work->field_A08  = 3;
             return;
         }
-        work3            = (Actor400500Work*)arg0->idMap;
+        work3            = (Actor400500Work*)arg0->work;
         work3->field_A06 = 9;
         work3->field_A08 = 0;
     }
@@ -1008,7 +1008,7 @@ void func_actor_400500_8013D144(Task* arg0)
     Actor400500Work* work3;
     s32              flag;
 
-    work = (Actor400500Work*)arg0->idMap;
+    work = (Actor400500Work*)arg0->work;
     if (work->field_A4A != 0) {
         work->field_A4A = 0;
         func_actor_400500_8013DB64(arg0, 5);
@@ -1019,14 +1019,14 @@ void func_actor_400500_8013D144(Task* arg0)
     if ((flag == 0) && ((func_actor_400500_8013DB78(arg0) << 0x10) == 0) &&
         ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
         if (((u16)work->field_94A & 0xFFF) == 0) {
-            work2            = (Actor400500Work*)arg0->idMap;
+            work2            = (Actor400500Work*)arg0->work;
             work2->field_9F8 = 0x10;
             work2->field_9FE = 4;
             work2->field_9FA = 2;
             work->field_A08  = 6;
             return;
         }
-        work3            = (Actor400500Work*)arg0->idMap;
+        work3            = (Actor400500Work*)arg0->work;
         work3->field_A06 = 9;
         work3->field_A08 = 0;
     }
@@ -1038,7 +1038,7 @@ void func_actor_400500_8013D210(Task* arg0)
     Actor400500Work* work2;
     GsCOORDINATE2*   coord;
 
-    work              = (Actor400500Work*)arg0->idMap;
+    work              = (Actor400500Work*)arg0->work;
     coord             = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     work->field_94C   = 0x800;
     work->field_94A   = 0;
@@ -1046,7 +1046,7 @@ void func_actor_400500_8013D210(Task* arg0)
     coord->coord.t[1] = -0xFA0;
     coord->coord.t[2] = -0x2710;
     work->field_A04   = 0;
-    work2             = (Actor400500Work*)arg0->idMap;
+    work2             = (Actor400500Work*)arg0->work;
     work2->field_9F8  = 4;
     work2->field_9FE  = 1;
     work2->field_9FA  = 2;
@@ -1059,10 +1059,10 @@ void func_actor_400500_8013D274(Task* arg0)
     Actor400500Work* work2;
     s32              flag;
 
-    work = (Actor400500Work*)arg0->idMap;
+    work = (Actor400500Work*)arg0->work;
     if ((u8)work->field_A4B == 2) {
         work->field_A2C = 0x258;
-        work2           = (Actor400500Work*)arg0->idMap;
+        work2           = (Actor400500Work*)arg0->work;
         if ((work2->field_A46 >= 0) || (((u8)work2->field_A46 & 0x7F) != 1)) {
             flag             = 0x81;
             work2->field_A46 = flag;
@@ -1081,10 +1081,10 @@ void func_actor_400500_8013D2D8(Task* arg0)
     GsCOORDINATE2*   coord;
     s32              flag;
 
-    work  = (Actor400500Work*)arg0->idMap;
+    work  = (Actor400500Work*)arg0->work;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     if ((s16)++work->field_A04 == 1) {
-        work2 = (Actor400500Work*)arg0->idMap;
+        work2 = (Actor400500Work*)arg0->work;
         if (((work2->field_A46 >= 0) || ((u8)work2->field_A46 & 0x7F)) && (work2->field_A30 == 0)) {
             flag             = 0x80;
             work2->field_A46 = flag;
@@ -1093,7 +1093,7 @@ void func_actor_400500_8013D2D8(Task* arg0)
     }
     func_actor_400500_80133B14(arg0);
     if (coord->coord.t[2] >= -0x225F) {
-        work3            = (Actor400500Work*)arg0->idMap;
+        work3            = (Actor400500Work*)arg0->work;
         work3->field_A0E = 0xA;
         work3->field_9F8 = 0x10;
         work3->field_9FE = 1;
@@ -1108,11 +1108,11 @@ void func_actor_400500_8013D3B8(Task* arg0)
     Actor400500Work* work2;
     s32              flag;
 
-    work = (Actor400500Work*)arg0->idMap;
+    work = (Actor400500Work*)arg0->work;
     if ((u8)work->field_A4B == 3) {
         work->field_A04 = 0;
         work->field_A2C = 0x10;
-        work2           = (Actor400500Work*)arg0->idMap;
+        work2           = (Actor400500Work*)arg0->work;
         if ((work2->field_A46 >= 0) || (((u8)work2->field_A46 & 0x7F) != 1)) {
             flag             = 0x81;
             work2->field_A46 = flag;
@@ -1129,7 +1129,7 @@ void func_actor_400500_8013D420(Task* arg0)
     s32              soundId;
     s32              pan;
 
-    work = (Actor400500Work*)arg0->idMap;
+    work = (Actor400500Work*)arg0->work;
     if ((s16)++work->field_A04 == 0x1E) {
         soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050004;
         pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
@@ -1137,7 +1137,7 @@ void func_actor_400500_8013D420(Task* arg0)
     }
     if ((u8)work->field_A4B == 4) {
         work->field_A4C  = 0;
-        work2            = (Actor400500Work*)arg0->idMap;
+        work2            = (Actor400500Work*)arg0->work;
         work2->field_A06 = 0;
         work2->field_A08 = 0;
     }
@@ -1151,16 +1151,16 @@ void func_actor_400500_8013D4F0(Task* arg0)
     Actor400500Work* work3;
 
     enemy = (GpEnemy*)arg0->spawnArg2;
-    work  = (Actor400500Work*)arg0->idMap;
+    work  = (Actor400500Work*)arg0->work;
     if (enemy->field_40 > 0) {
         if (Gp_TickObjFlag2((GpObj5D*)enemy) != 0) {
             if (!(work->field_A1E & 2)) {
-                work2            = (Actor400500Work*)arg0->idMap;
+                work2            = (Actor400500Work*)arg0->work;
                 work2->field_9F8 = 0x10;
                 work2->field_9FE = 0x10;
                 work2->field_9FA = 2;
             } else {
-                work3            = (Actor400500Work*)arg0->idMap;
+                work3            = (Actor400500Work*)arg0->work;
                 work3->field_9F8 = 0x10;
                 work3->field_9FE = 0x12;
                 work3->field_9FA = 2;
@@ -1182,7 +1182,7 @@ void func_actor_400500_8013D59C(Task* arg0)
     s32                 cond;
 
     enemy = (GpEnemy*)arg0->spawnArg2;
-    work  = (Actor400500Work*)arg0->idMap;
+    work  = (Actor400500Work*)arg0->work;
     if (enemy->field_40 > 0) {
         hit = (Actor400500HitView*)work;
         if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
@@ -1193,11 +1193,11 @@ void func_actor_400500_8013D59C(Task* arg0)
         if (cond) {
             work->field_A4A = 0;
             if (!(work->field_A1E & 2)) {
-                work2            = (Actor400500Work*)arg0->idMap;
+                work2            = (Actor400500Work*)arg0->work;
                 work2->field_A06 = 0;
                 work2->field_A08 = 0;
             } else {
-                work3            = (Actor400500Work*)arg0->idMap;
+                work3            = (Actor400500Work*)arg0->work;
                 work3->field_A06 = 0xA;
                 work3->field_A08 = 0;
             }
@@ -1214,7 +1214,7 @@ void func_actor_400500_8013D630(Task* arg0)
     GpEnemy*            enemy;
     s32                 cond;
 
-    hit   = (Actor400500HitView*)arg0->idMap;
+    hit   = (Actor400500HitView*)arg0->work;
     enemy = (GpEnemy*)arg0->spawnArg2;
     if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
         cond = 1;
@@ -1240,7 +1240,7 @@ void func_actor_400500_8013D6A0(Task* arg0)
     u16              accum;
     s32              y;
 
-    work  = (Actor400500Work*)arg0->idMap;
+    work  = (Actor400500Work*)arg0->work;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     SCHED_BARRIER();
     step              = (u16)work->field_A10 + 2;
@@ -1252,7 +1252,7 @@ void func_actor_400500_8013D6A0(Task* arg0)
     if (y >= -0x897) {
         coord->coord.t[1] = -0x898;
         work->field_A08   = work->field_A08 + 1;
-        work2             = (Actor400500Work*)arg0->idMap;
+        work2             = (Actor400500Work*)arg0->work;
         work2->field_9F8  = 0x10;
         work2->field_9FE  = 0x13;
         work2->field_9FA  = 2;
@@ -1273,7 +1273,7 @@ void func_actor_400500_8013D744(Task* arg0)
     s32                 pan;
     s32                 cond;
 
-    work  = (Actor400500Work*)arg0->idMap;
+    work  = (Actor400500Work*)arg0->work;
     enemy = (GpEnemy*)arg0->spawnArg2;
     if ((s16)work->field_A04 == 0) {
         soundId = ((enemy->field_8 >> 0xC) << 8) | 0x40050006;
@@ -1281,7 +1281,7 @@ void func_actor_400500_8013D744(Task* arg0)
         SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
         work->field_A04 = work->field_A04 + 1;
     }
-    hit = (Actor400500HitView*)arg0->idMap;
+    hit = (Actor400500HitView*)arg0->work;
     if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
         cond = 1;
     } else {
@@ -1290,7 +1290,7 @@ void func_actor_400500_8013D744(Task* arg0)
     if (cond) {
         work->field_A4A = 0;
         if (enemy->field_40 > 0) {
-            work2            = (Actor400500Work*)arg0->idMap;
+            work2            = (Actor400500Work*)arg0->work;
             work2->field_9F8 = 0x10;
             work2->field_9FE = 0x14;
             work2->field_9FA = 2;
@@ -1307,14 +1307,14 @@ void func_actor_400500_8013D878(Task* arg0)
     Actor400500Work*    work2;
     s32                 cond;
 
-    work = (Actor400500HitView*)arg0->idMap;
+    work = (Actor400500HitView*)arg0->work;
     if ((work->flags_4C.half & 1) || (work->flags_4C.word & 0x102)) {
         cond = 1;
     } else {
         cond = 0;
     }
     if (cond) {
-        work2            = (Actor400500Work*)arg0->idMap;
+        work2            = (Actor400500Work*)arg0->work;
         work2->field_A06 = 0xA;
         work2->field_A08 = 0;
     }
@@ -1327,7 +1327,7 @@ void func_actor_400500_8013D8CC(Task* arg0)
     GsCOORDINATE2*   coord;
 
     model            = (TmdObject*)arg0->extra;
-    work             = (Actor400500Work*)arg0->idMap;
+    work             = (Actor400500Work*)arg0->work;
     coord            = model->field_8;
     work->field_A02  = 0x1000;
     work->matrix_808 = coord->coord;
@@ -1342,7 +1342,7 @@ void func_actor_400500_8013D958(Task* arg0)
     TmdObject*       model;
     u16              frame;
 
-    work            = (Actor400500Work*)arg0->idMap;
+    work            = (Actor400500Work*)arg0->work;
     model           = (TmdObject*)arg0->extra;
     frame           = work->field_A04 + 1;
     work->field_A04 = frame;
@@ -1359,7 +1359,7 @@ void func_actor_400500_8013D958(Task* arg0)
 
 void func_actor_400500_8013D9DC(Task* arg0)
 {
-    Actor400500Work* work = (Actor400500Work*)arg0->idMap;
+    Actor400500Work* work = (Actor400500Work*)arg0->work;
 
     arg0->state     = 3;
     work->field_A06 = 0;
@@ -1372,7 +1372,7 @@ void func_actor_400500_8013D9F4(Task* arg0)
     Actor400500Work* work;
 
     model           = (TmdObject*)arg0->extra;
-    work            = (Actor400500Work*)arg0->idMap;
+    work            = (Actor400500Work*)arg0->work;
     model->field_C |= 0x80;
     work->field_A04 = 0;
     work->field_A28 = 0;
@@ -1384,7 +1384,7 @@ void func_actor_400500_8013DA24(Task* arg0)
     Actor400500Work* work;
     u16              frame;
 
-    work            = (Actor400500Work*)arg0->idMap;
+    work            = (Actor400500Work*)arg0->work;
     frame           = work->field_A04 + 1;
     work->field_A04 = frame;
     if ((s16)frame >= 2) {
@@ -1398,7 +1398,7 @@ void func_actor_400500_8013DA68(Task* arg0)
     Actor400500Work* work;
 
     model = (TmdObject*)arg0->extra;
-    work  = (Actor400500Work*)arg0->idMap;
+    work  = (Actor400500Work*)arg0->work;
     Tmd_FreeBuffers(model);
     model->field_C |= 4;
     func_actor_400500_80134B88(arg0);
@@ -1407,7 +1407,7 @@ void func_actor_400500_8013DA68(Task* arg0)
 
 void func_actor_400500_8013DACC(Task* arg0)
 {
-    Actor400500Work* work = (Actor400500Work*)arg0->idMap;
+    Actor400500Work* work = (Actor400500Work*)arg0->work;
 
     arg0->state     = 3;
     work->field_A06 = 0;
@@ -1419,7 +1419,7 @@ void func_actor_400500_8013DAE4(Task* arg0, s32 arg1, u16* arg2)
     Actor400500Work* work;
     s32              kind;
 
-    work = (Actor400500Work*)arg0->idMap;
+    work = (Actor400500Work*)arg0->work;
     kind = arg2[1];
     switch (kind) {
         case 1:
@@ -1442,7 +1442,7 @@ void func_actor_400500_8013DAE4(Task* arg0, s32 arg1, u16* arg2)
 
 void func_actor_400500_8013DB64(Task* arg0, s16 arg1)
 {
-    Actor400500Work* work = (Actor400500Work*)arg0->idMap;
+    Actor400500Work* work = (Actor400500Work*)arg0->work;
 
     work->field_A06 = arg1;
     work->field_A08 = 0;
@@ -1450,7 +1450,7 @@ void func_actor_400500_8013DB64(Task* arg0, s16 arg1)
 
 s32 func_actor_400500_8013DB78(Task* arg0)
 {
-    Actor400500Work* work = (Actor400500Work*)arg0->idMap;
+    Actor400500Work* work = (Actor400500Work*)arg0->work;
 
     if ((work->field_A16 < (0x640 - (work->field_9D8.vz * 8))) && ((u32)(work->field_A36 - 0x300) >= 0xA01U)) {
         work->field_A06 = 9;
@@ -1478,7 +1478,7 @@ void func_actor_400500_8013DC4C(Task* arg0)
     Actor400500Work* work;
     s32              i;
 
-    work = (Actor400500Work*)arg0->idMap;
+    work = (Actor400500Work*)arg0->work;
     i    = 1;
     do {
         work->slots[i].field_9 = (u8)work->field_9F8;
@@ -1490,7 +1490,7 @@ void func_actor_400500_8013DC4C(Task* arg0)
 
 void func_actor_400500_8013DCBC(Task* arg0, s16 arg1, s16 arg2)
 {
-    Actor400500Work* work = (Actor400500Work*)arg0->idMap;
+    Actor400500Work* work = (Actor400500Work*)arg0->work;
 
     work->field_9F8 = arg2;
     work->field_9FE = arg1;
@@ -1503,7 +1503,7 @@ void func_actor_400500_8013DCD4(Task* arg0)
     Actor400500Work* work;
     s32              i;
 
-    work = (Actor400500Work*)arg0->idMap;
+    work = (Actor400500Work*)arg0->work;
     i    = 1;
     same = (s16)work->field_9FC == work->field_9FE;
     do {
@@ -1529,7 +1529,7 @@ s32 func_actor_400500_8013DD8C(Task* arg0, s16 arg1)
     Actor400500Work* work;
     s16              scale;
 
-    work  = (Actor400500Work*)arg0->idMap;
+    work  = (Actor400500Work*)arg0->work;
     scale = work->field_9F8;
     if (scale == 0) {
         return 0;
@@ -1539,7 +1539,7 @@ s32 func_actor_400500_8013DD8C(Task* arg0, s16 arg1)
 
 s32 func_actor_400500_8013DDEC(Task* arg0)
 {
-    Actor400500HitView* work = (Actor400500HitView*)arg0->idMap;
+    Actor400500HitView* work = (Actor400500HitView*)arg0->work;
 
     if ((work->flags_4C.half & 1) || (work->flags_4C.word & 0x102)) {
         return 1;

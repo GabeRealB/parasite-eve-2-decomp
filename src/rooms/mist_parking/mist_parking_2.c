@@ -92,7 +92,7 @@ void func_mist_parking_8018089C(DialogPrompt* prompt, UiObject* obj)
     /* The request's address is live across Gp_GetItemText, so the last field is
        written through it while the rest stay sp-relative. */
     r      = &req;
-    work   = (RoomItemUsage*)obj->owner->idMap;
+    work   = (RoomItemUsage*)obj->owner->work;
     itemId = work->itemIds[prompt->field_8];
     pct    = work->percents[prompt->field_8];
     px     = prompt->field_18;

@@ -33,8 +33,8 @@ void func_dryfield_motel_room_1_8017DC2C(Task* arg0)
     Dmr1Work* work;
     s32       id;
 
-    work        = (Dmr1Work*)Mem_Malloc(0x38, 0);
-    arg0->idMap = (TaskIdMap*)work;
+    work       = (Dmr1Work*)Mem_Malloc(0x38, 0);
+    arg0->work = (TaskIdMap*)work;
     if (work == NULL) {
         Task_Kill(arg0);
         return;
@@ -101,7 +101,7 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
 
 void func_dryfield_motel_room_1_8017DF08(void)
 {
-    Dmr1Work*  work = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->idMap;
+    Dmr1Work*  work = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->work;
     Dmr1Msg7DA msg;
 
     Gp_ArmStateF0(1);
@@ -115,7 +115,7 @@ void func_dryfield_motel_room_1_8017DF08(void)
 
 void func_dryfield_motel_room_1_8017DFB0(s16 arg0)
 {
-    Dmr1Work* work = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->idMap;
+    Dmr1Work* work = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->work;
 
     work->field_2C = arg0;
     work->field_2E = 0;
@@ -129,7 +129,7 @@ void func_dryfield_motel_room_1_8017DFD0(void)
     s32           weaponId;
     s32           anim;
 
-    work         = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->idMap;
+    work         = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->work;
     weaponId     = D_80073BA9;
     anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.field_0  = (void*)anim;

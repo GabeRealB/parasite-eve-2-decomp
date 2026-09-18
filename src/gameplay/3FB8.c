@@ -4775,7 +4775,7 @@ have_task:
 
 have_actor:
     Game_SetPtrSlot(task, 3);
-    task->idMap = (TaskIdMap*)actor;
+    task->work = (TaskIdMap*)actor;
     Mem_Set(actor, 0, 0x998);
     actor->field_93C  = arg3->field_0;
     actor->field_52   = arg0->field_0;
@@ -5584,7 +5584,7 @@ s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2)
     MATRIX*        mtx;
 
     extra             = (TmdObject*)arg0->extra;
-    actor             = (GameActor*)arg0->idMap;
+    actor             = (GameActor*)arg0->work;
     coord             = (GsCOORDINATE2*)extra->field_8;
     coord->coord.t[0] = arg2->field_0;
     coord->coord.t[1] = arg2->field_4;
@@ -9707,7 +9707,7 @@ have_actor:
     Game_SetPtrSlot(task, 0xA);
     Mem_Set(actor, 0, 0x998);
     Mem_Set(block, 0, 0xD4);
-    task->idMap      = (TaskIdMap*)actor;
+    task->work       = (TaskIdMap*)actor;
     actor->field_910 = block;
     Gp_PumpTmdStream(task);
     actor->field_93C  = *arg3;
@@ -9774,7 +9774,7 @@ s16 func_8010BCF4(Task* arg0, VECTOR3* arg1)
     head     = *scratch;
     vec      = (VECTOR3*)(head - 0x10);
     *scratch = vec;
-    actor    = (GameActor*)arg0->idMap;
+    actor    = (GameActor*)arg0->work;
     func_80103C74((GsCOORDINATE2*)extra->field_8, arg1, vec);
     ret      = func_80103E7C(actor->field_52, ratan2(((VECTOR3*)(head - 0x10))->vx, vec->vz));
     *scratch = (u8*)*scratch + 0x10;

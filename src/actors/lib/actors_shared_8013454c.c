@@ -15,7 +15,7 @@ void ActorsShared8013454c(Task* task)
     ActorsShared8013454cWork* work;
 
     coord              = &((TmdObject*)task->extra)->field_8[0];
-    work               = (ActorsShared8013454cWork*)task->idMap;
+    work               = (ActorsShared8013454cWork*)task->work;
     work->field_274    = coord->coord.t[0];
     work->field_278    = coord->coord.t[1];
     work->field_27C    = coord->coord.t[2];

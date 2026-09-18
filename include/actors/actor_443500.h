@@ -18,7 +18,7 @@ typedef struct Actor443500Ctx {
 } Actor443500Ctx;
 
 /// Work block `func_actor_443500_80132078` `Mem_Calloc`s (0x4C4) and parks in
-/// the task's `Task::idMap` slot (0x1C) -- that slot is not a `TaskIdMap`
+/// the task's `Task::work` slot (0x1C) -- that slot is not a `TaskIdMap`
 /// here, just as with `Actor335800Work` and the other sharers of
 /// `ActorsShared80132f24`. The spawn handler seeds the two `sb` bytes at
 /// 0x475/0x476 and the word at 0x4BC to -1 and copies the parent TmdObject's

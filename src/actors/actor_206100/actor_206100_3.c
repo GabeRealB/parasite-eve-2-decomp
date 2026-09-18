@@ -28,7 +28,7 @@ void func_actor_206100_8014F524(Task* task)
     GpEnemy*         enemy;
     TaskFuncTable5   sp;
 
-    work                = (Actor206100Work*)task->idMap;
+    work                = (Actor206100Work*)task->work;
     enemy               = (GpEnemy*)task->spawnArg2;
     sp                  = D_actor_206100_80149E94;
     enemy->node.field_4 = 1;
@@ -49,7 +49,7 @@ void func_actor_206100_8014F5AC(void)
 
 void func_actor_206100_8014F5B4(Task* task)
 {
-    Actor206100Work* work                = (Actor206100Work*)task->idMap;
+    Actor206100Work* work                = (Actor206100Work*)task->work;
     void             (*states[2])(Task*) = {
         func_actor_206100_8014F8BC,
         func_actor_206100_8014F970,
@@ -60,7 +60,7 @@ void func_actor_206100_8014F5B4(Task* task)
 
 void func_actor_206100_8014F608(Task* task)
 {
-    Actor206100Work* work                = (Actor206100Work*)task->idMap;
+    Actor206100Work* work                = (Actor206100Work*)task->work;
     void             (*states[2])(Task*) = {
         func_actor_206100_8014F9C4,
         func_actor_206100_8014FA08,
@@ -71,7 +71,7 @@ void func_actor_206100_8014F608(Task* task)
 
 void func_actor_206100_8014F65C(Task* task)
 {
-    Actor206100Work* work = (Actor206100Work*)task->idMap;
+    Actor206100Work* work = (Actor206100Work*)task->work;
 
     func_actor_206100_8014DEAC(task);
     Gp_MsgPlayerWeapon(0);
@@ -82,7 +82,7 @@ void func_actor_206100_8014F65C(Task* task)
 void func_actor_206100_8014F69C(Task* task)
 {
     u16              timer;
-    Actor206100Work* work = (Actor206100Work*)task->idMap;
+    Actor206100Work* work = (Actor206100Work*)task->work;
 
     func_actor_206100_8014DEAC(task);
     timer           = work->field_51E + 1;
@@ -98,9 +98,9 @@ void func_actor_206100_8014F6F8(Task* task)
     Actor206100Work* work;
     Actor206100Work* anim;
 
-    work            = (Actor206100Work*)task->idMap;
+    work            = (Actor206100Work*)task->work;
     work->field_51E = 0;
-    anim            = (Actor206100Work*)task->idMap;
+    anim            = (Actor206100Work*)task->work;
     anim->field_524 = 8;
     anim->field_51A = 8;
     anim->field_510 = 7;
@@ -110,7 +110,7 @@ void func_actor_206100_8014F6F8(Task* task)
 
 void func_actor_206100_8014F738(Task* task)
 {
-    Actor206100Work* work = (Actor206100Work*)task->idMap;
+    Actor206100Work* work = (Actor206100Work*)task->work;
 
     work->field_524 = 0xA;
     work->field_51A = 0x10;
@@ -126,11 +126,11 @@ void func_actor_206100_8014F770(Task* task)
     Actor206100Work* work;
     Actor206100Work* next;
 
-    work            = (Actor206100Work*)task->idMap;
+    work            = (Actor206100Work*)task->work;
     timer           = work->field_51E + 1;
     work->field_51E = timer;
     if ((s16)timer >= 0x5B) {
-        next            = (Actor206100Work*)task->idMap;
+        next            = (Actor206100Work*)task->work;
         next->field_520 = 3;
         next->field_522 = 0;
     }
@@ -143,12 +143,12 @@ void func_actor_206100_8014F7B4(Task* task)
     s32              soundId;
     s32              pan;
 
-    work    = (Actor206100Work*)task->idMap;
+    work    = (Actor206100Work*)task->work;
     soundId = ((((GpEnemy*)task->spawnArg2)->field_8 >> 0xC) << 8) | 0x551E0005;
     pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
     SndEvt_EnqueueType6(soundId, pan,
                         (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8));
-    next            = (Actor206100Work*)task->idMap;
+    next            = (Actor206100Work*)task->work;
     next->field_524 = 0xA;
     next->field_51A = 0x10;
     next->field_510 = 1;
@@ -164,11 +164,11 @@ void func_actor_206100_8014F878(Task* task)
     Actor206100Work* work;
     Actor206100Work* next;
 
-    work            = (Actor206100Work*)task->idMap;
+    work            = (Actor206100Work*)task->work;
     timer           = work->field_51E + 1;
     work->field_51E = timer;
     if ((s16)timer >= 0x3D) {
-        next            = (Actor206100Work*)task->idMap;
+        next            = (Actor206100Work*)task->work;
         next->field_520 = 1;
         next->field_522 = 0;
     }
@@ -180,7 +180,7 @@ void func_actor_206100_8014F8BC(Task* task)
     s32              soundId;
     s32              pan;
 
-    work            = (Actor206100Work*)task->idMap;
+    work            = (Actor206100Work*)task->work;
     work->field_524 = 6;
     work->field_51A = 0x10;
     work->field_510 = 0xA;
@@ -197,14 +197,14 @@ void func_actor_206100_8014F970(Task* task)
     Actor206100Work* work;
     s32              cond;
 
-    work = (Actor206100Work*)task->idMap;
+    work = (Actor206100Work*)task->work;
     if ((work->flags_514.half & 1) || (work->flags_514.word & 0x102)) {
         cond = 1;
     } else {
         cond = 0;
     }
     if (cond) {
-        work            = (Actor206100Work*)task->idMap;
+        work            = (Actor206100Work*)task->work;
         work->field_520 = 2;
         work->field_522 = 0;
     }
@@ -212,7 +212,7 @@ void func_actor_206100_8014F970(Task* task)
 
 void func_actor_206100_8014F9C4(Task* task)
 {
-    Actor206100Work* work = (Actor206100Work*)task->idMap;
+    Actor206100Work* work = (Actor206100Work*)task->work;
 
     work->field_524 = 8;
     work->field_51A = 0x10;
@@ -230,20 +230,20 @@ void func_actor_206100_8014FA08(Task* task)
     Actor206100Work* next;
     s32              cond;
 
-    work            = (Actor206100Work*)task->idMap;
+    work            = (Actor206100Work*)task->work;
     timer           = work->field_51E + 1;
     work->field_51E = timer;
     if ((s16)timer >= 0x1F) {
         work->field_557 = 1;
     }
-    next = (Actor206100Work*)task->idMap;
+    next = (Actor206100Work*)task->work;
     if ((next->flags_514.half & 1) || (next->flags_514.word & 0x102)) {
         cond = 1;
     } else {
         cond = 0;
     }
     if (cond != 0) {
-        next            = (Actor206100Work*)task->idMap;
+        next            = (Actor206100Work*)task->work;
         next->field_524 = 8;
         next->field_51A = 8;
         next->field_510 = 0x10;
@@ -251,7 +251,7 @@ void func_actor_206100_8014FA08(Task* task)
     }
     if (Gp_TickObjFlag2((GpObj5D*)task->spawnArg2) != 0) {
         work->field_557 = 4;
-        next            = (Actor206100Work*)task->idMap;
+        next            = (Actor206100Work*)task->work;
         next->field_520 = 1;
         next->field_522 = 0;
     }
@@ -275,14 +275,14 @@ void func_actor_206100_8014FAE4(Task* task)
     Actor206100Work* last;
     GpEnemy*         enemy;
 
-    work                = (Actor206100Work*)task->idMap;
+    work                = (Actor206100Work*)task->work;
     enemy               = (GpEnemy*)task->spawnArg2;
     coord               = ((TmdObject*)task->extra)->field_8;
     enemy->node.field_4 = 1;
     work->field_54D     = 1;
     work->field_548     = 0;
     work->field_4F4     = D_actor_206100_80158B68;
-    next                = (Actor206100Work*)task->idMap;
+    next                = (Actor206100Work*)task->work;
     next->field_51A     = 0x10;
     next->field_510     = 3;
     next->field_50C     = 2;
@@ -293,7 +293,7 @@ void func_actor_206100_8014FAE4(Task* task)
     work->field_548     = (work->field_548 + 1) & 7;
     Gp_SetLightMode((GpObj4C*)task->spawnArg2, 2);
     work->field_51E = 0;
-    last            = (Actor206100Work*)task->idMap;
+    last            = (Actor206100Work*)task->work;
     last->field_520 = 1;
     last->field_522 = 0;
 }
@@ -305,7 +305,7 @@ void func_actor_206100_8014FBE4(Task* task)
     s32              soundId;
     s32              pan;
 
-    work  = (Actor206100Work*)task->idMap;
+    work  = (Actor206100Work*)task->work;
     enemy = (GpEnemy*)task->spawnArg2;
     SndEvt_EnqueueType7(0x551E0002, 1);
     Gp_ApplyAreaRecs(&D_8018590C);
@@ -331,7 +331,7 @@ void func_actor_206100_8014FBE4(Task* task)
 ///
 /// `next` is the same block as `work` loaded a second time: the first four
 /// stores reach it through one local and everything after the request-kind
-/// read through the other, which is what the two loads of `Task::idMap` are.
+/// read through the other, which is what the two loads of `Task::work` are.
 ///
 /// The loop is written `for (i = 1; i < 0xF; i++)` rather than as the
 /// `do`/`while` its test-at-the-bottom shape suggests, and its initialiser sits
@@ -349,12 +349,12 @@ void func_actor_206100_8014FCD4(Task* task)
     s32              i;
     s16              state;
 
-    work            = (Actor206100Work*)task->idMap;
+    work            = (Actor206100Work*)task->work;
     work->field_524 = 4;
     work->field_51A = 0x10;
     work->field_510 = 0xE;
     work->field_50C = 1;
-    next            = (Actor206100Work*)task->idMap;
+    next            = (Actor206100Work*)task->work;
     state           = next->field_50C;
     if (state == 1) {
         if (next->field_50E != next->field_510) {
@@ -395,7 +395,7 @@ void func_actor_206100_8014FDE8(Task* task)
     GsCOORDINATE2*   coord;
 
     coord           = ((TmdObject*)task->extra)->field_8;
-    work            = (Actor206100Work*)task->idMap;
+    work            = (Actor206100Work*)task->work;
     work->field_51E = work->field_51E + 1;
     work->field_526 = work->field_526 + 0x10;
     coord->flg      = 0;
@@ -404,7 +404,7 @@ void func_actor_206100_8014FDE8(Task* task)
     }
     if ((s16)work->field_51E >= 0x10E) {
         task->state     = 4;
-        next            = (Actor206100Work*)task->idMap;
+        next            = (Actor206100Work*)task->work;
         next->field_520 = 0;
         next->field_522 = 0;
     }

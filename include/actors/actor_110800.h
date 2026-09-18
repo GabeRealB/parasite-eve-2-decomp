@@ -32,7 +32,7 @@ typedef struct Actor110800Work {
 STATIC_ASSERT_SIZEOF(Actor110800Work, 0x480);
 
 /// The block above, published by `ActorsShared80131f9c` from the task's
-/// `Task::idMap`. Declared here with the type the overlay reads it through,
+/// `Task::work`. Declared here with the type the overlay reads it through,
 /// the same way `include/actors/actor_110300.h` does; the shared header
 /// publishes the bare `void*`.
 extern Actor110800Work* ActorsShared80131f9cWork;

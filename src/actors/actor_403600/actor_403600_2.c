@@ -203,7 +203,7 @@ void func_actor_403600_80141598(Task* task)
     GpEnemy*         enemy;
 
     enemy                                   = task->spawnArg2;
-    work                                    = (Actor403600Work*)task->idMap;
+    work                                    = (Actor403600Work*)task->work;
     ((TmdObject*)task->extra)->field_8->sub = &Gfx_ViewCoord;
     enemy->field_54                         = 0;
     Gp_UnlinkNode(&enemy->node);
@@ -529,7 +529,7 @@ void func_actor_403600_80141D30(GpEnemy* arg0, Task* arg1)
         return;
     }
 
-    arg1->idMap                = (TaskIdMap*)work;
+    arg1->work                 = (TaskIdMap*)work;
     work->field_4B8.sub        = &Gfx_ViewCoord;
     matrix                     = &work->field_4B8.coord;
     *(s32*)&matrix->m[0][0]    = 0x1000;

@@ -12,7 +12,7 @@ extern s16 D_actor_444000_80144A72;
 
 extern void func_80185220(void);
 
-/// The overlay's event/controller task, whose `idMap` holds an
+/// The overlay's event/controller task, whose `work` holds an
 /// `Actor444000EventWork`.
 extern Actor444000* D_actor_444000_80161878;
 

@@ -48,7 +48,7 @@ void RoomsShared8017de9c(DialogPrompt* arg0, UiObject* arg1)
     r     = &req;
     x     = arg0->field_18;
     y     = arg0->field_1A;
-    work  = (RoomItemUsage*)arg1->owner->idMap;
+    work  = (RoomItemUsage*)arg1->owner->work;
     item  = work->itemIds[arg0->field_8];
     value = work->percents[arg0->field_8];
     color = arg0->field_1C;

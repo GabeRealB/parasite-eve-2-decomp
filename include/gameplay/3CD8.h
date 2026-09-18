@@ -164,7 +164,7 @@ typedef struct _GpEvsCmd {
 } GpEvsCmd;
 STATIC_ASSERT_SIZEOF(GpEvsCmd, 0x18);
 
-/// 0x34-byte event-script interpreter state stored at `Task::idMap` for the
+/// 0x34-byte event-script interpreter state stored at `Task::work` for the
 /// script task. `pc` is the current command, `wait` the frame countdown set by
 /// op 4, `stack` / `sp` the call stack for ops 44 / 45. `msgTask` is the message
 /// task spawned by op 2 / 24 and `fadeTask` the fade task spawned by op 35.
@@ -221,7 +221,7 @@ typedef struct _GpScriptRec {
 STATIC_ASSERT_SIZEOF(GpScriptRec, 4);
 
 /// 0x34-byte dual-script state allocated by `Gp_ScriptInit` (`Mem_Calloc(0x34, 0)`)
-/// and stored on the owner task at +0x1C (`Task::idMap`).
+/// and stored on the owner task at +0x1C (`Task::work`).
 /// `field_10` / `field_11` are delay counters for scripts A / B.
 typedef struct _GpState34 {
     /* 0x00 */ GpScriptCmd* field_0;  // script table (from Task::spawnArg2)
@@ -245,7 +245,7 @@ typedef struct _GpState34 {
 STATIC_ASSERT_SIZEOF(GpState34, 0x34);
 
 /// 0xC-byte interpolator state allocated by `Gp_SpawnPadLerp` / `Gp_SpawnPadLerpScaled`
-/// (`Mem_Calloc(0xC, 0)`) and stored at `Task::idMap` for bank-2 type 0xC.
+/// (`Mem_Calloc(0xC, 0)`) and stored at `Task::work` for bank-2 type 0xC.
 /// `field_8` is the duration; `field_4.as_s32` is start<<8; `field_0` is the
 /// per-frame step `((end<<8) - (start<<8)) / duration`.
 /// `Gp_PadLerpTask` posts `field_4.bytes.as_u8` (the 8-bit interpolator,
@@ -265,7 +265,7 @@ typedef struct _GpState0C {
 STATIC_ASSERT_SIZEOF(GpState0C, 0xC);
 
 /// 0x18-byte work block allocated by `Gp_SpawnScript18` / `Gp_SpawnScript18Ex`
-/// (`Mem_Calloc(0x18)`) and stored at `Task::idMap` for bank-2 type 0xD.
+/// (`Mem_Calloc(0x18)`) and stored at `Task::work` for bank-2 type 0xD.
 /// `Gp_SpawnScript18` writes `field_0`/`field_4` from its args and clears
 /// `field_8`; `Gp_SpawnScript18Ex` writes all three. `Gp_DispatchScript18` indexes
 /// dispatch tables with `field_A` and `field_C`.

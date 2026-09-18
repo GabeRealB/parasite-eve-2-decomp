@@ -351,7 +351,7 @@ INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_801
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_801830F0);
 
 /// Second state handler of `D_mine_cavern_8017D7F8` (`func_mine_cavern_80183A68`
-/// dispatches it). It allocates the work block, parks it at `Task::idMap` and
+/// dispatches it). It allocates the work block, parks it at `Task::work` and
 /// hands its two matrices to the model, then seats the model on the spawn spot
 /// `Task::spawnArg1` names: the block's own coordinate adopts that spot with the
 /// model's coordinate hung under it, and the model is republished through
@@ -366,9 +366,9 @@ void func_mine_cavern_801836D0(GpEnemy* arg0, Task* arg1)
     MineCavernWork* work;
     VECTOR          vec;
 
-    mem         = (MineCavernWork*)Mem_Calloc(0x14C, false);
-    work        = mem;
-    arg1->idMap = (TaskIdMap*)mem;
+    mem        = (MineCavernWork*)Mem_Calloc(0x14C, false);
+    work       = mem;
+    arg1->work = (TaskIdMap*)mem;
     if (mem == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
@@ -393,7 +393,7 @@ void func_mine_cavern_80183860(Task* arg0)
 {
     MineCavernWork* work;
 
-    work = (MineCavernWork*)arg0->idMap;
+    work = (MineCavernWork*)arg0->work;
     if (work != NULL) {
         Gp_UnlinkObj(&work->obj40);
     }
@@ -403,7 +403,7 @@ void func_mine_cavern_80183890(GpEnemy* enemy, Task* task)
 {
     MineCavernWork* work;
 
-    work                = (MineCavernWork*)task->idMap;
+    work                = (MineCavernWork*)task->work;
     work->obj40.flags  &= 0x7FFF;
     enemy->node.field_4 = 1;
     Gp_UnlinkObj(&work->obj40);
@@ -438,7 +438,7 @@ void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1)
     GpEffWork*      eff;
     u16             state;
 
-    work = (MineCavernWork*)arg1->idMap;
+    work = (MineCavernWork*)arg1->work;
 
     ((TmdObject*)arg1->extra)->field_C = 0x80;
 
@@ -513,7 +513,7 @@ void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task)
     VECTOR          vec;
     SVECTOR         ang;
 
-    work = (MineCavernWork*)task->idMap;
+    work = (MineCavernWork*)task->work;
 
     ((TmdObject*)task->extra)->field_8->flg = 0;
     Gp_UpdateCoord(((TmdObject*)task->extra)->field_8);

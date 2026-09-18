@@ -28,7 +28,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_16", func_actor_34240
 
 void func_actor_342400_80169880(Task* arg0)
 {
-    Actor342400Work* work                = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* work                = (Actor342400Work*)arg0->work;
     void             (*states[2])(Task*) = {
         func_actor_342400_8016AA9C,
         func_actor_342400_8016AAB8,

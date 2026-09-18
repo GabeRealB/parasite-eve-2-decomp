@@ -9,7 +9,7 @@
 
 #include "rooms/room_common.h"
 
-/// Work block hung off `Task::idMap` (0x1C) of the room task parked in
+/// Work block hung off `Task::work` (0x1C) of the room task parked in
 /// `D_dryfield_motel_room_1_8018159C`, which every entry point in this overlay
 /// reaches the room state through.
 ///
@@ -67,7 +67,7 @@ typedef union Dmr1MsgBuf {
 } Dmr1MsgBuf;
 STATIC_ASSERT_SIZEOF(Dmr1MsgBuf, 0x14);
 
-/// The room's script-driver task, whose `idMap` holds a `Dmr1Work`.
+/// The room's script-driver task, whose `work` holds a `Dmr1Work`.
 extern Task* D_dryfield_motel_room_1_8018159C;
 
 /// The two objects the room task places, passed as `Gp_DispatchMsg`'s `arg2`
@@ -75,7 +75,7 @@ extern Task* D_dryfield_motel_room_1_8018159C;
 extern RoomPlacement D_dryfield_motel_room_1_8017E130[2];
 
 /// Room entry point: allocate the `Dmr1Work` the room task hangs off
-/// `Task::idMap` (killing the task if the allocation fails), zero it, park the
+/// `Task::work` (killing the task if the allocation fails), zero it, park the
 /// slot-3 task in `field_0` and the room task itself in
 /// `D_dryfield_motel_room_1_8018159C`, then resolve the four placed objects
 /// `field_4` .. `field_10` from the session id: the base id, then the id with

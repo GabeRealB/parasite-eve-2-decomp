@@ -4,7 +4,7 @@
 #include "main/task.h"
 
 /// Cutscene work block the linking rooms' factory task allocates as 0xC zeroed
-/// bytes in its state 0 and parks at `Task::idMap` (0x1C) -- that slot is *not*
+/// bytes in its state 0 and parks at `Task::work` (0x1C) -- that slot is *not*
 /// a `TaskIdMap` here.
 ///
 /// `state` selects the handler out of the room's own handler table, `step` is
@@ -26,7 +26,7 @@ STATIC_ASSERT_SIZEOF(RoomsShared8017fdc8Work, 0xC);
 /// nibble in `prevFlag`. Shared by the night factory and the factory.
 s32 RoomsShared8017fdc8(Task* task)
 {
-    RoomsShared8017fdc8Work* work  = (RoomsShared8017fdc8Work*)task->idMap;
+    RoomsShared8017fdc8Work* work  = (RoomsShared8017fdc8Work*)task->work;
     s32                      flag  = GameFlag_GetNibble(0x4E);
     s32                      state = flag & 0xFF;
 

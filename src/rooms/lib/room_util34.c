@@ -2,7 +2,7 @@
 
 #include "main/task.h"
 
-/// Scratch state of the room's cap script, stored at `Task::idMap`. Shared by
+/// Scratch state of the room's cap script, stored at `Task::work`. Shared by
 /// `dryfield_factory` and `dryfield_night_factory`.
 typedef struct {
     /* 0x0 */ u8  pad_0[0xA];
@@ -12,5 +12,5 @@ typedef struct {
 /// Room script callback: raise the `field_A` flag in the script's scratch state.
 void Room_Util34(Task* task)
 {
-    ((RoomUtil34State*)task->idMap)->field_A = 1;
+    ((RoomUtil34State*)task->work)->field_A = 1;
 }

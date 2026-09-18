@@ -18,7 +18,7 @@ typedef struct ActorShared80137fb0Obj2C {
 } ActorShared80137fb0Obj2C;
 
 /// Work block the carriers hang off their context's 0x1C slot (the task's
-/// `Task::idMap`, which is not a `TaskIdMap` here) -- the same block
+/// `Task::work`, which is not a `TaskIdMap` here) -- the same block
 /// `Actor402200Work` describes, seen through the one field this body reaches.
 ///
 /// `field_6EA` is a pending tint request: this body reads it once a frame and,

@@ -32,7 +32,7 @@ void ActorsShared80133838(GpEnemy* arg0, Task* arg1)
     ActorsShared80133838Work* parentWork;
     u16                       timer;
 
-    work       = (ActorsShared80133838Work*)arg1->idMap;
+    work       = (ActorsShared80133838Work*)arg1->work;
     parentWork = ((ActorsShared80133838Task*)arg1->parent)->field_1C;
     if (D_801153F4 == 0) {
         timer          = work->field_42 + 1;

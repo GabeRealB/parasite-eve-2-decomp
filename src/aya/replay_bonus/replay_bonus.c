@@ -359,9 +359,9 @@ void func_replay_bonus_80115ED0(Task* arg0)
     obj->field_2E = 0;
     Ui_DrawText((UiPanel*)obj, D_replay_bonus_80115774);
     if (arg0->state == 0) {
-        cfg         = &Player_Status;
-        mem         = Mem_Malloc(0x258, 0);
-        arg0->idMap = mem;
+        cfg        = &Player_Status;
+        mem        = Mem_Malloc(0x258, 0);
+        arg0->work = mem;
         if (mem == NULL) {
             obj->field_2E = 6;
             return;

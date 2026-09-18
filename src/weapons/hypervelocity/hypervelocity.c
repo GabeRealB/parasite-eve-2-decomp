@@ -39,7 +39,7 @@ extern s32 Gp_LcgState;
 #define SCRATCH_SP (*(u32*)G_SCRATCH_HEAD)
 
 /// Teardown callback shared with the other weapon overlays; it unlinks
-/// `Task::idMap` and releases the `Gp_State1C` work block.
+/// `Task::work` and releases the `Gp_State1C` work block.
 void WeaponsShared8011e4ac(Task* task);
 
 void func_hypervelocity_8011DF34(GsCOORDINATE2* coord, s16 age, s16 spin, s32 side);
@@ -272,7 +272,7 @@ void func_hypervelocity_8011D830(Task* task)
     u32            ang;
     s32            i;
 
-    beam  = (HyperBeam*)task->idMap;
+    beam  = (HyperBeam*)task->work;
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->field_8;
     base  = &Gp_RoomCoords[0];
@@ -325,7 +325,7 @@ void func_hypervelocity_8011D830(Task* task)
             work->field_26     = 0x500;
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
             work->field_28     = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            task->idMap        = (TaskIdMap*)beam;
+            task->work         = (TaskIdMap*)beam;
             beam->obj.field_C  = beam->rec;
             beam->obj.field_1C = 0x800;
             beam->obj.field_8  = coord;

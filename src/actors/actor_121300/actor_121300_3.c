@@ -16,7 +16,7 @@ void func_actor_121300_80134224(s32 arg0, s32 arg1, s32 arg2)
 
 void func_actor_121300_80134250(s16 arg0)
 {
-    Actor121300Work* work = (Actor121300Work*)D_actor_121300_8013D418->idMap;
+    Actor121300Work* work = (Actor121300Work*)D_actor_121300_8013D418->work;
 
     work->field_498 = arg0;
     work->field_49A = 0;
@@ -29,7 +29,7 @@ void func_actor_121300_80134270(void)
 
 void func_actor_121300_8013427C(void)
 {
-    Actor121300Work* work = (Actor121300Work*)D_actor_121300_8013D418->idMap;
+    Actor121300Work* work = (Actor121300Work*)D_actor_121300_8013D418->work;
 
     D_actor_121300_8013D41C = 0;
     work->field_480         = 2;

@@ -18,7 +18,7 @@ void ActorsShared80136930(GpEnemy* enemy, Task* task)
     TmdObject*                src;
     TmdObject*                dst;
 
-    work                               = (ActorsShared80136930Work*)task->parent->idMap;
+    work                               = (ActorsShared80136930Work*)task->parent->work;
     ((TmdObject*)task->extra)->field_C = ((TmdObject*)task->parent->extra)->field_C;
     if (work->field_6BA != 0) {
         work->field_6BA = 0;

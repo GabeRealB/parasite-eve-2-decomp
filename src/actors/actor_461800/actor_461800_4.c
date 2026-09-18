@@ -60,7 +60,7 @@ s32 func_actor_461800_80133A3C(Task* task, s32 arg1, VECTOR* target, s32 mode)
     s32               angle;
 
     coord                   = ((TmdObject*)task->extra)->field_8;
-    work                    = (Actor461800Work2*)task->idMap;
+    work                    = (Actor461800Work2*)task->work;
     D_actor_461800_801438A8 = mode;
     dx                      = target->vx - coord->coord.t[0];
     dz                      = target->vz - coord->coord.t[2];

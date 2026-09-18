@@ -143,7 +143,7 @@ void func_acropolis_bridge_8017E04C(Task* task)
         return;
     }
     task->spawnArg2 = Task_SpawnFromTable(&D_acropolis_bridge_80189830, 0, 1, 0);
-    task->idMap     = (TaskIdMap*)work;
+    task->work      = (TaskIdMap*)work;
     work->field_0   = 0x14;
     work->field_4   = 0xFFF;
     sess            = (GameSessionFrom4*)&Game_Session->field_4;
@@ -172,7 +172,7 @@ void func_acropolis_bridge_8017E04C(Task* task)
 /// it in state 8, and a busy cap suspends the whole scan for that frame.
 void func_acropolis_bridge_8017E1D0(Task* task)
 {
-    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->idMap;
+    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
     RoomHotspot*               hs     = D_acropolis_bridge_8018983C;
     RoomActionPrompt*          prompt = &D_80114D28;
 
@@ -238,7 +238,7 @@ void func_acropolis_bridge_8017E3A0(Task* task)
 {
     RoomActionPrompt*          prompt = &D_80114D28;
     RoomHotspot*               hs     = D_acropolis_bridge_8018983C;
-    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->idMap;
+    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
     GameSessionFrom4*          sess   = (GameSessionFrom4*)&Game_Session->field_4;
     GpSprtRec*                 rec;
     s32                        view;
@@ -289,7 +289,7 @@ void func_acropolis_bridge_8017E4FC(Task* task)
 {
     RoomActionPrompt*          prompt = &D_80114D28;
     RoomHotspot*               hs     = D_acropolis_bridge_8018983C;
-    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->idMap;
+    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
     s16                        tick;
     u8                         retry;
 

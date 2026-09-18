@@ -22,7 +22,7 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, GpAnimArg* params, s32 arg3
     TmdObject*       ext;
     s32              i;
 
-    work = (Actor443500Work*)task->idMap;
+    work = (Actor443500Work*)task->work;
     ext  = task->extra;
     if (params->field_0 != work->field_476) {
         work->field_476 = params->field_0;

@@ -7,7 +7,7 @@
 
 #include "main/task.h"
 
-/// Work block the carriers hang off the task's `Task::idMap` slot (0x1C),
+/// Work block the carriers hang off the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. Both carriers allocate the same 0x4C8
 /// bytes -- `Actor350700Work` and `Actor350500Work` -- but each documents only
 /// the fields its own code reaches, so the two this body touches are described

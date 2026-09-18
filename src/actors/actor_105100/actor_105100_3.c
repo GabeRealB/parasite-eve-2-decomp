@@ -22,7 +22,7 @@ void func_actor_105100_801366D8(GpEnemy* arg0, Task* arg1)
 {
     Actor105100Work* work;
 
-    work = (Actor105100Work*)arg1->idMap;
+    work = (Actor105100Work*)arg1->work;
     Gp_UnlinkObj(&work->obj0);
     Gp_UnlinkObj(&work->obj38);
     Gp_DestroyEnemy(arg0, arg1);
@@ -38,6 +38,6 @@ void func_actor_105100_8013672C(Task* arg0)
 
 void func_actor_105100_80136788(GpEnemy* arg0, Task* arg1)
 {
-    Gp_UnlinkObj(arg1->idMap);
+    Gp_UnlinkObj(arg1->work);
     Gp_DestroyEnemy(arg0, arg1);
 }

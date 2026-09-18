@@ -101,7 +101,7 @@ s32 func_aya_20900_80115A14(Task* arg0)
     s32           showLogo;
     u8            color;
 
-    work     = (Aya20900Work*)arg0->idMap;
+    work     = (Aya20900Work*)arg0->work;
     showLogo = 1;
     switch ((s16)work->index) {
         case 0:
@@ -197,8 +197,8 @@ void func_aya_20900_80115CFC(Task* arg0)
     temp_v1 = arg0->state;
     switch (temp_v1) { /* irregular */
         case 0:
-            temp_v0     = Mem_Malloc(8U, false);
-            arg0->idMap = temp_v0;
+            temp_v0    = Mem_Malloc(8U, false);
+            arg0->work = temp_v0;
             if (temp_v0 == NULL) {
                 Task_Kill(arg0);
                 return;

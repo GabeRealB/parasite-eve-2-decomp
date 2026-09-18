@@ -9,7 +9,7 @@ void ActorsShared80133f64(Task* task)
     ActorsShared80133f64Work* work;
     s32                       i;
 
-    work            = (ActorsShared80133f64Work*)task->idMap;
+    work            = (ActorsShared80133f64Work*)task->work;
     work->field_7BE = 0x30;
     work->field_7C0 = 0x800;
     i               = 1;

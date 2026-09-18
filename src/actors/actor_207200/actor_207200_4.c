@@ -55,7 +55,7 @@ void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->idMap    = (TaskIdMap*)work;
+    arg1->work     = (TaskIdMap*)work;
     obj->field_C   = 0;
     coord->flg     = 0;
     obj->field_1C  = &work->field_1BC;
@@ -177,7 +177,7 @@ void func_actor_207200_8014B628(Task* arg0)
     u16              hi;
 
     *(u8**)G_SCRATCH_HEAD -= 8;
-    work                   = (Actor207200Work*)arg0->idMap;
+    work                   = (Actor207200Work*)arg0->work;
     obj                    = (GpObj38*)((TmdObject*)arg0->extra)->field_8;
     if (work->field_4A6 == 0) {
         if (Gp_CountRec18Hi((GpRec18*)work->field_1DC.field_20, 0x10000) != 0) {
@@ -242,7 +242,7 @@ void func_actor_207200_8014B87C(Task* arg0)
     s32              id;
     s16              state;
 
-    work  = (Actor207200Work*)arg0->idMap;
+    work  = (Actor207200Work*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->field_8;
     switch (work->field_49A) {
         case 0:
@@ -454,7 +454,7 @@ void func_actor_207200_8014BEF4(Task* arg0)
     s32                    n;
     s32                    snd;
 
-    work                                     = (Actor207200Work*)arg0->idMap;
+    work                                     = (Actor207200Work*)arg0->work;
     head                                     = *(Actor207200DmgScratch**)G_SCRATCH_HEAD;
     *(Actor207200DmgScratch**)G_SCRATCH_HEAD = head - 1;
     sc                                       = head - 1;

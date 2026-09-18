@@ -7,7 +7,7 @@
 
 #include <psyq/libgte.h>
 
-/// Work block this room's script tasks keep at `Task::idMap`
+/// Work block this room's script tasks keep at `Task::work`
 /// (`Mem_Calloc(0x10, 0)` in `func_acropolis_bridge_8017E04C`). `field_4` is
 /// the script step handed to `func_acropolis_bridge_8017E60C` and
 /// `promptKind` the display mode forwarded to `func_800D4E78`.

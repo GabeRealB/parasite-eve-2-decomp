@@ -119,7 +119,7 @@ typedef struct _GameSessionFrom4 {
 } GameSessionFrom4;
 STATIC_ASSERT_SIZEOF(GameSessionFrom4, 0x6);
 
-struct _Task;
+struct Task;
 struct _GpLinkNode;
 struct _GpActorD4;
 struct _GpAnimRec;
@@ -168,7 +168,7 @@ typedef struct _GameActorSlot {
 } GameActorSlot;
 STATIC_ASSERT_SIZEOF(GameActorSlot, 0x28);
 
-/// Large object pointed to by Task::idMap for the slot-3 game object
+/// Large object pointed to by Task::work for the slot-3 game object
 /// (Game_GetPtrSlot(3)). Sparse fields used by Display_SpawnFromMode.
 typedef struct _GameActor {
     /* 0x000 */ s32                 field_0;  // per-frame X velocity (Gp_PlayerMode2State3)
@@ -238,11 +238,11 @@ typedef struct _GameActor {
     /* 0x7A9 */ byte                pad_7A9[0x163];
     /* 0x90C */ struct _GpLinkNode* field_90C;
     /* 0x910 */ struct _GpActorD4*  field_910;
-    /* 0x914 */ struct _Task*       field_914;
-    /* 0x918 */ struct _Task*       field_918;
-    /* 0x91C */ struct _Task*       field_91C;
-    /* 0x920 */ struct _Task*       field_920;
-    /* 0x924 */ struct _Task*       field_924;
+    /* 0x914 */ struct Task*        field_914;
+    /* 0x918 */ struct Task*        field_918;
+    /* 0x91C */ struct Task*        field_91C;
+    /* 0x920 */ struct Task*        field_920;
+    /* 0x924 */ struct Task*        field_924;
     /* 0x928 */ void*               field_928; // Gp_PlayerAnimBlkTbl[field_93A]; func_800B3F84 arg1
     /* 0x92C */ struct _GpAnimRec*  field_92C; // last Gp_AnimGetRec result (Gp_PlayerNormalState5)
     /* 0x930 */ s32                 field_930; // sw from Gp_MsgPlayerDirFacing; addr taken by func_801011D0

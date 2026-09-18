@@ -6,9 +6,9 @@
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
-/// Work block this overlay hangs off the task's `Task::idMap` slot (0x1C),
+/// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. Reach it with
-/// `(Actor560800Work*)task->idMap`.
+/// `(Actor560800Work*)task->work`.
 ///
 /// `func_actor_560800_80135BD8` allocates it with `Mem_Malloc(0x68, 0)`, so the
 /// size below is the allocation and not a guess, and fills the first slots with
@@ -74,8 +74,8 @@ STATIC_ASSERT_SIZEOF(Actor560800AnimStep, 0x4);
 /// Work block of the sub-task `Actor560800Work::field_8` points at, spawned
 /// from `ActorsShared80136280Desc` index 5 (`func_actor_560800_80132C60`).
 /// That function allocates it with `Mem_Malloc(0x4CC, 0)`, `Mem_Set`s the same
-/// 0x4CC bytes and stores it in its own `Task::idMap` (0x1C), so the size below
-/// is the allocation, not a guess. It is a third idMap block in this overlay,
+/// 0x4CC bytes and stores it in its own `Task::work` (0x1C), so the size below
+/// is the allocation, not a guess. It is a third work block in this overlay,
 /// distinct from `Actor560800Work` and `Actor560800FadeWork`.
 ///
 /// `anim` is the animation context the block itself is handed to
@@ -114,8 +114,8 @@ typedef struct Actor560800AnimWork {
 STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
 
 /// Work block `func_actor_560800_801376E0` allocates with `Mem_Malloc(0x28C, 0)`
-/// and stores in its own `Task::idMap` (0x1C), so the size below is the
-/// allocation, not a guess. A fourth idMap block in this overlay, distinct from
+/// and stores in its own `Task::work` (0x1C), so the size below is the
+/// allocation, not a guess. A fourth work block in this overlay, distinct from
 /// `Actor560800Work`, `Actor560800AnimWork` and `Actor560800FadeWork`, and the
 /// one `func_actor_560800_80137820` and `func_actor_560800_80136AA8` drive.
 ///
@@ -168,7 +168,7 @@ typedef struct Actor560800ModelWork {
 STATIC_ASSERT_SIZEOF(Actor560800ModelWork, 0x28C);
 
 /// 8-byte fade block `func_actor_560800_80135FA0` allocates with
-/// `Mem_Malloc(8, 0)` and parks in `Task::idMap` -- a second, smaller idMap
+/// `Mem_Malloc(8, 0)` and parks in `Task::work` -- a second, smaller work
 /// block in this overlay, distinct from `Actor560800Work` and owned by the
 /// fade-in task that function reparents to the controller.
 ///
@@ -187,8 +187,8 @@ STATIC_ASSERT_SIZEOF(Actor560800FadeWork, 0x8);
 /// Work block of the message-handler task whose `Task::field_24` table is
 /// `D_actor_560800_801756D4`: `func_actor_560800_801386D4` allocates it with
 /// `Mem_Malloc(0x4C, 0)`, `Mem_Set`s the same 0x4C bytes and stores it in that
-/// task's `Task::idMap` (0x1C), so the size below is the allocation, not a
-/// guess. A fifth idMap block in this overlay, distinct from `Actor560800Work`,
+/// task's `Task::work` (0x1C), so the size below is the allocation, not a
+/// guess. A fifth work block in this overlay, distinct from `Actor560800Work`,
 /// `Actor560800AnimWork`, `Actor560800ModelWork` and `Actor560800FadeWork`.
 ///
 /// `parts` is the eight part tasks the same function spawns from

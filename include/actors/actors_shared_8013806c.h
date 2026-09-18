@@ -24,7 +24,7 @@ typedef struct ActorShared8013806cObj2C {
 } ActorShared8013806cObj2C;
 
 /// Work block the carriers hang off their context's 0x1C slot (the task's
-/// `Task::idMap`, which is not a `TaskIdMap` here) -- the same block
+/// `Task::work`, which is not a `TaskIdMap` here) -- the same block
 /// `Actor402200Work` describes, seen through the one field this body reaches.
 ///
 /// `field_6E2` is the ground-shadow shade: `Gp_DrawEffGroundQuad` draws nothing

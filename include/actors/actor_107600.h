@@ -8,7 +8,7 @@
 #include "gameplay/3A34.h"
 
 /// Work block this overlay hangs off `Actor107600.field_1C` (the task's
-/// `Task::idMap` slot, which is not a `TaskIdMap` here). The display node at
+/// `Task::work` slot, which is not a `TaskIdMap` here). The display node at
 /// +0x60 is the one the exit callback `func_actor_107600_80134920` hands back
 /// to `Gp_UnlinkObj`. The state pair at +0x158/+0x15A is what
 /// `func_actor_107600_80134B98` writes: the new state in `field_158` and its

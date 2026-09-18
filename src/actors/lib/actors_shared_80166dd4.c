@@ -14,16 +14,16 @@ void ActorsShared80166dd4(Task* arg0)
     s16                       speed;
     s32                       scale;
 
-    work = (ActorsShared80168d3cWork*)arg0->idMap;
+    work = (ActorsShared80168d3cWork*)arg0->work;
     if ((u16)(work->field_412++ - 0x1D) < 0xD) {
         scale                                           = 0x1E;
         angle                                           = work->field_7A + 0x400;
-        speed                                           = (((ActorsShared80168d3cWork*)arg0->idMap)->field_41C * scale) << 0xC >> 0x10;
+        speed                                           = (((ActorsShared80168d3cWork*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
         ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
         ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
         ((TmdObject*)arg0->extra)->field_8->flg         = 0;
     }
-    work2 = (ActorsShared80168d3cWork*)arg0->idMap;
+    work2 = (ActorsShared80168d3cWork*)arg0->work;
     if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
         cond = 1;
     } else {
@@ -31,7 +31,7 @@ void ActorsShared80166dd4(Task* arg0)
     }
     if (cond) {
         work->field_438  = 0;
-        work2            = (ActorsShared80168d3cWork*)arg0->idMap;
+        work2            = (ActorsShared80168d3cWork*)arg0->work;
         work2->field_426 = 8;
         work2->field_41C = 0x10;
         work2->field_418 = 3;

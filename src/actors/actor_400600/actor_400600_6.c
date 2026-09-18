@@ -30,7 +30,7 @@ void func_actor_400600_8013A0F0(Task* arg0)
 void func_actor_400600_8013A170(Task* arg0)
 {
     TmdObject*       model = (TmdObject*)arg0->extra;
-    Actor400600Work* work  = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TaskFuncTable12  fns   = D_actor_400600_80131E24;
 
     switch (D_801153F4) {
@@ -49,7 +49,7 @@ void func_actor_400600_8013A170(Task* arg0)
 
 void func_actor_400600_8013A26C(Task* arg0)
 {
-    Actor400600Work* work                = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work                = (Actor400600Work*)arg0->work;
     void             (*states[2])(Task*) = {
         func_actor_400600_8013AAD8,
         func_actor_400600_8013AB44,

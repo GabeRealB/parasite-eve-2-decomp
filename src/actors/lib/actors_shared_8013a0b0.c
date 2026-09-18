@@ -6,7 +6,7 @@
 
 s32 ActorsShared8013a0b0(Task* arg0)
 {
-    ActorsShared8013a0b0Work* work = (ActorsShared8013a0b0Work*)arg0->idMap;
+    ActorsShared8013a0b0Work* work = (ActorsShared8013a0b0Work*)arg0->work;
 
     if ((work->flags_FC.half & 1) || (work->flags_FC.word & 0x102)) {
         return 1;

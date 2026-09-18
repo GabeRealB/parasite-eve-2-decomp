@@ -55,7 +55,7 @@ void Title_InitTask(Task* arg0)
     }
     work = Mem_Calloc(0x18, 0);
     if (work != NULL) {
-        arg0->idMap                           = (TaskIdMap*)work;
+        arg0->work                            = (TaskIdMap*)work;
         *(volatile s32*)&work->menuCount      = 5;
         *(volatile s32*)&work->selection      = 2;
         *(volatile s32*)&work->fadeTileEnable = flag;
@@ -116,7 +116,7 @@ void Title_MenuTask(Task* arg0)
     DisplayState*       ds;
 
     s4        = arg0;
-    s3        = (TitleWork*)s4->idMap;
+    s3        = (TitleWork*)s4->work;
     prev      = s3->timer;
     cur       = prev + 1;
     s3->timer = cur;

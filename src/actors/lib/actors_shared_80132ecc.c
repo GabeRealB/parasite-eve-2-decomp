@@ -6,7 +6,7 @@
 
 void ActorsShared80132ecc(Task* task)
 {
-    ActorsShared80132eccWork* work = (ActorsShared80132eccWork*)task->idMap;
+    ActorsShared80132eccWork* work = (ActorsShared80132eccWork*)task->work;
 
     Gp_DestroyEnemy(task->spawnArg2, task);
     Task_Kill(work->field_4F0);

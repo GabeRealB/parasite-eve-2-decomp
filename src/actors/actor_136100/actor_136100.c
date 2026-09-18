@@ -66,7 +66,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_8
 INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80131FBC);
 
 /// Spawn tick of the cutscene actor's second phase: allocates the 0x4F0-byte
-/// `Actor136100Work` block, zeroes it and parks it in `Task::idMap`, then wires
+/// `Actor136100Work` block, zeroes it and parks it in `Task::work`, then wires
 /// the model object up -- `Tmd_AllocBuffers`, `TmdObject::field_C` cleared, the
 /// work block's light/colour matrices into `TmdObject::field_1C` / `field_20`
 /// and the animation-context task reparented under `D_actor_136100_8014078C`.
@@ -89,8 +89,8 @@ void func_actor_136100_801320E0(Task* arg0)
         TmdObject*     tmd   = arg0->extra;
         GsCOORDINATE2* coord = tmd->field_8;
 
-        work        = Mem_Malloc(0x4F0, 0);
-        arg0->idMap = (TaskIdMap*)work;
+        work       = Mem_Malloc(0x4F0, 0);
+        arg0->work = (TaskIdMap*)work;
         if (work == NULL) {
             Task_Kill(arg0);
         } else {
@@ -135,8 +135,8 @@ void func_actor_136100_80132284(Task* arg0)
         TmdObject*     tmd   = arg0->extra;
         GsCOORDINATE2* coord = tmd->field_8;
 
-        work        = Mem_Malloc(0x4F0, 0);
-        arg0->idMap = (TaskIdMap*)work;
+        work       = Mem_Malloc(0x4F0, 0);
+        arg0->work = (TaskIdMap*)work;
         if (work == NULL) {
             Task_Kill(arg0);
         } else {
@@ -181,7 +181,7 @@ void func_actor_136100_80132284(Task* arg0)
         s32              weaponId;                                               \
         s32              id;                                                     \
                                                                                  \
-        msgWork            = (Actor136100Work*)(task)->idMap;                    \
+        msgWork            = (Actor136100Work*)(task)->work;                     \
         weaponId           = D_80073BA9;                                         \
         id                 = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22; \
         rec.field_0        = id;                                                 \
@@ -200,7 +200,7 @@ void func_actor_136100_80132284(Task* arg0)
 /// cleared.
 void func_actor_136100_801323F8(Task* arg0)
 {
-    Actor136100Work* work = (Actor136100Work*)arg0->idMap;
+    Actor136100Work* work = (Actor136100Work*)arg0->work;
     GpRec14          rec;
 
     if (Game_Session->field_1 != 0) {
@@ -258,7 +258,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_8
 /// current `field_4E2` chain entry; does nothing while that task is unset.
 static inline void func_actor_136100_PlayAnim(Task* task, u16 anim, s32 blend, s32 speed)
 {
-    Actor136100Work* work = (Actor136100Work*)task->idMap;
+    Actor136100Work* work = (Actor136100Work*)task->work;
     GpAnimArg        msg;
 
     if (work->field_4C0 != NULL) {
@@ -282,7 +282,7 @@ void func_actor_136100_80132BC0(Task* arg0)
     Actor136100Work* work;
     s16              anim;
 
-    work = (Actor136100Work*)arg0->idMap;
+    work = (Actor136100Work*)arg0->work;
     if (work->field_4C0 != NULL && Gp_DispatchMsg(work->field_4C0, 0x3ED, 0, 0) == 0) {
         anim = D_actor_136100_8013F218[work->field_4E2];
         if (anim >= 0) {
@@ -334,7 +334,7 @@ void func_actor_136100_80132BC0(Task* arg0)
 /// request is cleared.
 void func_actor_136100_80132E78(Task* arg0)
 {
-    Actor136100Work* work = (Actor136100Work*)arg0->idMap;
+    Actor136100Work* work = (Actor136100Work*)arg0->work;
     GpRec14          rec;
 
     if (Game_Session->field_1 != 0) {
@@ -406,11 +406,11 @@ void func_actor_136100_80133558(Task* arg0)
     GpAnimArg        msg;
     u16              anim;
 
-    work = (Actor136100Work*)arg0->idMap;
+    work = (Actor136100Work*)arg0->work;
     if (work->field_4C0 != NULL && Gp_DispatchMsg(work->field_4C0, 0x3ED, 0, 0) == 0) {
         anim = D_actor_136100_8013F218[work->field_4E2];
         if (D_actor_136100_8013F218[work->field_4E2] >= 0) {
-            msgWork = (Actor136100Work*)arg0->idMap;
+            msgWork = (Actor136100Work*)arg0->work;
             if (msgWork->field_4C0 != NULL) {
                 msg.field_0        = &D_actor_136100_8013F1D4;
                 msgWork->field_4E2 = anim;
@@ -447,7 +447,7 @@ void func_actor_136100_80133558(Task* arg0)
 /// `func_actor_136100_8013467C` sends on its own.  `field_4DE` is armed on the
 /// way past.
 ///
-/// Three separate `task->idMap` loads are what the original reaches the block
+/// Three separate `task->work` loads are what the original reaches the block
 /// with -- the stores to `field_4C4` / `field_4CC` invalidate the first in cse,
 /// and the first is still live for the 0x3E9 send after the loop.  The dead
 /// `SVECTOR` is not read; it reserves the 8-byte local the frame has between
@@ -465,11 +465,11 @@ void func_actor_136100_80133690(void)
     s32              id;
 
     task            = D_actor_136100_8014078C;
-    work            = (Actor136100Work*)task->idMap;
+    work            = (Actor136100Work*)task->work;
     work->field_4C4 = 0;
     work->field_4CC = 0;
 
-    animWork            = (Actor136100Work*)task->idMap;
+    animWork            = (Actor136100Work*)task->work;
     animWork->field_4E0 = 1;
     i                   = 1;
     do {
@@ -480,7 +480,7 @@ void func_actor_136100_80133690(void)
 
     Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)&D_actor_136100_8013F31C, 0);
 
-    msgWork            = (Actor136100Work*)task->idMap;
+    msgWork            = (Actor136100Work*)task->work;
     weaponId           = D_80073BA9;
     id                 = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.field_0        = id;
@@ -499,7 +499,7 @@ void func_actor_136100_80133690(void)
 /// equip-slot addend (`D_80073BA9`).  `arg0 == 1` additionally resets the
 /// fourth bone's rotation to zero.
 ///
-/// Two `task->idMap` loads reach the block: the stores to `field_4C4` /
+/// Two `task->work` loads reach the block: the stores to `field_4C4` /
 /// `field_4CC` invalidate the first in cse, and it is still live for the 0x3E9
 /// and 0x3E9/`field_4C0` sends after the loop.  The dead `SVECTOR` is not read;
 /// it reserves the 8-byte local the frame has between the outgoing-arg area and
@@ -517,13 +517,13 @@ void func_actor_136100_8013379C(s32 arg0)
     s32              id;
 
     task            = D_actor_136100_8014078C;
-    work            = (Actor136100Work*)task->idMap;
+    work            = (Actor136100Work*)task->work;
     work->field_4C4 = 0;
     work->field_4CC = 0;
 
     Gp_DispatchMsg(task, 0x7D4, (s32)&D_actor_136100_8013F3AC, 0);
 
-    animWork            = (Actor136100Work*)task->idMap;
+    animWork            = (Actor136100Work*)task->work;
     animWork->field_4E0 = 3;
     i                   = 1;
     do {
@@ -534,7 +534,7 @@ void func_actor_136100_8013379C(s32 arg0)
 
     Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)D_actor_136100_8013F334, 0);
 
-    msgWork            = (Actor136100Work*)task->idMap;
+    msgWork            = (Actor136100Work*)task->work;
     weaponId           = D_80073BA9;
     id                 = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.field_0        = id;
@@ -560,7 +560,7 @@ void func_actor_136100_8013379C(s32 arg0)
 /// home and the join copy into `$v0` disappears.
 s32 func_actor_136100_80133904(Task* task)
 {
-    Actor136100Work* work = (Actor136100Work*)task->idMap;
+    Actor136100Work* work = (Actor136100Work*)task->work;
     u16              evtId;
     u8               evtKind;
     u8               evtSub;
@@ -604,7 +604,7 @@ s32 func_actor_136100_80133904(Task* task)
 }
 
 /// First tick of the cutscene actor: allocates the 0x4F0-byte
-/// `Actor136100Work` block, zeroes it and parks it in `Task::idMap`, then wires
+/// `Actor136100Work` block, zeroes it and parks it in `Task::work`, then wires
 /// the model object up -- `Tmd_AllocBuffers`, the work block's light/colour
 /// matrices into `TmdObject::field_1C` / `field_20`, bit 2 of `TmdObject::field_C`
 /// cleared and the animation context handed to `func_800B3F84`.
@@ -620,10 +620,10 @@ void func_actor_136100_80133A88(Task* arg0)
     GpAreaPlace*     place;
     u8               id;
 
-    tmd         = arg0->extra;
-    coord       = tmd->field_8;
-    map         = Mem_Malloc(0x4F0, 0);
-    arg0->idMap = map;
+    tmd        = arg0->extra;
+    coord      = tmd->field_8;
+    map        = Mem_Malloc(0x4F0, 0);
+    arg0->work = map;
     if (map == NULL) {
         Task_Kill(arg0);
         return;
@@ -674,7 +674,7 @@ static inline s16 func_actor_136100_TakeStartCue(u16* evtId, u8* evtKind, u8* ev
 /// (`func_actor_136100_801347B8`'s loop, reaching the work block through `task`).
 static inline void func_actor_136100_ResetSlots(Task* task, s32 count)
 {
-    Actor136100Work* work = (Actor136100Work*)task->idMap;
+    Actor136100Work* work = (Actor136100Work*)task->work;
     s32              i;
 
     work->field_4E0 = count;
@@ -691,7 +691,7 @@ static inline void func_actor_136100_ResetSlots(Task* task, s32 count)
 /// share one register and the two branches cross-jump earlier.
 #define func_actor_136100_SendAnimRec(task, anim)                       \
     {                                                                   \
-        Actor136100Work* animWork = (Actor136100Work*)(task)->idMap;    \
+        Actor136100Work* animWork = (Actor136100Work*)(task)->work;     \
                                                                         \
         if (animWork->field_4C0 != NULL) {                              \
             rec.field_0         = (s32) & D_actor_136100_8013F1D4;      \
@@ -706,18 +706,18 @@ static inline void func_actor_136100_ResetSlots(Task* task, s32 count)
 
 /// `func_actor_136100_80134A18`'s body over the shared `rec` slot: count the
 /// live entries of `D_actor_136100_8013F180` and send them with message 0x3F7.
-#define func_actor_136100_SendTable(task)                           \
-    {                                                               \
-        Actor136100Work* msgWork = (Actor136100Work*)(task)->idMap; \
-        s32              n;                                         \
-                                                                    \
-        n = 0;                                                      \
-        while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {          \
-            n += 1;                                                 \
-        }                                                           \
-        rec.field_0 = (s32) & D_actor_136100_8013F180[0];           \
-        rec.field_4 = n & 0xFFFF;                                   \
-        Gp_DispatchMsg(msgWork->field_4B4, 0x3F7, (s32) & rec, 0);  \
+#define func_actor_136100_SendTable(task)                          \
+    {                                                              \
+        Actor136100Work* msgWork = (Actor136100Work*)(task)->work; \
+        s32              n;                                        \
+                                                                   \
+        n = 0;                                                     \
+        while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {         \
+            n += 1;                                                \
+        }                                                          \
+        rec.field_0 = (s32) & D_actor_136100_8013F180[0];          \
+        rec.field_4 = n & 0xFFFF;                                  \
+        Gp_DispatchMsg(msgWork->field_4B4, 0x3F7, (s32) & rec, 0); \
     }
 
 /// Refresh the shadow coordinate and hand its translation to `func_800D7A9C`.
@@ -746,7 +746,7 @@ static inline void func_actor_136100_UpdateShadow(Task* arg0, VECTOR* vec)
 /// it (see `func_actor_136100_80133690`).
 void func_actor_136100_80133BC8(Task* arg0)
 {
-    Actor136100Work* work = (Actor136100Work*)arg0->idMap;
+    Actor136100Work* work = (Actor136100Work*)arg0->work;
     SVECTOR          unused;
     GpRec14          rec;
     s32              cue;
@@ -764,7 +764,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 return;
             }
             func_actor_136100_80133A88(arg0);
-            work            = (Actor136100Work*)arg0->idMap;
+            work            = (Actor136100Work*)arg0->work;
             work->field_4E4 = GameFlag_GetNibble(0x73) == 0;
             work->field_4B8 = Task_SpawnFromTable(&ActorsShared80134898Desc, 2, 0,
                                                   (s32)((TmdObject*)arg0->extra)->field_8 + 0x140);

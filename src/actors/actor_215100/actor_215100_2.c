@@ -120,7 +120,7 @@ void func_actor_215100_8014A398(void)
     s32            facing;
 
     task  = (Task*)Game_GetPtrSlot(3);
-    actor = (GameActor*)task->idMap;
+    actor = (GameActor*)task->work;
     coord = ((TmdObject*)task->extra)->field_8;
     if (D_actor_215100_8014D038 != 0) {
         if (D_actor_215100_8015E670 >= 3) {
@@ -249,7 +249,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
 {
     GameActor* actor;
 
-    actor = (GameActor*)((Task*)Game_GetPtrSlot(3))->idMap;
+    actor = (GameActor*)((Task*)Game_GetPtrSlot(3))->work;
     switch (arg0->state) {
         case 0:
             if (Gp_CapBusy() != 0) {
@@ -1117,11 +1117,11 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     s32              idx;
     u32              raw;
 
-    obj         = task->extra;
-    coord       = obj->field_8;
-    mem         = (Actor215100Work*)Mem_Calloc(0x4F8, false);
-    work        = (Actor215100Work*)mem;
-    task->idMap = (TaskIdMap*)mem;
+    obj        = task->extra;
+    coord      = obj->field_8;
+    mem        = (Actor215100Work*)Mem_Calloc(0x4F8, false);
+    work       = (Actor215100Work*)mem;
+    task->work = (TaskIdMap*)mem;
     if (mem == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;

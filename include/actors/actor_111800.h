@@ -11,7 +11,7 @@
 #include "main/tmd.h"
 
 /// Work block `func_actor_111800_80132390` allocates with `Mem_Calloc(0x498)`
-/// and parks in `Task::idMap` (0x1C). The prefix is the shared actor anim
+/// and parks in `Task::work` (0x1C). The prefix is the shared actor anim
 /// layout: a `GpAnimCtx` and the nineteen `GpAnimSlot`s `func_800B3F84` seeds
 /// from the animation bank and the frame handler ticks. `field_43C` /
 /// `field_45C` are the light and colour matrices handed to the model

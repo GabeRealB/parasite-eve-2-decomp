@@ -26,7 +26,7 @@ void func_actor_103700_80131EC4(GpEnemy* arg0, Task* task)
         Gp_DestroyEnemy(arg0, task);
         return;
     }
-    task->idMap    = (TaskIdMap*)work;
+    task->work     = (TaskIdMap*)work;
     obj->field_C   = 0;
     coord->flg     = 0;
     obj->field_1C  = &work->lightMtx;
@@ -140,7 +140,7 @@ void func_actor_103700_8013224C(Task* task, TmdObject* arg1, s32 arg2)
 
     push    = 0;
     broke   = 0;
-    work    = (Actor103700Work*)task->idMap;
+    work    = (Actor103700Work*)task->work;
     scratch = (Actor103700PushScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x58);
     coord   = ((TmdObject*)task->extra)->field_8;
     res     = func_800E0C10(work->records, &scratch->delta, 4, NULL);

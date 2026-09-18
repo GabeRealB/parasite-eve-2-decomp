@@ -11,7 +11,7 @@ s32 func_actor_210600_8014B770(Task* task, s32 msgId, Actor210600Msg* msg)
     Actor210600Work* work;
     u16              selector;
 
-    work = (Actor210600Work*)task->idMap;
+    work = (Actor210600Work*)task->work;
     if (msg->field_0 == 0x401) {
         selector = msg->field_2;
         if (selector == 1) {

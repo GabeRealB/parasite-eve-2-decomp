@@ -23,7 +23,7 @@ s32 func_actor_135600_80133240(Task* task, s32 msgId, s32 mode, s32 arg3)
     TmdObject*       objC;
     s32              ret;
 
-    work = (Actor135600Work*)task->idMap;
+    work = (Actor135600Work*)task->work;
     obj  = task->extra;
     objB = work->field_500->extra;
     objA = work->field_4FC->extra;

@@ -29,7 +29,7 @@ void func_actor_350700_801624D8(Task* arg0);
 void func_actor_350700_80161E88(Task* arg0)
 {
     TmdObject*       ext      = arg0->extra;
-    Actor350700Work* work     = (Actor350700Work*)arg0->idMap;
+    Actor350700Work* work     = (Actor350700Work*)arg0->work;
     TaskFunc         funcs[2] = { (TaskFunc)func_actor_350700_801624D0, func_actor_350700_801624D8 };
     VECTOR3          pos;
     GsCOORDINATE2*   coord;
@@ -86,7 +86,7 @@ s32 func_actor_350700_801621B4(Task* task, s32 arg1, Actor350700Placement* place
     s32                    i;
     TmdObject*             ext;
 
-    w              = (Actor350700Work*)task->idMap;
+    w              = (Actor350700Work*)task->work;
     w->field_4C0   = 1;
     w->field_4C2   = 0;
     w->target.vx   = place->pos.vx;
@@ -112,7 +112,7 @@ s32 func_actor_350700_801621B4(Task* task, s32 arg1, Actor350700Placement* place
     preset.field_10 = 1;
 
     msg  = &preset;
-    work = (Actor350700Work*)task->idMap;
+    work = (Actor350700Work*)task->work;
     ext  = task->extra;
     if (msg->field_0 != work->field_43E) {
         work->field_43E = msg->field_0;
@@ -144,7 +144,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_350700/actor_350700", D_actor_350700_8
 INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700", func_actor_350700_80162398);
 
 /// Spawn state of the enemy actor: allocates the 0x4C8-byte work block that
-/// every later handler reads through `Task::idMap`, seeds the three -1 bytes
+/// every later handler reads through `Task::work`, seeds the three -1 bytes
 /// and three cleared words the work's own init expects, republishes the light
 /// and colour matrices onto the display object, then installs the message
 /// table and the exit handler. An allocation failure ends the task instead of
@@ -159,7 +159,7 @@ void func_actor_350700_80162404(Task* arg0)
         return;
     }
 
-    arg0->idMap     = (TaskIdMap*)work;
+    arg0->work      = (TaskIdMap*)work;
     work->field_43D = -1;
     work->field_43E = -1;
     work->field_4C5 = -1;
@@ -185,7 +185,7 @@ void func_actor_350700_801624B4(Task* arg0)
     Actor350700Work* work;
 
     ext           = arg0->extra;
-    work          = (Actor350700Work*)arg0->idMap;
+    work          = (Actor350700Work*)arg0->work;
     ext->field_1C = &work->light;
     ext->field_20 = &work->color;
 }

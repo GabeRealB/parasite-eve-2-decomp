@@ -7,7 +7,7 @@
 
 void ActorsShared80139c00(Task* arg0, SVECTOR* target, s32 step)
 {
-    ActorsShared80139c00Work* work = (ActorsShared80139c00Work*)arg0->idMap;
+    ActorsShared80139c00Work* work = (ActorsShared80139c00Work*)arg0->work;
     GsCOORDINATE2*            coords;
     SVECTOR                   vec;
     s32                       diff;

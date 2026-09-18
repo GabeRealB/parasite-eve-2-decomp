@@ -20,9 +20,9 @@ s32 func_actor_361100_80163670(Task* task, s32 arg1, s32 mode)
             obj->field_C &= ~4;
             break;
         case 2:
-            obj->field_C                              |= 0x80;
-            ((Actor361100Work*)task->idMap)->field_4A2 = mode;
-            obj->field_C                              |= 4;
+            obj->field_C                             |= 0x80;
+            ((Actor361100Work*)task->work)->field_4A2 = mode;
+            obj->field_C                             |= 4;
             break;
         case 3:
             obj->field_C &= ~0x80;
@@ -39,7 +39,7 @@ s32 func_actor_361100_80163750(Task* task, s32 msgId, Actor361100Msg* msg)
 {
     Actor361100Work* work;
 
-    work = (Actor361100Work*)task->idMap;
+    work = (Actor361100Work*)task->work;
     switch (msg->field_2) {
         case 0:
             work->field_480 = 0;

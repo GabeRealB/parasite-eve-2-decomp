@@ -48,7 +48,7 @@ void func_actor_511000_80132480(Task* task)
         Gp_EnemyTaskExit(task);
         return;
     }
-    task->idMap          = (TaskIdMap*)work;
+    task->work           = (TaskIdMap*)work;
     work->field_478      = -1;
     work->field_47C      = -1;
     work->field_4D2      = 0;
@@ -77,7 +77,7 @@ void func_actor_511000_801325A4(Task* task)
     GsCOORDINATE2*    coords;
     TmdObject*        extra;
 
-    work            = (Actor511000Work2*)task->idMap;
+    work            = (Actor511000Work2*)task->work;
     extra           = (TmdObject*)task->extra;
     coords          = extra->field_8;
     extra->field_1C = &work->light;

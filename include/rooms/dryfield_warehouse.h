@@ -7,7 +7,7 @@
 #include "rooms/room_common.h"
 
 /// Work block for the warehouse cutscene task, allocated as 0x10 zeroed bytes
-/// by `func_dryfield_warehouse_8017E090` and hung off `Task::idMap` (0x1C).
+/// by `func_dryfield_warehouse_8017E090` and hung off `Task::work` (0x1C).
 ///
 /// The room's overlay carries the same cutscene-task body as
 /// `dryfield_gas_station` and `dryfield_water_tank`, so the layout is shared:
@@ -26,7 +26,7 @@ typedef struct DwhWork {
 STATIC_ASSERT_SIZEOF(DwhWork, 0x10);
 
 /// The 8-byte fade block `func_dryfield_warehouse_8017E308` allocates with
-/// `Mem_Malloc(8, 0)` on its first tick and parks in `Task::idMap`: two bytes of
+/// `Mem_Malloc(8, 0)` on its first tick and parks in `Task::work`: two bytes of
 /// padding, then the three halfword channels `Fade_DrawOverlay` draws. All three
 /// start at 0 and are walked *up* by `Task::spawnArg1` each frame; `r` is the one
 /// the end-of-fade test watches. Same layout as the actors family's

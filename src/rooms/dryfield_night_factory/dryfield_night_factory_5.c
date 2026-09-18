@@ -51,8 +51,8 @@ void func_dryfield_night_factory_80180438(Task* arg0)
 
     arg0->field_24 = D_dryfield_night_factory_80186E64;
     Game_SetPtrSlot(arg0, 7);
-    slot        = (D_dryfield_night_factory_8018A7E8 = Mem_Calloc(4, 0));
-    arg0->idMap = (TaskIdMap*)slot;
+    slot       = (D_dryfield_night_factory_8018A7E8 = Mem_Calloc(4, 0));
+    arg0->work = (TaskIdMap*)slot;
     if (Game_Session->field_7 == 2) {
         D_dryfield_night_factory_8018A7E4 = D_dryfield_night_factory_80186E28;
     } else {

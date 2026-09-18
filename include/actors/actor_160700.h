@@ -8,7 +8,7 @@
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
-/// Work block `ActorsShared80131e24Sub0` hangs off its task's `Task::idMap`
+/// Work block `ActorsShared80131e24Sub0` hangs off its task's `Task::work`
 /// slot (0x1C); it allocates it with `Mem_Calloc(0x4F8, 0)`, and the size below
 /// is that allocation. `light` / `color` go to the sub-model's `field_1C` /
 /// `field_20`, and `anim`, `slots` and `field_374` are what `func_800B3F84`

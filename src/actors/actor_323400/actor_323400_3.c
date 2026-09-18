@@ -8,7 +8,7 @@ s32 func_actor_323400_80164974(Task* task, s32 arg1, Actor323400Msg* msg, s32 ar
     Actor323400MsgBytes* bytes;
     u16                  mode;
 
-    work  = (Actor323400Work*)task->idMap;
+    work  = (Actor323400Work*)task->work;
     bytes = (Actor323400MsgBytes*)msg;
 
     work->field_91C = bytes->b0;

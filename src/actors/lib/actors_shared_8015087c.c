@@ -18,7 +18,7 @@ void ActorsShared8015087c(GpEnemy* enemy, Task* task)
     Actor104000Work* work;
     TmdObject*       obj;
 
-    work = (Actor104000Work*)task->idMap;
+    work = (Actor104000Work*)task->work;
     if (work->field_4 != 0) {
         obj                 = task->extra;
         enemy->node.field_4 = 1;

@@ -8,7 +8,7 @@
 #include "gameplay/3A34.h"
 
 /// 0x454-byte work block `actor_104400` / `actor_341700` / `actor_342400`
-/// allocate with `Mem_Calloc` and park in `Task::idMap` (that slot is not a
+/// allocate with `Mem_Calloc` and park in `Task::work` (that slot is not a
 /// `TaskIdMap` here). The three `GpObj` nodes are the display objects
 /// `ActorsShared8016a890` hands back to `Gp_UnlinkObj`; `field_412` is the
 /// per-state frame counter and `field_420` is the state index the handler

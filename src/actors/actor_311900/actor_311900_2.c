@@ -34,7 +34,7 @@ extern u8 D_80072729;
 /// (rather than `func_actor_311900_8016278C`'s) from a different animation run
 /// (`D_actor_311900_8016EBF4`, not `D_actor_311900_8016EBE8`).
 ///
-/// The 0x4CC-byte block goes into `Task::idMap` -- that slot is not a
+/// The 0x4CC-byte block goes into `Task::work` -- that slot is not a
 /// `TaskIdMap` here. `GpEnemy::field_4` takes the model's root coordinate's
 /// matrix, the root's `sub` is re-parented to `Gfx_ViewCoord`, the animation
 /// context is built over the block's slot array and packed-pose run, and the
@@ -50,7 +50,7 @@ void func_actor_311900_801624F8(GpEnemy* enemy, Task* task)
     obj   = (TmdObject*)task->extra;
     coord = obj->field_8;
     if (GameFlag_GetNibble(1) >= 3 ||
-        (work = Mem_Calloc(0x4CC, 0), task->idMap = (TaskIdMap*)work, work == NULL)) {
+        (work = Mem_Calloc(0x4CC, 0), task->work = (TaskIdMap*)work, work == NULL)) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
@@ -124,7 +124,7 @@ s32 func_actor_311900_80162658(GsCOORDINATE2* arg0, s16 arg1)
 }
 
 /// Splats an identity light / colour matrix pair into the work block the spawn
-/// state carved out of `Task::idMap`, republishes both onto the
+/// state carved out of `Task::work`, republishes both onto the
 /// `TmdObject::field_1C` / `field_20` slots that the renderer otherwise reads
 /// from `Gp_DefaultMtx` / `Gp_DefaultMtx2`, and then overwrites each 3x3 with
 /// the values the actor lights its model with -- the light matrix flat except
@@ -136,7 +136,7 @@ void func_actor_311900_8016278C(Task* task)
     TmdObject*           ext;
     Actor311900Work*     work;
 
-    work  = (Actor311900Work*)task->idMap;
+    work  = (Actor311900Work*)task->work;
     ext   = task->extra;
     light = (Actor311900MatWords*)&work->light;
     color = (Actor311900MatWords*)&work->color;
@@ -189,7 +189,7 @@ void func_actor_311900_8016281C(Task* task)
     TmdObject*           ext;
     Actor311900Work*     work;
 
-    work  = (Actor311900Work*)task->idMap;
+    work  = (Actor311900Work*)task->work;
     ext   = task->extra;
     light = (Actor311900MatWords*)&work->light;
     color = (Actor311900MatWords*)&work->color;

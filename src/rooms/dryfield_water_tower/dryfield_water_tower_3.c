@@ -152,7 +152,7 @@ s32  func_dryfield_water_tower_8017DFAC(Task* arg0);
 /// coordinate marked dirty for the next `Gp_UpdateCoord` pass.
 void func_dryfield_water_tower_8017DE30(Task* arg0)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->idMap;
+    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
     GsCOORDINATE2*           coord = ((TmdObject*)arg0->extra)->field_8;
     DwtwMsg7DB               msg;
 
@@ -223,7 +223,7 @@ s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
     SVECTOR                  pos;
     s32                      i;
 
-    state      = (DryfieldWaterTowerState*)arg0->idMap;
+    state      = (DryfieldWaterTowerState*)arg0->work;
     coord      = ((TmdObject*)arg0->extra)->field_8;
     coord->flg = 0;
     switch (state->field_58) {
@@ -284,7 +284,7 @@ s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
 /// points at the script table's entry 2.
 ///
 /// State 0 is the spawn tick: it allocates the cap script's 0x7C-byte
-/// `DryfieldWaterTowerState` block into `Task::idMap`, parks the slot-3 game
+/// `DryfieldWaterTowerState` block into `Task::work`, parks the slot-3 game
 /// task at its `field_40`, parents the model's coordinate to `Gfx_ViewCoord`,
 /// rebuilds the model's buffers and points its light and colour matrices
 /// (`field_1C` / `field_20`) at the block, so the cap is lit by the room's own
@@ -324,7 +324,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
     MATRIX*                  mem;
 
     obj   = (TmdObject*)arg0->extra;
-    state = (DryfieldWaterTowerState*)arg0->idMap;
+    state = (DryfieldWaterTowerState*)arg0->work;
     coord = obj->field_8;
     if (Game_Session->field_65 != 0) {
         obj->field_C |= 0x80;
@@ -338,10 +338,10 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
                 TmdObject*     model;
                 GsCOORDINATE2* modelCoord;
 
-                model       = (TmdObject*)arg0->extra;
-                modelCoord  = model->field_8;
-                mem         = (MATRIX*)Mem_Malloc(0x7C, false);
-                arg0->idMap = (TaskIdMap*)mem;
+                model      = (TmdObject*)arg0->extra;
+                modelCoord = model->field_8;
+                mem        = (MATRIX*)Mem_Malloc(0x7C, false);
+                arg0->work = (TaskIdMap*)mem;
                 if (mem == 0) {
                     Task_Kill(arg0);
                 } else {
@@ -391,7 +391,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
 }
 
 /// A second cap-arrival body, the sibling of `func_dryfield_water_tower_8017E5B0`
-/// and `func_dryfield_water_tower_8017DFAC`: its `Task::idMap` is the same
+/// and `func_dryfield_water_tower_8017DFAC`: its `Task::work` is the same
 /// 0x7C-byte `DryfieldWaterTowerState` the cap script allocates and its
 /// `extra->field_8` the cap's own coordinate, and it reports arrival the same
 /// way the cap-arrival test does, by returning 1.
@@ -420,7 +420,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
 /// and emit `slt` with its operands swapped.
 s32 func_dryfield_water_tower_8017E428(Task* arg0)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->idMap;
+    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
     GsCOORDINATE2*           coord = ((TmdObject*)arg0->extra)->field_8;
     GsCOORDINATE2*           effCoord;
     SVECTOR                  pos;
@@ -464,7 +464,7 @@ s32 func_dryfield_water_tower_8017E428(Task* arg0)
 }
 
 /// A third cap-arrival body, the sibling of `func_dryfield_water_tower_8017DFAC`
-/// and `func_dryfield_water_tower_8017E428`: its `Task::idMap` is the same
+/// and `func_dryfield_water_tower_8017E428`: its `Task::work` is the same
 /// 0x7C-byte `DryfieldWaterTowerState` the cap script allocates and its
 /// `extra->field_8` the cap's own coordinate, and it reports arrival the same
 /// way the cap-arrival test does, by returning 1.
@@ -490,7 +490,7 @@ s32 func_dryfield_water_tower_8017E428(Task* arg0)
 /// CSE forwards the stored value and one load serves both uses.
 s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->idMap;
+    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
     GsCOORDINATE2*           coord = ((TmdObject*)arg0->extra)->field_8;
     GsCOORDINATE2*           effCoord;
     SVECTOR                  pos;
@@ -562,7 +562,7 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", fu
 /// and 10 queue one.
 void func_dryfield_water_tower_8017E93C(Task* arg0)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->idMap;
+    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
 
     switch (state->field_5C) {
         case 0:

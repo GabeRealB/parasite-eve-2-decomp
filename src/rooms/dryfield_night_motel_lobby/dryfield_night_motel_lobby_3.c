@@ -32,7 +32,7 @@ extern TaskDesc D_dryfield_night_motel_lobby_801827FC;
 /// landing past it. Writing a `goto` there compiles to a different tail.
 void func_dryfield_night_motel_lobby_8017FE90(Task* task)
 {
-    DnmlExamineWork*  work   = (DnmlExamineWork*)task->idMap;
+    DnmlExamineWork*  work   = (DnmlExamineWork*)task->work;
     RoomHotspot*      hs     = D_dryfield_night_motel_lobby_80182820;
     RoomActionPrompt* prompt = &D_80114D28;
 

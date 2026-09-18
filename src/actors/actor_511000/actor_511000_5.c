@@ -41,7 +41,7 @@ s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg)
     s32              i;
 
     obj  = (TmdObject*)task->extra;
-    work = (Actor511000Work*)task->idMap;
+    work = (Actor511000Work*)task->work;
     ret  = 0;
     switch (msg) {
         case 0:
@@ -130,7 +130,7 @@ void func_actor_511000_801337F0(Task* task)
     Actor511000Work* work;
     TmdObject*       extra;
 
-    work            = (Actor511000Work*)task->idMap;
+    work            = (Actor511000Work*)task->work;
     extra           = (TmdObject*)task->extra;
     coord           = extra->field_8;
     extra->field_1C = &work->light;
@@ -165,7 +165,7 @@ void func_actor_511000_80133900(Task* task)
 }
 
 /// Spawn handler: allocates the 0x488-byte work block and parks it in
-/// `Task::idMap`, binds the task's model to the block's matrices and
+/// `Task::work`, binds the task's model to the block's matrices and
 /// animation state, installs the message table, then spawns table entries 1
 /// and 2 - tinting each child's model from the current area's record - and
 /// entry 3, and advances to state 1. An allocation failure destroys the enemy.
@@ -191,7 +191,7 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->idMap     = (TaskIdMap*)work;
+    task->work      = (TaskIdMap*)work;
     model->field_C  = 0x80;
     model->field_1C = &work->field_45C;
     model->field_20 = &work->field_43C;

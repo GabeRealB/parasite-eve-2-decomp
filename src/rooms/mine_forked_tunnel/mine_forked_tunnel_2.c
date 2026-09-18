@@ -33,9 +33,9 @@ s32 func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3)
             ext->field_C &= ~4;
             break;
         case 2:
-            ext->field_C                                  |= 0x80;
-            ((MineForkedTunnelWork*)task->idMap)->field_44 = mode;
-            ext->field_C                                  |= 4;
+            ext->field_C                                 |= 0x80;
+            ((MineForkedTunnelWork*)task->work)->field_44 = mode;
+            ext->field_C                                 |= 4;
             break;
         case 3:
             ext->field_C &= ~0x80;

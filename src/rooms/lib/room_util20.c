@@ -6,7 +6,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Work block parked at `Task::idMap` by the factory rooms that link this
+/// Work block parked at `Task::work` by the factory rooms that link this
 /// body. `light` / `color` are the model's own matrices, republished onto
 /// `TmdObject::field_1C` / `field_20`. Prefix fields are unreferenced here.
 typedef struct RoomUtil20Work {
@@ -23,7 +23,7 @@ void Room_Util20(Task* task)
     RoomUtil20Work* work;
     TmdObject*      extra;
 
-    work            = (RoomUtil20Work*)task->idMap;
+    work            = (RoomUtil20Work*)task->work;
     extra           = (TmdObject*)task->extra;
     coord           = extra->field_8;
     extra->field_1C = &work->light;

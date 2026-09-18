@@ -25,7 +25,7 @@ typedef struct ActorsShared801433b8Part {
 } ActorsShared801433b8Part;
 
 /// The 0xF24-byte work block both overlays allocate with `Mem_Calloc(0xF24, 0)`
-/// and park in the `Task::idMap` slot (0x1C), which is not a `TaskIdMap` here.
+/// and park in the `Task::work` slot (0x1C), which is not a `TaskIdMap` here.
 /// Named after the shared body because the two overlays' own headers describe
 /// the same allocation as `Actor444000Work` / `Actor403200Work`; only the
 /// fields this body touches are filled in.

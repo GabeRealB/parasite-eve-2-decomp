@@ -268,7 +268,7 @@ void func_acropolis_fountain_8017E15C(Task* task, s32 view)
     u16                       frame;
 
     queue = &CdCmd_Queue;
-    work  = (AcropolisFountainSndWork*)task->idMap;
+    work  = (AcropolisFountainSndWork*)task->work;
     switch (work->state) {
         case 0:
             frame = queue->field_1EA;
@@ -363,12 +363,12 @@ void func_acropolis_fountain_8017E3D4(Task* task)
     }
     switch (task->state) {
         case 0:
-            task->idMap = Mem_Calloc(4, 0);
-            if (task->idMap == NULL) {
+            task->work = Mem_Calloc(4, 0);
+            if (task->work == NULL) {
                 Task_Kill(task);
                 return;
             }
-            Mem_Set(task->idMap, 0, 4);
+            Mem_Set(task->work, 0, 4);
             task->state = task->state + 1;
             break;
 

@@ -69,9 +69,9 @@ STATIC_ASSERT_SIZEOF(Actor400600Msg3F8, 0x18);
 /// Per-actor state block for the `actor_400600` overlay.
 ///
 /// `func_actor_400600_80133434` allocates it with `Mem_Calloc(0x770)` and
-/// stores it in the `Task::idMap` slot (0x1C): an enemy actor reuses that
+/// stores it in the `Task::work` slot (0x1C): an enemy actor reuses that
 /// pointer field for its own work block, so it is *not* a `TaskIdMap` here.
-/// Reach it with `(Actor400600Work*)task->idMap`.
+/// Reach it with `(Actor400600Work*)task->work`.
 typedef struct Actor400600Work {
     /* 0x000 */ MATRIX             matrix_0;  // copy of the root coordinate's local matrix
     /* 0x020 */ MATRIX             matrix_20; // color matrix for the child models

@@ -26,7 +26,7 @@ void func_actor_341700_8016A2CC(Task* arg0)
     VECTOR           result;
     s32              flag;
 
-    work   = (Actor341700Work*)arg0->idMap;
+    work   = (Actor341700Work*)arg0->work;
     coords = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
     SndEvt_EnqueueType7(0x402C0002, 1);
     work->field_90  = coords->coord.t[0];
@@ -74,7 +74,7 @@ void func_actor_341700_8016A568(Task* arg0)
     GpEnemy*         enemy;
     TmdObject*       model;
 
-    work            = (Actor341700Work*)arg0->idMap;
+    work            = (Actor341700Work*)arg0->work;
     enemy           = (GpEnemy*)arg0->spawnArg2;
     model           = (TmdObject*)arg0->extra;
     work->field_412 = 0;
@@ -84,7 +84,7 @@ void func_actor_341700_8016A568(Task* arg0)
     }
     Gp_UnlinkNode(&enemy->node);
     enemy->field_54 = 0;
-    work2           = (Actor341700Work*)arg0->idMap;
+    work2           = (Actor341700Work*)arg0->work;
     Gp_UnlinkObj(&work2->obj_2AC);
     Gp_UnlinkObj(&work2->obj_2CC);
     Gp_UnlinkObj(&work2->obj_3AC);
@@ -98,7 +98,7 @@ void func_actor_341700_8016A630(Task* arg0)
     TmdObject*       model;
     u16              ticks;
 
-    work            = (Actor341700Work*)arg0->idMap;
+    work            = (Actor341700Work*)arg0->work;
     model           = (TmdObject*)arg0->extra;
     ticks           = work->field_412 + 1;
     work->field_412 = ticks;
@@ -117,7 +117,7 @@ void func_actor_341700_8016A6C0(Task* arg0)
     GpEnemy*         enemy;
 
     enemy = (GpEnemy*)arg0->spawnArg2;
-    work  = (Actor341700Work*)arg0->idMap;
+    work  = (Actor341700Work*)arg0->work;
     SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x402C0002, 0xF);
     if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC)) {
         Gp_StateF0.field_1F = 0;
@@ -134,9 +134,9 @@ void func_actor_341700_8016A810(Task* arg0)
     Actor341700Work* work2;
     s32              cond;
 
-    work = (Actor341700Work*)arg0->idMap;
+    work = (Actor341700Work*)arg0->work;
     ActorsShared80165cc0(arg0);
-    work2 = (Actor341700Work*)arg0->idMap;
+    work2 = (Actor341700Work*)arg0->work;
     if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
         cond = 1;
     } else {

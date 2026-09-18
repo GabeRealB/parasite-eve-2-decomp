@@ -15,7 +15,7 @@ typedef struct RoomsShared80180b2cWork {
     /* 0x6 */ s16   field_6;
 } RoomsShared80180b2cWork;
 
-/// The room's script task, whose `idMap` holds the work block. Every carrying
+/// The room's script task, whose `work` holds the work block. Every carrying
 /// room has its own pointer at its own address, named there by the family's
 /// symbol maps.
 extern Task* RoomsShared80180b2cTask;

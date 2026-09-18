@@ -37,7 +37,7 @@ void func_actor_303600_80161F40(Task* arg0);
 /// and spawns entries 3 and 1. The command is cleared on the way out.
 void func_actor_303600_80161F40(Task* arg0)
 {
-    Actor303600Work*  work = (Actor303600Work*)arg0->idMap;
+    Actor303600Work*  work = (Actor303600Work*)arg0->work;
     Actor303600Work*  w;
     Actor303600Msg7DA msg;
 
@@ -45,7 +45,7 @@ void func_actor_303600_80161F40(Task* arg0)
         case 0:
             break;
         case 1:
-            w           = (Actor303600Work*)D_actor_303600_8016E4C0->idMap;
+            w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
             msg.field_0 = Game_Session->field_7;
             msg.field_1 = Game_Session->field_6;
             msg.field_2 = 1;
@@ -53,7 +53,7 @@ void func_actor_303600_80161F40(Task* arg0)
             w->field_C = 1;
             break;
         case 2:
-            w           = (Actor303600Work*)D_actor_303600_8016E4C0->idMap;
+            w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
             msg.field_0 = Game_Session->field_7;
             msg.field_1 = Game_Session->field_6;
             msg.field_2 = 2;
@@ -61,7 +61,7 @@ void func_actor_303600_80161F40(Task* arg0)
             w->field_C = 2;
             break;
         case 3:
-            w           = (Actor303600Work*)D_actor_303600_8016E4C0->idMap;
+            w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
             msg.field_0 = Game_Session->field_7;
             msg.field_1 = Game_Session->field_6;
             msg.field_2 = 3;
@@ -69,7 +69,7 @@ void func_actor_303600_80161F40(Task* arg0)
             w->field_C = 3;
             break;
         case 4:
-            w           = (Actor303600Work*)D_actor_303600_8016E4C0->idMap;
+            w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
             msg.field_0 = Game_Session->field_7;
             msg.field_1 = Game_Session->field_6;
             msg.field_2 = 4;
@@ -82,7 +82,7 @@ void func_actor_303600_80161F40(Task* arg0)
             Task_SpawnFromTable(&D_actor_303600_80162E98, 1, 4, 0);
             break;
         case 5:
-            w           = (Actor303600Work*)D_actor_303600_8016E4C0->idMap;
+            w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
             msg.field_0 = Game_Session->field_7;
             msg.field_1 = Game_Session->field_6;
             msg.field_2 = 5;
@@ -128,8 +128,8 @@ void func_actor_303600_8016216C(Task* arg0)
             if (D_80114C12 == 1 || D_80071075 != 0) {
                 return;
             }
-            work        = (Actor303600Work*)Mem_Malloc(0x10, 0);
-            arg0->idMap = (TaskIdMap*)work;
+            work       = (Actor303600Work*)Mem_Malloc(0x10, 0);
+            arg0->work = (TaskIdMap*)work;
             if (work == NULL) {
                 Task_Kill(arg0);
             } else {
@@ -171,11 +171,11 @@ void func_actor_303600_801622E8(Task* arg0)
     Actor303600FadeWork* work;
     Actor303600FadeWork* alloc;
 
-    work = (Actor303600FadeWork*)arg0->idMap;
+    work = (Actor303600FadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc       = (Actor303600FadeWork*)Mem_Malloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (Actor303600FadeWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 Task_Kill(arg0);
                 return;
@@ -211,11 +211,11 @@ void func_actor_303600_801623CC(Task* arg0)
     Actor303600FadeWork* work;
     Actor303600FadeWork* alloc;
 
-    work = (Actor303600FadeWork*)arg0->idMap;
+    work = (Actor303600FadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc       = (Actor303600FadeWork*)Mem_Malloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (Actor303600FadeWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 Task_Kill(arg0);
                 return;
@@ -245,7 +245,7 @@ void func_actor_303600_801623CC(Task* arg0)
 /// the flag so the message goes out only once.
 void func_actor_303600_801624B0(void)
 {
-    Actor303600Work*  work = (Actor303600Work*)D_actor_303600_8016E4C0->idMap;
+    Actor303600Work*  work = (Actor303600Work*)D_actor_303600_8016E4C0->work;
     Actor303600Msg7DA msg;
 
     if (work->field_E == 0) {
@@ -274,7 +274,7 @@ void func_actor_303600_8016253C(void)
         D_actor_303600_8016E4C4 = NULL;
     }
 
-    work = (Actor303600Work*)D_actor_303600_8016E4C0->idMap;
+    work = (Actor303600Work*)D_actor_303600_8016E4C0->work;
     if (work->field_E == 0) {
         msg.field_0 = Game_Session->field_7;
         msg.field_1 = Game_Session->field_6;
@@ -289,7 +289,7 @@ void func_actor_303600_8016253C(void)
 
 void func_actor_303600_80162600(s16 arg0)
 {
-    Actor303600Work* work = (Actor303600Work*)D_actor_303600_8016E4C0->idMap;
+    Actor303600Work* work = (Actor303600Work*)D_actor_303600_8016E4C0->work;
 
     work->command = arg0;
     work->field_6 = 0;

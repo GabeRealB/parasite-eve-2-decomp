@@ -188,7 +188,7 @@ void func_actor_104900_801339B0(GpEnemy* enemy, Task* task, ActorsShared80138efc
         GameActor* actor;
 
         if (player != NULL) {
-            actor = (GameActor*)player->idMap;
+            actor = (GameActor*)player->work;
             if (((D_801153F2 ^ 1) == 0) || (((u16)actor->field_958 == 3) && dist <= 0x3D08FF)) {
                 flag = 1;
             }
@@ -198,7 +198,7 @@ void func_actor_104900_801339B0(GpEnemy* enemy, Task* task, ActorsShared80138efc
         GameActor* actor;
 
         if (player != NULL) {
-            actor = (GameActor*)player->idMap;
+            actor = (GameActor*)player->work;
             if ((((u16)actor->field_958 == 3) && dist <= 0xF423FF) || dist <= 0xF423F) {
                 flag = 1;
             }
@@ -375,7 +375,7 @@ void func_actor_104900_80137B1C(GpEnemy* enemy, Task* task, ActorsShared80138efc
 
 /// Spawns the effect this actor's next state rides on and re-homes the actor.
 ///
-/// The 0x58-byte work block goes in `Task::idMap` and the effect task comes back
+/// The 0x58-byte work block goes in `Task::work` and the effect task comes back
 /// from `Gp_SpawnEff` as `0x60081` parented to the model's trailing coordinate;
 /// that task becomes `Task::spawnArg2` and the actor's parent, and the actor arms
 /// its own 0x5A kill countdown.
@@ -418,8 +418,8 @@ void func_actor_104900_80137C88(Task* task)
         Task_CallExit(task);
         return;
     }
-    task->idMap = (TaskIdMap*)work;
-    eff         = Gp_SpawnEff(0x60081, coord, 0, 0);
+    task->work = (TaskIdMap*)work;
+    eff        = Gp_SpawnEff(0x60081, coord, 0, 0);
     if (eff == NULL) {
         Task_CallExit(task);
         return;

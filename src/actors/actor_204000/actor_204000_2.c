@@ -463,7 +463,7 @@ void func_actor_204000_8014BC3C(Actor104000Ctx* arg0, Actor104000* arg1)
     switch ((s16)(work->field_6 - 0x5B)) {
         case 0:
             if (work->field_496 == 1) {
-                if (((GameActor*)((Task*)Game_GetPtrSlot(3))->idMap)->field_954 == 2) {
+                if (((GameActor*)((Task*)Game_GetPtrSlot(3))->work)->field_954 == 2) {
                     Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
                 }
                 work->field_496 = 0;
@@ -714,7 +714,7 @@ void func_actor_204000_8014CD68(Actor104000Ctx* arg0, Actor104000* arg1)
             break;
         case 1:
             if (work->field_496 == 1) {
-                if (((GameActor*)((Task*)Game_GetPtrSlot(3))->idMap)->field_954 == 2) {
+                if (((GameActor*)((Task*)Game_GetPtrSlot(3))->work)->field_954 == 2) {
                     Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
                 }
                 work->field_496 = 0;

@@ -17,7 +17,7 @@ void ActorsShared8016bd98(Task* arg0)
     ActorsShared8016bd98Mat       m;
     ActorsShared8016bd98MatWords* ident;
 
-    work             = (ActorsShared80168d3cWork*)arg0->idMap;
+    work             = (ActorsShared80168d3cWork*)arg0->work;
     ident            = &m.ident;
     obj              = arg0->extra;
     coord            = obj->field_8;

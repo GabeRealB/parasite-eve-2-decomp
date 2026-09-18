@@ -10,7 +10,7 @@ void ActorsShared80132f24(Task* task)
     ActorsShared80132f24Work* work;
 
     ext           = task->extra;
-    work          = (ActorsShared80132f24Work*)task->idMap;
+    work          = (ActorsShared80132f24Work*)task->work;
     ext->field_1C = &work->light;
     ext->field_20 = &work->color;
 }

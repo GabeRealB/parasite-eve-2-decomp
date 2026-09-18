@@ -15,7 +15,7 @@
 /// used here.
 typedef ActorShared8013411cPlacement Actor310100Placement;
 
-/// Work block this overlay hangs off the task's `Task::idMap` slot (0x1C),
+/// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. `func_actor_310100_801625E4` allocates it
 /// with `Mem_Malloc(0x50C)` and hands `&slots` to the model helpers as the slot
 /// array, so the prefix is the shared actor anim layout: a `GpAnimCtx` and the

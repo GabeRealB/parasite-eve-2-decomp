@@ -11,7 +11,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Head of the work block this overlay hangs behind `Task::idMap`. Only the
+/// Head of the work block this overlay hangs behind `Task::work`. Only the
 /// fields the handlers touch are known: `field_4` is the live-actor flag
 /// every state handler tests, and `field_6` / `field_828` / `field_82E` /
 /// `field_832` / `field_83E` / `field_840` are the animation-state slots the
@@ -131,7 +131,7 @@ extern void* D_actor_323000_801739D0;
 extern GpPairSrcE D_actor_323000_80164D54;
 
 /// Spawn body (descriptor entry for this overlay): allocates the 0x934-byte
-/// work block, stores it in `Task::idMap`, binds the model's light and colour
+/// work block, stores it in `Task::work`, binds the model's light and colour
 /// matrices to the block's tail, re-seeds the enemy descriptor and both
 /// animation contexts, then takes the model root's world position as the
 /// actor colour. The four parent slots are the model root (`field_4`), the

@@ -96,7 +96,7 @@ u16 func_shelter_b3_dumping_hole_8017DA00(GsCOORDINATE2* coord, s16 arg1, s16 ar
 
 void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
 {
-    DumpingHoleAnimWork* W      = (DumpingHoleAnimWork*)arg0->idMap;
+    DumpingHoleAnimWork* W      = (DumpingHoleAnimWork*)arg0->work;
     GsCOORDINATE2*       coord  = ((TmdObject*)arg0->extra)->field_8;
     DumpingHoleEntity*   entity = D_shelter_b3_dumping_hole_8018F4A8->field_1C;
 
@@ -172,7 +172,7 @@ extern s16 D_shelter_b3_dumping_hole_80188184[];
 
 void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
 {
-    DumpingHoleAnimWork* work  = (DumpingHoleAnimWork*)arg0->idMap;
+    DumpingHoleAnimWork* work  = (DumpingHoleAnimWork*)arg0->work;
     GsCOORDINATE2*       coord = ((TmdObject*)arg0->extra)->field_8;
     SVECTOR              vec;
     s32                  sa1;
@@ -194,12 +194,12 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
             coord->coord.t[0] = vec.vx;
             coord->coord.t[1] = vec.vy;
             coord->coord.t[2] = vec.vz;
-            arg0->idMap       = (TaskIdMap*)Mem_Malloc(0x24, 0);
-            if (arg0->idMap == NULL) {
+            arg0->work        = (TaskIdMap*)Mem_Malloc(0x24, 0);
+            if (arg0->work == NULL) {
                 Task_Kill(arg0);
                 return;
             }
-            work = (DumpingHoleAnimWork*)arg0->idMap;
+            work = (DumpingHoleAnimWork*)arg0->work;
             Mem_Set(work, 0, 0x24);
             work->field_16 = -0xA;
             work->field_14 = 0;
@@ -297,11 +297,11 @@ void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     VECTOR                        v;
     TmdObject*                    e2;
 
-    extra       = (TmdObject*)arg0->extra;
-    cfg         = (DumpingHoleCoordCfg*)arg0->spawnArg2;
-    coord       = extra->field_8;
-    work        = (DumpingHoleCoordWork*)Mem_Malloc(0x5C, 0);
-    arg0->idMap = (TaskIdMap*)work;
+    extra      = (TmdObject*)arg0->extra;
+    cfg        = (DumpingHoleCoordCfg*)arg0->spawnArg2;
+    coord      = extra->field_8;
+    work       = (DumpingHoleCoordWork*)Mem_Malloc(0x5C, 0);
+    arg0->work = (TaskIdMap*)work;
     if (work == NULL) {
         Task_Kill(arg0);
         return;
@@ -351,15 +351,15 @@ void func_shelter_b3_dumping_hole_8017FBA0(Task* arg0)
     DumpingHoleEntity*   ent;
 
     ent  = D_shelter_b3_dumping_hole_8018F4A8->field_1C;
-    fade = (DumpingHoleFadeWork*)arg0->idMap;
+    fade = (DumpingHoleFadeWork*)arg0->work;
     if (ent->field_4C == 1) {
         Task_Kill(arg0);
         return;
     }
     switch (arg0->state) {
         case 0:
-            alloc       = (DumpingHoleFadeWork*)Mem_Malloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (DumpingHoleFadeWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 Task_Kill(arg0);
                 return;
@@ -402,9 +402,9 @@ void func_shelter_b3_dumping_hole_8017FCF4(Task* arg0, DumpingHoleSpawnArg* arg1
     Task*                 task;
     DumpingHoleSpawnWork* work;
 
-    task        = Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188C04, 1, 0, (s32)arg0);
-    work        = (DumpingHoleSpawnWork*)Mem_Malloc(0x24, 0);
-    task->idMap = (TaskIdMap*)work;
+    task       = Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188C04, 1, 0, (s32)arg0);
+    work       = (DumpingHoleSpawnWork*)Mem_Malloc(0x24, 0);
+    task->work = (TaskIdMap*)work;
     if (work == NULL) {
         Task_Kill(task);
         return;

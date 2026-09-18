@@ -8,7 +8,7 @@
 #include "gameplay/3A34.h"
 
 /// Work block of the enemy actors that share `ActorsShared801695a0`, reached
-/// through `Task::idMap`. Only the fields this body touches are modelled; the
+/// through `Task::work`. Only the fields this body touches are modelled; the
 /// carriers describe the rest of the same 0x454-byte block in their own
 /// headers (`Actor341700Work`, `Actor342400Work`).
 ///

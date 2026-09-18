@@ -19,8 +19,8 @@ void func_shelter_b1_pod_service_gantry_8017D81C(Task* arg0)
 
     arg0->field_24 = &D_shelter_b1_pod_service_gantry_8017FAF4;
     Game_SetPtrSlot(arg0, 7);
-    temp_v0     = Mem_Malloc(8U, false);
-    arg0->idMap = temp_v0;
+    temp_v0    = Mem_Malloc(8U, false);
+    arg0->work = temp_v0;
     if (temp_v0 == NULL) {
         Task_Kill(arg0);
         return;

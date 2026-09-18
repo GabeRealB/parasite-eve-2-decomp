@@ -14,7 +14,7 @@ void ActorsShared8016a538(Task* arg0)
     MATRIX*                   dst;
     s16                       pitch;
 
-    work               = (ActorsShared80168d3cWork*)arg0->idMap;
+    work               = (ActorsShared80168d3cWork*)arg0->work;
     coord              = ((TmdObject*)arg0->extra)->field_8;
     src                = &rot;
     src->ident.m00_m01 = 0x1000;

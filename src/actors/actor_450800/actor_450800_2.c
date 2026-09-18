@@ -11,7 +11,7 @@ void func_actor_450800_80132AE0(Task* task)
     Actor450800Work* work;
     s32              i;
 
-    work = (Actor450800Work*)task->idMap;
+    work = (Actor450800Work*)task->work;
     i    = 1;
     do {
         func_800B4114(&work->anim, i, work->field_4B8, 0, work->field_4FC);
@@ -38,7 +38,7 @@ s32 func_actor_450800_80132B44(Task* task, s32 arg1, Actor450800AnimArgs* args)
 {
     Actor450800Work* work;
 
-    work = (Actor450800Work*)task->idMap;
+    work = (Actor450800Work*)task->work;
     if (args->animId >= 0x1F) {
         return -1;
     }
@@ -72,7 +72,7 @@ s32 func_actor_450800_80132BB0(Task* task, s32 arg1, s32 arg2)
     TmdObject*       second;
     TmdObject*       third;
 
-    work   = (Actor450800Work*)task->idMap;
+    work   = (Actor450800Work*)task->work;
     self   = (TmdObject*)task->extra;
     first  = (TmdObject*)work->field_4F0->extra;
     second = (TmdObject*)work->field_4F4->extra;

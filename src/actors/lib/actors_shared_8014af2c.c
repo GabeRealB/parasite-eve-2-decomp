@@ -21,7 +21,7 @@ void ActorsShared8014af2c(Task* arg0)
     Actor207200Work* work;
     s32              i;
 
-    work = arg0->idMap;
+    work = arg0->work;
     i    = 1;
     if (work->field_28C != (s16)work->field_28E) {
         work->field_28E = work->field_28C;

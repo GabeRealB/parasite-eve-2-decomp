@@ -92,9 +92,9 @@ STATIC_ASSERT_SIZEOF(Actor403200TurnScratch, 0xC);
 /// Per-actor state block for the `actor_403200` overlay.
 ///
 /// `func_actor_403200_80138AFC` allocates it with `Mem_Calloc(0xF24, 0)` and
-/// stores the result in the `Task::idMap` slot (0x1C), which this enemy actor
+/// stores the result in the `Task::work` slot (0x1C), which this enemy actor
 /// reuses for its own work block, so it is *not* a `TaskIdMap` here. Reach it
-/// with `(Actor403200Work*)task->idMap`. The size below is the allocation, not
+/// with `(Actor403200Work*)task->work`. The size below is the allocation, not
 /// a guess.
 typedef struct Actor403200Work {
     /// State index. `func_actor_403200_8013FB54` indexes the local copy of
@@ -306,7 +306,7 @@ STATIC_ASSERT_SIZEOF(Actor403200Work, 0xF24);
 
 /// Work block of the enemy `func_actor_403200_8013669C` stands up: that state
 /// allocates it with `Mem_Calloc(0x1C0, 0)` and parks it in its task's
-/// `Task::idMap` slot, so the size below is the allocation, not a guess.
+/// `Task::work` slot, so the size below is the allocation, not a guess.
 ///
 /// The state drops the model onto the view coordinate and hangs two `GpObj`
 /// display nodes off it. `rec0` is the table the first node carries, `rec1`
@@ -346,7 +346,7 @@ s16 func_actor_403200_801344C4(Actor403200Obj* arg0, s16 arg1);
 
 /// The actor's per-frame body: runs the animation resets and the collision /
 /// damage ticks. Takes the task, and reaches the work block through its
-/// `idMap` slot, as `func_actor_403200_8014123C` does.
+/// `work` slot, as `func_actor_403200_8014123C` does.
 void func_actor_403200_80133DD8(Task* task);
 
 #endif

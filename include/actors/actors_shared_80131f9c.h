@@ -7,7 +7,7 @@
 #include "main/task.h"
 
 /// The `ActorsShared80131e24` two-state dispatcher with one extra store: it
-/// copies `Task::idMap` into an overlay-local global before calling the
+/// copies `Task::work` into an overlay-local global before calling the
 /// handler, which is how the rest of each carrier reaches its work block
 /// without the task in hand.
 ///

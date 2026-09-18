@@ -8,7 +8,7 @@ void func_actor_103700_801350DC(Task* task, s32 arg1, s32 arg2)
     GsCOORDINATE2*   coord;
     u16              frame;
 
-    work  = (Actor103700Work*)task->idMap;
+    work  = (Actor103700Work*)task->work;
     coord = ((TmdObject*)task->extra)->field_8;
 
     frame           = work->field_25E + 1;
@@ -26,7 +26,7 @@ void func_actor_103700_80135140(Task* task, s32 arg1)
     u16              frame;
     s32              amp;
 
-    work  = (Actor103700Work*)task->idMap;
+    work  = (Actor103700Work*)task->work;
     coord = ((TmdObject*)task->extra)->field_8;
 
     frame           = work->field_25C + 1;

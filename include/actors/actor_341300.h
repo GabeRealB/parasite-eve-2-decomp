@@ -13,7 +13,7 @@
 /// One step of gameplay's LCG, `state = state * 5 + 0x71357911`, as its high half.
 #define ACTOR_341300_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 
-/// 0x30 block `func_actor_341300_80162878` allocates into `Task::idMap`: a
+/// 0x30 block `func_actor_341300_80162878` allocates into `Task::work`: a
 /// tumbling Gouraud triangle shard with its own spin and velocity.
 typedef struct {
     /* 0x00 */ SVECTOR rot;

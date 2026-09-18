@@ -11,13 +11,13 @@
 void ActorsShared8016a98c(Task* task)
 {
     GpEnemy*                  enemy = (GpEnemy*)task->spawnArg2;
-    ActorsShared8016a98cWork* work  = (ActorsShared8016a98cWork*)task->idMap;
+    ActorsShared8016a98cWork* work  = (ActorsShared8016a98cWork*)task->work;
     GsCOORDINATE2*            coord = ((TmdObject*)task->extra)->field_8;
     ActorsShared8016a98cWork* objWork;
 
     enemy->field_54 = 0;
 
-    objWork = (ActorsShared8016a98cWork*)task->idMap;
+    objWork = (ActorsShared8016a98cWork*)task->work;
     Gp_UnlinkObj(&objWork->obj_2AC);
     Gp_UnlinkObj(&objWork->obj_2CC);
     Gp_UnlinkObj(&objWork->obj_3AC);

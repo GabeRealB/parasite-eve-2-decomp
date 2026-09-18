@@ -7,7 +7,7 @@
 
 void ActorsShared80166b20(Task* arg0)
 {
-    ActorsShared80168d3cWork* work = (ActorsShared80168d3cWork*)arg0->idMap;
+    ActorsShared80168d3cWork* work = (ActorsShared80168d3cWork*)arg0->work;
     ActorsShared80168d3cWork* state;
     ActorsShared80168d3cWork* state2;
     s32                       angle;
@@ -15,7 +15,7 @@ void ActorsShared80166b20(Task* arg0)
     s32                       aim;
 
     if ((s16)++work->field_412 > work->field_446) {
-        state            = (ActorsShared80168d3cWork*)arg0->idMap;
+        state            = (ActorsShared80168d3cWork*)arg0->work;
         state->field_420 = 2;
         state->field_422 = 0;
         return;
@@ -30,7 +30,7 @@ void ActorsShared80166b20(Task* arg0)
         work->field_424 = angle + ((s16)((aim - angle) * 16) >> 6);
         if (++work->field_42C >= 0x10) {
             Gp_ArmStateF0(1);
-            state2            = (ActorsShared80168d3cWork*)arg0->idMap;
+            state2            = (ActorsShared80168d3cWork*)arg0->work;
             state2->field_420 = 3;
             state2->field_422 = 0;
         }

@@ -17,7 +17,7 @@ void Task_AllocIdMap(Task* arg0)
     temp_s4 = D_80062764[Game_Session->field_7 - 1];
     temp_v0 = Mem_Calloc(8, 0);
     if (temp_v0 != NULL) {
-        arg0->idMap = temp_v0;
+        arg0->work = temp_v0;
         if (D_80062737 != 0) {
             SndEvt_EnqueueType2(0, 1);
             D_80062737 = 0;
@@ -87,7 +87,7 @@ void Stage_LoadOrCountdownTask(Task* arg0)
     s32                  field34;
     u8                   flag;
 
-    temp = arg0->idMap;
+    temp = arg0->work;
     if (Midi_IsBusy(D_80062739) == 0) {
         param1[3] = 0;
         param1[2] = 4;
@@ -130,7 +130,7 @@ void Stage_ApplyTableEntryWhenIdle(Task* arg0)
     TaskIdPair* entry;
     u8          type;
 
-    temp = arg0->idMap;
+    temp = arg0->work;
     if (CdCmd_IsIdle() != 0) {
         entry = (TaskIdPair*)((temp->index << 1) + (u32)temp->table);
         type  = entry->type;

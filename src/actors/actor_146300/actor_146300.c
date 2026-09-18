@@ -191,7 +191,7 @@ void func_actor_146300_80132418(s32 arg0)
 
 /// State-0 handler of the `ActorsShared80131f9c` dispatcher: allocates the
 /// 0x4EC work block, publishes it in `ActorsShared80131f9cWork` and the task's
-/// `idMap` slot, binds the model's coordinate frame to the view and hands the
+/// `work` slot, binds the model's coordinate frame to the view and hands the
 /// object the block's light and colour matrices, then points it at the part's
 /// world translation dropped by 0x320 in y.
 ///
@@ -220,7 +220,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     coord                    = obj->field_8;
     work                     = Mem_Calloc(0x4EC, 0);
     ActorsShared80131f9cWork = work;
-    task->idMap              = (TaskIdMap*)work;
+    task->work               = (TaskIdMap*)work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;

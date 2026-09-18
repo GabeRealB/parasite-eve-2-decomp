@@ -22,21 +22,21 @@ extern Actor341900MsgPos D_actor_341900_80163B28;
 
 void func_actor_341900_80163388(s32 arg0)
 {
-    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->idMap;
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
 
     Gp_DispatchMsg(work->field_8, 0x7D5, arg0, 0);
 }
 
 void func_actor_341900_801633C0(s32 arg0)
 {
-    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->idMap;
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
 
     Gp_DispatchMsg(work->field_0, 0x3F3, arg0, 0);
 }
 
 void func_actor_341900_801633F8(void)
 {
-    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->idMap;
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
 
     if (work->field_6C == 0) {
         work->field_6C = 1;
@@ -46,7 +46,7 @@ void func_actor_341900_801633F8(void)
 
 void func_actor_341900_80163438(void)
 {
-    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->idMap;
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
 
     if (work->field_6C != 0) {
         Gp_SpawnWeaponEff();
@@ -57,7 +57,7 @@ void func_actor_341900_80163438(void)
 
 void func_actor_341900_80163488(void)
 {
-    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->idMap;
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
 
     if (work->field_8 != NULL) {
         Task_Kill(work->field_8);
@@ -67,7 +67,7 @@ void func_actor_341900_80163488(void)
 
 void func_actor_341900_801634D0(void)
 {
-    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->idMap;
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
 
     if (work->field_C != NULL) {
         Task_Kill(work->field_C);
@@ -86,7 +86,7 @@ void func_actor_341900_80163534(void)
 
 void func_actor_341900_80163564(s16 arg0)
 {
-    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->idMap;
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
 
     work->field_5C = arg0;
     work->field_5E = 0;
@@ -94,7 +94,7 @@ void func_actor_341900_80163564(s16 arg0)
 
 void func_actor_341900_80163584(s16 arg0)
 {
-    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->idMap;
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
 
     work->field_64 = arg0;
     work->field_66 = 0;
@@ -112,7 +112,7 @@ void func_actor_341900_801635A4(void)
     s32              weaponId;
     s32              anim;
 
-    work         = (Actor341900Work*)D_actor_341900_80164208->idMap;
+    work         = (Actor341900Work*)D_actor_341900_80164208->work;
     weaponId     = D_80073BA9;
     anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.field_0  = (void*)anim;

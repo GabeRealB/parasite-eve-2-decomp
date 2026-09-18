@@ -17,7 +17,7 @@ void func_actor_342400_80168394(Task* arg0)
     s16              angle;
     s16              speed;
 
-    work = (Actor342400Work*)arg0->idMap;
+    work = (Actor342400Work*)arg0->work;
     if ((s16)++work->field_412 == 1) {
         soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0009;
         pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
@@ -28,7 +28,7 @@ void func_actor_342400_80168394(Task* arg0)
     ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
     ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
     ((TmdObject*)arg0->extra)->field_8->flg         = 0;
-    work2                                           = (Actor342400Work*)arg0->idMap;
+    work2                                           = (Actor342400Work*)arg0->work;
     if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
         cond = 1;
     } else {
@@ -36,11 +36,11 @@ void func_actor_342400_80168394(Task* arg0)
     }
     if (cond) {
         work->obj_2CC.flags |= 0x4000;
-        next                 = (Actor342400Work*)arg0->idMap;
+        next                 = (Actor342400Work*)arg0->work;
         arg0->state          = 3;
         next->field_420      = 0;
         next->field_422      = 0;
-        next2                = (Actor342400Work*)arg0->idMap;
+        next2                = (Actor342400Work*)arg0->work;
         next2->field_420     = 5;
         next2->field_422     = 0;
     }
@@ -70,7 +70,7 @@ void func_actor_342400_80168530(Task* arg0)
     s32              pan;
 
     obj   = arg0->extra;
-    work  = (Actor342400Work*)arg0->idMap;
+    work  = (Actor342400Work*)arg0->work;
     coord = obj->field_8;
     enemy = (GpEnemy*)arg0->spawnArg2;
     work->field_412++;
@@ -86,7 +86,7 @@ void func_actor_342400_80168530(Task* arg0)
         } else {
             work->field_41C = 0x40;
         }
-        w      = (Actor342400Work*)arg0->idMap;
+        w      = (Actor342400Work*)arg0->work;
         c      = ((TmdObject*)arg0->extra)->field_8;
         dir.vx = work->field_70.vx - c->coord.t[0];
         dir.vy = 0;
@@ -100,7 +100,7 @@ void func_actor_342400_80168530(Task* arg0)
         }
         angle                                           = work->field_7A;
         k                                               = -0x10;
-        step                                            = ((((Actor342400Work*)arg0->idMap)->field_41C * k) << 12) >> 16;
+        step                                            = ((((Actor342400Work*)arg0->work)->field_41C * k) << 12) >> 16;
         ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * step) >> 16;
         ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * step) >> 16;
         ((TmdObject*)arg0->extra)->field_8->flg         = 0;
@@ -137,7 +137,7 @@ void func_actor_342400_80168530(Task* arg0)
             coord->coord.t[1] += (work->field_70.vy - coord->coord.t[1]) >> 5;
         }
     } else if (enemy->field_40 > 0) {
-        Actor342400Work* w2 = (Actor342400Work*)arg0->idMap;
+        Actor342400Work* w2 = (Actor342400Work*)arg0->work;
 
         if ((w2->flags_EC.half & 1) || (w2->flags_EC.word & 0x102)) {
             cond = 1;
@@ -162,14 +162,14 @@ void func_actor_342400_80168530(Task* arg0)
             work->field_438 = 1;
             if (work->field_418 == 8) {
                 if (work->field_440 == 0) {
-                    Actor342400Work* w = (Actor342400Work*)arg0->idMap;
+                    Actor342400Work* w = (Actor342400Work*)arg0->work;
 
                     w->field_426 = 4;
                     w->field_41C = 0x10;
                     w->field_418 = 5;
                     w->field_414 = 1;
                 } else {
-                    Actor342400Work* w = (Actor342400Work*)arg0->idMap;
+                    Actor342400Work* w = (Actor342400Work*)arg0->work;
 
                     w->field_426 = 4;
                     w->field_41C = 0x10;
@@ -181,7 +181,7 @@ void func_actor_342400_80168530(Task* arg0)
                 s16              next;
 
                 next         = D_actor_342400_80173A98[work->field_418 - 1];
-                w            = (Actor342400Work*)arg0->idMap;
+                w            = (Actor342400Work*)arg0->work;
                 w->field_426 = 4;
                 w->field_41C = 0x10;
                 w->field_418 = next;

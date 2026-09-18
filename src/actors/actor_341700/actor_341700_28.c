@@ -24,11 +24,11 @@ void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1)
     GsCOORDINATE2*      coord;
     VECTOR              block;
 
-    model       = (TmdObject*)arg1->extra;
-    coord       = model->field_8;
-    idMap       = Mem_Calloc(0x80U, false);
-    work        = (Actor341700SubWork*)idMap;
-    arg1->idMap = idMap;
+    model      = (TmdObject*)arg1->extra;
+    coord      = model->field_8;
+    idMap      = Mem_Calloc(0x80U, false);
+    work       = (Actor341700SubWork*)idMap;
+    arg1->work = idMap;
     if (idMap == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
@@ -66,7 +66,7 @@ void func_actor_341700_8016D2B8(GpEnemy* arg0, Task* arg1)
 {
     TmdObject* model;
 
-    if (((Actor341700SubWork*)arg1->idMap)->field_4 != 0) {
+    if (((Actor341700SubWork*)arg1->work)->field_4 != 0) {
         model              = (TmdObject*)arg1->extra;
         arg0->node.field_4 = 1;
         model->field_C     = 0x84;
@@ -77,7 +77,7 @@ void func_actor_341700_8016D2E8(GpEnemy* arg0, Task* arg1)
 {
     TmdObject* model;
 
-    if (((Actor341700SubWork*)arg1->idMap)->field_4 != 0) {
+    if (((Actor341700SubWork*)arg1->work)->field_4 != 0) {
         model              = (TmdObject*)arg1->extra;
         arg0->node.field_4 = 1;
         model->field_C     = 0;

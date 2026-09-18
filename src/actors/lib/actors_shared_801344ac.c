@@ -14,11 +14,11 @@ void ActorsShared801344ac(Task* arg0)
     ActorShared801344acWork* fade;
     ActorShared801344acWork* alloc;
 
-    fade = (ActorShared801344acWork*)arg0->idMap;
+    fade = (ActorShared801344acWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc       = (ActorShared801344acWork*)Mem_Malloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (ActorShared801344acWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 Task_Kill(arg0);
                 return;

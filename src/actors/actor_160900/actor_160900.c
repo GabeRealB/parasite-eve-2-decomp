@@ -37,7 +37,7 @@ s32 func_actor_160900_801326EC(Task* arg0)
     u16                  anim;
     u16                  anim2;
 
-    work = (Actor160900Work*)arg0->idMap;
+    work = (Actor160900Work*)arg0->work;
     if (work->field_34 == NULL) {
         return 1;
     }
@@ -68,7 +68,7 @@ s32 func_actor_160900_801326EC(Task* arg0)
         if (entry2->field_2 < 0) {
             return 1;
         }
-        work = (Actor160900Work*)arg0->idMap;
+        work = (Actor160900Work*)arg0->work;
         if (work->field_34 != NULL) {
             anim2          = entry2->field_2;
             msg.field_0    = D_actor_160900_8013F198;
@@ -107,8 +107,8 @@ void func_actor_160900_80132A14(Task* arg0)
         GpAreaPlace*           place;
         u8                     id;
 
-        block       = Mem_Malloc(0x4BC, 0);
-        arg0->idMap = (TaskIdMap*)block;
+        block      = Mem_Malloc(0x4BC, 0);
+        arg0->work = (TaskIdMap*)block;
         if (block == NULL) {
             Task_Kill(arg0);
             return;
@@ -123,7 +123,7 @@ void func_actor_160900_80132A14(Task* arg0)
                 coord->sub = &((TmdObject*)parent->extra)->field_8[8];
                 break;
         }
-        Mem_Set(arg0->idMap, 0, 0x4BC);
+        Mem_Set(arg0->work, 0, 0x4BC);
         tmd->field_1C = &work->light;
         tmd->field_20 = &work->color;
         if (arg0->spawnArg1 < 2) {
@@ -161,10 +161,10 @@ static inline void func_actor_160900_InitAnim(Task* task, GpAnimObj* obj)
     Actor160900Child3Work* work;
     s32                    i;
 
-    work = (Actor160900Child3Work*)task->idMap;
+    work = (Actor160900Child3Work*)task->work;
     func_800B3F84(&work->anim, D_actor_160900_8013F1C4, obj, work->aux, work->slots);
     work->field_4B4 = D_actor_160900_8013F1F8;
-    work            = (Actor160900Child3Work*)task->idMap;
+    work            = (Actor160900Child3Work*)task->work;
     i               = 1;
     work->field_4B8 = 0;
     work->field_4BA = 0;
@@ -186,15 +186,15 @@ void func_actor_160900_80132C08(Task* task)
     s32                    failed;
 
     if (task->state == 0) {
-        obj         = (TmdObject*)task->extra;
-        coord       = obj->field_8;
-        work        = (Actor160900Child3Work*)Mem_Malloc(0x4BC, false);
-        task->idMap = (TaskIdMap*)work;
+        obj        = (TmdObject*)task->extra;
+        coord      = obj->field_8;
+        work       = (Actor160900Child3Work*)Mem_Malloc(0x4BC, false);
+        task->work = (TaskIdMap*)work;
         if (work == NULL) {
             failed = 1;
         } else {
             coord->sub = &Gfx_ViewCoord;
-            Mem_Set(task->idMap, 0, 0x4BC);
+            Mem_Set(task->work, 0, 0x4BC);
             obj->field_1C  = &work->light;
             obj->field_20  = &work->color;
             obj->field_C  |= 0x84;
@@ -241,7 +241,7 @@ void func_actor_160900_80132E80(Task* task)
     s16            i;
 
     coord = ((TmdObject*)task->extra)->field_8;
-    verts = &((Actor160900ChildWork*)task->idMap)->field_0;
+    verts = &((Actor160900ChildWork*)task->work)->field_0;
     Gp_UpdateCoord(coord);
     gte_SetTransMatrix(&coord->workm);
     gte_SetRotMatrix(&coord->workm);
@@ -378,7 +378,7 @@ static inline void func_actor_160900_SetAnim(Task* task, u16 anim)
     GpAnimArg        msg;
     GpAnimArg*       p;
 
-    work = (Actor160900Work*)task->idMap;
+    work = (Actor160900Work*)task->work;
     p    = &msg;
     if (work->field_34 != NULL) {
         p->field_0     = D_actor_160900_8013F198;
@@ -398,7 +398,7 @@ static inline void func_actor_160900_SetAnimZ(Task* task, u16 anim)
     GpAnimArg        msg;
     GpAnimArg*       p;
 
-    work = (Actor160900Work*)task->idMap;
+    work = (Actor160900Work*)task->work;
     p    = &msg;
     if (work->field_34 != NULL) {
         p->field_0     = D_actor_160900_8013F198;
@@ -420,14 +420,14 @@ void func_actor_160900_80133238(Task* arg0)
     s32              v;
     s32              x;
 
-    work = (Actor160900Work*)arg0->idMap;
+    work = (Actor160900Work*)arg0->work;
     func_actor_160900_801326EC(arg0);
     switch ((u16)work->field_4C) {
         case 0:
             break;
         case 1:
             Gp_DispatchMsg(work->field_34, 0x3E9, (s32)D_actor_160900_8013F210, 0);
-            w = (Actor160900Work*)arg0->idMap;
+            w = (Actor160900Work*)arg0->work;
             if (w->field_34 != NULL) {
                 msg.field_0  = D_actor_160900_8013F198;
                 w->field_64  = 10;
@@ -440,7 +440,7 @@ void func_actor_160900_80133238(Task* arg0)
             }
             break;
         case 2:
-            w = (Actor160900Work*)arg0->idMap;
+            w = (Actor160900Work*)arg0->work;
             if (w->field_34 != NULL) {
                 msg.field_0  = D_actor_160900_8013F198;
                 w->field_64  = 1;
@@ -510,7 +510,7 @@ void func_actor_160900_8013358C(Task* arg0)
     SVECTOR                ofs2;
     s32                    i;
 
-    work = (Actor160900Work*)arg0->idMap;
+    work = (Actor160900Work*)arg0->work;
     switch ((u16)work->field_54) {
         case 0:
             break;
@@ -531,7 +531,7 @@ void func_actor_160900_8013358C(Task* arg0)
             Gp_SpawnEff(0x60046, ((TmdObject*)work->field_38->extra)->field_8, 0x20000100, &ofs);
             break;
         case 3:
-            child            = (Actor160900Child3Work*)work->field_38->idMap;
+            child            = (Actor160900Child3Work*)work->field_38->work;
             child->field_4B8 = 1;
             child->field_4BA = 0;
             do {
@@ -581,14 +581,14 @@ void func_actor_160900_80133880(void)
     Actor160900ChildWork* work;
     Task*                 task;
 
-    data             = (Actor160900Work*)D_actor_160900_8013FBB4->idMap;
+    data             = (Actor160900Work*)D_actor_160900_8013FBB4->work;
     task             = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 0, 0);
     data->field_C[0] = task;
     if (task == NULL) {
         return;
     }
-    alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
-    task->idMap = (TaskIdMap*)alloc;
+    alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
+    task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
         Task_Kill(task);
         return;
@@ -616,8 +616,8 @@ void func_actor_160900_80133880(void)
     if (task == NULL) {
         return;
     }
-    alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
-    task->idMap = (TaskIdMap*)alloc;
+    alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
+    task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
         Task_Kill(task);
         return;
@@ -648,14 +648,14 @@ void func_actor_160900_80133A84(void)
     Actor160900ChildWork* work;
     Task*                 task;
 
-    data             = (Actor160900Work*)D_actor_160900_8013FBB4->idMap;
+    data             = (Actor160900Work*)D_actor_160900_8013FBB4->work;
     task             = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 5, 0);
     data->field_C[0] = task;
     if (task == NULL) {
         return;
     }
-    alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
-    task->idMap = (TaskIdMap*)alloc;
+    alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
+    task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
         Task_Kill(task);
         return;
@@ -683,8 +683,8 @@ void func_actor_160900_80133A84(void)
     if (task == NULL) {
         return;
     }
-    alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
-    task->idMap = (TaskIdMap*)alloc;
+    alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
+    task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
         Task_Kill(task);
         return;
@@ -712,8 +712,8 @@ void func_actor_160900_80133A84(void)
     if (task == NULL) {
         return;
     }
-    alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
-    task->idMap = (TaskIdMap*)alloc;
+    alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
+    task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
         Task_Kill(task);
         return;
@@ -741,8 +741,8 @@ void func_actor_160900_80133A84(void)
     if (task == NULL) {
         return;
     }
-    alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
-    task->idMap = (TaskIdMap*)alloc;
+    alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
+    task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
         Task_Kill(task);
         return;
@@ -770,8 +770,8 @@ void func_actor_160900_80133A84(void)
     if (task == NULL) {
         return;
     }
-    alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
-    task->idMap = (TaskIdMap*)alloc;
+    alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
+    task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
         Task_Kill(task);
         return;
@@ -799,8 +799,8 @@ void func_actor_160900_80133A84(void)
     if (task == NULL) {
         return;
     }
-    alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
-    task->idMap = (TaskIdMap*)alloc;
+    alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
+    task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
         Task_Kill(task);
         return;
@@ -831,14 +831,14 @@ void func_actor_160900_80133F90(void)
     Actor160900ChildWork* work;
     Task*                 task;
 
-    data             = (Actor160900Work*)D_actor_160900_8013FBB4->idMap;
+    data             = (Actor160900Work*)D_actor_160900_8013FBB4->work;
     task             = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 0, 0);
     data->field_C[0] = task;
     if (task == NULL) {
         return;
     }
-    alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
-    task->idMap = (TaskIdMap*)alloc;
+    alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
+    task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
         Task_Kill(task);
         return;
@@ -866,8 +866,8 @@ void func_actor_160900_80133F90(void)
     if (task == NULL) {
         return;
     }
-    alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
-    task->idMap = (TaskIdMap*)alloc;
+    alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
+    task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
         Task_Kill(task);
         return;
@@ -901,8 +901,8 @@ void func_actor_160900_8013418C(Task* arg0)
             if (D_80114C12 == 1 || D_80071075 != 0) {
                 return;
             }
-            work        = (Actor160900Work*)Mem_Malloc(0x68, 0);
-            arg0->idMap = (TaskIdMap*)work;
+            work       = (Actor160900Work*)Mem_Malloc(0x68, 0);
+            arg0->work = (TaskIdMap*)work;
             if (work == NULL) {
                 Task_Kill(arg0);
             } else {
@@ -931,7 +931,7 @@ void func_actor_160900_8013418C(Task* arg0)
     }
     func_actor_160900_80133238(arg0);
     func_actor_160900_8013358C(arg0);
-    data = (Actor160900Work*)arg0->idMap;
+    data = (Actor160900Work*)arg0->work;
     switch ((u16)data->field_5C) {
         case 1:
             func_actor_160900_80133758(D_actor_160900_8013F258);
@@ -960,11 +960,11 @@ void func_actor_160900_801343E4(Task* arg0)
     Actor160900FadeWork* work;
     Actor160900FadeWork* alloc;
 
-    work = (Actor160900FadeWork*)arg0->idMap;
+    work = (Actor160900FadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc       = (Actor160900FadeWork*)Mem_Malloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (Actor160900FadeWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 Task_Kill(arg0);
                 return;
@@ -993,11 +993,11 @@ void func_actor_160900_801344D8(Task* arg0)
     Actor160900FadeWork* work;
     Actor160900FadeWork* alloc;
 
-    work = (Actor160900FadeWork*)arg0->idMap;
+    work = (Actor160900FadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc       = (Actor160900FadeWork*)Mem_Malloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (Actor160900FadeWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 Task_Kill(arg0);
                 return;

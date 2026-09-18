@@ -46,7 +46,7 @@ typedef struct _GpObj {
 } GpObj;
 STATIC_ASSERT_SIZEOF(GpObj, 0x20);
 
-/// Work object whose `actor` pointer sits at 0x1C (same slot as `Task::idMap`).
+/// Work object whose `actor` pointer sits at 0x1C (same slot as `Task::work`).
 typedef struct _GpActorWork {
     /* 0x00 */ byte       pad_0[0x18];
     /* 0x18 */ void*      field_18; // Task::exitCallback; cleared before self-kill
@@ -254,7 +254,7 @@ extern s32      D_80112C7C[];
 /// is the packed parameter passed through to `Gp_DrawEffSprite46`, the per-frame
 /// `field_26` step, or `Gp_EffCtlTaskF3`'s `Gp_SpawnEff` spawn arg.
 typedef struct _GpEffWork {
-    /* 0x00 */ struct _Task*          field_0;
+    /* 0x00 */ struct Task*           field_0;
     /* 0x04 */ s32                    field_4;
     /* 0x08 */ struct _GsCOORDINATE2* field_8;
     /* 0x0C */ SVECTOR*               field_C;

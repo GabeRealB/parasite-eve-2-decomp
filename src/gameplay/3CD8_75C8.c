@@ -100,7 +100,7 @@ void Gp_ScriptTaskState1(Task* arg0)
     s32         mode;
     GpEvsCmd*   cmd;
 
-    st = (GpEvsState*)arg0->idMap;
+    st = (GpEvsState*)arg0->work;
     if (D_801156F9 != 0) {
         return;
     }
@@ -345,7 +345,7 @@ void Gp_ScriptTaskState1(Task* arg0)
                     Task_CallExit(D_8010FBE0);
                     D_8010FBE0 = NULL;
                 }
-                st2 = (GpEvsState*)arg0->idMap;
+                st2 = (GpEvsState*)arg0->work;
                 if (st2->fadeTask != NULL) {
                     if (D_801156D8.field_1 != 2) {
                         Task_Kill(st2->fadeTask);
@@ -452,7 +452,7 @@ void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 37:
-                st2 = (GpEvsState*)arg0->idMap;
+                st2 = (GpEvsState*)arg0->work;
                 if (st2->fadeTask != NULL) {
                     if (D_801156D8.field_1 != 2) {
                         Task_Kill(st2->fadeTask);
@@ -645,7 +645,7 @@ void Gp_ScriptInit(Task* arg0)
     Display_AcquireRef();
     script       = arg0->spawnArg2;
     D_801156A4   = 0;
-    arg0->idMap  = (TaskIdMap*)mem;
+    arg0->work   = (TaskIdMap*)mem;
     mem->field_4 = 0;
     D_801156C8   = 0;
     mem->field_0 = script;
@@ -749,7 +749,7 @@ void Gp_StepScriptA(Task* task)
     s32          opcode;
     u8           tmp;
 
-    state          = (GpState34*)task->idMap;
+    state          = (GpState34*)task->work;
     table          = state->field_0;
     recs           = state->field_4;
     cmd            = table[state->field_E].field_0;
@@ -796,7 +796,7 @@ void Gp_StepScriptB(Task* task)
     s32          opcode;
     u8           tmp;
 
-    state          = (GpState34*)task->idMap;
+    state          = (GpState34*)task->work;
     table          = state->field_0;
     recs           = state->field_4;
     cmd            = table[state->field_F].field_2;
@@ -857,7 +857,7 @@ void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2)
             } else {
                 end                 = (arg2 & 0xFF) << 8;
                 start               = (arg1 & 0xFF) << 8;
-                task->idMap         = (TaskIdMap*)mem;
+                task->work          = (TaskIdMap*)mem;
                 mem->field_8        = arg0;
                 mem->field_4.as_s32 = start;
                 mem->field_0        = (end - start) / arg0;
@@ -882,8 +882,8 @@ void Gp_SpawnPadLerpScaled(s16 arg0, u8 arg1, u8 arg2, s16 arg3)
             if (task == NULL) {
                 Mem_Free(mem);
             } else {
-                task->idMap = (TaskIdMap*)mem;
-                temp        = arg3 >> 3;
+                task->work = (TaskIdMap*)mem;
+                temp       = arg3 >> 3;
                 if (temp == 0) {
                     scale = 1;
                 } else {
@@ -919,7 +919,7 @@ Task* Gp_SpawnScript18(s32 arg0, s32 arg1)
     if (mem != NULL) {
         task = Task_Spawn(2, 0xD, 0, 0);
         if (task != NULL) {
-            task->idMap  = (TaskIdMap*)mem;
+            task->work   = (TaskIdMap*)mem;
             mem->field_8 = 0;
             mem->field_0 = arg0;
             mem->field_4 = arg1;
@@ -943,7 +943,7 @@ void Gp_DispatchScript18(Task* task)
     TaskFuncTable5 tableB;
     GpState18*     state;
 
-    state  = (GpState18*)task->idMap;
+    state  = (GpState18*)task->work;
     tableA = Gp_ScriptAStates;
     tableB = Gp_ScriptBStates;
     tableA.funcs[state->field_A](task);
@@ -969,7 +969,7 @@ Task* Gp_SpawnScript18Ex(s32 arg0, s32 arg1, s32 arg2)
     if (mem != NULL) {
         task = Task_Spawn(2, 0xD, 0, 0);
         if (task != NULL) {
-            task->idMap  = (TaskIdMap*)mem;
+            task->work   = (TaskIdMap*)mem;
             mem->field_8 = arg2;
             mem->field_0 = arg0;
             mem->field_4 = arg1;
@@ -1001,7 +1001,7 @@ void Gp_TickScriptADelay(Task* task)
 {
     GpState34* state;
 
-    state = (GpState34*)task->idMap;
+    state = (GpState34*)task->work;
     if (--state->field_10 == 0) {
         Gp_StepScriptA(task);
     }
@@ -1025,7 +1025,7 @@ void Gp_TickScriptBDelay(Task* task)
 {
     GpState34* state;
 
-    state = (GpState34*)task->idMap;
+    state = (GpState34*)task->work;
     if (--state->field_11 == 0) {
         Gp_StepScriptB(task);
     }
@@ -1059,7 +1059,7 @@ void Gp_PadLerpTask(Task* task)
 {
     GpState0C* state;
 
-    state = (GpState0C*)task->idMap;
+    state = (GpState0C*)task->work;
     if (Gp_StateF0.field_4 == 0 || (Game_Session->field_13B & 0x80)) {
         if (state->field_8 != 0 && Gp_PadLerpHalt == 0) {
             state->field_8--;

@@ -113,7 +113,7 @@ void func_actor_503500_8013223C(Task* arg0)
     VECTOR               pos;
 
     ext   = arg0->extra;
-    work  = (Actor503500ColorMtx*)arg0->idMap;
+    work  = (Actor503500ColorMtx*)arg0->work;
     enemy = arg0->spawnArg2;
     coord = ext->field_8;
     if (work->field_45 != 0) {
@@ -182,7 +182,7 @@ void func_actor_503500_80132430(Task* arg0)
         return;
     }
 
-    arg0->idMap    = (TaskIdMap*)work;
+    arg0->work     = (TaskIdMap*)work;
     ext->field_C  |= 0x84;
     work->field_44 = 0;
     func_actor_503500_801324EC(arg0);

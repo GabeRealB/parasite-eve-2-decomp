@@ -6,7 +6,7 @@
 
 #include <psyq/libgpu.h>
 
-/// Colour ramp the task keeps at `Task::idMap` -- that slot is not a
+/// Colour ramp the task keeps at `Task::work` -- that slot is not a
 /// `TaskIdMap` here. The allocation below is `Mem_Malloc(8, 0)`, so the size is
 /// the allocation and not a guess. All three channels start saturated and step
 /// down together, but the tile takes its blue from `r`, so `b` is only ever
@@ -38,11 +38,11 @@ void RoomsShared8017da58(Task* arg0)
     TILE*                    tile;
     DR_TPAGE*                dr;
 
-    fade = (RoomsShared8017da58Work*)arg0->idMap;
+    fade = (RoomsShared8017da58Work*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc       = (RoomsShared8017da58Work*)Mem_Malloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (RoomsShared8017da58Work*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 goto kill;
             }

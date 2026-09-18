@@ -9,7 +9,7 @@
 #include "main/tmd.h"
 
 /// Work block allocated by `func_actor_350500_801623CC` (`Mem_Calloc(0x4C8)`)
-/// and parked in that task's `Task::idMap` slot -- that slot is not a
+/// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_350500_8016247C` republishes the two matrices
 /// onto `TmdObject::field_1C` / `field_20`, the light/colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,

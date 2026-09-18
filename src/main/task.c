@@ -132,8 +132,8 @@ void Task_Kill(Task* arg0)
         }
     }
 
-    if (arg0->idMap != NULL) {
-        Mem_Free(arg0->idMap);
+    if (arg0->work != NULL) {
+        Mem_Free(arg0->work);
     }
 
     if (Display_State.skipTeardown == 0) {

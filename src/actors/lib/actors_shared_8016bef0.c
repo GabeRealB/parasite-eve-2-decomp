@@ -6,7 +6,7 @@
 
 s32 ActorsShared8016bef0(Task* arg0)
 {
-    ActorsShared80168d3cWork* work = (ActorsShared80168d3cWork*)arg0->idMap;
+    ActorsShared80168d3cWork* work = (ActorsShared80168d3cWork*)arg0->work;
 
     if (work->field_41E == 1) {
         switch (work->field_448) {

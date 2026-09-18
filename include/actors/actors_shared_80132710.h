@@ -5,7 +5,7 @@
 
 #include "main/task.h"
 
-/// Work block the actors sharing this body hang off the task's `Task::idMap`
+/// Work block the actors sharing this body hang off the task's `Task::work`
 /// slot (0x1C), which is not a `TaskIdMap` here. The carriers allocate
 /// different total sizes, so only the one field this body reaches is described
 /// rather than a whole-block size that would be wrong for some of them.

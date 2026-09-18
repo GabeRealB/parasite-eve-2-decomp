@@ -39,7 +39,7 @@ void func_actor_311900_80161E3C(Task* task, s32 arg1, s16 arg2)
     u16              g;
     u16              b;
 
-    work = (Actor311900Work*)task->idMap;
+    work = (Actor311900Work*)task->work;
     if (work->field_4C8 == 0) {
         rect.x = 0;
         rect.y = arg1 + 0xF5;
@@ -132,9 +132,9 @@ void func_actor_311900_80162100(Task* task)
     s32              j;
     s32              k;
 
-    work = (Actor311900Work*)task->idMap;
+    work = (Actor311900Work*)task->work;
     if (work->field_474 == 1) {
-        start = (Actor311900Work*)task->idMap;
+        start = (Actor311900Work*)task->work;
         for (i = 1; i < 0x14; i++) {
             start->anim.slots[i].field_9 = start->field_47C;
             func_800B4114(&start->anim.context, i, (s16)start->field_478, 0, 0);
@@ -145,7 +145,7 @@ void func_actor_311900_80162100(Task* task)
         return;
     }
     if (work->field_474 == 2) {
-        start = (Actor311900Work*)task->idMap;
+        start = (Actor311900Work*)task->work;
         for (j = 1; j < 0x14; j++) {
             start->anim.slots[j].field_9 = start->field_47C;
             Gp_AnimResetSlot(&start->anim.context, j, (s16)start->field_478);
@@ -157,7 +157,7 @@ void func_actor_311900_80162100(Task* task)
     }
     if (work->field_474 == 3) {
         work->field_47A++;
-        tick = (Actor311900Work*)task->idMap;
+        tick = (Actor311900Work*)task->work;
         for (k = 1; k < 0x14; k++) {
             Gp_AnimTickIndex(&tick->anim.context, k);
         }
@@ -196,7 +196,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_311900/actor_311900", ActorsShared8013
 /// tears the enemy down instead while game flag 0xA's nibble 2 -- the bit
 /// `func_actor_311900_801623B0` raises once the view reaches 0xA -- is already
 /// up, or when the 0x4CC-byte work block cannot be allocated into
-/// `Task::idMap` (that slot is not a `TaskIdMap` here).
+/// `Task::work` (that slot is not a `TaskIdMap` here).
 ///
 /// Otherwise it splats the light / colour pair `func_actor_311900_8016278C`
 /// writes onto the model root's `field_1C` / `field_20` slots, points
@@ -214,7 +214,7 @@ void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
     obj   = (TmdObject*)task->extra;
     coord = obj->field_8;
     if ((GameFlag_GetNibble(0xA) & 2) ||
-        (work = Mem_Calloc(0x4CC, 0), task->idMap = (TaskIdMap*)work, work == NULL)) {
+        (work = Mem_Calloc(0x4CC, 0), task->work = (TaskIdMap*)work, work == NULL)) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
@@ -250,7 +250,7 @@ void func_actor_311900_801623B0(GpEnemy* enemy, Task* task)
     TmdObject*       obj;
 
     obj   = task->extra;
-    work  = (Actor311900Work*)task->idMap;
+    work  = (Actor311900Work*)task->work;
     coord = obj->field_8;
     func_actor_311900_80161E3C(task, 2, 0);
     if ((Gp_GetViewIndex() & 0xFF) == 0xA) {

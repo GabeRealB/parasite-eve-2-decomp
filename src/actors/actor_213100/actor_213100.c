@@ -38,7 +38,7 @@ void func_actor_213100_80149E3C(Task* task)
     VECTOR3          pos;
     s32              i;
 
-    work  = (Actor213100Work*)task->idMap;
+    work  = (Actor213100Work*)task->work;
     extra = (TmdObject*)task->extra;
     if (work->field_43C != 0) {
         for (i = 1; i < 0x13; i++) {

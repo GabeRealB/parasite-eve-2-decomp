@@ -9,7 +9,7 @@ void Actor04400_Fn06374(Task* arg0, s32 arg1);
 /// block through the task as the original does.
 static __inline__ void set_state(Task* arg0, s32 state)
 {
-    Actor104400Work* w = (Actor104400Work*)arg0->idMap;
+    Actor104400Work* w = (Actor104400Work*)arg0->work;
 
     w->field_420 = state;
     w->field_422 = 0;
@@ -20,7 +20,7 @@ static __inline__ void set_state(Task* arg0, s32 state)
 /// otherwise returns 0.
 static __inline__ s32 take_request(Task* arg0)
 {
-    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
+    Actor104400Work* work = (Actor104400Work*)arg0->work;
 
     if (work->field_41E == 1) {
         switch ((s16)(work->field_448 - 1)) {
@@ -48,7 +48,7 @@ static __inline__ s32 take_request(Task* arg0)
 
 static __inline__ s32 is_hit(Task* arg0)
 {
-    Actor104400Work* w = (Actor104400Work*)arg0->idMap;
+    Actor104400Work* w = (Actor104400Work*)arg0->work;
 
     if ((w->flags_EC.half & 1) || (w->flags_EC.word & 0x102)) {
         return 1;
@@ -64,7 +64,7 @@ static __inline__ s32 is_hit(Task* arg0)
 /// register; writing `== work->field_44F` reloads the byte instead.
 void Actor04400_Fn03390(Task* arg0)
 {
-    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
+    Actor104400Work* work = (Actor104400Work*)arg0->work;
 
     if (work->field_44F == 1) {
         if (work->field_41E != 0 && work->field_448 == 1) {

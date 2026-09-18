@@ -794,7 +794,7 @@ void func_actor_356100_80166018(Actor356100* arg0)
 
     enemy  = arg0->field_20;
     work   = arg0->field_1C;
-    player = (GameActor*)((Task*)Game_GetPtrSlot(3))->idMap;
+    player = (GameActor*)((Task*)Game_GetPtrSlot(3))->work;
     config = &Player_Status;
     if (work->field_4 != 0) {
         work->field_9BC     = 0x180;

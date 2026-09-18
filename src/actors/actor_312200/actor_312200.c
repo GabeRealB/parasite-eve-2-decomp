@@ -181,9 +181,9 @@ void func_actor_312200_80162FB4(Task* task)
     s32              k;
     s32              m;
 
-    work = (Actor312200Work*)task->idMap;
+    work = (Actor312200Work*)task->work;
     if (work->field_88C == 1) {
-        start = (Actor312200Work*)task->idMap;
+        start = (Actor312200Work*)task->work;
         for (i = 1; i < 0x13; i++) {
             start->slots[i].field_9 = start->field_896.byte;
             func_800B4114(&start->anim, i, (s16)start->field_892, 0,
@@ -193,7 +193,7 @@ void func_actor_312200_80162FB4(Task* task)
         goto advance;
     }
     if (work->field_88C == 2) {
-        reset = (Actor312200Work*)task->idMap;
+        reset = (Actor312200Work*)task->work;
         for (j = 1; j < 0x13; j++) {
             reset->slots[j].field_9 = reset->field_896.byte;
             Gp_AnimResetSlot(&reset->anim, j, (s16)reset->field_892);
@@ -205,7 +205,7 @@ void func_actor_312200_80162FB4(Task* task)
         work->field_8A8 = 0;
     }
     if (work->field_89A == 2) {
-        second                 = (Actor312200Work*)task->idMap;
+        second                 = (Actor312200Work*)task->work;
         second->field_89E.half = 0x30;
         second->field_8A0      = 0x500;
         for (k = 1; k < 0x13; k++) {
@@ -215,7 +215,7 @@ void func_actor_312200_80162FB4(Task* task)
         work->field_89A = 3;
     }
     work->field_894++;
-    tick = (Actor312200Work*)task->idMap;
+    tick = (Actor312200Work*)task->work;
     for (m = 1; m < 0x13; m++) {
         tick->slots[m].field_9 = tick->field_896.byte;
         Gp_AnimTickIndex(&tick->anim, m);
@@ -223,7 +223,7 @@ void func_actor_312200_80162FB4(Task* task)
 }
 
 /// Spawn body: allocates the actor's 0x984-byte `Actor312200Work`, stores it in
-/// `Task::idMap` and seeds the enemy object, the model's root coordinate and the
+/// `Task::work` and seeds the enemy object, the model's root coordinate and the
 /// animation context from the `TmdObject` in `Task::extra`. The enemy takes the
 /// root coordinate's matrix as `field_4` and the model's third part coordinate
 /// as `field_18`; the display node the body builds in place points its `field_C`
@@ -241,11 +241,11 @@ void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
     Actor312200Work* work;
     GpObj*           node;
 
-    obj         = (TmdObject*)task->extra;
-    coord       = obj->field_8;
-    mem         = (Actor312200Work*)Mem_Calloc(sizeof(Actor312200Work), 0);
-    work        = mem;
-    task->idMap = (TaskIdMap*)mem;
+    obj        = (TmdObject*)task->extra;
+    coord      = obj->field_8;
+    mem        = (Actor312200Work*)Mem_Calloc(sizeof(Actor312200Work), 0);
+    work       = mem;
+    task->work = (TaskIdMap*)mem;
     if (mem == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
@@ -309,7 +309,7 @@ void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
 /// the room is live, from view 0x10 with the 0x7DB action `field_8B8` at 1.
 ///
 /// The `SOFT_BARRIER` is a matching aid, not the original's: without it the
-/// scheduler pulls the handler table's first `lui` in front of the `idMap`
+/// scheduler pulls the handler table's first `lui` in front of the `work`
 /// load. The trailing `vec` is the original's own - three dead stores, but the
 /// frame and the rest of the schedule are built around them.
 void func_actor_312200_80163370(GpEnemy* enemy, Task* task)
@@ -320,7 +320,7 @@ void func_actor_312200_80163370(GpEnemy* enemy, Task* task)
     void             (*states[2])(Task*);
     s32              pan;
 
-    work = (Actor312200Work*)task->idMap;
+    work = (Actor312200Work*)task->work;
     SOFT_BARRIER();
     states[0] = func_actor_312200_80163778;
     states[1] = func_actor_312200_801637CC;

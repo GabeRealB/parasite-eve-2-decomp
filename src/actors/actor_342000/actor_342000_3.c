@@ -15,7 +15,7 @@ void func_actor_342000_801640C0(Task* arg0, s32 arg1, Actor342000Move* arg2)
     Actor342000Work* work;
     GsCOORDINATE2*   coord;
 
-    work              = (Actor342000Work*)arg0->idMap;
+    work              = (Actor342000Work*)arg0->work;
     coord             = &work->coord;
     coord->coord.t[0] = arg2->field_0;
     coord->coord.t[1] = arg2->field_4;
@@ -30,7 +30,7 @@ void func_actor_342000_80164110(Task* arg0, s32 arg1, Actor342000Cmd* arg2, Acto
 {
     Actor342000Work* work;
 
-    work = (Actor342000Work*)arg0->idMap;
+    work = (Actor342000Work*)arg0->work;
     if (arg2->field_2 == 0xA) {
         work->field_264.vx = arg3->field_0;
         work->field_264.vy = arg3->field_4;
@@ -56,7 +56,7 @@ void func_actor_342000_801641B4(void)
 {
     Actor342000EventWork* work;
 
-    work = (Actor342000EventWork*)D_actor_342000_80165070->idMap;
+    work = (Actor342000EventWork*)D_actor_342000_80165070->work;
     if (work->field_50 != NULL) {
         Task_CallExit(work->field_50);
     }
@@ -67,7 +67,7 @@ void func_actor_342000_801641FC(void)
 {
     Actor342000EventWork* work;
 
-    work = (Actor342000EventWork*)D_actor_342000_80165070->idMap;
+    work = (Actor342000EventWork*)D_actor_342000_80165070->work;
     if (work->field_5C != NULL) {
         Task_Kill(work->field_5C);
     }
@@ -82,7 +82,7 @@ void func_actor_342000_80164260(void)
 {
     Actor342000EventWork* work;
 
-    work = (Actor342000EventWork*)D_actor_342000_80165070->idMap;
+    work = (Actor342000EventWork*)D_actor_342000_80165070->work;
     if (work->field_7A == 0) {
         SndEvt_EnqueueType6(0x54280005, 0, 0);
         work->field_7A = 1;
@@ -93,7 +93,7 @@ void func_actor_342000_801642B4(s16 arg0)
 {
     Actor342000EventWork* work;
 
-    work           = (Actor342000EventWork*)D_actor_342000_80165070->idMap;
+    work           = (Actor342000EventWork*)D_actor_342000_80165070->work;
     work->field_68 = arg0;
     work->field_6A = 0;
 }
@@ -102,7 +102,7 @@ void func_actor_342000_801642D4(s16 arg0)
 {
     Actor342000EventWork* work;
 
-    work           = (Actor342000EventWork*)D_actor_342000_80165070->idMap;
+    work           = (Actor342000EventWork*)D_actor_342000_80165070->work;
     work->field_70 = arg0;
     work->field_72 = 0;
 }
@@ -113,7 +113,7 @@ void func_actor_342000_801642F4(void)
 {
     Actor342000EventWork* work;
 
-    work = (Actor342000EventWork*)D_actor_342000_80165070->idMap;
+    work = (Actor342000EventWork*)D_actor_342000_80165070->work;
     if (work->field_7C == 0) {
         Gp_StateF0.field_6      = 0;
         Gp_StateF0.field_1      = 0xF;
@@ -130,7 +130,7 @@ void func_actor_342000_80164364(s32 arg0)
 {
     Actor342000EventWork* work;
 
-    work = (Actor342000EventWork*)D_actor_342000_80165070->idMap;
+    work = (Actor342000EventWork*)D_actor_342000_80165070->work;
     Gp_DispatchMsg(work->field_48, 0x3F3, arg0, 0);
 }
 
@@ -154,7 +154,7 @@ void func_actor_342000_8016439C(void)
     s32                   weaponId;
     s32                   anim;
 
-    work = (Actor342000EventWork*)D_actor_342000_80165070->idMap;
+    work = (Actor342000EventWork*)D_actor_342000_80165070->work;
     Gp_DispatchMsg(work->field_48, 0x3E9, (s32)&D_actor_342000_80164948, 0);
     func_8018507C();
     weaponId     = D_80073BA9;
@@ -165,7 +165,7 @@ void func_actor_342000_8016439C(void)
     msg.field_C  = 0;
     msg.field_10 = 0;
     Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
-    Gp_DispatchMsg(((Actor342000EventWork*)D_actor_342000_80165070->idMap)->field_48, 0x3F3, 1, 0);
+    Gp_DispatchMsg(((Actor342000EventWork*)D_actor_342000_80165070->work)->field_48, 0x3F3, 1, 0);
     if (work->field_64 != NULL) {
         Task_Kill(work->field_64);
         work->field_64 = NULL;

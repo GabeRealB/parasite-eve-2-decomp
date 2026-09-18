@@ -19,7 +19,7 @@ s32 ActorsShared80133580(Task* task, s32 arg1, ActorsShared80133580Target* targe
     u16                       yaw;
 
     coord     = ((TmdObject*)task->extra)->field_8;
-    work      = (ActorsShared80133580Work*)task->idMap;
+    work      = (ActorsShared80133580Work*)task->work;
     dx        = target->pos.vx - coord->coord.t[0];
     dz        = target->pos.vz - coord->coord.t[2];
     yaw       = ratan2(dx, dz);

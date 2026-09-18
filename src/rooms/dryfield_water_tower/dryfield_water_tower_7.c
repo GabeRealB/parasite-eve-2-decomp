@@ -23,7 +23,7 @@ extern RoomPlacement D_dryfield_water_tower_801823D8[];
 
 void func_dryfield_water_tower_80180174(s16 arg0)
 {
-    DwtwWork* work = (DwtwWork*)D_dryfield_water_tower_801876AC->idMap;
+    DwtwWork* work = (DwtwWork*)D_dryfield_water_tower_801876AC->work;
 
     work->field_C = arg0;
     work->field_E = 0;
@@ -34,7 +34,7 @@ void func_dryfield_water_tower_80180174(s16 arg0)
 /// the first time. The halfword it zeroes is the state the 0x7DB handler reads.
 void func_dryfield_water_tower_80180194(void)
 {
-    DwtwWork*  work = (DwtwWork*)D_dryfield_water_tower_801876AC->idMap;
+    DwtwWork*  work = (DwtwWork*)D_dryfield_water_tower_801876AC->work;
     DwtwMsg7DB msg;
 
     if (work->field_14 == 0) {
@@ -54,7 +54,7 @@ void func_dryfield_water_tower_80180194(void)
 /// stream RNG is restored.
 void func_dryfield_water_tower_80180220(void)
 {
-    DwtwWork* work = (DwtwWork*)D_dryfield_water_tower_801876AC->idMap;
+    DwtwWork* work = (DwtwWork*)D_dryfield_water_tower_801876AC->work;
 
     Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[0], 0);
     Gp_DispatchMsg(work->field_4, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[1], 0);

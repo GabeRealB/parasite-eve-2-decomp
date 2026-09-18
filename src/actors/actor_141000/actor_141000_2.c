@@ -37,7 +37,7 @@ void func_actor_141000_80132E24(Task* arg0)
     Actor141000Work* work;
     u16              scale;
 
-    work          = (Actor141000Work*)arg0->idMap;
+    work          = (Actor141000Work*)arg0->work;
     scale         = work->field_A + 0x100;
     work->field_A = scale;
     if ((s16)scale >= 0x1000) {
@@ -55,7 +55,7 @@ void func_actor_141000_80132EB0(Task* arg0)
     Actor141000Work* work;
     u16              ticks;
 
-    work          = (Actor141000Work*)arg0->idMap;
+    work          = (Actor141000Work*)arg0->work;
     ticks         = work->field_E + 1;
     work->field_E = ticks;
     if ((s16)ticks >= 0x1F) {
@@ -78,7 +78,7 @@ void func_actor_141000_80132EF4(Task* arg0)
     GsCOORDINATE2*       dst;
     u16                  frames;
 
-    work         = (Actor141000CtrlWork*)arg0->idMap;
+    work         = (Actor141000CtrlWork*)arg0->work;
     obj          = arg0->extra;
     frames       = work->frames + 1;
     work->frames = frames;
@@ -236,7 +236,7 @@ void func_actor_141000_801335D4(GpActorWork* arg0);
 void func_actor_141000_801332A0(Task* task)
 {
     TmdObject*       ext      = task->extra;
-    Actor141000Work* work     = (Actor141000Work*)task->idMap;
+    Actor141000Work* work     = (Actor141000Work*)task->work;
     TaskFunc         funcs[2] = { (TaskFunc)func_actor_141000_801339F8, func_actor_141000_80133A00 };
     VECTOR3          pos;
     GsCOORDINATE2*   coord;
@@ -350,7 +350,7 @@ s32 func_actor_141000_801336DC(Task* task, s32 arg1, Actor141000Placement* place
     s32                    i;
     TmdObject*             ext;
 
-    w              = (Actor141000Work*)task->idMap;
+    w              = (Actor141000Work*)task->work;
     w->field_4C0   = 1;
     w->field_4C2   = 0;
     w->target.vx   = place->pos.vx;
@@ -376,7 +376,7 @@ s32 func_actor_141000_801336DC(Task* task, s32 arg1, Actor141000Placement* place
     preset.field_10 = 1;
 
     msg  = &preset;
-    work = (Actor141000Work*)task->idMap;
+    work = (Actor141000Work*)task->work;
     ext  = task->extra;
     if (msg->field_0 != work->field_43E) {
         work->field_43E = msg->field_0;
@@ -406,7 +406,7 @@ s32 func_actor_141000_801336DC(Task* task, s32 arg1, Actor141000Placement* place
 INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_801338C0);
 
 /// Spawn state of the enemy actor: allocates the 0x4CC-byte work block that
-/// every later handler reads through `Task::idMap`, seeds the three -1 bytes
+/// every later handler reads through `Task::work`, seeds the three -1 bytes
 /// and three cleared words the work's own init expects, republishes the light
 /// and colour matrices onto the display object, then installs the message
 /// table and the shared exit handler. An allocation failure ends the task
@@ -421,7 +421,7 @@ void func_actor_141000_8013392C(Task* arg0)
         return;
     }
 
-    arg0->idMap     = (TaskIdMap*)work;
+    arg0->work      = (TaskIdMap*)work;
     work->field_43D = -1;
     work->field_43E = -1;
     work->field_4C9 = -1;

@@ -11,7 +11,7 @@ void func_actor_310600_80162C94(Task* arg0, s32 arg1, Actor310600Cmd* arg2)
     Actor310600Work* work;
     Actor310600Cmd   cmd;
 
-    work = (Actor310600Work*)arg0->idMap;
+    work = (Actor310600Work*)arg0->work;
 
     work->field_47C = 1;
     work->field_4F8 = arg2->animId;

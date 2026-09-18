@@ -20,7 +20,7 @@ s32 ActorsShared801503b0(Task* task, s32 arg1, s32 arg2)
     TmdObject*       obj;
 
     obj  = task->extra;
-    work = (Actor104000Work*)task->idMap;
+    work = (Actor104000Work*)task->work;
 
     switch (arg2) {
         case 0:

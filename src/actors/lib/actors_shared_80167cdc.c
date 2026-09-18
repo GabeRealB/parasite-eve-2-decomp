@@ -16,7 +16,7 @@ void ActorsShared80167cdc(Task* arg0)
     s16                       angle;
     s16                       speed;
 
-    work  = (ActorsShared80168d3cWork*)arg0->idMap;
+    work  = (ActorsShared80168d3cWork*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->field_8;
     work->field_412++;
     work->field_78 += -work->field_78 >> 5;

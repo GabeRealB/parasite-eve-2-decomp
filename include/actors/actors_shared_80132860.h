@@ -7,7 +7,7 @@
 
 #include "main/task.h"
 
-/// Work block the actors sharing this body hang off the task's `Task::idMap`
+/// Work block the actors sharing this body hang off the task's `Task::work`
 /// slot (0x1C), which is not a `TaskIdMap` here. The carriers allocate blocks
 /// of different sizes, so only the two fields this body reaches are described:
 /// `target` is the world position the actor turns to face, and `turnCount`

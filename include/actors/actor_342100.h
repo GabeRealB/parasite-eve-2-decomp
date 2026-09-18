@@ -15,9 +15,9 @@ typedef struct Actor342100 {
 ///
 /// `func_actor_342100_801630A4` allocates it with `Mem_Malloc(0x44, 0)`,
 /// `Mem_Set`s the same 0x44 bytes over it and stores it in that task's
-/// `Task::idMap` slot (0x1C), which is not a `TaskIdMap` here, then publishes
+/// `Task::work` slot (0x1C), which is not a `TaskIdMap` here, then publishes
 /// the task in `D_actor_342100_80164BB8`. Every leaf helper reaches the block
-/// that way, `(Actor342100Work*)D_actor_342100_80164BB8->idMap`.
+/// that way, `(Actor342100Work*)D_actor_342100_80164BB8->work`.
 ///
 /// `field_2C` is the `Game_GetPtrSlot(3)` task the overlay aims its messages
 /// at. `field_30` and `field_34` are further message targets, both sent
@@ -51,9 +51,9 @@ typedef struct Actor342100Work {
 STATIC_ASSERT_SIZEOF(Actor342100Work, 0x44);
 
 /// Eight-byte block the overlay's fade task (`func_actor_342100_80162748`)
-/// allocates with `Mem_Malloc(8, 0)` and parks in its own `Task::idMap` slot
+/// allocates with `Mem_Malloc(8, 0)` and parks in its own `Task::work` slot
 /// (0x1C, not a `TaskIdMap` here), so reach it with
-/// `(Actor342100FadeWork*)task->idMap`.
+/// `(Actor342100FadeWork*)task->work`.
 ///
 /// The three halfwords are the channels `Fade_DrawOverlay` draws, read as
 /// bytes at that call and as halfwords by the state machine that ramps them:

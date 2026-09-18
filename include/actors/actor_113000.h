@@ -29,7 +29,7 @@ STATIC_ASSERT_SIZEOF(Actor113000AnimPreset, 0x14);
 /// bank index and hands `func_800B3F84` as its data argument.
 extern void* D_actor_113000_8013ABB0[];
 
-/// Work block this actor parks in `Task::idMap`. The block is fronted by a
+/// Work block this actor parks in `Task::work`. The block is fronted by a
 /// `GpAnimCtx` -- the start handler passes the block itself, its `slots` array
 /// and its `GpAnimMtxRec` table at 0x334 to `func_800B3F84`, the same three
 /// addresses `Actor113100Work` hands over. Twenty 0x28-byte slots fit exactly

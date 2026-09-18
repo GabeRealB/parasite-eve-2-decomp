@@ -8,7 +8,7 @@
 #include <psyq/libgte.h>
 
 /// Work block for the water-tank cutscene task, allocated as 0xC zeroed bytes
-/// by `func_dryfield_water_tank_8017E9F8` and hung off `Task::idMap` (0x1C): only
+/// by `func_dryfield_water_tank_8017E9F8` and hung off `Task::work` (0x1C): only
 /// `owner` is written by that run, so the block's tail is outside its
 /// allocation. The layout is the one the same cutscene-task body has in
 /// `dryfield_gas_station` (`DgsWork`, which allocates the full 0x10):
@@ -39,7 +39,7 @@ STATIC_ASSERT_SIZEOF(DwtMsg7DB, 0x4);
 
 /// Work block of the water-tank room's script-driver task, a
 /// `Mem_Malloc(0x58, 0)` the driver `func_dryfield_water_tank_8017DEA4` hangs
-/// off `Task::idMap` (0x1C). That task is also parked in
+/// off `Task::work` (0x1C). That task is also parked in
 /// `D_dryfield_water_tank_80188D4C`, which is how the sibling entry points
 /// `func_dryfield_water_tank_8017E194` and `..._8017E1B4` reach this block.
 ///
@@ -69,7 +69,7 @@ STATIC_ASSERT_SIZEOF(DwtScriptWork, 0x58);
 /// Light/colour matrix pair `func_dryfield_water_tank_8017DD20` allocates for
 /// its `TmdObject` and republishes onto `TmdObject::field_1C` / `field_20` —
 /// the pair `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` /
-/// `Gp_DefaultMtx2`. The task parks the block in `Task::idMap` (0x1C), which is
+/// `Gp_DefaultMtx2`. The task parks the block in `Task::work` (0x1C), which is
 /// not a `TaskIdMap` here; `owner` is the slot-3 game task the same allocation
 /// is registered with (`Game_GetPtrSlot(3)`).
 ///
@@ -113,9 +113,9 @@ typedef struct _DwtSprtRec {
 STATIC_ASSERT_SIZEOF(DwtSprtRec, 0x5C);
 
 /// Work block of the room's fade task `func_dryfield_water_tank_8017E3C4`, an
-/// 8-byte `Mem_Malloc(8, 0)` parked in `Task::idMap` (0x1C) -- that slot is not
+/// 8-byte `Mem_Malloc(8, 0)` parked in `Task::work` (0x1C) -- that slot is not
 /// a `TaskIdMap` here. The same three-channel ramp the shared fade-up
-/// `RoomsShared8017da58` keeps at its own `idMap`: all three channels step
+/// `RoomsShared8017da58` keeps at its own `work`: all three channels step
 /// together and the tile takes its blue from `r`, so `b` is only ever stepped.
 /// This is the fade-out half, which stays private to each room.
 typedef struct DwtFadeWork {

@@ -189,7 +189,7 @@ s32 func_actor_461800_80132F44(Task* task, s32 arg1, VECTOR* target, s32 mode)
     s32              angle;
 
     coord                   = ((TmdObject*)task->extra)->field_8;
-    work                    = (Actor461800Work*)task->idMap;
+    work                    = (Actor461800Work*)task->work;
     D_actor_461800_8014389C = mode;
     dx                      = target->vx - coord->coord.t[0];
     dz                      = target->vz - coord->coord.t[2];
@@ -221,9 +221,9 @@ void func_actor_461800_8013307C(GpEnemy* enemy, Task* task)
     GsCOORDINATE2* coord;
     TmdObject*     obj;
 
-    obj         = task->extra;
-    coord       = obj->field_8;
-    task->idMap = (TaskIdMap*)(D_actor_461800_801438A0 = Mem_Calloc(0x4C0, false));
+    obj        = task->extra;
+    coord      = obj->field_8;
+    task->work = (TaskIdMap*)(D_actor_461800_801438A0 = Mem_Calloc(0x4C0, false));
     if (D_actor_461800_801438A0 == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
@@ -265,7 +265,7 @@ extern s16 D_actor_461800_801438A8;
 void func_actor_461800_801331E4(Task* task)
 {
     GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->field_8;
-    Actor461800Work2* work  = (Actor461800Work2*)task->idMap;
+    Actor461800Work2* work  = (Actor461800Work2*)task->work;
 
     if (D_actor_461800_801438A0->field_47C == 1) {
         func_actor_461800_8013380C();
@@ -317,7 +317,7 @@ void func_actor_461800_80133554(Task* task)
         func_actor_461800_801335B0,
     };
 
-    D_actor_461800_801438A0 = (Actor461800Work2*)task->idMap;
+    D_actor_461800_801438A0 = (Actor461800Work2*)task->work;
     fns[task->state](task->spawnArg2, task);
 }
 

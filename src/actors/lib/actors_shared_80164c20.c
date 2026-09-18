@@ -11,7 +11,7 @@ void ActorsShared80164c20(GpEnemy* arg0, Task* arg1)
     ActorsShared80164c20Work* work;
     TmdObject*                obj;
 
-    work = (ActorsShared80164c20Work*)arg1->idMap;
+    work = (ActorsShared80164c20Work*)arg1->work;
     if (work->field_4 != 0) {
         obj                = (TmdObject*)arg1->extra;
         arg0->node.field_4 = 1;

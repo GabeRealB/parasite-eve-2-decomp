@@ -22,7 +22,7 @@ s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
 
     steps                   = 0;
     coord                   = ((TmdObject*)task->extra)->field_8;
-    work                    = (Actor260500Work*)task->idMap;
+    work                    = (Actor260500Work*)task->work;
     D_actor_260500_80159E54 = mode;
     dx                      = target->vx - coord->coord.t[0];
     dz                      = target->vz - coord->coord.t[2];

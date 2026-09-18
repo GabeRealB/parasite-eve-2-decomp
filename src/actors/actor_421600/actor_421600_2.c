@@ -6,7 +6,7 @@
 
 s32 func_actor_421600_8013E654(Task* task)
 {
-    Actor421600Work* work = (Actor421600Work*)task->idMap;
+    Actor421600Work* work = (Actor421600Work*)task->work;
 
     work->field_EAC = 0x1E;
     return 1;
@@ -17,7 +17,7 @@ void func_actor_421600_8013E668(Task* task)
     Actor421600Work* work;
     GpEnemy*         enemy;
 
-    work  = (Actor421600Work*)task->idMap;
+    work  = (Actor421600Work*)task->work;
     enemy = (GpEnemy*)task->spawnArg2;
     if (work != NULL) {
         if (work->field_E94 != NULL) {

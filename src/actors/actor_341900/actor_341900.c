@@ -54,7 +54,7 @@ s32 func_actor_341900_80161E58(Task* arg0, u16 arg1)
 
     anim  = arg1 == 8;
     start = anim;
-    work  = (Actor341900AnimWork*)arg0->idMap;
+    work  = (Actor341900AnimWork*)arg0->work;
     for (i = start; i < arg1; i++) {
         Gp_AnimTickIndex(&work->ctx, i);
     }
@@ -69,7 +69,7 @@ check:
     if (done) {
         if (D_actor_341900_801639D0[work->field_218] >= 0) {
             anim  = D_actor_341900_801639D0[work->field_218];
-            ctx   = (Actor341900AnimWork*)arg0->idMap;
+            ctx   = (Actor341900AnimWork*)arg0->work;
             first = arg1 == 8;
             goto loop;
         fail:
@@ -93,7 +93,7 @@ static inline void Actor341900_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
     Actor341900AnimWork* ctx;
     u16                  i;
 
-    ctx = (Actor341900AnimWork*)task->idMap;
+    ctx = (Actor341900AnimWork*)task->work;
     if (blend == 0) {
         for (i = n == 8; i < n; i++) {
             ctx->slots[i].field_9 = 0x10;
@@ -112,7 +112,7 @@ void func_actor_341900_80161FD0(Task* arg0, s32 arg1, Actor341900AnimCmd* cmd)
 {
     Actor341900AnimWork* work;
 
-    work            = (Actor341900AnimWork*)arg0->idMap;
+    work            = (Actor341900AnimWork*)arg0->work;
     work->field_214 = cmd->field_0;
     work->field_218 = work->field_254 = cmd->field_4;
     work->field_21C                   = cmd->field_8;
@@ -133,9 +133,9 @@ void func_actor_341900_80162200(Task* arg0)
     VECTOR               pos;
 
     if (arg0->state == 0) {
-        extra       = (TmdObject*)arg0->extra;
-        mtx         = (Actor341900ColorMtx*)Mem_Malloc(0x44, 0);
-        arg0->idMap = (TaskIdMap*)mtx;
+        extra      = (TmdObject*)arg0->extra;
+        mtx        = (Actor341900ColorMtx*)Mem_Malloc(0x44, 0);
+        arg0->work = (TaskIdMap*)mtx;
         if (mtx == NULL) {
             Task_Kill(arg0);
         } else {
@@ -173,9 +173,9 @@ void func_actor_341900_80162330(Task* arg0)
     GpCdRec10*           rec;
     u16                  i;
 
-    extra       = (TmdObject*)arg0->extra;
-    work        = (Actor341900AnimWork*)Mem_Malloc(0x258, 0);
-    arg0->idMap = (TaskIdMap*)work;
+    extra      = (TmdObject*)arg0->extra;
+    work       = (Actor341900AnimWork*)Mem_Malloc(0x258, 0);
+    arg0->work = (TaskIdMap*)work;
     if (work == NULL) {
         Task_Kill(arg0);
         return;
@@ -196,7 +196,7 @@ void func_actor_341900_80162330(Task* arg0)
     switch (arg0->spawnArg1) {
         case 0:
             func_800B3F84(&w->ctx, D_actor_341900_801639AC, (GpAnimObj*)extra, &w->pad_154, w->slots);
-            ctx = (Actor341900AnimWork*)arg0->idMap;
+            ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 1; i < 8; i++) {
                 ctx->slots[i].field_9 = 0x10;
                 Gp_AnimResetSlot(&ctx->ctx, i, 0);
@@ -207,18 +207,18 @@ void func_actor_341900_80162330(Task* arg0)
             do {
             } while (0);
         case 1:
-            ((Actor341900AnimWork*)w->field_248->idMap)->field_24C = arg0;
+            ((Actor341900AnimWork*)w->field_248->work)->field_24C = arg0;
             func_800B3F84(&w->ctx, D_actor_341900_801639B8, (GpAnimObj*)extra, &w->pad_154, w->slots);
-            ctx = (Actor341900AnimWork*)arg0->idMap;
+            ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx->slots[i].field_9 = 0x10;
                 Gp_AnimResetSlot(&ctx->ctx, i, 0);
             }
             break;
         case 2:
-            ((Actor341900AnimWork*)w->field_248->idMap)->field_250 = arg0;
+            ((Actor341900AnimWork*)w->field_248->work)->field_250 = arg0;
             func_800B3F84(&w->ctx, D_actor_341900_801639C4, (GpAnimObj*)extra, &w->pad_154, w->slots);
-            ctx = (Actor341900AnimWork*)arg0->idMap;
+            ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx->slots[i].field_9 = 0x10;
                 Gp_AnimResetSlot(&ctx->ctx, i, 0);
@@ -233,7 +233,7 @@ void func_actor_341900_80162330(Task* arg0)
 /// pushes the part's translation through the draw matrix.
 void func_actor_341900_801625B4(Task* arg0)
 {
-    Actor341900TaskWork* work = (Actor341900TaskWork*)arg0->idMap;
+    Actor341900TaskWork* work = (Actor341900TaskWork*)arg0->work;
     TmdObject*           extra;
     TmdObject*           mdl;
     GsCOORDINATE2*       coord;
@@ -241,7 +241,7 @@ void func_actor_341900_801625B4(Task* arg0)
 
     if (arg0->state == 0) {
         func_actor_341900_80162330(arg0);
-        work = (Actor341900TaskWork*)arg0->idMap;
+        work = (Actor341900TaskWork*)arg0->work;
 
         extra      = (TmdObject*)arg0->extra;
         coord      = extra->field_8;
@@ -276,7 +276,7 @@ void func_actor_341900_80162708(Task* arg0)
     VECTOR               pos;
     s32                  frame;
 
-    work = (Actor341900TaskWork*)arg0->idMap;
+    work = (Actor341900TaskWork*)arg0->work;
     switch (arg0->state) {
         case 0:
             func_actor_341900_80162330(arg0);
@@ -299,11 +299,11 @@ void func_actor_341900_80162708(Task* arg0)
                 }
                 work->field_230 = work->field_66 & 0x3FF;
             }
-            work = (Actor341900TaskWork*)arg0->idMap;
+            work = (Actor341900TaskWork*)arg0->work;
             break;
     }
 
-    work = (Actor341900TaskWork*)arg0->idMap;
+    work = (Actor341900TaskWork*)arg0->work;
     func_actor_341900_80161E58(arg0, 8);
     func_actor_341900_80161E58(work->field_24C, 4);
     func_actor_341900_80161E58(work->field_250, 4);
@@ -336,7 +336,7 @@ void func_actor_341900_801628B8(Task* arg0)
     Actor341900Work* w;
     GpAnimArg        msg;
 
-    work = (Actor341900Work*)arg0->idMap;
+    work = (Actor341900Work*)arg0->work;
     if (work->field_0 != NULL) {
         Gp_DispatchMsg(work->field_0, 0x3ED, 0, 0);
     }
@@ -364,7 +364,7 @@ void func_actor_341900_801628B8(Task* arg0)
             break;
         case 3:
             Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_actor_341900_80163AF8, 0);
-            w = (Actor341900Work*)arg0->idMap;
+            w = (Actor341900Work*)arg0->work;
             if (w->field_0 != NULL) {
                 msg.field_0  = &D_actor_341900_801639A4;
                 msg.field_4  = 0;
@@ -375,7 +375,7 @@ void func_actor_341900_801628B8(Task* arg0)
             }
             break;
         case 4:
-            w = (Actor341900Work*)arg0->idMap;
+            w = (Actor341900Work*)arg0->work;
             if (w->field_0 != NULL) {
                 msg.field_0  = &D_actor_341900_801639A4;
                 msg.field_4  = 1;
@@ -426,7 +426,7 @@ void func_actor_341900_80162AD4(Task* arg0)
     GpAnimArg        msg2;
     SVECTOR          ofs;
 
-    work = (Actor341900Work*)arg0->idMap;
+    work = (Actor341900Work*)arg0->work;
     switch ((u16)work->field_64) {
         case 1:
             switch ((u16)work->field_66) {
@@ -551,8 +551,8 @@ void func_actor_341900_80162EFC(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            work        = (Actor341900Work*)Mem_Calloc(0x70U, false);
-            arg0->idMap = (TaskIdMap*)work;
+            work       = (Actor341900Work*)Mem_Calloc(0x70U, false);
+            arg0->work = (TaskIdMap*)work;
             if (work == NULL) {
                 Task_Kill(arg0);
             } else {
@@ -568,7 +568,7 @@ void func_actor_341900_80162EFC(Task* arg0)
             sp10.field_2 = 0;
             sp10.field_1 = sessionIdLo;
             Gp_DispatchMsg((Task*)Game_GetPtrSlot(4), 0x7DA, (s32)&sp10, 0x7DB);
-            seqWork          = (Actor341900Work*)arg0->idMap;
+            seqWork          = (Actor341900Work*)arg0->work;
             seqWork->field_8 = Task_SpawnFromTable(&D_actor_341900_80164190, 2, 0, (s32)arg0);
             for (var_s0 = 0; (u32)(var_s0 & 0xFFFF) < 5U; var_s0++) {
                 temp_a2 = var_s0 & 0xFFFF;

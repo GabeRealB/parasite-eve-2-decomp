@@ -129,34 +129,34 @@ s32 func_actor_400600_80136FA8(Task* arg0)
     Actor400600Work* work;
     Actor400600Work* work2;
 
-    work = (Actor400600Work*)arg0->idMap;
+    work = (Actor400600Work*)arg0->work;
     if (work->field_72E != 1) {
         return 0;
     }
     if (work->field_768 == 0) {
         switch (work->field_730) {
             case 1:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 3;
                 work2->field_71E = 0;
                 break;
             case 2:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 4;
                 work2->field_71E = 0;
                 break;
             case 3:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 5;
                 work2->field_71E = 0;
                 break;
             case 4:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 4;
                 work2->field_71E = 0;
                 break;
             case 5:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 0xF;
                 work2->field_71E = 0;
                 break;
@@ -165,30 +165,30 @@ s32 func_actor_400600_80136FA8(Task* arg0)
     } else {
         switch (work->field_730) {
             case 1:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 3;
                 work2->field_71E = 0;
                 work->field_730  = 0;
                 break;
             case 2:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 4;
                 work2->field_71E = 0;
                 work->field_730  = 0;
                 break;
             case 3:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 0xE;
                 work2->field_71E = 0;
                 break;
             case 4:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 4;
                 work2->field_71E = 0;
                 work->field_730  = 0;
                 break;
             case 5:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 0xE;
                 work2->field_71E = 0;
                 work->field_730  = 0;
@@ -205,35 +205,35 @@ s32 func_actor_400600_801370F4(Task* arg0)
     Actor400600Work* work;
     Actor400600Work* work2;
 
-    work = (Actor400600Work*)arg0->idMap;
+    work = (Actor400600Work*)arg0->work;
     if (work->field_768 == 0) {
         switch (work->field_730) {
             case 1:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 3;
                 work2->field_71E = 0;
                 work->field_730  = 0;
                 return 1;
             case 2:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 4;
                 work2->field_71E = 0;
                 work->field_730  = 0;
                 return 1;
             case 3:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 5;
                 work2->field_71E = 0;
                 work->field_730  = 0;
                 return 1;
             case 4:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 4;
                 work2->field_71E = 0;
                 work->field_730  = 0;
                 return 1;
             case 5:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 0xF;
                 work2->field_71E = 0;
                 work->field_730  = 0;
@@ -244,30 +244,30 @@ s32 func_actor_400600_801370F4(Task* arg0)
     } else {
         switch (work->field_730) {
             case 1:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 3;
                 work2->field_71E = 0;
                 work->field_730  = 0;
                 return 1;
             case 2:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 4;
                 work2->field_71E = 0;
                 work->field_730  = 0;
                 return 1;
             case 3:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 0xE;
                 work2->field_71E = 0;
                 return 1;
             case 4:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 4;
                 work2->field_71E = 0;
                 work->field_730  = 0;
                 return 1;
             case 5:
-                work2            = (Actor400600Work*)arg0->idMap;
+                work2            = (Actor400600Work*)arg0->work;
                 work2->field_71C = 0xE;
                 work2->field_71E = 0;
                 work->field_730  = 0;
@@ -352,7 +352,7 @@ void func_actor_400600_80137240(Task* arg0)
  * its own matrix pointer so local-alloc puts it in `$s0` ahead of `work`. */
 void func_actor_400600_80137498(Task* arg0, s16 arg1)
 {
-    Actor400600Work*        work = (Actor400600Work*)arg0->idMap;
+    Actor400600Work*        work = (Actor400600Work*)arg0->work;
     SVECTOR                 v;
     SVECTOR                 out;
     ActorsShared8016a538Mat rot;
@@ -434,7 +434,7 @@ s32 func_actor_400600_801376EC(Task* arg0)
     s32              i;
 
     dist  = 0;
-    work  = (Actor400600Work*)arg0->idMap;
+    work  = (Actor400600Work*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->field_8;
     for (i = 0; i < 8; i++) {
         if ((work->rec_63C[i].field_4 & 0xFFFF0000) != 0x100000) {
@@ -476,7 +476,7 @@ s32 func_actor_400600_80137AF0(Task* arg0)
     TmdObject*       model2;
     GpEnemy*         enemy;
 
-    work = (Actor400600Work*)arg0->idMap;
+    work = (Actor400600Work*)arg0->work;
     if (work->field_758 > 0) {
         work->field_758--;
         return 0;
@@ -492,13 +492,13 @@ s32 func_actor_400600_80137AF0(Task* arg0)
                 Gp_SetLightMode(arg0->spawnArg2, 2);
                 func_actor_400600_801387DC(arg0, 2);
             }
-            work2            = (Actor400600Work*)arg0->idMap;
+            work2            = (Actor400600Work*)arg0->work;
             work2->field_71C = 0x11;
             work2->field_71E = 0;
             return 1;
         }
     } else {
-        work = (Actor400600Work*)arg0->idMap;
+        work = (Actor400600Work*)arg0->work;
     }
     model2 = (TmdObject*)arg0->extra;
     enemy  = (GpEnemy*)arg0->spawnArg2;
@@ -526,7 +526,7 @@ s32 func_actor_400600_80137C34(Task* arg0)
     s32              dist;
     s16              y;
 
-    work        = (Actor400600Work*)arg0->idMap;
+    work        = (Actor400600Work*)arg0->work;
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     coord       = ((TmdObject*)arg0->extra)->field_8;
     rnd         = (u32)Gp_LcgState >> 0x10;
@@ -545,20 +545,20 @@ s32 func_actor_400600_80137C34(Task* arg0)
                 }
                 if ((rnd & 7) == 1 || (rnd & 7) == 2) {
                     if (work->field_728 < 0x5DC && (u32)(work->field_72C - 0x200) >= 0xC01U) {
-                        work2            = (Actor400600Work*)arg0->idMap;
+                        work2            = (Actor400600Work*)arg0->work;
                         work2->field_71C = 8;
                         work2->field_71E = 0;
                         return 1;
                     }
                 } else if (work->field_728 < 0x5DC) {
                     if ((s16)work->field_72C < 0x400) {
-                        work2            = (Actor400600Work*)arg0->idMap;
+                        work2            = (Actor400600Work*)arg0->work;
                         work2->field_71C = 6;
                         work2->field_71E = 0;
                         return 1;
                     }
                     if ((s16)work->field_72C > 0xC00) {
-                        work2            = (Actor400600Work*)arg0->idMap;
+                        work2            = (Actor400600Work*)arg0->work;
                         work2->field_71C = 7;
                         work2->field_71E = 0;
                         return 1;
@@ -566,23 +566,23 @@ s32 func_actor_400600_80137C34(Task* arg0)
                 }
             } else if ((rnd & 7) == 0) {
                 if (work->field_710.h.timer == 0) {
-                    work2            = (Actor400600Work*)arg0->idMap;
+                    work2            = (Actor400600Work*)arg0->work;
                     work2->field_71C = 0x10;
                     work2->field_71E = 0;
                     return 1;
                 }
             } else if ((rnd & 0xF) == 1) {
                 if (work->field_710.h.timer == 0) {
-                    work2            = (Actor400600Work*)arg0->idMap;
+                    work2            = (Actor400600Work*)arg0->work;
                     work2->field_71C = 0xD;
                     work2->field_71E = 0;
                     return 1;
                 }
             } else {
-                rnd1                                       = ((u32)Gp_LcgState * 5) + 0x71357911;
-                rnd2                                       = (rnd1 * 5) + 0x71357911;
-                Gp_LcgState                                = rnd2;
-                ((Actor400600Work*)arg0->idMap)->field_732 = 0x3C + ((rnd1 >> 0x10) & 0x3F) + ((rnd2 >> 0x10) & 0xF);
+                rnd1                                      = ((u32)Gp_LcgState * 5) + 0x71357911;
+                rnd2                                      = (rnd1 * 5) + 0x71357911;
+                Gp_LcgState                               = rnd2;
+                ((Actor400600Work*)arg0->work)->field_732 = 0x3C + ((rnd1 >> 0x10) & 0x3F) + ((rnd2 >> 0x10) & 0xF);
                 return 0;
             }
             return 0;
@@ -595,14 +595,14 @@ s32 func_actor_400600_80137C34(Task* arg0)
                 } else {
                     y = coord->coord.t[1] - dist;
                 }
-                work->field_9A                                  = y;
-                work3                                           = (Actor400600Work*)arg0->idMap;
-                work3->field_71C                                = 0xC;
-                work3->field_71E                                = 0;
-                ((Actor400600Work*)arg0->idMap)->obj_604.flags &= 0xBFFF;
+                work->field_9A                                 = y;
+                work3                                          = (Actor400600Work*)arg0->work;
+                work3->field_71C                               = 0xC;
+                work3->field_71E                               = 0;
+                ((Actor400600Work*)arg0->work)->obj_604.flags &= 0xBFFF;
                 return 1;
             }
-            ((Actor400600Work*)arg0->idMap)->obj_604.flags &= 0xBFFF;
+            ((Actor400600Work*)arg0->work)->obj_604.flags &= 0xBFFF;
             return 0;
     }
     return 0;
@@ -613,7 +613,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_400600/actor_400600_2", D_actor_400600
 void func_actor_400600_80137EF0(Task* arg0)
 {
     TmdObject*       model = (TmdObject*)arg0->extra;
-    Actor400600Work* work  = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TaskFuncTable3   fns   = D_actor_400600_80132030;
 
     switch (D_801153F4) {
@@ -731,7 +731,7 @@ void func_actor_400600_801387DC(Task* arg0, s32 arg1)
     TmdObject*       model;
     Task*            child;
 
-    work  = (Actor400600Work*)arg0->idMap;
+    work  = (Actor400600Work*)arg0->work;
     model = (TmdObject*)arg0->extra;
     if (work->field_704 != NULL) {
         child                               = work->field_704;
@@ -771,7 +771,7 @@ s16 func_actor_400600_8013886C(Task* arg0)
 
 s32 func_actor_400600_8013892C(Task* arg0)
 {
-    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work = (Actor400600Work*)arg0->work;
 
     if ((work->field_710.h.flags & 1) || (work->field_710.word & 0x01020000)) {
         return 1;
@@ -801,7 +801,7 @@ void func_actor_400600_80138A24(Task* arg0, s16 arg1)
     TmdObject*       model;
     GpEnemy*         enemy;
 
-    work  = (Actor400600Work*)arg0->idMap;
+    work  = (Actor400600Work*)arg0->work;
     model = (TmdObject*)arg0->extra;
     enemy = (GpEnemy*)arg0->spawnArg2;
     if (arg1 != 0) {
@@ -818,7 +818,7 @@ void func_actor_400600_80138A24(Task* arg0, s16 arg1)
 
 void func_actor_400600_80138AA4(Task* arg0)
 {
-    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work = (Actor400600Work*)arg0->work;
 
     work->field_766 = 0;
     work->field_765 = 0;
@@ -826,7 +826,7 @@ void func_actor_400600_80138AA4(Task* arg0)
 
 void func_actor_400600_80138AB8(Task* arg0)
 {
-    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work = (Actor400600Work*)arg0->work;
 
     if (work->field_732 > 0) {
         work->field_732 = (u16)work->field_732 - 1;
@@ -841,15 +841,15 @@ void func_actor_400600_80138AF0(Task* arg0, s32 arg1)
     u32 rnd1;
     u32 rnd2;
 
-    rnd1                                       = ((u32)Gp_LcgState * 5) + 0x71357911;
-    rnd2                                       = (rnd1 * 5) + 0x71357911;
-    Gp_LcgState                                = rnd2;
-    ((Actor400600Work*)arg0->idMap)->field_732 = arg1 + ((rnd1 >> 0x10) & 0x3F) + ((rnd2 >> 0x10) & 0xF);
+    rnd1                                      = ((u32)Gp_LcgState * 5) + 0x71357911;
+    rnd2                                      = (rnd1 * 5) + 0x71357911;
+    Gp_LcgState                               = rnd2;
+    ((Actor400600Work*)arg0->work)->field_732 = arg1 + ((rnd1 >> 0x10) & 0x3F) + ((rnd2 >> 0x10) & 0xF);
 }
 
 void func_actor_400600_80138B40(Task* arg0)
 {
-    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work = (Actor400600Work*)arg0->work;
 
     work->obj_604.flags &= 0xBFFF;
 }
@@ -862,7 +862,7 @@ void func_actor_400600_80138B5C(Task* arg0, s32 arg1)
 
     model = (TmdObject*)arg0->extra;
     enemy = (GpEnemy*)arg0->spawnArg2;
-    work  = (Actor400600Work*)arg0->idMap;
+    work  = (Actor400600Work*)arg0->work;
     if (!(arg1 & 0xFF)) {
         if (work->field_75C.b.field_75E != 0) {
             work->field_75C.b.field_75E = 0;
@@ -886,7 +886,7 @@ void func_actor_400600_80138B5C(Task* arg0, s32 arg1)
 void func_actor_400600_80138C34(Task* arg0)
 {
     TmdObject*       model = (TmdObject*)arg0->extra;
-    Actor400600Work* work  = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TaskFuncTable8   fns   = D_actor_400600_80131E7C;
 
     switch (D_801153F4) {
@@ -912,7 +912,7 @@ void func_actor_400600_80138C34(Task* arg0)
 void func_actor_400600_80138D78(Task* arg0)
 {
     TmdObject*       model = (TmdObject*)arg0->extra;
-    Actor400600Work* work  = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TaskFuncTable4   fns   = D_actor_400600_80131E9C;
 
     switch (D_801153F4) {
@@ -938,7 +938,7 @@ void func_actor_400600_80138D78(Task* arg0)
 void func_actor_400600_80138EA0(Task* arg0)
 {
     TmdObject*       model = (TmdObject*)arg0->extra;
-    Actor400600Work* work  = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TaskFuncTable6   fns   = D_actor_400600_80131E54;
 
     switch (D_801153F4) {
@@ -964,7 +964,7 @@ void func_actor_400600_80138EA0(Task* arg0)
 void func_actor_400600_80138FD4(Task* arg0)
 {
     TmdObject*       model = (TmdObject*)arg0->extra;
-    Actor400600Work* work  = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TaskFuncTable4   fns   = D_actor_400600_80131E6C;
 
     switch (D_801153F4) {
@@ -989,7 +989,7 @@ void func_actor_400600_80138FD4(Task* arg0)
 
 void func_actor_400600_801390FC(Task* arg0)
 {
-    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work = (Actor400600Work*)arg0->work;
 
     work->field_71C = 1;
     work->field_71E = 0;
@@ -997,14 +997,14 @@ void func_actor_400600_801390FC(Task* arg0)
 
 void func_actor_400600_80139110(Task* arg0)
 {
-    Actor400600Work* work             = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work             = (Actor400600Work*)arg0->work;
     void             (*fns[2])(Task*) = { func_actor_400600_8013B6F4, func_actor_400600_8013B740 };
 
     func_actor_400600_80138AA4(arg0);
     if ((s16)func_actor_400600_80136FA8(arg0) == 0) {
         fns[(s16)work->field_71E](arg0);
         if ((s16)func_actor_400600_80137C34(arg0) == 0 && (s16)func_actor_400600_80137AF0(arg0) == 0 && (*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x4080000 && work->field_768 != 0 && ((TmdObject*)arg0->extra)->field_8->coord.t[0] > 10000) {
-            Actor400600Work* cur = (Actor400600Work*)arg0->idMap;
+            Actor400600Work* cur = (Actor400600Work*)arg0->work;
 
             cur->field_71C = 0xD;
             cur->field_71E = 0;
@@ -1014,7 +1014,7 @@ void func_actor_400600_80139110(Task* arg0)
 
 void func_actor_400600_80139218(Task* arg0)
 {
-    Actor400600Work* work             = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work             = (Actor400600Work*)arg0->work;
     void             (*fns[2])(Task*) = { func_actor_400600_8013B830, func_actor_400600_8013B8AC };
 
     func_actor_400600_80138AA4(arg0);
@@ -1023,7 +1023,7 @@ void func_actor_400600_80139218(Task* arg0)
 
 void func_actor_400600_80139280(Task* arg0)
 {
-    Actor400600Work* work             = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work             = (Actor400600Work*)arg0->work;
     void             (*fns[2])(Task*) = { func_actor_400600_8013B984, func_actor_400600_8013BA00 };
 
     func_actor_400600_80138AA4(arg0);
@@ -1032,7 +1032,7 @@ void func_actor_400600_80139280(Task* arg0)
 
 void func_actor_400600_801392E8(Task* arg0)
 {
-    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work = (Actor400600Work*)arg0->work;
     TaskFuncTable3   fns  = D_actor_400600_80131F34;
 
     func_actor_400600_80138AA4(arg0);
@@ -1041,7 +1041,7 @@ void func_actor_400600_801392E8(Task* arg0)
 
 void func_actor_400600_8013935C(Task* arg0)
 {
-    Actor400600Work* work             = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work             = (Actor400600Work*)arg0->work;
     void             (*fns[2])(Task*) = { func_actor_400600_8013BBF4, func_actor_400600_80133CB0 };
 
     if ((s16)func_actor_400600_80136FA8(arg0) == 0) {
@@ -1051,7 +1051,7 @@ void func_actor_400600_8013935C(Task* arg0)
 
 void func_actor_400600_801393D0(Task* arg0)
 {
-    Actor400600Work* work             = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work             = (Actor400600Work*)arg0->work;
     void             (*fns[2])(Task*) = { func_actor_400600_8013BC68, func_actor_400600_80133E38 };
 
     if ((s16)func_actor_400600_80136FA8(arg0) == 0) {
@@ -1061,7 +1061,7 @@ void func_actor_400600_801393D0(Task* arg0)
 
 void func_actor_400600_80139444(Task* arg0)
 {
-    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work = (Actor400600Work*)arg0->work;
     TaskFuncTable8   fns  = D_actor_400600_80131F40;
 
     func_actor_400600_80138AA4(arg0);
@@ -1070,7 +1070,7 @@ void func_actor_400600_80139444(Task* arg0)
 
 void func_actor_400600_801394E0(Task* arg0)
 {
-    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work = (Actor400600Work*)arg0->work;
     TaskFuncTable4   fns  = D_actor_400600_80131F60;
 
     func_actor_400600_80138AA4(arg0);
@@ -1084,13 +1084,13 @@ void func_actor_400600_80139560(Task* arg0)
     SVECTOR          pos;
     s16              count;
 
-    work = (Actor400600Work*)arg0->idMap;
+    work = (Actor400600Work*)arg0->work;
     func_actor_400600_80138AA4(arg0);
     if ((s16)func_actor_400600_80136FA8(arg0) == 0) {
         count           = work->field_750 - 1;
         work->field_750 = count;
         if (count == 0) {
-            work2            = (Actor400600Work*)arg0->idMap;
+            work2            = (Actor400600Work*)arg0->work;
             work2->field_71C = 0xB;
             work2->field_71E = 0;
             return;
@@ -1105,7 +1105,7 @@ void func_actor_400600_80139560(Task* arg0)
 
 void func_actor_400600_80139608(Task* arg0)
 {
-    Actor400600Work* work             = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work             = (Actor400600Work*)arg0->work;
     void             (*fns[2])(Task*) = { func_actor_400600_8013BFD4, func_actor_400600_80134B98 };
 
     func_actor_400600_80138AA4(arg0);
@@ -1114,7 +1114,7 @@ void func_actor_400600_80139608(Task* arg0)
 
 void func_actor_400600_80139670(Task* arg0)
 {
-    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work = (Actor400600Work*)arg0->work;
     TaskFuncTable3   fns  = D_actor_400600_80131F70;
 
     func_actor_400600_80138AA4(arg0);
@@ -1123,7 +1123,7 @@ void func_actor_400600_80139670(Task* arg0)
 
 void func_actor_400600_801396E4(Task* arg0)
 {
-    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work = (Actor400600Work*)arg0->work;
     TaskFuncTable4   fns  = D_actor_400600_80131F7C;
 
     func_actor_400600_80138AA4(arg0);
@@ -1132,7 +1132,7 @@ void func_actor_400600_801396E4(Task* arg0)
 
 void func_actor_400600_80139764(Task* arg0)
 {
-    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work = (Actor400600Work*)arg0->work;
     TaskFuncTable4   fns  = D_actor_400600_80131F8C;
 
     func_actor_400600_80138AA4(arg0);
@@ -1141,7 +1141,7 @@ void func_actor_400600_80139764(Task* arg0)
 
 void func_actor_400600_801397E4(Task* arg0)
 {
-    Actor400600Work* work = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work = (Actor400600Work*)arg0->work;
     TaskFuncTable3   fns  = D_actor_400600_80131F9C;
 
     func_actor_400600_80138AA4(arg0);
@@ -1152,7 +1152,7 @@ void func_actor_400600_801397E4(Task* arg0)
 
 void func_actor_400600_80139878(Task* arg0)
 {
-    Actor400600Work* work             = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work             = (Actor400600Work*)arg0->work;
     void             (*fns[2])(Task*) = { func_actor_400600_8013C518, func_actor_400600_8013C534 };
 
     func_actor_400600_80138AA4(arg0);
@@ -1161,7 +1161,7 @@ void func_actor_400600_80139878(Task* arg0)
 
 void func_actor_400600_801398E0(Task* arg0)
 {
-    Actor400600Work* work             = (Actor400600Work*)arg0->idMap;
+    Actor400600Work* work             = (Actor400600Work*)arg0->work;
     void             (*fns[2])(Task*) = { func_actor_400600_8013C598, func_actor_400600_8013C5F8 };
 
     func_actor_400600_80138AA4(arg0);

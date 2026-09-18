@@ -213,7 +213,7 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_
 void func_acropolis_security_room_8017EA5C(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
-    AsrMonitorWork*   work   = (AsrMonitorWork*)task->idMap;
+    AsrMonitorWork*   work   = (AsrMonitorWork*)task->work;
 
     prompt->mode     = 0;
     prompt->targetId = 0;
@@ -236,7 +236,7 @@ void func_acropolis_security_room_8017EADC(Task* task)
 
     index      = 0;
     camera     = D_acropolis_security_room_801826B4;
-    work       = (AsrMonitorWork*)task->idMap;
+    work       = (AsrMonitorWork*)task->work;
     D_80114D08 = 0xA;
     cameraId   = (s16)work->cameraId;
 loop:

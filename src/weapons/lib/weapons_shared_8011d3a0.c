@@ -47,7 +47,7 @@ void WeaponsShared8011d3a0(Task* arg0)
         Task_Kill(arg0);
         return;
     }
-    arg0->idMap        = (TaskIdMap*)work;
+    arg0->work         = (TaskIdMap*)work;
     arg0->exitCallback = WeaponsShared8011de24;
     arg0->state++;
     Mem_Set(work, 0, sizeof(M4a1GrenadeWork));

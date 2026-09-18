@@ -13,7 +13,7 @@
 /// Scratch state of the room's first cap script: the task family whose state
 /// table is `RoomsShared8017d8d0States` (dispatcher `func_shelter_r47_80182B18`).
 /// `Mem_Calloc(0x54)` in its state-0 entry `func_shelter_r47_8018138C`, stored
-/// at `Task::idMap`.
+/// at `Task::work`.
 typedef struct {
     /* 0x00 */ u8  pad_0[0x18];
     /* 0x18 */ s16 field_18; ///< committed to game flag 0xAC when the script ends
@@ -37,7 +37,7 @@ STATIC_ASSERT_SIZEOF(ShelterR47State, 0x54);
 /// Scratch state of the room's second cap script: the task family whose state
 /// table is `D_shelter_r47_8017D7DC` (dispatcher `func_shelter_r47_80185214`).
 /// `Mem_Calloc(0x30)` in its state-0 entry `func_shelter_r47_8018431C`, stored
-/// at `Task::idMap`.
+/// at `Task::work`.
 typedef struct {
     /* 0x00 */ u8  pad_0[0xA];
     /* 0x0A */ s16 field_A;
@@ -165,13 +165,13 @@ void func_shelter_r47_80182348(Task* task)
     u16              fade;
     u8               level;
 
-    state = (ShelterR47State*)task->idMap;
+    state = (ShelterR47State*)task->work;
     func_shelter_r47_80181914(task, 0);
     fade        = state->fade + 0x10;
     state->fade = fade;
     if ((s16)fade >= 0x100) {
         state->fade = 0xFF;
-        done        = (ShelterR47State*)task->idMap;
+        done        = (ShelterR47State*)task->work;
         GameFlag_SetNibble(0xAC, done->field_18);
         GameFlag_SetNibble(0xD5, done->field_1A);
         GameFlag_SetNibble(0xAE, done->field_1C);
@@ -201,7 +201,7 @@ s32 func_shelter_r47_801829B8(Task* task, s16 arg1)
     ShelterR47State* state;
     s8               step;
 
-    state = (ShelterR47State*)task->idMap;
+    state = (ShelterR47State*)task->work;
     step  = state->field_51;
     switch (step) {
         case 1:

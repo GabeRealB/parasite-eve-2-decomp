@@ -81,7 +81,7 @@ void func_acropolis_plaza_8017D6D4(void)
 
 /// Fade the plaza to white and tear the task down.
 ///
-/// State 0 allocates the `AcropolisPlazaFadeWork` ramp at `Task::idMap` and
+/// State 0 allocates the `AcropolisPlazaFadeWork` ramp at `Task::work` and
 /// zeroes it; a failed allocation kills the task outright. State 1 runs every
 /// frame: it links a semi-transparent full-screen `TILE` (`-0xA0,-0x78`,
 /// `0x140x0xF0`) plus the `0xE1000240` `DR_TPAGE` into `Gpu_CurrentOt[-16]`,
@@ -97,11 +97,11 @@ void func_acropolis_plaza_8017D8AC(Task* arg0)
     TILE*                   tile;
     DR_TPAGE*               dr;
 
-    fade = (AcropolisPlazaFadeWork*)arg0->idMap;
+    fade = (AcropolisPlazaFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc       = (AcropolisPlazaFadeWork*)Mem_Malloc(8, 0);
-            arg0->idMap = (TaskIdMap*)alloc;
+            alloc      = (AcropolisPlazaFadeWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 goto kill;
             }

@@ -21,7 +21,7 @@ void func_actor_113100_80132F40(Task* arg0)
     Actor113100Work* work;
     s32              flag;
 
-    work = (Actor113100Work*)arg0->idMap;
+    work = (Actor113100Work*)arg0->work;
     flag = GameFlag_GetNibble(0xED);
     if (flag > 0 && work->field_53E == 0) {
         func_actor_113100_80132790(arg0, 0, 1, 0);
@@ -37,7 +37,7 @@ void func_actor_113100_80132FB4(Task* arg0)
     Actor113100Work* work;
     TaskFuncTable4   sp;
 
-    work = (Actor113100Work*)arg0->idMap;
+    work = (Actor113100Work*)arg0->work;
     sp   = D_actor_113100_80131E48;
     sp.funcs[(s16)work->field_532](arg0);
 }
@@ -59,7 +59,7 @@ void func_actor_113100_8013301C(Task* arg0)
     VECTOR                delta;
     SVECTOR               dir;
 
-    work  = (Actor113100Work*)arg0->idMap;
+    work  = (Actor113100Work*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->field_8;
 
     delta.vx = work->field_4F0 - coord->coord.t[0];
@@ -88,7 +88,7 @@ void func_actor_113100_801330E8(Task* arg0)
     s16                   diff;
 
     coord = ((TmdObject*)arg0->extra)->field_8;
-    work  = (Actor113100Work*)arg0->idMap;
+    work  = (Actor113100Work*)arg0->work;
 
     Gp_ExtractEuler(&vec, &coord->coord);
     diff = (u16)work->field_52A - (u16)vec.vy;
@@ -138,7 +138,7 @@ s32 func_actor_113100_801331E8(Task* task, s32 msgId, Actor113100AnimPreset* pre
     TmdObject*       ext;
     s32              i;
 
-    work = (Actor113100Work*)task->idMap;
+    work = (Actor113100Work*)task->work;
     ext  = task->extra;
     if (preset->field_0 != work->field_476) {
         work->field_476 = preset->field_0;

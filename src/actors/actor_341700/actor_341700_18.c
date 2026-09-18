@@ -27,14 +27,14 @@ void func_actor_341700_80169380(Task* arg0)
 
     enemy = (GpEnemy*)arg0->spawnArg2;
     model = (TmdObject*)arg0->extra;
-    work  = (Actor341700Work*)arg0->idMap;
+    work  = (Actor341700Work*)arg0->work;
     SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x402C0002, 0xF);
     func_actor_341700_801681C4(arg0, 0);
     Gp_UnlinkNode(&enemy->node);
     if (work->field_448 == 4) {
         work->field_412  = 0;
         model->field_C   = model->field_C | 0x80;
-        work2            = (Actor341700Work*)arg0->idMap;
+        work2            = (Actor341700Work*)arg0->work;
         work2->field_420 = 7;
         work2->field_422 = 0;
         return;
@@ -50,9 +50,9 @@ void func_actor_341700_80169520(Task* arg0)
     Actor341700Work* work2;
     s32              cond;
 
-    work = (Actor341700Work*)arg0->idMap;
+    work = (Actor341700Work*)arg0->work;
     ActorsShared80165cc0();
-    work2 = (Actor341700Work*)arg0->idMap;
+    work2 = (Actor341700Work*)arg0->work;
     if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
         cond = 1;
     } else {

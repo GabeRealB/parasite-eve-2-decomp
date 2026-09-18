@@ -441,7 +441,7 @@ void func_actor_503500_80145480(Task* arg0)
     SndEvt_EnqueueType7(0x4023000B, 1);
     ext                                 = arg0->extra;
     ((GsCOORDINATE2*)ext->field_8)->sub = &Gfx_ViewCoord;
-    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->idMap)->obj);
+    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
     Task_Kill(arg0);
 }
 
@@ -484,7 +484,7 @@ void func_actor_503500_801455A4(Task* arg0)
         Task_Kill(arg0);
         return;
     }
-    arg0->idMap = (TaskIdMap*)work;
+    arg0->work = (TaskIdMap*)work;
 
     m     = (GpMtxWords*)&coord->coord;
     m->w0 = 0x1000;
@@ -588,13 +588,13 @@ void func_actor_503500_80145950(Task* arg0)
     func_actor_503500_801372AC(6);
     ext                                 = arg0->extra;
     ((GsCOORDINATE2*)ext->field_8)->sub = &Gfx_ViewCoord;
-    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->idMap)->obj);
+    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
     Task_Kill(arg0);
 }
 
 void func_actor_503500_801459B0(Task* arg0)
 {
-    Gp_ClearRec18Occupied(&((Actor503500ObjWork*)arg0->idMap)->rec);
+    Gp_ClearRec18Occupied(&((Actor503500ObjWork*)arg0->work)->rec);
 }
 
 void func_actor_503500_801459D4(Task* task)
@@ -623,7 +623,7 @@ void func_actor_503500_80145A2C(Task* arg0)
         Task_Kill(arg0);
         return;
     }
-    arg0->idMap = (TaskIdMap*)work;
+    arg0->work = (TaskIdMap*)work;
 
     m     = (GpMtxWords*)&coord->coord;
     m->w0 = 0x1000;
@@ -752,7 +752,7 @@ void func_actor_503500_80145E98(Task* arg0)
     SndEvt_EnqueueType7(0x4023000F, 1);
     ext                                 = arg0->extra;
     ((GsCOORDINATE2*)ext->field_8)->sub = &Gfx_ViewCoord;
-    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->idMap)->obj);
+    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
     Task_Kill(arg0);
 }
 
@@ -845,7 +845,7 @@ void func_actor_503500_8014618C(Task* arg0)
     // `extra` is read twice on purpose: the second read is what leaves the
     // target's `move s2, v0` copy.
     coord = ((TmdObject*)arg0->extra)->field_8;
-    work  = (Actor503500Effect4CC*)arg0->idMap;
+    work  = (Actor503500Effect4CC*)arg0->work;
     enemy = arg0->spawnArg2;
     ext   = arg0->extra;
     switch (work->field_4C2) {

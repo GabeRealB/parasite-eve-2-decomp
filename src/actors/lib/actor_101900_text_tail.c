@@ -72,7 +72,7 @@ s32 Actor01900_Fn0A49C(Task* task, s32 arg1, ActorShared80169f74Placement* place
     s32                       mz;
     ActorsShared80169f74Work* work;
 
-    work                                           = (ActorsShared80169f74Work*)task->idMap;
+    work                                           = (ActorsShared80169f74Work*)task->work;
     ((TmdObject*)task->extra)->field_8->coord.t[0] = placement->pos.vx;
     ((TmdObject*)task->extra)->field_8->coord.t[1] = placement->pos.vy;
     ((TmdObject*)task->extra)->field_8->coord.t[2] = placement->pos.vz;
@@ -143,7 +143,7 @@ void Actor01900_Fn0A6CC(Task* task)
     Actor01900Work* work;
     GpEnemy*        enemy;
 
-    work  = (Actor01900Work*)task->idMap;
+    work  = (Actor01900Work*)task->work;
     enemy = (GpEnemy*)task->spawnArg2;
     if (work != NULL) {
         if (work->field_C38 != NULL) {
@@ -326,7 +326,7 @@ void Actor01900_Fn0ABA0(s32 arg0, Task* task)
     u16             count;
     Actor01900Work* work;
 
-    work          = (Actor01900Work*)task->idMap;
+    work          = (Actor01900Work*)task->work;
     count         = work->field_6 + 1;
     work->field_6 = count;
     if ((s16)count >= 3) {

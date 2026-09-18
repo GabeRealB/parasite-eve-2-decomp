@@ -18,7 +18,7 @@ void ActorsShared801652a0(Task* arg0)
     u32                       soundId;
     s32                       pan;
 
-    work = (ActorsShared80168d3cWork*)arg0->idMap;
+    work = (ActorsShared80168d3cWork*)arg0->work;
     if ((s16)++work->field_412 == 1) {
         soundId   = (u16)((GpEnemy*)arg0->spawnArg2)->field_8;
         soundId >>= 0xC;
@@ -38,11 +38,11 @@ void ActorsShared801652a0(Task* arg0)
         SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
     }
     if (ActorsShared8016974c(arg0)) {
-        next             = (ActorsShared80168d3cWork*)arg0->idMap;
+        next             = (ActorsShared80168d3cWork*)arg0->work;
         arg0->state      = 3;
         next->field_420  = 0;
         next->field_422  = 0;
-        next2            = (ActorsShared80168d3cWork*)arg0->idMap;
+        next2            = (ActorsShared80168d3cWork*)arg0->work;
         next2->field_420 = 3;
         next2->field_422 = 0;
     }

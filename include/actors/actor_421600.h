@@ -40,10 +40,10 @@ STATIC_ASSERT_SIZEOF(Actor421600Msg, 0x4);
 /// Per-actor state block for the `actor_421600` overlay's enemy.
 ///
 /// `func_actor_421600_80134AD4` allocates it with `Mem_Calloc(0xEB0, 0)` and
-/// stores it in the `Task::idMap` slot (0x1C), so the size below is the
+/// stores it in the `Task::work` slot (0x1C), so the size below is the
 /// allocation rather than a guess: this actor reuses that pointer field for its
 /// own work block and it is *not* a `TaskIdMap` here. Reach it with
-/// `(Actor421600Work*)task->idMap`.
+/// `(Actor421600Work*)task->work`.
 ///
 /// Only the fields the decompiled code touches are named so far: the three
 /// `GpObj` display nodes `func_actor_421600_8013E668` hands back to
@@ -234,7 +234,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(Actor421600ArenaScratch, 0xC);
 
 /// Per-task actor context: `field_1C` is the work block above (the same
-/// pointer `Task::idMap` holds), `field_20` the `GpEnemy` in
+/// pointer `Task::work` holds), `field_20` the `GpEnemy` in
 /// `Task::spawnArg2`, and `field_2C` the actor's `TmdObject`. Same shape as
 /// `Actor403000` / `Actor401800`.
 typedef struct Actor421600 {

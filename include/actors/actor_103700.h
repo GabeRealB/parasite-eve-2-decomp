@@ -8,9 +8,9 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Per-actor work block, reached as `(Actor103700Work*)task->idMap`.
+/// Per-actor work block, reached as `(Actor103700Work*)task->work`.
 ///
-/// Like actor 421600 this overlay keeps its own state in the `Task::idMap` slot
+/// Like actor 421600 this overlay keeps its own state in the `Task::work` slot
 /// instead of a `TaskIdMap`, so that pointer field is *not* a `TaskIdMap` here.
 /// The halfword `func_actor_103700_801350DC` cycles counts up and wraps to 0 once
 /// it passes the caller's period, and the wrapped value indexes the bob table

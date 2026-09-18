@@ -31,7 +31,7 @@ void func_actor_361100_80161FF8(Task* arg0);
 /// per-chunk rate) and uploads the coordinate, and 10 exits the task.
 ///
 /// State 0 allocates the `Actor361100EffectState` trail block into
-/// `Task::idMap`, seeds its `field_8E` / `field_E0` halfwords and ticks it 0x1E
+/// `Task::work`, seeds its `field_8E` / `field_E0` halfwords and ticks it 0x1E
 /// times, then resets the actor's root matrix to identity with the fixed
 /// translation (0x1CA2, 0x712, 0x189C) and parks the view coordinate in its
 /// `sub` slot. A failed allocation takes the exit call and is *not* branched
@@ -48,7 +48,7 @@ void func_actor_361100_80161E3C(Task* arg0)
     u8*                     modePtr;
     u8                      mode;
 
-    state   = (Actor361100EffectState*)arg0->idMap;
+    state   = (Actor361100EffectState*)arg0->work;
     modePtr = &Game_Session->field_4;
     coord   = ((TmdObject*)arg0->extra)->field_8;
     if (D_8006D868 != -1) {
@@ -61,7 +61,7 @@ void func_actor_361100_80161E3C(Task* arg0)
                 Task_CallExit(arg0);
                 i = 0;
             }
-            arg0->idMap     = (TaskIdMap*)state;
+            arg0->work      = (TaskIdMap*)state;
             state->field_E0 = 1;
             state->field_8E = 1;
             i               = 0;
@@ -116,13 +116,13 @@ void func_actor_361100_801627D4(Task* task)
             case 0:
                 aim = Mem_Calloc(sizeof(Actor361100HeadAim), false);
                 if (aim != NULL) {
-                    task->idMap     = (TaskIdMap*)aim;
+                    task->work      = (TaskIdMap*)aim;
                     aim->yawLimit   = 0x300;
                     aim->pitchLimit = 0x200;
                     task->state++;
                         /* fallthrough */
                     case 1:
-                        aim = (Actor361100HeadAim*)task->idMap;
+                        aim = (Actor361100HeadAim*)task->work;
                         if (task->spawnArg1 != 0) {
                             rate      = aim->rate + 0x100;
                             aim->rate = rate;

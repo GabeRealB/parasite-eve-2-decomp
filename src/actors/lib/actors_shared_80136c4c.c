@@ -8,7 +8,7 @@ void ActorsShared80136c4c(Task* task)
     s32                       state;
     s32                       next;
 
-    work  = (ActorsShared80136c4cWork*)task->idMap;
+    work  = (ActorsShared80136c4cWork*)task->work;
     state = work->field_6A8;
     switch (state) {
         case 0:

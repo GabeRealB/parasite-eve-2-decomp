@@ -23,7 +23,7 @@ void func_actor_335800_80163CA0(Task* task)
     VECTOR           vec;
 
     coord = ((TmdObject*)task->extra)->field_8;
-    work  = (Actor335800Work*)task->idMap;
+    work  = (Actor335800Work*)task->work;
 
     vec = D_actor_335800_80161E78;
     ApplyMatrixLV(&coord->coord, &vec, (VECTOR*)&work->step);
@@ -46,7 +46,7 @@ s32 func_actor_335800_80163E20(Task* task, s32 arg1, Actor335800AnimPreset* msg,
     TmdObject*       ext;
     s32              i;
 
-    work = (Actor335800Work*)task->idMap;
+    work = (Actor335800Work*)task->work;
     ext  = task->extra;
     if (msg->field_0 != work->field_43E) {
         work->field_43E = msg->field_0;
@@ -90,9 +90,9 @@ s32 func_actor_335800_80163FB8(Task* task, s32 arg1, s32 mode)
             obj->field_C &= ~4;
             break;
         case 2:
-            obj->field_C                              |= 0x80;
-            ((Actor335800Work*)task->idMap)->field_4C4 = mode;
-            obj->field_C                              |= 4;
+            obj->field_C                             |= 0x80;
+            ((Actor335800Work*)task->work)->field_4C4 = mode;
+            obj->field_C                             |= 4;
             break;
         case 3:
             obj->field_C &= ~0x80;

@@ -12,7 +12,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_18", func_actor_34240
 
 void func_actor_342400_8016A370(Task* arg0)
 {
-    Actor342400Work* work = (Actor342400Work*)arg0->idMap;
+    Actor342400Work* work = (Actor342400Work*)arg0->work;
     s16              angle;
     s16              speed;
 
@@ -27,7 +27,7 @@ void func_actor_342400_8016A370(Task* arg0)
         Actor342400Work* next;
 
         work->field_438 = 0;
-        next            = (Actor342400Work*)arg0->idMap;
+        next            = (Actor342400Work*)arg0->work;
         next->field_420 = 3;
         next->field_422 = 0;
     }

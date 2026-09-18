@@ -14,7 +14,7 @@ extern void func_dryfield_night_factory_80180DE8(Task*, s16);
 /// block's `field_8` is set to 0xA.
 void func_dryfield_night_factory_801819BC(Task* task)
 {
-    NightFactoryScriptWork* work = (NightFactoryScriptWork*)task->idMap;
+    NightFactoryScriptWork* work = (NightFactoryScriptWork*)task->work;
 
     D_80114D28.mode     = 0;
     D_80114D28.targetId = 0;

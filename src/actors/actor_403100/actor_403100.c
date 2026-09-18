@@ -861,7 +861,7 @@ void func_actor_403100_80134D50(Task* arg0)
     s32               brightness;
     s32               timer;
 
-    D_actor_403100_80155808 = arg0->idMap;
+    D_actor_403100_80155808 = arg0->work;
     D_actor_403100_8015580C = arg0->spawnArg2;
     handlers[(s16)D_actor_403100_80155808->field_5F8](arg0);
     coords                            = ((TmdObject*)arg0->extra)->field_8;
@@ -1450,12 +1450,12 @@ void func_actor_403100_80136610(Task* arg0)
     obj   = arg0->extra;
     coord = obj->field_8;
     if ((*(u32*)&Game_Session->field_4 & ~0xFF) != 0x031D0200 ||
-        (arg0->idMap = Mem_Calloc(0x678U, false)) == NULL) {
+        (arg0->work = Mem_Calloc(0x678U, false)) == NULL) {
         Gp_DestroyEnemy(D_actor_403100_8015580C, arg0);
         return;
     }
     enemy                                = ((volatile Task*)arg0)->spawnArg2;
-    work                                 = ((volatile Task*)arg0)->idMap;
+    work                                 = ((volatile Task*)arg0)->work;
     obj->field_1C                        = &work->field_0.matrices.light;
     D_actor_403100_8015580C              = enemy;
     D_actor_403100_80155808              = work;

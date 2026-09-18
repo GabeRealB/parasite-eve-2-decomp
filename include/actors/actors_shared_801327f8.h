@@ -7,7 +7,7 @@
 
 /// Work block this dispatcher indexes. `turnCount` at 0x4FA is the same
 /// counter `ActorsShared80132860` / `ActorsShared80132920` bump; the task's
-/// `idMap` slot (0x1C) points at this block, not a `TaskIdMap`.
+/// `work` slot (0x1C) points at this block, not a `TaskIdMap`.
 typedef struct ActorsShared801327f8Work {
     /* 0x000 */ byte pad_0[0x4FA];
     /* 0x4FA */ u16  turnCount;

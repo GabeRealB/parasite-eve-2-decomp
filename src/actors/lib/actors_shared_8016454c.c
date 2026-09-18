@@ -18,7 +18,7 @@ void ActorsShared8016454c(Task* arg0)
     s32                       pan;
     s16                       step;
 
-    work            = (ActorsShared80168d3cWork*)arg0->idMap;
+    work            = (ActorsShared80168d3cWork*)arg0->work;
     work->field_426 = 8;
     work->field_418 = 7;
     work->field_41C = 0x10;

@@ -22,7 +22,7 @@ extern const TaskFuncTable12 D_actor_405800_80131E24;
 void func_actor_405800_80138698(Task* arg0)
 {
     TmdObject*       model = (TmdObject*)arg0->extra;
-    Actor405800Work* work  = (Actor405800Work*)arg0->idMap;
+    Actor405800Work* work  = (Actor405800Work*)arg0->work;
     TaskFuncTable12  fns   = D_actor_405800_80131E24;
 
     switch (D_801153F4) {
@@ -40,7 +40,7 @@ void func_actor_405800_80138698(Task* arg0)
 
 void func_actor_405800_80138788(Task* arg0)
 {
-    Actor405800Work* work                = (Actor405800Work*)arg0->idMap;
+    Actor405800Work* work                = (Actor405800Work*)arg0->work;
     void             (*states[2])(Task*) = {
         func_actor_405800_80138EF0,
         func_actor_405800_80138F54,

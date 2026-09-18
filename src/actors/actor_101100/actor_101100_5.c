@@ -22,7 +22,7 @@ void ActorsShared8013845cSub1(Task* task)
     struct _GpEffWork* eff;
     s16                countdown;
 
-    work  = (Actor101100Work*)task->idMap;
+    work  = (Actor101100Work*)task->work;
     coord = ((TmdObject*)task->extra)->field_8;
 
     if (D_801153F4 == 0) {

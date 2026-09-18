@@ -7,7 +7,7 @@
 
 #include <psyq/libgte.h>
 
-/// 8-byte work block the observatory's scene task keeps at `Task::idMap`
+/// 8-byte work block the observatory's scene task keeps at `Task::work`
 /// (`Mem_Calloc(8, 0)` in state 0 of `func_acropolis_observatory_8017E19C`).
 ///
 /// `target` is the slot-3 task every message the scene sends is addressed to,
@@ -22,7 +22,7 @@ typedef struct AobSceneWork {
 STATIC_ASSERT_SIZEOF(AobSceneWork, 8);
 
 /// 0x14 work block the observatory's streamed-scene task
-/// (`func_acropolis_observatory_8017DD3C`) keeps at `Task::idMap`
+/// (`func_acropolis_observatory_8017DD3C`) keeps at `Task::work`
 /// (`Mem_Calloc(0x14, 0)` in its state 0).
 ///
 /// `mtx` is `Player_Status.coordMtx`, the player actor's coordinate matrix; the
