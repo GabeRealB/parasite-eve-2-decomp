@@ -89,16 +89,69 @@ typedef struct Actor02100Fn01FF0Block {
 } Actor02100Fn01FF0Block;
 STATIC_ASSERT_SIZEOF(Actor02100Fn01FF0Block, 0x48);
 
-/// Entry of `Actor02100_D03D88`, selected by `Actor02100Work::field_178`. Both
-/// fields bound the per-state frame counter `field_17A`: state 0 advances to
-/// state 1 once the counter reaches `field_0`, and state 6 returns to state 0
-/// once it reaches `field_2`. The remaining bytes are not read here.
-typedef struct Actor02100Fn01FF0Timing {
-    /* 0x0 */ s16  field_0;
-    /* 0x2 */ s16  field_2;
-    /* 0x4 */ byte pad_4[0xC];
+/// Entry of `Actor02100_D03D88`, selected by `Actor02100Work::field_178`, read
+/// through two views of the same sixteen bytes. `bounds` holds the frame
+/// counts that drive the state machine: `field_17A` advances state 0 to state 1
+/// once it reaches `field_0`, and returns state 6 to state 0 once it reaches
+/// `field_2`. The remaining twelve bytes are two RGB triplets, one component
+/// per short; `Actor02100_Fn02924` selects a triplet with its style argument
+/// and reads each component's low byte, so it indexes the whole entry as
+/// `shorts` and reaches the triplets at indices 2..7.
+typedef union Actor02100Fn01FF0Timing {
+    struct Actor02100Fn01FF0TimingBounds {
+        /* 0x0 */ s16  field_0;
+        /* 0x2 */ s16  field_2;
+        /* 0x4 */ byte pad_4[0xC];
+    } bounds;
+    s16 shorts[8];
 } Actor02100Fn01FF0Timing;
 STATIC_ASSERT_SIZEOF(Actor02100Fn01FF0Timing, 0x10);
+
+/// 0x3C-byte block `Actor02100_Fn02924` takes from `G_SCRATCH_HEAD` while it
+/// draws one beam between the two screen points in `Actor02100Work`. `delta` is
+/// the span between those points, which `VectorNormalS` turns into `normal`;
+/// the y component of `normal` is then negated, so that scaling the pair by a
+/// width gives the sideways offset of a beam edge. The beam is drawn as eight
+/// segments: `depth` is the current segment's depth, `depthStep` the depth
+/// added per segment, and `stepX`/`stepY` the per-segment step of the centre
+/// line. `x` and `y` hold one segment's six corners - the two centre-line
+/// points, then the two points of each edge.
+typedef struct Actor02100Fn02924Scratch {
+    /* 0x00 */ VECTOR  delta;
+    /* 0x10 */ SVECTOR normal;
+    /* 0x18 */ s32     depth;
+    /* 0x1C */ s32     depthStep;
+    /* 0x20 */ s16     x[6];
+    /* 0x2C */ s16     y[6];
+    /* 0x38 */ s16     stepX;
+    /* 0x3A */ s16     stepY;
+} Actor02100Fn02924Scratch;
+STATIC_ASSERT_SIZEOF(Actor02100Fn02924Scratch, 0x3C);
+
+/// One beam style in an `Actor02100_D03DD8` row. Each value is scaled by the
+/// beam normal and added to the centre line, so the pair places the beam's two
+/// edges; every stored row holds a negative and a positive offset of the same
+/// size, which makes the beam symmetric about its centre.
+typedef struct Actor02100Fn02924Edges {
+    /* 0x0 */ s16 first;
+    /* 0x2 */ s16 second;
+} Actor02100Fn02924Edges;
+
+/// Row of `Actor02100_D03DD8`, selected by `Actor02100Work::field_178`. The
+/// style argument of `Actor02100_Fn02924` picks one of the two entries, and
+/// picks the matching colour triplet out of `Actor02100_D03D88`.
+typedef struct Actor02100Fn02924Widths {
+    /* 0x0 */ Actor02100Fn02924Edges styles[2];
+} Actor02100Fn02924Widths;
+
+/// Entry of `Actor02100_D03E1C`: the corners of one of the two quads a segment
+/// is built from, as indices into `Actor02100Fn02924Scratch::x` and `y`. Both
+/// entries name the centre-line pair first and one edge second, and the quad is
+/// shaded from the beam colour on those first two corners to black on the
+/// other two, so each quad fades outwards from the centre line.
+typedef struct Actor02100Fn02924Corners {
+    /* 0x0 */ s16 corners[4];
+} Actor02100Fn02924Corners;
 
 struct Actor02100;
 
@@ -191,7 +244,9 @@ extern u32 Gp_LcgState;
 
 extern GpU16Pair                 Actor02100_D03D64;
 extern Actor02100Fn01FF0Timing   Actor02100_D03D88[];
+extern Actor02100Fn02924Widths   Actor02100_D03DD8[];
 extern s16                       Actor02100_D03E00[];
+extern Actor02100Fn02924Corners  Actor02100_D03E1C[];
 extern s16                       Actor02100_D03E2C[];
 extern Actor02100StateFuncTable3 Actor02100_D00004;
 

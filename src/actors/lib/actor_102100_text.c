@@ -759,7 +759,7 @@ void Actor02100_Fn01FF0(Actor02100* arg0)
             work->field_C8.flags |= 0x8000;
             work->field_78.flags |= 0x4000;
             work->field_C8.flags |= 0x4000;
-            if (frame0 >= Actor02100_D03D88[work->field_178].field_0) {
+            if (frame0 >= Actor02100_D03D88[work->field_178].bounds.field_0) {
                 work->field_17A = 0;
                 work->field_174 = 1;
             }
@@ -841,7 +841,7 @@ void Actor02100_Fn01FF0(Actor02100* arg0)
         case 6:
             frame6          = (u16)work->field_17A + 1;
             work->field_17A = frame6;
-            if (frame6 >= Actor02100_D03D88[work->field_178].field_2) {
+            if (frame6 >= Actor02100_D03D88[work->field_178].bounds.field_2) {
                 work->field_17A = 0;
                 work->field_174 = 0;
                 work->field_172 = work->field_176 != 0;
@@ -855,7 +855,184 @@ void Actor02100_Fn01FF0(Actor02100* arg0)
     *(u8**)G_SCRATCH_HEAD += 0x48;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn02924);
+/// Draws one beam between the two screen points held in `Actor02100Work`
+/// (`field_18C`/`field_190` and their depths in `field_194`). The span is
+/// normalised once, its y component negated, and the beam then emitted as eight
+/// segments of rising depth; a segment nearer than 30 is dropped. Each segment
+/// is a bright centre line plus two gouraud quads that fade from the beam
+/// colour on that line to black at the edges, all linked into the ordering
+/// table at the segment's own depth and followed by a draw-mode packet. `arg1`
+/// selects the style: it picks the edge offsets out of `Actor02100_D03DD8` and
+/// the colour triplet out of `Actor02100_D03D88`, and style 1 draws its centre
+/// line in flat grey instead of the table colour.
+void Actor02100_Fn02924(Actor02100* arg0, s32 arg1)
+{
+    Actor02100Fn02924Corners* corners;
+    POLY_G4*                  quad;
+    DR_TPAGE*                 mode;
+    LINE_F2*                  line;
+    Actor02100Fn02924Scratch* scratch;
+    u8*                       head;
+    u8*                       newHead;
+    s32                       stepX;
+    s32                       stepY;
+    s32*                      quadSlot;
+    s32*                      modeSlot;
+    s32*                      lineSlot;
+    s32                       next;
+    s32                       offsetX0;
+    s32                       offsetX1;
+    s32                       normalY;
+    u8                        blue;
+    s32                       offsetY0;
+    s32                       offsetY1;
+    s32                       depth;
+    s32                       corner;
+    s32                       segment;
+    s32                       spanX;
+    s32                       spanY;
+    s32                       spanZ;
+    Actor02100Work*           work;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    work                  = arg0->field_1C;
+    newHead               = head - 0x3C;
+    *(u8**)G_SCRATCH_HEAD = newHead;
+    scratch               = (Actor02100Fn02924Scratch*)newHead;
+
+    ((Actor02100Fn02924Scratch*)(head - 0x3C))->delta.vx = work->field_18C[1] - work->field_18C[0];
+    scratch->delta.vy                                    = work->field_190[1] - work->field_190[0];
+    scratch->delta.vz                                    = 0;
+    VectorNormalS((VECTOR*)newHead, &scratch->normal);
+    normalY            = -scratch->normal.vy;
+    scratch->normal.vy = normalY;
+
+    spanX = work->field_18C[1] - work->field_18C[0];
+    if (spanX < 0) {
+        spanX += 7;
+    }
+    scratch->stepX = (s16)(spanX >> 3);
+    spanY          = work->field_190[1] - work->field_190[0];
+    if (spanY < 0) {
+        spanY += 7;
+    }
+    scratch->stepY = (s16)(spanY >> 3);
+    spanZ          = work->field_194[1] - work->field_194[0];
+    if (spanZ < 0) {
+        spanZ += 7;
+    }
+    scratch->depthStep = spanZ >> 3;
+    segment            = 0;
+
+    do {
+        next           = segment + 1;
+        depth          = (scratch->depthStep * next) + work->field_194[0];
+        scratch->depth = depth;
+        if (depth >= 0x1E) {
+            stepX         = scratch->stepX;
+            scratch->x[0] = (u16)((u16)work->field_18C[0] + (stepX * segment));
+            scratch->x[1] = (u16)((u16)work->field_18C[0] + (stepX * next));
+            corner        = 0;
+            offsetX0 =
+                (s32)((s32)(scratch->normal.vy * Actor02100_D03DD8[work->field_178].styles[arg1].first * 0x300) >>
+                      0xC) /
+                (s32)scratch->depth;
+            scratch->x[2] = (s16)(scratch->x[0] + offsetX0);
+            scratch->x[3] = (s16)(scratch->x[1] + offsetX0);
+            offsetX1 =
+                (s32)((s32)(scratch->normal.vy * Actor02100_D03DD8[work->field_178].styles[arg1].second * 0x300) >>
+                      0xC) /
+                (s32)scratch->depth;
+            stepY         = scratch->stepY;
+            scratch->x[4] = (s16)(scratch->x[0] + offsetX1);
+            scratch->x[5] = (s16)(scratch->x[1] + offsetX1);
+            scratch->y[0] = (u16)((u16)work->field_190[0] + (stepY * segment));
+            scratch->y[1] = (u16)((u16)work->field_190[0] + (stepY * next));
+            offsetY0 =
+                (s32)((s32)(scratch->normal.vx * Actor02100_D03DD8[work->field_178].styles[arg1].first * 0x300) >>
+                      0xC) /
+                (s32)scratch->depth;
+            scratch->y[2] = (s16)(scratch->y[0] + offsetY0);
+            COMPILER_BARRIER();
+            scratch->y[3] = (s16)(scratch->y[1] + offsetY0);
+            offsetY1 =
+                (s32)((s32)(scratch->normal.vx * Actor02100_D03DD8[work->field_178].styles[arg1].second * 0x300) >>
+                      0xC) /
+                (s32)scratch->depth;
+            scratch->y[4] = (s16)(scratch->y[0] + offsetY1);
+            scratch->y[5] = (s16)(scratch->y[1] + offsetY1);
+
+            do {
+                quad           = (POLY_G4*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)((u8*)quad + 0x24);
+                setlen(quad, 8);
+                setcode(quad, 0x3A);
+                corners  = &Actor02100_D03E1C[corner];
+                quad->x0 = (u16)scratch->x[corners->corners[0]];
+                quad->y0 = (u16)scratch->y[corners->corners[0]];
+                quad->x1 = (u16)scratch->x[corners->corners[1]];
+                quad->y1 = (u16)scratch->y[corners->corners[1]];
+                quad->x2 = (u16)scratch->x[corners->corners[2]];
+                quad->y2 = (u16)scratch->y[corners->corners[2]];
+                quad->x3 = (u16)scratch->x[corners->corners[3]];
+                quad->y3 = (u16)scratch->y[corners->corners[3]];
+                quad->r0 = (u8)Actor02100_D03D88[work->field_178].shorts[(arg1 * 3) + 2];
+                quad->g0 = (u8)Actor02100_D03D88[work->field_178].shorts[(arg1 * 3) + 3];
+                quad->b0 = (u8)Actor02100_D03D88[work->field_178].shorts[(arg1 * 3) + 4];
+                quad->r1 = (u8)Actor02100_D03D88[work->field_178].shorts[(arg1 * 3) + 2];
+                quad->g1 = (u8)Actor02100_D03D88[work->field_178].shorts[(arg1 * 3) + 3];
+                blue     = (u8)Actor02100_D03D88[work->field_178].shorts[(arg1 * 3) + 4];
+                quad->r2 = 0;
+                quad->g2 = 0;
+                quad->b2 = 0;
+                quad->r3 = 0;
+                quad->g3 = 0;
+                quad->b3 = 0;
+                quad->b1 = blue;
+                corner  += 1;
+                setaddr(quad,
+                        getaddr((((u32)(scratch->depth << Display_State.field_128) >> 2) & 0xFFC) +
+                                (u32)Gpu_CurrentOt));
+                quadSlot = (s32*)((((u32)(scratch->depth << Display_State.field_128) >> 2) & 0xFFC) +
+                                  (u32)Gpu_CurrentOt);
+                setaddr(quadSlot, quad);
+            } while (corner < 2);
+
+            line           = (LINE_F2*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)((u8*)line + 0x10);
+            setlen(line, 3);
+            setcode(line, 0x42);
+            line->x0 = (u16)scratch->x[0];
+            line->y0 = (u16)scratch->y[0];
+            line->x1 = (u16)scratch->x[1];
+            line->y1 = (u16)scratch->y[1];
+            if (arg1 == 1) {
+                line->r0 = 0x80U;
+                line->g0 = 0x80U;
+                line->b0 = 0x80U;
+            } else {
+                line->r0 = (u8)Actor02100_D03D88[work->field_178].shorts[(arg1 * 3) + 2];
+                line->g0 = (u8)Actor02100_D03D88[work->field_178].shorts[(arg1 * 3) + 3];
+                line->b0 = (u8)Actor02100_D03D88[work->field_178].shorts[(arg1 * 3) + 4];
+            }
+            setaddr(line,
+                    getaddr((((u32)(scratch->depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt));
+            mode           = Gpu_PrimCursor;
+            lineSlot       = (s32*)((((u32)(scratch->depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt);
+            Gpu_PrimCursor = (DR_TPAGE*)((u8*)mode + 8);
+            setaddr(lineSlot, line);
+            setlen(mode, 1);
+            mode->code[0] = 0xE1000620;
+            setaddr(mode,
+                    getaddr((((u32)(scratch->depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt));
+            modeSlot = (s32*)((((u32)(scratch->depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt);
+            setaddr(modeSlot, mode);
+        }
+        segment += 1;
+    } while (segment < 8);
+
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + 0x3C;
+}
 
 void Actor02100_Fn03168(Actor02100* arg0)
 {

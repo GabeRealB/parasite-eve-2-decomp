@@ -129749,3 +129749,98 @@ to one object and that the cut is at the right place.
 Symptom to recognise: the overlay is exactly one padded jump table too long, the
 function itself diffs clean, and `RODATA_SIZE` in the `.elf.map` exceeds the offset
 where `.text` starts in the manifest's `shared` span.
+
+## `&arr[i].m[j]` and `arr[i].m[j].f` build the same address in different orders (Actor02100_Fn02924, 2026-09-18)
+
+Two index steps into a nested array give one `addu` per index. Which of the two
+index terms is `rs` is decided by *how the reference is spelled*, not by the
+declaration:
+
+```
+addu v0,v0,t8    /* (&tbl[row].pairs[col])->a - row term first  */
+addu v0,t8,v0    /* tbl[row].pairs[col].a     - column term first */
+```
+
+The plain member access reaches `expand_expr`'s generic `COMPONENT_REF`/`ARRAY_REF`
+path, where `get_inner_reference` accumulates the variable offsets walking the
+reference chain *outermost first* - so the innermost array's term is added last,
+and lands in `rs`. Taking the address of the element instead turns the reference
+into pointer arithmetic in the front end (`build_unary_op` rewrites `&x[y]` as
+`x + y`), and `fold`'s "associate the constant outward" rule then leaves the two
+terms in source order, with the outermost index first.
+
+So when a near-match differs only in the operand order of an address `addu`,
+index the element in place rather than taking its address - and check for an
+`&…->field` spelling left over from m2c, which is the same thing written
+backwards. 12 register penalties on this function were nothing but that.
+
+## An insn reaches a branch's delay slot only from the same block or the fall-through's first block (Actor02100_Fn02924, 2026-09-18)
+
+`reorg`'s `fill_slots_from_thread` walks the fall-through insns from the branch and
+stops at the first `JUMP_INSN` (`stop_search_p`), so a loop-counter initialisation
+only lands in a guard branch's delay slot if the compiler emitted it *before the
+first branch inside the guarded body* - which, in a body whose first statement
+divides, means before that division. Moving the `i = 0;` statement is therefore not
+cosmetic: it decides whether the delay slot is filled or padded with a `nop`.
+
+It also decides the counter's register, because the statement's position sets the
+live range global-alloc ranks it by:
+
+```
+priority = floor_log2(n_refs) * n_refs * size / live_length
+```
+
+Three placements of the same `i = 0;` gave live lengths 139 (just above the inner
+loop), 158 (top of the guarded body) and 232 (before the `if`) for 11 references.
+The competing loop-invariant pseudos scored ~0.18, so 139 and 158 won `$t1` while
+232 lost it and took the register after all four of them - a whole rotation of
+`$t1`-`$t5` in the output, from one statement moving eight lines. `Register N used
+R times across L insns` in the `.lreg` dump gives both numbers; compute the ratio
+for the pseudo and its neighbours before concluding that an allocation is
+unreachable.
+
+## `TOUCH_REG_MEM` costs a copy when the value is not already in the operand's register (Actor02100_Fn02924, 2026-09-18)
+
+`TOUCH_REG_MEM(x)` is a `"+r"` operand *and* a memory clobber. The clobber is what
+keeps later reads of a just-stored field from being hoisted above the store; the
+operand additionally pins `x` into whatever register reload picks for the asm, and
+emits a `move` when the allocation put `x` elsewhere. The copy is invisible while
+the surrounding allocation happens to agree and appears as a stray `move` the
+moment anything shifts it.
+
+If the barrier was added to order memory, use `COMPILER_BARRIER()` instead - same
+ordering, no operand, no copy. Here it was worth 0.8% on its own, and the register
+operand was never needed.
+
+## Two variables, not one, when a computed pointer is both stored and passed (Actor02100_Fn02924, 2026-09-18)
+
+A scratch-block prologue that keeps one variable
+
+```c
+scratch               = (Scratch*)(head - 0x3C);
+*(u8**)G_SCRATCH_HEAD = (u8*)scratch;
+...
+VectorNormalS(&scratch->vec, &scratch->normal);
+```
+
+can only emit `addiu s0,a1,-0x3c` followed by `move a0,s0`: the pseudo is live
+across the call, so it must have a callee-saved register, and the argument copy is
+inserted at the call. The ROM's other order - `addiu a0,a1,-0x3c`, `move s0,a0`,
+`sw a0,0(a2)` - needs *two* pseudos: a short one that dies at the call, which
+local-alloc homes in `$a0` because that is where it is copied to, and the
+long-lived one taken from it.
+
+Splitting the C the same way produces it:
+
+```c
+newHead               = head - 0x3C;          /* stored, and passed  */
+*(u8**)G_SCRATCH_HEAD = newHead;
+scratch               = (Scratch*)newHead;    /* everything after the call */
+...
+VectorNormalS((VECTOR*)newHead, &scratch->normal);
+```
+
+The two are the same value, so this looks like something CSE should collapse - it
+does not, because the copy is what the later uses read from. Read the shape off the
+object dump: a `move` whose *destination* is the callee-saved register means the
+computation wrote the argument register, which one variable cannot express.
