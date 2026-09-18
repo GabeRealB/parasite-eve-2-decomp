@@ -3,6 +3,34 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Named `r`/`g`/`b` temps on a `POLY_G4` beam steal `$t1` from `addPrim`'s `0xFFFFFF`
+
+`func_dryfield_dilapidated_house_801823B8` is the gunblade/m4a1/tonfa trail
+drawer with `otz` at scratch +0, vertices at +8, and `gte_stszotz` / `otz >=
+0x11` instead of `gte_stflg`. Copying that sibling with named channel locals
+
+```c
+r = hi * (flags >> 8);
+g = hi * ((flags >> 4) & 3);
+bl = hi * (flags & 3);
+prim->r0 = r;
+prim->r1 = r;
+```
+
+scores 95% with matching topology: `GsWSMATRIX` in `$t2`, prim in `$t1`,
+`flags >> 8` in `$a0`, and `lui 0xFF000000` filling the `g2` multiply delay.
+The ROM (and the sibling) has `GsWSMATRIX` in `$t3`, prim in `$t2`,
+`flags >> 8` in `$a1`, and `lui $t1, 0xff` / `ori $t1, 0xffff` in that delay.
+
+The object dump's `sb r0; sb r1; sb g0; sb g1` order is not a reason to write
+field stores. `setRGB0`/`setRGB1`/`setRGB2`/`setRGB3` with the channel products
+inlined — the sibling's spelling — CSE to the same temps and schedule to that
+store order, but they do not create the extra locals that push `0xFFFFFF` off
+`$t1`. That one change is 100%. Compound `G_SCRATCH_HEAD` push, unpinned.
+
+`base_2.c` 95.000% named stores; `base_5.c` 100%. Input hash
+`1f5eb2e8da96de6e1b8088835d37d289b10756ca631aa527a5aee78b73a04d7b` (`base_2.i`).
+
 ## Two SVECTOR copy loops need two source locals, or extra-reload joins the rec `%hi` `$v0` quantity
 
 `func_dryfield_dilapidated_house_80180B84` copies vertices then normals from a

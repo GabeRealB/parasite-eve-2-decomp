@@ -331,7 +331,76 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_801823B8);
+/// Draws the two eight-slot coordinate trails as seven gouraud `POLY_G4`
+/// quads, walking backwards from `slot`. Each quad spans `workm.t` of two
+/// adjacent slots on `D_dryfield_dilapidated_house_80189DE0` and
+/// `D_dryfield_dilapidated_house_8018A060`. Dropped when `gte_stszotz` is
+/// closer than 0x11. `flags` is the beam colour, three 2-bit channels at
+/// bits 8, 4 and 0 that each multiply the 0x40-9i fade.
+void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
+{
+    DdhBeamScratch* blk;
+    GsCOORDINATE2*  a;
+    GsCOORDINATE2*  b;
+    POLY_G4*        prim;
+    s32             i;
+    s32             j;
+    s32             i0;
+    s32             i1;
+    s32             hi;
+    s32             lo;
+    s32             fade;
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(DdhBeamScratch);
+    blk                     = (DdhBeamScratch*)*(void**)G_SCRATCH_HEAD;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    for (i = 0; i < 7; i++) {
+        j            = slot - i;
+        i0           = j & 7;
+        i1           = (j - 1) & 7;
+        a            = &D_dryfield_dilapidated_house_80189DE0[i0];
+        blk->v[0].vx = *(u16*)&a->workm.t[0];
+        blk->v[0].vy = *(u16*)&a->workm.t[1];
+        b            = &D_dryfield_dilapidated_house_8018A060[i0];
+        blk->v[0].vz = *(u16*)&a->workm.t[2];
+        blk->v[1].vx = *(u16*)&b->workm.t[0];
+        blk->v[1].vy = *(u16*)&b->workm.t[1];
+        a            = &D_dryfield_dilapidated_house_80189DE0[i1];
+        blk->v[1].vz = *(u16*)&b->workm.t[2];
+        blk->v[2].vx = *(u16*)&a->workm.t[0];
+        blk->v[2].vy = *(u16*)&a->workm.t[1];
+        b            = &D_dryfield_dilapidated_house_8018A060[i1];
+        blk->v[2].vz = *(u16*)&a->workm.t[2];
+        blk->v[3].vx = *(u16*)&b->workm.t[0];
+        blk->v[3].vy = *(u16*)&b->workm.t[1];
+        blk->v[3].vz = *(u16*)&b->workm.t[2];
+        gte_ldv0(&blk->v[0]);
+        gte_rtps_real();
+        prim           = (POLY_G4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setPolyG4(prim);
+        gte_stsxy(&prim->x0);
+        gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+        gte_rtpt_real();
+        gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
+        gte_stszotz(&blk->otz);
+        if (blk->otz >= 0x11) {
+            fade = 0x40 - i * 9;
+            hi   = fade & 0xFF;
+            lo   = (fade - 9) & 0xFF;
+            setRGB0(prim, hi * (flags >> 8), hi * ((flags >> 4) & 3), hi * (flags & 3));
+            setRGB1(prim, hi * (flags >> 8), hi * ((flags >> 4) & 3), hi * (flags & 3));
+            setRGB2(prim, lo * (flags >> 8), lo * ((flags >> 4) & 3), lo * (flags & 3));
+            setRGB3(prim, lo * (flags >> 8), lo * ((flags >> 4) & 3), lo * (flags & 3));
+            addPrim((u_long*)((((u32)(blk->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                              (s32)Gpu_CurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(DdhBeamScratch);
+}
 
 /// Per-frame state machine of the ``DdhEffWork`` effect family's fade-in
 /// handler: state 0 seeds the work block (0xC0 / 0x500 scale and angle, a

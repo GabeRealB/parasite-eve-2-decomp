@@ -91,6 +91,18 @@ typedef struct DdhEffWork {
 } DdhEffWork;
 STATIC_ASSERT_SIZEOF(DdhEffWork, 0x2A);
 
+/// 0x28-byte scratch `func_dryfield_dilapidated_house_801823B8` carves off
+/// `G_SCRATCH_HEAD` for one beam segment. `v` is the quad's four corners, taken
+/// from `workm.t` of two adjacent slots on each trail. `otz` is `gte_stszotz`
+/// of that projection: closer than 0x11 drops the quad, otherwise it picks the
+/// OT bucket the `POLY_G4` is linked into.
+typedef struct DdhBeamScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     unused;
+    /* 0x08 */ SVECTOR v[4];
+} DdhBeamScratch;
+STATIC_ASSERT_SIZEOF(DdhBeamScratch, 0x28);
+
 /// Argument block `func_dryfield_dilapidated_house_8017E9A4` hands its task as
 /// `Task::spawnArg2`: the address of `D_dryfield_dilapidated_house_80189B80`,
 /// whose first halfword it has just set to that call's argument and whose second
