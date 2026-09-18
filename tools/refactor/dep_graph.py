@@ -216,8 +216,17 @@ def build(root: str, version: str, jobs: int, out_path: str) -> None:
     if alias:
         for usr, target in alias.items():
             keep = nodes.pop(usr, None)
-            if keep and not nodes.get(target, {}).get("file"):
-                nodes.setdefault(target, keep)["file"] = nodes[target].get("file") or keep["file"]
+            if not keep:
+                continue
+            tgt = nodes.setdefault(target, dict(keep))
+            # Keep the record's location, because the doc comment sits above
+            # the declaration it opens, but take the *typedef's* spelling: that
+            # is what a reader calls the type, and what the convention judges.
+            # The tag may carry a leading underscore, which would otherwise be
+            # read as the private-symbol marker - making a public type look
+            # already-conventional and dropping it from the worklist.
+            tgt["name"] = keep["name"]
+            tgt["file"] = tgt.get("file") or keep.get("file", "")
             edges.pop(usr, None)
         for usr in list(edges):
             edges[usr] = {alias.get(d, d) for d in edges[usr]} - {usr}
@@ -265,12 +274,23 @@ def processed_set(root: str, nodes: dict) -> set:
         kind = _node_kind(usr)
         if name_index.classify(name, kind, vendor) != "current":
             continue
+        # A convention-shaped typedef can still sit on a tag that disagrees with
+        # it, which the name alone cannot show: the USR carries the tag, so
+        # compare them. A public type wearing the private marker on its tag has
+        # not had the tag decision made, however well documented it is.
+        if kind == "type":
+            tag = _TAG_RE.search(usr)
+            if tag and tag.group(1) != name:
+                continue
         # A convention-shaped name is not the whole job: an item is processed
         # once it is also documented, which is what the pass is for.
         if meta.get("file") and not _has_doc(root, meta):
             continue
         out.add(usr)
     return out
+
+
+_TAG_RE = __import__("re").compile(r"@(?:S|U|E)A?@([A-Za-z_]\w*)")
 
 
 def _node_kind(usr: str) -> str:
