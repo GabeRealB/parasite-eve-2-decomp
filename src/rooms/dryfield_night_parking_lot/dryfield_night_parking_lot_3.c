@@ -22,7 +22,7 @@ void func_dryfield_night_parking_lot_8017DBB0(Task* task)
 {
     task->field_24 = D_dryfield_night_parking_lot_8017EC60;
     Game_SetPtrSlot(task, 7);
-    if ((gGameSession->field_9 == 3) && (GameFlag_GetNibble(0x79) != 0)) {
+    if ((gGameSession->loc.place == 3) && (GameFlag_GetNibble(0x79) != 0)) {
         D_8011540C = 2;
     }
     task->state = (s32)(task->state + 1);

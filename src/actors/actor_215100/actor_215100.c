@@ -66,7 +66,7 @@ void func_actor_215100_80149F2C(Task* task)
             task->state++;
             break;
         case 0x2:
-            gGameSession->field_1 = 1;
+            gGameSession->eventState = 1;
             if (task->spawnArg1 != 0) {
                 if (Gp_GetCapEventKey() != 0) {
                     task->state = 5;
@@ -96,7 +96,7 @@ void func_actor_215100_80149F2C(Task* task)
             task->state++;
             break;
         case 0x6:
-            if (gGameSession->field_1 == 0) {
+            if (gGameSession->eventState == 0) {
                 task->state = 0xA;
             }
             break;
@@ -175,7 +175,7 @@ void func_actor_215100_80149F2C(Task* task)
         case 0x1:
         case 0x29:
         case 0x33:
-            if (gGameSession->field_1 == 0) {
+            if (gGameSession->eventState == 0) {
                 task->state++;
             }
             break;

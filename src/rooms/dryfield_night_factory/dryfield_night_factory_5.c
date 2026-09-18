@@ -53,19 +53,19 @@ void func_dryfield_night_factory_80180438(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     slot       = (D_dryfield_night_factory_8018A7E8 = Mem_Calloc(4, 0));
     arg0->work = (TaskIdMap*)slot;
-    if (gGameSession->field_7 == 2) {
+    if (gGameSession->loc.stage == 2) {
         D_dryfield_night_factory_8018A7E4 = D_dryfield_night_factory_80186E28;
     } else {
         D_dryfield_night_factory_8018A7E4 = D_dryfield_night_factory_80186DE0;
     }
-    if (gGameSession->field_7 == 2) {
+    if (gGameSession->loc.stage == 2) {
         D_dryfield_night_factory_8018A7E0 = D_dryfield_night_factory_80186E94;
     } else {
         D_dryfield_night_factory_8018A7E0 = D_dryfield_night_factory_80186EA0;
     }
     Task_SpawnFromTable(D_dryfield_night_factory_8018A7E4, 4, 0, (s32)D_dryfield_night_factory_8018A7E8);
     Task_SpawnFromTable(D_dryfield_night_factory_8018A7E4, 5, 0, 0);
-    if (gGameSession->field_7 == 2) {
+    if (gGameSession->loc.stage == 2) {
         Room_Util16(GameFlag_GetNibble(0x48) & 0xFF);
         SOFT_BARRIER();
     } else {
@@ -101,7 +101,7 @@ s32 func_dryfield_night_factory_80180574(s32 arg0, s32 arg1, RoomEventMsg* in, R
 
     *out = *in;
     if (in->msgId == 0x19) {
-        variant = gGameSession->field_7;
+        variant = gGameSession->loc.stage;
         if (variant == 2) {
             if (in->field_5 == 0) {
                 if (GameFlag_GetNibble(0x3A) >= 2) {

@@ -14,7 +14,7 @@ extern RoomAmbienceEntry D_neo_ark_substation_8017E2C8[];
 extern u8 D_8007216C;
 
 /// Keeps the substation's looping ambience in step with the area the session is
-/// in: `gGameSession->field_4` selects one of the room's nine `(pan, vol)`
+/// in: `gGameSession->loc.view` selects one of the room's nine `(pan, vol)`
 /// entries, and state 0 starts that loop with `SndEvt_EnqueueType6`. States 1
 /// through 4 then watch for the session's index to stop matching the area
 /// `D_8007216C` publishes - state 1 tests the pair and 2, 3 and 4 walk the task
@@ -26,7 +26,7 @@ void func_neo_ark_substation_8017D608(Task* task)
     s32 vol;
     u8  idx;
 
-    idx = gGameSession->field_4;
+    idx = gGameSession->loc.view;
     if (idx < 9) {
         pan = D_neo_ark_substation_8017E2C8[idx].pan;
         vol = D_neo_ark_substation_8017E2C8[idx].vol;
@@ -41,7 +41,7 @@ void func_neo_ark_substation_8017D608(Task* task)
             task->state = task->state + 1;
             break;
         case 1:
-            if (D_8007216C != gGameSession->field_4) {
+            if (D_8007216C != gGameSession->loc.view) {
                 task->state = task->state + 1;
             }
             break;

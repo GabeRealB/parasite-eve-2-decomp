@@ -32,103 +32,100 @@ typedef struct _GBytes18 {
     s16 field_10;
 } GBytes18;
 
-/// Overlay of objects with an 8-byte field at offset 0x4 (GameSession, McSaveData).
+/// Overlay of objects with an 8-byte field at offset 0x4 (`GameSession.loc` plus
+/// the two bytes after it, and the same span on `Mc_SaveData`).
 typedef struct _SessionBytesAt4 {
     byte    pad[4];
     GBytes8 field_4;
 } SessionBytesAt4;
 STATIC_ASSERT_SIZEOF(SessionBytesAt4, 0xC);
 
-/// Live play-state object shared by main and every overlay.
-///
-/// Holds the current location (the 6 bytes at `field_4`, also passed as
-/// `GameSessionFrom4` / `GpAreaKey`), remapped pad, a table of task
-/// pointers, and session-wide flags. One BSS instance is pointed to by
-/// `gGameSession`; it is zeroed as a whole on new game, load and reset,
-/// which pins the size at 0x13C.
-typedef struct _GameSession {
-    s8    field_0;
-    s8    field_1;
-    u8    field_2;
-    byte  unknown_3;
-    u8    field_4; // address taken by CdCmd_BuildVlcIfStream
-    u8    field_5; // 1-based index into Gp_ViewCountTables / Gp_RoomCoordTables / Gp_RoomObjTables innermost tables; Gp_ViewIndexTables second level
-    u8    field_6;
-    u8    field_7;
-    u8    field_8;
-    u8    field_9;
-    byte  unknown_A[0x2];
-    void* ptrSlots[16]; // Task pointers for the current session
-    u8    field_4C;
-    u8    field_4D;
-    u16   field_4E; // set to 1 by Fs_LoadFile for category-8 file ids
-    byte  unknown_50[2];
-    s16   field_52;
-    byte  unknown_54[4];
-    u16   pad;      // Remapped current buttons
-    u16   padPrev;  // Remapped previous-frame buttons
-    u16   padTrig;  // Remapped newly pressed buttons
-    u8    field_5E; // set to 1 by Gp_InitPlayClock before allocating the play-clock idMap
-    u8    field_5F; // skip-gate for func_800E74EC overlay-wait setup
-    byte  unknown_60[4];
-    u8    field_64; // nonzero: func_800AD5B8 / func_800AD50C skip their state dispatch
-    u8    field_65; // 1: Gp_UpdateActorColor skips color-matrix rebuild unless TmdObject.field_18 is set
-    u8    field_66; // 1: Gp_ItemMenuInit uses D_8010EB94 + Ui_Scale15(2)
-    byte  unknown_67;
-    u8    field_68; // set/cleared by func_800E7378 / func_800E73E8 / func_800E7434
-    u8    field_69; // bit 0x1: skip bank-load spawn in Gp_EndingTask; bit 0x2: skip bank-load spawn in Gp_AreaEnterTask (else skip SndEvt_EnqueueType2(0, 0xB4) on last GpStateF0 ref); bit 0x4: spawn arg 3 vs 2 in Gp_EndingTask; bit 0x8: spawn arg 3 vs 1 in Gp_AreaEnterTask
-    byte  unknown_6A[0xA];
-    u16   field_74; // copied from Display_State.field_10e (Gp_BeginSessionTask); low byte is CdCmd 0x21 param2[0]
-    s16   field_76; // set: Gp_RoomObjState1 rebuilds via Gp_LinkRoomObjects
-    s16   field_78; // cached GameSession.field_7; Gp_LoadWaitStage
-    byte  unknown_7A[2];
-    s16   field_7C;
-    s16   field_7E;
-    s16   field_80;
-    byte  unknown_82[0x9A];
-    s16   field_11C; // cached Mc_SaveData.field_22; -1 forces refresh (Gp_InitStarterInv / Gp_LoadWaitBoot)
-    s16   field_11E; // cached Player_Status.field_26; refreshed with field_11C
-    s16   field_120; // actor_342400's spawner waits for this to reach 0x3D
-    s16   field_122; // water surface height: the water-room dispatchers store their room's level here, the room code feeds it to Gp_UpdateCoord as a world Y
-    u8    field_124; // companion type 1/2/3; written from Gp_PickCompanion's return
-    u8    field_125; // written with Mc_SaveData.field_5C7 (Gp_EnqueueCompanionCd)
-    u8    field_126;
-    u8    field_127; // 0: run death / companion-down checks in Gp_TickPlayClock
-    u8    field_128; // 0xFF sentinel in Gp_StartStageLoad / Gp_FinishStageLoad
-    u8    field_129; // last CdCmd 0x21 param[0] written by Gp_EnqueueSndCd
-    s16   field_12A; // summed field_40 of the living boss parts (func_actor_503500_80134408)
-    u8    field_12C;
-    s8    field_12D; // lb/sb countdown; 0x7F sentinel in Gp_StartAreaBgm
-    u8    field_12E; // copied as s8 into D_80114BD8.field_2 (Gp_PlayClockState2)
-    u8    field_12F;
-    byte  unknown_130[2];
-    u8    field_132;
-    byte  unknown_133[2];
-    u8    field_135;
-    u8    field_136; // 1..16 index into actor_342400's `D_actor_342400_8016C010`
-    byte  unknown_137[2];
-    u8    field_139;
-    u8    field_13A; // cleared by Gp_PostDirIfCapIdle when D_80114CDC is 0
-    u8    field_13B;
-} GameSession;
-STATIC_ASSERT_SIZEOF(GameSession, 0x13C);
+struct Task;
 
-/// 6-byte location key at `GameSession.field_4` and `Mc_SaveData.field_4`.
+/// 6-byte location of a place in the world.
 ///
-/// Identifies the current place in the world. Passed by address into area,
-/// view and warp lookups; the same bytes are also read as `GameSession`
-/// fields.
+/// Identifies the current stage, area, room, view slot and nested place.
+/// Embedded in `GameSession` as `loc`; the same layout is stored at
+/// `Mc_SaveData.field_4` and passed into area, view and warp lookups.
 typedef struct _GameSessionFrom4 {
-    /* 0x0 */ u8 field_0; // GameSession.field_4
-    /* 0x1 */ u8 field_1; // GameSession.field_5
-    /* 0x2 */ u8 field_2; // GameSession.field_6
-    /* 0x3 */ u8 field_3; // GameSession.field_7
-    /* 0x4 */ u8 field_4; // GameSession.field_8
-    /* 0x5 */ u8 field_5; // GameSession.field_9
+    u8 view;  // 1-based view slot; innermost index of the per-room view table
+    u8 room;  // 1-based room index within the area
+    u8 area;  // 1-based area / CDF folder within the stage
+    u8 stage; // 1-based stage; indexes per-stage tables
+    u8 field_4;
+    u8 place; // nested place index, synced from the area object's id
 } GameSessionFrom4;
 STATIC_ASSERT_SIZEOF(GameSessionFrom4, 0x6);
 
-struct Task;
+/// Live play-state object shared by main and every overlay.
+///
+/// One BSS instance is pointed to by `gGameSession`. It holds the current
+/// location, a table of task pointers, remapped pad buttons, and
+/// session-wide flags. New game, load and reset zero the whole object,
+/// which pins the size at 0x13C.
+typedef struct _GameSession {
+    s8               field_0;
+    s8               eventState;   // 0 idle; nonzero blocks player-dir handling and room scripts
+    u8               uiOpen;       // 1 while a UI overlay is up; enables d-pad auto-repeat
+    byte             unknown_3;
+    GameSessionFrom4 loc;          // current place in the world
+    byte             unknown_A[0x2];
+    struct Task*     ptrSlots[16]; // tasks the session keeps by slot
+    u8               field_4C;
+    u8               field_4D;
+    u16              field_4E; // set to 1 by Fs_LoadFile for category-8 file ids
+    byte             unknown_50[2];
+    s16              field_52;
+    byte             unknown_54[4];
+    u16              pad;         // remapped buttons this frame
+    u16              padPrev;     // remapped buttons last frame
+    u16              padTrig;     // remapped buttons newly pressed this frame
+    u8               field_5E;    // set to 1 by Gp_InitPlayClock before allocating the play-clock idMap
+    u8               field_5F;    // skip-gate for func_800E74EC overlay-wait setup
+    byte             unknown_60[4];
+    u8               field_64;    // nonzero: func_800AD5B8 / func_800AD50C skip their state dispatch
+    u8               field_65;    // 1: Gp_UpdateActorColor skips color-matrix rebuild unless TmdObject.field_18 is set
+    u8               field_66;    // 1: Gp_ItemMenuInit uses D_8010EB94 + Ui_Scale15(2)
+    byte             unknown_67;
+    u8               field_68;    // set/cleared by func_800E7378 / func_800E73E8 / func_800E7434
+    u8               field_69;    // bit 0x1: skip bank-load spawn in Gp_EndingTask; bit 0x2: skip bank-load spawn in Gp_AreaEnterTask (else skip SndEvt_EnqueueType2(0, 0xB4) on last GpStateF0 ref); bit 0x4: spawn arg 3 vs 2 in Gp_EndingTask; bit 0x8: spawn arg 3 vs 1 in Gp_AreaEnterTask
+    byte             unknown_6A[0xA];
+    u16              field_74;    // copied from Display_State.field_10e (Gp_BeginSessionTask); low byte is CdCmd 0x21 param2[0]
+    s16              field_76;    // set: Gp_RoomObjState1 rebuilds via Gp_LinkRoomObjects
+    s16              loadedStage; // last stage whose CD was enqueued
+    byte             unknown_7A[2];
+    s16              field_7C;
+    s16              field_7E;
+    s16              field_80;
+    byte             unknown_82[0x9A];
+    s16              field_11C;     // cached Mc_SaveData.field_22; -1 forces refresh (Gp_InitStarterInv / Gp_LoadWaitBoot)
+    s16              field_11E;     // cached Player_Status.field_26; refreshed with field_11C
+    s16              field_120;     // actor_342400's spawner waits for this to reach 0x3D
+    s16              waterY;        // water surface world Y
+    u8               companionType; // (0 none, 1/2/3)
+    u8               field_125;     // written with Mc_SaveData.field_5C7 (Gp_EnqueueCompanionCd)
+    u8               field_126;
+    u8               field_127;     // 0: run death / companion-down checks in Gp_TickPlayClock
+    u8               field_128;     // 0xFF sentinel in Gp_StartStageLoad / Gp_FinishStageLoad
+    u8               field_129;     // last CdCmd 0x21 param[0] written by Gp_EnqueueSndCd
+    s16              field_12A;     // summed field_40 of the living boss parts (func_actor_503500_80134408)
+    u8               field_12C;
+    s8               field_12D;     // lb/sb countdown; 0x7F sentinel in Gp_StartAreaBgm
+    u8               field_12E;     // copied as s8 into D_80114BD8.field_2 (Gp_PlayClockState2)
+    u8               field_12F;
+    byte             unknown_130[2];
+    u8               field_132;
+    byte             unknown_133[2];
+    u8               field_135;
+    u8               field_136; // 1..16 index into actor_342400's `D_actor_342400_8016C010`
+    byte             unknown_137[2];
+    u8               field_139;
+    u8               field_13A; // cleared by Gp_PostDirIfCapIdle when D_80114CDC is 0
+    u8               field_13B;
+} GameSession;
+STATIC_ASSERT_SIZEOF(GameSession, 0x13C);
+STATIC_ASSERT(OFFSET_OF(GameSession, loc) == 4, GameSession_loc);
+STATIC_ASSERT(OFFSET_OF(GameSession, ptrSlots) == 0xC, GameSession_ptrSlots);
 struct _GpLinkNode;
 struct _GpActorD4;
 struct _GpAnimRec;
@@ -335,11 +332,11 @@ extern GameSession* gGameSession;
 extern GameSession  D61CC0_800714C0;
 
 /// Session pointer-slot table on `gGameSession` (`ptrSlots`).
-void  Game_SetPtrSlot(void* ptr, s32 index);
-void* Game_GetPtrSlot(s32 index);
-void  Game_ClearPtrSlots(void);
-void  Game_ClearSession(void);
-void  Game_ClearEd68(void);
+void         Game_SetPtrSlot(void* ptr, s32 index);
+struct Task* Game_GetPtrSlot(s32 index);
+void         Game_ClearPtrSlots(void);
+void         Game_ClearSession(void);
+void         Game_ClearEd68(void);
 
 extern s32 D_8005ED68;
 extern s32 D_8005ED8C;

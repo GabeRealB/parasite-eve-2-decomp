@@ -173,8 +173,8 @@ void func_actor_105300_8013222C(Actor05300* arg0)
     }
     ActorsShared80136574((ActorShared80136574*)arg0, &work->field_2FC, scale, 1);
     if (gGameSession->field_4D == 1) {
-        SndEvt_EnqueueTypeA(work->field_31C, D_actor_105300_8013D3C4[gGameSession->field_4].field_0,
-                            D_actor_105300_8013D3C4[gGameSession->field_4].field_2);
+        SndEvt_EnqueueTypeA(work->field_31C, D_actor_105300_8013D3C4[gGameSession->loc.view].field_0,
+                            D_actor_105300_8013D3C4[gGameSession->loc.view].field_2);
     }
 }
 

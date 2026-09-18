@@ -80,7 +80,7 @@ void func_dryfield_back_street_8017D5D0(Task* task)
 /// `field_3`, returning 0 when the message was consumed and 1 when it was not.
 ///
 /// The copy is the `RoomEventMsg` assignment; the rest is two independent id
-/// checks. While the session is in the room (`gGameSession->field_7` is 2), a
+/// checks. While the session is in the room (`gGameSession->loc.stage` is 2), a
 /// type-7 record with no sub-id answers 1, or the session's own value when flag
 /// nibble 0x3C is set. A type-9 record with flag nibble 0x3F clear runs CAP
 /// command 9 -- or 2 while the session is in the room -- and arms nibble 2 of
@@ -92,7 +92,7 @@ s32 func_dryfield_back_street_8017D748(s32 arg0, s32 arg1, RoomEventMsg* in, Roo
     u8 s1;
 
     *out = *in;
-    s1   = gGameSession->field_7;
+    s1   = gGameSession->loc.stage;
     if (s1 == 2) {
         if (in->msgId == 7) {
             if (in->field_5 == 0) {
@@ -108,7 +108,7 @@ s32 func_dryfield_back_street_8017D748(s32 arg0, s32 arg1, RoomEventMsg* in, Roo
         if (in->field_5 == 0) {
             s32 cmd = 9;
 
-            if (gGameSession->field_7 == 2) {
+            if (gGameSession->loc.stage == 2) {
                 cmd = 2;
             }
             Gp_RunCapCmd1(cmd);
@@ -117,7 +117,7 @@ s32 func_dryfield_back_street_8017D748(s32 arg0, s32 arg1, RoomEventMsg* in, Roo
         return 0;
     }
     if (in->field_5 == 0) {
-        if (gGameSession->field_7 == 2) {
+        if (gGameSession->loc.stage == 2) {
             SndEvt_EnqueueType7(0x52050006, 0xF);
         }
     }

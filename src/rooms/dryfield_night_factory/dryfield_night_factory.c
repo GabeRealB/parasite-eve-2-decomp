@@ -56,7 +56,7 @@ void func_dryfield_night_factory_8017D6F8(Task* task)
     coord->coord.t[2] = 0x1AAE;
     Room_Util20(task);
     func_dryfield_night_factory_8017D858(task, 1, 0);
-    if (gGameSession->field_7 == 2) {
+    if (gGameSession->loc.stage == 2) {
         Task_SpawnFromTable(D_dryfield_night_factory_80186E28, 7, 0, (s32)task);
     } else {
         Task_SpawnFromTable(D_dryfield_night_factory_80186DE0, 7, 0, (s32)task);
@@ -105,7 +105,7 @@ s32 func_dryfield_night_factory_8017F00C(Task* task)
     switch (work->step) {
         case 0:
             work->field_0 = 0;
-            if (gGameSession->field_7 == 2) {
+            if (gGameSession->loc.stage == 2) {
                 Gp_EnqueueStageSnd6(0x5217000D, (s8)Gp_GetObjPan((GpObj38*)coord),
                                     (s8)Gp_GetObjDepth((GpObj38*)coord));
             } else {

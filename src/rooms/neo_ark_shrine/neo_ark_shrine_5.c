@@ -48,7 +48,7 @@ void func_neo_ark_shrine_8017ECC4(Task* task)
     for (hs = D_neo_ark_shrine_80182430; hs->id != -1; hs++) {
         hs->hit = 0;
     }
-    gGameSession->field_66 = 1;
-    gGameSession->field_68 = 1;
-    gGameSession->field_1  = 1;
+    gGameSession->field_66   = 1;
+    gGameSession->field_68   = 1;
+    gGameSession->eventState = 1;
 }

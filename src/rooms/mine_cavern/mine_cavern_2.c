@@ -76,7 +76,7 @@ void func_mine_cavern_8017DDFC(Task* arg0)
 {
     arg0->field_24 = &D_mine_cavern_80183C6C;
     Game_SetPtrSlot(arg0, 7);
-    if ((gGameSession->field_9 == 1) && (GameFlag_GetNibble(0x10F) == 0)) {
+    if ((gGameSession->loc.place == 1) && (GameFlag_GetNibble(0x10F) == 0)) {
         func_800E8634((s32)&D_mine_cavern_80187C74, 0, (s32)&D_mine_cavern_8018804C);
         func_mine_cavern_8017E394();
         GameFlag_SetNibble(0x10F, 1);

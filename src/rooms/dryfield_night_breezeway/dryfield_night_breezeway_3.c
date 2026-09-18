@@ -17,14 +17,14 @@ extern SVECTOR D_dryfield_night_breezeway_8017E6C4;
 
 /// Breezeway room draw: marks the effect state (`field_A` = 2, the value
 /// `actor_400100_text` tests), then sweeps the segment the current phase
-/// (`gGameSession->field_4`) selects. Phase 2 sweeps the chain's far end, phase
+/// (`gGameSession->loc.view`) selects. Phase 2 sweeps the chain's far end, phase
 /// 3 the middle pair and phase 4 the near end plus the whole-chain
 /// `Room_Draw38`; each phase names its segment as its last draw, which `jump.c`
 /// cross-jumps into one tail block after the last case.
 void func_dryfield_night_breezeway_8017E5BC(void)
 {
     Gp_State1C->field_A = 2;
-    switch (gGameSession->field_4) {
+    switch (gGameSession->loc.view) {
         case 2:
             Room_Draw17(&D_dryfield_night_breezeway_8017E6AC[0], 2, 0x400);
             Room_Draw08(&D_dryfield_night_breezeway_8017E6AC[5], 0x180);

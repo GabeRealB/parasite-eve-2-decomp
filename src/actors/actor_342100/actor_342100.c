@@ -45,7 +45,7 @@ extern s32 D_actor_342100_80164900[];
 extern s16 D_actor_342100_80164910[];
 
 /// Placement tables the overlay's spawn task picks between by
-/// `gGameSession->field_4`: 0x1D, 0x1E, 0x1F, 0x23 and 0x24 select the 0x80164930
+/// `gGameSession->loc.view`: 0x1D, 0x1E, 0x1F, 0x23 and 0x24 select the 0x80164930
 /// / 0x80164918 / 0x80164948 / 0x80164960 / 0x80164980 table respectively, and
 /// the values in between select none. Each is a zero-`vx`-terminated `SVECTOR`
 /// list of two to three placements -- the terminator is an all-zero entry -- and
@@ -307,7 +307,7 @@ void func_actor_342100_80162AB0(Task* arg0)
     }
 }
 
-/// Spawn the encounter's effect tasks: `gGameSession->field_4` selects one of
+/// Spawn the encounter's effect tasks: `gGameSession->loc.view` selects one of
 /// the overlay's placement tables, and every entry in it rolls the LCG once,
 /// starts spawn entry 4 (`func_actor_342100_80162AB0`) with the roll's masked
 /// high half as its `spawnArg1` -- the lifetime that task's state 1 counts down
@@ -317,7 +317,7 @@ void func_actor_342100_80162AB0(Task* arg0)
 /// so a table is as many entries as it has non-zero `vx`s and a table whose
 /// first entry is zero spawns nothing.
 ///
-/// The table pointer is deliberately uninitialised: `gGameSession->field_4`
+/// The table pointer is deliberately uninitialised: `gGameSession->loc.view`
 /// values 0x20..0x22 -- and anything outside the jump table -- leave it holding
 /// whatever the caller left in `$s1`, which is the target's shape.
 ///
@@ -334,7 +334,7 @@ void func_actor_342100_80162C88(void)
     Task*          task;
     u32            rng;
 
-    switch (gGameSession->field_4) {
+    switch (gGameSession->loc.view) {
         case 29:
             pos = D_actor_342100_80164930;
             break;
@@ -436,7 +436,7 @@ void func_actor_342100_80162DDC(Task* arg0)
 /// `func_800A7DB8` gates on, installs the model set and hands slot 6 the
 /// 0xFA4 that starts the encounter, then starts spawn entry 2 with the task
 /// itself and steps to state 1. State 1 ticks the child and reports 1 to keep
-/// the task alive until `gGameSession->field_1` is set.
+/// the task alive until `gGameSession->eventState` is set.
 s32 func_actor_342100_80162F54(Task* arg0)
 {
     Actor342100Work*  work = (Actor342100Work*)arg0->work;
@@ -462,7 +462,7 @@ s32 func_actor_342100_80162F54(Task* arg0)
             work->field_3E = work->field_3E + 1;
             break;
         case 1:
-            if (gGameSession->field_1 != 0) {
+            if (gGameSession->eventState != 0) {
                 break;
             }
             return 1;

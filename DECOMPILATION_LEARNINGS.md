@@ -1005,10 +1005,10 @@ mismatch is the address pair again — this time with the merge starting one ins
 later, at `a1`, which leaves `a0=coord` in each arm and reaches 100%:
 
 ```c
-if (gGameSession->field_4 == 2) {
+if (gGameSession->loc.view == 2) {
     Room_Draw35(coord, D_dryfield_cellar_8017DBBC, 1, 0x280);
     Room_Draw35(coord, D_dryfield_cellar_8017DBBC + 1, 1, 0x280);
-} else if (gGameSession->field_4 == 3) {
+} else if (gGameSession->loc.view == 3) {
     ... D_dryfield_cellar_8017DBCC ...
 }
 ```
@@ -1072,7 +1072,7 @@ call follows — and there the collapse is not jump.c's at all. `func_actor_3233
 had
 
 ```c
-if (gGameSession->field_4 == 2) {
+if (gGameSession->loc.view == 2) {
     depth = 0x28;
 } else {
     depth = 0;
@@ -1090,7 +1090,7 @@ is not needed to see it. Writing the call out in both arms is again the fix, and
 this time the arms differ only in the literal third argument:
 
 ```c
-if (gGameSession->field_4 == 2) {
+if (gGameSession->loc.view == 2) {
     SndEvt_EnqueueTypeA(0x52100006, 0, 0x28);
 } else {
     SndEvt_EnqueueTypeA(0x52100006, 0, 0);
@@ -4155,7 +4155,7 @@ sb    v0, 5(v1)
 ```
 
 The duplicate load is not a second expression in the source. Each arm ends with
-the same `D_8007216D = N; gGameSession->field_5 = N;` pair, and
+the same `D_8007216D = N; gGameSession->loc.room = N;` pair, and
 `jump_optimize (insns, 1, 1, 0)` - cross-jumping, `optimize > 0`, run after
 sched2 - merges the arms' `sb`s into the join and redirects the then-arm's `j`
 to a label placed before them. Both arms must still compute `$v1` for the
@@ -4467,7 +4467,7 @@ allocation there is no single register to name.
 ## A shared `case X: case Y:` body leaves *one* jtbl label; a duplicated body leaves two
 
 `func_dryfield_night_general_store_8017E6C8` dispatches on
-`gGameSession->field_4` and draws one `Room_Draw08` wedge pair per view, views 4
+`gGameSession->loc.view` and draws one `Room_Draw08` wedge pair per view, views 4
 and 8 drawing the same pair. Its jump table repeats that pair's label **twice**,
 at two distinct labels (`E728` and `E744`) whose bodies are identical, and that
 is the source form:
@@ -6861,7 +6861,7 @@ zero into the `blez count` delay slot, so there is no extra instruction:
 ```c
 s16 idx;
 idx = 0;
-sess  = (GameSessionFrom4*)&gGameSession->field_4;
+sess  = (GameSessionFrom4*)&gGameSession->loc.view;
 limit = *(s16*)&table40[...];
 bytes = table54[...];
 if (limit > 0) {
@@ -7330,7 +7330,7 @@ first `la` around the second:
 ```c
 Mc_SaveData.field_13    = 0;
 Mc_SaveData.field_5C7   = 0;
-gGameSession->field_124 = 0;
+gGameSession->companionType = 0;
 gGameSession->field_125 = 0;
 ```
 
@@ -12216,7 +12216,7 @@ cast over changing the struct field type when other code relies on `byte`
 Also: if the target loads the byte early but stores it late, hold it in a
 local (`val = (u8)...`) so the load schedules before intervening stores.
 
-`Display_BeginTransition` is the pure example (`gGameSession->field_4` →
+`Display_BeginTransition` is the pure example (`gGameSession->loc.view` →
 `Stage_Ctx->field_20`).
 
 ## BSS adjacency: hold the later symbol, step back by typed size
@@ -12940,7 +12940,7 @@ is in the room:
 ```
 bnez   v0, L_ret0          # if (in->field_5 != 0) return 0
  ...
-lbu    v1, 0x7(v0)         # gGameSession->field_7
+lbu    v1, 0x7(v0)         # gGameSession->loc.stage
 li     v0, 2
 bne    v1, v0, L_join
  li    a0, 9               # the default, in the bne's delay slot
@@ -23521,11 +23521,11 @@ incoming formal in place (`and a0, a0, v1` / `or a0, a0, v0`). Split the update:
 
 ```c
 /* BAD — masked result lives in $v1, then OR into $a0 */
-arg0 = (arg0 & 0xF0FFFFFF) | (gGameSession->field_7 << 24);
+arg0 = (arg0 & 0xF0FFFFFF) | (gGameSession->loc.stage << 24);
 
 /* GOOD — both ops write $a0 */
 arg0 &= 0xF0FFFFFF;
-arg0 |= gGameSession->field_7 << 24;
+arg0 |= gGameSession->loc.stage << 24;
 ```
 
 `Gp_PackStageSndId` is the pure example — otherwise a 99% body with only those two
@@ -25242,12 +25242,12 @@ renames 92 matched use sites to gain one function.
 
 If a single site needs a wider unit and the field can stay as declared, type-pun
 through the **named** field — no magic offset, and it is already the idiom here
-(`src/gameplay/D4.c` `*(s32*)&gGameSession->field_4 & ~0xFF`;
+(`src/gameplay/D4.c` `*(s32*)&gGameSession->loc.view & ~0xFF`;
 `src/weapons/m4a1_pyke/m4a1_pyke.c` throughout). `check_pointer_arithmetic.py`
 accepts it:
 
 ```c
-if (*(u16*)&gGameSession->field_8 == 0x203) {
+if (*(u16*)&gGameSession->loc.field_4 == 0x203) {
 ```
 
 The giveaway that the original read wider than the declaration is a **constant
@@ -25593,7 +25593,7 @@ last `lw` schedules after the final `lbu`.
 
 Assign each pointer level to its own temp. If the last index lives on a
 `byte` (`signed char`) field whose address is also overlaid as `u8`, read
-it through the overlay so the load stays `lbu` (`GameSession.field_4` is
+it through the overlay so the load stays `lbu` (`GameSession.loc.view` is
 `byte`; `sess->field_0` is the same byte as `u8`):
 
 ```c
@@ -28278,7 +28278,7 @@ final store, and the zeros can no longer slip in front of the add:
 
 ```c
 param1[0] = Gp_MapRoomId + Gp_MapRoomOff;
-stage     = gGameSession->field_7;
+stage     = gGameSession->loc.stage;
 param2[1] = 0;
 param2[3] = 0;
 param2[2] = 0;
@@ -28287,7 +28287,7 @@ CdCmd_Enqueue(0x21, param1, param2);
 ```
 
 `Gp_EnqueueMapRoomCd` is the example. The fused
-`param2[0] = gGameSession->field_7` stuck at 97.4% with only those
+`param2[0] = gGameSession->loc.stage` stuck at 97.4% with only those
 three `sb zero` moved before the `addu`.
 
 ## Accumulate the byte offset in `$v1` so `lhu` is `0(v1)`
@@ -29383,7 +29383,7 @@ branch and `v` is not replaced by the constant:
 ```c
 if (save->field_5C2 == 0 && (field13 = save->field_13) == 1) {
     save->field_6C8 -= actor->field_96E;
-    if ((s16)save->field_6C8 <= 0 && gGameSession->field_1 != 0) {
+    if ((s16)save->field_6C8 <= 0 && gGameSession->eventState != 0) {
         save->field_6C8 = field13; /* sh a1, not li 1 */
     }
 }
@@ -29814,12 +29814,12 @@ Give the temp the destination width so the `lbu` is already the `s32`
 value (`v1`) and the constant reuses the now-dead pointer register
 (`v0`). That also blocks the hoist — `v1` is live as the loaded byte.
 
-`GameSession.field_4` is `byte` (signed). Load it as `(u8)` or GCC
+`GameSession.loc.view` is `byte` (signed). Load it as `(u8)` or GCC
 emits `lb` and the overlay will not match even when a stub `u8` field
 did:
 
 ```c
-s32 loc = (u8)gGameSession->field_4;
+s32 loc = (u8)gGameSession->loc.view;
 task->killCountdown = 2;
 task->spawnArg1 = loc;
 ```
@@ -31921,7 +31921,7 @@ if (queued == 0) {
 (`0x800691C4`). The object has an unpaired `R_MIPS_HI16` and a
 hardcoded `lhu` offset; GNU ld still produces the same linked
 instruction as `%hi/%lo`. `Gp_LoadWaitStage` is the example.
-`GameSession.field_78` is an `s16` cache of `field_7`; compare with
+`GameSession.loadedStage` is an `s16` cache of `field_7`; compare with
 `lbu`/`lh` and write back with `lbu`/`sh`.
 
 When idle-queue work runs *before* the overlay (`Gp_LoadWaitBoot`), assign
@@ -32895,7 +32895,7 @@ and keep `addiu a0, v0, %lo` at the merge:
 
 ```c
 if (key == 0x50B0000 || key == 0x51D0000) {
-    if (gGameSession->field_9 - 1 < 3U) {
+    if (gGameSession->loc.place - 1 < 3U) {
         goto skip_count;
     }
 }
@@ -33068,7 +33068,7 @@ if (done & 0xFFFF) {
 
 ## Fill CdCmd_Enqueue arg `addiu`s between session-field `lbu`s
 
-A 0x21 enqueue that copies `GameSession.field_7/6/5` into a stack
+A 0x21 enqueue that copies `GameSession.loc.stage/6/5` into a stack
 payload wants `&param1` / `&param2` in `$a1` / `$a2` *between* each
 load and store:
 
@@ -41423,7 +41423,7 @@ the label decides where the block is emitted.
 ## Byte-identical `if/else` call arms: barrier at the *end* of the first arm
 
 Room cutscene drivers contain conditionals whose two arms are literally the
-same call, e.g. `func_80181B38(0)` under both `gGameSession->field_7 == 2` and
+same call, e.g. `func_80181B38(0)` under both `gGameSession->loc.stage == 2` and
 its `else`. Written plainly, GCC 2.8.1 does not just cross-jump the tails — it
 removes the branch entirely and then DCEs the compare, so the `lw
 %lo(gGameSession)` / `lbu 7(v0)` / `li 2` / `bne` disappear too and the target's
@@ -41434,7 +41434,7 @@ The fix is the usual empty-`asm` asymmetry, but placed *after* the calls, not
 before them as in the constant-assignment case above:
 
 ```c
-if (gGameSession->field_7 == 2) {
+if (gGameSession->loc.stage == 2) {
     func_dryfield_factory_80181B38(0);
     SOFT_BARRIER();          /* last insn of the arm; breaks the tail match */
 } else {
@@ -43088,7 +43088,7 @@ case 2:
     ...
     break;
 case 3:
-    if (gGameSession->field_1 == 0) {
+    if (gGameSession->eventState == 0) {
     kill:
         Gp_MsgPlayerWeapon(1);
         D_801153F4 = 0;
@@ -43195,7 +43195,7 @@ standalone cleanup, and a bulk pass fails the build.
 ## Mixed `arg0->state = task->state + 1` swaps `$s0`/`$s1` with a hoisted `1`
 
 A 0/1/2 task-state switch hoists `li $s1, 1` for the `beq` and reuses it for
-`gGameSession->field_1 = 1`. That constant is 3 refs / ~26 insns and crosses
+`gGameSession->eventState = 1`. That constant is 3 refs / ~26 insns and crosses
 one call, so global-alloc colors it `$s0` and the `Task*` `$s1`. The target
 wants the opposite (`$s0 = arg0`, `$s1 = 1`).
 
@@ -43741,7 +43741,7 @@ two insns land in the overlay's leading rodata (often glued onto a nearby 8-byte
 data blob). The first real insn is then `lbu $v1, 0x4($v0)` with `$v0` already
 holding the session.
 
-Writing `gGameSession->field_4 == 4` re-emits the load in `.text` and shifts the
+Writing `gGameSession->loc.view == 4` re-emits the load in `.text` and shifts the
 overlay. An uninitialized `GameSession *session` plus `(u8)session->field_4`
 keeps `$v0` and matches the splat-cut body. `func_actor_450800_80131E34` /
 `actor_460200` are examples.
@@ -47943,14 +47943,14 @@ sb  v0, 5(a0)
 ```
 
 Writing the two stores as separate statements *in the target's order*
-(`D_8007216D = 2; gGameSession->field_5 = 2;`) scores 96% with
+(`D_8007216D = 2; gGameSession->loc.room = 2;`) scores 96% with
 `regs=8`, `reorder=0`: every instruction is right and only the four address
 registers are rotated, because RTL generation creates `%hi(D_8007216D)` first
 and it wins the earlier allocno. The other statement order is worse (74%) — the
 scheduler will not swap the two `sb`s. The chained form gets both:
 
 ```c
-gGameSession->field_5 = D_8007216D = 2;
+gGameSession->loc.room = D_8007216D = 2;
 ```
 
 The right-hand assignment stores first, but the left-hand lvalue's address is
@@ -51888,7 +51888,7 @@ differ only in where `sched1` puts the argument setup. In
 ```c
 s16 view;                                        /* s32 scores 99.72% */
 
-view = Gp_FindViewIndex((u8)gGameSession->field_4);
+view = Gp_FindViewIndex((u8)gGameSession->loc.view);
 func_acropolis_fountain_8017E15C(task, (u16)view);
 switch ((u16)view) { … }
 ```
@@ -67829,7 +67829,7 @@ per arm keeps each one block-local, and the shift pair then goes straight into
 `$s0`, as in the one-arm siblings:
 
 ```c
-if (gGameSession->field_1 != 0) {
+if (gGameSession->eventState != 0) {
     pan = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(0x40230013, pan, (s8)(Gp_GetObjDepth(coord) / 2));
 } else {
@@ -68417,7 +68417,7 @@ local stays a `QI` pseudo). An `s16` mask gives the loop an invariant
 `sll 16`/`sra 16` pair, which `loop.c` hoists and combine later reduces to a
 `move` because every set of the mask is a small positive constant.
 
-The same loop reads `gGameSession->field_1`, whose `lui` the target keeps
+The same loop reads `gGameSession->eventState`, whose `lui` the target keeps
 inside the loop. Its hoist is borderline: `move_movables` starts at threshold
 `2 * (1 + 28) = 58` (no call), loses 3 per moved insn, and tests
 `threshold * savings * lifetime >= insn_count`. After the table base and the
@@ -79971,7 +79971,7 @@ other side. `func_dryfield_toilet_8017D8C8` tests the incoming message's sub-id
 and then compares it against the session's:
 
 ```c
-if (in->field_2 == 1 && GameFlag_GetNibble(0x60) == 0 && gGameSession->field_9 == in->field_2) {
+if (in->field_2 == 1 && GameFlag_GetNibble(0x60) == 0 && gGameSession->loc.place == in->field_2) {
 ```
 
 Two loads of `in->field_2` are free to CSE only when nothing between them can
@@ -79988,7 +79988,7 @@ The fix is to make it one read: m2c's seed already did, via its scratch local.
 ```c
 u8 subId = in->field_2;
 
-if (subId == 1 && GameFlag_GetNibble(0x60) == 0 && gGameSession->field_9 == subId) {
+if (subId == 1 && GameFlag_GetNibble(0x60) == 0 && gGameSession->loc.place == subId) {
 ```
 
 Generalizing: when two reads of one expression are separated by a call, the
@@ -80609,7 +80609,7 @@ call instead —
 
 ```c
     id    = mode;
-    place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->field_4)->field_0;
+    place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->loc.view)->field_0;
 ```
 
 — makes the pseudo live across that call, forces the callee-saved register, and
@@ -82485,7 +82485,7 @@ GameSession* session = gGameSession;        /* 8 insns, one lw */
 session->field_5 = D_8007216D = arg0;
 session->field_76 = 1;
 
-gGameSession->field_5 = D_8007216D = arg0;  /* target: two dereferences, two lw */
+gGameSession->loc.room = D_8007216D = arg0;  /* target: two dereferences, two lw */
 gGameSession->field_76 = 1;
 ```
 
@@ -83508,7 +83508,7 @@ Inputs: `base.i` (m2c shared variable, 91.815%)
 ## A 2D array access distributes the element-size multiply; a flat table with an explicit `* N` does not
 
 `func_actor_161500_80131FBC` indexes an 8-entry pointer table by
-`(gGameSession->field_9 == 1)` (row) and `GameFlag_GetNibble(0x103)` (column),
+`(gGameSession->loc.place == 1)` (row) and `GameFlag_GetNibble(0x103)` (column),
 and the target scales the **sum**:
 
 ```
@@ -83543,7 +83543,7 @@ table whose index already carries the inner multiply:
 ```c
 extern s32 D_actor_161500_80134920[8];
 ...
-temp_s0 = (gGameSession->field_9 == 1) * 4;
+temp_s0 = (gGameSession->loc.place == 1) * 4;
 temp_v0 = GameFlag_GetNibble(0x103);
 func_800E8614(D_actor_161500_80134920[temp_v0 + temp_s0], 0);
 ```
@@ -83595,7 +83595,7 @@ void func_actor_161500_80131F50(s32 arg0)
         Gp_CapFile = 0;
         if (arg0 <= 0) {
             capFile = 1;
-            if (gGameSession->field_9 == 1) {
+            if (gGameSession->loc.place == 1) {
                 capFile = 2;
             }
             arg0 = capFile;   /* after the join — see below */
@@ -83621,7 +83621,7 @@ that stores the constant.** This fails:
 ```c
 capFile = 1;
 arg0 = capFile;                 /* <- in the same arm */
-if (gGameSession->field_9 == 1) {
+if (gGameSession->loc.place == 1) {
     capFile = 2;
     arg0 = capFile;
 }
@@ -85294,7 +85294,7 @@ span.
 ## The `lui`-order trick has a mirror: read the target's *first* `lui` to pick the form (func_mine_cavern_8017E330, 2026-09-15)
 
 "Chaining across two *different* destinations fixes the `lui` order too" above
-describes the pair `gGameSession->field_5 = D_8007216D = 2;` vs. the two separate
+describes the pair `gGameSession->loc.room = D_8007216D = 2;` vs. the two separate
 stores for the *same* two addresses. `func_mine_cavern_8017E330` is that same
 body with the `%hi`s the other way round, and it confirms the mechanism decides
 both directions — so use the target's first `lui` as the selector:
@@ -85647,7 +85647,7 @@ Inputs: `base.i`
 `1dce15224cead24faad31a7bb9df1f5414baaa585c2c95487679ec7c69f9a19a` (100%).
 ## Target `jal`+`nop`: the argument load is hoisted above a byte store's address pair, and reorg fills the slot (func_neo_ark_shrine_8017EED4, 2026-09-15)
 
-The room-script tail `Display_ReleaseRef(); gGameSession->field_1/0x68/0x66 = 0;
+The room-script tail `Display_ReleaseRef(); gGameSession->eventState/0x68/0x66 = 0;
 D_8007216C = N; Task_Kill(task->spawnArg2);` recurs across rooms: the shared
 bodies `Room_Script10`/`Room_Script11` are the same tail with other constants,
 and this overlay's own `func_neo_ark_shrine_8017F0F0` has it. Retail keeps source
@@ -86951,7 +86951,7 @@ callee, the target has **one** `jal` and four blocks, not two calls. This room's
 target is 17 instructions:
 
 ```
-lbu   $v1, 0x9($v0)                ; gGameSession->field_9
+lbu   $v1, 0x9($v0)                ; gGameSession->loc.place
 addiu $v0, $zero, 0x1
 beq   $v1, $v0, .L_E4              ; first disjunct -> the then block
 addiu $v0, $zero, 0x7              ;   (delay slot: the second test's constant)
@@ -86974,7 +86974,7 @@ The source is an ordinary selection, and either spelling of it works:
 ```c
 s32 offset;
 
-if (gGameSession->field_9 == 1 || gGameSession->field_9 == 7) {
+if (gGameSession->loc.place == 1 || gGameSession->loc.place == 7) {
     offset = 0x7D0;
 } else {
     offset = 0x190;
@@ -87074,7 +87074,7 @@ The entry "A switch case whose value equals the case's own constant drops the
 constant gets its own birth. That is necessary but not always sufficient, and
 the failure mode looks identical, so it is worth knowing the second half.
 
-`func_neo_ark_observatory_8017FD7C` (24 insns) tests `gGameSession->field_1`,
+`func_neo_ark_observatory_8017FD7C` (24 insns) tests `gGameSession->eventState`,
 then `D_8007216C == 2`, then `D_8007216C == 3`, and calls `Gp_MsgAlly3F3` with
 2/1/2. The target opens the middle test with
 
@@ -87108,7 +87108,7 @@ avoiding. The fix is to give that arm a tail the exchange rejects: a `call` +
 `return`, whose block ends in `(return)`, not a simple jump.
 
 ```c
-if (gGameSession->field_1 == 0) {
+if (gGameSession->eventState == 0) {
     if (D_8007216C != 2) {
         Gp_MsgAlly3F3(2);
         return;
@@ -87742,9 +87742,9 @@ scalar local per field and takes the address of the first one only:
 ```c
 u8 sp10; u8 sp11; s16 sp12;   /* msg payload at sp+0x10 / +0x11 / +0x12 */
 ...
-sp10 = gGameSession->field_7;
+sp10 = gGameSession->loc.stage;
 sp12 = 2;
-sp11 = gGameSession->field_6;
+sp11 = gGameSession->loc.area;
 Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, &sp10, 0x7DB);
 ```
 
@@ -88279,7 +88279,7 @@ is the signal that the table is *not* migrating there, and the unit named by the
 Inputs: `base_1.i`
 `eb5e6a59b54148cd06f4fa642181dbe31ff371ec4d179959aaf114811ce681be` (100.000%).
 
-## The water rooms share one dispatcher, and it stores the room's level in `GameSession.field_122` (func_dryfield_night_water_hole_8017E630, 2026-09-16)
+## The water rooms share one dispatcher, and it stores the room's level in `GameSession.waterY` (func_dryfield_night_water_hole_8017E630, 2026-09-16)
 
 Eight room functions are the same 24 instructions, and the same *source* idiom —
 copy a two-entry `TaskFunc` table onto the stack, dispatch on `task->state`, then
@@ -88291,7 +88291,7 @@ void func_dryfield_night_water_hole_8017E630(Task* task)
     TaskFunc states[2] = { RoomsShared8017e690, func_dryfield_night_water_hole_8017DF28 };
 
     states[task->state](task);
-    gGameSession->field_122 = -0x1A4;
+    gGameSession->waterY = -0x1A4;
 }
 ```
 
@@ -88842,9 +88842,9 @@ and only the *variable* is narrowed at the call:
 ```c
 s32 id;
 ...
-id            = gGameSession->field_6 | (gGameSession->field_7 << 8);
+id            = gGameSession->loc.area | (gGameSession->loc.stage << 8);
 work->field_4 = (Task*)Gp_FindWorkById(id)->field_0;
-id            = ((gGameSession->field_7 << 8) | 0x1000) | gGameSession->field_6;
+id            = ((gGameSession->loc.stage << 8) | 0x1000) | gGameSession->loc.area;
 work->field_8 = (Task*)Gp_FindWorkById(id)->field_0;
 ```
 
@@ -90080,7 +90080,7 @@ Inputs: `base.c` (86.932%, sha256
 Compiler SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 ## A shared call tail after the *last* switch arm comes from duplicated calls, not from m2c's shared variable (func_dryfield_night_parking_lot_8017DC88, 2026-09-16)
 
-Five arms of a `switch (gGameSession->field_4)` each end in the same
+Five arms of a `switch (gGameSession->loc.view)` each end in the same
 `Room_Draw20(p, 1, 0x380)`. The ROM keeps **one** call site, and it sits after
 the *last* arm: arms 2..5 `j` into it and arm 6 falls through into it.
 
@@ -90173,7 +90173,7 @@ Inputs: `base.c` (98.45%, `regs=1 reorder=1`), `base_1.c` (100%). Compiler SHA25
 ## A 1-based global table from an m2c byte-pointer seed: the `-1` folds into the symbol
 
 `func_dryfield_night_junk_yard_8017D9B8` walks
-`Gp_SprtTables[gGameSession->field_7 - 1][0].field_0[gGameSession->field_6 - 1]`,
+`Gp_SprtTables[gGameSession->loc.stage - 1][0].field_0[gGameSession->loc.area - 1]`,
 and m2c seeded the first level as byte arithmetic,
 `(u8 *)&Gp_SprtTables + (idx - 1) * 4`. That spelling lets `pointer_int_sum`
 apply the distributive law, so combine emerges with `idx * 4 + (%lo(SYM) - 4)`:
@@ -90250,7 +90250,7 @@ against a build that put the counter in `$v0`, the symbol's `high` in `$v1` and
 the constant back in `$v0`. Nothing about statement order moved it - and it did
 not need to. Rewriting the seed against the real headers (`Task*`, the real
 `Gp_SpawnIfCapIdle`/`GameFlag_SetNibble`/`Game_SetPtrSlot` prototypes, the real
-`gGameSession->field_9`) was 100.000% on the first build, with the source order
+`gGameSession->loc.place`) was 100.000% on the first build, with the source order
 unchanged.
 
 The mechanism is visible in two dumps. m2c's `M2C_UNK GameFlag_SetNibble(...)`
@@ -90415,13 +90415,13 @@ project style (`Task*` and `->` instead of `M2C_FIELD`). The port also scored
 100.000%, but only because it kept m2c's temporary:
 
 ```c
-temp_v1 = gGameSession->field_9;      /* lbu $v1, 0x9($a0) */
+temp_v1 = gGameSession->loc.place;      /* lbu $v1, 0x9($a0) */
 if (temp_v1 == 1) {
     gGameSession->field_69 = temp_v1; /* sb $v1, 0x69($a0) - the LOADED reg */
 }
 ```
 
-Rewriting that to the "obvious" `gGameSession->field_69 = gGameSession->field_9;`
+Rewriting that to the "obvious" `gGameSession->field_69 = gGameSession->loc.place;`
 loses the store: the preceding compare has already proven the value is `1`, so
 the folder replaces the store's source with the constant and emits `li`+`sb`
 instead of the target's `sb $v1`. The tell is a delay slot or a store whose
@@ -90580,7 +90580,7 @@ world matrix, and re-pose the parts whose visit set the current visit falls in.
 
 ```c
 coord = ((TmdObject*)arg0->extra)->field_8;
-mask  = 1 << gGameSession->field_4;
+mask  = 1 << gGameSession->loc.view;
 Gp_UpdateCoord(coord);
 if (mask & 0x99C) {
     pose(coord, 0);
@@ -90819,7 +90819,7 @@ Inputs: `base.i` (100%, 11/11 instructions), compiler SHA256
 m2c renders a dispatch on one value as a `switch`, and that is the wrong
 construct whenever the target's *first* case is reached by falling out of the
 first compare. `func_dryfield_g_r_kitchen_8017EB04` picks one of two beam pairs
-by `gGameSession->field_4`; the target is
+by `gGameSession->loc.view`; the target is
 
 ```
 bne    a0,a1, .L6C        /* a1 = 2, set well above */
@@ -90858,10 +90858,10 @@ immediately after the test and falls through. Writing the two arms as an
 reproduces the target exactly:
 
 ```c
-if (gGameSession->field_4 == 2) {
+if (gGameSession->loc.view == 2) {
     Room_Draw24(coord, &D_dryfield_g_r_kitchen_8017EBF0[0], &D_dryfield_g_r_kitchen_8017EBF0[-1], 0x100);
     Room_Draw24(coord, &D_dryfield_g_r_kitchen_8017EBF0[2], &D_dryfield_g_r_kitchen_8017EBF0[1], 0x100);
-} else if (gGameSession->field_4 == 3) {
+} else if (gGameSession->loc.view == 3) {
     func_dryfield_g_r_kitchen_8017E27C(coord, &D_dryfield_g_r_kitchen_8017EC08[0], &D_dryfield_g_r_kitchen_8017EC08[1], 0x100);
     func_dryfield_g_r_kitchen_8017E27C(coord, &D_dryfield_g_r_kitchen_8017EC08[2], &D_dryfield_g_r_kitchen_8017EC08[3], 0x100);
 }
@@ -90916,7 +90916,7 @@ blocks the fold too, but it is not what the original was here — it is a
   lands in `.rodata` and no cut is needed for an overlay with no table.
 
 ```c
-    switch (gGameSession->field_4) {
+    switch (gGameSession->loc.view) {
         case 2:
         case 3: {
             SVECTOR* p = D_dryfield_night_motel_room_2_8017DA44;
@@ -91046,7 +91046,7 @@ A room handler whose body never returns anything:
 ```c
 s32 func_dryfield_garage_8017DA54(s32 arg0, s32 arg1, RoomEventMsg* msg)
 {
-    if ((msg->field_2 == 2) && (gGameSession->field_9 != 1)) {
+    if ((msg->field_2 == 2) && (gGameSession->loc.place != 1)) {
         Gp_SpawnIfCapIdle(0x13, 0);
     }
 }
@@ -92456,7 +92456,7 @@ match on the first edit, where the target's own three widths look contradictory
 until you see which use produced each.
 
 
-## `addiu $a1, $v0, 0x4` in the prologue: the source took `&gGameSession->field_4`
+## `addiu $a1, $v0, 0x4` in the prologue: the source took `&gGameSession->loc.view`
 
 A target that opens
 
@@ -92478,9 +92478,9 @@ register. `main/session.h` already models the sub-object as `GameSessionFrom4`,
 an overlay of `GameSession` starting at 0x4, declared for exactly this shape:
 
 ```c
-GameSessionFrom4* sess = (GameSessionFrom4*)&gGameSession->field_4;
-if (sess->field_3 == 2) {          /* GameSession.field_7 */
-    ... sess->field_2 ...          /* GameSession.field_6 */
+GameSessionFrom4* sess = (GameSessionFrom4*)&gGameSession->loc.view;
+if (sess->field_3 == 2) {          /* GameSession.loc.stage */
+    ... sess->field_2 ...          /* GameSession.loc.area */
 }
 ```
 
@@ -92748,7 +92748,7 @@ ori  a0,a0,0x1000        # constant on f6
 or   a0,v0,a0            # src1 = shifted, src2 = ori result
 ```
 
-`(gGameSession->field_7 << 8) | (gGameSession->field_6 | 0x1000)` — the
+`(gGameSession->loc.stage << 8) | (gGameSession->loc.area | 0x1000)` — the
 straightforward reading, and what m2c emits — compiles to the mirror image:
 
 ```
@@ -92778,7 +92778,7 @@ spellings are reachable and neither survives as written.
 constant inside the operand that is `arg0` of the outer `|`:
 
 ```c
-id = ((gGameSession->field_7 << 8) | 0x1000) | gGameSession->field_6;
+id = ((gGameSession->loc.stage << 8) | 0x1000) | gGameSession->loc.area;
 ```
 
 That takes the arg0 path, which rebuilds `(f7 << 8) | (f6 | 0x1000)` in the
@@ -92870,7 +92870,7 @@ induction variables assigned *before* the branch:
     u16* ptr = (u16*)Fs_ImgBuffers;   /* outside the if */
     s32  i   = 0;
     ...
-    if (gGameSession->field_9 == 0xB) {
+    if (gGameSession->loc.place == 0xB) {
         do { *ptr = (u16)(*ptr | 0x8000); i += 1; ptr += 1; } while (i <= 0x12BFF);
 ```
 
@@ -92885,7 +92885,7 @@ with the loop body itself still instruction-for-instruction correct.
 ranges start after the test:
 
 ```c
-    if (gGameSession->field_9 == 0xB) {
+    if (gGameSession->loc.place == 0xB) {
         u16* ptr = (u16*)Fs_ImgBuffers;
         s32  i   = 0;
 
@@ -92902,8 +92902,8 @@ seed is mechanical: move the declaration into the branch, not the assignment.
 A handler that forces a session state and passes the same state on:
 
 ```c
-    if (gGameSession->field_9 != 4 && gGameSession->field_126 != 0) {
-        gGameSession->field_9 = 4;
+    if (gGameSession->loc.place != 4 && gGameSession->field_126 != 0) {
+        gGameSession->loc.place = 4;
     }
     if (arg0->killCountdown < 0x780) {
         arg0->killCountdown = (s16)((u16)arg0->killCountdown + 0x10);
@@ -92929,8 +92929,8 @@ copy instead of a raw constant:
     s32 mode;
     if (Gp_ActorSlots[0] != NULL) {
         mode = 4;
-        if (gGameSession->field_9 != mode && gGameSession->field_126 != 0) {
-            gGameSession->field_9 = mode;
+        if (gGameSession->loc.place != mode && gGameSession->field_126 != 0) {
+            gGameSession->loc.place = mode;
         }
         ...
         func_neo_ark_submarine_gallery_8017EC24((u16)arg0->killCountdown, mode);
@@ -93726,7 +93726,7 @@ residency with it, and no later pass restores them.
 task wrapper: start from `src/rooms/lib/room_script01.c` (the pointer-parameter
 twin is `room_script09.c`), keep the declarations in their order - `src` before
 `dst`, so the slots land as above - and change only the tail (this one publishes
-`gGameSession->field_5` / `D_8007216D` and sets `field_76`, where the script
+`gGameSession->loc.room` / `D_8007216D` and sets `field_76`, where the script
 saves `Mc_SaveData.field_5` and kills the task). m2c's `? sp18` seed scores
 55.833%; this is 100.000% / zero penalties on the first rewrite.
 
@@ -97039,7 +97039,7 @@ Example: `func_actor_800300_80161E80`. Inputs: `base_4.i` (cast, 98.967%) vs
 ## A value the target keeps across blocks in $a0 is a hard register, and pinning it is what frees $a0 (func_actor_335800_8016224C, 2026-09-16)
 
 **Problem.** 98.79% with `regs=7` and nothing else: an `$a0`/`$a1` swap. The flag
-written to `D_8007216C` and `gGameSession->field_4` sits in `$a0` in the target
+written to `D_8007216C` and `gGameSession->loc.view` sits in `$a0` in the target
 (`li $a0,6` in the branch's delay slot, `sb $a0,...` two blocks later) with the
 `%hi(gGameSession)` temp in `$a1`; the C below compiles to the mirror image.
 Every other instruction, block connection and predicate already matched.
@@ -97167,8 +97167,8 @@ unobservable in m2c's output and m2c guesses there.
 
 The same build settled the field accesses. The target computes
 `addiu $a1,$a0,4` and then reads `lbu 3($a1)` / `lbu 2($a1)`, not `lbu 7($a0)` /
-`lbu 6($a0)`: `GameSession.field_6` / `field_7` are reached through the
-`&gGameSession->field_4` overlay, exactly as `GameSessionFrom4` exists for:
+`lbu 6($a0)`: `GameSession.loc.area` / `field_7` are reached through the
+`&gGameSession->loc.view` overlay, exactly as `GameSessionFrom4` exists for:
 
 ```c
 g    = gGameSession;
@@ -98462,8 +98462,8 @@ address-taken 4-byte struct, which is also what makes the payload's fields live:
     Actor303600Msg7DA msg;
 
     if (work->field_E == 0) {
-        msg.field_0 = gGameSession->field_7;
-        msg.field_1 = gGameSession->field_6;
+        msg.field_0 = gGameSession->loc.stage;
+        msg.field_1 = gGameSession->loc.area;
         msg.field_2 = 9;
         Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         work->field_C = 9;
@@ -98718,7 +98718,7 @@ caller pattern (`src/actors/actor_150400/actor_150400.c`,
     GpAreaKey  key;
     GpAreaKey* sessionKey;
 
-    sessionKey  = (GpAreaKey*)&gGameSession->field_4;
+    sessionKey  = (GpAreaKey*)&gGameSession->loc.view;
     key.field_3 = sessionKey->field_3;
     key.field_2 = sessionKey->field_2;
     key.field_1 = sessionKey->field_1;
@@ -113140,7 +113140,7 @@ Scratch `nonmatchings/func_actor_110600_80132A84-vacuum`.
 ## A pointer C assigns in two blocks stays one cross-block pseudo, and that pseudo takes the register the block-local values needed (func_actor_335800_80162640, 2026-09-17)
 
 Two sibling `if` bodies that each build the same `GpAreaKey` from the session
-(`sessionKey = (GpAreaKey*)&gGameSession->field_4;` then four byte loads) sat at
+(`sessionKey = (GpAreaKey*)&gGameSession->loc.view;` then four byte loads) sat at
 97.504% with `regs=16 stack=2 reorder=4`, the whole delta in *both* bodies a
 rotation of three registers - the `gGameSession` load, the `session+4` pointer
 and the first key byte. `sessionKey` was a function-scope variable assigned in
@@ -113153,11 +113153,11 @@ variable and re-reading the address expression for two of the four bytes
 (behaviour-preserving: same reads, same order, no writes between) goes to 100%:
 
 ```c
-        sessionKey  = (GpAreaKey*)(keyAddr = (u8*)&gGameSession->field_4);
+        sessionKey  = (GpAreaKey*)(keyAddr = (u8*)&gGameSession->loc.view);
         key.field_3 = sessionKey->field_3;
         key.field_2 = sessionKey->field_2;
         key.field_1 = ((GpAreaKey*)keyAddr)->field_1;
-        key.field_0 = ((GpAreaKey*)(&gGameSession->field_4))->field_0;
+        key.field_0 = ((GpAreaKey*)(&gGameSession->loc.view))->field_0;
 ```
 
 `.greg` then reads `;; 5 regs to allocate:` where the parent had 6, and the
@@ -113169,7 +113169,7 @@ target keeps in the first callee-saved registers must not be a pseudo spanning
 two blocks. Unlike the loop case there is no redeclaration involved - the
 variable is still function-scope - so read `.lreg`'s `N refs / M insns; dies in
 2 places` and check whether that pseudo is in the `.greg` allocation list.
-`base_4.c` (only the direct `key.field_0 = gGameSession->field_4;`) stays at
+`base_4.c` (only the direct `key.field_0 = gGameSession->loc.view;`) stays at
 97.5%, so the extra name is load-bearing, not incidental.
 
 Two things stay open: which pass splits the value (the expander emits one
@@ -117398,7 +117398,7 @@ switches on a `u8` area id and maps it to a volume. Written the obvious way, the
 dispatch tree comes out right:
 
 ```c
-switch (gGameSession->field_4) {
+switch (gGameSession->loc.view) {
     case 2: vol = 0x32; break;
     case 3: vol = 0x3C; break;
     case 4: vol = 0x64; break;
@@ -117417,7 +117417,7 @@ at body order.
 descending, case 2 last:
 
 ```c
-switch (gGameSession->field_4) {
+switch (gGameSession->loc.view) {
     case 4: vol = 0x64; break;
     case 3: vol = 0x3C; break;
     case 2: vol = 0x32; break;
@@ -118154,7 +118154,7 @@ switch (arg0->state) {
         arg0->state += 1;
         break;
     case 1:
-        if (gGameSession->field_1 == 0) {
+        if (gGameSession->eventState == 0) {
             Task_Kill(arg0);
             return;
         }
@@ -119097,7 +119097,7 @@ for (i = 0; list[i].rec != 0; i++) {              /* not  for (p = list; p->rec;
 ```
 
 The session addressing in the same function is the `GameSessionFrom4` overlay
-documented above (`sess = (GameSessionFrom4*)&gGameSession->field_4`), which is
+documented above (`sess = (GameSessionFrom4*)&gGameSession->loc.view`), which is
 what turns `lbu 6/7($a0)` into `addiu $a2,$v0,4` plus `lbu 2($a2)` / `lbu
 3($a2)`. 80.359% (pointer walk, flat session fields) -> 86.425% (overlay cast
 only) -> 100.00% (index form), every penalty zero.
@@ -119970,7 +119970,7 @@ Inputs: `base_1.c` (100.000%, all penalties zero), `base_3.c` (99.286%,
 `func_dryfield_back_street_8017D5D0` is the warehouse ambience sibling
 (`func_dryfield_warehouse_8017D5E8`, "a switch's shared tail belongs after the
 switch") with one difference: the view it maps comes from `Gp_GetViewIndex()`
-instead of `gGameSession->field_4`, it also carries a stereo pan, and its two
+instead of `gGameSession->loc.view`, it also carries a stereo pan, and its two
 zeroes come from the `default:` case rather than from an assignment before the
 switch. Writing it the warehouse way - `vol = 0; pan = 0;` ahead of the
 `switch`, no `default:` - scores 85.98% with the two leaf fall-throughs emitting
@@ -120059,7 +120059,7 @@ the `addu` (a `sh` of a countdown, a call) merges only the `addu`/`sw` and jumps
 one instruction later - the same two entry points the matched
 `func_neo_ark_altar_8017D668` shows at `.L8017D844` / `.L8017D848`.
 
-Case 0 is `D_8007216C = 8; gGameSession->field_68 = 1; gGameSession->field_1 = 1;
+Case 0 is `D_8007216C = 8; gGameSession->field_68 = 1; gGameSession->eventState = 1;
 D_801153F4 = 2; task->state++;`. Written with `D_801153F4` as a plain
 `extern u8`, the store is `(mem:QI (lo_sum ...))` - **not** in-struct - while
 the state load is `(mem/s:SI (plus (reg) (const_int 48)))`. `true_dependence`
@@ -120450,7 +120450,7 @@ Same function, 96.626% to 100%. The tail is
 ```c
 if (msg->msgId == 0x15) {
     ...
-    if (gGameSession->field_7 == 3 || GameFlag_GetNibble(0x32) == 2) {
+    if (gGameSession->loc.stage == 3 || GameFlag_GetNibble(0x32) == 2) {
         return 1;
     }
     return 0;
@@ -120469,7 +120469,7 @@ branch's delay slot.
 Writing the two conditions as their own early returns
 
 ```c
-        if (gGameSession->field_7 == 3) {
+        if (gGameSession->loc.stage == 3) {
             return 1;
         }
         if (GameFlag_GetNibble(0x32) != 2) {
@@ -121190,7 +121190,7 @@ session variant through the same `fade` variable the tint math uses:
 case 4:
     gGameSession->field_52 = 1;
     GameFlag_SetNibble(0x47, 1);
-    fade = gGameSession->field_7;   /* the cross-block reference */
+    fade = gGameSession->loc.stage;   /* the cross-block reference */
     if (fade == 2) {
         Gp_EnqueueStageSnd6(0x5217000B, 0, 0);
     }
@@ -121239,11 +121239,11 @@ build sat in `$a2` where the target had it in `$v1`; the instruction order moved
 too, because `addiu $a0,$sp,0x10` (the `&key` argument) can only be hoisted once
 the register holding that block's area key is free.
 
-Both blocks fill a `GpAreaKey` from `&gGameSession->field_4`, and the first
+Both blocks fill a `GpAreaKey` from `&gGameSession->loc.view`, and the first
 attempt spelled them the same way:
 
 ```c
-sessionKey = (GpAreaKey*)&gGameSession->field_4;
+sessionKey = (GpAreaKey*)&gGameSession->loc.view;
 key.field_3 = sessionKey->field_3;
 ...
 key.field_0 = sessionKey->field_0;
@@ -121261,11 +121261,11 @@ The fix is to stop the two blocks sharing a value. The near-twin
 *second* block, and its source is the match:
 
 ```c
-sessionKey  = (GpAreaKey*)(keyAddr = (u8*)&gGameSession->field_4);
+sessionKey  = (GpAreaKey*)(keyAddr = (u8*)&gGameSession->loc.view);
 key.field_3 = sessionKey->field_3;
 key.field_2 = sessionKey->field_2;
 key.field_1 = ((GpAreaKey*)keyAddr)->field_1;
-key.field_0 = ((GpAreaKey*)(&gGameSession->field_4))->field_0;
+key.field_0 = ((GpAreaKey*)(&gGameSession->loc.view))->field_0;
 ```
 
 With that, `.lreg` shows the address as two entries — `Register 82 used 4 times
@@ -121289,7 +121289,7 @@ cross-block address pseudo), `base_2.i`
 The const-2 analogue of the `8017FBF4` signedness merge above, with the case
 selector rather than a field as the second use of the constant. A `switch (step)`
 whose arms end `task->state = 2`, and whose first statement compares
-`gGameSession->field_7 == 2` for the sound id, has two `(const_int 2)`s in the
+`gGameSession->loc.stage == 2` for the sound id, has two `(const_int 2)`s in the
 same extended basic block. `cse` unifies them: by `.lreg` the store's source is
 the compare's pseudo (`insn.py --reg 90` shows `used 3 times across 32 insns`),
 so it is live from the compare through `GameFlag_GetNibble`/`Gp_StartCapSlot` to
@@ -122018,7 +122018,7 @@ of a state dispatch each end in the same `return 0`, that gives the RTL several
 *identical* one-instruction blocks, and the post-reload `jump_optimize` (`.jump2`,
 cross_jump = 1) merges them - so the 100%-correct C for the dispatch comes out
 eleven instructions short with `delete=12` and the block count off by three.
-The `gGameSession->field_1 == 0` predicate made it worse: both arms collapsed
+The `gGameSession->eventState == 0` predicate made it worse: both arms collapsed
 into one block that GCC then folded to a branchless `sltiu v0,v0,1`.
 
 The target keeps two separate copies of that predicate with *different registers*
@@ -122035,7 +122035,7 @@ case 0:
         work->field_4D8++;
         break;
     case 1:
-        if (gGameSession->field_1 == 0) { return 1; }
+        if (gGameSession->eventState == 0) { return 1; }
         break;
     }
     break;
@@ -122066,7 +122066,7 @@ matched* scored 100.000% with every penalty zero on the first build.
 
 ```c
 /* from func_actor_120300_801335D8, same file, already matched */
-place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->field_4)->field_0;
+place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->loc.view)->field_0;
 id    = place->field_0;
 while (id != 0xFF) {
     if (id == 0x6A) { break; }

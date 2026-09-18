@@ -122,7 +122,7 @@ void func_actor_120300_80132004(Task* arg0)
             Task_Kill(arg0);
             return;
         }
-        place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->field_4)->field_0;
+        place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->loc)->field_0;
         id    = place->field_0;
         while (id != 0xFF) {
             if (id == 0x6A) {
@@ -273,7 +273,7 @@ void func_actor_120300_80133330(s32 arg0)
 /// walks the three-entry request list through 0x4D6 (0x416D4, then 0x417AC,
 /// then 0x41884) before leaving through 0x4D8, while phase 1 issues the last
 /// record 0x41A34 once and then only counts 0x4D8.  Each of the two phases
-/// returns 1 while the session at `gGameSession->field_1` is still 0, so the
+/// returns 1 while the session at `gGameSession->eventState` is still 0, so the
 /// task that calls this keeps the actor alive until play starts.
 s32 func_actor_120300_801334A4(Actor120300* arg0)
 {
@@ -300,7 +300,7 @@ s32 func_actor_120300_801334A4(Actor120300* arg0)
                     work->field_4D8++;
                     break;
                 case 1:
-                    if (gGameSession->field_1 == 0) {
+                    if (gGameSession->eventState == 0) {
                         return 1;
                     }
                     break;
@@ -313,7 +313,7 @@ s32 func_actor_120300_801334A4(Actor120300* arg0)
                     work->field_4D8++;
                     break;
                 case 1:
-                    if (gGameSession->field_1 == 0) {
+                    if (gGameSession->eventState == 0) {
                         return 1;
                     }
                     break;
@@ -361,7 +361,7 @@ void func_actor_120300_801335D8(Task* arg0)
     tmd->field_1C = &work->field_474;
     tmd->field_20 = &work->field_494;
     tmd->field_C &= 0xFFFB;
-    place         = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->field_4)->field_0;
+    place         = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->loc)->field_0;
     id            = place->field_0;
     while (id != 0xFF) {
         if (id == 0x6A) {

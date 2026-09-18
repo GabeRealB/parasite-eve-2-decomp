@@ -11,7 +11,7 @@ extern SVECTOR D_dryfield_cellar_8017DBCC[2];
 
 /// Per-frame effect on the room's model task: draws the visit's pair of
 /// sprites, one per entry of a two-entry SVECTOR table of local offsets.
-/// The visit is `gGameSession->field_4`; visit 2 uses `D_...DBBC` and visit 3
+/// The visit is `gGameSession->loc.view`; visit 2 uses `D_...DBBC` and visit 3
 /// `D_...DBCC`, and any other visit draws nothing. Gated on the room flag
 /// (`GameFlag_GetNibble(0x52)`).
 void func_dryfield_cellar_8017DAEC(Task* arg0)
@@ -20,10 +20,10 @@ void func_dryfield_cellar_8017DAEC(Task* arg0)
 
     coord = ((TmdObject*)arg0->extra)->field_8;
     if (GameFlag_GetNibble(0x52) == 1) {
-        if (gGameSession->field_4 == 2) {
+        if (gGameSession->loc.view == 2) {
             Room_Draw35(coord, D_dryfield_cellar_8017DBBC, 1, 0x280);
             Room_Draw35(coord, D_dryfield_cellar_8017DBBC + 1, 1, 0x280);
-        } else if (gGameSession->field_4 == 3) {
+        } else if (gGameSession->loc.view == 3) {
             Room_Draw35(coord, D_dryfield_cellar_8017DBCC, 1, 0x280);
             Room_Draw35(coord, D_dryfield_cellar_8017DBCC + 1, 1, 0x280);
         }

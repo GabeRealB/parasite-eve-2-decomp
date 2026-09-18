@@ -2680,8 +2680,8 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
 
         rec  = Mc_SaveData.field_28;
         i    = 0;
-        hi   = loc->field_3;
-        key  = loc->field_2;
+        hi   = loc->stage;
+        key  = loc->area;
         hi <<= 8;
         key  = hi | key;
         for (; i < 0x1F; i++, rec++) {
@@ -3773,7 +3773,7 @@ void func_800B65B0(Task* task)
                     case 1:
                         if (ui->field_2C == 0x33) {
                             id      = work->field_0;
-                            current = Gp_Bit2Banks[gGameSession->field_7].field_4 + (id >> 4);
+                            current = Gp_Bit2Banks[gGameSession->loc.stage].field_4 + (id >> 4);
                             shift   = (id & 0xF) * 2;
                             mask    = 3 << shift;
                             if (((*current & mask) >> shift) != 3) {
@@ -3834,12 +3834,12 @@ void Gp_SpawnPlaceById(u16 arg0)
 
     sess  = (GameSessionFrom4*)&Mc_SaveData.field_4;
     tmp   = Gp_Bit2Banks;
-    idx8  = sess->field_3;
+    idx8  = sess->stage;
     lists = tmp[idx8].field_0;
     if (lists == NULL) {
         return;
     }
-    place = (GpEnemyPlace*)lists[sess->field_2].field_0;
+    place = (GpEnemyPlace*)lists[sess->area].field_0;
     TOUCH_REG(banks);
     if (place == NULL) {
         return;
@@ -3859,7 +3859,7 @@ void Gp_SpawnPlaceById(u16 arg0)
             u32           word;
 
             temp   = (u16)id;
-            flags  = banks[gGameSession->field_7].field_4;
+            flags  = banks[gGameSession->loc.stage].field_4;
             idx    = temp >> 4;
             flags += idx;
             shift  = (temp & 0xF) * 2;
@@ -3869,7 +3869,7 @@ void Gp_SpawnPlaceById(u16 arg0)
             if (word == 0) {
                 return;
             }
-            desc  = lists[sess->field_2].field_4;
+            desc  = lists[sess->area].field_4;
             recId = desc->field_0;
             if (recId != term) {
                 do {
@@ -3917,11 +3917,11 @@ void Gp_SpawnPlaces(GameSessionFrom4* arg0)
     u16           term;
     u16           id;
 
-    lists = Gp_Bit2Banks[arg0->field_3].field_0;
+    lists = Gp_Bit2Banks[arg0->stage].field_0;
     if (lists == NULL) {
         return;
     }
-    place = (GpEnemyPlace*)lists[arg0->field_2].field_0;
+    place = (GpEnemyPlace*)lists[arg0->area].field_0;
     if (place == NULL) {
         return;
     }
@@ -3930,7 +3930,7 @@ void Gp_SpawnPlaces(GameSessionFrom4* arg0)
         return;
     }
     do {
-        desc = lists[arg0->field_2].field_4;
+        desc = lists[arg0->area].field_4;
         id   = desc->field_0;
         if (id != term) {
             do {

@@ -2569,8 +2569,8 @@ void func_actor_403600_8013DAF4(Actor403600* arg0, s32 arg1)
         }
         temp_s1->field_588.flags &= 0x7FFF;
         Gp_PulseState1C80();
-        gGameSession->field_1   = 1;
-        D_actor_403600_8016056C = 0;
+        gGameSession->eventState = 1;
+        D_actor_403600_8016056C  = 0;
         Gp_DispatchMsg(*Gp_ActorSlots, 0x3F1, 0, 0);
         temp_v0_3            = arg0->field_1C;
         temp_v0_3->field_756 = 8;

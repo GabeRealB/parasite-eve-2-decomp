@@ -132,7 +132,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             arg0->state = arg0->state + 1;
             break;
         case 2:
-            if (gGameSession->field_1 == 0) {
+            if (gGameSession->eventState == 0) {
                 Task_RequestKill(arg0, 0);
             }
             break;

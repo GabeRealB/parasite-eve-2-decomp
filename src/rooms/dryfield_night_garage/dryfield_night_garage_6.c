@@ -48,7 +48,7 @@ Task* func_dryfield_night_garage_80180A64(s32 arg0)
     GpWorkObj* work;
     Task*      task;
 
-    work = Gp_FindWorkById(gGameSession->field_6 | ((arg0 << 12) | (gGameSession->field_7 << 8)));
+    work = Gp_FindWorkById(gGameSession->loc.area | ((arg0 << 12) | (gGameSession->loc.stage << 8)));
     task = NULL;
     if (work != NULL) {
         task = (Task*)work->field_0;

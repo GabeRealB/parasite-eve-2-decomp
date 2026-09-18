@@ -15,10 +15,10 @@ void Room_Script10(Task* arg0)
     Gp_MsgPlayer3F3(1);
     Gp_MsgAlly3F3(1);
     Display_ReleaseRef();
-    gGameSession->field_1  = 0;
-    gGameSession->field_68 = 0;
-    gGameSession->field_66 = 0;
-    D_8007216C             = 3;
+    gGameSession->eventState = 0;
+    gGameSession->field_68   = 0;
+    gGameSession->field_66   = 0;
+    D_8007216C               = 3;
     /* Without the barrier GCC fills Task_Kill's delay slot with the byte store. */
     SOFT_BARRIER();
     Task_Kill((Task*)arg0->spawnArg2);

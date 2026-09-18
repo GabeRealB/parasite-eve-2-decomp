@@ -633,9 +633,9 @@ void func_actor_444000_80135448(Actor444000* task)
 
         func_actor_444000_8013441C(task);
 
-        gGameSession->field_9 = 3;
-        id                    = (((u16)enemy->field_8 >> 12) << 8) | 0x54280007;
-        pan                   = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+        gGameSession->loc.place = 3;
+        id                      = (((u16)enemy->field_8 >> 12) << 8) | 0x54280007;
+        pan                     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
         SndEvt_EnqueueType6(id, pan, (s8)(Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8) / 2));
         return;
     }
@@ -1679,7 +1679,7 @@ void func_actor_444000_80138FC4(GpEnemy* enemy, Actor444000Grab* task)
         work->vel.vx = 0;
     }
 
-    if ((*(u32*)&gGameSession->field_4 & 0xFFFF0000) == 0x04270000 &&
+    if ((*(u32*)&gGameSession->loc & 0xFFFF0000) == 0x04270000 &&
         task->extra->field_8->coord.t[0] >= 0x4B65) {
         work->vel.vx = 0;
     }
@@ -1739,7 +1739,7 @@ void func_actor_444000_8013928C(GpEnemy* enemy, Actor444000Grab* task)
 
     work->field_1AC++;
 
-    if ((*(u32*)&gGameSession->field_4 & 0xFFFF0000) == 0x04270000 &&
+    if ((*(u32*)&gGameSession->loc & 0xFFFF0000) == 0x04270000 &&
         task->extra->field_8->coord.t[0] >= 0x4B65) {
         work->vel.vx = 0;
     }

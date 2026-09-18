@@ -54,13 +54,13 @@ extern GpFlagBank* Gp_FlagBanks[];
 extern GpFlagBank* D_80060A38;
 
 /// Per-stage wrapper. `field_0` is a 3-level table of bytes, indexed
-/// 1-based by `GameSession.field_6` / `field_5` / `field_4`.
+/// 1-based by `GameSession.loc.area` / `loc.room` / `loc.view`.
 /// `Gp_GetViewIndex` returns the innermost byte (camera / view index).
 typedef struct _GpViewIndexTbl {
     /* 0x0 */ u8*** field_0;
 } GpViewIndexTbl;
 
-/// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
+/// Per-stage pointer table. Index is `GameSession.loc.stage - 1`.
 extern GpViewIndexTbl* Gp_ViewIndexTables[];
 
 /// 8-byte command record. `GpSprtRec.field_4` points at a 0xFFFF-terminated
@@ -121,16 +121,16 @@ typedef struct _GpSprtRec {
 STATIC_ASSERT_SIZEOF(GpSprtRec, 0xC);
 
 /// Per-stage wrapper. `field_0` is an array of `GpSprtRec*`, indexed
-/// 1-based by `GameSession.field_6` / `GameSessionFrom4.field_2`.
+/// 1-based by `GameSession.loc.area` / `GameSessionFrom4.area`.
 typedef struct _GpSprtTbl {
     /* 0x0 */ GpSprtRec** field_0;
 } GpSprtTbl;
 
-/// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
+/// Per-stage pointer table. Index is `GameSession.loc.stage - 1`.
 extern GpSprtTbl* Gp_SprtTables[];
 
 /// 0x10-byte per-room record in tables pointed to by `Gp_RoomObjTables`.
-/// Indexed 1-based by `GameSession.field_5` / `GameSessionFrom4.field_1`.
+/// Indexed 1-based by `GameSession.loc.room` / `GameSessionFrom4.room`.
 /// `Gp_LinkRoomObjects` / `Gp_LinkRoomObjectsSpawn` parent `field_0` to `&Gfx_ViewCoord` and
 /// link the `field_4` / `field_8` (`GpObj4A`) and `field_C` (`GpObj3A`) arrays.
 typedef struct _GpRoomObjRec {
@@ -142,16 +142,16 @@ typedef struct _GpRoomObjRec {
 STATIC_ASSERT_SIZEOF(GpRoomObjRec, 0x10);
 
 /// Per-stage wrapper. `field_0` is an array of `GpRoomObjRec*`, indexed
-/// 1-based by `GameSession.field_6` / `GameSessionFrom4.field_2`.
+/// 1-based by `GameSession.loc.area` / `GameSessionFrom4.area`.
 typedef struct _GpRoomObjTbl {
     /* 0x0 */ GpRoomObjRec** field_0;
 } GpRoomObjTbl;
 
-/// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
+/// Per-stage pointer table. Index is `GameSession.loc.stage - 1`.
 extern GpRoomObjTbl* Gp_RoomObjTables[];
 
 /// 0x38-byte record in tables pointed to by `Gp_WarpTables`. Indexed
-/// 1-based by `GameSessionFrom4.field_3` / `field_2`, then
+/// 1-based by `GameSessionFrom4.stage` / `field_2`, then
 /// `(Gp_DirNibble >> 4)`. `Gp_CommitWarp` copies one record onto the
 /// stack and writes `field_36` into `GpSaveLoc.field_6`. Leading `s32`
 /// keeps the type 4-aligned so the 56-byte assign is `lw`/`sw`.
@@ -171,9 +171,9 @@ typedef struct _GpWarpRec {
 } GpWarpRec;
 STATIC_ASSERT_SIZEOF(GpWarpRec, 0x38);
 
-/// Per-stage pointer table. Index is `GameSession.field_7 - 1`. Each
+/// Per-stage pointer table. Index is `GameSession.loc.stage - 1`. Each
 /// entry is an array of `GpWarpRec*`, indexed 1-based by
-/// `GameSession.field_6` / `GameSessionFrom4.field_2`.
+/// `GameSession.loc.area` / `GameSessionFrom4.area`.
 extern GpWarpRec** Gp_WarpTables[];
 
 /// Word view of Display_State's bytes 0x100..0x103, tested together when
@@ -393,13 +393,13 @@ void Gp_LoadWaitBoot(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
 /// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
 /// When the CD queue is idle, enqueues a stage reload if
-/// `GameSession.field_7` differs from the cached `field_78`, then
+/// `GameSession.loc.stage` differs from the cached `loadedStage`, then
 /// advances `task->state`.
 void Gp_LoadWaitStage(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
 /// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
 /// When the CD queue is idle: `Gp_InitStageVisit` on the save location,
-/// `Mem_ConfigureAuxHeap(field_7, field_6)`, `Mem_SetActiveAuxHeap(1)` when
+/// `Mem_ConfigureAuxHeap(loc.stage, loc.area)`, `Mem_SetActiveAuxHeap(1)` when
 /// the save is in stage 5 / area 1, `Mem_InitAux`, `Gp_ApplyNpcRoomSnd`,
 /// `Snd_InitFromStage`. Sets `D_80062735` when in stage 3 with game flag
 /// nibble 0x7A >= 4, primes `GameSession.field_12D/12E/12F` (1 / -0x80 /
@@ -409,19 +409,19 @@ void Gp_LoadState2(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
 /// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
 /// When the CD queue is idle, enqueues CdCmd 0x21 with the current
-/// session location (`field_5` / `field_6` / `field_7`), then
+/// session location (`loc.room` / `loc.area` / `loc.stage`), then
 /// `Gp_PickCompanion`. If that returns a companion type, stores it in
-/// `GameSession.field_124` and calls `Gp_EnqueueCompanionCd` with
+/// `GameSession.companionType` and calls `Gp_EnqueueCompanionCd` with
 /// `Mc_SaveData.field_13` / `field_5C7`. Then advances `task->state`.
 void Gp_LoadWaitCompanion(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
 /// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
 /// When the CD queue is idle, if the session location high word is
-/// `0x3010000` and `field_5 >= 4`, re-inits stage sound and enqueues
+/// `0x3010000` and `loc.room >= 4`, re-inits stage sound and enqueues
 /// CdCmd 0x21 (`param1[0] = 0x16`). If `field_4C` is 1, applies
 /// `Mc_SaveData.field_9` via `Gp_SetAreaObjId` and clears the flag. Then
 /// applies the save location (`Gp_MarkAreaVisited` / `Gp_SyncAreaKeyIndex`), copies
-/// `Mc_SaveData.field_9` into `GameSession.field_9`, builds the stream
+/// `Mc_SaveData.field_9` into `GameSession.loc.place`, builds the stream
 /// VLC, clears `D_80114C74`, and advances `task->state`.
 void Gp_LoadWaitSave(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
@@ -439,7 +439,7 @@ void Gp_FadeGrayHold(Task* task);
 void Gp_InitStageVisit(struct _GameSessionFrom4* arg0);
 /// Pick companion type into `Mc_SaveData.field_13` from the NPC room tables.
 /// Returns 0 if already current or none; else 1/2/3 for the caller to store
-/// in `GameSession.field_124`.
+/// in `GameSession.companionType`.
 s32  Gp_PickCompanion(void);
 void Gp_ApplyNpcRoomSnd(void);
 void Gp_SetupCompanionActor(struct _GpActorArg* arg0, u16* arg1);
@@ -488,7 +488,7 @@ extern struct _GpAreaRec* Gp_AreaTableStg5;
 /// `GpAreaObj.field_1` on every record whose apply flag is set.
 void Gp_ApplyNewGameAreaFlags(void);
 
-/// Per-stage signed counts, indexed by `GameSession.field_7 - 1`.
+/// Per-stage signed counts, indexed by `GameSession.loc.stage - 1`.
 /// `Gp_RebuildAreaIdBits` loops area ids `1..count` when the stage is 1–5.
 extern s8 Gp_AreaIdCounts[];
 

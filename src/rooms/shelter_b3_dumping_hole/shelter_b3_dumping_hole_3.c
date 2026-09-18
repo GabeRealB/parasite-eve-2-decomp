@@ -338,7 +338,7 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_
 
 s16 func_shelter_b3_dumping_hole_8017FB70(void)
 {
-    if (gGameSession->field_5 == 2) {
+    if (gGameSession->loc.room == 2) {
         return 0;
     }
     return D_shelter_b3_dumping_hole_8018809C;
@@ -552,8 +552,8 @@ void func_shelter_b3_dumping_hole_80181430(void)
     Gp_PulseState1C();
 
     D_shelter_b3_dumping_hole_8018F4B0 = 0;
-    desc.field_0                       = gGameSession->field_7;
-    desc.field_1                       = gGameSession->field_6;
+    desc.field_0                       = gGameSession->loc.stage;
+    desc.field_1                       = gGameSession->loc.area;
     desc.field_2                       = 0x13;
     Gp_DispatchMsg((Task*)Game_GetPtrSlot(4), 0x7DA, (s32)&desc, 0x7DB);
 

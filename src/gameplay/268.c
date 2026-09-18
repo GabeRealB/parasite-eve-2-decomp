@@ -3001,7 +3001,7 @@ s32 Gp_GetCurBit2Flag(s32 arg0)
     u32           word;
     s32           shift;
 
-    p     = Gp_Bit2Banks[gGameSession->field_7].field_4;
+    p     = Gp_Bit2Banks[gGameSession->loc.stage].field_4;
     p    += arg0 >> 4;
     shift = (arg0 & 0xF) * 2;
     word  = *p;
@@ -3305,7 +3305,7 @@ s32 Gp_GetBit2Flag(GameSessionFrom4* arg0, s32 arg1)
     u32           word;
     s32           shift;
 
-    p     = Gp_Bit2Banks[arg0->field_3].field_4;
+    p     = Gp_Bit2Banks[arg0->stage].field_4;
     p    += arg1 >> 4;
     shift = (arg1 & 0xF) * 2;
     word  = *p;
@@ -3390,7 +3390,7 @@ void func_800BBB54(Task* arg0)
         sess    = gGameSession;
         banks   = Gp_Bit2Banks;
         id      = ((GpItemObj8*)arg0->spawnArg2)->field_8;
-        p       = banks[sess->field_7].field_4;
+        p       = banks[sess->loc.stage].field_4;
         indexed = p + (id >> 4);
         shift   = (id & 0xF) * 2;
         word    = *indexed;
@@ -3421,7 +3421,7 @@ void Gp_WaitItemFlag2(Task* arg0)
         sess  = gGameSession;
         banks = Gp_Bit2Banks;
         id    = ((GpItemObj8*)arg0->spawnArg2)->field_8;
-        p     = banks[sess->field_7].field_4;
+        p     = banks[sess->loc.stage].field_4;
         p    += id >> 4;
         shift = (id & 0xF) * 2;
         word  = *p;

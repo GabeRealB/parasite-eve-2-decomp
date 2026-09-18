@@ -171,10 +171,10 @@ void Gp_EnqueueViewCd(Task* task)
     u8                param1[8];
     u8                param2[8];
 
-    sess = (GameSessionFrom4*)&gGameSession->field_4;
+    sess = &gGameSession->loc;
     if (CdCmd_IsIdle() & 0xFFFF) {
-        param1[3] = sess->field_3;
-        param1[2] = sess->field_2;
+        param1[3] = sess->stage;
+        param1[2] = sess->area;
         param1[0] = Gp_GetViewIndex();
         param2[0] = 1;
         param2[1] = 0;
@@ -281,7 +281,7 @@ void Gp_ReloadFromSave(void)
     ResetGraph(1);
     Gpu_ClearOTag(0);
     Gpu_ClearOTag(1);
-    gGameSession->field_4 = save->field_4;
+    gGameSession->loc.view = save->field_4;
     Pad_SetCooldown(0);
     Gp_SpawnCurView(2);
     gGameSession->field_4D = 0;
@@ -292,10 +292,10 @@ void Gp_ReloadAtLoc(s32 arg0)
 {
     Task* slot;
 
-    slot                  = Game_GetPtrSlot(1);
-    Mc_SaveData.field_4   = arg0;
-    gGameSession->field_4 = arg0;
-    slot->spawnArg1       = (u8)arg0;
+    slot                   = Game_GetPtrSlot(1);
+    Mc_SaveData.field_4    = arg0;
+    gGameSession->loc.view = arg0;
+    slot->spawnArg1        = (u8)arg0;
     Pad_SetCooldown(0);
     Gp_SpawnCurView(1);
     Display_State.field_100 = 1;
@@ -306,9 +306,9 @@ void Gp_CommitSpawnLoc(Task* task)
 {
     u8 val;
 
-    val                   = *(u8*)&task->spawnArg1;
-    Mc_SaveData.field_4   = val;
-    gGameSession->field_4 = val;
+    val                    = *(u8*)&task->spawnArg1;
+    Mc_SaveData.field_4    = val;
+    gGameSession->loc.view = val;
     Task_Kill(task);
 }
 
@@ -362,8 +362,8 @@ void Gp_LoadViewAndCd(s32 arg0)
         }
     }
     session   = gGameSession;
-    param1[3] = session->field_7;
-    param1[2] = session->field_6;
+    param1[3] = session->loc.stage;
+    param1[2] = session->loc.area;
     param1[0] = Gp_GetViewIndex();
     param2[0] = 1;
     if ((u8)arg0 != 0) {
@@ -428,10 +428,10 @@ void Gp_EnqueueStageCd(void)
     u8 param1[8];
     u8 param2[8];
 
-    CdCmd_Enqueue(0x54, &gGameSession->field_4, NULL);
+    CdCmd_Enqueue(0x54, &gGameSession->loc.view, NULL);
     param1[3] = 0;
     param1[2] = 0x5A;
-    param1[0] = gGameSession->field_7;
+    param1[0] = gGameSession->loc.stage;
     param2[3] = 0;
     param2[2] = 0;
     param2[1] = 0;
@@ -742,7 +742,7 @@ void func_800AA548(s32 arg0)
     session                 = gGameSession;
     session->field_0        = 0;
     Display_State.field_128 = 0;
-    sess                    = (GameSessionFrom4*)&session->field_4;
+    sess                    = &session->loc;
     if (Player_Status.hp <= 0) {
         Player_Status.hp = 1;
     }
@@ -761,14 +761,14 @@ void func_800AA548(s32 arg0)
         Game_SetPtrSlot(Task_Spawn(0, 0x16, 0, 0), 1);
     }
     Game_SetPtrSlot(Task_Spawn(0, 0x10, 0, 0), 2);
-    stage = sess->field_3;
+    stage = sess->stage;
     warp  = sess->field_4;
-    rec   = Gp_WarpTables[stage - 1][sess->field_2 - 1][warp - 1];
+    rec   = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
     if (!(((GpDisplayFlagsWord*)&Display_State)->field_100 & 0xFFFF00)) {
-        if (((*(s32*)&gGameSession->field_4 & ~0xFF) == 0x03180200) && (gGameSession->field_8 == 2)) {
-            Mc_SaveData.field_4 = gGameSession->field_4 = 2;
+        if (((*(s32*)&gGameSession->loc.view & ~0xFF) == 0x03180200) && (gGameSession->loc.field_4 == 2)) {
+            Mc_SaveData.field_4 = gGameSession->loc.view = 2;
         } else {
-            Mc_SaveData.field_4 = gGameSession->field_4 = rec.field_34;
+            Mc_SaveData.field_4 = gGameSession->loc.view = rec.field_34;
         }
     }
     Gp_ActorSlots[0] = NULL;
@@ -810,9 +810,9 @@ void func_800AA548(s32 arg0)
     Gp_InitStateF0();
     Task_Spawn(1, 0xF, 0, 0);
     Task_Spawn(1, 0x10, 0, 0);
-    stage = sess->field_3;
+    stage = sess->stage;
     warp  = sess->field_4;
-    rec   = Gp_WarpTables[stage - 1][sess->field_2 - 1][warp - 1];
+    rec   = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
     if ((u8)gGameSession->unknown_67 != 0) {
         if (rec.field_28 != 0) {
             SndEvt_EnqueueType6(rec.field_28, 0, 0);
@@ -957,9 +957,9 @@ void Gp_LoadWaitStage(Task* task)
         addPrim(Gpu_CurrentOt - 0x10, dr);
     }
     if (CdCmd_IsIdle() & 0xFFFF) {
-        if (gGameSession->field_7 != gGameSession->field_78) {
+        if (gGameSession->loc.stage != gGameSession->loadedStage) {
             Gp_EnqueueStageCd();
-            gGameSession->field_78 = gGameSession->field_7;
+            gGameSession->loadedStage = gGameSession->loc.stage;
         }
         task->state++;
     }
@@ -1011,8 +1011,8 @@ void Gp_LoadState2(Task* task)
         }
         Mem_InitAux();
         Gp_ApplyNpcRoomSnd();
-        Snd_InitFromStage(gGameSession->field_7, gGameSession->field_6);
-        if (gGameSession->field_7 == 3 && GameFlag_GetNibble(0x7A) >= 4) {
+        Snd_InitFromStage(gGameSession->loc.stage, gGameSession->loc.area);
+        if (gGameSession->loc.stage == 3 && GameFlag_GetNibble(0x7A) >= 4) {
             D_80062735 = 1;
         } else {
             D_80062735 = 0;
@@ -1074,13 +1074,13 @@ void Gp_LoadWaitCompanion(Task* task)
 
         session   = gGameSession;
         cmd       = 0x21;
-        tmp       = session->field_7;
+        tmp       = session->loc.stage;
         p1        = param1;
         param1[3] = tmp;
-        tmp       = session->field_6;
+        tmp       = session->loc.area;
         p2        = param2;
         param1[2] = tmp;
-        room      = session->field_5;
+        room      = session->loc.room;
         param1[0] = 0;
         param1[4] = 0;
         param2[0] = 1;
@@ -1091,8 +1091,8 @@ void Gp_LoadWaitCompanion(Task* task)
         CdCmd_Enqueue(cmd, p1, p2);
         flag = Gp_PickCompanion();
         if ((u8)flag) {
-            gGameSession->field_124 = flag;
-            save                    = &Mc_SaveData;
+            gGameSession->companionType = flag;
+            save                        = &Mc_SaveData;
             Gp_EnqueueCompanionCd((u8)save->field_13, (u8)save->field_5C7);
         }
         task->state++;
@@ -1139,8 +1139,8 @@ void Gp_LoadWaitSave(Task* task)
         GameSession* session;
 
         session = gGameSession;
-        if ((*(u32*)&session->field_4 & 0xFFFF0000) == 0x3010000) {
-            if (session->field_5 >= 4) {
+        if ((*(u32*)&session->loc & 0xFFFF0000) == 0x3010000) {
+            if (session->loc.room >= 4) {
                 GameSession* sess;
                 s32          cmd;
                 u8*          p1;
@@ -1148,13 +1148,13 @@ void Gp_LoadWaitSave(Task* task)
                 s32          tmp;
                 register s32 loc asm("v1");
 
-                Snd_InitFromStage(session->field_7, session->field_6);
+                Snd_InitFromStage(session->loc.stage, session->loc.area);
                 cmd       = 0x21;
                 sess      = gGameSession;
-                tmp       = sess->field_7;
+                tmp       = sess->loc.stage;
                 p1        = param1;
                 param1[3] = tmp;
-                loc       = sess->field_6;
+                loc       = sess->loc.area;
                 p2        = param2;
                 param1[0] = 0x16;
                 param2[0] = 1;
@@ -1167,13 +1167,13 @@ void Gp_LoadWaitSave(Task* task)
         }
         sess = gGameSession;
         if (sess->field_4C == 1) {
-            Gp_SetAreaObjId((GpAreaKey*)&sess->field_4, Mc_SaveData.field_9, -1);
+            Gp_SetAreaObjId((GpAreaKey*)&sess->loc, Mc_SaveData.field_9, -1);
             gGameSession->field_4C = 0;
         }
         saveKey = (GpAreaKey*)&Mc_SaveData.field_4;
         Gp_MarkAreaVisited(saveKey);
         Gp_SyncAreaKeyIndex(saveKey);
-        gGameSession->field_9 = saveKey->field_5;
+        gGameSession->loc.place = saveKey->field_5;
         CdCmd_BuildVlcIfStream();
         D_80114C74 = 0;
         task->state++;
@@ -1308,11 +1308,11 @@ void Gp_InitStageVisit(GameSessionFrom4* arg0)
         save->field_6C8 = 0x64;
         func_800B8014();
     }
-    if ((((s8)save->field_10 >> arg0->field_3) & 1) == 0) {
-        bank             = banks[arg0->field_3];
+    if ((((s8)save->field_10 >> arg0->stage) & 1) == 0) {
+        bank             = banks[arg0->stage];
         bank->field_4[0] = 0;
         bank->field_4[1] = 0;
-        Gp_ApplyBit2Bank(arg0->field_3);
+        Gp_ApplyBit2Bank(arg0->stage);
         if (Display_State.field_112 != 0) {
             func_80724748(arg0);
         }
@@ -1341,7 +1341,7 @@ s32 Gp_PickCompanion(void)
                 sess            = gGameSession;
                 save->field_13  = 2;
                 save->field_5C7 = 0;
-                return (sess->field_124 != 2) * 2;
+                return (sess->companionType != 2) * 2;
             }
         }
     }
@@ -1353,7 +1353,7 @@ s32 Gp_PickCompanion(void)
             if (bytes[p->field_6 - 1] & 0xF) {
                 session     = gGameSession;
                 p->field_13 = 1;
-                if (session->field_124 == 1) {
+                if (session->companionType == 1) {
                     hi = bytes[p->field_6 - 1] >> 4;
                     if (session->field_125 == hi) {
                         p->field_5C7 = hi;
@@ -1376,7 +1376,7 @@ s32 Gp_PickCompanion(void)
                 session      = gGameSession;
                 p->field_13  = 3;
                 p->field_5C7 = 0;
-                if (session->field_124 == 3) {
+                if (session->companionType == 3) {
                     return 0;
                 }
                 return 3;
@@ -1384,10 +1384,10 @@ s32 Gp_PickCompanion(void)
         }
     }
 
-    Mc_SaveData.field_13    = 0;
-    Mc_SaveData.field_5C7   = 0;
-    gGameSession->field_124 = 0;
-    gGameSession->field_125 = 0;
+    Mc_SaveData.field_13        = 0;
+    Mc_SaveData.field_5C7       = 0;
+    gGameSession->companionType = 0;
+    gGameSession->field_125     = 0;
     return 0;
 }
 
@@ -1400,7 +1400,7 @@ void Gp_ApplyNpcRoomSnd(void)
 
     save  = &Mc_SaveData;
     stage = save->field_7;
-    if ((*(u32*)&gGameSession->field_4 & 0xFFFF0000) != 0x3200000) {
+    if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x3200000) {
         bytes = D_80114198[GameFlag_GetNibble(0x4B)].field_0;
         if (bytes != NULL) {
             if (D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage) {
@@ -1551,7 +1551,7 @@ void Gp_LoadFinishTask(Task* task)
         Gpu_ClearOTag(1);
         Pad_RemapState->field_3 = 0;
         Task_Kill(task);
-        if ((*(u32*)&gGameSession->field_4 & 0xFFFF0000) == 0x1050000) {
+        if ((*(u32*)&gGameSession->loc & 0xFFFF0000) == 0x1050000) {
             func_800AA548(1);
         } else {
             func_800AA548(0);
@@ -1560,7 +1560,7 @@ void Gp_LoadFinishTask(Task* task)
         Display_State.field_1d &= 0x7F;
         Display_AcquireRef();
         Task_Spawn(0, 0x21, 0, 0);
-        if ((*(u32*)&gGameSession->field_4 & 0xFFFF0000) == 0x1050000) {
+        if ((*(u32*)&gGameSession->loc & 0xFFFF0000) == 0x1050000) {
             Task_SpawnFromTable(D_80183824, 0, 0, 0);
             CdCmd_SetupMdecBuffers();
             CdCmd_SelectMdecBuffer();
@@ -1660,10 +1660,10 @@ void Gp_LinkRoomObjectsSpawn(Task* task)
     u8                flags;
     Task*             spawned;
 
-    sess = (GameSessionFrom4*)&gGameSession->field_4;
-    recs = Gp_RoomObjTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];
+    sess = &gGameSession->loc;
+    recs = Gp_RoomObjTables[sess->stage - 1]->field_0[sess->area - 1];
     if (recs != NULL) {
-        rec   = (GpRoomObjRec*)(sess->field_1 * sizeof(GpRoomObjRec) + (s32)recs);
+        rec   = (GpRoomObjRec*)(sess->room * sizeof(GpRoomObjRec) + (s32)recs);
         recs  = rec - 1;
         grid  = rec[-1].field_0;
         list1 = recs->field_4;
@@ -1727,13 +1727,13 @@ void Gp_LinkViewSprts(void)
     GpSprtCmd*        rec;
     GpSprtElem*       base;
 
-    sess          = (GameSessionFrom4*)&gGameSession->field_4;
+    sess          = &gGameSession->loc;
     view          = Gp_GetViewIndex();
     table         = Gp_SprtLists;
     ds            = &Display_State;
     Gp_SprtCursor = table[ds->field_1f];
-    tbl           = Gp_SprtTables[sess->field_3 - 1];
-    recs          = tbl->field_0[sess->field_2 - 1];
+    tbl           = Gp_SprtTables[sess->stage - 1];
+    recs          = tbl->field_0[sess->area - 1];
     rec           = recs[(u8)view - 1].field_4;
     base          = recs[(u8)view - 1].field_0;
     if (rec->field_2 == 0) {
@@ -1812,12 +1812,12 @@ void Gp_SetSprtShadeBits(s32 arg0)
     u32                  i;
     u8                   flags;
 
-    sess          = (GameSessionFrom4*)&gGameSession->field_4;
+    sess          = &gGameSession->loc;
     view          = Gp_GetViewIndex();
     prim          = Gp_SprtLists[Display_State.field_1f];
     Gp_SprtCursor = prim;
-    tbl           = Gp_SprtTables[sess->field_3 - 1];
-    recs          = tbl->field_0[sess->field_2 - 1];
+    tbl           = Gp_SprtTables[sess->stage - 1];
+    recs          = tbl->field_0[sess->area - 1];
     rec           = recs[(u8)view - 1].field_4;
     if (rec->field_0 != 0xFFFF) {
         do {
@@ -1879,11 +1879,11 @@ void Gp_AllocSprtLists(void)
     SPRT*             sprt;
     u32               tpage;
 
-    sess  = (GameSessionFrom4*)&gGameSession->field_4;
+    sess  = &gGameSession->loc;
     count = 0;
     view  = Gp_GetViewIndex();
-    tbl   = Gp_SprtTables[sess->field_3 - 1];
-    recs  = tbl->field_0[sess->field_2 - 1];
+    tbl   = Gp_SprtTables[sess->stage - 1];
+    recs  = tbl->field_0[sess->area - 1];
     rec   = recs[(u8)view - 1].field_4;
     elems = recs[(u8)view - 1].field_0;
     if (rec->field_0 != 0xFFFF) {
@@ -1968,15 +1968,15 @@ void Gp_LinkRoomObjects(Task* task)
     GsCOORDINATE2*    coord;
     u8                flags;
 
-    sess = (GameSessionFrom4*)&gGameSession->field_4;
+    sess = &gGameSession->loc;
     Gp_LoadStageView();
     Gp_GridParams = NULL;
     Gp_ClearObj4AList(1);
     Gp_ClearObj4AList(0);
     Gp_ClearObj3AList(0);
-    recs = Gp_RoomObjTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];
+    recs = Gp_RoomObjTables[sess->stage - 1]->field_0[sess->area - 1];
     if (recs != NULL) {
-        rec   = (GpRoomObjRec*)(sess->field_1 * sizeof(GpRoomObjRec) + (s32)recs);
+        rec   = (GpRoomObjRec*)(sess->room * sizeof(GpRoomObjRec) + (s32)recs);
         recs  = rec - 1;
         grid  = rec[-1].field_0;
         list1 = recs->field_4;
@@ -2033,9 +2033,9 @@ s8 Gp_FindViewIndex(s32 arg0)
     u8*               bytes;
 
     idx   = 0;
-    sess  = (GameSessionFrom4*)&gGameSession->field_4;
-    limit = *(s16*)&Gp_ViewCountTables[sess->field_3 - 1]->field_0[sess->field_2 - 1][sess->field_1 - 1];
-    bytes = Gp_ViewIndexTables[sess->field_3 - 1]->field_0[sess->field_2 - 1][sess->field_1 - 1];
+    sess  = &gGameSession->loc;
+    limit = *(s16*)&Gp_ViewCountTables[sess->stage - 1]->field_0[sess->area - 1][sess->room - 1];
+    bytes = Gp_ViewIndexTables[sess->stage - 1]->field_0[sess->area - 1][sess->room - 1];
     if (limit > 0) {
         do {
             if (bytes[idx] == (u8)arg0) {
@@ -2064,17 +2064,17 @@ s32 Gp_ViewSprtCmdEmpty(void)
 
     session = gGameSession;
     tbl68   = Gp_SprtTables;
-    sess    = (GameSessionFrom4*)&session->field_4;
-    i       = sess->field_3 - 1;
+    sess    = &session->loc;
+    i       = sess->stage - 1;
     tbl68   = &tbl68[i];
     tbl     = Gp_ViewIndexTables[i];
     mid     = tbl->field_0;
-    inner   = mid[sess->field_2 - 1];
-    bytes   = inner[sess->field_1 - 1];
-    idx     = bytes[sess->field_0 - 1];
+    inner   = mid[sess->area - 1];
+    bytes   = inner[sess->room - 1];
+    idx     = bytes[sess->view - 1];
     tbl2    = *tbl68;
     mid2    = tbl2->field_0;
-    recs    = mid2[sess->field_2 - 1];
+    recs    = mid2[sess->area - 1];
     return recs[idx - 1].field_4->field_2 == 0;
 }
 
@@ -2095,15 +2095,15 @@ void func_800AD024(void)
     DR_AREA*          prim;
 
     session = gGameSession;
-    sess    = (GameSessionFrom4*)&session->field_4;
-    tbl     = Gp_ViewIndexTables[sess->field_3 - 1];
+    sess    = &session->loc;
+    tbl     = Gp_ViewIndexTables[sess->stage - 1];
     mid     = tbl->field_0;
-    inner   = mid[sess->field_2 - 1];
-    bytes   = inner[sess->field_1 - 1];
-    idx     = bytes[sess->field_0 - 1];
-    tbl2    = Gp_SprtTables[sess->field_3 - 1];
+    inner   = mid[sess->area - 1];
+    bytes   = inner[sess->room - 1];
+    idx     = bytes[sess->view - 1];
+    tbl2    = Gp_SprtTables[sess->stage - 1];
     mid2    = tbl2->field_0;
-    recs    = mid2[sess->field_2 - 1];
+    recs    = mid2[sess->area - 1];
     area    = recs[idx - 1].field_8;
     if (area != NULL) {
         for (; area->depth != 0xFFFF; area++) {
@@ -2141,12 +2141,12 @@ s32 Gp_GetViewIndex(void)
     u8*               bytes;
 
     session = gGameSession;
-    sess    = (GameSessionFrom4*)&session->field_4;
-    tbl     = Gp_ViewIndexTables[sess->field_3 - 1];
+    sess    = &session->loc;
+    tbl     = Gp_ViewIndexTables[sess->stage - 1];
     mid     = tbl->field_0;
-    inner   = mid[sess->field_2 - 1];
-    bytes   = inner[sess->field_1 - 1];
-    return bytes[sess->field_0 - 1];
+    inner   = mid[sess->area - 1];
+    bytes   = inner[sess->room - 1];
+    return bytes[sess->view - 1];
 }
 
 void* Gp_GetViewSprtExtra(void)
@@ -2163,24 +2163,24 @@ void* Gp_GetViewSprtExtra(void)
     GpSprtRec*        recs;
 
     session = gGameSession;
-    sess    = (GameSessionFrom4*)&session->field_4;
-    tbl     = Gp_ViewIndexTables[sess->field_3 - 1];
+    sess    = &session->loc;
+    tbl     = Gp_ViewIndexTables[sess->stage - 1];
     mid     = tbl->field_0;
-    inner   = mid[sess->field_2 - 1];
-    bytes   = inner[sess->field_1 - 1];
-    idx     = bytes[sess->field_0 - 1];
-    tbl2    = Gp_SprtTables[sess->field_3 - 1];
+    inner   = mid[sess->area - 1];
+    bytes   = inner[sess->room - 1];
+    idx     = bytes[sess->view - 1];
+    tbl2    = Gp_SprtTables[sess->stage - 1];
     mid2    = tbl2->field_0;
-    recs    = mid2[sess->field_2 - 1];
+    recs    = mid2[sess->area - 1];
     return recs[idx - 1].field_8;
 }
 
 void Gp_RoomObjState1(Task* task)
 {
-    if (task->spawnArg1 != (u8)gGameSession->field_4) {
+    if (task->spawnArg1 != (u8)gGameSession->loc.view) {
         Gfx_ViewCoord.flg = 0;
         Gp_UpdateCoord(&Gfx_ViewCoord);
-        task->spawnArg1 = (u8)gGameSession->field_4;
+        task->spawnArg1 = (u8)gGameSession->loc.view;
     }
     if (gGameSession->field_76 != 0) {
         Gp_LinkRoomObjects(task);
@@ -2379,15 +2379,15 @@ void Gp_SetupDirWarp(void)
     s32               room;
     s16               ret;
 
-    sess  = (GameSessionFrom4*)&gGameSession->field_4;
-    stage = sess->field_3;
-    room  = sess->field_2;
+    sess  = &gGameSession->loc;
+    stage = sess->stage;
+    room  = sess->area;
     slot7 = Game_GetPtrSlot(7);
     slot3 = Game_GetPtrSlot(3);
     cfg   = &Player_Status;
     actor = ((GpActorWork*)slot3)->actor;
 
-    if (gGameSession->field_1 != 0) {
+    if (gGameSession->eventState != 0) {
         D_80114CF8      = 0;
         Gp_DirNibble    = 0;
         Gp_DirByte      = 0;
@@ -2529,8 +2529,8 @@ void Gp_CommitWarp(void)
     cfg   = &Player_Status;
     slot7 = Game_GetPtrSlot(7);
 
-    sess = (GameSessionFrom4*)&gGameSession->field_4;
-    rec  = Gp_WarpTables[sess->field_3 - 1][sess->field_2 - 1][(Gp_DirNibble >> 4) - 1];
+    sess = &gGameSession->loc;
+    rec  = Gp_WarpTables[sess->stage - 1][sess->area - 1][(Gp_DirNibble >> 4) - 1];
 
     if (*(s16*)&Gp_DirFadeLevel != 0) {
         fade = *(u8*)&Gp_DirFadeLevel;
@@ -2662,7 +2662,7 @@ void Gp_CommitDirWarp(void)
 
 void Gp_PostDirIfCapIdle(void)
 {
-    if (gGameSession->field_1 == 0) {
+    if (gGameSession->eventState == 0) {
         if (Gp_CapBusy() == 0) {
             if (Gp_DirNibble == 0xFF) {
                 Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F0, Gp_DirByte, 0);
@@ -2687,7 +2687,7 @@ void Gp_RunDirAction(void)
 {
     void (*fns[2])(s32, s32) = { D_8017DA78, D_8017EF60 };
 
-    if (gGameSession->field_1 != 0) {
+    if (gGameSession->eventState != 0) {
         D_80114CF8      = 0;
         Gp_DirNibble    = 0;
         Gp_DirByte      = 0;
@@ -2725,7 +2725,7 @@ void Gp_ApplyAreaRecs(GpAreaApplyRec* arg0)
     u8                       temp;
 
     apply = 0;
-    sess  = (GameSessionFrom4*)&gGameSession->field_4;
+    sess  = &gGameSession->loc;
     if (arg0->field_0 != 0xFF) {
         tables = Gp_AreaTables;
         save   = &Mc_SaveData;
@@ -2737,7 +2737,7 @@ void Gp_ApplyAreaRecs(GpAreaApplyRec* arg0)
             temp        = rec->field_1;
             key.field_1 = 1;
             key.field_2 = temp;
-            key.field_0 = sess->field_0;
+            key.field_0 = sess->view;
             mask        = rec->field_3 & 0xF0;
             if (mask == 0) {
                 goto set_apply;
@@ -2878,13 +2878,13 @@ void Gp_RebuildAreaIdBits(void)
     u8                  stage;
 
     gs          = gGameSession;
-    sess        = (GameSessionFrom4*)&gs->field_4;
-    stage       = sess->field_3;
+    sess        = &gs->loc;
+    stage       = sess->stage;
     key.field_1 = 1;
     key.field_0 = 2;
     key.field_3 = stage;
-    if (gs->field_7 - 1 < 5) {
-        count = Gp_AreaIdCounts[sess->field_3 - 1];
+    if (gs->loc.stage - 1 < 5) {
+        count = Gp_AreaIdCounts[sess->stage - 1];
         if (count > 0) {
             i      = 1;
             keyp   = &key;

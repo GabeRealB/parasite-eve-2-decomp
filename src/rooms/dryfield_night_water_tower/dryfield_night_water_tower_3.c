@@ -20,14 +20,14 @@ extern SVECTOR D_dryfield_night_water_tower_8017E744;
 
 /// Water tower room draw: marks the effect state (`field_A` = 2, the value
 /// `actor_400100_text` and `Gp_EffCtlTaskAC` test), then sweeps the segment the
-/// current phase (`gGameSession->field_4`) selects. Each phase names its
+/// current phase (`gGameSession->loc.view`) selects. Each phase names its
 /// segment as the last of its draws, which `jump.c` cross-jumps into one tail
 /// block after the last case; phases 3 and 4 also draw the rungs below it, and
 /// phase 4 the one above as well.
 void func_dryfield_night_water_tower_8017DB80(void)
 {
     Gp_State1C->field_A = 2;
-    switch (gGameSession->field_4) {
+    switch (gGameSession->loc.view) {
         case 2:
             Room_Draw17(&D_dryfield_night_water_tower_8017E73C, 2, 0x400);
             break;

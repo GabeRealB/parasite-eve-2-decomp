@@ -127,7 +127,7 @@ void func_actor_160900_80132A14(Task* arg0)
         tmd->field_1C = &work->light;
         tmd->field_20 = &work->color;
         if (arg0->spawnArg1 < 2) {
-            place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->field_4)->field_0;
+            place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->loc)->field_0;
             id    = place->field_0;
             while (id != 0xFF) {
                 if (id == 0x65) {
@@ -199,7 +199,7 @@ void func_actor_160900_80132C08(Task* task)
             obj->field_20  = &work->color;
             obj->field_C  |= 0x84;
             task->field_24 = D_actor_160900_8013F200;
-            place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->field_4)->field_0;
+            place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->loc)->field_0;
             while (place->field_0 != 0xFF && place->field_0 != 0x65) {
                 place++;
             }
@@ -215,7 +215,7 @@ void func_actor_160900_80132C08(Task* task)
         task->state++;
     }
     func_actor_160900_80132844(task);
-    if (gGameSession->field_4 == 0x2E) {
+    if (gGameSession->loc.view == 0x2E) {
         Gfx_RotMatrixZ(&((TmdObject*)task->extra)->field_8[18].coord, 0x800, 1);
     } else {
         Gfx_RotMatrixX(&((TmdObject*)task->extra)->field_8[18].coord, 0x79C, 1);
@@ -923,7 +923,7 @@ void func_actor_160900_8013418C(Task* arg0)
             arg0->state += 1;
             break;
         case 2:
-            if (gGameSession->field_1 == 0) {
+            if (gGameSession->eventState == 0) {
                 D_8007272D = 0x1E;
                 Task_RequestKill(arg0, 0);
             }

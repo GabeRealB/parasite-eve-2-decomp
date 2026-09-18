@@ -229,7 +229,7 @@ s32 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
             rect.h = 0x100;
             MoveImage2(&rect, 0x140, 0x100);
         }
-        Mem_ConfigureAuxHeap((s32)gGameSession->field_7, (s32)gGameSession->field_6);
+        Mem_ConfigureAuxHeap((s32)gGameSession->loc.stage, (s32)gGameSession->loc.area);
         if ((arg0 & 0xFFFF) == 1) {
             Mem_SetActiveAuxHeap(1);
         }
@@ -241,9 +241,9 @@ s32 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
         D_8006AC28 = D_8006AC28 + 1;
         if (arg1 & 0xFFFF) {
             g         = gGameSession;
-            f7        = g->field_7;
+            f7        = g->loc.stage;
             param1[3] = f7;
-            f6        = g->field_6;
+            f6        = g->loc.area;
             param1[0] = 0;
             param1[2] = f6;
             f74       = g->field_74;
@@ -322,7 +322,7 @@ u32 func_8001F180(u32 arg0)
         DecDCTvlcBuild(D_8006AC38);
         return 0U;
     }
-    Mdec_SetupBuffers(&gGameSession->field_4);
+    Mdec_SetupBuffers(&gGameSession->loc.view);
     return 0U;
 }
 

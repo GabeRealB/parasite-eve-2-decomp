@@ -1677,7 +1677,7 @@ void func_actor_403100_8013B128(Task* arg0)
         obj = (GpObj*)((u8*)obj + sizeof(Actor403100Entry));
     }
     SndEvt_EnqueueType7(0x401F0004, 1);
-    D_actor_403100_80155808->field_622              = (s16)gGameSession->field_4;
+    D_actor_403100_80155808->field_622              = (s16)gGameSession->loc.view;
     D_actor_403100_80155808->field_0.matrices.coord = coords->coord;
     D_actor_403100_80155808->savedRotation          = *(SVECTOR*)&D_actor_403100_80155808->field_80;
     Mc_SaveData.field_4                             = 0x18;

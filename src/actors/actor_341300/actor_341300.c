@@ -103,8 +103,8 @@ void func_actor_341300_80162278(Task* task)
 
     player = Game_GetPtrSlot(3);
     actor  = (GameActor*)player->work;
-    work   = Gp_FindWorkById(gGameSession->field_6 | (gGameSession->field_7 << 8));
-    if ((work != NULL) && (gGameSession->field_1 != 0)) {
+    work   = Gp_FindWorkById(gGameSession->loc.area | (gGameSession->loc.stage << 8));
+    if ((work != NULL) && (gGameSession->eventState != 0)) {
         self      = ((TmdObject*)player->extra)->field_8;
         target    = &D_actor_341300_80165330;
         angle     = ratan2(target->vx - self->coord.t[0], target->vz - self->coord.t[2]);

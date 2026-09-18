@@ -25,8 +25,8 @@ void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
         case 0:
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(8);
-            gGameSession->field_1 = 1;
-            arg0->state           = arg0->state + 1;
+            gGameSession->eventState = 1;
+            arg0->state              = arg0->state + 1;
             return;
         case 1:
             arg0->state = 2;
@@ -37,13 +37,13 @@ void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
                 GameFlag_SetNibble(0x77, 1);
                 gGameSession->field_128 = 0;
             } else {
-                gGameSession->field_1 = 0;
+                gGameSession->eventState = 0;
                 Gp_MsgPlayerWeapon(1);
             }
             Task_Kill(arg0);
             return;
         default:
-            gGameSession->field_1 = 0;
+            gGameSession->eventState = 0;
             Task_Kill(arg0);
             return;
     }

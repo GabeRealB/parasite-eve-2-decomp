@@ -44,7 +44,7 @@ s16 Gp_LookupStageFlag(s32 arg0)
     u16* table;
     u16* entry;
 
-    switch (gGameSession->field_7) {
+    switch (gGameSession->loc.stage) {
         case 1:
             arg0 = (s16)arg0;
             if (arg0 >= 0xE) {
@@ -174,8 +174,8 @@ u8 Gp_GetViewCountLo(void)
     GpViewCountTbl* tbl;
 
     session = gGameSession;
-    tbl     = Gp_ViewCountTables[session->field_7 - 1];
-    return tbl->field_0[session->field_6 - 1][session->field_5 - 1].field_0;
+    tbl     = Gp_ViewCountTables[session->loc.stage - 1];
+    return tbl->field_0[session->loc.area - 1][session->loc.room - 1].field_0;
 }
 
 void Gp_DirAction0(void)
@@ -218,7 +218,7 @@ void Gp_PostMsg13EF(void)
     GpMsg13EF sp;
     void*     slot;
 
-    if (gGameSession->field_1 == 0) {
+    if (gGameSession->eventState == 0) {
         if (Gp_CapBusy() == 0) {
             sp.field_0 = Gp_DirFlags;
             sp.field_2 = Gp_DirByte;
@@ -241,7 +241,7 @@ void Gp_PostMsg13EF(void)
 
 void Gp_SpawnEvt1IfCapIdle(void)
 {
-    if (gGameSession->field_1 == 0) {
+    if (gGameSession->eventState == 0) {
         if (Gp_CapBusy() == 0) {
             Gp_SpawnEvt1(Gp_DirByte, Gp_DirNibble);
         }
@@ -294,7 +294,7 @@ void Gp_MsgPlayer3EE(void)
     void*    slot;
 
     slot = Game_GetPtrSlot(3);
-    if (gGameSession->field_1 != 0) {
+    if (gGameSession->eventState != 0) {
         D_80114CF8      = 0;
         Gp_DirNibble    = 0;
         Gp_DirByte      = 0;
@@ -340,7 +340,7 @@ void Gp_SetCurAreaFlag4(void)
     GpAreaRec* rec;
     GpAreaObj* obj;
 
-    key = (GpAreaKey*)&gGameSession->field_4;
+    key = (GpAreaKey*)&gGameSession->loc;
     rec = Gp_AreaTables[key->field_3];
     if (rec != NULL) {
         obj = rec[key->field_2].field_4;

@@ -18,13 +18,13 @@
 void func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy)
 {
     GameSession*      g    = gGameSession;
-    GameSessionFrom4* sess = (GameSessionFrom4*)&g->field_4;
+    GameSessionFrom4* sess = &g->loc;
     GpSprtRec*        rec;
     GpSprtElem*       el;
     GpSprtCmd*        cmd;
     s32               mode;
 
-    rec  = Gp_SprtTables[sess->field_3 - 1][g->field_74 - 1].field_0[sess->field_2 - 1];
+    rec  = Gp_SprtTables[sess->stage - 1][g->field_74 - 1].field_0[sess->area - 1];
     cmd  = rec[9].field_4;
     el   = rec[9].field_0;
     mode = state & 0xFF;

@@ -79,11 +79,11 @@ void func_actor_143000_80133800(Task* arg0)
     Display_ReleaseRef();
     gGameSession->field_66 = 0;
     if (work->field_C == 0) {
-        D_80114D08             = 0xA;
-        gGameSession->field_1  = 0;
-        gGameSession->field_68 = 0;
-        D_801153F4             = 0;
-        D_8007216C             = D_actor_143000_80135C0C;
+        D_80114D08               = 0xA;
+        gGameSession->eventState = 0;
+        gGameSession->field_68   = 0;
+        D_801153F4               = 0;
+        D_8007216C               = D_actor_143000_80135C0C;
         Gp_MsgPlayer3F3(1);
     } else {
         Task_SpawnFromTable(&D_actor_143000_801350B0, 1, 0, (s32)&D_actor_143000_80135C08);

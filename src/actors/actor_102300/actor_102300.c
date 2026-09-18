@@ -672,7 +672,7 @@ void func_actor_102300_801346CC(GpEnemy* enemy, Actor102300* actor)
     }
 
     eff         = Gp_SpawnEnemyFromTable(&D_actor_102300_80147AB8, 2, 0, enemy);
-    sessionKey  = (GpAreaKey*)&gGameSession->field_4;
+    sessionKey  = (GpAreaKey*)&gGameSession->loc;
     model       = eff->task->extra;
     idx         = enemy->field_8 >> 12;
     key.field_3 = sessionKey->field_3;
@@ -700,7 +700,7 @@ void func_actor_102300_801346CC(GpEnemy* enemy, Actor102300* actor)
     SOFT_DEF_REG(keyPtr);
 
     eff2        = Gp_SpawnEnemyFromTable(&D_actor_102300_80147AB8, 1, 0, enemy);
-    sessionKey2 = (GpAreaKey*)&gGameSession->field_4;
+    sessionKey2 = (GpAreaKey*)&gGameSession->loc;
     model2      = eff2->task->extra;
     idx2        = enemy->field_8 >> 12;
     key.field_3 = sessionKey2->field_3;
@@ -763,9 +763,9 @@ case0:
         work->field_6DA = param * 1000;
     }
 
-    tbl = D_actor_102300_80147AA0[gGameSession->field_7];
+    tbl = D_actor_102300_80147AA0[gGameSession->loc.stage];
     if (tbl != NULL) {
-        work->field_6D6 = tbl[gGameSession->field_6];
+        work->field_6D6 = tbl[gGameSession->loc.area];
     }
     if (work->field_6D6 != 0) {
         param1[3] = 0;

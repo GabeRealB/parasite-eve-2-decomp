@@ -128,8 +128,8 @@ void func_neo_ark_altar_8017E148(void)
     GpSprtCmd*        cmd;
     s32               i;
 
-    sess = (GameSessionFrom4*)&gGameSession->field_4;
-    rec  = Gp_SprtTables[sess->field_3 - 1][0].field_0[sess->field_2 - 1];
+    sess = &gGameSession->loc;
+    rec  = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
     if (GameFlag_GetNibble(0xD9) == 0) {
         cmd                      = rec[3].field_4;
         cmd[1].field_4           = 1;
@@ -346,7 +346,7 @@ void func_neo_ark_altar_8017EF00(Task* arg0)
 {
     *(s16*)((u8*)gGameSession + OFFSET_OF(GameSession, field_52)) = 1;
     D_8007216D                                                    = 2;
-    gGameSession->field_5                                         = 2;
+    gGameSession->loc.room                                        = 2;
     arg0->state                                                   = (s32)(arg0->state + 1);
 }
 

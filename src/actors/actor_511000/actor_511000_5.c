@@ -206,14 +206,14 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     /* Reusing `spawned` for the task, rather than a new local, keeps the
        spawn result's v0 preference off the byte copied into a0. */
     spawned     = (GpEnemy*)spawned->task;
-    sessionKey  = (GpAreaKey*)&session->field_4;
+    sessionKey  = (GpAreaKey*)&session->loc;
     idx         = enemy->field_8;
     areaByte3   = sessionKey->field_3;
     model       = ((Task*)spawned)->extra;
     key.field_3 = areaByte3;
     key.field_2 = sessionKey->field_2;
     key.field_1 = sessionKey->field_1;
-    areaByte0   = session->field_4;
+    areaByte0   = session->loc.view;
     idx         = idx >> 12;
     key.field_0 = areaByte0;
     Gp_SyncAreaKeyIndex(&key);
@@ -229,14 +229,14 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     spawned     = Gp_SpawnEnemyFromTable(table, 2, 0, enemy);
     session     = gGameSession;
     spawned     = (GpEnemy*)spawned->task;
-    sessionKey  = (GpAreaKey*)&session->field_4;
+    sessionKey  = (GpAreaKey*)&session->loc;
     idx         = enemy->field_8;
     areaByte3   = sessionKey->field_3;
     model       = ((Task*)spawned)->extra;
     key.field_3 = areaByte3;
     key.field_2 = sessionKey->field_2;
     key.field_1 = sessionKey->field_1;
-    areaByte0   = session->field_4;
+    areaByte0   = session->loc.view;
     idx         = idx >> 12;
     key.field_0 = areaByte0;
     Gp_SyncAreaKeyIndex(&key);

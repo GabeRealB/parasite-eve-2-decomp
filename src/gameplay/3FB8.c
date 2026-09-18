@@ -5288,7 +5288,7 @@ s32 func_80104508(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3)
     actor->field_96C  = 0;
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
-    if (gGameSession->field_1 != 0) {
+    if (gGameSession->eventState != 0) {
         ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
     }
     actor->field_956 = 1;
@@ -5496,7 +5496,7 @@ void func_80104AAC(GpActorWork* arg0)
     actor->field_96C  = 0;
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
-    if (gGameSession->field_1 != 0) {
+    if (gGameSession->eventState != 0) {
         ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
     }
 }
@@ -5526,7 +5526,7 @@ s32 func_80104B54(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
     actor->field_96C  = 0;
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
-    if (gGameSession->field_1 != 0) {
+    if (gGameSession->eventState != 0) {
         ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
     }
     actor->field_956 = 1;
@@ -5635,7 +5635,7 @@ s32 func_80104E00(GpActorWork* arg0, s32 arg1, GpXformArg* arg2)
     actor->field_96C  = 0;
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
-    if (gGameSession->field_1 != 0) {
+    if (gGameSession->eventState != 0) {
         ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
     }
     inner->field_982     = 1;
@@ -5678,7 +5678,7 @@ s32 func_80104F5C(GpActorWork* arg0, s32 arg1, GpFacingArg* arg2)
     actor->field_96C  = 0;
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
-    if (gGameSession->field_1 != 0) {
+    if (gGameSession->eventState != 0) {
         ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
     }
     actor->field_956 = 3;
@@ -5717,7 +5717,7 @@ s32 Gp_SetActorDest(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* 
     actor->field_96C  = 0;
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
-    if (gGameSession->field_1 != 0) {
+    if (gGameSession->eventState != 0) {
         ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
     }
     actor->field_956 = 4;
@@ -5759,7 +5759,7 @@ s32 func_80105190(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* ar
     actor->field_96C  = 0;
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
-    if (gGameSession->field_1 != 0) {
+    if (gGameSession->eventState != 0) {
         ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
     }
     actor->field_956 = 4;
@@ -5802,7 +5802,7 @@ s32 func_801052B8(GpActorWork* arg0, s32 arg1, GpCountArg* arg2)
     actor->field_96C  = 0;
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
-    if (gGameSession->field_1 != 0) {
+    if (gGameSession->eventState != 0) {
         ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
     }
     actor->field_956 = 5;
@@ -5839,7 +5839,7 @@ s32 Gp_MoveActorBy(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2)
         actor->field_96C  = 0;
         actor->field_12A &= 0x3FFF;
         func_80106350(arg0, p->weapon, 0);
-        if (gGameSession->field_1 != 0) {
+        if (gGameSession->eventState != 0) {
             ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
         }
         actor->field_956 = 1;
@@ -5879,7 +5879,7 @@ s32 func_801054D8(GpActorWork* arg0, s32 arg1, GpDelayArg* arg2)
     actor->field_96C  = 0;
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
-    if (gGameSession->field_1 != 0) {
+    if (gGameSession->eventState != 0) {
         ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
     }
     actor->field_956     = 6;
@@ -5912,7 +5912,7 @@ s32 func_801055D4(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
     actor->field_96C  = 0;
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
-    if (gGameSession->field_1 != 0) {
+    if (gGameSession->eventState != 0) {
         ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
     }
     actor->field_956 = 0xA;
@@ -5943,7 +5943,7 @@ s32 func_80105690(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
     actor->field_96C  = 0;
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
-    if (gGameSession->field_1 != 0) {
+    if (gGameSession->eventState != 0) {
         ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
     }
     actor->field_956 = 7;
@@ -5977,7 +5977,7 @@ s32 func_80105754(GpActorWork* arg0)
         actor->field_96C  = 0;
         actor->field_12A &= 0x3FFF;
         func_80106350(arg0, p->weapon, ret);
-        if (gGameSession->field_1 != 0) {
+        if (gGameSession->eventState != 0) {
             ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
         }
         actor->field_956 = 0xB;
@@ -6209,7 +6209,7 @@ s32 Gp_PickNearestRec18(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
                     idx = func_800E1ACC((u8*)pidx);
                     {
                         GameSession* session = gGameSession;
-                        if (Gp_RoomParamTables[session->field_7 - 1][session->field_6 - 1][idx]->field_2 != 0) {
+                        if (Gp_RoomParamTables[session->loc.stage - 1][session->loc.area - 1][idx]->field_2 != 0) {
                             minDist = dist;
                             bestIdx = i;
                         }
@@ -6277,7 +6277,7 @@ s32 func_80105ED4(GpActorWork* arg0)
         switch (flags = rec->field_3 & 0x30) {
             case 0x10:
             case 0x20:
-                sounds = Gp_RoomParamTables[gGameSession->field_7 - 1][gGameSession->field_6 - 1][actor->field_930]->field_4;
+                sounds = Gp_RoomParamTables[gGameSession->loc.stage - 1][gGameSession->loc.area - 1][actor->field_930]->field_4;
                 if (sounds != NULL) {
                     if (*(s32*)&actor->field_954 == 0x30002) {
                         sound = sounds[2];
@@ -9001,7 +9001,7 @@ s32 Gp_ApplyHpDamage(s32 arg0)
     if (Player_Status.hp > 0) {
         return ret;
     }
-    if (gGameSession->field_1 != 0) {
+    if (gGameSession->eventState != 0) {
         Player_Status.hp = 1;
     } else {
         ret = 1;
@@ -9655,7 +9655,7 @@ void func_8010B9A4(GpActorWork* arg0)
     if (save->field_5C2 == 0 && (field13 = save->field_13) == 1) {
         temp            = save->field_6C8 - actor->field_96E;
         save->field_6C8 = temp;
-        if ((s16)temp <= 0 && gGameSession->field_1 != 0) {
+        if ((s16)temp <= 0 && gGameSession->eventState != 0) {
             save->field_6C8 = field13;
         }
     }

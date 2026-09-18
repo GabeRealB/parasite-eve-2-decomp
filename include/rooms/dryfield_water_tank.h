@@ -129,7 +129,7 @@ STATIC_ASSERT_SIZEOF(DwtFadeWork, 0x8);
 /// Toggle the room's cutscene-“watched” state over the view's two per-view
 /// objects: `arg0 != 0` sets the first object's `field_1C` and clears the
 /// second's `field_C` (so the view's sprites draw), `arg0 == 0` does the
-/// opposite. No-op unless `GameSession.field_7` is 2, i.e. only for the stage
+/// opposite. No-op unless `GameSession.loc.stage` is 2, i.e. only for the stage
 /// whose sprite table has a record for the current room.
 /// `func_dryfield_water_tank_8017DB48` passes the game-flag `0x55` nibble
 /// through it, one way per value.

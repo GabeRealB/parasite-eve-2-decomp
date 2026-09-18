@@ -36,7 +36,7 @@ void func_shelter_r36_8017D5E8(Task* task)
             task->state++;
             break;
         case 1:
-            if (gGameSession->field_1 == 0) {
+            if (gGameSession->eventState == 0) {
                 if (GameFlag_GetNibble(0x113) == 0) {
                     gGameSession->field_128 = 0xFF;
                     gGameSession->field_12E = state;

@@ -54,9 +54,9 @@ void func_shelter_b3_incinerator_control_room_8017F488(Task* task)
             } else {
                 D_80115694 = -script->field_0;
             }
-            gGameSession->field_68 = 1;
-            gGameSession->field_1  = 1;
-            D_801153F4             = 2;
+            gGameSession->field_68   = 1;
+            gGameSession->eventState = 1;
+            D_801153F4               = 2;
             Gp_MsgPlayer3F3(0);
             Gp_MsgAlly3F3(0);
             if (script->field_4 != 0) {
@@ -185,9 +185,9 @@ void func_shelter_b3_incinerator_control_room_8017F488(Task* task)
             if (D_8007217B == 1) {
                 Gp_MsgAllyWeapon(1);
             }
-            gGameSession->field_68 = 0;
-            gGameSession->field_1  = 0;
-            D_801153F4             = 0;
+            gGameSession->field_68   = 0;
+            gGameSession->eventState = 0;
+            D_801153F4               = 0;
             if (script->field_3 != 0) {
                 Gp_ResetCap();
             }

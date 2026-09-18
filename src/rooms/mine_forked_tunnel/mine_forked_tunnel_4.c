@@ -79,8 +79,8 @@ void func_mine_forked_tunnel_8017E48C(s32 arg0)
     MineForkedTunnelViewB*   v28;
     MineForkedTunnelViewA*   v34;
 
-    sess = (GameSessionFrom4*)&gGameSession->field_4;
-    rec  = (MineForkedTunnelSprtRec*)Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];
+    sess = &gGameSession->loc;
+    rec  = (MineForkedTunnelSprtRec*)Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
 
     if (!(arg0 & 0xFF)) {
         v28           = rec->field_28;

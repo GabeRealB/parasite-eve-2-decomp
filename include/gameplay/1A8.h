@@ -25,7 +25,7 @@ typedef struct _GpPosXZ {
 STATIC_ASSERT_SIZEOF(GpPosXZ, 8);
 
 /// 2-byte record in tables pointed to by `Gp_ViewCountTables`. Indexed by
-/// `GameSession.field_5 - 1`. `Gp_GetViewCountLo` loads `field_0`; `Gp_FindViewIndex`
+/// `GameSession.loc.room - 1`. `Gp_GetViewCountLo` loads `field_0`; `Gp_FindViewIndex`
 /// loads the same cell as a signed halfword.
 typedef struct _GpViewCountRec {
     /* 0x0 */ u8 field_0;
@@ -34,12 +34,12 @@ typedef struct _GpViewCountRec {
 STATIC_ASSERT_SIZEOF(GpViewCountRec, 2);
 
 /// Per-stage wrapper. `field_0` is an array of `GpViewCountRec*`, indexed by
-/// `GameSession.field_6 - 1`.
+/// `GameSession.loc.area - 1`.
 typedef struct _GpViewCountTbl {
     /* 0x0 */ GpViewCountRec** field_0;
 } GpViewCountTbl;
 
-/// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
+/// Per-stage pointer table. Index is `GameSession.loc.stage - 1`.
 extern GpViewCountTbl* Gp_ViewCountTables[];
 
 /// 8-byte dest-location payload at `Gp_WarpLoc`. `Gp_CommitDirWarp` fills it
@@ -117,7 +117,7 @@ typedef struct {
 } GpVoidFuncTable6;
 
 /// Per-stage flag-nibble lookup. `arg0` indexes a u16 table selected by
-/// `gGameSession->field_7` (1..5). Low 11 bits are the `GameFlag_GetNibble`
+/// `gGameSession->loc.stage` (1..5). Low 11 bits are the `GameFlag_GetNibble`
 /// index; bit `0x800` is added onto the result. Unknown stage or out-of-range
 /// index returns -1.
 s16 Gp_LookupStageFlag(s32 arg0);

@@ -48,7 +48,7 @@ void func_actor_136300_8013267C(Task* arg0)
             arg0->state += 1;
             return;
         case 1:
-            if (gGameSession->field_1 == 0) {
+            if (gGameSession->eventState == 0) {
                 arg0->state += 1;
             }
             return;
@@ -63,7 +63,7 @@ void func_actor_136300_8013267C(Task* arg0)
             arg0->state += 1;
             return;
         case 3:
-            if (gGameSession->field_1 != 1) {
+            if (gGameSession->eventState != 1) {
                 arg0->state += 1;
             }
             return;

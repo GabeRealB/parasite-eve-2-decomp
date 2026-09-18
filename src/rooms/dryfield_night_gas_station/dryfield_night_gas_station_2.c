@@ -79,7 +79,7 @@ s32 func_dryfield_night_gas_station_8017F6B8(s32 arg0, s32 arg1, s32 arg2)
 
 /// Message handler for msg 0x117: walks the `Gp_PendingObj4C` list looking for
 /// an object in mode 5 whose `field_48` is 0xFF and which is still pending, and
-/// on a hit flips `gGameSession->field_1` / `field_68` and spawns the night gas
+/// on a hit flips `gGameSession->eventState` / `field_68` and spawns the night gas
 /// station cutscene task. Answers 1 only when it found one.
 s32 func_dryfield_night_gas_station_8017F7E0(s32 arg0, s32 arg1, s32 arg2)
 {
@@ -99,8 +99,8 @@ s32 func_dryfield_night_gas_station_8017F7E0(s32 arg0, s32 arg1, s32 arg2)
         }
 
         if (found != 0) {
-            gGameSession->field_1  = 1;
-            gGameSession->field_68 = 1;
+            gGameSession->eventState = 1;
+            gGameSession->field_68   = 1;
             Task_SpawnOnDefaultList(D_dryfield_night_gas_station_8018406C, 0, 0, 0);
             return 1;
         }
@@ -124,7 +124,7 @@ s32 func_dryfield_night_gas_station_8017F89C(s32 arg0, s32 arg1, s32 arg2)
         }
         Gp_StartCapSlot(0x12, 1, var_a2);
     }
-    if ((arg2 == 0x17) && (gGameSession->field_5 == 4)) {
+    if ((arg2 == 0x17) && (gGameSession->loc.room == 4)) {
         if (Gp_HasCollectedBit(0x11E) != 0) {
             if (GameFlag_GetNibble(0xD4) == 0) {
                 GameFlag_SetNibble(0xD4, 1);
@@ -191,7 +191,7 @@ void func_dryfield_night_gas_station_8017FAEC(void)
 {
     s32 temp_v0;
 
-    if (gGameSession->field_1 == 0) {
+    if (gGameSession->eventState == 0) {
         temp_v0 = GameFlag_GetNibble(0x63);
         if ((temp_v0 == 1) && (D_80114C12 != temp_v0)) {
             GameFlag_SetNibble(0x63, 2);

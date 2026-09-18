@@ -62,12 +62,12 @@ s32 func_dryfield_night_water_hole_8017DD5C(s32 arg0, s32 arg1, RoomEventMsg* in
 {
     u8 temp_s0;
 
-    if ((in->field_2 == 2) && (GameFlag_GetNibble(0x95) == 0) && (gGameSession->field_9 == 1)) {
+    if ((in->field_2 == 2) && (GameFlag_GetNibble(0x95) == 0) && (gGameSession->loc.place == 1)) {
         GameFlag_SetNibble(0x95, 1);
         func_800E8614((s32)&D_dryfield_night_water_hole_8018067C, 0);
     }
     temp_s0 = in->field_2;
-    if ((temp_s0 == 1) && (GameFlag_GetNibble(0x95) == 0) && (gGameSession->field_9 == temp_s0)) {
+    if ((temp_s0 == 1) && (GameFlag_GetNibble(0x95) == 0) && (gGameSession->loc.place == temp_s0)) {
         GameFlag_SetNibble(0x95, 1);
         func_800E8614((s32)&D_dryfield_night_water_hole_801807FC, 0);
     }

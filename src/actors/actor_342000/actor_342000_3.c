@@ -44,7 +44,7 @@ extern GpAreaApplyRec D_8018FB6C[];
 
 void func_actor_342000_80164154(void)
 {
-    gGameSession->field_5        = 7;
+    gGameSession->loc.room       = 7;
     D_8007216D                   = 7;
     gGameSession->unknown_133[1] = 6;
     gGameSession->unknown_133[0] = 1;

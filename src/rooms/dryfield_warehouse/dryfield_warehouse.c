@@ -26,7 +26,7 @@ extern Task* D_dryfield_warehouse_801821B4;
 extern s32 D_dryfield_warehouse_801821B8;
 
 /// Warehouse ambience: state 0 clears the recorded volume and advances, state 1
-/// maps `gGameSession->field_4` (the area id) to a target volume - 0x32/0x3C/0x64
+/// maps `gGameSession->loc.view` (the area id) to a target volume - 0x32/0x3C/0x64
 /// for areas 2/3/4, 0 elsewhere - and, whenever that differs from the recorded
 /// one, enqueues the matching fade event: type 6 to start the track, type 7 to
 /// stop it, type A to retune it, then records the new volume.
@@ -46,8 +46,8 @@ void func_dryfield_warehouse_8017D5E8(Task* task)
     }
 
     vol = 0;
-    if (gGameSession->field_1 == 0) {
-        switch (gGameSession->field_4) {
+    if (gGameSession->eventState == 0) {
+        switch (gGameSession->loc.view) {
             case 4:
                 vol = 0x64;
                 break;
@@ -78,7 +78,7 @@ void func_dryfield_warehouse_8017D5E8(Task* task)
 
 /// Message handler: on msg 0x111, walks the `Gp_PendingObj4C` list looking for
 /// an object in mode 5 whose `field_48` is 0xFF and which is still pending, and
-/// on a hit sets event nibble 0x3C, flips `gGameSession->field_1` and spawns the
+/// on a hit sets event nibble 0x3C, flips `gGameSession->eventState` and spawns the
 /// warehouse cutscene task. Answers 1 only when it found one.
 s32 func_dryfield_warehouse_8017D764(s32 arg0, s32 arg1, s32 arg2)
 {
@@ -99,7 +99,7 @@ s32 func_dryfield_warehouse_8017D764(s32 arg0, s32 arg1, s32 arg2)
 
         if (found != 0) {
             GameFlag_SetNibble(0x3C, 1);
-            gGameSession->field_1 = 1;
+            gGameSession->eventState = 1;
             Task_SpawnOnDefaultList(D_dryfield_warehouse_8017F56C, 0, 0, 0);
             return 1;
         }

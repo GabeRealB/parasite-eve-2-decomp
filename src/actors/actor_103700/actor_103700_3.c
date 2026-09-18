@@ -106,7 +106,7 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
                             }
                             eff = Gp_SpawnEff(0x40007, &((TmdObject*)task->extra)->field_8[4], 0x80, NULL);
                             if (eff != NULL) {
-                                sessionKey      = (GpAreaKey*)&gGameSession->field_4;
+                                sessionKey      = (GpAreaKey*)&gGameSession->loc;
                                 raw             = ((Actor103700Spawn*)task->spawnArg2)->field_8;
                                 effModel        = (TmdObject*)eff->field_0->extra;
                                 buf.key.field_3 = sessionKey->field_3;
@@ -114,7 +114,7 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
                                 buf.key.field_1 = sessionKey->field_1;
                                 keyPtr          = &buf.key;
                                 TOUCH_REG(keyPtr);
-                                areaByte0       = gGameSession->field_4;
+                                areaByte0       = gGameSession->loc.view;
                                 idx             = raw >> 12;
                                 buf.key.field_0 = areaByte0;
                                 Gp_SyncAreaKeyIndex(keyPtr);

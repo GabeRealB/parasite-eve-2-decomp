@@ -315,7 +315,7 @@ void func_actor_503500_80132F64(Actor503500* arg0)
     for (i = 1; i < 12; i++) {
         child = Gp_SpawnEnemyFromTable(&D_actor_503500_8016E924, i, i, enemy);
         if (child != NULL) {
-            sessionKey  = (GpAreaKey*)&gGameSession->field_4;
+            sessionKey  = (GpAreaKey*)&gGameSession->loc;
             raw         = arg0->field_20->field_8;
             model       = (TmdObject*)child->task->extra;
             key.field_3 = sessionKey->field_3;
@@ -400,7 +400,7 @@ void func_actor_503500_80133270(Actor503500* arg0)
                 SndEvt_EnqueueType8(0x40000000);
                 work->field_7E7 = 1;
             }
-            if (gGameSession->field_1 == 0) {
+            if (gGameSession->eventState == 0) {
                 tmd->field_C &= 0xFF7F;
             }
             if (work->field_7D9 >= 0) {
@@ -1521,7 +1521,7 @@ extern u8 D_actor_503500_8016E910[];
 
 /// Clears each slot enemy's `node.field_4` bit 1 only when its
 /// `D_actor_503500_8016E910` entry covers both the camera's yaw sector
-/// (relative to `field_7B6`) and its height band and `gGameSession->field_1`
+/// (relative to `field_7B6`) and its height band and `gGameSession->eventState`
 /// is 0; otherwise sets it. Bit 4 is set on a height-only miss and cleared on
 /// a yaw miss.
 void func_actor_503500_80135644(Actor503500* arg0)
@@ -1566,7 +1566,7 @@ void func_actor_503500_80135644(Actor503500* arg0)
         enemy = work->enemies[i];
         if (enemy != NULL) {
             bits = D_actor_503500_8016E910[i];
-            if ((bits & dirMask) != dirMask || gGameSession->field_1 != 0) {
+            if ((bits & dirMask) != dirMask || gGameSession->eventState != 0) {
                 enemy->node.field_4            |= 1;
                 work->enemies[i]->node.field_4 &= ~4;
             } else if ((bits & heightMask) != heightMask) {
@@ -1756,7 +1756,7 @@ GpEnemy* func_actor_503500_80135D00(Actor503500* arg0, s32 arg1)
 
     enemy = Gp_SpawnEnemyFromTable(&D_actor_503500_8016E924, arg1, arg1, arg0->field_20);
     if (enemy != NULL) {
-        sessionKey  = (GpAreaKey*)&gGameSession->field_4;
+        sessionKey  = (GpAreaKey*)&gGameSession->loc;
         raw         = arg0->field_20->field_8;
         model       = (TmdObject*)enemy->task->extra;
         key.field_3 = sessionKey->field_3;

@@ -121,7 +121,7 @@ INCLUDE_RODATA("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidat
 const char D_dryfield_dilapidated_house_8017D5D0[8] __attribute__((section(".rodata")))  = "AUNT";
 const char D_dryfield_dilapidated_house_8017D5D8[12] __attribute__((section(".rodata"))) = "Player";
 
-/// Room gate task. While the session is in the room (`gGameSession->field_1`
+/// Room gate task. While the session is in the room (`gGameSession->eventState`
 /// is 0) it walks `D_dryfield_dilapidated_house_80183EFC` from 1 to 2 and then
 /// to 3: the 1 -> 2 step is unconditional, the 2 -> 3 step waits for the room's
 /// message (0x7D6) to be dispatched and answered with 0 by the slot-0 object,
@@ -130,7 +130,7 @@ const char D_dryfield_dilapidated_house_8017D5D8[12] __attribute__((section(".ro
 /// sequences `"AUNT"` and `"Player"` on the two slot objects.
 void func_dryfield_dilapidated_house_8017E014(void)
 {
-    if (gGameSession->field_1 == 0) {
+    if (gGameSession->eventState == 0) {
         if (D_dryfield_dilapidated_house_80183EFC == 1) {
             D_dryfield_dilapidated_house_80183EFC = 2;
         } else if ((D_dryfield_dilapidated_house_80183EFC == 2) &&
@@ -213,7 +213,7 @@ void func_dryfield_dilapidated_house_8017E144(Task* task)
 
 /// Scene-clear task: the room's hand-off to the rest of the game. State 0
 /// starts the streamed scene named by the two blocks `func_800E8634` takes,
-/// state 1 fires when the session is back in play (`gGameSession->field_1`
+/// state 1 fires when the session is back in play (`gGameSession->eventState`
 /// is 2) and hands slot 0 the release event 0x1B, state 6 waits for the room
 /// message (`gGameSession->field_126`), and state 7 -- reached once the save
 /// has not already banked this clear (`Mc_SaveData.field_23`) -- applies the
@@ -232,7 +232,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
             task->state += 1;
             return;
         case 1:
-            if (gGameSession->field_1 == 2) {
+            if (gGameSession->eventState == 2) {
                 Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1B);
                 D_801153F1 = 3;
                 goto advance;
@@ -369,7 +369,7 @@ s32 func_dryfield_dilapidated_house_8017E56C(void)
 /// `field_3`, returning 0 when the message was consumed and 1 when it was not.
 ///
 /// The copy is the `RoomEventMsg` assignment; the rest is two independent id
-/// checks. While the session is in the room (`gGameSession->field_7` is 2), a
+/// checks. While the session is in the room (`gGameSession->loc.stage` is 2), a
 /// type-7 record with no sub-id answers 1, or the session's own value when flag
 /// nibble 0x3C is set. A type-7 record in play (`Gp_StateF0.field_0` is 1) runs
 /// CAP command 0x14 and a type-5 record runs 0x13, each only when the sub-id is
@@ -379,7 +379,7 @@ s32 func_dryfield_dilapidated_house_8017E574(s32 arg0, s32 arg1, RoomEventMsg* i
     u8 s1;
 
     *out = *in;
-    s1   = gGameSession->field_7;
+    s1   = gGameSession->loc.stage;
     if (s1 == 2) {
         if (in->msgId == 7) {
             if (in->field_5 == 0) {

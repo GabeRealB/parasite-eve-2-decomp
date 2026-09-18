@@ -11,7 +11,7 @@ extern s16     D_dryfield_underpass_8017EB10[8];
 
 /// Per-frame effect on the room's model task: draws the visit's set of props,
 /// one per offset in `D_...EAD0` whose `D_...EB10` bitmask contains the active
-/// visit. The visit is `gGameSession->field_4`; the whole effect is skipped
+/// visit. The visit is `gGameSession->loc.view`; the whole effect is skipped
 /// unless the room flag (`GameFlag_GetNibble(0x53)`) is clear.
 void func_dryfield_underpass_8017DE30(Task* task)
 {
@@ -22,7 +22,7 @@ void func_dryfield_underpass_8017DE30(Task* task)
     s16*           flags;
 
     coord = ((TmdObject*)task->extra)->field_8;
-    mask  = 1 << gGameSession->field_4;
+    mask  = 1 << gGameSession->loc.view;
     if (GameFlag_GetNibble(0x53) == 0) {
         i     = 0;
         vec   = D_dryfield_underpass_8017EAD0;

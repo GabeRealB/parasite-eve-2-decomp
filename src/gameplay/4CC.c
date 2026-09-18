@@ -97,8 +97,8 @@ void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
             }
             /* fallthrough */
         case 0x27:
-            gGameSession->field_2 = 0;
-            obj->field_2E         = -1;
+            gGameSession->uiOpen = 0;
+            obj->field_2E        = -1;
             break;
         case 6:
             Ui_TeardownTree(arg0, arg1);
@@ -247,8 +247,8 @@ void Gp_ItemMoveTask(Task* arg0)
             obj->status  = 0;
         }
         Ui_SpawnFromDesc(&D_8010D80C, 0, 0, 1, obj);
-        gGameSession->field_2 = 1;
-        arg0->state           = arg0->state + 1;
+        gGameSession->uiOpen = 1;
+        arg0->state          = arg0->state + 1;
     }
 
     cb    = Gp_ItemMoveChild;
@@ -1169,11 +1169,11 @@ void Gp_ItemPickupTilt(Task* arg0)
     extra   = arg0->extra;
     obj     = arg0->spawnArg2;
     session = gGameSession;
-    mapId   = *(u32*)&session->field_4 & 0xFFFF00FF;
+    mapId   = *(u32*)&session->loc & 0xFFFF00FF;
     item    = obj->field_A;
     coord   = (GsCOORDINATE2*)extra->field_8;
     rot     = coord + 2;
-    room    = *(u8*)&session->field_4;
+    room    = *(u8*)&session->loc.view;
     if (Gp_StateF0.field_4 == 2) {
         extra->field_C |= 0x80;
     } else {

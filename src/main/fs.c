@@ -200,7 +200,7 @@ setup_and_load:
                 Fs_SeekToPos(sector);
                 goto end_return;
             case 2:
-                Snd_InitFromStage(gGameSession->field_7, gGameSession->field_6);
+                Snd_InitFromStage(gGameSession->loc.stage, gGameSession->loc.area);
                 Fs_ChunkMode = 1;
                 break;
             case 3:
@@ -2241,7 +2241,7 @@ s32 Fs_GetStageDiskKind(void)
 {
     u8 stage;
 
-    stage = gGameSession->field_7;
+    stage = gGameSession->loc.stage;
     if (Fs_StageCdfSectors[stage] == 0) {
         if (stage == 1 || stage == 2) {
             return 1;

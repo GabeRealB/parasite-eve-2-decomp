@@ -179,7 +179,7 @@ void func_acropolis_square_80181AEC(Task* task)
                 SndEvt_EnqueueType6(0x51010009, (s8)pan2,
                                     (s8)Gp_GetObjDepth((GpObj38*)&D_acropolis_square_801888CC));
             }
-            if (gGameSession->field_1 != 0) {
+            if (gGameSession->eventState != 0) {
                 return;
             }
             Gp_MsgPlayerWeapon(1);

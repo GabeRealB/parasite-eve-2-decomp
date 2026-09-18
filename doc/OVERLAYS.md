@@ -225,7 +225,7 @@ identified as such by the derivation itself (they are the holes that make the
 alignment work), the rest by inspection. They keep `<area>_r<nn>` and say so in
 a `note`, so an unnamed room reads as a finding rather than as unfinished work. Entering a room is `CdCmd_EnqueueLoadFile(0, 0, 4)`
 (`stage.c` / `gameplay.c`), which fills the request from
-`gGameSession->field_6` / `field_7` (folder / stage).
+`gGameSession->loc.area` / `field_7` (folder / stage).
 
 ### 4.2 Size (inflated = RAM payload)
 
@@ -612,7 +612,7 @@ No anim chunk type exists in `STAGE*.CDF`. If it is not in that `.pe2pkg`
 
 1. Gameplay stays at `0x80093800`.
 2. `Display_TaskLoadStep` → `CdCmd_EnqueueLoadFile(0, 0, 4)` reads
-   `gGameSession->field_6` / `field_7` and loads that room’s `file0`.
+   `gGameSession->loc.area` / `field_7` and loads that room’s `file0`.
 3. The `0x8017D5C0` room overlay (and its cap2) always swap.
 4. Aya / weapon / the three actor slots stay unless the room asks for
    different stage-0 ids.

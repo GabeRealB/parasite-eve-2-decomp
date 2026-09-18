@@ -114,7 +114,7 @@ void func_dryfield_night_gas_station_80180604(s32 arg0)
     GsCOORDINATE2* coord;
     SVECTOR        offset;
 
-    work = Gp_FindWorkById(gGameSession->field_6 | ((gGameSession->field_7 << 8) | 0x2000));
+    work = Gp_FindWorkById(gGameSession->loc.area | ((gGameSession->loc.stage << 8) | 0x2000));
     if (work != NULL) {
         coord = ((TmdObject*)((Task*)work->field_0)->extra)->field_8;
         switch (arg0) {

@@ -184,7 +184,7 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_4", fu
 /// `Task::work`, fills `owner` from pointer slot 3 and republishes this task as
 /// `RoomsShared80180b2cTask` so the room's script helpers can reach that block.
 /// Two kills: a failed `Mem_Malloc` kills the task outright, and state 1 kills
-/// it once the session has torn down (`gGameSession->field_1`). Between the two
+/// it once the session has torn down (`gGameSession->eventState`). Between the two
 /// it hands slot 3 the `D_dryfield_gas_station_80182E30` script record as msg
 /// 0x3F4 -- only when a previous state 0 already found an owner, since the
 /// reloaded `work` is dereferenced unconditionally.
@@ -224,7 +224,7 @@ void func_dryfield_gas_station_801807E0(Task* task)
             return;
 
         case 1:
-            if (gGameSession->field_1 == 0) {
+            if (gGameSession->eventState == 0) {
                 Task_RequestKill(task, 0);
                 return;
             }

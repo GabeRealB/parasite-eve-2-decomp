@@ -80,9 +80,9 @@ void* CdCmd_SetupMdecBuffers(void)
     }
 
     D_8006AC00 = NULL;
-    if (gGameSession->field_7 == 0) {
+    if (gGameSession->loc.stage == 0) {
         D_8006AC00 = Mem_Malloc(0x4B000, 1);
-    } else if (Stream_FindSlot(&gGameSession->field_4, 0, 0) < 0) {
+    } else if (Stream_FindSlot(&gGameSession->loc.view, 0, 0) < 0) {
         return NULL;
     } else {
         sizeRow = D_8005DCB4[Mc_SaveData.field_7];
@@ -1005,7 +1005,7 @@ u16 CdCmd_IsSlotEmpty(s16 arg0)
 void CdCmd_BuildVlcIfStream(void)
 {
     CdCmd_Queue.field_1EA = 1;
-    if (Stream_HasActiveLowId(&gGameSession->field_4) != 0) {
+    if (Stream_HasActiveLowId(&gGameSession->loc.view) != 0) {
         DecDCTvlcBuild(D_8005C36C);
         gGameSession->field_7C = 0;
     }
@@ -1048,7 +1048,7 @@ void CdCmd_SelectMdecBuffer(void)
     CdCmdQueue* p;
 
     p = &CdCmd_Queue;
-    if (Stream_FindSlot(&gGameSession->field_4, 0, 0) >= 0) {
+    if (Stream_FindSlot(&gGameSession->loc.view, 0, 0) >= 0) {
         D_8006AC40 = D_8006AC00;
     }
     p->field_1E6 = 0;

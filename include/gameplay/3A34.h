@@ -119,7 +119,7 @@ STATIC_ASSERT_SIZEOF(GpRec12, 0xC);
 
 /// 12-byte location-keyed grant record walked by `Gp_GrantLocationItems`.
 /// `field_0` is `(stage << 24) | (area << 16) | (sub << 8)` from
-/// `GameSessionFrom4.field_3` / `field_2` / `field_5`, or `-1` to end
+/// `GameSessionFrom4.stage` / `field_2` / `field_5`, or `-1` to end
 /// the list. `items[0..3]` are item ids granted with `Gp_GiveItem`
 /// when `func_800B7420` is 0; a 0 slot is skipped. `items[3]` also
 /// requires `func_800B9D80(0x80000)`.
@@ -237,7 +237,7 @@ STATIC_ASSERT_SIZEOF(GpObj54, 0x58);
 
 /// 8-byte nested table entry pointed to by `GpRoomCoordRec.field_4`.
 /// Entry 0's `field_0` is the max valid index. `Gp_GetRoomBound` returns
-/// `&table[GameSessionFrom4.field_0]` when that index is in range,
+/// `&table[GameSessionFrom4.view]` when that index is in range,
 /// otherwise `(GpRoomBoundVec*)&Gp_RoomBoundDefault`. `func_800D7A9C` reads
 /// `field_0` / `field_2` / `field_4` as signed XYZ minimums.
 typedef struct _GpRoomBoundVec {
@@ -249,7 +249,7 @@ typedef struct _GpRoomBoundVec {
 STATIC_ASSERT_SIZEOF(GpRoomBoundVec, 8);
 
 /// 8-byte record in tables pointed to by `Gp_RoomCoordTables`. Indexed 1-based
-/// by `GameSessionFrom4.field_1`. `Gp_GetRoomCoordRec` returns the record
+/// by `GameSessionFrom4.room`. `Gp_GetRoomCoordRec` returns the record
 /// (or NULL). `Gp_GetRoomCoordSet` returns `field_0` as a `GpRoomCoordSet*` (or 0).
 /// `Gp_GetRoomBound` walks `field_4` as a nested `GpRoomBoundVec` table, falling
 /// back to `Gp_RoomBoundDefault`.
@@ -380,7 +380,7 @@ typedef struct _GpObj38 {
 STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 
 /// Sparse overlay of the same light object as `GpObj38`. `Gp_GetObjLuma`
-/// treats `field_44` as a room-id filter against `gGameSession->field_4`
+/// treats `field_44` as a room-id filter against `gGameSession->loc.view`
 /// (0 = any room), writes `0x1000` (GTE ONE) to `field_4A`, and returns a
 /// weighted `field_50/52/54` luminance. `func_800D9794` casts to
 /// `GpObj38` for `field_24.t` as a `VECTOR*`, loads `field_4A` into GTE
@@ -469,7 +469,7 @@ STATIC_ASSERT_SIZEOF(GpObj40, 0x42);
 /// `field_48` / `field_49` to its out-params and sets `Gp_PendingObj4CFlag`. The
 /// same node type is the `Gp_Obj4CList` list walked by `Gp_CommitObj4CSave`: a
 /// pending `field_4B` copies `field_49` into `Mc_SaveData.field_4` when
-/// `field_48` matches `gGameSession->field_4`.
+/// `field_48` matches `gGameSession->loc.view`.
 /// `func_800DF6AC` tests an object against the quad at `field_14`, using
 /// `field_C` as its local origin, `field_34` as its normal, and `field_44`
 /// as its bounding radius. `field_8` supplies the coordinate matrices.
@@ -1185,11 +1185,11 @@ extern GpLinkNode* Gp_LinkList;
 /// 32-entry marker/slot table cleared by `Gp_ClearLockSlots`.
 extern GpSlot70 Gp_LockSlots[0x20];
 
-/// Per-stage pointer table. Index is `GameSessionFrom4.field_3 - 1`.
+/// Per-stage pointer table. Index is `GameSessionFrom4.stage - 1`.
 /// Each entry is an array of `GpRoomCoordRec*`, indexed by `field_2 - 1`.
 extern GpRoomCoordRec** Gp_RoomCoordTables[];
 
-/// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
+/// Per-stage pointer table. Index is `GameSession.loc.stage - 1`.
 /// Each entry is an array of `GpRoomParamRec**`, indexed by `field_6 - 1`.
 /// Each of those is an 8-entry array of `GpRoomParamRec*` copied into
 /// `Gp_RoomParams` by `Gp_LoadRoomParams`.
@@ -1252,11 +1252,11 @@ extern struct _GpLinkXform* D_80115260;
 extern s32 D_80115264;
 
 /// Per-stage `GpGiveRec` lists selected by `Gp_GrantLocationItems` when
-/// `Mc_SaveData.field_F` is 0 or 2. Indexed by `GameSession.field_7`.
+/// `Mc_SaveData.field_F` is 0 or 2. Indexed by `GameSession.loc.stage`.
 extern GpGiveRec* D_8010F9F4[];
 
 /// Per-stage `GpGiveRec` lists selected by `Gp_GrantLocationItems` when
-/// `Mc_SaveData.field_F` is not 0 or 2. Indexed by `GameSession.field_7`.
+/// `Mc_SaveData.field_F` is not 0 or 2. Indexed by `GameSession.loc.stage`.
 extern GpGiveRec* D_8010FA0C[];
 
 /// Face edge endpoint pairs walked by the grid collision helpers

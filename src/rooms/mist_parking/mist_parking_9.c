@@ -22,7 +22,7 @@ extern s32 D_mist_parking_8019531C;
 
 void func_mist_parking_8018345C(Task* arg0)
 {
-    if (gGameSession->field_1 == 0 && Gp_CapBusy() == 0) {
+    if (gGameSession->eventState == 0 && Gp_CapBusy() == 0) {
         if (D_mist_parking_8019531C == 2) {
             func_800E8614((s32)&D_mist_parking_8018F5E4, 1);
         } else {
@@ -34,7 +34,7 @@ void func_mist_parking_8018345C(Task* arg0)
 
 void func_mist_parking_801834D4(Task* arg0)
 {
-    if (gGameSession->field_1 == 0 && Gp_CapBusy() == 0) {
+    if (gGameSession->eventState == 0 && Gp_CapBusy() == 0) {
         if (D_mist_parking_8019531C == 2) {
             func_800E8614((s32)&D_mist_parking_8018FB3C, 1);
         } else {

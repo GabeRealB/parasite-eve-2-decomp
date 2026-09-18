@@ -474,7 +474,7 @@ void Actor03800_Fn03008(Actor103800* actor, u32 variant)
     if (eff == NULL) {
         return;
     }
-    sessionKey  = (GpAreaKey*)&gGameSession->field_4;
+    sessionKey  = (GpAreaKey*)&gGameSession->loc;
     raw         = actor->field_20->field_8;
     model       = (TmdObject*)eff->field_0->extra;
     key.field_3 = sessionKey->field_3;

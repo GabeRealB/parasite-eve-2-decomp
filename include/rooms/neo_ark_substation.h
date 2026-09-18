@@ -4,7 +4,7 @@
 #include "common.h"
 
 /// One entry of the room's nine-entry ambience table
-/// (`D_neo_ark_substation_8017E2C8`), indexed by `gGameSession->field_4`. Its two
+/// (`D_neo_ark_substation_8017E2C8`), indexed by `gGameSession->loc.view`. Its two
 /// halfwords are the pan and volume bytes `SndEvt_EnqueueType6` /
 /// `SndEvt_EnqueueTypeA` take as their second and third arguments, so an entry is
 /// the placement and level of the loop the room plays while that area is current.

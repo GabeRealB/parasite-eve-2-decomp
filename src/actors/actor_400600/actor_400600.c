@@ -158,7 +158,7 @@ void func_actor_400600_8013203C(Task* arg0)
     work->obj_4B4.field_12 = 0x96;
     work->obj_4B4.field_14 = 0x110;
     work->obj_4B4.field_18 = 0x30006;
-    if (gGameSession->field_7 == 3 && (gGameSession->field_6 == 0x1F || gGameSession->field_6 == 0x1D)) {
+    if (gGameSession->loc.stage == 3 && (gGameSession->loc.area == 0x1F || gGameSession->loc.area == 0x1D)) {
         work->obj_4B4.field_1C = 0x260;
     } else {
         work->obj_4B4.field_1C = 0x200;
@@ -627,7 +627,7 @@ void func_actor_400600_80133434(Task* arg0)
         return;
     }
     func_actor_400600_8013B640();
-    if ((*(u32*)&gGameSession->field_4 & 0xFFFF0000) == 0x03140000) {
+    if ((*(u32*)&gGameSession->loc & 0xFFFF0000) == 0x03140000) {
         work->field_76E = 1;
     }
     model->field_1C    = &work->matrix_40;

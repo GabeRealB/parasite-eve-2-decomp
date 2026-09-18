@@ -840,7 +840,7 @@ void func_actor_403100_8013F0A8(Task* arg0)
     D_actor_403100_8014762C.field_8   = 0;
     D_actor_403100_8014762C.field_A   = 0;
     D_actor_403100_8014762C.field_6 >>= 1;
-    gGameSession->field_9             = 4;
+    gGameSession->loc.place           = 4;
     Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
     arg0->state                        = 5;
     D_actor_403100_80155808->field_5F8 = 0;

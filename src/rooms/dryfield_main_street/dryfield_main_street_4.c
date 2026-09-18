@@ -36,8 +36,8 @@ void func_dryfield_main_street_8017E1C0(Task* task)
 
     player = Game_GetPtrSlot(3);
     actor  = (GameActor*)player->work;
-    work   = Gp_FindWorkById(gGameSession->field_6 | (gGameSession->field_7 << 8));
-    if ((work != NULL) && (gGameSession->field_1 != 0)) {
+    work   = Gp_FindWorkById(gGameSession->loc.area | (gGameSession->loc.stage << 8));
+    if ((work != NULL) && (gGameSession->eventState != 0)) {
         self      = ((TmdObject*)player->extra)->field_8;
         target    = &((TmdObject*)((Task*)work->field_0)->extra)->field_8[1];
         angle     = ratan2(target->coord.t[0] - self->coord.t[0], target->coord.t[2] - self->coord.t[2]);

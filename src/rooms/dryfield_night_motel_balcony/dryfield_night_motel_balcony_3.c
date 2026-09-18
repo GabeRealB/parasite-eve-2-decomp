@@ -47,11 +47,11 @@ void func_dryfield_night_motel_balcony_8017E3C8(void)
 void func_dryfield_night_motel_balcony_8017E4B8(void)
 {
     GameSession*      g    = gGameSession;
-    GameSessionFrom4* sess = (GameSessionFrom4*)&g->field_4;
+    GameSessionFrom4* sess = &g->loc;
     GpSprtRec*        rec;
     GpSprtCmd*        cmd;
 
-    rec = Gp_SprtTables[sess->field_3 - 1][g->field_74 - 1].field_0[sess->field_2 - 1];
+    rec = Gp_SprtTables[sess->stage - 1][g->field_74 - 1].field_0[sess->area - 1];
 
     cmd            = rec[16].field_4;
     cmd[2].field_4 = 0;

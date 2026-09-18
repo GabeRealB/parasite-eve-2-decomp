@@ -590,7 +590,7 @@ s32 func_actor_400600_80137C34(Task* arg0)
             work->field_76D = 0;
             dist            = func_actor_400600_801376EC(arg0);
             if ((u16)(dist - 0x7D1) < 0x3E8) {
-                if ((*(u32*)&gGameSession->field_4 & 0xFFFF0000) == 0x4080000) {
+                if ((*(u32*)&gGameSession->loc & 0xFFFF0000) == 0x4080000) {
                     y = -0x9C4;
                 } else {
                     y = coord->coord.t[1] - dist;
@@ -1003,7 +1003,7 @@ void func_actor_400600_80139110(Task* arg0)
     func_actor_400600_80138AA4(arg0);
     if ((s16)func_actor_400600_80136FA8(arg0) == 0) {
         fns[(s16)work->field_71E](arg0);
-        if ((s16)func_actor_400600_80137C34(arg0) == 0 && (s16)func_actor_400600_80137AF0(arg0) == 0 && (*(u32*)&gGameSession->field_4 & 0xFFFF0000) == 0x4080000 && work->field_768 != 0 && ((TmdObject*)arg0->extra)->field_8->coord.t[0] > 10000) {
+        if ((s16)func_actor_400600_80137C34(arg0) == 0 && (s16)func_actor_400600_80137AF0(arg0) == 0 && (*(u32*)&gGameSession->loc & 0xFFFF0000) == 0x4080000 && work->field_768 != 0 && ((TmdObject*)arg0->extra)->field_8->coord.t[0] > 10000) {
             Actor400600Work* cur = (Actor400600Work*)arg0->work;
 
             cur->field_71C = 0xD;

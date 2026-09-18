@@ -68,7 +68,7 @@ s32 func_mine_mesa_8017D8F8(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
     if (*(u16*)in != 3) {
         return 1;
     }
-    field9 = gGameSession->field_9;
+    field9 = gGameSession->loc.place;
     if (field9 == 1 && Gp_StateF0.field_0 == field9) {
         return 0;
     }
@@ -120,7 +120,7 @@ s32 func_mine_mesa_8017DBC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     u8 field9;
 
-    field9 = gGameSession->field_9;
+    field9 = gGameSession->loc.place;
     if (field9 == 1) {
         if (GameFlag_GetNibble(0xCD) == 0) {
             if (Game_GetPtrSlot(0xA) != NULL) {

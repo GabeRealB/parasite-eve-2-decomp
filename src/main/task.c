@@ -354,14 +354,14 @@ void Task_Reparent(Task* arg0, Task* arg1)
     cur->nextSibling  = arg1;
 }
 
-void Game_SetPtrSlot(void* arg0, s32 arg1)
+void Game_SetPtrSlot(void* ptr, s32 index)
 {
-    gGameSession->ptrSlots[arg1] = arg0;
+    gGameSession->ptrSlots[index] = ptr;
 }
 
-void* Game_GetPtrSlot(s32 arg0)
+struct Task* Game_GetPtrSlot(s32 index)
 {
-    return gGameSession->ptrSlots[arg0];
+    return gGameSession->ptrSlots[index];
 }
 
 void Task_InitList(TaskNode* node)

@@ -419,8 +419,8 @@ void Gp_MenuRootTask(Task* arg0)
             if (obj == NULL) {
                 break;
             }
-            arg0->spawnArg2       = obj;
-            gGameSession->field_2 = 1;
+            arg0->spawnArg2      = obj;
+            gGameSession->uiOpen = 1;
             if (arg0->spawnArg1 != 0x44) {
                 SndEvt_EnqueueType6(1, 0, 0);
             }
@@ -473,7 +473,7 @@ void Gp_MenuRootTask(Task* arg0)
                 d->field_103 = 2;
                 Stage_ReleasePrimBuf();
             }
-            Mem_ConfigureAuxHeap(gGameSession->field_7, gGameSession->field_6);
+            Mem_ConfigureAuxHeap(gGameSession->loc.stage, gGameSession->loc.area);
             if (Gp_IsStateF0Active() == 0) {
                 Gp_EnqueueAttach7Cd();
             }
@@ -540,12 +540,12 @@ void Gp_MenuRootTask(Task* arg0)
             }
             GameMain_SetFrameTiming(1);
             Display_State.field_122 = 0;
-            gGameSession->field_2   = 0;
+            gGameSession->uiOpen    = 0;
             Gpu_ResetGraphAndOt();
             if (Stage_GetModeByte12() == 0) {
                 Stage_SetEndingFlag();
             } else {
-                Stage_BeginTransitionKind7((u8)gGameSession->field_4);
+                Stage_BeginTransitionKind7((u8)gGameSession->loc.view);
             }
             Task_SpawnOnDefaultListA(1, 0x27, 2, 0);
             if (Task_SpawnOnDefaultList(&D_8010E7E8, 0, 0, 0) != NULL) {

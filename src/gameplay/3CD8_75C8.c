@@ -165,7 +165,7 @@ void Gp_ScriptTaskState1(Task* arg0)
                     slot = Game_GetPtrSlot(4);
                     if (st->pc->arg1 != -1) {
                         Gp_DispatchMsg(slot, 0x7D0,
-                                       (st->pc->arg1 << 12) | (gGameSession->field_7 << 8) | gGameSession->field_6,
+                                       (st->pc->arg1 << 12) | (gGameSession->loc.stage << 8) | gGameSession->loc.area,
                                        (s32)&slot);
                     }
                 } else if (st->pc->arg0 == -1) {
@@ -184,8 +184,8 @@ void Gp_ScriptTaskState1(Task* arg0)
                     Task_CallExit(D_8010FBE0);
                     D_8010FBE0 = NULL;
                 }
-                D_801156F4            = NULL;
-                gGameSession->field_1 = 0;
+                D_801156F4               = NULL;
+                gGameSession->eventState = 0;
                 if (arg0->spawnArg1 == 0) {
                     Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA5, 0, 0);
                 }
@@ -227,7 +227,7 @@ void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 7:
-                gGameSession->field_1 = (u8)st->pc->arg0;
+                gGameSession->eventState = (u8)st->pc->arg0;
                 break;
 
             case 9:
@@ -605,18 +605,18 @@ void func_800E8614(s32 arg0, s32 arg1)
 
 void func_800E8634(s32 arg0, s32 arg1, s32 arg2)
 {
-    gGameSession->field_1  = 1;
-    gGameSession->field_5F = 0;
-    D_8010FBE0             = 0;
-    D_8010FBE4             = 0;
-    D_801156D0             = arg2;
-    D_801156C9             = 0;
-    D_801156CC             = 0;
-    D_801156F0             = 5;
-    D_801156CD             = 0;
-    D_801156CE             = 0;
-    D_801156F8             = Mc_SaveData.field_4;
-    D_801156EC             = Player_Status.weapon;
+    gGameSession->eventState = 1;
+    gGameSession->field_5F   = 0;
+    D_8010FBE0               = 0;
+    D_8010FBE4               = 0;
+    D_801156D0               = arg2;
+    D_801156C9               = 0;
+    D_801156CC               = 0;
+    D_801156F0               = 5;
+    D_801156CD               = 0;
+    D_801156CE               = 0;
+    D_801156F8               = Mc_SaveData.field_4;
+    D_801156EC               = Player_Status.weapon;
     SndEvt_EnqueueType7(0xFF0D, 1);
     Task_Spawn(9, 7, arg1, arg0);
 }
@@ -625,7 +625,7 @@ s32 Gp_LookupSlot4(s32 arg0)
 {
     s32 out;
 
-    arg0 = (arg0 << 12) | (gGameSession->field_7 << 8) | gGameSession->field_6;
+    arg0 = (arg0 << 12) | (gGameSession->loc.stage << 8) | gGameSession->loc.area;
     Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7D0, arg0, (s32)&out);
     return out;
 }
@@ -1094,7 +1094,7 @@ void Gp_UpdatePadInput(void)
     actor = work->actor;
     Gp_ClearPadHalt();
     if (Gp_MenuLockHold == 0) {
-        if (actor->field_954 == 0 && gGameSession->field_1 == 0 && gGameSession->field_66 == 0 &&
+        if (actor->field_954 == 0 && gGameSession->eventState == 0 && gGameSession->field_66 == 0 &&
             actor->field_956 != 6 && cfg->hp > 0 && gGameSession->field_0 == 0) {
             if (Gp_MenuLockDelay > 0) {
                 Gp_MenuLockDelay--;

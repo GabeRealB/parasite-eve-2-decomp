@@ -91,7 +91,7 @@ void func_dryfield_junk_yard_8017D708(Task* arg0)
         if ((GameFlag_GetNibble(0x39) == 0) && (GameFlag_GetNibble(0x28) >= 2)) {
             GameFlag_SetNibble(0x39, 1);
             func_800E8634((s32)&D_dryfield_junk_yard_8017E490, 0, (s32)&D_dryfield_junk_yard_8017E658);
-        } else if (gGameSession->field_8 == 2) {
+        } else if (gGameSession->loc.field_4 == 2) {
             Gp_DispatchMsg(Game_GetPtrSlot(0xA), 0x3E9, (s32)&D_dryfield_junk_yard_8017DE30, 0);
         }
     }
@@ -106,7 +106,7 @@ void func_dryfield_junk_yard_8017D708(Task* arg0)
 /// Cases 3, 5 and 7 hand slot 0xA a message (`0x3EE`, `0x3E8`, `0x3E8`) with a
 /// script pointer; cases 4 and 6 send the bare `0x3F0` / `0x3ED` and stop the
 /// sequence when the driver answers nonzero. Case 1 gates the whole thing on
-/// `gGameSession->field_1` (the field `func_dryfield_junk_yard_8017D708` tests
+/// `gGameSession->eventState` (the field `func_dryfield_junk_yard_8017D708` tests
 /// as `field_8`), and cases 7/2 fall through to `Task_Kill`.
 void func_dryfield_junk_yard_8017D848(Task* task)
 {
@@ -116,7 +116,7 @@ void func_dryfield_junk_yard_8017D848(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            if (gGameSession->field_1 != 0) {
+            if (gGameSession->eventState != 0) {
                 return;
             }
             task->state = task->state + 1;

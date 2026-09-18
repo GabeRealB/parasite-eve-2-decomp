@@ -2531,13 +2531,13 @@ static __inline__ void Actor401800_TintEffect(GpEffWork* eff, GpEnemy* enemy)
     u32        raw;
 
     if (eff != NULL) {
-        sessionKey  = (GpAreaKey*)&gGameSession->field_4;
+        sessionKey  = (GpAreaKey*)&gGameSession->loc;
         raw         = enemy->field_8;
         model       = (TmdObject*)eff->field_0->extra;
         key.field_3 = sessionKey->field_3;
         key.field_2 = sessionKey->field_2;
         key.field_1 = sessionKey->field_1;
-        areaByte0   = gGameSession->field_4;
+        areaByte0   = gGameSession->loc.view;
         idx         = raw >> 12;
         SOFT_BARRIER();
         keyPtr = &key;

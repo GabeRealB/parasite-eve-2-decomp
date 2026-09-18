@@ -7,7 +7,7 @@
 
 /// The night motel room's drawable points, one 8-byte `SVECTOR` per disc: the
 /// three discs the visit byte below indexes for visits 2, 3 and 5. The visit
-/// each point belongs to is `gGameSession->field_4`.
+/// each point belongs to is `gGameSession->loc.view`.
 extern SVECTOR D_dryfield_night_motel_room_4_8017DA70[];
 
 /// The disc only visit 4 draws, written next to the run above. Only its first
@@ -17,7 +17,7 @@ extern SVECTOR D_dryfield_night_motel_room_4_8017DA70[];
 extern SVECTOR D_dryfield_night_motel_room_4_8017DA88[];
 
 /// Per-frame effect: queues the room's glowing discs for the visit
-/// `gGameSession->field_4` selects - visits 2 and 3 the pair at the first two
+/// `gGameSession->loc.view` selects - visits 2 and 3 the pair at the first two
 /// points, visit 4 the single point at the second address, visit 5 the first
 /// point again plus a third with a wider UV column and half-extent. Visits
 /// outside those draw nothing.
@@ -28,7 +28,7 @@ extern SVECTOR D_dryfield_night_motel_room_4_8017DA88[];
 /// its first call with the visit-2/3 group.
 void func_dryfield_night_motel_room_4_8017D990(void)
 {
-    switch (gGameSession->field_4) {
+    switch (gGameSession->loc.view) {
         case 2:
         case 3: {
             SVECTOR* p = D_dryfield_night_motel_room_4_8017DA70;

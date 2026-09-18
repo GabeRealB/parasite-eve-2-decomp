@@ -158,7 +158,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
     s32                                     level;
 
     coord = ((TmdObject*)task->extra)->field_8;
-    if (Gp_State1C->field_4 < 4 && ((0x1040C0 >> ((u8)gGameSession->field_4 - 1)) & 1)) {
+    if (Gp_State1C->field_4 < 4 && ((0x1040C0 >> ((u8)gGameSession->loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch     = (void**)G_SCRATCH_HEAD;
         head        = *scratch;
@@ -358,7 +358,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
 
     D_acropolis_fountain_80183BB4 = task;
     queue                         = &CdCmd_Queue;
-    if (gGameSession->field_5 != 1) {
+    if (gGameSession->loc.room != 1) {
         return;
     }
     switch (task->state) {
@@ -373,7 +373,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
             break;
 
         case 1:
-            view = Gp_FindViewIndex((u8)gGameSession->field_4);
+            view = Gp_FindViewIndex((u8)gGameSession->loc.view);
             func_acropolis_fountain_8017E15C(task, (u16)view);
             switch ((u16)view) {
                 case 3:

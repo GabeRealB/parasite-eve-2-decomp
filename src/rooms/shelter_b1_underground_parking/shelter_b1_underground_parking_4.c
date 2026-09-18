@@ -39,7 +39,7 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
 
     switch (arg2) {
         case 1:
-            if (gGameSession->field_5 < 6) {
+            if (gGameSession->loc.room < 6) {
                 if (GameFlag_GetNibble(0xC7) == 0) {
                     Gp_RunCapCmd1(1);
                 } else if (GameFlag_GetNibble(0xE7) == 0) {
@@ -60,7 +60,7 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
             }
             break;
         case 7:
-            switch (gGameSession->field_5) {
+            switch (gGameSession->loc.room) {
                 case 1:
                     Gp_RunCapCmd1(7);
                     break;
@@ -81,7 +81,7 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
             }
             break;
         case 4:
-            switch (gGameSession->field_5) {
+            switch (gGameSession->loc.room) {
                 case 1:
                 case 2:
                 case 3:

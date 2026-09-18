@@ -42,7 +42,7 @@ s32 func_dryfield_toilet_8017D8C8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEven
 {
     u8 subId = in->field_2;
 
-    if (subId == 1 && GameFlag_GetNibble(0x60) == 0 && gGameSession->field_9 == subId) {
+    if (subId == 1 && GameFlag_GetNibble(0x60) == 0 && gGameSession->loc.place == subId) {
         func_800E8634((s32)&D_dryfield_toilet_80180C58, 1, (s32)&D_dryfield_toilet_80180F40);
         GameFlag_SetNibble(0x60, 1);
     }
@@ -58,7 +58,7 @@ void func_dryfield_toilet_8017D940(Task* arg0)
 {
     arg0->field_24 = &D_dryfield_toilet_801802A4;
     Game_SetPtrSlot(arg0, 7);
-    if (GameFlag_GetNibble(0x60) == 0 && gGameSession->field_9 == 1) {
+    if (GameFlag_GetNibble(0x60) == 0 && gGameSession->loc.place == 1) {
         Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_dryfield_toilet_801802D4, 0x7DB);
         func_dryfield_toilet_8017D5E4();
     }

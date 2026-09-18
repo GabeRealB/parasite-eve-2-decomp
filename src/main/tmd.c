@@ -85,7 +85,7 @@ void Tmd_InitSourceStream(TmdSource* arg0)
 
     stream = arg0->stream;
     if (arg0->handlersResolved == 0) {
-        tmp  = *(u32*)&gGameSession->field_4;
+        tmp  = *(u32*)&gGameSession->loc;
         tmp  = (tmp & 0xFFFF0000) ^ 0x02100000;
         flag = tmp < 1;
         goto read_id;
@@ -324,7 +324,7 @@ void Tmd_ProcessStream(TmdObject* arg0)
     src      = arg0->field_10;
     tmp      = *scratch;
     stream   = src->stream;
-    hi       = *(u32*)&gGameSession->field_4;
+    hi       = *(u32*)&gGameSession->loc;
     head     = (TmdScratchModelBlock*)((u8*)tmp - 0x88);
     hi      &= 0xFFFF0000;
     *scratch = head;

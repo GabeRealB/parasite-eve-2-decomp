@@ -127,7 +127,7 @@ void func_actor_205200_8014ACD4(Actor205200* arg0)
 
     work->field_C  = NULL;
     work->field_10 = -1;
-    view           = Gp_GetStageView(&gGameSession->field_4);
+    view           = Gp_GetStageView(&gGameSession->loc.view);
     for (i = 0; i < 3; i++) {
         if (work->field_18[i] == 1) {
             work->field_0[i]->flg = 0;
@@ -348,7 +348,7 @@ void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
                 part->field_74 = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
                 func_800FDB18(7, coord, NULL, (GpEffArg*)&part->field_68);
                 Gp_SpawnEff(0x60070, coord, 0xF2001400, NULL);
-                view = Gp_GetStageView(&gGameSession->field_4);
+                view = Gp_GetStageView(&gGameSession->loc.view);
                 d.vx = view->mtx.t[0] + coord->coord.t[0];
                 d.vy = view->mtx.t[1] + coord->coord.t[1];
                 d.vz = view->mtx.t[2] + coord->coord.t[2];

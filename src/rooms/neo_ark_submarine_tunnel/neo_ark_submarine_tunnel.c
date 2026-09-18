@@ -35,7 +35,7 @@ s32 func_neo_ark_submarine_tunnel_8017F064(s32 arg0, s32 arg1, RoomEventMsg* arg
     u8 temp_s0_4;
 
     temp_s0 = arg2->field_2;
-    if ((temp_s0 == 1) && (GameFlag_GetNibble(0xFF) == temp_s0) && (gGameSession->field_9 == 3)) {
+    if ((temp_s0 == 1) && (GameFlag_GetNibble(0xFF) == temp_s0) && (gGameSession->loc.place == 3)) {
         func_800E3FAC(0xA2, 0x35);
         GameFlag_SetNibble(0xFF, 2);
         GameFlag_SetNibble(0x11F, 1);
@@ -43,26 +43,26 @@ s32 func_neo_ark_submarine_tunnel_8017F064(s32 arg0, s32 arg1, RoomEventMsg* arg
         func_800E8634((s32)&D_80135220, 0, (s32)&D_80135FD0);
     }
     if ((arg2->field_2 == 2) && (GameFlag_GetNibble(0xBC) == 0)) {
-        temp_s0_2 = gGameSession->field_9;
+        temp_s0_2 = gGameSession->loc.place;
         if (temp_s0_2 == 1) {
             func_800E8614((s32)&D_neo_ark_submarine_tunnel_80181AF0, 0);
             D_neo_ark_submarine_tunnel_80181DF0 = temp_s0_2;
         }
     }
     temp_s0_3 = arg2->field_2;
-    if ((temp_s0_3 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->field_8 == 2) && (GameFlag_GetNibble(0xFF) == 0) && (gGameSession->field_9 == temp_s0_3)) {
+    if ((temp_s0_3 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->loc.field_4 == 2) && (GameFlag_GetNibble(0xFF) == 0) && (gGameSession->loc.place == temp_s0_3)) {
         GameFlag_SetNibble(0xFF, 1);
         func_800E8614((s32)&D_80136108, 0);
         D_neo_ark_submarine_tunnel_80181DF0 = 1;
     }
     if ((arg2->field_2 == 2) && (D_neo_ark_submarine_tunnel_80181DF0 == 0)) {
-        temp_s0_4 = gGameSession->field_8;
+        temp_s0_4 = gGameSession->loc.field_4;
         if (temp_s0_4 == 1) {
             Gp_MsgPlayerWeapon(1);
             D_neo_ark_submarine_tunnel_80181DF0 = temp_s0_4;
         }
     }
-    if ((arg2->field_2 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->field_8 == 2)) {
+    if ((arg2->field_2 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->loc.field_4 == 2)) {
         Gp_MsgPlayerWeapon(1);
         D_neo_ark_submarine_tunnel_80181DF0 = 1;
     }

@@ -186,7 +186,7 @@ void func_actor_341900_80162330(Task* arg0)
     extra->field_1C = &w->light;
     extra->field_20 = &w->color;
     arg0->field_24  = D_actor_341900_80163A78;
-    rec             = ((GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->field_4))->field_0;
+    rec             = ((GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->loc))->field_0;
     for (; rec->field_0 != 0xFF; rec++) {
         if (rec->field_0 == 0x20) {
             break;
@@ -537,7 +537,7 @@ void func_actor_341900_80162AD4(Task* arg0)
 /// two effect actors (entries 8 and 9) under the task itself, then sets the
 /// two `GameSession.field_69` flags that suppress the bank-load spawn of the
 /// ending and area-enter tasks. State 1 arms the stage-3 sound byte and spawns
-/// the two blob tasks. State 2 waits for `GameSession.field_1` to clear -- it
+/// the two blob tasks. State 2 waits for `GameSession.eventState` to clear -- it
 /// sets game flag nibble 0x11D and kills the task when it does -- and
 /// otherwise runs the two child dispatchers.
 void func_actor_341900_80162EFC(Task* arg0)
@@ -560,11 +560,11 @@ void func_actor_341900_80162EFC(Task* arg0)
                 work->field_0           = (Task*)Game_GetPtrSlot(3);
                 D_actor_341900_80164208 = arg0;
                 work->field_4           = (Task*)Gp_FindWorkById(
-                                    gGameSession->field_6 | (gGameSession->field_7 << 8))
+                                    gGameSession->loc.area | (gGameSession->loc.stage << 8))
                                     ->field_0;
             }
-            sp10.field_0 = gGameSession->field_7;
-            sessionIdLo  = gGameSession->field_6;
+            sp10.field_0 = gGameSession->loc.stage;
+            sessionIdLo  = gGameSession->loc.area;
             sp10.field_2 = 0;
             sp10.field_1 = sessionIdLo;
             Gp_DispatchMsg((Task*)Game_GetPtrSlot(4), 0x7DA, (s32)&sp10, 0x7DB);
@@ -586,7 +586,7 @@ void func_actor_341900_80162EFC(Task* arg0)
             arg0->state += 1;
             return;
         case 2:
-            if (gGameSession->field_1 == 0) {
+            if (gGameSession->eventState == 0) {
                 GameFlag_SetNibble(0x11D, 2);
                 Task_RequestKill(arg0, 0);
                 return;

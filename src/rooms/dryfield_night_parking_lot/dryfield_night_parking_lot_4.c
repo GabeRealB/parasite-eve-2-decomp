@@ -12,7 +12,7 @@
 extern u16 D_dryfield_night_parking_lot_8017EDBC[];
 
 /// The parking lot's drawable points, one 8-byte `SVECTOR` per prop. The
-/// phase each one belongs to is `gGameSession->field_4` (the room's stage).
+/// phase each one belongs to is `gGameSession->loc.view` (the room's stage).
 extern SVECTOR D_dryfield_night_parking_lot_8017EDCC[];
 extern SVECTOR D_dryfield_night_parking_lot_8017EDDC[];
 extern SVECTOR D_dryfield_night_parking_lot_8017EDE4[];
@@ -23,7 +23,7 @@ extern void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg
 
 /// Parking-lot room draw: latches the view's entry of the room's per-view table
 /// into `Gp_State1C->field_A`, then queues the props of the room phase
-/// `gGameSession->field_4` selects - 2, 4 and 5 several points each, 3 and 6 a
+/// `gGameSession->loc.view` selects - 2, 4 and 5 several points each, 3 and 6 a
 /// single one. Every phase ends with the same semi-transparent `Room_Draw20`,
 /// which `jump.c` cross-jumps into one tail block after the last case.
 void func_dryfield_night_parking_lot_8017DC88(void)
@@ -32,7 +32,7 @@ void func_dryfield_night_parking_lot_8017DC88(void)
 
     view                = Gp_GetViewIndex();
     Gp_State1C->field_A = D_dryfield_night_parking_lot_8017EDBC[view - 1];
-    switch (gGameSession->field_4) {
+    switch (gGameSession->loc.view) {
         case 2: {
             SVECTOR* p = D_dryfield_night_parking_lot_8017EDCC;
             Room_Draw20(&p[0], 0, 0x300);

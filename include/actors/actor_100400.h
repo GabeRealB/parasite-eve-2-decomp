@@ -310,7 +310,7 @@ typedef struct Actor100400 {
 
 /// One 0x14-byte row of `Actor00400_D15F20`, the per-room spawn table the entry
 /// state walks until `area` reads 0xFF. A row matches when its `area` / `room`
-/// equal `GameSession.field_7` / `field_6`; `flags` bit 1 rejects the actor
+/// equal `GameSession.loc.stage` / `field_6`; `flags` bit 1 rejects the actor
 /// outright and bit 2 hides its root coordinate. The three pointers are
 /// optional overrides taken from the room overlay: `waypointSets` is indexed by
 /// the spawn argument's second nibble, `records` becomes

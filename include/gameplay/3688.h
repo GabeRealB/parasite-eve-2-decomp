@@ -62,7 +62,7 @@ extern const u16 D_80096F88[];
 extern TaskFuncTable4 Gp_MapTaskStates;
 
 /// 0xE-byte per-room record in tables pointed to by `Gp_MapRecTables`.
-/// Indexed by `GameSession.field_7 - 1` then `GameSession.field_6`.
+/// Indexed by `GameSession.loc.stage - 1` then `GameSession.loc.area`.
 /// field_0/field_2 are signed coords, field_4/field_6 unsigned extents,
 /// field_8/field_A signed scales (`Gp_DrawMapCursor`); field_C is the
 /// room id stored in `Gp_MapRoomId` (`Gp_GetMapRoomId`).
@@ -77,17 +77,17 @@ typedef struct _GpMapRec {
 } GpMapRec;
 STATIC_ASSERT_SIZEOF(GpMapRec, 0xE);
 
-/// Per-stage table of `GpMapRec` arrays. Index is `GameSession.field_7 - 1`.
+/// Per-stage table of `GpMapRec` arrays. Index is `GameSession.loc.stage - 1`.
 extern GpMapRec* Gp_MapRecTables[];
 
 /// 0x20-byte per-room name string in tables pointed to by `Gp_MapNameTables`.
-/// Indexed by `GameSession.field_7 - 1` then `GameSession.field_6 - 1`.
+/// Indexed by `GameSession.loc.stage - 1` then `GameSession.loc.area - 1`.
 typedef struct _GpMapName {
     /* 0x00 */ u8 text[0x20];
 } GpMapName;
 STATIC_ASSERT_SIZEOF(GpMapName, 0x20);
 
-/// Per-stage table of `GpMapName` arrays. Index is `GameSession.field_7 - 1`.
+/// Per-stage table of `GpMapName` arrays. Index is `GameSession.loc.stage - 1`.
 /// A NULL entry skips the name draw (`Gp_DrawMapName`).
 extern GpMapName* Gp_MapNameTables[];
 
@@ -129,7 +129,7 @@ typedef struct _GpMapMark {
 } GpMapMark;
 STATIC_ASSERT_SIZEOF(GpMapMark, 8);
 
-/// Per-stage table of `GpMapMark` arrays. Index is `GameSession.field_7 - 1`.
+/// Per-stage table of `GpMapMark` arrays. Index is `GameSession.loc.stage - 1`.
 extern GpMapMark* Gp_MapMarkTables[];
 
 /// 8-byte map icon record in the per-stage tables pointed to by `D_8010F0CC`.
@@ -148,7 +148,7 @@ typedef struct _GpMapIcon {
 } GpMapIcon;
 STATIC_ASSERT_SIZEOF(GpMapIcon, 8);
 
-/// Per-stage table of `GpMapIcon` arrays. Index is `GameSession.field_7 - 1`.
+/// Per-stage table of `GpMapIcon` arrays. Index is `GameSession.loc.stage - 1`.
 extern GpMapIcon* D_8010F0CC[];
 
 /// Six-byte map icon record walked by `func_800D0C34` until `roomId` is 0.
@@ -161,7 +161,7 @@ typedef struct _GpMapFlagIcon {
 } GpMapFlagIcon;
 STATIC_ASSERT_SIZEOF(GpMapFlagIcon, 6);
 
-/// Per-stage table of `GpMapFlagIcon` arrays. Index is `GameSession.field_7 - 1`.
+/// Per-stage table of `GpMapFlagIcon` arrays. Index is `GameSession.loc.stage - 1`.
 extern GpMapFlagIcon* D_8010F0E0[];
 
 /// 0xC-byte scratchpad block `Gp_DrawMapIcons` carves off `G_SCRATCH_HEAD` to
@@ -191,16 +191,16 @@ typedef struct _GpMapCursorPos {
 STATIC_ASSERT_SIZEOF(GpMapCursorPos, 0x1C);
 
 /// Per-stage table of GameFlag nibble ids, indexed by room (`Gp_MapRoomId`).
-/// Index is `GameSession.field_7 - 1`.
+/// Index is `GameSession.loc.stage - 1`.
 extern u8* Gp_MapFlagIds[];
 
-/// Highest selectable map room id per stage. Index is `GameSession.field_7 - 1`.
+/// Highest selectable map room id per stage. Index is `GameSession.loc.stage - 1`.
 extern u8 D_8010F130[];
 
 /// Map-screen child prompt spawned by `Gp_MapTaskState2`.
 extern UiObjectDesc D_8010F15C;
 
-/// Per-stage `GpMapMark` counts. Index is `GameSession.field_7 - 1`.
+/// Per-stage `GpMapMark` counts. Index is `GameSession.loc.stage - 1`.
 extern u8 Gp_MapMarkCounts[];
 
 /// Current room id copied from `GpMapRec.field_C` by `Gp_GetMapRoomId`.

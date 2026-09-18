@@ -28,7 +28,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
                 Gp_StartCapSlot(0xE, 1, 1);
                 break;
             }
-            gGameSession->field_1          = 1;
+            gGameSession->eventState       = 1;
             D_dryfield_water_tank_80188D48 = D_8007216C;
             Gp_MsgPlayer3F3(0);
             Gp_MsgPlayerWeapon(0);
@@ -50,10 +50,10 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
                 Task_SpawnFromTable(&D_dryfield_water_tank_8017FF88, 0, 0, 0);
                 func_dryfield_water_tank_8017DB48();
             } else {
-                gGameSession->field_1  = 0;
-                gGameSession->field_68 = 0;
-                D_801153F4             = 0;
-                D_8007216C             = (u8)D_dryfield_water_tank_80188D48;
+                gGameSession->eventState = 0;
+                gGameSession->field_68   = 0;
+                D_801153F4               = 0;
+                D_8007216C               = (u8)D_dryfield_water_tank_80188D48;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
             }

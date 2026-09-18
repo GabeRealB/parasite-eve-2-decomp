@@ -75,7 +75,7 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
             task->state++;
             break;
         case 1:
-            if (gGameSession->field_1 == 0) {
+            if (gGameSession->eventState == 0) {
                 task->state = 2;
             }
             break;

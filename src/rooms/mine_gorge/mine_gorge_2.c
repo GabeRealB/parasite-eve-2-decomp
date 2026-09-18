@@ -21,7 +21,7 @@ s32 func_mine_gorge_8017D784(Task* task, s32 msgId, GpMsg13EF* arg2)
 {
     u8 temp_s0 = arg2->field_2;
 
-    if (temp_s0 == 1 && GameFlag_GetNibble(0xC5) == 0 && gGameSession->field_9 == temp_s0) {
+    if (temp_s0 == 1 && GameFlag_GetNibble(0xC5) == 0 && gGameSession->loc.place == temp_s0) {
         GameFlag_SetNibble(0xC5, 1);
         func_800E8614((s32)&D_mine_gorge_8017E610, 0);
     }

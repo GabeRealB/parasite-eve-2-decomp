@@ -55,7 +55,7 @@ void func_actor_213100_80149E3C(Task* task)
         Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
         func_800D7A9C(extra, (VECTOR*)((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);
         child = (TmdObject*)work->field_480->extra;
-        if (D_actor_213100_801521E0[gGameSession->field_4] != 0) {
+        if (D_actor_213100_801521E0[gGameSession->loc.view] != 0) {
             extra->field_C &= ~0x80;
             child->field_C &= ~0x80;
         } else {

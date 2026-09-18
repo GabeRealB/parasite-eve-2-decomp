@@ -64,7 +64,7 @@ void func_neo_ark_observatory_8017FCE0(Task* arg0)
 {
     arg0->field_24 = &D_neo_ark_observatory_801811B8;
     Game_SetPtrSlot(arg0, 7);
-    if ((Game_GetPtrSlot(0xA) != NULL) && (gGameSession->field_9 == 1)) {
+    if ((Game_GetPtrSlot(0xA) != NULL) && (gGameSession->loc.place == 1)) {
         func_801322F8();
     } else {
         func_neo_ark_observatory_8017FA98(0);
@@ -83,7 +83,7 @@ void func_neo_ark_observatory_8017FD7C(void)
 {
     s32 var_a0;
 
-    if (gGameSession->field_1 == 0) {
+    if (gGameSession->eventState == 0) {
         if (D_8007216C != 2) {
             Gp_MsgAlly3F3(2);
             return;

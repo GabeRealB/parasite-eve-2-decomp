@@ -14,7 +14,7 @@ void Task_AllocIdMap(Task* arg0)
     s32        ret;
     s32        field34;
 
-    temp_s4 = D_80062764[gGameSession->field_7 - 1];
+    temp_s4 = D_80062764[gGameSession->loc.stage - 1];
     temp_v0 = Mem_Calloc(8, 0);
     if (temp_v0 != NULL) {
         arg0->work = temp_v0;
@@ -22,7 +22,7 @@ void Task_AllocIdMap(Task* arg0)
             SndEvt_EnqueueType2(0, 1);
             D_80062737 = 0;
         }
-        temp_a0    = gGameSession->field_7;
+        temp_a0    = gGameSession->loc.stage;
         ret        = TaskIdMap_RemapIndex(temp_a0, Mc_SaveData.field_5C5, D_8006276C[temp_a0 - 1]);
         field34    = arg0->spawnArg1;
         D_80062738 = ret;
@@ -31,7 +31,7 @@ void Task_AllocIdMap(Task* arg0)
             s32         f7;
             TaskIdPair* p;
             u16         v;
-            f7             = gGameSession->field_7;
+            f7             = gGameSession->loc.stage;
             D_8007A398     = 0xFF;
             p              = D_80062750[f7 - 1];
             v              = D_80062735;
@@ -39,10 +39,10 @@ void Task_AllocIdMap(Task* arg0)
             temp_v0->index = v;
             temp_v0->table = p;
         } else {
-            temp_v0->table = D_8006273C[gGameSession->field_7 - 1];
+            temp_v0->table = D_8006273C[gGameSession->loc.stage - 1];
             temp_v0->index =
-                D_80062738 + (gGameSession->field_6 * (temp_s4 & 0xFF));
-            if ((*((gGameSession->field_6 * (temp_s4 & 0xFF) * 2) +
+                D_80062738 + (gGameSession->loc.area * (temp_s4 & 0xFF));
+            if ((*((gGameSession->loc.area * (temp_s4 & 0xFF) * 2) +
                    (u8*)temp_v0->table) != 0x80) &&
                 (D_80062736 != 0)) {
                 SndEvt_EnqueueType7(0x60010001, 0x1E);
@@ -160,8 +160,8 @@ void Stage_RequestFromAreaTable(s32 arg0)
     s32          temp;
 
     g       = gGameSession;
-    idx     = g->field_7 - 1;
-    product = g->field_6 * D_80062764[idx];
+    idx     = g->loc.stage - 1;
+    product = g->loc.area * D_80062764[idx];
     temp    = ((D_80062738 + product) & 0xFFFF) * 2;
     entry   = (TaskIdPair*)(temp + (s32)D_8006273C[idx]);
     if (entry->id != 0xFF) {
@@ -182,8 +182,8 @@ void Stage_RequestMidiFromMap(s32 arg0)
     s32          temp;
 
     g       = gGameSession;
-    idx     = g->field_7 - 1;
-    product = g->field_6 * D_80062764[idx];
+    idx     = g->loc.stage - 1;
+    product = g->loc.area * D_80062764[idx];
     temp    = ((D_80062738 + product) & 0xFFFF) * 2;
     entry   = (TaskIdPair*)(temp + (s32)D_8006273C[idx]);
     if (entry->id != 0xFF) {
@@ -218,8 +218,8 @@ void Stage_RequestSpecialFlag(s32 arg0)
     s32          one;
 
     g       = gGameSession;
-    idx     = g->field_7 - 1;
-    product = g->field_6 * D_80062764[idx];
+    idx     = g->loc.stage - 1;
+    product = g->loc.area * D_80062764[idx];
     base    = (u8*)D_8006273C[idx];
     if (base[product * 2] == 0x80) {
         if (GameFlag_GetNibble(0x108) == 1) {

@@ -155,7 +155,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_2", func_actor_350700
 /// parking them at `field_4FC` / `field_500` / `field_504`. The first two are
 /// models: each has `TmdObject::field_24` / `field_25` loaded with the texture
 /// page and CLUT row of the `GpAreaPlace` that entry selects, reached through
-/// the area key `&gGameSession->field_4` and indexed by the model id the child's
+/// the area key `&gGameSession->loc.view` and indexed by the model id the child's
 /// own `spawnArg2` carries at `GpEnemy::field_8 >> 12`, and each then has its
 /// texture stream processed twice when it has an aux buffer. The body ends by
 /// handing the parent to `ActorsShared80132f24`, pointing `field_24` at the
@@ -191,7 +191,7 @@ void func_actor_350700_80162B30(Task* arg0)
         work->field_4FC = spawned;
         model           = (TmdObject*)spawned->extra;
         idx             = ((GpEnemy*)arg0->spawnArg2)->field_8 >> 12;
-        sessionKey      = (GpAreaKey*)&gGameSession->field_4;
+        sessionKey      = (GpAreaKey*)&gGameSession->loc;
         key.field_3     = sessionKey->field_3;
         key.field_2     = sessionKey->field_2;
         key.field_1     = sessionKey->field_1;
@@ -220,11 +220,11 @@ void func_actor_350700_80162B30(Task* arg0)
            for the last byte, global CSE merges this block's area key with the
            one above into a single cross-block pseudo, and the allocation of
            `spawned` and every address temp after it shifts. */
-        sessionKey  = (GpAreaKey*)(keyAddr = (u8*)&gGameSession->field_4);
+        sessionKey  = (GpAreaKey*)(keyAddr = (u8*)&gGameSession->loc.view);
         key.field_3 = sessionKey->field_3;
         key.field_2 = sessionKey->field_2;
         key.field_1 = ((GpAreaKey*)keyAddr)->field_1;
-        key.field_0 = ((GpAreaKey*)(&gGameSession->field_4))->field_0;
+        key.field_0 = ((GpAreaKey*)(&gGameSession->loc.view))->field_0;
         Gp_SyncAreaKeyIndex(&key);
         rec             = Gp_GetNestedAreaRec(&key);
         place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);

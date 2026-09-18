@@ -383,7 +383,7 @@ void Actor04400_Fn042C4(Task* arg0)
             obj->field_C &= 0xFFFB;
         }
         enemy->node.field_4 = 0;
-        map                 = *(u32*)&gGameSession->field_4 & 0xFFFF0000;
+        map                 = *(u32*)&gGameSession->loc & 0xFFFF0000;
         if (map == 0x4270000) {
             work->field_78    = 0;
             work->field_7A    = (D_8018B74C[(work->field_44C >> 8) & 0xF].heading + 0x800) & 0xFFF;
@@ -1229,7 +1229,7 @@ void Actor04400_Fn061B4(void)
         /* Each branch makes its own call; jump2's cross-jumping merges the
          * identical tails after sched2, which is why the argument setup is
          * duplicated per branch in the target. */
-        if (gGameSession->field_7 == 4 && (u32)(gGameSession->field_6 - 0x27) < 2 && gGameSession->field_9 == 1) {
+        if (gGameSession->loc.stage == 4 && (u32)(gGameSession->loc.area - 0x27) < 2 && gGameSession->loc.place == 1) {
             param1[2] = 0xA;
             param1[0] = 2;
             param1[3] = 0;
@@ -1238,7 +1238,7 @@ void Actor04400_Fn061B4(void)
             param2[2] = 0;
             param2[1] = 0;
             CdCmd_Enqueue(0x21, param1, param2);
-        } else if (gGameSession->field_7 == 4 && (u32)(gGameSession->field_6 - 0x27) < 2 && gGameSession->field_9 == 2) {
+        } else if (gGameSession->loc.stage == 4 && (u32)(gGameSession->loc.area - 0x27) < 2 && gGameSession->loc.place == 2) {
             param1[2] = 0xA;
             param1[0] = 3;
             param1[3] = 0;
@@ -2125,7 +2125,7 @@ void Actor04400_Fn07984(Task* arg0)
     ticks           = work->field_412 + 1;
     work->field_412 = ticks;
     if ((s16)ticks >= 0x24) {
-        if ((gGameSession->field_7 == 4) && ((u32)(gGameSession->field_6 - 0x27) < 2U) && (gGameSession->field_9 == 1)) {
+        if ((gGameSession->loc.stage == 4) && ((u32)(gGameSession->loc.area - 0x27) < 2U) && (gGameSession->loc.place == 1)) {
             Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x13F4, 1, 0);
         }
         Gp_DestroyEnemy(arg0->spawnArg2, arg0);

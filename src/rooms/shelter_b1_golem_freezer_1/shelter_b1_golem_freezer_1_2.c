@@ -39,7 +39,7 @@ void func_shelter_b1_golem_freezer_1_8017D744(void)
         task = Game_GetPtrSlot(3);
     }
     if (slot != NULL) {
-        if (gGameSession->field_9 == 0x15) {
+        if (gGameSession->loc.place == 0x15) {
             D_shelter_b1_golem_freezer_1_8017E6D2 = 0;
         } else {
             D_shelter_b1_golem_freezer_1_8017E6D2 = 0x2710;

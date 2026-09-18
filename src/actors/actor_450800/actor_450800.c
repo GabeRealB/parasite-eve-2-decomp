@@ -42,7 +42,7 @@ void func_actor_450800_80131E34(void)
     s32          temp_v0;
     s32          n;
 
-    if ((u8)session->field_4 == 4) {
+    if ((u8)session->loc.view == 4) {
         if (GameFlag_GetNibble(0xC7) == 1) {
             temp_v0                 = D_actor_450800_8013930C + 1;
             D_actor_450800_8013930C = temp_v0;
@@ -218,7 +218,7 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
         work->field_4F0 = spawned;
         spawned->parent = task;
         model1          = spawned->extra;
-        sessionKey1     = (GpAreaKey*)&gGameSession->field_4;
+        sessionKey1     = (GpAreaKey*)&gGameSession->loc;
         raw1            = ((GpEnemy*)task->spawnArg2)->field_8;
         key.field_3     = sessionKey1->field_3;
         key.field_2     = sessionKey1->field_2;
@@ -227,7 +227,7 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
         keyp = &key;
         TOUCH_REG(keyp);
         key.field_1 = areaByte1;
-        areaByte0   = gGameSession->field_4;
+        areaByte0   = gGameSession->loc.view;
         index1      = raw1 >> 12;
         key.field_0 = areaByte0;
         Gp_SyncAreaKeyIndex(keyp);
@@ -247,7 +247,7 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
         work->field_4F4 = spawned;
         spawned->parent = task;
         model2          = spawned->extra;
-        sessionKey2     = (GpAreaKey*)&gGameSession->field_4;
+        sessionKey2     = (GpAreaKey*)&gGameSession->loc;
         raw2            = ((GpEnemy*)task->spawnArg2)->field_8;
         key.field_3     = sessionKey2->field_3;
         key.field_2     = sessionKey2->field_2;
@@ -256,7 +256,7 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
         keyp = &key;
         TOUCH_REG(keyp);
         key.field_1 = areaByte1;
-        areaByte0   = gGameSession->field_4;
+        areaByte0   = gGameSession->loc.view;
         index2      = raw2 >> 12;
         key.field_0 = areaByte0;
         Gp_SyncAreaKeyIndex(keyp);

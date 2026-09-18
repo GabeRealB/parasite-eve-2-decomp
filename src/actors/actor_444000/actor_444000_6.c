@@ -3221,7 +3221,7 @@ void func_actor_444000_80141618(Actor444000* task)
                 if (work->field_EE8[sc->i] != NULL) {
                     work->field_F1B++;
                     model       = (TmdObject*)work->field_EE8[sc->i]->task->extra;
-                    sessionKey  = (GpAreaKey*)&gGameSession->field_4;
+                    sessionKey  = (GpAreaKey*)&gGameSession->loc;
                     key.field_3 = sessionKey->field_3;
                     key.field_2 = sessionKey->field_2;
                     key.field_1 = sessionKey->field_1;

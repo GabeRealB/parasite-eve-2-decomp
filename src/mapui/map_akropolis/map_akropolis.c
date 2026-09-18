@@ -182,9 +182,9 @@ void func_map_akropolis_80179E8C(Task* task)
             return;
         }
         GameMain_SetFrameTiming(0);
-        gGameSession->field_2 = 1;
-        task->spawnArg2       = obj;
-        task->state          += 1;
+        gGameSession->uiOpen = 1;
+        task->spawnArg2      = obj;
+        task->state         += 1;
     }
 
     if (task->state == 1) {
@@ -201,7 +201,7 @@ void func_map_akropolis_80179E8C(Task* task)
         task->killCountdown -= 1;
         if (task->killCountdown <= 0) {
             GameMain_SetFrameTiming(1);
-            gGameSession->field_2 = 0;
+            gGameSession->uiOpen = 0;
             Task_Kill(task);
             Stage_ReleasePrimBuf();
             Stage_SetEndingFlag();

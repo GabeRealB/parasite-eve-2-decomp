@@ -40,7 +40,7 @@ void func_mist_parking_801828F0(Task* task)
                     task->killCountdown = 0;
                 }
             }
-            work = Gp_FindWorkById(gGameSession->field_6 | (gGameSession->field_7 << 8));
+            work = Gp_FindWorkById(gGameSession->loc.area | (gGameSession->loc.stage << 8));
             func_800B0928(Game_GetPtrSlot(3), (Task*)work->field_0, 0x200, 0x100, task->killCountdown);
         } else {
             Task_Kill(task);

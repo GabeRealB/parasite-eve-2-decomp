@@ -35,7 +35,7 @@ extern s8         D_80114C12;
 extern TaskDesc   D_acropolis_helicopter_landing_pad_80184E68;
 extern GpMsgEntry D_acropolis_helicopter_landing_pad_80182328[];
 extern GsF_LIGHT  D_acropolis_helicopter_landing_pad_80182340[3];
-/// Per-camera-view visibility table indexed by `(u8)gGameSession->field_4`:
+/// Per-camera-view visibility table indexed by `(u8)gGameSession->loc.view`:
 /// a non-zero byte keeps the enemy model visible in that view.
 extern s8 D_acropolis_helicopter_landing_pad_80182370[];
 
@@ -115,7 +115,7 @@ void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
         work->field_50 = 0;
     }
     if (gGameSession->field_4D != 0) {
-        if (D_acropolis_helicopter_landing_pad_80182370[(u8)gGameSession->field_4] != 0) {
+        if (D_acropolis_helicopter_landing_pad_80182370[(u8)gGameSession->loc.view] != 0) {
             obj->field_C &= 0xFF7F;
         } else {
             obj->field_C |= 0x80;
@@ -199,7 +199,7 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helic
 /// (`D_80114C12`) or blocker (`D_80071075`) is active it advances to phase 2,
 /// starts the second script block and queues sound 0xA2. Room 5 of the
 /// session raises `D_acropolis_helicopter_landing_pad_80184E0C`; a cleared
-/// `gGameSession->field_1` resets `D_acropolis_helicopter_landing_pad_80187F84`.
+/// `gGameSession->eventState` resets `D_acropolis_helicopter_landing_pad_80187F84`.
 void func_acropolis_helicopter_landing_pad_8017D9BC(void)
 {
     s32 phase = D_acropolis_helicopter_landing_pad_80184D9C;
@@ -214,10 +214,10 @@ void func_acropolis_helicopter_landing_pad_8017D9BC(void)
             }
         }
     }
-    if ((u8)gGameSession->field_4 == 5) {
+    if ((u8)gGameSession->loc.view == 5) {
         D_acropolis_helicopter_landing_pad_80184E0C = 1;
     }
-    if (gGameSession->field_1 == 0) {
+    if (gGameSession->eventState == 0) {
         D_acropolis_helicopter_landing_pad_80187F84 = 0;
     }
 }

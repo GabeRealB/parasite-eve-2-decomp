@@ -31,8 +31,8 @@ void func_dryfield_night_factory_80180A4C(Task* task)
     RoomHotspot*            hs     = D_dryfield_night_factory_80186EBC;
     NightFactoryScriptWork* st     = (NightFactoryScriptWork*)task->work;
 
-    gGameSession->field_68 = 1;
-    gGameSession->field_1  = 1;
+    gGameSession->field_68   = 1;
+    gGameSession->eventState = 1;
     if (st->field_8 != 0) {
         st->field_8 = st->field_8 - 1;
     }

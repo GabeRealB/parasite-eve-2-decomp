@@ -21,8 +21,8 @@ extern SVECTOR D_neo_ark_eve_access_tunnel_8017EB48[];
 
 void func_neo_ark_eve_access_tunnel_8017E090(s32 arg0, s32 arg1)
 {
-    GameSessionFrom4* sess = (GameSessionFrom4*)&gGameSession->field_4;
-    NaetSprtRec*      rec  = (NaetSprtRec*)Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];
+    GameSessionFrom4* sess = &gGameSession->loc;
+    NaetSprtRec*      rec  = (NaetSprtRec*)Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     NaetSprtView*     view;
     s32               run = arg0 & 0xFF;
     s32               flag;

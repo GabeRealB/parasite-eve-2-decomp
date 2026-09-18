@@ -18,11 +18,11 @@ void func_shelter_b6_nursery_8017FFF4(void)
 /// room in the first stage table. Only low-byte values 0 and 1 change the flag.
 void func_shelter_b6_nursery_80180038(s32 arg0)
 {
-    GameSessionFrom4* sess = (GameSessionFrom4*)&gGameSession->field_4;
+    GameSessionFrom4* sess = &gGameSession->loc;
     GpSprtCmd*        cmd;
     s32               mode;
 
-    cmd  = Gp_SprtTables[sess->field_3 - 1][0].field_0[sess->field_2 - 1][12].field_4;
+    cmd  = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][12].field_4;
     mode = arg0 & 0xFF;
     if (mode == 0) {
         cmd[1].field_4 = 0;

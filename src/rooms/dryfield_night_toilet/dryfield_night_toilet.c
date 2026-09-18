@@ -35,7 +35,7 @@ void func_dryfield_night_toilet_8017D690(Task* task)
 {
     task->field_24 = D_dryfield_night_toilet_8017DA70;
     Game_SetPtrSlot(task, 7);
-    if (GameFlag_GetNibble(0xAF) == 0 && gGameSession->field_9 == 1) {
+    if (GameFlag_GetNibble(0xAF) == 0 && gGameSession->loc.place == 1) {
         GameFlag_SetNibble(0xAF, 1);
         Task_SpawnFromTable(&D_8013E51C, 0, 0, 0);
     }

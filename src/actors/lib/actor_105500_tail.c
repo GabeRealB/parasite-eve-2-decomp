@@ -39,7 +39,7 @@ void Actor05500_Fn03C54(Actor105500* actor)
     if (eff == NULL) {
         return;
     }
-    sessionKey  = (GpAreaKey*)&gGameSession->field_4;
+    sessionKey  = (GpAreaKey*)&gGameSession->loc;
     raw         = ((Actor105500Ctx*)actor->field_20)->field_8;
     model       = (TmdObject*)eff->field_0->extra;
     key.field_3 = sessionKey->field_3;

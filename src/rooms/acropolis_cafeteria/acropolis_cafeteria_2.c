@@ -60,7 +60,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             break;
 
         case 7:
-            if (gGameSession->field_1 != 1) {
+            if (gGameSession->eventState != 1) {
                 task->state = task->state + 1;
             }
             break;

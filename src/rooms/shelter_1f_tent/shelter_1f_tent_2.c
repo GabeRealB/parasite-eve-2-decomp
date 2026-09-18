@@ -30,7 +30,7 @@ void func_shelter_1f_tent_8017F9F0(Task* task)
 
     task->field_24 = D_shelter_1f_tent_80181CDC;
     Game_SetPtrSlot(task, 7);
-    if (gGameSession->field_9 == 1) {
+    if (gGameSession->loc.place == 1) {
         func_80132210();
     }
     if (GameFlag_GetNibble(0x109) == 0) {

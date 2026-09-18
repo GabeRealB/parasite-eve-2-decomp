@@ -41,7 +41,7 @@ void func_mist_parking_80182A44(Task* task)
             task->state++;
             break;
         case 1:
-            if (gGameSession->field_1 != 0) {
+            if (gGameSession->eventState != 0) {
                 return;
             }
             if (Gp_CapBusy() != 0) {
@@ -62,7 +62,7 @@ void func_mist_parking_80182A44(Task* task)
             task->state++;
             break;
         case 3:
-            if (gGameSession->field_1 != 0) {
+            if (gGameSession->eventState != 0) {
                 return;
             }
             if (Gp_CapBusy() != 0) {
@@ -131,7 +131,7 @@ void func_mist_parking_80182A44(Task* task)
             }
             break;
         case 5:
-            if (gGameSession->field_1 != 0) {
+            if (gGameSession->eventState != 0) {
                 return;
             }
             if (Gp_CapBusy() == 0) {
@@ -141,7 +141,7 @@ void func_mist_parking_80182A44(Task* task)
             }
             /* fallthrough */
         case 6:
-            if (gGameSession->field_1 != 0) {
+            if (gGameSession->eventState != 0) {
                 return;
             }
             if (Gp_CapBusy() != 0) {
@@ -174,7 +174,7 @@ void func_mist_parking_80182A44(Task* task)
             if (task->killCountdown == 0xA) {
                 Gp_RunCapCmd(3, 0);
             }
-            if (gGameSession->field_1 != 0) {
+            if (gGameSession->eventState != 0) {
                 return;
             }
             task->state++;
@@ -197,7 +197,7 @@ void func_mist_parking_80182F60(Task* task)
             break;
         case 1:
         case 3:
-            if (gGameSession->field_1 != 0) {
+            if (gGameSession->eventState != 0) {
                 return;
             }
             task->state++;

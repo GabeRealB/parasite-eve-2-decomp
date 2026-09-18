@@ -226,7 +226,7 @@ void func_actor_503500_80132778(Task* task)
     switch (GameFlag_GetNibble(0x12A)) {
         case 0:
         case 1:
-            if (gGameSession->field_1 == 0) {
+            if (gGameSession->eventState == 0) {
                 Task_Kill(task);
                 return;
             }
@@ -234,7 +234,7 @@ void func_actor_503500_80132778(Task* task)
             break;
         case 2:
         case 3:
-            if (gGameSession->field_1 != 0) {
+            if (gGameSession->eventState != 0) {
                 return;
             }
             work->field_4 -= 0x20;

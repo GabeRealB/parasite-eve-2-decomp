@@ -235,7 +235,7 @@ L_case0:
     return;
 
 L_case1:
-    if (gGameSession->field_1 == 0) {
+    if (gGameSession->eventState == 0) {
         goto advance;
     }
     func_dryfield_water_tank_8017E78C(task);

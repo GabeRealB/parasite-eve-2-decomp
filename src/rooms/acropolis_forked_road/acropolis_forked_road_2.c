@@ -31,7 +31,7 @@ s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, GpMsg13EF* arg2)
     u8 temp;
 
     if (arg2->field_2 == 1 && (GameFlag_GetNibble(9) & 2)) {
-        temp = gGameSession->field_9;
+        temp = gGameSession->loc.place;
         if (((temp == 4) || (temp == 8)) && (GameFlag_GetNibble(0xCC) == 0)) {
             func_800E8614((s32)&D_acropolis_forked_road_801820B8, 1);
             GameFlag_SetNibble(0xCC, 1);

@@ -183,7 +183,7 @@ void func_actor_342000_80162158(Task* arg0)
     extra->field_1C = &w->light;
     extra->field_20 = &w->color;
     arg0->field_24  = D_actor_342000_801648E8;
-    rec             = ((GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->field_4))->field_0;
+    rec             = ((GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->loc))->field_0;
     for (; rec->field_0 != 0xFF; rec++) {
         if (rec->field_0 == 0x20) {
             break;
@@ -692,7 +692,7 @@ static inline void Actor342000_SetMode(s16 arg0)
 
 static inline void Actor342000_EnterArea(void)
 {
-    gGameSession->field_5        = 7;
+    gGameSession->loc.room       = 7;
     D_8007216D                   = 7;
     gGameSession->unknown_133[1] = 6;
     gGameSession->unknown_133[0] = 1;
@@ -740,12 +740,12 @@ void func_actor_342000_8016382C(Task* arg0)
                 Mem_Set(alloc, 0U, 0x80U);
                 alloc->field_48         = (Task*)Game_GetPtrSlot(3);
                 D_actor_342000_80165070 = arg0;
-                alloc->field_4C         = (s32)Gp_FindWorkById(gGameSession->field_6 | (gGameSession->field_7 << 8))->field_0;
+                alloc->field_4C         = (s32)Gp_FindWorkById(gGameSession->loc.area | (gGameSession->loc.stage << 8))->field_0;
             }
             work = (Actor342000EventWork*)arg0->work;
             if ((u8)gGameSession->unknown_137[0] == 0) {
-                msg.field_0 = gGameSession->field_7;
-                msg.field_1 = gGameSession->field_6;
+                msg.field_0 = gGameSession->loc.stage;
+                msg.field_1 = gGameSession->loc.area;
                 msg.field_2 = 0;
                 Gp_DispatchMsg((Task*)Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
                 work->field_5C = Task_SpawnFromTable(&D_actor_342000_80164FF8, 8, 0, (s32)arg0);
@@ -774,7 +774,7 @@ void func_actor_342000_8016382C(Task* arg0)
             func_800E8634((s32)&D_actor_342000_80164968, 0, (s32)&D_actor_342000_80164E30);
             goto next;
         case 3:
-            if (gGameSession->field_1 == 0) {
+            if (gGameSession->eventState == 0) {
                 gGameSession->field_120 = D_8018FBC8;
                 Task_SpawnFromTable(&D_80187150, 0, 1, 0);
                 gGameSession->field_135 = 2;
@@ -795,7 +795,7 @@ void func_actor_342000_8016382C(Task* arg0)
             timer               = (u16)arg0->killCountdown + 1;
             arg0->killCountdown = timer;
             if (timer >= 0x1A5) {
-                work->field_78 = gGameSession->field_4;
+                work->field_78 = gGameSession->loc.view;
                 Actor342000_SetAction(7);
                 Actor342000_SetMode(6);
                 arg0->killCountdown = 0;
@@ -824,8 +824,8 @@ void func_actor_342000_8016382C(Task* arg0)
                 Actor342000_KillFx();
                 Actor342000_SetMode(7);
                 Actor342000_EnterArea();
-                msg.field_0 = gGameSession->field_7;
-                msg.field_1 = gGameSession->field_6;
+                msg.field_0 = gGameSession->loc.stage;
+                msg.field_1 = gGameSession->loc.area;
                 msg.field_2 = 0;
                 Gp_DispatchMsg((Task*)Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
                 arg0->killCountdown = 0;

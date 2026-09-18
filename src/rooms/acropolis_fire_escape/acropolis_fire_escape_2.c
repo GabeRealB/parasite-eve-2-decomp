@@ -88,7 +88,7 @@ void func_acropolis_fire_escape_8017FB40(Task* task)
             return;
     }
 
-    switch ((u8)gGameSession->field_4) {
+    switch ((u8)gGameSession->loc.view) {
         case 8:
             vol = 0x64;
             if (Mc_SaveData.field_5C5 == 5) {

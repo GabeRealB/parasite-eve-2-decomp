@@ -1073,7 +1073,7 @@ s32 func_actor_800200_80165104(GpActorWork* arg0)
         switch (flags = rec->field_3 & 0x30) {
             case 0x10:
             case 0x20:
-                param  = Gp_RoomParamTables[gGameSession->field_7 - 1][gGameSession->field_6 - 1][actor->field_930];
+                param  = Gp_RoomParamTables[gGameSession->loc.stage - 1][gGameSession->loc.area - 1][actor->field_930];
                 sounds = param->field_4;
                 if (sounds != NULL) {
                     if ((u16)actor->field_958 - 5 < 2U) {
@@ -1249,7 +1249,7 @@ void func_actor_800200_80165580(GpActorWork* arg0)
         func_actor_800200_801654EC(arg0, 0);
         return;
     }
-    temp_v1 = gGameSession->field_6;
+    temp_v1 = gGameSession->loc.area;
     switch (temp_v1) {
         case 26:
             func_actor_800200_80162990(arg0);
@@ -1274,7 +1274,7 @@ void func_actor_800200_80165644(GpActorWork* arg0)
         func_actor_800200_801654EC(arg0, 0);
         return;
     }
-    temp_v1 = gGameSession->field_6;
+    temp_v1 = gGameSession->loc.area;
     switch (temp_v1) {
         case 25:
             func_actor_800200_8016599C();
@@ -1299,7 +1299,7 @@ void func_actor_800200_80165708(GpActorWork* arg0)
         func_actor_800200_801654EC(arg0, 0);
         return;
     }
-    temp_v0 = gGameSession->field_6;
+    temp_v0 = gGameSession->loc.area;
     switch (temp_v0) {
         case 1:
             func_actor_800200_80163A54();

@@ -23,11 +23,11 @@ s32 RoomsShared8017ecb4(RoomHotspot* table, s16 x, s16 y);
 void func_acropolis_bridge_8017F2D0(s32 flags)
 {
     GameSession*      g    = gGameSession;
-    GameSessionFrom4* sess = (GameSessionFrom4*)&g->field_4;
+    GameSessionFrom4* sess = &g->loc;
     GpSprtRec*        rec;
     GpSprtCmd*        cmd;
 
-    rec = Gp_SprtTables[sess->field_3 - 1][g->field_74 - 1].field_0[sess->field_2 - 1];
+    rec = Gp_SprtTables[sess->stage - 1][g->field_74 - 1].field_0[sess->area - 1];
 
     cmd = rec[1].field_4;
     if ((flags & 0xFF) == 0) {
@@ -51,12 +51,12 @@ void func_acropolis_bridge_8017F2D0(s32 flags)
 void func_acropolis_bridge_8017F358(s32 state)
 {
     GameSession*      g    = gGameSession;
-    GameSessionFrom4* sess = (GameSessionFrom4*)&g->field_4;
+    GameSessionFrom4* sess = &g->loc;
     GpSprtRec*        rec;
     GpSprtCmd*        cmd;
     s32               mode;
 
-    rec  = Gp_SprtTables[sess->field_3 - 1][g->field_74 - 1].field_0[sess->field_2 - 1];
+    rec  = Gp_SprtTables[sess->stage - 1][g->field_74 - 1].field_0[sess->area - 1];
     cmd  = rec[9].field_4;
     mode = state & 0xFF;
 
@@ -173,8 +173,8 @@ void func_acropolis_bridge_8017F658(Task* task)
     func_acropolis_bridge_8017E60C(0xFFF, 0);
     Task_Kill((Task*)task->spawnArg2);
     Task_RequestKill(task, D_acropolis_bridge_801917A8);
-    gGameSession->field_1  = 0;
-    gGameSession->field_68 = 0;
-    gGameSession->field_66 = 0;
-    D_80114D08             = 0xA;
+    gGameSession->eventState = 0;
+    gGameSession->field_68   = 0;
+    gGameSession->field_66   = 0;
+    D_80114D08               = 0xA;
 }

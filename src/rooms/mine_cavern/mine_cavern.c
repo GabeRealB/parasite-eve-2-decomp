@@ -22,7 +22,7 @@ s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
                 return 0;
             }
             Gp_SetNibbleIf(in->field_6, 2);
-            if (Gp_StateF0.field_0 == 1 && gGameSession->field_9 == Gp_StateF0.field_0) {
+            if (Gp_StateF0.field_0 == 1 && gGameSession->loc.place == Gp_StateF0.field_0) {
                 Gp_RunCapCmd1(9);
                 return 0;
             }
@@ -41,7 +41,7 @@ s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
     }
 
     if (in->msgId == 5) {
-        if (gGameSession->field_9 == 1 || gGameSession->field_9 == 4) {
+        if (gGameSession->loc.place == 1 || gGameSession->loc.place == 4) {
             if (Gp_StateF0.field_0 == 1) {
                 if (in->field_5 == 0) {
                     Gp_RunCapCmd1(0xB);
@@ -64,7 +64,7 @@ s32 func_mine_cavern_8017DAA0(Task* task, s32 msgId, s32 arg2, s32 arg3)
             return 0;
         }
         if (Gp_StateF0.field_0 == arg2) {
-            temp = gGameSession->field_9;
+            temp = gGameSession->loc.place;
             if (temp == arg2 || temp == 4) {
                 cmd = 0xA;
                 goto cap_only;
@@ -93,7 +93,7 @@ s32 func_mine_cavern_8017DAA0(Task* task, s32 msgId, s32 arg2, s32 arg3)
         Gp_RunCapCmd1(cmd);
     }
 rest:
-    temp = gGameSession->field_9;
+    temp = gGameSession->loc.place;
     if (temp == 1 || temp == 4) {
         switch (arg2) {
             case 8:

@@ -102,12 +102,12 @@ void func_dryfield_water_tank_8017D9D4(Task* task)
 void func_dryfield_water_tank_8017DA4C(void)
 {
     if (gGameSession->field_4D != 0) {
-        if (gGameSession->field_4 == 4) {
+        if (gGameSession->loc.view == 4) {
             Gp_EnqueueStageSnd6(0x52150011, 0, 0);
         } else {
             Gp_EnqueueStageSnd7(0x52150011, 0x2D);
         }
-        if (gGameSession->field_4 == 0xA) {
+        if (gGameSession->loc.view == 0xA) {
             Gp_EnqueueStageSnd6(0x52150012, 0, 0);
             return;
         }

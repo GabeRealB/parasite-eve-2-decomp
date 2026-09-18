@@ -192,7 +192,7 @@ void func_actor_401300_80132BE4(GameSessionFrom4* session, GsCOORDINATE2* coord)
 
     for (i = 0; i < 2; i++) {
         row = &D_actor_401300_801589C8[i];
-        if (session->field_3 == row->field_0 && session->field_2 == row->field_2) {
+        if (session->stage == row->field_0 && session->area == row->field_2) {
             lo     = row->lo;
             offset = coord->coord.t[1];
             if (offset < lo) {
@@ -212,7 +212,7 @@ static __inline__ s32 Actor401300_HasHeightClamp(GameSessionFrom4* session)
 
     for (i = 0; i < 2; i++) {
         row = &D_actor_401300_801589C8[i];
-        if (session->field_3 == row->field_0 && session->field_2 == row->field_2) {
+        if (session->stage == row->field_0 && session->area == row->field_2) {
             return 1;
         }
     }
@@ -239,7 +239,7 @@ s32 func_actor_401300_80132C78(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16
         s->step.vx = head[-1].delta.vx.w >> 16;
         s->step.vy = s->delta.vy.w >> 16;
         s->step.vz = s->delta.vz.w >> 16;
-        if (Actor401300_HasHeightClamp(&gGameSession->field_4)) {
+        if (Actor401300_HasHeightClamp(&gGameSession->loc.view)) {
             vy = s->step.vy;
             if (((vy >= 0) ? vy : -vy) > 0x15E) {
                 s->step.vy = (vy <= 0) ? -0x15E : 0x15E;
@@ -277,8 +277,8 @@ s32 func_actor_401300_80132C78(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16
             }
         }
     }
-    if (Actor401300_HasHeightClamp(&gGameSession->field_4)) {
-        func_actor_401300_80132BE4(&gGameSession->field_4, coord);
+    if (Actor401300_HasHeightClamp(&gGameSession->loc.view)) {
+        func_actor_401300_80132BE4(&gGameSession->loc.view, coord);
         coord->coord.t[1] += arg3;
     }
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
@@ -840,7 +840,7 @@ void func_actor_401300_80133A3C(Actor401300* arg0)
                 Actor401300_SpawnEffVar(&D_8011574C, &arg0->field_2C->field_8[15], 0x40, 0, 0x1C2, -100);
             }
         }
-        if (snd != 0 && (*(s32*)&gGameSession->field_4 & 0xFFFF0000) == 0x051D0000) {
+        if (snd != 0 && (*(s32*)&gGameSession->loc.view & 0xFFFF0000) == 0x051D0000) {
             switch (snd) {
                 case 0x400D0001:
                 case 0x400D0003:
@@ -1734,7 +1734,7 @@ void func_actor_401300_80136238(Actor401300* arg0)
     aim                                       = *(Actor401300AimScratch**)G_SCRATCH_HEAD;
     arg0->field_2C->field_8->flg              = 0;
     if (work->field_6C & 0x100) {
-        if (func_actor_401300_80132FF4(arg0) == 1 && (*(s32*)&gGameSession->field_4 & 0xFFFF0000) == 0x051D0000) {
+        if (func_actor_401300_80132FF4(arg0) == 1 && (*(s32*)&gGameSession->loc.view & 0xFFFF0000) == 0x051D0000) {
             work->field_0 = 8;
         } else {
             work->field_0 = 7;
@@ -2879,13 +2879,13 @@ static __inline__ void Actor401300_TintEffect(GpEffWork* eff, GpEnemy* enemy)
     u32        raw;
 
     if (eff != NULL) {
-        sessionKey  = (GpAreaKey*)&gGameSession->field_4;
+        sessionKey  = (GpAreaKey*)&gGameSession->loc;
         raw         = enemy->field_8;
         model       = (TmdObject*)eff->field_0->extra;
         key.field_3 = sessionKey->field_3;
         key.field_2 = sessionKey->field_2;
         key.field_1 = sessionKey->field_1;
-        areaByte0   = gGameSession->field_4;
+        areaByte0   = gGameSession->loc.view;
         idx         = raw >> 12;
         SOFT_BARRIER();
         keyPtr = &key;
@@ -3903,7 +3903,7 @@ void func_actor_401300_8013F628(Actor401300* arg0)
     *scratch    = head - 3;
     if (work->field_6 < 0x12) {
         Actor401300_ScaleMatrix(&work->field_C48, (work->field_6 << 12) / 30);
-        if (gGameSession->field_6 == 0xB) {
+        if (gGameSession->loc.area == 0xB) {
             if ((work->field_6 & 7) == 0) {
                 Gp_SpawnEff(0x600FB, arg0->field_2C->field_8 + 3, 0, NULL);
                 Gp_SpawnEff(0x600FB, arg0->field_2C->field_8 + 16, 0, NULL);
@@ -3928,7 +3928,7 @@ void func_actor_401300_8013F628(Actor401300* arg0)
                     Gp_SpawnEff(0x600FB, arg0->field_2C->field_8 + 18, 0, NULL);
                 }
             }
-        } else if (gGameSession->field_6 == 0x1D) {
+        } else if (gGameSession->loc.area == 0x1D) {
             if ((work->field_6 & 7) == 0) {
                 Gp_SpawnEff(0x601C1, arg0->field_2C->field_8 + 3, 0, NULL);
                 Gp_SpawnEff(0x601C1, arg0->field_2C->field_8 + 16, 0, NULL);

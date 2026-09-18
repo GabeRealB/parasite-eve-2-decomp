@@ -97,7 +97,7 @@ void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
         work->field_0 = 0x2D0;
     }
     coord->coord.t[0] = (work->field_0 * (s32)task->spawnArg2) - 1000;
-    if ((u8)gGameSession->field_4 == 5) {
+    if ((u8)gGameSession->loc.view == 5) {
         extra->field_C = 0;
     } else {
         extra->field_C = 0x80;
@@ -128,7 +128,7 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            if ((u8)gGameSession->field_4 == 2) {
+            if ((u8)gGameSession->loc.view == 2) {
                 pos = D_acropolis_west_elevator_hall_8017D5EC;
                 Gp_SpawnEff(0x6001F, coord, 0x1804, &pos);
                 pos.vx = -0x1800;
@@ -140,7 +140,7 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
                 pos.vz = -0x2C0;
                 Gp_SpawnEff(0x6001F, coord, 0x803, &pos);
             }
-            if ((u8)gGameSession->field_4 == 5) {
+            if ((u8)gGameSession->loc.view == 5) {
                 altPos = D_acropolis_west_elevator_hall_8017D5F4;
                 Gp_SpawnEff(0x60025, coord, 0, &altPos);
             }
@@ -179,7 +179,7 @@ void func_acropolis_west_elevator_hall_8017F990(Task* task)
         Gp_LoadImages(D_acropolis_west_elevator_hall_80185004);
     }
 
-    if ((u8)gGameSession->field_4 != 5) {
+    if ((u8)gGameSession->loc.view != 5) {
         for (i = 0; i < 0x100; i += 0x10) {
             Gp_BlendRgb555Clut(&D_acropolis_west_elevator_hall_80184C04[i],
                                &D_acropolis_west_elevator_hall_80184A04[i], 0,

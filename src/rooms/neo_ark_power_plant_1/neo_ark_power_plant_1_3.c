@@ -19,7 +19,7 @@ void func_neo_ark_power_plant_1_8017D928(Task* task)
 {
     task->field_24 = D_neo_ark_power_plant_1_8017EB18;
     Game_SetPtrSlot(task, 7);
-    if (gGameSession->field_9 == 1) {
+    if (gGameSession->loc.place == 1) {
         gGameSession->field_69 = 1;
     }
     if (GameFlag_GetNibble(0xFB) == 0) {

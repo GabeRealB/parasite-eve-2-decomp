@@ -55,8 +55,8 @@ void func_dryfield_night_motel_balcony_8017DC30(Task* task)
     task->field_24 = D_dryfield_night_motel_balcony_80182804;
     Game_SetPtrSlot(task, 7);
     func_dryfield_night_motel_balcony_8017E3C8();
-    field9 = gGameSession->field_9;
-    if (field9 == 2 && gGameSession->field_5 == field9 && GameFlag_GetNibble(0x61) == 0) {
+    field9 = gGameSession->loc.place;
+    if (field9 == 2 && gGameSession->loc.room == field9 && GameFlag_GetNibble(0x61) == 0) {
         func_800E8634((s32)&D_80165060, 0, (s32)&D_80165798);
         GameFlag_SetNibble(0x61, 1);
         GameFlag_SetNibble(0x10E, 1);
@@ -71,7 +71,7 @@ void func_dryfield_night_motel_balcony_8017DC30(Task* task)
 /// still unset, play the motel script and mark the flag done.
 void func_dryfield_night_motel_balcony_8017DD0C(Task* task)
 {
-    if (gGameSession->field_1 == 0 && D_80114C12 != 1 && GameFlag_GetNibble(0x10E) == 1) {
+    if (gGameSession->eventState == 0 && D_80114C12 != 1 && GameFlag_GetNibble(0x10E) == 1) {
         func_800E8614((s32)&D_80165720, 0);
         GameFlag_SetNibble(0x10E, 2);
     }

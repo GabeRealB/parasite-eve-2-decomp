@@ -184,7 +184,7 @@ check:
     func_800E0FEC(rec, (GpDeltaScratch*)(head - 0x18), 1, &idx);
     idx = func_800E1ACC((u8*)&idx);
     SOFT_COMPILER_BARRIER();
-    param = Gp_RoomParamTables[gGameSession->field_7 - 1][gGameSession->field_6 - 1][idx];
+    param = Gp_RoomParamTables[gGameSession->loc.stage - 1][gGameSession->loc.area - 1][idx];
     if (param->field_1 == 0) {
         if (param->field_2 != 0) {
             goto explode;

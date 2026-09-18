@@ -23,7 +23,7 @@ void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0)
 {
     arg0->field_24 = D_neo_ark_eve_access_tunnel_8017EA94;
     Game_SetPtrSlot(arg0, 7);
-    if (gGameSession->field_9 == 0xB) {
+    if (gGameSession->loc.place == 0xB) {
         u16* ptr = (u16*)Fs_ImgBuffers;
         s32  i   = 0;
 
@@ -41,11 +41,11 @@ void func_neo_ark_eve_access_tunnel_8017DFC0(void)
 {
     CdCmdQueue* queue = &CdCmd_Queue;
 
-    if (gGameSession->field_9 < 4U) {
+    if (gGameSession->loc.place < 4U) {
         func_neo_ark_eve_access_tunnel_8017E090(0, 0);
         func_neo_ark_eve_access_tunnel_8017E090(1, 0);
     }
-    if (gGameSession->field_9 == 0xB) {
+    if (gGameSession->loc.place == 0xB) {
         queue->field_22A = 2;
     }
 }

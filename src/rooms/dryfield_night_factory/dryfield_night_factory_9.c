@@ -33,8 +33,8 @@ void func_dryfield_night_factory_8018182C(Task* task)
     for (hs = D_dryfield_night_factory_80186EBC; hs->id != -1; hs++) {
         hs->hit = 0;
     }
-    gGameSession->field_66 = 1;
-    gGameSession->field_68 = 1;
-    gGameSession->field_1  = 1;
-    work->field_8          = 0;
+    gGameSession->field_66   = 1;
+    gGameSession->field_68   = 1;
+    gGameSession->eventState = 1;
+    work->field_8            = 0;
 }

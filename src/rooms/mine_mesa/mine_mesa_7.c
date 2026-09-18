@@ -26,7 +26,7 @@ void func_mine_mesa_8017E978(Task* arg0)
             SndEvt_EnqueueType6(0x1000003A, 0, 0);
             break;
     }
-    if ((gGameSession->field_1 == 0) || ((s16)arg0->killCountdown >= 0x39)) {
+    if ((gGameSession->eventState == 0) || ((s16)arg0->killCountdown >= 0x39)) {
         Task_Kill(arg0);
     }
 }

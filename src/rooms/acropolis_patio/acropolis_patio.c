@@ -71,13 +71,13 @@ void func_acropolis_patio_8017D5EC(Task* arg0)
             Gp_DispatchMsg((Task*)temp, 0x7D4, (s32)&D_acropolis_patio_8018046C, 0);
         }
     }
-    if ((gGameSession->field_9 == 1) && (GameFlag_GetNibble(0x21) < 2) && (GameFlag_GetNibble(0x21) < 2)) {
+    if ((gGameSession->loc.place == 1) && (GameFlag_GetNibble(0x21) < 2) && (GameFlag_GetNibble(0x21) < 2)) {
         temp = Gp_LookupSlot4(1);
         if (temp != 0) {
             Gp_DispatchMsg((Task*)temp, 0x7DB, (s32)&D_acropolis_patio_80180440, 0);
         }
     }
-    if ((gGameSession->field_9 == 2) && (GameFlag_GetNibble(0x26) == 0)) {
+    if ((gGameSession->loc.place == 2) && (GameFlag_GetNibble(0x26) == 0)) {
         msg.field_0 = 1;
         msg.field_1 = 3;
         msg.field_2 = 0;

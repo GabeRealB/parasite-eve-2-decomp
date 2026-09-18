@@ -452,7 +452,7 @@ void func_actor_205200_8014C59C(Actor205200Ctx* arg0, Actor205200* arg1)
     work  = arg1->field_1C;
     obj   = arg1->field_2C;
     coord = obj->field_8;
-    if (gGameSession->field_1 != 0) {
+    if (gGameSession->eventState != 0) {
         return;
     }
     if (work->field_594 != 0) {

@@ -188,7 +188,7 @@ void GameFlow_SpawnMenu(Task* arg0)
     arg0->spawnArg2 = temp_v0;
     if (temp_v0 != 0) {
         Display_State.field_11e = 0xFF;
-        gGameSession->field_2   = 1;
+        gGameSession->uiOpen    = 1;
         arg0->killCountdown     = 0x10;
         arg0->state             = arg0->state + 1;
     }
@@ -202,7 +202,7 @@ void GameFlow_WaitMenuDone(Task* arg0)
     if (obj->field_2E == -1) {
         Ui_TeardownTree(obj, obj->owner);
         Display_State.field_11e = 0;
-        gGameSession->field_2   = 0;
+        gGameSession->uiOpen    = 0;
         if (Mc_SaveData.field_1a9 == 1) {
             CdVol_SetMixMode(0);
         } else {
@@ -262,7 +262,7 @@ void GameFlow_EnqueueDefaultLoad(Task* arg0)
     u8 param2[8];
 
     if ((u8)func_80042500() == 0) {
-        Fs_BeginBootLoad(&gGameSession->field_4, 0);
+        Fs_BeginBootLoad(&gGameSession->loc.view, 0);
         param1[3] = 0;
         param1[2] = 0;
         param1[0] = 0;
@@ -579,7 +579,7 @@ void Pad_UpdatePort0(void)
             pad->triggered       = scratch->prevButtons & (scratch->buttons ^ scratch->prevButtons);
             pad->buttons         = scratch->buttons;
 
-            if (*(s8*)&gGameSession->field_2 != 0) {
+            if (*(s8*)&gGameSession->uiOpen != 0) {
                 if ((scratch->prevButtons & 0xF000) == (scratch->buttons & 0xF000)) {
                     pad->autoRepeat = pad->autoRepeat + ds->field_10a;
                 } else {

@@ -66,7 +66,7 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
             Gp_DispatchMsg((Task*)work->owner, 0x3E9, (s32)&D_dryfield_warehouse_8017F868, 0);
             if (Mc_SaveData.field_5 != 2) {
                 Mc_SaveData.field_5           = 2;
-                gGameSession->field_5         = 2;
+                gGameSession->loc.room        = 2;
                 D_dryfield_warehouse_801821C4 = 1;
                 return;
             }
@@ -98,7 +98,7 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse_2", func_d
 ///
 /// State 0 then falls into state 1, which only steps the machine, so a task
 /// entering at 1 runs the step alone. State 2 kills the task once the session
-/// has torn down (`gGameSession->field_1`), otherwise runs the script.
+/// has torn down (`gGameSession->eventState`), otherwise runs the script.
 void func_dryfield_warehouse_8017E090(Task* arg0)
 {
     DwhWork* work;
@@ -137,7 +137,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
             }
             return;
         case 2:
-            if (gGameSession->field_1 == 0) {
+            if (gGameSession->eventState == 0) {
                 Task_RequestKill(arg0, 0);
                 return;
             }

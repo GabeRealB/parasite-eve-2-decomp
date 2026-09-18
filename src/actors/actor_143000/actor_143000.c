@@ -97,12 +97,12 @@ void func_actor_143000_801325F0(Actor143000* arg0)
     u8                uw;
     u8                vh;
 
-    work                   = arg0->field_1C;
-    gGameSession->field_68 = 1;
-    gGameSession->field_1  = 1;
-    p                      = D_actor_143000_80134580;
-    D_801153F4             = 2;
-    prompt                 = &D_80114D28;
+    work                     = arg0->field_1C;
+    gGameSession->field_68   = 1;
+    gGameSession->eventState = 1;
+    p                        = D_actor_143000_80134580;
+    D_801153F4               = 2;
+    prompt                   = &D_80114D28;
     if (Gp_CapBusy() != 0) {
         prompt->mode     = 0;
         prompt->targetId = 0;

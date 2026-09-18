@@ -78,10 +78,10 @@ void func_acropolis_security_room_8017D9DC(Task* task)
     }
     task->state = state;
     Display_AcquireRef();
-    gGameSession->field_68 = 1;
-    gGameSession->field_66 = 1;
-    gGameSession->field_1  = 1;
-    hs                     = D_acropolis_security_room_80182648;
+    gGameSession->field_68   = 1;
+    gGameSession->field_66   = 1;
+    gGameSession->eventState = 1;
+    hs                       = D_acropolis_security_room_80182648;
     if (hs->id != -1) {
         do {
             hs->hit = 0;
@@ -107,8 +107,8 @@ void func_acropolis_security_room_8017DB30(Task* task)
     work   = (AsrMonitorWork*)task->work;
     func_acropolis_security_room_8017E0C4(work->cameraId - 0x7F);
     func_acropolis_security_room_8017E37C(task);
-    gGameSession->field_68 = 1;
-    gGameSession->field_1  = 1;
+    gGameSession->field_68   = 1;
+    gGameSession->eventState = 1;
     if (Gp_CapBusy() != 0) {
         prompt->mode     = 0;
         prompt->targetId = 0;

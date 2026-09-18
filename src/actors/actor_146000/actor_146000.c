@@ -34,7 +34,7 @@ void func_actor_146000_80131E24(Task* arg0)
             arg0->state++;
             return;
         case 1:
-            session = gGameSession->field_1;
+            session = gGameSession->eventState;
             if (session == 2) {
                 arg0->state = session;
             }

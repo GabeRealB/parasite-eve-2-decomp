@@ -41,7 +41,7 @@ void func_mist_r18_8017D5F4(Task* task)
     s32               i;
 
     spawn = task->spawnArg2;
-    if (session->field_1 == 0) {
+    if (session->eventState == 0) {
         task->state = -1;
     }
 
@@ -130,7 +130,7 @@ void func_mist_r18_8017D960(void)
 {
     s32 state;
 
-    if ((gGameSession->field_1 == 0) && (D_80114C12 != 1) && (D_80071075 == 0)) {
+    if ((gGameSession->eventState == 0) && (D_80114C12 != 1) && (D_80071075 == 0)) {
         state = D_mist_r18_80186E9C;
         if (state == 1) {
             func_800E8634((s32)&D_mist_r18_80185EBC, 0, (s32)&D_mist_r18_80186564);

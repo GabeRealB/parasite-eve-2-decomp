@@ -65,8 +65,8 @@ void func_dryfield_breezeway_8017DEC0(Task* arg0)
         case 0:
             break;
         case 1:
-            msg.field_0 = gGameSession->field_7;
-            msg.field_1 = gGameSession->field_6;
+            msg.field_0 = gGameSession->loc.stage;
+            msg.field_1 = gGameSession->loc.area;
             msg.field_2 = 1;
             Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             Gp_DispatchMsg(work->field_4, 0x7D4, (s32)&D_dryfield_breezeway_80181E28, 0);
@@ -103,9 +103,9 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
                 Mem_Set(work, 0, 0x14);
                 work->field_0                 = (void*)Game_GetPtrSlot(3);
                 D_dryfield_breezeway_801843C0 = arg0;
-                id                            = gGameSession->field_6 | (gGameSession->field_7 << 8);
+                id                            = gGameSession->loc.area | (gGameSession->loc.stage << 8);
                 work->field_4                 = (void*)Gp_FindWorkById(id)->field_0;
-                id                            = ((gGameSession->field_7 << 8) | 0x1000) | gGameSession->field_6;
+                id                            = ((gGameSession->loc.stage << 8) | 0x1000) | gGameSession->loc.area;
                 work->field_8                 = (void*)Gp_FindWorkById(id)->field_0;
             }
             arg0->state += 1;
@@ -161,9 +161,9 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
                 Mem_Set(work, 0, 0x14);
                 work->field_0                 = (void*)Game_GetPtrSlot(3);
                 D_dryfield_breezeway_801843C0 = arg0;
-                id                            = gGameSession->field_6 | (gGameSession->field_7 << 8);
+                id                            = gGameSession->loc.area | (gGameSession->loc.stage << 8);
                 work->field_4                 = (void*)Gp_FindWorkById(id)->field_0;
-                id                            = ((gGameSession->field_7 << 8) | 0x1000) | gGameSession->field_6;
+                id                            = ((gGameSession->loc.stage << 8) | 0x1000) | gGameSession->loc.area;
                 work->field_8                 = (void*)Gp_FindWorkById(id)->field_0;
             }
             id           = D_80073BA9;
@@ -177,7 +177,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
             arg0->state += 1;
             break;
         case 1:
-            if (gGameSession->field_1 == 0) {
+            if (gGameSession->eventState == 0) {
                 Task_Kill(arg0);
                 return;
             }
@@ -192,8 +192,8 @@ void func_dryfield_breezeway_8017E2D4(void)
     DbwMsg7DA msg;
 
     work        = (DbwWork*)D_dryfield_breezeway_801843C0->work;
-    msg.field_0 = gGameSession->field_7;
-    msg.field_1 = gGameSession->field_6;
+    msg.field_0 = gGameSession->loc.stage;
+    msg.field_1 = gGameSession->loc.area;
     msg.field_2 = 2;
     Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
     Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_dryfield_breezeway_80181E28, 0);
@@ -228,8 +228,8 @@ void func_dryfield_breezeway_8017E390(void)
     Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&buf, 0);
 
     work            = (DbwWork*)D_dryfield_breezeway_801843C0->work;
-    buf.msg.field_0 = gGameSession->field_7;
-    buf.msg.field_1 = gGameSession->field_6;
+    buf.msg.field_0 = gGameSession->loc.stage;
+    buf.msg.field_1 = gGameSession->loc.area;
     buf.msg.field_2 = 2;
     Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&buf, 0x7DB);
     Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_dryfield_breezeway_80181E28, 0);
@@ -308,11 +308,11 @@ void func_dryfield_breezeway_8017E464(Task* arg0)
     ext->field_1C = &work->light;
     coord->sub    = NULL;
 
-    gGameSession->field_1  = 1;
-    gGameSession->field_66 = 1;
-    gGameSession->field_68 = 1;
-    work->cursorX          = 0;
-    work->cursorY          = 0x20;
+    gGameSession->eventState = 1;
+    gGameSession->field_66   = 1;
+    gGameSession->field_68   = 1;
+    work->cursorX            = 0;
+    work->cursorY            = 0x20;
 
     {
         DbwEventWork* eventWork = (DbwEventWork*)arg0->work;
@@ -421,8 +421,8 @@ void func_dryfield_breezeway_8017E65C(Task* task)
     func_8004BFF8(rsin(D_80070F70 * 0x10), m);
     coord->flg = 0;
     func_dryfield_breezeway_8017EB8C(task, 0, 0x20);
-    gGameSession->field_68 = 1;
-    gGameSession->field_1  = 1;
+    gGameSession->field_68   = 1;
+    gGameSession->eventState = 1;
     if (Gp_CapBusy() != 0) {
         prompt->mode     = 0;
         prompt->targetId = 0;

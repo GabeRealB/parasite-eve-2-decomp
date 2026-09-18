@@ -16,13 +16,13 @@ extern SVECTOR D_dryfield_night_cellar_8017DAE0[];
 
 /// Per-frame effect: once the story flag at nibble 0x52 is set, draws the two
 /// glow anchors belonging to the visit the stage-visit byte
-/// `gGameSession->field_4` records. Every other visit draws nothing.
+/// `gGameSession->loc.view` records. Every other visit draws nothing.
 void func_dryfield_night_cellar_8017DA28(void)
 {
     u8 visit;
 
     if (GameFlag_GetNibble(0x52) == 1) {
-        visit = gGameSession->field_4;
+        visit = gGameSession->loc.view;
         if (visit == 2) {
             Room_Draw17(&D_dryfield_night_cellar_8017DAD0[0], 1, 0x280);
             Room_Draw17(&D_dryfield_night_cellar_8017DAD0[1], 1, 0x280);

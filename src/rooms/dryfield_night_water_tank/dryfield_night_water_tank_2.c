@@ -44,7 +44,7 @@ s32 func_dryfield_night_water_tank_8017D76C(s32 arg0, s32 arg1, RoomEventMsg* in
 {
     u8 temp_v1;
 
-    if ((gGameSession->field_9 != 0xA) || (GameFlag_GetNibble(0x7B) >= 2)) {
+    if ((gGameSession->loc.place != 0xA) || (GameFlag_GetNibble(0x7B) >= 2)) {
         if (in->field_2 == 3) {
             func_800E8614((s32)&D_dryfield_night_water_tank_8017DDD8, 0);
         }
@@ -53,7 +53,7 @@ s32 func_dryfield_night_water_tank_8017D76C(s32 arg0, s32 arg1, RoomEventMsg* in
         }
     }
     if (in->field_2 == 5) {
-        temp_v1 = gGameSession->field_9;
+        temp_v1 = gGameSession->loc.place;
         if ((u32)(temp_v1 - 0xA) < 2U) {
             if ((temp_v1 != 0xA) || (GameFlag_GetNibble(0x7B) >= 2)) {
                 Gp_MsgPlayerWeapon(0);
@@ -82,13 +82,13 @@ void func_dryfield_night_water_tank_8017D870(Task* task)
     task->field_24 = D_dryfield_night_water_tank_8017DFE8;
     Game_SetPtrSlot(task, 7);
     Task_SpawnFromTable(&D_dryfield_night_water_tank_8017EE28, 0, 0, 0);
-    if ((u32)(gGameSession->field_9 - 0xA) < 2U) {
+    if ((u32)(gGameSession->loc.place - 0xA) < 2U) {
         func_dryfield_night_water_tank_8017D9DC(0);
     }
-    if (gGameSession->field_9 == 0xA) {
+    if (gGameSession->loc.place == 0xA) {
         Task_SpawnFromTable(&D_dryfield_night_water_tank_8017E010, 0, 0, 0);
     }
-    if (gGameSession->field_9 == 0xB) {
+    if (gGameSession->loc.place == 0xB) {
         func_8013224C();
     }
     task->state = task->state + 1;
@@ -96,7 +96,7 @@ void func_dryfield_night_water_tank_8017D870(Task* task)
 
 void func_dryfield_night_water_tank_8017D94C(void)
 {
-    if (gGameSession->field_9 == 0xB) {
+    if (gGameSession->loc.place == 0xB) {
         Gp_MarkPlayTime();
     }
 }

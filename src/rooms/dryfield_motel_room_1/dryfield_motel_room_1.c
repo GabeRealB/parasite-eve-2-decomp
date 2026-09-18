@@ -33,7 +33,7 @@ s32 func_dryfield_motel_room_1_8017D61C(void)
 /// why the function starts two instructions before its frame setup.
 s32 func_dryfield_motel_room_1_8017D624(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    if (gGameSession->field_9 == 3 && GameFlag_GetNibble(0x5C) == 0 && in->field_2 == 1) {
+    if (gGameSession->loc.place == 3 && GameFlag_GetNibble(0x5C) == 0 && in->field_2 == 1) {
         GameFlag_SetNibble(0x5C, 1);
         Task_SpawnFromTable(&D_dryfield_motel_room_1_8017E478, 0, 0, 0);
     }
@@ -52,9 +52,9 @@ void func_dryfield_motel_room_1_8017D69C(Task* arg0)
 
     arg0->field_24 = D_dryfield_motel_room_1_8017E0A8;
     Game_SetPtrSlot(arg0, 7);
-    if (gGameSession->field_9 == 3 && GameFlag_GetNibble(0x5C) == 0) {
-        msg.field_0 = gGameSession->field_7;
-        msg.field_1 = gGameSession->field_6;
+    if (gGameSession->loc.place == 3 && GameFlag_GetNibble(0x5C) == 0) {
+        msg.field_0 = gGameSession->loc.stage;
+        msg.field_1 = gGameSession->loc.area;
         msg.field_2 = 0;
         Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
     }

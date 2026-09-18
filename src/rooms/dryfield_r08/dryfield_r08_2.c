@@ -22,9 +22,9 @@ void func_dryfield_r08_8017F340(u8 arg0, u8 arg1)
     GameSessionFrom4* sess;
     GpSprtCmd*        cmd;
 
-    sess = (GameSessionFrom4*)&gGameSession->field_4;
+    sess = &gGameSession->loc;
     if ((u32)(arg0 & 0xFF) < 0xBU) {
-        cmd = Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1][3].field_4;
+        cmd = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1][3].field_4;
         if (arg1 & 0xFF) {
             cmd[arg0 + 1].field_4 = 1;
             return;
@@ -39,9 +39,9 @@ void func_dryfield_r08_8017F3B8(u8 arg0, u8 arg1)
     GpSprtRec*        rec;
     GpSprtCmd*        cmd;
 
-    sess = (GameSessionFrom4*)&gGameSession->field_4;
+    sess = &gGameSession->loc;
     if ((u32)(arg0 & 0xFF) < 3U) {
-        rec = Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];
+        rec = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
         if ((u32)(arg0 & 0xFF) == 0U) {
             cmd = rec[1].field_4;
         } else {

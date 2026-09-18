@@ -38,9 +38,9 @@ void RoomsShared80181228(Task* task)
             } else {
                 D_80115694 = -rec->field_0;
             }
-            gGameSession->field_68 = 1;
-            gGameSession->field_1  = 1;
-            D_801153F4             = 2;
+            gGameSession->field_68   = 1;
+            gGameSession->eventState = 1;
+            D_801153F4               = 2;
             Gp_MsgPlayer3F3(0);
             Gp_MsgAlly3F3(0);
             if (rec->field_4 != 0) {
@@ -159,9 +159,9 @@ void RoomsShared80181228(Task* task)
             if (Mc_SaveData.field_13 == 1) {
                 Gp_MsgAllyWeapon(1);
             }
-            gGameSession->field_68 = 0;
-            gGameSession->field_1  = 0;
-            D_801153F4             = 0;
+            gGameSession->field_68   = 0;
+            gGameSession->eventState = 0;
+            D_801153F4               = 0;
             if (rec->field_3 != 0) {
                 Gp_ResetCap();
             }

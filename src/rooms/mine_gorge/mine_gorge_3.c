@@ -20,7 +20,7 @@ void func_mine_gorge_8017D8D4(Task* arg0)
 {
     arg0->field_24 = &D_mine_gorge_8017E280;
     Game_SetPtrSlot(arg0, 7);
-    if ((gGameSession->field_9 == 1) && (GameFlag_GetNibble(0xC5) != 0)) {
+    if ((gGameSession->loc.place == 1) && (GameFlag_GetNibble(0xC5) != 0)) {
         D_8011540A = 0x15;
     }
     if ((GameFlag_GetNibble(0xBE) == 2) && (GameFlag_GetNibble(0x166) == 0)) {

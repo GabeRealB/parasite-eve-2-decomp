@@ -87,7 +87,7 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
         Gp_ReleaseState1CMem(work, task);
         return;
     }
-    mode = gGameSession->field_4;
+    mode = gGameSession->loc.view;
     if (mode == 9) {
         count = 0x28;
         if (work->field_24 != mode) {
@@ -112,7 +112,7 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
             Gp_SpawnEff(0x60061, coord, (rnd & 0xFF) + spawnArg, (SVECTOR*)&work->field_10);
         }
     }
-    work->field_24 = gGameSession->field_4;
+    work->field_24 = gGameSession->loc.view;
 }
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_7", func_acropolis_cafeteria_8017EA90);

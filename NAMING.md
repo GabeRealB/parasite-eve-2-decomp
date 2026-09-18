@@ -368,30 +368,28 @@ comment and now looks freshly verified.
 ### Struct overlays are an artifact
 
 A type that describes bytes belonging to another type, at an offset into it, is
-something decompilation produces and real code does not. `GameSessionFrom4`
-covers `GameSession`'s `field_4`..`field_9` and exists only because the compiler
-kept `&gGameSession->field_4` in a register; thirty-five types in the tree are
-documented as an overlay of something else.
+something decompilation produces and real code does not. Thirty-five types in
+the tree are still documented as an overlay of something else.
 
 What such a type usually means is that a **run of the owning struct is one
 thing**, which the owning struct should say. Express it there, as a nested type,
 and pick the form from how the bytes are used:
 
 - Only ever used as a group — a **named nested struct member**.
-- Used as a group *and* read field by field — a **named union member** holding
-  the aggregate beside a struct of the individual fields. `GameSession` is this
-  case: `field_4` alone has a thousand references against the overlay's hundred
-  and fifty.
+- Used as a group *and* read field by field — still a **named nested struct
+  member**, as long as the fields live on that nested type. `GameSession.loc`
+  is this case: `&session->loc` is the 6-byte key passed into lookups, and
+  `session->loc.stage` is the same bytes field by field.
+- A union of the aggregate beside a parallel byte struct only when both
+  spellings have to exist at the same nesting level (anonymous members do not
+  work here).
 - A fixed set of bits rather than fields — see the bitfield rule above, which is
   the same idea one level down.
 
 ```c
 typedef struct GameSession {
-    s32 field_0;
-    union {
-        SessionLocation loc;                    /* the thing that is passed */
-        struct { u8 f4, f5, f6, f7, f8, f9; } b; /* the same bytes, field by field */
-    } at4;
+    s8 field_0;
+    GameSessionFrom4 loc;   /* the thing that is passed; loc.view / loc.stage */
     ...
 ```
 
@@ -399,9 +397,8 @@ typedef struct GameSession {
 struct or union members: it accepts the declaration and then rejects every
 access to it. `include/main/gpuext.h` looks like a counter-example, but the one
 line that reads through its anonymous struct is commented out in
-`src/main/gpuext.c` — someone met this already. So the access path is
-`session->at4.loc`, not `session->loc`, and the extra name is the price of the
-construct rather than a choice.
+`src/main/gpuext.c` — someone met this already. So a union form is
+`session->at4.loc`, not `session->loc`; a nested struct form is `session->loc`.
 
 Either way the phantom type goes away, callers stop casting, and the
 relationship is stated where the layout is. The address is unchanged, so the

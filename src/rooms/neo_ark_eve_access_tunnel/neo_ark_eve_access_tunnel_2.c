@@ -59,7 +59,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, GpSaveLoc* sr
 
 s32 func_neo_ark_eve_access_tunnel_8017DD70(s32 arg0, s32 arg1, s32 arg2)
 {
-    if (gGameSession->field_9 == 0xB) {
+    if (gGameSession->loc.place == 0xB) {
         switch (arg2) {
             case 6:
                 if (GameFlag_GetNibble(0x142) == 0) {

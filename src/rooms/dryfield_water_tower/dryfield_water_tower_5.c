@@ -356,9 +356,9 @@ void func_dryfield_water_tower_8017FD64(Task* task)
                 Mem_Set(work, 0, 0x18);
                 work->field_0                   = (Task*)Game_GetPtrSlot(3);
                 D_dryfield_water_tower_801876AC = task;
-                id                              = gGameSession->field_6 | (gGameSession->field_7 << 8);
+                id                              = gGameSession->loc.area | (gGameSession->loc.stage << 8);
                 work->field_4                   = (Task*)Gp_FindWorkById(id)->field_0;
-                id                              = ((gGameSession->field_7 << 8) | 0x1000) | gGameSession->field_6;
+                id                              = ((gGameSession->loc.stage << 8) | 0x1000) | gGameSession->loc.area;
                 work->field_8                   = (Task*)Gp_FindWorkById(id)->field_0;
             }
             task->state++;
@@ -368,7 +368,7 @@ void func_dryfield_water_tower_8017FD64(Task* task)
             task->state++;
             break;
         case 2:
-            if (gGameSession->field_1 == 0) {
+            if (gGameSession->eventState == 0) {
                 Task_RequestKill(task, 0);
                 return;
             }

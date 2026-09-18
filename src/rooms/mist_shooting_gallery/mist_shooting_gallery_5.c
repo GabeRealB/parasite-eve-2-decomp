@@ -672,7 +672,7 @@ void func_mist_shooting_gallery_8018341C(Task* arg0)
             }
             break;
         case 2:
-            if ((u8)gGameSession->field_4 == 0x12) {
+            if ((u8)gGameSession->loc.view == 0x12) {
                 if (work->field_0A <= 0) {
                     if (D_80071075 == 0) {
                         work->field_0A = 1;
@@ -847,7 +847,7 @@ void func_mist_shooting_gallery_801838FC(Task* arg0)
             }
             break;
         case 2:
-            if ((u8)gGameSession->field_4 == 0x12) {
+            if ((u8)gGameSession->loc.view == 0x12) {
                 if (work->field_0A <= 0) {
                     if (D_80071075 == 0) {
                         work->field_0A = 1;
@@ -1030,7 +1030,7 @@ void func_mist_shooting_gallery_80183E78(Task* arg0)
             }
             break;
         case 2:
-            if ((u8)gGameSession->field_4 != 0x12) {
+            if ((u8)gGameSession->loc.view != 0x12) {
                 break;
             }
             if (work->field_0A <= 0) {

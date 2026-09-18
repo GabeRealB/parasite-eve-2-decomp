@@ -45,7 +45,7 @@ extern s8 D_8007218A;
 
 void func_acropolis_forked_road_8017D970(void)
 {
-    if ((D_acropolis_forked_road_80180F3C == 0) && (gGameSession->field_8 == 2)) {
+    if ((D_acropolis_forked_road_80180F3C == 0) && (gGameSession->loc.field_4 == 2)) {
         D_acropolis_forked_road_80180F3C = 1;
         Task_SpawnFromTable(&D_acropolis_forked_road_80180F44, 2, 0, 0);
     }
@@ -110,7 +110,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 
         case 2:
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
-                slot = Stream_FindSlot(&gGameSession->field_4, 0, 0);
+                slot = Stream_FindSlot(&gGameSession->loc.view, 0, 0);
                 CdCmd_Enqueue(0x61, 0, &slot);
                 task->state = task->state + 1;
             }

@@ -133,7 +133,7 @@ void func_actor_202600_8014A8B4(Actor202600* arg0)
     work                               = actor->field_1C;
     coord                              = actor->field_2C->field_8;
     state                              = work->field_39C;
-    sessionFlags                       = *(s32*)&gGameSession->field_4;
+    sessionFlags                       = *(s32*)&gGameSession->loc.view;
     value                              = 0;
     switch (state) {
         case 0:

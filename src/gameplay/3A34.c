@@ -686,7 +686,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
         register GameSession* gs asm("a0");
 
         gs  = gGameSession;
-        set = (GpRoomCoordSet*)Gp_GetRoomCoordSet((GameSessionFrom4*)&gs->field_4);
+        set = (GpRoomCoordSet*)Gp_GetRoomCoordSet(&gs->loc);
     }
     if (set == NULL) {
         Task_Kill(task);
@@ -904,7 +904,7 @@ s32 Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1)
     room = obj2->field_44;
     pos  = arg1;
     if (room != 0) {
-        if ((u8)gGameSession->field_4 != room) {
+        if ((u8)gGameSession->loc.view != room) {
             return 0;
         }
     }
@@ -1105,7 +1105,7 @@ s32 Gp_LightCone(GpObj68* arg0, VECTOR3* arg1)
     room   = obj->field_44;
     result = 0;
     if (room != 0) {
-        if ((u8)gGameSession->field_4 != room) {
+        if ((u8)gGameSession->loc.view != room) {
             return result;
         }
     }
@@ -1250,7 +1250,7 @@ void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
     u32             dist;
     s32             i;
 
-    set           = (GpRoomCoordSet*)Gp_GetRoomCoordSet((GameSessionFrom4*)&gGameSession->field_4);
+    set           = (GpRoomCoordSet*)Gp_GetRoomCoordSet(&gGameSession->loc);
     best          = 0x7FFFFFFF;
     arg1->kind    = -1;
     arg1->field_4 = 0;
@@ -1423,7 +1423,7 @@ static __inline__ s32 solve_luma(GpObj44* arg0)
     s16 val;
 
     val = arg0->field_44;
-    if (val != 0 && (u8)gGameSession->field_4 != val) {
+    if (val != 0 && (u8)gGameSession->loc.view != val) {
         return 0;
     }
     {
@@ -1493,7 +1493,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     GpCoord64* coord;
 
     startr   = start;
-    set      = (GpRoomCoordSet*)Gp_GetRoomCoordSet((GameSessionFrom4*)&gGameSession->field_4);
+    set      = (GpRoomCoordSet*)Gp_GetRoomCoordSet(&gGameSession->loc);
     colorMtx = extra->field_20;
     nOcc     = 0;
     if (set == NULL) {
@@ -1741,7 +1741,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     } else {
         GpRoomBoundVec* bound;
 
-        bound = Gp_GetRoomBound((GameSessionFrom4*)&gGameSession->field_4);
+        bound = Gp_GetRoomBound(&gGameSession->loc);
         if (colorMtx->t[0] < bound->field_0) {
             colorMtx->t[0] = bound->field_0;
         }
@@ -1873,7 +1873,7 @@ void Gp_DebugPanTask(Task* arg0)
             mtx->m[1][0] = mtx->m[1][1] = mtx->m[1][2] = val;
             mtx->m[2][0] = mtx->m[2][1] = mtx->m[2][2] = 0x200;
             D_80114F28                                 = 0;
-        } else if (((u32)Display_State.field_8 % 3) == 0 && cfg->hp > 0 && gGameSession->field_1 == 0) {
+        } else if (((u32)Display_State.field_8 % 3) == 0 && cfg->hp > 0 && gGameSession->eventState == 0) {
             {
                 register MATRIX* colorMtx asm("v0");
                 if (Gp_StateC08.field_14 > 0 || (Gp_StateC08.field_16 != 0 && (s8)Gp_StateC08.field_17 != 0)) {
@@ -2303,20 +2303,20 @@ GpRoomBoundVec* Gp_GetRoomBound(GameSessionFrom4* arg0)
     GpRoomBoundVec*  result;
     GpRoomBoundVec*  table;
 
-    mid = Gp_RoomCoordTables[arg0->field_3 - 1];
+    mid = Gp_RoomCoordTables[arg0->stage - 1];
     rec = NULL;
     if (mid != NULL) {
-        rec = mid[arg0->field_2 - 1];
+        rec = mid[arg0->area - 1];
         if (rec != NULL) {
-            rec = &rec[arg0->field_1 - 1];
+            rec = &rec[arg0->room - 1];
         }
     }
     result = (GpRoomBoundVec*)&Gp_RoomBoundDefault;
     if (rec != NULL) {
         table = rec->field_4;
         if (table != NULL) {
-            if (table->field_0 >= arg0->field_0) {
-                result = &table[arg0->field_0];
+            if (table->field_0 >= arg0->view) {
+                result = &table[arg0->view];
             }
         }
     }
@@ -2344,12 +2344,12 @@ s32 Gp_GetRoomCoordSet(GameSessionFrom4* arg0)
     s32              result;
 
     result = 0;
-    mid    = Gp_RoomCoordTables[arg0->field_3 - 1];
+    mid    = Gp_RoomCoordTables[arg0->stage - 1];
     rec    = NULL;
     if (mid != NULL) {
-        rec = mid[arg0->field_2 - 1];
+        rec = mid[arg0->area - 1];
         if (rec != NULL) {
-            rec = &rec[arg0->field_1 - 1];
+            rec = &rec[arg0->room - 1];
         }
     }
     if (rec != NULL) {
@@ -2370,7 +2370,7 @@ s32 Gp_GetObjLuma(GpObj44* arg0)
     s16 val;
 
     val = arg0->field_44;
-    if (val != 0 && (u8)gGameSession->field_4 != val) {
+    if (val != 0 && (u8)gGameSession->loc.view != val) {
         return 0;
     }
     arg0->field_4A = 0x1000;
@@ -2546,12 +2546,12 @@ GpRoomCoordRec* Gp_GetRoomCoordRec(GameSessionFrom4* arg0)
     GpRoomCoordRec** mid;
     GpRoomCoordRec*  rec;
 
-    mid = Gp_RoomCoordTables[arg0->field_3 - 1];
+    mid = Gp_RoomCoordTables[arg0->stage - 1];
     rec = NULL;
     if (mid != NULL) {
-        rec = mid[arg0->field_2 - 1];
+        rec = mid[arg0->area - 1];
         if (rec != NULL) {
-            rec = &rec[arg0->field_1 - 1];
+            rec = &rec[arg0->room - 1];
         }
     }
     return rec;
@@ -2581,7 +2581,7 @@ void Gp_BindDefaultMtx(Task* arg0)
     slot  = Game_GetPtrSlot(3);
     extra = slot->extra;
     if (slot != NULL) {
-        result = Gp_GetRoomCoordSet((GameSessionFrom4*)&gGameSession->field_4);
+        result = Gp_GetRoomCoordSet(&gGameSession->loc);
         i      = 0;
         if (result == 0) {
             Task_Kill(arg0);
@@ -2647,7 +2647,7 @@ void Gp_DrawTargetCursor(void)
     if ((s8)stateA == 1) {
         return;
     }
-    if (sess->field_1 != 0) {
+    if (sess->eventState != 0) {
         return;
     }
     if (sess->field_68 != 0) {
@@ -3459,10 +3459,10 @@ s32 Gp_GrantLocationItems(GpItemScan* arg0)
     u8                sub;
 
     ret   = 0;
-    loc   = (GameSessionFrom4*)&gGameSession->field_4;
-    stage = loc->field_3;
-    area  = loc->field_2;
-    sub   = loc->field_5;
+    loc   = &gGameSession->loc;
+    stage = loc->stage;
+    area  = loc->area;
+    sub   = loc->place;
     key   = (stage << 24) | (area << 16) | (sub << 8);
     mode  = Mc_SaveData.field_F;
     if ((mode == 0) || (mode == 2)) {
@@ -4721,8 +4721,8 @@ void func_800DDDF8(GpObj* node)
                     rec  = (GpActorD4Rec*)obj->field_C;
                     slot = rec->field_14;
                     if (obj->flags & 0x400) {
-                        if (Gp_RoomParamTables[gGameSession->field_7 - 1]
-                                              [gGameSession->field_6 - 1]
+                        if (Gp_RoomParamTables[gGameSession->loc.stage - 1]
+                                              [gGameSession->loc.area - 1]
                                               [Gp_GridParams->field_C[i].field_A]
                                                   ->field_1 == 0) {
                             mask                       = 0x100000;
@@ -4947,7 +4947,7 @@ s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
         if (D_80115450[i] == 0) {
             continue;
         }
-        if (Gp_RoomParamTables[gGameSession->field_7 - 1][gGameSession->field_6 - 1]
+        if (Gp_RoomParamTables[gGameSession->loc.stage - 1][gGameSession->loc.area - 1]
                               [Gp_GridParams->field_C[i].field_A]
                                   ->field_1 != 0) {
             continue;
@@ -6393,7 +6393,7 @@ void Gp_LoadRoomParams(void)
     }
 
     session = gGameSession;
-    recs    = Gp_RoomParamTables[session->field_7 - 1][session->field_6 - 1];
+    recs    = Gp_RoomParamTables[session->loc.stage - 1][session->loc.area - 1];
     for (i = 0; i < 8; i++) {
         Gp_RoomParams[i] = recs[i]->field_3;
     }
@@ -6494,7 +6494,7 @@ void Gp_CommitObj4CSave(void)
     for (node = Gp_Obj4CList; node != NULL; node = node->next) {
         if (node->field_4B != 0) {
             node->field_4B = 0;
-            if ((u8)gGameSession->field_4 == node->field_48) {
+            if ((u8)gGameSession->loc.view == node->field_48) {
                 Mc_SaveData.field_4 = node->field_49;
             }
         }
@@ -7192,14 +7192,14 @@ void func_800E31E8(Task* arg0)
     Task*       slotTask;
     s32         slot;
 
-    gGameSession->field_1  = 0;
-    gGameSession->field_68 = 0;
-    D_80115598             = 0;
-    gGameSession->field_69 = 0;
-    flag                   = GameFlag_GetNibble(0x11F);
+    gGameSession->eventState = 0;
+    gGameSession->field_68   = 0;
+    D_80115598               = 0;
+    gGameSession->field_69   = 0;
+    flag                     = GameFlag_GetNibble(0x11F);
     switch (flag) {
         case 1:
-            if (gGameSession->field_7 == 3) {
+            if (gGameSession->loc.stage == 3) {
                 D_80062735 = 1;
             } else {
                 gGameSession->field_69 = 3;
@@ -7210,9 +7210,9 @@ void func_800E31E8(Task* arg0)
             break;
     }
     index = 0;
-    base  = gGameSession->field_7 * 10000 + gGameSession->field_6 * 100;
-    room  = base + gGameSession->field_5;
-    table = D_8010FABC[gGameSession->field_7];
+    base  = gGameSession->loc.stage * 10000 + gGameSession->loc.area * 100;
+    room  = base + gGameSession->loc.room;
+    table = D_8010FABC[gGameSession->loc.stage];
     area  = base;
     desc  = table;
     kind  = 0x200000;

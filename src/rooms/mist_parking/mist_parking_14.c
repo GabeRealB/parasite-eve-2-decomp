@@ -129,7 +129,7 @@ void func_mist_parking_80183D58(Task* task)
                     task->killCountdown = 0;
                 }
             }
-            work = Gp_FindWorkById(gGameSession->field_6 | (gGameSession->field_7 << 8));
+            work = Gp_FindWorkById(gGameSession->loc.area | (gGameSession->loc.stage << 8));
             func_800B0928(Game_GetPtrSlot(3), (Task*)work->field_0, 0x200, 0x100, task->killCountdown);
         } else {
             Task_Kill(task);
@@ -160,7 +160,7 @@ void func_mist_parking_80183EAC(Task* task)
             task->state++;
             break;
         case 1:
-            if (gGameSession->field_1 != 0) {
+            if (gGameSession->eventState != 0) {
                 return;
             }
             if (Gp_CapBusy() != 0) {
@@ -182,7 +182,7 @@ void func_mist_parking_80183EAC(Task* task)
             task->state++;
             break;
         case 3:
-            if (gGameSession->field_1 != 0) {
+            if (gGameSession->eventState != 0) {
                 return;
             }
             if (Gp_CapBusy() != 0) {
@@ -232,7 +232,7 @@ void func_mist_parking_80183EAC(Task* task)
             task->state++;
             break;
         case 6:
-            if (gGameSession->field_1 != 0) {
+            if (gGameSession->eventState != 0) {
                 return;
             }
             if (Gp_CapBusy() != 0) {
@@ -286,7 +286,7 @@ void func_mist_parking_80183EAC(Task* task)
                         break;
                 }
             }
-            if (gGameSession->field_1 != 0) {
+            if (gGameSession->eventState != 0) {
                 return;
             }
             if (Gp_CapBusy() != 0) {
@@ -319,7 +319,7 @@ void func_mist_parking_801842DC(Task* task)
             break;
         case 1:
         case 3:
-            if (gGameSession->field_1 != 0) {
+            if (gGameSession->eventState != 0) {
                 return;
             }
             task->state++;

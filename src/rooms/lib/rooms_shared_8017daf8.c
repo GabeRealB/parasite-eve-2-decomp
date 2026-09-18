@@ -40,7 +40,7 @@ s32 RoomsShared8017daf8(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* 
         if (msg->field_5 == 0 && GameFlag_GetNibble(0x4B) == 7) {
             GameFlag_SetNibble(0x4B, 0);
         }
-        if (gGameSession->field_7 == 3) {
+        if (gGameSession->loc.stage == 3) {
             return 1;
         }
         if (GameFlag_GetNibble(0x32) != 2) {

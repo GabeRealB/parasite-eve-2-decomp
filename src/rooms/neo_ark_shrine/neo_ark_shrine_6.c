@@ -95,10 +95,10 @@ void func_neo_ark_shrine_8017EED4(Task* task)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->field_1  = 0;
-    gGameSession->field_68 = 0;
-    gGameSession->field_66 = 0;
-    D_8007216C             = 0xA;
+    gGameSession->eventState = 0;
+    gGameSession->field_68   = 0;
+    gGameSession->field_66   = 0;
+    D_8007216C               = 0xA;
     /* Without this the scheduler hoists the `spawnArg2` load above the
        `D_8007216C` byte store, which then fills `Task_Kill`'s delay slot. */
     SOFT_BARRIER();
@@ -144,11 +144,11 @@ void func_neo_ark_shrine_8017EFE4(Task* task)
     func_neo_ark_shrine_8017EAC0(task);
     if (st->timer >= 0x1E) {
         if (GameFlag_GetNibble(0xE9) == 0) {
-            D_8007216D            = 2;
-            gGameSession->field_5 = 2;
+            D_8007216D             = 2;
+            gGameSession->loc.room = 2;
         } else {
-            D_8007216D            = 5;
-            gGameSession->field_5 = 5;
+            D_8007216D             = 5;
+            gGameSession->loc.room = 5;
         }
         gGameSession->field_76 = 1;
         task->state            = 2;
@@ -230,15 +230,15 @@ void func_neo_ark_shrine_8017F274(Task* task)
 {
     D_80115410             = 2;
     Mc_SaveData.field_5    = 6;
-    gGameSession->field_5  = 6;
+    gGameSession->loc.room = 6;
     gGameSession->field_76 = 1;
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->field_1  = 0;
-    gGameSession->field_68 = 0;
-    gGameSession->field_66 = 0;
-    Mc_SaveData.field_4    = 0xA;
+    gGameSession->eventState = 0;
+    gGameSession->field_68   = 0;
+    gGameSession->field_66   = 0;
+    Mc_SaveData.field_4      = 0xA;
     Task_RequestKill(task, 0);
 }
 

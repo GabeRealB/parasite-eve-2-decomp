@@ -302,7 +302,7 @@ void func_actor_521100_801335B4(Actor521100* arg0)
             if ((s16)work->field_68A < 0x5E) {
                 break;
             }
-            if (gGameSession->field_4 == 2) {
+            if (gGameSession->loc.view == 2) {
                 work->field_69E = 6;
                 if (coord->coord.t[0] < -0xFA0) {
                     work->field_6A0 = 1;
@@ -445,7 +445,7 @@ void func_actor_521100_80134774(Actor521100* arg0)
                 if (SquareRoot0((sc2->vec.vx * sc2->vec.vx) + (sc2->vec.vz * sc2->vec.vz)) < 0x3C) {
                     work->field_6A0 = 1;
                 } else {
-                    if (gGameSession->field_4 != 2) {
+                    if (gGameSession->loc.view != 2) {
                         work->field_69E = 0;
                         work->field_6A0 = 0;
                         work->field_6BA = 0;
@@ -484,7 +484,7 @@ void func_actor_521100_80134774(Actor521100* arg0)
             work->field_6A0 = 0;
             break;
         game:
-            if (gGameSession->field_4 != 2) {
+            if (gGameSession->loc.view != 2) {
                 work->field_6A0 = 2;
                 work->field_6BA = 0;
                 work->field_6BC = 0;
@@ -505,11 +505,11 @@ void func_actor_521100_80134774(Actor521100* arg0)
                 if (SquareRoot0((sc->vec.vx * sc->vec.vx) + (sc->vec.vz * sc->vec.vz)) < 0x3C) {
                     work->field_69E = 0;
                     work->field_6A0 = 0;
-                } else if (gGameSession->field_4 == state) {
+                } else if (gGameSession->loc.view == state) {
                     work->field_6A0 = 0;
                 }
             } else {
-                if (gGameSession->field_4 != state) {
+                if (gGameSession->loc.view != state) {
                     work->field_69E = 0;
                 }
                 work->field_6A0 = 0;

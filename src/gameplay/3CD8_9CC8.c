@@ -88,21 +88,21 @@ void Gp_InitState1C(Task* arg0)
     arg0->state++;
     Gp_InitRoomCoords();
 
-    switch (gGameSession->field_7) {
+    switch (gGameSession->loc.stage) {
         case 1:
-            val = D_80111B70[gGameSession->field_6 - 1];
+            val = D_80111B70[gGameSession->loc.area - 1];
             break;
         case 2:
-            val = D_80111BC0[gGameSession->field_6 - 1];
+            val = D_80111BC0[gGameSession->loc.area - 1];
             break;
         case 3:
-            val = D_80111C58[gGameSession->field_6 - 1];
+            val = D_80111C58[gGameSession->loc.area - 1];
             break;
         case 4:
-            val = D_80111CF0[gGameSession->field_6 - 1];
+            val = D_80111CF0[gGameSession->loc.area - 1];
             break;
         case 5:
-            val = D_80111DB4[gGameSession->field_6 - 1];
+            val = D_80111DB4[gGameSession->loc.area - 1];
             break;
     }
 

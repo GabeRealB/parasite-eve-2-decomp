@@ -623,11 +623,11 @@ void func_actor_510900_801373B8(Actor510900* arg0)
         work->field_5BA = 1;
         model           = Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 4, roll, enemy)->task->extra;
         idx             = (u16)enemy->field_8 >> 0xC;
-        sessionKey      = (GameSessionFrom4*)&gGameSession->field_4;
-        key.field_3     = sessionKey->field_3;
-        key.field_2     = sessionKey->field_2;
-        key.field_1     = sessionKey->field_1;
-        key.field_0     = gGameSession->field_4;
+        sessionKey      = &gGameSession->loc;
+        key.field_3     = sessionKey->stage;
+        key.field_2     = sessionKey->area;
+        key.field_1     = sessionKey->room;
+        key.field_0     = gGameSession->loc.view;
         Gp_SyncAreaKeyIndex(&key);
         rec = Gp_GetNestedAreaRec(&key);
         /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled
