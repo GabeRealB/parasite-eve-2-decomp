@@ -129967,3 +129967,69 @@ not in the object dump.
 Look for this whenever the only residue is `regs` and the wrong register holds
 the parameter: the arithmetic is decided before any of the C body matters, and
 no amount of restructuring the arms will reach it.
+
+## A reload into a fresh pseudo is welded to its own store by `LAUNCH_PRIORITY`
+
+`sched1` schedules a basic block backwards: the insn picked first becomes the
+block's last, `priority()` is the critical-path length *from* the block start
+computed over `LOG_LINKS`, and ties break on descending UID (reverse source
+order). Read the `;; ready list at T-N:` lines in `base_N.i.sched` that way and
+the pass becomes readable — the parenthesised numbers are hex priorities.
+
+The part that is not obvious from the dump is `adjust_priority()`. When an insn
+is scheduled, each dependency it releases is raised to `LAUNCH_PRIORITY`
+(`0x7f000001`) if `birthing_insn_p()` holds: the insn is a `SET`, its
+destination is a `REG`, that register is live, and `REG_N_SETS == 1`. The
+`REG_DEAD`-counting branch beside it is dead code — those notes are removed
+before the scheduler runs — so the boost is effectively unconditional, and
+`max_priority` comes from the just-scheduled insn whose priority was temporarily
+set to `LAUNCH_PRIORITY` anyway.
+
+The practical consequence: **a value loaded into a fresh local is always emitted
+within a few slots of the insn that consumes it, whatever the source order.**
+Reordering statements cannot separate them. If the target has the load hoisted
+far above its use, the original's pseudo had more than one set, which removes
+the boost and lets the load fall back to its own priority.
+
+Two further rules decide how far such a load can drift on its own:
+
+* `actual_hazard` blocks a load when the previous slot took a **store**; a load
+  behind a load is never blocked.
+* In `schedule_select`, among equal priorities the largest `potential_hazard`
+  wins, and a store always beats a load. So a load tied with the tail stores
+  loses every tie and walks to the top of the block — which is exactly what a
+  non-birthing reload does.
+
+Making a reload non-birthing on purpose is harder than it looks. A
+`SOFT_TOUCH_REG` placed between the load and its use changes what CSE does with
+the expression (the load can be replaced by an `andi` off the value that was
+just stored); placed after the use it is deleted as dead code before
+`REG_N_SETS` is computed, since a non-volatile empty asm survives only if
+something consumes its output. Sharing the C variable with a nearby constant
+does not survive either — the constant store is rematerialised into its own
+pseudo. A genuine second set that the original itself had is the only reliable
+route.
+
+## Which hard register a constant lands in is decided by what its range covers, and `local-alloc` cannot see global pseudos
+
+`local-alloc` builds quantities only for pseudos referenced in a single basic
+block (`reg_qty == -1` otherwise), records no conflicts at all against the
+multi-block ones, and — because MIPS defines no `REG_ALLOC_ORDER` — hands out
+the lowest-numbered free hard register. `global-alloc` then places the
+multi-block pseudos in whatever is left.
+
+So a long-lived constant (`lui`/`ori` scheduled early by its priority of 1,
+dying at its single store) takes `$v0`, then `$v1`, then `$a0`… and the *only*
+thing that pushes it further along is a block-local quantity sitting on those
+registers somewhere inside its range. A value that a branch computes and the
+block consumes is invisible to that pass, so it cannot defend its register: if
+the constant takes `$v1`, the branch-computed value is evicted to `$a2` and
+every multiply result shifts with it.
+
+When a whole-function allocation looks shuffled by one register, work out the
+constant's range first — where its `lui` is scheduled and where its last use is
+— and ask which local quantities that range crosses. Moving the store statement
+moves the end of the range and therefore the answer; moving it past a reload
+that owns the contested register is what forces the constant onward. This also
+means a single wrong register on a long-lived constant is a *scheduling*
+question, not an allocation one.
