@@ -14,6 +14,7 @@ Task* Task_SpawnFromDesc(TaskDesc* desc, s32 arg1, s32 arg2, TaskNode* list)
     u8             flags_lo;
     s32            priority;
     register Task* curr asm("a3");
+    TaskNode**     link;
 
     task = Mem_Calloc(0x48, 0);
     if (task == NULL) {
@@ -72,14 +73,14 @@ merge:
             }
         }
         if (curr != NULL) {
-            curr = (Task*)&curr->node.prev;
+            link = &curr->node.prev;
         } else {
-            curr = (Task*)&list->prev;
+            link = &list->prev;
         }
-        task->node.next           = (*(TaskNode**)curr)->next;
-        (*(TaskNode**)curr)->next = task;
-        task->node.prev           = *(TaskNode**)curr;
-        *(TaskNode**)curr         = &task->node;
+        task->node.next = (*link)->next;
+        (*link)->next   = task;
+        task->node.prev = *link;
+        *link           = &task->node;
     } else {
         memFree(task);
         task = NULL;

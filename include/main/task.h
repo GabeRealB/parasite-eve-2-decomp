@@ -70,14 +70,17 @@ typedef struct {
     TaskFunc funcs[18];
 } TaskFuncTable18;
 
-/// Intrusive linked list node for a `Task`.
+/// Intrusive list link for a `Task`, and the type a task list is headed by.
 ///
-/// The head node is not an element in the linked list and points to the first
-/// and the last elements.
-typedef struct _TaskNode {
-    struct Task*      next; // Next task, or NULL beyond the last; the head is never reached this way
-    struct _TaskNode* prev; // Previous node, or the head itself; the head's own holds the last node
+/// The link is the task's first member, so a pointer to one is also the task
+/// that carries it. A head is a bare node belonging to no task: its `next` is
+/// the first task on the list, and its `prev` the last, which is the head
+/// itself while the list is empty.
+typedef struct TaskNode {
+    struct Task*     next; // Following task, or NULL past the last
+    struct TaskNode* prev; // Preceding node, or the head at the front
 } TaskNode;
+STATIC_ASSERT_SIZEOF(TaskNode, 0x8);
 
 /// 2-byte table entry (id + type). Indexed via TaskIdMap.
 typedef struct _TaskIdPair {

@@ -48,7 +48,7 @@ walks the ring and is self when the task is an only child. `Task_Kill` runs
 every child’s `exitCallback` first (with `parent` cleared). `Task_Reparent`
 moves a live task onto another parent’s ring.
 
-`idMap` is an optional `TaskIdMap*` (`Mem_Calloc(8)` via `Task_AllocIdMap`).
+`work` is an optional `TaskIdMap*` (`Mem_Calloc(8)` in `Task_AllocIdMap`).
 Kill always `memFree`s it. UI, scripts, and title reuse the slot as a work
 pointer (`TitleWork`, `GpState34`, …) — the type is a lie at those call sites.
 
@@ -107,7 +107,7 @@ Each node’s `callback` runs. Two early-outs:
 
 1. Detaches children and calls each child’s `exitCallback`.
 2. Unlinks from the parent ring.
-3. Frees `idMap` if set.
+3. Frees `work` if set.
 4. Tears down `extra` according to `spawnType` (skipped when
    `gDisplayState.skipTeardown` is set).
 5. Sets `spawnType = 0xFF` so the **next** exec pass frees the node.
@@ -250,7 +250,7 @@ Payload structs: `include/gameplay/3CD8.h`.
 |------|----------|-------|
 | `07` | `func_800E70AC` | **Caption / dialogue.** `Gp_CapTask = Task_Spawn(2, 7, …)` or `Display_InitModeObj(Task_GetDesc(2, 7), …)` |
 | `0B` | `Gp_PadHoldTask` | `Gp_SpawnPadHold` — hold countdown in `spawnArg1` |
-| `0C` | `Gp_PadLerpTask` | `Gp_SpawnPadLerp` — work block in `idMap` |
+| `0C` | `Gp_PadLerpTask` | `Gp_SpawnPadLerp` — work block in `work` |
 | `0D` | `Gp_Script18Task` | Script-18 dispatcher |
 | `06`, `10` | `Gp_EffAttachTask37` | Shared type-1 TMD |
 | `04` | `0x807257A0` | Stage overlay |
@@ -323,7 +323,7 @@ slots (see [`include/main/task.h`](../include/main/task.h)):
 |------|-----------------|
 | `extra` | `TmdObject*` / TMD object (type 1) or Disp2d (type 2) |
 | `spawnArg2` | `GpEnemy*`, `UiObject*`, `GpVolFade*`, `GpSndFade*`, `GpEndWait*`, view record, … |
-| `idMap` | Real `TaskIdMap*`, or abused as `TitleWork*` / script work / pad-lerp state |
+| `work` | Real `TaskIdMap*`, or abused as `TitleWork*` / script work / pad-lerp state |
 | `field_24` | `GpMsgEntry*` table (`Gp_DispatchMsg`) |
 | `state` | Dispatcher index (`TaskFuncTable3`–`8` copied onto the stack) |
 

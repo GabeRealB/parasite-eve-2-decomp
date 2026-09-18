@@ -18660,28 +18660,35 @@ and force the byte load where needed:
 priority = *(u8*)&desc->field_2; /* lbu, not lhu */
 ```
 
-## Reuse walk pointer as insert slot via `&node.prev`
+## Hand the insert slot the walker's register, as its own `TaskNode**`
 
 Target list insertion reuses one register: after walking to the insert point
 it does `bnez curr, join` / `addiu curr, curr, 4` / `addiu curr, list, 4`, then
-treats that register as `TaskNode**`. Pin the walker and convert in place:
+treats that register as `TaskNode**`. Pin the walker and give the slot a
+`TaskNode**` of its own — it is born where the walker dies, so one register
+still serves both:
 
 ```c
 register Task* curr asm("a3");
-/* … walk by field_29 … */
+TaskNode**     link;
+/* … walk by `priority` … */
 if (curr != NULL) {
-    curr = (Task*)&curr->node.prev;
+    link = &curr->node.prev;
 } else {
-    curr = (Task*)&list->prev;
+    link = &list->prev;
 }
-task->node.next = (*(TaskNode**)curr)->next;
-(*(TaskNode**)curr)->next = task;
-task->node.prev = *(TaskNode**)curr;
-*(TaskNode**)curr = &task->node;
+task->node.next = (*link)->next;
+(*link)->next   = task;
+task->node.prev = *link;
+*link           = &task->node;
 ```
 
-A separate `TaskNode** insert` usually allocates a second register and drops
-the delay-slot `+4` form. `Task_SpawnFromDesc` is the example.
+Reusing the walker and reading through `(TaskNode**)curr` compiles to the same
+thing, because the two forms are the same register; the named slot is the
+honest spelling and it drops four casts. What does not match is a slot live
+across the walk: a `TaskNode**` the allocator has to keep alongside the walker
+takes a second register and loses the delay-slot `+4` form.
+`Task_SpawnFromDesc` is the example.
 
 ## Nested `register Task* ch asm("v1")` to stop `a0` coalesce on child→obj
 
