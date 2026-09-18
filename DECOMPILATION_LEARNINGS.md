@@ -128749,3 +128749,63 @@ the match. Every similarity class is computed over the instruction stream, so a
 third of it belonging to some other function drags all of them below the
 threshold together. Treat a suspiciously empty `similar` on a large function as
 one more reason to check the boundary.
+
+## Design the block-0 register assignment from the local-alloc priority formula, and use a multi-output `asm` as the ref multiplier (Actor02500_Fn00494, 2026-09-18)
+
+**Problem.** A 417-instruction function sat at 99.88-99.90% across two earlier
+sessions with `regs` as the only penalty. The whole residue was three block-0
+quantities landing in each other's registers: the scratchpad-head pointer, the
+`head - 0x30` allocation result and the `arg0->field_2C` temp wanted `$v0`,
+`$v1` and `$a1`, and every attempt permuted which of them got which.
+
+**What settles it.** `CODEGEN_MODEL.md` §10.3's priority is not just for reading
+a dump after the fact - it is precise enough to *design* the assignment.
+Local-alloc allocates each block's quantities in descending
+
+```
+floor_log2(n_refs) * n_refs / (qty_death - qty_birth)
+```
+
+and each one then takes the lowest-numbered register free over its span, so the
+order of those three numbers *is* the register assignment. `lregwalk.py` on the
+`.lreg` dump gives the birth/death insn positions directly (span in half-insns
+is `2 * (death# - birth#)`), and `Register N used R times` gives the refs. Three
+consecutive predictions from that formula - including two failures that were
+predicted correctly before the build - matched the object exactly.
+
+**The lever.** Adding a keep-live reference is schedule-neutral when the new
+dependency edge starts at an insn that is already first in the block: extra
+`"r"(ptr)` inputs on the existing barriers only add edges from the `lui`, so the
+sched1 order does not move. That makes `n_refs` the free variable. Two details
+decide how far it moves:
+
+- `floor_log2` makes refs 4, 8 and 16 the cliffs. Going 3 -> 4 refs *doubles*
+  the priority; 4 -> 7 does nothing.
+- **A multi-output `asm` duplicates its whole operand list per `SET`.**
+  `SOFT_TOUCH_REG2(a, b)` expands to a `PARALLEL` of two `asm_operands`, each
+  listing both operands, so every input is counted twice: it is a x2 ref
+  multiplier on *all* of its operands, not just the one you meant. Here it lifted
+  the pointer from 4 refs to 9, and in an earlier attempt it accidentally lifted
+  the allocation temp from 3 to 4 and inverted the result.
+- A standalone `SOFT_TOUCH_REG(x);` adds 2 refs (a set and a use) and only 2
+  half-insns of span, so it is the cheap fine adjustment - and placing it
+  *outside* a competing quantity's live range leaves that quantity untouched.
+  Two of them, before the allocation temp is born and after its last use, were
+  the last step from 99.90% to 100%.
+
+**What is not reachable this way.** sched1's tie-break is not source order.
+When two insns are ready in the same cycle with equal critical paths, the
+`.sched` dump prints `insn N has a greater potential hazard` and the load wins,
+so a load always lands after an `addiu` it ties with. Moving the statement in
+the C changed nothing. Lengthening a span by *position* needs a real dependency
+edge - and an edge that pulls a load early also pulls it early in the final
+output, which is usually the wrong order. Hang such an edge on the latest
+barrier that still gives the span you need.
+
+**Corollary for the port.** A `switch` that was `INCLUDE_ASM` has its jump table
+in the overlay's leading `.rodata` blob. Decompiling it makes the compiler emit
+a second copy, and the overlay builds exactly `4 * cases` bytes too long with
+everything shifted - the function itself matches. Cut the blob at the table's
+offset with the manifest's `rodata` key and give the run to the C unit
+(`actor_102500`: `{ start = "0x14", unit = "actor_102500_text" }`). The table
+starts that object's `.rodata`, which is what GCC's leading `.align 3` requires.

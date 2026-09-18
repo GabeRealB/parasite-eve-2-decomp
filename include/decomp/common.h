@@ -60,6 +60,8 @@
 #define TOUCH_REG_MEM(x)              __asm__ volatile("" : "+r"(x) :: "memory")
 #define TOUCH_REG2_MEM(a, b)          __asm__ volatile("" : "+r"(a), "+r"(b) :: "memory")
 #define TOUCH_REG_USE(x, y)           __asm__ volatile("" : "+r"(x) : "r"(y))
+#define TOUCH_REG_USE2(x, y, z)       __asm__ volatile("" : "+r"(x) : "r"(y), "r"(z))
+#define TOUCH_REG2_USE(a, b, c)       __asm__ volatile("" : "+r"(a), "+r"(b) : "r"(c))
 
 #define SOFT_TOUCH_REG(x)             __asm__("" : "+r"(x))
 #define SOFT_TOUCH_REG2(a, b)         __asm__("" : "+r"(a), "+r"(b))
@@ -68,6 +70,8 @@
 #define SOFT_TOUCH_REG5(a, b, c, d, e) \
     __asm__("" : "+r"(a), "+r"(b), "+r"(c), "+r"(d), "+r"(e))
 #define SOFT_TOUCH_REG_USE(x, y) __asm__("" : "+r"(x) : "r"(y))
+#define SOFT_TOUCH_REG_USE2(x, y, z) __asm__("" : "+r"(x) : "r"(y), "r"(z))
+#define SOFT_TOUCH_REG2_USE(a, b, c) __asm__("" : "+r"(a), "+r"(b) : "r"(c))
 
 /* Output-only: gives `x` a definition that emits no MIPS. It is the third
  * form alongside TOUCH_REG ("+r") and USE_REG ("r"): the value `x` held

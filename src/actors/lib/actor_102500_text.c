@@ -29,6 +29,28 @@ void  Gp_LinkObj(s32 arg0, Actor02500Obj* arg1);
 void  Gp_InitRec18Table(Actor02500Rec18* arg0, s32 arg1, s32 arg2);
 s32   Gp_PackPair(void* arg0, s32 arg1);
 void  Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+void  Gp_ClearRec18Occupied(Actor02500Rec18* arg0);
+s32   Gp_FindRec18(Actor02500Rec18* arg0, s32 arg1);
+s32   Gp_CountRec18Hi(Actor02500Rec18* arg0, s32 arg1);
+s32   func_800E0C10(Actor02500Rec18* arg0, Actor02500MoveScratch* arg1, s32 arg2, s32 arg3);
+s32   Gp_ComputeDamage(u32 arg0, s32 arg1, s32 arg2, s32 arg3);
+s32   Gp_GetIdParam0(u32 arg0);
+s32   Gp_GetIdParam1(u32 arg0);
+s32   Gp_GetIdParam2(u32 arg0);
+s32   Gp_RollEnemyChance(Actor02500Ctx* arg0, u32 arg1, s32 arg2);
+void  Gp_SetObjFlag1(Actor02500Ctx* arg0);
+void  Gp_SetObjFlag2(Actor02500Ctx* arg0, u32 arg1, s32 arg2);
+void  func_800E2C78(Actor02500Ctx* arg0, u32 arg1, s32 arg2, s32 arg3);
+void  func_800DA6E8(Actor02500Node* arg0, s32 arg1, s32 arg2);
+void  func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, GsCOORDINATE2** arg3);
+void* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
+s32   Gp_GetObjPan(GsCOORDINATE2* arg0);
+s32   Gp_GetObjDepth(GsCOORDINATE2* arg0);
+s32   SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
+void  Gp_ArmStateF0(s32 arg0);
+
+extern Actor02500*           Gp_ActorSlots[2];
+extern Actor02500GridParams* Gp_GridParams;
 
 void Actor02500_Fn00078(Actor02500Ctx* ctx, Actor02500* actor)
 {
@@ -152,7 +174,253 @@ void Actor02500_Fn00078(Actor02500Ctx* ctx, Actor02500* actor)
     actor->field_30        = 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102500_text", Actor02500_Fn00494);
+/// Per-frame collision and damage pass. Carves a `Actor02500MoveScratch` off
+/// the scratchpad stack, lets `func_800E0C10` resolve this frame's movement
+/// into it, then walks the three `field_1C4` records: kind 2 is a hit that
+/// costs the enemy HP and plays a sound, kinds 1 and 3 push it away from the
+/// obstacle, and the strongest push is applied to the coordinate at the end.
+void Actor02500_Fn00494(Actor02500* actor)
+{
+    s32                     one;
+    Actor02500**            slots;
+    u32                     lastId;
+    VECTOR*                 normal;
+    Actor02500Ctx*          ctx;
+    Actor02500Rec18*        rec2C4;
+    Actor02500Work*         work;
+    Actor02500Work*         walk;
+    GsCOORDINATE2*          coord;
+    Actor02500MoveScratch*  scratchEnd;
+    Actor02500MoveScratch*  frame;
+    VECTOR*                 frameNormal;
+    Actor02500MoveScratch*  frameAlias;
+    Actor02500MoveScratch*  frameBase;
+    Actor02500MoveScratch** scratchSp;
+    s16                     hitCooldown;
+    s16                     hp;
+    s32                     cooldown;
+    s32                     kind;
+    s32                     moveResult;
+    s32                     dx;
+    s32                     dy;
+    s32                     dz;
+    s32                     ax;
+    s32                     ay;
+    s32                     az;
+    s32                     param0;
+    s32                     push;
+    s32                     bestPush;
+    s32                     damage;
+    s32                     soundId;
+    s32                     pushClamped;
+    s32                     pan;
+    s32                     panOther;
+    s32                     panHit;
+    u32                     recId;
+    u32                     id;
+    u32                     recKind;
+    u32                     paramKind;
+    GsCOORDINATE2*          targetCoord;
+
+    bestPush   = 0;
+    lastId     = 0;
+    work       = actor->field_1C;
+    scratchSp  = (Actor02500MoveScratch**)&SCRATCH_SP;
+    scratchEnd = *scratchSp;
+    SOFT_TOUCH_REG2_USE(scratchEnd, scratchSp, work->field_22C);
+    SOFT_TOUCH_REG(scratchSp);
+    frameBase  = scratchEnd - 1;
+    frameAlias = frameBase;
+    SOFT_TOUCH_REG2(frameAlias, scratchSp);
+    frame = frameAlias;
+    ctx   = actor->field_20;
+    coord = actor->field_2C->field_8;
+    SOFT_TOUCH_REG_USE2(coord, frameBase, scratchSp);
+    SOFT_TOUCH_REG2_USE(frame, scratchSp, coord);
+    SOFT_TOUCH_REG(scratchSp);
+    *scratchSp      = frame;
+    work->field_340 = 0;
+    moveResult      = func_800E0C10(work->field_22C, frame, 5, 0);
+    one             = 1;
+    SOFT_TOUCH_REG(one);
+    if (moveResult == one) {
+        goto move_delta;
+    }
+    if (moveResult < 2) {
+        goto move_done;
+    }
+    if (moveResult == 2) {
+        goto move_absolute;
+    }
+    goto move_done;
+move_delta:
+    coord->coord.t[0] += scratchEnd[-1].vx.p.hi;
+    coord->coord.t[1] += frame->vy.p.hi;
+    coord->coord.t[2] += frame->vz.p.hi;
+    goto move_tail;
+move_absolute:
+    coord->coord.t[0] = work->field_304;
+    coord->coord.t[1] = work->field_308;
+    coord->coord.t[2] = work->field_30C;
+move_tail:
+    if (scratchEnd[-1].vx.v != 0 || frame->vz.v != 0) {
+        work->field_340 = one;
+    }
+move_done:
+    Gp_ClearRec18Occupied(work->field_22C);
+    if (work->field_334 != 0) {
+        hitCooldown     = (u16)work->field_334 - 1;
+        work->field_334 = hitCooldown;
+        if (hitCooldown <= 0) {
+            work->field_334 = 0;
+        }
+    }
+    frameNormal = &frame->normal;
+    normal      = frameNormal;
+    walk        = work;
+    do {
+        SOFT_TOUCH_REG2(walk, frame);
+        SOFT_TOUCH_REG(frame);
+        recId   = walk->field_1C4[0].field_4;
+        recKind = recId >> 0x10;
+        switch (recKind) {
+            default:
+                break;
+            case 2:
+                if (work->field_334 == 0) {
+                    slots = Gp_ActorSlots;
+                    SOFT_TOUCH_REG_USE(slots, recId);
+                    targetCoord = slots[(recId >> 7) & 1]->field_2C->field_8;
+                    ax          = targetCoord->coord.t[0] - coord->coord.t[0];
+                    frame->vx.v = ax;
+                    ay          = targetCoord->coord.t[1] - coord->coord.t[1];
+                    frame->vy.v = ay;
+                    az          = targetCoord->coord.t[2] - coord->coord.t[2];
+                    frame->vz.v = az;
+                    damage      = Gp_ComputeDamage(walk->field_1C4[0].field_4,
+                                                   SquareRoot0((frame->vx.v * frame->vx.v) + (frame->vy.v * frame->vy.v) +
+                                                               (frame->vz.v * frame->vz.v)),
+                                                   0, 0);
+                    param0      = Gp_GetIdParam0(walk->field_1C4[0].field_4);
+                    kind        = param0 & 0xFFFF;
+                    if (kind == 5) {
+                        damage *= 2;
+                        Gp_SpawnEff(0x6009C, coord, 2, NULL);
+                    }
+                    if (Gp_RollEnemyChance(ctx, walk->field_1C4[0].field_4, 0) != 0) {
+                        damage *= 4;
+                        if (kind != 5) {
+                            Gp_SpawnEff(0x6009C, coord, 0, NULL);
+                        }
+                    }
+                    func_800E2C78(ctx, walk->field_1C4[0].field_4, damage, 0);
+                    func_800DA6E8(&ctx->node, damage, 0);
+                    hp            = (u16)ctx->field_40 - damage;
+                    ctx->field_40 = hp;
+                    if ((hp << 0x10) <= 0) {
+                        work->field_322        = 6;
+                        work->field_324        = 0;
+                        work->field_2A4.flags &= 0x7FFF;
+                        soundId                = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x4019000A;
+                        pan                    = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(coord));
+                    } else {
+                        if (work->field_342 == 0) {
+                            work->field_322 = 2;
+                            work->field_324 = 0;
+                        }
+                        work->field_342 = 0;
+                        soundId         = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40190009;
+                        panOther        = (s8)Gp_GetObjPan(coord);
+                        SndEvt_EnqueueType6(soundId, panOther, (s8)Gp_GetObjDepth(coord));
+                    }
+                    paramKind = param0 & 0xFFFF;
+                    switch (paramKind) {
+                        case 0:
+                        case 3:
+                        case 5:
+                        case 7:
+                        case 8:
+                        case 9:
+                            break;
+                        case 1:
+                            if (work->field_33E == 0) {
+                                Gp_SetObjFlag1(ctx);
+                            }
+                            work->field_2A4.flags &= 0x7FFF;
+                            break;
+                        case 2:
+                            Gp_SetObjFlag2(ctx, walk->field_1C4[0].field_4, 0);
+                            work->field_2A4.flags &= 0x7FFF;
+                            break;
+                        case 4:
+                        case 6:
+                            if (ctx->field_40 <= 0) {
+                                work->field_33C = 1;
+                            }
+                            break;
+                    }
+                    id = walk->field_1C4[0].field_4;
+                    if (lastId != id) {
+                        lastId = id;
+                        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, 0, &work->field_2DC);
+                    }
+                    cooldown = Gp_GetIdParam2(walk->field_1C4[0].field_4);
+                    if (cooldown > 0) {
+                        work->field_334 = cooldown;
+                    }
+                }
+            case 0:
+            rec_done:
+                break;
+            case 1:
+            case 3:
+                dx          = coord->workm.t[0] - walk->field_1C4[0].field_8;
+                frame->vx.v = dx;
+                dy          = coord->workm.t[1] - walk->field_1C4[0].field_A;
+                frame->vy.v = dy;
+                dz          = coord->workm.t[2] - walk->field_1C4[0].field_C;
+                frame->vz.v = dz;
+                push        = walk->field_1C4[0].field_2 -
+                       SquareRoot0((frame->vx.v * frame->vx.v) + (frame->vy.v * frame->vy.v) +
+                                   (frame->vz.v * frame->vz.v));
+                pushClamped = push;
+                if (push <= 0) {
+                    pushClamped = 0;
+                }
+                push = pushClamped;
+                SOFT_TOUCH_REG(push);
+                USE_REG(pushClamped);
+                if (bestPush < push) {
+                    bestPush = push;
+                    VectorNormal((VECTOR*)frame, normal);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, normal, &frame->dir);
+                }
+                goto rec_done;
+        }
+        walk = (Actor02500Work*)((Actor02500Rec18*)walk + 1);
+    } while ((s32)walk < (s32)((Actor02500Rec18*)work + 3));
+    if (bestPush > 0) {
+        coord->coord.t[0] += (bestPush * frame->dir.vx) >> 0xC;
+        coord->coord.t[2] += (bestPush * frame->dir.vz) >> 0xC;
+    }
+    Gp_ClearRec18Occupied(work->field_1C4);
+    rec2C4 = work->field_2C4;
+    if (Gp_FindRec18(rec2C4, 0) != 0) {
+        work->field_2A4.flags &= 0x7FFF;
+        soundId                = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40190006;
+        panHit                 = (s8)Gp_GetObjPan(coord);
+        SndEvt_EnqueueType6(soundId, panHit, (s8)Gp_GetObjDepth(coord));
+    }
+    Gp_ClearRec18Occupied(rec2C4);
+    if (Gp_CountRec18Hi(work->field_18C, 0x10000) != 0 && work->field_322 == 0) {
+        work->field_322 = 1;
+        work->field_324 = 0;
+        Gp_ArmStateF0(1);
+    }
+    Gp_ClearRec18Occupied(work->field_18C);
+    SCRATCH_SP += 0x30;
+}
 
 void Actor02500_Fn00B18(Actor02500* actor)
 {

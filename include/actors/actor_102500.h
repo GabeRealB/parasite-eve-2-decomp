@@ -6,9 +6,28 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+/// A 16.16 fixed-point word, read whole or as its fraction/integer halves.
+typedef union Actor02500Fixed {
+    s32 v;
+    struct {
+        /* 0x0 */ u16 lo;
+        /* 0x2 */ s16 hi;
+    } p;
+} Actor02500Fixed;
+STATIC_ASSERT_SIZEOF(Actor02500Fixed, 0x4);
+
 /// 0x18-byte slot record; `Gp_InitRec18Table` zeroes `count` of them.
+/// `field_4` is the packed id `Gp_ComputeDamage` and the `Gp_GetIdParam*`
+/// helpers decode, whose high half selects the record kind; `field_8` /
+/// `field_A` / `field_C` are the recorded world position.
 typedef struct Actor02500Rec18 {
-    /* 0x00 */ byte pad_0[0x18];
+    /* 0x00 */ u16  field_0;
+    /* 0x02 */ s16  field_2;
+    /* 0x04 */ u32  field_4;
+    /* 0x08 */ s16  field_8;
+    /* 0x0A */ s16  field_A;
+    /* 0x0C */ s16  field_C;
+    /* 0x0E */ byte pad_E[0xA];
 } Actor02500Rec18;
 STATIC_ASSERT_SIZEOF(Actor02500Rec18, 0x18);
 
@@ -90,7 +109,7 @@ typedef struct Actor02500Work {
     /* 0x32E */ s16                 field_32E;
     /* 0x330 */ s16                 field_330;
     /* 0x332 */ s16                 field_332;
-    /* 0x334 */ byte                pad_334[2];
+    /* 0x334 */ s16                 field_334;
     /* 0x336 */ s16                 field_336;
     /* 0x338 */ s16                 field_338;
     /* 0x33A */ s16                 field_33A;
@@ -180,6 +199,26 @@ typedef struct Actor02500Ctx {
     /* 0x54 */ Actor02500Rec18* field_54;
 } Actor02500Ctx;
 STATIC_ASSERT_SIZEOF(Actor02500Ctx, 0x58);
+
+/// 0x30-byte frame `Actor02500_Fn00494` carves off the scratchpad stack. It
+/// opens with the 16.16 movement delta `func_800E0C10` resolves (gameplay's
+/// `GpDeltaScratch`), and keeps the `VectorNormal` unit vector and the
+/// grid-space direction `ApplyTransposeMatrixLV` produces from it.
+typedef struct Actor02500MoveScratch {
+    /* 0x00 */ Actor02500Fixed vx;
+    /* 0x04 */ Actor02500Fixed vy;
+    /* 0x08 */ Actor02500Fixed vz;
+    /* 0x0C */ s32             pad_C;
+    /* 0x10 */ VECTOR          normal;
+    /* 0x20 */ VECTOR          dir;
+} Actor02500MoveScratch;
+STATIC_ASSERT_SIZEOF(Actor02500MoveScratch, 0x30);
+
+/// Grid conversion params (`GpGridParams` in gameplay); this overlay only
+/// reaches the room coordinate node at offset 0, for its `workm`.
+typedef struct Actor02500GridParams {
+    /* 0x0 */ GsCOORDINATE2* field_0;
+} Actor02500GridParams;
 
 /// 0x18-byte frame this overlay allocates on the scratchpad stack; only the
 /// `SVECTOR` at +0x10 is used by `Actor02500_Fn016FC`.
