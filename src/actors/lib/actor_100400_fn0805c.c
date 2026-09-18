@@ -42,6 +42,7 @@ void       Actor00400_Fn08ADC(Actor100400* arg0);
 void       Actor00400_Fn08B94(Actor100400* arg0);
 void       Gp_AnimResetSlot(Actor100400Work* anim, s32 slot, s32 active);
 void       Gp_AnimTickIndex(Actor100400Work* anim, s32 slot);
+void       func_800B4114(Actor100400Work* anim, s32 slot, s32 active, s32 arg3, s32 arg4);
 void       Actor00400_Fn08624(Actor100400* arg0);
 void       Actor00400_Fn06F64(Actor100400* arg0);
 void       Actor00400_Fn0A880(Actor100400* arg0);
@@ -213,7 +214,35 @@ void Actor00400_Fn085B8(Actor100400* arg0)
     work->field_626 = (u16)work->field_628;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn08624);
+/// Like `Actor00400_Fn085B8`, but restarts every slot through `func_800B4114`
+/// with the pending blend value `field_63C`, which is consumed (cleared) only
+/// when the requested clip `field_628` differs from the current `field_626`.
+void Actor00400_Fn08624(Actor100400* arg0)
+{
+    Actor100400Work*       work;
+    Actor100400AnimStride* slots;
+    s32                    i;
+
+    work  = arg0->field_1C;
+    slots = (Actor100400AnimStride*)work;
+    if (work->field_626 == work->field_628) {
+        i = 1;
+        do {
+            slots[i].field_1D = (u8)work->field_632;
+            func_800B4114(work, i, work->field_628, 0, work->field_63C);
+            i++;
+        } while (i < 0xF);
+    } else {
+        i = 1;
+        do {
+            slots[i].field_1D = (u8)work->field_632;
+            func_800B4114(work, i, work->field_628, 0, work->field_63C);
+            i++;
+        } while (i < 0xF);
+        work->field_63C = 0;
+    }
+    work->field_626 = (u16)work->field_628;
+}
 
 /// Scales `arg1` (a 12-bit angle) by the ratio `work->field_632`, returning 0
 /// while that field is unset.
