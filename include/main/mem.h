@@ -67,12 +67,12 @@ void Mem_Free(void* ptr);
 /// Frees a block, returning it to the heap `auxHeap` selects.
 ///
 /// A block has to be released to the heap it was taken from, so the caller
-/// says which one instead of the function assuming the primary heap.
-/// `Mem_Free` is the primary-heap-only form.
+/// names that heap instead of the primary one being assumed. The heap named is
+/// left the active one. `Mem_Free` is the primary-heap-only form.
 ///
 /// @param ptr Pointer to the data to be freed.
-/// @param auxHeap If `true`, the block is freed from the active auxiliary
-///                heap, otherwise from the primary one.
+/// @param auxHeap If `true`, the block is released to the auxiliary heap,
+///                otherwise to the primary one.
 void memFreeFromHeap(void* ptr, bool auxHeap);
 
 /// Switches between the primary heap and the auxiliary heap.

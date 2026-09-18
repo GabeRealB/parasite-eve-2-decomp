@@ -107428,6 +107428,39 @@ Inputs: base_1.i SHA256
 `b68626bfdfd567400857081926ee082e9188d3d7f9c0683ca9c55931cf94935c`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
+## An `inline` function's out-of-line copy is emitted at the end of the unit, not where its definition stands (src/main/mem.c, 2026-09-18)
+
+A unit's `.text` follows source order, so a helper's address is fixed by where
+its definition sits among its callers', and a caller the target shows *without* a
+`jal` is asking for the helper's body rather than a call to it. Marking the
+helper `inline` looks like the way to get that, and it moves the helper: `cc1`
+emits an `inline` function's out-of-line copy at the end of the object's `.text`
+rather than at the definition's position. Every function the helper stood in
+front of then slides up by its size, so the image differs from that point on and
+the checksum fails naming a whole executable or overlay rather than the function
+that moved.
+
+`src/main/mem.c` is the worked example. `Mem_SetActiveHeap` stands between
+`Mem_Calloc`, which `jal`s it, and `Mem_Malloc`, whose body carries the setter's
+code integrated; marking the setter's definition `inline` to integrate that call
+too reorders the object:
+
+```
+000001fc 0000002c Mem_SetActiveHeap     as the source has it: the setter stands
+00000228 00000064 Mem_Malloc              between the two groups of callers
+
+000001fc 00000064 Mem_Malloc             with `inline` on the setter's definition:
+00000260 0000002c Mem_Free                 the later callers slide up by its size
+0000028c 00000044 memFreeFromHeap          and the copy is emitted last
+000003a4 0000002c Mem_SetActiveHeap
+```
+
+So a helper whose address stands between its callers was a plain function, and
+the bodies below it that carry its code were written out in the source rather
+than integrated. Read the helper's position before reaching for `inline`:
+where its copy has to keep its place, the repetition is the shape that matches,
+and `Mem_Calloc`'s `jal` is the same fact seen from the other side.
+
 ## An `SVECTOR` copy is invisible to m2c: the seed collapses each `lwl`/`lwr` pair and scores ~30%
 
 m2c has no way to spell an unaligned 8-byte move, so it renders every
@@ -130431,12 +130464,23 @@ the pair move it as that heap's blocks are taken and released — so each heap i
 a ring of its own, and pointing `_freep` at one is what makes it the active
 heap. The wrappers' `auxHeap` flag is that assignment and nothing else.
 
-Each wrapper writes that assignment out rather than calling `Mem_SetActiveHeap`:
-no wrapper's body contains a `jal` to it, so the repeated `lui` / `lw` / `sw` is
-the source's shape and not a call the compiler had inlined. `-O2` here inlines
-nothing it was not asked to, so a body that calls the shared setter emits a
-`jal` the target does not have. The repetition is what matches; do not factor it
-out.
+The ring is closed inside one heap, which is why `_freep` selects a heap rather
+than hinting at one. `InitHeap3` points the heap's last block back at the heap's
+base, `malloc3` walks from `_freep` and gives up when the walk returns to it,
+and `free3` splices the block into the ring it started from — so a release that
+starts anywhere else splices it into another heap's free list. The routines'
+objects are in `lib/libapi`, so this is readable rather than inferred, and it is
+the reason a wrapper takes the heap as a flag at all.
+
+The assignment appears in the wrappers in both shapes, and each wrapper's target
+decides which. `Mem_Calloc` calls `Mem_SetActiveHeap` and its target has the
+`jal`; `Mem_Malloc`, `Mem_Free` and `memFreeFromHeap` write the assignment out,
+so theirs have the repeated `lui` / `lw` / `sw`, with `Mem_Free` taking the
+primary branch alone. The three could not have called the setter and been
+integrated: its address stands between `Mem_Calloc` and `Mem_Malloc`, and an
+`inline` function's out-of-line copy is emitted at the end of the unit, so
+marking it `inline` to integrate those calls moves it and shifts every function
+below it. The repetition is what matches; do not factor it out.
 
 The base it is pointed at is storage rather than an immediate, so the target
 loads it:
