@@ -30,10 +30,10 @@ STATIC_ASSERT_SIZEOF(HeapBlockHeader, 0x10);
 /// @param count Number of bytes to write into the destination buffer.
 void Mem_Set(void* dest, u32 ch, u32 count);
 
-/// Initializes the primary and the auxilary heap.
+/// Initializes the primary and the auxiliary heap.
 void Mem_Init(void);
 
-/// Initializes the auxilary heap.
+/// Initializes the auxiliary heap.
 void Mem_InitAux(void);
 
 /// Allocates a block of memory.
@@ -75,18 +75,20 @@ void Mem_Free2(void* ptr, bool auxHeap);
 
 /// Switches between the primary heap and the auxiliary heap.
 ///
-/// A pointer to the auxiliary heap is stored in `GActiveAuxHeap` and its
-/// capacity in `GActiveAuxHeapSize`. This function either enables the
-/// primary heap, pointed to by `gMemHeap`, or the auxiliary heap. After
-/// calling this function, the memory management utilities, like `malloc3`
-/// and `free3`, will operate on one of the two heaps. Only version 3
-/// utilities are affected.
+/// The primary heap is the fixed region at `gMemHeap`; the auxiliary heap is
+/// the region `gMemActiveAuxHeap` currently points at, with the extent
+/// `GActiveAuxHeapSize`. After calling this function, the memory management
+/// utilities, like `malloc3` and `free3`, will operate on one of the two
+/// heaps. Only version 3 utilities are affected.
 ///
 /// @param auxHeap If `true`, the auxiliary heap will be set as active.
 ///                Otherwise the primary one.
 void Mem_SetActiveHeap(bool auxHeap);
 
-// TODO: Swaps between two auxilary heaps?
+/// Selects which region serves as the auxiliary heap.
+///
+/// Passing `true` selects the region beyond the primary heap, `false` the
+/// whole of the memory reserved for image data.
 void Mem_SetActiveAuxHeap(bool aux0);
 
 /// Alloc aux buffer and optionally MoveImage two VRAM strips (src/main/stream.c).
@@ -109,20 +111,24 @@ void Mem_CopyUnaligned(void* src, void* dest, u32 count);
 /// than a size variable of the kind the aux heaps carry.
 extern u8* gMemHeap;
 
-/// Pointer to the auxilary heap.
+/// Pointer to the auxiliary heap.
 extern u8* GAuxHeap;
 
 /// Length in bytes of the heap pointed to by `GAuxHeap`.
 extern size_t GAuxHeapSize;
 
 extern size_t Gpu_PrimHeapBase;
-
-/// Pointer to the active auxilary heap.
-extern u8* GActiveAuxHeap;
-
 extern size_t Gpu_PrimHeapSize;
 
-/// Length in bytes of the heap pointed to by `GActiveAuxHeap`.
+/// Base address of the auxiliary heap the game is currently allocating from.
+///
+/// The auxiliary heap is not one fixed region: the game can make the whole of
+/// the memory reserved for image data available to it, or only the part of
+/// that memory beyond the primary heap, and `Mem_SetActiveAuxHeap` switches
+/// between the two.
+extern u8* gMemActiveAuxHeap;
+
+/// Length in bytes of the heap pointed to by `gMemActiveAuxHeap`.
 extern size_t GActiveAuxHeapSize;
 
 extern int    D_80068F98;

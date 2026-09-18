@@ -136,7 +136,7 @@ end:
 void Mem_SetActiveHeap(bool auxHeap)
 {
     if (auxHeap == true) {
-        _freep = GActiveAuxHeap;
+        _freep = gMemActiveAuxHeap;
     } else {
         _freep = gMemHeap;
     }
@@ -147,7 +147,7 @@ void* Mem_Malloc(size_t size, bool auxHeap)
     void* ptr;
 
     if (auxHeap == true) {
-        _freep = GActiveAuxHeap;
+        _freep = gMemActiveAuxHeap;
     } else {
         _freep = gMemHeap;
     }
@@ -168,7 +168,7 @@ void Mem_Free(void* ptr)
 void Mem_Free2(void* ptr, bool auxHeap)
 {
     if (auxHeap == true) {
-        _freep = GActiveAuxHeap;
+        _freep = gMemActiveAuxHeap;
     } else {
         _freep = gMemHeap;
     }
@@ -177,12 +177,12 @@ void Mem_Free2(void* ptr, bool auxHeap)
 
 void Mem_InitAux(void)
 {
-    InitHeap3((ulong*)GActiveAuxHeap, GActiveAuxHeapSize);
+    InitHeap3((ulong*)gMemActiveAuxHeap, GActiveAuxHeapSize);
 }
 
 void Mem_Init()
 {
-    InitHeap3((ulong*)GActiveAuxHeap, GActiveAuxHeapSize);
+    InitHeap3((ulong*)gMemActiveAuxHeap, GActiveAuxHeapSize);
     InitHeap3((ulong*)gMemHeap, G_HEAP_SIZE);
 }
 
@@ -197,12 +197,12 @@ void Mem_SetActiveAuxHeap(bool aux0)
 {
     switch (aux0 & 0xFFFF) {
         case false:
-            GActiveAuxHeap     = D_800691F4;
+            gMemActiveAuxHeap  = D_800691F4;
             GActiveAuxHeapSize = D_800691F8;
             break;
 
         case true:
-            GActiveAuxHeap     = GAuxHeap;
+            gMemActiveAuxHeap  = GAuxHeap;
             GActiveAuxHeapSize = GAuxHeapSize;
             break;
     }

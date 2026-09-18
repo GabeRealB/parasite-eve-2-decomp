@@ -4810,7 +4810,7 @@ void Gp_RestartSessionTask(Task* arg0)
         Gpu_PrimHeapSize   = 0xB000;
         GActiveAuxHeapSize = 0x30000;
         Gpu_PrimHeapBase   = (size_t)((u8*)Fs_ImgBuffers - 0x35800);
-        GActiveAuxHeap     = (u8*)Fs_ImgBuffers - 0xA800;
+        gMemActiveAuxHeap  = (u8*)Fs_ImgBuffers - 0xA800;
     }
     Mem_Init();
     Mem_InitAux();

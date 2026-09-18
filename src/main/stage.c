@@ -897,11 +897,11 @@ void Mdec_ProcessDecode(void)
             }
             DecDCTReset(0);
             DecDCTvlcSize2(0);
-            DecDCTvlc2((u_long*)D_8007A360, (u_long*)GActiveAuxHeap,
+            DecDCTvlc2((u_long*)D_8007A360, (u_long*)gMemActiveAuxHeap,
                        (u_short*)p->field_18C);
             D_8007A35E = 1;
             DecDCToutCallback(Mdec_StripCallback);
-            DecDCTin((u_long*)GActiveAuxHeap, (s32)p->field_22A);
+            DecDCTin((u_long*)gMemActiveAuxHeap, (s32)p->field_22A);
             p->field_22A = 0;
             DecDCTout((u_long*)Fs_ImgBuffers, 0x780);
             D_8007A358    = 0;
@@ -1127,11 +1127,11 @@ void Mdec_DecodeToVram(void)
             p->field_1EC = 1;
             DecDCTReset(0);
             DecDCTvlcSize2(0);
-            DecDCTvlc2((u_long*)D_8007A360, (u_long*)GActiveAuxHeap,
+            DecDCTvlc2((u_long*)D_8007A360, (u_long*)gMemActiveAuxHeap,
                        (u_short*)((u8*)Fs_ImgBuffers + 0x8800));
             D_8007A35E = 1;
             DecDCToutCallback(Mdec_StripCallback);
-            DecDCTin((u_long*)GActiveAuxHeap, p->field_22A);
+            DecDCTin((u_long*)gMemActiveAuxHeap, p->field_22A);
             p->field_22A = 0;
             DecDCTout((u_long*)Fs_ImgBuffers, 0x780);
             p->field_202 += 1;

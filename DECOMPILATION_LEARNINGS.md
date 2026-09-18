@@ -130441,3 +130441,11 @@ The primary base is a `.data` word holding a fixed address; the aux bases are
 `.bss` words the game sets from a Gfx image slot as that slot is loaded. A body
 re-derived with either address written as a literal emits `lui`/`addiu` and
 stops matching.
+
+The aux heap is two base/size pairs rather than one region: the pair the game
+configures while it loads an image slot, and the pair currently installed.
+`Mem_SetActiveAuxHeap` copies the first into the second, or points the second
+at the whole image area from its base — which is where the primary heap itself
+starts — so the installed base is not always a region of its own. A body that
+reads a base and the size beside it as one unit is reading the pair as the game
+wrote it, not two unrelated globals.
