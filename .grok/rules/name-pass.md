@@ -72,6 +72,21 @@ part of the acceptance test rather than as advice.
   the name and the comment come from what the value *is*, not from where it was
   copied. "A cached copy of another struct's `field_22`" is a lead you stopped
   on.
+- **Re-grep the notes for the access path you changed.** `rename_item.py`
+  propagates a *rename* everywhere, markdown included, but restructuring is not
+  a rename: nesting a field, folding a type into a union, or merging a duplicate
+  leaves the old *path* spelled out in prose that no rename ever touches. Those
+  mentions are not cosmetic - the next agent greps for a technique, finds
+  `owner->oldPath`, and rebuilds the shape you just removed. After the
+  declaration settles, search the notes for every spelling it retired:
+
+      grep -n 'gOwner->oldField\|OldType\|Owner\.oldField' DECOMPILATION_LEARNINGS.md
+
+  Update them to the current spelling rather than annotating them, since the
+  finding each entry records is still true; leave its measurements and narrative
+  alone. A single moved field can strand a hundred mentions, so this is checked
+  every time, not only when a type disappears.
+
 - **Enumerate every overlay and duplicate before merging any of them.** There is
   rarely only one, and the first one found is often not the most used. Before
   deciding, list them:
