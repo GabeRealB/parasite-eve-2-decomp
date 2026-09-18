@@ -27,6 +27,11 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
 WORKLIST="local/worklist.tsv"
+# Which steps are finished. The worklist is a plan, not a record: an item whose
+# name already follows the convention keeps that name afterwards, so "is the
+# name still in the tree" cannot say whether it has been done. Every outcome is
+# appended here instead, and a step is picked only if it has no row.
+DONE_LEDGER="local/name_pass_done.tsv"
 # The standing job description. grok takes it as a system prompt via --rules,
 # where it frames the whole session; the other arms get the same text inlined at
 # the head of the brief. One source either way, so the two cannot drift.
@@ -39,6 +44,7 @@ DRY=0
 FROM=0
 ONLY=""
 LIST_PROFILES=0
+KEEP_GOING=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -53,6 +59,9 @@ while [[ $# -gt 0 ]]; do
     --from)  FROM="$2"; shift 2 ;;
     --step)  ONLY="$2"; shift 2 ;;
     --dry-run) DRY=1; shift ;;
+    --all) TIMES=0; KEEP_GOING=1; shift ;;
+    --keep-going) KEEP_GOING=1; shift ;;
+    --stop-on-fail) KEEP_GOING=0; shift ;;
     -h|--help) sed -n '2,28p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
@@ -87,12 +96,24 @@ outstanding() {
   grep -rqlw --include='*.c' --include='*.h' -- "$1" src include 2>/dev/null
 }
 
+# Keyed on the item name, not the step order: rebuilding the graph renumbers
+# every step, so an order is only meaningful within one worklist.
+ledgered() {
+  [[ -f "$DONE_LEDGER" ]] && cut -f2 "$DONE_LEDGER" | tr ' ' '\n' | grep -qx -- "$1"
+}
+
+# order, items, commit (or -), outcome.
+record() {
+  printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" >> "$DONE_LEDGER"
+}
+
 next_step() {
   local order name
   while IFS=$'\t' read -r order _ name _ _ _ _ _; do
     [[ "$order" == "order" ]] && continue
     (( order < FROM )) && continue
     [[ -n "$ONLY" && "$order" != "$ONLY" ]] && continue
+    ledgered "$name" && continue
     if outstanding "$name"; then echo "$order"; return 0; fi
   done < <(rows)
   return 1
@@ -168,7 +189,10 @@ LOG="$(vacuum_log_dir)/name_pass-$$.log"
 echo "logging to $LOG"
 
 done_count=0
-for ((i = 0; i < TIMES; i++)); do
+fail_count=0
+i=0
+while (( TIMES == 0 || i < TIMES )); do
+  i=$((i + 1))
   order="$(next_step)" || { echo "worklist exhausted"; break; }
   mapfile -t items < <(awk -F'\t' -v o="$order" '$1==o{print $3}' "$WORKLIST")
   echo "=== step $order: ${items[*]}  ($(date +%H:%M:%S))"
@@ -225,18 +249,24 @@ for ((i = 0; i < TIMES; i++)); do
     echo "step $order FAILED to build; reverting" >&2
     tail -20 /tmp/name_pass_build.log >&2
     git checkout -- . && git clean -fd src include configs >/dev/null
-    exit 1
+    record "$order" "${items[*]}" - failed
+    fail_count=$((fail_count + 1))
+    (( KEEP_GOING )) || exit 1
+    continue
   fi
 
   if [[ -z "$(git status --porcelain)" ]]; then
-    echo "step $order left the tree unchanged; stopping so it can be looked at" >&2
-    exit 1
+    echo "step $order left the tree unchanged" >&2
+    record "$order" "${items[*]}" - unchanged
+    (( KEEP_GOING )) || exit 1
+    continue
   fi
 
   git add -A
   git commit -q -m "naming: ${items[*]}"
+  record "$order" "${items[*]}" "$(git rev-parse --short HEAD)" ok
   done_count=$((done_count + 1))
   echo "=== step $order committed"
 done
 
-echo "completed $done_count step(s)"
+echo "completed $done_count step(s), $fail_count failed"
