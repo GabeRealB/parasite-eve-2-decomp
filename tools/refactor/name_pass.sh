@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 # Walk the naming worklist, handing one step at a time to an agent.
 #
-#   ./tools/refactor/name_pass.sh [--times N] [--cli claude|grok] [--dry-run]
-#                                 [--from ORDER] [--step ORDER]
+#   ./tools/refactor/name_pass.sh [--times N] [--profile NAME] [--dry-run]
+#                                 [--cli claude|grok|codex] [--from ORDER]
+#                                 [--step ORDER] [--list-profiles]
+#
+# Profiles are the same ones the matching vacuum uses, from
+# local/vacuum_profiles: a profile names the agent arm, the model, the
+# reasoning effort and optionally a wrapper command to launch it through. An
+# explicit --cli, or a VACUUM_MODEL / VACUUM_MATCH_EFFORT already exported,
+# still wins over the profile.
 #
 # A step is one line of local/worklist.tsv, or several lines sharing an order
 # when a cycle means the items have to be understood together. For each step
@@ -20,23 +27,43 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
 WORKLIST="local/worklist.tsv"
-CLI="${NAME_PASS_CLI:-claude}"
+CLI="${VACUUM_CLI:-claude}"
+CLI_EXPLICIT=0
+PROFILE="${PROFILE-${VACUUM_PROFILE:-}}"
 TIMES=1
 DRY=0
 FROM=0
 ONLY=""
+LIST_PROFILES=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --times) TIMES="$2"; shift 2 ;;
-    --cli)   CLI="$2"; shift 2 ;;
+    --cli)   CLI="$2"; CLI_EXPLICIT=1; shift 2 ;;
+    --claude) CLI=claude; CLI_EXPLICIT=1; shift ;;
+    --grok)  CLI=grok; CLI_EXPLICIT=1; shift ;;
+    --codex) CLI=codex; CLI_EXPLICIT=1; shift ;;
+    --profile) PROFILE="$2"; shift 2 ;;
+    --profiles) export VACUUM_PROFILES_FILE="$2"; shift 2 ;;
+    --list-profiles) LIST_PROFILES=1; shift ;;
     --from)  FROM="$2"; shift 2 ;;
     --step)  ONLY="$2"; shift 2 ;;
     --dry-run) DRY=1; shift ;;
-    -h|--help) sed -n '2,20p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,28p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
+
+# The same table and resolution rules the matching vacuum uses, so a profile
+# means one thing across the project rather than two.
+# shellcheck disable=SC1091
+. "$ROOT/tools/vacuum_profile.sh"
+if (( LIST_PROFILES )); then list_profiles; exit 0; fi
+[[ -n "$PROFILE" ]] && apply_profile "$PROFILE"
+agent_launch "$CLI" "${VACUUM_MODEL:-}"
+LAUNCH_CMD=("${AGENT_CMD[@]}")
+MODEL="${AGENT_MODEL:-}"
+EFFORT="${VACUUM_MATCH_EFFORT:-}"
 
 [[ -f "$WORKLIST" ]] || {
   echo "no $WORKLIST; run: venv/bin/python3 tools/refactor/dep_graph.py worklist" >&2
@@ -142,9 +169,19 @@ for ((i = 0; i < TIMES; i++)); do
   fi
 
   case "$CLI" in
-    claude) claude -p --dangerously-skip-permissions "$brief" ;;
-    grok)   grok --always-approve -p "$brief" ;;
-    *) echo "unknown cli: $CLI" >&2; exit 2 ;;
+    claude)
+      "${LAUNCH_CMD[@]}" -p ${MODEL:+--model "$MODEL"} ${EFFORT:+--effort "$EFFORT"} \
+        --dangerously-skip-permissions "$brief"
+      ;;
+    grok)
+      "${LAUNCH_CMD[@]}" --always-approve ${EFFORT:+--effort "$EFFORT"} \
+        --cwd "$ROOT" -p "$brief"
+      ;;
+    codex)
+      "${LAUNCH_CMD[@]}" exec --dangerously-bypass-approvals-and-sandbox \
+        ${MODEL:+--model "$MODEL"} --cd "$ROOT" "$brief"
+      ;;
+    *) echo "unknown api: $CLI" >&2; exit 2 ;;
   esac
 
   if ! ./tools/build-and-verify.sh >/tmp/name_pass_build.log 2>&1; then
