@@ -158,7 +158,137 @@ void Actor02100_Fn004C4(Actor02100* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn00ADC);
+/// Stops the looping effect, clears the offset vector and starts the tail
+/// sound. Expanded at the end of both active steps, which the compiler emits
+/// as one shared tail; `sound` is deliberately a caller-scope variable, since
+/// both expansions must name the same object.
+#define STOP_SOUND                                                           \
+    work->field_118 = 0;                                                     \
+    work->field_11A = 0;                                                     \
+    work->field_11C = 0;                                                     \
+    SndEvt_EnqueueType7(work->field_168, 1);                                 \
+    work->field_188 = 0;                                                     \
+    sound           = (((arg0->field_20->field_8 >> 12) << 8) | 0x40150008); \
+    {                                                                        \
+        s32 pan;                                                             \
+        s32 depth;                                                           \
+                                                                             \
+        pan   = (s8)Gp_GetObjPan((GpObj38*)coord);                           \
+        depth = (s8)Gp_GetObjDepth((GpObj38*)coord);                         \
+        SndEvt_EnqueueType6(sound, pan, depth);                              \
+    }
+
+/// Per-frame handler for the four-step sound cycle at `field_16C`: two active
+/// steps that keep a looping effect playing while the stored offset vector is
+/// applied, separated by 60-frame gaps. Steps 0 and 2 start the effect on their
+/// first frame, retrigger it each frame, and run for `field_176 * 40` frames;
+/// each then stops the effect, clears the offset and starts the tail sound.
+/// Step 1 installs the negated offset, step 3 restores it and returns to 0.
+void Actor02100_Fn00ADC(Actor02100* arg0)
+{
+    Actor02100Work* work;
+    GsCOORDINATE2*  coord;
+    s32             negX;
+    s32             negY;
+    s32             negZ;
+    s16             state;
+    s32             one;
+    s32             sound;
+
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    one   = 1;
+    work->field_16E++;
+    state = work->field_16C;
+
+    switch (state) {
+        case 0:
+            if (work->field_16E == one) {
+                work->field_168 = (((arg0->field_20->field_8 >> 12) << 8) | 0x40150007);
+                {
+                    s32 pan;
+                    s32 depth;
+
+                    pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
+                    depth = (s8)Gp_GetObjDepth((GpObj38*)coord);
+                    SndEvt_EnqueueType6(work->field_168, pan, depth);
+                }
+                work->field_188 = one;
+            }
+            {
+                s32 pan;
+                s32 depth;
+
+                pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
+                depth = (s8)Gp_GetObjDepth((GpObj38*)coord);
+                SndEvt_EnqueueTypeA(work->field_168, pan, depth);
+            }
+            if (work->field_16E < (work->field_176 * 40)) {
+                break;
+            }
+            work->field_16E = 0;
+            work->field_16C = one;
+            STOP_SOUND;
+            break;
+
+        case 1:
+            if (work->field_16E < 60) {
+                break;
+            }
+            work->field_16C = (state = 2);
+            work->field_16E = 0;
+            work->field_118 = (negX = -work->field_138);
+            work->field_11A = (negY = -work->field_13A);
+            work->field_11C = (negZ = -work->field_13C);
+            break;
+
+        case 2: {
+            s32 timer;
+
+            timer = work->field_16E;
+            if (timer == one) {
+                work->field_168 = (((arg0->field_20->field_8 >> 12) << 8) | 0x40150007);
+                {
+                    s32 pan;
+                    s32 depth;
+
+                    pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
+                    depth = (s8)Gp_GetObjDepth((GpObj38*)coord);
+                    SndEvt_EnqueueType6(work->field_168, pan, depth);
+                }
+                work->field_188 = timer;
+            }
+        }
+            {
+                s32 pan;
+                s32 depth;
+
+                pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
+                depth = (s8)Gp_GetObjDepth((GpObj38*)coord);
+                SndEvt_EnqueueTypeA(work->field_168, pan, depth);
+            }
+            if (work->field_16E < (work->field_176 * 40)) {
+                break;
+            }
+            work->field_16E = 0;
+            work->field_16C = 3;
+            STOP_SOUND;
+            break;
+
+        case 3:
+            if (work->field_16E < 60) {
+                break;
+            }
+            work->field_16E = 0;
+            work->field_16C = 0;
+            work->field_118 = (u16)work->field_138;
+            work->field_11A = (u16)work->field_13A;
+            work->field_11C = (u16)work->field_13C;
+            break;
+    }
+}
+
+#undef STOP_SOUND
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void Gp_ArmStateF0(s32 arg0);

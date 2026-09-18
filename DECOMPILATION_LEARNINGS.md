@@ -3,6 +3,59 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## A local shared by two copies of a duplicated tail becomes a global pseudo, and that is what frees a call-saved register
+
+Cross-jumping runs in the `jump2` pass, **after** reload. So a body written once
+in a macro (or duplicated by two `switch` arms reaching the same epilogue) still
+exists twice when `sched1`, `local-alloc` and `global-alloc` run: count the call
+sites in `base_N.i.lreg` versus `base_N.i.jump2` to see the merge happen.
+
+That matters because `local-alloc` ties a binary operation's destination to
+whichever operand dies in the insn (`combine_regs` in `local-alloc.c`), so
+`dest = chain | const` makes the destination inherit the whole shift/load chain
+as one quantity. Quantities are then ranked by
+`floor_log2(n_refs) * n_refs * size / (death - birth)`, and the inherited chain's
+extra references let it outrank a genuinely shorter-lived value that is
+competing for the same call-saved register: the long chain takes `$s0` and the
+short value is pushed to `$s1`.
+
+`combine_regs` refuses the tie when `reg_qty[dest] == -1`, which `local_alloc`
+sets for any pseudo referenced in more than one basic block. Declaring the
+variable at function scope instead of inside the duplicated block makes both
+copies name one pseudo, so it is multi-block, the tie is refused, the chain
+stays in a call-clobbered register, the short-lived value wins the local pass
+and takes `$s0`, and `global-alloc` gives the shared variable `$s1`.
+
+```c
+/* one quantity: the chain outranks pan and takes $s0 */
+#define STOP_SOUND ... { s32 sound; sound = (x << 8) | K; play(sound, pan, depth); }
+
+/* sound is multi-block, no tie: chain stays $v0, pan takes $s0, sound $s1 */
+s32 sound;                       /* function scope, shared by both expansions */
+#define STOP_SOUND ... sound = (x << 8) | K; play(sound, pan, depth);
+```
+
+The reverse move is equally real and was tried first on this function: hoisting
+a *short-lived* local to function scope hands it to `global-alloc`, which
+displaces the work pointer and reschedules every call block. Hoist the value
+whose quantity is too long, not the one whose register is wrong.
+
+`Actor02100_Fn00ADC` 99.574% -> 100%. Input hash
+`3e6700e2b57496a4d2622f576088737ac45ab69aaa49fdf753c4518e08c319cc` (`base_4.i`).
+
+## Ordering independent negate-and-store statements by ascending field offset picks which of two values gets `$v0`
+
+Three independent `field_A = -field_B;` statements schedule to the same shape
+whichever order they are written in, but `local-alloc` allocates their
+quantities in priority order and first-fit, so the *earlier* statement's value
+takes `$v0` and the later one `$v1`. `sched2` then hoists the `$v1` load ahead
+of the `$v0` one, which makes the emitted order look like the opposite of the
+source order — reading the object dump and "correcting" the source order walks
+away from the match.
+
+Derive the intended order from the register assignment instead: whichever value
+the target keeps in `$v0` is the one whose statement comes first.
+
 ## Named `r`/`g`/`b` temps on a `POLY_G4` beam steal `$t1` from `addPrim`'s `0xFFFFFF`
 
 `func_dryfield_dilapidated_house_801823B8` is the gunblade/m4a1/tonfa trail
