@@ -128293,3 +128293,38 @@ branch arms are evidence *for* the macro, not against it.
 
 Inputs: base_1.c (ternary, 93.786%) vs base_3.c (100%),
 `nonmatchings/func_actor_450200_80132368-vacuum/`.
+
+## When porting a sibling body, do not feed its `one` local to statements the sibling did not have
+
+`func_actor_105600_80135744` is `Actor02000_Fn0251C` of `actor_102000` with one
+extra `Gp_LinkObj` block. That sibling opens its switch with the familiar
+`one = 1; kind = ctx->field_4B; if (kind == one) …` idiom, which puts 1 in a
+callee-saved register so the compare and the two `field_694` / `field_6A6`
+stores share it. Porting the body and writing the *new* block's two `= 1`
+fields as `= one` as well cost one extra saved register and the two
+instructions that spill and restore it — 99.042%, `regs=27`, `insert=2`:
+
+```c
+work->field_63C.field_10 = one;   /* keeps `one` live to the end of case 0 */
+work->field_63C.field_12 = one;   /* $s7 saved and restored for it */
+```
+
+In the ROM `one` dies right after `sh $s0, 0x6A6($s3)`, so `$s0` is free again
+for the `GpRec18` table pointers that follow, and the 1 those late fields want
+is a *different* quantity, rematerialized into `$s1` alongside the `flags = 1`
+stores of the intervening list nodes. Writing the literal restores exactly
+that, and the function matched on the next build:
+
+```c
+work->field_63C.field_10 = 1;
+work->field_63C.field_12 = 1;
+```
+
+The general rule: a `one`-style local exists to tie together the few uses the
+original really shared. Statements you add when adapting a sibling body belong
+to a later live range — give them the literal and let the compiler decide
+whether to share. A single extra use of such a local reaches past the point
+where its register is reused, and the cost is a whole callee-saved slot.
+
+Inputs: base_1.c (99.042%) vs base_2.c (100%),
+`nonmatchings/func_actor_105600_80135744-vacuum/`.

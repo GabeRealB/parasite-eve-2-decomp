@@ -81,9 +81,33 @@ typedef struct Actor105600Ctx {
 /// and the `Actor02000Work` block of `actor_102000`; the halfwords around
 /// 0x694-0x6E0 keep those blocks' offsets and meaning.
 typedef struct Actor105600Work {
-    /* 0x000 */ GpAnimCtx ctx;
-    /* 0x014 */ byte      slots[19][0x28];
-    /* 0x30C */ byte      pad_30C[0x36C];
+    /* 0x000 */ GpAnimCtx  ctx;
+    /* 0x014 */ GpAnimSlot slots[19];
+    /* 0x30C */ byte       field_30C[0x130];
+    /// Colour and light matrices the model object's `field_20` / `field_1C`
+    /// are pointed at.
+    /* 0x43C */ MATRIX field_43C;
+    /* 0x45C */ MATRIX field_45C;
+    /// The five collision/proximity list nodes the spawn handler links, each
+    /// followed by the `GpRec18` table it walks. The first and last reach
+    /// their tables through a `GpActorD4Rec`.
+    /* 0x47C */ GpObj        field_47C;
+    /* 0x49C */ GpActorD4Rec field_49C;
+    /* 0x4B4 */ GpRec18      field_4B4[1];
+    /* 0x4CC */ GpObj        field_4CC;
+    /* 0x4EC */ GpRec18      field_4EC[5];
+    /* 0x564 */ GpObj        field_564;
+    /* 0x584 */ GpRec18      field_584[4];
+    /* 0x5E4 */ GpObj        field_5E4;
+    /* 0x604 */ GpRec18      field_604[1];
+    /* 0x61C */ GpObj        field_61C;
+    /* 0x63C */ GpActorD4Rec field_63C;
+    /* 0x654 */ GpRec18      field_654[1];
+    /// The spawn table the companion enemy comes from.
+    /* 0x66C */ TaskDesc*      field_66C;
+    /* 0x670 */ GsCOORDINATE2* field_670;
+    /* 0x674 */ s16            field_674;
+    /* 0x676 */ s16            field_676;
     /// World position of the root coordinate as of the previous frame, saved
     /// before the per-frame drift below is applied.
     /* 0x678 */ s32  field_678;
@@ -102,19 +126,56 @@ typedef struct Actor105600Work {
     /* 0x6A0 */ byte pad_6A0[6];
     /* 0x6A6 */ s16  field_6A6; ///< state-machine step, indexes the handler table
     /* 0x6A8 */ s16  field_6A8;
-    /* 0x6AA */ byte pad_6AA[0xA];
+    /* 0x6AA */ byte pad_6AA[2];
+    /// Awake variant the actor was placed in (bit 0 of the placement record's
+    /// `field_2`); non-zero starts it on the longer approach.
+    /* 0x6AC */ s16  field_6AC;
+    /* 0x6AE */ byte pad_6AE[6];
     /* 0x6B4 */ s16  field_6B4; ///< non-zero runs the tilt helper
     /* 0x6B6 */ byte pad_6B6[2];
     /* 0x6B8 */ s16  field_6B8;
-    /* 0x6BA */ byte pad_6BA[0x24];
+    /* 0x6BA */ byte pad_6BA[0x10];
+    /* 0x6CA */ s16  field_6CA;
+    /* 0x6CC */ byte pad_6CC[0xA];
+    /// Streaming cue id for this room, looked up in `D_actor_105600_80148298`.
+    /* 0x6D6 */ s16  field_6D6;
+    /* 0x6D8 */ byte pad_6D8[2];
+    /// Approach budget, 1000 per unit of the placement record's byte 1.
+    /* 0x6DA */ s16  field_6DA;
+    /* 0x6DC */ byte pad_6DC[2];
     /* 0x6DE */ s16  field_6DE; ///< below 2 the actor also drifts upward
     /* 0x6E0 */ s16  field_6E0;
     /* 0x6E2 */ byte pad_6E2[2];
 } Actor105600Work;
 STATIC_ASSERT_SIZEOF(Actor105600Work, 0x6E4);
 
+/// 0x10-byte per-room record reached through `GpAreaRec::field_0`, the same
+/// table `Actor02000AreaRec` describes. `field_D` / `field_E` are the texture
+/// page and CLUT row the spawn handler copies into the companion model object.
+typedef struct Actor105600AreaRec {
+    /* 0x00 */ byte pad_0[0xD];
+    /* 0x0D */ u8   field_D;
+    /* 0x0E */ u8   field_E;
+    /* 0x0F */ byte pad_F[1];
+} Actor105600AreaRec;
+STATIC_ASSERT_SIZEOF(Actor105600AreaRec, 0x10);
+
 /// Placement descriptor for this actor.
 extern Actor105600PlaceSrc D_actor_105600_80147FDC;
+
+/// Pair source the approach cycle parks at `GpEnemy::field_50`; its `field_4`
+/// becomes the enemy's `field_40`.
+extern GpPairSrcE D_actor_105600_80147FF0[];
+
+/// Per-stage tables of streaming cue ids, indexed by `GameSession::field_7`
+/// and then `GameSession::field_6`.
+extern u16* D_actor_105600_80148298[];
+
+/// Spawn table the approach cycle starts its companion enemy from, index 1.
+extern TaskDesc D_actor_105600_801482C0[];
+
+/// Animation stream set bound into the work block's animation context.
+extern void D_actor_105600_801482E4;
 
 /// Sound id of the burst cue, with the spawn context's room/channel bits packed
 /// in.
