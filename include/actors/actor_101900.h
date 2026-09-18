@@ -96,8 +96,12 @@ typedef struct Actor01900Work {
     /* 0xC98 */ s16     field_C98;
 } Actor01900Work;
 
-/// Animation view of the same task work block. The arrays cover slot indices
-/// used by Actor01900_Fn01950; the remaining bytes are not yet described.
+/// Animation view of the same task work block: the two animation contexts and
+/// their slot arrays, which `Actor01900Work` covers with padding because it
+/// names other fields inside that range. The tail from 0x898 on is the same
+/// run of halfwords `Actor01900Work` describes, repeated here so the animation
+/// driver can reach both through one pointer. The bytes the arrays do not
+/// cover are not yet described.
 typedef struct Actor01900AnimWork {
     /* 0x000 */ byte       pad_0[0x1C];
     /* 0x01C */ GpAnimCtx  anim;
@@ -105,11 +109,22 @@ typedef struct Actor01900AnimWork {
     /* 0x328 */ byte       pad_328[0x130];
     /* 0x458 */ GpAnimCtx  blendAnim;
     /* 0x46C */ GpAnimSlot blendSlots[19];
-    /* 0x764 */ byte       pad_764[0x13E];
+    /* 0x764 */ byte       pad_764[0x134];
+    /* 0x898 */ s16        field_898;
+    /* 0x89A */ s16        field_89A;
+    /* 0x89C */ s16        field_89C;
+    /* 0x89E */ s16        field_89E;
+    /* 0x8A0 */ u16        field_8A0;
     /* 0x8A2 */ s16        field_8A2;
-    /* 0x8A4 */ byte       pad_8A4[6];
+    /* 0x8A4 */ byte       pad_8A4[2];
+    /* 0x8A6 */ s16        field_8A6;
+    /* 0x8A8 */ s16        field_8A8;
     /* 0x8AA */ s16        field_8AA;
     /* 0x8AC */ s16        field_8AC;
+    /* 0x8AE */ s16        field_8AE;
+    /* 0x8B0 */ s16        field_8B0;
+    /* 0x8B2 */ byte       pad_8B2[2];
+    /* 0x8B4 */ s32        field_8B4;
 } Actor01900AnimWork;
 
 /// Per-task actor context handed to the overlay's callbacks: `field_1C` is the

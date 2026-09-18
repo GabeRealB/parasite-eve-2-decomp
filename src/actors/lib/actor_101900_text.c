@@ -629,7 +629,138 @@ s32 Actor01900_Fn01A7C(Actor01900Work* work)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn01C94);
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// Cross-fade lengths in frames, indexed by the clip being left and the clip
+/// being entered. `Actor01900_Fn01C94` reads one entry per animation change.
+extern s8 Actor01900_D16988[][0x2D];
+
+/// Per-frame animation driver: services a pending clip change, advances the
+/// body and blend animations, eases the head toward its target yaw and emits
+/// whatever sound event the current clip has reached.
+///
+/// `field_898` is the pending-change request: 1 cross-fades into `field_89E`
+/// over the table's frame count, 2 restarts it outright, and both settle to 3.
+/// `field_8A6` does the same for the blend animation and `field_8A8`.
+void Actor01900_Fn01C94(Actor01900* arg0)
+{
+    Actor01900AnimWork* work;
+    Actor01900AnimWork* w1;
+    Actor01900AnimWork* w2;
+    Actor01900AnimWork* w3;
+    GpEnemy*            enemy;
+    s16                 cur;
+    s16                 dst;
+    s16                 raw;
+    s32                 clamped;
+    s32                 i;
+    s32                 i2;
+    s32                 i3;
+    s32                 i4;
+    s32                 snd;
+    s32                 id;
+    s32                 pan;
+    u16                 cur_u;
+    u16                 dst_u;
+
+    work  = (Actor01900AnimWork*)arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_898 == 1) {
+        w1 = work;
+        if (work->field_89C != work->field_89E) {
+            for (i = 1; i < 0x13; i++) {
+                w1->slots[i].field_9 = (u8)w1->field_8A2;
+                func_800B4114(&w1->anim, i, w1->field_89E, 0,
+                              (s32)Actor01900_D16988[w1->field_89C][w1->field_89E]);
+            }
+            /* Keeps this store from being merged with the identical one the
+               `field_898 == 2` path makes just below. */
+            SCHED_BARRIER();
+            w1->field_89C = (s16)(u16)w1->field_89E;
+        }
+        goto block_9;
+    }
+    if (work->field_898 == 2) {
+        w2 = work;
+        i2 = 1;
+        do {
+            w2->slots[i2].field_9 = (u8)w2->field_8A2;
+            Gp_AnimResetSlot(&w2->anim, i2, w2->field_89E);
+            i2++;
+        } while (i2 < 0x13);
+        w2->field_89C = (s16)(u16)w2->field_89E;
+    block_9:
+        work->field_898 = 3;
+        work->field_8A0 = 0;
+        work->field_8B4 = 0;
+    }
+    if (work->field_8A6 == 2) {
+        i3            = 1;
+        w1            = (Actor01900AnimWork*)arg0->field_1C;
+        w1->field_8AA = 0x30;
+        w1->field_8AC = 0x800;
+        do {
+            w1->slots[i3].field_9 = (u8)w1->field_8AA;
+            Gp_AnimResetSlot(&w1->blendAnim, i3, w1->field_8A8);
+            i3++;
+        } while (i3 < 0x13);
+        work->field_8A6 = 3;
+    }
+    work->field_8A0 = (u16)(work->field_8A0 + 1);
+    if (work->field_89A == 0) {
+        w3 = (Actor01900AnimWork*)arg0->field_1C;
+        i4 = 1;
+        do {
+            w3->slots[i4].field_9 = (u8)w3->field_8A2;
+            Gp_AnimTickIndex(&w3->anim, i4);
+            i4++;
+        } while (i4 < 0x13);
+    } else {
+        Actor01900_Fn01950(arg0);
+        if (work->blendSlots[1].field_10 & 0x100) {
+            work->field_89A = 0;
+        }
+    }
+    dst   = work->field_8AE;
+    cur   = work->field_8B0;
+    dst_u = (u16)work->field_8AE;
+    cur_u = (u16)work->field_8B0;
+    if (dst > cur) {
+        if ((dst - cur) >= 0x101) {
+            work->field_8B0 = cur_u + 0x100;
+        } else {
+            goto block_25;
+        }
+    } else if ((cur - dst) >= 0x101) {
+        work->field_8B0 = cur_u - 0x100;
+    } else {
+    block_25:
+        work->field_8B0 = (s16)dst_u;
+    }
+    raw     = work->field_8B0;
+    clamped = (u16)work->field_8B0;
+    if (raw != 0) {
+        if (raw >= 0x401) {
+            clamped = 0x400;
+        }
+        if (raw < -0x400) {
+            clamped = -0x400;
+        }
+        Actor01900_Fn00260(arg0->field_2C->field_8 + 5, (s16)(((s16)clamped * 2) / 3));
+        Actor01900_Fn00260(arg0->field_2C->field_8 + 2,
+                           (s16)((s32)((s16)clamped + ((u32)(clamped << 0x10) >> 0x1F)) >> 1));
+        arg0->field_2C->field_8[5].flg = 0;
+        arg0->field_2C->field_8[4].flg = 0;
+        arg0->field_2C->field_8[3].flg = 0;
+        arg0->field_2C->field_8[2].flg = 0;
+    }
+    snd = Actor01900_Fn01A7C((Actor01900Work*)work);
+    if (snd != 0) {
+        id  = snd | (((u16)enemy->field_8 >> 0xC) << 8);
+        pan = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+    }
+}
 
 /// Binds the actor model's light and colour matrices to the pair kept in its
 /// work block.

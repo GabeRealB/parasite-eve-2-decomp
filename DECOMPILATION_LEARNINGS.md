@@ -129239,3 +129239,46 @@ puts the scratchpad store between the loads and the `sh` in RTL order. The
 subtraction outranks it on priority and is placed after it, which is the ROM's
 order. A statement split is the lever whenever a store has to sit inside another
 statement's expansion.
+
+## Between two eligible insns after a branch, reorg picks one you cannot steer: hoist the wanted one above the compare (Actor01900_Fn01C94, 2026-09-18)
+
+A loop preceded by a pointer copy and a counter init compiled to
+
+```
+beq  v1,v0, skip
+li   s1,1          /* the counter, in the delay slot */
+move s0,s3         /* the copy */
+```
+
+while the ROM has the two the other way round - `move s0,s3` in the slot and
+`li s1,1` after the branch. The two insns are adjacent, in that source order, at
+the head of the fall-through block, and stay in that order through `.greg` and
+`.sched2`; reorg nevertheless takes the *second* one. Nothing in the dumps
+explains the choice: at the branch target neither register is live (the block's
+live set renumbers to `s3`/`s4`/`s6`), both are `type=move, dslot=no, length=1`
+and so eligible, and the sibling `bne` two blocks later fills its slot with the
+first insn of *its* fall-through thread. Reordering the two statements does not
+help either, because whichever mechanism rejects the copy rejects it wherever it
+sits in the thread.
+
+The lever is which of reorg's two scans gets the insn at all. `dbr_schedule`
+runs `fill_simple_delay_slots` before `fill_eager_delay_slots`, and the former's
+backward scan takes an insn from *before* the branch, needing only that it
+neither sets nor is referenced by the compare's operands. So moving the copy
+above the `if` - where it is already dead on the other path, so this costs
+nothing -
+
+```c
+if (work->field_898 == 1) {
+    w1 = work;                                   /* was inside the if below */
+    if (work->field_89C != work->field_89E) {
+        for (i = 1; i < 0x13; i++) {
+```
+
+puts `move s0,s3` ahead of the two `lh`s that feed the `beq`, the backward scan
+steals it into the slot, and `li s1,1` stays where it was: a 99.73% -> 100%
+one-line move. This is the register-move counterpart of the store rule above
+(where `opposite_needed.memory` provably refuses every store from both threads);
+here the refusal is not explained, but the remedy is the same, and it is the
+remedy to reach for whenever the target shows a specific insn in a conditional
+branch's delay slot.
