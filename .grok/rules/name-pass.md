@@ -65,11 +65,21 @@ part of the acceptance test rather than as advice.
 
       grep -rhoE '\(\s*[A-Za-z_][A-Za-z0-9_]*\s*\*\s*\)\s*&?\s*gOwner(->member)?' src include | sort | uniq -c | sort -rn
 
-  Types describing the same run *are* one type. The member takes that single
-  type, the duplicates go, and the surviving name is chosen on the evidence -
-  usually the one with the most uses, not the one you happened to open first. A
-  duplicate left in place keeps its own `field_0..field_N` and its own half of
-  the documentation, which is the state this pass exists to remove.
+  Where the uses agree that they mean the same thing, they *are* one type: the
+  member takes that single type, the duplicates go, and the surviving name is
+  chosen on the evidence - usually the one with the most uses, not the one you
+  happened to open first. A shared layout alone is never the reason; two types
+  that differ in meaning stay apart. `NAMING.md` defers a merge only for a pair
+  with no relationship to the item you are processing, so it is not a licence to
+  defer the duplicates of your own member's type.
+- **An overlay that will not reconcile is pointing at a union.** If folding a
+  view into its owner changes code generation and cannot be made to match, the
+  run has two simultaneous readings - typically an aggregate that is also copied
+  wholesale, where taking the member's address rebases the copy and moves the
+  offsets. Write the union of both views as named members
+  (`session->at4.loc.stage` beside `session->at4.raw`) rather than restoring the
+  cast. Reverting and reporting it impossible stops one step short of what the
+  failure was telling you.
 
 ## Names
 

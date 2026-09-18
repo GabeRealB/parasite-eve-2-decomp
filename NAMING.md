@@ -400,6 +400,36 @@ line that reads through its anonymous struct is commented out in
 `src/main/gpuext.c` — someone met this already. So a union form is
 `session->at4.loc`, not `session->loc`; a nested struct form is `session->loc`.
 
+**There is rarely only one.** The same run is usually described by several
+invented types, reached from different callers, and the first one found is
+often not the most used. Enumerate them before merging any — list the types the
+owner is cast to, and the types `&owner->member` is cast to:
+
+```
+grep -rhoE '\(\s*[A-Za-z_][A-Za-z0-9_]*\s*\*\s*\)\s*&?\s*gOwner(->member)?' src include \
+  | sort | uniq -c | sort -rn
+```
+
+Types describing the same run are one type: the member takes a single honest
+type and the rest go. Which name survives is decided on the evidence, usually
+the count. A duplicate left in place keeps its own `field_0..field_N` and its
+own half of the documentation, which is the state this convention exists to
+remove.
+
+**An overlay that will not reconcile is pointing at a union.** If folding a view
+into its owner changes code generation and cannot be made to match, that is
+evidence the run really does have two simultaneous readings — typically an
+aggregate that is also copied wholesale, where taking the member's address
+rebases the copy and moves the offsets. In C that is a union of the two views as
+named members, not a reason to restore the cast:
+
+```c
+union { GpAreaKey loc; GBytes8 raw; } at4;   /* session->at4.loc.stage, session->at4.raw */
+```
+
+Reverting the attempt and reporting it impossible stops one step short of the
+conclusion the failure was pointing at.
+
 Either way the phantom type goes away, callers stop casting, and the
 relationship is stated where the layout is. The address is unchanged, so the
 build confirms it: if the member sits at the wrong offset or the nesting alters
@@ -472,10 +502,16 @@ deadlock — the items in it have to be understood together. The real ones here
 are small: a task and its list node, a TMD object and its list head, a sound
 voice and its owner, and several actor structs paired with their work structs.
 
-**Merging duplicate types is a separate, later pass.** A shared layout is not a
-reason to combine two types; the test is whether they mean the same thing, and
-that can only be judged once the code using both has been processed. The
-information needed to answer it is produced by the naming pass itself.
+**Merge a duplicate as soon as the item in hand settles it.** A shared layout is
+never the reason; the test is whether the two types mean the same thing, judged
+from how the code uses each. Processing an item is what produces that evidence
+for the types it touches, so where the answer is now clear the merge happens
+now — the member takes the single honest type and the duplicate goes, with the
+surviving name chosen on the evidence rather than on which was found first.
+
+What is still deferred is only a pair with **no relationship to the item being
+processed**. There the uses have not been read yet and the identity question
+genuinely cannot be answered, so recording it and moving on is right.
 
 ### Planned: resolve immediate values
 
