@@ -137,7 +137,7 @@ Task* Task_SpawnOnDefaultListA(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     Task*     ret;
 
     saved = Task_GetActiveList();
-    Task_SetActiveList(&Task_DefaultList);
+    Task_SetActiveList(&gTaskDefaultList);
     ret = Task_Spawn(arg0, arg1, arg2, arg3);
     Task_SetActiveList(saved);
     return ret;
@@ -149,7 +149,7 @@ Task* Task_SpawnOnDefaultList(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
     Task*     ret;
 
     saved = Task_GetActiveList();
-    Task_SetActiveList(&Task_DefaultList);
+    Task_SetActiveList(&gTaskDefaultList);
     ret = Task_SpawnFromTable(arg0, arg1, arg2, arg3);
     Task_SetActiveList(saved);
     return ret;
@@ -301,7 +301,7 @@ void Display_FlipOtAlt(void)
     Gpu_CurrentOt  = Gpu_OtTags + buf * GPU_OT_ENTRIES;
     Gpu_ClearOTag(temp->otBuffer);
     Gpu_CurrentOt = Gpu_CurrentOt + 0x20;
-    Task_ExecListFiltered(&Task_DefaultList, 0x62);
+    Task_ExecListFiltered(&gTaskDefaultList, 0x62);
     Gp_DrawActorTmdFlagged(&Gpu_OtBuffers[temp->otBuffer]);
     Gpu_CurrentOt              = saved;
     temp->at100.flags.flipMode = 0;

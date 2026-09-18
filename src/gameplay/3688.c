@@ -492,7 +492,7 @@ void Gp_MenuRootTask(Task* arg0)
                 break;
             }
             prev = Task_GetActiveList();
-            list = &Task_DefaultList;
+            list = &gTaskDefaultList;
             Task_SetActiveList(list);
             saved              = cfg->weapon;
             old                = (u8)D_80114DE8;
@@ -524,7 +524,7 @@ void Gp_MenuRootTask(Task* arg0)
             if ((D_80114DE8 != cfg->weapon) || (D_80114DE4 != cfg->weaponSlotItem) ||
                 (D_80114DE0 != attach)) {
                 prev = Task_GetActiveList();
-                Task_SetActiveList(&Task_DefaultList);
+                Task_SetActiveList(&gTaskDefaultList);
                 flag  = &D_8005ED8C;
                 *flag = 1;
                 Gp_SpawnWeaponEff();

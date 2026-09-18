@@ -225,9 +225,9 @@ imm2:
 imm_unlink:
     saved           = gTaskActiveList;
     next            = arg0->node.next;
-    gTaskActiveList = &Task_DefaultList;
+    gTaskActiveList = &gTaskDefaultList;
     if (next == NULL) {
-        pp = &Task_DefaultList.prev;
+        pp = &gTaskDefaultList.prev;
     } else {
         pp = &next->node.prev;
     }
@@ -463,9 +463,9 @@ void Task_SetActiveList(TaskNode* node)
 
 void Task_ResetDefaultList(void)
 {
-    gTaskActiveList       = &Task_DefaultList;
-    Task_DefaultList.next = NULL;
-    Task_DefaultList.prev = &Task_DefaultList;
+    gTaskActiveList       = &gTaskDefaultList;
+    gTaskDefaultList.next = NULL;
+    gTaskDefaultList.prev = &gTaskDefaultList;
 }
 
 void Task_Unlink(Task* state)
@@ -499,8 +499,8 @@ void Task_ExecDefaultList(TaskNode* node)
     Task*         curr;
     DisplayState* tmp_ptr; // The indirection is required.
 
-    curr            = Task_DefaultList.next;
-    gTaskActiveList = &Task_DefaultList;
+    curr            = gTaskDefaultList.next;
+    gTaskActiveList = &gTaskDefaultList;
     if (curr != NULL) {
         tmp_ptr = &gDisplayState;
     loop_2:

@@ -31,7 +31,7 @@ of function pointers, not a cast list.
 ### 1.1 `Task` (0x48)
 
 Allocated with `Mem_Calloc(0x48, 0)`. Inserted into the **active list**
-(`gTaskActiveList`, usually `Task_DefaultList`) in **priority order**: lower
+(`gTaskActiveList`, usually `gTaskDefaultList`) in **priority order**: lower
 `priority` runs earlier. Typical values:
 
 | Priority | Who |
@@ -88,7 +88,7 @@ defaults to `Task_Kill`.
 `GameMain_Loop` rebuilds the OT, then:
 
 ```c
-Task_ExecDefaultList(...);   // walks Task_DefaultList
+Task_ExecDefaultList(...);   // walks gTaskDefaultList
 ```
 
 Each node’s `callback` runs. Two early-outs:
@@ -123,7 +123,7 @@ Type 1 often swaps `callback` to `Task_CountdownCallback` with
 
 | List | Role |
 |------|------|
-| `Task_DefaultList` | Main frame list. `Task_ResetDefaultList` on boot / world reset |
+| `gTaskDefaultList` | Main frame list. `Task_ResetDefaultList` on boot / world reset |
 | `gTaskActiveList` | Where new spawns insert. Almost always the default list |
 | `D_8007A110` | Side list with its own small OT. `Display_SpawnWithOt` / `Display_SpawnWithOtSmall` init it, spawn onto it, then restore `gTaskActiveList` |
 

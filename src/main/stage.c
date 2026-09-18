@@ -364,14 +364,14 @@ void Display_FlipOtAndDispatch(s32 arg0)
     switch (mode) {
         case 3:
         case 0x20:
-            Task_ExecDefaultList(&Task_DefaultList);
+            Task_ExecDefaultList(&gTaskDefaultList);
             break;
         case 2:
             Gp_LinkViewSprts();
             Gp_DrawActorTmdActive(&Gpu_OtBuffers[temp->otBuffer]);
             break;
         case 1:
-            Task_ExecListFiltered(&Task_DefaultList, 0x62);
+            Task_ExecListFiltered(&gTaskDefaultList, 0x62);
             Gp_LinkViewSprts();
             Gp_DrawActorTmdFlagged(&Gpu_OtBuffers[temp->otBuffer]);
             break;

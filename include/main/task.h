@@ -75,8 +75,8 @@ typedef struct {
 /// The head node is not an element in the linked list and points to the first
 /// and the last elements.
 typedef struct _TaskNode {
-    struct Task*      next;
-    struct _TaskNode* prev;
+    struct Task*      next; // Next task, or NULL beyond the last; the head is never reached this way
+    struct _TaskNode* prev; // Previous node, or the head itself; the head's own holds the last node
 } TaskNode;
 
 /// 2-byte table entry (id + type). Indexed via TaskIdMap.
@@ -182,14 +182,24 @@ extern TaskDesc* Task_DescBanks[];
 /// The task list the running code is working on: the list a spawned task joins
 /// and the list an unlinked node is taken out of.
 ///
-/// It points at `Task_DefaultList` unless something has switched it, and the
+/// It points at `gTaskDefaultList` unless something has switched it, and the
 /// default frame walk switches it back. A walk over another list points this
 /// at that list, so a task spawned from inside a callback joins the list its
 /// callback is running on rather than the main one; callers that must leave
 /// the value as they found it save it first and put it back afterwards.
 extern TaskNode* gTaskActiveList;
 
-extern TaskNode Task_DefaultList;
+/// Head of the main task list: the list the frame walk runs and the list a
+/// spawned task joins unless something has switched the active list away from
+/// it.
+///
+/// It is a bare `TaskNode` rather than a task, so the head belongs to none of
+/// the elements it anchors. Tearing the task system down — at boot and at the
+/// start of a session — empties the list outright instead of draining it,
+/// because the tasks still on it are reclaimed by reinitializing the heaps
+/// they came from.
+extern TaskNode gTaskDefaultList;
+
 extern TaskNode D_8007A110;
 
 extern TaskFuncTable5       GameFlow_States5;

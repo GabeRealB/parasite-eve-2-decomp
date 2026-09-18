@@ -2742,7 +2742,7 @@ _waitTime                   = 0x800714BC;
 D61CC0_800714C0             = 0x800714C0; // type:GameSession size:0x13C
 Pad_States                  = 0x80071620; // type:PadState
 gTaskActiveList             = 0x800716D8;
-Task_DefaultList            = 0x800716E0; // type:TaskNode
+gTaskDefaultList            = 0x800716E0; // type:TaskNode
 
 //--------------------------------------------------------------------
 //--- PA: 0x61EF0   VA: 0x800716F0   subsegment: o, libapi/free3
