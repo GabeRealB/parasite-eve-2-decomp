@@ -39,6 +39,13 @@ typedef struct _SessionBytesAt4 {
 } SessionBytesAt4;
 STATIC_ASSERT_SIZEOF(SessionBytesAt4, 0xC);
 
+/// Live play-state object shared by main and every overlay.
+///
+/// Holds the current location (the 6 bytes at `field_4`, also passed as
+/// `GameSessionFrom4` / `GpAreaKey`), remapped pad, a table of task
+/// pointers, and session-wide flags. One BSS instance is pointed to by
+/// `gGameSession`; it is zeroed as a whole on new game, load and reset,
+/// which pins the size at 0x13C.
 typedef struct _GameSession {
     s8    field_0;
     s8    field_1;
@@ -51,16 +58,16 @@ typedef struct _GameSession {
     u8    field_8;
     u8    field_9;
     byte  unknown_A[0x2];
-    void* field_C[16]; // 0xC..0x4B; cleared by Game_ClearPtrSlots
+    void* ptrSlots[16]; // Task pointers for the current session
     u8    field_4C;
     u8    field_4D;
     u16   field_4E; // set to 1 by Fs_LoadFile for category-8 file ids
     byte  unknown_50[2];
     s16   field_52;
     byte  unknown_54[4];
-    u16   field_58; // current pad mask; Gp_CaptureActorPad copies this onto GameActor.field_962
-    u16   field_5A; // previous-frame remapped pad mask (Gp_UpdatePadInput)
-    u16   field_5C; // newly-triggered remapped pad mask (Gp_UpdatePadInput)
+    u16   pad;      // Remapped current buttons
+    u16   padPrev;  // Remapped previous-frame buttons
+    u16   padTrig;  // Remapped newly pressed buttons
     u8    field_5E; // set to 1 by Gp_InitPlayClock before allocating the play-clock idMap
     u8    field_5F; // skip-gate for func_800E74EC overlay-wait setup
     byte  unknown_60[4];
@@ -106,9 +113,11 @@ typedef struct _GameSession {
 } GameSession;
 STATIC_ASSERT_SIZEOF(GameSession, 0x13C);
 
-/// Overlay of `GameSession` starting at offset 0x4 (`field_4`..`field_9`).
-/// Used when the compiler keeps `&gGameSession->field_4` in a register.
-/// `Gp_GrantLocationItems` packs `field_3` / `field_2` / `field_5` into a location key.
+/// 6-byte location key at `GameSession.field_4` and `Mc_SaveData.field_4`.
+///
+/// Identifies the current place in the world. Passed by address into area,
+/// view and warp lookups; the same bytes are also read as `GameSession`
+/// fields.
 typedef struct _GameSessionFrom4 {
     /* 0x0 */ u8 field_0; // GameSession.field_4
     /* 0x1 */ u8 field_1; // GameSession.field_5
@@ -321,15 +330,11 @@ STATIC_ASSERT_SIZEOF(GameActor, 0x994);
 // Globals
 // =============================================================================
 
-/// The live play session.
-///
-/// Main and every overlay family share this one object, so the current
-/// location, pad and object slots stay resident rather than belonging to a
-/// stage or an actor.
+/// Pointer to the live `GameSession`.
 extern GameSession* gGameSession;
 extern GameSession  D61CC0_800714C0;
 
-/// Session pointer-slot table on gGameSession (field_C[16]).
+/// Session pointer-slot table on `gGameSession` (`ptrSlots`).
 void  Game_SetPtrSlot(void* ptr, s32 index);
 void* Game_GetPtrSlot(s32 index);
 void  Game_ClearPtrSlots(void);

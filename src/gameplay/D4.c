@@ -2313,14 +2313,14 @@ void func_800AD6BC(void)
                 flags       = Gp_DirFlags;
                 mask        = flags & 0x8000;
                 if (Gp_StateF0.field_1 == 0) {
-                    if (mask && (Display_State.field_10d == 0) && !(gGameSession->field_5A & 0x10)) {
+                    if (mask && (Display_State.field_10d == 0) && !(gGameSession->padPrev & 0x10)) {
                         if (!(flags & 0x4000)) {
                             D_80114CF8 = 1;
                         } else if (Gp_StateF0.field_0 != 1) {
                             D_80114CF8 = 1;
                         }
                     } else if (cfg->field_24 != 0) {
-                        if (!(gGameSession->field_5A & 0x10)) {
+                        if (!(gGameSession->padPrev & 0x10)) {
                             if (!(Gp_DirFlags & 0x4000)) {
                                 if (D_80114D08 == 0) {
                                     D_80114CF8 = 1;

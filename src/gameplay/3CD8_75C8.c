@@ -1190,14 +1190,14 @@ void Gp_UpdatePadInput(void)
         prev = pad->prevButtons;
         trig = pad->triggered;
     }
-    gGameSession->field_58 = Gp_RemapButtons(actor, mask) & ~Gp_PadSuppressMask;
-    gGameSession->field_5A = Gp_RemapButtons(actor, prev) & ~Gp_PadSuppressMask;
-    gGameSession->field_5C = Gp_RemapButtons(actor, trig) & ~Gp_PadSuppressMask;
+    gGameSession->pad     = Gp_RemapButtons(actor, mask) & ~Gp_PadSuppressMask;
+    gGameSession->padPrev = Gp_RemapButtons(actor, prev) & ~Gp_PadSuppressMask;
+    gGameSession->padTrig = Gp_RemapButtons(actor, trig) & ~Gp_PadSuppressMask;
     if (Gp_PadSuppressTimer != 0) {
         Gp_PadSuppressTimer--;
-        gGameSession->field_58 = Gp_RemapButtons(actor, mask) & ~Gp_PadSuppressMask & ~0x10;
-        gGameSession->field_5A = Gp_RemapButtons(actor, prev) & ~Gp_PadSuppressMask & ~0x10;
-        gGameSession->field_5C = Gp_RemapButtons(actor, trig) & ~Gp_PadSuppressMask & ~0x10;
+        gGameSession->pad     = Gp_RemapButtons(actor, mask) & ~Gp_PadSuppressMask & ~0x10;
+        gGameSession->padPrev = Gp_RemapButtons(actor, prev) & ~Gp_PadSuppressMask & ~0x10;
+        gGameSession->padTrig = Gp_RemapButtons(actor, trig) & ~Gp_PadSuppressMask & ~0x10;
     }
 }
 

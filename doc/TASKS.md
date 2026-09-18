@@ -327,7 +327,7 @@ slots (see [`include/main/task.h`](../include/main/task.h)):
 | `field_24` | `GpMsgEntry*` table (`Gp_DispatchMsg`) |
 | `state` | Dispatcher index (`TaskFuncTable3`–`8` copied onto the stack) |
 
-`Game_SetPtrSlot` / `Game_GetPtrSlot` (`GameSession::field_C`) is a parallel
+`Game_SetPtrSlot` / `Game_GetPtrSlot` (`GameSession::ptrSlots`) is a parallel
 pointer table some tasks publish into; it is not the task list.
 
 ---

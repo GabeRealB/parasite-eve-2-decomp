@@ -6491,7 +6491,7 @@ void Gp_UseItemTask(GpIdMapC* arg0)
         }
     }
     if (Gp_StateC08.field_A == 1) {
-        if (gGameSession->field_5A & 0x50) {
+        if (gGameSession->padPrev & 0x50) {
             work = (GpActorWork*)Game_GetPtrSlot(3);
             if (work != NULL) {
                 work->actor->field_962 |= 0x40;
@@ -6509,7 +6509,7 @@ void Gp_UseItemTask(GpIdMapC* arg0)
 
     if (Gp_StateC08.field_A == 0 && Gp_StateC08.field_E == 0) {
         ok = hudSwapReady();
-        if ((ok != 0 && (gGameSession->field_5A & 0x10) && Display_State.field_10d == 0 &&
+        if ((ok != 0 && (gGameSession->padPrev & 0x10) && Display_State.field_10d == 0 &&
              !(Gp_StateC08.field_6 & 1)) ||
             (Gp_StateC08.field_6 & 0x10)) {
             Gp_StateC08.field_9  = 1;
@@ -6586,7 +6586,7 @@ void Gp_UseItemTask(GpIdMapC* arg0)
         }
 
         if ((Gp_StateC08.field_6 & 1) ||
-            (Gp_StateC08.field_5 < 0xC && (gGameSession->field_5A & 0x40))) {
+            (Gp_StateC08.field_5 < 0xC && (gGameSession->padPrev & 0x40))) {
             gGameSession->field_129 = 0;
             CdCmd_EnqueueLoadFile(0, 0, 4);
             if (Gp_StateC08.field_A >= 2) {
@@ -6612,12 +6612,12 @@ void Gp_UseItemTask(GpIdMapC* arg0)
     if ((arg0->field_15 == 0 && Pad_CheckButtons(0, 0, Pad_MaskConfirm) != 0) ||
         Gp_StateC08.field_E != 0) {
         if (cdIdleIfF0Active_()) {
-            pad                     = &Pad_States[0];
-            mask                    = Pad_MaskConfirm;
-            pad->prevButtons       &= ~mask;
-            gGameSession->field_5A &= ~mask;
-            gGameSession->field_58 &= ~mask;
-            gGameSession->field_5C &= ~mask;
+            pad                    = &Pad_States[0];
+            mask                   = Pad_MaskConfirm;
+            pad->prevButtons      &= ~mask;
+            gGameSession->padPrev &= ~mask;
+            gGameSession->pad     &= ~mask;
+            gGameSession->padTrig &= ~mask;
             if (Gp_StateC08.field_E != 0) {
                 Gp_StateC08.field_5 = Gp_StateC08.field_E;
                 Gp_StateC08.field_B = Gp_StateC08.field_E;

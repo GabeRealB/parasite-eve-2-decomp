@@ -3611,7 +3611,7 @@ void Gp_UpdatePlayerMove(void)
     f977 = ((volatile GameActor*)p)->field_977;
     USE_REG(f977);
     p->field_964       = prev;
-    buttons            = session->field_58;
+    buttons            = session->pad;
     p->field_978       = f977;
     p->field_962       = buttons;
     p->field_966       = p->field_962 & ~p->field_964;
@@ -4800,7 +4800,7 @@ void Gp_CaptureActorPad(GpActorWork* arg0)
     actor->field_974 = actor->field_973;
     actor->field_976 = actor->field_975;
     actor->field_964 = actor->field_962;
-    buttons          = gGameSession->field_58;
+    buttons          = gGameSession->pad;
     actor->field_978 = actor->field_977;
     actor->field_962 = buttons;
     actor->field_966 = actor->field_962 & ~actor->field_964;
@@ -8961,7 +8961,7 @@ void func_8010A670(GpActorWork* arg0)
             }
         }
     }
-    if (gGameSession->field_58 & 0xF000) {
+    if (gGameSession->pad & 0xF000) {
         inner->field_962 |= inner->field_970;
     }
 }
