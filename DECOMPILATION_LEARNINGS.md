@@ -129844,3 +129844,82 @@ The two are the same value, so this looks like something CSE should collapse - i
 does not, because the copy is what the later uses read from. Read the shape off the
 object dump: a `move` whose *destination* is the callee-saved register means the
 computation wrote the argument register, which one variable cannot express.
+
+## A repeated constant-address access is one CSEd pointer unless an inline function owns it
+
+**Symptom.** A scratchpad alloc/free pair around a call reads and writes the same
+fixed address four times. The target materialises the address separately at every
+access - `lui $reg, %hi / lw $reg, %lo($reg)` for each load, and `lui $at / sw
+..., %lo($at)` (the assembler's macro form) for each store, so no register is
+tied up. Writing the four accesses in the body of the function gives one
+`lui`/`ori` pair into a callee-saved register instead, and that register then
+displaces another value for the rest of the function.
+
+**Cause.** `memory_address` force_regs a constant address at expand time "so we
+get a chance to cse it", and CSE puts every pseudo holding the same constant into
+one quantity, so the four addresses become one long-lived pseudo. The absolute
+form only survives when each access has its own single-use address pseudo, which
+combine can then fold back into the `MEM`. Register pressure does not produce it:
+the pseudo has more than two references, so local-alloc's constant-equivalence
+path cannot delete it and it wins a hard register whenever one is free.
+
+**Fix.** Put the allocation sequence in a `static __inline__` helper and call it.
+Each inlined instance gets its own address pseudos, and the accesses come out
+absolute. This is why the sibling helpers in the actor overlays carry a comment
+saying they are inlined so the scratch-head address is rematerialised.
+
+```c
+static __inline__ void updateColor(Ctx* ctx, GsCOORDINATE2* attach)
+{
+    u8*     head  = *(u8**)G_SCRATCH_HEAD;
+    VECTOR* block = (VECTOR*)(head - 0x10);
+
+    *(VECTOR**)G_SCRATCH_HEAD = block;
+    ...
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+}
+```
+
+## `&ARR[i]`: which of the symbol and the index owns `$v0`
+
+**Symptom.** An element load through `&ARR[expr]` emits the target's instructions
+in the target's order, with `$v0` and `$v1` swapped throughout the block.
+
+**Cause.** Two quantities compete: the symbol address (`high` + `lo_sum`, four
+references over the two or three insns that separate them from the `addu`) and
+the index chain, which the `addu` result joins because it is the first operand
+that dies there. `QTY_CMP_PRI` is `floor_log2(refs) * refs * size / span`, so the
+short symbol quantity outranks the longer index quantity and takes the lower
+register. Moving the index into its own statement does not fix it - it changes
+the schedule and costs more than it gains.
+
+**Fix.** Materialise the table address in a statement of its own *and keep the
+constant-indexed expression*:
+
+```c
+    table = ARR;
+    pos   = &ARR[(u16)ctx->field_8 >> 0xC];
+```
+
+CSE folds the second `high`/`lo_sum` onto the first pseudo, so the symbol is born
+at the top of the block - long span, lower priority - while the operand order of
+the `addu` is still (index, symbol), which is what keeps the element pointer in
+the index's quantity. Writing `&table[i]` instead puts the pointer first and ties
+the result to the symbol, which is a different (wrong) colouring.
+
+## A shared `return K` tail is all-or-nothing when you spell it with `goto`
+
+The entry above on duplicated tails says a `goto` to a label at the function's
+return point flips which copy cross-jumping keeps. For a function whose arms
+return a *constant*, the rule has a sharp edge: jump.c keeps the **last**
+`return K` block in RTL order and relocates it just before the epilogue, so the
+last return-0 path has to jump over it - two instructions the target does not
+have, with every register already matching.
+
+Where the target's shared tail sits mid-function (typically the one arm that
+returns right after a call, whose delay slot is already full), convert **every**
+`return K;` in the function to `goto <label>;` and put `<label>: return K;` at
+that arm. Leaving even one inline `return K;` elsewhere re-creates the trailing
+block, because that copy is then the last one and cross-jumping keeps it. The
+delta is invisible in the penalty mix apart from a small `branch`/`insert`
+residue, and `.diagnosis.json` shows it as one block index shifted.

@@ -9,28 +9,36 @@
 
 #define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
 
-void       Actor01600_Fn00480(Actor01600* arg0);
-s32        Actor01600_Fn05558(Actor01600* arg0);
-void       Actor01600_Fn06810(Actor01600Ctx* arg0, Actor01600* arg1);
-void       Actor01600_Fn06A84(Actor01600* arg0);
-void       Actor01600_Fn06F10(Actor01600* arg0);
-void       Actor01600_Fn06FDC(Actor01600* arg0, s32 arg1);
-void       Actor01600_Fn06744(Actor01600* arg0);
-extern s32 Gp_LcgState;
-void       Gp_UnlinkNode(void* node);
-void       Gp_UnlinkObj(void* node);
-void       Gp_EnemyTaskExit(Actor01600* arg0);
-void       Gp_SetLightMode(void* arg0, s32 arg1);
-void       Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
-void       Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
-void*      Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, void* arg3);
-void       Gp_DispatchMsg(void* arg0, s32 arg1, void* arg2, s32 arg3);
-void       func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, void* arg3);
-void       Actor01600_Fn06880(Actor01600* arg0);
-MATRIX*    ScaleMatrix(MATRIX* m, VECTOR* v);
-MATRIX*    MulMatrix(MATRIX* m0, MATRIX* m1);
-void       Actor01600_Fn06EA4(Actor01600* arg0);
-u8         Actor01600_Fn06F78(Actor01600* arg0);
+void           Actor01600_Fn00480(Actor01600* arg0);
+s32            Actor01600_Fn05558(Actor01600* arg0);
+void           Actor01600_Fn06810(Actor01600Ctx* arg0, Actor01600* arg1);
+void           Actor01600_Fn06A84(Actor01600* arg0);
+void           Actor01600_Fn06F10(Actor01600* arg0);
+void           Actor01600_Fn06FDC(Actor01600* arg0, s32 arg1);
+void           Actor01600_Fn06744(Actor01600* arg0);
+extern s32     Gp_LcgState;
+void           Gp_UnlinkNode(void* node);
+void           Gp_UnlinkObj(void* node);
+void           Gp_EnemyTaskExit(Actor01600* arg0);
+void           Gp_SetLightMode(void* arg0, s32 arg1);
+void           Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
+void           Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+void*          Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, void* arg3);
+void           Gp_DispatchMsg(void* arg0, s32 arg1, void* arg2, s32 arg3);
+void           func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, void* arg3);
+void           Actor01600_Fn06880(Actor01600* arg0);
+MATRIX*        ScaleMatrix(MATRIX* m, VECTOR* v);
+MATRIX*        MulMatrix(MATRIX* m0, MATRIX* m1);
+void           Actor01600_Fn06EA4(Actor01600* arg0);
+u8             Actor01600_Fn06F78(Actor01600* arg0);
+void           Actor01600_Fn03D48(Actor01600* arg0);
+void           Actor01600_Fn03A60(Actor01600* arg0);
+s32            Gp_GetObjPan(void* arg0);
+s32            Gp_GetObjDepth(void* arg0);
+void           Gp_ArmStateF0(s32 arg0);
+extern SVECTOR Actor01600_D09F1C[];
+extern SVECTOR Actor01600_D09F3C[];
+extern s8      D_8011540C;
 
 s32 Actor01600_Fn052C4(Actor01600* arg0)
 {
@@ -108,7 +116,202 @@ void Actor01600_Fn05400(Actor01600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_tail", Actor01600_Fn05558);
+/// Takes a 0x10-byte `VECTOR` from `G_SCRATCH_HEAD`, fills it with `attach`'s
+/// world position and hands it to `Gp_UpdateActorColor`. Inlined so the
+/// scratch-head address is rematerialised on every access.
+static __inline__ void update_actor_color(Actor01600Ctx* ctx, GsCOORDINATE2* attach)
+{
+    u8*     head;
+    VECTOR* block;
+
+    head  = *(u8**)G_SCRATCH_HEAD;
+    block = (VECTOR*)(head - 0x10);
+
+    *(VECTOR**)G_SCRATCH_HEAD = block;
+
+    block->vx = attach->workm.t[0];
+    block->vy = attach->workm.t[1];
+    block->vz = attach->workm.t[2];
+    Gp_UpdateActorColor(ctx, block, 0, 0);
+
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+}
+
+s32 Actor01600_Fn05558(Actor01600* arg0)
+{
+    SVECTOR           rot;
+    Actor01600Ctx*    ctx;
+    Actor01600Params* params;
+    Actor01600Work*   work;
+    GsCOORDINATE2*    rootCoord;
+    GsCOORDINATE2*    coord;
+    TmdObject*        obj;
+    TmdObject*        obj2;
+    TmdObject*        obj3;
+    TmdObject*        obj4;
+    SVECTOR*          pos;
+    SVECTOR*          tableA;
+    SVECTOR*          tableB;
+    SVECTOR*          pos2;
+    s16               countdown;
+    s16               countdown2;
+    s16               countdown3;
+    s32               event;
+    s32               pan;
+    s32               scriptArg;
+    u16               kind;
+    u8                mode;
+
+    coord = arg0->field_2C->field_8;
+    ctx   = arg0->field_20;
+    work  = arg0->field_1C;
+    if ((u32)(Game_Session->field_7 - 2) < 2U) {
+        if ((*(u32*)&Game_Session->field_4 & 0xFFFF00) == 0x220100) {
+            if ((u16)work->field_4FE < 2U) {
+                work->field_4FE = 4;
+            }
+        }
+        if (((u32)(Game_Session->field_7 - 2) < 2U) && (Game_Session->field_6 == 0x26) &&
+            ((mode = Game_Session->field_5, (mode == 1)) || (mode == 3)) && ((u16)work->field_4FE < 2U)) {
+            work->field_4FE = 4;
+        }
+    }
+    if (((u8)ctx->field_3C->pad_0[1] & 0x80) && ((u16)work->field_4FE < 2U)) {
+        work->field_4FE = 4;
+    }
+    if (work->field_52E != 0) {
+        return 0;
+    }
+
+    params = ctx->field_3C;
+    kind   = params->field_2;
+    switch (kind) {
+        case 1:
+        case 2:
+            Actor01600_Fn03A60(arg0);
+            if ((u32)((u8)D_8011540C - 1) >= 2U) {
+                goto running;
+            }
+            scriptArg = (s8)(u8)D_8011540C;
+            if (scriptArg == 1) {
+                event = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4010000E;
+                pan   = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(event, pan, (s8)Gp_GetObjDepth(coord));
+                countdown       = (u16)work->field_536 - 1;
+                work->field_536 = countdown;
+                if ((countdown << 0x10) != 0) {
+                    goto running;
+                }
+                if ((u8)ctx->field_3C->pad_0[1] == 0) {
+                    work->field_516 = 6;
+                    work->field_506 = 0x1A;
+                } else {
+                    work->field_53C = (s16)scriptArg;
+                    work->field_516 = 5;
+                }
+                work->field_532 = 1;
+            } else if (scriptArg == 2) {
+                if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x030F0000) {
+                    tableA            = Actor01600_D09F1C;
+                    pos               = &Actor01600_D09F1C[(u16)ctx->field_8 >> 0xC];
+                    coord->coord.t[0] = pos->vx;
+                    coord->coord.t[1] = pos->vy;
+                    coord->coord.t[2] = pos->vz;
+                }
+                if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x04040000) {
+                    tableB            = Actor01600_D09F3C;
+                    pos2              = &Actor01600_D09F3C[(u16)ctx->field_8 >> 0xC];
+                    coord->coord.t[0] = pos2->vx;
+                    coord->coord.t[1] = pos2->vy;
+                    coord->coord.t[2] = pos2->vz;
+                }
+                Gp_ArmStateF0(1);
+            }
+            ctx->node.field_4 = 0;
+            work->field_52E   = 1;
+            Actor01600_Fn00480(arg0);
+            if (D_8011540C == 1) {
+                work->collision.named.field_30A &= 0xBFFF;
+            }
+            Tmd_AllocBuffers(arg0->field_2C);
+            obj             = arg0->field_2C;
+            obj->field_C   &= 0xFFFB;
+            obj2            = arg0->field_2C;
+            obj2->field_C  &= 0xFF7F;
+            work->field_4FE = 1;
+            work->field_4FA = 0;
+            work->field_508 = 0;
+            work->field_50A = 0;
+            work->field_52A = 0;
+            return 0;
+        case 3:
+            if (D_8011540C == kind) {
+                if ((u8)params->pad_0[1] == 1) {
+                    Actor01600_Fn06FDC(arg0, 1);
+                running:
+                    return 1;
+                }
+                countdown2      = (u16)work->field_536 - 1;
+                work->field_536 = countdown2;
+                if ((countdown2 << 0x10) == 0) {
+                    ctx->node.field_4 = 0;
+                    Actor01600_Fn00480(arg0);
+                    work->field_516 = 6;
+                    work->field_52E = 1;
+                    work->field_4FE = 1;
+                    work->field_4FA = 0;
+                    work->field_508 = 0;
+                    work->field_50A = 0;
+                    work->field_52A = 0;
+                    work->field_506 = 0x1A;
+                    return 0;
+                }
+                goto running;
+            }
+            if (arg0->field_2C->field_C & 0x80) {
+                goto running;
+            }
+            Actor01600_Fn03D48(arg0);
+            Actor01600_Fn05F80(arg0);
+            if (work->field_54A != 0) {
+                update_actor_color(ctx, arg0->field_2C->field_8 + 1);
+                work->field_54A = 0;
+            }
+            coord->flg = 0;
+            goto running;
+        default:
+            if (D_8011540C < (s32)ctx->field_3C->field_2) {
+                goto running;
+            }
+            countdown3      = (u16)work->field_536 - 1;
+            work->field_536 = countdown3;
+            if ((countdown3 << 0x10) != 0) {
+                goto running;
+            }
+            ctx->node.field_4 = 0;
+            work->field_52E   = 1;
+            Actor01600_Fn00480(arg0);
+            Tmd_AllocBuffers(arg0->field_2C);
+            obj3            = arg0->field_2C;
+            obj3->field_C  &= 0xFFFB;
+            obj4            = arg0->field_2C;
+            obj4->field_C  &= 0xFF7F;
+            work->field_516 = 6;
+            work->field_4FE = 1;
+            work->field_4FA = 0;
+            work->field_508 = 0;
+            work->field_50A = 0;
+            work->field_52A = 0;
+            work->field_544 = 1;
+            work->field_506 = 0x1A;
+            rootCoord       = arg0->field_2C->field_8;
+            memset(&rot, 0, 8);
+            rot.vy = -0x400;
+            RotMatrix(&rot, &rootCoord->coord);
+            work->field_532 = 1;
+            return 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_tail", Actor01600_Fn05B08);
 

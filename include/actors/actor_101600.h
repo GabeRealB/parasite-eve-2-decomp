@@ -263,7 +263,7 @@ typedef struct Actor01600Work {
     /* 0x548 */ u16 field_548;
     /// Copy of the spawn variant `Actor01600_Fn05F80` takes its `case 0x1A`
     /// path for.
-    /* 0x54A */ u16  field_54A;
+    /* 0x54A */ s16  field_54A;
     /* 0x54C */ u16  field_54C;
     /* 0x54E */ s16  field_54E;
     /* 0x550 */ s16  field_550;
