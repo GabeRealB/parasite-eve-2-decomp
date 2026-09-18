@@ -713,7 +713,149 @@ void Actor02000_Fn01A20(Actor02000Ctx* ctx, Actor02000* actor)
     return;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102000_text", Actor02000_Fn01DF0);
+void Actor02000_Fn01DF0(Actor02000* arg0)
+{
+    s16             state;
+    s16             yawDiff;
+    s32             magnitude;
+    s16             angle;
+    s16             wrapped;
+    s32*            scratch;
+    s32             sound;
+    s32             dx0;
+    s32             dx2;
+    s32             dz2;
+    s32             dx1;
+    s32             dz1;
+    s32             dist;
+    s32             dz0;
+    s32             pan;
+    u8*             head;
+    Actor02000Work* work;
+    GsCOORDINATE2*  self;
+    VECTOR*         delta;
+
+    head                = *(void**)0x1F8003FC;
+    *(void**)0x1F8003FC = head - 0x10;
+    delta               = (VECTOR*)(head - 0x10);
+    work                = arg0->field_1C;
+    state               = work->field_6A8;
+    self                = arg0->field_2C->field_8;
+    switch (state) {
+        case 0:
+            if ((work->field_698 >= 0x47) && (work->field_6CE = (s16)(work->field_6D0 > 0), ((VECTOR*)(head - 0x10))->vx = (s32)(Wip_SysConfig.field_4->t[0] - self->coord.t[0]), dz0 = Wip_SysConfig.field_4->t[2] - self->coord.t[2], delta->vz = dz0, dx0 = ((VECTOR*)(head - 0x10))->vx, ((SquareRoot0((dx0 * dx0) + (dz0 * dz0)) < 0x3E8) == 0))) {
+                work->field_69C = 0x84;
+            } else {
+                work->field_69C = 0;
+            }
+            work->field_69E = 0;
+            if (work->field_698 == 0x46) {
+                work->field_6B6 = 0;
+                work->field_6CC = 1;
+            }
+            if ((work->field_698 >= 0x47) && (work->field_6B6 >= 0x4C)) {
+                work->field_6A6        = 8;
+                work->field_6A8        = 0;
+                work->field_69C        = 0;
+                work->field_69E        = 0;
+                work->field_6CC        = 0;
+                work->field_5E4.flags &= 0x7FFF;
+                break;
+            }
+            if (work->field_698 >= (Actor02000_D03784[work->field_694] + 0x52)) {
+                work->field_6A8 = 1;
+                work->field_694 = 6;
+            }
+            break;
+        case 1:
+            work->field_69C              = 0x84;
+            work->field_69E              = 0xF;
+            ((VECTOR*)(head - 0x10))->vx = (s32)(Wip_SysConfig.field_4->t[0] - self->coord.t[0]);
+            delta->vz                    = (s32)(Wip_SysConfig.field_4->t[2] - self->coord.t[2]);
+            work->field_6A4              = (s16)(ratan2((s32)(s16)((VECTOR*)(head - 0x10))->vx, (s32)(s16)delta->vz) & 0xFFF);
+            dx1                          = ((VECTOR*)(head - 0x10))->vx;
+            dz1                          = delta->vz;
+            dist                         = SquareRoot0((dx1 * dx1) + (dz1 * dz1));
+            if (work->field_6B6 < 0x4C) {
+                if (dist < 0x5DC) {
+                    work->field_6A8 = 2;
+                    work->field_694 = 7;
+                    work->field_69C = 0;
+                } else {
+                    yawDiff   = (ratan2((s32)(s16)((VECTOR*)(head - 0x10))->vx, (s32)(s16)delta->vz) & 0xFFF) - work->field_6A2;
+                    magnitude = __builtin_abs(yawDiff);
+                    if (magnitude < 0x800) {
+                        angle = magnitude;
+                    } else {
+                        if (yawDiff > 0) {
+                            wrapped = 0x1000 - yawDiff;
+                        } else {
+                            wrapped = yawDiff + 0x1000;
+                        }
+                        angle = wrapped;
+                    }
+                    if ((s16)angle >= 0x101) {
+                        work->field_6A6 = 2;
+                        work->field_6A8 = 2;
+                        work->field_694 = 4;
+                        work->field_6CC = 0;
+                        work->field_6CE = 0;
+                    }
+                }
+            } else {
+                work->field_6A6       = 8;
+                work->field_6A8       = 0;
+                work->field_69C       = 0;
+                work->field_69E       = 0;
+                work->field_6CC       = 0;
+                work->field_6CE       = 0;
+                work->field_5E4.flags = (u16)(work->field_5E4.flags & 0x7FFF);
+            }
+            break;
+        case 2:
+            work->field_69C = 0;
+            work->field_69E = 0;
+            if ((work->field_698 < 0xD) && (work->field_6B6 >= 0x4C)) {
+                work->field_6A6        = 8;
+                work->field_6A8        = 0;
+                work->field_69C        = 0;
+                work->field_69E        = 0;
+                work->field_6CC        = 0;
+                work->field_6CE        = 0;
+                work->field_5E4.flags &= 0x7FFF;
+                break;
+            }
+            if (work->field_698 == 0xD) {
+                work->field_5E4.flags    = (u16)(work->field_5E4.flags | 0x8000);
+                work->field_5E4.field_18 = Gp_PackPair(Actor02000_D15CFC, 1);
+                sound                    = Actor02000_D15E30 | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+                pan                      = (s8)Gp_GetObjPan(self);
+                SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)Gp_GetObjDepth(self));
+            }
+            if (work->field_698 == 0x1E) {
+                work->field_5E4.flags = (u16)(work->field_5E4.flags & 0x7FFF);
+            }
+            if (work->field_698 >= 0x3B) {
+                work->field_6CE = 0;
+                dx2             = Wip_SysConfig.field_4->t[0] - self->coord.t[0];
+                delta->vx       = dx2;
+                dz2             = Wip_SysConfig.field_4->t[2] - self->coord.t[2];
+                delta->vz       = dz2;
+                if (SquareRoot0((dx2 * dx2) + (dz2 * dz2)) < 0xBB8) {
+                    work->field_6A6 = 4;
+                    work->field_6A8 = 0;
+                    work->field_694 = 8;
+                } else {
+                    work->field_6A6 = 2;
+                    work->field_6A8 = 2;
+                    work->field_694 = 4;
+                }
+            }
+            break;
+    }
+    scratch   = (s32*)0x1F8003FC;
+    *scratch += 0x10;
+}
 
 void Actor02000_Fn02294(Actor02000* arg0)
 {

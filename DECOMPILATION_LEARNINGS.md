@@ -128809,3 +128809,54 @@ everything shifted - the function itself matches. Cut the blob at the table's
 offset with the manifest's `rodata` key and give the run to the C unit
 (`actor_102500`: `{ start = "0x14", unit = "actor_102500_text" }`). The table
 starts that object's `.rodata`, which is what GCC's leading `.align 3` requires.
+
+## A comparison stored in its own variable is a pseudo with a lifetime; write it at the use site (Actor02000_Fn01DF0, 2026-09-18)
+
+**Problem.** A permuter seed sat at 99.899% with `regs` as the only penalty: the
+case-0 `dz` temp and a case-1 boolean both landed in `$a0` where the target had
+`$v1` and `$v0`. Splitting them into separate locals fixed both registers
+exactly - and lost the switch dispatch's delay slot, which then stole
+`li $v0,0x84` from the head of `case 1` instead of taking `slti $v0,$a0,2` from
+the fall-through. Neither seed was the original: the target is the *split*
+allocation plus the *merged* seed's delay slot.
+
+**What was actually wrong.** Both seeds wrote the distance test as
+
+```c
+near = SquareRoot0((dx * dx) + (dz * dz)) < 0x5DC;   /* or: ... ; flag = near != 0; */
+if (work->field_6B6 < 0x4C) {
+    if (near) {
+```
+
+That materialises the *boolean* as a pseudo that is live across the `field_6B6`
+test - so it conflicts with `$v1` (which that test uses) and, once the merged
+seed also gave it case 0's `$v0` conflict, with both. The original keeps the raw
+call result and writes the comparison where it is used:
+
+```c
+dist = SquareRoot0((dx1 * dx1) + (dz1 * dz1));
+if (work->field_6B6 < 0x4C) {
+    if (dist < 0x5DC) {
+```
+
+The `slti` is then generated in the inner block, is no longer a value with a
+lifetime of its own, and `dbr` fills the dispatch branch's slot from the
+fall-through. 100% with all penalties zero, from one edit off the split seed.
+
+**Rule of thumb.** In C89 decompilation it is tempting to hoist a comparison
+into a `s32 flag` because m2c emits it that way (`temp_v0_7 = ... < 0x5DC;`).
+That is an m2c artefact of the same family as its `goto`s: a MIPS `slti` feeding
+a `beqz` is just an `if`, not an assignment. Store the *operand* (the call
+result, the load), not the predicate - the predicate's pseudo is what perturbs
+allocation and, downstream of it, delay-slot filling.
+
+**Do not chase the delay slot directly.** Most of this session went into
+`reorg.c`: `mostly_true_jump` returns 0 for an `EQ` dispatch branch, so
+`fill_eager_delay_slots` tries the fall-through first, and the two seeds had
+byte-identical RTL, block live-in sets and `reg_renumber` mappings at that
+branch - the dispatch is the *first* branch reorg sees, so no accumulated reorg
+state explains the difference either. The delay slot was a symptom of the
+allocation two hundred instructions away, and changing the source shape fixed
+both at once. When `regs` and a stray delay slot trade off against each other
+across two seeds, look for the third source form rather than for the reorg
+decision.
