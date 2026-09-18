@@ -1003,7 +1003,39 @@ void Actor00400_Fn09D98(Actor100400* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn09E70);
+void Actor00400_Fn09E70(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    GsCOORDINATE2*   coord;
+    Actor100400Work* state;
+
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    if (work->field_65E == 4) {
+        work->field_636   = 0;
+        work->field_63E   = work->field_64E;
+        coord->coord.t[0] = -0x6C0;
+        coord->coord.t[2] = -0x2008;
+        work->field_554   = 0;
+        work->field_556   = 0;
+        work->field_558   = 0;
+        state             = arg0->field_1C;
+        state->field_63C  = 8;
+        state->field_632  = 0x10;
+        state->field_628  = 1;
+        state->field_624  = 1;
+        work->field_63A   = work->field_63A + 1;
+    } else {
+        work->field_636   = 0;
+        coord->coord.t[0] = -0x6C0;
+        coord->coord.t[2] = -0x2008;
+        work->field_554   = 0;
+        work->field_556   = 0;
+        work->field_558   = 0;
+        coord->coord.t[1] = 0x3E8;
+        work->field_63E   = 0x3E8;
+    }
+}
 
 void Actor00400_Fn09F18(Actor100400* arg0)
 {
