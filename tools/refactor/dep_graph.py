@@ -268,10 +268,13 @@ def processed_set(root: str, nodes: dict) -> set:
     """
     vendor = name_index.vendored_names(root)
     out = set()
-    handled = _recorded_names(root)
+    handled = _ledger_names(root)
+    former = _former_names(root)
     for usr, meta in nodes.items():
         name = meta["name"]
-        if name in handled or _out_of_scope(name, meta, vendor):
+        if name in handled or (former.get(name, set()) & handled):
+            out.add(usr)
+        elif _out_of_scope(name, meta, vendor):
             out.add(usr)
     return out
 
@@ -292,32 +295,54 @@ def _out_of_scope(name: str, meta: dict, vendor: set) -> bool:
     return (meta.get("file") or "").startswith("include/decomp/")
 
 
-def _recorded_names(root: str) -> set:
-    """Every name the pass has recorded touching, old spellings included.
+def _ledger_names(root: str) -> set:
+    """Items the driver recorded finishing, under the name the worklist gave.
 
-    A step is logged under the name the worklist gave it, and renames are
-    logged with both spellings, so looking a node up by its current name finds
-    it either way.
+    The step ledger is the only record of what has been *processed*. The
+    renamer's log is deliberately not consulted for this: a step renames
+    whatever its analysis requires - a merged-away duplicate, a field, a
+    parameter - and none of that means the renamed thing was itself examined.
+    Treating a rename as evidence of processing marked a parameter name, and
+    two types that had merely been deleted, as done.
     """
     names = set()
-    for rel, cols in (("local/name_pass_done.tsv", (1,)),
-                      ("local/renames.tsv", (2, 3))):
-        path = os.path.join(root, rel)
-        if not os.path.exists(path):
-            continue
+    path = os.path.join(root, "local/name_pass_done.tsv")
+    if os.path.exists(path):
         with open(path) as fh:
-            for i, line in enumerate(fh):
+            for line in fh:
                 fields = line.rstrip("\n").split("\t")
-                if i == 0 and fields and fields[0] in ("when", "order"):
-                    continue
-                for c in cols:
-                    if c < len(fields):
-                        names.update(fields[c].split())
+                if len(fields) >= 2:
+                    names.update(fields[1].split())
     return names
 
 
-_TAG_RE = __import__("re").compile(r"@(?:S|U|E)A?@([A-Za-z_]\w*)")
+def _former_names(root: str) -> dict:
+    """Current spelling -> every spelling it has had, from the renamer's log.
 
+    This is an alias map, not a record of work: it exists so that looking a node
+    up by the name it carries today still finds the ledger row filed under the
+    name it carried when the step ran.
+    """
+    direct = {}
+    path = os.path.join(root, "local/renames.tsv")
+    if os.path.exists(path):
+        with open(path) as fh:
+            for i, line in enumerate(fh):
+                f = line.rstrip("\n").split("\t")
+                if i == 0 or len(f) < 4 or not f[2] or not f[3]:
+                    continue
+                direct.setdefault(f[3], set()).add(f[2])
+    out = {}
+    for new_name in direct:
+        seen, stack = set(), list(direct[new_name])
+        while stack:
+            n = stack.pop()
+            if n in seen:
+                continue
+            seen.add(n)
+            stack.extend(direct.get(n, ()))
+        out[new_name] = seen
+    return out
 
 def _node_kind(usr: str) -> str:
     if "@F@" in usr:
