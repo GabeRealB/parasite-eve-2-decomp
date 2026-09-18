@@ -1311,7 +1311,89 @@ void Actor00700_Fn02820(Actor00700* arg0)
     SCRATCH_SP += 0x18;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn02A28);
+void Actor00700_Fn02A28(Actor00700* arg0)
+{
+    Actor00700Work* work;
+    GsCOORDINATE2*  coord;
+    u32             random;
+    u32             random2;
+    u32             random3;
+    s32             amount;
+    s32             amountB;
+    s16             delta;
+    s16             speed;
+    s32             y;
+    s32             newY;
+    s16             base;
+
+    work            = arg0->field_1C;
+    coord           = arg0->field_2C->field_8;
+    work->field_2BC = coord->coord.t[0];
+    work->field_2C0 = coord->coord.t[1];
+    work->field_2C4 = coord->coord.t[2];
+    switch (work->field_2E6) {
+        case 0:
+            random = (u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
+            amount = random & 0x1F;
+            if (!(random & 0x20)) {
+                amount = -amount;
+            }
+            delta = amount;
+            if ((s16)(coord->coord.t[0] + (s16)delta) < work->field_2AC + 200 &&
+                work->field_2AC - 200 < (s16)(coord->coord.t[0] + (s16)delta)) {
+                coord->coord.t[0] += (s16)delta;
+            } else {
+                coord->coord.t[0] -= (s16)delta;
+            }
+            amountB = ((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1F;
+            if (work->field_2D4 != 0) {
+                amountB = -amountB;
+            }
+            delta = amountB;
+            if ((s16)(coord->coord.t[1] + (s16)delta) < work->field_2B0 + 500 &&
+                work->field_2B0 - 500 < (s16)(coord->coord.t[1] + (s16)delta)) {
+                coord->coord.t[1] += (s16)delta;
+            } else {
+                coord->coord.t[1] -= (s16)delta;
+            }
+            random3 = (u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
+            amount  = random3 & 0x1F;
+            if (!(random3 & 0x20)) {
+                amount = -amount;
+            }
+            delta = amount;
+            if ((s16)random3 < work->field_2B4 + 200 && work->field_2B4 - 200 < (s16)random3) {
+                coord->coord.t[2] += (s16)delta;
+            } else {
+                coord->coord.t[2] -= (s16)delta;
+            }
+            break;
+        case 1:
+            speed = Actor00700_D07598[arg0->field_20->field_3C->field_F] +
+                    (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1F);
+            coord->coord.t[0] += (coord->coord.m[0][2] * speed) >> 12;
+            coord->coord.t[2] += (coord->coord.m[2][2] * speed) >> 12;
+            base               = D_80073B8C->t[1] - 0x4B0;
+            random2            = (u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
+            y                  = coord->coord.t[1];
+            if (y >= base + 400) {
+                coord->coord.t[1] = y - (random2 & 0xF);
+            } else {
+                if (base - 400 >= y) {
+                    newY = y + (random2 & 0xF);
+                } else {
+                    amountB = random2 & 0x1F;
+                    if (work->field_2D4 != 0) {
+                        newY = y - amountB;
+                    } else {
+                        newY = y + amountB;
+                    }
+                }
+                coord->coord.t[1] = newY;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn02D28);
 

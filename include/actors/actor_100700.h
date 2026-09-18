@@ -58,7 +58,12 @@ typedef struct Actor00700Work {
     /* 0x214 */ byte                     field_214[0x10];
     /* 0x224 */ GpEffArg                 field_224;
     /* 0x22C */ Actor00700ContactStorage field_22C;
-    /* 0x27C */ byte                     field_27C[0x40];
+    /* 0x27C */ byte                     field_27C[0x20];
+    /* 0x29C */ byte                     pad_29C[0x10];
+    /* 0x2AC */ s32                      field_2AC;
+    /* 0x2B0 */ s32                      field_2B0;
+    /* 0x2B4 */ s32                      field_2B4;
+    /* 0x2B8 */ byte                     pad_2B8[4];
     /* 0x2BC */ s32                      field_2BC;
     /* 0x2C0 */ s32                      field_2C0;
     /* 0x2C4 */ s32                      field_2C4;
@@ -182,6 +187,10 @@ extern s16 Actor00700_D06E20[];
 extern u16 Actor00700_D06E30[];
 extern s16 Actor00700_D06E50[];
 extern s16 Actor00700_D06E98[];
+
+/// Per-`field_F` drift speed for the state-1 wander in `Actor00700_Fn02A28`,
+/// summed with a 5-bit `Gp_LcgState` draw.
+extern s16 Actor00700_D07598[];
 
 void Actor00700_Fn008B4(Actor00700* arg0);
 void Actor00700_Fn00BC0(Actor00700* arg0);

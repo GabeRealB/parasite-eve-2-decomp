@@ -128700,3 +128700,42 @@ other shape.
 store, for the `fixed_scalar_and_varying_struct_p` reason documented above;
 without it the store sank past the struct traffic *and* reorg went on to delete
 a redundant `lw` the target keeps.)
+
+## A bloated, "unmatchable" target may be two functions splat could not separate
+
+**Problem.** `Actor00700_Fn02A28` disassembled to 0x634 bytes containing a
+second stack frame — `addiu $sp, $sp, -0x30` / `sw $ra` — a third of the way in,
+plus twelve `jal`s the first half never reaches. A previous session got 35.9%
+and correctly refused to manufacture dead C to cover it.
+
+**Symptom.** splat ends a function at the next *symbol*, not at the next
+prologue. A function reached only through a function-pointer table is invisible
+to it unless the table entry resolves, so the two bodies get concatenated under
+the first one's name. The tell is in the table's own `.s`: an entry that
+assembles as a bare address instead of a symbol.
+
+```
+asm/USA/actors/data/actor_200700_header_2.rodata.s
+    .word Actor00700_Fn01FE0
+    .word Actor00700_Fn02290
+    .word 0x8014CB48          <- no symbol: a function nothing names
+```
+
+**Fix.** Name it in the overlay's symbol map — *every* overlay that carries the
+body, since a `lib` unit is split once per sharer:
+
+```
+configs/USA/sym/actors/actor_100700.txt:  Actor00700_Fn02D28 = 0x80134B48;
+configs/USA/sym/actors/actor_200700.txt:  Actor00700_Fn02D28 = 0x8014CB48;
+```
+
+Then add the new `INCLUDE_ASM` line to the host `.c` by hand — splat creates a
+unit `.c` that is missing but never rewrites one that exists, so it will not add
+it for you — and rebuild. The pointer word now assembles as a symbol, the bytes
+are unchanged, and the checksum still passes.
+
+**Why it is worth checking first.** Here the corrected 0x300-byte target scored
+72.7% from the *same* m2c seed that scored 35.9% against the merged one, and the
+first real attempt matched. Before spending a session on a function whose score
+is stuck implausibly low, grep its overlay's data for `\.word 0x801[0-9A-F]{5}`:
+an unresolved code address there is a missing symbol, not a matching problem.
