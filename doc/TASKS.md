@@ -114,7 +114,7 @@ Each node’s `callback` runs. Two early-outs:
 
 Type 1 often swaps `callback` to `Task_CountdownCallback` with
 `killCountdown = 2` instead of freeing immediately. Type 0/2 typically park
-`callback` on the empty stub `func_8002DEC4` for one frame.
+`callback` on the empty stub `textNoopCallback` for one frame.
 
 `Task_RequestKill` marks `flags = 0xFF` and stashes a result in `extraState`;
 `Task_PollKill` reads that and then calls `exitCallback`.
@@ -176,7 +176,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 
 | Type | Pri | Callback | Notes |
 |------|-----|----------|-------|
-| `00` | `C0` | `func_8002DEC4` | Empty stub; also the deferred-kill callback |
+| `00` | `C0` | `textNoopCallback` | Empty stub; also the deferred-kill callback |
 | `01` | `C0` | `Task_CountdownCallback` | Decrement `killCountdown`, then kill |
 | `02` | `C0` | `Title_Dispatch` | Title phase machine. `Text_BootTask` / gameflow / title spawn this; `spawnArg1` `0x80000000` skips the fade TILE |
 | `03` | `C0` | `GameFlow_StateByField34` | Title new-game / demo path. Also a `Title_MenuSpawnIds` entry |

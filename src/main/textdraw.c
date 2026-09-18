@@ -5,7 +5,7 @@
 #include "main/title.h"
 #include "main/ui.h"
 
-void func_8002DEC4(void)
+void textNoopCallback(Task* task)
 {
 }
 

@@ -841,7 +841,7 @@ free3                       = 0x8002DD74;
 //--------------------------------------------------------------------
 //--- PA: 0x1E6C4   VA: 0x8002DEC4   subsegment: c, 1E6C4
 //--------------------------------------------------------------------
-func_8002DEC4               = 0x8002DEC4; // type:func
+textNoopCallback               = 0x8002DEC4; // type:func
 Text_MeasureGlyphWidth               = 0x8002DECC; // type:func
 Text_DrawGlyphDualSprtA               = 0x8002E010; // type:func
 Text_DrawGlyphDualSprt               = 0x8002E188; // type:func

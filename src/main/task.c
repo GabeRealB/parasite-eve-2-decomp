@@ -154,14 +154,14 @@ void Task_Kill(Task* arg0)
         arg0->killCountdown                 = 2;
         arg0->callback                      = Task_CountdownCallback;
         arg0->state                         = 0;
-        arg0->exitCallback                  = (TaskFunc)func_8002DEC4;
+        arg0->exitCallback                  = textNoopCallback;
         return;
 
     case2:
         Gp_UnlinkDisp2d(arg0->extra);
         arg0->killCountdown = 1;
-        arg0->callback      = (TaskFunc)func_8002DEC4;
-        arg0->exitCallback  = (TaskFunc)func_8002DEC4;
+        arg0->callback      = textNoopCallback;
+        arg0->exitCallback  = textNoopCallback;
         arg0->killCountdown--;
         if (arg0->killCountdown != 0) {
             return;
@@ -176,8 +176,8 @@ void Task_Kill(Task* arg0)
 
     def_case:
         arg0->killCountdown = 1;
-        arg0->callback      = (TaskFunc)func_8002DEC4;
-        arg0->exitCallback  = (TaskFunc)func_8002DEC4;
+        arg0->callback      = textNoopCallback;
+        arg0->exitCallback  = textNoopCallback;
         arg0->killCountdown--;
         if (arg0->killCountdown != 0) {
             return;
@@ -421,7 +421,7 @@ void Task_RequestKill(Task* arg0, s32 arg1)
 
     arg0->flags      = 0xFF;
     arg0->extraState = arg1;
-    arg0->callback   = (TaskFunc)func_8002DEC4;
+    arg0->callback   = textNoopCallback;
 
     temp = arg0->firstChild;
     if (temp != NULL) {

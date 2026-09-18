@@ -135,7 +135,9 @@ def record_generated_name(root: str, spec_name: str, new_name: str, source: str,
         if not existing:
             pkg = os.path.splitext(os.path.basename(rel))[0]
             existing = f"// Overlay-local symbols for {pkg}.\n"
-        if f"{addr:#010x}" not in existing:
+        # The map's own entries spell the address in either case, and a second
+        # entry for one address is a duplicate-symbol error at the next split.
+        if not re.search(rf"=\s*{addr:#010x}\s*;", existing, re.IGNORECASE):
             open(path, "w").write(existing.rstrip("\n") + "\n" + line + "\n")
     return rel
 

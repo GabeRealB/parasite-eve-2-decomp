@@ -10434,8 +10434,10 @@ jr    ra
  nop
 ```
 
-A bare `void f(void) {}` compiles to just `jr ra` (see `func_80033C38`,
-`func_8002DEC4`). Unused automatics still force a frame under this toolchain:
+A bare `void f(void) {}` compiles to just `jr ra` (see `func_80033C38`). An
+unused parameter costs nothing either: `textNoopCallback` takes a `Task*` it
+never reads and still emits only that. Unused automatics, by contrast, force a
+frame under this toolchain:
 size 1–8 → `-0x8`, size 9–16 → `-0x10`. Match with an unused buffer of the
 frame size:
 
