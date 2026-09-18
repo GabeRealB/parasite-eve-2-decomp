@@ -1125,7 +1125,7 @@ void Gp_FreeTmd(TmdObject* arg0)
         memFreeFromHeap(arg0->field_18, 1);
         arg0->field_18 = NULL;
     }
-    Mem_Free(arg0);
+    memFree(arg0);
 }
 
 void Gp_UnlinkDisp2d(TmdListHead* arg0)
@@ -1147,7 +1147,7 @@ void Gp_UnlinkDisp2d(TmdListHead* arg0)
 
 void Gp_FreeDisp2d(void* arg0)
 {
-    Mem_Free(arg0);
+    memFree(arg0);
 }
 
 void Gp_StashTmdLists(void)

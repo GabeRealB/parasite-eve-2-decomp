@@ -23126,7 +23126,7 @@ The same shape is how `Gp_PlayTimeDelta` emits `lui v1,Gp_PlayTimeMark` first as
 
 ## Hoist an independent field load so an increment fills the `jal` delay
 
-`ptr->count--; Mem_Free(obj->field); later_use(obj)` looks like the natural
+`ptr->count--; memFree(obj->field); later_use(obj)` looks like the natural
 order, but GCC 2.8.1 then copies `obj` into `$s0` in the `lhu` delay slot,
 stores the decremented count *before* the call, and leaves `nop` in the `jal`
 delay. The target often wants:
@@ -23138,7 +23138,7 @@ sw   ra, ...
 lhu  v0, 0(v1)
 lw   a0, OFF(s0)     /* field load fills the lhu delay */
 addiu v0, v0, -1
-jal  Mem_Free
+jal  memFree
  sh   v0, 0(v1)      /* store in the jal delay */
 ```
 
@@ -23150,11 +23150,11 @@ void* mem;
 
 mem = arg0->spawnArg2;
 Gp_State1C->field_0--;
-Mem_Free(mem);
+memFree(mem);
 Task_Kill(arg0);
 ```
 
-Inlining `Mem_Free(arg0->spawnArg2)` after the decrement is the 83% form.
+Inlining `memFree(arg0->spawnArg2)` after the decrement is the 83% form.
 `Gp_KillState1CTask` is the example.
 
 ## `s32 val = func(); byte_global = val` rematerialises same-`%hi` store
@@ -107450,7 +107450,7 @@ too reorders the object:
 00000228 00000064 Mem_Malloc              between the two groups of callers
 
 000001fc 00000064 Mem_Malloc             with `inline` on the setter's definition:
-00000260 0000002c Mem_Free                 the later callers slide up by its size
+00000260 0000002c memFree                 the later callers slide up by its size
 0000028c 00000044 memFreeFromHeap          and the copy is emitted last
 000003a4 0000002c Mem_SetActiveHeap
 ```
@@ -130456,7 +130456,7 @@ substitution and are found only by grepping the notes for the retired names.
 
 ## The heap wrappers are libapi `heap3`, and writing `_freep` is what selects a heap
 
-`Mem_Malloc`, `Mem_Calloc`, `Mem_Free` and `memFreeFromHeap` own no allocator:
+`Mem_Malloc`, `Mem_Calloc`, `memFree` and `memFreeFromHeap` own no allocator:
 each points libapi's `_freep` at a heap and calls `malloc3` / `free3`. In libapi,
 `_freep` is the block that those two routines begin their search from inside
 one heap's free-block ring. `InitHeap3` sets it to the heap it initializes, and
@@ -130474,8 +130474,8 @@ the reason a wrapper takes the heap as a flag at all.
 
 The assignment appears in the wrappers in both shapes, and each wrapper's target
 decides which. `Mem_Calloc` calls `Mem_SetActiveHeap` and its target has the
-`jal`; `Mem_Malloc`, `Mem_Free` and `memFreeFromHeap` write the assignment out,
-so theirs have the repeated `lui` / `lw` / `sw`, with `Mem_Free` taking the
+`jal`; `Mem_Malloc`, `memFree` and `memFreeFromHeap` write the assignment out,
+so theirs have the repeated `lui` / `lw` / `sw`, with `memFree` taking the
 primary branch alone. The three could not have called the setter and been
 integrated: its address stands between `Mem_Calloc` and `Mem_Malloc`, and an
 `inline` function's out-of-line copy is emitted at the end of the unit, so
@@ -130532,3 +130532,22 @@ the element it links, while these body lists make the links their element's own
 first fields, and the element type is what keeps the two apart. The append and
 the unlink are the two sites that write the links, and they are where every list
 a head serves becomes visible.
+
+## A cast indicts the parameter only when it comes off an object pointer
+
+The rule "if the users have to cast, the declared type is wrong" reads every
+cast as the parameter failing to fit. It does not hold when the value at the
+call site is an integer: `memFree(void* ptr)` has three callers writing
+`memFree((void*)work->field_18)` and nineteen passing a `Task*`, a `GpEnemy*` or
+a `GpEffWork*` straight through. The three casts are the *caller's* declaration
+showing through — the field they come off is an `s32` that holds a pointer, so
+the cast is what that field's own type requires and says nothing about the
+parameter.
+
+Every object pointer converts to `void*` implicitly and only the integers need
+spelling out, so the parameter leaving the most sites cast-free is `void*`, and
+that is the honest declaration for a free or release entry point. Read a cast as
+evidence about the value's *source* rather than the destination: off a pointer
+of another type it is the parameter that does not fit, off an integer it is the
+caller's field that is declared as one. The fix for the second case belongs to
+the item that owns the field, not to the step processing the function.

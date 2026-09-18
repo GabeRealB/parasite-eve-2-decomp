@@ -49,7 +49,7 @@ every child’s `exitCallback` first (with `parent` cleared). `Task_Reparent`
 moves a live task onto another parent’s ring.
 
 `idMap` is an optional `TaskIdMap*` (`Mem_Calloc(8)` via `Task_AllocIdMap`).
-Kill always `Mem_Free`s it. UI, scripts, and title reuse the slot as a work
+Kill always `memFree`s it. UI, scripts, and title reuse the slot as a work
 pointer (`TitleWork`, `GpState34`, …) — the type is a lie at those call sites.
 
 ### 1.2 Spawn
@@ -95,7 +95,7 @@ Each node’s `callback` runs. Two early-outs:
 
 - `gDisplayState.stopTaskWalk == 1` — abort the rest of the list this frame
   (gameflow uses this after killing the world and respawning).
-- `spawnType == 0xFF` — **tombstone**: unlink + `Mem_Free` this node, continue.
+- `spawnType == 0xFF` — **tombstone**: unlink + `memFree` this node, continue.
 
 `Task_ExecList` is the same walk on an arbitrary list.
 `Task_ExecListFiltered(list, pri)` only runs nodes whose `priority` equals

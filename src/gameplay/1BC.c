@@ -632,7 +632,7 @@ GpEnemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* par
 void Gp_DestroyEnemy(GpEnemy* enemy, Task* task)
 {
     Gp_UnlinkNode(&enemy->node);
-    Mem_Free(enemy);
+    memFree(enemy);
     Task_Kill(task);
 }
 
@@ -642,7 +642,7 @@ void Gp_EnemyTaskExit(Task* task)
 
     enemy = task->spawnArg2;
     Gp_UnlinkNode(&enemy->node);
-    Mem_Free(enemy);
+    memFree(enemy);
     Task_Kill(task);
 }
 

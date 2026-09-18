@@ -2185,7 +2185,7 @@ void Ui_TeardownTree(UiObject* arg0, Task* arg1)
 void Ui_FreeAndKill(Task* arg0)
 {
     if (arg0->spawnArg2 != NULL) {
-        Mem_Free(arg0->spawnArg2);
+        memFree(arg0->spawnArg2);
     }
     Task_Kill(arg0);
 }

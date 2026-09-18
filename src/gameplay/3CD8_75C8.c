@@ -853,7 +853,7 @@ void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2)
         if (mem != NULL) {
             task = Task_Spawn(2, 0xC, 0, 0);
             if (task == NULL) {
-                Mem_Free(mem);
+                memFree(mem);
             } else {
                 end                 = (arg2 & 0xFF) << 8;
                 start               = (arg1 & 0xFF) << 8;
@@ -880,7 +880,7 @@ void Gp_SpawnPadLerpScaled(s16 arg0, u8 arg1, u8 arg2, s16 arg3)
         if (mem != NULL) {
             task = Task_Spawn(2, 0xC, 0, 0);
             if (task == NULL) {
-                Mem_Free(mem);
+                memFree(mem);
             } else {
                 task->work = (TaskIdMap*)mem;
                 temp       = arg3 >> 3;
@@ -925,7 +925,7 @@ Task* Gp_SpawnScript18(s32 arg0, s32 arg1)
             mem->field_4 = arg1;
             return task;
         }
-        Mem_Free(mem);
+        memFree(mem);
     }
     return NULL;
 }
@@ -975,7 +975,7 @@ Task* Gp_SpawnScript18Ex(s32 arg0, s32 arg1, s32 arg2)
             mem->field_4 = arg1;
             return task;
         }
-        Mem_Free(mem);
+        memFree(mem);
     }
     return NULL;
 }

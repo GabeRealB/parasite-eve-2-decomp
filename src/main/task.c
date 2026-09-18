@@ -81,7 +81,7 @@ merge:
         task->node.prev           = *(TaskNode**)curr;
         *(TaskNode**)curr         = &task->node;
     } else {
-        Mem_Free(task);
+        memFree(task);
         task = NULL;
     }
     return task;
@@ -133,7 +133,7 @@ void Task_Kill(Task* arg0)
     }
 
     if (arg0->work != NULL) {
-        Mem_Free(arg0->work);
+        memFree(arg0->work);
     }
 
     if (gDisplayState.skipTeardown == 0) {
@@ -234,7 +234,7 @@ imm_unlink:
     prev       = arg0->node.prev;
     *pp        = prev;
     prev->next = arg0->node.next;
-    Mem_Free(arg0);
+    memFree(arg0);
     Task_ActiveList = saved;
 }
 
@@ -490,7 +490,7 @@ void Task_Unlink(Task* state)
 
 void Task_Free(Task* state)
 {
-    Mem_Free(state);
+    memFree(state);
 }
 
 void Task_ExecDefaultList(TaskNode* node)

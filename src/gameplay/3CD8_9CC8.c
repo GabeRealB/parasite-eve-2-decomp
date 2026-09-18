@@ -946,7 +946,7 @@ void func_800EC47C(Task* arg0)
             } else {
                 Gp_State1C->field_10 &= 0xFFFE;
                 Gp_State1C->field_0--;
-                Mem_Free(mem);
+                memFree(mem);
                 Task_Kill(arg0);
             }
             break;
@@ -964,7 +964,7 @@ void Gp_FadeWaveTask(Task* arg0)
     mem = arg0->spawnArg2;
     if (p->field_18 != arg0->spawnArg1) {
         p->field_0--;
-        Mem_Free(mem);
+        memFree(mem);
         Task_Kill(arg0);
         return;
     }
@@ -980,7 +980,7 @@ void Gp_FadeWaveTask(Task* arg0)
     }
     if (mem->field_24 >= 0x700) {
         Gp_State1C->field_0--;
-        Mem_Free(mem);
+        memFree(mem);
         Task_Kill(arg0);
     }
 }
@@ -988,7 +988,7 @@ void Gp_FadeWaveTask(Task* arg0)
 void Gp_ReleaseState1CMem(void* arg0, Task* arg1)
 {
     Gp_State1C->field_0--;
-    Mem_Free(arg0);
+    memFree(arg0);
     Task_Kill(arg1);
 }
 
@@ -998,7 +998,7 @@ void Gp_KillState1CTask(Task* arg0)
 
     mem = arg0->spawnArg2;
     Gp_State1C->field_0--;
-    Mem_Free(mem);
+    memFree(mem);
     Task_Kill(arg0);
 }
 

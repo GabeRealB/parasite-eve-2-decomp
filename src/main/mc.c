@@ -538,7 +538,7 @@ void Mc_StateFreeBuffer(Task* arg0, McWork* arg1)
             arg0->state = 0x2A;
             break;
     }
-    Mem_Free((void*)arg1->field_18);
+    memFree((void*)arg1->field_18);
     arg1->field_18 = 0;
 
     obj           = arg0->spawnArg2;
@@ -1031,7 +1031,7 @@ void Mc_StateFinishWrite(Task* arg0, McWork* arg1)
     }
 
     one = 1;
-    Mem_Free((void*)arg1->field_18);
+    memFree((void*)arg1->field_18);
     arg1->field_18 = 0;
 
     obj           = arg0->spawnArg2;
@@ -2578,7 +2578,7 @@ void Mc_DispatchStateTable(Task* arg0)
     sp.funcs[state](arg0, work);
     if (work->field_4 >= 0xB5) {
         if (work->field_18 != 0) {
-            Mem_Free((void*)work->field_18);
+            memFree((void*)work->field_18);
             work->field_18 = 0;
         }
         arg0->state = 0x18;

@@ -508,7 +508,7 @@ void func_replay_bonus_80117A08(Task* arg0)
             break;
         case 21:
             Gp_RestoreStreamRng();
-            Mem_Free(D_replay_bonus_801192BC);
+            memFree(D_replay_bonus_801192BC);
             Display_SetMode(0x1010);
             goto advance;
         case 24:
