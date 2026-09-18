@@ -33,7 +33,12 @@ import cref  # noqa: E402
 
 def sidecar_hits(root: str, token: str, version: str) -> list[str]:
     """Files that name the symbol but belong to no translation unit."""
-    dirs = [d for d in (f"configs/{version}", f"linkers/{version}")
+    # configs only. The linker scripts under linkers/ are generated from these
+    # and regenerate on the next split, and writing to them directly is worse
+    # than useless: they are gitignored, so reverting a rename leaves them
+    # holding the new name while the sources hold the old, and the split cache
+    # sees no reason to rebuild them.
+    dirs = [d for d in (f"configs/{version}",)
             if os.path.isdir(os.path.join(root, d))]
     if not dirs:
         return []
