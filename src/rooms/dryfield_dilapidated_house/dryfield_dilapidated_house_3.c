@@ -2,6 +2,7 @@
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/dryfield_dilapidated_house.h"
@@ -19,6 +20,9 @@ extern Task*      D_dryfield_dilapidated_house_80189B7C;
 extern s16        D_dryfield_dilapidated_house_80189C98;
 extern s32        D_dryfield_dilapidated_house_80186804[16];
 extern SVECTOR    D_dryfield_dilapidated_house_80186844[2];
+extern DdhRoomRec D_dryfield_dilapidated_house_8018669C;
+extern TaskDesc   D_dryfield_dilapidated_house_80186854;
+extern void       Room_Script16(Task* task);
 
 void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
 {
@@ -151,7 +155,98 @@ void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_3", func_dryfield_dilapidated_house_80180A0C);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_3", func_dryfield_dilapidated_house_80180B84);
+void func_dryfield_dilapidated_house_80180B84(Task* task)
+{
+    Task*          parent;
+    TmdObject*     obj;
+    TmdObject*     parentObj;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* parentCoord;
+    DdhCoordWork*  work;
+    DdhRoomRec*    rec;
+    TmdSource*     source;
+    SVECTOR*       dst;
+    SVECTOR*       dst2;
+    SVECTOR*       src2;
+    SVECTOR*       verts;
+    TaskDesc*      table;
+    Task*          spawned;
+    GsCOORDINATE2* childCoord;
+    u16            flags;
+    s32            i;
+
+    parent      = (Task*)task->spawnArg2;
+    obj         = (TmdObject*)task->extra;
+    parentObj   = (TmdObject*)parent->extra;
+    coord       = obj->field_8;
+    parentCoord = parentObj->field_8;
+    work        = (DdhCoordWork*)Mem_Malloc(0x6C, false);
+    if (work == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    task->idMap   = (TaskIdMap*)work;
+    work->field_0 = 0;
+    flags         = obj->field_C | 0x80;
+    obj->field_C  = flags;
+    if (!(parentObj->field_C & 0x80)) {
+        obj->field_C = flags & 0xFF7F;
+    }
+    obj->field_E  = 4;
+    obj->field_C |= 2;
+    parentCoord  += task->spawnArg1;
+    coord->flg    = 0;
+    coord->sub    = parentCoord;
+    obj->field_1C = parentObj->field_1C;
+    obj->field_20 = parentObj->field_20;
+    Task_Reparent(parent, task);
+
+    rec    = &D_dryfield_dilapidated_house_8018669C;
+    source = ((TmdObject*)task->extra)->field_10;
+    dst    = rec->field_8;
+    dst2   = (SVECTOR*)rec->field_C;
+    verts  = (SVECTOR*)source->field_14;
+    for (i = 0; i < rec->field_10; i++) {
+        dst[i].vx = verts[i].vx;
+        dst[i].vy = verts[i].vy;
+        dst[i].vz = verts[i].vz;
+    }
+    if (rec->field_4 != 0) {
+        src2 = (SVECTOR*)source->field_18;
+        for (i = 0; i < rec->field_12; i++) {
+            dst2[i].vx = src2[i].vx;
+            dst2[i].vy = src2[i].vy;
+            dst2[i].vz = src2[i].vz;
+        }
+    }
+
+    func_dryfield_dilapidated_house_80180FD8(task);
+
+    table   = &D_dryfield_dilapidated_house_80186854;
+    spawned = Task_SpawnFromTable(table, 3, 9, (s32)task);
+    if (spawned != NULL) {
+        childCoord        = ((TmdObject*)spawned->extra)->field_8;
+        childCoord->coord = work->mtx;
+    }
+    spawned = Task_SpawnFromTable(table, 3, 0x11, (s32)task);
+    if (spawned != NULL) {
+        childCoord        = ((TmdObject*)spawned->extra)->field_8;
+        childCoord->coord = work->mtx;
+    }
+    spawned = Task_SpawnFromTable(table, 2, 0, (s32)task);
+    if (spawned != NULL) {
+        childCoord        = ((TmdObject*)spawned->extra)->field_8;
+        childCoord->coord = work->mtx;
+    }
+    spawned = Task_SpawnFromTable(table, 2, 1, (s32)task);
+    if (spawned != NULL) {
+        childCoord        = ((TmdObject*)spawned->extra)->field_8;
+        childCoord->coord = work->mtx;
+    }
+
+    task->exitCallback = Room_Script16;
+    task->state       += 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_3", func_dryfield_dilapidated_house_80180F04);
 

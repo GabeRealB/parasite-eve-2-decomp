@@ -3,6 +3,41 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Two SVECTOR copy loops need two source locals, or extra-reload joins the rec `%hi` `$v0` quantity
+
+`func_dryfield_dilapidated_house_80180B84` copies vertices then normals from a
+`TmdSource` into a `DdhRoomRec`. Written with one `SVECTOR* verts` reused for
+both walks, the `task->extra` reload after `Task_Reparent` joins the local
+quantity of `rec = &D_...`'s `%hi` temp (`$v0`). sched1 then dumps the
+extra→source→verts chain at the start of the preheader, so extra is loaded
+*before* `lui` and needs a nop in its delay. Target has `lui`/`addiu rec` first
+and extra in `$v1`.
+
+A distinct pointer for the second walk splits the quantities:
+
+```c
+verts = (SVECTOR*)source->field_14;
+for (i = 0; i < rec->field_10; i++) {
+    dst[i].vx = verts[i].vx;
+    dst[i].vy = verts[i].vy;
+    dst[i].vz = verts[i].vz;
+}
+if (rec->field_4 != 0) {
+    src2 = (SVECTOR*)source->field_18; /* not verts = ... */
+    for (i = 0; i < rec->field_12; i++) {
+        dst2[i].vx = src2[i].vx;
+        dst2[i].vy = src2[i].vy;
+        dst2[i].vz = src2[i].vz;
+    }
+}
+```
+
+Indexed `dst[i].vx` (not `dst++`) is required as well, or loop.c reduces `vy`/`vz`
+into a +4 IV. Same family as "one counter per loop, not one shared".
+`base_2.c` 97.404% shared `verts`; permuter `new_var` alias and `base_6.c` both
+100%. Input hash `d5b89d0bd4d800a2e90e0ee3313ba307b391806a04c089687affa2bad74169c4`
+(`base_2.i`).
+
 ## A `move` into the branch register is a copy cse deletes unless the copied value is opaque: `TOUCH_REG` keeps it
 
 `func_actor_120300_801321C8` sets a kill flag in both arms of an `if`/`else` and
