@@ -760,7 +760,7 @@ void func_actor_405800_80134314(Task* arg0)
     GsCOORDINATE2*    coord;
     GsCOORDINATE2*    player;
     GsCOORDINATE2*    root;
-    WipSysConfig*     cfg;
+    PlayerStatus*     cfg;
     s32               id;
     s32               sound;
     s32               pan;
@@ -776,7 +776,7 @@ void func_actor_405800_80134314(Task* arg0)
     coord->coord.t[2] += (player->coord.t[2] - coord->coord.t[2]) >> 2;
     coord->coord.t[1] += (player->coord.t[1] - coord->coord.t[1]) >> 2;
     work->field_842++;
-    cfg = &Wip_SysConfig;
+    cfg = &Player_Status;
     if (++work->field_844 == 8) {
         sound = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 6;
         pan   = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
@@ -820,7 +820,7 @@ void func_actor_405800_80134314(Task* arg0)
         work->field_98 = ((rsin((s16)work->field_82 + 0x800) * 3000) >> 12) / 20;
         work->field_9C = ((rcos((s16)work->field_82 + 0x800) * 3000) >> 12) / 20;
         Gp_SpawnEff(0x6009B, root, 0x10100, &vec);
-        if (cfg->field_18 <= 0) {
+        if (cfg->hp <= 0) {
             work->field_88C = 1;
         }
     }

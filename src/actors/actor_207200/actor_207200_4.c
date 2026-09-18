@@ -515,9 +515,9 @@ void func_actor_207200_8014BEF4(Task* arg0)
                 if (work->field_49E != 0) {
                     break;
                 }
-                sc->d.delta.vx.w = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
-                sc->d.delta.vy.w = Wip_SysConfig.field_4->t[1] - coord->coord.t[1];
-                sc->d.delta.vz.w = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+                sc->d.delta.vx.w = Player_Status.field_4->t[0] - coord->coord.t[0];
+                sc->d.delta.vy.w = Player_Status.field_4->t[1] - coord->coord.t[1];
+                sc->d.delta.vz.w = Player_Status.field_4->t[2] - coord->coord.t[2];
                 damage           = SquareRoot0(sc->d.delta.vx.w * sc->d.delta.vx.w +
                                                sc->d.delta.vy.w * sc->d.delta.vy.w +
                                                sc->d.delta.vz.w * sc->d.delta.vz.w);
@@ -588,9 +588,9 @@ void func_actor_207200_8014BEF4(Task* arg0)
             if (work->field_49E != 0) {
                 break;
             }
-            sc->d.delta.vx.w = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
-            sc->d.delta.vy.w = Wip_SysConfig.field_4->t[1] - coord->coord.t[1];
-            sc->d.delta.vz.w = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            sc->d.delta.vx.w = Player_Status.field_4->t[0] - coord->coord.t[0];
+            sc->d.delta.vy.w = Player_Status.field_4->t[1] - coord->coord.t[1];
+            sc->d.delta.vz.w = Player_Status.field_4->t[2] - coord->coord.t[2];
             damage           = SquareRoot0(sc->d.delta.vx.w * sc->d.delta.vx.w + sc->d.delta.vy.w * sc->d.delta.vy.w +
                                            sc->d.delta.vz.w * sc->d.delta.vz.w);
             param            = Gp_GetIdParam0(((Actor207200HitView*)work)->rec3[i].rec.field_4);

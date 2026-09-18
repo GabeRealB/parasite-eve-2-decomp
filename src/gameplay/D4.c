@@ -66,7 +66,7 @@ void Gp_EnqueueWeaponCd(void)
     s32 temp;
     s32 flag;
 
-    item = Wip_SysConfig.field_21;
+    item = Player_Status.field_21;
     if (item == 0) {
         return;
     }
@@ -75,43 +75,43 @@ void Gp_EnqueueWeaponCd(void)
     switch (item) {
         case 0xB:
             param1[0] = 1;
-            if (Wip_SysConfig.field_22 == 0xB) {
+            if (Player_Status.field_22 == 0xB) {
                 param1[0] = 2;
             }
-            if (Wip_SysConfig.field_22 == 0xC) {
+            if (Player_Status.field_22 == 0xC) {
                 param1[0] = 3;
             }
             break;
         case 0xC:
             param1[0] = 4;
-            if (Wip_SysConfig.field_22 == 0xB) {
+            if (Player_Status.field_22 == 0xB) {
                 param1[0] = 5;
             }
-            if (Wip_SysConfig.field_22 == 0xC) {
+            if (Player_Status.field_22 == 0xC) {
                 param1[0] = 6;
             }
             break;
         case 0xD:
             param1[0] = 7;
-            if (Wip_SysConfig.field_22 == 0xE) {
+            if (Player_Status.field_22 == 0xE) {
                 param1[0] = 8;
             }
-            if (Wip_SysConfig.field_22 == 0xF) {
+            if (Player_Status.field_22 == 0xF) {
                 param1[0] = 9;
             }
             break;
         case 0xE:
             param1[0] = 0xA;
-            if (Wip_SysConfig.field_22 == 0xE) {
+            if (Player_Status.field_22 == 0xE) {
                 param1[0] = 0xB;
             }
-            if (Wip_SysConfig.field_22 == 0xF) {
+            if (Player_Status.field_22 == 0xF) {
                 param1[0] = 0xC;
             }
             break;
         case 0xF:
             param1[0] = 0xD;
-            val       = Wip_SysConfig.field_22;
+            val       = Player_Status.field_22;
             if (val == 0xE) {
                 param1[0] = val;
             }
@@ -121,10 +121,10 @@ void Gp_EnqueueWeaponCd(void)
             break;
         case 0x17:
             param1[0] = 0x13;
-            if (Wip_SysConfig.field_22 == 0xE) {
+            if (Player_Status.field_22 == 0xE) {
                 param1[0] = 0x14;
             }
-            if (Wip_SysConfig.field_22 == 0xF) {
+            if (Player_Status.field_22 == 0xF) {
                 param1[0] = 0x15;
             }
             break;
@@ -387,7 +387,7 @@ void Gp_EnqueueConfigCd(s32 arg0)
         param1[3] = 0;
         param1[2] = 1;
         param1[0] = 0;
-        param2[0] = table.field_0[Wip_SysConfig.field_26 - 1];
+        param2[0] = table.field_0[Player_Status.field_26 - 1];
         if ((u8)arg0 == 0) {
             param2[1] = 0;
         } else {
@@ -406,7 +406,7 @@ void Gp_EnqueueHeldWeaponCd(void)
     u8  val;
     s32 flag;
 
-    val = Wip_SysConfig.field_21;
+    val = Player_Status.field_21;
     if (val == 0) {
         val = 1;
     }
@@ -743,8 +743,8 @@ void func_800AA548(s32 arg0)
     session->field_0        = 0;
     Display_State.field_128 = 0;
     sess                    = (GameSessionFrom4*)&session->field_4;
-    if (Wip_SysConfig.field_18 <= 0) {
-        Wip_SysConfig.field_18 = 1;
+    if (Player_Status.hp <= 0) {
+        Player_Status.hp = 1;
     }
     if ((Mc_SaveData.field_13 != 0) && ((s16)Mc_SaveData.field_6C8 <= 0)) {
         Mc_SaveData.field_6C8 = 1;
@@ -888,14 +888,14 @@ void Gp_LoadWaitBoot(Task* task)
         Mem_Set(Stream_Slots, 0, sizeof(Stream_Slots));
         session = Game_Session;
         save    = &Mc_SaveData;
-        if (session->field_11C != save->field_22 || session->field_11E != Wip_SysConfig.field_26) {
+        if (session->field_11C != save->field_22 || session->field_11E != Player_Status.field_26) {
             GameSession* sess;
 
             Gp_EnqueueConfigCd(0);
             Gp_EnqueueHeldWeaponCd();
             sess            = Game_Session;
             sess->field_11C = save->field_22;
-            sess->field_11E = Wip_SysConfig.field_26;
+            sess->field_11E = Player_Status.field_26;
         }
         Gp_EnqueueAttach7Cd();
         task->state++;
@@ -2279,14 +2279,14 @@ void func_800AD65C(Task* task)
 void func_800AD6BC(void)
 {
     Task*            slot;
-    WipSysConfig*    cfg;
+    PlayerStatus*    cfg;
     u32              flags;
     u32              action;
     u32              mask;
     GpDirActionTable funcs;
 
     funcs = Gp_DirActionFns;
-    cfg   = &Wip_SysConfig;
+    cfg   = &Player_Status;
     slot  = Game_GetPtrSlot(1);
     if (slot != NULL) {
         if (slot->spawnArg1 != Mc_SaveData.field_4) {
@@ -2368,7 +2368,7 @@ void Gp_SetupDirWarp(void)
 {
     Task*             slot7;
     Task*             slot3;
-    WipSysConfig*     cfg;
+    PlayerStatus*     cfg;
     GameActor*        actor;
     GameSessionFrom4* sess;
     GpWarpRec         rec;
@@ -2384,7 +2384,7 @@ void Gp_SetupDirWarp(void)
     room  = sess->field_2;
     slot7 = Game_GetPtrSlot(7);
     slot3 = Game_GetPtrSlot(3);
-    cfg   = &Wip_SysConfig;
+    cfg   = &Player_Status;
     actor = ((GpActorWork*)slot3)->actor;
 
     if (Game_Session->field_1 != 0) {
@@ -2456,7 +2456,7 @@ void Gp_SetupDirWarp(void)
                 Gp_DirByte    = 0;
                 Gp_DirFlags   = 0;
                 cfg->field_24 = 0;
-                if (D_80114CF0 != 0 && cfg->field_18 > 0) {
+                if (D_80114CF0 != 0 && cfg->hp > 0) {
                     SndEvt_EnqueueType6(D_80114CF0, 0, 0);
                 }
                 return;
@@ -2519,14 +2519,14 @@ void Gp_CommitWarp(void)
 {
     Task*             slot3;
     Task*             slot7;
-    WipSysConfig*     cfg;
+    PlayerStatus*     cfg;
     GameSessionFrom4* sess;
     GpWarpRec         rec;
     GpSaveLoc*        loc;
     u8                fade;
 
     slot3 = Game_GetPtrSlot(3);
-    cfg   = &Wip_SysConfig;
+    cfg   = &Player_Status;
     slot7 = Game_GetPtrSlot(7);
 
     sess = (GameSessionFrom4*)&Game_Session->field_4;
@@ -2551,7 +2551,7 @@ void Gp_CommitWarp(void)
     Gp_DispatchMsg(slot7, 0x13EE, (s32)loc, (s32)loc);
 
     if (D_80114CF0 != 0) {
-        if (cfg->field_18 > 0) {
+        if (cfg->hp > 0) {
             SndEvt_EnqueueType6(D_80114CF0, 0, 0);
         }
     }

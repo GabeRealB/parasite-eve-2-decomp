@@ -66,8 +66,8 @@ void func_acropolis_observatory_8017D9A8(Task* task)
             }
             Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
             ((AobStreamWork*)task->idMap)->target = Game_GetPtrSlot(3);
-            ((AobStreamWork*)task->idMap)->mtx    = Wip_SysConfig.field_4;
-            weaponId                              = Wip_SysConfig.field_21;
+            ((AobStreamWork*)task->idMap)->mtx    = Player_Status.field_4;
+            weaponId                              = Player_Status.field_21;
             rec.field_0                           = (Mc_SaveData.field_22 == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.field_4                           = 1;
             rec.field_8                           = 0;
@@ -175,8 +175,8 @@ void func_acropolis_observatory_8017DD3C(Task* task)
             }
             Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
             ((AobStreamWork*)task->idMap)->target = Game_GetPtrSlot(3);
-            ((AobStreamWork*)task->idMap)->mtx    = Wip_SysConfig.field_4;
-            weaponId                              = Wip_SysConfig.field_21;
+            ((AobStreamWork*)task->idMap)->mtx    = Player_Status.field_4;
+            weaponId                              = Player_Status.field_21;
             rec.field_0                           = (Mc_SaveData.field_22 == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.field_4                           = 1;
             rec.field_8                           = 0;

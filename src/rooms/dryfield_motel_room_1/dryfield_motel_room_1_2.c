@@ -125,7 +125,7 @@ void func_dryfield_motel_room_1_8017DFD0(void)
 {
     Dmr1Work*     work;
     GpAnimArg     msg;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     s32           weaponId;
     s32           anim;
 
@@ -138,7 +138,7 @@ void func_dryfield_motel_room_1_8017DFD0(void)
     msg.field_C  = 0;
     msg.field_10 = 0;
     Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
-    cfg            = &Wip_SysConfig;
+    cfg            = &Player_Status;
     work->field_14 = cfg->field_4->t[0];
     work->field_18 = cfg->field_4->t[1];
     work->field_1C = cfg->field_4->t[2];

@@ -227,18 +227,18 @@ void func_actor_560800_801367E0(s16 arg0)
 void func_actor_560800_80136818(void)
 {
     Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
-    WipSysConfig*    cfg  = &Wip_SysConfig;
+    PlayerStatus*    cfg  = &Player_Status;
     s16              hp;
 
     Gp_KillPlayerEffs();
 
-    if (cfg->field_18 < 0x33) {
+    if (cfg->hp < 0x33) {
         hp = 1;
     } else {
-        hp = (u16)cfg->field_18 - 0x32;
+        hp = (u16)cfg->hp - 0x32;
     }
     do {
-        cfg->field_18  = hp;
+        cfg->hp        = hp;
         work->field_64 = 1;
     } while (0);
 }
@@ -257,17 +257,17 @@ void func_actor_560800_80136878(void)
     work->field_30 = 0;
     work->field_38 = 0;
     if ((u16)work->field_64 == 0) {
-        WipSysConfig*    cfg   = &Wip_SysConfig;
+        PlayerStatus*    cfg   = &Player_Status;
         Actor560800Work* work2 = (Actor560800Work*)D_actor_560800_8017578C->idMap;
 
         Gp_KillPlayerEffs();
-        if (cfg->field_18 < 0x33) {
+        if (cfg->hp < 0x33) {
             hp = 1;
         } else {
-            hp = (u16)cfg->field_18 - 0x32;
+            hp = (u16)cfg->hp - 0x32;
         }
         do {
-            cfg->field_18   = hp;
+            cfg->hp         = hp;
             work2->field_64 = 1;
         } while (0);
     }

@@ -146,7 +146,7 @@ void Gp_MsgPlayerWeapon(s32 arg0)
 
     if (arg0 == 0) {
         sp         = Gp_WeaponMsgRec;
-        sp.field_0 = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
+        sp.field_0 = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.field_21;
         Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&sp, 0);
     } else {
         Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
@@ -166,7 +166,7 @@ void Gp_MsgSlot4Chain(s32 arg0, s32 arg1)
 
 void Gp_PlayerWeaponId(s32* arg0)
 {
-    *arg0 = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
+    *arg0 = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.field_21;
 }
 
 void Gp_AllyAnimId(s32* arg0)
@@ -176,11 +176,11 @@ void Gp_AllyAnimId(s32* arg0)
 
 void Gp_FillPlayerHpMp(void)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
 
-    p           = &Wip_SysConfig;
-    p->field_18 = p->field_1a;
-    p->field_1c = p->field_1e;
+    p     = &Player_Status;
+    p->hp = p->hpMax;
+    p->mp = p->mpMax;
 }
 
 void Gp_FillAllyHp(void)

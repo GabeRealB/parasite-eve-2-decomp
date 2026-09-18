@@ -656,8 +656,8 @@ void func_actor_105700_80133C48(Actor105700* arg0)
             work->field_69C = -0x16;
             work->field_69E = 0x1E;
             work->field_6CE = work->field_6D0 > 0;
-            delta->vx       = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
-            delta->vz       = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            delta->vx       = Player_Status.field_4->t[0] - coord->coord.t[0];
+            delta->vz       = Player_Status.field_4->t[2] - coord->coord.t[2];
             work->field_6A4 = ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF;
             func_actor_105700_80134374(arg0);
             work->field_6AE++;
@@ -817,9 +817,9 @@ void func_actor_105700_801341CC(Actor105700* arg0)
     }
     anim = D_actor_105700_801372EC[work->field_694];
     if ((work->field_698 >= anim + 0x1C) && (anim + 0x1E >= work->field_698)) {
-        dx        = Wip_SysConfig.field_4->t[0] - self->coord.t[0];
+        dx        = Player_Status.field_4->t[0] - self->coord.t[0];
         delta->vx = dx;
-        dz        = Wip_SysConfig.field_4->t[2] - self->coord.t[2];
+        dz        = Player_Status.field_4->t[2] - self->coord.t[2];
         delta->vz = dz;
         distance  = SquareRoot0((delta->vx * delta->vx) + (delta->vz * delta->vz));
         if (distance < 0x3E8) {
@@ -1513,8 +1513,8 @@ void func_actor_105700_80136534(Actor105700* arg0)
             }
             work->field_69C = speed;
             work->field_69E = 0x1E;
-            delta->vx       = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
-            delta->vz       = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            delta->vx       = Player_Status.field_4->t[0] - coord->coord.t[0];
+            delta->vz       = Player_Status.field_4->t[2] - coord->coord.t[2];
             work->field_6A4 = (u16)(ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF);
             yaw             = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
             work->field_6A2 = yaw;
@@ -1553,8 +1553,8 @@ void func_actor_105700_80136534(Actor105700* arg0)
         case 1:
             work->field_69C = 0;
             work->field_69E = 0;
-            delta->vx       = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
-            dz              = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            delta->vx       = Player_Status.field_4->t[0] - coord->coord.t[0];
+            dz              = Player_Status.field_4->t[2] - coord->coord.t[2];
             delta->vz       = dz;
             dx              = delta->vx;
             if (SquareRoot0((dx * dx) + (dz * dz)) < 0x7D0) {
@@ -1564,7 +1564,7 @@ void func_actor_105700_80136534(Actor105700* arg0)
             } else {
                 random      = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState = random;
-                if (!((random >> 0x10) & ((1 << (work->field_6C0 + 1)) - 1)) && !(Wip_SysConfig.field_25 & 0x10) &&
+                if (!((random >> 0x10) & ((1 << (work->field_6C0 + 1)) - 1)) && !(Player_Status.field_25 & 0x10) &&
                     work->field_6C4 != 0) {
                     work->field_6A6 = 5;
                     work->field_6A8 = 0;
@@ -1591,8 +1591,8 @@ void func_actor_105700_80136534(Actor105700* arg0)
                 work->field_694       = 2;
                 work->field_6A8       = 0;
             } else if (work->field_698 >= 0x60) {
-                delta->vx       = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
-                delta->vz       = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+                delta->vx       = Player_Status.field_4->t[0] - coord->coord.t[0];
+                delta->vz       = Player_Status.field_4->t[2] - coord->coord.t[2];
                 work->field_6A4 = (u16)(ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF);
                 yaw2            = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
                 work->field_6A2 = yaw2;

@@ -906,7 +906,7 @@ void func_800EC47C(Task* arg0)
             } else {
                 arg0->state = 2;
             }
-            if (!(Wip_SysConfig.field_25 & 1)) {
+            if (!(Player_Status.field_25 & 1)) {
                 arg0->state = 3;
             }
             rgb[0] = rgb[1] = rgb[2] = mem->field_24;
@@ -928,14 +928,14 @@ void func_800EC47C(Task* arg0)
                     mem->field_24 = current - 8;
                 }
             }
-            if (!(Wip_SysConfig.field_25 & 1)) {
+            if (!(Player_Status.field_25 & 1)) {
                 arg0->state = 3;
             }
             rgb[0] = rgb[1] = rgb[2] = mem->field_24;
             Gp_DrawFadeQuad(rgb, 2);
             break;
         case 3:
-            if (Wip_SysConfig.field_25 & 1) {
+            if (Player_Status.field_25 & 1) {
                 arg0->state = 0;
                 rgb[0] = rgb[1] = rgb[2] = mem->field_24;
                 Gp_DrawFadeQuad(rgb, 2);

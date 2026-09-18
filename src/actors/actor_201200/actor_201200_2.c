@@ -269,9 +269,9 @@ void func_actor_201200_8014B054(Actor201200Ctx* arg0, Actor201200* arg1)
     s                                         = head - 1;
     func_actor_201200_8014A640(arg1);
     coord         = arg1->field_2C->field_8;
-    head[-1].d.vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
-    s->d.vy       = Wip_SysConfig.field_4->t[1] - coord->coord.t[1];
-    s->d.vz       = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+    head[-1].d.vx = Player_Status.field_4->t[0] - coord->coord.t[0];
+    s->d.vy       = Player_Status.field_4->t[1] - coord->coord.t[1];
+    s->d.vz       = Player_Status.field_4->t[2] - coord->coord.t[2];
     facing        = arg1->field_2C->field_8;
     s->angle      = Actor201200_NormalizeYaw(ratan2(head[-1].d.vx, s->d.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]));
     if (s->angle > 0x10) {

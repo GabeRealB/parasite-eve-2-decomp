@@ -186,7 +186,7 @@ typedef struct _GpDisplayFlagsWord {
 STATIC_ASSERT_SIZEOF(GpDisplayFlagsWord, 0x104);
 
 /// Sparse position view with the 0x80-byte stride used by func_800AA548.
-/// Index 1 is Wip_SysConfig.field_10 (X/Y/Z and yaw).
+/// Index 1 is Player_Status.field_10 (X/Y/Z and yaw).
 typedef struct _GpSavedActorPos {
     /* 0x00 */ s16  field_0;
     /* 0x02 */ s16  field_2;
@@ -320,7 +320,7 @@ extern TILE Gp_FadeTiles[2];
 extern DR_TPAGE Gp_FadeTpages[2];
 
 /// 5-byte table at `Gp_ConfigCdTable`. `Gp_EnqueueConfigCd` copies it to the stack and
-/// indexes it 1-based by `Wip_SysConfig.field_26`; the byte is CdCmd 0x21
+/// indexes it 1-based by `Player_Status.field_26`; the byte is CdCmd 0x21
 /// param2[0].
 typedef struct _GpTbl5 {
     /* 0x0 */ u8 field_0[5];
@@ -372,7 +372,7 @@ typedef struct _GpAreaApplyRec {
 } GpAreaApplyRec;
 STATIC_ASSERT_SIZEOF(GpAreaApplyRec, 4);
 
-/// Maps `Wip_SysConfig.field_21` / `field_22` (and the 0x1B attach id) to a
+/// Maps `Player_Status.field_21` / `field_22` (and the 0x1B attach id) to a
 /// CdCmd 0x21 payload. No-op when `field_21` is 0 or the mapped byte is 0.
 void Gp_EnqueueWeaponCd(void);
 void Gp_EnqueueViewCd(Task* task);

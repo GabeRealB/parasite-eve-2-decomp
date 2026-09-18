@@ -68,7 +68,7 @@ Display_State = 0x80070F68; // absolute:True
 Gpu_CurrentOt = 0x800710A0; // absolute:True
 Gpu_PrimCursor = 0x80071190; // absolute:True
 Mc_SaveData = 0x80072168; // absolute:True
-Wip_SysConfig = 0x80073B88; // absolute:True
+Player_Status = 0x80073B88; // absolute:True
 
 // --- from gameplay (12 symbols)
 Gp_RestoreStreamRng = 0x800B00C4; // absolute:True

@@ -474,7 +474,7 @@ static __inline__ s16 Actor356100_NormalizeYaw(s16 input)
 
 /// `Actor356100_PositionDelta` against an explicit config block rather than
 /// the overlay's own `D_80073B8C` copy of the player coordinate.
-static __inline__ void Actor356100_ConfigPositionDelta(WipSysConfig* config, GsCOORDINATE2* coord, SVECTOR* pos)
+static __inline__ void Actor356100_ConfigPositionDelta(PlayerStatus* config, GsCOORDINATE2* coord, SVECTOR* pos)
 {
     pos->vx = config->field_4->t[0] - coord->coord.t[0];
     pos->vy = config->field_4->t[1] - coord->coord.t[1];
@@ -483,7 +483,7 @@ static __inline__ void Actor356100_ConfigPositionDelta(WipSysConfig* config, GsC
 
 /// Yaw from the actor's facing to the player, wrapped; `pos` receives the
 /// offset. Same body as `Actor401300_PositionYaw` / `Actor01900_PositionYaw`.
-static __inline__ s16 Actor356100_PositionYaw(Actor356100* actor, SVECTOR* pos, WipSysConfig* config)
+static __inline__ s16 Actor356100_PositionYaw(Actor356100* actor, SVECTOR* pos, PlayerStatus* config)
 {
     GsCOORDINATE2* coord;
     s32            angle;

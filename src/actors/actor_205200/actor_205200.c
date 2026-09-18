@@ -241,9 +241,9 @@ void func_actor_205200_8014B048(Actor205200* arg0, s32 arg1)
                 func_800DA6E8(&enemy->node, 0, 0);
                 break;
             }
-            vec->vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
-            vec->vy = Wip_SysConfig.field_4->t[1] - coord->coord.t[1];
-            vec->vz = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            vec->vx = Player_Status.field_4->t[0] - coord->coord.t[0];
+            vec->vy = Player_Status.field_4->t[1] - coord->coord.t[1];
+            vec->vz = Player_Status.field_4->t[2] - coord->coord.t[2];
             damage  = Gp_ComputeDamage(part->recs[i].field_4, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
             if (Gp_RollEnemyChance(enemy, part->recs[i].field_4, 0) != 0) {
                 damage *= 4;

@@ -20,7 +20,7 @@ void RoomsShared8017ef24(Task* task)
     TextDrawReq   req0;
     TextDrawReq   req1;
     UiObject*     obj;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     McItemScan*   scan;
     s8*           p;
     s32           x;
@@ -31,7 +31,7 @@ void RoomsShared8017ef24(Task* task)
     s32           count;
 
     obj = task->spawnArg2;
-    cfg = &Wip_SysConfig;
+    cfg = &Player_Status;
     x   = (s16)obj->field_1C + 2;
     col = (s16)obj->field_1E - 2;
     y   = (s16)obj->field_18;

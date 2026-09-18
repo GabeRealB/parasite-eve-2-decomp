@@ -303,7 +303,7 @@ typedef struct Actor401000Delta {
 STATIC_ASSERT_SIZEOF(Actor401000Delta, 0x20);
 
 /// 0x10-byte `G_SCRATCH_HEAD` block `func_actor_401000_80134F98` carves off
-/// for the offset from the actor to `Wip_SysConfig.field_4`, the wrapped turn
+/// for the offset from the actor to `Player_Status.field_4`, the wrapped turn
 /// toward it and the facing yaw. Same shape as `Actor01900AimScratch` /
 /// `Actor401300AimScratch`.
 typedef struct Actor401000AimScratch {
@@ -316,7 +316,7 @@ typedef struct Actor401000AimScratch {
 STATIC_ASSERT_SIZEOF(Actor401000AimScratch, 0x10);
 
 /// 0x10-byte `G_SCRATCH_HEAD` block `func_actor_401000_80136E20` carves off
-/// for the offset from the actor to `Wip_SysConfig.field_4`, the wrapped turn
+/// for the offset from the actor to `Player_Status.field_4`, the wrapped turn
 /// toward it and the facing yaw. Same shape as `Actor401000AimScratch`, but
 /// with the turn and the yaw as two separate halfwords.
 typedef struct Actor401000ChaseScratch {
@@ -329,7 +329,7 @@ typedef struct Actor401000ChaseScratch {
 STATIC_ASSERT_SIZEOF(Actor401000ChaseScratch, 0x10);
 
 /// 0xC-byte `G_SCRATCH_HEAD` block `func_actor_401000_80139D10` carves off for
-/// the offset from the actor to `Wip_SysConfig.field_4` and the wrapped turn
+/// the offset from the actor to `Player_Status.field_4` and the wrapped turn
 /// toward it. Same shape as `Actor401300TurnScratch` / `Actor01900TurnScratch`.
 typedef struct Actor401000TurnScratch {
     /* 0x0 */ SVECTOR delta;

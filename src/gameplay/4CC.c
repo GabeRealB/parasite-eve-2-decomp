@@ -283,7 +283,7 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
     s32            flags;
     s32            idx;
     UiObject*      spawned;
-    WipSysConfig*  cfg;
+    PlayerStatus*  cfg;
     s32            one2;
 
     rec = Gp_GetScanSlot(&Gp_MoveScanSrc + arg1->owner->spawnArg1, arg0->field_8, 0);
@@ -352,7 +352,7 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
                 } else if (((u32)(item2 - 0xA0) < 0x20U) && (arg1->owner->flags == 0)) {
                     item = 8;
                 } else if (arg1->owner->spawnArg1 == 1) {
-                    cfg = &Wip_SysConfig;
+                    cfg = &Player_Status;
                     if ((item2 == cfg->field_21 + 0x7F) || (item2 == cfg->field_23 + 0x5F)) {
                         item = 0xA;
                     }
@@ -567,14 +567,14 @@ void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1)
             if (restricted != 0) {
                 prompt = 0x1E;
             } else if ((u32)(item - 0x80) < 0x20U) {
-                if ((arg1->owner->spawnArg1 != 1) || (item != (Wip_SysConfig.field_21 + 0x7F))) {
+                if ((arg1->owner->spawnArg1 != 1) || (item != (Player_Status.field_21 + 0x7F))) {
                     if (prompt == -1) {
                         Gp_ClearEquipSlot(item);
                     }
                 } else {
                     prompt = 7;
                 }
-            } else if (((u32)(item - 0x60) < 0x20U) && (arg1->owner->spawnArg1 == 1) && (item == (Wip_SysConfig.field_23 + 0x5F))) {
+            } else if (((u32)(item - 0x60) < 0x20U) && (arg1->owner->spawnArg1 == 1) && (item == (Player_Status.field_23 + 0x5F))) {
                 prompt = 7;
             }
         } else {
@@ -607,7 +607,7 @@ void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1)
     s32           flag;
     s32           flags;
     Task*         owner;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
 
     req.x          = arg1->baseX + (u16)arg0->field_18;
     req.y          = arg1->baseY + (u16)arg0->field_1A;
@@ -639,7 +639,7 @@ void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1)
                 Gp_SpawnItemPrompt(arg1, 0x1E, 0, 0);
                 arg1->status = 0;
             } else if (arg1->owner->spawnArg1 == 1) {
-                cfg = &Wip_SysConfig;
+                cfg = &Player_Status;
                 if ((item == cfg->field_21 + 0x7F) || (item == cfg->field_23 + 0x5F)) {
                     Gp_SpawnItemPrompt(arg1, 7, 0, 0);
                     arg1->status = 0;

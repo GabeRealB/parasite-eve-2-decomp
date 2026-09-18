@@ -136,8 +136,8 @@ typedef struct _McSaveData {
     /* 0x011 */ byte       unknown_11;
     /* 0x012 */ u8         field_12;
     /* 0x013 */ s8         field_13; // 1-based index into Gp_AllyIdBase
-    /* 0x014 */ s32        field_14; // Wip_SysConfig.field_8 (`Gp_SavePlayerPos`)
-    /* 0x018 */ s32        field_18; // Wip_SysConfig.field_C (`Gp_SavePlayerPos`)
+    /* 0x014 */ s32        field_14; // Player_Status.field_8 (`Gp_SavePlayerPos`)
+    /* 0x018 */ s32        field_18; // Player_Status.field_C (`Gp_SavePlayerPos`)
     /* 0x01C */ u16        field_1C;
     /* 0x01E */ u16        field_1E;
     /* 0x020 */ byte       unknown_20[0x1];
@@ -146,8 +146,8 @@ typedef struct _McSaveData {
     /* 0x023 */ s8         field_23;
     /* 0x024 */ byte       unknown_24[0x1];
     /* 0x025 */ u8         field_25;
-    /* 0x026 */ u8         field_26; // unsigned addend for Wip_SysConfig.field_1a (Gp_RecalcMaxHp); +5 in Gp_UiBoostHp
-    /* 0x027 */ u8         field_27; // unsigned addend for Wip_SysConfig.field_1e (Gp_RecalcMaxMp); +1 in Gp_UiBoostMp
+    /* 0x026 */ u8         field_26; // unsigned addend for Player_Status.hpMax (Gp_RecalcMaxHp); +5 in Gp_UiBoostHp
+    /* 0x027 */ u8         field_27; // unsigned addend for Player_Status.mpMax (Gp_RecalcMaxMp); +1 in Gp_UiBoostMp
     /* 0x028 */ McPosRec   field_28[0x20];
     /* 0x1A8 */ s8         field_1a8;
     /* 0x1A9 */ s8         field_1a9;
@@ -271,9 +271,6 @@ void Mc_DispatchStateTable26(Task* task);
 void Mc_InitBufferSlots(void);
 /// Build a memcard save filename into `buf` (product code + mode char + random).
 void Mc_BuildFileName(u8* buf, s32 modeCharIdx);
-/// Defaults for the Mc_InitSaveSlotDefaults / Wip_SysConfig block (wipsyscfg).
-void Mc_InitSaveSlotDefaults(void);
-
 /// Prompt + optional choice dialog (Mc_PromptTable[mode]).
 s32 Mc_PromptDialog(Task* task, s32 mode, s32 arg2);
 s32 Mc_PromptDialogChoice(Task* task, s32 mode, s32 arg2);

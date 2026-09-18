@@ -1065,7 +1065,7 @@ extern s16 D_80072830;
 
 void Actor01600_Fn020F8(Actor01600* actor)
 {
-    WipSysConfig*   config = &Wip_SysConfig;
+    PlayerStatus*   config = &Player_Status;
     s32             neg_velocity;
     s32             reset_y;
     s32             reset_y2;
@@ -1567,7 +1567,7 @@ void Actor01600_Fn020F8(Actor01600* actor)
                                 work->field_4E4 = (s32)coord->coord.t[1];
                                 return;
                             }
-                            if (config->field_18 <= 0) {
+                            if (config->hp <= 0) {
                                 work->field_506 = 9;
                                 work->field_50E = 0;
                                 work->field_50A = 0;
@@ -1629,7 +1629,7 @@ void Actor01600_Fn020F8(Actor01600* actor)
                         if (work->field_53E == 0) {
                             Gp_DispatchMsg(work->field_4D4, 0x3F9, Gp_PackObjPair((struct _GpObj50*)ctx, 0), 0);
                         }
-                        if (config->field_18 <= 0) {
+                        if (config->hp <= 0) {
                             if (work->field_53E == 0) {
                                 work->field_506           = 9;
                                 work->field_50E           = 0;

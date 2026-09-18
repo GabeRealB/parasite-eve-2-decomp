@@ -745,9 +745,9 @@ s32 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 arg2)
 calc:
     scratch            = --*(Actor403000FacingScratch**)G_SCRATCH_HEAD;
     coord              = ((TmdObject*)arg0->extra)->field_8;
-    scratch->target.vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
-    scratch->target.vy = Wip_SysConfig.field_4->t[1] - coord->coord.t[1];
-    scratch->target.vz = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+    scratch->target.vx = Player_Status.field_4->t[0] - coord->coord.t[0];
+    scratch->target.vy = Player_Status.field_4->t[1] - coord->coord.t[1];
+    scratch->target.vz = Player_Status.field_4->t[2] - coord->coord.t[2];
     coord2             = ((TmdObject*)arg0->extra)->field_8;
     angle              = ratan2(scratch->target.vx, scratch->target.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
     if (angle < 0) {
@@ -1152,7 +1152,7 @@ void func_actor_403000_80134F44(Actor403000* arg0)
 {
     Actor403000*              player;
     GpEnemy*                  enemy;
-    WipSysConfig*             config;
+    PlayerStatus*             config;
     Actor403000Work*          work;
     Actor403000DamageScratch* head;
     Actor403000DamageScratch* scratch;
@@ -1163,7 +1163,7 @@ void func_actor_403000_80134F44(Actor403000* arg0)
 
     player = Game_GetPtrSlot(3);
     enemy  = arg0->field_20;
-    config = &Wip_SysConfig;
+    config = &Player_Status;
     work   = arg0->field_1C;
     if (enemy->field_40 > 0) {
         if (work->field_F70 > 0) {
@@ -1782,12 +1782,12 @@ void func_actor_403000_80137084(Actor403000* arg0)
     s16                      diff;
     s32                      dist;
     s8                       sign;
-    WipSysConfig*            wip;
+    PlayerStatus*            wip;
     TmdObject*               tmd;
 
     work                                       = arg0->field_1C;
     player                                     = Game_GetPtrSlot(3);
-    wip                                        = &Wip_SysConfig;
+    wip                                        = &Player_Status;
     head                                       = *(Actor403000ChaseScratch**)G_SCRATCH_HEAD;
     *(Actor403000ChaseScratch**)G_SCRATCH_HEAD = head - 1;
     scratch                                    = head - 1;
@@ -1849,9 +1849,9 @@ void func_actor_403000_80137084(Actor403000* arg0)
         func_actor_403000_80132348(arg0->field_2C->field_8, work->objD18.rec, 5);
         t     = &scratch->target;
         pos2  = arg0->field_2C->field_8;
-        t->vx = Wip_SysConfig.field_4->t[0] - pos2->coord.t[0];
-        t->vy = Wip_SysConfig.field_4->t[1] - pos2->coord.t[1];
-        t->vz = Wip_SysConfig.field_4->t[2] - pos2->coord.t[2];
+        t->vx = Player_Status.field_4->t[0] - pos2->coord.t[0];
+        t->vy = Player_Status.field_4->t[1] - pos2->coord.t[1];
+        t->vz = Player_Status.field_4->t[2] - pos2->coord.t[2];
         rot2  = arg0->field_2C->field_8;
         angle = ratan2(t->vx, t->vz) - ratan2(-rot2->coord.m[2][0], rot2->coord.m[2][2]);
         if (angle < 0) {
@@ -1993,9 +1993,9 @@ void func_actor_403000_801377C8(Actor403000* arg0)
         if ((s16)work->field_6 == 0xA) {
             t     = &scratch->target;
             pos   = arg0->field_2C->field_8;
-            t->vx = Wip_SysConfig.field_4->t[0] - pos->coord.t[0];
-            t->vy = Wip_SysConfig.field_4->t[1] - pos->coord.t[1];
-            t->vz = Wip_SysConfig.field_4->t[2] - pos->coord.t[2];
+            t->vx = Player_Status.field_4->t[0] - pos->coord.t[0];
+            t->vy = Player_Status.field_4->t[1] - pos->coord.t[1];
+            t->vz = Player_Status.field_4->t[2] - pos->coord.t[2];
             rot   = arg0->field_2C->field_8;
             angle = ratan2(t->vx, t->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
             if (angle < 0) {
@@ -2038,9 +2038,9 @@ void func_actor_403000_801377C8(Actor403000* arg0)
                     scratch->playerYaw = ratan2(-((Actor403000*)Game_GetPtrSlot(3))->field_2C->field_8->coord.m[2][0], ((Actor403000*)Game_GetPtrSlot(3))->field_2C->field_8->coord.m[2][2]);
                     t                  = &scratch->target;
                     pos                = arg0->field_2C->field_8;
-                    t->vx              = Wip_SysConfig.field_4->t[0] - pos->coord.t[0];
-                    t->vy              = Wip_SysConfig.field_4->t[1] - pos->coord.t[1];
-                    t->vz              = Wip_SysConfig.field_4->t[2] - pos->coord.t[2];
+                    t->vx              = Player_Status.field_4->t[0] - pos->coord.t[0];
+                    t->vy              = Player_Status.field_4->t[1] - pos->coord.t[1];
+                    t->vz              = Player_Status.field_4->t[2] - pos->coord.t[2];
                     scratch->aimYaw    = ratan2(scratch->target.vx, scratch->target.vz) + 0x800;
                     angle              = scratch->aimYaw;
                     if (angle < 0) {
@@ -2329,9 +2329,9 @@ void func_actor_403000_801386E8(Actor403000* arg0)
     if ((u16)(work->field_6 - 5) < 10) {
         t      = &scratch->target;
         coord3 = arg0->field_2C->field_8;
-        t->vx  = Wip_SysConfig.field_4->t[0] - coord3->coord.t[0];
-        t->vy  = Wip_SysConfig.field_4->t[1] - coord3->coord.t[1];
-        t->vz  = Wip_SysConfig.field_4->t[2] - coord3->coord.t[2];
+        t->vx  = Player_Status.field_4->t[0] - coord3->coord.t[0];
+        t->vy  = Player_Status.field_4->t[1] - coord3->coord.t[1];
+        t->vz  = Player_Status.field_4->t[2] - coord3->coord.t[2];
         coord2 = arg0->field_2C->field_8;
         angle  = ratan2(t->vx, t->vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
         if (angle < 0) {
@@ -2467,9 +2467,9 @@ void func_actor_403000_80138DB0(Actor403000* arg0)
         arg0->field_2C->field_8->coord.t[1] = player->field_2C->field_8->coord.t[1] - scratch->target.vy;
         arg0->field_2C->field_8->coord.t[2] = player->field_2C->field_8->coord.t[2] - scratch->target.vz;
         pos                                 = arg0->field_2C->field_8;
-        t1->vx                              = Wip_SysConfig.field_4->t[0] - pos->coord.t[0];
-        t1->vy                              = Wip_SysConfig.field_4->t[1] - pos->coord.t[1];
-        t1->vz                              = Wip_SysConfig.field_4->t[2] - pos->coord.t[2];
+        t1->vx                              = Player_Status.field_4->t[0] - pos->coord.t[0];
+        t1->vy                              = Player_Status.field_4->t[1] - pos->coord.t[1];
+        t1->vz                              = Player_Status.field_4->t[2] - pos->coord.t[2];
         rot                                 = arg0->field_2C->field_8;
         angle                               = ratan2(t1->vx, t1->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
         if (angle < 0) {
@@ -2539,9 +2539,9 @@ void func_actor_403000_80138DB0(Actor403000* arg0)
     if ((s16)work->field_6 < 6) {
         t3     = &scratch->target;
         pos2   = arg0->field_2C->field_8;
-        t3->vx = Wip_SysConfig.field_4->t[0] - pos2->coord.t[0];
-        t3->vy = Wip_SysConfig.field_4->t[1] - pos2->coord.t[1];
-        t3->vz = Wip_SysConfig.field_4->t[2] - pos2->coord.t[2];
+        t3->vx = Player_Status.field_4->t[0] - pos2->coord.t[0];
+        t3->vy = Player_Status.field_4->t[1] - pos2->coord.t[1];
+        t3->vz = Player_Status.field_4->t[2] - pos2->coord.t[2];
         rot    = arg0->field_2C->field_8;
         angle  = ratan2(t3->vx, t3->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
         if (angle < 0) {
@@ -3552,13 +3552,13 @@ void func_actor_403000_8013C864(GpEnemy* arg0, Actor403000* arg1)
     Actor403000*              player;
     Actor403000UpdateScratch* scratch;
     Actor403000StateTable     states;
-    WipSysConfig*             config;
+    PlayerStatus*             config;
     u32                       sound;
     s32                       pan;
 
     work                         = arg1->field_1C;
     player                       = Game_GetPtrSlot(3);
-    config                       = &Wip_SysConfig;
+    config                       = &Player_Status;
     states                       = D_actor_403000_80131F44;
     arg1->field_2C->field_8->flg = 0;
     Gp_UpdateCoord(arg1->field_2C->field_8);
@@ -3597,7 +3597,7 @@ void func_actor_403000_8013C864(GpEnemy* arg0, Actor403000* arg1)
             return;
     }
     scratch = (*(Actor403000UpdateScratch**)G_SCRATCH_HEAD -= 1);
-    if (config->field_18 > 0) {
+    if (config->hp > 0) {
         func_actor_403000_80134F44(arg1);
     }
     if (work->field_2 != work->field_0) {

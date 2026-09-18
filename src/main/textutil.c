@@ -368,8 +368,8 @@ void Mc_InitDualBankBuffers(void)
     s32         two;
     s32         idx;
 
-    Mem_Set(&Wip_SysConfig, 0, 0x40);
-    Mem_Set(Wip_SysConfig.field_40, 0xFF, 0x40);
+    Mem_Set(&Player_Status, 0, 0x40);
+    Mem_Set(Player_Status.field_40, 0xFF, 0x40);
     Mem_Set(D_80073980, 0, 0x100);
     Mem_Set(&D_80073980[0x100], 0xFF, 0x100);
 
@@ -402,9 +402,9 @@ void Mc_InitDualBankBuffers(void)
     p->field_9   = one;
     p->field_5C5 = two;
     p->field_22  = one;
-    Mc_InitSaveSlotDefaults();
+    Player_InitNewGameStats();
     idx                            = p->field_22 - 1;
-    (&Wip_SysConfig)[idx].field_21 = two;
+    (&Player_Status)[idx].field_21 = two;
 }
 
 void Mc_InitBufferSlots(void)

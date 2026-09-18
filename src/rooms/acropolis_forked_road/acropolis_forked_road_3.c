@@ -156,7 +156,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 /// the far end (`0x3B - CdCmd_Queue::field_1EA`).
 ///
 /// State 0 allocates the `AfrStreamWork` block, captures slot 3 and the
-/// camera-target matrix (`Wip_SysConfig::field_4`) in it, cues the stream
+/// camera-target matrix (`Player_Status::field_4`) in it, cues the stream
 /// (slot-6 msg 0xFA4) and republishes the player's weapon to slot 3 with a
 /// 0x3E8 record. State 1 waits for the stream to come up
 /// (`CdCmd_Queue::field_1FA`), moves the camera target to the head of the
@@ -189,9 +189,9 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                 break;
             }
             ((AfrStreamWork*)task->idMap)->target = Game_GetPtrSlot(3);
-            ((AfrStreamWork*)task->idMap)->mtx    = Wip_SysConfig.field_4;
+            ((AfrStreamWork*)task->idMap)->mtx    = Player_Status.field_4;
             Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
-            weaponId     = Wip_SysConfig.field_21;
+            weaponId     = Player_Status.field_21;
             rec.field_0  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.field_4  = 1;
             rec.field_8  = 0;

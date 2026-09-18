@@ -99,9 +99,9 @@ void func_actor_201200_8014CA08(Actor201200Ctx* arg0, Actor201200* arg1)
         work->field_0 = 6;
     }
     target   = arg1->field_2C->field_8;
-    sc->d.vx = Wip_SysConfig.field_4->t[0] - target->coord.t[0];
-    sc->d.vy = Wip_SysConfig.field_4->t[1] - target->coord.t[1];
-    sc->d.vz = Wip_SysConfig.field_4->t[2] - target->coord.t[2];
+    sc->d.vx = Player_Status.field_4->t[0] - target->coord.t[0];
+    sc->d.vy = Player_Status.field_4->t[1] - target->coord.t[1];
+    sc->d.vz = Player_Status.field_4->t[2] - target->coord.t[2];
     if (!Actor201200_OutOfRange(&sc->d, 2000)) {
         coord = arg1->field_2C->field_8;
         angle = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);

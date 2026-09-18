@@ -29,9 +29,9 @@ void func_actor_202600_8014A574(Actor202600* arg0)
     coord                              = arg0->field_2C->field_8;
     switch (state) {
         case 0:
-            scratchEnd[-1].vx = (s32)(Wip_SysConfig.field_4->t[0] - coord->coord.t[0]);
+            scratchEnd[-1].vx = (s32)(Player_Status.field_4->t[0] - coord->coord.t[0]);
             delta->vy         = 0;
-            dz                = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            dz                = Player_Status.field_4->t[2] - coord->coord.t[2];
             delta->vz         = dz;
             dx                = scratchEnd[-1].vx;
             if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x9C4) || (work->field_3D0 != 0) || (D_801153F2[1] == 2)) {
@@ -78,9 +78,9 @@ void func_actor_202600_8014A734(Actor202600* arg0)
     *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = delta;
     work                               = arg0->field_1C;
     work->field_3A2                    = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;
-    scratchEnd[-1].vx                  = (s32)(Wip_SysConfig.field_4->t[0] - coord->coord.t[0]);
+    scratchEnd[-1].vx                  = (s32)(Player_Status.field_4->t[0] - coord->coord.t[0]);
     delta->vy                          = 0;
-    dz                                 = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+    dz                                 = Player_Status.field_4->t[2] - coord->coord.t[2];
     delta->vz                          = dz;
     dx                                 = scratchEnd[-1].vx;
     distance                           = SquareRoot0((dx * dx) + (dz * dz));
@@ -138,9 +138,9 @@ void func_actor_202600_8014A8B4(Actor202600* arg0)
     switch (state) {
         case 0:
             if (work->field_3C6 == 0) {
-                scratchEnd[-1].vx = (s32)(Wip_SysConfig.field_4->t[0] - coord->coord.t[0]);
+                scratchEnd[-1].vx = (s32)(Player_Status.field_4->t[0] - coord->coord.t[0]);
                 delta->vy         = 0;
-                dz                = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+                dz                = Player_Status.field_4->t[2] - coord->coord.t[2];
                 delta->vz         = dz;
                 dx                = scratchEnd[-1].vx;
                 if (SquareRoot0((dx * dx) + (dz * dz)) < 0x7D0) {
@@ -277,9 +277,9 @@ void func_actor_202600_8014ADC0(Actor202600* arg0)
             }
             return;
         case 1:
-            scratchEnd[-1].vec.vx = (s32)(Wip_SysConfig.field_4->t[0] - coord->coord.t[0]);
+            scratchEnd[-1].vec.vx = (s32)(Player_Status.field_4->t[0] - coord->coord.t[0]);
             delta->vec.vy         = 0;
-            delta->vec.vz         = (s32)(Wip_SysConfig.field_4->t[2] - coord->coord.t[2]);
+            delta->vec.vz         = (s32)(Player_Status.field_4->t[2] - coord->coord.t[2]);
             work->field_3A4       = ratan2((s32)(s16)scratchEnd[-1].vec.vx, (s32)(s16)delta->vec.vz) & 0xFFF;
             work->field_3A6       = 0x12;
             if ((s16)work->field_396 >= 0xB) {
@@ -304,13 +304,13 @@ void func_actor_202600_8014ADC0(Actor202600* arg0)
                 work->field_396 = 0xB;
             }
             if (work->field_3A4 == work->field_3A2) {
-                scratchEnd[-1].vec.vx = (s32)(Wip_SysConfig.field_4->t[0] - coord->coord.t[0]);
+                scratchEnd[-1].vec.vx = (s32)(Player_Status.field_4->t[0] - coord->coord.t[0]);
                 delta->vec.vy         = 0;
-                dz                    = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+                dz                    = Player_Status.field_4->t[2] - coord->coord.t[2];
                 delta->vec.vz         = dz;
                 dx                    = scratchEnd[-1].vec.vx;
                 distance              = SquareRoot0((dx * dx) + (dz * dz));
-                if ((work->field_3C0 == 0) && (distance < 0x578) && (work->field_3B0 == 0) && !(Wip_SysConfig.field_25 & 1)) {
+                if ((work->field_3C0 == 0) && (distance < 0x578) && (work->field_3B0 == 0) && !(Player_Status.field_25 & 1)) {
                     work->field_39A = 4;
                     work->field_39C = 0;
                     work->field_392 = 3;

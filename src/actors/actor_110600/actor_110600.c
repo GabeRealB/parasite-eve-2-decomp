@@ -28,7 +28,7 @@ extern u8 D_80072729;
 
 /// Table of 0x80-byte actor config blocks the walker's `field_6E` byte indexes
 /// for the position state 1 steers towards.
-extern WipSysConfig D_80073B08[];
+extern PlayerStatus D_80073B08[];
 
 /// The complaint the route re-plan prints when the two node lists share no
 /// slot at all. The string is spelled out rather than left a literal so the
@@ -457,7 +457,7 @@ static __inline__ void Actor110600_WalkerStep(Actor110600Walker* walker, u8* hea
 {
     u8*            head2;
     SVECTOR3*      pos;
-    WipSysConfig*  cfg;
+    PlayerStatus*  cfg;
     SVECTOR*       sv;
     SVECTOR*       gsv;
     SVECTOR*       step;

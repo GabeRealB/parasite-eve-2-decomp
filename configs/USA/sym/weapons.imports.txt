@@ -31,7 +31,7 @@ Gpu_CurrentOt = 0x800710A0; // absolute:True
 GsWSMATRIX = 0x80071138; // absolute:True
 Gpu_PrimCursor = 0x80071190; // absolute:True
 Mc_SaveData = 0x80072168; // absolute:True
-Wip_SysConfig = 0x80073B88; // absolute:True
+Player_Status = 0x80073B88; // absolute:True
 
 // --- from gameplay (38 symbols)
 Gp_UpdateCoord = 0x80098F58; // absolute:True

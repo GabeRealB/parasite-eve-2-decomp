@@ -127,10 +127,10 @@ void func_actor_403100_80137310(void)
     u32 random1;
     u32 random2;
 
-    halfHealth = Wip_SysConfig.field_1a / 2;
+    halfHealth = Player_Status.hpMax / 2;
     phase      = D_actor_403100_80155808->field_628;
     if (phase != 2 && phase != 6) {
-        if ((Wip_SysConfig.field_18 < halfHealth) || (D_actor_403100_80155808->field_65C != 0)) {
+        if ((Player_Status.hp < halfHealth) || (D_actor_403100_80155808->field_65C != 0)) {
             random1                            = (Gp_LcgState * 5) + 0x71357911;
             Gp_LcgState                        = random1;
             D_actor_403100_80155808->field_5F8 = D_actor_403100_801557B0[1][(random1 >> 16) & 15];
@@ -1077,15 +1077,15 @@ void func_actor_403100_80139818(Task* arg0)
     GsCOORDINATE2*   effectCoords;
     u32              configHi;
     Actor403100Work* work;
-    WipSysConfig*    config;
+    PlayerStatus*    config;
     GsCOORDINATE2*   part;
     GsCOORDINATE2*   coords;
 
     playerTask = *Gp_ActorSlots;
     coords     = ((TmdObject*)arg0->extra)->field_8;
     part       = coords + 6;
-    __asm__("lui %0, %%hi(Wip_SysConfig)" : "=r"(configHi));
-    __asm__("addiu %0, %1, %%lo(Wip_SysConfig)" : "=r"(config) : "r"(configHi));
+    __asm__("lui %0, %%hi(Player_Status)" : "=r"(configHi));
+    __asm__("addiu %0, %1, %%lo(Player_Status)" : "=r"(config) : "r"(configHi));
     if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
         if ((u8)D_actor_403100_80155808->field_65F == 1) {
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
@@ -1134,7 +1134,7 @@ void func_actor_403100_80139818(Task* arg0)
         func_actor_403100_8013D1B8(1, 0x3F4);
         task = Game_GetPtrSlot(3);
         Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 4), 0);
-        if (config->field_18 <= 0) {
+        if (config->hp <= 0) {
             sound2 = (((u16)((GpEnemy*)((Task*)playerTask)->spawnArg2)->field_8 >> 0xC) << 8) | 0x531D000B;
             pan2   = (s8)Gp_GetObjPan((GpObj38*)(playerTask->extra->field_8 + 1));
             depth2 = Gp_GetObjDepth((GpObj38*)(playerTask->extra->field_8 + 1));

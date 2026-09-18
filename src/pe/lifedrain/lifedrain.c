@@ -36,7 +36,7 @@ extern s8  D_80114C0B;
 extern s32 Gp_LcgState;
 
 /// Health the drain has banked so far, in HP. Every mote that reaches the
-/// collector adds its share here; the cast pays it into `Wip_SysConfig.field_18`
+/// collector adds its share here; the cast pays it into `Player_Status.hp`
 /// when it ends.
 extern u16 D_80115404;
 
@@ -50,7 +50,7 @@ void PeShared801305c0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
 /// `Task::state`, published in `D_lifedrain_80130B0C` so every mote can find
 /// it. Cancelling (`D_80114C0B == -2` or `Gp_State1C->field_E >= 4`) releases
 /// the work block, and states 0 and 1 first cash the banked `D_80115404` into
-/// `Wip_SysConfig.field_18`, clamped to the max in `field_1a`.
+/// `Player_Status.hp`, clamped to the max in `field_1a`.
 ///
 /// State 0 parents the effect coordinate at the origin with an identity
 /// rotation, seeds the combo level `field_20` from `Gp_StateC08.field_0`, takes
@@ -83,9 +83,9 @@ void func_lifedrain_8012EF48(Task* arg0)
     coord = ((TmdObject*)arg0->extra)->field_8;
     if ((D_80114C0B == -2) || (Gp_State1C->field_E >= 4)) {
         if ((arg0->state < 2) && (arg0->spawnArg1 != 0)) {
-            Wip_SysConfig.field_18 = (u16)Wip_SysConfig.field_18 + D_80115404;
-            if (Wip_SysConfig.field_18 > Wip_SysConfig.field_1a) {
-                Wip_SysConfig.field_18 = Wip_SysConfig.field_1a;
+            Player_Status.hp = (u16)Player_Status.hp + D_80115404;
+            if (Player_Status.hp > Player_Status.hpMax) {
+                Player_Status.hp = Player_Status.hpMax;
             }
         }
         Gp_ReleaseState1CMem(mem, arg0);
@@ -146,9 +146,9 @@ void func_lifedrain_8012EF48(Task* arg0)
             }
             if (mem->field_22 == 0x1E) {
                 if (arg0->spawnArg1 != 0) {
-                    Wip_SysConfig.field_18 = (u16)Wip_SysConfig.field_18 + D_80115404;
-                    if (Wip_SysConfig.field_18 > Wip_SysConfig.field_1a) {
-                        Wip_SysConfig.field_18 = Wip_SysConfig.field_1a;
+                    Player_Status.hp = (u16)Player_Status.hp + D_80115404;
+                    if (Player_Status.hp > Player_Status.hpMax) {
+                        Player_Status.hp = Player_Status.hpMax;
                     }
                     arg0->state = 2;
                 } else {

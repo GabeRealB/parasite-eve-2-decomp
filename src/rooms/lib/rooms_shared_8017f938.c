@@ -71,7 +71,7 @@ void RoomsShared8017f938(Task* task)
         maxQty = D_80072724.field_1 - Gp_CountScanItems(&D_80072724);
     }
 
-    afford = Wip_SysConfig.field_C / price;
+    afford = Player_Status.field_C / price;
     if (afford < maxQty) {
         maxQty = afford;
     }
@@ -117,7 +117,7 @@ void RoomsShared8017f938(Task* task)
                 SndEvt_EnqueueType6(0x15, 0, 0);
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            Wip_SysConfig.field_C -= price * task->extraState;
+            Player_Status.field_C -= price * task->extraState;
             for (i = 0; i < task->extraState; i++) {
                 Gp_GiveItem(&D_80072724, itemId, -1);
             }

@@ -53,7 +53,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_4", func_actor_403900
 /// the display object at `field_6A4`, places the player 0x5AA in front of it
 /// with message 0x3E9 and queues a cue. States 1 and 2 step the player's
 /// animation. State 3 waits out `field_6D6`, then every 0x14 frames decides
-/// whether the hold ends: always when `Wip_SysConfig.field_18` is above the
+/// whether the hold ends: always when `Player_Status.hp` is above the
 /// per-difficulty `D_actor_403900_80153C10`, otherwise by an LCG roll whose
 /// chance grows with the attempt count `field_6F6`; a raised `field_6F4`
 /// ends it early. State 5 either reacts to `field_6F4` or, at frame 0x1A,
@@ -166,11 +166,11 @@ void func_actor_403900_8013314C(Actor403900* arg0)
                 timer           = work->field_6D4 - 1;
                 work->field_6D4 = timer;
                 if (timer <= 0) {
-                    if (Wip_SysConfig.field_18 > D_actor_403900_80153C10[D_8011541B]) {
+                    if (Player_Status.hp > D_actor_403900_80153C10[D_8011541B]) {
                         if (work->field_6F8 == 0) {
                             work->field_6F8 = 1;
                         } else {
-                            chance = work->field_6F6 * (0x32 - (Wip_SysConfig.field_18 * 100) / Wip_SysConfig.field_1a) / 2;
+                            chance = work->field_6F6 * (0x32 - (Player_Status.hp * 100) / Player_Status.hpMax) / 2;
                             if (chance > 0) {
                                 chance      = (chance * 0xFFF) / 100;
                                 Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
@@ -348,14 +348,14 @@ void func_actor_403900_80134194(Actor403900* arg0)
     switch (state) {
         case 0:
             coord->field_0.coord.t[0] = work->field_6B4[work->field_708].field_4;
-            coord->field_0.coord.t[1] = Wip_SysConfig.field_4->t[1];
+            coord->field_0.coord.t[1] = Player_Status.field_4->t[1];
             coord->field_0.coord.t[2] = work->field_6B4[work->field_708].field_6;
             sc->in.vx                 = 0;
             sc->in.vy                 = work->field_6B4[work->field_708].field_2;
             sc->in.vz                 = 0;
             RotMatrix(&sc->in, &coord->field_0.coord);
-            sc->out.vx = Wip_SysConfig.field_4->t[0] - coord->field_0.coord.t[0];
-            sc->out.vz = Wip_SysConfig.field_4->t[2] - coord->field_0.coord.t[2];
+            sc->out.vx = Player_Status.field_4->t[0] - coord->field_0.coord.t[0];
+            sc->out.vz = Player_Status.field_4->t[2] - coord->field_0.coord.t[2];
             if ((s16)SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vz * sc->out.vz) < 0xDAC) {
                 work->field_6C0 = 4;
                 work->field_6CE = 1;
@@ -407,8 +407,8 @@ void func_actor_403900_80134194(Actor403900* arg0)
                 work->field_6D6--;
                 func_actor_403900_80135D5C(arg0);
             }
-            sc->out.vx = Wip_SysConfig.field_4->t[0] - coord->field_0.coord.t[0];
-            sc->out.vz = Wip_SysConfig.field_4->t[2] - coord->field_0.coord.t[2];
+            sc->out.vx = Player_Status.field_4->t[0] - coord->field_0.coord.t[0];
+            sc->out.vz = Player_Status.field_4->t[2] - coord->field_0.coord.t[2];
             if ((s16)SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vz * sc->out.vz) < 0xA8C) {
                 work->field_6C0  = 7;
                 work->field_6CE  = 3;

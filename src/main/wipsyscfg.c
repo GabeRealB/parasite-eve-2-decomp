@@ -2,14 +2,14 @@
 
 #include "main/wipsys.h"
 
-void Mc_InitSaveSlotDefaults(void)
+void Player_InitNewGameStats(void)
 {
-    Wip_SysConfig.field_1a = 0x64;
-    Wip_SysConfig.field_18 = 0x64;
-    Wip_SysConfig.field_1e = 0x64;
-    Wip_SysConfig.field_1c = 0x64;
-    Wip_SysConfig.field_21 = 2;
-    Wip_SysConfig.field_8  = 0;
-    Wip_SysConfig.field_20 = 0;
-    Wip_SysConfig.field_26 = 4;
+    Player_Status.hpMax    = 0x64;
+    Player_Status.hp       = 0x64;
+    Player_Status.mpMax    = 0x64;
+    Player_Status.mp       = 0x64;
+    Player_Status.field_21 = 2;
+    Player_Status.field_8  = 0;
+    Player_Status.field_20 = 0;
+    Player_Status.field_26 = 4;
 }

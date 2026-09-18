@@ -239,7 +239,7 @@ typedef struct Actor110600NearCfgScratch {
     /* 0x02 */ s16           dy;
     /* 0x04 */ s16           dz;
     /* 0x06 */ byte          pad_6[0x2];
-    /* 0x08 */ WipSysConfig* cfg;
+    /* 0x08 */ PlayerStatus* cfg;
     /* 0x0C */ u32           best;
     /* 0x10 */ u32           dist;
     /* 0x14 */ u8            node;

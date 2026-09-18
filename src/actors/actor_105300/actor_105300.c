@@ -55,9 +55,9 @@ void func_actor_105300_80131E3C(Actor05300* arg0)
         if ((work->rec18[i].field_4 & 0xFFFF0000) != 0x20000) {
             continue;
         }
-        scr->delta.vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
-        scr->delta.vy = Wip_SysConfig.field_4->t[1] - coord->coord.t[1];
-        scr->delta.vz = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+        scr->delta.vx = Player_Status.field_4->t[0] - coord->coord.t[0];
+        scr->delta.vy = Player_Status.field_4->t[1] - coord->coord.t[1];
+        scr->delta.vz = Player_Status.field_4->t[2] - coord->coord.t[2];
         damage        = Gp_ComputeDamage(work->rec18[i].field_4, SquareRoot0(scr->delta.vx * scr->delta.vx + scr->delta.vy * scr->delta.vy + scr->delta.vz * scr->delta.vz), 0, 0);
         if (work->field_336 == 0) {
             damage /= 10;
@@ -283,9 +283,9 @@ void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
         if (part->rec18[0].field_4 & 0x8000) {
             func_800DA6E8(&arg0->node, 0, 0);
         } else {
-            vec->vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
-            vec->vy = Wip_SysConfig.field_4->t[1] - coord->coord.t[1];
-            vec->vz = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            vec->vx = Player_Status.field_4->t[0] - coord->coord.t[0];
+            vec->vy = Player_Status.field_4->t[1] - coord->coord.t[1];
+            vec->vz = Player_Status.field_4->t[2] - coord->coord.t[2];
             damage  = Gp_ComputeDamage(part->rec18[0].field_4, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
             if (Gp_RollEnemyChance(arg0, part->rec18[0].field_4, 0) != 0) {
                 damage *= 4;

@@ -57,7 +57,7 @@ typedef union GpHudBarScratch {
 } GpHudBarScratch;
 STATIC_ASSERT_SIZEOF(GpHudBarScratch, 0x30);
 
-/// Seven `u16` masks tested against `WipSysConfig.field_25` by the party HP/MP
+/// Seven `u16` masks tested against `PlayerStatus.field_25` by the party HP/MP
 /// HUD (`func_800A57B0`); each set bit draws one 14x14 status icon.
 typedef struct GpHudStatusBits {
     u16 bits[7];
@@ -221,7 +221,7 @@ STATIC_ASSERT_SIZEOF(GpStateC08, 0x18);
 extern GpStateC08 Gp_StateC08;
 
 /// Pair of s32 working copies at `Gp_HpMpWork`. `Gp_ResetHudFx` (and
-/// `Gp_UiBoostMp` / `Gp_UiBoostHp`) sign-extend `Wip_SysConfig.field_18` /
+/// `Gp_UiBoostMp` / `Gp_UiBoostHp`) sign-extend `Player_Status.hp` /
 /// `field_1c` into `field_0` / `field_4`.
 typedef struct _GpStateBE8 {
     /* 0x0 */ s32 field_0;

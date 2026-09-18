@@ -182,7 +182,7 @@ GsWSMATRIX = 0x80071138; // absolute:True
 Gpu_PrimCursor = 0x80071190; // absolute:True
 Pad_States = 0x80071620; // absolute:True
 Mc_SaveData = 0x80072168; // absolute:True
-Wip_SysConfig = 0x80073B88; // absolute:True
+Player_Status = 0x80073B88; // absolute:True
 
 // --- from gameplay (194 symbols)
 Gp_UpdateCoord = 0x80098F58; // absolute:True

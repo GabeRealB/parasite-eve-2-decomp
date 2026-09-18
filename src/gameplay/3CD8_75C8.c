@@ -465,7 +465,7 @@ void Gp_ScriptTaskState1(Task* arg0)
                 mode = st->pc->arg0;
                 if (mode == 0 || mode == 2) {
                     if (D_801156CD != 0) {
-                        Wip_SysConfig.field_21 = D_801156EC;
+                        Player_Status.field_21 = D_801156EC;
                         Gp_SpawnWeaponEff();
                         D_801156CD = 0;
                     }
@@ -616,7 +616,7 @@ void func_800E8634(s32 arg0, s32 arg1, s32 arg2)
     D_801156CD             = 0;
     D_801156CE             = 0;
     D_801156F8             = Mc_SaveData.field_4;
-    D_801156EC             = Wip_SysConfig.field_21;
+    D_801156EC             = Player_Status.field_21;
     SndEvt_EnqueueType7(0xFF0D, 1);
     Task_Spawn(9, 7, arg1, arg0);
 }
@@ -1076,7 +1076,7 @@ void Gp_PadLerpTask(Task* task)
 void Gp_UpdatePadInput(void)
 {
     PadState*     pad;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     GpActorWork*  work;
     GameActor*    actor;
     u16           mask;
@@ -1086,7 +1086,7 @@ void Gp_UpdatePadInput(void)
     u16           tmp2;
 
     pad  = (PadState*)&Pad_States[0];
-    cfg  = &Wip_SysConfig;
+    cfg  = &Player_Status;
     work = Gp_ActorSlots[0];
     if (work == NULL) {
         return;
@@ -1095,7 +1095,7 @@ void Gp_UpdatePadInput(void)
     Gp_ClearPadHalt();
     if (Gp_MenuLockHold == 0) {
         if (actor->field_954 == 0 && Game_Session->field_1 == 0 && Game_Session->field_66 == 0 &&
-            actor->field_956 != 6 && cfg->field_18 > 0 && Game_Session->field_0 == 0) {
+            actor->field_956 != 6 && cfg->hp > 0 && Game_Session->field_0 == 0) {
             if (Gp_MenuLockDelay > 0) {
                 Gp_MenuLockDelay--;
                 Gp_MenuLockNow = 1;

@@ -242,7 +242,7 @@ s32 func_800B7420(s32 arg0)
 
 void Gp_RecalcMaxMp(void)
 {
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     McSaveData*   save;
     GpRec16*      table;
     GpStatRow*    rows;
@@ -256,7 +256,7 @@ void Gp_RecalcMaxMp(void)
     s32           limit;
     s32           idx;
 
-    cfg    = &Wip_SysConfig;
+    cfg    = &Player_Status;
     acc    = 0;
     levels = (s8*)Mc_SaveData.unknown_850;
     i      = acc;
@@ -285,28 +285,28 @@ void Gp_RecalcMaxMp(void)
     if (cfg->field_23 != 0) {
         acc += Gp_ModStatAttrs[cfg->field_23 - 1].field_6;
     }
-    rows          = Gp_StatRows;
-    save          = &Mc_SaveData;
-    acc          += rows[save->field_F].field_4;
-    acc          += save->field_27;
-    cfg->field_1e = acc;
+    rows       = Gp_StatRows;
+    save       = &Mc_SaveData;
+    acc       += rows[save->field_F].field_4;
+    acc       += save->field_27;
+    cfg->mpMax = acc;
     if ((s16)acc >= 0xFB) {
-        cfg->field_1e = 0xFA;
+        cfg->mpMax = 0xFA;
     }
-    if (cfg->field_1c > cfg->field_1e) {
-        cfg->field_1c = cfg->field_1e;
+    if (cfg->mp > cfg->mpMax) {
+        cfg->mp = cfg->mpMax;
     }
 }
 
 void Gp_EquipMod(s32 arg0)
 {
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     GpItemRec*    rec;
     GpItemRec*    tmp;
     GpItemScan*   scan;
     s32           i;
 
-    cfg = &Wip_SysConfig;
+    cfg = &Player_Status;
     if ((u32)(arg0 - 0x60) < 0x20U) {
         if (cfg->field_23 != (arg0 - 0x5F)) {
             GpItemRec* found;
@@ -325,27 +325,27 @@ void Gp_EquipMod(s32 arg0)
                 cfg->field_23 = arg0 - 0x5F;
 
                 {
-                    WipSysConfig* p;
+                    PlayerStatus* p;
                     McSaveData*   save;
                     GpStatRow*    table;
                     u16           val;
 
-                    p           = &Wip_SysConfig;
-                    table       = Gp_StatRows;
-                    save        = &Mc_SaveData;
-                    val         = table[save->field_F].base.half;
-                    p->field_1a = val;
-                    val        += save->field_26;
-                    p->field_1a = val;
+                    p        = &Player_Status;
+                    table    = Gp_StatRows;
+                    save     = &Mc_SaveData;
+                    val      = table[save->field_F].base.half;
+                    p->hpMax = val;
+                    val     += save->field_26;
+                    p->hpMax = val;
                     if (p->field_23 != 0) {
-                        val        += Gp_ModStatAttrs[p->field_23 - 1].field_4;
-                        p->field_1a = val;
+                        val     += Gp_ModStatAttrs[p->field_23 - 1].field_4;
+                        p->hpMax = val;
                     }
-                    if (p->field_1a >= 0xFB) {
-                        p->field_1a = 0xFA;
+                    if (p->hpMax >= 0xFB) {
+                        p->hpMax = 0xFA;
                     }
-                    if (p->field_18 > p->field_1a) {
-                        p->field_18 = p->field_1a;
+                    if (p->hp > p->hpMax) {
+                        p->hp = p->hpMax;
                     }
 
                     scan = &save->field_5BC;
@@ -391,36 +391,36 @@ void Gp_EquipMod(s32 arg0)
         GpStatRow*  table;
         u16         val;
 
-        table         = Gp_StatRows;
-        save          = &Mc_SaveData;
-        val           = table[save->field_F].base.half;
-        cfg->field_1a = val;
-        val          += save->field_26;
-        cfg->field_1a = val;
+        table      = Gp_StatRows;
+        save       = &Mc_SaveData;
+        val        = table[save->field_F].base.half;
+        cfg->hpMax = val;
+        val       += save->field_26;
+        cfg->hpMax = val;
         if (cfg->field_23 != 0) {
-            val          += Gp_ModStatAttrs[cfg->field_23 - 1].field_4;
-            cfg->field_1a = val;
+            val       += Gp_ModStatAttrs[cfg->field_23 - 1].field_4;
+            cfg->hpMax = val;
         }
-        if (cfg->field_1a >= 0xFB) {
-            cfg->field_1a = 0xFA;
+        if (cfg->hpMax >= 0xFB) {
+            cfg->hpMax = 0xFA;
         }
-        if (cfg->field_18 > cfg->field_1a) {
-            cfg->field_18 = cfg->field_1a;
+        if (cfg->hp > cfg->hpMax) {
+            cfg->hp = cfg->hpMax;
         }
         Gp_RecalcMaxMp();
     } else {
         return;
     }
-    Gp_HpMpWork.field_0 = cfg->field_18;
-    Gp_HpMpWork.field_4 = cfg->field_1c;
+    Gp_HpMpWork.field_0 = cfg->hp;
+    Gp_HpMpWork.field_4 = cfg->mp;
 }
 
 void Gp_InitStarterInv(void)
 {
     GpItemScan*   scan;
     McSaveData*   save;
-    WipSysConfig* cfg;
-    WipSysConfig* cfg2;
+    PlayerStatus* cfg;
+    PlayerStatus* cfg2;
     GpItemRec*    tmp;
     GpItemRec*    rec;
     GpItemRec*    added;
@@ -440,7 +440,7 @@ void Gp_InitStarterInv(void)
     save               = &Mc_SaveData;
     save->field_908[5] = 0;
     save->field_908[0] = 0;
-    cfg                = &Wip_SysConfig;
+    cfg                = &Player_Status;
     switch (scan->field_2) {
         case 2:
             tmp = Gp_ItemTable2;
@@ -507,13 +507,13 @@ void Gp_InitStarterInv(void)
     Gp_GiveItem(scan, 0xA0, 0x64);
     Gp_EquipRelatedItem(scan, 0x81, 0xA0, -1);
     Gp_GiveItem(scan, 0x92, 1);
-    cfg2           = &Wip_SysConfig;
-    hp             = cfg2->field_1a;
-    mp             = cfg2->field_1e;
-    cfg2->field_18 = hp;
-    cfg2->field_1c = mp;
-    flag105        = Gp_HasCollectedBit(0x105);
-    flag107        = Gp_HasCollectedBit(0x107);
+    cfg2     = &Player_Status;
+    hp       = cfg2->hpMax;
+    mp       = cfg2->mpMax;
+    cfg2->hp = hp;
+    cfg2->mp = mp;
+    flag105  = Gp_HasCollectedBit(0x105);
+    flag107  = Gp_HasCollectedBit(0x107);
     Gp_ClearCollectedBits();
     if (flag105 != 0) {
         Gp_SetCollectedBit(0x105);
@@ -540,7 +540,7 @@ void func_800B8014(void)
     GpItemSlot*   slots;
     GpItemScan*   scan;
     GpItemScan**  scans;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     s32*          header;
     s32           word;
     s32           i;
@@ -622,17 +622,17 @@ void func_800B8014(void)
     scan = &playerSave->field_5BC;
     SOFT_TOUCH_REG(p);
     playerSave->unknown_850[0] = 1;
-    cfg                        = &Wip_SysConfig;
+    cfg                        = &Player_Status;
     if (playerSave->field_E == 0) {
         cfg->field_C = 0xC8;
     }
     Gp_ClearScanItems(scan);
     Gp_GiveItem(scan, 0x60, 1);
     Gp_EquipMod(0x60);
-    hp            = cfg->field_1a;
-    mp            = cfg->field_1e;
-    cfg->field_18 = hp;
-    cfg->field_1c = mp;
+    hp      = cfg->hpMax;
+    mp      = cfg->mpMax;
+    cfg->hp = hp;
+    cfg->mp = mp;
     Gp_GiveItem(scan, 0x92, 1);
     Gp_GiveItem(scan, 0x40, 1)->field_1    = 1;
     Gp_GiveItem(scan, 0xA0, 0x64)->field_1 = 2;
@@ -1373,7 +1373,7 @@ s32 Gp_NthRelatedId(GpItemScan* arg0, s32 arg1, s32 arg2)
     GpItemRec*          table;
     register GpItemRec* rec asm("t1");
     GpItemRec*          rec2;
-    WipSysConfig*       cfg;
+    PlayerStatus*       cfg;
     GpItemQty*          table0;
     GpItemQty*          table1;
     s32                 idx;
@@ -1395,7 +1395,7 @@ s32 Gp_NthRelatedId(GpItemScan* arg0, s32 arg1, s32 arg2)
     }
     table = tmp;
     idx   = arg0->field_0;
-    cfg   = &Wip_SysConfig;
+    cfg   = &Player_Status;
     if (arg1 >= 0) {
         table0 = Gp_RelatedQty0;
         table1 = Gp_RelatedQty1;
@@ -1475,7 +1475,7 @@ void Gp_RefreshItemRow(GpItemRec* arg0)
     }
 
     item = arg0->field_0;
-    if (item == Wip_SysConfig.field_21 + 0x7F) {
+    if (item == Player_Status.field_21 + 0x7F) {
         return;
     }
 
@@ -1665,7 +1665,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     char*        notice;
 
     obj  = arg0;
-    sel  = Wip_SysConfig.field_23;
+    sel  = Player_Status.field_23;
     task = arg1;
     item = sel + 0x5F;
     if (task->state == 0) {
@@ -1767,20 +1767,20 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
 
 void Gp_UiBoostMp(UiObject* arg0, Task* arg1)
 {
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     McSaveData*   save;
     s32           saved;
 
     if (arg1->state == 0) {
-        cfg                 = &Wip_SysConfig;
-        Gp_HpMpWork.field_0 = cfg->field_18;
+        cfg                 = &Player_Status;
+        Gp_HpMpWork.field_0 = cfg->hp;
         save                = &Mc_SaveData;
-        Gp_HpMpWork.field_4 = cfg->field_1c;
+        Gp_HpMpWork.field_4 = cfg->mp;
         if (save->field_27 < 0xFA) {
             save->field_27 = save->field_27 + 1;
         }
         Gp_RecalcMaxMp();
-        cfg->field_1c = cfg->field_1e;
+        cfg->mp = cfg->mpMax;
         func_800B996C_RemoveItem(0, Gp_SelItemRec, 1);
         Ui_SpawnFromDesc(&Gp_BoostPanelDesc, 0, 0, 1, arg0);
     }
@@ -1792,36 +1792,36 @@ void Gp_UiBoostMp(UiObject* arg0, Task* arg1)
 
 void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
 {
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     McSaveData*   save;
     s32           saved;
     s32           hp;
     u16           val;
 
     if (arg1->state == 0) {
-        cfg                 = &Wip_SysConfig;
-        hp                  = cfg->field_18;
+        cfg                 = &Player_Status;
+        hp                  = cfg->hp;
         Gp_HpMpWork.field_0 = hp;
         save                = &Mc_SaveData;
-        Gp_HpMpWork.field_4 = cfg->field_1c;
+        Gp_HpMpWork.field_4 = cfg->mp;
         if (save->field_26 < 0xFA) {
             save->field_26 = save->field_26 + 5;
         }
-        val           = Gp_StatRows[save->field_F].base.half;
-        cfg->field_1a = val;
-        val          += save->field_26;
-        cfg->field_1a = val;
+        val        = Gp_StatRows[save->field_F].base.half;
+        cfg->hpMax = val;
+        val       += save->field_26;
+        cfg->hpMax = val;
         if (cfg->field_23 != 0) {
-            val          += Gp_ModStatAttrs[cfg->field_23 - 1].field_4;
-            cfg->field_1a = val;
+            val       += Gp_ModStatAttrs[cfg->field_23 - 1].field_4;
+            cfg->hpMax = val;
         }
-        if (cfg->field_1a >= 0xFB) {
-            cfg->field_1a = 0xFA;
+        if (cfg->hpMax >= 0xFB) {
+            cfg->hpMax = 0xFA;
         }
-        if (cfg->field_1a < hp) {
-            cfg->field_18 = cfg->field_1a;
+        if (cfg->hpMax < hp) {
+            cfg->hp = cfg->hpMax;
         }
-        cfg->field_18 = cfg->field_1a;
+        cfg->hp = cfg->hpMax;
         func_800B996C_RemoveItem(0, Gp_SelItemRec, 1);
         Ui_SpawnFromDesc(&Gp_BoostPanelDesc, 0, 0, 1, arg0);
     }
@@ -1869,7 +1869,7 @@ static __inline__ s32 Gp_HasStockedItemInline(s32 arg0)
 
 s32 func_800B9D80(s32 arg0)
 {
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     register s32  flags asm("v1");
     register s32  ret asm("a3");
     s32           stateA;
@@ -1880,7 +1880,7 @@ s32 func_800B9D80(s32 arg0)
     flags  = ret;
     stateA = ret;
     stateB = ret;
-    cfg    = &Wip_SysConfig;
+    cfg    = &Player_Status;
     if (cfg->field_23 != 0) {
         flags  = cfg->field_23;
         flags  = flags * (s32)sizeof(GpItemAttr);
@@ -2120,7 +2120,7 @@ s32 func_800B9D80(s32 arg0)
 
 void Gp_ResetInventory(void)
 {
-    WipSysConfig*        cfg;
+    PlayerStatus*        cfg;
     register s32         item asm("a1");
     GpItemSlot*          slot;
     s32                  found;
@@ -2135,7 +2135,7 @@ void Gp_ResetInventory(void)
     McSaveData*          save;
     GpItemScan*          dest;
     register GpItemScan* src asm("t4");
-    WipSysConfig*        pcfg;
+    PlayerStatus*        pcfg;
     u16                  hp;
     u16                  mp;
     u8*                  levels;
@@ -2143,7 +2143,7 @@ void Gp_ResetInventory(void)
     GpStateC08*          state;
     s32                  val;
 
-    cfg = &Wip_SysConfig;
+    cfg = &Player_Status;
     val = cfg->field_21;
     if (val != 0) {
         SCHED_BARRIER();
@@ -2211,11 +2211,11 @@ void Gp_ResetInventory(void)
     Gp_AddItem(dest, item, 1);
     Gp_EquipMod(0x6C);
 
-    pcfg           = &Wip_SysConfig;
-    hp             = pcfg->field_1a;
-    mp             = pcfg->field_1e;
-    pcfg->field_18 = hp;
-    pcfg->field_1c = mp;
+    pcfg     = &Player_Status;
+    hp       = pcfg->hpMax;
+    mp       = pcfg->mpMax;
+    pcfg->hp = hp;
+    pcfg->mp = mp;
     Gp_ApplyItemMap();
 
     item   = 0;
@@ -2235,7 +2235,7 @@ void Gp_ResetInventory(void)
 
 void Gp_ClearInventory(void)
 {
-    WipSysConfig*       cfg;
+    PlayerStatus*       cfg;
     s32                 item;
     GpItemSlot*         slot;
     s32                 found;
@@ -2248,7 +2248,7 @@ void Gp_ClearInventory(void)
     s32                 start;
     s32                 off;
     McSaveData*         save;
-    WipSysConfig*       pcfg;
+    PlayerStatus*       pcfg;
     u16                 hp;
     u16                 mp;
     GpStateC08*         state;
@@ -2260,12 +2260,12 @@ void Gp_ClearInventory(void)
     GpItemAttr*         attrs;
     McSaveData*         save2;
     u8                  id;
-    WipSysConfig*       hpCfg;
+    PlayerStatus*       hpCfg;
     u16                 hpVal;
     s32                 idx;
     s32                 n;
 
-    cfg = &Wip_SysConfig;
+    cfg = &Player_Status;
     USE_REG(cfg);
     val = cfg->field_21;
     if (val != 0) {
@@ -2351,23 +2351,23 @@ void Gp_ClearInventory(void)
                 id = rec->field_0;
                 if ((u32)(id - 0x60) < 0x20U) {
                     SCHED_BARRIER();
-                    cfg->field_23   = id - 0x5F;
-                    hpCfg           = &Wip_SysConfig;
-                    hpVal           = rows[save2->field_F].base.half;
-                    hpCfg->field_1a = hpVal;
-                    hpVal          += save2->field_26;
-                    hpCfg->field_1a = hpVal;
+                    cfg->field_23 = id - 0x5F;
+                    hpCfg         = &Player_Status;
+                    hpVal         = rows[save2->field_F].base.half;
+                    hpCfg->hpMax  = hpVal;
+                    hpVal        += save2->field_26;
+                    hpCfg->hpMax  = hpVal;
                     if (hpCfg->field_23 != 0) {
-                        idx             = hpCfg->field_23;
-                        idx             = idx - 1;
-                        hpVal          += attrs[idx].field_4;
-                        hpCfg->field_1a = hpVal;
+                        idx          = hpCfg->field_23;
+                        idx          = idx - 1;
+                        hpVal       += attrs[idx].field_4;
+                        hpCfg->hpMax = hpVal;
                     }
-                    if (hpCfg->field_1a >= 0xFB) {
-                        hpCfg->field_1a = 0xFA;
+                    if (hpCfg->hpMax >= 0xFB) {
+                        hpCfg->hpMax = 0xFA;
                     }
-                    if (hpCfg->field_18 > hpCfg->field_1a) {
-                        hpCfg->field_18 = hpCfg->field_1a;
+                    if (hpCfg->hp > hpCfg->hpMax) {
+                        hpCfg->hp = hpCfg->hpMax;
                     }
                     Gp_RecalcMaxMp();
                     break;
@@ -2379,19 +2379,19 @@ void Gp_ClearInventory(void)
     }
 
     state          = &Gp_StateC08;
-    pcfg           = &Wip_SysConfig;
-    hp             = pcfg->field_1a;
-    mp             = pcfg->field_1e;
+    pcfg           = &Player_Status;
+    hp             = pcfg->hpMax;
+    mp             = pcfg->mpMax;
     state->field_B = 0;
     state->field_5 = 0;
-    pcfg->field_18 = hp;
-    pcfg->field_1c = mp;
+    pcfg->hp       = hp;
+    pcfg->mp       = mp;
     Gp_ApplyItemMap();
 }
 
 void Gp_InitModeEquip(void)
 {
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     GpItemScan*   scan;
     GpItemRec*    tmp;
     GpItemRec*    table;
@@ -2406,7 +2406,7 @@ void Gp_InitModeEquip(void)
     GpItemSlot*   slots;
     u8            slotItem;
 
-    cfg = &Wip_SysConfig;
+    cfg = &Player_Status;
     acc = 0;
     if (cfg->field_21 == 0) {
         scan = &Mc_SaveData.field_5BC;
@@ -3316,15 +3316,15 @@ s32 Gp_GetBit2Flag(GameSessionFrom4* arg0, s32 arg1)
 void Gp_SavePlayerPos(void)
 {
     GpCoordYaw*   coord;
-    WipSysPos*    p;
+    PlayerPos*    p;
     s32           angle;
     s32           temp;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     McSaveData*   save;
 
     coord      = (GpCoordYaw*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
     temp       = coord->field_18;
-    p          = &Wip_SysConfig.field_10;
+    p          = &Player_Status.field_10;
     p->field_0 = temp;
     p->field_2 = coord->field_1C;
     p->field_4 = coord->field_20;
@@ -3335,7 +3335,7 @@ void Gp_SavePlayerPos(void)
     } else if ((s16)angle < -0x800) {
         p->field_6 = angle + 0x1000;
     }
-    cfg            = &Wip_SysConfig;
+    cfg            = &Player_Status;
     save           = &Mc_SaveData;
     save->field_14 = cfg->field_8;
     save->field_18 = cfg->field_C;
@@ -3541,12 +3541,12 @@ void Gp_SetPlayerScan(s32 arg0)
 
 void Gp_SyncHeldRelated(void)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     GpItemSlot*   slots;
     s32           idx;
     u8            item;
 
-    p = &Wip_SysConfig;
+    p = &Player_Status;
     if (p->field_21 == 0) {
         p->field_22 = 0;
     } else {
@@ -3616,37 +3616,37 @@ s32 Gp_HasItemSeenBit(s32 arg0)
 
 void Gp_RecalcMaxHp(void)
 {
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     McSaveData*   save;
     GpStatRow*    table;
     u16           val;
 
-    cfg           = &Wip_SysConfig;
-    table         = Gp_StatRows;
-    save          = &Mc_SaveData;
-    val           = table[save->field_F].base.half;
-    cfg->field_1a = val;
-    val          += save->field_26;
-    cfg->field_1a = val;
+    cfg        = &Player_Status;
+    table      = Gp_StatRows;
+    save       = &Mc_SaveData;
+    val        = table[save->field_F].base.half;
+    cfg->hpMax = val;
+    val       += save->field_26;
+    cfg->hpMax = val;
     if (cfg->field_23 != 0) {
-        val          += Gp_ModStatAttrs[cfg->field_23 - 1].field_4;
-        cfg->field_1a = val;
+        val       += Gp_ModStatAttrs[cfg->field_23 - 1].field_4;
+        cfg->hpMax = val;
     }
-    if (cfg->field_1a >= 0xFB) {
-        cfg->field_1a = 0xFA;
+    if (cfg->hpMax >= 0xFB) {
+        cfg->hpMax = 0xFA;
     }
-    if (cfg->field_18 > cfg->field_1a) {
-        cfg->field_18 = cfg->field_1a;
+    if (cfg->hp > cfg->hpMax) {
+        cfg->hp = cfg->hpMax;
     }
 }
 
 void Gp_FillHpMp(void)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
 
-    p           = &Wip_SysConfig;
-    p->field_18 = p->field_1a;
-    p->field_1c = p->field_1e;
+    p     = &Player_Status;
+    p->hp = p->hpMax;
+    p->mp = p->mpMax;
 }
 
 s32 Gp_GetScanCount(u8* arg0)
@@ -3809,13 +3809,13 @@ void Gp_ResetScanDefault(void)
 
 void func_800BC4BC(void)
 {
-    Wip_SysConfig.field_26 = 1;
+    Player_Status.field_26 = 1;
     Gp_InitModeEquip();
 }
 
 void func_800BC4E4(void)
 {
-    Wip_SysConfig.field_26 = 2;
+    Player_Status.field_26 = 2;
     Gp_InitModeEquip();
 }
 

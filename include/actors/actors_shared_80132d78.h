@@ -46,7 +46,7 @@ typedef struct ActorShared80132d78 {
 /// Reports whether the player is standing inside one of the actor's boxes:
 /// walks the `field_6FA`-entry table at `field_6B4` and, on the first entry
 /// whose `field_0` is 1 and whose box holds the player's world position
-/// (`Wip_SysConfig.field_4`, x between `field_8` and `field_C`, z between
+/// (`Player_Status.field_4`, x between `field_8` and `field_C`, z between
 /// `field_E` and `field_A`), parks that entry's index in `field_708` and
 /// answers 1. A non-positive entry count, or no entry holding the position,
 /// answers 0.

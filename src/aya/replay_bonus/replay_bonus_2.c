@@ -239,7 +239,7 @@ s16 func_replay_bonus_801175D0(UiList* list, ReplayBonusCtx* ctx, s32 index)
 
 s32 func_replay_bonus_801175F0(UiList* list, ReplayBonusCtx* ctx)
 {
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     s32           i;
     s32           n;
     s32           sum;
@@ -254,7 +254,7 @@ s32 func_replay_bonus_801175F0(UiList* list, ReplayBonusCtx* ctx)
     s32           ids;
     s32           off;
 
-    cfg = &Wip_SysConfig;
+    cfg = &Player_Status;
     i   = *(s8*)&list->field_9;
     n   = list->field_4;
     sum = 0;

@@ -1557,7 +1557,7 @@ void Gp_OrientAlong(VECTOR* arg0, MATRIX* arg1, s32 arg2);
 u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3);
 /// Packed-id damage scale. `arg0` must have high bits `0x40000`; low 12 bits
 /// are the power and bits 12-15 are written to `*arg2` when it is non-NULL.
-/// `arg3 == 0` uses `Wip_SysConfig.field_18` and `GpDmgRow.field_A`;
+/// `arg3 == 0` uses `Player_Status.hp` and `GpDmgRow.field_A`;
 /// otherwise `Mc_SaveData.field_6C8` and `GpDmgRow.field_0`.
 s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
 /// Rolls a status/effect chance for `arg0` against the player. Returns 0 for

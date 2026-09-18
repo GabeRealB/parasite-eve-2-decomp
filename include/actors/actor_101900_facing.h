@@ -255,7 +255,7 @@ static __inline__ s16 Actor01900_NormalizeYaw(s16 input)
     return value;
 }
 
-static __inline__ void Actor01900_ConfigPositionDelta(WipSysConfig* config, GsCOORDINATE2* coord, SVECTOR* pos)
+static __inline__ void Actor01900_ConfigPositionDelta(PlayerStatus* config, GsCOORDINATE2* coord, SVECTOR* pos)
 {
     pos->vx = config->field_4->t[0] - coord->coord.t[0];
     pos->vy = config->field_4->t[1] - coord->coord.t[1];
@@ -263,7 +263,7 @@ static __inline__ void Actor01900_ConfigPositionDelta(WipSysConfig* config, GsCO
 }
 
 /// Yaw from the actor's facing to the player, wrapped; `pos` receives the offset.
-static __inline__ s16 Actor01900_PositionYaw(Actor01900* actor, SVECTOR* pos, WipSysConfig* config)
+static __inline__ s16 Actor01900_PositionYaw(Actor01900* actor, SVECTOR* pos, PlayerStatus* config)
 {
     GsCOORDINATE2* coord;
     s32            angle;

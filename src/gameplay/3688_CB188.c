@@ -351,7 +351,7 @@ void Gp_ItemCmdMenuTask(Task* arg0)
 
 void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
 {
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     GpStateBE8*   be8;
     McSaveData*   save;
     s32           hp;
@@ -359,7 +359,7 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
     s32           w;
     s32           h;
 
-    cfg            = &Wip_SysConfig;
+    cfg            = &Player_Status;
     arg0->field_2E = 0;
     Ui_DrawText((UiPanel*)arg0, Gp_StrStatus);
     if (arg1->state == 0) {
@@ -368,73 +368,73 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         h             = (s16)arg0->field_12;
         arg0->field_C = -(w >> 1);
         arg0->field_E = -(h >> 1) - 0x10;
-        hp            = cfg->field_18;
+        hp            = cfg->hp;
         be8           = &Gp_HpMpWork;
         be8->field_0  = hp;
-        mp            = cfg->field_1c;
+        mp            = cfg->mp;
         be8->field_4  = mp;
         if (arg2 < 0x100) {
             if (arg2 < 4) {
-                if (hp < cfg->field_1a) {
+                if (hp < cfg->hpMax) {
                     Gp_RemoveItem(0, (GpItemRec*)Gp_SelItemRec, 1);
                 }
                 if (arg2 == 3) {
-                    cfg->field_18 = cfg->field_1a;
+                    cfg->hp = cfg->hpMax;
                 } else if (arg2 == 2) {
-                    cfg->field_18 = cfg->field_18 + 0x64;
+                    cfg->hp = cfg->hp + 0x64;
                 } else {
-                    cfg->field_18 = cfg->field_18 + 0x32;
+                    cfg->hp = cfg->hp + 0x32;
                 }
             } else if (arg2 == 5) {
-                if ((mp < cfg->field_1e) || (hp < cfg->field_1a)) {
+                if ((mp < cfg->mpMax) || (hp < cfg->hpMax)) {
                     Gp_RemoveItem(0, (GpItemRec*)Gp_SelItemRec, 1);
                 }
-                cfg->field_1c = cfg->field_1c + 0x50;
-                cfg->field_18 = cfg->field_18 + 0x14;
+                cfg->mp = cfg->mp + 0x50;
+                cfg->hp = cfg->hp + 0x14;
             } else if ((u32)(arg2 - 6) < 2U) {
-                if (mp < cfg->field_1e) {
+                if (mp < cfg->mpMax) {
                     Gp_RemoveItem(0, (GpItemRec*)Gp_SelItemRec, 1);
                 }
                 if (arg2 == 7) {
-                    cfg->field_1c = cfg->field_1e;
+                    cfg->mp = cfg->mpMax;
                 } else {
-                    cfg->field_1c = cfg->field_1c + 0x1E;
+                    cfg->mp = cfg->mp + 0x1E;
                 }
             } else if (arg2 == 0x3D) {
-                if ((mp < cfg->field_1e) || (hp < cfg->field_1a)) {
+                if ((mp < cfg->mpMax) || (hp < cfg->hpMax)) {
                     Gp_RemoveItem(0, (GpItemRec*)Gp_SelItemRec, 1);
                 }
-                cfg->field_1c = cfg->field_1e;
-                cfg->field_18 = cfg->field_1a;
+                cfg->mp = cfg->mpMax;
+                cfg->hp = cfg->hpMax;
             }
-        } else if (hp < cfg->field_1a) {
-            cfg->field_1c = cfg->field_1c - func_800D50D4(arg2, 2);
-            be8->field_4  = cfg->field_1c;
-            cfg->field_18 = cfg->field_18 + func_800D50D4(arg2, 4);
-            save          = &Mc_SaveData;
+        } else if (hp < cfg->hpMax) {
+            cfg->mp      = cfg->mp - func_800D50D4(arg2, 2);
+            be8->field_4 = cfg->mp;
+            cfg->hp      = cfg->hp + func_800D50D4(arg2, 4);
+            save         = &Mc_SaveData;
             if ((s16)save->field_870 < 0x270F) {
                 save->field_870 = save->field_870 + 1;
             }
         }
-        if (cfg->field_18 > cfg->field_1a) {
-            cfg->field_18 = cfg->field_1a;
+        if (cfg->hp > cfg->hpMax) {
+            cfg->hp = cfg->hpMax;
         }
-        if (cfg->field_1c > cfg->field_1e) {
-            cfg->field_1c = cfg->field_1e;
+        if (cfg->mp > cfg->mpMax) {
+            cfg->mp = cfg->mpMax;
         }
         arg1->killCountdown = 0xBC;
         arg1->state         = arg1->state + 1;
     }
     Gp_DrawHpMpStats((UiPanel*)arg0, 0);
     if (arg0->status == 1) {
-        if (Gp_HpMpWork.field_0 == cfg->field_18) {
-            if (Gp_HpMpWork.field_4 == cfg->field_1c) {
+        if (Gp_HpMpWork.field_0 == cfg->hp) {
+            if (Gp_HpMpWork.field_4 == cfg->mp) {
                 arg1->killCountdown = arg1->killCountdown - 1;
             }
         }
         if ((Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) || (arg1->killCountdown < 0)) {
-            Gp_HpMpWork.field_0 = cfg->field_18;
-            Gp_HpMpWork.field_4 = cfg->field_1c;
+            Gp_HpMpWork.field_0 = cfg->hp;
+            Gp_HpMpWork.field_4 = cfg->mp;
             arg0->field_2E      = 9;
             arg1->killCountdown = 0x7FFF;
         }
@@ -475,7 +475,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     GpItemSlot*               slotSrc;
     GpItemSlot*               slotDst;
     GpItemRec*                rec;
-    WipSysConfig*             cfg;
+    PlayerStatus*             cfg;
 
     if (arg1->state == 0) {
         src         = 0;
@@ -558,7 +558,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 break;
         }
         if (arg1->flags == 0xFF) {
-            cfg         = &Wip_SysConfig;
+            cfg         = &Player_Status;
             slotSrc     = Gp_GetItemSlot(src);
             slotDst     = Gp_GetItemSlot(result);
             rec         = Gp_FindItemById(src);
@@ -737,7 +737,7 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
     s32           temp;
     s32           color;
     s32           one;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     McSaveData*   save;
     register s32  n asm("a1");
     s32           i;
@@ -764,13 +764,13 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         save = &Mc_SaveData;
         TOUCH_REG4(row, col, i, n);
         n   = n - i * 3 + 1;
-        cfg = &Wip_SysConfig;
+        cfg = &Player_Status;
         if (save->unknown_850[col + row * 3] < n) {
             save->unknown_850[col + row * 3] = n;
         }
         Gp_RecalcMaxMp();
-        cfg->field_1c       = cfg->field_1e;
-        Gp_HpMpWork.field_4 = cfg->field_1c;
+        cfg->mp             = cfg->mpMax;
+        Gp_HpMpWork.field_4 = cfg->mp;
         arg1->killCountdown = 0xBC;
         arg1->state         = arg1->state + 1;
     }
@@ -891,7 +891,7 @@ void Gp_PeListPanelTask(Task* arg0)
     s32           xOff;
     UiObject*     obj;
     UiObjectDesc* desc;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     Task*         head;
     Task*         child;
     UiObject*     childObj;
@@ -912,7 +912,7 @@ void Gp_PeListPanelTask(Task* arg0)
         arg0->state = arg0->state + 1;
     }
     color          = 0x606060;
-    cfg            = &Wip_SysConfig;
+    cfg            = &Player_Status;
     xOff           = obj->field_1C;
     x              = xOff + 0x22;
     y              = (s16)obj->field_18 + 8;
@@ -948,7 +948,7 @@ void Gp_PeListPanelTask(Task* arg0)
     req4.glyphTable = 0;
     req4.centerMode = 0;
     req4.field_E    = 3;
-    func_8002E53C(&req4, Text_ItoaSigned(buf, cfg->field_1c));
+    func_8002E53C(&req4, Text_ItoaSigned(buf, cfg->mp));
     req5.x          = obj->baseX + 0x25 + x;
     req5.y          = obj->baseY + y;
     req5.otIndex    = (s16)obj->drawOrder + 1;
@@ -964,7 +964,7 @@ void Gp_PeListPanelTask(Task* arg0)
     req6.glyphTable = 0;
     req6.centerMode = 0;
     req6.field_E    = 3;
-    func_8002E53C(&req6, Text_ItoaSigned(buf, cfg->field_1e));
+    func_8002E53C(&req6, Text_ItoaSigned(buf, cfg->mpMax));
     head = arg0->firstChild;
     if (head != NULL) {
         child = head;
@@ -1995,10 +1995,10 @@ void Gp_SetHolderItemText(s32 arg0)
 s32 Gp_IsEquippedItem(s32 arg0)
 {
     s32           ret;
-    WipSysConfig* p;
+    PlayerStatus* p;
 
     ret = 0;
-    p   = &Wip_SysConfig;
+    p   = &Player_Status;
     if ((((u32)(arg0 - 0x80) < 0x20U) && (p->field_21 == arg0 - 0x7F)) ||
         (((u32)(arg0 - 0x60) < 0x20U) && (p->field_23 == arg0 - 0x5F)) ||
         (((u32)(arg0 - 0xA0) < 0x20U) && (p->field_21 != 0) &&
@@ -2011,12 +2011,12 @@ s32 Gp_IsEquippedItem(s32 arg0)
 
 s32 func_800CEC5C(GpItemRec* arg0)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     s32           ret;
     s32           id;
     s8            count;
 
-    p     = &Wip_SysConfig;
+    p     = &Player_Status;
     ret   = 1;
     count = arg0->field_1;
     id    = arg0->field_0;
@@ -2037,7 +2037,7 @@ GpItemRec* func_800CECC0(GpItemScan* arg0, s32 arg1)
     s32           count;
     s32           n;
     GpItemRec*    rec;
-    WipSysConfig* p;
+    PlayerStatus* p;
     register s32  ok asm("a2");
     s32           id;
     s32           one;
@@ -2048,7 +2048,7 @@ GpItemRec* func_800CECC0(GpItemScan* arg0, s32 arg1)
     table = &table[arg0->field_0];
     count = arg0->field_1;
     if (count != 0) {
-        p   = &Wip_SysConfig;
+        p   = &Player_Status;
         one = 1;
         n   = count;
         do {
@@ -2173,14 +2173,14 @@ void Gp_DrawSortCmd(DialogPrompt* arg0, UiObject* arg1)
 
 void func_800CF090(UiList* arg0, UiObject* arg1)
 {
-    WipSysConfig*       p;
+    PlayerStatus*       p;
     GpItemScan*         scan;
     volatile GpItemRec* table;
     s32                 count;
     s32                 i;
 
     count = 0;
-    p     = &Wip_SysConfig;
+    p     = &Player_Status;
     scan  = &Mc_SaveData.field_5BC;
     table = Gp_GetItemTable(scan);
     i     = 0;
@@ -2322,12 +2322,12 @@ void Gp_DrawUseCmd(DialogPrompt* arg0, UiObject* arg1)
 
 void Gp_EquipHeld(s32 arg0)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     GpItemRec*    rec;
     GpItemRec*    prev;
     u8            field21;
 
-    p       = &Wip_SysConfig;
+    p       = &Player_Status;
     rec     = Gp_FindItemById(arg0);
     field21 = p->field_21;
     if (field21 != arg0 - 0x7F) {
@@ -2731,7 +2731,7 @@ void Gp_DrawMapCursor(Task* arg0)
     UiObject*        obj;
     GameActor*       actor;
     GpMapRec*        rec;
-    WipSysConfig*    cfg;
+    PlayerStatus*    cfg;
     GpMapCursorPos*  pos;
     register s32     temp asm("v0");
     register MATRIX* mat asm("v1");
@@ -2745,7 +2745,7 @@ void Gp_DrawMapCursor(Task* arg0)
     s32              ang;
 
     obj   = arg0->spawnArg2;
-    cfg   = &Wip_SysConfig;
+    cfg   = &Player_Status;
     actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
     rec   = Gp_MapRecTables[Game_Session->field_7 - 1];
     rec   = rec + Game_Session->field_6;
@@ -3810,12 +3810,12 @@ void Gp_DiscardWarnTask(Task* arg0)
                     GpItemSlot*   ret;
                     GpItemSlot*   slot;
                     register s32  a0id asm("a0");
-                    WipSysConfig* cfg;
+                    PlayerStatus* cfg;
 
                     ret  = Gp_GetItemSlot(id);
                     a0id = id;
                     slot = ret;
-                    cfg  = &Wip_SysConfig;
+                    cfg  = &Player_Status;
                     Gp_ClearEquipSlot(a0id);
                     slot->field_4 = 0;
                     if (cfg->field_21 == (id - 0x7F)) {
@@ -3839,11 +3839,11 @@ void Gp_DiscardWarnTask(Task* arg0)
                         i += 1;
                     } while (i < 0xA0);
                 } else if ((u32)(id - 0x60) < 0x20U) {
-                    WipSysConfig* cfg;
+                    PlayerStatus* cfg;
 
                     Mc_SaveData.field_908[id - 0x60] = 0;
                     SCHED_BARRIER();
-                    cfg = &Wip_SysConfig;
+                    cfg = &Player_Status;
                     if (cfg->field_23 == (id - 0x5F)) {
                         cfg->field_23 = 0;
                     }
@@ -4106,7 +4106,7 @@ void Gp_NoticePanelTask(Task* arg0)
 
 /// Level-up / strengthen dialog. Draws the "EXP / COST" and "MP / BONUS" rows
 /// for the slot selected by `Task::spawnArg1`, then watches the child prompts:
-/// choosing 0x33 pays the cost out of `Wip_SysConfig.field_8` and bumps the
+/// choosing 0x33 pays the cost out of `Player_Status.field_8` and bumps the
 /// stored level in `Mc_SaveData.unknown_850`.
 void Gp_PeUpgradePanelTask(Task* arg0)
 {
@@ -4134,7 +4134,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     s32           bonusIdx;
     s32           x;
     s32           cost;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     s32           price;
 
     obj           = arg0->spawnArg2;
@@ -4221,7 +4221,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
             lvl3     = (id + 1) & 3;
             if (childObj->field_2E == 6) {
                 if (childObj->field_2C == 0x33) {
-                    cfg   = &Wip_SysConfig;
+                    cfg   = &Player_Status;
                     price = Gp_IdParamHi[(row3 * 3 + col3) * 3 + lvl3].field[0];
                     if (Mc_SaveData.field_F > 0) {
                         price = (price * 4) / 5;
@@ -4241,8 +4241,8 @@ void Gp_PeUpgradePanelTask(Task* arg0)
                         cfg->field_8                                                       -= price & 0xFFFF;
                         Mc_SaveData.unknown_850[((id & 0xC) >> 2) + ((id & 0x30) >> 4) * 3] = (id & 3) + 1;
                         Gp_RecalcMaxMp();
-                        cfg->field_1c       = cfg->field_1e;
-                        Gp_HpMpWork.field_4 = cfg->field_1c;
+                        cfg->mp             = cfg->mpMax;
+                        Gp_HpMpWork.field_4 = cfg->mp;
                         obj->field_2E       = 9;
                     }
                 } else {

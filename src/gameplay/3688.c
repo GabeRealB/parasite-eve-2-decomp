@@ -292,7 +292,7 @@ void Gp_MenuRootTask(Task* arg0)
 {
     switch (arg0->state) {
         case 0: {
-            WipSysConfig* cfg;
+            PlayerStatus* cfg;
 
             GameMain_SetFrameTiming(0);
             D_80114D88 = 0;
@@ -300,7 +300,7 @@ void Gp_MenuRootTask(Task* arg0)
             Gp_ClearPreviewItems();
             D_80067634 = NULL;
             D_80114DE0 = -1;
-            cfg        = &Wip_SysConfig;
+            cfg        = &Player_Status;
             D_80114DE8 = cfg->field_21;
             D_80114DE4 = cfg->field_22;
             if (cfg->field_21 != 0) {
@@ -450,7 +450,7 @@ void Gp_MenuRootTask(Task* arg0)
         }
         case 0x32: {
             DisplayState* disp;
-            WipSysConfig* cfg;
+            PlayerStatus* cfg;
             s32           attach;
             s32           old;
             TaskNode*     list;
@@ -482,7 +482,7 @@ void Gp_MenuRootTask(Task* arg0)
             }
             attach = -1;
             Mem_InitAux();
-            cfg = &Wip_SysConfig;
+            cfg = &Player_Status;
             Gp_SyncHeldRelated();
             if (cfg->field_21 != 0) {
                 attach = Gp_GetItemSlot(cfg->field_21 + 0x7F)->field_2;
@@ -508,7 +508,7 @@ void Gp_MenuRootTask(Task* arg0)
             break;
         }
         case 0x3C: {
-            WipSysConfig* cfg;
+            PlayerStatus* cfg;
             s32           attach;
             TaskNode*     prev;
             s32*          flag;
@@ -516,7 +516,7 @@ void Gp_MenuRootTask(Task* arg0)
             if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
                 return;
             }
-            cfg    = &Wip_SysConfig;
+            cfg    = &Player_Status;
             attach = -1;
             if (cfg->field_21 != 0) {
                 attach = Gp_GetItemSlot(cfg->field_21 + 0x7F)->field_2;
@@ -1075,7 +1075,7 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     TextDrawReq   req9;
     TextDrawReq   req10;
     TextDrawReq   req11;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     s32           xOff;
     s32           x;
     s32           y;
@@ -1084,15 +1084,15 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     s32           color;
     s32           max;
 
-    cfg  = &Wip_SysConfig;
+    cfg  = &Player_Status;
     xOff = (s16)arg0->field_1C;
     arg1 = arg1 + 8;
     x    = xOff + 6;
     y    = (s16)arg0->field_18 + arg1;
-    if (Gp_HpMpWork.field_0 < cfg->field_18) {
+    if (Gp_HpMpWork.field_0 < cfg->hp) {
         Gp_HpMpWork.field_0 = Gp_HpMpWork.field_0 + 1;
     }
-    if (Gp_HpMpWork.field_4 < cfg->field_1c) {
+    if (Gp_HpMpWork.field_4 < cfg->mp) {
         Gp_HpMpWork.field_4 = Gp_HpMpWork.field_4 + 1;
     }
     color = 0x606060;
@@ -1122,9 +1122,9 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     req3.glyphTable = 0;
     req3.centerMode = 0;
     req3.field_E    = 3;
-    func_8002E53C(&req3, Text_ItoaUnsigned(buf, cfg->field_1a));
+    func_8002E53C(&req3, Text_ItoaUnsigned(buf, cfg->hpMax));
 
-    max  = cfg->field_1a;
+    max  = cfg->hpMax;
     barX = xOff + 7;
     func_800C0E20(arg0, x, barX + ((max - 1) * 0x25) / 64, y + 5, max, Gp_HpMpWork.field_0, 0x1741F);
 
@@ -1154,9 +1154,9 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     req6.glyphTable = 0;
     req6.centerMode = 0;
     req6.field_E    = 3;
-    func_8002E53C(&req6, Text_ItoaUnsigned(buf, cfg->field_1e));
+    func_8002E53C(&req6, Text_ItoaUnsigned(buf, cfg->mpMax));
 
-    max = cfg->field_1e;
+    max = cfg->mpMax;
     func_800C0E20(arg0, x, barX + ((max - 1) * 0x25) / 64, y + 0x17, max, Gp_HpMpWork.field_4, 0x1741F);
 
     y2              = y + 0x24;
@@ -1218,7 +1218,7 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
 void Gp_HpMpBarTask(Task* arg0)
 {
     UiObject*     obj;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     SPRT*         p;
     POLY_FT4*     poly;
     s32           color;
@@ -1228,9 +1228,9 @@ void Gp_HpMpBarTask(Task* arg0)
     obj = arg0->spawnArg2;
     if (arg0->state == 0) {
         Ui_SpawnFromDesc(&D_8010EB24, 0, 0, 0, obj);
-        cfg                 = &Wip_SysConfig;
-        Gp_HpMpWork.field_0 = cfg->field_18;
-        Gp_HpMpWork.field_4 = cfg->field_1c;
+        cfg                 = &Player_Status;
+        Gp_HpMpWork.field_0 = cfg->hp;
+        Gp_HpMpWork.field_4 = cfg->mp;
         arg0->state         = arg0->state + 1;
     }
     color          = 0x606060;
@@ -1311,7 +1311,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
     s32           savedX;
     s32           mid;
     UiObject*     obj;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     s32           item;
     s32           color;
     s32           x;
@@ -1322,7 +1322,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
     s32           vx;
 
     obj           = arg0->spawnArg2;
-    cfg           = &Wip_SysConfig;
+    cfg           = &Player_Status;
     obj->field_2E = 0;
     Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x11);
 
@@ -1588,7 +1588,7 @@ void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
     s32         attach;
     s32         count;
 
-    item = Wip_SysConfig.field_21;
+    item = Player_Status.field_21;
     if (item > 0) {
         item += 0x7F;
     }
@@ -1633,14 +1633,14 @@ void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     TextDrawReq   req;
     s32           equipped;
     s32           hasMod;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     GpItemSlot*   slot;
     s32           color;
     s32           x;
     s32           y;
 
     equipped = 0;
-    cfg      = &Wip_SysConfig;
+    cfg      = &Player_Status;
     buf[0]   = 0;
     buf[1]   = 0;
     if ((((u32)(arg3 - 0x80) < 0x20U) && (cfg->field_21 == (arg3 - 0x7F))) ||
@@ -1752,7 +1752,7 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
         s32                 loopOne;
         s32                 i;
         register s32        idx asm("v1");
-        WipSysConfig*       p;
+        PlayerStatus*       p;
         GpItemRec*          rec;
         s32                 count;
         s32                 n;
@@ -1765,7 +1765,7 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
         count = scan->field_1;
         table = &rec[idx];
         if (count != 0) {
-            p       = &Wip_SysConfig;
+            p       = &Player_Status;
             loopOne = 1;
             n       = count;
             do {
@@ -1929,7 +1929,7 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
     McItemRec*          table;
     McItemRec*          rec2;
     McItemScan*         scan;
-    WipSysConfig*       cfg;
+    PlayerStatus*       cfg;
     GpItemQty*          table0;
     GpItemQty*          table1;
 
@@ -1938,8 +1938,8 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
     scan  = &Mc_SaveData.field_5BC;
     {
         register s32 hi asm("v1");
-        asm volatile("lui %1, %%hi(Wip_SysConfig)\n\t"
-                     "addiu %0, %1, %%lo(Wip_SysConfig)"
+        asm volatile("lui %1, %%hi(Player_Status)\n\t"
+                     "addiu %0, %1, %%lo(Player_Status)"
                      : "=r"(cfg), "=r"(hi));
     }
     limit = scan->field_1;
@@ -2017,7 +2017,7 @@ static __inline__ void countItemRows(UiList* menu)
 {
     McItemScan*   scan;
     GpItemRec*    table;
-    WipSysConfig* p;
+    PlayerStatus* p;
     register s32  i asm("a2");
     s32           n;
     s32           count;
@@ -2031,7 +2031,7 @@ static __inline__ void countItemRows(UiList* menu)
     menu->field_4 = scan->field_1;
     n             = scan->field_1;
     if (n != 0) {
-        p     = &Wip_SysConfig;
+        p     = &Player_Status;
         count = n;
         do {
             id = table->field_0;
@@ -2209,7 +2209,7 @@ void Gp_ItemDestCursorTask(Task* arg0)
 void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
 {
     TextDrawReq            req;
-    WipSysConfig*          cfg;
+    PlayerStatus*          cfg;
     register DialogPrompt* prompt asm("s5");
     register UiObject*     obj asm("s2");
     s32                    item;
@@ -2228,7 +2228,7 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
 
     prompt = arg0;
     SOFT_TOUCH_REG(prompt);
-    cfg  = &Wip_SysConfig;
+    cfg  = &Player_Status;
     t    = cfg->field_21;
     item = t + 0x7F;
     if (item < 0x80) {
@@ -2313,11 +2313,11 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
         } else if (flag == status) {
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
                 if ((u8)(*Gp_SelItemRec + 0x80) < 0x20) {
-                    WipSysConfig* p;
+                    PlayerStatus* p;
                     s32           a0item;
                     a0item = item;
                     TOUCH_REG(a0item);
-                    p = &Wip_SysConfig;
+                    p = &Player_Status;
                     Gp_ClearEquipSlotSel(a0item, 0);
                     ptr         = Gp_SelItemRec;
                     p->field_21 = *ptr - 0x7F;
@@ -2405,7 +2405,7 @@ void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj)
 
     item   = 0;
     count  = 0;
-    weapon = Wip_SysConfig.field_21 + 0x7F;
+    weapon = Player_Status.field_21 + 0x7F;
     if (weapon >= 0x80) {
         slot = Gp_GetItemSlot(weapon);
         if (prompt->field_8 == 1) {
@@ -2493,7 +2493,7 @@ void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj)
                 s32 currentWeapon;
                 s32 yOffset;
                 s32 xOffset;
-                currentWeapon = Wip_SysConfig.field_21 + 0x7F;
+                currentWeapon = Player_Status.field_21 + 0x7F;
                 SndEvt_EnqueueType6(3, 0, 0);
                 child = Ui_SpawnFromDesc(&D_8010ECC8, currentWeapon, 1, 0x10, obj);
                 if (child != NULL) {
@@ -2554,7 +2554,7 @@ void Gp_WeaponMenuTask(Task* arg0)
         GpItemSlot*  slot;
         register s32 n asm("v0");
 
-        id   = Wip_SysConfig.field_21 + 0x7F;
+        id   = Player_Status.field_21 + 0x7F;
         slot = Gp_GetItemSlot(id);
         TOUCH_REG(slot);
         n = id < 0x80;
@@ -2584,7 +2584,7 @@ void Gp_WeaponMenuTask(Task* arg0)
         GpItemSlot*  slot;
         register s32 n asm("v0");
 
-        id   = Wip_SysConfig.field_21 + 0x7F;
+        id   = Player_Status.field_21 + 0x7F;
         slot = Gp_GetItemSlot(id);
         TOUCH_REG(slot);
         n = id < 0x80;
@@ -2909,7 +2909,7 @@ void Gp_ArmorMenuTask(Task* arg0)
     UiList*       menu;
     s32           item;
     s32           color;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     s32           status;
     s32           x;
     s32           y;
@@ -2927,7 +2927,7 @@ void Gp_ArmorMenuTask(Task* arg0)
 
     menu          = &D_8010E8AC;
     obj           = arg0->spawnArg2;
-    cfg           = &Wip_SysConfig;
+    cfg           = &Player_Status;
     obj->field_2E = 0;
     Ui_DrawText((UiPanel*)obj, Gp_StrArmor);
 
@@ -2966,7 +2966,7 @@ void Gp_ArmorMenuTask(Task* arg0)
         s32 id;
         s32 temp;
 
-        id = Wip_SysConfig.field_23 + 0x5F;
+        id = Player_Status.field_23 + 0x5F;
         if (id != 0) {
             menu->field_4 = Gp_GetModLevel(id);
         }
@@ -3338,7 +3338,7 @@ GpItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2)
     s32           i;
     GpItemRec*    rec;
     register s32  equipped asm("s3");
-    WipSysConfig* p;
+    PlayerStatus* p;
     s32           id;
     s32           wrap;
 
@@ -3353,7 +3353,7 @@ GpItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2)
         wrap = id + 0x80;
         USE_REG(wrap);
         if ((u8)wrap < 0x20) {
-            p        = &Wip_SysConfig;
+            p        = &Player_Status;
             equipped = 0;
             if (((u32)(id - 0x80) < 0x20U) && (p->field_21 == id - 0x7F)) {
                 equipped = 1;
@@ -3598,7 +3598,7 @@ void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
     s32           i;
     s32           count;
     register s32  equipped asm("s3");
-    WipSysConfig* p;
+    PlayerStatus* p;
     s32           id;
     s32           wrap;
     McItemScan*   scan;
@@ -3616,7 +3616,7 @@ void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
         wrap = id + 0x80;
         USE_REG(wrap);
         if ((u8)wrap < 0x20) {
-            p        = &Wip_SysConfig;
+            p        = &Player_Status;
             equipped = 0;
             if (((u32)(id - 0x80) < 0x20U) && (p->field_21 == id - 0x7F)) {
                 equipped = 1;
@@ -4803,7 +4803,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
     SPRT*         p;
     GpItemAttr*   attr;
     GpItemSlot*   slot;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     s16           field18;
     s32           color;
     s32           swap;
@@ -4817,7 +4817,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
     field18 = (s16)arg0->field_18;
     xOff    = arg0->field_1C + 0x60;
     yBase   = field18 + 8;
-    cfg     = &Wip_SysConfig;
+    cfg     = &Player_Status;
     if (arg2 == 0) {
         yBase = field18 + 0x1C;
     }
@@ -4998,7 +4998,7 @@ void Gp_EquipSummaryTask(Task* arg0)
     TextDrawReq        req;
     register s32       item asm("s2");
     s32                skip;
-    WipSysConfig*      cfg;
+    PlayerStatus*      cfg;
     s32                idx;
     s32*               stored;
     s32                mode;
@@ -5014,7 +5014,7 @@ void Gp_EquipSummaryTask(Task* arg0)
 
     item   = 0;
     skip   = item;
-    cfg    = &Wip_SysConfig;
+    cfg    = &Player_Status;
     stored = (s32*)arg0->idMap;
     mode   = arg0->spawnArg1;
     obj    = arg0->spawnArg2;
@@ -5379,7 +5379,7 @@ void Gp_SelectWeaponMenuTask(Task* arg0)
     UiList*            menu;
     register UiObject* obj asm("s1");
     register s32       val asm("s2");
-    WipSysConfig*      cfg;
+    PlayerStatus*      cfg;
     s32                flags;
     Task*              parent;
     s32*               table;
@@ -5390,7 +5390,7 @@ void Gp_SelectWeaponMenuTask(Task* arg0)
 
     menu = &D_8010E9A4;
     obj  = arg0->spawnArg2;
-    cfg  = &Wip_SysConfig;
+    cfg  = &Player_Status;
     Ui_DrawText((UiPanel*)obj, Gp_StrSelectWeapon);
     Ui_DrawHBar((UiPanel*)obj, obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x4A);
     if (arg0->state == 0) {
@@ -5907,7 +5907,7 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
 void Gp_DrawArmorSelectRow(DialogPrompt* arg0, UiObject* arg1)
 {
     TextDrawReq         req;
-    WipSysConfig*       cfg;
+    PlayerStatus*       cfg;
     McItemScan*         scan;
     s32                 remaining;
     GpItemRec*          rec;
@@ -5928,7 +5928,7 @@ void Gp_DrawArmorSelectRow(DialogPrompt* arg0, UiObject* arg1)
     register s32        n asm("a1");
 
     scan      = &Mc_SaveData.field_5BC;
-    cfg       = &Wip_SysConfig;
+    cfg       = &Player_Status;
     remaining = arg0->field_8;
     rec       = Gp_GetItemTable(scan);
     i         = 0;
@@ -6009,7 +6009,7 @@ void Gp_SelectArmorMenuTask(Task* arg0)
 {
     UiList*              menu;
     UiObject*            obj;
-    WipSysConfig*        cfg;
+    PlayerStatus*        cfg;
     register s32         hi asm("s0");
     register McItemScan* scan asm("s1");
     GpItemRec*           rec;
@@ -6040,7 +6040,7 @@ void Gp_SelectArmorMenuTask(Task* arg0)
             McItemScan* a0scan;
             a0scan = scan;
             TOUCH_REG(a0scan);
-            cfg = &Wip_SysConfig;
+            cfg = &Player_Status;
             rec = Gp_GetItemTable(a0scan);
         }
         {
@@ -6092,7 +6092,7 @@ void Gp_SelectArmorMenuTask(Task* arg0)
         asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
         a0scan = scan;
         TOUCH_REG(a0scan);
-        cfg       = &Wip_SysConfig;
+        cfg       = &Player_Status;
         remaining = menu->field_10;
         rec       = Gp_GetItemTable(a0scan);
         {
@@ -6361,7 +6361,7 @@ void Gp_EquipPromptTask(Task* arg0)
     s32           width;
     s32           val;
     s32           other;
-    WipSysConfig* p;
+    PlayerStatus* p;
     GpItemRec*    rec;
     GpItemRec*    prev;
     u8            field21;
@@ -6371,7 +6371,7 @@ void Gp_EquipPromptTask(Task* arg0)
     if (arg0->state == 0) {
         val = arg0->spawnArg1;
         if ((u32)(val - 0x80) < 0x20U) {
-            p       = &Wip_SysConfig;
+            p       = &Player_Status;
             rec     = Gp_FindItemById(val);
             field21 = p->field_21;
             if (field21 != val - 0x7F) {
@@ -6491,7 +6491,7 @@ void Gp_DrawExchangeCmd(DialogPrompt* arg0, UiObject* arg1)
             }
             if (((u32)(val - 0xA0) < 0x20U) || (val == 0)) {
                 one = 1;
-                obj = Ui_SpawnFromDesc(&D_8010ECC8, Wip_SysConfig.field_21 + 0x7F, one, 0x10, arg1);
+                obj = Ui_SpawnFromDesc(&D_8010ECC8, Player_Status.field_21 + 0x7F, one, 0x10, arg1);
             } else if ((u32)(val - 0x80) < 0x20U) {
                 one = 1;
                 obj = Ui_SpawnFromDesc(&D_8010ECE4, 0, one, 0x10, arg1);

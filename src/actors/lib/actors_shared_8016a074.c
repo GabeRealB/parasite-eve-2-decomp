@@ -8,10 +8,10 @@
 s32 ActorsShared8016a074(Task* task)
 {
     ActorsShared8016a074Work* work = (ActorsShared8016a074Work*)task->idMap;
-    WipSysConfig*             cfg  = &Wip_SysConfig;
+    PlayerStatus*             cfg  = &Player_Status;
 
     if (work->field_0 == 0xD) {
-        if (cfg->field_18 > 0) {
+        if (cfg->hp > 0) {
             work->field_0 = 0xE;
         } else {
             work->field_0 = 0x16;

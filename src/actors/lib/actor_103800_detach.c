@@ -189,9 +189,9 @@ void Actor03800_Fn01520(Actor103800* arg0)
             work->field_360 = 0;
             work->field_35C = 0;
             work->field_35E = 0;
-            vec.vx          = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+            vec.vx          = Player_Status.field_4->t[0] - coord->coord.t[0];
             vec.vy          = 0;
-            vec.vz          = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            vec.vz          = Player_Status.field_4->t[2] - coord->coord.t[2];
             work->field_364 = ratan2((s16)vec.vx, (s16)vec.vz) & 0xFFF;
             work->field_348 = 9;
             if (work->field_36A == 0) {
@@ -250,9 +250,9 @@ void Actor03800_Fn0166C(Actor103800* arg0)
             break;
         case 1:
             if ((u32)(work->field_34C - 2) < 12) {
-                scratch->delta.vx = coord->coord.t[0] - Wip_SysConfig.field_4->t[0];
-                scratch->delta.vy = coord->coord.t[1] - Wip_SysConfig.field_4->t[1];
-                scratch->delta.vz = coord->coord.t[2] - Wip_SysConfig.field_4->t[2];
+                scratch->delta.vx = coord->coord.t[0] - Player_Status.field_4->t[0];
+                scratch->delta.vy = coord->coord.t[1] - Player_Status.field_4->t[1];
+                scratch->delta.vz = coord->coord.t[2] - Player_Status.field_4->t[2];
                 VectorNormalS(&scratch->delta, &scratch->normal);
                 coord->coord.t[0] += (scratch->normal.vx * 17) >> 9;
                 coord->coord.t[2] += (scratch->normal.vz * 17) >> 9;

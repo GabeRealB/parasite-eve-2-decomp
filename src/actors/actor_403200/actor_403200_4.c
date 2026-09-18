@@ -315,7 +315,7 @@ void func_actor_403200_80139A60(Task* arg0)
     Actor403200Work*       work;
     GpEnemy*               enemy;
     GpRec18*               recs;
-    WipSysConfig*          cfg;
+    PlayerStatus*          cfg;
     SVECTOR*               pos;
     s32                    mask;
     s32                    kind;
@@ -331,7 +331,7 @@ void func_actor_403200_80139A60(Task* arg0)
     GpEnemy*               esc0;
     GpEnemy*               esc1;
 
-    cfg   = &Wip_SysConfig;
+    cfg   = &Player_Status;
     enemy = (GpEnemy*)arg0->spawnArg2;
     work  = (Actor403200Work*)arg0->idMap;
     sc    = (Actor403200HitScratch*)(SCRATCH_SP -= sizeof(Actor403200HitScratch));
@@ -478,7 +478,7 @@ void func_actor_403200_80139E94(Task* arg0)
     Actor403200HitScratch* sc;
     Actor403200Work*       work;
     GpEnemy*               host;
-    WipSysConfig*          cfg;
+    PlayerStatus*          cfg;
     GsCOORDINATE2*         coord;
     GpRec18*               recs;
     GpRec18*               recs2;
@@ -499,7 +499,7 @@ void func_actor_403200_80139E94(Task* arg0)
     GpEnemy*               esc0;
     GpEnemy*               esc1;
 
-    cfg  = &Wip_SysConfig;
+    cfg  = &Player_Status;
     host = (GpEnemy*)arg0->spawnArg2;
     work = (Actor403200Work*)arg0->idMap;
     sc   = (Actor403200HitScratch*)(SCRATCH_SP -= sizeof(Actor403200HitScratch));
@@ -683,7 +683,7 @@ void func_actor_403200_8013A4A0(Task* arg0)
     Actor403200HitScratch* sc;
     Actor403200Work*       work;
     GpEnemy*               host;
-    WipSysConfig*          cfg;
+    PlayerStatus*          cfg;
     GpRec18*               recs;
     GpRec18*               recs2;
     GpRec18*               recs3;
@@ -706,7 +706,7 @@ void func_actor_403200_8013A4A0(Task* arg0)
     GpEnemy*               esc0;
     GpEnemy*               esc1;
 
-    cfg  = &Wip_SysConfig;
+    cfg  = &Player_Status;
     host = (GpEnemy*)arg0->spawnArg2;
     work = (Actor403200Work*)arg0->idMap;
     sc   = (Actor403200HitScratch*)(SCRATCH_SP -= sizeof(Actor403200HitScratch));
@@ -1027,9 +1027,9 @@ void func_actor_403200_8013B3C8(Task* arg0)
         work->field_F06 = 1;
     }
     model      = ((TmdObject*)arg0->extra)->field_8;
-    sc->dir.vx = Wip_SysConfig.field_4->t[0] - model->coord.t[0];
-    sc->dir.vy = Wip_SysConfig.field_4->t[1] - model->coord.t[1];
-    sc->dir.vz = Wip_SysConfig.field_4->t[2] - model->coord.t[2];
+    sc->dir.vx = Player_Status.field_4->t[0] - model->coord.t[0];
+    sc->dir.vy = Player_Status.field_4->t[1] - model->coord.t[1];
+    sc->dir.vz = Player_Status.field_4->t[2] - model->coord.t[2];
     facing     = ((TmdObject*)arg0->extra)->field_8;
     ang        = ratan2(sc->dir.vx, sc->dir.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     if (ang < 0) {
@@ -1070,7 +1070,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200
 ///
 /// The tick runs the per-frame body, steps 0xF to 0xE on the second animation
 /// slot's flag, and while still in 0xF hands the player the launch message
-/// (0x3F9) with `Wip_SysConfig.field_18` as its gate: the two arms either side
+/// (0x3F9) with `Player_Status.hp` as its gate: the two arms either side
 /// of that dispatch write the ramp timings into `Game_Session` and stamp escort
 /// 3. The four one-shot cues all latch on the third animation slot's frame,
 /// masked to ten bits, against the frame `field_7A8` saw last, and once the
@@ -1095,7 +1095,7 @@ void func_actor_403200_8013C84C(Task* arg0)
     Actor403200Work* dying;
     GpEnemy*         enemy;
     Task*            task;
-    WipSysConfig*    cfg;
+    PlayerStatus*    cfg;
     SVECTOR          view;
     SVECTOR*         posp;
     GsCOORDINATE2*   coord;
@@ -1106,7 +1106,7 @@ void func_actor_403200_8013C84C(Task* arg0)
     work  = (Actor403200Work*)arg0->idMap;
     enemy = arg0->spawnArg2;
     task  = Game_GetPtrSlot(3);
-    cfg   = &Wip_SysConfig;
+    cfg   = &Player_Status;
     if (work->field_4 != 0) {
         D_actor_403200_8015F8F4.field_0 = 0;
         D_actor_403200_8015F8F4.field_1 = 0x2C;
@@ -1185,9 +1185,9 @@ void func_actor_403200_8013C84C(Task* arg0)
         work->field_7B3 = 0xE;
     }
     if (work->field_7B3 == 0xF) {
-        if (cfg->field_18 > 0) {
+        if (cfg->hp > 0) {
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 3), 0);
-            if (cfg->field_18 <= 0) {
+            if (cfg->hp <= 0) {
                 ((GameActor*)task->idMap)->field_956 = 0xA;
                 Game_Session->field_12D              = 0x1E;
                 Game_Session->field_12E              = 0x36;
@@ -1232,7 +1232,7 @@ void func_actor_403200_8013C84C(Task* arg0)
         }
         work->field_7A8 = work->field_9A & 0x3FF;
     }
-    if ((Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) && (cfg->field_18 > 0)) {
+    if ((Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) && (cfg->hp > 0)) {
         D_actor_403200_8015F9C0.vx = ((TmdObject*)arg0->extra)->field_8[0].coord.t[0];
         D_actor_403200_8015F9C0.vy = ((TmdObject*)arg0->extra)->field_8[0].coord.t[1];
         D_actor_403200_8015F9C0.vz = ((TmdObject*)arg0->extra)->field_8[0].coord.t[2];
@@ -2019,9 +2019,9 @@ void func_actor_403200_8013EB64(Task* arg0)
 
     coord    = ((TmdObject*)arg0->extra)->field_8;
     view     = &sc->view;
-    view->vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
-    view->vy = Wip_SysConfig.field_4->t[1] - coord->coord.t[1];
-    view->vz = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+    view->vx = Player_Status.field_4->t[0] - coord->coord.t[0];
+    view->vy = Player_Status.field_4->t[1] - coord->coord.t[1];
+    view->vz = Player_Status.field_4->t[2] - coord->coord.t[2];
     facing   = ((TmdObject*)arg0->extra)->field_8;
     angle    = ratan2(view->vx, view->vz) -
             ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);

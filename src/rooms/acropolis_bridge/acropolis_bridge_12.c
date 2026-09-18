@@ -24,8 +24,8 @@ extern u16                   D_acropolis_bridge_80190C60;
 extern void (*D_acropolis_bridge_8019175C[])(Task*);
 extern u8   D_80072728;
 extern u8   D_80072729;
-/// Table of 0x80-byte actor config blocks; `Wip_SysConfig` is entry 1.
-extern WipSysConfig D_80073B08[];
+/// Table of 0x80-byte actor config blocks; `Player_Status` is entry 1.
+extern PlayerStatus D_80073B08[];
 extern u8           D_801153F4;
 extern u16          D_801153F6;
 extern s32          D_80070F70;
@@ -351,7 +351,7 @@ typedef struct AcropolisBridgeNearCfgScratch {
     /* 0x02 */ s16           dy;
     /* 0x04 */ s16           dz;
     /* 0x06 */ byte          pad_6[0x2];
-    /* 0x08 */ WipSysConfig* cfg;
+    /* 0x08 */ PlayerStatus* cfg;
     /* 0x0C */ u32           best;
     /* 0x10 */ u32           dist;
     /* 0x14 */ u8            node;
@@ -908,7 +908,7 @@ static __inline__ void walkerStep(AcropolisBridgeWalkerWork* walker, u8* head,
 {
     u8*            head2;
     SVECTOR3*      pos;
-    WipSysConfig*  cfg;
+    PlayerStatus*  cfg;
     SVECTOR*       sv;
     SVECTOR*       gsv;
     SVECTOR*       step;
@@ -1444,9 +1444,9 @@ void func_acropolis_bridge_80185F28(Task* task)
     AcropolisBridgeWalkerWork* walker;
     AcropolisBridgeWalkerWork* walker2;
     GpEnemy*                   enemy;
-    WipSysConfig*              cfg;
+    PlayerStatus*              cfg;
 
-    cfg   = &Wip_SysConfig;
+    cfg   = &Player_Status;
     work  = (AcropolisBridgeEnemyWork*)task->idMap;
     enemy = (GpEnemy*)task->spawnArg2;
     if (work->field_4 != 0) {
@@ -1542,11 +1542,11 @@ void func_acropolis_bridge_801861A0(Task* task)
     AcropolisBridgeEnemyWork*  work;
     AcropolisBridgeWalkerWork* walker;
     GpEnemy*                   enemy;
-    WipSysConfig*              cfg;
+    PlayerStatus*              cfg;
     s32                        done;
     u16                        height;
 
-    cfg  = &Wip_SysConfig;
+    cfg  = &Player_Status;
     work = (AcropolisBridgeEnemyWork*)task->idMap;
     if (work->field_4 != 0) {
         enemy = (GpEnemy*)task->spawnArg2;
@@ -1607,9 +1607,9 @@ void func_acropolis_bridge_801863A8(Task* task)
     AcropolisBridgeEnemyWork*  work;
     AcropolisBridgeWalkerWork* walker;
     GpEnemy*                   enemy;
-    WipSysConfig*              cfg;
+    PlayerStatus*              cfg;
 
-    cfg   = &Wip_SysConfig;
+    cfg   = &Player_Status;
     work  = (AcropolisBridgeEnemyWork*)task->idMap;
     enemy = (GpEnemy*)task->spawnArg2;
     if (work->field_4 != 0) {

@@ -2408,44 +2408,44 @@ void func_actor_403600_8013CCEC(Actor403600* arg0, s32 arg1)
     temp_s4             = arg0->field_1C;
     temp_s5             = temp_s3;
     if (arg1 == 0) {
-        temp_s3->x            = Wip_SysConfig.field_4->t[0] - D_actor_403600_801605F4[0].x;
-        temp_v1               = Wip_SysConfig.field_4->t[2] - D_actor_403600_801605F4[0].z;
+        temp_s3->x            = Player_Status.field_4->t[0] - D_actor_403600_801605F4[0].x;
+        temp_v1               = Player_Status.field_4->t[2] - D_actor_403600_801605F4[0].z;
         temp_s3->z            = temp_v1;
         temp_v0               = temp_s3->x;
         temp_s3->distances[0] = SquareRoot0((temp_v0 * temp_v0) + (temp_v1 * temp_v1));
 
-        temp_s3->x            = Wip_SysConfig.field_4->t[0] - D_actor_403600_801605F4[1].x;
-        temp_v1_2             = Wip_SysConfig.field_4->t[2] - D_actor_403600_801605F4[1].z;
+        temp_s3->x            = Player_Status.field_4->t[0] - D_actor_403600_801605F4[1].x;
+        temp_v1_2             = Player_Status.field_4->t[2] - D_actor_403600_801605F4[1].z;
         temp_s3->z            = temp_v1_2;
         temp_v0_2             = temp_s3->x;
         temp_s3->distances[1] = SquareRoot0((temp_v0_2 * temp_v0_2) + (temp_v1_2 * temp_v1_2));
 
-        temp_s3->x            = Wip_SysConfig.field_4->t[0] - D_actor_403600_801605F4[2].x;
-        temp_v1_3             = Wip_SysConfig.field_4->t[2] - D_actor_403600_801605F4[2].z;
+        temp_s3->x            = Player_Status.field_4->t[0] - D_actor_403600_801605F4[2].x;
+        temp_v1_3             = Player_Status.field_4->t[2] - D_actor_403600_801605F4[2].z;
         temp_s3->z            = temp_v1_3;
         temp_v0_3             = temp_s3->x;
         temp_s3->distances[2] = SquareRoot0((temp_v0_3 * temp_v0_3) + (temp_v1_3 * temp_v1_3));
 
-        temp_s3->x            = Wip_SysConfig.field_4->t[0] - D_actor_403600_801605F4[3].x;
-        temp_v1_4             = Wip_SysConfig.field_4->t[2] - D_actor_403600_801605F4[3].z;
+        temp_s3->x            = Player_Status.field_4->t[0] - D_actor_403600_801605F4[3].x;
+        temp_v1_4             = Player_Status.field_4->t[2] - D_actor_403600_801605F4[3].z;
         temp_s3->z            = temp_v1_4;
         temp_v0_4             = temp_s3->x;
         temp_s3->distances[3] = SquareRoot0((temp_v0_4 * temp_v0_4) + (temp_v1_4 * temp_v1_4));
 
-        temp_s3->x            = Wip_SysConfig.field_4->t[0] - D_actor_403600_801605F4[4].x;
-        temp_v1_5             = Wip_SysConfig.field_4->t[2] - D_actor_403600_801605F4[4].z;
+        temp_s3->x            = Player_Status.field_4->t[0] - D_actor_403600_801605F4[4].x;
+        temp_v1_5             = Player_Status.field_4->t[2] - D_actor_403600_801605F4[4].z;
         temp_s3->z            = temp_v1_5;
         temp_v0_5             = temp_s3->x;
         temp_s3->distances[4] = SquareRoot0((temp_v0_5 * temp_v0_5) + (temp_v1_5 * temp_v1_5));
 
-        temp_s3->x            = Wip_SysConfig.field_4->t[0] - D_actor_403600_801605F4[5].x;
-        temp_v1_6             = Wip_SysConfig.field_4->t[2] - D_actor_403600_801605F4[5].z;
+        temp_s3->x            = Player_Status.field_4->t[0] - D_actor_403600_801605F4[5].x;
+        temp_v1_6             = Player_Status.field_4->t[2] - D_actor_403600_801605F4[5].z;
         temp_s3->z            = temp_v1_6;
         temp_v0_6             = temp_s3->x;
         temp_s3->distances[5] = SquareRoot0((temp_v0_6 * temp_v0_6) + (temp_v1_6 * temp_v1_6));
 
-        temp_s3->x            = Wip_SysConfig.field_4->t[0] - D_actor_403600_801605F4[6].x;
-        temp_v1_7             = Wip_SysConfig.field_4->t[2] - D_actor_403600_801605F4[6].z;
+        temp_s3->x            = Player_Status.field_4->t[0] - D_actor_403600_801605F4[6].x;
+        temp_v1_7             = Player_Status.field_4->t[2] - D_actor_403600_801605F4[6].z;
         temp_s3->z            = temp_v1_7;
         temp_v0_7             = temp_s3->x;
         temp_s3->distances[6] = SquareRoot0((temp_v0_7 * temp_v0_7) + (temp_v1_7 * temp_v1_7));
@@ -2461,14 +2461,14 @@ void func_actor_403600_8013CCEC(Actor403600* arg0, s32 arg1)
             var_a1 += 1;
         } while ((u32)(var_a1 & 0xFF) < 7U);
     } else {
-        temp_s3->x            = Wip_SysConfig.field_4->t[0] - D_actor_403600_801605F4[7].x;
-        temp_v1_8             = Wip_SysConfig.field_4->t[2] - D_actor_403600_801605F4[7].z;
+        temp_s3->x            = Player_Status.field_4->t[0] - D_actor_403600_801605F4[7].x;
+        temp_v1_8             = Player_Status.field_4->t[2] - D_actor_403600_801605F4[7].z;
         temp_s3->z            = temp_v1_8;
         temp_v0_8             = temp_s3->x;
         temp_s3->distances[0] = SquareRoot0((temp_v0_8 * temp_v0_8) + (temp_v1_8 * temp_v1_8));
 
-        temp_s3->x            = Wip_SysConfig.field_4->t[0] - D_actor_403600_801605F4[8].x;
-        temp_v1_9             = Wip_SysConfig.field_4->t[2] - D_actor_403600_801605F4[8].z;
+        temp_s3->x            = Player_Status.field_4->t[0] - D_actor_403600_801605F4[8].x;
+        temp_v1_9             = Player_Status.field_4->t[2] - D_actor_403600_801605F4[8].z;
         temp_s3->z            = temp_v1_9;
         temp_v0_9             = temp_s3->x;
         temp_v0_10            = SquareRoot0((temp_v0_9 * temp_v0_9) + (temp_v1_9 * temp_v1_9));
@@ -2701,11 +2701,11 @@ s32 func_actor_403600_8013DFE0(Actor403600* arg0)
     switch (temp_v1_3) {
         case 0:
             temp_v1_2->vector[0] =
-                (s16)(Wip_SysConfig.field_4->t[0] - temp_s4->field_4B8.coord.t[0]);
+                (s16)(Player_Status.field_4->t[0] - temp_s4->field_4B8.coord.t[0]);
             temp_v1_2->vector[1] =
-                (s16)(Wip_SysConfig.field_4->t[1] - temp_s4->field_4B8.coord.t[1]);
+                (s16)(Player_Status.field_4->t[1] - temp_s4->field_4B8.coord.t[1]);
             temp_v1_2->vector[2] =
-                (s16)(Wip_SysConfig.field_4->t[2] - temp_s4->field_4B8.coord.t[2]);
+                (s16)(Player_Status.field_4->t[2] - temp_s4->field_4B8.coord.t[2]);
             break;
         case 1:
         case 3:
@@ -2714,11 +2714,11 @@ s32 func_actor_403600_8013DFE0(Actor403600* arg0)
             temp_v1_2->vector[2] = (s16)(temp_s4->field_6F0.vz - temp_s4->field_4B8.coord.t[2]);
             break;
         case 2:
-            temp_s5              = (s16)(Wip_SysConfig.field_4->t[0] - temp_s4->field_4B8.coord.t[0]);
+            temp_s5              = (s16)(Player_Status.field_4->t[0] - temp_s4->field_4B8.coord.t[0]);
             temp_v1_2->vector[1] = 0;
             temp_v1_2->vector[0] = temp_s5;
             temp_v1_2->vector[2] =
-                (s16)(Wip_SysConfig.field_4->t[2] - temp_s4->field_4B8.coord.t[2]);
+                (s16)(Player_Status.field_4->t[2] - temp_s4->field_4B8.coord.t[2]);
             break;
     }
     temp_v0   = temp_v1_2->vector[0];
@@ -2890,10 +2890,10 @@ void func_actor_403600_8013E470(GsCOORDINATE2* arg0, s32* arg1, s32* arg2)
     } else if (angle < -0x800) {
         *arg2 = angle + 0x1000;
     }
-    x                            = Wip_SysConfig.field_4->t[0] - arg0->coord.t[0];
+    x                            = Player_Status.field_4->t[0] - arg0->coord.t[0];
     *(s32*)((s8*)scratch + 0x20) = x;
-    *(s32*)((s8*)scratch + 0x24) = Wip_SysConfig.field_4->t[1] - arg0->coord.t[1];
-    z                            = Wip_SysConfig.field_4->t[2] - arg0->coord.t[2];
+    *(s32*)((s8*)scratch + 0x24) = Player_Status.field_4->t[1] - arg0->coord.t[1];
+    z                            = Player_Status.field_4->t[2] - arg0->coord.t[2];
     *(s32*)((s8*)scratch + 0x28) = z;
     *arg1                        = SquareRoot0((x * x) + (z * z));
     *(void**)0x1F8003FC          = *(void**)0x1F8003FC + 0x7C;

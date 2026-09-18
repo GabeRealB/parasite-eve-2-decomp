@@ -13,7 +13,7 @@
 #include "main/wipsys.h"
 #include "weapons/gunblade.h"
 
-/// `Wip_SysConfig.field_22`, the attachment id of the held weapon, read under
+/// `Player_Status.field_22`, the attachment id of the held weapon, read under
 /// its own address wherever the value is wanted once rather than as one of a
 /// run of accesses to the config block.
 extern u8 D_80073BAA;
@@ -107,15 +107,15 @@ void func_gunblade_8011E040(GpActorWork* arg0)
             actor->field_95E = 6;
             ((GpActorD4Rec*)actor->field_14C)->field_4 =
                 ((GpActorD4Rec*)actor->field_14C)->field_C + 0x2200;
-            actor->field_124 = Wip_SysConfig.field_22 | 0x21700;
+            actor->field_124 = Player_Status.field_22 | 0x21700;
             rec->field_12    = 0x100;
             rec->field_4     = rec->field_C + 0x2200;
             spread           = 0x900;
-            if (Wip_SysConfig.field_22 != 0xD) {
+            if (Player_Status.field_22 != 0xD) {
                 spread = 0x100;
             }
             rec->field_10 = spread;
-            if (Wip_SysConfig.field_22 == 0xE) {
+            if (Player_Status.field_22 == 0xE) {
                 actor->field_12A |= 0x800;
             } else {
                 actor->field_12A &= 0xF7FF;
@@ -150,8 +150,8 @@ void func_gunblade_8011E040(GpActorWork* arg0)
             if (actor->field_95E == 4 && (s8)func_801060E0(arg0) == 2) {
                 actor->field_95E = 5;
                 if (func_80106264(1) != 0) {
-                    if (Wip_SysConfig.field_22 < 0xF) {
-                        lvl = Wip_SysConfig.field_22 + 0xB;
+                    if (Player_Status.field_22 < 0xF) {
+                        lvl = Player_Status.field_22 + 0xB;
                     } else {
                         lvl = 0x20;
                     }
@@ -175,9 +175,9 @@ void func_gunblade_8011E040(GpActorWork* arg0)
             break;
         case 6:
             actor->field_95E++;
-            if (Wip_SysConfig.field_22 != 0xD) {
+            if (Player_Status.field_22 != 0xD) {
                 hit = Gp_PickNearestRec18(actor->field_32C, coord, &blk->coord);
-                if (Wip_SysConfig.field_22 == 0xE) {
+                if (Player_Status.field_22 == 0xE) {
                     if (hit != 0 || Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
                         blk->coord.workm.t[0] = actor->field_32C[0].field_8;
                         blk->coord.workm.t[1] = actor->field_32C[0].field_A;

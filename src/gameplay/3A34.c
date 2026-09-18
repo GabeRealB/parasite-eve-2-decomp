@@ -53,7 +53,7 @@ extern GpItemRec* Gp_SelItemRec;
 
 s32 Gp_ApplyItemUse(GpItemRec* arg0)
 {
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     GameActor*    actor;
     GpItemScan*   scanEquip;
     GpItemScan*   scanQty;
@@ -83,7 +83,7 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
     flag  = 1;
     id    = arg0->field_0;
     actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
-    cfg   = &Wip_SysConfig;
+    cfg   = &Player_Status;
 
     if (id != 0) {
         if ((u32)(id - 0x80) < 0x20U) {
@@ -211,16 +211,16 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                     case 1:
                     case 2:
                     case 3:
-                        if (cfg->field_18 < cfg->field_1a) {
+                        if (cfg->hp < cfg->hpMax) {
                             if (id == 1) {
-                                cfg->field_18 += 0x2D;
+                                cfg->hp += 0x2D;
                             } else if (id == 2) {
-                                cfg->field_18 += 0x5A;
+                                cfg->hp += 0x5A;
                             } else {
-                                cfg->field_18 += 0x96;
+                                cfg->hp += 0x96;
                             }
-                            if (cfg->field_18 > cfg->field_1a) {
-                                cfg->field_18 = cfg->field_1a;
+                            if (cfg->hp > cfg->hpMax) {
+                                cfg->hp = cfg->hpMax;
                             }
                             Gp_HealPending = 1;
                             ret            = 1;
@@ -233,7 +233,7 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                         Gp_RecalcMaxHp();
                         Gp_HealPending = 1;
                         ret            = 1;
-                        cfg->field_18  = cfg->field_1a;
+                        cfg->hp        = cfg->hpMax;
                         break;
                     case 4:
                         Gp_TriggerPeState(1, 0xD0);
@@ -244,14 +244,14 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                         ret = Gp_HealPending = Gp_StateC08.field_17 = 1;
                         break;
                     case 5:
-                        if (cfg->field_1c < cfg->field_1e || cfg->field_18 < cfg->field_1a) {
-                            cfg->field_1c += 0x50;
-                            cfg->field_18 += 0x14;
-                            if (cfg->field_1c > cfg->field_1e) {
-                                cfg->field_1c = cfg->field_1e;
+                        if (cfg->mp < cfg->mpMax || cfg->hp < cfg->hpMax) {
+                            cfg->mp += 0x50;
+                            cfg->hp += 0x14;
+                            if (cfg->mp > cfg->mpMax) {
+                                cfg->mp = cfg->mpMax;
                             }
-                            if (cfg->field_18 > cfg->field_1a) {
-                                cfg->field_18 = cfg->field_1a;
+                            if (cfg->hp > cfg->hpMax) {
+                                cfg->hp = cfg->hpMax;
                             }
                             Gp_HealPending = 1;
                             ret            = 1;
@@ -259,14 +259,14 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                         break;
                     case 6:
                     case 7:
-                        if (cfg->field_1c < cfg->field_1e) {
+                        if (cfg->mp < cfg->mpMax) {
                             if (id == 6) {
-                                cfg->field_1c += 0x19;
+                                cfg->mp += 0x19;
                             } else {
-                                cfg->field_1c += 0x64;
+                                cfg->mp += 0x64;
                             }
-                            if (cfg->field_1c > cfg->field_1e) {
-                                cfg->field_1c = cfg->field_1e;
+                            if (cfg->mp > cfg->mpMax) {
+                                cfg->mp = cfg->mpMax;
                             }
                             Gp_HealPending = 1;
                             ret            = 1;
@@ -288,10 +288,10 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                         ret           = 1;
                         break;
                     case 0x3D:
-                        if (cfg->field_1c < cfg->field_1e || cfg->field_18 < cfg->field_1a) {
-                            cfg->field_1c  = cfg->field_1e;
+                        if (cfg->mp < cfg->mpMax || cfg->hp < cfg->hpMax) {
+                            cfg->mp        = cfg->mpMax;
                             Gp_HealPending = 1;
-                            cfg->field_18  = cfg->field_1a;
+                            cfg->hp        = cfg->hpMax;
                         }
                         Gp_HealPending = 1;
                         ret            = 1;
@@ -316,13 +316,13 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
 
 s32 Gp_ItemIsUnusable(s32 arg0, GpItemRec* arg1)
 {
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     GpItemScan*   scan;
     s32           ret;
     s32           val;
 
     ret = 1;
-    cfg = &Wip_SysConfig;
+    cfg = &Player_Status;
     if (arg0 != 0) {
         if ((u32)(arg0 - 0x80) < 0x20U) {
             ret = 0;
@@ -339,7 +339,7 @@ s32 Gp_ItemIsUnusable(s32 arg0, GpItemRec* arg1)
                 case 1:
                 case 2:
                 case 3:
-                    if (cfg->field_18 < cfg->field_1a) {
+                    if (cfg->hp < cfg->hpMax) {
                         ret = 0;
                     }
                     break;
@@ -354,15 +354,15 @@ s32 Gp_ItemIsUnusable(s32 arg0, GpItemRec* arg1)
                     }
                     break;
                 case 5:
-                    if (cfg->field_1c < cfg->field_1e) {
+                    if (cfg->mp < cfg->mpMax) {
                         ret = 0;
-                    } else if (cfg->field_18 < cfg->field_1a) {
+                    } else if (cfg->hp < cfg->hpMax) {
                         ret = 0;
                     }
                     break;
                 case 6:
                 case 7:
-                    if (cfg->field_1c < cfg->field_1e) {
+                    if (cfg->mp < cfg->mpMax) {
                         ret = 0;
                     }
                     break;
@@ -373,9 +373,9 @@ s32 Gp_ItemIsUnusable(s32 arg0, GpItemRec* arg1)
                     ret = 0;
                     break;
                 case 0x3D:
-                    if (cfg->field_1c < cfg->field_1e) {
+                    if (cfg->mp < cfg->mpMax) {
                         ret = 0;
-                    } else if (cfg->field_18 < cfg->field_1a) {
+                    } else if (cfg->hp < cfg->hpMax) {
                         ret = 0;
                     }
                     break;
@@ -426,7 +426,7 @@ void func_800D6334(Task* task)
     s32         labelY;
 
     scan            = NULL;
-    armor           = Wip_SysConfig.field_23 + 0x5F;
+    armor           = Player_Status.field_23 + 0x5F;
     panel           = task->spawnArg2;
     panel->field_2E = 0;
     panel->field_E  = 0x1C - Display_State.vramYOffset;
@@ -1801,7 +1801,7 @@ void Gp_DebugPanTask(Task* arg0)
 {
     GpActorWork*   slot;
     GpActorWork*   work;
-    WipSysConfig*  cfg;
+    PlayerStatus*  cfg;
     TmdObject*     extra;
     GsCOORDINATE2* coord;
     GameActor*     actor;
@@ -1817,7 +1817,7 @@ void Gp_DebugPanTask(Task* arg0)
     s32            val;
 
     slot = Game_GetPtrSlot(3);
-    cfg  = &Wip_SysConfig;
+    cfg  = &Player_Status;
     if (slot == NULL) {
         return;
     }
@@ -1873,7 +1873,7 @@ void Gp_DebugPanTask(Task* arg0)
             mtx->m[1][0] = mtx->m[1][1] = mtx->m[1][2] = val;
             mtx->m[2][0] = mtx->m[2][1] = mtx->m[2][2] = 0x200;
             D_80114F28                                 = 0;
-        } else if (((u32)Display_State.field_8 % 3) == 0 && cfg->field_18 > 0 && Game_Session->field_1 == 0) {
+        } else if (((u32)Display_State.field_8 % 3) == 0 && cfg->hp > 0 && Game_Session->field_1 == 0) {
             {
                 register MATRIX* colorMtx asm("v0");
                 if (Gp_StateC08.field_14 > 0 || (Gp_StateC08.field_16 != 0 && (s8)Gp_StateC08.field_17 != 0)) {
@@ -6649,7 +6649,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
         raw  = Gp_IdParamLo[lo].field_0;
         base = raw << 8;
         if (flag != 0) {
-            if ((Wip_SysConfig.field_25 & 0x80) != 0) {
+            if ((Player_Status.field_25 & 0x80) != 0) {
                 base = base * 150 / 100;
             }
         }
@@ -6751,7 +6751,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
         register s32 col asm("v1");
         s32          row;
 
-        hp    = Wip_SysConfig.field_18;
+        hp    = Player_Status.hp;
         table = Gp_DmgRows;
         cols  = D_80113F54;
         addr  = (s32)&cols[hp / 10];

@@ -4634,14 +4634,14 @@ void Gp_TickPlayClock(Task* task)
     u8            buf[0x20];
     GpIdMap30*    rec;
     McSaveData*   save;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     GameSession*  session;
     s32           one;
     s32           temp;
     s32           companion;
 
     rec = (GpIdMap30*)task->idMap;
-    cfg = &Wip_SysConfig;
+    cfg = &Player_Status;
     Gp_UpdatePadInput();
 
     temp         = Display_State.field_4;
@@ -4684,7 +4684,7 @@ void Gp_TickPlayClock(Task* task)
     }
 
     if (Game_Session->field_127 == 0) {
-        if (cfg->field_18 > 0) {
+        if (cfg->hp > 0) {
             companion = save->field_13;
             if (companion == one) {
                 if ((s16)save->field_6C8 <= 0) {
@@ -4698,13 +4698,13 @@ void Gp_TickPlayClock(Task* task)
                 goto block_normal;
             }
         block_hp:
-            if (cfg->field_18 > 0) {
+            if (cfg->hp > 0) {
                 goto block_companion;
             }
         }
 
         if (Game_Session->field_1 != 0) {
-            cfg->field_18 = 1;
+            cfg->hp = 1;
             return;
         }
         Gp_StateC08.field_3 = 0;
@@ -4879,7 +4879,7 @@ void func_800A087C(Task* arg0)
     TextDrawReq   req10;
     TextDrawReq   req11;
     UiObject*     obj;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     s32           col;
     s32           step;
     s32           color;
@@ -4893,7 +4893,7 @@ void func_800A087C(Task* arg0)
     u8*           hpText;
     s16           by;
 
-    cfg = &Wip_SysConfig;
+    cfg = &Player_Status;
     obj = arg0->spawnArg2;
     if (arg0->state == 0) {
         if (arg0->spawnArg1 == 0) {
@@ -4909,11 +4909,11 @@ void func_800A087C(Task* arg0)
                 }
             }
             if (func_800B9D80(0x1000) != 0) {
-                add            = (u16)Gp_StateF0.field_10;
-                D_80114BE2     = add;
-                cfg->field_18 += add;
-                if (cfg->field_18 >= cfg->field_1a) {
-                    cfg->field_18 = cfg->field_1a;
+                add        = (u16)Gp_StateF0.field_10;
+                D_80114BE2 = add;
+                cfg->hp   += add;
+                if (cfg->hp >= cfg->hpMax) {
+                    cfg->hp = cfg->hpMax;
                 }
             }
         } else {
@@ -4934,9 +4934,9 @@ void func_800A087C(Task* arg0)
         if (cfg->field_8 > 999999) {
             cfg->field_8 = 999999;
         }
-        cfg->field_1c += D_80114BE0 + D_80114BE4;
-        if (cfg->field_1c > cfg->field_1e) {
-            cfg->field_1c = cfg->field_1e;
+        cfg->mp += D_80114BE0 + D_80114BE4;
+        if (cfg->mp > cfg->mpMax) {
+            cfg->mp = cfg->mpMax;
         }
         arg0->killCountdown = 0;
         arg0->state++;
@@ -5088,7 +5088,7 @@ void func_800A087C(Task* arg0)
             req9.glyphTable = 0;
             req9.centerMode = 2;
             req9.field_E    = 3;
-            func_8002E53C(&req9, Text_ItoaUnsigned(buf, cfg->field_18));
+            func_8002E53C(&req9, Text_ItoaUnsigned(buf, cfg->hp));
         }
         y -= step;
     }
@@ -5100,7 +5100,7 @@ void func_800A087C(Task* arg0)
         req9.glyphTable = 0;
         req9.centerMode = 2;
         req9.field_E    = 3;
-        func_8002E53C(&req9, Text_ItoaUnsigned(buf, cfg->field_1c));
+        func_8002E53C(&req9, Text_ItoaUnsigned(buf, cfg->mp));
     }
     y -= step;
     if (arg0->killCountdown >= 0x51) {
@@ -5276,7 +5276,7 @@ void Gp_AreaEnterTask(Task* arg0)
 
 u16 Gp_GetAttachParam(s32 arg0)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     s32           cond;
     s32           ret;
     u8*           table;
@@ -5289,7 +5289,7 @@ u16 Gp_GetAttachParam(s32 arg0)
     if (idx >= 0xC) {
         ret = 1;
     } else {
-        p = &Wip_SysConfig;
+        p = &Player_Status;
         if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
             cond = 0;
         } else {
@@ -5318,7 +5318,7 @@ u16 Gp_GetAttachParam(s32 arg0)
 
 void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     GpStateF0*    state;
     GpRec8*       rec;
     s32           cond;
@@ -5341,7 +5341,7 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
     if (idx >= 0xC) {
         ret = 1;
     } else {
-        p = &Wip_SysConfig;
+        p = &Player_Status;
         if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
             cond = 0;
         } else {
@@ -5432,7 +5432,7 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     TextDrawReq   req;
     TextDrawReq   req2;
     RECT          rect;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     GpItemSlot*   slot;
     s32           item;
     s32           count2;
@@ -5443,7 +5443,7 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     s32           y;
     s32           t;
 
-    cfg    = &Wip_SysConfig;
+    cfg    = &Player_Status;
     slot   = Gp_GetItemSlot(cfg->field_21 + 0x7F);
     count2 = -1;
     if (Pad_RemapState->field_A != 0) {
@@ -5621,8 +5621,8 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
 
 s32 Gp_CheckAttachThreshold(s32 arg0)
 {
-    WipSysConfig*     cfg;
-    WipSysConfig*     p;
+    PlayerStatus*     cfg;
+    PlayerStatus*     p;
     register s32      result asm("t0");
     register s32      ret asm("v1");
     s32               n;
@@ -5635,7 +5635,7 @@ s32 Gp_CheckAttachThreshold(s32 arg0)
     s32               flag;
     u16               val;
 
-    cfg    = &Wip_SysConfig;
+    cfg    = &Player_Status;
     result = 0;
     if (arg0 >= 0xC) {
         ret = 1;
@@ -5678,11 +5678,11 @@ s32 Gp_CheckAttachThreshold(s32 arg0)
         TOUCH_REG(off);
         off += (s32)recs;
         val  = *(u16*)off;
-        if (cfg->field_1c < val) {
+        if (cfg->mp < val) {
             result = 1;
         } else if (arg0 != 7) {
             result = 1;
-        } else if (cfg->field_1a == cfg->field_18) {
+        } else if (cfg->hpMax == cfg->hp) {
             result = 1;
         }
     } else if (arg0 < 0xC) {
@@ -5697,7 +5697,7 @@ s32 Gp_CheckAttachThreshold(s32 arg0)
                 TOUCH_REG(off);
                 off += (s32)recs;
                 val  = *(u16*)off;
-                if (cfg->field_1c < val) {
+                if (cfg->mp < val) {
                     if (Mc_SaveData.field_5C2 == 0) {
                         result = 1;
                         goto done;
@@ -5714,7 +5714,7 @@ s32 Gp_CheckAttachThreshold(s32 arg0)
                 }
             }
             if (arg0 == 7) {
-                if (cfg->field_1a == cfg->field_18) {
+                if (cfg->hpMax == cfg->hp) {
                     if (Mc_SaveData.field_5C2 == 0) {
                         result = 1;
                         goto done;
@@ -5738,7 +5738,7 @@ s32 Gp_CheckAttachThreshold(s32 arg0)
                     TOUCH_REG(off);
                     off += (s32)recs;
                     val  = *(u16*)off;
-                    if (val * 2 >= cfg->field_18) {
+                    if (val * 2 >= cfg->hp) {
                         result = 1;
                     }
                 }
@@ -5753,7 +5753,7 @@ done:
 void Gp_SetAttachState(s32 arg0)
 {
     GpStateC08*   p;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     s32           cond;
     s32           ret;
     u8*           table;
@@ -5781,7 +5781,7 @@ void Gp_SetAttachState(s32 arg0)
     SCHED_BARRIER();
     ret = 1;
     if (n < 0xC) {
-        cfg = &Wip_SysConfig;
+        cfg = &Player_Status;
         if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
             cond = 0;
         } else {
@@ -5826,11 +5826,11 @@ void Gp_SetAttachState(s32 arg0)
 
 static __inline__ s32 stepAttachWheelSaved(s32 arg0, s32 arg1, McSaveData* save)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     s32           cond;
     u8*           table;
 
-    p = &Wip_SysConfig;
+    p = &Player_Status;
     if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
         cond = 0;
     } else {
@@ -5867,12 +5867,12 @@ static __inline__ s32 stepAttachWheelSaved(s32 arg0, s32 arg1, McSaveData* save)
 
 static __inline__ s32 stepAttachWheel(s32 arg0, s32 arg1)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     McSaveData*   save;
     s32           cond;
     u8*           table;
 
-    p = &Wip_SysConfig;
+    p = &Player_Status;
     if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
         cond = 0;
     } else {
@@ -5910,7 +5910,7 @@ static __inline__ s32 stepAttachWheel(s32 arg0, s32 arg1)
 
 static __inline__ s32 getAttachWheelLevel(s32 idx)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     u8*           table;
     s32           cond;
     s32           lvl;
@@ -5918,7 +5918,7 @@ static __inline__ s32 getAttachWheelLevel(s32 idx)
     if (idx >= 0xC) {
         lvl = 1;
     } else {
-        p = &Wip_SysConfig;
+        p = &Player_Status;
         if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
             cond = 0;
         } else {
@@ -5978,7 +5978,7 @@ s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
     s32                 changed;
     s32                 xOff;
     s32                 yOff;
-    WipSysConfig*       cfg;
+    PlayerStatus*       cfg;
     McSaveData*         save;
     u8*                 table;
     GpStateC08*         c08;
@@ -6016,7 +6016,7 @@ s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
 
     changed               = 0;
     Game_Session->field_2 = 1;
-    cfg                   = &Wip_SysConfig;
+    cfg                   = &Player_Status;
     count                 = 0;
     if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
         cond = 0;
@@ -6294,10 +6294,10 @@ void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
 /// Inline copy of `Gp_GetAttachLevels`.
 static __inline__ u8* getAttachLevels(void)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     s32           cond;
 
-    p = &Wip_SysConfig;
+    p = &Player_Status;
     if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
         cond = 0;
     } else {
@@ -6312,7 +6312,7 @@ static __inline__ u8* getAttachLevels(void)
 /// Inline copy of `Gp_GetAttachLevel`.
 static __inline__ s32 getAttachLevel(s32 idx)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     u8*           table;
     s32           cond;
     s32           lvl;
@@ -6320,7 +6320,7 @@ static __inline__ s32 getAttachLevel(s32 idx)
     if (idx >= 0xC) {
         lvl = 1;
     } else {
-        p = &Wip_SysConfig;
+        p = &Player_Status;
         if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
             cond = 0;
         } else {
@@ -6349,7 +6349,7 @@ static __inline__ s32 hudSwapReady(void)
 {
     GpActorWork*  work;
     GameActor*    actor;
-    WipSysConfig* p;
+    PlayerStatus* p;
     s32           flag;
     s32           ret;
 
@@ -6357,7 +6357,7 @@ static __inline__ s32 hudSwapReady(void)
     work = Gp_ActorSlots[0];
     if (work != NULL) {
         actor = work->actor;
-        p     = &Wip_SysConfig;
+        p     = &Player_Status;
         if (actor->field_954 == 0) {
             if (actor->field_956 == 0 || actor->field_956 == 2) {
                 if (Game_Session->field_13A == 0) {
@@ -6438,7 +6438,7 @@ static __inline__ u8 stateF0Gate_(void)
 
 void Gp_UseItemTask(GpIdMapC* arg0)
 {
-    WipSysConfig*      cfg;
+    PlayerStatus*      cfg;
     GpActorWork*       work;
     GameActor*         actor;
     volatile PadState* pad;
@@ -6453,7 +6453,7 @@ void Gp_UseItemTask(GpIdMapC* arg0)
     u8                 side;
     u16                mask;
 
-    cfg            = &Wip_SysConfig;
+    cfg            = &Player_Status;
     flag           = 0;
     arg0->field_10 = 0;
     if (Gp_StateC08.field_8 == 1) {
@@ -6559,14 +6559,14 @@ void Gp_UseItemTask(GpIdMapC* arg0)
                 Gp_ItemGrantCooldown = 0x14;
                 CdCmd_EnqueueLoadFile(0, 0, 4);
                 if (cfg->field_25 & 0x80) {
-                    cfg->field_18 -= Gp_GetAttachParam(2) * 2;
-                    if (cfg->field_18 <= 0) {
-                        cfg->field_18 = 1;
+                    cfg->hp -= Gp_GetAttachParam(2) * 2;
+                    if (cfg->hp <= 0) {
+                        cfg->hp = 1;
                     }
                 } else {
-                    cfg->field_1c -= Gp_GetAttachParam(2);
-                    if (cfg->field_1c < 0) {
-                        cfg->field_1c = 0;
+                    cfg->mp -= Gp_GetAttachParam(2);
+                    if (cfg->mp < 0) {
+                        cfg->mp = 0;
                     }
                 }
                 if (Gp_StateC08.field_5 >= 0xC) {
@@ -6647,7 +6647,7 @@ void Gp_UseItemTask(GpIdMapC* arg0)
 void Gp_HudTask(GpIdMapC* arg0)
 {
     DisplayState* ds;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     GpStateC08*   c08;
     GpStateF0*    f0;
     Task*         slot;
@@ -6663,7 +6663,7 @@ void Gp_HudTask(GpIdMapC* arg0)
     bad   = 0;
     kind  = *(u32*)&Game_Session->field_4;
     kind &= 0xFFFF0000;
-    cfg   = &Wip_SysConfig;
+    cfg   = &Player_Status;
     ds    = &Display_State;
     if (ds->field_12c != 0) {
         poly           = (POLY_FT4*)Gpu_PrimCursor;
@@ -6776,11 +6776,11 @@ void Gp_HudTask(GpIdMapC* arg0)
             work = Gp_ActorSlots[0];
             if (work != NULL) {
                 GameActor*    actor;
-                WipSysConfig* p;
+                PlayerStatus* p;
                 s32           mode;
 
                 actor = work->actor;
-                p     = &Wip_SysConfig;
+                p     = &Player_Status;
                 if (actor->field_954 == 0) {
                     mode = actor->field_956;
                     if (mode == 0 || mode == 2) {
@@ -6807,7 +6807,7 @@ void Gp_HudTask(GpIdMapC* arg0)
             if (ok == 0) {
                 goto after;
             }
-            if (Wip_SysConfig.field_23 == 0) {
+            if (Player_Status.field_23 == 0) {
                 goto after;
             }
             arg0->field_14 = 0x42;
@@ -6816,10 +6816,10 @@ void Gp_HudTask(GpIdMapC* arg0)
         }
         if (Pad_CheckButtons(0, 1, 0x100) != 0) {
             if (arg0->field_0 != 0) {
-                WipSysConfig* p;
+                PlayerStatus* p;
                 s32           cond;
 
-                p = &Wip_SysConfig;
+                p = &Player_Status;
                 if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
                     cond = 0;
                 } else {
@@ -6896,7 +6896,7 @@ after:
                     goto inc1;
                 }
                 work = Game_GetPtrSlot(3);
-                func_80106350(work, Wip_SysConfig.field_21, 0);
+                func_80106350(work, Player_Status.field_21, 0);
                 if (Game_Session->field_69 & 0x40) {
                     Gp_MsgPlayerWeapon(0);
                 }
@@ -6951,7 +6951,7 @@ after:
             s32           hit;
             s32           flags;
             s32           item;
-            WipSysConfig* p;
+            PlayerStatus* p;
             s32           cond;
 
             GpStateF0*   p2;
@@ -6985,7 +6985,7 @@ after:
                     Gp_DispatchMsg((Task*)w, 0x3F1, 2, 0);
                 }
             }
-            p    = &Wip_SysConfig;
+            p    = &Player_Status;
             item = p->field_21 + 0x7F;
             Gp_FillRelated(item, 0);
             Gp_FillRelated(item, 1);
@@ -7005,12 +7005,12 @@ after:
             goto tail;
         }
         if (sub == 4 && bad == 0) {
-            WipSysConfig* p;
+            PlayerStatus* p;
             s32           cond;
             DisplayState* d4;
             GpStateC08*   q;
 
-            p = &Wip_SysConfig;
+            p = &Player_Status;
             if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
                 cond = 0;
             } else {
@@ -7120,7 +7120,7 @@ end:
 
 void Gp_UpdateAttachCombo(s32 arg0)
 {
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     GpStateC08*   c08;
     s32           val;
 
@@ -7129,7 +7129,7 @@ void Gp_UpdateAttachCombo(s32 arg0)
         return;
     }
 
-    cfg = &Wip_SysConfig;
+    cfg = &Player_Status;
     TOUCH_REG(arg0);
     val = Gp_StateC08.field_0;
     c08 = &Gp_StateC08;
@@ -7270,9 +7270,9 @@ do_random:
     }
     result = r;
 add_hp:
-    cfg->field_18 += result;
-    if (cfg->field_1a < cfg->field_18) {
-        cfg->field_18 = cfg->field_1a;
+    cfg->hp += result;
+    if (cfg->hpMax < cfg->hp) {
+        cfg->hp = cfg->hpMax;
     }
 }
 }
@@ -7651,7 +7651,7 @@ void func_800A57B0(GpIdMapC* arg0)
     SPRT *         sp1, *sp3, *sp5;
     POLY_FT4 *     poly1, *poly2;
     DR_TPAGE*      tp;
-    WipSysConfig*  cfg;
+    PlayerStatus*  cfg;
     s32            pendingHp;
     s32            y;
     s32            hp;
@@ -7674,7 +7674,7 @@ void func_800A57B0(GpIdMapC* arg0)
     s32            textOrderStep;
     GpStateBE8*    be8;
 
-    cfg       = &Wip_SysConfig;
+    cfg       = &Player_Status;
     remap     = Pad_RemapState;
     x         = -0x98;
     pendingHp = 0;
@@ -7683,15 +7683,15 @@ void func_800A57B0(GpIdMapC* arg0)
         return;
     }
 
-    if (cfg->field_18 < Gp_HpMpWork.field_0) {
+    if (cfg->hp < Gp_HpMpWork.field_0) {
         Gp_HpMpWork.field_0 = Gp_HpMpWork.field_0 - 1;
-    } else if (Gp_HpMpWork.field_0 < cfg->field_18) {
+    } else if (Gp_HpMpWork.field_0 < cfg->hp) {
         Gp_HpMpWork.field_0 = Gp_HpMpWork.field_0 + 1;
     }
     be8 = &Gp_HpMpWork;
-    if (cfg->field_1c < be8->field_4) {
+    if (cfg->mp < be8->field_4) {
         be8->field_4 = be8->field_4 - 1;
-    } else if (be8->field_4 < cfg->field_1c) {
+    } else if (be8->field_4 < cfg->mp) {
         be8->field_4 = be8->field_4 + 1;
     }
 
@@ -7712,7 +7712,7 @@ void func_800A57B0(GpIdMapC* arg0)
     hp    = Gp_HpMpWork.field_0;
     mp    = Gp_HpMpWork.field_4;
 
-    valHp = cfg->field_18;
+    valHp = cfg->hp;
     txHp  = x + 0x2B;
     ty    = y + 0xA;
     if (valHp < 0) {
@@ -7730,7 +7730,7 @@ void func_800A57B0(GpIdMapC* arg0)
     func_8002E53C(reqPtr, text);
     DEF_REG(reqPtr);
 
-    valMp = cfg->field_1c;
+    valMp = cfg->mp;
     txMp  = x + 0x56;
     ty    = y + 0xA;
     if (valMp < 0) {
@@ -7774,9 +7774,9 @@ void func_800A57B0(GpIdMapC* arg0)
     func_8002E53C(loc.s.req, Gp_StrMP);
 
     if (hp > 0) {
-        if (cfg->field_1a > 0) {
+        if (cfg->hpMax > 0) {
             if (hp >= pendingHp) {
-                w1 = (hp - pendingHp) * 0x25 / cfg->field_1a;
+                w1 = (hp - pendingHp) * 0x25 / cfg->hpMax;
                 if (w1 >= 0x26) {
                     w1 = 0x25;
                 } else if (w1 < 0) {
@@ -7785,7 +7785,7 @@ void func_800A57B0(GpIdMapC* arg0)
             } else {
                 w1 = 0;
             }
-            w2 = hp * 0x25 / cfg->field_1a;
+            w2 = hp * 0x25 / cfg->hpMax;
             if (w2 >= 0x26) {
                 w2 = 0x25;
             }
@@ -7819,12 +7819,12 @@ void func_800A57B0(GpIdMapC* arg0)
         }
     }
 
-    if (cfg->field_1e <= 0) {
+    if (cfg->mpMax <= 0) {
         w1 = 0;
         w2 = w1;
     } else {
         if (mp >= pendingMp) {
-            w1 = (mp - pendingMp) * 0x25 / cfg->field_1e;
+            w1 = (mp - pendingMp) * 0x25 / cfg->mpMax;
             if (w1 >= 0x26) {
                 w1 = 0x25;
             } else if (w1 < 0) {
@@ -7833,7 +7833,7 @@ void func_800A57B0(GpIdMapC* arg0)
         } else {
             w1 = 0;
         }
-        w2 = mp * 0x25 / cfg->field_1e;
+        w2 = mp * 0x25 / cfg->mpMax;
         if (w2 >= 0x26) {
             w2 = 0x25;
         }
@@ -8523,12 +8523,12 @@ void Gp_StartAreaBgm(s16* arg0)
     register s32  three asm("s2");
     GameSession*  sess;
     GameSession*  next;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     s8            type;
     u8            mode;
 
     dest  = arg0;
-    cfg   = &Wip_SysConfig;
+    cfg   = &Player_Status;
     mode  = Game_Session->field_128;
     three = 3;
     if (mode == three) {
@@ -8550,7 +8550,7 @@ void Gp_StartAreaBgm(s16* arg0)
         if (next->field_12D >= 0) {
             return;
         }
-        if (cfg->field_18 <= 0) {
+        if (cfg->hp <= 0) {
             SndEvt_EnqueueType6((next->field_0 << 16) | 0x70000001, 0, 0);
         } else {
             type = Mc_SaveData.field_13;
@@ -8567,10 +8567,10 @@ void Gp_StartAreaBgm(s16* arg0)
 
 u8* Gp_GetAttachLevels(void)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     s32           cond;
 
-    p = &Wip_SysConfig;
+    p = &Player_Status;
     if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
         cond = 0;
     } else {
@@ -8584,9 +8584,9 @@ u8* Gp_GetAttachLevels(void)
 
 s32 Gp_IsDebugAttachRoom(void)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
 
-    p = &Wip_SysConfig;
+    p = &Player_Status;
     if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
         return 0;
     }
@@ -8612,14 +8612,14 @@ s32 func_800A7550(void)
 
 void Gp_ResetHudFx(GpIdMapC* arg0)
 {
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     GpStateBE8*   be8;
     GpStateC08*   p;
 
-    cfg                     = &Wip_SysConfig;
+    cfg                     = &Player_Status;
     be8                     = &Gp_HpMpWork;
-    be8->field_0            = cfg->field_18;
-    be8->field_4            = cfg->field_1c;
+    be8->field_0            = cfg->hp;
+    be8->field_4            = cfg->mp;
     arg0->field_16          = -1;
     arg0->field_18          = 0;
     p                       = &Gp_StateC08;
@@ -8806,14 +8806,14 @@ s32 func_800A7AE4(s32 arg0, s32 arg1)
 
 s32 Gp_GetAttachLevel(s32 arg0)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     s32           cond;
     s32           ret;
     u8*           table;
 
     ret = 1;
     if (arg0 < 0xC) {
-        p = &Wip_SysConfig;
+        p = &Player_Status;
         if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
             cond = 0;
         } else {
@@ -8839,12 +8839,12 @@ s32 Gp_GetAttachLevel(s32 arg0)
 
 s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     McSaveData*   save;
     s32           cond;
     u8*           table;
 
-    p = &Wip_SysConfig;
+    p = &Player_Status;
     if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
         cond = 0;
     } else {
@@ -8963,14 +8963,14 @@ s32 func_800A7E5C(s32 arg0)
 {
     GpActorWork*  work;
     GameActor*    actor;
-    WipSysConfig* p;
+    PlayerStatus* p;
     s32           flag;
 
     flag = 0;
     work = Gp_ActorSlots[0];
     if (work != NULL) {
         actor = work->actor;
-        p     = &Wip_SysConfig;
+        p     = &Player_Status;
         if (actor->field_954 == 0) {
             if (actor->field_956 == 0 || actor->field_956 == 2) {
                 if (Game_Session->field_13A == 0) {
@@ -9007,16 +9007,16 @@ s32 func_800A7F2C(s32 arg0)
 
 s32 Gp_SpendMp(s32 arg0)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     s32           ret;
 
-    p   = &Wip_SysConfig;
+    p   = &Player_Status;
     ret = 1;
-    if (p->field_1c >= arg0) {
-        p->field_1c -= arg0;
+    if (p->mp >= arg0) {
+        p->mp -= arg0;
     } else {
-        p->field_1c = 0;
-        ret         = 0;
+        p->mp = 0;
+        ret   = 0;
     }
     return ret;
 }

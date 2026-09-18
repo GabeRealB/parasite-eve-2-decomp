@@ -1582,7 +1582,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
         x             = mem->field_20;
         mem->field_26 = 0x20;
         mem->field_28 = ((x + 1) * 3) << 7;
-        mem->field_2A = Wip_SysConfig.field_18;
+        mem->field_2A = Player_Status.hp;
     }
 
     Gp_UpdateCoord(coord);
@@ -1609,8 +1609,8 @@ kill:
     return;
 continue_fx:
     saved = mem->field_2A;
-    if (Wip_SysConfig.field_18 < saved) {
-        if (!(Wip_SysConfig.field_25 & 0x84) && (mem->field_26 < 0xA0)) {
+    if (Player_Status.hp < saved) {
+        if (!(Player_Status.field_25 & 0x84) && (mem->field_26 < 0xA0)) {
             s32 i;
 
             Gp_DrawEffTri(coord, 0x200, 6, rgb);
@@ -1638,7 +1638,7 @@ continue_fx:
         }
     }
 
-    mem->field_2A = (u16)Wip_SysConfig.field_18;
+    mem->field_2A = (u16)Player_Status.hp;
     if (mem->field_26 < 0x21) {
         return;
     }
@@ -1707,7 +1707,7 @@ void Gp_EffCtlTask0E(Task* arg0)
         Gp_State1C->field_14 = 0;
     }
 
-    if ((Wip_SysConfig.field_25 & 0x80) && (Gp_State1C->field_12 & 0x800) &&
+    if ((Player_Status.field_25 & 0x80) && (Gp_State1C->field_12 & 0x800) &&
         (Gp_State1C->field_16 == 1)) {
         return;
     }
@@ -3218,7 +3218,7 @@ void Gp_InitPlayerWork(GpActorWork* arg0)
     arg0->field_18        = Gp_TeardownSlot0;
     actor->field_938      = 0x13;
     Gp_ActorSlots[0]      = arg0;
-    Wip_SysConfig.field_4 = &coord->coord;
+    Player_Status.field_4 = &coord->coord;
     coord->sub            = &Gfx_ViewCoord;
     coord->flg            = 0;
     extra->field_C        = 0;
@@ -3426,7 +3426,7 @@ void Gp_AttachActorObj(GpActorWork* arg0, s32 arg1, s32 arg2)
         rec->field_4     = rec->field_C + D_80112F60[id];
         USE_REG(id);
         scale = 0x100;
-        if (Wip_SysConfig.field_21 == 0x13) {
+        if (Player_Status.field_21 == 0x13) {
             scale = 0x280;
         }
         rec->field_12 = scale;
@@ -3663,7 +3663,7 @@ void Gp_UpdatePlayerMove(void)
         *(GsCOORDINATE2*)actor->field_3D4 =
             *(GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
         mat = &((GsCOORDINATE2*)actor->field_3D4)->workm;
-        if (Wip_SysConfig.field_21 != 0x17) {
+        if (Player_Status.field_21 != 0x17) {
             Gfx_RotMatrixX(mat, -0x400, 0);
             Gfx_RotMatrixY(mat, -0x20, 0);
         }
@@ -4056,7 +4056,7 @@ void Gp_AimYawToLock(GpActorWork* arg0, s32 arg1)
 
         block = (GpYawScratch*)tmp;
         TOUCH_REG(block);
-        rec           = &D_801131B4[Wip_SysConfig.field_21];
+        rec           = &D_801131B4[Player_Status.field_21];
         src           = (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8;
         block->rot.vx = rec->vx;
         block->rot.vy = rec->vy;
@@ -4108,9 +4108,9 @@ void Gp_AimYawToLock(GpActorWork* arg0, s32 arg1)
             val = (s16)cmp;
             asm("lui %0, %%hi(D_80112E30)" : "=r"(tbl) : "r"(val));
             block->angle = val;
-            asm("lui %0, %%hi(Wip_SysConfig)" : "=r"(val));
+            asm("lui %0, %%hi(Player_Status)" : "=r"(val));
             asm("addiu %0, %1, %%lo(D_80112E30)" : "=r"(tbl) : "r"(tbl));
-            asm("lbu %0, %%lo(Wip_SysConfig+0x21)(%1)" : "=r"(cmp) : "r"(val));
+            asm("lbu %0, %%lo(Player_Status+0x21)(%1)" : "=r"(cmp) : "r"(val));
             asm("lui %0, 0x1F80" : "=r"(val) : "r"(cmp));
             val = (s32) * (void**)((u8*)val + 0x3FC);
             USE_REG(val);
@@ -4225,7 +4225,7 @@ void Gp_AimPitchToLock(GpActorWork* arg0)
             actor->field_58 += block->angle;
             actor->field_5C  = (s16)(actor->field_58 / 5) * 3;
         }
-        item = Wip_SysConfig.field_21;
+        item = Player_Status.field_21;
         TOUCH_REG(item);
         tbl = D_801131B4;
         TOUCH_REG2(item, tbl);
@@ -4336,7 +4336,7 @@ void Gp_AimPitchToLockAlt(GpActorWork* arg0)
         if (ABS(actor->field_5C + block->angle) < 0x121) {
             actor->field_5C += block->angle;
         }
-        item = Wip_SysConfig.field_21;
+        item = Player_Status.field_21;
         TOUCH_REG(item);
         tbl = D_801131B4;
         TOUCH_REG2(item, tbl);
@@ -4538,7 +4538,7 @@ void func_801030CC(GpActorWork* arg0)
         if ((s8)actor->field_988 <= 0) {
             table = D_80112E74;
             idx   = (s8)actor->field_987;
-            temp  = Wip_SysConfig.field_26;
+            temp  = Player_Status.field_26;
             idx   = idx * 4 - 5;
             idx   = idx + temp;
             img   = table[idx][(s8)actor->field_989];
@@ -4561,7 +4561,7 @@ void func_801030CC(GpActorWork* arg0)
         if ((s8)actor->field_98B <= 0) {
             table = D_80112EB4;
             idx   = (s8)actor->field_98A;
-            temp  = Wip_SysConfig.field_26;
+            temp  = Player_Status.field_26;
             idx   = idx * 4 - 5;
             idx   = idx + temp;
             img   = table[idx][(s8)actor->field_98C];
@@ -4597,7 +4597,7 @@ inline static Task* spawn_tmd_attach(GpActorWork* arg0, s32 arg1, s32 arg2, s32 
     actor = arg0->actor;
     saved = &extra->field_8[D_80112E04[arg2][arg1]];
     table = D_80112DFC;
-    type  = Wip_SysConfig.field_26 - 2;
+    type  = Player_Status.field_26 - 2;
     task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
     if (task == NULL) {
         return NULL;
@@ -4666,7 +4666,7 @@ s32 Gp_SpawnWeaponEff(void)
     GameActor*    actor;
     Task*         parent;
     Task*         task;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     s32           kind;
     s32           id;
     s32           arg2;
@@ -4688,13 +4688,13 @@ s32 Gp_SpawnWeaponEff(void)
         goto join_4C;
     }
 
-    task             = spawn_attach(parent, Mc_SaveData.field_22, Wip_SysConfig.field_21);
+    task             = spawn_attach(parent, Mc_SaveData.field_22, Player_Status.field_21);
     actor->field_91C = task;
     if (task == NULL) {
         goto join_4C;
     }
 
-    cfg = &Wip_SysConfig;
+    cfg = &Player_Status;
     Gp_AttachActorObj(work, cfg->field_21, cfg->field_22);
     if (actor->field_914 != NULL) {
         goto join_50;
@@ -4714,7 +4714,7 @@ s32 Gp_SpawnWeaponEff(void)
 do_success:
     actor->field_914 = eff->field_0;
     Task_Reparent(work, eff->field_0);
-    func_80106350(work, Wip_SysConfig.field_21, 0);
+    func_80106350(work, Player_Status.field_21, 0);
     goto join_50;
 
 check_19:
@@ -4742,7 +4742,7 @@ join_50:
     actor->field_98F = 0;
     inner            = work->actor;
     anim             = (GpAnimObj*)work->extra;
-    inner->field_93A = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
+    inner->field_93A = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.field_21;
     inner->field_928 = Gp_PlayerAnimBlkTbl[inner->field_93A];
     func_800B3F84((GpAnimCtx*)inner->field_424, inner->field_928, anim, &inner->field_7A8,
                   (GpAnimSlot*)inner->field_438);
@@ -4759,7 +4759,7 @@ Task* Gp_SpawnPlayer(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3)
     GameActor*     actor;
     GsCOORDINATE2* coord;
 
-    task = Task_Spawn(7, Wip_SysConfig.field_26 + 3, arg2, (s32)arg3);
+    task = Task_Spawn(7, Player_Status.field_26 + 3, arg2, (s32)arg3);
     if (task != NULL) {
         goto have_task;
     }
@@ -4816,7 +4816,7 @@ void Gp_BindActorAnim(GpActorWork* arg0)
 
     actor            = arg0->actor;
     extra            = (GpAnimObj*)arg0->extra;
-    actor->field_93A = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
+    actor->field_93A = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.field_21;
     actor->field_928 = Gp_PlayerAnimBlkTbl[actor->field_93A];
     func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
                   (GpAnimSlot*)actor->field_438);
@@ -4887,17 +4887,17 @@ void Gp_AnimTickChildSlots(GpActorWork* arg0)
 
 s32 Gp_HpBand(void)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     s32           temp;
     s32           ret;
 
-    p    = &Wip_SysConfig;
-    temp = (u16)p->field_1a << 16;
-    if ((temp >> 17) < p->field_18) {
+    p    = &Player_Status;
+    temp = (u16)p->hpMax << 16;
+    if ((temp >> 17) < p->hp) {
         ret = 0;
     } else {
         ret = 1;
-        if ((temp >> 18) >= p->field_18) {
+        if ((temp >> 18) >= p->hp) {
             ret = 2;
         }
     }
@@ -5056,7 +5056,7 @@ void Gp_TrackLockTarget(GpActorWork* arg0)
 {
     GameActor*    actor;
     GpLinkNode*   node;
-    WipSysConfig* p;
+    PlayerStatus* p;
     s32           val;
 
     actor = arg0->actor;
@@ -5072,7 +5072,7 @@ void Gp_TrackLockTarget(GpActorWork* arg0)
         return;
     }
     if ((s8)actor->field_97E == 2) {
-        p = &Wip_SysConfig;
+        p = &Player_Status;
         if (p->field_21 == 0x17) {
             val = 0x200;
         } else {
@@ -5163,7 +5163,7 @@ Task* func_80104258(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
     actor = arg0->actor;
     saved = &extra->field_8[D_80112E04[arg2][arg1]];
     table = D_80112DFC;
-    type  = Wip_SysConfig.field_26 - 2;
+    type  = Player_Status.field_26 - 2;
     task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
     if (task == NULL) {
         return NULL;
@@ -5267,11 +5267,11 @@ s32 func_80104508(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3)
 {
     GameActor*    actor;
     GpAnimObj*    extra;
-    WipSysConfig* p;
+    PlayerStatus* p;
 
     actor             = arg0->actor;
     extra             = (GpAnimObj*)arg0->extra;
-    p                 = &Wip_SysConfig;
+    p                 = &Player_Status;
     actor->field_954  = 2;
     actor->field_95E  = 0;
     actor->field_973  = 0;
@@ -5425,7 +5425,7 @@ s32 Gp_EnterActorMode2(GpActorWork* arg0, s32 arg1, s32 arg2)
     actor->field_10                   = coord->coord.t[0];
     actor->field_14                   = coord->coord.t[1];
     actor->field_18                   = coord->coord.t[2];
-    actor->field_93A                  = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
+    actor->field_93A                  = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.field_21;
     actor->field_928                  = Gp_PlayerAnimBlkTbl[actor->field_93A];
     actor->field_985                  = 0x10;
     actor->field_983                  = 7;
@@ -5457,10 +5457,10 @@ s32 Gp_EnterActorMode2(GpActorWork* arg0, s32 arg1, s32 arg2)
 void func_80104A4C(GpActorWork* arg0)
 {
     GameActor*    actor;
-    WipSysConfig* p;
+    PlayerStatus* p;
 
     actor       = arg0->actor;
-    p           = &Wip_SysConfig;
+    p           = &Player_Status;
     p->field_24 = 0;
     if (actor->field_954 != 2) {
         if (actor->field_954 == 0) {
@@ -5476,10 +5476,10 @@ void func_80104A4C(GpActorWork* arg0)
 void func_80104AAC(GpActorWork* arg0)
 {
     GameActor*    actor;
-    WipSysConfig* p;
+    PlayerStatus* p;
 
     actor             = arg0->actor;
-    p                 = &Wip_SysConfig;
+    p                 = &Player_Status;
     actor->field_954  = 2;
     actor->field_95E  = 0;
     actor->field_973  = 0;
@@ -5505,11 +5505,11 @@ s32 func_80104B54(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
 {
     GameActor*    actor;
     GpAnimObj*    extra;
-    WipSysConfig* p;
+    PlayerStatus* p;
 
     actor             = arg0->actor;
     extra             = (GpAnimObj*)arg0->extra;
-    p                 = &Wip_SysConfig;
+    p                 = &Player_Status;
     actor->field_954  = 2;
     actor->field_95E  = 0;
     actor->field_973  = 0;
@@ -5604,7 +5604,7 @@ s32 func_80104E00(GpActorWork* arg0, s32 arg1, GpXformArg* arg2)
 {
     GameActor*          actor;
     register GameActor* inner asm("s1");
-    WipSysConfig*       p;
+    PlayerStatus*       p;
     void**              scratch;
     u8*                 head;
     s32                 val;
@@ -5618,7 +5618,7 @@ s32 func_80104E00(GpActorWork* arg0, s32 arg1, GpXformArg* arg2)
     *scratch          = head - 0x10;
     inner             = arg0->actor;
     actor             = inner;
-    p                 = &Wip_SysConfig;
+    p                 = &Player_Status;
     actor->field_954  = flag;
     actor->field_95E  = 0;
     actor->field_973  = 0;
@@ -5657,11 +5657,11 @@ s32 func_80104E00(GpActorWork* arg0, s32 arg1, GpXformArg* arg2)
 s32 func_80104F5C(GpActorWork* arg0, s32 arg1, GpFacingArg* arg2)
 {
     GameActor*    actor;
-    WipSysConfig* p;
+    PlayerStatus* p;
     s32           mode;
 
     actor             = arg0->actor;
-    p                 = &Wip_SysConfig;
+    p                 = &Player_Status;
     actor->field_954  = 2;
     actor->field_95E  = 0;
     actor->field_973  = 0;
@@ -5697,10 +5697,10 @@ s32 func_80104F5C(GpActorWork* arg0, s32 arg1, GpFacingArg* arg2)
 s32 Gp_SetActorDest(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3)
 {
     GameActor*    actor;
-    WipSysConfig* p;
+    PlayerStatus* p;
 
     actor             = arg0->actor;
-    p                 = &Wip_SysConfig;
+    p                 = &Player_Status;
     actor->field_954  = 2;
     actor->field_95E  = 0;
     actor->field_973  = 0;
@@ -5739,10 +5739,10 @@ s32 Gp_SetActorDest(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* 
 s32 func_80105190(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3)
 {
     GameActor*    actor;
-    WipSysConfig* p;
+    PlayerStatus* p;
 
     actor             = arg0->actor;
-    p                 = &Wip_SysConfig;
+    p                 = &Player_Status;
     actor->field_954  = 2;
     actor->field_95E  = 0;
     actor->field_973  = 0;
@@ -5782,10 +5782,10 @@ s32 func_80105190(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* ar
 s32 func_801052B8(GpActorWork* arg0, s32 arg1, GpCountArg* arg2)
 {
     GameActor*    actor;
-    WipSysConfig* p;
+    PlayerStatus* p;
 
     actor             = arg0->actor;
-    p                 = &Wip_SysConfig;
+    p                 = &Player_Status;
     actor->field_954  = 2;
     actor->field_95E  = 0;
     actor->field_973  = 0;
@@ -5817,12 +5817,12 @@ s32 Gp_MoveActorBy(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
-    WipSysConfig*  p;
+    PlayerStatus*  p;
 
     actor = arg0->actor;
     coord = (GsCOORDINATE2*)arg0->extra->field_8;
     if (arg2->field_12 == 0) {
-        p                 = &Wip_SysConfig;
+        p                 = &Player_Status;
         actor->field_954  = 2;
         actor->field_95E  = 0;
         actor->field_973  = 0;
@@ -5856,13 +5856,13 @@ s32 Gp_MoveActorBy(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2)
 s32 func_801054D8(GpActorWork* arg0, s32 arg1, GpDelayArg* arg2)
 {
     GameActor*    actor;
-    WipSysConfig* p;
+    PlayerStatus* p;
 
     actor = arg0->actor;
     if ((s8)actor->field_97A != 0) {
         return 1;
     }
-    p                 = &Wip_SysConfig;
+    p                 = &Player_Status;
     actor->field_954  = 2;
     actor->field_95E  = 0;
     actor->field_973  = 0;
@@ -5892,10 +5892,10 @@ s32 func_801054D8(GpActorWork* arg0, s32 arg1, GpDelayArg* arg2)
 s32 func_801055D4(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     GameActor*    actor;
-    WipSysConfig* p;
+    PlayerStatus* p;
 
     actor             = arg0->actor;
-    p                 = &Wip_SysConfig;
+    p                 = &Player_Status;
     actor->field_954  = 2;
     actor->field_95E  = 0;
     actor->field_973  = 0;
@@ -5923,10 +5923,10 @@ s32 func_801055D4(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
 s32 func_80105690(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     GameActor*    actor;
-    WipSysConfig* p;
+    PlayerStatus* p;
 
     actor             = arg0->actor;
-    p                 = &Wip_SysConfig;
+    p                 = &Player_Status;
     actor->field_954  = 2;
     actor->field_95E  = 0;
     actor->field_973  = 0;
@@ -5954,13 +5954,13 @@ s32 func_80105690(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
 s32 func_80105754(GpActorWork* arg0)
 {
     GameActor*    actor;
-    WipSysConfig* p;
+    PlayerStatus* p;
     s32           ret;
 
     actor = arg0->actor;
     ret   = 0;
     if (actor->field_954 != 2) {
-        p                 = &Wip_SysConfig;
+        p                 = &Player_Status;
         actor->field_954  = 2;
         actor->field_95E  = 0;
         actor->field_973  = 0;
@@ -6046,7 +6046,7 @@ s32 Gp_CopyPlayerAnim(GpActorWork* arg0, s32 arg1, GpCopyArg* arg2)
     s32  i;
     s32  count;
 
-    dest  = (s32*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21];
+    dest  = (s32*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.field_21];
     src   = arg2->field_0;
     count = arg2->field_4;
     if (count >= 0x21) {
@@ -6235,8 +6235,8 @@ s32 Gp_PickNearestRec18(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
                 arg2->workm.t[1] = block->t[1] + block->offset.vy;
                 arg2->workm.t[2] = block->t[2] + block->offset.vz;
             }
-            if (Wip_SysConfig.field_21 != 0x1D) {
-                if (Wip_SysConfig.field_22 == 0xE) {
+            if (Player_Status.field_21 != 0x1D) {
+                if (Player_Status.field_22 == 0xE) {
                     GsCOORDINATE2* coord;
                     SVECTOR*       vec;
                     coord = (GsCOORDINATE2*)&block->flg;
@@ -6397,19 +6397,19 @@ void func_8010615C(GpActorWork* arg0)
     actor            = arg0->actor;
     actor->field_96A = 0xF89A;
     actor->field_973 = 0;
-    sp.funcs[Wip_SysConfig.field_21](arg0);
+    sp.funcs[Player_Status.field_21](arg0);
 }
 
 void func_801061F0(void)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     GpActorWork*  work;
     s32           flag;
     register s32  f21 asm("a1");
     s32           f22;
 
     work                   = Game_GetPtrSlot(3);
-    p                      = &Wip_SysConfig;
+    p                      = &Player_Status;
     flag                   = 0x20000;
     f21                    = p->field_21;
     f22                    = p->field_22;
@@ -6429,7 +6429,7 @@ s32 func_80106264(s32 arg0)
     s32 item;
     s32 ret;
 
-    item = Wip_SysConfig.field_21 + 0x7F;
+    item = Player_Status.field_21 + 0x7F;
     ret  = 0;
     if (arg0 & 1) {
         ret = Gp_ConsumeSlotQty(item, 0);
@@ -6447,7 +6447,7 @@ s32 func_801062DC(GpActorWork* arg0, s32 arg1)
     s32 item;
 
     ret  = 0;
-    item = Wip_SysConfig.field_21;
+    item = Player_Status.field_21;
     flag = arg1 != 1;
     if (Gp_UnequipRelated(item + 0x7F, flag) == 1) {
         func_801088D4(arg0, flag, ret);
@@ -6645,13 +6645,13 @@ void Gp_TickPlayerNormal(GpActorWork* arg0)
 {
     GameActor*        actor;
     GameActor*        inner;
-    WipSysConfig*     p;
+    PlayerStatus*     p;
     u16               prev;
     GpActorFuncTable8 sp;
 
     sp    = D_8009794C;
     actor = arg0->actor;
-    if (Wip_SysConfig.field_25 & 0x40) {
+    if (Player_Status.field_25 & 0x40) {
         func_8010A670(arg0);
     }
     if (actor->field_97B == 0) {
@@ -6661,7 +6661,7 @@ void Gp_TickPlayerNormal(GpActorWork* arg0)
         actor->field_973 = 0;
         actor->field_975 = 0;
     }
-    p = &Wip_SysConfig;
+    p = &Player_Status;
     if (p->field_25 & 2) {
         if (actor->field_956 != 7) {
             actor->field_98E++;
@@ -6693,7 +6693,7 @@ void Gp_TickPlayerNormal(GpActorWork* arg0)
     Gp_AnimTickChildSlots(arg0);
     Gp_TurnPlayer(arg0);
     Gp_StepPlayerMove(arg0);
-    if (Wip_SysConfig.field_18 <= 0) {
+    if (Player_Status.hp <= 0) {
         Gp_StopPlayerAnim(arg0, 4);
     }
 }
@@ -6723,15 +6723,15 @@ void Gp_PlayerNormalState2(GpActorWork* arg0)
         if ((s8)func_801060E0(arg0) != 0 &&
             Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->field_438 + 1) != NULL &&
             actor->field_940 == 0) {
-            dir = D_80112EF8[Wip_SysConfig.field_21] != 0 ? actor->field_97F : 1;
+            dir = D_80112EF8[Player_Status.field_21] != 0 ? actor->field_97F : 1;
             res = func_80106264(dir);
             if (res > 0 ||
                 (item = actor->field_97F,
-                 D_80112F1C[Wip_SysConfig.field_21][(u8)(item - 1)] != 0)) {
-                if (Wip_SysConfig.field_25 & 0x80) {
+                 D_80112F1C[Player_Status.field_21][(u8)(item - 1)] != 0)) {
+                if (Player_Status.field_25 & 0x80) {
                     Gp_ApplyHpDamage(2);
                 }
-                if (Wip_SysConfig.field_18 > 0) {
+                if (Player_Status.hp > 0) {
                     actor->field_97D = 1;
                     actor->field_95E = 0;
                     func_8010615C(arg0);
@@ -6742,7 +6742,7 @@ void Gp_PlayerNormalState2(GpActorWork* arg0)
                     actor->field_940 = 0xA;
                     if (func_801062DC(arg0, dir) == 0) {
                         func_801095BC(&variant);
-                        base = Wip_SysConfig.field_21 << 16;
+                        base = Player_Status.field_21 << 16;
                         val  = variant | 0x20000001;
                         Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | val, 0);
                     }
@@ -6773,7 +6773,7 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
     actor            = arg0->actor;
     done             = 0;
     coord            = (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8;
-    base             = Wip_SysConfig.field_21 << 16;
+    base             = Player_Status.field_21 << 16;
     actor->field_973 = 0;
     func_801095BC(&variant);
     if (actor->field_93E != 2 && (actor->field_966 & 0x40) && actor->field_95E != 0x64) {
@@ -6790,7 +6790,7 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
         inner->field_95A = temp;
         inner->field_95C = 0;
         inner->field_95E = 0;
-        if (Wip_SysConfig.field_25 & 1) {
+        if (Player_Status.field_25 & 1) {
             Gp_DetachLinkNode(arg0);
             inner->field_97E = 1;
         } else {
@@ -6815,7 +6815,7 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
         return;
     }
 
-    switch (Wip_SysConfig.field_21) {
+    switch (Player_Status.field_21) {
         case 3:
         case 17:
             rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->field_438 + 1);
@@ -6890,7 +6890,7 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
                 temp             = actor->field_98F;
                 actor->field_95E = 1;
                 if (temp == 0) {
-                    Gp_SpawnEff(0x6006E, coord, Wip_SysConfig.field_21, NULL);
+                    Gp_SpawnEff(0x6006E, coord, Player_Status.field_21, NULL);
                 }
             }
             rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->field_438 + 1);
@@ -6978,7 +6978,7 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
                 if ((rec->field_3 & 0x30) == 0x30) {
-                    item = Gp_GetItemSlot(Wip_SysConfig.field_21 + 0x7F)->field_2;
+                    item = Gp_GetItemSlot(Player_Status.field_21 + 0x7F)->field_2;
                     if (item - 0x9F > 0) {
                         variant = ((item - 0xA0) % 3) << 24;
                     }
@@ -7025,9 +7025,9 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
     }
     if (done != 0) {
         if (actor->field_93E != 0) {
-            Gp_FlushPendingRelated(Wip_SysConfig.field_21 + 0x7F, actor->field_960);
+            Gp_FlushPendingRelated(Player_Status.field_21 + 0x7F, actor->field_960);
         } else {
-            Gp_FillRelated(Wip_SysConfig.field_21 + 0x7F, actor->field_960);
+            Gp_FillRelated(Player_Status.field_21 + 0x7F, actor->field_960);
         }
     }
     Gp_UpdateLockTarget(arg0);
@@ -7131,7 +7131,7 @@ void Gp_PlayerNormalState6(GpActorWork* arg0)
             inner->field_95A = temp;
             inner->field_95C = 0;
             inner->field_95E = 0;
-            if (Wip_SysConfig.field_25 & 1) {
+            if (Player_Status.field_25 & 1) {
                 Gp_DetachLinkNode(work);
                 inner->field_97E = flag;
             } else {
@@ -7171,7 +7171,7 @@ void func_8010771C(GpActorWork* arg0)
 
     actor            = arg0->actor;
     actor->field_973 = 0;
-    if (!(Wip_SysConfig.field_25 & 2)) {
+    if (!(Player_Status.field_25 & 2)) {
         actor->field_95E = 1;
         actor->field_98E = 0;
     }
@@ -7203,7 +7203,7 @@ void func_8010771C(GpActorWork* arg0)
             inner->field_95A = temp;
             inner->field_95C = 0;
             inner->field_95E = 0;
-            if (Wip_SysConfig.field_25 & 1) {
+            if (Player_Status.field_25 & 1) {
                 Gp_DetachLinkNode(arg0);
                 inner->field_97E = 1;
             } else {
@@ -7455,7 +7455,7 @@ void Gp_PlayerMode2StateA(GpActorWork* arg0)
     s32        val;
 
     actor = arg0->actor;
-    if (Wip_SysConfig.field_18 > 0) {
+    if (Player_Status.hp > 0) {
         if (Gp_StateF0.field_0 != 1) {
             actor->field_956 = 3;
             actor->field_95A = 2;
@@ -7469,18 +7469,18 @@ void Gp_PlayerMode2StateA(GpActorWork* arg0)
                    Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
                                  (GpAnimSlot*)actor->field_438 + 1) != NULL &&
                    actor->field_940 == 0) {
-            dir = D_80112EF8[Wip_SysConfig.field_21] != 0 ? (s8)actor->field_97F : 1;
+            dir = D_80112EF8[Player_Status.field_21] != 0 ? (s8)actor->field_97F : 1;
             res = func_80106264(dir);
             if (res > 0 ||
                 (item = actor->field_97F,
-                 D_80112F1C[Wip_SysConfig.field_21][(u8)(item - 1)] != 0)) {
+                 D_80112F1C[Player_Status.field_21][(u8)(item - 1)] != 0)) {
                 actor->field_97D = 4;
                 actor->field_95E = 0;
                 func_8010615C(arg0);
             } else if (res == 0) {
                 func_801095BC(&variant);
                 actor->field_940 = 0x14;
-                base             = Wip_SysConfig.field_21 << 16;
+                base             = Player_Status.field_21 << 16;
                 val              = variant | 0x20000001;
                 Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | val, 0);
             }
@@ -7520,7 +7520,7 @@ void Gp_PlayerMode2StateB(GpActorWork* arg0)
                     inner->field_95A = temp;
                     inner->field_95C = 0;
                     inner->field_95E = 0;
-                    if (Wip_SysConfig.field_25 & 1) {
+                    if (Player_Status.field_25 & 1) {
                         Gp_DetachLinkNode(arg0);
                         inner->field_97E = 1;
                     } else {
@@ -7720,7 +7720,7 @@ void Gp_ResetActorAnimState(GpActorWork* arg0, s32 arg1)
     inner->field_95A = temp;
     inner->field_95C = 0;
     inner->field_95E = 0;
-    if (Wip_SysConfig.field_25 & 1) {
+    if (Player_Status.field_25 & 1) {
         Gp_DetachLinkNode(arg0);
         inner->field_97E = 1;
     } else {
@@ -7771,7 +7771,7 @@ void func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2)
     inner = arg0->actor;
     if (arg2 == 2) {
         if (func_80106264(arg1) != 0) {
-            if (D_80112F1C[Wip_SysConfig.field_21][0] == 0) {
+            if (D_80112F1C[Player_Status.field_21][0] == 0) {
                 inner->field_95E = 0x3E8;
                 return;
             }
@@ -7797,7 +7797,7 @@ void func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2)
     inner->field_95E = 0;
     inner->field_960 = arg1;
     inner->field_93E = arg2;
-    func_80106350(arg0, Wip_SysConfig.field_21, 0);
+    func_80106350(arg0, Player_Status.field_21, 0);
     Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 3);
 }
 
@@ -7856,7 +7856,7 @@ void func_80108AD4(GpActorWork* arg0)
     Gp_DetachLinkNode(arg0);
     inner->field_12A    &= 0x3FFF;
     Gp_StateC08.field_6 |= 1;
-    func_80106350(arg0, Wip_SysConfig.field_21, 0);
+    func_80106350(arg0, Player_Status.field_21, 0);
     Gp_AnimPlayChildSlotsEx(arg0, 0x19, 3, 6);
 }
 
@@ -8020,7 +8020,7 @@ void Gp_TickPlayerMode2(GpActorWork* arg0)
     inner = arg0->actor;
     sp.funcs[inner->field_956](arg0);
     Gp_TurnPlayer(arg0);
-    if (Wip_SysConfig.field_18 <= 0 && inner->field_956 != 0xA) {
+    if (Player_Status.hp <= 0 && inner->field_956 != 0xA) {
         Gp_BindActorAnim(arg0);
         Gp_StopPlayerAnim(arg0, 4);
     }
@@ -8203,7 +8203,7 @@ void func_80109374(GpActorWork* arg0)
     GameActor* inner;
 
     inner = arg0->actor;
-    if ((inner->field_962 & 0x80) && (Gp_StateC08.field_3 == 0) && (Wip_SysConfig.field_21 != 0) &&
+    if ((inner->field_962 & 0x80) && (Gp_StateC08.field_3 == 0) && (Player_Status.field_21 != 0) &&
         (inner->field_991 == 0)) {
         inner->field_97D = 1;
     } else {
@@ -8228,7 +8228,7 @@ void Gp_UpdateLockTarget(GpActorWork* arg0)
             next = Gp_FindLockNodePad(arg0);
             goto install;
         }
-    } else if ((inner->field_966 & 0x80) && !(Wip_SysConfig.field_25 & 1)) {
+    } else if ((inner->field_966 & 0x80) && !(Player_Status.field_25 & 1)) {
         register GpActorWork* a asm("a0");
 
         a                = arg0;
@@ -8299,10 +8299,10 @@ void Gp_PlayerMode2State5(GpActorWork* arg0)
 
 void func_801095BC(s32* arg0)
 {
-    WipSysConfig*          p;
-    volatile WipSysConfig* vp;
+    PlayerStatus*          p;
+    volatile PlayerStatus* vp;
 
-    p = &Wip_SysConfig;
+    p = &Player_Status;
     if (p->field_21 == 0x1B) {
         *arg0 = Gp_GetItemSlot(p->field_21 + 0x7F)->field_2 - 0x9F;
         if (*arg0 < 0) {
@@ -8644,7 +8644,7 @@ void func_80109FC4(GpActorWork* arg0)
     s32        temp;
     s32        mode;
 
-    flags = Wip_SysConfig.field_25;
+    flags = Player_Status.field_25;
     actor = arg0->actor;
     if (flags != 0) {
         if (flags & 1) {
@@ -8711,7 +8711,7 @@ void func_80109FC4(GpActorWork* arg0)
                 }
             }
         }
-        Wip_SysConfig.field_25 = flags;
+        Player_Status.field_25 = flags;
     }
 }
 
@@ -8727,7 +8727,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
         if (arg1 & 1) {
             inner = work->actor;
             if (func_800B9D80(0x101) == 0) {
-                Wip_SysConfig.field_25 |= 1;
+                Player_Status.field_25 |= 1;
                 inner->field_944        = 0x258;
                 func_800EC9C8();
                 Gp_DetachLinkNode(work);
@@ -8737,7 +8737,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
         if (mask & 2) {
             inner = work->actor;
             if (func_800B9D80(0x102) == 0) {
-                Wip_SysConfig.field_25 |= 2;
+                Player_Status.field_25 |= 2;
                 inner->field_946        = 0x258;
                 inner->field_98E        = 0;
                 func_8010B210(work);
@@ -8747,7 +8747,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
         if (mask & 4) {
             inner = work->actor;
             if (func_800B9D80(0x104) == 0) {
-                Wip_SysConfig.field_25 |= 4;
+                Player_Status.field_25 |= 4;
                 inner->field_948        = 0x258;
                 inner->field_98D        = 0;
                 Gp_SetState1CPe(4);
@@ -8756,7 +8756,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
         if (mask & 0x10) {
             inner = work->actor;
             if (func_800B9D80(0x108) == 0) {
-                Wip_SysConfig.field_25 |= 0x10;
+                Player_Status.field_25 |= 0x10;
                 inner->field_94A        = 0x258;
                 Gp_SetState1CPe(0x10);
             }
@@ -8764,7 +8764,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
         if (mask & 0x20) {
             inner = work->actor;
             if (func_800B9D80(0x110) == 0) {
-                Wip_SysConfig.field_25 |= 0x20;
+                Player_Status.field_25 |= 0x20;
                 inner->field_94C        = 0x258;
                 Gp_SetState1CPe(0x20);
             }
@@ -8772,7 +8772,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
         if (mask & 0x40) {
             inner = work->actor;
             if (func_800B9D80(0x120) == 0) {
-                Wip_SysConfig.field_25 |= 0x40;
+                Player_Status.field_25 |= 0x40;
                 inner->field_94E        = 0x258;
                 inner->field_990        = (rand() & 0x1F) + 0xA;
                 inner->field_970        = 0;
@@ -8782,14 +8782,14 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
         if (mask & 0x80) {
             inner = work->actor;
             if (func_800B9D80(0x140) == 0) {
-                Wip_SysConfig.field_25 |= 0x80;
+                Player_Status.field_25 |= 0x80;
                 inner->field_950        = 0x258;
                 Gp_SetState1CPe(0x80);
                 func_800ECA54();
             }
         }
     } else {
-        Wip_SysConfig.field_25 &= ~arg1;
+        Player_Status.field_25 &= ~arg1;
     }
 }
 
@@ -8809,7 +8809,7 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 if (func_800B9D80(0x101) != 0) {
                     return;
                 }
-                Wip_SysConfig.field_25 |= 1;
+                Player_Status.field_25 |= 1;
                 inner->field_944        = 0x258;
                 func_800EC9C8();
                 Gp_DetachLinkNode(arg0);
@@ -8823,7 +8823,7 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 if (func_800B9D80(0x102) != 0) {
                     return;
                 }
-                Wip_SysConfig.field_25 |= 2;
+                Player_Status.field_25 |= 2;
                 inner->field_946        = 0x258;
                 inner->field_98E        = 0;
                 func_8010B210(arg0);
@@ -8837,7 +8837,7 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 if (func_800B9D80(0x104) != 0) {
                     return;
                 }
-                Wip_SysConfig.field_25 |= 4;
+                Player_Status.field_25 |= 4;
                 inner->field_948        = 0x258;
                 inner->field_98D        = 0;
                 Gp_SetState1CPe(4);
@@ -8853,7 +8853,7 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 if (func_800B9D80(0x108) != 0) {
                     return;
                 }
-                Wip_SysConfig.field_25 |= 0x10;
+                Player_Status.field_25 |= 0x10;
                 inner->field_94A        = 0x258;
                 Gp_SetState1CPe(0x10);
                 break;
@@ -8865,7 +8865,7 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 if (func_800B9D80(0x110) != 0) {
                     return;
                 }
-                Wip_SysConfig.field_25 |= 0x20;
+                Player_Status.field_25 |= 0x20;
                 inner->field_94C        = 0x258;
                 Gp_SetState1CPe(0x20);
                 break;
@@ -8877,7 +8877,7 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 if (func_800B9D80(0x120) != 0) {
                     return;
                 }
-                Wip_SysConfig.field_25 |= 0x40;
+                Player_Status.field_25 |= 0x40;
                 inner->field_94E        = 0x258;
                 inner->field_990        = (rand() & 0x1F) + 0xA;
                 inner->field_970        = 0;
@@ -8891,7 +8891,7 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 if (func_800B9D80(0x140) != 0) {
                     return;
                 }
-                Wip_SysConfig.field_25 |= 0x80;
+                Player_Status.field_25 |= 0x80;
                 inner->field_950        = 0x258;
                 Gp_SetState1CPe(0x80);
                 func_800ECA54();
@@ -8951,7 +8951,7 @@ void func_8010A670(GpActorWork* arg0)
                 }
             } else {
                 mode = inner->field_956;
-                if (mode == 2 && !(Wip_SysConfig.field_25 & 1) && (rand() & 3)) {
+                if (mode == 2 && !(Player_Status.field_25 & 1) && (rand() & 3)) {
                     node = Gp_FindLockNode(arg0);
                     if (node != NULL) {
                         inner->field_97E = mode;
@@ -8971,7 +8971,7 @@ s32 Gp_ApplyHpDamage(s32 arg0)
     register s32   amount asm("s1");
     s32            ret;
     register s32   tmp asm("v0");
-    WipSysConfig*  p;
+    PlayerStatus*  p;
     Task*          slot;
     GsCOORDINATE2* coords;
 
@@ -8982,27 +8982,27 @@ s32 Gp_ApplyHpDamage(s32 arg0)
         amount = arg0 - tmp;
     }
     if (func_800B9D80(0x800) != 0) {
-        Wip_SysConfig.field_1c += (s16)amount / 5;
-        if (Wip_SysConfig.field_1e < Wip_SysConfig.field_1c) {
-            Wip_SysConfig.field_1c = Wip_SysConfig.field_1e;
+        Player_Status.mp += (s16)amount / 5;
+        if (Player_Status.mpMax < Player_Status.mp) {
+            Player_Status.mp = Player_Status.mpMax;
         }
     }
     if (func_800B9D80(0x200) != 0) {
-        p = &Wip_SysConfig;
-        if (p->field_18 >= 5 && (s16)amount >= p->field_18) {
-            slot        = Game_GetPtrSlot(3);
-            coords      = ((TmdObject*)slot->extra)->field_8;
-            p->field_18 = 1;
+        p = &Player_Status;
+        if (p->hp >= 5 && (s16)amount >= p->hp) {
+            slot   = Game_GetPtrSlot(3);
+            coords = ((TmdObject*)slot->extra)->field_8;
+            p->hp  = 1;
             Gp_SpawnEff(0x6009C, coords + 1, 5, 0);
             return 0;
         }
     }
-    Wip_SysConfig.field_18 -= amount;
-    if (Wip_SysConfig.field_18 > 0) {
+    Player_Status.hp -= amount;
+    if (Player_Status.hp > 0) {
         return ret;
     }
     if (Game_Session->field_1 != 0) {
-        Wip_SysConfig.field_18 = 1;
+        Player_Status.hp = 1;
     } else {
         ret = 1;
         Display_AcquireRef();
@@ -9048,13 +9048,13 @@ void Gp_StopPlayerAnim(GpActorWork* arg0, s32 arg1)
 void func_8010AAB4(GpActorWork* arg0)
 {
     GameActor*    inner;
-    WipSysConfig* p;
+    PlayerStatus* p;
 
-    p                    = &Wip_SysConfig;
+    p                    = &Player_Status;
     inner                = arg0->actor;
     Gp_StateC08.field_6 |= 1;
     func_80106350(arg0, p->field_21, 0);
-    if (p->field_18 > 0) {
+    if (p->hp > 0) {
         inner->field_954 = 1;
         inner->field_958 = 0;
         inner->field_95A = 0;
@@ -9195,7 +9195,7 @@ void func_8010AE98(GpActorWork* arg0)
     if (func_800B9D80(0x101) != 0) {
         return;
     }
-    Wip_SysConfig.field_25 |= 1;
+    Player_Status.field_25 |= 1;
     inner->field_944        = 0x258;
     func_800EC9C8();
     Gp_DetachLinkNode(arg0);
@@ -9210,7 +9210,7 @@ void func_8010AF04(GpActorWork* arg0)
     if (func_800B9D80(0x102) != 0) {
         return;
     }
-    Wip_SysConfig.field_25 |= 2;
+    Player_Status.field_25 |= 2;
     inner->field_946        = 0x258;
     inner->field_98E        = 0;
     func_8010B210(arg0);
@@ -9225,7 +9225,7 @@ void func_8010AF6C(GpActorWork* arg0)
     if (func_800B9D80(0x104) != 0) {
         return;
     }
-    Wip_SysConfig.field_25 |= 4;
+    Player_Status.field_25 |= 4;
     inner->field_948        = 0x258;
     inner->field_98D        = 0;
     Gp_SetState1CPe(4);
@@ -9239,7 +9239,7 @@ void func_8010AFC0(GpActorWork* arg0)
     if (func_800B9D80(0x108) != 0) {
         return;
     }
-    Wip_SysConfig.field_25 |= 0x10;
+    Player_Status.field_25 |= 0x10;
     inner->field_94A        = 0x258;
     Gp_SetState1CPe(0x10);
 }
@@ -9252,7 +9252,7 @@ void func_8010B010(GpActorWork* arg0)
     if (func_800B9D80(0x110) != 0) {
         return;
     }
-    Wip_SysConfig.field_25 |= 0x20;
+    Player_Status.field_25 |= 0x20;
     inner->field_94C        = 0x258;
     Gp_SetState1CPe(0x20);
 }
@@ -9265,7 +9265,7 @@ void func_8010B060(GpActorWork* arg0)
     if (func_800B9D80(0x120) != 0) {
         return;
     }
-    Wip_SysConfig.field_25 |= 0x40;
+    Player_Status.field_25 |= 0x40;
     inner->field_94E        = 0x258;
     inner->field_990        = (rand() & 0x1F) + 0xA;
     inner->field_970        = 0;
@@ -9280,7 +9280,7 @@ void func_8010B0C8(GpActorWork* arg0)
     if (func_800B9D80(0x140) != 0) {
         return;
     }
-    Wip_SysConfig.field_25 |= 0x80;
+    Player_Status.field_25 |= 0x80;
     inner->field_950        = 0x258;
     Gp_SetState1CPe(0x80);
     func_800ECA54();
@@ -9336,18 +9336,18 @@ void func_8010B210(GpActorWork* arg0)
 
 s32 Gp_TestHpDamage(s32 arg0)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     u16           saved18;
     u16           saved1c;
     s32           out;
     s32           ret;
 
-    p           = &Wip_SysConfig;
-    saved18     = p->field_18;
-    saved1c     = p->field_1c;
-    ret         = Gp_ApplyHpDamage((s16)Gp_ScaleDamage(arg0, 0, &out, 0));
-    p->field_18 = saved18;
-    p->field_1c = saved1c;
+    p       = &Player_Status;
+    saved18 = p->hp;
+    saved1c = p->mp;
+    ret     = Gp_ApplyHpDamage((s16)Gp_ScaleDamage(arg0, 0, &out, 0));
+    p->hp   = saved18;
+    p->mp   = saved1c;
     if (ret != 0) {
         Display_ReleaseRef();
     }
@@ -10072,10 +10072,10 @@ s32 func_8010C4F0(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
 
 s32 func_8010C648(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     u8            saved;
 
-    p     = &Wip_SysConfig;
+    p     = &Player_Status;
     saved = p->field_24;
     func_80104B54(arg0, arg1, arg2);
     p->field_24 = saved;
@@ -10084,10 +10084,10 @@ s32 func_8010C648(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
 
 s32 func_8010C688(GpActorWork* arg0, s32 arg1, GpXformArg* arg2)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     u8            saved;
 
-    p     = &Wip_SysConfig;
+    p     = &Player_Status;
     saved = p->field_24;
     func_80104E00(arg0, arg1, arg2);
     p->field_24 = saved;
@@ -10096,10 +10096,10 @@ s32 func_8010C688(GpActorWork* arg0, s32 arg1, GpXformArg* arg2)
 
 s32 func_8010C6C8(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     u8            saved;
 
-    p     = &Wip_SysConfig;
+    p     = &Player_Status;
     saved = p->field_24;
     Gp_SetActorDest(arg0, arg1, arg2, arg3);
     p->field_24 = saved;
@@ -10108,11 +10108,11 @@ s32 func_8010C6C8(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* ar
 
 s32 func_8010C708(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     u8            saved;
     GameActor*    actor;
 
-    p     = &Wip_SysConfig;
+    p     = &Player_Status;
     actor = arg0->actor;
     saved = p->field_24;
     Gp_SetActorDest(arg0, arg1, arg2, arg3);
@@ -10151,10 +10151,10 @@ s32 func_8010C75C(GpActorWork* arg0, s32 arg1, GpDelayArg* arg2)
 
 void Gp_MoveActorByKeep(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2)
 {
-    WipSysConfig* p;
+    PlayerStatus* p;
     u8            saved;
 
-    p     = &Wip_SysConfig;
+    p     = &Player_Status;
     saved = p->field_24;
     Gp_MoveActorBy(arg0, arg1, arg2);
     p->field_24 = saved;

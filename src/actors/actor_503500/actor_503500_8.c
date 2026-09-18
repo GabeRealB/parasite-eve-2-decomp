@@ -2169,7 +2169,7 @@ void func_actor_503500_8013FF0C(Actor503500* arg0)
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_8", D_actor_503500_80132108);
 
 /// Sub-state of the 0x3D8 enemies. Phase 0 latches the position behind
-/// `Wip_SysConfig.field_4` in `field_370` and rotates its offset from the
+/// `Player_Status.field_4` in `field_370` and rotates its offset from the
 /// parent coordinate into `field_368`; phase 1 ramps `field_3CC` to 0x2000 and
 /// re-aims once `field_3D4` is set; phases 2..4 ramp it back to 0. While in
 /// phases 0..1, `func_actor_503500_80142310` ends the state after 120 frames
@@ -2195,9 +2195,9 @@ void func_actor_503500_801400A4(Actor503500* arg0)
     }
     switch (work->field_3D0) {
         case 0:
-            work->field_370.vx = Wip_SysConfig.field_4->t[0];
-            work->field_370.vy = Wip_SysConfig.field_4->t[1];
-            work->field_370.vz = Wip_SysConfig.field_4->t[2];
+            work->field_370.vx = Player_Status.field_4->t[0];
+            work->field_370.vy = Player_Status.field_4->t[1];
+            work->field_370.vz = Player_Status.field_4->t[2];
             Gp_ComposeParentWorld(coord->sub, &mtx, &pos);
             v.vx = work->field_370.vx - pos.vx;
             v.vy = work->field_370.vy - pos.vy - 5000;
@@ -3821,7 +3821,7 @@ void func_actor_503500_80143AC0(Task* arg0)
         case 3:
             if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
                 D_actor_503500_801714DC =
-                    Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21]
+                    Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.field_21]
                         ->field_1C;
                 Gp_DispatchMsg(player, 0x3FF, (s32)&D_actor_503500_80171530, 0);
                 arg0->state++;

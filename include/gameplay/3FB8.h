@@ -249,7 +249,7 @@ extern s32      D_80112C7C[];
 /// `Gp_EffCtlTaskF3` inits `field_26` to 0x20, `field_28` to
 /// `(field_20 << 7) + 0x180`, and `field_2A` to `(field_20 << 8) + 0x400`.
 /// `Gp_EffCtlTaskAC` inits `field_26` to 0x20, `field_28` to
-/// `((field_20 + 1) * 3) << 7`, and `field_2A` to `Wip_SysConfig.field_18`.
+/// `((field_20 + 1) * 3) << 7`, and `field_2A` to `Player_Status.hp`.
 /// `Gp_EffCtlTaskA5` uses `field_26` as the inter-wave wait timer. `field_2A`
 /// is the packed parameter passed through to `Gp_DrawEffSprite46`, the per-frame
 /// `field_26` step, or `Gp_EffCtlTaskF3`'s `Gp_SpawnEff` spawn arg.
@@ -705,7 +705,7 @@ STATIC_ASSERT_SIZEOF(GpPickScratch, 0x68);
 
 /// 8-byte rotation row (`SVECTOR` layout). `D_801131B4` is indexed by
 /// `Gp_AimPitchRec` arg1 (`D_80167218[Mc_SaveData.field_5C7]`) and by
-/// `Wip_SysConfig.field_21` in `Gp_AimYawToLock`.
+/// `Player_Status.field_21` in `Gp_AimYawToLock`.
 typedef struct _GpAimRot {
     /* 0x0 */ s16 vx;
     /* 0x2 */ s16 vy;
@@ -718,7 +718,7 @@ STATIC_ASSERT_SIZEOF(GpAimRot, 8);
 /// The first 0x50 bytes are a temp `GsCOORDINATE2`. `delta` is
 /// `Gp_GetLockPos` output minus that coord's translation (computed in
 /// place). `rot` is the `SVECTOR` passed to `Gp_PlaceCoordOffset` (table row
-/// `D_801131B4[Wip_SysConfig.field_21]`). `angle` holds `ratan2` then
+/// `D_801131B4[Player_Status.field_21]`). `angle` holds `ratan2` then
 /// the wrapped, clamped yaw delta applied to `GameActor.field_52`.
 typedef struct _GpYawScratch {
     /* 0x00 */ byte     pad_0[0x50];
@@ -887,7 +887,7 @@ extern TaskFuncTable4 Gp_PlayerWorkStates;
 /// `func_8010B5E4`, `func_8010B5F0`.
 extern TaskFuncTable4 D_80097AB0;
 
-/// `Wip_SysConfig.field_21` dispatcher copied by `func_8010615C`. Unused
+/// `Player_Status.field_21` dispatcher copied by `func_8010615C`. Unused
 /// slots are `func_801065A0`; others are weapon-overlay entry points.
 extern GpActorFuncTable33 D_800978BC;
 
@@ -904,7 +904,7 @@ extern GpActorFuncTable4 Gp_PlayerMode1States;
 extern GpActorFuncTable12 Gp_PlayerMode2States;
 
 /// u8 Task_Spawn type bases. `func_80104258` indexes
-/// `D_80112DFC[arg2 + Wip_SysConfig.field_26 - 2]`.
+/// `D_80112DFC[arg2 + Player_Status.field_26 - 2]`.
 extern u8 D_80112DFC[];
 
 /// Pad-event templates for `func_801041FC` (`D_80112E28[arg1 & 0xFFFF]`).
@@ -926,23 +926,23 @@ extern u16 D_80112E20[];
 /// `D_80112E2C[Mc_SaveData.field_22 - 1][arg0]`.
 extern u8 D_80112E2C[][2];
 
-/// u16 turn-rate rows indexed by `Wip_SysConfig.field_21`. `Gp_AimYawToLock`
+/// u16 turn-rate rows indexed by `Player_Status.field_21`. `Gp_AimYawToLock`
 /// clamps the wrapped yaw delta to this value (or 1.5x when
 /// `func_800B9D80(0x2000)` is set).
 extern u16 D_80112E30[];
 
 /// NULL-terminated `GpImgRec*` lists for `func_801030CC`. Indexed as
-/// `table[type * 4 + Wip_SysConfig.field_26 - 5][frame]`. `D_80112E74` is
+/// `table[type * 4 + Player_Status.field_26 - 5][frame]`. `D_80112E74` is
 /// the `field_987` sequence; `D_80112EB4` is the `field_98A` sequence.
 extern struct _GpImgRec** D_80112E74[];
 extern struct _GpImgRec** D_80112EB4[];
 
-/// Per-item flag byte indexed by `Wip_SysConfig.field_21`. Nonzero makes
+/// Per-item flag byte indexed by `Player_Status.field_21`. Nonzero makes
 /// `Gp_PlayerNormalState2` / `Gp_PlayerMode2StateA` pass `GameActor.field_97F` (the current
 /// aim direction) to `func_80106264` instead of the default 1.
 extern u8 D_80112EF8[];
 
-/// 2-wide rows indexed by `Wip_SysConfig.field_21`. Zero at `[i][0]`
+/// 2-wide rows indexed by `Player_Status.field_21`. Zero at `[i][0]`
 /// makes `func_801088D4` abort the item-use path (`field_95E = 0x3E8`).
 extern u8 D_80112F1C[][2];
 

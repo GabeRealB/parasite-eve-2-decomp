@@ -3698,10 +3698,10 @@ void func_800B65B0(Task* task)
     UiObject*     spawned;
     Task*         child;
     GpCoordYaw*   coord;
-    WipSysPos*    p;
+    PlayerPos*    p;
     s32           temp;
     s32           angle;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     McSaveData*   save;
     s32           id;
     s32           shift;
@@ -3726,7 +3726,7 @@ void func_800B65B0(Task* task)
             case 8:
                 coord      = (GpCoordYaw*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
                 temp       = coord->field_18;
-                p          = &Wip_SysConfig.field_10;
+                p          = &Player_Status.field_10;
                 p->field_0 = temp;
                 p->field_2 = coord->field_1C;
                 p->field_4 = coord->field_20;
@@ -3738,7 +3738,7 @@ void func_800B65B0(Task* task)
                     p->field_6 = angle + 0x1000;
                 }
                 Display_State.field_11e = 0xFF;
-                cfg                     = &Wip_SysConfig;
+                cfg                     = &Player_Status;
                 save                    = &Mc_SaveData;
                 save->field_14          = cfg->field_8;
                 save->field_18          = cfg->field_C;

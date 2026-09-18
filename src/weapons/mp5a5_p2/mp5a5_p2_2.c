@@ -79,7 +79,7 @@ void func_mp5a5_p2_8011DDA4(GpActorWork* arg0)
                     actor->field_95E  = 4;
                     actor->field_934  = 3;
                     actor->field_940  = 0;
-                    actor->field_124  = Wip_SysConfig.field_22 | 0x22000;
+                    actor->field_124  = Player_Status.field_22 | 0x22000;
                     rec->field_10     = rec->field_12;
                     actor->field_12A |= 0x800;
                     func_80106238(arg0, 0, 1);

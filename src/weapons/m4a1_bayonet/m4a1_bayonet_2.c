@@ -71,7 +71,7 @@ void func_m4a1_bayonet_8011DA34(GpActorWork* arg0)
                 actor->field_934  = 0;
                 actor->field_979  = 9;
                 actor->field_93E  = 3;
-                actor->field_124  = Wip_SysConfig.field_22 | 0x21A00;
+                actor->field_124  = Player_Status.field_22 | 0x21A00;
                 actor->field_12A |= 0x800;
                 func_80106238(arg0, 0, 1);
             } else if (actor->field_97F & 2) {

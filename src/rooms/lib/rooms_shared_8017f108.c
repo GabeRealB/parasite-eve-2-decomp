@@ -21,7 +21,7 @@ void RoomsShared8017f108(DialogPrompt* prompt, UiObject* obj)
 {
     TextDrawReq   req;
     UiObject*     child;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     GpItemScan*   scan;
     s32           itemId;
     s32           mode;
@@ -40,7 +40,7 @@ void RoomsShared8017f108(DialogPrompt* prompt, UiObject* obj)
 
     mode = prompt->field_C;
     if (mode == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        cfg   = &Wip_SysConfig;
+        cfg   = &Player_Status;
         price = Gp_ItemDescs[itemId].price;
         scan  = &D_80072724;
         SndEvt_EnqueueType6(0x16, 0, 0);

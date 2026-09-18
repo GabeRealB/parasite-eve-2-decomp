@@ -449,17 +449,17 @@ void func_actor_403600_80141B60(Actor403600* arg0)
     u16              countdown;
     u16              currentMp;
     Actor403600Work* work;
-    WipSysConfig*    config;
+    PlayerStatus*    config;
 
     work            = arg0->field_1C;
     countdown       = (u16)work->field_792 - 1;
     work->field_792 = countdown;
     if ((countdown << 0x10) <= 0) {
-        config           = &Wip_SysConfig;
-        currentMp        = config->field_1c + 1;
-        config->field_1c = currentMp;
-        if ((s16)currentMp >= config->field_1e) {
-            config->field_1c = config->field_1e;
+        config     = &Player_Status;
+        currentMp  = config->mp + 1;
+        config->mp = currentMp;
+        if ((s16)currentMp >= config->mpMax) {
+            config->mp = config->mpMax;
         }
         if (work->field_794 <= 0) {
             work->field_792 = 1;

@@ -996,7 +996,7 @@ void func_actor_401800_80135DAC(Actor401800* arg0)
 /// aim-then-rescale shape as `Actor01900_Fn080A8` / `func_actor_401300_80136238`
 /// with these inlined rather than called. Splitting the `G_SCRATCH_HEAD` loads
 /// out this way is what keeps each access out of a register CSE would share.
-static __inline__ void Actor401800_ConfigPositionDelta(WipSysConfig* config, GsCOORDINATE2* coord, SVECTOR* pos)
+static __inline__ void Actor401800_ConfigPositionDelta(PlayerStatus* config, GsCOORDINATE2* coord, SVECTOR* pos)
 {
     pos->vx = config->field_4->t[0] - coord->coord.t[0];
     pos->vy = config->field_4->t[1] - coord->coord.t[1];
@@ -1024,7 +1024,7 @@ static __inline__ s16 Actor401800_NormalizeYaw(s16 input)
 }
 
 /// Yaw from the actor's facing to the player, wrapped; `pos` receives the offset.
-static __inline__ s16 Actor401800_PositionYaw(Actor401800* actor, SVECTOR* pos, WipSysConfig* config)
+static __inline__ s16 Actor401800_PositionYaw(Actor401800* actor, SVECTOR* pos, PlayerStatus* config)
 {
     GsCOORDINATE2* coord;
     s32            angle;
@@ -1071,7 +1071,7 @@ void func_actor_401800_80135F58(Actor401800* arg0)
     if (work->field_68 & 1) {
         work->field_0 = 7;
     }
-    aim->angle      = Actor401800_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+    aim->angle      = Actor401800_PositionYaw(arg0, &aim->delta, &Player_Status);
     work->field_8AE = aim->angle;
     if (aim->angle > 0x10) {
         aim->angle = 0x10;
@@ -1280,7 +1280,7 @@ void func_actor_401800_80136EAC(Actor401800* arg0)
     } else {
         func_actor_401800_8013629C(arg0, &work->field_8E8, 0xC);
     }
-    Actor401800_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+    Actor401800_ConfigPositionDelta(&Player_Status, arg0->field_2C->field_8, &s->delta);
     if (work->field_8 >= 7) {
         s->playerYaw  = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][0],
                                ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][2]);
@@ -1339,7 +1339,7 @@ void func_actor_401800_80136EAC(Actor401800* arg0)
         if (++work->field_6 == 5) {
             s->playerYaw = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][0],
                                   ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][2]);
-            Actor401800_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+            Actor401800_ConfigPositionDelta(&Player_Status, arg0->field_2C->field_8, &s->delta);
             s->yaw = ratan2(s->delta.vx, s->delta.vz) + 0x800;
             yaw    = Actor401800_NormalizeYaw(s->yaw);
             s->yaw = yaw;
@@ -1399,7 +1399,7 @@ void func_actor_401800_80137714(Actor401800* arg0)
         work->field_B48.flags   &= 0x7FFF;
         work->field_A08.flags   |= 0x4000;
         func_actor_401800_80133EB8(arg0);
-        Actor401800_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+        Actor401800_ConfigPositionDelta(&Player_Status, arg0->field_2C->field_8, &s->delta);
         coord                                       = arg0->field_2C->field_8;
         s->turn                                     = Actor401800_NormalizeYaw(ratan2(head[-1].delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         facing                                      = arg0->field_2C->field_8;
@@ -1413,7 +1413,7 @@ void func_actor_401800_80137714(Actor401800* arg0)
     *(Actor401800ChaseScratch**)G_SCRATCH_HEAD = head - 1;
     s                                          = head - 1;
     func_actor_401800_80133EB8(arg0);
-    Actor401800_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+    Actor401800_ConfigPositionDelta(&Player_Status, arg0->field_2C->field_8, &s->delta);
     if (work->field_BF8 == work->field_BFA) {
         if (work->field_C1C < 2 || Actor401800_OutOfRange(&s->delta, 0x384)) {
             work->field_0 = 8;
@@ -1495,7 +1495,7 @@ void func_actor_401800_80137DDC(Actor401800* arg0)
         work->field_6            = 0;
         work->field_B48.flags   &= 0x7FFF;
         work->field_A08.flags   |= 0x4000;
-        Actor401800_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &aim->delta);
+        Actor401800_ConfigPositionDelta(&Player_Status, arg0->field_2C->field_8, &aim->delta);
         aim->angle = ratan2(head[-1].delta.vx, aim->delta.vz);
         if (work->field_C00 == 0) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -1686,19 +1686,19 @@ void func_actor_401800_80139118(Actor401800* arg0)
 {
     Actor401800Work* work;
     GpEnemy*         enemy;
-    WipSysConfig*    config;
+    PlayerStatus*    config;
     u8               kind;
 
     work   = arg0->field_1C;
     enemy  = arg0->field_20;
-    config = &Wip_SysConfig;
+    config = &Player_Status;
     if (work->field_4 != 0) {
         work->field_8A2 = 0x10;
         work->field_89E = 7;
         work->field_898 = 2;
         func_actor_401800_80133EB8(arg0);
         D_actor_401800_80155A0C.field_4 = 3;
-        if (config->field_18 > 0) {
+        if (config->hp > 0) {
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&D_actor_401800_80155A0C, 0);
         }
         work->field_C04        = -0x78;
@@ -1706,7 +1706,7 @@ void func_actor_401800_80139118(Actor401800* arg0)
         work->field_A08.flags |= 0x4000;
         return;
     }
-    if ((Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) && (config->field_18 > 0) && (work->field_C20 == 1)) {
+    if ((Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) && (config->hp > 0) && (work->field_C20 == 1)) {
         Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
         work->field_C20 = 0;
     }
@@ -1731,7 +1731,7 @@ void func_actor_401800_80139118(Actor401800* arg0)
         } else {
             work->field_0 = 6;
         }
-        if ((config->field_18 > 0) && (work->field_C20 == 1)) {
+        if ((config->hp > 0) && (work->field_C20 == 1)) {
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
             work->field_C20 = 0;
         }
@@ -2166,7 +2166,7 @@ void func_actor_401800_8013A034(Actor401800* arg0)
 /// local Z while `func_actor_401800_80133558` reports the path clear. The
 /// `field_A28` / `field_8E8` contact records then decide whether `field_6`
 /// counts up or `func_actor_401800_8013629C` re-seeds them. In the tail the
-/// `Wip_SysConfig` offset arms state 6 within `field_C0E`, or within 0xFA0 when
+/// `Player_Status` offset arms state 6 within `field_C0E`, or within 0xFA0 when
 /// the aim toward the player is under 0x300. Same body as
 /// `Actor01900_Fn06F40` / `func_actor_401300_80139AB0`, with the aim and step
 /// helpers inlined. The waypoint delta is written twice; the retail build keeps
@@ -2250,7 +2250,7 @@ void func_actor_401800_8013A2E8(Actor401800* arg0)
     }
     arg0->field_2C->field_8->flg = 0;
     if (func_actor_401800_80133918(arg0) != 1) {
-        Actor401800_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+        Actor401800_ConfigPositionDelta(&Player_Status, arg0->field_2C->field_8, &s->delta);
         if (!Actor401800_OutOfRange(&s->delta, work->field_C0E)) {
             work->field_0 = 6;
         } else if (!Actor401800_OutOfRange(&s->delta, 0xFA0)) {
@@ -2298,7 +2298,7 @@ void func_actor_401800_8013AB64(Actor401800* arg0)
     }
     *(Actor401800TurnScratch**)G_SCRATCH_HEAD -= 1;
     turn                                       = *(Actor401800TurnScratch**)G_SCRATCH_HEAD;
-    turn->angle                                = Actor401800_PositionYaw(arg0, &turn->delta, &Wip_SysConfig);
+    turn->angle                                = Actor401800_PositionYaw(arg0, &turn->delta, &Player_Status);
     work->field_8AE                            = turn->angle;
     if (turn->angle > 0x40) {
         turn->angle = 0x40;
@@ -2365,7 +2365,7 @@ void func_actor_401800_8013AF1C(Actor401800* arg0)
     func_actor_401800_80133EB8(arg0);
     *(Actor401800AimScratch**)G_SCRATCH_HEAD -= 1;
     aim                                       = *(Actor401800AimScratch**)G_SCRATCH_HEAD;
-    aim->angle                                = Actor401800_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+    aim->angle                                = Actor401800_PositionYaw(arg0, &aim->delta, &Player_Status);
     work->field_8AE                           = aim->angle;
     if (ABS(aim->angle) <= 0x80 && work->field_89E == 2) {
         work->field_8A2 = 0x16;
@@ -2439,7 +2439,7 @@ void func_actor_401800_8013B444(Actor401800* arg0)
     if (work->field_68 & 1) {
         work->field_0 = 7;
     }
-    aim->angle      = Actor401800_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+    aim->angle      = Actor401800_PositionYaw(arg0, &aim->delta, &Player_Status);
     work->field_8AE = aim->angle;
     if (aim->angle > 0) {
         aim->angle = 0;
@@ -2489,7 +2489,7 @@ void func_actor_401800_8013B784(Actor401800* arg0)
     }
     *(Actor401800AimScratch**)G_SCRATCH_HEAD -= 1;
     aim                                       = *(Actor401800AimScratch**)G_SCRATCH_HEAD;
-    aim->angle                                = Actor401800_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+    aim->angle                                = Actor401800_PositionYaw(arg0, &aim->delta, &Player_Status);
     if (work->field_8AE < aim->angle) {
         if (aim->angle - work->field_8AE >= 0x29) {
             work->field_8AE = (u16)work->field_8AE + 0x28;
@@ -2762,12 +2762,12 @@ void func_actor_401800_8013CD98(Actor401800* arg0)
             func_actor_401800_8013629C(arg0, &work->field_8E8, 0xC);
         }
     }
-    Actor401800_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+    Actor401800_ConfigPositionDelta(&Player_Status, arg0->field_2C->field_8, &s->delta);
     arg0->field_2C->field_8->flg = 0;
     func_actor_401800_80133EB8(arg0);
     s->playerYaw = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][0],
                           ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][2]);
-    Actor401800_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+    Actor401800_ConfigPositionDelta(&Player_Status, arg0->field_2C->field_8, &s->delta);
     s->yaw = ratan2(s->delta.vx, s->delta.vz) + 0x800;
     s->yaw = Actor401800_NormalizeYaw(s->yaw);
     if (func_actor_401800_80133918(arg0) != 1) {

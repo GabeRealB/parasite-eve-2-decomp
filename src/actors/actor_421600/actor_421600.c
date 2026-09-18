@@ -661,7 +661,7 @@ void func_actor_421600_80138D24(Actor421600* arg0)
 /// reallocated, clip 0x10, `field_82E` 2, the 0xB6C node's 0x4000 flag up --
 /// then walks the 0xB8C `GpRec18` table through `func_actor_421600_8013285C`.
 /// Takes two `SVECTOR`s off `G_SCRATCH_HEAD` and fills the XZ offset of the
-/// model coordinate from `Wip_SysConfig.field_4` (the camera target matrix),
+/// model coordinate from `Player_Status.field_4` (the camera target matrix),
 /// forms the yaw difference against the model's own facing (row 2 of its
 /// matrix), wraps it into `[-0x800, 0x800]` into `field_840` and re-aims the
 /// coordinate with `Gfx_RotMatrixY`. Ends by writing the view index into
@@ -707,9 +707,9 @@ void func_actor_421600_8013903C(Actor421600* arg0)
     func_actor_421600_8013285C(arg0->field_2C->field_8, &work->field_B8C, 0xC);
     arg0->field_2C->field_8->flg = 0;
     coord                        = arg0->field_2C->field_8;
-    head[-2].vx                  = (u16)Wip_SysConfig.field_4->t[0] - (u16)coord->coord.t[0];
-    vec->vy                      = (u16)Wip_SysConfig.field_4->t[1] - (u16)coord->coord.t[1];
-    vec->vz                      = (u16)Wip_SysConfig.field_4->t[2] - (u16)coord->coord.t[2];
+    head[-2].vx                  = (u16)Player_Status.field_4->t[0] - (u16)coord->coord.t[0];
+    vec->vy                      = (u16)Player_Status.field_4->t[1] - (u16)coord->coord.t[1];
+    vec->vz                      = (u16)Player_Status.field_4->t[2] - (u16)coord->coord.t[2];
     coord2                       = arg0->field_2C->field_8;
     angle                        = ratan2(head[-2].vx, vec->vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
     if (angle < 0) {

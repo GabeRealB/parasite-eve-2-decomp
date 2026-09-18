@@ -56,9 +56,9 @@ void Actor03800_Fn02584(Actor103800* arg0)
 
     switch (work->field_354) {
         case 0:
-            vec.vx          = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+            vec.vx          = Player_Status.field_4->t[0] - coord->coord.t[0];
             vec.vy          = 0;
-            vec.vz          = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            vec.vz          = Player_Status.field_4->t[2] - coord->coord.t[2];
             work->field_348 = 0xA;
             if (work->field_370 != 0) {
                 work->field_370 = 0;

@@ -92,7 +92,7 @@ void func_acropolis_cafeteria_80181A3C(Task* task)
                 work->field_D4++;
                 head[-1]  = coord->coord;
                 direction = &work->field_CC;
-                Gfx_MatrixCol2(Wip_SysConfig.field_4, direction);
+                Gfx_MatrixCol2(Player_Status.field_4, direction);
                 VectorNormalSS(direction, direction);
                 rand();
                 speed          = work->field_B0;

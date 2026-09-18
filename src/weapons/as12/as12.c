@@ -49,7 +49,7 @@ void func_as12_8011D1DC(GpActorWork* arg0)
             actor->field_95C = 0;
             actor->field_95E++;
             actor->field_12A |= 0x400;
-            if (Wip_SysConfig.field_22 == 0xE) {
+            if (Player_Status.field_22 == 0xE) {
                 actor->field_12A |= 0x800;
             } else {
                 actor->field_12A &= ~0x800;
@@ -79,25 +79,25 @@ void func_as12_8011D1DC(GpActorWork* arg0)
             actor->field_12A |= 0xC000;
             Gp_ConsumeSlotQty(0x8E, 1);
             Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8,
-                          ((Wip_SysConfig.field_22 - 0xD) << 0x18) | 0x200F0005, 1);
+                          ((Player_Status.field_22 - 0xD) << 0x18) | 0x200F0005, 1);
             Gp_SpawnEff(0x600A1,
                         (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8,
-                        (Wip_SysConfig.field_22 << 0x10) | 0xF, NULL);
+                        (Player_Status.field_22 << 0x10) | 0xF, NULL);
             Gp_AnimResetChildSlots(arg0, 0xA);
             break;
         case 4:
             actor->field_979 = 0x16;
             actor->field_95E++;
             actor->field_12A &= 0x3FFF;
-            if (Wip_SysConfig.field_22 != 0xD) {
+            if (Player_Status.field_22 != 0xD) {
                 hit = Gp_PickNearestRec18(actor->field_32C, coord, spot);
-                if (Wip_SysConfig.field_22 == 0xE) {
+                if (Player_Status.field_22 == 0xE) {
                     if (hit != 0 || Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
                         spot->workm.t[0] = actor->field_32C[0].field_8;
                         spot->workm.t[1] = actor->field_32C[0].field_A;
                         spot->workm.t[2] = actor->field_32C[0].field_C;
                         Gp_PlayObjSfx((GpObj38*)spot,
-                                      ((Wip_SysConfig.field_22 - 0xD) << 0x18) | 0x200F0004, 1);
+                                      ((Player_Status.field_22 - 0xD) << 0x18) | 0x200F0004, 1);
                     }
                 } else if (hit != 0) {
                     Gp_PlayObjSfx((GpObj38*)spot, 0x17, 1);

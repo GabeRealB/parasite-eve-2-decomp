@@ -35,9 +35,9 @@ void ActorsShared801333b0(Actor02400Scale* arg0)
     limit                                               = 0x1000;
     switch (work->field_13E) {
         case 0:
-            scratchEnd[-1].delta.vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+            scratchEnd[-1].delta.vx = Player_Status.field_4->t[0] - coord->coord.t[0];
             scratch->delta.vy       = 0;
-            scratch->delta.vz       = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            scratch->delta.vz       = Player_Status.field_4->t[2] - coord->coord.t[2];
             work->field_146         = ratan2((s16)scratchEnd[-1].delta.vx, (s16)scratch->delta.vz) & 0xFFF;
             work->field_13A         = 0x19;
             work->field_148         = 0xA;

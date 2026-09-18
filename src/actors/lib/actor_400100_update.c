@@ -36,7 +36,7 @@ s32  Gp_DispatchMsg(void* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
 {
-    WipSysConfig*        config;
+    PlayerStatus*        config;
     s32                  excludedState;
     VECTOR               pos;
     Actor00100StateTable states;
@@ -73,7 +73,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
 
     work                          = actor->field_1C;
     player                        = Game_GetPtrSlot(3);
-    config                        = &Wip_SysConfig;
+    config                        = &Player_Status;
     states                        = Actor00100_D000F0;
     actor->field_2C->field_8->flg = 0;
     Gp_UpdateCoord(actor->field_2C->field_8);
@@ -167,7 +167,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
                         }
                     }
                     if (player->field_2C->field_8->coord.t[1] >= 0x1770) {
-                        if (config->field_18 > 0) {
+                        if (config->hp > 0) {
                             for (i = 0; i < 10; i++) {
                                 Game_Session->field_12D = 0x7F;
                                 playerSlot              = Game_GetPtrSlot(3);
@@ -222,7 +222,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
             case 2:
                 command = work->field_BF8;
                 if (command == &Actor00100_D1B9D0) {
-                    if ((config->field_18 > 0) && ((s16)work->field_C28 >= 0x17)) {
+                    if ((config->hp > 0) && ((s16)work->field_C28 >= 0x17)) {
                         message           = &work->field_BF8;
                         command->field_10 = (s32)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9]->field_1C;
                         work->field_BFC   = 4;
@@ -231,7 +231,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
                         Gp_DispatchMsg(player, 0x3FF, (s32)message, 0);
                         work->field_C28 = 0U;
                     }
-                } else if ((config->field_18 > 0) && ((s16)work->field_C28 >= 0x22)) {
+                } else if ((config->hp > 0) && ((s16)work->field_C28 >= 0x22)) {
                     message                 = &work->field_BF8;
                     Actor00100_D1B9BC.value = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9]->field_1C;
                     work->field_BFC         = 4;
@@ -242,7 +242,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
                 }
                 break;
             case 3:
-                if (((s16)work->field_C28 < 6) && (config->field_18 > 0) && ((work->field_8D8 != 0) || (work->field_8E0 != 0))) {
+                if (((s16)work->field_C28 < 6) && (config->hp > 0) && ((work->field_8D8 != 0) || (work->field_8E0 != 0))) {
                     result = Gp_DispatchMsg(player, 0x3FE, (s32)(&work->field_8D8), 0);
                     if (result == 1) {
                         work->field_8D8 = 0;
@@ -253,7 +253,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
                 }
                 break;
             case 5:
-                if ((config->field_18 > 0) && ((s16)work->field_C28 >= 7)) {
+                if ((config->hp > 0) && ((s16)work->field_C28 >= 7)) {
                     Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
                     work->field_C18 = 0;
                 }
@@ -263,7 +263,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
             nextAction = work->field_BFC;
             switch (nextAction) {
                 case 1:
-                    if ((((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x04010000) || (work->field_8E8 != 0x38)) && (config->field_18 > 0)) {
+                    if ((((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x04010000) || (work->field_8E8 != 0x38)) && (config->hp > 0)) {
                         nextMessage     = &work->field_BF8;
                         work->field_C00 = 0;
                         work->field_C04 = 0;
@@ -273,7 +273,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
                     }
                     break;
                 case 3:
-                    if (config->field_18 > 0) {
+                    if (config->hp > 0) {
                         work->field_C00 = 1;
                         work->field_C04 = 6;
                         work->field_BFC = 5;
@@ -290,7 +290,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
                     break;
                 case 4:
                 case 7:
-                    if (config->field_18 > 0) {
+                    if (config->hp > 0) {
                         Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
                         work->field_C18 = 0;
                     }

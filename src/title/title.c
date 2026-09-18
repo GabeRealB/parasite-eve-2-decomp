@@ -356,7 +356,7 @@ void Title_RestoreDemoCard(void)
     memcpy(&Mc_SaveData, src, sizeof(McSaveData));
     src += sizeof(McSaveData);
 
-    memcpy((u8*)&Wip_SysConfig + bank * 0x40, src, 0x40);
+    memcpy((u8*)&Player_Status + bank * 0x40, src, 0x40);
     src += 0x40;
 
     memcpy(D_800733F0[bank], src, 0x6C);

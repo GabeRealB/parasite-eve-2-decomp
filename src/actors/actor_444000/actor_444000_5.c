@@ -388,9 +388,9 @@ void func_actor_444000_8013482C(Actor444000* task)
     work->field_7D8 = work->slots0[2].field_2 & 0x3FF;
 
     model      = ((TmdObject*)task->extra)->field_8;
-    sc->dir.vx = Wip_SysConfig.field_4->t[0] - model->coord.t[0];
-    sc->dir.vy = Wip_SysConfig.field_4->t[1] - model->coord.t[1];
-    sc->dir.vz = Wip_SysConfig.field_4->t[2] - model->coord.t[2];
+    sc->dir.vx = Player_Status.field_4->t[0] - model->coord.t[0];
+    sc->dir.vy = Player_Status.field_4->t[1] - model->coord.t[1];
+    sc->dir.vz = Player_Status.field_4->t[2] - model->coord.t[2];
 
     facing = ((TmdObject*)task->extra)->field_8;
     ang    = ratan2(sc->dir.vx, sc->dir.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
@@ -1432,7 +1432,7 @@ void func_actor_444000_80138490(GpEnemy* enemy, Actor444000Grab* task)
     Actor444000GrabWork* work;
     Task*                player;
     GameActor*           actor;
-    WipSysConfig*        cfg;
+    PlayerStatus*        cfg;
     SVECTOR              gap;
     VECTOR               pos;
     s16                  step;
@@ -1442,7 +1442,7 @@ void func_actor_444000_80138490(GpEnemy* enemy, Actor444000Grab* task)
     work   = task->field_1C;
     player = Game_GetPtrSlot(3);
     actor  = (GameActor*)player->idMap;
-    cfg    = &Wip_SysConfig;
+    cfg    = &Player_Status;
 
     if (D_actor_444000_80144A68 == 1) {
         if (work->field_1B2 == 1) {
@@ -1470,7 +1470,7 @@ void func_actor_444000_80138490(GpEnemy* enemy, Actor444000Grab* task)
                  ((TmdObject*)player->extra)->field_8->coord.t[2];
 
         if (Actor444000_OutOfReach(&gap) == 0 && actor->field_954 != 2 &&
-            cfg->field_18 > 0) {
+            cfg->hp > 0) {
             D_actor_444000_80161898.field_14 = 0x28;
             if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&D_actor_444000_80161898, 0) == 0) {
                 D_actor_444000_80144A6C = 1;

@@ -1534,7 +1534,7 @@ void func_actor_403100_80136830(Task* arg0)
         } rotation;
     } scratch;
     void *        scratcharg0, *scratcharg1, *scratcharg2, *scratcharg3, *scratcharg4, *scratcharg5, *scratcharg6;
-    WipSysConfig* config = &Wip_SysConfig;
+    PlayerStatus* config = &Player_Status;
 
     s32          flashTimer;
     s16          lightTimer;
@@ -1576,7 +1576,7 @@ void func_actor_403100_80136830(Task* arg0)
             if (countdown >= 0) {
                 D_actor_403100_80155808->field_5D0 = (s32)(countdown - 1);
             }
-            if ((config->field_18 > 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
+            if ((config->hp > 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
                 if (D_actor_403100_8015580C->field_40 < (s16)(((s16)D_actor_403100_8015580C->field_42 * 0x23) / 100)) {
                     D_actor_403100_80155808->field_65C = 1U;
                 } else {
@@ -1746,7 +1746,7 @@ void func_actor_403100_80136830(Task* arg0)
                 }
             }
             if ((D_actor_403100_8015580C->field_40 <= 0) && (*(u8*)&D_actor_403100_80155808->pad_670[3] == 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
-                if (config->field_18 <= 0) {
+                if (config->hp <= 0) {
                     D_actor_403100_8015580C->field_40 = 0x3E8;
                 } else {
                     D_actor_403100_80155808->field_658 = -1;

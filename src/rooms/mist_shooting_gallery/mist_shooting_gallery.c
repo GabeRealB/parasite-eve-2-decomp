@@ -465,7 +465,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     s32           top;
     s32           y;
     s32           color;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
 
     obj   = task->spawnArg2;
     score = task->spawnArg1;
@@ -474,7 +474,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     Ui_DrawText((UiPanel*)obj, "BONUS");
     if (task->state == 0) {
         bonus = func_mist_shooting_gallery_80184470(score);
-        cfg   = &Wip_SysConfig;
+        cfg   = &Player_Status;
         if (bonus > 0) {
             total        = cfg->field_C + bonus;
             cfg->field_C = total;
@@ -837,7 +837,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, 3, 0);
 }
 /// Task handler for the gallery's closing sequence. State 0 spawns the results
-/// panel and stashes the player's `Wip_SysConfig` BP (`field_8`) and experience
+/// panel and stashes the player's `Player_Status` BP (`field_8`) and experience
 /// (`field_C`) totals in `D_mist_shooting_gallery_8018E0BC` / `_8018E0C0`.
 /// State 1 waits for the panel to confirm (`field_2E == 6`), then writes both
 /// totals back scaled down by the bonus mode - the same divisor table as
@@ -846,7 +846,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
 void func_mist_shooting_gallery_8017F6C8(Task* task)
 {
     UiObject*     obj;
-    WipSysConfig* cfg = &Wip_SysConfig;
+    PlayerStatus* cfg = &Player_Status;
     s32           savedBp;
     s32           savedExp;
     s32           bp;

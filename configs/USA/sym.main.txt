@@ -1844,7 +1844,7 @@ _SN_read                    = 0x8004C4B8;
 //--------------------------------------------------------------------
 //--- PA: 0x3CCD0   VA: 0x8004C4D0   subsegment: c, 3CCD0
 //--------------------------------------------------------------------
-Mc_InitSaveSlotDefaults               = 0x8004C4D0; // type:func
+Player_InitNewGameStats               = 0x8004C4D0; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x3CD08   VA: 0x8004C508   subsegment: o, libgte/mtx_001
@@ -2819,7 +2819,7 @@ Stage_Ctx                   = 0x80062698;
 Snd_BankInitTable           = 0x80068A60; // type:SndBankInitEntry
 CdAudio_TblEntries          = 0x80082794;
 Pad_RemapState              = 0x800626A8;
-Wip_SysConfig               = 0x80073B88; // type:WipSysConfig size:0x80
+Player_Status               = 0x80073B88; // type:PlayerStatus size:0x80
 Wip_UiHolder                = 0x80067694;
 
 // Vacuum-driven renames (tools/vacuum.log roles)

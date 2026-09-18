@@ -497,7 +497,7 @@ void func_actor_342100_801630A4(Task* arg0)
     Actor342100Work* work;
     Actor342100Work* newWork;
     s32              ready;
-    WipSysConfig*    cfg;
+    PlayerStatus*    cfg;
 
     work = (Actor342100Work*)arg0->idMap;
     if (Game_Session->field_65 != 0 || D_80114C11 != 0 || D_801153F4 != 0 || D_80114CF8 != 0) {
@@ -537,8 +537,8 @@ void func_actor_342100_801630A4(Task* arg0)
                     arg0->state++;
                 }
             }
-            cfg = &Wip_SysConfig;
-            if (Game_Session->field_120 > 0 || cfg->field_18 <= 0) {
+            cfg = &Player_Status;
+            if (Game_Session->field_120 > 0 || cfg->hp <= 0) {
                 ready = 0;
             } else {
                 ready = 1;
@@ -548,8 +548,8 @@ void func_actor_342100_801630A4(Task* arg0)
             }
             break;
         case 2:
-            cfg = &Wip_SysConfig;
-            if (Game_Session->field_120 > 0 || cfg->field_18 <= 0) {
+            cfg = &Player_Status;
+            if (Game_Session->field_120 > 0 || cfg->hp <= 0) {
                 ready = 0;
             } else {
                 ready = 1;

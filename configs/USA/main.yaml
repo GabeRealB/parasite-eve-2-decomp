@@ -372,7 +372,7 @@ segments:
       - [0x3cbd8, o, libsn/open] # PCopen
       - [0x3cbf8, o, libsn/read] # PCread
       - [0x3ccb8, o, libsn/snread] # _SN_read
-      - [0x3ccd0, c, wipsyscfg] # Wip_SysConfig init (Mc_InitSaveSlotDefaults)
+      - [0x3ccd0, c, wipsyscfg] # Player_Status init (Player_InitNewGameStats)
       - [0x3cd08, o, libgte/mtx_001] # MulRotMatrix
       - [0x3cdf8, o, libgte/msc06] # LoadAverage12, LoadAverage0, LoadAverageShort12, LoadAverageShort0, LoadAverageByte, LoadAverageCol
       - [0x3d088, o, libgte/mtx_00a] # ScaleMatrixL

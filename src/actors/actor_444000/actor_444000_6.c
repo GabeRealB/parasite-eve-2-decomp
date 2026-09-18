@@ -993,7 +993,7 @@ void func_actor_444000_8013C060(Actor444000* task)
     Actor444000Work*       work;
     GpEnemy*               enemy;
     GpRec18*               recs;
-    WipSysConfig*          cfg;
+    PlayerStatus*          cfg;
     SVECTOR*               pos;
     s32                    mask;
     s32                    kind;
@@ -1004,7 +1004,7 @@ void func_actor_444000_8013C060(Actor444000* task)
     s16                    angle;
     s16                    i;
 
-    cfg   = &Wip_SysConfig;
+    cfg   = &Player_Status;
     enemy = task->field_20;
     work  = task->field_1C;
     sc    = (Actor444000HitScratch*)(SCRATCH_SP -= sizeof(Actor444000HitScratch));
@@ -1124,7 +1124,7 @@ void func_actor_444000_8013C4B0(Actor444000* task)
     Actor444000HitScratch* sc;
     Actor444000Work*       work;
     GpEnemy*               host;
-    WipSysConfig*          cfg;
+    PlayerStatus*          cfg;
     GsCOORDINATE2*         coord;
     GpRec18*               recs;
     GpRec18*               recs2;
@@ -1140,7 +1140,7 @@ void func_actor_444000_8013C4B0(Actor444000* task)
     s16                    i2;
     u16                    roll;
 
-    cfg  = &Wip_SysConfig;
+    cfg  = &Player_Status;
     host = task->field_20;
     work = task->field_1C;
     sc   = (Actor444000HitScratch*)(SCRATCH_SP -= sizeof(Actor444000HitScratch));
@@ -1304,7 +1304,7 @@ void func_actor_444000_8013CA60(Actor444000* task)
     Actor444000HitScratch* sc;
     Actor444000Work*       work;
     GpEnemy*               host;
-    WipSysConfig*          cfg;
+    PlayerStatus*          cfg;
     GsCOORDINATE2*         coord;
     GpRec18*               recs;
     GpRec18*               recs2;
@@ -1323,7 +1323,7 @@ void func_actor_444000_8013CA60(Actor444000* task)
     s16                    i2;
     s16                    i3;
 
-    cfg  = &Wip_SysConfig;
+    cfg  = &Player_Status;
     host = task->field_20;
     work = task->field_1C;
     sc   = (Actor444000HitScratch*)(SCRATCH_SP -= sizeof(Actor444000HitScratch));
@@ -1507,7 +1507,7 @@ void func_actor_444000_8013D128(Actor444000* task)
     Actor444000HitScratch* sc;
     Actor444000Work*       work;
     GpEnemy*               host;
-    WipSysConfig*          cfg;
+    PlayerStatus*          cfg;
     GsCOORDINATE2*         coord;
     GpRec18*               recs;
     GpRec18*               recs2;
@@ -1526,7 +1526,7 @@ void func_actor_444000_8013D128(Actor444000* task)
     s16                    i2;
     s16                    i3;
 
-    cfg  = &Wip_SysConfig;
+    cfg  = &Player_Status;
     host = task->field_20;
     work = task->field_1C;
     sc   = (Actor444000HitScratch*)(SCRATCH_SP -= sizeof(Actor444000HitScratch));
@@ -1869,7 +1869,7 @@ void func_actor_444000_8013E058(Actor444000* task)
     Actor444000DragScratch* sc;
     Actor444000Work*        escorts;
     Actor444000Work*        buffers;
-    WipSysConfig*           cfg;
+    PlayerStatus*           cfg;
     GsCOORDINATE2*          coord;
     GsCOORDINATE2*          facing;
     GsCOORDINATE2*          yawCoord;
@@ -1933,7 +1933,7 @@ void func_actor_444000_8013E058(Actor444000* task)
     }
     func_actor_444000_8013441C(task);
 
-    cfg        = &Wip_SysConfig;
+    cfg        = &Player_Status;
     facing     = ((TmdObject*)task->extra)->field_8;
     dirp       = &sc->dir;
     sc->dir.vx = *(u16*)&cfg->field_4->t[0] - *(u16*)&facing->coord.t[0];
@@ -2145,7 +2145,7 @@ void func_actor_444000_8013E058(Actor444000* task)
 /// direction scaled to 0x384 is where the player is asked to stand.
 static __inline__ void Actor444000_PlacePlayerAhead(Actor444000* task, Actor444000Work* work,
                                                     Task* player, Actor444000WarpScratch* sc,
-                                                    WipSysConfig* cfg)
+                                                    PlayerStatus* cfg)
 {
     GsCOORDINATE2* coord;
     GsCOORDINATE2* facing;
@@ -2222,7 +2222,7 @@ static __inline__ void Actor444000_PlacePlayerAhead(Actor444000* task, Actor4440
     D_actor_444000_80161908.rot.vx = 0;
     D_actor_444000_80161908.rot.vy = sc->angle;
     D_actor_444000_80161908.rot.vz = 0;
-    if (cfg->field_18 > 0) {
+    if (cfg->hp > 0) {
         Gp_DispatchMsg(player, 0x3E9, (s32)&D_actor_444000_80161908, 0);
     }
 }
@@ -2235,7 +2235,7 @@ void func_actor_444000_8013EC84(Actor444000* arg0)
     Actor444000Work*        buffers;
     GpEnemy*                enemy;
     Task*                   player;
-    WipSysConfig*           cfg;
+    PlayerStatus*           cfg;
     Task*                   target;
     TmdObject*              tmd;
     TmdObject*              escortTmd;
@@ -2253,7 +2253,7 @@ void func_actor_444000_8013EC84(Actor444000* arg0)
     work   = arg0->field_1C;
     enemy  = arg0->field_20;
     player = Game_GetPtrSlot(3);
-    cfg    = &Wip_SysConfig;
+    cfg    = &Player_Status;
 
     if (work->field_4 != 0) {
         sc = (Actor444000WarpScratch*)(SCRATCH_SP -= sizeof(Actor444000WarpScratch));
@@ -2346,10 +2346,10 @@ void func_actor_444000_8013EC84(Actor444000* arg0)
         }
 
         if (work->field_7B3 == 0xF) {
-            if (cfg->field_18 > 0) {
+            if (cfg->hp > 0) {
                 target = Game_GetPtrSlot(3);
                 Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 3), 0);
-                if (cfg->field_18 <= 0) {
+                if (cfg->hp <= 0) {
                     ((GameActor*)player->idMap)->field_956 = 0xA;
                     Game_Session->field_12D                = 0x1E;
                     Game_Session->field_12E                = 0x36;
@@ -2656,7 +2656,7 @@ scanned:
                     if (work->field_ECA != 1 && (s16)work->field_7CA >= 0x17) {
                         work->anim.field_0         = D_actor_444000_80161670;
                         D_actor_444000_80161670[4] = ((Actor444000AnimTable*)Gp_PlayerAnimBlkTbl
-                                                          [Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21])
+                                                          [Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.field_21])
                                                          ->sets[7];
                         work->anim.field_4 = 4;
                         work->anim.field_8 = 1;
@@ -3183,7 +3183,7 @@ void func_actor_444000_80141618(Actor444000* task)
     Actor444000Work*         work;
     GpEnemy*                 host;
     GpEnemy*                 escort;
-    WipSysConfig*            cfg;
+    PlayerStatus*            cfg;
     GsCOORDINATE2*           coord;
     GsCOORDINATE2*           facing;
     TmdObject*               model;
@@ -3253,7 +3253,7 @@ void func_actor_444000_80141618(Actor444000* task)
     } else {
         work->field_EFA = 0;
     }
-    cfg          = &Wip_SysConfig;
+    cfg          = &Player_Status;
     coord        = ((TmdObject*)task->extra)->field_8;
     sc->delta.vx = cfg->field_4->t[0] - coord->coord.t[0];
     sc->delta.vy = cfg->field_4->t[1] - coord->coord.t[1];
@@ -3484,7 +3484,7 @@ void func_actor_444000_80142254(void)
 /// The dispatch table is a local, as in `func_actor_444000_80142F28`.
 void func_actor_444000_801423C4(GpEnemy* enemy, Actor444000* task)
 {
-    WipSysConfig*    cfg  = &Wip_SysConfig;
+    PlayerStatus*    cfg  = &Player_Status;
     Actor444000Work* work = task->field_1C;
     VECTOR           pos;
     void             (*handlers[0x15])(Actor444000*) = {
@@ -3643,7 +3643,7 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Actor444000* task)
     SCRATCH_SP -= 0x1C;
 
     if (enemy->field_40 > 0) {
-        if (work->field_EC8 != 1 && cfg->field_18 > 0 && (s16)work->field_0 != 0xD) {
+        if (work->field_EC8 != 1 && cfg->hp > 0 && (s16)work->field_0 != 0xD) {
             if (work->field_E92 > 0) {
                 work->field_E92--;
             } else {
@@ -3667,7 +3667,7 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Actor444000* task)
         }
     }
     if (enemy->field_40 <= 0) {
-        if (cfg->field_18 <= 0) {
+        if (cfg->hp <= 0) {
             enemy->field_40         = 1;
             D_actor_444000_80144A68 = 0;
         }
@@ -3682,7 +3682,7 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Actor444000* task)
                     break;
 
                 case 3:
-                    if (cfg->field_18 > 0) {
+                    if (cfg->hp > 0) {
                         if (work->field_F08 == 6) {
                             Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, 2, 0);
                         } else {

@@ -56,14 +56,14 @@ static __inline__ s16 Actor00100_FacingAway(GsCOORDINATE2* p)
     return 0;
 }
 
-static __inline__ void Actor00100_ConfigPositionDelta(WipSysConfig* config, GsCOORDINATE2* coord, SVECTOR* pos)
+static __inline__ void Actor00100_ConfigPositionDelta(PlayerStatus* config, GsCOORDINATE2* coord, SVECTOR* pos)
 {
     pos->vx = config->field_4->t[0] - coord->coord.t[0];
     pos->vy = config->field_4->t[1] - coord->coord.t[1];
     pos->vz = config->field_4->t[2] - coord->coord.t[2];
 }
 
-static __inline__ s16 Actor00100_PositionYaw(Actor00100* actor, SVECTOR* pos, WipSysConfig* config)
+static __inline__ s16 Actor00100_PositionYaw(Actor00100* actor, SVECTOR* pos, PlayerStatus* config)
 {
     GsCOORDINATE2* coord;
     s32            angle;

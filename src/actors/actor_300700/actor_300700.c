@@ -383,9 +383,9 @@ void func_actor_300700_801626C0(Actor300700* arg0)
             work->field_2DC = !(random & 0x20) ? cur - amount : cur + amount;
             break;
         case 1:
-            sc->vec.vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+            sc->vec.vx = Player_Status.field_4->t[0] - coord->coord.t[0];
             sc->vec.vy = 0;
-            sc->vec.vz = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            sc->vec.vz = Player_Status.field_4->t[2] - coord->coord.t[2];
             want       = ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF;
             diff       = want - (work->field_2DC & 0xFFF);
             adiff      = diff >= 0 ? diff : -diff;

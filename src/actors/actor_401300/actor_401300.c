@@ -1219,7 +1219,7 @@ static __inline__ s32 Actor401300_FindHit(SVECTOR* pos, GpRec18* records)
 
 void func_actor_401300_80134F90(Actor401300* arg0)
 {
-    WipSysConfig*          config = &Wip_SysConfig;
+    PlayerStatus*          config = &Player_Status;
     Actor401300Work*       work;
     GpEnemy*               enemy;
     Actor401300HitScratch* head;
@@ -1339,7 +1339,7 @@ void func_actor_401300_80134F90(Actor401300* arg0)
             if (work->field_0 == 0x17) {
                 SndEvt_EnqueueType7(0x51030008, 1);
             }
-            if ((work->field_0 == 0xC || work->field_0 == 0xD || work->field_0 == 0xE) && config->field_18 > 0 && work->field_D20 == 1) {
+            if ((work->field_0 == 0xC || work->field_0 == 0xD || work->field_0 == 0xE) && config->hp > 0 && work->field_D20 == 1) {
                 Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
             }
             if (enemy->field_40 <= 0) {
@@ -1679,7 +1679,7 @@ static __inline__ void Actor401300_RescaleYaw(GsCOORDINATE2* coord, s16 scale)
     coord->coord.m[2][2] = m22;
 }
 
-static __inline__ void Actor401300_ConfigPositionDelta(WipSysConfig* config, GsCOORDINATE2* coord, SVECTOR* pos)
+static __inline__ void Actor401300_ConfigPositionDelta(PlayerStatus* config, GsCOORDINATE2* coord, SVECTOR* pos)
 {
     pos->vx = config->field_4->t[0] - coord->coord.t[0];
     pos->vy = config->field_4->t[1] - coord->coord.t[1];
@@ -1687,7 +1687,7 @@ static __inline__ void Actor401300_ConfigPositionDelta(WipSysConfig* config, GsC
 }
 
 /// Yaw from the actor's facing to the player, wrapped; `pos` receives the offset.
-static __inline__ s16 Actor401300_PositionYaw(Actor401300* actor, SVECTOR* pos, WipSysConfig* config)
+static __inline__ s16 Actor401300_PositionYaw(Actor401300* actor, SVECTOR* pos, PlayerStatus* config)
 {
     GsCOORDINATE2* coord;
     s32            angle;
@@ -1740,7 +1740,7 @@ void func_actor_401300_80136238(Actor401300* arg0)
             work->field_0 = 7;
         }
     }
-    aim->angle      = Actor401300_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+    aim->angle      = Actor401300_PositionYaw(arg0, &aim->delta, &Player_Status);
     work->field_8B2 = aim->angle;
     if (aim->angle > 0x10) {
         aim->angle = 0x10;
@@ -1832,7 +1832,7 @@ void func_actor_401300_801376E4(Actor401300* arg0)
         work->field_BF0.flags   &= 0x7FFF;
         work->field_AB0.flags   |= 0x4000;
         func_actor_401300_80133A3C(arg0);
-        Actor401300_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+        Actor401300_ConfigPositionDelta(&Player_Status, arg0->field_2C->field_8, &s->delta);
         coord                                       = arg0->field_2C->field_8;
         s->turn                                     = Actor401300_NormalizeYaw(ratan2(head[-1].delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         facing                                      = arg0->field_2C->field_8;
@@ -1846,7 +1846,7 @@ void func_actor_401300_801376E4(Actor401300* arg0)
     *(Actor401300ChaseScratch**)G_SCRATCH_HEAD = head - 1;
     s                                          = head - 1;
     func_actor_401300_80133A3C(arg0);
-    Actor401300_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+    Actor401300_ConfigPositionDelta(&Player_Status, arg0->field_2C->field_8, &s->delta);
     if (work->field_C94 == work->field_C96) {
         if (work->field_D1C < 2 || Actor401300_OutOfRange(&s->delta, 0x384)) {
             work->field_0 = 8;
@@ -1914,7 +1914,7 @@ void func_actor_401300_80137D78(Actor401300* arg0)
         work->field_6            = 0;
         work->field_BF0.flags   &= 0x7FFF;
         work->field_AB0.flags   |= 0x4000;
-        Actor401300_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &aim->delta);
+        Actor401300_ConfigPositionDelta(&Player_Status, arg0->field_2C->field_8, &aim->delta);
         aim->angle = ratan2(head[-1].delta.vx, aim->delta.vz);
         if (work->field_C9C == 0) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -2007,14 +2007,14 @@ void func_actor_401300_80138160(Actor401300* arg0)
     GpEnemy*         enemy;
     GsCOORDINATE2*   coord;
     GameActor*       player;
-    WipSysConfig*    config;
+    PlayerStatus*    config;
     SVECTOR*         p;
     s16              angle;
 
     enemy  = arg0->field_20;
     work   = arg0->field_1C;
     player = (GameActor*)((Task*)Game_GetPtrSlot(3))->idMap;
-    config = &Wip_SysConfig;
+    config = &Player_Status;
     if (work->field_4 != 0) {
         work->field_970.field_1C = 0x280;
         work->field_BF0.flags   &= 0x7FFF;
@@ -2550,7 +2550,7 @@ void func_actor_401300_80139AB0(Actor401300* arg0)
         func_actor_401300_80132910(arg0, (GpRec18*)work->field_990, 0xC);
     }
     arg0->field_2C->field_8->flg = 0;
-    Actor401300_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+    Actor401300_ConfigPositionDelta(&Player_Status, arg0->field_2C->field_8, &s->delta);
     if (!Actor401300_OutOfRange(&s->delta, 0x7D0)) {
         work->field_0 = 6;
     } else if (!Actor401300_OutOfRange(&s->delta, 0xFA0)) {
@@ -2622,7 +2622,7 @@ void func_actor_401300_8013A208(Actor401300* arg0)
     }
     *(Actor401300TurnScratch**)G_SCRATCH_HEAD -= 1;
     turn                                       = *(Actor401300TurnScratch**)G_SCRATCH_HEAD;
-    turn->angle                                = Actor401300_PositionYaw(arg0, &turn->delta, &Wip_SysConfig);
+    turn->angle                                = Actor401300_PositionYaw(arg0, &turn->delta, &Player_Status);
     work->field_8B2                            = turn->angle;
     if (turn->angle > 0x40) {
         turn->angle = 0x40;
@@ -2679,7 +2679,7 @@ void func_actor_401300_8013A5C0(Actor401300* arg0)
     func_actor_401300_80133A3C(arg0);
     *(Actor401300AimScratch**)G_SCRATCH_HEAD -= 1;
     aim                                       = *(Actor401300AimScratch**)G_SCRATCH_HEAD;
-    aim->angle                                = Actor401300_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+    aim->angle                                = Actor401300_PositionYaw(arg0, &aim->delta, &Player_Status);
     work->field_8B2                           = aim->angle;
     if (ABS(aim->angle) <= 0x80 && work->field_8A2 == 2) {
         work->field_8A6 = 0x16;
@@ -2753,7 +2753,7 @@ void func_actor_401300_8013AAE8(Actor401300* arg0)
     if ((work->field_6C & 0x100) || work->field_6 >= 0xB) {
         work->field_0 = 0xB;
     }
-    aim->angle      = Actor401300_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+    aim->angle      = Actor401300_PositionYaw(arg0, &aim->delta, &Player_Status);
     work->field_8B2 = aim->angle;
     if (aim->angle > 0x20) {
         aim->angle = 0x20;
@@ -2798,7 +2798,7 @@ void func_actor_401300_8013AE48(Actor401300* arg0)
     work->field_6++;
     *(Actor401300AimScratch**)G_SCRATCH_HEAD -= 1;
     aim                                       = *(Actor401300AimScratch**)G_SCRATCH_HEAD;
-    aim->angle                                = Actor401300_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+    aim->angle                                = Actor401300_PositionYaw(arg0, &aim->delta, &Player_Status);
     if (work->field_8B2 < aim->angle) {
         if (aim->angle - work->field_8B2 > 0x28) {
             work->field_8B2 += 0x28;
@@ -2847,7 +2847,7 @@ void func_actor_401300_8013AE48(Actor401300* arg0)
         Gfx_RotMatrixX(&arg0->field_2C->field_8[5].coord, 0x100 >> ((work->field_6 - 0x31) / 4), 0);
         arg0->field_2C->field_8[4].flg = 0;
         Gp_UpdateCoord(&arg0->field_2C->field_8[4]);
-        aim->angle = Actor401300_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+        aim->angle = Actor401300_PositionYaw(arg0, &aim->delta, &Player_Status);
         if (aim->angle > 0x24) {
             aim->angle = 0x24;
         } else if (aim->angle < -0x24) {
@@ -3098,7 +3098,7 @@ void func_actor_401300_8013CBAC(Actor401300* arg0)
     GsCOORDINATE2*         facing;
     GsCOORDINATE2*         root;
     GsCOORDINATE2*         root2;
-    WipSysConfig*          config;
+    PlayerStatus*          config;
     Actor401300AimScratch* head;
     Actor401300AimScratch* aim;
     s16                    yaw;
@@ -3129,7 +3129,7 @@ void func_actor_401300_8013CBAC(Actor401300* arg0)
     if (func_actor_401300_80132C78(arg0->field_2C->field_8, (GpRec18*)work->field_AD0, 0xC, 0x57) == 0) {
         func_actor_401300_80132910(arg0, (GpRec18*)work->field_990, 0xC);
     }
-    config                       = &Wip_SysConfig;
+    config                       = &Player_Status;
     root                         = arg0->field_2C->field_8;
     head[-1].delta.vx            = config->field_4->t[0] - root->coord.t[0];
     aim->delta.vy                = config->field_4->t[1] - root->coord.t[1];
@@ -3231,7 +3231,7 @@ void func_actor_401300_8013D2AC(Actor401300* arg0)
     }
     *(Actor401300AimScratch**)G_SCRATCH_HEAD -= 1;
     aim                                       = *(Actor401300AimScratch**)G_SCRATCH_HEAD;
-    Actor401300_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &aim->delta);
+    Actor401300_ConfigPositionDelta(&Player_Status, arg0->field_2C->field_8, &aim->delta);
     arg0->field_2C->field_8->flg = 0;
     func_actor_401300_80133A3C(arg0);
     if (work->field_6 < 0xE) {
@@ -3306,7 +3306,7 @@ void func_actor_401300_8013D6C4(Actor401300* arg0)
     }
     *(Actor401300AimScratch**)G_SCRATCH_HEAD -= 1;
     aim                                       = *(Actor401300AimScratch**)G_SCRATCH_HEAD;
-    Actor401300_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &aim->delta);
+    Actor401300_ConfigPositionDelta(&Player_Status, arg0->field_2C->field_8, &aim->delta);
     arg0->field_2C->field_8->flg = 0;
     func_actor_401300_80133A3C(arg0);
     if (work->field_6 < 0xE) {
@@ -3413,7 +3413,7 @@ void func_actor_401300_8013DADC(Actor401300* arg0)
     Actor401300Work*       work;
     Task*                  task;
     GameActor*             player;
-    WipSysConfig*          config;
+    PlayerStatus*          config;
     GpEnemy*               enemy;
     TmdObject*             obj;
     GsCOORDINATE2*         root;
@@ -3450,7 +3450,7 @@ void func_actor_401300_8013DADC(Actor401300* arg0)
         return;
     }
     scratch = (SVECTOR**)G_SCRATCH_HEAD;
-    config  = &Wip_SysConfig;
+    config  = &Player_Status;
     work->field_6++;
     root              = arg0->field_2C->field_8;
     head              = (Actor401300AimScratch*)*scratch;
@@ -3650,7 +3650,7 @@ void func_actor_401300_8013E930(Actor401300* arg0)
     Actor401300Work*         work;
     Task*                    task;
     GameActor*               player;
-    WipSysConfig*            config;
+    PlayerStatus*            config;
     GpEnemy*                 enemy;
     TmdObject*               obj;
     GsCOORDINATE2*           root;
@@ -3667,7 +3667,7 @@ void func_actor_401300_8013E930(Actor401300* arg0)
     work   = arg0->field_1C;
     task   = Game_GetPtrSlot(3);
     player = (GameActor*)task->idMap;
-    config = &Wip_SysConfig;
+    config = &Player_Status;
     save   = &Mc_SaveData;
     enemy  = arg0->field_20;
 
@@ -3857,7 +3857,7 @@ void func_actor_401300_8013F628(Actor401300* arg0)
     Actor401300Work* work;
     GpEnemy*         enemy;
     TmdObject*       obj;
-    WipSysConfig*    config;
+    PlayerStatus*    config;
     GsCOORDINATE2*   root;
     SVECTOR**        scratch;
     SVECTOR*         head;
@@ -3892,7 +3892,7 @@ void func_actor_401300_8013F628(Actor401300* arg0)
         return;
     }
     scratch = (SVECTOR**)G_SCRATCH_HEAD;
-    config  = &Wip_SysConfig;
+    config  = &Player_Status;
     work->field_6++;
     root        = arg0->field_2C->field_8;
     head        = *scratch;
@@ -4223,13 +4223,13 @@ void func_actor_401300_801405DC(GpEnemy* enemy, Actor401300* actor)
     Actor401300ViewScratch* scratch;
     Actor401300ViewScratch* head;
     Actor401300*            player;
-    WipSysConfig*           config;
+    PlayerStatus*           config;
     s32                     state;
     s32                     action;
 
     work   = actor->field_1C;
     player = (Actor401300*)Game_GetPtrSlot(3);
-    config = &Wip_SysConfig;
+    config = &Player_Status;
     states = D_actor_401300_80131F34;
 
     actor->field_2C->field_8->flg = 0;
@@ -4396,28 +4396,28 @@ void func_actor_401300_801405DC(GpEnemy* enemy, Actor401300* actor)
                 case 0:
                     break;
                 case 1:
-                    if (config->field_18 > 0) {
+                    if (config->hp > 0) {
                         work->field_CAC.field_4 = 2;
                         Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
                         work->field_D22 = 0;
                     }
                     break;
                 case 2:
-                    if (config->field_18 > 0) {
+                    if (config->hp > 0) {
                         work->field_CAC.field_4 = 3;
                         Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
                         work->field_D22 = 0;
                     }
                     break;
                 case 4:
-                    if (config->field_18 > 0) {
+                    if (config->hp > 0) {
                         work->field_CAC.field_4 = 6;
                         Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
                         work->field_D22 = 0;
                     }
                     break;
                 case 5:
-                    if (config->field_18 > 0) {
+                    if (config->hp > 0) {
                         work->field_CAC.field_4 = 7;
                         Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
                         work->field_D22 = 0;

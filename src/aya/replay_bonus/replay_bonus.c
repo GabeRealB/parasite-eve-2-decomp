@@ -163,7 +163,7 @@ s32 func_replay_bonus_80115CA4(void)
     s32 flag;
 
     levels = Mc_SaveData.unknown_850;
-    spend  = Wip_SysConfig.field_8;
+    spend  = Player_Status.field_8;
     SOFT_USE_REG(spend);
     i = 0;
     do {
@@ -306,9 +306,9 @@ void func_replay_bonus_80115ED0(Task* arg0)
     TextDrawReq          req3;
     UiObject*            obj;
     UiList*              list;
-    WipSysConfig*        cfg;
-    WipSysConfig*        cfg2;
-    WipSysConfig*        cfgDraw;
+    PlayerStatus*        cfg;
+    PlayerStatus*        cfg2;
+    PlayerStatus*        cfgDraw;
     ReplayBonusTotals*   totals;
     ReplayBonusShopTier* p;
     ReplayBonusShopTier* row;
@@ -359,7 +359,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     obj->field_2E = 0;
     Ui_DrawText((UiPanel*)obj, D_replay_bonus_80115774);
     if (arg0->state == 0) {
-        cfg         = &Wip_SysConfig;
+        cfg         = &Player_Status;
         mem         = Mem_Malloc(0x258, 0);
         arg0->idMap = mem;
         if (mem == NULL) {
@@ -598,7 +598,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req3.otIndex    = ot3 + 1;
     func_8002E53C(&req3, D_replay_bonus_8011579C);
 
-    cfgDraw = &Wip_SysConfig;
+    cfgDraw = &Player_Status;
     i       = (s8)list->field_9;
     nDraw   = list->field_4;
     sum     = 0;
@@ -661,7 +661,7 @@ void func_replay_bonus_801166AC(Task* arg0)
     UiObject*     obj;
     UiObject*     childObj;
     Task*         child;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     s32           xOff;
     s32           negX;
     s32           color;
@@ -671,7 +671,7 @@ void func_replay_bonus_801166AC(Task* arg0)
     s32           ot2;
     s32           flag;
 
-    cfg = &Wip_SysConfig;
+    cfg = &Player_Status;
     obj = arg0->spawnArg2;
     if (arg0->state == 0) {
         arg0->killCountdown = 0xBC;
@@ -977,7 +977,7 @@ void func_replay_bonus_80116EC0(void)
     McSaveData    copy;
     McSaveData*   dst;
     McSaveData*   save;
-    WipSysConfig* cfg;
+    PlayerStatus* cfg;
     u8*           p;
     s32           i;
     s32           j;
@@ -994,7 +994,7 @@ void func_replay_bonus_80116EC0(void)
     u32           masked;
     s32           n;
 
-    cfg  = &Wip_SysConfig;
+    cfg  = &Player_Status;
     copy = Mc_SaveData;
     Mc_InitBufferSlots();
     dst            = &Mc_SaveData;

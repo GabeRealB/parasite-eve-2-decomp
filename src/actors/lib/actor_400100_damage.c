@@ -822,7 +822,7 @@ void Actor00100_Fn03340(Actor00100* arg0, s16 arg1, s32 arg2)
 
 void Actor00100_Fn0375C(Actor00100* arg0)
 {
-    WipSysConfig*            config = &Wip_SysConfig;
+    PlayerStatus*            config = &Player_Status;
     Actor00100Ctx*           ctx;
     GsCOORDINATE2*           coord;
     s16                      effect;

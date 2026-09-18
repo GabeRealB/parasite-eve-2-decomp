@@ -386,7 +386,7 @@ void func_actor_521100_80134658(Actor521100* arg0)
 /// vector from the attach coordinate's translation to its target into the
 /// 0x18-byte scratch, of which only the `vec` half is written.
 ///
-/// Phase 0 aims at the player (`Wip_SysConfig.field_4->t`) and hands the actor
+/// Phase 0 aims at the player (`Player_Status.field_4->t`) and hands the actor
 /// back to state 1, speed zeroed, once it is within 0x7D0 of it and the
 /// player's own Z is past -0x5DC; otherwise it aims at waypoint 0 and steps the
 /// phase to 1 on arrival within 0x3C. Those two paths leave the switch
@@ -428,10 +428,10 @@ void func_actor_521100_80134774(Actor521100* arg0)
             work->field_686 = 0x12;
             work->field_69A = 0x14;
             work->field_69C = 0x78;
-            sc->vec.vx      = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+            sc->vec.vx      = Player_Status.field_4->t[0] - coord->coord.t[0];
             sc->vec.vy      = 0;
-            sc->vec.vz      = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
-            if ((SquareRoot0((sc->vec.vx * sc->vec.vx) + (sc->vec.vz * sc->vec.vz)) < 0x7D0) && (Wip_SysConfig.field_4->t[2] < -0x5DC)) {
+            sc->vec.vz      = Player_Status.field_4->t[2] - coord->coord.t[2];
+            if ((SquareRoot0((sc->vec.vx * sc->vec.vx) + (sc->vec.vz * sc->vec.vz)) < 0x7D0) && (Player_Status.field_4->t[2] < -0x5DC)) {
                 work->field_698 = (u16)(ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF);
                 work->field_69A = 0;
                 work->field_69C = 0x78;
@@ -460,9 +460,9 @@ void func_actor_521100_80134774(Actor521100* arg0)
             work->field_686 = 0x12;
             work->field_69A = 0x14;
             work->field_69C = 0x78;
-            sc->vec.vx      = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+            sc->vec.vx      = Player_Status.field_4->t[0] - coord->coord.t[0];
             sc->vec.vy      = 0;
-            sc->vec.vz      = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            sc->vec.vz      = Player_Status.field_4->t[2] - coord->coord.t[2];
             if (SquareRoot0((sc->vec.vx * sc->vec.vx) + (sc->vec.vz * sc->vec.vz)) >= 0x7D0) {
                 sc->vec.vx = D_actor_521100_8015F654[1].vx - coord->coord.t[0];
                 sc->vec.vy = 0;
@@ -473,9 +473,9 @@ void func_actor_521100_80134774(Actor521100* arg0)
                         goto game;
                     }
                 } while (0);
-                sc->vec.vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+                sc->vec.vx = Player_Status.field_4->t[0] - coord->coord.t[0];
                 sc->vec.vy = 0;
-                sc->vec.vz = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+                sc->vec.vz = Player_Status.field_4->t[2] - coord->coord.t[2];
             }
             work->field_698 = (u16)(ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF);
             work->field_69A = 0;
@@ -661,10 +661,10 @@ void func_actor_521100_80134EDC(Actor521100* arg0)
     scratch                 = (Actor521100AimScratch*)*(void**)G_SCRATCH_HEAD;
 
     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &head->workm, &scratch->view);
-    scratch->delta.vx = Wip_SysConfig.field_4->t[0] - scratch->view.t[0];
+    scratch->delta.vx = Player_Status.field_4->t[0] - scratch->view.t[0];
     offsetY           = scratch->view.t[1] + 0x600;
-    scratch->delta.vy = Wip_SysConfig.field_4->t[1] - offsetY;
-    scratch->delta.vz = Wip_SysConfig.field_4->t[2] - scratch->view.t[2];
+    scratch->delta.vy = Player_Status.field_4->t[1] - offsetY;
+    scratch->delta.vz = Player_Status.field_4->t[2] - scratch->view.t[2];
     ApplyTransposeMatrixLV(&coord->coord, &scratch->delta, &scratch->local);
 
     if (scratch->local.vx < -0x400) {
