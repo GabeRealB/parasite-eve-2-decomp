@@ -509,8 +509,15 @@ def _impact(groups, deps, users, order_hint):
     return {g: bin(v).count("1") for g, v in reach.items()}
 
 
-def topo_order(nodes, edges, comp):
-    """Components in dependency order: everything a component uses comes first."""
+def topo_order(nodes, edges, comp, vendor=frozenset()):
+    """Components in dependency order: everything a component uses comes first.
+
+    Any topological order is correct, so the freedom is in which of the
+    currently-ready components to emit next. Two things decide it: a component
+    still in assembly is a barrier the pass stops at, so it goes last among its
+    equals - meeting it early would strand work that was ready anyway - and
+    otherwise the most depended-upon goes first.
+    """
     groups = {}
     for usr in nodes:
         groups.setdefault(comp.get(usr, (usr,)), None)
@@ -545,7 +552,14 @@ def topo_order(nodes, edges, comp):
     impact = _impact(groups, out_deg, users, plain)
 
     import heapq
-    key = lambda g: (-impact.get(g, 0), min(nodes[m]["name"] for m in g))
+    def barrier(g):
+        return int(any(not nodes[m].get("file")
+                       and name_index.classify(nodes[m]["name"], _node_kind(m),
+                                               vendor) == "generated"
+                       for m in g))
+
+    key = lambda g: (barrier(g), -impact.get(g, 0),
+                     min(nodes[m]["name"] for m in g))
     heap = [(key(g), gid[g]) for g in groups if indeg[g] == 0]
     heapq.heapify(heap)
     order, seen = [], set()
@@ -568,7 +582,7 @@ def topo_order(nodes, edges, comp):
 
 def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str):
     vendor = name_index.vendored_names(root)
-    order = topo_order(nodes, edges, comp)
+    order = topo_order(nodes, edges, comp, vendor)
 
     # who refers to each item, for the visibility guess
     referrers = collections.defaultdict(set)
