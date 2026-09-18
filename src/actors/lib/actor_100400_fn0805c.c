@@ -437,7 +437,42 @@ void Actor00400_Fn08B94(Actor100400* arg0)
     work->field_63A++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn08C54);
+void Actor00400_Fn08C54(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Work* state;
+    s16              mode;
+    s32              i;
+
+    work = arg0->field_1C;
+    work->field_636++;
+
+    state = arg0->field_1C;
+    mode  = state->field_624;
+    if (mode == 1) {
+        if (state->field_626 != state->field_628) {
+            state->field_62A = 0;
+        } else {
+            state->field_62A = Actor00400_Fn086FC(arg0, state->field_62A);
+        }
+        Actor00400_Fn08624(arg0);
+        state->field_624 = 3;
+    } else if (mode == 2) {
+        Actor00400_Fn085B8(arg0);
+        state->field_624 = 3;
+        state->field_62A = 0;
+    } else if (mode == 3) {
+        state->field_62A++;
+    }
+
+    for (i = 1; i < 15; i++) {
+        Gp_AnimTickIndex(state, i);
+    }
+
+    if (work->field_636 >= 0x1E) {
+        work->field_638++;
+    }
+}
 
 void Actor00400_Fn08D70(Actor100400* arg0)
 {
