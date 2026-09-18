@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-/// Size of the game heap.
+/// Extent in bytes of the primary heap.
 #define G_HEAP_SIZE 0xFF80
 
 /// Scratchpad temporary arena (grows downward from head).
@@ -106,11 +106,14 @@ void Mem_CopyUnaligned(void* src, void* dest, u32 count);
 // Globals — primary / aux heaps
 // =============================================================================
 
-/// Base address of the primary heap, the region the game allocates from
-/// while no aux heap is active.
+/// Base address of the primary heap, the region allocations are served from
+/// while the primary heap is the active one.
 ///
-/// The region is fixed, so its extent is the `G_HEAP_SIZE` constant rather
-/// than a size variable of the kind the aux heaps carry.
+/// The primary heap is a fixed part of the game's memory map: it is the RAM
+/// below the area the overlays are loaded into, so a loaded overlay never
+/// covers it. Its extent is therefore the `G_HEAP_SIZE` constant, where the
+/// auxiliary heaps take both a base and an extent that are set at runtime as
+/// the images backing them are loaded.
 extern u8* gMemHeap;
 
 /// Pointer to the auxiliary heap.

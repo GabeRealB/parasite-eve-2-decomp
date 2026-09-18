@@ -10,9 +10,10 @@
 // seem to be inserted by the linker.
 u32 GStackBase = 0x801fff00;
 
-// `gMemHeap` is defined here, and not beside its users in mem.c, because the
-// link order puts this object's .data where the heap pointer's address has to
-// be.
+// Base of the primary heap. The word sits at an address the game's memory map
+// fixes, and this unit's `.data` is the one the split places there, so the
+// definition stays here rather than beside the wrappers in mem.c that read it;
+// moving it means re-attributing that subsegment. `mem.h` documents the symbol.
 u8* gMemHeap = (u8*)0x80083800;
 
 // BSS symbols (GAuxHeap … CdCmd_Queue … D_800691F8) live in the `main` bss

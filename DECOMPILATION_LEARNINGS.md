@@ -130455,10 +130455,20 @@ stops matching.
 The aux heap is two base/size pairs rather than one region: the pair the game
 configures while it loads an image slot, and the pair currently installed.
 `Mem_SetActiveAuxHeap` copies the first into the second, or points the second
-at the whole image area from its base — which is where the primary heap itself
-starts — so the installed base is not always a region of its own. A body that
+at the whole image area from its base — the start of the memory reserved for
+image data, not the game's primary heap, which is a fixed region lower in RAM —
+so the installed base is not always a region of its own. A body that
 reads a base and the size beside it as one unit is reading the pair as the game
 wrote it, not two unrelated globals.
+
+The primary heap, though, keeps its two halves in two different forms, and the
+target says so: `Mem_Init` loads the base from `gMemHeap` and passes the extent
+as an immediate (`ori $a1, $zero, 0xFF80`). So the extent is a macro beside the
+declaration rather than a variable beside the pointer, and folding the pair into
+one heap descriptor — which reads better — does not match: the extent becomes a
+load and the `ori` is gone. A constant extent is possible because the region is
+the RAM below the area the overlays are loaded into, so no overlay load ever
+covers it and the wrappers can name the same base for the life of the program.
 
 ## A sentinel head can serve several lists, so its element field names one of them
 
