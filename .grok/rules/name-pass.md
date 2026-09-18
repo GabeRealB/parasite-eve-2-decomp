@@ -139,7 +139,12 @@ rewrites both. Member renames take the same form,
 `<header>/<Type>::<field> <newName>`.
 
 Generated placeholders — `func_<package>_<VRAM>`, `D_<VRAM>` — keep their form
-until the symbol is understood.
+only while the body is still assembly, which the step's `state` tells you.
+`generated` means exactly that: nothing to read, so the placeholder stays.
+**`unnamed` is the opposite**: the function has been decompiled and simply never
+named, so its body, its callers and its parameters are all in front of you and
+the placeholder is what you are there to replace. Most placeholders in this tree
+are `unnamed`, so treating the two alike leaves the bulk of the work undone.
 
 ## Every rename goes through the tool
 

@@ -592,6 +592,14 @@ def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str):
             name, where = meta["name"], meta.get("file", "")
             kind = _node_kind(usr)
             state = name_index.classify(name, kind, vendor)
+            # classify() reads the spelling, which cannot tell a placeholder
+            # that is still assembly from one whose body has been decompiled
+            # and simply never named. Only the second is nameable, and it is
+            # the larger group by far, so say which is which: "generated" keeps
+            # its form until the function is matched, "unnamed" is ordinary
+            # work whose evidence is sitting in the C body.
+            if state == "generated" and where:
+                state = "unnamed"
             refs = referrers.get(usr, set())
             outside = {r for r in refs if nodes.get(r, {}).get("file") != where}
             # Visibility is decided against the file that *defines* the item.
