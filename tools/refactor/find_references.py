@@ -48,16 +48,16 @@ def main() -> int:
     db = cref.load_db(root, args.version)
     spec = cref.parse_spec(args.spec)
 
-    usr, kind, where = cref.resolve(spec, root, db)
+    usrs, names, kind, where = cref.resolve(spec, root, db)
     if not args.quiet:
         print(f"{spec.name}: {kind} declared at {where}", file=sys.stderr)
-        print(f"USR {usr}", file=sys.stderr)
+        print(f"aliases: {', '.join(sorted(names))}", file=sys.stderr)
 
     def progress(done, total):
         if not args.quiet and (done % 25 == 0 or done == total):
             print(f"\r  parsed {done}/{total} TUs", end="", file=sys.stderr, flush=True)
 
-    refs, scanned = cref.find_refs(usr, spec.token, root, db, jobs=args.jobs,
+    refs, scanned = cref.find_refs(usrs, spec.token, root, db, jobs=args.jobs, names=names,
                                    prefilter=not args.no_prefilter, progress=progress,
                                    decl_file=where.rsplit(":", 1)[0],
                                    filter_token=spec.owner if kind == "parameter" else None)
@@ -70,7 +70,8 @@ def main() -> int:
         return 0
 
     if not args.no_comments:
-        refs = refs + cref.comment_refs(root, spec.token, spec.owner)
+        refs = refs + cref.comment_refs(root, spec.token, spec.owner,
+                                     only_files={r.file for r in refs} if kind == 'parameter' else None)
         refs.sort(key=lambda r: (r.file, r.line, r.col))
     by_use = collections.Counter(r.use for r in refs)
     by_file = collections.Counter(r.file for r in refs)

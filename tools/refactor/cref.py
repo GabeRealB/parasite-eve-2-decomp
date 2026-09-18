@@ -180,7 +180,7 @@ def _names_for(owner: str) -> set[str]:
 
 
 def resolve(spec: Spec, root: str, db: dict[str, list[str]], verbose=False):
-    """Return (usr, kind_name, declaration location) for the spec."""
+    """Return (usrs, spellings, kind_name, declaration location) for the spec."""
     for tu_file in _candidate_tus(spec, root, db):
         tu = parse_tu(tu_file, db.get(tu_file), root)
         if tu is None:
@@ -241,7 +241,8 @@ def _find_param(tu, spec: Spec, root: str):
         args = list(cur.get_arguments())
         for i, a in enumerate(args):
             if a.spelling == spec.name:
-                return (f"{cur.get_usr()}#param{i}", "parameter", _loc(a, root))
+                return ({f"{cur.get_usr()}#param{i}"}, {spec.name},
+                        "parameter", _loc(a, root))
     return None
 
 
@@ -262,7 +263,7 @@ def _find_decl(tu, spec: Spec, root: str):
             tags = {rec.spelling} | _typedef_aliases(tu, rec)
             if not (tags & _names_for(spec.owner)):
                 continue
-            return cur.get_usr(), "field", _loc(cur, root)
+            return ({cur.get_usr()}, {spec.name}, "field", _loc(cur, root))
         else:
             if cur.spelling != spec.name:
                 continue
@@ -278,7 +279,8 @@ def _find_decl(tu, spec: Spec, root: str):
                 if cur.kind == ci.CursorKind.VAR_DECL and cur.semantic_parent.kind != ci.CursorKind.TRANSLATION_UNIT:
                     continue  # a local, not a global
                 defn = cur.get_definition() or cur
-                return defn.get_usr(), _kind_label(cur.kind), _loc(defn, root)
+                usrs, names = _aliases(tu, defn)
+                return (usrs, names, _kind_label(cur.kind), _loc(defn, root))
     return None
 
 
@@ -299,6 +301,31 @@ def _typedef_aliases(tu, rec) -> set[str]:
                 table.setdefault(r.get_usr(), set()).add(cur.spelling)
         _ALIAS_CACHE[key] = table
     return table.get((rec.get_definition() or rec).get_usr(), set())
+
+
+def _aliases(tu, decl):
+    """Every USR and spelling that names this declaration.
+
+    A tagged type has two of each: the record and the typedef that names it.
+    Asking about one and matching only its USR finds the declarations and none
+    of the uses, because the uses reference whichever spelling the source
+    happens to write.
+    """
+    usrs = {decl.get_usr()}
+    names = {decl.spelling}
+    rec = _record_of(decl)
+    if rec is not None:
+        usrs.add((rec.get_definition() or rec).get_usr())
+        names.add(rec.spelling)
+    target = {u for u in usrs if u}
+    for cur in tu.cursor.walk_preorder():
+        if cur.kind != ci.CursorKind.TYPEDEF_DECL:
+            continue
+        r = _record_of(cur)
+        if r is not None and (r.get_definition() or r).get_usr() in target:
+            usrs.add(cur.get_usr())
+            names.add(cur.spelling)
+    return {u for u in usrs if u}, {n for n in names if n}
 
 
 def _kind_label(kind) -> str:
@@ -491,7 +518,8 @@ def prefilter_tus(root: str, token: str, candidates: list[str], decl_file: str |
 # --------------------------------------------------------------------------
 
 
-def comment_refs(root: str, token: str, owner: str | None = None) -> list:
+def comment_refs(root: str, token: str, owner: str | None = None,
+                 only_files=None) -> list:
     """Whole-word mentions of the identifier inside comments.
 
     These are not references the compiler knows about, so they never affect
@@ -499,9 +527,14 @@ def comment_refs(root: str, token: str, owner: str | None = None) -> list:
     rename that leaves them behind turns every one of them into a lie pointing
     at a name that no longer exists.
     """
+    # A parameter name like `arg2` occurs in every function's prose, so a
+    # mention only means this symbol when it sits in a file that declares it.
+    scope = sorted(only_files) if only_files else ["src", "include"]
+    if not scope:
+        return []
     try:
         out = subprocess.run(
-            ["grep", "-rnw", "--include=*.c", "--include=*.h", token, "src", "include"],
+            ["grep", "-rnw", "--include=*.c", "--include=*.h", token] + scope,
             cwd=root, capture_output=True, text=True, timeout=300,
         ).stdout.splitlines()
     except Exception:
@@ -548,6 +581,7 @@ class Ref:
     use: str
     context: str = ""
     enclosing: str = ""
+    spelling: str = ""   # which alias is actually written at this site
 
 
 # Declarations of the symbol itself. A prototype is not a DECL_REF_EXPR, so
@@ -689,20 +723,23 @@ def _unop(cur) -> str:
 
 
 def collect_in_tu(job):
-    """Scan one TU for references to `usr`.
+    """Scan one TU for references to any of `usrs`.
 
     Ordering matters for speed: reading a cursor's spelling is one cheap call,
     while resolving its referent and building that referent's USR allocate and
     are far dearer. Testing the spelling first discards almost every cursor in
     the tree, and is the difference between a fast scan and an unusable one.
     """
-    rel_file, args, root, usr, token = job
+    rel_file, args, root, usrs, token, names = job
     tu = parse_tu(rel_file, args, root)
     if tu is None:
         return []
-    if "#param" in usr:
-        return _collect_param(tu, root, usr, token)
-    _spellings = {token, f"struct {token}", f"union {token}", f"enum {token}"}
+    param = next((u for u in usrs if "#param" in u), None)
+    if param:
+        return _collect_param(tu, root, param, token)
+    _spellings = set()
+    for n in names:
+        _spellings |= {n, f"struct {n}", f"union {n}", f"enum {n}"}
     refs: list[Ref] = []
     parents: dict[int, ci.Cursor] = {}
     src_cache: dict[str, list[str]] = {}
@@ -719,11 +756,11 @@ def collect_in_tu(job):
             continue
         if cur.kind in _REF_KINDS:
             ref = cur.referenced
-            if ref is None or ref.get_usr() != usr:
+            if ref is None or ref.get_usr() not in usrs:
                 continue
             decl_here = False
         elif cur.kind in _DECL_KINDS:
-            if cur.get_usr() != usr:
+            if cur.get_usr() not in usrs:
                 continue
             decl_here = True
         else:
@@ -749,6 +786,11 @@ def collect_in_tu(job):
         raw = lines[loc.line - 1] if 0 < loc.line <= len(lines) else ""
         text = raw.strip()
         col = loc.column
+        written = next((n for n in sorted(names, key=len, reverse=True)
+                        if raw[col - 1:].startswith(n)
+                        or any(raw[col - 1:].startswith(k + n)
+                               for k in ("struct ", "union ", "enum "))), token)
+        token = written
         if not raw[col - 1:].startswith(token):
             # A reference to a tagged type is located at the keyword, so step
             # over it to reach the identifier itself.
@@ -761,7 +803,7 @@ def collect_in_tu(job):
             # where the identifier does not appear. The site is real, but the
             # edit belongs in the macro definition rather than here.
             use = f"{use} (via macro)"
-        refs.append(Ref(fname, loc.line, col, use, text, _enclosing(cur, parents)))
+        refs.append(Ref(fname, loc.line, col, use, text, _enclosing(cur, parents), token))
     return refs
 
 
@@ -824,17 +866,25 @@ def _enclosing(cur, parents) -> str:
     return ""
 
 
-def find_refs(usr: str, token: str, root: str, db, jobs: int = 8, prefilter=True,
+def find_refs(usrs, token: str, root: str, db, jobs: int = 8, prefilter=True,
               progress=None, decl_file: str | None = None,
-              filter_token: str | None = None):
+              filter_token: str | None = None, names=None):
     """filter_token narrows the candidate set by a *different* identifier than
     the one being matched. A parameter name is usually too common to select on,
     while every reference to it lies inside one function, so the function's name
     is the far more selective filter."""
+    names = set(names or {token})
     files = list(db)
     if prefilter:
-        files = prefilter_tus(root, filter_token or token, files, decl_file)
-    jobs_list = [(f, db[f], root, usr, token) for f in files]
+        # Narrow on every alias: a tag spelling appears in almost no file, so
+        # filtering on it alone discards every translation unit that uses the
+        # type through its typedef.
+        keep = set()
+        for t in ({filter_token} if filter_token else names):
+            keep |= set(prefilter_tus(root, t, files, decl_file))
+        files = [f for f in files if f in keep]
+    usrs = set(usrs) if not isinstance(usrs, str) else {usrs}
+    jobs_list = [(f, db[f], root, usrs, token, names) for f in files]
     out: list[Ref] = []
     done = 0
     with Pool(jobs) as pool:

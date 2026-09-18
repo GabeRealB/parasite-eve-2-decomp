@@ -561,7 +561,8 @@ def main() -> int:
     target = None
     if args.spec:
         spec = cref.parse_spec(args.spec)
-        usr, kind, where = cref.resolve(spec, root, cref.load_db(root, args.version))
+        usrs, _names, kind, where = cref.resolve(spec, root, cref.load_db(root, args.version))
+        usr = sorted(usrs)[0]
         target = alias.get(usr, usr)
         if target not in nodes:
             sys.exit(f"{spec.name} is not in the graph; rebuild after it was added")

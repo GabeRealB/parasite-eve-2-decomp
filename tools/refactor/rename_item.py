@@ -166,7 +166,7 @@ def main() -> int:
     if spec.name == args.new_name:
         sys.exit("new name is the same as the old one")
 
-    usr, kind, where = cref.resolve(spec, root, db)
+    usrs, names, kind, where = cref.resolve(spec, root, db)
     if not args.quiet:
         print(f"{spec.name}: {kind} declared at {where}", file=sys.stderr)
 
@@ -174,7 +174,7 @@ def main() -> int:
         if not args.quiet and (done % 25 == 0 or done == total):
             print(f"\r  parsed {done}/{total} TUs", end="", file=sys.stderr, flush=True)
 
-    refs, scanned = cref.find_refs(usr, spec.token, root, db, jobs=args.jobs,
+    refs, scanned = cref.find_refs(usrs, spec.token, root, db, jobs=args.jobs, names=names,
                                    prefilter=not args.no_prefilter, progress=progress,
                                    decl_file=where.rsplit(":", 1)[0],
                                    filter_token=spec.owner if kind == "parameter" else None)
@@ -188,7 +188,13 @@ def main() -> int:
     # identifier's, so it cannot be edited here; the macro body is the place.
     # Prose mentions are not compiler references, but a rename that skips them
     # leaves the codebase describing a name that no longer exists.
-    comments = [] if args.no_comments else cref.comment_refs(root, spec.token, spec.owner)
+    comments = [] if args.no_comments else cref.comment_refs(root, spec.token, spec.owner,
+                                     only_files={r.file for r in refs} if kind == 'parameter' else None)
+    # Aliases share a declaration, so references to the typedef come back when
+    # the tag is asked about. Only the spelling actually asked for is rewritten;
+    # the other alias is a different name with its own rename.
+    other_alias = [r for r in refs if r.spelling and r.spelling != spec.name]
+    refs = [r for r in refs if not r.spelling or r.spelling == spec.name]
     via_macro = [r for r in refs if "via macro" in r.use]
     refs = [r for r in refs if "via macro" not in r.use]
     sites = {(r.file, r.line, r.col) for r in refs}
@@ -210,6 +216,10 @@ def main() -> int:
     print(f"{total} edit(s) in {len(edits)} file(s): {spec.name} -> {args.new_name}"
           + (f"  ({len(comments)} in comments)" if comments else ""))
 
+    if other_alias:
+        names = sorted({r.spelling for r in other_alias})
+        print(f"\n{len(other_alias)} reference(s) use the alias "
+              f"{', '.join(names)} and are left alone")
     if via_macro:
         print(f"\n{len(via_macro)} reference(s) reached through a macro; the macro "
               f"body has to be edited by hand:")

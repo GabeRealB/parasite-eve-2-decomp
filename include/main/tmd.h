@@ -34,7 +34,7 @@ STATIC_ASSERT_SIZEOF(TmdBone, 0x24);
 /// `TmdObject` points here, and the two divide the work between them: the
 /// record is the shipped, constant description, while the buffer a model is
 /// decoded into and the per-part coordinate array belong to the object.
-typedef struct _TmdSource {
+typedef struct TmdSource {
     s32      field_0;   // One-shot flag: 0 as shipped, set once the stream's opcodes have been resolved to handlers
     s32      field_4;   // Size of one half of the decode buffer in bytes; the object allocates twice this
     s32      field_8;   // Size of the first of a half's two prim regions, i.e. the offset the second starts at
