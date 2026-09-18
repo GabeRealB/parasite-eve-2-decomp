@@ -2806,7 +2806,7 @@ SndEvt_Tail                 = 0x8007EBE8;
 SndEvt_Lock                 = 0x8007EBE0;
 SndEvt_Handlers             = 0x80068984;
 gTmdList                    = 0x800711B8; // type:TmdListHead size:0x8
-Tmd_ListAlt                 = 0x800711C0; // type:TmdListHead size:0x8
+gTmdDisp2dList              = 0x800711C0; // type:TmdListHead size:0x8
 
 // CdAudio / AudioTick / Spu range / Stream slot renames
 CdAudio_Loc                 = 0x800827A0; // type:CdAudioLoc

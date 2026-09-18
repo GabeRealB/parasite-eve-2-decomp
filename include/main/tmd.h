@@ -116,8 +116,15 @@ STATIC_ASSERT_SIZEOF(TmdListHead, 0x8);
 /// currently loaded. The size, buffer, draw and free passes work from it
 /// instead of walking the task list.
 extern TmdListHead gTmdList;
-/// Second list head initialized alongside gTmdList by Tmd_InitLists.
-extern TmdListHead Tmd_ListAlt;
+/// Head of the 2D-display list: the anchor for the coordinate nodes a task
+/// attaches in place of a model.
+///
+/// A node here carries the model list's `next` / `prev` prefix and a single
+/// coordinate rather than a model with parts. The draw pass refreshes that
+/// coordinate for every node on the list before it reaches the models, and
+/// draws nothing from it; the task that attached the node reads the refreshed
+/// matrix. The two lists are saved, emptied and restored together.
+extern TmdListHead gTmdDisp2dList;
 /// Cleared by Tmd_InitLists during system init.
 extern s32 D_80071210;
 

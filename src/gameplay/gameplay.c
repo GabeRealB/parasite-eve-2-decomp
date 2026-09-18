@@ -291,7 +291,7 @@ void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
 
         mask = 0x7FFFFFFF;
         tmp  = D_80071210;
-        node = Tmd_ListAlt.next;
+        node = gTmdDisp2dList.next;
         flag = tmp & mask;
         bit  = tmp & 1;
     }
@@ -655,7 +655,7 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
 
         mask = 0x7FFFFFFF;
         tmp  = D_80071210;
-        node = Tmd_ListAlt.next;
+        node = gTmdDisp2dList.next;
         flag = tmp & mask;
         bit  = tmp & 1;
     }
@@ -1059,7 +1059,7 @@ void* Gp_AttachDisp2d(Task* task)
         *(s32*)&node->coord.mtx = one;
         *(s32*)&m->m[1][1]      = one;
         m->m[2][2]              = one;
-        list                    = &Tmd_ListAlt;
+        list                    = &gTmdDisp2dList;
         *(s32*)&m->m[0][2]      = 0;
         *(s32*)&m->m[2][0]      = 0;
         coord->mtx.t[2]         = 0;
@@ -1136,7 +1136,7 @@ void Gp_UnlinkDisp2d(TmdListHead* arg0)
 
     next = (TmdListHead*)arg0->next;
     if (next == NULL) {
-        pp = &Tmd_ListAlt.prev;
+        pp = &gTmdDisp2dList.prev;
     } else {
         pp = &next->prev;
     }
@@ -1152,20 +1152,20 @@ void Gp_FreeDisp2d(void* arg0)
 
 void Gp_StashTmdLists(void)
 {
-    Gp_TmdListStash    = gTmdList;
-    Gp_TmdListAltStash = Tmd_ListAlt;
-    gTmdList.next      = NULL;
-    gTmdList.prev      = &gTmdList;
-    Tmd_ListAlt.next   = NULL;
-    Tmd_ListAlt.prev   = &Tmd_ListAlt;
-    Gp_TmdStashTask    = Task_Spawn(0, 0x1A, 0, 0);
+    Gp_TmdListStash     = gTmdList;
+    Gp_TmdListAltStash  = gTmdDisp2dList;
+    gTmdList.next       = NULL;
+    gTmdList.prev       = &gTmdList;
+    gTmdDisp2dList.next = NULL;
+    gTmdDisp2dList.prev = &gTmdDisp2dList;
+    Gp_TmdStashTask     = Task_Spawn(0, 0x1A, 0, 0);
 }
 
 void Gp_RestoreTmdLists(void)
 {
     Task_CallExit(Gp_TmdStashTask);
-    gTmdList    = Gp_TmdListStash;
-    Tmd_ListAlt = Gp_TmdListAltStash;
+    gTmdList       = Gp_TmdListStash;
+    gTmdDisp2dList = Gp_TmdListAltStash;
 }
 
 void Gp_UpdateCoordTree(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)

@@ -350,7 +350,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(GpCoordFromT, 0x50);
 
 /// 0x60-byte spawnType-2 extra (`Mem_Calloc` in `Gp_AttachDisp2d`, fail string
-/// `"new_disp_2d ----> NULL"`). Linked onto `Tmd_ListAlt`. `field_8` points at
+/// `"new_disp_2d ----> NULL"`). Linked onto `gTmdDisp2dList`. `field_8` points at
 /// the embedded coord; `field_C` is stored as a word 1.
 typedef struct _GpDisp2d {
     /* 0x00 */ TmdObject*     next;

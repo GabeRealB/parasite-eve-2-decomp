@@ -27484,12 +27484,12 @@ if (node != NULL) {
     coord->sub    = &Gfx_ViewCoord;
     one           = ONE;
     ...
-    list = &Tmd_ListAlt;
+    list = &gTmdDisp2dList;
 }
 ```
 
 `Gp_AttachDisp2d` is the example. The same body without the register pin
-stuck at 92.6% with only those registers (and the late `&Tmd_ListAlt`)
+stuck at 92.6% with only those registers (and the late `&gTmdDisp2dList`)
 different.
 
 ## Join timeout + confirm with `||` so `one` stays in `$s0`
@@ -130532,6 +130532,13 @@ the element it links, while these body lists make the links their element's own
 first fields, and the element type is what keeps the two apart. The append and
 the unlink are the two sites that write the links, and they are where every list
 a head serves becomes visible.
+
+The type cannot carry that distinction, so the name must: each head is named
+for the list it anchors — the model list, the 2D-display list — and never for
+its element field. What tells the second list apart is what its elements are,
+and the walk says it rather than the head type: the display list's walk
+refreshes one coordinate per element and emits nothing, so those elements are
+coordinates their owner reads, not geometry the pass draws.
 
 ## A cast indicts the parameter only when it comes off an object pointer
 
