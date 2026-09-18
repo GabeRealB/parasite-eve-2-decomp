@@ -515,7 +515,7 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags)
         obj->field_10 = src;
         bone          = src->skeleton;
         for (i = 0; i < (u32)obj->field_30; i++) {
-            coord->coord = *(MATRIX*)bone;
+            coord->coord = bone->local;
             if (bone->parent != i) {
                 coord->sub = &obj->field_8[bone->parent];
             } else {

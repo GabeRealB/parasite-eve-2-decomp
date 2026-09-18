@@ -130650,3 +130650,26 @@ written. Without it the extracted assembly keeps the generated label and the
 link fails on the name the C now uses, so add
 `<name> = <addr>; // type:<T>` to the unit's map yourself, in the block for the
 subsegment the address falls in.
+
+## A whole-struct cast is how a hand-written field list says it is really another type
+
+A struct whose members spell out the field list of a library type, internal
+padding included, is that type followed by its own tail. The redeclaration is
+invisible in the layout — that is the point of it — so the tell is at the use
+site: a cast of a pointer to the *owning* type into a pointer to the type it
+starts with, which is what makes the leading run usable as that type.
+
+Here the head was a `MATRIX` (`short m[3][3]; long t[3];`), written out with the
+two bytes of alignment padding before the translation spelled as a member of its
+own, and the tail an `s32`:
+
+```c
+coord->coord = *(MATRIX*)bone;   /* bone: a MATRIX followed by an s32 parent */
+```
+
+Declaring the head as a member of that type and writing `coord->coord =
+bone->local;` matches unchanged — a whole-aggregate copy is the same aggregate
+copy however the lvalue is spelled (see the `MATRIX` struct-assignment entry
+above) — so the cast surviving in the tree is what says the duplication is real
+and not incidental. The same shape recurs with any Psy-Q geometry type
+(`MATRIX`, `VECTOR`, `SVECTOR`, `GsCOORD2PARAM`) as the head of a larger record.

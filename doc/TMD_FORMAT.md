@@ -132,8 +132,8 @@ Two consequences:
   | `+0x10` | `partCount` x u32: how many vertices each part owns |
   | `+0x1C` | `partCount` x `TmdBone` (0x24 bytes) — the rest pose |
 
-  `TmdBone` is a 3x3 rest rotation (identity on disc, `4096` = 1.0), a pad
-  halfword, `s32 t[3]` translating from the parent, and an `s32` parent index.
+  `TmdBone` is a `MATRIX` — a 3x3 rest rotation (identity on disc, `4096` = 1.0)
+  and a `t[3]` translating from the parent — followed by an `s32` parent index.
   The `+0x10` counts sum exactly to the vertex-array length (352 for
   `aya_10200`, 300 for the Kyle body), so the vertex array is grouped
   by part and each vertex's bone is known.

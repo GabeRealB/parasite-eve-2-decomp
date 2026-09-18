@@ -159,7 +159,7 @@ SRC_VERTS = 0x14
 SRC_NORMS = 0x18
 SRC_SKELETON = 0x1C   # partCount x TmdBone (0x24): rest pose + parent index
 SRC_STREAM = 0x20
-TMD_BONE_SIZE = 0x24   # include/main/tmd.h: s16 m[3][3], pad, s32 t[3], s32 parent
+TMD_BONE_SIZE = 0x24   # include/main/tmd.h: MATRIX local, s32 parent
 BONE_SIZE = 0x24
 
 
