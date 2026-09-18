@@ -97,14 +97,14 @@ and extra in `$v1`.
 A distinct pointer for the second walk splits the quantities:
 
 ```c
-verts = (SVECTOR*)source->field_14;
+verts = source->verts;
 for (i = 0; i < rec->field_10; i++) {
     dst[i].vx = verts[i].vx;
     dst[i].vy = verts[i].vy;
     dst[i].vz = verts[i].vz;
 }
 if (rec->field_4 != 0) {
-    src2 = (SVECTOR*)source->field_18; /* not verts = ... */
+    src2 = source->normals; /* not verts = ... */
     for (i = 0; i < rec->field_12; i++) {
         dst2[i].vx = src2[i].vx;
         dst2[i].vy = src2[i].vy;

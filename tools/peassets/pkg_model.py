@@ -251,9 +251,10 @@ def find_sources_direct(data: bytes, base: int) -> dict[int, dict]:
     was invisible - both of tonfa_baton's, and 61 across the disc.
 
     Nothing here is inferred. The layout is `include/main/tmd.h`, decompiled:
-    `field_0` is the one-shot init flag `Tmd_InitSourceStream` tests against 0,
-    `partCount` sizes both `partVerts` (u32 each) and `skeleton` (`TmdBone`,
-    0x24 each), and the opcode set is the 61 cases of that function's switch.
+    `handlersResolved` is the one-shot init flag `Tmd_InitSourceStream` tests
+    against 0, `partCount` sizes both `partVerts` (u32 each) and `skeleton`
+    (`TmdBone`, 0x24 each), and the opcode set is the 61 cases of that
+    function's switch.
     Six independent constraints on one 0x24-byte record is far past what noise
     supplies: across 407 packages all 597 hits walk to a terminator, and every
     stream ends exactly on its own source's offset - the `[verts][norms][stream]

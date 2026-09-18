@@ -39,7 +39,7 @@ The face stream alone is not a model: the vertices live outside it. A
 through `TaskDesc.setupArg`:
 
 ```text
-TmdSource (0x24 bytes; field_0 is 0 on disc, set to 1 after first use)
+TmdSource (0x24 bytes; handlersResolved is 0 on disc, set to 1 after first use)
   +0x14  u32  -> vertex array   8 bytes per entry (SVECTOR-shaped)
   +0x18  u32  -> normal array   same shape
   +0x20  u32  -> face stream
@@ -123,18 +123,17 @@ Two consequences:
   `TmdObject.field_8`, a `GsCOORDINATE2` array — 0x50 bytes each, which is why
   the stride is 0x50, with `workm` at `+0x24` and its translation at
   `+0x38`/`+0x3C`/`+0x40` exactly as the handler reads them. But the skeleton
-  those are built from is on disc, in three `TmdSource` fields that were
-  previously unnamed:
+  those are built from is on disc, in three `TmdSource` fields:
 
   | Field | Meaning |
   |---|---|
-  | `+0x0C` | part count — what `TmdObject.field_30` is set from |
-  | `+0x10` | `partCount` x u32: how many vertices each part owns |
-  | `+0x1C` | `partCount` x `TmdBone` (0x24 bytes) — the rest pose |
+  | `partCount` (`+0x0C`) | part count — what `TmdObject.field_30` is set from |
+  | `partVerts` (`+0x10`) | `partCount` x u32: how many vertices each part owns |
+  | `skeleton` (`+0x1C`) | `partCount` x `TmdBone` (0x24 bytes) — the rest pose |
 
   `TmdBone` is a `MATRIX` — a 3x3 rest rotation (identity on disc, `4096` = 1.0)
   and a `t[3]` translating from the parent — followed by an `s32` parent index.
-  The `+0x10` counts sum exactly to the vertex-array length (352 for
+  The `partVerts` counts sum exactly to the vertex-array length (352 for
   `aya_10200`, 300 for the Kyle body), so the vertex array is grouped
   by part and each vertex's bone is known.
 
@@ -423,7 +422,7 @@ different jobs:
 
 | Switch | Handlers | What it does |
 |---|---|---|
-| `Tmd_InitSourceStream` | main, `Tmd_StreamHandler_*` at `0x80010A90` | one-shot, guarded by `TmdSource.field_0`. Resolves 61 opcodes to 53 handlers and **writes the pointer into the packet's slot word**. These are the transform/light/cull routines: they read vertices, run `RTPT`/`NCLIP`/`AVSZ`, and store screen XY and lit RGB. |
+| `Tmd_InitSourceStream` | main, `Tmd_StreamHandler_*` at `0x80010A90` | one-shot, guarded by `TmdSource.handlersResolved`. Resolves 61 opcodes to 53 handlers and **writes the pointer into the packet's slot word**. These are the transform/light/cull routines: they read vertices, run `RTPT`/`NCLIP`/`AVSZ`, and store screen XY and lit RGB. |
 | `Tmd_ProcessStream` | the loaded overlay, `0x8009xxxx`, decompiled in `src/gameplay/gameplay.c` | walks the stream on each draw call. Reads the dims word, copies the cached pointer from the slot into `ws->field_20`, then calls the overlay handler, which fills the primitive's **static** fields — UV, CLUT, tpage. |
 
 That split is why the untextured families do nothing per pass:

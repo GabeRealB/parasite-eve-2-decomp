@@ -588,7 +588,7 @@ live in the actor overlay** (`D_80136224`, `D_8013700C`, … at
 `0x80136xxx`), which is why those packages mix code and mesh.
 `Tmd_InitSourceStream` patches the handler-slot word in place.
 
-`TmdSource` (`tmd.h`) points at this stream via `field_20`. Type-1
+`TmdSource` (`tmd.h`) points at this stream via `stream`. Type-1
 `TaskDesc.setupArg` is a `TmdSource*` (`Task_SpawnFromDesc`).
 
 ### 6.3 Animation split

@@ -23,18 +23,22 @@ typedef struct {
 } TmdBone;
 STATIC_ASSERT_SIZEOF(TmdBone, 0x24);
 
-/// One model as its package ships it: its vertices, normals, bone rest pose and
-/// packet stream.
+/// One model as its package ships it: the vertex and normal arrays, the packet
+/// stream that draws its parts, and the bone rest pose that places them.
 ///
 /// A package lays a model out as `[vertices][normals][packet stream][record]`
 /// with the record last, and every pointer here is an address into that same
 /// package, so a model stays whole at whatever address its package loads. A
 /// `TmdObject` points here, and the two divide the work between them: the
-/// record is the shipped, constant description, while the buffer a model is
-/// decoded into and the per-part coordinate array belong to the object.
-typedef struct TmdSource {
-    s32      handlersResolved; // One-shot flag: 0 as shipped, set once the stream's opcodes have been resolved to handlers
-    s32      halfSize;         // Size of one half of the decode buffer in bytes; the object allocates twice this
+/// record carries what shipped, while the buffer the model is decoded into and
+/// the per-part coordinate array belong to the object.
+///
+/// The record is not all read-only. The packet stream is resolved to handlers
+/// in place the first time the model is used, and `handlersResolved` is how the
+/// record says that has happened.
+typedef struct {
+    s32      handlersResolved; // Zero as shipped, set once the packet stream has been resolved to handlers
+    s32      halfSize;         // Size of one half of the model's buffer in bytes; the object allocates both halves together
     s32      firstRegionSize;  // Size of the first of a half's two prim regions, i.e. the offset the second starts at
     s32      partCount;        // Parts the model is divided into; one bone each
     u32*     partVerts;        // Vertex count per part, summing to the vertex array's length
