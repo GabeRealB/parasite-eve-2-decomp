@@ -185,6 +185,17 @@ anything you could not make match.
 EOF
 }
 
+# Work from a snapshot. A step is identified by an order number that only means
+# anything within one worklist, and rebuilding the graph renumbers every one of
+# them - so a regeneration partway through a run would hand the loop an order
+# resolved against the old list and items read from the new one. That silently
+# split a dependency cycle across two steps once; the items have to come from
+# the same list the order did.
+SNAPSHOT="$(mktemp -t name_pass_worklist.XXXXXX)"
+cp "$WORKLIST" "$SNAPSHOT"
+trap 'rm -f "$SNAPSHOT"' EXIT
+WORKLIST="$SNAPSHOT"
+
 LOG="$(vacuum_log_dir)/name_pass-$$.log"
 echo "logging to $LOG"
 
