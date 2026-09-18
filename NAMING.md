@@ -272,6 +272,24 @@ and a trailing `/* 0x1A */` sits in exactly the column the documentation needs.
 An unproven field keeps its `field_XX` name, which carries the offset in the one
 place it is still wanted.
 
+### Existing comments are not evidence
+
+Assume the documentation already in the tree is wrong. It may have been written
+from a guess, from an understanding since corrected, or about a neighbouring
+symbol. A comment found on a symbol is a lead for where to look, never a source
+to cite.
+
+When renaming a symbol, derive what it is from the code that reads and writes it
+and write the comment from that reading alone. Do not carry the old wording
+forward. Where the code does not settle the question, say the role is unproven
+rather than repeating what the previous comment claimed.
+
+This is easy to violate without noticing, because an existing comment is usually
+the first thing found and it frames the question — a field annotated "current
+HP" invites confirming that rather than establishing it independently. The
+failure is quiet: a plausible but wrong claim gets copied into a better-formatted
+comment and now looks freshly verified.
+
 ### What not to write
 
 How a meaning was originally worked out is scaffolding, not documentation. It
