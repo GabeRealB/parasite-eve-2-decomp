@@ -37,6 +37,7 @@ import cref  # noqa: E402
 import asmref  # noqa: E402
 
 DEFAULT_OUT = os.path.join("local", "name_index.tsv")
+DEFAULT_TYPES_OUT = os.path.join("local", "type_index.tsv")
 
 # A placeholder the splitter emits, in either the core or the per-overlay form,
 # plus the per-offset naming used where one body serves several load slots.
@@ -141,6 +142,141 @@ def _scope_from_path(rel: str) -> str:
     return parts[1] if len(parts) > 1 else ""
 
 
+# --------------------------------------------------------------------------
+# types: layout duplicates and size evidence
+# --------------------------------------------------------------------------
+
+_TYPEDEF_HEAD = re.compile(r"typedef\s+(struct|union)\s+(\w+\s+)?\{|typedef\s+(struct|union)\s*\{")
+_FIELD = re.compile(r"([A-Za-z_][\w ]*?)\s*(\**)\s*(\w+)\s*(\[[^\]]*\])?\s*;")
+_ASSERT = re.compile(r"STATIC_ASSERT_SIZEOF\(\s*(\w+)\s*,\s*([^)]+)\)")
+# Any call that takes a byte count. A constant here that equals a type's
+# declared size is evidence for that size, because the number reaches the
+# instruction stream instead of living only in a declaration.
+_MEMOP = re.compile(
+    r"\b(Mem_Set|Mem_Malloc|Mem_Calloc|Mem_CopyUnaligned|memcpy|memset|bcopy)\s*\(([^;]{0,200})\)")
+_NUM = re.compile(r"\b(0x[0-9A-Fa-f]+|\d+)\b")
+
+
+def _typedefs(text: str):
+    """(name, body) for each typedef'd struct or union, by matching braces.
+
+    A regex cannot do this: the body of almost any real struct here contains a
+    nested struct or union, and a non-greedy match stops at the first inner
+    closing brace, silently mis-parsing the declaration.
+    """
+    for m in _TYPEDEF_HEAD.finditer(text):
+        i = text.index("{", m.start())
+        depth, j = 0, i
+        while j < len(text):
+            if text[j] == "{":
+                depth += 1
+            elif text[j] == "}":
+                depth -= 1
+                if depth == 0:
+                    break
+            j += 1
+        if j >= len(text):
+            continue
+        tail = re.match(r"\s*(\w+)\s*;", text[j + 1:])
+        if tail:
+            yield tail.group(1), text[i + 1:j]
+
+
+def _layout_signature(body: str) -> tuple:
+    """Field types and array extents, with names dropped.
+
+    Names are what differ between a type and its duplicate, so the signature
+    deliberately ignores them: `inner`/`outer` and `rOuter`/`rInner` describe
+    one layout under two sets of guesses.
+    """
+    out = []
+    for line in body.splitlines():
+        line = re.sub(r"/\*.*?\*/", "", line)
+        line = re.sub(r"//.*", "", line).strip()
+        m = _FIELD.match(line)
+        if m:
+            out.append(f"{re.sub(r'  +', ' ', m.group(1).strip())}{m.group(2)}{m.group(4) or ''}")
+    return tuple(out)
+
+
+def type_index(root: str):
+    """Every struct type, its layout peers, and what evidence supports its size."""
+    headers = (glob.glob(os.path.join(root, "include/**/*.h"), recursive=True)
+               + glob.glob(os.path.join(root, "src/**/*.h"), recursive=True))
+    sources = glob.glob(os.path.join(root, "src/**/*.c"), recursive=True)
+    layouts = collections.defaultdict(list)
+    sizes, decl_file = {}, {}
+    for f in headers:
+        text = open(f, errors="replace").read()
+        rel = os.path.relpath(f, root)
+        for name, body in _typedefs(text):
+            sig = _layout_signature(body)
+            if sig:
+                layouts[sig].append(name)
+            decl_file[name] = rel
+        for m in _ASSERT.finditer(text):
+            try:
+                sizes[m.group(1)] = int(m.group(2).strip(), 0)
+            except ValueError:
+                pass
+    peers, layout_fields = {}, {}
+    for sig, names in layouts.items():
+        for n in set(names):
+            layout_fields[n] = sig
+    for sig, names in layouts.items():
+        uniq = sorted(set(names))
+        for n in uniq:
+            peers[n] = [x for x in uniq if x != n]
+
+    # how each type is used, in one pass over every source and header
+    sizeof_use, value_use, ptr_use = collections.Counter(), collections.Counter(), collections.Counter()
+    memop_sizes = collections.Counter()
+    known = set(decl_file)
+    v_re = re.compile(r"(?<![\w\*])\b([A-Z]\w*)\s+\w+\s*(?:\[|;|,|\))")
+    p_re = re.compile(r"\b([A-Z]\w*)\s*\*")
+    s_re = re.compile(r"sizeof\s*\(\s*(\w+)\s*\)")
+    for f in headers + sources:
+        text = open(f, errors="replace").read()
+        for m in s_re.finditer(text):
+            if m.group(1) in known:
+                sizeof_use[m.group(1)] += 1
+        for m in v_re.finditer(text):
+            if m.group(1) in known:
+                value_use[m.group(1)] += 1
+        for m in p_re.finditer(text):
+            if m.group(1) in known:
+                ptr_use[m.group(1)] += 1
+        if f.endswith(".c"):
+            for m in _MEMOP.finditer(text):
+                for n in _NUM.findall(m.group(2)):
+                    memop_sizes[int(n, 0)] += 1
+
+    by_size = collections.Counter(sizes.values())
+    rows = []
+    for t in sorted(known):
+        size = sizes.get(t)
+        if sizeof_use[t] or value_use[t]:
+            evidence = "pinned"
+        elif size is not None and memop_sizes.get(size):
+            # Distinctiveness is a property of the number, not of how often the
+            # code uses it: repeated allocation of one size is more evidence,
+            # not less, and several types sharing a distinctive size is the
+            # duplicate-identity signal rather than a reason to discount it.
+            # Small values and powers of two are what coincide by accident.
+            common = size < 0x40 or (size & (size - 1)) == 0
+            evidence = "weak-coincidence" if common else "corroborated"
+        elif ptr_use[t]:
+            evidence = "none (pointer only)"
+        else:
+            evidence = "none"
+        peer = peers.get(t, [])
+        rows.append((t, "" if size is None else f"{size:#x}", evidence,
+                     str(by_size[size] if size is not None else 0),
+                     str(len(layout_fields.get(t, ()))),
+                     str(ptr_use[t]), str(len(peer)), ";".join(peer), decl_file[t]))
+    return rows
+
+
 def classify(name: str, kind: str, vendor: set) -> str:
     if name in vendor or name.startswith("__"):
         return "vendored"
@@ -173,6 +309,10 @@ def main() -> int:
     ap.add_argument("--state", help="print only rows in this state")
     ap.add_argument("--kind", help="print only 'func' or 'data'")
     ap.add_argument("--scope", help="substring match on the owning scope")
+    ap.add_argument("--types", action="store_true",
+                    help="also index struct types: layout duplicates and size evidence")
+    ap.add_argument("--types-out", default=None,
+                    help=f"where to write the type index (default: {DEFAULT_TYPES_OUT})")
     args = ap.parse_args()
 
     root = cref.repo_root()
@@ -223,6 +363,23 @@ def main() -> int:
         print(f"  {st:<10} {n:>6}   ({funcs} functions, {n - funcs} data)", file=sys.stderr)
     todo = by_state["legacy"] + by_state["generated"] + by_state["shared-placeholder"]
     print(f"\n  still to name or convert: {todo}", file=sys.stderr)
+
+    if args.types:
+        trows = type_index(root)
+        tpath = args.types_out or os.path.join(root, DEFAULT_TYPES_OUT)
+        if not os.path.isabs(tpath):
+            tpath = os.path.join(root, tpath)
+        with open(tpath, "w") as fh:
+            fh.write("type\tsize\tsize_evidence\ttypes_with_size\tfields"
+                     "\tpointer_uses\tlayout_peers\tsame_layout_as\tdeclared_in\n")
+            for r in trows:
+                fh.write("\t".join(r) + "\n")
+        dups = [r for r in trows if r[7]]
+        print(f"\n{len(trows)} types -> {os.path.relpath(tpath, root)}", file=sys.stderr)
+        ev = collections.Counter(r[2] for r in trows)
+        for k, n in ev.most_common():
+            print(f"  size {k:<22} {n:>5}", file=sys.stderr)
+        print(f"  sharing a layout with another type: {len(dups)}", file=sys.stderr)
     return 0
 
 

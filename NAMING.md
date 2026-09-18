@@ -372,6 +372,17 @@ known.
 Coverage today is about 17% of declarations, so most modules are below this bar.
 Bring a module up to it when working in it rather than as a separate sweep.
 
+### Planned: resolve immediate values
+
+A later pass should replace literal sizes with `sizeof(T)` where a type is the
+right one, and give names to the remaining magic numbers. Beyond reading better,
+it converts a guess into something the build checks: `Mem_Calloc(sizeof(T), 0)`
+only keeps matching while `T` really is that size, so a wrong size stops being
+invisible.
+
+`tools/refactor/name_index.py --types` lists the candidates — the types whose
+size a memory operation already corroborates.
+
 ## FS file-id encoding
 
 When loading via `Fs_LoadFile` / `CdCmd_Enqueue` (cmd `0x21`):
