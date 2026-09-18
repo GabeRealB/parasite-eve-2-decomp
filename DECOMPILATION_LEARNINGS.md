@@ -129923,3 +129923,47 @@ that arm. Leaving even one inline `return K;` elsewhere re-creates the trailing
 block, because that copy is then the last one and cross-jumping keeps it. The
 delta is invisible in the penalty mix apart from a small `branch`/`insert`
 residue, and `.diagnosis.json` shows it as one block index shifted.
+
+## A `switch` whose arms `break` leaves a standalone `move $v0,$zero` before the epilogue
+
+Two shapes of the same handler are distinguishable in the object without reading
+a single register. Writing `return 0;` in every arm makes each arm jump straight
+to the epilogue with the zero in the jump's delay slot. Writing `break;` with one
+`return 0;` after the `switch` makes jump.c keep a one-instruction block that
+loads the return value, place it immediately before the epilogue, and let every
+arm jump *to* it - so the arms' delay slots hold their own last store instead,
+and the arm that returns a different constant (`default: return -1;`) branches
+**past** that block, to the epilogue proper.
+
+So a `j <addr>` whose destination is a lone `move $v0,$zero` followed by the
+register restores, with one branch to `<addr>+4`, is the target telling you the
+source used `break` and a single trailing `return`. Converting the arms from
+`return 0;` to `break;` on `Actor01600_Fn05B08` moved 96.3% -> 97.9% and cleared
+`branch`, `reorder` and most of `insert`/`delete` in one edit; no register work
+had any effect while the tail was wrong.
+
+## The pseudo that needs the `do { } while (0)` weighting can be a *parameter*
+
+The loop-depth entries above raise a local's `REG_N_REFS` to win a callee-saved
+register. The same lever is what fixes the common "`$s1` and `$s2` are swapped,
+everything else matches" residue, and there the pseudo to promote is usually the
+**parameter**, for a reason that is easy to miss: a register parameter's arrival
+copy carries `REG_EQUIV (mem <arg slot>)`, and `update_equiv_regs` doubles its
+`REG_LIVE_LENGTH` (CODEGEN_MODEL §10.1). A parameter used across the whole
+function therefore ranks *below* a short-lived pointer loaded out of it, and the
+allocator hands the lower `$sN` to the pointer.
+
+In `Actor01600_Fn05B08` the actor parameter had 15 refs over a doubled 296
+insns (priority 1520) against the context pointer's 3 refs over 17 (1764), so
+the context took `$s1`. Neither side is movable by ordinary means: the context's
+live span is fixed by the jump table and its one use after the call, and
+permuting the four entry assignments moved it only between 17 and 18 (20 is what
+it takes). Wrapping one existing `arg0->field_2C` load in `do { } while (0)`
+weights that reference twice, which is enough to cross the `floor_log2` step at
+16 refs - 2162 against 1764 - and the two registers swap with no instruction
+added. Confirm it in `.lreg` (`used 16 times`) and in the `-dg` dispositions,
+not in the object dump.
+
+Look for this whenever the only residue is `regs` and the wrong register holds
+the parameter: the arithmetic is decided before any of the C body matters, and
+no amount of restructuring the arms will reach it.

@@ -410,6 +410,17 @@ typedef struct Actor01600Msg3F8 {
 } Actor01600Msg3F8;
 STATIC_ASSERT_SIZEOF(Actor01600Msg3F8, 0x18);
 
+/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
+/// the overlay's message table routes 0x7DB to `Actor01600_Fn05B08`, which
+/// reads only the halfword at 0x2 and treats it as a sub-command selecting one
+/// of eight behaviours. Sibling overlays declare the same 4-byte record.
+typedef struct Actor01600Msg7DB {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ u16 field_2;
+} Actor01600Msg7DB;
+STATIC_ASSERT_SIZEOF(Actor01600Msg7DB, 0x4);
+
 /// Position and rotation payload for message 0x3E9.
 typedef struct Actor01600Msg3E9 {
     /* 0x00 */ VECTOR  position;

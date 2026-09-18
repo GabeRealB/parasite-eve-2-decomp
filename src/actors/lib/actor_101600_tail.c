@@ -313,7 +313,148 @@ s32 Actor01600_Fn05558(Actor01600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_tail", Actor01600_Fn05B08);
+s32 Actor01600_Fn05B08(Actor01600* arg0, s32 arg1, Actor01600Msg7DB* arg2)
+{
+    SVECTOR         rot;
+    Actor01600Ctx*  ctx;
+    Actor01600Work* work;
+    GsCOORDINATE2*  coord;
+    TmdObject*      obj;
+    u32             variant;
+
+    ctx     = arg0->field_20;
+    coord   = arg0->field_2C->field_8;
+    work    = arg0->field_1C;
+    variant = ctx->field_3C->field_1;
+
+    switch (arg2->field_2) {
+        case 1:
+            work->field_54A = 1;
+            if (variant == 2) {
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_50A = 0;
+                work->field_508 = 0;
+                work->field_506 = 3;
+                work->field_546 = 9;
+                work->field_524 = ((u32)Gp_LcgState >> 16) % 20;
+            }
+            if (variant == 4) {
+                work->field_506 = 0x11;
+                work->field_508 = 0;
+            }
+            if (variant == 3) {
+                work->field_506   = 0x11;
+                work->field_508   = 0;
+                coord->coord.t[0] = 0x4021;
+                coord->coord.t[1] = -0x190;
+                coord->coord.t[2] = -0x6C0;
+                rot.vx            = 0;
+                rot.vy            = 0x600;
+                rot.vz            = 0;
+                RotMatrix(&rot, &coord->coord);
+                goto setFlags;
+            }
+            break;
+        case 2:
+            work->field_54A = 1;
+            if (variant == 1) {
+                work->field_506 = 0x1A;
+                work->field_508 = 0;
+            }
+            if (variant == 2) {
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_50A = 0;
+                work->field_508 = 0;
+                work->field_506 = 3;
+                work->field_546 = 9;
+                work->field_524 = ((u32)Gp_LcgState >> 16) % 20;
+            }
+            if (variant == 3) {
+                obj = arg0->field_2C;
+                do {
+                    obj->field_C &= 0xFFFB;
+                    obj           = arg0->field_2C;
+                } while (0);
+                obj->field_C &= 0xFF7F;
+            }
+            break;
+        case 3:
+            work->field_54A = 1;
+            if ((u32)(variant - 1) < 4) {
+                obj           = arg0->field_2C;
+                obj->field_C &= 0xFFFB;
+                obj           = arg0->field_2C;
+                obj->field_C &= 0xFF7F;
+            }
+            if (variant == 1) {
+                work->field_506 = 9;
+                work->field_508 = 0;
+            }
+            if (variant == 2) {
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_50A = 0;
+                work->field_508 = 0;
+                work->field_506 = 3;
+                work->field_546 = 9;
+                work->field_524 = ((u32)Gp_LcgState >> 16) % 20;
+            }
+            break;
+        case 4:
+            work->field_54A = 1;
+            if (variant == 1) {
+                work->field_506 = 0xFF;
+                work->field_508 = 0;
+                work->field_50A = 0;
+            }
+            if (variant == 2) {
+                work->field_506 = 3;
+                work->field_524 = 0xA;
+                work->field_50A = 0;
+                work->field_508 = 0;
+                work->field_546 = 7;
+            }
+            if (variant == 4) {
+                work->field_50A = 0;
+                work->field_524 = 7;
+                work->field_546 = 7;
+            }
+            break;
+        case 5:
+            work->field_54A = 1;
+            break;
+        case 6:
+            work->field_54A = 1;
+            if (variant == 3) {
+                Actor01600_Fn06FDC(arg0, 0);
+            }
+            if (variant == 2 || variant == 4) {
+                obj           = arg0->field_2C;
+                obj->field_C &= 0xFFFB;
+                obj           = arg0->field_2C;
+                obj->field_C &= 0xFF7F;
+            }
+            D_8011540C = 3;
+            break;
+        case 7:
+            work->field_54A = 1;
+            if ((u32)(variant - 1) < 4) {
+            setFlags:
+                obj           = arg0->field_2C;
+                obj->field_C |= 0x80;
+                obj           = arg0->field_2C;
+                obj->field_C |= 4;
+            }
+            break;
+        case 8:
+            Gp_ReleaseStateF0Add(arg0, 0x10);
+            Gp_DestroyEnemy(ctx, arg0);
+            Actor01600_D12874 -= 1;
+            break;
+        default:
+            return -1;
+    }
+    return 0;
+}
 
 void Actor01600_Fn05F80(Actor01600* arg0)
 {
