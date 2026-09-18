@@ -47,6 +47,25 @@ def emit(line: str) -> None:
     print(line, flush=True)
 
 
+def readable_result(content):
+    """Tool output as text, whatever shape the agent reports it in.
+
+    One arm returns a JSON object carrying both the raw bytes and a rendered
+    form; printing the object puts a byte array in the log where the output
+    should be. Prefer the rendered field when there is one.
+    """
+    text = content_text(content)
+    stripped = text.strip()
+    if stripped.startswith("{") and '"output_for_prompt"' in stripped:
+        try:
+            obj = json.loads(stripped)
+        except ValueError:
+            return text
+        if isinstance(obj, dict) and obj.get("output_for_prompt") is not None:
+            return str(obj["output_for_prompt"])
+    return text
+
+
 def squash(text: str, limit: int) -> str:
     text = " ".join(str(text).split())
     if len(text) > limit:
@@ -97,7 +116,7 @@ def handle(event: dict, show_text: bool) -> None:
     etype = event.get("type")
 
     if etype == "system" and event.get("subtype") == "init":
-        emit(f"{stamp()} ▶ claude session {event.get('session_id', '?')}")
+        emit(f"{stamp()} ▶ session {event.get('session_id', '?')}")
         return
 
     if etype in ("assistant", "user"):
@@ -124,7 +143,7 @@ def handle(event: dict, show_text: bool) -> None:
                 name = block.get("name", "tool")
                 emit(f"{stamp()} → {name}  {summarise_input(name, block.get('input'))}".rstrip())
             elif btype == "tool_result":
-                body = squash(content_text(block.get("content")), MAX_RESULT)
+                body = squash(readable_result(block.get("content")), MAX_RESULT)
                 mark = "✗" if block.get("is_error") else "←"
                 emit(f"{stamp()}   {mark} {body}".rstrip())
         return

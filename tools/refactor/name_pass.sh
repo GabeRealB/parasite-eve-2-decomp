@@ -240,8 +240,19 @@ for ((i = 0; i < TIMES; i++)); do
       fi
       ;;
     grok)
-      "${LAUNCH_CMD[@]}" --always-approve ${EFFORT:+--effort "$EFFORT"} \
-        --cwd "$ROOT" -p "$brief" | tee -a "$LOG"
+      # grok emits the same NDJSON wire format on request, so the one formatter
+      # renders both arms and a grok step reports its cost and turn count the
+      # way a claude step does.
+      if [[ "${VACUUM_STREAM:-1}" != "0" ]]; then
+        "${LAUNCH_CMD[@]}" --always-approve ${EFFORT:+--effort "$EFFORT"} \
+          --cwd "$ROOT" --output-format streaming-messages-json \
+          --include-partial-messages -p "$brief" \
+          | python3 tools/stream_format.py ${VACUUM_STREAM_QUIET:+--quiet-text} \
+          | tee -a "$LOG"
+      else
+        "${LAUNCH_CMD[@]}" --always-approve ${EFFORT:+--effort "$EFFORT"} \
+          --cwd "$ROOT" -p "$brief" | tee -a "$LOG"
+      fi
       ;;
     codex)
       "${LAUNCH_CMD[@]}" exec --dangerously-bypass-approvals-and-sandbox \
