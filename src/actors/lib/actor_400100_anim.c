@@ -396,10 +396,10 @@ s32 Actor00100_Fn00E58(Actor00100* arg0, s32 arg1, Actor00100Msg* arg2)
                     Actor00100_Fn02788(arg0);
                     Actor00100_Fn02788(arg0);
                     work->field_0   = 0x1C;
-                    work->field_C1E = Actor00100_D0BDB4.field_1A;
-                    work->field_C20 = Actor00100_D0BDB4.field_18;
-                    work->field_C22 = Actor00100_D0BDB4.field_1C;
-                    work->field_C24 = Actor00100_D0BDB4.field_1E;
+                    work->field_C1E = Actor00100_D0BDB4.rows[3].vy;
+                    work->field_C20 = Actor00100_D0BDB4.rows[3].vx;
+                    work->field_C22 = Actor00100_D0BDB4.rows[3].vz;
+                    work->field_C24 = Actor00100_D0BDB4.rows[3].yaw;
                     break;
             }
         }

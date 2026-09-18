@@ -129065,3 +129065,58 @@ nothing. A `SOFT_BARRIER()` between the read-modify and the write-back supplied
 the last LUID here. `TOUCH_MEM(global)` adds two, but only the first one is
 free: reload materialises a full `lui`+`addiu` address for a second asm memory
 operand on the same symbol, which costs a real instruction.
+
+## An `if` whose arms hold more than one insn ends the cse block; the same `if` over one variable does not
+
+Two addresses of the same struct member, computed far apart with several calls
+between them, come out of cse as one pseudo whenever both computations sit in
+the same cse basic block. The pseudo then spans the calls, global-alloc gives
+it a callee-saved register, and the object gains a `sw`/`lw` pair in the
+prologue and epilogue plus the allocation shifts that follow from one more
+`$sN` being taken - while the target simply recomputes the address at each use.
+
+Nothing about the two expressions can prevent that link. cse hashes the
+canonical `(plus reg const)`, and `fold_rtx`'s associative rule rewrites a
+member address taken through a pointer variable (`&obj->member`, where `obj`
+is known to be `base + k`) back into `base + k + offset`, so the pointer form
+hashes the same as the base-relative form. At the substitution step a register
+in the table costs 0 while the arithmetic costs more, so the register always
+wins. The only lever is the block boundary.
+
+`cse_end_of_basic_block` walks forward to the next `CODE_LABEL`, and extends
+over a conditional jump only when the jump's label has exactly one use *and*
+either the label is preceded by a `BARRIER` (`-fcse-follow-jumps`) or the
+region the jump skips contains no label (`-fcse-skip-blocks`). Both are on at
+`-O2`. So the shape of the intervening conditional is what decides it:
+
+```c
+kind = 0xF;                  /* one pseudo, one insn in the arm:      */
+if (!cond) {                 /* jump-around, no barrier, skip_blocks  */
+    kind = 0x11;             /* extends the block - the two addresses */
+}                            /* CSE into one callee-saved register    */
+work->a = kind;
+work->b = kind;
+```
+
+```c
+if (cond) {                  /* two insns per arm: a real else block  */
+    work->a = 0xF;           /* with a BARRIER, so cse follows the    */
+    work->b = 0xF;           /* taken arm and then stops at the       */
+} else {                     /* fall-through join label               */
+    work->a = 0x11;
+    work->b = 0x11;
+}
+```
+
+Both compile to the same instructions: `jump2` cross-jumps the identical tails
+back together, leaving one branch-around with the constant in the delay slot.
+The difference is invisible in the object and decides a whole register.
+
+A `NOTE_INSN_LOOP_END` is not a substitute. `cse_end_of_basic_block` stops at
+one only when `after_loop` is false, so a `do { ... } while (0)` breaks cse1
+and `cse2` - which runs with `after_loop` set - re-links the pair. Check both
+dumps: the block list is in the dump itself, as
+`;; Processing block from A to B, N sets.`
+
+The same boundary also keeps two `li` of one constant apart, since a constant
+pseudo shared across the boundary is a second candidate for the same register.

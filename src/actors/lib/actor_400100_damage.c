@@ -13,7 +13,10 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/wipsys.h"
+#include "main/fs.h"
 #include <psyq/inline_c.h>
+
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
 {
@@ -373,14 +376,14 @@ void Actor00100_Fn02788(Actor00100* arg0)
             TOUCH_REG(seekWork);
             seekIndex = 1;
             table     = (u32)&Actor00100_D1B6D0;
-            seekSlot  = &work->state.pad_8[0x20];
+            seekSlot  = (s8*)&work->anim0.field_C;
             do {
                 seekSlotIndex  = seekIndex;
                 seekSlot[0x39] = (u8)seekWork->field_832;
                 animation      = (s16)seekWork->field_82E;
                 seekSlot      += 0x28;
                 index          = seekWork->field_82C * 0x19;
-                func_800B4114(&seekWork->state.pad_8[0x14], seekSlotIndex, animation, 0, (s32) * (s8*)((animation + index) + table));
+                func_800B4114(&seekWork->anim0, seekSlotIndex, animation, 0, (s32) * (s8*)((animation + index) + table));
                 seekIndex += 1;
             } while (seekIndex < 0x12);
             seekWork->field_82C = (s16)seekWork->field_82E;
@@ -392,12 +395,12 @@ void Actor00100_Fn02788(Actor00100* arg0)
         resetWork = work;
         TOUCH_REG(resetWork);
         resetIndex = 1;
-        resetSlot  = &work->state.pad_8[0x20];
+        resetSlot  = (s8*)&work->anim0.field_C;
         do {
             resetSlotIndex  = resetIndex;
             resetSlot[0x39] = (u8)resetWork->field_832;
             resetSlot      += 0x28;
-            Gp_AnimResetSlot((GpAnimCtx*)&resetWork->state.pad_8[0x14], resetSlotIndex, (s32)(s16)resetWork->field_82E);
+            Gp_AnimResetSlot(&resetWork->anim0, resetSlotIndex, (s32)(s16)resetWork->field_82E);
             resetIndex += 1;
         } while (resetIndex < 0x12);
         resetWork->field_82C = (s16)resetWork->field_82E;
@@ -408,12 +411,12 @@ void Actor00100_Fn02788(Actor00100* arg0)
     if (work->field_836 == 2) {
         secondaryWork  = arg0->field_1C;
         secondaryIndex = 1;
-        secondarySlot  = &secondaryWork->state.pad_8[0x20];
+        secondarySlot  = (s8*)&secondaryWork->anim0.field_C;
         do {
             secondarySlotIndex  = secondaryIndex;
             secondarySlot[0x39] = (u8)secondaryWork->field_83A;
             secondarySlot      += 0x28;
-            Gp_AnimResetSlot((GpAnimCtx*)&secondaryWork->pad_6A[0x3B6], secondarySlotIndex, (s32)secondaryWork->field_838);
+            Gp_AnimResetSlot(&secondaryWork->anim1, secondarySlotIndex, (s32)secondaryWork->field_838);
             secondaryIndex += 1;
         } while (secondaryIndex < 0x12);
         work->field_836 = 3;
@@ -422,11 +425,11 @@ void Actor00100_Fn02788(Actor00100* arg0)
     if ((s16)work->field_82A == 0) {
         tickWork  = arg0->field_1C;
         tickIndex = 1;
-        tickSlot  = &tickWork->state.pad_8[0x20];
+        tickSlot  = (s8*)&tickWork->anim0.field_C;
         do {
             tickSlotIndex  = tickIndex;
             tickSlot[0x39] = (u8)tickWork->field_832;
-            Gp_AnimTickIndex((GpAnimCtx*)&tickWork->state.pad_8[0x14], tickSlotIndex);
+            Gp_AnimTickIndex(&tickWork->anim0, tickSlotIndex);
             tickSlot  += 0x28;
             tickIndex += 1;
         } while (tickIndex < 0x12);
@@ -515,7 +518,240 @@ void Actor00100_Fn02788(Actor00100* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_damage", Actor00100_Fn02C54);
+/// Builds the damage state: allocates the 0xC30 work block, wires the two
+/// animation contexts and the four collision objects onto the model, latches
+/// the spawn position and the one a fixed step ahead of it, then picks the
+/// start state and pose row out of the two nibbles of `spawnArg1`.
+void Actor00100_Fn02C54(GpEnemy* arg0, Task* arg1)
+{
+    SVECTOR         vec;
+    VECTOR          color;
+    u8              cmd30[8];
+    u8              cmd38[8];
+    Actor00100Work* work;
+    TmdObject*      tmd;
+    GsCOORDINATE2*  coord;
+    Actor00100Work* mapped;
+    TmdObject*      model;
+    Actor00100Obj*  primary;
+    Actor00100Obj*  secondary;
+    SVECTOR*        dir;
+    s32             kind;
+    s32             sessionMode;
+
+    coord       = ((TmdObject*)arg1->extra)->field_8;
+    tmd         = arg1->extra;
+    work        = Mem_Calloc(0xC30U, false);
+    arg1->idMap = (TaskIdMap*)work;
+    if (work == NULL) {
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    arg1->exitCallback = Actor00100_Fn0B3B4;
+    mapped             = (Actor00100Work*)arg1->idMap;
+    model              = (TmdObject*)arg1->extra;
+    model->field_1C    = &mapped->field_B80;
+    model->field_20    = &mapped->field_BA0;
+    arg0->field_4      = &((TmdObject*)arg1->extra)->field_8[0].coord;
+    arg0->field_48     = 0;
+    arg0->field_1C.vx  = 0;
+    arg0->field_1C.vy  = 0;
+    arg0->field_1C.vz  = 0;
+    arg0->field_18     = &((TmdObject*)arg1->extra)->field_8[2];
+    Gp_LinkNode(&arg0->node);
+    arg0->node.field_4 = 1;
+    arg0->field_4C     = 0;
+    arg0->field_40     = Actor00100_D0BDA4.field_4;
+    arg0->field_50     = &Actor00100_D0BDA4;
+    arg0->field_54     = (s32)&work->objs[0].field_20;
+    func_800B3F84(&work->anim0, &Actor00100_D1B944, (GpAnimObj*)tmd, work->data0, &work->slot0);
+    func_800B3F84(&work->anim1, &Actor00100_D1B944, (GpAnimObj*)tmd, work->data1, &work->slot1);
+    work->field_828 = 2;
+    work->field_82A = 0;
+    work->field_82E = 0;
+    work->field_844 = 0;
+    work->field_840 = 0;
+    if (((u16)arg0->field_8 >> 0xC) & 1) {
+        work->field_834 = 0xF;
+        work->field_832 = 0xF;
+    } else {
+        work->field_834 = 0x11;
+        work->field_832 = 0x11;
+    }
+    work->field_83A = 0x10;
+    Actor00100_Fn02788((Actor00100*)arg1);
+    work->objs[2].coord    = coord;
+    work->objs[2].hits     = &work->objs[2].field_20;
+    work->objs[2].field_10 = 0;
+    work->objs[2].field_12 = -0x11C;
+    work->objs[2].field_14 = 0;
+    work->objs[2].field_18 = 0x30001;
+    work->objs[2].field_1C = 0x12C;
+    work->objs[2].flags    = 1;
+    Gp_LinkObj(2, (GpObj*)&work->objs[2]);
+    ((GpActorD4Rec*)&work->objs[3].field_20)->field_0  = 0;
+    ((GpActorD4Rec*)&work->objs[3].field_20)->field_2  = -0x180;
+    ((GpActorD4Rec*)&work->objs[3].field_20)->field_4  = 0;
+    ((GpActorD4Rec*)&work->objs[3].field_20)->field_8  = 0;
+    ((GpActorD4Rec*)&work->objs[3].field_20)->field_A  = -0x180;
+    ((GpActorD4Rec*)&work->objs[3].field_20)->field_C  = 0x2BC;
+    ((GpActorD4Rec*)&work->objs[3].field_20)->field_10 = 0x12C;
+    ((GpActorD4Rec*)&work->objs[3].field_20)->field_12 = 0x12C;
+    ((GpActorD4Rec*)&work->objs[3].field_20)->field_14 = &work->objs[3].field_38;
+    work->objs[3].coord                                = coord;
+    work->objs[3].hits                                 = &work->objs[3].field_20;
+    work->objs[3].field_10                             = 0;
+    work->objs[3].field_12                             = 0;
+    work->objs[3].field_14                             = 0;
+    work->objs[3].field_18                             = 0x30001;
+    work->objs[3].field_1C                             = 1;
+    work->objs[3].flags                                = 3;
+    work->objs[2].flags                               |= 0x4000;
+    Gp_LinkObj(2, (GpObj*)&work->objs[3]);
+    work->objs[3].flags |= 0x4000;
+    Gp_InitRec18Table(&work->objs[3].field_38, 5, 0);
+    Gp_InitRec18Table(work->objs[2].hits, 5, 0);
+    primary           = &work->objs[0];
+    primary->coord    = &((TmdObject*)arg1->extra)->field_8[2];
+    primary->hits     = &primary->field_20;
+    primary->field_10 = 0;
+    primary->field_12 = 0;
+    primary->field_14 = 0;
+    primary->field_18 = 0x30001;
+    primary->field_1C = 0x19C;
+    primary->flags    = 1;
+    Gp_LinkObj(2, (GpObj*)primary);
+    primary->flags |= 0x8000;
+    Gp_InitRec18Table(primary->hits, 5, 0);
+    secondary           = &work->objs[1];
+    secondary->coord    = &((TmdObject*)arg1->extra)->field_8[10];
+    secondary->hits     = &secondary->field_20;
+    secondary->field_10 = 0;
+    secondary->field_12 = 0;
+    secondary->field_14 = 0;
+    secondary->field_18 = 0x30001;
+    secondary->field_1C = 0x100;
+    secondary->flags    = 1;
+    Gp_LinkObj(2, (GpObj*)secondary);
+    secondary->flags |= 0x8000;
+    Gp_InitRec18Table(secondary->hits, 5, 0);
+    work->objs[1].field_10 = 0;
+    work->objs[1].field_12 = 0;
+    work->objs[1].field_14 = -0x100;
+    work->field_14         = 0;
+    work->field_C          = ((TmdObject*)arg1->extra)->field_8[0].coord.t[0];
+    work->field_E          = ((TmdObject*)arg1->extra)->field_8[0].coord.t[2];
+    Gfx_MatrixCol2(&((TmdObject*)arg1->extra)->field_8[0].coord, &vec);
+    vec.vy = 0;
+    dir    = &vec;
+    VectorNormalSS(dir, dir);
+    gte_lddp(5000);
+    gte_ldsv(dir);
+    gte_gpf12_real();
+    gte_stsv(dir);
+    work->field_10  = ((TmdObject*)arg1->extra)->field_8[0].coord.t[0] + vec.vx;
+    work->field_12  = ((TmdObject*)arg1->extra)->field_8[0].coord.t[2] + vec.vz;
+    work->field_BF8 = NULL;
+    work->field_BFC = 1;
+    work->field_C00 = 0;
+    work->field_C04 = 3;
+    work->field_C08 = 1;
+    arg1->field_24  = &Actor00100_D1BA54;
+    coord->sub      = &Gfx_ViewCoord;
+    coord->flg      = 0;
+    Gp_UpdateCoord(coord);
+    color.vx = coord->workm.t[0];
+    color.vy = coord->workm.t[1];
+    color.vz = coord->workm.t[2];
+    Gp_UpdateActorColor(arg0, &color, 0, 0);
+    work->field_890.field_0 = &((TmdObject*)arg1->extra)->field_8[1];
+    work->field_890.field_4 = 0x100;
+    work->field_890.field_6 = 2;
+    kind                    = (arg1->spawnArg1 >> 16) & 0xF;
+    if (kind == 1) {
+        goto state1;
+    }
+    if (kind < 2) {
+        goto stateStill;
+    }
+    if (kind == 2) {
+        goto state2;
+    }
+    if (kind == 3) {
+        goto state3;
+    }
+    work->field_2 = -1;
+    work->field_0 = 0x18;
+    Tmd_AllocBuffers(tmd);
+    goto stateEnd;
+state1:
+    work->field_2 = -1;
+    work->field_0 = 0;
+    goto stateEnd;
+state2:
+    work->field_2 = -1;
+    work->field_0 = 0x21;
+    goto stateEnd;
+state3:
+    work->field_2 = -1;
+    work->field_0 = 5;
+    goto stateEnd;
+stateStill:
+    work->field_2 = -1;
+    work->field_0 = 0x18;
+    Tmd_AllocBuffers(tmd);
+stateEnd:
+    kind = arg1->spawnArg1 & 0xF;
+    if (kind == 1) {
+        goto pose2;
+    }
+    if (kind < 2) {
+        goto pose1;
+    }
+    if (kind != 2) {
+        goto pose1;
+    }
+    work->field_C1E = Actor00100_D0BDB4.rows[0].vy;
+    work->field_C20 = Actor00100_D0BDB4.rows[0].vx;
+    work->field_C22 = Actor00100_D0BDB4.rows[0].vz;
+    work->field_C24 = Actor00100_D0BDB4.rows[0].yaw;
+    goto poseEnd;
+pose2:
+    work->field_C1E = Actor00100_D0BDB4.rows[2].vy;
+    work->field_C20 = Actor00100_D0BDB4.rows[2].vx;
+    work->field_C22 = Actor00100_D0BDB4.rows[2].vz;
+    work->field_C24 = Actor00100_D0BDB4.rows[2].yaw;
+    goto poseEnd;
+pose1:
+    work->field_C1E = Actor00100_D0BDB4.rows[1].vy;
+    work->field_C20 = Actor00100_D0BDB4.rows[1].vx;
+    work->field_C22 = Actor00100_D0BDB4.rows[1].vz;
+    work->field_C24 = Actor00100_D0BDB4.rows[1].yaw;
+poseEnd:
+    sessionMode = Game_Session->field_7;
+    if ((sessionMode - 2) < 2U) {
+        if (Game_Session->field_6 == 0x18) {
+            cmd38[3] = sessionMode;
+            cmd38[2] = Game_Session->field_6;
+            cmd38[0] = 0x31;
+            cmd30[0] = (u8)Game_Session->field_74;
+            cmd30[3] = 0;
+            cmd30[2] = 0;
+            cmd30[1] = 0;
+            CdCmd_Enqueue(0x21, cmd38, cmd30);
+        }
+    }
+    if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x04010000) {
+        func_801811C4(0x7D0);
+    }
+    Gp_ClearRec18Occupied(&work->objs[2].field_20);
+    Gp_ClearRec18Occupied(&work->objs[0].field_20);
+    Gp_ClearRec18Occupied(&work->objs[1].field_20);
+    Gp_ClearRec18Occupied(&work->objs[3].field_38);
+    work->field_C2A = 0;
+    arg1->state    += 1;
+}
 
 /// Picks one of twelve hit positions out of `Actor00100_D1B9F4` by damage
 /// magnitude `arg1`, then spawns effect `Gp_GetIdParam1(arg2)` on the model

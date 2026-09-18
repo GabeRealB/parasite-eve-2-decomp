@@ -483,7 +483,7 @@ void Actor00100_Fn0503C(Actor00100* arg0)
         Actor00100_Fn02788(arg0);
         work->objs[3].field_20.field_C           = 0x320;
         work->field_6                            = 0;
-        work->state.field_8                      = 0;
+        work->field_8                            = 0;
         work->field_C1A                          = 0;
         work->field_840                          = 0;
         work->pad_8EB[0x19]                      = 9;
@@ -704,9 +704,9 @@ void Actor00100_Fn0503C(Actor00100* arg0)
         work->field_C1A = var_v0_29;
     }
     if ((s16)work->field_82E == 2) {
-        work->state.field_8 = (u16)work->state.field_8 + 1;
+        work->field_8 = (u16)work->field_8 + 1;
     }
-    if (work->state.field_8 > ((Actor00100FacingWork*)work)->field_C1E) {
+    if (work->field_8 > ((Actor00100FacingWork*)work)->field_C1E) {
         temp_v1_3 = (s16)work->field_82E;
         if (temp_v1_3 == 2) {
             var_v0_30 = scratch->targetYaw;
@@ -725,7 +725,7 @@ void Actor00100_Fn0503C(Actor00100* arg0)
             }
         }
     }
-    if (work->state.field_8 >= 0xF) {
+    if (work->field_8 >= 0xF) {
         var_v0_31 = scratch->targetYaw;
         if (var_v0_31 < 0) {
             var_v0_31 = -var_v0_31;
@@ -1007,7 +1007,7 @@ void Actor00100_Fn06C10(Actor00100* arg0)
         work->field_832        = work->field_834;
         Actor00100_Fn02788(arg0);
         work->field_6                  = 0;
-        work->state.field_8            = 0;
+        work->field_8                  = 0;
         work->objs[3].field_20.field_C = -0x2D0;
     }
     work->field_6 += 1;
@@ -1015,9 +1015,9 @@ void Actor00100_Fn06C10(Actor00100* arg0)
     if (work->field_68 & 0x100) {
         work->field_0 = 0x26;
     }
-    if (((u32)((work->field_5A & 0x3FF) - 6) < 8U) && (work->state.field_8 < 5)) {
+    if (((u32)((work->field_5A & 0x3FF) - 6) < 8U) && (work->field_8 < 5)) {
         if (Actor00100_Fn00A54(arg0->field_2C->field_8, &work->objs[2].field_20, 5) != 0) {
-            work->state.field_8 = (s16)((u16)work->state.field_8 + 1);
+            work->field_8 = (s16)((u16)work->field_8 + 1);
         }
         switch (work->field_5A & 0x3FF) {
             case 12:
@@ -1323,17 +1323,17 @@ void Actor00100_Fn0782C(Actor00100* arg0)
         work->field_832        = work->field_834;
         Actor00100_Fn02788(arg0);
         Actor00100_Fn02788(arg0);
-        work->field_6       = 0;
-        work->state.field_8 = 0;
-        coord               = arg0->field_2C->field_8;
-        head[-1].vec.vx     = (s16)(Wip_SysConfig.field_4->t[0] - coord->coord.t[0]);
-        scratch->vec.vy     = Wip_SysConfig.field_4->t[1] - coord->coord.t[1];
-        z                   = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
-        scratch->vec.vz     = z;
-        facing              = arg0->field_2C->field_8;
-        angle               = ratan2((s32)head[-1].vec.vx, (s32)z);
-        delta1              = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
-        wrapped             = delta1;
+        work->field_6   = 0;
+        work->field_8   = 0;
+        coord           = arg0->field_2C->field_8;
+        head[-1].vec.vx = (s16)(Wip_SysConfig.field_4->t[0] - coord->coord.t[0]);
+        scratch->vec.vy = Wip_SysConfig.field_4->t[1] - coord->coord.t[1];
+        z               = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+        scratch->vec.vz = z;
+        facing          = arg0->field_2C->field_8;
+        angle           = ratan2((s32)head[-1].vec.vx, (s32)z);
+        delta1          = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
+        wrapped         = delta1;
         if (delta1 < 0) {
         wrapNegative:
             if (wrapped < -0x800) {
@@ -1363,17 +1363,17 @@ void Actor00100_Fn0782C(Actor00100* arg0)
         work->objs[3].field_20.field_C            = 0x26C;
         return;
     }
-    work->state.field_8 += 1;
-    head2                = *(Actor00100MoveScratch**)G_SCRATCH_HEAD;
-    scratch              = (*(Actor00100MoveScratch**)G_SCRATCH_HEAD = head2 - 1);
-    head2[-1].vec.vx     = (s16)(((Actor00100MoveWork*)work)->pos[((Actor00100MoveWork*)work)->index][0] - arg0->field_2C->field_8->coord.t[0]);
-    scratch->vec.vy      = 0;
-    scratch->vec.vz      = ((Actor00100MoveWork*)work)->pos[((Actor00100MoveWork*)work)->index][1] - arg0->field_2C->field_8->coord.t[2];
-    coord2               = arg0->field_2C->field_8;
-    head2[-1].target.vx  = (s16)(Wip_SysConfig.field_4->t[0] - coord2->coord.t[0]);
-    target               = &head2[-1].target;
-    target->vy           = Wip_SysConfig.field_4->t[1] - coord2->coord.t[1];
-    target->vz           = Wip_SysConfig.field_4->t[2] - coord2->coord.t[2];
+    work->field_8      += 1;
+    head2               = *(Actor00100MoveScratch**)G_SCRATCH_HEAD;
+    scratch             = (*(Actor00100MoveScratch**)G_SCRATCH_HEAD = head2 - 1);
+    head2[-1].vec.vx    = (s16)(((Actor00100MoveWork*)work)->pos[((Actor00100MoveWork*)work)->index][0] - arg0->field_2C->field_8->coord.t[0]);
+    scratch->vec.vy     = 0;
+    scratch->vec.vz     = ((Actor00100MoveWork*)work)->pos[((Actor00100MoveWork*)work)->index][1] - arg0->field_2C->field_8->coord.t[2];
+    coord2              = arg0->field_2C->field_8;
+    head2[-1].target.vx = (s16)(Wip_SysConfig.field_4->t[0] - coord2->coord.t[0]);
+    target              = &head2[-1].target;
+    target->vy          = Wip_SysConfig.field_4->t[1] - coord2->coord.t[1];
+    target->vz          = Wip_SysConfig.field_4->t[2] - coord2->coord.t[2];
     if (!Actor00100_OutsideRadius(&scratch->vec, 0xA0) || work->field_6 >= 0x15) {
         facing2  = arg0->field_2C->field_8;
         angle2   = ratan2((s32)head2[-1].target.vx, (s32)target->vz);
@@ -1491,11 +1491,11 @@ void Actor00100_Fn0782C(Actor00100* arg0)
         }
     }
     arg0->field_2C->field_8->flg = 0;
-    if ((Actor00100_Fn00BF8(arg0) != 1) && (target2 = &scratch->target, coord3 = arg0->field_2C->field_8, scratch->target.vx = (s16)(Wip_SysConfig.field_4->t[0] - coord3->coord.t[0]), target2->vy = Wip_SysConfig.field_4->t[1] - coord3->coord.t[1], target2->vz = Wip_SysConfig.field_4->t[2] - coord3->coord.t[2], ((work->state.field_8 > work->field_C22) != 0))) {
+    if ((Actor00100_Fn00BF8(arg0) != 1) && (target2 = &scratch->target, coord3 = arg0->field_2C->field_8, scratch->target.vx = (s16)(Wip_SysConfig.field_4->t[0] - coord3->coord.t[0]), target2->vy = Wip_SysConfig.field_4->t[1] - coord3->coord.t[1], target2->vz = Wip_SysConfig.field_4->t[2] - coord3->coord.t[2], ((work->field_8 > work->field_C22) != 0))) {
         if (work->field_C26 <= 0) {
             if (((u16)ctx->field_8 >> 0xC) == (D_80070F70 % 15)) {
                 if (Actor00100_OutsideRadius(&scratch->target, radius)) {
-                    if (!Actor00100_OutsideRadius(&scratch->target, 0x1F40) && work->state.field_8 >= 0x1C3) {
+                    if (!Actor00100_OutsideRadius(&scratch->target, 0x1F40) && work->field_8 >= 0x1C3) {
                         facing5  = arg0->field_2C->field_8;
                         angle5   = ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz);
                         delta5   = angle5 - ratan2((s32)-facing5->coord.m[2][0], (s32)facing5->coord.m[2][2]);

@@ -5,6 +5,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include "gameplay/1BC.h"
 #include "gameplay/3FB8.h"
 #include "main/tmd.h"
 #include "main/task.h"
@@ -14,12 +15,19 @@
 /// leading 0x20 bytes are the `GpObj` list node unlinked by `Gp_UnlinkObj`;
 /// `flags` is that node's flag halfword.
 typedef struct Actor00100Obj {
-    /* 0x00 */ byte    pad_0[0x1C];
-    /* 0x1C */ u16     field_1C;
-    /* 0x1E */ u16     flags;
-    /* 0x20 */ GpRec18 field_20;
-    /* 0x38 */ GpRec18 field_38;
-    /* 0x50 */ byte    pad_50[0x48];
+    /* 0x00 */ byte           pad_0[8];
+    /* 0x08 */ GsCOORDINATE2* coord;
+    /* 0x0C */ GpRec18*       hits;
+    /* 0x10 */ s16            field_10;
+    /* 0x12 */ s16            field_12;
+    /* 0x14 */ s16            field_14;
+    /* 0x16 */ byte           pad_16[2];
+    /* 0x18 */ s32            field_18;
+    /* 0x1C */ u16            field_1C;
+    /* 0x1E */ u16            flags;
+    /* 0x20 */ GpRec18        field_20;
+    /* 0x38 */ GpRec18        field_38;
+    /* 0x50 */ byte           pad_50[0x48];
 } Actor00100Obj;
 STATIC_ASSERT_SIZEOF(Actor00100Obj, 0x98);
 
@@ -30,20 +38,35 @@ typedef struct Actor00100AnimCommand {
 } Actor00100AnimCommand;
 
 typedef struct Actor00100Work {
-    /* 0x000 */ s16 field_0;
-    /* 0x002 */ s16 field_2;
-    /* 0x004 */ s16 field_4;
-    /* 0x006 */ s16 field_6;
-    /* 0x008 */ union {
-        s16  field_8;
-        byte pad_8[0x52];
-    } state;
+    /* 0x000 */ s16  field_0;
+    /* 0x002 */ s16  field_2;
+    /* 0x004 */ s16  field_4;
+    /* 0x006 */ s16  field_6;
+    /* 0x008 */ s16  field_8;
+    /* 0x00A */ byte pad_A[2];
+    /// The coordinate the actor was placed at, and a second one a fixed step
+    /// ahead of it; `Actor00100_Fn02C54` latches both at spawn time.
+    /* 0x00C */ u16  field_C;
+    /* 0x00E */ u16  field_E;
+    /* 0x010 */ u16  field_10;
+    /* 0x012 */ u16  field_12;
+    /* 0x014 */ s16  field_14;
+    /* 0x016 */ byte pad_16[6];
+    /// First of the two animation contexts, with the 0x12 slots it drives.
+    /* 0x01C */ GpAnimCtx              anim0;
+    /* 0x030 */ GpAnimSlot             slot0;
+    /* 0x058 */ byte                   pad_58[2];
     /* 0x05A */ u16                    field_5A;
     /* 0x05C */ byte                   pad_5C[0xC];
     /* 0x068 */ u16                    field_68;
-    /* 0x06A */ byte                   pad_6A[0x402];
+    /* 0x06A */ byte                   pad_6A[0x296];
+    /* 0x300 */ byte                   data0[0x120];
+    /* 0x420 */ GpAnimCtx              anim1;
+    /* 0x434 */ GpAnimSlot             slot1;
+    /* 0x45C */ byte                   pad_45C[0x10];
     /* 0x46C */ u16                    field_46C;
-    /* 0x46E */ byte                   pad_46E[0x3BA];
+    /* 0x46E */ byte                   pad_46E[0x296];
+    /* 0x704 */ byte                   data1[0x124];
     /* 0x828 */ u16                    field_828;
     /* 0x82A */ u16                    field_82A;
     /* 0x82C */ s16                    field_82C;
@@ -61,7 +84,8 @@ typedef struct Actor00100Work {
     /* 0x844 */ u16                    field_844;
     /* 0x846 */ byte                   pad_846[6];
     /* 0x84C */ u32                    field_84C;
-    /* 0x850 */ byte                   pad_850[0x48];
+    /* 0x850 */ byte                   pad_850[0x40];
+    /* 0x890 */ GpEffArg               field_890;
     /* 0x898 */ SVECTOR                field_898;
     /* 0x8A0 */ byte                   pad_8A0[8];
     /* 0x8A8 */ SVECTOR                field_8A8;
@@ -75,7 +99,8 @@ typedef struct Actor00100Work {
     /* 0x8EA */ byte                   field_8EA;
     /* 0x8EB */ byte                   pad_8EB[0x1D];
     /* 0x908 */ Actor00100Obj          objs[4];
-    /* 0xB68 */ byte                   pad_B68[0x38];
+    /* 0xB68 */ byte                   pad_B68[0x18];
+    /* 0xB80 */ MATRIX                 field_B80;
     /* 0xBA0 */ MATRIX                 field_BA0;
     /* 0xBC0 */ byte                   pad_BC0[0x20];
     /* 0xBE0 */ s16                    field_BE0;
@@ -86,7 +111,7 @@ typedef struct Actor00100Work {
     /* 0xBFC */ s32                    field_BFC;
     /* 0xC00 */ s32                    field_C00;
     /* 0xC04 */ s32                    field_C04;
-    /* 0xC08 */ byte                   pad_C08[4];
+    /* 0xC08 */ s32                    field_C08;
     /// Last message opcode/operands, kept for the debug display: the three
     /// bytes of `Actor00100Msg` are latched here verbatim.
     /* 0xC0C */ u8   field_C0C;
@@ -322,16 +347,25 @@ STATIC_ASSERT_SIZEOF(Actor00100PoseTable, 0x20);
 
 /// Source of the four halfwords the 0x1602 handler latches into
 /// `Actor00100Work.field_C1E..field_C24`.
+typedef struct Actor00100PoseSrcRow {
+    /* 0x00 */ u16 vx;
+    /* 0x02 */ u16 vy;
+    /* 0x04 */ u16 vz;
+    /* 0x06 */ u16 yaw;
+} Actor00100PoseSrcRow;
+STATIC_ASSERT_SIZEOF(Actor00100PoseSrcRow, 0x8);
+
 typedef struct Actor00100PoseSrc {
-    /* 0x00 */ byte pad_0[0x18];
-    /* 0x18 */ u16  field_18;
-    /* 0x1A */ u16  field_1A;
-    /* 0x1C */ u16  field_1C;
-    /* 0x1E */ u16  field_1E;
+    /* 0x00 */ Actor00100PoseSrcRow rows[4];
 } Actor00100PoseSrc;
+STATIC_ASSERT_SIZEOF(Actor00100PoseSrc, 0x20);
 
 extern Actor00100PoseTable Actor00100_D00004;
 extern Actor00100PoseSrc   Actor00100_D0BDB4;
+
+extern s8         Actor00100_D1BA54;
+extern GpPairSrcE Actor00100_D0BDA4;
+extern char       Actor00100_D1B944;
 
 extern char  Actor00100_D10D60;
 extern char  Actor00100_D11234;
@@ -348,6 +382,7 @@ s32  Actor00100_Fn00A54(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2);
 s32  Actor00100_Fn00BF8(Actor00100* arg0);
 void Actor00100_Fn02788(Actor00100* arg0);
 void Actor00100_Fn0B658(Actor00100* arg0);
+void Actor00100_Fn0B3B4(Task* task);
 s32  Actor00100_Fn0B264(Task* task);
 s32  Actor00100_Fn0B1A4(Actor00100* arg0, s32 arg1, s32 arg2);
 
