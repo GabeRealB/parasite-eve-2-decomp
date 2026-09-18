@@ -208,6 +208,70 @@ Main-executable types live in module headers under `include/main/` (not a kitche
 
 Prefer including the specific module header when you only need that subsystem.
 
+## Documentation
+
+[`include/main/mem.h`](include/main/mem.h) is the worked example. Read it before
+documenting a new module. Its symbols have not been migrated yet, so the
+examples below are shown in the target naming rather than quoted verbatim.
+
+Doc comments use `///` and sit immediately above what they describe. That is
+already the house style — `///` outnumbers every alternative in the headers and
+`/** */` appears nowhere — so the convention is to keep it rather than introduce
+a second form. The `/* 0x18 */` comments inside a struct are offset annotations,
+not prose, and are unrelated.
+
+A comment opens with **one sentence** saying what the thing is. Anything further
+goes after a blank `///` line, so the summary can be read on its own:
+
+```c
+/// Allocates a block of memory.
+///
+/// Prior to allocating the data, it sets the active heap.
+/// See `memSetActiveHeap` for more details.
+///
+/// @param size Number of bytes to allocate.
+/// @return Allocated block or `NULL`.
+```
+
+Cross-references go in backticks so a reader can search for them, and so a
+rename can find them.
+
+### What a decompilation comment is for
+
+The reader's question is almost never "what does this do" — the body is right
+there. It is **"how do we know that"**. A comment earns its place by recording
+the evidence, and the evidence is what makes it safe to rely on later:
+
+```c
+/* 0x1A */ s16 hpMax;   // `gpStatRows[level]` + bonus + armour, capped at 250
+/* 0x23 */ u8  armor;   // item id - 0x5F; feeds `gpModStatAttrs` into hpMax
+```
+
+Both say where the value comes from, so the next reader can check the claim
+instead of trusting it.
+
+The same rule decides what *not* to write. A symbol whose role is unproven is
+left undocumented, or its comment states only what was observed and says the
+role is unproven. Do not promote a guess to a description; an unmarked comment
+is read as established fact. `mem.h` shows the honest form — a bare
+`extern int D_80068F98;` carrying no comment at all, and a `// TODO:` where the
+behaviour is suspected but unconfirmed.
+
+### Where a comment lives
+
+Documentation follows visibility. A public symbol is documented at its
+declaration in the module header, once; a private one at its definition in the
+`.c`. Neither is documented twice, so there is no second copy to fall out of
+date.
+
+`@param` and `@return` are for parameters whose meaning is not obvious from a
+proven name. They are not required, and on a signature still carrying `arg0`
+they add nothing — write the prose instead, or leave it until the roles are
+known.
+
+Coverage today is about 17% of declarations, so most modules are below this bar.
+Bring a module up to it when working in it rather than as a separate sweep.
+
 ## FS file-id encoding
 
 When loading via `Fs_LoadFile` / `CdCmd_Enqueue` (cmd `0x21`):
