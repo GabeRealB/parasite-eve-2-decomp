@@ -15,8 +15,6 @@ extern void func_mine_cavern_801804CC(GsCOORDINATE2* arg0, s16 arg1);
 /// `dryfield_motel_balcony_5.c` does.
 extern void Room_Draw09(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_8", func_mine_cavern_8017FF88);
-
 /// Frame callback for one of the cavern's expanding-ring effects. `Gp_State1C`'s
 /// `field_4` gates the whole room-effect family: 1-3 park the effect for the
 /// frame and 4 or more tear its work block down, so a task that sees them either
