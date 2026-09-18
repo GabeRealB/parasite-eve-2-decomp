@@ -2,6 +2,8 @@
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/display.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -9,9 +11,11 @@
 #include "main/tmd.h"
 
 #include <psyq/inline_c.h>
+#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
 #define gte_mvmva_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern GpMsgEntry D_dryfield_dilapidated_house_80183E8C[];
 extern TaskDesc   D_dryfield_dilapidated_house_80183EB4;
@@ -21,6 +25,7 @@ extern s16        D_dryfield_dilapidated_house_80189C98;
 extern s32        D_dryfield_dilapidated_house_80186804[16];
 extern SVECTOR    D_dryfield_dilapidated_house_80186844[2];
 extern DdhRoomRec D_dryfield_dilapidated_house_8018669C;
+extern SVECTOR    D_dryfield_dilapidated_house_801866B4[];
 extern TaskDesc   D_dryfield_dilapidated_house_80186854;
 extern void       Room_Script16(Task* task);
 
@@ -41,7 +46,78 @@ void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_3", func_dryfield_dilapidated_house_8017EB60);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_3", func_dryfield_dilapidated_house_8017EBB8);
+/// Projects the eight local-space markers at
+/// `D_dryfield_dilapidated_house_801866B4` through the parent task's
+/// `DdhCoordWork` matrix and `Gfx_ViewWorldMtx`, then queues two red
+/// `LINE_F2`s as an X at each screen point in `Gpu_CurrentOt[10]`.
+void func_dryfield_dilapidated_house_8017EBB8(Task* task)
+{
+    struct {
+        SVECTOR vec;
+        s32     sxy;
+        s32     dp;
+        s32     flag;
+        s32     otz;
+    } sc;
+    MATRIX*  mtx;
+    LINE_F2* line;
+    u16      sx;
+    s32      sy;
+    s16      x0;
+    s16      y0;
+    s16      x1;
+    s16      y1;
+    s32      i;
+
+    i   = 0;
+    mtx = &((DdhCoordWork*)((Task*)task->spawnArg2)->idMap)->mtx;
+    do {
+        sc.vec.vx = D_dryfield_dilapidated_house_801866B4[i].vx;
+        sc.vec.vy = D_dryfield_dilapidated_house_801866B4[i].vy;
+        sc.vec.vz = D_dryfield_dilapidated_house_801866B4[i].vz;
+        gte_SetRotMatrix(mtx);
+        gte_ldv0(&sc.vec);
+        gte_mvmva_real();
+        gte_stsv(&sc.vec);
+        sc.vec.vx = *(u16*)&sc.vec.vx + *(u16*)&mtx->t[0];
+        sc.vec.vy = *(u16*)&sc.vec.vy + *(u16*)&mtx->t[1];
+        sc.vec.vz = *(u16*)&sc.vec.vz + *(u16*)&mtx->t[2];
+        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+        gte_ldv0(&sc.vec);
+        gte_rtps_real();
+        gte_stsxy(&sc.sxy);
+        gte_stdp(&sc.dp);
+        gte_stflg(&sc.flag);
+        gte_stszotz(&sc.otz);
+        line           = (LINE_F2*)Gpu_PrimCursor;
+        sx             = sc.sxy;
+        sy             = sc.sxy >> 16;
+        Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+        x0             = sx - 5;
+        y0             = sy - 5;
+        x1             = sx + 5;
+        setLineF2(line);
+        setRGB0(line, 0xFF, 0, 0);
+        y1       = sy + 5;
+        line->x0 = x0;
+        line->y0 = y0;
+        line->x1 = x1;
+        line->y1 = y1;
+        addPrim(Gpu_CurrentOt + 10, line);
+
+        line           = (LINE_F2*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+        setLineF2(line);
+        setRGB0(line, 0xFF, 0, 0);
+        i++;
+        line->x0 = x1;
+        line->y0 = y0;
+        line->x1 = x0;
+        line->y1 = y1;
+        addPrim(Gpu_CurrentOt + 10, line);
+    } while (i < 8);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_3", func_dryfield_dilapidated_house_8017EE58);
 
