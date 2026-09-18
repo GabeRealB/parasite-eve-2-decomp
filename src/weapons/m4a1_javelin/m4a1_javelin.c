@@ -275,7 +275,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
 /// three fans of `POLY_G4` segments, all dropped if either endpoint fails its
 /// `RTPS` `FLAG` check (which also arms `D_m4a1_javelin_8012EB64` so the beam
 /// angle is recomputed on the next visible frame). `color` is an RGB444 word
-/// widened a nibble at a time, brightened by `Display_State.field_8`'s low bit
+/// widened a nibble at a time, brightened by `gDisplayState.animFrame`'s low bit
 /// so the beam flickers every other frame; the fans use two thirds of that.
 /// Bit 1 of `flags` forces the `ratan2` of the on-screen beam direction to be
 /// taken again, otherwise the cached `D_m4a1_javelin_8012EB60` is reused. The
@@ -325,7 +325,7 @@ void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
             line           = (LINE_F2*)Gpu_PrimCursor;
             Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
             setLineF2(line);
-            tint = ((u8)Display_State.field_8 & 1) * 0x10;
+            tint = ((u8)gDisplayState.animFrame & 1) * 0x10;
             r    = r + tint;
             g    = g + tint;
             b    = b + tint;
@@ -334,7 +334,7 @@ void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
             line->y0 = sc->sy0;
             line->x1 = sc->sx1;
             line->y1 = sc->sy1;
-            addPrim((u_long*)(((((u32)sc->otz0 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), line);
+            addPrim((u_long*)(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), line);
             Gp_AddTpageShift((P_TAG*)line, 1, sc->otz0);
             sc->r0 = 0x4000 / sc->otz0;
             sc->r1 = 0x4000 / sc->otz1;
@@ -364,7 +364,7 @@ void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
                     tipAng   = i + 0xC00;
                     prim->x3 = *(u16*)&line->x1 + ((sc->r1 * rsin(tipAng)) >> 12);
                     prim->y3 = *(u16*)&line->y1 + ((sc->r1 * rcos(tipAng)) >> 12);
-                    addPrim((u_long*)(((((u32)sc->otz1 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                    addPrim((u_long*)(((((u32)sc->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, sc->otz1);
                 }
@@ -390,7 +390,7 @@ void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
                     baseAng  = i + 0x400;
                     prim->x3 = *(u16*)&line->x0 + ((sc->r0 * rsin(baseAng)) >> 12);
                     prim->y3 = *(u16*)&line->y0 + ((sc->r0 * rcos(baseAng)) >> 12);
-                    addPrim((u_long*)(((((u32)sc->otz0 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                    addPrim((u_long*)(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, sc->otz0);
                 }
@@ -412,7 +412,7 @@ void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
                 prim->y2 = *(u16*)&line->y0;
                 prim->x3 = *(u16*)&line->x1;
                 prim->y3 = *(u16*)&line->y1;
-                addPrim((u_long*)(((((u32)sc->otz0 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                addPrim((u_long*)(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, sc->otz0);
             }
@@ -433,7 +433,7 @@ void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
 /// the reticle's roll, which is cached in `D_m4a1_javelin_8012EB62` and reused
 /// on the frames that do not. Bit 0 adds the near-end fan. `color` is a packed
 /// `0x0RGB` nibble triple; each nibble is widened to a byte, biased by the
-/// 8-unit dither of `Display_State.field_8` and halved. Each fan is four
+/// 8-unit dither of `gDisplayState.animFrame` and halved. Each fan is four
 /// quarter-turn wedges of radius `0x4000 / otz`, so the reticle keeps a
 /// constant on-screen size as the target moves away.
 void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
@@ -478,7 +478,7 @@ void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
     line           = (LINE_F2*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
     setLineF2(line);
-    dither = (Display_State.field_8 & 1) * 8;
+    dither = (gDisplayState.animFrame & 1) * 8;
     c      = color & 0xFFFF;
     r      = (((c >> 4) & 0xF0) + dither) >> 1;
     g      = ((c & 0xF0) + dither) >> 1;
@@ -488,7 +488,7 @@ void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
     line->y0 = sc->sy0;
     line->x1 = sc->sx1;
     line->y1 = sc->sy1;
-    addPrim((u_long*)(((((u32)((M4a1JavelinRingScratch*)head)[-1].otz0 << Display_State.field_128) >> 2) & 0xFFC) +
+    addPrim((u_long*)(((((u32)((M4a1JavelinRingScratch*)head)[-1].otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                       (s32)Gpu_CurrentOt),
             line);
     Gp_AddTpageShift((P_TAG*)line, 1, ((M4a1JavelinRingScratch*)head)[-1].otz0);
@@ -515,7 +515,7 @@ void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
             poly->y2 = line->y1;
             poly->x3 = *(u16*)&line->x1 + ((sc->r1 * rsin(i + 0xC00)) >> 12);
             poly->y3 = *(u16*)&line->y1 + ((sc->r1 * rcos(i + 0xC00)) >> 12);
-            addPrim((u_long*)(((((u32)sc->otz1 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), poly);
+            addPrim((u_long*)(((((u32)sc->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), poly);
             Gp_AddTpageShift((P_TAG*)poly, 1, sc->otz1);
         }
     } else {
@@ -539,7 +539,7 @@ void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
             poly->y2 = line->y0;
             poly->x3 = *(u16*)&line->x0 + ((sc->r0 * rsin(i + 0x400)) >> 12);
             poly->y3 = *(u16*)&line->y0 + ((sc->r0 * rcos(i + 0x400)) >> 12);
-            addPrim((u_long*)(((((u32)sc->otz0 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), poly);
+            addPrim((u_long*)(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), poly);
             Gp_AddTpageShift((P_TAG*)poly, 1, sc->otz0);
         }
     }
@@ -560,7 +560,7 @@ void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
         poly->y2 = line->y0;
         poly->x3 = line->x1;
         poly->y3 = line->y1;
-        addPrim((u_long*)(((((u32)sc->otz0 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), poly);
+        addPrim((u_long*)(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), poly);
         Gp_AddTpageShift((P_TAG*)poly, 1, sc->otz0);
     }
     goto done;
@@ -611,7 +611,7 @@ void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
             line->y0 = sc->sy0;
             line->x1 = sc->sx1;
             line->y1 = sc->sy1;
-            addPrim((u_long*)(((((u32)sc->otz0 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), line);
+            addPrim((u_long*)(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), line);
             Gp_AddTpageShift((P_TAG*)line, 1, sc->otz0);
         }
     }
@@ -677,7 +677,7 @@ void func_m4a1_javelin_8011F0AC(M4a1JavelinVecLo* arg0, s16 arg1, s16 arg2, s16 
         prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
         prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
         prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
-        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
     }
     *scratch = (u8*)*scratch + sizeof(M4a1JavelinQuadScratch);
 }

@@ -836,7 +836,7 @@ void func_800BDF6C(Task* task)
     }
     pad = (PadState*)Pad_States;
     if (pad->autoRepeat != 0) {
-        pad->autoRepeat += Display_State.field_10a * 2;
+        pad->autoRepeat += gDisplayState.frameTicks * 2;
     }
     status = obj->status;
     if (status == 1) {
@@ -1524,8 +1524,8 @@ void Gp_FadeTileTask(Task* arg0)
     if (arg0->state == 0) {
         if (arg0->spawnArg1 == 0) {
             GameMain_SetFrameTiming(1);
-            Display_State.field_103 = 0;
-            arg0->killCountdown     = 7;
+            gDisplayState.at100.flags.flipMode = 0;
+            arg0->killCountdown                = 7;
         } else if ((arg0->spawnArg1 == 2) || (arg0->spawnArg1 == 4)) {
             arg0->killCountdown = 8;
         } else {
@@ -1535,7 +1535,7 @@ void Gp_FadeTileTask(Task* arg0)
     }
 
     if (arg0->spawnArg1 == 4) {
-        if (Display_State.field_100 == 2) {
+        if (gDisplayState.at100.flags.imageSource == 2) {
             arg0->killCountdown--;
         } else {
             GameMain_SetFrameTiming(1);
@@ -1550,7 +1550,7 @@ void Gp_FadeTileTask(Task* arg0)
 
     yoff = 0;
     if (arg0->spawnArg1 == 2) {
-        yoff  = Display_State.vramYOffset;
+        yoff  = gDisplayState.vramYOffset;
         otIdx = 0;
     } else if (arg0->spawnArg1 == 5) {
         otIdx = 0x3B;
@@ -1593,9 +1593,9 @@ void Gp_FadeTileTask(Task* arg0)
     } else if (flag == 1) {
         if (arg0->killCountdown >= 8) {
             if (arg0->spawnArg1 == 5) {
-                Display_State.field_100 = 0;
+                gDisplayState.at100.flags.imageSource = 0;
             } else {
-                Display_State.field_103 = flag;
+                gDisplayState.at100.flags.flipMode = flag;
                 GameMain_SetFrameTiming(0);
             }
             Task_Kill(arg0);

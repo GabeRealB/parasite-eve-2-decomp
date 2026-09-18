@@ -442,12 +442,12 @@ void CdStream_ReadyMts(s32 interrupt, u8* result)
                             if ((s8)(u8)regionState->mtsPeriod == 5) {
                                 chunkSectors          = 0x18;
                                 regionState->ringHalf = 0x2770;
-                                if (Display_State.region == 1) {
+                                if (gDisplayState.region == 1) {
                                     chunkSectors = 0x14;
                                 }
                             } else {
                                 regionState->ringHalf = 0x4ED0;
-                                if (Display_State.region == 1) {
+                                if (gDisplayState.region == 1) {
                                     chunkSectors = 0x28;
                                 }
                             }

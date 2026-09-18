@@ -18,7 +18,7 @@
 /// signed half-extent; on-screen radii are `(s16)arg1 * 64 / otz` (outer) and
 /// `(s16)arg1 * 8 / otz` (inner). `arg2` packs the tint into four nibbles,
 /// `[shift][r][g][b]`: each colour nibble is scaled to 8 bits by `<< 4`, and
-/// bit 0 of `Display_State.field_8` is added to all three channels shifted
+/// bit 0 of `gDisplayState.animFrame` is added to all three channels shifted
 /// left by the top nibble, so the disc flickers on alternating frames. The
 /// outer ring draws at half brightness first and full brightness second; the
 /// inner cross uses the halved colour throughout. Shared body, linked into
@@ -65,8 +65,8 @@ void Room_Draw15(SVECTOR* arg0, s32 arg1, s32 arg2)
         otz           = block->otz + 1;
         rOuter        = (size * 64) / otz;
         block->otz    = otz;
-        ds            = &Display_State;
-        blend         = ds->field_8;
+        ds            = &gDisplayState;
+        blend         = ds->animFrame;
         block->rOuter = rOuter;
         rInner        = (size * 8) / block->otz;
         packed        = arg2 << 16;
@@ -98,7 +98,7 @@ void Room_Draw15(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
             prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -118,7 +118,7 @@ void Room_Draw15(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
             prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
@@ -143,7 +143,7 @@ void Room_Draw15(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->rInner * rsin(ang + 0x400)) >> 13);
             prim->y3 = block->sy + ((block->rInner * rcos(ang + 0x400)) >> 13);
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -163,7 +163,7 @@ void Room_Draw15(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->x3 = block->sx + ((block->rInner * rsin(ang + 0x800)) >> 12);
             prim->y3 = block->sy + ((block->rInner * rcos(ang + 0x800)) >> 12);
             ang     += 0x800;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);

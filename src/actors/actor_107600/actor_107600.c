@@ -1226,7 +1226,7 @@ void func_actor_107600_80134248(GsCOORDINATE2* coord, SVECTOR* pos)
 }
 
 /// Mode 1 collapses each column of `m` to one weighted value plus a
-/// `Display_State.field_14`-driven sine pulse; mode 2 clears the 3x3 part.
+/// `gDisplayState.loopCount`-driven sine pulse; mode 2 clears the 3x3 part.
 void func_actor_107600_801344E8(void* arg0, MATRIX* m, s32 mode)
 {
     s32 i;
@@ -1238,7 +1238,7 @@ void func_actor_107600_801344E8(void* arg0, MATRIX* m, s32 mode)
         case 1:
             for (i = 0; i < 3; i++) {
                 v          = (m->m[0][i] * 7 + m->m[1][i] * 6 + m->m[2][i] * 3) / 33;
-                v         += (s16)(rsin(Display_State.field_14 * 198) + 0x1000);
+                v         += (s16)(rsin(gDisplayState.loopCount * 198) + 0x1000);
                 m->m[0][i] = v;
                 m->m[1][i] = v;
                 m->m[2][i] = v;

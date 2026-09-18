@@ -468,7 +468,7 @@ void Mc_InitBufferSlots(void)
         block->field_0 = sum;
     } while ((u32)slot < (u32)end);
 
-    Display_State.field_10e = 1;
+    gDisplayState.roomVariant = 1;
     Mc_InitDualBankBuffers();
 
     Mc_SaveData.field_21  = 0;

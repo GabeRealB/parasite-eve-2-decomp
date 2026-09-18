@@ -84,7 +84,7 @@ void RoomsShared8017e4f8Fade(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
             prim->y2 = *(u16*)&block->sy;
             prim->x3 = *(u16*)&block->sx + ((block->rOuter * rsin(t2)) >> 12);
             prim->y3 = *(u16*)&block->sy + ((block->rOuter * rcos(t2)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -104,7 +104,7 @@ void RoomsShared8017e4f8Fade(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
             prim->x3 = *(u16*)&block->sx + ((block->rOuter * rsin(t2)) >> 13);
             prim->y3 = *(u16*)&block->sy + ((block->rOuter * rcos(t2)) >> 13);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
@@ -128,7 +128,7 @@ void RoomsShared8017e4f8Fade(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
             prim->y2 = *(u16*)&block->sy;
             prim->x3 = *(u16*)&block->sx + ((block->rInner * rsin(u)) >> 13);
             prim->y3 = *(u16*)&block->sy + ((block->rInner * rcos(u)) >> 13);
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
@@ -149,7 +149,7 @@ void RoomsShared8017e4f8Fade(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
             prim->x3 = *(u16*)&block->sx + ((block->rInner * rsin(u)) >> 12);
             prim->y3 = *(u16*)&block->sy + ((block->rInner * rcos(u)) >> 12);
             ang      = u;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);

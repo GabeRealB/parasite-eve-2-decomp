@@ -99,7 +99,7 @@ STATIC_ASSERT_SIZEOF(EnergyGroundScratch, 0x30);
 /// `Gfx_ViewWorldMtx`, then projected through `GsWSMATRIX`. One `RTPS` plus
 /// one `RTPT` project the four corners; a negative `gte_stflg` drops the
 /// quad. The texture is the two-frame tpage-0x28 strip at rows 0x38..0x57,
-/// the frame picked by the low bit of `Display_State.field_8`, tinted
+/// the frame picked by the low bit of `gDisplayState.animFrame`, tinted
 /// `(0x20, 0x30, 0x20)`.
 void func_energyball_801307D4(GsCOORDINATE2* arg0, s32 arg1);
 

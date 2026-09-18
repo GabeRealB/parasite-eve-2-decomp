@@ -13,7 +13,7 @@ static const char CafeteriaPlayerLabel[12] = "Player";
 
 void func_acropolis_cafeteria_8017D6AC(void)
 {
-    if (Display_State.field_112 != 0) {
+    if (gDisplayState.field_112 != 0) {
         func_80724608(Game_GetPtrSlot(3), -0x8C, -0x32, (void*)CafeteriaPlayerLabel);
         func_807245E4(Game_GetPtrSlot(3));
     }

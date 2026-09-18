@@ -60,7 +60,7 @@ setup_events:
         D58028_SpuTimerEnabled = false;
     }
 
-    if (Display_State.region == 1) {
+    if (gDisplayState.region == 1) {
         D_800680A4 = 0;
         D_8007E0CC = 0;
         SetRCnt(RCntCNT0, 0xffff, RCntMdINTR | RCntMdSC);
@@ -197,7 +197,7 @@ void Audio_IrqFrameWork(void)
         AudioTick_Process();
         Spu_FlushVoiceUpdates();
         D_800680BC += 1;
-        if (Display_State.region == 1) {
+        if (gDisplayState.region == 1) {
             D_8007E0CC = 6;
             ResetRCnt(RCntCNT0);
             D_800680A4 = 1;

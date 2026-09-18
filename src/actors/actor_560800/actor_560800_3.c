@@ -16,11 +16,11 @@ extern TaskDesc ActorsShared80136280Desc;
 void func_actor_560800_80136930(s32 arg0)
 {
     if (arg0 == 1) {
-        D_actor_560800_8017579C = Display_State.field_0;
+        D_actor_560800_8017579C = gDisplayState.frameCount;
     } else if (arg0 == 2) {
-        D_actor_560800_801757A0 = Display_State.field_0;
+        D_actor_560800_801757A0 = gDisplayState.frameCount;
     } else if (arg0 == 3) {
-        D_actor_560800_801757A4 = Display_State.field_0;
+        D_actor_560800_801757A4 = gDisplayState.frameCount;
     }
     CdCmd_EnqueueOverlay81();
 }

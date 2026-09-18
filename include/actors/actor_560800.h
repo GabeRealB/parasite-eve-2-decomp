@@ -297,14 +297,14 @@ extern u32 Gp_LcgState;
 
 /// Elapsed frames, one per phase id 1..3, written by
 /// `func_actor_560800_80135AEC` as the frames since that phase's timestamp.
-/// The counter has wrapped if the timestamp is ahead of `Display_State.field_0`,
+/// The counter has wrapped if the timestamp is ahead of `gDisplayState.frameCount`,
 /// which is the one case the elapsed count is short by one.
 extern s32 D_actor_560800_80175790;
 extern s32 D_actor_560800_80175794;
 extern s32 D_actor_560800_80175798;
 
 /// Phase timestamps, one per phase id 1..3: `func_actor_560800_80136930`
-/// stamps `Display_State.field_0` (the frame counter) into the slot its argument
+/// stamps `gDisplayState.frameCount` (the frame counter) into the slot its argument
 /// selects, and `func_actor_560800_80135AEC` reads it back per phase and stores
 /// the elapsed frames in the matching slot of `D_actor_560800_80175790`.
 extern s32 D_actor_560800_8017579C;

@@ -534,7 +534,7 @@ void func_pyrokinesis_8012FC34(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
             prim->y2 = *(u16*)&block->sxy2.vy;
             prim->x3 = *(u16*)&block->sxy3.vx;
             prim->y3 = *(u16*)&block->sxy3.vy;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
@@ -608,7 +608,7 @@ void func_pyrokinesis_80130130(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
             ang2     = ang + 0x200;
             prim->x3 = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
             prim->y3 = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
@@ -679,16 +679,16 @@ void func_pyrokinesis_801304C4(GsCOORDINATE2* arg0, s32 arg1)
         setRGB0(prim, 0x30, 0x20, 0x20);
         prim->tpage = 0x28;
         prim->clut  = 0x428C;
-        u           = ((Display_State.field_8 & 1) << 5) + 0xC0;
+        u           = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
         prim->v0    = 0x38;
         prim->u0    = u;
-        u           = ((Display_State.field_8 & 1) << 5) + 0xDF;
+        u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
         prim->v1    = 0x38;
         prim->u1    = u;
-        u           = ((Display_State.field_8 & 1) << 5) + 0xC0;
+        u           = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
         prim->v2    = 0x57;
         prim->u2    = u;
-        u           = ((Display_State.field_8 & 1) << 5) + 0xDF;
+        u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
         prim->v3    = 0x57;
         prim->u3    = u;
         prim->x0    = *(u16*)&block->sxy0.vx;
@@ -699,7 +699,7 @@ void func_pyrokinesis_801304C4(GsCOORDINATE2* arg0, s32 arg1)
         prim->y2    = *(u16*)&block->sxy2.vy;
         prim->x3    = *(u16*)&block->sxy3.vx;
         prim->y3    = *(u16*)&block->sxy3.vy;
-        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)Gpu_CurrentOt),
                 prim);
     }
@@ -772,7 +772,7 @@ void func_pyrokinesis_80130848(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3
         prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
         prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
         prim->y2    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
-        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
     }
     *scratch = (u8*)*scratch + 0x1C;

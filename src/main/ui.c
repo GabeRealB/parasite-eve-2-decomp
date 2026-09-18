@@ -107,7 +107,7 @@ body:
         goto store_colors;
     }
     if ((arg1 & 0xF) == 4) {
-        color = rsin(Display_State.field_8 << 6) + 0x1000;
+        color = rsin(gDisplayState.animFrame << 6) + 0x1000;
         val   = color >> 7;
 
         color = 0xB0;
@@ -497,7 +497,7 @@ void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
             sp10.y         = temp;
             sp10.w         = arg2->w;
             sp10.h         = arg2->h;
-            sp10.y         = temp + (Display_State.field_1f * 0x110);
+            sp10.y         = temp + (gDisplayState.drawBuffer * 0x110);
             SetDrawArea(p, &sp10);
             addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 3, p);
         }
@@ -511,7 +511,7 @@ void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
             p              = (DR_AREA*)Gpu_PrimCursor;
             Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
             sp18.x         = 0;
-            sp18.y         = Display_State.field_1f * 0x110;
+            sp18.y         = gDisplayState.drawBuffer * 0x110;
             SetDrawArea(p, &sp18);
             addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, p);
         }
@@ -576,7 +576,7 @@ void Ui_SetupClip(UiPanel* arg0)
     sp10.x         = 0;
     sp10.w         = 0;
     sp10.h         = 0;
-    sp10.y         = Display_State.field_1f * 0x110;
+    sp10.y         = gDisplayState.drawBuffer * 0x110;
     SetDrawArea(p, &sp10);
     addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 3, p);
 
@@ -585,7 +585,7 @@ void Ui_SetupClip(UiPanel* arg0)
     sp10.x         = 0;
     sp10.w         = 0x140;
     sp10.h         = 0xF0;
-    sp10.y         = Display_State.field_1f * 0x110;
+    sp10.y         = gDisplayState.drawBuffer * 0x110;
     SetDrawArea(p, &sp10);
     addPrim(Gpu_CurrentOt + (s16)arg0->field_14, p);
 }
@@ -819,7 +819,7 @@ void Ui_SetListClip(UiList* arg0, UiPanel* arg1, s32 arg2)
             p              = (DR_AREA*)Gpu_PrimCursor;
             Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
             sp10.x         = arg1->field_20 + (arg1->field_1C + 0xA0);
-            temp           = arg1->field_22 + (arg1->field_18 + 0x78) + (Display_State.field_1f * 0x110);
+            temp           = arg1->field_22 + (arg1->field_18 + 0x78) + (gDisplayState.drawBuffer * 0x110);
             sp10.y         = temp;
             sp10.y         = temp + arg0->field_17;
             sp10.w         = arg1->field_1E - arg1->field_1C;
@@ -836,7 +836,7 @@ void Ui_SetListClip(UiList* arg0, UiPanel* arg1, s32 arg2)
             sp10.w         = 0x140;
             sp10.x         = 0;
             sp10.h         = 0xF0;
-            sp10.y         = Display_State.field_1f * 0x110;
+            sp10.y         = gDisplayState.drawBuffer * 0x110;
             SetDrawArea(p, &sp10);
             addPrim(Gpu_CurrentOt + (i + (s16)arg1->field_14) + 1, p);
         }
@@ -853,7 +853,7 @@ void Ui_DrawCursor(UiPanel* arg0, s32 arg1, s32 arg2)
     s32       half;
     s32       t;
 
-    n = (u32)Display_State.field_c >> 3;
+    n = (u32)gDisplayState.vsyncCount >> 3;
     if (arg0->field_0 != 0) {
         p              = (SPRT_8*)Gpu_PrimCursor;
         Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
@@ -914,7 +914,7 @@ void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
         if (arg1->field_0 == 1) {
             s32 tmp;
 
-            tmp   = (((u32)Display_State.field_c >> 3) & 3) - 3;
+            tmp   = (((u32)gDisplayState.vsyncCount >> 3) & 3) - 3;
             tmp   = y - tmp;
             p->y0 = tmp;
         }
@@ -934,7 +934,7 @@ void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
             s32          c;
 
             c     = 0xFFFD;
-            tmp   = ((u32)Display_State.field_c >> 3) & 3;
+            tmp   = ((u32)gDisplayState.vsyncCount >> 3) & 3;
             tmp   = tmp + c;
             tmp   = y0 + tmp;
             p->y0 = tmp;
@@ -1341,7 +1341,7 @@ void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
         }
         arg0->field_1A = (s16)(arg1->field_18 + (s8)arg0->field_7);
         if (arg0->field_14 > 0) {
-            temp_a1 = (s16)((u16)arg0->field_14 - (Display_State.field_10a * 2));
+            temp_a1 = (s16)((u16)arg0->field_14 - (gDisplayState.frameTicks * 2));
             SOFT_TOUCH_REG(temp_a1);
             arg0->field_14 = temp_a1;
             if (temp_a1 <= 0) {
@@ -1390,7 +1390,7 @@ void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
         targetY   = var_s7 + baseY;
         targetX <<= 8;
         targetY <<= 8;
-        count     = Display_State.field_10a;
+        count     = gDisplayState.frameTicks;
         if (count != 0) {
             do {
                 var_a1     += 1;
@@ -1561,7 +1561,7 @@ void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
                 targetY   = var_s7 + baseY;
                 targetX <<= 8;
                 targetY <<= 8;
-                count     = Display_State.field_10a;
+                count     = gDisplayState.frameTicks;
                 if (count != 0) {
                     do {
                         var_a1_2   += 1;
@@ -2378,7 +2378,7 @@ void Ui_SmoothCursor(UiMiniObj* arg0, s32 arg1, s32 arg2)
     targetY   = arg2 + baseY;
     targetX <<= 8;
     targetY <<= 8;
-    count     = Display_State.field_10a;
+    count     = gDisplayState.frameTicks;
     if (count != 0) {
         do {
             i          += 1;
@@ -2641,7 +2641,7 @@ void Ui_DrawAndCallback(UiPanel* arg0, void* arg1)
     arg0->field_0 = temp_s2 << 0x10;
     Ui_LayoutAndClip(arg0);
     arg0->field_24(arg1);
-    arg0->field_16 -= Display_State.field_10a;
+    arg0->field_16 -= gDisplayState.frameTicks;
     if (arg0->field_16 <= 0) {
         arg0->field_16 = 0;
         if (arg0->field_8 == 1) {
@@ -2662,7 +2662,7 @@ void Ui_LayoutDrawAndCallback(UiPanel* arg0, void* arg1)
 void Ui_TickAnimCounter(UiPanel* arg0, void* arg1)
 {
     if (arg0->field_16 >= 0) {
-        arg0->field_16 += Display_State.field_10a;
+        arg0->field_16 += gDisplayState.frameTicks;
     }
     if ((u16)arg0->field_16 >= 9U) {
         arg0->field_16 = 9;
@@ -2680,7 +2680,7 @@ void Ui_AnimCloseStep(UiPanel* arg0, void* arg1)
 
     temp_s1 = arg0->field_0;
     if (arg0->field_16 >= 0) {
-        arg0->field_16 += Display_State.field_10a;
+        arg0->field_16 += gDisplayState.frameTicks;
     }
     if ((u16)arg0->field_16 >= 9U) {
         arg0->field_16 = -1;
@@ -2712,7 +2712,7 @@ void Ui_ClipAndCallback(UiPanel* arg0, void* arg1)
         arg0->field_0 = temp_s2;
     }
     if (arg0->field_16 > 0) {
-        temp_v0        = (u16)arg0->field_16 - Display_State.field_10a;
+        temp_v0        = (u16)arg0->field_16 - gDisplayState.frameTicks;
         arg0->field_16 = temp_v0;
         if (temp_v0 < 9) {
             arg0->field_16 = 9;
@@ -2811,7 +2811,7 @@ void Ui_WaitCdThenOverlay(Task* arg0)
         func_801D4B64(arg0);
         return;
     }
-    temp_s0->field_16 += Display_State.field_10a;
+    temp_s0->field_16 += gDisplayState.frameTicks;
 }
 
 void Ui_DrawDialogLine(DialogPrompt* arg0, UiObject* arg1)

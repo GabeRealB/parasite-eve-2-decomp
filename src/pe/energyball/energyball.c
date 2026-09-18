@@ -474,7 +474,7 @@ void func_energyball_8012FFD0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
             prim->x3 = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
             prim->y3 = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
             ang      = ang2;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
@@ -550,7 +550,7 @@ void func_energyball_8013035C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
         prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
         prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
         prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
-        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)Gpu_CurrentOt),
                 prim);
     }
@@ -563,7 +563,7 @@ void func_energyball_8013035C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// `Gfx_ViewWorldMtx`, then projected through `GsWSMATRIX`. One `RTPS` plus
 /// one `RTPT` project the four corners; a negative `gte_stflg` drops the
 /// quad. The texture is the two-frame tpage-0x28 strip at rows 0x38..0x57,
-/// the frame picked by the low bit of `Display_State.field_8`, tinted
+/// the frame picked by the low bit of `gDisplayState.animFrame`, tinted
 /// `(0x20, 0x30, 0x20)`.
 void func_energyball_801307D4(GsCOORDINATE2* arg0, s32 arg1)
 {
@@ -633,16 +633,16 @@ void func_energyball_801307D4(GsCOORDINATE2* arg0, s32 arg1)
         prim->tpage = 0x28;
         prim->b0    = rb;
         prim->clut  = 0x428C;
-        u           = ((Display_State.field_8 & 1) << 5) + 0xC0;
+        u           = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
         prim->v0    = 0x38;
         prim->u0    = u;
-        u           = ((Display_State.field_8 & 1) << 5) + 0xDF;
+        u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
         prim->v1    = 0x38;
         prim->u1    = u;
-        u           = ((Display_State.field_8 & 1) << 5) + 0xC0;
+        u           = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
         prim->v2    = 0x57;
         prim->u2    = u;
-        u           = ((Display_State.field_8 & 1) << 5) + 0xDF;
+        u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
         prim->v3    = 0x57;
         prim->u3    = u;
         prim->x0    = *(u16*)&sc->sxy0.vx;
@@ -653,7 +653,7 @@ void func_energyball_801307D4(GsCOORDINATE2* arg0, s32 arg1)
         prim->y2    = *(u16*)&sc->sxy2.vy;
         prim->x3    = *(u16*)&sc->sxy3.vx;
         prim->y3    = *(u16*)&sc->sxy3.vy;
-        addPrim((u_long*)(((((u32)otz << Display_State.field_128) >> 2) & 0xFFC) +
+        addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)Gpu_CurrentOt),
                 prim);
     }
@@ -714,7 +714,7 @@ void func_energyball_80130B54(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     for (i = 0; i < 16; i++) {
         gte_ldv0(&block->inner[i]);
         gte_rtps_real();
-        idx = (u32)(D_energyball_801311A0[i] + Display_State.field_8) % 6;
+        idx = (u32)(D_energyball_801311A0[i] + gDisplayState.animFrame) % 6;
         gte_stsxy(&block->sxy0);
         next = (i + 1) & 0xF;
         gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
@@ -741,7 +741,7 @@ void func_energyball_80130B54(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
             prim->y2 = *(u16*)&block->sxy2.vy;
             prim->x3 = *(u16*)&block->sxy3.vx;
             prim->y3 = *(u16*)&block->sxy3.vy;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
         }

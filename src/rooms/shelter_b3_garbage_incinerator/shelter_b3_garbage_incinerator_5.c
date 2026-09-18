@@ -38,7 +38,7 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
     mode                = gGameSession->field_132;
 
     if (mode != 0) {
-        if (mode < 2 && (Display_State.field_8 & 2) == 0) {
+        if (mode < 2 && (gDisplayState.animFrame & 2) == 0) {
             ctx->field_24 = 0x3C40;
         } else {
             ctx->field_24 = 0x304C;

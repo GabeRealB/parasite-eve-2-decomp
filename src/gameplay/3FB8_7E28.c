@@ -99,7 +99,7 @@ void Gp_DrawEffSprite81(Task* arg0)
         y           = *(u16*)&block->sy + *(u16*)&block->size;
         prim->y3    = y;
         prim->y2    = y;
-        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
@@ -179,7 +179,7 @@ void Gp_DrawEffSprite46(GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg3)
         prim->y2    = block->sxy2.vy;
         prim->x3    = block->sxy3.vx;
         prim->y3    = block->sxy3.vy;
-        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
@@ -252,7 +252,7 @@ void Gp_EffSprTask81(Task* arg0)
                     *(s32*)&m->m[2][0]   = 0;
                     m->m[2][2]           = one;
                 }
-                mem->field_22 += (u16)Display_State.field_8 & 1;
+                mem->field_22 += (u16)gDisplayState.animFrame & 1;
             }
             if (mem->field_22 < 0x10) {
                 Gp_DrawEffQuadT29(coord, mem->field_24, mem->field_22 >> 1, mem->field_2A);

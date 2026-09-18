@@ -63,7 +63,7 @@ void Room_Draw34(SVECTOR* arg0, s32 arg1, s32 arg2)
         r1        = extent / block->otz1;
         ang       = 0;
         base      = (s16)arg2;
-        rgb       = (((u8)Display_State.field_8 & 1) * 16) | 0x20;
+        rgb       = (((u8)gDisplayState.animFrame & 1) * 16) | 0x20;
         block->r0 = r0;
         block->r1 = r1;
         do {
@@ -89,7 +89,7 @@ void Room_Draw34(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->y2 = block->sy0;
             prim->x3 = block->sx0 + ((block->r0 * rsin(base + t2)) >> 12);
             prim->y3 = block->sy0 + ((block->r0 * rcos(base + t2)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz0 << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
@@ -109,7 +109,7 @@ void Room_Draw34(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->y2 = block->sy0;
             prim->x3 = block->sx1;
             prim->y3 = block->sy1;
-            addPrim((u_long*)(((((u32)block->otz0 << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
@@ -136,7 +136,7 @@ void Room_Draw34(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
             prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz1 << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);

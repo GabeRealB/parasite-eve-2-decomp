@@ -26,7 +26,7 @@
 /// selects the clut, `(arg2 & 0x3F) | 0x4380`. `arg3` is a signed half-extent,
 /// so the axis-aligned quad is `(s16)arg3 * 39 / otz` in every direction from
 /// the projected centre and shrinks with distance. The flat colour alternates
-/// between 0x20 and 0x30 on the parity of `Display_State.field_8`, which makes
+/// between 0x20 and 0x30 on the parity of `gDisplayState.animFrame`, which makes
 /// the sprite flicker. Shared body, linked into every room overlay that uses
 /// it.
 void Room_Draw35(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
@@ -69,8 +69,8 @@ void Room_Draw35(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
     gte_stsxy(&((RoomDraw35Scratch*)(head - 0x14))->sx);
     gte_stszotz(&block->otz);
     if (((RoomDraw35Scratch*)(head - 0x14))->otz >= 0x11) {
-        ds          = &Display_State;
-        flip        = (u8)ds->field_8;
+        ds          = &gDisplayState;
+        flip        = (u8)ds->animFrame;
         su          = (s16)arg2;
         sv          = (s16)arg3;
         prim->tpage = 0x2B;
@@ -104,7 +104,7 @@ void Room_Draw35(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
         xy               = *(u16*)&block->sy + *(u16*)&block->halfWidth;
         prim->y3         = xy;
         prim->y2         = xy;
-        addPrim((u_long*)(((((u32)block->otz << ds->field_128) >> 2) & 0xFFC) +
+        addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
                           (s32)Gpu_CurrentOt),
                 prim);
     }

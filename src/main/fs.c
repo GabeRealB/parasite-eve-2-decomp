@@ -77,10 +77,10 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                     goto setup_and_load;
                 }
                 if (req[0] == 0) {
-                    Display_State.field_12a = 1;
+                    gDisplayState.videoMode = 1;
                 }
                 if (req[0] == 1) {
-                    Display_State.field_12a = 0;
+                    gDisplayState.videoMode = 0;
                 }
                 sector = Fs_FileOffsetsCat0[req[0]] + Fs_StageCdfSectors[0];
                 goto setup_and_load;

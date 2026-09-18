@@ -123,8 +123,8 @@ void func_acropolis_forked_road_8017E410(Task* task)
         gte_stsxy(&block->sx);
         gte_stszotz(&block->otz);
         if (block->otz >= 0x11) {
-            ds   = &Display_State;
-            flip = (u8)ds->field_8;
+            ds   = &gDisplayState;
+            flip = (u8)ds->animFrame;
             SOFT_BARRIER();
             rgb         = (u8)work->color;
             prim->tpage = 0x2B;
@@ -156,7 +156,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
             xy               = block->sy + *(u16*)&block->halfWidth;
             prim->y3         = xy;
             prim->y2         = xy;
-            addPrim((u_long*)(((((u32)block->otz << ds->field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+            addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
     }

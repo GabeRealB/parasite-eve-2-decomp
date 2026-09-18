@@ -309,7 +309,7 @@ void func_metabolism_8012F5A0(Task* arg0)
 /// origin is projected once through `GsWSMATRIX`; the two outer corners sit
 /// `arg1` screen units away at `arg2 - 0x20` and `arg2 + 0x20`. Apex colour
 /// is a single channel: red is halved, green is `arg3`, blue is shifted by
-/// the low bit of `Display_State.field_8`. The rim fades to black. A
+/// the low bit of `gDisplayState.animFrame`. The rim fades to black. A
 /// negative `gte_stflg` drops the wedge.
 void func_metabolism_8012F840(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
@@ -346,7 +346,7 @@ void func_metabolism_8012F840(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
         prim           = (POLY_G3*)Gpu_PrimCursor;
         Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
         setPolyG3(prim);
-        setRGB0(prim, (s16)arg3 >> 1, color, (s16)arg3 >> (Display_State.field_8 & 1));
+        setRGB0(prim, (s16)arg3 >> 1, color, (s16)arg3 >> (gDisplayState.animFrame & 1));
         setRGB1(prim, 0, 0, 0);
         setRGB2(prim, 0, 0, 0);
         block->step = ((s16)arg1 * 128) / block->otz;
@@ -359,7 +359,7 @@ void func_metabolism_8012F840(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
         ang        += 0x20;
         prim->x2    = *(u16*)&block->sx + ((block->step * rsin(ang)) >> 12);
         prim->y2    = *(u16*)&block->sy + ((block->step * rcos(ang)) >> 12);
-        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)Gpu_CurrentOt),
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);

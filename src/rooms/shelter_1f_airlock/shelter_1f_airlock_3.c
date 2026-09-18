@@ -114,11 +114,11 @@ void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2)
             block->r0 = scaled / ((RoomDraw08Scratch*)(head - 0x1C))->otz0;
             block->r1 = scaled / block->otz1;
             ang       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
-            ds        = &Display_State;
+            ds        = &gDisplayState;
             SOFT_BARRIER();
             ang    = (s16)ang;
             packed = arg2 << 16;
-            blend  = (ds->field_8 & 1) << (packed >> 28);
+            blend  = (ds->animFrame & 1) << (packed >> 28);
             tr     = (packed >> 20) & 0xF0;
             tg     = (packed >> 16) & 0xF0;
             r      = blend + tr;
@@ -145,7 +145,7 @@ void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2)
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
                     prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
-                    addPrim((u_long*)(((((u32)block->otz0 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                    addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -169,7 +169,7 @@ void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2)
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx1;
                     prim->y3 = block->sy1;
-                    addPrim((u_long*)(((((u32)((block->otz1 + block->otz0) / 2) << Display_State.field_128) >> 2) & 0xFFC) +
+                    addPrim((u_long*)(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                                       (s32)Gpu_CurrentOt),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
@@ -192,7 +192,7 @@ void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2)
                     prim->y2 = block->sy1;
                     prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
                     prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    addPrim((u_long*)(((((u32)block->otz1 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                    addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
                     ang = t2;

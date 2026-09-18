@@ -853,19 +853,19 @@ void func_actor_400500_80134D6C(s32 otz)
     scratch      = (Actor400500DrawScratch*)allocated;
     scratch->otz = otz;
     if (extra != NULL) {
-        val = (extra->depth << Display_State.field_128) & 0x3FFF;
+        val = (extra->depth << gDisplayState.otDepthShift) & 0x3FFF;
         z   = otz;
         SOFT_TOUCH_REG(z);
         if ((val >> 4) < z) {
             scratch->clip   = extra->rect;
-            scratch->clip.y = (u16)scratch->clip.y + Display_State.field_1f * 0x110;
+            scratch->clip.y = (u16)scratch->clip.y + gDisplayState.drawBuffer * 0x110;
         } else {
             goto block_4;
         }
     } else {
     block_4:
         scratch->clip.x = 0;
-        scratch->clip.y = Display_State.field_1f * 0x110;
+        scratch->clip.y = gDisplayState.drawBuffer * 0x110;
         scratch->clip.w = 0x140;
         scratch->clip.h = 0xF0;
     }
@@ -882,7 +882,7 @@ void func_actor_400500_80134D6C(s32 otz)
     off             = (DR_OFFSET*)Gpu_PrimCursor;
     Gpu_PrimCursor  = (DR_TPAGE*)(off + 1);
     scratch->ofs[0] = 0xA0;
-    scratch->ofs[1] = Display_State.field_1f * 0x110 + 0x78;
+    scratch->ofs[1] = gDisplayState.drawBuffer * 0x110 + 0x78;
     SetDrawOffset(off, ofs);
     addPrim(&Gpu_CurrentOt[scratch->otz], off);
 
@@ -893,14 +893,14 @@ void func_actor_400500_80134D6C(s32 otz)
     sprt->w        = 0xA0;
     sprt->h        = 0xF0;
     sprt->u0       = 0;
-    sprt->v0       = Display_State.field_1f * 0x10;
+    sprt->v0       = gDisplayState.drawBuffer * 0x10;
     setlen(sprt, 4);
     setcode(sprt, 0x65);
     addPrim(&Gpu_CurrentOt[scratch->otz], sprt);
 
     tpage          = Gpu_PrimCursor;
     Gpu_PrimCursor = tpage + 1;
-    setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0, Display_State.field_1f << 8));
+    setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0, gDisplayState.drawBuffer << 8));
     addPrim(&Gpu_CurrentOt[scratch->otz], tpage);
 
     sprt           = (SPRT*)Gpu_PrimCursor;
@@ -910,14 +910,14 @@ void func_actor_400500_80134D6C(s32 otz)
     sprt->w        = 0xA0;
     sprt->h        = 0xF0;
     sprt->u0       = 0x20;
-    sprt->v0       = Display_State.field_1f * 0x10;
+    sprt->v0       = gDisplayState.drawBuffer * 0x10;
     setlen(sprt, 4);
     setcode(sprt, 0x65);
     addPrim(&Gpu_CurrentOt[scratch->otz], sprt);
 
     tpage          = Gpu_PrimCursor;
     Gpu_PrimCursor = tpage + 1;
-    setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0x80, Display_State.field_1f << 8));
+    setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0x80, gDisplayState.drawBuffer << 8));
     addPrim(&Gpu_CurrentOt[scratch->otz], tpage);
 
     tile           = (TILE*)Gpu_PrimCursor;

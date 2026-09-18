@@ -65,7 +65,7 @@ extern GpViewIndexTbl* Gp_ViewIndexTables[];
 /// 8-byte command record. `GpSprtRec.field_4` points at a 0xFFFF-terminated
 /// list of these. `Gp_ViewSprtCmdEmpty` returns whether `field_2` is zero; when it
 /// is, `Gp_LinkViewSprts` skips the first record, otherwise it clears
-/// `Display_State.field_100`. `field_0` is the start index into
+/// `gDisplayState.at100.flags.imageSource`. `field_0` is the start index into
 /// `GpSprtRec.field_0`; `field_2` is the count. `field_4` nonzero skips
 /// OT-linking each prim. `field_5` nonzero skips `Gp_LinkSprtCmd` and
 /// `Gp_SetSprtShadeBits`.
@@ -175,15 +175,6 @@ STATIC_ASSERT_SIZEOF(GpWarpRec, 0x38);
 /// `GameSession.at4.loc.area` / `GpAreaKey.area`.
 extern GpWarpRec** Gp_WarpTables[];
 
-/// Word view of Display_State's bytes 0x100..0x103, tested together when
-/// choosing the initial view. Keep the load as a struct member so it stays
-/// after the preceding warp-record copy in GCC 2.8.1's scheduler.
-typedef struct _GpDisplayFlagsWord {
-    /* 0x000 */ byte pad_0[0x100];
-    /* 0x100 */ u32  field_100;
-} GpDisplayFlagsWord;
-STATIC_ASSERT_SIZEOF(GpDisplayFlagsWord, 0x104);
-
 /// Sparse position view with the 0x80-byte stride used by func_800AA548.
 /// Index 1 is Player_Status.pos (X/Y/Z and yaw).
 typedef struct _GpSavedActorPos {
@@ -229,7 +220,7 @@ typedef struct _GpTpageSprt {
 } GpTpageSprt;
 STATIC_ASSERT_SIZEOF(GpTpageSprt, 0x1C);
 
-/// Dual-buffer primitive list heads, indexed by `Display_State.field_1f`.
+/// Dual-buffer primitive list heads, indexed by `gDisplayState.drawBuffer`.
 /// Allocated by `Gp_AllocSprtLists`; `Gp_SprtLists[1]` is the second half of
 /// the same block.
 extern GpSprtPrim* Gp_SprtLists[];
@@ -310,7 +301,7 @@ extern u16 D_80114C72 asm("D_80114C70+2");
 /// `Gp_LoadWaitSave` clears it when advancing to this task state.
 extern u16 D_80114C74;
 
-/// Dual-buffer fullscreen TILE overlay, indexed by `Display_State.field_114`.
+/// Dual-buffer fullscreen TILE overlay, indexed by `gDisplayState.otBuffer`.
 /// Paired with `Gp_FadeTpages`. Used by `Gp_FadeGrayHold` and the neighboring
 /// D4 fade-overlay task states.
 extern TILE Gp_FadeTiles[2];
@@ -381,7 +372,7 @@ void Gp_PumpTmdStream(Task* task);
 /// when the list is exhausted or missing, else 0 (still in flight).
 s32 Gp_PollAreaCdLoads(void);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
-/// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
+/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
 /// Sets `Pad_RemapState->field_3`. When the CD queue is idle and
 /// `func_80042500` returns 0: sets `CdCmd_Queue.field_22E`, starts the
 /// boot load if a command is queued, clears `Stream_Slots`, refreshes
@@ -390,13 +381,13 @@ s32 Gp_PollAreaCdLoads(void);
 /// `Gp_EnqueueAttach7Cd` and advances `task->state`.
 void Gp_LoadWaitBoot(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
-/// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
+/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
 /// When the CD queue is idle, enqueues a stage reload if
 /// `GameSession.at4.loc.stage` differs from the cached `loadedStage`, then
 /// advances `task->state`.
 void Gp_LoadWaitStage(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
-/// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
+/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
 /// When the CD queue is idle: `Gp_InitStageVisit` on the save location,
 /// `Mem_ConfigureAuxHeap(loc.stage, loc.area)`, `Mem_SetActiveAuxHeap(1)` when
 /// the save is in stage 5 / area 1, `Mem_InitAux`, `Gp_ApplyNpcRoomSnd`,
@@ -406,7 +397,7 @@ void Gp_LoadWaitStage(Task* task);
 /// then advances `task->state`.
 void Gp_LoadState2(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
-/// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
+/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
 /// When the CD queue is idle, enqueues CdCmd 0x21 with the current
 /// session location (`at4.loc.room` / `at4.loc.area` / `at4.loc.stage`), then
 /// `Gp_PickCompanion`. If that returns a companion type, stores it in
@@ -414,7 +405,7 @@ void Gp_LoadState2(Task* task);
 /// `Mc_SaveData.field_13` / `field_5C7`. Then advances `task->state`.
 void Gp_LoadWaitCompanion(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
-/// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
+/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
 /// When the CD queue is idle, if the session location high word is
 /// `0x3010000` and `loc.room >= 4`, re-inits stage sound and enqueues
 /// CdCmd 0x21 (`param1[0] = 0x16`). If `applySavePlace` is 1, applies
@@ -424,7 +415,7 @@ void Gp_LoadWaitCompanion(Task* task);
 /// VLC, clears `D_80114C74`, and advances `task->state`.
 void Gp_LoadWaitSave(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
-/// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
+/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
 /// Then walks `D_80114C74`: phase 0 resets `D_80114C70` and falls into
 /// phase 1 (`func_800AA120`); when that finishes, phase 2 runs
 /// `Gp_PollAreaCdLoads`. On success, resets TMD lists / the current OT,
@@ -432,7 +423,7 @@ void Gp_LoadWaitSave(Task* task);
 /// interlace on both `DISPENV` slots.
 void Gp_LoadWaitAreaCd(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (gray 0x64), indexed by
-/// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0,
+/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0,
 /// then after 7 frames clears `CdCmd_Queue.field_22E` and advances state.
 void Gp_FadeGrayHold(Task* task);
 void Gp_InitStageVisit(struct GpAreaKey* arg0);

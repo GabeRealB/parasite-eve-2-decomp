@@ -16,7 +16,7 @@
 /// the GTE flag is non-negative, queues two gouraud `POLY_G4` diamonds and two
 /// gouraud `LINE_G3` diagonals around the projected centre. `arg2` is a signed
 /// half-extent; the on-screen radius is `(s16)arg2 * 32 / otz`. `arg1` scales
-/// `Display_State.field_8` into `rsin` so the lit vertex pulses as
+/// `gDisplayState.animFrame` into `rsin` so the lit vertex pulses as
 /// `rsin(...) / 34 + 0x78` on green and blue. Shared body, linked into every
 /// room overlay that uses it.
 void Room_Draw18(SVECTOR* arg0, s32 arg1, s32 arg2)
@@ -54,7 +54,7 @@ void Room_Draw18(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        sine          = rsin(Display_State.field_8 * (s16)arg1);
+        sine          = rsin(gDisplayState.animFrame * (s16)arg1);
         radius        = ((s16)arg2 * 32) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
         i             = 0;
         pulse         = sine / 34 + 0x78;
@@ -78,7 +78,7 @@ void Room_Draw18(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->y0 = sy;
             twice    = i * 2;
             prim->y1 = (block->sy - (u16)block->radius) + (block->radius * twice);
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
             i++;
@@ -100,7 +100,7 @@ void Room_Draw18(SVECTOR* arg0, s32 arg1, s32 arg2)
             line->y1 = block->sy;
             line->x2 = block->sx - (block->radius * t1);
             line->y2 = block->sy + (block->radius * t2);
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     line);
             Gp_AddTpageShift((P_TAG*)line, 1, block->otz);
             i = t2;

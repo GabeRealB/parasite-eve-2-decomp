@@ -29,7 +29,7 @@ const TaskFuncTable6 Display_TaskStates = { {
 
 void Task_KillMaybeSpawn(Task* arg0)
 {
-    if (Display_State.field_112 != 0) {
+    if (gDisplayState.field_112 != 0) {
         Task_SpawnFromTable((TaskDesc*)&D_80725C54, 0, 0, 0);
     }
     Task_Kill(arg0);

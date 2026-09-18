@@ -270,7 +270,7 @@ void func_acropolis_security_room_801805A4(Task* task)
                 s32  limit;
 
                 // The cap flickers by one step every other frame.
-                limit          = 0x1000 - ((Display_State.field_8 & 1) << 9);
+                limit          = 0x1000 - ((gDisplayState.animFrame & 1) << 9);
                 work->field_24 = (work->field_20 & 1) ? ((work->field_24 < limit) ? work->field_24 + 0x200 : limit) : 0;
                 work->field_26 = (work->field_20 & 2) ? ((work->field_26 < limit) ? work->field_26 + 0x200 : limit) : 0;
                 work->field_28 = (work->field_20 & 4) ? ((work->field_28 < limit) ? work->field_28 + 0x200 : limit) : 0;
@@ -320,7 +320,7 @@ void func_acropolis_security_room_801805A4(Task* task)
 /// `workm`, projected through `GsWSMATRIX`, and linked into the current OT as
 /// one semi-transparent flat `LINE_F2`. The beam only exists in the two camera
 /// views selected by the `0xC` bitmask over `GameSession::at4.loc.view`, its far
-/// endpoint sweeps with the frame counter (`Display_State.field_8 * 6` folded
+/// endpoint sweeps with the frame counter (`gDisplayState.animFrame * 6` folded
 /// into a 406-step range), and nothing is queued when the near endpoint
 /// projects closer than an OTZ of 0x11.
 void func_acropolis_security_room_80180A78(Task* task)
@@ -337,7 +337,7 @@ void func_acropolis_security_room_80180A78(Task* task)
         head      = *scratch;
         blk       = (AsrBeamScratch*)(head - 0x14);
         blk->a.vx = -0x427;
-        blk->a.vy = ((u32)Display_State.field_8 * 6) % 406 + 0xF633;
+        blk->a.vy = ((u32)gDisplayState.animFrame * 6) % 406 + 0xF633;
         *scratch  = blk;
         blk->a.vz = 0x9AF;
         gte_SetRotMatrix(&coord->workm);
@@ -348,7 +348,7 @@ void func_acropolis_security_room_80180A78(Task* task)
         blk->a.vy = *(u16*)&blk->a.vy + *(u16*)&coord->workm.t[1];
         blk->a.vz = *(u16*)&blk->a.vz + *(u16*)&coord->workm.t[2];
         blk->b.vx = -0x1F0;
-        blk->b.vy = ((u32)Display_State.field_8 * 6) % 406 + 0xF633;
+        blk->b.vy = ((u32)gDisplayState.animFrame * 6) % 406 + 0xF633;
         blk->b.vz = 0x9AF;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->b);
@@ -372,7 +372,7 @@ void func_acropolis_security_room_80180A78(Task* task)
         gte_stszotz(&blk->otz);
         if (((AsrBeamScratch*)(head - 0x14))->otz > 0x10) {
             setRGB0(prim, 0x10, 0x10, 0x10);
-            addPrim((u_long*)(((((u32)((AsrBeamScratch*)(head - 0x14))->otz << Display_State.field_128) >> 2) &
+            addPrim((u_long*)(((((u32)((AsrBeamScratch*)(head - 0x14))->otz << gDisplayState.otDepthShift) >> 2) &
                                0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
@@ -432,7 +432,7 @@ void func_acropolis_security_room_80180E34(Task* arg0)
     y             = cy + 0x3F;
     prim->y3      = y;
     prim->y2      = y;
-    addPrim((u_long*)(((((u32)0x30 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+    addPrim((u_long*)(((((u32)0x30 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
@@ -508,7 +508,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
         prim->tpage = 0x2D;
         prim->clut  = 0x4390;
         prim->code |= 1;
-        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AsrQuadScratch);
 
@@ -659,11 +659,11 @@ void func_acropolis_security_room_801817A4(Task* taskArg)
             quad->y0  = y;
             quad->y1  = (scratch->y - *(u16*)&scratch->step) + (scratch->step * (i << 1));
             tagMask   = 0xFF000000;
-            quad->tag = (quad->tag & tagMask) | (*((u_long*)(((((u32)scratch->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt)) & addrMask);
+            quad->tag = (quad->tag & tagMask) | (*((u_long*)(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt)) & addrMask);
             TOUCH_REG(tagMask);
             __asm__("addiu %0,$0,1" : "=r"(tpageMode) : "r"(i));
-            *((u_long*)(((((u32)scratch->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt)) = (*((u_long*)(((((u32)scratch->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt)) & tagMask) | ((u32)quad & addrMask);
-            i                                                                                                 += tpageMode;
+            *((u_long*)(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt)) = (*((u_long*)(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt)) & tagMask) | ((u32)quad & addrMask);
+            i                                                                                                    += tpageMode;
             Gp_AddTpageShift((P_TAG*)quad, tpageMode, scratch->otz);
             USE_REG(scratch);
             USE_REG(scratch);
@@ -695,7 +695,7 @@ void func_acropolis_security_room_801817A4(Task* taskArg)
             line->y1  = scratch->y;
             line->x2  = scratch->x - (scratch->step * direction);
             line->y2  = scratch->y + (scratch->step * nextIndex);
-            addPrim((u_long*)(((((u32)scratch->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), line);
+            addPrim((u_long*)(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), line);
             Gp_AddTpageShift((P_TAG*)line, 1, scratch->otz);
             i = nextIndex;
             USE_REG(scratch);

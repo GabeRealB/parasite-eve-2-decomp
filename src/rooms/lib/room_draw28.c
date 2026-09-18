@@ -90,13 +90,13 @@ void Room_Draw28(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
         prim->x3      = xy;
         prim->x1      = xy;
         xy            = (*(u16*)&block->sy - *(u16*)&block->radius) - (block->radius >> 1);
-        ds            = &Display_State;
+        ds            = &gDisplayState;
         prim->y1      = xy;
         prim->y0      = xy;
         xy            = *(u16*)&block->sy + (block->radius >> 1);
         prim->y3      = xy;
         prim->y2      = xy;
-        addPrim((u_long*)(((((u32)block->otz << ds->field_128) >> 2) & 0xFFC) +
+        addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
                           (s32)Gpu_CurrentOt),
                 prim);
     }

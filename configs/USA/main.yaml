@@ -223,7 +223,7 @@ segments:
       - [0x16494, c, cdvol] # CdVol / CD mix / Cd_InitStateMachine
       - [0x16b14, o, libspu/s_sca] # SpuSetCommonAttr
       - [0x16e94, o, libspu/spu] # _spu_init, _spu_FiDMA, _spu_Fr_, _spu_t, _spu_Fw, _spu_Fr, _spu_FsetRXX, _spu_FsetRXXa, _spu_FgetRXXa, _spu_FsetPCR, _spu_Fw1ts
-      - [0x179d4, c, gamemain] # GameMain entry + Display_State setup
+      - [0x179d4, c, gamemain] # GameMain entry + gDisplayState setup
       - [0x18c14, o, libgs/gs_123] # Gssub_make_matrix
       - [0x18ce4, o, libgte/msc00] # InitGeom
       - [0x18d74, o, libgte/patchgte] # _patch_gte

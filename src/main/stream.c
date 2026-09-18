@@ -234,7 +234,7 @@ s32 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
             Mem_SetActiveAuxHeap(1);
         }
         Tmd_AllocMissingBuffers();
-        if (Display_State.field_12a == 1) {
+        if (gDisplayState.videoMode == 1) {
             CdCmd_BuildVlcIfStream();
             CdCmd_SelectMdecBuffer();
         }
@@ -318,7 +318,7 @@ u32 func_8001F180(u32 arg0)
         } else {
             Display_SetMode(0xD010);
         }
-        Display_State.field_106 = 1;
+        gDisplayState.mdecActive = 1;
         DecDCTvlcBuild(D_8006AC38);
         return 0U;
     }
@@ -347,7 +347,7 @@ s32 CdCmd_StopMdec(s32 arg0)
         p->field_1E2         = 0;
         p->field_1E4         = 0;
         if (ac14 != 0) {
-            f12a = Display_State.field_12a;
+            f12a = gDisplayState.videoMode;
             if (f12a == 1) {
                 if (arg0 & 0xFFFF) {
                     rect.y = 0;
@@ -364,8 +364,8 @@ s32 CdCmd_StopMdec(s32 arg0)
                 }
                 Display_SetMode(0xD010);
             }
-            p->field_1E6            = 0;
-            Display_State.field_106 = 0;
+            p->field_1E6             = 0;
+            gDisplayState.mdecActive = 0;
         } else if (D_8006AC3C != 0) {
             p->field_244 = 0;
         }
@@ -429,7 +429,7 @@ void func_8001F430(void)
         }
         imageY = D_8006AC10;
         rect.x = imageX;
-        if (Display_State.frameMode != 0) {
+        if (gDisplayState.frameBuffer != 0) {
             imageY += 0x110;
         }
         rect.y = imageY;
@@ -440,7 +440,7 @@ void func_8001F430(void)
         rect.h = D_8006AC6C;
         rect.w = width;
         LoadImage(&rect, D_8006AC48[D_8005EAEE ^ 1]);
-        Display_State.frameMode ^= 1;
+        gDisplayState.frameBuffer ^= 1;
     }
     stripWidth = 0x10;
     if (queue->field_22C != 0) {
@@ -501,7 +501,7 @@ void Mdec_UploadSlice(void)
             }
             y      = D_8006AC10;
             rect.x = x;
-            if (Display_State.frameMode != 0) {
+            if (gDisplayState.frameBuffer != 0) {
                 y += 0x110;
             }
             w      = 0x10;
@@ -722,7 +722,7 @@ s32 func_8001FAE0(u16 arg0, s32 arg1)
             stop->field_1E2      = 0;
             stop->field_1E4      = 0;
             if (videoMode != 0) {
-                displayMode = Display_State.field_12a;
+                displayMode = gDisplayState.videoMode;
                 if (displayMode == 1) {
                     rect.y = 0;
                     rect.x = 0;
@@ -737,8 +737,8 @@ s32 func_8001FAE0(u16 arg0, s32 arg1)
                     ClearImage(&rect, 0, 0, 0);
                     Display_SetMode(0xD010);
                 }
-                stop->field_1E6         = 0;
-                Display_State.field_106 = 0;
+                stop->field_1E6          = 0;
+                gDisplayState.mdecActive = 0;
             } else if (D_8006AC3C != 0) {
                 stop->field_244 = 0;
             }
@@ -754,7 +754,7 @@ s32 func_8001FAE0(u16 arg0, s32 arg1)
                     if (D_8006AC14 == 1) {
                         Display_SetMode(0xF010);
                     }
-                    Display_State.field_106 = 1;
+                    gDisplayState.mdecActive = 1;
                 }
                 state->field_242 = 1;
                 state->field_1E4 = 8;
@@ -813,7 +813,7 @@ static __inline__ void Stream_UploadFrameStrips(RECT* rect, u32 x, u32 y, u16 us
     }
     if (useDisplayBuffer & 0xFFFF) {
         bufferY = y & 0xFFFF;
-        if (Display_State.field_1f != 0) {
+        if (gDisplayState.drawBuffer != 0) {
             bufferY += 0x110;
         }
         rect->y = bufferY;
@@ -865,7 +865,7 @@ void func_80020058(void)
             if (D_8006AC18 == 1) {
                 yOffset = 0;
             } else {
-                yOffset = Display_State.field_1f != 0 ? 0x110 : 0;
+                yOffset = gDisplayState.drawBuffer != 0 ? 0x110 : 0;
             }
             MoveImage(&rect, (s32)D_8006AC0E, yOffset + D_8006AC10);
         }
@@ -886,7 +886,7 @@ void Mem_AllocAuxWithImages(s16 arg0)
     Gpu_ResetGraphAndOt();
     Mem_SetActiveAuxHeap(0);
     Mem_InitAux();
-    if (Display_State.field_12a == 0) {
+    if (gDisplayState.videoMode == 0) {
         D_8006AC40 = Mem_Malloc(0x4A800, 1);
     } else {
         D_8006AC40 = Mem_Malloc(0x45400, 1);

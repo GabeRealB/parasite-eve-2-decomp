@@ -1053,7 +1053,7 @@ void Text_UiTaskCallback(Task* arg0)
             Ui_TeardownTree(obj, obj->owner);
         }
     } else {
-        temp                = arg0->killCountdown - Display_State.field_10a;
+        temp                = arg0->killCountdown - gDisplayState.frameTicks;
         arg0->killCountdown = temp;
         if (temp <= 0) {
             Task_Spawn(0, 2, 0xC, 0);

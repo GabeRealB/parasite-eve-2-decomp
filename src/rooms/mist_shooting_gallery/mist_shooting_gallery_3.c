@@ -264,7 +264,7 @@ L_case5:
     if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
         return;
     }
-    Display_State.field_100 = 1;
+    gDisplayState.at100.flags.imageSource = 1;
     Mem_Set(Fs_ImgBuffers, 0, 0x25800);
     Task_Kill(task);
     Display_ResetHeapWrapper();

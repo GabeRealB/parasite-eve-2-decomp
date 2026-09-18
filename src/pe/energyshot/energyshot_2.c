@@ -78,7 +78,7 @@ void func_energyshot_8012FA50(GsCOORDINATE2* arg0, s16 arg1, u16 arg2, u8* arg3)
     for (i = 0; i < 16; i++) {
         gte_ldv0(&block->inner[i]);
         gte_rtps_real();
-        idx = (u32)(D_energyshot_80130108[i] + Display_State.field_8) % 6;
+        idx = (u32)(D_energyshot_80130108[i] + gDisplayState.animFrame) % 6;
         gte_stsxy(&block->sxy0);
         next = (i + 1) & 0xF;
         gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
@@ -105,7 +105,7 @@ void func_energyshot_8012FA50(GsCOORDINATE2* arg0, s16 arg1, u16 arg2, u8* arg3)
             prim->y2 = *(u16*)&block->sxy2.vy;
             prim->x3 = *(u16*)&block->sxy3.vx;
             prim->y3 = *(u16*)&block->sxy3.vy;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
         }

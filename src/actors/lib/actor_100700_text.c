@@ -1480,7 +1480,7 @@ void Actor00700_Fn0305C(Actor00700* arg0)
     prim->y2    = sc->v[2].vy;
     prim->x3    = sc->v[3].vx;
     prim->y3    = sc->v[3].vy;
-    addPrim((u_long*)(((((u32)sc->otz << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), prim);
+    addPrim((u_long*)(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), prim);
     SCRATCH_SP += 0x28;
 }
 

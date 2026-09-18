@@ -36,7 +36,7 @@ void Pad_PostEvent(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     u8        idx;
 
     p = (PadState*)&Pad_States[arg0];
-    if (Display_State.field_12c != 0) {
+    if (gDisplayState.demoScene != 0) {
         return;
     }
 

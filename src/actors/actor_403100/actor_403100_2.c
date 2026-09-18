@@ -2054,7 +2054,7 @@ void func_actor_403100_8013C008(s16 arg0, s16 arg1)
         poly->y2   = arg1 + (entry->y + entry->h);
         poly->x3   = arg0 + (entry->x + entry->w);
         poly->y3   = arg1 + (entry->y + entry->h);
-        addPrim((u32*)((((u32)(entry->depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), poly);
+        addPrim((u32*)((((u32)(entry->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), poly);
     }
 }
 void func_actor_403100_8013C214(Task* arg0)

@@ -522,7 +522,7 @@ void func_hypervelocity_8011DF34(GsCOORDINATE2* coord, s16 age, s16 spin, s32 si
             setUV4(prim, u0, 0x60, u0 + 0x27, 0x60, u0, 0x87, u0 + 0x27, 0x87);
             setXY4(prim, sc->sxy0.vx, sc->sxy0.vy, sc->sxy1.vx, sc->sxy1.vy, sc->sxy2.vx, sc->sxy2.vy, sc->sxy3.vx,
                    sc->sxy3.vy);
-            addPrim((u_long*)(((((u32)sc->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+            addPrim((u_long*)(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
         }
     }
     SCRATCH_SP += sizeof(HyperTrailScratch);
@@ -591,7 +591,7 @@ void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 an
         prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
         prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
         prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
-        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
     }
     *scratch = (u8*)*scratch + sizeof(HyperQuadScratch);
 }
@@ -604,11 +604,11 @@ void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 an
 /// one `RTPT` project the four corners, and the whole quad is dropped if the
 /// first corner fails its `FLAG` check. The texture is the two-frame 0x28-page
 /// strip at rows 0x38..0x57, the frame picked by the low bit of
-/// `Display_State.field_8` so it flickers every other field.
+/// `gDisplayState.animFrame` so it flickers every other field.
 ///
 /// `u` is latched before each pair of stores on purpose: writing the `POLY_FT4`
 /// byte straight from the expression lets GCC fold the store's truncation back
-/// into the `Display_State.field_8` load and the `+ 0xC0` / `+ 0xDF`, which the
+/// into the `gDisplayState.animFrame` load and the `+ 0xC0` / `+ 0xDF`, which the
 /// ROM does not do.
 void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin)
 {
@@ -667,16 +667,16 @@ void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin)
         prim->b0    = 0x30;
         prim->tpage = 0x28;
         prim->clut  = 0x428B;
-        u           = ((Display_State.field_8 & 1) << 5) + 0xC0;
+        u           = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
         prim->v0    = 0x38;
         prim->u0    = u;
-        u           = ((Display_State.field_8 & 1) << 5) + 0xDF;
+        u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
         prim->v1    = 0x38;
         prim->u1    = u;
-        u           = ((Display_State.field_8 & 1) << 5) + 0xC0;
+        u           = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
         prim->v2    = 0x57;
         prim->u2    = u;
-        u           = ((Display_State.field_8 & 1) << 5) + 0xDF;
+        u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
         prim->v3    = 0x57;
         prim->u3    = u;
         prim->x0    = sc->sxy0.vx;
@@ -687,7 +687,7 @@ void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin)
         prim->y2    = sc->sxy2.vy;
         prim->x3    = sc->sxy3.vx;
         prim->y3    = sc->sxy3.vy;
-        addPrim((u_long*)(((((u32)otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+        addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(HyperGroundScratch);
 }
@@ -791,7 +791,7 @@ void func_hypervelocity_8011EC1C(GsCOORDINATE2* coord, s16 age, s32 radius, u8* 
             prim->v3    = 0x87;
             setXY4(prim, sc->sxy0.vx, sc->sxy0.vy, sc->sxy1.vx, sc->sxy1.vy, sc->sxy2.vx, sc->sxy2.vy, sc->sxy3.vx,
                    sc->sxy3.vy);
-            addPrim((u_long*)(((((u32)sc->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+            addPrim((u_long*)(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
         }
         i++;
     } while (i < 2);

@@ -66,9 +66,9 @@ void Room_Draw08(SVECTOR* arg0, s32 arg1)
             block->r0 = scaled / ((RoomDraw08Scratch*)(head - 0x1C))->otz0;
             block->r1 = scaled / block->otz1;
             raw       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
-            ds        = &Display_State;
+            ds        = &gDisplayState;
             ang       = (s16)raw;
-            blend     = ((*(u8*)&ds->field_8 & 1) * 0x10) | 0x20;
+            blend     = ((*(u8*)&ds->animFrame & 1) * 0x10) | 0x20;
             SOFT_BARRIER();
             angEnd = ang + 0x800;
             if (ang < angEnd) {
@@ -92,7 +92,7 @@ void Room_Draw08(SVECTOR* arg0, s32 arg1)
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
                     prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
-                    addPrim((u_long*)(((((u32)block->otz0 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                    addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
@@ -112,7 +112,7 @@ void Room_Draw08(SVECTOR* arg0, s32 arg1)
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx1;
                     prim->y3 = block->sy1;
-                    addPrim((u_long*)(((((u32)((block->otz1 + block->otz0) / 2) << Display_State.field_128) >> 2) & 0xFFC) +
+                    addPrim((u_long*)(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                                       (s32)Gpu_CurrentOt),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
@@ -137,7 +137,7 @@ void Room_Draw08(SVECTOR* arg0, s32 arg1)
                     prim->y2 = block->sy1;
                     prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
                     prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
-                    addPrim((u_long*)(((((u32)block->otz1 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                    addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
                     ang = t2;

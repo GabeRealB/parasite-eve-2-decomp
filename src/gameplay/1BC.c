@@ -787,9 +787,9 @@ void Gp_StartStageLoad(Task* task)
     s32           fileId;
 
     if (Midi_IsBusy(0) == 0) {
-        Display_State.field_12f = 1;
-        i                       = 0;
-        table                   = D_8006C338;
+        gDisplayState.loadBusy = 1;
+        i                      = 0;
+        table                  = D_8006C338;
         do {
             table[(u8)i].field_0 = 0;
             i++;
@@ -808,7 +808,7 @@ void Gp_StartStageLoad(Task* task)
             fileId = 9;
         }
         CdCmd_EnqueueLoadFile(fileId, 0, 3);
-        Display_State.field_104 = 0;
+        gDisplayState.skipDraw = 0;
         task->state++;
     }
 }
@@ -816,7 +816,7 @@ void Gp_StartStageLoad(Task* task)
 void Gp_FinishStageLoad(Task* task)
 {
     if (CdCmd_IsIdle() & 0xFFFF) {
-        Display_State.field_100 = 1;
+        gDisplayState.at100.flags.imageSource = 1;
         if (gGameSession->restartMode == 0xFF) {
             Task_SpawnFromTable(D_8011922C, 0, 0, 0);
             Task_Kill(task);
@@ -834,10 +834,10 @@ void Gp_StageLoadState2(Task* task)
     DisplayState* ds;
 
     if (Task_PollKill(task->spawnArg2, &out) != 0) {
-        ds                  = &Display_State;
+        ds                  = &gDisplayState;
         task->killCountdown = 0;
-        ds->field_11e       = 1;
-        ds->field_12f       = 0;
+        ds->gameMode        = 1;
+        ds->loadBusy        = 0;
         Task_Kill(task);
     }
 }
@@ -1465,7 +1465,7 @@ void func_800B1EFC(Task* arg0)
     setcode(p, 0x62);
     p->x0          = -0xA0;
     p->y0          = y;
-    yoff           = Display_State.vramYOffset;
+    yoff           = gDisplayState.vramYOffset;
     p->b0          = color;
     p->g0          = color;
     p->r0          = color;
@@ -1565,7 +1565,7 @@ void Gp_FadeWorkTask(Task* arg0)
     setlen(tile, 3);
     setcode(tile, 0x62);
     tile->x0 = -0xA0;
-    yoff     = Display_State.vramYOffset;
+    yoff     = gDisplayState.vramYOffset;
     tile->w  = 0x140;
     tile->h  = 0xF0;
     color    = color >> 4;
@@ -2972,7 +2972,7 @@ void func_800B51F4(Task* task)
     POLY_FT4* p0;
     POLY_FT4* p1;
 
-    mode  = Display_State.field_1f;
+    mode  = gDisplayState.drawBuffer;
     count = 1;
     x     = 0;
     y     = 0;
@@ -3737,12 +3737,12 @@ void func_800B65B0(Task* task)
                 } else if ((s16)angle < -0x800) {
                     p->yaw = angle + 0x1000;
                 }
-                Display_State.field_11e = 0xFF;
-                cfg                     = &Player_Status;
-                save                    = &Mc_SaveData;
-                save->field_14          = cfg->exp;
-                save->field_18          = cfg->bp;
-                save->field_12          = Gp_PubItemLoc;
+                gDisplayState.gameMode = 0xFF;
+                cfg                    = &Player_Status;
+                save                   = &Mc_SaveData;
+                save->field_14         = cfg->exp;
+                save->field_18         = cfg->bp;
+                save->field_12         = Gp_PubItemLoc;
                 Stage_InitPrimBufOnce();
                 desc = &D_8010D348;
                 break;
@@ -3807,8 +3807,8 @@ void func_800B65B0(Task* task)
     } else if (task->state == 0x11) {
         if (--task->killCountdown <= 0) {
             GameMain_SetFrameTiming(1);
-            work->field_2           = 1;
-            Display_State.field_11e = 0;
+            work->field_2          = 1;
+            gDisplayState.gameMode = 0;
             Stage_ReleasePrimBuf();
             Task_Kill(task);
         }

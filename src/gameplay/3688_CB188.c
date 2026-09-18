@@ -2643,7 +2643,7 @@ void Gp_MapTaskState2(Task* arg0)
     func_800D0614(arg0);
     Gp_DrawMapMarks(arg0);
     func_800D15D0(arg0);
-    if ((s8)Display_State.field_122 != 0) {
+    if ((s8)gDisplayState.keepGraphics != 0) {
         Display_SetDrawMode(1);
     } else {
         Display_SetDrawMode(0);
@@ -2779,7 +2779,7 @@ void Gp_DrawMapCursor(Task* arg0)
 
     p              = (SPRT_16*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
-    ang            = (rsin(Display_State.field_14 << 6) + 0x1000) >> 5;
+    ang            = (rsin(gDisplayState.loopCount << 6) + 0x1000) >> 5;
     if (ang == 0x100) {
         ang = 0xFF;
     }
@@ -3108,7 +3108,7 @@ s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
     ret     = 0;
     obj     = arg0->spawnArg2;
     icons   = D_8010F0CC[gGameSession->at4.loc.stage - 1];
-    lum     = (rsin(Display_State.field_14 << 6) + 0x1000) >> 5;
+    lum     = (rsin(gDisplayState.loopCount << 6) + 0x1000) >> 5;
 
     for (;;) {
         if (icons[(u8)i].field_0 == 0) {
@@ -3319,7 +3319,7 @@ void func_800D15D0(Task* arg0)
         if (ret == 1) {
             p              = (SPRT*)Gpu_PrimCursor;
             Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
-            lum            = (rsin(Display_State.field_14 << 5) + 0x1000) >> 5;
+            lum            = (rsin(gDisplayState.loopCount << 5) + 0x1000) >> 5;
             if (lum == 0x100) {
                 lum = 0xFF;
             }
@@ -3355,7 +3355,7 @@ void func_800D15D0(Task* arg0)
         if (ret == 1) {
             p              = (SPRT*)Gpu_PrimCursor;
             Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
-            lum            = (rsin(Display_State.field_14 << 5) + 0x1000) >> 5;
+            lum            = (rsin(gDisplayState.loopCount << 5) + 0x1000) >> 5;
             if (lum == 0x100) {
                 lum = 0xFF;
             }
@@ -3473,7 +3473,7 @@ void Gp_MapPanelInit(Task* arg0)
     GpMapRec*    recs;
     u8           val;
 
-    if ((s8)Display_State.field_122 == 0) {
+    if ((s8)gDisplayState.keepGraphics == 0) {
         rect.x = 0x380;
         rect.w = 0x80;
         rect.y = 0;
@@ -3522,7 +3522,7 @@ void Gp_MapDrawTask(Task* arg0)
 
     arg0->killCountdown--;
     if (arg0->killCountdown == 0) {
-        if ((s8)Display_State.field_122 == 0) {
+        if ((s8)gDisplayState.keepGraphics == 0) {
             rect.x = 0x380;
             rect.w = 0x80;
             rect.y = 0;
@@ -3577,7 +3577,7 @@ void func_800D2020(u8 arg0)
 {
     RECT rect;
 
-    if ((s8)Display_State.field_122 != 0) {
+    if ((s8)gDisplayState.keepGraphics != 0) {
         return;
     }
 

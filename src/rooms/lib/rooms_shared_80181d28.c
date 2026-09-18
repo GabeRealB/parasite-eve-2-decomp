@@ -28,7 +28,7 @@
 /// cell at `u = (arg + 1) * 0x28`, `v = 0x10` on tpage 0x2B, the clut
 /// `0x4380 | ((arg + 2) & 0x3F)`, and the pair of grey levels the sprite
 /// flickers between - a base of 0x20 / 0x60 / 0x20 plus 0x08 / 0x10 / 0x0C on
-/// the frames where `Display_State.field_8` is odd.
+/// the frames where `gDisplayState.animFrame` is odd.
 ///
 /// The task is one-shot: the work block is released
 /// as soon as the quad has been queued, so the room respawns it every frame.
@@ -73,7 +73,7 @@ void RoomsShared80181d28(Task* task)
         u8 base[3] = { 0x20, 0x60, 0x20 };
         u8 step[3] = { 0x08, 0x10, 0x0C };
 
-        grey        = base[task->spawnArg1] + (Display_State.field_8 & 1) * step[task->spawnArg1];
+        grey        = base[task->spawnArg1] + (gDisplayState.animFrame & 1) * step[task->spawnArg1];
         prim->code |= 2;
         prim->tpage = 0x2B;
         prim->r0    = grey;
@@ -97,7 +97,7 @@ void RoomsShared80181d28(Task* task)
         prim->x1 = prim->x3 = blk->sxy.vx + blk->half;
         prim->y0 = prim->y1 = blk->sxy.vy - blk->half;
         prim->y2 = prim->y3 = blk->sxy.vy + blk->half;
-        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;

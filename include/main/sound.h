@@ -278,7 +278,7 @@ STATIC_ASSERT_SIZEOF(SndLoadState, 0x30);
 /// current track cursor advanced by the MIDI event driver (Midi_DriveTrack).
 /// field_30 is a saved event cursor for looped CC 0x63. field_34 is the
 /// remaining delta-time for the next event; field_38 is a fractional tick
-/// accumulator (mod 6000/3600 per Display_State.region).
+/// accumulator (mod 6000/3600 per gDisplayState.region).
 typedef struct _MidiTrack {
     /* 0x00 */ u8  field_0;
     /* 0x01 */ u8  field_1;

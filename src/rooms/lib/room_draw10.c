@@ -76,7 +76,7 @@ void Room_Draw10(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
             prim->x3 = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
             prim->y3 = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
             ang      = ang2;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);

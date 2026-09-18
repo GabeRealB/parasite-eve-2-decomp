@@ -462,7 +462,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
                    D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_0;
         prim->v3 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].col +
                    D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_2;
-        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
@@ -644,7 +644,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
         prim->u2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].row;
         prim->v2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].col +
                    ((D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_2 * mem->field_26) >> 12);
-        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
     }
     coord->coord.t[0]      += mem->field_10;
@@ -746,7 +746,7 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
         gte_stsxy(&blk->sx);
         gte_stszotz(&blk->otz);
         if (blk->otz >= 0x11) {
-            lvl         = (u8)mem->field_28 + (Display_State.field_8 & 1) * mem->field_2A;
+            lvl         = (u8)mem->field_28 + (gDisplayState.animFrame & 1) * mem->field_2A;
             prim->tpage = 0x2B;
             prim->code |= 2;
             setRGB0(prim, lvl, lvl, lvl);
@@ -772,7 +772,7 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
             y          = blk->sy + (u16)blk->half;
             prim->y3   = y;
             prim->y2   = y;
-            addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;

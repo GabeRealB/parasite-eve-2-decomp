@@ -51,8 +51,8 @@ s32 Fade_StepIn(s32 arg0)
         ClearImage(&rect, 0, 0, 0);
         rect.y = 0x110;
         ClearImage(&rect, 0, 0, 0);
-        Display_State.field_100 = 0;
-        ret                     = 1;
+        gDisplayState.at100.flags.imageSource = 0;
+        ret                                   = 1;
     }
     return ret;
 }
@@ -94,10 +94,10 @@ s32 Fade_StepOut(s32 arg0)
     u8        color;
     s16       val;
 
-    Display_State.field_100 = 1;
-    color                   = *(volatile u8*)&D_8006ACB4;
-    p                       = (TILE*)Gpu_SysPrimCursor;
-    Gpu_SysPrimCursor       = (u8*)(p + 1);
+    gDisplayState.at100.flags.imageSource = 1;
+    color                                 = *(volatile u8*)&D_8006ACB4;
+    p                                     = (TILE*)Gpu_SysPrimCursor;
+    Gpu_SysPrimCursor                     = (u8*)(p + 1);
     setlen(p, 3);
     setcode(p, 0x62);
     p->r0 = color;
@@ -528,7 +528,7 @@ void Fs_SetupBootLoad(void)
     ClearImage(r, 0, 0, 0);
     r->y = 0x110;
     ClearImage(r, 0, 0, 0);
-    Display_State.field_100 = 0;
+    gDisplayState.at100.flags.imageSource = 0;
     SetDispMask(0);
     sp10[3]             = 0;
     sp10[2]             = 0;

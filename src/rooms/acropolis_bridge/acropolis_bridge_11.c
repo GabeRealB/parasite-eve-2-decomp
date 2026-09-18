@@ -275,7 +275,7 @@ void func_acropolis_bridge_80182F8C(GsCOORDINATE2* coord, u16 frame, s16 size, s
         prim->y1  = block->sy - *(u16*)&block->dy;
         prim->y2  = block->sy + *(u16*)&block->dy;
 
-        addPrim((u_long*)(((((u32)((AcropolisBridgeSpriteScratch*)(head - 0x1C))->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)((AcropolisBridgeSpriteScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
     }
     *scratch = (u8*)*scratch + sizeof(AcropolisBridgeSpriteScratch);
@@ -347,7 +347,7 @@ void func_acropolis_bridge_801833A0(GsCOORDINATE2* coord, u16 frame, s16 size)
         prim->y0 = prim->y1 = block->sy - *(u16*)&block->d - (block->d >> 1);
         prim->y2 = prim->y3 = block->sy + (block->d >> 1);
 
-        addPrim((u_long*)(((((u32)((AcropolisBridgeDebrisScratch*)(head - 0x18))->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)((AcropolisBridgeDebrisScratch*)(head - 0x18))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
     }
     *scratch = (u8*)*scratch + sizeof(AcropolisBridgeDebrisScratch);

@@ -39,17 +39,17 @@ void func_acropolis_west_elevator_hall_8017FE18(Task* task)
     s32          frame;
 
     mem  = task->spawnArg2;
-    base = Display_State.field_1f * 0x110 + 0x50;
+    base = gDisplayState.drawBuffer * 0x110 + 0x50;
 
     otOfs = 0x72;
     for (i = 0; i < 0x52; i++) {
         phase = i * 2;
-        frame = Display_State.field_8;
+        frame = gDisplayState.animFrame;
         USE_REG2(frame, phase);
         y = i + base;
         SOFT_TOUCH_REG(y);
         t = 0x800 - rcos((frame + phase) * 16);
-        if (Display_State.field_8 & 0x80) {
+        if (gDisplayState.animFrame & 0x80) {
             rng = Gp_LcgState * 5 + 0x71357911;
             {
                 s32 quotient = t / (s32)((((u32)rng >> 16) & 0x3F) + 0xC0);
@@ -144,7 +144,7 @@ void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
         prim->x1 = prim->x3 = block->sx + *(u16*)&block->radius;
         prim->y0 = prim->y1 = block->sy - *(u16*)&block->radius;
         prim->y2 = prim->y3 = block->sy + *(u16*)&block->radius;
-        addPrim((u_long*)(((((u32)((AwehSpriteScratch*)(head - 0x14))->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)((AwehSpriteScratch*)(head - 0x14))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;

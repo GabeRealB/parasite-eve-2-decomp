@@ -202,7 +202,7 @@ void func_acropolis_bridge_8017F868(Task* task)
     }
 
     D_acropolis_bridge_801917AC =
-        (DR_MOVE*)((u8*)D_8005C374 + (Display_State.field_114 * 0x7000 + 0xA000));
+        (DR_MOVE*)((u8*)D_8005C374 + (gDisplayState.otBuffer * 0x7000 + 0xA000));
 
     switch (D_acropolis_bridge_801899FC[view - 1]) {
         case 0:
@@ -308,7 +308,7 @@ void func_acropolis_bridge_8017F868(Task* task)
 /// starting row - it runs from `0x40 - (vy - 0x60) / 3` to `0xD0 + spread`,
 /// where `spread` is half the drop from 0x60 capped at 0x20 - so streaks that
 /// begin higher up stay nearer the middle of the screen.
-/// `Display_State.field_1f` picks the buffer half, and the OT slot is the row
+/// `gDisplayState.drawBuffer` picks the buffer half, and the OT slot is the row
 /// scaled into the 0x800-deep range so a streak sorts against the room behind
 /// it. The task releases itself once the camera turns away, the lifetime runs
 /// out, or the streak falls off the bottom of the screen.
@@ -326,7 +326,7 @@ void func_acropolis_bridge_80180320(Task* task)
     s32          depth;
 
     work    = task->spawnArg2;
-    bufferY = Display_State.field_1f * 0x110;
+    bufferY = gDisplayState.drawBuffer * 0x110;
     if ((u8)Gp_GetViewIndex() == task->spawnArg1) {
         if ((s16)work->field_22 == 0) {
             Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
@@ -379,7 +379,7 @@ void func_acropolis_bridge_80180320(Task* task)
 /// widens with the starting row - it runs from `0x58 - drift` to
 /// `0xA0 + spread`, where `drift` is the whole drop from 0x48 capped at 0x58
 /// and `spread` five thirds of it capped at 0x50 - so streaks that begin higher
-/// up stay nearer the middle of the screen. `Display_State.field_1f` picks the
+/// up stay nearer the middle of the screen. `gDisplayState.drawBuffer` picks the
 /// buffer half, and the OT slot grows with the *square* of the distance left to
 /// fall, so a streak near the bottom of the screen sorts sharply in front of
 /// one still high up. The task releases itself once the camera turns away, the
@@ -399,7 +399,7 @@ void func_acropolis_bridge_8018063C(Task* task)
     s32          depth;
 
     work    = task->spawnArg2;
-    bufferY = Display_State.field_1f * 0x110;
+    bufferY = gDisplayState.drawBuffer * 0x110;
     if ((u8)Gp_GetViewIndex() == task->spawnArg1) {
         if ((s16)work->field_22 == 0) {
             Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
@@ -454,7 +454,7 @@ void func_acropolis_bridge_8018063C(Task* task)
 /// `0x60 + spread`, where `drift` is twice and `spread` nine times the drop
 /// from 0x68, both capped once the streak starts at 0x78 or below - so streaks
 /// that begin higher up stay nearer the middle of the screen.
-/// `Display_State.field_1f` picks the buffer half, and the OT slot is the row
+/// `gDisplayState.drawBuffer` picks the buffer half, and the OT slot is the row
 /// scaled into the 0x600-deep range so a streak sorts against the room behind
 /// it. The task releases itself once the camera turns away, the lifetime runs
 /// out, or the streak falls off the bottom of the screen.
@@ -473,7 +473,7 @@ void func_acropolis_bridge_8018099C(Task* task)
     s32          depth;
 
     work    = task->spawnArg2;
-    bufferY = Display_State.field_1f * 0x110;
+    bufferY = gDisplayState.drawBuffer * 0x110;
     if ((u8)Gp_GetViewIndex() == task->spawnArg1) {
         if ((s16)work->field_22 == 0) {
             Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
@@ -527,7 +527,7 @@ void func_acropolis_bridge_8018099C(Task* task)
 /// widens with the starting row - it runs from `0x58 - drift` to
 /// `0xA0 + spread`, where `drift` is a third and `spread` a half of the drop
 /// from 0x48 - so streaks that begin higher up stay nearer the middle of the
-/// screen. `Display_State.field_1f` picks the buffer half, and the OT slot
+/// screen. `gDisplayState.drawBuffer` picks the buffer half, and the OT slot
 /// grows with the *square* of the distance left to fall, so a streak near the
 /// bottom of the screen sorts sharply in front of one still high up. The task
 /// releases itself once the camera turns away, the lifetime runs out, or the
@@ -547,7 +547,7 @@ void func_acropolis_bridge_80180CC0(Task* task)
     s32          depth;
 
     work    = task->spawnArg2;
-    bufferY = Display_State.field_1f * 0x110;
+    bufferY = gDisplayState.drawBuffer * 0x110;
     if ((u8)Gp_GetViewIndex() == task->spawnArg1) {
         if ((s16)work->field_22 == 0) {
             Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
@@ -600,7 +600,7 @@ void func_acropolis_bridge_80180CC0(Task* task)
 /// fall takes. The column is drawn from a range that widens with the starting
 /// row - `(vy - 0x58) * 6`, capped at the full 240-pixel width once the streak
 /// starts at 0x80 or below the horizon - so streaks that begin higher up stay
-/// nearer the middle of the screen. `Display_State.field_1f` picks the buffer
+/// nearer the middle of the screen. `gDisplayState.drawBuffer` picks the buffer
 /// half, and the OT slot is the row scaled into the 0x800-deep range so a
 /// streak sorts against the room behind it. The task releases itself once the
 /// camera turns away, the lifetime runs out, or the streak falls off the bottom
@@ -618,7 +618,7 @@ void func_acropolis_bridge_80180FF0(Task* task)
     s32          depth;
 
     work    = task->spawnArg2;
-    bufferY = Display_State.field_1f * 0x110;
+    bufferY = gDisplayState.drawBuffer * 0x110;
     if ((u8)Gp_GetViewIndex() == task->spawnArg1) {
         if ((s16)work->field_22 == 0) {
             Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
@@ -664,7 +664,7 @@ void func_acropolis_bridge_80180FF0(Task* task)
 /// `work->field_22 % 6`, drawn with texture blending off (`code |= 3`). The
 /// second is the same point drawn as a spinning semi-transparent grey quad:
 /// its two half-diagonals are `(0x3A80 / otz) * rsin` / `rcos` of
-/// `work->field_24`, which advances with `Display_State.field_8`, and its tint
+/// `work->field_24`, which advances with `gDisplayState.animFrame`, and its tint
 /// is a fresh random grey (0x20..0x7F) every frame. Depths under 0x11 drop
 /// both quads. The task releases its work block each tick, so the spark lasts
 /// one frame.
@@ -718,7 +718,7 @@ void func_acropolis_bridge_801812F4(Task* task)
         prim->x1 = prim->x3 = blk->sxy.vx + blk->dx;
         prim->y0 = prim->y1 = blk->sxy.vy - blk->dx;
         prim->y2 = prim->y3 = blk->sxy.vy + blk->dx;
-        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
 
         prim           = (POLY_FT4*)Gpu_PrimCursor;
@@ -742,7 +742,7 @@ void func_acropolis_bridge_801812F4(Task* task)
         prim->g0    = grey;
         prim->b0    = grey;
 
-        work->field_24 = Display_State.field_8 + work->field_22;
+        work->field_24 = gDisplayState.animFrame + work->field_22;
         blk->dx        = ((0x3A80 / blk->otz) * rsin((s16)work->field_24)) >> 12;
         blk->dy        = ((0x3A80 / blk->otz) * rcos((s16)work->field_24)) >> 12;
         prim->x0       = blk->sxy.vx + blk->dx;
@@ -755,7 +755,7 @@ void func_acropolis_bridge_801812F4(Task* task)
         prim->x2       = blk->sxy.vx - blk->dx;
         prim->y1       = blk->sxy.vy - blk->dy;
         prim->y2       = blk->sxy.vy + blk->dy;
-        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
@@ -834,7 +834,7 @@ void func_acropolis_bridge_801819C8(Task* task)
         col         = ((u32)Gp_LcgState >> 16) & 0xF;
         setRGB0(prim, col, col, col);
         setSemiTrans(prim, 1);
-        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AcropolisBridgeQuadScratch);

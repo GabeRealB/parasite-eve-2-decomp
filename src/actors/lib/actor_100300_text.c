@@ -139,7 +139,7 @@ void Actor00300_Fn00078(GsCOORDINATE2* coord, s16 size)
         prim->y3 = bottom;
         prim->y2 = bottom;
         addPrim(
-            (u_long*)((((u32)sc->otz << Display_State.field_128) >> 2 & 0xFFC) +
+            (u_long*)((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
                       (s32)Gpu_CurrentOt),
             prim);
         prim                 = (POLY_FT4*)Gpu_PrimCursor;
@@ -148,7 +148,7 @@ void Actor00300_Fn00078(GsCOORDINATE2* coord, s16 size)
         prim->code           = 0x2F;
         prim->tpage          = 0x29;
         prim->clut =
-            (s16)(((u32)(((Display_State.field_8 & 1) * 0x10) + 0x120) >> 4) |
+            (s16)(((u32)(((gDisplayState.animFrame & 1) * 0x10) + 0x120) >> 4) |
                   0x4300);
         setUV4(prim, 0x38, 0xC8, 0x6F, 0xC8, 0x38, 0xFF, 0x6F, 0xFF);
         outerSize   = (s16)((s16)size * 3 / 2);
@@ -166,7 +166,7 @@ void Actor00300_Fn00078(GsCOORDINATE2* coord, s16 size)
         prim->y3    = outerBottom;
         prim->y2    = outerBottom;
         addPrim(
-            (u_long*)((((u32)sc->otz << Display_State.field_128) >> 2 & 0xFFC) +
+            (u_long*)((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
                       (s32)Gpu_CurrentOt),
             prim);
         if (Gp_State1C->field_6 != 0) {
@@ -246,16 +246,16 @@ void Actor00300_Fn005D0(GsCOORDINATE2* arg0, s32 arg1)
             prim->tpage = 0x28;
             prim->clut  = 0x428C;
             setSemiTrans(prim, 1);
-            u        = ((Display_State.field_8 & 1) << 5) + 0xC0;
+            u        = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
             prim->v0 = 0x38;
             prim->u0 = u;
-            u        = ((Display_State.field_8 & 1) << 5) + 0xDF;
+            u        = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
             prim->v1 = 0x38;
             prim->u1 = u;
-            u        = ((Display_State.field_8 & 1) << 5) + 0xC0;
+            u        = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
             prim->v2 = 0x57;
             prim->u2 = u;
-            u        = ((Display_State.field_8 & 1) << 5) + 0xDF;
+            u        = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
             prim->v3 = 0x57;
             prim->u3 = u;
             prim->x0 = *(u16*)&sc->sxy0.vx;
@@ -266,7 +266,7 @@ void Actor00300_Fn005D0(GsCOORDINATE2* arg0, s32 arg1)
             prim->y2 = *(u16*)&sc->sxy2.vy;
             prim->x3 = *(u16*)&sc->sxy3.vx;
             prim->y3 = *(u16*)&sc->sxy3.vy;
-            addPrim((u_long*)(((((u32)otz << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
         }

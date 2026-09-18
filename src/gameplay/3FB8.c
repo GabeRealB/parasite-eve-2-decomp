@@ -227,7 +227,7 @@ void Gp_EffSprTask55(Task* arg0)
             prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
             prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
             prim->y2    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
@@ -377,7 +377,7 @@ void Gp_EffSprTask42(Task* arg0)
             prim->x2  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
             prim->y1  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
             prim->y2  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
@@ -835,7 +835,7 @@ void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
         prim->x2  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
         prim->y1  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
         prim->y2  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
-        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
@@ -926,7 +926,7 @@ void Gp_DrawEffQuadT29(GsCOORDINATE2* arg0, s32 arg1, u16 arg2, u16 arg3)
             prim->y2    = block->sxy2.vy;
             prim->x3    = block->sxy3.vx;
             prim->y3    = block->sxy3.vy;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
         }
     }
@@ -1068,7 +1068,7 @@ void Gp_EffCtlTask32(Task* arg0)
             coord->coord.t[0]    = (rcos(angle) * mem->field_10) >> 0xC;
             coord->coord.t[1] =
                 mem->field_12 +
-                ((rsin((Display_State.field_8 + mem->field_24) << 6) * 0x60) >> 0xC);
+                ((rsin((gDisplayState.animFrame + mem->field_24) << 6) * 0x60) >> 0xC);
             coord->coord.t[2] = (rsin(angle) * mem->field_10) >> 0xC;
             coord->flg        = 0;
             Gp_UpdateCoord(coord);
@@ -1086,7 +1086,7 @@ void Gp_EffCtlTask32(Task* arg0)
             coord->coord.t[0] = (rcos(angle) * mem->field_10) >> 0xC;
             coord->coord.t[1] =
                 mem->field_12 +
-                ((rsin((Display_State.field_8 + mem->field_24) << 6) * 0x60) >> 0xC);
+                ((rsin((gDisplayState.animFrame + mem->field_24) << 6) * 0x60) >> 0xC);
             coord->coord.t[2] = (rsin(angle) * mem->field_10) >> 0xC;
             coord->flg        = 0;
             Gp_UpdateCoord(coord);
@@ -1106,7 +1106,7 @@ void Gp_EffCtlTask32(Task* arg0)
             coord->coord.t[0] = (rcos(angle) * mem->field_10) >> 0xC;
             coord->coord.t[1] =
                 mem->field_12 +
-                ((rsin((Display_State.field_8 + mem->field_24) << 6) * 0x60) >> 0xC);
+                ((rsin((gDisplayState.animFrame + mem->field_24) << 6) * 0x60) >> 0xC);
             coord->coord.t[2] = (rsin(angle) * mem->field_10) >> 0xC;
             coord->flg        = 0;
             Gp_UpdateCoord(coord);
@@ -1474,7 +1474,7 @@ void Gp_DrawEffTri(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3)
             prim->y1    = *(u16*)&block->sy + ((block->size * rcos(ang - 0x28)) >> 12);
             prim->x2    = *(u16*)&block->sx + ((block->size * rsin(ang + 0x28)) >> 12);
             prim->y2    = *(u16*)&block->sy + ((block->size * rcos(ang + 0x28)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
@@ -1905,7 +1905,7 @@ void func_800FCD00(Task* arg0)
     heightSum = (u16)mem->field_28 + (rsin(mem->field_22 << 6) >> 8);
     y         = heightSum;
     rad       = mem->field_2A;
-    sum       = *(u8*)&Display_State.field_8 + *(u8*)&mem->field_24;
+    sum       = *(u8*)&gDisplayState.animFrame + *(u8*)&mem->field_24;
     rawBright = mem->field_26;
     bright    = rawBright;
     inner     = rad - 0x40;
@@ -1985,7 +1985,7 @@ void func_800FCD00(Task* arg0)
             prim->x3 = *(u16*)&block->sx3;
             c        = block->sy3;
             prim->y3 = c;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
@@ -2022,7 +2022,7 @@ void func_800FCD00(Task* arg0)
             prim->x3 = *(u16*)&block->sx3;
             c        = block->sy3;
             prim->y3 = c;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
@@ -2142,7 +2142,7 @@ void Gp_EffSprTaskA7(Task* arg0)
         prim->x2  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
         prim->y1  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
         prim->y2  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
-        addPrim((u_long*)(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz << Display_State.field_128) >> 2) & 0xFFC) +
+        addPrim((u_long*)(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)Gpu_CurrentOt),
                 prim);
     }
@@ -2516,7 +2516,7 @@ void Gp_EffSprTask80(Task* arg0)
             y           = *(u16*)&block->sy + *(u16*)&block->size;
             prim->y3    = y;
             prim->y2    = y;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
@@ -2636,7 +2636,7 @@ void Gp_EffSprTask8D(Task* arg0)
             y           = *(u16*)&block->sy + *(u16*)&block->size;
             prim->y3    = y;
             prim->y2    = y;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
@@ -2750,7 +2750,7 @@ void Gp_EffSprTask3F(Task* arg0)
             prim->x2  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
             prim->y1  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
             prim->y2  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
@@ -2953,7 +2953,7 @@ void Gp_EffSprTaskE0(Task* arg0)
             prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
             prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
             prim->y2    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
@@ -3058,7 +3058,7 @@ void Gp_EffSprTaskE1(Task* arg0)
             prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
             prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
             prim->y2    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
@@ -3184,7 +3184,7 @@ void Gp_DrawEffSpriteE2(GsCOORDINATE2* arg0, u16 arg1, u32 arg2, s16 arg3)
         prim->x2  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
         prim->y1  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
         prim->y2  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
-        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;

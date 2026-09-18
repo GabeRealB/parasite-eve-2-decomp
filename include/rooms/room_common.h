@@ -326,7 +326,7 @@ void Room_Draw31(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// non-negative, queues two gouraud `POLY_G4` diamonds and two gouraud
 /// `LINE_G3` diagonals around the projected centre. Same 0x10 scratch layout
 /// as `Room_Draw13`. `arg2` is a signed half-extent; the on-screen radius is
-/// `(s16)arg2 * 32 / otz`. `arg1` scales `Display_State.field_8` into `rsin`
+/// `(s16)arg2 * 32 / otz`. `arg1` scales `gDisplayState.animFrame` into `rsin`
 /// so the lit vertex pulses as `rsin(...) / 34 + 0x78` on red.
 void Room_Draw38(SVECTOR* arg0, s16 arg1, s32 arg2);
 /// Same two-diamond gouraud plus two `LINE_G3` diagonals as `Room_Draw38`
@@ -341,7 +341,7 @@ void Room_Draw32(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// non-negative, queues a sixteen-wedge gouraud disc plus two inner cross
 /// wedges around the projected centre. `arg2` is a signed half-extent;
 /// on-screen radii are `(s16)arg2 * 64 / otz` (outer) and `(s16)arg2 * 8 / otz`
-/// (inner). `arg1` scales `Display_State.field_8` into `rsin` so the lit vertex
+/// (inner). `arg1` scales `gDisplayState.animFrame` into `rsin` so the lit vertex
 /// pulses as `rsin(...) / 34 + 0x78` on green and blue.
 void Room_Draw05(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// `Room_Draw05`'s tinted twin: same sixteen-wedge gouraud disc and two inner
@@ -349,7 +349,7 @@ void Room_Draw05(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// signed half-extent; on-screen radii are `(s16)arg1 * 64 / otz` (outer) and
 /// `(s16)arg1 * 8 / otz` (inner). `arg2` packs the tint into four nibbles,
 /// `[shift][r][g][b]`: each colour nibble is scaled to 8 bits by `<< 4`, and
-/// bit 0 of `Display_State.field_8` is added to all three channels shifted
+/// bit 0 of `gDisplayState.animFrame` is added to all three channels shifted
 /// left by the top nibble, so the disc flickers on alternating frames. The
 /// outer ring draws at half brightness first and full brightness second; the
 /// inner cross uses the halved colour throughout.
@@ -380,7 +380,7 @@ void Room_Draw16(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
 /// least 0x11, queues one semi-transparent `POLY_FT4` (tpage 0x2B, clut
 /// `(arg2 & 0x3F) | 0x4380`) whose `arg2`-selected 40-texel UV column sits at
 /// v 0..0x27, with RGB 0x20 / 0x30 alternating on the parity of
-/// `Display_State.field_8`. `arg3` is a signed half-extent; the on-screen
+/// `gDisplayState.animFrame`. `arg3` is a signed half-extent; the on-screen
 /// radius is `(s16)arg3 * 39 / otz`.
 void Room_Draw35(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat into view space
@@ -472,7 +472,7 @@ void Room_Draw24(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 /// 0x14 scratch block, and is dropped when `otz` is below 0x11. `arg3` is a
 /// signed half-extent, so the on-screen half width is `(s16)arg3 * 32 / otz`
 /// and the two `POLY_G4` halves narrow with distance; `arg2` scales
-/// `Display_State.field_8` into `rsin` so the lit vertex pulses as
+/// `gDisplayState.animFrame` into `rsin` so the lit vertex pulses as
 /// `rsin(...) / 34 + 0x78` on green and blue. Two gouraud `LINE_G3` diagonals
 /// cross the same centre.
 void Room_Draw37(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);

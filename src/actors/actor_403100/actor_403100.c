@@ -344,7 +344,7 @@ void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoint, s16
             *(s32*)&poly->x3 = screen3;
             setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
             setRGB0(poly, 0xFF, 0xFF, 0xFF);
-            addPrim((u32*)((((u32)(depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), poly);
+            addPrim((u32*)((((u32)(depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), poly);
         }
     }
 }

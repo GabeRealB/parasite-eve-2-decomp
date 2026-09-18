@@ -59,9 +59,9 @@ void Room_Draw20(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_stsxy(&((RoomDraw25Scratch*)(head - 0xC))->sx);
     gte_stszotz(&block->otz);
     if (((RoomDraw25Scratch*)(head - 0xC))->otz >= 0x11) {
-        ds          = &Display_State;
+        ds          = &gDisplayState;
         idx         = (s16)tex;
-        field8      = (u8)ds->field_8;
+        field8      = (u8)ds->animFrame;
         prim->tpage = 0x2B;
         prim->clut  = (idx & 0x3F) | 0x4380;
         u0          = idx * 40;
@@ -100,7 +100,7 @@ void Room_Draw20(SVECTOR* arg0, s32 arg1, s32 arg2)
         xy       = *(u16*)&((RoomDraw25Scratch*)tmp)->sy + *(u16*)&((RoomDraw25Scratch*)tmp)->radius;
         prim->y3 = xy;
         prim->y2 = xy;
-        addPrim((u_long*)(((((u32)((RoomDraw25Scratch*)(head - 0xC))->otz << ds->field_128) >> 2) & 0xFFC) +
+        addPrim((u_long*)(((((u32)((RoomDraw25Scratch*)(head - 0xC))->otz << ds->otDepthShift) >> 2) & 0xFFC) +
                           (s32)Gpu_CurrentOt),
                 prim);
     }

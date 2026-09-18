@@ -910,8 +910,8 @@ void Mc_StateVerifyFinish(Task* arg0, McWork* arg1)
                 }
             }
             Game_ClearEd68();
-            Display_State.field_101 = 1;
-            arg0->state             = 3;
+            gDisplayState.at100.flags.pendingPlayerPos = 1;
+            arg0->state                                = 3;
         } else {
         fail:
             Mc_InitBufferSlots();
@@ -2588,14 +2588,14 @@ void Mc_DispatchStateTable(Task* arg0)
 
 void Mc_StateInitWorkDefaults(Task* arg0, McWork* arg1)
 {
-    arg1->field_0           = 0x10;
-    arg1->field_8           = 0x8;
-    arg1->field_A20         = 1;
-    arg1->field_4           = 0;
-    arg1->field_18          = 0;
-    arg1->field_C           = 0;
-    Display_State.field_101 = 0;
-    arg0->state            += 1;
+    arg1->field_0                              = 0x10;
+    arg1->field_8                              = 0x8;
+    arg1->field_A20                            = 1;
+    arg1->field_4                              = 0;
+    arg1->field_18                             = 0;
+    arg1->field_C                              = 0;
+    gDisplayState.at100.flags.pendingPlayerPos = 0;
+    arg0->state                               += 1;
 }
 
 void Mc_StateSetOpenDefaults(Task* arg0, McWork* arg1)

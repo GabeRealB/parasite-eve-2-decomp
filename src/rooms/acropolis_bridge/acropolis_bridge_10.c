@@ -170,7 +170,7 @@ void func_acropolis_bridge_80182394(Task* task)
     gte_stszotz(&depth->otz);
     if (((AcropolisBridgeMoteScratch*)(head - 0xC))->otz >= 0x11) {
         setRGB0(prim, work->field_24 >> 1, work->field_24, work->field_24);
-        addPrim((u_long*)(((((u32)((AcropolisBridgeMoteScratch*)(head - 0xC))->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)((AcropolisBridgeMoteScratch*)(head - 0xC))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 0, ((AcropolisBridgeMoteScratch*)(head - 0xC))->otz);
         work->field_10.vy += 6;
@@ -284,7 +284,7 @@ void func_acropolis_bridge_801827EC(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
         setRGB0(prim, arg2, arg2, arg2);
         prim->clut = 0x43D1;
         setSemiTrans(prim, 1);
-        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AcropolisBridgeRotQuadScratch);

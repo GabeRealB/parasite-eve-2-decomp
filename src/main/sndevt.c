@@ -872,12 +872,12 @@ void Midi_DriveTrack(MidiSong* arg0, MidiTrack* arg1)
 
     entry = arg1;
     temp  = entry->field_38 + (arg0->field_4 + arg0->field_5) * arg0->field_34;
-    if (Display_State.region == 1) {
+    if (gDisplayState.region == 1) {
         quot = temp / 6000U;
     } else {
         quot = temp / 3600U;
     }
-    if (Display_State.region == 1) {
+    if (gDisplayState.region == 1) {
         rem_factor = (temp / 6000U) * 0x177;
         goto rem_join;
     } else {

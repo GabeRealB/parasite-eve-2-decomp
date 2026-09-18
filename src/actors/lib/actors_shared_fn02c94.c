@@ -78,11 +78,11 @@ void ActorsSharedFn02c94(Actor105500* actor)
         line->g1 = shade;
         line->b1 = blue;
     }
-    addPrim((u32*)((((u32)(s->depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), line);
+    addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), line);
     page           = Gpu_PrimCursor;
     Gpu_PrimCursor = (u8*)page + sizeof(DR_TPAGE);
     setlen(page, 1);
     page->code[0] = 0xE1000620;
-    addPrim((u32*)((((u32)(s->depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), page);
+    addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), page);
     *(u8**)PSX_SCRATCH_ADDR(0x3FC) += sizeof(Actor105500LineScratch);
 }

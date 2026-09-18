@@ -104,7 +104,7 @@ void func_acropolis_promenade_8017E03C(Task* task)
 /// rolls the whole drip out of `Gp_LcgState`: `field_10.vx` is the column
 /// (0..0xEF), `field_10.vy` the row it starts on (0xB0..0xEF), `field_24` the
 /// lifetime in frames, `field_26` the width and `field_28` the number of frames
-/// each row of fall takes. `Display_State.field_1f` picks the buffer half, and
+/// each row of fall takes. `gDisplayState.drawBuffer` picks the buffer half, and
 /// the OT slot is the row scaled into the 0x500-deep range so a drip sorts
 /// against the room behind it. The task releases itself once the camera turns
 /// away, the lifetime runs out, or the drip falls off the bottom of the screen.
@@ -121,7 +121,7 @@ void func_acropolis_promenade_8017E394(Task* task)
     s32          depth;
 
     work    = task->spawnArg2;
-    bufferY = Display_State.field_1f * 0x110;
+    bufferY = gDisplayState.drawBuffer * 0x110;
     if ((u8)Gp_GetViewIndex() == task->spawnArg1) {
         if ((s16)work->field_22 == 0) {
             Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
@@ -228,7 +228,7 @@ void func_acropolis_promenade_8017E634(Task* task)
         prim->x1 = prim->x3 = blk->sxy.vx + blk->dx;
         prim->y0 = prim->y1 = blk->sxy.vy - blk->dy;
         prim->y2 = prim->y3 = blk->sxy.vy + blk->dy;
-        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
 
         prim           = (POLY_FT4*)Gpu_PrimCursor;
@@ -252,7 +252,7 @@ void func_acropolis_promenade_8017E634(Task* task)
         prim->g0    = grey;
         prim->b0    = grey;
 
-        work->field_24 = Display_State.field_8 + work->field_22;
+        work->field_24 = gDisplayState.animFrame + work->field_22;
         blk->dx        = ((0x3A80 / blk->otz) * rsin((s16)work->field_24)) >> 12;
         blk->dy        = ((0x3A80 / blk->otz) * rcos((s16)work->field_24)) >> 12;
         prim->x0       = blk->sxy.vx + blk->dx;
@@ -265,7 +265,7 @@ void func_acropolis_promenade_8017E634(Task* task)
         prim->x2       = blk->sxy.vx - blk->dx;
         prim->y1       = blk->sxy.vy - blk->dy;
         prim->y2       = blk->sxy.vy + blk->dy;
-        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
@@ -356,7 +356,7 @@ void func_acropolis_promenade_8017ED44(Task* task)
         prim->g0    = grey;
         prim->b0    = grey;
         prim->code |= 2;
-        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x24;

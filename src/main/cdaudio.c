@@ -1012,7 +1012,7 @@ void CdStream_Start(CdStreamParams* arg0)
     base            = arg0->spuBase;
     sectors         = 0x18;
     {
-        s32 ds      = Display_State.region;
+        s32 ds      = gDisplayState.region;
         a3->spuBase = base;
         if (ds == one) {
             sectors = 0x14;

@@ -259,7 +259,7 @@ void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
         pt++;
         src++;
     }
-    ot = (u32*)((u32)Gpu_CurrentOt + (((u32)(otz << Display_State.field_128) >> 2) & 0xFFC)) - 30;
+    ot = (u32*)((u32)Gpu_CurrentOt + (((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) - 30;
     pt = pts;
     for (i = 0; i < 15; i++, pt++) {
         prim           = (POLY_G3*)Gpu_PrimCursor;

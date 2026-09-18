@@ -180,7 +180,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
         gte_stsxy(&((AcropolisFountainSprayScratch*)(head - 0x14))->sx);
         gte_stszotz(&p->otz);
         if (((AcropolisFountainSprayScratch*)(head - 0x14))->otz >= 0x11) {
-            level       = (((u8)Display_State.field_8 & 1) << 4) + 0x40;
+            level       = (((u8)gDisplayState.animFrame & 1) << 4) + 0x40;
             prim->tpage = 0x2B;
             prim->clut  = 0x4382;
             prim->u0    = 0x50;
@@ -209,7 +209,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
             prim->y3    = y;
             prim->y2    = y;
             addPrim((u_long*)(((((u32)((AcropolisFountainSprayScratch*)(head - 0x14))->otz
-                                 << Display_State.field_128) >>
+                                 << gDisplayState.otDepthShift) >>
                                 2) &
                                0xFFC) +
                               (s32)Gpu_CurrentOt),

@@ -125,8 +125,8 @@ void CdCmd_HandleStreamDecode(void)
     switch (state->step) {
         case 0:
             if (state->busy == 0) {
-                state->busy             = 1;
-                Display_State.field_130 = 0xFF;
+                state->busy          = 1;
+                gDisplayState.cdBusy = 0xFF;
             }
             ret = CdCmd_PollStatus(0, 0);
             if (ret != 1) {
@@ -154,8 +154,8 @@ void CdCmd_HandleStreamDecode(void)
                 state->field_1FA = 1;
                 state->field_1F4 = 1;
                 if (busy != 0) {
-                    p->busy                 = 0;
-                    Display_State.field_130 = 0;
+                    p->busy              = 0;
+                    gDisplayState.cdBusy = 0;
                 }
                 p->step      = 0;
                 p->field_1fc = 0;
@@ -177,8 +177,8 @@ void CdCmd_HandleStreamDecode(void)
             if ((s16)func_8001FAE0(0, ((u16)state->field_1EA - 1) * 0xA) != 0) {
                 p = &CdCmd_Queue;
                 if (p->busy != 0) {
-                    p->busy                 = 0;
-                    Display_State.field_130 = 0;
+                    p->busy              = 0;
+                    gDisplayState.cdBusy = 0;
                 }
                 p->step      = 0;
                 p->field_1fc = 0;
@@ -217,8 +217,8 @@ void CdCmd_HandleFileLoad(void)
                 busy             = p->busy;
                 state->field_222 = 1;
                 if (busy == 0) {
-                    p->busy                 = 1;
-                    Display_State.field_130 = 0xFF;
+                    p->busy              = 1;
+                    gDisplayState.cdBusy = 0xFF;
                 }
             }
             ret = CdCmd_PollStatus(0, 0);
@@ -389,8 +389,8 @@ void CdCmd_HandleFileLoad(void)
                     CdReadyCallback(NULL);
                     p = &CdCmd_Queue;
                     if (p->busy != 0) {
-                        p->busy                 = 0;
-                        Display_State.field_130 = 0;
+                        p->busy              = 0;
+                        gDisplayState.cdBusy = 0;
                     }
                     p->step      = 0;
                     p->field_1fc = 0;
@@ -458,8 +458,8 @@ void CdCmd_HandleMount(void)
             switch (step) {
                 case 0:
                     if (state->busy == 0) {
-                        state->busy             = 1;
-                        Display_State.field_130 = 0xFF;
+                        state->busy          = 1;
+                        gDisplayState.cdBusy = 0xFF;
                     }
                     Fs_SelectStage(field5 & 0xFF);
                     goto increment_step;
@@ -535,8 +535,8 @@ void CdCmd_HandleMount(void)
             }
         cleanup:
             if (state->busy != 0) {
-                state->busy             = 0;
-                Display_State.field_130 = 0;
+                state->busy          = 0;
+                gDisplayState.cdBusy = 0;
             }
             state->step      = 0;
             state->field_1fc = 0;
@@ -663,8 +663,8 @@ void CdCmd_ProcessPhase1(void)
                 Mem_Set(&p->field_40, 0, 0x10);
                 q = &CdCmd_Queue;
                 if (q->busy != 0) {
-                    q->busy                 = 0;
-                    Display_State.field_130 = 0;
+                    q->busy              = 0;
+                    gDisplayState.cdBusy = 0;
                 }
                 q->step      = 0;
                 q->field_1fc = 0;
@@ -721,8 +721,8 @@ void CdCmd_ProcessPhase1(void)
                 Gp_ApplySndBankMasks(p->field_190->field_16);
                 Gp_RestoreStreamRng();
                 if (p->busy != 0) {
-                    p->busy                 = 0;
-                    Display_State.field_130 = 0;
+                    p->busy              = 0;
+                    gDisplayState.cdBusy = 0;
                 }
                 p->step      = 0;
                 p->field_1fc = 0;
@@ -842,8 +842,8 @@ void CdCmd_ProcessPhase2(void)
                 p->field_4c  = 0;
                 p->field_1d2 = 0;
                 if (p2->busy != 0) {
-                    p2->busy                = 0;
-                    Display_State.field_130 = 0;
+                    p2->busy             = 0;
+                    gDisplayState.cdBusy = 0;
                 }
                 Mem_Set(p2, 0, 0x40);
                 p2->writeIdx  = 0;
@@ -1278,16 +1278,16 @@ CdCmdEntry* CdCmd_NextEntry(void)
 void CdCmd_SetBusy(void)
 {
     if (CdCmd_Queue.busy == 0) {
-        CdCmd_Queue.busy        = 1;
-        Display_State.field_130 = 0xFF;
+        CdCmd_Queue.busy     = 1;
+        gDisplayState.cdBusy = 0xFF;
     }
 }
 
 void CdCmd_ClearBusy(void)
 {
     if (CdCmd_Queue.busy != 0) {
-        CdCmd_Queue.busy        = 0;
-        Display_State.field_130 = 0;
+        CdCmd_Queue.busy     = 0;
+        gDisplayState.cdBusy = 0;
     }
 }
 
@@ -1341,8 +1341,8 @@ void CdCmd_AdvanceRead(void)
 
     state = &CdCmd_Queue;
     if (state->busy != 0) {
-        state->busy             = 0;
-        Display_State.field_130 = 0;
+        state->busy          = 0;
+        gDisplayState.cdBusy = 0;
     }
     state->step      = 0;
     state->field_1fc = 0;

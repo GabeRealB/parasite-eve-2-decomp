@@ -217,7 +217,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
 }
 
 /// Flashes a screen-filling `POLY_F4` over the whole 320x240 frame, offset by
-/// `Display_State.vramYOffset` so it tracks the active draw buffer. `bright`
+/// `gDisplayState.vramYOffset` so it tracks the active draw buffer. `bright`
 /// is the flash level: normally the quad is blue-tinted (red and green
 /// halved), but on stage `Gp_StateC08.field_0 % 10 == 3` one draw in four
 /// comes out yellow instead (blue halved). The prim is linked at a fixed
@@ -247,10 +247,10 @@ void func_apobiosis_8012F808(u32 bright)
         SOFT_TOUCH_REG(level);
         setRGB0(prim, (s16)level >> 1, (s16)level >> 1, level);
     }
-    setXY4(prim, -0xA0, -0x78 - Display_State.vramYOffset, 0xA0,
-           -0x78 - Display_State.vramYOffset, -0xA0, 0x78 - Display_State.vramYOffset,
-           0xA0, 0x78 - Display_State.vramYOffset);
-    addPrim((u_long*)((((u32)(0x30 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+    setXY4(prim, -0xA0, -0x78 - gDisplayState.vramYOffset, 0xA0,
+           -0x78 - gDisplayState.vramYOffset, -0xA0, 0x78 - gDisplayState.vramYOffset,
+           0xA0, 0x78 - gDisplayState.vramYOffset);
+    addPrim((u_long*)((((u32)(0x30 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
             prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, 0x30);
 }
@@ -343,7 +343,7 @@ void func_apobiosis_8012F9D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
             ang      = t;
             maskLo   = 0xFFFFFF;
             maskHi   = 0xFF000000;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
@@ -522,7 +522,7 @@ void func_apobiosis_8013017C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
         prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
         prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
         prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
-        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)Gpu_CurrentOt),
                 prim);
     }
@@ -633,7 +633,7 @@ void func_apobiosis_80130630(GsCOORDINATE2* arg0, s16* arg1, s16 arg2, s16 arg3)
             prim->x2  = *(u16*)&block->sx0 - *(u16*)&block->dx;
             prim->y1  = *(u16*)&block->sy1 - *(u16*)&block->dy;
             prim->y2  = *(u16*)&block->sy0 + *(u16*)&block->dy;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
         }

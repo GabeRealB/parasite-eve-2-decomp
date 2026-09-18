@@ -340,7 +340,7 @@ void func_actor_202600_8014C774(Actor202600* actor, s32 frame)
         poly->y2    = (u16)s->p[2].vy;
         poly->x3    = (u16)s->p[3].vx;
         poly->y3    = (u16)s->p[3].vy;
-        addPrim((u32*)((((u32)(s->depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), poly);
+        addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), poly);
     }
     *(u8**)PSX_SCRATCH_ADDR(0x3FC) += 0x28;
 }

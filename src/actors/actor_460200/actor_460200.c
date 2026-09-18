@@ -52,12 +52,12 @@ void func_actor_460200_80131E2C(Task* task)
             case 0:
                 args->done          = 0;
                 task->killCountdown = args->duration;
-                if (Display_State.field_1f != 0) {
+                if (gDisplayState.drawBuffer != 0) {
                     D_actor_460200_80135E14.y = 0;
                 } else {
                     D_actor_460200_80135E14.y = 0x110;
                 }
-                if (Display_State.field_112 < 0) {
+                if (gDisplayState.field_112 < 0) {
                     StoreImage(&D_actor_460200_80135E0C, Fs_ImgBuffers->buffers[0]);
                 } else {
                     strip = Fs_ImgBuffers->buffers[0];
@@ -67,7 +67,7 @@ void func_actor_460200_80131E2C(Task* task)
                         strip += 1920;
                     }
                 }
-                Display_State.field_104 = 1;
+                gDisplayState.skipDraw = 1;
                 goto advance;
             case 1:
                 DrawSync(0);
@@ -81,7 +81,7 @@ void func_actor_460200_80131E2C(Task* task)
                 }
                 if (args->done != 0) {
                     Task_Kill(task);
-                    Display_State.field_104 = 0;
+                    gDisplayState.skipDraw = 0;
                 }
                 break;
         }

@@ -429,7 +429,7 @@ void func_800D6334(Task* task)
     armor           = Player_Status.armor + 0x5F;
     panel           = task->spawnArg2;
     panel->field_2E = 0;
-    panel->field_E  = 0x1C - Display_State.vramYOffset;
+    panel->field_E  = 0x1C - gDisplayState.vramYOffset;
     Ui_InsetLayout((UiPanel*)panel, 0, 0, 0);
     Ui_DrawText((UiPanel*)panel, (char*)D_80097440);
     usable = 1;
@@ -663,7 +663,7 @@ void Gp_DrawWeaponLabel(Task* arg0)
     s32      y;
 
     panel            = arg0->spawnArg2;
-    panel->field_C.y = 0x1C - Display_State.vramYOffset;
+    panel->field_C.y = 0x1C - gDisplayState.vramYOffset;
     Ui_InsetLayout(panel, NULL, NULL, 0);
     x = (s16)panel->field_1C;
     y = (s16)panel->field_18;
@@ -1865,15 +1865,15 @@ void Gp_DebugPanTask(Task* arg0)
         func_800D7A9C(extra, &vec, 0, 3);
         if (D_80114F28 != 0) {
             mtx = extra->field_20;
-            val = rsin(Display_State.field_14 << 6) + 0x1800;
-            if ((Display_State.field_14 & 1) == 0) {
+            val = rsin(gDisplayState.loopCount << 6) + 0x1800;
+            if ((gDisplayState.loopCount & 1) == 0) {
                 val >>= 1;
             }
             mtx->m[0][0] = mtx->m[0][1] = mtx->m[0][2] = 0x200;
             mtx->m[1][0] = mtx->m[1][1] = mtx->m[1][2] = val;
             mtx->m[2][0] = mtx->m[2][1] = mtx->m[2][2] = 0x200;
             D_80114F28                                 = 0;
-        } else if (((u32)Display_State.field_8 % 3) == 0 && cfg->hp > 0 && gGameSession->eventState == 0) {
+        } else if (((u32)gDisplayState.animFrame % 3) == 0 && cfg->hp > 0 && gGameSession->eventState == 0) {
             {
                 register MATRIX* colorMtx asm("v0");
                 if (Gp_StateC08.field_14 > 0 || (Gp_StateC08.field_16 != 0 && (s8)Gp_StateC08.field_17 != 0)) {
@@ -2028,8 +2028,8 @@ case2:
 def:
     if ((arg0->field_4E & 0x80) && (arg0->field_4B == 0)) {
     flicker:
-        val = rsin(Display_State.field_14 << 6) + 0x1800;
-        if ((Display_State.field_14 & 1) == 0) {
+        val = rsin(gDisplayState.loopCount << 6) + 0x1800;
+        if ((gDisplayState.loopCount & 1) == 0) {
             val >>= 1;
         }
         arg1->m[0][0] = arg1->m[0][1] = arg1->m[0][2] = 0x200;
@@ -2217,7 +2217,7 @@ s32 Gp_GetObjDepth(GpObj38* arg0)
 {
     s32 val;
 
-    val = arg0->field_24.t[2] - Display_State.field_110;
+    val = arg0->field_24.t[2] - gDisplayState.screenDistance;
     if (val >= 0x7FFF) {
         val = 0x7FFF;
     }
@@ -2712,9 +2712,9 @@ void Gp_DrawTargetCursor(void)
                 D_8010F9EC = block->sx << 8;
                 D_8010F9F0 = block->sy << 8;
             }
-            ds                = &Display_State;
+            ds                = &gDisplayState;
             *(u16*)&block->sy = *(u16*)&block->sy - (s8) * (u8*)&ds->vramYOffset;
-            n                 = ds->field_8;
+            n                 = ds->animFrame;
             n                 = (u32)n % 24U;
             frame             = (u32)n / 3U;
             prim              = (POLY_FT4*)Gpu_PrimCursor;

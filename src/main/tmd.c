@@ -567,7 +567,7 @@ void Tmd_SetupDraw(TmdObject* arg0)
         p            = arg0->field_10;
         tmp          = *scratch;
         stream       = p->stream;
-        disp         = Display_State.field_128;
+        disp         = gDisplayState.otDepthShift;
         ws           = (TmdScratchDrawBlock*)((u8*)tmp - 0x98);
         ws->field_80 = arg0;
         ws->field_84 = disp;

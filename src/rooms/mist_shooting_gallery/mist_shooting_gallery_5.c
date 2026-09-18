@@ -202,7 +202,7 @@ void func_mist_shooting_gallery_80182294(GsCOORDINATE2* coord, s16 arg1, s16 arg
         prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
         prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
         prim->y2    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
-        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
@@ -275,7 +275,7 @@ void func_mist_shooting_gallery_801826C4(GsCOORDINATE2* coord, SVECTOR* arg1, s3
             prim->x2    = *(u16*)&block->sxy0.vx - *(u16*)&block->dx;
             prim->y1    = *(u16*)&block->sxy1.vy - *(u16*)&block->dy;
             prim->y2    = *(u16*)&block->sxy0.vy + *(u16*)&block->dy;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
         }
     }

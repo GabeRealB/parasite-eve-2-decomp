@@ -46,7 +46,7 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_
 ///
 /// It is spawned from entry 0 of `D_dryfield_dilapidated_house_80183E64` with
 /// the `DdhCaptureArgs` block as its `spawnArg2`. State 0 seeds the countdown
-/// from the block's duration, picks the strip origin's y out of `Display_State`
+/// from the block's duration, picks the strip origin's y out of `gDisplayState`
 /// (`field_1f` non-zero selects 0, clear selects 0x110) and hands the twenty
 /// 0x1E00-byte strips of `Fs_ImgBuffers` to `StoreImage` -- or, while the buffer
 /// is being read back (`field_112` is negative), only the single flat
@@ -67,12 +67,12 @@ void func_dryfield_dilapidated_house_8017DE88(Task* task)
             case 0:
                 args->done          = 0;
                 task->killCountdown = args->duration;
-                if (Display_State.field_1f != 0) {
+                if (gDisplayState.drawBuffer != 0) {
                     D_dryfield_dilapidated_house_80183E84.y = 0;
                 } else {
                     D_dryfield_dilapidated_house_80183E84.y = 0x110;
                 }
-                if (Display_State.field_112 < 0) {
+                if (gDisplayState.field_112 < 0) {
                     StoreImage(&D_dryfield_dilapidated_house_80183E7C, Fs_ImgBuffers->buffers[0]);
                 } else {
                     strip = Fs_ImgBuffers->buffers[0];
@@ -82,7 +82,7 @@ void func_dryfield_dilapidated_house_8017DE88(Task* task)
                         strip += 1920;
                     }
                 }
-                Display_State.field_104 = 1;
+                gDisplayState.skipDraw = 1;
                 goto advance;
             case 1:
                 DrawSync(0);
@@ -96,7 +96,7 @@ void func_dryfield_dilapidated_house_8017DE88(Task* task)
                 }
                 if (args->done != 0) {
                     Task_Kill(task);
-                    Display_State.field_104 = 0;
+                    gDisplayState.skipDraw = 0;
                 }
                 break;
         }

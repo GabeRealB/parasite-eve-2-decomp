@@ -57,12 +57,12 @@ void Room_Draw17(SVECTOR* arg0, s32 arg1, s32 arg2)
     if (((RoomDraw13Scratch*)tmp)->flag >= 0) {
         gte_stszotz(&block->otz);
         prim           = (POLY_FT4*)Gpu_PrimCursor;
-        ds             = &Display_State;
+        ds             = &gDisplayState;
         Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
         setlen(prim, 9);
         setcode(prim, 0x2C);
         idx         = (s16)tex;
-        field8      = (u8)ds->field_8;
+        field8      = (u8)ds->animFrame;
         prim->tpage = 0x2B;
         prim->clut  = (idx & 0x3F) | 0x4380;
         u0          = idx * 40;
@@ -101,7 +101,7 @@ void Room_Draw17(SVECTOR* arg0, s32 arg1, s32 arg2)
         xy       = *(u16*)&((RoomDraw13Scratch*)tmp)->sy + *(u16*)&((RoomDraw13Scratch*)tmp)->radius;
         prim->y3 = xy;
         prim->y2 = xy;
-        addPrim((u_long*)(((((u32)((RoomDraw13Scratch*)(head - 0x10))->otz << ds->field_128) >> 2) & 0xFFC) +
+        addPrim((u_long*)(((((u32)((RoomDraw13Scratch*)(head - 0x10))->otz << ds->otDepthShift) >> 2) & 0xFFC) +
                           (s32)Gpu_CurrentOt),
                 prim);
     }

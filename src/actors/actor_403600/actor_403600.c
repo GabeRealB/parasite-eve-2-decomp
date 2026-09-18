@@ -753,7 +753,7 @@ u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     if (arg0->field_1C-- > 0) {
         opz         = &arg0->field_28;
         upper_limit = 0x168 - light;
-        ds          = &Display_State;
+        ds          = &gDisplayState;
         do {
             rec   = (u16*)arg2;
             verts = (u8*)arg0->field_8;
@@ -808,13 +808,13 @@ u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     gte_stotz(opz);
                     mask      = 0xFFFFFF;
                     poly->tag = (poly->tag & 0xFF000000) |
-                                (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) &
+                                (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) &
                                              0xFFC) +
                                             (s32)arg0->field_14) &
                                  mask);
-                    *(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                    *(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
                                (s32)arg0->field_14) =
-                        (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                        (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
                                     (s32)arg0->field_14) &
                          0xFF000000) |
                         ((u32)poly & mask);
@@ -855,7 +855,7 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         opz         = &arg0->field_28;
         clip_mask   = 0x80000000;
         upper_limit = 0x168 - light;
-        ds          = &Display_State;
+        ds          = &gDisplayState;
         mask        = 0xFFFFFF;
         mask_hi     = 0xFF000000;
         do {
@@ -912,12 +912,12 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             setcode(poly, 0x36);
                             gte_stotz(opz);
                             poly->tag = (poly->tag & mask_hi) |
-                                        (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                                        (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
                                                     (s32)arg0->field_14) &
                                          mask);
-                            *(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                            *(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
                                        (s32)arg0->field_14) =
-                                (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                                (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
                                             (s32)arg0->field_14) &
                                  mask_hi) |
                                 ((u32)poly & mask);
@@ -962,7 +962,7 @@ u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         clip_mask   = 0x80000000;
         opz         = &arg0->field_28;
         upper_limit = 0x168 - light;
-        ds          = &Display_State;
+        ds          = &gDisplayState;
         mask        = 0xFFFFFF;
         SOFT_TOUCH_REG(mask);
         do {
@@ -1033,13 +1033,13 @@ u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         setcode(poly, 0x3E);
                         gte_stotz(opz);
                         poly->tag = (poly->tag & 0xFF000000) |
-                                    (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) &
+                                    (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) &
                                                  0xFFC) +
                                                 (s32)arg0->field_14) &
                                      mask);
-                        *(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                        *(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
                                    (s32)arg0->field_14) =
-                            (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                            (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
                                         (s32)arg0->field_14) &
                              0xFF000000) |
                             ((u32)poly & mask);
@@ -1081,7 +1081,7 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         opz         = &arg0->field_28;
         clip_mask   = 0x80000000;
         upper_limit = 0x168 - light;
-        ds          = &Display_State;
+        ds          = &gDisplayState;
         mask        = 0xFFFFFF;
         SOFT_TOUCH_REG(mask);
         mask_hi = 0xFF000000;
@@ -1152,12 +1152,12 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                                 gte_stotz(opz);
                                 gte_stotz(opz);
                                 poly->tag = (poly->tag & mask_hi) |
-                                            (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                                            (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
                                                         (s32)arg0->field_14) &
                                              mask);
-                                *(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                                *(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
                                            (s32)arg0->field_14) =
-                                    (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                                    (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
                                                 (s32)arg0->field_14) &
                                      mask_hi) |
                                     ((u32)poly & mask);
@@ -1198,7 +1198,7 @@ u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     if (arg0->field_1C-- > 0) {
         opz         = &arg0->field_28;
         upper_limit = 0x168 - light;
-        ds          = &Display_State;
+        ds          = &gDisplayState;
         do {
             rec   = (u16*)arg2;
             verts = (u8*)arg0->field_8;
@@ -1255,13 +1255,13 @@ u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     gte_stotz(opz);
                     mask      = 0xFFFFFF;
                     poly->tag = (poly->tag & 0xFF000000) |
-                                (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) &
+                                (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) &
                                              0xFFC) +
                                             (s32)arg0->field_14) &
                                  mask);
-                    *(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                    *(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
                                (s32)arg0->field_14) =
-                        (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                        (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
                                     (s32)arg0->field_14) &
                          0xFF000000) |
                         ((u32)poly & mask);
@@ -1299,7 +1299,7 @@ u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     if (arg0->field_1C-- > 0) {
         opz         = &arg0->field_28;
         upper_limit = 0x168 - light;
-        ds          = &Display_State;
+        ds          = &gDisplayState;
         do {
             rec   = (u16*)arg2;
             verts = (u8*)arg0->field_8;
@@ -1356,13 +1356,13 @@ u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     gte_stotz(opz);
                     mask      = 0xFFFFFF;
                     poly->tag = (poly->tag & 0xFF000000) |
-                                (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) &
+                                (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) &
                                              0xFFC) +
                                             (s32)arg0->field_14) &
                                  mask);
-                    *(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                    *(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
                                (s32)arg0->field_14) =
-                        (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                        (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
                                     (s32)arg0->field_14) &
                          0xFF000000) |
                         ((u32)poly & mask);
@@ -1405,7 +1405,7 @@ u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         clip_mask   = 0x80000000;
         opz         = &arg0->field_28;
         upper_limit = 0x168 - light;
-        ds          = &Display_State;
+        ds          = &gDisplayState;
         mask        = 0xFFFFFF;
         SOFT_TOUCH_REG(mask);
         do {
@@ -1478,13 +1478,13 @@ u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         poly->code &= 0xFE;
                         gte_stotz(opz);
                         poly->tag = (poly->tag & 0xFF000000) |
-                                    (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) &
+                                    (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) &
                                                  0xFFC) +
                                                 (s32)arg0->field_14) &
                                      mask);
-                        *(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                        *(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
                                    (s32)arg0->field_14) =
-                            (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                            (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
                                         (s32)arg0->field_14) &
                              0xFF000000) |
                             ((u32)poly & mask);
@@ -1574,8 +1574,8 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             projected = (MATRIX*)(head - 0x64);
             SOFT_TOUCH_REG(projected);
             opz = &arg0->field_28;
-            __asm__("lui %0,%%hi(Display_State)" : "=r"(ds_high));
-            __asm__("addiu %0,%1,%%lo(Display_State)" : "=&r"(ds) : "r"(ds_high));
+            __asm__("lui %0,%%hi(gDisplayState)" : "=r"(ds_high));
+            __asm__("addiu %0,%1,%%lo(gDisplayState)" : "=&r"(ds) : "r"(ds_high));
             SOFT_TOUCH_REG(ds);
             mask    = 0xFFFFFF;
             mask_hi = 0xFF000000;
@@ -1626,13 +1626,13 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         setcode(poly, 0x34);
                         gte_stotz(opz);
                         poly->tag = (poly->tag & mask_hi) |
-                                    (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) &
+                                    (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) &
                                                  0xFFC) +
                                                 (s32)arg0->field_14) &
                                      mask);
-                        *(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                        *(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
                                    (s32)arg0->field_14) =
-                            (*(u_long*)(((((u32)arg0->field_28 << ds->field_128) >> 2) & 0xFFC) +
+                            (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
                                         (s32)arg0->field_14) &
                              mask_hi) |
                             ((u32)poly & mask);
@@ -1728,8 +1728,8 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             flg       = &arg0->field_24;
             clip_mask = 0x80000000;
             opz       = &arg0->field_28;
-            __asm__("lui %0,%%hi(Display_State)" : "=r"(ds_high));
-            __asm__("addiu %0,%1,%%lo(Display_State)" : "=&r"(color_ds) : "r"(ds_high));
+            __asm__("lui %0,%%hi(gDisplayState)" : "=r"(ds_high));
+            __asm__("addiu %0,%1,%%lo(gDisplayState)" : "=&r"(color_ds) : "r"(ds_high));
             mask = 0xFFFFFF;
             SOFT_TOUCH_REG(mask);
             saved = (MATRIX*)0xFF000000;
@@ -1796,13 +1796,13 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             setcode(poly, 0x3C);
                             gte_stotz(opz);
                             poly->tag = (poly->tag & (u32)saved) |
-                                        (*(u_long*)(((((u32)arg0->field_28 << ((DisplayState*)color_ds)->field_128) >> 2) &
+                                        (*(u_long*)(((((u32)arg0->field_28 << ((DisplayState*)color_ds)->otDepthShift) >> 2) &
                                                      0xFFC) +
                                                     (s32)arg0->field_14) &
                                          mask);
-                            *(u_long*)(((((u32)arg0->field_28 << ((DisplayState*)color_ds)->field_128) >> 2) & 0xFFC) +
+                            *(u_long*)(((((u32)arg0->field_28 << ((DisplayState*)color_ds)->otDepthShift) >> 2) & 0xFFC) +
                                        (s32)arg0->field_14) =
-                                (*(u_long*)(((((u32)arg0->field_28 << ((DisplayState*)color_ds)->field_128) >> 2) & 0xFFC) +
+                                (*(u_long*)(((((u32)arg0->field_28 << ((DisplayState*)color_ds)->otDepthShift) >> 2) & 0xFFC) +
                                             (s32)arg0->field_14) &
                                  (u32)saved) |
                                 ((u32)poly & mask);

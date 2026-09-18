@@ -393,7 +393,7 @@ s32 Gp_StartCap(s32 arg0, s16 arg1, s16 arg2)
     D_801155AE     = 1;
     D_8011566C     = Mc_SaveData.at4.loc.view;
     D_8011565C     = queue->field_22A;
-    if (Display_State.field_112 != 0) {
+    if (gDisplayState.field_112 != 0) {
         func_807245B8();
         D_8011564A = -1;
     }
@@ -574,7 +574,7 @@ resumeView:
                     if (D_80115688 == 0) {
                         Mc_SaveData.at4.loc.view = view;
                         D_801155BB               = 1;
-                        if (Display_State.field_112 != 0) {
+                        if (gDisplayState.field_112 != 0) {
                             if (D_8011564A == -1) {
                                 D_8011564A = 0;
                             }
@@ -931,13 +931,13 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
     setRGB2(bg, 0, 0x40, 0x20);
     setRGB3(bg, 0, 0x40, 0x20);
     bg->x0 = (u16)D_801155B2 - 0xA7;
-    bg->y0 = (0x59 - (u16)D_801155B6) - Display_State.vramYOffset;
+    bg->y0 = (0x59 - (u16)D_801155B6) - gDisplayState.vramYOffset;
     bg->x1 = (u16)D_801155B2 - D_801155B2 * 2 + 0xAE;
-    bg->y1 = (0x59 - (u16)D_801155B6) - Display_State.vramYOffset;
+    bg->y1 = (0x59 - (u16)D_801155B6) - gDisplayState.vramYOffset;
     bg->x2 = (u16)D_801155B2 - 0xA7;
-    bg->y2 = 0x59 - Display_State.vramYOffset;
+    bg->y2 = 0x59 - gDisplayState.vramYOffset;
     bg->x3 = (u16)D_801155B2 - D_801155B2 * 2 + 0xAE;
-    bg->y3 = 0x59 - Display_State.vramYOffset;
+    bg->y3 = 0x59 - gDisplayState.vramYOffset;
     addPrim(&Gpu_CurrentOt[3], bg);
     bg2            = (POLY_G4*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(bg2 + 1);
@@ -958,15 +958,15 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
         base59     = 0x59;
         top        = base59 - (u16)D_801155B6;
         ft->x0     = (u16)D_801155B2 - 0xA7;
-        ft->y0     = (top - Display_State.vramYOffset) - Gp_CapGlyphs[title & 0xFF].h;
+        ft->y0     = (top - gDisplayState.vramYOffset) - Gp_CapGlyphs[title & 0xFF].h;
         titleWidth = Gp_CapGlyphs[title & 0xFF].w - 0xA7;
         ft->x1     = (u16)D_801155B2 + titleWidth;
-        ft->y1     = (top - Display_State.vramYOffset) - Gp_CapGlyphs[title & 0xFF].h;
+        ft->y1     = (top - gDisplayState.vramYOffset) - Gp_CapGlyphs[title & 0xFF].h;
         ft->x2     = (u16)D_801155B2 - 0xA7;
-        ft->y2     = (base59 - Display_State.vramYOffset) - (u16)D_801155B6;
+        ft->y2     = (base59 - gDisplayState.vramYOffset) - (u16)D_801155B6;
         titleWidth = Gp_CapGlyphs[title & 0xFF].w - 0xA7;
         ft->x3     = (u16)D_801155B2 + titleWidth;
-        ft->y3     = (base59 - Display_State.vramYOffset) - (u16)D_801155B6;
+        ft->y3     = (base59 - gDisplayState.vramYOffset) - (u16)D_801155B6;
         ft->u0     = Gp_CapGlyphs[title & 0xFF].u;
         ft->v0     = Gp_CapGlyphs[title & 0xFF].v;
         ft->u1     = Gp_CapGlyphs[title & 0xFF].u + Gp_CapGlyphs[title & 0xFF].w;
@@ -1081,7 +1081,7 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
                 ft->clut  = 0x3C00;
                 ft->tpage = 0x1E;
                 asm("" : "+m"(ft->tpage)::"memory");
-                t      = (y - Display_State.vramYOffset) + 1;
+                t      = (y - gDisplayState.vramYOffset) + 1;
                 ft->x0 = x;
                 ft->y0 = t - icon->h;
                 ft->x1 = x + icon->w;
@@ -1106,7 +1106,7 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
                 D_801155B8     = ((s16)code >> 11) & 0xE;
                 palette        = ((s16)code >> 10) & 3;
                 code           = code & 0x3FF;
-                glyphY         = y - Display_State.vramYOffset;
+                glyphY         = y - gDisplayState.vramYOffset;
                 gt             = (POLY_GT4*)Gpu_PrimCursor;
                 Gpu_PrimCursor = (DR_TPAGE*)(gt + 1);
                 setlen(gt, 12);
@@ -1159,7 +1159,7 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
 
     D_80115650 = x;
     D_801155BE = nChoice;
-    D_80115652 = y - Display_State.vramYOffset;
+    D_80115652 = y - gDisplayState.vramYOffset;
     return ret;
 }
 
@@ -1184,7 +1184,7 @@ void func_800E62C0(void)
         asm("" : "+r"(p)::"memory");
         x      = (D_801155C0 + D_801155D0)->x;
         y      = (D_801155C0 + D_801155D0)->y;
-        offset = Display_State.vramYOffset;
+        offset = gDisplayState.vramYOffset;
         choice = D_801155C0 + D_801155D0;
         asm("" : "+r"(p) : "r"(choice), "r"(offset), "r"(x), "r"(y), "r"(x), "r"(y));
         y = (offset + 2) * -1 + y;
@@ -1247,13 +1247,13 @@ void Gp_CapExit(Task* arg0)
         Mc_SaveData.at4.loc.view = D_8011566C;
         Gp_MsgPlayer3F3(1);
         Gp_MsgAlly3F3(1);
-        if (Display_State.field_112 != 0) {
+        if (gDisplayState.field_112 != 0) {
             func_8072455C(D_8011564A, D_8011566C);
             goto block_11;
         }
     } else {
     block_11:
-        if (Display_State.field_112 != 0 && D_801156F4 != 0) {
+        if (gDisplayState.field_112 != 0 && D_801156F4 != 0) {
             sprintf(
                 buf, Gp_StrEvsFmt, D_801156F4->field_0, D_801156F4->field_2,
                 D_801156F4->field_4);
@@ -1295,14 +1295,14 @@ void Gp_DrawCapCaret(void)
     x     = Gp_CapCaretX;
     y     = Gp_CapCaretY;
     p->x0 = x + 3;
-    p->y0 = y - Display_State.vramYOffset;
+    p->y0 = y - gDisplayState.vramYOffset;
     p->x1 = (mask = 0xFF0000, x);
     TOUCH_MEM(p->y0);
-    p->y1 = ((s8) * (volatile u8*)&Display_State.vramYOffset + 7) * -1 + y;
+    p->y1 = ((s8) * (volatile u8*)&gDisplayState.vramYOffset + 7) * -1 + y;
     p->x2 = x + 7;
     asm volatile("" : "+r"(mask) : "m"(p->y1));
     mask |= 0xFFFF;
-    p->y2 = ((s8) * (volatile u8*)&Display_State.vramYOffset + 7) * -1 + y;
+    p->y2 = ((s8) * (volatile u8*)&gDisplayState.vramYOffset + 7) * -1 + y;
 
     ot      = Gpu_CurrentOt;
     mask_hi = 0xFF000000;
@@ -1680,7 +1680,7 @@ void Gp_LoadCapFile(s32 arg0)
 
     count = 0;
     i     = count;
-    ds    = &Display_State;
+    ds    = &gDisplayState;
     for (; i < 50; i++) {
         out   = &Gp_CapFile;
         slot  = &D_8006C338[i];
@@ -1871,7 +1871,7 @@ void Gp_InitCapTask(Task* task)
 
 void Gp_CapTaskState1(void)
 {
-    if (Display_State.field_112 != 0) {
+    if (gDisplayState.field_112 != 0) {
         func_80724120();
         func_80724324();
     }

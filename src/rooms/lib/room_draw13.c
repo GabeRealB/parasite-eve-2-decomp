@@ -16,7 +16,7 @@
 /// the GTE flag is non-negative, queues four gouraud `POLY_G4` wedges around
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `(s16)arg1 * 64 / otz`. `arg2` packs three RGB nibbles for the inner
-/// vertex, OR'd with `((u8)Display_State.field_8 & 1) * 8`. Shared body,
+/// vertex, OR'd with `((u8)gDisplayState.animFrame & 1) * 8`. Shared body,
 /// linked into every room overlay that uses it.
 void Room_Draw13(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
@@ -53,10 +53,10 @@ void Room_Draw13(SVECTOR* arg0, s32 arg1, s32 arg2)
         gte_stszotz(&block->otz);
         arg1 = ((s16)arg1 * 64) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
         ang  = 0;
-        tmp  = (u8*)&Display_State;
+        tmp  = (u8*)&gDisplayState;
         SOFT_TOUCH_REG(tmp);
         ds            = (DisplayState*)tmp;
-        blend         = (*(u8*)&ds->field_8 & 1) * 8;
+        blend         = (*(u8*)&ds->animFrame & 1) * 8;
         packed        = arg2 << 16;
         tr            = (packed >> 20) & 0xF0;
         tg            = (packed >> 16) & 0xF0;
@@ -83,7 +83,7 @@ void Room_Draw13(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
             prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz << ds->field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);

@@ -248,9 +248,9 @@ void Gp_FinishLoadWait(Task* task)
         Display_ResetHeapWrapper();
     } else {
         if (task->spawnArg1 == 1) {
-            Display_State.field_103 = 1;
+            gDisplayState.at100.flags.flipMode = 1;
         }
-        Display_State.field_100 = 2;
+        gDisplayState.at100.flags.imageSource = 2;
         Task_Spawn(0, 0x17, 0, 0);
         gGameSession->viewReady = 1;
         Task_Kill(task);
@@ -298,7 +298,7 @@ void Gp_ReloadAtLoc(s32 arg0)
     slot->spawnArg1            = (u8)arg0;
     Pad_SetCooldown(0);
     Gp_SpawnCurView(1);
-    Display_State.field_100 = 1;
+    gDisplayState.at100.flags.imageSource = 1;
     Task_Spawn(0, 0x1E, 0, 0);
 }
 
@@ -322,9 +322,9 @@ void Gp_SetupSprtDisplay(Task* task)
     DisplayState* ds;
     s32           flag;
 
-    ds            = &Display_State;
-    flag          = (s8)ds->field_122;
-    ds->field_103 = 2;
+    ds                       = &gDisplayState;
+    flag                     = (s8)ds->keepGraphics;
+    ds->at100.flags.flipMode = 2;
     if (flag == 0) {
         Gpu_ResetGraphAndOt();
         Tmd_AllocMissingBuffers();
@@ -739,10 +739,10 @@ void func_800AA548(s32 arg0)
     s32              warp;
     u32              playerId;
 
-    session                 = gGameSession;
-    session->deathVariant   = 0;
-    Display_State.field_128 = 0;
-    sess                    = &session->at4.loc;
+    session                    = gGameSession;
+    session->deathVariant      = 0;
+    gDisplayState.otDepthShift = 0;
+    sess                       = &session->at4.loc;
     if (Player_Status.hp <= 0) {
         Player_Status.hp = 1;
     }
@@ -764,7 +764,7 @@ void func_800AA548(s32 arg0)
     stage = sess->stage;
     warp  = sess->warp;
     rec   = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
-    if (!(((GpDisplayFlagsWord*)&Display_State)->field_100 & 0xFFFF00)) {
+    if (!(gDisplayState.at100.word & 0xFFFF00)) {
         if (((*(s32*)&gGameSession->at4.loc.view & ~0xFF) == 0x03180200) && (gGameSession->at4.loc.warp == 2)) {
             Mc_SaveData.at4.loc.view = gGameSession->at4.loc.view = 2;
         } else {
@@ -773,7 +773,7 @@ void func_800AA548(s32 arg0)
     }
     Gp_ActorSlots[0] = NULL;
     Gp_ActorSlots[1] = NULL;
-    if (Display_State.field_101 == 1) {
+    if (gDisplayState.at100.flags.pendingPlayerPos == 1) {
         pos                = &D_80073B18[Mc_SaveData.field_22];
         D_80114CB0.field_0 = (s32)pos->field_6;
         D_80114CB0.field_4 = (s32)pos->field_0;
@@ -783,7 +783,7 @@ void func_800AA548(s32 arg0)
         flags.field_2      = 0;
         Gp_SpawnPlayer((GpActorArg*)&D_80114CB0, Mc_SaveData.field_22 & 0xFFFF, 0, &flags);
         Gp_SetupCompanionActor((GpActorArg*)&rec.field_14, &flags.field_0);
-        Display_State.field_101 = 0;
+        gDisplayState.at100.flags.pendingPlayerPos = 0;
     } else {
         playerId      = (u8)Mc_SaveData.field_22;
         flags.field_0 = 1;
@@ -835,8 +835,8 @@ void Gp_BeginSessionTask(Task* arg0)
 
     queue = &CdCmd_Queue;
     Game_ClearPtrSlots();
-    ds            = &Display_State;
-    ds->field_10b = 1;
+    ds               = &gDisplayState;
+    ds->stopTaskWalk = 1;
     Task_ResetDefaultList();
     Gpu_ClearOTag(0);
     Gpu_ClearOTag(1);
@@ -844,18 +844,18 @@ void Gp_BeginSessionTask(Task* arg0)
     Mem_Init();
     CdCmd_ActivatePhase1();
     gGameSession->at4.raw     = Mc_SaveData.at4.raw;
-    gGameSession->sprtVariant = ds->field_10e;
+    gGameSession->sprtVariant = ds->roomVariant;
     queue->field_20A          = one;
     if ((arg0->spawnArg1 & 0xF) == 0) {
         MoveImage(
-            (RECT*)&Display_State.dispEnv[ds->field_1f ^ 1],
-            ds->dispEnv[ds->field_1f].disp.x,
-            ds->dispEnv[ds->field_1f].disp.y);
-        ds->field_100 = 0;
+            (RECT*)&gDisplayState.dispEnv[ds->drawBuffer ^ 1],
+            ds->dispEnv[ds->drawBuffer].disp.x,
+            ds->dispEnv[ds->drawBuffer].disp.y);
+        ds->at100.flags.imageSource = 0;
         Display_SetMode(0xD010);
     }
     Task_Spawn(0, 0x1C, arg0->spawnArg1 & 0xF, 0);
-    ds->field_104    = 0;
+    ds->skipDraw     = 0;
     queue->field_244 = one;
     queue->field_248 = one;
     D_8007A394       = 0;
@@ -901,8 +901,8 @@ void Gp_LoadWaitBoot(Task* task)
     }
     color  = 8;
     queued = CdCmd_Queue.field_224;
-    ds     = &Display_State;
-    buf    = ds->field_114;
+    ds     = &gDisplayState;
+    buf    = ds->otBuffer;
     tile   = &Gp_FadeTiles[buf];
     dr     = &Gp_FadeTpages[buf];
     if (queued == 0) {
@@ -935,8 +935,8 @@ void Gp_LoadWaitStage(Task* task)
 
     color  = 8;
     queued = CdCmd_Queue.field_224;
-    ds     = &Display_State;
-    buf    = ds->field_114;
+    ds     = &gDisplayState;
+    buf    = ds->otBuffer;
     tile   = &Gp_FadeTiles[buf];
     dr     = &Gp_FadeTpages[buf];
     if (queued == 0) {
@@ -979,8 +979,8 @@ void Gp_LoadState2(Task* task)
 
     color  = 8;
     queued = CdCmd_Queue.field_224;
-    ds     = &Display_State;
-    buf    = ds->field_114;
+    ds     = &gDisplayState;
+    buf    = ds->otBuffer;
     tile   = &Gp_FadeTiles[buf];
     dr     = &Gp_FadeTpages[buf];
     if (queued == 0) {
@@ -1043,8 +1043,8 @@ void Gp_LoadWaitCompanion(Task* task)
 
     color  = 8;
     queued = CdCmd_Queue.field_224;
-    ds     = &Display_State;
-    buf    = ds->field_114;
+    ds     = &gDisplayState;
+    buf    = ds->otBuffer;
     tile   = &Gp_FadeTiles[buf];
     dr     = &Gp_FadeTpages[buf];
     if (queued == 0) {
@@ -1114,8 +1114,8 @@ void Gp_LoadWaitSave(Task* task)
 
     color  = 8;
     queued = CdCmd_Queue.field_224;
-    ds     = &Display_State;
-    buf    = ds->field_114;
+    ds     = &gDisplayState;
+    buf    = ds->otBuffer;
     tile   = &Gp_FadeTiles[buf];
     dr     = &Gp_FadeTpages[buf];
     if (queued == 0) {
@@ -1192,8 +1192,8 @@ void Gp_LoadWaitAreaCd(Task* task)
 
     color  = 8;
     queued = CdCmd_Queue.field_224;
-    ds     = &Display_State;
-    buf    = ds->field_114;
+    ds     = &gDisplayState;
+    buf    = ds->otBuffer;
     tile   = &Gp_FadeTiles[buf];
     dr     = &Gp_FadeTpages[buf];
     if (queued == 0) {
@@ -1241,8 +1241,8 @@ void Gp_LoadWaitAreaCd(Task* task)
         if (done & 0xFFFF) {
             Gp_ClearObjHeads();
             Tmd_InitLists();
-            ds2 = &Display_State;
-            Gp_DrawActorTmdActive(&Gpu_OtBuffers[ds2->field_1f]);
+            ds2 = &gDisplayState;
+            Gp_DrawActorTmdActive(&Gpu_OtBuffers[ds2->drawBuffer]);
             task->state++;
             if (Mc_SaveData.field_5C3 != 0) {
                 ds2->dispEnv[1].isinter = 1;
@@ -1263,9 +1263,9 @@ void Gp_FadeGrayHold(Task* task)
     s8            yoff;
 
     queue = &CdCmd_Queue;
-    ds    = &Display_State;
+    ds    = &gDisplayState;
     color = 0x64;
-    buf   = ds->field_114;
+    buf   = ds->otBuffer;
     tile  = &Gp_FadeTiles[buf];
     dr    = &Gp_FadeTpages[buf];
     if (queue->field_224 == 0) {
@@ -1312,7 +1312,7 @@ void Gp_InitStageVisit(GpAreaKey* arg0)
         bank->field_4[0] = 0;
         bank->field_4[1] = 0;
         Gp_ApplyBit2Bank(arg0->stage);
-        if (Display_State.field_112 != 0) {
+        if (gDisplayState.field_112 != 0) {
             func_80724748(arg0);
         }
     }
@@ -1471,7 +1471,7 @@ void Gp_MarkAreaVisited(GpAreaKey* arg0)
     save = &Mc_SaveData;
     if ((((s8)save->field_10 >> arg0->stage) & 1) == 0) {
         save->field_10 |= 1 << arg0->stage;
-        if (Display_State.field_112 != 0) {
+        if (gDisplayState.field_112 != 0) {
             func_80724E2C();
         }
     }
@@ -1505,13 +1505,13 @@ void Gp_SessionState1(Task* task)
     DisplayState* ds;
     s32           temp;
 
-    ds            = &Display_State;
-    ds->field_104 = 1;
-    ds->field_1d |= 0x80;
-    temp          = task->spawnArg1 & 0xF;
+    ds             = &gDisplayState;
+    ds->skipDraw   = 1;
+    ds->holdState |= 0x80;
+    temp           = task->spawnArg1 & 0xF;
     if (temp != 0) {
         if (temp == 1) {
-            ds->field_100 = 0;
+            ds->at100.flags.imageSource = 0;
         }
     }
     task->state++;
@@ -1555,8 +1555,8 @@ void Gp_LoadFinishTask(Task* task)
         } else {
             func_800AA548(0);
         }
-        Display_State.field_11d = 0;
-        Display_State.field_1d &= 0x7F;
+        gDisplayState.holdCount  = 0;
+        gDisplayState.holdState &= 0x7F;
         Display_AcquireRef();
         Task_Spawn(0, 0x21, 0, 0);
         if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x1050000) {
@@ -1574,12 +1574,12 @@ void Gp_LoadStateTask(Task* task)
 
     sp = Gp_LoadStateFns;
     Pad_SetCooldown(0);
-    ds = &Display_State;
-    if (ds->field_12c != 0) {
+    ds = &gDisplayState;
+    if (ds->demoScene != 0) {
         if (Pad_ReadButtonsInv(0) & 0x800) {
             if (CdCmd_IsIdle() & 0xFFFF) {
                 Wip_SysFlags.field_4 = 1;
-                ds->field_11e        = 1;
+                ds->gameMode         = 1;
                 return;
             }
         }
@@ -1729,8 +1729,8 @@ void Gp_LinkViewSprts(void)
     sess          = &gGameSession->at4.loc;
     view          = Gp_GetViewIndex();
     table         = Gp_SprtLists;
-    ds            = &Display_State;
-    Gp_SprtCursor = table[ds->field_1f];
+    ds            = &gDisplayState;
+    Gp_SprtCursor = table[ds->drawBuffer];
     tbl           = Gp_SprtTables[sess->stage - 1];
     recs          = tbl->field_0[sess->area - 1];
     rec           = recs[(u8)view - 1].field_4;
@@ -1738,7 +1738,7 @@ void Gp_LinkViewSprts(void)
     if (rec->field_2 == 0) {
         rec++;
     } else {
-        ds->field_100 = 0;
+        ds->at100.flags.imageSource = 0;
     }
     if (rec->field_0 != 0xFFFF) {
         do {
@@ -1767,7 +1767,7 @@ void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
     elem           = arg0 + arg1->field_0;
     Gpu_PrimCursor = (DR_TPAGE*)(dest + arg1->field_2);
     if (arg1->field_2 != 0) {
-        ds     = &Display_State;
+        ds     = &gDisplayState;
         mask   = 0xFFFFFF;
         maskHi = 0xFF000000;
         cur    = elem;
@@ -1790,9 +1790,9 @@ void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
             TOUCH_REG(i);
             *(u32*)&sprt->w = *(u32*)&cur->w;
             elem++;
-            dest->tpage.tag = (dest->tpage.tag & maskHi) | (*(u_long*)(((((u32)cur->otz << ds->field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt) & mask);
-            *(u_long*)(((((u32)cur->otz << ds->field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt) =
-                (*(u_long*)(((((u32)cur->otz << ds->field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt) & maskHi) | ((u32)dest & mask);
+            dest->tpage.tag = (dest->tpage.tag & maskHi) | (*(u_long*)(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt) & mask);
+            *(u_long*)(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt) =
+                (*(u_long*)(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt) & maskHi) | ((u32)dest & mask);
             dest++;
             cur++;
         } while (i < arg1->field_2);
@@ -1813,7 +1813,7 @@ void Gp_SetSprtShadeBits(s32 arg0)
 
     sess          = &gGameSession->at4.loc;
     view          = Gp_GetViewIndex();
-    prim          = Gp_SprtLists[Display_State.field_1f];
+    prim          = Gp_SprtLists[gDisplayState.drawBuffer];
     Gp_SprtCursor = prim;
     tbl           = Gp_SprtTables[sess->stage - 1];
     recs          = tbl->field_0[sess->area - 1];
@@ -2107,14 +2107,14 @@ void func_800AD024(void)
     if (area != NULL) {
         for (; area->depth != 0xFFFF; area++) {
             rect = area->rect;
-            if (Display_State.field_1f != 0) {
+            if (gDisplayState.drawBuffer != 0) {
                 rect.y += 0x110;
             }
             prim           = (DR_AREA*)Gpu_PrimCursor;
             Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
             SetDrawArea(prim, &rect);
             addPrim(&Gpu_CurrentOt[0x3FF], prim);
-            if (Display_State.field_1f != 0) {
+            if (gDisplayState.drawBuffer != 0) {
                 rect.y = 0x110;
             } else {
                 rect.y = 0;
@@ -2125,7 +2125,7 @@ void func_800AD024(void)
             prim           = (DR_AREA*)Gpu_PrimCursor;
             Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
             SetDrawArea(prim, &rect);
-            addPrim((u_long*)((((u32)area->depth << Display_State.field_128) >> 2 & 0xFFC) + (u32)Gpu_CurrentOt), prim);
+            addPrim((u_long*)((((u32)area->depth << gDisplayState.otDepthShift) >> 2 & 0xFFC) + (u32)Gpu_CurrentOt), prim);
         }
     }
 }
@@ -2205,15 +2205,15 @@ void Gp_LinkSprtCmd(GpSprtElem* arg0, GpSprtCmd* arg1)
     prim = Gp_SprtCursor;
     elem = arg0 + arg1->field_0;
     if (arg1->field_2 != 0) {
-        ds     = &Display_State;
+        ds     = &gDisplayState;
         otBase = Gpu_CurrentOt;
         mask   = 0xFFFFFF;
         maskHi = 0xFF000000;
         do {
             if (arg1->field_4 == 0) {
-                prim->tag = (prim->tag & maskHi) | (*(u_long*)(((((u32)elem->otz << ds->field_128) >> 2) & 0xFFC) + (s32)otBase) & mask);
-                *(u_long*)(((((u32)elem->otz << ds->field_128) >> 2) & 0xFFC) + (s32)otBase) =
-                    (*(u_long*)(((((u32)elem->otz << ds->field_128) >> 2) & 0xFFC) + (s32)otBase) & maskHi) | ((u32)prim & mask);
+                prim->tag = (prim->tag & maskHi) | (*(u_long*)(((((u32)elem->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)otBase) & mask);
+                *(u_long*)(((((u32)elem->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)otBase) =
+                    (*(u_long*)(((((u32)elem->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)otBase) & maskHi) | ((u32)prim & mask);
             }
             prim++;
             i++;
@@ -2231,7 +2231,7 @@ void func_800AD50C(Task* task)
     if (gGameSession->freezeRoomObjs == 0) {
         funcs.funcs[task->state](task);
     } else {
-        Display_State.field_100 = 0;
+        gDisplayState.at100.flags.imageSource = 0;
     }
 }
 
@@ -2256,7 +2256,7 @@ void func_800AD620(Task* task)
 
     val = Gp_ViewSprtCmdEmpty();
     do {
-        Display_State.field_100 = val;
+        gDisplayState.at100.flags.imageSource = val;
     } while (0);
     task->state++;
 }
@@ -2266,12 +2266,12 @@ void func_800AD65C(Task* task)
     DisplayState* ds;
     s32           val;
 
-    ds = &Display_State;
-    if ((ds->field_1e != 2) && (ds->field_104 == 0)) {
+    ds = &gDisplayState;
+    if ((ds->displayOwner != 2) && (ds->skipDraw == 0)) {
         Gp_LinkViewSprts();
     } else {
-        val                     = Gp_ViewSprtCmdEmpty();
-        Display_State.field_100 = val;
+        val                                   = Gp_ViewSprtCmdEmpty();
+        gDisplayState.at100.flags.imageSource = val;
     }
 }
 
@@ -2293,7 +2293,7 @@ void func_800AD6BC(void)
             D_80114D08 = 0xA;
         }
     }
-    if (Display_State.field_10d != 0) {
+    if (gDisplayState.pendingMode != 0) {
         D_80114D08 = 0xA;
     }
     if (D_80114CF8 == 0) {
@@ -2312,7 +2312,7 @@ void func_800AD6BC(void)
                 flags       = Gp_DirFlags;
                 mask        = flags & 0x8000;
                 if (Gp_StateF0.field_1 == 0) {
-                    if (mask && (Display_State.field_10d == 0) && !(gGameSession->padPrev & 0x10)) {
+                    if (mask && (gDisplayState.pendingMode == 0) && !(gGameSession->padPrev & 0x10)) {
                         if (!(flags & 0x4000)) {
                             D_80114CF8 = 1;
                         } else if (Gp_StateF0.field_0 != 1) {

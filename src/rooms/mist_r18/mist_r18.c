@@ -260,7 +260,7 @@ void func_mist_r18_8017DD7C(Task* task)
     s16      x;
     s16      y;
 
-    if (Display_State.field_1f == 0) {
+    if (gDisplayState.drawBuffer == 0) {
         x = 0;
         y = 0;
     } else {

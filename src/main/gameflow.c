@@ -26,17 +26,17 @@ void GameFlow_StateByField34(Task* arg0)
     if (arg0->spawnArg1 == 2) {
         if (arg0->state == 0) {
             Pad_SetCooldown(0);
-            if (Display_State.field_12c == 0) {
-                Display_State.field_12c = 1;
+            if (gDisplayState.demoScene == 0) {
+                gDisplayState.demoScene = 1;
             }
-            if (Display_State.field_12c < 0x10) {
-                Title_EnqueueDemoScene(Display_State.field_12c - 1);
+            if (gDisplayState.demoScene < 0x10) {
+                Title_EnqueueDemoScene(gDisplayState.demoScene - 1);
             }
             arg0->state = arg0->state + 1;
         }
         if (CdCmd_IsIdle() != 0) {
-            if (Display_State.field_10e == 0) {
-                Display_State.field_10e = 1;
+            if (gDisplayState.roomVariant == 0) {
+                gDisplayState.roomVariant = 1;
             }
             Title_RestoreDemoCard();
             {
@@ -48,15 +48,15 @@ void GameFlow_StateByField34(Task* arg0)
                     *clearPtr++ = 0;
                 }
             }
-            ds                           = &Display_State;
-            ds->field_101                = 0;
-            ds->field_12e                = 0;
-            one                          = 1;
-            gGameSession->applySavePlace = one;
-            gGameSession->field_80       = 0;
+            ds                               = &gDisplayState;
+            ds->at100.flags.pendingPlayerPos = 0;
+            ds->gameRunning                  = 0;
+            one                              = 1;
+            gGameSession->applySavePlace     = one;
+            gGameSession->field_80           = 0;
             Snd_SetMutedVolumes(1);
-            ds->field_101 = 0;
-            ds->field_10b = one;
+            ds->at100.flags.pendingPlayerPos = 0;
+            ds->stopTaskWalk                 = one;
             Task_Kill(arg0);
             Task_ResetDefaultList();
             Tmd_InitLists();
@@ -64,7 +64,7 @@ void GameFlow_StateByField34(Task* arg0)
             Task_Spawn(0, 9, 0, 0);
         }
     } else {
-        Display_State.field_12c = 0;
+        gDisplayState.demoScene = 0;
         Pad_SetCooldown(0);
         if (arg0->spawnArg1 == 0) {
             saved = Mc_SaveData.field_21;
@@ -72,11 +72,11 @@ void GameFlow_StateByField34(Task* arg0)
             for (i = 0; i < sizeof(GameSession); i++) {
                 *ptr++ = 0;
             }
-            Display_State.field_101 = 0;
-            Display_State.field_12e = 1;
-            p->field_248            = 1;
-            p->field_244            = 1;
-            Wip_SysFlags.field_4    = 1;
+            gDisplayState.at100.flags.pendingPlayerPos = 0;
+            gDisplayState.gameRunning                  = 1;
+            p->field_248                               = 1;
+            p->field_244                               = 1;
+            Wip_SysFlags.field_4                       = 1;
             Mc_InitBufferSlots();
             do {
                 Mc_SaveData.field_21 = saved;
@@ -92,14 +92,14 @@ void GameFlow_StateByField34(Task* arg0)
                     *clearPtr++ = 0;
                 }
             }
-            Display_State.field_12e      = 1;
-            Display_State.field_101      = 0;
-            p->field_248                 = 1;
-            p->field_244                 = 1;
-            Wip_SysFlags.field_4         = 1;
-            gGameSession->applySavePlace = 1;
+            gDisplayState.gameRunning                  = 1;
+            gDisplayState.at100.flags.pendingPlayerPos = 0;
+            p->field_248                               = 1;
+            p->field_244                               = 1;
+            Wip_SysFlags.field_4                       = 1;
+            gGameSession->applySavePlace               = 1;
         }
-        Display_State.field_10b = 1;
+        gDisplayState.stopTaskWalk = 1;
         Task_Kill(arg0);
         Task_ResetDefaultList();
         Tmd_InitLists();
@@ -122,7 +122,7 @@ void Fade_DrawOverlay(s32 r, s32 g, s32 b, s32 mode)
     p->r0 = r;
     p->g0 = g;
     p->b0 = b;
-    yoff  = Display_State.vramYOffset;
+    yoff  = gDisplayState.vramYOffset;
     p->w  = 0x140;
     p->h  = 0xF0;
     p->y0 = -0x78 - yoff;
@@ -143,7 +143,7 @@ void Game_ClearSession(void)
     for (i = 0; i < sizeof(GameSession); i++) {
         *ptr++ = 0;
     }
-    Display_State.field_101 = 0;
+    gDisplayState.at100.flags.pendingPlayerPos = 0;
 }
 
 void GameFlow_InitSystems(void)
@@ -167,11 +167,11 @@ void Game_ResetSessionAndBuffers(Task* arg0)
     for (i = 0; i < sizeof(GameSession); i++) {
         *ptr++ = 0;
     }
-    Display_State.field_101 = 0;
-    Display_State.field_12e = 1;
-    p->field_248            = 1;
-    p->field_244            = 1;
-    Wip_SysFlags.field_4    = 1;
+    gDisplayState.at100.flags.pendingPlayerPos = 0;
+    gDisplayState.gameRunning                  = 1;
+    p->field_248                               = 1;
+    p->field_244                               = 1;
+    Wip_SysFlags.field_4                       = 1;
     Mc_InitBufferSlots();
     do {
         Mc_SaveData.field_21 = saved;
@@ -187,10 +187,10 @@ void GameFlow_SpawnMenu(Task* arg0)
     temp_v0         = Ui_SpawnFromDesc(D_800611C8, 0, 1, 0, 0);
     arg0->spawnArg2 = temp_v0;
     if (temp_v0 != 0) {
-        Display_State.field_11e = 0xFF;
-        gGameSession->uiOpen    = 1;
-        arg0->killCountdown     = 0x10;
-        arg0->state             = arg0->state + 1;
+        gDisplayState.gameMode = 0xFF;
+        gGameSession->uiOpen   = 1;
+        arg0->killCountdown    = 0x10;
+        arg0->state            = arg0->state + 1;
     }
 }
 
@@ -201,8 +201,8 @@ void GameFlow_WaitMenuDone(Task* arg0)
     obj = arg0->spawnArg2;
     if (obj->field_2E == -1) {
         Ui_TeardownTree(obj, obj->owner);
-        Display_State.field_11e = 0;
-        gGameSession->uiOpen    = 0;
+        gDisplayState.gameMode = 0;
+        gGameSession->uiOpen   = 0;
         if (Mc_SaveData.field_1a9 == 1) {
             CdVol_SetMixMode(0);
         } else {
@@ -226,13 +226,13 @@ void GameFlow_CountdownAdvance(Task* arg0)
 
 void GameFlow_SpawnMainWhenReady(Task* arg0)
 {
-    if (Display_State.field_101 == 0) {
+    if (gDisplayState.at100.flags.pendingPlayerPos == 0) {
         Task_Spawn(0, 2, 0, 0);
         Display_SetMode(0x5010);
         Task_Kill(arg0);
         return;
     }
-    Display_State.field_10b = 1;
+    gDisplayState.stopTaskWalk = 1;
     Task_Kill(arg0);
     Task_ResetDefaultList();
     Tmd_InitLists();
@@ -527,7 +527,7 @@ void Pad_UpdatePort0(void)
 
     head    = (void**)G_SCRATCH_HEAD;
     i       = 0;
-    ds      = &Display_State;
+    ds      = &gDisplayState;
     raw     = Pad_RawPorts;
     offset  = i;
     tmp     = *head;
@@ -561,7 +561,7 @@ void Pad_UpdatePort0(void)
 
             if (i == 0) {
                 if (Pad_RemapState->field_8 != 0) {
-                    if (ds->field_1e == 0) {
+                    if (ds->displayOwner == 0) {
                         pad->field_52 = 0;
                         pad->field_50 = 0;
                         pad->field_56 = 0;
@@ -580,7 +580,7 @@ void Pad_UpdatePort0(void)
 
             if (*(s8*)&gGameSession->uiOpen != 0) {
                 if ((scratch->prevButtons & 0xF000) == (scratch->buttons & 0xF000)) {
-                    pad->autoRepeat = pad->autoRepeat + ds->field_10a;
+                    pad->autoRepeat = pad->autoRepeat + ds->frameTicks;
                 } else {
                     pad->autoRepeat = 0;
                 }

@@ -136,7 +136,7 @@ void Task_Kill(Task* arg0)
         Mem_Free(arg0->work);
     }
 
-    if (Display_State.skipTeardown == 0) {
+    if (gDisplayState.skipTeardown == 0) {
         type = arg0->spawnType;
         if (type == 1) {
             goto case1;
@@ -380,16 +380,16 @@ void Task_ExecList(TaskNode* node)
     curr            = node->next;
     Task_ActiveList = node;
     if (curr != NULL) {
-        tmp_ptr = &Display_State;
+        tmp_ptr = &gDisplayState;
     loop_2:
         curr->callback(curr);
-        if (tmp_ptr->field_10b == 1) {
-            tmp_ptr->field_10b = 0;
+        if (tmp_ptr->stopTaskWalk == 1) {
+            tmp_ptr->stopTaskWalk = 0;
             return;
         }
         if (curr->spawnType == 0xFF) {
-            next               = curr->node.next;
-            tmp_ptr->field_10b = 0;
+            next                  = curr->node.next;
+            tmp_ptr->stopTaskWalk = 0;
             Task_Unlink(curr);
             Task_Free(curr);
             curr = next;
@@ -502,16 +502,16 @@ void Task_ExecDefaultList(TaskNode* node)
     curr            = Task_DefaultList.next;
     Task_ActiveList = &Task_DefaultList;
     if (curr != NULL) {
-        tmp_ptr = &Display_State;
+        tmp_ptr = &gDisplayState;
     loop_2:
         curr->callback(curr);
-        if (tmp_ptr->field_10b == 1) {
-            tmp_ptr->field_10b = 0;
+        if (tmp_ptr->stopTaskWalk == 1) {
+            tmp_ptr->stopTaskWalk = 0;
             return;
         }
         if (curr->spawnType == 0xFF) {
-            next               = curr->node.next;
-            tmp_ptr->field_10b = 0;
+            next                  = curr->node.next;
+            tmp_ptr->stopTaskWalk = 0;
             Task_Unlink(curr);
             Task_Free(curr);
             curr = next;
@@ -537,18 +537,18 @@ void Task_ExecListFiltered(TaskNode* node, s32 arg1)
     Task_ActiveList = node;
     if (curr != NULL) {
         filter  = arg1 & 0xFF;
-        tmp_ptr = &Display_State;
+        tmp_ptr = &gDisplayState;
     loop_2:
         if (curr->priority == (u8)filter) {
             curr->callback(curr);
         }
-        if (tmp_ptr->field_10b == 1) {
-            tmp_ptr->field_10b = 0;
+        if (tmp_ptr->stopTaskWalk == 1) {
+            tmp_ptr->stopTaskWalk = 0;
             goto end;
         }
         if (curr->spawnType == 0xFF) {
-            next               = curr->node.next;
-            tmp_ptr->field_10b = 0;
+            next                  = curr->node.next;
+            tmp_ptr->stopTaskWalk = 0;
             Task_Unlink(curr);
             Task_Free(curr);
             curr = next;
@@ -576,18 +576,18 @@ void Task_CallExitFiltered(TaskNode* node, s32 arg1)
     Task_ActiveList = node;
     if (curr != NULL) {
         filter  = arg1 & 0xFF;
-        tmp_ptr = &Display_State;
+        tmp_ptr = &gDisplayState;
     loop_2:
         if (curr->priority == (u8)filter) {
             Task_CallExit(curr);
         }
-        if (tmp_ptr->field_10b == 1) {
-            tmp_ptr->field_10b = 0;
+        if (tmp_ptr->stopTaskWalk == 1) {
+            tmp_ptr->stopTaskWalk = 0;
             goto end;
         }
         if (curr->spawnType == 0xFF) {
-            next               = curr->node.next;
-            tmp_ptr->field_10b = 0;
+            next                  = curr->node.next;
+            tmp_ptr->stopTaskWalk = 0;
             Task_Unlink(curr);
             Task_Free(curr);
             curr = next;

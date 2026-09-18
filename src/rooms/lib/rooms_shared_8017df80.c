@@ -14,7 +14,7 @@ void RoomsShared8017df80(s32 shade)
     u8    u;
     u8    v;
 
-    if (Display_State.field_1f == 0) {
+    if (gDisplayState.drawBuffer == 0) {
         tpageY = 0;
         u      = 0;
         v      = 0;

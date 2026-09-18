@@ -224,7 +224,7 @@ void func_acropolis_patio_8017E730(Task* task)
             prim->r0    = level;
             prim->g0    = level;
             prim->b0    = level;
-            addPrim((u_long*)(((((u32)sc->otz << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 0, sc->otz);

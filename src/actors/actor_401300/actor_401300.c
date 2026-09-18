@@ -817,26 +817,26 @@ void func_actor_401300_80133A3C(Actor401300* arg0)
     inRange = Actor401300_InRange(arg0);
     if (inRange == 1) {
         if (work->field_8A2 == 2) {
-            if ((u32)Display_State.field_8 % 6 == 0) {
+            if ((u32)gDisplayState.animFrame % 6 == 0) {
                 Actor401300_SpawnEffVar(&D_8011574C, &arg0->field_2C->field_8[18], 0x40, 0, 0x1C2, -100);
             }
-            if ((u32)Display_State.field_8 % 6 == 3) {
+            if ((u32)gDisplayState.animFrame % 6 == 3) {
                 Actor401300_SpawnEffVar(&D_8011574C, &arg0->field_2C->field_8[15], 0x40, 0, 0x1C2, -100);
             }
         } else if (work->field_8A2 == 3) {
-            if ((Display_State.field_8 & 1) == inRange) {
+            if ((gDisplayState.animFrame & 1) == inRange) {
                 Actor401300_SpawnEffVar(&D_80115738, &arg0->field_2C->field_8[18], 0x1202180, 0, 0x1C2, -100);
                 Actor401300_SpawnEffVar(&D_8011574C, &arg0->field_2C->field_8[18], 0x40, 0, 0x1C2, -100);
             }
-            if (!(Display_State.field_8 & 1)) {
+            if (!(gDisplayState.animFrame & 1)) {
                 Actor401300_SpawnEffVar(&D_80115738, &arg0->field_2C->field_8[15], 0x1202180, 0, 0x1C2, -100);
                 Actor401300_SpawnEffVar(&D_8011574C, &arg0->field_2C->field_8[15], 0x40, 0, 0x1C2, -100);
             }
         } else if (work->field_8A2 == 9 || work->field_8A2 == 25 || work->field_8A2 == 26) {
-            if ((u32)Display_State.field_8 % 5 == 0) {
+            if ((u32)gDisplayState.animFrame % 5 == 0) {
                 Actor401300_SpawnEffVar(&D_8011574C, &arg0->field_2C->field_8[18], 0x40, 0, 0x1C2, -100);
             }
-            if ((u32)Display_State.field_8 % 6 == 3) {
+            if ((u32)gDisplayState.animFrame % 6 == 3) {
                 Actor401300_SpawnEffVar(&D_8011574C, &arg0->field_2C->field_8[15], 0x40, 0, 0x1C2, -100);
             }
         }

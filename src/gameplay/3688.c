@@ -329,7 +329,7 @@ void Gp_MenuRootTask(Task* arg0)
             if (arg0->killCountdown > 0) {
                 return;
             }
-            Display_State.field_103 = 2;
+            gDisplayState.at100.flags.flipMode = 2;
             Stage_InitOtOnce();
             Stage_InitPrimBufOnce();
             arg0->state += 5;
@@ -340,23 +340,23 @@ void Gp_MenuRootTask(Task* arg0)
             UiObject*     obj;
             s32           arg;
 
-            disp            = &Display_State;
-            disp->field_103 = 2;
+            disp                       = &gDisplayState;
+            disp->at100.flags.flipMode = 2;
             if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
                 return;
             }
-            if (disp->frameMode != disp->field_1f) {
+            if (disp->frameBuffer != disp->drawBuffer) {
                 return;
             }
-            rect.y = (disp->frameMode ^ 1) * 0x110;
+            rect.y = (disp->frameBuffer ^ 1) * 0x110;
             rect.w = 0x140;
             rect.x = 0;
             rect.h = 0xF0;
             ClearImage(&rect, 0, 0, 0);
             DrawSync(0);
             Mem_InitAux();
-            if (disp->field_12c != 0) {
-                disp->field_11e = 1;
+            if (disp->demoScene != 0) {
+                disp->gameMode = 1;
                 break;
             }
             arg = arg0->spawnArg1;
@@ -412,8 +412,8 @@ void Gp_MenuRootTask(Task* arg0)
                         a3   = 2;
                         flag = 1;
                     }
-                    disp->field_122 = flag;
-                    obj             = Ui_SpawnFromDesc(desc, a1, a2, a3, 0);
+                    disp->keepGraphics = flag;
+                    obj                = Ui_SpawnFromDesc(desc, a1, a2, a3, 0);
                 }
             }
             if (obj == NULL) {
@@ -427,8 +427,8 @@ void Gp_MenuRootTask(Task* arg0)
             break;
         }
         case 0x1E:
-            Display_State.field_103 = 1;
-            arg0->state            += 0xA;
+            gDisplayState.at100.flags.flipMode = 1;
+            arg0->state                       += 0xA;
         case 0x28: {
             UiObject*    obj;
             register s32 fade asm("a0");
@@ -466,11 +466,11 @@ void Gp_MenuRootTask(Task* arg0)
             }
             {
                 DisplayState* d;
-                d = &Display_State;
-                if (d->frameMode != d->field_114) {
+                d = &gDisplayState;
+                if (d->frameBuffer != d->otBuffer) {
                     return;
                 }
-                d->field_103 = 2;
+                d->at100.flags.flipMode = 2;
                 Stage_ReleasePrimBuf();
             }
             Mem_ConfigureAuxHeap(gGameSession->at4.loc.stage, gGameSession->at4.loc.area);
@@ -496,7 +496,7 @@ void Gp_MenuRootTask(Task* arg0)
             Task_SetActiveList(list);
             saved              = cfg->weapon;
             old                = (u8)D_80114DE8;
-            disp               = &Display_State;
+            disp               = &gDisplayState;
             disp->skipTeardown = 1;
             cfg->weapon        = old;
             Gp_KillPlayerEffs();
@@ -539,8 +539,8 @@ void Gp_MenuRootTask(Task* arg0)
                 Task_SetActiveList(prev);
             }
             GameMain_SetFrameTiming(1);
-            Display_State.field_122 = 0;
-            gGameSession->uiOpen    = 0;
+            gDisplayState.keepGraphics = 0;
+            gGameSession->uiOpen       = 0;
             Gpu_ResetGraphAndOt();
             if (Stage_GetModeByte12() == 0) {
                 Stage_SetEndingFlag();
@@ -3726,7 +3726,7 @@ void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
     if (arg0 == 0) {
         return;
     }
-    if (Display_State.field_112 == -1) {
+    if (gDisplayState.field_112 == -1) {
         if (Mc_SaveData.field_23 != 0xC) {
             return;
         }
@@ -4425,7 +4425,7 @@ void Gp_UseKeyItemRow(Task* arg0)
             width = Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0x1E, text, 0x37A78, one, 0);
             Text_DrawPrompt(obj, width, (s16)obj->field_18 + 0x1E, Gp_StrDot, 0x606060, one, 0);
         }
-        arg0->killCountdown = arg0->killCountdown - Display_State.field_10a;
+        arg0->killCountdown = arg0->killCountdown - gDisplayState.frameTicks;
         if (obj->status == 1) {
             if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
                 obj->field_2E = -1;

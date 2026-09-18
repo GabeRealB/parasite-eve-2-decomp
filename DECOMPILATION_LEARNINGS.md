@@ -709,8 +709,8 @@ sltu v0,a0,a1                sltu v0,a0,a1      /* same compare, same regs */
 `do_compare` only swaps its operands when one is a constant, and `do_jump` emits
 the `sltu` with the operands in canonical order regardless, so the emitted
 compare is unchanged — only the expansion order and the resulting homes move.
-Writing `D_actor_560800_8017579C > Display_State.field_0` instead of
-`Display_State.field_0 < D_actor_560800_8017579C` was the last 1.5% of
+Writing `D_actor_560800_8017579C > gDisplayState.frameCount` instead of
+`gDisplayState.frameCount < D_actor_560800_8017579C` was the last 1.5% of
 `func_actor_560800_80135AEC` (98.5% → 100%). When a `regs=` penalty shows both
 loads right but *swapped*, and both same-order spellings of the compare are
 available, try the swap before reaching for pins.
@@ -2329,18 +2329,18 @@ The same function's depth test is `andi` / `move v1, s0` / `sra` / `slt
 v0, v0, v1`. A bare `if (val < otz)` uses `$s0` directly (copy-coalesced).
 `z = otz` at the start of the arm is coalesced too, or
 `SOFT_TOUCH_REG(z)` there copies into `$a0` too early and kicks
-`Display_State` into `$a3`. Split the mask from the shift, then copy:
+`gDisplayState` into `$a3`. Split the mask from the shift, then copy:
 
 ```c
-val = (extra->depth << Display_State.field_128) & 0x3FFF;
+val = (extra->depth << gDisplayState.otDepthShift) & 0x3FFF;
 z = otz;
 SOFT_TOUCH_REG(z);
 if ((val >> 4) < z) {
 ```
 
 `$v1` is dead after `sllv`, so the copy lands there between `andi` and
-`sra`. Else `clip.y = Display_State.field_1f * 0x110` (not a standalone
-`D_80070F87`) keeps the inner-branch delay `lui` of `Display_State`; the
+`sra`. Else `clip.y = gDisplayState.drawBuffer * 0x110` (not a standalone
+`D_80070F87`) keeps the inner-branch delay `lui` of `gDisplayState`; the
 linked `lbu` offset is the same byte as `%lo(D_80070F87)`.
 
 Example: `func_actor_400500_80134D6C`. Input: `base_15.i`
@@ -4942,7 +4942,7 @@ When `r0` and `b0` share a value the target loads into `$v1` immediately after
 `li v0, 0x2E`, assigning `rb = 0x20` next to the later stores lets GCC sink the
 `li` to the use (`li v0, 0x20` / `sb 4` / `sb 6`). An empty `USE_REG(rb)` /
 `SOFT_USE_REG(rb)` after `setcode` does pin the load, but the asm is a
-scheduling fence: `&Display_State` stops hoisting next to `Gpu_PrimCursor`,
+scheduling fence: `&gDisplayState` stops hoisting next to `Gpu_PrimCursor`,
 and `Gpu_CurrentOt` fills the last UV delay instead of `lhu 0x2A`.
 
 The store itself is the early use. Write `prim->r0 = rb` right after `setcode`;
@@ -5593,8 +5593,8 @@ A preheader that materialises `arg << 16` and then `lbu`s a blend byte wants
 
 ```
 sll    v1, a2, 16
-lui    v0, %hi(Display_State)
-addiu  v0, v0, %lo(Display_State)
+lui    v0, %hi(gDisplayState)
+addiu  v0, v0, %lo(gDisplayState)
 move   s5, v0
 sra    v0, v1, 20
 ...
@@ -5617,7 +5617,7 @@ g      = blend | tg;
 ```
 
 `Room_Draw13` is the example. Pair with a `$v0`-pinned scratch `tmp` reused
-for `&Display_State` plus `SOFT_TOUCH_REG(tmp)` before `ds = (DisplayState*)tmp`
+for `&gDisplayState` plus `SOFT_TOUCH_REG(tmp)` before `ds = (DisplayState*)tmp`
 to get `addiu v0, %lo` / `move s5, v0`. Volatile `TOUCH_REG` here is the wrong
 barrier: it traps the hoisted `addPrim` masks (`0xFFFFFF` / `0xFF000000`) on
 the wrong side of the address materialisation.
@@ -6215,7 +6215,7 @@ the `jal`. Assign `color = 0x606060` only after the middle call, when
 `register ... asm("fp")` (or `"s8"`) uses `$fp` but GCC 2.8.1 does not emit
 `sw fp` / `lw fp` — it treats the omitted frame pointer as not live. Nine
 live-across-call values want `$s0`–`$s7` plus `$fp`. Pin the *later*
-locals (counter, mask, `Display_State`) and leave the incoming arg
+locals (counter, mask, `gDisplayState`) and leave the incoming arg
 unpinned so normal allocation gives it `$fp` with a prologue save:
 
 ```
@@ -7835,7 +7835,7 @@ jr    ra
 `jal` delay slots (target has `nop` after `D_800680C0 = 0`).
 
 `D_8006EC30` / `D_80070E38` are the same shape for the draw path: main-line
-`Display_FrameFlipDraw` writes them (copies of `Display_State.field_100` /
+`Display_FrameFlipDraw` writes them (copies of `gDisplayState.at100.flags.imageSource` /
 `field_103`) and the VSync callback `Display_VSyncCallback` → `Display_FlipDraw` reads
 them. Without `volatile`:
 
@@ -7904,7 +7904,7 @@ using `off($s0)` for the rest; that falls out of CSE on its own and is not a
 sign that a second expression is needed.
 
 **Inverse — skip the local pointer when all accesses are pre-call.** If every
-read/write of the global happens *before* any `jal`, a bare `Display_State.field`
+read/write of the global happens *before* any `jal`, a bare `gDisplayState.field`
 name matches fine: GCC loads the address into a temporary (`$v1`) once and
 never needs to reload it. `GameFlow_SpawnMainWhenReady` is an example — it reads
 `field_101`, optionally writes `field_10b`, then only calls other functions.
@@ -8315,7 +8315,7 @@ split-address `lui s1, %hi` (no `addiu`), then strength-reduces `&arr[i]` to
 the walking `s0`:
 
 ```c
-ds = &Display_State;          /* explicit: a3 first */
+ds = &gDisplayState;          /* explicit: a3 first */
 for (; i < 50; i++) {
     out  = &Gp_CapFile;       /* hoist 1: lui s1, %hi */
     slot = &D_8006C338[i];    /* hoist 2: lui v0 / addiu s0 */
@@ -11735,7 +11735,7 @@ Gpu_CurrentOt = ot[temp->field_118].org;
 
 `Gpu_InitOt` is the reference: sets both `Gpu_OrderingTables` slots to depth `0xA`
 with `Gpu_OtTags` / `+ GPU_OT_ENTRIES`, clears the active buffer
-(`Display_State.field_118`), then points `Gpu_CurrentOt` at the OT base.
+(`gDisplayState.frameBuffer`), then points `Gpu_CurrentOt` at the OT base.
 
 ## Delay `i = 0` until after a special-case rewrite of the same constant
 
@@ -12171,8 +12171,8 @@ shows up when the first access is a non-zero-offset array field and later
 fields are reached by adjusting that same register:
 
 ```
-lui    s0, %hi(Display_State)
-addiu  s0, s0, %lo(Display_State+0x48)   # DRAWENV array
+lui    s0, %hi(gDisplayState)
+addiu  s0, s0, %lo(gDisplayState+0x48)   # DRAWENV array
 ...
 addiu  a0, s0, -0x28                  # DISPENV array (= base+0x20)
 ...
@@ -12180,15 +12180,15 @@ addiu  s0, s0, -0x48                  # back to struct base
 lbu    v0, 0x100(s0)
 ```
 
-A local `DisplayState* p = &Display_State` forces the base into a callee-saved reg
+A local `DisplayState* p = &gDisplayState` forces the base into a callee-saved reg
 and emits `addiu a0, a0, 0x48` / `addiu a0, s2, 0x20` instead — correct
 offsets, wrong CSE (~85%). Write the accesses by name:
 
 ```c
-PutDrawEnv(&Display_State.field_48[arg0]);
-PutDispEnv(&Display_State.field_20[arg0]);
-if (Display_State.field_100 != 0) { ... }
-if (Display_State.field_104 == 0) { ... }
+PutDrawEnv(&gDisplayState.drawEnv[arg0]);
+PutDispEnv(&gDisplayState.dispEnv[arg0]);
+if (gDisplayState.at100.flags.imageSource != 0) { ... }
+if (gDisplayState.skipDraw == 0) { ... }
 ```
 
 `Display_PutEnvAndDraw` is the pure example.
@@ -13022,7 +13022,7 @@ if (flag == 1) {
 ```
 
 `SndVoice_Tick` is the pure example (`field_4 += 0xFFFF6667` vs `0xFFFF0000`
-gated on `Display_State.field_124 == 1`).
+gated on `gDisplayState.region == 1`).
 
 ## `s16` accumulator forces `sll/sra 16` on each add
 
@@ -13263,30 +13263,30 @@ value, writing both accesses as bare `global.field` can make GCC materialise
 `&global` into `$a0`:
 
 ```
-lui    v0,%hi(Display_State)
-addiu  a0,v0,%lo(Display_State)
+lui    v0,%hi(gDisplayState)
+addiu  a0,v0,%lo(gDisplayState)
 lhu    v1,0x12a(a0)
 ```
 
 That steals `$a0` from another live value the target keeps there (e.g. an
 earlier `lhu a0, %lo(other_global)`), and it also breaks the pure
-`lhu v1,%lo(Display_State+0x12a)(v0)` form.
+`lhu v1,%lo(gDisplayState+0x12a)(v0)` form.
 
 Fix: load the field into a local once and reuse that local for both the
 equality-to-constant test and the later compare:
 
 ```c
 ac14 = D_8006AC14;          /* stays in $a0 */
-f12a = Display_State.field_12a; /* lhu v1, %lo(...+0x12a)(v0) */
+f12a = gDisplayState.videoMode; /* lhu v1, %lo(...+0x12a)(v0) */
 if (f12a == 1) {
     if (ac14 == f12a) { /* bne a0, v1 — both already live */
         ...
     }
 }
-Display_State.field_106 = 0; /* separate lui after calls; delay-slot-friendly */
+gDisplayState.mdecActive = 0; /* separate lui after calls; delay-slot-friendly */
 ```
 
-`CdCmd_StopMdec` is the pure example (`D_8006AC14` vs `Display_State.field_12a`).
+`CdCmd_StopMdec` is the pure example (`D_8006AC14` vs `gDisplayState.videoMode`).
 
 ## Equality comparison operand order controls `beq` register order
 
@@ -15533,7 +15533,7 @@ targetX = arg1 + baseX;
 targetY = arg2 + baseY;
 targetX <<= 8;
 targetY <<= 8;
-count = Display_State.field_10a;
+count = gDisplayState.frameTicks;
 if (count != 0) {
     do {
         i += 1;
@@ -15547,7 +15547,7 @@ func(obj, targetX - obj->field_20, targetY - obj->field_22);
 ```
 
 `Ui_SmoothCursor` is the pure example (smooth cursor toward a UI object over
-`Display_State.field_10a` frames, then call `Ui_DrawCursor`).
+`gDisplayState.frameTicks` frames, then call `Ui_DrawCursor`).
 
 ## `u8` index + `arr[i]` for large-offset slot walks
 
@@ -16149,23 +16149,23 @@ PutDispEnv(&dispBase[buf]);   /* then addu a0, s2, a0 */
 /* later DrawOTag(Gpu_OtBuffers[buf].field_10) reuses $s2 */
 ```
 
-`Display_VSyncCallback` needs this for `PutDispEnv(&Display_State.field_20[buf])`
+`Display_VSyncCallback` needs this for `PutDispEnv(&gDisplayState.dispEnv[buf])`
 (DISPENV and GpuOtBuf are both 0x14). Without the dead `stride` store the
 `addiu a0,s1,0x20` lands either too early (right after `PutDrawEnv`) or as
 `addiu a0,s2,0x20` / `addu a0,a0,s1`.
 
 ## `s8` field loads as `lb`; `volatile u8` forces re-load across arms
 
-`Display_State.field_1e` is compared with `bnez` after an `lb`. Declaring it
+`gDisplayState.displayOwner` is compared with `bnez` after an `lb`. Declaring it
 `u8` emits `lbu` and can also let a nearby volatile store fill the branch delay
 slot. Use `s8` when the target has plain `lb`.
 
-`Display_State.field_108` is written by main-line code and read by the VSync
+`gDisplayState.vsyncFlag` is written by main-line code and read by the VSync
 callback `Display_VSyncCallback`. Marking it `volatile u8` forces a second load for
 `if (f == 0) … else if (f == 1)` (target reloads into `$v1` rather than CSE'ing
 the first `lbu`). Same idea as `D_8006EC30` / `D_80070E38`.
 
-`D_80070F64` (countdown next to `Display_State`) is also VSync-shared: without
+`D_80070F64` (countdown next to `gDisplayState`) is also VSync-shared: without
 `volatile`, `D_80070F64 -= 1` fills the following `bnez` delay slot; the target
 has `sw` then `nop`.
 
@@ -17631,7 +17631,7 @@ p = &CdCmd_Queue;
     state->field_222 = 1;
     if (busy == 0) {
         p->busy = 1;
-        Display_State.field_130 = 0xFF;
+        gDisplayState.cdBusy = 0xFF;
     }
 }
 ```
@@ -17745,7 +17745,7 @@ GCC 2.8.1 emits a binary tree with `slti` / range checks for consecutive cases
 an explicit shared tail label for a common `p->field++` often rematerialises
 `%hi(global)` into `$v0` instead of reusing the callee-saved address reg, and
 can swap `$s2`/`$s3` between that global and a competing mid-function
-`&Display_State` (~97%).
+`&gDisplayState` (~97%).
 
 Match both: keep the if/goto equality dispatch, **and write the shared tail
 inline in every case** (duplicate `Stage_Ctx->field_28++`). GCC CSEs those
@@ -19142,7 +19142,7 @@ register s32 ret asm("v0");
 ```
 
 so the delay slot is `move v0,zero` and the done path is `li v0,1` /
-`lui v1,%hi(Display_State)` / `sb zero,field_100`.
+`lui v1,%hi(gDisplayState)` / `sb zero,field_100`.
 
 ## Pin width constant to `$t7` when `arg0` should land in `$t6`
 
@@ -20173,11 +20173,11 @@ if (f11 == 0) {
 }
 ```
 
-Same case: to get `lui %hi(Display_State+0x118)` *before* `lui %hi(Stage_Ctx)`,
+Same case: to get `lui %hi(gDisplayState+0x118)` *before* `lui %hi(Stage_Ctx)`,
 preload the display field into a temp before materialising the other global:
 
 ```c
-disp = Display_State.field_118;
+disp = gDisplayState.frameBuffer;
 g    = Stage_Ctx;
 if (disp == g->field_24) { ... }
 ```
@@ -20943,17 +20943,17 @@ used on one call site can also be required to keep the register set stable.
 ## Dual magic-division + remainder for NTSC/PAL frame scaling
 
 When the target does two separate `multu` sequences gated on
-`Display_State.field_124 == 1` (NTSC → `/ 6000`, PAL → `/ 3600`) — first for the
+`gDisplayState.region == 1` (NTSC → `/ 6000`, PAL → `/ 3600`) — first for the
 quotient, then again for remainder reconstruction — write two separate `if`
 blocks rather than combining `/` and `%` in one:
 
 ```c
-if (Display_State.field_124 == 1) {
+if (gDisplayState.region == 1) {
     quot = temp / 6000U;
 } else {
     quot = temp / 3600U;
 }
-if (Display_State.field_124 == 1) {
+if (gDisplayState.region == 1) {
     rem_factor = (temp / 6000U) * 0x177; /* 375; common *16 → 6000 */
 } else {
     rem_factor = (temp / 3600U) * 0xE1;  /* 225; common *16 → 3600 */
@@ -21369,13 +21369,13 @@ emitted (and scheduled) first, while the remaining `a + t` still puts `a` in
            addu a0, a0, v1 ← but field_28 is the rs operand */
 
 /* 99.7%: field_28 loads first (addu a0,a0,v0 is right, order is not) */
-lvl = (u8)mem->field_28 + ((u8)Display_State.field_8 & 1) * 0x10;
+lvl = (u8)mem->field_28 + ((u8)gDisplayState.animFrame & 1) * 0x10;
 
 /* 99.7%: display loads first, but addu v0,v0,a0 (display is rs) */
-lvl = ((u8)Display_State.field_8 & 1) * 0x10 + (u8)mem->field_28;
+lvl = ((u8)gDisplayState.animFrame & 1) * 0x10 + (u8)mem->field_28;
 
 /* 100% */
-flicker = ((u8)Display_State.field_8 & 1) * 0x10;
+flicker = ((u8)gDisplayState.animFrame & 1) * 0x10;
 lvl     = (u8)mem->field_28 + flicker;
 ```
 
@@ -21537,9 +21537,9 @@ file's other `Gp_*` calls come from `gameplay/3CD8.h`, but the prototype's
 disappearance also reaches the 4-arg `Gp_DispatchMsg` calls in the same file, so
 re-verify the whole overlay rather than the one function.
 
-## Non-volatile `lui` + volatile `lbu` for early Display_State prologue slot
+## Non-volatile `lui` + volatile `lbu` for early gDisplayState prologue slot
 
-When the target interleaves `lui %hi(Display_State)` *between* `ori s0, scratch`
+When the target interleaves `lui %hi(gDisplayState)` *between* `ori s0, scratch`
 and `sw ra` (prologue gap), a plain C load of the field often either:
 
 1. Emits `lui` late (after `sw ra`), or
@@ -21552,10 +21552,10 @@ register u32 ds_hi asm("v1");
 register s32 d asm("v0");
 
 /* Non-volatile: scheduler may place this in the prologue gap before sw ra */
-__asm__("lui %0, %%hi(Display_State)" : "=r"(ds_hi));
+__asm__("lui %0, %%hi(gDisplayState)" : "=r"(ds_hi));
 /* ... load field_10 / stream so v0 is free ... */
 /* Volatile: pins the lbu after those loads, into v0 */
-__asm__ volatile("lbu %0, %%lo(Display_State+0x128)(%1)" : "=r"(d) : "r"(ds_hi));
+__asm__ volatile("lbu %0, %%lo(gDisplayState+0x128)(%1)" : "=r"(d) : "r"(ds_hi));
 ```
 
 Making *both* volatile keeps the body order correct but parks `lui` after
@@ -22100,7 +22100,7 @@ Column targets use `head - 0x42` (col1) and `head - 0x40` (col2), same
 - `"oneC"` advances the cursor by 0x10, resolves `field_4C` via
   `base[*(u16*)(base + (u8)field_0 * 2 + 8)]`, then falls into `"oneV"`.
 - Shared wait-tick path: when high-half of `field_8` is below the command's
-  duration, add `Display_State.field_124 == 1 ? 0x9999 : 0x10000` and return 0;
+  duration, add `gDisplayState.region == 1 ? 0x9999 : 0x10000` and return 0;
   on success subtract `duration << 16` and return 1 (caller loops while nonzero).
 - Volume: `(scale * field_4C->field_5 * voice->field_A) / 16129` (127²), same
   as `SndVoice_ApplyMasterVolume`.
@@ -22514,8 +22514,8 @@ Target opens with interleaved callee-save + init:
 
 ```
 move s3, zero
-lui  v0, %hi(Display_State)
-addiu v0, v0, %lo(Display_State)
+lui  v0, %hi(gDisplayState)
+addiu v0, v0, %lo(gDisplayState)
 sw   s2, …(sp)
 move s2, v0
 lui  v0, %hi(GameMain_HaltFlags)
@@ -22525,7 +22525,7 @@ sw   s5; lui s5, %hi(Display_PendingFlip)
 …
 ```
 
-Pinning `ds` to `$s2` and assigning `ds = &Display_State` emits `lui s2` /
+Pinning `ds` to `$s2` and assigning `ds = &gDisplayState` emits `lui s2` /
 `addiu s2` (2 insns short). Forcing `move s2,v0` via
 
 ```c
@@ -22536,12 +22536,12 @@ matches the prologue but makes `ds` an **opaque asm result**: later stores
 through `nv = ds` stop filling load-delay slots (e.g. `sb field_10d` after
 `lw field_114` becomes `nop`), and the flip/`ClearOTag` block reorders.
 
-**Fix — CSE with a pure C assignment** so GCC still knows `ds == &Display_State`:
+**Fix — CSE with a pure C assignment** so GCC still knows `ds == &gDisplayState`:
 
 ```c
 register DisplayState* t asm("v0");
-t = &Display_State;
-ds = &Display_State; /* CSE → move s2,v0; alias-known */
+t = &gDisplayState;
+ds = &gDisplayState; /* CSE → move s2,v0; alias-known */
 {
     register s32 t4 asm("v0");
     /* "r"(t) keeps Display load in v0 before EC80 hi reuses it */
@@ -22554,7 +22554,7 @@ __asm__("lui %0, %%hi(Display_PendingFlip)" : "=r"(s5r)); /* direct lui s5 is fi
 Rules of thumb:
 
 1. Long-lived pointer used for many field stores must stay a **pure C**
-   definition of a known global (`ds = &Display_State`), not an asm `move`
+   definition of a known global (`ds = &gDisplayState`), not an asm `move`
    into a hard reg — otherwise body SRA dies.
 2. `%hi`-only bases (EC80 / EC70) can use asm `move` into the pin; they are
    only used as `%lo(sym)(reg)` address bases, so opacity is harmless.
@@ -22844,7 +22844,7 @@ Task_CallExit(s4);
 /* GetResetCount result stays in v0; first field_12c store survives CSE */
 register u32 v0 asm("v0");
 v0 = GameMain_GetResetCount();
-ds = &Display_State;
+ds = &gDisplayState;
 asm("" : "+r"(v0), "+r"(ds));
 v0 = v0 + 2;
 ds->field_12c = v0;
@@ -23159,8 +23159,8 @@ Inlining `Mem_Free(arg0->spawnArg2)` after the decrement is the 83% form.
 
 ## `s32 val = func(); byte_global = val` rematerialises same-`%hi` store
 
-`Display_State` and `D_80071068` (`Display_State.field_100`) share `%hi ==
-0x8007`. Taking `&Display_State` into a local and then writing
+`gDisplayState` and `D_80071068` (`gDisplayState.at100.flags.imageSource`) share `%hi ==
+0x8007`. Taking `&gDisplayState` into a local and then writing
 
 ```c
 D_80071068 = Gp_ViewSprtCmdEmpty();
@@ -26853,7 +26853,7 @@ with `ABS(vz)` in `$a0` and the `vx` reload in `$v0`.
 
 ## Index a global array field by name so dest is `base+off` then scale
 
-`ds = &Display_State` plus `MoveImage((RECT*)&ds->dispEnv[i], …)` folds the
+`ds = &gDisplayState` plus `MoveImage((RECT*)&ds->dispEnv[i], …)` folds the
 array offset into the scaled index (`addiu a0, scaled, 0x20; addu a0, ds`).
 The target computes the array base first (`addiu v0, ds, 0x20`) and adds
 the scaled index in the `jal` delay slot.
@@ -26862,7 +26862,7 @@ Write dest through the global name and x/y through the local pointer:
 
 ```c
 MoveImage(
-    (RECT*)&Display_State.dispEnv[ds->field_1f ^ 1],
+    (RECT*)&gDisplayState.dispEnv[ds->field_1f ^ 1],
     ds->dispEnv[ds->field_1f].disp.x,
     ds->dispEnv[ds->field_1f].disp.y);
 ```
@@ -28156,7 +28156,7 @@ after the loop instead of in the switch.
 
 `addPrim` is a macro that evaluates the OT address twice. A sibling
 `Gpu_CurrentOt + (z >> 4)` becomes a scaled Z when
-`Display_State.field_128` is the shift:
+`gDisplayState.otDepthShift` is the shift:
 
 ```
 lbu   v0, 0x128(ds)
@@ -28166,15 +28166,15 @@ andi  v0, v0, 0xFFC
 addu  v0, v0, ot
 ```
 
-Hoisting `ds = &Display_State` pulls the address into the
+Hoisting `ds = &gDisplayState` pulls the address into the
 `setSemiTrans` window, so `0xFF000000` lands in `$t0` instead of `$a3`
-and `Gpu_CurrentOt` steals `$a1`. Write `Display_State.field_128`
+and `Gpu_CurrentOt` steals `$a1`. Write `gDisplayState.otDepthShift`
 directly in the `addPrim` argument. Operand order matters too:
 `(s32)Gpu_CurrentOt + mask` is `addu v0, ot, v0`; the target is
 `addu v0, v0, ot`.
 
 ```c
-addPrim((u_long*)(((((u32)arg2 << Display_State.field_128) >> 2) & 0xFFC)
+addPrim((u_long*)(((((u32)arg2 << gDisplayState.otDepthShift) >> 2) & 0xFFC)
                   + (s32)Gpu_CurrentOt), p);
 ```
 
@@ -29829,7 +29829,7 @@ An addPrim-style OT insert that also walks a sibling array wants this
 preheader order:
 
 ```
-la    t4, Display_State
+la    t4, gDisplayState
 lw    t2, Gpu_CurrentOt
 lui   t1, 0xFF
 ori   t1, t1, 0xFFFF
@@ -29980,7 +29980,7 @@ pointer in `$a0`:
 
 ```c
 offset = (s32)Gp_ReplayCursor - (s32)D_8005C374;
-if (Display_State.field_12c == 0x10) {
+if (gDisplayState.demoScene == 0x10) {
     offset = (s32)Gp_ReplayCursor + 0x7F9FFF00;
 }
 /* later: Gp_ReplayCursor->buttons */
@@ -31855,7 +31855,7 @@ is the example.
 ## D4 fade overlay: `Gp_FadeTiles`/`Gp_FadeTpages` + split `0xE1000000 | 0x240`
 
 `Gp_FadeTiles` is `TILE[2]` and `Gp_FadeTpages` is `DR_TPAGE[2]`, indexed by
-`Display_State.field_114` (16-byte / 8-byte stride). Several neighboring
+`gDisplayState.otBuffer` (16-byte / 8-byte stride). Several neighboring
 D4 task states share this pair (`Gp_LoadWaitBoot` … `Gp_FadeGrayHold`).
 
 On the leaf overlay (`Gp_FadeGrayHold`) the target hoists `0x64` and both
@@ -31905,7 +31905,7 @@ register s32 qhi asm("a1");
 register s32 queued asm("a0");
 
 color = 8;
-ds    = &Display_State;
+ds    = &gDisplayState;
 asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi));
 buf    = ds->field_114;
 tile   = &Gp_FadeTiles[buf];
@@ -31927,7 +31927,7 @@ assignment into the `beqz` delay slot on the skip path and keeps it after
 `task->state++` on the taken path (`lw` / `nop` / `addiu` / `sw` /
 `li a2,8`). Assigning color before the `if` (or rematerialising it at
 the end of the body) schedules `li a2,8` into the `lw state` delay and
-puts `lui Display_State` in the `beqz` slot instead.
+puts `lui gDisplayState` in the `beqz` slot instead.
 
 ## Don't pin `$s2` for `p = &global` if `la` must split around `jal` via `$v0`
 
@@ -33038,7 +33038,7 @@ queued = *(u16*)((s32)qhi + (s16)0x91C4);
 
 Depending on `dr` as well emits `addu t2` *before* the load. Input
 constraints on the `lui` (`"r"(color), "r"(ds)`) keep `li a2, 8` /
-`la Display_State` ahead of that `lui`.
+`la gDisplayState` ahead of that `lui`.
 
 A later 0/1 flag that is consumed as `if (x & 0xFFFF)` becomes `sltu`
 if written `if (func()) x = 1; else x = 0`. Assign the masked return
@@ -33674,7 +33674,7 @@ Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
 setPolyF4(p);
 setRGB0(p, arg0[0], arg0[1], arg0[2]);
 p->x0 = x0;
-p->y0 = yTop - Display_State.vramYOffset;
+p->y0 = yTop - gDisplayState.vramYOffset;
 ```
 
 `arg1 &= 3` at the top is `andi a1, a1, 3` during the y1 stores; the later
@@ -33711,7 +33711,7 @@ operand of `+ 7` is `lb`. Load through a volatile byte so the extend stays
 the long form:
 
 ```c
-p->y1 = ((s8)*(volatile u8*)&Display_State.vramYOffset + 7) * -1 + y;
+p->y1 = ((s8)*(volatile u8*)&gDisplayState.vramYOffset + 7) * -1 + y;
 ```
 
 `addPrim`'s `0xFFFFFF` wants `lui a3, 0xFF` in an earlier load delay and
@@ -33723,11 +33723,11 @@ prim stores, then `mask |= 0xFFFF` before the last vertex:
 ```c
 p->x1 = (mask = 0xFF0000, x);
 asm("" : : "m"(p->y0));
-p->y1 = ((s8)*(volatile u8*)&Display_State.vramYOffset + 7) * -1 + y;
+p->y1 = ((s8)*(volatile u8*)&gDisplayState.vramYOffset + 7) * -1 + y;
 p->x2 = x + 7;
 asm volatile("" : "+r"(mask) : "m"(p->y1));
 mask |= 0xFFFF;
-p->y2 = ((s8)*(volatile u8*)&Display_State.vramYOffset + 7) * -1 + y;
+p->y2 = ((s8)*(volatile u8*)&gDisplayState.vramYOffset + 7) * -1 + y;
 ```
 
 Use that `mask` in a handwritten `addPrim` (same shape as `Ui_DrawCaret`).
@@ -37153,7 +37153,7 @@ setcode(&poly[1], code);
 ```
 
 Assign these locals in the order the target's preheader sets them (here after
-`opz = &ws->field_28` and before `ds = &Display_State`), since explicit
+`opz = &ws->field_28` and before `ds = &gDisplayState`), since explicit
 assignments are emitted in source order while LICM appends its own hoists
 afterwards. `func_8009BD00` went 90.4% → 98.98% on this change alone.
 
@@ -38966,7 +38966,7 @@ if (ws->field_1C-- > 0) {
         ...
         gte_ldrgb(&col2);          /* discovered first -> hoisted first */
         ...
-        len = 0xC; code = 0x3C; ds = &Display_State;
+        len = 0xC; code = 0x3C; ds = &gDisplayState;
         mask = 0xFFFFFF; maskHi = 0xFF000000;
         setlen(&poly[0], len);
         ...
@@ -40172,7 +40172,7 @@ Two related details from the same function:
   `*(u32*)&prim->r0 = 0x40C000;` followed by `x0`, then `x1`, then
   `setlen` / `setcode`. Putting `setlen` / `setcode` before the `x1` store
   makes the scheduler fill the `lw sxy` load-delay slot with the `sb`s
-  instead of the `addiu t1, t1, %lo(Display_State)` the target uses.
+  instead of the `addiu t1, t1, %lo(gDisplayState)` the target uses.
 * `for (t = 0; t <= limit; ang += 0x73, t += 0x80)` — with the *secondary*
   induction variable first in the comma — lets `t += 0x80` fill the
   `lw sxy` load delay. The natural `t += 0x80, ang += 0x73` order emits the
@@ -40307,14 +40307,14 @@ allocation is off by one.
 
 ## `y = K; y -= x;` and `y = K - x;` put the constant in different registers
 
-`y = 0x3C - Display_State.vramYOffset;` loads `0x3C` into a scratch register
+`y = 0x3C - gDisplayState.vramYOffset;` loads `0x3C` into a scratch register
 and subtracts into a third (`li v1,0x3c` / `subu s2,v1,a0`). Splitting it into
 an assignment plus a compound subtract loads the constant straight into the
 destination:
 
 ```c
     y  = 0x3C;
-    y -= Display_State.vramYOffset;
+    y -= gDisplayState.vramYOffset;
 ```
 
 ```
@@ -40350,7 +40350,7 @@ rematerialised inside the loop. `func_8009C414` went from 91% to 98% on this
 change alone. `src/gameplay/3FB8_7E28.c` shows the idiomatic call:
 
 ```c
-addPrim((u_long*)(((((u32)ws->field_28 << Display_State.field_128) >> 2) & 0xFFC)
+addPrim((u_long*)(((((u32)ws->field_28 << gDisplayState.otDepthShift) >> 2) & 0xFFC)
                   + (s32)ws->field_14), &poly[0]);
 ```
 
@@ -41855,8 +41855,8 @@ nop
 beqz  v0, L3C40
  sltiu v0, v0, 2
 beqz  v0, L304C
- lui  v0, %hi(Display_State)
-lw    v0, %lo(Display_State+8)(v0)
+ lui  v0, %hi(gDisplayState)
+lw    v0, %lo(gDisplayState+8)(v0)
 nop
 andi  v0, v0, 0x2
 beqz  v0, join
@@ -41883,7 +41883,7 @@ Collapsing the inner test into the outer one with `&&` gives both:
 
 ```c
 if (mode != 0) {
-    if (mode < 2 && (Display_State.field_8 & 2) == 0) {
+    if (mode < 2 && (gDisplayState.animFrame & 2) == 0) {
         ctx->field_24 = 0x3C40;
     } else {
         ctx->field_24 = 0x304C;
@@ -44830,7 +44830,7 @@ needs its own run) gives the reason as one line of priorities:
 ```
 ;; insn[  38]: priority = 1, ref_count = 1      # ours: lbu of D_80070F87
     (insn_list 34 (nil))                        # ... waits only on its lui
-;; insn[  33]: priority = 2, ref_count = 1      # twin: lbu of Display_State.field_1f
+;; insn[  33]: priority = 2, ref_count = 1      # twin: lbu of gDisplayState.drawBuffer
     (insn_list 22 (insn_list 27 (insn_list 30 (nil))))   # ... and on both stores
 ```
 
@@ -44838,16 +44838,16 @@ needs its own run) gives the reason as one line of priorities:
 from conflicting with a non-in-struct reference at a fixed one, so the scalar
 load loses its two predecessors, `priority()` drops to 1, and sched1's ready
 list hoists it to the head of the block. Reading the same addresses as
-`Display_State.field_1f` / `field_104` / `field_112` - the struct the game
+`gDisplayState.drawBuffer` / `gDisplayState.skipDraw` / `gDisplayState.field_112` - the struct the game
 declares for them, based at 0x80070F68, so the field offsets *are* the symbols
 0x80070F87 / 0x8007106C / 0x8007107A - keeps the dependence and is exact:
 99.343% on the scratch scorer, `regs=13`, instructions 99/99.
 
-That residue is the naming pair, not code: `%hi(Display_State)` +
-`%lo(Display_State+0x1f)` against the target's `%hi(D_80070F87)`, and
+That residue is the naming pair, not code: `%hi(gDisplayState)` +
+`%lo(gDisplayState+0x1f)` against the target's `%hi(D_80070F87)`, and
 `%lo(D_..._80183E84+2)` for the y store against splat's separate
 `D_..._80183E86` label. Both resolve to the same absolute addresses
-(`Display_State = 0x80070F68` is in `configs/USA/sym/rooms.imports.txt`) and the
+(`gDisplayState = 0x80070F68` is in `configs/USA/sym/rooms.imports.txt`) and the
 unscoped `build-and-verify.sh` checksums.
 
 ## Promoting a matched body into a family's shared library
@@ -50858,7 +50858,7 @@ is small and the result is stored back into a `s16` field; the truncation on
 the store is free, the sign extension on every compare is not.
 
 ```c
-s32 limit = 0x1000 - ((Display_State.field_8 & 1) << 9);
+s32 limit = 0x1000 - ((gDisplayState.animFrame & 1) << 9);
 
 work->field_24 = (work->field_20 & 1) ? ((work->field_24 < limit) ? work->field_24 + 0x200 : limit) : 0;
 ```
@@ -50958,7 +50958,7 @@ happens. Emit the long statement first and the cheap constant stores after it:
 
 ```c
 blk->a.vx = -0x427;
-blk->a.vy = ((u32)Display_State.field_8 * 6) % 406 + 0xF633;
+blk->a.vy = ((u32)gDisplayState.animFrame * 6) % 406 + 0xF633;
 *scratch  = blk;
 blk->a.vz = 0x9AF;
 ```
@@ -51713,7 +51713,7 @@ exactly twice substitutes the constant into the use and drops the pseudo.
 Whatever loses the allocation is then not stored to the stack: reload re-emits
 the `lui`/`lui`+`addiu` before each use, and `find_equiv_reg` lets a second use
 inherit the temp. So a loop that keeps `0xFFFFFF` in `$s2` but rebuilds
-`0xFF000000` in `$a3` (once, ahead of both `and`s) or `&Display_State` in `$t2`
+`0xFF000000` in `$a3` (once, ahead of both `and`s) or `&gDisplayState` in `$t2`
 (twice) has *hoisted* all three; the matched `Gp_DrawEffShard` second loop
 does exactly that with its `.greg` showing the two as `SPILL`. Do not read an
 in-loop `lui` of a mask as "not hoisted" and do not fight it with a goto-loop
@@ -51940,8 +51940,8 @@ loaded byte into the RGB stores at the end:
 
 ```
 bnez    $v0, .Lskip
- lui    $a3, %hi(Display_State)
-addiu   $a3, $a3, %lo(Display_State)
+ lui    $a3, %hi(gDisplayState)
+addiu   $a3, $a3, %lo(gDisplayState)
 lbu     $v1, 0x8($a3)
 li      $v0, 0x2B
 sh      $v0, 0x16($t0)       /* tpage */
@@ -51952,7 +51952,7 @@ load in the middle of the prim stores and the whole block schedules differently
 (89.7% → 8 insert / 9 delete). Moving the one statement
 
 ```c
-level = (((u8)Display_State.field_8 & 1) << 4) + 0x40;
+level = (((u8)gDisplayState.animFrame & 1) << 4) + 0x40;
 ```
 
 to the head of the block took it to 99.97%: `sched1` hoists the *arithmetic*
@@ -55830,7 +55830,7 @@ extension instructions, move the truncation outwards rather than casting inside.
 from a global word:
 
 ```
-lw     v0, 0x8(a2)        # Display_State.field_8, a2 = &Display_State
+lw     v0, 0x8(a2)        # gDisplayState.animFrame, a2 = &gDisplayState
 li     v1, 0x38
 sb     v1, 0xD(a1)        # prim->v0
 andi   v0, v0, 0x1
@@ -55842,7 +55842,7 @@ sb     v0, 0xC(a1)        # prim->u0
 The obvious C
 
 ```c
-prim->u0 = ((Display_State.field_8 & 1) << 5) + 0xC0;
+prim->u0 = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
 prim->v0 = 0x38;
 ```
 
@@ -55853,7 +55853,7 @@ holding `0x38` — but emits `lbu v0, 0x8(a2)` and `addiu v0, v0, -0x40`.
 narrows from `lw` to `lbu`, and every additive constant wraps into its signed
 byte (`0xC0` → `-0x40`, `0xDF` → `-0x21`). Nothing about the surrounding code
 differs, so it reads like a struct-field-type problem — but `field_8` really is
-`s32`, and casting it (`(u8)Display_State.field_8`) only makes the `lbu`
+`s32`, and casting it (`(u8)gDisplayState.animFrame`) only makes the `lbu`
 deliberate rather than fixing it.
 
 **Cause.** Combining the `+ 0xC0` into the `sb` gives combine a QImode
@@ -55867,7 +55867,7 @@ store, so the value reaching the `sb` is a plain register and combine has
 nothing to narrow:
 
 ```c
-u        = ((Display_State.field_8 & 1) << 5) + 0xC0;
+u        = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
 prim->v0 = 0x38;
 prim->u0 = u;
 ```
@@ -58640,10 +58640,10 @@ any leftover `reorder=1`.
 ## An `s32` temp keeps a full `lw` and the positive `addiu` in a byte-field store
 
 `Room_Draw06` fills a `POLY_FT4`'s four `u` texcoords from the frame-parity bit
-of `Display_State.field_8` (an `s32`). The direct form
+of `gDisplayState.animFrame` (an `s32`). The direct form
 
 ```c
-prim->u0 = ((Display_State.field_8 & 1) << 5) + 0xC0;
+prim->u0 = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
 ```
 
 compiled the whole expression in `QImode`, which cost two instructions at once:
@@ -58656,7 +58656,7 @@ through an `s32` local first fixes both, because the arithmetic then has to
 happen in `SImode`:
 
 ```c
-u = ((Display_State.field_8 & 1) << 5) + 0xC0;
+u = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
 prim->v0 = 0x38;
 prim->u0 = u;
 ```
@@ -59956,7 +59956,7 @@ written to three `sb`s — a named local is unavoidable, and the same dest-tied
 `subu` comes from assigning first and reducing in place:
 
 ```c
-/* subu a0, a0, v0; sb a0, 4(t0) …  (and the %hi(Display_State) lui stays after) */
+/* subu a0, a0, v0; sb a0, 4(t0) …  (and the %hi(gDisplayState) lui stays after) */
 level  = (u32)Gp_LcgState >> 16;
 level %= 0xC0;
 ```
@@ -61939,7 +61939,7 @@ last 0.4%.
 target hoists the `lui a3, 0xFF` half of `0xFFFFFF` (`addPrim`'s address mask)
 to the second instruction of the function, and the seed emitted it right
 before the `ori`, twenty instructions down. The seed had fenced each
-`p->yN = -0x78 - Display_State.vramYOffset` store with a
+`p->yN = -0x78 - gDisplayState.vramYOffset` store with a
 `SOFT_COMPILER_BARRIER()` and read the offset through
 `(s8) * (volatile u8*)&ds->vramYOffset`, presumably to stop the four `lbu`s
 from being CSE'd or the stores from floating.
@@ -63647,7 +63647,7 @@ state-exit branch delay slots. The final unpinned seed is `base_12.c`.
 `func_acropolis_cafeteria_8017D6B4` matched its 19-instruction scratch target
 with an uninitialized local for the incoming `$v0`. The actual callback entry
 was eight bytes earlier: the words at `8017D6AC` were `lui v0,0x8007` /
-`lh v0,0x107A(v0)`, reading `Display_State.field_112`. The room task table
+`lh v0,0x107A(v0)`, reading `gDisplayState.field_112`. The room task table
 pointed at that earlier address. Restore those instructions to `.text` with
 `text = [0xEC, 0x54E8]`; ordinary C using the existing display field then
 matches the full 21-instruction body. Remove only the obsolete instruction
@@ -65338,7 +65338,7 @@ multi-set pseudos and `SUBREG` destinations keep priority 1 and sink toward the
 block head in original-order (LUID) sequence. A `u16 title; title = title - 1`
 expands to an SI temp plus a copy; with a later `SOFT_TOUCH_REG(title)` the
 temp dies at the copy, combine folds them into a `SUBREG` destination, and the
-decrement is deferred to the head *before* the `Display_State` address. Declaring
+decrement is deferred to the head *before* the `gDisplayState` address. Declaring
 `title` as `u32` keeps the decrement a plain single-set `addu` on the same
 pseudo, which the target wants after that address. A `u32` copy of a `u32`
 parameter is then a cse equivalence, and `make_regs_eqv` makes the longer-lived
@@ -66480,7 +66480,7 @@ then recover the schedule by moving the *statement* earlier in the function. The
 list scheduler breaks priority ties on RTL order, so a read placed near the top of
 the block lets sched1 hoist the `lui` on its own and leave the dependent load down
 by the branch that consumes it - which is the gap the hack was imitating. Here,
-hoisting the read above `ds = &Display_State;` reproduced all 150 instructions and
+hoisting the read above `ds = &gDisplayState;` reproduced all 150 instructions and
 both relocations, and made the `SOFT_TOUCH_REG` pin on the neighbouring constant
 unnecessary as well.
 
@@ -69535,18 +69535,18 @@ The same function's depth test is `andi` / `move v1, s0` / `sra` / `slt
 v0, v0, v1`. A bare `if (val < otz)` uses `$s0` directly (copy-coalesced).
 `z = otz` at the start of the arm is coalesced too, or
 `SOFT_TOUCH_REG(z)` there copies into `$a0` too early and kicks
-`Display_State` into `$a3`. Split the mask from the shift, then copy:
+`gDisplayState` into `$a3`. Split the mask from the shift, then copy:
 
 ```c
-val = (extra->depth << Display_State.field_128) & 0x3FFF;
+val = (extra->depth << gDisplayState.otDepthShift) & 0x3FFF;
 z = otz;
 SOFT_TOUCH_REG(z);
 if ((val >> 4) < z) {
 ```
 
 `$v1` is dead after `sllv`, so the copy lands there between `andi` and
-`sra`. Else `clip.y = Display_State.field_1f * 0x110` (not a standalone
-`D_80070F87`) keeps the inner-branch delay `lui` of `Display_State`; the
+`sra`. Else `clip.y = gDisplayState.drawBuffer * 0x110` (not a standalone
+`D_80070F87`) keeps the inner-branch delay `lui` of `gDisplayState`; the
 linked `lbu` offset is the same byte as `%lo(D_80070F87)`.
 
 Example: `func_actor_400500_80134D6C`. Input: `base_15.i`
@@ -74150,7 +74150,7 @@ over-weighting a pseudo.
 ## m2c's `switch` is not neutral: three dense cases compile as a bisection tree
 
 **Problem.** `func_actor_560800_80136930` dispatches on its argument with cases
-1, 2 and 3, each storing `Display_State.field_0` into its own global before a
+1, 2 and 3, each storing `gDisplayState.frameCount` into its own global before a
 shared call. The m2c seed kept m2c's `switch` verbatim and scored 33.2%
 (`insert=13 delete=7`), 34 instructions against the target's 28.
 
@@ -91425,7 +91425,7 @@ sites - one of which, `ActorsShared80163354` in
 `0x48`, `clut` `0x4283`, `setRGB0`, and
 
 ```c
-addPrim((u32*)((((u32)(s->depth << Display_State.field_128) >> 2) & 0xFFC)
+addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)
                + (u32)Gpu_CurrentOt), poly);
 ```
 
@@ -108650,7 +108650,7 @@ and emits a single `addiu v0,v0,-0xd0` off the pre-truncation value, leaving `$v
 and `$v1` swapped relative to the ROM. Writing the read-back instead —
 
 ```c
-        prim->r0 = (rcos(Display_State.field_4) & 0x1F) - 0x80;
+        prim->r0 = (rcos(gDisplayState.gameTick) & 0x1F) - 0x80;
         ...
         prim->r1 = prim->r0 - 0x50;
 ```
@@ -108790,7 +108790,7 @@ family-scoped, and so is the manifest. A `shared` span's `unit` resolves to
 `src/<family>/lib/<unit>.c` and links only into that family's overlays - no
 `unit` in `configs/USA/overlays.toml` appears under two `[family]` sections.
 The refusal here is not the `localref` one either: the copies reference only
-shared globals (`D_80111E48`, `GsWSMATRIX`, `Display_State`, `Gpu_PrimCursor`,
+shared globals (`D_80111E48`, `GsWSMATRIX`, `gDisplayState`, `Gpu_PrimCursor`,
 `Gpu_CurrentOt`, `rsin`, `rcos`), so they would share cleanly if there were
 anywhere to put them. There is not, and the two overlays keep their own
 copies.
@@ -116149,7 +116149,7 @@ scalar, so sched1 hoisted its `lui`/`lbu` above the struct stores that open the
 case, and that `lui` (non-trapping) was eligible for the slot. In the target the
 case opens with `lhu $v0, 0($a0)` - a memory load, which `may_trap_p` keeps out
 of an unannulled slot - so the slot stays empty. Naming the globals as the
-struct fields they are (`Display_State.field_1f` / `field_104` / `field_112`)
+struct fields they are (`gDisplayState.drawBuffer` / `gDisplayState.skipDraw` / `gDisplayState.field_112`)
 restores the aliasing edge and took the function straight to a match; the other
 slot differences followed from the layout.
 
@@ -126695,7 +126695,7 @@ and a constant folds outright. A genuine conversion therefore only ever appears 
 *computed* value, as here and in `Gp_ShakeTask` / `actor_335800_80162588`.
 
 Fix, when the target has no conversion and the header cannot be relaxed (here `display.h` is
-pulled in by `gameplay/D4.h`, which needs `Display_State`, and narrowing the shared prototype
+pulled in by `gameplay/D4.h`, which needs `gDisplayState`, and narrowing the shared prototype
 would break the callee and the call sites that legitimately convert): re-declare the callee
 at *block* scope inside the function with an empty parameter list, which is compatible with
 the prototype and hides it from that call.
@@ -130372,3 +130372,48 @@ two cannot be one C variable, and the register they share has to come from
 allocation rather than from a shared pseudo. `Actor02100_Fn00048` is stuck on
 exactly that: the fold needs a HImode pseudo, the allocation needs the same
 pseudo to carry a 32-bit constant, and the two cannot be reconciled.
+## A field rename takes the other types' prose with it, and its prefilter parses the tree
+
+Renaming one `DisplayState` member with `rename_item.py` reported 452 edits for
+a field with 17 real references. The extras were prose, and the cause is in
+`comment_refs`' notion of a qualified mention:
+
+```python
+qualified = [rf"\b{o}::{t}\b", rf"\b{o}\.{t}\b", rf"`{o}::{t}`"]
+loose     = [rf"`{t}`", rf"->\s*{t}\b", rf"\.{t}\b"]
+```
+
+`qualified` needs the owner in front of the field, which is exactly right. The
+loose alternatives do not: `.field_0` and `->field_0` name every other type's
+field of the same spelling, and they are accepted in any file that references
+this one. Markdown is weaker still — the token only has to be "distinctive",
+which any `field_<hex>` name is because of its underscore, so a bare
+`work->field_0` in the notes is rewritten along with the real mentions.
+
+For a field, drop prose from the reference pass and do it afterwards, qualified
+by the owner and nothing else:
+
+```python
+pat = re.compile(rf"\bgDisplayState\.{re.escape(old_name)}\b")
+```
+
+with one guard: a mention inside `%hi(...)` / `%lo(...)` is the *assembled*
+operand, where the linker sees an offset rather than a name, and must be left
+alone. What is left after that pass is the handful of places where prose names
+the field without the owner, and those have to be read.
+
+The second cost is the prefilter. `find_refs` narrows by grepping for the
+identifier, and for `field_4` that selects most of the tree — minutes per call.
+Every reference to a field of one type lies in a translation unit that spells
+that type, so scanning that list instead — `collect_in_tu` over the TUs whose
+sources spell either the type or the global an instance of it is reached
+through — searched 172 files rather than 1600 and brought a 32-symbol pass down
+to about a quarter of an hour.
+
+Two other things to expect when the whole struct goes at once. A reference
+inside a macro argument is reported at the *invocation's* first line, so an
+`addPrim(...)` call that spans lines has its identifier a line below the
+reported one; those sites are the ones the pass has to fix by hand afterwards
+(299 of them here). And a mention of the form `` `gDisplayState.field_1f` /
+`field_104` `` has only the first spelling qualified, so the rest survive every
+substitution and are found only by grepping the notes for the retired names.

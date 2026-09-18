@@ -85,8 +85,8 @@ s32 func_80042500(void)
             SndEvt_EnqueueType2(0, 8);
             SndEvt_EnqueueType7(0x80000000, 0x78);
             SndEvt_EnqueueType7(0x60010001, 0x78);
-            Display_State.field_11e = 0xFF;
-            Display_State.field_100 = 0;
+            gDisplayState.gameMode                = 0xFF;
+            gDisplayState.at100.flags.imageSource = 0;
             if (D_8007A393 == 1) {
                 CdCmd_EnqueueLoadFile(1, 0x3C, 3);
                 D_8007A392 = 0;
@@ -102,7 +102,7 @@ s32 func_80042500(void)
         case 1:
             if (CdCmd_IsIdle()) {
                 Fs_StopCd();
-                Display_State.field_100 = 1;
+                gDisplayState.at100.flags.imageSource = 1;
                 D_8007A394++;
             }
             return 0xFF;
@@ -159,9 +159,9 @@ s32 func_80042500(void)
         case 5:
             D_8007A390--;
             if (D_8007A390 == 0) {
-                Display_State.field_100 = 0;
-                Display_State.field_11e = 0;
-                queue->field_244        = 0;
+                gDisplayState.at100.flags.imageSource = 0;
+                gDisplayState.gameMode                = 0;
+                queue->field_244                      = 0;
                 break;
             }
             return 0xFF;

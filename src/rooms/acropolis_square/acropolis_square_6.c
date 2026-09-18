@@ -169,7 +169,7 @@ void func_acropolis_square_801825DC(Task* task)
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->rOuter * D_acropolis_square_80183B68[i + 6]) >> 12);
                 prim->y3 = blk->sy + ((blk->rOuter * D_acropolis_square_80183B68[i + 2]) >> 12);
-                addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
 
@@ -188,7 +188,7 @@ void func_acropolis_square_801825DC(Task* task)
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->rOuter * D_acropolis_square_80183B68[i + 6]) >> 13);
                 prim->y3 = blk->sy + ((blk->rOuter * D_acropolis_square_80183B68[i + 2]) >> 13);
-                addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
@@ -212,11 +212,11 @@ void func_acropolis_square_801825DC(Task* task)
                     prim->y2 = blk->sy;
                     prim->x3 = blk->sx + ((blk->rInner * D_acropolis_square_80183B68[i + 8]) >> 12);
                     prim->y3 = blk->sy + ((blk->rInner * D_acropolis_square_80183B68[i + 4]) >> 12);
-                    shift    = Display_State.field_128;
+                    shift    = gDisplayState.otDepthShift;
                     depth    = (((u32)blk->otz << shift) >> 2) & 0xFFC;
-                    __asm__("" : "+r"(depth) : "r"(shift), "m"(Display_State.field_128));
+                    __asm__("" : "+r"(depth) : "r"(shift), "m"(gDisplayState.otDepthShift));
                     setaddr(prim, getaddr((u_long*)(depth + (s32)Gpu_CurrentOt)));
-                    ot  = (u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt);
+                    ot  = (u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt);
                     tag = (*ot & 0xFF000000) | ((u32)prim & 0xFFFFFF);
                     *ot = tag;
                     z   = blk->otz;
@@ -242,7 +242,7 @@ void func_acropolis_square_801825DC(Task* task)
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->rInner * D_acropolis_square_80183B68[i + 0xC]) >> 13);
                 prim->y3 = blk->sy + ((blk->rInner * D_acropolis_square_80183B68[i + 8]) >> 13);
-                addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                         prim);
                 z = blk->otz;
                 __asm__("" : "+r"(z) : "r"(red), "r"(&D_acropolis_square_80183B68[i]));
@@ -264,7 +264,7 @@ void func_acropolis_square_801825DC(Task* task)
                 prim->x3            = blk->sx + blk->rOuter;
                 prim->y0 = prim->y2 = prim->y3 = blk->sy;
                 prim->y1                       = (blk->sy - blk->rOuter) + blk->rOuter * (i + i);
-                addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
@@ -282,7 +282,7 @@ void func_acropolis_square_801825DC(Task* task)
                     line->y1 = blk->sy;
                     line->x2 = blk->sx - blk->rOuter * (i * 3 - 1);
                     line->y2 = blk->sy + blk->rOuter * (i + 1);
-                    addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                    addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                                       (s32)Gpu_CurrentOt),
                             line);
                     Gp_AddTpageShift((P_TAG*)line, 1, blk->otz);

@@ -374,10 +374,10 @@ void func_replay_bonus_80117924(Task* arg0)
 
     arg0->killCountdown = remaining;
     if ((s16)remaining < 0) {
-        Display_State.field_11e = 0;
-        gGameSession->uiOpen    = 0;
+        gDisplayState.gameMode = 0;
+        gGameSession->uiOpen   = 0;
         Task_CallExit(arg0);
-        Display_State.field_11e = 1;
+        gDisplayState.gameMode = 1;
     }
 }
 

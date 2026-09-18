@@ -1128,7 +1128,7 @@ s32 SndScript_Exec(SndScript* script)
                 result           = 1;
                 goto done;
             } else {
-                if (Display_State.region == 1) {
+                if (gDisplayState.region == 1) {
                     SOFT_BARRIER();
                     step = 0x9999;
                 } else {
@@ -1162,7 +1162,7 @@ s32 SndScript_Exec(SndScript* script)
             oneV  = (SndOneV*)script->field_48;
             ticks = script->field_8;
             if ((ticks >> 16) < oneV->field_8) {
-                if (Display_State.region == 1) {
+                if (gDisplayState.region == 1) {
                     SOFT_BARRIER();
                     step = 0x9999;
                 } else {
@@ -1279,7 +1279,7 @@ s32 SndScript_Exec(SndScript* script)
             ticks = script->field_8;
             wait  = ((SndWaitCmd*)cmd)->duration;
             if ((ticks >> 16) < wait) {
-                if (Display_State.region == 1) {
+                if (gDisplayState.region == 1) {
                     SOFT_BARRIER();
                     step = 0x9999;
                 } else {
@@ -1886,7 +1886,7 @@ s32 SndVoice_Tick(SndVoice* arg0)
         }
     } else {
         if (temp <= 0x7FFFFFFE) {
-            if (Display_State.region == 1) {
+            if (gDisplayState.region == 1) {
                 arg0->field_4 = temp + 0xFFFF6667;
             } else {
                 arg0->field_4 = temp + 0xFFFF0000;

@@ -59,9 +59,9 @@ void Room_Draw29(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_stszotz(&block->otz);
     if (((RoomDraw25Scratch*)(head - 0xC))->otz >= 0x11) {
         radius        = ((s16)arg1 * 64) / ((RoomDraw25Scratch*)(head - 0xC))->otz;
-        ds_ptr        = (u8*)&Display_State;
+        ds_ptr        = (u8*)&gDisplayState;
         packed        = arg2 << 16;
-        blend         = ((*(u8*)&((DisplayState*)ds_ptr)->field_8 & 1) * 8) | 0x20;
+        blend         = ((*(u8*)&((DisplayState*)ds_ptr)->animFrame & 1) * 8) | 0x20;
         r             = blend * (packed >> 24);
         g             = blend * ((packed >> 20) & 3);
         b             = blend * (arg2 & 3);
@@ -87,7 +87,7 @@ void Room_Draw29(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
             prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz << ds->field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);

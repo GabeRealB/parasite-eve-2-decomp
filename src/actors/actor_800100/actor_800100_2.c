@@ -1455,13 +1455,13 @@ void func_actor_800100_8016666C(GsCOORDINATE2* arg0, s16 arg1)
         sy1      = ((Actor800100LineScratch*)newhead)->sxy1.vy;
         prim->y1 = sy1;
         /* Both ends pulse with the frame counter, the far one 0x50 darker. */
-        prim->r0 = (rcos(Display_State.field_4) & 0x1F) - 0x80;
+        prim->r0 = (rcos(gDisplayState.gameTick) & 0x1F) - 0x80;
         prim->g0 = 0x20;
         prim->b0 = 0x20;
         prim->r1 = prim->r0 - 0x50;
         prim->g1 = 0;
         prim->b1 = 0;
-        addPrim((u_long*)(((((u32)((Actor800100LineScratch*)newhead)->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+        addPrim((u_long*)(((((u32)((Actor800100LineScratch*)newhead)->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, ((Actor800100LineScratch*)newhead)->otz);
     }
     *scratch = (u8*)*scratch + sizeof(Actor800100LineScratch);

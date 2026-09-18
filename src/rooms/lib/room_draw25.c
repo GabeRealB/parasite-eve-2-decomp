@@ -49,7 +49,7 @@ void Room_Draw25(SVECTOR* arg0, s16 arg1)
     gte_stszotz(&block->otz);
     if (((RoomDraw25Scratch*)(head - 0xC))->otz >= 0x11) {
         radius        = (arg1 * 64) / ((RoomDraw25Scratch*)(head - 0xC))->otz;
-        rgb           = (((u8)Display_State.field_8 & 1) * 8) | 0x20;
+        rgb           = (((u8)gDisplayState.animFrame & 1) * 8) | 0x20;
         ang           = 0;
         block->radius = radius;
         do {
@@ -71,7 +71,7 @@ void Room_Draw25(SVECTOR* arg0, s16 arg1)
             prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
             prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);

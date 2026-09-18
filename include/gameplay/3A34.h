@@ -1418,7 +1418,7 @@ void Gp_DebugPanTask(Task* arg0);
 /// RGB as (7,6,3)/33 then *4/*2/*1. Mode 2 zeros the matrix. Mode 3
 /// fills 0x180/0x100/0x100. Default remaps to *3/*1/*3 when
 /// `field_4C & 0xC`. Bit 0x80 of `field_4E` with `field_4B == 0` applies
-/// a `rsin(Display_State.field_14 << 6)` flicker and clears the bit.
+/// a `rsin(gDisplayState.loopCount << 6)` flicker and clears the bit.
 void Gp_RemapActorColor(struct _GpEnemy* arg0, MATRIX* arg1, s32 arg2);
 /// Rebuilds the actor color matrix via `func_800D7A9C`, then remaps it
 /// from `field_4E` lighting mode (`Gp_RemapActorColor`). While `field_4F` is

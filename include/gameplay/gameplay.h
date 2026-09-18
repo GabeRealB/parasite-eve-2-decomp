@@ -283,7 +283,7 @@ extern GpItemRec8 D_80113E28[];
 
 /// 0x30-byte play-clock work `Gp_InitPlayClock` stores at `Task::work`.
 /// `field_0` / `field_4` are `Mc_SaveData.field_C` split into minutes and
-/// seconds. `field_8` snapshots `Display_State.field_4`. `extra` is the
+/// seconds. `field_8` snapshots `gDisplayState.gameTick`. `extra` is the
 /// +0xC overlay passed to `Gp_ResetHudFx`.
 typedef struct _GpIdMap30 {
     /* 0x00 */ s32      field_0;
@@ -309,7 +309,7 @@ extern GpStateBD8 D_80114BD8;
 /// Indexed 1-based by `Gp_GetViewIndex()`. `mtx` rotation is copied to
 /// `Gfx_ViewRotMtx` and translation to `D_80070F28` by `Gp_LoadStageView` /
 /// `Gp_ApplyView` / `Gp_ApplyViewTask`; `field_20` is `lhu` into
-/// `Display_State.field_110` and `lw` into GTE H (`gte_SetGeomScreen`).
+/// `gDisplayState.screenDistance` and `lw` into GTE H (`gte_SetGeomScreen`).
 typedef struct _GpViewRec {
     /* 0x00 */ MATRIX mtx;
     /* 0x20 */ u32    field_20;

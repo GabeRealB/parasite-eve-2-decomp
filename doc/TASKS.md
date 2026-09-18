@@ -93,7 +93,7 @@ Task_ExecDefaultList(...);   // walks Task_DefaultList
 
 Each node’s `callback` runs. Two early-outs:
 
-- `Display_State.field_10b == 1` — abort the rest of the list this frame
+- `gDisplayState.stopTaskWalk == 1` — abort the rest of the list this frame
   (gameflow uses this after killing the world and respawning).
 - `spawnType == 0xFF` — **tombstone**: unlink + `Mem_Free` this node, continue.
 
@@ -109,7 +109,7 @@ Each node’s `callback` runs. Two early-outs:
 2. Unlinks from the parent ring.
 3. Frees `idMap` if set.
 4. Tears down `extra` according to `spawnType` (skipped when
-   `Display_State.skipTeardown` is set).
+   `gDisplayState.skipTeardown` is set).
 5. Sets `spawnType = 0xFF` so the **next** exec pass frees the node.
 
 Type 1 often swaps `callback` to `Task_CountdownCallback` with
@@ -288,7 +288,7 @@ gear to an actor, then rewrites `parent` and TMD coord links.
 ### Banks 3, 4, 5, 8, 10, 14
 
 Placeholder slots plus a few overlay or shared-TMD callbacks. Bank 5 type `1`
-is `Task_KillMaybeSpawn` (`taskutil.c`): on `Display_State.field_112` it
+is `Task_KillMaybeSpawn` (`taskutil.c`): on `gDisplayState.field_112` it
 spawns `D_80725C54[0]` (overlay desc) then kills itself.
 
 ---

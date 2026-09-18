@@ -24,7 +24,7 @@
 /// (that is, twice around each cap): a near-end wedge, a side quad joining the
 /// two circles, and a far-end wedge walked backwards from 0x1000. Every wedge
 /// is black at its rim and `rgb` at the centre, where `rgb` alternates between
-/// 0x20 and 0x30 on the parity of `Display_State.field_8` so the beam
+/// 0x20 and 0x30 on the parity of `gDisplayState.animFrame` so the beam
 /// flickers. Each primitive is linked into the OT bucket of its own end's
 /// `otz` and given a `Gp_AddTpageShift` tpage. Shared body, linked into every
 /// room overlay that uses it.
@@ -86,7 +86,7 @@ void Room_Draw24(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
         r0        = extent / ((RoomDraw24Scratch*)(head - 0x28))->otz0;
         r1        = extent / block->otz1;
         ang       = 0;
-        rgb       = (((u8)Display_State.field_8 & 1) * 16) | 0x20;
+        rgb       = (((u8)gDisplayState.animFrame & 1) * 16) | 0x20;
         block->r0 = r0;
         block->r1 = r1;
         do {
@@ -107,7 +107,7 @@ void Room_Draw24(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
             prim->y2 = block->sy0;
             prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
             prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
-            addPrim((u_long*)(((((u32)block->otz0 << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
@@ -127,7 +127,7 @@ void Room_Draw24(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
             prim->y2 = block->sy0;
             prim->x3 = block->sx1;
             prim->y3 = block->sy1;
-            addPrim((u_long*)(((((u32)block->otz0 << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
@@ -148,7 +148,7 @@ void Room_Draw24(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
             prim->x3 = block->sx1 + ((block->r1 * rsin(0xC00 - ang)) >> 12);
             prim->y3 = block->sy1 + ((block->r1 * rcos(0xC00 - ang)) >> 12);
             ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz1 << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);

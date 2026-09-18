@@ -95,7 +95,7 @@ void Room_Draw16(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
         prim->y2 = *(u16*)&block->sxy2.vy;
         prim->x3 = *(u16*)&block->sxy3.vx;
         prim->y3 = *(u16*)&block->sxy3.vy;
-        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)Gpu_CurrentOt),
                 prim);
     }

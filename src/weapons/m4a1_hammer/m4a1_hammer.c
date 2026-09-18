@@ -254,7 +254,7 @@ void func_m4a1_hammer_8011D904(s32* arg0, u16 arg1, u16 arg2, s16 arg3)
         prim->x2    = *(u16*)&block->sxy0.vx - *(u16*)&block->dx;
         prim->y1    = *(u16*)&block->sxy0.vy - *(u16*)&block->dy;
         prim->y2    = *(u16*)&block->sxy0.vy + *(u16*)&block->dy;
-        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
     }
     *scratch = (u8*)*scratch + 0x1C;
 }
@@ -361,7 +361,7 @@ void func_m4a1_hammer_8011DE60(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3
         prim->x2    = *(u16*)&block->sxy0.vx - *(u16*)&block->dx;
         prim->y1    = *(u16*)&block->sxy0.vy - *(u16*)&block->dy;
         prim->y2    = *(u16*)&block->sxy0.vy + *(u16*)&block->dy;
-        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
     }
     *scratch = (u8*)*scratch + 0x1C;
 }
@@ -427,7 +427,7 @@ void func_m4a1_hammer_8011E29C(GsCOORDINATE2* coord, SVECTOR* arg1, s32 arg2, s1
             prim->x2    = *(u16*)&block->sxy0.vx - *(u16*)&block->dx;
             prim->y1    = *(u16*)&block->sxy1.vy - *(u16*)&block->dy;
             prim->y2    = *(u16*)&block->sxy0.vy + *(u16*)&block->dy;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                     prim);
         }
     }

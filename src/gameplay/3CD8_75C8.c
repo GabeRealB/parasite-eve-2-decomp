@@ -105,11 +105,11 @@ void Gp_ScriptTaskState1(Task* arg0)
         return;
     }
 
-    if (Display_State.field_12c != 0 && Pad_CheckFlag800() != 0 && Display_State.field_10d == 0) {
-        Display_State.field_11e = 1;
+    if (gDisplayState.demoScene != 0 && Pad_CheckFlag800() != 0 && gDisplayState.pendingMode == 0) {
+        gDisplayState.gameMode = 1;
     }
 
-    if (Pad_CheckFlag800() != 0 && D_801156D0 != 0 && Display_State.field_10d == 0 && D_801156F0 == 0) {
+    if (Pad_CheckFlag800() != 0 && D_801156D0 != 0 && gDisplayState.pendingMode == 0 && D_801156F0 == 0) {
         if (D_801156F4 != NULL) {
             CdCmd_CancelReplaceAndActivate();
         }
@@ -1120,7 +1120,7 @@ void Gp_UpdatePadInput(void)
     Gp_PadSuppressRise = ~Gp_PadSuppressPrev & Gp_PadSuppressMask;
     Gp_PadSuppressFall = Gp_PadSuppressPrev & ~Gp_PadSuppressMask;
     Gp_PadSuppressPrev = Gp_PadSuppressMask;
-    if (Display_State.field_12c == 0) {
+    if (gDisplayState.demoScene == 0) {
         if (Gp_PadSuppressRise & 0x900) {
             Display_AcquireRef();
             Gp_PadSuppressRefs++;

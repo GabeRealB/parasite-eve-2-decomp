@@ -430,7 +430,7 @@ void func_antibody_8012FBB0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
         prim->x2    = *(u16*)&block->sx0 - *(u16*)&block->dx;
         prim->y1    = *(u16*)&block->sy0 - *(u16*)&block->dy;
         prim->y2    = *(u16*)&block->sy0 + *(u16*)&block->dy;
-        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)Gpu_CurrentOt),
                 prim);
     }
@@ -500,7 +500,7 @@ void func_antibody_8012FFEC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
         prim->x2  = *(u16*)&block->sx0 - *(u16*)&block->dx;
         prim->y1  = *(u16*)&block->sy0 - *(u16*)&block->dy;
         prim->y2  = *(u16*)&block->sy0 + *(u16*)&block->dy;
-        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)Gpu_CurrentOt),
                 prim);
     }
@@ -586,7 +586,7 @@ void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
             prim->x2  = *(u16*)&block->sx0 - *(u16*)&block->dx;
             prim->y1  = *(u16*)&block->sy1 - *(u16*)&block->dy;
             prim->y2  = *(u16*)&block->sy0 + *(u16*)&block->dy;
-            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
                     prim);
         }

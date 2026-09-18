@@ -209,7 +209,7 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
                 c        = a + 0x200;
                 prim->x3 = blk->sx + ((blk->outer * rsin(c)) >> 12);
                 prim->y3 = blk->sy + ((blk->outer * rcos(c)) >> 12);
-                addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
 
@@ -229,7 +229,7 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->outer * rsin(c)) >> 13);
                 prim->y3 = blk->sy + ((blk->outer * rcos(c)) >> 13);
-                addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
@@ -254,7 +254,7 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
                 d        = a + 0x400;
                 prim->x3 = blk->sx + ((blk->inner * rsin(d)) >> 13);
                 prim->y3 = blk->sy + ((blk->inner * rcos(d)) >> 13);
-                addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
 
@@ -275,7 +275,7 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
                 d        = a + 0x800;
                 prim->x3 = blk->sx + ((blk->inner * rsin(d)) >> 12);
                 prim->y3 = blk->sy + ((blk->inner * rcos(d)) >> 12);
-                addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
@@ -410,7 +410,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
             prim->x2    = blk->sx - (u16)blk->dx;
             prim->y1    = blk->sy - (u16)blk->dy;
             prim->y2    = blk->sy + (u16)blk->dy;
-            addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+            addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
         if (Gp_State1C->field_4 == 0) {
@@ -605,7 +605,7 @@ void func_acropolis_helicopter_landing_pad_80180664(GsCOORDINATE2* coord)
         prim->y0 = blk->y0;
         prim->x1 = blk->x1;
         prim->y1 = blk->y1;
-        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
 }
@@ -680,7 +680,7 @@ void func_acropolis_helicopter_landing_pad_80180A64(GsCOORDINATE2* coord)
         prim->y0 = blk->y0;
         prim->x1 = blk->x1;
         prim->y1 = blk->y1;
-        addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
 }
@@ -865,7 +865,7 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
             prim->x2    = blk->sx - (u16)blk->dx;
             prim->y1    = blk->sy - (u16)blk->dy;
             prim->y2    = blk->sy + (u16)blk->dy;
-            addPrim((u_long*)(((((u32)blk->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+            addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
         if (Gp_State1C->field_4 == 0) {

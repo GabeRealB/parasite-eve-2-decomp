@@ -47,22 +47,22 @@ void RoomsShared8017ed38(Task* task)
         if (status == 0x12) {
             speed            = prompt->targetId;
             step             = ((u16)pad->field_54 << 0x10) >> 0x15;
-            prompt->field_0 += step * speed * Display_State.field_10a;
+            prompt->field_0 += step * speed * gDisplayState.frameTicks;
             step             = ((u16)pad->field_56 << 0x10) >> 0x15;
-            prompt->field_4 += step * speed * Display_State.field_10a;
+            prompt->field_4 += step * speed * gDisplayState.frameTicks;
         } else if (status == 0x73) {
             stick = pad->field_54;
             step  = (stick * stick) >> 0x15;
             if (stick < 0) {
                 step = -step;
             }
-            prompt->field_0 += step * prompt->targetId * Display_State.field_10a;
+            prompt->field_0 += step * prompt->targetId * gDisplayState.frameTicks;
             stick            = pad->field_56;
             step             = (stick * stick) >> 0x15;
             if (stick < 0) {
                 step = -step;
             }
-            prompt->field_4 += step * prompt->targetId * Display_State.field_10a;
+            prompt->field_4 += step * prompt->targetId * gDisplayState.frameTicks;
         }
 
         switch (pad->buttons >> 0xC) {
@@ -96,8 +96,8 @@ void RoomsShared8017ed38(Task* task)
         }
 
         if (step != -1) {
-            prompt->field_4 += (-rcos(step) * prompt->targetId * Display_State.field_10a) >> 9;
-            prompt->field_0 += (rsin(step) * prompt->targetId * Display_State.field_10a) >> 9;
+            prompt->field_4 += (-rcos(step) * prompt->targetId * gDisplayState.frameTicks) >> 9;
+            prompt->field_0 += (rsin(step) * prompt->targetId * gDisplayState.frameTicks) >> 9;
         }
 
         if (prompt->field_0 < -0x14000) {
@@ -133,7 +133,7 @@ void RoomsShared8017ed38(Task* task)
             } else {
                 *statep = 0;
             }
-            heldp[idx] += Display_State.field_10a;
+            heldp[idx] += gDisplayState.frameTicks;
         }
 
         prompt->screen.xy.x = prompt->field_0 >> 9;
