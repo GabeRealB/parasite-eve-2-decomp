@@ -257,37 +257,47 @@ def load(path: str):
 
 
 def processed_set(root: str, nodes: dict) -> set:
-    """USRs whose name already follows the convention.
+    """USRs the pass has already handled, from its own records.
 
-    Naming and documenting go together, but only the name can be judged
-    mechanically, so that is what readiness is measured on.
+    What a name looks like cannot say whether it was processed: a type may have
+    arrived already spelled to the convention and never been examined. So this
+    reads the records the pass writes - the driver's step ledger and the
+    renamer's log, both under the gitignored local directory - rather than
+    inferring anything. Library and machine types are excluded as well, not
+    because they are done but because they are out of scope.
     """
     vendor = name_index.vendored_names(root)
     out = set()
+    handled = _recorded_names(root)
     for usr, meta in nodes.items():
         name = meta["name"]
-        # Nothing defined in this tree cannot be work: library symbols and
-        # machine-type aliases are out of scope and must not block anything.
-        if name in vendor or name in _PRIMITIVE:
+        if name in vendor or name in _PRIMITIVE or name in handled:
             out.add(usr)
-            continue
-        kind = _node_kind(usr)
-        if name_index.classify(name, kind, vendor) != "current":
-            continue
-        # A convention-shaped typedef can still sit on a tag that disagrees with
-        # it, which the name alone cannot show: the USR carries the tag, so
-        # compare them. A public type wearing the private marker on its tag has
-        # not had the tag decision made, however well documented it is.
-        if kind == "type":
-            tag = _TAG_RE.search(usr)
-            if tag and tag.group(1) != name:
-                continue
-        # A convention-shaped name is not the whole job: an item is processed
-        # once it is also documented, which is what the pass is for.
-        if meta.get("file") and not _has_doc(root, meta):
-            continue
-        out.add(usr)
     return out
+
+
+def _recorded_names(root: str) -> set:
+    """Every name the pass has recorded touching, old spellings included.
+
+    A step is logged under the name the worklist gave it, and renames are
+    logged with both spellings, so looking a node up by its current name finds
+    it either way.
+    """
+    names = set()
+    for rel, cols in (("local/name_pass_done.tsv", (1,)),
+                      ("local/renames.tsv", (2, 3))):
+        path = os.path.join(root, rel)
+        if not os.path.exists(path):
+            continue
+        with open(path) as fh:
+            for i, line in enumerate(fh):
+                fields = line.rstrip("\n").split("\t")
+                if i == 0 and fields and fields[0] in ("when", "order"):
+                    continue
+                for c in cols:
+                    if c < len(fields):
+                        names.update(fields[c].split())
+    return names
 
 
 _TAG_RE = __import__("re").compile(r"@(?:S|U|E)A?@([A-Za-z_]\w*)")
