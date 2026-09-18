@@ -24,7 +24,7 @@ void ActorsShared801324fc(Task* task)
         return;
     }
     work->field_4B8 = rec;
-    kind            = rec->field_3 & 0x30;
+    kind            = rec->flags & 0x30;
     if (kind != 0x10 && kind != 0x20) {
         return;
     }

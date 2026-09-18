@@ -601,7 +601,7 @@ done:
     SCRATCH_SP += 0x18;
 }
 /// Plays the actor's footstep cues: while the animation record the cue body
-/// reads carries `field_3` bit 0x20 (or 0x10), a sound is queued on the frame
+/// reads carries `flags` bit 0x20 (or 0x10), a sound is queued on the frame
 /// that bit has just dropped from `Actor521100Work::field_6B4`, panned and
 /// depth-attenuated from the actor's display coordinate. The record is the one
 /// `Gp_AnimGetRec` returns for the slot at 0x3C - the second of the 0x28-byte
@@ -623,17 +623,17 @@ void func_actor_521100_80134D88(Actor521100* arg0)
     coord = arg0->field_2C->field_8;
     rec   = Gp_AnimGetRec((GpAnimCtx*)work, (GpAnimSlot*)&work->pad_0[0x3C]);
     if (rec != NULL) {
-        if (!(rec->field_3 & 0x20) && (work->field_6B4 & 0x20)) {
+        if (!(rec->flags & 0x20) && (work->field_6B4 & 0x20)) {
             snd = ((arg0->field_20->field_8 >> 12) << 8) | 0x401C0001;
             pan = (s8)Gp_GetObjPan((GpObj38*)coord);
             SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
         }
-        if (!(rec->field_3 & 0x10) && (work->field_6B4 & 0x10)) {
+        if (!(rec->flags & 0x10) && (work->field_6B4 & 0x10)) {
             snd  = ((arg0->field_20->field_8 >> 12) << 8) | 0x401C0002;
             pan2 = (s8)Gp_GetObjPan((GpObj38*)coord);
             SndEvt_EnqueueType6(snd, pan2, (s8)Gp_GetObjDepth((GpObj38*)coord));
         }
-        work->field_6B4 = (u16)(rec->field_3 & 0x30);
+        work->field_6B4 = (u16)(rec->flags & 0x30);
     }
 }
 

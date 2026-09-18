@@ -33,7 +33,7 @@ void WeaponsShared8011de24(Task* task);
 /// playing `0x201B0004` and spawning the muzzle flash, and picks the lock-on
 /// target on the frame after. States 4/5 pick the target once, then state 5
 /// walks the animation, emitting `0x201B0008 + field_93E` on every record whose
-/// `field_3` has both 0x10 and 0x20, and hands back to `func_80106550` when the
+/// `flags` has both 0x10 and 0x20, and hands back to `func_80106550` when the
 /// clip is done or the recoil timer has run out.
 void func_m4a1_grenade_8011D1EC(GpActorWork* arg0)
 {
@@ -145,7 +145,7 @@ void func_m4a1_grenade_8011D1EC(GpActorWork* arg0)
             rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->field_438 + 1);
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
-                if ((rec->field_3 & 0x30) == 0x30) {
+                if ((rec->flags & 0x30) == 0x30) {
                     Gp_PlayObjSfx((GpObj38*)arg0->extra->coords,
                                   (actor->field_93E + 0x201B0008) | ((sfx - 0xA) << 24), 0);
                     actor->field_93E++;

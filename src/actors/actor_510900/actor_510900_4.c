@@ -1282,7 +1282,7 @@ void func_actor_510900_80138978(Actor510900* arg0)
 }
 
 /// Fires the actor's step sounds: while the current animation record carries
-/// `field_3` bit 0x20 or 0x10, a sound is queued on the frame that bit has just
+/// `flags` cue bit 0x20 or 0x10, a sound is queued on the frame that bit has just
 /// dropped from `Actor510900Work::field_59A`, panned and depth-attenuated from
 /// the actor's attach coordinate. The record's two bits are latched for the
 /// next frame at the end.
@@ -1299,17 +1299,17 @@ void func_actor_510900_80138A9C(Actor510900* arg0)
     coord = arg0->field_2C->field_8;
     rec   = Gp_AnimGetRec((GpAnimCtx*)work, (GpAnimSlot*)&work->obj38.prev);
     if (rec != NULL) {
-        if (!(rec->field_3 & 0x20) && (work->field_59A & 0x20)) {
+        if (!(rec->flags & 0x20) && (work->field_59A & 0x20)) {
             snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780001;
             pan = (s8)Gp_GetObjPan((GpObj38*)coord);
             SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
         }
-        if (!(rec->field_3 & 0x10) && (work->field_59A & 0x10)) {
+        if (!(rec->flags & 0x10) && (work->field_59A & 0x10)) {
             snd  = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780002;
             pan2 = (s8)Gp_GetObjPan((GpObj38*)coord);
             SndEvt_EnqueueType6(snd, pan2, (s8)Gp_GetObjDepth((GpObj38*)coord));
         }
-        work->field_59A = (u16)(rec->field_3 & 0x30);
+        work->field_59A = (u16)(rec->flags & 0x30);
     }
 }
 

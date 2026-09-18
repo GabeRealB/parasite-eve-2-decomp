@@ -1820,17 +1820,17 @@ void Actor00300_Fn03A1C(Actor100300* arg0)
     coord = arg0->field_2C->field_8;
     rec   = Gp_AnimGetRec((GpAnimCtx*)work, (GpAnimSlot*)&work->obj38.prev);
     if (rec != NULL) {
-        if (!(rec->field_3 & 0x20) && (work->field_696 & 0x20)) {
+        if (!(rec->flags & 0x20) && (work->field_696 & 0x20)) {
             sound = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40030001;
             pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
             SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
         }
-        if (!(rec->field_3 & 0x10) && (work->field_696 & 0x10)) {
+        if (!(rec->flags & 0x10) && (work->field_696 & 0x10)) {
             sound = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40030002;
             pan2  = (s8)Gp_GetObjPan((GpObj38*)coord);
             SndEvt_EnqueueType6(sound, pan2, (s8)Gp_GetObjDepth((GpObj38*)coord));
         }
-        work->field_696 = (u16)(rec->field_3 & 0x30);
+        work->field_696 = (u16)(rec->flags & 0x30);
     }
 }
 

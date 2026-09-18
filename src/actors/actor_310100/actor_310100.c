@@ -36,7 +36,7 @@ s32 func_actor_310100_80161E24(Task* task)
     if (rec != work->field_4EC) {
         if (rec != NULL) {
             if (work->field_508 == 0x6C) {
-                if (rec->field_3 & 0x20) {
+                if (rec->flags & 0x20) {
                     SndEvt_EnqueueType6(D_actor_310100_801798A8[work->field_50A], Gp_GetObjPan(obj), 0);
                     step = work->field_50A;
                     if (step < 2U) {
@@ -44,10 +44,10 @@ s32 func_actor_310100_80161E24(Task* task)
                     }
                 }
             } else {
-                if (rec->field_3 & 0x20) {
+                if (rec->flags & 0x20) {
                     SndEvt_EnqueueType6(0x51050006, Gp_GetObjPan(obj), 0);
                 }
-                if (rec->field_3 & 0x10) {
+                if (rec->flags & 0x10) {
                     SndEvt_EnqueueType6(0x51050007, Gp_GetObjPan(obj), 0);
                 }
             }

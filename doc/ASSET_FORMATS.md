@@ -638,24 +638,25 @@ table entry ─→ GpAnimSet*[]        slot 0 unused; NULL entries are holes
 GpAnimSet (types in include/gameplay/1BC.h):
   0x00  GpAnimRec*     field_0   base of the 4-byte clip records
   0x04  u16*           field_4   clip index table (values are record indices)
-  0x08  void*          field_8[] pose banks, indexed by a record's field_3 & 0xF
+  0x08  void*          field_8[] pose banks, indexed by a record's flags & 0xF
 
 GpAnimRec (4 bytes):
-  0x00  u16 field_0
-  0x02  u8  field_2
-  0x03  u8  field_3    opcode; low nibble picks the pose bank,
-                       >= 0xC0 ends the clip, signed < 0 continues a chain
+  0x00  u16 pose       word offset into the pose bank; on a control entry,
+                       the record the walk continues at
+  0x02  u8  duration   frames the keyframe is held
+  0x03  u8  flags      low nibble picks the pose bank, 0x30 the cue bits;
+                       0x80 marks a control entry, 0xC0 ends the clip
 ```
 
 Pose bank formats, dispatched by `func_800B3448` on `GpAnimSlot.field_B`:
 
-| `field_3 & 0xF` | Bank type | Layout |
+| `flags & 0xF` | Bank type | Layout |
 |---|---|---|
 | 1 | `GpPackedPose` | packed translation + rotation |
 | 4 | `GpPackedSvec` | `s32 vx:11, vy:10, vz:11` |
 
 **Clip walk.** Entry *n* of the index table gives the first record of clip *n*;
-records run on until one has `field_3 >= 0xC0`. The index table has no explicit
+records run on until one has `flags >= 0xC0`. The index table has no explicit
 terminator, and stopping at the first non-ascending value is *not* enough — past
 the real end it keeps finding plausible ascending `u16`s and over-runs. The
 record array is the bound: it runs from `field_0` up to `field_4`, so no index
@@ -725,15 +726,15 @@ A set has one track per bone; a track is a run of 4-byte records:
 
 | Field | Meaning |
 |---|---|
-| `field_0` | pose index, in **words** — the game indexes the bank through a 4-byte-strided pointer, so the byte offset is `field_0 * 4` |
-| `field_2 & 0x7F` | duration in ticks; the top bit is a flag |
-| `field_3` | `0xC0` ends the track, `0x80` marks the last keyframe and the loop point |
+| `pose` | pose word offset — the game indexes the bank through a 4-byte-strided pointer, so the byte offset is `pose * 4` |
+| `duration` | frames the keyframe is held |
+| `flags` | `0x80` marks a control entry, `0xC0` ends the track |
 
 **Two of the records are control, not keyframes**, and reading them as poses
 turns a 63-tick clip into a 320-frame one that sits still after the first
-quarter: the trailing `0x80`/`0xC0` pair claims 129 + 128 ticks between them,
-which are flagged durations of 1 and 0. Corrected, Kyle's clips are
-3–391 ticks.
+quarter: the trailing `0x80`/`0xC0` pair holds 129 + 128 in `duration`, which
+is never read on a control entry — it continues at `pose` or ends the track
+instead. Corrected, Kyle's clips are 3–391 ticks.
 
 **The pose kind belongs to the track, not the record.** `Gp_AnimInitSlot` takes
 it once (`arg1->field_B = op & 0xF`) and `func_800B3448` reads
@@ -765,7 +766,7 @@ Angles use `4096` for a full turn and the rotation order is PsyQ's `RotMatrix`
   draw families; the rest are open, tracked per family in
   [`TMD_FORMAT.md` §5](TMD_FORMAT.md#5-opcode-reference) with what is still
   missing in [§6](TMD_FORMAT.md#6-what-is-still-open).
-- **The `field_3` flag bits.** `0x10` and `0x20` appear on some keyframes and
+- **The `flags` cue bits.** `0x10` and `0x20` appear on some keyframes and
   are not decoded; `Gp_BlendAnimRot` has a second path (`GpAnimSlot.field_17`)
   that blends through a delta matrix rather than the Euler angles, and these
   are likely what selects it.

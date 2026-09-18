@@ -15,10 +15,10 @@ Layout, from ``Gp_AnimInitCtx`` / ``Gp_AnimResetSlot`` in ``src/gameplay/1BC.c``
 
     table entry          -> GpAnimSet*[]  (slot 0 unused)
     GpAnimSet.field_0    -> GpAnimRec[]   4-byte records; a clip ends at the
-                            first record with field_3 >= 0xC0
+                            first record with flags >= 0xC0
     GpAnimSet.field_4    -> u16[]         clip index table, values are record
                             indices
-    GpAnimSet.field_8[n] -> pose bank, selected by a record's ``field_3 & 0xF``
+    GpAnimSet.field_8[n] -> pose bank, selected by a record's ``flags & 0xF``
                             (1 = GpPackedPose, 4 = GpPackedSvec)
 
 This writes structure, not poses: how many clips a weapon or actor has, how
@@ -90,14 +90,14 @@ def read_anim_tables(gameplay: bytes) -> dict[str, list[int]]:
 
 
 def _walk_clip(data: bytes, base: int, records_va: int, start: int) -> list[dict]:
-    """Read one clip: records from ``start`` until field_3 >= 0xC0."""
+    """Read one clip: records from ``start`` until flags >= 0xC0."""
     recs: list[dict] = []
     off = records_va - base + start * 4
     for _ in range(MAX_RECORDS):
         if off < 0 or off + 4 > len(data):
             break
         f0, f2, f3 = struct.unpack_from("<HBB", data, off)
-        recs.append({"field_0": f0, "field_2": f2, "field_3": f3, "pose_kind": f3 & 0xF})
+        recs.append({"pose": f0, "duration": f2, "flags": f3, "pose_kind": f3 & 0xF})
         off += 4
         if f3 >= REC_CHAIN_END:
             break

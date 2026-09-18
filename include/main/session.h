@@ -136,7 +136,7 @@ STATIC_ASSERT(OFFSET_OF(GameSession, at4.loc) == 4, GameSession_at4_loc);
 STATIC_ASSERT(OFFSET_OF(GameSession, ptrSlots) == 0xC, GameSession_ptrSlots);
 struct _GpLinkNode;
 struct _GpActorD4;
-struct _GpAnimRec;
+struct GpAnimRec;
 
 /// One contact a collider made with the world, in the fixed table the collider
 /// owns: `Gp_InitRec18Table` clears the table and writes 2 to its last entry,
@@ -259,7 +259,7 @@ typedef struct _GameActor {
     /* 0x920 */ struct Task*        field_920;
     /* 0x924 */ struct Task*        field_924;
     /* 0x928 */ void*               field_928; // Gp_PlayerAnimBlkTbl[field_93A]; func_800B3F84 arg1
-    /* 0x92C */ struct _GpAnimRec*  field_92C; // last Gp_AnimGetRec result (Gp_PlayerNormalState5)
+    /* 0x92C */ struct GpAnimRec*   field_92C; // last Gp_AnimGetRec result (Gp_PlayerNormalState5)
     /* 0x930 */ s32                 field_930; // sw from Gp_MsgPlayerDirFacing; addr taken by func_801011D0
     /* 0x934 */ s32                 field_934;
     /* 0x938 */ s16                 field_938; // GameActorSlot count (init 0x13)

@@ -383,7 +383,7 @@ beq  v1,v0,body                                     beq  s3,v0,body
 ```
 
 The source difference is the local's type: `s8 flags;` against `s32 flags;`, with
-the assignment inside the switch operand, `switch (flags = rec->field_3 & 0x30)`.
+the assignment inside the switch operand, `switch (flags = rec->flags & 0x30)`.
 An `s32` local makes the assignment's value *be* the register, so `combine` folds
 the store into the `andi` destination and the case compares read that register
 directly — 4 refs, one pseudo. An `s8` local makes the assignment a SUBREG store:
@@ -27592,7 +27592,7 @@ them into an earlier load delay instead.
 ```c
 slot->field_15 = arg1;
 slot->field_6  = sets[arg2]->field_4[slot->field_15];
-op             = recs[slot->field_6].field_3;
+op             = recs[slot->field_6].flags;
 slot->field_10 = 0;
 slot->field_B  = op & 0xF;
 ```
@@ -73855,7 +73855,7 @@ each from the same three pieces: a sound id built from the actor's attach
 coordinate, a `Gp_GetObjPan` byte and a `Gp_GetObjDepth` byte.
 
 ```c
-if (!(rec->field_3 & 0x20) && (work->field_59A & 0x20)) {
+if (!(rec->flags & 0x20) && (work->field_59A & 0x20)) {
     snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780001;
     pan = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
@@ -130758,3 +130758,29 @@ Renaming a *duplicate* type to merge it is a rename like any other - the tool
 rewrites the duplicate's declaration too, so the merged type arrives as a second
 `typedef` of the same name that has to be deleted by hand before the tree
 compiles again.
+
+## A commutative address add encodes its operands in the order the C wrote them
+
+Rewriting a hand-scaled record address as array indexing builds the same
+address and still fails the checksum: `addu`'s two operand fields are not
+interchangeable in the image, and the two spellings name them in opposite
+orders.
+
+```
+/* ROM, and the integer add      /* `&recs[idx]`, `recs + idx` */
+   `(idx << 2) + (s32)recs` */
+addu v1,v0,t0                    addu v1,t0,v0
+lbu  v0,3(v1)                    lbu  v0,3(v1)
+```
+
+Every register holds what it held before - the surrounding instructions are
+identical - so the value is the same and only the encoding differs: one word
+per rewritten site, with `cmp` against the target image putting it inside a few
+bytes. Keep the spelling whose operand order the ROM has:
+
+```c
+rec = (GpAnimRec*)((idx << 2) + (s32)recs);
+```
+
+`Gp_AnimAdvanceSlot` and its seven siblings are the example - all eight sites
+flip together.

@@ -155,8 +155,8 @@ typedef struct Actor510900Work {
     /// `field_594` as last pushed to `field_564`.
     /* 0x596 */ s16 field_596;
     /* 0x598 */ s16 field_598;
-    /// The `GpAnimRec::field_3` bits 0x30 latched on the previous frame. The
-    /// step handler plays a sound on the frame one of them has just dropped.
+    /// The `GpAnimRec::flags` cue bits latched on the previous frame. The step
+    /// handler plays a sound on the frame one of them has just dropped.
     /* 0x59A */ u16 field_59A;
     /// Rolled from `Gp_LcgState` when state 1 expires.
     /* 0x59C */ s16 field_59C;

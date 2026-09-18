@@ -365,10 +365,10 @@ void func_actor_335800_80162844(Task* task)
             }
             rec = Gp_AnimGetRec(&work->anim, &work->slots[1]);
             if (rec != NULL) {
-                if (!(rec->field_3 & 0x20) && (work->field_508 & 0x20)) {
+                if (!(rec->flags & 0x20) && (work->field_508 & 0x20)) {
                     Gp_SpawnEff(0x600A1, &((TmdObject*)task->extra)->coords[8], 0xD, NULL);
                 }
-                work->field_508 = rec->field_3 & 0x30;
+                work->field_508 = rec->flags & 0x30;
             }
         }
         if (work->field_504 == 0) {

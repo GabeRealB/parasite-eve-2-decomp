@@ -704,7 +704,7 @@ void func_actor_800100_80164E60(GpActorWork* arg0)
             if (rec != NULL) {
                 if (rec != actor->field_92C) {
                     actor->field_92C = rec;
-                    if ((rec->field_3 & 0x30) == 0x30) {
+                    if ((rec->flags & 0x30) == 0x30) {
                         if (actor->field_95E == 0) {
                             actor->field_95E = 1;
                         }

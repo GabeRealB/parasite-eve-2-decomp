@@ -186,15 +186,25 @@ typedef struct _GpAnimMtxRec {
 } GpAnimMtxRec;
 STATIC_ASSERT_SIZEOF(GpAnimMtxRec, 0x50);
 
-/// 4-byte animation record. `func_800B3E74` / `func_800B3EE8` index this by
-/// `GpAnimSlot::field_6` and copy `field_2 << 4` into the slot's
-/// `field_C` / `field_E`. `field_3` is the opcode-like byte tested by
-/// `func_800B3AA4` / `func_800B46A4` (signed < 0 continues a `field_0`
-/// chain; `>= 0xC0` aborts) and stored into `field_B` by `Gp_AnimResetSlot`.
-typedef struct _GpAnimRec {
-    /* 0x00 */ u16 field_0;
-    /* 0x02 */ u8  field_2;
-    /* 0x03 */ u8  field_3;
+/// One entry of an animation set's 4-byte record array (`GpAnimSet::field_0`),
+/// walked by the slot code to find the pose a clip is showing. A keyframe entry
+/// names that pose, how many frames it is held, and how the pose is encoded;
+/// the two cue bits in `flags` mark keyframes a frame handler wants to know
+/// about, since it tests them and fires whatever cue it makes them mean.
+///
+/// A control entry is not shown at all: `flags` bit 7 marks it and the walk
+/// follows it instead. With bit 6 clear it continues at `pose`, which is how a
+/// clip loops; with bit 6 set it ends the clip and holds the pose reached. A
+/// control entry's `duration` is written but never read.
+///
+/// `pose` counts **4-byte words, not poses**, in the pose bank and in the
+/// record array alike: the record array and a `GpPackedSvec` bank are one word
+/// per element, a `GpPackedPose` bank three, so the latter's poses sit at every
+/// third offset.
+typedef struct GpAnimRec {
+    /* 0x00 */ u16 pose;     // word offset into the set's pose bank; a control entry's continuation record
+    /* 0x02 */ u8  duration; // frames this keyframe is held
+    /* 0x03 */ u8  flags;    // 0-3 pose encoding (0 control, 1 GpPackedPose, 4 GpPackedSvec), 4-5 cue bits, 7 control entry, 6 end of clip
 } GpAnimRec;
 STATIC_ASSERT_SIZEOF(GpAnimRec, 4);
 
@@ -240,17 +250,17 @@ STATIC_ASSERT_SIZEOF(GpAnimScratch18, 0x18);
 /// `field_4`/`field_6` are the two (set, frame) pairs. `field_10` is a
 /// flags word (`func_800B4754` sets bit 0 when clamping `field_2`;
 /// `Gp_AnimAdvanceSlot` / `Gp_AnimSeekSlotEx` / `func_800B46A4` / `func_800B4114` /
-/// `func_800B4538` / `Gp_AnimPlaySlot` set bit 0/1 while walking `field_3`
+/// `func_800B4538` / `Gp_AnimPlaySlot` set bit 0/1 while walking `flags`
 /// links). `Gp_AnimSeekSlotEx` / `func_800B4114` / `func_800B4538` /
 /// `Gp_AnimPlaySlot` also clear `field_17` and write a `<< 4` value into
 /// `field_C` / `field_E` (`Gp_AnimSeekSlotEx` then overwrites both from
-/// `recs[field_6].field_2`). `Gp_AnimPlaySlot` installs a
+/// `recs[field_6].duration`). `Gp_AnimPlaySlot` installs a
 /// non-NULL last arg into `GpAnimCtx::field_0` and `field_20` first.
 /// `Gp_AnimInitSlot` inits a passed-in slot (set index 0 becomes 1; a
 /// negative set index is negated) and also writes `field_2` from the
 /// same `field_4[field_15]` table as `field_6`. `Gp_AnimResetSlot` writes
 /// `field_9 = 0x10`, copies `arg1` to both `field_14` and `field_15`,
-/// and stores `recs[field_6].field_3 & 0xF` in `field_B`.
+/// and stores `recs[field_6].flags & 0xF` in `field_B`.
 /// `Gp_AnimResetSlotEx` is the same init with separate `field_14` /
 /// `field_15` arguments. `Gp_AnimWritePoseBlend` / `Gp_AnimWritePoseCopy` index
 /// `GpAnimCtx.field_4` by `field_14`; `Gp_AnimWritePoseBlend` GPF/GPL-blends

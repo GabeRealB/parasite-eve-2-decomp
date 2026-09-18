@@ -481,19 +481,19 @@ void func_actor_105700_801336FC(Actor105700* arg0)
     if (work->field_6D6 != 0) {
         rec = Gp_AnimGetRec(&work->ctx, (GpAnimSlot*)&work->slots[1]);
         if (rec != NULL) {
-            if (!(rec->field_3 & 0x20) && (work->field_6A0 & 0x20)) {
+            if (!(rec->flags & 0x20) && (work->field_6A0 & 0x20)) {
                 snd = D_actor_105700_80149004[work->field_6D6 * 2 - 1] |
                       (((u16)arg0->field_20->field_8 >> 0xC) << 8);
                 pan = (s8)Gp_GetObjPan(self);
                 SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(self));
             }
-            if (!(rec->field_3 & 0x10) && (work->field_6A0 & 0x10)) {
+            if (!(rec->flags & 0x10) && (work->field_6A0 & 0x10)) {
                 snd = D_actor_105700_80149004[work->field_6D6 * 2] |
                       (((u16)arg0->field_20->field_8 >> 0xC) << 8);
                 pan2 = (s8)Gp_GetObjPan(self);
                 SndEvt_EnqueueType6(snd, pan2, (s8)Gp_GetObjDepth(self));
             }
-            work->field_6A0 = (u16)(rec->field_3 & 0x30);
+            work->field_6A0 = (u16)(rec->flags & 0x30);
         }
     }
 }

@@ -1070,7 +1070,7 @@ s32 func_actor_800200_80165104(GpActorWork* arg0)
     rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->field_438 + 1);
     if (rec != NULL && rec != actor->field_92C) {
         actor->field_92C = rec;
-        switch (flags = rec->field_3 & 0x30) {
+        switch (flags = rec->flags & 0x30) {
             case 0x10:
             case 0x20:
                 param  = Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1][actor->field_930];

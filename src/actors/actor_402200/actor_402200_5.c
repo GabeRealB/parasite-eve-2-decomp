@@ -20,7 +20,7 @@
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// Cue-id table: `Actor402200Work::field_712` picks two adjacent words,
-/// `[field_712 * 2 - 1]` for the `field_3` bit 0x20 cue and `[field_712 * 2]`
+/// `[field_712 * 2 - 1]` for the `flags` bit 0x20 cue and `[field_712 * 2]`
 /// for the 0x10 one.
 extern s32 D_actor_402200_80138420[];
 
@@ -101,7 +101,7 @@ void func_actor_402200_80135A24(Actor402200* arg0)
 }
 
 /// Fires the cue pair the work block's `field_712` selects: while the second
-/// animation slot carries `field_3` bit 0x20 or 0x10, a sound is queued on the
+/// animation slot carries `flags` bit 0x20 or 0x10, a sound is queued on the
 /// frame that bit has just dropped from `Actor402200Work::field_6CA`, panned
 /// and depth-attenuated from the actor's display object. The cue id is the
 /// matching word of `D_actor_402200_80138420` with the `GpEnemy` work id's high
@@ -121,17 +121,17 @@ void func_actor_402200_80135BE0(Actor402200* arg0)
     if (work->field_712 != 0) {
         rec = Gp_AnimGetRec((GpAnimCtx*)work, (GpAnimSlot*)&work->field_3C);
         if (rec != NULL) {
-            if (!(rec->field_3 & 0x20) && (work->field_6CA & 0x20)) {
+            if (!(rec->flags & 0x20) && (work->field_6CA & 0x20)) {
                 snd = D_actor_402200_80138420[work->field_712 * 2 - 1] | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
                 pan = (s8)Gp_GetObjPan((GpObj38*)coord);
                 SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
             }
-            if (!(rec->field_3 & 0x10) && (work->field_6CA & 0x10)) {
+            if (!(rec->flags & 0x10) && (work->field_6CA & 0x10)) {
                 snd  = D_actor_402200_80138420[work->field_712 * 2] | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
                 pan2 = (s8)Gp_GetObjPan((GpObj38*)coord);
                 SndEvt_EnqueueType6(snd, pan2, (s8)Gp_GetObjDepth((GpObj38*)coord));
             }
-            work->field_6CA = (u16)(rec->field_3 & 0x30);
+            work->field_6CA = (u16)(rec->flags & 0x30);
         }
     }
 }
