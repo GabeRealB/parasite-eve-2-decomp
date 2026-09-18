@@ -43,6 +43,71 @@ the code says otherwise.
 - **The comments** are last, and are rewritten from your own reading, never
   edited in place.
 
+## Names
+
+lowerCamelCase, one identifier, no separators, opening with the module or
+package that owns the symbol. A leading marker carries the rest:
+
+| | |
+|---|---|
+| no marker | a function — `fsLoadFile`, `gunbladeFireRound` |
+| leading `g` | a global — `gFsFileTable` |
+| leading `_` | private to its translation unit — `_fsReadSector`, `_gSectorCache` |
+| PascalCase | a type — `FsCdfFile`; a private one is `_SectorCache` |
+
+A private symbol is the public name with `_` prepended. A struct tag has the
+same spelling as its type. The module or package part is derived, never
+invented: for core code the module prefix lowercased, for an overlay the
+manifest key camelCased (`mine_mesa` → `mineMesa…`), never abbreviated.
+
+**A field you can describe is a field you can name.** Writing a comment that
+states a field's role and leaving it called `field_14` contradicts itself — the
+offset name is what says the role is unknown. Name it from the same reading.
+Keep `field_XX` only where the role really is unproven, and say so.
+
+**Name the parameters too**, in the prototype and the definition alike. A
+signature reading `(s32 arg0, s32 arg1)` tells a caller nothing, and naming them
+in one place only leaves one function with two signatures.
+`rename_item.py <file>/<function>::<param> <newName>` matches by position and
+rewrites both. Member renames take the same form,
+`<header>/<Type>::<field> <newName>`.
+
+Generated placeholders — `func_<package>_<VRAM>`, `D_<VRAM>` — keep their form
+until the symbol is understood.
+
+## Documentation
+
+`///` immediately above the declaration, opening with one summary sentence, with
+anything further after a blank `///` line. Cross-references in backticks.
+`include/main/mem.h` is the worked example for functions and types.
+
+**Struct fields take aligned trailing `//` comments**, not a `///` block each, so
+the declaration stays readable as a table. Where a field takes a small set of
+values, enumerate them — `(0 none, 1 TMD model, 2 2D display)` — because nothing
+else says what a 2 means. **Never annotate a field with its offset**: the layout
+is already in the types and fixed by `STATIC_ASSERT_SIZEOF`, and the annotation
+sits in exactly the column the comment needs. `include/main/task.h` is the
+worked example.
+
+Say **what** something is and **why** it exists. Not how you worked it out —
+that belongs in the commit message, not in a header that outlives it. Keep it as
+general as the subject allows and only as specific as it needs: naming the
+mechanism is the usual mistake, and it dates the comment. "Frames left before
+the body is released" is the field; "counted down by `Task_CountdownCallback`"
+adds a function name the reader can find and that will not survive a
+reorganisation. The test: would the sentence still be true and useful if a
+neighbouring function were renamed?
+
+A symbol whose role is unproven is left undocumented, or its comment says only
+what was observed and that the role is unproven. An unmarked comment reads as
+established fact, so never promote a guess to a description.
+
+Documentation follows visibility: a public symbol is documented once at its
+declaration in the module header, a private one at its definition in the `.c`,
+never both. Mentions of an old name elsewhere are rewritten by
+`rename_item.py`, including in markdown — re-read them afterwards, since a
+renamed mention can leave a sentence describing the old idea.
+
 ## What this compiler allows
 
 GCC 2.8.1, `-O2`, no `-finline-functions`.

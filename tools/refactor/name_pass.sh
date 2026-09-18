@@ -130,80 +130,27 @@ These items form a cycle in the dependency graph: each uses the others, so they
 have to be understood as one unit rather than in sequence." )
 $line
 
-## What to do
+## What to do with this item
 
-Everything below is specified in NAMING.md; read it if anything here is unclear.
+The conventions, the compiler's limits and what counts as evidence are above
+(and in NAMING.md); this is what is specific to this step.
 
-1. Work out what each item is and why it exists, from the code that defines and
-   uses it. **Trust nothing that is already written about it** - not the
-   comments, not its current name, not its declared type. Each is an earlier
-   reader's hypothesis.
-
-   The name is the most dangerous of the three, because it silently supplies
-   the vocabulary for your description: a field called \`idMap\` invites you to
-   describe an id map even when every write stores something else. Read the
-   uses first, decide what the thing is, and only then ask whether the existing
-   name survives that reading. If it does not, the new name comes from the
-   evidence.
-
-   The declared type is the second. **If the uses have to cast, the type is
-   wrong.** The reference listing above marks each use that sits in a cast, so
-   count them: a field whose reads and writes are nearly all casts is not the
-   type it claims to be, and the honest declaration is the one that makes the
-   casts unnecessary - often \`void*\` for a pointer whose target is the
-   caller's business. Change it, and rebuild to confirm.
-2. If the item's state above is \`current\` its name already follows the
-   convention: **do not rename it**, only document it. Otherwise rename to the
-   convention with:
+1. Derive what the item is from the references listed above and the code they
+   sit in. The reference listing marks reads, writes, casts, address-taken and
+   mentions in prose - the casts in particular tell you whether the declared
+   type is honest.
+2. If its state above is \`current\`, the name already follows the convention:
+   **do not rename it.** Everything else still applies - the type, the shape of
+   the declaration, the fields, the parameters and the documentation.
+   Otherwise rename with:
      venv/bin/python3 tools/refactor/rename_item.py <file>/<oldName> <newName> --sidecars
-   lowerCamelCase, no separators, opening with the owning module or package. A
-   leading g marks a global, a leading _ marks something private to its
-   translation unit, PascalCase is reserved for types.
-3. Document it. What it is and why, never how you worked it out.
-
-   **As general as the subject allows, and only as specific as it needs.**
-   Naming the mechanism is the usual mistake: "frames left before the body is
-   released" is the field; "counted down by \`Task_CountdownCallback\`" adds a
-   function name the reader can find and that will not survive a
-   reorganisation. A specific earns its place when the meaning is otherwise
-   unavailable - a small set of values has to be enumerated, because nothing
-   else says what a 2 means. The test: would the sentence still be true and
-   still be useful if a neighbouring function were renamed?
-
-   **Name the parameters too**, in the prototype and the definition alike. A
-   signature reading \`(s32 arg0, s32 arg1)\` tells a caller nothing, and
-   naming them in only one of the two places leaves one function with two
-   signatures. \`rename_item.py <file>/<function>::<param> <newName>\` matches
-   by position and rewrites both.
-
-   **Watch for nested types.** If this item describes bytes belonging to a
-   different type at an offset into it - the giveaway is a name like
-   \`XFromN\`, or fields whose comments map onto another type's - then a run
-   of that other struct is really one thing, and it belongs inside it as a
-   nested type. A named nested struct where the run is only used as a group; a
-   named union member holding the aggregate beside a struct of the individual
-   fields where the bytes are also read field by field. **Every member must be
-   named** - this compiler accepts an anonymous struct or union member and then
-   rejects every access to it, so the path is \`owner->at4.loc\`. Callers stop
-   casting, and since the address does not change the checksum confirms it.
-
-   **A field you can describe is a field you can name.** Leaving a field called
-   \`field_14\` while writing a comment stating its role contradicts itself:
-   the offset name means the role is unknown. Rename it from the same reading -
-   member renames go through rename_item.py as \`<header>/<Type>::<field>\` -
-   and keep \`field_XX\` only where the role really is unproven.
-
-   Mentions of
-   the old name in comments elsewhere are rewritten by rename_item.py; check
-   that what they now say is still true, since a renamed mention can leave a
-   sentence describing the old idea. Functions and
-   types take a /// block; struct fields take aligned trailing // comments and
-   no offset annotations.
-4. Visibility: a private item's declaration belongs in the .c that uses it, not
-   in a header, and takes the _ prefix. Add \`static\` only if the build still
-   matches afterwards.
-5. If the role genuinely cannot be established from the code, leave the name
-   alone and say so - an invented name is worse than a generated one.
+3. Apply the same to what the item contains: its fields, and its parameters in
+   both the prototype and the definition.
+4. If its visibility above is \`private\`, its declaration belongs in the \`.c\`
+   that uses it rather than a header, with the \`_\` marker; add \`static\` if
+   the build still matches.
+5. Where the role genuinely cannot be established, leave the name and say so.
+   An invented name is worse than a generated one.
 
 ## Finishing
 
