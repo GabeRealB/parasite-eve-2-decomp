@@ -1,80 +1,124 @@
 ---
+# Identifier naming, as specified in NAMING.md.
+#
+#   fsLoadFile        function            camelBack, module or package prefix
+#   gFsFileTable      global data         camelBack with a leading g
+#   _fsReadSector     private function    the public name with _ prepended
+#   _gSectorCache     private data
+#   FsCdfFile         type                CamelCase (clang-tidy's name for PascalCase)
+#   _SectorCache      private type
+#   writeIdx          struct member       camelBack
+#
+# This file is not part of the build; ninja never runs clang-tidy, and
+# tools/score_quality.py runs its own check list which deliberately excludes
+# readability-identifier-naming. It is the editor-facing statement of the
+# convention, so it describes the target state.
+#
+# Each IgnoredRegexp carries what it exists to permit. Three groups recur:
+#
+#   generated   the splitter emits func_<package>_<VRAM>, D_<VRAM>, jtbl_<VRAM>
+#               and field_XX / unknown_XX. These are not ours to rename until
+#               the symbol is understood, so they are always allowed.
+#   vendored    the Psy-Q headers use their own styles (DrawSync, _spu_init,
+#               gte_rtv0sf0). They are third-party and never renamed.
+#   legacy      the tree is mid-migration from the older Module_VerbNoun style.
+#               Remove the marked alternatives once no old-style names remain;
+#               until then they keep the editor quiet on unconverted code.
 Checks: '-*,readability-identifier-naming'
 CheckOptions:
-  - key:             google-readability-braces-around-statements.ShortStatementLines
-    value:           '1'
-  - key:             google-readability-function-size.StatementThreshold
-    value:           '800'
-  - key:             google-readability-namespace-comments.ShortNamespaceLines
-    value:           '10'
-  - key:             google-readability-namespace-comments.SpacesBeforeComments
-    value:           '2'
-  - key:             modernize-loop-convert.MaxCopySize
-    value:           '16'
-  - key:             modernize-loop-convert.MinConfidence
-    value:           reasonable
-  - key:             modernize-loop-convert.NamingStyle
-    value:           CamelCase
-  - key:             modernize-use-nullptr.NullMacros
-    value:           'NULL'
+  # --- functions -----------------------------------------------------------
   - key:             readability-identifier-naming.FunctionCase
-    value:           CamelCase
-  - key:             readability-identifier-naming.FunctionPrefix
-    value:           ''
-  - key:             readability-identifier-naming.FunctionSuffix
-    value:           ''
+    value:           camelBack
   - key:             readability-identifier-naming.FunctionIgnoredRegexp
-    value:           "^((func|sharedFunc)_[0-9A-Fa-f]+|[A-Z][a-zA-Z0-9]*(_[A-Z0-9][a-zA-Z0-9]*)*)$"
-  - key:             readability-identifier-naming.GlobalConstantCase
-    value:           UPPER_CASE
-  - key:             readability-identifier-naming.GlobalConstantPrefix
-    value:           ''
-  - key:             readability-identifier-naming.GlobalConstantSuffix
-    value:           ''
+    #  1: private functions          2: generated
+    #  3: vendored lowercase API     4: vendored PascalCase API
+    #  5: legacy Module_VerbNoun - remove when the migration completes
+    value:           "^(_[a-z][A-Za-z0-9]*|func_([A-Za-z0-9_]+_)?[0-9A-Fa-f]{6,}|_?[a-z][a-z0-9_]*|[A-Z][A-Za-z0-9]*|[A-Z][A-Za-z0-9]*_[A-Za-z0-9]+)$"
+
+  # --- data ----------------------------------------------------------------
+  # Both mutable and const globals take the g marker; const-ness is not what
+  # the marker distinguishes.
+  # With a Prefix set, clang-tidy strips it and applies Case to what remains,
+  # so the part after g is CamelCase and the whole name reads gFsFileTable.
   - key:             readability-identifier-naming.GlobalVariableCase
     value:           CamelCase
   - key:             readability-identifier-naming.GlobalVariablePrefix
-    value:           ''
-  - key:             readability-identifier-naming.GlobalVariableSuffix
-    value:           ''
-  - key:             readability-identifier-naming.IgnoreFailedSplit
-    value:           '0'
-  - key:             readability-identifier-naming.MacroDefinitionCase
-    value:           UPPER_CASE
-  - key:             readability-identifier-naming.MacroDefinitionPrefix
-    value:           ''
-  - key:             readability-identifier-naming.MacroDefinitionSuffix
-    value:           ''
-  - key:             readability-identifier-naming.MemberCase
-    value:           camelBack
-  - key:             readability-identifier-naming.MemberPrefix
-    value:           ''
-  - key:             readability-identifier-naming.MemberSuffix
-    value:           _
-  - key:             readability-identifier-naming.MemberIgnoredRegexp
-    value:           '^[a-z][a-zA-Z0-9]*(_[a-zA-Z0-9]+)*$'
+    value:           g
+  - key:             readability-identifier-naming.GlobalConstantCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.GlobalConstantPrefix
+    value:           g
+  - key:             readability-identifier-naming.StaticVariableCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.StaticVariablePrefix
+    value:           _g
+  - key:             readability-identifier-naming.StaticConstantCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.StaticConstantPrefix
+    value:           _g
+  - key:             readability-identifier-naming.GlobalVariableIgnoredRegexp
+    #  1: private data   2: generated   3: alignment devices (s_jtbl_pad_*,
+    #  which clang-tidy classes as globals even when static)   4: vendored
+    #  5: legacy Module_Name - remove when the migration completes
+    value:           "^(_g[A-Z][A-Za-z0-9]*|(D|jtbl)_([A-Za-z0-9_]+_)?[0-9A-Fa-f]{6,}|s_[a-z][A-Za-z0-9_]*|_?[a-zA-Z][a-z0-9_]*|[A-Z][A-Za-z0-9]*_[A-Za-z0-9]+)$"
+  - key:             readability-identifier-naming.GlobalConstantIgnoredRegexp
+    value:           "^(_g[A-Z][A-Za-z0-9]*|(D|jtbl)_([A-Za-z0-9_]+_)?[0-9A-Fa-f]{6,}|s_[a-z][A-Za-z0-9_]*|_?[a-zA-Z][a-z0-9_]*|[A-Z][A-Za-z0-9]*_[A-Za-z0-9]+)$"
+  - key:             readability-identifier-naming.StaticVariableIgnoredRegexp
+    # file-local data carries _g; s_jtbl_pad_* are alignment devices, not data
+    value:           "^(_g[A-Z][A-Za-z0-9]*|s_[a-z][A-Za-z0-9_]*|(D|jtbl)_([A-Za-z0-9_]+_)?[0-9A-Fa-f]{6,})$"
+  - key:             readability-identifier-naming.StaticConstantIgnoredRegexp
+    value:           "^(_g[A-Z][A-Za-z0-9]*|s_[a-z][A-Za-z0-9_]*|(D|jtbl)_([A-Za-z0-9_]+_)?[0-9A-Fa-f]{6,})$"
+
+  # --- types ---------------------------------------------------------------
+  # CamelCase here means PascalCase. A private type is the same with a leading
+  # underscore, which is also the spelling of a struct tag, so one pattern
+  # covers both.
   - key:             readability-identifier-naming.StructCase
     value:           CamelCase
-  - key:             readability-identifier-naming.StructPrefix
-    value:           ''
-  - key:             readability-identifier-naming.StructSuffix
-    value:           ''
   - key:             readability-identifier-naming.StructIgnoredRegexp
-    value:           "^_[A-Z][A-Za-z0-9]*(_[0-9A-F]+)*$"
+    value:           "^_?[A-Z][A-Za-z0-9]*(_[0-9A-Fa-f]+)*$"
+  - key:             readability-identifier-naming.UnionCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.UnionIgnoredRegexp
+    value:           "^_?[A-Z][A-Za-z0-9]*(_[0-9A-Fa-f]+)*$"
+  - key:             readability-identifier-naming.EnumCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.EnumIgnoredRegexp
+    value:           "^_?[A-Z][A-Za-z0-9]*(_[0-9A-Fa-f]+)*$"
   - key:             readability-identifier-naming.TypedefCase
     value:           CamelCase
-  - key:             readability-identifier-naming.TypedefPrefix
-    value:           ''
-  - key:             readability-identifier-naming.TypedefSuffix
-    value:           ''
   - key:             readability-identifier-naming.TypedefIgnoredRegexp
-    value:           "^(s_|u_|e_)[A-Z][A-Za-z0-9]*(_[0-9A-F]+)*$"
-  - key:             readability-identifier-naming.VariableCase
+    #  1: private types and tags   2: vendored   3: fixed-width aliases
+    value:           "^(_?[A-Z][A-Za-z0-9]*(_[0-9A-Fa-f]+)*|(s_|u_|e_)[A-Z][A-Za-z0-9]*|[su][0-9]+|f32)$"
+
+  # --- members, parameters, locals -----------------------------------------
+  # Members are camelBack with no suffix; the old trailing-underscore rule was
+  # a C++ convention that never applied here.
+  - key:             readability-identifier-naming.MemberCase
     value:           camelBack
-  - key:             readability-identifier-naming.VariablePrefix
-    value:           ''
-  - key:             readability-identifier-naming.VariableSuffix
-    value:           ''
-  - key:             readability-identifier-naming.VariableIgnoredRegexp
-    value:           '^[a-z][a-zA-Z0-9]*(_[a-zA-Z0-9]+)*$'
+  - key:             readability-identifier-naming.MemberIgnoredRegexp
+    # unproven fields keep their offset name until the role is known
+    value:           "^(field_[0-9A-Fa-f]+|unknown_[0-9A-Fa-f]+|[a-z][A-Za-z0-9]*(_[a-zA-Z0-9]+)*)$"
+  - key:             readability-identifier-naming.ParameterCase
+    value:           camelBack
+  - key:             readability-identifier-naming.ParameterIgnoredRegexp
+    # decompiled signatures keep arg0..argN until the role is known
+    value:           "^(arg[0-9]+|sp[0-9A-Fa-f]*|[a-z][A-Za-z0-9]*(_[a-zA-Z0-9]+)*)$"
+  - key:             readability-identifier-naming.LocalVariableCase
+    value:           camelBack
+  - key:             readability-identifier-naming.LocalVariableIgnoredRegexp
+    # _e / _t style names bind inline-asm operands and are matching
+    # scaffolding, not style slips
+    value:           "^(_[a-z][A-Za-z0-9]*|temp_[a-z0-9_]+|sp[0-9A-Fa-f]*|var_[a-z0-9_]+|[a-z][A-Za-z0-9]*(_[a-zA-Z0-9]+)*)$"
+
+  # --- macros --------------------------------------------------------------
+  - key:             readability-identifier-naming.MacroDefinitionCase
+    value:           UPPER_CASE
+  - key:             readability-identifier-naming.MacroDefinitionIgnoredRegexp
+    # vendored inline-asm macros (gte_*), the include_asm family, and the
+    # matching devices that #define a symbol name to shadow a declaration
+    value:           "^(gte_[A-Za-z0-9_]+|[a-z][A-Za-z0-9_]*|INCLUDE_(ASM|RODATA)|_?[A-Z][A-Za-z0-9]*(_[A-Za-z0-9]+)*)$"
+
+  - key:             readability-identifier-naming.IgnoreFailedSplit
+    value:           '0'
 ...
