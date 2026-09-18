@@ -32,7 +32,7 @@ void func_actor_444000_80132778(void)
         Gp_StateF0.field_0      = 0;
         Gp_StateF0.field_2      = 0;
         Gp_StateF0.field_3      = 0;
-        Game_Session->field_69 |= 0x80;
+        gGameSession->field_69 |= 0x80;
         D_8007272D              = 0xD;
         work->field_30          = 1;
     }

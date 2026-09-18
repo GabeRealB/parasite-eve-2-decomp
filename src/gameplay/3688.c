@@ -420,7 +420,7 @@ void Gp_MenuRootTask(Task* arg0)
                 break;
             }
             arg0->spawnArg2       = obj;
-            Game_Session->field_2 = 1;
+            gGameSession->field_2 = 1;
             if (arg0->spawnArg1 != 0x44) {
                 SndEvt_EnqueueType6(1, 0, 0);
             }
@@ -473,7 +473,7 @@ void Gp_MenuRootTask(Task* arg0)
                 d->field_103 = 2;
                 Stage_ReleasePrimBuf();
             }
-            Mem_ConfigureAuxHeap(Game_Session->field_7, Game_Session->field_6);
+            Mem_ConfigureAuxHeap(gGameSession->field_7, gGameSession->field_6);
             if (Gp_IsStateF0Active() == 0) {
                 Gp_EnqueueAttach7Cd();
             }
@@ -540,12 +540,12 @@ void Gp_MenuRootTask(Task* arg0)
             }
             GameMain_SetFrameTiming(1);
             Display_State.field_122 = 0;
-            Game_Session->field_2   = 0;
+            gGameSession->field_2   = 0;
             Gpu_ResetGraphAndOt();
             if (Stage_GetModeByte12() == 0) {
                 Stage_SetEndingFlag();
             } else {
-                Stage_BeginTransitionKind7((u8)Game_Session->field_4);
+                Stage_BeginTransitionKind7((u8)gGameSession->field_4);
             }
             Task_SpawnOnDefaultListA(1, 0x27, 2, 0);
             if (Task_SpawnOnDefaultList(&D_8010E7E8, 0, 0, 0) != NULL) {
@@ -4432,7 +4432,7 @@ void Gp_UseKeyItemRow(Task* arg0)
             } else if ((arg0->killCountdown <= 0) ||
                        (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
                 if (arg0->spawnArg1 == -1) {
-                    if (Game_Session->field_66 == 1) {
+                    if (gGameSession->field_66 == 1) {
                         obj->field_2E = 6;
                     } else {
                         obj->field_2E = 9;
@@ -4554,7 +4554,7 @@ void Gp_DrawCollectedRow(DialogPrompt* arg0, UiObject* arg1)
     if (flag == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
-            if (Game_Session->field_66 == flag) {
+            if (gGameSession->field_66 == flag) {
                 Ui_SpawnFromDesc(&D_8010EF84, 0, 1, 1, arg1);
                 arg1->status = 0;
             } else {
@@ -4632,7 +4632,7 @@ void Gp_KeyItemMenuTask(Task* arg0)
                 if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
                     obj->field_2E = -1;
                 } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-                    if (Game_Session->field_66 == 1) {
+                    if (gGameSession->field_66 == 1) {
                         SndEvt_EnqueueType6(4, 0, 0);
                         obj->field_2E = -1;
                     } else {

@@ -39,7 +39,7 @@ void func_actor_102600_80135A6C(Actor102600* actor)
     if (eff == NULL) {
         return;
     }
-    sessionKey  = (GpAreaKey*)&Game_Session->field_4;
+    sessionKey  = (GpAreaKey*)&gGameSession->field_4;
     raw         = actor->field_20->field_8;
     model       = (TmdObject*)eff->field_0->extra;
     key.field_3 = sessionKey->field_3;

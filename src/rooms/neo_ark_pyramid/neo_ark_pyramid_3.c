@@ -15,7 +15,7 @@ extern void func_neo_ark_pyramid_8017D7F4(s32 arg0);
 
 void func_neo_ark_pyramid_8017DB5C(void)
 {
-    if (Game_Session->field_4 == 8) {
+    if (gGameSession->field_4 == 8) {
         func_neo_ark_pyramid_8017D7F4(D_neo_ark_pyramid_801818A4);
     }
 }

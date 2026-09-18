@@ -54,7 +54,7 @@ void RoomsShared8017d5f0(Task* task)
     extra->field_C = 0x10;
     extra->field_E = 0x1F;
     if (task->spawnArg1 == 0) {
-        Game_Session->field_4E = 1;
+        gGameSession->field_4E = 1;
     }
     parts->sub      = &work->coord;
     extra->field_1C = &work->light;

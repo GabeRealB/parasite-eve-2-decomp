@@ -113,7 +113,7 @@ case0:
     SetDispMask(0);
     Stage_Ctx->field_24     = Display_State.frameMode;
     Display_State.field_122 = 1;
-    Gfx_LoadImageSlot(Game_Session->field_7, Game_Session->field_6, Display_State.frameMode);
+    Gfx_LoadImageSlot(gGameSession->field_7, gGameSession->field_6, Display_State.frameMode);
     Display_State.field_103 = 2;
     Stage_Ctx->field_28     = Stage_Ctx->field_28 + 1;
     goto end;
@@ -125,7 +125,7 @@ case1:
     goto end;
 case2:
     if ((CdCmd_IsIdle() & 0xFFFF) && (Display_State.frameMode != Stage_Ctx->field_24)) {
-        Gfx_StoreImageSlot(Game_Session->field_7, Game_Session->field_6, Display_State.frameMode, 0x10000);
+        Gfx_StoreImageSlot(gGameSession->field_7, gGameSession->field_6, Display_State.frameMode, 0x10000);
         Mem_InitAux();
         rect.x = 0;
         rect.w = 0x140;
@@ -206,7 +206,7 @@ Task* Display_SpawnFromMode(void)
     goto block_end;
 
 block_default:
-    ed = (GameSessionFrom4*)&Game_Session->field_4;
+    ed = (GameSessionFrom4*)&gGameSession->field_4;
     Gpu_ResetGraphAndOt();
     Gfx_StoreImageSlot(ed->field_3, ed->field_2, Display_State.field_1f, 0x10000);
     if (Stage_Ctx->field_C == 0x100) {
@@ -249,29 +249,29 @@ void Display_TransitionTask(Task* arg0)
         switch (state) {
             case 0:
                 Stage_Ctx->field_24     = Display_State.frameMode;
-                Game_Session->field_4   = Stage_Ctx->field_20;
+                gGameSession->field_4   = Stage_Ctx->field_20;
                 Stage_Ctx->field_C      = 0;
                 Display_State.field_103 = 2;
-                Mem_ConfigureAuxHeap(Game_Session->field_7, Game_Session->field_6);
+                Mem_ConfigureAuxHeap(gGameSession->field_7, gGameSession->field_6);
                 if (!(Stage_Ctx->field_1c & 0x10000000)) {
-                    ((Task*)Game_GetPtrSlot(1))->spawnArg1 = (u8)Game_Session->field_4;
+                    ((Task*)Game_GetPtrSlot(1))->spawnArg1 = (u8)gGameSession->field_4;
                     ResetGraph(1);
                     Gpu_ClearOTag(0);
                     Gpu_ClearOTag(1);
                     Mem_InitAux();
-                    Mc_SaveData.field_4 = Game_Session->field_4;
+                    Mc_SaveData.field_4 = gGameSession->field_4;
                     Pad_SetCooldown(0);
                     Gp_SpawnCurView(2);
-                    Game_Session->field_4D = 0;
+                    gGameSession->field_4D = 0;
                     Task_Spawn(0, 0x1E, 2, 0);
                 } else {
                     Tmd_AllocMissingBuffers();
-                    Game_Session->field_4D = 1;
+                    gGameSession->field_4D = 1;
                 }
                 Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
                 break;
             case 1:
-                ed   = Game_Session;
+                ed   = gGameSession;
                 flag = ed->field_4D;
                 if (flag == 1) {
                     disp = Display_State.frameMode;
@@ -302,7 +302,7 @@ void Display_TransitionTask(Task* arg0)
                 arg0->killCountdown     = arg0->killCountdown - 1;
                 if (arg0->killCountdown == 0) {
                     Gpu_ResetGraphAndOt();
-                    Gfx_StoreImageSlot(Game_Session->field_7, Game_Session->field_6,
+                    Gfx_StoreImageSlot(gGameSession->field_7, gGameSession->field_6,
                                        Display_State.frameMode, 0x10000);
                     Mem_InitAux();
                     Stage_Ctx->field_12 = 0;
@@ -331,7 +331,7 @@ void Display_TransitionTask(Task* arg0)
         arg0->state = arg0->state + 1;
         Display_TaskLoadStep(arg0);
     } else if (flags & 0x20000000) {
-        Gfx_StoreImageSlot(Game_Session->field_7, Game_Session->field_6, Display_State.frameMode,
+        Gfx_StoreImageSlot(gGameSession->field_7, gGameSession->field_6, Display_State.frameMode,
                            0x10000);
         Stage_Ctx->field_1c = Stage_Ctx->field_1c & 0xDFFFFFFF;
     }
@@ -487,7 +487,7 @@ s32 Stage_BeginTransition(s32 arg0, s32 arg1)
         temp->field_11  = arg1;
         temp->field_1c |= mask;
     }
-    return (u8)Game_Session->field_4;
+    return (u8)gGameSession->field_4;
 }
 
 s32 Stage_BeginTransitionKind7(s32 arg0)
@@ -506,7 +506,7 @@ s32 Stage_BeginTransitionKind7(s32 arg0)
         temp->field_28       = 0;
         temp->field_11       = 7;
         temp->field_1c      |= mask;
-        ret                  = (u8)Game_Session->field_4;
+        ret                  = (u8)gGameSession->field_4;
         Stage_Ctx->field_1c |= 0x80000000;
     }
     return ret;
@@ -622,7 +622,7 @@ s32 Stage_BeginTransitionKind3(void)
     flags = temp->field_1c;
     if (!(flags & 0x40000000)) {
         temp->field_1c = flags | 0x50000000;
-        val            = (u8)Game_Session->field_4;
+        val            = (u8)gGameSession->field_4;
         temp->field_24 = 0;
         temp->field_28 = 0;
         temp->field_11 = 3;
@@ -652,7 +652,7 @@ s32 Display_InitModeObj(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
     temp->field_8 = arg2;
     temp->field_C = arg3;
     if (arg3 == 0) {
-        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x1050000) {
+        if ((*(u32*)&gGameSession->field_4 & 0xFFFF0000) == 0x1050000) {
             temp->field_C = 1;
         }
     }
@@ -719,7 +719,7 @@ void Display_TaskLoadStep(Task* arg0)
         }
     } else {
     block_3:
-        Mem_ConfigureAuxHeap(Game_Session->field_7, Game_Session->field_6);
+        Mem_ConfigureAuxHeap(gGameSession->field_7, gGameSession->field_6);
         Tmd_AllocMissingBuffers();
         Gp_AllocSprtLists();
     }
@@ -809,7 +809,7 @@ success:
             if (p->field_190->field_3 == 2) {
                 Mdec_DecodeBase = Mdec_DecodeBase + p->field_190->field_1E;
             }
-            Game_Session->field_7C = 0;
+            gGameSession->field_7C = 0;
             break;
         case 2:
             Mdec_DecodeBase = (u8*)D_8005C370;
@@ -819,7 +819,7 @@ success:
             if (p->field_190->field_3 == 3) {
                 Mdec_DecodeBase = Mdec_DecodeBase + p->field_190->field_1E;
             }
-            Game_Session->field_7E = 0;
+            gGameSession->field_7E = 0;
             break;
         case 3:
             Mdec_DecodeBase = (u8*)D_8005C374;
@@ -829,7 +829,7 @@ success:
             if (p->field_190->field_3 == 4) {
                 Mdec_DecodeBase = Mdec_DecodeBase + p->field_190->field_1E;
             }
-            Game_Session->field_80 = 0;
+            gGameSession->field_80 = 0;
             break;
         case 4:
             base = p->field_198;
@@ -867,7 +867,7 @@ void Mdec_ProcessDecode(void)
     p = &CdCmd_Queue;
     switch ((s16)p->field_202) {
         case -1:
-            Mdec_ResolveStreamBuffer(&Game_Session->field_4);
+            Mdec_ResolveStreamBuffer(&gGameSession->field_4);
             temp_v0    = D_8007A358 + 1;
             D_8007A358 = temp_v0;
             if ((u32)temp_v0 >= 0x5BU) {

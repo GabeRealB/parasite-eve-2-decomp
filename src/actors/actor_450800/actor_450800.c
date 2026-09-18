@@ -218,7 +218,7 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
         work->field_4F0 = spawned;
         spawned->parent = task;
         model1          = spawned->extra;
-        sessionKey1     = (GpAreaKey*)&Game_Session->field_4;
+        sessionKey1     = (GpAreaKey*)&gGameSession->field_4;
         raw1            = ((GpEnemy*)task->spawnArg2)->field_8;
         key.field_3     = sessionKey1->field_3;
         key.field_2     = sessionKey1->field_2;
@@ -227,7 +227,7 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
         keyp = &key;
         TOUCH_REG(keyp);
         key.field_1 = areaByte1;
-        areaByte0   = Game_Session->field_4;
+        areaByte0   = gGameSession->field_4;
         index1      = raw1 >> 12;
         key.field_0 = areaByte0;
         Gp_SyncAreaKeyIndex(keyp);
@@ -247,7 +247,7 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
         work->field_4F4 = spawned;
         spawned->parent = task;
         model2          = spawned->extra;
-        sessionKey2     = (GpAreaKey*)&Game_Session->field_4;
+        sessionKey2     = (GpAreaKey*)&gGameSession->field_4;
         raw2            = ((GpEnemy*)task->spawnArg2)->field_8;
         key.field_3     = sessionKey2->field_3;
         key.field_2     = sessionKey2->field_2;
@@ -256,7 +256,7 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
         keyp = &key;
         TOUCH_REG(keyp);
         key.field_1 = areaByte1;
-        areaByte0   = Game_Session->field_4;
+        areaByte0   = gGameSession->field_4;
         index2      = raw2 >> 12;
         key.field_0 = areaByte0;
         Gp_SyncAreaKeyIndex(keyp);

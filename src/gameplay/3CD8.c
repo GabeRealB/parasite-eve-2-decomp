@@ -157,7 +157,7 @@ void Gp_MsgSlot4Chain(s32 arg0, s32 arg1)
 {
     s32 out;
 
-    arg0 = (arg0 << 12) | (Game_Session->field_7 << 8) | Game_Session->field_6;
+    arg0 = (arg0 << 12) | (gGameSession->field_7 << 8) | gGameSession->field_6;
     Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7D0, arg0, (s32)&out);
     if (out != 0) {
         Gp_DispatchMsg((Task*)out, 0x7D5, arg1, 0);
@@ -199,7 +199,7 @@ void Gp_EnqueueStageSnd6(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg0 & 0xF000000) {
         arg0 &= 0xF0FFFFFF;
-        arg0 |= Game_Session->field_7 << 24;
+        arg0 |= gGameSession->field_7 << 24;
     }
     SndEvt_EnqueueType6(arg0, (s8)arg1, (s8)arg2);
 }
@@ -208,7 +208,7 @@ s32 Gp_PackStageSndId(s32 arg0)
 {
     if (arg0 & 0xF000000) {
         arg0 &= 0xF0FFFFFF;
-        arg0 |= Game_Session->field_7 << 24;
+        arg0 |= gGameSession->field_7 << 24;
     }
     return arg0;
 }
@@ -217,7 +217,7 @@ void Gp_EnqueueStageSnd7(s32 arg0, s32 arg1)
 {
     if (arg0 & 0xF000000) {
         arg0 &= 0xF0FFFFFF;
-        arg0 |= Game_Session->field_7 << 24;
+        arg0 |= gGameSession->field_7 << 24;
     }
     SndEvt_EnqueueType7(arg0, arg1 & 0xFFFF);
 }
@@ -531,7 +531,7 @@ resumeView:
         }
     processEvent:
         savedViewPhase = D_801155BB;
-        if (savedViewPhase != 0 && Game_Session->field_4D != 0) {
+        if (savedViewPhase != 0 && gGameSession->field_4D != 0) {
             D_801155BB = 0;
         }
         if (eventFlags & 0x80) {
@@ -1045,7 +1045,7 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
                             Gp_MsgAlly3F3(0);
                         }
                         Mc_SaveData.field_4    = sel;
-                        Game_Session->field_68 = 1;
+                        gGameSession->field_68 = 1;
                         Gp_StateF0.field_4     = 2;
                     }
                 }
@@ -1242,8 +1242,8 @@ void Gp_CapExit(Task* arg0)
     if (D_80115690 == 0) {
         Gp_StateF0.field_4 = 0;
     }
-    if (Game_Session->field_1 == 0) {
-        Game_Session->field_68 = 0;
+    if (gGameSession->field_1 == 0) {
+        gGameSession->field_68 = 0;
         Mc_SaveData.field_4    = D_8011566C;
         Gp_MsgPlayer3F3(1);
         Gp_MsgAlly3F3(1);
@@ -1922,7 +1922,7 @@ s32 func_800E7378(void)
         }
         D_801156B8 = Task_Spawn(9, 8, 0, 0);
     } else {
-        Game_Session->field_68 = 1;
+        gGameSession->field_68 = 1;
     }
     return 0;
 }
@@ -1939,7 +1939,7 @@ s32 func_800E73E8(void)
             return 0;
         }
     } else {
-        Game_Session->field_68 = 0;
+        gGameSession->field_68 = 0;
     }
     return 0;
 }
@@ -1953,7 +1953,7 @@ s32 func_800E7434(void)
         Task_Kill(D_801156B8);
         D_801156B8 = NULL;
     } else {
-        Game_Session->field_68 = 0;
+        gGameSession->field_68 = 0;
     }
     return 0;
 }
@@ -1970,7 +1970,7 @@ s32 func_800E7498(s32 arg0, s32 arg1, GpOverlayIds* arg2)
 
 s32 func_800E74EC(s32 arg0, s32 arg1, s32 arg2)
 {
-    if (Game_Session->field_5F == 0) {
+    if (gGameSession->field_5F == 0) {
         if (D_801156B1 != 0) {
             func_8001D580();
             D_801156B0 = 1;

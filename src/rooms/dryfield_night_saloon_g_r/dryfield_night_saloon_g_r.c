@@ -27,8 +27,8 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
 
     switch (task->state) {
         case 0:
-            Game_Session->field_1                = 1;
-            Game_Session->field_68               = 1;
+            gGameSession->field_1                = 1;
+            gGameSession->field_68               = 1;
             D_801153F4                           = 2;
             save                                 = &Mc_SaveData;
             temp                                 = save->field_4;
@@ -52,8 +52,8 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
             task->state = task->state + 1;
             return;
         case 4:
-            Game_Session->field_1  = 0;
-            Game_Session->field_68 = 0;
+            gGameSession->field_1  = 0;
+            gGameSession->field_68 = 0;
             D_80114D08             = 0xA;
             D_801153F4             = 0;
             D_8007216C             = D_dryfield_night_saloon_g_r_80188FA4;

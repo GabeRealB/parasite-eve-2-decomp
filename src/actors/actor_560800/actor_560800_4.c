@@ -286,7 +286,7 @@ void func_actor_560800_80137820(Task* arg0)
             arg0->state++;
             return;
         case 1:
-            if (Gp_FindViewIndex(Game_Session->field_4) == 0x16) {
+            if (Gp_FindViewIndex(gGameSession->field_4) == 0x16) {
                 switch (work->field_280) {
                     case 1:
                     case 3:
@@ -368,7 +368,7 @@ done:
     coord->flg        = 0;
     if (!(obj->field_C & 0x80)) {
         func_8017F450(&((TmdObject*)arg0->extra)->field_8[6], work->field_280, 0x100, 0x3C36);
-        if (Gp_FindViewIndex(Game_Session->field_4) != 0x16) {
+        if (Gp_FindViewIndex(gGameSession->field_4) != 0x16) {
             tick = D_actor_560800_801752E8 + 1;
             if (!(tick & 0x7F) && ((tick >> 7) & 7) == work->field_280) {
                 Gp_SpawnEff(0x601C6, &((TmdObject*)arg0->extra)->field_8[2], 0x800, NULL);

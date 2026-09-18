@@ -144,7 +144,7 @@ extern u8 D_801153F4;
 /// (`func_800D7A9C`, start 0, count 3) while `field_8AD` is set, and `field_8AD`
 /// is then refreshed from that coordinate's `flg` - so the propagation runs on
 /// the frame after the coordinate is dirtied. While the room is live
-/// (`Game_Session->field_4D`) the coordinate's `flg` is dropped first and, from
+/// (`gGameSession->field_4D`) the coordinate's `flg` is dropped first and, from
 /// view 0x10 with the 0x7DB action `field_8B8` at 1, sound 0x51030008 is queued
 /// with the model's pan and depth as `s8`.
 ///

@@ -31,7 +31,7 @@ void func_dryfield_night_gas_station_80180C3C(s32 arg0)
     DryfieldNightGasStationSprtView* view;
     s32                              flag;
 
-    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    sess = (GameSessionFrom4*)&gGameSession->field_4;
     rec  = (DryfieldNightGasStationSprtRec*)Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];
     flag = arg0 & 0xFF;
 
@@ -73,7 +73,7 @@ void func_dryfield_night_gas_station_80180C3C(s32 arg0)
 /// the flag both write is command 6's.
 void func_dryfield_night_gas_station_80180D1C(void)
 {
-    GameSessionFrom4* sess = (GameSessionFrom4*)&Game_Session->field_4;
+    GameSessionFrom4* sess = (GameSessionFrom4*)&gGameSession->field_4;
     GpSprtRec*        view = Gp_SprtTables[sess->field_3 - 1][0].field_0[sess->field_2 - 1];
     s32               flag = GameFlag_GetNibble(0x8D);
 
@@ -96,7 +96,7 @@ void func_dryfield_night_gas_station_80180D1C(void)
 /// blinking-light table, whose own exit passes 0.
 void func_dryfield_night_gas_station_80180DC8(s16 arg0)
 {
-    GameSessionFrom4*               sess = (GameSessionFrom4*)&Game_Session->field_4;
+    GameSessionFrom4*               sess = (GameSessionFrom4*)&gGameSession->field_4;
     DryfieldNightGasStationSprtRec* rec  = (DryfieldNightGasStationSprtRec*)
                                               Gp_SprtTables[sess->field_3 - 1][0]
                                                   .field_0[sess->field_2 - 1];

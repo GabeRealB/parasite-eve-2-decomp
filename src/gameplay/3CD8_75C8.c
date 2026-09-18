@@ -118,7 +118,7 @@ void Gp_ScriptTaskState1(Task* arg0)
         st->pc                 = (GpEvsCmd*)D_801156D0;
         D_801156D0             = 0;
         D_80115688             = 1;
-        Game_Session->field_5F = 1;
+        gGameSession->field_5F = 1;
         if (D_801156CC != 0) {
             return;
         }
@@ -165,7 +165,7 @@ void Gp_ScriptTaskState1(Task* arg0)
                     slot = Game_GetPtrSlot(4);
                     if (st->pc->arg1 != -1) {
                         Gp_DispatchMsg(slot, 0x7D0,
-                                       (st->pc->arg1 << 12) | (Game_Session->field_7 << 8) | Game_Session->field_6,
+                                       (st->pc->arg1 << 12) | (gGameSession->field_7 << 8) | gGameSession->field_6,
                                        (s32)&slot);
                     }
                 } else if (st->pc->arg0 == -1) {
@@ -185,7 +185,7 @@ void Gp_ScriptTaskState1(Task* arg0)
                     D_8010FBE0 = NULL;
                 }
                 D_801156F4            = NULL;
-                Game_Session->field_1 = 0;
+                gGameSession->field_1 = 0;
                 if (arg0->spawnArg1 == 0) {
                     Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA5, 0, 0);
                 }
@@ -202,7 +202,7 @@ void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 48:
-                Game_Session->field_52 = 1;
+                gGameSession->field_52 = 1;
                 /* fallthrough */
 
             case 3:
@@ -227,7 +227,7 @@ void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 7:
-                Game_Session->field_1 = (u8)st->pc->arg0;
+                gGameSession->field_1 = (u8)st->pc->arg0;
                 break;
 
             case 9:
@@ -605,8 +605,8 @@ void func_800E8614(s32 arg0, s32 arg1)
 
 void func_800E8634(s32 arg0, s32 arg1, s32 arg2)
 {
-    Game_Session->field_1  = 1;
-    Game_Session->field_5F = 0;
+    gGameSession->field_1  = 1;
+    gGameSession->field_5F = 0;
     D_8010FBE0             = 0;
     D_8010FBE4             = 0;
     D_801156D0             = arg2;
@@ -625,7 +625,7 @@ s32 Gp_LookupSlot4(s32 arg0)
 {
     s32 out;
 
-    arg0 = (arg0 << 12) | (Game_Session->field_7 << 8) | Game_Session->field_6;
+    arg0 = (arg0 << 12) | (gGameSession->field_7 << 8) | gGameSession->field_6;
     Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7D0, arg0, (s32)&out);
     return out;
 }
@@ -686,10 +686,10 @@ void func_800E8888(Task* arg0)
             }
             tmp = arg0->killCountdown;
             if (tmp < 0) {
-                Game_Session->field_139 = 0;
+                gGameSession->field_139 = 0;
                 Task_Kill(arg0);
             } else {
-                Game_Session->field_139 = tmp * 2;
+                gGameSession->field_139 = tmp * 2;
             }
             break;
     }
@@ -906,7 +906,7 @@ void Gp_HaltPadScripts(void)
     Gp_PadScriptHalt        = 1;
     Gp_PadHoldHalt          = 1;
     Gp_PadLerpHalt          = 1;
-    Game_Session->field_13B = 0;
+    gGameSession->field_13B = 0;
     Pad_ClearEvents(0);
 }
 
@@ -985,7 +985,7 @@ void Gp_Script18Task(Task* arg0)
     TaskFuncTable3 sp;
 
     sp = Gp_Script18States;
-    if (Gp_StateF0.field_4 == 0 || (Game_Session->field_13B & 0x80)) {
+    if (Gp_StateF0.field_4 == 0 || (gGameSession->field_13B & 0x80)) {
         if (Gp_PadScriptHalt != 0) {
             arg0->state = 2;
         }
@@ -1043,13 +1043,13 @@ void Gp_ScriptBState4(Task* task)
 
 void Gp_PadHoldTask(Task* task)
 {
-    if (Gp_StateF0.field_4 == 0 || (Game_Session->field_13B & 0x80)) {
+    if (Gp_StateF0.field_4 == 0 || (gGameSession->field_13B & 0x80)) {
         if (task->spawnArg1 != 0 && Gp_PadHoldHalt == 0) {
             task->spawnArg1--;
             Pad_PostEvent(0, 0, 1, 1);
-            Game_Session->field_13B |= 1;
+            gGameSession->field_13B |= 1;
         } else {
-            Game_Session->field_13B &= ~1;
+            gGameSession->field_13B &= ~1;
             Task_Kill(task);
         }
     }
@@ -1060,14 +1060,14 @@ void Gp_PadLerpTask(Task* task)
     GpState0C* state;
 
     state = (GpState0C*)task->work;
-    if (Gp_StateF0.field_4 == 0 || (Game_Session->field_13B & 0x80)) {
+    if (Gp_StateF0.field_4 == 0 || (gGameSession->field_13B & 0x80)) {
         if (state->field_8 != 0 && Gp_PadLerpHalt == 0) {
             state->field_8--;
             Pad_PostEvent(0, 1, state->field_4.bytes.as_u8, 1);
             state->field_4.as_s32   += state->field_0;
-            Game_Session->field_13B |= 2;
+            gGameSession->field_13B |= 2;
         } else {
-            Game_Session->field_13B &= ~2;
+            gGameSession->field_13B &= ~2;
             Task_Kill(task);
         }
     }
@@ -1094,8 +1094,8 @@ void Gp_UpdatePadInput(void)
     actor = work->actor;
     Gp_ClearPadHalt();
     if (Gp_MenuLockHold == 0) {
-        if (actor->field_954 == 0 && Game_Session->field_1 == 0 && Game_Session->field_66 == 0 &&
-            actor->field_956 != 6 && cfg->hp > 0 && Game_Session->field_0 == 0) {
+        if (actor->field_954 == 0 && gGameSession->field_1 == 0 && gGameSession->field_66 == 0 &&
+            actor->field_956 != 6 && cfg->hp > 0 && gGameSession->field_0 == 0) {
             if (Gp_MenuLockDelay > 0) {
                 Gp_MenuLockDelay--;
                 Gp_MenuLockNow = 1;
@@ -1190,14 +1190,14 @@ void Gp_UpdatePadInput(void)
         prev = pad->prevButtons;
         trig = pad->triggered;
     }
-    Game_Session->field_58 = Gp_RemapButtons(actor, mask) & ~Gp_PadSuppressMask;
-    Game_Session->field_5A = Gp_RemapButtons(actor, prev) & ~Gp_PadSuppressMask;
-    Game_Session->field_5C = Gp_RemapButtons(actor, trig) & ~Gp_PadSuppressMask;
+    gGameSession->field_58 = Gp_RemapButtons(actor, mask) & ~Gp_PadSuppressMask;
+    gGameSession->field_5A = Gp_RemapButtons(actor, prev) & ~Gp_PadSuppressMask;
+    gGameSession->field_5C = Gp_RemapButtons(actor, trig) & ~Gp_PadSuppressMask;
     if (Gp_PadSuppressTimer != 0) {
         Gp_PadSuppressTimer--;
-        Game_Session->field_58 = Gp_RemapButtons(actor, mask) & ~Gp_PadSuppressMask & ~0x10;
-        Game_Session->field_5A = Gp_RemapButtons(actor, prev) & ~Gp_PadSuppressMask & ~0x10;
-        Game_Session->field_5C = Gp_RemapButtons(actor, trig) & ~Gp_PadSuppressMask & ~0x10;
+        gGameSession->field_58 = Gp_RemapButtons(actor, mask) & ~Gp_PadSuppressMask & ~0x10;
+        gGameSession->field_5A = Gp_RemapButtons(actor, prev) & ~Gp_PadSuppressMask & ~0x10;
+        gGameSession->field_5C = Gp_RemapButtons(actor, trig) & ~Gp_PadSuppressMask & ~0x10;
     }
 }
 

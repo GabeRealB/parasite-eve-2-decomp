@@ -44,11 +44,11 @@ extern GpAreaApplyRec D_8018FB6C[];
 
 void func_actor_342000_80164154(void)
 {
-    Game_Session->field_5        = 7;
+    gGameSession->field_5        = 7;
     D_8007216D                   = 7;
-    Game_Session->unknown_133[1] = 6;
-    Game_Session->unknown_133[0] = 1;
-    Game_Session->field_76       = 1;
+    gGameSession->unknown_133[1] = 6;
+    gGameSession->unknown_133[0] = 1;
+    gGameSession->field_76       = 1;
     Gp_ApplyAreaRecs(D_8018FB6C);
 }
 
@@ -120,7 +120,7 @@ void func_actor_342000_801642F4(void)
         Gp_StateF0.field_0      = 0;
         Gp_StateF0.field_2      = 0;
         Gp_StateF0.field_3      = 0;
-        Game_Session->field_69 |= 0x80;
+        gGameSession->field_69 |= 0x80;
         D_8007272D              = 0xD;
         work->field_7C          = 1;
     }

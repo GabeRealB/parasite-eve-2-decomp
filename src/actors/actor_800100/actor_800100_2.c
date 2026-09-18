@@ -50,7 +50,7 @@ void func_actor_800100_80163D54(GpActorWork* arg0)
     actor  = arg0->actor;
     coord  = arg0->extra->field_8;
     target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
-    flag   = (*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x042A0000;
+    flag   = (*(u32*)&gGameSession->field_4 & 0xFFFF0000) == 0x042A0000;
     if (arg0->actor->field_910->field_C4 <= 0) {
         func_8010BF7C(arg0, 0xA, 0x1F);
         dist = func_8010BC70(coord);
@@ -108,7 +108,7 @@ __asm__(".section .rodata\n"
 /// Drives the actor's `field_954`/`field_956` callback tables while the
 /// `field_944` countdown runs, spawning the drip effect every tenth frame.
 /// `sp40` / `sp48` hold the effect position: it rides the water surface
-/// (`Game_Session.field_122`) minus the actor coordinate's world Y.
+/// (`gGameSession.field_122`) minus the actor coordinate's world Y.
 void func_actor_800100_80163F04(GpActorWork* arg0)
 {
     GpActorFuncTable12 sp;
@@ -132,7 +132,7 @@ void func_actor_800100_80163F04(GpActorWork* arg0)
     if ((u32)(func_80105ED4(arg0) + 0xEFFFFF77) < 4) {
         actor->field_944 = 0x78;
         sp40.vx          = 0;
-        sp40.vy          = (u16)Game_Session->field_122 - (u16)coord->coord.t[1];
+        sp40.vy          = (u16)gGameSession->field_122 - (u16)coord->coord.t[1];
         sp40.vz          = 0;
         Gp_SpawnEff(D_80115738, coord, 0x1202180, &sp40);
         Gp_SpawnEff(D_8011574C, coord, (rand() & 0x1F) | 0x40, &sp40);
@@ -143,7 +143,7 @@ void func_actor_800100_80163F04(GpActorWork* arg0)
         rem = temp % 10;
         if (rem == 0) {
             sp48.vx = 0;
-            sp48.vy = (u16)Game_Session->field_122 - (u16)coord->coord.t[1];
+            sp48.vy = (u16)gGameSession->field_122 - (u16)coord->coord.t[1];
             sp48.vz = 0;
             Gp_SpawnEff(D_8011574C, coord, (rand() & 0x1F) | 0x40, &sp48);
         }
@@ -192,7 +192,7 @@ void func_actor_800100_80164184(GpActorWork* arg0)
     coord  = arg0->extra->field_8;
     target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
     actor  = arg0->actor;
-    flag   = (*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x042A0000;
+    flag   = (*(u32*)&gGameSession->field_4 & 0xFFFF0000) == 0x042A0000;
     dist   = func_actor_800100_8016709C(coord, &actor->field_910->field_A0, NULL);
     if (dist != 0 && dist < 0x301 && flag == 0) {
         GameActor* actor2 = arg0->actor;
@@ -1613,7 +1613,7 @@ s32 func_actor_800100_80166B40(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2
                     func_800E0FEC(rec, (GpDeltaScratch*)block, 1, pidx);
                     idx = func_800E1ACC((u8*)pidx);
                     {
-                        GameSession* session = Game_Session;
+                        GameSession* session = gGameSession;
                         if (Gp_RoomParamTables[session->field_7 - 1][session->field_6 - 1][idx]->field_2 != 0) {
                             minDist = dist;
                             bestIdx = i;

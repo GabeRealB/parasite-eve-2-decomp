@@ -63,7 +63,7 @@ void func_map_akropolis_80179988(u8* arg0)
             D_8006AC48[0]          = (u_long*)D_8006AC40;
             D_8006AC50[1]          = (u_long*)((u8*)D_8006AC50[0] + strideA);
             D_8006AC48[1]          = (u_long*)((u8*)D_8006AC48[0] + strideA);
-            Game_Session->field_80 = 0;
+            gGameSession->field_80 = 0;
             q->field_24A           = one;
             break;
         case 6:
@@ -91,8 +91,8 @@ void func_map_akropolis_80179988(u8* arg0)
             break;
     }
     D_8006AC44             = (u8*)D_8006AC48[1] + D_8006AC5A * D_8006AC6C * 2;
-    Game_Session->field_7C = 0;
-    Game_Session->field_7E = 0;
+    gGameSession->field_7C = 0;
+    gGameSession->field_7E = 0;
 }
 
 /// Draws one row of the Akropolis map's key-item list: the item's name at the
@@ -182,7 +182,7 @@ void func_map_akropolis_80179E8C(Task* task)
             return;
         }
         GameMain_SetFrameTiming(0);
-        Game_Session->field_2 = 1;
+        gGameSession->field_2 = 1;
         task->spawnArg2       = obj;
         task->state          += 1;
     }
@@ -201,7 +201,7 @@ void func_map_akropolis_80179E8C(Task* task)
         task->killCountdown -= 1;
         if (task->killCountdown <= 0) {
             GameMain_SetFrameTiming(1);
-            Game_Session->field_2 = 0;
+            gGameSession->field_2 = 0;
             Task_Kill(task);
             Stage_ReleasePrimBuf();
             Stage_SetEndingFlag();

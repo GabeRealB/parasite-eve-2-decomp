@@ -44,7 +44,7 @@ void ActorsShared801673f8(Task* arg0)
             obj->field_C &= 0xFFFB;
         }
         enemy->node.field_4 = 0;
-        map                 = *(u32*)&Game_Session->field_4 & 0xFFFF0000;
+        map                 = *(u32*)&gGameSession->field_4 & 0xFFFF0000;
         if (map == 0x4270000) {
             // The 7C store follows 7A here; written first, it schedules
             // ahead of the heading load.

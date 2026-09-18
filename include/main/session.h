@@ -6,7 +6,7 @@
 #include <psyq/libgte.h>
 
 // =============================================================================
-// Types — game session / actor objects (Game_Session)
+// Types — game session / actor objects
 // =============================================================================
 
 /// 4-byte block assigned via unaligned lwl/lwr (see Snd_ApplyVolumeTable).
@@ -107,7 +107,7 @@ typedef struct _GameSession {
 STATIC_ASSERT_SIZEOF(GameSession, 0x13C);
 
 /// Overlay of `GameSession` starting at offset 0x4 (`field_4`..`field_9`).
-/// Used when the compiler keeps `&Game_Session->field_4` in a register.
+/// Used when the compiler keeps `&gGameSession->field_4` in a register.
 /// `Gp_GrantLocationItems` packs `field_3` / `field_2` / `field_5` into a location key.
 typedef struct _GameSessionFrom4 {
     /* 0x0 */ u8 field_0; // GameSession.field_4
@@ -321,11 +321,15 @@ STATIC_ASSERT_SIZEOF(GameActor, 0x994);
 // Globals
 // =============================================================================
 
-/// Active game session object (data segment / BSS pointer).
-extern GameSession* Game_Session;
+/// The live play session.
+///
+/// Main and every overlay family share this one object, so the current
+/// location, pad and object slots stay resident rather than belonging to a
+/// stage or an actor.
+extern GameSession* gGameSession;
 extern GameSession  D61CC0_800714C0;
 
-/// Session pointer-slot table on Game_Session (field_C[16]).
+/// Session pointer-slot table on gGameSession (field_C[16]).
 void  Game_SetPtrSlot(void* ptr, s32 index);
 void* Game_GetPtrSlot(s32 index);
 void  Game_ClearPtrSlots(void);

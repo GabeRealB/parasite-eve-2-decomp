@@ -129,7 +129,7 @@ void func_mist_parking_80183D58(Task* task)
                     task->killCountdown = 0;
                 }
             }
-            work = Gp_FindWorkById(Game_Session->field_6 | (Game_Session->field_7 << 8));
+            work = Gp_FindWorkById(gGameSession->field_6 | (gGameSession->field_7 << 8));
             func_800B0928(Game_GetPtrSlot(3), (Task*)work->field_0, 0x200, 0x100, task->killCountdown);
         } else {
             Task_Kill(task);
@@ -160,7 +160,7 @@ void func_mist_parking_80183EAC(Task* task)
             task->state++;
             break;
         case 1:
-            if (Game_Session->field_1 != 0) {
+            if (gGameSession->field_1 != 0) {
                 return;
             }
             if (Gp_CapBusy() != 0) {
@@ -182,7 +182,7 @@ void func_mist_parking_80183EAC(Task* task)
             task->state++;
             break;
         case 3:
-            if (Game_Session->field_1 != 0) {
+            if (gGameSession->field_1 != 0) {
                 return;
             }
             if (Gp_CapBusy() != 0) {
@@ -232,7 +232,7 @@ void func_mist_parking_80183EAC(Task* task)
             task->state++;
             break;
         case 6:
-            if (Game_Session->field_1 != 0) {
+            if (gGameSession->field_1 != 0) {
                 return;
             }
             if (Gp_CapBusy() != 0) {
@@ -286,7 +286,7 @@ void func_mist_parking_80183EAC(Task* task)
                         break;
                 }
             }
-            if (Game_Session->field_1 != 0) {
+            if (gGameSession->field_1 != 0) {
                 return;
             }
             if (Gp_CapBusy() != 0) {
@@ -319,7 +319,7 @@ void func_mist_parking_801842DC(Task* task)
             break;
         case 1:
         case 3:
-            if (Game_Session->field_1 != 0) {
+            if (gGameSession->field_1 != 0) {
                 return;
             }
             task->state++;
@@ -358,7 +358,7 @@ void func_mist_parking_80184408(s32 arg0)
 void func_mist_parking_80184428(s32 arg0)
 {
     Task_SpawnFromTable(&RoomsShared8018397cDesc, 0, arg0, 0);
-    Game_Session->field_64 = 1;
+    gGameSession->field_64 = 1;
 }
 
 void func_mist_parking_80184468(s32 arg0)

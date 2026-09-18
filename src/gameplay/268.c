@@ -494,7 +494,7 @@ void Gp_InitStarterInv(void)
     three = 3;
     Gp_ApplyItemMap();
     Gp_GiveItem(scan, 0x63, 1);
-    Game_Session->field_11C = -1;
+    gGameSession->field_11C = -1;
     cfg->weapon             = 0;
     cfg->field_26           = three;
     Gp_EquipMod(0x63);
@@ -3001,7 +3001,7 @@ s32 Gp_GetCurBit2Flag(s32 arg0)
     u32           word;
     s32           shift;
 
-    p     = Gp_Bit2Banks[Game_Session->field_7].field_4;
+    p     = Gp_Bit2Banks[gGameSession->field_7].field_4;
     p    += arg0 >> 4;
     shift = (arg0 & 0xF) * 2;
     word  = *p;
@@ -3387,7 +3387,7 @@ void func_800BBB54(Task* arg0)
         s32          shift;
         u32          word;
 
-        sess    = Game_Session;
+        sess    = gGameSession;
         banks   = Gp_Bit2Banks;
         id      = ((GpItemObj8*)arg0->spawnArg2)->field_8;
         p       = banks[sess->field_7].field_4;
@@ -3418,7 +3418,7 @@ void Gp_WaitItemFlag2(Task* arg0)
         s32           shift;
         u32           word;
 
-        sess  = Game_Session;
+        sess  = gGameSession;
         banks = Gp_Bit2Banks;
         id    = ((GpItemObj8*)arg0->spawnArg2)->field_8;
         p     = banks[sess->field_7].field_4;

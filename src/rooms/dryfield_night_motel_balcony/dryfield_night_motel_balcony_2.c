@@ -28,7 +28,7 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            introKey = ((SessionBytesAt4*)Game_Session)->field_4;
+            introKey = ((SessionBytesAt4*)gGameSession)->field_4;
             if (Wip_SysFlags.field_0 == 2) {
                 introKey.data[0] = 0x67;
             } else {
@@ -61,7 +61,7 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
             return;
         case 4:
             if (CdCmd_IsIdle() & 0xFFFF) {
-                loopKey = ((SessionBytesAt4*)Game_Session)->field_4;
+                loopKey = ((SessionBytesAt4*)gGameSession)->field_4;
                 if (Wip_SysFlags.field_0 == 2) {
                     loopKey.data[0] = 0x66;
                 } else {

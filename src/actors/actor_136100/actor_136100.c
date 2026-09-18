@@ -103,7 +103,7 @@ void func_actor_136100_801320E0(Task* arg0)
             arg0->field_24 = &D_actor_136100_8013F2F4;
             Task_Reparent(D_actor_136100_8014078C, arg0);
         }
-        place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
+        place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->field_4)->field_0;
         id    = place->field_0;
         while (id != 0xFF) {
             if (id == 0x6A) {
@@ -203,7 +203,7 @@ void func_actor_136100_801323F8(Task* arg0)
     Actor136100Work* work = (Actor136100Work*)arg0->work;
     GpRec14          rec;
 
-    if (Game_Session->field_1 != 0) {
+    if (gGameSession->field_1 != 0) {
         func_actor_136100_80131EC4();
     }
     switch ((u16)work->field_4C4) {
@@ -337,7 +337,7 @@ void func_actor_136100_80132E78(Task* arg0)
     Actor136100Work* work = (Actor136100Work*)arg0->work;
     GpRec14          rec;
 
-    if (Game_Session->field_1 != 0) {
+    if (gGameSession->field_1 != 0) {
         func_actor_136100_80131EC4();
     }
     switch ((u16)work->field_4C4) {
@@ -637,7 +637,7 @@ void func_actor_136100_80133A88(Task* arg0)
     tmd->field_1C = &work->field_474;
     tmd->field_20 = &work->field_494;
     tmd->field_C &= 0xFFFB;
-    place         = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
+    place         = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->field_4)->field_0;
     id            = place->field_0;
     while (id != 0xFF) {
         if (id == 0x6A) {
@@ -738,7 +738,7 @@ static inline void func_actor_136100_UpdateShadow(Task* arg0, VECTOR* vec)
 /// the phase (`field_4E4`, from game flag 0x73) and spawns the two helper tasks;
 /// state 1 sends the phase's opening cues; state 2 waits for the matching start
 /// cue, sends the weapon record and table and sets game flag 0x7C; states 3..5
-/// wait on `Game_Session->field_1` and `func_actor_136100_80133904`.  Every
+/// wait on `gGameSession->field_1` and `func_actor_136100_80133904`.  Every
 /// state then runs the phase's three per-frame handlers and redraws the shadow.
 ///
 /// Every message record, the shadow `VECTOR` and the floor-quad `SVECTOR` share
@@ -842,7 +842,7 @@ void func_actor_136100_80133BC8(Task* arg0)
             }
             break;
         case 3:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 arg0->state++;
             }
             break;
@@ -852,7 +852,7 @@ void func_actor_136100_80133BC8(Task* arg0)
             }
             break;
         case 5:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 arg0->state--;
             }
             break;

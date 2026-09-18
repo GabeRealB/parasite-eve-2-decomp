@@ -46,32 +46,32 @@ void func_actor_303600_80161F40(Task* arg0)
             break;
         case 1:
             w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.field_0 = Game_Session->field_7;
-            msg.field_1 = Game_Session->field_6;
+            msg.field_0 = gGameSession->field_7;
+            msg.field_1 = gGameSession->field_6;
             msg.field_2 = 1;
             Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 1;
             break;
         case 2:
             w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.field_0 = Game_Session->field_7;
-            msg.field_1 = Game_Session->field_6;
+            msg.field_0 = gGameSession->field_7;
+            msg.field_1 = gGameSession->field_6;
             msg.field_2 = 2;
             Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 2;
             break;
         case 3:
             w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.field_0 = Game_Session->field_7;
-            msg.field_1 = Game_Session->field_6;
+            msg.field_0 = gGameSession->field_7;
+            msg.field_1 = gGameSession->field_6;
             msg.field_2 = 3;
             Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 3;
             break;
         case 4:
             w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.field_0 = Game_Session->field_7;
-            msg.field_1 = Game_Session->field_6;
+            msg.field_0 = gGameSession->field_7;
+            msg.field_1 = gGameSession->field_6;
             msg.field_2 = 4;
             Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 4;
@@ -83,8 +83,8 @@ void func_actor_303600_80161F40(Task* arg0)
             break;
         case 5:
             w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.field_0 = Game_Session->field_7;
-            msg.field_1 = Game_Session->field_6;
+            msg.field_0 = gGameSession->field_7;
+            msg.field_1 = gGameSession->field_6;
             msg.field_2 = 5;
             Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 5;
@@ -145,7 +145,7 @@ void func_actor_303600_8016216C(Task* arg0)
             arg0->state += 1;
             break;
         case 2:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 Mc_SaveData.field_7 = 5;
                 Mc_SaveData.field_6 = 0x1F;
                 Mc_SaveData.field_8 = 1;
@@ -249,8 +249,8 @@ void func_actor_303600_801624B0(void)
     Actor303600Msg7DA msg;
 
     if (work->field_E == 0) {
-        msg.field_0 = Game_Session->field_7;
-        msg.field_1 = Game_Session->field_6;
+        msg.field_0 = gGameSession->field_7;
+        msg.field_1 = gGameSession->field_6;
         msg.field_2 = 9;
         Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         work->field_C = 9;
@@ -276,8 +276,8 @@ void func_actor_303600_8016253C(void)
 
     work = (Actor303600Work*)D_actor_303600_8016E4C0->work;
     if (work->field_E == 0) {
-        msg.field_0 = Game_Session->field_7;
-        msg.field_1 = Game_Session->field_6;
+        msg.field_0 = gGameSession->field_7;
+        msg.field_1 = gGameSession->field_6;
         msg.field_2 = 9;
         Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         work->field_C = 9;

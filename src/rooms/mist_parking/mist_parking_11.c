@@ -118,7 +118,7 @@ L_case0:
     goto advance;
 
 L_case1:
-    key = ((SessionBytesAt4*)Game_Session)->field_4;
+    key = ((SessionBytesAt4*)gGameSession)->field_4;
     if (task->spawnArg1 != 0) {
         key.data[0] = 0x65;
     } else {

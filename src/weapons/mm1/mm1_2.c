@@ -93,7 +93,7 @@ check:
     /* `func_800E1ACC` writes through `&idx` as well as returning it, so the
        index is re-read from the slot instead of kept in the return register. */
     SOFT_COMPILER_BARRIER();
-    param = Gp_RoomParamTables[Game_Session->field_7 - 1][Game_Session->field_6 - 1][idx];
+    param = Gp_RoomParamTables[gGameSession->field_7 - 1][gGameSession->field_6 - 1][idx];
     if (param->field_1 == 0) {
         if (param->field_2 != 0) {
             goto explode;

@@ -181,7 +181,7 @@ void func_actor_401300_80141C88(Actor401300* arg0)
     }
     func_actor_401300_80133A3C(arg0);
     if (work->field_6C & 0x100) {
-        if ((*(s32*)&Game_Session->field_4 & 0xFFFF0000) == 0x051D0000) {
+        if ((*(s32*)&gGameSession->field_4 & 0xFFFF0000) == 0x051D0000) {
             work->field_0 = 8;
         } else {
             work->field_0 = 7;

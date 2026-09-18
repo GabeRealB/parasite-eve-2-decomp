@@ -914,7 +914,7 @@ void func_actor_403100_8013922C(Task* arg0)
             func_actor_403100_8013D2A0(1);
         }
         if ((s16)D_actor_403100_80155808->field_654 >= 0x79) {
-            Game_Session->field_127 = 0;
+            gGameSession->field_127 = 0;
         }
     }
     func_actor_403100_80132528(arg0);
@@ -1139,11 +1139,11 @@ void func_actor_403100_80139818(Task* arg0)
             pan2   = (s8)Gp_GetObjPan((GpObj38*)(playerTask->extra->field_8 + 1));
             depth2 = Gp_GetObjDepth((GpObj38*)(playerTask->extra->field_8 + 1));
             SndEvt_EnqueueType6(sound2, (s32)pan2, (s8)(depth2 / 2));
-            Game_Session->field_12D = 0x7F;
+            gGameSession->field_12D = 0x7F;
             work                    = D_actor_403100_80155808;
             work->pad_670[0]        = 1;
             work->field_654         = 0;
-            Game_Session->field_127 = 1;
+            gGameSession->field_127 = 1;
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x400, 0, 0);
             func_actor_403100_8013D1B8(6, 0x3FF);
@@ -1196,7 +1196,7 @@ void func_actor_403100_80139818(Task* arg0)
             func_actor_403100_8013D2A0(0);
         }
         if (D_actor_403100_80155808->field_654 >= 0x79) {
-            Game_Session->field_127 = 0;
+            gGameSession->field_127 = 0;
         }
     }
 }
@@ -1292,7 +1292,7 @@ void func_actor_403100_8013A064(Task* arg0)
         func_actor_403100_8013D0B8(-0x1BBC, -0xC80, -0x4B0, 0x400);
         task = Game_GetPtrSlot(3);
         if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 5), 0) != 0) {
-            Game_Session->field_127 = 1;
+            gGameSession->field_127 = 1;
             state                   = 7;
             if (D_actor_403100_8015580C->field_40 <= 0) {
                 D_actor_403100_8015580C->field_40 = 0x3E8;
@@ -1360,7 +1360,7 @@ void func_actor_403100_8013A254(void)
             D_actor_403100_80155808->field_5FA  = 0;
         }
     } else if ((s16)D_actor_403100_80155808->field_5EC >= 0x1E) {
-        Game_Session->field_127 = 0;
+        gGameSession->field_127 = 0;
     }
 }
 void func_actor_403100_8013A4C8(Task* arg0)
@@ -1512,7 +1512,7 @@ void func_actor_403100_8013AA04(Task* arg0)
         func_actor_403100_8013D0B8(D_actor_403100_80155808->field_90, D_actor_403100_80155808->field_92, (s16)((u16)D_actor_403100_80155808->field_94 + 0xBB8), 0x800);
         D_actor_403100_80155808->field_668.b.field_668 = 0;
         D_actor_403100_80155808->field_5EC             = 0;
-        Game_Session->field_12C                        = 1;
+        gGameSession->field_12C                        = 1;
         D_actor_403100_80155808->field_5FA            += 1;
         return;
     }
@@ -1558,8 +1558,8 @@ void func_actor_403100_8013AC04(void)
         D_8007216C = 0x14;
         task       = Game_GetPtrSlot(3);
         if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 2), 0) != 0) {
-            Game_Session->field_127             = 1;
-            Game_Session->field_12D             = 0x7F;
+            gGameSession->field_127             = 1;
+            gGameSession->field_12D             = 0x7F;
             D_actor_403100_80155808->pad_670[0] = 1U;
         }
         func_actor_403100_8013D0B8(-0x1928, -0xC7C, 0x29D6, 0x800);
@@ -1628,14 +1628,14 @@ void func_actor_403100_8013AE28(void)
             if (D_actor_403100_8015580C->field_40 > 0) {
                 D_8007216C = 4;
             }
-            Game_Session->field_12C             = 0;
+            gGameSession->field_12C             = 0;
             D_actor_403100_80155808->pad_670[3] = 0;
             D_actor_403100_80155808->pad_670[1] = 0;
             D_actor_403100_80155808->field_5F8  = 1;
             D_actor_403100_80155808->field_5FA  = 0;
         }
     } else if ((s16)D_actor_403100_80155808->field_5EC >= 0x32) {
-        Game_Session->field_127 = 0;
+        gGameSession->field_127 = 0;
     }
 }
 void func_actor_403100_8013B128(Task* arg0)
@@ -1653,7 +1653,7 @@ void func_actor_403100_8013B128(Task* arg0)
 
     model                             = arg0->extra;
     coords                            = model->field_8;
-    Game_Session->field_12C           = 0;
+    gGameSession->field_12C           = 0;
     model->field_E                    = 0;
     D_actor_403100_8015580C->field_4C = 0;
     Gp_SetLightMode(arg0->spawnArg2, 0);
@@ -1677,7 +1677,7 @@ void func_actor_403100_8013B128(Task* arg0)
         obj = (GpObj*)((u8*)obj + sizeof(Actor403100Entry));
     }
     SndEvt_EnqueueType7(0x401F0004, 1);
-    D_actor_403100_80155808->field_622              = (s16)Game_Session->field_4;
+    D_actor_403100_80155808->field_622              = (s16)gGameSession->field_4;
     D_actor_403100_80155808->field_0.matrices.coord = coords->coord;
     D_actor_403100_80155808->savedRotation          = *(SVECTOR*)&D_actor_403100_80155808->field_80;
     Mc_SaveData.field_4                             = 0x18;
@@ -1699,7 +1699,7 @@ void func_actor_403100_8013B128(Task* arg0)
     D_actor_403100_80155808->field_80               = 0;
     D_actor_403100_80155808->field_82               = 0xA00;
     D_actor_403100_80155808->field_84               = 0;
-    Game_Session->field_68                          = 1;
+    gGameSession->field_68                          = 1;
     Gp_MsgPlayerWeapon(0);
     sound = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F000B;
     pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->field_8[4]);
@@ -1739,7 +1739,7 @@ void func_actor_403100_8013B3C4(Task* arg0)
         D_actor_403100_80155808->pad_670[3] = 0;
         Gp_LinkNode(&D_actor_403100_8015580C->node);
         D_actor_403100_8015580C->node.field_4 = 8;
-        Game_Session->field_68                = 0;
+        gGameSession->field_68                = 0;
         Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
         coords->coord                                 = D_actor_403100_80155808->field_0.matrices.coord;
         *(SVECTOR*)&D_actor_403100_80155808->field_80 = D_actor_403100_80155808->savedRotation;
@@ -2107,11 +2107,11 @@ void func_actor_403100_8013C214(Task* arg0)
                     pan   = (s8)Gp_GetObjPan((GpObj38*)(playerTask->extra->field_8 + 1));
                     depth = Gp_GetObjDepth((GpObj38*)(playerTask->extra->field_8 + 1));
                     SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
-                    Game_Session->field_12D = 0x7F;
+                    gGameSession->field_12D = 0x7F;
                     work                    = D_actor_403100_80155808;
                     work->pad_670[0]        = 1;
                     work->field_654         = 0;
-                    Game_Session->field_127 = 1;
+                    gGameSession->field_127 = 1;
                     Gp_DispatchMsg(Game_GetPtrSlot(3), 0x400, 0, 0);
                     func_actor_403100_8013D1B8(6, 0x3FF);
                 }

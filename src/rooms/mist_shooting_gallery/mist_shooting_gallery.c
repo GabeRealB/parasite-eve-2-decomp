@@ -402,13 +402,13 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     Ui_DrawText((UiPanel*)obj, "Result");
 
     if (task->state == 0) {
-        if (Game_Session->field_126 == 1) {
+        if (gGameSession->field_126 == 1) {
             Ui_SetState4((Task*)obj, obj->owner);
             obj->field_2E = 6;
             task->state   = 0x100;
             return;
         }
-        Game_Session->field_126 = 1;
+        gGameSession->field_126 = 1;
         Ui_UpdateLayoutSize((UiPanel*)obj, 0, (rows * 0xB) + 0x21);
         obj->field_E = -((s16)obj->field_12 / 2);
         task->state  = task->state + 1;
@@ -978,7 +978,7 @@ void func_mist_shooting_gallery_8017FAE8(Task* task)
 }
 void func_mist_shooting_gallery_8017FBD8(void)
 {
-    if ((D_80072176 > 0) && (Game_Session->field_8 == 7)) {
+    if ((D_80072176 > 0) && (gGameSession->field_8 == 7)) {
         Display_InitModeObj(&D_mist_shooting_gallery_801850D0, 0, 0, 0);
     }
 }
@@ -998,21 +998,21 @@ void func_mist_shooting_gallery_8017FC2C(Task* arg0)
     func_mist_shooting_gallery_801801E4(var_a0);
     if (D_8007218B == 7) {
         Task_SpawnFromTable(&D_mist_shooting_gallery_801856B8, 0, 0, 0);
-    } else if (Game_Session->field_8 == 7) {
+    } else if (gGameSession->field_8 == 7) {
         Task_SpawnFromTable(&D_8014E13C, 0, 0, 0);
     }
-    if ((Game_Session->field_8 == 6) && (GameFlag_GetNibble(0xED) != 0)) {
+    if ((gGameSession->field_8 == 6) && (GameFlag_GetNibble(0xED) != 0)) {
         Gp_RunCapCmd1(0x16);
     }
-    Game_Session->field_69 = 2;
+    gGameSession->field_69 = 2;
     arg0->state            = arg0->state + 1;
 }
 void func_mist_shooting_gallery_8017FD40(void)
 {
     u8 temp_v1;
 
-    if ((Game_Session->field_9 == 1) && (Game_Session->field_1 == 0)) {
-        temp_v1 = Game_Session->field_4;
+    if ((gGameSession->field_9 == 1) && (gGameSession->field_1 == 0)) {
+        temp_v1 = gGameSession->field_4;
         if ((temp_v1 == 3) || (temp_v1 == 9) || (temp_v1 == 0x12)) {
             Gp_MsgSlot4Chain(1, 0);
         } else if (GameFlag_GetNibble(0xED) == 0) {

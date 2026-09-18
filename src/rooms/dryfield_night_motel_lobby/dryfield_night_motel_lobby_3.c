@@ -37,8 +37,8 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
     RoomActionPrompt* prompt = &D_80114D28;
 
     work->field_7          = 0;
-    Game_Session->field_68 = 1;
-    Game_Session->field_1  = 1;
+    gGameSession->field_68 = 1;
+    gGameSession->field_1  = 1;
     if (Gp_CapBusy() != 0) {
         prompt->mode     = 0;
         prompt->targetId = 0;

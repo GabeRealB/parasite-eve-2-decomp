@@ -18,7 +18,7 @@ typedef struct Actor05400Pose {
 STATIC_ASSERT_SIZEOF(Actor05400Pose, 0x10);
 
 /// 4-byte pan/volume row of the sound table `D_actor_105400_8013CE64`, indexed
-/// by `Game_Session->field_4`; `field_0` and `field_2` are the second and third
+/// by `gGameSession->field_4`; `field_0` and `field_2` are the second and third
 /// `SndEvt_EnqueueType6` arguments.
 typedef struct Actor05400SndRow {
     /* 0x0 */ s8 field_0;

@@ -23,17 +23,17 @@ s32 func_dryfield_motel_room_1_8017D61C(void)
     return 0;
 }
 /// Message gate for the room's hotspot registered under id 0x13EF - the id the
-/// sanctuary's own gate uses. On the phase-3 visit (`Game_Session::field_9`)
+/// sanctuary's own gate uses. On the phase-3 visit (`gGameSession::field_9`)
 /// whose sub-id (`RoomEventMsg::field_2`) is 1 and that has not yet latched
 /// nibble 0x5C, it arms the room's script task and latches the nibble. The
 /// record is not copied to the outgoing one: this handler only ever consumes
 /// the message (returns 0).
 ///
-/// GCC hoists the `Game_Session` load above the `addiu $sp` prologue, which is
+/// GCC hoists the `gGameSession` load above the `addiu $sp` prologue, which is
 /// why the function starts two instructions before its frame setup.
 s32 func_dryfield_motel_room_1_8017D624(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    if (Game_Session->field_9 == 3 && GameFlag_GetNibble(0x5C) == 0 && in->field_2 == 1) {
+    if (gGameSession->field_9 == 3 && GameFlag_GetNibble(0x5C) == 0 && in->field_2 == 1) {
         GameFlag_SetNibble(0x5C, 1);
         Task_SpawnFromTable(&D_dryfield_motel_room_1_8017E478, 0, 0, 0);
     }
@@ -52,9 +52,9 @@ void func_dryfield_motel_room_1_8017D69C(Task* arg0)
 
     arg0->field_24 = D_dryfield_motel_room_1_8017E0A8;
     Game_SetPtrSlot(arg0, 7);
-    if (Game_Session->field_9 == 3 && GameFlag_GetNibble(0x5C) == 0) {
-        msg.field_0 = Game_Session->field_7;
-        msg.field_1 = Game_Session->field_6;
+    if (gGameSession->field_9 == 3 && GameFlag_GetNibble(0x5C) == 0) {
+        msg.field_0 = gGameSession->field_7;
+        msg.field_1 = gGameSession->field_6;
         msg.field_2 = 0;
         Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
     }

@@ -78,7 +78,7 @@ typedef struct Actor311500 {
 } Actor311500;
 
 /// Which of the alternate modes the current frame runs, keyed on
-/// `Game_Session`'s scenario id. `func_actor_311500_80163334` dispatches on it
+/// `gGameSession`'s scenario id. `func_actor_311500_80163334` dispatches on it
 /// and records the value it saw in the work block's `field_4D6`.
 extern u8 D_801153F4;
 

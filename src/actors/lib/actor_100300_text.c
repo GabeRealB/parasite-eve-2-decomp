@@ -314,8 +314,8 @@ void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
     work->field_648 = 0;
     work->field_68C = 0U;
     for (areaIndex = 0; Actor00300_D16020[areaIndex].id != 0; areaIndex++) {
-        if ((Game_Session->field_7 == Actor00300_D16020[areaIndex].area) &&
-            (Game_Session->field_6 == Actor00300_D16020[areaIndex].room)) {
+        if ((gGameSession->field_7 == Actor00300_D16020[areaIndex].area) &&
+            (gGameSession->field_6 == Actor00300_D16020[areaIndex].room)) {
             work->field_648 =
                 Actor00300_D16278[Actor00300_D16020[areaIndex].id]
                                  [((Actor00300SpawnArgs*)enemy->field_3C)->field_2];
@@ -355,11 +355,11 @@ void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
     child           = Gp_SpawnEnemyFromTable(&Actor00300_D162F0, 1, 0, enemy);
     rawId           = (u16)enemy->field_8;
     model           = child->task->extra;
-    sessionKey      = (GpAreaKey*)&Game_Session->field_4;
+    sessionKey      = (GpAreaKey*)&gGameSession->field_4;
     key.field_3     = sessionKey->field_3;
     key.field_2     = sessionKey->field_2;
     key.field_1     = sessionKey->field_1;
-    areaByte0       = Game_Session->field_4;
+    areaByte0       = gGameSession->field_4;
     index           = rawId >> 12;
     key.field_0     = areaByte0;
     Gp_SyncAreaKeyIndex(&key);
@@ -1699,13 +1699,13 @@ void Actor00300_Fn03618(Actor100300* arg0)
     D_80067704[0] = Actor00300_D0AA18;
     effect1       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x200, NULL);
     if (effect1 != NULL) {
-        sessionKey1 = (GpAreaKey*)&Game_Session->field_4;
+        sessionKey1 = (GpAreaKey*)&gGameSession->field_4;
         raw1        = (u16)arg0->field_20->field_8;
         model1      = (TmdObject*)effect1->field_0->extra;
         key.field_3 = sessionKey1->field_3;
         key.field_2 = sessionKey1->field_2;
         key.field_1 = sessionKey1->field_1;
-        areaByte0   = Game_Session->field_4;
+        areaByte0   = gGameSession->field_4;
         index1      = raw1 >> 12;
         key.field_0 = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
@@ -1721,13 +1721,13 @@ void Actor00300_Fn03618(Actor100300* arg0)
     D_80067704[0] = Actor00300_D0AECC;
     effect2       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x200, NULL);
     if (effect2 != NULL) {
-        sessionKey2 = (GpAreaKey*)&Game_Session->field_4;
+        sessionKey2 = (GpAreaKey*)&gGameSession->field_4;
         raw2        = (u16)arg0->field_20->field_8;
         model2      = (TmdObject*)effect2->field_0->extra;
         key.field_3 = sessionKey2->field_3;
         key.field_2 = sessionKey2->field_2;
         key.field_1 = sessionKey2->field_1;
-        areaByte0   = Game_Session->field_4;
+        areaByte0   = gGameSession->field_4;
         index2      = raw2 >> 12;
         key.field_0 = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
@@ -1743,13 +1743,13 @@ void Actor00300_Fn03618(Actor100300* arg0)
     D_80067704[0] = Actor00300_D0B640;
     effect3       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x200, NULL);
     if (effect3 != NULL) {
-        sessionKey3 = (GpAreaKey*)&Game_Session->field_4;
+        sessionKey3 = (GpAreaKey*)&gGameSession->field_4;
         raw3        = (u16)arg0->field_20->field_8;
         model3      = (TmdObject*)effect3->field_0->extra;
         key.field_3 = sessionKey3->field_3;
         key.field_2 = sessionKey3->field_2;
         key.field_1 = sessionKey3->field_1;
-        areaByte0   = Game_Session->field_4;
+        areaByte0   = gGameSession->field_4;
         index3      = raw3 >> 12;
         key.field_0 = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
@@ -1765,13 +1765,13 @@ void Actor00300_Fn03618(Actor100300* arg0)
     D_80067704[0] = Actor00300_D0BE44;
     effect4       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x200, NULL);
     if (effect4 != NULL) {
-        sessionKey4 = (GpAreaKey*)&Game_Session->field_4;
+        sessionKey4 = (GpAreaKey*)&gGameSession->field_4;
         raw4        = (u16)arg0->field_20->field_8;
         model4      = (TmdObject*)effect4->field_0->extra;
         key.field_3 = sessionKey4->field_3;
         key.field_2 = sessionKey4->field_2;
         key.field_1 = sessionKey4->field_1;
-        areaByte0   = Game_Session->field_4;
+        areaByte0   = gGameSession->field_4;
         index4      = raw4 >> 12;
         key.field_0 = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
@@ -1787,13 +1787,13 @@ void Actor00300_Fn03618(Actor100300* arg0)
     D_80067704[0] = Actor00300_D0C2C4;
     effect5       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x200, NULL);
     if (effect5 != NULL) {
-        sessionKey5 = (GpAreaKey*)&Game_Session->field_4;
+        sessionKey5 = (GpAreaKey*)&gGameSession->field_4;
         raw5        = (u16)arg0->field_20->field_8;
         model5      = (TmdObject*)effect5->field_0->extra;
         key.field_3 = sessionKey5->field_3;
         key.field_2 = sessionKey5->field_2;
         key.field_1 = sessionKey5->field_1;
-        areaByte0   = Game_Session->field_4;
+        areaByte0   = gGameSession->field_4;
         index5      = raw5 >> 12;
         key.field_0 = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
@@ -1960,7 +1960,7 @@ static __inline__ void Actor00300_UpdateTransform(Actor100300Ctx* arg0, Actor100
     saved = obj->field_8;
     work  = arg1->field_8->field_1C;
     if (disabled == 0) {
-        if (Game_Session->field_1 != 0) {
+        if (gGameSession->field_1 != 0) {
             flags        = ((work->field_678 & 1) == 0) << 7;
             obj->field_C = flags;
             if (work->field_678 & 2) {
@@ -2100,8 +2100,8 @@ void Actor00300_Fn04370(Actor100300Ctx* arg0, Actor100300* arg1)
             Gp_UpdateCoord(coord);
             Actor00300_Fn00078(coord, 0x200);
             id = work->field_70.field_4;
-            if (id != 0 && Gp_RoomParamTables[Game_Session->field_7 - 1]
-                                             [Game_Session->field_6 - 1][func_800E1B24(id)]
+            if (id != 0 && Gp_RoomParamTables[gGameSession->field_7 - 1]
+                                             [gGameSession->field_6 - 1][func_800E1B24(id)]
                                                  ->field_1 == 0) {
                 expired = 1;
             }
@@ -2215,7 +2215,7 @@ void Actor00300_Fn047CC(Actor100300Ctx* arg0, Actor100300* arg1)
             arg0->field_14                     = 1;
             return;
     }
-    if (Game_Session->field_1 != 0) {
+    if (gGameSession->field_1 != 0) {
         Actor00300_Fn048D4(arg0, arg1);
         return;
     }
@@ -2230,7 +2230,7 @@ void Actor00300_Fn048D4(Actor100300Ctx* arg0, Actor100300* arg1)
 
     work = arg1->field_1C;
     obj  = arg1->field_2C;
-    if (Game_Session->field_1 != 0) {
+    if (gGameSession->field_1 != 0) {
         flags        = ((work->field_678 & 1) == 0) << 7;
         obj->field_C = flags;
         if (work->field_678 & 2) {

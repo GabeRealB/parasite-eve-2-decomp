@@ -47,13 +47,13 @@ void func_actor_335800_80161E88(Task* task)
                 }
             }
             coord->coord.t[2] += task->killCountdown;
-            if (Game_Session->field_4D != 0) {
+            if (gGameSession->field_4D != 0) {
                 Task_Kill(task);
             }
             break;
         case 2:
             if (++task->killCountdown < 4) {
-                if (Game_Session->field_4D != 0) {
+                if (gGameSession->field_4D != 0) {
                     Task_Kill(task);
                 }
             } else {

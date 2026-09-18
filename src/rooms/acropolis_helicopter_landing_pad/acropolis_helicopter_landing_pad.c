@@ -35,7 +35,7 @@ extern s8         D_80114C12;
 extern TaskDesc   D_acropolis_helicopter_landing_pad_80184E68;
 extern GpMsgEntry D_acropolis_helicopter_landing_pad_80182328[];
 extern GsF_LIGHT  D_acropolis_helicopter_landing_pad_80182340[3];
-/// Per-camera-view visibility table indexed by `(u8)Game_Session->field_4`:
+/// Per-camera-view visibility table indexed by `(u8)gGameSession->field_4`:
 /// a non-zero byte keeps the enemy model visible in that view.
 extern s8 D_acropolis_helicopter_landing_pad_80182370[];
 
@@ -95,7 +95,7 @@ void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
 /// Per-frame update of the enemy task's model. While the `field_50` countdown
 /// armed by the 0x7D3 handler is running, the model's coordinate translation
 /// is stepped by the work block's three velocity words and marked dirty; the
-/// countdown is clamped at zero once it expires. When `Game_Session->field_4D`
+/// countdown is clamped at zero once it expires. When `gGameSession->field_4D`
 /// is set, the model is hidden (bit 0x80 of `field_C`) in every camera view
 /// whose entry in the per-view table is zero and shown again otherwise.
 void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
@@ -114,8 +114,8 @@ void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
     } else {
         work->field_50 = 0;
     }
-    if (Game_Session->field_4D != 0) {
-        if (D_acropolis_helicopter_landing_pad_80182370[(u8)Game_Session->field_4] != 0) {
+    if (gGameSession->field_4D != 0) {
+        if (D_acropolis_helicopter_landing_pad_80182370[(u8)gGameSession->field_4] != 0) {
             obj->field_C &= 0xFF7F;
         } else {
             obj->field_C |= 0x80;
@@ -199,7 +199,7 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helic
 /// (`D_80114C12`) or blocker (`D_80071075`) is active it advances to phase 2,
 /// starts the second script block and queues sound 0xA2. Room 5 of the
 /// session raises `D_acropolis_helicopter_landing_pad_80184E0C`; a cleared
-/// `Game_Session->field_1` resets `D_acropolis_helicopter_landing_pad_80187F84`.
+/// `gGameSession->field_1` resets `D_acropolis_helicopter_landing_pad_80187F84`.
 void func_acropolis_helicopter_landing_pad_8017D9BC(void)
 {
     s32 phase = D_acropolis_helicopter_landing_pad_80184D9C;
@@ -214,10 +214,10 @@ void func_acropolis_helicopter_landing_pad_8017D9BC(void)
             }
         }
     }
-    if ((u8)Game_Session->field_4 == 5) {
+    if ((u8)gGameSession->field_4 == 5) {
         D_acropolis_helicopter_landing_pad_80184E0C = 1;
     }
-    if (Game_Session->field_1 == 0) {
+    if (gGameSession->field_1 == 0) {
         D_acropolis_helicopter_landing_pad_80187F84 = 0;
     }
 }
@@ -227,7 +227,7 @@ INCLUDE_RODATA("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_he
 /// Room state-machine task. State 0 resets the player weapon, posts 0x7D5 to
 /// slot-4 entry 1 on a second-or-later visit (`Mc_SaveData.field_9`), stamps
 /// the save location with 0x12 and sets the override vector. States 1-4 wait
-/// for `Game_Session->field_4D`, post 0x7D9 to slot 4 on a first visit, then
+/// for `gGameSession->field_4D`, post 0x7D9 to slot 4 on a first visit, then
 /// call `func_800A99B4`. State 5 asks slot 4 to spawn the enemy task (0x7D8),
 /// positions it (0x7D3), pushes the slot-3 weapon record with `field_4 = 9`
 /// and hands the enemy's coordinate to slot 3 (0x3F5). State 6 queues CD
@@ -259,7 +259,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             Gp_SetOverrideVec(&vec);
             break;
         case 1:
-            if (Game_Session->field_4D != 0) {
+            if (gGameSession->field_4D != 0) {
                 task->state += 1;
             }
             break;

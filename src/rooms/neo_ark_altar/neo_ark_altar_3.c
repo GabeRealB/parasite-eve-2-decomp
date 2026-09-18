@@ -37,7 +37,7 @@ s32 func_neo_ark_altar_8017D908(void)
 s32 func_neo_ark_altar_8017D910(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     if (in->field_2 == 1) {
-        if (Game_Session->field_5 == in->field_2) {
+        if (gGameSession->field_5 == in->field_2) {
             Gp_RunCapCmd1(3);
         } else {
             Task_SpawnFromTable(&D_neo_ark_altar_8017EF8C, 0, 0, 0);

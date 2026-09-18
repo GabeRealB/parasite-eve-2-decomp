@@ -253,9 +253,9 @@ loop:
 done:
     D_8007216C = 4;
     Display_ReleaseRef();
-    Game_Session->field_66 = 0;
-    Game_Session->field_68 = 0;
-    Game_Session->field_1  = 0;
+    gGameSession->field_66 = 0;
+    gGameSession->field_68 = 0;
+    gGameSession->field_1  = 0;
     Task_Kill((Task*)task->spawnArg2);
     Task_RequestKill(task, 0);
 }
@@ -270,8 +270,8 @@ void func_acropolis_security_room_8017EB9C(Task* task)
     RoomActionPrompt* prompt  = &D_80114D28;
     RoomHotspot*      hotspot = D_acropolis_security_room_80182648;
 
-    Game_Session->field_68 = 1;
-    Game_Session->field_1  = 1;
+    gGameSession->field_68 = 1;
+    gGameSession->field_1  = 1;
     if (Gp_CapBusy() != 0) {
         prompt->mode     = 0;
         prompt->targetId = 0;

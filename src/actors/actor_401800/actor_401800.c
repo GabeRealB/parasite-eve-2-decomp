@@ -58,7 +58,7 @@ s32 func_actor_401800_801323D4(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     Actor401800RepelScratch* blk;
     SVECTOR*                 offset;
 
-    if (D_80072729 == 1 || Game_Session->field_4D == 1) {
+    if (D_80072729 == 1 || gGameSession->field_4D == 1) {
         return 0;
     }
     coord->flg                                 = 0;
@@ -149,7 +149,7 @@ s32 func_actor_401800_8013271C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
     s16                      t;
     s32                      mag;
 
-    if (Game_Session->field_4D == 1 || D_80072729 == 1) {
+    if (gGameSession->field_4D == 1 || D_80072729 == 1) {
         return 0;
     }
 
@@ -265,7 +265,7 @@ s32 func_actor_401800_80132E0C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
     s32                         t;
     s32                         hit;
 
-    if (Game_Session->field_4D == 1) {
+    if (gGameSession->field_4D == 1) {
         return 0;
     }
 
@@ -1100,7 +1100,7 @@ s32 func_actor_401800_8013629C(Actor401800* arg0, GpRec18* recs, s16 count)
     Actor401800PushScratch* s;
     Actor401800PushScratch* blk;
 
-    if (D_80072729 == 1 || Game_Session->field_4D == 1) {
+    if (D_80072729 == 1 || gGameSession->field_4D == 1) {
         return 0;
     }
     arg0->field_2C->field_8[1].flg            = 0;
@@ -2531,13 +2531,13 @@ static __inline__ void Actor401800_TintEffect(GpEffWork* eff, GpEnemy* enemy)
     u32        raw;
 
     if (eff != NULL) {
-        sessionKey  = (GpAreaKey*)&Game_Session->field_4;
+        sessionKey  = (GpAreaKey*)&gGameSession->field_4;
         raw         = enemy->field_8;
         model       = (TmdObject*)eff->field_0->extra;
         key.field_3 = sessionKey->field_3;
         key.field_2 = sessionKey->field_2;
         key.field_1 = sessionKey->field_1;
-        areaByte0   = Game_Session->field_4;
+        areaByte0   = gGameSession->field_4;
         idx         = raw >> 12;
         SOFT_BARRIER();
         keyPtr = &key;

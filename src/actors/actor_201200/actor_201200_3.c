@@ -262,7 +262,7 @@ void func_actor_201200_8014D4D0(Actor201200Ctx* arg0, Actor201200* arg1)
     if (work->field_3D8 != 0) {
         func_800D7A9C(arg1->field_2C, (VECTOR*)arg1->field_2C->field_8->workm.t, 0, 3);
     }
-    if (Game_Session->field_4D != 0) {
+    if (gGameSession->field_4D != 0) {
         arg1->field_2C->field_8->flg = 0;
     }
 }

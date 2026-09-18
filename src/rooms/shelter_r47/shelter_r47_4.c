@@ -231,9 +231,9 @@ void func_shelter_r47_80185098(Task* task)
         Gp_MsgPlayer3F3(1);
         Display_ReleaseRef();
         if (state->field_2A != 1) {
-            Game_Session->field_1 = 0;
+            gGameSession->field_1 = 0;
         }
-        Game_Session->field_66 = 0;
+        gGameSession->field_66 = 0;
         Task_Kill((Task*)task->spawnArg2);
         Task_RequestKill(task, 0);
     }

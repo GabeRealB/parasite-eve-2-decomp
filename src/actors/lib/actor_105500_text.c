@@ -417,7 +417,7 @@ void Actor05500_Fn00A94(Actor105500* arg0)
     work                               = actor->field_1C;
     coord                              = actor->field_2C->field_8;
     state                              = work->field_39C;
-    sessionFlags                       = *(s32*)&Game_Session->field_4;
+    sessionFlags                       = *(s32*)&gGameSession->field_4;
     value                              = 0;
     switch (state) {
         case 0:

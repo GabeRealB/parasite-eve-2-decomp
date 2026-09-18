@@ -70,7 +70,7 @@ s32 Actor00100_Fn00508(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
     s16                     t;
     s32                     mag;
 
-    if (Game_Session->field_4D == 1 || D_80072729 == 1) {
+    if (gGameSession->field_4D == 1 || D_80072729 == 1) {
         return 0;
     }
 
@@ -442,7 +442,7 @@ s32 Actor00100_Fn01388(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
     *(u8**)G_SCRATCH_HEAD = head - sizeof(Actor00100AvoidScratch16);
     s                     = (Actor00100AvoidScratch16*)*(u8**)G_SCRATCH_HEAD;
 
-    if (D_80072729 == 1 || Game_Session->field_4D == 1) {
+    if (D_80072729 == 1 || gGameSession->field_4D == 1) {
         return 0;
     }
 

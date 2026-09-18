@@ -18,14 +18,14 @@ extern SVECTOR D_dryfield_night_driveway_801805D0;
 
 /// Driveway room draw: marks the effect state (`field_A` = 2, the value
 /// `actor_400100_text` tests), then sweeps the anchor pair the current phase
-/// (`Game_Session->field_4`) selects - phases 2 and 9 the near pair, 4 and 7
+/// (`gGameSession->field_4`) selects - phases 2 and 9 the near pair, 4 and 7
 /// the middle one, 5 the far one. Phases 3 and 10 sweep the near pair and then
 /// the middle one, whose draw call `jump.c` cross-jumps into the tail block the
 /// other phases share.
 void func_dryfield_night_driveway_8017E5CC(void)
 {
     Gp_State1C->field_A = 2;
-    switch (Game_Session->field_4) {
+    switch (gGameSession->field_4) {
         case 2:
         case 9:
             Room_Draw08(&D_dryfield_night_driveway_801805B0[0], 0x180);

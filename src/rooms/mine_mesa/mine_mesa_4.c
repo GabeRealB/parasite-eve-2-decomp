@@ -60,7 +60,7 @@ void func_mine_mesa_8017E074(Task* arg0)
 {
     RoomPlacement rec;
 
-    if (arg0->killCountdown >= 0x2E || Game_Session->field_5F != 0) {
+    if (arg0->killCountdown >= 0x2E || gGameSession->field_5F != 0) {
         Task_Kill(arg0);
         return;
     }
@@ -206,7 +206,7 @@ void func_mine_mesa_8017E2A4(Task* arg0)
 /// there, since `r`/`g`/`b` are read before the switch.
 ///
 /// This is `func_actor_503500_80132990` minus its `D_801153F4` gate and minus
-/// the `Game_Session->field_5F != 0` term of its state-1 test; the tile packet
+/// the `gGameSession->field_5F != 0` term of its state-1 test; the tile packet
 /// itself is built byte-for-byte the same way.
 void func_mine_mesa_8017E3E0(Task* arg0)
 {

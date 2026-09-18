@@ -59,7 +59,7 @@ void func_actor_443500_80132078(Task* task)
     work->field_4C0 = ((TmdObject*)task->extra)->field_C;
     spawned         = Task_SpawnFromTable(&D_actor_443500_8015873C, 1, 4, (s32)task);
     if (spawned != NULL) {
-        sessionKey  = (GpAreaKey*)&Game_Session->field_4;
+        sessionKey  = (GpAreaKey*)&gGameSession->field_4;
         raw         = ((Actor443500Ctx*)task->spawnArg2)->field_8;
         model       = (TmdObject*)spawned->extra;
         key.field_3 = sessionKey->field_3;

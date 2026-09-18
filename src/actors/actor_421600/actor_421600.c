@@ -1203,13 +1203,13 @@ void func_actor_421600_8013C8E0(Actor421600* arg0)
         vec.vx        = 0;
         effect1       = Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 9, 0x200, &vec);
         if (effect1 != NULL) {
-            sessionKey1 = (GpAreaKey*)&Game_Session->field_4;
+            sessionKey1 = (GpAreaKey*)&gGameSession->field_4;
             raw1        = ctx->field_8;
             model1      = (TmdObject*)effect1->field_0->extra;
             key.field_3 = sessionKey1->field_3;
             key.field_2 = sessionKey1->field_2;
             key.field_1 = sessionKey1->field_1;
-            areaByte0   = Game_Session->field_4;
+            areaByte0   = gGameSession->field_4;
             index1      = raw1 >> 12;
             SOFT_BARRIER();
             keyPtr = &key;
@@ -1232,13 +1232,13 @@ void func_actor_421600_8013C8E0(Actor421600* arg0)
         vec.vx        = 0;
         effect2       = Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 12, 0x200, &vec);
         if (effect2 != NULL) {
-            sessionKey2 = (GpAreaKey*)&Game_Session->field_4;
+            sessionKey2 = (GpAreaKey*)&gGameSession->field_4;
             raw2        = ctx->field_8;
             model2      = (TmdObject*)effect2->field_0->extra;
             key.field_3 = sessionKey2->field_3;
             key.field_2 = sessionKey2->field_2;
             key.field_1 = sessionKey2->field_1;
-            areaByte0   = Game_Session->field_4;
+            areaByte0   = gGameSession->field_4;
             index2      = raw2 >> 12;
             SOFT_BARRIER();
             keyPtr = &key;
@@ -1259,13 +1259,13 @@ void func_actor_421600_8013C8E0(Actor421600* arg0)
         D_80114B78[0] = &D_actor_421600_80145604;
         effect3       = Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 1, 0x200, NULL);
         if (effect3 != NULL) {
-            sessionKey3 = (GpAreaKey*)&Game_Session->field_4;
+            sessionKey3 = (GpAreaKey*)&gGameSession->field_4;
             raw3        = ctx->field_8;
             model3      = (TmdObject*)effect3->field_0->extra;
             key.field_3 = sessionKey3->field_3;
             key.field_2 = sessionKey3->field_2;
             key.field_1 = sessionKey3->field_1;
-            areaByte0   = Game_Session->field_4;
+            areaByte0   = gGameSession->field_4;
             index3      = raw3 >> 12;
             SOFT_BARRIER();
             keyPtr = &key;
@@ -1286,13 +1286,13 @@ void func_actor_421600_8013C8E0(Actor421600* arg0)
         D_80114B78[0] = &D_actor_421600_80145124;
         effect4       = Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 3, 0x200, NULL);
         if (effect4 != NULL) {
-            sessionKey4 = (GpAreaKey*)&Game_Session->field_4;
+            sessionKey4 = (GpAreaKey*)&gGameSession->field_4;
             raw4        = ctx->field_8;
             model4      = (TmdObject*)effect4->field_0->extra;
             key.field_3 = sessionKey4->field_3;
             key.field_2 = sessionKey4->field_2;
             key.field_1 = sessionKey4->field_1;
-            areaByte0   = Game_Session->field_4;
+            areaByte0   = gGameSession->field_4;
             index4      = raw4 >> 12;
             SOFT_BARRIER();
             keyPtr = &key;

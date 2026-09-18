@@ -674,7 +674,7 @@ s32 func_actor_401000_80135374(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16
         s->step.vx = head[-1].delta.vx.w >> 16;
         s->step.vy = s->delta.vy.w >> 16;
         s->step.vz = s->delta.vz.w >> 16;
-        if (Actor401000_HasHeightClamp(&Game_Session->field_4)) {
+        if (Actor401000_HasHeightClamp(&gGameSession->field_4)) {
             vy = s->step.vy;
             if (((vy >= 0) ? vy : -vy) <= 0x12C) {
                 goto addStep;
@@ -720,8 +720,8 @@ s32 func_actor_401000_80135374(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16
             }
         }
     }
-    if (Actor401000_HasHeightClamp(&Game_Session->field_4)) {
-        func_actor_401000_801352DC(&Game_Session->field_4, coord);
+    if (Actor401000_HasHeightClamp(&gGameSession->field_4)) {
+        func_actor_401000_801352DC(&gGameSession->field_4, coord);
         coord->coord.t[1] += arg3;
     }
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
@@ -2004,13 +2004,13 @@ static __inline__ void Actor401000_TintEffect(GpEffWork* eff, GpEnemy* enemy)
     u32        raw;
 
     if (eff != NULL) {
-        sessionKey  = (GpAreaKey*)&Game_Session->field_4;
+        sessionKey  = (GpAreaKey*)&gGameSession->field_4;
         raw         = enemy->field_8;
         model       = (TmdObject*)eff->field_0->extra;
         key.field_3 = sessionKey->field_3;
         key.field_2 = sessionKey->field_2;
         key.field_1 = sessionKey->field_1;
-        areaByte0   = Game_Session->field_4;
+        areaByte0   = gGameSession->field_4;
         idx         = raw >> 12;
         key.field_0 = areaByte0;
         Gp_SyncAreaKeyIndex(&key);

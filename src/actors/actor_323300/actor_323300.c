@@ -77,13 +77,13 @@ void func_actor_323300_80161FE8(Task* arg0)
         }
         if (work->field_500 != 0) {
             if (work->slots[1].field_10 & 2) {
-                if (Game_Session->field_4 == 2) {
+                if (gGameSession->field_4 == 2) {
                     SndEvt_EnqueueType6(0x52100006, 0, 0x28);
                 } else {
                     SndEvt_EnqueueType6(0x52100006, 0, 0);
                 }
-            } else if (Game_Session->field_4D != 0) {
-                if (Game_Session->field_4 == 2) {
+            } else if (gGameSession->field_4D != 0) {
+                if (gGameSession->field_4 == 2) {
                     SndEvt_EnqueueTypeA(0x52100006, 0, 0x28);
                 } else {
                     SndEvt_EnqueueTypeA(0x52100006, 0, 0);

@@ -706,7 +706,7 @@ void func_actor_400600_8013B640(void)
     if (D_80115415 == 0) {
         /* Same shape as ActorsShared801692e8: each branch makes its own call
          * and jump2's cross-jumping merges the identical tails. */
-        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x3200000 && Game_Session->field_9 == 1) {
+        if ((*(u32*)&gGameSession->field_4 & 0xFFFF0000) == 0x3200000 && gGameSession->field_9 == 1) {
             param1[2] = 0x28;
             param1[0] = 2;
             param1[3] = 0;

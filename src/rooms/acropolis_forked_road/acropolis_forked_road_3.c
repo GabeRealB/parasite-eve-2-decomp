@@ -45,7 +45,7 @@ extern s8 D_8007218A;
 
 void func_acropolis_forked_road_8017D970(void)
 {
-    if ((D_acropolis_forked_road_80180F3C == 0) && (Game_Session->field_8 == 2)) {
+    if ((D_acropolis_forked_road_80180F3C == 0) && (gGameSession->field_8 == 2)) {
         D_acropolis_forked_road_80180F3C = 1;
         Task_SpawnFromTable(&D_acropolis_forked_road_80180F44, 2, 0, 0);
     }
@@ -110,7 +110,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 
         case 2:
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
-                slot = Stream_FindSlot(&Game_Session->field_4, 0, 0);
+                slot = Stream_FindSlot(&gGameSession->field_4, 0, 0);
                 CdCmd_Enqueue(0x61, 0, &slot);
                 task->state = task->state + 1;
             }
@@ -120,7 +120,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             if (queue->field_1FA != 0) {
                 work->script             = Gp_SpawnScript18((s32)&D_acropolis_forked_road_80185058,
                                                             (s32)&D_acropolis_forked_road_80185070);
-                Game_Session->field_13B |= 0x80;
+                gGameSession->field_13B |= 0x80;
                 Task_Reparent(task, work->script);
                 task->state = task->state + 1;
             }
@@ -145,7 +145,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             Mc_SaveData.field_5 = 1;
             D_80071076          = 1;
             Task_Spawn(0, 0x11, 0, 0);
-            Game_Session->field_13B &= 0x7F;
+            gGameSession->field_13B &= 0x7F;
             Task_Kill(task);
             break;
     }
@@ -210,7 +210,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                 work->mtx->t[2]          = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vz;
                 work->script             = Gp_SpawnScript18((s32)&D_acropolis_forked_road_80185038,
                                                             (s32)&D_acropolis_forked_road_80185050);
-                Game_Session->field_13B |= 0x80;
+                gGameSession->field_13B |= 0x80;
                 Task_Reparent(task, work->script);
                 SetDispMask(0);
                 task->killCountdown = 0;
@@ -259,7 +259,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                 Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA5, 0, 0);
                 func_800E9BDC(2, 0x9FF);
                 Gp_StateF0.field_4       = 0;
-                Game_Session->field_13B &= 0x7F;
+                gGameSession->field_13B &= 0x7F;
                 Task_Kill(task);
             }
             break;

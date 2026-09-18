@@ -239,7 +239,7 @@ void func_actor_400500_8013B4A4(Task* arg0)
     u8               mode;
 
     work  = (Actor400500Work*)arg0->work;
-    mode  = Game_Session->field_5;
+    mode  = gGameSession->field_5;
     enemy = (GpEnemy*)arg0->spawnArg2;
     if ((mode == 1) || (mode == 3) || (mode == 5) || (mode == 6)) {
         s16 hp;

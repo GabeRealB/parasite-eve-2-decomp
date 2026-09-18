@@ -75,7 +75,7 @@ void func_actor_341700_801697D4(Task* arg0)
     ticks           = work->field_412 + 1;
     work->field_412 = ticks;
     if ((s16)ticks >= 0x24) {
-        if ((Game_Session->field_7 == 4) && ((u32)(Game_Session->field_6 - 0x27) < 2U) && (Game_Session->field_9 == 1)) {
+        if ((gGameSession->field_7 == 4) && ((u32)(gGameSession->field_6 - 0x27) < 2U) && (gGameSession->field_9 == 1)) {
             Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x13F4, 1, 0);
         }
         Gp_DestroyEnemy(arg0->spawnArg2, arg0);

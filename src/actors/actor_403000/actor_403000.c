@@ -2116,8 +2116,8 @@ void func_actor_403000_801377C8(Actor403000* arg0)
                     scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 1), 0);
                     if (scratch->ret == 1) {
                         pw                      = (GameActor*)player->field_1C;
-                        Game_Session->field_12E = 0x28;
-                        Game_Session->field_12F = 0x28;
+                        gGameSession->field_12E = 0x28;
+                        gGameSession->field_12F = 0x28;
                         pw->field_956           = 0xA;
                     }
                 }
@@ -2382,8 +2382,8 @@ void func_actor_403000_801386E8(Actor403000* arg0)
             scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 0), 0);
             if (scratch->ret == 1) {
                 pw                      = (GameActor*)player->field_1C;
-                Game_Session->field_12E = 0x1C;
-                Game_Session->field_12F = 0x1E;
+                gGameSession->field_12E = 0x1C;
+                gGameSession->field_12F = 0x1E;
                 pw->field_956           = 0xA;
             }
             work->field_0   = 9;

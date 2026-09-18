@@ -226,15 +226,15 @@ void func_actor_503500_80132778(Task* task)
     switch (GameFlag_GetNibble(0x12A)) {
         case 0:
         case 1:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 Task_Kill(task);
                 return;
             }
-            done = Game_Session->field_5F;
+            done = gGameSession->field_5F;
             break;
         case 2:
         case 3:
-            if (Game_Session->field_1 != 0) {
+            if (gGameSession->field_1 != 0) {
                 return;
             }
             work->field_4 -= 0x20;
@@ -272,7 +272,7 @@ void func_actor_503500_80132990(Task* task)
                 task->state++;
                 break;
             case 1:
-                if (--task->spawnArg1 < 0 || Game_Session->field_5F != 0) {
+                if (--task->spawnArg1 < 0 || gGameSession->field_5F != 0) {
                     task->state++;
                 }
                 break;

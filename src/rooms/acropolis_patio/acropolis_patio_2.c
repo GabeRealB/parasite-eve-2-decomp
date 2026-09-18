@@ -87,8 +87,8 @@ void func_acropolis_patio_8017DF38(s32 arg0)
 
 void func_acropolis_patio_8017DF48(void)
 {
-    Game_Session->field_5 = D_8007216D = 2;
-    Game_Session->field_76             = 1;
+    gGameSession->field_5 = D_8007216D = 2;
+    gGameSession->field_76             = 1;
 }
 void func_acropolis_patio_8017DF70(u8 arg0)
 {

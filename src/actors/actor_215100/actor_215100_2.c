@@ -98,7 +98,7 @@ void                        func_actor_215100_8014BEE8(void);
 
 /// Arms the weapon pickup at this actor's spot while the event flag
 /// `D_actor_215100_8014D038` is up and the story step has reached 3. A session
-/// leave (`Game_Session->field_4 == 0x12`) drops the `func_80180390` hold and
+/// leave (`gGameSession->field_4 == 0x12`) drops the `func_80180390` hold and
 /// `D_actor_215100_8014D03C` with it, sub-states 2 and 3 of
 /// `Gp_StateC08.field_A` start the 0x3C-frame cooldown in
 /// `D_actor_215100_8014D044`, and while that cooldown runs the function only
@@ -124,7 +124,7 @@ void func_actor_215100_8014A398(void)
     coord = ((TmdObject*)task->extra)->field_8;
     if (D_actor_215100_8014D038 != 0) {
         if (D_actor_215100_8015E670 >= 3) {
-            if (Game_Session->field_4 == 0x12) {
+            if (gGameSession->field_4 == 0x12) {
                 func_80180390(0);
                 D_actor_215100_8014D03C = 0;
             }
@@ -202,7 +202,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
                 if (GameFlag_GetNibble(0xED) != 0) {
                     Gp_RunCapCmd1(0x17);
                 }
-                Game_Session->field_126 = 1;
+                gGameSession->field_126 = 1;
                 arg0->state            += 1;
                 break;
             }
@@ -213,8 +213,8 @@ void func_actor_215100_8014A5C0(Task* arg0)
             func_80180390(1);
             D_actor_215100_8014D03C = 1;
             Task_CallExit(D_8018E0C4);
-            Game_Session->field_126 = 1;
-            Game_Session->field_69 |= 0x80;
+            gGameSession->field_126 = 1;
+            gGameSession->field_69 |= 0x80;
             SndEvt_EnqueueType2(0, 0x1E);
             Gp_MsgPlayerWeapon(1);
             D_801153F4 = 0;
@@ -225,7 +225,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
                 D_80073BAE            = 3;
                 Mc_SaveData.field_5C5 = 1;
                 Gp_ClearInventory();
-                Game_Session->field_68 = 1;
+                gGameSession->field_68 = 1;
                 SndEvt_EnqueueType6(0x51140005, 0, 0);
                 D_80071076          = 1;
                 Mc_SaveData.field_6 = D_actor_215100_8015E678.field_0;
@@ -269,8 +269,8 @@ void func_actor_215100_8014A7C4(Task* arg0)
             arg0->state++;
             break;
         case 2:
-            Game_Session->field_126 = 1;
-            Game_Session->field_69 |= 0x80;
+            gGameSession->field_126 = 1;
+            gGameSession->field_69 |= 0x80;
             SndEvt_EnqueueType2(0, 0x1E);
             actor->field_97B        = 0;
             D_actor_215100_8014D038 = 0;
@@ -306,9 +306,9 @@ void func_actor_215100_8014A9A0(void)
         D_actor_215100_8014D038 = 0;
         func_80180390(1);
         D_actor_215100_8014D03C = 1;
-        Game_Session->field_126 = 1;
+        gGameSession->field_126 = 1;
         SndEvt_EnqueueType2(0, 0x1E);
-        Game_Session->field_69 |= 0x80;
+        gGameSession->field_69 |= 0x80;
     }
     if (D_actor_215100_8015E670 < 3) {
         Gp_RunCapCmd(0x1D, 3);
@@ -367,7 +367,7 @@ void func_actor_215100_8014ABAC(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            Game_Session->field_68 = 1;
+            gGameSession->field_68 = 1;
             if (GameFlag_GetNibble(0x121) == 0) {
                 GameFlag_SetNibble(0x121, 1);
                 func_800E3FAC(0xA2, 0x3A);
@@ -379,7 +379,7 @@ void func_actor_215100_8014ABAC(Task* arg0)
             }
             break;
         case 1:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 arg0->state++;
             }
             break;
@@ -388,7 +388,7 @@ void func_actor_215100_8014ABAC(Task* arg0)
             arg0->state++;
             break;
         case 3:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 if (Gp_GetCapEventKey() != 0) {
                     arg0->state = 10;
                 } else {
@@ -407,7 +407,7 @@ void func_actor_215100_8014ABAC(Task* arg0)
             arg0->state++;
             break;
         case 11:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 Task_SpawnFromTable(&D_actor_215100_8014E13C, 1, 0, 0);
                 Task_Kill(arg0);
             }
@@ -454,7 +454,7 @@ void func_actor_215100_8014AE90(s16 arg0)
 
 void func_actor_215100_8014AEB4(s16 arg0)
 {
-    Game_Session->field_52 = arg0;
+    gGameSession->field_52 = arg0;
 }
 
 void func_actor_215100_8014AEC4(s32 arg0)
@@ -487,7 +487,7 @@ void func_actor_215100_8014AF0C(void)
 
 /// Drives the caption schedule while the actor waits to be talked to: state 0
 /// arms it, and state 1 scans `D_actor_215100_80154514` for the window
-/// containing `Game_Session.field_120` - the first entry whose `field_0 * 30`
+/// containing `gGameSession.field_120` - the first entry whose `field_0 * 30`
 /// has not dropped below the clock and whose `field_4 * 30` has - and, when it
 /// finds one, starts that entry's script at its own line key with the task's
 /// `spawnArg1` as the line delay. It then ticks the clock down one, unless the
@@ -507,7 +507,7 @@ void func_actor_215100_8014AFAC(Actor215100* task, s32 arg1)
             script = 0;
             key    = arg1;
             for (i = 0; D_actor_215100_80154514[i].field_0 != -1; i++) {
-                time = Game_Session->field_120;
+                time = gGameSession->field_120;
                 if ((D_actor_215100_80154514[i].field_0 * 30 >= time) &&
                     (D_actor_215100_80154514[i].field_4 * 30 < time)) {
                     script = D_actor_215100_80154514[i].field_8;
@@ -520,7 +520,7 @@ void func_actor_215100_8014AFAC(Actor215100* task, s32 arg1)
                 func_actor_215100_8014B0D4();
             }
             if ((Gp_CapBusy() == 0) && (D_801153F4 == 0)) {
-                Game_Session->field_120 = (u16)Game_Session->field_120 - 1;
+                gGameSession->field_120 = (u16)gGameSession->field_120 - 1;
             }
             break;
     }
@@ -1138,7 +1138,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     spawned             = Gp_SpawnEnemyFromTable(D_actor_215100_8015E5D0, 1, 0, enemy);
     model               = (TmdObject*)spawned->task->extra;
     raw                 = enemy->field_8;
-    sessionKey          = (GpAreaKey*)&Game_Session->field_4;
+    sessionKey          = (GpAreaKey*)&gGameSession->field_4;
     key.field_3         = sessionKey->field_3;
     key.field_2         = sessionKey->field_2;
     key.field_1         = sessionKey->field_1;

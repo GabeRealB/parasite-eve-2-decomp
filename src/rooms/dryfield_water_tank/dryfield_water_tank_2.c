@@ -95,19 +95,19 @@ void func_dryfield_water_tank_8017D9D4(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// Room ambience dispatch: while `Game_Session->field_4D` is set, queue the
+/// Room ambience dispatch: while `gGameSession->field_4D` is set, queue the
 /// water-tank stage sound events — `0x52150011` always, and `0x52150012` again
 /// when `field_4` is `0xA`. Picking the `6`/`7` variant off `field_4 == 4` and
 /// `field_4 == 0xA` is what the room's sound-event pairing does elsewhere.
 void func_dryfield_water_tank_8017DA4C(void)
 {
-    if (Game_Session->field_4D != 0) {
-        if (Game_Session->field_4 == 4) {
+    if (gGameSession->field_4D != 0) {
+        if (gGameSession->field_4 == 4) {
             Gp_EnqueueStageSnd6(0x52150011, 0, 0);
         } else {
             Gp_EnqueueStageSnd7(0x52150011, 0x2D);
         }
-        if (Game_Session->field_4 == 0xA) {
+        if (gGameSession->field_4 == 0xA) {
             Gp_EnqueueStageSnd6(0x52150012, 0, 0);
             return;
         }

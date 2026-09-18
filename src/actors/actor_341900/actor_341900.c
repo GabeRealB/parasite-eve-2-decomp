@@ -186,7 +186,7 @@ void func_actor_341900_80162330(Task* arg0)
     extra->field_1C = &w->light;
     extra->field_20 = &w->color;
     arg0->field_24  = D_actor_341900_80163A78;
-    rec             = ((GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4))->field_0;
+    rec             = ((GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->field_4))->field_0;
     for (; rec->field_0 != 0xFF; rec++) {
         if (rec->field_0 == 0x20) {
             break;
@@ -560,11 +560,11 @@ void func_actor_341900_80162EFC(Task* arg0)
                 work->field_0           = (Task*)Game_GetPtrSlot(3);
                 D_actor_341900_80164208 = arg0;
                 work->field_4           = (Task*)Gp_FindWorkById(
-                                    Game_Session->field_6 | (Game_Session->field_7 << 8))
+                                    gGameSession->field_6 | (gGameSession->field_7 << 8))
                                     ->field_0;
             }
-            sp10.field_0 = Game_Session->field_7;
-            sessionIdLo  = Game_Session->field_6;
+            sp10.field_0 = gGameSession->field_7;
+            sessionIdLo  = gGameSession->field_6;
             sp10.field_2 = 0;
             sp10.field_1 = sessionIdLo;
             Gp_DispatchMsg((Task*)Game_GetPtrSlot(4), 0x7DA, (s32)&sp10, 0x7DB);
@@ -576,7 +576,7 @@ void func_actor_341900_80162EFC(Task* arg0)
             }
             seqWork->field_C        = Task_SpawnFromTable(&D_actor_341900_80164190, 8, 0, (s32)arg0);
             seqWork->field_10       = Task_SpawnFromTable(&D_actor_341900_80164190, 9, 0, (s32)arg0);
-            Game_Session->field_69 |= 3;
+            gGameSession->field_69 |= 3;
             goto next;
         case 1:
             D_80062735 = 4;
@@ -586,7 +586,7 @@ void func_actor_341900_80162EFC(Task* arg0)
             arg0->state += 1;
             return;
         case 2:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 GameFlag_SetNibble(0x11D, 2);
                 Task_RequestKill(arg0, 0);
                 return;

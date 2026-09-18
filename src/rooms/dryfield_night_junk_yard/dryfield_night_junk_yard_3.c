@@ -19,7 +19,7 @@ extern SVECTOR D_dryfield_night_junk_yard_80180754[];
 /// hides it (`Gp_LinkViewSprts` skips OT-linking when `field_4` is set).
 void func_dryfield_night_junk_yard_8017D9B8(u8 arg0)
 {
-    GameSessionFrom4* sess = (GameSessionFrom4*)&Game_Session->field_4;
+    GameSessionFrom4* sess = (GameSessionFrom4*)&gGameSession->field_4;
     GpSprtCmd*        cmd;
 
     cmd = Gp_SprtTables[sess->field_3 - 1][0].field_0[sess->field_2 - 1][6].field_4;
@@ -32,7 +32,7 @@ void func_dryfield_night_junk_yard_8017D9B8(u8 arg0)
 
 /// Junk yard room draw: on the task's first pass the room's three effect-id
 /// slots are pointed at the junk yard's own ids, `Gp_State1C::field_A` is set
-/// to 2, and the props of the phase `Game_Session->field_4` selects are queued -
+/// to 2, and the props of the phase `gGameSession->field_4` selects are queued -
 /// phases 2/8 five points off the room's first prop table, 4/9 three off the
 /// second, 5/10 and 7 four off the first. Every phase ends with the same
 /// semi-transparent `Room_Draw20`, which `jump.c` cross-jumps into one tail
@@ -45,7 +45,7 @@ void func_dryfield_night_junk_yard_8017DA14(Task* task)
         D_80115750 = 0x600E7;
     }
     Gp_State1C->field_A = 2;
-    switch (Game_Session->field_4) {
+    switch (gGameSession->field_4) {
         case 2:
         case 8: {
             SVECTOR* p = D_dryfield_night_junk_yard_8018073C;

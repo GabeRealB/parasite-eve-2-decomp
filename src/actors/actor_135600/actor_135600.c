@@ -203,7 +203,7 @@ void func_actor_135600_80132234(Task* task)
         work->field_500 = spawned;
         model1          = (TmdObject*)spawned->extra;
         raw1            = ((GpEnemy*)task->spawnArg2)->field_8;
-        sessionKey1     = (GpAreaKey*)&Game_Session->field_4;
+        sessionKey1     = (GpAreaKey*)&gGameSession->field_4;
         key.field_3     = sessionKey1->field_3;
         key.field_2     = sessionKey1->field_2;
         /* Both calls below hand `key` to Gp_SyncAreaKeyIndex and then to
@@ -219,7 +219,7 @@ void func_actor_135600_80132234(Task* task)
         keyp1       = &key;
         key.field_1 = sessionKey1->field_1;
         TOUCH_REG(keyp1);
-        areaByte0   = Game_Session->field_4;
+        areaByte0   = gGameSession->field_4;
         index1      = raw1 >> 12;
         key.field_0 = areaByte0;
         Gp_SyncAreaKeyIndex(keyp1);
@@ -237,14 +237,14 @@ void func_actor_135600_80132234(Task* task)
         work->field_4FC = spawned;
         model2          = (TmdObject*)spawned->extra;
         raw2            = ((GpEnemy*)task->spawnArg2)->field_8;
-        sessionKey2     = (GpAreaKey*)&Game_Session->field_4;
+        sessionKey2     = (GpAreaKey*)&gGameSession->field_4;
         key.field_3     = sessionKey2->field_3;
         key.field_2     = sessionKey2->field_2;
         SOFT_BARRIER();
         keyp2       = &key;
         key.field_1 = sessionKey2->field_1;
         TOUCH_REG(keyp2);
-        areaByte1   = Game_Session->field_4;
+        areaByte1   = gGameSession->field_4;
         index2      = raw2 >> 12;
         key.field_0 = areaByte1;
         Gp_SyncAreaKeyIndex(keyp2);
@@ -316,7 +316,7 @@ void func_actor_135600_801324D0(Task* arg0)
                 Gp_AnimTickIndex((GpAnimCtx*)work, i);
             }
         }
-        if (Game_Session->field_4D != 0) {
+        if (gGameSession->field_4D != 0) {
             ((TmdObject*)arg0->extra)->field_8[1].flg = 0;
             Gp_UpdateCoord(&((TmdObject*)arg0->extra)->field_8[1]);
             func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->field_8[1].workm.t, 0, 3);

@@ -408,7 +408,7 @@ void func_actor_405800_801334B8(Task* arg0)
     model = (TmdObject*)arg0->extra;
     enemy = (GpEnemy*)arg0->spawnArg2;
     coord = model->field_8;
-    if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x04080000) {
+    if ((*(u32*)&gGameSession->field_4 & 0xFFFF0000) != 0x04080000) {
         Gp_DestroyEnemy(enemy, arg0);
         return;
     }
@@ -453,7 +453,7 @@ void func_actor_405800_801334B8(Task* arg0)
     w3            = (Actor405800Work*)arg0->work;
     w3->field_846 = 0;
     w3->field_848 = 0;
-    if (Game_Session->field_8 == 1) {
+    if (gGameSession->field_8 == 1) {
         coord->coord.t[0] = 0x14B4;
         coord->coord.t[2] = 0xD7A;
         coord->coord.t[1] = 0;

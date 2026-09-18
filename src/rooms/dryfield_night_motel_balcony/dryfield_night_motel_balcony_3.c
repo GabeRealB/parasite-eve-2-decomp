@@ -46,7 +46,7 @@ void func_dryfield_night_motel_balcony_8017E3C8(void)
 
 void func_dryfield_night_motel_balcony_8017E4B8(void)
 {
-    GameSession*      g    = Game_Session;
+    GameSession*      g    = gGameSession;
     GameSessionFrom4* sess = (GameSessionFrom4*)&g->field_4;
     GpSprtRec*        rec;
     GpSprtCmd*        cmd;

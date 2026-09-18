@@ -179,7 +179,7 @@ void func_dryfield_water_tank_8017EDF4(Task* arg0)
             D_dryfield_water_tank_801868BC += D_dryfield_water_tank_801868C0;
             break;
     }
-    if (Game_Session->field_4 == 7) {
+    if (gGameSession->field_4 == 7) {
         obj->field_C = 0x80;
     } else {
         obj->field_C = 0;
@@ -203,7 +203,7 @@ void func_dryfield_water_tank_8017EFF4(s32 arg0)
     DwtSprtRec*       rec;
     DwtSprtView*      view;
 
-    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    sess = (GameSessionFrom4*)&gGameSession->field_4;
     if (sess->field_3 == 2) {
         rec = (DwtSprtRec*)Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];
         if (!(arg0 & 0xFF)) {

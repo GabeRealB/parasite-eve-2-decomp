@@ -72,7 +72,7 @@ struct _TmdListHead;
 /// `Task_Kill` ORs 0x80 (type-1 deferred kill); `Gp_WaitItemFlag2` writes 8 on
 /// first run and clears bit 0x8 before `Task_CallExit`. A non-NULL `normals`
 /// lets `Gp_UpdateActorColor` rebuild the color matrix even when
-/// `Game_Session->field_65 == 1` (unless bit 0x80 of `field_C` is set).
+/// `gGameSession->field_65 == 1` (unless bit 0x80 of `field_C` is set).
 /// `field_1C` / `stream` are the light and color matrices `Tmd_SetupDraw`
 /// loads (`GsLIGHTWSMATRIX` / `D_80074080` by default, `Gp_DefaultMtx` /
 /// `Gp_DefaultMtx2` after `Gp_BindDefaultMtx`).

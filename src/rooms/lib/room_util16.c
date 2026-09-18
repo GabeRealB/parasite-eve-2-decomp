@@ -12,7 +12,7 @@ void Room_Util16(s32 arg0)
     GameSessionFrom4* sess;
     GpSprtCmd*        cmd;
 
-    g    = Game_Session;
+    g    = gGameSession;
     sess = (GameSessionFrom4*)&g->field_4;
     if (sess->field_3 == 2) {
         cmd = Gp_SprtTables[sess->field_3 - 1][g->field_74 - 1].field_0[sess->field_2 - 1][8].field_4;

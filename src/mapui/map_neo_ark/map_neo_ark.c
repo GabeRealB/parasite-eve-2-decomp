@@ -40,13 +40,13 @@ void func_map_neo_ark_801799BC(u8* arg0)
             D_8006AC48[1]          = (u_long*)D_8006AC40;
             D_8006AC48[0]          = (u_long*)D_8006AC40;
             D_8006AC50[1]          = (u_long*)((u8*)D_8006AC50[0] + D_8006AC5A * D_8006AC6C);
-            Game_Session->field_80 = 0;
+            gGameSession->field_80 = 0;
             q->field_24A           = 1;
             break;
     }
     D_8006AC44             = (u8*)D_8006AC48[1] + D_8006AC5A * D_8006AC6C * 2;
-    Game_Session->field_7C = 0;
-    Game_Session->field_7E = 0;
+    gGameSession->field_7C = 0;
+    gGameSession->field_7E = 0;
 }
 
 /// Fills in the marker state for one Neo Ark map room. Most rooms have no

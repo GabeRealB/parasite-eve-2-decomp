@@ -130,7 +130,7 @@ void func_mist_r18_8017D960(void)
 {
     s32 state;
 
-    if ((Game_Session->field_1 == 0) && (D_80114C12 != 1) && (D_80071075 == 0)) {
+    if ((gGameSession->field_1 == 0) && (D_80114C12 != 1) && (D_80071075 == 0)) {
         state = D_mist_r18_80186E9C;
         if (state == 1) {
             func_800E8634((s32)&D_mist_r18_80185EBC, 0, (s32)&D_mist_r18_80186564);
@@ -179,7 +179,7 @@ void func_mist_r18_8017DA8C(Task* task)
         case 2:
             shade = 0;
             task->spawnArg1--;
-            if ((task->spawnArg1 <= 0) || (Game_Session->field_5F != 0)) {
+            if ((task->spawnArg1 <= 0) || (gGameSession->field_5F != 0)) {
                 task->state++;
             }
             break;

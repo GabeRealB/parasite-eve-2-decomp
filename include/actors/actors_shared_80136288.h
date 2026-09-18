@@ -36,7 +36,7 @@ typedef struct ActorShared80136288Work {
 } ActorShared80136288Work;
 
 /// Which of the alternate modes the current frame runs, keyed on
-/// `Game_Session`'s scenario id.
+/// `gGameSession`'s scenario id.
 extern u8 D_801153F4;
 
 /// Per-frame mode handler of the specimen's first state machine, shared by

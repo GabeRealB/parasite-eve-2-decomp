@@ -22,7 +22,7 @@ s32 RoomsShared8017ecb4(RoomHotspot* table, s16 x, s16 y);
 /// command's prims, so a zero nibble draws both and a non-zero one hides them.
 void func_acropolis_bridge_8017F2D0(s32 flags)
 {
-    GameSession*      g    = Game_Session;
+    GameSession*      g    = gGameSession;
     GameSessionFrom4* sess = (GameSessionFrom4*)&g->field_4;
     GpSprtRec*        rec;
     GpSprtCmd*        cmd;
@@ -50,7 +50,7 @@ void func_acropolis_bridge_8017F2D0(s32 flags)
 /// 0..2 hides all three.
 void func_acropolis_bridge_8017F358(s32 state)
 {
-    GameSession*      g    = Game_Session;
+    GameSession*      g    = gGameSession;
     GameSessionFrom4* sess = (GameSessionFrom4*)&g->field_4;
     GpSprtRec*        rec;
     GpSprtCmd*        cmd;
@@ -173,8 +173,8 @@ void func_acropolis_bridge_8017F658(Task* task)
     func_acropolis_bridge_8017E60C(0xFFF, 0);
     Task_Kill((Task*)task->spawnArg2);
     Task_RequestKill(task, D_acropolis_bridge_801917A8);
-    Game_Session->field_1  = 0;
-    Game_Session->field_68 = 0;
-    Game_Session->field_66 = 0;
+    gGameSession->field_1  = 0;
+    gGameSession->field_68 = 0;
+    gGameSession->field_66 = 0;
     D_80114D08             = 0xA;
 }

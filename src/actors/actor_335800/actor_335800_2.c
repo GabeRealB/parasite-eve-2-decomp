@@ -63,8 +63,8 @@ void func_actor_335800_801620C0(void)
 
 void func_actor_335800_801620F0(u8 arg0)
 {
-    Game_Session->field_5 = D_8007216D = arg0;
-    Game_Session->field_76             = 1;
+    gGameSession->field_5 = D_8007216D = arg0;
+    gGameSession->field_76             = 1;
 }
 
 void func_actor_335800_80162114(void)
@@ -134,9 +134,9 @@ void func_actor_335800_8016224C(void)
             areaId = 5;
         }
         D_8007216C             = areaId;
-        Game_Session->field_4  = areaId;
-        Game_Session->field_52 = 1;
-        Game_Session->field_76 = 1;
+        gGameSession->field_4  = areaId;
+        gGameSession->field_52 = 1;
+        gGameSession->field_76 = 1;
     }
 }
 
@@ -147,7 +147,7 @@ void func_actor_335800_801622C0(s32 arg0)
     Actor335800SprtRec*  rec;
     Actor335800SprtView* view;
 
-    g    = Game_Session;
+    g    = gGameSession;
     sess = (GameSessionFrom4*)&g->field_4;
     rec  = (Actor335800SprtRec*)Gp_SprtTables[sess->field_3 - 1][g->field_74 - 1].field_0[sess->field_2 - 1];
     switch (arg0) {
@@ -219,7 +219,7 @@ void func_actor_335800_801624DC(Task* arg0)
 {
     Task* slot;
 
-    if (Game_Session->field_126 != 0) {
+    if (gGameSession->field_126 != 0) {
         slot = Game_GetPtrSlot(3);
         Gp_PlayerWeaponId(&D_actor_335800_80164E7C.field_0);
         Gp_DispatchMsg(slot, 0x3E8, (s32)&D_actor_335800_80164E7C, 0);
@@ -238,8 +238,8 @@ void func_actor_335800_80162588(Task* arg0)
     u8  temp_v1;
     s32 count;
 
-    if ((Game_Session->field_1 != 0) && (Game_Session->field_5F == 0)) {
-        temp_v1 = Game_Session->field_13B;
+    if ((gGameSession->field_1 != 0) && (gGameSession->field_5F == 0)) {
+        temp_v1 = gGameSession->field_13B;
         var_a0  = 0;
         if (temp_v1 & 1) {
             count  = (u16)arg0->killCountdown;
@@ -286,7 +286,7 @@ void func_actor_335800_80162640(Task* arg0)
         work->field_4FC = spawned;
         model           = (TmdObject*)spawned->extra;
         idx             = ((GpEnemy*)arg0->spawnArg2)->field_8 >> 12;
-        sessionKey      = (GpAreaKey*)&Game_Session->field_4;
+        sessionKey      = (GpAreaKey*)&gGameSession->field_4;
         key.field_3     = sessionKey->field_3;
         key.field_2     = sessionKey->field_2;
         key.field_1     = sessionKey->field_1;
@@ -311,11 +311,11 @@ void func_actor_335800_80162640(Task* arg0)
         work->field_500 = spawned;
         model           = (TmdObject*)spawned->extra;
         idx             = ((GpEnemy*)arg0->spawnArg2)->field_8 >> 12;
-        sessionKey      = (GpAreaKey*)(keyAddr = (u8*)&Game_Session->field_4);
+        sessionKey      = (GpAreaKey*)(keyAddr = (u8*)&gGameSession->field_4);
         key.field_3     = sessionKey->field_3;
         key.field_2     = sessionKey->field_2;
         key.field_1     = ((GpAreaKey*)keyAddr)->field_1;
-        key.field_0     = ((GpAreaKey*)(&Game_Session->field_4))->field_0;
+        key.field_0     = ((GpAreaKey*)(&gGameSession->field_4))->field_0;
         Gp_SyncAreaKeyIndex(&key);
         rec             = Gp_GetNestedAreaRec(&key);
         place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
@@ -388,7 +388,7 @@ void func_actor_335800_80162844(Task* task)
             }
         }
     }
-    if (Game_Session->field_4D != 0) {
+    if (gGameSession->field_4D != 0) {
         work->field_504 = 1;
         Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
         func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);

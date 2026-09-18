@@ -449,7 +449,7 @@ L_case0:
     goto advance;
 
 L_case1:
-    key = ((SessionBytesAt4*)Game_Session)->field_4;
+    key = ((SessionBytesAt4*)gGameSession)->field_4;
     if (Wip_SysFlags.field_0 == 2) {
         key.data[0] = 0x65;
     } else {
@@ -612,7 +612,7 @@ void Title_EnqueueDemoScene(s32 arg0)
     u8*             p2;
 
     scratch = (void**)G_SCRATCH_HEAD;
-    gs      = Game_Session;
+    gs      = gGameSession;
     arg0    = arg0 + 0xA;
     p2      = (u8*)param2;
 

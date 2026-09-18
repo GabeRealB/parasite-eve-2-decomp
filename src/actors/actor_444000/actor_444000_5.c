@@ -579,7 +579,7 @@ static __inline__ void Actor444000_SquashRotation(GsCOORDINATE2* coord, s16 y)
 ///
 /// A reset request re-arms the block on animation 0x12, clears the enemy's link
 /// state, the model's flag word and the four counters, marks the session
-/// (`Game_Session::field_9` 3) and plays the death cue at half depth.
+/// (`gGameSession::field_9` 3) and plays the death cue at half depth.
 ///
 /// The rest of the tick splits on bit 0x100 of the second animation slot --
 /// whether the collapse animation is still running or has finished.
@@ -633,7 +633,7 @@ void func_actor_444000_80135448(Actor444000* task)
 
         func_actor_444000_8013441C(task);
 
-        Game_Session->field_9 = 3;
+        gGameSession->field_9 = 3;
         id                    = (((u16)enemy->field_8 >> 12) << 8) | 0x54280007;
         pan                   = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
         SndEvt_EnqueueType6(id, pan, (s8)(Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8) / 2));
@@ -1679,7 +1679,7 @@ void func_actor_444000_80138FC4(GpEnemy* enemy, Actor444000Grab* task)
         work->vel.vx = 0;
     }
 
-    if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x04270000 &&
+    if ((*(u32*)&gGameSession->field_4 & 0xFFFF0000) == 0x04270000 &&
         task->extra->field_8->coord.t[0] >= 0x4B65) {
         work->vel.vx = 0;
     }
@@ -1739,7 +1739,7 @@ void func_actor_444000_8013928C(GpEnemy* enemy, Actor444000Grab* task)
 
     work->field_1AC++;
 
-    if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x04270000 &&
+    if ((*(u32*)&gGameSession->field_4 & 0xFFFF0000) == 0x04270000 &&
         task->extra->field_8->coord.t[0] >= 0x4B65) {
         work->vel.vx = 0;
     }

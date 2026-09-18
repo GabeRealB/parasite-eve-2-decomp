@@ -106,7 +106,7 @@ void func_dryfield_water_tower_8017F908(void)
         SndEvt_EnqueueType6(0x5214000C, 0, 0);
     }
     D_8007216C             = Gp_FindViewIndex(7);
-    Game_Session->field_52 = 1;
+    gGameSession->field_52 = 1;
     Gp_DispatchMsg(state->field_44, 0x7D4, (s32)&D_dryfield_water_tower_80181A58, 0);
     state->field_44->state = 1;
     Gp_HaltPadScripts();
@@ -130,8 +130,8 @@ void func_dryfield_water_tower_8017F908(void)
 /// `Mc_SaveData.field_4` rather than the `D_8007216C` address the room imports:
 /// as a scalar the store is fixed-address against the struct traffic below, so
 /// `sched.c`'s `true_dependence` drops the output dependence between it and the
-/// `Game_Session` store and the scheduler sinks the byte store past the whole
-/// `Game_Session` pair. Naming the field keeps both MEMs in-struct and the store
+/// `gGameSession` store and the scheduler sinks the byte store past the whole
+/// `gGameSession` pair. Naming the field keeps both MEMs in-struct and the store
 /// where the target has it; the `%hi`/`%lo` pair it prints relocates to the same
 /// two words. Measured; see `DECOMPILATION_LEARNINGS.md` on struct-typing and
 /// aliasing.
@@ -140,7 +140,7 @@ void func_dryfield_water_tower_8017F9AC(void)
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
     Mc_SaveData.field_4    = state->field_68;
-    Game_Session->field_52 = 1;
+    gGameSession->field_52 = 1;
     Gp_DispatchMsg(state->field_44, 0x7D4, (s32)&D_dryfield_water_tower_80181A40, 0);
     state->field_44->state = 1;
     Gp_HaltPadScripts();
@@ -329,7 +329,7 @@ void func_dryfield_water_tower_8017FD64(Task* task)
     s32       weaponId;
     s32       anim;
 
-    if (Game_Session->field_65 != 0) {
+    if (gGameSession->field_65 != 0) {
         return;
     }
     if ((s8)Gp_StateC08.field_9 != 0) {
@@ -356,9 +356,9 @@ void func_dryfield_water_tower_8017FD64(Task* task)
                 Mem_Set(work, 0, 0x18);
                 work->field_0                   = (Task*)Game_GetPtrSlot(3);
                 D_dryfield_water_tower_801876AC = task;
-                id                              = Game_Session->field_6 | (Game_Session->field_7 << 8);
+                id                              = gGameSession->field_6 | (gGameSession->field_7 << 8);
                 work->field_4                   = (Task*)Gp_FindWorkById(id)->field_0;
-                id                              = ((Game_Session->field_7 << 8) | 0x1000) | Game_Session->field_6;
+                id                              = ((gGameSession->field_7 << 8) | 0x1000) | gGameSession->field_6;
                 work->field_8                   = (Task*)Gp_FindWorkById(id)->field_0;
             }
             task->state++;
@@ -368,7 +368,7 @@ void func_dryfield_water_tower_8017FD64(Task* task)
             task->state++;
             break;
         case 2:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 Task_RequestKill(task, 0);
                 return;
             }

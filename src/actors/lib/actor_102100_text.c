@@ -116,8 +116,8 @@ void Actor02100_Fn004C4(Actor02100* arg0)
     work->field_184 = 0;
     if (Gp_CountRec18Hi(&work->field_98, 0x100000) != 0) {
         index = func_800E1B24(work->field_98.field_4);
-        param = Gp_RoomParamTables[Game_Session->field_7 - 1]
-                                  [Game_Session->field_6 - 1][index];
+        param = Gp_RoomParamTables[gGameSession->field_7 - 1]
+                                  [gGameSession->field_6 - 1][index];
         if (param->field_1 == 0) {
             work->field_184 = 1;
         }
@@ -317,7 +317,7 @@ void Actor02100_Fn00DCC(Actor02100* arg0)
     self = arg0->field_2C->field_8;
     work = arg0->field_1C;
 
-    if (Game_Session->field_4D == 1) {
+    if (gGameSession->field_4D == 1) {
         work->field_186 = 5;
     }
     if (work->field_186 != 0) {

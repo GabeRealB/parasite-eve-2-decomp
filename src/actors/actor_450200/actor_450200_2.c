@@ -112,6 +112,6 @@ void func_actor_450200_80132880(s32 arg0)
 
 void func_actor_450200_801328A0(u8 arg0)
 {
-    Game_Session->field_5 = arg0;
+    gGameSession->field_5 = arg0;
     D_8007216D            = arg0;
 }

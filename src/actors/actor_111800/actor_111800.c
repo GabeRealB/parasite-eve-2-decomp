@@ -59,7 +59,7 @@ void func_actor_111800_80132390(Task* task)
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
     work->field_494 = 0x155;
-    place           = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
+    place           = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->field_4)->field_0;
     while (place->field_0 != 0xFF && place->field_0 != 0x13) {
         place++;
     }

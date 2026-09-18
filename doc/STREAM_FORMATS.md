@@ -302,7 +302,7 @@ path). 320×240.
 #### In-game
 
 Same `Stream_FindSlot` path. The id comes from session/stage keys (e.g.
-`Game_Session` field block filled from room/event data such as
+`gGameSession` field block filled from room/event data such as
 `Stage_Ctx->field_20`). We have **not** fully decompiled every script path that
 chooses id 100 vs 101 for stage‑3 duals; the engine side is only **id → slot**.
 

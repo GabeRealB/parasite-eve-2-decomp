@@ -172,7 +172,7 @@ STATIC_ASSERT_SIZEOF(AcropolisPlazaOpeningWork, 0x8);
 
 /// The one scratch buffer the plaza's opening sequence shares between its area
 /// lookup and its last stream request. `key` is the location key states 6 and 8
-/// build from `Game_Session` before walking the nested area records for the
+/// build from `gGameSession` before walking the nested area records for the
 /// 0x6C room, and `slot` is the CD stream-slot triple state 13 hands to
 /// `CdCmd_Enqueue(0x71, ...)`; the task only ever has one of them in flight.
 typedef union AcropolisPlazaOpeningBuf {

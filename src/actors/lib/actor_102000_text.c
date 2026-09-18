@@ -1306,7 +1306,7 @@ void Actor02000_Fn0251C(Actor02000Ctx* ctx, Actor02000* actor)
         Gp_AnimResetSlot(work, i, 1);
     }
     eff         = Gp_SpawnEnemyFromTable(Actor02000_D15FD0, 1, 0, ctx);
-    sessionKey  = (Actor02000AreaKey*)&Game_Session->field_4;
+    sessionKey  = (Actor02000AreaKey*)&gGameSession->field_4;
     model       = eff->task->field_2C;
     idx         = ctx->field_8 >> 12;
     key.field_3 = sessionKey->field_3;
@@ -1376,9 +1376,9 @@ case0:
         work->field_6DA = param * 1000;
     }
 
-    tbl = Actor02000_D15FB8[Game_Session->field_7];
+    tbl = Actor02000_D15FB8[gGameSession->field_7];
     if (tbl != NULL) {
-        work->field_6D6 = tbl[Game_Session->field_6];
+        work->field_6D6 = tbl[gGameSession->field_6];
     }
     if (work->field_6D6 != 0) {
         param1[3] = 0;

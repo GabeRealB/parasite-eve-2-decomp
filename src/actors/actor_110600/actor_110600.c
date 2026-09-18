@@ -1487,13 +1487,13 @@ void func_actor_110600_80136ECC(Actor110600* arg0)
 
         effect1 = Gp_SpawnEff(0xA0005, &arg0->field_2C->field_8[6], 0x200, NULL);
         if (effect1 != NULL) {
-            sessionKey1 = (GpAreaKey*)&Game_Session->field_4;
+            sessionKey1 = (GpAreaKey*)&gGameSession->field_4;
             raw1        = enemy->field_8;
             model1      = (TmdObject*)effect1->field_0->extra;
             key.field_3 = sessionKey1->field_3;
             key.field_2 = sessionKey1->field_2;
             key.field_1 = sessionKey1->field_1;
-            areaByte0   = Game_Session->field_4;
+            areaByte0   = gGameSession->field_4;
             index1      = raw1 >> 12;
             key.field_0 = areaByte0;
             Gp_SyncAreaKeyIndex(&key);
@@ -1508,13 +1508,13 @@ void func_actor_110600_80136ECC(Actor110600* arg0)
 
         effect2 = Gp_SpawnEff(0xA0005, &arg0->field_2C->field_8[8], 0x200, NULL);
         if (effect2 != NULL) {
-            sessionKey2 = (GpAreaKey*)&Game_Session->field_4;
+            sessionKey2 = (GpAreaKey*)&gGameSession->field_4;
             raw2        = enemy->field_8;
             model2      = (TmdObject*)effect2->field_0->extra;
             key.field_3 = sessionKey2->field_3;
             key.field_2 = sessionKey2->field_2;
             key.field_1 = sessionKey2->field_1;
-            areaByte0   = Game_Session->field_4;
+            areaByte0   = gGameSession->field_4;
             index2      = raw2 >> 12;
             key.field_0 = areaByte0;
             Gp_SyncAreaKeyIndex(&key);
@@ -1529,13 +1529,13 @@ void func_actor_110600_80136ECC(Actor110600* arg0)
 
         effect3 = Gp_SpawnEff(0xA0005, &arg0->field_2C->field_8[10], 0x200, NULL);
         if (effect3 != NULL) {
-            sessionKey3 = (GpAreaKey*)&Game_Session->field_4;
+            sessionKey3 = (GpAreaKey*)&gGameSession->field_4;
             raw3        = enemy->field_8;
             model3      = (TmdObject*)effect3->field_0->extra;
             key.field_3 = sessionKey3->field_3;
             key.field_2 = sessionKey3->field_2;
             key.field_1 = sessionKey3->field_1;
-            areaByte0   = Game_Session->field_4;
+            areaByte0   = gGameSession->field_4;
             index3      = raw3 >> 12;
             key.field_0 = areaByte0;
             Gp_SyncAreaKeyIndex(&key);
@@ -1550,13 +1550,13 @@ void func_actor_110600_80136ECC(Actor110600* arg0)
 
         effect4 = Gp_SpawnEff(0xA0005, &arg0->field_2C->field_8[11], 0x300, NULL);
         if (effect4 != NULL) {
-            sessionKey4 = (GpAreaKey*)&Game_Session->field_4;
+            sessionKey4 = (GpAreaKey*)&gGameSession->field_4;
             raw4        = enemy->field_8;
             model4      = (TmdObject*)effect4->field_0->extra;
             key.field_3 = sessionKey4->field_3;
             key.field_2 = sessionKey4->field_2;
             key.field_1 = sessionKey4->field_1;
-            areaByte0   = Game_Session->field_4;
+            areaByte0   = gGameSession->field_4;
             index4      = raw4 >> 12;
             key.field_0 = areaByte0;
             Gp_SyncAreaKeyIndex(&key);
@@ -1571,13 +1571,13 @@ void func_actor_110600_80136ECC(Actor110600* arg0)
 
         effect5 = Gp_SpawnEff(0xA0005, &arg0->field_2C->field_8[15], 0x300, NULL);
         if (effect5 != NULL) {
-            sessionKey5 = (GpAreaKey*)&Game_Session->field_4;
+            sessionKey5 = (GpAreaKey*)&gGameSession->field_4;
             raw5        = enemy->field_8;
             model5      = (TmdObject*)effect5->field_0->extra;
             key.field_3 = sessionKey5->field_3;
             key.field_2 = sessionKey5->field_2;
             key.field_1 = sessionKey5->field_1;
-            areaByte0   = Game_Session->field_4;
+            areaByte0   = gGameSession->field_4;
             index5      = raw5 >> 12;
             key.field_0 = areaByte0;
             Gp_SyncAreaKeyIndex(&key);
@@ -1985,7 +1985,7 @@ block_24:
     Gp_ClearRec18Occupied(work->recs_970);
     Gp_ClearRec18Occupied(work->recs_8D8);
     Gp_ClearRec18Occupied(work->recs);
-    if (Game_Session->field_4D != 0) {
+    if (gGameSession->field_4D != 0) {
         arg1->field_2C->field_8->flg = 0;
     }
     if (arg1->field_2C->field_8->flg == 0) {

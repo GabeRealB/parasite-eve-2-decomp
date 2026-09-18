@@ -70,7 +70,7 @@ void func_actor_511000_80131E78(GpActorWork* arg0)
             Gp_DrawEffGroundQuad((VECTOR3*)&pos, 0x300, Gp_State1C->field_8);
         }
     }
-    if (Game_Session->field_4D != 0) {
+    if (gGameSession->field_4D != 0) {
         coord->flg = 0;
         Gp_UpdateCoord(coord);
         func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);

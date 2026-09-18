@@ -82,7 +82,7 @@ void Actor00100_Fn04270(Actor00100* argx)
         ctx->field_54 = 0;
     }
     if (work->field_6 >= 0x3D && work->field_C18 == 0 && D_80114C12 != 1 && D_80071075 == 0) {
-        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x4010000) {
+        if ((*(u32*)&gGameSession->field_4 & 0xFFFF0000) == 0x4010000) {
             Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, ctx->field_8 >> 12, 0);
         }
         arg0->field_30++;
@@ -514,7 +514,7 @@ void Actor00100_Fn0503C(Actor00100* arg0)
         }
 
         if ((var_v0_6 >= 0x601) && ((u32)scratch->distanceSquared >= 0xE11U)) {
-            if (((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x04010000) && Actor00100_InRegion(arg0)) {
+            if (((*(u32*)&gGameSession->field_4 & 0xFFFF0000) == 0x04010000) && Actor00100_InRegion(arg0)) {
                 if (Actor00100_FacingAway(arg0->field_2C->field_8)) {
                     work->field_0 = 6;
                 } else {
@@ -2010,7 +2010,7 @@ void Actor00100_Fn09310(Actor00100* arg0)
         ctx->field_54 = 0;
     }
     if (((s16)work->field_6 >= 0x1F) && (work->field_C18 == 0) && (D_80114C12 != 1) && (D_80071075 == 0)) {
-        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x04010000) {
+        if ((*(u32*)&gGameSession->field_4 & 0xFFFF0000) == 0x04010000) {
             Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, (s32)((u16)ctx->field_8 >> 0xC), 0);
         }
         arg0->field_30++;

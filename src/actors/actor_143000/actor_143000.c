@@ -74,8 +74,8 @@ void func_actor_143000_801324C8(Task* arg0)
     work->field_10         = 0;
     work->field_18         = 0x10;
     work->field_1A         = 0;
-    Game_Session->field_66 = 1;
-    Game_Session->field_68 = 1;
+    gGameSession->field_66 = 1;
+    gGameSession->field_68 = 1;
     Gp_MsgPlayerWeapon(0);
     Gp_MsgPlayer3F3(0);
 }
@@ -98,8 +98,8 @@ void func_actor_143000_801325F0(Actor143000* arg0)
     u8                vh;
 
     work                   = arg0->field_1C;
-    Game_Session->field_68 = 1;
-    Game_Session->field_1  = 1;
+    gGameSession->field_68 = 1;
+    gGameSession->field_1  = 1;
     p                      = D_actor_143000_80134580;
     D_801153F4             = 2;
     prompt                 = &D_80114D28;

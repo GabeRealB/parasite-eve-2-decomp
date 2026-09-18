@@ -17,7 +17,7 @@
 /// state outside 0..2 moves nothing and hides all three.
 void func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy)
 {
-    GameSession*      g    = Game_Session;
+    GameSession*      g    = gGameSession;
     GameSessionFrom4* sess = (GameSessionFrom4*)&g->field_4;
     GpSprtRec*        rec;
     GpSprtElem*       el;

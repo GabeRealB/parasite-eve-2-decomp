@@ -202,7 +202,7 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
 
     table   = D_actor_511000_80155070;
     spawned = Gp_SpawnEnemyFromTable(table, 1, 0, enemy);
-    session = Game_Session;
+    session = gGameSession;
     /* Reusing `spawned` for the task, rather than a new local, keeps the
        spawn result's v0 preference off the byte copied into a0. */
     spawned     = (GpEnemy*)spawned->task;
@@ -227,7 +227,7 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
         Tmd_ProcessStream(model);
     }
     spawned     = Gp_SpawnEnemyFromTable(table, 2, 0, enemy);
-    session     = Game_Session;
+    session     = gGameSession;
     spawned     = (GpEnemy*)spawned->task;
     sessionKey  = (GpAreaKey*)&session->field_4;
     idx         = enemy->field_8;

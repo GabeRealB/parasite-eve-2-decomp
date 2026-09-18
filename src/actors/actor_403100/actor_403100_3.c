@@ -231,7 +231,7 @@ void func_actor_403100_8013D8F4(Task* arg0)
     D_actor_403100_80155808->field_658 = -1;
     D_actor_403100_80155808->field_618 = 0x1400;
     Gp_StateC08.field_6                = Gp_StateC08.field_6 | 1;
-    Game_Session->field_12C            = 0;
+    gGameSession->field_12C            = 0;
     D_actor_403100_8015580C->field_4C  = 0;
     Gp_SetLightMode(arg0->spawnArg2, 0);
     SndEvt_EnqueueType7(0x401F0004, 0xA);
@@ -840,7 +840,7 @@ void func_actor_403100_8013F0A8(Task* arg0)
     D_actor_403100_8014762C.field_8   = 0;
     D_actor_403100_8014762C.field_A   = 0;
     D_actor_403100_8014762C.field_6 >>= 1;
-    Game_Session->field_9             = 4;
+    gGameSession->field_9             = 4;
     Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
     arg0->state                        = 5;
     D_actor_403100_80155808->field_5F8 = 0;

@@ -17,7 +17,7 @@ void func_neo_ark_power_plant_1_8017E524(s32 arg0)
     NeoArkPowerPlant1SprtView* view;
     s32                        v;
 
-    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    sess = (GameSessionFrom4*)&gGameSession->field_4;
     rec  = (NeoArkPowerPlant1SprtRec*)Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];
     v    = arg0 & 0xFF;
 

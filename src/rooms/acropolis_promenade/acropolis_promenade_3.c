@@ -96,7 +96,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             if (queue->field_1FA != 0) {
                 work->script             = Gp_SpawnScript18((s32)&D_acropolis_promenade_80186224,
                                                             (s32)&D_acropolis_promenade_8018623C);
-                Game_Session->field_13B |= 0x80;
+                gGameSession->field_13B |= 0x80;
                 Task_Reparent(task, work->script);
                 task->state = task->state + 1;
             }
@@ -141,7 +141,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                 Mc_SaveData.field_4 = 2;
                 func_800E9BDC(2, 0x9FF);
                 Gp_StateF0.field_4       = 0;
-                Game_Session->field_13B &= 0x7F;
+                gGameSession->field_13B &= 0x7F;
                 Task_Kill(task);
             }
             break;

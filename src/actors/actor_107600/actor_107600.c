@@ -1279,7 +1279,7 @@ void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
     extra    = (TmdObject*)arg0->task->extra;
     colorMtx = extra->field_20;
     mode     = arg0->field_4E & 3;
-    if ((!(extra->field_C & 0x80) && (extra->field_18 != NULL)) || (Game_Session->field_65 != 1)) {
+    if ((!(extra->field_C & 0x80) && (extra->field_18 != NULL)) || (gGameSession->field_65 != 1)) {
         {
             void**                   scratch;
             register GpColorScratch* tmp asm("v0");

@@ -78,7 +78,7 @@ void func_actor_161500_80131F50(s32 arg0)
         Gp_CapFile = 0;
         if (arg0 <= 0) {
             capFile = 1;
-            if (Game_Session->field_9 == 1) {
+            if (gGameSession->field_9 == 1) {
                 capFile = 2;
             }
             arg0 = capFile;
@@ -95,7 +95,7 @@ void func_actor_161500_80131FBC(void)
     s32 temp_s0;
     s32 temp_v0;
 
-    temp_s0 = (Game_Session->field_9 == 1) * 4;
+    temp_s0 = (gGameSession->field_9 == 1) * 4;
     temp_v0 = GameFlag_GetNibble(0x103);
     func_800E8614(D_actor_161500_80134920[temp_v0 + temp_s0], 0);
     if (temp_v0 < 3) {
@@ -108,7 +108,7 @@ void func_actor_161500_80132038(void)
     s32 temp_s0;
     s32 temp_v0;
 
-    temp_s0 = (Game_Session->field_9 == 1) * 4;
+    temp_s0 = (gGameSession->field_9 == 1) * 4;
     temp_v0 = GameFlag_GetNibble(0x104);
     func_800E8614(D_actor_161500_80135288[temp_v0 + temp_s0], 0);
     if (temp_v0 < 3) {
@@ -120,7 +120,7 @@ void func_actor_161500_801320B4(void)
 {
     GameSession* session;
 
-    session = Game_Session;
+    session = gGameSession;
     do {
         func_800D4D2C((session->field_9 == 1) ? 0x31 : 0x30);
     } while (0);

@@ -60,7 +60,7 @@ void Room_Script01(Task* task)
                             }
                         }
                     }
-                    session             = Game_Session;
+                    session             = gGameSession;
                     room                = dst.field_3;
                     session->field_5    = room;
                     Mc_SaveData.field_5 = room;
@@ -69,8 +69,8 @@ void Room_Script01(Task* task)
             task->state = task->state + 1;
             return;
         case 3:
-            if (Game_Session->field_5 >= 5) {
-                Game_Session->field_52 = 1;
+            if (gGameSession->field_5 >= 5) {
+                gGameSession->field_52 = 1;
             }
             Task_Kill(task);
             return;

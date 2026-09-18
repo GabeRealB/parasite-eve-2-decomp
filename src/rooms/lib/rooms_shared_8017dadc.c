@@ -12,7 +12,7 @@ s32 RoomsShared8017dadc(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 
     *out = *in;
     if (in->msgId == 0x19) {
-        temp = Game_Session->field_7;
+        temp = gGameSession->field_7;
         if (temp == 2) {
             if (in->field_5 == 0) {
                 if (GameFlag_GetNibble(0x3A) >= 2) {

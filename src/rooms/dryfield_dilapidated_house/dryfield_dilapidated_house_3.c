@@ -40,7 +40,7 @@ void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
     D_dryfield_dilapidated_house_80189C98 = 2;
     D_dryfield_dilapidated_house_80189B7C =
         Task_SpawnFromTable(&D_dryfield_dilapidated_house_80183EB4, 2, 0, 0);
-    Game_Session->field_69 = 0x83;
+    gGameSession->field_69 = 0x83;
     arg0->state           += 1;
 }
 

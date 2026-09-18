@@ -65,7 +65,7 @@ void func_actor_342400_801621D8(Task* arg0)
         coord = ((TmdObject*)task->extra)->field_8;
         if (enemy->field_40 <= 0) {
             work->enemy0 = NULL;
-        } else if (func_actor_342400_801626CC(Game_Session->field_136, coord->coord.t[0], coord->coord.t[2])) {
+        } else if (func_actor_342400_801626CC(gGameSession->field_136, coord->coord.t[0], coord->coord.t[2])) {
             msg.field_0 = 0;
             msg.field_1 = 0;
             msg.field_2 = 5;
@@ -81,7 +81,7 @@ void func_actor_342400_801621D8(Task* arg0)
         coord = ((TmdObject*)task->extra)->field_8;
         if (enemy->field_40 <= 0) {
             work->enemy1 = NULL;
-        } else if (func_actor_342400_801626CC(Game_Session->field_136, coord->coord.t[0], coord->coord.t[2])) {
+        } else if (func_actor_342400_801626CC(gGameSession->field_136, coord->coord.t[0], coord->coord.t[2])) {
             msg.field_0 = 0;
             msg.field_1 = 0;
             msg.field_2 = 5;
@@ -110,7 +110,7 @@ void func_actor_342400_80162324(Task* arg0)
     }
     if (count < 3) {
         idx = work->field_2;
-        if (idx < 17 && Game_Session->field_120 >= 0x3D) {
+        if (idx < 17 && gGameSession->field_120 >= 0x3D) {
             type = D_actor_342400_8016BF58[idx].field_0;
             arg  = D_actor_342400_8016BF58[idx].field_2;
             switch (type) {
@@ -238,7 +238,7 @@ void func_actor_342400_801628F0(Task* arg0)
     Actor342400CtrlWork* work;
     s32                  i;
 
-    if ((u8)Game_Session->unknown_130[1] == 2 || (u8)Game_Session->unknown_130[0] == 0 ||
+    if ((u8)gGameSession->unknown_130[1] == 2 || (u8)gGameSession->unknown_130[0] == 0 ||
         (work = Mem_Calloc(6, 0)) == NULL) {
         Task_Kill(arg0);
         return;
@@ -272,7 +272,7 @@ void func_actor_342400_80162A34(Task* arg0)
 
     if (++work->field_0 == 15) {
         ((void (*)(s32))Gp_IncStateF0Ref)(0);
-        Game_Session->unknown_130[1] = 1;
+        gGameSession->unknown_130[1] = 1;
         Gp_ArmStateF0(1);
         arg0->state++;
     }
@@ -294,7 +294,7 @@ void func_actor_342400_80162AB0(Task* arg0)
         }
         if (count == 17) {
             ((void (*)(Task*, s32))Gp_ReleaseStateF0Clear)(arg0, 0);
-            Game_Session->unknown_130[1] = 2;
+            gGameSession->unknown_130[1] = 2;
             Task_Kill(arg0);
         }
     }
@@ -365,7 +365,7 @@ void func_actor_342400_80162CBC(Task* arg0)
         Task_Kill(arg0);
         return;
     }
-    if (func_actor_342400_801626CC(Game_Session->field_136, coord->coord.t[0], coord->coord.t[2])) {
+    if (func_actor_342400_801626CC(gGameSession->field_136, coord->coord.t[0], coord->coord.t[2])) {
         msg.field_0 = 0;
         msg.field_1 = 0x2C;
         msg.field_2 = 5;
@@ -444,7 +444,7 @@ void func_actor_342400_80162F1C(Task* arg0)
         Task_Kill(arg0);
         return;
     }
-    if (func_actor_342400_801626CC(Game_Session->field_136, coord->coord.t[0], coord->coord.t[2])) {
+    if (func_actor_342400_801626CC(gGameSession->field_136, coord->coord.t[0], coord->coord.t[2])) {
         msg.field_0 = 0;
         msg.field_1 = 0;
         msg.field_2 = 5;

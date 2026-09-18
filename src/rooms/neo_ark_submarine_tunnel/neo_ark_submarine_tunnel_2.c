@@ -46,7 +46,7 @@ s32 func_neo_ark_submarine_tunnel_8017F2C8(Task* task, s32 msgId, s32 arg2, s32 
 {
     if (arg2 < 6) {
         if (arg2 >= 4) {
-            if (Game_Session->field_9 == 1) {
+            if (gGameSession->field_9 == 1) {
                 Gp_SpawnIfCapIdle(arg2, 0);
             }
         }

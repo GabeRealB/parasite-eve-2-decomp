@@ -132,13 +132,13 @@ void Actor02500_Fn0184C(Actor02500* arg0)
     D_80067704[0] = &Actor02500_D04448;
     effect1       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x100, NULL);
     if (effect1 != NULL) {
-        sessionKey1 = (Actor02500AreaKey*)&Game_Session->field_4;
+        sessionKey1 = (Actor02500AreaKey*)&gGameSession->field_4;
         raw1        = arg0->field_20->field_8;
         model1      = (TmdObject*)effect1->task->field_2C;
         key.field_3 = sessionKey1->field_3;
         key.field_2 = sessionKey1->field_2;
         key.field_1 = sessionKey1->field_1;
-        areaByte0   = Game_Session->field_4;
+        areaByte0   = gGameSession->field_4;
         index1      = raw1 >> 12;
         key.field_0 = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
@@ -153,13 +153,13 @@ void Actor02500_Fn0184C(Actor02500* arg0)
     D_80067704[0] = &Actor02500_D0478C;
     effect2       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x100, NULL);
     if (effect2 != NULL) {
-        sessionKey2 = (Actor02500AreaKey*)&Game_Session->field_4;
+        sessionKey2 = (Actor02500AreaKey*)&gGameSession->field_4;
         raw2        = arg0->field_20->field_8;
         model2      = (TmdObject*)effect2->task->field_2C;
         key.field_3 = sessionKey2->field_3;
         key.field_2 = sessionKey2->field_2;
         key.field_1 = sessionKey2->field_1;
-        areaByte0   = Game_Session->field_4;
+        areaByte0   = gGameSession->field_4;
         index2      = raw2 >> 12;
         key.field_0 = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
@@ -174,13 +174,13 @@ void Actor02500_Fn0184C(Actor02500* arg0)
     D_80067704[0] = &Actor02500_D04AD0;
     effect3       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x100, NULL);
     if (effect3 != NULL) {
-        sessionKey3 = (Actor02500AreaKey*)&Game_Session->field_4;
+        sessionKey3 = (Actor02500AreaKey*)&gGameSession->field_4;
         raw3        = arg0->field_20->field_8;
         model3      = (TmdObject*)effect3->task->field_2C;
         key.field_3 = sessionKey3->field_3;
         key.field_2 = sessionKey3->field_2;
         key.field_1 = sessionKey3->field_1;
-        areaByte0   = Game_Session->field_4;
+        areaByte0   = gGameSession->field_4;
         index3      = raw3 >> 12;
         key.field_0 = areaByte0;
         Gp_SyncAreaKeyIndex(&key);

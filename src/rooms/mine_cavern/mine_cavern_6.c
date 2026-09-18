@@ -9,8 +9,8 @@ extern u8  D_8007216D;
 void func_mine_cavern_8017E330(void)
 {
     D_8007216D             = 2;
-    Game_Session->field_5  = 2;
-    Game_Session->field_76 = 1;
+    gGameSession->field_5  = 2;
+    gGameSession->field_76 = 1;
 }
 
 void func_mine_cavern_8017E358(void)
@@ -19,7 +19,7 @@ void func_mine_cavern_8017E358(void)
 
 void func_mine_cavern_8017E360(void)
 {
-    Game_Session->field_9 = 4;
+    gGameSession->field_9 = 4;
     Gp_StateF0.field_0    = 0;
     Gp_StateF0.field_5    = 0;
     Gp_StateF0.field_6    = 0;
@@ -39,7 +39,7 @@ void func_mine_cavern_8017E3A0(s32 arg0)
     MineCavernSprtRec* rec;
     s32                v;
 
-    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    sess = (GameSessionFrom4*)&gGameSession->field_4;
     rec  = (MineCavernSprtRec*)Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];
     v    = arg0 & 0xFF;
 

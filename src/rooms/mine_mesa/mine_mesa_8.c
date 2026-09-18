@@ -8,7 +8,7 @@
 
 void func_mine_mesa_8017EAAC(void)
 {
-    Game_Session->field_52 = 1;
+    gGameSession->field_52 = 1;
 }
 
 void func_mine_mesa_8017EAC0(void)

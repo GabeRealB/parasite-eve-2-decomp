@@ -16,7 +16,7 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse_4", func_d
 /// current stage visit, then publishes variant 2 as the room's
 /// `Gp_State1C::field_A` index. `Task::extra` is the task's `TmdObject`, so
 /// `field_8` is the coordinate every pose shares. The stage-visit byte
-/// `Game_Session->field_4` is used as a bit index: bits 2, 3, 6 and 9 (`0x24C`)
+/// `gGameSession->field_4` is used as a bit index: bits 2, 3, 6 and 9 (`0x24C`)
 /// pose through `func_dryfield_warehouse_8017E414`, bit 2 (`4`) also drives
 /// `func_dryfield_warehouse_8017ED34` to step 0, those same `0x24C` visits also
 /// drive it to step 2, and bits 2, 3, 4 and 6-9 (`0x3DC`) drive it to steps 4
@@ -27,7 +27,7 @@ void func_dryfield_warehouse_8017F494(Task* arg0)
     s32            poseMask;
     GsCOORDINATE2* coord;
 
-    mask     = 1 << Game_Session->field_4;
+    mask     = 1 << gGameSession->field_4;
     poseMask = mask & 0x24C;
     coord    = ((TmdObject*)arg0->extra)->field_8;
     if (poseMask != 0) {

@@ -182,9 +182,9 @@ void func_shelter_r47_80182348(Task* task)
         Gp_MenuLockDelay = 8;
         D_80114D08       = 0xA;
         Display_ReleaseRef();
-        Game_Session->field_1  = 0;
-        Game_Session->field_68 = 0;
-        Game_Session->field_66 = 0;
+        gGameSession->field_1  = 0;
+        gGameSession->field_68 = 0;
+        gGameSession->field_66 = 0;
         Task_Kill((Task*)task->spawnArg2);
         Task_RequestKill(task, 0);
     }

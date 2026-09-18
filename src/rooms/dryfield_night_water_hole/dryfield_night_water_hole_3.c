@@ -14,7 +14,7 @@ void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list)
     s32               i;
     GpRoomParamRec**  recs;
 
-    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    sess = (GameSessionFrom4*)&gGameSession->field_4;
     for (i = 0; list[i].rec != 0; i++) {
         recs                         = Gp_RoomParamTables[sess->field_3 - 1][sess->field_2 - 1];
         recs[list[i].index]          = list[i].rec;
@@ -31,5 +31,5 @@ void func_dryfield_night_water_hole_8017E630(Task* task)
     TaskFunc states[2] = { RoomsShared8017e690, func_dryfield_night_water_hole_8017DF28 };
 
     states[task->state](task);
-    Game_Session->field_122 = -0x1A4;
+    gGameSession->field_122 = -0x1A4;
 }

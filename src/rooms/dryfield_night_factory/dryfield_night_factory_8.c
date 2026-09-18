@@ -17,7 +17,7 @@ void func_dryfield_night_factory_80180DE8(Task* task, s16 step)
         switch (step) {
             case 0:
                 id = 0x53170000;
-                if (Game_Session->field_7 == 2) {
+                if (gGameSession->field_7 == 2) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -37,7 +37,7 @@ void func_dryfield_night_factory_80180DE8(Task* task, s16 step)
                 break;
             case 1:
                 id = 0x53170000;
-                if (Game_Session->field_7 == 2) {
+                if (gGameSession->field_7 == 2) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -57,7 +57,7 @@ void func_dryfield_night_factory_80180DE8(Task* task, s16 step)
                 break;
             case 2:
                 id = 0x53170000;
-                if (Game_Session->field_7 == 2) {
+                if (gGameSession->field_7 == 2) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -85,7 +85,7 @@ void func_dryfield_night_factory_80180DE8(Task* task, s16 step)
         switch (step) {
             case 0:
                 id = 0x53170000;
-                if (Game_Session->field_7 == 2) {
+                if (gGameSession->field_7 == 2) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -93,7 +93,7 @@ void func_dryfield_night_factory_80180DE8(Task* task, s16 step)
                 break;
             case 1:
                 id = 0x53170000;
-                if (Game_Session->field_7 == 2) {
+                if (gGameSession->field_7 == 2) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -101,7 +101,7 @@ void func_dryfield_night_factory_80180DE8(Task* task, s16 step)
                 break;
             case 2:
                 id = 0x53170000;
-                if (Game_Session->field_7 == 2) {
+                if (gGameSession->field_7 == 2) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);

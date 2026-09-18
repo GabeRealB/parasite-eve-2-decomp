@@ -29,7 +29,7 @@ s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, GpMsg1
     GpObj4A* obj2;
 
     if ((msg->field_2 == 0) && (D_acropolis_helicopter_landing_pad_80184D9C == 0) && (D_acropolis_helicopter_landing_pad_80184E0C != 0)) {
-        Game_Session->field_69 = 0x82;
+        gGameSession->field_69 = 0x82;
         D_80062735             = 1;
         func_800E8634((s32)&D_acropolis_helicopter_landing_pad_80183A34, 0, (s32)&D_acropolis_helicopter_landing_pad_80183FA4);
         D_acropolis_helicopter_landing_pad_80184D9C = 1;

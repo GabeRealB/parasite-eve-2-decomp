@@ -41,7 +41,7 @@ void func_acropolis_bridge_8017DBA0(Task* arg0)
 {
     if (Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA3, 0, 0) == 0) {
         D_8007216C             = 8;
-        Game_Session->field_68 = 1;
+        gGameSession->field_68 = 1;
         Gp_MsgPlayer3F3(0);
         Gp_MsgPlayerWeapon(0);
         arg0->state = (s32)(arg0->state + 1);
@@ -64,7 +64,7 @@ void func_acropolis_bridge_8017DC68(Task* arg0)
     if (Task_PollKill(D_acropolis_bridge_80191798, &D_acropolis_bridge_801917A0) != 0) {
         if (D_acropolis_bridge_801917A0 == 0) {
             D_8007216C             = 6;
-            Game_Session->field_68 = 0;
+            gGameSession->field_68 = 0;
             arg0->state            = (s32)(arg0->state + 1);
         } else {
             D_8007216C = 9;

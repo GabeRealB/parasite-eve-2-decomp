@@ -179,8 +179,8 @@ void func_actor_461800_8013229C(void)
             Gp_SetCollectedBit(0x12F);
         }
         if (GameFlag_GetNibble(0x112) == 0 && GameFlag_GetNibble(0x113) == 0) {
-            Game_Session->field_128 = 0xFF;
-            Game_Session->field_12E = 0xF;
+            gGameSession->field_128 = 0xFF;
+            gGameSession->field_12E = 0xF;
             return;
         }
         Mc_SaveData.field_7 = 4;
@@ -249,7 +249,7 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
     spawned1 = Task_SpawnFromTable(&D_actor_461800_80139F8C, 1, 8, 0);
     if (spawned1 != NULL) {
         D_actor_461800_80143894->field_4F0 = spawned1;
-        sessionKey1                        = (GpAreaKey*)&Game_Session->field_4;
+        sessionKey1                        = (GpAreaKey*)&gGameSession->field_4;
         raw1                               = ((GpEnemy*)task->spawnArg2)->field_8;
         model1                             = spawned1->extra;
         key.field_3                        = sessionKey1->field_3;
@@ -259,7 +259,7 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
         keyp = &key;
         TOUCH_REG(keyp);
         key.field_1 = areaByte1;
-        areaByte0   = Game_Session->field_4;
+        areaByte0   = gGameSession->field_4;
         index1      = raw1 >> 12;
         key.field_0 = areaByte0;
         Gp_SyncAreaKeyIndex(keyp);
@@ -275,7 +275,7 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
     spawned2 = Task_SpawnFromTable(&D_actor_461800_80139F8C, 2, 0xC, 0);
     if (spawned2 != NULL) {
         D_actor_461800_80143894->field_4F4 = spawned2;
-        sessionKey2                        = (GpAreaKey*)&Game_Session->field_4;
+        sessionKey2                        = (GpAreaKey*)&gGameSession->field_4;
         raw2                               = ((GpEnemy*)task->spawnArg2)->field_8;
         model2                             = spawned2->extra;
         key.field_3                        = sessionKey2->field_3;
@@ -285,7 +285,7 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
         keyp = &key;
         TOUCH_REG(keyp);
         key.field_1 = areaByte1;
-        areaByte0   = Game_Session->field_4;
+        areaByte0   = gGameSession->field_4;
         index2      = raw2 >> 12;
         key.field_0 = areaByte0;
         Gp_SyncAreaKeyIndex(keyp);

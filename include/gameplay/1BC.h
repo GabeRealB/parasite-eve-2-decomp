@@ -406,7 +406,7 @@ typedef struct _GpSndMaskRec {
 STATIC_ASSERT_SIZEOF(GpSndMaskRec, 8);
 
 /// Per-area pointer table. Index is `GpAreaKey.field_3` (also
-/// `GameSession.field_7` via `&Game_Session->field_4`).
+/// `GameSession.field_7` via `&gGameSession->field_4`).
 extern GpAreaRec* Gp_AreaTables[];
 
 /// 0-terminated `GpSndMaskRec` table walked by `Gp_ApplySndMasks` / `Gp_ApplySndBankMasks`.
@@ -611,7 +611,7 @@ void Gp_FreeSlot4TmdBuffers(void);
 s32 Gp_LookupBit2Item(s32 arg0);
 /// Walks `Gp_Bit2Banks[Mc_SaveData.field_6 / field_7]` for a `GpEnemyPlace`
 /// whose `field_0` equals `arg0`. If the packed 2-bit flag at
-/// `Gp_Bit2Banks[Game_Session->field_7].field_4` is non-zero, spawns that
+/// `Gp_Bit2Banks[gGameSession->field_7].field_4` is non-zero, spawns that
 /// placement via `Gp_SpawnEnemyFromTable` (same coord/yaw writeback as `Gp_SpawnPlaces`).
 void Gp_SpawnPlaceById(u16 arg0);
 void Gp_SpawnPlaces(GameSessionFrom4* arg0);

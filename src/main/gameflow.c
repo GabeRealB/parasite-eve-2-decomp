@@ -43,7 +43,7 @@ void GameFlow_StateByField34(Task* arg0)
                 u8* clearPtr;
                 u32 clearI;
 
-                clearPtr = (u8*)Game_Session;
+                clearPtr = (u8*)gGameSession;
                 for (clearI = 0; clearI < sizeof(GameSession); clearI++) {
                     *clearPtr++ = 0;
                 }
@@ -52,8 +52,8 @@ void GameFlow_StateByField34(Task* arg0)
             ds->field_101          = 0;
             ds->field_12e          = 0;
             one                    = 1;
-            Game_Session->field_4C = one;
-            Game_Session->field_80 = 0;
+            gGameSession->field_4C = one;
+            gGameSession->field_80 = 0;
             Snd_SetMutedVolumes(1);
             ds->field_101 = 0;
             ds->field_10b = one;
@@ -68,7 +68,7 @@ void GameFlow_StateByField34(Task* arg0)
         Pad_SetCooldown(0);
         if (arg0->spawnArg1 == 0) {
             saved = Mc_SaveData.field_21;
-            ptr   = (u8*)Game_Session;
+            ptr   = (u8*)gGameSession;
             for (i = 0; i < sizeof(GameSession); i++) {
                 *ptr++ = 0;
             }
@@ -87,7 +87,7 @@ void GameFlow_StateByField34(Task* arg0)
                 u8* clearPtr;
                 u32 clearI;
 
-                clearPtr = (u8*)Game_Session;
+                clearPtr = (u8*)gGameSession;
                 for (clearI = 0; clearI < sizeof(GameSession); clearI++) {
                     *clearPtr++ = 0;
                 }
@@ -97,7 +97,7 @@ void GameFlow_StateByField34(Task* arg0)
             p->field_248            = 1;
             p->field_244            = 1;
             Wip_SysFlags.field_4    = 1;
-            Game_Session->field_4C  = 1;
+            gGameSession->field_4C  = 1;
         }
         Display_State.field_10b = 1;
         Task_Kill(arg0);
@@ -139,7 +139,7 @@ void Game_ClearSession(void)
     u8* ptr;
     u32 i;
 
-    ptr = (u8*)Game_Session;
+    ptr = (u8*)gGameSession;
     for (i = 0; i < sizeof(GameSession); i++) {
         *ptr++ = 0;
     }
@@ -163,7 +163,7 @@ void Game_ResetSessionAndBuffers(Task* arg0)
 
     p     = &CdCmd_Queue;
     saved = Mc_SaveData.field_21;
-    ptr   = (u8*)Game_Session;
+    ptr   = (u8*)gGameSession;
     for (i = 0; i < sizeof(GameSession); i++) {
         *ptr++ = 0;
     }
@@ -188,7 +188,7 @@ void GameFlow_SpawnMenu(Task* arg0)
     arg0->spawnArg2 = temp_v0;
     if (temp_v0 != 0) {
         Display_State.field_11e = 0xFF;
-        Game_Session->field_2   = 1;
+        gGameSession->field_2   = 1;
         arg0->killCountdown     = 0x10;
         arg0->state             = arg0->state + 1;
     }
@@ -202,7 +202,7 @@ void GameFlow_WaitMenuDone(Task* arg0)
     if (obj->field_2E == -1) {
         Ui_TeardownTree(obj, obj->owner);
         Display_State.field_11e = 0;
-        Game_Session->field_2   = 0;
+        gGameSession->field_2   = 0;
         if (Mc_SaveData.field_1a9 == 1) {
             CdVol_SetMixMode(0);
         } else {
@@ -250,7 +250,7 @@ void GameFlow_DispatchTable5(Task* arg0)
 
 void GameFlow_CopySaveIds(Task* arg0)
 {
-    ((SessionBytesAt4*)Game_Session)->field_4 =
+    ((SessionBytesAt4*)gGameSession)->field_4 =
         ((SessionBytesAt4*)&Mc_SaveData)->field_4;
     D_8007A394  = 0;
     arg0->state = arg0->state + 1;
@@ -262,7 +262,7 @@ void GameFlow_EnqueueDefaultLoad(Task* arg0)
     u8 param2[8];
 
     if ((u8)func_80042500() == 0) {
-        Fs_BeginBootLoad(&Game_Session->field_4, 0);
+        Fs_BeginBootLoad(&gGameSession->field_4, 0);
         param1[3] = 0;
         param1[2] = 0;
         param1[0] = 0;
@@ -579,7 +579,7 @@ void Pad_UpdatePort0(void)
             pad->triggered       = scratch->prevButtons & (scratch->buttons ^ scratch->prevButtons);
             pad->buttons         = scratch->buttons;
 
-            if (*(s8*)&Game_Session->field_2 != 0) {
+            if (*(s8*)&gGameSession->field_2 != 0) {
                 if ((scratch->prevButtons & 0xF000) == (scratch->buttons & 0xF000)) {
                     pad->autoRepeat = pad->autoRepeat + ds->field_10a;
                 } else {

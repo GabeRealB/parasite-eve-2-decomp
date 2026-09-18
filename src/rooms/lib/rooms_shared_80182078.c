@@ -22,7 +22,7 @@ s32 RoomsShared80182078(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push
     s32                         t;
     s32                         hit;
 
-    if (Game_Session->field_4D == 1) {
+    if (gGameSession->field_4D == 1) {
         return 0;
     }
 

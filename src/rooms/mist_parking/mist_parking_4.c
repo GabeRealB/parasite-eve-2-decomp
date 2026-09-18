@@ -52,7 +52,7 @@ s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
 
     switch (arg2) {
         case 15:
-            temp = Game_Session->field_9;
+            temp = gGameSession->field_9;
             if (temp == 2) {
                 if (GameFlag_GetNibble(0xF1) == 1) {
                     Gp_MsgPlayerWeapon(0);
@@ -81,13 +81,13 @@ s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
             D_mist_parking_8019533C.field_10 = 0x5113000B;
             D_mist_parking_8019533C.field_C  = 0x51130012;
             Task_SpawnFromTable(&RoomsShared80181228Desc, 0, 4, (s32)&D_mist_parking_8019533C);
-            session          = Game_Session;
+            session          = gGameSession;
             D_80072170       = 2;
             session->field_8 = 2;
             break;
         case 18:
             Gp_MsgPlayerWeapon(0);
-            if (Game_Session->field_9 == 1) {
+            if (gGameSession->field_9 == 1) {
                 Task_SpawnFromTable(&RoomsShared8017daf0Desc, 3, 0, 0);
             } else {
                 Task_SpawnFromTable(&RoomsShared8017e5b8Desc, 7, 0, 0);

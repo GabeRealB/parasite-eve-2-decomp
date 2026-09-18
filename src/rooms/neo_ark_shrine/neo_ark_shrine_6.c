@@ -95,9 +95,9 @@ void func_neo_ark_shrine_8017EED4(Task* task)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    Game_Session->field_1  = 0;
-    Game_Session->field_68 = 0;
-    Game_Session->field_66 = 0;
+    gGameSession->field_1  = 0;
+    gGameSession->field_68 = 0;
+    gGameSession->field_66 = 0;
     D_8007216C             = 0xA;
     /* Without this the scheduler hoists the `spawnArg2` load above the
        `D_8007216C` byte store, which then fills `Task_Kill`'s delay slot. */
@@ -127,11 +127,11 @@ void func_neo_ark_shrine_8017EF68(Task* task)
 /// the shrine's mode — 2, or 5 when flag 0xE9 is set — into `D_8007216D` and the
 /// session, which makes the room rebuild its objects, and enters state 2.
 ///
-/// The same literal is stored in both arms on purpose: `Game_Session` is read
+/// The same literal is stored in both arms on purpose: `gGameSession` is read
 /// per arm, and jump_optimize's cross-jumping (post-sched2) merges the arms'
 /// identical `sb` pairs into the join. Written with one shared `var_v0` the
 /// stores are one pair too but the constant's `li` precedes the address, the
-/// merge swallows the `Game_Session` load as well, and the function comes out
+/// merge swallows the `gGameSession` load as well, and the function comes out
 /// four insns short.
 void func_neo_ark_shrine_8017EFE4(Task* task)
 {
@@ -145,12 +145,12 @@ void func_neo_ark_shrine_8017EFE4(Task* task)
     if (st->timer >= 0x1E) {
         if (GameFlag_GetNibble(0xE9) == 0) {
             D_8007216D            = 2;
-            Game_Session->field_5 = 2;
+            gGameSession->field_5 = 2;
         } else {
             D_8007216D            = 5;
-            Game_Session->field_5 = 5;
+            gGameSession->field_5 = 5;
         }
-        Game_Session->field_76 = 1;
+        gGameSession->field_76 = 1;
         task->state            = 2;
     }
 }
@@ -230,14 +230,14 @@ void func_neo_ark_shrine_8017F274(Task* task)
 {
     D_80115410             = 2;
     Mc_SaveData.field_5    = 6;
-    Game_Session->field_5  = 6;
-    Game_Session->field_76 = 1;
+    gGameSession->field_5  = 6;
+    gGameSession->field_76 = 1;
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    Game_Session->field_1  = 0;
-    Game_Session->field_68 = 0;
-    Game_Session->field_66 = 0;
+    gGameSession->field_1  = 0;
+    gGameSession->field_68 = 0;
+    gGameSession->field_66 = 0;
     Mc_SaveData.field_4    = 0xA;
     Task_RequestKill(task, 0);
 }

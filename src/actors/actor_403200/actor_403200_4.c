@@ -1071,7 +1071,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200
 /// The tick runs the per-frame body, steps 0xF to 0xE on the second animation
 /// slot's flag, and while still in 0xF hands the player the launch message
 /// (0x3F9) with `Player_Status.hp` as its gate: the two arms either side
-/// of that dispatch write the ramp timings into `Game_Session` and stamp escort
+/// of that dispatch write the ramp timings into `gGameSession` and stamp escort
 /// 3. The four one-shot cues all latch on the third animation slot's frame,
 /// masked to ten bits, against the frame `field_7A8` saw last, and once the
 /// state counter is past 0x18 the type-7 cue and the 0x3FF animation message go
@@ -1189,9 +1189,9 @@ void func_actor_403200_8013C84C(Task* arg0)
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 3), 0);
             if (cfg->hp <= 0) {
                 ((GameActor*)task->work)->field_956 = 0xA;
-                Game_Session->field_12D             = 0x1E;
-                Game_Session->field_12E             = 0x36;
-                Game_Session->field_12F             = 0x5A;
+                gGameSession->field_12D             = 0x1E;
+                gGameSession->field_12E             = 0x36;
+                gGameSession->field_12F             = 0x5A;
             }
         }
         if (((work->field_9A & 0x3FF) == 0x19) && (work->field_7A8 != (work->field_9A & 0x3FF))) {

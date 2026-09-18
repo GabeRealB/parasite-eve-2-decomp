@@ -2125,7 +2125,7 @@ void func_actor_503500_8013FF0C(Actor503500* arg0)
         }
         work->field_3D7 = (s8)((u8)work->field_3D7 - 1);
     }
-    if (Game_Session->field_1 != 0) {
+    if (gGameSession->field_1 != 0) {
         slot = 0xB;
         if (arg0->spawnArg1 < 0xF) {
             slot = 0xA;
@@ -2441,7 +2441,7 @@ void func_actor_503500_80140654(Actor503500* arg0)
             j = (j < 3) ? j : 0;
         }
     }
-    if (Game_Session->field_1 != 0 && Game_Session->field_4D != 0 && work->field_3D0 > 0) {
+    if (gGameSession->field_1 != 0 && gGameSession->field_4D != 0 && work->field_3D0 > 0) {
         SndEvt_EnqueueType7(0xD, 1);
         arg0->state = 2;
     }
@@ -2456,7 +2456,7 @@ void func_actor_503500_80140BE8(Actor503500* arg0)
 
     enemy = arg0->field_20;
     work  = arg0->field_1C;
-    if ((func_actor_503500_80136208() == 0) && (Game_Session->field_1 == 0)) {
+    if ((func_actor_503500_80136208() == 0) && (gGameSession->field_1 == 0)) {
         flags = enemy->field_4C;
         if (flags & 1) {
             enemy->field_4C = flags & 0xFE;
@@ -3504,7 +3504,7 @@ void func_actor_503500_80142980(Actor503500* arg0)
             }
         }
     }
-    if (Game_Session->field_1 != 0 && Game_Session->field_4D != 0 && work->field_222 >= 2) {
+    if (gGameSession->field_1 != 0 && gGameSession->field_4D != 0 && work->field_222 >= 2) {
         SndEvt_EnqueueType7(0xD, 1);
         arg0->state = 2;
     }

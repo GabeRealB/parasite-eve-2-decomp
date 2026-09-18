@@ -352,7 +352,7 @@ void func_replay_bonus_80117848(Task* arg0)
 
     arg0->killCountdown = timer;
     if ((s16)timer >= 0x78) {
-        Game_Session->field_2 = 1;
+        gGameSession->field_2 = 1;
         GameMain_SetFrameTiming(0);
         CdCmd_EnqueueLoadFile(1, 0x3E, 3);
         arg0->state = arg0->state + 1;
@@ -375,7 +375,7 @@ void func_replay_bonus_80117924(Task* arg0)
     arg0->killCountdown = remaining;
     if ((s16)remaining < 0) {
         Display_State.field_11e = 0;
-        Game_Session->field_2   = 0;
+        gGameSession->field_2   = 0;
         Task_CallExit(arg0);
         Display_State.field_11e = 1;
     }

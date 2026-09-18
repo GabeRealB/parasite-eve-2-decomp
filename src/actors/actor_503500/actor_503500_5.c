@@ -152,7 +152,7 @@ void func_actor_503500_80132D60(void)
 
 void func_actor_503500_80132D7C(void)
 {
-    Game_Session->field_52 = 1;
+    gGameSession->field_52 = 1;
 }
 
 void func_actor_503500_80132D90(s32 arg0)
@@ -218,7 +218,7 @@ void func_actor_503500_80132EF4(void)
 void func_actor_503500_80132F28(void)
 {
     Gp_HaltPadScripts();
-    Game_Session->field_13B = 0;
+    gGameSession->field_13B = 0;
 }
 
 void func_actor_503500_80132F58(void)
@@ -315,7 +315,7 @@ void func_actor_503500_80132F64(Actor503500* arg0)
     for (i = 1; i < 12; i++) {
         child = Gp_SpawnEnemyFromTable(&D_actor_503500_8016E924, i, i, enemy);
         if (child != NULL) {
-            sessionKey  = (GpAreaKey*)&Game_Session->field_4;
+            sessionKey  = (GpAreaKey*)&gGameSession->field_4;
             raw         = arg0->field_20->field_8;
             model       = (TmdObject*)child->task->extra;
             key.field_3 = sessionKey->field_3;
@@ -400,7 +400,7 @@ void func_actor_503500_80133270(Actor503500* arg0)
                 SndEvt_EnqueueType8(0x40000000);
                 work->field_7E7 = 1;
             }
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 tmd->field_C &= 0xFF7F;
             }
             if (work->field_7D9 >= 0) {
@@ -959,7 +959,7 @@ s32 func_actor_503500_80134284(Actor503500* arg0, Actor503500Work* work)
 
 /// Two-step state of the boss block. Step 0 hides the second body part,
 /// unlinks the enemy node, stores the summed `field_40` of occupied slots
-/// 1..16 in `Game_Session->field_12A` and plays sound 0x40230010 at the
+/// 1..16 in `gGameSession->field_12A` and plays sound 0x40230010 at the
 /// part's position. Step 1 counts 0x1F frames, then posts message 0x13F4
 /// under the same gates as `func_actor_503500_80133684`.
 void func_actor_503500_80134408(Actor503500* arg0)
@@ -986,7 +986,7 @@ void func_actor_503500_80134408(Actor503500* arg0)
                     sum += work->enemies[i]->field_40;
                 }
             }
-            Game_Session->field_12A = sum;
+            gGameSession->field_12A = sum;
             work->field_7E0         = 0;
             func_actor_503500_80135FB4(arg0, 0xE, 0x20);
             pan = (s8)Gp_GetObjPan((GpObj38*)&arg0->extra->field_8[3]);
@@ -1521,7 +1521,7 @@ extern u8 D_actor_503500_8016E910[];
 
 /// Clears each slot enemy's `node.field_4` bit 1 only when its
 /// `D_actor_503500_8016E910` entry covers both the camera's yaw sector
-/// (relative to `field_7B6`) and its height band and `Game_Session->field_1`
+/// (relative to `field_7B6`) and its height band and `gGameSession->field_1`
 /// is 0; otherwise sets it. Bit 4 is set on a height-only miss and cleared on
 /// a yaw miss.
 void func_actor_503500_80135644(Actor503500* arg0)
@@ -1566,7 +1566,7 @@ void func_actor_503500_80135644(Actor503500* arg0)
         enemy = work->enemies[i];
         if (enemy != NULL) {
             bits = D_actor_503500_8016E910[i];
-            if ((bits & dirMask) != dirMask || Game_Session->field_1 != 0) {
+            if ((bits & dirMask) != dirMask || gGameSession->field_1 != 0) {
                 enemy->node.field_4            |= 1;
                 work->enemies[i]->node.field_4 &= ~4;
             } else if ((bits & heightMask) != heightMask) {
@@ -1756,7 +1756,7 @@ GpEnemy* func_actor_503500_80135D00(Actor503500* arg0, s32 arg1)
 
     enemy = Gp_SpawnEnemyFromTable(&D_actor_503500_8016E924, arg1, arg1, arg0->field_20);
     if (enemy != NULL) {
-        sessionKey  = (GpAreaKey*)&Game_Session->field_4;
+        sessionKey  = (GpAreaKey*)&gGameSession->field_4;
         raw         = arg0->field_20->field_8;
         model       = (TmdObject*)enemy->task->extra;
         key.field_3 = sessionKey->field_3;

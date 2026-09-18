@@ -8,7 +8,7 @@
 /// `Gp_SprtTables` stage. Only low-byte values 0 and 1 change the flag.
 void func_neo_ark_power_plant_2_8017FD88(s32 arg0)
 {
-    GameSessionFrom4* sess = (GameSessionFrom4*)&Game_Session->field_4;
+    GameSessionFrom4* sess = (GameSessionFrom4*)&gGameSession->field_4;
     GpSprtCmd*        cmd;
     s32               mode;
 

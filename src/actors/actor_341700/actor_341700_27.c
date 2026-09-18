@@ -92,7 +92,7 @@ void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1)
             }
             work->field_2 = work->field_0;
             sp.funcs[work->field_0](arg0, arg1);
-            if (Game_Session->field_4D != 0) {
+            if (gGameSession->field_4D != 0) {
                 ((TmdObject*)arg1->extra)->field_8->flg = 0;
             }
             return;

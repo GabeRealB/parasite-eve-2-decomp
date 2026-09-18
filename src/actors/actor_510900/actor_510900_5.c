@@ -218,7 +218,7 @@ void func_actor_510900_8013B608(Actor510900* arg0)
 
 void func_actor_510900_8013B658(Actor510900Ctx* arg0, Actor510900* arg1)
 {
-    if (Game_Session->field_1 != 0) {
+    if (gGameSession->field_1 != 0) {
         func_actor_510900_801355B4(arg0, arg1);
         return;
     }

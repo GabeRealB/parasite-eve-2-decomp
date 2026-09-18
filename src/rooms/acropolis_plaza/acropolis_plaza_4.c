@@ -140,7 +140,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
             task->state = task->state + 1;
             return;
         case 4:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 Task_RequestKill(task, 0);
             }
             return;
@@ -220,7 +220,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             q->field_1EE = 1;
             q->field_1EA = 1;
             q->field_1F8 = 2;
-            buf.slot[0]  = Stream_FindSlot(&Game_Session->field_4, 2, 0);
+            buf.slot[0]  = Stream_FindSlot(&gGameSession->field_4, 2, 0);
             buf.slot[1]  = 0;
             buf.slot[2]  = 0;
             CdCmd_Enqueue(0x72, 0, buf.slot);
@@ -281,7 +281,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
 /// display and jumps straight to state 8.
 ///
 /// States 6 and 8 both look the room's own work object up by location: they
-/// build a `GpAreaKey` from `Game_Session`, walk the nested area records for
+/// build a `GpAreaKey` from `gGameSession`, walk the nested area records for
 /// the 0x6C entry and pack that index into the id `Gp_FindWorkById` matches.
 /// State 6 releases slot 3 (msg 0x3F1), re-places the player at
 /// (0x3DE, 0, 0x439E) and hands the room a 0x7D3 record; state 8 sends it 0x7D7
@@ -349,7 +349,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             q->field_1EE = 1;
             q->field_1EA = 1;
             q->field_1F8 = 4;
-            slot[0]      = Stream_FindSlot(&Game_Session->field_4, 4, 0);
+            slot[0]      = Stream_FindSlot(&gGameSession->field_4, 4, 0);
             slot[1]      = 0;
             slot[2]      = 0;
             CdCmd_Enqueue(0x72, 0, slot);
@@ -365,10 +365,10 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             func_acropolis_plaza_8017DE24(6);
             return;
         case 5:
-            if (Game_Session->field_1 != 0) {
+            if (gGameSession->field_1 != 0) {
                 return;
             }
-            if (Game_Session->field_5F != 0) {
+            if (gGameSession->field_5F != 0) {
                 SetDispMask(0);
                 task->state = 8;
                 return;
@@ -376,7 +376,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             q->field_1EE = 1;
             q->field_1EA = 1;
             q->field_1F8 = 5;
-            slot[0]      = Stream_FindSlot(&Game_Session->field_4, 5, 0);
+            slot[0]      = Stream_FindSlot(&gGameSession->field_4, 5, 0);
             slot[1]      = 0;
             slot[2]      = 0;
             CdCmd_Enqueue(0x72, 0, slot);
@@ -398,11 +398,11 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             roomRec.field_8  = 0;
             roomRec.field_C  = 0xA;
             roomRec.field_10 = 0;
-            sessionKey       = (GameSessionFrom4*)&Game_Session->field_4;
+            sessionKey       = (GameSessionFrom4*)&gGameSession->field_4;
             buf.key.field_3  = sessionKey->field_3;
             buf.key.field_2  = sessionKey->field_2;
-            buf.key.field_1  = Game_Session->field_74;
-            buf.key.field_0  = Game_Session->field_4;
+            buf.key.field_1  = gGameSession->field_74;
+            buf.key.field_0  = gGameSession->field_4;
             buf.key.field_5  = sessionKey->field_5;
             entry            = (GpCdRec10*)Gp_GetNestedAreaRec(&buf.key)->field_0;
             idx              = 0;
@@ -443,11 +443,11 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             return;
         case 8:
             if (CdCmd_IsIdle() != 0) {
-                sessionKey      = (GameSessionFrom4*)&Game_Session->field_4;
+                sessionKey      = (GameSessionFrom4*)&gGameSession->field_4;
                 buf.key.field_3 = sessionKey->field_3;
                 buf.key.field_2 = sessionKey->field_2;
-                buf.key.field_1 = Game_Session->field_74;
-                buf.key.field_0 = Game_Session->field_4;
+                buf.key.field_1 = gGameSession->field_74;
+                buf.key.field_0 = gGameSession->field_4;
                 buf.key.field_5 = sessionKey->field_5;
                 entry           = (GpCdRec10*)Gp_GetNestedAreaRec(&buf.key)->field_0;
                 idx             = 0;
@@ -471,7 +471,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                     0x7D7, 1, 0);
                 Gp_DispatchMsg(work->slot3, 0x3F3, 2, 0);
                 Gpu_ResetGraphAndOt();
-                Mem_ConfigureAuxHeap(Game_Session->field_7, Game_Session->field_6);
+                Mem_ConfigureAuxHeap(gGameSession->field_7, gGameSession->field_6);
                 Mem_SetActiveAuxHeap(1);
                 Tmd_AllocMissingBuffers();
                 SndEvt_EnqueueTypeB(0x51050005, 0x26);
@@ -484,7 +484,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             q->field_1EE = 1;
             q->field_1EA = 1;
             q->field_1F8 = 3;
-            slot[0]      = Stream_FindSlot(&Game_Session->field_4, 3, 0);
+            slot[0]      = Stream_FindSlot(&gGameSession->field_4, 3, 0);
             slot[1]      = 0;
             slot[2]      = 0;
             CdCmd_Enqueue(0x72, 0, slot);
@@ -520,12 +520,12 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 Stage_RequestMidiFromMap(0xA);
                 CdCmd_ActivatePhase1();
                 task->state = 0xF;
-            } else if (Game_Session->field_1 == 0) {
+            } else if (gGameSession->field_1 == 0) {
                 Stage_RequestMidiFromMap(0x1E0);
                 q->field_1EE = 1;
                 q->field_1EA = 1;
                 q->field_1F8 = 3;
-                buf.slot[0]  = Stream_FindSlot(&Game_Session->field_4, 3, 0);
+                buf.slot[0]  = Stream_FindSlot(&gGameSession->field_4, 3, 0);
                 buf.slot[1]  = 0;
                 buf.slot[2]  = 0;
                 CdCmd_Enqueue(0x71, 0, buf.slot);
@@ -599,7 +599,7 @@ void func_acropolis_plaza_8017F48C(Task* task)
             }
             break;
         case 2:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 Task_RequestKill(task, 0);
             }
             break;

@@ -117,7 +117,7 @@ typedef struct {
 } GpVoidFuncTable6;
 
 /// Per-stage flag-nibble lookup. `arg0` indexes a u16 table selected by
-/// `Game_Session->field_7` (1..5). Low 11 bits are the `GameFlag_GetNibble`
+/// `gGameSession->field_7` (1..5). Low 11 bits are the `GameFlag_GetNibble`
 /// index; bit `0x800` is added onto the result. Unknown stage or out-of-range
 /// index returns -1.
 s16 Gp_LookupStageFlag(s32 arg0);

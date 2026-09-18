@@ -389,7 +389,7 @@ void func_actor_403600_80134288(Task* arg0)
             Task_CallExit(arg0);
             return;
         }
-        Game_Session->field_80 = 0;
+        gGameSession->field_80 = 0;
         arg0->work             = temp_v0;
         temp_v0_2              = Task_SpawnFromTable(&D_actor_403600_801421A0, 2, 0, 0);
         if (temp_v0_2 != NULL) {
@@ -2071,7 +2071,7 @@ u8* func_actor_403600_80138DCC(Actor403600* arg0)
 /// `Gp_LinkObj` (kinds 2 and 3) over the 0x508 / 0x588 / 0x5C0 records, each
 /// seeded through `Gp_InitRec18Table` from the 0x528 / 0x5A8 / 0x5F8 tables.
 /// `enemy->field_40` and `field_78A` take the HP from `D_actor_403600_80150EC8`
-/// scaled by the spawn multiplier in `Game_Session`, slots 1..0x13 are reset,
+/// scaled by the spawn multiplier in `gGameSession`, slots 1..0x13 are reset,
 /// the model is faced along the world coordinate through `Gfx_MatrixCol2` /
 /// `ratan2` / `RotMatrix`, and the display task is spawned from
 /// `D_actor_403600_801421A0` and reparented.
@@ -2137,7 +2137,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     Gp_LinkNode(&enemy->node);
     enemy->node.field_4               = 1;
     enemy->field_1C.vy                = -0x1F4;
-    gpSess                            = Game_Session;
+    gpSess                            = gGameSession;
     enemy->field_18                   = (GsCOORDINATE2*)temp_s5;
     enemy->field_1C.vx                = 0;
     enemy->field_1C.vz                = 0;
@@ -2569,7 +2569,7 @@ void func_actor_403600_8013DAF4(Actor403600* arg0, s32 arg1)
         }
         temp_s1->field_588.flags &= 0x7FFF;
         Gp_PulseState1C80();
-        Game_Session->field_1   = 1;
+        gGameSession->field_1   = 1;
         D_actor_403600_8016056C = 0;
         Gp_DispatchMsg(*Gp_ActorSlots, 0x3F1, 0, 0);
         temp_v0_3            = arg0->field_1C;
@@ -3073,7 +3073,7 @@ void func_actor_403600_8013F0C0(Actor403600* arg0)
             temp_a0->coord.t[2] =
                 (s32)(temp_a0->coord.t[2] +
                       ((s32)(temp_a0->coord.m[2][2] * temp_a1->field_762) >> 0xC));
-            if (((s16)temp_s3->field_760 >= 0xC) || (Game_Session->field_4D != 0)) {
+            if (((s16)temp_s3->field_760 >= 0xC) || (gGameSession->field_4D != 0)) {
                 temp_s3->field_760 = 0;
                 if (func_actor_403600_8013E7D4((s32)arg0, 3) == 0) {
                     D_8007216C = 7;

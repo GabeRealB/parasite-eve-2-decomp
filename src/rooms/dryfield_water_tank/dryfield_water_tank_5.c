@@ -117,7 +117,7 @@ void func_dryfield_water_tank_8017E568(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            key          = ((SessionBytesAt4*)Game_Session)->field_4;
+            key          = ((SessionBytesAt4*)gGameSession)->field_4;
             key.data[0]  = 0x64;
             slot         = Stream_FindSlot(key.data, 0, 0);
             slotParam[0] = slot;
@@ -235,7 +235,7 @@ L_case0:
     return;
 
 L_case1:
-    if (Game_Session->field_1 == 0) {
+    if (gGameSession->field_1 == 0) {
         goto advance;
     }
     func_dryfield_water_tank_8017E78C(task);

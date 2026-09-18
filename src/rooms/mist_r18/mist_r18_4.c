@@ -20,7 +20,7 @@ void func_mist_r18_8017E8B8(Task* task)
     if ((s16)fade >= 0x40) {
         task->killCountdown = 0x40;
     }
-    if ((Game_Session->field_4D != 0) || ((u8)Game_Session->field_4 != 2)) {
+    if ((gGameSession->field_4D != 0) || ((u8)gGameSession->field_4 != 2)) {
         task->killCountdown = 0x80;
         task->state++;
     }

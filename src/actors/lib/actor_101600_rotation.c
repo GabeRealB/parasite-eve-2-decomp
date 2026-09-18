@@ -439,7 +439,7 @@ void Actor01600_Fn04054(Actor01600Ctx* arg0, Actor01600* arg1)
     Gp_UpdateCoord(coords);
     count           = work->field_550 + 1;
     work->field_550 = count;
-    if (count < 5 && Game_Session->field_52 != 1) {
+    if (count < 5 && gGameSession->field_52 != 1) {
         return;
     }
     work->field_550 = 0;

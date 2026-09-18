@@ -86,7 +86,7 @@ void func_actor_341300_80161E84(void)
 /// snaps to the exact angle and the task ends.
 ///
 /// The task's own argument is only ever the `Task_Kill` target, reached both
-/// when the work lookup or `Game_Session::field_1` fails and on the frame the
+/// when the work lookup or `gGameSession::field_1` fails and on the frame the
 /// facing settles.
 void func_actor_341300_80162278(Task* task)
 {
@@ -103,8 +103,8 @@ void func_actor_341300_80162278(Task* task)
 
     player = Game_GetPtrSlot(3);
     actor  = (GameActor*)player->work;
-    work   = Gp_FindWorkById(Game_Session->field_6 | (Game_Session->field_7 << 8));
-    if ((work != NULL) && (Game_Session->field_1 != 0)) {
+    work   = Gp_FindWorkById(gGameSession->field_6 | (gGameSession->field_7 << 8));
+    if ((work != NULL) && (gGameSession->field_1 != 0)) {
         self      = ((TmdObject*)player->extra)->field_8;
         target    = &D_actor_341300_80165330;
         angle     = ratan2(target->vx - self->coord.t[0], target->vz - self->coord.t[2]);

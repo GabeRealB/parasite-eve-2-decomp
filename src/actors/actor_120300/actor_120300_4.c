@@ -14,7 +14,7 @@ void func_actor_120300_80133F14(Task* arg0)
             arg0->state += 1;
             break;
         case 1:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 Task_Kill(arg0);
             }
             break;

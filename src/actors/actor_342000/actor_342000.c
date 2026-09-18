@@ -183,7 +183,7 @@ void func_actor_342000_80162158(Task* arg0)
     extra->field_1C = &w->light;
     extra->field_20 = &w->color;
     arg0->field_24  = D_actor_342000_801648E8;
-    rec             = ((GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4))->field_0;
+    rec             = ((GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->field_4))->field_0;
     for (; rec->field_0 != 0xFF; rec++) {
         if (rec->field_0 == 0x20) {
             break;
@@ -692,11 +692,11 @@ static inline void Actor342000_SetMode(s16 arg0)
 
 static inline void Actor342000_EnterArea(void)
 {
-    Game_Session->field_5        = 7;
+    gGameSession->field_5        = 7;
     D_8007216D                   = 7;
-    Game_Session->unknown_133[1] = 6;
-    Game_Session->unknown_133[0] = 1;
-    Game_Session->field_76       = 1;
+    gGameSession->unknown_133[1] = 6;
+    gGameSession->unknown_133[0] = 1;
+    gGameSession->field_76       = 1;
     Gp_ApplyAreaRecs(D_8018FB6C);
 }
 
@@ -720,10 +720,10 @@ void func_actor_342000_8016382C(Task* arg0)
     s16                   timer;
 
     work = (Actor342000EventWork*)arg0->work;
-    if (D_801855DE != 0 || Game_Session->field_65 != 0 || D_80114C11 != 0 || D_801153F4 != 0) {
+    if (D_801855DE != 0 || gGameSession->field_65 != 0 || D_80114C11 != 0 || D_801153F4 != 0) {
         return;
     }
-    if (Game_Session->field_136 != 0) {
+    if (gGameSession->field_136 != 0) {
         if (work->field_7E != 0) {
             SndEvt_EnqueueType7(0x5428000B, 0xA);
             work->field_7E = 0;
@@ -740,12 +740,12 @@ void func_actor_342000_8016382C(Task* arg0)
                 Mem_Set(alloc, 0U, 0x80U);
                 alloc->field_48         = (Task*)Game_GetPtrSlot(3);
                 D_actor_342000_80165070 = arg0;
-                alloc->field_4C         = (s32)Gp_FindWorkById(Game_Session->field_6 | (Game_Session->field_7 << 8))->field_0;
+                alloc->field_4C         = (s32)Gp_FindWorkById(gGameSession->field_6 | (gGameSession->field_7 << 8))->field_0;
             }
             work = (Actor342000EventWork*)arg0->work;
-            if ((u8)Game_Session->unknown_137[0] == 0) {
-                msg.field_0 = Game_Session->field_7;
-                msg.field_1 = Game_Session->field_6;
+            if ((u8)gGameSession->unknown_137[0] == 0) {
+                msg.field_0 = gGameSession->field_7;
+                msg.field_1 = gGameSession->field_6;
                 msg.field_2 = 0;
                 Gp_DispatchMsg((Task*)Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
                 work->field_5C = Task_SpawnFromTable(&D_actor_342000_80164FF8, 8, 0, (s32)arg0);
@@ -774,10 +774,10 @@ void func_actor_342000_8016382C(Task* arg0)
             func_800E8634((s32)&D_actor_342000_80164968, 0, (s32)&D_actor_342000_80164E30);
             goto next;
         case 3:
-            if (Game_Session->field_1 == 0) {
-                Game_Session->field_120 = D_8018FBC8;
+            if (gGameSession->field_1 == 0) {
+                gGameSession->field_120 = D_8018FBC8;
                 Task_SpawnFromTable(&D_80187150, 0, 1, 0);
-                Game_Session->field_135 = 2;
+                gGameSession->field_135 = 2;
                 Task_RequestKill(arg0, 0);
                 return;
             }
@@ -795,7 +795,7 @@ void func_actor_342000_8016382C(Task* arg0)
             timer               = (u16)arg0->killCountdown + 1;
             arg0->killCountdown = timer;
             if (timer >= 0x1A5) {
-                work->field_78 = Game_Session->field_4;
+                work->field_78 = gGameSession->field_4;
                 Actor342000_SetAction(7);
                 Actor342000_SetMode(6);
                 arg0->killCountdown = 0;
@@ -824,8 +824,8 @@ void func_actor_342000_8016382C(Task* arg0)
                 Actor342000_KillFx();
                 Actor342000_SetMode(7);
                 Actor342000_EnterArea();
-                msg.field_0 = Game_Session->field_7;
-                msg.field_1 = Game_Session->field_6;
+                msg.field_0 = gGameSession->field_7;
+                msg.field_1 = gGameSession->field_6;
                 msg.field_2 = 0;
                 Gp_DispatchMsg((Task*)Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
                 arg0->killCountdown = 0;
@@ -840,7 +840,7 @@ void func_actor_342000_8016382C(Task* arg0)
                 Actor342000_SetMode(9);
                 func_8018507C();
                 Gp_DispatchMsg(work->field_48, 0x3F1, 0, 0);
-                Game_Session->field_135 = 2;
+                gGameSession->field_135 = 2;
                 goto next;
             }
             break;

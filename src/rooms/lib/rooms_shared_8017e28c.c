@@ -90,7 +90,7 @@ void RoomsShared8017e28c(Task* task)
                 task->state = 1;
                 task->flags = 0xFF;
                 if (Gp_IsDebugAttachRoom() == 0) {
-                    Game_Session->field_69 |= 3;
+                    gGameSession->field_69 |= 3;
                 }
                 if (obj->status != 1) {
                     obj->field_2E = 6;

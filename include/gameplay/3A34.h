@@ -380,7 +380,7 @@ typedef struct _GpObj38 {
 STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 
 /// Sparse overlay of the same light object as `GpObj38`. `Gp_GetObjLuma`
-/// treats `field_44` as a room-id filter against `Game_Session->field_4`
+/// treats `field_44` as a room-id filter against `gGameSession->field_4`
 /// (0 = any room), writes `0x1000` (GTE ONE) to `field_4A`, and returns a
 /// weighted `field_50/52/54` luminance. `func_800D9794` casts to
 /// `GpObj38` for `field_24.t` as a `VECTOR*`, loads `field_4A` into GTE
@@ -469,7 +469,7 @@ STATIC_ASSERT_SIZEOF(GpObj40, 0x42);
 /// `field_48` / `field_49` to its out-params and sets `Gp_PendingObj4CFlag`. The
 /// same node type is the `Gp_Obj4CList` list walked by `Gp_CommitObj4CSave`: a
 /// pending `field_4B` copies `field_49` into `Mc_SaveData.field_4` when
-/// `field_48` matches `Game_Session->field_4`.
+/// `field_48` matches `gGameSession->field_4`.
 /// `func_800DF6AC` tests an object against the quad at `field_14`, using
 /// `field_C` as its local origin, `field_34` as its normal, and `field_44`
 /// as its bounding radius. `field_8` supplies the coordinate matrices.
@@ -1424,7 +1424,7 @@ void Gp_RemapActorColor(struct _GpEnemy* arg0, MATRIX* arg1, s32 arg2);
 /// from `field_4E` lighting mode (`Gp_RemapActorColor`). While `field_4F` is
 /// a positive blend timer, GPF/GPL-interpolates the previous mode
 /// (`field_4E` bits 2-3) toward the current mode (bits 0-1). Skips work
-/// when `Game_Session->field_65 == 1` unless `TmdObject.field_C` bit
+/// when `gGameSession->field_65 == 1` unless `TmdObject.field_C` bit
 /// 0x80 is clear and `field_18` is set. `Gp_StateF0.field_4` freezes the timer.
 void            Gp_UpdateActorColor(struct _GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void            Gp_LightFalloff(GpObj44* arg0);

@@ -69,7 +69,7 @@ void ActorsShared80132cb8(Task* task, s16 scale, s16 drop, s16 index)
     gte_gpf12_real();
     gte_stsv(normal);
 
-    if (Game_Session->field_6 == 0x27) {
+    if (gGameSession->field_6 == 0x27) {
         face.field_A = 3;
     } else {
         face.field_A = 2;

@@ -18,7 +18,7 @@ void func_dryfield_g_r_kitchen_8017E27C(GsCOORDINATE2* arg0, SVECTOR* arg1, SVEC
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_g_r_kitchen/dryfield_g_r_kitchen_3", func_dryfield_g_r_kitchen_8017E27C);
 
-/// Draws whichever pair of beams the room's current stage (`Game_Session`
+/// Draws whichever pair of beams the room's current stage (`gGameSession`
 /// byte 4) selects: 2 draws the two around the kitchen door through the shared
 /// `Room_Draw24`, 3 draws the other two through this room's own beam routine.
 /// Any other stage draws nothing.
@@ -27,10 +27,10 @@ void func_dryfield_g_r_kitchen_8017EB04(Task* arg0)
     GsCOORDINATE2* coord;
 
     coord = ((TmdObject*)arg0->extra)->field_8;
-    if (Game_Session->field_4 == 2) {
+    if (gGameSession->field_4 == 2) {
         Room_Draw24(coord, &D_dryfield_g_r_kitchen_8017EBF0[0], &D_dryfield_g_r_kitchen_8017EBF0[-1], 0x100);
         Room_Draw24(coord, &D_dryfield_g_r_kitchen_8017EBF0[2], &D_dryfield_g_r_kitchen_8017EBF0[1], 0x100);
-    } else if (Game_Session->field_4 == 3) {
+    } else if (gGameSession->field_4 == 3) {
         func_dryfield_g_r_kitchen_8017E27C(coord, &D_dryfield_g_r_kitchen_8017EC08[0], &D_dryfield_g_r_kitchen_8017EC08[1], 0x100);
         func_dryfield_g_r_kitchen_8017E27C(coord, &D_dryfield_g_r_kitchen_8017EC08[2], &D_dryfield_g_r_kitchen_8017EC08[3], 0x100);
     }

@@ -77,11 +77,11 @@ void func_actor_143000_80133800(Task* arg0)
     Actor143000Work* work = (Actor143000Work*)arg0->work;
 
     Display_ReleaseRef();
-    Game_Session->field_66 = 0;
+    gGameSession->field_66 = 0;
     if (work->field_C == 0) {
         D_80114D08             = 0xA;
-        Game_Session->field_1  = 0;
-        Game_Session->field_68 = 0;
+        gGameSession->field_1  = 0;
+        gGameSession->field_68 = 0;
         D_801153F4             = 0;
         D_8007216C             = D_actor_143000_80135C0C;
         Gp_MsgPlayer3F3(1);

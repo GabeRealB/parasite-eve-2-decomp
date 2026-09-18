@@ -24,7 +24,7 @@ struct _GpMsgEntry;
 /// (`Mem_Malloc(0x14, 0)`), fills the three leading pointers and publishes the
 /// owning task in `D_dryfield_breezeway_801843C0`: the slot-3 game pointer
 /// (`Game_GetPtrSlot(3)`), then `field_0` of the work `Gp_FindWorkById` finds
-/// for the id formed from `Game_Session` bytes 6/7 and for that id OR'd with
+/// for the id formed from `gGameSession` bytes 6/7 and for that id OR'd with
 /// 0x1000. `field_8` is the dispatch slot
 /// `func_dryfield_breezeway_8017E390` hands to `Gp_DispatchMsg`.
 ///

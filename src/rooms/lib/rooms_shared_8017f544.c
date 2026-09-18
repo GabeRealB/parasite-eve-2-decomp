@@ -23,7 +23,7 @@
 ///
 /// Message 3 asks a background cutscene to advance: it is answered with 2 and
 /// cap command 0x15 only while the session is on this very message
-/// (`Game_Session::field_7 == msgId`) in play mode (`field_9 == 1`) with
+/// (`gGameSession::field_7 == msgId`) in play mode (`field_9 == 1`) with
 /// `Gp_StateF0.field_0` in the same state. Otherwise nibble `0x3B` decides
 /// between returning 0 - after cap command 7 plus a nibble write, which re-arms
 /// nibble `field_6` - and falling through to the message-2 test. `field_5`
@@ -47,8 +47,8 @@ s32 RoomsShared8017f544(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
         out->field_3 = val;
     }
     if (in->msgId == 3) {
-        if ((Game_Session->field_7 == in->msgId) && (Game_Session->field_9 == 1) &&
-            (Gp_StateF0.field_0 == Game_Session->field_9)) {
+        if ((gGameSession->field_7 == in->msgId) && (gGameSession->field_9 == 1) &&
+            (Gp_StateF0.field_0 == gGameSession->field_9)) {
             if (in->field_5 == 0) {
                 Gp_RunCapCmd1(0x15);
             }

@@ -164,7 +164,7 @@ void func_actor_102400_80134910(GpEnemy* arg0, Task* arg1)
             func_actor_102400_80131E84(coord, 0x100);
             rec = work->field_90.field_4;
             if ((rec != 0) &&
-                (Gp_RoomParamTables[Game_Session->field_7 - 1][Game_Session->field_6 - 1]
+                (Gp_RoomParamTables[gGameSession->field_7 - 1][gGameSession->field_6 - 1]
                                    [func_800E1B24(rec)]
                                        ->field_1 == 0)) {
                 spawn = 1;

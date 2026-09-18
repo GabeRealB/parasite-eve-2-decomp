@@ -14,7 +14,7 @@ extern s32        D_dryfield_night_junk_yard_801805A0;
 void func_dryfield_night_junk_yard_8017D9B8(u8 arg0);
 
 /// Room entry task tick: publish the message table, claim game pointer slot 7,
-/// and, on the visit whose sub-id (`Game_Session::field_9`) is 1 and that has
+/// and, on the visit whose sub-id (`gGameSession::field_9`) is 1 and that has
 /// already latched nibble 0x9F, announce the room to the slot-4 task with
 /// message 0x7DA. The nibble is then applied to the current sprite-table entry
 /// either way, and the state advances.
@@ -24,7 +24,7 @@ void func_dryfield_night_junk_yard_8017D8B0(Task* task)
 
     task->field_24 = &D_dryfield_night_junk_yard_8018055C;
     Game_SetPtrSlot(task, 7);
-    subId = Game_Session->field_9;
+    subId = gGameSession->field_9;
     if (subId == 1 && GameFlag_GetNibble(0x9F) == subId) {
         Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_dryfield_night_junk_yard_801805A0, 0x7DB);
     }

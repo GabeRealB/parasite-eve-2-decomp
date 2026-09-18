@@ -127,7 +127,7 @@ void func_neo_ark_submarine_gallery_8017EB50(Task* arg0)
 {
     arg0->field_24 = D_neo_ark_submarine_gallery_80181884;
     Game_SetPtrSlot(arg0, 7);
-    if (Game_Session->field_9 == 4) {
+    if (gGameSession->field_9 == 4) {
         Task_SpawnFromTable(D_neo_ark_submarine_gallery_801818BC, 0, 0, 0);
     }
     arg0->state = (s32)(arg0->state + 1);
@@ -201,7 +201,7 @@ s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1)
 
 void func_neo_ark_submarine_gallery_8017EED8(Task* arg0)
 {
-    if (Game_Session->field_9 != 4) {
+    if (gGameSession->field_9 != 4) {
         arg0->killCountdown = 0;
     } else {
         arg0->killCountdown = 0x780;
@@ -214,8 +214,8 @@ void func_neo_ark_submarine_gallery_8017EF14(Task* arg0)
     s32 mode;
     if (Gp_ActorSlots[0] != NULL) {
         mode = 4;
-        if (Game_Session->field_9 != mode && Game_Session->field_126 != 0) {
-            Game_Session->field_9 = mode;
+        if (gGameSession->field_9 != mode && gGameSession->field_126 != 0) {
+            gGameSession->field_9 = mode;
         }
         if (arg0->killCountdown < 0x780) {
             arg0->killCountdown = (s16)((u16)arg0->killCountdown + 0x10);

@@ -119,7 +119,7 @@ void func_shelter_r47_80180714(Task* task)
     if (Task_PollKill(D_shelter_r47_8018A690, &out) != 0) {
         Gp_MsgPlayer3F3(1);
         Gp_MsgPlayerWeapon(1);
-        if (Game_Session->field_9 == 1) {
+        if (gGameSession->field_9 == 1) {
             Gp_MsgSlot4Chain(0, 1);
         }
         if (Game_GetPtrSlot(0xA) != NULL) {

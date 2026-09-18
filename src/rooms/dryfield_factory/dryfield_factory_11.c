@@ -11,14 +11,14 @@ extern SVECTOR D_dryfield_factory_80186F08;
 
 /// Per-frame effect: draws up to three glowing discs at fixed points in the
 /// room. The draw set is selected by the stage-visit byte
-/// `Game_Session->field_4` taken as a bit index, and each group also gates on a
+/// `gGameSession->field_4` taken as a bit index, and each group also gates on a
 /// story flag, so a disc only appears on the visits and after the event that
 /// the flag records.
 void func_dryfield_factory_801825F0(Task* task)
 {
     s32 state;
 
-    state = 1 << Game_Session->field_4;
+    state = 1 << gGameSession->field_4;
     if (GameFlag_GetNibble(0x48) != 0 && (state & 0x15068) != 0) {
         Room_Draw15(&D_dryfield_factory_80186EF8, 0x100, 0x3660);
     }

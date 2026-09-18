@@ -666,7 +666,7 @@ void func_actor_503500_80145A2C(Task* arg0)
     child          = eff->field_0;
     work->field_98 = child;
     Task_Reparent(arg0, child);
-    if (Game_Session->field_1 != 0) {
+    if (gGameSession->field_1 != 0) {
         pan = (s8)Gp_GetObjPan((GpObj38*)coord);
         SndEvt_EnqueueType6(0x40230013, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
     } else {
@@ -693,7 +693,7 @@ void func_actor_503500_80145C50(Actor503500* arg0)
             if (++work->field_A4 < 0x5B) {
                 return;
             }
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 work->head.obj.flags |= 0x8000;
                 coord                 = arg0->extra->field_8;
                 pan                   = (s8)Gp_GetObjPan((GpObj38*)coord);
@@ -701,7 +701,7 @@ void func_actor_503500_80145C50(Actor503500* arg0)
             }
             goto next;
         case 1:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 Gp_SpawnPadLerp(1, 0xFF, 0xFF);
             }
             if (++work->field_A4 < 0x38) {

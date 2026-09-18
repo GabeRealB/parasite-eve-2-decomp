@@ -54,13 +54,13 @@ s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, GpSaveLoc* src, G
             if (dst->field_2 == 6) {
                 D_8007272D             = 2;
                 D_80073BAE             = 4;
-                Game_Session->field_68 = 1;
+                gGameSession->field_68 = 1;
                 Gp_ResetInventory();
             }
             if (dst->field_2 == 5) {
                 D_8007272D             = 1;
                 D_80073BAE             = 3;
-                Game_Session->field_68 = 1;
+                gGameSession->field_68 = 1;
                 Gp_ClearInventory();
             }
         }

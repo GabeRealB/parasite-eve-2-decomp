@@ -1229,7 +1229,7 @@ void func_actor_105700_8013541C(GpEnemy* arg0, Task* arg1)
 
     if (work->recD0[0].field_4 != 0) {
         idx = func_800E1B24(work->recD0[0].field_4);
-        if (Gp_RoomParamTables[Game_Session->field_7 - 1][Game_Session->field_6 - 1][idx]->field_1 == 0) {
+        if (Gp_RoomParamTables[gGameSession->field_7 - 1][gGameSession->field_6 - 1][idx]->field_1 == 0) {
             found = 1;
         }
         Gp_ClearRec18Occupied(work->recD0);

@@ -85,8 +85,8 @@ void func_shelter_b2_laboratory_8017F4D8(Task* task)
             } else {
                 D_80115694 = -p->field_0;
             }
-            Game_Session->field_68 = 1;
-            Game_Session->field_1  = 1;
+            gGameSession->field_68 = 1;
+            gGameSession->field_1  = 1;
             D_801153F4             = 2;
             Gp_MsgPlayer3F3(0);
             Gp_MsgAlly3F3(0);
@@ -204,8 +204,8 @@ void func_shelter_b2_laboratory_8017F4D8(Task* task)
             if (Mc_SaveData.field_13 == 1) {
                 Gp_MsgAllyWeapon(1);
             }
-            Game_Session->field_68 = 0;
-            Game_Session->field_1  = 0;
+            gGameSession->field_68 = 0;
+            gGameSession->field_1  = 0;
             D_801153F4             = 0;
             if (p->field_3 != 0) {
                 Gp_ResetCap();

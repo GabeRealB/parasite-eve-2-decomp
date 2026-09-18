@@ -30,8 +30,8 @@ void func_neo_ark_pyramid_8017D600(Task* task)
     switch (task->state) {
         case 0:
             D_8007216C             = 8;
-            Game_Session->field_68 = 1;
-            Game_Session->field_1  = 1;
+            gGameSession->field_68 = 1;
+            gGameSession->field_1  = 1;
             D_801153F4[0]          = 2;
             task->state++;
             break;
@@ -80,8 +80,8 @@ void func_neo_ark_pyramid_8017D600(Task* task)
             break;
         case 10:
             D_8007216C             = 3;
-            Game_Session->field_68 = 0;
-            Game_Session->field_1  = 0;
+            gGameSession->field_68 = 0;
+            gGameSession->field_1  = 0;
             D_801153F4[0]          = 0;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);

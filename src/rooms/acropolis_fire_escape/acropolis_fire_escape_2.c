@@ -88,7 +88,7 @@ void func_acropolis_fire_escape_8017FB40(Task* task)
             return;
     }
 
-    switch ((u8)Game_Session->field_4) {
+    switch ((u8)gGameSession->field_4) {
         case 8:
             vol = 0x64;
             if (Mc_SaveData.field_5C5 == 5) {
@@ -97,7 +97,7 @@ void func_acropolis_fire_escape_8017FB40(Task* task)
                 pair->field_0         = 1;
                 pair->field_2         = 1;
                 Task_SpawnFromTable(&D_80062774, 0, 0, 0);
-                Game_Session->field_69 = 0;
+                gGameSession->field_69 = 0;
             }
             break;
         case 2:

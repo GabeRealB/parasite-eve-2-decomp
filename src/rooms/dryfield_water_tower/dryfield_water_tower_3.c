@@ -304,7 +304,7 @@ s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
 /// latch that puts a floor quad under the cap, mirrored to `-y - 0xC8` of the
 /// cap's own coordinate.
 ///
-/// `Game_Session->field_65` is the session's overlay-wait gate: while it is set
+/// `gGameSession->field_65` is the session's overlay-wait gate: while it is set
 /// the prop only raises the model's skip-draw bit 0x80 and returns, leaving the
 /// script's states alone.
 ///
@@ -326,7 +326,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
     obj   = (TmdObject*)arg0->extra;
     state = (DryfieldWaterTowerState*)arg0->work;
     coord = obj->field_8;
-    if (Game_Session->field_65 != 0) {
+    if (gGameSession->field_65 != 0) {
         obj->field_C |= 0x80;
         return;
     }
@@ -585,7 +585,7 @@ void func_dryfield_water_tower_8017E93C(Task* arg0)
 
         case 2:
             D_8007216C             = state->field_68;
-            Game_Session->field_52 = 1;
+            gGameSession->field_52 = 1;
             break;
 
         case 3: {

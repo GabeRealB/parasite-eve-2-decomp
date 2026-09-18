@@ -356,12 +356,12 @@ void Task_Reparent(Task* arg0, Task* arg1)
 
 void Game_SetPtrSlot(void* arg0, s32 arg1)
 {
-    Game_Session->field_C[arg1] = arg0;
+    gGameSession->field_C[arg1] = arg0;
 }
 
 void* Game_GetPtrSlot(s32 arg0)
 {
-    return Game_Session->field_C[arg0];
+    return gGameSession->field_C[arg0];
 }
 
 void Task_InitList(TaskNode* node)
@@ -633,7 +633,7 @@ void Game_ClearPtrSlots(void)
     s32 i;
 
     for (i = 0xF; i >= 0; i--) {
-        Game_Session->field_C[i] = NULL;
+        gGameSession->field_C[i] = NULL;
     }
 }
 

@@ -61,17 +61,17 @@ void func_neo_ark_power_plant_1_8017D5EC(void)
     }
     if ((D_8007216C == 3) && (GameFlag_GetNibble(0xFB) == 0)) {
         GameFlag_SetNibble(0xFB, 1);
-        Game_Session->field_126 = 0;
+        gGameSession->field_126 = 0;
         Gp_StateF0.field_0      = 0;
         func_800E8614((s32)&D_neo_ark_power_plant_1_8017EEE4, 0);
     }
-    if ((D_8007216C != Game_Session->field_4) && (GameFlag_GetNibble(0xDE) != 0) && (GameFlag_GetNibble(0xDF) == 0)) {
+    if ((D_8007216C != gGameSession->field_4) && (GameFlag_GetNibble(0xDE) != 0) && (GameFlag_GetNibble(0xDF) == 0)) {
         D_neo_ark_power_plant_1_8017F01C = 4;
         return;
     }
     if (D_neo_ark_power_plant_1_8017F01C != 0) {
         if (--D_neo_ark_power_plant_1_8017F01C == 0) {
-            if (Game_Session->field_4 == 7) {
+            if (gGameSession->field_4 == 7) {
                 SndEvt_EnqueueType6(0x5511000A, 0, 0);
                 return;
             }

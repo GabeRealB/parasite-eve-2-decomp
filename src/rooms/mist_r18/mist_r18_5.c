@@ -73,7 +73,7 @@ void func_mist_r18_8017EB48(void)
 
 void func_mist_r18_8017EBB8(void)
 {
-    Game_Session->field_52 = 1;
+    gGameSession->field_52 = 1;
     CdCmd_StartOverlay(1U, 0x1EU, 0xBU);
     CdCmd_EnqueueReplaceOverlay82();
 }

@@ -225,7 +225,7 @@ L_case0:
     goto advance;
 
 L_case1:
-    key          = ((SessionBytesAt4*)Game_Session)->field_4;
+    key          = ((SessionBytesAt4*)gGameSession)->field_4;
     key.data[0]  = 0x64;
     slot         = Stream_FindSlot(key.data, 0, 0);
     slotParam[0] = slot;

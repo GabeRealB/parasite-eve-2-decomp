@@ -48,7 +48,7 @@ void func_actor_135400_80131EB4(Task* task)
             task->spawnArg1  += 1;
             break;
         case 2:
-            if (Game_Session->field_1 != 0) {
+            if (gGameSession->field_1 != 0) {
                 break;
             }
         case 3:
@@ -122,7 +122,7 @@ void func_actor_135400_80132064(Task* arg0)
     if (spawned != NULL) {
         work->field_4B8 = spawned;
         model           = (TmdObject*)spawned->extra;
-        sessionKey      = (GpAreaKey*)&Game_Session->field_4;
+        sessionKey      = (GpAreaKey*)&gGameSession->field_4;
         raw             = ((GpEnemy*)arg0->spawnArg2)->field_8;
         key.field_3     = sessionKey->field_3;
         key.field_2     = sessionKey->field_2;

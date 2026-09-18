@@ -12,8 +12,8 @@
 /// `field_2` the halfword the receiver switches on. Same four bytes as
 /// `Dmr1Msg7DA`, `DbwMsg7DA` and `ActorsShared80132724Msg`.
 typedef struct DnsgrMsg7DA {
-    /* 0x0 */ u8  field_0; // Game_Session::field_7
-    /* 0x1 */ u8  field_1; // Game_Session::field_6
+    /* 0x0 */ u8  field_0; // gGameSession::field_7
+    /* 0x1 */ u8  field_1; // gGameSession::field_6
     /* 0x2 */ s16 field_2;
 } DnsgrMsg7DA;
 STATIC_ASSERT_SIZEOF(DnsgrMsg7DA, 0x4);

@@ -198,7 +198,7 @@ void func_acropolis_security_room_801804CC(Task* arg0)
 
 L_case0:
     queue->field_1EA = 1;
-    slotParam[0]     = Stream_FindSlot(&Game_Session->field_4, 0, 0);
+    slotParam[0]     = Stream_FindSlot(&gGameSession->field_4, 0, 0);
     CdCmd_Enqueue(0x61, 0, slotParam);
     goto advance;
 
@@ -332,7 +332,7 @@ void func_acropolis_security_room_80180A78(Task* task)
     LINE_F2*        prim;
 
     coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
-    if ((0xC >> ((u8)Game_Session->field_4 - 1)) & 1) {
+    if ((0xC >> ((u8)gGameSession->field_4 - 1)) & 1) {
         scratch   = (void**)G_SCRATCH_HEAD;
         head      = *scratch;
         blk       = (AsrBeamScratch*)(head - 0x14);
@@ -565,7 +565,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
     }
 
     mem->field_22 = mem->field_22 + 1;
-    if ((u8)Game_Session->field_4 != 0xF) {
+    if ((u8)gGameSession->field_4 != 0xF) {
         Gp_ReleaseState1CMem(mem, arg0);
     }
 }

@@ -34,7 +34,7 @@ void func_actor_120500_80131E58(Task* arg0)
             Mem_AllocAuxWithImages(1);
             goto advance;
         case 1:
-            key          = ((SessionBytesAt4*)Game_Session)->field_4;
+            key          = ((SessionBytesAt4*)gGameSession)->field_4;
             key.data[0]  = 0x64;
             slot         = Stream_FindSlot(key.data, 0, 0);
             slotParam[0] = slot;
@@ -223,7 +223,7 @@ void func_actor_120500_801322A0(Task* arg0)
     tmd->field_1C           = &work->field_474;
     tmd->field_C            = 0;
     tmd->field_20           = &work->field_494;
-    place                   = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
+    place                   = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->field_4)->field_0;
     id                      = place->field_0;
     while (id != 0xFF) {
         if (id == 0x65) {
@@ -294,7 +294,7 @@ void func_actor_120500_8013241C(Task* arg0)
             }
             return;
         case 1:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 Task_RequestKill(arg0, 0);
                 return;
             }

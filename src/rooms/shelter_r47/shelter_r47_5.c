@@ -78,9 +78,9 @@ void func_shelter_r47_80185510(Task* task)
     SndEvt_EnqueueType7(0x542F0005, 1);
     Display_ReleaseRef();
     D_8007216C             = state->field_29;
-    Game_Session->field_1  = 0;
-    Game_Session->field_68 = 0;
-    Game_Session->field_66 = 0;
+    gGameSession->field_1  = 0;
+    gGameSession->field_68 = 0;
+    gGameSession->field_66 = 0;
     Task_Kill((Task*)task->spawnArg2);
     Task_RequestKill(task, 0);
 }

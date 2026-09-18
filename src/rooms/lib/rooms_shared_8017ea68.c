@@ -38,7 +38,7 @@ void RoomsShared8017ea68(Task* task)
     }
     if (ready == 0) {
         if (task->state == 0) {
-            Game_Session->field_2 = one;
+            gGameSession->field_2 = one;
             Ui_SpawnFromDesc(&D_800611E4, 0, 0, 0, obj);
             obj->status   = 0;
             obj->field_4 |= 0x80000000;
@@ -47,7 +47,7 @@ void RoomsShared8017ea68(Task* task)
     } else if (task->state == 0) {
         Ui_LayoutListPanel(list, (UiPanel*)obj);
         obj->status           = one;
-        Game_Session->field_2 = one;
+        gGameSession->field_2 = one;
         Ui_SetListScrollFlag(list, 1);
         Gp_ClearPreviewItems();
         D_80067634   = NULL;
@@ -68,7 +68,7 @@ void RoomsShared8017ea68(Task* task)
         if (task->state != 0) {
             SndEvt_EnqueueType6(0x3B, 0, 0);
         }
-        Game_Session->field_2 = 0;
+        gGameSession->field_2 = 0;
         obj->field_2E         = -1;
         obj->field_2C         = 0x34;
     }

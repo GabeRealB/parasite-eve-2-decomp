@@ -188,7 +188,7 @@ the old style as not yet converted rather than as a second convention.
 | `cdStream` / `cdReady` | CD→SPU MTS stream | `src/main/cdstream.c` | `include/main/cdstream.h` |
 | `tmd` | TMD model lists / stream | `src/main/tmd.c` | `include/main/tmd.h` |
 | `stream` | Stream channel slots | `src/main/stream.c` | `include/main/stream.h` |
-| `game` | Main session object | globals | `GameSession`, `gameSession` |
+| `game` | Main session object | globals | `GameSession`, `gGameSession` |
 | `player` | Player character state: position, HP/MP, equipped items | `src/main/wipsyscfg.c` | `include/main/wipsys.h` |
 | `wip` | Weak-evidence placeholders | `wipsyscfg.c`, etc. | rename when proven |
 `Wip*` types and `Wip_*` globals are provisional: keep them only until a better

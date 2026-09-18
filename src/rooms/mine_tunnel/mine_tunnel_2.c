@@ -22,7 +22,7 @@ void func_mine_tunnel_8017D6EC(Task* arg0)
 {
     arg0->field_24 = D_mine_tunnel_8017DFC4;
     Game_SetPtrSlot(arg0, 7);
-    if ((Game_Session->field_9 == 1) && (GameFlag_GetNibble(0xA1) == 1)) {
+    if ((gGameSession->field_9 == 1) && (GameFlag_GetNibble(0xA1) == 1)) {
         Room_Util36(2);
     }
     arg0->state = (s32)(arg0->state + 1);

@@ -282,7 +282,7 @@ void Display_ResetHeapFromSession(void)
 {
     GameSession* temp;
 
-    temp = Game_Session;
+    temp = gGameSession;
     Mem_ConfigureAuxHeap(temp->field_7, temp->field_6);
     Display_State.field_1e  = 0;
     Display_State.field_10d = 0;

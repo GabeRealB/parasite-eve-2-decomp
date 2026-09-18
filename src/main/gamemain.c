@@ -86,7 +86,7 @@ void Display_FlipDraw(s32 arg0)
         } else if (D_8006EC30 == 2) {
             Display_LoadImageStrips(arg0);
         } else if (D_8006EC30 == 3) {
-            Gfx_LoadImageSlot(Game_Session->field_7, Game_Session->field_6, arg0);
+            Gfx_LoadImageSlot(gGameSession->field_7, gGameSession->field_6, arg0);
         }
         if ((s8)D_80070E38 < 0x10) {
             DrawOTag(Gpu_OrderingTables[arg0].tag);

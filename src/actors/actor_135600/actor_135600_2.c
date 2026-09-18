@@ -73,7 +73,7 @@ void func_actor_135600_80132C18(Task* task)
 {
     s16 countdown;
 
-    if (Game_Session->field_1 != 0) {
+    if (gGameSession->field_1 != 0) {
         countdown = task->killCountdown;
         if (countdown > 0 && func_actor_135600_80131E68(((TmdObject*)task->extra)->field_8, countdown) >= 0x1F5) {
             task->killCountdown = 0x800;

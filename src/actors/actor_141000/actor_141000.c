@@ -198,7 +198,7 @@ void func_actor_141000_80132D3C(Task* task)
     if (D_80070F70 & 1) {
         Gp_SpawnEff(0x60070, (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8, 0x24200, NULL);
     }
-    if (Game_Session->field_4D != 0) {
+    if (gGameSession->field_4D != 0) {
         Task_Kill(task);
     }
 }

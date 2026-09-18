@@ -79,7 +79,7 @@ s32 func_dryfield_night_gas_station_8017F6B8(s32 arg0, s32 arg1, s32 arg2)
 
 /// Message handler for msg 0x117: walks the `Gp_PendingObj4C` list looking for
 /// an object in mode 5 whose `field_48` is 0xFF and which is still pending, and
-/// on a hit flips `Game_Session->field_1` / `field_68` and spawns the night gas
+/// on a hit flips `gGameSession->field_1` / `field_68` and spawns the night gas
 /// station cutscene task. Answers 1 only when it found one.
 s32 func_dryfield_night_gas_station_8017F7E0(s32 arg0, s32 arg1, s32 arg2)
 {
@@ -99,8 +99,8 @@ s32 func_dryfield_night_gas_station_8017F7E0(s32 arg0, s32 arg1, s32 arg2)
         }
 
         if (found != 0) {
-            Game_Session->field_1  = 1;
-            Game_Session->field_68 = 1;
+            gGameSession->field_1  = 1;
+            gGameSession->field_68 = 1;
             Task_SpawnOnDefaultList(D_dryfield_night_gas_station_8018406C, 0, 0, 0);
             return 1;
         }
@@ -124,7 +124,7 @@ s32 func_dryfield_night_gas_station_8017F89C(s32 arg0, s32 arg1, s32 arg2)
         }
         Gp_StartCapSlot(0x12, 1, var_a2);
     }
-    if ((arg2 == 0x17) && (Game_Session->field_5 == 4)) {
+    if ((arg2 == 0x17) && (gGameSession->field_5 == 4)) {
         if (Gp_HasCollectedBit(0x11E) != 0) {
             if (GameFlag_GetNibble(0xD4) == 0) {
                 GameFlag_SetNibble(0xD4, 1);
@@ -151,7 +151,7 @@ s32 func_dryfield_night_gas_station_8017F990(Task* task, s32 msgId, GpMsg13EF* m
 
 /// Arms the room's night sequence, once: while nibble 0x63 is still clear it
 /// sets that nibble, plays the script blob at
-/// `D_dryfield_night_gas_station_80188B64`, raises `Game_Session->field_69`
+/// `D_dryfield_night_gas_station_80188B64`, raises `gGameSession->field_69`
 /// bit 0x80, applies the room's area records, clears nibbles 0x62 and 0x45 and
 /// queues sound event 0x64.
 s32 func_dryfield_night_gas_station_8017F9E8(void)
@@ -159,7 +159,7 @@ s32 func_dryfield_night_gas_station_8017F9E8(void)
     if (GameFlag_GetNibble(0x63) == 0) {
         GameFlag_SetNibble(0x63, 1);
         func_800E8614((s32)&D_dryfield_night_gas_station_80188B64, 1);
-        Game_Session->field_69 |= 0x80;
+        gGameSession->field_69 |= 0x80;
         Gp_ApplyAreaRecs(&D_dryfield_night_gas_station_801907A0);
         GameFlag_SetNibble(0x62, 0);
         GameFlag_SetNibble(0x45, 0);
@@ -168,12 +168,12 @@ s32 func_dryfield_night_gas_station_8017F9E8(void)
     return 0;
 }
 
-/// Tears the room's scripted sequence down: raises `Game_Session->field_68`
+/// Tears the room's scripted sequence down: raises `gGameSession->field_68`
 /// and `D_80115768`, hides the display, clears collection bit 0x117, installs
 /// the room's two cap files, runs the 0xA2/0x16 event and kills its own task.
 void func_dryfield_night_gas_station_8017FA6C(Task* arg0)
 {
-    Game_Session->field_68 = 1;
+    gGameSession->field_68 = 1;
     D_80115768             = 1;
     SetDispMask(0);
     Gp_ClearCollectedBit(0x117);
@@ -191,7 +191,7 @@ void func_dryfield_night_gas_station_8017FAEC(void)
 {
     s32 temp_v0;
 
-    if (Game_Session->field_1 == 0) {
+    if (gGameSession->field_1 == 0) {
         temp_v0 = GameFlag_GetNibble(0x63);
         if ((temp_v0 == 1) && (D_80114C12 != temp_v0)) {
             GameFlag_SetNibble(0x63, 2);

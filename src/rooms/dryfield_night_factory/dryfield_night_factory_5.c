@@ -31,7 +31,7 @@ extern void Room_Util16(s32);
 /// Room entry task tick: publish the room's message table in `Task::field_24`
 /// and claim game pointer slot 7, then park the `Mem_Calloc` slot the poller
 /// `func_dryfield_night_factory_8018076C` watches in it. Session variant
-/// `Game_Session::field_7 == 2` (the night factory) picks the larger spawn
+/// `gGameSession::field_7 == 2` (the night factory) picks the larger spawn
 /// tables and the second progress-nibble interpretation; every other variant
 /// picks the day set. The entry's own task and callback are spawned from the
 /// selected table at index 4 and 5, then nibble 0x48 is read -- under variant
@@ -42,7 +42,7 @@ extern void Room_Util16(s32);
 /// that makes GCC materialise the global's address ahead of `Mem_Calloc`, so
 /// the address quantity's live range spans the call. `local-alloc.c`'s
 /// `QTY_CMP_PRI` divides by the range length, which drops it below the
-/// `Game_Session` load quantity, and that load then wins `$v1` -- the target's
+/// `gGameSession` load quantity, and that load then wins `$v1` -- the target's
 /// allocation. Split into two statements it takes `$v1` itself and the load
 /// falls to `$a0`.
 void func_dryfield_night_factory_80180438(Task* arg0)
@@ -53,19 +53,19 @@ void func_dryfield_night_factory_80180438(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     slot       = (D_dryfield_night_factory_8018A7E8 = Mem_Calloc(4, 0));
     arg0->work = (TaskIdMap*)slot;
-    if (Game_Session->field_7 == 2) {
+    if (gGameSession->field_7 == 2) {
         D_dryfield_night_factory_8018A7E4 = D_dryfield_night_factory_80186E28;
     } else {
         D_dryfield_night_factory_8018A7E4 = D_dryfield_night_factory_80186DE0;
     }
-    if (Game_Session->field_7 == 2) {
+    if (gGameSession->field_7 == 2) {
         D_dryfield_night_factory_8018A7E0 = D_dryfield_night_factory_80186E94;
     } else {
         D_dryfield_night_factory_8018A7E0 = D_dryfield_night_factory_80186EA0;
     }
     Task_SpawnFromTable(D_dryfield_night_factory_8018A7E4, 4, 0, (s32)D_dryfield_night_factory_8018A7E8);
     Task_SpawnFromTable(D_dryfield_night_factory_8018A7E4, 5, 0, 0);
-    if (Game_Session->field_7 == 2) {
+    if (gGameSession->field_7 == 2) {
         Room_Util16(GameFlag_GetNibble(0x48) & 0xFF);
         SOFT_BARRIER();
     } else {
@@ -80,7 +80,7 @@ void func_dryfield_night_factory_80180438(Task* arg0)
 /// "just asking", so no prompt is started and the side effects are skipped.
 ///
 /// `0x19` asks which visit to the factory this is: under the night session
-/// (`Game_Session::field_7 == 2`) it answers `2` once nibble `0x3A` has counted
+/// (`gGameSession::field_7 == 2`) it answers `2` once nibble `0x3A` has counted
 /// two, and otherwise `1`; every other session variant answers nibble `0x61`
 /// plus one. `0x19` also offers the gate a request that runs CAP command `0xE`
 /// under flag nibble `-0x30` (fire while the nibble is *clear*, no item
@@ -101,7 +101,7 @@ s32 func_dryfield_night_factory_80180574(s32 arg0, s32 arg1, RoomEventMsg* in, R
 
     *out = *in;
     if (in->msgId == 0x19) {
-        variant = Game_Session->field_7;
+        variant = gGameSession->field_7;
         if (variant == 2) {
             if (in->field_5 == 0) {
                 if (GameFlag_GetNibble(0x3A) >= 2) {

@@ -2351,9 +2351,9 @@ void func_actor_444000_8013EC84(Actor444000* arg0)
                 Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 3), 0);
                 if (cfg->hp <= 0) {
                     ((GameActor*)player->work)->field_956 = 0xA;
-                    Game_Session->field_12D               = 0x1E;
-                    Game_Session->field_12E               = 0x36;
-                    Game_Session->field_12F               = 0x5A;
+                    gGameSession->field_12D               = 0x1E;
+                    gGameSession->field_12E               = 0x36;
+                    gGameSession->field_12F               = 0x5A;
                 }
             }
             frame = work->slots0[3].field_2 & 0x3FF;
@@ -3221,7 +3221,7 @@ void func_actor_444000_80141618(Actor444000* task)
                 if (work->field_EE8[sc->i] != NULL) {
                     work->field_F1B++;
                     model       = (TmdObject*)work->field_EE8[sc->i]->task->extra;
-                    sessionKey  = (GpAreaKey*)&Game_Session->field_4;
+                    sessionKey  = (GpAreaKey*)&gGameSession->field_4;
                     key.field_3 = sessionKey->field_3;
                     key.field_2 = sessionKey->field_2;
                     key.field_1 = sessionKey->field_1;

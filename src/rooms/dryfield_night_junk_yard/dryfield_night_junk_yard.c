@@ -73,7 +73,7 @@ s32 func_dryfield_night_junk_yard_8017D6AC(s32 arg0, s32 arg1, RoomEventMsg* in,
 
 s32 func_dryfield_night_junk_yard_8017D82C(s32 arg0, s32 arg1, RoomEventMsg* in)
 {
-    if ((in->field_2 == 3) && (Game_Session->field_9 == 1) && (GameFlag_GetNibble(0x9F) == 0)) {
+    if ((in->field_2 == 3) && (gGameSession->field_9 == 1) && (GameFlag_GetNibble(0x9F) == 0)) {
         GameFlag_SetNibble(0x9F, 1);
         func_800E8614((s32)&D_dryfield_night_junk_yard_801805A4, 0);
     }

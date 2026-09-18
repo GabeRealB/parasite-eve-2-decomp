@@ -36,10 +36,10 @@ void func_shelter_r36_8017D5E8(Task* task)
             task->state++;
             break;
         case 1:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 if (GameFlag_GetNibble(0x113) == 0) {
-                    Game_Session->field_128 = 0xFF;
-                    Game_Session->field_12E = state;
+                    gGameSession->field_128 = 0xFF;
+                    gGameSession->field_12E = state;
                     Task_Kill(task);
                 } else {
                     Gp_ResetCap();
@@ -80,8 +80,8 @@ void func_shelter_r36_8017D7B4(Task* task)
             task->state++;
             break;
         case 2:
-            Game_Session->field_128 = 0xFF;
-            Game_Session->field_12E = 1;
+            gGameSession->field_128 = 0xFF;
+            gGameSession->field_12E = 1;
             Task_Kill(task);
             break;
     }

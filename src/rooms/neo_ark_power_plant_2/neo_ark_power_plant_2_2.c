@@ -23,9 +23,9 @@ void func_neo_ark_power_plant_2_8017D6F4(Task* arg0)
 
     arg0->field_24 = D_neo_ark_power_plant_2_801801F8;
     Game_SetPtrSlot(arg0, 7);
-    temp_v1 = Game_Session->field_9;
+    temp_v1 = gGameSession->field_9;
     if (temp_v1 == 1) {
-        Game_Session->field_69 = temp_v1;
+        gGameSession->field_69 = temp_v1;
     }
     arg0->state = arg0->state + 1;
 }

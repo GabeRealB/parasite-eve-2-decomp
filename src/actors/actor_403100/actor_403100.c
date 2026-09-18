@@ -1449,7 +1449,7 @@ void func_actor_403100_80136610(Task* arg0)
 
     obj   = arg0->extra;
     coord = obj->field_8;
-    if ((*(u32*)&Game_Session->field_4 & ~0xFF) != 0x031D0200 ||
+    if ((*(u32*)&gGameSession->field_4 & ~0xFF) != 0x031D0200 ||
         (arg0->work = Mem_Calloc(0x678U, false)) == NULL) {
         Gp_DestroyEnemy(D_actor_403100_8015580C, arg0);
         return;
@@ -1461,7 +1461,7 @@ void func_actor_403100_80136610(Task* arg0)
     D_actor_403100_80155808              = work;
     obj->field_20                        = &work->field_0.matrices.color;
     arg0->field_24                       = &D_actor_403100_801556EC;
-    work->field_622                      = (s16)Game_Session->field_4;
+    work->field_622                      = (s16)gGameSession->field_4;
     enemy->field_48                      = 0;
     enemy->field_4                       = &coord->coord;
     D_actor_403100_8015580C->field_1C.vx = 0;
@@ -1751,9 +1751,9 @@ void func_actor_403100_80136830(Task* arg0)
                 } else {
                     D_actor_403100_80155808->field_658 = -1;
                     D_actor_403100_80155808->field_618 = 0x1400;
-                    Game_Session->field_127            = 0;
+                    gGameSession->field_127            = 0;
                     Gp_StateC08.field_6                = (u8)(Gp_StateC08.field_6 | 1);
-                    Game_Session->field_12C            = 0;
+                    gGameSession->field_12C            = 0;
                     D_actor_403100_8015580C->field_4C  = 0;
                     Gp_SetLightMode(arg0->spawnArg2, 0);
                     D_actor_403100_8015580C->node.field_4 = 9;

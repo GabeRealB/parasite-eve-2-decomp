@@ -107,7 +107,7 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
             goto inc;
         case 1:
         case 3:
-            if (Game_Session->field_1 != 0) {
+            if (gGameSession->field_1 != 0) {
                 return;
             }
         inc:

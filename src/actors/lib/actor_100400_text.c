@@ -1290,20 +1290,20 @@ void Actor00400_Fn02D48(Task* arg0)
             n = func_800E0C10(work->recs, &delta, 2, &mask);
             if (n < 3) {
                 if (n > 0) {
-                    if (Game_Session->field_7 == 4 &&
-                        (Game_Session->field_6 == 0x21 || Game_Session->field_6 == 0x2B ||
-                         Game_Session->field_6 == 0x2C || Game_Session->field_6 == 0x2D ||
-                         Game_Session->field_6 == 0x22)) {
+                    if (gGameSession->field_7 == 4 &&
+                        (gGameSession->field_6 == 0x21 || gGameSession->field_6 == 0x2B ||
+                         gGameSession->field_6 == 0x2C || gGameSession->field_6 == 0x2D ||
+                         gGameSession->field_6 == 0x22)) {
                         if ((mask & 2) == 0) {
                             hidden = 1;
                         }
-                    } else if (Game_Session->field_7 == 5 &&
-                               (Game_Session->field_6 == 0xD || Game_Session->field_6 == 0xE ||
-                                Game_Session->field_6 == 0x1B)) {
+                    } else if (gGameSession->field_7 == 5 &&
+                               (gGameSession->field_6 == 0xD || gGameSession->field_6 == 0xE ||
+                                gGameSession->field_6 == 0x1B)) {
                         if ((mask & 2) == 0) {
                             hidden = 1;
                         }
-                    } else if (Game_Session->field_6 == 0x1E && Game_Session->field_7 == 5) {
+                    } else if (gGameSession->field_6 == 0x1E && gGameSession->field_7 == 5) {
                         if ((mask & 8) == 0) {
                             hidden = 1;
                         }
@@ -1511,7 +1511,7 @@ static __inline__ s32 Actor00400_ApplyAreaConfig(Actor100400* arg0)
     u16                    flags;
 
     work = arg0->field_1C;
-    ses  = (GameSessionFrom4*)&Game_Session->field_4;
+    ses  = (GameSessionFrom4*)&gGameSession->field_4;
     cfg  = Actor00400_D15F20;
     while (cfg->area != 0xFF) {
         if ((ses->field_3 == cfg->area) && (ses->field_2 == cfg->room)) {
@@ -1720,7 +1720,7 @@ void Actor00400_Fn03920(Actor100400* arg0)
             }
             break;
         case 1:
-            if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x042D0000) {
+            if ((*(u32*)&gGameSession->field_4 & 0xFFFF0000) == 0x042D0000) {
                 if (GameFlag_GetNibble(0xB7) == 0) {
                     work->field_666 = 1;
                     w               = arg0->field_1C;
@@ -2333,9 +2333,9 @@ void Actor00400_Fn04E18(Actor100400* arg0)
             ctx->field_C &= ~0x80;
             break;
     }
-    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    sess = (GameSessionFrom4*)&gGameSession->field_4;
     ctx3 = arg0->field_2C;
-    if (sess->field_3 == 4 && sess->field_2 == 0x21 && (u32)(Game_Session->field_4 - 0xA) < 2U) {
+    if (sess->field_3 == 4 && sess->field_2 == 0x21 && (u32)(gGameSession->field_4 - 0xA) < 2U) {
         ctx3->field_C |= 0x80;
     }
 }

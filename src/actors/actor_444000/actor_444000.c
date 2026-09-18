@@ -128,35 +128,35 @@ void func_actor_444000_801321FC(s32 arg0)
     work = (Actor444000EventWork*)D_actor_444000_80161860->work;
     switch (arg0) {
         case 0:
-            Game_Session->field_52 = 1;
+            gGameSession->field_52 = 1;
             D_8007216C             = work->field_28.b;
             break;
         case 1:
         case 2:
-            switch (Game_Session->field_132) {
+            switch (gGameSession->field_132) {
                 case 0:
-                    Game_Session->field_5 = 4;
+                    gGameSession->field_5 = 4;
                     D_8007216D            = 4;
                     break;
                 case 1:
-                    Game_Session->field_5 = 5;
+                    gGameSession->field_5 = 5;
                     D_8007216D            = 5;
                     break;
                 case 2:
                 case 3:
-                    Game_Session->field_5 = 6;
+                    gGameSession->field_5 = 6;
                     D_8007216D            = 6;
                     break;
             }
-            Game_Session->unknown_133[1] = Game_Session->field_5 - 1;
-            Game_Session->unknown_133[0] = 1;
-            Game_Session->field_76       = 1;
+            gGameSession->unknown_133[1] = gGameSession->field_5 - 1;
+            gGameSession->unknown_133[0] = 1;
+            gGameSession->field_76       = 1;
             D_8007216C                   = work->field_28.b;
             Gp_ApplyAreaRecs(D_8018FB6C);
             if (arg0 == 1) {
                 work->field_24 = Task_Spawn(1, 0x2D, 0x10, 0);
             }
-            Game_Session->field_52 = 1;
+            gGameSession->field_52 = 1;
             break;
     }
 }
@@ -181,7 +181,7 @@ void func_actor_444000_80132358(Task* task)
     s32                   state;
     s16                   timer;
 
-    if (Game_Session->field_65 != 0) {
+    if (gGameSession->field_65 != 0) {
         return;
     }
     if ((s8)Gp_StateC08.field_9 != 0) {
@@ -211,7 +211,7 @@ void func_actor_444000_80132358(Task* task)
             }
             if (task->spawnArg1 != 0) {
                 work             = (Actor444000EventWork*)task->work;
-                work->field_28.h = Game_Session->field_4;
+                work->field_28.h = gGameSession->field_4;
                 Gp_MsgPlayerWeapon(0);
                 func_800E8634((s32)&D_actor_444000_80144634, 0, (s32)&D_actor_444000_8014488C);
                 task->state = 3;
@@ -231,7 +231,7 @@ void func_actor_444000_80132358(Task* task)
                     Gp_StateF0.field_0      = 0;
                     Gp_StateF0.field_2      = 0;
                     Gp_StateF0.field_3      = 0;
-                    Game_Session->field_69 |= 0x80;
+                    gGameSession->field_69 |= 0x80;
                     D_8007272D              = 0xD;
                     other->field_30         = state;
                 }
@@ -243,15 +243,15 @@ void func_actor_444000_80132358(Task* task)
             timer               = (u16)task->killCountdown + 1;
             task->killCountdown = timer;
             if (timer >= 0x15) {
-                work->field_28.h = Game_Session->field_4;
+                work->field_28.h = gGameSession->field_4;
                 func_800E8634((s32)&D_actor_444000_8014431C, 0, (s32)&D_actor_444000_801444E4);
                 task->state += 1;
             }
             break;
         case 3:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 D_801855DE              = 0;
-                Game_Session->field_120 = D_8018FBC8;
+                gGameSession->field_120 = D_8018FBC8;
                 Task_SpawnFromTable(&D_80187150, 0, 1, 0);
                 Task_Kill(task);
                 return;

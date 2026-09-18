@@ -101,7 +101,7 @@ void func_actor_146300_80131ECC(Task* task)
             task->state++;
             break;
         case 11:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 task->state = 0x14;
             }
             break;
@@ -115,7 +115,7 @@ void func_actor_146300_80131ECC(Task* task)
             task->state++;
             break;
         case 31:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 task->state = 0x28;
             }
             break;
@@ -126,7 +126,7 @@ void func_actor_146300_80131ECC(Task* task)
             break;
         case 21:
         case 41:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 task->state = 1;
             }
             break;
@@ -235,7 +235,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     obj->field_C            = 0;
     D_actor_146300_8014282C = task;
     helper                  = Task_SpawnFromTable(D_actor_146300_801427C8, 1, 0, 0);
-    sessionKey              = (GpAreaKey*)&Game_Session->field_4;
+    sessionKey              = (GpAreaKey*)&gGameSession->field_4;
     idx                     = enemy->field_8 >> 0xC;
     model                   = helper->extra;
     D_actor_146300_80142830 = helper;

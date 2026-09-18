@@ -43,7 +43,7 @@ s32 func_acropolis_square_80182360(void)
         key.field_3 = 1;
         key.field_2 = 1;
         Gp_SetAreaObjId(&key, 2, 1);
-        Game_Session->field_1 = 1;
+        gGameSession->field_1 = 1;
         Task_SpawnFromTable(&D_acropolis_square_80183808, 0, 0, 0);
         return 0;
     }
@@ -67,21 +67,21 @@ void func_acropolis_square_801823DC(Task* task)
             task->state++;
             return;
         case 1:
-            if ((0x268 >> ((u8)Game_Session->field_4 - 1)) & 1) {
+            if ((0x268 >> ((u8)gGameSession->field_4 - 1)) & 1) {
                 work->field_10.vx = 0x19AA;
                 work->field_10.vy = -0xF96;
                 work->field_10.vz = 0x8DE;
                 Gp_SpawnEff(0x60047, coord, D_acropolis_square_80183B98 * 0x10000218 + 0x10E08,
                             &work->field_10);
             }
-            if ((u8)Game_Session->field_4 == 0xE) {
+            if ((u8)gGameSession->field_4 == 0xE) {
                 work->field_10.vx = 0x18D2;
                 work->field_10.vy = -0x100B;
                 work->field_10.vz = 0x8AB;
                 Gp_SpawnEff(0x60047, coord, D_acropolis_square_80183B98 * 0x218 + 0x10010608,
                             &work->field_10);
             }
-            if ((u8)Game_Session->field_4 == 9) {
+            if ((u8)gGameSession->field_4 == 9) {
                 work->field_10.vx = 0x19AA;
                 work->field_10.vy = -0xF96;
                 work->field_10.vz = 0x8E8;

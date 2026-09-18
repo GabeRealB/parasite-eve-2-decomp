@@ -21,7 +21,7 @@ void func_actor_317000_801621F4();
 /// added to `pos`, `step.vy` gains 0x120000 while `field_4C4` is raised, the
 /// integer halves move the root coordinate and only the fractions are kept.
 /// The animation slots tick, the second coordinate is refreshed while
-/// `Game_Session->field_4D` is set, `field_4C6` ramps up by 0x40 to 0x1000 or
+/// `gGameSession->field_4D` is set, `field_4C6` ramps up by 0x40 to 0x1000 or
 /// down by 0x80 to 0 on `field_4C5`, and the aim body runs against slot 3.
 /// A non-negative `field_4C8` counts down and frees the model buffers at 0.
 void func_actor_317000_80161E68(Task* task)
@@ -53,7 +53,7 @@ void func_actor_317000_80161E68(Task* task)
             Gp_AnimTickIndex((GpAnimCtx*)work, i);
         }
     }
-    if (Game_Session->field_4D != 0) {
+    if (gGameSession->field_4D != 0) {
         ((TmdObject*)task->extra)->field_8[1].flg = 0;
         Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
         func_800D7A9C(ext, (VECTOR*)&((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);

@@ -35,7 +35,7 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
 
     ctx                 = task->spawnArg2;
     Gp_State1C->field_A = 2;
-    mode                = Game_Session->field_132;
+    mode                = gGameSession->field_132;
 
     if (mode != 0) {
         if (mode < 2 && (Display_State.field_8 & 2) == 0) {
@@ -179,7 +179,7 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
         case 0x25:
             func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, ctx->field_24, 0x80);
             func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[1], 0x200, ctx->field_24, 0x80);
-            if (Game_Session->field_135 == 1) {
+            if (gGameSession->field_135 == 1) {
                 func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[3], 0x200, 0xF63, 0x10C0);
             }
             func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[20], 0x200, 0x5400);
@@ -256,7 +256,7 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
         case 0x1F:
         case 0x27:
             func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_8018754C[0], 0x200, ctx->field_24, 0x80);
-            if (Game_Session->field_135 == 1) {
+            if (gGameSession->field_135 == 1) {
                 func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_8018754C[2], 0x200, 0xF63, 0x10C0);
             }
             break;

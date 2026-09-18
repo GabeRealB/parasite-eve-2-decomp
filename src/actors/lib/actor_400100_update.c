@@ -169,7 +169,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
                     if (player->field_2C->field_8->coord.t[1] >= 0x1770) {
                         if (config->hp > 0) {
                             for (i = 0; i < 10; i++) {
-                                Game_Session->field_12D = 0x7F;
+                                gGameSession->field_12D = 0x7F;
                                 playerSlot              = Game_GetPtrSlot(3);
                                 if (Gp_DispatchMsg(playerSlot, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 4), 0) == 1)
                                     break;
@@ -188,7 +188,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
                             work->field_8DC = (s32)((s32)work->field_8DC >> 1);
                             work->field_8E0 = (s32)((s32)work->field_8E0 >> 1);
                         }
-                    } else if (((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x04010000) && (work->field_8D8 != 0) && (work->field_8E0 != 0) && ((s16)work->field_C28 < 6)) {
+                    } else if (((*(u32*)&gGameSession->field_4 & 0xFFFF0000) == 0x04010000) && (work->field_8D8 != 0) && (work->field_8E0 != 0) && ((s16)work->field_C28 < 6)) {
                         if (Actor00100_InRegion(player)) {
                             if (Actor00100_InDirection(player, (VECTOR*)&work->field_8D8)) {
                                 work->field_8E8     = 0x38;
@@ -263,7 +263,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
             nextAction = work->field_BFC;
             switch (nextAction) {
                 case 1:
-                    if ((((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x04010000) || (work->field_8E8 != 0x38)) && (config->hp > 0)) {
+                    if ((((*(u32*)&gGameSession->field_4 & 0xFFFF0000) != 0x04010000) || (work->field_8E8 != 0x38)) && (config->hp > 0)) {
                         nextMessage     = &work->field_BF8;
                         work->field_C00 = 0;
                         work->field_C04 = 0;

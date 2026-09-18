@@ -14,7 +14,7 @@
 /// record to the outgoing one and answers by editing `field_3` of the copy; a
 /// non-zero `field_5` suppresses the side effects, as for every handler.
 ///
-/// The response byte is the session's stage (`Game_Session.field_7`), read once
+/// The response byte is the session's stage (`gGameSession.field_7`), read once
 /// into a local and reused: the stage-2-only message 7 keeps that byte when
 /// event nibble 0x3C is set and answers 1 when it is clear.
 ///
@@ -27,7 +27,7 @@
 /// starts 8 bytes before its `addiu $sp` - the `text` cut in the manifest.
 s32 func_dryfield_night_back_street_8017D5D0(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    GameSession* session = Game_Session;
+    GameSession* session = gGameSession;
     u8           response;
 
     *out     = *in;
@@ -43,12 +43,12 @@ s32 func_dryfield_night_back_street_8017D5D0(s32 arg0, s32 arg1, RoomEventMsg* i
     }
     if (in->msgId == 9 && GameFlag_GetNibble(0x3F) == 0) {
         if (in->field_5 == 0) {
-            Gp_RunCapCmd1(Game_Session->field_7 == 2 ? 2 : 9);
+            Gp_RunCapCmd1(gGameSession->field_7 == 2 ? 2 : 9);
             Gp_SetNibbleIf(in->field_6, 2);
         }
         return 0;
     }
-    if (in->field_5 == 0 && Game_Session->field_7 == 2) {
+    if (in->field_5 == 0 && gGameSession->field_7 == 2) {
         SndEvt_EnqueueType7(0x52050006, 0xF);
     }
     return 1;

@@ -42,19 +42,19 @@ void func_actor_136300_8013267C(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            Game_Session->field_68 = 1;
+            gGameSession->field_68 = 1;
             Gp_MsgPlayerWeapon(0);
             func_800E8614((s32)&D_actor_136300_8013C5C8, 1);
             arg0->state += 1;
             return;
         case 1:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 arg0->state += 1;
             }
             return;
         case 2:
             if (Gp_GetCapEventKey() == 2) {
-                Game_Session->field_68 = 0;
+                gGameSession->field_68 = 0;
                 Gp_MsgPlayerWeapon(1);
                 Task_Kill(arg0);
                 return;
@@ -63,7 +63,7 @@ void func_actor_136300_8013267C(Task* arg0)
             arg0->state += 1;
             return;
         case 3:
-            if (Game_Session->field_1 != 1) {
+            if (gGameSession->field_1 != 1) {
                 arg0->state += 1;
             }
             return;

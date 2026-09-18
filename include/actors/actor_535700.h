@@ -53,7 +53,7 @@ extern Actor535700Work* ActorsShared80131f9cWork;
 /// The task body reads the count from a live-in `$v0`: GCC hoists its `lui` /
 /// `lw` above `addiu $sp`, so splat cuts the function at the prologue and the
 /// load lands in the overlay's leading rodata. See "Splat cuts the first
-/// function after a hoisted `Game_Session` load" in `DECOMPILATION_LEARNINGS.md`.
+/// function after a hoisted `gGameSession` load" in `DECOMPILATION_LEARNINGS.md`.
 extern s32 D_actor_535700_80146840;
 
 /// Reset argument the "play animation" opcode above leaves behind: the

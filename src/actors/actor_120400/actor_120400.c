@@ -25,7 +25,7 @@ extern GpMsgEntry D_actor_120400_8013E76C[];
 /// two children `D_actor_120400_8013E748` holds -- table entries 1 and 2. Each
 /// has `TmdObject::field_24` / `field_25` loaded with the texture page and CLUT
 /// row of the `GpAreaPlace` that entry selects, reached through the area key
-/// `&Game_Session->field_4` and indexed by the model id the child's own
+/// `&gGameSession->field_4` and indexed by the model id the child's own
 /// `spawnArg2` carries at `GpEnemy::field_8 >> 12`, and each then has its
 /// texture stream processed twice when it has an aux buffer. The body ends by
 /// handing the parent to `ActorsShared80132f24`, pointing `field_24` at the
@@ -59,7 +59,7 @@ void func_actor_120400_80131E5C(Task* arg0)
 
         model       = (TmdObject*)spawned->extra;
         idx         = ((GpEnemy*)arg0->spawnArg2)->field_8 >> 12;
-        sessionKey  = (GpAreaKey*)&Game_Session->field_4;
+        sessionKey  = (GpAreaKey*)&gGameSession->field_4;
         key.field_3 = sessionKey->field_3;
         key.field_2 = sessionKey->field_2;
         key.field_1 = sessionKey->field_1;
@@ -87,11 +87,11 @@ void func_actor_120400_80131E5C(Task* arg0)
            for the last byte, global CSE merges this block's area key with the
            one above into a single cross-block pseudo, and the allocation of
            `spawned` and every address temp after it shifts. */
-        sessionKey  = (GpAreaKey*)(keyAddr = (u8*)&Game_Session->field_4);
+        sessionKey  = (GpAreaKey*)(keyAddr = (u8*)&gGameSession->field_4);
         key.field_3 = sessionKey->field_3;
         key.field_2 = sessionKey->field_2;
         key.field_1 = ((GpAreaKey*)keyAddr)->field_1;
-        key.field_0 = ((GpAreaKey*)(&Game_Session->field_4))->field_0;
+        key.field_0 = ((GpAreaKey*)(&gGameSession->field_4))->field_0;
         Gp_SyncAreaKeyIndex(&key);
         rec             = Gp_GetNestedAreaRec(&key);
         place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
@@ -118,7 +118,7 @@ void func_actor_120400_80131E5C(Task* arg0)
 /// `field_474` set every animation slot is ticked. Unless the model is hidden
 /// (bit 0x80 of `TmdObject::field_C`), the second coordinate's work matrix
 /// feeds `func_800EA1A8` and a non-zero result draws the ground-effect quad;
-/// when `Game_Session->field_4D` is set the same coordinate is flagged stale,
+/// when `gGameSession->field_4D` is set the same coordinate is flagged stale,
 /// updated and re-ranked through `func_800D7A9C`. The body ends decrementing
 /// the `field_500` teardown timer, freeing the model's buffers on the frame it
 /// reaches zero.
@@ -153,7 +153,7 @@ void func_actor_120400_80132050(Task* arg0)
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
         }
     }
-    if (Game_Session->field_4D != 0) {
+    if (gGameSession->field_4D != 0) {
         ((TmdObject*)arg0->extra)->field_8[1].flg = 0;
         Gp_UpdateCoord(&((TmdObject*)arg0->extra)->field_8[1]);
         func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->field_8[1].workm.t, 0, 3);

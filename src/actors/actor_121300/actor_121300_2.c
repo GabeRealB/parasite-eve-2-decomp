@@ -281,7 +281,7 @@ void func_actor_121300_80133BFC(Task* arg0)
     tmd->field_1C           = &work->field_43C;
     tmd->field_C            = 0;
     tmd->field_20           = &work->field_45C;
-    place                   = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
+    place                   = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->field_4)->field_0;
     id                      = place->field_0;
     while (id != 0xFF) {
         if (id == 0x84) {
@@ -366,7 +366,7 @@ void func_actor_121300_80133D98(Task* arg0)
             arg0->state += 1;
             break;
         case 2:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
                 Task_SpawnFromTable(&ActorsShared80136280Desc, 9, 0, 0);
                 arg0->state += 1;
             }

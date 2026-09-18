@@ -19,7 +19,7 @@ void ActorsShared801436cc(void* arg0, Task* task)
     s32        idx;
     u32        raw;
 
-    sessionKey  = (GpAreaKey*)&Game_Session->field_4;
+    sessionKey  = (GpAreaKey*)&gGameSession->field_4;
     raw         = ((GpWorkObj*)task->parent->spawnArg2)->field_8.as_u16;
     model       = (TmdObject*)task->extra;
     key.field_3 = sessionKey->field_3;

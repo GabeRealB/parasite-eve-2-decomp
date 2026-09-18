@@ -28,7 +28,7 @@ s32 func_shelter_r47_8017FE84(s32 arg0, s32 arg1, RoomEventMsg* arg2)
     ShelterR47Object* p;
     ShelterR47Object* q;
 
-    field9 = Game_Session->field_9;
+    field9 = gGameSession->field_9;
     if (field9 == 1) {
         switch (arg2->field_2) {
             case 2:

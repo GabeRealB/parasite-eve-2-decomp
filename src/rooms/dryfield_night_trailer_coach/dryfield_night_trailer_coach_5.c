@@ -19,7 +19,7 @@ void func_dryfield_night_trailer_coach_80182924(void)
     SVECTOR* r;
     u8       view;
 
-    view = Game_Session->field_4;
+    view = gGameSession->field_4;
     switch (view) {
         case 3:
             p = D_dryfield_night_trailer_coach_80189400;

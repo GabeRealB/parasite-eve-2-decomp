@@ -56,7 +56,7 @@ s32 func_actor_204000_8014A06C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
     s16                      t;
     s32                      mag;
 
-    if (Game_Session->field_4D == 1 || D_80072729 == 1) {
+    if (gGameSession->field_4D == 1 || D_80072729 == 1) {
         return 0;
     }
 

@@ -16,7 +16,7 @@ s32 func_dryfield_underpass_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomE
     u8 temp_v1;
 
     temp_v1 = in->field_2;
-    if ((temp_v1 == 1) && (Game_Session->field_9 == temp_v1) && (GameFlag_GetNibble(0xC9) == 0)) {
+    if ((temp_v1 == 1) && (gGameSession->field_9 == temp_v1) && (GameFlag_GetNibble(0xC9) == 0)) {
         GameFlag_SetNibble(0xC9, 1);
         func_800E8614((s32)&D_dryfield_underpass_8017E8D8, 0);
     }
@@ -27,7 +27,7 @@ void func_dryfield_underpass_8017D970(Task* arg0)
 {
     arg0->field_24 = D_dryfield_underpass_8017E830;
     Game_SetPtrSlot(arg0, 7);
-    if ((Game_Session->field_9 == 1) && (GameFlag_GetNibble(0xC9) == 0)) {
+    if ((gGameSession->field_9 == 1) && (GameFlag_GetNibble(0xC9) == 0)) {
         Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_dryfield_underpass_8017E89C, 0x7DB);
     }
     arg0->state = arg0->state + 1;
@@ -39,7 +39,7 @@ void func_dryfield_underpass_8017DA00(void)
 
 /// Builds the message 0x26 record the room asks `Room_Script09` for - the same
 /// nibble 0xC9 / 0x53 / 0x51 answer in `field_3` - and publishes it: the answer
-/// is the room index stored in `Game_Session.field_5` (and the area-record id
+/// is the room index stored in `gGameSession.field_5` (and the area-record id
 /// `D_8007216D`), then the session is told to rebuild through
 /// `Gp_RoomObjState1`. `Room_Script01`'s script-mode branch is the same code
 /// with a task wrapper around it.
@@ -74,9 +74,9 @@ void func_dryfield_underpass_8017DA08(void)
             }
         }
     }
-    session                = Game_Session;
+    session                = gGameSession;
     room                   = dst.field_3;
     session->field_5       = room;
     D_8007216D             = room;
-    Game_Session->field_76 = 1;
+    gGameSession->field_76 = 1;
 }

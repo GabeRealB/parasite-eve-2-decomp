@@ -71,7 +71,7 @@ void func_actor_450900_80131E38(Task* task)
             if (Gp_CapBusy() != 0) {
                 break;
             }
-            if (Game_Session->field_1 != 0) {
+            if (gGameSession->field_1 != 0) {
                 break;
             }
             if (D_801153F4 != 0) {
@@ -131,7 +131,7 @@ void func_actor_450900_8013223C(Task* task)
             task->state = task->state + 1;
             break;
         case 3:
-            if (Game_Session->field_1 == 0) {
+            if (gGameSession->field_1 == 0) {
             kill:
                 Gp_MsgPlayerWeapon(1);
                 D_801153F4 = 0;
@@ -163,7 +163,7 @@ void func_actor_450900_8013235C(Task* task)
             }
             break;
         case 3:
-            if (Game_Session->field_1 == 2) {
+            if (gGameSession->field_1 == 2) {
                 task->state = task->state + 1;
             }
             break;

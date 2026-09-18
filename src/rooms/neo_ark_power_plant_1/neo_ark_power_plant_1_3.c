@@ -19,11 +19,11 @@ void func_neo_ark_power_plant_1_8017D928(Task* task)
 {
     task->field_24 = D_neo_ark_power_plant_1_8017EB18;
     Game_SetPtrSlot(task, 7);
-    if (Game_Session->field_9 == 1) {
-        Game_Session->field_69 = 1;
+    if (gGameSession->field_9 == 1) {
+        gGameSession->field_69 = 1;
     }
     if (GameFlag_GetNibble(0xFB) == 0) {
-        Game_Session->field_126 = 1;
+        gGameSession->field_126 = 1;
         Gp_StateF0.field_0      = 2;
     }
     task->state = (s32)(task->state + 1);

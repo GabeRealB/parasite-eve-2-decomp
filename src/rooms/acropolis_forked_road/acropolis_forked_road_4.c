@@ -91,7 +91,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
     work  = (AfrLampWork*)task->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
     if (Gp_State1C->field_4 < 4 &&
-        ((D_acropolis_forked_road_801821E8[task->spawnArg1 & 0xF] >> ((u8)Game_Session->field_4 - 1)) & 1)) {
+        ((D_acropolis_forked_road_801821E8[task->spawnArg1 & 0xF] >> ((u8)gGameSession->field_4 - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch  = (void**)G_SCRATCH_HEAD;
         *scratch = (u8*)*scratch - 0x14;
