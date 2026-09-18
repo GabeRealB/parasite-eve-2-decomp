@@ -124,12 +124,12 @@ s16 Gp_LookupStageFlag(s32 arg0);
 s32 Gp_YawToPosXZ(Task* arg0, GpPosXZ* arg1);
 u8  Gp_GetViewCountLo(void);
 
-struct _GpAreaKey;
+struct GpAreaKey;
 
 /// Mirror of `Gp_SetCurAreaFlag4` for an explicit key: clears bit 2 of
 /// `GpAreaObj.field_1` on the record selected by `Gp_AreaTables[arg0->stage]`
 /// + `arg0->area`. Null records are skipped, as in the setter.
-void Gp_ClearAreaFlag4(struct _GpAreaKey* arg0);
+void Gp_ClearAreaFlag4(struct GpAreaKey* arg0);
 
 void Gp_SetCurAreaFlag4(void);
 void Gp_ApplyAreaFlag4List(s16 arg0, GpAreaFlagRec* arg1);

@@ -41,7 +41,7 @@ struct Task;
 /// per-room view, the room within the area, and the per-area warp. The same
 /// key is `GameSession.at4.loc` and `Mc_SaveData.at4.loc`, and is passed into
 /// area, view, room and warp lookups.
-typedef struct _GpAreaKey {
+typedef struct GpAreaKey {
     u8 view;  // 1-based view slot; innermost index of the per-room view table
     u8 room;  // 1-based room index within the area
     u8 area;  // 1-based area / CDF folder within the stage
@@ -54,7 +54,7 @@ STATIC_ASSERT_SIZEOF(GpAreaKey, 0x6);
 /// 8-byte location cell: the 6-byte place key plus two bytes an 8-byte copy
 /// also takes. `loc` is the key; `raw` is the unaligned 8-byte assignment
 /// used to copy the cell between the session and the save.
-typedef union _GameLoc {
+typedef union {
     GpAreaKey loc;
     GBytes8   raw;
 } GameLoc;
@@ -66,7 +66,7 @@ STATIC_ASSERT_SIZEOF(GameLoc, 8);
 /// place in the world, the tasks the session keeps by slot, remapped pad
 /// buttons, and the flags that cutscenes, view loads and death/restart share.
 /// New game, load and reset zero the whole object, which pins the size at 0x13C.
-typedef struct _GameSession {
+typedef struct {
     s8           deathVariant;   // (0 none, 1/2 which death cutscene file); nonzero blocks resume and menu
     s8           eventState;     // 0 idle; nonzero blocks player-dir handling and room scripts
     u8           uiOpen;         // 1 while a UI overlay is up; enables d-pad auto-repeat

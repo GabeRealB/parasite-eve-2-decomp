@@ -54,6 +54,19 @@ part of the acceptance test rather than as advice.
   what says the role is unknown. Name it from that same reading, or drop the
   claim and say the role is unproven. Finishing with most of a struct still
   spelled `field_XX` is an unfinished step, not a conservative one.
+- **Leave none of the old spellings behind, the struct tag included.** A tag is
+  carried only where C forces it - the type is self-referential, or something
+  refers to it as `struct Tag` - and is otherwise dropped, leaving
+  `typedef struct { ... } Name;`. Where it is required it is spelled exactly
+  like the type, with no leading underscore, since that marker means private and
+  a public type wearing it reads as a contradiction. Check before deciding:
+
+      grep -rn 'struct _Name\b' src include | grep -v typedef
+
+  This is not cosmetic. The driver treats an item as still outstanding while its
+  old name appears anywhere under `src` or `include`, so one surviving tag makes
+  the pass re-pick the same item forever and the sweep never advances. Your step
+  is finished only when the old spelling is gone from the tree.
 - **Follow an alias to its source.** When a field turns out to cache, mirror or
   index another object's field, that other field is the thing to go and read;
   the name and the comment come from what the value *is*, not from where it was

@@ -6,7 +6,7 @@
 #include "main/display.h"
 #include "main/task.h"
 
-struct _GpAreaKey;
+struct GpAreaKey;
 struct _GpActorArg;
 struct _GpAreaFlagRec;
 struct _GpAreaRec;
@@ -435,7 +435,7 @@ void Gp_LoadWaitAreaCd(Task* task);
 /// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0,
 /// then after 7 frames clears `CdCmd_Queue.field_22E` and advances state.
 void Gp_FadeGrayHold(Task* task);
-void Gp_InitStageVisit(struct _GpAreaKey* arg0);
+void Gp_InitStageVisit(struct GpAreaKey* arg0);
 /// Pick companion type into `Mc_SaveData.field_13` from the NPC room tables.
 /// Returns 0 if already current or none; else 1/2/3 for the caller to store
 /// in `GameSession.companionType`.
@@ -443,7 +443,7 @@ s32  Gp_PickCompanion(void);
 void Gp_ApplyNpcRoomSnd(void);
 void Gp_SetupCompanionActor(struct _GpActorArg* arg0, u16* arg1);
 void Gp_ClearFlagBank(s32 arg0);
-void Gp_MarkAreaVisited(struct _GpAreaKey* arg0);
+void Gp_MarkAreaVisited(struct GpAreaKey* arg0);
 s32  Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// Same room-object link as `Gp_LinkRoomObjects`, then spawn type 0x1B as a
 /// child, clear `GameSession.roomObjsDirty`, and increment `task->state`.
