@@ -271,9 +271,25 @@ def processed_set(root: str, nodes: dict) -> set:
     handled = _recorded_names(root)
     for usr, meta in nodes.items():
         name = meta["name"]
-        if name in vendor or name in _PRIMITIVE or name in handled:
+        if name in handled or _out_of_scope(name, meta, vendor):
             out.add(usr)
     return out
+
+
+def _out_of_scope(name: str, meta: dict, vendor: set) -> bool:
+    """Is this not the pass's work at all?
+
+    Distinct from having been processed: these are never named or documented,
+    they just must not block anything that depends on them. Three kinds beyond
+    the library and machine types - the decomp's own scaffolding headers, the
+    assembler shim symbols, and the symbols the static-assert macro generates,
+    which exist once per assertion and carry no meaning of their own.
+    """
+    if name in vendor or name in _PRIMITIVE:
+        return True
+    if name.startswith("__maspsx_") or name.startswith("static_assertion_"):
+        return True
+    return (meta.get("file") or "").startswith("include/decomp/")
 
 
 def _recorded_names(root: str) -> set:
