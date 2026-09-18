@@ -229,13 +229,13 @@ void Actor01600_Fn00674(Actor01600Ctx* arg0, Actor01600* arg1)
                 arg1->field_30 = 2;
             }
         }
-        map = *(u32*)&gGameSession->loc & 0xFFFF0000;
+        map = *(u32*)&gGameSession->at4.loc & 0xFFFF0000;
         if (map != 0x3260000 && map != 0x4070000 && map != 0x4010000) {
             if (coord->coord.t[1] >= 0x65) {
                 coord->coord.t[1] = -0xA;
             }
         }
-        if (((*(u32*)&gGameSession->loc & 0xFFFF0000) == 0x031D0000) && (coord->coord.t[1] >= -0x3E7)) {
+        if (((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x031D0000) && (coord->coord.t[1] >= -0x3E7)) {
             id = (((u16)arg1->field_20->field_8 >> 0xC) << 8) | 0x40100005;
             SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
             id = (((u16)arg1->field_20->field_8 >> 0xC) << 8) | 0x4010000A;
@@ -243,7 +243,7 @@ void Actor01600_Fn00674(Actor01600Ctx* arg0, Actor01600* arg1)
             Actor01600_Fn06F10(arg1);
             Actor01600_Fn06FDC(arg1, 0);
         }
-        if ((*(u32*)&gGameSession->loc & 0xFFFF0000) == 0x04010000) {
+        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x04010000) {
             if (coord->coord.t[1] > 0) {
                 work->field_532 = 1;
             }

@@ -29,7 +29,7 @@ void func_dryfield_factory_8017FC18(Task* task)
             goto advance;
         case 1:
             if (GameFlag_GetNibble(0x48) <= 0) {
-                if (gGameSession->loc.stage == 2) {
+                if (gGameSession->at4.loc.stage == 2) {
                     Room_Util17(0);
                     SOFT_BARRIER();
                 } else {
@@ -48,7 +48,7 @@ void func_dryfield_factory_8017FC18(Task* task)
             if (Gp_GetCapEventKey() == 3) {
                 GameFlag_SetNibble(0x48, 1);
                 GameFlag_SetNibble(0x4A, 1);
-                if (gGameSession->loc.stage == 2) {
+                if (gGameSession->at4.loc.stage == 2) {
                     Room_Util17(1);
                     Room_Util16(1);
                     SOFT_BARRIER();

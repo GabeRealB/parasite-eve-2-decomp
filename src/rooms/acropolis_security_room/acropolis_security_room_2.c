@@ -139,7 +139,7 @@ void func_acropolis_security_room_8017DB30(Task* task)
 }
 
 /// Runs the camera-list state of the security monitor: mirrors the highlighted
-/// row into `Mc_SaveData.field_4` (with a click), scrolls the panel by a page
+/// row into `Mc_SaveData.at4.loc.view` (with a click), scrolls the panel by a page
 /// when the row is one of the two 0x8000/0x8001 scroll commands, and fires the
 /// two one-shot cap sequences the room gates on the `0xA` game-flag nibble.
 /// Then redraws the panel plus cursor overlay and advances to state 2.
@@ -158,8 +158,8 @@ void func_acropolis_security_room_8017DC7C(Task* task)
         sel = work->selection;
         if (sel >= 0) {
             save = &Mc_SaveData;
-            if (save->field_4 != sel) {
-                save->field_4 = work->selection;
+            if (save->at4.loc.view != sel) {
+                save->at4.loc.view = work->selection;
                 SndEvt_EnqueueType6(0x51060003, 0, 0);
                 if ((work->selection == 0xA) && !(GameFlag_GetNibble(0xA) & 2)) {
                     work->field_7 = 1;

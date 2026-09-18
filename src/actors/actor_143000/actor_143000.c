@@ -52,13 +52,13 @@ void func_actor_143000_801324C8(Task* arg0)
         Task_Kill(arg0);
         return;
     }
-    arg0->spawnArg2         = Task_SpawnFromTable(&D_actor_143000_80134558, 0, 1, 0);
-    arg0->work              = (TaskIdMap*)work;
-    temp_a0                 = Mc_SaveData.field_4;
-    Mc_SaveData.field_4     = 0xB;
-    D_actor_143000_80135C0C = temp_a0;
-    arg0->state            += 1;
-    work->field_4           = 0;
+    arg0->spawnArg2          = Task_SpawnFromTable(&D_actor_143000_80134558, 0, 1, 0);
+    arg0->work               = (TaskIdMap*)work;
+    temp_a0                  = Mc_SaveData.at4.loc.view;
+    Mc_SaveData.at4.loc.view = 0xB;
+    D_actor_143000_80135C0C  = temp_a0;
+    arg0->state             += 1;
+    work->field_4            = 0;
     Display_AcquireRef();
     if (p->field_8 != -1) {
         do {

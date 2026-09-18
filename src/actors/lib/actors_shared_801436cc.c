@@ -19,15 +19,15 @@ void ActorsShared801436cc(void* arg0, Task* task)
     s32        idx;
     u32        raw;
 
-    sessionKey  = (GpAreaKey*)&gGameSession->loc;
-    raw         = ((GpWorkObj*)task->parent->spawnArg2)->field_8.as_u16;
-    model       = (TmdObject*)task->extra;
-    key.field_3 = sessionKey->field_3;
-    key.field_2 = sessionKey->field_2;
-    key.field_1 = sessionKey->field_1;
-    areaByte0   = sessionKey->field_0;
-    idx         = raw >> 12;
-    key.field_0 = areaByte0;
+    sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+    raw        = ((GpWorkObj*)task->parent->spawnArg2)->field_8.as_u16;
+    model      = (TmdObject*)task->extra;
+    key.stage  = sessionKey->stage;
+    key.area   = sessionKey->area;
+    key.room   = sessionKey->room;
+    areaByte0  = sessionKey->view;
+    idx        = raw >> 12;
+    key.view   = areaByte0;
     Gp_SyncAreaKeyIndex(&key);
     rec = Gp_GetNestedAreaRec(&key);
     /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index

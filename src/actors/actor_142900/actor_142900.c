@@ -43,10 +43,10 @@ void func_actor_142900_80131F5C(void)
     if (Mc_SaveData.field_23 != 9) {
         Gp_ApplyAreaRecs(&D_8017E9F8);
         GameFlag_SetNibble(0x4C, 0);
-        Mc_SaveData.field_6 = 0x1B;
-        Mc_SaveData.field_8 = 2;
-        Mc_SaveData.field_5 = 1;
-        D_80071076          = 1;
+        Mc_SaveData.at4.loc.area = 0x1B;
+        Mc_SaveData.at4.loc.warp = 2;
+        Mc_SaveData.at4.loc.room = 1;
+        D_80071076               = 1;
         Task_Spawn(0, 0x11, 0, 0);
     }
 }

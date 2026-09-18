@@ -15,13 +15,13 @@ extern SVECTOR D_dryfield_night_garage_801833A4[];
 extern SVECTOR D_dryfield_night_garage_801833D4;
 
 /// Garage room draw: sweeps the glowing strip the current visit
-/// (`gGameSession->loc.view`) selects. Visits 3 and 15 sweep all four of the
+/// (`gGameSession->at4.loc.view`) selects. Visits 3 and 15 sweep all four of the
 /// room's run, 7 and 14 only its first pair, and 11 the last pair of the run
 /// with its own blend (`arg2` 0x800 instead of 0). Each case names its own last
 /// draw, which `jump.c` cross-jumps into one tail block after the last case.
 void func_dryfield_night_garage_80181518(void)
 {
-    switch (gGameSession->loc.view) {
+    switch (gGameSession->at4.loc.view) {
         case 3:
         case 15: {
             SVECTOR* p = D_dryfield_night_garage_801833A4;

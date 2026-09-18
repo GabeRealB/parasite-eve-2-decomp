@@ -7,6 +7,6 @@ extern u8 D_8007216D;
 
 void func_dryfield_night_saloon_g_r_8017E0A8(u8 arg0)
 {
-    D_8007216D             = arg0;
-    gGameSession->loc.room = arg0;
+    D_8007216D                 = arg0;
+    gGameSession->at4.loc.room = arg0;
 }

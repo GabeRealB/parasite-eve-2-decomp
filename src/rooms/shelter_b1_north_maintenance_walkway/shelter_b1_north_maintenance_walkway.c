@@ -39,7 +39,7 @@ void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0)
 {
     arg0->field_24 = D_shelter_b1_north_maintenance_walkway_80184A84;
     Game_SetPtrSlot(arg0, 7);
-    if (gGameSession->loc.place == 2) {
+    if (gGameSession->at4.loc.place == 2) {
         Task_SpawnFromTable(D_shelter_b1_north_maintenance_walkway_80184AAC, 0, 0, 0);
         if (GameFlag_GetNibble(0x157) == 0) {
             GameFlag_SetNibble(0x157, 1);

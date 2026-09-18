@@ -6,17 +6,17 @@
 #include "rooms/room_common.h"
 
 /// The night motel room's drawable points, one 8-byte `SVECTOR` per disc. The
-/// visit the pair belongs to is `gGameSession->loc.view`.
+/// visit the pair belongs to is `gGameSession->at4.loc.view`.
 extern SVECTOR D_dryfield_night_motel_room_2_8017DA44[];
 extern SVECTOR D_dryfield_night_motel_room_2_8017DA54[];
 
 /// Night motel room 2 draw: queues the room's glowing discs for the visit
-/// `gGameSession->loc.view` selects - visits 2 and 3 a pair at one point,
+/// `gGameSession->at4.loc.view` selects - visits 2 and 3 a pair at one point,
 /// 5 and 6 a single one at another. Visits outside those ranges draw nothing.
 /// `jump.c` cross-jumps the two trailing `Room_Draw20` calls into one tail.
 void func_dryfield_night_motel_room_2_8017D990(void)
 {
-    switch (gGameSession->loc.view) {
+    switch (gGameSession->at4.loc.view) {
         case 2:
         case 3: {
             SVECTOR* p = D_dryfield_night_motel_room_2_8017DA44;

@@ -26,7 +26,7 @@ extern Task* D_dryfield_warehouse_801821B4;
 extern s32 D_dryfield_warehouse_801821B8;
 
 /// Warehouse ambience: state 0 clears the recorded volume and advances, state 1
-/// maps `gGameSession->loc.view` (the area id) to a target volume - 0x32/0x3C/0x64
+/// maps `gGameSession->at4.loc.view` (the area id) to a target volume - 0x32/0x3C/0x64
 /// for areas 2/3/4, 0 elsewhere - and, whenever that differs from the recorded
 /// one, enqueues the matching fade event: type 6 to start the track, type 7 to
 /// stop it, type A to retune it, then records the new volume.
@@ -47,7 +47,7 @@ void func_dryfield_warehouse_8017D5E8(Task* task)
 
     vol = 0;
     if (gGameSession->eventState == 0) {
-        switch (gGameSession->loc.view) {
+        switch (gGameSession->at4.loc.view) {
             case 4:
                 vol = 0x64;
                 break;

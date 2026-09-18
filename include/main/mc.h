@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "main/session.h"
 #include "main/task.h"
 
 struct _UiObject;
@@ -115,20 +116,14 @@ STATIC_ASSERT_SIZEOF(McPosRec, 0xC);
 /// BSS object Mc_SaveData. Large; only fields used so far are named.
 /// field_12 is a slot/index validated by Mc_VerifySaveHdrChecksum (must be 1..16).
 /// field_1C / field_1E are a sum / ones-complement pair over the 0x38 bytes
-/// starting at field_4 (written by Mc_WriteSaveHdrChecksum, verified by
+/// starting at `at4` (written by Mc_WriteSaveHdrChecksum, verified by
 /// Mc_VerifySaveHdrChecksum). field_93C is a save-data checksum halfword
 /// compared by Mc_CompareSaveChecksum. field_940 / field_942 are a sum /
 /// ones-complement pair over the first byte of Mc_BufferSlots[1..8] buffers
 /// (written by Mc_WriteFirstByteChecksum).
 typedef struct _McSaveData {
     /* 0x000 */ byte       unknown_0[0x4];
-    /* 0x004 */ u8         field_4;
-    /* 0x005 */ u8         field_5;
-    /* 0x006 */ u8         field_6;
-    /* 0x007 */ u8         field_7;
-    /* 0x008 */ u8         field_8;
-    /* 0x009 */ u8         field_9;
-    /* 0x00A */ byte       unknown_A[0x2];
+    /* 0x004 */ GameLoc    at4;      // saved copy of the session place key
     /* 0x00C */ u16        field_C;
     /* 0x00E */ s8         field_E;  // *2/5 scale for Gp_IdParamHi[i].field[0] (func_800D50D4)
     /* 0x00F */ s8         field_F;  // *4/5 scale for Gp_IdParamHi[i].field[0] (func_800D50D4)
@@ -191,6 +186,8 @@ typedef struct _McSaveData {
     /* 0x942 */ s16        field_942;
 } McSaveData;
 STATIC_ASSERT_SIZEOF(McSaveData, 0x944);
+STATIC_ASSERT(OFFSET_OF(McSaveData, at4) == 4, McSaveData_at4);
+STATIC_ASSERT(OFFSET_OF(McSaveData, field_C) == 0xC, McSaveData_field_C);
 
 /// Checksummed buffer header (sum / ones-complement at 0x0 / 0x2, payload at 0x4).
 typedef struct _McChecksumBlock {

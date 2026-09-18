@@ -64,9 +64,9 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
             rec.field_10 = 1;
             Gp_DispatchMsg((Task*)work->owner, 0x3E8, (s32)&rec, 0);
             Gp_DispatchMsg((Task*)work->owner, 0x3E9, (s32)&D_dryfield_warehouse_8017F868, 0);
-            if (Mc_SaveData.field_5 != 2) {
-                Mc_SaveData.field_5           = 2;
-                gGameSession->loc.room        = 2;
+            if (Mc_SaveData.at4.loc.room != 2) {
+                Mc_SaveData.at4.loc.room      = 2;
+                gGameSession->at4.loc.room    = 2;
                 D_dryfield_warehouse_801821C4 = 1;
                 return;
             }

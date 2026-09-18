@@ -198,7 +198,7 @@ void func_acropolis_security_room_801804CC(Task* arg0)
 
 L_case0:
     queue->field_1EA = 1;
-    slotParam[0]     = Stream_FindSlot(&gGameSession->loc.view, 0, 0);
+    slotParam[0]     = Stream_FindSlot(&gGameSession->at4.loc.view, 0, 0);
     CdCmd_Enqueue(0x61, 0, slotParam);
     goto advance;
 
@@ -319,7 +319,7 @@ void func_acropolis_security_room_801805A4(Task* task)
 /// local frame are rotated into world space by the emitter coordinate's
 /// `workm`, projected through `GsWSMATRIX`, and linked into the current OT as
 /// one semi-transparent flat `LINE_F2`. The beam only exists in the two camera
-/// views selected by the `0xC` bitmask over `GameSession::loc.view`, its far
+/// views selected by the `0xC` bitmask over `GameSession::at4.loc.view`, its far
 /// endpoint sweeps with the frame counter (`Display_State.field_8 * 6` folded
 /// into a 406-step range), and nothing is queued when the near endpoint
 /// projects closer than an OTZ of 0x11.
@@ -332,7 +332,7 @@ void func_acropolis_security_room_80180A78(Task* task)
     LINE_F2*        prim;
 
     coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
-    if ((0xC >> ((u8)gGameSession->loc.view - 1)) & 1) {
+    if ((0xC >> ((u8)gGameSession->at4.loc.view - 1)) & 1) {
         scratch   = (void**)G_SCRATCH_HEAD;
         head      = *scratch;
         blk       = (AsrBeamScratch*)(head - 0x14);
@@ -565,7 +565,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
     }
 
     mem->field_22 = mem->field_22 + 1;
-    if ((u8)gGameSession->loc.view != 0xF) {
+    if ((u8)gGameSession->at4.loc.view != 0xF) {
         Gp_ReleaseState1CMem(mem, arg0);
     }
 }

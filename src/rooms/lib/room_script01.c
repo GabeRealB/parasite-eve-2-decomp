@@ -60,16 +60,16 @@ void Room_Script01(Task* task)
                             }
                         }
                     }
-                    session             = gGameSession;
-                    room                = dst.field_3;
-                    session->loc.room   = room;
-                    Mc_SaveData.field_5 = room;
+                    session                  = gGameSession;
+                    room                     = dst.field_3;
+                    session->at4.loc.room    = room;
+                    Mc_SaveData.at4.loc.room = room;
                 }
             }
             task->state = task->state + 1;
             return;
         case 3:
-            if (gGameSession->loc.room >= 5) {
+            if (gGameSession->at4.loc.room >= 5) {
                 gGameSession->viewDirty = 1;
             }
             Task_Kill(task);

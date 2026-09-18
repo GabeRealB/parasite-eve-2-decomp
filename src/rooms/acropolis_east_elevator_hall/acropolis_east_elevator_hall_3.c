@@ -38,7 +38,7 @@ void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
             task->state++;
             /* fallthrough */
         case 1:
-            if ((u8)gGameSession->loc.view == 2) {
+            if ((u8)gGameSession->at4.loc.view == 2) {
                 SVECTOR vec = D_acropolis_east_elevator_hall_8017D5E8;
 
                 Gp_SpawnEff(0x60022, coord, 0xC03, &vec);

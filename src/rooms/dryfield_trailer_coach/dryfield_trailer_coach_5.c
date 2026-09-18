@@ -15,7 +15,7 @@ void func_dryfield_trailer_coach_80182EB4(GsCOORDINATE2* arg0, SVECTOR* arg1, s3
 INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach_5", func_dryfield_trailer_coach_80182EB4);
 
 /// Picks the trailer's shaft drawer for the current camera view. The
-/// stage-visit byte `gGameSession->loc.view` is used as a bit index: views 2 and
+/// stage-visit byte `gGameSession->at4.loc.view` is used as a bit index: views 2 and
 /// 8 (bits 2 and 8, `0x104`) take `Room_Draw37` with the tall half-extent 0xC0,
 /// and view 10 (bit 10, `0x400`) takes `func_dryfield_trailer_coach_80182EB4`
 /// with 0x30. `Task::extra` is the task's `TmdObject`, so `field_8` is the
@@ -25,7 +25,7 @@ void func_dryfield_trailer_coach_801838DC(Task* arg0)
     s32            mask;
     GsCOORDINATE2* coord;
 
-    mask  = 1 << gGameSession->loc.view;
+    mask  = 1 << gGameSession->at4.loc.view;
     coord = ((TmdObject*)arg0->extra)->field_8;
     if (mask & 0x104) {
         Room_Draw37(coord, &D_dryfield_trailer_coach_801871C4, 0x60, 0xC0);

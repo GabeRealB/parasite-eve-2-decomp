@@ -51,7 +51,7 @@ L_case0:
     goto advance;
 
 L_case1:
-    key          = ((SessionBytesAt4*)gGameSession)->field_4;
+    key          = gGameSession->at4.raw;
     key.data[0]  = 0x64;
     slotParam[0] = Stream_FindSlot(key.data, 0, 0);
     CdCmd_Enqueue(0x61, 0, slotParam);

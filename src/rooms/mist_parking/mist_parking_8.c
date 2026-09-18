@@ -33,15 +33,15 @@ void func_mist_parking_8018312C(s32 arg0)
 
 void func_mist_parking_8018316C(s32 arg0)
 {
-    Mc_SaveData.field_7 = 1;
-    Mc_SaveData.field_8 = 1;
-    Mc_SaveData.field_5 = 1;
-    Mc_SaveData.field_6 = arg0;
-    D_80071076          = 1;
+    Mc_SaveData.at4.loc.stage = 1;
+    Mc_SaveData.at4.loc.warp  = 1;
+    Mc_SaveData.at4.loc.room  = 1;
+    Mc_SaveData.at4.loc.area  = arg0;
+    D_80071076                = 1;
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
     if (arg0 == 5) {
-        Fs_BeginBootLoad(&Mc_SaveData.field_4, 0);
+        Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 0);
     }
 }
 

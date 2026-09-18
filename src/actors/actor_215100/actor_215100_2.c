@@ -98,7 +98,7 @@ void                        func_actor_215100_8014BEE8(void);
 
 /// Arms the weapon pickup at this actor's spot while the event flag
 /// `D_actor_215100_8014D038` is up and the story step has reached 3. A session
-/// leave (`gGameSession->loc.view == 0x12`) drops the `func_80180390` hold and
+/// leave (`gGameSession->at4.loc.view == 0x12`) drops the `func_80180390` hold and
 /// `D_actor_215100_8014D03C` with it, sub-states 2 and 3 of
 /// `Gp_StateC08.field_A` start the 0x3C-frame cooldown in
 /// `D_actor_215100_8014D044`, and while that cooldown runs the function only
@@ -124,7 +124,7 @@ void func_actor_215100_8014A398(void)
     coord = ((TmdObject*)task->extra)->field_8;
     if (D_actor_215100_8014D038 != 0) {
         if (D_actor_215100_8015E670 >= 3) {
-            if (gGameSession->loc.view == 0x12) {
+            if (gGameSession->at4.loc.view == 0x12) {
                 func_80180390(0);
                 D_actor_215100_8014D03C = 0;
             }
@@ -227,10 +227,10 @@ void func_actor_215100_8014A5C0(Task* arg0)
                 Gp_ClearInventory();
                 gGameSession->hideHud = 1;
                 SndEvt_EnqueueType6(0x51140005, 0, 0);
-                D_80071076          = 1;
-                Mc_SaveData.field_6 = D_actor_215100_8015E678.field_0;
-                Mc_SaveData.field_8 = D_actor_215100_8015E678.field_2;
-                Mc_SaveData.field_5 = D_actor_215100_8015E678.field_3;
+                D_80071076               = 1;
+                Mc_SaveData.at4.loc.area = D_actor_215100_8015E678.field_0;
+                Mc_SaveData.at4.loc.warp = D_actor_215100_8015E678.field_2;
+                Mc_SaveData.at4.loc.room = D_actor_215100_8015E678.field_3;
                 Task_Spawn(0, 0x11, 0, 0);
                 Task_Kill(arg0);
             }
@@ -1138,16 +1138,16 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     spawned             = Gp_SpawnEnemyFromTable(D_actor_215100_8015E5D0, 1, 0, enemy);
     model               = (TmdObject*)spawned->task->extra;
     raw                 = enemy->field_8;
-    sessionKey          = (GpAreaKey*)&gGameSession->loc;
-    key.field_3         = sessionKey->field_3;
-    key.field_2         = sessionKey->field_2;
-    key.field_1         = sessionKey->field_1;
+    sessionKey          = (GpAreaKey*)&gGameSession->at4.loc;
+    key.stage           = sessionKey->stage;
+    key.area            = sessionKey->area;
+    key.room            = sessionKey->room;
     idx                 = raw >> 12;
-    areaByte0           = sessionKey->field_0;
+    areaByte0           = sessionKey->view;
     SOFT_BARRIER();
     keyPtr = &key;
     TOUCH_REG(keyPtr);
-    key.field_0 = areaByte0;
+    key.view = areaByte0;
     Gp_SyncAreaKeyIndex(keyPtr);
     rec             = Gp_GetNestedAreaRec(&key);
     place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);

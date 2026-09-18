@@ -65,13 +65,13 @@ void func_neo_ark_power_plant_1_8017D5EC(void)
         Gp_StateF0.field_0      = 0;
         func_800E8614((s32)&D_neo_ark_power_plant_1_8017EEE4, 0);
     }
-    if ((D_8007216C != gGameSession->loc.view) && (GameFlag_GetNibble(0xDE) != 0) && (GameFlag_GetNibble(0xDF) == 0)) {
+    if ((D_8007216C != gGameSession->at4.loc.view) && (GameFlag_GetNibble(0xDE) != 0) && (GameFlag_GetNibble(0xDF) == 0)) {
         D_neo_ark_power_plant_1_8017F01C = 4;
         return;
     }
     if (D_neo_ark_power_plant_1_8017F01C != 0) {
         if (--D_neo_ark_power_plant_1_8017F01C == 0) {
-            if (gGameSession->loc.view == 7) {
+            if (gGameSession->at4.loc.view == 7) {
                 SndEvt_EnqueueType6(0x5511000A, 0, 0);
                 return;
             }

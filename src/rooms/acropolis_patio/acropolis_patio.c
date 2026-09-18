@@ -51,7 +51,7 @@ extern s32      D_acropolis_patio_80182BE4;
 /// actors need for the current point in the story: the first visit
 /// (`GameFlag_GetNibble(0) < 2`) arms the two hotspots and spawns the arrival
 /// cutscene, and the second-visit branches replace them according to
-/// `gGameSession::loc.place`.
+/// `gGameSession::at4.loc.place`.
 void func_acropolis_patio_8017D5EC(Task* arg0)
 {
     AcropolisPatioSlotMsg msg;
@@ -71,13 +71,13 @@ void func_acropolis_patio_8017D5EC(Task* arg0)
             Gp_DispatchMsg((Task*)temp, 0x7D4, (s32)&D_acropolis_patio_8018046C, 0);
         }
     }
-    if ((gGameSession->loc.place == 1) && (GameFlag_GetNibble(0x21) < 2) && (GameFlag_GetNibble(0x21) < 2)) {
+    if ((gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0x21) < 2) && (GameFlag_GetNibble(0x21) < 2)) {
         temp = Gp_LookupSlot4(1);
         if (temp != 0) {
             Gp_DispatchMsg((Task*)temp, 0x7DB, (s32)&D_acropolis_patio_80180440, 0);
         }
     }
-    if ((gGameSession->loc.place == 2) && (GameFlag_GetNibble(0x26) == 0)) {
+    if ((gGameSession->at4.loc.place == 2) && (GameFlag_GetNibble(0x26) == 0)) {
         msg.field_0 = 1;
         msg.field_1 = 3;
         msg.field_2 = 0;
@@ -194,10 +194,10 @@ void func_acropolis_patio_8017DA5C(Task* task)
                 return;
             }
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData.field_6 = 4;
-            D_80071076          = 1;
-            Mc_SaveData.field_8 = D_acropolis_patio_80187064;
-            Mc_SaveData.field_5 = D_acropolis_patio_80187065;
+            Mc_SaveData.at4.loc.area = 4;
+            D_80071076               = 1;
+            Mc_SaveData.at4.loc.warp = D_acropolis_patio_80187064;
+            Mc_SaveData.at4.loc.room = D_acropolis_patio_80187065;
             Task_Spawn(0, 0x11, 0, 0);
         kill:
             Task_Kill(task);

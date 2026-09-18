@@ -122,16 +122,16 @@ void func_actor_135400_80132064(Task* arg0)
     if (spawned != NULL) {
         work->field_4B8 = spawned;
         model           = (TmdObject*)spawned->extra;
-        sessionKey      = (GpAreaKey*)&gGameSession->loc;
+        sessionKey      = (GpAreaKey*)&gGameSession->at4.loc;
         raw             = ((GpEnemy*)arg0->spawnArg2)->field_8;
-        key.field_3     = sessionKey->field_3;
-        key.field_2     = sessionKey->field_2;
-        key.field_1     = sessionKey->field_1;
-        areaByte0       = sessionKey->field_0;
+        key.stage       = sessionKey->stage;
+        key.area        = sessionKey->area;
+        key.room        = sessionKey->room;
+        areaByte0       = sessionKey->view;
         keyPtr          = &key;
         TOUCH_REG(keyPtr);
-        key.field_0 = areaByte0;
-        idx         = raw >> 12;
+        key.view = areaByte0;
+        idx      = raw >> 12;
         Gp_SyncAreaKeyIndex(keyPtr);
         rec             = Gp_GetNestedAreaRec(&key);
         place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);

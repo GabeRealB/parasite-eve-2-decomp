@@ -123,8 +123,8 @@ extern struct _GpMsgEntry D_dryfield_breezeway_80182DCC[];
 /// `func_dryfield_breezeway_8017E390`. Same four bytes as
 /// `ActorsShared80132724Msg` and `AcropolisBridgeMsg7DA`.
 typedef struct DbwMsg7DA {
-    /* 0x0 */ u8  field_0; // GameSession::loc.stage
-    /* 0x1 */ u8  field_1; // GameSession::loc.area
+    /* 0x0 */ u8  field_0; // GameSession::at4.loc.stage
+    /* 0x1 */ u8  field_1; // GameSession::at4.loc.area
     /* 0x2 */ s16 field_2;
 } DbwMsg7DA;
 STATIC_ASSERT_SIZEOF(DbwMsg7DA, 0x4);

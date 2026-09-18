@@ -964,7 +964,7 @@ void func_actor_403100_8013922C(Task* arg0)
         D_actor_403100_80155808->field_5DA = 2;
         D_actor_403100_80155808->field_5EC = 0;
         D_actor_403100_80155808->field_5E2 = state;
-        Mc_SaveData.field_4                = 0xC;
+        Mc_SaveData.at4.loc.view           = 0xC;
         *(s32*)(u32)&coords->coord.t[0]    = -0x44C;
         *(s32*)(u32)&coords->coord.t[2]    = 0x1770;
         *(s32*)(u32)&coords->coord.t[1]    = 0;
@@ -1287,7 +1287,7 @@ void func_actor_403100_8013A064(Task* arg0)
         D_actor_403100_80155808->field_5E2  = 0x10;
         D_actor_403100_80155808->field_5DE  = 5;
         D_actor_403100_80155808->field_5DA  = 1;
-        Mc_SaveData.field_4                 = 0x17;
+        Mc_SaveData.at4.loc.view            = 0x17;
         D_actor_403100_80155808->field_5FA += 1;
         func_actor_403100_8013D0B8(-0x1BBC, -0xC80, -0x4B0, 0x400);
         task = Game_GetPtrSlot(3);
@@ -1677,10 +1677,10 @@ void func_actor_403100_8013B128(Task* arg0)
         obj = (GpObj*)((u8*)obj + sizeof(Actor403100Entry));
     }
     SndEvt_EnqueueType7(0x401F0004, 1);
-    D_actor_403100_80155808->field_622              = (s16)gGameSession->loc.view;
+    D_actor_403100_80155808->field_622              = (s16)gGameSession->at4.loc.view;
     D_actor_403100_80155808->field_0.matrices.coord = coords->coord;
     D_actor_403100_80155808->savedRotation          = *(SVECTOR*)&D_actor_403100_80155808->field_80;
-    Mc_SaveData.field_4                             = 0x18;
+    Mc_SaveData.at4.loc.view                        = 0x18;
     work                                            = D_actor_403100_80155808;
     work->pad_660[1]                                = 1;
     work->field_5F6                                 = 5;
@@ -1719,7 +1719,7 @@ void func_actor_403100_8013B3C4(Task* arg0)
 
     coords                              = ((TmdObject*)arg0->extra)->field_8;
     D_actor_403100_80155808->field_5EC += 1;
-    Mc_SaveData.field_4                 = 0x18;
+    Mc_SaveData.at4.loc.view            = 0x18;
     if ((s16)D_actor_403100_80155808->field_5EC == 0x64) {
         Gp_LoadImages(&D_actor_403100_801555EC);
     }
@@ -1743,7 +1743,7 @@ void func_actor_403100_8013B3C4(Task* arg0)
         Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
         coords->coord                                 = D_actor_403100_80155808->field_0.matrices.coord;
         *(SVECTOR*)&D_actor_403100_80155808->field_80 = D_actor_403100_80155808->savedRotation;
-        Mc_SaveData.field_4                           = (u8)D_actor_403100_80155808->field_622;
+        Mc_SaveData.at4.loc.view                      = (u8)D_actor_403100_80155808->field_622;
         D_actor_403100_80155808->field_5F8            = 1;
         D_actor_403100_80155808->field_5FA            = 0;
     }

@@ -223,7 +223,7 @@ typedef union Actor401300Event {
 } Actor401300Event;
 
 /// Height-clamp row `func_actor_401300_80132BE4` scans: `field_0` / `field_2`
-/// are matched against `GameSessionFrom4::field_3` / `field_2`, and when a row
+/// are matched against `GpAreaKey::stage` / `area`, and when a row
 /// matches the coordinate's Y is clamped to [`lo`, `hi`]. Same shape as
 /// `Actor01900HeightClamp`.
 typedef struct Actor401300HeightClamp {

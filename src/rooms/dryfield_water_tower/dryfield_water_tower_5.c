@@ -43,7 +43,7 @@ extern RoomPlacement D_dryfield_water_tower_80181AD0;
 
 /// `func_dryfield_water_tower_8017F908` writes the room's view index here and
 /// `func_dryfield_water_tower_8017FA5C` writes view 9's; the byte is
-/// `Mc_SaveData.field_4`, the saved location `Gp_CommitSpawnLoc` sets and
+/// `Mc_SaveData.at4.loc.view`, the saved location `Gp_CommitSpawnLoc` sets and
 /// `Gp_ReloadAtLoc` restores. Spelled by address because that is the name the
 /// room imports: the struct spelling prints `%hi(Mc_SaveData)` /
 /// `%lo(Mc_SaveData+4)` and costs the scratch scorer 0.24% on an object whose
@@ -127,7 +127,7 @@ void func_dryfield_water_tower_8017F908(void)
 /// to the slot-3 game task at `field_40` here, but only while `field_66` reads
 /// 2, the room's "the cap is following" state.
 ///
-/// `Mc_SaveData.field_4` rather than the `D_8007216C` address the room imports:
+/// `Mc_SaveData.at4.loc.view` rather than the `D_8007216C` address the room imports:
 /// as a scalar the store is fixed-address against the struct traffic below, so
 /// `sched.c`'s `true_dependence` drops the output dependence between it and the
 /// `gGameSession` store and the scheduler sinks the byte store past the whole
@@ -139,8 +139,8 @@ void func_dryfield_water_tower_8017F9AC(void)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
-    Mc_SaveData.field_4     = state->field_68;
-    gGameSession->viewDirty = 1;
+    Mc_SaveData.at4.loc.view = state->field_68;
+    gGameSession->viewDirty  = 1;
     Gp_DispatchMsg(state->field_44, 0x7D4, (s32)&D_dryfield_water_tower_80181A40, 0);
     state->field_44->state = 1;
     Gp_HaltPadScripts();
@@ -156,7 +156,7 @@ void func_dryfield_water_tower_8017F9AC(void)
 /// and gives it its 0x7D4 placement, moves the player to `80181AD0`, stops the pad
 /// scripts, plays event 0x5214000B and installs three of the room's effect tables.
 ///
-/// `Mc_SaveData.field_4` rather than a bare `extern` for 0x8007216C: the store is
+/// `Mc_SaveData.at4.loc.view` rather than a bare `extern` for 0x8007216C: the store is
 /// a struct member, so the read of `field_48` below still conflicts with it in
 /// `true_dependence`. As a scalar global the pair is fixed-address against
 /// varying-struct and GCC 2.8.1 drops the dependence, which lets the scheduler
@@ -166,7 +166,7 @@ void func_dryfield_water_tower_8017FA5C(void)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
-    Mc_SaveData.field_4 = Gp_FindViewIndex(9);
+    Mc_SaveData.at4.loc.view = Gp_FindViewIndex(9);
     Gp_DispatchMsg(state->field_48, 0x7D4, (s32)&D_dryfield_water_tower_80181AA0, 0);
     state->field_48->state = 1;
     Gp_DispatchMsg(state->field_40, 0x3E9, (s32)&D_dryfield_water_tower_80181AD0, 0);
@@ -356,9 +356,9 @@ void func_dryfield_water_tower_8017FD64(Task* task)
                 Mem_Set(work, 0, 0x18);
                 work->field_0                   = (Task*)Game_GetPtrSlot(3);
                 D_dryfield_water_tower_801876AC = task;
-                id                              = gGameSession->loc.area | (gGameSession->loc.stage << 8);
+                id                              = gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8);
                 work->field_4                   = (Task*)Gp_FindWorkById(id)->field_0;
-                id                              = ((gGameSession->loc.stage << 8) | 0x1000) | gGameSession->loc.area;
+                id                              = ((gGameSession->at4.loc.stage << 8) | 0x1000) | gGameSession->at4.loc.area;
                 work->field_8                   = (Task*)Gp_FindWorkById(id)->field_0;
             }
             task->state++;

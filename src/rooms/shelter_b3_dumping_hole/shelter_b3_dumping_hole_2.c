@@ -32,8 +32,8 @@ void func_shelter_b3_dumping_hole_8017D8A0(DumpingHoleState* arg0)
     Game_SetPtrSlot(arg0, 7);
     func_shelter_b3_dumping_hole_80183198(0x180, 0, 0);
     if (GameFlag_GetNibble(0x78) == 0) {
-        if (gGameSession->loc.place == 1) {
-            if (gGameSession->loc.warp == 3) {
+        if (gGameSession->at4.loc.place == 1) {
+            if (gGameSession->at4.loc.warp == 3) {
                 func_800E8634((s32)D_shelter_b3_dumping_hole_8018B080, 0,
                               (s32)D_shelter_b3_dumping_hole_8018B428);
             }
@@ -41,7 +41,7 @@ void func_shelter_b3_dumping_hole_8017D8A0(DumpingHoleState* arg0)
             GameFlag_SetNibble(0x78, 1);
         }
     }
-    if (gGameSession->loc.room >= 2) {
+    if (gGameSession->at4.loc.room >= 2) {
         Task_SpawnFromTable(&D_80164B78, 0, 0, 0);
     }
     arg0->field_30                    += 1;

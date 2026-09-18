@@ -203,9 +203,9 @@ void func_actor_135600_80132234(Task* task)
         work->field_500 = spawned;
         model1          = (TmdObject*)spawned->extra;
         raw1            = ((GpEnemy*)task->spawnArg2)->field_8;
-        sessionKey1     = (GpAreaKey*)&gGameSession->loc;
-        key.field_3     = sessionKey1->field_3;
-        key.field_2     = sessionKey1->field_2;
+        sessionKey1     = (GpAreaKey*)&gGameSession->at4.loc;
+        key.stage       = sessionKey1->stage;
+        key.area        = sessionKey1->area;
         /* Both calls below hand `key` to Gp_SyncAreaKeyIndex and then to
          * Gp_GetNestedAreaRec. Read as one straight-line block, the two
          * `&key` arguments global-CSE into a single address pseudo that then
@@ -216,12 +216,12 @@ void func_actor_135600_80132234(Task* task)
          * `Actor401300_TintEffect` and `func_actor_450800_80132160` are the
          * worked examples of the idiom. */
         SOFT_BARRIER();
-        keyp1       = &key;
-        key.field_1 = sessionKey1->field_1;
+        keyp1    = &key;
+        key.room = sessionKey1->room;
         TOUCH_REG(keyp1);
-        areaByte0   = gGameSession->loc.view;
-        index1      = raw1 >> 12;
-        key.field_0 = areaByte0;
+        areaByte0 = gGameSession->at4.loc.view;
+        index1    = raw1 >> 12;
+        key.view  = areaByte0;
         Gp_SyncAreaKeyIndex(keyp1);
         entry1           = (GpCdRec10*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
         model1->field_24 = entry1->field_D;
@@ -237,16 +237,16 @@ void func_actor_135600_80132234(Task* task)
         work->field_4FC = spawned;
         model2          = (TmdObject*)spawned->extra;
         raw2            = ((GpEnemy*)task->spawnArg2)->field_8;
-        sessionKey2     = (GpAreaKey*)&gGameSession->loc;
-        key.field_3     = sessionKey2->field_3;
-        key.field_2     = sessionKey2->field_2;
+        sessionKey2     = (GpAreaKey*)&gGameSession->at4.loc;
+        key.stage       = sessionKey2->stage;
+        key.area        = sessionKey2->area;
         SOFT_BARRIER();
-        keyp2       = &key;
-        key.field_1 = sessionKey2->field_1;
+        keyp2    = &key;
+        key.room = sessionKey2->room;
         TOUCH_REG(keyp2);
-        areaByte1   = gGameSession->loc.view;
-        index2      = raw2 >> 12;
-        key.field_0 = areaByte1;
+        areaByte1 = gGameSession->at4.loc.view;
+        index2    = raw2 >> 12;
+        key.view  = areaByte1;
         Gp_SyncAreaKeyIndex(keyp2);
         entry2           = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
         model2->field_24 = entry2->field_D;

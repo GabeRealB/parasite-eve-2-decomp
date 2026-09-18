@@ -46,7 +46,7 @@ L_case0:
     goto advance;
 
 L_case1:
-    key          = ((SessionBytesAt4*)gGameSession)->field_4;
+    key          = gGameSession->at4.raw;
     key.data[0]  = 0x64;
     slotParam[0] = Stream_FindSlot(key.data, 0, 0);
     CdCmd_Enqueue(0x61, 0, slotParam);
@@ -102,12 +102,12 @@ void func_shelter_1f_bulwark_8017DE04(Task* arg0)
             arg0->state = arg0->state + 1;
             break;
         case 3:
-            Mc_SaveData.field_7 = 5;
-            Mc_SaveData.field_6 = 0x1A;
-            Mc_SaveData.field_8 = 1;
-            Mc_SaveData.field_5 = 1;
-            D_80071076          = 1;
-            Fs_BeginBootLoad(&Mc_SaveData.field_4, 0);
+            Mc_SaveData.at4.loc.stage = 5;
+            Mc_SaveData.at4.loc.area  = 0x1A;
+            Mc_SaveData.at4.loc.warp  = 1;
+            Mc_SaveData.at4.loc.room  = 1;
+            D_80071076                = 1;
+            Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 0);
             Task_Spawn(0, 0x11, 0x10, 0);
             Task_Kill(arg0);
             break;

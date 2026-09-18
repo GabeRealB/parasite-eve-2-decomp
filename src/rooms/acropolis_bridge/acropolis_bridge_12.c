@@ -1164,7 +1164,7 @@ static __inline__ void bridge_set_obj_pos(GpObj* obj, SVECTOR3* pos)
 /// arena -- the same block is then reused for the world position handed to
 /// `func_800D7A9C` before it is released. `field_1F8` is the 0x5DC entry
 /// offset the model root is raised by, remembered in `field_1FA`. In the
-/// third visit (`gGameSession->loc.room == 2`) the three known variants start
+/// third visit (`gGameSession->at4.loc.room == 2`) the three known variants start
 /// in state 8 at a fixed position instead of state 1.
 void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
 {
@@ -1321,7 +1321,7 @@ void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     if (D_801153F6 < 3) {
         ((void (*)(s32))Gp_IncStateF0Ref)(0);
     }
-    if (gGameSession->loc.room == 2) {
+    if (gGameSession->at4.loc.room == 2) {
         variant = enemy->field_8 >> 12;
         switch (variant) {
             case 0:

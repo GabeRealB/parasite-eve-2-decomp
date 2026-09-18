@@ -26,7 +26,7 @@ extern s32 D_80115758;
 /// 0..13 by the first-frame burst below.
 extern SVECTOR D_acropolis_forked_road_80182178[14];
 
-/// One bit per in-game day (shifted by `GameSession::loc.view - 1`) for each of
+/// One bit per in-game day (shifted by `GameSession::at4.loc.view - 1`) for each of
 /// the sixteen ambient-effect slots: which of the room's lamps are lit today.
 extern u16 D_acropolis_forked_road_801821E8[16];
 
@@ -91,7 +91,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
     work  = (AfrLampWork*)task->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
     if (Gp_State1C->field_4 < 4 &&
-        ((D_acropolis_forked_road_801821E8[task->spawnArg1 & 0xF] >> ((u8)gGameSession->loc.view - 1)) & 1)) {
+        ((D_acropolis_forked_road_801821E8[task->spawnArg1 & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch  = (void**)G_SCRATCH_HEAD;
         *scratch = (u8*)*scratch - 0x14;

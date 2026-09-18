@@ -1072,7 +1072,7 @@ void Mc_StateSaveSlotUi(DialogPrompt* arg0, UiObject* arg1)
     if ((u32)(temp_a2->field_12 - 1) >= 0x10U) {
         ok = 0;
     } else {
-        ptr   = &temp_a2->field_4;
+        ptr   = &temp_a2->at4.loc.view;
         limit = 0x38;
         i     = 0;
         do {
@@ -1143,7 +1143,7 @@ void func_800330D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
             sum = 0;
             // Keep the checksum and counter zero initializations independent.
             SOFT_TOUCH_REG(sum);
-            ptr   = &save->field_4;
+            ptr   = &save->at4.loc.view;
             limit = 0x38;
             i     = 0;
             do {
@@ -1422,7 +1422,7 @@ s32 Mc_VerifySaveHdrChecksum(McSaveData* arg0)
         return 0;
     }
     sum   = 0;
-    ptr   = &arg0->field_4;
+    ptr   = &arg0->at4.loc.view;
     limit = 0x38;
     i     = 0;
     do {

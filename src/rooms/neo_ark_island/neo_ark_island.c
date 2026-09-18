@@ -16,7 +16,7 @@ extern s8         D_801153F4;
 /// Staging save location the island commits: `field_2` / `field_4` / `field_1`
 /// hold what `func_neo_ark_island_8017E968` copies out of the incoming
 /// location, and `func_neo_ark_island_8017E844` moves those same three bytes
-/// into `Mc_SaveData.field_6` / `field_8` / `field_5`.
+/// into `Mc_SaveData.at4.loc.area` / `field_8` / `field_5`.
 extern GpSaveLoc D_neo_ark_island_80184008;
 
 extern TaskDesc D_neo_ark_island_80181B78;
@@ -60,10 +60,10 @@ void func_neo_ark_island_8017E844(Task* arg0)
             return;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076          = 1;
-            Mc_SaveData.field_6 = D_neo_ark_island_80184008.field_2;
-            Mc_SaveData.field_8 = D_neo_ark_island_80184008.field_4;
-            Mc_SaveData.field_5 = D_neo_ark_island_80184008.field_1;
+            D_80071076               = 1;
+            Mc_SaveData.at4.loc.area = D_neo_ark_island_80184008.field_2;
+            Mc_SaveData.at4.loc.warp = D_neo_ark_island_80184008.field_4;
+            Mc_SaveData.at4.loc.room = D_neo_ark_island_80184008.field_1;
             Task_Spawn(0, 0x11, 0, 0);
             Task_Kill(arg0);
             break;

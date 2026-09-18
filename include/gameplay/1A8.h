@@ -25,7 +25,7 @@ typedef struct _GpPosXZ {
 STATIC_ASSERT_SIZEOF(GpPosXZ, 8);
 
 /// 2-byte record in tables pointed to by `Gp_ViewCountTables`. Indexed by
-/// `GameSession.loc.room - 1`. `Gp_GetViewCountLo` loads `field_0`; `Gp_FindViewIndex`
+/// `GameSession.at4.loc.room - 1`. `Gp_GetViewCountLo` loads `field_0`; `Gp_FindViewIndex`
 /// loads the same cell as a signed halfword.
 typedef struct _GpViewCountRec {
     /* 0x0 */ u8 field_0;
@@ -34,19 +34,19 @@ typedef struct _GpViewCountRec {
 STATIC_ASSERT_SIZEOF(GpViewCountRec, 2);
 
 /// Per-stage wrapper. `field_0` is an array of `GpViewCountRec*`, indexed by
-/// `GameSession.loc.area - 1`.
+/// `GameSession.at4.loc.area - 1`.
 typedef struct _GpViewCountTbl {
     /* 0x0 */ GpViewCountRec** field_0;
 } GpViewCountTbl;
 
-/// Per-stage pointer table. Index is `GameSession.loc.stage - 1`.
+/// Per-stage pointer table. Index is `GameSession.at4.loc.stage - 1`.
 extern GpViewCountTbl* Gp_ViewCountTables[];
 
 /// 8-byte dest-location payload at `Gp_WarpLoc`. `Gp_CommitDirWarp` fills it
 /// (halfword `field_0`/`field_1` from `Gp_DirAlt`, `field_2` from
 /// `Gp_DirAltNibble & 0xF`, `field_3`/`field_4` = 1, `field_5` = 0), posts slot-7
 /// msg `0x13EE`, then copies `field_0` / `field_2` / `field_3` into
-/// `Mc_SaveData.field_6` / `field_8` / `field_5` before `Task_Spawn(0, 0x11,
+/// `Mc_SaveData.at4.loc.area` / `field_8` / `field_5` before `Task_Spawn(0, 0x11,
 /// ...)`. `Gp_CommitWarp` fills the same payload from `Gp_DirByte` /
 /// `Gp_DirNibble & 0xF` and `GpWarpRec.field_36`. `Gp_CommitSaveLoc` does the
 /// same copy + spawn.
@@ -70,7 +70,7 @@ extern s32 Gp_AreaIdBits[2];
 
 /// 2-byte record in 0xFF-terminated lists walked by `Gp_ApplyAreaFlag4List` and
 /// `Gp_ApplyNewGameAreaFlags`. `field_0` indexes a `GpAreaRec` table (same role as
-/// `GpAreaKey.field_2`); `field_1` is the apply flag (nonzero →
+/// `GpAreaKey.area`); `field_1` is the apply flag (nonzero →
 /// `GpAreaObj.field_1 |= 4`).
 typedef struct _GpAreaFlagRec {
     /* 0x0 */ u8 field_0;
@@ -117,7 +117,7 @@ typedef struct {
 } GpVoidFuncTable6;
 
 /// Per-stage flag-nibble lookup. `arg0` indexes a u16 table selected by
-/// `gGameSession->loc.stage` (1..5). Low 11 bits are the `GameFlag_GetNibble`
+/// `gGameSession->at4.loc.stage` (1..5). Low 11 bits are the `GameFlag_GetNibble`
 /// index; bit `0x800` is added onto the result. Unknown stage or out-of-range
 /// index returns -1.
 s16 Gp_LookupStageFlag(s32 arg0);
@@ -127,8 +127,8 @@ u8  Gp_GetViewCountLo(void);
 struct _GpAreaKey;
 
 /// Mirror of `Gp_SetCurAreaFlag4` for an explicit key: clears bit 2 of
-/// `GpAreaObj.field_1` on the record selected by `Gp_AreaTables[arg0->field_3]`
-/// + `arg0->field_2`. Null records are skipped, as in the setter.
+/// `GpAreaObj.field_1` on the record selected by `Gp_AreaTables[arg0->stage]`
+/// + `arg0->area`. Null records are skipped, as in the setter.
 void Gp_ClearAreaFlag4(struct _GpAreaKey* arg0);
 
 void Gp_SetCurAreaFlag4(void);

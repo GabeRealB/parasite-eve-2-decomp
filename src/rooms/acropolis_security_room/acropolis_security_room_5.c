@@ -517,9 +517,9 @@ s32 func_acropolis_security_room_8017FCB0(RoomHotspot* table, s16 x, s16 y)
 /// (`field_4` non-zero) or draws it.
 void func_acropolis_security_room_8017FD64(s32 flags)
 {
-    GameSession*      g    = gGameSession;
-    GameSessionFrom4* sess = &g->loc;
-    GpSprtCmd*        cmd;
+    GameSession* g    = gGameSession;
+    GpAreaKey*   sess = &g->at4.loc;
+    GpSprtCmd*   cmd;
 
     cmd = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1][5].field_4;
     switch (flags & 0xFF) {

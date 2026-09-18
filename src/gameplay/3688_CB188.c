@@ -2585,7 +2585,7 @@ void Gp_DrawNoCmd(DialogPrompt* arg0, UiObject* arg1)
 void func_800CFD78(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80114DCC = *(u32*)&gGameSession->loc & 0xFFFF0000;
+        D_80114DCC = *(u32*)&gGameSession->at4.loc & 0xFFFF0000;
     }
     switch (D_80114DCC) {
         case 0x1010000:
@@ -2637,7 +2637,7 @@ void Gp_MapTaskState2(Task* arg0)
     u8        room;
 
     obj   = arg0->spawnArg2;
-    flags = Gp_MapFlagIds[gGameSession->loc.stage - 1];
+    flags = Gp_MapFlagIds[gGameSession->at4.loc.stage - 1];
     Gp_DrawMapCursor(arg0);
     func_800D0C34(arg0);
     func_800D0614(arg0);
@@ -2653,7 +2653,7 @@ void Gp_MapTaskState2(Task* arg0)
             obj->field_2C = 0x101;
             func_800D1F90(arg0);
             obj->field_2E = 6;
-            if ((*(u32*)&gGameSession->loc & 0xFFFF0000) == 0x04280000) {
+            if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x04280000) {
                 Gp_LoadViewAndCd(1);
             }
             arg0->state = 3;
@@ -2662,7 +2662,7 @@ void Gp_MapTaskState2(Task* arg0)
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             func_800D1F90(arg0);
             obj->field_2E = -1;
-            if ((*(u32*)&gGameSession->loc & 0xFFFF0000) == 0x04280000) {
+            if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x04280000) {
                 Gp_LoadViewAndCd(1);
             }
             arg0->state = 3;
@@ -2672,7 +2672,7 @@ void Gp_MapTaskState2(Task* arg0)
             if (flags[Gp_MapRoomId] == 0xFF) {
                 return;
             }
-            for (room = Gp_MapRoomId + 1; room <= D_8010F130[gGameSession->loc.stage - 1]; room++) {
+            for (room = Gp_MapRoomId + 1; room <= D_8010F130[gGameSession->at4.loc.stage - 1]; room++) {
                 if (func_800D1434(room, flags[room]) == 1) {
                     if ((s8)Gp_MapRoomId != room) {
                         Gp_MapRoomId = room;
@@ -2718,7 +2718,7 @@ void Gp_MapTaskState2(Task* arg0)
         if (child->field_2E == -1) {
             func_800D1F90(arg0);
             obj->field_2E = -1;
-            if ((*(u32*)&gGameSession->loc & 0xFFFF0000) == 0x04280000) {
+            if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x04280000) {
                 Gp_LoadViewAndCd(1);
             }
             arg0->state = 3;
@@ -2747,8 +2747,8 @@ void Gp_DrawMapCursor(Task* arg0)
     obj   = arg0->spawnArg2;
     cfg   = &Player_Status;
     actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
-    rec   = Gp_MapRecTables[gGameSession->loc.stage - 1];
-    rec   = rec + gGameSession->loc.area;
+    rec   = Gp_MapRecTables[gGameSession->at4.loc.stage - 1];
+    rec   = rec + gGameSession->at4.loc.area;
     if (rec->field_C != (s8)Gp_MapRoomId) {
         return;
     }
@@ -2907,7 +2907,7 @@ void Gp_DrawMapMarks(Task* arg0)
     session   = gGameSession;
     banks     = Gp_FlagBanks;
     markTable = (keep, Gp_MapMarkTables);
-    stage     = session->loc.stage;
+    stage     = session->at4.loc.stage;
     obj       = arg0->spawnArg2;
     stageM1   = stage - 1;
     bank      = banks[stage];
@@ -2918,13 +2918,13 @@ void Gp_DrawMapMarks(Task* arg0)
     }
     flags[0] = bank->field_4[0];
     flags[1] = bank->field_4[1];
-    if (session->loc.stage == 3) {
+    if (session->at4.loc.stage == 3) {
         bank      = banks[2];
         flags[0] |= bank->field_4[0];
         flags[1] |= bank->field_4[1];
     }
     i = 0;
-    if (Gp_MapMarkCounts[session->loc.stage - 1] != 0) {
+    if (Gp_MapMarkCounts[session->at4.loc.stage - 1] != 0) {
         one = 1;
         do {
             if (recs[(u8)i].field_4 == (s8)Gp_MapRoomId) {
@@ -2979,7 +2979,7 @@ void Gp_DrawMapMarks(Task* arg0)
                 }
             }
             i++;
-        } while ((u8)i < Gp_MapMarkCounts[gGameSession->loc.stage - 1]);
+        } while ((u8)i < Gp_MapMarkCounts[gGameSession->at4.loc.stage - 1]);
     }
 }
 
@@ -3006,7 +3006,7 @@ void func_800D0C34(Task* arg0)
 
     i        = 0;
     scratch  = (void**)G_SCRATCH_HEAD;
-    stage    = gGameSession->loc.stage;
+    stage    = gGameSession->at4.loc.stage;
     obj      = arg0->spawnArg2;
     icons    = D_8010F0E0[stage - 1];
     bank     = Gp_FlagBanks[stage];
@@ -3107,7 +3107,7 @@ s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
     scratch = (void**)G_SCRATCH_HEAD;
     ret     = 0;
     obj     = arg0->spawnArg2;
-    icons   = D_8010F0CC[gGameSession->loc.stage - 1];
+    icons   = D_8010F0CC[gGameSession->at4.loc.stage - 1];
     lum     = (rsin(Display_State.field_14 << 6) + 0x1000) >> 5;
 
     for (;;) {
@@ -3207,10 +3207,10 @@ void Gp_EnqueueMapRoomCd(void)
 
     Gp_MapRoomOff             = 0;
     gGameSession->loadedSndId = 0;
-    if ((gGameSession->loc.stage == 4) && ((s8)Gp_MapRoomId == 6) && (GameFlag_GetNibble(0xB7) == 0)) {
+    if ((gGameSession->at4.loc.stage == 4) && ((s8)Gp_MapRoomId == 6) && (GameFlag_GetNibble(0xB7) == 0)) {
         Gp_MapRoomOff = 1;
     }
-    if (gGameSession->loc.stage == 5) {
+    if (gGameSession->at4.loc.stage == 5) {
         room = (s8)Gp_MapRoomId;
         if ((room == 1) && (GameFlag_GetNibble(0xD9) == room)) {
             Gp_MapRoomOff = 3;
@@ -3219,7 +3219,7 @@ void Gp_EnqueueMapRoomCd(void)
     param1[2] = 3;
     param1[3] = 0;
     param1[0] = Gp_MapRoomId + Gp_MapRoomOff;
-    stage     = gGameSession->loc.stage;
+    stage     = gGameSession->at4.loc.stage;
     param2[1] = 0;
     param2[3] = 0;
     param2[2] = 0;
@@ -3239,8 +3239,8 @@ s8 func_800D1434(u32 roomId, u8 flagId)
     s32         one;
     s32         skip;
 
-    bank = Gp_FlagBanks[gGameSession->loc.stage];
-    if (gGameSession->loc.stage != 5) {
+    bank = Gp_FlagBanks[gGameSession->at4.loc.stage];
+    if (gGameSession->at4.loc.stage != 5) {
         if (flagId != 0xFF) {
             if (flagId == 0x80) {
                 return 0;
@@ -3249,11 +3249,11 @@ s8 func_800D1434(u32 roomId, u8 flagId)
             if (which && (GameFlag_GetNibble(flagId) != 0)) {
                 return 1;
             }
-            recs     = Gp_MapRecTables[gGameSession->loc.stage - 1];
+            recs     = Gp_MapRecTables[gGameSession->at4.loc.stage - 1];
             flags[0] = bank->field_4[0];
             flags[1] = bank->field_4[1];
             i        = 0;
-            if (gGameSession->loc.stage == 3) {
+            if (gGameSession->at4.loc.stage == 3) {
                 bank      = D_80060A38;
                 flags[0] |= bank->field_4[0];
                 flags[1] |= bank->field_4[1];
@@ -3297,7 +3297,7 @@ void func_800D15D0(Task* arg0)
     s8        ret;
     u8        stage;
 
-    stage   = gGameSession->loc.stage;
+    stage   = gGameSession->at4.loc.stage;
     obj     = arg0->spawnArg2;
     flagIds = Gp_MapFlagIds[stage - 1];
     if (stage == 5) {
@@ -3344,7 +3344,7 @@ void func_800D15D0(Task* arg0)
     }
 
     i = Gp_MapRoomId + 1;
-    while ((u8)i <= D_8010F130[gGameSession->loc.stage - 1]) {
+    while ((u8)i <= D_8010F130[gGameSession->at4.loc.stage - 1]) {
         if (flagIds[(u8)i] == 0) {
             return;
         }
@@ -3427,10 +3427,10 @@ void Gp_DrawMapName(Task* arg0)
     s32          width;
 
     session = gGameSession;
-    names   = Gp_MapNameTables[session->loc.stage - 1];
+    names   = Gp_MapNameTables[session->at4.loc.stage - 1];
     obj     = arg0->spawnArg2;
     if (names != NULL) {
-        text = names[session->loc.area - 1].text;
+        text = names[session->at4.loc.area - 1].text;
         if (arg0->state == 0) {
             req.x          = 0;
             req.y          = 0;
@@ -3484,8 +3484,8 @@ void Gp_MapPanelInit(Task* arg0)
     Gp_RebuildAreaIdBits();
     session      = gGameSession;
     table        = Gp_MapRecTables;
-    idx          = session->loc.stage - 1;
-    f6           = session->loc.area;
+    idx          = session->at4.loc.stage - 1;
+    f6           = session->at4.loc.area;
     recs         = table[idx];
     recs         = recs + f6;
     val          = recs->field_C;
@@ -3560,8 +3560,8 @@ u8 Gp_GetMapRoomId(void)
 
     session = gGameSession;
     table   = Gp_MapRecTables;
-    idx     = session->loc.stage - 1;
-    f6      = session->loc.area;
+    idx     = session->at4.loc.stage - 1;
+    f6      = session->at4.loc.area;
     recs    = table[idx];
     recs    = recs + f6;
     {
@@ -4835,7 +4835,7 @@ s32 func_800D4D2C(s32 arg0)
 {
     s32 val;
 
-    val                           = *(volatile s32*)&Mc_SaveData.field_4;
+    val                           = *(volatile s32*)&Mc_SaveData.at4.loc.view;
     *(volatile s32*)&Wip_UiHolder = 0;
     switch (val & ~0xFFFF) {
         case 0x1130000:

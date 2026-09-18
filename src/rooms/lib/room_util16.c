@@ -8,12 +8,12 @@
 /// it. No-op unless `GameSession.loc.stage` is 2.
 void Room_Util16(s32 arg0)
 {
-    GameSession*      g;
-    GameSessionFrom4* sess;
-    GpSprtCmd*        cmd;
+    GameSession* g;
+    GpAreaKey*   sess;
+    GpSprtCmd*   cmd;
 
     g    = gGameSession;
-    sess = &g->loc;
+    sess = &g->at4.loc;
     if (sess->stage == 2) {
         cmd = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1][8].field_4;
         if (!(arg0 & 0xFF)) {

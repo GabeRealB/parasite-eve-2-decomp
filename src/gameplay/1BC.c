@@ -1630,7 +1630,7 @@ void Gp_FadeWorkTask(Task* arg0)
 
 void func_800B25B0(void)
 {
-    switch (*(u32*)&Mc_SaveData.field_4 & 0xFFFF0000) {
+    switch (*(u32*)&Mc_SaveData.at4.loc.view & 0xFFFF0000) {
         case 0x51B0000:
             Task_SpawnFromTable(D_80181F18, 0, 0, 0);
             break;
@@ -2635,16 +2635,16 @@ void Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s3
 
 void Gp_SaveEnemyPose(GpEnemy* arg0)
 {
-    McPosRec*         rec;
-    GameSessionFrom4* loc;
-    TmdObject*        extra;
-    GsCOORDINATE2*    coord;
-    SVECTOR*          euler;
-    u16               id;
-    s32               i;
+    McPosRec*      rec;
+    GpAreaKey*     loc;
+    TmdObject*     extra;
+    GsCOORDINATE2* coord;
+    SVECTOR*       euler;
+    u16            id;
+    s32            i;
 
     rec   = Mc_SaveData.field_28;
-    loc   = (GameSessionFrom4*)&Mc_SaveData.field_4;
+    loc   = (GpAreaKey*)&Mc_SaveData.at4.loc.view;
     extra = (TmdObject*)arg0->task->extra;
     coord = (GsCOORDINATE2*)extra->field_8;
     if (arg0->field_4B == 0) {
@@ -2724,18 +2724,18 @@ void Gp_SpawnArea(GpAreaKey* arg0)
     s32           fp;
     s32           i;
 
-    recs = Gp_AreaTables[arg0->field_3];
+    recs = Gp_AreaTables[arg0->stage];
     Gp_ResetLinkState();
     if (recs == NULL) {
         return;
     }
-    nested = recs[arg0->field_2].field_0;
-    obj    = recs[arg0->field_2].field_4;
+    nested = recs[arg0->area].field_0;
+    obj    = recs[arg0->area].field_4;
     if (nested == NULL) {
         return;
     }
     func_800B5A48(arg0, obj);
-    place = (GpAreaPlace*)nested[arg0->field_5].field_0;
+    place = (GpAreaPlace*)nested[arg0->place].field_0;
     fp    = 0;
     if (place == NULL) {
         return;
@@ -2744,7 +2744,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
         return;
     }
     do {
-        entry = (GpAreaTmdRec*)nested[arg0->field_5].field_4;
+        entry = (GpAreaTmdRec*)nested[arg0->place].field_4;
         id    = entry->field_0;
         if (id != 0xFF) {
             packed = fp << 24;
@@ -2762,8 +2762,8 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                         found = 0;
                         j     = found;
                         key   = packed >> 12;
-                        t     = arg0->field_3;
-                        lo    = arg0->field_2;
+                        t     = arg0->stage;
+                        lo    = arg0->area;
                         key   = key | (t << 8);
                         key   = key | lo;
                         for (; j < 0x20; j++, rec++) {
@@ -2784,8 +2784,8 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                         register s32 v asm("v0");
 
                         v               = 0x900;
-                        f3              = arg0->field_3;
-                        f2              = arg0->field_2;
+                        f3              = arg0->stage;
+                        f2              = arg0->area;
                         enemy->field_A  = v;
                         v               = packed >> 12;
                         enemy->field_3C = place;
@@ -3104,16 +3104,16 @@ void Gp_ApplyAreaTmdFlags(void)
         do {
             work = iter->spawnArg2;
             if (iter->spawnType == 1) {
-                key   = (GpAreaKey*)&Mc_SaveData.field_4;
-                idx   = key->field_3;
+                key   = (GpAreaKey*)&Mc_SaveData.at4.loc.view;
+                idx   = key->stage;
                 extra = iter->extra;
                 rec   = Gp_AreaTables[idx];
                 bytes = work->field_3C;
                 table = NULL;
                 if (rec != NULL) {
-                    rec = rec[key->field_2].field_0;
+                    rec = rec[key->area].field_0;
                     if (rec != NULL) {
-                        table = (GpAreaTmdRec*)rec[key->field_5].field_4;
+                        table = (GpAreaTmdRec*)rec[key->place].field_4;
                     }
                 }
                 entry = table;
@@ -3198,12 +3198,12 @@ void Gp_SetCurAreaFlag2(s32 arg0)
     GpAreaObj* obj;
     GpAreaKey* key;
 
-    key = (GpAreaKey*)&Mc_SaveData.field_4;
-    rec = Gp_AreaTables[key->field_3];
+    key = (GpAreaKey*)&Mc_SaveData.at4.loc.view;
+    rec = Gp_AreaTables[key->stage];
     if (rec != NULL) {
-        obj = rec[key->field_2].field_4;
+        obj = rec[key->area].field_4;
         if (obj != NULL) {
-            if (obj->field_0 == key->field_5) {
+            if (obj->field_0 == key->place) {
                 if (arg0 == 0) {
                     obj->field_1 &= 0xFD;
                     return;
@@ -3220,9 +3220,9 @@ s32 Gp_GetAreaFlag2(GpAreaKey* arg0)
     GpAreaObj* obj;
     s32        val;
 
-    rec = Gp_AreaTables[arg0->field_3];
+    rec = Gp_AreaTables[arg0->stage];
     if (rec != NULL) {
-        obj = rec[arg0->field_2].field_4;
+        obj = rec[arg0->area].field_4;
         if (obj != NULL) {
             val = obj->field_1 & 2;
             return val != 0;
@@ -3236,11 +3236,11 @@ GpAreaObj* Gp_GetAreaObj(GpAreaKey* arg0)
     GpAreaRec* rec;
     GpAreaObj* ret;
 
-    rec = Gp_AreaTables[arg0->field_3];
+    rec = Gp_AreaTables[arg0->stage];
     if (rec == NULL) {
         ret = NULL;
     } else {
-        ret = rec[arg0->field_2].field_4;
+        ret = rec[arg0->area].field_4;
     }
     return ret;
 }
@@ -3260,7 +3260,7 @@ void func_800B5A48(GpAreaKey* arg0, GpAreaObj* arg1)
         i              = 0x1F;
         recs           = Mc_SaveData.field_28;
         do {
-            if ((recs[i].field_A & 0xFFF) == ((arg0->field_3 << 8) | arg0->field_2)) {
+            if ((recs[i].field_A & 0xFFF) == ((arg0->stage << 8) | arg0->area)) {
                 if (i != 0x1F) {
                     for (j = i; j < 0x1F; j++) {
                         recs[j] = recs[j + 1];
@@ -3279,9 +3279,9 @@ void Gp_SetAreaObjId(GpAreaKey* arg0, s32 arg1, s32 arg2)
     GpAreaRec* rec;
     GpAreaObj* obj;
 
-    rec = Gp_AreaTables[arg0->field_3];
+    rec = Gp_AreaTables[arg0->stage];
     if (rec != NULL) {
-        obj = rec[arg0->field_2].field_4;
+        obj = rec[arg0->area].field_4;
         if (obj != NULL) {
             if (arg2 != -1) {
                 obj->field_0 = arg1;
@@ -3307,11 +3307,11 @@ void Gp_SetAreaFlag2(s32 arg0, GpAreaKey* arg1)
     GpAreaRec* rec;
     GpAreaObj* obj;
 
-    rec = Gp_AreaTables[arg1->field_3];
+    rec = Gp_AreaTables[arg1->stage];
     if (rec != NULL) {
-        obj = rec[arg1->field_2].field_4;
+        obj = rec[arg1->area].field_4;
         if (obj != NULL) {
-            if (obj->field_0 == arg1->field_5) {
+            if (obj->field_0 == arg1->place) {
                 if (arg0 == 0) {
                     obj->field_1 &= 0xFD;
                     return;
@@ -3327,12 +3327,12 @@ GpAreaObj* Gp_GetNestedAreaObj(GpAreaKey* arg0)
     GpAreaRec* rec;
     GpAreaObj* ret;
 
-    rec = Gp_AreaTables[arg0->field_3];
+    rec = Gp_AreaTables[arg0->stage];
     ret = NULL;
     if (rec != NULL) {
-        rec = rec[arg0->field_2].field_0;
+        rec = rec[arg0->area].field_0;
         if (rec != NULL) {
-            ret = rec[arg0->field_5].field_4;
+            ret = rec[arg0->place].field_4;
         }
     }
     return ret;
@@ -3343,12 +3343,12 @@ GpAreaRec* Gp_GetNestedAreaRec(GpAreaKey* arg0)
     GpAreaRec* rec;
     GpAreaRec* ret;
 
-    rec = Gp_AreaTables[arg0->field_3];
+    rec = Gp_AreaTables[arg0->stage];
     ret = NULL;
     if (rec != NULL) {
-        ret = rec[arg0->field_2].field_0;
+        ret = rec[arg0->area].field_0;
         if (ret != NULL) {
-            ret = &ret[arg0->field_5];
+            ret = &ret[arg0->place];
         }
     }
     return ret;
@@ -3360,11 +3360,11 @@ void Gp_SetAreaFlag0(GpAreaKey* arg0)
     GpAreaRec* rec;
     GpAreaObj* obj;
 
-    key = *(u32*)&arg0->field_0 & 0xFFFF0000;
-    rec = Gp_AreaTables[arg0->field_3];
+    key = *(u32*)&arg0->view & 0xFFFF0000;
+    rec = Gp_AreaTables[arg0->stage];
     if (key != 0x3260000) {
         if (rec != NULL) {
-            obj = rec[arg0->field_2].field_4;
+            obj = rec[arg0->area].field_4;
             if (obj != NULL) {
                 obj->field_1 |= 1;
             }
@@ -3490,13 +3490,13 @@ void Gp_SyncAreaKeyIndex(GpAreaKey* arg0)
     GpAreaRec* rec2;
     GpAreaObj* obj;
 
-    rec           = Gp_AreaTables[arg0->field_3];
-    arg0->field_5 = 1;
+    rec         = Gp_AreaTables[arg0->stage];
+    arg0->place = 1;
     if (rec == NULL) {
         return;
     }
-    rec2 = rec[arg0->field_2].field_0;
-    obj  = rec[arg0->field_2].field_4;
+    rec2 = rec[arg0->area].field_0;
+    obj  = rec[arg0->area].field_4;
     if (rec2 == NULL) {
         return;
     }
@@ -3504,7 +3504,7 @@ void Gp_SyncAreaKeyIndex(GpAreaKey* arg0)
         obj->field_0  = 1;
         obj->field_1 |= 1;
     }
-    arg0->field_5 = obj->field_0;
+    arg0->place = obj->field_0;
 }
 
 void func_800B6094(Task* task)
@@ -3628,7 +3628,7 @@ s32 Gp_LookupBit2Item(s32 arg0)
     s32         term;
     s32         found;
 
-    idx   = Mc_SaveData.field_7;
+    idx   = Mc_SaveData.at4.loc.stage;
     lists = Gp_Bit2Banks[idx].field_0;
     found = 0;
     if (lists != NULL) {
@@ -3773,11 +3773,11 @@ void func_800B65B0(Task* task)
                     case 1:
                         if (ui->field_2C == 0x33) {
                             id      = work->field_0;
-                            current = Gp_Bit2Banks[gGameSession->loc.stage].field_4 + (id >> 4);
+                            current = Gp_Bit2Banks[gGameSession->at4.loc.stage].field_4 + (id >> 4);
                             shift   = (id & 0xF) * 2;
                             mask    = 3 << shift;
                             if (((*current & mask) >> shift) != 3) {
-                                flags  = Gp_Bit2Banks[Mc_SaveData.field_7].field_4 + (id >> 4);
+                                flags  = Gp_Bit2Banks[Mc_SaveData.at4.loc.stage].field_4 + (id >> 4);
                                 *flags = (*flags & ~mask) | (2 << shift);
                             }
                             work->field_3 = 1;
@@ -3817,7 +3817,7 @@ void func_800B65B0(Task* task)
 
 void Gp_SpawnPlaceById(u16 arg0)
 {
-    GameSessionFrom4*    sess;
+    GpAreaKey*           sess;
     GpBit2Bank*          tmp;
     register GpBit2Bank* banks asm("t1");
     GpBit2List*          lists;
@@ -3832,7 +3832,7 @@ void Gp_SpawnPlaceById(u16 arg0)
     u16                  recId;
     u8                   idx8;
 
-    sess  = (GameSessionFrom4*)&Mc_SaveData.field_4;
+    sess  = (GpAreaKey*)&Mc_SaveData.at4.loc.view;
     tmp   = Gp_Bit2Banks;
     idx8  = sess->stage;
     lists = tmp[idx8].field_0;
@@ -3859,7 +3859,7 @@ void Gp_SpawnPlaceById(u16 arg0)
             u32           word;
 
             temp   = (u16)id;
-            flags  = banks[gGameSession->loc.stage].field_4;
+            flags  = banks[gGameSession->at4.loc.stage].field_4;
             idx    = temp >> 4;
             flags += idx;
             shift  = (temp & 0xF) * 2;
@@ -3905,7 +3905,7 @@ void Gp_SpawnPlaceById(u16 arg0)
     } while (id != term);
 }
 
-void Gp_SpawnPlaces(GameSessionFrom4* arg0)
+void Gp_SpawnPlaces(GpAreaKey* arg0)
 {
     GpBit2List*   lists;
     GpEnemyPlace* place;

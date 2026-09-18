@@ -57,10 +57,10 @@ void func_mine_mesa_8017D670(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076          = 1;
-            Mc_SaveData.field_6 = D_mine_mesa_80189B40.field_0;
-            Mc_SaveData.field_8 = D_mine_mesa_80189B40.field_2;
-            Mc_SaveData.field_5 = D_mine_mesa_80189B40.field_3;
+            D_80071076               = 1;
+            Mc_SaveData.at4.loc.area = D_mine_mesa_80189B40.field_0;
+            Mc_SaveData.at4.loc.warp = D_mine_mesa_80189B40.field_2;
+            Mc_SaveData.at4.loc.room = D_mine_mesa_80189B40.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             Task_Kill(arg0);
             break;
@@ -80,7 +80,7 @@ void func_mine_mesa_8017D808(void)
     u8  field9;
     s32 nibble;
 
-    if ((gGameSession->eventState == 0) && (D_80114C12 != 1) && (field9 = gGameSession->loc.place, field9 == 1)) {
+    if ((gGameSession->eventState == 0) && (D_80114C12 != 1) && (field9 = gGameSession->at4.loc.place, field9 == 1)) {
         if (GameFlag_GetNibble(0x90) == 0) {
             if (Game_GetPtrSlot(0xA) != NULL) {
                 func_800E8634((s32)&D_mine_mesa_8018578C, 0, (s32)&D_mine_mesa_801861DC);

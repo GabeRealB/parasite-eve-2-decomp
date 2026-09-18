@@ -1251,7 +1251,7 @@ void func_actor_204000_8014EDC4(Actor104000Ctx* arg0, Actor104000* arg1)
     work->field_198                     += work->field_19A;
     arg1->field_2C->field_8->coord.t[1] += (s16)work->field_198;
     if (arg1->field_2C->field_8->coord.t[1] >= -0x12B) {
-        if ((*(u32*)&gGameSession->loc & 0xFFFF0000) == 0x03100000) {
+        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x03100000) {
             id  = ((arg0->field_8 >> 12) << 8) | 0x53100006;
             pan = (s8)Gp_GetObjPan((GpObj38*)arg1->field_2C->field_8);
             SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)arg1->field_2C->field_8));

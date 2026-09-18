@@ -4804,7 +4804,7 @@ void Gp_RestartSessionTask(Task* arg0)
         DrawSync(0);
         ds->field_100 = 0;
     }
-    memset(&gGameSession->loc.view, 0, 8);
+    memset(&gGameSession->at4.loc.view, 0, 8);
     Mem_ConfigureAuxHeap(0, 0);
     if (gGameSession->restartMode == flag) {
         Gpu_PrimHeapSize   = 0xB000;
@@ -4830,7 +4830,7 @@ void Gp_EndingTask(Task* arg0)
         work                = arg0->spawnArg2;
         work->field_4       = 1;
         arg0->killCountdown = 0x1E;
-        if ((*(u32*)&gGameSession->loc & 0xFFFF0000) == 0x4300000) {
+        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x4300000) {
             arg0->killCountdown = 0x5A;
         }
         SndEvt_EnqueueType6(0xB, 0, 0);
@@ -5147,7 +5147,7 @@ void Gp_AreaEnterTask(Task* arg0)
 
     if (arg0->state == 0) {
         work = arg0->spawnArg2;
-        key  = *(u32*)&gGameSession->loc;
+        key  = *(u32*)&gGameSession->at4.loc;
         key &= 0xFFFF0000;
         Stage_InitPrimBufOnce();
         i = 0;
@@ -5169,10 +5169,10 @@ void Gp_AreaEnterTask(Task* arg0)
             if (arg0->spawnArg1 == 0) {
                 work->field_4 = 0;
                 work->field_0 = 0;
-                Gp_SetAreaFlag2(1, (GpAreaKey*)&gGameSession->loc);
+                Gp_SetAreaFlag2(1, (GpAreaKey*)&gGameSession->at4.loc);
                 gGameSession->field_126 = 1;
                 if (key == 0x50B0000 || key == 0x51D0000) {
-                    if (gGameSession->loc.place - 1 < 3U) {
+                    if (gGameSession->at4.loc.place - 1 < 3U) {
                         goto skip_count;
                     }
                 }
@@ -5290,7 +5290,7 @@ u16 Gp_GetAttachParam(s32 arg0)
         ret = 1;
     } else {
         p = &Player_Status;
-        if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x1140000) {
+        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
             cond = 0;
         } else {
             cond = p->field_26 == 4;
@@ -5342,7 +5342,7 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
         ret = 1;
     } else {
         p = &Player_Status;
-        if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x1140000) {
+        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
             cond = 0;
         } else {
             cond = p->field_26 == 4;
@@ -5641,7 +5641,7 @@ s32 Gp_CheckAttachThreshold(s32 arg0)
         ret = 1;
     } else {
         p = cfg;
-        if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x1140000) {
+        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
             cond = 0;
         } else {
             cond = cfg->field_26 == 4;
@@ -5782,7 +5782,7 @@ void Gp_SetAttachState(s32 arg0)
     ret = 1;
     if (n < 0xC) {
         cfg = &Player_Status;
-        if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x1140000) {
+        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
             cond = 0;
         } else {
             cond = cfg->field_26 == 4;
@@ -5831,7 +5831,7 @@ static __inline__ s32 stepAttachWheelSaved(s32 arg0, s32 arg1, McSaveData* save)
     u8*           table;
 
     p = &Player_Status;
-    if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x1140000) {
+    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
         cond = 0;
     } else {
         cond = p->field_26 == 4;
@@ -5873,7 +5873,7 @@ static __inline__ s32 stepAttachWheel(s32 arg0, s32 arg1)
     u8*           table;
 
     p = &Player_Status;
-    if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x1140000) {
+    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
         cond = 0;
     } else {
         cond = p->field_26 == 4;
@@ -5919,7 +5919,7 @@ static __inline__ s32 getAttachWheelLevel(s32 idx)
         lvl = 1;
     } else {
         p = &Player_Status;
-        if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x1140000) {
+        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
             cond = 0;
         } else {
             cond = p->field_26 == 4;
@@ -6018,7 +6018,7 @@ s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
     gGameSession->uiOpen = 1;
     cfg                  = &Player_Status;
     count                = 0;
-    if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x1140000) {
+    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
         cond = 0;
     } else {
         cond = cfg->field_26 == 4;
@@ -6298,7 +6298,7 @@ static __inline__ u8* getAttachLevels(void)
     s32           cond;
 
     p = &Player_Status;
-    if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x1140000) {
+    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
         cond = 0;
     } else {
         cond = p->field_26 == 4;
@@ -6321,7 +6321,7 @@ static __inline__ s32 getAttachLevel(s32 idx)
         lvl = 1;
     } else {
         p = &Player_Status;
-        if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x1140000) {
+        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
             cond = 0;
         } else {
             cond = p->field_26 == 4;
@@ -6661,7 +6661,7 @@ void Gp_HudTask(GpIdMapC* arg0)
     s32           b;
 
     bad   = 0;
-    kind  = *(u32*)&gGameSession->loc;
+    kind  = *(u32*)&gGameSession->at4.loc;
     kind &= 0xFFFF0000;
     cfg   = &Player_Status;
     ds    = &Display_State;
@@ -6731,7 +6731,7 @@ void Gp_HudTask(GpIdMapC* arg0)
 
     slot = Game_GetPtrSlot(1);
     if (slot != NULL) {
-        if (slot->spawnArg1 != Mc_SaveData.field_4) {
+        if (slot->spawnArg1 != Mc_SaveData.at4.loc.view) {
             bad = 1;
         }
     }
@@ -6820,7 +6820,7 @@ void Gp_HudTask(GpIdMapC* arg0)
                 s32           cond;
 
                 p = &Player_Status;
-                if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x1140000) {
+                if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
                     cond = 0;
                 } else {
                     cond = p->field_26 == 4;
@@ -6856,7 +6856,7 @@ after:
             if (bad != 0) {
                 goto tail;
             }
-            k             = *(u32*)&gGameSession->loc;
+            k             = *(u32*)&gGameSession->at4.loc;
             k            &= 0xFFFF0000;
             arg0->field_8 = 0;
             if (k != 0x1140000) {
@@ -6989,7 +6989,7 @@ after:
             item = p->weapon + 0x7F;
             Gp_FillRelated(item, 0);
             Gp_FillRelated(item, 1);
-            if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x1140000) {
+            if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
                 cond = 0;
             } else {
                 cond = p->field_26 == 4;
@@ -7011,7 +7011,7 @@ after:
             GpStateC08*   q;
 
             p = &Player_Status;
-            if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x1140000) {
+            if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
                 cond = 0;
             } else {
                 cond = p->field_26 == 4;
@@ -8571,7 +8571,7 @@ u8* Gp_GetAttachLevels(void)
     s32           cond;
 
     p = &Player_Status;
-    if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x1140000) {
+    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
         cond = 0;
     } else {
         cond = p->field_26 == 4;
@@ -8587,7 +8587,7 @@ s32 Gp_IsDebugAttachRoom(void)
     PlayerStatus* p;
 
     p = &Player_Status;
-    if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x1140000) {
+    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
         return 0;
     }
     return p->field_26 == 4;
@@ -8814,7 +8814,7 @@ s32 Gp_GetAttachLevel(s32 arg0)
     ret = 1;
     if (arg0 < 0xC) {
         p = &Player_Status;
-        if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x1140000) {
+        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
             cond = 0;
         } else {
             cond = p->field_26 == 4;
@@ -8845,7 +8845,7 @@ s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
     u8*           table;
 
     p = &Player_Status;
-    if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x1140000) {
+    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
         cond = 0;
     } else {
         cond = p->field_26 == 4;
@@ -9226,16 +9226,16 @@ void func_800A8654(Task* task)
 
 void Gp_LoadStageView(void)
 {
-    GameSessionFrom4* sess;
-    GpViewTbl*        tbl;
-    GpViewRec*        recs;
-    GpViewRec*        rec;
-    GsCOORDINATE2*    c1;
-    MATRIX*           rot;
-    VECTOR3*          trans;
-    u8                idx;
+    GpAreaKey*     sess;
+    GpViewTbl*     tbl;
+    GpViewRec*     recs;
+    GpViewRec*     rec;
+    GsCOORDINATE2* c1;
+    MATRIX*        rot;
+    VECTOR3*       trans;
+    u8             idx;
 
-    sess = &gGameSession->loc;
+    sess = &gGameSession->at4.loc;
     tbl  = Gp_ViewTables[sess->stage - 1];
     recs = tbl->field_0[sess->area - 1];
     idx  = Gp_GetViewIndex();
@@ -9379,13 +9379,13 @@ void Gp_ResetView(void)
 
 void Gp_SpawnViewTasks(void)
 {
-    GameSessionFrom4* sess;
-    GpViewTbl*        tbl;
-    GpViewRec*        recs;
-    GpViewRec*        rec;
-    u8                idx;
+    GpAreaKey* sess;
+    GpViewTbl* tbl;
+    GpViewRec* recs;
+    GpViewRec* rec;
+    u8         idx;
 
-    sess = &gGameSession->loc;
+    sess = &gGameSession->at4.loc;
     tbl  = Gp_ViewTables[sess->stage - 1];
     recs = tbl->field_0[sess->area - 1];
     idx  = Gp_GetViewIndex();
@@ -9394,7 +9394,7 @@ void Gp_SpawnViewTasks(void)
     Task_Spawn(0, 0x17, 0, 0);
 }
 
-GpViewRec* Gp_GetStageView(GameSessionFrom4* arg0)
+GpViewRec* Gp_GetStageView(GpAreaKey* arg0)
 {
     GpViewTbl* tbl;
     GpViewRec* recs;
@@ -9461,13 +9461,13 @@ void func_800A8D5C(void)
 
 void Gp_SpawnCurView(s32 arg0)
 {
-    GameSessionFrom4* sess;
-    GpViewTbl*        tbl;
-    GpViewRec*        recs;
-    GpViewRec*        rec;
-    u8                idx;
+    GpAreaKey* sess;
+    GpViewTbl* tbl;
+    GpViewRec* recs;
+    GpViewRec* rec;
+    u8         idx;
 
-    sess = &gGameSession->loc;
+    sess = &gGameSession->at4.loc;
     tbl  = Gp_ViewTables[sess->stage - 1];
     recs = tbl->field_0[sess->area - 1];
     idx  = Gp_GetViewIndex();
@@ -9493,18 +9493,18 @@ void Gp_ViewGateTask(Task* task)
         task->state = 3;
     }
     save = &Mc_SaveData;
-    if (task->spawnArg1 != save->field_4) {
+    if (task->spawnArg1 != save->at4.loc.view) {
         gGameSession->viewDirty = 1;
     }
     sess = gGameSession;
     if (sess->viewDirty != 0) {
         q = &CdCmd_Queue;
         if ((q->field_214 == 0) || (q->field_218 == 0)) {
-            sess->loc.view = save->field_4;
+            sess->at4.loc.view = save->at4.loc.view;
             Pad_SetCooldown(0);
             Gp_SpawnViewTasks();
             if (Display_SpawnWithOtSmall(0, 0x1E, 0, 0) != 0) {
-                loc                 = (u8)gGameSession->loc.view;
+                loc                 = (u8)gGameSession->at4.loc.view;
                 task->killCountdown = 2;
                 task->spawnArg1     = loc;
                 if (task->state == 3) {
@@ -9529,13 +9529,13 @@ void Gp_ViewGateTask(Task* task)
 
 void Gp_ViewBeginLoad(Task* task)
 {
-    DisplayState*     ds;
-    CdCmdQueue*       q;
-    GameSessionFrom4* sess;
-    u8                param1[8];
-    u8                param2[8];
+    DisplayState* ds;
+    CdCmdQueue*   q;
+    GpAreaKey*    sess;
+    u8            param1[8];
+    u8            param2[8];
 
-    sess = &gGameSession->loc;
+    sess = &gGameSession->at4.loc;
     q    = &CdCmd_Queue;
     if (task->spawnArg1 != 0) {
         Display_State.field_103 = 2;
@@ -9547,10 +9547,10 @@ void Gp_ViewBeginLoad(Task* task)
         DrawPrim(&D_80114C50);
         ds->field_103 = 2;
         if (q->field_214 != 0) {
-            Mdec_ResolveStreamBuffer(&gGameSession->loc.view);
+            Mdec_ResolveStreamBuffer(&gGameSession->at4.loc.view);
             task->state = 5;
         } else {
-            D_80114C40 = Stream_FindSlot(&gGameSession->loc.view, 0, 1);
+            D_80114C40 = Stream_FindSlot(&gGameSession->at4.loc.view, 0, 1);
             if (D_80114C40 >= 0) {
                 Gp_FreeSlot4TmdBuffers();
                 q->field_210 = 1;

@@ -34,11 +34,11 @@ void func_actor_150400_80131ECC(void)
         GameFlag_SetNibble(0xE5, 1);
         Gp_EnqueueConfigCd(1);
         Gp_ApplyAreaRecs(&D_80183BE0);
-        Mc_SaveData.field_7 = 4;
-        Mc_SaveData.field_6 = 0x21;
-        Mc_SaveData.field_8 = 4;
-        Mc_SaveData.field_5 = 1;
-        D_80071076          = 1;
+        Mc_SaveData.at4.loc.stage = 4;
+        Mc_SaveData.at4.loc.area  = 0x21;
+        Mc_SaveData.at4.loc.warp  = 4;
+        Mc_SaveData.at4.loc.room  = 1;
+        D_80071076                = 1;
         Task_Spawn(0, 0x11, 0, 0);
         Gp_RestoreStreamRng();
     }
@@ -114,16 +114,16 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     spawned             = Gp_SpawnEnemyFromTable(D_actor_150400_8013C8F4, 1, 0, enemy);
     model               = (TmdObject*)spawned->task->extra;
     raw                 = enemy->field_8;
-    sessionKey          = (GpAreaKey*)&gGameSession->loc;
-    key.field_3         = sessionKey->field_3;
-    key.field_2         = sessionKey->field_2;
-    key.field_1         = sessionKey->field_1;
+    sessionKey          = (GpAreaKey*)&gGameSession->at4.loc;
+    key.stage           = sessionKey->stage;
+    key.area            = sessionKey->area;
+    key.room            = sessionKey->room;
     idx                 = raw >> 12;
-    areaByte0           = sessionKey->field_0;
+    areaByte0           = sessionKey->view;
     SOFT_BARRIER();
     keyPtr = &key;
     TOUCH_REG(keyPtr);
-    key.field_0 = areaByte0;
+    key.view = areaByte0;
     Gp_SyncAreaKeyIndex(keyPtr);
     rec = Gp_GetNestedAreaRec(&key);
     /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index

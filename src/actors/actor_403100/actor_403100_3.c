@@ -840,7 +840,7 @@ void func_actor_403100_8013F0A8(Task* arg0)
     D_actor_403100_8014762C.field_8   = 0;
     D_actor_403100_8014762C.field_A   = 0;
     D_actor_403100_8014762C.field_6 >>= 1;
-    gGameSession->loc.place           = 4;
+    gGameSession->at4.loc.place       = 4;
     Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
     arg0->state                        = 5;
     D_actor_403100_80155808->field_5F8 = 0;
@@ -956,7 +956,7 @@ void func_actor_403100_8013F3EC(Task* arg0)
     D_actor_403100_80155808->field_84  = 0;
     D_actor_403100_80155808->field_5DA = 2;
     func_actor_403100_80132528(arg0);
-    Mc_SaveData.field_4                 = 0x18;
+    Mc_SaveData.at4.loc.view            = 0x18;
     D_actor_403100_80155808->field_60E  = 0;
     D_actor_403100_80155808->field_610  = 0;
     D_actor_403100_80155808->field_5FA += 1;

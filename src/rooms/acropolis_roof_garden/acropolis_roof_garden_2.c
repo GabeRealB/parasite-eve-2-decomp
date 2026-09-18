@@ -19,12 +19,12 @@ s32 func_acropolis_roof_garden_8017D7A0(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
 {
     switch (in->field_2) {
         case 1:
-            if (((gGameSession->loc.place == 1) || (gGameSession->loc.place == 7)) && (GameFlag_GetNibble(0xCB) == 0)) {
+            if (((gGameSession->at4.loc.place == 1) || (gGameSession->at4.loc.place == 7)) && (GameFlag_GetNibble(0xCB) == 0)) {
                 GameFlag_SetNibble(0xCB, 1);
             }
             break;
         case 2:
-            if (((gGameSession->loc.place == 1) || (gGameSession->loc.place == 7)) && (GameFlag_GetNibble(0xCB) == 1)) {
+            if (((gGameSession->at4.loc.place == 1) || (gGameSession->at4.loc.place == 7)) && (GameFlag_GetNibble(0xCB) == 1)) {
                 func_800E8614((s32)&D_acropolis_roof_garden_80184B08, 1);
                 GameFlag_SetNibble(0xCB, 2);
             }
@@ -146,12 +146,12 @@ void func_acropolis_roof_garden_8017DBEC(void)
 {
     GpAreaKey key;
 
-    if ((gGameSession->loc.warp == 2) && (D_acropolis_roof_garden_8018432C == 0)) {
+    if ((gGameSession->at4.loc.warp == 2) && (D_acropolis_roof_garden_8018432C == 0)) {
         D_acropolis_roof_garden_8018432C = 1;
         func_800E8634((s32)&D_acropolis_roof_garden_80183D74, 0, (s32)&D_acropolis_roof_garden_80184194);
         GameFlag_SetNibble(6, 1);
-        key.field_3 = 1;
-        key.field_2 = 0xC;
+        key.stage = 1;
+        key.area  = 0xC;
         Gp_SetAreaObjId(&key, 3, 1);
     }
 }

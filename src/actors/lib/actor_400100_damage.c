@@ -930,7 +930,7 @@ void Actor00100_Fn0375C(Actor00100* arg0)
                     }
                     break;
                 case 8:
-                    sessionMode = gGameSession->loc.stage;
+                    sessionMode = gGameSession->at4.loc.stage;
                     if ((sessionMode != 2) && (sessionMode != 5)) {
                         magnitude = scratch->field_2C;
                         if (magnitude < 0) {

@@ -600,7 +600,7 @@ void func_actor_401000_80134F98(Actor401000* arg0)
     *(Actor401000AimScratch**)G_SCRATCH_HEAD += 1;
 }
 
-void func_actor_401000_801352DC(GameSessionFrom4* session, GsCOORDINATE2* coord)
+void func_actor_401000_801352DC(GpAreaKey* session, GsCOORDINATE2* coord)
 {
     Actor401000HeightClamp* row;
     s32                     offset;
@@ -624,11 +624,11 @@ void func_actor_401000_801352DC(GameSessionFrom4* session, GsCOORDINATE2* coord)
 }
 
 /// Whether `D_actor_401000_80154FD0` has a row matching the session's
-/// `GameSessionFrom4::field_3` / `field_2` pair. The helper behind both
+/// `GpAreaKey::stage` / `area` pair. The helper behind both
 /// height-clamp probes of `func_actor_401000_80135374`; the second probe is
 /// followed by the `func_actor_401000_801352DC` call itself, which walks the
 /// same rows to clamp the root Y. Same helper as `Actor401300_HasHeightClamp`.
-static __inline__ s32 Actor401000_HasHeightClamp(GameSessionFrom4* session)
+static __inline__ s32 Actor401000_HasHeightClamp(GpAreaKey* session)
 {
     Actor401000HeightClamp* row;
     s16                     i;
@@ -674,7 +674,7 @@ s32 func_actor_401000_80135374(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16
         s->step.vx = head[-1].delta.vx.w >> 16;
         s->step.vy = s->delta.vy.w >> 16;
         s->step.vz = s->delta.vz.w >> 16;
-        if (Actor401000_HasHeightClamp(&gGameSession->loc.view)) {
+        if (Actor401000_HasHeightClamp(&gGameSession->at4.loc.view)) {
             vy = s->step.vy;
             if (((vy >= 0) ? vy : -vy) <= 0x12C) {
                 goto addStep;
@@ -720,8 +720,8 @@ s32 func_actor_401000_80135374(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16
             }
         }
     }
-    if (Actor401000_HasHeightClamp(&gGameSession->loc.view)) {
-        func_actor_401000_801352DC(&gGameSession->loc.view, coord);
+    if (Actor401000_HasHeightClamp(&gGameSession->at4.loc.view)) {
+        func_actor_401000_801352DC(&gGameSession->at4.loc.view, coord);
         coord->coord.t[1] += arg3;
     }
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
@@ -2004,15 +2004,15 @@ static __inline__ void Actor401000_TintEffect(GpEffWork* eff, GpEnemy* enemy)
     u32        raw;
 
     if (eff != NULL) {
-        sessionKey  = (GpAreaKey*)&gGameSession->loc;
-        raw         = enemy->field_8;
-        model       = (TmdObject*)eff->field_0->extra;
-        key.field_3 = sessionKey->field_3;
-        key.field_2 = sessionKey->field_2;
-        key.field_1 = sessionKey->field_1;
-        areaByte0   = gGameSession->loc.view;
-        idx         = raw >> 12;
-        key.field_0 = areaByte0;
+        sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+        raw        = enemy->field_8;
+        model      = (TmdObject*)eff->field_0->extra;
+        key.stage  = sessionKey->stage;
+        key.area   = sessionKey->area;
+        key.room   = sessionKey->room;
+        areaByte0  = gGameSession->at4.loc.view;
+        idx        = raw >> 12;
+        key.view   = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
         rec = Gp_GetNestedAreaRec(&key);
         /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled

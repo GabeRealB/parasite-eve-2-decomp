@@ -50,7 +50,7 @@ void func_actor_800100_80163D54(GpActorWork* arg0)
     actor  = arg0->actor;
     coord  = arg0->extra->field_8;
     target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
-    flag   = (*(u32*)&gGameSession->loc & 0xFFFF0000) == 0x042A0000;
+    flag   = (*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x042A0000;
     if (arg0->actor->field_910->field_C4 <= 0) {
         func_8010BF7C(arg0, 0xA, 0x1F);
         dist = func_8010BC70(coord);
@@ -192,7 +192,7 @@ void func_actor_800100_80164184(GpActorWork* arg0)
     coord  = arg0->extra->field_8;
     target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
     actor  = arg0->actor;
-    flag   = (*(u32*)&gGameSession->loc & 0xFFFF0000) == 0x042A0000;
+    flag   = (*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x042A0000;
     dist   = func_actor_800100_8016709C(coord, &actor->field_910->field_A0, NULL);
     if (dist != 0 && dist < 0x301 && flag == 0) {
         GameActor* actor2 = arg0->actor;
@@ -1614,7 +1614,7 @@ s32 func_actor_800100_80166B40(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2
                     idx = func_800E1ACC((u8*)pidx);
                     {
                         GameSession* session = gGameSession;
-                        if (Gp_RoomParamTables[session->loc.stage - 1][session->loc.area - 1][idx]->field_2 != 0) {
+                        if (Gp_RoomParamTables[session->at4.loc.stage - 1][session->at4.loc.area - 1][idx]->field_2 != 0) {
                             minDist = dist;
                             bestIdx = i;
                         }

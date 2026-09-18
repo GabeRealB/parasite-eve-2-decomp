@@ -157,7 +157,7 @@ void Gp_MsgSlot4Chain(s32 arg0, s32 arg1)
 {
     s32 out;
 
-    arg0 = (arg0 << 12) | (gGameSession->loc.stage << 8) | gGameSession->loc.area;
+    arg0 = (arg0 << 12) | (gGameSession->at4.loc.stage << 8) | gGameSession->at4.loc.area;
     Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7D0, arg0, (s32)&out);
     if (out != 0) {
         Gp_DispatchMsg((Task*)out, 0x7D5, arg1, 0);
@@ -199,7 +199,7 @@ void Gp_EnqueueStageSnd6(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg0 & 0xF000000) {
         arg0 &= 0xF0FFFFFF;
-        arg0 |= gGameSession->loc.stage << 24;
+        arg0 |= gGameSession->at4.loc.stage << 24;
     }
     SndEvt_EnqueueType6(arg0, (s8)arg1, (s8)arg2);
 }
@@ -208,7 +208,7 @@ s32 Gp_PackStageSndId(s32 arg0)
 {
     if (arg0 & 0xF000000) {
         arg0 &= 0xF0FFFFFF;
-        arg0 |= gGameSession->loc.stage << 24;
+        arg0 |= gGameSession->at4.loc.stage << 24;
     }
     return arg0;
 }
@@ -217,7 +217,7 @@ void Gp_EnqueueStageSnd7(s32 arg0, s32 arg1)
 {
     if (arg0 & 0xF000000) {
         arg0 &= 0xF0FFFFFF;
-        arg0 |= gGameSession->loc.stage << 24;
+        arg0 |= gGameSession->at4.loc.stage << 24;
     }
     SndEvt_EnqueueType7(arg0, arg1 & 0xFFFF);
 }
@@ -391,7 +391,7 @@ s32 Gp_StartCap(s32 arg0, s16 arg1, s16 arg2)
     D_80115680     = 1;
     D_80115659     = 0xF;
     D_801155AE     = 1;
-    D_8011566C     = Mc_SaveData.field_4;
+    D_8011566C     = Mc_SaveData.at4.loc.view;
     D_8011565C     = queue->field_22A;
     if (Display_State.field_112 != 0) {
         func_807245B8();
@@ -485,8 +485,8 @@ void func_800E44A0(Task* task)
         if (spawnDelay != 0) {
             return;
         }
-        D_8011566D          = Mc_SaveData.field_4;
-        Mc_SaveData.field_4 = D_80115694;
+        D_8011566D               = Mc_SaveData.at4.loc.view;
+        Mc_SaveData.at4.loc.view = D_80115694;
         Gp_DispatchMsg(Game_GetPtrSlot(5), 0xBB8, 0, 0);
         Stage_RequestImageCapture();
         Task_Spawn(1, 0x2C, 0, (s32)&D_801155A0);
@@ -570,10 +570,10 @@ resumeView:
                 D_801155B6 = Gp_CapTextHeight((u16*)Gp_CapTable[(s16)D_801155AE].field_8);
                 nextView   = view & 0xFF;
                 D_801155BB = 0;
-                if ((nextView != 0) && (nextView != Mc_SaveData.field_4)) {
+                if ((nextView != 0) && (nextView != Mc_SaveData.at4.loc.view)) {
                     if (D_80115688 == 0) {
-                        Mc_SaveData.field_4 = view;
-                        D_801155BB          = 1;
+                        Mc_SaveData.at4.loc.view = view;
+                        D_801155BB               = 1;
                         if (Display_State.field_112 != 0) {
                             if (D_8011564A == -1) {
                                 D_8011564A = 0;
@@ -639,8 +639,8 @@ resumeView:
                 spawnDialog:
                     D_801155A0.field_2 = 0;
                     if (D_80115666 == 1) {
-                        D_8011566D          = Mc_SaveData.field_4;
-                        Mc_SaveData.field_4 = D_80115694;
+                        D_8011566D               = Mc_SaveData.at4.loc.view;
+                        Mc_SaveData.at4.loc.view = D_80115694;
                         Task_Spawn(1, 0x2C, 0, (s32)&D_801155A0);
                     } else if (D_80115666 == 2) {
                         D_801155BA = 4;
@@ -653,7 +653,7 @@ resumeView:
                 }
                 if (D_801155A0.field_2 != 0) {
                     if (D_80115666 != 0) {
-                        Mc_SaveData.field_4 = D_8011566D;
+                        Mc_SaveData.at4.loc.view = D_8011566D;
                     }
                     D_801155AC = 0;
                     if (D_801155A0.field_3 == 0) {
@@ -1035,7 +1035,7 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
                 } else {
                     sel = Gp_FindViewIndex(code & 0xFF);
                 }
-                if (Mc_SaveData.field_4 != sel) {
+                if (Mc_SaveData.at4.loc.view != sel) {
                     if (D_80115666 != 0) {
                         Stage_BeginTransition(sel, 1);
                         D_801155BC = 2;
@@ -1044,9 +1044,9 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
                             Gp_MsgPlayer3F3(0);
                             Gp_MsgAlly3F3(0);
                         }
-                        Mc_SaveData.field_4   = sel;
-                        gGameSession->hideHud = 1;
-                        Gp_StateF0.field_4    = 2;
+                        Mc_SaveData.at4.loc.view = sel;
+                        gGameSession->hideHud    = 1;
+                        Gp_StateF0.field_4       = 2;
                     }
                 }
                 i++;
@@ -1231,7 +1231,7 @@ void Gp_CapExit(Task* arg0)
         Gp_DispatchMsg(Game_GetPtrSlot(5), 0xBB8, 0, 0);
     }
     if (D_80115666 != 0) {
-        if (Mc_SaveData.field_4 == D_8011566C) {
+        if (Mc_SaveData.at4.loc.view == D_8011566C) {
             Stage_SetEndingFlag();
         } else {
             queue->field_22A = D_8011565C;
@@ -1243,8 +1243,8 @@ void Gp_CapExit(Task* arg0)
         Gp_StateF0.field_4 = 0;
     }
     if (gGameSession->eventState == 0) {
-        gGameSession->hideHud = 0;
-        Mc_SaveData.field_4   = D_8011566C;
+        gGameSession->hideHud    = 0;
+        Mc_SaveData.at4.loc.view = D_8011566C;
         Gp_MsgPlayer3F3(1);
         Gp_MsgAlly3F3(1);
         if (Display_State.field_112 != 0) {

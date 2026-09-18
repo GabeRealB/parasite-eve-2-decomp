@@ -69,15 +69,15 @@ s32 func_dryfield_night_driveway_8017D7A0(s32 arg0, s32 arg1, RoomEventMsg* in,
     if (in->msgId == 0x20) {
         if (GameFlag_GetNibble(0x3A) != 2) {
             if (in->field_5 == 0) {
-                if (gGameSession->loc.stage == 2) {
-                    if (gGameSession->loc.place == 1) {
+                if (gGameSession->at4.loc.stage == 2) {
+                    if (gGameSession->at4.loc.place == 1) {
                         if (GameFlag_GetNibble(0x50) == 0) {
                             Task_SpawnFromTable(&D_dryfield_night_driveway_8017F34C, 1, 0, 0);
                             return 0;
                         }
                     }
                 }
-                if (gGameSession->loc.place == 1 && Gp_StateF0.field_0 == gGameSession->loc.place) {
+                if (gGameSession->at4.loc.place == 1 && Gp_StateF0.field_0 == gGameSession->at4.loc.place) {
                     return 0;
                 }
                 Gp_RunCapCmd1(1);
@@ -164,7 +164,7 @@ void func_dryfield_night_driveway_8017DB8C(Task* arg0)
             /* fallthrough */
         case 3:
             if (gGameSession->eventState == 0) {
-                Gp_ClearAreaFlag4((GpAreaKey*)&gGameSession->loc);
+                Gp_ClearAreaFlag4((GpAreaKey*)&gGameSession->at4.loc);
                 Task_Kill(arg0);
             }
             return;

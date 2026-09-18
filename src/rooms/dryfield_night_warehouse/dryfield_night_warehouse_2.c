@@ -15,7 +15,7 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_warehouse/dryfield_night_warehous
 
 /// Per-frame effect on the room's model task: recomputes the model's world
 /// matrix and then re-poses it. The current visit is the stage-visit byte
-/// `gGameSession->loc.view` taken as a bit index, and each pose is gated on that
+/// `gGameSession->at4.loc.view` taken as a bit index, and each pose is gated on that
 /// bit being one of a fixed set of visits.
 void func_dryfield_night_warehouse_8017E778(Task* arg0)
 {
@@ -23,7 +23,7 @@ void func_dryfield_night_warehouse_8017E778(Task* arg0)
     s32            mask;
 
     coord = ((TmdObject*)arg0->extra)->field_8;
-    mask  = 1 << gGameSession->loc.view;
+    mask  = 1 << gGameSession->at4.loc.view;
     Gp_UpdateCoord(coord);
     if (mask & 0x24C) {
         func_dryfield_night_warehouse_8017D6B4(coord, 8);

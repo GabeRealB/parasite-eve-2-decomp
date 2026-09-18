@@ -135,20 +135,20 @@ void func_actor_444000_801321FC(s32 arg0)
         case 2:
             switch (gGameSession->field_132) {
                 case 0:
-                    gGameSession->loc.room = 4;
-                    D_8007216D             = 4;
+                    gGameSession->at4.loc.room = 4;
+                    D_8007216D                 = 4;
                     break;
                 case 1:
-                    gGameSession->loc.room = 5;
-                    D_8007216D             = 5;
+                    gGameSession->at4.loc.room = 5;
+                    D_8007216D                 = 5;
                     break;
                 case 2:
                 case 3:
-                    gGameSession->loc.room = 6;
-                    D_8007216D             = 6;
+                    gGameSession->at4.loc.room = 6;
+                    D_8007216D                 = 6;
                     break;
             }
-            gGameSession->eventRoomIndex = gGameSession->loc.room - 1;
+            gGameSession->eventRoomIndex = gGameSession->at4.loc.room - 1;
             gGameSession->field_133      = 1;
             gGameSession->roomObjsDirty  = 1;
             D_8007216C                   = work->field_28.b;
@@ -211,7 +211,7 @@ void func_actor_444000_80132358(Task* task)
             }
             if (task->spawnArg1 != 0) {
                 work             = (Actor444000EventWork*)task->work;
-                work->field_28.h = gGameSession->loc.view;
+                work->field_28.h = gGameSession->at4.loc.view;
                 Gp_MsgPlayerWeapon(0);
                 func_800E8634((s32)&D_actor_444000_80144634, 0, (s32)&D_actor_444000_8014488C);
                 task->state = 3;
@@ -243,7 +243,7 @@ void func_actor_444000_80132358(Task* task)
             timer               = (u16)task->killCountdown + 1;
             task->killCountdown = timer;
             if (timer >= 0x15) {
-                work->field_28.h = gGameSession->loc.view;
+                work->field_28.h = gGameSession->at4.loc.view;
                 func_800E8634((s32)&D_actor_444000_8014431C, 0, (s32)&D_actor_444000_801444E4);
                 task->state += 1;
             }

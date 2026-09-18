@@ -351,7 +351,7 @@ void Title_RestoreDemoCard(void)
     if (Display_State.field_12c == 0x10) {
         src = (u8*)0x80600100;
     }
-    printf(Title_DemoCardRestoreMsg, Mc_SaveData.field_7, Mc_SaveData.field_6);
+    printf(Title_DemoCardRestoreMsg, Mc_SaveData.at4.loc.stage, Mc_SaveData.at4.loc.area);
 
     memcpy(&Mc_SaveData, src, sizeof(McSaveData));
     src += sizeof(McSaveData);
@@ -381,10 +381,10 @@ void Title_RestoreDemoCard(void)
 
     Mc_SaveData.field_23 = saveField23;
     Mc_SaveData.field_21 = saveField21;
-    if (Fs_StageCdfIsAvailable(Mc_SaveData.field_7) != 1) {
+    if (Fs_StageCdfIsAvailable(Mc_SaveData.at4.loc.stage) != 1) {
         Display_State.field_11e = 1;
     }
-    printf(Title_DemoCardRestoreMsg, Mc_SaveData.field_7, Mc_SaveData.field_6);
+    printf(Title_DemoCardRestoreMsg, Mc_SaveData.at4.loc.stage, Mc_SaveData.at4.loc.area);
 }
 
 void Title_FlagAdvanceTask(Task* arg0)
@@ -449,7 +449,7 @@ L_case0:
     goto advance;
 
 L_case1:
-    key = ((SessionBytesAt4*)gGameSession)->field_4;
+    key = gGameSession->at4.raw;
     if (Wip_SysFlags.field_0 == 2) {
         key.data[0] = 0x65;
     } else {

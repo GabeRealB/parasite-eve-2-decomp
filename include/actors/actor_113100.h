@@ -168,7 +168,7 @@ extern TaskFuncTable4 D_actor_113100_80131E48;
 
 /// Child task table the setup handler `func_actor_113100_80131E58` spawns
 /// from, four `TaskDesc` entries. Index 1 is spawned only when
-/// `gGameSession->loc.place == 2` and its task lands in
+/// `gGameSession->at4.loc.place == 2` and its task lands in
 /// `Actor113100Work::field_534`; indices 2 and 3 are the two modelled parts the
 /// handler re-dresses from the area record.
 extern TaskDesc D_actor_113100_80144308;

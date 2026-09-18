@@ -27,10 +27,10 @@ void func_dryfield_g_r_kitchen_8017EB04(Task* arg0)
     GsCOORDINATE2* coord;
 
     coord = ((TmdObject*)arg0->extra)->field_8;
-    if (gGameSession->loc.view == 2) {
+    if (gGameSession->at4.loc.view == 2) {
         Room_Draw24(coord, &D_dryfield_g_r_kitchen_8017EBF0[0], &D_dryfield_g_r_kitchen_8017EBF0[-1], 0x100);
         Room_Draw24(coord, &D_dryfield_g_r_kitchen_8017EBF0[2], &D_dryfield_g_r_kitchen_8017EBF0[1], 0x100);
-    } else if (gGameSession->loc.view == 3) {
+    } else if (gGameSession->at4.loc.view == 3) {
         func_dryfield_g_r_kitchen_8017E27C(coord, &D_dryfield_g_r_kitchen_8017EC08[0], &D_dryfield_g_r_kitchen_8017EC08[1], 0x100);
         func_dryfield_g_r_kitchen_8017E27C(coord, &D_dryfield_g_r_kitchen_8017EC08[2], &D_dryfield_g_r_kitchen_8017EC08[3], 0x100);
     }

@@ -10,11 +10,11 @@
 /// `Gp_RoomParams` out of it. The list ends at the first NULL record.
 void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list)
 {
-    GameSessionFrom4* sess;
-    s32               i;
-    GpRoomParamRec**  recs;
+    GpAreaKey*       sess;
+    s32              i;
+    GpRoomParamRec** recs;
 
-    sess = &gGameSession->loc;
+    sess = &gGameSession->at4.loc;
     for (i = 0; list[i].rec != 0; i++) {
         recs                         = Gp_RoomParamTables[sess->stage - 1][sess->area - 1];
         recs[list[i].index]          = list[i].rec;

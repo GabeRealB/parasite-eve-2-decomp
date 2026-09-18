@@ -48,7 +48,7 @@ Task* func_dryfield_night_garage_80180A64(s32 arg0)
     GpWorkObj* work;
     Task*      task;
 
-    work = Gp_FindWorkById(gGameSession->loc.area | ((arg0 << 12) | (gGameSession->loc.stage << 8)));
+    work = Gp_FindWorkById(gGameSession->at4.loc.area | ((arg0 << 12) | (gGameSession->at4.loc.stage << 8)));
     task = NULL;
     if (work != NULL) {
         task = (Task*)work->field_0;
@@ -100,7 +100,7 @@ L_case0:
     goto advance;
 
 L_case1:
-    key = ((SessionBytesAt4*)gGameSession)->field_4;
+    key = gGameSession->at4.raw;
     if (Wip_SysFlags.field_0 == 2) {
         if (task->spawnArg1 != 0) {
             key.data[0] = 0x67;

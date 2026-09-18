@@ -24,7 +24,7 @@ void func_acropolis_square_801822A4(void)
 {
     char pad[0x10];
 
-    if (Mc_SaveData.field_8 == 7 && D_acropolis_square_80183830 == 0) {
+    if (Mc_SaveData.at4.loc.warp == 7 && D_acropolis_square_80183830 == 0) {
         D_acropolis_square_80183830 = 1;
         Mc_SaveData.field_5C5       = 2;
         func_800E8634((s32)&D_acropolis_square_8018399C, 0, (s32)&D_acropolis_square_80183A5C);

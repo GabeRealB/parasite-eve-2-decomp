@@ -17,12 +17,12 @@
 /// state outside 0..2 moves nothing and hides all three.
 void func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy)
 {
-    GameSession*      g    = gGameSession;
-    GameSessionFrom4* sess = &g->loc;
-    GpSprtRec*        rec;
-    GpSprtElem*       el;
-    GpSprtCmd*        cmd;
-    s32               mode;
+    GameSession* g    = gGameSession;
+    GpAreaKey*   sess = &g->at4.loc;
+    GpSprtRec*   rec;
+    GpSprtElem*  el;
+    GpSprtCmd*   cmd;
+    s32          mode;
 
     rec  = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
     cmd  = rec[9].field_4;

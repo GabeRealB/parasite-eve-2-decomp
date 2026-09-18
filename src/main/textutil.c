@@ -392,16 +392,16 @@ void Mc_InitDualBankBuffers(void)
         p = &Mc_SaveData;
     } while (0);
 
-    one          = 1;
-    p->field_6   = 0x14;
-    two          = 2;
-    p->field_7   = one;
-    p->field_4   = one;
-    p->field_5   = one;
-    p->field_8   = 7;
-    p->field_9   = one;
-    p->field_5C5 = two;
-    p->field_22  = one;
+    one              = 1;
+    p->at4.loc.area  = 0x14;
+    two              = 2;
+    p->at4.loc.stage = one;
+    p->at4.loc.view  = one;
+    p->at4.loc.room  = one;
+    p->at4.loc.warp  = 7;
+    p->at4.loc.place = one;
+    p->field_5C5     = two;
+    p->field_22      = one;
     Player_InitNewGameStats();
     idx                          = p->field_22 - 1;
     (&Player_Status)[idx].weapon = two;

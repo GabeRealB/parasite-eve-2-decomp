@@ -11,7 +11,7 @@
 /// block, so the callers that spawn it only fill in the fields their scene
 /// needs and leave the rest at whatever the previous scene wrote.
 ///
-/// `camera` is signed: a positive value is latched into `Mc_SaveData.field_4`
+/// `camera` is signed: a positive value is latched into `Mc_SaveData.at4.loc.view`
 /// (the previous camera is kept in `D_80115694` so it can be restored), a
 /// negative one only parks its negation there. `capFile` is the `Gp_LoadCapFile`
 /// id the scene streams, with `fadeArg0` / `fadeArg1` the `func_800E6D4C`

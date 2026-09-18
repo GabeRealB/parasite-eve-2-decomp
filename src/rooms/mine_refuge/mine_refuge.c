@@ -13,10 +13,10 @@
 extern s16 D_80114D08;
 extern s8  D_801153F4;
 
-/// Saved `Mc_SaveData.field_4` (area id), restored when the cutscene ends.
+/// Saved `Mc_SaveData.at4.loc.view` (area id), restored when the cutscene ends.
 extern s32 D_80115694;
 
-/// `Mc_SaveData.field_4`, i.e. the four-byte `GpAreaKey` prefix, read as one
+/// `Mc_SaveData.at4.loc.view`, i.e. the four-byte `GpAreaKey` prefix, read as one
 /// word: bits 16..31 are `field_6` / `field_7`.
 extern s32 D_8007216C;
 
@@ -50,8 +50,8 @@ void func_mine_refuge_8017F49C(Task* task)
                 Gp_MsgAllyWeapon(0);
             }
             if (script->field_0 > 0) {
-                D_80115694    = save->field_4;
-                save->field_4 = *(u8*)&script->field_0;
+                D_80115694         = save->at4.loc.view;
+                save->at4.loc.view = *(u8*)&script->field_0;
             } else {
                 D_80115694 = -script->field_0;
             }
@@ -173,7 +173,7 @@ void func_mine_refuge_8017F49C(Task* task)
         case 11:
             Gp_MsgPlayer3F3(1);
             Gp_MsgAlly3F3(1);
-            Mc_SaveData.field_4 = (u8)D_80115694;
+            Mc_SaveData.at4.loc.view = (u8)D_80115694;
             task->state++;
             break;
         case 12:

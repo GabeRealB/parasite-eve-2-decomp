@@ -39,8 +39,8 @@ void func_dryfield_water_tower_80180194(void)
 
     if (work->field_14 == 0) {
         Gp_ArmStateF0(1);
-        msg.field_0 = gGameSession->loc.stage;
-        msg.field_1 = gGameSession->loc.area;
+        msg.field_0 = gGameSession->at4.loc.stage;
+        msg.field_1 = gGameSession->at4.loc.area;
         msg.field_2 = 0;
         Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         work->field_14 = 1;
@@ -70,13 +70,13 @@ void func_dryfield_water_tower_80180220(void)
 /// argument's low byte zero skips the view's sprites, non-zero draws them. Only
 /// the stage byte 2 (the first stage table) has a record to write, and the
 /// lookup walks it exactly like the `Room_Util16` / `Room_Util17` bodies, down
-/// to taking `&gGameSession->loc.view` as its own pointer.
+/// to taking `&gGameSession->at4.loc.view` as its own pointer.
 void func_dryfield_water_tower_801802D8(u8 arg0)
 {
-    GameSessionFrom4*  sess;
+    GpAreaKey*         sess;
     DwtwSprtViewState* vs;
 
-    sess = &gGameSession->loc;
+    sess = &gGameSession->at4.loc;
     if (sess->stage == 2) {
         vs = ((DwtwSprtRec*)Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1])->field_DC;
         if (!(arg0 & 0xFF)) {

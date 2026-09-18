@@ -189,8 +189,8 @@ void func_dryfield_breezeway_8017DDB0(Task* task)
     task->field_24 = D_dryfield_breezeway_80181DE0;
     Game_SetPtrSlot(task, 7);
     if (GameFlag_GetNibble(0x5D) == 0) {
-        msg.field_0 = gGameSession->loc.stage;
-        msg.field_1 = gGameSession->loc.area;
+        msg.field_0 = gGameSession->at4.loc.stage;
+        msg.field_1 = gGameSession->at4.loc.area;
         msg.field_2 = 0;
         Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         Task_SpawnFromTable(D_dryfield_breezeway_801820B0, 0, 0, 0);

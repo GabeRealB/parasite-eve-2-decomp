@@ -116,8 +116,8 @@ void Actor02100_Fn004C4(Actor02100* arg0)
     work->field_184 = 0;
     if (Gp_CountRec18Hi(&work->field_98, 0x100000) != 0) {
         index = func_800E1B24(work->field_98.field_4);
-        param = Gp_RoomParamTables[gGameSession->loc.stage - 1]
-                                  [gGameSession->loc.area - 1][index];
+        param = Gp_RoomParamTables[gGameSession->at4.loc.stage - 1]
+                                  [gGameSession->at4.loc.area - 1][index];
         if (param->field_1 == 0) {
             work->field_184 = 1;
         }

@@ -94,9 +94,9 @@ void      func_actor_503500_80144238(Actor503500* arg0, s32 arg1);
 
 void func_actor_503500_80132BF8(void)
 {
-    Mc_SaveData.field_6 = 0x16;
-    Mc_SaveData.field_8 = 1;
-    Mc_SaveData.field_5 = 1;
+    Mc_SaveData.at4.loc.area = 0x16;
+    Mc_SaveData.at4.loc.warp = 1;
+    Mc_SaveData.at4.loc.room = 1;
     Task_Spawn(0, 0x11, 0, 0);
 }
 

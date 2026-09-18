@@ -20,7 +20,7 @@ extern u16 D_actor_105400_8013CE34[];
 /// Sound-event base the spawn ORs `(enemy id >> 12) << 8` into.
 extern s32 D_actor_105400_8013CE60;
 
-/// One pan/volume row per `gGameSession::loc.view`, played at spawn.
+/// One pan/volume row per `gGameSession::at4.loc.view`, played at spawn.
 extern Actor05400SndRow D_actor_105400_8013CE64[];
 
 /// Task descriptors the spawn hands `Gp_SpawnEnemyFromTable` (entry 1 is the
@@ -135,11 +135,11 @@ void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
     work->node1.flags = (u16)(work->node1.flags | 0x8000);
     model             = Gp_SpawnEnemyFromTable(&D_actor_105400_8013CEA0, 1, 0, arg0)->task->extra;
     idx               = arg0->field_8 >> 12;
-    sessionKey        = (GpAreaKey*)&gGameSession->loc;
-    key.field_3       = sessionKey->field_3;
-    key.field_2       = sessionKey->field_2;
-    key.field_1       = sessionKey->field_1;
-    key.field_0       = sessionKey->field_0;
+    sessionKey        = (GpAreaKey*)&gGameSession->at4.loc;
+    key.stage         = sessionKey->stage;
+    key.area          = sessionKey->area;
+    key.room          = sessionKey->room;
+    key.view          = sessionKey->view;
     Gp_SyncAreaKeyIndex(&key);
     rec             = Gp_GetNestedAreaRec(&key);
     place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
@@ -151,8 +151,8 @@ void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
     }
     sound           = D_actor_105400_8013CE60 | ((((GpEnemy*)arg1->spawnArg2)->field_8 >> 12) << 8);
     work->field_31C = sound;
-    SndEvt_EnqueueType6(sound, D_actor_105400_8013CE64[gGameSession->loc.view].field_0,
-                        D_actor_105400_8013CE64[gGameSession->loc.view].field_2);
+    SndEvt_EnqueueType6(sound, D_actor_105400_8013CE64[gGameSession->at4.loc.view].field_0,
+                        D_actor_105400_8013CE64[gGameSession->at4.loc.view].field_2);
     arg1->field_24 = D_actor_105400_80133A00;
     arg1->state    = 1;
 }

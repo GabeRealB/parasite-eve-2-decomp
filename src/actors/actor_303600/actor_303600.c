@@ -46,32 +46,32 @@ void func_actor_303600_80161F40(Task* arg0)
             break;
         case 1:
             w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.field_0 = gGameSession->loc.stage;
-            msg.field_1 = gGameSession->loc.area;
+            msg.field_0 = gGameSession->at4.loc.stage;
+            msg.field_1 = gGameSession->at4.loc.area;
             msg.field_2 = 1;
             Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 1;
             break;
         case 2:
             w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.field_0 = gGameSession->loc.stage;
-            msg.field_1 = gGameSession->loc.area;
+            msg.field_0 = gGameSession->at4.loc.stage;
+            msg.field_1 = gGameSession->at4.loc.area;
             msg.field_2 = 2;
             Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 2;
             break;
         case 3:
             w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.field_0 = gGameSession->loc.stage;
-            msg.field_1 = gGameSession->loc.area;
+            msg.field_0 = gGameSession->at4.loc.stage;
+            msg.field_1 = gGameSession->at4.loc.area;
             msg.field_2 = 3;
             Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 3;
             break;
         case 4:
             w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.field_0 = gGameSession->loc.stage;
-            msg.field_1 = gGameSession->loc.area;
+            msg.field_0 = gGameSession->at4.loc.stage;
+            msg.field_1 = gGameSession->at4.loc.area;
             msg.field_2 = 4;
             Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 4;
@@ -83,8 +83,8 @@ void func_actor_303600_80161F40(Task* arg0)
             break;
         case 5:
             w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.field_0 = gGameSession->loc.stage;
-            msg.field_1 = gGameSession->loc.area;
+            msg.field_0 = gGameSession->at4.loc.stage;
+            msg.field_1 = gGameSession->at4.loc.area;
             msg.field_2 = 5;
             Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 5;
@@ -146,11 +146,11 @@ void func_actor_303600_8016216C(Task* arg0)
             break;
         case 2:
             if (gGameSession->eventState == 0) {
-                Mc_SaveData.field_7 = 5;
-                Mc_SaveData.field_6 = 0x1F;
-                Mc_SaveData.field_8 = 1;
-                Mc_SaveData.field_5 = 1;
-                D_80071076          = 1;
+                Mc_SaveData.at4.loc.stage = 5;
+                Mc_SaveData.at4.loc.area  = 0x1F;
+                Mc_SaveData.at4.loc.warp  = 1;
+                Mc_SaveData.at4.loc.room  = 1;
+                D_80071076                = 1;
                 Task_Spawn(0, 0x11, 0x10, 0);
                 Task_Kill(arg0);
                 break;
@@ -249,8 +249,8 @@ void func_actor_303600_801624B0(void)
     Actor303600Msg7DA msg;
 
     if (work->field_E == 0) {
-        msg.field_0 = gGameSession->loc.stage;
-        msg.field_1 = gGameSession->loc.area;
+        msg.field_0 = gGameSession->at4.loc.stage;
+        msg.field_1 = gGameSession->at4.loc.area;
         msg.field_2 = 9;
         Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         work->field_C = 9;
@@ -276,8 +276,8 @@ void func_actor_303600_8016253C(void)
 
     work = (Actor303600Work*)D_actor_303600_8016E4C0->work;
     if (work->field_E == 0) {
-        msg.field_0 = gGameSession->loc.stage;
-        msg.field_1 = gGameSession->loc.area;
+        msg.field_0 = gGameSession->at4.loc.stage;
+        msg.field_1 = gGameSession->at4.loc.area;
         msg.field_2 = 9;
         Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         work->field_C = 9;

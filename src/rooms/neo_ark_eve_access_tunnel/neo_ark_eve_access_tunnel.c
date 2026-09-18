@@ -120,10 +120,10 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             task->state++;
             return;
         case 4:
-            D_80071076          = 1;
-            Mc_SaveData.field_6 = D_neo_ark_eve_access_tunnel_801807A0.field_2;
-            Mc_SaveData.field_8 = D_neo_ark_eve_access_tunnel_801807A0.field_4;
-            Mc_SaveData.field_5 = D_neo_ark_eve_access_tunnel_801807A0.field_1;
+            D_80071076               = 1;
+            Mc_SaveData.at4.loc.area = D_neo_ark_eve_access_tunnel_801807A0.field_2;
+            Mc_SaveData.at4.loc.warp = D_neo_ark_eve_access_tunnel_801807A0.field_4;
+            Mc_SaveData.at4.loc.room = D_neo_ark_eve_access_tunnel_801807A0.field_1;
             Task_Spawn(0, 0x11, 0, 0);
             Task_Kill(task);
             break;

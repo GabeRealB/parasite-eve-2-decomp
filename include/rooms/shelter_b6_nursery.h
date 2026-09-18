@@ -23,7 +23,7 @@ extern ShelterB6NurseryPair D_shelter_b6_nursery_801879F0;
 /// Spawn-parameter block handed to the `D_shelter_b6_nursery_80184FDC` cutscene
 /// task as `Task::spawnArg2`. `func_shelter_b6_nursery_8017FA54` fills it before
 /// `Task_SpawnFromTable`; `func_shelter_b6_nursery_8017F4E8` (the task body)
-/// reads `field_0` as a destination room id (`Mc_SaveData.field_4`, negative =
+/// reads `field_0` as a destination room id (`Mc_SaveData.at4.loc.view`, negative =
 /// stay), `field_1`/`field_2`/`field_3` as signed selectors, `field_4`..
 /// `field_10` as sound-event ids and `field_14`/`field_16` as a coordinate pair.
 typedef struct ShelterB6NurseryEvt {

@@ -156,11 +156,11 @@ void func_neo_ark_observatory_8017F588(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            D_80071076          = 1;
-            Mc_SaveData.field_7 = D_neo_ark_observatory_80187A30.field_0;
-            Mc_SaveData.field_6 = D_neo_ark_observatory_80187A30.field_1;
-            Mc_SaveData.field_8 = D_neo_ark_observatory_80187A30.field_2;
-            Mc_SaveData.field_5 = D_neo_ark_observatory_80187A30.field_3;
+            D_80071076                = 1;
+            Mc_SaveData.at4.loc.stage = D_neo_ark_observatory_80187A30.field_0;
+            Mc_SaveData.at4.loc.area  = D_neo_ark_observatory_80187A30.field_1;
+            Mc_SaveData.at4.loc.warp  = D_neo_ark_observatory_80187A30.field_2;
+            Mc_SaveData.at4.loc.room  = D_neo_ark_observatory_80187A30.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             Task_Kill(arg0);
             break;

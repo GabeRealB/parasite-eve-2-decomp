@@ -47,8 +47,8 @@ s32 RoomsShared8017f544(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
         out->field_3 = val;
     }
     if (in->msgId == 3) {
-        if ((gGameSession->loc.stage == in->msgId) && (gGameSession->loc.place == 1) &&
-            (Gp_StateF0.field_0 == gGameSession->loc.place)) {
+        if ((gGameSession->at4.loc.stage == in->msgId) && (gGameSession->at4.loc.place == 1) &&
+            (Gp_StateF0.field_0 == gGameSession->at4.loc.place)) {
             if (in->field_5 == 0) {
                 Gp_RunCapCmd1(0x15);
             }

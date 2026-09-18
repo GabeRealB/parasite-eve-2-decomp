@@ -473,7 +473,7 @@ void Gp_MenuRootTask(Task* arg0)
                 d->field_103 = 2;
                 Stage_ReleasePrimBuf();
             }
-            Mem_ConfigureAuxHeap(gGameSession->loc.stage, gGameSession->loc.area);
+            Mem_ConfigureAuxHeap(gGameSession->at4.loc.stage, gGameSession->at4.loc.area);
             if (Gp_IsStateF0Active() == 0) {
                 Gp_EnqueueAttach7Cd();
             }
@@ -545,7 +545,7 @@ void Gp_MenuRootTask(Task* arg0)
             if (Stage_GetModeByte12() == 0) {
                 Stage_SetEndingFlag();
             } else {
-                Stage_BeginTransitionKind7((u8)gGameSession->loc.view);
+                Stage_BeginTransitionKind7((u8)gGameSession->at4.loc.view);
             }
             Task_SpawnOnDefaultListA(1, 0x27, 2, 0);
             if (Task_SpawnOnDefaultList(&D_8010E7E8, 0, 0, 0) != NULL) {

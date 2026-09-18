@@ -283,7 +283,7 @@ void Display_ResetHeapFromSession(void)
     GameSession* temp;
 
     temp = gGameSession;
-    Mem_ConfigureAuxHeap(temp->loc.stage, temp->loc.area);
+    Mem_ConfigureAuxHeap(temp->at4.loc.stage, temp->at4.loc.area);
     Display_State.field_1e  = 0;
     Display_State.field_10d = 0;
 }

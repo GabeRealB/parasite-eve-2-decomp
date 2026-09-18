@@ -294,7 +294,7 @@ typedef struct _GpAnimCtx {
 STATIC_ASSERT_SIZEOF(GpAnimCtx, 0x14);
 
 /// Object returned by `Gp_GetAreaObj` (`GpAreaRec.field_4`). `field_0` is a
-/// signed id compared with `GpAreaKey.field_5`; `field_1` is a flags byte
+/// signed id compared with `GpAreaKey.place`; `field_1` is a flags byte
 /// (bits 0/1/2/4 in nearby 1BC / 1A8 helpers; `Gp_GetAreaFlag2` returns bit 1).
 /// Full size unknown.
 typedef struct _GpAreaObj {
@@ -355,28 +355,15 @@ typedef struct _GpAreaTmdRec {
 STATIC_ASSERT_SIZEOF(GpAreaTmdRec, 0xC);
 
 /// 8-byte record in tables pointed to by `Gp_AreaTables`. Indexed by
-/// `GpAreaKey.field_2`. `field_0` is a nested table (`Gp_GetNestedAreaRec`
-/// returns the entry at `field_5`; `Gp_GetNestedAreaObj` returns that entry's
-/// `field_4`, a `GpAreaTmdRec` table). Outer `field_4` is the object
+/// `GpAreaKey.area`. `field_0` is a nested table (`Gp_GetNestedAreaRec`
+/// returns the entry at `GpAreaKey.place`; `Gp_GetNestedAreaObj` returns that
+/// entry's `field_4`, a `GpAreaTmdRec` table). Outer `field_4` is the object
 /// `Gp_GetAreaObj` returns.
 typedef struct _GpAreaRec {
     /* 0x00 */ struct _GpAreaRec* field_0;
     /* 0x04 */ GpAreaObj*         field_4;
 } GpAreaRec;
 STATIC_ASSERT_SIZEOF(GpAreaRec, 8);
-
-/// Location key used to index `Gp_AreaTables`. Bytes 2/3 select the table and
-/// record; byte 5 indexes a nested table (`Gp_GetNestedAreaRec` / `Gp_GetNestedAreaObj`)
-/// and is written from `GpAreaObj.field_0` by `Gp_SyncAreaKeyIndex`. Same 4-byte
-/// prefix as `GameSessionFrom4` / `Mc_SaveData.field_4`. Full size unknown.
-typedef struct _GpAreaKey {
-    /* 0x00 */ u8 field_0;
-    /* 0x01 */ u8 field_1;
-    /* 0x02 */ u8 field_2;
-    /* 0x03 */ u8 field_3;
-    /* 0x04 */ u8 field_4;
-    /* 0x05 */ u8 field_5;
-} GpAreaKey;
 
 /// Overlay of `Task::spawnArg2` for sibling walkers. `field_A` high byte is
 /// the work type (`Gp_FindChildType9` / `Gp_ExitChildrenType9` / `Gp_SendMsgType9` match 9;
@@ -405,8 +392,7 @@ typedef struct _GpSndMaskRec {
 } GpSndMaskRec;
 STATIC_ASSERT_SIZEOF(GpSndMaskRec, 8);
 
-/// Per-area pointer table. Index is `GpAreaKey.field_3` (also
-/// `GameSession.loc.stage` via `&gGameSession->loc`).
+/// Per-area pointer table. Index is `GpAreaKey.stage`.
 extern GpAreaRec* Gp_AreaTables[];
 
 /// 0-terminated `GpSndMaskRec` table walked by `Gp_ApplySndMasks` / `Gp_ApplySndBankMasks`.
@@ -605,16 +591,16 @@ void Gp_DrawFloorQuad(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2);
 void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2);
 void Gp_FreeSlot4TmdBuffers(void);
 /// Looks up `arg0` as `GpBit2Rec.field_0` in
-/// `Gp_Bit2Banks[Mc_SaveData.field_7]`. On a hit, publishes the record's
+/// `Gp_Bit2Banks[Mc_SaveData.at4.loc.stage]`. On a hit, publishes the record's
 /// item id / extra / stack count into `Gp_PubItemId` / `Gp_PubItemLoc` /
 /// `D_80114DDE` / `Gp_PubItemQty` and returns 1.
 s32 Gp_LookupBit2Item(s32 arg0);
-/// Walks `Gp_Bit2Banks[Mc_SaveData.field_6 / field_7]` for a `GpEnemyPlace`
+/// Walks `Gp_Bit2Banks[Mc_SaveData.at4.loc.area / stage]` for a `GpEnemyPlace`
 /// whose `field_0` equals `arg0`. If the packed 2-bit flag at
-/// `Gp_Bit2Banks[gGameSession->loc.stage].field_4` is non-zero, spawns that
+/// `Gp_Bit2Banks[gGameSession->at4.loc.stage].field_4` is non-zero, spawns that
 /// placement via `Gp_SpawnEnemyFromTable` (same coord/yaw writeback as `Gp_SpawnPlaces`).
 void Gp_SpawnPlaceById(u16 arg0);
-void Gp_SpawnPlaces(GameSessionFrom4* arg0);
+void Gp_SpawnPlaces(GpAreaKey* arg0);
 void Gp_ApplyItemMap(void);
 s32  Gp_ConsumeSlotQty(s32 arg0, s32 arg1);
 s32  Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3);

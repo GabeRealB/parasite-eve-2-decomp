@@ -81,12 +81,12 @@ void func_actor_136300_8013267C(Task* arg0)
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 0xF);
             GameFlag_SetNibble(0x4C, 4);
-            Mc_SaveData.field_5C5 = 9;
-            Mc_SaveData.field_7   = 4;
-            Mc_SaveData.field_6   = 1;
-            Mc_SaveData.field_8   = 1;
-            Mc_SaveData.field_5   = 1;
-            Fs_BeginBootLoad(&Mc_SaveData.field_4, 0);
+            Mc_SaveData.field_5C5     = 9;
+            Mc_SaveData.at4.loc.stage = 4;
+            Mc_SaveData.at4.loc.area  = 1;
+            Mc_SaveData.at4.loc.warp  = 1;
+            Mc_SaveData.at4.loc.room  = 1;
+            Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 0);
             Gp_ClearCollectedBit(0x116);
             D_80071076 = 1;
             Task_Spawn(0, 0x11, 0, 0);

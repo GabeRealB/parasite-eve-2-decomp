@@ -106,17 +106,17 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
                             }
                             eff = Gp_SpawnEff(0x40007, &((TmdObject*)task->extra)->field_8[4], 0x80, NULL);
                             if (eff != NULL) {
-                                sessionKey      = (GpAreaKey*)&gGameSession->loc;
-                                raw             = ((Actor103700Spawn*)task->spawnArg2)->field_8;
-                                effModel        = (TmdObject*)eff->field_0->extra;
-                                buf.key.field_3 = sessionKey->field_3;
-                                buf.key.field_2 = sessionKey->field_2;
-                                buf.key.field_1 = sessionKey->field_1;
-                                keyPtr          = &buf.key;
+                                sessionKey    = (GpAreaKey*)&gGameSession->at4.loc;
+                                raw           = ((Actor103700Spawn*)task->spawnArg2)->field_8;
+                                effModel      = (TmdObject*)eff->field_0->extra;
+                                buf.key.stage = sessionKey->stage;
+                                buf.key.area  = sessionKey->area;
+                                buf.key.room  = sessionKey->room;
+                                keyPtr        = &buf.key;
                                 TOUCH_REG(keyPtr);
-                                areaByte0       = gGameSession->loc.view;
-                                idx             = raw >> 12;
-                                buf.key.field_0 = areaByte0;
+                                areaByte0    = gGameSession->at4.loc.view;
+                                idx          = raw >> 12;
+                                buf.key.view = areaByte0;
                                 Gp_SyncAreaKeyIndex(keyPtr);
                                 rec                = Gp_GetNestedAreaRec(&buf.key);
                                 entry              = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);

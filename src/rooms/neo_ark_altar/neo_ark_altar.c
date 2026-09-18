@@ -8,7 +8,7 @@
 #include "main/task.h"
 #include "psyq/libgpu.h"
 
-/// `Mc_SaveData.field_4`, the area id forced for the duration of the cutscene.
+/// `Mc_SaveData.at4.loc.view`, the area id forced for the duration of the cutscene.
 extern u8 D_8007216C;
 extern s8 D_801153F4;
 

@@ -39,10 +39,10 @@ void func_dryfield_night_trailer_coach_8018231C(Task* task)
         Gp_DispatchMsg(Game_GetPtrSlot(0xA), 0x3E9, (s32)&D_dryfield_night_trailer_coach_801879B8, 0);
         Gp_DispatchMsg(Game_GetPtrSlot(0xA), 0x3E8, (s32)&D_dryfield_night_trailer_coach_80187CEC, 0);
     }
-    if (Mc_SaveData.field_8 == 2) {
+    if (Mc_SaveData.at4.loc.warp == 2) {
         func_800E8634((s32)&D_dryfield_night_trailer_coach_80187D00, 0, (s32)&D_dryfield_night_trailer_coach_80187F58);
     }
-    if (Mc_SaveData.field_8 == 3) {
+    if (Mc_SaveData.at4.loc.warp == 3) {
         func_800E8634((s32)&D_dryfield_night_trailer_coach_80189080, 0, (s32)&D_dryfield_night_trailer_coach_801892C0);
         Gp_SetCurBit2Flag(0x22, 1);
     }

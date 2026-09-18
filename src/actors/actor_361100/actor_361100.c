@@ -24,7 +24,7 @@ void func_801353D0(Actor361100EffectState* state, GsCOORDINATE2* coord);
 void func_actor_361100_80161FF8(Task* arg0);
 
 /// Runs while `D_8006D868` reports a streaming write in flight -- it is `-1`
-/// until `Fs_LoadFile` has a chunk, and the mode byte in `gGameSession->loc.view`
+/// until `Fs_LoadFile` has a chunk, and the mode byte in `gGameSession->at4.loc.view`
 /// then picks this actor's part in the load: 11 hands the task to
 /// `func_actor_361100_80161FF8`, 12 publishes the stream position `D_8016069C`
 /// (half the remaining 0x18000-byte window past the write pointer, times the
@@ -49,7 +49,7 @@ void func_actor_361100_80161E3C(Task* arg0)
     u8                      mode;
 
     state   = (Actor361100EffectState*)arg0->work;
-    modePtr = &gGameSession->loc.view;
+    modePtr = &gGameSession->at4.loc.view;
     coord   = ((TmdObject*)arg0->extra)->field_8;
     if (D_8006D868 != -1) {
         streamLeft  = 0x18000 - D_8006D868;

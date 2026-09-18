@@ -49,9 +49,9 @@ void func_acropolis_bridge_8017DDEC(Task* arg0)
 
     if (Task_PollKill(D_acropolis_bridge_8019179C, &killed) != 0) {
         Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, 1, 0x7D5);
-        Mc_SaveData.field_4         = 6;
-        Mc_SaveData.field_5         = 2;
-        gGameSession->loc.room      = 2;
+        Mc_SaveData.at4.loc.view    = 6;
+        Mc_SaveData.at4.loc.room    = 2;
+        gGameSession->at4.loc.room  = 2;
         gGameSession->roomObjsDirty = 1;
         GameFlag_SetNibble(2, 3);
         Gp_MsgPlayerWeapon(1);
@@ -89,7 +89,7 @@ void func_acropolis_bridge_8017DEE4(Task* arg0)
 
 L_case0:
     queue->field_1EA = 1;
-    slotParam[0]     = Stream_FindSlot(&gGameSession->loc.view, 0, 0);
+    slotParam[0]     = Stream_FindSlot(&gGameSession->at4.loc.view, 0, 0);
     CdCmd_Enqueue(0x61, 0, slotParam);
     goto advance;
 
@@ -132,7 +132,7 @@ s16 func_acropolis_bridge_8017E024(void)
 void func_acropolis_bridge_8017E04C(Task* task)
 {
     AcropolisBridgePromptWork* work;
-    GameSessionFrom4*          sess;
+    GpAreaKey*                 sess;
     RoomHotspot*               hs;
     GpSprtRec*                 rec;
     s32                        view;
@@ -146,7 +146,7 @@ void func_acropolis_bridge_8017E04C(Task* task)
     task->work      = (TaskIdMap*)work;
     work->field_0   = 0x14;
     work->field_4   = 0xFFF;
-    sess            = &gGameSession->loc;
+    sess            = &gGameSession->at4.loc;
     task->state++;
     view                                  = Gp_GetViewIndex();
     rec                                   = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1];
@@ -239,7 +239,7 @@ void func_acropolis_bridge_8017E3A0(Task* task)
     RoomActionPrompt*          prompt = &D_80114D28;
     RoomHotspot*               hs     = D_acropolis_bridge_8018983C;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
-    GameSessionFrom4*          sess   = &gGameSession->loc;
+    GpAreaKey*                 sess   = &gGameSession->at4.loc;
     GpSprtRec*                 rec;
     s32                        view;
     s16                        tick;
@@ -336,12 +336,12 @@ void func_acropolis_bridge_8017E4FC(Task* task)
 /// Command 34 is always hidden; `hidePrompt` also hides command 35.
 void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt)
 {
-    GameSessionFrom4* sess = &gGameSession->loc;
-    GpSprtCmd*        cmd;
-    s32               i;
-    u8                hi;
-    u8                mid;
-    u8                lo;
+    GpAreaKey* sess = &gGameSession->at4.loc;
+    GpSprtCmd* cmd;
+    s32        i;
+    u8         hi;
+    u8         mid;
+    u8         lo;
 
     Gp_GetViewIndex();
     cmd = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1][7].field_4;
@@ -411,9 +411,9 @@ void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt)
 /// each of the first ten frames of a pass.
 void func_acropolis_bridge_8017E81C(void)
 {
-    GameSessionFrom4* sess = &gGameSession->loc;
-    GpSprtCmd*        cmd;
-    s32               i;
+    GpAreaKey* sess = &gGameSession->at4.loc;
+    GpSprtCmd* cmd;
+    s32        i;
 
     Gp_GetViewIndex();
     cmd = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1][7].field_4;

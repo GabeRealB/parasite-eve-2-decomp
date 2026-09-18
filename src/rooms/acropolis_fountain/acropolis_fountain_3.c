@@ -158,7 +158,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
     s32                                     level;
 
     coord = ((TmdObject*)task->extra)->field_8;
-    if (Gp_State1C->field_4 < 4 && ((0x1040C0 >> ((u8)gGameSession->loc.view - 1)) & 1)) {
+    if (Gp_State1C->field_4 < 4 && ((0x1040C0 >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch     = (void**)G_SCRATCH_HEAD;
         head        = *scratch;
@@ -358,7 +358,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
 
     D_acropolis_fountain_80183BB4 = task;
     queue                         = &CdCmd_Queue;
-    if (gGameSession->loc.room != 1) {
+    if (gGameSession->at4.loc.room != 1) {
         return;
     }
     switch (task->state) {
@@ -373,7 +373,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
             break;
 
         case 1:
-            view = Gp_FindViewIndex((u8)gGameSession->loc.view);
+            view = Gp_FindViewIndex((u8)gGameSession->at4.loc.view);
             func_acropolis_fountain_8017E15C(task, (u16)view);
             switch ((u16)view) {
                 case 3:
@@ -382,7 +382,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
                         return;
                     }
                     gGameSession->field_4E = 1;
-                    key                    = ((SessionBytesAt4*)gGameSession)->field_4;
+                    key                    = gGameSession->at4.raw;
                     key.data[0]            = view;
                     slot                   = Stream_GetSlot(Stream_FindSlotByKey(key.data) & 0xFFFF);
 
@@ -418,7 +418,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
                 case 8:
                     if (D_80070F70 & 1) {
                         queue2            = &CdCmd_Queue;
-                        key2              = ((SessionBytesAt4*)gGameSession)->field_4;
+                        key2              = gGameSession->at4.raw;
                         key2.data[0]      = Gp_FindViewIndex(4);
                         slot2             = Stream_GetSlot(Stream_FindSlot(key2.data, 0, 1) & 0xFFFF);
                         count             = queue2->field_1EA + 1;

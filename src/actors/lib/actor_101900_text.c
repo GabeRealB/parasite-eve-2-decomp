@@ -1456,7 +1456,7 @@ void Actor01900_Fn03854(Actor01900* arg0)
     }
 }
 
-void Actor01900_Fn03C04(GameSessionFrom4* session, GsCOORDINATE2* coord)
+void Actor01900_Fn03C04(GpAreaKey* session, GsCOORDINATE2* coord)
 {
     Actor01900HeightClamp* row;
     s32                    offset;
@@ -1480,7 +1480,7 @@ void Actor01900_Fn03C04(GameSessionFrom4* session, GsCOORDINATE2* coord)
 
 /// `Actor01900_Fn03C04`'s row scan without the clamp: nonzero when the
 /// current room has an `Actor01900_D172CC` row.
-static __inline__ s32 Actor01900_HasHeightClamp(GameSessionFrom4* session)
+static __inline__ s32 Actor01900_HasHeightClamp(GpAreaKey* session)
 {
     Actor01900HeightClamp* row;
     s16                    i;
@@ -1514,7 +1514,7 @@ s32 Actor01900_Fn03C98(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16 arg3)
         s->step.vx = head[-1].delta.vx.w >> 16;
         s->step.vy = s->delta.vy.w >> 16;
         s->step.vz = s->delta.vz.w >> 16;
-        if (Actor01900_HasHeightClamp(&gGameSession->loc.view)) {
+        if (Actor01900_HasHeightClamp(&gGameSession->at4.loc.view)) {
             vy = s->step.vy;
             if (((vy >= 0) ? vy : -vy) > 0x180) {
                 s->step.vy = (vy <= 0) ? -0x180 : 0x180;
@@ -1552,8 +1552,8 @@ s32 Actor01900_Fn03C98(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16 arg3)
             }
         }
     }
-    if (Actor01900_HasHeightClamp(&gGameSession->loc.view)) {
-        Actor01900_Fn03C04(&gGameSession->loc.view, coord);
+    if (Actor01900_HasHeightClamp(&gGameSession->at4.loc.view)) {
+        Actor01900_Fn03C04(&gGameSession->at4.loc.view, coord);
         coord->coord.t[1] += arg3;
     }
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
@@ -2307,7 +2307,7 @@ void Actor01900_Fn06B4C(Actor01900* arg0)
     }
     Actor01900_Fn01C94(arg0);
     if ((work->field_5A & 0x3FF) == 0xF && work->field_894 != (work->field_5A & 0x3FF) &&
-        (*(u32*)&gGameSession->loc & 0xFFFF0000) == 0x01090000) {
+        (*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x01090000) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         sound       = 0x51090009;
         if ((u16)((Gp_LcgState >> 16) % 3) == 0) {
@@ -2330,7 +2330,7 @@ void Actor01900_Fn06B4C(Actor01900* arg0)
         work->field_8B8.field_0 = arg0->field_2C->field_8 + 1;
         work->field_8B8.field_4 = 0x200;
         work->field_8B8.field_6 = 2;
-        if ((*(u32*)&gGameSession->loc & 0xFFFF0000) != 0x01030000 || (u8)Gp_GetViewIndex() != 0x10) {
+        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x01030000 || (u8)Gp_GetViewIndex() != 0x10) {
             func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->field_2C->field_8 + 5, NULL, &work->field_8B8);
         }
     }
@@ -2770,14 +2770,14 @@ void Actor01900_Fn08724(Actor01900* arg0)
             eff           = Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 12, 0x200, &vec);
         body:
             if (eff != NULL) {
-                sessionKey  = (GpAreaKey*)&gGameSession->loc;
-                raw         = enemy->field_8;
-                model       = (TmdObject*)eff->field_0->extra;
-                key.field_3 = sessionKey->field_3;
-                key.field_2 = sessionKey->field_2;
-                key.field_1 = sessionKey->field_1;
-                areaByte0   = gGameSession->loc.view;
-                idx         = raw >> 12;
+                sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+                raw        = enemy->field_8;
+                model      = (TmdObject*)eff->field_0->extra;
+                key.stage  = sessionKey->stage;
+                key.area   = sessionKey->area;
+                key.room   = sessionKey->room;
+                areaByte0  = gGameSession->at4.loc.view;
+                idx        = raw >> 12;
                 /* Both calls take `&key`. CSE of that address across the first
                    jal costs a callee-saved register; the ROM rematerializes
                    `addiu a0, sp, key` for each call. Same shape as
@@ -2785,7 +2785,7 @@ void Actor01900_Fn08724(Actor01900* arg0)
                 SOFT_BARRIER();
                 keyPtr = &key;
                 TOUCH_REG(keyPtr);
-                key.field_0 = areaByte0;
+                key.view = areaByte0;
                 Gp_SyncAreaKeyIndex(keyPtr);
                 rec             = Gp_GetNestedAreaRec(&key);
                 entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
@@ -2817,18 +2817,18 @@ static __inline__ void Actor01900_TintEffect(GpEffWork* eff, GpEnemy* enemy)
     u32        raw;
 
     if (eff != NULL) {
-        sessionKey  = (GpAreaKey*)&gGameSession->loc;
-        raw         = enemy->field_8;
-        model       = (TmdObject*)eff->field_0->extra;
-        key.field_3 = sessionKey->field_3;
-        key.field_2 = sessionKey->field_2;
-        key.field_1 = sessionKey->field_1;
-        areaByte0   = gGameSession->loc.view;
-        idx         = raw >> 12;
+        sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+        raw        = enemy->field_8;
+        model      = (TmdObject*)eff->field_0->extra;
+        key.stage  = sessionKey->stage;
+        key.area   = sessionKey->area;
+        key.room   = sessionKey->room;
+        areaByte0  = gGameSession->at4.loc.view;
+        idx        = raw >> 12;
         SOFT_BARRIER();
         keyPtr = &key;
         TOUCH_REG(keyPtr);
-        key.field_0 = areaByte0;
+        key.view = areaByte0;
         Gp_SyncAreaKeyIndex(keyPtr);
         rec             = Gp_GetNestedAreaRec(&key);
         entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);

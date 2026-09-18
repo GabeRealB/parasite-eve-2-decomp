@@ -15,7 +15,7 @@ extern s8 D_8007272D;
 
 /// Staging save location the room commits when the tunnel's save is taken:
 /// `field_2` / `field_4` / `field_1` hold what `func_neo_ark_eve_access_tunnel_8017DB18`
-/// later copies into `Mc_SaveData.field_6` / `field_8` / `field_5`.
+/// later copies into `Mc_SaveData.at4.loc.area` / `field_8` / `field_5`.
 extern GpSaveLoc D_neo_ark_eve_access_tunnel_801807A0;
 
 extern TaskDesc D_neo_ark_eve_access_tunnel_8017EAC4;
@@ -59,7 +59,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, GpSaveLoc* sr
 
 s32 func_neo_ark_eve_access_tunnel_8017DD70(s32 arg0, s32 arg1, s32 arg2)
 {
-    if (gGameSession->loc.place == 0xB) {
+    if (gGameSession->at4.loc.place == 0xB) {
         switch (arg2) {
             case 6:
                 if (GameFlag_GetNibble(0x142) == 0) {

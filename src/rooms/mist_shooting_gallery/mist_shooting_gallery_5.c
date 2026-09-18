@@ -628,7 +628,7 @@ void func_mist_shooting_gallery_801831B0(Task* arg0)
 }
 
 /// Per-frame update for the gallery's second bonus course. States 0-3 run the
-/// "ready" banner and the hand-off wait on `gGameSession::loc.view`, gated on
+/// "ready" banner and the hand-off wait on `gGameSession::at4.loc.view`, gated on
 /// the countdown hold `D_80071075`; states 4-5 wait on the player picking up
 /// item 0x40, states 6-8 count the banner up through `field_20` while
 /// `D_801153F4` holds, state 9 spawns the start jingle and state 10 is the
@@ -672,7 +672,7 @@ void func_mist_shooting_gallery_8018341C(Task* arg0)
             }
             break;
         case 2:
-            if ((u8)gGameSession->loc.view == 0x12) {
+            if ((u8)gGameSession->at4.loc.view == 0x12) {
                 if (work->field_0A <= 0) {
                     if (D_80071075 == 0) {
                         work->field_0A = 1;
@@ -804,7 +804,7 @@ void func_mist_shooting_gallery_8018341C(Task* arg0)
 }
 
 /// Per-frame update for the gallery's first bonus course. States 0-3 run the
-/// "ready" banner and the hand-off wait on `gGameSession::loc.view`, state 4
+/// "ready" banner and the hand-off wait on `gGameSession::at4.loc.view`, state 4
 /// seeds the first two records of `D_mist_shooting_gallery_8018690C`, states
 /// 5-7 hand the player over to actor mode 2 while the banner counts up through
 /// `field_20`, and state 8 is the wave loop proper. `D_80114C0B` is the abort
@@ -847,7 +847,7 @@ void func_mist_shooting_gallery_801838FC(Task* arg0)
             }
             break;
         case 2:
-            if ((u8)gGameSession->loc.view == 0x12) {
+            if ((u8)gGameSession->at4.loc.view == 0x12) {
                 if (work->field_0A <= 0) {
                     if (D_80071075 == 0) {
                         work->field_0A = 1;
@@ -996,7 +996,7 @@ void func_mist_shooting_gallery_801838FC(Task* arg0)
 /// Per-frame update for the gallery's second course. Same shape as
 /// `func_mist_shooting_gallery_801831B0`: a countdown that steps the digit
 /// sprite through `field_20` (gated on `D_80071075`), a hand-off wait on
-/// `gGameSession::loc.view`, then the wave loop over
+/// `gGameSession::at4.loc.view`, then the wave loop over
 /// `D_mist_shooting_gallery_80186910`. `field_22` is the abort request - once
 /// it is raised the state machine jumps to the 8 -> 9 shutdown, which releases
 /// the `Gp_StateF0` reference and kills the task.
@@ -1030,7 +1030,7 @@ void func_mist_shooting_gallery_80183E78(Task* arg0)
             }
             break;
         case 2:
-            if ((u8)gGameSession->loc.view != 0x12) {
+            if ((u8)gGameSession->at4.loc.view != 0x12) {
                 break;
             }
             if (work->field_0A <= 0) {

@@ -45,7 +45,7 @@ extern s8 D_8007218A;
 
 void func_acropolis_forked_road_8017D970(void)
 {
-    if ((D_acropolis_forked_road_80180F3C == 0) && (gGameSession->loc.warp == 2)) {
+    if ((D_acropolis_forked_road_80180F3C == 0) && (gGameSession->at4.loc.warp == 2)) {
         D_acropolis_forked_road_80180F3C = 1;
         Task_SpawnFromTable(&D_acropolis_forked_road_80180F44, 2, 0, 0);
     }
@@ -110,7 +110,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 
         case 2:
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
-                slot = Stream_FindSlot(&gGameSession->loc.view, 0, 0);
+                slot = Stream_FindSlot(&gGameSession->at4.loc.view, 0, 0);
                 CdCmd_Enqueue(0x61, 0, &slot);
                 task->state = task->state + 1;
             }
@@ -139,11 +139,11 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             Gp_StateF0.field_4 = 0;
             func_800E9BDC(2, 0x9FF);
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData.field_7 = 1;
-            Mc_SaveData.field_6 = 0xA;
-            Mc_SaveData.field_8 = 4;
-            Mc_SaveData.field_5 = 1;
-            D_80071076          = 1;
+            Mc_SaveData.at4.loc.stage = 1;
+            Mc_SaveData.at4.loc.area  = 0xA;
+            Mc_SaveData.at4.loc.warp  = 4;
+            Mc_SaveData.at4.loc.room  = 1;
+            D_80071076                = 1;
             Task_Spawn(0, 0x11, 0, 0);
             gGameSession->padScriptFlags &= 0x7F;
             Task_Kill(task);

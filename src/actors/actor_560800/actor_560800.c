@@ -76,7 +76,7 @@ L_case0:
     goto advance;
 
 L_case1:
-    key = ((SessionBytesAt4*)gGameSession)->field_4;
+    key = gGameSession->at4.raw;
     if (task->spawnArg1 != 0) {
         key.data[0] = 0x65;
     } else {
@@ -286,7 +286,7 @@ void func_actor_560800_801326C4(Task* arg0)
                     tmd->field_1C  = &block->light;
                     tmd->field_20  = &block->color;
                     arg0->field_24 = &D_actor_560800_8016F34C;
-                    place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->loc)->field_0;
+                    place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
                     id             = place->field_0;
                     while (id != 0xFF) {
                         if (id == 0x83) {
@@ -400,7 +400,7 @@ void func_actor_560800_80132A14(Task* arg0)
         tmd->field_1C = &work->light;
         tmd->field_20 = &work->color;
         if (arg0->spawnArg1 < 2) {
-            place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->loc)->field_0;
+            place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
             id    = place->field_0;
             while (id != 0xFF) {
                 if (id == 0x65) {
@@ -413,7 +413,7 @@ void func_actor_560800_80132A14(Task* arg0)
         } else if (arg0->spawnArg1 == 2) {
             Gp_SetTmdBytes((TmdObject*)arg0->extra, 0, 0);
         } else if (arg0->spawnArg1 == 3) {
-            place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->loc)->field_0;
+            place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
             id    = place->field_0;
             while (id != 0xFF) {
                 if (id == 0x22) {
@@ -463,7 +463,7 @@ void func_actor_560800_80132C60(Task* arg0)
                 tmd->field_1C  = &block->light;
                 tmd->field_20  = &block->color;
                 arg0->field_24 = &D_actor_560800_8016F34C;
-                place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->loc)->field_0;
+                place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
                 id             = place->field_0;
                 while (id != 0xFF) {
                     if (id == 0x65) {
@@ -553,7 +553,7 @@ void func_actor_560800_80132F64(Task* arg0)
                 tmd->field_1C  = &block->light;
                 tmd->field_20  = &block->color;
                 arg0->field_24 = &D_actor_560800_8016F34C;
-                place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->loc)->field_0;
+                place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
                 id             = place->field_0;
                 while (id != 0xFF) {
                     if (id == 0x22) {

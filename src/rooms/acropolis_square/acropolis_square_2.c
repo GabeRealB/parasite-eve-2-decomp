@@ -36,9 +36,9 @@ s32 func_acropolis_square_80181794(Task* task, s32 msgId, RoomEventMsg* arg2, Ro
                    // sibling rooms make with it is absent here
     u16 temp_s1;
 
-    key.field_3 = 1;
-    key.field_2 = 4;
-    *arg3       = *arg2;
+    key.stage = 1;
+    key.area  = 4;
+    *arg3     = *arg2;
     if (arg2->msgId == 9) {
         if ((D_acropolis_square_8018382C != 0) && (arg2->field_5 == 0)) {
             GameFlag_SetNibble(3, 0);
@@ -104,8 +104,8 @@ s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
     s32 var_a0;
 
     if (arg2 == 2) {
-        if (Mc_SaveData.field_8 == 7) {
-            Mc_SaveData.field_8 = 1;
+        if (Mc_SaveData.at4.loc.warp == 7) {
+            Mc_SaveData.at4.loc.warp = 1;
         }
         D_acropolis_square_801888AC.camera   = 9;
         D_acropolis_square_801888AC.field_1  = 1;

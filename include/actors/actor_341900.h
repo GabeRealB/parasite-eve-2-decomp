@@ -67,7 +67,7 @@ typedef struct Actor341900Work {
 STATIC_ASSERT_SIZEOF(Actor341900Work, 0x70);
 
 /// Session id payload `func_actor_341900_80162EFC` sends to slot 4 as message
-/// 0x7DA, asking for the 0x7DB reply. `field_0` takes `GameSession.loc.stage`
+/// 0x7DA, asking for the 0x7DB reply. `field_0` takes `GameSession.at4.loc.stage`
 /// and `field_1` takes `field_6`; the pair spells the id `Gp_FindWorkById`
 /// matches on (`field_6 | field_7 << 8`), which the same function uses to find
 /// the session's work object. `field_2` is zeroed.

@@ -19,10 +19,10 @@ void func_mist_r21_8017D61C(Task* arg0)
 void func_mist_r21_8017D678(Task* arg0)
 {
     if ((Pad_CheckButtons(0, 0, 0x200) != 0) && (Pad_CheckButtons(0, 1, 0x40) != 0)) {
-        Mc_SaveData.field_6 = 5;
-        Mc_SaveData.field_8 = 1;
-        Mc_SaveData.field_4 = 2;
-        Fs_BeginBootLoad(&Mc_SaveData.field_4, 0);
+        Mc_SaveData.at4.loc.area = 5;
+        Mc_SaveData.at4.loc.warp = 1;
+        Mc_SaveData.at4.loc.view = 2;
+        Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 0);
         Task_Spawn(0, 0x11, 1, 0);
         Task_Kill(arg0);
     }

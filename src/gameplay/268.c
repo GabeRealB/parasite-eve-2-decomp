@@ -663,7 +663,7 @@ void func_800B8014(void)
     Gp_GiveItem(scan, 0xAC, 0x14);
     Gp_GiveItem(scan, 0xA9, 8);
     Gp_SetCollectedBit(0x106);
-    header = (s32*)&Mc_SaveData.field_4;
+    header = (s32*)&Mc_SaveData.at4.loc.view;
     word   = *header;
     word  &= 0xFFFF0000;
     if (word == 0x01140000) {
@@ -1507,7 +1507,7 @@ void Gp_RefreshItemRow(GpItemRec* arg0)
 
 void func_800B92CC(void)
 {
-    switch (*(u32*)&Mc_SaveData.field_4 & 0xFFFF0000) {
+    switch (*(u32*)&Mc_SaveData.at4.loc.view & 0xFFFF0000) {
         case 0x1010000:
             func_80180804();
             break;
@@ -2528,7 +2528,7 @@ void Gp_SetCurBit2Flag(s32 arg0, u8 arg1)
     USE_REG(shift);
     temp  = 3;
     mask  = temp << shift;
-    temp  = Mc_SaveData.field_7;
+    temp  = Mc_SaveData.at4.loc.stage;
     p     = Gp_Bit2Banks[temp].field_4;
     p    += arg0 >> 4;
     nmask = ~mask;
@@ -3001,7 +3001,7 @@ s32 Gp_GetCurBit2Flag(s32 arg0)
     u32           word;
     s32           shift;
 
-    p     = Gp_Bit2Banks[gGameSession->loc.stage].field_4;
+    p     = Gp_Bit2Banks[gGameSession->at4.loc.stage].field_4;
     p    += arg0 >> 4;
     shift = (arg0 & 0xF) * 2;
     word  = *p;
@@ -3299,7 +3299,7 @@ s32 Gp_GetRelatedQty(s32 arg0, s32 arg1)
     return ret;
 }
 
-s32 Gp_GetBit2Flag(GameSessionFrom4* arg0, s32 arg1)
+s32 Gp_GetBit2Flag(GpAreaKey* arg0, s32 arg1)
 {
     register u32* p asm("v1");
     u32           word;
@@ -3390,7 +3390,7 @@ void func_800BBB54(Task* arg0)
         sess    = gGameSession;
         banks   = Gp_Bit2Banks;
         id      = ((GpItemObj8*)arg0->spawnArg2)->field_8;
-        p       = banks[sess->loc.stage].field_4;
+        p       = banks[sess->at4.loc.stage].field_4;
         indexed = p + (id >> 4);
         shift   = (id & 0xF) * 2;
         word    = *indexed;
@@ -3421,7 +3421,7 @@ void Gp_WaitItemFlag2(Task* arg0)
         sess  = gGameSession;
         banks = Gp_Bit2Banks;
         id    = ((GpItemObj8*)arg0->spawnArg2)->field_8;
-        p     = banks[sess->loc.stage].field_4;
+        p     = banks[sess->at4.loc.stage].field_4;
         p    += id >> 4;
         shift = (id & 0xF) * 2;
         word  = *p;

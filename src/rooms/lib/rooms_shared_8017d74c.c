@@ -48,10 +48,10 @@ void RoomsShared8017d74c(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076          = 1;
-            Mc_SaveData.field_6 = RoomsShared8017d638Msg.msgId;
-            Mc_SaveData.field_8 = RoomsShared8017d638Msg.field_2;
-            Mc_SaveData.field_5 = (u8)RoomsShared8017d638Msg.field_3;
+            D_80071076               = 1;
+            Mc_SaveData.at4.loc.area = RoomsShared8017d638Msg.msgId;
+            Mc_SaveData.at4.loc.warp = RoomsShared8017d638Msg.field_2;
+            Mc_SaveData.at4.loc.room = (u8)RoomsShared8017d638Msg.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             Task_Kill(task);
             break;

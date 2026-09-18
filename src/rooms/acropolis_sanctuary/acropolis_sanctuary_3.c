@@ -127,11 +127,11 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
         case 1:
             if (gGameSession->eventState == 0) {
                 SndEvt_EnqueueType7(0x80000000, 0);
-                Mc_SaveData.field_6 = 0xD;
-                Mc_SaveData.field_7 = 1;
-                Mc_SaveData.field_8 = 2;
-                Mc_SaveData.field_5 = 1;
-                D_80071076          = 1;
+                Mc_SaveData.at4.loc.area  = 0xD;
+                Mc_SaveData.at4.loc.stage = 1;
+                Mc_SaveData.at4.loc.warp  = 2;
+                Mc_SaveData.at4.loc.room  = 1;
+                D_80071076                = 1;
                 Task_Spawn(0, 0x11, 0, 0);
                 Task_Kill(arg0);
                 break;
@@ -161,8 +161,8 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                         rec.place.rot.vy  = 0;
                         rec.place.rot.vz  = 0;
                         Gp_DispatchMsg(cutscene->target, 0x3E9, (s32)msg, 0);
-                        Mc_SaveData.field_4 = 0xE;
-                        cutscene->step      = cutscene->step + 1;
+                        Mc_SaveData.at4.loc.view = 0xE;
+                        cutscene->step           = cutscene->step + 1;
                     }
                     break;
             }
@@ -244,9 +244,9 @@ void func_acropolis_sanctuary_8017DD78(void)
 /// OT-linking each command's prims.
 void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1)
 {
-    GameSession*      g    = gGameSession;
-    GameSessionFrom4* sess = &g->loc;
-    GpSprtCmd*        cmd;
+    GameSession* g    = gGameSession;
+    GpAreaKey*   sess = &g->at4.loc;
+    GpSprtCmd*   cmd;
 
     cmd = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1][(arg1 & 0xFF) - 1].field_4;
     if ((arg0 & 0xFF) == 0) {
@@ -268,9 +268,9 @@ void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1)
 /// 0xC, 0 otherwise.
 void func_acropolis_sanctuary_8017E00C(Task* task)
 {
-    GsCOORDINATE2*    coord;
-    GameSessionFrom4* sess;
-    s32               i;
+    GsCOORDINATE2* coord;
+    GpAreaKey*     sess;
+    s32            i;
 
     coord = ((TmdObject*)task->extra)->field_8;
     if (task->state == 0) {
@@ -285,7 +285,7 @@ void func_acropolis_sanctuary_8017E00C(Task* task)
         D_acropolis_sanctuary_80182770 = 0;
         task->state                    = task->state + 1;
     }
-    sess = &gGameSession->loc;
+    sess = &gGameSession->at4.loc;
     if (sess->view == 0x10) {
         D_acropolis_sanctuary_80182770 = 1;
     } else if (sess->view != 0xC) {
@@ -510,7 +510,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
             mem->field_12      = -(mem->field_12 >> 1);
         }
     }
-    if ((u8)gGameSession->loc.view != 0x10 && D_acropolis_sanctuary_80182770 != 0 &&
+    if ((u8)gGameSession->at4.loc.view != 0x10 && D_acropolis_sanctuary_80182770 != 0 &&
         (coord->coord.t[0] < -0x28C0 ||
          (coord->coord.t[0] < -0x2740 && coord->coord.t[1] >= -0xED7))) {
         mem->field_22 = mem->field_22 + 0x3C;
@@ -678,7 +678,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
             mem->field_22 = mem->field_22 + 0x3C;
         }
     }
-    if ((u8)gGameSession->loc.view != 0x10 && D_acropolis_sanctuary_80182770 != 0 &&
+    if ((u8)gGameSession->at4.loc.view != 0x10 && D_acropolis_sanctuary_80182770 != 0 &&
         (coord->coord.t[0] < -0x28C0 ||
          (coord->coord.t[0] < -0x2740 && coord->coord.t[1] >= -0xED7))) {
         mem->field_22 = mem->field_22 + 0x3C;
@@ -715,7 +715,7 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
 
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->field_8;
-    if ((D_acropolis_sanctuary_801827D4[arg0->spawnArg1 & 0xF] >> ((u8)gGameSession->loc.view - 1)) & 1) {
+    if ((D_acropolis_sanctuary_801827D4[arg0->spawnArg1 & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1) {
         Gp_UpdateCoord(coord);
         scratch  = (void**)G_SCRATCH_HEAD;
         head     = *scratch;

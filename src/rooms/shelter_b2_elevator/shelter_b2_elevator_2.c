@@ -30,16 +30,16 @@ void func_shelter_b2_elevator_8017D888(Task* task)
         case 2:
             switch (Gp_GetCapEventKey()) {
                 case 0xB:
-                    Mc_SaveData.field_6 = 9;
-                    Mc_SaveData.field_8 = 3;
+                    Mc_SaveData.at4.loc.area = 9;
+                    Mc_SaveData.at4.loc.warp = 3;
                     break;
                 case 0xC:
-                    Mc_SaveData.field_6 = 0x1B;
-                    Mc_SaveData.field_8 = 2;
+                    Mc_SaveData.at4.loc.area = 0x1B;
+                    Mc_SaveData.at4.loc.warp = 2;
                     break;
                 case 0xD:
-                    Mc_SaveData.field_6 = 0x2A;
-                    Mc_SaveData.field_8 = 3;
+                    Mc_SaveData.at4.loc.area = 0x2A;
+                    Mc_SaveData.at4.loc.warp = 3;
                     break;
             }
             task->state++;
@@ -50,14 +50,14 @@ void func_shelter_b2_elevator_8017D888(Task* task)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             msg.field_5 = 0;
-            msg.msgId   = Mc_SaveData.field_6;
-            msg.field_2 = Mc_SaveData.field_8;
-            msg.field_3 = Mc_SaveData.field_5;
+            msg.msgId   = Mc_SaveData.at4.loc.area;
+            msg.field_2 = Mc_SaveData.at4.loc.warp;
+            msg.field_3 = Mc_SaveData.at4.loc.room;
             msg2        = msg;
             func_80179A04(&msg, &msg2);
-            D_80071076          = 1;
-            Mc_SaveData.field_8 = msg2.field_2;
-            Mc_SaveData.field_5 = msg2.field_3;
+            D_80071076               = 1;
+            Mc_SaveData.at4.loc.warp = msg2.field_2;
+            Mc_SaveData.at4.loc.room = msg2.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             Task_Kill(task);
             break;

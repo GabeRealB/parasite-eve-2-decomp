@@ -377,9 +377,9 @@ and pick the form from how the bytes are used:
 
 - Only ever used as a group — a **named nested struct member**.
 - Used as a group *and* read field by field — still a **named nested struct
-  member**, as long as the fields live on that nested type. `GameSession.loc`
-  is this case: `&session->loc` is the 6-byte key passed into lookups, and
-  `session->loc.stage` is the same bytes field by field.
+  member**, as long as the fields live on that nested type. `GameSession.at4.loc`
+  is this case: `&session->at4.loc` is the 6-byte key passed into lookups, and
+  `session->at4.loc.stage` is the same bytes field by field.
 - A union of the aggregate beside a parallel byte struct only when both
   spellings have to exist at the same nesting level (anonymous members do not
   work here).
@@ -389,7 +389,7 @@ and pick the form from how the bytes are used:
 ```c
 typedef struct GameSession {
     s8 field_0;
-    GameSessionFrom4 loc;   /* the thing that is passed; loc.view / loc.stage */
+    union { GpAreaKey loc; GBytes8 raw; } at4;  /* at4.loc.view / at4.loc.stage */
     ...
 ```
 

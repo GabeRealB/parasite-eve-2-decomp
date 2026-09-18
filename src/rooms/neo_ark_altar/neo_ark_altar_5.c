@@ -123,12 +123,12 @@ void func_neo_ark_altar_8017DF0C(Task* task)
 /// `D_neo_ark_altar_801800B0` are cleared for `func_neo_ark_altar_8017E260`.
 void func_neo_ark_altar_8017E148(void)
 {
-    GameSessionFrom4* sess;
-    GpSprtRec*        rec;
-    GpSprtCmd*        cmd;
-    s32               i;
+    GpAreaKey* sess;
+    GpSprtRec* rec;
+    GpSprtCmd* cmd;
+    s32        i;
 
-    sess = &gGameSession->loc;
+    sess = &gGameSession->at4.loc;
     rec  = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
     if (GameFlag_GetNibble(0xD9) == 0) {
         cmd                      = rec[3].field_4;
@@ -346,7 +346,7 @@ void func_neo_ark_altar_8017EF00(Task* arg0)
 {
     *(s16*)((u8*)gGameSession + OFFSET_OF(GameSession, viewDirty)) = 1;
     D_8007216D                                                     = 2;
-    gGameSession->loc.room                                         = 2;
+    gGameSession->at4.loc.room                                     = 2;
     arg0->state                                                    = (s32)(arg0->state + 1);
 }
 

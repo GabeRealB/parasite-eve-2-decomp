@@ -135,8 +135,8 @@ typedef struct {
 
 void func_shelter_b3_dumping_hole_80183218(u8 arg0)
 {
-    GameSessionFrom4* g4 = &gGameSession->loc;
-    SprtViewState*    vs =
+    GpAreaKey*     g4 = &gGameSession->at4.loc;
+    SprtViewState* vs =
         ((SprtBigRec*)Gp_SprtTables[g4->stage - 1]->field_0[g4->area - 1])->field_A0;
 
     if (arg0 == 0) {

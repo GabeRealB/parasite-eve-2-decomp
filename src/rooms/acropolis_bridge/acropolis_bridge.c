@@ -35,8 +35,8 @@ s32 func_acropolis_bridge_8017D6F4(Task* task, s32 msgId, RoomEventMsg* in, Room
                 GameFlag_SetNibble(0x10, 1);
                 func_800E8634((s32)&D_acropolis_bridge_80188EBC, 0, (s32)&D_acropolis_bridge_8018912C);
                 GameFlag_SetNibble(6, 1);
-                key.field_3 = 1;
-                key.field_2 = 0xC;
+                key.stage = 1;
+                key.area  = 0xC;
                 Gp_SetAreaObjId(&key, 3, 1);
             }
             return 2;

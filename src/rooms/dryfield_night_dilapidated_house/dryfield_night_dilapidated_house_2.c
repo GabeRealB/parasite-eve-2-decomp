@@ -41,7 +41,7 @@ L_case0:
     goto advance;
 
 L_case1:
-    key = ((SessionBytesAt4*)gGameSession)->field_4;
+    key = gGameSession->at4.raw;
     if (Wip_SysFlags.field_0 == 2) {
         key.data[0] = 0x65;
     } else {

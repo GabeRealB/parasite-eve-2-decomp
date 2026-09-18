@@ -40,8 +40,8 @@ s32 func_dryfield_gas_station_8017FD54(s32 arg0, s32 arg1, s32 arg2)
             Gp_RunCapCmd1(0xB);
             return 0;
         }
-        if (Mc_SaveData.field_8 == arg2) {
-            Mc_SaveData.field_8 = 2;
+        if (Mc_SaveData.at4.loc.warp == arg2) {
+            Mc_SaveData.at4.loc.warp = 2;
         }
         D_dryfield_gas_station_80184BD8.field_0  = 8;
         D_dryfield_gas_station_80184BD8.field_1  = arg2;

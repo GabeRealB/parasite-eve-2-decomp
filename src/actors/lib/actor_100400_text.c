@@ -1290,20 +1290,20 @@ void Actor00400_Fn02D48(Task* arg0)
             n = func_800E0C10(work->recs, &delta, 2, &mask);
             if (n < 3) {
                 if (n > 0) {
-                    if (gGameSession->loc.stage == 4 &&
-                        (gGameSession->loc.area == 0x21 || gGameSession->loc.area == 0x2B ||
-                         gGameSession->loc.area == 0x2C || gGameSession->loc.area == 0x2D ||
-                         gGameSession->loc.area == 0x22)) {
+                    if (gGameSession->at4.loc.stage == 4 &&
+                        (gGameSession->at4.loc.area == 0x21 || gGameSession->at4.loc.area == 0x2B ||
+                         gGameSession->at4.loc.area == 0x2C || gGameSession->at4.loc.area == 0x2D ||
+                         gGameSession->at4.loc.area == 0x22)) {
                         if ((mask & 2) == 0) {
                             hidden = 1;
                         }
-                    } else if (gGameSession->loc.stage == 5 &&
-                               (gGameSession->loc.area == 0xD || gGameSession->loc.area == 0xE ||
-                                gGameSession->loc.area == 0x1B)) {
+                    } else if (gGameSession->at4.loc.stage == 5 &&
+                               (gGameSession->at4.loc.area == 0xD || gGameSession->at4.loc.area == 0xE ||
+                                gGameSession->at4.loc.area == 0x1B)) {
                         if ((mask & 2) == 0) {
                             hidden = 1;
                         }
-                    } else if (gGameSession->loc.area == 0x1E && gGameSession->loc.stage == 5) {
+                    } else if (gGameSession->at4.loc.area == 0x1E && gGameSession->at4.loc.stage == 5) {
                         if ((mask & 8) == 0) {
                             hidden = 1;
                         }
@@ -1507,11 +1507,11 @@ static __inline__ s32 Actor00400_ApplyAreaConfig(Actor100400* arg0)
 {
     Actor100400AreaConfig* cfg;
     Actor100400Work*       work;
-    GameSessionFrom4*      ses;
+    GpAreaKey*             ses;
     u16                    flags;
 
     work = arg0->field_1C;
-    ses  = &gGameSession->loc;
+    ses  = &gGameSession->at4.loc;
     cfg  = Actor00400_D15F20;
     while (cfg->area != 0xFF) {
         if ((ses->stage == cfg->area) && (ses->area == cfg->room)) {
@@ -1720,7 +1720,7 @@ void Actor00400_Fn03920(Actor100400* arg0)
             }
             break;
         case 1:
-            if ((*(u32*)&gGameSession->loc & 0xFFFF0000) == 0x042D0000) {
+            if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x042D0000) {
                 if (GameFlag_GetNibble(0xB7) == 0) {
                     work->field_666 = 1;
                     w               = arg0->field_1C;
@@ -2226,7 +2226,7 @@ void Actor00400_Fn04E18(Actor100400* arg0)
     Actor100400Ctx*      ctx2;
     Actor100400Ctx*      ctx3;
     Actor100400Ctx*      ctxN;
-    GameSessionFrom4*    sess;
+    GpAreaKey*           sess;
     GsCOORDINATE2*       coord;
     GsCOORDINATE2*       coordN;
     MATRIX*              dst;
@@ -2333,9 +2333,9 @@ void Actor00400_Fn04E18(Actor100400* arg0)
             ctx->field_C &= ~0x80;
             break;
     }
-    sess = &gGameSession->loc;
+    sess = &gGameSession->at4.loc;
     ctx3 = arg0->field_2C;
-    if (sess->stage == 4 && sess->area == 0x21 && (u32)(gGameSession->loc.view - 0xA) < 2U) {
+    if (sess->stage == 4 && sess->area == 0x21 && (u32)(gGameSession->at4.loc.view - 0xA) < 2U) {
         ctx3->field_C |= 0x80;
     }
 }

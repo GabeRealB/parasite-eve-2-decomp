@@ -30,7 +30,7 @@ void func_actor_213000_8014A6AC(Task* task);
 /// entries 3 and 4 kept here. Each of the two model tasks has
 /// `TmdObject::field_24` / `field_25` loaded with the texture page and CLUT row
 /// of the `GpAreaPlace` that entry selects, reached through the area key
-/// `&gGameSession->loc.view` and indexed by the model id the parent's
+/// `&gGameSession->at4.loc.view` and indexed by the model id the parent's
 /// `spawnArg2` carries at `GpEnemy::field_8 >> 12`, and has its texture stream
 /// processed twice when it has an aux buffer. The body ends by handing the
 /// parent to `func_actor_213000_8014A6AC`, pointing `field_24` at the message
@@ -66,13 +66,13 @@ void func_actor_213000_80149E54(Task* task)
         GpAreaKey*   sessionKey;
         s32          idx;
 
-        idx         = ((GpEnemy*)task->spawnArg2)->field_8 >> 12;
-        model       = (TmdObject*)spawned1->extra;
-        sessionKey  = (GpAreaKey*)&gGameSession->loc;
-        key.field_3 = sessionKey->field_3;
-        key.field_2 = sessionKey->field_2;
-        key.field_1 = sessionKey->field_1;
-        key.field_0 = sessionKey->field_0;
+        idx        = ((GpEnemy*)task->spawnArg2)->field_8 >> 12;
+        model      = (TmdObject*)spawned1->extra;
+        sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+        key.stage  = sessionKey->stage;
+        key.area   = sessionKey->area;
+        key.room   = sessionKey->room;
+        key.view   = sessionKey->view;
         Gp_SyncAreaKeyIndex(&key);
         rec             = Gp_GetNestedAreaRec(&key);
         place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
@@ -90,13 +90,13 @@ void func_actor_213000_80149E54(Task* task)
         GpAreaKey*   sessionKey;
         s32          idx;
 
-        model       = (TmdObject*)spawned2->extra;
-        idx         = ((GpEnemy*)task->spawnArg2)->field_8 >> 12;
-        sessionKey  = (GpAreaKey*)&gGameSession->loc;
-        key.field_3 = sessionKey->field_3;
-        key.field_2 = sessionKey->field_2;
-        key.field_1 = sessionKey->field_1;
-        key.field_0 = sessionKey->field_0;
+        model      = (TmdObject*)spawned2->extra;
+        idx        = ((GpEnemy*)task->spawnArg2)->field_8 >> 12;
+        sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+        key.stage  = sessionKey->stage;
+        key.area   = sessionKey->area;
+        key.room   = sessionKey->room;
+        key.view   = sessionKey->view;
         Gp_SyncAreaKeyIndex(&key);
         rec             = Gp_GetNestedAreaRec(&key);
         place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);

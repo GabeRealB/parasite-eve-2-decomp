@@ -220,7 +220,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             q->field_1EE = 1;
             q->field_1EA = 1;
             q->field_1F8 = 2;
-            buf.slot[0]  = Stream_FindSlot(&gGameSession->loc.view, 2, 0);
+            buf.slot[0]  = Stream_FindSlot(&gGameSession->at4.loc.view, 2, 0);
             buf.slot[1]  = 0;
             buf.slot[2]  = 0;
             CdCmd_Enqueue(0x72, 0, buf.slot);
@@ -286,7 +286,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
 /// State 6 releases slot 3 (msg 0x3F1), re-places the player at
 /// (0x3DE, 0, 0x439E) and hands the room a 0x7D3 record; state 8 sends it 0x7D7
 /// and rebuilds the graphics state (`Gpu_ResetGraphAndOt`, the aux heap from
-/// `GameSession::loc.stage` / `loc.area`, `Tmd_AllocMissingBuffers`). State 7
+/// `GameSession::at4.loc.stage` / `at4.loc.area`, `Tmd_AllocMissingBuffers`). State 7
 /// waits 0x3D frames, playing 0x51050003 at frame 0x1E and spawning table entry
 /// 7 at the end.
 ///
@@ -307,7 +307,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
     CdCmdQueue*                q    = &CdCmd_Queue;
     AcropolisPlazaOpeningWork* work = (AcropolisPlazaOpeningWork*)task->work;
     AcropolisPlazaOpeningWork* newWork;
-    GameSessionFrom4*          sessionKey;
+    GpAreaKey*                 sessionKey;
     GpCdRec10*                 entry;
     s32                        idx;
 
@@ -349,7 +349,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             q->field_1EE = 1;
             q->field_1EA = 1;
             q->field_1F8 = 4;
-            slot[0]      = Stream_FindSlot(&gGameSession->loc.view, 4, 0);
+            slot[0]      = Stream_FindSlot(&gGameSession->at4.loc.view, 4, 0);
             slot[1]      = 0;
             slot[2]      = 0;
             CdCmd_Enqueue(0x72, 0, slot);
@@ -376,7 +376,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             q->field_1EE = 1;
             q->field_1EA = 1;
             q->field_1F8 = 5;
-            slot[0]      = Stream_FindSlot(&gGameSession->loc.view, 5, 0);
+            slot[0]      = Stream_FindSlot(&gGameSession->at4.loc.view, 5, 0);
             slot[1]      = 0;
             slot[2]      = 0;
             CdCmd_Enqueue(0x72, 0, slot);
@@ -398,12 +398,12 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             roomRec.field_8  = 0;
             roomRec.field_C  = 0xA;
             roomRec.field_10 = 0;
-            sessionKey       = &gGameSession->loc;
-            buf.key.field_3  = sessionKey->stage;
-            buf.key.field_2  = sessionKey->area;
-            buf.key.field_1  = gGameSession->sprtVariant;
-            buf.key.field_0  = gGameSession->loc.view;
-            buf.key.field_5  = sessionKey->place;
+            sessionKey       = &gGameSession->at4.loc;
+            buf.key.stage    = sessionKey->stage;
+            buf.key.area     = sessionKey->area;
+            buf.key.room     = gGameSession->sprtVariant;
+            buf.key.view     = gGameSession->at4.loc.view;
+            buf.key.place    = sessionKey->place;
             entry            = (GpCdRec10*)Gp_GetNestedAreaRec(&buf.key)->field_0;
             idx              = 0;
             /* `for (;;)` with a `goto` out: a `break` here makes GCC copy the
@@ -443,14 +443,14 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             return;
         case 8:
             if (CdCmd_IsIdle() != 0) {
-                sessionKey      = &gGameSession->loc;
-                buf.key.field_3 = sessionKey->stage;
-                buf.key.field_2 = sessionKey->area;
-                buf.key.field_1 = gGameSession->sprtVariant;
-                buf.key.field_0 = gGameSession->loc.view;
-                buf.key.field_5 = sessionKey->place;
-                entry           = (GpCdRec10*)Gp_GetNestedAreaRec(&buf.key)->field_0;
-                idx             = 0;
+                sessionKey    = &gGameSession->at4.loc;
+                buf.key.stage = sessionKey->stage;
+                buf.key.area  = sessionKey->area;
+                buf.key.room  = gGameSession->sprtVariant;
+                buf.key.view  = gGameSession->at4.loc.view;
+                buf.key.place = sessionKey->place;
+                entry         = (GpCdRec10*)Gp_GetNestedAreaRec(&buf.key)->field_0;
+                idx           = 0;
                 if (entry->field_0 != 0xFF) {
                     for (;;) {
                         if (entry->field_0 == 0x6C) {
@@ -471,7 +471,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                     0x7D7, 1, 0);
                 Gp_DispatchMsg(work->slot3, 0x3F3, 2, 0);
                 Gpu_ResetGraphAndOt();
-                Mem_ConfigureAuxHeap(gGameSession->loc.stage, gGameSession->loc.area);
+                Mem_ConfigureAuxHeap(gGameSession->at4.loc.stage, gGameSession->at4.loc.area);
                 Mem_SetActiveAuxHeap(1);
                 Tmd_AllocMissingBuffers();
                 SndEvt_EnqueueTypeB(0x51050005, 0x26);
@@ -484,7 +484,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             q->field_1EE = 1;
             q->field_1EA = 1;
             q->field_1F8 = 3;
-            slot[0]      = Stream_FindSlot(&gGameSession->loc.view, 3, 0);
+            slot[0]      = Stream_FindSlot(&gGameSession->at4.loc.view, 3, 0);
             slot[1]      = 0;
             slot[2]      = 0;
             CdCmd_Enqueue(0x72, 0, slot);
@@ -525,7 +525,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 q->field_1EE = 1;
                 q->field_1EA = 1;
                 q->field_1F8 = 3;
-                buf.slot[0]  = Stream_FindSlot(&gGameSession->loc.view, 3, 0);
+                buf.slot[0]  = Stream_FindSlot(&gGameSession->at4.loc.view, 3, 0);
                 buf.slot[1]  = 0;
                 buf.slot[2]  = 0;
                 CdCmd_Enqueue(0x71, 0, buf.slot);
@@ -965,11 +965,11 @@ void func_acropolis_plaza_80180054(Task* task)
             task->state = task->state + 1;
             return;
         case 5:
-            Mc_SaveData.field_7 = 1;
-            Mc_SaveData.field_8 = 1;
-            Mc_SaveData.field_6 = 0x11;
-            Mc_SaveData.field_5 = 1;
-            D_80071076          = 1;
+            Mc_SaveData.at4.loc.stage = 1;
+            Mc_SaveData.at4.loc.warp  = 1;
+            Mc_SaveData.at4.loc.area  = 0x11;
+            Mc_SaveData.at4.loc.room  = 1;
+            D_80071076                = 1;
             Gp_EnqueueHeldWeaponCd();
             SndEvt_EnqueueType7(0x80000000, 0);
             Task_Spawn(0, 0x11, 0, 0);

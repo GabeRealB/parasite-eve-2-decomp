@@ -68,8 +68,8 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
                         }
                         func_dryfield_night_motel_lobby_80180440(task, hs->id);
                         if (work->field_8 != 0) {
-                            Mc_SaveData.field_4 = 7;
-                            task->state         = 6;
+                            Mc_SaveData.at4.loc.view = 7;
+                            task->state              = 6;
                             func_dryfield_night_motel_lobby_801802A8(task);
                             return;
                         }

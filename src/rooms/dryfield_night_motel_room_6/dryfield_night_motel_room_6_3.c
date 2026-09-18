@@ -72,10 +72,10 @@ L_case5:
     GameFlag_SetNibble(0x59, 1);
     GameFlag_SetNibble(0x5A, 2);
     GameFlag_SetNibble(0x30, 0);
-    Mc_SaveData.field_6 = 8;
-    Mc_SaveData.field_8 = 1;
-    Mc_SaveData.field_5 = 1;
-    D_80071076          = 1;
+    Mc_SaveData.at4.loc.area = 8;
+    Mc_SaveData.at4.loc.warp = 1;
+    Mc_SaveData.at4.loc.room = 1;
+    D_80071076               = 1;
     Task_Spawn(0, 0x11, 0, 0);
     Task_Kill(task);
 }

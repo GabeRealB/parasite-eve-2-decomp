@@ -77,10 +77,10 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
             break;
         case 6:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076          = 1;
-            Mc_SaveData.field_6 = (u8)D_mine_secret_passage_80183448.field_2;
-            Mc_SaveData.field_8 = (u8)D_mine_secret_passage_80183448.field_4;
-            Mc_SaveData.field_5 = (u8)D_mine_secret_passage_80183448.field_1;
+            D_80071076               = 1;
+            Mc_SaveData.at4.loc.area = (u8)D_mine_secret_passage_80183448.field_2;
+            Mc_SaveData.at4.loc.warp = (u8)D_mine_secret_passage_80183448.field_4;
+            Mc_SaveData.at4.loc.room = (u8)D_mine_secret_passage_80183448.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             Task_Kill(arg0);
             break;

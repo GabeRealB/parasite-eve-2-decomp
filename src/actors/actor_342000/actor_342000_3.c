@@ -44,7 +44,7 @@ extern GpAreaApplyRec D_8018FB6C[];
 
 void func_actor_342000_80164154(void)
 {
-    gGameSession->loc.room       = 7;
+    gGameSession->at4.loc.room   = 7;
     D_8007216D                   = 7;
     gGameSession->eventRoomIndex = 6;
     gGameSession->field_133      = 1;

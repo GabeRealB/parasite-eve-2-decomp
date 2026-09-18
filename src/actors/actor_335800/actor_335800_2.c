@@ -63,8 +63,8 @@ void func_actor_335800_801620C0(void)
 
 void func_actor_335800_801620F0(u8 arg0)
 {
-    gGameSession->loc.room = D_8007216D = arg0;
-    gGameSession->roomObjsDirty         = 1;
+    gGameSession->at4.loc.room = D_8007216D = arg0;
+    gGameSession->roomObjsDirty             = 1;
 }
 
 void func_actor_335800_80162114(void)
@@ -134,7 +134,7 @@ void func_actor_335800_8016224C(void)
             areaId = 5;
         }
         D_8007216C                  = areaId;
-        gGameSession->loc.view      = areaId;
+        gGameSession->at4.loc.view  = areaId;
         gGameSession->viewDirty     = 1;
         gGameSession->roomObjsDirty = 1;
     }
@@ -143,12 +143,12 @@ void func_actor_335800_8016224C(void)
 void func_actor_335800_801622C0(s32 arg0)
 {
     GameSession*         g;
-    GameSessionFrom4*    sess;
+    GpAreaKey*           sess;
     Actor335800SprtRec*  rec;
     Actor335800SprtView* view;
 
     g    = gGameSession;
-    sess = &g->loc;
+    sess = &g->at4.loc;
     rec  = (Actor335800SprtRec*)Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
     switch (arg0) {
         case 0:
@@ -286,11 +286,11 @@ void func_actor_335800_80162640(Task* arg0)
         work->field_4FC = spawned;
         model           = (TmdObject*)spawned->extra;
         idx             = ((GpEnemy*)arg0->spawnArg2)->field_8 >> 12;
-        sessionKey      = (GpAreaKey*)&gGameSession->loc;
-        key.field_3     = sessionKey->field_3;
-        key.field_2     = sessionKey->field_2;
-        key.field_1     = sessionKey->field_1;
-        key.field_0     = sessionKey->field_0;
+        sessionKey      = (GpAreaKey*)&gGameSession->at4.loc;
+        key.stage       = sessionKey->stage;
+        key.area        = sessionKey->area;
+        key.room        = sessionKey->room;
+        key.view        = sessionKey->view;
         Gp_SyncAreaKeyIndex(&key);
         rec             = Gp_GetNestedAreaRec(&key);
         place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
@@ -311,11 +311,11 @@ void func_actor_335800_80162640(Task* arg0)
         work->field_500 = spawned;
         model           = (TmdObject*)spawned->extra;
         idx             = ((GpEnemy*)arg0->spawnArg2)->field_8 >> 12;
-        sessionKey      = (GpAreaKey*)(keyAddr = (u8*)&gGameSession->loc.view);
-        key.field_3     = sessionKey->field_3;
-        key.field_2     = sessionKey->field_2;
-        key.field_1     = ((GpAreaKey*)keyAddr)->field_1;
-        key.field_0     = ((GpAreaKey*)(&gGameSession->loc.view))->field_0;
+        sessionKey      = (GpAreaKey*)(keyAddr = (u8*)&gGameSession->at4.loc.view);
+        key.stage       = sessionKey->stage;
+        key.area        = sessionKey->area;
+        key.room        = ((GpAreaKey*)keyAddr)->room;
+        key.view        = ((GpAreaKey*)(&gGameSession->at4.loc.view))->view;
         Gp_SyncAreaKeyIndex(&key);
         rec             = Gp_GetNestedAreaRec(&key);
         place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);

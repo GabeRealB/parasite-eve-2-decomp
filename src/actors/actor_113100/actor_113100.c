@@ -30,7 +30,7 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 /// Setup handler (state 0): allocates the 0x540-byte work block, clears the
 /// three "no id yet" sentinels and spawns the actor's children from
 /// `D_actor_113100_80144308` -- index 1 only in arena mode
-/// (`gGameSession->loc.place == 2`), then indices 2 and 3, whose models get the
+/// (`gGameSession->at4.loc.place == 2`), then indices 2 and 3, whose models get the
 /// texture page and CLUT of the area record the actor's own location key
 /// resolves to. It then builds the work block's display node: `field_C` points
 /// at the `GpRec18` table that follows it, the position triple is zeroed, the
@@ -68,21 +68,21 @@ void func_actor_113100_80131E58(Task* task)
     work->field_510 = 0;
     work->field_514 = 0;
     work->field_518 = 0;
-    if (gGameSession->loc.place == 2) {
+    if (gGameSession->at4.loc.place == 2) {
         work->field_534 = Task_SpawnFromTable(&D_actor_113100_80144308, 1, 8, (s32)task);
     }
 
     child2 = Task_SpawnFromTable(&D_actor_113100_80144308, 2, 4, (s32)task);
     if (child2 != NULL) {
-        sessionKey2 = (GpAreaKey*)&gGameSession->loc;
+        sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
         raw2        = ((GpEnemy*)task->spawnArg2)->field_8;
         model2      = (TmdObject*)child2->extra;
-        key.field_3 = sessionKey2->field_3;
-        key.field_2 = sessionKey2->field_2;
-        key.field_1 = sessionKey2->field_1;
-        areaByte0   = gGameSession->loc.view;
+        key.stage   = sessionKey2->stage;
+        key.area    = sessionKey2->area;
+        key.room    = sessionKey2->room;
+        areaByte0   = gGameSession->at4.loc.view;
         index2      = raw2 >> 12;
-        key.field_0 = areaByte0;
+        key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
         entry2           = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
         model2->field_24 = entry2->field_D;
@@ -95,15 +95,15 @@ void func_actor_113100_80131E58(Task* task)
 
     child3 = Task_SpawnFromTable(&D_actor_113100_80144308, 3, 2, (s32)task);
     if (child3 != NULL) {
-        sessionKey3 = (GpAreaKey*)&gGameSession->loc;
+        sessionKey3 = (GpAreaKey*)&gGameSession->at4.loc;
         raw3        = ((GpEnemy*)task->spawnArg2)->field_8;
         model3      = (TmdObject*)child3->extra;
-        key.field_3 = sessionKey3->field_3;
-        key.field_2 = sessionKey3->field_2;
-        key.field_1 = sessionKey3->field_1;
-        areaByte0   = gGameSession->loc.view;
+        key.stage   = sessionKey3->stage;
+        key.area    = sessionKey3->area;
+        key.room    = sessionKey3->room;
+        areaByte0   = gGameSession->at4.loc.view;
         index3      = raw3 >> 12;
-        key.field_0 = areaByte0;
+        key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
         entry3           = (GpCdRec10*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
         model3->field_24 = entry3->field_D;
@@ -477,7 +477,7 @@ void func_actor_113100_80132BDC(Task* task)
     index = task->spawnArg1;
     node  = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
     part  = &((TmdObject*)((Task*)task->spawnArg2)->extra)->field_8[index];
-    view  = Gp_GetStageView(&gGameSession->loc.view, index, task);
+    view  = Gp_GetStageView(&gGameSession->at4.loc.view, index, task);
     coord = &node->coord;
     TransposeMatrix(&part->workm, coord);
     TransposeMatrix(view, &sp10);

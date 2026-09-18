@@ -44,7 +44,7 @@ s16 Gp_LookupStageFlag(s32 arg0)
     u16* table;
     u16* entry;
 
-    switch (gGameSession->loc.stage) {
+    switch (gGameSession->at4.loc.stage) {
         case 1:
             arg0 = (s16)arg0;
             if (arg0 >= 0xE) {
@@ -110,9 +110,9 @@ void Gp_ClearAreaFlag4(GpAreaKey* arg0)
     GpAreaRec* rec;
     GpAreaObj* obj;
 
-    rec = Gp_AreaTables[arg0->field_3];
+    rec = Gp_AreaTables[arg0->stage];
     if (rec != NULL) {
-        obj = rec[arg0->field_2].field_4;
+        obj = rec[arg0->area].field_4;
         if (obj != NULL) {
             obj->field_1 &= 0xFB;
         }
@@ -174,8 +174,8 @@ u8 Gp_GetViewCountLo(void)
     GpViewCountTbl* tbl;
 
     session = gGameSession;
-    tbl     = Gp_ViewCountTables[session->loc.stage - 1];
-    return tbl->field_0[session->loc.area - 1][session->loc.room - 1].field_0;
+    tbl     = Gp_ViewCountTables[session->at4.loc.stage - 1];
+    return tbl->field_0[session->at4.loc.area - 1][session->at4.loc.room - 1].field_0;
 }
 
 void Gp_DirAction0(void)
@@ -278,9 +278,9 @@ void Gp_CommitSaveLoc(void)
         fade = *(u8*)&Gp_DirFadeLevel;
         Fade_DrawOverlay(fade, fade, fade, 2);
     }
-    Mc_SaveData.field_6 = Gp_WarpLoc.field_0;
-    Mc_SaveData.field_8 = Gp_WarpLoc.field_2;
-    Mc_SaveData.field_5 = Gp_WarpLoc.field_3;
+    Mc_SaveData.at4.loc.area = Gp_WarpLoc.field_0;
+    Mc_SaveData.at4.loc.warp = Gp_WarpLoc.field_2;
+    Mc_SaveData.at4.loc.room = Gp_WarpLoc.field_3;
     Task_Spawn(0, 0x11, 0, 0);
     D_80114CF8   = 0;
     Gp_DirNibble = 0;
@@ -340,10 +340,10 @@ void Gp_SetCurAreaFlag4(void)
     GpAreaRec* rec;
     GpAreaObj* obj;
 
-    key = (GpAreaKey*)&gGameSession->loc;
-    rec = Gp_AreaTables[key->field_3];
+    key = (GpAreaKey*)&gGameSession->at4.loc;
+    rec = Gp_AreaTables[key->stage];
     if (rec != NULL) {
-        obj = rec[key->field_2].field_4;
+        obj = rec[key->area].field_4;
         if (obj != NULL) {
             obj->field_1 |= 0x4;
         }

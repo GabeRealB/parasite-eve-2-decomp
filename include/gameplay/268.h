@@ -100,7 +100,7 @@ typedef struct _GpBit2List {
 STATIC_ASSERT_SIZEOF(GpBit2List, 0x8);
 
 /// 8-byte entry in `Gp_Bit2Banks`, indexed by session field_7 /
-/// `GameSessionFrom4.stage` / `Mc_SaveData.field_7`. field_0 is a
+/// `GpAreaKey.stage` / `Mc_SaveData.at4.loc.stage`. field_0 is a
 /// `GpBit2List` table applied by `Gp_ApplyBit2Bank` / `Gp_ApplyBit2List`.
 /// field_4 is packed 2-bit flags (`Gp_GetBit2Flag` / `Gp_SetBit2Flag` /
 /// `Gp_GetCurBit2Flag` / `Gp_SetCurBit2Flag` / `Gp_SpawnPlaceById`).
@@ -352,7 +352,7 @@ s32              Gp_SumScanQty(GpItemScan* arg0, s32 arg1);
 void             Gp_SetItemSeenBit(s32 arg0, s32 arg1);
 void             Gp_ApplyBit2List(GpBit2List* arg0, u32* arg1);
 void             Gp_SetBit2Flag(s32 arg0, u8 arg1, s32 arg2);
-s32              Gp_GetBit2Flag(GameSessionFrom4* arg0, s32 arg1);
+s32              Gp_GetBit2Flag(GpAreaKey* arg0, s32 arg1);
 void             Gp_SavePlayerPos(void);
 struct _GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpEnemyPlace* arg1);
 void             func_800BBB54(Task* arg0);

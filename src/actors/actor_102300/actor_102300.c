@@ -33,7 +33,7 @@ extern s32 D_actor_102300_80147918;
 
 /// The `GpPairSrcE` the enemy parks in its own `field_50` slot.
 extern GpPairSrcE D_actor_102300_801477F8;
-/// Per-room voice-stream sector tables, indexed by `GameSession::loc.stage` then
+/// Per-room voice-stream sector tables, indexed by `GameSession::at4.loc.stage` then
 /// `field_6`; a NULL row means this room has no cue.
 extern u16* D_actor_102300_80147AA0[];
 /// The overlay's own spawn table: entry 0 is this enemy, 1 and 2 the two
@@ -671,21 +671,21 @@ void func_actor_102300_801346CC(GpEnemy* enemy, Actor102300* actor)
         Gp_AnimResetSlot(&work->anim, i, 1);
     }
 
-    eff         = Gp_SpawnEnemyFromTable(&D_actor_102300_80147AB8, 2, 0, enemy);
-    sessionKey  = (GpAreaKey*)&gGameSession->loc;
-    model       = eff->task->extra;
-    idx         = enemy->field_8 >> 12;
-    key.field_3 = sessionKey->field_3;
-    key.field_2 = sessionKey->field_2;
-    key.field_1 = sessionKey->field_1;
-    areaByte0   = sessionKey->field_0;
+    eff        = Gp_SpawnEnemyFromTable(&D_actor_102300_80147AB8, 2, 0, enemy);
+    sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+    model      = eff->task->extra;
+    idx        = enemy->field_8 >> 12;
+    key.stage  = sessionKey->stage;
+    key.area   = sessionKey->area;
+    key.room   = sessionKey->room;
+    areaByte0  = sessionKey->view;
     /* Both calls take `&key`. Left alone, GCC 2.8.1 CSEs that address into one
        pseudo that is live across the first call, costing a callee-saved
        register; the ROM rematerializes `addiu a0, sp, key` for each call. The
        barrier keeps the address materialization next to the call and the
        `+r` touch makes the second one a fresh computation. */
-    keyPtr      = &key;
-    key.field_0 = areaByte0;
+    keyPtr   = &key;
+    key.view = areaByte0;
     Gp_SyncAreaKeyIndex(keyPtr);
     SOFT_DEF_REG(keyPtr);
     keyPtr          = &key;
@@ -700,15 +700,15 @@ void func_actor_102300_801346CC(GpEnemy* enemy, Actor102300* actor)
     SOFT_DEF_REG(keyPtr);
 
     eff2        = Gp_SpawnEnemyFromTable(&D_actor_102300_80147AB8, 1, 0, enemy);
-    sessionKey2 = (GpAreaKey*)&gGameSession->loc;
+    sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
     model2      = eff2->task->extra;
     idx2        = enemy->field_8 >> 12;
-    key.field_3 = sessionKey2->field_3;
-    key.field_2 = sessionKey2->field_2;
-    key.field_1 = sessionKey2->field_1;
-    areaByte02  = sessionKey2->field_0;
+    key.stage   = sessionKey2->stage;
+    key.area    = sessionKey2->area;
+    key.room    = sessionKey2->room;
+    areaByte02  = sessionKey2->view;
     keyPtr2     = &key;
-    key.field_0 = areaByte02;
+    key.view    = areaByte02;
     Gp_SyncAreaKeyIndex(keyPtr2);
     SOFT_DEF_REG(keyPtr2);
     keyPtr2          = &key;
@@ -763,9 +763,9 @@ case0:
         work->field_6DA = param * 1000;
     }
 
-    tbl = D_actor_102300_80147AA0[gGameSession->loc.stage];
+    tbl = D_actor_102300_80147AA0[gGameSession->at4.loc.stage];
     if (tbl != NULL) {
-        work->field_6D6 = tbl[gGameSession->loc.area];
+        work->field_6D6 = tbl[gGameSession->at4.loc.area];
     }
     if (work->field_6D6 != 0) {
         param1[3] = 0;

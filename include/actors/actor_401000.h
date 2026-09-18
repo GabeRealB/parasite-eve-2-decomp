@@ -275,7 +275,7 @@ typedef struct Actor401000Msg {
 } Actor401000Msg;
 
 /// Height-clamp row `func_actor_401000_801352DC` scans: `field_0` / `field_2`
-/// are matched against `GameSessionFrom4::field_3` / `field_2`, and when a row
+/// are matched against `GpAreaKey::stage` / `area`, and when a row
 /// matches the coordinate's Y is clamped to [`lo`, `hi`] and its `flg` is
 /// cleared so the local matrix is rebuilt. Two rows
 /// (`(1, 3, -0x12C, 0)`, `(5, 0x1D, 0, 0x12C)`). Same shape as

@@ -2531,18 +2531,18 @@ static __inline__ void Actor401800_TintEffect(GpEffWork* eff, GpEnemy* enemy)
     u32        raw;
 
     if (eff != NULL) {
-        sessionKey  = (GpAreaKey*)&gGameSession->loc;
-        raw         = enemy->field_8;
-        model       = (TmdObject*)eff->field_0->extra;
-        key.field_3 = sessionKey->field_3;
-        key.field_2 = sessionKey->field_2;
-        key.field_1 = sessionKey->field_1;
-        areaByte0   = gGameSession->loc.view;
-        idx         = raw >> 12;
+        sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+        raw        = enemy->field_8;
+        model      = (TmdObject*)eff->field_0->extra;
+        key.stage  = sessionKey->stage;
+        key.area   = sessionKey->area;
+        key.room   = sessionKey->room;
+        areaByte0  = gGameSession->at4.loc.view;
+        idx        = raw >> 12;
         SOFT_BARRIER();
         keyPtr = &key;
         TOUCH_REG(keyPtr);
-        key.field_0 = areaByte0;
+        key.view = areaByte0;
         Gp_SyncAreaKeyIndex(keyPtr);
         rec             = Gp_GetNestedAreaRec(&key);
         entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);

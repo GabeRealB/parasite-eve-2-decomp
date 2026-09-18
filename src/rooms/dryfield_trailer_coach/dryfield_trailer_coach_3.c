@@ -24,8 +24,8 @@ s32 func_dryfield_trailer_coach_801825A8(s32 arg0, s32 arg1, s32 arg2)
         Task_SpawnFromTable(&D_dryfield_trailer_coach_80184FC0, 1, 0, 0);
     }
     if (arg2 == 0xE) {
-        if (Mc_SaveData.field_8 == 2) {
-            Mc_SaveData.field_8 = 1U;
+        if (Mc_SaveData.at4.loc.warp == 2) {
+            Mc_SaveData.at4.loc.warp = 1U;
         }
         if (GameFlag_GetNibble(0x16C) == 0) {
             GameFlag_SetNibble(0x16C, 1);

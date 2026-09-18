@@ -16,13 +16,13 @@ INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_10", func_mine_mesa_801811C4
 INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_10", func_mine_mesa_80181358);
 
 /// Picks the height the room's terrain updater subtracts from its mesh
-/// vertices: 0x7D0 while `gGameSession->loc.place` says the session is in area 1
+/// vertices: 0x7D0 while `gGameSession->at4.loc.place` says the session is in area 1
 /// or 7, 0x190 otherwise, then hands that to `func_mine_mesa_801811C4`.
 void func_mine_mesa_801817BC(void)
 {
     s32 offset;
 
-    if (gGameSession->loc.place == 1 || gGameSession->loc.place == 7) {
+    if (gGameSession->at4.loc.place == 1 || gGameSession->at4.loc.place == 7) {
         offset = 0x7D0;
     } else {
         offset = 0x190;

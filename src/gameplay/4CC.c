@@ -344,7 +344,7 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
                 if (Gp_ItemDescs[item2].field_3 & 1) {
                     flag = flags == 1;
                 }
-                if ((Gp_MoveItemKey == 0x703) && (item2 == 0x81) && (Mc_SaveData.field_7 == selected)) {
+                if ((Gp_MoveItemKey == 0x703) && (item2 == 0x81) && (Mc_SaveData.at4.loc.stage == selected)) {
                     flag = 1;
                 }
                 if (flag) {
@@ -561,7 +561,7 @@ void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1)
             if (Gp_ItemDescs[item].field_3 & 1) {
                 restricted = flags == 1;
             }
-            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData.field_7 == selected)) {
+            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData.at4.loc.stage == selected)) {
                 restricted = 1;
             }
             if (restricted != 0) {
@@ -632,7 +632,7 @@ void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1)
             if (Gp_ItemDescs[item].field_3 & 1) {
                 flag = flags == 1;
             }
-            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData.field_7 == selected)) {
+            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData.at4.loc.stage == selected)) {
                 flag = 1;
             }
             if (flag) {
@@ -1169,11 +1169,11 @@ void Gp_ItemPickupTilt(Task* arg0)
     extra   = arg0->extra;
     obj     = arg0->spawnArg2;
     session = gGameSession;
-    mapId   = *(u32*)&session->loc & 0xFFFF00FF;
+    mapId   = *(u32*)&session->at4.loc & 0xFFFF00FF;
     item    = obj->field_A;
     coord   = (GsCOORDINATE2*)extra->field_8;
     rot     = coord + 2;
-    room    = *(u8*)&session->loc.view;
+    room    = *(u8*)&session->at4.loc.view;
     if (Gp_StateF0.field_4 == 2) {
         extra->field_C |= 0x80;
     } else {
@@ -1375,7 +1375,7 @@ s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1)
     if (Gp_ItemDescs[arg0].field_3 & 1) {
         ret = arg1 == 1;
     }
-    if ((Gp_MoveItemKey == 0x703) && (arg0 == 0x81) && (Mc_SaveData.field_7 == 1)) {
+    if ((Gp_MoveItemKey == 0x703) && (arg0 == 0x81) && (Mc_SaveData.at4.loc.stage == 1)) {
         ret = 1;
     }
     return ret;

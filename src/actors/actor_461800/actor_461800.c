@@ -183,13 +183,13 @@ void func_actor_461800_8013229C(void)
             gGameSession->field_12E   = 0xF;
             return;
         }
-        Mc_SaveData.field_7 = 4;
-        Mc_SaveData.field_6 = 0x24;
-        Mc_SaveData.field_8 = 1;
-        Mc_SaveData.field_5 = 1;
-        D_80071076          = 1;
+        Mc_SaveData.at4.loc.stage = 4;
+        Mc_SaveData.at4.loc.area  = 0x24;
+        Mc_SaveData.at4.loc.warp  = 1;
+        Mc_SaveData.at4.loc.room  = 1;
+        D_80071076                = 1;
         Task_Spawn(0, 0x11, 0, 0);
-        Fs_BeginBootLoad(&Mc_SaveData.field_4, 0);
+        Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 0);
         Gp_RestoreStreamRng();
     }
 }
@@ -249,19 +249,19 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
     spawned1 = Task_SpawnFromTable(&D_actor_461800_80139F8C, 1, 8, 0);
     if (spawned1 != NULL) {
         D_actor_461800_80143894->field_4F0 = spawned1;
-        sessionKey1                        = (GpAreaKey*)&gGameSession->loc;
+        sessionKey1                        = (GpAreaKey*)&gGameSession->at4.loc;
         raw1                               = ((GpEnemy*)task->spawnArg2)->field_8;
         model1                             = spawned1->extra;
-        key.field_3                        = sessionKey1->field_3;
-        key.field_2                        = sessionKey1->field_2;
-        areaByte1                          = sessionKey1->field_1;
+        key.stage                          = sessionKey1->stage;
+        key.area                           = sessionKey1->area;
+        areaByte1                          = sessionKey1->room;
         SOFT_BARRIER();
         keyp = &key;
         TOUCH_REG(keyp);
-        key.field_1 = areaByte1;
-        areaByte0   = gGameSession->loc.view;
-        index1      = raw1 >> 12;
-        key.field_0 = areaByte0;
+        key.room  = areaByte1;
+        areaByte0 = gGameSession->at4.loc.view;
+        index1    = raw1 >> 12;
+        key.view  = areaByte0;
         Gp_SyncAreaKeyIndex(keyp);
         entry1           = (GpCdRec10*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
         model1->field_24 = entry1->field_D;
@@ -275,19 +275,19 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
     spawned2 = Task_SpawnFromTable(&D_actor_461800_80139F8C, 2, 0xC, 0);
     if (spawned2 != NULL) {
         D_actor_461800_80143894->field_4F4 = spawned2;
-        sessionKey2                        = (GpAreaKey*)&gGameSession->loc;
+        sessionKey2                        = (GpAreaKey*)&gGameSession->at4.loc;
         raw2                               = ((GpEnemy*)task->spawnArg2)->field_8;
         model2                             = spawned2->extra;
-        key.field_3                        = sessionKey2->field_3;
-        key.field_2                        = sessionKey2->field_2;
-        areaByte1                          = sessionKey2->field_1;
+        key.stage                          = sessionKey2->stage;
+        key.area                           = sessionKey2->area;
+        areaByte1                          = sessionKey2->room;
         SOFT_BARRIER();
         keyp = &key;
         TOUCH_REG(keyp);
-        key.field_1 = areaByte1;
-        areaByte0   = gGameSession->loc.view;
-        index2      = raw2 >> 12;
-        key.field_0 = areaByte0;
+        key.room  = areaByte1;
+        areaByte0 = gGameSession->at4.loc.view;
+        index2    = raw2 >> 12;
+        key.view  = areaByte0;
         Gp_SyncAreaKeyIndex(keyp);
         entry2           = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
         model2->field_24 = entry2->field_D;

@@ -65,7 +65,7 @@ s32 func_actor_107000_801378D8(Task* arg0, s32 arg1, Actor107000Msg* arg2)
     }
     if ((word & 0xFF) == 1) {
         if ((u32)(arg0->state - 1) >= 2U) {
-            if (gGameSession->loc.area == 0x27) {
+            if (gGameSession->at4.loc.area == 0x27) {
                 rot.vx            = 0;
                 rot.vy            = D_8018B74C[arg2->field_2 >> 8].heading;
                 rot.vz            = 0;
@@ -75,7 +75,7 @@ s32 func_actor_107000_801378D8(Task* arg0, s32 arg1, Actor107000Msg* arg2)
                 sound             = (((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x54270006);
                 pan               = (s8)Gp_GetObjPan((GpObj38*)coord);
                 SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
-            } else if (gGameSession->loc.area == 0x28) {
+            } else if (gGameSession->at4.loc.area == 0x28) {
                 rot.vx            = 0;
                 rot.vy            = D_801874C4[arg2->field_2 >> 8].heading;
                 rot.vz            = 0;

@@ -259,7 +259,7 @@ L_case0:
     q->field_1FA   = 0;
     q->field_1E8   = 0;
     if (((AcropolisPlazaSceneArg*)task->spawnArg2)->noStream == 0) {
-        slot[0]   = Stream_FindSlot(&gGameSession->loc.view, q->field_1F8, 0);
+        slot[0]   = Stream_FindSlot(&gGameSession->at4.loc.view, q->field_1F8, 0);
         frameOfs  = (q->field_1EA - 1) * 10;
         openFrame = frameOfs & 0xFFFF;
         slot[1]   = openFrame >> 8;
@@ -355,7 +355,7 @@ L_case2:
         }
     }
 L_enqueue:
-    slot[0]   = Stream_FindSlot(&gGameSession->loc.view, q->field_1F8, 0);
+    slot[0]   = Stream_FindSlot(&gGameSession->at4.loc.view, q->field_1F8, 0);
     seekFrame = frameOfs & 0xFFFF;
     slot[1]   = seekFrame >> 8;
     slot[2]   = seekFrame;

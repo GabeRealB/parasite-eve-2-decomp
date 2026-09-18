@@ -195,7 +195,7 @@ void func_actor_403900_80137444(GpEnemy* arg0, Actor403900* arg1)
             arg0->field_54    = (s32)work->field_49C;
             arg0->field_40    = D_actor_403900_80153C00.field_4;
             for (i = 0; D_actor_403900_80153C7C[i].field_0 != 0; i++) {
-                if (gGameSession->loc.stage == D_actor_403900_80153C7C[i].field_2 && gGameSession->loc.area == D_actor_403900_80153C7C[i].field_4) {
+                if (gGameSession->at4.loc.stage == D_actor_403900_80153C7C[i].field_2 && gGameSession->at4.loc.area == D_actor_403900_80153C7C[i].field_4) {
                     work->field_6B4 = D_actor_403900_80153F04[D_actor_403900_80153C7C[i].field_0];
                     work->field_6FA = D_actor_403900_80153C7C[i].field_6;
                 }
@@ -203,9 +203,9 @@ void func_actor_403900_80137444(GpEnemy* arg0, Actor403900* arg1)
             work->field_6CC = 0xB;
             ((void (*)(s32))Gp_IncStateF0Ref)(0);
             work->field_716 = 0x27;
-            cues            = D_actor_403900_8015409C[gGameSession->loc.stage];
+            cues            = D_actor_403900_8015409C[gGameSession->at4.loc.stage];
             if (cues != NULL) {
-                work->field_712 = cues[gGameSession->loc.area];
+                work->field_712 = cues[gGameSession->at4.loc.area];
             }
             if (work->field_712 != 0) {
                 param1[3] = 0;

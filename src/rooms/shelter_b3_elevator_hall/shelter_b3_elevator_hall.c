@@ -68,9 +68,9 @@ L_case3:
 
 L_case4:
     if (Gp_GetCapEventKey() == 0x15) {
-        Mc_SaveData.field_6 = 0x1A;
-        Mc_SaveData.field_8 = 1;
-        Mc_SaveData.field_5 = 1;
+        Mc_SaveData.at4.loc.area = 0x1A;
+        Mc_SaveData.at4.loc.warp = 1;
+        Mc_SaveData.at4.loc.room = 1;
     } else {
         Gp_MsgPlayerWeapon(1);
         D_801153F4 = 0;

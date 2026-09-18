@@ -26,7 +26,7 @@ void func_acropolis_west_elevator_hall_8017F354(void)
     u8  sessionState;
 
     if (D_acropolis_west_elevator_hall_801849C8 == 0) {
-        sessionState = gGameSession->loc.warp;
+        sessionState = gGameSession->at4.loc.warp;
         if (sessionState == 1) {
             D_acropolis_west_elevator_hall_801849C8 = sessionState;
             func_800E8634((s32)&D_acropolis_west_elevator_hall_80184620, 0, (s32)&D_acropolis_west_elevator_hall_80184890);

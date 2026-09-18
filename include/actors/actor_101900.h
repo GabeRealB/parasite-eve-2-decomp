@@ -145,7 +145,7 @@ typedef struct Actor01900 {
 
 /// Per-room clamp applied to the accumulated height offset of the actor's
 /// motion scratch. `field_0` / `field_2` are matched against
-/// `GameSession.loc.stage` / `loc.area`, and when a row matches the offset is
+/// `GameSession.at4.loc.stage` / `at4.loc.area`, and when a row matches the offset is
 /// clamped to [`lo`, `hi`]. `Actor01900_D172CC` holds two live rows plus a
 /// zero terminator row that the two-iteration scan never reaches.
 typedef struct Actor01900HeightClamp {
@@ -370,7 +370,7 @@ void Actor01900_Fn0A6CC(Task* task);
 s32  Actor01900_Fn03FF8(Actor01900* arg0, GpRec18* recs, s16 count);
 void Actor01900_Fn08724(Actor01900* arg0);
 void Actor01900_Fn0A7C0(Actor01900* arg0);
-void Actor01900_Fn03C04(GameSessionFrom4* session, GsCOORDINATE2* coord);
+void Actor01900_Fn03C04(GpAreaKey* session, GsCOORDINATE2* coord);
 s32  Actor01900_Fn0A31C(Actor01900* arg0, s32 arg1, Actor01900Msg7D3* arg2);
 s32  Actor01900_Fn0A5A4(Actor01900* arg0, s32 arg1, u16* arg2);
 s32  Actor01900_Fn0A38C(Actor01900* arg0, s32 arg1, s32 arg2);

@@ -28,7 +28,7 @@ void func_acropolis_promenade_8017D5E4(void)
     u8 f0;
 
     if (D_acropolis_promenade_80181140 == 0) {
-        if (gGameSession->loc.warp == 4) {
+        if (gGameSession->at4.loc.warp == 4) {
             D_acropolis_promenade_80181140 = 1;
             Task_SpawnFromTable(&D_acropolis_promenade_80181148, 2, 0, 0);
         }
@@ -36,7 +36,7 @@ void func_acropolis_promenade_8017D5E4(void)
     if (Mc_SaveData.field_5C5 == 6) {
         Mc_SaveData.field_5C5 = 5;
     }
-    temp = gGameSession->loc.place;
+    temp = gGameSession->at4.loc.place;
     if (temp == 1) {
         gGameSession->flowFlags = 0xA;
         f0                      = Gp_StateF0.field_0;

@@ -43,9 +43,9 @@ void func_actor_146000_80131E24(Task* arg0)
             SndEvt_EnqueueType7(0x80000000, 0);
             GameFlag_SetNibble(0x4C, 0);
             Gp_ApplyAreaRecs(&D_80183618);
-            Mc_SaveData.field_6 = 0x19;
-            Mc_SaveData.field_5 = state;
-            D_80071076          = 1;
+            Mc_SaveData.at4.loc.area = 0x19;
+            Mc_SaveData.at4.loc.room = state;
+            D_80071076               = 1;
             Task_Spawn(0, 0x11, 0, 0);
             Task_Kill(arg0);
             break;

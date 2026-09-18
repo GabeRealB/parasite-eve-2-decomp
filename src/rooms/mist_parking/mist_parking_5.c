@@ -38,7 +38,7 @@ void func_mist_parking_80182750(s32 arg0)
         arg0 += 2;
     }
     D_8007216D                  = arg0;
-    gGameSession->loc.room      = arg0;
+    gGameSession->at4.loc.room  = arg0;
     gGameSession->roomObjsDirty = 1;
 }
 
@@ -51,7 +51,7 @@ void func_mist_parking_801827C0(Task* arg0)
 {
     arg0->field_24 = &D_mist_parking_80186BB8;
     Game_SetPtrSlot(arg0, 7);
-    if ((gGameSession->loc.place == 2) && (GameFlag_GetNibble(0xF1) == 0)) {
+    if ((gGameSession->at4.loc.place == 2) && (GameFlag_GetNibble(0xF1) == 0)) {
         if (D_80072170 == 3) {
             func_800E3FAC(0xA2, 0x3C);
             func_mist_parking_801837A4(0);

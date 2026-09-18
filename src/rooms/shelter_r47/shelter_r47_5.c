@@ -49,7 +49,7 @@ typedef struct {
     /* 0x1E */ u8  pad_1E[4];
     /* 0x22 */ u16 fade;     ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
     /* 0x24 */ u8  pad_24[5];
-    /* 0x29 */ u8  field_29; ///< low byte of `Mc_SaveData.field_4` saved on entry
+    /* 0x29 */ u8  field_29; ///< low byte of `Mc_SaveData.at4.loc.view` saved on entry
     /* 0x2A */ s8  field_2A;
     /* 0x2B */ u8  pad_2B[5];
 } ShelterR47State2;

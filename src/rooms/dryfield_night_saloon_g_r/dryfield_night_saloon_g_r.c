@@ -11,12 +11,12 @@ extern u8  D_8007216C;
 extern s16 D_80114D08;
 extern u8  D_801153F4;
 
-/// Saved `Mc_SaveData.field_4` (area id), restored when the cutscene ends.
+/// Saved `Mc_SaveData.at4.loc.view` (area id), restored when the cutscene ends.
 extern u8 D_dryfield_night_saloon_g_r_80188FA4;
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_saloon_g_r/dryfield_night_saloon_g_r", RoomsShared8017d878Table);
 
-/// Room cutscene task: case 0 saves the area id, forces `Mc_SaveData.field_4`
+/// Room cutscene task: case 0 saves the area id, forces `Mc_SaveData.at4.loc.view`
 /// to 0xC, raises the script halt flags and starts cap command 0x13; the
 /// following states wait for the cap to go idle, then build the room's display
 /// mode object, and case 4 restores the area id and kills the task.
@@ -31,8 +31,8 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
             gGameSession->hideHud                = 1;
             D_801153F4                           = 2;
             save                                 = &Mc_SaveData;
-            temp                                 = save->field_4;
-            save->field_4                        = 0xC;
+            temp                                 = save->at4.loc.view;
+            save->at4.loc.view                   = 0xC;
             D_dryfield_night_saloon_g_r_80188FA4 = temp;
             Gp_MsgPlayer3F3(0);
             Gp_RunCapCmd(0x13, 0);

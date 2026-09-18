@@ -32,7 +32,7 @@ void func_acropolis_roof_garden_8017D5D4(Task* task)
             return;
     }
 
-    state = (u8)gGameSession->loc.view;
+    state = (u8)gGameSession->at4.loc.view;
     if (state != 5) {
         vol = 0;
         if (state == 7) {

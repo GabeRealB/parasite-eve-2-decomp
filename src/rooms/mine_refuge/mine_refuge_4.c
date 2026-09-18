@@ -37,9 +37,9 @@ s32 func_mine_refuge_8017FC2C(Task* task, s32 msgId, s32 arg2)
         } else {
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
-            temp_a3                = Mc_SaveData.field_4;
-            Mc_SaveData.field_4    = 6U;
-            D_mine_refuge_80182ADC = temp_a3;
+            temp_a3                  = Mc_SaveData.at4.loc.view;
+            Mc_SaveData.at4.loc.view = 6U;
+            D_mine_refuge_80182ADC   = temp_a3;
             SndEvt_EnqueueType6(0x54060003, 0, 0);
             Gp_RunCapCmd(0xD, 0);
             Task_SpawnFromTable(&D_mine_refuge_801818B4, 1, 0, 0);

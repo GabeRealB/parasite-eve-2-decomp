@@ -3312,7 +3312,7 @@ void Gp_InitPlayerWork(GpActorWork* arg0)
         func_80104508(arg0, 0, &sp, 0);
         actor->field_984 = 0x38;
     }
-    if ((*(u32*)&save->field_4 & 0xFFFF0000) == 0x1050000) {
+    if ((*(u32*)&save->at4.loc.view & 0xFFFF0000) == 0x1050000) {
         actor->field_991 = 1;
     }
 }
@@ -6209,7 +6209,7 @@ s32 Gp_PickNearestRec18(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
                     idx = func_800E1ACC((u8*)pidx);
                     {
                         GameSession* session = gGameSession;
-                        if (Gp_RoomParamTables[session->loc.stage - 1][session->loc.area - 1][idx]->field_2 != 0) {
+                        if (Gp_RoomParamTables[session->at4.loc.stage - 1][session->at4.loc.area - 1][idx]->field_2 != 0) {
                             minDist = dist;
                             bestIdx = i;
                         }
@@ -6277,7 +6277,7 @@ s32 func_80105ED4(GpActorWork* arg0)
         switch (flags = rec->field_3 & 0x30) {
             case 0x10:
             case 0x20:
-                sounds = Gp_RoomParamTables[gGameSession->loc.stage - 1][gGameSession->loc.area - 1][actor->field_930]->field_4;
+                sounds = Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1][actor->field_930]->field_4;
                 if (sounds != NULL) {
                     if (*(s32*)&actor->field_954 == 0x30002) {
                         sound = sounds[2];

@@ -65,8 +65,8 @@ void func_dryfield_breezeway_8017DEC0(Task* arg0)
         case 0:
             break;
         case 1:
-            msg.field_0 = gGameSession->loc.stage;
-            msg.field_1 = gGameSession->loc.area;
+            msg.field_0 = gGameSession->at4.loc.stage;
+            msg.field_1 = gGameSession->at4.loc.area;
             msg.field_2 = 1;
             Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             Gp_DispatchMsg(work->field_4, 0x7D4, (s32)&D_dryfield_breezeway_80181E28, 0);
@@ -103,9 +103,9 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
                 Mem_Set(work, 0, 0x14);
                 work->field_0                 = (void*)Game_GetPtrSlot(3);
                 D_dryfield_breezeway_801843C0 = arg0;
-                id                            = gGameSession->loc.area | (gGameSession->loc.stage << 8);
+                id                            = gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8);
                 work->field_4                 = (void*)Gp_FindWorkById(id)->field_0;
-                id                            = ((gGameSession->loc.stage << 8) | 0x1000) | gGameSession->loc.area;
+                id                            = ((gGameSession->at4.loc.stage << 8) | 0x1000) | gGameSession->at4.loc.area;
                 work->field_8                 = (void*)Gp_FindWorkById(id)->field_0;
             }
             arg0->state += 1;
@@ -161,9 +161,9 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
                 Mem_Set(work, 0, 0x14);
                 work->field_0                 = (void*)Game_GetPtrSlot(3);
                 D_dryfield_breezeway_801843C0 = arg0;
-                id                            = gGameSession->loc.area | (gGameSession->loc.stage << 8);
+                id                            = gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8);
                 work->field_4                 = (void*)Gp_FindWorkById(id)->field_0;
-                id                            = ((gGameSession->loc.stage << 8) | 0x1000) | gGameSession->loc.area;
+                id                            = ((gGameSession->at4.loc.stage << 8) | 0x1000) | gGameSession->at4.loc.area;
                 work->field_8                 = (void*)Gp_FindWorkById(id)->field_0;
             }
             id           = D_80073BA9;
@@ -192,8 +192,8 @@ void func_dryfield_breezeway_8017E2D4(void)
     DbwMsg7DA msg;
 
     work        = (DbwWork*)D_dryfield_breezeway_801843C0->work;
-    msg.field_0 = gGameSession->loc.stage;
-    msg.field_1 = gGameSession->loc.area;
+    msg.field_0 = gGameSession->at4.loc.stage;
+    msg.field_1 = gGameSession->at4.loc.area;
     msg.field_2 = 2;
     Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
     Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_dryfield_breezeway_80181E28, 0);
@@ -228,8 +228,8 @@ void func_dryfield_breezeway_8017E390(void)
     Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&buf, 0);
 
     work            = (DbwWork*)D_dryfield_breezeway_801843C0->work;
-    buf.msg.field_0 = gGameSession->loc.stage;
-    buf.msg.field_1 = gGameSession->loc.area;
+    buf.msg.field_0 = gGameSession->at4.loc.stage;
+    buf.msg.field_1 = gGameSession->at4.loc.area;
     buf.msg.field_2 = 2;
     Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&buf, 0x7DB);
     Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_dryfield_breezeway_80181E28, 0);

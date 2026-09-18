@@ -35,7 +35,7 @@ void func_dryfield_night_factory_8017F330(Task* task)
             goto advance;
         case 1:
             if (GameFlag_GetNibble(0x48) <= 0) {
-                if (gGameSession->loc.stage == 2) {
+                if (gGameSession->at4.loc.stage == 2) {
                     Room_Util17(0);
                     SOFT_BARRIER();
                 } else {
@@ -54,7 +54,7 @@ void func_dryfield_night_factory_8017F330(Task* task)
             if (Gp_GetCapEventKey() == 3) {
                 GameFlag_SetNibble(0x48, 1);
                 GameFlag_SetNibble(0x4A, 1);
-                if (gGameSession->loc.stage == 2) {
+                if (gGameSession->at4.loc.stage == 2) {
                     Room_Util17(1);
                     Room_Util16(1);
                     SOFT_BARRIER();
@@ -110,7 +110,7 @@ void func_dryfield_night_factory_8017F4F4(Task* task)
         case 2:
             if (Gp_GetCapEventKey() == 1) {
                 task->killCountdown = 0;
-                if (gGameSession->loc.stage == 2) {
+                if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd6(0x5217000C, 0, 0);
                 }
                 goto advance;
@@ -126,7 +126,7 @@ void func_dryfield_night_factory_8017F4F4(Task* task)
         case 4:
             gGameSession->viewDirty = 1;
             GameFlag_SetNibble(0x47, 1);
-            fade = gGameSession->loc.stage;
+            fade = gGameSession->at4.loc.stage;
             if (fade == 2) {
                 Gp_EnqueueStageSnd6(0x5217000B, 0, 0);
             }
@@ -134,7 +134,7 @@ void func_dryfield_night_factory_8017F4F4(Task* task)
             goto advance;
         case 5:
             D_8007216D                  = 2;
-            gGameSession->loc.room      = 2;
+            gGameSession->at4.loc.room  = 2;
             gGameSession->roomObjsDirty = 1;
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             goto advance;

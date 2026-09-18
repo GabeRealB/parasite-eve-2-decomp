@@ -22,7 +22,7 @@ extern u8  D_80115690;
 extern u8  D_8007216C;
 extern s16 D_80071076;
 
-/// The stage byte `Mc_SaveData.field_4` held when the cutscene began, saved by
+/// The stage byte `Mc_SaveData.at4.loc.view` held when the cutscene began, saved by
 /// `func_dryfield_general_store_8017DAC0`'s first state and restored into
 /// `D_8007216C` when the cutscene is cut short.
 extern u8 D_dryfield_general_store_801856F8;
@@ -133,7 +133,7 @@ s32 func_dryfield_general_store_8017D8D4(s32 arg0, s32 arg1, RoomEventMsg* in, R
 ///
 /// State 5 is the commit: it queues sound event 0x80000000, moves the save to
 /// chapter 0x26, raises `D_80071076`, latches the two script arguments into
-/// `Mc_SaveData.field_8` / `field_5` and spawns helper task 0x11.
+/// `Mc_SaveData.at4.loc.warp` / `field_5` and spawns helper task 0x11.
 ///
 /// Every arm that is finished with the task, state 5's and the cut-short arm of
 /// state 4's, leaves through the shared `Task_Kill` below the switch.
@@ -143,8 +143,8 @@ void func_dryfield_general_store_8017DAC0(Task* arg0)
         case 0:
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
-            D_dryfield_general_store_801856F8 = Mc_SaveData.field_4;
-            Mc_SaveData.field_4               = 0x10;
+            D_dryfield_general_store_801856F8 = Mc_SaveData.at4.loc.view;
+            Mc_SaveData.at4.loc.view          = 0x10;
             arg0->state                      += 1;
             return;
         case 1:
@@ -175,10 +175,10 @@ void func_dryfield_general_store_8017DAC0(Task* arg0)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData.field_6 = 0x26;
-            Mc_SaveData.field_8 = D_dryfield_general_store_80185709;
-            Mc_SaveData.field_5 = D_dryfield_general_store_8018570A;
-            D_80071076          = 1;
+            Mc_SaveData.at4.loc.area = 0x26;
+            Mc_SaveData.at4.loc.warp = D_dryfield_general_store_80185709;
+            Mc_SaveData.at4.loc.room = D_dryfield_general_store_8018570A;
+            D_80071076               = 1;
             Task_Spawn(0, 0x11, 0, 0);
             break;
         default:

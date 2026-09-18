@@ -315,15 +315,15 @@ void func_actor_503500_80132F64(Actor503500* arg0)
     for (i = 1; i < 12; i++) {
         child = Gp_SpawnEnemyFromTable(&D_actor_503500_8016E924, i, i, enemy);
         if (child != NULL) {
-            sessionKey  = (GpAreaKey*)&gGameSession->loc;
-            raw         = arg0->field_20->field_8;
-            model       = (TmdObject*)child->task->extra;
-            key.field_3 = sessionKey->field_3;
-            key.field_2 = sessionKey->field_2;
-            key.field_1 = sessionKey->field_1;
-            areaByte0   = sessionKey->field_0;
-            idx         = raw >> 12;
-            key.field_0 = areaByte0;
+            sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+            raw        = arg0->field_20->field_8;
+            model      = (TmdObject*)child->task->extra;
+            key.stage  = sessionKey->stage;
+            key.area   = sessionKey->area;
+            key.room   = sessionKey->room;
+            areaByte0  = sessionKey->view;
+            idx        = raw >> 12;
+            key.view   = areaByte0;
             Gp_SyncAreaKeyIndex(&key);
             rec             = Gp_GetNestedAreaRec(&key);
             entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
@@ -1756,15 +1756,15 @@ GpEnemy* func_actor_503500_80135D00(Actor503500* arg0, s32 arg1)
 
     enemy = Gp_SpawnEnemyFromTable(&D_actor_503500_8016E924, arg1, arg1, arg0->field_20);
     if (enemy != NULL) {
-        sessionKey  = (GpAreaKey*)&gGameSession->loc;
-        raw         = arg0->field_20->field_8;
-        model       = (TmdObject*)enemy->task->extra;
-        key.field_3 = sessionKey->field_3;
-        key.field_2 = sessionKey->field_2;
-        key.field_1 = sessionKey->field_1;
-        areaByte0   = sessionKey->field_0;
-        idx         = raw >> 12;
-        key.field_0 = areaByte0;
+        sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+        raw        = arg0->field_20->field_8;
+        model      = (TmdObject*)enemy->task->extra;
+        key.stage  = sessionKey->stage;
+        key.area   = sessionKey->area;
+        key.room   = sessionKey->room;
+        areaByte0  = sessionKey->view;
+        idx        = raw >> 12;
+        key.view   = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
         rec             = Gp_GetNestedAreaRec(&key);
         entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);

@@ -26,7 +26,7 @@ extern s32 Gp_LcgState;
 /// space. The first three double as the jitter centres for the mist burst.
 extern SVECTOR D_acropolis_patio_80182DDC[14];
 
-/// Per-anchor camera-view mask, one bit per 1-based `GameSession::loc.view`
+/// Per-anchor camera-view mask, one bit per 1-based `GameSession::at4.loc.view`
 /// view: anchor `i` only draws while the room is being seen from a view its
 /// mask names.
 extern u16 D_acropolis_patio_80182E4C[14];
@@ -150,7 +150,7 @@ void func_acropolis_patio_8017E730(Task* task)
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->field_8;
     if (Gp_State1C->field_4 < 4 &&
-        ((D_acropolis_patio_80182E4C[task->spawnArg1] >> ((u8)gGameSession->loc.view - 1)) & 1)) {
+        ((D_acropolis_patio_80182E4C[task->spawnArg1] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
         sc = (ApMistScratch*)(SCRATCH_SP -= 0xC);
         Gp_UpdateCoord(coord);
         if (task->state == 0) {

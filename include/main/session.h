@@ -32,32 +32,33 @@ typedef struct _GBytes18 {
     s16 field_10;
 } GBytes18;
 
-/// Overlay of objects with an 8-byte run at `loc` (`GameSession.loc` plus
-/// `locPad`, and the same span on `Mc_SaveData`). Unaligned copies keep the
-/// object as the base, so the `GBytes8` member lives here rather than on `loc`.
-typedef struct _SessionBytesAt4 {
-    byte    pad[4];
-    GBytes8 field_4;
-} SessionBytesAt4;
-STATIC_ASSERT_SIZEOF(SessionBytesAt4, 0xC);
-
 struct Task;
 
-/// 6-byte location of a place in the world.
+/// 6-byte key of a place in the world.
 ///
-/// Identifies the current stage, area, room, view slot, warp and nested place.
-/// Embedded in `GameSession` as `loc`; the same layout is stored at
-/// `Mc_SaveData.field_4` and passed into area, view and warp lookups. 8-byte
-/// copies of `loc` also take the two bytes that follow it (`locPad`).
-typedef struct _GameSessionFrom4 {
+/// `stage` / `area` select `Gp_AreaTables`; `place` indexes the nested record
+/// (written from the area object's id). `view`, `room` and `warp` select the
+/// per-room view, the room within the area, and the per-area warp. The same
+/// key is `GameSession.at4.loc` and `Mc_SaveData.at4.loc`, and is passed into
+/// area, view, room and warp lookups.
+typedef struct _GpAreaKey {
     u8 view;  // 1-based view slot; innermost index of the per-room view table
     u8 room;  // 1-based room index within the area
     u8 area;  // 1-based area / CDF folder within the stage
     u8 stage; // 1-based stage; indexes per-stage tables
     u8 warp;  // 1-based warp slot; indexes the per-area warp table
     u8 place; // nested place index, synced from the area object's id
-} GameSessionFrom4;
-STATIC_ASSERT_SIZEOF(GameSessionFrom4, 0x6);
+} GpAreaKey;
+STATIC_ASSERT_SIZEOF(GpAreaKey, 0x6);
+
+/// 8-byte location cell: the 6-byte place key plus two bytes an 8-byte copy
+/// also takes. `loc` is the key; `raw` is the unaligned 8-byte assignment
+/// used to copy the cell between the session and the save.
+typedef union _GameLoc {
+    GpAreaKey loc;
+    GBytes8   raw;
+} GameLoc;
+STATIC_ASSERT_SIZEOF(GameLoc, 8);
 
 /// Live play-state object shared by main and every overlay.
 ///
@@ -66,69 +67,69 @@ STATIC_ASSERT_SIZEOF(GameSessionFrom4, 0x6);
 /// buttons, and the flags that cutscenes, view loads and death/restart share.
 /// New game, load and reset zero the whole object, which pins the size at 0x13C.
 typedef struct _GameSession {
-    s8               deathVariant;   // (0 none, 1/2 which death cutscene file); nonzero blocks resume and menu
-    s8               eventState;     // 0 idle; nonzero blocks player-dir handling and room scripts
-    u8               uiOpen;         // 1 while a UI overlay is up; enables d-pad auto-repeat
-    byte             unknown_3;
-    GameSessionFrom4 loc;            // current place in the world
-    byte             locPad[2];      // trailing bytes of the 8-byte loc copy; unused by name
-    struct Task*     ptrSlots[16];   // tasks the session keeps by slot
-    u8               applySavePlace; // 1: next area load writes the save's place id into the area object
-    u8               viewReady;      // (0 loading/transitioning, 1 current view finished loading)
-    u16              field_4E;
-    byte             unknown_50[2];
-    s16              viewDirty;      // nonzero: respawn the view from the save
-    byte             unknown_54[4];
-    u16              pad;            // remapped buttons this frame
-    u16              padPrev;        // remapped buttons last frame
-    u16              padTrig;        // remapped buttons newly pressed this frame
-    u8               field_5E;
-    u8               evtSkipped;     // 1 after a forced script skip; nonzero ends overlay and timed waits early
-    byte             unknown_60[4];
-    u8               freezeRoomObjs; // nonzero: skip room-object state dispatch
-    u8               field_65;
-    u8               cutsceneHold;   // 1 during scripted sequences: alternate item menu, player hold
-    byte             areaSetupDone;  // 0 first area setup skips warp-arrival SFX/flag and latches to 1
-    u8               hideHud;        // 1: suppress item prompt, HUD, and target cursor
-    u8               flowFlags;      // bit0 skip ending bank-load; bit1 skip area-enter bank-load; bit2 ending spawn 3 vs 2; bit3 area-enter spawn 3 vs 1; bit6 hide weapon with bit7; bit7 PE re-equip
-    byte             unknown_6A[0xA];
-    u16              sprtVariant;    // 1-based sprite-table / CdCmd param2[0] variant; USA forces 1
-    s16              roomObjsDirty;  // nonzero: relink room objects on the next room-obj tick
-    s16              loadedStage;    // last stage whose CD was enqueued
-    byte             unknown_7A[2];
-    s16              field_7C;
-    s16              field_7E;
-    s16              field_80;
-    byte             unknown_82[0x9A];
-    s16              loadedWeaponFamily;  // last-loaded player weapon-anim family; -1 forces a CD refresh
-    s16              loadedConfigSet;     // last-loaded player config-set; paired with loadedWeaponFamily
-    s16              sceneClock;          // frame countdown for timed scene scripts
-    s16              waterY;              // water surface world Y
-    u8               companionType;       // (0 none, 1/2/3)
-    u8               companionVariant;    // addend within the companion ally-id family
-    u8               field_126;
-    u8               suppressDeathChecks; // nonzero: skip player/companion-down handling
-    u8               restartMode;         // (0, 1 companion-1 down, 3 special, 4 companion-3 down, 0xFF ending load)
-    u8               loadedSndId;         // last sound-file id already queued; skip re-enqueue when unchanged
-    s16              bossPartsHpSum;      // sum of living boss-part HP; scales later enemy spawn HP
-    u8               field_12C;
-    s8               areaBgmCountdown;    // frames before area BGM on the death path; 0x7F holds without counting
-    u8               field_12E;
-    u8               deathRestartDelay;   // frames the play-clock waits before BGM/restart after death
-    byte             spawnPhase[2];       // (0 idle, 1 armed, 2 done) per spawn-controller slot
-    u8               field_132;
-    byte             field_133;
-    byte             eventRoomIndex; // 0-based room echoed into event replies
-    u8               field_135;
-    u8               enemyCullZone;  // 1..16 index into the enemy axis-limit table; 0 disables
-    byte             skipEventIntro; // nonzero: skip intro spawns
-    byte             unknown_138;
-    u8               hudShakeY;      // signed HUD vertical shake amplitude (pixels x 3)
-    u8               dirActionBusy;  // 1 while a direction/cap action is in flight; blocks HUD
-    u8               padScriptFlags; // bit0 hold, bit1 lerp, bit7 run pad scripts during battle freeze
+    s8           deathVariant;   // (0 none, 1/2 which death cutscene file); nonzero blocks resume and menu
+    s8           eventState;     // 0 idle; nonzero blocks player-dir handling and room scripts
+    u8           uiOpen;         // 1 while a UI overlay is up; enables d-pad auto-repeat
+    byte         unknown_3;
+    GameLoc      at4;            // current place in the world
+    struct Task* ptrSlots[16];   // tasks the session keeps by slot
+    u8           applySavePlace; // 1: next area load writes the save's place id into the area object
+    u8           viewReady;      // (0 loading/transitioning, 1 current view finished loading)
+    u16          field_4E;
+    byte         unknown_50[2];
+    s16          viewDirty;      // nonzero: respawn the view from the save
+    byte         unknown_54[4];
+    u16          pad;            // remapped buttons this frame
+    u16          padPrev;        // remapped buttons last frame
+    u16          padTrig;        // remapped buttons newly pressed this frame
+    u8           field_5E;
+    u8           evtSkipped;     // 1 after a forced script skip; nonzero ends overlay and timed waits early
+    byte         unknown_60[4];
+    u8           freezeRoomObjs; // nonzero: skip room-object state dispatch
+    u8           field_65;
+    u8           cutsceneHold;   // 1 during scripted sequences: alternate item menu, player hold
+    byte         areaSetupDone;  // 0 first area setup skips warp-arrival SFX/flag and latches to 1
+    u8           hideHud;        // 1: suppress item prompt, HUD, and target cursor
+    u8           flowFlags;      // bit0 skip ending bank-load; bit1 skip area-enter bank-load; bit2 ending spawn 3 vs 2; bit3 area-enter spawn 3 vs 1; bit6 hide weapon with bit7; bit7 PE re-equip
+    byte         unknown_6A[0xA];
+    u16          sprtVariant;    // 1-based sprite-table / CdCmd param2[0] variant; USA forces 1
+    s16          roomObjsDirty;  // nonzero: relink room objects on the next room-obj tick
+    s16          loadedStage;    // last stage whose CD was enqueued
+    byte         unknown_7A[2];
+    s16          field_7C;
+    s16          field_7E;
+    s16          field_80;
+    byte         unknown_82[0x9A];
+    s16          loadedWeaponFamily;  // last-loaded player weapon-anim family; -1 forces a CD refresh
+    s16          loadedConfigSet;     // last-loaded player config-set; paired with loadedWeaponFamily
+    s16          sceneClock;          // frame countdown for timed scene scripts
+    s16          waterY;              // water surface world Y
+    u8           companionType;       // (0 none, 1/2/3)
+    u8           companionVariant;    // addend within the companion ally-id family
+    u8           field_126;
+    u8           suppressDeathChecks; // nonzero: skip player/companion-down handling
+    u8           restartMode;         // (0, 1 companion-1 down, 3 special, 4 companion-3 down, 0xFF ending load)
+    u8           loadedSndId;         // last sound-file id already queued; skip re-enqueue when unchanged
+    s16          bossPartsHpSum;      // sum of living boss-part HP; scales later enemy spawn HP
+    u8           field_12C;
+    s8           areaBgmCountdown;    // frames before area BGM on the death path; 0x7F holds without counting
+    u8           field_12E;
+    u8           deathRestartDelay;   // frames the play-clock waits before BGM/restart after death
+    byte         spawnPhase[2];       // (0 idle, 1 armed, 2 done) per spawn-controller slot
+    u8           field_132;
+    byte         field_133;
+    byte         eventRoomIndex; // 0-based room echoed into event replies
+    u8           field_135;
+    u8           enemyCullZone;  // 1..16 index into the enemy axis-limit table; 0 disables
+    byte         skipEventIntro; // nonzero: skip intro spawns
+    byte         unknown_138;
+    u8           hudShakeY;      // signed HUD vertical shake amplitude (pixels x 3)
+    u8           dirActionBusy;  // 1 while a direction/cap action is in flight; blocks HUD
+    u8           padScriptFlags; // bit0 hold, bit1 lerp, bit7 run pad scripts during battle freeze
 } GameSession;
 STATIC_ASSERT_SIZEOF(GameSession, 0x13C);
-STATIC_ASSERT(OFFSET_OF(GameSession, loc) == 4, GameSession_loc);
+STATIC_ASSERT(OFFSET_OF(GameSession, at4) == 4, GameSession_at4);
+STATIC_ASSERT(OFFSET_OF(GameSession, at4.loc) == 4, GameSession_at4_loc);
 STATIC_ASSERT(OFFSET_OF(GameSession, ptrSlots) == 0xC, GameSession_ptrSlots);
 struct _GpLinkNode;
 struct _GpActorD4;

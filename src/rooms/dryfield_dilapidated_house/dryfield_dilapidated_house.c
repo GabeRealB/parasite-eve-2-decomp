@@ -269,12 +269,12 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
                 GameFlag_SetNibble(0x155, 0);
                 Gp_FillPlayerHpMp();
                 Gp_FillAllyHp();
-                Mc_SaveData.field_5C5 = 1;
-                Mc_SaveData.field_7   = 2;
-                Mc_SaveData.field_8   = 1;
-                Mc_SaveData.field_5   = 1;
-                Mc_SaveData.field_6   = 8;
-                D_80071076            = 1;
+                Mc_SaveData.field_5C5     = 1;
+                Mc_SaveData.at4.loc.stage = 2;
+                Mc_SaveData.at4.loc.warp  = 1;
+                Mc_SaveData.at4.loc.room  = 1;
+                Mc_SaveData.at4.loc.area  = 8;
+                D_80071076                = 1;
                 Task_Spawn(0, 0x11, 0, 0);
             }
             Task_Kill(task);
@@ -369,7 +369,7 @@ s32 func_dryfield_dilapidated_house_8017E56C(void)
 /// `field_3`, returning 0 when the message was consumed and 1 when it was not.
 ///
 /// The copy is the `RoomEventMsg` assignment; the rest is two independent id
-/// checks. While the session is in the room (`gGameSession->loc.stage` is 2), a
+/// checks. While the session is in the room (`gGameSession->at4.loc.stage` is 2), a
 /// type-7 record with no sub-id answers 1, or the session's own value when flag
 /// nibble 0x3C is set. A type-7 record in play (`Gp_StateF0.field_0` is 1) runs
 /// CAP command 0x14 and a type-5 record runs 0x13, each only when the sub-id is
@@ -379,7 +379,7 @@ s32 func_dryfield_dilapidated_house_8017E574(s32 arg0, s32 arg1, RoomEventMsg* i
     u8 s1;
 
     *out = *in;
-    s1   = gGameSession->loc.stage;
+    s1   = gGameSession->at4.loc.stage;
     if (s1 == 2) {
         if (in->msgId == 7) {
             if (in->field_5 == 0) {

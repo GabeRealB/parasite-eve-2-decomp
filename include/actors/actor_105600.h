@@ -177,8 +177,8 @@ extern Actor105600PlaceSrc D_actor_105600_80147FDC;
 /// becomes the enemy's `field_40`.
 extern GpPairSrcE D_actor_105600_80147FF0[];
 
-/// Per-stage tables of streaming cue ids, indexed by `GameSession::loc.stage`
-/// and then `GameSession::loc.area`.
+/// Per-stage tables of streaming cue ids, indexed by `GameSession::at4.loc.stage`
+/// and then `GameSession::at4.loc.area`.
 extern u16* D_actor_105600_80148298[];
 
 /// Spawn table the approach cycle starts its companion enemy from, index 1.

@@ -12,12 +12,12 @@
 /// off the room's sprite-table record at 0x40 and 0x4C.
 void func_neo_ark_power_plant_1_8017E524(s32 arg0)
 {
-    GameSessionFrom4*          sess;
+    GpAreaKey*                 sess;
     NeoArkPowerPlant1SprtRec*  rec;
     NeoArkPowerPlant1SprtView* view;
     s32                        v;
 
-    sess = &gGameSession->loc;
+    sess = &gGameSession->at4.loc;
     rec  = (NeoArkPowerPlant1SprtRec*)Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     v    = arg0 & 0xFF;
 

@@ -1042,7 +1042,7 @@ void func_actor_400500_80135414(Task* arg0)
         work4->field_9D0.vz = (u16)player->coord.t[2];
     }
     work5  = (Actor400500Work*)arg0->work;
-    mode   = gGameSession->loc.room;
+    mode   = gGameSession->at4.loc.room;
     extra2 = arg0->extra;
     if ((mode == 1) || (mode == 3) || (mode == 5) || (mode == 6)) {
         val              = 0xFF;

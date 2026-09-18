@@ -317,12 +317,12 @@ typedef struct _GpViewRec {
 STATIC_ASSERT_SIZEOF(GpViewRec, 0x24);
 
 /// Per-stage wrapper. `field_0` is an array of `GpViewRec*`, indexed by
-/// `GameSession.loc.area - 1` / `GameSessionFrom4.area - 1`.
+/// `GameSession.at4.loc.area - 1` / `GpAreaKey.area - 1`.
 typedef struct _GpViewTbl {
     /* 0x0 */ GpViewRec** field_0;
 } GpViewTbl;
 
-/// Per-stage pointer table. Index is `GameSession.loc.stage - 1`.
+/// Per-stage pointer table. Index is `GameSession.at4.loc.stage - 1`.
 extern GpViewTbl* Gp_ViewTables[];
 
 /// `GsCOORDINATE2` overlay embedded in `GpDisp2d` at +0x10. Same 0x50 layout
@@ -421,7 +421,7 @@ s32        Gp_TrySpawnViewTask(s32 arg0);
 void       Gp_ApplyView(GpViewRec* arg0);
 void       Gp_ResetView(void);
 void       Gp_SpawnViewTasks(void);
-GpViewRec* Gp_GetStageView(GameSessionFrom4* arg0);
+GpViewRec* Gp_GetStageView(GpAreaKey* arg0);
 void       Gp_ApplyViewTask(Task* task);
 void       func_800A8D5C(void);
 void       Gp_SpawnCurView(s32 arg0);

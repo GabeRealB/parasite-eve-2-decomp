@@ -165,7 +165,7 @@ void Gp_ScriptTaskState1(Task* arg0)
                     slot = Game_GetPtrSlot(4);
                     if (st->pc->arg1 != -1) {
                         Gp_DispatchMsg(slot, 0x7D0,
-                                       (st->pc->arg1 << 12) | (gGameSession->loc.stage << 8) | gGameSession->loc.area,
+                                       (st->pc->arg1 << 12) | (gGameSession->at4.loc.stage << 8) | gGameSession->at4.loc.area,
                                        (s32)&slot);
                     }
                 } else if (st->pc->arg0 == -1) {
@@ -206,7 +206,7 @@ void Gp_ScriptTaskState1(Task* arg0)
                 /* fallthrough */
 
             case 3:
-                Mc_SaveData.field_4 = (u8)st->pc->arg0;
+                Mc_SaveData.at4.loc.view = (u8)st->pc->arg0;
                 break;
 
             case 4:
@@ -262,7 +262,7 @@ void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 11:
-                Mc_SaveData.field_4 = D_801156F8;
+                Mc_SaveData.at4.loc.view = D_801156F8;
                 break;
 
             case 12:
@@ -528,7 +528,7 @@ void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 49:
-                D_801156F8 = Mc_SaveData.field_4;
+                D_801156F8 = Mc_SaveData.at4.loc.view;
                 break;
         }
         D_801156CB = 1;
@@ -615,7 +615,7 @@ void func_800E8634(s32 arg0, s32 arg1, s32 arg2)
     D_801156F0               = 5;
     D_801156CD               = 0;
     D_801156CE               = 0;
-    D_801156F8               = Mc_SaveData.field_4;
+    D_801156F8               = Mc_SaveData.at4.loc.view;
     D_801156EC               = Player_Status.weapon;
     SndEvt_EnqueueType7(0xFF0D, 1);
     Task_Spawn(9, 7, arg1, arg0);
@@ -625,7 +625,7 @@ s32 Gp_LookupSlot4(s32 arg0)
 {
     s32 out;
 
-    arg0 = (arg0 << 12) | (gGameSession->loc.stage << 8) | gGameSession->loc.area;
+    arg0 = (arg0 << 12) | (gGameSession->at4.loc.stage << 8) | gGameSession->at4.loc.area;
     Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7D0, arg0, (s32)&out);
     return out;
 }

@@ -26,7 +26,7 @@ extern GpStateBD8 D_neo_ark_submarine_gallery_8018591C;
 /// Staging save location the gallery commits: `field_2` / `field_4` / `field_1`
 /// hold what `func_neo_ark_submarine_gallery_8017EA0C` copies out of the
 /// incoming location, and `func_neo_ark_submarine_gallery_8017E86C` moves those
-/// same three bytes into `Mc_SaveData.field_6` / `field_8` / `field_5`.
+/// same three bytes into `Mc_SaveData.at4.loc.area` / `field_8` / `field_5`.
 extern GpSaveLoc D_neo_ark_submarine_gallery_80185924;
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
@@ -81,10 +81,10 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             }
             break;
         case 5:
-            D_80071076          = 1;
-            Mc_SaveData.field_6 = D_neo_ark_submarine_gallery_80185924.field_2;
-            Mc_SaveData.field_8 = D_neo_ark_submarine_gallery_80185924.field_4;
-            Mc_SaveData.field_5 = D_neo_ark_submarine_gallery_80185924.field_1;
+            D_80071076               = 1;
+            Mc_SaveData.at4.loc.area = D_neo_ark_submarine_gallery_80185924.field_2;
+            Mc_SaveData.at4.loc.warp = D_neo_ark_submarine_gallery_80185924.field_4;
+            Mc_SaveData.at4.loc.room = D_neo_ark_submarine_gallery_80185924.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             Task_Kill(arg0);
             break;
@@ -127,7 +127,7 @@ void func_neo_ark_submarine_gallery_8017EB50(Task* arg0)
 {
     arg0->field_24 = D_neo_ark_submarine_gallery_80181884;
     Game_SetPtrSlot(arg0, 7);
-    if (gGameSession->loc.place == 4) {
+    if (gGameSession->at4.loc.place == 4) {
         Task_SpawnFromTable(D_neo_ark_submarine_gallery_801818BC, 0, 0, 0);
     }
     arg0->state = (s32)(arg0->state + 1);
@@ -201,7 +201,7 @@ s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1)
 
 void func_neo_ark_submarine_gallery_8017EED8(Task* arg0)
 {
-    if (gGameSession->loc.place != 4) {
+    if (gGameSession->at4.loc.place != 4) {
         arg0->killCountdown = 0;
     } else {
         arg0->killCountdown = 0x780;
@@ -214,8 +214,8 @@ void func_neo_ark_submarine_gallery_8017EF14(Task* arg0)
     s32 mode;
     if (Gp_ActorSlots[0] != NULL) {
         mode = 4;
-        if (gGameSession->loc.place != mode && gGameSession->field_126 != 0) {
-            gGameSession->loc.place = mode;
+        if (gGameSession->at4.loc.place != mode && gGameSession->field_126 != 0) {
+            gGameSession->at4.loc.place = mode;
         }
         if (arg0->killCountdown < 0x780) {
             arg0->killCountdown = (s16)((u16)arg0->killCountdown + 0x10);

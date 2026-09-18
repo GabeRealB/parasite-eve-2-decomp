@@ -179,7 +179,7 @@ void func_dryfield_water_tank_8017EDF4(Task* arg0)
             D_dryfield_water_tank_801868BC += D_dryfield_water_tank_801868C0;
             break;
     }
-    if (gGameSession->loc.view == 7) {
+    if (gGameSession->at4.loc.view == 7) {
         obj->field_C = 0x80;
     } else {
         obj->field_C = 0;
@@ -199,11 +199,11 @@ void func_dryfield_water_tank_8017EDF4(Task* arg0)
 /// `$v0` (see DECOMPILATION_LEARNINGS.md, "A one-constant toggle…").
 void func_dryfield_water_tank_8017EFF4(s32 arg0)
 {
-    GameSessionFrom4* sess;
-    DwtSprtRec*       rec;
-    DwtSprtView*      view;
+    GpAreaKey*   sess;
+    DwtSprtRec*  rec;
+    DwtSprtView* view;
 
-    sess = &gGameSession->loc;
+    sess = &gGameSession->at4.loc;
     if (sess->stage == 2) {
         rec = (DwtSprtRec*)Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
         if (!(arg0 & 0xFF)) {

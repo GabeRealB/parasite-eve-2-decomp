@@ -196,7 +196,7 @@ void func_actor_511000_801329C4(Task* task)
         extra->field_C |= 0x80;
     }
 
-    if (gGameSession->loc.view == 0x18) {
+    if (gGameSession->at4.loc.view == 0x18) {
         coord->rot.vx = D_actor_511000_80147AC4[parent->killCountdown].vx;
         coord->rot.vy = D_actor_511000_80147AC4[parent->killCountdown].vy;
         coord->rot.vz = D_actor_511000_80147AC4[parent->killCountdown].vz;
@@ -422,7 +422,7 @@ void func_actor_511000_801330F0(Task* task)
         func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3);
         func_actor_511000_80132E6C((Actor511000Work*)task->work);
     }
-    if (gGameSession->loc.view == 0x18) {
+    if (gGameSession->at4.loc.view == 0x18) {
         frame               = task->killCountdown + 1;
         task->killCountdown = frame;
         if (frame >= 0x78) {

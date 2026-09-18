@@ -9,7 +9,7 @@ extern u8  D_8007216D;
 void func_mine_cavern_8017E330(void)
 {
     D_8007216D                  = 2;
-    gGameSession->loc.room      = 2;
+    gGameSession->at4.loc.room  = 2;
     gGameSession->roomObjsDirty = 1;
 }
 
@@ -19,13 +19,13 @@ void func_mine_cavern_8017E358(void)
 
 void func_mine_cavern_8017E360(void)
 {
-    gGameSession->loc.place = 4;
-    Gp_StateF0.field_0      = 0;
-    Gp_StateF0.field_5      = 0;
-    Gp_StateF0.field_6      = 0;
-    Gp_StateF0.field_8      = 0;
-    Gp_StateF0.field_C      = 0;
-    Gp_StateF0.field_10     = 0;
+    gGameSession->at4.loc.place = 4;
+    Gp_StateF0.field_0          = 0;
+    Gp_StateF0.field_5          = 0;
+    Gp_StateF0.field_6          = 0;
+    Gp_StateF0.field_8          = 0;
+    Gp_StateF0.field_C          = 0;
+    Gp_StateF0.field_10         = 0;
 }
 
 void func_mine_cavern_8017E394(void)
@@ -35,11 +35,11 @@ void func_mine_cavern_8017E394(void)
 
 void func_mine_cavern_8017E3A0(s32 arg0)
 {
-    GameSessionFrom4*  sess;
+    GpAreaKey*         sess;
     MineCavernSprtRec* rec;
     s32                v;
 
-    sess = &gGameSession->loc;
+    sess = &gGameSession->at4.loc;
     rec  = (MineCavernSprtRec*)Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     v    = arg0 & 0xFF;
 

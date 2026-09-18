@@ -235,14 +235,14 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     obj->field_C            = 0;
     D_actor_146300_8014282C = task;
     helper                  = Task_SpawnFromTable(D_actor_146300_801427C8, 1, 0, 0);
-    sessionKey              = (GpAreaKey*)&gGameSession->loc;
+    sessionKey              = (GpAreaKey*)&gGameSession->at4.loc;
     idx                     = enemy->field_8 >> 0xC;
     model                   = helper->extra;
     D_actor_146300_80142830 = helper;
-    key.field_3             = sessionKey->field_3;
-    key.field_2             = sessionKey->field_2;
-    key.field_1             = sessionKey->field_1;
-    areaByte0               = sessionKey->field_0;
+    key.stage               = sessionKey->stage;
+    key.area                = sessionKey->area;
+    key.room                = sessionKey->room;
+    areaByte0               = sessionKey->view;
     /* Both calls take `&key`. Left alone, GCC 2.8.1 CSEs that address into one
        pseudo that is live across the first call, costing a callee-saved
        register; the ROM rematerializes `addiu a0, sp, key` for each call. The
@@ -251,7 +251,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     SOFT_BARRIER();
     keyPtr = &key;
     TOUCH_REG(keyPtr);
-    key.field_0 = areaByte0;
+    key.view = areaByte0;
     Gp_SyncAreaKeyIndex(keyPtr);
     /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
        onto the table (`addu s0, s0, v0`). */

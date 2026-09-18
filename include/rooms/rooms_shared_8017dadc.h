@@ -11,7 +11,7 @@
 /// by editing `field_3` of the copy; this one passes the record through
 /// otherwise unchanged and always reports success.
 ///
-/// - 0x19 picks the value out of `gGameSession->loc.stage`: 2 when that byte is 2
+/// - 0x19 picks the value out of `gGameSession->at4.loc.stage`: 2 when that byte is 2
 ///   and progress nibble 0x3A has reached 2, 1 before it gets there, and nibble
 ///   0x61 plus one whenever the session byte is anything else.
 /// - 0x26 is 2 or 1 by nibble 0x53, raised by two (so 4 or 3) while nibble 0x51

@@ -39,15 +39,15 @@ void Actor05500_Fn03C54(Actor105500* actor)
     if (eff == NULL) {
         return;
     }
-    sessionKey  = (GpAreaKey*)&gGameSession->loc;
-    raw         = ((Actor105500Ctx*)actor->field_20)->field_8;
-    model       = (TmdObject*)eff->field_0->extra;
-    key.field_3 = sessionKey->field_3;
-    key.field_2 = sessionKey->field_2;
-    key.field_1 = sessionKey->field_1;
-    areaByte0   = sessionKey->field_0;
-    idx         = raw >> 12;
-    key.field_0 = areaByte0;
+    sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+    raw        = ((Actor105500Ctx*)actor->field_20)->field_8;
+    model      = (TmdObject*)eff->field_0->extra;
+    key.stage  = sessionKey->stage;
+    key.area   = sessionKey->area;
+    key.room   = sessionKey->room;
+    areaByte0  = sessionKey->view;
+    idx        = raw >> 12;
+    key.view   = areaByte0;
     Gp_SyncAreaKeyIndex(&key);
     rec             = Gp_GetNestedAreaRec(&key);
     entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);

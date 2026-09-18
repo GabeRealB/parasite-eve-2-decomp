@@ -33,8 +33,8 @@ void RoomsShared80181228(Task* task)
                 Gp_MsgAllyWeapon(0);
             }
             if (rec->field_0 > 0) {
-                D_80115694          = Mc_SaveData.field_4;
-                Mc_SaveData.field_4 = rec->field_0;
+                D_80115694               = Mc_SaveData.at4.loc.view;
+                Mc_SaveData.at4.loc.view = rec->field_0;
             } else {
                 D_80115694 = -rec->field_0;
             }
@@ -116,7 +116,7 @@ void RoomsShared80181228(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((*(u32*)&Mc_SaveData.field_4 & 0xFFFF0000) == 0x1010000) {
+                    if ((*(u32*)&Mc_SaveData.at4.loc.view & 0xFFFF0000) == 0x1010000) {
                         Gp_ApplyAreaRecs(&RoomsShared80181228AreaRecs);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -146,7 +146,7 @@ void RoomsShared80181228(Task* task)
         case 11:
             Gp_MsgPlayer3F3(1);
             Gp_MsgAlly3F3(1);
-            Mc_SaveData.field_4 = D_80115694;
+            Mc_SaveData.at4.loc.view = D_80115694;
             task->state++;
             break;
         case 12:

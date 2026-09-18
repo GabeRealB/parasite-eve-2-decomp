@@ -3220,12 +3220,12 @@ void func_actor_444000_80141618(Actor444000* task)
                 work->field_EE8[sc->i] = Gp_SpawnEnemyFromTable(&D_80172604, 3, 2, NULL);
                 if (work->field_EE8[sc->i] != NULL) {
                     work->field_F1B++;
-                    model       = (TmdObject*)work->field_EE8[sc->i]->task->extra;
-                    sessionKey  = (GpAreaKey*)&gGameSession->loc;
-                    key.field_3 = sessionKey->field_3;
-                    key.field_2 = sessionKey->field_2;
-                    key.field_1 = sessionKey->field_1;
-                    key.field_0 = sessionKey->field_0;
+                    model      = (TmdObject*)work->field_EE8[sc->i]->task->extra;
+                    sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+                    key.stage  = sessionKey->stage;
+                    key.area   = sessionKey->area;
+                    key.room   = sessionKey->room;
+                    key.view   = sessionKey->view;
                     Gp_SyncAreaKeyIndex(&key);
                     entry           = (GpCdRec10*)((s32)Gp_GetNestedAreaRec(&key)->field_0 + 0x20);
                     model->field_24 = entry->field_D;

@@ -22,7 +22,7 @@ s32 func_mine_tunnel_8017D670(s32 arg0, s32 arg1, RoomEventMsg* msg, s32 arg3)
     u8 temp_v1;
 
     temp_v1 = msg->field_2;
-    if ((temp_v1 == 1) && (gGameSession->loc.place == temp_v1) && (GameFlag_GetNibble(0xA1) == 0)) {
+    if ((temp_v1 == 1) && (gGameSession->at4.loc.place == temp_v1) && (GameFlag_GetNibble(0xA1) == 0)) {
         GameFlag_SetNibble(0xA1, 1);
         Gp_MsgPlayerWeapon(0);
         func_800E8614((s32)&D_mine_tunnel_8017E024, 1);

@@ -250,10 +250,9 @@ void GameFlow_DispatchTable5(Task* arg0)
 
 void GameFlow_CopySaveIds(Task* arg0)
 {
-    ((SessionBytesAt4*)gGameSession)->field_4 =
-        ((SessionBytesAt4*)&Mc_SaveData)->field_4;
-    D_8007A394  = 0;
-    arg0->state = arg0->state + 1;
+    gGameSession->at4.raw = Mc_SaveData.at4.raw;
+    D_8007A394            = 0;
+    arg0->state           = arg0->state + 1;
 }
 
 void GameFlow_EnqueueDefaultLoad(Task* arg0)
@@ -262,7 +261,7 @@ void GameFlow_EnqueueDefaultLoad(Task* arg0)
     u8 param2[8];
 
     if ((u8)func_80042500() == 0) {
-        Fs_BeginBootLoad(&gGameSession->loc.view, 0);
+        Fs_BeginBootLoad(&gGameSession->at4.loc.view, 0);
         param1[3] = 0;
         param1[2] = 0;
         param1[0] = 0;

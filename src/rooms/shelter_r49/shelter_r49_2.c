@@ -58,7 +58,7 @@ L_case1:
     goto advance;
 
 L_case2:
-    key          = ((SessionBytesAt4*)gGameSession)->field_4;
+    key          = gGameSession->at4.raw;
     key.data[0]  = 0x64;
     slotParam[0] = Stream_FindSlot(key.data, 0, 0);
     CdCmd_Enqueue(0x61, 0, slotParam);
@@ -115,11 +115,11 @@ void func_shelter_r49_8017D8D8(Task* arg0)
             break;
         case 3:
             SetDispMask(1);
-            Mc_SaveData.field_7 = 5;
-            Mc_SaveData.field_6 = 7;
-            Mc_SaveData.field_8 = 1;
-            Mc_SaveData.field_5 = 1;
-            D_80071076          = 1;
+            Mc_SaveData.at4.loc.stage = 5;
+            Mc_SaveData.at4.loc.area  = 7;
+            Mc_SaveData.at4.loc.warp  = 1;
+            Mc_SaveData.at4.loc.room  = 1;
+            D_80071076                = 1;
             Task_Spawn(0, 0x11, 0, 0);
             Task_Kill(arg0);
             break;

@@ -178,11 +178,11 @@ void func_actor_450900_8013235C(Task* task)
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 8);
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData.field_6  = 0xF;
-            Mc_SaveData.field_8  = 3;
-            Mc_SaveData.field_13 = 0;
-            Mc_SaveData.field_5  = 1;
-            D_80071076           = 1;
+            Mc_SaveData.at4.loc.area = 0xF;
+            Mc_SaveData.at4.loc.warp = 3;
+            Mc_SaveData.field_13     = 0;
+            Mc_SaveData.at4.loc.room = 1;
+            D_80071076               = 1;
             Task_Spawn(0, 0x11, 0, 0);
             Gp_RestoreStreamRng();
             Task_Kill(task);

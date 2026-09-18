@@ -84,7 +84,7 @@ extern u16 D_neo_ark_woodland_path_80184948[];
 /// only the low half matters and GCC picks the unsigned load by itself.
 extern s16 D_neo_ark_woodland_path_80184990;
 
-/// How many spawns each slot arms, indexed by `gGameSession->loc.place` (the
+/// How many spawns each slot arms, indexed by `gGameSession->at4.loc.place` (the
 /// slot the session is in): the byte `func_...80180C6C` adds to
 /// `D_...80184990`, and the gate `func_...80180DDC` tests against zero.
 extern u8 D_neo_ark_woodland_path_80184970[];
@@ -97,7 +97,7 @@ extern s32 D_neo_ark_woodland_path_801849F4[];
 
 /// The same gate for the arm-state one step earlier: `func_...80180568` tests
 /// it against zero and `func_...801806D8` reads the slot's count from it. One
-/// byte per session slot, indexed by `gGameSession->loc.place`, like
+/// byte per session slot, indexed by `gGameSession->at4.loc.place`, like
 /// `D_...84970` above.
 extern u8 D_neo_ark_woodland_path_80184980[];
 

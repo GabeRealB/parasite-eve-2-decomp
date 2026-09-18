@@ -823,8 +823,8 @@ void func_actor_206100_8014CB68(Task* task)
         work->field_43C               = 0;
         work->field_43E               = 0xA00;
         work->field_440               = 0;
-        work->field_553               = Mc_SaveData.field_4;
-        Mc_SaveData.field_4           = 7;
+        work->field_553               = Mc_SaveData.at4.loc.view;
+        Mc_SaveData.at4.loc.view      = 7;
         work->field_51E               = 0;
         work->field_54D               = 0;
         work->field_522               = work->field_522 + 1;

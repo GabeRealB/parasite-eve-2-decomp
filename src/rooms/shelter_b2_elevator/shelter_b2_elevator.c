@@ -78,7 +78,7 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
                 car->field_0 = 0x1F4;
             }
             coord->coord.t[2] = car->field_0 * (s32)task->spawnArg2 - 0x1F4;
-            if (gGameSession->loc.view == 2) {
+            if (gGameSession->at4.loc.view == 2) {
                 obj->field_C = 0;
             } else {
                 obj->field_C = 0x80;

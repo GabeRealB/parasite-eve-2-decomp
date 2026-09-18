@@ -74,15 +74,15 @@ void func_actor_101500_801338D0(Actor101500* arg0)
     D_80067704[0] = D_actor_101500_801363AC;
     effect1       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x100, NULL);
     if (effect1 != NULL) {
-        sessionKey1 = (GpAreaKey*)&gGameSession->loc;
+        sessionKey1 = (GpAreaKey*)&gGameSession->at4.loc;
         raw1        = (u16)arg0->field_20->field_8;
         model1      = (TmdObject*)effect1->field_0->extra;
-        key.field_3 = sessionKey1->field_3;
-        key.field_2 = sessionKey1->field_2;
-        key.field_1 = sessionKey1->field_1;
-        areaByte0   = gGameSession->loc.view;
+        key.stage   = sessionKey1->stage;
+        key.area    = sessionKey1->area;
+        key.room    = sessionKey1->room;
+        areaByte0   = gGameSession->at4.loc.view;
         index1      = raw1 >> 12;
-        key.field_0 = areaByte0;
+        key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
         entry1           = (GpCdRec10*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
         model1->field_24 = entry1->field_D;
@@ -96,15 +96,15 @@ void func_actor_101500_801338D0(Actor101500* arg0)
     D_80067704[0] = D_actor_101500_801364F0;
     effect2       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x100, NULL);
     if (effect2 != NULL) {
-        sessionKey2 = (GpAreaKey*)&gGameSession->loc;
+        sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
         raw2        = (u16)arg0->field_20->field_8;
         model2      = (TmdObject*)effect2->field_0->extra;
-        key.field_3 = sessionKey2->field_3;
-        key.field_2 = sessionKey2->field_2;
-        key.field_1 = sessionKey2->field_1;
-        areaByte0   = gGameSession->loc.view;
+        key.stage   = sessionKey2->stage;
+        key.area    = sessionKey2->area;
+        key.room    = sessionKey2->room;
+        areaByte0   = gGameSession->at4.loc.view;
         index2      = raw2 >> 12;
-        key.field_0 = areaByte0;
+        key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
         entry2           = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
         model2->field_24 = entry2->field_D;
@@ -118,15 +118,15 @@ void func_actor_101500_801338D0(Actor101500* arg0)
     D_80067704[0] = D_actor_101500_801366DC;
     effect3       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x100, NULL);
     if (effect3 != NULL) {
-        sessionKey3 = (GpAreaKey*)&gGameSession->loc;
+        sessionKey3 = (GpAreaKey*)&gGameSession->at4.loc;
         raw3        = (u16)arg0->field_20->field_8;
         model3      = (TmdObject*)effect3->field_0->extra;
-        key.field_3 = sessionKey3->field_3;
-        key.field_2 = sessionKey3->field_2;
-        key.field_1 = sessionKey3->field_1;
-        areaByte0   = gGameSession->loc.view;
+        key.stage   = sessionKey3->stage;
+        key.area    = sessionKey3->area;
+        key.room    = sessionKey3->room;
+        areaByte0   = gGameSession->at4.loc.view;
         index3      = raw3 >> 12;
-        key.field_0 = areaByte0;
+        key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
         entry3           = (GpCdRec10*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
         model3->field_24 = entry3->field_D;
@@ -140,15 +140,15 @@ void func_actor_101500_801338D0(Actor101500* arg0)
     D_80067704[0] = D_actor_101500_801368B4;
     effect4       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x100, NULL);
     if (effect4 != NULL) {
-        sessionKey4 = (GpAreaKey*)&gGameSession->loc;
+        sessionKey4 = (GpAreaKey*)&gGameSession->at4.loc;
         raw4        = (u16)arg0->field_20->field_8;
         model4      = (TmdObject*)effect4->field_0->extra;
-        key.field_3 = sessionKey4->field_3;
-        key.field_2 = sessionKey4->field_2;
-        key.field_1 = sessionKey4->field_1;
-        areaByte0   = gGameSession->loc.view;
+        key.stage   = sessionKey4->stage;
+        key.area    = sessionKey4->area;
+        key.room    = sessionKey4->room;
+        areaByte0   = gGameSession->at4.loc.view;
         index4      = raw4 >> 12;
-        key.field_0 = areaByte0;
+        key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
         entry4           = (GpCdRec10*)((index4 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
         model4->field_24 = entry4->field_D;

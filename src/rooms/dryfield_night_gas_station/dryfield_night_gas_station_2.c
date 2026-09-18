@@ -124,7 +124,7 @@ s32 func_dryfield_night_gas_station_8017F89C(s32 arg0, s32 arg1, s32 arg2)
         }
         Gp_StartCapSlot(0x12, 1, var_a2);
     }
-    if ((arg2 == 0x17) && (gGameSession->loc.room == 4)) {
+    if ((arg2 == 0x17) && (gGameSession->at4.loc.room == 4)) {
         if (Gp_HasCollectedBit(0x11E) != 0) {
             if (GameFlag_GetNibble(0xD4) == 0) {
                 GameFlag_SetNibble(0xD4, 1);

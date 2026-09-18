@@ -88,10 +88,10 @@ void func_acropolis_fountain_8017D868(Task* task)
 
         case 2:
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData.field_6 = 3;
-            Mc_SaveData.field_5 = 3;
-            Mc_SaveData.field_8 = D_acropolis_fountain_80183BB0;
-            D_80071076          = 1;
+            Mc_SaveData.at4.loc.area = 3;
+            Mc_SaveData.at4.loc.room = 3;
+            Mc_SaveData.at4.loc.warp = D_acropolis_fountain_80183BB0;
+            D_80071076               = 1;
             Task_Spawn(0, 0x11, 0, 0);
             GameFlag_SetNibble(0, 5);
             Task_Kill(task);

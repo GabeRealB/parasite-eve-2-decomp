@@ -281,7 +281,7 @@ void func_actor_121300_80133BFC(Task* arg0)
     tmd->field_1C           = &work->field_43C;
     tmd->field_C            = 0;
     tmd->field_20           = &work->field_45C;
-    place                   = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->loc)->field_0;
+    place                   = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
     id                      = place->field_0;
     while (id != 0xFF) {
         if (id == 0x84) {
@@ -381,10 +381,10 @@ void func_actor_121300_80133D98(Task* arg0)
             ClearImage(&scratch.rect, 0, 0, 0);
             Mem_Set(Fs_ImgBuffers, 0, 0x25800);
             SetDispMask(1);
-            Mc_SaveData.field_7 = state;
-            Mc_SaveData.field_6 = 9;
-            Mc_SaveData.field_8 = state;
-            D_80071076          = 1;
+            Mc_SaveData.at4.loc.stage = state;
+            Mc_SaveData.at4.loc.area  = 9;
+            Mc_SaveData.at4.loc.warp  = state;
+            D_80071076                = 1;
             Task_Spawn(0, 0x11, 0, 0);
             Task_Kill(arg0);
             return;

@@ -103,7 +103,7 @@ void func_actor_136100_801320E0(Task* arg0)
             arg0->field_24 = &D_actor_136100_8013F2F4;
             Task_Reparent(D_actor_136100_8014078C, arg0);
         }
-        place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->loc)->field_0;
+        place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
         id    = place->field_0;
         while (id != 0xFF) {
             if (id == 0x6A) {
@@ -637,7 +637,7 @@ void func_actor_136100_80133A88(Task* arg0)
     tmd->field_1C = &work->field_474;
     tmd->field_20 = &work->field_494;
     tmd->field_C &= 0xFFFB;
-    place         = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->loc)->field_0;
+    place         = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
     id            = place->field_0;
     while (id != 0xFF) {
         if (id == 0x6A) {

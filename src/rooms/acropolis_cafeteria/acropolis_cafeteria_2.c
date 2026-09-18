@@ -76,11 +76,11 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             func_800ABFF8();
             func_800AC000();
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData.field_7 = 1;
-            Mc_SaveData.field_6 = 3;
-            Mc_SaveData.field_8 = 3;
-            Mc_SaveData.field_5 = 3;
-            D_80071076          = 1;
+            Mc_SaveData.at4.loc.stage = 1;
+            Mc_SaveData.at4.loc.area  = 3;
+            Mc_SaveData.at4.loc.warp  = 3;
+            Mc_SaveData.at4.loc.room  = 3;
+            D_80071076                = 1;
             Task_Spawn(0, 0x11, 0, 0);
             Task_Kill(task);
             break;

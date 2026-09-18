@@ -59,15 +59,15 @@ void func_actor_443500_80132078(Task* task)
     work->field_4C0 = ((TmdObject*)task->extra)->field_C;
     spawned         = Task_SpawnFromTable(&D_actor_443500_8015873C, 1, 4, (s32)task);
     if (spawned != NULL) {
-        sessionKey  = (GpAreaKey*)&gGameSession->loc;
-        raw         = ((Actor443500Ctx*)task->spawnArg2)->field_8;
-        model       = (TmdObject*)spawned->extra;
-        key.field_3 = sessionKey->field_3;
-        key.field_2 = sessionKey->field_2;
-        key.field_1 = sessionKey->field_1;
-        areaByte0   = sessionKey->field_0;
-        idx         = raw >> 12;
-        key.field_0 = areaByte0;
+        sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+        raw        = ((Actor443500Ctx*)task->spawnArg2)->field_8;
+        model      = (TmdObject*)spawned->extra;
+        key.stage  = sessionKey->stage;
+        key.area   = sessionKey->area;
+        key.room   = sessionKey->room;
+        areaByte0  = sessionKey->view;
+        idx        = raw >> 12;
+        key.view   = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
         rec = Gp_GetNestedAreaRec(&key);
         /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled

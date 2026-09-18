@@ -57,13 +57,13 @@ void func_shelter_r36_8017D5E8(Task* task)
 void func_shelter_r36_8017D738(void)
 {
     if (Mc_SaveData.field_23 != 9) {
-        Mc_SaveData.field_7 = 4;
-        Mc_SaveData.field_6 = 0x24;
-        Mc_SaveData.field_8 = 2;
-        Mc_SaveData.field_5 = 1;
-        D_80071076          = 1;
+        Mc_SaveData.at4.loc.stage = 4;
+        Mc_SaveData.at4.loc.area  = 0x24;
+        Mc_SaveData.at4.loc.warp  = 2;
+        Mc_SaveData.at4.loc.room  = 1;
+        D_80071076                = 1;
         Task_Spawn(0, 0x11, 0, 0);
-        Fs_BeginBootLoad(&Mc_SaveData.field_4, 1);
+        Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 1);
     }
 }
 

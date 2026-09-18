@@ -407,14 +407,14 @@ void func_actor_105600_80135744(GpEnemy* ctx, Task* actor)
     for (i = 1; i < 0x13; i++) {
         Gp_AnimResetSlot(&work->ctx, i, 1);
     }
-    eff         = Gp_SpawnEnemyFromTable(D_actor_105600_801482C0, 1, 0, ctx);
-    sessionKey  = (GpAreaKey*)&gGameSession->loc;
-    model       = eff->task->extra;
-    idx         = ctx->field_8 >> 12;
-    key.field_3 = sessionKey->field_3;
-    key.field_2 = sessionKey->field_2;
-    key.field_1 = sessionKey->field_1;
-    areaByte0   = sessionKey->field_0;
+    eff        = Gp_SpawnEnemyFromTable(D_actor_105600_801482C0, 1, 0, ctx);
+    sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+    model      = eff->task->extra;
+    idx        = ctx->field_8 >> 12;
+    key.stage  = sessionKey->stage;
+    key.area   = sessionKey->area;
+    key.room   = sessionKey->room;
+    areaByte0  = sessionKey->view;
     /* Both calls take `&key`. Left alone, GCC 2.8.1 CSEs that address into one
        pseudo that is live across the first call, costing a callee-saved
        register; the ROM rematerializes `addiu a0, sp, key` for each call. The
@@ -423,7 +423,7 @@ void func_actor_105600_80135744(GpEnemy* ctx, Task* actor)
     SOFT_BARRIER();
     keyPtr = &key;
     TOUCH_REG(keyPtr);
-    key.field_0 = areaByte0;
+    key.view = areaByte0;
     Gp_SyncAreaKeyIndex(keyPtr);
     rec = Gp_GetNestedAreaRec(&key);
     /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
@@ -478,9 +478,9 @@ case0:
         work->field_6DA = param * 1000;
     }
 
-    tbl = D_actor_105600_80148298[gGameSession->loc.stage];
+    tbl = D_actor_105600_80148298[gGameSession->at4.loc.stage];
     if (tbl != NULL) {
-        work->field_6D6 = tbl[gGameSession->loc.area];
+        work->field_6D6 = tbl[gGameSession->at4.loc.area];
     }
     if (work->field_6D6 != 0) {
         param1[3] = 0;

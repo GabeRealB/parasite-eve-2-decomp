@@ -36,7 +36,7 @@ void func_dryfield_main_street_8017E1C0(Task* task)
 
     player = Game_GetPtrSlot(3);
     actor  = (GameActor*)player->work;
-    work   = Gp_FindWorkById(gGameSession->loc.area | (gGameSession->loc.stage << 8));
+    work   = Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8));
     if ((work != NULL) && (gGameSession->eventState != 0)) {
         self      = ((TmdObject*)player->extra)->field_8;
         target    = &((TmdObject*)((Task*)work->field_0)->extra)->field_8[1];

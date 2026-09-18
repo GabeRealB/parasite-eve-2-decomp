@@ -186,7 +186,7 @@ void func_actor_341900_80162330(Task* arg0)
     extra->field_1C = &w->light;
     extra->field_20 = &w->color;
     arg0->field_24  = D_actor_341900_80163A78;
-    rec             = ((GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->loc))->field_0;
+    rec             = ((GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc))->field_0;
     for (; rec->field_0 != 0xFF; rec++) {
         if (rec->field_0 == 0x20) {
             break;
@@ -560,11 +560,11 @@ void func_actor_341900_80162EFC(Task* arg0)
                 work->field_0           = (Task*)Game_GetPtrSlot(3);
                 D_actor_341900_80164208 = arg0;
                 work->field_4           = (Task*)Gp_FindWorkById(
-                                    gGameSession->loc.area | (gGameSession->loc.stage << 8))
+                                    gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8))
                                     ->field_0;
             }
-            sp10.field_0 = gGameSession->loc.stage;
-            sessionIdLo  = gGameSession->loc.area;
+            sp10.field_0 = gGameSession->at4.loc.stage;
+            sessionIdLo  = gGameSession->at4.loc.area;
             sp10.field_2 = 0;
             sp10.field_1 = sessionIdLo;
             Gp_DispatchMsg((Task*)Game_GetPtrSlot(4), 0x7DA, (s32)&sp10, 0x7DB);

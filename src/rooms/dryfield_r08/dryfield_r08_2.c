@@ -19,10 +19,10 @@ void func_dryfield_r08_8017F334(s32 arg0)
 /// so `[3].field_4` reaches the command list its tail holds there.
 void func_dryfield_r08_8017F340(u8 arg0, u8 arg1)
 {
-    GameSessionFrom4* sess;
-    GpSprtCmd*        cmd;
+    GpAreaKey* sess;
+    GpSprtCmd* cmd;
 
-    sess = &gGameSession->loc;
+    sess = &gGameSession->at4.loc;
     if ((u32)(arg0 & 0xFF) < 0xBU) {
         cmd = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1][3].field_4;
         if (arg1 & 0xFF) {
@@ -35,11 +35,11 @@ void func_dryfield_r08_8017F340(u8 arg0, u8 arg1)
 
 void func_dryfield_r08_8017F3B8(u8 arg0, u8 arg1)
 {
-    GameSessionFrom4* sess;
-    GpSprtRec*        rec;
-    GpSprtCmd*        cmd;
+    GpAreaKey* sess;
+    GpSprtRec* rec;
+    GpSprtCmd* cmd;
 
-    sess = &gGameSession->loc;
+    sess = &gGameSession->at4.loc;
     if ((u32)(arg0 & 0xFF) < 3U) {
         rec = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
         if ((u32)(arg0 & 0xFF) == 0U) {

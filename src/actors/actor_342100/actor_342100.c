@@ -45,7 +45,7 @@ extern s32 D_actor_342100_80164900[];
 extern s16 D_actor_342100_80164910[];
 
 /// Placement tables the overlay's spawn task picks between by
-/// `gGameSession->loc.view`: 0x1D, 0x1E, 0x1F, 0x23 and 0x24 select the 0x80164930
+/// `gGameSession->at4.loc.view`: 0x1D, 0x1E, 0x1F, 0x23 and 0x24 select the 0x80164930
 /// / 0x80164918 / 0x80164948 / 0x80164960 / 0x80164980 table respectively, and
 /// the values in between select none. Each is a zero-`vx`-terminated `SVECTOR`
 /// list of two to three placements -- the terminator is an all-zero entry -- and
@@ -307,7 +307,7 @@ void func_actor_342100_80162AB0(Task* arg0)
     }
 }
 
-/// Spawn the encounter's effect tasks: `gGameSession->loc.view` selects one of
+/// Spawn the encounter's effect tasks: `gGameSession->at4.loc.view` selects one of
 /// the overlay's placement tables, and every entry in it rolls the LCG once,
 /// starts spawn entry 4 (`func_actor_342100_80162AB0`) with the roll's masked
 /// high half as its `spawnArg1` -- the lifetime that task's state 1 counts down
@@ -317,7 +317,7 @@ void func_actor_342100_80162AB0(Task* arg0)
 /// so a table is as many entries as it has non-zero `vx`s and a table whose
 /// first entry is zero spawns nothing.
 ///
-/// The table pointer is deliberately uninitialised: `gGameSession->loc.view`
+/// The table pointer is deliberately uninitialised: `gGameSession->at4.loc.view`
 /// values 0x20..0x22 -- and anything outside the jump table -- leave it holding
 /// whatever the caller left in `$s1`, which is the target's shape.
 ///
@@ -334,7 +334,7 @@ void func_actor_342100_80162C88(void)
     Task*          task;
     u32            rng;
 
-    switch (gGameSession->loc.view) {
+    switch (gGameSession->at4.loc.view) {
         case 29:
             pos = D_actor_342100_80164930;
             break;
