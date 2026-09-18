@@ -129282,3 +129282,63 @@ one-line move. This is the register-move counterpart of the store rule above
 here the refusal is not explained, but the remedy is the same, and it is the
 remedy to reach for whenever the target shows a specific insn in a conditional
 branch's delay slot.
+
+## A leaf use blocks combine's copy merge; a read-write touch does the same but moves the whole chain (Actor01900_Fn083E8, 2026-09-18)
+
+combine turns `(set tmp expr)` + `(set p tmp)` into `(set p expr)` whenever
+`tmp` has a single use, so a pointer temp whose only consumer is the copy
+disappears and the copy with it. When the ROM keeps both — `addiu a1,a3,-0x10`
+followed by `move s1,a1`, with `a1` read nowhere else — the temp needs a second
+reference, and which kind you give it decides the schedule as well.
+
+A read-write helper (`SOFT_TOUCH_REG`) sits *on* the chain. It lengthens
+`addiu -> ... -> sw` by one link, which raises the `addiu`'s scheduling
+priority; the whole chain is then issued one slot early and the load-delay
+slots it was supposed to fill take `nop`s instead.
+
+A use with no output is a leaf in the dependence graph. It blocks the merge and
+leaves the chain length alone, so each chain member drops into its delay slot:
+
+```c
+next = head - 1;
+head[-1].delta.vx = ...;   /* stays -0x10(a3) */
+SOFT_USE_REG(next);        /* leaf: second reference, no chain link */
+aim = next;                /* move s1,a1 survives */
+aim->delta.vy = ...;       /* 2(s1) */
+```
+
+`base_11` 94.110% (touch before the copy), `base_13` 98.913% (leaf), same
+source otherwise. Input hash
+`82edf687a76160b863a2f35acd418b4d2f9d359d2501597390ffc8084641a8e3` (`base_13.i`).
+
+## An `s16` round-trip turns a redundant sign-extension into the `move` the ROM has, and re-dates the pseudo (Actor01900_Fn083E8, 2026-09-18)
+
+Where a wrapped `s16` feeds both a `sh` and a signed compare, the ROM has
+`sra a2,v0,16; move v1,a2; sh a2,...; lh a0,...; slt v0,a0,v1` — the `sra`
+result is stored and a copy of it is compared. A plain `s32 b = a;` will not
+produce that copy: cse deletes it, and cse canonicalises to the copy's
+*destination*, so redefining the dead source afterwards has no effect either.
+
+Declaring the compare operand as its own `s16` does produce it. cse unifies the
+sign-extensions of that variable into one pseudo, leaving the `HI` copy with a
+single use; combine substitutes it and folds `(ashiftrt (ashift X 16) 16)` to
+`X`, because the `sra` result already carries 17 sign-bit copies. What survives
+is a bare `move`.
+
+```c
+yaw   = wrapped;        /* sra */
+yaw16 = yaw;            /* folded away; leaves move */
+aim->angle = yaw;       /* sh, sra result */
+if (work->field_8AE < yaw16) { ... }   /* slt, the copy */
+```
+
+The second effect matters as much as the first. The surviving pseudo is born
+inside the comparison, *after* the `lh` of the other operand, so its live length
+is shorter; `global.c` ranks by `floor_log2(refs)*refs/live_length`, allocates
+it first and it takes `$v1`, pushing the loaded value to `$a0` — which is the
+ROM's assignment. An ordinary extra variable copied before the load cannot
+reach that: with equal reference counts a copy born earlier always has the
+longer live range and therefore the lower priority.
+
+`base_7` 97.627% from 96.894%, no asm helper involved. Input hash
+`d44719096c55b6cdfce0b00b4c486b4937d82bf58b26e322cd9bbc6a170eff3d` (`base_7.i`).

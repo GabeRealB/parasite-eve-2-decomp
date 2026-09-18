@@ -2474,7 +2474,106 @@ void Actor01900_Fn080A8(Actor01900* arg0)
     *(Actor01900AimScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn083E8);
+/// Turn the actor toward the player at up to 0x28 per call. Takes a 0x10-byte
+/// scratch block from `G_SCRATCH_HEAD` for the offset to the player and the
+/// yaw, steps `field_8AE` toward that yaw, then rebuilds the root coordinate's
+/// Y rotation from its own facing. The `field_4` branch is the state's entry.
+void Actor01900_Fn083E8(Actor01900* arg0)
+{
+    Actor01900Work*        work;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    GsCOORDINATE2*         facing;
+    GsCOORDINATE2*         yawCoord;
+    WipSysConfig*          cfg;
+    Actor01900AimScratch*  head;
+    Actor01900AimScratch*  aim;
+    Actor01900AimScratch*  next;
+    Actor01900AimScratch** slot;
+    s16                    z;
+    s16                    ang;
+    s16                    delta;
+    s16                    wrapped;
+    s16                    yaw16;
+    s32                    angle;
+    s32                    yaw;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 1;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0x180;
+        work->field_898          = 2;
+        work->field_8A2          = 0x10;
+        work->field_89E          = 0x13;
+        work->field_89A          = 0;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   &= 0xBFFF;
+        Actor01900_Fn01C94(arg0);
+        Actor01900_Fn01C94(arg0);
+        work->field_6   = 0;
+        work->field_8B0 = 0;
+        return;
+    }
+
+    cfg  = &Wip_SysConfig;
+    slot = (Actor01900AimScratch**)G_SCRATCH_HEAD;
+    head = *slot;
+
+    coord             = arg0->field_2C->field_8;
+    next              = head - 1;
+    head[-1].delta.vx = *(u16*)&cfg->field_4->t[0] - *(u16*)&coord->coord.t[0];
+    SOFT_USE_REG(next);
+    aim           = next;
+    aim->delta.vy = *(u16*)&cfg->field_4->t[1] - *(u16*)&coord->coord.t[1];
+    z             = *(u16*)&cfg->field_4->t[2] - *(u16*)&coord->coord.t[2];
+    *slot         = aim;
+    aim->delta.vz = z;
+
+    facing  = arg0->field_2C->field_8;
+    angle   = ratan2((s32)head[-1].delta.vx, (s32)z);
+    delta   = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
+    wrapped = delta;
+    if (delta < 0) {
+    wrapNegative:
+        if (wrapped < -0x800) {
+            wrapped += 0x1000;
+            goto wrapNegative;
+        }
+    } else {
+    wrapPositive:
+        if (wrapped >= 0x801) {
+            wrapped -= 0x1000;
+            goto wrapPositive;
+        }
+    }
+    yaw        = wrapped;
+    yaw16      = yaw;
+    aim->angle = yaw;
+    if (work->field_8AE < yaw16) {
+        if ((yaw16 - work->field_8AE) >= 0x29) {
+            work->field_8AE = (u16)work->field_8AE + 0x28;
+        } else {
+            work->field_8AE = yaw;
+        }
+    } else if ((work->field_8AE - yaw16) >= 0x29) {
+        work->field_8AE = (u16)work->field_8AE - 0x28;
+    } else {
+        work->field_8AE = yaw;
+    }
+
+    yawCoord   = arg0->field_2C->field_8;
+    ang        = ratan2((s32)-yawCoord->coord.m[2][0], (s32)yawCoord->coord.m[2][2]);
+    aim->angle = ang;
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, (s32)ang, 1);
+    Actor01900_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+
+    work->field_898 = 2;
+    Actor01900_Fn01C94(arg0);
+    *(Actor01900AimScratch**)G_SCRATCH_HEAD += 1;
+}
 
 void Actor01900_Fn08724(Actor01900* arg0)
 {
