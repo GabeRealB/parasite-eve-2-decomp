@@ -57,6 +57,7 @@ _PRIMITIVE = {
     "s8", "s16", "s32", "s64", "u8", "u16", "u32", "u64", "f32", "f64",
     "size_t", "bool", "byte", "void", "char", "int", "short", "long",
     "unsigned", "signed", "float", "double", "va_list", "ptrdiff_t",
+    "u_char", "u_short", "u_int", "u_long", "s_char", "s_short", "s_int", "s_long",
 }
 
 
@@ -166,9 +167,35 @@ def build(root: str, version: str, jobs: int, out_path: str) -> None:
                 for u, s in uses:
                     nodes.setdefault(u, {"name": s, "file": ""})
     print(file=sys.stderr)
+
+    # A typedef and the record it names are one thing to a reader, but two
+    # declarations to the parser, so they arrive as two nodes with the same
+    # spelling. Left apart they double-count: a caller of one type is reported
+    # as depending on both `Foo` and `_Foo`.
+    alias = {}
+    for usr, deps in edges.items():
+        if "@T@" not in usr:
+            continue
+        name = nodes[usr]["name"]
+        for d in deps:
+            if d in nodes and nodes[d]["name"].lstrip("_") == name.lstrip("_"):
+                alias[usr] = d
+                break
+    if alias:
+        for usr, target in alias.items():
+            keep = nodes.pop(usr, None)
+            if keep and not nodes.get(target, {}).get("file"):
+                nodes.setdefault(target, keep)["file"] = nodes[target].get("file") or keep["file"]
+            edges.pop(usr, None)
+        for usr in list(edges):
+            edges[usr] = {alias.get(d, d) for d in edges[usr]} - {usr}
+        print(f"  merged {len(alias)} typedef/record pairs", file=sys.stderr)
+
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w") as fh:
-        json.dump({"nodes": nodes, "edges": {k: sorted(v) for k, v in edges.items()}}, fh)
+        json.dump({"nodes": nodes,
+                   "edges": {k: sorted(v) for k, v in edges.items()},
+                   "alias": alias}, fh)
     print(f"{len(nodes)} nodes, {sum(len(v) for v in edges.values())} edges "
           f"-> {os.path.relpath(out_path, root)}", file=sys.stderr)
 
@@ -182,7 +209,10 @@ def load(path: str):
     if not os.path.exists(path):
         sys.exit(f"no graph at {path}; run dep_graph.py --build first")
     g = json.load(open(path))
-    return g["nodes"], {k: set(v) for k, v in g["edges"].items()}
+    # Merged typedef USRs redirect to the record they name, so a spec that
+    # resolves to the typedef still finds its node.
+    return (g["nodes"], {k: set(v) for k, v in g["edges"].items()},
+            g.get("alias", {}))
 
 
 def processed_set(root: str, nodes: dict) -> set:
@@ -283,11 +313,173 @@ def leaves(cands, edges, nodes, done, comp):
     return list(uniq)
 
 
+# --------------------------------------------------------------------------
+# the ordered worklist
+# --------------------------------------------------------------------------
+
+
+def asm_used(root: str, version: str, names) -> set:
+    """Names the generated assembly reaches, ignoring their own definitions.
+
+    A symbol with no C caller outside its file may still be reached from a
+    dispatch table or a `jal` in an unmatched body, so visibility cannot be
+    decided from C alone.
+    """
+    import subprocess
+    import tempfile
+    if not names:
+        return set()
+    with tempfile.NamedTemporaryFile("w", delete=False) as fh:
+        fh.write("\n".join(sorted(names)))
+        listing = fh.name
+    try:
+        out = subprocess.run(["grep", "-rhFf", listing, "--include=*.s",
+                              f"asm/{version}"],
+                             cwd=root, capture_output=True, text=True, timeout=900).stdout
+    except Exception:
+        return set(names)
+    finally:
+        os.unlink(listing)
+    want, used = set(names), set()
+    defre = __import__("re").compile(r"^\s*(glabel|dlabel|endlabel|nonmatching|jlabel)\s+(\S+)")
+    for line in out.splitlines():
+        if defre.match(line):
+            continue
+        for tok in __import__("re").findall(r"[A-Za-z_]\w*", line):
+            if tok in want:
+                used.add(tok)
+    return used
+
+
+def _impact(groups, deps, users, order_hint):
+    """How many components transitively wait on each one.
+
+    Any topological order is correct, but not all are useful: ordering ready
+    items alphabetically buries the few things almost everything needs. Sorting
+    by impact front-loads those, so the work that unblocks the most happens
+    first. Reachability is accumulated as bitsets, which Python's integers make
+    cheap to union.
+    """
+    bit = {g: 1 << i for i, g in enumerate(groups)}
+    reach = {}
+    for g in reversed(order_hint):
+        acc = bit[g]
+        for u in users.get(g, ()):
+            acc |= reach.get(u, 0)
+        reach[g] = acc
+    return {g: bin(v).count("1") for g, v in reach.items()}
+
+
+def topo_order(nodes, edges, comp):
+    """Components in dependency order: everything a component uses comes first."""
+    groups = {}
+    for usr in nodes:
+        groups.setdefault(comp.get(usr, (usr,)), None)
+    groups = list(groups)
+    gid = {g: i for i, g in enumerate(groups)}
+    out_deg = {g: set() for g in groups}
+    for usr in nodes:
+        g = comp.get(usr, (usr,))
+        for d in edges.get(usr, ()):
+            if d in nodes:
+                h = comp.get(d, (d,))
+                if h is not g:
+                    out_deg[g].add(h)
+    indeg = collections.Counter()
+    users = collections.defaultdict(set)
+    for g, deps in out_deg.items():
+        indeg[g] = len(deps)
+        for d in deps:
+            users[d].add(g)
+    # A first pass in any order, only to give the impact DP a topological
+    # sequence to accumulate along.
+    plain, deg = [], dict(indeg)
+    q = [g for g in groups if deg[g] == 0]
+    while q:
+        g = q.pop()
+        plain.append(g)
+        for u in users.get(g, ()):
+            deg[u] -= 1
+            if deg[u] == 0:
+                q.append(u)
+    plain.extend(g for g in groups if g not in set(plain))
+    impact = _impact(groups, out_deg, users, plain)
+
+    import heapq
+    key = lambda g: (-impact.get(g, 0), min(nodes[m]["name"] for m in g))
+    heap = [(key(g), gid[g]) for g in groups if indeg[g] == 0]
+    heapq.heapify(heap)
+    order, seen = [], set()
+    while heap:
+        _, i = heapq.heappop(heap)
+        g = groups[i]
+        if g in seen:
+            continue
+        seen.add(g)
+        order.append(g)
+        for u in users.get(g, ()):
+            indeg[u] -= 1
+            if indeg[u] == 0:
+                heapq.heappush(heap, (key(u), gid[u]))
+    # Anything left sits in a cycle the condensation failed to break; emit it
+    # rather than dropping it silently.
+    order.extend(g for g in groups if g not in seen)
+    return order
+
+
+def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str):
+    vendor = name_index.vendored_names(root)
+    order = topo_order(nodes, edges, comp)
+
+    # who refers to each item, for the visibility guess
+    referrers = collections.defaultdict(set)
+    for usr, deps in edges.items():
+        for d in deps:
+            if d in nodes:
+                referrers[d].add(usr)
+
+    todo_names = {nodes[u]["name"] for g in order for u in g
+                  if u not in done and nodes[u].get("file")}
+    used_in_asm = asm_used(root, version, todo_names)
+
+    rows, idx = [], 0
+    for g in order:
+        pending = [u for u in g if u not in done]
+        if not pending:
+            continue
+        idx += 1
+        for usr in sorted(pending, key=lambda u: nodes[u]["name"]):
+            meta = nodes[usr]
+            name, where = meta["name"], meta.get("file", "")
+            kind = ("func" if "@F@" in usr else
+                    "type" if any(t in usr for t in ("@S@", "@SA@", "@U@", "@UA@",
+                                                     "@E@", "@EA@", "@T@"))
+                    else "data")
+            state = name_index.classify(name, "func" if kind == "func" else "data", vendor)
+            refs = referrers.get(usr, set())
+            outside = {r for r in refs if nodes.get(r, {}).get("file") != where}
+            if kind == "type":
+                vis = "public" if where.startswith("include") else "private"
+            elif name in used_in_asm:
+                vis = "public (asm)"
+            elif outside:
+                vis = "public"
+            else:
+                vis = "private"
+            rows.append((str(idx), str(len(pending)), name, kind, vis, state,
+                         where, str(len(refs))))
+    with open(out_path, "w") as fh:
+        fh.write("order\tgroup_size\tname\tkind\tvisibility\tstate\tfile\treferrers\n")
+        for r in rows:
+            fh.write("\t".join(r) + "\n")
+    return rows
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("command", nargs="?", default="stats",
-                    choices=["ready", "next", "stats"])
+                    choices=["ready", "next", "stats", "worklist"])
     ap.add_argument("spec", nargs="?")
     ap.add_argument("--build", action="store_true", help="rebuild the cached graph")
     ap.add_argument("--graph", default=None)
@@ -305,9 +497,21 @@ def main() -> int:
         build(root, args.version, args.jobs, path)
         return 0
 
-    nodes, edges = load(path)
+    nodes, edges, alias = load(path)
     done = processed_set(root, nodes)
     comp = components(nodes, edges)
+
+    if args.command == "worklist":
+        out = os.path.join(root, "local", "worklist.tsv")
+        rows = worklist(root, args.version, nodes, edges, comp, done, out)
+        groups = len({r[0] for r in rows})
+        multi = len({r[0] for r in rows if int(r[1]) > 1})
+        print(f"{len(rows)} items in {groups} ordered steps -> local/worklist.tsv")
+        print(f"  steps needing more than one item at once: {multi}")
+        vis = collections.Counter(r[4] for r in rows)
+        for k, n in vis.most_common():
+            print(f"  {k:<14} {n}")
+        return 0
 
     if args.command == "stats":
         cyc = {g for g in comp.values() if len(g) > 1}
@@ -320,9 +524,10 @@ def main() -> int:
     if args.spec:
         spec = cref.parse_spec(args.spec)
         usr, kind, where = cref.resolve(spec, root, cref.load_db(root, args.version))
-        target = usr
-        if usr not in nodes:
+        target = alias.get(usr, usr)
+        if target not in nodes:
             sys.exit(f"{spec.name} is not in the graph; rebuild after it was added")
+        usr = target
 
     if args.command == "ready":
         group = comp.get(target, (target,))

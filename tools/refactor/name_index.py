@@ -79,6 +79,10 @@ def vendored_names(root: str) -> set:
         text = open(f, errors="replace").read()
         out |= set(re.findall(r"\b([A-Za-z_]\w*)\s*\(", text))
         out |= set(re.findall(r"\bextern\s+[\w \*]+?\b(\w+)\s*[;\[]", text))
+        # Types the library defines. Without these, MATRIX, SVECTOR and the
+        # rest look like unnamed project types and lead the worklist.
+        out |= set(re.findall(r"\}\s*(\w+)\s*;", text))
+        out |= set(re.findall(r"typedef\s+(?:struct|union|enum)\s+(\w+)", text))
     return out
 
 

@@ -26,6 +26,8 @@ extern s32 Gp_LcgState;
 /// `rtps`: project V0 through the loaded rotation and translation matrices.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
+/// PROVISIONAL: written before `Task` was processed, so the statements
+/// about `Task` fields rest on unverified names. Rewrite once `Task` is done.
 /// Emits the flare's shower of sparks.
 ///
 /// Starts the sound cue panned to the object, then spawns one spark a frame for
@@ -76,6 +78,8 @@ void flareEffectTask(Task* arg0)
     }
 }
 
+/// PROVISIONAL: written before `Task` was processed, so the statements
+/// about `Task` fields rest on unverified names. Rewrite once `Task` is done.
 /// Flies one spark away from the player and draws it.
 ///
 /// On the first frame it starts from the player's position, picks a random

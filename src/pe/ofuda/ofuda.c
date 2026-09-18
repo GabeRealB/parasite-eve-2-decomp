@@ -11,6 +11,8 @@
 /// This overlay's id, the `u16` every package opens with.
 const u32 gOfudaId = 60;
 
+/// PROVISIONAL: written before `Task` was processed, so the statements
+/// about `Task` fields rest on unverified names. Rewrite once `Task` is done.
 /// Draws the expanding flash the ofuda produces, over three states.
 ///
 /// Spawned with a `GpEffWork` block in `Task::spawnArg2` holding the effect's
