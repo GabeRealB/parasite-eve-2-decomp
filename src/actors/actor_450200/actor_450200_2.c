@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "main/display.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -61,7 +62,39 @@ void func_actor_450200_801322F8(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450200/actor_450200_2", func_actor_450200_80132368);
+void func_actor_450200_80132368(s32 x, s32 tpageX, s32 clutY, s32 semiTrans, s32 rgb, s32 shadeTex)
+{
+    SPRT*    p;
+    DR_MODE* dr;
+    s32      i;
+
+    for (i = 0; i < 2; i++) {
+        p              = (SPRT*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+        setSprt(p);
+        setShadeTex(p, shadeTex);
+        setSemiTrans(p, semiTrans);
+        p->x0   = x - 0xA0;
+        p->y0   = -0x78;
+        p->w    = 0x100;
+        p->u0   = 0;
+        p->v0   = 0;
+        p->h    = 0xF0;
+        p->r0   = rgb;
+        p->g0   = rgb;
+        p->b0   = rgb;
+        p->clut = GetClut(0, clutY);
+        addPrim(&Gpu_CurrentOt[0x3FE], p);
+
+        dr             = (DR_MODE*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
+        setDrawTPage(dr, 0, 1, getTPage(1, 1, tpageX, 0x100));
+        addPrim(&Gpu_CurrentOt[0x3FE], dr);
+
+        tpageX += 0x80;
+        x      += 0x100;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_450200/actor_450200_2", func_actor_450200_80132538);
 

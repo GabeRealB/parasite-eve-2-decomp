@@ -128243,3 +128243,53 @@ correction.
 
 Inputs: base_1.i (unsigned `srl`) vs base_2.i (100%),
 `nonmatchings/func_actor_102300_80131EA4-vacuum/`.
+
+## `setShadeTex` right after `setSprt` compiles to two plain constants, not to `lbu`/`ori` (func_actor_450200_80132368, 2026-09-18)
+
+`func_actor_450200_80132368` builds a full-screen `SPRT` and picks its code byte
+from a flag:
+
+```
+addiu $v0, $zero, 0x64
+sb    $v0, 0x7($s0)      # setSprt
+lw    $t0, 0x4C($sp)
+beqz  $t0, .L
+ addiu $v0, $zero, 0x64
+addiu $v0, $zero, 0x65
+.L:
+sb    $v0, 0x7($s0)
+```
+
+Two independent `li 0x64` and a single merged store look like a ternary, and
+`setcode(p, flag ? 0x65 : 0x64)` is the obvious transcription. It is wrong. A
+`COND_EXPR` assigned to a field expands through the generic arm of `expand_expr`
+with `temp == original_target`, so **both arms store into the MEM** — and the
+else arm stores the value `setSprt` just wrote there, which `cse` deletes as
+redundant. What is left is one constant, which `loop` then hoists out of the
+enclosing loop into a pseudo that has to live across the `GetClut` call and gets
+spilled: the frame grows 8 bytes and the `jal` delay slot fills with the reload.
+93.8%, `stack=0 branch=2 regs=33`.
+
+The source is the ordinary Psy-Q macro:
+
+```c
+setSprt(p);
+setShadeTex(p, shadeTex);
+setSemiTrans(p, semiTrans);
+```
+
+`setShadeTex` is `tge ? setcode(p, getcode(p)|0x01) : setcode(p, getcode(p)&~0x01)`.
+Because `setSprt` stored `0x64` into that byte in the same basic block, `cse`
+folds each `getcode(p)` to `0x64` and each arm to a *different* constant —
+`0x65` and `0x64` — so neither store is redundant and the pair merges into one
+register and one store. The neighbouring `setSemiTrans(p, semiTrans)` still emits
+`lbu`/`ori` and `lbu`/`andi` because its `getcode` is read at a join point, where
+`cse` starts a fresh table.
+
+So: when a prim's code byte is written by `setXxx(p)` and then adjusted by a
+flag, reach for `setShadeTex`/`setSemiTrans` first and only fall back to an
+explicit ternary if the target really does keep two stores. Constants in the
+branch arms are evidence *for* the macro, not against it.
+
+Inputs: base_1.c (ternary, 93.786%) vs base_3.c (100%),
+`nonmatchings/func_actor_450200_80132368-vacuum/`.
