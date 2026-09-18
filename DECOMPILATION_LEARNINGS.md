@@ -75101,6 +75101,47 @@ argument as "this call is cast to `s8`" and fix the C to match, whichever
 argument it is - `func_actor_206100_8014F8BC` needed it on the nested
 `Gp_GetObjDepth` call as well as on `pan` (84.889% -> 100%, one rewrite).
 
+## An `s16` local that is also stored back keeps HImode, so the field load is `lhu` + `sll`/`sra` instead of `lh`
+
+**Symptom.** The target loads a signed halfword field once and uses the same
+register for both the compare and a later `sh`:
+
+```
+lh    $a0, 0x642($s0)
+li    $v0, 1
+bne   $a0, $v0, ...
+...
+sh    $a0, 0x624($v1)
+```
+
+m2c's seed types that temporary by the field, `s16 temp_a0;`, and GCC then keeps
+the object in HImode: the load becomes `lhu`, and the `==` against a constant
+materialises its own `sll $v0,$a0,16` / `sra $v0,$v0,16` pair plus a second
+constant register for the comparison. Two extra instructions and a `branch`
+penalty, at 88% with everything else already in place.
+
+**Fix.** Declare the local `s32` and assign the field to it. The conversion then
+happens at the load, which is exactly what `lh` is, and the `sh` store truncates
+back for free:
+
+```c
+s32 mode;
+
+mode = work->field_642;
+if (mode == 1) {
+    ...
+    state->field_624 = mode;
+}
+```
+
+This is the same rule as the `s8` call-result entry above, in its more common
+form: a narrow *object* defers its conversion to each use, a narrow *value*
+assigned to an SImode object converts once at the assignment. When the value is
+read straight out of a struct, the target's `lh` (rather than `lhu`) is the tell
+that the source local was wider than the field. `Actor00400_Fn09924` is the
+worked example, 88.651% -> 100% on that one declaration.
+
+
 ## m2c reads a stack-resident function-pointer table as stack-passed arguments
 
 A local `void (*states[2])(Task*)` indexed by a struct field compiles to a table
