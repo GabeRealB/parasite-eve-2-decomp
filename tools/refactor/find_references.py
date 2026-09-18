@@ -71,7 +71,8 @@ def main() -> int:
 
     if not args.no_comments:
         refs = refs + cref.comment_refs(root, spec.token, spec.owner,
-                                     only_files={r.file for r in refs} if kind == 'parameter' else None)
+                                     only_files={r.file for r in refs}
+                                     if kind in ('parameter', 'field') else None)
         refs.sort(key=lambda r: (r.file, r.line, r.col))
     by_use = collections.Counter(r.use for r in refs)
     by_file = collections.Counter(r.file for r in refs)

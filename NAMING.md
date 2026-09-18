@@ -272,6 +272,20 @@ is what the overwhelming majority of the tree already uses, and switching later
 is a mechanical change. Do not reopen it per-file — either the whole tree moves
 or none of it does.
 
+**The same goes for a function's parameters**, and they are named in both
+places: the prototype in the header and the definition in the `.c`. A signature
+reading `(s32 arg0, s32 arg1, s32 arg2)` tells a caller nothing, and a
+declaration that names its parameters while the definition still says `arg0` is
+two descriptions of one function. `rename_item.py` takes
+`<file>/<function>::<param>` and matches the parameter by position, so it
+rewrites every declaration and the definition together.
+
+**A field you can describe is a field you can name.** Writing a comment that
+states a field's role and leaving it called `field_14` is self-contradictory:
+the offset name exists to say *the role is unknown*, and the comment has just
+said otherwise. Name it from the same reading, and keep `field_XX` only where
+the comment is absent or says the role is unproven.
+
 **Fields carry no offset annotations.** The layout is already expressed by the
 field types and fixed by `STATIC_ASSERT_SIZEOF`, nothing parses the annotations,
 and a trailing `/* 0x1A */` sits in exactly the column the documentation needs.

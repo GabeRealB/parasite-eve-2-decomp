@@ -35,15 +35,15 @@ STATIC_ASSERT_SIZEOF(TmdBone, 0x24);
 /// record is the shipped, constant description, while the buffer a model is
 /// decoded into and the per-part coordinate array belong to the object.
 typedef struct TmdSource {
-    s32      field_0;   // One-shot flag: 0 as shipped, set once the stream's opcodes have been resolved to handlers
-    s32      field_4;   // Size of one half of the decode buffer in bytes; the object allocates twice this
-    s32      field_8;   // Size of the first of a half's two prim regions, i.e. the offset the second starts at
-    s32      partCount; // Parts the model is divided into; one bone each
-    u32*     partVerts; // Vertex count per part, summing to the vertex array's length
-    SVECTOR* field_14;  // Vertices, grouped by part
-    SVECTOR* field_18;  // Normals, indexed independently of the vertices
-    TmdBone* skeleton;  // Rest pose: one bone per part, carrying its parent index
-    u32*     field_20;  // Packet stream, the drawing instructions for the model's parts
+    s32      handlersResolved; // One-shot flag: 0 as shipped, set once the stream's opcodes have been resolved to handlers
+    s32      halfSize;         // Size of one half of the decode buffer in bytes; the object allocates twice this
+    s32      firstRegionSize;  // Size of the first of a half's two prim regions, i.e. the offset the second starts at
+    s32      partCount;        // Parts the model is divided into; one bone each
+    u32*     partVerts;        // Vertex count per part, summing to the vertex array's length
+    SVECTOR* verts;            // Vertices, grouped by part
+    SVECTOR* normals;          // Normals, indexed independently of the vertices
+    TmdBone* skeleton;         // Rest pose: one bone per part, carrying its parent index
+    u32*     stream;           // Packet stream, the drawing instructions for the model's parts
 } TmdSource;
 STATIC_ASSERT_SIZEOF(TmdSource, 0x24);
 
@@ -55,25 +55,25 @@ struct _TmdListHead;
 /// `Task::extra` and set `Task::spawnType = 1`, `Task_Kill`'s type-1 path ORs
 /// 0x80 into `field_C` of that same pointer, and `Gp_FreeTmd` releases it. The
 /// spawnType-2 alternative (`Gp_AttachDisp2d`) is a different object,
-/// `GpDisp2d`, sharing only the `next` / `prev` / `field_8` / `field_C` prefix.
-/// This type was also modelled separately as `GameActorExt` (0x24, `field_8` as
+/// `GpDisp2d`, sharing only the `next` / `prev` / `firstRegionSize` / `field_C` prefix.
+/// This type was also modelled separately as `GameActorExt` (0x24, `firstRegionSize` as
 /// `s32*`, 0x0E..0x17 padded over); that duplicate is gone.
 ///
 /// `Tmd_Create` allocates the header and the per-part coordinate array as one
-/// `Mem_Calloc(partCount * 0x50 + 0x34, 0)` block, then points `field_8` at
-/// `(u8*)this + 0x34`, so `field_8` is this object's own trailing
+/// `Mem_Calloc(partCount * 0x50 + 0x34, 0)` block, then points `firstRegionSize` at
+/// `(u8*)this + 0x34`, so `firstRegionSize` is this object's own trailing
 /// `GsCOORDINATE2[field_30]`. The init loop writes each element's `coord`
 /// (+0x04, 0x20 bytes copied from the matching `TmdBone`), clears `flg` (+0x00)
 /// and links `sub` (+0x4C) to the parent part or `Gfx_ViewCoord`, which is why
-/// every caller walks `field_8` with a 0x50 stride and why `Display_SpawnFromMode`
+/// every caller walks `firstRegionSize` with a 0x50 stride and why `Display_SpawnFromMode`
 /// can clear the root `flg` through it.
 ///
 /// `field_C` starts at 0x80 and gains bit 0x4 when `Tmd_Create`'s `flags & 1`.
 /// `Task_Kill` ORs 0x80 (type-1 deferred kill); `Gp_WaitItemFlag2` writes 8 on
-/// first run and clears bit 0x8 before `Task_CallExit`. A non-NULL `field_18`
+/// first run and clears bit 0x8 before `Task_CallExit`. A non-NULL `normals`
 /// lets `Gp_UpdateActorColor` rebuild the color matrix even when
 /// `Game_Session->field_65 == 1` (unless bit 0x80 of `field_C` is set).
-/// `field_1C` / `field_20` are the light and color matrices `Tmd_SetupDraw`
+/// `field_1C` / `stream` are the light and color matrices `Tmd_SetupDraw`
 /// loads (`GsLIGHTWSMATRIX` / `D_80074080` by default, `Gp_DefaultMtx` /
 /// `Gp_DefaultMtx2` after `Gp_BindDefaultMtx`).
 typedef struct _TmdObject {

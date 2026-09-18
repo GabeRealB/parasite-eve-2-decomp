@@ -281,14 +281,14 @@ void func_dryfield_dilapidated_house_80180B84(Task* task)
     source = ((TmdObject*)task->extra)->field_10;
     dst    = rec->field_8;
     dst2   = (SVECTOR*)rec->field_C;
-    verts  = source->field_14;
+    verts  = source->verts;
     for (i = 0; i < rec->field_10; i++) {
         dst[i].vx = verts[i].vx;
         dst[i].vy = verts[i].vy;
         dst[i].vz = verts[i].vz;
     }
     if (rec->field_4 != 0) {
-        src2 = source->field_18;
+        src2 = source->normals;
         for (i = 0; i < rec->field_12; i++) {
             dst2[i].vx = src2[i].vx;
             dst2[i].vy = src2[i].vy;

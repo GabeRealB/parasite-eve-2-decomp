@@ -164,6 +164,18 @@ Everything below is specified in NAMING.md; read it if anything here is unclear.
    else says what a 2 means. The test: would the sentence still be true and
    still be useful if a neighbouring function were renamed?
 
+   **Name the parameters too**, in the prototype and the definition alike. A
+   signature reading \`(s32 arg0, s32 arg1)\` tells a caller nothing, and
+   naming them in only one of the two places leaves one function with two
+   signatures. \`rename_item.py <file>/<function>::<param> <newName>\` matches
+   by position and rewrites both.
+
+   **A field you can describe is a field you can name.** Leaving a field called
+   \`field_14\` while writing a comment stating its role contradicts itself:
+   the offset name means the role is unknown. Rename it from the same reading -
+   member renames go through rename_item.py as \`<header>/<Type>::<field>\` -
+   and keep \`field_XX\` only where the role really is unproven.
+
    Mentions of
    the old name in comments elsewhere are rewritten by rename_item.py; check
    that what they now say is still true, since a renamed mention can leave a

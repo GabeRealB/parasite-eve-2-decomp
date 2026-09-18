@@ -83,8 +83,8 @@ void Tmd_InitSourceStream(TmdSource* arg0)
     s32                   flag;
     u32                   tmp;
 
-    stream = arg0->field_20;
-    if (arg0->field_0 == 0) {
+    stream = arg0->stream;
+    if (arg0->handlersResolved == 0) {
         tmp  = *(u32*)&Game_Session->field_4;
         tmp  = (tmp & 0xFFFF0000) ^ 0x02100000;
         flag = tmp < 1;
@@ -301,7 +301,7 @@ void Tmd_InitSourceStream(TmdSource* arg0)
             }
         }
     done:
-        arg0->field_0 = 1;
+        arg0->handlersResolved = 1;
     }
 }
 
@@ -323,7 +323,7 @@ void Tmd_ProcessStream(TmdObject* arg0)
     scratch  = (void**)G_SCRATCH_HEAD;
     src      = arg0->field_10;
     tmp      = *scratch;
-    stream   = src->field_20;
+    stream   = src->stream;
     hi       = *(u32*)&Game_Session->field_4;
     head     = (TmdScratchModelBlock*)((u8*)tmp - 0x88);
     hi      &= 0xFFFF0000;
@@ -340,10 +340,10 @@ void Tmd_ProcessStream(TmdObject* arg0)
         ws->field_0 = (u8*)buf + arg0->field_16;
     }
     ws->field_4     = ws->field_0;
-    ws->field_0     = (u8*)ws->field_0 + src->field_8;
+    ws->field_0     = (u8*)ws->field_0 + src->firstRegionSize;
     arg0->field_14 ^= 1;
-    ws->field_8     = (s32)arg0->field_10->field_14;
-    ws->field_C     = (s32)arg0->field_10->field_18;
+    ws->field_8     = (s32)arg0->field_10->verts;
+    ws->field_C     = (s32)arg0->field_10->normals;
     ws->field_70    = (s8)arg0->field_24;
     ws->field_72    = (s8)arg0->field_25 << 6;
     goto read_id;
@@ -507,7 +507,7 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags)
         obj->field_8  = (GsCOORDINATE2*)(obj + 1);
         obj->field_14 = 0;
         coord         = obj->field_8;
-        obj->field_16 = src->field_4;
+        obj->field_16 = src->halfSize;
         obj->field_1C = &GsLIGHTWSMATRIX;
         obj->field_20 = &D_80074080;
         obj->field_24 = 0;
@@ -527,7 +527,7 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags)
         }
         obj->field_18 = NULL;
         if (flags == 0) {
-            mem = Mem_Calloc(src->field_4 * 2, 1);
+            mem = Mem_Calloc(src->halfSize * 2, 1);
             if (mem != NULL) {
                 obj->field_18 = mem;
                 Tmd_ProcessStream(obj);
@@ -566,7 +566,7 @@ void Tmd_SetupDraw(TmdObject* arg0)
 
         p            = arg0->field_10;
         tmp          = *scratch;
-        stream       = p->field_20;
+        stream       = p->stream;
         disp         = Display_State.field_128;
         ws           = (TmdScratchDrawBlock*)((u8*)tmp - 0x98);
         ws->field_80 = arg0;
@@ -579,13 +579,13 @@ void Tmd_SetupDraw(TmdObject* arg0)
         ws->field_0 = (u8*)bufptr + arg0->field_16;
     }
     ws->field_4     = ws->field_0;
-    ws->field_0     = (u8*)ws->field_0 + arg0->field_10->field_8;
+    ws->field_0     = (u8*)ws->field_0 + arg0->field_10->firstRegionSize;
     arg0->field_14 ^= 1;
-    ws->field_8     = (s32)arg0->field_10->field_14;
+    ws->field_8     = (s32)arg0->field_10->verts;
     COMPILER_BARRIER();
     ot           = Gpu_CurrentOt;
     p            = arg0->field_10;
-    field18      = (s32)p->field_18;
+    field18      = (s32)p->normals;
     ws->field_14 = ot;
     ws->field_C  = field18;
     e            = arg0->field_E;
@@ -678,7 +678,7 @@ s32 Tmd_AllocBuffers(TmdObject* arg0)
 
     result = 0;
     if (arg0->field_18 == NULL) {
-        mem            = Mem_Calloc(arg0->field_10->field_4 * 2, 1);
+        mem            = Mem_Calloc(arg0->field_10->halfSize * 2, 1);
         arg0->field_18 = mem;
         if (mem != NULL) {
             arg0->field_14 = 0;
@@ -699,7 +699,7 @@ s32 Tmd_SumBufferBytes(void)
     node   = Tmd_List.next;
     while (node != NULL) {
         if (node->field_18 != NULL) {
-            result += node->field_10->field_4 * 2;
+            result += node->field_10->halfSize * 2;
         }
         node = node->next;
     }
@@ -714,7 +714,7 @@ void Tmd_RewriteOpcodes(TmdSource* arg0)
     u32  lo;
     u32  stop;
 
-    stream = arg0->field_20;
+    stream = arg0->stream;
     if (*stream != -1U) {
         stop = -2;
         do {
@@ -825,7 +825,7 @@ void Tmd_AllocMissingBuffers(void)
     while (node != NULL) {
         if (node->field_18 == NULL) {
             if (!(node->field_C & 4)) {
-                mem = Mem_Calloc(node->field_10->field_4 * 2, 1);
+                mem = Mem_Calloc(node->field_10->halfSize * 2, 1);
                 if (mem != NULL) {
                     node->field_18 = mem;
                     node->field_14 = 0;
@@ -846,7 +846,7 @@ void Tmd_AllocNodeBuffers(Task* arg0)
     node = Tmd_List.next;
     while (node != NULL) {
         if (node->field_18 == NULL) {
-            mem = Mem_Calloc(node->field_10->field_4 * 2, 1);
+            mem = Mem_Calloc(node->field_10->halfSize * 2, 1);
             if (mem != NULL) {
                 node->field_18 = mem;
                 node->field_14 = 0;

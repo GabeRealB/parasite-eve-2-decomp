@@ -518,6 +518,18 @@ def prefilter_tus(root: str, token: str, candidates: list[str], decl_file: str |
 # --------------------------------------------------------------------------
 
 
+def _both(a, b, text):
+    """Matches of either pattern, in source order, without duplicates."""
+    seen, out = set(), []
+    for m in sorted(list(a.finditer(text)) + list(b.finditer(text)),
+                    key=lambda m: m.start()):
+        if m.start() in seen:
+            continue
+        seen.add(m.start())
+        out.append(m)
+    return out
+
+
 def comment_refs(root: str, token: str, owner: str | None = None,
                  only_files=None) -> list:
     """Whole-word mentions of the identifier inside comments.
@@ -527,11 +539,11 @@ def comment_refs(root: str, token: str, owner: str | None = None,
     rename that leaves them behind turns every one of them into a lie pointing
     at a name that no longer exists.
     """
-    # A parameter name like `arg2` occurs in every function's prose, so a
-    # mention only means this symbol when it sits in a file that declares it.
-    scope = sorted(only_files) if only_files else ["src", "include"]
-    if not scope:
-        return []
+    # A mention that names the owner - `Owner::field` - is unambiguous wherever
+    # it appears. An unqualified one is not: `->field_0` or a backticked
+    # `arg2` occurs in the prose of hundreds of unrelated symbols, so those
+    # count only in files that really reference this one.
+    scope = ["src", "include"]
     try:
         out = subprocess.run(
             ["grep", "-rnw", "--include=*.c", "--include=*.h", token] + scope,
@@ -544,10 +556,17 @@ def comment_refs(root: str, token: str, owner: str | None = None,
     # mention to be qualified - `Type::field`, `->field`, `.field` - or set in
     # backticks, which is how this codebase cites a symbol.
     t = re.escape(token)
-    pats = [rf"`{t}`", rf"->\s*{t}\b", rf"\.{t}\b", rf"\b\w+::{t}\b"]
+    # Only this owner qualifies a mention. `\w+::field_0` would match every
+    # other type's field_0 just as happily.
     if owner:
-        pats.append(rf"\b{re.escape(owner)}::{t}\b")
-    word = re.compile("|".join(pats))
+        o = re.escape(owner)
+        qualified = [rf"\b{o}::{t}\b", rf"\b{o}\.{t}\b", rf"`{o}::{t}`"]
+    else:
+        qualified = [rf"`{t}`", rf"\b{t}\b"]
+    loose = [rf"`{t}`", rf"->\s*{t}\b", rf"\.{t}\b"]
+    qual_re = re.compile("|".join(qualified))
+    loose_re = re.compile("|".join(loose))
+    scoped = {os.path.normpath(f) for f in (only_files or ())}
     refs = []
     for row in out:
         try:
@@ -556,7 +575,10 @@ def comment_refs(root: str, token: str, owner: str | None = None,
             continue
         stripped = text.lstrip()
         line_comment = text.find("//")
-        for m in word.finditer(text):
+        # An unqualified mention only counts where the symbol is really used.
+        here = qual_re if (only_files is not None
+                           and os.path.normpath(path) not in scoped) else None
+        for m in (here or qual_re).finditer(text) if here else _both(qual_re, loose_re, text):
             # Inside a `///`, `//`, `*` or `/*` line, or after a trailing `//`.
             in_block = stripped.startswith(("///", "//", "*", "/*"))
             in_trailing = line_comment != -1 and m.start() > line_comment

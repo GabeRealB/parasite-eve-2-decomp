@@ -189,7 +189,8 @@ def main() -> int:
     # Prose mentions are not compiler references, but a rename that skips them
     # leaves the codebase describing a name that no longer exists.
     comments = [] if args.no_comments else cref.comment_refs(root, spec.token, spec.owner,
-                                     only_files={r.file for r in refs} if kind == 'parameter' else None)
+                                     only_files={r.file for r in refs}
+                                     if kind in ('parameter', 'field') else None)
     # Aliases share a declaration, so references to the typedef come back when
     # the tag is asked about. Only the spelling actually asked for is rewritten;
     # the other alias is a different name with its own rename.
