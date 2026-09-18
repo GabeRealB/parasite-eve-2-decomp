@@ -123,14 +123,18 @@ typedef struct Actor105600Work {
     /* 0x69A */ byte pad_69A[2];
     /* 0x69C */ s16  field_69C; ///< forward speed, applied along the root Z axis
     /* 0x69E */ s16  field_69E; ///< non-zero runs the turn helper
-    /* 0x6A0 */ byte pad_6A0[6];
+    /* 0x6A0 */ byte pad_6A0[2];
+    /* 0x6A2 */ s16  field_6A2; ///< yaw the root coordinate currently faces
+    /* 0x6A4 */ s16  field_6A4; ///< yaw the actor wants to face
     /* 0x6A6 */ s16  field_6A6; ///< state-machine step, indexes the handler table
     /* 0x6A8 */ s16  field_6A8;
     /* 0x6AA */ byte pad_6AA[2];
     /// Awake variant the actor was placed in (bit 0 of the placement record's
     /// `field_2`); non-zero starts it on the longer approach.
     /* 0x6AC */ s16  field_6AC;
-    /* 0x6AE */ byte pad_6AE[6];
+    /* 0x6AE */ s16  field_6AE;
+    /* 0x6B0 */ byte pad_6B0[2];
+    /* 0x6B2 */ s16  field_6B2; ///< non-zero forces the state-F0 path
     /* 0x6B4 */ s16  field_6B4; ///< non-zero runs the tilt helper
     /* 0x6B6 */ byte pad_6B6[2];
     /* 0x6B8 */ s16  field_6B8;
@@ -142,7 +146,7 @@ typedef struct Actor105600Work {
     /* 0x6D8 */ byte pad_6D8[2];
     /// Approach budget, 1000 per unit of the placement record's byte 1.
     /* 0x6DA */ s16  field_6DA;
-    /* 0x6DC */ byte pad_6DC[2];
+    /* 0x6DC */ s16  field_6DC;
     /* 0x6DE */ s16  field_6DE; ///< below 2 the actor also drifts upward
     /* 0x6E0 */ s16  field_6E0;
     /* 0x6E2 */ byte pad_6E2[2];
