@@ -696,7 +696,7 @@ s32 Tmd_SumBufferBytes(void)
     s32        result;
 
     result = 0;
-    node   = Tmd_List.next;
+    node   = gTmdList.next;
     while (node != NULL) {
         if (node->field_18 != NULL) {
             result += node->field_10->halfSize * 2;
@@ -767,7 +767,7 @@ void Tmd_FlagAllNodes(TmdObject* arg0)
 {
     TmdObject* node;
 
-    node = Tmd_List.next;
+    node = gTmdList.next;
     while (node != NULL) {
         node->field_C |= 0x80;
         node           = node->next;
@@ -779,7 +779,7 @@ void Tmd_FreeNodeBuffers(TmdObject* arg0)
 {
     TmdObject* node;
 
-    node = Tmd_List.next;
+    node = gTmdList.next;
     while (node != NULL) {
         if (node->field_18 != NULL) {
             Mem_Free2(node->field_18, 1);
@@ -802,7 +802,7 @@ void Gpu_ResetGraphAndOt(void)
 {
     TmdObject* node;
 
-    node = Tmd_List.next;
+    node = gTmdList.next;
     ResetGraph(1);
     Gpu_ClearOTag(0);
     Gpu_ClearOTag(1);
@@ -819,7 +819,7 @@ void Tmd_AllocMissingBuffers(void)
     TmdObject* node;
     void*      mem;
 
-    node = Tmd_List.next;
+    node = gTmdList.next;
     Mem_InitAux();
     CdCmd_SetupMdecBuffers();
     while (node != NULL) {
@@ -843,7 +843,7 @@ void Tmd_AllocNodeBuffers(Task* arg0)
     TmdObject* node;
     void*      mem;
 
-    node = Tmd_List.next;
+    node = gTmdList.next;
     while (node != NULL) {
         if (node->field_18 == NULL) {
             mem = Mem_Calloc(node->field_10->halfSize * 2, 1);

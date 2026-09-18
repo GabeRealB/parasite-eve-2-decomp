@@ -55,8 +55,8 @@ void Pad_Init(void)
 void Tmd_InitLists(void)
 {
     D_80071210       = 0;
-    Tmd_List.next    = NULL;
-    Tmd_List.prev    = &Tmd_List;
+    gTmdList.next    = NULL;
+    gTmdList.prev    = &gTmdList;
     Tmd_ListAlt.next = NULL;
     Tmd_ListAlt.prev = &Tmd_ListAlt;
 }

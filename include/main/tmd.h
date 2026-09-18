@@ -49,8 +49,8 @@ STATIC_ASSERT_SIZEOF(TmdSource, 0x24);
 
 struct _TmdListHead;
 
-/// Node in the Tmd_List linked list (tmd.c TMD/model objects), and the object a
-/// spawnType-1 `Task` carries in `Task::extra`: `Gp_AttachTmd` /
+/// An attached model body: an element of `gTmdList` and the object a
+/// spawnType-1 `Task` carries in `Task::extra`. `Gp_AttachTmd` /
 /// `Gp_AttachTmdFlags` store the `Tmd_Create` result straight into
 /// `Task::extra` and set `Task::spawnType = 1`, `Task_Kill`'s type-1 path ORs
 /// 0x80 into `field_C` of that same pointer, and `Gp_FreeTmd` releases it. The
@@ -78,7 +78,7 @@ struct _TmdListHead;
 /// `Gp_DefaultMtx2` after `Gp_BindDefaultMtx`).
 typedef struct _TmdObject {
     /* 0x00 */ struct _TmdObject*   next;
-    /* 0x04 */ struct _TmdListHead* prev;    // Tmd_List / Tmd_ListAlt back link
+    /* 0x04 */ struct _TmdListHead* prev;    // Previous node, or the head sentinel
     /* 0x08 */ GsCOORDINATE2*       field_8; // trailing per-part coord array, `this + 0x34`
     /* 0x0C */ u16                  field_C;
     /* 0x0E */ s8                   field_E;
@@ -99,18 +99,24 @@ typedef struct _TmdObject {
 } TmdObject;
 STATIC_ASSERT_SIZEOF(TmdObject, 0x34);
 
-/// Sentinel list head for TmdObject (and similar) intrusive lists.
-/// Same layout as TaskNode: next is the first element, prev is the last
-/// (or &self when the list is empty). Initialized by Tmd_InitLists.
+/// Sentinel at the head of an intrusive list whose elements carry their own
+/// `next` and `prev` as their first two fields. `next` is the first element,
+/// NULL when the list is empty; `prev` is the last element, or the sentinel
+/// itself when it is empty.
 typedef struct _TmdListHead {
     /* 0x00 */ TmdObject*           next;
     /* 0x04 */ struct _TmdListHead* prev;
 } TmdListHead;
 STATIC_ASSERT_SIZEOF(TmdListHead, 0x8);
 
-/// Head of the TmdObject linked list used by tmd.c TMD/model helpers.
-extern TmdListHead Tmd_List;
-/// Second list head initialized alongside Tmd_List by Tmd_InitLists.
+/// Head of the model list: the anchor every attached `TmdObject` hangs from.
+///
+/// A model is linked here when its task attaches it and unlinked when the task
+/// releases it, so the list is the model subsystem's whole view of what is
+/// currently loaded. The size, buffer, draw and free passes work from it
+/// instead of walking the task list.
+extern TmdListHead gTmdList;
+/// Second list head initialized alongside gTmdList by Tmd_InitLists.
 extern TmdListHead Tmd_ListAlt;
 /// Cleared by Tmd_InitLists during system init.
 extern s32 D_80071210;

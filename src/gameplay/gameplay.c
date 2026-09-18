@@ -460,7 +460,7 @@ void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
         } while (node != NULL);
     }
 
-    node = Tmd_List.next;
+    node = gTmdList.next;
     if (node != NULL) {
         do {
             coord = (GsCOORDINATE2*)node->field_8;
@@ -635,7 +635,7 @@ void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
     }
 
     D_80071210 += 1;
-    Tmd_DrawFlaggedNodes(Tmd_List.next);
+    Tmd_DrawFlaggedNodes(gTmdList.next);
 }
 
 void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
@@ -824,7 +824,7 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
         } while (node != NULL);
     }
 
-    node = Tmd_List.next;
+    node = gTmdList.next;
     if (node != NULL) {
         do {
             coord = (GsCOORDINATE2*)node->field_8;
@@ -999,7 +999,7 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
     }
 
     D_80071210 += 1;
-    Tmd_DrawActiveNodes(Tmd_List.next);
+    Tmd_DrawActiveNodes(gTmdList.next);
 }
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0)
@@ -1027,7 +1027,7 @@ void* Gp_AttachTmd(Task* task, TmdSource* src)
 
     node = (TmdListHead*)Tmd_Create(src, 0);
     if (node != NULL) {
-        list            = &Tmd_List;
+        list            = &gTmdList;
         last            = list->prev;
         node->next      = last->next;
         last->next      = (TmdObject*)node;
@@ -1090,7 +1090,7 @@ void* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags)
 
     node = (TmdListHead*)Tmd_Create(src, flags);
     if (node != NULL) {
-        list            = &Tmd_List;
+        list            = &gTmdList;
         last            = list->prev;
         node->next      = last->next;
         last->next      = (TmdObject*)node;
@@ -1110,7 +1110,7 @@ void Gp_UnlinkTmd(TmdListHead* arg0)
 
     next = (TmdListHead*)arg0->next;
     if (next == NULL) {
-        pp = &Tmd_List.prev;
+        pp = &gTmdList.prev;
     } else {
         pp = &next->prev;
     }
@@ -1152,10 +1152,10 @@ void Gp_FreeDisp2d(void* arg0)
 
 void Gp_StashTmdLists(void)
 {
-    Gp_TmdListStash    = Tmd_List;
+    Gp_TmdListStash    = gTmdList;
     Gp_TmdListAltStash = Tmd_ListAlt;
-    Tmd_List.next      = NULL;
-    Tmd_List.prev      = &Tmd_List;
+    gTmdList.next      = NULL;
+    gTmdList.prev      = &gTmdList;
     Tmd_ListAlt.next   = NULL;
     Tmd_ListAlt.prev   = &Tmd_ListAlt;
     Gp_TmdStashTask    = Task_Spawn(0, 0x1A, 0, 0);
@@ -1164,7 +1164,7 @@ void Gp_StashTmdLists(void)
 void Gp_RestoreTmdLists(void)
 {
     Task_CallExit(Gp_TmdStashTask);
-    Tmd_List    = Gp_TmdListStash;
+    gTmdList    = Gp_TmdListStash;
     Tmd_ListAlt = Gp_TmdListAltStash;
 }
 

@@ -23372,10 +23372,13 @@ logic but `-fdelayed-branch` parks `addiu v0,v0,4` in the `bnez` delay slot
 and drops the `j`. `Task_Kill`'s inline unlink and `Gp_UnlinkDisp2d` both need
 the `== NULL` form.
 
-The tail must also be a **standalone symbol** (`extern TmdListHead* D_800711C4`,
-then `&D_800711C4`). `&Tmd_ListAlt.prev` CSEs to `Tmd_ListAlt+4` and enables
-the same delay-slot fill even with `== NULL`. Overlay imports already split
-that field off as `D_800711C4`.
+The tail needs no symbol of its own: the field access is what the target emits.
+Where the function already holds the head's address the target reuses that
+register and puts `addiu v0, v0, 0x4` in the `j` delay slot — `Task_Kill`'s
+inline unlink, `Gp_UnlinkTmd` and `Gp_UnlinkDisp2d` all match as `&<head>.prev`.
+An interior alias for the field (`D_800711C4`-style) is what the overlay import
+lists used to carry and no longer do, so a body that matches with the field
+access should keep it.
 
 ## Two `arr[i].field` loads CSE into same-reg table select
 
@@ -130449,3 +130452,22 @@ at the whole image area from its base — which is where the primary heap itself
 starts — so the installed base is not always a region of its own. A body that
 reads a base and the size beside it as one unit is reading the pair as the game
 wrote it, not two unrelated globals.
+
+## A sentinel head can serve several lists, so its element field names one of them
+
+An intrusive list whose elements carry the links themselves can be headed by a
+sentinel of the same shape as those links, and one such head type can serve more
+than one list as long as the element types agree on their leading fields.
+`TmdListHead` heads both the model list and the 2D-display list: its `next` is
+declared as the model type, and the display list's nodes — `GpDisp2d`, whose
+first two fields are the same `next` / `prev` — are reached through the model
+type everywhere only the links are wanted, with a cast at the few sites that
+reach a link through an element pointer.
+
+So the element type in a head's `next` says which list the type was written for,
+not what every list it heads holds, and a head layout matching another type's is
+not by itself a duplicate: the task subsystem's `TaskNode` is embedded by name in
+the element it links, while these body lists make the links their element's own
+first fields, and the element type is what keeps the two apart. The append and
+the unlink are the two sites that write the links, and they are where every list
+a head serves becomes visible.
