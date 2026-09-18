@@ -131,8 +131,8 @@ void func_replay_bonus_801159A0(Task* arg0)
                     imgWidth += 0xF;
                 }
                 if (strip == (imgWidth >> 4) - 1) {
-                    Mem_Free2(D_replay_bonus_8011925C, 1);
-                    Mem_Free2(D_replay_bonus_80119260, 1);
+                    memFreeFromHeap(D_replay_bonus_8011925C, 1);
+                    memFreeFromHeap(D_replay_bonus_80119260, 1);
                     Task_RequestKill(arg0, 0);
                     return;
                 }

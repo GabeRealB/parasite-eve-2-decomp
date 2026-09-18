@@ -1122,7 +1122,7 @@ void Gp_UnlinkTmd(TmdListHead* arg0)
 void Gp_FreeTmd(TmdObject* arg0)
 {
     if (arg0->field_18 != NULL) {
-        Mem_Free2(arg0->field_18, 1);
+        memFreeFromHeap(arg0->field_18, 1);
         arg0->field_18 = NULL;
     }
     Mem_Free(arg0);

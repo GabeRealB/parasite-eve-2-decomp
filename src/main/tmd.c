@@ -666,7 +666,7 @@ void Tmd_SetupDraw(TmdObject* arg0)
 void Tmd_FreeBuffers(TmdObject* arg0)
 {
     if (arg0->field_18 != NULL) {
-        Mem_Free2(arg0->field_18, 1);
+        memFreeFromHeap(arg0->field_18, 1);
         arg0->field_18 = NULL;
     }
 }
@@ -782,7 +782,7 @@ void Tmd_FreeNodeBuffers(TmdObject* arg0)
     node = gTmdList.next;
     while (node != NULL) {
         if (node->field_18 != NULL) {
-            Mem_Free2(node->field_18, 1);
+            memFreeFromHeap(node->field_18, 1);
             node->field_18 = NULL;
         }
         node = node->next;

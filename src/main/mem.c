@@ -165,7 +165,7 @@ void Mem_Free(void* ptr)
     free3(ptr);
 }
 
-void Mem_Free2(void* ptr, bool auxHeap)
+void memFreeFromHeap(void* ptr, bool auxHeap)
 {
     if (auxHeap == true) {
         _freep = gMemActiveAuxHeap;

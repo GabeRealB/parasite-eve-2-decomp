@@ -59,19 +59,21 @@ void* Mem_Calloc(size_t size, bool auxHeap);
 /// Frees an allocated pointer.
 ///
 /// Prior to freeing the data, the primary heap is set to be active.
-/// Is equivalent to `Mem_Free2(ptr, false)`.
+/// Is equivalent to `memFreeFromHeap(ptr, false)`.
 ///
 /// @param ptr Pointer to the data to be freed.
 void Mem_Free(void* ptr);
 
-/// Frees an allocated pointer.
+/// Frees a block, returning it to the heap `auxHeap` selects.
 ///
-/// Prior to freeing the data, it sets the active the heap.
-/// See `Mem_SetActiveHeap` for more details.
+/// A block has to be released to the heap it was taken from, so the caller
+/// says which one instead of the function assuming the primary heap.
+/// `Mem_Free` is the primary-heap-only form.
 ///
 /// @param ptr Pointer to the data to be freed.
-/// @param auxHeap Controlls from which heap the pointer must be freed.
-void Mem_Free2(void* ptr, bool auxHeap);
+/// @param auxHeap If `true`, the block is freed from the active auxiliary
+///                heap, otherwise from the primary one.
+void memFreeFromHeap(void* ptr, bool auxHeap);
 
 /// Switches between the primary heap and the auxiliary heap.
 ///

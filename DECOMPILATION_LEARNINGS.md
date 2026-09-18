@@ -130423,13 +130423,20 @@ substitution and are found only by grepping the notes for the retired names.
 
 ## The heap wrappers are libapi `heap3`, and writing `_freep` is what selects a heap
 
-`Mem_Malloc`, `Mem_Calloc`, `Mem_Free` and `Mem_Free2` own no allocator: each
-points libapi's `_freep` at a heap and calls `malloc3` / `free3`. In libapi,
+`Mem_Malloc`, `Mem_Calloc`, `Mem_Free` and `memFreeFromHeap` own no allocator:
+each points libapi's `_freep` at a heap and calls `malloc3` / `free3`. In libapi,
 `_freep` is the block that those two routines begin their search from inside
 one heap's free-block ring. `InitHeap3` sets it to the heap it initializes, and
 the pair move it as that heap's blocks are taken and released — so each heap is
 a ring of its own, and pointing `_freep` at one is what makes it the active
 heap. The wrappers' `auxHeap` flag is that assignment and nothing else.
+
+Each wrapper writes that assignment out rather than calling `Mem_SetActiveHeap`:
+no wrapper's body contains a `jal` to it, so the repeated `lui` / `lw` / `sw` is
+the source's shape and not a call the compiler had inlined. `-O2` here inlines
+nothing it was not asked to, so a body that calls the shared setter emits a
+`jal` the target does not have. The repetition is what matches; do not factor it
+out.
 
 The base it is pointed at is storage rather than an immediate, so the target
 loads it:
