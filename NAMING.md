@@ -272,6 +272,35 @@ and a trailing `/* 0x1A */` sits in exactly the column the documentation needs.
 An unproven field keeps its `field_XX` name, which carries the offset in the one
 place it is still wanted.
 
+### What a matching build proves
+
+Two things may be relied on: that the project matches, and whatever has already
+been verified and handled. Everything else in the tree is a hypothesis that
+happened to compile.
+
+A matching checksum proves the compiler emitted the same instructions. It
+constrains a field's declared type only where the code actually accesses it,
+because that is where width and signedness appear in the instruction stream. It
+proves nothing about:
+
+- **A field nothing reads.** Its type, its signedness, even whether it is one
+  field or several, are unconstrained — any layout-compatible declaration
+  matches. A run of unknown bytes may be one word, two halves or a bitmask.
+- **Type identity.** Two separately named structs may be one type, invented
+  twice. `GpArcScratch` and `RoomDraw07Scratch` have byte-identical layouts and
+  contradict each other about their own fields — `inner` / `outer` against
+  `rOuter` / `rInner`, in the opposite order. One of them is wrong, and nothing
+  in the build can say which.
+- **Any name.** A name is an earlier reader's hypothesis and carries no more
+  authority than a comment.
+
+So a struct is a *layout known to be compatible*, not a type known to be right.
+When working on one, use the access sites to establish which fields are actually
+pinned — `find_references.py` reports them with read/write classification — and
+say which fields are settled and which are merely plausible. Where two types look
+alike, whether they are one type is an open question worth asking, not an
+observation to note and move past.
+
 ### Existing comments are not evidence
 
 Assume the documentation already in the tree is wrong. It may have been written
