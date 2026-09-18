@@ -2932,7 +2932,109 @@ void Actor01900_Fn0892C(Actor01900* arg0)
     Actor01900_ResetYaw(arg0->field_2C->field_8 + 10);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn09694);
+/// Whether any of the three `GpRec18` at `records` carries an id with high
+/// word 1, stopping at the first empty record.
+static __inline__ s32 Actor01900_HasHit(GpRec18* records)
+{
+    s16 i;
+
+    for (i = 0; i < 3; i++) {
+        if (!records[i].field_4)
+            break;
+        if ((records[i].field_4 & 0xFFFF0000) == 0x10000) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/// Entered from a state change: rebuilds the model buffers and arms the player
+/// if they are level with the actor, then each step turns the root coordinate
+/// toward the player by at most 0x30, rescales it by 0x1194, and once the
+/// actor is out of range of the player hands the work state on.
+void Actor01900_Fn09694(Actor01900* arg0)
+{
+    Actor01900Work*       work;
+    TmdObject*            obj;
+    GsCOORDINATE2*        coord;
+    GsCOORDINATE2*        facing;
+    GsCOORDINATE2*        src;
+    Actor01900AimScratch* aim;
+    Actor01900AimScratch* head;
+    Actor01900AimScratch* next;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0x180;
+        work->field_898          = 1;
+        work->field_8A2          = 0x10;
+        work->field_89E          = 4;
+        work->field_89A          = 0;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   |= 0x4000;
+        Actor01900_Fn01C94(arg0);
+        work->field_C40 = 0;
+        if (*(u16*)work->field_C34 != 0x301) {
+            Actor01900_ArmIfPlayerLevel(arg0);
+        }
+        work->field_6          = 0;
+        work->field_8          = 0;
+        work->field_B48.flags &= 0x7FFF;
+        return;
+    }
+    work->field_6++;
+    if (work->field_6 == 0x16) {
+        work->field_B48.flags |= 0x8000;
+    }
+    if (work->field_6 == 0x1D) {
+        work->field_B48.flags &= 0x7FFF;
+    }
+    if (Actor01900_HasHit(&work->field_B68) == 1) {
+        work->field_B48.flags &= 0x7FFF;
+    }
+
+    head              = *(Actor01900AimScratch**)G_SCRATCH_HEAD;
+    next              = head - 1;
+    src               = arg0->field_2C->field_8;
+    head[-1].delta.vx = Wip_SysConfig.field_4->t[0] - src->coord.t[0];
+    SOFT_USE_REG(next);
+    aim            = next;
+    next->delta.vy = Wip_SysConfig.field_4->t[1] - src->coord.t[1];
+    next->delta.vz = Wip_SysConfig.field_4->t[2] - src->coord.t[2];
+
+    *(Actor01900AimScratch**)G_SCRATCH_HEAD = next;
+    arg0->field_2C->field_8->flg            = 0;
+    Actor01900_Fn01C94(arg0);
+    if (work->field_6 < 0xE) {
+        coord = arg0->field_2C->field_8;
+        aim->angle =
+            Actor01900_NormalizeYaw(ratan2(next->delta.vx, next->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        work->field_8AE = aim->angle;
+        if (aim->angle > 0x30) {
+            aim->angle = 0x30;
+        }
+        if (aim->angle < -0x30) {
+            aim->angle = -0x30;
+        }
+        facing      = arg0->field_2C->field_8;
+        aim->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+        Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, aim->angle, 1);
+        Actor01900_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    }
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_68 & 0x100) {
+        if (Actor01900_OutOfRange(&aim->delta, 0x2BC)) {
+            work->field_0 = 6;
+        } else {
+            work->field_0 = 0xE;
+        }
+    }
+    *(Actor01900AimScratch**)G_SCRATCH_HEAD += 1;
+}
 
 void Actor01900_Fn09BE8(Actor01900* arg0)
 {

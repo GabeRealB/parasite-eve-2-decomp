@@ -86350,6 +86350,36 @@ value used next to it, check the *ref count* of the pointer before touching its
 live range: the memory-bound value must not be the same pseudo as the one the
 body uses later.
 
+**When the head store lands *after* the field writes and holds the copy's
+register, the compound push cannot produce it; an input-only `asm` between the
+carve and the copy can.** `Actor01900_Fn09694` has the usual pair
+(`addiu a1,s0,-0x10` / `move s4,a1`) but its head store is `sw s4,0(a3)` several
+insns later, so what reaches memory is the *copy*, while the compound push
+always stores the carve. Written plainly (`p = head - 1; ... q = p;`) the copy
+holds the only LOG_LINK back to the `addiu` - flow links a set to the next use
+of the register, and nothing else uses the carve - the carve dies at the copy,
+and combine folds the two into one `addiu` (99.78% -> 98.40%, visible in
+`.combine` as the copy becoming `(set <copy> (plus <head> -K))`). `can_combine_p`
+refuses to combine across a volatile insn, and an asm with no outputs is
+implicitly volatile in 2.8.1, so one emits-nothing line restores the pair:
+
+```c
+    next              = head - 1;
+    head[-1].delta.vx = ...;   /* offset 0 folds to -K(head) either way */
+    SOFT_USE_REG(next);
+    aim               = next;  /* the move survives; next dies here */
+    aim->delta.vy     = ...;
+```
+
+The carve then stays short-lived and takes a call-clobbered register while the
+copy takes the callee-saved one the rest of the body uses, which also drops the
+extra save from the frame. Use the *input-only* form: a read/write
+`SOFT_TOUCH_REG` blocks the fold as well, but its `"+r"` redefines the pointer,
+so CSE loses the `carve == head - K` equivalence and every offset-0 access comes
+back as `0(sN)` instead of the target's `-K(head)` (95.34%). `Actor01900_Fn083E8`
+in the same TU is the same shape.
+
+
 ## A loop-bottom `sra` of an `s16` bound means loop.c hoisted it; a cross-jumped duplicate arm grows the loop past the cut
 
 `Actor01900_Fn03FF8` walks `for (s->i = 0; s->i < count; s->i++)` with an `s16`
