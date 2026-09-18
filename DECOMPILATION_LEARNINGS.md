@@ -129028,3 +129028,40 @@ Reflowing a matched function's declaration block into a tidy grouped list -
 without touching a single statement - moved two allocnos and cost 100% ->
 99.93%. Rename identifiers in place and leave the order alone; clean up the
 declarations only if you are willing to re-verify.
+
+## `move_movables`' threshold decays by 3 per hoist, and a `%hi` that misses it keeps a register (Actor00300_Fn00E54, 2026-09-18)
+
+`threshold = (loop_has_call ? 1 : 2) * (1 + n_non_fixed_regs)` is only the value
+the **first** movable is judged against. Every movable that is actually moved
+ends with `threshold -= 3` ("the more regs we move, the less we like moving
+them"), so the test `threshold * savings * lifetime >= insn_count` gets stricter
+as `move_movables` walks the list. Two earlier hoists in this loop left 23, not
+the 29 the entry above records, and that is what decided a marginal
+`high (symbol_ref)`:
+
+- `life 13` against `Loop from A to B: 304 real insns` → 23 × 13 = 299 < 304,
+  `not desirable`
+- `life 14` against `305 real insns` → 23 × 14 = 322 >= 305, `moved to N`
+
+`-dL` prints the verdict per movable (`Insn 744: regno 279 (life 14),
+move-insn savings 1  moved to 1278`), so read it instead of computing.
+
+Whether the `lui %hi(global)` hoists decides its register, and the two outcomes
+are far apart. Not hoisted, the pseudo is local to the block that reads and
+writes the global, and local-alloc hands it the first numerically free
+caller-saved register — which also pushes whatever it competed with up one slot.
+Hoisted, it spans the loop, crosses calls, conflicts with every callee-saved
+register already taken, loses the allocation, and reload rematerialises the
+`lui` immediately before the first use in each block using the function's spill
+register; a second use in the *same* block inherits it, so one `lui` still
+serves both the load and the write-back. A `%hi` in a high `$t` register beside
+an otherwise all-`$a` block is this, not an allocation you can reach by adding
+pressure: check the other `%hi`s in the function, and if one of them is already
+rematerialised into the same register, the spill path is what the target used.
+
+`m->lifetime` is the LUID distance between the pseudo's first and last
+reference, so *any* insn between them raises it, including one that emits
+nothing. A `SOFT_BARRIER()` between the read-modify and the write-back supplied
+the last LUID here. `TOUCH_MEM(global)` adds two, but only the first one is
+free: reload materialises a full `lui`+`addiu` address for a second asm memory
+operand on the same symbol, which costs a real instruction.
