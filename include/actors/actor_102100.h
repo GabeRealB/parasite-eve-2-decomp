@@ -69,15 +69,15 @@ struct Actor02100;
 
 typedef struct Actor02100Work {
     /* 0x000 */ byte               pad_0[0x40];
-    /* 0x040 */ byte               field_40[0x20];
+    /* 0x040 */ GpObj              field_40;
     /* 0x060 */ GpRec18            field_60;
-    /* 0x078 */ byte               field_78[0x1E];
-    /* 0x096 */ u16                field_96;
+    /* 0x078 */ GpObj              field_78;
     /* 0x098 */ GpRec18            field_98;
-    /* 0x0B0 */ byte               pad_B0[0x18];
-    /* 0x0C8 */ byte               field_C8[0x1E];
-    /* 0x0E6 */ u16                field_E6;
-    /* 0x0E8 */ byte               pad_E8[0x18];
+    /* 0x0B0 */ SVECTOR            field_B0;
+    /* 0x0B8 */ byte               pad_B8[0x10];
+    /* 0x0C8 */ GpObj              field_C8;
+    /* 0x0E8 */ SVECTOR            field_E8;
+    /* 0x0F0 */ byte               pad_F0[0x10];
     /* 0x100 */ GpEffArg           field_100;
     /* 0x108 */ VECTOR             field_108;
     /* 0x118 */ s16                field_118;

@@ -76,14 +76,14 @@ void Actor02100_Fn004C4(Actor02100* arg0)
                 if (enemy->field_40 <= 0) {
                     Gp_SpawnEff(0x6005C, coord, 0x10002400, 0);
                     Gp_SpawnEff(0x60070, coord, 0x32FF1400, 0);
-                    work->field_172 = 4;
-                    work->field_174 = 0;
-                    work->field_96 &= 0x7FFF;
-                    work->field_E6 &= 0x7FFF;
-                    work->field_96 &= 0xBFFF;
-                    work->field_E6 &= 0xBFFF;
-                    arg0->field_30  = 2;
-                    sound           = ((arg0->field_20->field_8 >> 12) << 8) | 0x4015000A;
+                    work->field_172       = 4;
+                    work->field_174       = 0;
+                    work->field_78.flags &= 0x7FFF;
+                    work->field_C8.flags &= 0x7FFF;
+                    work->field_78.flags &= 0xBFFF;
+                    work->field_C8.flags &= 0xBFFF;
+                    arg0->field_30        = 2;
+                    sound                 = ((arg0->field_20->field_8 >> 12) << 8) | 0x4015000A;
                     SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan((GpObj38*)coord),
                                         (s8)Gp_GetObjDepth((GpObj38*)coord));
                 } else if (damage > 0) {
@@ -764,9 +764,9 @@ void Actor02100_Fn035D4(Actor02100Ctx* arg0, Actor02100* arg1)
 case0:
     arg1->field_2C->field_C = 0x80;
     Gp_UnlinkNode(&arg0->node);
-    Gp_UnlinkObj(work->field_40);
-    Gp_UnlinkObj(work->field_78);
-    Gp_UnlinkObj(work->field_C8);
+    Gp_UnlinkObj(&work->field_40);
+    Gp_UnlinkObj(&work->field_78);
+    Gp_UnlinkObj(&work->field_C8);
     arg0->field_54 = 0;
     Gp_ReleaseStateF0Add(arg1, 0x15);
     work->field_174 = 1;

@@ -129533,3 +129533,91 @@ facing or rescale computation, a clamp — grep the TU and its header for
 `static __inline__` before modelling the allocator. A helper that other matched
 functions already call reproduces the original translation unit's structure,
 which is what the register allocator and the scheduler actually saw.
+
+## A repeated store to the same address survives because a memory reference sits between the two, not because of a barrier (Actor02100_Fn016EC, 2026-09-18)
+
+A scratch-arena stanza that frees one block and allocates another writes the same
+global slot twice in a row. Write those two stores adjacently in C and GCC deletes
+the first, so the attempt comes out several instructions short; the usual reflex is
+to wedge an empty `__asm__` between them, which keeps both — and quietly pins the
+whole block, because an input-only asm is implicitly volatile and therefore a sched1
+barrier.
+
+`flow.c` explains what actually preserves the first store. `insn_dead_p` calls a
+memory store dead only when it writes the same rtx as `last_mem_set`, and
+`mark_used_regs` clears `last_mem_set` on **any** memory read (any other store simply
+replaces it). So one ordinary memory reference between the two stores is enough, and
+it costs nothing:
+
+```c
+/* deleted: GCC sees two adjacent stores to the same slot */
+*(u8**)G_SCRATCH_HEAD = head + 0x28;
+*(u8**)G_SCRATCH_HEAD = (u8*)block;
+
+/* kept, no barrier: the read between them clears last_mem_set */
+*(u8**)G_SCRATCH_HEAD = head + 0x28;
+work = arg0->field_1C;
+*(u8**)G_SCRATCH_HEAD = (u8*)block;
+```
+
+Which reference it is matters, because it is also scheduled. Reconstructing one such
+stanza with the pointer reload between the stores (as the ROM has it) instead of a
+field store made a whole phase match — registers, order and all — where the
+barrier version had the same instructions in the wrong homes.
+
+## A C variable reused for two phases is excluded from local allocation (Actor02100_Fn016EC, 2026-09-18)
+
+`local_alloc` skips a pseudo that dies in more than one place, and the `.lreg` header
+says so in as many words: `used 14 times across 40 insns in block 11; dies in 2
+places`. Such a pseudo drops through to `global.c`, which runs *after* local-alloc has
+already taken the low call-clobbered registers, so it lands two or three registers too
+high no matter what its reference count says.
+
+The usual cause in decompiled C is one variable serving two phases of the same
+function — `work = arg0->field_1C` reloaded for a second stanza, a scratch pointer
+reused. Give each phase its own local and the pseudo becomes block-local, local-alloc
+ranks it by `QTY_CMP_PRI`, and a heavily-referenced pointer wins the register the ROM
+gives it.
+
+The converse is a tool as well. Sharing one variable across both arms of an
+`if`/`else` deliberately makes it a global allocno, which is what you want when the
+ROM ranks it against another value rather than letting local-alloc hand the low
+register to whichever quantity is block-local. In the same function the two arms
+needed their work pointer shared and their per-phase pointers split — opposite
+changes, both read off the `.lreg`/`.greg` dumps.
+
+## A store through a struct pointer forces a reload of every other struct field (Actor02100_Fn016EC, 2026-09-18)
+
+Two identical `lh` loads of the same field, adjacent in the ROM, look like a compiler
+whim; they are `cse.c` doing exactly what it documents. `note_mem_written` marks a
+store at a varying address as `nonscalar`, and `invalidate_memory` then drops every
+table entry with `in_struct` set — that is, every struct-member read, whatever its
+base pointer. So a field read *after* a store to any other field of any struct is a
+fresh load, and the decompiled C has to read it there:
+
+```c
+frame = work->field_178;          /* pre-read: CSE merges it with the later read */
+work->field_E0 = 0x20000;
+...
+switch (frame)
+
+work->field_E0 = 0x20000;         /* the store invalidates in_struct entries */
+...
+switch (work->field_178)          /* second lh, as in the ROM */
+```
+
+The same flag governs disambiguation in the other direction, so it cannot simply be
+turned on everywhere: `sched.c` (`true_dependence`) will not reorder a
+`MEM_IN_STRUCT` reference at a varying address against a non-`MEM_IN_STRUCT`
+reference at a fixed address — which is what lets a scratch-head load at an absolute
+address move across struct stores. Expressing such a head as a struct member to gain
+the CSE invalidation loses that freedom and reschedules the block.
+
+## One register holding two values is one C variable doing two jobs (Actor02100_Fn016EC, 2026-09-18)
+
+When a callee-saved register in the attempt carries a value on two different paths
+while the ROM uses two registers — here `s2` for both the accumulator initialised at
+entry and the argument handed to the enqueue call, where the ROM has `or s1,v0,v1` on
+one path and `or s1,s2,v0` on the other — the fix is in the C, not the allocator. The
+ROM's register assignment is evidence about how many variables the original source
+had. Splitting the two uses into two locals reproduced both forms.
