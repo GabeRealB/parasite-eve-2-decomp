@@ -88,7 +88,7 @@ void func_mist_parking_801837A4(void)
 void func_mist_parking_801837B8(Task* arg0)
 {
     u8          slotParam[4];
-    GBytes8     key;
+    GameLoc     key;
     CdCmdQueue* queue;
     s16         slot;
     Task*       task;
@@ -118,13 +118,13 @@ L_case0:
     goto advance;
 
 L_case1:
-    key = gGameSession->at4.raw;
+    key = gGameSession->at4;
     if (task->spawnArg1 != 0) {
-        key.data[0] = 0x65;
+        key.loc.view = 0x65;
     } else {
-        key.data[0] = 0x64;
+        key.loc.view = 0x64;
     }
-    slot = Stream_FindSlot(key.data, 0, 0);
+    slot = Stream_FindSlot(key.raw.data, 0, 0);
     {
         register s32 cmd asm("a0");
         register s32 zero asm("a1");

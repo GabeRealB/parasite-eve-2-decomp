@@ -825,7 +825,7 @@ void Gfx_OrthonormalBasis(MATRIX* out, SVECTOR* arg1, SVECTOR* arg2)
     head    = (u8*)*scratch;
     dest    = out;
 
-    *(GBytes8*)(head - 0x1A) = *(GBytes8*)arg2;
+    *(SVECTOR*)(head - 0x1A) = *arg2;
 
     sv1      = (SVECTOR*)(head - 0x14);
     tmp      = arg1->vx;

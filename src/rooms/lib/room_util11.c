@@ -1,9 +1,14 @@
 #include "common.h"
 
-#include "main/session.h"
+#include "gameplay/1A8.h"
 
-s32 Room_Util11(s32 arg0, s32 arg1, GBytes8* arg2, GBytes8* arg3)
+#include "main/task.h"
+
+/// Default location-message handler: copies the requested location onto the
+/// outgoing record and answers 1, leaving the decision to whoever reads the
+/// reply.
+s32 Room_Util11(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
-    *arg3 = *arg2;
+    *dst = *src;
     return 1;
 }

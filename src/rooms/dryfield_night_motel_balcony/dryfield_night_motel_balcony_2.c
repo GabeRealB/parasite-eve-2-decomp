@@ -15,8 +15,8 @@ extern void func_dryfield_night_motel_balcony_8017E250(s32 arg0, s16 arg1);
 void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
 {
     u8          slotParam[4];
-    GBytes8     introKey;
-    GBytes8     loopKey;
+    GameLoc     introKey;
+    GameLoc     loopKey;
     CdCmdQueue* queue;
     s16         slot;
 
@@ -28,13 +28,13 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            introKey = gGameSession->at4.raw;
+            introKey = gGameSession->at4;
             if (Wip_SysFlags.field_0 == 2) {
-                introKey.data[0] = 0x67;
+                introKey.loc.view = 0x67;
             } else {
-                introKey.data[0] = 0x65;
+                introKey.loc.view = 0x65;
             }
-            slot         = Stream_FindSlot(introKey.data, 0, 0);
+            slot         = Stream_FindSlot(introKey.raw.data, 0, 0);
             slotParam[0] = slot;
             CdCmd_Enqueue(0x61, 0, slotParam);
             task->state = task->state + 1;
@@ -61,13 +61,13 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
             return;
         case 4:
             if (CdCmd_IsIdle() & 0xFFFF) {
-                loopKey = gGameSession->at4.raw;
+                loopKey = gGameSession->at4;
                 if (Wip_SysFlags.field_0 == 2) {
-                    loopKey.data[0] = 0x66;
+                    loopKey.loc.view = 0x66;
                 } else {
-                    loopKey.data[0] = 0x64;
+                    loopKey.loc.view = 0x64;
                 }
-                slot         = Stream_FindSlot(loopKey.data, 0, 0);
+                slot         = Stream_FindSlot(loopKey.raw.data, 0, 0);
                 slotParam[0] = slot;
                 CdCmd_Enqueue(0x61, 0, slotParam);
             }

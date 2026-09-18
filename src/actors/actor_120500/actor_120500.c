@@ -21,7 +21,7 @@ extern u32 D_actor_120500_80138408[];
 void func_actor_120500_80131E58(Task* arg0)
 {
     u8          slotParam[4];
-    GBytes8     key;
+    GameLoc     key;
     CdCmdQueue* queue;
     s16         slot;
     Task*       task;
@@ -34,9 +34,9 @@ void func_actor_120500_80131E58(Task* arg0)
             Mem_AllocAuxWithImages(1);
             goto advance;
         case 1:
-            key          = gGameSession->at4.raw;
-            key.data[0]  = 0x64;
-            slot         = Stream_FindSlot(key.data, 0, 0);
+            key          = gGameSession->at4;
+            key.loc.view = 0x64;
+            slot         = Stream_FindSlot(key.raw.data, 0, 0);
             slotParam[0] = slot;
             CdCmd_Enqueue(0x61, 0, slotParam);
             goto advance;

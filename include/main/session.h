@@ -19,8 +19,10 @@ typedef struct _GBytes6 {
     u8 data[6];
 } GBytes6;
 
-/// 8-byte block assigned via unaligned lwl/lwr (see GameFlow_CopySaveIds).
-typedef struct _GBytes8 {
+/// 8 raw bytes of a record, for the places where the block is copied as
+/// bytes and no field is named. `GameLoc.raw` is the arm that gives the
+/// location cell its width, and the byte view its callers hand on.
+typedef struct {
     u8 data[8];
 } GBytes8;
 
@@ -51,9 +53,10 @@ typedef struct GpAreaKey {
 } GpAreaKey;
 STATIC_ASSERT_SIZEOF(GpAreaKey, 0x6);
 
-/// 8-byte location cell: the 6-byte place key plus two bytes an 8-byte copy
-/// also takes. `loc` is the key; `raw` is the unaligned 8-byte assignment
-/// used to copy the cell between the session and the save.
+/// 8-byte location cell: the 6-byte place key followed by two bytes a
+/// whole-cell copy also moves. `loc` is the key the lookups index by; `raw` is
+/// the whole cell, used by the copies between the session and the save and by
+/// the callers that hand the cell on as bytes.
 typedef union {
     GpAreaKey loc;
     GBytes8   raw;

@@ -1195,9 +1195,9 @@ extern GpRoomCoordRec** Gp_RoomCoordTables[];
 /// `Gp_RoomParams` by `Gp_LoadRoomParams`.
 extern GpRoomParamRec*** Gp_RoomParamTables[];
 
-/// Default 8-byte record copied by `Gp_CopyDefaultBound`. Also the fallback
-/// pointer returned by `Gp_GetRoomBound` when a table lookup fails.
-extern GBytes8 Gp_RoomBoundDefault;
+/// Room bound standing in when a lookup fails: what `Gp_GetRoomBound` returns
+/// in place of a table entry, and what `Gp_CopyDefaultBound` copies out.
+extern GpRoomBoundVec Gp_RoomBoundDefault;
 
 /// Default `MATRIX` installed at `TmdObject.lightMtx` by `Gp_BindDefaultMtx`.
 extern MATRIX Gp_DefaultMtx;
@@ -1449,7 +1449,7 @@ void            Gp_BindDefaultMtx(Task* arg0);
 void            Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
 GpRoomCoordRec* Gp_GetRoomCoordRec(GpAreaKey* arg0);
 void            func_800D9CC8(Task* arg0);
-void            Gp_CopyDefaultBound(GBytes8* arg0);
+void            Gp_CopyDefaultBound(GpRoomBoundVec* bound);
 void            Gp_DrawTargetCursor(void);
 void            func_800DA6E8(void* arg0, s32 arg1, s32 arg2);
 void            Gp_UpdateLockSlots(void);

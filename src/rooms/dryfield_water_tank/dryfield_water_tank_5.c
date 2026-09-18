@@ -104,7 +104,7 @@ void func_dryfield_water_tank_8017E3C4(Task* arg0)
 void func_dryfield_water_tank_8017E568(Task* task)
 {
     u8          slotParam[4];
-    GBytes8     key;
+    GameLoc     key;
     CdCmdQueue* queue;
     s16         slot;
 
@@ -117,9 +117,9 @@ void func_dryfield_water_tank_8017E568(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            key          = gGameSession->at4.raw;
-            key.data[0]  = 0x64;
-            slot         = Stream_FindSlot(key.data, 0, 0);
+            key          = gGameSession->at4;
+            key.loc.view = 0x64;
+            slot         = Stream_FindSlot(key.raw.data, 0, 0);
             slotParam[0] = slot;
             CdCmd_Enqueue(0x61, 0, slotParam);
             task->state = task->state + 1;

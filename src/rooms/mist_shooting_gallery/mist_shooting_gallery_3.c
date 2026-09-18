@@ -196,7 +196,7 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
 void func_mist_shooting_gallery_80180F2C(Task* arg0)
 {
     u8          slotParam[4];
-    GBytes8     key;
+    GameLoc     key;
     s16         slot;
     CdCmdQueue* queue;
     Task*       task;
@@ -225,9 +225,9 @@ L_case0:
     goto advance;
 
 L_case1:
-    key          = gGameSession->at4.raw;
-    key.data[0]  = 0x64;
-    slot         = Stream_FindSlot(key.data, 0, 0);
+    key          = gGameSession->at4;
+    key.loc.view = 0x64;
+    slot         = Stream_FindSlot(key.raw.data, 0, 0);
     slotParam[0] = slot;
     CdCmd_Enqueue(0x61, 0, slotParam);
     goto advance;

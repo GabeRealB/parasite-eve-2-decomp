@@ -47,7 +47,7 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_actor_560800_801321A0(Task* arg0)
 {
     u8          slotParam[4];
-    GBytes8     key;
+    GameLoc     key;
     s16         slot;
     CdCmdQueue* queue;
     Task*       task;
@@ -76,13 +76,13 @@ L_case0:
     goto advance;
 
 L_case1:
-    key = gGameSession->at4.raw;
+    key = gGameSession->at4;
     if (task->spawnArg1 != 0) {
-        key.data[0] = 0x65;
+        key.loc.view = 0x65;
     } else {
-        key.data[0] = 0x64;
+        key.loc.view = 0x64;
     }
-    slot = Stream_FindSlot(key.data, 0, 0);
+    slot = Stream_FindSlot(key.raw.data, 0, 0);
     {
         register s32 cmd asm("a0");
         register s32 zero asm("a1");

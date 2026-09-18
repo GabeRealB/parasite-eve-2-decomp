@@ -2311,7 +2311,7 @@ GpRoomBoundVec* Gp_GetRoomBound(GpAreaKey* arg0)
             rec = &rec[arg0->room - 1];
         }
     }
-    result = (GpRoomBoundVec*)&Gp_RoomBoundDefault;
+    result = &Gp_RoomBoundDefault;
     if (rec != NULL) {
         table = rec->field_4;
         if (table != NULL) {
@@ -2562,9 +2562,9 @@ void func_800D9CC8(Task* arg0)
     Task_CallExit(arg0);
 }
 
-void Gp_CopyDefaultBound(GBytes8* arg0)
+void Gp_CopyDefaultBound(GpRoomBoundVec* bound)
 {
-    *arg0 = Gp_RoomBoundDefault;
+    *bound = Gp_RoomBoundDefault;
 }
 
 void Gp_BindDefaultMtx(Task* arg0)

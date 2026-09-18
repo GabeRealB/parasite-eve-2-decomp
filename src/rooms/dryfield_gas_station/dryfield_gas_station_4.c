@@ -31,7 +31,7 @@ extern TaskDesc D_dryfield_gas_station_8018312C[];
 void func_dryfield_gas_station_8017FFE4(Task* arg0)
 {
     u8          slotParam[4];
-    GBytes8     key;
+    GameLoc     key;
     CdCmdQueue* queue;
     s16         slot;
     Task*       task;
@@ -60,9 +60,9 @@ L_case0:
     goto advance;
 
 L_case1:
-    key          = gGameSession->at4.raw;
-    key.data[0]  = 0x64;
-    slot         = Stream_FindSlot(key.data, 0, 0);
+    key          = gGameSession->at4;
+    key.loc.view = 0x64;
+    slot         = Stream_FindSlot(key.raw.data, 0, 0);
     slotParam[0] = slot;
     CdCmd_Enqueue(0x61, 0, slotParam);
     goto advance;

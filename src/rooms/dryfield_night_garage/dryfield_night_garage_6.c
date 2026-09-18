@@ -71,7 +71,7 @@ void func_dryfield_night_garage_80180AB0(void)
 void func_dryfield_night_garage_80180B20(Task* arg0)
 {
     u8          slotParam[4];
-    GBytes8     key;
+    GameLoc     key;
     s16         slot;
     CdCmdQueue* queue;
     Task*       task;
@@ -100,21 +100,21 @@ L_case0:
     goto advance;
 
 L_case1:
-    key = gGameSession->at4.raw;
+    key = gGameSession->at4;
     if (Wip_SysFlags.field_0 == 2) {
         if (task->spawnArg1 != 0) {
-            key.data[0] = 0x67;
+            key.loc.view = 0x67;
         } else {
-            key.data[0] = 0x65;
+            key.loc.view = 0x65;
         }
     } else {
         if (task->spawnArg1 != 0) {
-            key.data[0] = 0x66;
+            key.loc.view = 0x66;
         } else {
-            key.data[0] = 0x64;
+            key.loc.view = 0x64;
         }
     }
-    slot = Stream_FindSlot(key.data, 0, 0);
+    slot = Stream_FindSlot(key.raw.data, 0, 0);
     {
         s32 cmd;
         s32 zero;

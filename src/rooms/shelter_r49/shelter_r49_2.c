@@ -19,7 +19,7 @@ extern s16 D_80071076;
 void func_shelter_r49_8017D71C(Task* arg0)
 {
     u8          slotParam[4];
-    GBytes8     key;
+    GameLoc     key;
     CdCmdQueue* queue;
     Task*       task;
 
@@ -58,9 +58,9 @@ L_case1:
     goto advance;
 
 L_case2:
-    key          = gGameSession->at4.raw;
-    key.data[0]  = 0x64;
-    slotParam[0] = Stream_FindSlot(key.data, 0, 0);
+    key          = gGameSession->at4;
+    key.loc.view = 0x64;
+    slotParam[0] = Stream_FindSlot(key.raw.data, 0, 0);
     CdCmd_Enqueue(0x61, 0, slotParam);
     goto advance;
 

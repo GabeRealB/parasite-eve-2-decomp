@@ -18,7 +18,7 @@ extern TaskDesc D_shelter_1f_bulwark_80180360;
 void func_shelter_1f_bulwark_8017DC78(Task* arg0)
 {
     u8          slotParam[4];
-    GBytes8     key;
+    GameLoc     key;
     CdCmdQueue* queue;
     Task*       task;
 
@@ -46,9 +46,9 @@ L_case0:
     goto advance;
 
 L_case1:
-    key          = gGameSession->at4.raw;
-    key.data[0]  = 0x64;
-    slotParam[0] = Stream_FindSlot(key.data, 0, 0);
+    key          = gGameSession->at4;
+    key.loc.view = 0x64;
+    slotParam[0] = Stream_FindSlot(key.raw.data, 0, 0);
     CdCmd_Enqueue(0x61, 0, slotParam);
     goto advance;
 

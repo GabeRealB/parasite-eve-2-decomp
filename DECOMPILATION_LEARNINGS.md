@@ -18921,9 +18921,10 @@ t4 = mat->m[0][0];        /* lhu t4, 0(s0) — not -0x20(head) */
 ```
 
 **3. Unaligned 8-byte arg copy at `head - 0x1A`.** That offset is only
-halfword-aligned, so assign through `GBytes8` (already in `session.h`) for
-`lwl`/`lwr`/`swl`/`swr`. Halfword fields of the other SVECTOR use a `u16 tmp`
-so loads stay `lhu`.
+halfword-aligned, so the copy of the `SVECTOR` argument emits
+`lwl`/`lwr`/`swl`/`swr`; any 8-byte record whose alignment is below 4 does, so
+the declared type is free to be the record's own. Halfword fields of the other
+SVECTOR use a `u16 tmp` so loads stay `lhu`.
 
 **4. Pins + `volatile` dest for prologue and free.** `register void** scratch
 asm("s1")`, `register u8* head asm("v1")`, `register SVECTOR* sv1 asm("a0")`
@@ -22747,11 +22748,11 @@ arg setup before `D_800691DE = 1` (absolute alias of `CdCmd_Queue.field_23E`).
 `Title_DemoStreamTask` is the pure example.
 
 The trigger is a basic-block split, not the call itself. The identical
-`slot = Stream_FindSlot(key.data, 0, 0); slotParam[0] = slot;
+`slot = Stream_FindSlot(key.raw.data, 0, 0); slotParam[0] = slot;
 CdCmd_Enqueue(0x61, 0, slotParam);` sequence matches with no pins when the
-preceding `key.data[0] = 0x64;` is unconditional, because the whole case body
+preceding `key.loc.view = 0x64;` is unconditional, because the whole case body
 is one block and `sched2` sinks the `sb` past the arg setup. Add an `if/else`
-ahead of it - `key.data[0] = task->spawnArg1 != 0 ? 0x65 : 0x64` written as two
+ahead of it - `key.loc.view = task->spawnArg1 != 0 ? 0x65 : 0x64` written as two
 arms - and the join label starts a new, shorter block, `sched2` leaves the `sb`
 in source order, and reorg fills the `jal` delay with `addiu a2, sp, N`
 instead. Score 98.8% with `reorder=2` and everything else zero. The pin block
@@ -42307,7 +42308,7 @@ Nesting the nonzero tests (`if (x != 0) { if (x == 1) B; else C; } else A;`)
 inverts the outer branch to `beqz` and keeps a `j` after B — the shape that
 "Nest `if (x != 0)` so the zero case is a real else" documents as the *other*
 target. `func_neo_ark_altar_8017DA40` is the example. An `s32 id` temp for A/B/C
-also pulled `spawnArg1` out of `$v1` into `$a0`; store through `key.data[0]` in
+also pulled `spawnArg1` out of `$v1` into `$a0`; store through `key.loc.view` in
 each arm and let GCC merge onto `$v0`.
 
 ## Room task state machines: plain `switch` + `break`, not `goto advance` / `goto kill`
@@ -130702,3 +130703,35 @@ copy however the lvalue is spelled (see the `MATRIX` struct-assignment entry
 above) — so the cast surviving in the tree is what says the duplication is real
 and not incidental. The same shape recurs with any Psy-Q geometry type
 (`MATRIX`, `VECTOR`, `SVECTOR`, `GsCOORD2PARAM`) as the head of a larger record.
+
+## An 8-byte record copies with `lwl`/`lwr` whenever its alignment is below 4
+
+A target that moves 8 bytes as two `lwl`/`lwr` load pairs and two `swl`/`swr`
+store pairs is copying a record of alignment 1 *or* 2 - only a 4-aligned record
+comes out as `lw`/`sw`. The declared type therefore does not select this form,
+and a byte-block type is never needed to reach it. Compiled side by side at
+`-O2`, all three of these emit the same eight instructions:
+
+```c
+typedef struct { u8  data[8]; } EightA;     /* lwl/lwr + swl/swr */
+typedef struct { s16 a, b, c, d; } EightB;  /* lwl/lwr + swl/swr */
+typedef struct { s32 a, b; } EightC;        /* lw/lw + sw/sw */
+```
+
+(Same from a global or through a pointer - the source form is irrelevant.) The
+consequence is for naming rather than matching: where such a copy moves a game
+record, declare that record's own type and let the copy fall out of it, instead
+of a byte block that describes nothing.
+
+## `rename_item.py` matches a renamed name by bare name in the notes
+
+Renaming an item rewrites its mentions in markdown as well as in C, matching on
+the name alone. For a distinctive name that is the point. For a parameter named
+`argN` it is not: `arg0`..`arg3` are the parameter names of most functions in
+the tree and appear throughout this file's examples, so one parameter rename
+rewrote 670 mentions here and three in `NAMING.md`, in code unrelated to the
+function being renamed.
+
+Pass `--no-comments` for any rename whose name is not distinctive, and check
+`git status` for the notes afterwards. The C edits land either way; the comment
+pass is all the flag skips.

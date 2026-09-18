@@ -5,6 +5,7 @@
 #include <psyq/stdio.h>
 #include <psyq/strings.h>
 
+#include "gameplay/1A8.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -259,9 +260,12 @@ s32 func_800E3FCC(s32 arg0)
     return D_80073980[arg0 / 2 + 4];
 }
 
-s32 func_800E3FF0(s32 arg0, s32 arg1, GBytes8* arg2, GBytes8* arg3)
+/// Location-message fallback of `D_8010FAD4`, the table installed on pointer
+/// slot 7: copies the requested location onto the outgoing record and answers
+/// 1, leaving the decision to whoever reads the reply.
+s32 func_800E3FF0(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
-    *arg3 = *arg2;
+    *dst = *src;
     return 1;
 }
 

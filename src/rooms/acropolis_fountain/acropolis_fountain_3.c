@@ -349,8 +349,8 @@ void func_acropolis_fountain_8017E3D4(Task* task)
     StreamSlot* slot2;
     SPRT*       p;
     DR_TPAGE*   dr;
-    GBytes8     key;
-    GBytes8     key2;
+    GameLoc     key;
+    GameLoc     key2;
     s16         view;
     s32         ot;
     u16         count;
@@ -382,9 +382,9 @@ void func_acropolis_fountain_8017E3D4(Task* task)
                         return;
                     }
                     gGameSession->field_4E = 1;
-                    key                    = gGameSession->at4.raw;
-                    key.data[0]            = view;
-                    slot                   = Stream_GetSlot(Stream_FindSlotByKey(key.data) & 0xFFFF);
+                    key                    = gGameSession->at4;
+                    key.loc.view           = view;
+                    slot                   = Stream_GetSlot(Stream_FindSlotByKey(key.raw.data) & 0xFFFF);
 
                     p              = (SPRT*)Gpu_PrimCursor;
                     Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
@@ -418,9 +418,9 @@ void func_acropolis_fountain_8017E3D4(Task* task)
                 case 8:
                     if (D_80070F70 & 1) {
                         queue2            = &CdCmd_Queue;
-                        key2              = gGameSession->at4.raw;
-                        key2.data[0]      = Gp_FindViewIndex(4);
-                        slot2             = Stream_GetSlot(Stream_FindSlot(key2.data, 0, 1) & 0xFFFF);
+                        key2              = gGameSession->at4;
+                        key2.loc.view     = Gp_FindViewIndex(4);
+                        slot2             = Stream_GetSlot(Stream_FindSlot(key2.raw.data, 0, 1) & 0xFFFF);
                         count             = queue2->field_1EA + 1;
                         queue2->field_1EA = count;
                         if (count >= slot2->field_1A - 0xA) {

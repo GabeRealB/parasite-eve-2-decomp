@@ -412,7 +412,7 @@ void Title_ExitTask(Task* arg0)
 void Title_DemoStreamTask(Task* arg0)
 {
     u8                     slotParam[4];
-    GBytes8                key;
+    GameLoc                key;
     u8                     param1[4];
     u8                     param2[4];
     CdCmdQueue*            queue;
@@ -449,13 +449,13 @@ L_case0:
     goto advance;
 
 L_case1:
-    key = gGameSession->at4.raw;
+    key = gGameSession->at4;
     if (Wip_SysFlags.field_0 == 2) {
-        key.data[0] = 0x65;
+        key.loc.view = 0x65;
     } else {
-        key.data[0] = 0x64;
+        key.loc.view = 0x64;
     }
-    slot = Stream_FindSlot(key.data, 0, 0);
+    slot = Stream_FindSlot(key.raw.data, 0, 0);
     {
         register s32 cmd asm("a0");
         register s32 zero asm("a1");

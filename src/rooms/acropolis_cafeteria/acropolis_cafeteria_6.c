@@ -23,7 +23,7 @@ extern TaskFuncTable3 RoomsShared8017d878Table;
 void func_acropolis_cafeteria_8017E47C(Task* arg0)
 {
     u8          slotParam[4];
-    GBytes8     key;
+    GameLoc     key;
     CdCmdQueue* queue;
     Task*       task;
 
@@ -51,9 +51,9 @@ L_case0:
     goto advance;
 
 L_case1:
-    key          = gGameSession->at4.raw;
-    key.data[0]  = 0x64;
-    slotParam[0] = Stream_FindSlot(key.data, 0, 0);
+    key          = gGameSession->at4;
+    key.loc.view = 0x64;
+    slotParam[0] = Stream_FindSlot(key.raw.data, 0, 0);
     CdCmd_Enqueue(0x61, 0, slotParam);
     goto advance;
 
