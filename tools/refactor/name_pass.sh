@@ -163,7 +163,8 @@ The conventions, the compiler's limits and what counts as evidence are above
 2. If its state above is \`current\`, the name already follows the convention:
    **do not rename it.** Everything else still applies - the type, the shape of
    the declaration, the fields, the parameters and the documentation.
-   Otherwise rename with:
+   Otherwise rename with the tool - always, never by hand, because the file it
+   appends to is what tells the pass this item is done:
      venv/bin/python3 tools/refactor/rename_item.py <file>/<oldName> <newName> --sidecars
 3. Apply the same to what the item contains: its fields, and its parameters in
    both the prototype and the definition.

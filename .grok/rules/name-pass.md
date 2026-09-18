@@ -141,6 +141,29 @@ rewrites both. Member renames take the same form,
 Generated placeholders — `func_<package>_<VRAM>`, `D_<VRAM>` — keep their form
 until the symbol is understood.
 
+## Every rename goes through the tool
+
+Make every rename with `rename_item.py` - symbols, types, fields and parameters
+alike - and never with a hand edit, a `sed`, or a script of your own:
+
+    venv/bin/python3 tools/refactor/rename_item.py <file>/<oldName> <newName> --sidecars
+
+Two reasons, and the second is the one that bites. It resolves references
+through the C parser, so it cannot miss a use or rewrite an unrelated one - a
+field name that several unrelated types also declare, or a mention that only
+exists after macro expansion, are both cases a textual pass gets wrong. And it
+appends the old and new spelling to `local/renames.tsv`.
+
+**That file is now a source of truth.** The pass decides what has already been
+handled by reading it together with the driver's step ledger; nothing is
+inferred from what a name looks like any more. So a rename made by any other
+means leaves no row, the item reads as untouched and is queued again, and the
+change cannot be propagated or audited. Renaming by hand does not just skip some
+bookkeeping - it puts the worklist out of step with the tree.
+
+If the rename is one the tool cannot express, do it by hand and say so plainly
+in your report, naming the old and new spelling, so the row can be added.
+
 ## Documentation
 
 `///` immediately above the declaration, opening with one summary sentence, with
