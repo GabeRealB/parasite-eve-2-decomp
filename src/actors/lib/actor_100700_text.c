@@ -1313,6 +1313,8 @@ void Actor00700_Fn02820(Actor00700* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn02A28);
 
+INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn02D28);
+
 void Actor00700_Fn0305C(Actor00700* arg0)
 {
     Actor00700QuadScratch* sc;

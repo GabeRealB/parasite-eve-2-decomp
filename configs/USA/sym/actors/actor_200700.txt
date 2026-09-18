@@ -212,6 +212,7 @@ Actor00700_L02CEC = 0x8014CB0C; // type:label
 Actor00700_L02CF4 = 0x8014CB14; // type:label
 Actor00700_L02D08 = 0x8014CB28; // type:label
 Actor00700_L02D20 = 0x8014CB40; // type:label
+Actor00700_Fn02D28 = 0x8014CB48;
 Actor00700_L02D94 = 0x8014CBB4; // type:label
 Actor00700_L02DD0 = 0x8014CBF0; // type:label
 Actor00700_L02DE0 = 0x8014CC00; // type:label
