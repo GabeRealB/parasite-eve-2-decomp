@@ -6,6 +6,7 @@
 
 extern u32 Gp_LcgState;
 extern u8  D_801153F2[2];
+extern s8  D_80115413;
 
 /* This overlay calls the gameplay helpers through its own (wider) prototypes:
    the extra trailing arguments are set up at every call site but ignored by
@@ -164,7 +165,49 @@ void Actor00400_Fn0824C(Actor100400* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
     coordB->flg = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn08354);
+/// Reaction to message 0x7D5: `arg2` toggles the "big" flag (0x80) on the
+/// actor's context. Turning it on is unconditional; turning it off first checks
+/// whether the current state / animation combination still wants it held.
+///
+/// `D_80115413` is one byte of the gameplay flag run at 0x80115408..0x8011541B.
+/// GCC 2.8.1's `fixed_scalar_and_varying_struct_p` decides a scalar global at a
+/// fixed address cannot alias a struct field at a varying address, so without
+/// the barrier the scheduler sinks this `sb` past the `ctx` / `work` traffic
+/// that follows it.
+void Actor00400_Fn08354(Actor100400* arg0, s32 arg1, s32 arg2)
+{
+    Actor100400Work* work;
+    Actor100400Ctx*  ctx;
+    s32              state;
+
+    work = arg0->field_1C;
+    ctx  = arg0->field_2C;
+    switch (arg2) {
+        case 0:
+            D_80115413 = 1;
+            SOFT_BARRIER();
+            ctx->field_C   |= 0x80;
+            work->field_663 = 1;
+            break;
+        case 1:
+            D_80115413 = 0;
+            SOFT_BARRIER();
+            state = arg0->field_30;
+            if (((state == 2) || (state == 4)) && (work->field_644 == 4)) {
+                ctx->field_C |= 0x80;
+            } else if ((arg0->field_30 == 2) && ((work->field_638 == 4) || (work->field_638 == 5))) {
+                ctx->field_C |= 0x80;
+            } else if ((arg0->field_30 == 4) && (work->field_638 == 6)) {
+                ctx->field_C |= 0x80;
+            } else if (arg0->field_30 == 5) {
+                ctx->field_C |= 0x80;
+            } else {
+                ctx->field_C &= ~0x80;
+            }
+            work->field_663 = 0;
+            break;
+    }
+}
 
 void Actor00400_Fn08464(Actor100400* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
 {

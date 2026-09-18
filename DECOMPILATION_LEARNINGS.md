@@ -128642,3 +128642,61 @@ Generally: when a constant load appears both in a branch delay slot and at the
 block the branch skips, do not write it twice. One assignment at the join point
 is the source; `dbr` makes the copy, and writing the copy yourself hands `cse` a
 register it will substitute for the literal somewhere in between.
+
+## Repeated `if` arms: one store after the chain merges them, a store per arm does not
+
+`Actor00400_Fn08354` sets or clears the same flag bit in five `if`/`else if`
+arms. The target emits the read-modify-write **four times**, each arm ending in
+its own `lhu`/`ori` and a `j` to a shared `sh`:
+
+```
+    lhu   $v0, 0xC($a1)
+    j     .L80152278
+     ori  $v0, $v0, 0x80
+```
+
+m2c's seed writes the natural "assign a variable, store once after the chain"
+form, and that compiles to **one** copy of `lhu`/`ori` with every arm's branch
+inverted to jump straight at it — 77% with `delete = 12`. The arms are identical
+either way; what differs is which pass gets to merge them.
+
+Cross-jumping runs only in the final `jump_optimize` (`toplev.c`:
+`jump_optimize (insns, 1, 1, 0)`), so the merge shows up as `.sched2` → `.jump2`:
+
+```
+ior:SI count   sched2  jump2
+single store      5   ->  2      # the four arms collapsed into one
+store per arm     5   ->  5      # untouched
+```
+
+With **one store after the chain** every arm jumps to the join label the if/else
+already created. That label is an ordinary pre-existing label, so it is in
+`jump_chain`, and `jump.c`'s simplejump case walks `jump_chain[…]` pairing each
+jump with another jump to the same label; `find_cross_jump` then matches
+`lhu`/`ori`/`jump` and folds all four into one.
+
+With **a store in every arm** there is no join label to begin with. Cross-jumping
+first merges each arm against the `else` arm's tail — common only as far as the
+`sh`, since `ori` and `andi` differ — and `do_cross_jump` *creates* a label
+there. That label's UID comes from `gen_label_rtx()` after `max_uid` was
+sampled, so the guard
+
+```c
+for (target = jump_chain[INSN_UID (JUMP_LABEL (insn))]; ...)
+  if (INSN_UID (JUMP_LABEL (insn)) < max_uid)
+```
+
+skips the pairing loop entirely and the four `lhu`/`ori` blocks are never
+compared with each other. The duplication is not something the source asks for;
+it is cross-jumping declining to look at its own new label.
+
+So: **a repeated read-modify-write duplicated in the object means the original
+stored in each arm; a single copy means it stored once after the chain.** Read
+it off the object and write the source to match — it is not a scheduling or
+allocation question, and no amount of reordering the conditions will produce the
+other shape.
+
+(The same function also needed `SOFT_BARRIER()` after its `D_80115413` byte
+store, for the `fixed_scalar_and_varying_struct_p` reason documented above;
+without it the store sank past the struct traffic *and* reorg went on to delete
+a redundant `lw` the target keeps.)
