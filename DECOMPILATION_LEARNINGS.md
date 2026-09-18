@@ -130033,3 +130033,57 @@ moves the end of the range and therefore the answer; moving it past a reload
 that owns the contested register is what forces the constant onward. This also
 means a single wrong register on a long-lived constant is a *scheduling*
 question, not an allocation one.
+
+## One volatile access poisons delay-slot filling for its whole basic block
+
+The entry above covers a volatile insn refusing to *enter* a delay slot. There
+is a much wider effect: a single volatile access anywhere in a block stops
+`fill_simple_delay_slots` from taking *any* insn of that block into a later
+branch's slot.
+
+`fill_simple_delay_slots` scans backwards from the branch, accumulating what the
+insns it passes set and reference into two `struct resources`, and tests each
+candidate against them. `mark_referenced_resources` on a volatile MEM sets
+`needed.volatil`, and `resource_conflicts_p` opens with
+
+```c
+  if ((res1->cc && res2->cc) || (res1->memory && res2->memory)
+      || (res1->unch_memory && res2->unch_memory)
+      || res1->volatil || res2->volatil)
+    return 1;
+```
+
+— the last clause is unconditional. Once the scan has crossed the volatile
+access every further candidate "conflicts", whatever registers it touches, so
+the loop runs to the top of the block finding nothing and dbr falls back to
+`fill_eager_delay_slots`, which fills the slot from the successor block instead.
+
+The symptom is a branch whose slot holds the first insn of the fall-through path
+while the target fills it with something computed *before* the branch. Look for
+a volatile access earlier in the same block; dropping the qualifier — when the
+rest of the function still matches without it — restores the backward scan and
+the original's choice of slot insn. The volatile write that reserves a scratch
+block at function entry is the usual culprit, because it sits at the top of the
+entry block and every branch in that block scans past it.
+
+## Splitting a local across the arms of an `if`/`else` is a scheduling lever
+
+The `birthing_insn_p` boost needs `REG_N_SETS == 1`, and the count is per
+*pseudo*, so one C variable assigned in both arms of a branch is two sets and
+neither arm's insn is ever boosted. Giving each arm its own local restores the
+boost in both.
+
+That matters well beyond the load it applies to, because the boost decides an
+ordering that allocation then depends on. An address computed from a boosted
+insn is scheduled as soon as it is released, which puts it *after* the stores of
+its priority group in the emitted order; unboosted it loses every
+`schedule_select` tie to those stores and walks to the head of the block
+instead. Where the group contains a store that kills a constant, the two orders
+put the constant's death on opposite sides of the pointer's birth, and
+`local-alloc` either can or cannot give the pointer the constant's register.
+
+So when a pointer and a nearby constant hold each other's registers, ask first
+whether the arms share a local. The reverse direction is equally usable: a
+variable that the original reused for a later temporary has two sets and so is
+never boosted, which is sometimes the only way to keep an address computation
+ahead of the stores that follow it.
