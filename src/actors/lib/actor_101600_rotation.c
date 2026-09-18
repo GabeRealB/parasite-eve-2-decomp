@@ -513,7 +513,66 @@ s32 Actor01600_Fn047A0(Actor01600* arg0)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_rotation", Actor01600_Fn04974);
+s32 Actor01600_Fn04974(Actor01600* actor, s32 angle, s32 distance, s32 flags)
+{
+    Actor01600Work* work;
+    GsCOORDINATE2*  coord;
+    GsCOORDINATE2*  other;
+    s32             difference;
+    s32             angleAbs;
+    s32             done;
+    s32             otherY;
+    s32             tmp;
+
+    work  = actor->field_1C;
+    coord = actor->field_2C->field_8;
+    other = (*Gp_ActorSlots)->field_2C->field_8;
+    if (Gp_ActorSlots[flags]->actor->field_954 != 2) {
+        if (Actor01600_D12870 == 0) {
+            otherY     = other->coord.t[1];
+            tmp        = coord->coord.t[1];
+            difference = otherY - tmp;
+            if (difference < 0) {
+                difference = -difference;
+            }
+            if (difference < 0x191) {
+                if (distance < 0x3E9) {
+                    tmp      = angle >= 0;
+                    angleAbs = tmp ? angle : -angle;
+                    if (angleAbs < 0x101) {
+                        work->field_42A |= 0xC000;
+                        Actor01600_Fn04EB0(actor);
+                        if (work->field_4EA >= 2) {
+                            work->field_506  = 0x19;
+                            work->field_51A  = 0;
+                            work->field_4FE  = 0;
+                            work->field_4EA  = 0;
+                            work->field_514  = 1;
+                            work->field_2BA &= 0x3FFF;
+                            done             = 1;
+                        } else {
+                            done = 0;
+                        }
+                        if ((u8)done) {
+                            return 1;
+                        }
+                        work->field_516 = 7;
+                        work->field_506 = 0x1C;
+                        work->field_52C = 0;
+                        work->field_53E = flags;
+                        work->field_4D4 = (Task*)Gp_ActorSlots[flags];
+                        return 1;
+                    }
+                    return 0;
+                }
+                return 0;
+            }
+            return 0;
+        }
+        return 0;
+    }
+    return 0;
+}
 
 void Actor01600_Fn04AD8(Actor01600* arg0)
 {

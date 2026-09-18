@@ -129120,3 +129120,52 @@ dumps: the block list is in the dump itself, as
 
 The same boundary also keeps two `li` of one constant apart, since a constant
 pseudo shared across the boundary is a second candidate for the same register.
+
+## A reference that combine folds away still makes a pseudo global, and that decides which of two temps gets `$v0` (Actor01600_Fn04974, 2026-09-18)
+
+Two loads feeding one subtraction inside a single basic block always come out
+with the *second* load's destination in the first free call-clobbered register:
+
+```c
+y0 = a->coord.t[1];        /* lw v1,0x1c(...) */
+y1 = b->coord.t[1];        /* lw v0,0x1c(...) */
+difference = y0 - y1;      /* subu v0,v1,v0   */
+```
+
+Both destinations are block-local, so `local-alloc` allocates them before
+`global-alloc` runs, in `QTY_CMP_PRI` order - `floor_log2(refs) * refs * size /
+(death - birth)`. With two references each, only the live range differs: the
+first load dies two insns later, the second one. The shorter range wins, takes
+`$v0` (MIPS has no `REG_ALLOC_ORDER`, so the order is ascending regno), and the
+first load is pushed to `$v1`. No arrangement of the two statements changes it,
+and neither does folding them into one expression.
+
+To get the opposite assignment the second load's destination must be allocated
+by `global-alloc` instead, which only handles pseudos `REG_BASIC_BLOCK` marks
+as global. A reference in a second block does that - and it does not have to
+survive to the allocator, because `flow` records `REG_BASIC_BLOCK` and
+`reg_n_refs`, while `combine` runs afterwards:
+
+```c
+    y1 = angle >= 0;               /* folded into the branch by combine */
+    angleAbs = y1 ? angle : -angle;
+```
+
+`combine` merges the comparison into the conditional jump and deletes the set,
+so by `lreg` the pseudo has no reference outside the load block - but it is
+still flagged global, and still counted with the two folded references. It
+therefore reaches `global-alloc` first (4 refs / 2 insns), conflicts with `$v0`
+because the surviving block-local temp holds it, and lands in `$v1`. The
+subtraction's destination is free to take `$v0` again, since it is born where
+the local dies.
+
+Two checks in the dumps, both cheap: `.lreg` prints `in block N` only for
+pseudos local-alloc will handle, so its absence is the marker; and the
+`;; N regs to allocate:` line in `.greg` lists the pseudo with a reference
+count that the RTL no longer justifies. Chasing the disappeared reference
+means diffing `.flow` against `.combine` for that register.
+
+The same lever works wherever a value is wanted out of local-alloc's greedy
+first choice: any dead write in another block that `combine` can fold - a
+comparison consumed by a branch is the reliable one - reclassifies the pseudo
+without costing an instruction.
