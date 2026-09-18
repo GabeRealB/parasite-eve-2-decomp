@@ -1,5 +1,5 @@
 asm/
-assets/
+/assets
 build/
 dumps/
 rom/
@@ -29,8 +29,18 @@ target_object_dump.s
 .DS_Store
 objdiff.json
 compile_commands.json
-.venv*/
-venv*/
+.venv*
+venv*
+
+# Per-worktree sweep scaffolding. These must be ignored in their symlink/file
+# form too, not just as directories: a lane worktree links assets/ and venv/ to
+# the trunk, and a directory-only pattern left the symlinks untracked-but-not-
+# ignored, so an agent's `git add -A` committed them. Landing that on trunk
+# replaced the real assets/ and venv/ with symlinks to themselves - every
+# venv/bin/python3 then failed with ELOOP and the next landing could not take
+# the merge lock.
+/.split.log
+/OVERLAY_BRIEF.md
 
 # peassets ladder logs (regenerated each run)
 tools/peassets/logs/

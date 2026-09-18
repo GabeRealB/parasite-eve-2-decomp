@@ -426,8 +426,17 @@ fi
 # --- land the batch -----------------------------------------------------------
 # Everything the branch touched outside src/<overlay> - new headers, learnings,
 # a manifest cut - has to travel with the bodies or trunk will not build.
+# Never carry the worktree scaffolding, whatever a branch happens to contain.
+# overlay_batch.sh links assets/ and venv/ into the worktree and drops
+# .split.log / OVERLAY_BRIEF.md beside them; .gitignore now covers all four in
+# their symlink/file form, but a branch cut before that fix still holds them,
+# and landing one replaces trunk's real assets/ and venv/ with symlinks to
+# themselves. Every venv/bin/python3 then fails with ELOOP, which is how the
+# dryfield_dilapidated_house landing lost the merge lock with 7 matches on the
+# branch.
 mapfile -t EXTRAS < <(git -C "$WT" diff --name-only "$BASE"..HEAD \
-                      | grep -v "^src/.*/${OVERLAY%/*}/" || true)
+                      | grep -v "^src/.*/${OVERLAY%/*}/" \
+                      | grep -vxE "venv|assets|\.split\.log|OVERLAY_BRIEF\.md" || true)
 log "extra paths: ${EXTRAS[*]:-none}"
 
 # --- has trunk moved under us? ----------------------------------------------
