@@ -308,4 +308,14 @@ u32* gpStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// stored relative to the model.
 u32* gpStreamPrimGt3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+/// Handler of a stream's textured-quad records (`0x78`, `0x7A`, `0x8078`,
+/// `0x10078`, `0x20078`): each element contributes one quad to the buffer half's
+/// second region, with the element's texture words written into it.
+///
+/// The record is not pre-transformed, so its quad is built in the region the
+/// draw pass transforms; this command writes only the polygon's `u`/`v` fields,
+/// and adds the model's texture page and CLUT to the primitive's own, which are
+/// stored relative to the model.
+u32* gpStreamPrimGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 #endif // TMD_H
