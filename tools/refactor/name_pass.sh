@@ -6,7 +6,8 @@
 #                                 [--from ORDER] [--step ORDER]
 #                                 [--list-profiles] [--clean-workers]
 #
-# With no --times the whole worklist is walked. --times N stops after N steps.
+# With no --times the whole worklist is walked. --times N stops after N rounds -
+# a round being one fork-join cycle, which is one step per worker.
 # --clean-workers removes the worker worktrees and exits, doing no work.
 #
 # Profiles are the same ones the matching vacuum uses, from
@@ -61,9 +62,11 @@ RULES=".grok/rules/name-pass.md"
 CLI="${VACUUM_CLI:-claude}"
 CLI_EXPLICIT=0
 PROFILE="${PROFILE-${VACUUM_PROFILE:-}}"
-# Zero means the whole worklist. A driver told to walk a list has no reason to
-# stop after the first item, and a default of one made the common invocation
-# look like it had run out of work.
+# Rounds, not steps: a round is the unit the driver actually executes, so a
+# limit that cut across one would leave workers idle for no reason. Zero means
+# the whole worklist - a driver told to walk a list has no reason to stop after
+# the first round, and a default of one made the common invocation look like it
+# had run out of work.
 TIMES=0
 WORKERS=1
 # Beside the repository by default, the way the matching vacuum places its
@@ -634,12 +637,7 @@ BARRIER
     fi
     break
   fi
-  # --times counts steps, not rounds, so a wide round can overshoot it; trim the
-  # round rather than starting one that would.
-  if (( TIMES > 0 && i + ${#batch[@]} > TIMES )); then
-    batch=("${batch[@]:0:$((TIMES - i))}")
-  fi
-  i=$((i + ${#batch[@]}))
+  i=$((i + 1))
 
   # Into the log as well as the terminal, with blank lines around it: the log
   # is otherwise one unbroken stream in which nothing says where a step began
