@@ -267,4 +267,14 @@ u32* Tmd_StreamHandler_Op170(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// own, which are stored relative to the model.
 u32* gpStreamPrimGt3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+/// Handler of a stream's pre-transformed textured-quad records (`0x71`, `0x79`,
+/// `0x7B`, `0x171`, `0x8079`): each element contributes one quad to the buffer
+/// half's first region, with the element's texture words written into it.
+///
+/// The opcode says the quad's vertices are already in screen space, so there is
+/// no transform or cull for this command to do. It writes the polygon's `u`/`v`
+/// fields, and adds the model's texture page and CLUT to the primitive's own,
+/// which are stored relative to the model.
+u32* gpStreamPrimGt4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 #endif // TMD_H

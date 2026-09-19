@@ -131180,3 +131180,24 @@ So rename a hasm symbol with `git mv` on the `.s` and edit its `glabel` /
 `endlabel` by hand, then re-split: the config is only half the rename, and no
 tool completes the other half. The `Tmd_StreamHandler_*` handlers are the worked
 example, `tmdSkipStreamRecord` the first one converted.
+
+## A model stream record's packet type is in its draw-path twin
+
+A model's packet stream is dispatched by opcode twice: `Tmd_ProcessStream` (main)
+selects the C bodies in the gameplay overlay that lay each record's packet into
+the buffer, and the draw path selects the handwritten handlers in
+`src/main/hasm/Tmd_StreamHandlers_Ops.s`. Only the second set is named, so an
+unidentified C handler is read from its twin. Each draw handler loads the
+record's Psy-Q primitive code into `$v1` — `0x34` `POLY_GT3`, `0x3C` `POLY_GT4`,
+and the same code with bit 1 set (`0x36`, `0x3E`) for the semi-transparent
+variant — which the table at the top of `include/psyq/libgpu.h` names. The C
+body's cast of its write cursor is the same primitive, so the twin and the body
+corroborate each other: a record whose twin sets `0x3C` is a gouraud textured
+quad record, and the body's `POLY_GT4*` cast, its `u`/`v` writes and its
+`tpage`/`clut` handling are all read from that.
+
+The arms do not line up one for one, so read the one that selects the body being
+named rather than the twin's own label list. A draw handler can branch on its
+`flags` argument instead of on the opcode (`Tmd_StreamHandler_Op79` jumps into
+`Tmd_StreamHandler_Op7B` when `flags & 2`, which is the semi-transparent
+variant), and the process path may merge into one arm what the draw path splits.
