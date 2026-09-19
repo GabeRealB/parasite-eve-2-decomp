@@ -478,13 +478,13 @@ void Gp_InitStarterInv(void)
     Gp_ClearScanItems(scans[2]);
     slots = Mc_SaveData.field_5C8;
     for (j = 0; j < 0x20; j++) {
-        slots->field_0 = 0;
-        slots->field_1 = 0;
-        slots->field_2 = 0xFF;
-        slots->field_3 = 0;
+        slots->ammoId    = 0;
+        slots->ammoQty   = 0;
+        slots->attachId  = 0xFF;
+        slots->attachQty = 0;
         if (j == 0x1A) {
-            slots->field_2 = 0;
-            slots->field_3 = 0;
+            slots->attachId  = 0;
+            slots->attachQty = 0;
         }
         slots->field_4 = 0;
         slots++;
@@ -586,13 +586,13 @@ void func_800B8014(void)
     Gp_ClearCollectedBits();
     slots = Mc_SaveData.field_5C8;
     for (j = 0; j < 0x20; j++) {
-        slots->field_0 = 0;
-        slots->field_1 = 0;
-        slots->field_2 = 0xFF;
-        slots->field_3 = 0;
+        slots->ammoId    = 0;
+        slots->ammoQty   = 0;
+        slots->attachId  = 0xFF;
+        slots->attachQty = 0;
         if (j == 0x1A) {
-            slots->field_2 = 0;
-            slots->field_3 = 0;
+            slots->attachId  = 0;
+            slots->attachQty = 0;
         }
         slots->field_4 = 0;
         slots++;
@@ -1491,15 +1491,15 @@ void Gp_RefreshItemRow(GpItemRec* arg0)
     }
 
     if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
-        slot->field_0 = 0;
-        slot->field_1 = 0;
+        slot->ammoId  = 0;
+        slot->ammoQty = 0;
     }
 
     if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
-        if (slot->field_2 != 0xFF) {
-            slot->field_2 = 0;
+        if (slot->attachId != 0xFF) {
+            slot->attachId = 0;
         }
-        slot->field_3 = 0;
+        slot->attachQty = 0;
     }
 }
 
@@ -2156,14 +2156,14 @@ void Gp_ResetInventory(void)
                 }
             }
             if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
-                slot->field_0 = 0;
-                slot->field_1 = 0;
+                slot->ammoId  = 0;
+                slot->ammoQty = 0;
             }
             if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
-                if (slot->field_2 != 0xFF) {
-                    slot->field_2 = 0;
+                if (slot->attachId != 0xFF) {
+                    slot->attachId = 0;
                 }
-                slot->field_3 = 0;
+                slot->attachQty = 0;
             }
             USE_REG(i);
         }
@@ -2279,14 +2279,14 @@ void Gp_ClearInventory(void)
                 }
             }
             if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
-                slot->field_0 = 0;
-                slot->field_1 = 0;
+                slot->ammoId  = 0;
+                slot->ammoQty = 0;
             }
             if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
-                if (slot->field_2 != 0xFF) {
-                    slot->field_2 = 0;
+                if (slot->attachId != 0xFF) {
+                    slot->attachId = 0;
                 }
-                slot->field_3 = 0;
+                slot->attachQty = 0;
             }
             USE_REG(i);
         }
@@ -2442,7 +2442,7 @@ void Gp_InitModeEquip(void)
     }
     if (cfg->weapon == 2) {
         slots    = Mc_SaveData.field_1C8;
-        slotItem = slots[0x81].field_0;
+        slotItem = slots[0x81].ammoId;
         if ((slotItem == 0) || (slotItem == 0xA0)) {
             Gp_EquipRelatedItem(&Mc_SaveData.field_5BC, 0x81, 0xA0, -1);
         }
@@ -2794,11 +2794,11 @@ s32 Gp_CountEquippedRelated(GpItemScan* arg0, s32 arg1)
                 if ((u32)(itemId - 0x80) < 0x20U) {
                     slot = (GpItemSlot*)((itemId << 3) + (s32)slots);
                     alt  = slot;
-                    if (slot->field_0 == arg1) {
-                        count += slot->field_1;
+                    if (slot->ammoId == arg1) {
+                        count += slot->ammoQty;
                     }
-                    if (alt->field_2 == arg1) {
-                        count += alt->field_3;
+                    if (alt->attachId == arg1) {
+                        count += alt->attachQty;
                     }
                 }
             }
@@ -2830,15 +2830,15 @@ void Gp_ClearEquipSlot(s32 arg0)
     }
 
     if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
-        slot->field_0 = 0;
-        slot->field_1 = 0;
+        slot->ammoId  = 0;
+        slot->ammoQty = 0;
     }
 
     if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
-        if (slot->field_2 != 0xFF) {
-            slot->field_2 = 0;
+        if (slot->attachId != 0xFF) {
+            slot->attachId = 0;
         }
-        slot->field_3 = 0;
+        slot->attachQty = 0;
     }
 }
 
@@ -2864,17 +2864,17 @@ void Gp_ClearEquipSlotSel(s32 arg0, s32 arg1)
 
     if (arg1 != 2) {
         if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
-            slot->field_0 = 0;
-            slot->field_1 = 0;
+            slot->ammoId  = 0;
+            slot->ammoQty = 0;
         }
     }
 
     if (arg1 != 1) {
         if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
-            if (slot->field_2 != 0xFF) {
-                slot->field_2 = 0;
+            if (slot->attachId != 0xFF) {
+                slot->attachId = 0;
             }
-            slot->field_3 = 0;
+            slot->attachQty = 0;
         }
     }
 }
@@ -2970,9 +2970,9 @@ s32 Gp_FillRelated(s32 arg0, s32 arg1)
     slot = &Mc_SaveData.field_1C8[arg0];
     alt  = slot;
     if (arg1 != 0) {
-        ret = Gp_EquipRelatedItem(&Mc_SaveData.field_5BC, arg0, slot->field_2, -1);
+        ret = Gp_EquipRelatedItem(&Mc_SaveData.field_5BC, arg0, slot->attachId, -1);
     } else {
-        ret = Gp_EquipRelatedItem(&Mc_SaveData.field_5BC, arg0, alt->field_0, -1);
+        ret = Gp_EquipRelatedItem(&Mc_SaveData.field_5BC, arg0, alt->ammoId, -1);
     }
     return ret;
 }
@@ -2986,9 +2986,9 @@ s32 Gp_UnequipRelated(s32 arg0, s32 arg1)
     slot = &Mc_SaveData.field_1C8[arg0];
     alt  = slot;
     if (arg1 == 0) {
-        ret = Gp_EquipRelatedItem(&Mc_SaveData.field_5BC, arg0, slot->field_0, 0);
+        ret = Gp_EquipRelatedItem(&Mc_SaveData.field_5BC, arg0, slot->ammoId, 0);
     } else {
-        ret = Gp_EquipRelatedItem(&Mc_SaveData.field_5BC, arg0, alt->field_2, 0);
+        ret = Gp_EquipRelatedItem(&Mc_SaveData.field_5BC, arg0, alt->attachId, 0);
     }
     return ret == 0;
 }
@@ -3504,13 +3504,13 @@ void Gp_ResetAuxSlots(void)
 
     p = Mc_SaveData.field_5C8;
     for (i = 0; i < 0x20; i++) {
-        p->field_0 = 0;
-        p->field_1 = 0;
-        p->field_2 = 0xFF;
-        p->field_3 = 0;
+        p->ammoId    = 0;
+        p->ammoQty   = 0;
+        p->attachId  = 0xFF;
+        p->attachQty = 0;
         if (i == 0x1A) {
-            p->field_2 = 0;
-            p->field_3 = 0;
+            p->attachId  = 0;
+            p->attachQty = 0;
         }
         p->field_4 = 0;
         p++;
@@ -3550,7 +3550,7 @@ void Gp_SyncHeldRelated(void)
     } else {
         slots = Mc_SaveData.field_1C8;
         idx   = p->weapon + 0x7F;
-        item  = slots[idx].field_0;
+        item  = slots[idx].ammoId;
         if (item == 0) {
             p->weaponSlotItem = 0;
         } else {

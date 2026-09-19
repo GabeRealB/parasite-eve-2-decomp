@@ -18,7 +18,7 @@
 #define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 
 /// Equipped-weapon index; `Gp_GetItemSlot(D_80073BA9 + 0x7F)` is the slot the
-/// player is holding, and its `field_2` is the attachment id the sound bank is
+/// player is holding, and its `attachId` is the attachment id the sound bank is
 /// keyed on. A main-executable global with no module header yet.
 extern u8 D_80073BA9;
 
@@ -55,7 +55,7 @@ void func_m4a1_grenade_8011D1EC(GpActorWork* arg0)
        two uses in separate registers. */
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0x50;
     spot                    = (GsCOORDINATE2*)*(void**)G_SCRATCH_HEAD;
-    sfx                     = slot->field_2 - 0x9F;
+    sfx                     = slot->attachId - 0x9F;
     if (sfx < 0) {
         sfx = 0xA;
     }
@@ -290,7 +290,7 @@ void func_m4a1_grenade_8011D994(Task* arg0)
     coord->flg              = 0;
     if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
     explode:
-        blk->sfx = slot->field_2 - 0x9F;
+        blk->sfx = slot->attachId - 0x9F;
         if (blk->sfx < 0) {
             blk->sfx = 0xA;
         }

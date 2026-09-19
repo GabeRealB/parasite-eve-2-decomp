@@ -1091,17 +1091,17 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
                         do {
                             if ((u8)(rec->itemId + 0x80) < 0x20) {
                                 slot   = Gp_GetItemSlot(rec->itemId);
-                                attach = slot->field_0;
+                                attach = slot->ammoId;
                                 if ((attach != 0) && (attach != 0xB9)) {
                                     if (Gp_SumScanQty(scan, attach) == 0) {
-                                        slot->field_1 = 0;
+                                        slot->ammoQty = 0;
                                     }
                                 }
-                                attach = slot->field_2;
+                                attach = slot->attachId;
                                 if ((attach != 0) && (attach != 0xFF) && (attach != 0xB5) && (attach != 0xBB) &&
                                     (attach != 0xBD) && (attach != 0xBE)) {
                                     if (Gp_SumScanQty(scan, attach) == 0) {
-                                        slot->field_3 = 0;
+                                        slot->attachQty = 0;
                                     }
                                 }
                             }
@@ -1123,17 +1123,17 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
                     do {
                         if ((u8)(rec->itemId + 0x80) < 0x20) {
                             slot   = Gp_GetItemSlot(rec->itemId);
-                            attach = slot->field_0;
+                            attach = slot->ammoId;
                             if ((attach != 0) && (attach != 0xB9)) {
                                 if (Gp_SumScanQty(scan, attach) == 0) {
-                                    slot->field_1 = 0;
+                                    slot->ammoQty = 0;
                                 }
                             }
-                            attach = slot->field_2;
+                            attach = slot->attachId;
                             if ((attach != 0) && (attach != 0xFF) && (attach != 0xB5) && (attach != 0xBB) &&
                                 (attach != 0xBD) && (attach != 0xBE)) {
                                 if (Gp_SumScanQty(scan, attach) == 0) {
-                                    slot->field_3 = 0;
+                                    slot->attachQty = 0;
                                 }
                             }
                         }

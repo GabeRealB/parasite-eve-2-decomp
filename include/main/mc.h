@@ -79,15 +79,15 @@ typedef struct {
 } McItemRec;
 STATIC_ASSERT_SIZEOF(McItemRec, 0x4);
 
-/// 8-byte save-inventory slot (`Mc_SaveData.field_1C8` / `field_5C8`).
-/// field_0/field_2 are item ids; field_1/field_3 are the matching counts
-/// (`Gp_CountEquippedRelated`). field_4 is word-cleared by `Gp_ResetAuxSlots`.
-typedef struct _McItemSlot {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ u8  field_2;
-    /* 0x3 */ u8  field_3;
-    /* 0x4 */ s32 field_4;
+/// One entry of `Mc_SaveData`'s per-weapon item table, reached through
+/// `Gp_GetItemSlot` and indexed by weapon item id (0x80–0x9F): the ammunition
+/// the weapon is loaded with, and the attachment fitted to it.
+typedef struct {
+    u8  ammoId;    // Ammunition item id (0 = none loaded)
+    u8  ammoQty;   // How many of ammoId the weapon holds
+    u8  attachId;  // Attachment item id (0xFF = the weapon takes none, 0 = slot empty)
+    u8  attachQty; // How many of attachId the weapon holds
+    s32 field_4;   // Role unproven: cleared wherever a slot is reset, and no body reads it
 } McItemSlot;
 STATIC_ASSERT_SIZEOF(McItemSlot, 0x8);
 
@@ -170,7 +170,7 @@ typedef struct _McSaveData {
     /* 0x5C5 */ s8         field_5C5;
     /* 0x5C6 */ byte       unknown_5C6[0x1];
     /* 0x5C7 */ s8         field_5C7;       // addend for Gp_AllyIdBase lookup
-    /* 0x5C8 */ McItemSlot field_5C8[0x20]; // inited by Gp_ResetAuxSlots; index 0x1A gets field_2=0
+    /* 0x5C8 */ McItemSlot field_5C8[0x20]; // inited by Gp_ResetAuxSlots; index 0x1A gets attachId=0
     /* 0x6C8 */ u16        field_6C8;
     /* 0x6CA */ u16        field_6CA;
     /* 0x6CC */ u16        field_6CC;         // capped at 9999; incremented by Gp_AreaEnterTask on spawnArg1 == 0

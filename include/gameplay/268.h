@@ -12,8 +12,8 @@
 struct GpEnemy;
 struct _UiObject;
 
-/// Save-inventory slot (`Mc_SaveData.field_1C8`). field_0/field_2 are item ids;
-/// field_1/field_3 are the matching counts (`Gp_CountEquippedRelated`).
+/// Per-weapon item slot: the ammunition the weapon is loaded with and the
+/// attachment fitted to it. Gameplay's name for `McItemSlot`.
 typedef McItemSlot GpItemSlot;
 
 /// 4-byte table entry in `Gp_ItemMaps` (8 entries). field_1 is an item id

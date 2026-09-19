@@ -51,11 +51,11 @@ void RoomsShared8017f49c(Task* task)
             itemId                 = map->field_1;
             slot                   = Gp_GetItemSlot(itemId);
             if (RoomsShared8017f49cMap->field_0 == 0) {
-                RoomsShared8017f49cQty = slot->field_1;
-                slot->field_1          = Gp_GetRelatedQty(itemId, 0);
+                RoomsShared8017f49cQty = slot->ammoQty;
+                slot->ammoQty          = Gp_GetRelatedQty(itemId, 0);
             } else {
-                RoomsShared8017f49cQty = slot->field_3;
-                slot->field_3          = Gp_GetRelatedQty(itemId, 1);
+                RoomsShared8017f49cQty = slot->attachQty;
+                slot->attachQty        = Gp_GetRelatedQty(itemId, 1);
             }
             task->killCountdown      = 0xBC;
             RoomsShared8017f49cQty <<= 8;

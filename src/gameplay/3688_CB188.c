@@ -568,10 +568,10 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             Gp_RemoveItem(scanInit, (GpItemRec*)Gp_SelItemRec, 1);
             rec->itemId = (u8)result;
             Gp_ClearEquipSlotSel(result, 0);
-            slotDst->field_0 = slotSrc->field_0;
-            Gp_EquipRelatedItem(scanInit, result, slotDst->field_0, slotSrc->field_1);
-            if ((extra == 0) && (slotDst->field_2 == slotSrc->field_2)) {
-                slotDst->field_3 = slotSrc->field_3;
+            slotDst->ammoId = slotSrc->ammoId;
+            Gp_EquipRelatedItem(scanInit, result, slotDst->ammoId, slotSrc->ammoQty);
+            if ((extra == 0) && (slotDst->attachId == slotSrc->attachId)) {
+                slotDst->attachQty = slotSrc->attachQty;
             }
             Gp_ClearEquipSlotSel(src, 0);
             if (cfg->weapon == (src - 0x7F)) {
@@ -2002,8 +2002,8 @@ s32 Gp_IsEquippedItem(s32 arg0)
     if ((((u32)(arg0 - 0x80) < 0x20U) && (p->weapon == arg0 - 0x7F)) ||
         (((u32)(arg0 - 0x60) < 0x20U) && (p->armor == arg0 - 0x5F)) ||
         (((u32)(arg0 - 0xA0) < 0x20U) && (p->weapon != 0) &&
-         ((Gp_GetItemSlot(p->weapon + 0x7F)->field_0 == arg0) ||
-          (Gp_GetItemSlot(p->weapon + 0x7F)->field_2 == arg0)))) {
+         ((Gp_GetItemSlot(p->weapon + 0x7F)->ammoId == arg0) ||
+          (Gp_GetItemSlot(p->weapon + 0x7F)->attachId == arg0)))) {
         ret = 1;
     }
     return ret;
@@ -3828,13 +3828,13 @@ void Gp_DiscardWarnTask(Task* arg0)
                     i = 0x80;
                     do {
                         slot = Gp_GetItemSlot(i);
-                        if (slot->field_0 == id) {
-                            slot->field_0 = 0;
-                            slot->field_1 = 0;
+                        if (slot->ammoId == id) {
+                            slot->ammoId  = 0;
+                            slot->ammoQty = 0;
                         }
-                        if (slot->field_2 == id) {
-                            slot->field_2 = 0;
-                            slot->field_3 = 0;
+                        if (slot->attachId == id) {
+                            slot->attachId  = 0;
+                            slot->attachQty = 0;
                         }
                         i += 1;
                     } while (i < 0xA0);

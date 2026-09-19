@@ -118,21 +118,21 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
             if (Gp_EquipRelatedBank(0, held, id, 0) == 0) {
                 Gp_PendingRelatedId = id;
                 Gp_RelatedPending   = flag;
-                relId               = slot->field_0;
+                relId               = slot->ammoId;
                 if (relId != id) {
                     cfg->weaponSlotItem = id + 0x61;
-                    slot->field_0       = id;
-                    slot->field_1       = 0;
+                    slot->ammoId        = id;
+                    slot->ammoQty       = 0;
                 }
                 Gp_SetItemSeenBit(id, 1);
                 ret = 1;
             } else if (Gp_EquipRelatedBank(1, held, id, 0) == 0) {
                 Gp_PendingRelatedId = -id;
                 Gp_RelatedPending   = flag;
-                relId               = slot->field_2;
+                relId               = slot->attachId;
                 if (relId != id) {
-                    slot->field_2 = id;
-                    slot->field_3 = 0;
+                    slot->attachId  = id;
+                    slot->attachQty = 0;
                 }
                 Gp_SetItemSeenBit(id, 1);
                 ret = 1;

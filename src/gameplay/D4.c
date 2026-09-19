@@ -135,7 +135,7 @@ void Gp_EnqueueWeaponCd(void)
             param1[0] = 0x10;
             slot      = Gp_GetItemSlot(item + 0x7F);
             TOUCH_REG(slot);
-            attach = slot->field_2;
+            attach = slot->attachId;
             if (attach != 0 && attach != 0xFF) {
                 temp = attach;
                 TOUCH_REG(temp);

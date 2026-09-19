@@ -3987,23 +3987,23 @@ void Gp_ApplyItemMap(void)
         if (map->field_0 == 0) {
             mapped = map->field_2;
             TOUCH_REG_USE(id, mapped);
-            id           -= 0x80;
-            slot->field_0 = mapped;
-            count         = 0;
+            id          -= 0x80;
+            slot->ammoId = mapped;
+            count        = 0;
             if ((u32)id < 0x20) {
                 count = qty0[id].field_0;
             }
-            slot->field_1 = count;
+            slot->ammoQty = count;
         } else {
             mapped = map->field_2;
             TOUCH_REG_USE(id, mapped);
-            id           -= 0x80;
-            slot->field_2 = mapped;
-            count         = 0;
+            id            -= 0x80;
+            slot->attachId = mapped;
+            count          = 0;
             if ((u32)id < 0x20) {
                 count = qty1[id].field_0;
             }
-            alt->field_3 = count;
+            alt->attachQty = count;
         }
     }
 }
@@ -4027,12 +4027,12 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
     counter = (s32*)(off4 + (s32)counts);
 
     if (arg1 == 1) {
-        if (slot->field_0 != 0) {
-            count = slot->field_1;
+        if (slot->ammoId != 0) {
+            count = slot->ammoQty;
             if (count != 0) {
                 if (Mc_SaveData.field_5C2 == 0) {
-                    slot->field_1 = count - 1;
-                    Gp_ConsumeScanQty(&Mc_SaveData.field_5BC, slot->field_0, 1);
+                    slot->ammoQty = count - 1;
+                    Gp_ConsumeScanQty(&Mc_SaveData.field_5BC, slot->ammoId, 1);
                     count = *counter;
                     if (count <= 0xF423E) {
                         *counter = count + 1;
@@ -4043,15 +4043,15 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
         }
     }
     if (arg1 == 0x101) {
-        count = slot->field_2;
+        count = slot->attachId;
         if (count != 0) {
             if (count != 0xFF) {
-                count = slot->field_3;
+                count = slot->attachQty;
                 if (count != 0) {
                     save = &Mc_SaveData;
                     if (save->field_5C2 == 0) {
-                        slot->field_3 = count - 1;
-                        Gp_ConsumeScanQty(&save->field_5BC, slot->field_2, 1);
+                        slot->attachQty = count - 1;
+                        Gp_ConsumeScanQty(&save->field_5BC, slot->attachId, 1);
                         count = *counter;
                         if (count <= 0xF423E) {
                             *counter = count + 1;
@@ -4064,9 +4064,9 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
 
 done:
     if (!(arg1 & 0x100)) {
-        return slot->field_1;
+        return slot->ammoQty;
     }
-    return slot->field_3;
+    return slot->attachQty;
 }
 
 s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -4156,11 +4156,11 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                 have   = (s16)Gp_FindScanQty(table, scan, &index2, arg2);
                 have  -= Gp_CountEquippedRelated(scan, arg2);
                 if (arg0 == 0) {
-                    if (slot->field_0 == arg2) {
-                        have += slot->field_1;
+                    if (slot->ammoId == arg2) {
+                        have += slot->ammoQty;
                     }
-                } else if (slot->field_2 == arg2) {
-                    have += slot->field_3;
+                } else if (slot->attachId == arg2) {
+                    have += slot->attachQty;
                 }
                 if (have > 0) {
                     goto success;
@@ -4179,11 +4179,11 @@ success:
             arg3 = have;
         }
         if (arg0 == 0) {
-            slot->field_0 = arg2;
-            slot->field_1 = arg3;
-        } else if (slot->field_2 != 0xFF) {
-            slot->field_2 = arg2;
-            slot->field_3 = arg3;
+            slot->ammoId  = arg2;
+            slot->ammoQty = arg3;
+        } else if (slot->attachId != 0xFF) {
+            slot->attachId  = arg2;
+            slot->attachQty = arg3;
         } else {
             arg3 = -1;
         }
@@ -4309,11 +4309,11 @@ s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
         slot   = &Mc_SaveData.field_1C8[arg1];
         have   = (s16)Gp_FindScanQty(table, arg0, &index2, arg2);
         have  -= Gp_CountEquippedRelated(arg0, arg2);
-        if (slot->field_0 == arg2) {
-            have += slot->field_1;
+        if (slot->ammoId == arg2) {
+            have += slot->ammoQty;
         }
-        if (slot->field_2 == arg2) {
-            have += slot->field_3;
+        if (slot->attachId == arg2) {
+            have += slot->attachQty;
         }
         if (have <= 0) {
             return -1;
@@ -4323,11 +4323,11 @@ s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
                 arg3 = have;
             }
             if (useSecond == 0) {
-                slot->field_0 = arg2;
-                slot->field_1 = arg3;
-            } else if (slot->field_2 != 0xFF) {
-                slot->field_2 = arg2;
-                slot->field_3 = arg3;
+                slot->ammoId  = arg2;
+                slot->ammoQty = arg3;
+            } else if (slot->attachId != 0xFF) {
+                slot->attachId  = arg2;
+                slot->attachQty = arg3;
             }
             goto join;
         }

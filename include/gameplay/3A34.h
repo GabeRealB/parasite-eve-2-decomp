@@ -1141,7 +1141,7 @@ extern const char   D_80097448[];
 void                func_800D6334(Task* arg0);
 
 /// Signed pending item id consumed by `Gp_FlushPendingRelated`. `Gp_ApplyItemUse`
-/// stores the id, or its negation for the second `GpItemSlot` pair.
+/// stores the id for the ammunition pair, its negation for the attachment pair.
 /// `Gp_MenuExitCallback` also consumes it (with `Gp_RelatedPending`) via `func_801088D4`.
 extern s32 Gp_PendingRelatedId;
 

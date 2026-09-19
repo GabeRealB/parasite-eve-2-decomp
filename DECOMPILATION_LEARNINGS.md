@@ -29618,7 +29618,7 @@ fields in `$s0`. Assign the pointer back into the same `s32`:
 
 ```c
 item   = (s32)Gp_GetItemSlot(item);
-attach = ((GpItemSlot*)item)->field_0;
+attach = ((GpItemSlot*)item)->ammoId;
 ```
 
 A second byte compared against a non-zero constant then assigned to the
@@ -29634,9 +29634,9 @@ beq   v1, v0, skip
 ```
 
 ```c
-if (slot->field_2 != 0xFF) {
-    attach = slot->field_2;
-    count  = slot->field_3;
+if (slot->attachId != 0xFF) {
+    attach = slot->attachId;
+    count  = slot->attachQty;
 }
 ```
 
@@ -133522,3 +133522,23 @@ Two ways to find it, both cheaper than matching the instruction stream by eye:
 A hand edit to a struct declaration is safe only while every member keeps its
 offset. Renames from the tool do; a rewrite that re-states the members is where
 this bites.
+## Two members that look interchangeable are told apart by the game's own words
+
+A struct whose members differ only in offset - same width, same access pattern -
+gives the access sites nothing to go on, and a role name invented from them is
+plausible and may be wrong. The text the game prints for the value is evidence
+of the same kind the assembly is: it ships in the overlay that stores it, and its
+symbol map names it.
+
+Read one straight out of the built image: take the symbol's address, subtract the
+overlay's load address, add the segment's file offset (the program headers give
+the pair), and read to the NUL. The release's text is ASCII, so no table is
+needed, and the address is already the thing the disassembly refers to.
+
+The worked case is a per-weapon save slot holding two (id, count) pairs, where
+neither the writes nor the item tables say what separates them. The labels the
+two are drawn under do: "Ammunition: None" against "Attachments: None". The
+candidate ids each pair is filled from agree - the first pair's are the calibre
+rounds, the second's the batteries and fuel the attached device runs on - and
+that agreement is what makes the reading safe to name from rather than a string
+that happens to sit nearby.

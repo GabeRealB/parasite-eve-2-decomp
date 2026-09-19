@@ -304,7 +304,7 @@ void Gp_MenuRootTask(Task* arg0)
             D_80114DE8 = cfg->weapon;
             D_80114DE4 = cfg->weaponSlotItem;
             if (cfg->weapon != 0) {
-                D_80114DE0 = Gp_GetItemSlot(cfg->weapon + 0x7F)->field_2;
+                D_80114DE0 = Gp_GetItemSlot(cfg->weapon + 0x7F)->attachId;
             }
             Gp_AgeFlag119Void();
             arg0->killCountdown = 1;
@@ -485,7 +485,7 @@ void Gp_MenuRootTask(Task* arg0)
             cfg = &Player_Status;
             Gp_SyncHeldRelated();
             if (cfg->weapon != 0) {
-                attach = Gp_GetItemSlot(cfg->weapon + 0x7F)->field_2;
+                attach = Gp_GetItemSlot(cfg->weapon + 0x7F)->attachId;
             }
             if ((D_80114DE8 == cfg->weapon) && (D_80114DE4 == cfg->weaponSlotItem) &&
                 (D_80114DE0 == attach)) {
@@ -519,7 +519,7 @@ void Gp_MenuRootTask(Task* arg0)
             cfg    = &Player_Status;
             attach = -1;
             if (cfg->weapon != 0) {
-                attach = Gp_GetItemSlot(cfg->weapon + 0x7F)->field_2;
+                attach = Gp_GetItemSlot(cfg->weapon + 0x7F)->attachId;
             }
             if ((D_80114DE8 != cfg->weapon) || (D_80114DE4 != cfg->weaponSlotItem) ||
                 (D_80114DE0 != attach)) {
@@ -1608,15 +1608,15 @@ void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (item > 0) {
         if (item != 0x92) {
             item   = (s32)Gp_GetItemSlot(item);
-            attach = ((GpItemSlot*)item)->field_0;
-            count  = ((GpItemSlot*)item)->field_1;
+            attach = ((GpItemSlot*)item)->ammoId;
+            count  = ((GpItemSlot*)item)->ammoQty;
             if (attach != 0) {
                 Gp_DrawQty((UiObject*)arg0, arg1, arg2, count, color);
             }
             Gp_DrawItemNameRow((UiObject*)arg0, arg1, arg2, attach, color, 0);
-            if (((GpItemSlot*)item)->field_2 != 0xFF) {
-                attach = ((GpItemSlot*)item)->field_2;
-                count  = ((GpItemSlot*)item)->field_3;
+            if (((GpItemSlot*)item)->attachId != 0xFF) {
+                attach = ((GpItemSlot*)item)->attachId;
+                count  = ((GpItemSlot*)item)->attachQty;
                 arg2  += 0x10;
                 if (attach != 0) {
                     Gp_DrawQty((UiObject*)arg0, arg1, arg2, count, color);
@@ -1646,8 +1646,8 @@ void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     if ((((u32)(arg3 - 0x80) < 0x20U) && (cfg->weapon == (arg3 - 0x7F))) ||
         (((u32)(arg3 - 0x60) < 0x20U) && (cfg->armor == (arg3 - 0x5F))) ||
         (((u32)(arg3 - 0xA0) < 0x20U) && (cfg->weapon != 0) &&
-         ((Gp_GetItemSlot(cfg->weapon + 0x7F)->field_0 == arg3) ||
-          (Gp_GetItemSlot(cfg->weapon + 0x7F)->field_2 == arg3)))) {
+         ((Gp_GetItemSlot(cfg->weapon + 0x7F)->ammoId == arg3) ||
+          (Gp_GetItemSlot(cfg->weapon + 0x7F)->attachId == arg3)))) {
         equipped = 1;
     }
     if (equipped != 0) {
@@ -1667,8 +1667,8 @@ void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         hasMod = 0;
         if ((u32)(arg3 - 0x80) < 0x20U) {
             slot = Gp_GetItemSlot(arg3);
-            if (((slot->field_1 != 0) && (Gp_FindItemById(slot->field_0) != NULL)) ||
-                ((slot->field_3 != 0) && (Gp_FindItemById(slot->field_2) != NULL))) {
+            if (((slot->ammoQty != 0) && (Gp_FindItemById(slot->ammoId) != NULL)) ||
+                ((slot->attachQty != 0) && (Gp_FindItemById(slot->attachId) != NULL))) {
                 hasMod = 1;
             }
         }
@@ -2409,11 +2409,11 @@ void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj)
     if (weapon >= 0x80) {
         slot = Gp_GetItemSlot(weapon);
         if (prompt->field_8 == 1) {
-            item  = slot->field_0;
-            count = slot->field_1;
+            item  = slot->ammoId;
+            count = slot->ammoQty;
         } else {
-            item  = slot->field_2;
-            count = slot->field_3;
+            item  = slot->attachId;
+            count = slot->attachQty;
         }
     }
     status = obj->status;
@@ -2568,7 +2568,7 @@ void Gp_WeaponMenuTask(Task* arg0)
             goto store1;
         }
         n = 0xFF;
-        if (slot->field_2 != n) {
+        if (slot->attachId != n) {
             n = 3;
             goto store1;
         }
@@ -2599,7 +2599,7 @@ void Gp_WeaponMenuTask(Task* arg0)
             goto store2;
         }
         n = 0xFF;
-        if (slot->field_2 != n) {
+        if (slot->attachId != n) {
             n = 3;
             goto store2;
         }
@@ -3360,8 +3360,8 @@ GpItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2)
             } else if (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) {
                 equipped = 1;
             } else if (((u32)(id - 0xA0) < 0x20U) && (p->weapon != 0) &&
-                       ((Gp_GetItemSlot(p->weapon + 0x7F)->field_0 == id) ||
-                        (Gp_GetItemSlot(p->weapon + 0x7F)->field_2 == id))) {
+                       ((Gp_GetItemSlot(p->weapon + 0x7F)->ammoId == id) ||
+                        (Gp_GetItemSlot(p->weapon + 0x7F)->attachId == id))) {
                 equipped = 1;
             }
             if (equipped != 0) {
@@ -3623,8 +3623,8 @@ void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
             } else if (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) {
                 equipped = 1;
             } else if (((u32)(id - 0xA0) < 0x20U) && (p->weapon != 0) &&
-                       ((Gp_GetItemSlot(p->weapon + 0x7F)->field_0 == id) ||
-                        (Gp_GetItemSlot(p->weapon + 0x7F)->field_2 == id))) {
+                       ((Gp_GetItemSlot(p->weapon + 0x7F)->ammoId == id) ||
+                        (Gp_GetItemSlot(p->weapon + 0x7F)->attachId == id))) {
                 equipped = 1;
             }
             if (equipped != 0) {
@@ -4067,7 +4067,7 @@ void func_800C5F70(Task* arg0)
             func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, flags);
             if ((u32)(item - 0x80) < 0x20U) {
                 spriteCount = 1;
-                if ((Gp_GetItemSlot(item)->field_2 != 0xFF) || (item == 0x8F) || (item == 0x93) ||
+                if ((Gp_GetItemSlot(item)->attachId != 0xFF) || (item == 0x8F) || (item == 0x93) ||
                     (item == 0x94) || (item == 0x96) || (item == 0x99) || (item == 0x81)) {
                     spriteCount = 2;
                 }
@@ -4832,16 +4832,16 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
         list    = &D_8010E9CC;
         itemRow = D_80112D5A[arg1];
         if (Gp_ReloadMode == 2) {
-            if (slot->field_2 == 0) {
+            if (slot->attachId == 0) {
                 eqRow = D_80112D5A[0x9F];
             } else {
-                eqRow = D_80112D5A[slot->field_2];
+                eqRow = D_80112D5A[slot->attachId];
             }
         } else {
-            if (slot->field_0 == 0) {
+            if (slot->ammoId == 0) {
                 eqRow = D_80112D5A[0x9F];
             } else {
-                eqRow = D_80112D5A[slot->field_0];
+                eqRow = D_80112D5A[slot->ammoId];
             }
         }
         D_80114D80 = D_8010E990;
@@ -5032,9 +5032,9 @@ void Gp_EquipSummaryTask(Task* arg0)
     } else if (mode == 1) {
         Ui_DrawText((UiPanel*)obj, Gp_StrAmmoCaps);
         slotp = Gp_GetItemSlot(cfg->weapon + 0x7F);
-        item  = slotp->field_0;
+        item  = slotp->ammoId;
         if (Gp_ReloadMode == 2) {
-            item = slotp->field_2;
+            item = slotp->attachId;
         }
     } else if (mode == 2) {
         Ui_DrawText((UiPanel*)obj, Gp_StrArmor);
@@ -5505,10 +5505,10 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* arg0, UiObject* arg1)
         qty = rec->qty - Gp_CountEquippedRelated(&Mc_SaveData.field_5BC, item);
         if (Gp_ReloadMode == 0) {
             attach = Gp_GetItemSlot(spawnArg);
-            if (attach->field_0 == item) {
-                qty += attach->field_1;
-            } else if (attach->field_2 == item) {
-                qty += attach->field_3;
+            if (attach->ammoId == item) {
+                qty += attach->ammoQty;
+            } else if (attach->attachId == item) {
+                qty += attach->attachQty;
             }
         }
         {
@@ -5656,8 +5656,8 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
                 qty  = Gp_ScanStackQty(scan, item);
                 qty -= Gp_CountEquippedRelated(scan, item);
                 if (mode == 0) {
-                    if (slot->field_0 == item) {
-                        qty += slot->field_1;
+                    if (slot->ammoId == item) {
+                        qty += slot->ammoQty;
                     }
                 }
                 if (qty > 0) {
@@ -5680,8 +5680,8 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
                 qty  = Gp_ScanStackQty(scan, item);
                 qty -= Gp_CountEquippedRelated(scan, item);
                 if (mode == 0) {
-                    if (slot->field_2 == item) {
-                        qty += slot->field_3;
+                    if (slot->attachId == item) {
+                        qty += slot->attachQty;
                     }
                 }
                 if (qty > 0) {
@@ -5742,13 +5742,13 @@ void Gp_AttachListTask(Task* arg0)
                     if ((val == 0x92) || (val == 0x99) || (val == 0x96)) {
                         task->state = 3;
                     } else if (val == 0x95) {
-                        if (slot->field_1 != 0) {
+                        if (slot->ammoQty != 0) {
                             task->state = 3;
                         }
                     } else {
-                        temp = slot->field_2;
+                        temp = slot->attachId;
                         if ((temp != 0xFF) && (temp != 0)) {
-                            if (slot->field_3 != 0) {
+                            if (slot->attachQty != 0) {
                                 task->state = 3;
                             }
                         }
@@ -6237,17 +6237,17 @@ void Gp_ReloadPromptTask(Task* arg0)
             slot        = Gp_GetItemSlot(hi);
             arg0->state = 0x10;
             if (Gp_ReloadMode == 1) {
-                if (slot->field_0 != 0) {
-                    arg0->spawnArg1 |= slot->field_0;
-                    text             = Gp_GetItemText(slot->field_0, 0, 0);
+                if (slot->ammoId != 0) {
+                    arg0->spawnArg1 |= slot->ammoId;
+                    text             = Gp_GetItemText(slot->ammoId, 0, 0);
                 } else {
                     arg0->state = 0x20;
                     text        = Gp_StrRemovedAmmo;
                 }
             } else if (Gp_ReloadMode == 2) {
-                if (slot->field_2 != 0) {
-                    arg0->spawnArg1 |= slot->field_2;
-                    text             = Gp_GetItemText(slot->field_2, 0, 0);
+                if (slot->attachId != 0) {
+                    arg0->spawnArg1 |= slot->attachId;
+                    text             = Gp_GetItemText(slot->attachId, 0, 0);
                 } else {
                     arg0->state = 0x20;
                     text        = Gp_StrRemovedAmmo;

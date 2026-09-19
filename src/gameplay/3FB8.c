@@ -6978,7 +6978,7 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
                 if ((rec->flags & 0x30) == 0x30) {
-                    item = Gp_GetItemSlot(Player_Status.weapon + 0x7F)->field_2;
+                    item = Gp_GetItemSlot(Player_Status.weapon + 0x7F)->attachId;
                     if (item - 0x9F > 0) {
                         variant = ((item - 0xA0) % 3) << 24;
                     }
@@ -8304,7 +8304,7 @@ void func_801095BC(s32* arg0)
 
     p = &Player_Status;
     if (p->weapon == 0x1B) {
-        *arg0 = Gp_GetItemSlot(p->weapon + 0x7F)->field_2 - 0x9F;
+        *arg0 = Gp_GetItemSlot(p->weapon + 0x7F)->attachId - 0x9F;
         if (*arg0 < 0) {
             *arg0 = 0xA;
         }

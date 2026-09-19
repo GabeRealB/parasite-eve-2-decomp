@@ -5473,10 +5473,10 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     if (item == 0x92) {
         return;
     }
-    count1 = slot->field_1;
-    if (slot->field_2 != 0) {
-        if (slot->field_2 != 0xFF) {
-            count2 = slot->field_3;
+    count1 = slot->ammoQty;
+    if (slot->attachId != 0) {
+        if (slot->attachId != 0xFF) {
+            count2 = slot->attachQty;
         }
         height = 0xE;
     } else {
@@ -5489,7 +5489,7 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     obj.drawOrder = t;
     obj.mode      = 0;
     xBase         = 0x5F;
-    if (slot->field_2 != 0xFF) {
+    if (slot->attachId != 0xFF) {
         height = 0x18;
     }
     y = 0x64 - height;
@@ -5534,7 +5534,7 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
         req.field_E    = 1;
         func_8002E53C(p, str);
     }
-    if (slot->field_0 != 0) {
+    if (slot->ammoId != 0) {
         s32 five;
 
         req.field_8    = 0x606060;
@@ -5553,7 +5553,7 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
         flag = 1;
     }
     Ui_LayoutWithMode0(&obj, 0x79, (y + 4), 0x1B, 7, 0x102010);
-    if (slot->field_2 != 0xFF) {
+    if (slot->attachId != 0xFF) {
         u8*          str;
         TextDrawReq* p;
         s32          v;
@@ -5600,7 +5600,7 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
         req2.y       = by + y;
         req2.otIndex = (s16)obj.drawOrder + 1;
         func_8002E53C(p, str);
-        if (slot->field_2 != 0) {
+        if (slot->attachId != 0) {
             req2.field_8    = 0x606060;
             req2.glyphTable = 5;
             req2.centerMode = 2;
