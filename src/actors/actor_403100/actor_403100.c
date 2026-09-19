@@ -501,10 +501,10 @@ void func_actor_403100_8013335C(Task* arg0)
                 func_800E2C78((GpObj40*)D_actor_403100_8015580C, D_actor_403100_80155808->pad_49C[i].key, scaledDamage, 0);
                 func_800DA6E8(&D_actor_403100_8015580C->node, scaledDamage, 0);
                 do {
-                    hp                                = (u16)D_actor_403100_8015580C->field_40 - scaledDamage;
-                    D_actor_403100_8015580C->field_40 = hp;
+                    hp                          = (u16)D_actor_403100_8015580C->hp - scaledDamage;
+                    D_actor_403100_8015580C->hp = hp;
                     if ((s16)hp < 0) {
-                        D_actor_403100_8015580C->field_40 = 0U;
+                        D_actor_403100_8015580C->hp = 0U;
                     }
                     func_800FDB18(Gp_GetIdParam1(D_actor_403100_80155808->pad_49C[i].key) & 0xFFFF, &((TmdObject*)arg0->extra)->coords[4], 0, &D_actor_403100_80155630);
                     D_actor_403100_80155808->field_62A = 1;
@@ -553,29 +553,29 @@ void func_actor_403100_8013335C(Task* arg0)
         if (D_actor_403100_80155808->pad_66A[2] != 0)
             break;
     }
-    if (D_actor_403100_8015580C->field_4C & 1) {
-        D_actor_403100_8015580C->field_4C &= ~1;
-        D_actor_403100_80155808->field_62A = 2;
+    if (D_actor_403100_8015580C->reactionFlags & 1) {
+        D_actor_403100_8015580C->reactionFlags &= ~1;
+        D_actor_403100_80155808->field_62A      = 2;
     }
-    if (D_actor_403100_8015580C->field_4C & 2) {
-        D_actor_403100_8015580C->field_4C &= ~2;
-        D_actor_403100_80155808->field_60C = 0x5A;
-        D_actor_403100_80155808->field_62A = 3;
+    if (D_actor_403100_8015580C->reactionFlags & 2) {
+        D_actor_403100_8015580C->reactionFlags &= ~2;
+        D_actor_403100_80155808->field_60C      = 0x5A;
+        D_actor_403100_80155808->field_62A      = 3;
     }
-    if (D_actor_403100_8015580C->field_4C & 0xC) {
+    if (D_actor_403100_8015580C->reactionFlags & 0xC) {
         tickDamage = (u32)Gp_TickObjFlag4((GpObj5C*)D_actor_403100_8015580C) >> 2;
         if ((s16)tickDamage != 0) {
-            D_actor_403100_8015580C->field_40 = (u16)((u16)D_actor_403100_8015580C->field_40 - tickDamage);
+            D_actor_403100_8015580C->hp = (u16)((u16)D_actor_403100_8015580C->hp - tickDamage);
             ((void (*)(void*, s32, s32, u32))func_800DA6E8)(&D_actor_403100_8015580C->node, (s16)tickDamage, 0, tickDamage);
-            if ((s16)D_actor_403100_8015580C->field_40 < 0) {
-                D_actor_403100_8015580C->field_40 = 0U;
+            if ((s16)D_actor_403100_8015580C->hp < 0) {
+                D_actor_403100_8015580C->hp = 0U;
             }
             D_actor_403100_80155808->pad_66A[2] = 1;
             D_actor_403100_80155808->field_62A  = 2;
         }
         expired = Gp_ObjFlag4Expired((GpObj5C*)D_actor_403100_8015580C);
         if (expired != 0) {
-            D_actor_403100_8015580C->field_4C = (u8)(D_actor_403100_8015580C->field_4C & 0xF3);
+            D_actor_403100_8015580C->reactionFlags = (u8)(D_actor_403100_8015580C->reactionFlags & 0xF3);
         }
     }
     if (Gp_FindRec18(D_actor_403100_80155808->field_55C.ctx.recs, 0) != 0) {
