@@ -1128,7 +1128,7 @@ void gpFreeTmd(TmdObject* obj)
     memFree(obj);
 }
 
-void Gp_UnlinkDisp2d(TmdListHead* node)
+void gpUnlinkDisp2d(TmdListHead* node)
 {
     TmdListHead*  next;
     TmdListHead** pp;

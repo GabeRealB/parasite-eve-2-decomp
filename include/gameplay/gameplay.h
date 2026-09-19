@@ -386,7 +386,7 @@ void* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags);
 /// Unlinks a model body from the model list (`gTmdList`).
 ///
 /// The body is not released here: every caller pairs this with `gpFreeTmd`,
-/// which is what gives the memory back. `Gp_UnlinkDisp2d` is its counterpart on
+/// which is what gives the memory back. `gpUnlinkDisp2d` is its counterpart on
 /// the 2D-display side.
 void gpUnlinkTmd(TmdListHead* node);
 /// Releases a model body: the buffer it owns, then the body itself.
@@ -394,7 +394,12 @@ void gpUnlinkTmd(TmdListHead* node);
 /// The body has already left its list, so this is the second half of the
 /// release: `gpFreeDisp2d` is its counterpart on the 2D-display side.
 void gpFreeTmd(TmdObject* obj);
-void Gp_UnlinkDisp2d(TmdListHead* node);
+/// Unlinks a 2D-display body from the 2D-display list (`gTmdDisp2dList`).
+///
+/// The body is not released here: every caller pairs this with `gpFreeDisp2d`,
+/// which is what gives the memory back. `gpUnlinkTmd` is its counterpart on the
+/// model side.
+void gpUnlinkDisp2d(TmdListHead* node);
 /// Releases a 2D-display body, returning its memory to the heap.
 ///
 /// The body has already left its list, so this is the second half of the

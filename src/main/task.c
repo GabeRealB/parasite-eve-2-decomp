@@ -160,7 +160,7 @@ void Task_Kill(Task* arg0)
         return;
 
     case2:
-        Gp_UnlinkDisp2d(arg0->extra);
+        gpUnlinkDisp2d(arg0->extra);
         arg0->killCountdown = 1;
         arg0->callback      = textNoopCallback;
         arg0->exitCallback  = textNoopCallback;
@@ -221,7 +221,7 @@ imm1:
     goto imm_unlink;
 
 imm2:
-    Gp_UnlinkDisp2d(arg0->extra);
+    gpUnlinkDisp2d(arg0->extra);
     gpFreeDisp2d(arg0->extra);
 
 imm_unlink:
