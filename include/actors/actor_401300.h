@@ -138,14 +138,14 @@ typedef struct Actor401300Work {
     /* 0xD0A */ byte pad_D0A[2];
     /// The two helper tasks killed before the nodes are unlinked; the same
     /// pair `Actor01900Work` keeps at +0xC38 / +0xC3C.
-    /* 0xD0C */ Task* field_D0C;
-    /* 0xD10 */ Task* field_D10;
-    /* 0xD14 */ byte  pad_D14[8];
-    /* 0xD1C */ s16   field_D1C;
-    /* 0xD1E */ s16   field_D1E;
-    /* 0xD20 */ s16   field_D20;
-    /* 0xD22 */ s16   field_D22;
-    /* 0xD24 */ byte  pad_D24[4];
+    /* 0xD0C */ Task*   field_D0C;
+    /* 0xD10 */ Task*   field_D10;
+    /* 0xD14 */ SVECTOR home;
+    /* 0xD1C */ s16     field_D1C;
+    /* 0xD1E */ s16     field_D1E;
+    /* 0xD20 */ s16     field_D20;
+    /* 0xD22 */ s16     field_D22;
+    /* 0xD24 */ byte    pad_D24[4];
     /// Ring of the last seven view-space positions of coordinate 2, written by
     /// `func_actor_401300_801405DC`; `field_D78` is the write cursor.
     /* 0xD28 */ SVECTOR field_D28[7];

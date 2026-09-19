@@ -1906,8 +1906,6 @@ void func_actor_401300_801365F8(Actor401300* arg0)
     *(Actor401300PursuitScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80136CE8);
-
 /// Step `coord` `amount` units along its local Z axis unless movement is
 /// frozen. Same body as `Actor00100_MoveForward`.
 static __inline__ void Actor401300_MoveForward(GsCOORDINATE2* coord, s16 amount)
@@ -1931,6 +1929,169 @@ static __inline__ void Actor401300_MoveForward(GsCOORDINATE2* coord, s16 amount)
         coord->flg                  = 0;
         *(SVECTOR**)G_SCRATCH_HEAD += 1;
     }
+}
+
+static __inline__ void Actor401300_MoveBy(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+    SVECTOR* v;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        v                          = vec;
+        if (amount != 0) {
+            Gfx_MatrixCol2(&coord->coord, vec);
+            VectorNormalSS(vec, vec);
+            gte_lddp(amount);
+            gte_ldsv(v);
+            gte_gpf12_real();
+            gte_stsv(v);
+            coord->coord.t[0] += head[-1].vx;
+            coord->coord.t[1] += vec->vy;
+            coord->coord.t[2] += vec->vz;
+            coord->flg         = 0;
+        }
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+static __inline__ s32 Actor401300_Abs(s32 x)
+{
+    if (x < 0) {
+        x = -x;
+    }
+    return x;
+}
+
+void func_actor_401300_80136CE8(Actor401300* arg0)
+{
+    Actor401300Work*           work;
+    GpEnemy*                   enemy;
+    TmdObject*                 obj;
+    GsCOORDINATE2*             coord;
+    Actor401300PursuitScratch* head;
+    Actor401300PursuitScratch* blk;
+    Actor401300PursuitScratch* s;
+    s32                        z;
+    u16                        speed;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj               = arg0->field_2C;
+        enemy->node.flags = 0;
+        obj->flags        = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_970.radius = 0x280;
+        work->field_89C        = 1;
+        SOFT_BARRIER();
+        work->field_8A2        = 3;
+        speed                  = work->field_8A8;
+        work->field_BF0.flags &= 0x7FFF;
+        SOFT_BARRIER();
+        work->field_89E        = 0;
+        work->field_8A6        = speed;
+        work->field_AB0.flags |= 0x4000;
+        func_actor_401300_80133A3C(arg0);
+        work->field_8B6 = 0x40;
+        work->field_D1C = 0;
+        work->field_6   = 0;
+        work->field_8   = 0;
+        work->field_8BA = 0x10;
+        z               = arg0->field_2C->coords->coord.t[2];
+        if (z > 0x1B58) {
+            work->home.vx  = -0xB54;
+            work->home.vz  = 0x2198;
+            work->home.vy  = 0;
+            work->home.pad = 0x400;
+        } else if (z > 0x1068) {
+            work->home.vx  = 0;
+            work->home.vy  = 0;
+            work->home.vz  = 0x189C;
+            work->home.pad = 0;
+        } else if (z > 0x384) {
+            work->home.vx  = 0x12C0;
+            work->home.vy  = 0;
+            work->home.vz  = 0x1AF4;
+            work->home.pad = 0;
+        } else if (z > -0x898) {
+            work->home.vx  = 0x12C0;
+            work->home.vz  = -0x1388;
+            work->home.vy  = 0;
+            work->home.pad = 0x800;
+        } else {
+            work->home.vx  = -0xB4;
+            work->home.vy  = 0;
+            work->home.vz  = -0x960;
+            work->home.pad = 0;
+        }
+        return;
+    }
+    if (work->field_8B6 == work->field_8B8) {
+        if (work->field_8B6 == 0x40) {
+            work->field_8B6 = 0x80;
+            work->field_8BA = 0x10;
+        } else {
+            work->field_8B6 = 0x40;
+        }
+    }
+    head = *(Actor401300PursuitScratch**)G_SCRATCH_HEAD;
+    blk  = head - 1;
+    work->field_6++;
+    *(Actor401300PursuitScratch**)G_SCRATCH_HEAD = blk;
+    func_actor_401300_80133A3C(arg0);
+    s = blk;
+    switch (work->field_8A2) {
+        case 3:
+            blk->delta.vx = work->home.vx - arg0->field_2C->coords->coord.t[0];
+            head[-1].dx   = blk->delta.vx;
+            blk->delta.vy = work->home.vy - arg0->field_2C->coords->coord.t[1];
+            blk->dy       = blk->delta.vy;
+            blk->delta.vz = work->home.vz - arg0->field_2C->coords->coord.t[2];
+            blk->dz       = blk->delta.vz;
+            blk->dist     = SquareRoot0(head[-1].dx * head[-1].dx + blk->dy * blk->dy + blk->dz * blk->dz);
+            if (func_actor_401300_80132C78(arg0->field_2C->coords, (GpRec18*)work->field_AD0, 0xC, 0x57) != 1) {
+                func_actor_401300_80132910(arg0, (GpRec18*)work->field_990, 0xC);
+            }
+            coord           = arg0->field_2C->coords;
+            s->angle        = Actor401300_NormalizeYaw(ratan2(head[-1].delta.vx, head[-1].delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+            work->field_8B2 = s->angle;
+            if (s->angle > 0x30) {
+                s->angle = 0x30;
+            } else if (s->angle < -0x30) {
+                s->angle = -0x30;
+            } else if ((s->dist < 0x898 && Actor401300_Abs(Actor401300_NormalizeYaw(ratan2(-arg0->field_2C->coords->coord.m[2][0], arg0->field_2C->coords->coord.m[2][2]) - work->home.pad)) < 0x200) || work->field_6 > 0xB4) {
+                work->field_8A2 = 0x20;
+                work->field_89C = 1;
+                SndEvt_EnqueueType6(0x551D0008, (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords), (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
+                work->field_AB0.flags &= 0x7FFF;
+            }
+            s->angle += ratan2(-arg0->field_2C->coords->coord.m[2][0], arg0->field_2C->coords->coord.m[2][2]);
+            Gfx_RotMatrixY(&arg0->field_2C->coords->coord, s->angle, 1);
+            if ((s16)func_actor_401300_8013267C(arg0->field_2C->coords, 0x15E, (s16)((float)((work->field_8A8 + 2) * 30) * 1.5f / 18.0f)) != 0) {
+                Actor401300_MoveBy(arg0->field_2C->coords, (s16)((float)((work->field_8A8 + 2) * 30) * 1.5f / 18.0f));
+            }
+            Actor401300_RescaleYaw(arg0->field_2C->coords, 0x1964);
+            arg0->field_2C->coords->flg = 0;
+            Gp_UpdateCoord(arg0->field_2C->coords);
+            break;
+        case 0x20:
+            s->angle = ratan2(-arg0->field_2C->coords->coord.m[2][0], arg0->field_2C->coords->coord.m[2][2]);
+            Gfx_RotMatrixY(&arg0->field_2C->coords->coord, s->angle, 1);
+            Actor401300_MoveForward(arg0->field_2C->coords, 0x12C);
+            Actor401300_RescaleYaw(arg0->field_2C->coords, 0x1964);
+            arg0->field_2C->coords->flg = 0;
+            Gp_UpdateCoord(arg0->field_2C->coords);
+            if (work->field_6C & 0x100) {
+                work->field_0 = 0;
+                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, enemy->field_40, 0);
+            }
+            break;
+    }
+    *(Actor401300PursuitScratch**)G_SCRATCH_HEAD += 1;
 }
 
 static __inline__ s32 Actor401300_OutOfRange(SVECTOR* d, s16 r)

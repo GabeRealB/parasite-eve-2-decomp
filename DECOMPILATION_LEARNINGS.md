@@ -132114,3 +132114,16 @@ Evidence: scratch `base_4.compare.txt`, `INIT_BASELINE_TRACE`, `INIT_MATCH_TRACE
 `tools/permuter_findings/func_actor_401300_801365F8/`. The router itself had no
 verified gain (595->600 and 560->599); this match came from the controlled
 follow-up. A retained char-mask output drops 0x4000 and was rejected by hash.
+
+The same combined intervention transferred to `func_actor_401300_80136CE8`
+on 2026-09-19: archived baseline distance 560 -> zero in controlled `base_1`,
+then zero in ported `base_2`, followed by successful unscoped integration.
+In `base_1.i.sched`, BF0 store 62 precedes boundary 64, and AB0 load 73 depends
+on that boundary; `.greg` places both flag chains in v0 and constant/speed in
+v1. Speed load 56 moves before BF0 AND 60 in `.sched2`, preserving the required
+interleave. This supports reuse of the combined fix across these two functions;
+individual barrier minimality remains untested. Input hashes are
+`9f54ffa63715e7ba3082120d67f520930b812e1181cec9ca3129676c7f906c11` (controlled)
+and `414830bd27e1f8c8cd284d6bd85090d5b34e4161b19f79a620791b573aca7eb8` (port),
+with the same compiler hash above. Evidence and unsuccessful router outputs are
+retained under `tools/permuter_findings/func_actor_401300_80136CE8/`.
