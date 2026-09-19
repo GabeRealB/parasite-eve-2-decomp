@@ -132586,3 +132586,26 @@ section, and the address comes from the linker script mapping that unit's
 `.rodata` to its own subsegment. A symbol in the *leading* rodata run therefore
 still has to be declared in the assembly that owns that run, whatever shape the
 original had.
+## A data symbol in the leading-rodata run is `const` in the original, and declaring it so costs nothing
+
+These overlay configs order the sections `.rodata` then `.text` then `.data`, so
+a data symbol the flat image places *before* the first code byte was in the
+original's `.rodata`. GCC emits an initialized object to `.data` unless it is
+`const`-qualified, so that placement is what says the original declaration was
+`const`. The run is easy to recognise - it is the one the string literals sit
+in, so `.asciz` neighbours, or a config subsegment typed `rodata` ahead of the
+first `c` entry, say the same thing.
+
+Such a symbol is usually a bare `extern` in the reader's `.c`, because the bytes
+are defined by the generated assembly rather than by C. Adding `const` there is
+purely declarative: an `extern` carries no initializer, so there is nothing for
+the qualifier to change about placement, and a reader loads it exactly as
+before. Rebuild to confirm, but expect the checksum to hold. A reader that
+needs a non-const pointer, by contrast, fails to compile - and that failure is
+the evidence that the symbol is written somewhere and the qualifier is wrong.
+
+This is not licence to move the definition into C. It belongs in C when the
+`.s` carrying it stops being assembled and the link fails on it; a symbol in a
+hand-written `rodata` subsegment that still assembles resolves against that
+file, and relocating it would mean carving the subsegment in the config and
+inventing a translation unit the original did not have.
