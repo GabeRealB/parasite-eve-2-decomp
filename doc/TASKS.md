@@ -14,7 +14,7 @@ Naming: [`NAMING.md`](../NAMING.md) (`Task_` / `TaskDesc`).
 | Types + APIs | `include/main/task.h`, `src/main/task.c` |
 | Extra lists / OT spawn | `src/main/otutil.c` (`Display_SpawnWithOt*`, `Task_SpawnOnDefaultList*`) |
 | Frame tick | `src/main/gamemain.c` (`GameMain_Loop` → `Task_ExecDefaultList`) |
-| Bank tables | `asm/USA/main/data/task.data.s` (`Task_DescBanks`), plus `52E8C` / `578D0` / `57EA8` / `57F34` / `58028` / `59184.data.s` |
+| Bank tables | `asm/USA/main/data/task.data.s` (`gTaskDescBanks`), plus `52E8C` / `578D0` / `57EA8` / `57F34` / `58028` / `59184.data.s` |
 | Gameplay banks 6, 10 | `asm/USA/gameplay/data/data.data.s` (`D_8010FC2C`, `0x80114B34`) |
 | Title extras | `src/title/title.c`, `Title_TaskDescs` |
 | Enemies | `src/gameplay/1BC.c` (`Gp_SpawnEnemy`, `Gp_SpawnEnemyFromTable`) |
@@ -60,7 +60,7 @@ Task* Task_SpawnFromTable(TaskDesc* table, s32 idx, s32 spawnArg1, s32 spawnArg2
 Task* Task_SpawnFromDesc(TaskDesc* desc, s32 spawnArg1, s32 spawnArg2, TaskNode* list);
 ```
 
-`Task_Spawn` indexes `Task_DescBanks[bank][type]`. **Negative `bank`** means
+`Task_Spawn` indexes `gTaskDescBanks[bank][type]`. **Negative `bank`** means
 `type` is already a `TaskDesc*`. Args land on `Task::spawnArg1` / `spawnArg2`.
 
 `TaskDesc` (0xC):
@@ -133,9 +133,9 @@ still lands on the main frame walk.
 
 ---
 
-## 2. `Task_DescBanks`
+## 2. `gTaskDescBanks`
 
-`Task_DescBanks` is 15 pointers (0x3C bytes at `0x8005EF74`). Banks **11–13
+`gTaskDescBanks` is 15 pointers (0x3C bytes at `0x8005EF74`). Banks **11–13
 are aliases of bank 2**. Deduped size is **996** descriptors (~1047 if aliases
 are counted). Roughly 155 of those are `taskKill` placeholders and 13 are
 NULL.
@@ -295,7 +295,7 @@ spawns `D_80725C54[0]` (overlay desc) then kills itself.
 
 ## 6. Tables outside the banks
 
-These are real actors too; they just skip `Task_DescBanks`.
+These are real actors too; they just skip `gTaskDescBanks`.
 
 | Table | Callback / role |
 |-------|-----------------|

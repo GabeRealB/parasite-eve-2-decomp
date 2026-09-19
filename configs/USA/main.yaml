@@ -460,7 +460,7 @@ segments:
       - [0x4f554, o, libpad/padportd, .data]
       - [0x4f564, data, "4F564"] # D4F564 game-state pointer block
       - [0x4f590, o, libapi/i_heap3, .data] # _freep
-      - [0x4f5a0, data, task] # TaskDesc bank tables (D_8005EDA0, Task_DescBanks, …)
+      - [0x4f5a0, data, task] # TaskDesc bank tables (D_8005EDA0, gTaskDescBanks, …)
       # PS1 save-header block: "SC" magic + Shift-JIS title + CLUT + 3 icon
       # frames. Real content, so it rides as a databin: bytes land in assets/
       # (gitignored) and come back via .incbin.

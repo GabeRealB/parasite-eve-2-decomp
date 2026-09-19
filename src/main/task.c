@@ -250,7 +250,7 @@ Task* Task_Spawn(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     TaskDesc* ptr;
 
     if (arg0 >= 0) {
-        ptr = Task_DescBanks[arg0];
+        ptr = gTaskDescBanks[arg0];
         ptr = &ptr[arg1];
     } else {
         ptr = (TaskDesc*)arg1;
@@ -406,7 +406,7 @@ void Task_ExecList(TaskNode* node)
 
 TaskDesc* Task_GetDesc(u32 idx1, u32 idx2)
 {
-    TaskDesc* base = Task_DescBanks[idx1];
+    TaskDesc* base = gTaskDescBanks[idx1];
     return base + idx2;
 }
 

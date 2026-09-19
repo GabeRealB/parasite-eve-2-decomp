@@ -239,7 +239,7 @@ Related docs:
 - [doc/OVERLAYS.md](doc/OVERLAYS.md) — pe2pkg RAM slots, rooms, models / anim
 - [doc/STREAM_FORMATS.md](doc/STREAM_FORMATS.md) — MTS audio + STR movie
 - [doc/TMD_FORMAT.md](doc/TMD_FORMAT.md) — model streams and their opcodes
-- [doc/TASKS.md](doc/TASKS.md) — cooperative task / actor model, `Task_DescBanks`
+- [doc/TASKS.md](doc/TASKS.md) — cooperative task / actor model, `gTaskDescBanks`
 
 ## Legal
 

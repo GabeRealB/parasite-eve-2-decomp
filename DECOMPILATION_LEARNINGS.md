@@ -11385,7 +11385,7 @@ j    merge
  addu a0, a0, v0   /* a0 = table[i] + j * stride */
 ```
 
-a single expression (`Task_DescBanks[arg0] + arg1` or `&Task_DescBanks[arg0][arg1]`)
+a single expression (`gTaskDescBanks[arg0] + arg1` or `&gTaskDescBanks[arg0][arg1]`)
 schedules the multiply first and loads into `$v1` instead, breaking the match.
 
 Split the load from the index:
@@ -11394,7 +11394,7 @@ Split the load from the index:
 TaskDesc* ptr;
 
 if (arg0 >= 0) {
-    ptr = Task_DescBanks[arg0];
+    ptr = gTaskDescBanks[arg0];
     ptr = &ptr[arg1];
 } else {
     ptr = (TaskDesc*)arg1;

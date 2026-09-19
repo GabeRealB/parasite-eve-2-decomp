@@ -2459,7 +2459,7 @@ _freep                      = 0x8005ED90;
 //--------------------------------------------------------------------
 //--- PA: 0x4F5A0   VA: 0x8005EDA0   subsegment: data
 //--------------------------------------------------------------------
-Task_DescBanks              = 0x8005EF74; // size:0x3C
+gTaskDescBanks              = 0x8005EF74; // size:0x3C
 Mc_PromptTable              = 0x80060D08; // type:McPromptPair
 Mc_FileName                 = 0x80060DD8;
 Mc_FileNameBuf              = 0x80060DF0;

@@ -34,7 +34,7 @@ Tiers, strongest first:
     taskdesc      a type-1 descriptor points at it - the game demonstrably spawns it
     data-ref      some data word points at it, but not through a descriptor's model
     code-ref      code loads its address (%hi/%lo of its symbol)
-    bank          reached by id through Task_DescBanks - Gp_SpawnEff(0x60017) is
+    bank          reached by id through gTaskDescBanks - Gp_SpawnEff(0x60017) is
                   bank 6 entry 0x17 - so nothing in its own package points at it
     run           unreferenced, but contiguous with a model of a stronger tier
     array         unreferenced, but one of >=3 models at a uniform stride - an
@@ -49,7 +49,7 @@ Tiers, strongest first:
 
 Five spawn routes exist in the decompiled code and all are covered here:
 `Task_SpawnFromTable`, `Gp_SpawnEnemyFromTable`, `Gp_SpawnEff` via
-`Task_DescBanks`, a direct `%hi/%lo` load, and area placement. Area placement
+`gTaskDescBanks`, a direct `%hi/%lo` load, and area placement. Area placement
 was traced and reaches only 4 models, so it is not implemented: `Gp_AreaTables`
 is resident in gameplay but its `[stage][room].field_0` points *into* the room
 overlay, and walking it needs both images mapped at once (gameplay at
@@ -124,9 +124,9 @@ def resident_words() -> dict[int, int]:
 
 
 def bank_models(words: dict[int, int], limit: int = 256) -> dict[int, list[int]]:
-    """Model of every type-1 descriptor reachable through Task_DescBanks.
+    """Model of every type-1 descriptor reachable through gTaskDescBanks.
 
-    `Task_Spawn(bank, idx)` is `Task_DescBanks[bank][idx]` (src/main/task.c), and
+    `Task_Spawn(bank, idx)` is `gTaskDescBanks[bank][idx]` (src/main/task.c), and
     `Gp_SpawnEff` packs both into one id - `Gp_SpawnEff(0x60017)` is bank 6,
     entry 0x17. This is the registry every spawn funnels through, so it reaches
     models that nothing in their own package points at.
@@ -222,7 +222,7 @@ def main() -> int:
         return 1
 
     fam, loads, csyms = family_map(), load_addrs(), code_symbols()
-    # spawned by id through Task_DescBanks - no pointer to them in their own
+    # spawned by id through gTaskDescBanks - no pointer to them in their own
     # package, which is why a package-local search calls them unreferenced
     bank_addrs = {a for v in bank_models(resident_words()).values() for a in v}
     out: dict[str, list[dict]] = {}
@@ -288,7 +288,7 @@ def main() -> int:
             print(f"  {t:<12}{tally[t]:>8}{100*tally[t]//max(total,1):>7}%", file=sys.stderr)
     print(f"  {'TOTAL':<12}{total:>8}   in {len(out)} overlays", file=sys.stderr)
     known = {int(r["model"], 16) for rows in out.values() for r in rows}
-    print(f"  Task_DescBanks reached {len(bank_addrs)} address(es); "
+    print(f"  gTaskDescBanks reached {len(bank_addrs)} address(es); "
           f"{len(bank_addrs - known)} of them are not models found in any package",
           file=sys.stderr)
 

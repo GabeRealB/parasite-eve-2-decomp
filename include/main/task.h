@@ -150,7 +150,7 @@ STATIC_ASSERT_SIZEOF(Task, 0x48);
 
 /// One entry of a task table: what a spawn helper turns into a running `Task`.
 ///
-/// The shared tables are reached by name — `Task_DescBanks[bank][type]` for the
+/// The shared tables are reached by name — `gTaskDescBanks[bank][type]` for the
 /// banks, a package's own table for its rooms and actors — and every spawn path
 /// ends in `Task_SpawnFromDesc`, which reads these four fields and nothing else.
 /// A table that is walked rather than indexed ends on an entry whose `flags` is
@@ -222,7 +222,12 @@ s32  TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2);
 // Globals
 // =============================================================================
 
-extern TaskDesc* Task_DescBanks[];
+/// The task tables a spawn selects by bank number instead of by address, one
+/// entry per bank.
+///
+/// `Task_Spawn` and `Task_GetDesc` pick a bank here and then index the
+/// `TaskDesc` run it points at. Several banks share one table.
+extern TaskDesc* gTaskDescBanks[15];
 
 /// The task list the running code is working on: the list a spawned task joins
 /// and the list an unlinked node is taken out of.
