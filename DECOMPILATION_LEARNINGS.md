@@ -130336,3 +130336,40 @@ redefined in between, and that same redefinition destroys the value `reload_cse`
 would have folded the recomputation into. The two requirements exclude each
 other, and the recomputed insn's priority is strictly above the redefinition's,
 so it cannot be scheduled ahead of it.
+
+## `reload_cse` folds a reload to a `move` only at the store's exact width
+
+**Problem.** A field is stored and then read straight back into another field.
+The target shows the read as `move <dst>,<src>` — post-reload CSE noticed the
+value was still in a register. Routing that read through a local variable makes
+the load survive as a real `lh`/`lhu`, costing `insert=1 delete=1`, and no
+statement order recovers it.
+
+**Mechanism.** `reload_cse_record_set` (`reload1.c`) records values two ways.
+For a register destination it records the `SET_SRC`; for a **memory**
+destination whose source is a register it appends the `(mem:M addr)` itself to
+that register's value list, tagged with the *store's* mode. The later fold in
+`reload_cse_simplify_set` accepts a candidate register only when
+`reload_cse_regno_equal_p` finds `rtx_equal_p (recorded, SET_SRC)`. So a reload
+whose `SET_SRC` is the bare `(mem:M addr)` matches and becomes a copy, while one
+wrapped in an extension does not — the recorded value is the `MEM`, never the
+`sign_extend`/`zero_extend` around it.
+
+```c
+work->b = work->a;          /* both 16-bit: (set (reg:HI) (mem:HI)) -> move */
+{ s32 t = work->a;          /* (set (reg:SI) (sign_extend:SI (mem:HI)))     */
+  work->b = (s16) t; }      /* no fold: lh survives                         */
+```
+
+**What to do.** Keep the reload at the field's own width — a direct field-to-
+field assignment. The moment the value passes through a variable wider than the
+field, the extension is part of `SET_SRC` and the `move` is unreachable.
+
+**Consequence worth knowing.** This is a hard constraint on register allocation,
+not just on one instruction. Such a reload's pseudo is necessarily the field's
+width, so it cannot double as a variable holding a wider value. Where the target
+shows a reload folded to a `move` sharing a register with a 32-bit value, those
+two cannot be one C variable, and the register they share has to come from
+allocation rather than from a shared pseudo. `Actor02100_Fn00048` is stuck on
+exactly that: the fold needs a HImode pseudo, the allocation needs the same
+pseudo to carry a 32-bit constant, and the two cannot be reconciled.
