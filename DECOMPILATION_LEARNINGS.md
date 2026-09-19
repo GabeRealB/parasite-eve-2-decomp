@@ -132981,3 +132981,22 @@ what it first got wrong. The process-pass family is a second reading when the tw
 disagree, because both passes name the same record from the same words. Move the
 odd name in the same step that finds it: leaving the two for a later reconcile
 round costs a step, and leaves the pair reading as two things until it is run.
+## A naming-pass item no C code names is not on the plan
+
+The naming worklist is built from the references the parser resolves. A function
+declared but defined in assembly becomes a node only because something in C uses
+it, which is why the step brief prints such an item as "unknown (no C
+definition)"; a declaration nothing refers to gets no node at all. It is then not
+a leaf waiting its turn - it is absent from the graph, so no round hands it to a
+step and its old spelling survives however long the pass runs. A dual-entry body
+is where this shows: the two entries are declared together in the header, and the
+resolver may select one of them for every opcode it knows, leaving the other
+reachable from nothing and named `Module_VerbNoun` long after the body beside it
+has been renamed.
+
+Read the worklist as a plan with that blind spot rather than taking its silence
+for "not yet". Where an item in hand has such a twin, report it instead of
+renaming it in passing: retiring a twin is usually wider than its symbol - the
+file that defines it, the config entry that names that file and the notes that
+describe the pair may each carry the spelling - so a rename that stops at the
+label leaves two conventions in one file and no record that the rest is owed.

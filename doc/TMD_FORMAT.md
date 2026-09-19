@@ -545,19 +545,21 @@ the `clut` (in `u0`) or `tpage` (in `u1`) halfword, exactly as `POLY_GT3` /
 
 ### Init-only opcodes
 
-Resolved by `Tmd_InitSourceStream` but absent from the per-frame draw
-switch, so they run once at setup rather than every frame.
+Resolved by `Tmd_InitSourceStream` but absent from the process pass's table
+(`tmdProcessStream`), so filling a model's buffers builds nothing for them. Their
+handler still runs on every walk of the draw pass: the work they do is by nature
+per-frame — a transform, a cull, a packet's filing and its ordering-table link.
 
 | Opcode | Init handler | Stride | Elements | Role |
 |---|---|---:|---:|---|
-| `0x21` | `Tmd_StreamHandler_Prim30` | 2 | 2 | ? |
+| `0x21` | `tmdDrawStreamPrimG3PreXform` | 2 | 2 | pre-transformed `POLY_G3`: the vertex pass already placed the corners, so the handler culls the triangle, averages the cached depths and links the packet — **solved**, §3.5 |
 | `0x22` | `tmdDrawStreamPrimG3CornerNormals` | 4 | 8 | the `0x20` triangle in its semi-transparent form; the two opcodes resolve to one body |
 | `0x61` | `Tmd_StreamHandler_Prim38` | — | — | ? |
 | `0x62` | `tmdDrawStreamPrimG4CornerNormals` | 5 | 26 | ? |
 | `0xC0` | `tmdXformStreamVertsElemColor` | 3 | 6 | vertex transform + lighting pre-pass, colour per element — **solved**, §3.5 |
 | `0xC4` | `D_8009EAA4` | — | — | "stream transform helper"; unsolved, never seen in data |
 | `0xC8` | `tmdXformStreamVerts` | 2 | 30262 | vertex transform + lighting pre-pass — **solved**, §3.5 |
-| `0x121` | `Tmd_StreamHandler_Prim30` | — | — | ? |
+| `0x121` | `tmdDrawStreamPrimG3PreXform` | — | — | the `0x21` triangle in the opcode form that names a colour per corner; the colour is the vertex pass's business, so the two forms resolve to one body |
 | `0x122` | `D_8009E274` | — | — | ? |
 | `0x161` | `Tmd_StreamHandler_Prim38` | — | — | ? |
 | `0x162` | `D_8009E770` | — | — | ? |

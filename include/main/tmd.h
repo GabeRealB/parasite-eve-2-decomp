@@ -253,7 +253,32 @@ s32 Tmd_SumBufferBytes(void);
 /// has no variant for `flags` to select, so it goes unread.
 u32* tmdSkipStreamRecord(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Prim32(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_Prim30(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Draw-pass handler of a stream's pre-transformed untextured gouraud-triangle
+/// records (`0x21`, `0x121`): each element contributes one `POLY_G3` to the
+/// buffer half's first region, where its corners are already in screen space, and
+/// links it into the ordering table at the depth those corners average to.
+///
+/// The record is the untextured gouraud triangle in its pre-transformed form
+/// (`tmdDrawStreamPrimG3`, `tmdDrawStreamPrimG3CornerNormals`): the pass that
+/// projects the stream's vertices (`tmdXformStreamVerts`) has already written
+/// each corner's screen coordinates and lit colour into the packet this handler
+/// files, and its depth into the per-vertex screen-Z table, so an element names
+/// its three corners in that table rather than in the vertex array, and the
+/// normals and colour the element would otherwise carry were consumed there.
+/// Nothing in the packet is copied from the element: an untextured `POLY_G3` has
+/// no texture word and no material colour the process pass could write, so these
+/// records are absent from that pass's table and the whole packet is built per
+/// frame. What is left to this handler is the triangle's filing — the three
+/// cached depths averaged for the ordering-table link, the facing taken from the
+/// coordinates the packet already carries, and the packet's length and primitive
+/// code. An element whose cached depth is marked off screen, or whose triangle
+/// turns away, is stepped over rather than drawn, though its packet slot is
+/// passed over either way, so the primitives stay aligned with the elements that
+/// named them.
+///
+/// The blended primitive is an entry of its own (`Tmd_StreamHandler_Prim32`)
+/// rather than a `flags` choice, so `flags` goes unread here.
+u32* tmdDrawStreamPrimG3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Prim3A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Prim38(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
@@ -507,6 +532,9 @@ u32* tmdDrawStreamPrimGt4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stre
 /// table at the depth it came out at. A dropped triangle still consumes its
 /// packet's room, because the room was reserved for every element by the
 /// process pass (`gpStreamPrimG3`), whose cursor this one stays in step with.
+/// The record whose corners the vertex pass places instead is
+/// `tmdDrawStreamPrimG3PreXform`'s, which files that same packet in the buffer
+/// half's first region.
 /// The record has no variant for `flags` to select, so it goes unread.
 u32* tmdDrawStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// Draw handler of a stream's untextured gouraud-quad records (`0x40`): each

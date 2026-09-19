@@ -7,7 +7,12 @@
  * Tmd_StreamHandler_Prim32  (VRAM 0x800105cc / ROM 0xdcc)
  * ------------------------------------------------------------
  * Permanent handwritten assembly (splat type: hasm).
- * TMD stream handler (function pointer from Tmd_InitSourceStream).
+ * The draw pass's handler for a stream's pre-transformed untextured gouraud
+ * triangle records: one body with a second entry, the two differing only in the
+ * packet code byte they stamp. Prim32 stamps the blended form (0x32), the alabel
+ * tmdDrawStreamPrimG3PreXform the opaque one (0x30).
+ * Tmd_InitSourceStream resolves an entry into a stream beside its opcode and
+ * Tmd_DispatchStream jalr's it (documented in include/main/tmd.h).
  * Early-image placement (linker_section_order: .rodata).
  */
 
@@ -24,7 +29,7 @@ glabel Tmd_StreamHandler_Prim32
     /* DE8 800105E8 */  addiu       $v1, $zero, 0x32
     /* DEC 800105EC */  j           .L80010624
     /* DF0 800105F0 */  lw          $a1, 0x84($a0)
-alabel Tmd_StreamHandler_Prim30
+alabel tmdDrawStreamPrimG3PreXform
     /* DF4 800105F4 */  lw          $t9, 0x18($a0)
     /* DF8 800105F8 */  lw          $a3, 0x1C($a0)
     /* DFC 800105FC */  lw          $t8, 0x4($a0)
