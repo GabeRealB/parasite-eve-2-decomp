@@ -180,8 +180,6 @@ typedef struct {
 } TmdScratchDrawBlock;
 STATIC_ASSERT_SIZEOF(TmdScratchDrawBlock, 0x98);
 
-/// Model-path stream command: Tmd_ProcessStream → handler(ws, flags, stream).
-typedef u32* (*TmdModelStreamHandler)(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// Draw-path stream command: Tmd_DispatchStream jalr → handler(ws, flags, stream).
 typedef u32* (*TmdDrawStreamHandler)(TmdScratchDrawBlock* ws, s32 flags, u32* stream);
 

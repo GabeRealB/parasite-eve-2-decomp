@@ -9,7 +9,16 @@
 
 #define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
 
-// Other model stream handlers (same ABI as TmdModelStreamHandler; not yet in hasm).
+/// A model-path stream command's handler: the function a command in a model's
+/// stream is resolved to, and the signature every handler of that stream shares.
+///
+/// A stream ships an opcode per command, and resolving a model's stream writes
+/// the address of the function that runs each command into the stream beside its
+/// opcode. A handler is given the walk's scratch frame, its flags and the cursor
+/// the command's data starts at, and returns the cursor the walk resumes from.
+typedef u32* (*_TmdModelStreamHandler)(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+// Other model stream handlers (same ABI as _TmdModelStreamHandler; not yet in hasm).
 u32* func_80099994(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_80099B94(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_80099D40(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -76,12 +85,12 @@ u32* D_801386EC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 void Tmd_InitSourceStream(TmdSource* src)
 {
-    u32*                  stream;
-    u32                   id;
-    u32                   dims;
-    TmdModelStreamHandler handler;
-    s32                   flag;
-    u32                   tmp;
+    u32*                   stream;
+    u32                    id;
+    u32                    dims;
+    _TmdModelStreamHandler handler;
+    s32                    flag;
+    u32                    tmp;
 
     stream = src->stream;
     if (src->handlersResolved == 0) {
@@ -307,17 +316,17 @@ void Tmd_InitSourceStream(TmdSource* src)
 
 void Tmd_ProcessStream(TmdObject* obj)
 {
-    TmdScratchModelBlock* ws;
-    TmdSource*            src;
-    u32*                  stream;
-    u32                   id;
-    TmdModelStreamHandler handler;
-    s32                   flag;
-    void*                 buf;
-    u32                   hi;
-    void**                scratch;
-    TmdScratchModelBlock* head;
-    void*                 tmp;
+    TmdScratchModelBlock*  ws;
+    TmdSource*             src;
+    u32*                   stream;
+    u32                    id;
+    _TmdModelStreamHandler handler;
+    s32                    flag;
+    void*                  buf;
+    u32                    hi;
+    void**                 scratch;
+    TmdScratchModelBlock*  head;
+    void*                  tmp;
 
     flag     = 0;
     scratch  = (void**)G_SCRATCH_HEAD;
