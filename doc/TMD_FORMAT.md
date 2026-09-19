@@ -566,7 +566,7 @@ transform, a cull, a packet's filing and its ordering-table link.
 | `0x121` | `tmdDrawStreamPrimG3PreXform` | — | — | the `0x21` triangle in the opcode form that names a colour per corner; the colour is the vertex pass's business, so the two forms resolve to one body |
 | `0x122` | `D_8009E274` | — | — | ? |
 | `0x161` | `tmdDrawStreamPrimG4PreXform` | — | — | the `0x61` record with the per-corner colour bit; the two opcodes resolve to one body |
-| `0x162` | `D_8009E770` | — | — | ? |
+| `0x162` | `gpDrawStreamPrimG4CornerColorsSemiTrans` | — | — | the `0x60` quad's record with the per-corner colour bit, in its semi-transparent form: a vertex, a normal and a colour per corner, so each corner is lit from the pair it names — read from the handler, never seen in data |
 | `0x40C8` | `D_8009AF90` | 2 | 1568 | `0xC8` with a different shading path |
 | `0x200C8` | `D_801386EC` | 2 | 607 | `0xC8` with a different shading path |
 
@@ -587,7 +587,9 @@ What remains is narrower.
   colours (§3.2.1), which settles what the extra words are, but only one opcode
   carrying it (`0x156`) occurs in the extracted models, at 16 elements. The
   `0x130` and `0x170` layouts are read from the handlers alone, so their corner
-  colours have not been seen in data.
+  colours have not been seen in data. The untextured corner-normals family's
+  shifted forms (`0x120`, `0x160`, `0x162`) are read that way too, and none of
+  the three occurs in the extracted models at all.
 - **Import.** Writing a stream back needs the `handler_slot` written as it
   appears on disc rather than as the runtime pointer, and the tpage/clut bias
   (§5.1) undone.

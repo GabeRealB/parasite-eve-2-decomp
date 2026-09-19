@@ -1360,4 +1360,29 @@ u32* gpDrawStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stre
 /// than the record's, so the parameter goes unread.
 u32* gpDrawStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+/// The draw pass's handler for a stream's untextured quad records that name a
+/// colour and a normal per corner, in their semi-transparent form (`0x162`):
+/// each element is one `POLY_G4` in the buffer half's second region, built whole
+/// here as the record is transformed.
+///
+/// The element is the corner-normals quad's (`tmdDrawStreamPrimG4CornerNormals`,
+/// `0x60`/`0x62`) with a colour per corner in place of the one colour word the
+/// whole quad is lit from there, so each corner is lit from a normal and a colour
+/// of its own. The record's opaque entry is `gpDrawStreamPrimG4CornerColors`
+/// (`0x160`), and the semi-transparency bit between the two opcodes is the whole
+/// of the difference between the entries: this one stamps the packet `0x3A`
+/// where the opaque handler stamps `0x38`.
+///
+/// The first three corners are taken to screen space in one step and written into
+/// the packet; the fourth is projected in a step of its own, and only where those
+/// three came out facing the camera, so a quad the first facing test turns away is
+/// dropped without its last corner being transformed at all. What survives is lit
+/// corner by corner, its depth averaged for the ordering-table link, and linked.
+/// A dropped quad still consumes its packet's room, because the room was reserved
+/// for every element of the record by the process pass (`gpStreamPrimG4`), whose
+/// cursor this handler stays in step with.
+///
+/// `flags` selects no variant of the record, so it goes unread here.
+u32* gpDrawStreamPrimG4CornerColorsSemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 #endif // TMD_H

@@ -32,7 +32,6 @@ u32* func_8009DE48(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009E048(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009E274(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009E4A0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009E770(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009EAA4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_80136224(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_80136500(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -210,7 +209,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     handler = func_8009E4A0;
                     break;
                 case 0x162:
-                    handler = func_8009E770;
+                    handler = gpDrawStreamPrimG4CornerColorsSemiTrans;
                     break;
                 case 0x1C:
                     handler = func_8009D388;

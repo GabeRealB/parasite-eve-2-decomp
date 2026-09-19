@@ -3746,20 +3746,18 @@ u32* func_8009E4A0(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_8009E770(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* gpDrawStreamPrimG4CornerColorsSemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
-    TmdScratchModelBlock* ws;
-    POLY_G4*              poly;
-    s32*                  opz;
-    DisplayState*         ds;
-    register u32          mask asm("t2");
-    u32                   maskHi;
-    u32                   clipMask;
-    s32*                  flg;
-    u16*                  rec;
-    u8*                   verts;
+    POLY_G4*      poly;
+    s32*          opz;
+    DisplayState* ds;
+    register u32  mask asm("t2");
+    u32           maskHi;
+    u32           clipMask;
+    s32*          flg;
+    u16*          rec;
+    u8*           verts;
 
-    ws   = arg0;
     poly = (POLY_G4*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         flg      = &ws->gteFlag;
@@ -3769,7 +3767,7 @@ u32* func_8009E770(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         mask     = 0xFFFFFF;
         maskHi   = 0xFF000000;
         do {
-            rec   = (u16*)arg2;
+            rec   = (u16*)stream;
             verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
@@ -3792,19 +3790,19 @@ u32* func_8009E770(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         draw:
                             gte_stsxy2(&poly->x3);
                             gte_avsz4_real();
-                            gte_ldrgb(arg2 + 4);
+                            gte_ldrgb(stream + 4);
                             gte_ldv0((u8*)ws->normals + (rec[4] & 0xFFF8));
                             gte_nccs_real();
                             gte_strgb(&poly->r0);
-                            gte_ldrgb(arg2 + 5);
+                            gte_ldrgb(stream + 5);
                             gte_ldv0((u8*)ws->normals + (rec[5] & 0xFFF8));
                             gte_nccs_real();
                             gte_strgb(&poly->r1);
-                            gte_ldrgb(arg2 + 6);
+                            gte_ldrgb(stream + 6);
                             gte_ldv0((u8*)ws->normals + (rec[6] & 0xFFF8));
                             gte_nccs_real();
                             gte_strgb(&poly->r2);
-                            gte_ldrgb(arg2 + 7);
+                            gte_ldrgb(stream + 7);
                             gte_ldv0((u8*)ws->normals + (rec[7] & 0xFFF8));
                             gte_nccs_real();
                             gte_strgb(&poly->r3);
@@ -3819,11 +3817,11 @@ u32* func_8009E770(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                 }
             }
             poly++;
-            arg2 += ws->elemStride;
+            stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
     }
     ws->primWrite = (u8*)poly;
-    return arg2;
+    return stream;
 }
 
 void func_8009EA50(s32 arg0)

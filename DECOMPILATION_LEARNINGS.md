@@ -33554,10 +33554,11 @@ register u32 mask asm("t2");
 ## Semi-trans POLY_G4 (0x3A): nclip-gate the 4th vertex before RTPS
 
 Opaque G4 (`func_8009E4A0`, `setcode` 0x38) always `gte_stsxy3_g4` /
-RTPS vertex 3 after the first FLAG clip. Semi-trans G4 (`func_8009E770`,
-`setcode` 0x3A) wraps that 4th-vertex transform in
-`if (ws->gteResult > 0)` after the first `nclip`/`stopz`. Both share the
-second-nclip `goto draw` (`bgtz` / `bgez`) and pin `mask` to `$t2`.
+RTPS vertex 3 after the first FLAG clip. Semi-trans G4
+(`gpDrawStreamPrimG4CornerColorsSemiTrans`, `setcode` 0x3A) wraps that
+4th-vertex transform in `if (ws->gteResult > 0)` after the first
+`nclip`/`stopz`. Both share the second-nclip `goto draw` (`bgtz` / `bgez`)
+and pin `mask` to `$t2`.
 
 ## Relative matrix: reuse `$a0` as 0x30 scratch, pin after the overwrite
 
