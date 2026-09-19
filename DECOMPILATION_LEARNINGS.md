@@ -131641,3 +131641,34 @@ Controlled base_1 -> base_2: at backward T-37, UID501 changes from priority 1 (U
 The prerequisite was `(s16)-angle` at the final call, not `-angle`: truncating after negation retains the raw decay sum through its signed compare. The compare can use v0 while the raw sum stays a0, removing the hard-register overwrite that had forced the angle store before the comparison. dbr can then use that store in the branch slot. The cast alone reproduces the unwanted tail merge; it needs the pointer split. No pins or asm helpers.
 
 Evidence in func_actor_405800_801375C4 scratch/archive LEARNINGS.md and base_1/base_2 `.sched`, `.lreg`, `.greg`, `.sched2`, `.jump2`, `.dbr`. Input SHA256: base_1.i `9dc7fa53ff44b1fe14180f7eeaaf1ff66ff3623ee6c4482376a78b07dd6b9d8c`; base_2.i `5d80286ab0879a0548b4444fa8e57a4cee163542e85a7306b6f2565d62717b45`. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Router found no discovery; these were manual controlled experiments. This case confirms the existing launch-priority rule; splitting alone does not override arbitrary dependencies or hazards.
+
+## A scalar alias for a struct byte can lose its load/store dependency
+
+For `func_actor_405800_80131FC8`, the already matched actor_400500 sibling
+reproduced all 426 instructions. Scratch still scored 99.965% (`regs=3`)
+because three relocations named `gDisplayState + 0x1F` instead of its existing
+absolute alias `D_80070F87`. The field and alias resolve to the same byte;
+these penalties did not indicate different hard-register homes.
+
+Replacing the field read with `extern u8 D_80070F87` was not codegen-neutral:
+`base_2` became 98.862%. UID116 changed from `mem/s:QI` to `mem:QI`; in
+`.sched` it lost the dependency on the preceding scratch rectangle's zero-x
+store (UID112). Constant/store scheduling changed, and `.dbr` filled the inner
+branch with `li 0x140` instead of the byte address high half.
+
+A preplanned controlled change to `extern u8 D_80070F87[]` and `[0]` restored
+`mem/s:QI`. `.sched` UID116 again depends on UID112 and address UID114;
+`.dbr` fills the inner branch delay with UID114. `base_3` and the shared-header
+port `base_4` score 100% with all-zero penalties. Allocated pointer a0,
+Gpu address a1, scratch fp and the depth-copy v1 remain unchanged. This is
+another instance of CODEGEN_MODEL §11's scalar/member alias distinction,
+not a general promise that changing a declaration preserves scheduling.
+
+Input SHA-256 (`base_2.i` / `base_3.i`):
+`74b55be73353596f98f0409f882ecdf25f246d682aa3711df17f37496cc073c0` /
+`3f4bb94ff0b53f825cfc8d974880f2860c6113001d3712235418511870b8ab22`.
+Compiler: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Session evidence is retained under
+`tools/permuter_findings/func_actor_405800_80131FC8/`; the separate permuter
+alternate's partial gain remains unresolved. The shared body passed the
+unscoped build for five overlays, with all prior C definitions preserved.

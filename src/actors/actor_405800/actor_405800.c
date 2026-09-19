@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "actors/actors_shared_80131fc8.h"
+
 #include "psyq/inline_c.h"
 #include "main/display.h"
 #include "main/gfx.h"
@@ -45,13 +47,10 @@ void func_actor_405800_80137994(Task* arg0, s16 arg1);
 void func_actor_405800_80135780(Task* arg0);
 void func_actor_405800_8013340C(Task* arg0);
 void func_actor_405800_80138514(Task* arg0, s16 arg1, Actor405800ViewPos* arg2);
-void func_actor_405800_80131FC8(s32 arg0);
 void func_actor_405800_801361F8(Task* arg0);
 void func_actor_405800_80136388(Task* arg0);
 void func_actor_405800_801375C4(Task* arg0);
 void func_actor_405800_8013795C(Task* arg0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800", func_actor_405800_80131FC8);
 
 void func_actor_405800_80132670(Task* arg0)
 {
@@ -523,7 +522,7 @@ static __inline__ void Actor405800_ProjectPart(GsCOORDINATE2* part)
         block->otz = 0;
     }
     block->otz = (block->otz >> 4) + 0x1E;
-    func_actor_405800_80131FC8(block->otz);
+    ActorsShared80131fc8(block->otz);
 }
 
 void func_actor_405800_80133800(Task* arg0)

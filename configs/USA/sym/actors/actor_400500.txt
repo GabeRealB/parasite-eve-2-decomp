@@ -12,3 +12,4 @@ D_actor_400500_80131F60 = 0x80131F60; // force_not_migration:True state table re
 D_actor_400500_80131F7C = 0x80131F7C; // force_not_migration:True state table read from C
 D_actor_400500_80131FA4 = 0x80131FA4; // force_not_migration:True state table read from C
 D_actor_400500_80131FEC = 0x80131FEC; // force_not_migration:True state table read from C
+ActorsShared80131fc8 = 0x80134D6C; // shared body, see src/actors/lib/

@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "actors/actors_shared_80131fc8.h"
+
 #include "actors/actor_403600.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
@@ -238,9 +240,6 @@ void func_actor_403600_80141954(s32 arg0);
 void func_actor_403600_80141A34(Actor403600* arg0);
 void func_actor_403600_80141B24(Actor403600* arg0);
 void func_actor_403600_80141C3C(Actor403600* arg0);
-s32  func_actor_403600_801320F8(s32 arg0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801320F8);
 
 void func_actor_403600_801327A0(POLY_FT4* arg0)
 {
@@ -2056,7 +2055,7 @@ u8* func_actor_403600_80138DCC(Actor403600* arg0)
         block->otz = 0;
     }
     block->otz = (block->otz >> 4) + 0x1E;
-    func_actor_403600_801320F8(block->otz);
+    ActorsShared80131fc8(block->otz);
     actor_403600_load_scratch_head(restore);
     actor_403600_restore_scratch_head(restore);
     return restore;
