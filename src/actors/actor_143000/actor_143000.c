@@ -156,7 +156,7 @@ void func_actor_143000_801325F0(Actor143000* arg0)
                         setUVWH(prim, u, v, 16, 16);
                         prim->tpage = 0x16;
                         prim->clut  = 0x3DC1;
-                        addPrim(&Gpu_CurrentOt[0x3FE], prim);
+                        addPrim(&gGpuCurrentOt[0x3FE], prim);
                     }
                 } else {
                     prim           = (POLY_FT4*)Gpu_PrimCursor;
@@ -174,7 +174,7 @@ void func_actor_143000_801325F0(Actor143000* arg0)
                     setUV4(prim, u, 0xB8, uw + 0x30, 0xB8, u, vh - 0x48, uw + 0x30, vh - 0x48);
                     prim->tpage = 0x16;
                     prim->clut  = 0x3DC1;
-                    addPrim(&Gpu_CurrentOt[0x3FE], prim);
+                    addPrim(&gGpuCurrentOt[0x3FE], prim);
                 }
             }
         }

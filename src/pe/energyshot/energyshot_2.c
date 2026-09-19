@@ -106,7 +106,7 @@ void func_energyshot_8012FA50(GsCOORDINATE2* arg0, s16 arg1, u16 arg2, u8* arg3)
             prim->x3 = *(u16*)&block->sxy3.vx;
             prim->y3 = *(u16*)&block->sxy3.vy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)Gpu_CurrentOt),
+                              (s32)gGpuCurrentOt),
                     prim);
         }
     }

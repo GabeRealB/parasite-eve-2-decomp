@@ -84,12 +84,12 @@ void func_actor_450200_80132368(s32 x, s32 tpageX, s32 clutY, s32 semiTrans, s32
         p->g0   = rgb;
         p->b0   = rgb;
         p->clut = GetClut(0, clutY);
-        addPrim(&Gpu_CurrentOt[0x3FE], p);
+        addPrim(&gGpuCurrentOt[0x3FE], p);
 
         dr             = (DR_MODE*)Gpu_PrimCursor;
         Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
         setDrawTPage(dr, 0, 1, getTPage(1, 1, tpageX, 0x100));
-        addPrim(&Gpu_CurrentOt[0x3FE], dr);
+        addPrim(&gGpuCurrentOt[0x3FE], dr);
 
         tpageX += 0x80;
         x      += 0x100;

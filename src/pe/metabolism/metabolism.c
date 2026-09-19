@@ -360,7 +360,7 @@ void func_metabolism_8012F840(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
         prim->x2    = *(u16*)&block->sx + ((block->step * rsin(ang)) >> 12);
         prim->y2    = *(u16*)&block->sy + ((block->step * rcos(ang)) >> 12);
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)Gpu_CurrentOt),
+                          (s32)gGpuCurrentOt),
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
     }

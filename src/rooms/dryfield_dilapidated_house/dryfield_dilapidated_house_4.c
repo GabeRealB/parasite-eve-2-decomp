@@ -394,7 +394,7 @@ void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
             setRGB2(prim, lo * (flags >> 8), lo * ((flags >> 4) & 3), lo * (flags & 3));
             setRGB3(prim, lo * (flags >> 8), lo * ((flags >> 4) & 3), lo * (flags & 3));
             addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)Gpu_CurrentOt),
+                              (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
         }
@@ -594,7 +594,7 @@ void func_dryfield_dilapidated_house_80182A18(GsCOORDINATE2* arg0, s16 arg1, s16
             prim->x3 = *(u16*)&block->sxy3.vx;
             prim->y3 = *(u16*)&block->sxy3.vy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)Gpu_CurrentOt),
+                              (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
@@ -669,7 +669,7 @@ void func_dryfield_dilapidated_house_80182F14(GsCOORDINATE2* arg0, s32 arg1, s16
             prim->x3 = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
             prim->y3 = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)Gpu_CurrentOt),
+                              (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
             ang = ang2;
@@ -760,7 +760,7 @@ void func_dryfield_dilapidated_house_80183728(GsCOORDINATE2* arg0, s16 arg1, s32
             prim->x3 = *(u16*)&block->sxy3.vx;
             prim->y3 = *(u16*)&block->sxy3.vy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)Gpu_CurrentOt),
+                              (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }

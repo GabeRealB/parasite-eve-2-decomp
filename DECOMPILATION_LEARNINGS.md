@@ -4897,7 +4897,7 @@ setXYWH(p, x, y, w, h);
 setUVWH(p, 0, 0, w, h);
 p->clut  = clut;
 p->tpage = tpage;
-addPrim(Gpu_CurrentOt, p);
+addPrim(gGpuCurrentOt, p);
 ```
 
 `w`'s last use is now *before* clut in the source. Backwards, clut/tpage
@@ -5016,7 +5016,7 @@ When `r0` and `b0` share a value the target loads into `$v1` immediately after
 `li` to the use (`li v0, 0x20` / `sb 4` / `sb 6`). An empty `USE_REG(rb)` /
 `SOFT_USE_REG(rb)` after `setcode` does pin the load, but the asm is a
 scheduling fence: `&gDisplayState` stops hoisting next to `Gpu_PrimCursor`,
-and `Gpu_CurrentOt` fills the last UV delay instead of `lhu 0x2A`.
+and `gGpuCurrentOt` fills the last UV delay instead of `lhu 0x2A`.
 
 The store itself is the early use. Write `prim->r0 = rb` right after `setcode`;
 `-fschedule-insns` delays that `sb` until after `g0`/`tpage` (independent
@@ -5753,7 +5753,7 @@ y              = arg1;
 p              = Gpu_PrimCursor;
 Gpu_PrimCursor = p + 1;
 setDrawTPage(p, 1, 0, getTPage(2, 1, tpage & 0x3C0, y));
-addPrim(Gpu_CurrentOt + 8, p);
+addPrim(gGpuCurrentOt + 8, p);
 ```
 
 `Room_Draw42` is the example. The addPrim tail was already a match with
@@ -7964,13 +7964,13 @@ org  = ot[i].org;
 size = D_8007A0E4;           /* load fills the org-load delay; claims $a0 */
 *org = GPU_OT_END_PRIM; /* 0xFFFFFF stays in $a1 */
 size /= 2;                   /* signed /2 after the store */
-saved      = Gpu_CurrentOt;
-Gpu_CurrentOt = ot[i].org;      /* second load of org — do not reuse `org` */
+saved          = gGpuCurrentOt;
+gGpuCurrentOt  = ot[i].org;     /* second load of org — do not reuse `org` */
 Gpu_PrimCursor = base + i * size;
 ```
 
-Putting `saved = Gpu_CurrentOt` immediately after `*org = …` steals the delay
-slot for `%hi(Gpu_CurrentOt)` and parks the constant in `$a0` instead. Computing
+Putting `saved = gGpuCurrentOt` immediately after `*org = …` steals the delay
+slot for `%hi(gGpuCurrentOt)` and parks the constant in `$a0` instead. Computing
 `D_8007A0E4 / 2` in one expression before the store also mis-orders the
 divide relative to the store. `Display_FrameFlipDraw` is the pure example.
 
@@ -11885,12 +11885,12 @@ void GsClearOt(unsigned short offset, unsigned short point, GameOt* otp);
 /* ... */
 GsClearOt(0, 0, &ot[temp->field_118]);
 *ot[temp->field_118].org = GPU_OT_END_PRIM;
-Gpu_CurrentOt = ot[temp->field_118].org;
+gGpuCurrentOt = ot[temp->field_118].org;
 ```
 
 `Gpu_InitOt` is the reference: sets both `Gpu_OrderingTables` slots to depth `0xA`
 with `Gpu_OtTags` / `+ GPU_OT_ENTRIES`, clears the active buffer
-(`gDisplayState.frameBuffer`), then points `Gpu_CurrentOt` at the OT base.
+(`gDisplayState.frameBuffer`), then points `gGpuCurrentOt` at the OT base.
 
 ## Delay `i = 0` until after a special-case rewrite of the same constant
 
@@ -13973,9 +13973,9 @@ sw   v0, %lo(global)(s1)
 Target reuses the loaded register for the advance. Capture into a local first:
 
 ```c
-ot = Gpu_CurrentOt;
+ot = gGpuCurrentOt;
 *ot = GPU_OT_END_PRIM;
-Gpu_CurrentOt = ot + 0x20; /* addiu reuses ot — no reload */
+gGpuCurrentOt = ot + 0x20; /* addiu reuses ot — no reload */
 ```
 
 `Display_FlipOt` is the pure example (double-buffer OT flip).
@@ -14176,7 +14176,7 @@ DR_TPAGE* p;
 p          = Gpu_PrimCursor;
 Gpu_PrimCursor = p + 1;
 setDrawTPage(p, 0, 1, 0x1E | ((abr & 3) << 5));
-addPrim(Gpu_CurrentOt + otz, p);
+addPrim(gGpuCurrentOt + otz, p);
 ```
 
 `setDrawTPage` → `setlen` + `_get_mode`; `addPrim` → `setaddr`/`getaddr` on
@@ -16978,7 +16978,7 @@ setlen(p, 3);
 `Ui_AllocTile` also needs `register u32 color asm("t3")` so the 6th arg
 lands in `$t3` (without the pin, `$t2`/`$t3` for arg1/arg5 swap). Pair with
 Psy-Q `addPrim` / `setlen` / `setcode` (see above) and
-`addPrim(Gpu_CurrentOt + (s16)obj->field_14 + 1, p)` when the target uses `lh`
+`addPrim(gGpuCurrentOt + (s16)obj->field_14 + 1, p)` when the target uses `lh`
 on a `u16` OT index and OT slot `field_14 + 1`.
 
 ## Empty `asm volatile` a0 clobber for branch-delay restore
@@ -17672,7 +17672,7 @@ setcode(p, 0x62);                       /* 0x62 = TILE | semi-trans */
 p->r0 = color;
 p->g0 = color;
 p->b0 = color;
-/* x/y/w/h then addPrim(Gpu_CurrentOt - 0x10, p); DR_TPAGE with setDrawTPage */
+/* x/y/w/h then addPrim(gGpuCurrentOt - 0x10, p); DR_TPAGE with setDrawTPage */
 ```
 
 Writing `p = Gpu_SysPrimCursor` first swaps the two `lui`s (~99.7% near-match). The
@@ -18096,9 +18096,9 @@ Manual OT linking that reloads `field_14` twice (equivalent to
 `addPrim(ot + (s16)field_14 + 1, p)`) wants:
 
 ```
-lui  v1, %hi(Gpu_CurrentOt)
+lui  v1, %hi(gGpuCurrentOt)
 lui  a1, 0xFF000000
-lw   a2, %lo(Gpu_CurrentOt)(v1)
+lw   a2, %lo(gGpuCurrentOt)(v1)
 ```
 
 Without pins, GCC often swaps `$a1`/`$a2` (mask in `$a2`, OT in `$a1`) or
@@ -18110,13 +18110,13 @@ register u32* ot asm("a2");
 
 mask     = 0xFFFFFF;
 /* set color / setlen / setcode first so $a0 holds 0xFFFFFF */
-ot       = Gpu_CurrentOt;
+ot       = gGpuCurrentOt;
 mask_hi  = 0xFF000000;
 p->tag   = (p->tag & mask_hi) | (ot[(s16)idx + 1] & mask);
 ot[(s16)idx + 1] = (ot[(s16)idx + 1] & mask_hi) | ((u32)p & mask);
 ```
 
-Assign `ot` before `mask_hi` so the `lui %hi(Gpu_CurrentOt)` precedes
+Assign `ot` before `mask_hi` so the `lui %hi(gGpuCurrentOt)` precedes
 `lui a1,0xFF00`. `Ui_DrawFlatCaret` is the pure example.
 
 Do **not** also pin an earlier mid-function temporary to `asm("a1")` (e.g. a
@@ -19429,15 +19429,15 @@ if ((s16)CdCmd_Queue.field_244 != 0 && !(flags & 8)) { … }
 
 ## OT addPrim offsets: elements, not bytes
 
-`Gpu_CurrentOt` is `u_long*`. Asm immediates on loads/stores are *bytes*, so a
+`gGpuCurrentOt` is `u_long*`. Asm immediates on loads/stores are *bytes*, so a
 target `lw v0, -0x40(a2)` is one OT entry stride of `0x10` words:
 
 ```c
 /* WRONG — scales by sizeof(u_long) → -0x100 bytes */
-addPrim(Gpu_CurrentOt - 0x40, p);
+addPrim(gGpuCurrentOt - 0x40, p);
 
 /* RIGHT — matches lw/sw -0x40(reg) */
-addPrim(Gpu_CurrentOt - 0x10, p);
+addPrim(gGpuCurrentOt - 0x10, p);
 ```
 
 Scratch-object matching can still report 100% when only the I-type immediate
@@ -20970,16 +20970,16 @@ that. `Display_StepFadeOverlay` is the pure example.
 
 ## OT index: `(idx << 2) + (s32)base` vs `base + idx`
 
-`Gpu_CurrentOt + otIdx` (pointer arithmetic) and
-`(u_long*)((otIdx << 2) + (s32)Gpu_CurrentOt)` are equivalent, but the second form
+`gGpuCurrentOt + otIdx` (pointer arithmetic) and
+`(u_long*)((otIdx << 2) + (s32)gGpuCurrentOt)` are equivalent, but the second form
 matches the target's register/schedule for dual `addPrim`:
 
 ```
 lui  a1, 0xff / ori     /* 0xFFFFFF mask */
-lui  v0, %hi(Gpu_CurrentOt)
+lui  v0, %hi(gGpuCurrentOt)
 sll  a0, a2, 2          /* idx in a2 → offset in a0 */
 lui  a2, 0xff00
-lw   v0, %lo(Gpu_CurrentOt)(v0)
+lw   v0, %lo(gGpuCurrentOt)(v0)
 ...
 addu a0, a0, v0
 ```
@@ -21742,22 +21742,22 @@ on `arg0->field_1C` (light dir, often `GsLIGHTWSMATRIX`), and in-place column
 RTIR via `gte_ldclmv` + `gte_rtir_real` (`0x4A49E012`) + `gte_stclmv` three times
 (same real-opcode rule as other GTE command macros).
 
-## Local OT pointer for `Gpu_CurrentOt` so `%hi` stays temporary
+## Local OT pointer for `gGpuCurrentOt` so `%hi` stays temporary
 
 `GameMain_Loop` (and similar dual-buffer main loops) must both:
 1. pin `Gpu_OtBuffers` as **two** regs (`s8` = `%hi`, `s7` = full via `addiu s7,s8,%lo`) for `Display_FrameFlipDraw` (`addiu a0,s8,%lo`) and `DrawOTag` (`addu v0,stride,s7`);
-2. use `%hi(Gpu_CurrentOt)` only temporarily in `$s0` around `ClearOTagR`, not as a function-wide pin.
+2. use `%hi(gGpuCurrentOt)` only temporarily in `$s0` around `ClearOTagR`, not as a function-wide pin.
 
 Writing only through the global:
 
 ```c
-Gpu_CurrentOt = ot;
-ClearOTagR(Gpu_CurrentOt, n);
-*Gpu_CurrentOt = END;
-Gpu_CurrentOt += 0x20;
+gGpuCurrentOt = ot;
+ClearOTagR(gGpuCurrentOt, n);
+*gGpuCurrentOt = END;
+gGpuCurrentOt += 0x20;
 ```
 
-makes GCC hoist `lui sN,%hi(Gpu_CurrentOt)` into the prologue and steal the reg that
+makes GCC hoist `lui sN,%hi(gGpuCurrentOt)` into the prologue and steal the reg that
 should hold `Gpu_OtBuffers`'s full address.
 
 Fix: pass a **local** into `ClearOTagR`, then reload from the global for the
@@ -21766,13 +21766,13 @@ end-prim write so the `%hi` is only live in that block:
 ```c
 {
     u_long* ot = Gpu_OtTags + flip * GPU_OT_ENTRIES;
-    Gpu_CurrentOt = ot;
+    gGpuCurrentOt = ot;
     ClearOTagR(ot, GPU_OT_ENTRIES);
 }
 {
-    u_long* p = Gpu_CurrentOt;
+    u_long* p = gGpuCurrentOt;
     *p = GPU_OT_END_PRIM;
-    Gpu_CurrentOt = p + 0x20;
+    gGpuCurrentOt = p + 0x20;
 }
 ```
 
@@ -22989,7 +22989,7 @@ that should hold the mask — or it hoists color math and breaks a later
 ```c
 setlen(dr, 1);
 dr->code[0] = 0xE1000000 | 0x240; /* not 0xE1000240 as one literal */
-addPrim(Gpu_CurrentOt, dr);
+addPrim(gGpuCurrentOt, dr);
 ```
 
 Do **not** pin `t1 = 0xFFFFFF` early to force the mask into a delay slot: that
@@ -28331,10 +28331,10 @@ later delay slot and the gap collapses. `Gp_RemoveItem` is the example.
 A loop-local `qty = rec->qty` stuck at 93% with only that block
 after the loop instead of in the switch.
 
-## Write `addPrim` OT as `mask + (s32)Gpu_CurrentOt`, no `&Global` hoist
+## Write `addPrim` OT as `mask + (s32)gGpuCurrentOt`, no `&Global` hoist
 
 `addPrim` is a macro that evaluates the OT address twice. A sibling
-`Gpu_CurrentOt + (z >> 4)` becomes a scaled Z when
+`gGpuCurrentOt + (z >> 4)` becomes a scaled Z when
 `gDisplayState.otDepthShift` is the shift:
 
 ```
@@ -28347,14 +28347,14 @@ addu  v0, v0, ot
 
 Hoisting `ds = &gDisplayState` pulls the address into the
 `setSemiTrans` window, so `0xFF000000` lands in `$t0` instead of `$a3`
-and `Gpu_CurrentOt` steals `$a1`. Write `gDisplayState.otDepthShift`
+and `gGpuCurrentOt` steals `$a1`. Write `gDisplayState.otDepthShift`
 directly in the `addPrim` argument. Operand order matters too:
-`(s32)Gpu_CurrentOt + mask` is `addu v0, ot, v0`; the target is
+`(s32)gGpuCurrentOt + mask` is `addu v0, ot, v0`; the target is
 `addu v0, v0, ot`.
 
 ```c
 addPrim((u_long*)(((((u32)arg2 << gDisplayState.otDepthShift) >> 2) & 0xFFC)
-                  + (s32)Gpu_CurrentOt), p);
+                  + (s32)gGpuCurrentOt), p);
 ```
 
 `Gp_AddTpageShift` is the example. The hoisted `ds` form stuck at 87%
@@ -30009,7 +30009,7 @@ preheader order:
 
 ```
 la    t4, gDisplayState
-lw    t2, Gpu_CurrentOt
+lw    t2, gGpuCurrentOt
 lui   t1, 0xFF
 ori   t1, t1, 0xFFFF
 lui   t3, 0xFF00
@@ -32056,7 +32056,7 @@ delays `lui t0,0xe100` into the TILE stores or emits it *before* the
 ```c
 setlen(dr, 1);
 dr->code[0] = 0xE1000000 | 0x240;
-addPrim(Gpu_CurrentOt - 0x10, dr);
+addPrim(gGpuCurrentOt - 0x10, dr);
 ```
 
 That is the same split as `Title_MenuTask`; here it is required even
@@ -36537,7 +36537,7 @@ return ret;
 
 Do *not* reach for a fully `goto`-based loop (`loop: ... goto loop;`) instead:
 without the loop notes GCC skips loop-invariant motion, and the tail of the body
-then CSEs `%hi(Gpu_CurrentOt)` / `0xFF000000` into extra long-lived temps that
+then CSEs `%hi(gGpuCurrentOt)` / `0xFF000000` into extra long-lived temps that
 the target rematerialises with `lui` at each use. `Gp_DrawMapIcons` went
 75% (goto loop) → 92% (`while`, peeled) → 96% (`for (;;)` + `goto end`).
 
@@ -36920,21 +36920,21 @@ was to *break* a cross-jump, here it is to *feed* one. 97.6% -> 99.3%.
 
 ## One `ot` local per mutually exclusive branch, not one for the whole function
 
-`Gp_FadeWorkTask` sorts its two prims into `Gpu_CurrentOt[spawnArg1]` or, when
+`Gp_FadeWorkTask` sorts its two prims into `gGpuCurrentOt[spawnArg1]` or, when
 `spawnArg1 == 0`, into the current OT head. A single function-scope
 `u_long* ot` reloaded in both arms is allocated one register for the whole
 function ($t0 in both), which also shifts every other pointer down a register
-and reorders the `lui %hi(Gpu_OrderingTables)` / `lw Gpu_CurrentOt` pair. The
+and reorders the `lui %hi(Gpu_OrderingTables)` / `lw gGpuCurrentOt` pair. The
 target gives each arm its own register ($a3 in the indexed arm, $a2 in the
 head arm), so declare the pointer at block scope inside each arm:
 
 ```c
 if (t->spawnArg1 != 0) {
-    u_long* ot = Gpu_CurrentOt;
+    u_long* ot = gGpuCurrentOt;
     addPrim(&ot[t->spawnArg1], tile);
     addPrim(&ot[t->spawnArg1], dr);
 } else {
-    u_long* ot = Gpu_CurrentOt;
+    u_long* ot = gGpuCurrentOt;
     ...
 }
 ```
@@ -37357,7 +37357,7 @@ negative offsets from the `poly[1]` register (`sb t7, -0x25(a3)`): 96.4%.
 `func_800C0E20` builds a `TILE`, two `SPRT`s and a `POLY_FT4`, all with
 `clut = 0x3C0B`, and calls `addPrim` four times. Two block-local pseudos end up
 competing for the same pair of registers: the shared `0x3C0B` constant and the
-hoisted `lui %hi(Gpu_CurrentOt)`. Both have 4 references, so `local_alloc`
+hoisted `lui %hi(gGpuCurrentOt)`. Both have 4 references, so `local_alloc`
 decides on `floor_log2(n_refs) * n_refs * size / live_length` — and `size` is
 `PSEUDO_REGNO_SIZE`, i.e. *words*, so a `HImode` constant and an `SImode`
 pointer both count 1 and only `live_length` separates them. `cc1 … -dl` reports
@@ -37365,7 +37365,7 @@ it directly:
 
 ```
 Register 158 used 4 times across 170 insns in block 5; 2 bytes;   <- 0x3C0B
-Register 166 used 4 times across 166 insns in block 5; pointer;   <- %hi(Gpu_CurrentOt)
+Register 166 used 4 times across 166 insns in block 5; pointer;   <- %hi(gGpuCurrentOt)
 ```
 
 170 > 166, so the pointer was allocated first and took `$t3`, giving `$t4` to
@@ -38363,19 +38363,19 @@ GCC 2.8.1's aliaser exempts a *fixed-address scalar* from a *varying-address
 struct* reference, so the prim-cursor reload
 
 ```c
-addPrim(&Gpu_CurrentOt[(s16)obj->drawOrder - 0x1C], p);
+addPrim(&gGpuCurrentOt[(s16)obj->drawOrder - 0x1C], p);
 dr         = Gpu_PrimCursor;
 Gpu_PrimCursor = dr + 1;
 ```
 
 has no dependency on `setaddr(p, ...)`'s `sw v1,0(s0)` and `-fschedule-insns`
-lifts `lw Gpu_PrimCursor` above it. The load then overlaps the `Gpu_CurrentOt`
+lifts `lw Gpu_PrimCursor` above it. The load then overlaps the `gGpuCurrentOt`
 base's live range, so `dr` is coloured `$a3` instead of reusing the dying `$a1`,
 and the whole tail reschedules. Verified with micro-tests: only a *scalar*
 store (`*(u32*)p = ...`) conflicts with such a global — `p->field`,
 `((P_TAG*)p)->addr` and `ot[k]` are all struct references and never do; making
 the store scalar blocks the hoist but then also invalidates the cached
-`Gpu_CurrentOt`, adding a reload the target does not have. `Gp_DrawMapIcons` in
+`gGpuCurrentOt`, adding a reload the target does not have. `Gp_DrawMapIcons` in
 the same file is matched *with* the hoist, so source order does not decide it
 (`dr = ...` before, between or after the two `setaddr`s compiles byte for byte
 identically). No formulation found yet; `func_800D15D0` stalls at 95.4% on
@@ -40261,7 +40261,7 @@ store operand, a callee-saved one for the long-lived block pointer).
 When two `POLY_FT4` primitives in a row share literal coordinates, GCC CSEs the
 constants into hoisted `li`s at the top of the block. The emitted *store* order
 is not the source order — the scheduler sinks half of the `sh`s down to fill the
-`lw Gpu_CurrentOt` / `lw tag` load stalls — so matching the store order does not
+`lw gGpuCurrentOt` / `lw tag` load stalls — so matching the store order does not
 mean the registers will line up. The hard-register numbers of those hoisted
 `li`s are decided by the pre-scheduling order, i.e. by where the field writes
 appear in the C source.
@@ -40278,7 +40278,7 @@ target emits poly 1's `sh`s at the very end and poly 2's split across the block:
     poly->y3 = -0x2C; poly->y2 = -0x2C;
     poly->tpage = 0xA7;
     /* ... UV, clut, setlen, setcode ... */
-    addPrim(Gpu_CurrentOt - 5, poly);
+    addPrim(gGpuCurrentOt - 5, poly);
 ```
 
 Moving the coordinates in only one of the two blocks makes it worse, not better
@@ -45679,7 +45679,7 @@ tile           = (TILE *)Gpu_PrimCursor;
 Gpu_PrimCursor = (DR_TPAGE *)(tile + 1);
 SetTile(tile);
 /* ...field writes... */
-addPrim(Gpu_CurrentOt, tile);
+addPrim(gGpuCurrentOt, tile);
 ```
 
 with the tag written by the `libgpu.h` macro rather than m2c's hand-rolled
@@ -48383,11 +48383,11 @@ the OT pointer in `$a2` and the primitive in `$a3`, so m2c emitted
 ```c
 M2C_UNK Room_Draw42(M2C_UNK, M2C_UNK, void *, void *);   /* extern */
 ...
-Room_Draw42(0x340, 0, Gpu_CurrentOt, temp_a3);
+Room_Draw42(0x340, 0, gGpuCurrentOt, temp_a3);
 ```
 
 `Room_Draw42`'s own assembly reads only `$a0` and `$a1` and re-loads
-`Gpu_CurrentOt` itself, so the real prototype is `void Room_Draw42(s32 tpage,
+`gGpuCurrentOt` itself, so the real prototype is `void Room_Draw42(s32 tpage,
 s16 arg1)` and the two extra arguments are noise. Before trusting an m2c
 signature for a function that is still `INCLUDE_ASM`, open the callee's `.s` and
 count the argument registers it actually reads — passing the phantom arguments
@@ -51116,7 +51116,7 @@ line->y1 = rect->y;
 line->r0 = r;
 line->g0 = g;
 line->b0 = b;
-addPrim(Gpu_CurrentOt + 3, line);
+addPrim(gGpuCurrentOt + 3, line);
 ```
 
 That single move took the function from 92.0% to 100%. The tell in the target
@@ -58804,7 +58804,7 @@ len, pad, code, p2.
 Writing them in the order the object shows leaves the `li` for the code byte
 three insns lower than the target, and in `Room_Draw37` that one displacement
 cascaded: the `li $a1, 1` argument of the following `Gp_AddTpageShift` moved
-past the `Gpu_CurrentOt` load, so the two no longer overlapped and the OT
+past the `gGpuCurrentOt` load, so the two no longer overlapped and the OT
 pointer was coloured `$a1` instead of `$a2`, which in turn changed the jal's
 delay slot. 99.396% with `regs=3 reorder=3` became 100% by substituting the
 single macro call. When a primitive's initialisation nearly matches, spell it
@@ -65621,7 +65621,7 @@ addition order; a single expression reassociated the constant with xOff.
 The final GPU block had only scheduling penalties. Volatile accesses to both
 `P_TAG.len` and `DR_TPAGE.code[0]` preserve their store order. An ordinary
 `SOFT_TOUCH_REG(order)` still scheduled the OT-address `lui` two instructions
-late. A single nonvolatile empty asm with `"+r"(order)` and `"m"(Gpu_CurrentOt)`
+late. A single nonvolatile empty asm with `"+r"(order)` and `"m"(gGpuCurrentOt)`
 made that address a dependency and moved its `lui` into the required position,
 while emitting no additional instruction. There is no existing named helper
 for this precise register-output / memory-input combination.
@@ -91784,7 +91784,7 @@ sites - one of which, `ActorsShared80163354` in
 
 ```c
 addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)
-               + (u32)Gpu_CurrentOt), poly);
+               + (u32)gGpuCurrentOt), poly);
 ```
 
 Transcribing that tail, with a 0x1C scratch struct holding just
@@ -109183,7 +109183,7 @@ family-scoped, and so is the manifest. A `shared` span's `unit` resolves to
 `unit` in `configs/USA/overlays.toml` appears under two `[family]` sections.
 The refusal here is not the `localref` one either: the copies reference only
 shared globals (`D_80111E48`, `GsWSMATRIX`, `gDisplayState`, `Gpu_PrimCursor`,
-`Gpu_CurrentOt`, `rsin`, `rcos`), so they would share cleanly if there were
+`gGpuCurrentOt`, `rsin`, `rcos`), so they would share cleanly if there were
 anywhere to put them. There is not, and the two overlays keep their own
 copies.
 
@@ -117914,7 +117914,7 @@ writes *is* the psyq type - identify the packet from the offsets and use it:
 | `sb 3` + `sb 7` | any packet | `setlen(p, 5)` + `setcode(p, 0x2A)` |
 | `sb 4/5/6` + shorts at 8/0xA/0xC/0xE/0x10/0x12/0x14/0x16 | `POLY_F4` (0x18) | `p->r0/g0/b0`, `p->x0..y3` |
 | shorts at 8/0xA/0xC/0xE/0x10/0x12/0x14/0x16, one word at 4 | `DR_MODE` (0xC) | `dr->code[0] = 0xE100004A` |
-| `lw`/`sw` at 0 with both `& 0xFFFFFF` and `& 0xFF000000` masks | any packet | `addPrim(Gpu_CurrentOt, p)` |
+| `lw`/`sw` at 0 with both `& 0xFFFFFF` and `& 0xFF000000` masks | any packet | `addPrim(gGpuCurrentOt, p)` |
 
 `setlen`/`setcode` are byte-aligned `P_TAG` bitfields, so they emit exactly the
 two `sb`s, and `addPrim` is `setaddr(p, getaddr(ot)), setaddr(ot, p)` - the

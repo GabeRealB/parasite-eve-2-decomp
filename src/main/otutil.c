@@ -29,8 +29,8 @@ s32 Display_FrameFlipDraw(s32 arg0, s32 arg1, s32 arg2)
     size           = D_8007A0E4;
     *org           = GPU_OT_END_PRIM;
     size          /= 2;
-    saved          = Gpu_CurrentOt;
-    Gpu_CurrentOt  = ot[temp->frameBuffer].org;
+    saved          = gGpuCurrentOt;
+    gGpuCurrentOt  = ot[temp->frameBuffer].org;
     Gpu_PrimCursor = (DR_TPAGE*)((s32)Gpu_PrimBufBase + temp->frameBuffer * size);
     Task_ExecList(&gTaskDisplayList);
     Boot_DispatchCdCmd();
@@ -65,7 +65,7 @@ s32 Display_FrameFlipDraw(s32 arg0, s32 arg1, s32 arg2)
         Display_FlipDraw(temp->frameBuffer);
         Display_PendingFlip = -1;
     }
-    Gpu_CurrentOt = saved;
+    gGpuCurrentOt = saved;
     return arg1;
 }
 
@@ -168,17 +168,17 @@ void Display_FlipOt(void)
     u_long*       ot;
 
     temp           = &gDisplayState;
-    saved          = Gpu_CurrentOt;
+    saved          = gGpuCurrentOt;
     buf            = temp->otBuffer ^ 1;
     temp->otBuffer = buf;
-    Gpu_CurrentOt  = Gpu_OtTags + buf * GPU_OT_ENTRIES;
-    ClearOTagR(Gpu_CurrentOt, GPU_OT_ENTRIES);
-    ot            = Gpu_CurrentOt;
+    gGpuCurrentOt  = Gpu_OtTags + buf * GPU_OT_ENTRIES;
+    ClearOTagR(gGpuCurrentOt, GPU_OT_ENTRIES);
+    ot            = gGpuCurrentOt;
     *ot           = GPU_OT_END_PRIM;
-    Gpu_CurrentOt = ot + 0x20;
+    gGpuCurrentOt = ot + 0x20;
     Gp_LinkViewSprts();
     Gp_DrawActorTmdActive(&Gpu_OtBuffers[temp->otBuffer]);
-    Gpu_CurrentOt              = saved;
+    gGpuCurrentOt              = saved;
     temp->at100.flags.flipMode = 0;
 }
 
@@ -295,15 +295,15 @@ void Display_FlipOtAlt(void)
     s32           buf;
 
     temp           = &gDisplayState;
-    saved          = Gpu_CurrentOt;
+    saved          = gGpuCurrentOt;
     buf            = temp->otBuffer ^ 1;
     temp->otBuffer = buf;
-    Gpu_CurrentOt  = Gpu_OtTags + buf * GPU_OT_ENTRIES;
+    gGpuCurrentOt  = Gpu_OtTags + buf * GPU_OT_ENTRIES;
     Gpu_ClearOTag(temp->otBuffer);
-    Gpu_CurrentOt = Gpu_CurrentOt + 0x20;
+    gGpuCurrentOt = gGpuCurrentOt + 0x20;
     Task_ExecListFiltered(&gTaskDefaultList, 0x62);
     Gp_DrawActorTmdFlagged(&Gpu_OtBuffers[temp->otBuffer]);
-    Gpu_CurrentOt              = saved;
+    gGpuCurrentOt              = saved;
     temp->at100.flags.flipMode = 0;
 }
 
@@ -322,7 +322,7 @@ void Gpu_InitOt(void)
     GsClearOt(0, 0, &ot[temp->frameBuffer]);
     org           = ot[temp->frameBuffer].org;
     *org          = GPU_OT_END_PRIM;
-    Gpu_CurrentOt = org;
+    gGpuCurrentOt = org;
 }
 
 void Display_SetPrimBufLarge(void)

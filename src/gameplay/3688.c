@@ -885,7 +885,7 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         setlen(p, 9);
         setcode(p, 0x2C);
     }
-    addPrim(Gpu_CurrentOt + (s16)arg0->drawOrder + 1, p);
+    addPrim(gGpuCurrentOt + (s16)arg0->drawOrder + 1, p);
     if (flag3 != 0) {
         q              = (TILE*)Gpu_PrimCursor;
         q->x0          = p->x0 - 1;
@@ -896,7 +896,7 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         *(u32*)&q->r0  = 0xC0C0C0;
         setlen(q, 3);
         setcode(q, 0x60);
-        addPrim(Gpu_CurrentOt + (s16)arg0->drawOrder + 1, q);
+        addPrim(gGpuCurrentOt + (s16)arg0->drawOrder + 1, q);
     }
 }
 
@@ -919,7 +919,7 @@ void func_800C0B98(DialogPrompt* arg0, UiObject* arg1, u32 arg2)
     setlen(p, 4);
     p->u0 = arg2;
     setcode(p, 0x65);
-    addPrim(Gpu_CurrentOt + (s16)arg1->drawOrder + 1, p);
+    addPrim(gGpuCurrentOt + (s16)arg1->drawOrder + 1, p);
     Ui_InsertDrawTPage((s16)arg1->drawOrder + 1, 0);
 }
 
@@ -1007,7 +1007,7 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
             *(u32*)&tile->r0 = arg6;
             setlen(tile, 3);
             setcode(tile, 0x60);
-            addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, tile);
+            addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, tile);
         }
         arg3 = arg3 - 4;
         clut = 0x3C0B;
@@ -1021,7 +1021,7 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
         sp->clut       = clut;
         setlen(sp, 3);
         setcode(sp, 0x75);
-        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, sp);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, sp);
 
         sp             = (SPRT*)Gpu_PrimCursor;
         Gpu_PrimCursor = (DR_TPAGE*)(sp + 1);
@@ -1033,7 +1033,7 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
         sp->clut       = clut;
         setlen(sp, 3);
         setcode(sp, 0x75);
-        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, sp);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, sp);
 
         poly           = (POLY_FT4*)Gpu_PrimCursor;
         Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
@@ -1057,7 +1057,7 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
         poly->u3   = 0xA8;
         poly->clut = clut;
         setcode(poly, 0x2D);
-        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, poly);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, poly);
     }
 }
 
@@ -1249,7 +1249,7 @@ void Gp_HpMpBarTask(Task* arg0)
         *(u32*)&p->r0 = color;
         setcode(p, 0x64);
         p->y0 = y + 3;
-        addPrim(Gpu_CurrentOt + (s16)obj->drawOrder + 1, p);
+        addPrim(gGpuCurrentOt + (s16)obj->drawOrder + 1, p);
     }
     Ui_InsertDrawTPage((s16)obj->drawOrder + 1, 0);
 
@@ -1294,7 +1294,7 @@ void Gp_HpMpBarTask(Task* arg0)
         poly->y3 = fy;
         poly->y2 = fy;
     }
-    addPrim(Gpu_CurrentOt + (s16)obj->drawOrder + 1, poly);
+    addPrim(gGpuCurrentOt + (s16)obj->drawOrder + 1, poly);
     Ui_DrawVBar((UiPanel*)obj, (s16)obj->field_18 - 3, (s16)obj->field_1A + 2, (s16)obj->field_1E - 0x32);
     Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C - 2, (s16)obj->field_1E - 0x32, (s16)obj->field_18 + 8);
     Gp_DrawHpMpStats((UiPanel*)obj, 0xB);
@@ -1538,7 +1538,7 @@ void Gp_PeGridPanelTask(Task* arg0)
         setlen(p, 4);
         *(u32*)&p->r0 = 0x606060;
         setcode(p, 0x64);
-        addPrim(Gpu_CurrentOt + (s16)obj->drawOrder + 1, p);
+        addPrim(gGpuCurrentOt + (s16)obj->drawOrder + 1, p);
         p->x0   = D_8010E844[iconCol].xOffset + (obj->baseX + startX + iconCol * colStep);
         p->y0   = obj->baseY + panelY - 0x23;
         p->w    = (iconCol == 0) ? 0x18 : 0x20;
@@ -1572,7 +1572,7 @@ void Gp_PeGridPanelTask(Task* arg0)
                 *(u32*)&p->r0 = 0x606060;
                 setcode(p, 0x64);
                 p->y0 = capY;
-                addPrim(Gpu_CurrentOt + (s16)obj->drawOrder + 1, p);
+                addPrim(gGpuCurrentOt + (s16)obj->drawOrder + 1, p);
             }
             markOff += 9;
         }
@@ -1716,7 +1716,7 @@ void func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     *(u32*)&p->r0 = color;
     setcode(p, 0x64);
     p->y0 = y + arg2 - 7;
-    addPrim(Gpu_CurrentOt + (s16)arg0->drawOrder + 1, p);
+    addPrim(gGpuCurrentOt + (s16)arg0->drawOrder + 1, p);
     Ui_InsertDrawTPage((s16)arg0->drawOrder + 1, 0);
 
     req.x          = arg0->baseX + arg1 + 0x7C;
@@ -4107,7 +4107,7 @@ void func_800C5F70(Task* arg0)
                         sprt->w = spriteW;
                         sprt->h = h;
                         setcode(sprt, 0x65);
-                        addPrim(Gpu_CurrentOt + (s16)obj->drawOrder + 1, sprt);
+                        addPrim(gGpuCurrentOt + (s16)obj->drawOrder + 1, sprt);
                         spriteI++;
                     } while (spriteI < spriteCount);
                 }
@@ -4776,7 +4776,7 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 p->clut  = 0x3F40;
                 break;
         }
-        addPrim(Gpu_CurrentOt + (s16)arg0->drawOrder + 1, p);
+        addPrim(gGpuCurrentOt + (s16)arg0->drawOrder + 1, p);
     }
     Ui_LayoutWithMode0(arg0, (arg1 - 1), (arg2 - 1), ((s16)vec.vx + 1),
                        ((s16)vec.vy + 1), 0x81008);
@@ -4985,7 +4985,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 p->clut = 0x3C09;
                 setlen(p, 4);
                 setcode(p, 0x64);
-                addPrim(Gpu_CurrentOt + (s16)arg0->drawOrder + 1, p);
+                addPrim(gGpuCurrentOt + (s16)arg0->drawOrder + 1, p);
                 i += 1;
             } while (i < count);
         }

@@ -87,13 +87,13 @@ void func_mine_cavern_80182454(void)
     poly->y2 = 0x78;
     poly->x3 = 0xA0;
     poly->y3 = 0x78;
-    addPrim(Gpu_CurrentOt, poly);
+    addPrim(gGpuCurrentOt, poly);
 
     dr             = (DR_MODE*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
     setlen(dr, 1);
     dr->code[0] = 0xE100004A;
-    addPrim(Gpu_CurrentOt, dr);
+    addPrim(gGpuCurrentOt, dr);
 
     func_mine_cavern_80181864();
     func_mine_cavern_80182184();

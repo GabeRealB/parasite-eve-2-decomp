@@ -1461,7 +1461,7 @@ void func_actor_800100_8016666C(GsCOORDINATE2* arg0, s16 arg1)
         prim->r1 = prim->r0 - 0x50;
         prim->g1 = 0;
         prim->b1 = 0;
-        addPrim((u_long*)(((((u32)((Actor800100LineScratch*)newhead)->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+        addPrim((u_long*)(((((u32)((Actor800100LineScratch*)newhead)->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, ((Actor800100LineScratch*)newhead)->otz);
     }
     *scratch = (u8*)*scratch + sizeof(Actor800100LineScratch);
@@ -1547,7 +1547,7 @@ void func_actor_800100_801668C0(GsCOORDINATE2* arg0)
     sy       = blk->sxy[3].vy;
     prim->y3 = sy;
 
-    addPrim((u_long*)&Gpu_CurrentOt[blk->otz >> 4], prim);
+    addPrim((u_long*)&gGpuCurrentOt[blk->otz >> 4], prim);
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor800100QuadScratch);
 }
 

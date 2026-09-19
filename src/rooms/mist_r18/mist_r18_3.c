@@ -70,7 +70,7 @@ void func_mist_r18_8017E448(MistR18Sprite* sprite)
     tile->y0 = sprite->y;
     tile->w  = sprite->w - 1;
     tile->h  = sprite->h - 1;
-    AddPrim(Gpu_CurrentOt + 5, tile);
+    AddPrim(gGpuCurrentOt + 5, tile);
 }
 
 /// Emit the sprite's screen rectangle as a textured `SPRT` into OT slot 4,
@@ -101,7 +101,7 @@ void func_mist_r18_8017E534(MistR18Sprite* sprite, u32 clutX, s32 clutY)
     p->v0   = v;
     p->w    = sprite->w - 1;
     p->h    = sprite->h - 1;
-    AddPrim(Gpu_CurrentOt + 4, p);
+    AddPrim(gGpuCurrentOt + 4, p);
 }
 
 /// Append a `DR_TPAGE` for the given tpage to OT slot `otIdx`.
@@ -112,7 +112,7 @@ void func_mist_r18_8017E654(s16 abr, s16 x, s16 y, s32 otIdx)
     dr             = Gpu_PrimCursor;
     Gpu_PrimCursor = dr + 1;
     SetDrawTPage(dr, 1, 0, GetTPage(0, abr, x, y));
-    AddPrim(Gpu_CurrentOt + otIdx, dr);
+    AddPrim(gGpuCurrentOt + otIdx, dr);
 }
 
 /// Spawn prop task `idx` (0 or 1) into its slot if it is not already running,

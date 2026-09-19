@@ -201,7 +201,7 @@ void func_mine_mesa_8017E2A4(Task* arg0)
 /// it goes negative and the task kills itself; the other states are the run-in
 /// (0 seeds the countdown at 0xFF, 1 waits out `Task::spawnArg1`) and anything
 /// else kills the task outright. The tile and a `DR_TPAGE` for it are carved
-/// off `Gpu_PrimCursor` and linked into `Gpu_CurrentOt[3]` every frame,
+/// off `Gpu_PrimCursor` and linked into `gGpuCurrentOt[3]` every frame,
 /// including the frames the switch kills the task on -- only the colours differ
 /// there, since `r`/`g`/`b` are read before the switch.
 ///
@@ -244,9 +244,9 @@ void func_mine_mesa_8017E3E0(Task* arg0)
     tile->w  = 320;
     tile->h  = 240;
     setRGB0(tile, r, g, b);
-    addPrim(Gpu_CurrentOt + 3, tile);
+    addPrim(gGpuCurrentOt + 3, tile);
     dr             = Gpu_PrimCursor;
     Gpu_PrimCursor = dr + 1;
     setDrawTPage(dr, 1, 0, getTPage(0, 2, 320, 0));
-    addPrim(Gpu_CurrentOt + 3, dr);
+    addPrim(gGpuCurrentOt + 3, dr);
 }

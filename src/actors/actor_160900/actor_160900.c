@@ -364,12 +364,12 @@ void func_actor_160900_80132E80(Task* task)
     poly->y2 = ys[2];
     poly->x3 = xs[3];
     poly->y3 = ys[3];
-    addPrim(&Gpu_CurrentOt[otz >> 4], poly);
+    addPrim(&gGpuCurrentOt[otz >> 4], poly);
     tp             = Gpu_PrimCursor;
     Gpu_PrimCursor = tp + 1;
     setlen(tp, 1);
     tp->code[0] = 0xE1000220;
-    addPrim(&Gpu_CurrentOt[otz >> 4], tp);
+    addPrim(&gGpuCurrentOt[otz >> 4], tp);
 }
 
 static inline void func_actor_160900_SetAnim(Task* task, u16 anim)

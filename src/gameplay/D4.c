@@ -917,10 +917,10 @@ void Gp_LoadWaitBoot(Task* task)
         tile->w  = 0x140;
         tile->h  = 0xF0;
         tile->y0 = -0x78 - yoff;
-        addPrim(Gpu_CurrentOt - 0x10, tile);
+        addPrim(gGpuCurrentOt - 0x10, tile);
         setlen(dr, 1);
         dr->code[0] = 0xE1000000 | 0x240;
-        addPrim(Gpu_CurrentOt - 0x10, dr);
+        addPrim(gGpuCurrentOt - 0x10, dr);
     }
 }
 
@@ -951,10 +951,10 @@ void Gp_LoadWaitStage(Task* task)
         tile->w  = 0x140;
         tile->h  = 0xF0;
         tile->y0 = -0x78 - yoff;
-        addPrim(Gpu_CurrentOt - 0x10, tile);
+        addPrim(gGpuCurrentOt - 0x10, tile);
         setlen(dr, 1);
         dr->code[0] = 0xE1000000 | 0x240;
-        addPrim(Gpu_CurrentOt - 0x10, dr);
+        addPrim(gGpuCurrentOt - 0x10, dr);
     }
     if (CdCmd_IsIdle() & 0xFFFF) {
         if (gGameSession->at4.loc.stage != gGameSession->loadedStage) {
@@ -995,10 +995,10 @@ void Gp_LoadState2(Task* task)
         tile->w  = 0x140;
         tile->h  = 0xF0;
         tile->y0 = -0x78 - yoff;
-        addPrim(Gpu_CurrentOt - 0x10, tile);
+        addPrim(gGpuCurrentOt - 0x10, tile);
         setlen(dr, 1);
         dr->code[0] = 0xE1000000 | 0x240;
-        addPrim(Gpu_CurrentOt - 0x10, dr);
+        addPrim(gGpuCurrentOt - 0x10, dr);
     }
     if (CdCmd_IsIdle() & 0xFFFF) {
         sess = (GpAreaKey*)&Mc_SaveData.at4.loc.view;
@@ -1059,10 +1059,10 @@ void Gp_LoadWaitCompanion(Task* task)
         tile->w  = 0x140;
         tile->h  = 0xF0;
         tile->y0 = -0x78 - yoff;
-        addPrim(Gpu_CurrentOt - 0x10, tile);
+        addPrim(gGpuCurrentOt - 0x10, tile);
         setlen(dr, 1);
         dr->code[0] = 0xE1000000 | 0x240;
-        addPrim(Gpu_CurrentOt - 0x10, dr);
+        addPrim(gGpuCurrentOt - 0x10, dr);
     }
     if (CdCmd_IsIdle() & 0xFFFF) {
         GameSession* session;
@@ -1130,10 +1130,10 @@ void Gp_LoadWaitSave(Task* task)
         tile->w  = 0x140;
         tile->h  = 0xF0;
         tile->y0 = -0x78 - yoff;
-        addPrim(Gpu_CurrentOt - 0x10, tile);
+        addPrim(gGpuCurrentOt - 0x10, tile);
         setlen(dr, 1);
         dr->code[0] = 0xE1000000 | 0x240;
-        addPrim(Gpu_CurrentOt - 0x10, dr);
+        addPrim(gGpuCurrentOt - 0x10, dr);
     }
     if (CdCmd_IsIdle() & 0xFFFF) {
         GameSession* session;
@@ -1208,10 +1208,10 @@ void Gp_LoadWaitAreaCd(Task* task)
         tile->w  = 0x140;
         tile->h  = 0xF0;
         tile->y0 = -0x78 - yoff;
-        addPrim(Gpu_CurrentOt - 0x10, tile);
+        addPrim(gGpuCurrentOt - 0x10, tile);
         setlen(dr, 1);
         dr->code[0] = 0xE1000000 | 0x240;
-        addPrim(Gpu_CurrentOt - 0x10, dr);
+        addPrim(gGpuCurrentOt - 0x10, dr);
     }
 
     {
@@ -1280,10 +1280,10 @@ void Gp_FadeGrayHold(Task* task)
         tile->w  = 0x140;
         tile->h  = 0xF0;
         tile->y0 = -0x78 - yoff;
-        addPrim(Gpu_CurrentOt - 0x10, tile);
+        addPrim(gGpuCurrentOt - 0x10, tile);
         setlen(dr, 1);
         dr->code[0] = 0xE1000000 | 0x240;
-        addPrim(Gpu_CurrentOt - 0x10, dr);
+        addPrim(gGpuCurrentOt - 0x10, dr);
     }
     task->killCountdown++;
     if (task->killCountdown >= 7) {
@@ -1791,9 +1791,9 @@ void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
             TOUCH_REG(i);
             *(u32*)&sprt->w = *(u32*)&cur->w;
             elem++;
-            dest->tpage.tag = (dest->tpage.tag & maskHi) | (*(u_long*)(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt) & mask);
-            *(u_long*)(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt) =
-                (*(u_long*)(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt) & maskHi) | ((u32)dest & mask);
+            dest->tpage.tag = (dest->tpage.tag & maskHi) | (*(u_long*)(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt) & mask);
+            *(u_long*)(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt) =
+                (*(u_long*)(((((u32)cur->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt) & maskHi) | ((u32)dest & mask);
             dest++;
             cur++;
         } while (i < arg1->field_2);
@@ -2114,7 +2114,7 @@ void func_800AD024(void)
             prim           = (DR_AREA*)Gpu_PrimCursor;
             Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
             SetDrawArea(prim, &rect);
-            addPrim(&Gpu_CurrentOt[0x3FF], prim);
+            addPrim(&gGpuCurrentOt[0x3FF], prim);
             if (gDisplayState.drawBuffer != 0) {
                 rect.y = 0x110;
             } else {
@@ -2126,7 +2126,7 @@ void func_800AD024(void)
             prim           = (DR_AREA*)Gpu_PrimCursor;
             Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
             SetDrawArea(prim, &rect);
-            addPrim((u_long*)((((u32)area->depth << gDisplayState.otDepthShift) >> 2 & 0xFFC) + (u32)Gpu_CurrentOt), prim);
+            addPrim((u_long*)((((u32)area->depth << gDisplayState.otDepthShift) >> 2 & 0xFFC) + (u32)gGpuCurrentOt), prim);
         }
     }
 }
@@ -2207,7 +2207,7 @@ void Gp_LinkSprtCmd(GpSprtElem* arg0, GpSprtCmd* arg1)
     elem = arg0 + arg1->field_0;
     if (arg1->field_2 != 0) {
         ds     = &gDisplayState;
-        otBase = Gpu_CurrentOt;
+        otBase = gGpuCurrentOt;
         mask   = 0xFFFFFF;
         maskHi = 0xFF000000;
         do {

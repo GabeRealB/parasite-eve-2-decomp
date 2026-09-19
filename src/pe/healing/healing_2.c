@@ -94,7 +94,7 @@ void func_healing_8012F5E4(Task* arg0)
 /// centre; the outer glow takes the single 0x38..0x6F cell on tpage 0x29 with
 /// the CLUT alternating on `arg1 & 1`, is tinted `arg3 / 2` and sits
 /// `(arg2 / 2) * 55 / otz` out. Both are axis-aligned and linked into
-/// `Gpu_CurrentOt` at the shared `otz`. Same 0x18-byte scratch as gameplay
+/// `gGpuCurrentOt` at the shared `otz`. Same 0x18-byte scratch as gameplay
 /// `Gp_EffSprTask8D`.
 void func_healing_8012F7FC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
@@ -158,7 +158,7 @@ void func_healing_8012F7FC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)Gpu_CurrentOt),
+                          (s32)gGpuCurrentOt),
                 prim);
 
         prim           = (POLY_FT4*)Gpu_PrimCursor;
@@ -184,7 +184,7 @@ void func_healing_8012F7FC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)Gpu_CurrentOt),
+                          (s32)gGpuCurrentOt),
                 prim);
     }
     *scratch = (u8*)*scratch + 0x18;

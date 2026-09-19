@@ -908,7 +908,7 @@ void func_options_801D4D0C(Task* task)
         p->clut = 0x3C00;
         setlen(p, 4);
         setcode(p, 0x65);
-        addPrim(&Gpu_CurrentOt[(s16)obj->drawOrder + 1], p);
+        addPrim(&gGpuCurrentOt[(s16)obj->drawOrder + 1], p);
         i++;
     } while (i < 7);
 

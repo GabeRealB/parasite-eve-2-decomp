@@ -19,7 +19,6 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-extern u_long*      Gpu_CurrentOt;
 extern DR_TPAGE*    Gpu_PrimCursor;
 extern WipUiHolder* Wip_UiHolder;
 extern u16*         D_8005C374;
@@ -96,13 +95,13 @@ void Title_DrawSpriteRow(s32 y, s32 v, s32 color)
     p->v0 = v;
     setcode(p, 0x66);
     p->y0 = y;
-    addPrim(Gpu_CurrentOt, p);
+    addPrim(gGpuCurrentOt, p);
 
     dr             = Gpu_PrimCursor;
     Gpu_PrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE10002BC;
-    addPrim(Gpu_CurrentOt, dr);
+    addPrim(gGpuCurrentOt, dr);
 }
 
 void Title_MenuTask(Task* arg0)
@@ -153,14 +152,14 @@ void Title_MenuTask(Task* arg0)
         a0->w  = 0x140;
         a0->h  = h;
         setSemiTrans(a0, 1);
-        addPrim(Gpu_CurrentOt, a0);
+        addPrim(gGpuCurrentOt, a0);
 
         dr             = Gpu_PrimCursor;
         Gpu_PrimCursor = dr + 1;
         setlen(dr, 1);
         /* Split like Title_DrawSpriteRow: lui 0xE100 / ori 0x240, after 0xFFFFFF */
         dr->code[0] = 0xE1000000 | 0x240;
-        addPrim(Gpu_CurrentOt, dr);
+        addPrim(gGpuCurrentOt, dr);
     }
     goto end;
 
@@ -213,13 +212,13 @@ normal:
             p->b0 = color;
             p->g0 = color;
             p->r0 = color;
-            addPrim(Gpu_CurrentOt, p);
+            addPrim(gGpuCurrentOt, p);
 
             dr             = Gpu_PrimCursor;
             Gpu_PrimCursor = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE1000000 | 0x240;
-            addPrim(Gpu_CurrentOt, dr);
+            addPrim(gGpuCurrentOt, dr);
         }
     }
 

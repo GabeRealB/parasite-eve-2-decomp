@@ -209,12 +209,12 @@ void Prim_DrawLoadingSprt(void)
             break;
     }
 
-    addPrim(Gpu_CurrentOt - 0x10, p);
+    addPrim(gGpuCurrentOt - 0x10, p);
 
     dr             = (DR_TPAGE*)Gpu_PrimCursor;
     Gpu_PrimCursor = dr + 1;
     setDrawTPage(dr, 0, 0, 0xF);
-    addPrim(Gpu_CurrentOt - 0x10, dr);
+    addPrim(gGpuCurrentOt - 0x10, dr);
 }
 
 void Snd_ApplyVolumeTable(s32 arg0)

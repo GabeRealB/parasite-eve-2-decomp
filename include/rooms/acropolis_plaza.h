@@ -145,7 +145,7 @@ STATIC_ASSERT_SIZEOF(AcropolisPlazaWork, 0x28);
 /// allocates with `Mem_Malloc(8, 0)` and parks in `Task::work` -- that slot is
 /// not a `TaskIdMap` here. All three channels start at 0 and step by
 /// `Task::spawnArg1` every frame, but the semi-transparent full-screen `TILE`
-/// the task links into `Gpu_CurrentOt[-16]` takes its blue from `r`, so `b` is
+/// the task links into `gGpuCurrentOt[-16]` takes its blue from `r`, so `b` is
 /// only ever stepped and never read. The task kills itself (and blanks the
 /// display) once `r` reaches 0x100. The fade-in counterpart at 0x8017DA58 is
 /// the shared `RoomsShared8017da58` body under `src/rooms/lib/`, which repeats

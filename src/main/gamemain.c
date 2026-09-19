@@ -394,8 +394,8 @@ void GameMain_Loop(void)
                 s32 f10;
                 half = D_8005EC68;
                 f10  = nv->field_10;
-                __asm__ volatile("lui %0, %%hi(Gpu_CurrentOt)" : "=r"(d710r));
-                __asm__ volatile("sw %0, %%lo(Gpu_CurrentOt)(%1)" ::"r"(ot_local), "r"(d710r)
+                __asm__ volatile("lui %0, %%hi(gGpuCurrentOt)" : "=r"(d710r));
+                __asm__ volatile("sw %0, %%lo(gGpuCurrentOt)(%1)" ::"r"(ot_local), "r"(d710r)
                                  : "memory");
                 nv->field_10 = f10 + (half >> 1);
                 ClearOTagR(ot_local, n);
@@ -405,11 +405,11 @@ void GameMain_Loop(void)
                 s32              endp;
                 register u_long* pr asm("v0");
                 __asm__ volatile("lui %0, 0xff" : "=r"(endp));
-                __asm__ volatile("lw %0, %%lo(Gpu_CurrentOt)(%1)" : "=r"(pr) : "r"(d710));
+                __asm__ volatile("lw %0, %%lo(gGpuCurrentOt)(%1)" : "=r"(pr) : "r"(d710));
                 __asm__ volatile("ori %0, %0, 0xffff" : "+r"(endp));
                 *pr = (u_long)endp;
                 pr += 0x20;
-                __asm__ volatile("sw %0, %%lo(Gpu_CurrentOt)(%1)" ::"r"(pr), "r"(d710)
+                __asm__ volatile("sw %0, %%lo(gGpuCurrentOt)(%1)" ::"r"(pr), "r"(d710)
                                  : "memory");
             }
 

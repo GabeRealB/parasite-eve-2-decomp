@@ -141,7 +141,7 @@ void Actor00300_Fn00078(GsCOORDINATE2* coord, s16 size)
         prim->y2 = bottom;
         addPrim(
             (u_long*)((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
-                      (s32)Gpu_CurrentOt),
+                      (s32)gGpuCurrentOt),
             prim);
         prim                 = (POLY_FT4*)Gpu_PrimCursor;
         Gpu_PrimCursor       = (DR_TPAGE*)(prim + 1);
@@ -168,7 +168,7 @@ void Actor00300_Fn00078(GsCOORDINATE2* coord, s16 size)
         prim->y2    = outerBottom;
         addPrim(
             (u_long*)((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
-                      (s32)Gpu_CurrentOt),
+                      (s32)gGpuCurrentOt),
             prim);
         if (Gp_State1C->field_6 != 0) {
             if (Gp_TraceGroundCoord(coord, &ground) == 1) {
@@ -268,7 +268,7 @@ void Actor00300_Fn005D0(GsCOORDINATE2* arg0, s32 arg1)
             prim->x3 = *(u16*)&sc->sxy3.vx;
             prim->y3 = *(u16*)&sc->sxy3.vy;
             addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)Gpu_CurrentOt),
+                              (s32)gGpuCurrentOt),
                     prim);
         }
     }

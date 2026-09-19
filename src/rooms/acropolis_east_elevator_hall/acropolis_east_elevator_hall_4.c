@@ -49,7 +49,7 @@ void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
     gte_stszotz(&block->otz);
     if (((AeehMoteScratch*)(head - 0xC))->otz >= 0x11) {
         setRGB0(prim, 0x80, 0x80, 0x80);
-        addPrim((u_long*)(((((u32)((AeehMoteScratch*)(head - 0xC))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)((AeehMoteScratch*)(head - 0xC))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, ((AeehMoteScratch*)(head - 0xC))->otz);
     }

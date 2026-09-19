@@ -94,7 +94,7 @@ void Room_Draw39(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
                                  << gDisplayState.otDepthShift) >>
                                 2) &
                                0xFFC) +
-                              (s32)Gpu_CurrentOt),
+                              (s32)gGpuCurrentOt),
                     prim);
         }
     }

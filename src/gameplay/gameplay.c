@@ -6205,8 +6205,8 @@ s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
     ((volatile DR_TPAGE*)dr)->code[0] = _get_mode(0, 1, 0x3E);
     {
         s32 order = -2;
-        __asm__("" : "+r"(order) : "m"(Gpu_CurrentOt));
-        addPrim(Gpu_CurrentOt + order, dr);
+        __asm__("" : "+r"(order) : "m"(gGpuCurrentOt));
+        addPrim(gGpuCurrentOt + order, dr);
     }
     return changed;
 }
@@ -6235,7 +6235,7 @@ void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
             setlen(tile, 3);
             *(u32*)&tile->r0 = 0xFFC000;
             setcode(tile, 0x60);
-            addPrim(Gpu_CurrentOt - 2, tile);
+            addPrim(gGpuCurrentOt - 2, tile);
         }
 
         if (n < 0xB) {
@@ -6251,7 +6251,7 @@ void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
         sp->clut       = 0x3C0B;
         setlen(sp, 3);
         setcode(sp, 0x77);
-        addPrim(Gpu_CurrentOt - 2, sp);
+        addPrim(gGpuCurrentOt - 2, sp);
 
         sp2            = (SPRT_16*)Gpu_PrimCursor;
         Gpu_PrimCursor = (DR_TPAGE*)(sp2 + 1);
@@ -6262,7 +6262,7 @@ void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
         sp2->clut      = 0x3C0B;
         setlen(sp2, 3);
         setcode(sp2, 0x77);
-        addPrim(Gpu_CurrentOt - 2, sp2);
+        addPrim(gGpuCurrentOt - 2, sp2);
 
         poly           = (POLY_FT4*)Gpu_PrimCursor;
         Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
@@ -6284,7 +6284,7 @@ void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
         poly->x1 = poly->x3 = (s16)(poly->x0 - 0xA) + n;
         poly->y1            = poly->y0;
         poly->y2 = poly->y3 = poly->y0 + 8;
-        addPrim(Gpu_CurrentOt - 2, poly);
+        addPrim(gGpuCurrentOt - 2, poly);
 
         cat           = Gp_StateC08.field_5;
         order         = -3;
@@ -6297,7 +6297,7 @@ void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
         dr             = Gpu_PrimCursor;
         Gpu_PrimCursor = dr + 1;
         setDrawTPage(dr, 0, 1, 0x1E);
-        addPrim(Gpu_CurrentOt - 2, dr);
+        addPrim(gGpuCurrentOt - 2, dr);
     }
 }
 
@@ -6698,7 +6698,7 @@ void Gp_HudTask(GpIdMapC* arg0)
         poly->u3       = 0x80;
         setlen(poly, 9);
         setcode(poly, 0x2D);
-        addPrim(Gpu_CurrentOt - 5, poly);
+        addPrim(gGpuCurrentOt - 5, poly);
 
         poly           = (POLY_FT4*)Gpu_PrimCursor;
         Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
@@ -6725,7 +6725,7 @@ void Gp_HudTask(GpIdMapC* arg0)
         poly->u3       = 0x80;
         setlen(poly, 9);
         setcode(poly, 0x2F);
-        addPrim(Gpu_CurrentOt - 5, poly);
+        addPrim(gGpuCurrentOt - 5, poly);
     }
 
     b             = arg0->field_14;
@@ -7349,7 +7349,7 @@ static __inline__ void Gp_LinkRingSeg(GpCircleScratch* sc)
     *(u32*)&prim->x1 = *(u32*)&sc->sxy;
     setlen(prim, 3);
     setcode(prim, 0x40);
-    addPrim((u_long*)(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+    addPrim((u_long*)(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
             prim);
 }
 
@@ -7809,7 +7809,7 @@ void func_800A57B0(GpIdMapC* arg0)
                 *(u32*)&tile->r0 = 0x1741F;
                 setcode(tile, 0x60);
                 tile->w = w1;
-                addPrim(Gpu_CurrentOt - 2, tile);
+                addPrim(gGpuCurrentOt - 2, tile);
             }
             if (w2 - w1 > 0) {
                 tile           = (TILE*)Gpu_PrimCursor;
@@ -7824,7 +7824,7 @@ void func_800A57B0(GpIdMapC* arg0)
                 setlen(tile, 3);
                 setcode(tile, 0x60);
                 tile->w = w2 - w1;
-                addPrim(Gpu_CurrentOt - 2, tile);
+                addPrim(gGpuCurrentOt - 2, tile);
             }
         }
     }
@@ -7858,7 +7858,7 @@ void func_800A57B0(GpIdMapC* arg0)
         *(u32*)&tile->r0 = 0x1741F;
         setcode(tile, 0x60);
         tile->w = w1;
-        addPrim(Gpu_CurrentOt - 2, tile);
+        addPrim(gGpuCurrentOt - 2, tile);
     }
     if (w2 - w1 > 0) {
         tile           = (TILE*)Gpu_PrimCursor;
@@ -7873,7 +7873,7 @@ void func_800A57B0(GpIdMapC* arg0)
         setlen(tile, 3);
         setcode(tile, 0x60);
         tile->w = w2 - w1;
-        addPrim(Gpu_CurrentOt - 2, tile);
+        addPrim(gGpuCurrentOt - 2, tile);
     }
 
     {
@@ -7892,7 +7892,7 @@ void func_800A57B0(GpIdMapC* arg0)
         sp1->clut      = clut;
         setlen(sp1, 3);
         setcode(sp1, 0x75);
-        addPrim(Gpu_CurrentOt - 2, sp1);
+        addPrim(gGpuCurrentOt - 2, sp1);
 
         sp1            = (SPRT*)Gpu_PrimCursor;
         Gpu_PrimCursor = (DR_TPAGE*)(sp1 + 1);
@@ -7903,7 +7903,7 @@ void func_800A57B0(GpIdMapC* arg0)
         sp1->clut      = clut;
         setlen(sp1, 3);
         setcode(sp1, 0x75);
-        addPrim(Gpu_CurrentOt - 2, sp1);
+        addPrim(gGpuCurrentOt - 2, sp1);
 
         poly1          = (POLY_FT4*)Gpu_PrimCursor;
         Gpu_PrimCursor = (DR_TPAGE*)(poly1 + 1);
@@ -7927,7 +7927,7 @@ void func_800A57B0(GpIdMapC* arg0)
         poly1->tpage   = 0x3E;
         setlen(poly1, 9);
         setcode(poly1, 0x2D);
-        addPrim(Gpu_CurrentOt - 2, poly1);
+        addPrim(gGpuCurrentOt - 2, poly1);
 
         sp3            = (SPRT*)Gpu_PrimCursor;
         sp3->x0        = left;
@@ -7939,7 +7939,7 @@ void func_800A57B0(GpIdMapC* arg0)
         sp3->x0       += 0x2B;
         setlen(sp3, 3);
         setcode(sp3, 0x75);
-        addPrim(Gpu_CurrentOt - 2, sp3);
+        addPrim(gGpuCurrentOt - 2, sp3);
 
         sp3            = (SPRT*)Gpu_PrimCursor;
         sp3->x0        = right;
@@ -7951,7 +7951,7 @@ void func_800A57B0(GpIdMapC* arg0)
         sp3->x0  += 0x2B;
         sp3->y0   = yb;
         sp3->clut = clut;
-        addPrim(Gpu_CurrentOt - 2, sp3);
+        addPrim(gGpuCurrentOt - 2, sp3);
 
         poly2          = (POLY_FT4*)Gpu_PrimCursor;
         Gpu_PrimCursor = (DR_TPAGE*)(poly2 + 1);
@@ -7975,14 +7975,14 @@ void func_800A57B0(GpIdMapC* arg0)
         poly2->tpage   = 0x3E;
         setlen(poly2, 9);
         setcode(poly2, 0x2D);
-        addPrim(Gpu_CurrentOt - 2, poly2);
+        addPrim(gGpuCurrentOt - 2, poly2);
     }
 
     tp             = Gpu_PrimCursor;
     Gpu_PrimCursor = tp + 1;
     setlen(tp, 1);
     tp->code[0] = 0xE100023E;
-    addPrim(Gpu_CurrentOt - 2, tp);
+    addPrim(gGpuCurrentOt - 2, tp);
 
     loc.rect.x = x;
     loc.rect.y = y;
@@ -8013,7 +8013,7 @@ void func_800A57B0(GpIdMapC* arg0)
                 sp5->clut      = 0x3C08;
                 setlen(sp5, 4);
                 setcode(sp5, 0x65);
-                addPrim(Gpu_CurrentOt - 2, sp5);
+                addPrim(gGpuCurrentOt - 2, sp5);
             }
         }
         Ui_InsertDrawTPage(-2, 0);
@@ -8064,7 +8064,7 @@ after_uv:
     p->clut = 0x3C0D;
     setlen(p, 3);
     setcode(p, 0x77);
-    addPrim(Gpu_CurrentOt + otIdx - 2, p);
+    addPrim(gGpuCurrentOt + otIdx - 2, p);
 }
 
 void Gp_DrawHudSprites(GpIdMapC* arg0)
@@ -8159,12 +8159,12 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     Gpu_PrimCursor = tp + 1;
     setlen(tp, 1);
     tp->code[0] = 0xE100023E;
-    addPrim(Gpu_CurrentOt - 2, tp);
+    addPrim(gGpuCurrentOt - 2, tp);
     tp             = Gpu_PrimCursor;
     Gpu_PrimCursor = tp + 1;
     setlen(tp, 1);
     tp->code[0] = 0xE100023E;
-    addPrim(Gpu_CurrentOt - 3, tp);
+    addPrim(gGpuCurrentOt - 3, tp);
     if (mode == 1) {
         sp             = (SPRT*)Gpu_PrimCursor;
         Gpu_PrimCursor = (DR_TPAGE*)(sp + 1);
@@ -8177,7 +8177,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
         sp->clut       = 0x3C0C;
         setlen(sp, 4);
         setcode(sp, 0x65);
-        addPrim(Gpu_CurrentOt - 2, sp);
+        addPrim(gGpuCurrentOt - 2, sp);
     }
     poly             = (POLY_GT4*)Gpu_PrimCursor;
     Gpu_PrimCursor   = (DR_TPAGE*)(poly + 1);
@@ -8193,7 +8193,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     setPolyGT4(poly);
     poly->x0 = poly->x2 = x;
     poly->y0 = poly->y1 = y;
-    addPrim(Gpu_CurrentOt - 2, poly);
+    addPrim(gGpuCurrentOt - 2, poly);
     if (arg0->field_16 != -1) {
         sp2            = (SPRT*)Gpu_PrimCursor;
         Gpu_PrimCursor = (DR_TPAGE*)(sp2 + 1);
@@ -8214,7 +8214,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
         sp2->clut = 0x3C82;
         setlen(sp2, 4);
         setcode(sp2, 0x67);
-        addPrim(Gpu_CurrentOt - 3, sp2);
+        addPrim(gGpuCurrentOt - 3, sp2);
         Ui_InsertDrawTPage(-3, 1);
         n = sy;
         if (n > 0x1300) {
@@ -8342,7 +8342,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
             }
             setlen(tile, 3);
             setcode(tile, 0x60);
-            addPrim(Gpu_CurrentOt - 2, tile);
+            addPrim(gGpuCurrentOt - 2, tile);
         }
 
         yb   = y + 0xB;
@@ -8357,7 +8357,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         sp->clut       = clut;
         setlen(sp, 3);
         setcode(sp, 0x75);
-        addPrim(Gpu_CurrentOt - 2, sp);
+        addPrim(gGpuCurrentOt - 2, sp);
 
         sp             = (SPRT*)Gpu_PrimCursor;
         Gpu_PrimCursor = (DR_TPAGE*)(sp + 1);
@@ -8369,7 +8369,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         sp->v0         = 0x68;
         setlen(sp, 3);
         setcode(sp, 0x75);
-        addPrim(Gpu_CurrentOt - 2, sp);
+        addPrim(gGpuCurrentOt - 2, sp);
 
         poly           = (POLY_FT4*)Gpu_PrimCursor;
         Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
@@ -8393,7 +8393,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         poly->u3   = 0xA8;
         poly->clut = clut;
         setcode(poly, 0x2D);
-        addPrim(Gpu_CurrentOt - 2, poly);
+        addPrim(gGpuCurrentOt - 2, poly);
     } else {
         s.bar.req.x          = x + 0x33;
         s.bar.req.y          = y + 0xA;

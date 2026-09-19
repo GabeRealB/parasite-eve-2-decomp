@@ -132,13 +132,13 @@ void func_actor_461800_80132048(Task* task)
     tile->r0 = c;
     tile->g0 = c;
     tile->b0 = c;
-    addPrim(Gpu_CurrentOt + 5, tile);
+    addPrim(gGpuCurrentOt + 5, tile);
 
     dr             = Gpu_PrimCursor;
     Gpu_PrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE1000240;
-    addPrim(Gpu_CurrentOt + 5, dr);
+    addPrim(gGpuCurrentOt + 5, dr);
 }
 
 void func_actor_461800_801321DC(s32 arg0)

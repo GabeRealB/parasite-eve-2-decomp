@@ -522,13 +522,13 @@ void func_hypervelocity_8011DF34(GsCOORDINATE2* coord, s16 age, s16 spin, s32 si
             setUV4(prim, u0, 0x60, u0 + 0x27, 0x60, u0, 0x87, u0 + 0x27, 0x87);
             setXY4(prim, sc->sxy0.vx, sc->sxy0.vy, sc->sxy1.vx, sc->sxy1.vy, sc->sxy2.vx, sc->sxy2.vy, sc->sxy3.vx,
                    sc->sxy3.vy);
-            addPrim((u_long*)(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+            addPrim((u_long*)(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
         }
     }
     SCRATCH_SP += sizeof(HyperTrailScratch);
 }
 
-/// Links the billboarded charge quad into `Gpu_CurrentOt`, dropped entirely if
+/// Links the billboarded charge quad into `gGpuCurrentOt`, dropped entirely if
 /// the coordinate's origin fails its `RTPS` `FLAG` check. `coord` supplies the
 /// world-space centre through `workm.t[]`, `age` picks between the two 0x38-wide
 /// animation columns of the flare texture, `spin` is the half-extent in world
@@ -591,7 +591,7 @@ void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 an
         prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
         prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
         prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
     *scratch = (u8*)*scratch + sizeof(HyperQuadScratch);
 }
@@ -687,7 +687,7 @@ void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin)
         prim->y2    = sc->sxy2.vy;
         prim->x3    = sc->sxy3.vx;
         prim->y3    = sc->sxy3.vy;
-        addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+        addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(HyperGroundScratch);
 }
@@ -791,7 +791,7 @@ void func_hypervelocity_8011EC1C(GsCOORDINATE2* coord, s16 age, s32 radius, u8* 
             prim->v3    = 0x87;
             setXY4(prim, sc->sxy0.vx, sc->sxy0.vy, sc->sxy1.vx, sc->sxy1.vy, sc->sxy2.vx, sc->sxy2.vy, sc->sxy3.vx,
                    sc->sxy3.vy);
-            addPrim((u_long*)(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+            addPrim((u_long*)(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
         }
         i++;
     } while (i < 2);

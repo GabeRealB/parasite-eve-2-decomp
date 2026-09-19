@@ -1162,7 +1162,7 @@ void func_actor_107600_80133FA8(GsCOORDINATE2* coord, SVECTOR* pos)
     p->y2 = s->sxy[2] >> 16;
     p->x3 = s->sxy[3];
     p->y3 = s->sxy[3] >> 16;
-    addPrim(&Gpu_CurrentOt[s->otz >> 4], p);
+    addPrim(&gGpuCurrentOt[s->otz >> 4], p);
     *(s32*)G_SCRATCH_HEAD += sizeof(Actor107600QuadScratch);
 }
 
@@ -1221,7 +1221,7 @@ void func_actor_107600_80134248(GsCOORDINATE2* coord, SVECTOR* pos)
     p->y2 = s->sxy[2] >> 16;
     p->x3 = s->sxy[3];
     p->y3 = s->sxy[3] >> 16;
-    addPrim(&Gpu_CurrentOt[s->otz >> 4], p);
+    addPrim(&gGpuCurrentOt[s->otz >> 4], p);
     *(s32*)G_SCRATCH_HEAD += sizeof(Actor107600QuadScratch);
 }
 

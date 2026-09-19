@@ -281,7 +281,7 @@ void Actor00400_Fn005DC(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, s32 arg3)
         prim->y1 = *(u16*)&blk->sy - *(u16*)&blk->dy;
         prim->y2 = *(u16*)&blk->sy + *(u16*)&blk->dy;
         addPrim((u_long*)(((((u32)((Actor100400SparkScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)Gpu_CurrentOt),
+                          (s32)gGpuCurrentOt),
                 prim);
     }
     *scratch = (u8*)*scratch + sizeof(Actor100400SparkScratch);
@@ -1445,7 +1445,7 @@ void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SV
         poly->tpage = 0x48;
         poly->clut  = 0x4283;
         setRGB0(poly, shade >> 1, shade, shade);
-        addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), poly);
+        addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
     }
     *(u8**)G_SCRATCH_HEAD += sizeof(Actor100400TextQuadScratch);
 }

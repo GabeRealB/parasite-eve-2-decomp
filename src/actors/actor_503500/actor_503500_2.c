@@ -296,11 +296,11 @@ void func_actor_503500_80132990(Task* task)
     tile->w  = 320;
     tile->h  = 240;
     setRGB0(tile, r, g, b);
-    addPrim(Gpu_CurrentOt + 3, tile);
+    addPrim(gGpuCurrentOt + 3, tile);
     dr             = Gpu_PrimCursor;
     Gpu_PrimCursor = dr + 1;
     setDrawTPage(dr, 1, 0, getTPage(0, 2, 320, 0));
-    addPrim(Gpu_CurrentOt + 3, dr);
+    addPrim(gGpuCurrentOt + 3, dr);
 }
 
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_2", D_actor_503500_80131E44);

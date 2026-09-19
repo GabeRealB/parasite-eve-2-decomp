@@ -97,7 +97,7 @@ void RoomsShared80181d28(Task* task)
         prim->x1 = prim->x3 = blk->sxy.vx + blk->half;
         prim->y0 = prim->y1 = blk->sxy.vy - blk->half;
         prim->y2 = prim->y3 = blk->sxy.vy + blk->half;
-        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;

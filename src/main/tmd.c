@@ -552,7 +552,7 @@ void Tmd_SetupDraw(TmdObject* obj)
     obj->bufferIndex ^= 1;
     ws->field_8       = (s32)obj->source->verts;
     COMPILER_BARRIER();
-    ot           = Gpu_CurrentOt;
+    ot           = gGpuCurrentOt;
     p            = obj->source;
     field18      = (s32)p->normals;
     ws->field_14 = ot;

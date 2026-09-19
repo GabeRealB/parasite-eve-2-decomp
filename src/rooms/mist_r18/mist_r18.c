@@ -223,7 +223,7 @@ void func_mist_r18_8017DBB8(s32 shade, s32 arg1)
     setWH(sprt, 0xCF, 0x23);
     setRGB0(sprt, arg1, arg1, arg1);
     setUV0(sprt, 0, 0);
-    addPrim(Gpu_CurrentOt + 4, sprt);
+    addPrim(gGpuCurrentOt + 4, sprt);
 
     x              = -0x22;
     y              = 0x36;
@@ -240,12 +240,12 @@ void func_mist_r18_8017DBB8(s32 shade, s32 arg1)
     setUV0(sprt, 0, 0x24);
     sprt->clut = 0x43C1;
     setWH(sprt, 0xB7, 0x23);
-    addPrim(Gpu_CurrentOt + 4, sprt);
+    addPrim(gGpuCurrentOt + 4, sprt);
 
     tp             = Gpu_PrimCursor;
     Gpu_PrimCursor = tp + 1;
     setDrawTPage(tp, 1, 0, 0x2B);
-    addPrim(Gpu_CurrentOt + 4, tp);
+    addPrim(gGpuCurrentOt + 4, tp);
 }
 
 /// Blit the room's backdrop out of the off-screen VRAM staging area into the
@@ -271,7 +271,7 @@ void func_mist_r18_8017DD7C(Task* task)
     stp            = (DR_STP*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(stp + 1);
     SetDrawStp(stp, 0);
-    addPrim(Gpu_CurrentOt + 8, stp);
+    addPrim(gGpuCurrentOt + 8, stp);
 
     mv             = (DR_MOVE*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(mv + 1);
@@ -280,7 +280,7 @@ void func_mist_r18_8017DD7C(Task* task)
     rect.w         = 0xC0;
     rect.h         = 0xF0;
     SetDrawMove(mv, &rect, 0x340, 0);
-    addPrim(Gpu_CurrentOt + 8, mv);
+    addPrim(gGpuCurrentOt + 8, mv);
 
     mv             = (DR_MOVE*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(mv + 1);
@@ -289,12 +289,12 @@ void func_mist_r18_8017DD7C(Task* task)
     rect.w         = 0x80;
     rect.h         = 0xF0;
     SetDrawMove(mv, &rect, 0x280, 0x100);
-    addPrim(Gpu_CurrentOt + 8, mv);
+    addPrim(gGpuCurrentOt + 8, mv);
 
     stp            = (DR_STP*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(stp + 1);
     SetDrawStp(stp, 1);
-    addPrim(Gpu_CurrentOt + 8, stp);
+    addPrim(gGpuCurrentOt + 8, stp);
 
     task->killCountdown = 0;
     task->state++;

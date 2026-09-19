@@ -1424,9 +1424,9 @@ void Actor02100_Fn02924(Actor02100* arg0, s32 arg1)
                 corner  += 1;
                 setaddr(quad,
                         getaddr((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                                (u32)Gpu_CurrentOt));
+                                (u32)gGpuCurrentOt));
                 quadSlot = (s32*)((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                                  (u32)Gpu_CurrentOt);
+                                  (u32)gGpuCurrentOt);
                 setaddr(quadSlot, quad);
             } while (corner < 2);
 
@@ -1448,16 +1448,16 @@ void Actor02100_Fn02924(Actor02100* arg0, s32 arg1)
                 line->b0 = (u8)Actor02100_D03D88[work->field_178].shorts[(arg1 * 3) + 4];
             }
             setaddr(line,
-                    getaddr((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt));
+                    getaddr((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt));
             mode           = Gpu_PrimCursor;
-            lineSlot       = (s32*)((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt);
+            lineSlot       = (s32*)((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt);
             Gpu_PrimCursor = (DR_TPAGE*)((u8*)mode + 8);
             setaddr(lineSlot, line);
             setlen(mode, 1);
             mode->code[0] = 0xE1000620;
             setaddr(mode,
-                    getaddr((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt));
-            modeSlot = (s32*)((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt);
+                    getaddr((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt));
+            modeSlot = (s32*)((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt);
             setaddr(modeSlot, mode);
         }
         segment += 1;

@@ -300,12 +300,12 @@ void func_acropolis_square_80181DD0(Task* task)
             p->h = 0xF0;
         }
         p->clut = GetClut(0, 0xFF);
-        addPrim(&Gpu_CurrentOt[4], p);
+        addPrim(&gGpuCurrentOt[4], p);
 
         dr             = Gpu_PrimCursor;
         Gpu_PrimCursor = dr + 1;
         setDrawTPage(dr, 0, 1, GetTPage(1, 0, tpageX, 0x100));
-        addPrim(&Gpu_CurrentOt[4], dr);
+        addPrim(&gGpuCurrentOt[4], dr);
 
         x += 0x100;
     }

@@ -108,10 +108,18 @@ extern DisplayState gDisplayState;
 extern const u16 Display_WidthTable[];
 extern const u16 Display_HeightTable[];
 
-extern u_long       Gpu_OtTags[2 * GPU_OT_ENTRIES];
-extern GpuOtBuf     Gpu_OtBuffers[2];
-extern GsOT         Gpu_OrderingTables[2];
-extern u_long*      Gpu_CurrentOt;
+extern u_long   Gpu_OtTags[2 * GPU_OT_ENTRIES];
+extern GpuOtBuf Gpu_OtBuffers[2];
+extern GsOT     Gpu_OrderingTables[2];
+
+/// The ordering table the frame being built is linked into.
+///
+/// Drawing is dispatched as tasks that take no ordering table of their own, so
+/// the code building a frame publishes the table it wants filled here and puts
+/// the previous value back afterwards. Primitives are linked at an index from
+/// this base, which is not always the table's own start.
+extern u_long* gGpuCurrentOt;
+
 extern u8*          Gpu_SysPrimCursor;         // primitive buffer cursor
 extern DR_TPAGE*    Gpu_PrimCursor;            // primitive buffer cursor
 extern u8           Gpu_PrimBufStatic[0x6000]; // 2 x 0x3000, base of Gpu_SysPrimCursor

@@ -41,6 +41,6 @@ void Room_Draw22(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5
         y                = y + arg4 - 1;
         prim->y3         = y;
         prim->y2         = y;
-        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, prim);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, prim);
     }
 }

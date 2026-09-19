@@ -38,7 +38,7 @@ extern s32 D_dryfield_water_tank_8018068C;
 /// State 0 allocates the ramp at `Task::work` and zeroes it; a failed
 /// allocation kills the task outright. State 1 runs every frame: it links a
 /// semi-transparent full-screen `TILE` (`-0xA0,-0x78`, `0x140x0xF0`) plus the
-/// `0xE1000240` `DR_TPAGE` into `Gpu_CurrentOt[-16]`, tinting the tile `r`/`g`/`r`,
+/// `0xE1000240` `DR_TPAGE` into `gGpuCurrentOt[-16]`, tinting the tile `r`/`g`/`r`,
 /// then steps all three channels by `Task::spawnArg1`. Once `r` saturates past
 /// 0xFF the screen is fully covered, so the task kills itself. The fade-up half
 /// of the same pair is the shared `RoomsShared8017da58`.
@@ -79,13 +79,13 @@ void func_dryfield_water_tank_8017E3C4(Task* arg0)
             tile->y0 = -0x78;
             tile->w  = 0x140;
             tile->h  = 0xF0;
-            addPrim(Gpu_CurrentOt - 16, tile);
+            addPrim(gGpuCurrentOt - 16, tile);
 
             dr             = Gpu_PrimCursor;
             Gpu_PrimCursor = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE1000240;
-            addPrim(Gpu_CurrentOt - 16, dr);
+            addPrim(gGpuCurrentOt - 16, dr);
 
             fade->r += (u16)arg0->spawnArg1;
             fade->g += (u16)arg0->spawnArg1;

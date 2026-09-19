@@ -46,5 +46,5 @@ void Room_Draw36(s32 x, s32 y, s32 variant)
     setlen(prim, 9);
     setcode(prim, 0x2D);
 
-    addPrim(Gpu_CurrentOt, prim);
+    addPrim(gGpuCurrentOt, prim);
 }

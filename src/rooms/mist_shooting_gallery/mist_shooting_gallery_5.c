@@ -202,7 +202,7 @@ void func_mist_shooting_gallery_80182294(GsCOORDINATE2* coord, s16 arg1, s16 arg
         prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
         prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
         prim->y2    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
@@ -275,7 +275,7 @@ void func_mist_shooting_gallery_801826C4(GsCOORDINATE2* coord, SVECTOR* arg1, s3
             prim->x2    = *(u16*)&block->sxy0.vx - *(u16*)&block->dx;
             prim->y1    = *(u16*)&block->sxy1.vy - *(u16*)&block->dy;
             prim->y2    = *(u16*)&block->sxy0.vy + *(u16*)&block->dy;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
     }
@@ -1311,13 +1311,13 @@ void func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2)
     p->v0 = 0;
     setcode(p, 0x65);
     p->x0 = arg0;
-    addPrim(Gpu_CurrentOt, p);
+    addPrim(gGpuCurrentOt, p);
 
     dr             = Gpu_PrimCursor;
     Gpu_PrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE1000215;
-    addPrim(Gpu_CurrentOt, dr);
+    addPrim(gGpuCurrentOt, dr);
 }
 
 void func_mist_shooting_gallery_801847D4(u8 arg0)
@@ -1336,13 +1336,13 @@ void func_mist_shooting_gallery_801847D4(u8 arg0)
     p->g0 = 0;
     p->b0 = 0;
     setcode(p, 0x62);
-    addPrim(Gpu_CurrentOt, p);
+    addPrim(gGpuCurrentOt, p);
 
     dr             = Gpu_PrimCursor;
     Gpu_PrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE1000235;
-    addPrim(Gpu_CurrentOt, dr);
+    addPrim(gGpuCurrentOt, dr);
 }
 
 void func_mist_shooting_gallery_801848B4(void)

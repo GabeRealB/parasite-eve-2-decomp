@@ -31,7 +31,7 @@ SndEvt_EnqueueType6 = 0x8005414C; // absolute:True
 Pad_MaskConfirm = 0x8005ED70; // absolute:True
 Pad_MaskCancel = 0x8005ED74; // absolute:True
 Pad_MaskMenu = 0x8005ED78; // absolute:True
-Gpu_CurrentOt = 0x800710A0; // absolute:True
+gGpuCurrentOt = 0x800710A0; // absolute:True
 Gpu_PrimCursor = 0x80071190; // absolute:True
 Mc_SaveData = 0x80072168; // absolute:True
 

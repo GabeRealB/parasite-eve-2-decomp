@@ -58,7 +58,7 @@ void func_dryfield_night_motel_balcony_8017F6C8(s32 arg0, s16 arg1, s16 arg2, s1
     prim->y3 = y + d;
     prim->y2 = y + d;
 
-    addPrim(&Gpu_CurrentOt[arg1], prim);
+    addPrim(&gGpuCurrentOt[arg1], prim);
 }
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_8017F84C);

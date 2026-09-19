@@ -359,7 +359,7 @@ void func_acropolis_bridge_80180320(Task* task)
             mv                          = D_acropolis_bridge_801917AC;
             D_acropolis_bridge_801917AC = mv + 1;
             SetDrawMove(mv, &rect, x, y + bufferY + 1);
-            addPrim(Gpu_CurrentOt + (depth >> 4), mv);
+            addPrim(gGpuCurrentOt + (depth >> 4), mv);
         }
         work->field_22++;
         if ((s16)work->field_22 <= (s16)work->field_24 && y < 0xEF) {
@@ -434,7 +434,7 @@ void func_acropolis_bridge_8018063C(Task* task)
             mv                          = D_acropolis_bridge_801917AC;
             D_acropolis_bridge_801917AC = mv + 1;
             SetDrawMove(mv, &rect, x, y + bufferY + 1);
-            addPrim(Gpu_CurrentOt + (depth >> 4), mv);
+            addPrim(gGpuCurrentOt + (depth >> 4), mv);
         }
         work->field_22++;
         if ((s16)work->field_22 <= (s16)work->field_24 && y < 0xEF) {
@@ -508,7 +508,7 @@ void func_acropolis_bridge_8018099C(Task* task)
             mv                          = D_acropolis_bridge_801917AC;
             D_acropolis_bridge_801917AC = mv + 1;
             SetDrawMove(mv, &rect, x, y + bufferY + 1);
-            addPrim(Gpu_CurrentOt + (depth >> 4), mv);
+            addPrim(gGpuCurrentOt + (depth >> 4), mv);
         }
         work->field_22++;
         if ((s16)work->field_22 <= (s16)work->field_24 && y < 0xEF) {
@@ -582,7 +582,7 @@ void func_acropolis_bridge_80180CC0(Task* task)
             mv                          = D_acropolis_bridge_801917AC;
             D_acropolis_bridge_801917AC = mv + 1;
             SetDrawMove(mv, &rect, x, y + bufferY + 1);
-            addPrim(Gpu_CurrentOt + (depth >> 4), mv);
+            addPrim(gGpuCurrentOt + (depth >> 4), mv);
         }
         work->field_22++;
         if ((s16)work->field_22 <= (s16)work->field_24 && y < 0xEF) {
@@ -646,7 +646,7 @@ void func_acropolis_bridge_80180FF0(Task* task)
             mv                          = D_acropolis_bridge_801917AC;
             D_acropolis_bridge_801917AC = mv + 1;
             SetDrawMove(mv, &rect, x, y + bufferY + 1);
-            addPrim(Gpu_CurrentOt + (depth >> 4), mv);
+            addPrim(gGpuCurrentOt + (depth >> 4), mv);
         }
         work->field_22++;
         if ((s16)work->field_22 <= (s16)work->field_24 && y < 0xEF) {
@@ -718,7 +718,7 @@ void func_acropolis_bridge_801812F4(Task* task)
         prim->x1 = prim->x3 = blk->sxy.vx + blk->dx;
         prim->y0 = prim->y1 = blk->sxy.vy - blk->dx;
         prim->y2 = prim->y3 = blk->sxy.vy + blk->dx;
-        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
 
         prim           = (POLY_FT4*)Gpu_PrimCursor;
@@ -755,7 +755,7 @@ void func_acropolis_bridge_801812F4(Task* task)
         prim->x2       = blk->sxy.vx - blk->dx;
         prim->y1       = blk->sxy.vy - blk->dy;
         prim->y2       = blk->sxy.vy + blk->dy;
-        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
@@ -834,7 +834,7 @@ void func_acropolis_bridge_801819C8(Task* task)
         col         = ((u32)Gp_LcgState >> 16) & 0xF;
         setRGB0(prim, col, col, col);
         setSemiTrans(prim, 1);
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AcropolisBridgeQuadScratch);

@@ -31,12 +31,12 @@ s32 Fade_StepIn(s32 arg0)
     p->y0 = -0x78;
     p->w  = w;
     p->h  = 0xF0;
-    addPrim(Gpu_CurrentOt - 0x10, p);
+    addPrim(gGpuCurrentOt - 0x10, p);
 
     dr                = (DR_TPAGE*)Gpu_SysPrimCursor;
     Gpu_SysPrimCursor = (u8*)(dr + 1);
     setDrawTPage(dr, 0, 1, 0x40);
-    addPrim(Gpu_CurrentOt - 0x10, dr);
+    addPrim(gGpuCurrentOt - 0x10, dr);
 
     cur  = *(s16*)&D_8006ACB4;
     next = D_8006ACB4;
@@ -79,12 +79,12 @@ void Fade_StartWhite(void)
     p->y0 = -0x78;
     p->w  = 0x140;
     p->h  = 0xF0;
-    addPrim(Gpu_CurrentOt - 0x10, p);
+    addPrim(gGpuCurrentOt - 0x10, p);
 
     dr                = (DR_TPAGE*)Gpu_SysPrimCursor;
     Gpu_SysPrimCursor = (u8*)(dr + 1);
     setDrawTPage(dr, 0, 1, 0x40);
-    addPrim(Gpu_CurrentOt - 0x10, dr);
+    addPrim(gGpuCurrentOt - 0x10, dr);
 }
 
 s32 Fade_StepOut(s32 arg0)
@@ -107,12 +107,12 @@ s32 Fade_StepOut(s32 arg0)
     p->y0 = -0x78;
     p->w  = 0x140;
     p->h  = 0xF0;
-    addPrim(Gpu_CurrentOt - 0x10, p);
+    addPrim(gGpuCurrentOt - 0x10, p);
 
     dr                = (DR_TPAGE*)Gpu_SysPrimCursor;
     Gpu_SysPrimCursor = (u8*)(dr + 1);
     setDrawTPage(dr, 0, 1, 0x40);
-    addPrim(Gpu_CurrentOt - 0x10, dr);
+    addPrim(gGpuCurrentOt - 0x10, dr);
 
     val        = D_8006ACB4 - arg0;
     D_8006ACB4 = val;

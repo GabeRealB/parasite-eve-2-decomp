@@ -1480,8 +1480,8 @@ void func_800B1EFC(Task* arg0)
         setlen(dr, 1);
         dr->code[0] = 0xE1000220;
     }
-    addPrim(Gpu_CurrentOt, p);
-    addPrim(Gpu_CurrentOt, dr);
+    addPrim(gGpuCurrentOt, p);
+    addPrim(gGpuCurrentOt, dr);
 }
 
 void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
@@ -1586,13 +1586,13 @@ void Gp_FadeWorkTask(Task* arg0)
     if (t->spawnArg1 != 0) {
         u_long* ot;
 
-        ot = Gpu_CurrentOt;
+        ot = gGpuCurrentOt;
         addPrim(&ot[t->spawnArg1], tile);
         addPrim(&ot[t->spawnArg1], dr);
     } else {
         u_long* ot;
 
-        ot = Gpu_CurrentOt;
+        ot = gGpuCurrentOt;
         if ((ot == (u_long*)Gpu_OrderingTables[0].org) || (ot == (u_long*)Gpu_OrderingTables[1].org)) {
             addPrim(ot, tile);
             addPrim(ot, dr);
@@ -2947,7 +2947,7 @@ void Gp_DrawFloorQuad(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2)
         prim->u1         = f7;
         prim->u3         = f7;
         prim->clut       = 0x4283;
-        addPrim(&Gpu_CurrentOt[block->maxotz >> 4], prim);
+        addPrim(&gGpuCurrentOt[block->maxotz >> 4], prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x40;
 }
@@ -3002,26 +3002,26 @@ void func_800B51F4(Task* task)
             tile->b0 = color;
             tile->g0 = color;
             tile->r0 = color;
-            addPrim(&Gpu_CurrentOt[1], tile);
+            addPrim(&gGpuCurrentOt[1], tile);
 
             fadeDr         = (DR_TPAGE*)Gpu_PrimCursor;
             Gpu_PrimCursor = fadeDr + 1;
             setlen(fadeDr, 1);
             fadeDr->code[0] = 0xE1000240;
-            addPrim(&Gpu_CurrentOt[1], fadeDr);
+            addPrim(&gGpuCurrentOt[1], fadeDr);
         }
     }
 
     stp            = (DR_STP*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(stp + 1);
     SetDrawStp(stp, 0);
-    addPrim(&Gpu_CurrentOt[0], stp);
+    addPrim(&gGpuCurrentOt[0], stp);
 
     dr             = (DR_TPAGE*)Gpu_PrimCursor;
     Gpu_PrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE1000600;
-    addPrim(&Gpu_CurrentOt[0], dr);
+    addPrim(&gGpuCurrentOt[0], dr);
 
     for (i = 0; i < count; i++) {
         p0             = (POLY_FT4*)Gpu_PrimCursor;
@@ -3065,20 +3065,20 @@ void func_800B51F4(Task* task)
             p1->v0 = p1->v1 = 0x10;
             p1->v2 = p1->v3 = 0xFF;
         }
-        addPrim(&Gpu_CurrentOt[0], p0);
-        addPrim(&Gpu_CurrentOt[0], p1);
+        addPrim(&gGpuCurrentOt[0], p0);
+        addPrim(&gGpuCurrentOt[0], p1);
     }
 
     dr             = (DR_TPAGE*)Gpu_PrimCursor;
     Gpu_PrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE1000400;
-    addPrim(&Gpu_CurrentOt[0], dr);
+    addPrim(&gGpuCurrentOt[0], dr);
 
     stp            = (DR_STP*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(stp + 1);
     SetDrawStp(stp, 1);
-    addPrim(&Gpu_CurrentOt[0x3FF], stp);
+    addPrim(&gGpuCurrentOt[0x3FF], stp);
 }
 
 void Gp_ApplyAreaTmdFlags(void)

@@ -119,12 +119,12 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
             p->w  = 0x140;
             p->h  = 0xF0;
 
-            addPrim(Gpu_CurrentOt, p);
+            addPrim(gGpuCurrentOt, p);
             dr             = Gpu_PrimCursor;
             Gpu_PrimCursor = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE1000240;
-            addPrim(Gpu_CurrentOt, dr);
+            addPrim(gGpuCurrentOt, dr);
 
             arg0->killCountdown += 8;
             if (arg0->killCountdown >= 0x11) {
@@ -165,12 +165,12 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
             p->w  = 0x140;
             p->h  = 0xF0;
 
-            addPrim(Gpu_CurrentOt, p);
+            addPrim(gGpuCurrentOt, p);
             dr             = Gpu_PrimCursor;
             Gpu_PrimCursor = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE1000240;
-            addPrim(Gpu_CurrentOt, dr);
+            addPrim(gGpuCurrentOt, dr);
 
             arg0->killCountdown += 8;
             if (arg0->killCountdown < 0x100) {

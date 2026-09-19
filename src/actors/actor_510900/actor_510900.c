@@ -571,7 +571,7 @@ void func_actor_510900_801332EC(Task* arg0)
             x           = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
             prim->y3    = x;
             prim->y2    = x;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
@@ -683,7 +683,7 @@ void func_actor_510900_8013371C(Task* arg0)
             x           = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
             prim->y3    = x;
             prim->y2    = x;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
@@ -786,7 +786,7 @@ void func_actor_510900_80133C84(Task* arg0)
             x           = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
             prim->y3    = x;
             prim->y2    = x;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
@@ -941,7 +941,7 @@ void func_actor_510900_80134284(Task* arg0)
             prim->x1 = *(u16*)&block->sxy1.vx;
             prim->y1 = *(u16*)&block->sxy1.vy;
             addPrim((u_long*)(((((u32)((block->otz0 + block->otz1) >> 1) << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)Gpu_CurrentOt),
+                              (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz0 + block->otz1) >> 1);
         }
@@ -1165,7 +1165,7 @@ void func_actor_510900_80134C90(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg
         prim->x2  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
         prim->y1  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
         prim->y2  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
-        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
     *scratch = (u8*)*scratch + 0x1C;

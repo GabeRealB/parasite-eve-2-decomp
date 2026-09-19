@@ -162,7 +162,7 @@ void func_pepper_spray_8012F21C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
         prim->y1    = *(u16*)&blk->sy - *(u16*)&blk->dz;
         prim->y2    = *(u16*)&blk->sy + *(u16*)&blk->dz;
         addPrim((u_long*)(((((u32)((PepperSprayNozzleScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)Gpu_CurrentOt),
+                          (s32)gGpuCurrentOt),
                 prim);
     }
     *scratch = (u8*)*scratch + 0x1C;
@@ -264,7 +264,7 @@ void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
             setRGB2(prim, arg2 >> 1, arg2 >> 1, color);
             setRGB3(prim, 0, 0, 0);
             addPrim((u_long*)(((((u32)((PepperSprayScratch*)(head - 0x28))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)Gpu_CurrentOt),
+                              (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, ((PepperSprayScratch*)(head - 0x28))->otz);
         }

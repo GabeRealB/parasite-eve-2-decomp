@@ -134,8 +134,8 @@ void Text_DrawGlyphDualSprtA(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     p2->clut     = 0x7FFE;
     p->clut      = 0x7FFD;
 
-    addPrim(Gpu_CurrentOt + arg0->otIndex + 1, p2);
-    addPrim(Gpu_CurrentOt + arg0->otIndex, p);
+    addPrim(gGpuCurrentOt + arg0->otIndex + 1, p2);
+    addPrim(gGpuCurrentOt + arg0->otIndex, p);
 }
 
 void Text_DrawGlyphDualSprt(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
@@ -165,8 +165,8 @@ void Text_DrawGlyphDualSprt(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     p2->clut     = 0x7FFF;
     p->clut      = 0x7FFD;
 
-    addPrim(Gpu_CurrentOt + arg0->otIndex + 1, p2);
-    addPrim(Gpu_CurrentOt + arg0->otIndex, p);
+    addPrim(gGpuCurrentOt + arg0->otIndex + 1, p2);
+    addPrim(gGpuCurrentOt + arg0->otIndex, p);
 }
 
 void Text_DrawGlyphDualSprtTpage(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
@@ -197,19 +197,19 @@ void Text_DrawGlyphDualSprtTpage(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     p2->clut     = 0x7FFF;
     p->clut      = 0x7FFD;
 
-    addPrim(Gpu_CurrentOt + arg0->otIndex, p);
+    addPrim(gGpuCurrentOt + arg0->otIndex, p);
     dr             = Gpu_PrimCursor;
     Gpu_PrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE100023F;
-    addPrim(Gpu_CurrentOt + arg0->otIndex, dr);
+    addPrim(gGpuCurrentOt + arg0->otIndex, dr);
 
-    addPrim(Gpu_CurrentOt + arg0->otIndex, p2);
+    addPrim(gGpuCurrentOt + arg0->otIndex, p2);
     dr             = Gpu_PrimCursor;
     Gpu_PrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE100025F;
-    addPrim(Gpu_CurrentOt + arg0->otIndex, dr);
+    addPrim(gGpuCurrentOt + arg0->otIndex, dr);
 }
 
 void func_8002E53C(TextDrawReq* arg0, u8* arg1)
@@ -430,7 +430,7 @@ void func_8002E53C(TextDrawReq* arg0, u8* arg1)
         Gpu_PrimCursor = dr + 1;
         dr->code[0]    = 0xE100025F;
         setlen(dr, 1);
-        addPrim(Gpu_CurrentOt + ctx->otIndex + 1, dr);
+        addPrim(gGpuCurrentOt + ctx->otIndex + 1, dr);
     }
     if (ctx->field_E != 16) {
         tpage = 0xE1000000;
@@ -445,7 +445,7 @@ void func_8002E53C(TextDrawReq* arg0, u8* arg1)
         Gpu_PrimCursor = dr + 1;
         dr->code[0]    = tpage;
         setlen(dr, 1);
-        addPrim(Gpu_CurrentOt + ctx->otIndex, dr);
+        addPrim(gGpuCurrentOt + ctx->otIndex, dr);
     }
 }
 
@@ -1010,7 +1010,7 @@ void Text_DrawGlyphQueued(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     temp    = arg1->h;
     p->clut = 0x7FFD;
     p->h    = temp + 1;
-    addPrim(Gpu_CurrentOt + arg0->otIndex, p);
+    addPrim(gGpuCurrentOt + arg0->otIndex, p);
 }
 
 void Text_DrawGlyphOt(TextDrawReq* arg0, FontGlyph* arg1)
@@ -1030,7 +1030,7 @@ void Text_DrawGlyphOt(TextDrawReq* arg0, FontGlyph* arg1)
     temp    = arg1->h;
     p->clut = 0x7FFF;
     p->h    = temp + 1;
-    addPrim(Gpu_CurrentOt + arg0->otIndex, p);
+    addPrim(gGpuCurrentOt + arg0->otIndex, p);
 }
 
 void Text_UiTaskCallback(Task* arg0)

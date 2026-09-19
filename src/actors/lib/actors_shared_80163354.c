@@ -78,7 +78,7 @@ void ActorsShared80163354(Task* task, s16 firstJoint, s16 secondJoint, s16 width
             poly->tpage = 0x48;
             poly->clut  = 0x4283;
             setRGB0(poly, shade, shade, shade);
-            addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), poly);
+            addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
         }
         *(u8**)G_SCRATCH_HEAD += sizeof(ActorsShared80163354Scratch);
     }

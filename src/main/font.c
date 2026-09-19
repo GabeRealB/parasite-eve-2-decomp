@@ -364,7 +364,7 @@ void Prim_DrawSprt(PrimDrawParams* arg0, u32 arg1, s32 arg2)
     p->v0   = v;
     p->w    = arg0->w - 1;
     p->h    = arg0->h - 1;
-    AddPrim(Gpu_CurrentOt + 4, p);
+    AddPrim(gGpuCurrentOt + 4, p);
 }
 
 void Prim_DrawTPage(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -374,7 +374,7 @@ void Prim_DrawTPage(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     p                 = (DR_TPAGE*)Gpu_SysPrimCursor;
     Gpu_SysPrimCursor = (u8*)(p + 1);
     SetDrawTPage(p, 1, 0, GetTPage(0, (s16)arg0, (s16)arg1, (s16)arg2) & 0xFFFF);
-    AddPrim(Gpu_CurrentOt + arg3, p);
+    AddPrim(gGpuCurrentOt + arg3, p);
 }
 
 s32 Prim_DrawFadeTile(RECT* arg0, u8* arg1, s16* arg2)
@@ -426,5 +426,5 @@ void Prim_DrawTile(PrimDrawParams* arg0)
     p->y0 = arg0->y;
     p->w  = arg0->w - 1;
     p->h  = arg0->h - 1;
-    AddPrim(Gpu_CurrentOt + 5, p);
+    AddPrim(gGpuCurrentOt + 5, p);
 }

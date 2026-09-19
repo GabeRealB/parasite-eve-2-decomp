@@ -149,7 +149,7 @@ void func_acropolis_promenade_8017E394(Task* task)
             mv             = (DR_MOVE*)Gpu_PrimCursor;
             Gpu_PrimCursor = (DR_TPAGE*)(mv + 1);
             SetDrawMove(mv, &rect, x, y + bufferY + 1);
-            addPrim(Gpu_CurrentOt + (depth >> 4), mv);
+            addPrim(gGpuCurrentOt + (depth >> 4), mv);
         }
         work->field_22++;
         if ((s16)work->field_22 <= (s16)work->field_24 && onScreen) {
@@ -228,7 +228,7 @@ void func_acropolis_promenade_8017E634(Task* task)
         prim->x1 = prim->x3 = blk->sxy.vx + blk->dx;
         prim->y0 = prim->y1 = blk->sxy.vy - blk->dy;
         prim->y2 = prim->y3 = blk->sxy.vy + blk->dy;
-        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
 
         prim           = (POLY_FT4*)Gpu_PrimCursor;
@@ -265,7 +265,7 @@ void func_acropolis_promenade_8017E634(Task* task)
         prim->x2       = blk->sxy.vx - blk->dx;
         prim->y1       = blk->sxy.vy - blk->dy;
         prim->y2       = blk->sxy.vy + blk->dy;
-        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
@@ -356,7 +356,7 @@ void func_acropolis_promenade_8017ED44(Task* task)
         prim->g0    = grey;
         prim->b0    = grey;
         prim->code |= 2;
-        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x24;

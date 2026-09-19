@@ -142,7 +142,7 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_gallery/neo_ark_submarine_gall
 /// Sweeps a 32-wedge red disc of radius `arg0` through the view matrix: each
 /// step projects the fan's centre and the two rim points 0x80 apart and, when
 /// the projection passes, queues one semi-transparent `POLY_G3` plus its
-/// drawing-mode packet (tpage 0x2A) into `Gpu_CurrentOt[(otz >> 4) + 0x18]`.
+/// drawing-mode packet (tpage 0x2A) into `gGpuCurrentOt[(otz >> 4) + 0x18]`.
 /// The disc sits at view-space height 0x14B4.
 s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1)
 {
@@ -190,11 +190,11 @@ s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1)
             *(s32*)&prim->x0 = sxy0;
             *(s32*)&prim->x1 = sxy1;
             *(s32*)&prim->x2 = sxy2;
-            addPrim(&Gpu_CurrentOt[(otz >> 4) + 0x18], prim);
+            addPrim(&gGpuCurrentOt[(otz >> 4) + 0x18], prim);
             dr             = (DR_MODE*)Gpu_PrimCursor;
             Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
             setDrawTPage(dr, 0, 0, 0x2A);
-            addPrim(&Gpu_CurrentOt[(otz >> 4) + 0x18], dr);
+            addPrim(&gGpuCurrentOt[(otz >> 4) + 0x18], dr);
         }
     }
 }

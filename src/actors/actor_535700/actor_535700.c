@@ -27,7 +27,7 @@ void func_actor_535700_80131E2C(Task* task)
         tile->y0 = -0x80;
         tile->w  = 0x140;
         tile->h  = 0x100;
-        addPrim(Gpu_CurrentOt + 0xA, tile);
+        addPrim(gGpuCurrentOt + 0xA, tile);
     } else {
         taskKill(task);
     }

@@ -84,7 +84,7 @@ void func_acropolis_plaza_8017D6D4(void)
 /// State 0 allocates the `AcropolisPlazaFadeWork` ramp at `Task::work` and
 /// zeroes it; a failed allocation kills the task outright. State 1 runs every
 /// frame: it links a semi-transparent full-screen `TILE` (`-0xA0,-0x78`,
-/// `0x140x0xF0`) plus the `0xE1000240` `DR_TPAGE` into `Gpu_CurrentOt[-16]`,
+/// `0x140x0xF0`) plus the `0xE1000240` `DR_TPAGE` into `gGpuCurrentOt[-16]`,
 /// tinting the tile `r`/`g`/`r`, then steps all three channels by
 /// `Task::spawnArg1`. Once `r` saturates past 0xFF the screen is fully covered,
 /// so the task blanks the display and kills itself.
@@ -125,13 +125,13 @@ void func_acropolis_plaza_8017D8AC(Task* arg0)
             tile->y0 = -0x78;
             tile->w  = 0x140;
             tile->h  = 0xF0;
-            addPrim(Gpu_CurrentOt - 16, tile);
+            addPrim(gGpuCurrentOt - 16, tile);
 
             dr             = Gpu_PrimCursor;
             Gpu_PrimCursor = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE1000240;
-            addPrim(Gpu_CurrentOt - 16, dr);
+            addPrim(gGpuCurrentOt - 16, dr);
 
             fade->r += (u16)arg0->spawnArg1;
             fade->g += (u16)arg0->spawnArg1;

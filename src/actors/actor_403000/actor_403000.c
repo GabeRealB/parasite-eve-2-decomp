@@ -201,11 +201,11 @@ void func_actor_403000_801327B0(GsCOORDINATE2* coord, SVECTOR* pos, s32 arg2)
             prim->y1 = y + ((rcos(i << 9) * radius) >> 12);
             prim->x2 = x + ((rsin(i * 0x200 + 0x200) * radius) >> 12);
             prim->y2 = y + ((rcos(i * 0x200 + 0x200) * radius) >> 12);
-            addPrim(&Gpu_CurrentOt[(otz - 6) >> 4], prim);
+            addPrim(&gGpuCurrentOt[(otz - 6) >> 4], prim);
             dr             = Gpu_PrimCursor;
             Gpu_PrimCursor = (DR_TPAGE*)((DR_MODE*)dr + 1);
             setDrawTPage(dr, 0, 0, 0x2A);
-            addPrim(&Gpu_CurrentOt[(otz - 6) >> 4], dr);
+            addPrim(&gGpuCurrentOt[(otz - 6) >> 4], dr);
         }
     }
 }

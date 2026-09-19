@@ -86,7 +86,7 @@ void RoomsShared8017f77c(Task* arg0)
             prim->x3            = block->sx + block->halfWidth;
             prim->y0 = prim->y2 = prim->y3 = block->sy;
             prim->y1                       = (block->sy - block->halfWidth) + block->halfWidth * (i + i);
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }

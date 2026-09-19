@@ -49,7 +49,7 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_
 /// Projects the eight local-space markers at
 /// `D_dryfield_dilapidated_house_801866B4` through the parent task's
 /// `DdhCoordWork` matrix and `Gfx_ViewWorldMtx`, then queues two red
-/// `LINE_F2`s as an X at each screen point in `Gpu_CurrentOt[10]`.
+/// `LINE_F2`s as an X at each screen point in `gGpuCurrentOt[10]`.
 void func_dryfield_dilapidated_house_8017EBB8(Task* task)
 {
     struct {
@@ -104,7 +104,7 @@ void func_dryfield_dilapidated_house_8017EBB8(Task* task)
         line->y0 = y0;
         line->x1 = x1;
         line->y1 = y1;
-        addPrim(Gpu_CurrentOt + 10, line);
+        addPrim(gGpuCurrentOt + 10, line);
 
         line           = (LINE_F2*)Gpu_PrimCursor;
         Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
@@ -115,7 +115,7 @@ void func_dryfield_dilapidated_house_8017EBB8(Task* task)
         line->y0 = y0;
         line->x1 = x0;
         line->y1 = y1;
-        addPrim(Gpu_CurrentOt + 10, line);
+        addPrim(gGpuCurrentOt + 10, line);
     } while (i < 8);
 }
 

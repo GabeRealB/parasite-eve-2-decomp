@@ -448,7 +448,7 @@ STATIC_ASSERT_SIZEOF(GpFadeWork, 4);
 /// Full-screen fade quad. Ramps a 0x140x0xF0 `TILE` from black to
 /// `field_2`-scaled white over `field_2` frames, holds until the owner
 /// raises `field_1`, then ramps back down and kills the task. Sorted into
-/// `Gpu_CurrentOt[Task::spawnArg1]`, or (`spawnArg1 == 0`) into the head
+/// `gGpuCurrentOt[Task::spawnArg1]`, or (`spawnArg1 == 0`) into the head
 /// of the current ordering table, backing up 0xA entries when the current
 /// OT is not one of the two `Gpu_OrderingTables` roots.
 void Gp_FadeWorkTask(Task* arg0);
@@ -556,7 +556,7 @@ STATIC_ASSERT_SIZEOF(GpFloorQuadScratch, 0x40);
 
 /// Draws a semi-transparent textured square of side `arg1` on the XZ plane,
 /// anchored at `arg2` (or at the coordinate's own origin when `arg2` is
-/// `NULL`), transformed by `arg0->workm` and linked into `Gpu_CurrentOt`
+/// `NULL`), transformed by `arg0->workm` and linked into `gGpuCurrentOt`
 /// at the largest corner `otz`.
 void Gp_DrawFloorQuad(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2);
 /// Builds a camera-space offset from `arg0` toward `arg1->pos`, scaled

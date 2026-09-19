@@ -457,7 +457,7 @@ void Room_DrawBillboard(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 void Room_Draw22(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
 /// Outlines `rect` on screen in (`r`, `g`, `b`) with four unconnected flat
 /// `LINE_F2`s -- top, right, bottom and left -- each linked into
-/// `Gpu_CurrentOt[1]`.
+/// `gGpuCurrentOt[1]`.
 void Room_Draw26(RoomRect* rect, u8 r, u8 g, u8 b);
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
 /// `gte_stflg` is non-negative, queues one semi-transparent shade-tex

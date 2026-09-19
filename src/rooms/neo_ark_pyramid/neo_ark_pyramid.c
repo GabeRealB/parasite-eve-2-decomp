@@ -131,7 +131,7 @@ void func_neo_ark_pyramid_8017D7F4(s32 arg0)
     prim->v3    = 0xAF;
     prim->clut  = 0x3FC0;
     prim->tpage = 0x8E;
-    addPrim(Gpu_CurrentOt + 0xC, prim);
+    addPrim(gGpuCurrentOt + 0xC, prim);
 }
 
 s32 func_neo_ark_pyramid_8017D9F0(void)

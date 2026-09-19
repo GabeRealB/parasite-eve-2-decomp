@@ -366,7 +366,7 @@ void func_acropolis_security_room_8017F8E0(s32 x, s32 y, s32 variant)
     setlen(prim, 9);
     setcode(prim, 0x2D);
 
-    addPrim(Gpu_CurrentOt, prim);
+    addPrim(gGpuCurrentOt, prim);
 }
 
 /// Task callback of the descriptor at `D_acropolis_security_room_801826C0`:

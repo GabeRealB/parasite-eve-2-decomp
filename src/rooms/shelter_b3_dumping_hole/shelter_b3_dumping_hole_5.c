@@ -259,7 +259,7 @@ void func_shelter_b3_dumping_hole_80182AA0(void)
     prim->field_18 = D_shelter_b3_dumping_hole_8018F4CC + 7;
     prim->field_12 = D_shelter_b3_dumping_hole_8018F4CE - 7;
     prim->field_1A = D_shelter_b3_dumping_hole_8018F4CE - 7;
-    addPrim(&Gpu_CurrentOt[2], prim);
+    addPrim(&gGpuCurrentOt[2], prim);
     if (D_shelter_b3_dumping_hole_8018B674 == 0) {
         D_shelter_b3_dumping_hole_8018B670 += 1;
         if (D_shelter_b3_dumping_hole_8018B670 >= 0xF) {

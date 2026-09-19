@@ -374,7 +374,7 @@ void func_acropolis_security_room_80180A78(Task* task)
             setRGB0(prim, 0x10, 0x10, 0x10);
             addPrim((u_long*)(((((u32)((AsrBeamScratch*)(head - 0x14))->otz << gDisplayState.otDepthShift) >> 2) &
                                0xFFC) +
-                              (s32)Gpu_CurrentOt),
+                              (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 2, ((AsrBeamScratch*)(head - 0x14))->otz);
         }
@@ -432,7 +432,7 @@ void func_acropolis_security_room_80180E34(Task* arg0)
     y             = cy + 0x3F;
     prim->y3      = y;
     prim->y2      = y;
-    addPrim((u_long*)(((((u32)0x30 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+    addPrim((u_long*)(((((u32)0x30 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
@@ -508,7 +508,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
         prim->tpage = 0x2D;
         prim->clut  = 0x4390;
         prim->code |= 1;
-        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AsrQuadScratch);
 
@@ -659,10 +659,10 @@ void func_acropolis_security_room_801817A4(Task* taskArg)
             quad->y0  = y;
             quad->y1  = (scratch->y - *(u16*)&scratch->step) + (scratch->step * (i << 1));
             tagMask   = 0xFF000000;
-            quad->tag = (quad->tag & tagMask) | (*((u_long*)(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt)) & addrMask);
+            quad->tag = (quad->tag & tagMask) | (*((u_long*)(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt)) & addrMask);
             TOUCH_REG(tagMask);
             __asm__("addiu %0,$0,1" : "=r"(tpageMode) : "r"(i));
-            *((u_long*)(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt)) = (*((u_long*)(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt)) & tagMask) | ((u32)quad & addrMask);
+            *((u_long*)(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt)) = (*((u_long*)(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt)) & tagMask) | ((u32)quad & addrMask);
             i                                                                                                    += tpageMode;
             Gp_AddTpageShift((P_TAG*)quad, tpageMode, scratch->otz);
             USE_REG(scratch);
@@ -695,7 +695,7 @@ void func_acropolis_security_room_801817A4(Task* taskArg)
             line->y1  = scratch->y;
             line->x2  = scratch->x - (scratch->step * direction);
             line->y2  = scratch->y + (scratch->step * nextIndex);
-            addPrim((u_long*)(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), line);
+            addPrim((u_long*)(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), line);
             Gp_AddTpageShift((P_TAG*)line, 1, scratch->otz);
             i = nextIndex;
             USE_REG(scratch);

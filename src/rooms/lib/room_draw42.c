@@ -13,5 +13,5 @@ void Room_Draw42(s32 tpage, s16 arg1)
     p              = Gpu_PrimCursor;
     Gpu_PrimCursor = p + 1;
     setDrawTPage(p, 1, 0, getTPage(2, 1, tpage & 0x3C0, y));
-    addPrim(Gpu_CurrentOt + 8, p);
+    addPrim(gGpuCurrentOt + 8, p);
 }

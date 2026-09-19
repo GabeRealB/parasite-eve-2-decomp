@@ -110,7 +110,7 @@ void func_acropolis_security_room_8017E0C4(s16 id);
 void func_acropolis_security_room_8017E37C(Task* task);
 
 /// Outlines `rect` on screen with four flat `LINE_F2` primitives in the colour
-/// (`r`, `g`, `b`), linked into `Gpu_CurrentOt[3]`.
+/// (`r`, `g`, `b`), linked into `gGpuCurrentOt[3]`.
 void func_acropolis_security_room_8017DE80(AsrRect* rect, u8 r, u8 g, u8 b);
 
 /// 0x14-byte scratch block `func_acropolis_security_room_80180A78` takes from

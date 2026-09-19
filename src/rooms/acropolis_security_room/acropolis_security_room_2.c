@@ -199,7 +199,7 @@ void func_acropolis_security_room_8017DC7C(Task* task)
 /// Outlines `rect` on screen in the colour (`r`, `g`, `b`) with four
 /// unconnected flat lines -- top, right, bottom and left edge of the rectangle
 /// spanning (`x`, `y`) to (`x + w`, `y + h`) -- each linked into
-/// `Gpu_CurrentOt[3]`. Nothing in the overlay calls it; it is the debug box
+/// `gGpuCurrentOt[3]`. Nothing in the overlay calls it; it is the debug box
 /// drawer for the hotspot rectangles.
 void func_acropolis_security_room_8017DE80(AsrRect* rect, u8 r, u8 g, u8 b)
 {
@@ -215,7 +215,7 @@ void func_acropolis_security_room_8017DE80(AsrRect* rect, u8 r, u8 g, u8 b)
     line->r0 = r;
     line->g0 = g;
     line->b0 = b;
-    addPrim(Gpu_CurrentOt + 3, line);
+    addPrim(gGpuCurrentOt + 3, line);
 
     line           = (LINE_F2*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
@@ -227,7 +227,7 @@ void func_acropolis_security_room_8017DE80(AsrRect* rect, u8 r, u8 g, u8 b)
     line->r0 = r;
     line->g0 = g;
     line->b0 = b;
-    addPrim(Gpu_CurrentOt + 3, line);
+    addPrim(gGpuCurrentOt + 3, line);
 
     line           = (LINE_F2*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
@@ -239,7 +239,7 @@ void func_acropolis_security_room_8017DE80(AsrRect* rect, u8 r, u8 g, u8 b)
     line->r0 = r;
     line->g0 = g;
     line->b0 = b;
-    addPrim(Gpu_CurrentOt + 3, line);
+    addPrim(gGpuCurrentOt + 3, line);
 
     line           = (LINE_F2*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
@@ -251,17 +251,17 @@ void func_acropolis_security_room_8017DE80(AsrRect* rect, u8 r, u8 g, u8 b)
     line->r0 = r;
     line->g0 = g;
     line->b0 = b;
-    addPrim(Gpu_CurrentOt + 3, line);
+    addPrim(gGpuCurrentOt + 3, line);
 }
 
 /// Washes the security-monitor panel with the grey level `id` -- the work
 /// block's `cameraId` biased by -0x7F -- as a semi-transparent `POLY_F4`
-/// covering (-0x66, -0x5F) to (0x6C, 0x3C) in `Gpu_CurrentOt[0xC]`, followed by
+/// covering (-0x66, -0x5F) to (0x6C, 0x3C) in `gGpuCurrentOt[0xC]`, followed by
 /// the drawing-mode packet that restores the panel's texture page. A negative
 /// `id` uses its magnitude and the other semi-transparency rate (0xE100004A
 /// rather than 0xE100002A), which is what makes the "no signal" panel read
 /// differently from a live camera. The strip below the panel (y 0x3C to 0x38)
-/// is then blacked out with an opaque quad in `Gpu_CurrentOt[0xB]`.
+/// is then blacked out with an opaque quad in `gGpuCurrentOt[0xB]`.
 void func_acropolis_security_room_8017E0C4(s16 id)
 {
     POLY_F4* poly;
@@ -285,13 +285,13 @@ void func_acropolis_security_room_8017E0C4(s16 id)
         poly->y2 = 0x3C;
         poly->x3 = 0x6C;
         poly->y3 = 0x3C;
-        addPrim(Gpu_CurrentOt + 0xC, poly);
+        addPrim(gGpuCurrentOt + 0xC, poly);
 
         dr             = (DR_MODE*)Gpu_PrimCursor;
         Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
         setlen(dr, 1);
         dr->code[0] = 0xE100002A;
-        addPrim(Gpu_CurrentOt + 0xC, dr);
+        addPrim(gGpuCurrentOt + 0xC, dr);
     } else {
         c              = (~id + 1) & 0xFF;
         poly           = (POLY_F4*)Gpu_PrimCursor;
@@ -309,13 +309,13 @@ void func_acropolis_security_room_8017E0C4(s16 id)
         poly->y2 = 0x3C;
         poly->x3 = 0x6C;
         poly->y3 = 0x3C;
-        addPrim(Gpu_CurrentOt + 0xC, poly);
+        addPrim(gGpuCurrentOt + 0xC, poly);
 
         dr             = (DR_MODE*)Gpu_PrimCursor;
         Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
         setlen(dr, 1);
         dr->code[0] = 0xE100004A;
-        addPrim(Gpu_CurrentOt + 0xC, dr);
+        addPrim(gGpuCurrentOt + 0xC, dr);
     }
 
     poly           = (POLY_F4*)Gpu_PrimCursor;
@@ -333,13 +333,13 @@ void func_acropolis_security_room_8017E0C4(s16 id)
     poly->y2 = 0x38;
     poly->x3 = 0x6C;
     poly->y3 = 0x38;
-    addPrim(Gpu_CurrentOt + 0xB, poly);
+    addPrim(gGpuCurrentOt + 0xB, poly);
 
     dr             = (DR_MODE*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
     setlen(dr, 1);
     dr->code[0] = 0xE100000A;
-    addPrim(Gpu_CurrentOt + 0xB, dr);
+    addPrim(gGpuCurrentOt + 0xB, dr);
 }
 
 /// Draws the blinking cursor overlay on top of the monitor panel: a 0x6C-wide
@@ -366,12 +366,12 @@ void func_acropolis_security_room_8017E37C(Task* task)
     y        = work->blinkTimer - 0x5F;
     tile->h  = y;
     tile->y0 = y;
-    addPrim(Gpu_CurrentOt + 0xE, tile);
+    addPrim(gGpuCurrentOt + 0xE, tile);
     dr             = (DR_MODE*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
     setlen(dr, 1);
     dr->code[0] = 0xE100000A;
-    addPrim(Gpu_CurrentOt + 0xE, dr);
+    addPrim(gGpuCurrentOt + 0xE, dr);
     work->blinkTimer++;
     if (work->blinkTimer >= 0x97) {
         work->blinkTimer = 0;

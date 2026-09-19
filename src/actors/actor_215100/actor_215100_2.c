@@ -710,7 +710,7 @@ void func_actor_215100_8014BEE8(void)
     prim->x2 = D_actor_215100_8015E668 + 7;
     prim->y1 = D_actor_215100_8015E66A - 7;
     prim->y2 = D_actor_215100_8015E66A - 7;
-    addPrim(&Gpu_CurrentOt[2], prim);
+    addPrim(&gGpuCurrentOt[2], prim);
     if (D_actor_215100_801545E8 == 0) {
         D_actor_215100_801545E4 += 1;
         if (D_actor_215100_801545E4 >= 0xF) {

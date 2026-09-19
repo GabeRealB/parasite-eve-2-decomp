@@ -83,7 +83,7 @@ void Display_StepFadeOverlay(void)
             dr->code[0] = 0xE1000220;
         }
 
-        ot = (u_long*)((otIdx << 2) + (s32)Gpu_CurrentOt);
+        ot = (u_long*)((otIdx << 2) + (s32)gGpuCurrentOt);
         addPrim(ot, tile);
         addPrim(ot, dr);
     }
@@ -350,14 +350,14 @@ void Display_FlipOtAndDispatch(s32 arg0)
     u32           mode;
 
     temp           = &gDisplayState;
-    saved          = Gpu_CurrentOt;
+    saved          = gGpuCurrentOt;
     buf            = temp->otBuffer ^ 1;
     temp->otBuffer = buf;
-    Gpu_CurrentOt  = Gpu_OtTags + buf * GPU_OT_ENTRIES;
-    ClearOTagR(Gpu_CurrentOt, GPU_OT_ENTRIES);
-    ot                         = Gpu_CurrentOt;
+    gGpuCurrentOt  = Gpu_OtTags + buf * GPU_OT_ENTRIES;
+    ClearOTagR(gGpuCurrentOt, GPU_OT_ENTRIES);
+    ot                         = gGpuCurrentOt;
     *ot                        = GPU_OT_END_PRIM;
-    Gpu_CurrentOt              = ot + 0x20;
+    gGpuCurrentOt              = ot + 0x20;
     temp->at100.flags.flipMode = 0;
     temp->drawBuffer           = *(u8*)&temp->frameBuffer;
     mode                       = Stage_Ctx->field_11;
@@ -376,7 +376,7 @@ void Display_FlipOtAndDispatch(s32 arg0)
             Gp_DrawActorTmdFlagged(&Gpu_OtBuffers[temp->otBuffer]);
             break;
     }
-    Gpu_CurrentOt = saved;
+    gGpuCurrentOt = saved;
 }
 
 void Display_InvertFramebufferGray(void)

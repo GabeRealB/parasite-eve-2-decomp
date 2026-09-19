@@ -87,7 +87,7 @@ void func_combustion_8012FF0C(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)Gpu_CurrentOt),
+                          (s32)gGpuCurrentOt),
                 prim);
     }
     *scratch = (u8*)*scratch + 0x18;
@@ -100,7 +100,7 @@ void func_combustion_8012FF0C(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
 /// following a quarter turn (0x400) later, so the quad stays square but spins
 /// with the flame. `arg1`'s low bit picks the frame: odd takes the tinted
 /// semi-transparent core at `0x428B` / u 0x70..0xA7, even the additive outer
-/// flame at `0x428C` / u 0xA8..0xDF. The quad is linked into `Gpu_CurrentOt` at
+/// flame at `0x428C` / u 0xA8..0xDF. The quad is linked into `gGpuCurrentOt` at
 /// its own `otz` twice, once per diagonal pair.
 void func_combustion_80130184(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
@@ -175,7 +175,7 @@ void func_combustion_80130184(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
         prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
         prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)Gpu_CurrentOt),
+                          (s32)gGpuCurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
@@ -256,7 +256,7 @@ void func_combustion_801305F8(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)Gpu_CurrentOt),
+                          (s32)gGpuCurrentOt),
                 prim);
     }
     *scratch = (u8*)*scratch + 0x18;

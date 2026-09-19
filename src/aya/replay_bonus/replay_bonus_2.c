@@ -599,7 +599,7 @@ void func_replay_bonus_80117E04(void)
     tpage          = Gpu_PrimCursor;
     Gpu_PrimCursor = tpage + 1;
     setDrawTPage(tpage, 0, 1, 0);
-    addPrim(Gpu_CurrentOt + 10, tpage);
+    addPrim(gGpuCurrentOt + 10, tpage);
 
     if (D_replay_bonus_80119225 != 2) {
         sprt           = (SPRT*)Gpu_PrimCursor;
@@ -614,12 +614,12 @@ void func_replay_bonus_80117E04(void)
         sprt->b0 = D_replay_bonus_801192AC;
         sprt->u0 = 0;
         sprt->v0 = 0;
-        addPrim(Gpu_CurrentOt + 11, sprt);
+        addPrim(gGpuCurrentOt + 11, sprt);
 
         tpage          = Gpu_PrimCursor;
         Gpu_PrimCursor = tpage + 1;
         setDrawTPage(tpage, 0, 1, getTPage(2, 0, 0x280, D_replay_bonus_80119226 << 8));
-        addPrim(Gpu_CurrentOt + 11, tpage);
+        addPrim(gGpuCurrentOt + 11, tpage);
         return;
     }
 
@@ -639,12 +639,12 @@ void func_replay_bonus_80117E04(void)
     sprt->r0 = rgb;
     sprt->g0 = rgb;
     sprt->b0 = rgb;
-    addPrim(Gpu_CurrentOt + 11, sprt);
+    addPrim(gGpuCurrentOt + 11, sprt);
 
     tpage          = Gpu_PrimCursor;
     Gpu_PrimCursor = tpage + 1;
     setDrawTPage(tpage, 0, 1, getTPage(2, 1, 0x280, D_replay_bonus_80119226 << 8));
-    addPrim(Gpu_CurrentOt + 11, tpage);
+    addPrim(gGpuCurrentOt + 11, tpage);
 
     sprt           = (SPRT*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
@@ -660,12 +660,12 @@ void func_replay_bonus_80117E04(void)
     sprt->r0 = rgb;
     sprt->g0 = rgb;
     sprt->b0 = rgb;
-    addPrim(Gpu_CurrentOt + 11, sprt);
+    addPrim(gGpuCurrentOt + 11, sprt);
 
     tpage          = Gpu_PrimCursor;
     Gpu_PrimCursor = tpage + 1;
     setDrawTPage(tpage, 0, 1, getTPage(2, 0, 0x280, (D_replay_bonus_80119226 ^ 1) << 8));
-    addPrim(Gpu_CurrentOt + 11, tpage);
+    addPrim(gGpuCurrentOt + 11, tpage);
 
     wait                    = D_replay_bonus_80119227 - 1;
     D_replay_bonus_80119227 = wait;
@@ -773,8 +773,8 @@ void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
                             p->tpage = 0xF;
                         }
                         x = x1;
-                        setaddr(p, getaddr(Gpu_CurrentOt + 10));
-                        glyphOt  = Gpu_CurrentOt + 10;
+                        setaddr(p, getaddr(gGpuCurrentOt + 10));
+                        glyphOt  = gGpuCurrentOt + 10;
                         glyphTag = (*glyphOt & 0xFF000000) | ((u_long)p & 0xFFFFFF);
                         SOFT_USE_REG(gv);
                         *glyphOt = glyphTag;
@@ -874,20 +874,20 @@ void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
                         sprt->clut = clut;
                         sprt->u0   = gu;
                         sprt->v0   = gv;
-                        setaddr(sprt, getaddr(Gpu_CurrentOt + 10));
+                        setaddr(sprt, getaddr(gGpuCurrentOt + 10));
                         dr             = (DR_TPAGE*)Gpu_PrimCursor;
                         Gpu_PrimCursor = dr + 1;
-                        setaddr(Gpu_CurrentOt + 10, sprt);
+                        setaddr(gGpuCurrentOt + 10, sprt);
                         setlen(dr, 1);
                         pageFlags   = D_replay_bonus_8011929C[idx].flags;
                         page        = (u32)(tpageX & 0x3FF) >> 6;
                         dr->code[0] = ((pageFlags & 3) << 7) | (s16)((s32)((D_replay_bonus_8011929C[idx].tpageBits & 0x100) << 16) >> 20) | page | ((s16)(D_replay_bonus_8011929C[idx].tpageBits & 0x200) * 4) | 0xE1000200;
                         tpageX     += 0x100 >> shift;
                         x           = x + piece;
-                        drawTag     = (dr->tag & 0xFF000000) | (getaddr(Gpu_CurrentOt + 10) & 0xFFFFFF);
+                        drawTag     = (dr->tag & 0xFF000000) | (getaddr(gGpuCurrentOt + 10) & 0xFFFFFF);
                         SOFT_USE_REG2(piece, gh);
                         dr->tag = drawTag;
-                        setaddr(Gpu_CurrentOt + 10, dr);
+                        setaddr(gGpuCurrentOt + 10, dr);
                     }
                     break;
             }

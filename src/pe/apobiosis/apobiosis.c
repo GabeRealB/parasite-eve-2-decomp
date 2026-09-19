@@ -250,7 +250,7 @@ void func_apobiosis_8012F808(u32 bright)
     setXY4(prim, -0xA0, -0x78 - gDisplayState.vramYOffset, 0xA0,
            -0x78 - gDisplayState.vramYOffset, -0xA0, 0x78 - gDisplayState.vramYOffset,
            0xA0, 0x78 - gDisplayState.vramYOffset);
-    addPrim((u_long*)((((u32)(0x30 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+    addPrim((u_long*)((((u32)(0x30 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
             prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, 0x30);
 }
@@ -344,7 +344,7 @@ void func_apobiosis_8012F9D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
             maskLo   = 0xFFFFFF;
             maskHi   = 0xFF000000;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)Gpu_CurrentOt),
+                              (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
             SOFT_USE_REG2(maskLo, maskHi);
@@ -523,7 +523,7 @@ void func_apobiosis_8013017C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
         prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
         prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)Gpu_CurrentOt),
+                          (s32)gGpuCurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
@@ -634,7 +634,7 @@ void func_apobiosis_80130630(GsCOORDINATE2* arg0, s16* arg1, s16 arg2, s16 arg3)
             prim->y1  = *(u16*)&block->sy1 - *(u16*)&block->dy;
             prim->y2  = *(u16*)&block->sy0 + *(u16*)&block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)Gpu_CurrentOt),
+                              (s32)gGpuCurrentOt),
                     prim);
         }
     }

@@ -2756,7 +2756,7 @@ void Gp_DrawTargetCursor(void)
                 u32          paddr;
                 u32          t0;
                 register u32 t1 asm("v1");
-                otp            = (u32*)Gpu_CurrentOt;
+                otp            = (u32*)gGpuCurrentOt;
                 hi             = 0xFF000000;
                 pp             = (u32*)prim;
                 *pp            = (*pp & hi) | (*otp & mask);

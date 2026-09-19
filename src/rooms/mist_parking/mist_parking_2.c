@@ -181,7 +181,7 @@ void func_mist_parking_8018089C(DialogPrompt* prompt, UiObject* obj)
         prim->y2 = y0;
         prim->x3 = x1;
         prim->x1 = x1;
-        addPrim(Gpu_CurrentOt + (s16)obj->drawOrder + 1, prim);
+        addPrim(gGpuCurrentOt + (s16)obj->drawOrder + 1, prim);
     }
 
     one = 1;

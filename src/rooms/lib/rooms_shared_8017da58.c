@@ -24,7 +24,7 @@ STATIC_ASSERT_SIZEOF(RoomsShared8017da58Work, 0x8);
 /// State 0 allocates the ramp and saturates all three channels at 0xFF; a
 /// failed allocation kills the task outright. State 1 runs every frame: it
 /// links a semi-transparent full-screen `TILE` (`-0xA0,-0x78`, `0x140x0xF0`)
-/// plus the `0xE1000240` `DR_TPAGE` into `Gpu_CurrentOt[-16]`, tinting the tile
+/// plus the `0xE1000240` `DR_TPAGE` into `gGpuCurrentOt[-16]`, tinting the tile
 /// `r`/`g`/`r`, then steps all three channels down by `Task::spawnArg1`. Once
 /// `r` underflows past 0 the screen is fully clear, so the task kills itself.
 /// Shared by the Acropolis Plaza and the Dryfield water tank; the fade-out
@@ -66,13 +66,13 @@ void RoomsShared8017da58(Task* arg0)
             tile->y0 = -0x78;
             tile->w  = 0x140;
             tile->h  = 0xF0;
-            addPrim(Gpu_CurrentOt - 16, tile);
+            addPrim(gGpuCurrentOt - 16, tile);
 
             dr             = Gpu_PrimCursor;
             Gpu_PrimCursor = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE1000240;
-            addPrim(Gpu_CurrentOt - 16, dr);
+            addPrim(gGpuCurrentOt - 16, dr);
 
             fade->r -= (u16)arg0->spawnArg1;
             fade->g -= (u16)arg0->spawnArg1;

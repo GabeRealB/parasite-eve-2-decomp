@@ -212,7 +212,7 @@ void func_actor_143000_801342F8(s32 x, s32 y, u16* codes, s32 index, s32 active)
         setRGB0(prim, 0, 0x7C, 0x2C);
         setXY4(prim, x + 4, y - 15, x + 19, y - 15, x + 4, y, x + 19, y);
         if (D_actor_143000_80135C10 & 4) {
-            addPrim(&Gpu_CurrentOt[2], prim);
+            addPrim(&gGpuCurrentOt[2], prim);
         }
         D_actor_143000_80135C10++;
     }

@@ -2714,7 +2714,7 @@ _spu_RQ                     = 0x8006EC00;
 //--------------------------------------------------------------------
 Gpu_OtTags       = 0x8006EC38; // type:u32 size:0x2200
 gDisplayState               = 0x80070F68; // type:DisplayState size:0x138
-Gpu_CurrentOt               = 0x800710A0;
+gGpuCurrentOt               = 0x800710A0;
 Wip_SysFlags                  = 0x800710A8; // size:0x20
 
 //--------------------------------------------------------------------

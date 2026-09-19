@@ -99,7 +99,7 @@ void Room_Draw07(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
             maskLo   = 0xFFFFFF;
             maskHi   = 0xFF000000;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)Gpu_CurrentOt),
+                              (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
             SOFT_USE_REG2(maskLo, maskHi);

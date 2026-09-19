@@ -874,7 +874,7 @@ running:
 
 /// Draws the cinematic letterbox: two black 0x140x0x18 `TILE` bars spanning the
 /// full screen width at the top (y -0x78) and bottom (y 0x60), linked into
-/// `Gpu_CurrentOt[3]`.
+/// `gGpuCurrentOt[3]`.
 void func_acropolis_plaza_8017FF18(void)
 {
     TILE* tile;
@@ -889,7 +889,7 @@ void func_acropolis_plaza_8017FF18(void)
     tile->y0 = -0x78;
     tile->w  = 0x140;
     tile->h  = 0x18;
-    addPrim(Gpu_CurrentOt + 3, tile);
+    addPrim(gGpuCurrentOt + 3, tile);
 
     tile           = (TILE*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
@@ -901,7 +901,7 @@ void func_acropolis_plaza_8017FF18(void)
     tile->y0 = 0x60;
     tile->w  = 0x140;
     tile->h  = 0x18;
-    addPrim(Gpu_CurrentOt + 3, tile);
+    addPrim(gGpuCurrentOt + 3, tile);
 }
 
 /// Six-state opening sequence for the plaza. State 0 fades in the room
@@ -1130,7 +1130,7 @@ void func_acropolis_plaza_801802C0(Task* task)
             tri->y1 = (blk->screen[1] >> 16);
             tri->x2 = (u16)blk->screen[2];
             tri->y2 = (blk->screen[2] >> 16);
-            addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), tri);
+            addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), tri);
             Gp_AddTpageShift((P_TAG*)tri, 1, blk->otz);
             for (; i < 2; i++) {
                 prim           = (POLY_G4*)Gpu_PrimCursor;
@@ -1148,7 +1148,7 @@ void func_acropolis_plaza_801802C0(Task* task)
                 prim->y2 = (blk->screen[i + 3] >> 16);
                 prim->x3 = (u16)blk->screen[i + 5];
                 prim->y3 = (blk->screen[i + 5] >> 16);
-                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
             blk->half = 0xC000 / blk->otz;
@@ -1171,7 +1171,7 @@ void func_acropolis_plaza_801802C0(Task* task)
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 6]) >> 12);
                 prim->y3 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 2]) >> 12);
-                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
         }
@@ -1240,7 +1240,7 @@ void func_acropolis_plaza_801802C0(Task* task)
                     prim->y2 = blk->sy;
                     prim->x3 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 6]) >> 12);
                     prim->y3 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 2]) >> 12);
-                    addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+                    addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
                 }
             }
@@ -1325,7 +1325,7 @@ void func_acropolis_plaza_801811D0(Task* task)
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 6]) >> 12);
                 prim->y3 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 2]) >> 12);
-                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
             blk->half  = 0x8000 / blk->otz;
@@ -1349,7 +1349,7 @@ void func_acropolis_plaza_801811D0(Task* task)
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->inner * D_acropolis_plaza_801987E0[i + 8]) >> 11);
                 prim->y3 = blk->sy + ((blk->inner * D_acropolis_plaza_801987E0[i + 4]) >> 11);
-                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
                 prim           = (POLY_G4*)Gpu_PrimCursor;
                 Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
@@ -1366,7 +1366,7 @@ void func_acropolis_plaza_801811D0(Task* task)
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->inner * D_acropolis_plaza_801987E0[i + 12]) >> 12);
                 prim->y3 = blk->sy + ((blk->inner * D_acropolis_plaza_801987E0[i + 8]) >> 12);
-                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
         }
@@ -1422,7 +1422,7 @@ void func_acropolis_plaza_801811D0(Task* task)
                     prim->y2 = blk->sy;
                     prim->x3 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 6]) >> 12);
                     prim->y3 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 2]) >> 12);
-                    addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+                    addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
                 }
             }
@@ -1500,7 +1500,7 @@ void func_acropolis_plaza_80182054(Task* task)
                 prim->y2 = blk->sy;
                 prim->x3 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 6]) >> 12);
                 prim->y3 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 2]) >> 12);
-                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
         }

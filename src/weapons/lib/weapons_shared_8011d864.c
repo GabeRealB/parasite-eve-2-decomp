@@ -113,7 +113,7 @@ void WeaponsShared8011d864(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
         setRGB2(prim, arg2 >> 1, arg2 >> 1, arg2);
         setRGB3(prim, 0, 0, 0);
         addPrim((u_long*)(((((u32)((WeaponQuadScratch*)(head - 0x24))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                          (s32)Gpu_CurrentOt),
+                          (s32)gGpuCurrentOt),
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, ((WeaponQuadScratch*)(head - 0x24))->otz);
     }

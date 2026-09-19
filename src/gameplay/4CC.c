@@ -1008,7 +1008,7 @@ void func_800BDF6C(Task* task)
     setlen(line, 3);
     setcode(line, 0x40);
     line->y1 = coord;
-    addPrim(Gpu_CurrentOt + (s16)obj->drawOrder + 1, line);
+    addPrim(gGpuCurrentOt + (s16)obj->drawOrder + 1, line);
     qty = state->equipped;
     if (qty > 0) {
         equippedWidth = ((s32)(qty * widthM2) / (s32)(state->srcQty + state->dstQty)) + 2;
@@ -1578,12 +1578,12 @@ void Gp_FadeTileTask(Task* arg0)
         tile->r0 = color;
     }
 
-    addPrim((u_long*)((otIdx << 2) + (s32)Gpu_CurrentOt), tile);
+    addPrim((u_long*)((otIdx << 2) + (s32)gGpuCurrentOt), tile);
     dr             = (DR_TPAGE*)Gpu_PrimCursor;
     Gpu_PrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE1000640;
-    addPrim((u_long*)((otIdx << 2) + (s32)Gpu_CurrentOt), dr);
+    addPrim((u_long*)((otIdx << 2) + (s32)gGpuCurrentOt), dr);
 
     if ((flag == 0) && (arg0->killCountdown <= 0)) {
         if (arg0->spawnArg1 == 4) {

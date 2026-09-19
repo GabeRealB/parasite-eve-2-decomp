@@ -290,7 +290,7 @@ void func_actor_341300_80162878(Task* arg0)
             prim->y1                       = y[1];
             prim->x2                       = x[2];
             prim->y2                       = y[2];
-            addPrim(&Gpu_CurrentOt[otz >> 4], prim);
+            addPrim(&gGpuCurrentOt[otz >> 4], prim);
             work->rot.vx += work->rotSpeed.vx;
             work->rot.vy += work->rotSpeed.vy;
             work->rot.vz += work->rotSpeed.vz;
@@ -452,7 +452,7 @@ void func_actor_341300_801631D4(Task* arg0)
             prim->y1                       = y[1];
             prim->x2                       = x[2];
             prim->y2                       = y[2];
-            addPrim(&Gpu_CurrentOt[1039], prim);
+            addPrim(&gGpuCurrentOt[1039], prim);
             work->rot.vx += work->rotSpeed.vx;
             work->rot.vy += work->rotSpeed.vy;
             work->rot.vz += work->rotSpeed.vz;

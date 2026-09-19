@@ -85,7 +85,7 @@ body:
     sp10.y = 0;
     sp10.x = 0;
     setTexWindow(dr, &sp10);
-    addPrim(Gpu_CurrentOt + arg2, dr);
+    addPrim(gGpuCurrentOt + arg2, dr);
 
     if ((arg1 & 0xF) == 4) {
         p->tpage  = 0x1E;
@@ -193,7 +193,7 @@ body:
         u     = (u8)p->x1 - (u8)p->x0;
         p->u3 = u;
         p->u1 = u;
-        addPrim(Gpu_CurrentOt + arg2, p);
+        addPrim(gGpuCurrentOt + arg2, p);
     }
 
     if (p2->x0 >= 0) {
@@ -216,7 +216,7 @@ body:
         u      = p2->u1 + ((u8)p2->x0 - (u8)p2->x1);
         p2->u2 = u;
         p2->u0 = u;
-        addPrim(Gpu_CurrentOt + arg2, p2);
+        addPrim(gGpuCurrentOt + arg2, p2);
     }
 
     dr             = (DR_MODE*)Gpu_PrimCursor;
@@ -226,7 +226,7 @@ body:
     sp10.w         = 0x20;
     sp10.h         = 0x20;
     setTexWindow(dr, &sp10);
-    addPrim(Gpu_CurrentOt + arg2, dr);
+    addPrim(gGpuCurrentOt + arg2, dr);
 end:
     return;
 }
@@ -253,7 +253,7 @@ void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
     spr->clut      = 0x3C03;
     setlen(spr, 3);
     setcode(spr, 0x75);
-    addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 3, spr);
+    addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, spr);
 
     spr            = (SPRT*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(spr + 1);
@@ -265,7 +265,7 @@ void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
         spr->clut = 0x3C03;
         setlen(spr, 3);
         setcode(spr, 0x75);
-        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 3, spr);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, spr);
     }
 
     spr            = (SPRT*)Gpu_PrimCursor;
@@ -278,7 +278,7 @@ void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
         spr->clut = 0x3C03;
         setlen(spr, 3);
         setcode(spr, 0x75);
-        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 3, spr);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, spr);
     }
 
     spr            = (SPRT*)Gpu_PrimCursor;
@@ -291,7 +291,7 @@ void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
         spr->clut = 0x3C03;
         setlen(spr, 3);
         setcode(spr, 0x75);
-        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 3, spr);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, spr);
     }
 
     p              = (POLY_FT4*)Gpu_PrimCursor;
@@ -330,8 +330,8 @@ void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
         p->u0 = u;
         p->u2 = u;
         setcode(p, 0x2D);
-        setaddr(p, getaddr(Gpu_CurrentOt + (s16)arg0->field_14 + 3) & mask);
-        setaddr(Gpu_CurrentOt + (s16)arg0->field_14 + 3, (u32)p & mask);
+        setaddr(p, getaddr(gGpuCurrentOt + (s16)arg0->field_14 + 3) & mask);
+        setaddr(gGpuCurrentOt + (s16)arg0->field_14 + 3, (u32)p & mask);
     }
 
     p              = (POLY_FT4*)Gpu_PrimCursor;
@@ -370,8 +370,8 @@ void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
         p->u0 = u;
         p->u2 = u;
         setcode(p, 0x2D);
-        setaddr(p, getaddr(Gpu_CurrentOt + (s16)arg0->field_14 + 3) & mask);
-        setaddr(Gpu_CurrentOt + (s16)arg0->field_14 + 3, (u32)p & mask);
+        setaddr(p, getaddr(gGpuCurrentOt + (s16)arg0->field_14 + 3) & mask);
+        setaddr(gGpuCurrentOt + (s16)arg0->field_14 + 3, (u32)p & mask);
     }
 
     p              = (POLY_FT4*)Gpu_PrimCursor;
@@ -410,8 +410,8 @@ void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
         p->u0 = u;
         p->u2 = u;
         setcode(p, 0x2D);
-        setaddr(p, getaddr(Gpu_CurrentOt + (s16)arg0->field_14 + 3) & mask);
-        setaddr(Gpu_CurrentOt + (s16)arg0->field_14 + 3, (u32)p & mask);
+        setaddr(p, getaddr(gGpuCurrentOt + (s16)arg0->field_14 + 3) & mask);
+        setaddr(gGpuCurrentOt + (s16)arg0->field_14 + 3, (u32)p & mask);
     }
 
     p              = (POLY_FT4*)Gpu_PrimCursor;
@@ -450,8 +450,8 @@ void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
         p->u0 = u;
         p->u2 = u;
         setcode(p, 0x2D);
-        setaddr(p, getaddr(Gpu_CurrentOt + (s16)arg0->field_14 + 3) & mask);
-        setaddr(Gpu_CurrentOt + (s16)arg0->field_14 + 3, (u32)p & mask);
+        setaddr(p, getaddr(gGpuCurrentOt + (s16)arg0->field_14 + 3) & mask);
+        setaddr(gGpuCurrentOt + (s16)arg0->field_14 + 3, (u32)p & mask);
     }
     Ui_DrawWindowBorder(arg2, arg0->field_4, (s16)arg0->field_14 + 3);
     if (arg0->field_4 & 0x20000) {
@@ -467,12 +467,12 @@ void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
         tile->h        = 0xF0;
         setlen(tile, 3);
         setcode(tile, 0x62);
-        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 3, tile);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, tile);
         dr             = Gpu_PrimCursor;
         Gpu_PrimCursor = dr + 1;
         setlen(dr, 1);
         dr->code[0] = 0xE1000240;
-        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 3, dr);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, dr);
     }
 }
 
@@ -499,7 +499,7 @@ void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
             sp10.h         = arg2->h;
             sp10.y         = temp + (gDisplayState.drawBuffer * 0x110);
             SetDrawArea(p, &sp10);
-            addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 3, p);
+            addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, p);
         }
         func_80044C34(arg0, arg1, arg2, arg3);
         if (arg3 != 0) {
@@ -513,7 +513,7 @@ void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
             sp18.x         = 0;
             sp18.y         = gDisplayState.drawBuffer * 0x110;
             SetDrawArea(p, &sp18);
-            addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, p);
+            addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, p);
         }
         if (arg0->field_4 & 0x10000) {
             poly           = (POLY_F4*)Gpu_PrimCursor;
@@ -535,13 +535,13 @@ void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
             t        = arg2->y + arg2->h;
             poly->y3 = t;
             poly->y2 = t;
-            addPrim(Gpu_CurrentOt + (s16)arg0->field_14, poly);
+            addPrim(gGpuCurrentOt + (s16)arg0->field_14, poly);
 
             dr             = Gpu_PrimCursor;
             Gpu_PrimCursor = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE1000200;
-            addPrim(Gpu_CurrentOt + (s16)arg0->field_14, dr);
+            addPrim(gGpuCurrentOt + (s16)arg0->field_14, dr);
         }
     }
 }
@@ -578,7 +578,7 @@ void Ui_SetupClip(UiPanel* arg0)
     sp10.h         = 0;
     sp10.y         = gDisplayState.drawBuffer * 0x110;
     SetDrawArea(p, &sp10);
-    addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 3, p);
+    addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, p);
 
     p              = (DR_AREA*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
@@ -587,7 +587,7 @@ void Ui_SetupClip(UiPanel* arg0)
     sp10.h         = 0xF0;
     sp10.y         = gDisplayState.drawBuffer * 0x110;
     SetDrawArea(p, &sp10);
-    addPrim(Gpu_CurrentOt + (s16)arg0->field_14, p);
+    addPrim(gGpuCurrentOt + (s16)arg0->field_14, p);
 }
 
 void Ui_ScaleRect(UiPanel* arg0, RECT* arg1, s32 arg2, s32 arg3)
@@ -827,7 +827,7 @@ void Ui_SetListClip(UiList* arg0, UiPanel* arg1, s32 arg2)
             sp10.h         = temp;
             sp10.h         = temp * arg0->field_7;
             SetDrawArea(p, &sp10);
-            addPrim(Gpu_CurrentOt + (i + (s16)arg1->field_14) + 1, p);
+            addPrim(gGpuCurrentOt + (i + (s16)arg1->field_14) + 1, p);
         }
     } else {
         for (i = 0; i < 2; i++) {
@@ -838,7 +838,7 @@ void Ui_SetListClip(UiList* arg0, UiPanel* arg1, s32 arg2)
             sp10.h         = 0xF0;
             sp10.y         = gDisplayState.drawBuffer * 0x110;
             SetDrawArea(p, &sp10);
-            addPrim(Gpu_CurrentOt + (i + (s16)arg1->field_14) + 1, p);
+            addPrim(gGpuCurrentOt + (i + (s16)arg1->field_14) + 1, p);
         }
     }
 }
@@ -873,11 +873,11 @@ void Ui_DrawCursor(UiPanel* arg0, s32 arg1, s32 arg2)
         p->u0 = t;
         t     = half * 8 + 0x30;
         p->v0 = t;
-        addPrim(Gpu_CurrentOt + 4, p);
+        addPrim(gGpuCurrentOt + 4, p);
         dr             = Gpu_PrimCursor;
         Gpu_PrimCursor = dr + 1;
         setDrawTPage(dr, 0, 1, 0x1E);
-        addPrim(Gpu_CurrentOt + 4, dr);
+        addPrim(gGpuCurrentOt + 4, dr);
     }
 }
 
@@ -965,7 +965,7 @@ void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
     p->g1   = 0xCF;
     p->b2   = 0xFF;
     p->b1   = 0xFF;
-    ot      = Gpu_CurrentOt;
+    ot      = gGpuCurrentOt;
     mask_hi = 0xFF000000;
     p->tag  = (p->tag & mask_hi) | (ot[(s16)arg1->field_14 + 1] & mask);
     ot[(s16)arg1->field_14 + 1] =
@@ -1164,7 +1164,7 @@ void func_80046B34(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 ar
         setlen(p, 3);
         p->y0 = y + arg2 + 1;
         setcode(p, 0x60);
-        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, p);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, p);
     }
 
     l              = (LINE_F3*)Gpu_PrimCursor;
@@ -1179,7 +1179,7 @@ void func_80046B34(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 ar
     l->y1          = t;
     *(u32*)&l->r0  = ((arg6 & 1) == 0) ? 0x506058 : 0x101810;
     setLineF3(l);
-    addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, l);
+    addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, l);
 
     l              = (LINE_F3*)Gpu_PrimCursor;
     t              = arg0->field_20 + arg1;
@@ -1193,7 +1193,7 @@ void func_80046B34(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 ar
     l->y2          = arg0->field_22 + (arg2 + arg4);
     *(u32*)&l->r0  = ((arg6 & 1) == 0) ? 0x101810 : 0x506058;
     setLineF3(l);
-    addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, l);
+    addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, l);
 }
 
 /// Overlay of UiPanel / UiObject at the layout halfwords that Ui_DrawListHighlight
@@ -1241,7 +1241,7 @@ void Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2)
         setcode(p, 0x60);
         arg2  = arg2 - h;
         p->y0 = y + arg2 + 1;
-        addPrim(Gpu_CurrentOt + (s16)a1->field_14 + 1, p);
+        addPrim(gGpuCurrentOt + (s16)a1->field_14 + 1, p);
     }
     a1->field_14 = (u16)(a1->field_14 - 1);
 }
@@ -1688,7 +1688,7 @@ void Ui_DrawHBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
         p->y2 = y;
         p->y1 = temp;
         p->y0 = temp;
-        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 2, p);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 2, p);
     }
 }
 
@@ -1743,7 +1743,7 @@ void Ui_DrawVBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
         y     = y + arg2;
         p->y3 = y;
         p->y2 = y;
-        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 2, p);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 2, p);
     }
 }
 
@@ -1794,7 +1794,7 @@ void Ui_DrawTextUnderline(UiPanel* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg
     p->y0 = y;
     p->x3 = textX;
     p->x1 = textX + 3;
-    addPrim(Gpu_CurrentOt + otIdx, p);
+    addPrim(gGpuCurrentOt + otIdx, p);
 
     t20    = (s16)self->field_20;
     f22    = (s16)self->field_22;
@@ -2509,7 +2509,7 @@ void Ui_InsertDrawTPage(s32 arg0, s32 arg1)
     p              = Gpu_PrimCursor;
     Gpu_PrimCursor = p + 1;
     setDrawTPage(p, 0, 1, 0x1E | ((arg1 & 3) << 5));
-    addPrim(Gpu_CurrentOt + arg0, p);
+    addPrim(gGpuCurrentOt + arg0, p);
 }
 
 void Ui_SetListScrollFlag(UiList* arg0, s32 arg1)
@@ -2540,7 +2540,7 @@ void Ui_AllocTile(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg
         setlen(p, 3);
         p->y0 = y + arg2 + 1;
         setcode(p, 0x60);
-        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, p);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, p);
     }
 }
 
@@ -2795,7 +2795,7 @@ void Ui_DrawFlatCaret(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     *(s32*)&p->r0 = arg3 * 2;
     setlen(p, 4);
     setcode(p, 0x20);
-    ot      = Gpu_CurrentOt;
+    ot      = gGpuCurrentOt;
     mask_hi = 0xFF000000;
     p->tag  = (p->tag & mask_hi) | (ot[(s16)arg0->field_14 + 1] & mask);
     ot[(s16)arg0->field_14 + 1] =

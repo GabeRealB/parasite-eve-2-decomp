@@ -90,7 +90,7 @@ void Room_Draw41(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
         xy                  = *(u16*)&block->sy + (block->radius >> 1);
         prim->y2 = prim->y3 = xy;
         addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
-                          (s32)Gpu_CurrentOt),
+                          (s32)gGpuCurrentOt),
                 prim);
     }
     *scratch = (u8*)*scratch + 0x18;

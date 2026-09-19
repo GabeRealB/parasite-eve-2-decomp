@@ -86,7 +86,7 @@ void func_actor_548100_80132338(s32 x, s32 y, s32 variant)
     setlen(prim, 9);
     setcode(prim, 0x2D);
 
-    addPrim(Gpu_CurrentOt, prim);
+    addPrim(gGpuCurrentOt, prim);
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80132420);
@@ -270,7 +270,7 @@ void func_actor_548100_80132A14(Task* task)
     Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
     setlen(prim, 1);
     prim->code[0] = 0xE100022A;
-    addPrim(&Gpu_CurrentOt[0x3FD], prim);
+    addPrim(&gGpuCurrentOt[0x3FD], prim);
 
     func_actor_548100_80134960(D_actor_548100_80135B50, &D_actor_548100_80135B53, &D_actor_548100_80135B54, &D_actor_548100_80135B55);
     func_actor_548100_801349E0(D_actor_548100_80135B50, &D_actor_548100_80135B56, &D_actor_548100_80135B57, &D_actor_548100_80135B58);
@@ -366,7 +366,7 @@ void func_actor_548100_80132EA0(void)
 }
 
 /// Outlines `rect` in (`r`, `g`, `b`) with four flat `LINE_F2` edges linked
-/// into `Gpu_CurrentOt[1]`. Same body as the rooms' `Room_Draw26`.
+/// into `gGpuCurrentOt[1]`. Same body as the rooms' `Room_Draw26`.
 void func_actor_548100_80132EA8(RoomRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
@@ -381,7 +381,7 @@ void func_actor_548100_80132EA8(RoomRect* rect, u8 r, u8 g, u8 b)
     line->r0 = r;
     line->g0 = g;
     line->b0 = b;
-    addPrim(Gpu_CurrentOt + 1, line);
+    addPrim(gGpuCurrentOt + 1, line);
 
     line           = (LINE_F2*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
@@ -393,7 +393,7 @@ void func_actor_548100_80132EA8(RoomRect* rect, u8 r, u8 g, u8 b)
     line->r0 = r;
     line->g0 = g;
     line->b0 = b;
-    addPrim(Gpu_CurrentOt + 1, line);
+    addPrim(gGpuCurrentOt + 1, line);
 
     line           = (LINE_F2*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
@@ -405,7 +405,7 @@ void func_actor_548100_80132EA8(RoomRect* rect, u8 r, u8 g, u8 b)
     line->r0 = r;
     line->g0 = g;
     line->b0 = b;
-    addPrim(Gpu_CurrentOt + 1, line);
+    addPrim(gGpuCurrentOt + 1, line);
 
     line           = (LINE_F2*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
@@ -417,7 +417,7 @@ void func_actor_548100_80132EA8(RoomRect* rect, u8 r, u8 g, u8 b)
     line->r0 = r;
     line->g0 = g;
     line->b0 = b;
-    addPrim(Gpu_CurrentOt + 1, line);
+    addPrim(gGpuCurrentOt + 1, line);
 }
 
 void func_actor_548100_801330EC(void)
@@ -536,7 +536,7 @@ void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
     quad->y2 = y2;
     quad->x3 = x3;
     quad->y3 = y3;
-    addPrim(&Gpu_CurrentOt[0x3FC], quad);
+    addPrim(&gGpuCurrentOt[0x3FC], quad);
 
     top            = (POLY_G4*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(top + 1);
@@ -562,7 +562,7 @@ void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
     top->y2 = y0;
     top->x3 = x1;
     top->y3 = y1;
-    addPrim(&Gpu_CurrentOt[0x3FC], top);
+    addPrim(&gGpuCurrentOt[0x3FC], top);
 
     left           = (POLY_G4*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(left + 1);
@@ -588,7 +588,7 @@ void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
     left->y2 = y0;
     left->x3 = x2;
     left->y3 = y2;
-    addPrim(&Gpu_CurrentOt[0x3FC], left);
+    addPrim(&gGpuCurrentOt[0x3FC], left);
 
     right          = (POLY_G4*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(right + 1);
@@ -614,7 +614,7 @@ void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
     right->y2 = y1;
     right->x3 = x3;
     right->y3 = y3;
-    addPrim(&Gpu_CurrentOt[0x3FC], right);
+    addPrim(&gGpuCurrentOt[0x3FC], right);
 
     bottom         = (POLY_G4*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(bottom + 1);
@@ -640,13 +640,13 @@ void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
     bottom->y2 = y2;
     bottom->x3 = x3;
     bottom->y3 = y3;
-    addPrim(&Gpu_CurrentOt[0x3FC], bottom);
+    addPrim(&gGpuCurrentOt[0x3FC], bottom);
 }
 
 /// Draws `edge` between its two nodes in the colour its `state` selects (1-3).
 /// States 4 and 5 (5 swaps the nodes) split the line at `field_C` along x, or
 /// along y when `flag_3` is set, clipping each half with a `DR_AREA` linked into
-/// `Gpu_CurrentOt[0x3FC]` and drawing one half per colour.
+/// `gGpuCurrentOt[0x3FC]` and drawing one half per colour.
 void func_actor_548100_80133684(Actor548100Edge* edge)
 {
     RECT     rect;
@@ -685,7 +685,7 @@ void func_actor_548100_80133684(Actor548100Edge* edge)
             setRECT(&rect, 0, 0, 0x140, 0xF0);
             rect.y += D_80070F87 * 0x110;
             SetDrawArea(area, &rect);
-            addPrim(&Gpu_CurrentOt[0x3FC], area);
+            addPrim(&gGpuCurrentOt[0x3FC], area);
             if (edge->flag_3 == 0) {
                 sign = 1;
                 if (bx < ax) {
@@ -702,7 +702,7 @@ void func_actor_548100_80133684(Actor548100Edge* edge)
                 }
                 rect.y += D_80070F87 * 0x110;
                 SetDrawArea(area, &rect);
-                addPrim(&Gpu_CurrentOt[0x3FC], area);
+                addPrim(&gGpuCurrentOt[0x3FC], area);
                 func_actor_548100_80133200(a, b, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
                 area           = (DR_AREA*)Gpu_PrimCursor;
                 Gpu_PrimCursor = (DR_TPAGE*)(area + 1);
@@ -727,7 +727,7 @@ void func_actor_548100_80133684(Actor548100Edge* edge)
                 }
                 rect.y += D_80070F87 * 0x110;
                 SetDrawArea(area, &rect);
-                addPrim(&Gpu_CurrentOt[0x3FC], area);
+                addPrim(&gGpuCurrentOt[0x3FC], area);
                 func_actor_548100_80133200(a, b, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
                 area           = (DR_AREA*)Gpu_PrimCursor;
                 Gpu_PrimCursor = (DR_TPAGE*)(area + 1);
@@ -739,7 +739,7 @@ void func_actor_548100_80133684(Actor548100Edge* edge)
             }
             rect.y += D_80070F87 * 0x110;
             SetDrawArea(area, &rect);
-            addPrim(&Gpu_CurrentOt[0x3FC], area);
+            addPrim(&gGpuCurrentOt[0x3FC], area);
             break;
     }
 }
@@ -747,7 +747,7 @@ void func_actor_548100_80133684(Actor548100Edge* edge)
 /// Draws a translucent flat quad in the (`D_..._80135B53`..`55`) colour at
 /// x 0x43..0x68, on row 1 (`arg0 == 1`) or row 2, framed by four `POLY_G4`
 /// edges fading from black into that colour, all linked into
-/// `Gpu_CurrentOt[0x3FC]`.
+/// `gGpuCurrentOt[0x3FC]`.
 void func_actor_548100_80133BBC(s32 arg0)
 {
     POLY_F4* quad;
@@ -797,7 +797,7 @@ void func_actor_548100_80133BBC(s32 arg0)
     quad->y2 = y1;
     quad->x3 = x1;
     quad->y3 = y1;
-    addPrim(&Gpu_CurrentOt[0x3FC], quad);
+    addPrim(&gGpuCurrentOt[0x3FC], quad);
 
     r1             = D_actor_548100_80135B53;
     g1             = D_actor_548100_80135B54;
@@ -826,7 +826,7 @@ void func_actor_548100_80133BBC(s32 arg0)
     top->y2 = y0;
     top->x3 = x1;
     top->y3 = y0;
-    addPrim(&Gpu_CurrentOt[0x3FC], top);
+    addPrim(&gGpuCurrentOt[0x3FC], top);
 
     r2             = D_actor_548100_80135B53;
     g2             = D_actor_548100_80135B54;
@@ -855,7 +855,7 @@ void func_actor_548100_80133BBC(s32 arg0)
     left->y2 = y0;
     left->x3 = x0;
     left->y3 = y1;
-    addPrim(&Gpu_CurrentOt[0x3FC], left);
+    addPrim(&gGpuCurrentOt[0x3FC], left);
 
     r3             = D_actor_548100_80135B53;
     g3             = D_actor_548100_80135B54;
@@ -884,7 +884,7 @@ void func_actor_548100_80133BBC(s32 arg0)
     right->y2 = y0;
     right->x3 = x1;
     right->y3 = y1;
-    addPrim(&Gpu_CurrentOt[0x3FC], right);
+    addPrim(&gGpuCurrentOt[0x3FC], right);
 
     r4             = D_actor_548100_80135B53;
     g4             = D_actor_548100_80135B54;
@@ -913,12 +913,12 @@ void func_actor_548100_80133BBC(s32 arg0)
     bottom->y2 = y1;
     bottom->x3 = x1;
     bottom->y3 = y1;
-    addPrim(&Gpu_CurrentOt[0x3FC], bottom);
+    addPrim(&gGpuCurrentOt[0x3FC], bottom);
 }
 
 /// Draws a translucent flat quad in half the (`D_..._80135B53`..`55`) colour
 /// and a gradient border of four `POLY_G4` edges fading from black into
-/// that colour, linked into `Gpu_CurrentOt[0x3FC]`. The flat quad itself is
+/// that colour, linked into `gGpuCurrentOt[0x3FC]`. The flat quad itself is
 /// never linked.
 void func_actor_548100_80133F88(void)
 {
@@ -975,7 +975,7 @@ void func_actor_548100_80133F88(void)
     top->y2 = -0x62;
     top->x3 = -0x5b;
     top->y3 = -0x62;
-    addPrim(&Gpu_CurrentOt[0x3FC], top);
+    addPrim(&gGpuCurrentOt[0x3FC], top);
 
     left           = (POLY_G4*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(left + 1);
@@ -1001,7 +1001,7 @@ void func_actor_548100_80133F88(void)
     left->y2 = -0x62;
     left->x3 = -0x86;
     left->y3 = 0x65;
-    addPrim(&Gpu_CurrentOt[0x3FC], left);
+    addPrim(&gGpuCurrentOt[0x3FC], left);
 
     right          = (POLY_G4*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(right + 1);
@@ -1027,7 +1027,7 @@ void func_actor_548100_80133F88(void)
     right->y2 = -0x62;
     right->x3 = -0x5b;
     right->y3 = 0x65;
-    addPrim(&Gpu_CurrentOt[0x3FC], right);
+    addPrim(&gGpuCurrentOt[0x3FC], right);
 
     bottom         = (POLY_G4*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(bottom + 1);
@@ -1053,7 +1053,7 @@ void func_actor_548100_80133F88(void)
     bottom->y2 = 0x65;
     bottom->x3 = -0x5b;
     bottom->y3 = 0x65;
-    addPrim(&Gpu_CurrentOt[0x3FC], bottom);
+    addPrim(&gGpuCurrentOt[0x3FC], bottom);
 }
 
 void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos)
@@ -1209,5 +1209,5 @@ void func_actor_548100_8013461C(Actor548100TexRect* rect)
     prim->v3    = v1;
     prim->tpage = 0x116;
     setShadeTex(prim, 1);
-    addPrim(&Gpu_CurrentOt[0x3FE], prim);
+    addPrim(&gGpuCurrentOt[0x3FE], prim);
 }

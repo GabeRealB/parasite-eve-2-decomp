@@ -76,7 +76,7 @@ void func_acropolis_west_elevator_hall_8017FE18(Task* task)
             u_long  mask;
             u_long  addrMask = 0xFFFFFF;
             SOFT_USE_REG(addrMask);
-            ot   = (u_long*)(byteOfs + (s32)Gpu_CurrentOt);
+            ot   = (u_long*)(byteOfs + (s32)gGpuCurrentOt);
             mask = tagMask;
             SOFT_TOUCH_REG_USE(mask, mv);
             mv->tag = (mv->tag & mask) | getaddr(ot);
@@ -144,7 +144,7 @@ void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
         prim->x1 = prim->x3 = block->sx + *(u16*)&block->radius;
         prim->y0 = prim->y1 = block->sy - *(u16*)&block->radius;
         prim->y2 = prim->y3 = block->sy + *(u16*)&block->radius;
-        addPrim((u_long*)(((((u32)((AwehSpriteScratch*)(head - 0x14))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+        addPrim((u_long*)(((((u32)((AwehSpriteScratch*)(head - 0x14))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;

@@ -212,7 +212,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
                                  << gDisplayState.otDepthShift) >>
                                 2) &
                                0xFFC) +
-                              (s32)Gpu_CurrentOt),
+                              (s32)gGpuCurrentOt),
                     prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
@@ -404,14 +404,14 @@ void func_acropolis_fountain_8017E3D4(Task* task)
                     dr   = Gpu_PrimCursor;
                     p->w = slot->field_12;
                     p->h = slot->field_14;
-                    addPrim(&Gpu_CurrentOt[ot], p);
+                    addPrim(&gGpuCurrentOt[ot], p);
 
                     Gpu_PrimCursor = dr + 1;
                     setlen(dr, 1);
                     tpage       = (u32)(slot->field_18 & 0x100) >> 4;
                     dr->code[0] = tpage | (((u32)(slot->field_16 & 0x3FF) >> 6) | 0x100) |
                                   ((slot->field_18 & 0x200) * 4) | 0xE1000000;
-                    addPrim(&Gpu_CurrentOt[ot], dr);
+                    addPrim(&gGpuCurrentOt[ot], dr);
                     break;
 
                 case 2:

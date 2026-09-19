@@ -23,7 +23,7 @@ void RoomsShared8017e144(s16 shade)
     p->clut = 0;
     p->w    = 0xC0;
     p->h    = 0xF0;
-    addPrim(Gpu_CurrentOt + 8, p);
+    addPrim(gGpuCurrentOt + 8, p);
     Room_Draw42(0x340, 0);
 
     p              = (SPRT*)Gpu_PrimCursor;
@@ -40,7 +40,7 @@ void RoomsShared8017e144(s16 shade)
     p->clut = 0;
     p->w    = 0x80;
     p->h    = 0xF0;
-    addPrim(Gpu_CurrentOt + 8, p);
+    addPrim(gGpuCurrentOt + 8, p);
     Room_Draw42(0x280, 0x100);
 }
 

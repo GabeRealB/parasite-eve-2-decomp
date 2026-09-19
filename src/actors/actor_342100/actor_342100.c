@@ -162,13 +162,13 @@ void func_actor_342100_80162748(Task* arg0)
             tile->y0 = -0x78;
             tile->w  = 0x140;
             tile->h  = 0xF0;
-            addPrim(Gpu_CurrentOt - 16, tile);
+            addPrim(gGpuCurrentOt - 16, tile);
 
             dr             = Gpu_PrimCursor;
             Gpu_PrimCursor = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE1000200;
-            addPrim(Gpu_CurrentOt - 16, dr);
+            addPrim(gGpuCurrentOt - 16, dr);
             return;
     }
     Fade_DrawOverlay((u8)work->field_2, (u8)work->field_4, (u8)work->field_6, 1);

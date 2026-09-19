@@ -59,13 +59,13 @@ void func_aya_20900_8011578C(Task* arg0)
     p->y0 = -0x78;
     p->w  = 0x140;
     p->h  = 0xF0;
-    addPrim(Gpu_CurrentOt - 0x10, p);
+    addPrim(gGpuCurrentOt - 0x10, p);
 
     dr             = Gpu_PrimCursor;
     Gpu_PrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE1000000 | 0x220;
-    addPrim(Gpu_CurrentOt - 0x10, dr);
+    addPrim(gGpuCurrentOt - 0x10, dr);
 }
 
 void func_aya_20900_80115948(void)
@@ -88,7 +88,7 @@ void func_aya_20900_80115948(void)
     setUVWH(p, 0, 0, w, h);
     p->clut  = 0x3FC0;
     p->tpage = 0x2F;
-    addPrim(Gpu_CurrentOt, p);
+    addPrim(gGpuCurrentOt, p);
 }
 
 s32 func_aya_20900_80115A14(Task* arg0)
@@ -179,13 +179,13 @@ s32 func_aya_20900_80115A14(Task* arg0)
     p->y0 = -0x78;
     p->w  = 0x140;
     p->h  = 0xF0;
-    addPrim(Gpu_CurrentOt - 0x10, p);
+    addPrim(gGpuCurrentOt - 0x10, p);
 
     dr             = Gpu_PrimCursor;
     Gpu_PrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE1000000 | 0x240;
-    addPrim(Gpu_CurrentOt - 0x10, dr);
+    addPrim(gGpuCurrentOt - 0x10, dr);
     return 0;
 }
 

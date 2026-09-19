@@ -7,7 +7,7 @@
 
 /// Outlines `rect` on screen in (`r`, `g`, `b`) with four unconnected flat
 /// `LINE_F2`s -- top, right, bottom and left edge of the rectangle spanning
-/// (`x`, `y`) to (`x + w`, `y + h`) -- each linked into `Gpu_CurrentOt[1]`.
+/// (`x`, `y`) to (`x + w`, `y + h`) -- each linked into `gGpuCurrentOt[1]`.
 ///
 /// Shared body, linked into every room overlay that uses it.
 void Room_Draw26(RoomRect* rect, u8 r, u8 g, u8 b)
@@ -24,7 +24,7 @@ void Room_Draw26(RoomRect* rect, u8 r, u8 g, u8 b)
     line->r0 = r;
     line->g0 = g;
     line->b0 = b;
-    addPrim(Gpu_CurrentOt + 1, line);
+    addPrim(gGpuCurrentOt + 1, line);
 
     line           = (LINE_F2*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
@@ -36,7 +36,7 @@ void Room_Draw26(RoomRect* rect, u8 r, u8 g, u8 b)
     line->r0 = r;
     line->g0 = g;
     line->b0 = b;
-    addPrim(Gpu_CurrentOt + 1, line);
+    addPrim(gGpuCurrentOt + 1, line);
 
     line           = (LINE_F2*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
@@ -48,7 +48,7 @@ void Room_Draw26(RoomRect* rect, u8 r, u8 g, u8 b)
     line->r0 = r;
     line->g0 = g;
     line->b0 = b;
-    addPrim(Gpu_CurrentOt + 1, line);
+    addPrim(gGpuCurrentOt + 1, line);
 
     line           = (LINE_F2*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
@@ -60,5 +60,5 @@ void Room_Draw26(RoomRect* rect, u8 r, u8 g, u8 b)
     line->r0 = r;
     line->g0 = g;
     line->b0 = b;
-    addPrim(Gpu_CurrentOt + 1, line);
+    addPrim(gGpuCurrentOt + 1, line);
 }

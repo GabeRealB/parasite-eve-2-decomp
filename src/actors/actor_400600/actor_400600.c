@@ -277,7 +277,7 @@ void func_actor_400600_80132294(Task* task, s16 firstJoint, s16 secondJoint, s16
             poly->tpage = 0x48;
             poly->clut  = 0x4283;
             setRGB0(poly, shade, shade, shade);
-            addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), poly);
+            addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
         }
         *(u8**)G_SCRATCH_HEAD += sizeof(Actor400600BeamScratch);
     }

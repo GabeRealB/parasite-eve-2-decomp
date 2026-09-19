@@ -182,7 +182,7 @@ void func_inferno_8012F3EC(s16 arg0)
     p->y2 = yBot - ds->vramYOffset;
     p->x3 = x1;
     p->y3 = yBot - ds->vramYOffset;
-    addPrim((u_long*)(((((u32)z << ds->otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), p);
+    addPrim((u_long*)(((((u32)z << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), p);
     Gp_AddTpageShift((P_TAG*)p, 1, z);
 }
 
@@ -417,7 +417,7 @@ void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
             prim->y2 = block->sxy2 >> 16;
             prim->x3 = block->sxy3;
             prim->y3 = block->sxy3 >> 16;
-            addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
     }
@@ -518,7 +518,7 @@ void func_inferno_8012FF34(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
             prim->y2 = block->sxy2 >> 16;
             prim->x3 = block->sxy3;
             prim->y3 = block->sxy3 >> 16;
-            addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
     }

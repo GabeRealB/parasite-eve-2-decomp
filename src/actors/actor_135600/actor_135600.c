@@ -152,13 +152,13 @@ s32 func_actor_135600_80131E68(GsCOORDINATE2* coord, s32 arg1)
         poly->y2 = quad[2].vy;
         poly->x3 = quad[3].vx;
         poly->y3 = quad[3].vy;
-        addPrim((u_long*)(((((u32)depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt) - 2, poly);
+        addPrim((u_long*)(((((u32)depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt) - 2, poly);
 
         tpage          = Gpu_PrimCursor;
         Gpu_PrimCursor = tpage + 1;
         setlen(tpage, 1);
         tpage->code[0] = 0xE1000465;
-        addPrim((u_long*)(((((u32)depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt) - 2, tpage);
+        addPrim((u_long*)(((((u32)depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt) - 2, tpage);
     }
     return rot;
 }

@@ -942,16 +942,16 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
     bg->y2 = 0x59 - gDisplayState.vramYOffset;
     bg->x3 = (u16)D_801155B2 - D_801155B2 * 2 + 0xAE;
     bg->y3 = 0x59 - gDisplayState.vramYOffset;
-    addPrim(&Gpu_CurrentOt[3], bg);
+    addPrim(&gGpuCurrentOt[3], bg);
     bg2            = (POLY_G4*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(bg2 + 1);
     *bg2           = *bg;
-    addPrim(&Gpu_CurrentOt[3], bg2);
+    addPrim(&gGpuCurrentOt[3], bg2);
     dm             = (DR_MODE*)Gpu_PrimCursor;
     Gpu_PrimCursor = (DR_TPAGE*)(dm + 1);
     setlen(dm, 1);
     dm->code[0] = 0xE100020A;
-    addPrim(&Gpu_CurrentOt[3], dm);
+    addPrim(&gGpuCurrentOt[3], dm);
 
     if (title & 0xFF) {
         ft             = (POLY_FT4*)Gpu_PrimCursor;
@@ -981,7 +981,7 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
         ft->v3     = Gp_CapGlyphs[title & 0xFF].v + Gp_CapGlyphs[title & 0xFF].h;
         ft->clut   = 0x3D93;
         ft->tpage  = getTPage(0, 1, D_80115654, D_80115656);
-        addPrim(&Gpu_CurrentOt[2], ft);
+        addPrim(&gGpuCurrentOt[2], ft);
     }
 
     i = 0;
@@ -1102,7 +1102,7 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
                 ft->v2 = icon->v + icon->h;
                 ft->u3 = icon->u + icon->w;
                 ft->v3 = icon->v + icon->h;
-                addPrim(&Gpu_CurrentOt[2], ft);
+                addPrim(&gGpuCurrentOt[2], ft);
                 x += icon->w;
                 i++;
                 continue;
@@ -1144,12 +1144,12 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
                 gt->v2    = Gp_CapGlyphs[(s16)code].v + Gp_CapGlyphs[(s16)code].h;
                 gt->u3    = Gp_CapGlyphs[(s16)code].u + Gp_CapGlyphs[(s16)code].w;
                 gt->v3    = Gp_CapGlyphs[(s16)code].v + Gp_CapGlyphs[(s16)code].h;
-                addPrim(&Gpu_CurrentOt[2], gt);
+                addPrim(&gGpuCurrentOt[2], gt);
                 gt2            = (POLY_GT4*)Gpu_PrimCursor;
                 Gpu_PrimCursor = (DR_TPAGE*)(gt2 + 1);
                 *gt2           = *gt;
                 gt2->tpage     = getTPage(0, 2, D_80115654, D_80115656);
-                addPrim(&Gpu_CurrentOt[2], gt2);
+                addPrim(&gGpuCurrentOt[2], gt2);
                 asm("" : "+m"(gt2->tag)::"memory");
                 if (*vertical == 0) {
                     x = Gp_CapGlyphs[(s16)code].w + x - 1;
@@ -1208,7 +1208,7 @@ void func_800E62C0(void)
         mask = 0xFFFFFF;
         SOFT_TOUCH_REG_USE(p, mask);
         mask_hi = 0xFF000000;
-        ot      = Gpu_CurrentOt;
+        ot      = gGpuCurrentOt;
         p->tag  = (p->tag & mask_hi) | (ot[2] & mask);
         ot[2]   = (ot[2] & mask_hi) | ((u32)p & mask);
         if (D_8010FB84 == 0) {
@@ -1308,7 +1308,7 @@ void Gp_DrawCapCaret(void)
     mask |= 0xFFFF;
     p->y2 = ((s8) * (volatile u8*)&gDisplayState.vramYOffset + 7) * -1 + y;
 
-    ot      = Gpu_CurrentOt;
+    ot      = gGpuCurrentOt;
     mask_hi = 0xFF000000;
     p->tag  = (p->tag & mask_hi) | (ot[2] & mask);
     ot[2]   = (ot[2] & mask_hi) | ((u32)p & mask);
