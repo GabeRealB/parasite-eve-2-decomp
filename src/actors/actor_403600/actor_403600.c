@@ -17,6 +17,7 @@
 #define gte_rtps_real()   __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtir_real()   __asm__ volatile("nop; nop; .word 0x4A49E012")
 #define gte_rtpt_real()   __asm__ volatile("nop; nop; .word 0x4A280030")
+#define gte_gpf12_real()  __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_nclip_real()  __asm__ volatile("nop; nop; .word 0x4B400006")
 #define gte_avsz3_real()  __asm__ volatile("nop; nop; .word 0x4B58002D")
 #define gte_avsz4_real()  __asm__ volatile("nop; nop; .word 0x4B68002E")
@@ -213,6 +214,7 @@ extern Task*                    D_actor_403600_801606B4;
 extern const Actor403600Pattern D_actor_403600_80131E38;
 
 extern u8               D_80071075;
+extern u8               D_80071090;
 extern s8               D_8007216C;
 extern u8               D_801153F4;
 extern s8               D_801153F1;
@@ -604,7 +606,243 @@ INCLUDE_RODATA("actors/nonmatchings/actor_403600/actor_403600", D_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80134398);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801353D0);
+void func_actor_403600_801353D0(Actor403600EffectState* arg0, GsCOORDINATE2* arg1)
+{
+    s32                       radii[16];
+    s32                       heights[16];
+    s32                       corner[4];
+    s32                       i;
+    s32                       j;
+    s32                       firstAngle;
+    s32                       angle;
+    s32                       index;
+    s32                       value;
+    s32                       firstRadius;
+    s32                       rotation;
+    s32                       mirrorXY;
+    s32                       projectedX;
+    s32                       projectedY;
+    s32                       screenX;
+    s32                       screenY;
+    s32                       min;
+    s32                       max;
+    s32                       adjust;
+    s32                       radiusOffset;
+    s32                       scale;
+    s32                       scanCount;
+    s32                       otz;
+    s32*                      height;
+    MATRIX*                   matrix;
+    s32*                      heightBase;
+    s32*                      scan;
+    u32                       mask;
+    u32                       maskHi;
+    u_long*                   ot;
+    u16                       oldY;
+    u8*                       head;
+    u8*                       newHead;
+    u8*                       uv;
+    u8*                       previous;
+    u8*                       mirror;
+    POLY_FT4*                 poly;
+    SVECTOR*                  vec;
+    Actor403600EffectScratch* scratch;
+
+    head                = *(u8**)0x1F8003FC;
+    newHead             = head - 0x78;
+    *(void**)0x1F8003FC = newHead;
+    scratch             = (Actor403600EffectScratch*)newHead;
+    Gp_UpdateCoord(arg1);
+    gte_SetRotMatrix(&arg1->workm);
+    gte_SetTransMatrix(&arg1->workm);
+
+    scratch->points[1].vz = 0x1000;
+    scratch->points[2].vx = 0x1000;
+    scratch->points[0].vx = 0;
+    scratch->points[0].vy = 0;
+    scratch->points[0].vz = 0;
+    scratch->points[1].vx = 0;
+    scratch->points[1].vy = 0;
+    scratch->points[2].vy = 0;
+    scratch->points[2].vz = 0;
+    gte_ldv3(&scratch->points[0], &scratch->points[1], &scratch->points[2]);
+    gte_rtpt_real();
+    gte_stsxy3(&scratch->sxy3[0], &scratch->sxy3[1], &scratch->sxy3[2]);
+    gte_stdp(&scratch->dp);
+    gte_stflg(&scratch->flag);
+    gte_stszotz(&scratch->otz);
+    gte_nclip_real();
+    gte_stopz(&scratch->nclip);
+
+    i = 0;
+    do {
+        firstAngle  = arg0->field_80 + i * 2;
+        index       = firstAngle % 32;
+        firstRadius = (rsin(arg0->field_0[index]) * arg0->field_40[index]) >> 12;
+        value       = (firstRadius * (16 - i)) / 16;
+        firstRadius = value >> 3;
+        if (arg0->field_E0 == 1) {
+            firstRadius = value >> 8;
+        }
+        radii[i]   = firstRadius;
+        value      = (arg0->field_40[index] * (15 - i)) >> 10;
+        heights[i] = value;
+        if (scratch->nclip > 0) {
+            heights[i] = -value;
+        }
+        i++;
+        j = 0;
+    } while (i < 16);
+
+    scratch->maxOtz = 0;
+    matrix          = &scratch->matrix;
+    vec             = &scratch->vec;
+    heightBase      = heights;
+    mask            = 0xFFFFFF;
+    do {
+        scratch->matrix = arg1->workm;
+        Gfx_RotMatrixY(matrix, (j << 12) / 12, 0);
+        gte_SetTransMatrix(&arg1->workm);
+        gte_SetRotMatrix(matrix);
+        scale        = 0x14;
+        i            = 0;
+        height       = heightBase;
+        radiusOffset = 0;
+        angle        = arg0->field_80;
+        do {
+            angle                   %= 32;
+            poly                     = (POLY_FT4*)D_actor_403600_8016069C;
+            D_actor_403600_8016069C += sizeof(POLY_FT4);
+            rotation                 = -rcos(arg0->field_0[angle]) >> 3;
+            scratch->vec.vx          = rsin(rotation);
+            scratch->vec.vy          = rcos(rotation);
+            scratch->vec.vz          = 0;
+            gte_ldv0(vec);
+            gte_mvmva_10030();
+            scratch->projected.vx = scale;
+            scratch->projected.vz = 0;
+            scratch->projected.vy = *(s32*)((u8*)radii + radiusOffset);
+            gte_stsv(vec);
+            gte_ldv0(&scratch->projected);
+            gte_rtps_real();
+            gte_stsxy(&scratch->sxy);
+            gte_stdp(&scratch->dp);
+            gte_stflg(&scratch->flag);
+            gte_stszotz(&scratch->otz);
+            gte_lddp(*height);
+            gte_ldsv(vec);
+            gte_gpf12_real();
+            gte_stsv(vec);
+
+            *(s32*)&poly->x0 = scratch->sxy;
+            oldY             = poly->y0;
+            projectedX       = scratch->vec.vx + 0xA0;
+            screenX          = (s16)poly->x0 + projectedX;
+            projectedY       = scratch->vec.vy + 0x78;
+            screenY          = (s16)poly->y0 + projectedY;
+            if (screenY >= 0xF0) {
+                poly->y0 = oldY + 0xEF - screenY;
+                screenY  = 0xEF;
+            } else if (screenY < 0) {
+                poly->y0 = oldY - screenY;
+                screenY  = 0;
+            }
+            if (screenX >= 0x140) {
+                poly->x0 = (u16)poly->x0 + 0x13F - screenX;
+            } else if (screenX < 0) {
+                poly->x0 = (u16)poly->x0 - screenX;
+                screenX  = 0;
+            }
+            ((u8*)poly)[0x1E] = 0;
+            if (screenX >= 0x100) {
+                ((u8*)poly)[0x1E] = 0x40;
+            }
+            poly->v0 = screenY;
+            poly->u0 = screenX - ((u8*)poly)[0x1E];
+            if (scratch->flag >= 0 && i != 15 && (*height != 0 || (index = i + 1, index *= 4, *(s32*)((s32)heightBase + index) != 0))) {
+                ((u8*)poly)[3] = 9;
+                ((u8*)poly)[7] = 0x2D;
+                scratch->otz   = (scratch->otz << D_80071090 & 0x3FFF) >> 4;
+                if (scratch->maxOtz < scratch->otz) {
+                    scratch->maxOtz = scratch->otz;
+                }
+                ot     = Gpu_CurrentOt;
+                otz    = scratch->otz;
+                maskHi = 0xFF000000;
+                SOFT_TOUCH_REG_USE(maskHi, otz);
+                poly->tag        = (poly->tag & maskHi) | (ot[otz] & mask);
+                ot[scratch->otz] = (ot[scratch->otz] & maskHi) | ((u32)poly & mask);
+            }
+            previous = (u8*)poly - sizeof(POLY_FT4);
+            if (i != 0) {
+                *(s32*)(previous + 0x10) = *(s32*)&poly->x0;
+                previous[0x14]           = poly->u0;
+                do {
+                    previous[0x15] = poly->v0;
+                    previous[0x1F] = ((u8*)poly)[0x1E];
+                    if (j != 0) {
+                        mirrorXY = *(s32*)(previous + 0x08);
+                        mirror   = (u8*)poly - 0x2A8;
+                    } else {
+                        mirrorXY = *(s32*)(previous + 0x08);
+                        mirror   = (u8*)poly + 0x1B58;
+                    }
+                    *(s32*)(mirror + 0x18) = mirrorXY;
+                    mirror[0x1C]           = previous[0x0C];
+                } while (0);
+                mirror[0x1D]           = previous[0x0D];
+                mirror[0x26]           = previous[0x1E];
+                *(s32*)(mirror + 0x20) = *(s32*)(previous + 0x10);
+                mirror[0x24]           = previous[0x14];
+                mirror[0x25]           = previous[0x15];
+                mirror[0x27]           = previous[0x1F];
+            }
+            height++;
+            radiusOffset += 4;
+            i++;
+            angle += 2;
+            scale += 0x9B;
+        } while (i < 16);
+        j++;
+    } while (j < 12);
+
+    j = 0;
+    do {
+        i  = 0;
+        uv = (u8*)poly + 0x28;
+        do {
+            corner[0] = uv[-28] + uv[-10];
+            corner[1] = uv[-20] + uv[-9];
+            corner[2] = uv[-12] + uv[-2];
+            corner[3] = uv[-4] + uv[-1];
+            min       = corner[0];
+            max       = corner[0];
+            for (scanCount = 1; scanCount < 4; scanCount++) {
+                if (corner[scanCount] < min) {
+                    min = corner[scanCount];
+                } else if (max < corner[scanCount]) {
+                    max = corner[scanCount];
+                }
+            }
+            if (max >= 0x100 || min >= 0x40) {
+                adjust = 0x40;
+            } else {
+                adjust = 0;
+            }
+            *(u16*)(uv - 0x12) = ((u32)(adjust + 0x1C0) >> 6) | 0x110;
+            uv[-28]            = corner[0] - adjust;
+            uv[-20]            = corner[1] - adjust;
+            poly--;
+            uv[-12] = corner[2] - adjust;
+            i++;
+            uv[-4] = corner[3] - adjust;
+            uv    -= sizeof(POLY_FT4);
+        } while (i < 16);
+        j++;
+    } while (j < 12);
+    ActorsShared80131fc8(scratch->maxOtz + 1);
+    *(u8**)0x1F8003FC = *(u8**)0x1F8003FC + 0x78;
+}
 
 const SVECTOR D_actor_403600_80131E2C = { 0, 0x578, 0, 0 };
 

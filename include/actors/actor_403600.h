@@ -257,6 +257,24 @@ typedef struct Actor403600ScreenScratch {
 } Actor403600ScreenScratch;
 STATIC_ASSERT_SIZEOF(Actor403600ScreenScratch, 0x1C);
 
+/// 0x78-byte scratch block used to project the radial effect grid.
+typedef struct Actor403600EffectScratch {
+    /* 0x00 */ s32     dp;
+    /* 0x04 */ s32     flag;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     nclip;
+    /* 0x10 */ s32     sxy;
+    /* 0x14 */ SVECTOR projected;
+    /* 0x1C */ SVECTOR vec;
+    /* 0x24 */ s32     maxOtz;
+    /* 0x28 */ MATRIX  matrix;
+    /* 0x48 */ SVECTOR points[3];
+    /* 0x60 */ s32     pad_60[2];
+    /* 0x68 */ s32     sxy3[3];
+    /* 0x74 */ s32     pad_74;
+} Actor403600EffectScratch;
+STATIC_ASSERT_SIZEOF(Actor403600EffectScratch, 0x78);
+
 typedef struct Actor403600Point {
     /* 0x0 */ s16 x;
     /* 0x2 */ s16 pad_2;
