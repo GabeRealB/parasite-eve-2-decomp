@@ -27,13 +27,8 @@ typedef struct _GpItemMap {
 } GpItemMap;
 STATIC_ASSERT_SIZEOF(GpItemMap, 0x4);
 
-/// 4-byte scan descriptor for `Gp_GetItemTable` / `Gp_SumScanQty` /
-/// `Gp_GetScanSlot` / `Gp_ScanIndexOf` / `Gp_GetScanItemId` / `Gp_HasStockedItem` /
-/// `Gp_CountScanItems` / `Gp_CanAddItem`.
-/// field_0 is the start index into a 4-byte item table; field_1 is the
-/// entry count; field_2 selects the table (1 / 2 / default). Also
-/// `Mc_SaveData.field_5BC`. `Gp_DefaultScan` is a ROM default copied there
-/// by `Gp_ResetScanDefault`.
+/// Window on the rows of an item table an inventory operation works on;
+/// gameplay's name for `McItemScan`.
 typedef McItemScan GpItemScan;
 
 /// Row of the item tables `GpItemScan` selects between; gameplay's name for
@@ -360,8 +355,8 @@ void            Gp_SyncHeldRelated(void);
 void            Gp_InitItemSeenBits(void);
 s32             Gp_HasItemSeenBit(s32 arg0);
 void            Gp_RecalcMaxHp(void);
-/// Returns `arg0[1]` (e.g. `McItemScan.field_1` capacity).
-s32  Gp_GetScanCount(u8* arg0);
+/// Number of rows `scan` covers, i.e. how many items the window can hold.
+s32  Gp_GetScanCount(GpItemScan* scan);
 s32  Gp_ItemSortKey(s32 arg0);
 s32  Gp_GetModLevel(s32 arg0);
 void Gp_TickBoostPanel(Task* arg0);

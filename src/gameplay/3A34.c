@@ -95,8 +95,8 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                 cfg->weapon = id - 0x7F;
 
                 table = Gp_GetItemTable(scanEquip);
-                table = &table[scanEquip->field_0];
-                count = scanEquip->field_1;
+                table = &table[scanEquip->firstRow];
+                count = scanEquip->rowCount;
                 for (i = 0; i < count; i++) {
                     if (table->itemId == prevId) {
                         rec = table;
@@ -148,8 +148,8 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                 hit     = NULL;
                 table   = Gp_GetItemTable(scanRel);
                 i       = 0;
-                table   = &table[scanRel->field_0];
-                count   = scanRel->field_1;
+                table   = &table[scanRel->firstRow];
+                count   = scanRel->rowCount;
                 for (; i < count; i++) {
                     if (table->itemId == relId) {
                         hit = table;
@@ -165,8 +165,8 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                         avail = 1;
                         table = Gp_GetItemTable(scanFree);
                         i     = 0;
-                        table = &table[scanFree->field_0];
-                        count = scanFree->field_1;
+                        table = &table[scanFree->firstRow];
+                        count = scanFree->rowCount;
                         for (; i < count; i++) {
                             if (table->itemId != 0 && table->attachSlot == k + 1) {
                                 avail = 0;
@@ -185,8 +185,8 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                         hit    = NULL;
                         table  = Gp_GetItemTable(scanId);
                         i      = 0;
-                        table  = &table[scanId->field_0];
-                        count  = scanId->field_1;
+                        table  = &table[scanId->firstRow];
+                        count  = scanId->rowCount;
                         for (; i < count; i++) {
                             if (table->itemId == id) {
                                 hit = table;
@@ -451,8 +451,8 @@ void func_800D6334(Task* task)
         firstScan    = &Mc_SaveData.field_5BC;
         firstTable   = Gp_GetItemTable(firstScan);
         firstI       = 0;
-        firstTable   = &firstTable[firstScan->field_0];
-        firstCount   = firstScan->field_1;
+        firstTable   = &firstTable[firstScan->firstRow];
+        firstCount   = firstScan->rowCount;
         for (; firstI < firstCount; firstI++) {
             if (firstTable->attachSlot == selectedSlot + 1) {
                 firstRec = firstTable;
@@ -489,8 +489,8 @@ void func_800D6334(Task* task)
                 scan     = &Mc_SaveData.field_5BC;
                 table    = Gp_GetItemTable(scan);
                 i        = 0;
-                table    = &table[scan->field_0];
-                for (; i < scan->field_1; i++) {
+                table    = &table[scan->firstRow];
+                for (; i < scan->rowCount; i++) {
                     if (table->attachSlot == slot + 1) {
                         selected = table;
                         break;
@@ -526,8 +526,8 @@ void func_800D6334(Task* task)
                 useScan  = &Mc_SaveData.field_5BC;
                 useTable = Gp_GetItemTable(useScan);
                 useI     = 0;
-                useTable = &useTable[useScan->field_0];
-                useCount = useScan->field_1;
+                useTable = &useTable[useScan->firstRow];
+                useCount = useScan->rowCount;
                 for (; useI < useCount; useI++) {
                     if (useTable->attachSlot == useSlot + 1) {
                         useRec = useTable;
@@ -600,8 +600,8 @@ GpItemRec* Gp_FindItemById(s32 arg0)
     scan  = &Mc_SaveData.field_5BC;
     table = Gp_GetItemTable(scan);
     i     = 0;
-    table = &table[scan->field_0];
-    count = scan->field_1;
+    table = &table[scan->firstRow];
+    count = scan->rowCount;
     for (; i < count; i++) {
         if (table->itemId == arg0) {
             rec = table;
@@ -623,8 +623,8 @@ GpItemRec* Gp_FindItemByKind(s32 arg0)
     scan  = &Mc_SaveData.field_5BC;
     table = Gp_GetItemTable(scan);
     i     = 0;
-    table = &table[scan->field_0];
-    count = scan->field_1;
+    table = &table[scan->firstRow];
+    count = scan->rowCount;
     for (; i < count; i++) {
         if (table->attachSlot == arg0 + 1) {
             rec = table;
@@ -645,8 +645,8 @@ GpItemRec* Gp_FindItemInScan(s32 arg0, GpItemScan* arg1)
     rec   = NULL;
     table = Gp_GetItemTable(arg1);
     i     = 0;
-    table = &table[arg1->field_0];
-    count = arg1->field_1;
+    table = &table[arg1->firstRow];
+    count = arg1->rowCount;
     for (; i < count; i++) {
         if (table->itemId == arg0) {
             rec = table;

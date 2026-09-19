@@ -61,7 +61,7 @@ void RoomsShared8017ef24(Task* task)
     p        = total;
     scan     = &Mc_SaveData.field_5BC;
     count    = Gp_CountScanItems(scan);
-    capacity = scan->field_1;
+    capacity = scan->rowCount;
     Text_ItoaUnsigned((u8*)p, count);
     while (*p != 0) {
         p++;

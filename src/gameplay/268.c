@@ -75,7 +75,7 @@ s32 func_800B7420(s32 arg0)
             for (i = 0; i < 8; i++) {
                 id = D_8010D318[i];
                 memset(&scan, 0, sizeof(scan));
-                scan.field_1 = 0xFF;
+                scan.rowCount = 0xFF;
                 if (Gp_SumScanQty(&scan, id)) {
                     return 1;
                 }
@@ -87,7 +87,7 @@ s32 func_800B7420(s32 arg0)
             for (i = 0; i < 2; i++) {
                 id = D_8010D320[i];
                 memset(&scan, 0, sizeof(scan));
-                scan.field_1 = 0xFF;
+                scan.rowCount = 0xFF;
                 if (Gp_SumScanQty(&scan, id)) {
                     return 1;
                 }
@@ -100,7 +100,7 @@ s32 func_800B7420(s32 arg0)
             for (i = 0; i < 3; i++) {
                 id = D_8010D324[i];
                 memset(&scan, 0, sizeof(scan));
-                scan.field_1 = 0xFF;
+                scan.rowCount = 0xFF;
                 if (Gp_SumScanQty(&scan, id)) {
                     return 1;
                 }
@@ -109,50 +109,50 @@ s32 func_800B7420(s32 arg0)
 
         case 0x9:
             memset(&scan, 0, sizeof(scan));
-            scan.field_1 = 0xFF;
+            scan.rowCount = 0xFF;
             if (Gp_SumScanQty(&scan, 0x9F)) {
                 return 1;
             }
             memset(&scan, 0, sizeof(scan));
-            scan.field_1 = 0xFF;
+            scan.rowCount = 0xFF;
             if (Gp_SumScanQty(&scan, 0x9E)) {
                 memset(&scan, 0, sizeof(scan));
-                scan.field_1 = 0xFF;
+                scan.rowCount = 0xFF;
                 if (Gp_SumScanQty(&scan, 0x9)) {
                     return 1;
                 }
             }
             memset(&scan, 0, sizeof(scan));
-            scan.field_1 = 0xFF;
+            scan.rowCount = 0xFF;
             return Gp_SumScanQty(&scan, 0x9) >= 2;
 
         case 0xA:
             memset(&scan, 0, sizeof(scan));
-            scan.field_1 = 0xFF;
+            scan.rowCount = 0xFF;
             if (Gp_SumScanQty(&scan, 0x94)) {
                 return 1;
             }
             memset(&scan, 0, sizeof(scan));
-            scan.field_1 = 0xFF;
+            scan.rowCount = 0xFF;
             if (Gp_SumScanQty(&scan, 0x93)) {
                 memset(&scan, 0, sizeof(scan));
-                scan.field_1 = 0xFF;
+                scan.rowCount = 0xFF;
                 if (Gp_SumScanQty(&scan, 0xA)) {
                     return 1;
                 }
             }
             memset(&scan, 0, sizeof(scan));
-            scan.field_1 = 0xFF;
+            scan.rowCount = 0xFF;
             return Gp_SumScanQty(&scan, 0xA) >= 2;
 
         case 0xC:
             memset(&scan, 0, sizeof(scan));
-            scan.field_1 = 0xFF;
+            scan.rowCount = 0xFF;
             if (Gp_SumScanQty(&scan, 0x80)) {
                 return 1;
             }
             memset(&scan, 0, sizeof(scan));
-            scan.field_1 = 0xFF;
+            scan.rowCount = 0xFF;
             if (Gp_SumScanQty(&scan, 0xC)) {
                 return 1;
             }
@@ -162,12 +162,12 @@ s32 func_800B7420(s32 arg0)
 
         case 0x42:
             memset(&scan, 0, sizeof(scan));
-            scan.field_1 = 0xFF;
+            scan.rowCount = 0xFF;
             if (Gp_SumScanQty(&scan, 0x98)) {
                 return 1;
             }
             memset(&scan, 0, sizeof(scan));
-            scan.field_1 = 0xFF;
+            scan.rowCount = 0xFF;
             if (Gp_SumScanQty(&scan, 0x42)) {
                 return 1;
             }
@@ -176,12 +176,12 @@ s32 func_800B7420(s32 arg0)
 
         case 0x43:
             memset(&scan, 0, sizeof(scan));
-            scan.field_1 = 0xFF;
+            scan.rowCount = 0xFF;
             if (Gp_SumScanQty(&scan, 0x9B)) {
                 return 1;
             }
             memset(&scan, 0, sizeof(scan));
-            scan.field_1 = 0xFF;
+            scan.rowCount = 0xFF;
             if (Gp_SumScanQty(&scan, 0x43)) {
                 return 1;
             }
@@ -190,12 +190,12 @@ s32 func_800B7420(s32 arg0)
 
         case 0x44:
             memset(&scan, 0, sizeof(scan));
-            scan.field_1 = 0xFF;
+            scan.rowCount = 0xFF;
             if (Gp_SumScanQty(&scan, 0x9C)) {
                 return 1;
             }
             memset(&scan, 0, sizeof(scan));
-            scan.field_1 = 0xFF;
+            scan.rowCount = 0xFF;
             if (Gp_SumScanQty(&scan, 0x44)) {
                 return 1;
             }
@@ -204,12 +204,12 @@ s32 func_800B7420(s32 arg0)
 
         case 0x45:
             memset(&scan, 0, sizeof(scan));
-            scan.field_1 = 0xFF;
+            scan.rowCount = 0xFF;
             if (Gp_SumScanQty(&scan, 0x9A)) {
                 return 1;
             }
             memset(&scan, 0, sizeof(scan));
-            scan.field_1 = 0xFF;
+            scan.rowCount = 0xFF;
             if (Gp_SumScanQty(&scan, 0x45)) {
                 return 1;
             }
@@ -218,12 +218,12 @@ s32 func_800B7420(s32 arg0)
 
         case 0x46:
             memset(&scan, 0, sizeof(scan));
-            scan.field_1 = 0xFF;
+            scan.rowCount = 0xFF;
             if (Gp_SumScanQty(&scan, 0x99)) {
                 return 1;
             }
             memset(&scan, 0, sizeof(scan));
-            scan.field_1 = 0xFF;
+            scan.rowCount = 0xFF;
             if (Gp_SumScanQty(&scan, 0x46)) {
                 return 1;
             }
@@ -233,7 +233,7 @@ s32 func_800B7420(s32 arg0)
         default:
             if ((u32)(arg0 - 0x60) < 0x40) {
                 memset(&scan, 0, sizeof(scan));
-                scan.field_1 = 0xFF;
+                scan.rowCount = 0xFF;
                 return Gp_SumScanQty(&scan, arg0);
             }
             return 0;
@@ -348,7 +348,7 @@ void Gp_EquipMod(s32 arg0)
 
                     scan = &save->field_5BC;
                     Gp_RecalcMaxMp();
-                    switch (scan->field_2) {
+                    switch (scan->table) {
                         case 2:
                             tmp = Gp_ItemTable2;
                             break;
@@ -361,13 +361,13 @@ void Gp_EquipMod(s32 arg0)
                     }
                 }
                 i   = 0;
-                rec = &tmp[scan->field_0];
-                if (scan->field_1 != 0) {
+                rec = &tmp[scan->firstRow];
+                if (scan->rowCount != 0) {
                     do {
                         Gp_RefreshItemRow(rec);
                         i++;
                         rec++;
-                    } while (i < scan->field_1);
+                    } while (i < scan->rowCount);
                 }
 
                 {
@@ -439,7 +439,7 @@ void Gp_InitStarterInv(void)
     save->field_908[5] = 0;
     save->field_908[0] = 0;
     cfg                = &Player_Status;
-    switch (scan->field_2) {
+    switch (scan->table) {
         case 2:
             tmp = Gp_ItemTable2;
             break;
@@ -450,10 +450,10 @@ void Gp_InitStarterInv(void)
             tmp = Mc_SaveData.field_1AC;
             break;
     }
-    rec  = &tmp[scan->field_0];
+    rec  = &tmp[scan->firstRow];
     dest = D_8010D55C;
     i    = 0;
-    if (scan->field_1 != 0) {
+    if (scan->rowCount != 0) {
         do {
             item = rec->itemId;
             if (item != 0) {
@@ -470,7 +470,7 @@ void Gp_InitStarterInv(void)
             }
             i++;
             rec++;
-        } while (i < scan->field_1);
+        } while (i < scan->rowCount);
     }
     Gp_ClearScanItems(scan);
     scans = Gp_ScanPtrs;
@@ -602,10 +602,10 @@ void func_800B8014(void)
     p    = &Mc_SaveData;
     save = p;
     TOUCH_REG(p);
-    off                     = row;
-    save->field_5BC.field_0 = 0;
-    save->field_5BC.field_1 = 0x14;
-    save->field_5BC.field_2 = 0;
+    off                      = row;
+    save->field_5BC.firstRow = 0;
+    save->field_5BC.rowCount = 0x14;
+    save->field_5BC.table    = 0;
     for (; row < 4; row++, off += 3) {
         col = 0;
         k   = off;
@@ -681,7 +681,7 @@ void Gp_MoveItemSlot(GpItemScan* arg0, s32 arg1, s32 arg2)
     s32                 i;
     s32                 off;
 
-    switch (arg0->field_2) {
+    switch (arg0->table) {
         case 2:
             tmp = Gp_ItemTable2;
             break;
@@ -698,8 +698,8 @@ void Gp_MoveItemSlot(GpItemScan* arg0, s32 arg1, s32 arg2)
         return;
     }
 
-    arg1 += arg0->field_0;
-    arg2 += arg0->field_0;
+    arg1 += arg0->firstRow;
+    arg2 += arg0->firstRow;
     i     = arg2;
 
     if (arg1 < arg2) {
@@ -778,9 +778,9 @@ void Gp_SortItems(GpItemScan* arg0, s32 arg1)
     s32                 dummy7;
 
     i = 0;
-    if ((arg0->field_1 - 1) > 0) {
+    if ((arg0->rowCount - 1) > 0) {
         do {
-            switch (arg0->field_2) {
+            switch (arg0->table) {
                 case 2:
                     tmp = Gp_ItemTable2;
                     break;
@@ -792,7 +792,7 @@ void Gp_SortItems(GpItemScan* arg0, s32 arg1)
                     break;
             }
             table = tmp;
-            rec   = (GpItemRec*)((s32)table + (arg0->field_0 << 2));
+            rec   = (GpItemRec*)((s32)table + (arg0->firstRow << 2));
             rec   = (GpItemRec*)((s32)rec + (i << 2));
             id    = rec->itemId;
 
@@ -822,9 +822,9 @@ void Gp_SortItems(GpItemScan* arg0, s32 arg1)
             }
             minKey = key;
 
-            if (arg0->field_2 != 1) {
+            if (arg0->table != 1) {
                 tmp = Mc_SaveData.field_1AC;
-                if (arg0->field_2 == 2) {
+                if (arg0->table == 2) {
                     tmp = Gp_ItemTable2;
                 }
             } else {
@@ -832,10 +832,10 @@ void Gp_SortItems(GpItemScan* arg0, s32 arg1)
             }
             table = tmp;
             j     = i + 1;
-            other = (GpItemRec*)((s32)table + (arg0->field_0 << 2));
+            other = (GpItemRec*)((s32)table + (arg0->firstRow << 2));
             next  = (i << 2) + 4;
             other = (GpItemRec*)((s32)other + next);
-            if (j < arg0->field_1) {
+            if (j < arg0->rowCount) {
                 do {
                     id = other->itemId;
 
@@ -869,12 +869,12 @@ void Gp_SortItems(GpItemScan* arg0, s32 arg1)
                         *rec   = *other;
                         *other = saved;
                     }
-                    count = arg0->field_1;
+                    count = arg0->rowCount;
                     j++;
                     other++;
                 } while (j < count);
             }
-            count = arg0->field_1;
+            count = arg0->rowCount;
             i++;
         } while (i < (count - 1));
     }
@@ -901,7 +901,7 @@ s32 Gp_CanAddItemQty(GpItemScan* arg0, s32 arg1, s32 arg2)
     GpItemA0*  cap;
     s32        capacity;
 
-    switch (arg0->field_2) {
+    switch (arg0->table) {
         case 2:
             tmp = Gp_ItemTable2;
             break;
@@ -914,8 +914,8 @@ s32 Gp_CanAddItemQty(GpItemScan* arg0, s32 arg1, s32 arg2)
     }
     table    = tmp;
     i        = 0;
-    count    = arg0->field_1;
-    start    = arg0->field_0;
+    count    = arg0->rowCount;
+    start    = arg0->firstRow;
     occupied = i;
     if (count != 0) {
         limit = count;
@@ -929,7 +929,7 @@ s32 Gp_CanAddItemQty(GpItemScan* arg0, s32 arg1, s32 arg2)
         } while (i < limit);
     }
 
-    capacity = arg0->field_1;
+    capacity = arg0->rowCount;
     used     = occupied;
     if (arg1 >= 0x100) {
         return 1;
@@ -937,8 +937,8 @@ s32 Gp_CanAddItemQty(GpItemScan* arg0, s32 arg1, s32 arg2)
 
     if (arg1 >= 0xA0) {
         found  = 0;
-        start2 = arg0->field_0;
-        switch (arg0->field_2) {
+        start2 = arg0->firstRow;
+        switch (arg0->table) {
             case 2:
                 table2 = Gp_ItemTable2;
                 break;
@@ -953,7 +953,7 @@ s32 Gp_CanAddItemQty(GpItemScan* arg0, s32 arg1, s32 arg2)
             arg2 = Gp_StackLimits[arg1 - 0xA0].field_0;
         }
         i      = 0;
-        count2 = arg0->field_1;
+        count2 = arg0->rowCount;
         if (count2 != 0) {
             p      = Gp_StackLimits;
             idx    = arg1 - 0xA0;
@@ -1005,7 +1005,7 @@ s32 Gp_CanAddItem(GpItemScan* arg0, s32 arg1)
     GpItemA0*  cap;
     s32        capacity;
 
-    switch (arg0->field_2) {
+    switch (arg0->table) {
         case 2:
             tmp = Gp_ItemTable2;
             break;
@@ -1018,8 +1018,8 @@ s32 Gp_CanAddItem(GpItemScan* arg0, s32 arg1)
     }
     table    = tmp;
     i        = 0;
-    count    = arg0->field_1;
-    start    = arg0->field_0;
+    count    = arg0->rowCount;
+    start    = arg0->firstRow;
     occupied = i;
     if (count != 0) {
         limit = count;
@@ -1033,7 +1033,7 @@ s32 Gp_CanAddItem(GpItemScan* arg0, s32 arg1)
         } while (i < limit);
     }
 
-    capacity = arg0->field_1;
+    capacity = arg0->rowCount;
     used     = occupied;
     if (arg1 >= 0x100) {
         return 1;
@@ -1041,8 +1041,8 @@ s32 Gp_CanAddItem(GpItemScan* arg0, s32 arg1)
 
     if (arg1 >= 0xA0) {
         found  = 0;
-        start2 = arg0->field_0;
-        switch (arg0->field_2) {
+        start2 = arg0->firstRow;
+        switch (arg0->table) {
             case 2:
                 table2 = Gp_ItemTable2;
                 break;
@@ -1054,7 +1054,7 @@ s32 Gp_CanAddItem(GpItemScan* arg0, s32 arg1)
                 break;
         }
         i      = 0;
-        count2 = arg0->field_1;
+        count2 = arg0->rowCount;
         if (count2 != 0) {
             p      = Gp_StackLimits;
             idx    = arg1 - 0xA0;
@@ -1102,7 +1102,7 @@ GpItemRec* Gp_SetScanItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
     s32                 item;
     s32                 qty;
 
-    switch (arg0->field_2) {
+    switch (arg0->table) {
         case 2:
             tmp = Gp_ItemTable2;
             break;
@@ -1116,13 +1116,13 @@ GpItemRec* Gp_SetScanItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
     table = tmp;
     if ((u32)(arg2 - 0xA0) < 0x20U) {
         dest = Gp_GiveItem(arg0, arg2, arg3);
-        i    = arg0->field_0;
+        i    = arg0->firstRow;
         if (((GpItemRec*)(((i + arg1) << 2) + (s32)table))->itemId != 0) {
             goto done;
         }
         start = i;
         USE_REG(start);
-        if (arg0->field_1 == 0) {
+        if (arg0->rowCount == 0) {
             return dest;
         }
         i      = 0;
@@ -1132,10 +1132,10 @@ GpItemRec* Gp_SetScanItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
                 if (i == arg1) {
                     return dest;
                 }
-                dest          = (GpItemRec*)((s32)table + ((arg0->field_0 + arg1) << 2));
+                dest          = (GpItemRec*)((s32)table + ((arg0->firstRow + arg1) << 2));
                 dest->itemId  = arg2;
                 found         = walker;
-                slot          = (GpItemRec*)(((arg0->field_0 + arg1) << 2) + (s32)table);
+                slot          = (GpItemRec*)(((arg0->firstRow + arg1) << 2) + (s32)table);
                 slot->qty     = found->qty;
                 found->itemId = 0;
                 table         = found;
@@ -1144,10 +1144,10 @@ GpItemRec* Gp_SetScanItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
             }
             i++;
             walker++;
-        } while (i < arg0->field_1);
+        } while (i < arg0->rowCount);
         return dest;
     }
-    field0 = arg0->field_0;
+    field0 = arg0->firstRow;
     idx    = field0 + arg1;
     field0 = idx << 2;
     USE_REG(field0);
@@ -1184,7 +1184,7 @@ GpItemRec* Gp_AddItem(GpItemScan* arg0, s32 arg1, s32 arg2)
     s32                 temp;
     s32                 count;
 
-    switch (arg0->field_2) {
+    switch (arg0->table) {
         case 2:
             tmp = Gp_ItemTable2;
             break;
@@ -1210,12 +1210,12 @@ GpItemRec* Gp_AddItem(GpItemScan* arg0, s32 arg1, s32 arg2)
         }
     }
 
-    start = arg0->field_0;
+    start = arg0->firstRow;
     idx   = arg1 - 0xA0;
     found = 0;
     if ((u32)idx < 0x20U) {
         i = found;
-        if (arg0->field_1 != 0) {
+        if (arg0->rowCount != 0) {
             attrs = Gp_StackLimits;
             idx   = (idx << 2) + (s32)attrs;
             do {
@@ -1232,14 +1232,14 @@ GpItemRec* Gp_AddItem(GpItemScan* arg0, s32 arg1, s32 arg2)
                 }
                 i++;
                 start++;
-            } while (i < arg0->field_1);
+            } while (i < arg0->rowCount);
         }
         result = dest;
         if (found != 0) {
             goto ret;
         }
-        start = arg0->field_0;
-        if (arg0->field_1 == 0) {
+        start = arg0->firstRow;
+        if (arg0->rowCount == 0) {
             goto done;
         }
         SOFT_TOUCH_REG(found);
@@ -1262,7 +1262,7 @@ GpItemRec* Gp_AddItem(GpItemScan* arg0, s32 arg1, s32 arg2)
             }
             i++;
             rec++;
-        } while (i < arg0->field_1);
+        } while (i < arg0->rowCount);
         return dest;
     }
 
@@ -1274,7 +1274,7 @@ fill:
     dest->attachSlot = 0;
     goto done;
 loop_header:
-    count = arg0->field_1;
+    count = arg0->rowCount;
     i     = 0;
     if (count != 0) {
         off = start << 2;
@@ -1380,7 +1380,7 @@ s32 Gp_NthRelatedId(GpItemScan* arg0, s32 arg1, s32 arg2)
     s32                 off;
     s32                 temp;
 
-    switch (arg0->field_2) {
+    switch (arg0->table) {
         case 2:
             tmp = Gp_ItemTable2;
             break;
@@ -1392,7 +1392,7 @@ s32 Gp_NthRelatedId(GpItemScan* arg0, s32 arg1, s32 arg2)
             break;
     }
     table = tmp;
-    idx   = arg0->field_0;
+    idx   = arg0->firstRow;
     cfg   = &Player_Status;
     if (arg1 >= 0) {
         table0 = Gp_RelatedQty0;
@@ -1586,7 +1586,7 @@ static __inline void func_800B996C_RemoveItem(GpItemScan* arg0, GpItemRec* arg1,
         arg1->qty        = 0;
         arg1->attachSlot = 0;
     } else {
-        switch (arg0->field_2) {
+        switch (arg0->table) {
             case 2:
                 tmp = Gp_ItemTable2;
                 break;
@@ -1603,8 +1603,8 @@ static __inline void func_800B996C_RemoveItem(GpItemScan* arg0, GpItemRec* arg1,
         table = tmp;
         qty   = 0;
         USE_REG(qty);
-        i     = arg0->field_0;
-        count = arg0->field_1;
+        i     = arg0->firstRow;
+        count = arg0->rowCount;
         base  = table;
         end   = i + count;
         if (i < end) {
@@ -1622,7 +1622,7 @@ static __inline void func_800B996C_RemoveItem(GpItemScan* arg0, GpItemRec* arg1,
             }
         }
     after_loop:
-        if (i != arg0->field_0 + arg0->field_1) {
+        if (i != arg0->firstRow + arg0->rowCount) {
             if (arg2 < 0) {
                 arg2 = qty;
             }
@@ -1839,7 +1839,7 @@ static __inline__ s32 Gp_HasStockedItemInline(s32 arg0)
 
     scan = &Mc_SaveData.field_5BC;
     ret  = 0;
-    switch (scan->field_2) {
+    switch (scan->table) {
         case 2:
             table = Gp_ItemTable2;
             break;
@@ -1851,8 +1851,8 @@ static __inline__ s32 Gp_HasStockedItemInline(s32 arg0)
             break;
     }
     i      = 0;
-    table += scan->field_0;
-    count  = scan->field_1;
+    table += scan->firstRow;
+    count  = scan->rowCount;
     for (; i < count; i++) {
         if (table->attachSlot > 0) {
             if (table->itemId == arg0) {
@@ -1972,7 +1972,7 @@ s32 func_800B9D80(s32 arg0)
 
                 scan = &Mc_SaveData.field_5BC;
                 ret  = 0x36;
-                switch (scan->field_2) {
+                switch (scan->table) {
                     case 2:
                         table = Gp_ItemTable2;
                         break;
@@ -1984,8 +1984,8 @@ s32 func_800B9D80(s32 arg0)
                         break;
                 }
                 i      = 0;
-                table += scan->field_0;
-                count  = scan->field_1;
+                table += scan->firstRow;
+                count  = scan->rowCount;
                 for (; i < count; i++) {
                     if (table->attachSlot > 0) {
                         if (table->itemId == ret) {
@@ -2008,7 +2008,7 @@ s32 func_800B9D80(s32 arg0)
 
                 scan = &Mc_SaveData.field_5BC;
                 ret  = 0x39;
-                switch (scan->field_2) {
+                switch (scan->table) {
                     case 2:
                         table = Gp_ItemTable2;
                         break;
@@ -2020,8 +2020,8 @@ s32 func_800B9D80(s32 arg0)
                         break;
                 }
                 i      = 0;
-                table += scan->field_0;
-                count  = scan->field_1;
+                table += scan->firstRow;
+                count  = scan->rowCount;
                 for (; i < count; i++) {
                     if (table->attachSlot > 0) {
                         if (table->itemId == ret) {
@@ -2044,7 +2044,7 @@ s32 func_800B9D80(s32 arg0)
 
                 scan = &Mc_SaveData.field_5BC;
                 ret  = 0x38;
-                switch (scan->field_2) {
+                switch (scan->table) {
                     case 2:
                         table = Gp_ItemTable2;
                         break;
@@ -2056,8 +2056,8 @@ s32 func_800B9D80(s32 arg0)
                         break;
                 }
                 i      = 0;
-                table += scan->field_0;
-                count  = scan->field_1;
+                table += scan->firstRow;
+                count  = scan->rowCount;
                 for (; i < count; i++) {
                     if (table->attachSlot > 0) {
                         if (table->itemId == ret) {
@@ -2080,7 +2080,7 @@ s32 func_800B9D80(s32 arg0)
 
                 scan = &Mc_SaveData.field_5BC;
                 ret  = 0x37;
-                switch (scan->field_2) {
+                switch (scan->table) {
                     case 2:
                         table = Gp_ItemTable2;
                         break;
@@ -2092,9 +2092,9 @@ s32 func_800B9D80(s32 arg0)
                         break;
                 }
                 i      = 0;
-                bit    = scan->field_0;
+                bit    = scan->firstRow;
                 table += bit;
-                count  = scan->field_1;
+                count  = scan->rowCount;
                 for (; i < count; i++) {
                     if (table->attachSlot > 0) {
                         if (table->itemId == ret) {
@@ -2171,7 +2171,7 @@ void Gp_ResetInventory(void)
     }
 
     scan = &Gp_DefaultScan;
-    switch (scan->field_2) {
+    switch (scan->table) {
         case 2:
             tmp = Gp_ItemTable2;
             break;
@@ -2184,8 +2184,8 @@ void Gp_ResetInventory(void)
     }
     table = tmp;
     i     = 0;
-    count = scan->field_1;
-    start = scan->field_0;
+    count = scan->rowCount;
+    start = scan->firstRow;
     if (count != 0) {
         off   = start << 2;
         table = (GpItemRec*)(off + (s32)table);
@@ -2195,7 +2195,7 @@ void Gp_ResetInventory(void)
             table->attachSlot = 0;
             table->qty        = 0;
             table++;
-        } while (i < scan->field_1);
+        } while (i < scan->rowCount);
     }
 
     save = &Mc_SaveData;
@@ -2294,7 +2294,7 @@ void Gp_ClearInventory(void)
     }
 
     scan = &Gp_DefaultScan;
-    switch (scan->field_2) {
+    switch (scan->table) {
         case 2:
             tmp = Gp_ItemTable2;
             break;
@@ -2307,8 +2307,8 @@ void Gp_ClearInventory(void)
     }
     table = tmp;
     i     = 0;
-    count = scan->field_1;
-    start = scan->field_0;
+    count = scan->rowCount;
+    start = scan->firstRow;
     if (count != 0) {
         off   = start << 2;
         table = (GpItemRec*)(off + (s32)table);
@@ -2318,16 +2318,16 @@ void Gp_ClearInventory(void)
             table->attachSlot = 0;
             table->qty        = 0;
             table++;
-        } while (i < scan->field_1);
+        } while (i < scan->rowCount);
     }
 
-    save                    = &Mc_SaveData;
-    n                       = 0x14;
-    dest                    = &save->field_5BC;
-    save->field_5BC.field_0 = 0;
-    save->field_5BC.field_1 = n;
-    save->field_5BC.field_2 = 0;
-    switch (dest->field_2) {
+    save                     = &Mc_SaveData;
+    n                        = 0x14;
+    dest                     = &save->field_5BC;
+    save->field_5BC.firstRow = 0;
+    save->field_5BC.rowCount = n;
+    save->field_5BC.table    = 0;
+    switch (dest->table) {
         case 2:
             rec = Gp_ItemTable2;
             break;
@@ -2339,8 +2339,8 @@ void Gp_ClearInventory(void)
             break;
     }
     j   = 0;
-    rec = (GpItemRec*)((s32)rec + (dest->field_0 << 2));
-    if (dest->field_1 != 0) {
+    rec = (GpItemRec*)((s32)rec + (dest->firstRow << 2));
+    if (dest->rowCount != 0) {
         rows  = Gp_StatRows;
         save2 = &Mc_SaveData;
         attrs = Gp_ModStatAttrs;
@@ -2373,7 +2373,7 @@ void Gp_ClearInventory(void)
             }
             j++;
             rec++;
-        } while (j < dest->field_1);
+        } while (j < dest->rowCount);
     }
 
     state          = &Gp_StateC08;
@@ -2409,7 +2409,7 @@ void Gp_InitModeEquip(void)
     if (cfg->weapon == 0) {
         scan = &Mc_SaveData.field_5BC;
         item = 0x81;
-        switch (scan->field_2) {
+        switch (scan->table) {
             case 2:
                 tmp = Gp_ItemTable2;
                 break;
@@ -2422,8 +2422,8 @@ void Gp_InitModeEquip(void)
         }
         table = tmp;
         i     = 0;
-        count = scan->field_1;
-        start = scan->field_0;
+        count = scan->rowCount;
+        start = scan->firstRow;
         if (count != 0) {
             limit = count;
             off   = start << 2;
@@ -2544,7 +2544,7 @@ void Gp_ClearScanItems(GpItemScan* arg0)
     s32                 start;
     s32                 off;
 
-    switch (arg0->field_2) {
+    switch (arg0->table) {
         case 2:
             tmp = Gp_ItemTable2;
             break;
@@ -2557,8 +2557,8 @@ void Gp_ClearScanItems(GpItemScan* arg0)
     }
     table = tmp;
     i     = 0;
-    count = arg0->field_1;
-    start = arg0->field_0;
+    count = arg0->rowCount;
+    start = arg0->firstRow;
     if (count != 0) {
         off   = start << 2;
         table = (GpItemRec*)(off + (s32)table);
@@ -2568,7 +2568,7 @@ void Gp_ClearScanItems(GpItemScan* arg0)
             table->attachSlot = 0;
             table->qty        = 0;
             table++;
-        } while (i < arg0->field_1);
+        } while (i < arg0->rowCount);
     }
     USE_REG(i);
 }
@@ -2597,7 +2597,7 @@ s32 Gp_RemoveItem(GpItemScan* arg0, GpItemRec* arg1, s32 arg2)
         arg1->qty        = 0;
         arg1->attachSlot = 0;
     } else {
-        switch (arg0->field_2) {
+        switch (arg0->table) {
             case 2:
                 tmp = Gp_ItemTable2;
                 break;
@@ -2614,8 +2614,8 @@ s32 Gp_RemoveItem(GpItemScan* arg0, GpItemRec* arg1, s32 arg2)
         table = tmp;
         qty   = 0;
         USE_REG(qty);
-        i     = arg0->field_0;
-        count = arg0->field_1;
+        i     = arg0->firstRow;
+        count = arg0->rowCount;
         base  = table;
         end   = i + count;
         if (i < end) {
@@ -2633,7 +2633,7 @@ s32 Gp_RemoveItem(GpItemScan* arg0, GpItemRec* arg1, s32 arg2)
             }
         }
     after_loop:
-        if (i != arg0->field_0 + arg0->field_1) {
+        if (i != arg0->firstRow + arg0->rowCount) {
             if (arg2 < 0) {
                 arg2 = qty;
             }
@@ -2728,7 +2728,7 @@ s32 Gp_CountScanItems(GpItemScan* arg0)
     s32        limit;
     s32        off;
 
-    switch (arg0->field_2) {
+    switch (arg0->table) {
         case 2:
             tmp = Gp_ItemTable2;
             break;
@@ -2741,8 +2741,8 @@ s32 Gp_CountScanItems(GpItemScan* arg0)
     }
     table = tmp;
     i     = 0;
-    count = arg0->field_1;
-    start = arg0->field_0;
+    count = arg0->rowCount;
+    start = arg0->firstRow;
     ret   = i;
     if (count != 0) {
         limit = count;
@@ -2782,8 +2782,8 @@ s32 Gp_CountEquippedRelated(GpItemScan* arg0, s32 arg1)
     table = Gp_GetItemTable(arg0);
     count = 0;
     if ((u32)(arg1 - 0xA0) < 0x20U) {
-        start = arg0->field_0;
-        end   = start + arg0->field_1;
+        start = arg0->firstRow;
+        end   = start + arg0->rowCount;
         if (start < end) {
             slots = Mc_SaveData.field_1C8;
             limit = end;
@@ -2885,7 +2885,7 @@ s32 Gp_ScanStackQty(GpItemScan* arg0, s32 arg1)
     s32        ret;
     GpItemRec* table;
 
-    index = arg0->field_0;
+    index = arg0->firstRow;
     table = Gp_GetItemTable(arg0);
     if ((u32)(arg1 - 0xA0) < 0x20) {
         ret = (s16)Gp_FindScanQty(table, arg0, &index, arg1);
@@ -2907,7 +2907,7 @@ void Gp_ConsumeScanQty(GpItemScan* arg0, s32 arg1, s32 arg2)
     s32                 end;
     s32                 loop_end;
 
-    switch (arg0->field_2) {
+    switch (arg0->table) {
         case 2:
             tmp = Gp_ItemTable2;
             break;
@@ -2924,8 +2924,8 @@ void Gp_ConsumeScanQty(GpItemScan* arg0, s32 arg1, s32 arg2)
     table = tmp;
     qty   = 0;
     USE_REG(qty);
-    i     = arg0->field_0;
-    count = arg0->field_1;
+    i     = arg0->firstRow;
+    count = arg0->rowCount;
     base  = table;
     end   = i + count;
     if (i < end) {
@@ -2943,7 +2943,7 @@ void Gp_ConsumeScanQty(GpItemScan* arg0, s32 arg1, s32 arg2)
         }
     }
 after_loop:
-    if (i != arg0->field_0 + arg0->field_1) {
+    if (i != arg0->firstRow + arg0->rowCount) {
         if (arg2 < 0) {
             arg2 = qty;
         }
@@ -3022,7 +3022,7 @@ s32 Gp_HasCollectedBit(s32 arg0)
 
 GpItemRec* Gp_GetItemTable(GpItemScan* arg0)
 {
-    switch (arg0->field_2) {
+    switch (arg0->table) {
         case 2:
             return Gp_ItemTable2;
         case 1:
@@ -3038,7 +3038,7 @@ s32 Gp_ScanIndexOf(GpItemScan* arg0, GpItemRec* arg1)
     register s32 i asm("a2");
     s32          ret;
 
-    switch (arg0->field_2) {
+    switch (arg0->table) {
         case 2:
             table = Gp_ItemTable2;
             break;
@@ -3051,8 +3051,8 @@ s32 Gp_ScanIndexOf(GpItemScan* arg0, GpItemRec* arg1)
     }
 
     ret    = -1;
-    table += arg0->field_0;
-    for (i = 0; i < arg0->field_1; i++) {
+    table += arg0->firstRow;
+    for (i = 0; i < arg0->rowCount; i++) {
         if (table == arg1) {
             ret = i;
             break;
@@ -3066,7 +3066,7 @@ GpItemRec* Gp_GetScanSlot(GpItemScan* arg0, s32 arg1, s32 arg2)
 {
     GpItemRec* table;
 
-    switch (arg0->field_2) {
+    switch (arg0->table) {
         case 2:
             table = Gp_ItemTable2;
             break;
@@ -3077,7 +3077,7 @@ GpItemRec* Gp_GetScanSlot(GpItemScan* arg0, s32 arg1, s32 arg2)
             table = Mc_SaveData.field_1AC;
             break;
     }
-    return &table[arg0->field_0 + arg1];
+    return &table[arg0->firstRow + arg1];
 }
 
 s32 Gp_GetScanItemId(GpItemScan* arg0, s32 arg1)
@@ -3085,7 +3085,7 @@ s32 Gp_GetScanItemId(GpItemScan* arg0, s32 arg1)
     GpItemRec* table;
     GpItemRec* rec;
 
-    switch (arg0->field_2) {
+    switch (arg0->table) {
         case 2:
             table = Gp_ItemTable2;
             break;
@@ -3096,7 +3096,7 @@ s32 Gp_GetScanItemId(GpItemScan* arg0, s32 arg1)
             table = Mc_SaveData.field_1AC;
             break;
     }
-    rec = &table[arg0->field_0 + arg1];
+    rec = &table[arg0->firstRow + arg1];
     return rec->itemId;
 }
 
@@ -3151,7 +3151,7 @@ s32 Gp_SumScanQty(GpItemScan* arg0, s32 arg1)
     }
 
     acc = 0;
-    switch (arg0->field_2) {
+    switch (arg0->table) {
         case 2:
             tmp = Gp_ItemTable2;
             break;
@@ -3164,8 +3164,8 @@ s32 Gp_SumScanQty(GpItemScan* arg0, s32 arg1)
     }
     table = tmp;
     i     = 0;
-    count = arg0->field_1;
-    start = arg0->field_0;
+    count = arg0->rowCount;
+    start = arg0->firstRow;
     if (count != 0) {
         limit = count;
         off   = start << 2;
@@ -3438,7 +3438,7 @@ s32 Gp_FindScanQty(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3)
 
     i   = *arg2;
     ret = 0;
-    if (i < arg1->field_0 + arg1->field_1) {
+    if (i < arg1->firstRow + arg1->rowCount) {
     loop:
         if (arg0[i].itemId == arg3) {
             ret = arg0[i].qty;
@@ -3446,7 +3446,7 @@ s32 Gp_FindScanQty(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3)
             next  = i + 1;
             *arg2 = next;
             i     = next;
-            if (i < arg1->field_0 + arg1->field_1) {
+            if (i < arg1->firstRow + arg1->rowCount) {
                 goto loop;
             }
         }
@@ -3523,7 +3523,7 @@ s32 Gp_SumItemQty(s32 arg0)
     GpItemScan query;
 
     memset(&query, 0, sizeof(query));
-    query.field_1 = 0xFF;
+    query.rowCount = 0xFF;
     return Gp_SumScanQty(&query, arg0);
 }
 
@@ -3531,10 +3531,10 @@ void Gp_SetPlayerScan(s32 arg0)
 {
     McSaveData* p;
 
-    p                    = &Mc_SaveData;
-    p->field_5BC.field_0 = 0;
-    p->field_5BC.field_1 = arg0;
-    p->field_5BC.field_2 = 0;
+    p                     = &Mc_SaveData;
+    p->field_5BC.firstRow = 0;
+    p->field_5BC.rowCount = arg0;
+    p->field_5BC.table    = 0;
 }
 
 void Gp_SyncHeldRelated(void)
@@ -3647,9 +3647,9 @@ void Gp_FillHpMp(void)
     p->mp = p->mpMax;
 }
 
-s32 Gp_GetScanCount(u8* arg0)
+s32 Gp_GetScanCount(GpItemScan* scan)
 {
-    return arg0[1];
+    return scan->rowCount;
 }
 
 s32 Gp_ItemSortKey(s32 arg0)
@@ -3771,7 +3771,7 @@ s32 Gp_HasStockedItem(s32 arg0)
 
     scan = &Mc_SaveData.field_5BC;
     ret  = 0;
-    switch (scan->field_2) {
+    switch (scan->table) {
         case 2:
             table = Gp_ItemTable2;
             break;
@@ -3783,8 +3783,8 @@ s32 Gp_HasStockedItem(s32 arg0)
             break;
     }
     i      = 0;
-    table += scan->field_0;
-    count  = scan->field_1;
+    table += scan->firstRow;
+    count  = scan->rowCount;
     for (; i < count; i++) {
         if (table->attachSlot > 0) {
             if (table->itemId == arg0) {
@@ -3833,7 +3833,7 @@ s32 Gp_CanMoveItems(void)
     src   = &Gp_MoveScanSrc;
     ret   = 0;
     table = Gp_GetItemTable(src);
-    start = Gp_MoveScanSrc.field_0;
+    start = Gp_MoveScanSrc.firstRow;
     count = Gp_CountScanItems(src + 1);
     flag  = ret;
     if (Gp_CountScanItems(src) <= 0) {
@@ -3841,7 +3841,7 @@ s32 Gp_CanMoveItems(void)
     }
     TOUCH_REG(ret);
     i = ret;
-    if (ret < src->field_1) {
+    if (ret < src->rowCount) {
         destHi = 0x80110000; /* %hi(Gp_MoveScanDst); must precede the rec address */
         off    = start << 2;
         rec    = (GpItemRec*)(off + (s32)table);
@@ -3857,13 +3857,13 @@ s32 Gp_CanMoveItems(void)
             }
             i++;
             rec++;
-        } while (i < src->field_1);
+        } while (i < src->rowCount);
     }
     USE_REG(table);
     if (flag != 0) {
         return ret;
     }
-    if (Gp_MoveScanDst.field_1 >= count) {
+    if (Gp_MoveScanDst.rowCount >= count) {
         ret = 1;
     }
     return ret;

@@ -67,9 +67,9 @@ void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
         case 0x26:
             scanSrc = &Gp_MoveScanSrc;
             tbl     = Gp_GetItemTable(scanSrc);
-            base    = scanSrc->field_0;
+            base    = scanSrc->firstRow;
             i       = 0;
-            if (scanSrc->field_1 != 0) {
+            if (scanSrc->rowCount != 0) {
                 do {
                     if (tbl[base].itemId != 0) {
                         Gp_GiveItem(&Gp_MoveScanDst, tbl[base].itemId, tbl[base].qty);
@@ -78,7 +78,7 @@ void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
                     }
                     i++;
                     base++;
-                } while (i < scanSrc->field_1);
+                } while (i < scanSrc->rowCount);
             }
             /* fallthrough */
         case -1:
@@ -398,7 +398,7 @@ void Gp_ItemPaneTask(Task* arg0)
             register GpItemScan* s asm("v0");
 
             s             = &Gp_MoveScanSrc;
-            val           = s[arg0->spawnArg1].field_1;
+            val           = s[arg0->spawnArg1].rowCount;
             menu->field_4 = val;
             menu->field_5 = val;
             if ((s8)val >= 0xB) {
@@ -435,7 +435,7 @@ void Gp_ItemPaneTask(Task* arg0)
     }
 
     scan  = &Gp_MoveScanSrc + arg0->spawnArg1;
-    count = scan->field_1;
+    count = scan->rowCount;
     count = count < Gp_CountScanItems(scan);
     if (count != 0) {
         obj->field_4 |= 0x20000;
@@ -1086,8 +1086,8 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
                     scan = &Mc_SaveData.field_5BC;
                     rec  = Gp_GetItemTable(scan);
                     i    = 0;
-                    rec  = &rec[scan->field_0];
-                    if (scan->field_1 != 0) {
+                    rec  = &rec[scan->firstRow];
+                    if (scan->rowCount != 0) {
                         do {
                             if ((u8)(rec->itemId + 0x80) < 0x20) {
                                 slot   = Gp_GetItemSlot(rec->itemId);
@@ -1107,7 +1107,7 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
                             }
                             i++;
                             rec++;
-                        } while (i < scan->field_1);
+                        } while (i < scan->rowCount);
                     }
                     arg1->field_2E = 0x27;
                     break;
@@ -1118,8 +1118,8 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
                 scan = &Mc_SaveData.field_5BC;
                 rec  = Gp_GetItemTable(scan);
                 i    = 0;
-                rec  = &rec[scan->field_0];
-                if (scan->field_1 != 0) {
+                rec  = &rec[scan->firstRow];
+                if (scan->rowCount != 0) {
                     do {
                         if ((u8)(rec->itemId + 0x80) < 0x20) {
                             slot   = Gp_GetItemSlot(rec->itemId);
@@ -1139,7 +1139,7 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
                         }
                         i++;
                         rec++;
-                    } while (i < scan->field_1);
+                    } while (i < scan->rowCount);
                 }
                 arg1->field_2E = 0x27;
             } else {

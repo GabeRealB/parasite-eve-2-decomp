@@ -68,7 +68,7 @@ void RoomsShared8017f938(Task* task)
             }
         }
     } else {
-        maxQty = D_80072724.field_1 - Gp_CountScanItems(&D_80072724);
+        maxQty = D_80072724.rowCount - Gp_CountScanItems(&D_80072724);
     }
 
     afford = Player_Status.bp / price;

@@ -4085,7 +4085,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     if ((u32)(arg1 - 0x80) < 0x20U) {
         found = 0;
         if (arg1 >= 0xA0) {
-            index   = scan->field_0;
+            index   = scan->firstRow;
             shifted = Gp_FindScanQty(table, scan, &index, arg1);
             shifted = shifted << 16;
         } else {
@@ -4096,8 +4096,8 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
             s32                 limit;
             register GpItemRec* rec asm("a0");
 
-            i     = scan->field_0;
-            count = scan->field_1;
+            i     = scan->firstRow;
+            count = scan->rowCount;
             end   = i + count;
             if (i < end) {
                 off   = i << 2;
@@ -4151,7 +4151,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                 if (clamped < arg3) {
                     arg3 = clamped;
                 }
-                index2 = scan->field_0;
+                index2 = scan->firstRow;
                 slot   = &Mc_SaveData.field_1C8[arg1];
                 have   = (s16)Gp_FindScanQty(table, scan, &index2, arg2);
                 have  -= Gp_CountEquippedRelated(scan, arg2);
@@ -4214,7 +4214,7 @@ s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
     found = 0;
     if (arg1 >= 0xA0) {
-        index   = arg0->field_0;
+        index   = arg0->firstRow;
         shifted = Gp_FindScanQty(table, arg0, &index, arg1);
         shifted = shifted << 16;
     } else {
@@ -4225,8 +4225,8 @@ s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
         s32                 limit;
         register GpItemRec* rec asm("a0");
 
-        i     = arg0->field_0;
-        count = arg0->field_1;
+        i     = arg0->firstRow;
+        count = arg0->rowCount;
         end   = i + count;
         if (i < end) {
             off   = i << 2;
@@ -4305,7 +4305,7 @@ s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
         if (clamped < arg3) {
             arg3 = clamped;
         }
-        index2 = arg0->field_0;
+        index2 = arg0->firstRow;
         slot   = &Mc_SaveData.field_1C8[arg1];
         have   = (s16)Gp_FindScanQty(table, arg0, &index2, arg2);
         have  -= Gp_CountEquippedRelated(arg0, arg2);

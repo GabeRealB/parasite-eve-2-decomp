@@ -1014,7 +1014,7 @@ void Gp_ItemCountHeaderTask(Task* arg0)
     color = 0x606060;
     scan  = &Mc_SaveData.field_5BC;
     cur   = Gp_CountScanItems(scan);
-    cap   = Gp_GetScanCount((u8*)scan);
+    cap   = Gp_GetScanCount(scan);
     Text_ItoaUnsigned(buf, cur);
     Text_Strcat(buf, (u8*)Gp_StrSlash);
     Text_ItoaUnsigned(buf2, cap);
@@ -1929,8 +1929,8 @@ GpItemRec* func_800CE980(GpItemScan* arg0, s32 arg1)
     table = Gp_GetItemTable(arg0);
     i     = 0;
     rec   = NULL;
-    table = &table[arg0->field_0];
-    count = arg0->field_1;
+    table = &table[arg0->firstRow];
+    count = arg0->rowCount;
     for (; i < count; i++) {
         if (table->attachSlot == arg1 + 1) {
             rec = table;
@@ -1951,8 +1951,8 @@ s32 func_800CEA00(GpItemScan* arg0, s32 arg1)
     table = Gp_GetItemTable(arg0);
     i     = 0;
     rec   = NULL;
-    table = &table[arg0->field_0];
-    count = arg0->field_1;
+    table = &table[arg0->firstRow];
+    count = arg0->rowCount;
     for (; i < count; i++) {
         if (table->attachSlot == arg1 + 1) {
             rec = table;
@@ -2045,8 +2045,8 @@ GpItemRec* func_800CECC0(GpItemScan* arg0, s32 arg1)
     table = Gp_GetItemTable(arg0);
     i     = 0;
     rec   = NULL;
-    table = &table[arg0->field_0];
-    count = arg0->field_1;
+    table = &table[arg0->firstRow];
+    count = arg0->rowCount;
     if (count != 0) {
         p   = &Player_Status;
         one = 1;
@@ -2184,8 +2184,8 @@ void func_800CF090(UiList* arg0, UiObject* arg1)
     scan  = &Mc_SaveData.field_5BC;
     table = Gp_GetItemTable(scan);
     i     = 0;
-    table = &table[scan->field_0];
-    for (; i < scan->field_1; i++) {
+    table = &table[scan->firstRow];
+    for (; i < scan->rowCount; i++) {
         if (((u32)(table->itemId - 0x60) < 0x20U) && (p->armor != table->itemId - 0x5F)) {
             count++;
         }

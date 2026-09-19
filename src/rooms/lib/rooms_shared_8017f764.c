@@ -68,8 +68,8 @@ void RoomsShared8017f764(Task* task)
         if ((u32)(item - 0xA0) < 0x20U) {
             count = Gp_ScanStackQty(&D_80072724, item);
         } else {
-            rec = Gp_GetItemTable(&D_80072724) + D_80072724.field_0;
-            n   = D_80072724.field_1;
+            rec = Gp_GetItemTable(&D_80072724) + D_80072724.firstRow;
+            n   = D_80072724.rowCount;
             SOFT_USE_REG2(guard, guard);
             for (i = 0; i < n; i++) {
                 if (rec[i].itemId == item) {

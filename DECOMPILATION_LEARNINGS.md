@@ -23682,7 +23682,7 @@ the dest to `$v1` (`addu v1, v1, v0` / `lbu v0, 0(v1)`). A *second*
 pointer keeps dest `$v0` and base-first operands:
 
 ```c
-rec = &table[arg0->field_0 + arg1]; /* addu v0, v1, v0 */
+rec = &table[arg0->firstRow + arg1]; /* addu v0, v1, v0 */
 return rec->itemId;                /* lbu  v0, 0(v0) */
 ```
 
@@ -24760,7 +24760,7 @@ GpItemRec*   table;
 register s32 i asm("a2");
 s32          ret;
 
-switch (scan->field_2) {
+switch (scan->table) {
 case 2:
     table = D_case2;
     break;
@@ -24772,8 +24772,8 @@ default:
     break;
 }
 ret = -1;
-table += scan->field_0;
-for (i = 0; i < scan->field_1; i++) {
+table += scan->firstRow;
+for (i = 0; i < scan->rowCount; i++) {
     if (table == rec) {
         ret = i;
         break;
@@ -25633,7 +25633,7 @@ keeps the walk on `$v1` with `sb 0` / `sb 1` / `sh 2`:
 GpItemRec*          tmp;
 register GpItemRec* table asm("v1");
 
-switch (scan->field_2) {
+switch (scan->table) {
 case 2:
     tmp = D_case2;
     break;
@@ -25851,8 +25851,8 @@ rec   = NULL;
 scan  = &Mc_SaveData.field_5BC;
 table = Gp_GetItemTable(scan);
 i     = 0;
-table = &table[scan->field_0];
-count = scan->field_1;
+table = &table[scan->firstRow];
+count = scan->rowCount;
 ```
 
 `rec = NULL` after the call CSEs with `i = 0` and lands in `$a3`, so the
@@ -27195,14 +27195,14 @@ addiu v0, v0, -0x5F
 
 Mark the walk pointer `volatile`. CSE cannot keep the first `lbu`, and
 `-fdelayed-branch` will not speculate the second volatile load into
-the `beqz` slot. Also use `scan->field_1` directly in the `for`
-condition — a `count = scan->field_1` local takes `$a1` and puts `i`
+the `beqz` slot. Also use `scan->rowCount` directly in the `for`
+condition — a `count = scan->rowCount` local takes `$a1` and puts `i`
 in `$a1` instead of `$a2`.
 
 ```c
 volatile GpItemRec* table;
 ...
-for (; i < scan->field_1; i++) {
+for (; i < scan->rowCount; i++) {
     if (((u32)(table->itemId - 0x60) < 0x20U) &&
         (p->field_23 != table->itemId - 0x5F)) {
         count++;
@@ -28045,7 +28045,7 @@ was 98.3% — same tests, but default landed before case 1.
 ## Assign the loop compare constant before the item-table switch
 
 A scan that compares `rec->itemId == K` after the usual
-`switch (scan->field_2)` table select wants `li tN, K` in the delay slot
+`switch (scan->table)` table select wants `li tN, K` in the delay slot
 of the first `beq field_2, 1`. Writing `if (rec->itemId == 0x81)` (or
 assigning `item = 0x81` after the switch) materializes K later, often
 clobbering the table pointer's register and skipping the shared `i = 0`
@@ -28057,7 +28057,7 @@ local. GCC keeps it live across the table select and plants it in the
 
 ```c
 item = 0x81;
-switch (scan->field_2) {
+switch (scan->table) {
     case 2:
         tmp = Gp_ItemTable2;
         break;
@@ -28295,7 +28295,7 @@ it. GCC 2.8.1 will not move that block into the hole between `case 1` and
 A regular label *inside* the switch, between those cases, is the hole:
 
 ```c
-switch (scan->field_2) {
+switch (scan->table) {
     case 2:
         tmp = Gp_ItemTable2;
         break;
@@ -28518,7 +28518,7 @@ the compare so the delay-slot filler copies `$s4`:
 ```c
 asm volatile("" : "+r"(ret)); /* keep ret from folding to 0 */
 i = ret;
-if (ret < src->field_1) {
+if (ret < src->rowCount) {
     destHi = 0x80110000; /* %hi of dest; must precede rec = table + start */
     off    = start << 2;
     rec    = (GpItemRec*)(off + (s32)table);
@@ -32280,7 +32280,7 @@ The target keeps every case in `$v0` and copies once at the join
 register GpItemRec* tmp asm("v0");
 register GpItemRec* table asm("a3");
 
-switch (scan->field_2) {
+switch (scan->table) {
 case 2:
     tmp = Gp_ItemTable2;
     break;
@@ -32624,7 +32624,7 @@ the already-scaled byte offset outside the `if`:
 
 ```c
 asm("lbu %0, %%lo(scan)(%1)" : "=r"(idx) : "r"(hi));
-count = scan->field_1;
+count = scan->rowCount;
 asm volatile("sll %0, %0, 2" : "+r"(idx));
 table = (volatile GpItemRec*)((s32)rec + idx);
 if (count != 0) {
@@ -33725,7 +33725,7 @@ example.
 writes the `slt` onto `$s0`:
 
 ```c
-count = scan->field_1;
+count = scan->rowCount;
 count = count < Gp_CountScanItems(scan);
 if (count != 0) {
     obj->field_4 |= 0x20000;
@@ -34392,9 +34392,9 @@ default) for the first copy hoists `s3=1`, `s2=2`, `s1=C20`, `s0=D70`,
 moves default out of the `bne` delay. Write the second copy as:
 
 ```c
-if (scan->field_2 != 1) {
+if (scan->table != 1) {
     table = Mc_SaveData.field_1AC;
-    if (scan->field_2 == 2) {
+    if (scan->table == 2) {
         table = Gp_ItemTable2;
     }
 } else {
@@ -35211,14 +35211,14 @@ cfg = &Wip_SysConfig;
 `asm("lui %0, %%hi(Mc_SaveData+0x5BC)")` is a scheduling barrier, so
 `bnez s0, else` gets `nop` instead of the `lui`. A C
 `scan = &Mc_SaveData.field_5BC` emits a schedulable `lui`. CSE then turns
-`Mc_SaveData.field_5BC.field_0` into `lbu 0(scan)`. A volatile object
+`Mc_SaveData.field_5BC.firstRow` into `lbu 0(scan)`. A volatile object
 keeps the split `%hi` in `$s1` for the later `%lo` load:
 
 ```c
 scan  = &Mc_SaveData.field_5BC;
 table = Gp_GetItemTable(scan);
-idx   = ((volatile McItemScan*)&Mc_SaveData.field_5BC)->field_0;
-count = scan->field_1;
+idx   = ((volatile McItemScan*)&Mc_SaveData.field_5BC)->firstRow;
+count = scan->rowCount;
 ```
 
 `Gp_DrawWeaponSlotRow` is the example.
@@ -37011,7 +37011,7 @@ a byte match:
   different sites, i.e. five distinct locals. Splitting them (`scanEquip`,
   `scanQty`, `scanRel`, `scanFree`, `scanId`) fixed a three-way `s0`/`s1`/`s2`
   permutation. Sweeping the set partitions of the sites is cheap and mechanical.
-* `count = scan->field_1` where `field_1` is `u8`: declaring the local `u8`
+* `count = scan->rowCount` where `rowCount` is `u8`: declaring the local `u8`
   rather than `s32` changed the live ranges enough to move the last mismatched
   pointer into the right callee-saved register (99.5% -> 100%). Match the local
   to the field's width whenever a loop bound is copied out of a struct.
@@ -37729,19 +37729,19 @@ gets its own register or clobbers the load register — and that decision is
 driven purely by statement order. `Gp_ItemListTask`'s inlined row counter needs
 
 ```
-lbu   a0, 1(s0)          /* scan->field_1 */
+lbu   a0, 1(s0)          /* scan->rowCount */
 andi  a3, a0, 0xff
 addu  a1, v0, v1
 beqz  a3, ...
-sb    a0, 4(s2)          /* menu->field_4 = scan->field_1 (delay slot) */
+sb    a0, 4(s2)          /* menu->field_4 = scan->rowCount (delay slot) */
 ```
 
 i.e. the raw load stays live in `$a0` for the `sb` while the widened copy lives
 in `$a3`. Writing the natural order
 
 ```c
-n = scan->field_1;               /* s32 n */
-menu->field_4 = scan->field_1;
+n = scan->rowCount;               /* s32 n */
+menu->field_4 = scan->rowCount;
 if (n != 0) { ... }
 ```
 
@@ -37750,8 +37750,8 @@ so GCC reuses `$a0`, and having the `andi` write `$a0` in turn pins it after the
 `sb`. Swapping the two statements:
 
 ```c
-menu->field_4 = scan->field_1;   /* sb from the raw lbu */
-n = scan->field_1;               /* s32; widened into a fresh reg */
+menu->field_4 = scan->rowCount;   /* sb from the raw lbu */
+n = scan->rowCount;               /* s32; widened into a fresh reg */
 ```
 
 is enough to flip both the register choice and the schedule (93.3% → 99.6%
@@ -38916,14 +38916,14 @@ value is the non-constant base:
 
 ```c
 tbl  = Gp_GetItemTable(scanSrc);
-base = scanSrc->field_0;          /* lbu stays before the guard */
+base = scanSrc->firstRow;          /* lbu stays before the guard */
 i    = 0;
-if (scanSrc->field_1 != 0) {      /* explicit guard, else GCC adds a second */
+if (scanSrc->rowCount != 0) {      /* explicit guard, else GCC adds a second */
     do {
         if (tbl[base].field_0 != 0) { ... }
         i++;
         base++;
-    } while (i < scanSrc->field_1);
+    } while (i < scanSrc->rowCount);
 }
 ```
 
@@ -40882,12 +40882,12 @@ constants:
 ```c
 case 0x42:
     memset(&scan, 0, sizeof(scan));
-    scan.field_1 = 0xFF;
+    scan.rowCount = 0xFF;
     if (Gp_SumScanQty(&scan, 0x98)) {
         return 1;
     }
     memset(&scan, 0, sizeof(scan));
-    scan.field_1 = 0xFF;
+    scan.rowCount = 0xFF;
     if (Gp_SumScanQty(&scan, 0x42)) {
         return 1;
     }
@@ -64613,7 +64613,7 @@ unpinned attempt from 95.025% to 99.803%, with branch/insert/delete all zero.
 
 The final register difference was the inner search count: a named `s32 count`
 gave counter/count/slot-plus-one `$a0/$a2/$a1`. The permuter replaced the
-assignment and `i < count` with `i < scan->field_1`; GCC still hoisted the
+assignment and `i < count` with `i < scan->rowCount`; GCC still hoisted the
 byte load out of the inner search, but assigned `$a1/$a0/$a2`, matching.
 Check `.loop`, `.lreg`, and `.greg` before using this pattern; the dead
 initialization matters to optimization even though it emits no instructions.
@@ -133494,3 +133494,31 @@ re-aligned neighbours in a rename's diff as expected, not as damage.
 `clang-format --dry-run --style=file <header>` prints nothing once the file
 matches what the build will produce, which is the cheap way to tell a real
 mishap from this one.
+## Renaming a field keeps its offset; re-stating the declaration by hand does not
+
+The rename tool rewrites the member token in place, so a declaration it touches
+keeps its address order. Reordering the members while tidying that declaration
+re-assigns every offset, and nothing complains: the file still compiles, links
+and assembles, and the mismatch surfaces as a *register allocation* difference
+in the functions that read the moved fields, which reads like a codegen problem
+rather than a layout one.
+
+```
+target      lbu   $2, 1($19)     /* the count */
+your tree   lbu   $2, 2($19)     /* the table selector, now one byte over */
+```
+
+Two ways to find it, both cheaper than matching the instruction stream by eye:
+
+* Diff the original symbol addresses in `configs/<ver>/sym.<overlay>.txt` against
+  the built ones in `build/<ver>/out/<overlay>.elf.map`. The first symbol whose
+  address moved bounds the change, and a neighbour that did *not* move means the
+  function between the two shrank or grew rather than the layout drifting.
+* Compile the one file outside the build - `cpp`, then `cc1`, then `maspsx`, with
+  the flags `rules.ninja` gives those rules - against the previous revision's
+  headers and diff the two `.s` files. The moved field appears as a shifted load
+  displacement.
+
+A hand edit to a struct declaration is safe only while every member keeps its
+offset. Renames from the tool do; a rewrite that re-states the members is where
+this bites.

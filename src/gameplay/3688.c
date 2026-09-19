@@ -1435,7 +1435,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
                 asm volatile("lui $8, %%hi(Mc_SaveData+0x5BC)" : : "r"(j));
                 found = (GpItemRec*)j;
                 asm volatile("lbu %0, %%lo(Mc_SaveData+0x5BC)($8)" : "=r"(idx));
-                count = scan->field_1;
+                count = scan->rowCount;
                 asm volatile("sll %0, %0, 2" : "+r"(idx));
                 table = (GpItemRec*)((s32)rec + idx);
                 if (count != 0) {
@@ -1761,8 +1761,8 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
         rec   = Gp_GetItemTable(scan);
         found = NULL;
         i     = (s32)found;
-        idx   = scan->field_0;
-        count = scan->field_1;
+        idx   = scan->firstRow;
+        count = scan->rowCount;
         table = &rec[idx];
         if (count != 0) {
             p       = &Player_Status;
@@ -1942,9 +1942,9 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
                      "addiu %0, %1, %%lo(Player_Status)"
                      : "=r"(cfg), "=r"(hi));
     }
-    limit = scan->field_1;
+    limit = scan->rowCount;
     USE_REG(limit);
-    item = scan->field_0;
+    item = scan->firstRow;
     TOUCH_REG(count);
     i = count;
     if (count < limit) {
@@ -2000,7 +2000,7 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
         next:
             rec++;
             i++;
-        } while (i < scan->field_1);
+        } while (i < scan->rowCount);
     }
 
     arg0->field_4 = count;
@@ -2027,9 +2027,9 @@ static __inline__ void countItemRows(UiList* menu)
     scan          = &Mc_SaveData.field_5BC;
     table         = Gp_GetItemTable(scan);
     i             = 0;
-    table         = &table[scan->field_0];
-    menu->field_4 = scan->field_1;
-    n             = scan->field_1;
+    table         = &table[scan->firstRow];
+    menu->field_4 = scan->rowCount;
+    n             = scan->rowCount;
     if (n != 0) {
         p     = &Player_Status;
         count = n;
@@ -2271,8 +2271,8 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
             scan  = &Mc_SaveData.field_5BC;
             table = Gp_GetItemTable(scan);
             if (item != 0) {
-                idx    = ((volatile McItemScan*)&Mc_SaveData.field_5BC)->field_0;
-                count  = scan->field_1;
+                idx    = ((volatile McItemScan*)&Mc_SaveData.field_5BC)->firstRow;
+                count  = scan->rowCount;
                 table += idx;
                 if (flag < count) {
                     for (i = 0; i < count; i++, table++) {
@@ -2757,8 +2757,8 @@ void func_800C41A4(DialogPrompt* prompt, UiObject* obj)
         found = NULL;
         i     = 0;
         item  = 0;
-        table = &table[scan->field_0];
-        for (; i < scan->field_1; i++, table++) {
+        table = &table[scan->firstRow];
+        for (; i < scan->rowCount; i++, table++) {
             if (table->attachSlot == row + 1) {
                 found = table;
                 break;
@@ -3053,8 +3053,8 @@ void Gp_ArmorMenuTask(Task* arg0)
                     scan  = &Mc_SaveData.field_5BC;
                     table = Gp_GetItemTable(scan);
                     i     = 0;
-                    idx   = scan->field_0;
-                    count = scan->field_1;
+                    idx   = scan->firstRow;
+                    count = scan->rowCount;
                     idx <<= 2;
                     table = (GpItemRec*)((s32)table + idx);
                     if (flag < count) {
@@ -3093,7 +3093,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                             }
                             i++;
                             table++;
-                        } while (i < scan->field_1);
+                        } while (i < scan->rowCount);
                     }
                 } else if ((flag == status) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
                     if ((u32)(*Gp_SelItemRec - 0x60) < 0x20U) {
@@ -3344,8 +3344,8 @@ GpItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2)
 
     table = Gp_GetItemTable(arg0);
     rec   = NULL;
-    table = &table[arg0->field_0];
-    for (i = 0; i < arg0->field_1; i++, table++) {
+    table = &table[arg0->firstRow];
+    for (i = 0; i < arg0->rowCount; i++, table++) {
         id = table->itemId;
         if ((Gp_ItemDescs[id].field_3 & 4) || (id == 0)) {
             continue;
@@ -3513,8 +3513,8 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
                 SndEvt_EnqueueType6(3, 0, 0);
                 table = Gp_GetItemTable(scan);
                 i     = 0;
-                count = scan->field_1;
-                table = &table[scan->field_0];
+                count = scan->rowCount;
+                table = &table[scan->firstRow];
                 if (count != 0) {
                     do {
                         if (table->attachSlot == menu->field_10 + 1) {
@@ -3571,8 +3571,8 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
                     s32          n;
                     tmp = Gp_GetItemTable(scan);
                     i   = 0;
-                    idx = scan->field_0;
-                    n   = scan->field_1;
+                    idx = scan->firstRow;
+                    n   = scan->rowCount;
                     asm volatile("sll %0, %0, 2" : "+r"(idx));
                     rec = (GpItemRec*)((s32)tmp + idx);
                     if (n != 0) {
@@ -3607,8 +3607,8 @@ void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
     table = Gp_GetItemTable(scan);
     i     = 0;
     count = 0;
-    table = &table[scan->field_0];
-    for (; i < scan->field_1; i++, table++) {
+    table = &table[scan->firstRow];
+    for (; i < scan->rowCount; i++, table++) {
         id = table->itemId;
         if ((Gp_ItemDescs[id].field_3 & 4) || (id == 0)) {
             continue;
@@ -5933,8 +5933,8 @@ void Gp_DrawArmorSelectRow(DialogPrompt* arg0, UiObject* arg1)
     rec       = Gp_GetItemTable(scan);
     i         = 0;
     found     = i;
-    idx       = ((volatile McItemScan*)&Mc_SaveData.field_5BC)->field_0;
-    count     = scan->field_1;
+    idx       = ((volatile McItemScan*)&Mc_SaveData.field_5BC)->firstRow;
+    count     = scan->rowCount;
     idx      *= 4;
     table     = (volatile GpItemRec*)((s32)rec + idx);
     if (count != 0) {
@@ -6052,7 +6052,7 @@ void Gp_SelectArmorMenuTask(Task* arg0)
             iter = 0;
             asm("lbu %0, %%lo(Mc_SaveData+0x5BC)(%1)" : "=r"(idx) : "r"(hi));
             hi = iter;
-            n  = scan->field_1;
+            n  = scan->rowCount;
             asm volatile("sll %0, %0, 2" : "+r"(idx));
             recTable = (volatile GpItemRec*)((s32)rec + idx);
             if (n != 0) {
@@ -6106,7 +6106,7 @@ void Gp_SelectArmorMenuTask(Task* arg0)
             iter  = 0;
             found = iter;
             asm("lbu %0, %%lo(Mc_SaveData+0x5BC)(%1)" : "=r"(idx) : "r"(hi));
-            n = scan->field_1;
+            n = scan->rowCount;
             asm volatile("sll %0, %0, 2" : "+r"(idx));
             recTable = (volatile GpItemRec*)((s32)rec + idx);
             if (n != 0) {

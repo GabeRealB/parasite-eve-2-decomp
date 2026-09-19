@@ -91,12 +91,17 @@ typedef struct _McItemSlot {
 } McItemSlot;
 STATIC_ASSERT_SIZEOF(McItemSlot, 0x8);
 
-/// 4-byte item-table scan descriptor (`Mc_SaveData.field_5BC`).
-typedef struct _McItemScan {
-    /* 0x0 */ u8 field_0;
-    /* 0x1 */ u8 field_1;
-    /* 0x2 */ u8 field_2;
-    /* 0x3 */ u8 field_3;
+/// Window on the rows of an item table an inventory operation works on: which
+/// table, the first row and how many rows. The tables it selects between hold
+/// `McItemRec` rows, and each place the game stores items keeps its own window.
+/// `Mc_SaveData.field_5BC` holds the window on the items the player carries, so
+/// the menus act on that window instead of on a whole table; a scan can also be
+/// built locally to search a wider run of rows.
+typedef struct {
+    u8 firstRow; // First row of the window
+    u8 rowCount; // Number of rows the window covers
+    u8 table;    // Table the window lies in (0 `Mc_SaveData.field_1AC`, 1 `Gp_ItemTable1`, 2 `Gp_ItemTable2`)
+    u8 field_3;  // Nothing reads or writes it; role unproven
 } McItemScan;
 STATIC_ASSERT_SIZEOF(McItemScan, 0x4);
 
