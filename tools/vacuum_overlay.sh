@@ -222,6 +222,24 @@ seed_giveups() {
 }
 seed_giveups
 
+# Give the worktree trunk's divergence records. Unlike the give-up archives,
+# which are seeded for the claimed functions only, retrieval ranks *other*
+# functions that diverged the same way - so the whole store has to travel or a
+# query returns nothing but what this worktree has already done itself. The
+# archives stored beside the records are not needed to rank anything and stay
+# on trunk.
+seed_records() {
+    local src="$ROOT/local/divergence/records" n
+    [[ -d "$src" ]] || return 0
+    n=$(find "$src" -maxdepth 1 -name '*.json' 2>/dev/null | wc -l)
+    [[ $n -gt 0 ]] || return 0
+    mkdir -p "$WT/local/divergence/records"
+    cp -au "$src"/*.json "$WT/local/divergence/records/" 2>/dev/null \
+        && log "seeded $n divergence record(s) from trunk"
+    return 0
+}
+seed_records
+
 # Bind the lease to *this* process. overlay_batch.sh claims as a preparer that
 # exits immediately, so the lease is guarded only by its expiry - and a sweep
 # outlives it: mist_parking ran 8.5 hours against a 240-minute lease, was swept

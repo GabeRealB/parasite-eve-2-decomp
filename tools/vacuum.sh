@@ -1385,6 +1385,14 @@ create_match_worktree() {
     mkdir -p "$wt/tools/giveups"
     cp -a "$ROOT/tools/giveups/$func" "$wt/tools/giveups/"
   fi
+  # Divergence retrieval ranks other functions that diverged the same way, so
+  # unlike the give-up archive above the whole record store travels, not just
+  # this function's. The archives beside the records stay on trunk.
+  if [[ -d "$ROOT/local/divergence/records" ]]; then
+    mkdir -p "$wt/local/divergence/records"
+    cp -au "$ROOT/local/divergence/records"/*.json \
+       "$wt/local/divergence/records/" 2>/dev/null || true
+  fi
   # Scratch matching needs the .s (and generated headers) *before* any
   # ninja_config. Configure wipes asm/ and re-splits; it runs later when the
   # match/port agent calls build-and-verify.sh.
