@@ -3,6 +3,52 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Carry loop-produced masks into the tail as ordinary pseudos, then rank the local tag quantities (func_actor_403600_80132A18, 2026-09-19)
+
+The archived 96.7% screen-grid candidate rematerialized tag masks after its
+loops. Earlier hard-register attempts widened conflicts and disturbed saved
+homes. Ordinary function-scope mask variables, assigned inside every iteration
+and read in the final tile block, solve the lifetime issue: `.lreg` reports no
+call crossings. The definition inside each iteration kills the previous value
+before any later use, so these values need not survive the calls earlier in the
+next iteration. The two masks become global pseudos, while the nine saved homes
+stay unchanged.
+
+Preserve the tag memory classification when doing this. Replacing SDK bitfield
+operations with plain word dereferences changed alias dependencies, adding an
+OT reload and serializing `Gpu_PrimCursor`. Whole-word structure-member `tag`
+accesses restored `MEM/s`, tail scheduling and the hard conflicts that put the
+masks in t1/t2. This is a concrete instance of CODEGEN_MODEL.md §11, not a rule
+that member accesses always improve scheduling.
+
+The remaining loop mismatch needed actual quantity intervals. The base_7 trace
+observed low2 `[r173]`, refs8/span4, priority60000, allocated v0 before the
+load/high/result chain `[r183,r172,r182]`, refs16/span12, priority53333. The index
+quantity `[r87,r181,r179]`, refs14/span18, priority23333, followed. The original
+prediction incorrectly used span6 for low2. Controlled base_8 changed only
+`USE_REG4(high2, high2, low2, low2)` to `USE_REG3(high2, high2, low2)`. Low2 then
+has refs6/span4, priority30000: after the load chain but before the index.
+`.lreg/.greg` confirm v0 for the load chain, v1 for low2, a0 for the index and
+a1 for OT; the entire loop becomes exact. Reusing the same high/low C locals
+for both tag splices had previously made them die twice and become global, so
+separate names are necessary for this local-allocation explanation.
+
+The current one-argument shared-callee prototype also matters. Removing the
+archived fictitious second argument leaves low-mask refs10/span81 versus
+high-mask refs10/span77, swapping t1/t2. An extra low-mask input on the existing
+first-tag use raises its refs to12 without adding an instruction and restores
+the global order. Typed primitive/scratch fields preserve the exact final
+object. The unscoped build verifies the integrated match.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Input hashes: base_7 `7b10ca784c1af281ba1c87b1b49c51cea37ccd073907edf593d56e9faf91fc03`;
+base_8 `2df5be2908472a26bc32c8c2bae9331fd452eeabd91fdb60a9954867610ef76d`;
+final base_18 `2ce1b489e60734418e46f7fb2128977c5fc7b36069abbb696d41bd0059b94b96`.
+Evidence: `tools/permuter_findings/func_actor_403600_80132A18/`, session
+`a79f76b84fd245378bd1950b051289e6`, `PERMUTER_EVIDENCE/manual-retry-20260919/`.
+These were manual controlled predictions. The required router selected stale
+archived callee names and skipped all three seeds; it produced no new discovery.
+
 ## A soft register dependency can preserve load order while losing store order (func_actor_400600_80137840, 2026-09-19)
 
 The target stores a raw halfword sum, sign-extends it to a0, then reloads the

@@ -205,6 +205,14 @@ typedef struct Actor403600TurnScratch {
 } Actor403600TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor403600TurnScratch, 0x30);
 
+/// 0x1C-byte scratch block used while building the screen transition grid.
+typedef struct Actor403600ScreenScratch {
+    /* 0x00 */ u8      pad_0[0x10];
+    /* 0x10 */ s32     otz;
+    /* 0x14 */ SVECTOR offset;
+} Actor403600ScreenScratch;
+STATIC_ASSERT_SIZEOF(Actor403600ScreenScratch, 0x1C);
+
 typedef struct Actor403600Point {
     /* 0x0 */ s16 x;
     /* 0x2 */ s16 pad_2;

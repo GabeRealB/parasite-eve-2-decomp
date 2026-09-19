@@ -374,7 +374,163 @@ void func_actor_403600_8013289C(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     *(s8*)(arg2 + 4) = (s8)(arg0 - temp_v0_2);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80132A18);
+void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, TaskIdMap* arg2, TaskIdMap* arg3)
+{
+    s32                       fade;
+    s32                       x;
+    s32                       y;
+    s32*                      ot_entry;
+    s32                       fade_step;
+    s32                       green;
+    s32                       red;
+    s32                       seed;
+    s32                       fade_delta;
+    s32                       red_sum;
+    u32                       sign;
+    TILE*                     tile;
+    DR_TPAGE*                 draw_mode;
+    POLY_FT4*                 poly;
+    Actor403600ScreenScratch* scratch;
+    s8*                       head;
+    POLY_FT4*                 previous;
+    POLY_FT4*                 previous_row;
+    POLY_FT4*                 previous_top;
+    u_long*                   mode_ot;
+    u32                       mask;
+    u32                       mask_hi;
+    u32                       tpage;
+    u32                       color;
+    s32*                      ot;
+    u32                       high, low, high2, low2;
+
+    head                = *(void**)0x1F8003FC - 0x1C;
+    *(void**)0x1F8003FC = head;
+    scratch             = (Actor403600ScreenScratch*)head;
+    if (D_801153F4 == 0) {
+        seed                    = rand();
+        D_actor_403600_80160698 = seed;
+        *(s32*)((s8*)arg2 + 4)  = seed;
+    } else {
+        D_actor_403600_80160698 = *(s32*)((s8*)arg2 + 4);
+    }
+    scratch->offset.vx = 0;
+    scratch->offset.vy = 0;
+    scratch->offset.vz = 0;
+    fade               = arg1->field_708;
+    SCHED_BARRIER();
+    y          = -0x78;
+    fade_delta = fade - 0xC00;
+    fade_step  = fade_delta >> 3;
+    sign       = (u32)fade_delta >> 0x1F;
+    SCHED_BARRIER();
+    x = -0xA0;
+    do {
+        green = ((((s32)(fade_step + sign) >> 1) + 0x80) & 0xFF) << 8;
+        __asm__("addiu %0, %1, 0x7F"
+                : "=r"(red_sum)
+                : "r"(fade_step), "r"(green));
+        __asm__("andi %0, %1, 0xFF" : "=r"(red) : "r"(red_sum));
+        SOFT_USE_REG(red);
+        SOFT_USE_REG(red);
+    next_quad:
+        poly                    = (POLY_FT4*)D_actor_403600_8016069C;
+        D_actor_403600_8016069C = (s32)(poly + 1);
+        previous                = poly - 1;
+        if (x == -0xA0) {
+            poly->x2 = x;
+            poly->y2 = (s16)(y + 0x10);
+            func_actor_403600_8013289C((s32)poly, 2, (s32)&scratch->offset, fade);
+        } else {
+            *(s32*)&poly->x2      = *(s32*)&previous->x3;
+            poly->u2              = previous->u3;
+            poly->v2              = previous->v3;
+            ((u8*)&poly->pad2)[0] = ((u8*)&previous->pad2)[1];
+        }
+        if (y == -0x78) {
+            previous_top = poly - 1;
+            if (x == -0xA0) {
+                poly->x0 = x;
+                poly->y0 = y;
+                func_actor_403600_8013289C((s32)poly, 0, (s32)&scratch->offset, fade);
+            } else {
+                *(s32*)&poly->x0      = *(s32*)&previous_top->x1;
+                poly->u0              = previous_top->u1;
+                poly->v0              = previous_top->v1;
+                ((u8*)&poly->pad1)[0] = ((u8*)&previous_top->pad1)[1];
+            }
+            poly->x1 = (s16)(x + 0x10);
+            poly->y1 = y;
+            func_actor_403600_8013289C((s32)poly, 1, (s32)&scratch->offset, fade);
+        } else {
+            previous_row          = poly - 20;
+            *(s32*)&poly->x0      = *(s32*)&previous_row->x2;
+            poly->u0              = previous_row->u2;
+            poly->v0              = previous_row->v2;
+            ((u8*)&poly->pad1)[0] = ((u8*)&previous_row->pad2)[0];
+            *(s32*)&poly->x1      = *(s32*)&previous_row->x3;
+            poly->u1              = previous_row->u3;
+            poly->v1              = previous_row->v3;
+            ((u8*)&poly->pad1)[1] = ((u8*)&previous_row->pad2)[1];
+        }
+        poly->x3 = (s16)(x + 0x10);
+        poly->y3 = (s16)(y + 0x10);
+        func_actor_403600_8013289C((s32)poly, 3, (s32)&scratch->offset, fade);
+        func_actor_403600_801327A0(poly);
+        if (fade < 0xC00) {
+            ((u8*)&poly->tag)[3] = 9;
+            poly->code           = 0x2D;
+        } else {
+            *(s32*)&poly->r0     = (green | 0x800000) | red;
+            ((u8*)&poly->tag)[3] = 9;
+            poly->code           = 0x2C;
+        }
+        __asm__ volatile("lui %0, 0xFF; ori %0, %0, 0xFFFF" : "=r"(mask));
+        ot = (s32*)Gpu_CurrentOt;
+        __asm__ volatile("lui %0, 0xFF00" : "=r"(mask_hi));
+        scratch->otz = 0;
+        high         = poly->tag & mask_hi;
+        low          = *ot & mask;
+        SOFT_USE_REG2(high, mask);
+        poly->tag = high | low;
+        x        += 0x10;
+        ot_entry  = (s32*)((*(volatile s32*)&scratch->otz * 4) + (s32)ot);
+        high2     = *ot_entry & mask_hi;
+        low2      = (s32)poly & mask;
+        USE_REG3(high2, high2, low2);
+        *ot_entry = high2 | low2;
+        if (x < 0xA0) {
+            goto next_quad;
+        }
+        y += 0x10;
+        x  = -0xA0;
+    } while (y < 0x78);
+    TOUCH_REG(x);
+    if (fade == 0x1000) {
+        color = 0x2060C0;
+        tpage = 0xE1000000;
+        TOUCH_REG_USE(tpage, color);
+        tile                                  = (TILE*)D_actor_403600_8016069C;
+        D_actor_403600_8016069C               = (s32)(tile + 1);
+        tile->x0                              = -0xA0;
+        tile->y0                              = -0x78;
+        tile->w                               = 0x140;
+        tile->h                               = 0xF0;
+        ((u8*)&tile->tag)[3]                  = 3;
+        *(s32*)&tile->r0                      = color;
+        tile->code                            = 0x62;
+        draw_mode                             = Gpu_PrimCursor;
+        Gpu_PrimCursor                        = draw_mode + 1;
+        tile->tag                             = (tile->tag & mask_hi) | (((POLY_FT4*)(Gpu_CurrentOt - 1))->tag & mask);
+        ((POLY_FT4*)(Gpu_CurrentOt - 1))->tag = (((POLY_FT4*)(Gpu_CurrentOt - 1))->tag & mask_hi) | ((u32)tile & mask);
+        ((u8*)&draw_mode->tag)[3]             = 1;
+        mode_ot                               = Gpu_CurrentOt - 1;
+        draw_mode->code[0]                    = tpage | 0x220;
+        draw_mode->tag                        = (draw_mode->tag & mask_hi) | (((POLY_FT4*)(Gpu_CurrentOt - 1))->tag & mask);
+        ((POLY_FT4*)mode_ot)->tag             = (((POLY_FT4*)mode_ot)->tag & mask_hi) | ((u32)draw_mode & mask);
+    }
+    ActorsShared80131fc8(0);
+    *(s32*)0x1F8003FC = *(s32*)0x1F8003FC + 0x1C;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80132E40);
 
