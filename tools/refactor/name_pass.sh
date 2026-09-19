@@ -99,7 +99,8 @@ outstanding() {
 # Keyed on the item name, not the step order: rebuilding the graph renumbers
 # every step, so an order is only meaningful within one worklist.
 ledgered() {
-  [[ -f "$DONE_LEDGER" ]] && cut -f2 "$DONE_LEDGER" | tr ' ' '\n' | grep -qx -- "$1"
+  [[ -f "$DONE_LEDGER" ]] || return 1
+  awk -F'\t' '$4=="ok"{print $2}' "$DONE_LEDGER" | tr ' ' '\n' | grep -qx -- "$1"
 }
 
 # order, items, commit (or -), outcome.
@@ -203,6 +204,7 @@ echo "logging to $LOG"
 done_count=0
 fail_count=0
 barrier=
+noop=0
 i=0
 while (( TIMES == 0 || i < TIMES )); do
   i=$((i + 1))
@@ -297,6 +299,15 @@ BARRIER
   if [[ -z "$(git status --porcelain)" ]]; then
     echo "step $order left the tree unchanged" >&2
     record "$order" "${items[*]}" - unchanged
+    # A step that genuinely needs no change is rare; a run of them means the
+    # agent is not working at all - an expired key or an unreachable API
+    # returns instantly and touches nothing. Walking the worklist at that speed
+    # marks real items as visited, so stop instead.
+    noop=$((noop + 1))
+    if (( noop >= 3 )); then
+      echo "three steps in a row changed nothing; stopping - check the agent" >&2
+      exit 1
+    fi
     (( KEEP_GOING )) || exit 1
     continue
   fi
@@ -304,6 +315,7 @@ BARRIER
   git add -A
   git commit -q -m "naming: ${items[*]}"
   record "$order" "${items[*]}" "$(git rev-parse --short HEAD)" ok
+  noop=0
   done_count=$((done_count + 1))
   echo "=== step $order committed"
 done

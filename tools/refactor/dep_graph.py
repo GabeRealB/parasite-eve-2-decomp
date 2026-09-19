@@ -311,7 +311,11 @@ def _ledger_names(root: str) -> set:
         with open(path) as fh:
             for line in fh:
                 fields = line.rstrip("\n").split("\t")
-                if len(fields) >= 2:
+                # Only a step that finished counts. A row can also record that
+                # the step failed its build or changed nothing - an agent that
+                # cannot reach its API produces the latter by the dozen - and
+                # treating those as done would retire the item unexamined.
+                if len(fields) >= 4 and fields[3] == "ok":
                     names.update(fields[1].split())
     return names
 
