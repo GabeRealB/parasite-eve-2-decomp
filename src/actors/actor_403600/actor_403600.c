@@ -4305,7 +4305,1225 @@ block_116:
     temp_s1->field_732 = (s16)(var_v0_4 + 1);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013A444);
+void Gp_SpawnPadLerpWide(s32 arg0, s32 arg1, s32 arg2) asm("Gp_SpawnPadLerp");
+
+void func_actor_403600_8013A444(Actor403600* arg0)
+{
+    u32              sp10;
+    s32              sp14;
+    s32              node_flag;
+    s32              rumble_distance;
+    s32              state16;
+    s32              adjusted_y0;
+    s32              adjusted_y1;
+    s32              adjusted_y2;
+    s32              var_a1;
+    s32              var_a1_2;
+    s32              var_a0_2;
+    s16              temp_a0;
+    s16              temp_a0_2;
+    s32              temp_a2;
+    s32              temp_s1_2;
+    s16              temp_v0_11;
+    s16              temp_v0_16;
+    s16              temp_v0_25;
+    s16              temp_v0_3;
+    s16              temp_v1;
+    s16              temp_v1_10;
+    s16              temp_v1_11;
+    s32              temp_v1_12;
+    s16              temp_v1_4;
+    s16              temp_v1_8;
+    s16              temp_v1_9;
+    s32              var_v0_10;
+    s32              var_v0_13;
+    s32              var_v0_3;
+    s32              var_v0_8;
+    s32              temp_lo;
+    s32              temp_lo_2;
+    s32              temp_lo_3;
+    s32              temp_lo_4;
+    s32              temp_s1;
+    s32              temp_s4;
+    s32              temp_v0_26;
+    s32              temp_v0_27;
+    s32              temp_v0_28;
+    s32              temp_v1_3;
+    s32              temp_v1_5;
+    s32              temp_v1_6;
+    s32              temp_v1_7;
+    s32              var_s2;
+    s32              var_v0_12;
+    s32              var_v0_14;
+    s32              temp_s0_11;
+    s32              temp_s0_12;
+    s32              temp_s0_14;
+    s32              temp_s0_16;
+    s32              temp_s0_17;
+    s32              temp_s0_19;
+    s32              temp_s0_21;
+    s32              temp_s0_22;
+    s32              temp_s0_23;
+    s32              temp_s0_25;
+    s32              temp_s0_26;
+    s32              temp_s0_28;
+    s32              temp_s0_2;
+    s32              temp_s0_30;
+    s32              temp_s0_32;
+    s32              temp_pan_28;
+    s32              temp_s0_4;
+    s32              temp_s0_6;
+    s32              temp_s0_7;
+    s32              temp_s0_9;
+    u16              temp_a3;
+    u16              temp_v0_32;
+    u16              temp_v0_34;
+    u16              temp_v0_35;
+    u16              temp_v0_9;
+    u16              var_v0_6;
+    u32              temp_v0;
+    u32              temp_v0_12;
+    u32              temp_v0_13;
+    u32              temp_v0_14;
+    u32              temp_v0_15;
+    u32              temp_v0_17;
+    u32              temp_v0_18;
+    u32              temp_v0_19;
+    u32              temp_v0_21;
+    u32              temp_v0_22;
+    u32              temp_v0_23;
+    u32              temp_v0_24;
+    u32              temp_v0_30;
+    u32              temp_v0_31;
+    u32              temp_v0_33;
+    u32              temp_v0_36;
+    u32              temp_v0_37;
+    u32              temp_v0_5;
+    u32              temp_v0_6;
+    u32              temp_v0_7;
+    u32              temp_v0_8;
+    u32              temp_depth_28;
+    GsCOORDINATE2*   temp_s0;
+    GsCOORDINATE2*   temp_s0_10;
+    GsCOORDINATE2*   temp_s0_13;
+    GsCOORDINATE2*   temp_s0_15;
+    GsCOORDINATE2*   temp_s0_18;
+    GsCOORDINATE2*   temp_s0_20;
+    GsCOORDINATE2*   temp_s0_24;
+    GsCOORDINATE2*   temp_s0_27;
+    GsCOORDINATE2*   temp_s0_29;
+    GsCOORDINATE2*   temp_s0_31;
+    GsCOORDINATE2*   temp_s0_3;
+    GsCOORDINATE2*   temp_s0_5;
+    GsCOORDINATE2*   temp_s0_8;
+    GsCOORDINATE2*   temp_sound_28;
+    Actor403600Msg*  temp_s0_msg;
+    Actor403600Msg*  temp_s1_3;
+    Actor403600Work* temp_s3;
+    GsCOORDINATE2*   temp_s4_4;
+    GsCOORDINATE2*   temp_s6;
+    GpEnemy*         temp_s7;
+    Actor403600Work* temp_v0_10;
+    Actor403600Work* temp_v0_20;
+    Actor403600Work* temp_v0_2;
+    Actor403600Work* temp_reset_30;
+    Actor403600Work* temp_v0_4;
+    GameActor*       temp_v1_2;
+    GsCOORDINATE2*   var_a0;
+    GsCOORDINATE2*   var_s0;
+    PlayerStatus*    temp_wip;
+
+    temp_wip = &Player_Status;
+    temp_s3  = (Actor403600Work*)arg0->field_1C;
+    temp_s7  = arg0->field_20;
+    temp_a0  = temp_s3->field_73E;
+    temp_s6  = (GsCOORDINATE2*)Gp_ActorSlots[0]->extra->coords;
+    switch (temp_a0) {
+        case 0x0:
+            temp_s3->field_736 = 1U;
+            temp_s3->field_73C = 0U;
+            temp_s3->field_74A = 0;
+            if (temp_s3->field_73A >= temp_s3->field_776) {
+                temp_s3->field_776 = 0xA;
+                temp_s3->field_73A = 0;
+                func_actor_403600_8013E470(&temp_s3->field_4B8, &sp10, &sp14);
+                if ((sp10 < 0x835U) && (temp_s3->field_7B4 == 0)) {
+                    temp_s3->field_588.pos.vz = 0x3E8;
+                    temp_s3->field_588.key    = Gp_PackPair(&D_actor_403600_80150E9C, 1);
+                    temp_s3->field_588.radius = 0x5DC;
+                    temp_s3->field_736        = 2U;
+                    temp_s3->field_73E        = 0x46;
+                    temp_s3->field_73C        = 0U;
+                    temp_s3->field_73A        = 0;
+                    temp_s3->field_7B2        = 0U;
+                    return;
+                }
+                func_actor_403600_8013EA04(arg0);
+                if (temp_s3->field_73E == 0) {
+                    temp_s3->field_776 = 0;
+                    return;
+                }
+                temp_s3->field_7B4 = 0;
+                return;
+            }
+        default:
+            return;
+        case 0x1:
+            if (temp_s3->field_73A == 0x14) {
+                temp_s0   = &temp_s3->field_4B8;
+                temp_s4   = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160013;
+                temp_s0_2 = (s8)Gp_GetObjPan(temp_s0);
+                temp_v0   = gpGetObjDepth(temp_s0);
+                SndEvt_EnqueueType6(temp_s4, temp_s0_2, (s32)(((temp_v0 >> 0x1F) + temp_v0) << 0x17) >> 0x18);
+            }
+            if (temp_s3->field_73A >= 0x14) {
+                func_80181940(arg0);
+            }
+            temp_s3->field_736 = 4U;
+            temp_s3->field_73C = 0U;
+            temp_s3->field_74A = 0;
+            if (temp_s3->field_73A >= 0x2D) {
+                temp_v0_2            = ((Actor403600Work*)arg0->field_1C);
+                temp_v0_2->field_756 = 8;
+                temp_v0_2->field_778 = 0x10;
+                temp_v0_2->field_776 = 0xA;
+                temp_v0_2->field_742 = 0;
+                temp_v0_2->field_746 = 0;
+                temp_v0_2->field_774 = 0;
+                temp_v0_2->field_77A = 0;
+                temp_v0_2->field_784 = 0;
+                temp_v0_2->field_73C = 0U;
+                temp_v0_2->field_73E = 0;
+                temp_v0_2->field_74A = 0;
+                temp_v0_2->field_73A = 0;
+                temp_v0_2->field_76E = 0x40;
+                temp_v0_2->field_75E = 0;
+                temp_v0_2->field_7A4 = 0;
+                temp_v0_2->field_7A6 = 0;
+                temp_v0_2->field_7AC = 0;
+                temp_s3->field_73E   = 2;
+                temp_s3->field_7AE   = 0;
+                return;
+            }
+            break;
+        case 0x2:
+            if (temp_s3->field_73A < 0xC) {
+                func_80181940(arg0);
+            }
+            temp_s3->field_736 = 5U;
+            COMPILER_BARRIER();
+            temp_v0_3 = temp_s3->field_73A;
+            if (temp_v0_3 == 0xA) {
+                SndEvt_EnqueueType7(0x54160013, 0x14);
+            }
+            if (temp_s3->field_73A >= 0x1E) {
+                temp_v0_4            = ((Actor403600Work*)arg0->field_1C);
+                temp_v0_4->field_756 = 8;
+                temp_v0_4->field_778 = 0x10;
+                temp_v0_4->field_742 = 0;
+                temp_v0_4->field_746 = 0;
+                temp_v0_4->field_774 = 0;
+                temp_v0_4->field_77A = 0;
+                temp_v0_4->field_784 = 0;
+                temp_v0_4->field_73C = 0U;
+                temp_v0_4->field_73E = 0;
+                temp_v0_4->field_74A = 0;
+                temp_v0_4->field_73A = 0;
+                temp_v0_4->field_776 = 0xA;
+                temp_v0_4->field_76E = 0x40;
+                temp_v0_4->field_75E = 0;
+                temp_v0_4->field_7A4 = 0;
+                temp_v0_4->field_7A6 = 0;
+                temp_v0_4->field_7AC = 0;
+                return;
+            }
+            break;
+        case 0xA:
+            temp_v1 = temp_s3->field_732;
+            switch (temp_v1) {
+                case 0:
+                    temp_s3->field_784    = 1;
+                    temp_s3->field_778    = 0x20;
+                    temp_s3->field_736    = 0x10U;
+                    temp_s3->field_73C    = 0x14U;
+                    temp_s3->field_74A    = 0;
+                    temp_s3->field_6F0.vx = (s32)D_actor_403600_801605D4.vx;
+                    temp_s3->field_6F0.vy = (s32)D_actor_403600_801605D4.vy;
+                    temp_s3->field_6F0.vz = (s32)D_actor_403600_801605D4.vz;
+                    temp_s3->field_76E    = 0x40;
+                    temp_s3->field_746    = 1;
+                    func_actor_403600_8013DFE0(arg0);
+                    if (temp_s3->field_73A >= 0x13) {
+                        temp_s0_3 = &temp_s3->field_4B8;
+                        temp_s4   = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160004;
+                        temp_s0_4 = (s8)Gp_GetObjPan(temp_s0_3);
+                        temp_v0_5 = gpGetObjDepth(temp_s0_3);
+                        SndEvt_EnqueueType6(temp_s4, temp_s0_4, (s32)(((temp_v0_5 >> 0x1F) + temp_v0_5) << 0x17) >> 0x18);
+                        temp_s3->field_778 = 0x10;
+                        temp_s3->field_76E = 0x80;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_7A4 = 1;
+                        temp_s3->field_732 = (s16)((u16)temp_s3->field_732 + 1);
+                        return;
+                    }
+                    break;
+                case 1:
+                    temp_s3->field_736 = 0x12U;
+                    temp_s3->field_73C = 0x4B0U;
+                    temp_s3->field_74A = 0;
+                    func_actor_403600_8013DFE0(arg0);
+                    if (temp_s3->field_4B8.coord.t[1] < D_actor_403600_801605D4.vy) {
+                        temp_s3->field_4B8.coord.t[0] = (s32)D_actor_403600_801605D4.vx;
+                        temp_s3->field_4B8.coord.t[1] = (s32)D_actor_403600_801605D4.vy;
+                        temp_s3->field_4B8.coord.t[2] = (s32)D_actor_403600_801605D4.vz;
+                        temp_s3->field_6F0.vx         = (s32)D_actor_403600_801605DC.vx;
+                        temp_s3->field_6F0.vy         = (s32)D_actor_403600_801605DC.vy;
+                        temp_s3->field_6F0.vz         = (s32)D_actor_403600_801605DC.vz;
+                        temp_s3->field_746            = 3;
+                        func_actor_403600_8013DFE0(arg0);
+                        temp_s3->field_774 = 1;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_734 = 0;
+                        temp_s3->field_73C = 0U;
+                        temp_s3->field_792 = 0x28;
+                        temp_s3->field_732 = (s16)((u16)temp_s3->field_732 + 1);
+                        return;
+                    }
+                    break;
+                case 2:
+                    if (temp_s3->field_792 != 0) {
+                        temp_s3->field_792 = (s16)((u16)temp_s3->field_792 - 1);
+                        return;
+                    }
+                    if (!((u16)temp_s3->field_73A & 1)) {
+                        Gp_SpawnEff(0x601B9, &arg0->field_2C->coords[1], 0, &D_actor_403600_80160664);
+                        Gp_SpawnEff(0x601B9, &arg0->field_2C->coords[15], 0x800, NULL);
+                        Gp_SpawnEff(0x601B9, &arg0->field_2C->coords[19], 0x800, NULL);
+                    }
+                    temp_s3->field_736 = 0x12U;
+                    temp_s3->field_73C = 0x320U;
+                    temp_s3->field_74A = 0;
+                    func_actor_403600_801417A8(arg0, 0x14);
+                    if (((D_actor_403600_801605DE - 0x1388) < temp_s3->field_4B8.coord.t[1]) && (temp_s3->field_734 == 0)) {
+                        temp_s3->field_734 = 1;
+                        temp_s0_5          = &temp_s3->field_4B8;
+                        temp_s4            = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160005;
+                        temp_s0_6          = (s8)Gp_GetObjPan(temp_s0_5);
+                        temp_v0_6          = gpGetObjDepth(temp_s0_5);
+                        SndEvt_EnqueueType6(temp_s4, temp_s0_6, (s32)(((temp_v0_6 >> 0x1F) + temp_v0_6) << 0x17) >> 0x18);
+                    }
+                    if ((D_actor_403600_801605DE - 0x3E8) < temp_s3->field_4B8.coord.t[1]) {
+                        Gp_SpawnPadLerp(0xA, 0xFF, 0x50);
+                        var_s2 = 0;
+                        if (D_80073B8C->t[1] < -0xF3B) {
+                            temp_s4_4                       = &temp_s3->field_4B8;
+                            D_actor_403600_801606A4.field_0 = (u16)D_actor_403600_80150EA4;
+                            func_actor_403600_8013E470(temp_s4_4, &sp10, &sp14);
+                            if ((u32)(sp10 - 0xFA0) < 0x7D1U) {
+                                temp_v1_2                       = ((GpActorWork*)gameGetPtrSlot(3))->actor;
+                                D_actor_403600_801606A4.field_2 = 0;
+                                D_actor_403600_801606A4.field_0 = (u16)((u16)D_actor_403600_801606A4.field_0 >> 2);
+                                temp_v1_2->field_96C            = 2;
+                                temp_v1_2->field_96E            = (u16)D_actor_403600_801606A4.field_0;
+                                temp_v1_2->field_972            = 0;
+                            } else {
+                                if ((u32)(sp10 - 0x9C4) < 0x5DCU) {
+                                    D_actor_403600_801606A4.field_2 = 0;
+                                    D_actor_403600_801606A4.field_0 = (u16)((u16)D_actor_403600_801606A4.field_0 >> 1);
+                                    var_v0_3                        = (s16)func_actor_403600_8013E66C(temp_s4_4);
+                                    if (var_v0_3 < 0) {
+                                        var_v0_3 = -var_v0_3;
+                                    }
+                                    if (var_v0_3 >= 0x401) {
+                                        D_actor_403600_8016056C = 4;
+                                        func_actor_403600_8013E7D4((s32)arg0, 0);
+                                        temp_s3->field_762 = 0x64;
+                                    } else {
+                                        D_actor_403600_8016056C = 3;
+                                        func_actor_403600_8013E7D4((s32)arg0, 1);
+                                        temp_s3->field_762 = -0x64;
+                                    }
+                                    COMPILER_BARRIER();
+                                    Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
+                                    var_s2             = 2;
+                                    temp_s3->field_760 = 0;
+                                } else if (sp10 < 0x9C4U) {
+                                    D_actor_403600_801606A4.field_2 = 0;
+                                    D_actor_403600_80160568.field_4 = 1;
+                                    func_actor_403600_8013E7D4((s32)arg0, 1);
+                                    temp_s3->field_762 = -0x190;
+                                    Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
+                                    var_s2             = 3;
+                                    temp_s3->field_760 = 0;
+                                }
+                            }
+                            if (var_s2 != 0) {
+                                temp_s4   = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 6;
+                                temp_s0_7 = (s8)Gp_GetObjPan(temp_s6);
+                                temp_v0_7 = gpGetObjDepth(temp_s6);
+                                SndEvt_EnqueueType6(temp_s4, temp_s0_7, (s32)(((temp_v0_7 >> 0x1F) + temp_v0_7) << 0x17) >> 0x18);
+                                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F9, Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
+                            }
+                        }
+                        temp_s0_8 = &temp_s3->field_4B8;
+                        temp_s4   = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160006;
+                        temp_s0_9 = (s8)Gp_GetObjPan(temp_s0_8);
+                        temp_v0_8 = gpGetObjDepth(temp_s0_8);
+                        SndEvt_EnqueueType6(temp_s4, temp_s0_9, (s32)(((temp_v0_8 >> 0x1F) + temp_v0_8) << 0x17) >> 0x18);
+                        Gp_SpawnEff(0x601BA, &arg0->field_2C->coords[1], 0, &D_actor_403600_80160664);
+                        temp_s3->field_764 = 0x32;
+                        temp_s3->field_766 = 0x10;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_73C = -0x64U;
+                        temp_s3->field_75E = 0;
+                        temp_s3->field_7A4 = 0;
+                        temp_s3->field_732 = (s16)((u16)temp_s3->field_732 + 1);
+                        return;
+                    }
+                    break;
+                case 3:
+                    temp_s3->field_736 = 0x12U;
+                    if ((u16)temp_s3->field_73A & 8) {
+                        temp_v0_9          = temp_s3->field_73C + 5;
+                        temp_s3->field_73C = temp_v0_9;
+                        if ((temp_v0_9 << 0x10) > 0) {
+                            temp_s3->field_73C = 0U;
+                        }
+                    }
+                    temp_s3->field_74A = 0;
+                    if ((s16)temp_s3->field_73C == 0) {
+                        temp_s3->field_7AE = 1;
+                        temp_s3->field_758 = 0;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_732 = (s16)((u16)temp_s3->field_732 + 1);
+                        return;
+                    }
+                    break;
+                case 4:
+                    temp_s3->field_736 = 0x11U;
+                    temp_s3->field_74A = 0;
+                    if (temp_s3->field_73A >= 0xA) {
+                        temp_s3->field_746 = 2;
+                    block_172:
+                        func_actor_403600_8013DFE0(arg0);
+                    }
+                    if (temp_s3->field_73A >= 0x26) {
+                        temp_v0_10            = ((Actor403600Work*)arg0->field_1C);
+                        temp_v0_10->field_756 = 8;
+                        temp_v0_10->field_778 = 0x10;
+                        temp_v0_10->field_776 = 0xA;
+                        temp_v0_10->field_742 = 0;
+                        temp_v0_10->field_746 = 0;
+                        temp_v0_10->field_774 = 0;
+                        temp_v0_10->field_77A = 0;
+                        temp_v0_10->field_784 = 0;
+                        temp_v0_10->field_73C = 0U;
+                        temp_v0_10->field_73E = 0;
+                        temp_v0_10->field_74A = 0;
+                        temp_v0_10->field_73A = 0;
+                        temp_v0_10->field_76E = 0x40;
+                        temp_v0_10->field_75E = 0;
+                        temp_v0_10->field_7A4 = 0;
+                        temp_v0_10->field_7A6 = 0;
+                        temp_v0_10->field_7AC = 0;
+                        temp_s3->field_73E    = 1;
+                        return;
+                    }
+                    break;
+            }
+            break;
+        case 0x14:
+            temp_v0_11 = temp_s3->field_736 - 6;
+            switch (temp_v0_11) {
+                case 10:
+                    temp_s3->field_784    = 1;
+                    temp_s3->field_778    = 0x20;
+                    temp_s3->field_736    = 0x10U;
+                    temp_s3->field_73C    = 0x14U;
+                    temp_s3->field_74A    = 0;
+                    temp_s3->field_6F0.vx = (s32)D_actor_403600_801605D4.vx;
+                    temp_s3->field_6F0.vy = (s32)D_actor_403600_801605D4.vy;
+                    temp_s3->field_6F0.vz = (s32)D_actor_403600_801605D4.vz;
+                    temp_s3->field_76E    = 0x40;
+                    temp_s3->field_746    = 1;
+                    func_actor_403600_8013DFE0(arg0);
+                    if (temp_s3->field_73A >= 0x13) {
+                        temp_s0_10 = &temp_s3->field_4B8;
+                        temp_s4    = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160004;
+                        temp_s0_11 = (s8)Gp_GetObjPan(temp_s0_10);
+                        temp_v0_12 = gpGetObjDepth(temp_s0_10);
+                        SndEvt_EnqueueType6(temp_s4, temp_s0_11, (s32)(((temp_v0_12 >> 0x1F) + temp_v0_12) << 0x17) >> 0x18);
+                        temp_s3->field_76E = 0x80;
+                        temp_s3->field_732 = 0;
+                        temp_s3->field_778 = 0x10;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_774 = 1;
+                        temp_s3->field_736 = 0x12U;
+                        return;
+                    }
+                    break;
+                case 12:
+                    temp_s3->field_736 = 0x12U;
+                    temp_s3->field_73C = 0x4B0U;
+                    temp_s3->field_74A = 0;
+                    if (temp_s3->field_732 == 1) {
+                        temp_s3->field_6F0.vy = (s32)(D_80073B8C->t[1] - 0x258);
+                    }
+                    temp_s3->field_746 = 1;
+                    if (func_actor_403600_8013DFE0(arg0) < 0x7D1) {
+                        if (temp_s3->field_732 == 0) {
+                            temp_s3->field_732 = 1;
+                            func_actor_403600_8013CCEC(arg0, 0);
+                            return;
+                        }
+                        temp_s3->field_73C = 0U;
+                        temp_s3->field_74A = 0;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_736 = 0x11U;
+                        var_s0             = &temp_s3->field_4B8;
+                        var_a0             = var_s0;
+                        temp_s4            = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160004;
+                    block_134:
+                        temp_s0_12 = (s8)Gp_GetObjPan(var_a0);
+                        temp_v0_13 = gpGetObjDepth(var_s0);
+                        SndEvt_EnqueueType6(temp_s4, temp_s0_12, (s32)(((temp_v0_13 >> 0x1F) + temp_v0_13) << 0x17) >> 0x18);
+                        return;
+                    }
+                    break;
+                case 11:
+                    temp_s3->field_736 = 0x11U;
+                    temp_s3->field_76E = 0xA0;
+                    temp_s3->field_73C = 0U;
+                    temp_s3->field_74A = 0;
+                    temp_s3->field_746 = 2;
+                    func_actor_403600_8013DFE0(arg0);
+                    if (temp_s3->field_73A >= 0x26) {
+                        temp_s3->field_76E = 0x80;
+                        temp_s3->field_784 = 0;
+                        temp_s3->field_73C = 0U;
+                        temp_s3->field_74A = 0;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_774 = 0;
+                        temp_s3->field_736 = 6U;
+                        return;
+                    }
+                    break;
+                case 0:
+                    temp_a2 = temp_s3->field_73A;
+                    var_a1  = 0x71350000;
+                    if (temp_a2 == 1) {
+                        var_a1      = 0x71357911;
+                        temp_v0_14  = (Gp_LcgState * 5) + 0x71357911;
+                        Gp_LcgState = temp_v0_14;
+                        temp_v1_3   = (temp_v0_14 >> 0x10) & 0xF;
+                        if (temp_v1_3 < 2) {
+                            temp_s3->field_75A = 0;
+                        } else if (temp_v1_3 < 5) {
+                            temp_s3->field_75A = 2;
+                        } else if (temp_v1_3 < 0xA) {
+                            temp_s3->field_75A = temp_a2;
+                        } else {
+                            temp_s3->field_75A = 3;
+                        }
+                    }
+                    if (temp_s3->field_73A == 0x27) {
+                        temp_s0_13 = &temp_s3->field_4B8;
+                        temp_s4    = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160008;
+                        temp_s0_14 = (s8)Gp_GetObjPan(temp_s0_13);
+                        temp_v0_15 = gpGetObjDepth(temp_s0_13);
+                        SndEvt_EnqueueType6(temp_s4, temp_s0_14, (s32)(((temp_v0_15 >> 0x1F) + temp_v0_15) << 0x17) >> 0x18);
+                        Task_SpawnFromTable(&D_actor_403600_801421A0, 1, (s16)((u16)temp_s3->field_75A | 0x10), arg0);
+                    }
+                    if ((temp_s3->field_73A == 0x2C) || (temp_s3->field_73A == 0x31)) {
+                        Task_SpawnFromTable(&D_actor_403600_801421A0, 1, temp_s3->field_75A, arg0);
+                    }
+                    if (temp_s3->field_73A >= temp_s3->field_734) {
+                        SndEvt_EnqueueType7(0x54160008, 1);
+                        var_v0_6 = 7;
+                    block_189:
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_736 = var_v0_6;
+                        return;
+                    }
+                    break;
+                case 1:
+                    if (temp_s3->field_73A >= 0x33) {
+                        temp_s3->field_746 = 0;
+                        goto block_230;
+                    }
+                    break;
+            }
+            break;
+        case 0x1E:
+            temp_v1_4 = temp_s3->field_732;
+            switch (temp_v1_4) {
+                case 0:
+                    temp_s3->field_736 = 2U;
+                    if ((func_actor_403600_80141840(arg0) & 0xFF) == 3) {
+                        temp_s3->field_73C = 0U;
+                        temp_s3->field_74A = 0;
+                        temp_s3->field_73A = 0;
+                        if (temp_s3->field_772 == 1) {
+                            temp_s3->field_6F0.vx = (s32)((SVECTOR*)&D_actor_403600_8016063C)[(s16)temp_s3->field_770].vx;
+                            temp_s3->field_6F0.vy = (s32)(((SVECTOR*)&D_actor_403600_8016063C)[(s16)temp_s3->field_770].vy + 0xFA0);
+                            temp_s3->field_6F0.vz = (s32)((SVECTOR*)&D_actor_403600_8016063C)[(s16)temp_s3->field_770].vz;
+                        } else if ((u16)temp_s3->field_770 & 2) {
+                            temp_s3->field_6F0.vx = (s32)D_actor_403600_8016064C.x1;
+                            temp_s3->field_6F0.vy = (s32)D_actor_403600_8016064C.y1;
+                            temp_s3->field_6F0.vz = (s32)D_actor_403600_8016064C.z1;
+                        } else {
+                            temp_s3->field_6F0.vx = (s32)D_actor_403600_8016064C.x0;
+                            temp_s3->field_6F0.vy = (s32)D_actor_403600_8016064C.y0;
+                            temp_s3->field_6F0.vz = (s32)D_actor_403600_8016064C.z0;
+                        }
+                        temp_s3->field_732 = (s16)((u16)temp_s3->field_732 + 1);
+                        return;
+                    }
+                    break;
+                case 1:
+                    temp_s3->field_736 = 1U;
+                    temp_v0_16         = (-0x1770 - temp_s3->field_4B8.coord.t[1]) / 25;
+                    temp_s3->field_74A = temp_v0_16;
+                    if (temp_v0_16 < 0xA) {
+                        temp_s3->field_74A = 0;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_732 = (s16)((u16)temp_s3->field_732 + 1);
+                        return;
+                    }
+                    break;
+                case 2:
+                    temp_s3->field_746 = 1;
+                    func_actor_403600_8013DDF4(arg0, 0x20);
+                    if (temp_s3->field_73A >= 0x28) {
+                        temp_s3->field_778 = 0x20;
+                        temp_s3->field_74A = 0;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_76E = 0xA0;
+                        temp_s3->field_732 = (s16)((u16)temp_s3->field_732 + 1);
+                        return;
+                    }
+                    break;
+                case 3:
+                    temp_s3->field_736 = 0x10U;
+                    temp_s3->field_784 = 1;
+                    temp_s3->field_73C = 0U;
+                    temp_s3->field_74A = 0;
+                    func_actor_403600_8013DFE0(arg0);
+                    if (temp_s3->field_73A >= 0x13) {
+                        temp_s0_15 = &temp_s3->field_4B8;
+                        temp_s4    = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x5416000B;
+                        temp_s0_16 = (s8)Gp_GetObjPan(temp_s0_15);
+                        temp_v0_17 = gpGetObjDepth(temp_s0_15);
+                        SndEvt_EnqueueType6(temp_s4, temp_s0_16, (s32)(((temp_v0_17 >> 0x1F) + temp_v0_17) << 0x17) >> 0x18);
+                        temp_s3->field_73C = 0x320U;
+                        temp_s3->field_778 = 0x10;
+                        temp_s3->field_774 = 0;
+                        temp_s3->field_734 = 0;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_76E = 0x80;
+                        temp_s3->field_7A4 = 1;
+                        temp_s3->field_732 = (s16)((u16)temp_s3->field_732 + 1);
+                        return;
+                    }
+                    break;
+                case 4:
+                    temp_s3->field_736 = 0x12U;
+                    temp_s3->field_73C = 0x320U;
+                    temp_s3->field_74A = 0;
+                    temp_s3->field_76E = 0xA0;
+                    if (!((u16)temp_s3->field_73A & 1)) {
+                        Gp_SpawnEff(0x601B9, &arg0->field_2C->coords[1], 0, &D_actor_403600_80160664);
+                        Gp_SpawnEff(0x601B9, &arg0->field_2C->coords[15], 0x800, NULL);
+                        Gp_SpawnEff(0x601B9, &arg0->field_2C->coords[19], 0x800, NULL);
+                    }
+                    temp_s3->field_746 = 1;
+                    temp_s1            = func_actor_403600_8013DFE0(arg0);
+                    temp_v1_5          = D_80073B8C->t[0] - temp_s3->field_4B8.coord.t[0];
+                    temp_lo            = temp_v1_5 * temp_v1_5;
+                    temp_v1_6          = D_80073B8C->t[1] - temp_s3->field_4B8.coord.t[1];
+                    temp_lo_2          = temp_v1_6 * temp_v1_6;
+                    temp_v1_7          = D_80073B8C->t[2] - temp_s3->field_4B8.coord.t[2];
+                    temp_v0_18         = SquareRoot0(temp_lo + temp_lo_2 + (temp_v1_7 * temp_v1_7));
+                    sp10               = temp_v0_18;
+                    if (temp_v0_18 < 0x76DU) {
+                        temp_s0_msg = &D_actor_403600_80160568;
+                        if (temp_s0_msg->field_4 == 0) {
+                            Gp_SpawnPadLerp(0x14, 0xFF, 0x50);
+                            temp_s3->field_760 = 0;
+                            var_v0_8           = (s16)func_actor_403600_8013E66C(&temp_s3->field_4B8);
+                            if (var_v0_8 < 0) {
+                                var_v0_8 = -var_v0_8;
+                            }
+                            if (var_v0_8 >= 0x401) {
+                                temp_s3->field_762   = 0x28;
+                                temp_s0_msg->field_4 = 4;
+                                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, temp_s0_msg, 0);
+                            } else {
+                                temp_s3->field_762   = -0x28;
+                                temp_s0_msg->field_4 = 3;
+                                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, temp_s0_msg, 0);
+                            }
+                            temp_s4    = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 6;
+                            temp_s0_17 = (s8)Gp_GetObjPan(temp_s6);
+                            temp_v0_19 = gpGetObjDepth(temp_s6);
+                            SndEvt_EnqueueType6(temp_s4, temp_s0_17, (s32)(((temp_v0_19 >> 0x1F) + temp_v0_19) << 0x17) >> 0x18);
+                            Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F9, Gp_PackPair(&D_actor_403600_80150E9C, 0), 0);
+                        }
+                    }
+                    if (temp_s1 < 0x3E9) {
+                        temp_s3->field_778 = 0x10;
+                        temp_s3->field_73C = 0U;
+                        temp_s3->field_74A = 0;
+                        temp_s3->field_746 = 0;
+                        temp_s3->field_734 = 0;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_7A4 = 0;
+                        temp_s3->field_7AE = 1;
+                        temp_s3->field_758 = 0;
+                        temp_s3->field_732 = (s16)((u16)temp_s3->field_732 + 1);
+                        return;
+                    }
+                    break;
+                case 5:
+                    temp_s3->field_736 = 0x11U;
+                    temp_s3->field_74A = 0;
+                    temp_s3->field_746 = 2;
+                    temp_s3->field_76E = 0x40;
+                    func_actor_403600_8013DFE0(arg0);
+                    if (temp_s3->field_73A >= 0x26) {
+                        temp_v0_20            = ((Actor403600Work*)arg0->field_1C);
+                        temp_v0_20->field_756 = 8;
+                        temp_v0_20->field_778 = 0x10;
+                        temp_v0_20->field_742 = 0;
+                        temp_v0_20->field_746 = 0;
+                        temp_v0_20->field_774 = 0;
+                        temp_v0_20->field_77A = 0;
+                        temp_v0_20->field_784 = 0;
+                        temp_v0_20->field_73C = 0U;
+                        temp_v0_20->field_73E = 0;
+                        temp_v0_20->field_74A = 0;
+                        temp_v0_20->field_73A = 0;
+                        temp_v0_20->field_776 = 0xA;
+                        temp_v0_20->field_76E = 0x40;
+                        temp_v0_20->field_75E = 0;
+                        temp_v0_20->field_7A4 = 0;
+                        temp_v0_20->field_7A6 = 0;
+                        temp_v0_20->field_7AC = 0;
+                        temp_s3->field_73E    = 1;
+                        return;
+                    }
+                    break;
+            }
+            break;
+        case 0x28:
+            temp_v1_8 = temp_s3->field_732;
+            switch (temp_v1_8) {
+                case 0:
+                    temp_s3->field_746 = 1;
+                    temp_s3->field_73C = 0xC8U;
+                    adjusted_y0        = ((Actor403600MatrixRef*)&D_80073B8C)->matrix->t[1] + 0x1F4;
+                    temp_s3->field_74A = (s16)((adjusted_y0 - temp_s3->field_4B8.coord.t[1]) / 25);
+                    if (func_actor_403600_8013DDF4(arg0, 0xB0) < 0x3E9) {
+                        temp_s3->field_73C = 0U;
+                        temp_s3->field_74A = 0;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_732 = (s16)((u16)temp_s3->field_732 + 1);
+                        return;
+                    }
+                    break;
+                case 1:
+                    temp_s3->field_746 = 0;
+                    func_actor_403600_8013DDF4(arg0, 0x20);
+                    temp_s3->field_73C = 0U;
+                    temp_s3->field_74A = 0;
+                    func_actor_403600_8013E470(&temp_s3->field_4B8, &sp10, &sp14);
+                    if (temp_s3->field_73A >= 0x32) {
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_732 = (s16)((u16)temp_s3->field_732 + 1);
+                        return;
+                    }
+                    break;
+                case 2:
+                    D_80181A48(arg0);
+                    temp_s3->field_736 = 0x13U;
+                    if (temp_s3->field_73A == 0x19) {
+                        temp_s0_18 = &temp_s3->field_4B8;
+                        temp_s4    = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160015;
+                        temp_s0_19 = (s8)Gp_GetObjPan(temp_s0_18);
+                        temp_v0_21 = gpGetObjDepth(temp_s0_18);
+                        SndEvt_EnqueueType6(temp_s4, temp_s0_19, (s32)(((temp_v0_21 >> 0x1F) + temp_v0_21) << 0x17) >> 0x18);
+                    }
+                    if (temp_s3->field_73A < 0x14) {
+                        temp_s3->field_6F0.vx = (s32)Player_Status.coordMtx->t[0];
+                        temp_s3->field_6F0.vy = (s32)(Player_Status.coordMtx->t[1] - 0x3E8);
+                        temp_s3->field_6F0.vz = (s32)Player_Status.coordMtx->t[2];
+                    }
+                    if (temp_s3->field_73A >= 0x32) {
+                        temp_s3->field_736 = 0x10U;
+                        temp_s3->field_746 = 1;
+                        temp_s3->field_778 = 0x20;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_76E = 0xA0;
+                        temp_s3->field_732 = (s16)((u16)temp_s3->field_732 + 1);
+                        return;
+                    }
+                    break;
+                case 3:
+                    state16 = 0x10;
+                    SOFT_TOUCH_REG(state16);
+                    temp_s3->field_784 = 1;
+                    temp_s3->field_736 = state16;
+                    temp_s3->field_73C = 0U;
+                    temp_s3->field_74A = 0;
+                    func_actor_403600_8013DFE0(arg0);
+                    if (temp_s3->field_73A >= 0x13) {
+                        temp_s3->field_73C = 0x320U;
+                        temp_s3->field_76E = 0xA0;
+                        temp_s3->field_70A = 0x7000;
+                        temp_s3->field_736 = 0x12U;
+                        temp_s3->field_778 = state16;
+                        temp_s3->field_746 = 1;
+                        temp_s3->field_734 = 0;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_75E = 0;
+                        temp_s3->field_786 = 0;
+                        temp_s3->field_792 = 0x96;
+                        temp_s3->field_7A4 = 1;
+                        temp_s3->field_732 = (s16)((u16)temp_s3->field_732 + 1);
+                        temp_sound_28      = &temp_s3->field_4B8;
+                        temp_s4            = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x5416000B;
+                        temp_pan_28        = (s8)Gp_GetObjPan(temp_sound_28);
+                        temp_depth_28      = gpGetObjDepth(temp_sound_28);
+                        SndEvt_EnqueueType6(temp_s4, temp_pan_28, (s32)(((temp_depth_28 >> 0x1F) + temp_depth_28) << 0x17) >> 0x18);
+                        return;
+                    }
+                    break;
+                case 4:
+                    if (!((u16)temp_s3->field_73A & 1)) {
+                        if (temp_s3->field_734 != 0xFF) {
+                            Gp_SpawnEff(0x601B9, &arg0->field_2C->coords[1], 0, &D_actor_403600_80160664);
+                            Gp_SpawnEff(0x601B9, &arg0->field_2C->coords[15], 0x800, NULL);
+                            Gp_SpawnEff(0x601B9, &arg0->field_2C->coords[19], 0x800, NULL);
+                        }
+                    }
+                    temp_s7->node.flags = 8;
+                    temp_s3->field_736  = 0x12U;
+                    func_actor_403600_801417A8(arg0, 0xA);
+                    temp_s0_20 = &temp_s3->field_4B8;
+                    func_actor_403600_8013E470(temp_s0_20, &sp10, &sp14);
+                    if (sp10 < 0x5DDU) {
+                        temp_s1_3 = &D_actor_403600_80160568;
+                        if (temp_s1_3->field_4 == 0) {
+                            if (temp_s3->field_734 == 0xFF) {
+                                Gp_SpawnPadLerp(0xA, 0xFF, 0x50);
+                                D_actor_403600_801606A4.field_2 = 0xA;
+                                temp_s1_3->field_4              = 1;
+                                D_actor_403600_801606A4.field_0 = (u16)D_actor_403600_80150EAC;
+                                func_actor_403600_8013E7D4((s32)arg0, 1);
+                                temp_s3->field_762 = -0x190;
+                                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, temp_s1_3, 0);
+                                temp_s3->field_760 = 0;
+                                temp_s4            = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 6;
+                                temp_s0_21         = (s8)Gp_GetObjPan(temp_s6);
+                                temp_v0_22         = gpGetObjDepth(temp_s6);
+                                SndEvt_EnqueueType6(temp_s4, temp_s0_21, (s32)(((temp_v0_22 >> 0x1F) + temp_v0_22) << 0x17) >> 0x18);
+                                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F9, Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
+                            } else {
+                                Gp_SpawnPadLerp(0x14, 0xB0, 0x50);
+                                temp_s3->field_760 = 0;
+                                var_v0_10          = (s16)func_actor_403600_8013E66C(temp_s0_20);
+                                if (var_v0_10 < 0) {
+                                    var_v0_10 = -var_v0_10;
+                                }
+                                if (var_v0_10 >= 0x401) {
+                                    temp_s3->field_762 = 0x28;
+                                    temp_s1_3->field_4 = 4;
+                                    Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, temp_s1_3, 0);
+                                } else {
+                                    temp_s3->field_762 = -0x28;
+                                    temp_s1_3->field_4 = 3;
+                                    Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, temp_s1_3, 0);
+                                }
+                                temp_s4    = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 6;
+                                temp_s0_22 = (s8)Gp_GetObjPan(temp_s6);
+                                temp_v0_23 = gpGetObjDepth(temp_s6);
+                                SndEvt_EnqueueType6(temp_s4, temp_s0_22, (s32)(((temp_v0_23 >> 0x1F) + temp_v0_23) << 0x17) >> 0x18);
+                                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F9, Gp_PackPair(&D_actor_403600_80150E9C, 4), 0);
+                                temp_s3->field_734 = (s16)temp_s3->field_782;
+                            }
+                            temp_s3->field_792 = 0x96;
+                        }
+                    }
+                    temp_s1_2 = func_actor_403600_8013D9A8(arg0) & 0xFF;
+                    if (temp_s1_2 == 2) {
+                        Task_SpawnFromTable(&D_actor_403600_801421A0, 3, 0, arg0);
+                    }
+                    if ((temp_s1_2 == 3) && (temp_s3->field_734 == 0xFF)) {
+                        temp_s3->field_732 = 6;
+                        temp_s3->field_7A4 = 0;
+                        temp_s3->field_75E = 0;
+                        temp_s3->field_7AE = 1;
+                        temp_s3->field_758 = 0;
+                    }
+                    if (temp_s1_2 == 1) {
+                        temp_s3->field_7A4 = 0;
+                        temp_s3->field_7A6 = temp_s1_2;
+                        temp_s4            = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x5416000E;
+                        temp_s0_23         = (s8)Gp_GetObjPan(temp_s6);
+                        temp_v0_24         = gpGetObjDepth(temp_s6);
+                        SndEvt_EnqueueType6(temp_s4, temp_s0_23, (s32)(((temp_v0_24 >> 0x1F) + temp_v0_24) << 0x17) >> 0x18);
+                        Task_SpawnFromTable(&D_actor_403600_801421A0, 3, 1, arg0);
+                        temp_s3->field_776       = 0;
+                        temp_s3->field_5C0.flags = (u16)(temp_s3->field_5C0.flags & 0xBFFF);
+                        __asm__("addiu %0,$zero,1" : "=r"(node_flag) : "r"(temp_s1_2));
+                        temp_s7->node.flags = node_flag;
+                        Gp_ClearNodeSlots(&temp_s7->node);
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_732 = 5;
+                        temp_s3->field_794 = (u16)temp_s3->field_792;
+                        return;
+                    }
+                    break;
+                case 5:
+                    func_actor_403600_801417A8(arg0, 0xA);
+                    temp_v0_25         = (u16)temp_s3->field_776 + 1;
+                    temp_s3->field_776 = temp_v0_25;
+                    if (temp_v0_25 == 8) {
+                        temp_s3->field_73C = 0U;
+                    }
+                    if (temp_s3->field_776 == (s16)temp_s3->field_794) {
+                        SndEvt_EnqueueType6(0x5416000F, 0, 0);
+                        func_actor_403600_8013C864(arg0);
+                        temp_s3->field_746 = 3;
+                        func_actor_403600_8013DFE0(arg0);
+                        Task_SpawnFromTable(&D_actor_403600_801421A0, 3, 2, arg0);
+                    }
+                    temp_v0_26 = D_80073B8C->t[0] - temp_s3->field_4B8.coord.t[0];
+                    temp_lo_3  = temp_v0_26 * temp_v0_26;
+                    temp_v0_27 = D_80073B8C->t[1] - temp_s3->field_4B8.coord.t[1];
+                    temp_lo_4  = temp_v0_27 * temp_v0_27;
+                    temp_v0_28 = D_80073B8C->t[2] - temp_s3->field_4B8.coord.t[2];
+                    var_a0_2   = SquareRoot0(temp_lo_3 + temp_lo_4 + (temp_v0_28 * temp_v0_28));
+                    sp10       = var_a0_2;
+                    if (temp_s3->field_73A >= 8) {
+                        rumble_distance = var_a0_2;
+                        TOUCH_REG_USE(rumble_distance, var_a0_2);
+                        temp_s3->field_73A = 0;
+                        if (rumble_distance < 0x3E9U) {
+                            var_a0_2 = 5;
+                            var_a1_2 = 0xB0;
+                            goto block_168_call;
+                        }
+                        if (rumble_distance < 0x7D1U) {
+                            var_a1_2 = 0x80;
+                            var_a0_2 = 5;
+                            goto block_168_call;
+                        }
+                        if (var_a0_2 < 0xBB9U) {
+                            var_a0_2 = 5;
+                            var_a1_2 = 0x50;
+                        block_168_call:
+                            Gp_SpawnPadLerpWide(var_a0_2, var_a1_2, var_a1_2);
+                        }
+                    }
+                block_168:
+                    if (temp_s3->field_776 >= ((s16)temp_s3->field_794 + 0x1E)) {
+                        SndEvt_EnqueueType7(0x5416000F, 1);
+                        SndEvt_EnqueueType6(0x54160010, 0, 0);
+                        temp_s3->field_73C = 0x320U;
+                        temp_s3->field_76E = 0xA0;
+                        temp_s3->field_732 = 4;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_786 = 0;
+                        temp_s3->field_7A4 = 1;
+                        temp_s3->field_7A6 = 0;
+                        return;
+                    }
+                    break;
+                case 6:
+                    temp_s3->field_736 = 0x11U;
+                    temp_s3->field_70A = 0;
+                    temp_s3->field_73C = 0U;
+                    temp_s3->field_746 = 2;
+                    func_actor_403600_8013DFE0(arg0);
+                    if (temp_s3->field_73A >= 0x26) {
+                        temp_reset_30            = ((Actor403600Work*)arg0->field_1C);
+                        temp_reset_30->field_756 = 8;
+                        temp_reset_30->field_778 = 0x10;
+                        temp_reset_30->field_742 = 0;
+                        temp_reset_30->field_746 = 0;
+                        temp_reset_30->field_774 = 0;
+                        temp_reset_30->field_77A = 0;
+                        temp_reset_30->field_784 = 0;
+                        temp_reset_30->field_73C = 0U;
+                        temp_reset_30->field_73E = 0;
+                        temp_reset_30->field_74A = 0;
+                        temp_reset_30->field_73A = 0;
+                        temp_reset_30->field_776 = 0xA;
+                        temp_reset_30->field_76E = 0x40;
+                        temp_reset_30->field_75E = 0;
+                        temp_reset_30->field_7A4 = 0;
+                        temp_reset_30->field_7A6 = 0;
+                        temp_reset_30->field_7AC = 0;
+                        temp_s3->field_73E       = 1;
+                        return;
+                    }
+                    break;
+            }
+            break;
+        case 0x32:
+            temp_v1_9 = (s16)temp_s3->field_736;
+            switch (temp_v1_9) {
+                case 2:
+                    temp_s3->field_746 = 0;
+                    func_actor_403600_8013DDF4(arg0, 0xA0);
+                    temp_s3->field_73C = 0x12CU;
+                    adjusted_y1        = ((Actor403600MatrixRef*)&D_80073B8C)->matrix->t[1] + 0x1F4;
+                    temp_s3->field_74A = (s16)((adjusted_y1 - temp_s3->field_4B8.coord.t[1]) / 25);
+                    func_actor_403600_8013E470(&temp_s3->field_4B8, &sp10, &sp14);
+                    if ((sp10 < 0x1389U) && (temp_s3->field_74A < 0x12D)) {
+                        temp_s3->field_73C = 0U;
+                        temp_s3->field_74A = 0;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_736 = 6U;
+                        Gp_SpawnEff(0x601BC, &arg0->field_2C->coords[1], temp_s3->field_734, NULL);
+                        return;
+                    }
+                    break;
+                case 6:
+                    temp_s3->field_73C = 0U;
+                    temp_s3->field_74A = 0;
+                    if (temp_s3->field_73A == 1) {
+                        temp_s0_24 = &temp_s3->field_4B8;
+                        temp_s4    = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160014;
+                        temp_s0_25 = (s8)Gp_GetObjPan(temp_s0_24);
+                        temp_v0_30 = gpGetObjDepth(temp_s0_24);
+                        SndEvt_EnqueueType6(temp_s4, temp_s0_25, (s32)(((temp_v0_30 >> 0x1F) + temp_v0_30) << 0x17) >> 0x18);
+                    }
+                    if (temp_s3->field_73A >= temp_s3->field_734) {
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_736 = 8;
+                        return;
+                    }
+                    break;
+                case 8:
+                    if ((temp_s3->field_73A == 1) && (temp_s3->field_4B4 == 0)) {
+                        temp_s3->field_4B4 = (Actor403600**)Gp_SpawnEnemyFromTable(&D_actor_403600_80160514, 1, Gp_NodeSlotMask(&temp_s7->node), 0);
+                    }
+                    if (temp_s3->field_73A >= 0x1E) {
+                        temp_s3->field_73C = -0xAU;
+                        temp_s3->field_74A = -0x14;
+                    }
+                    if (temp_s3->field_73A >= 0x42) {
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_736 = 3U;
+                        case 3:
+                    }
+                    temp_s3->field_73C = -0x14U;
+                    temp_s3->field_74A = -0x1E;
+                    if (temp_s3->field_73A >= 0x1E) {
+                        temp_s3->field_73C = 0U;
+                        temp_s3->field_74A = 0;
+                        temp_s3->field_73E = 0;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_776 = 5;
+                        return;
+                    }
+                    break;
+            }
+            break;
+        case 0x3C:
+            temp_v1_10 = (s16)temp_s3->field_736;
+            switch (temp_v1_10) {
+                case 2:
+                    temp_s3->field_6F0.vx = 0x1F40;
+                    temp_s3->field_6F0.vy = -0x1B58;
+                    temp_s3->field_6F0.vz = 0x1900;
+                    if ((func_actor_403600_80141840(arg0) & 0xFF) == 3) {
+                        temp_s3->field_76A = 0x100;
+                        temp_s3->field_768 = 0;
+                        temp_s3->field_76C = 0x32;
+                        temp_s3->field_758 = 0;
+                        temp_s3->field_73C = 0U;
+                        temp_s3->field_74A = 0;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_736 = 6U;
+                        temp_s3->field_79C = (u16)temp_wip->mp;
+                        return;
+                    }
+                    break;
+                case 6:
+                    if (temp_s3->field_73A >= 0x2D) {
+                        func_actor_403600_80141B60(arg0);
+                        temp_a3            = (u16)temp_s3->field_73A;
+                        temp_s3->field_708 = (u16)(temp_s3->field_708 + (0xC00 / (s16)temp_s3->field_734));
+                        if (temp_s3->field_73A == 0x30) {
+                            Gp_SpawnPadLerp((s16)(((u16)temp_s3->field_734 - temp_a3) + 0x23), 0x40, 0xFF);
+                            SndEvt_EnqueueType6(0x54160001, 0, 0);
+                        }
+                    }
+                    func_actor_403600_8013F608(arg0);
+                    if (temp_s3->field_73A >= temp_s3->field_734) {
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_736 = 0xAU;
+                    }
+                    if (temp_s3->field_758 < 0xC8) {
+                        return;
+                    }
+                    goto block_229;
+                case 10:
+                    func_actor_403600_8013F608(arg0);
+                    temp_v1_11 = temp_s3->field_73A;
+                    if (temp_v1_11 == 0x23) {
+                        Gp_SpawnPadLerp(0xA, 0xFF, 0xFF);
+                        temp_s3->field_708 = 0x1000U;
+                        temp_s4            = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 6;
+                        temp_s0_26         = (s8)Gp_GetObjPan(temp_s6);
+                        temp_v0_31         = gpGetObjDepth(temp_s6);
+                        SndEvt_EnqueueType6(temp_s4, temp_s0_26, (s32)(((temp_v0_31 >> 0x1F) + temp_v0_31) << 0x17) >> 0x18);
+                        Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F9, Gp_PackPair(&D_actor_403600_80150E9C, 3), 0);
+                        D_actor_403600_80160568.field_4 = 4;
+                        Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
+                        temp_v0_32   = temp_wip->mp - 0xFB;
+                        temp_wip->mp = temp_v0_32;
+                        if ((temp_v0_32 << 0x10) <= 0) {
+                            temp_wip->mp = 0U;
+                        }
+                        temp_s3->field_76C = -1;
+                        temp_s3->field_760 = 0;
+                        temp_s3->field_762 = 0x28;
+                        temp_s0_27         = (GsCOORDINATE2*)Gp_ActorSlots[0]->extra->coords;
+                        temp_s4            = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160003;
+                        temp_s0_28         = (s8)Gp_GetObjPan(temp_s0_27);
+                        temp_v0_33         = gpGetObjDepth(temp_s0_27);
+                        SndEvt_EnqueueType6(temp_s4, temp_s0_28, (s32)(((temp_v0_33 >> 0x1F) + temp_v0_33) << 0x17) >> 0x18);
+                        SndEvt_EnqueueType7(0x54160001, 1);
+                    } else if (temp_v1_11 < 0x23) {
+                        func_actor_403600_80141B60(arg0);
+                    }
+                    temp_v0_34         = temp_s3->field_708 + 0xE;
+                    temp_s3->field_708 = temp_v0_34;
+                    if ((s16)temp_v0_34 >= 0x1000) {
+                        temp_s3->field_708 = 0x1000U;
+                    }
+                    if (temp_s3->field_73A >= 0x45) {
+                        if ((s16)temp_wip->mp <= 0) {
+                            temp_wip->mp = 0U;
+                        }
+                        temp_s3->field_708 = 0U;
+                        temp_s3->field_73E = 0;
+                        temp_s3->field_73A = 0;
+                    }
+                    if ((temp_s3->field_758 >= 0xC8) && (temp_s3->field_73A < 0x32)) {
+                        goto block_229;
+                    }
+                    break;
+                block_229:
+                    func_actor_403600_80141B24(arg0);
+                    temp_s3->field_73C = 0U;
+                    temp_s3->field_74A = 0;
+                block_230:
+                    temp_s3->field_73E = 0;
+                    temp_s3->field_73A = 0;
+                    return;
+            }
+            break;
+        case 0x46:
+            temp_v1_12 = (s16)temp_s3->field_736;
+            switch (temp_v1_12) {
+                case 2:
+                    temp_s3->field_746 = 0;
+                    func_actor_403600_8013DDF4(arg0, 0x20);
+                    func_actor_403600_8013E470(&temp_s3->field_4B8, &sp10, &sp14);
+                    if (sp10 < 0x7D1U) {
+                        temp_s3->field_73C = 0U;
+                    } else {
+                        temp_s3->field_73C = 0x50U;
+                    }
+                    adjusted_y2        = temp_s3->field_4B8.coord.t[1] + 0x3E8;
+                    temp_a0_2          = (D_80073B8C->t[1] - adjusted_y2) / 25;
+                    temp_s3->field_74A = temp_a0_2;
+                    if (sp10 < 0x7D1U) {
+                        var_v0_12 = sp14;
+                        if (var_v0_12 < 0) {
+                            var_v0_12 = -var_v0_12;
+                        }
+                        if (var_v0_12 < 0x200) {
+                            var_v0_13 = temp_a0_2;
+                            if (var_v0_13 < 0) {
+                                var_v0_13 = -var_v0_13;
+                            }
+                            if (var_v0_13 < 0x28) {
+                                temp_s3->field_73C = 0U;
+                                temp_s3->field_74A = 0;
+                                temp_s3->field_73A = 0;
+                                temp_s3->field_736 = 0xCU;
+                                temp_s3->field_756 = 0;
+                            }
+                        }
+                    }
+                    temp_v0_35         = temp_s3->field_7B2 + 1;
+                    temp_s3->field_7B2 = temp_v0_35;
+                    if (((s16)temp_v0_35 >= 0x5A) || (sp10 >= 0xFA0U)) {
+                        temp_s3->field_756 = 8;
+                        temp_s3->field_73C = 0U;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_73E = 0;
+                        temp_s3->field_7B4 = 1;
+                        return;
+                    }
+                    break;
+                case 12:
+                    temp_s3->field_736 = (u16)temp_v1_12;
+                    if (temp_s3->field_73A == 0xE) {
+                        temp_s0_29 = &temp_s3->field_4B8;
+                        temp_s4    = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x5416000D;
+                        temp_s0_30 = (s8)Gp_GetObjPan(temp_s0_29);
+                        temp_v0_36 = gpGetObjDepth(temp_s0_29);
+                        SndEvt_EnqueueType6(temp_s4, temp_s0_30, (s32)(((temp_v0_36 >> 0x1F) + temp_v0_36) << 0x17) >> 0x18);
+                    }
+                    if (temp_s3->field_73A == 0x11) {
+                        temp_s3->field_588.flags = (u16)(temp_s3->field_588.flags | 0x8000);
+                    }
+                    if (temp_s3->field_73A == 0x15) {
+                        temp_s3->field_588.flags = (u16)(temp_s3->field_588.flags & 0x7FFF);
+                    }
+                    if (temp_s3->field_73A >= 0x1E) {
+                        temp_s3->field_73C = 0U;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_736 = 0xDU;
+                        func_actor_403600_8013E470(&temp_s3->field_4B8, &sp10, &sp14);
+                        var_v0_14 = sp10 < 0x7D0U;
+                        goto block_266;
+                    }
+                    break;
+                case 13:
+                    temp_s3->field_736 = (u16)temp_v1_12;
+                    if (temp_s3->field_73A == 9) {
+                        temp_s0_31 = &temp_s3->field_4B8;
+                        temp_s4    = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x5416000D;
+                        temp_s0_32 = (s8)Gp_GetObjPan(temp_s0_31);
+                        temp_v0_37 = gpGetObjDepth(temp_s0_31);
+                        SndEvt_EnqueueType6(temp_s4, temp_s0_32, (s32)(((temp_v0_37 >> 0x1F) + temp_v0_37) << 0x17) >> 0x18);
+                    }
+                    if (temp_s3->field_73A == 0xA) {
+                        temp_s3->field_588.flags = (u16)(temp_s3->field_588.flags | 0x8000);
+                    }
+                    if (temp_s3->field_73A == 0xE) {
+                        temp_s3->field_588.flags = (u16)(temp_s3->field_588.flags & 0x7FFF);
+                    }
+                    var_v0_14 = temp_s3->field_73A < 0x23;
+                block_266:
+                    if (var_v0_14 == 0) {
+                        temp_s3->field_756 = 8;
+                        temp_s3->field_73C = 0U;
+                        temp_s3->field_73A = 0;
+                        temp_s3->field_73E = 0;
+                    }
+            }
+            break;
+    }
+}
 
 void func_actor_403600_8013C864(Actor403600* arg0)
 {

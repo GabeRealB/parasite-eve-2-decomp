@@ -66,7 +66,8 @@ typedef struct Actor403600Work {
     /* 0x754 */ s16                  field_754;
     /* 0x756 */ s16                  field_756;
     /* 0x758 */ s16                  field_758;
-    /* 0x75A */ byte                 pad_75A[4];
+    /* 0x75A */ s16                  field_75A;
+    /* 0x75C */ byte                 pad_75C[2];
     /* 0x75E */ s16                  field_75E;
     /* 0x760 */ u16                  field_760;
     /* 0x762 */ s16                  field_762;
@@ -98,7 +99,7 @@ typedef struct Actor403600Work {
     /* 0x796 */ s16                  field_796;
     /* 0x798 */ s16                  field_798;
     /* 0x79A */ s16                  field_79A;
-    /* 0x79C */ byte                 pad_79C[2];
+    /* 0x79C */ s16                  field_79C;
     /* 0x79E */ u16                  field_79E;
     /* 0x7A0 */ u16                  field_7A0;
     /* 0x7A2 */ s16                  field_7A2;
@@ -109,7 +110,9 @@ typedef struct Actor403600Work {
     /* 0x7AC */ s16                  field_7AC;
     /* 0x7AE */ s16                  field_7AE;
     /* 0x7B0 */ s16                  field_7B0;
-    /* 0x7B2 */ byte                 pad_7B2[6];
+    /* 0x7B2 */ u16                  field_7B2;
+    /* 0x7B4 */ s16                  field_7B4;
+    /* 0x7B6 */ byte                 pad_7B6[2];
 } Actor403600Work;
 STATIC_ASSERT_SIZEOF(Actor403600Work, 0x7B8);
 
@@ -334,6 +337,8 @@ typedef struct Actor403600Ctx {
 } Actor403600Ctx;
 
 extern SVECTOR           D_actor_403600_801605D4;
+extern SVECTOR           D_actor_403600_801605DC;
+extern s16               D_actor_403600_801605DE;
 extern SVECTOR           D_actor_403600_801605E4;
 extern SVECTOR           D_actor_403600_801605EC;
 extern s16               D_actor_403600_801606F2;
@@ -344,6 +349,9 @@ extern GpU16Pair         D_8016A408[];
 extern u16               D_8016AEF8[];
 extern u16               D_8016E450;
 extern SVECTOR           D_actor_403600_8016065C;
+extern SVECTOR           D_actor_403600_80160664;
+extern u16               D_actor_403600_80150EA4;
+extern u16               D_actor_403600_80150EAC;
 extern s32               D_actor_403600_80160700[9];
 extern const SVECTOR     D_actor_403600_80131E24;
 extern GpU16Pair         D_actor_403600_801420F0;
@@ -362,7 +370,14 @@ void func_actor_403600_8013DAF4(Actor403600* arg0, s32 arg1);
 s32  func_actor_403600_8013DDF4(Actor403600* arg0, s16 arg1);
 s32  func_actor_403600_8013DFE0(Actor403600* arg0);
 void func_actor_403600_8013E470(GsCOORDINATE2* arg0, s32* arg1, s32* arg2);
+s16  func_actor_403600_8013E66C(GsCOORDINATE2* arg0);
 s32  func_actor_403600_8013E7D4(s32 arg0, s32 arg1);
+void func_actor_403600_8013EA04(Actor403600* arg0);
+void func_actor_403600_8013F608(Actor403600* arg0);
+void func_actor_403600_801417A8(Actor403600* arg0, s32 arg1);
+s32  func_actor_403600_80141840(Actor403600* arg0);
+void func_actor_403600_80141B60(Actor403600* arg0);
+void D_80181A48(Actor403600* arg0);
 s32  func_actor_403600_801406A4(Actor403600* arg0, s32 arg1, Actor403600MsgArg* arg2);
 void func_actor_403600_80140B4C(struct GpEnemy* arg0, Actor403600* arg1);
 

@@ -133874,3 +133874,45 @@ Passing the full `0x71357911` through `SOFT_TOUCH_REG` gave this function the re
 The retry prediction used `increment = 0x71350000; SOFT_TOUCH_REG(increment); increment |= 0x7911;`. In current base_1, reload UID1379 is a single-instruction high-half SET, and OR UID672 already exists before sched2. RNG load UID675 fits between them. The required v0 load, v1 accumulation and a0 increment survive. This is evidence about materialization timing, not a general allocation priority rule. The baseline-to-base_1 edit also explicitly accumulates into the existing SI result; the archived base_8 already had that source form.
 
 Input hashes: current base_1.i `39af116cfd26c13fc2d8896eb42989481cbbd6e6faf8f3ce459bf134fc89198a`; archived base_8.i `6f91bc81a25d5678dee2c2070d20b058886b83165fea80490a0784205672b624`. Retained evidence: `tools/permuter_findings/func_actor_403600_8013D15C/`, the 2026-09-20 session LEARNINGS/PERMUTER_ANALYSIS, base_1/base_3 dumps and prior archived base_8 .greg/.sched2. The normal C/header port passed unscoped build verification. Its scratch score still reports seven symbolic-vs-numeric RNG operand differences; those resolve to identical linked bytes. Never port the scratch's old 0x80150000 RNG page: the real Gp_LcgState is 0x80070F60.
+
+## A post-call store changes pre-call scheduling through the block's memory-unit count (func_actor_403600_8013A444, 2026-09-20)
+
+Two angle branches each assigned a global flag, called the same helper, and
+assigned a local halfword. A shared tail stored that halfword to the actor.
+At99.697232%, both flag stores preceded argument setup, their address/value
+homes were v1/v0, and dbr hoisted a common address high into the branch slot.
+The target wanted argument setup first, address/value v0/v1, and each flag
+store in its call delay slot. Changing independent statement order had failed.
+
+The neighboring correctly ordered block had multiple memory operations;
+the failing branches had one each. In patched GCC2.8.1 sched.c:1346,
+`potential_hazard` weights a functional unit by
+`(unit_n_insns[unit] - 1) * 0x1000 + unit`. A lone operation on memory unit0
+therefore has zero potential-hazard weight. The count is initialized for the
+whole basic block and is not decremented during backward scheduling.
+
+Controlled prediction: duplicate the actor halfword store into both source
+branches, after each call, and let jump2 recover the shared tail. This supplies
+the second memory instruction during scheduling without changing behavior.
+base_2.i.sched block44 still ranks argument UIDs1119/1117 ahead of flag-store1114,
+but now reports `insn 1114 has a greater potential hazard` and selects the store
+first, at T-5. Block45 shows the same override for1138. Thus final forward order
+has arguments before the flag store. The second, independent requirement also
+holds: .greg changes high r485 to v0 and flag r486 to v1. jump2 merges the later
+halfword stores; dbr fills both call delays with the flag stores and the branch
+delay with the common a0 move. Score99.991349%, with only four symbol-relocation
+differences, then100% after preserving structured MEM flags for two aliased
+player-coordinate-pointer reads. Typed integration and unscoped build passed.
+
+Scope: this is evidence for the per-block functional-unit-count effect, not a
+universal rule that duplicating stores fixes scheduling. The duplicated stores
+must be semantically equivalent and survive until scheduling; later sharing
+must be checked separately. No pin, permutation discovery, or tracer was used.
+
+Scratch: nonmatchings/func_actor_403600_8013A444-vacuum. Evidence:
+base_1/base_2.i.sched, .greg, .jump2, .dbr; experiments.jsonl; LEARNINGS.md;
+base_7.score.json; verify_1.log.
+Compiler SHA256:60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+base_1 input:c32ac0f06f51e4306b8a96b08648e426082b75b0fa70f40573f26f8c4eaa1442.
+base_2 input:eeb68acc8379740f26c98084114266e316966e5fbcde57c6775f6812039406bf.
+Final input:489cc0624d28301ab202835f5fe68c64d5095ddab5d893ae8d34229559882aaa.
