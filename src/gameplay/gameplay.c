@@ -4012,24 +4012,24 @@ u32* gpStreamPrimGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* func_8009EECC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* gpStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
     POLY_GT3* poly;
 
-    poly = (POLY_GT3*)arg0->primWrite;
-    if (arg0->elemCount-- > 0) {
+    poly = (POLY_GT3*)ws->primWrite;
+    if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = arg2[4];
-            *(s32*)&poly->u1 = arg2[5];
-            *(u16*)&poly->u2 = *(u16*)&arg2[6];
-            poly->tpage     += arg0->tpage;
-            poly->clut      += arg0->clut;
+            *(s32*)&poly->u0 = stream[4];
+            *(s32*)&poly->u1 = stream[5];
+            *(u16*)&poly->u2 = *(u16*)&stream[6];
+            poly->tpage     += ws->tpage;
+            poly->clut      += ws->clut;
             poly++;
-            arg2 += arg0->elemStride;
-        } while (arg0->elemCount-- > 0);
+            stream += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    arg0->primWrite = (u8*)poly;
-    return arg2;
+    ws->primWrite = (u8*)poly;
+    return stream;
 }
 
 u32* func_8009EF64(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)

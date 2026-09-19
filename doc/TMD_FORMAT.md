@@ -251,9 +251,10 @@ handler builds.
 `0x10` and `0x08` are **separate bits**, not one "textured" flag: their stride
 effects (+3 and −1) compose to the +2 seen when both are set, and each occurs
 without the other (`0x30`, `0x70` carry `0x10` alone). Both produce a textured
-primitive; what differs is the size of the ref block ahead of the UV words —
-`0x30` has 4 ref words to `0x38`'s 3 (§5.1), which is where the extra word
-goes.
+primitive; what differs is what sits ahead of the UV words — `0x38`'s record is
+lit from a constant and its refs run straight into its texture words, while
+`0x30`'s carries a colour of its own between the two, putting the texture words
+one word the later (§5.1).
 
 Note that `0x20` and `0x04` are related but distinct: `0x20` controls how many
 **normals are read** (lighting input), `0x04` controls whether the primitive
@@ -461,9 +462,12 @@ which are decompiled in `src/gameplay/gameplay.c` — `Tmd_ProcessStream` calls
 them by address, and main resolves those to gameplay through
 `configs/USA/sym.main.imports.txt`, which is why they are easy to miss.
 
-"Refs" is the ref block that precedes the UV words: `nv` vertex offsets then
-`nn` normal offsets, packed two per word. It is derived — the first UV word
-marks the end of the refs — and it agrees with the 100% range-check in §3.1.
+"Refs" is what precedes the UV words: the ref block — `nv` vertex offsets then
+`nn` normal offsets, packed two per word — and, in the families that light from
+the element's own colour rather than from a constant, a colour word after it.
+Bit `0x08` is what decides which: a family without it carries the colour, and
+one with it is lit from a constant (§3.2). It is derived — the first UV word
+marks the end of the block — and it agrees with the 100% range-check in §3.1.
 
 | Base | Primitive | Corners | Refs | UV words | Opcodes | Elements |
 |---|---|---|---|---|---|---:|
@@ -472,7 +476,7 @@ marks the end of the refs — and it agrees with the 100% range-check in §3.1.
 | `0x5` | POLY_F3 | 3 | 3v (cache) | — | `0x5` | — |
 | `0x18` | POLY_GT3 | 3 | 3v + 1n | u0=w2 u1=w3 u2=w4 lo | `0x18` `0x1A` | 128 |
 | `0x1C` | POLY_FT3 | 3 | 3v + 1n | u0=w2 u1=w3 u2=w4 lo | `0x1C` `0x1E` | 357 |
-| `0x30` | POLY_GT3 | 3 | 3v + 5n | u0=w4 u1=w5 u2=w6 lo | `0x30` | 28 |
+| `0x30` | POLY_GT3 | 3 | 3v + 3n, colour | u0=w4 u1=w5 u2=w6 lo | `0x30` | 28 |
 | `0x31` | POLY_GT3 | 3 | 3v (cache) | u0=w2 u1=w3 u2=w4 lo | `0x31` `0x39` `0x3B` `0x131` `0x8039` | 6395 |
 | `0x38` | POLY_GT3 | 3 | 3v + 3n | u0=w3 u1=w4 u2=w5 lo | `0x38` `0x3A` `0x8038` `0x10038` `0x1003A` `0x20038` | 13925 |
 | `0x40` | untextured | 4 | — | — | `0x40` `0x60` `0x160` `0x4040` `0x4060` `0x4160` | 173 |
@@ -480,7 +484,7 @@ marks the end of the refs — and it agrees with the 100% range-check in §3.1.
 | `0x45` | POLY_F4 | 4 | 4v (cache) | — | `0x45` | — |
 | `0x58` | POLY_GT4 | 4 | 4v + 2n | u0=w3 u1=w4 u2=w5 lo u3=w5 hi | `0x58` `0x5A` | 407 |
 | `0x5C` | POLY_FT4 | 4 | 4v + 0n | u0=w2 u1=w3 u2=w4 lo u3=w4 hi | `0x5C` `0x5E` | 417 |
-| `0x70` | POLY_GT4 | 4 | 4v + 6n | u0=w5 u1=w6 u2=w7 lo u3=w7 hi | `0x70` | 22 |
+| `0x70` | POLY_GT4 | 4 | 4v + 4n, colour | u0=w5 u1=w6 u2=w7 lo u3=w7 hi | `0x70` | 22 |
 | `0x71` | POLY_GT4 | 4 | 4v (cache) | u0=w2 u1=w3 u2=w4 lo u3=w4 hi | `0x71` `0x79` `0x7B` `0x171` `0x8079` | 3566 |
 | `0x78` | POLY_GT4 | 4 | 4v + 4n | u0=w4 u1=w5 u2=w6 lo u3=w6 hi | `0x78` `0x7A` `0x8078` `0x10078` `0x20078` | 13103 |
 | `0x130` | POLY_GT3 | 3 | 3v + 9n | u0=w6 u1=w7 u2=w8 lo | `0x130` | — |
