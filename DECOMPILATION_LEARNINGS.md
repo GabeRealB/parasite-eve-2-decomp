@@ -130867,3 +130867,29 @@ visibility. A type named by a prototype in a public header is part of that
 header's interface, so the "one translation unit uses it, so it belongs in that
 `.c`" guess - which the visibility column is - no longer holds for it, even
 though the reference scan sees only that one unit.
+
+## A release body that repeats a helper is not a missing call
+
+Naming a release path is where the temptation to express one function through
+another is strongest: the body reads word for word like a helper that already
+exists, and writing it as `helper(obj); extraStep(obj);` produces the same
+value. The target settles it, and it settles it from the `jal`s - this compiler
+generation does not inline at `-O2` without `-finline-functions`, so a source
+that called the helper carries a `jal` to it, and a target without one is a
+source that repeated the code instead.
+
+```c
+void gpFreeTmd(TmdObject* obj)   /* target jals: memFreeFromHeap, memFree */
+{
+    if (obj->buffer != NULL) {   /* this half is Tmd_FreeBuffers, verbatim */
+        memFreeFromHeap(obj->buffer, 1);
+        obj->buffer = NULL;
+    }
+    memFree(obj);
+}
+```
+
+The helper is a real function, called as one from dozens of overlays, so the
+call was available to the original author and the repetition is a choice their
+source made. Keep it: the shared half stays written out at the release site,
+and only the name says which body this releases.

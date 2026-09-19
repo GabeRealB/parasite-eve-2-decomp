@@ -195,7 +195,7 @@ void Task_Kill(Task* arg0)
     cu1:
         extra = arg0->extra;
         Gp_UnlinkTmd(extra);
-        Gp_FreeTmd(extra);
+        gpFreeTmd(extra);
         goto cu_def;
 
     cu2:
@@ -217,7 +217,7 @@ void Task_Kill(Task* arg0)
 
 imm1:
     Gp_UnlinkTmd(arg0->extra);
-    Gp_FreeTmd(arg0->extra);
+    gpFreeTmd(arg0->extra);
     goto imm_unlink;
 
 imm2:
@@ -617,7 +617,7 @@ void Task_CountdownCallback(Task* arg0)
         case 1:
             temp_s0 = arg0->extra;
             Gp_UnlinkTmd(temp_s0);
-            Gp_FreeTmd(temp_s0);
+            gpFreeTmd(temp_s0);
             arg0->spawnType = 0xFF;
             break;
         case 2:

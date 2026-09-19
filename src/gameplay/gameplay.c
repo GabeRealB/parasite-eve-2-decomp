@@ -1119,7 +1119,7 @@ void Gp_UnlinkTmd(TmdListHead* node)
     prev->next = node->next;
 }
 
-void Gp_FreeTmd(TmdObject* obj)
+void gpFreeTmd(TmdObject* obj)
 {
     if (obj->buffer != NULL) {
         memFreeFromHeap(obj->buffer, 1);
