@@ -37208,7 +37208,7 @@ function is one instruction long. Adjust the allocation priority instead.
 
 ## Drop the `ws = arg0` local when a two-register pair comes out swapped
 
-`func_8009BD00` reached 98.98% with *every* instruction correct and only one
+`gpDrawStreamGt3OffsetLayer` reached 98.98% with *every* instruction correct and only one
 defect: the scratch pointer sat in `$a3` and the second-packet induction
 variable in `$t0`, while the target wants `$t0` / `$a3`. The C had the usual
 `ws = arg0;` copy that the neighbouring handlers use.
@@ -37227,7 +37227,7 @@ ws = arg0;
 poly = (POLY_GT3*)ws->primWrite;
 
 /* 100%: parameter used directly, giv gets $a3 */
-poly = (POLY_GT3*)arg0->field_0;
+poly = (POLY_GT3*)arg0->primWrite;
 ```
 
 This is the mirror image of the `ws = arg0` + `__asm__ volatile("" : "+r"(ws))`
@@ -37267,11 +37267,11 @@ setcode(&poly[1], code);
 Assign these locals in the order the target's preheader sets them (here after
 `opz = &ws->gteResult` and before `ds = &gDisplayState`), since explicit
 assignments are emitted in source order while LICM appends its own hoists
-afterwards. `func_8009BD00` went 90.4% → 98.98% on this change alone.
+afterwards. `gpDrawStreamGt3OffsetLayer` went 90.4% → 98.98% on this change alone.
 
 ## Two packets per stream record: index one pointer, do not keep two
 
-`func_8009BD00` writes a `POLY_GT3` pair per record and advances by 0x50. Two
+`gpDrawStreamGt3OffsetLayer` writes a `POLY_GT3` pair per record and advances by 0x50. Two
 parallel pointers (`poly`, `poly2`, each `+= 2`) make the loop optimizer create
 *four* induction variables — one per address form, including the byte-field
 addresses used by `setlen`/`setcode` — and the extra pressure spills into

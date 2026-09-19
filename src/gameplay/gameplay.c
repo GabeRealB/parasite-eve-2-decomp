@@ -2551,7 +2551,7 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_8009BD00(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
+u32* gpDrawStreamGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
     POLY_GT3*     poly;
     s32*          opz;
@@ -2587,7 +2587,7 @@ u32* func_8009BD00(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
         mask   = 0xFFFFFF;
         maskHi = 0xFF000000;
         do {
-            rec   = (u16*)arg2;
+            rec   = (u16*)stream;
             verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
@@ -2621,12 +2621,12 @@ u32* func_8009BD00(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                         (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)&poly[1] & mask);
                 }
             }
-            poly += 2;
-            arg2 += ws->elemStride;
+            poly   += 2;
+            stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
     }
     ws->primWrite = (u8*)poly;
-    return arg2;
+    return stream;
 }
 
 u32* func_8009C024(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
