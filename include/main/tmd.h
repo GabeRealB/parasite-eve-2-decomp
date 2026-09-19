@@ -503,4 +503,17 @@ u32* gpStreamPrimGt3Base(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// with the semi-transparency rate it blends at.
 u32* gpStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+/// Handler of a stream's layered textured-quad records (`0x4078`): each element
+/// contributes the quad the model is drawn from to the buffer half's second region,
+/// with the model's texture page and CLUT added to the element's own texture words.
+///
+/// The record is not pre-transformed, so its quad is built in the region the draw
+/// pass transforms; this command writes only the polygon's `u`/`v` fields. `0x4000`
+/// asks for two primitives per element — the quad written here, and the
+/// semi-transparent layer drawn over it — so an element advances the write cursor
+/// past both, and the layer is left for the transform pass, which draws it from a
+/// page of its own. Where the layer's `u`/`v` are to come from the record as well,
+/// the walk takes a sibling handler instead.
+u32* gpStreamPrimGt4Base(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 #endif // TMD_H

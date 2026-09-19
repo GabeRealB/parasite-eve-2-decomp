@@ -45,7 +45,6 @@ u32* func_8009E274(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009E4A0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009E770(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009EAA4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009F824(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009F8C8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009F970(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009FA24(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -354,7 +353,7 @@ void Tmd_ProcessStream(TmdObject* obj)
                 handler = gpStreamPrimGt3;
                 break;
             case 0x4078:
-                handler = func_8009F824;
+                handler = gpStreamPrimGt4Base;
                 if (flag != 0) {
                     handler = gpStreamPrimGt4OffsetLayer;
                 }
