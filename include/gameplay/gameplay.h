@@ -383,7 +383,12 @@ void  Gp_UpdateCoordEx(GsCOORDINATE2* arg0, s32 arg1);
 void* Gp_AttachTmd(Task* task, TmdSource* src);
 void* Gp_AttachDisp2d(Task* task);
 void* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags);
-void  Gp_UnlinkTmd(TmdListHead* node);
+/// Unlinks a model body from the model list (`gTmdList`).
+///
+/// The body is not released here: every caller pairs this with `gpFreeTmd`,
+/// which is what gives the memory back. `Gp_UnlinkDisp2d` is its counterpart on
+/// the 2D-display side.
+void gpUnlinkTmd(TmdListHead* node);
 /// Releases a model body: the buffer it owns, then the body itself.
 ///
 /// The body has already left its list, so this is the second half of the

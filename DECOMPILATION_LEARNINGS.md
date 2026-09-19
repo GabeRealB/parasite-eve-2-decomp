@@ -23385,10 +23385,15 @@ the `== NULL` form.
 The tail needs no symbol of its own: the field access is what the target emits.
 Where the function already holds the head's address the target reuses that
 register and puts `addiu v0, v0, 0x4` in the `j` delay slot — `Task_Kill`'s
-inline unlink, `Gp_UnlinkTmd` and `Gp_UnlinkDisp2d` all match as `&<head>.prev`.
+inline unlink, `gpUnlinkTmd` and `Gp_UnlinkDisp2d` all match as `&<head>.prev`.
 An interior alias for the field (`D_800711C4`-style) is what the overlay import
 lists used to carry and no longer do, so a body that matches with the field
 access should keep it.
+
+The head is inlined, never passed: the several unlinks are the same body each
+naming its own head, and folding them into one helper that takes the head as an
+argument puts `addiu v0, $a0, 0x4` where the target has the `lui` / `j` pair.
+Retail emits one body per list, so they stay separate.
 
 ## Two `arr[i].field` loads CSE into same-reg table select
 

@@ -58,8 +58,8 @@ STATIC_ASSERT_SIZEOF(TmdSource, 0x24);
 /// and its `prev` the last, which is the head itself while the list is empty,
 /// so a walk stops on `next` alone and the head is reachable only through
 /// `prev`. Linking and unlinking are written against the pair rather than
-/// against whichever type the elements are, which is what lets one body unlink
-/// a node from either list.
+/// against whichever type the elements are, so an unlink body differs from the
+/// next one only in the head it names.
 typedef struct _TmdListHead {
     struct _TmdListHead* next; // Following node, or NULL past the last
     struct _TmdListHead* prev; // Preceding node, or the head at the front

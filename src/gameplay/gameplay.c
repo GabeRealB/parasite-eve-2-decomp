@@ -1102,7 +1102,7 @@ void* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags)
     return node;
 }
 
-void Gp_UnlinkTmd(TmdListHead* node)
+void gpUnlinkTmd(TmdListHead* node)
 {
     TmdListHead*  next;
     TmdListHead** pp;
