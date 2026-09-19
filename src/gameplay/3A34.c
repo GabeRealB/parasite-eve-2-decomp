@@ -3731,15 +3731,15 @@ void Gp_TickWorldCollision(void)
 
 void Gp_RunPairHandler(GpObj* node)
 {
-    GpObj*     other;
-    GpU16Pair* rec;
-    s32        rowOff;
-    s32        temp;
-    u16        flags;
-    u16        handler;
-    u16        swap;
-    u8         kind;
-    u8         otherKind;
+    GpObj*      other;
+    GpPairRule* rec;
+    s32         rowOff;
+    s32         temp;
+    u16         flags;
+    u16         handler;
+    u16         swap;
+    u8          kind;
+    u8          otherKind;
 
     for (; node != NULL; node = node->next) {
         flags = node->flags;
@@ -3753,8 +3753,8 @@ void Gp_RunPairHandler(GpObj* node)
                         otherKind = (other->flags & 7) - 1;
                         temp      = (otherKind << 2) + rowOff;
                         rec       = &D_8010FA4C[0][0] + (temp >> 2);
-                        swap      = rec->field_2;
-                        handler   = rec->field_0;
+                        swap      = rec->swap;
+                        handler   = rec->handler;
                         if (swap == 0) {
                             Gp_PairHandlers[handler](node, other, handler);
                         } else {
@@ -5615,7 +5615,7 @@ fail_poly:
 do_poly:
 
     i    = 1;
-    base = Gp_FaceEdgePairs;
+    base = (GpU16Pair*)Gp_FaceEdgePairs;
     pair = base + 1;
     do {
         TOUCH_REG(block);
@@ -5697,15 +5697,15 @@ s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1)
 
 void Gp_CollideLists(GpObj* a, GpObj* b)
 {
-    GpObj*     other;
-    GpU16Pair* rec;
-    s32        rowOff;
-    s32        temp;
-    u16        flags;
-    u16        handler;
-    u16        swap;
-    u8         kind;
-    u8         otherKind;
+    GpObj*      other;
+    GpPairRule* rec;
+    s32         rowOff;
+    s32         temp;
+    u16         flags;
+    u16         handler;
+    u16         swap;
+    u8          kind;
+    u8          otherKind;
 
     for (; a != NULL; a = a->next) {
         flags = a->flags;
@@ -5719,8 +5719,8 @@ void Gp_CollideLists(GpObj* a, GpObj* b)
                         otherKind = (other->flags & 7) - 1;
                         temp      = (otherKind << 2) + rowOff;
                         rec       = &D_8010FA4C[0][0] + (temp >> 2);
-                        swap      = rec->field_2;
-                        handler   = rec->field_0;
+                        swap      = rec->swap;
+                        handler   = rec->handler;
                         if (swap == 0) {
                             Gp_PairHandlers[handler](a, other, handler);
                         } else {
@@ -6979,15 +6979,15 @@ s32 Gp_PackObjPair(GpObj50* arg0, s32 arg1)
     return ret;
 }
 
-s32 Gp_PackPair(GpU16Pair* arg0, s32 arg1)
+s32 Gp_PackPair(GpU16Pair* pairs, s32 index)
 {
     s32 ret;
 
-    if (arg0 == NULL) {
+    if (pairs == NULL) {
         return 0;
     }
-    ret  = arg0[arg1].field_0 & 0xFFF;
-    ret |= (arg0[arg1].field_2 & 0xF) << 12;
+    ret  = pairs[index].field_0 & 0xFFF;
+    ret |= (pairs[index].field_2 & 0xF) << 12;
     ret |= 0x40000;
     return ret;
 }

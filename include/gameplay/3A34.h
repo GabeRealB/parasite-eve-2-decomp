@@ -35,11 +35,19 @@ typedef struct _GpObjDirRec {
 } GpObjDirRec;
 STATIC_ASSERT_SIZEOF(GpObjDirRec, 0xC);
 
-/// 4-byte table entry packed by `Gp_PackPair` / `Gp_PackObjPair` as
-/// `(field_0 & 0xFFF) | ((field_2 & 0xF) << 12) | 0x40000`.
-typedef struct _GpU16Pair {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
+/// One 4-byte entry of the tables that name a collision body: the two halves
+/// `Gp_PackPair` / `Gp_PackObjPair` pack into that body's `GpObj.key`, taking
+/// the low 12 bits of `field_0` and the low 4 bits of `field_2`. An actor's
+/// spawn tables and the pair source a body points at through
+/// `GpPairSrc.field_0` / `GpPairSrcE.field_0` hold these.
+///
+/// The halves stay unnamed because their meaning belongs to the table rather
+/// than to the type: `GpEdgePair` covers the same bytes as two corner indices,
+/// read signed by the helpers that need that width and unsigned by the ones
+/// that come through this type.
+typedef struct GpU16Pair {
+    u16 field_0;
+    u16 field_2;
 } GpU16Pair;
 STATIC_ASSERT_SIZEOF(GpU16Pair, 0x4);
 
@@ -53,8 +61,18 @@ typedef struct _GpEdgePair {
 } GpEdgePair;
 STATIC_ASSERT_SIZEOF(GpEdgePair, 0x4);
 
-/// Pair-dispatch callback from `Gp_PairHandlers`. `kind` is `GpU16Pair.field_0`.
+/// Pair-dispatch callback from `Gp_PairHandlers`. `kind` is the `handler` of
+/// the `GpPairRule` that selected it.
 typedef void (*GpPairFn)(GpObj* a, GpObj* b, s32 kind);
+
+/// One rule of the pair-rule table `D_8010FA4C`: what the collision passes do
+/// when a body of the kind its row names meets one of the kind its column
+/// names.
+typedef struct {
+    u16 handler; // index into Gp_PairHandlers
+    u16 swap;    // non-zero: run the handler with the two bodies exchanged
+} GpPairRule;
+STATIC_ASSERT_SIZEOF(GpPairRule, 0x4);
 
 /// 4-byte table entry at `Gp_IdField0`. `Gp_LookupIdField(idx, 0)` returns
 /// `field_0` for index `(u16)idx`.
@@ -1245,14 +1263,13 @@ extern GpGiveRec* D_8010FA0C[];
 extern GpEdgePair Gp_FaceEdgePairs[5];
 
 /// Pair-handler table used by `Gp_RunPairHandler` / `Gp_CollideLists`.
-/// Indexed by `D_8010FA4C[].field_0` (`Gp_PairNop` / `Gp_PairHandler1` /
+/// Indexed by `GpPairRule.handler` (`Gp_PairNop` / `Gp_PairHandler1` /
 /// `Gp_PairHandler3`).
 extern GpPairFn Gp_PairHandlers[5];
 
-/// 4x4 pair-rule table used by `Gp_RunPairHandler` / `Gp_CollideLists`.
-/// Rows/cols are `(flags & 7) - 1`. `field_0` selects `Gp_PairHandlers`;
-/// a non-zero `field_2` swaps the two `GpObj` arguments.
-extern GpU16Pair D_8010FA4C[4][4];
+/// Pair-rule table used by `Gp_RunPairHandler` / `Gp_CollideLists`, one rule
+/// per ordered pair of body kinds. Rows and columns are `(flags & 7) - 1`.
+extern GpPairRule D_8010FA4C[4][4];
 
 /// Nine-entry table of `GpObj` list heads (`Gp_ObjList0` .. `Gp_ObjList8`).
 /// `Gp_LinkObj` appends to `Gp_ObjLists[index]`; `Gp_UnlinkObj` unlinks.
@@ -1570,7 +1587,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
 s32  Gp_RollEnemyChance(struct _GpEnemy* arg0, u32 arg1, s32 arg2);
 void Gp_ApplyObjKind(GpObj5D* arg0, s32 arg1);
 s32  Gp_PackObjPair(GpObj50* arg0, s32 arg1);
-s32  Gp_PackPair(GpU16Pair* arg0, s32 arg1);
+s32  Gp_PackPair(GpU16Pair* pairs, s32 index);
 void func_800E2C78(GpObj40* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  Gp_LookupIdField(s32 arg0, s32 arg1);
 s32  Gp_GetIdParam0(s32 arg0);

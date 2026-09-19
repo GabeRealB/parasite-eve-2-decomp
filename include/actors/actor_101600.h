@@ -524,11 +524,11 @@ void                  Gp_AnimResetSlot(Actor01600AnimCtx* anim, s32 slot, s32 ac
 void                  Gp_IncStateF0Ref(s32 arg0);
 
 struct _GpObj;
-struct _GpU16Pair;
-void                     Gp_LinkObj(s32 kind, struct _GpObj* obj);
-void                     Gp_InitRec18Table(GpRec18* table, s32 count, s32 occupied);
-s32                      Gp_PackPair(struct _GpU16Pair* pair, s32 index);
-void                     func_8004BFF8(s16 angle, MATRIX* matrix);
-extern struct _GpU16Pair Actor01600_D09F04;
+struct GpU16Pair;
+void                    Gp_LinkObj(s32 kind, struct _GpObj* obj);
+void                    Gp_InitRec18Table(GpRec18* table, s32 count, s32 occupied);
+s32                     Gp_PackPair(struct GpU16Pair* pair, s32 index);
+void                    func_8004BFF8(s16 angle, MATRIX* matrix);
+extern struct GpU16Pair Actor01600_D09F04;
 
 #endif // ACTOR_101600_H

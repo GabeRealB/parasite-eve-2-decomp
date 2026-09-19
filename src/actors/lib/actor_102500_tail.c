@@ -27,7 +27,7 @@ void Gp_IncStateF0Ref(s32 arg0);
 void Gp_SetLightMode(Actor02500Ctx* arg0, s32 arg1);
 void Gp_LinkObj(s32 arg0, GpObj* arg1);
 void Gp_InitRec18Table(GpRec18* arg0, s32 arg1, s32 arg2);
-s32  Gp_PackPair(void* arg0, s32 arg1);
+s32  Gp_PackPair(void* pairs, s32 index);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 void Actor02500_Fn016FC(Actor02500* arg0)

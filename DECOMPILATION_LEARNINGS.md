@@ -30260,13 +30260,13 @@ Inlining `arr[row][col]` stuck at 99.8%. `Gp_RunPairHandler` is the example
 ## Load both pair fields before the swap `if`
 
 A `{u16 handler, u16 swap}` record that picks argument order must load
-both halves before the branch. `if (rec->field_2 == 0) fn(a,b,rec->field_0)`
-reloads `field_0` in each arm (`lhu a2, 0(v1)`). Locals keep one `lhu` of
+both halves before the branch. `if (rec->swap == 0) fn(a,b,rec->handler)`
+reloads `handler` in each arm (`lhu a2, 0(v1)`). Locals keep one `lhu` of
 each half and reuse `v0` for `andi a2, v0, 0xffff`:
 
 ```c
-swap    = rec->field_2;
-handler = rec->field_0;
+swap    = rec->swap;
+handler = rec->handler;
 if (swap == 0) {
     Gp_PairHandlers[handler](node, other, handler);
 } else {
@@ -132459,3 +132459,29 @@ operand is a per-actor view of the same object rather than the type the paramete
 now takes; the rest were the redundant casts that simply went away. Run it after
 any change that relies on the compiler noticing a type, since the default build
 will not.
+## One table can need two same-layout types, because the load width is in the code
+
+Two types over the same bytes are usually one type invented twice, but not when
+the readers disagree about signedness: the field's declared type is what picks
+the load, and both opcodes can be in the target. A table of two halfwords read
+as `s16` by one group of functions and `u16` by another is declared twice,
+
+```c
+typedef struct { s16 field_0; s16 field_2; } GpEdgePair;  /* lh */
+typedef struct { u16 field_0; u16 field_2; } GpU16Pair;   /* lhu */
+```
+
+and each declaration says which width its own readers use. The corner-index
+table is the case: `Gp_CollideObjGrid`, `Gp_CollideObjGridDir` and
+`func_800DD324` index it through the signed type and compile `lh`, while
+`func_800DEF80`, `func_800DF6AC` and `func_800DFCCC` reach the same table
+through the unsigned one and compile `lhu`.
+
+Rebuilding the unit with the table declared the other way flips exactly those
+loads and nothing else in the function, so check each reader's load opcode
+before folding two same-layout types together; the layout does not decide it. A
+merge is not impossible - `(s16)` on the unsigned field also compiles `lh`, and
+the function came back bit-identical - but it costs a cast at every site in the
+group that wants the other width, and the type that goes is the one whose
+description of the table (the entry scheme, in this case) is not about bytes at
+all.
