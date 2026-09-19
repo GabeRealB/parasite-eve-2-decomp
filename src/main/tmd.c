@@ -194,7 +194,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     handler = tmdDrawStreamPrimGt3OneNormalSemiTrans;
                     break;
                 case 0x58:
-                    handler = Tmd_StreamHandler_Op58;
+                    handler = tmdDrawStreamPrimGt4OneNormal;
                     break;
                 case 0x5A:
                     handler = Tmd_StreamHandler_Op5A;

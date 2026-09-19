@@ -506,7 +506,7 @@ range-check in §3.1.
 | `0x40` | POLY_G4 | 4 | — | — | `0x40` `0x60` `0x160` `0x4040` `0x4060` `0x4160` | 173 |
 | `0x44` | POLY_F4 | 4 | — | — | `0x44` | 122 |
 | `0x45` | POLY_F4 | 4 | 4v (cache) | — | `0x45` | — |
-| `0x58` | POLY_GT4 | 4 | 4v + 2n | u0=w3 u1=w4 u2=w5 lo u3=w5 hi | `0x58` `0x5A` | 407 |
+| `0x58` | POLY_GT4 | 4 | 4v + 1n | u0=w3 u1=w4 u2=w5 lo u3=w5 hi | `0x58` `0x5A` | 407 |
 | `0x5C` | POLY_FT4 | 4 | 4v + 0n | u0=w2 u1=w3 u2=w4 lo u3=w4 hi | `0x5C` `0x5E` | 417 |
 | `0x70` | POLY_GT4 | 4 | 4v + 4n, colour | u0=w5 u1=w6 u2=w7 lo u3=w7 hi | `0x70` | 22 |
 | `0x71` | POLY_GT4 | 4 | 4v (cache) | u0=w2 u1=w3 u2=w4 lo u3=w4 hi | `0x71` `0x79` `0x7B` `0x171` `0x8079` | 3566 |

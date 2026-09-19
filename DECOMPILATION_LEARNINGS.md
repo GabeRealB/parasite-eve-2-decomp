@@ -132507,13 +132507,13 @@ the bit is in `doc/TMD_FORMAT.md` §3.2.1.
 
 **The handler file's labels do not delimit the bodies.** The opcode entries are
 packed contiguously and several share one body with a stub apiece at the front:
-`alabel Tmd_StreamHandler_Op58` loads a colour constant and then jumps *forward*
-into `Op5A`'s body. Reading from one label to the next therefore attributes the
-following opcode family's instructions to the one being read — and those
-instructions can look like the answer, since a neighbouring family's colour load
-is exactly what is being looked for. Read each body to its `jr $ra` exits
-instead, and check that a candidate load falls inside the block the opcode's own
-refs end at before recording it.
+`alabel tmdDrawStreamPrimGt4OneNormal` loads a colour constant and then jumps
+*forward* into `Op5A`'s body. Reading from one label to the next therefore
+attributes the following opcode family's instructions to the one being read —
+and those instructions can look like the answer, since a neighbouring family's
+colour load is exactly what is being looked for. Read each body to its `jr $ra`
+exits instead, and check that a candidate load falls inside the block the
+opcode's own refs end at before recording it.
 
 ## A phantom view folds into its owner only in the form the target used: the offset is an `addiu`, the owner's own pointer member is a load (GpAnimCtx, 2026-09-19)
 
@@ -132859,3 +132859,40 @@ is a different rule: both draw the quad when either half faces the viewer.
 So compare a hasm body with its C twin by the cyclic order each gives the corners,
 not by the branch each takes - and read the converse too, since two bodies
 branching alike may still be testing different triangles.
+## A dual-entry handler's bare name is the opaque entry, wherever the entry sits
+
+Two records that draw the same primitive differ, in the families that carry
+their colour in the handler rather than in the element, only in the constant the
+entry loads into the GTE's `RGB`, and that constant's top byte is the primitive
+code the packets are built under: `0x34`/`0x3C` opaque, `0x36`/`0x3E` blended
+(`0x02` is the bit `setSemiTrans` sets in a primitive's code, and the record's
+opcode carries the same bit — `0x1A` = `0x18`|`0x2`, `0x5A` = `0x58`|`0x2`).
+So the two entries of a dual-entry body are told apart by the constants they
+load, never by their position in the file: `0x58`'s entry loads `0x3C808080`
+and is the opaque one
+while `0x5A`'s loads `0x3E808080`, even though it is `0x58` that jumps *forward*
+into the body and `0x5A` that owns the label just before it. Which of the two
+falls through and which jumps is an artifact of the order the two constant loads
+were emitted in, and moves from family to family.
+
+The bare name is the opaque entry's and the `SemiTrans` suffix the blended one's,
+so `0x1A`'s naming carries over to `0x58`'s (`tmdDrawStreamPrimGt4OneNormal`),
+not to its neighbour `0x5A`'s.
+
+## A ref block pads to a whole word, and the padding half reads as a normal
+
+An element's refs are 16-bit byte offsets packed two per word, so an odd count
+leaves half a word over. The `0x58` family is that case: four vertex refs fill
+the first two words and its one normal ref sits alone in the third, whose upper
+half is zero in all 615 elements the packages carry. That is what makes the draw
+handler's `addu $t1, $t5, $t1` correct — it adds the element word to the normal
+array's base whole, with no mask, so a nonzero upper half would light the quad
+from somewhere past its normal.
+
+The count a handler yields is therefore a count of *meaningful* refs, and the
+block it measures can be a word wider. `doc/TMD_FORMAT.md` §3.6 counted that
+padding half as a second normal for this family; §3.1's rule — one normal unless
+the opcode sets `0x20` — is what the data bears out, and the table's own rows
+elsewhere (a colour word after eight refs, in a ten-slot block) leave padding
+uncounted. Where a ref count and a handler's load disagree, read the discarded
+half against the array it would index.

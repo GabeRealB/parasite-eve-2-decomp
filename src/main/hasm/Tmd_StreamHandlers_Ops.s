@@ -1183,7 +1183,7 @@ glabel tmdDrawStreamPrimGt3OneNormal
     /* 22E8 80011AE8 */  addu        $v0, $zero, $a2
     /* 22EC 80011AEC */  jr          $ra
     /* 22F0 80011AF0 */  nop
-alabel Tmd_StreamHandler_Op58
+alabel tmdDrawStreamPrimGt4OneNormal
     /* 22F4 80011AF4 */  lui         $t0, 0x3C80
     /* 22F8 80011AF8 */  ori         $t0, $t0, 0x8080
     /* 22FC 80011AFC */  mtc2        $t0, $6

@@ -469,7 +469,28 @@ u32* tmdDrawStreamPrimGt3OneNormalSemiTrans(TmdScratchModelBlock* ws, s32 flags,
 /// instead of reading one from the element: `0x34` opaque, `0x36` blended. Which
 /// of the two is drawn is settled by the opcode alone, so `flags` selects nothing.
 u32* tmdDrawStreamPrimGt3OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_Op58(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+/// Draw handler of a stream's one-normal textured-quad records (`0x58`, `0x5A`):
+/// each element's quad is transformed and culled, its four corners' screen
+/// coordinates and the one colour they are lit from are written into the
+/// `POLY_GT4` the record's texture words were laid in, and that packet is linked
+/// into the ordering table.
+///
+/// `tmdProcessStream` fills the polygon's texture words as it builds the record
+/// into the buffer half, so what is left here is the half that changes per frame.
+/// The element names one normal for the whole quad rather than one per corner, so
+/// a single lighting step colours all four corners, and the depth it is filed
+/// under is an average of the corners' depths, out of the same transform. The GTE
+/// projects three vertices at a time, so the element's fourth corner is projected
+/// on its own, ahead of the other three. A corner the GTE reports off screen, or
+/// a quad the facing tests reject, is not drawn, though the packet's room is
+/// passed over either way, so the primitives stay in step with the elements.
+///
+/// The `0x5A` entry shares this body and differs only in the primitive code the
+/// quad is drawn with, which this family carries in a fixed material colour
+/// instead of reading one from the element: `0x3C` opaque, `0x3E` blended. Which
+/// of the two is drawn is settled by the opcode alone, so `flags` selects nothing.
+u32* tmdDrawStreamPrimGt4OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op5A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// Handler of a stream's textured-triangle records that carry a colour per
 /// corner (`0x130`): each element contributes one triangle, projected, shaded
