@@ -68,7 +68,78 @@ void func_actor_403100_801345E0(Task* arg0, Task* arg1);
 void func_actor_403100_8013E6F0(Task* arg0);
 void func_actor_403100_8013F12C(void);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_80132064);
+void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
+{
+    SVECTOR            end;
+    Actor403100Matrix  matrix;
+    u16                mode;
+    Actor403100Matrix* identity;
+    GsCOORDINATE2*     joint;
+    s32                i;
+    u32                random;
+    GpRec18*           records;
+    GpObj*             obj;
+    GsCOORDINATE2*     coord;
+
+    i      = 0;
+    mode   = arg3;
+    joint  = &((TmdObject*)arg0->extra)->coords[3];
+    end.vx = arg1->vx + arg2->vx;
+    end.vy = arg1->vy + arg2->vy;
+    end.vz = arg1->vz + arg2->vz;
+    for (; i < 0x1C; i++) {
+        if (D_actor_403100_80155814[i].active == 0) {
+            coord                             = &D_actor_403100_80155814[i].coord;
+            D_actor_403100_80155814[i].active = 1;
+            D_actor_403100_80155814[i].age    = 0;
+            random                            = (Gp_LcgState * 5) + 0x71357911;
+            Gp_LcgState                       = random;
+            D_actor_403100_80155814[i].frame  = (s16)((random >> 0x10) & 0xF);
+            ActorCoordToView(joint, arg1);
+            identity = &matrix;
+            ActorCoordToView(joint, &end);
+            D_actor_403100_80155814[i].delta.vx     = (s16)(end.vx - arg1->vx);
+            D_actor_403100_80155814[i].delta.vy     = (s16)(end.vy - arg1->vy);
+            D_actor_403100_80155814[i].delta.vz     = (s16)(end.vz - arg1->vz);
+            D_actor_403100_80155814[i].position.vx  = (u16)arg1->vx;
+            D_actor_403100_80155814[i].position.vy  = (u16)arg1->vy;
+            D_actor_403100_80155814[i].position.vz  = (u16)arg1->vz;
+            D_actor_403100_80155814[i].coord.sub    = &gGfxViewCoord;
+            matrix.ident.m00_m01                    = 0x1000;
+            matrix.ident.m02_m10                    = 0;
+            identity->ident.m11_m12                 = 0x1000;
+            matrix.ident.m20_m21                    = 0;
+            identity->ident.m22                     = 0x1000;
+            matrix.mat.t[0]                         = (s32)(s16)arg1->vx;
+            matrix.mat.t[1]                         = (s32)(s16)arg1->vy;
+            records                                 = D_actor_403100_80155814[i].records;
+            matrix.mat.t[2]                         = (s32)(s16)arg1->vz;
+            D_actor_403100_80155814[i].coord.coord  = matrix.mat;
+            D_actor_403100_80155814[i].obj.coord    = coord;
+            D_actor_403100_80155814[i].obj.ctx.recs = records;
+            D_actor_403100_80155814[i].obj.pos.vx   = 0;
+            D_actor_403100_80155814[i].obj.pos.vy   = 0;
+            D_actor_403100_80155814[i].obj.pos.vz   = 0;
+            D_actor_403100_80155814[i].obj.key      = Gp_PackPair(&D_actor_403100_80147614, 1);
+            D_actor_403100_80155814[i].obj.radius   = 0x32;
+            D_actor_403100_80155814[i].obj.flags    = 1;
+            obj                                     = &D_actor_403100_80155814[i].obj;
+            Gp_LinkObj(3, obj);
+            Gp_InitRec18Table(records, 4, 0);
+            if ((mode << 0x10) == 0) {
+                obj->flags |= 0xC000;
+            } else {
+                obj->flags &= 0x3FFF;
+            }
+            Gp_UpdateCoord(&D_actor_403100_80155814[i].coord);
+            D_actor_403100_80155814[i].coord.flg        = 0;
+            D_actor_403100_80155814[i].coord.coord.t[0] = (s32)(s16)D_actor_403100_80155814[i].position.vx;
+            D_actor_403100_80155814[i].coord.coord.t[1] = (s32)(s16)D_actor_403100_80155814[i].position.vy;
+            D_actor_403100_80155814[i].coord.coord.t[2] = (s32)(s16)D_actor_403100_80155814[i].position.vz;
+            break;
+        }
+    }
+}
 
 void func_actor_403100_80132320(Task* arg0)
 {

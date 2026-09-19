@@ -72,10 +72,15 @@ STATIC_ASSERT_SIZEOF(Actor403100Matrix, 0x20);
 extern GpPairSrcE D_actor_403100_8014762C;
 
 typedef struct Actor403100Entry {
-    /* 0x00 */ s16   active;
-    /* 0x02 */ u8    pad_2[0x6E];
-    /* 0x70 */ GpObj obj;
-    /* 0x90 */ u8    pad_90[0x60];
+    /* 0x00 */ s16           active;
+    /* 0x02 */ s16           age;
+    /* 0x04 */ s16           frame;
+    /* 0x06 */ SVECTOR       delta;
+    /* 0x0E */ SVECTOR       position;
+    /* 0x16 */ u8            pad_16[0xA];
+    /* 0x20 */ GsCOORDINATE2 coord;
+    /* 0x70 */ GpObj         obj;
+    /* 0x90 */ GpRec18       records[4];
 } Actor403100Entry;
 STATIC_ASSERT_SIZEOF(Actor403100Entry, 0xF0);
 
