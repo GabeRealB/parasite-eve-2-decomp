@@ -33,12 +33,17 @@ typedef struct {
     /* 0x14 */ s32 lzc_tmp;
 } ScratchNormBlock;
 
+/// A rotation matrix and the sine and cosine of the angle it was built from,
+/// held in the scratchpad arena.
+///
+/// A routine that needs one takes the block off `G_SCRATCH_HEAD`, builds the
+/// rotation into `mat` from the two values, and hands the matrix to the GTE to
+/// be applied or to have the angles read back out of it.
 typedef struct {
-    /* 0x00 */ MATRIX mat;
-    /* 0x20 */ s16    sin_val;
-    /* 0x22 */ s16    cos_val;
-    /* 0x24 */ u8     pad[0xC];
-} ScratchMat; /* 0x30 */
+    MATRIX mat;     // the rotation matrix
+    s16    sin_val; // sine of the angle it is built from
+    s16    cos_val; // cosine of the same angle
+} ScratchMat;
 
 typedef struct {
     /* 0x00 */ MATRIX  mat;
@@ -441,7 +446,7 @@ void Gfx_MatrixToEuler(MATRIX* arg0, SVECTOR* arg1)
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = (u8*)*scratch;
-    block    = (ScratchMat*)(head - 0x30);
+    block    = (ScratchMat*)(head - 0x30); // reserves 0x30 for a 0x24-byte block
     *scratch = block;
 
     angle          = -ratan2(arg0->m[1][2], arg0->m[2][2]);

@@ -133641,3 +133641,25 @@ What the swap does not cover is the window that reads *past* the end of the
 type it names (a light object with fields after the coordinate's own tail), or
 one whose member is a byte run no type declares. Those are still types, and the
 member the real type does declare is the one place to stop.
+
+## A scratch block's type is the bytes its users agree on, not the largest reserve
+
+Routines that carve a block off `G_SCRATCH_HEAD` each write their own byte
+count, and one can reserve more than the block uses: `Gfx_MatrixToEuler`
+reserves 0x30 for the same `MATRIX`-plus-sine-and-cosine block that
+`Gfx_RotMatrixX`/`Y`/`Z` reserve 0x24 for. Sizing the type to the larger reserve
+- a trailing `pad` - asserts a boundary nothing pins, because the arithmetic is
+on the `u8*` head and no `sizeof` depends on it. It also leaves the smaller
+callers reserving less than the type claims, which reads as a bug and invites
+"fixing" a constant the target fixes.
+
+Take the size the sites agree on, drop the invented tail, and say where the odd
+reserve is written. The reserve belongs to the caller; the block belongs to the
+type.
+
+The same routines show where a field access is the wrong spelling. The first
+store into a fresh block addresses it off the *head* in the target
+(`sh $v0, -0x30($s2)` with the block itself in `$s0`), so it stays written as
+`*(s16*)(head - N) = value`: naming the field reaches it from the block pointer
+and the base register changes with it. A typed access is the better spelling
+only where the target already addresses the block.
