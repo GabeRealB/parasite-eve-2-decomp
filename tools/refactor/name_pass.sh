@@ -27,6 +27,11 @@
 # changes a checksum, has its work reverted and the pass stops rather than
 # carrying a bad rename into the next step.
 #
+# Ctrl-C stops the pass between rounds, as it does in the matching vacuum. A
+# parallel round finishes and lands first; a single-worker step is interrupted
+# with the driver and recorded as not landed. The worker trees are reset either
+# way, so the next run resumes from the ledger with nothing to clean up by hand.
+#
 # --workers N runs N steps at a time, fork-join. Each worker owns one worktree
 # for the whole run: a round assigns it one step, it works and commits there,
 # and afterwards every worker's commit is replayed onto the driver's branch and
@@ -53,7 +58,9 @@ WORKLIST="local/worklist.tsv"
 # Which steps are finished. The worklist is a plan, not a record: an item whose
 # name already follows the convention keeps that name afterwards, so "is the
 # name still in the tree" cannot say whether it has been done. Every outcome is
-# appended here instead, and a step is picked only if it has no row.
+# appended here instead, and a step is picked only if it has no `ok` row - any
+# other outcome leaves the item outstanding, so a failed step is simply retried
+# by the next run.
 DONE_LEDGER="local/name_pass_done.tsv"
 # The standing job description. grok takes it as a system prompt via --rules,
 # where it frames the whole session; the other arms get the same text inlined at
@@ -282,6 +289,21 @@ SOURCE_WORKLIST="$WORKLIST"
 cp "$WORKLIST" "$SNAPSHOT"
 trap 'rm -f "$SNAPSHOT"' EXIT
 WORKLIST="$SNAPSHOT"
+
+# Ctrl-C asks the pass to stop between rounds rather than killing it mid-step,
+# as the matching vacuum's does. What becomes of the round in flight depends on
+# how its steps were forked, and both outcomes are safe. Parallel steps run as
+# asynchronous children, which a non-interactive shell starts with the
+# interrupt already ignored, so they keep working: the round finishes and lands
+# as usual and the pass stops after it. A single-worker run works in the
+# foreground, sharing the terminal's process group, so that agent is
+# interrupted along with the driver and its step is recorded as not landed.
+# Either way the bookkeeping still runs - the rename log is collected, whatever
+# committed is landed, every step's outcome is recorded and the worker trees are
+# reset - so the next run resumes from the ledger and retries only what did not
+# land. A second Ctrl-C kills the driver outright.
+STOP_REQUESTED=0
+trap 'echo ""; echo "Interrupt received; stopping after this round - an unlanded step is retried by the next run."; STOP_REQUESTED=1; trap - INT' INT
 
 # A step is an analysis, not just a rename of its own item: it merges a
 # duplicate type away, retypes a caller, renames a neighbouring field. That
@@ -607,6 +629,7 @@ barrier=
 noop=0
 i=0
 while (( TIMES == 0 || i < TIMES )); do
+  (( STOP_REQUESTED )) && break
   mapfile -t picked < <(next_batch)
   batch=(); barrier_line=""
   for line in ${picked[@]+"${picked[@]}"}; do
@@ -694,6 +717,11 @@ BARRIER
       pids[$w]=$!
     done
     for w in "${!pids[@]}"; do wait "${pids[$w]}" || true; done
+    # A trapped Ctrl-C makes `wait` return early, so the loop above can step
+    # past a worker that is still running. The bare wait reaps whatever is
+    # left; the handler disarms itself, so this one blocks normally and a
+    # second Ctrl-C still kills the driver.
+    wait 2>/dev/null || true
     w=0
     for order in "${batch[@]}"; do
       w=$((w + 1))
@@ -747,6 +775,16 @@ BARRIER
       echo "round NOT landed; the branch is back at ${pre:0:9}" >&2
       echo "the steps are still committed on the name-pass/w* branches" >&2
     fi
+  fi
+
+  if (( STOP_REQUESTED )); then
+    # Reset the workers first: an interrupted step leaves its worktree dirty,
+    # and the next run refuses to fork from one.
+    if (( WORKERS > 1 )); then
+      for w in $(seq 1 "$WORKERS"); do sync_worker "$w"; done
+    fi
+    echo "interrupted; stopped after the round" | tee -a "$LOG"
+    break
   fi
 
   # A step that genuinely needs no change is rare; a run of them means the agent
