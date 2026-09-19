@@ -15660,7 +15660,7 @@ SndBankSlot* func_...(u16 arg0, s32 arg1)
 }
 ```
 
-`SndBankSlot_Find` is the pure example. A plain `s32` formal never emits the
+`sndBankSlotFind` is the pure example. A plain `s32` formal never emits the
 leading copy; `u16 key = arg0` alone reorders the `andi` after the table base
 load.
 

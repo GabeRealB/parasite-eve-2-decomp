@@ -333,7 +333,7 @@ s32 arg0;
 
     var_s0 = arg0;
     if ((var_s0 & 0xF0000000) == 0x10000000) {
-        temp_v0 = SndBankSlot_Find(0x1000, 1);
+        temp_v0 = sndBankSlotFind(0x1000, 1);
         if (temp_v0 != NULL) {
             var_s0 = (temp_v0->image->bankId << 0x10) + (var_s0 & 0xFFFF);
         }
@@ -435,7 +435,7 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
             }
         }
         arg0  = SndBank_RemapId(arg0);
-        bank  = SndBankSlot_Find((u32)arg0 >> 16, 0);
+        bank  = sndBankSlotFind((u32)arg0 >> 16, 0);
         index = (u32)arg0 & 0xFF;
         if ((bank == NULL) ||
             (header = bank->image, (index >= header->entryCount))) {
@@ -1775,17 +1775,17 @@ void SndVoice_Detach(SndVoice* arg0)
     }
 }
 
-SndBankSlot* SndBankSlot_Find(u16 arg0, s32 arg1)
+SndBankSlot* sndBankSlotFind(u16 bankId, s32 byType)
 {
     s32          i;
     SndBankSlot* slot;
     SndBank*     bank;
     s32          key;
 
-    switch (arg1) {
+    switch (byType) {
         case 0:
             i    = 0;
-            key  = arg0;
+            key  = bankId;
             slot = _gSndBankSlots;
             do {
                 bank = slot->bank;
@@ -1800,7 +1800,7 @@ SndBankSlot* SndBankSlot_Find(u16 arg0, s32 arg1)
             return NULL;
         case 1:
             i    = 0;
-            key  = arg0 & 0xF000;
+            key  = bankId & 0xF000;
             slot = _gSndBankSlots;
             do {
                 bank = slot->bank;
