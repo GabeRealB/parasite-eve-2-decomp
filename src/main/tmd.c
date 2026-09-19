@@ -103,7 +103,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     handler = Tmd_StreamHandler_Prim38;
                     break;
                 case 0x38:
-                    handler = Tmd_StreamHandler_Op38;
+                    handler = tmdDrawStreamGt3;
                     break;
                 case 0x8038:
                     handler = D_80136224;

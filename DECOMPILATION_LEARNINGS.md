@@ -132609,3 +132609,24 @@ This is not licence to move the definition into C. It belongs in C when the
 hand-written `rodata` subsegment that still assembles resolves against that
 file, and relocating it would mean carving the subsegment in the config and
 inventing a translation unit the original did not have.
+## A hasm handler is also cited by its opcode, which neither the tool nor `-w` sees
+
+The early-image handlers are named after the stream opcode that resolves to them
+(`Tmd_StreamHandler_Op<hex>`), and the symbol map, the notes and the handler's
+own file cite them that way too - `Op38`, "the ABR entry into `Op38`",
+`Op38/Op3A`. Renaming one leaves every abbreviated mention in place:
+`rename_item.py` does not read assembly, so the label and the file's comments are
+hand work, and the step's completeness sweep is a word-boundary match for the
+full name, which an abbreviation is not.
+
+    grep -rnw 'Op38' . --exclude-dir=.git --exclude-dir=build --exclude-dir=asm \
+        --exclude-dir=linkers --exclude-dir=assets --exclude-dir=rom --exclude-dir=venv
+
+Read each hit before rewriting it: one that names the *symbol* takes the new
+name, while one that names the *opcode* as such - a column of the opcode table
+in the format doc, the summary of a whole family - stays as it is.
+
+The symbol map is where these hide, because its per-line notes name a sibling:
+renaming a glabel leaves the alabel's note ("ABR entry into `Op38`") pointing at
+a name that is no longer in the file. Those entries are aligned in columns, so a
+rewritten line has to be re-aligned by hand or the table stops being readable.

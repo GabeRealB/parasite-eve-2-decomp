@@ -868,7 +868,7 @@ is positioned by the earlier parts, so it does not stand alone.
 
 Visibility and shading come from two different places, as they do on the
 hardware (see [`TMD_FORMAT.md` §7](TMD_FORMAT.md)). Backface culling is
-`NCLIP` on the projected points, exactly what `Tmd_StreamHandler_Op38` does;
+`NCLIP` on the projected points, exactly what `tmdDrawStreamGt3` does;
 the stored normals feed `NCCS`, which is lighting only, and culling on them
 removes real surface — that is what made heads and legs vanish. Depth sorts
 descending, because `SZ3` grows with distance and negating Y does not touch Z.

@@ -7,12 +7,15 @@
  * TMD early-image stream handlers  (VRAM 0x80010A90 / ROM 0x1290)
  * ------------------------------------------------------------
  * Permanent handwritten assembly (splat type: hasm).
- * Named by primary Tmd_InitSourceStream opcode (OpXX). Dual-entry
- * alternates use alabel (e.g. alabel Op3A → shared body with glabel Op38).
+ * Named by primary Tmd_InitSourceStream opcode (OpXX). Dual-entry alternates
+ * use alabel (e.g. alabel Tmd_StreamHandler_Op3A shares the body of glabel
+ * tmdDrawStreamGt3). A handler named for what it does rather than for its
+ * opcode is documented at its declaration in include/main/tmd.h.
  * Early-image placement (linker_section_order: .rodata).
  *
  * Op20/Op60/Op00/Op40  flat / clipped triangle & quad families
- * Op38/Op3A, Op78/Op7A  gouraud (+ ABR color) quads
+ * Op3A/tmdDrawStreamGt3  gouraud textured triangle (+ ABR)
+ * Op78/Op7A             gouraud textured quad (+ ABR)
  * Op39/Op3B, Op79/Op7B  textured gouraud (+ ABR) tri/quad
  * Op18/Op1A, Op58/Op5A  fixed-color packet variants
  * OpC0/OpC8             stream transform helpers
@@ -336,7 +339,7 @@ alabel Tmd_StreamHandler_Op3A
     /* 16FC 80010EFC */  mtc2        $t0, $6
     /* 1700 80010F00 */  j           .L80010F20
     /* 1704 80010F04 */  nop
-glabel Tmd_StreamHandler_Op38
+glabel tmdDrawStreamGt3
     /* 1708 80010F08 */  andi        $t0, $a1, 0x2
     /* 170C 80010F0C */  bnez        $t0, Tmd_StreamHandler_Op3A
     /* 1710 80010F10 */  nop

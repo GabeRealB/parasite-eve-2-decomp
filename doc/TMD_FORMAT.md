@@ -227,8 +227,9 @@ they issue) and the draw handlers in `src/gameplay/gameplay.c` (which
 `POLY_*` type they build).
 
 A caution learned the hard way: each handler loads *different* `ws` fields
-into the same registers, so a register name means nothing on its own. `Op38`
-uses `$t6` for the vertex array; `Op39` uses `$t6` for the transform cache.
+into the same registers, so a register name means nothing on its own.
+`tmdDrawStreamGt3` uses `$t6` for the vertex array; `Op39` uses `$t6` for the
+transform cache.
 
 | Bit | Meaning | How it shows up |
 |---|---|---|
@@ -292,7 +293,7 @@ routine.** These resolve to init handlers at `0x8013xxxx`, which is inside the
 
 | Opcode | Init handler | Lives in | Draw family |
 |---|---|---|---|
-| `0x38` | `Tmd_StreamHandler_Op38` | main (hasm) | `gpStreamPrimGt3` |
+| `0x38` | `tmdDrawStreamGt3` | main (hasm) | `gpStreamPrimGt3` |
 | `0x8038` | `D_80136224` | actor package | `gpStreamPrimGt3` |
 | `0x10038` | `D_8013700C` | actor package | `gpStreamPrimGt3` |
 | `0x20038` | `D_801379B4` | actor package | `gpStreamPrimGt3` |
@@ -324,7 +325,7 @@ directions.
 | Handler | XY stores | Primitive | Arity |
 |---|---|---|---|
 | `Tmd_StreamHandler_Op20` | `0x8`, `0x10`, `0x18` | `POLY_G3` | triangle |
-| `Tmd_StreamHandler_Op38` | `0x8`, `0x14`, `0x20` | `POLY_GT3` | triangle |
+| `tmdDrawStreamGt3` | `0x8`, `0x14`, `0x20` | `POLY_GT3` | triangle |
 | `Tmd_StreamHandler_Op60` | `0x10`, `0x18`, `0x20` | `POLY_G4` | quad |
 | `Tmd_StreamHandler_Op78` | `0x14`, `0x20`, `0x2C` | `POLY_GT4` | quad |
 
@@ -614,7 +615,7 @@ edge count: a closed mesh has `E = V + F - 2`, and Kyle's accessory meshes came
 out at 80 edges against an expected 44 until the winding was fixed, after which
 they are exact closed manifolds (χ = 2).
 
-**Backface culling is `NCLIP`, not a normal test.** `Tmd_StreamHandler_Op38`
+**Backface culling is `NCLIP`, not a normal test.** `tmdDrawStreamGt3`
 runs the projected points through `NCLIP` (`0x4B400006`) and drops the
 primitive when `MAC0 <= 0` — `mfc2 $t0, $24` then `blez`. It never consults a
 normal to decide visibility. The stored normals are the input to `NCCS`, which

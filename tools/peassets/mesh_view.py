@@ -386,7 +386,7 @@ class MeshView(ttk.Frame):
             for i in f:
                 flat.extend(pts[i][:2])
             if solid:
-                # Cull the way the game does. Tmd_StreamHandler_Op38 runs NCLIP
+                # Cull the way the game does. tmdDrawStreamGt3 runs NCLIP
                 # on the *projected* points and drops the primitive when MAC0
                 # <= 0; it never consults a normal for visibility. The stored
                 # normals feed NCCS, which is lighting only - using them to

@@ -232,9 +232,15 @@ void Tmd_AllocNodeBuffers(struct Task* task);
 /// Total bytes the attached models hold in their buffers.
 s32 Tmd_SumBufferBytes(void);
 
-// Early-image handlers (src/main/hasm/).
-// Same ABI for model and draw scratch (shared offsets 0x18/0x1C/…); declared
-// as model-side type for tmdProcessStream. Draw path is jalr from hasm only.
+// Early-image handlers (src/main/hasm/): the draw pass's handlers for the record
+// opcodes they cover. Tmd_InitSourceStream resolves each record's opcode to its
+// handler and the draw walk (Tmd_DispatchStream, reached from Tmd_SetupDraw)
+// jalrs it; the pass that builds the primitives has a family of its own instead,
+// the `gpStreamPrim*` handlers in the gameplay overlay. The two scratch frames
+// put their slots at the same offsets, so a handler reads either frame through
+// either type; these are declared with the model-side one, the type
+// `tmdProcessStream` passes the handlers it runs, because it is the type that
+// names the slots they touch.
 
 /// Handler of a stream record nothing is built from: it steps over the record's
 /// elements and returns the cursor that follows them.
@@ -255,7 +261,23 @@ u32* Tmd_StreamHandler_Op20(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op60(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_OpC0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op3A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_Op38(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+/// Draw-pass handler of a stream's gouraud-shaded textured-triangle records
+/// (`0x38`, `0x3A`): each element contributes one triangle to the buffer half's
+/// second region, with its corners projected and lit and the primitive linked
+/// into the ordering table at the model's own offset.
+///
+/// The record's texture words belong to the pass that builds the primitive
+/// (`gpStreamPrimGt3` writes them), so what is filled here is the triangle's
+/// three corners and the colours they are lit from, which come from the three
+/// normals the element names. An element whose projection the GTE rejects, or
+/// whose triangle turns away, is stepped over rather than drawn, though its
+/// packet slot is passed over either way, so the primitives stay aligned with
+/// the elements that named them.
+///
+/// The record's `0x3A` form is the same body reached with the semi-transparent
+/// shading constant; this entry is the one that picks the shading from `flags`.
+u32* tmdDrawStreamGt3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op7A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op78(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_OpC8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
