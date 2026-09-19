@@ -1040,41 +1040,41 @@ void* Gp_AttachTmd(Task* task, TmdSource* src)
 
 void* Gp_AttachDisp2d(Task* task)
 {
-    GpDisp2d*               node;
-    TmdListHead*            last;
-    TmdListHead*            list;
-    MATRIX*                 m;
-    s32                     one;
-    register GpDisp2dCoord* coord asm("v1");
+    GpDisp2d*           node;
+    TmdListHead*        last;
+    TmdListHead*        list;
+    MATRIX*             m;
+    s32                 one;
+    register RoomCoord* coord asm("v1");
 
     node  = memCalloc(0x60, 0);
     coord = &node->coord;
     if (node != NULL) {
-        node->field_C           = 1;
-        node->field_8           = coord;
-        coord->sub              = &gGfxViewCoord;
-        one                     = ONE;
-        m                       = &node->coord.mtx;
-        *(s32*)&node->coord.mtx = one;
-        *(s32*)&m->m[1][1]      = one;
-        m->m[2][2]              = one;
-        list                    = &gTmdDisp2dList;
-        *(s32*)&m->m[0][2]      = 0;
-        *(s32*)&m->m[2][0]      = 0;
-        coord->mtx.t[2]         = 0;
-        coord->mtx.t[1]         = 0;
-        coord->mtx.t[0]         = 0;
-        coord->rot.vz           = 0;
-        coord->rot.vy           = 0;
-        coord->rot.vx           = 0;
-        coord->flg              = 0;
-        last                    = list->prev;
-        node->next              = last->next;
-        last->next              = (TmdListHead*)node;
-        node->prev              = last;
-        list->prev              = (TmdListHead*)node;
-        task->extra             = node;
-        task->spawnType         = 2;
+        node->field_C             = 1;
+        node->coords              = coord;
+        coord->sub                = &gGfxViewCoord;
+        one                       = ONE;
+        m                         = &node->coord.coord;
+        *(s32*)&node->coord.coord = one;
+        *(s32*)&m->m[1][1]        = one;
+        m->m[2][2]                = one;
+        list                      = &gTmdDisp2dList;
+        *(s32*)&m->m[0][2]        = 0;
+        *(s32*)&m->m[2][0]        = 0;
+        coord->coord.t[2]         = 0;
+        coord->coord.t[1]         = 0;
+        coord->coord.t[0]         = 0;
+        coord->rot.vz             = 0;
+        coord->rot.vy             = 0;
+        coord->rot.vx             = 0;
+        coord->flg                = 0;
+        last                      = list->prev;
+        node->next                = last->next;
+        last->next                = (TmdListHead*)node;
+        node->prev                = last;
+        list->prev                = (TmdListHead*)node;
+        task->extra               = node;
+        task->spawnType           = 2;
     } else {
         printf(Gp_StrNewDisp2dNull);
     }

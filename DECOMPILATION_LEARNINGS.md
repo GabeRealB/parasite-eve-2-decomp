@@ -27562,13 +27562,13 @@ the zero stores (the pointer still occupies `$a0`).
 `li a0, 0x1000` and, once `ONE` is consumed, `lui; addiu a0, %lo(Global)`:
 
 ```c
-register GpDisp2dCoord* coord asm("v1");
+register RoomCoord* coord asm("v1");
 
 node  = memCalloc(0x60, 0);
 coord = &node->coord;
 if (node != NULL) {
     node->field_C = 1;
-    node->field_8 = coord;
+    node->coords  = coord;
     coord->sub    = &gGfxViewCoord;
     one           = ONE;
     ...
@@ -47333,7 +47333,7 @@ shared span's end.
 splat writes an `INCLUDE_ASM` for each one and the matched bodies get pasted
 back over them. Nothing else survives: a `static __inline__` helper
 (`Asr_LocalToWorld` in `acropolis_security_room_3`), a file-local `#define`
-(`gte_rtps_real`), a `typedef` used only by that unit (`MistR18Coord`) have no
+(`gte_rtps_real`), a `typedef` used only by that unit (`AwehElevatorState`) have no
 symbol for splat to emit, so they simply vanish and the next build fails on an
 undefined reference or an unknown type. Carry them back with the functions, and
 take each declaration from *its own* unit: `D_acropolis_helicopter_landing_pad_80184DA0`
@@ -51442,7 +51442,26 @@ object's Euler angles there and pass `node + 0x44` to `RotMatrix` /
 as three `u16` stores followed by `RotMatrix(temp + 0x44, temp + 4)`. Write
 it against `RoomCoord` (`include/rooms/room_common.h`): `coord->rot.vx = …;
 RotMatrix(&coord->rot, &coord->coord); coord->flg = 0;`. The type is 0x50
-bytes like the libgs one, so `field_8[i]` indexing is unchanged.
+bytes like the libgs one, so indexing a coordinate array divides by the same
+stride it did before.
+
+## A coord node reached through `TmdObject::coords` is a `RoomCoord`, not a new type
+
+Every overlay that first needed a coordinate node declared its own type for it,
+and the declarations are one type. `GpDisp2dCoord`, `MistR18Coord` and
+`Actor213000Coord` were merged into `RoomCoord`; the ones that stop before the
+parent link (`Actor511000Coord` and the other `…Coord`s under `include/actors/`,
+`GpCoordPose`, `GpCoordExt`) are the same node declared without `sub`.
+
+The test is the access path, not the layout. A struct reached as
+`(T*)((TmdObject*)task->extra)->coords`, with `flg` and two `MATRIX`es leading
+and the Euler `SVECTOR` over libgs's `param` / `super` bytes, is this node
+whatever it is called, and a new declaration for it is a duplicate to fold in
+rather than a type to name.
+
+`GpDisp2d` is the one that is not reached that way — it embeds the node and
+points `coords` at its own copy — and even it reads through `TmdObject` when the
+model subsystem walks the 2D-display list.
 
 ## `andi 0x7F` narrowed to `0x7C`: an `s16` local's `(v & K)` is folded into HImode and re-extended
 
@@ -126132,7 +126151,7 @@ move  a1,a2             # the single IV
       addiu v1,v1,0x2d0 # the 9 stays a run-time add
 ```
 
-Writing it as a subscript, `&((Actor213000Coord *)...->field_8)[i + 9]`, restores
+Writing it as a subscript, `&((RoomCoord *)...->field_8)[i + 9]`, restores
 the target's second IV and gives 100.000%. The `.loop` dump says it directly —
 pointer sum:
 

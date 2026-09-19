@@ -9,6 +9,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room_common.h"
 
 /// The actor's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
@@ -34,20 +35,21 @@ INCLUDE_ASM("actors/nonmatchings/actor_213000/actor_213000_2", func_actor_213000
 
 void func_actor_213000_8014A35C(Task* task)
 {
-    Task*             parent;
-    TmdObject*        obj;
-    TmdObject*        parentObj;
-    Actor213000Coord* coords;
-    Actor213000Coord* root;
-    s32               i;
-    u16               flags;
+    Task*      parent;
+    TmdObject* obj;
+    TmdObject* parentObj;
+    RoomCoord* coords;
+    RoomCoord* root;
+    s32        i;
+    u16        flags;
 
     parent    = task->spawnArg2;
     obj       = task->extra;
     parentObj = parent->extra;
+    /* Each of the three roots hangs off the spawner's part nine slots above it */
     for (i = 0; i < 3; i++) {
-        coords           = &((Actor213000Coord*)((TmdObject*)parent->extra)->coords)[i + 9];
-        root             = &((Actor213000Coord*)((TmdObject*)task->extra)->coords)[i];
+        coords           = &((RoomCoord*)((TmdObject*)parent->extra)->coords)[i + 9];
+        root             = &((RoomCoord*)((TmdObject*)task->extra)->coords)[i];
         root->sub        = (GsCOORDINATE2*)coords;
         root->coord.t[0] = 0;
         root->coord.t[1] = 0;

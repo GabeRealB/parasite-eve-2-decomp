@@ -12,6 +12,7 @@
 #include "main/pad.h"
 #include "main/text.h"
 #include "main/tmd.h"
+#include "rooms/room_common.h"
 
 struct _GpEnemy;
 
@@ -325,21 +326,8 @@ typedef struct _GpViewTbl {
 /// Per-stage pointer table. Index is `GameSession.at4.loc.stage - 1`.
 extern GpViewTbl* Gp_ViewTables[];
 
-/// `GsCOORDINATE2` overlay embedded in `GpDisp2d` at +0x10. Same 0x50 layout
-/// as libgs, but offset 0x44 (`param` / first half of `super`) is an `SVECTOR`
-/// of zeros written by `Gp_AttachDisp2d`. `sub` is still the parent coordinate
-/// (`&gGfxViewCoord`).
-typedef struct _GpDisp2dCoord {
-    /* 0x00 */ u32            flg;
-    /* 0x04 */ MATRIX         mtx;
-    /* 0x24 */ MATRIX         workm;
-    /* 0x44 */ SVECTOR        rot;
-    /* 0x4C */ GsCOORDINATE2* sub;
-} GpDisp2dCoord;
-STATIC_ASSERT_SIZEOF(GpDisp2dCoord, 0x50);
-
 /// View of `GsCOORDINATE2` starting at `workm.t`. `sub` is at +0x14 (coord
-/// +0x4C). Size is the coord stride so `tail++` walks the `field_8` array.
+/// +0x4C). Size is the coord stride so `tail++` walks the coord array.
 typedef struct {
     /* 0x00 */ long           t[3];
     /* 0x0C */ GsCOORD2PARAM* param;
@@ -349,15 +337,19 @@ typedef struct {
 } GpCoordFromT;
 STATIC_ASSERT_SIZEOF(GpCoordFromT, 0x50);
 
-/// 0x60-byte spawnType-2 extra (`memCalloc` in `Gp_AttachDisp2d`, fail string
-/// `"new_disp_2d ----> NULL"`). Linked onto `gTmdDisp2dList`. `field_8` points at
-/// the embedded coord; `field_C` is stored as a word 1.
+/// A 2D-display body: the node a spawnType-2 task carries and hangs on
+/// `gTmdDisp2dList`.
+///
+/// Where a model body owns a whole array of coordinate nodes, this one owns a
+/// single node embedded in it. The model subsystem reads the body through
+/// `TmdObject`, so `coords` names the embedded node the same way a model's
+/// array is named.
 typedef struct _GpDisp2d {
-    TmdListHead*              next; // Following node of the list, or NULL past the last
-    TmdListHead*              prev; // Preceding node, or the head at the front
-    /* 0x08 */ GpDisp2dCoord* field_8;
-    /* 0x0C */ s32            field_C;
-    /* 0x10 */ GpDisp2dCoord  coord;
+    TmdListHead* next; // Following node of the list, or NULL past the last
+    TmdListHead* prev; // Preceding node, or the head at the front
+    RoomCoord*   coords;
+    s32          field_C;
+    RoomCoord    coord; // The coordinate itself, placed by the coordinate pass
 } GpDisp2d;
 STATIC_ASSERT_SIZEOF(GpDisp2d, 0x60);
 
