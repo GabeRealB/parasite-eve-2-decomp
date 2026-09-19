@@ -9,7 +9,7 @@
 #include "gameplay/3FB8.h"
 
 /// 8-byte fixed-point X/Z entry of a path table (`D_actor_800200_8016A128`
-/// and its neighbours). `GpActorD4.field_CE` selects the entry; the Y
+/// and its neighbours). `GpActorD4.pathStep` selects the entry; the Y
 /// component of a destination comes from the actor's own `GsCOORDINATE2`.
 typedef struct {
     /* 0x0 */ s32 field_0;

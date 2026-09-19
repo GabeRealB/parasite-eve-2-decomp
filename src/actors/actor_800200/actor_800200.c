@@ -144,9 +144,9 @@ void func_actor_800200_801622B0(GpActorWork* arg0)
         actor->field_14 = coord->coord.t[1];
         actor->field_18 = coord->coord.t[2];
     }
-    *(GsCOORDINATE2*)d4->field_18 = *arg0->extra->coords;
-    objs[0]                       = (GpObj*)actor->field_AC;
-    objs[1]                       = (GpObj*)actor->field_CC;
+    d4->coord = *arg0->extra->coords;
+    objs[0]   = (GpObj*)actor->field_AC;
+    objs[1]   = (GpObj*)actor->field_CC;
     for (i = 0; i < 2; i++) {
         bits = actor->field_983;
         if ((bits >> i) & 1) {
@@ -162,7 +162,7 @@ void func_actor_800200_801622B0(GpActorWork* arg0)
         func_actor_800200_801652EC(arg0);
     }
     Gp_ClearRec18Occupied(actor->field_17C);
-    Gp_ClearRec18Occupied(&actor->field_910->field_A0);
+    Gp_ClearRec18Occupied(&actor->field_910->contact);
     if (actor->field_984 & 1) {
         coord->coord.t[1] = actor->field_14 + 8;
     }

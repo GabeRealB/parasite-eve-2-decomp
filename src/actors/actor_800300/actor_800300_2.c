@@ -35,19 +35,19 @@ void func_actor_800300_80162658(GpActorWork* arg0)
     actor = arg0->actor;
     d4    = actor->field_910;
     obj   = (GpObj38*)arg0->extra->coords;
-    if (d4->field_C4 > 0) {
-        d4->field_C4 = (u16)d4->field_C4 - 1;
+    if (d4->decisionTimer > 0) {
+        d4->decisionTimer = (u16)d4->decisionTimer - 1;
     }
     if (D_8017A99C >= 0x30C) {
         if (actor->field_956 != 5) {
             actor->field_942++;
-            if ((s16)actor->field_942 >= (s8)d4->field_CC) {
+            if ((s16)actor->field_942 >= (s8)d4->repeatCount) {
                 actor->field_942 = 0;
-                d4->field_CD++;
-                cc           = (u8)d4->field_CC - 7;
-                d4->field_CC = cc;
+                d4->actionCount++;
+                cc              = (u8)d4->repeatCount - 7;
+                d4->repeatCount = cc;
                 if (cc < 0x5A) {
-                    d4->field_CC = 0x3C;
+                    d4->repeatCount = 0x3C;
                 }
                 actor->field_95C = 7;
                 actor->field_956 = 5;
@@ -60,7 +60,7 @@ void func_actor_800300_80162658(GpActorWork* arg0)
                     return;
                 }
                 anim = 0x10;
-                if ((s8)d4->field_CD >= 5) {
+                if ((s8)d4->actionCount >= 5) {
                     anim = 0x11;
                 }
                 Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 3);
@@ -257,7 +257,7 @@ void func_actor_800300_80162C98(GpActorWork* arg0)
     actor  = arg0->actor;
     coord  = arg0->extra->coords;
     target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
-    if (arg0->actor->field_910->field_C4 <= 0) {
+    if (arg0->actor->field_910->decisionTimer <= 0) {
         func_8010BF7C(arg0, 0x14, 0x3F);
         if ((u32)(func_8010BC70(coord) - 0x581) < 0x87F) {
             func_actor_800300_80163048(arg0);

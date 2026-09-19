@@ -9598,8 +9598,8 @@ s32 Gp_SetupAllyWeapon(void)
             val1  = D_80167218[save->field_5C7];
             val2  = D_80167224[save->field_5C7];
             Gp_AttachActorObj(work, val1, val2);
-            actor->field_124 |= 0x80;
-            block->field_CD   = D_80167230[save->field_5C7];
+            actor->field_124  |= 0x80;
+            block->actionCount = D_80167230[save->field_5C7];
             if ((u8)save->field_5C7 == 4 && actor->field_914 == NULL) {
                 eff = Gp_SpawnEff(
                     0x80060180, (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, val1, 0);
@@ -9848,7 +9848,7 @@ void func_8010BE5C(GpActorWork* arg0, VECTOR3* arg1)
 
 void func_8010BF7C(GpActorWork* arg0, s32 arg1, s32 arg2)
 {
-    arg0->actor->field_910->field_C4 = arg1 + (arg2 & rand());
+    arg0->actor->field_910->decisionTimer = arg1 + (arg2 & rand());
 }
 
 void func_8010BFCC(GpActorWork* arg0)
@@ -9931,7 +9931,6 @@ void func_8010C180(GpActorWork* arg0)
 
 void Gp_BindActorD4(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2)
 {
-    GsCOORDINATE2* dest;
     GsCOORDINATE2* src;
     GpActorD4*     block;
     GpObj*         obj;
@@ -9940,11 +9939,10 @@ void Gp_BindActorD4(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2)
 
     block           = arg0->actor->field_910;
     src             = (GsCOORDINATE2*)arg0->extra->coords;
-    obj             = (GpObj*)block->field_68;
-    rec             = &block->field_88;
-    dest            = (GsCOORDINATE2*)block->field_18;
-    *dest           = *src;
-    obj->coord      = block->field_18;
+    obj             = &block->obj;
+    rec             = &block->shape;
+    block->coord    = *src;
+    obj->coord      = &block->coord;
     obj->pos.vz     = -0xA0;
     obj->key        = 0x60000;
     obj->ctx.d4rec  = rec;
@@ -9958,7 +9956,7 @@ void Gp_BindActorD4(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2)
     rec->end0.vx    = rec->end1.vx;
     rec->end1Radius = 0x80;
     rec->end0Radius = 0x80;
-    rec->recs       = &block->field_A0;
+    rec->recs       = &block->contact;
     rec->end1.vz    = vz;
     rec->end0.vy    = rec->end1.vy;
     Gp_LinkObj(1, obj);

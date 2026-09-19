@@ -116,29 +116,41 @@ typedef struct _GpActorFlags {
 } GpActorFlags;
 STATIC_ASSERT_SIZEOF(GpActorFlags, 0x4);
 
-/// 0xD4-byte block allocated by `Gp_SpawnAlly` (`Mem_Set` size 0xD4) and
-/// stored at `GameActor.field_910`. `Gp_BindActorD4` copies a `GsCOORDINATE2`
-/// into `field_18`, treats `field_68` as a `GpObj`, fills `field_88` and points
-/// its `recs` at `field_A0`. `func_8010BF7C` writes `field_C4`.
-/// `Gp_SetupAllyWeapon` writes `field_CD` from `D_80167230[Mc_SaveData.field_5C7]`.
-/// `field_D0` is an `lb`/`sb` flag (`func_actor_800200_80165644` / `_8016599C`).
-typedef struct _GpActorD4 {
-    /* 0x00 */ byte         pad_0[0x18];
-    /* 0x18 */ byte         field_18[0x50]; // GsCOORDINATE2
-    /* 0x68 */ byte         field_68[0x20]; // GpObj
-    /* 0x88 */ GpActorD4Rec field_88;
-    /* 0xA0 */ GpRec18      field_A0;
-    /* 0xB8 */ byte         pad_B8[0xC];
-    /* 0xC4 */ s16          field_C4;
-    /* 0xC6 */ s16          field_C6;
-    /* 0xC8 */ s16          field_C8;
-    /* 0xCA */ s16          field_CA;
-    /* 0xCC */ u8           field_CC;
-    /* 0xCD */ u8           field_CD;
-    /* 0xCE */ s8           field_CE; // path-table step index; `lb`/`sb`
-    /* 0xCF */ s8           field_CF; // turn direction latched in state 0 (+1/-1)
-    /* 0xD0 */ s8           field_D0;
-    /* 0xD1 */ byte         pad_D1[3];
+/// The companion block `Gp_SpawnAlly` allocates (`Mem_Set` size 0xD4) and
+/// `GameActor.field_910` holds: the collision body a companion carries with it,
+/// and the counters its own AI drives. Nothing outside the companion overlays
+/// reads the block itself, only whether the pointer is set, which is how the
+/// rest of gameplay tells a companion from any other actor.
+///
+/// `coord` / `obj` / `shape` / `contact` are that body. `Gp_BindActorD4` fills
+/// them in: the actor's model coordinate copied into `coord`, a kind-3 `obj`
+/// hung off it, and the one-entry `contact` table `shape` records its
+/// collisions in. Only the companion that walks a scripted route binds one, so
+/// the others carry the body around unused and their `contact` table stays
+/// empty - which is why the helpers that read it take a zero to mean nothing is
+/// touching the companion.
+///
+/// The rest is the AI's: `decisionTimer` paces when the companion picks its
+/// next action, `scanAngle` / `targetHeading` / `scanDist` steer the turn it
+/// makes then, `repeatCount` / `actionCount` bound the burst of work it is in
+/// the middle of, and the last three walk it along its route.
+typedef struct GpActorD4 {
+    /* 0x00 */ byte          pad_0[0x18];
+    /* 0x18 */ GsCOORDINATE2 coord;         // the body's transform, a copy of the actor's model coordinate
+    /* 0x68 */ GpObj         obj;           // the body: a kind-3 node whose `ctx.d4rec` is `shape`
+    /* 0x88 */ GpActorD4Rec  shape;         // the capsule the body's collisions are tested with
+    /* 0xA0 */ GpRec18       contact;       // the one-entry table `shape` records its contacts in
+    /* 0xB8 */ byte          pad_B8[0xC];
+    /* 0xC4 */ s16           decisionTimer; // frames left before the companion picks its next action
+    /* 0xC6 */ s16           scanAngle;     // sweep angle: 0x80 a tick, and past 0x1000 the sweep is over
+    /* 0xC8 */ s16           targetHeading; // heading being turned to, in the 0..0xFFF angle unit
+    /* 0xCA */ s16           scanDist;      // the contact distance the sweep compares its candidates by
+    /* 0xCC */ u8            repeatCount;   // swings left in the attack burst, or the flinch interval of the companion that does not fight
+    /* 0xCD */ u8            actionCount;   // attacks left before the fighting companions stop, or flinches taken by the other one
+    /* 0xCE */ s8            pathStep;      // waypoint the companion is walking to
+    /* 0xCF */ s8            turnDir;       // +1 or -1: the way it turns to `targetHeading`
+    /* 0xD0 */ s8            pathDone;      // 1 once the last waypoint is reached
+    /* 0xD1 */ byte          pad_D1[3];
 } GpActorD4;
 STATIC_ASSERT_SIZEOF(GpActorD4, 0xD4);
 
@@ -957,7 +969,7 @@ extern s16 D_80167218[];
 extern s16 D_80167224[];
 
 /// Overlay-imported u8 table indexed by `Mc_SaveData.field_5C7` and stored
-/// at `GpActorD4.field_CD` (`Gp_SetupAllyWeapon`).
+/// at `GpActorD4.actionCount` (`Gp_SetupAllyWeapon`).
 extern u8 D_80167230[];
 
 /// 8-byte `GpAimRot` rows copied onto `GpPitchScratch.rot`.

@@ -69,7 +69,7 @@ void func_actor_800200_80162750(GpActorWork* arg0)
                 func_actor_800200_80165408(arg0, 6);
                 break;
             case 2:
-                d4->field_CC = (rand() & 3) + 1;
+                d4->repeatCount = (rand() & 3) + 1;
                 func_actor_800200_80165434(arg0, 1);
                 break;
             case 3:
@@ -118,35 +118,35 @@ void func_actor_800200_80162990(GpActorWork* arg0)
                 goto arrived;
             }
         case 1:
-            actor->field_20 = D_actor_800200_80169FF8[d4->field_CE].field_0;
+            actor->field_20 = D_actor_800200_80169FF8[d4->pathStep].field_0;
             actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_80169FF8[d4->field_CE].field_4;
+            actor->field_28 = D_actor_800200_80169FF8[d4->pathStep].field_4;
             if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x201) {
-                if (d4->field_CE == 3) {
+                if (d4->pathStep == 3) {
                 arrived:
-                    d4->field_D0 = 1;
+                    d4->pathDone = 1;
                     func_actor_800200_801654EC(arg0, 0);
                     return;
                 }
-                if (func_8010BC70(coord) >= 0xE00 || (d4->field_CE == 2 && Gp_HasCollectedBit(0x114) == 0)) {
+                if (func_8010BC70(coord) >= 0xE00 || (d4->pathStep == 2 && Gp_HasCollectedBit(0x114) == 0)) {
                     actor->field_960 = 2;
                     actor->field_934 = 0;
                     actor->field_90C = NULL;
                     func_actor_800200_801653A0(arg0);
                     return;
                 }
-                d4->field_CE++;
+                d4->pathStep++;
                 return;
             }
             mode = 6;
-            if (d4->field_CE == 3) {
+            if (d4->pathStep == 3) {
                 mode = 5;
             }
             func_actor_800200_80165408(arg0, mode);
             return;
         case 2:
-            if ((func_8010BC70(coord) < 0xC01 && d4->field_CE < 2) || (d4->field_CE == state && Gp_HasCollectedBit(0x114) != 0)) {
-                d4->field_CE++;
+            if ((func_8010BC70(coord) < 0xC01 && d4->pathStep < 2) || (d4->pathStep == state && Gp_HasCollectedBit(0x114) != 0)) {
+                d4->pathStep++;
                 actor->field_960 = 1;
                 return;
             }
@@ -183,13 +183,13 @@ void func_actor_800200_80162BFC(GpActorWork* arg0)
                 goto arrived;
             }
         case 1:
-            actor->field_20 = D_actor_800200_8016A020[d4->field_CE].field_0;
+            actor->field_20 = D_actor_800200_8016A020[d4->pathStep].field_0;
             actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A020[d4->field_CE].field_4;
+            actor->field_28 = D_actor_800200_8016A020[d4->pathStep].field_4;
             if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x201) {
-                if (d4->field_CE == 3) {
+                if (d4->pathStep == 3) {
                 arrived:
-                    d4->field_D0 = 1;
+                    d4->pathDone = 1;
                     func_actor_800200_801654EC(arg0, 0);
                     return;
                 }
@@ -200,18 +200,18 @@ void func_actor_800200_80162BFC(GpActorWork* arg0)
                     func_actor_800200_801653A0(arg0);
                     return;
                 }
-                d4->field_CE++;
+                d4->pathStep++;
                 return;
             }
             mode = 6;
-            if (d4->field_CE == 3) {
+            if (d4->pathStep == 3) {
                 mode = 5;
             }
             func_actor_800200_80165408(arg0, mode);
             return;
         case 2:
-            if (func_8010BC70(coord) < 0xB01 && d4->field_CE > 0) {
-                d4->field_CE++;
+            if (func_8010BC70(coord) < 0xB01 && d4->pathStep > 0) {
+                d4->pathStep++;
                 actor->field_960 = 1;
                 return;
             }
@@ -239,11 +239,11 @@ void func_actor_800200_80162E0C(GpActorWork* arg0)
     d4     = actor->field_910;
     switch (actor->field_960) {
         case 0:
-            actor->field_20 = D_actor_800200_80169FE0[d4->field_CE].field_0;
+            actor->field_20 = D_actor_800200_80169FE0[d4->pathStep].field_0;
             actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_80169FE0[d4->field_CE].field_4;
+            actor->field_28 = D_actor_800200_80169FE0[d4->pathStep].field_4;
             if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x201) {
-                if (d4->field_CE == 2) {
+                if (d4->pathStep == 2) {
                     actor->field_960 = 3;
                     actor->field_95E = 0;
                     actor->field_95C = 7;
@@ -258,20 +258,20 @@ void func_actor_800200_80162E0C(GpActorWork* arg0)
                     func_actor_800200_801653A0(arg0);
                     return;
                 }
-                d4->field_CE++;
+                d4->pathStep++;
             }
             func_actor_800200_80165408(arg0, 6);
             return;
         case 1:
             if ((func_8010BC70(coord) < 0xA01) || (coord->coord.t[0] < target->coord.t[0])) {
-                d4->field_CE++;
+                d4->pathStep++;
                 actor->field_960 = 0;
                 return;
             }
             delay            = actor->field_934 - 1;
             actor->field_934 = delay;
             if (delay <= 0) {
-                d4->field_CC     = 1;
+                d4->repeatCount  = 1;
                 actor->field_934 = rand() & 0x7F;
                 func_actor_800200_80165434(arg0, 0);
             }

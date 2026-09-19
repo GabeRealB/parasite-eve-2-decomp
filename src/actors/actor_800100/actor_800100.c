@@ -620,7 +620,7 @@ void func_actor_800100_80163C04(GpActorWork* arg0)
     Gp_UnlinkObj((GpObj*)actor->field_CC);
     Gp_UnlinkObj((GpObj*)actor->field_EC);
     Gp_UnlinkObj((GpObj*)actor->field_10C);
-    Gp_UnlinkObj((GpObj*)d4->field_68);
+    Gp_UnlinkObj(&d4->obj);
     taskKill((Task*)arg0);
 }
 

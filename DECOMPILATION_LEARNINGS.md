@@ -74371,7 +74371,7 @@ and the target keeps the two in different registers (`$s0` for the first,
 
 ```c
 GameActor* actor = arg0->actor;   /* -> $s0 */
-actor->field_910->field_CC = arg1;
+actor->field_910->repeatCount = arg1;
 if (Gp_StateF0.field_0 == 1) { actor->field_90C = Gp_FindLockNode(arg0); }
 ...
 actor = arg0->actor;              /* still the same pseudo: one quantity */
@@ -97404,8 +97404,8 @@ Example: `func_actor_800300_80161E80`. Inputs: `base_5.i`
 ## A negative constant into a `u8` field folds to its positive byte; an `s8` temporary keeps the sign (func_actor_800300_80161E80, 2026-09-16)
 
 The last instruction of `func_actor_800300_80161E80` is `li $2,-0x6a` followed by
-`sb $2,0xcc($s6)`. `GpActorD4::field_CC` really is `u8` - `func_actor_800100_80165C38`
-reads it with `lbu` at 0xCC - and `d4->field_CC = -0x6A;` compiles to `li $2,150`:
+`sb $2,0xcc($s6)`. `GpActorD4::repeatCount` really is `u8` - `func_actor_800100_80165C38`
+reads it with `lbu` at 0xCC - and `d4->repeatCount = -0x6A;` compiles to `li $2,150`:
 
 - the conversion to an unsigned 8-bit type masks the constant at tree level, so
   `convert_modes (QImode, SImode, -106, unsignedp = 1)` yields 150;
@@ -105020,7 +105020,7 @@ it and it never leaves `$a1`, as the target's `li a1,4` shows. m2c had hoisted t
 
 Also in this function: `temp_s0->field_910 + 0xA0` where `field_910` is a `GpActorD4*` (sizeof 0xD4)
 compiles to `li $v1,0x8480` + `addu $a1,$a1,$v1` - m2c's pointer-typed add is *scaled*, and the
-constant is unrecognisable. Reaching the same address by field, `&actor->field_910->field_A0`,
+constant is unrecognisable. Reaching the same address by field, `&actor->field_910->contact`,
 gives the target's `addiu $a1,$a1,0xA0`. Read `GpActorD4`'s field list before debugging the constant.
 
 Inputs: `base_2.i` (96.343%, `< 0xE00` polarity), `base_3.i` (100%)
@@ -133578,3 +133578,22 @@ candidate ids each pair is filled from agree - the first pair's are the calibre
 rounds, the second's the batteries and fuel the attached device runs on - and
 that agreement is what makes the reading safe to name from rather than a string
 that happens to sit nearby.
+## A declaration edited while a rename run is in flight makes the tool drop references silently
+
+`rename_item.py` resolves every reference through the type the member is
+declared on. Change that declaration by hand *while a run is in flight* - a
+struct tag retagged, a typedef moved - and every other translation unit is left
+looking at a fresh incomplete type, so the member lookup resolves to nothing and
+those references are dropped without a word. The declaration and the sites that
+name the member through the pointer's own header still rename, so the run
+reports a short count rather than an empty one: two edits in the files it had
+listed, where the reference listing shows five.
+
+Leave the declaration alone until the renames finish, then compare each run's
+per-file counts against that listing. The leftovers are ordinary old spellings,
+so the completeness sweep does find them - what hides them until it runs is the
+run exiting zero and printing `done; rebuild to verify`.
+
+Renaming the member *and* retyping it is the reason this comes up: the tool can
+express the name but not the type, so the two edits are split, and it is
+tempting to make the type edit early rather than after the last run.

@@ -86,17 +86,17 @@ void func_actor_800200_80163044(GpActorWork* arg0)
                 goto arrived;
             }
         case 1:
-            actor->field_20 = D_actor_800200_8016A048[d4->field_CE].field_0;
+            actor->field_20 = D_actor_800200_8016A048[d4->pathStep].field_0;
             actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A048[d4->field_CE].field_4;
+            actor->field_28 = D_actor_800200_8016A048[d4->pathStep].field_4;
             if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x201) {
-                if (d4->field_CE == 1) {
+                if (d4->pathStep == 1) {
                 arrived:
-                    d4->field_D0 = 1;
+                    d4->pathDone = 1;
                     func_actor_800200_801654EC(arg0, 0);
                     return;
                 }
-                d4->field_CE++;
+                d4->pathStep++;
                 return;
             }
             func_actor_800200_80165408(arg0, 6);
@@ -128,13 +128,13 @@ void func_actor_800200_80163180(GpActorWork* arg0)
                 goto arrived;
             }
         case 1:
-            actor->field_20 = D_actor_800200_8016A058[d4->field_CE].field_0;
+            actor->field_20 = D_actor_800200_8016A058[d4->pathStep].field_0;
             actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A058[d4->field_CE].field_4;
+            actor->field_28 = D_actor_800200_8016A058[d4->pathStep].field_4;
             if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x201) {
-                if (d4->field_CE == 1) {
+                if (d4->pathStep == 1) {
                 arrived:
-                    d4->field_D0 = 1;
+                    d4->pathDone = 1;
                     func_actor_800200_801654EC(arg0, 0);
                     return;
                 }
@@ -145,14 +145,14 @@ void func_actor_800200_80163180(GpActorWork* arg0)
                     func_actor_800200_801653A0(arg0);
                     return;
                 }
-                d4->field_CE++;
+                d4->pathStep++;
                 return;
             }
             func_actor_800200_80165408(arg0, 6);
             return;
         case 2:
             if (func_8010BC70(coord) < 0x801) {
-                d4->field_CE++;
+                d4->pathStep++;
                 actor->field_960 = 1;
                 return;
             }
@@ -189,13 +189,13 @@ void func_actor_800200_8016337C(GpActorWork* arg0)
                 goto arrived;
             }
         case 1:
-            actor->field_20 = D_actor_800200_8016A068[d4->field_CE].field_0;
+            actor->field_20 = D_actor_800200_8016A068[d4->pathStep].field_0;
             actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A068[d4->field_CE].field_4;
+            actor->field_28 = D_actor_800200_8016A068[d4->pathStep].field_4;
             if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x201) {
-                if (d4->field_CE == 2) {
+                if (d4->pathStep == 2) {
                 arrived:
-                    d4->field_D0 = 1;
+                    d4->pathDone = 1;
                     func_actor_800200_801654EC(arg0, 0);
                     return;
                 }
@@ -206,18 +206,18 @@ void func_actor_800200_8016337C(GpActorWork* arg0)
                     func_actor_800200_801653A0(arg0);
                     return;
                 }
-                d4->field_CE++;
+                d4->pathStep++;
                 return;
             }
             mode = 6;
-            if (d4->field_CE == 2) {
+            if (d4->pathStep == 2) {
                 mode = 5;
             }
             func_actor_800200_80165408(arg0, mode);
             return;
         case 2:
             if (func_8010BC70(coord) < 0x901) {
-                d4->field_CE++;
+                d4->pathStep++;
                 actor->field_960 = 1;
                 return;
             }
@@ -258,13 +258,13 @@ void func_actor_800200_80163584(GpActorWork* arg0)
             func_actor_800200_80165534(arg0);
             return;
         case 2:
-            actor->field_20 = D_actor_800200_8016A080[d4->field_CE].field_0;
+            actor->field_20 = D_actor_800200_8016A080[d4->pathStep].field_0;
             actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A080[d4->field_CE].field_4;
+            actor->field_28 = D_actor_800200_8016A080[d4->pathStep].field_4;
             if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x201) {
-                if (d4->field_CE == 1) {
+                if (d4->pathStep == 1) {
                 arrived:
-                    d4->field_D0 = 1;
+                    d4->pathDone = 1;
                     func_actor_800200_801654EC(arg0, 0);
                     return;
                 }
@@ -275,18 +275,18 @@ void func_actor_800200_80163584(GpActorWork* arg0)
                     func_actor_800200_801653A0(arg0);
                     return;
                 }
-                d4->field_CE++;
+                d4->pathStep++;
                 return;
             }
             mode = 6;
-            if (d4->field_CE == 1) {
+            if (d4->pathStep == 1) {
                 mode = 5;
             }
             func_actor_800200_80165408(arg0, mode);
             return;
         case 3:
             if (func_8010BC70(coord) < 0x901) {
-                d4->field_CE++;
+                d4->pathStep++;
                 actor->field_960 = 1;
                 return;
             }
@@ -324,22 +324,22 @@ void func_actor_800200_801637B4(GpActorWork* arg0)
                 goto arrived;
             }
         case 1:
-            actor->field_20 = D_actor_800200_8016A098[d4->field_CE].field_0;
+            actor->field_20 = D_actor_800200_8016A098[d4->pathStep].field_0;
             actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A098[d4->field_CE].field_4;
+            actor->field_28 = D_actor_800200_8016A098[d4->pathStep].field_4;
             if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x201) {
-                if (d4->field_CE == 2) {
+                if (d4->pathStep == 2) {
                 arrived:
-                    d4->field_D0 = 1;
+                    d4->pathDone = 1;
                     func_actor_800200_801654EC(arg0, 0);
                     return;
                 }
-                d4->field_CE++;
+                d4->pathStep++;
                 func_actor_800200_80165534(arg0);
                 return;
             }
             mode = 6;
-            if (d4->field_CE == 1) {
+            if (d4->pathStep == 1) {
                 mode = 5;
             }
             func_actor_800200_80165408(arg0, mode);
@@ -372,17 +372,17 @@ void func_actor_800200_8016390C(GpActorWork* arg0)
                 goto arrived;
             }
         case 1:
-            actor->field_20 = D_actor_800200_8016A0B0[d4->field_CE].field_0;
+            actor->field_20 = D_actor_800200_8016A0B0[d4->pathStep].field_0;
             actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A0B0[d4->field_CE].field_4;
+            actor->field_28 = D_actor_800200_8016A0B0[d4->pathStep].field_4;
             if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x201) {
-                if (d4->field_CE == 2) {
+                if (d4->pathStep == 2) {
                 arrived:
-                    d4->field_D0 = 1;
+                    d4->pathDone = 1;
                     func_actor_800200_801654EC(arg0, 0);
                     return;
                 }
-                d4->field_CE++;
+                d4->pathStep++;
                 func_actor_800200_80165534(arg0);
                 return;
             }
@@ -420,17 +420,17 @@ void func_actor_800200_80163B90(GpActorWork* arg0)
             func_actor_800200_80165534(arg0);
             return;
         case 1:
-            actor->field_20 = D_actor_800200_8016A0E0[d4->field_CE].field_0;
+            actor->field_20 = D_actor_800200_8016A0E0[d4->pathStep].field_0;
             actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A0E0[d4->field_CE].field_4;
+            actor->field_28 = D_actor_800200_8016A0E0[d4->pathStep].field_4;
             if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x201) {
-                if (d4->field_CE == 4) {
+                if (d4->pathStep == 4) {
                 arrived:
-                    d4->field_D0 = 1;
+                    d4->pathDone = 1;
                     func_actor_800200_801654EC(arg0, 0);
                     return;
                 }
-                d4->field_CE++;
+                d4->pathStep++;
                 func_actor_800200_80165534(arg0);
                 return;
             }
@@ -464,17 +464,17 @@ void func_actor_800200_80163CCC(GpActorWork* arg0)
                 goto arrived;
             }
         case 1:
-            actor->field_20 = D_actor_800200_8016A108[d4->field_CE].field_0;
+            actor->field_20 = D_actor_800200_8016A108[d4->pathStep].field_0;
             actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A108[d4->field_CE].field_4;
+            actor->field_28 = D_actor_800200_8016A108[d4->pathStep].field_4;
             if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x201) {
-                if (d4->field_CE == 3) {
+                if (d4->pathStep == 3) {
                 arrived:
-                    d4->field_D0 = 1;
+                    d4->pathDone = 1;
                     func_actor_800200_801654EC(arg0, 0);
                     return;
                 }
-                d4->field_CE++;
+                d4->pathStep++;
                 func_actor_800200_80165534(arg0);
                 return;
             }
@@ -509,22 +509,22 @@ void func_actor_800200_80163E14(GpActorWork* arg0)
                 goto arrived;
             }
         case 1:
-            actor->field_20 = D_actor_800200_8016A130[d4->field_CE].field_0;
+            actor->field_20 = D_actor_800200_8016A130[d4->pathStep].field_0;
             actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A130[d4->field_CE].field_4;
+            actor->field_28 = D_actor_800200_8016A130[d4->pathStep].field_4;
             if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x201) {
-                if (d4->field_CE == 4) {
+                if (d4->pathStep == 4) {
                 arrived:
-                    d4->field_D0 = 1;
+                    d4->pathDone = 1;
                     func_actor_800200_80165534(arg0);
                     return;
                 }
-                d4->field_CE++;
+                d4->pathStep++;
                 func_actor_800200_80165534(arg0);
                 return;
             }
             mode = 6;
-            if (d4->field_CE == 1) {
+            if (d4->pathStep == 1) {
                 mode = 5;
             }
             func_actor_800200_80165408(arg0, mode);
@@ -549,7 +549,7 @@ void func_actor_800200_80163F5C(GpActorWork* arg0)
     coord  = arg0->extra->coords;
     target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
     actor  = arg0->actor;
-    dist   = func_actor_800200_801660E8(coord, &actor->field_910->field_A0, NULL);
+    dist   = func_actor_800200_801660E8(coord, &actor->field_910->contact, NULL);
     if (dist != 0 && dist < 0x301) {
         hit            = arg0->actor;
         d4             = hit->field_910;
@@ -560,8 +560,8 @@ void func_actor_800200_80163F5C(GpActorWork* arg0)
         hit->field_95E = 0;
         hit->field_973 = 0;
         hit->field_975 = 0;
-        d4->field_CA   = -1;
-        d4->field_C6   = 0;
+        d4->scanDist   = -1;
+        d4->scanAngle  = 0;
         Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 3);
         return;
     }
@@ -676,7 +676,7 @@ void func_actor_800200_80164180(GpActorWork* arg0)
                 dist = -dist;
             }
             if ((dist < 0x101) || (actor->field_95E == 2)) {
-                if ((s8)d4->field_CC > 0) {
+                if ((s8)d4->repeatCount > 0) {
                     flag              = actor->field_90C != 0;
                     actor2            = arg0->actor;
                     actor2->field_954 = 0;
@@ -730,7 +730,7 @@ void func_actor_800200_8016436C(GpActorWork* arg0)
         if ((node != NULL) && !(node->flags & 1)) {
             Gp_GetLockPos((GpLockPos*)node, vec);
         } else {
-            d4->field_CC = 1;
+            d4->repeatCount = 1;
         }
     } else {
         ((VECTOR3*)(head - 0x10))->vx = target->coord.t[0];
@@ -763,8 +763,8 @@ void func_actor_800200_8016436C(GpActorWork* arg0)
                 actor2->field_95C = 0;
                 actor2->field_95E = 0;
             } else {
-                count        = d4->field_CC - 1;
-                d4->field_CC = count;
+                count           = d4->repeatCount - 1;
+                d4->repeatCount = count;
                 if (count <= 0) {
                     Gp_ResetActorMove(arg0, 0);
                 } else {
@@ -1198,7 +1198,7 @@ void func_actor_800200_8016545C(GpActorWork* arg0, s8 arg1)
     GameActor* actor2;
     u16        flag;
 
-    actor->field_910->field_CC = arg1;
+    actor->field_910->repeatCount = arg1;
     if (Gp_StateF0.field_0 == 1) {
         actor->field_90C = Gp_FindLockNode(arg0);
     } else {
@@ -1245,7 +1245,7 @@ void func_actor_800200_80165580(GpActorWork* arg0)
 {
     u8 temp_v1;
 
-    if (arg0->actor->field_910->field_D0 == 1) {
+    if (arg0->actor->field_910->pathDone == 1) {
         func_actor_800200_801654EC(arg0, 0);
         return;
     }
@@ -1270,7 +1270,7 @@ void func_actor_800200_80165644(GpActorWork* arg0)
 {
     u8 temp_v1;
 
-    if (arg0->actor->field_910->field_D0 == 1) {
+    if (arg0->actor->field_910->pathDone == 1) {
         func_actor_800200_801654EC(arg0, 0);
         return;
     }
@@ -1295,7 +1295,7 @@ void func_actor_800200_80165708(GpActorWork* arg0)
 {
     u8 temp_v0;
 
-    if (arg0->actor->field_910->field_D0 == 1) {
+    if (arg0->actor->field_910->pathDone == 1) {
         func_actor_800200_801654EC(arg0, 0);
         return;
     }
@@ -1342,16 +1342,16 @@ void func_actor_800200_80165814(GpActorWork* arg0)
     coord = arg0->extra->coords;
     d4    = actor->field_910;
     if (actor->field_960 == 0) {
-        actor->field_20 = D_actor_800200_8016A018[d4->field_CE].field_0;
+        actor->field_20 = D_actor_800200_8016A018[d4->pathStep].field_0;
         actor->field_24 = coord->coord.t[1];
-        actor->field_28 = D_actor_800200_8016A018[d4->field_CE].field_4;
+        actor->field_28 = D_actor_800200_8016A018[d4->pathStep].field_4;
         if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x401) {
-            d4->field_D0 = 1;
+            d4->pathDone = 1;
             func_actor_800200_801654EC(arg0, 0);
             return;
         }
         arg = 6;
-        if (d4->field_CE == 2) {
+        if (d4->pathStep == 2) {
             arg = 5;
         }
         func_actor_800200_80165408(arg0, arg);
@@ -1368,11 +1368,11 @@ void func_actor_800200_801658E0(GpActorWork* arg0)
     coord = arg0->extra->coords;
     d4    = actor->field_910;
     if (actor->field_960 == 0) {
-        actor->field_20 = D_actor_800200_8016A040[d4->field_CE].field_0;
+        actor->field_20 = D_actor_800200_8016A040[d4->pathStep].field_0;
         actor->field_24 = coord->coord.t[1];
-        actor->field_28 = D_actor_800200_8016A040[d4->field_CE].field_4;
+        actor->field_28 = D_actor_800200_8016A040[d4->pathStep].field_4;
         if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x401) {
-            d4->field_D0 = 1;
+            d4->pathDone = 1;
             func_actor_800200_801654EC(arg0, 0);
             return;
         }
@@ -1382,7 +1382,7 @@ void func_actor_800200_801658E0(GpActorWork* arg0)
 
 void func_actor_800200_8016599C(GpActorWork* arg0)
 {
-    arg0->actor->field_910->field_D0 = 1;
+    arg0->actor->field_910->pathDone = 1;
     func_actor_800200_801654EC(arg0, 0);
 }
 
@@ -1399,12 +1399,12 @@ void func_actor_800200_801659CC(GpActorWork* arg0)
     d4    = actor->field_910;
     switch (state) {
         case 0:
-            actor->field_20 = D_actor_800200_8016A090[d4->field_CE].field_0;
+            actor->field_20 = D_actor_800200_8016A090[d4->pathStep].field_0;
             actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A090[d4->field_CE].field_4;
+            actor->field_28 = D_actor_800200_8016A090[d4->pathStep].field_4;
             if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x401) {
                 actor->field_960++;
-                if (d4->field_D0 != 1) {
+                if (d4->pathDone != 1) {
                     func_actor_800200_80165534(arg0);
                 }
                 return;
@@ -1412,7 +1412,7 @@ void func_actor_800200_801659CC(GpActorWork* arg0)
             func_actor_800200_80165408(arg0, 6);
             return;
         case 1:
-            d4->field_D0 = state;
+            d4->pathDone = state;
             func_actor_800200_801654EC(arg0, 0);
             break;
     }
@@ -1428,11 +1428,11 @@ void func_actor_800200_80165ACC(GpActorWork* arg0)
     coord = arg0->extra->coords;
     d4    = actor->field_910;
     if (actor->field_960 == 0) {
-        actor->field_20 = D_actor_800200_8016A128[d4->field_CE].field_0;
+        actor->field_20 = D_actor_800200_8016A128[d4->pathStep].field_0;
         actor->field_24 = coord->coord.t[1];
-        actor->field_28 = D_actor_800200_8016A128[d4->field_CE].field_4;
+        actor->field_28 = D_actor_800200_8016A128[d4->pathStep].field_4;
         if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x401) {
-            d4->field_D0 = 1;
+            d4->pathDone = 1;
             func_actor_800200_80165534(arg0);
             return;
         }
@@ -1452,8 +1452,8 @@ void func_actor_800200_80165B84(GpActorWork* arg0)
     actor = arg0->actor;
     d4    = actor->field_910;
     coord = arg0->extra->coords;
-    if (d4->field_C4 > 0) {
-        d4->field_C4--;
+    if (d4->decisionTimer > 0) {
+        d4->decisionTimer--;
     }
     sp.funcs[actor->field_956](arg0);
     if ((s8)actor->field_97A == 0) {

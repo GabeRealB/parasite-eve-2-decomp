@@ -91,8 +91,8 @@ void func_actor_800300_80161E80(GpActorWork* arg0)
     obj->flags      |= 0xC000;
     actor->field_984 = 7;
     func_8010BF7C(arg0, 0x3C, 0x7F);
-    fcc          = -0x6A;
-    d4->field_CC = fcc;
+    fcc             = -0x6A;
+    d4->repeatCount = fcc;
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_800300/actor_800300", func_actor_800300_80162064);
