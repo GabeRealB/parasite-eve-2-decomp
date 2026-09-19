@@ -121,7 +121,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     handler = D_80137300;
                     break;
                 case 0x78:
-                    handler = Tmd_StreamHandler_Op78;
+                    handler = tmdStreamDrawGt4;
                     break;
                 case 0x8078:
                     handler = D_8013685C;

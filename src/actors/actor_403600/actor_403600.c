@@ -2689,7 +2689,7 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         *(u8**)0x1F8003FC = *(u8**)0x1F8003FC + 0x88;
         return stream;
     }
-    return Tmd_StreamHandler_Op78(arg0, arg1, stream);
+    return tmdStreamDrawGt4(arg0, arg1, stream);
 }
 
 u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)

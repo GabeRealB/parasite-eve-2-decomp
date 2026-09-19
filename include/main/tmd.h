@@ -82,7 +82,7 @@ typedef struct {
     TmdListHead*   next;        // Following node of the list, or NULL past the last
     TmdListHead*   prev;        // Preceding node, or the head at the front
     GsCOORDINATE2* coords;      // Per-part coordinate array, part of this object's own block
-    u16            flags;       // State bits (0x4 buffer allocated by whoever created it, 0x8 drawn by the flagged pass, 0x80 hidden)
+    u16            flags;       // State bits (0x2 drawn semi-transparent, 0x4 buffer allocated by whoever created it, 0x8 drawn by the flagged pass, 0x80 hidden)
     s8             otOffset;    // Ordering-table offset the model's primitives are linked at
     byte           unknown_F;
     TmdSource*     source;      // The model as its package shipped it
@@ -279,7 +279,25 @@ u32* Tmd_StreamHandler_Op3A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// shading constant; this entry is the one that picks the shading from `flags`.
 u32* tmdDrawStreamGt3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op7A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_Op78(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+/// Draw handler of a stream's gouraud textured-quad records (`0x78`): each
+/// element contributes one quad, projected and lit into the buffer slot the build
+/// pass laid out for it, and linked into the ordering table at its own depth.
+///
+/// The element names a vertex and a normal per corner, so the quad is lit corner
+/// by corner: three corners in one lighting step and the fourth in a step of its
+/// own, each corner's colour being what its own normal gives under the model's
+/// light. A corner the GTE reports off screen, or a quad the facing tests reject,
+/// is not drawn — the packet is left out of the ordering table and the walk moves
+/// on to the next element.
+///
+/// The packet's texture words, page and CLUT are the build pass's
+/// (`gpStreamPrimGt4`); this pass writes the half a frame produces — the corner
+/// coordinates, the corner colours, and the packet's length and primitive code.
+/// That code is the semi-transparent one where the drawing object's flags ask for
+/// it, which is what this handler reads `flags` for: the `0x7A` record's handler
+/// shares this body and asks unconditionally.
+u32* tmdStreamDrawGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_OpC8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op3B(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op39(TmdScratchModelBlock* ws, s32 flags, u32* stream);

@@ -132395,7 +132395,7 @@ none, its draw twin loading the fixed `0x808080` instead.
 The build handler never reads that word — it only starts its texture copy one
 word later — so an unidentified handler of the family is settled by its draw
 twin's `ldrgb`: `func_8009D0DC` (`0x70`, a `POLY_GT4`) loads the element's word
-for `NCCT`, where `Tmd_StreamHandler_Op78` (`0x78`, the same primitive) loads
+for `NCCT`, where `tmdStreamDrawGt4` (`0x78`, the same primitive) loads
 `0x3C808080` before its loop. That is what makes the twins' words come out at
 `5,6,7` and `4,5,6` respectively (`gpStreamPrimGt4ElemColor` against
 `gpStreamPrimGt4`), and the same read separates `0x30` from `0x38`.
@@ -132630,3 +132630,19 @@ The symbol map is where these hide, because its per-line notes name a sibling:
 renaming a glabel leaves the alabel's note ("ABR entry into `Op38`") pointing at
 a name that is no longer in the file. Those entries are aligned in columns, so a
 rewritten line has to be re-aligned by hand or the table stops being readable.
+## A guard whose constant is wider than the field it tests cannot fire
+
+An arm of a handler is evidence of a rule only where the arm is reachable, and
+a compare against a field can be dead on its face. `tmdStreamDrawGt4`'s element
+loop guards its fourth corner with `beq` against a constant loaded whole
+(`lui $v1, 0xFFF`, so `0x0FFF0000`) while the value it compares was extracted
+from an element word (`srl $t4, $t3, 16`, a ref of 16 bits, since element refs
+pack two to a word). The two can never be equal, so the arm guarded that way is
+unreachable and the `0xFFF` ref it appears to special-case is not behaviour the
+handler has.
+
+Read the constant's width against the compared field's before recording any
+rule from an arm, and check the value against the data as a second opinion. No
+element carries that ref in any case: a ref is a byte offset into the vertex or
+normal array with its low three bits used as flags, so `0xFFF` is not one
+(`doc/TMD_FORMAT.md` §3.1 checks every ref of the family).

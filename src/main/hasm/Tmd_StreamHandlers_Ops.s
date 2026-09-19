@@ -450,7 +450,7 @@ alabel Tmd_StreamHandler_Op7A
     /* 1894 80011094 */  mtc2        $t0, $6
     /* 1898 80011098 */  j           .L800110B8
     /* 189C 8001109C */  nop
-glabel Tmd_StreamHandler_Op78
+glabel tmdStreamDrawGt4
     /* 18A0 800110A0 */  andi        $t0, $a1, 0x2
     /* 18A4 800110A4 */  bnez        $t0, Tmd_StreamHandler_Op7A
     /* 18A8 800110A8 */  nop
