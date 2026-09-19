@@ -121,7 +121,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     handler = D_80137300;
                     break;
                 case 0x78:
-                    handler = tmdStreamDrawGt4;
+                    handler = tmdDrawStreamGt4;
                     break;
                 case 0x8078:
                     handler = D_8013685C;
@@ -136,7 +136,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     handler = Tmd_StreamHandler_Op7A;
                     break;
                 case 0xC8:
-                    handler = tmdStreamXformVerts;
+                    handler = tmdXformStreamVerts;
                     break;
                 case 0x40C8:
                     handler = func_8009AF90;
@@ -182,16 +182,16 @@ void Tmd_InitSourceStream(TmdSource* src)
                     }
                     break;
                 case 0:
-                    handler = tmdStreamPrimG3;
+                    handler = tmdDrawStreamPrimG3;
                     break;
                 case 0x40:
                     handler = Tmd_StreamHandler_Op40;
                     break;
                 case 0x18:
-                    handler = tmdDrawPrimGt3OneNormal;
+                    handler = tmdDrawStreamPrimGt3OneNormal;
                     break;
                 case 0x1A:
-                    handler = Tmd_StreamHandler_Op1A;
+                    handler = tmdDrawStreamPrimGt3OneNormalSemiTrans;
                     break;
                 case 0x58:
                     handler = Tmd_StreamHandler_Op58;
@@ -245,7 +245,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     handler = func_8009D0DC;
                     break;
                 case 0x170:
-                    handler = tmdStreamPrimGt4CornerColors;
+                    handler = tmdDrawStreamPrimGt4CornerColors;
                     break;
                 case 0x156:
                     handler = func_8009D718;

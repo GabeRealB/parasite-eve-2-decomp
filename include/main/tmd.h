@@ -235,13 +235,13 @@ s32 Tmd_SumBufferBytes(void);
 // Early-image handlers (src/main/hasm/): the draw pass's handlers for the record
 // opcodes they cover. Tmd_InitSourceStream resolves each record's opcode to its
 // handler and the draw walk (Tmd_DispatchStream, reached from Tmd_SetupDraw)
-// jalrs it; the pass that builds the primitives has a family of its own instead,
-// the `gpStreamPrim*` handlers in the gameplay overlay. The two scratch frames
-// put their slots at the same offsets, so a handler reads either frame through
-// either type; these are declared with the model-side one, the type
+// jalrs it — the draw path reaches a handler only by jalr; the pass that builds
+// the primitives has a family of its own instead, the `gpStreamPrim*` handlers in
+// the gameplay overlay. A handler runs on the scratch frame of whichever pass
+// dispatched it, and the two frames lay their slots out alike, so the model-side
+// type names every slot a handler touches and is the type they all take: the type
 // Tmd_InitSourceStream resolves a record's handler into and `tmdProcessStream`
-// passes the handlers it runs, because it is the type that names the slots they
-// touch.
+// passes the handlers it runs.
 
 /// Handler of a stream record nothing is built from: it steps over the record's
 /// elements and returns the cursor that follows them.
@@ -259,9 +259,8 @@ u32* Tmd_StreamHandler_Prim38(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 // Early-image draw handlers in Tmd_StreamHandlers_Ops.s, one per record family:
 // `Tmd_InitSourceStream` patches each into a model's stream for the opcodes it
-// answers to, and the draw walk jalrs it. A handler whose record has been read is
-// named for the command it serves; one still carrying the opcode it is keyed by
-// is a record not yet read.
+// answers to, and the draw walk jalrs it. Each is named for the opcode it serves
+// or for the command it serves where that has been read.
 u32* Tmd_StreamHandler_Op20(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op60(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_OpC0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -302,7 +301,7 @@ u32* Tmd_StreamHandler_Op7A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// That code is the semi-transparent one where the drawing object's flags ask for
 /// it, which is what this handler reads `flags` for: the `0x7A` record's handler
 /// shares this body and asks unconditionally.
-u32* tmdStreamDrawGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// Handler of a stream's transform pre-pass records (`0xC8`): each element
 /// contributes one transformed vertex to the buffer half, and the record builds
 /// no primitive of its own.
@@ -318,7 +317,7 @@ u32* tmdStreamDrawGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// to order it, and a vertex whose transform reported an error is stored with
 /// its sign bit set, which is how those commands know the primitive cannot be
 /// drawn. The record has no variant for `flags` to select, so it goes unread.
-u32* tmdStreamXformVerts(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdXformStreamVerts(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op3B(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op39(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op7B(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -337,16 +336,31 @@ u32* Tmd_StreamHandler_Op79(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// packet's room, because the room was reserved for every element by the
 /// process pass (`gpStreamPrimG3`), whose cursor this one stays in step with.
 /// The record has no variant for `flags` to select, so it goes unread.
-u32* tmdStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op40(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_Op1A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// The draw pass's handler for a stream's one-normal textured-triangle records
+/// that ask for the semi-transparent primitive (`0x1A`): each element's triangle
+/// is taken to screen space and lit from the element's one normal, and its packet
+/// is filled in with the resulting screen coordinates and colours and linked into
+/// the ordering table, unless the transform clipped the triangle or the facing
+/// test turned it away.
+///
+/// The element is the opaque `0x18` triangle's — one normal for the whole triangle
+/// rather than one per corner, and the same refs and texture words — and the two
+/// entries share one body, so the primitive code the packet is built under is the
+/// whole of the difference between the two records: `0x34` for the opaque triangle
+/// and `0x36` here, the semi-transparency bit being the difference. The element
+/// names no colour, so the triangle is lit from a fixed mid-grey, and the same
+/// constant carries both, the code in its top byte. The opcode alone selects the
+/// variant, so `flags` goes unread.
+u32* tmdDrawStreamPrimGt3OneNormalSemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 /// Draw handler of a stream's one-normal textured-triangle records (`0x18`,
 /// `0x1A`): each element's triangle is transformed and culled, its screen
 /// coordinates and lit colour are written into the `POLY_GT3` the record's texture
 /// words were laid in, and that packet is linked into the ordering table.
 ///
-/// `Tmd_ProcessStream` fills the polygon's texture words as it builds the record
+/// `tmdProcessStream` fills the polygon's texture words as it builds the record
 /// into the buffer half, so what is left here is the half that changes per frame.
 /// The element names one normal for the whole triangle rather than one per corner,
 /// so a single lighting step colours all three corners; the depth the packet is
@@ -356,7 +370,7 @@ u32* Tmd_StreamHandler_Op1A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// polygon is drawn with, which this family carries in a fixed material colour
 /// instead of reading one from the element: `0x34` opaque, `0x36` blended. Which
 /// of the two is drawn is settled by the opcode alone, so `flags` selects nothing.
-u32* tmdDrawPrimGt3OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimGt3OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op58(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op5A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// Handler of a stream's textured-triangle records that carry a colour per
@@ -388,7 +402,7 @@ u32* tmdDrawStreamPrimGt3CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* 
 /// corner colours, the primitive code and the ordering-table link. The primitive
 /// itself, texture words included, was written when the stream was compiled into
 /// the buffer, so this command completes it in place.
-u32* tmdStreamPrimGt4CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimGt4CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 // Overlay stream commands (src/gameplay/gameplay.c), selected by
 // tmdProcessStream.
@@ -739,7 +753,7 @@ u32* gpStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
 /// the ordering table — as it transforms the record. What is left here is the
 /// packet's room: stepping the primitive cursor past it is what keeps the records
 /// that follow building where the draw pass will look for them, and the `0x0`
-/// records are built there by `tmdStreamPrimG3`.
+/// records are built there by `tmdDrawStreamPrimG3`.
 u32* gpStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 #endif // TMD_H

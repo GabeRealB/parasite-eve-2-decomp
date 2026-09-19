@@ -312,7 +312,7 @@ element, and `0x100` makes that one word per corner instead of one for the
 element. The early-image handlers are where this shows —
 `tmdDrawStreamPrimGt3CornerColors` loads three such words into the GTE colour
 register, one ahead of each corner's lighting step, and
-`tmdStreamPrimGt4CornerColors` loads four, each result stored into the matching
+`tmdDrawStreamPrimGt4CornerColors` loads four, each result stored into the matching
 corner colour of the `POLY_GT3`/`POLY_GT4` packet they build. The families that
 gain nothing are the pre-transformed ones (bit `0x01`), whose colours the `0xC8`
 pass writes into the primitive buffer, so their elements carry none to shift.
@@ -328,7 +328,7 @@ directions.
 | `Tmd_StreamHandler_Op20` | `0x8`, `0x10`, `0x18` | `POLY_G3` | triangle |
 | `tmdDrawStreamGt3` | `0x8`, `0x14`, `0x20` | `POLY_GT3` | triangle |
 | `Tmd_StreamHandler_Op60` | `0x10`, `0x18`, `0x20` | `POLY_G4` | quad |
-| `tmdStreamDrawGt4` | `0x14`, `0x20`, `0x2C` | `POLY_GT4` | quad |
+| `tmdDrawStreamGt4` | `0x14`, `0x20`, `0x2C` | `POLY_GT4` | quad |
 
 The quad handlers store three coordinates because the fourth is written on a
 second pass.
@@ -395,13 +395,13 @@ vertices.
 
 The pass also writes a **per-vertex depth cache** at `ws->szTable`, and that
 is what settles the `ref / 4` divisor of §3.4 from the source rather than by
-inference. `tmdStreamXformVerts` stores the `RTPS` result with
+inference. `tmdXformStreamVerts` stores the `RTPS` result with
 `t3 = ws->szTable + (vertex_byte_offset >> 1)`, so the cache holds one word
 per vertex; `Tmd_StreamHandler_Op39` then reads its refs as
 `ws->szTable + ref` and feeds them to `SZ1`/`SZ2`/`SZ3`. Halving an 8-byte
 stride gives 4, so a pre-transformed ref is `vertex_index * 4` and the cache
 slot maps to a vertex one-to-one. The negative-value check either side of it
-(`bltz` on the loaded word) is the off-screen flag `tmdStreamXformVerts` sets
+(`bltz` on the loaded word) is the off-screen flag `tmdXformStreamVerts` sets
 from GTE `FLAG`.
 
 `0xC4`'s handler is decompiled C (`func_8009EAA4` in `src/gameplay/gameplay.c`)
@@ -548,7 +548,7 @@ switch, so they run once at setup rather than every frame.
 | `0x62` | `Tmd_StreamHandler_Op60` | 5 | 26 | ? |
 | `0xC0` | `Tmd_StreamHandler_OpC0` | 3 | 6 | "stream transform helper" per the hasm header; unsolved |
 | `0xC4` | `D_8009EAA4` | — | — | "stream transform helper"; unsolved, never seen in data |
-| `0xC8` | `tmdStreamXformVerts` | 2 | 30262 | vertex transform + lighting pre-pass — **solved**, §3.0 |
+| `0xC8` | `tmdXformStreamVerts` | 2 | 30262 | vertex transform + lighting pre-pass — **solved**, §3.0 |
 | `0x121` | `Tmd_StreamHandler_Prim30` | — | — | ? |
 | `0x122` | `D_8009E274` | — | — | ? |
 | `0x161` | `Tmd_StreamHandler_Prim38` | — | — | ? |

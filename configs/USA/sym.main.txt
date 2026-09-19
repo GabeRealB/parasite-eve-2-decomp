@@ -40,21 +40,21 @@ Tmd_StreamHandler_Op60      = 0x80010BF4; // type:func
 Tmd_StreamHandler_OpC0      = 0x80010E1C; // type:func
 Tmd_StreamHandler_Op3A      = 0x80010EF4; // type:func  (alabel, ABR entry into tmdDrawStreamGt3)
 tmdDrawStreamGt3            = 0x80010F08; // type:func
-Tmd_StreamHandler_Op7A      = 0x8001108C; // type:func  (alabel, ABR entry into Op78)
-tmdStreamDrawGt4            = 0x800110A0; // type:func
-tmdStreamXformVerts         = 0x800112DC; // type:func
+Tmd_StreamHandler_Op7A      = 0x8001108C; // type:func  (alabel, ABR entry into tmdDrawStreamGt4)
+tmdDrawStreamGt4            = 0x800110A0; // type:func
+tmdXformStreamVerts         = 0x800112DC; // type:func
 Tmd_StreamHandler_Op3B      = 0x800113B4; // type:func  (alabel, ABR entry into Op39)
 Tmd_StreamHandler_Op39      = 0x800113E8; // type:func
 Tmd_StreamHandler_Op7B      = 0x800114FC; // type:func  (alabel, ABR entry into Op79)
 Tmd_StreamHandler_Op79      = 0x80011530; // type:func
-tmdStreamPrimG3             = 0x80011678; // type:func
+tmdDrawStreamPrimG3             = 0x80011678; // type:func
 Tmd_StreamHandler_Op40      = 0x800117BC; // type:func
-Tmd_StreamHandler_Op1A      = 0x80011994; // type:func  (alabel into tmdDrawPrimGt3OneNormal)
-tmdDrawPrimGt3OneNormal      = 0x800119A8; // type:func
+tmdDrawStreamPrimGt3OneNormalSemiTrans      = 0x80011994; // type:func  (alabel into tmdDrawStreamPrimGt3OneNormal)
+tmdDrawStreamPrimGt3OneNormal      = 0x800119A8; // type:func
 Tmd_StreamHandler_Op58      = 0x80011AF4; // type:func  (alabel into Op5A)
 Tmd_StreamHandler_Op5A      = 0x80011B08; // type:func
 tmdDrawStreamPrimGt3CornerColors  = 0x8001237C; // type:func
-tmdStreamPrimGt4CornerColors    = 0x80012520; // type:func
+tmdDrawStreamPrimGt4CornerColors    = 0x80012520; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x02F50   VA: 0x80012750   subsegment: .rodata, boot

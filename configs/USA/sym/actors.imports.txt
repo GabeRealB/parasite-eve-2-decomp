@@ -7,8 +7,8 @@
 
 // --- from main (141 symbols)
 tmdDrawStreamGt3 = 0x80010F08; // absolute:True
-tmdStreamDrawGt4 = 0x800110A0; // absolute:True
-tmdStreamXformVerts = 0x800112DC; // absolute:True
+tmdDrawStreamGt4 = 0x800110A0; // absolute:True
+tmdXformStreamVerts = 0x800112DC; // absolute:True
 SetDispMask = 0x80017C00; // absolute:True
 DrawSync = 0x80017C98; // absolute:True
 ClearImage = 0x80017E1C; // absolute:True

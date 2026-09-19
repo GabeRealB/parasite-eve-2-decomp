@@ -9,19 +9,19 @@
  * Permanent handwritten assembly (splat type: hasm).
  * One body per stream opcode: Tmd_InitSourceStream resolves the body into the
  * stream beside the opcode, and Tmd_DispatchStream jalr's it. Each body is
- * labelled by the opcode it serves (OpXX) until the record it draws is read, or
- * for the command it serves once that has been (documented in
- * include/main/tmd.h). Dual-entry alternates use alabel (e.g. alabel
- * Tmd_StreamHandler_Op3A shares the body of glabel tmdDrawStreamGt3).
+ * labelled by the opcode it is keyed by (OpXX) or for the command it serves where
+ * that has been read (documented in include/main/tmd.h). Dual-entry alternates
+ * use alabel (e.g. alabel Tmd_StreamHandler_Op3A shares the body of glabel
+ * tmdDrawStreamGt3).
  * Early-image placement (linker_section_order: .rodata).
  *
  * Op20/Op60/Op40        flat / clipped triangle & quad families
- * tmdStreamPrimG3       the 0x0 record, one POLY_G3 built per element
+ * tmdDrawStreamPrimG3   the 0x0 record, one POLY_G3 built per element
  * Op3A/tmdDrawStreamGt3  gouraud textured triangle (+ ABR)
- * Op78/Op7A             gouraud textured quad (+ ABR)
+ * Op7A/tmdDrawStreamGt4  gouraud textured quad (+ ABR)
  * Op39/Op3B, Op79/Op7B  textured gouraud (+ ABR) tri/quad
  * 0x18/0x1A, 0x58/0x5A  one-normal textured tri/quad (+ ABR), fixed colour
- * OpC0/OpC8             stream transform helpers
+ * OpC0/tmdXformStreamVerts  stream transform helpers
  * Op130                 extended 0x30-family path
  * 0x170                 extended 0x70-family path
  */
@@ -454,7 +454,7 @@ alabel Tmd_StreamHandler_Op7A
     /* 1894 80011094 */  mtc2        $t0, $6
     /* 1898 80011098 */  j           .L800110B8
     /* 189C 8001109C */  nop
-glabel tmdStreamDrawGt4
+glabel tmdDrawStreamGt4
     /* 18A0 800110A0 */  andi        $t0, $a1, 0x2
     /* 18A4 800110A4 */  bnez        $t0, Tmd_StreamHandler_Op7A
     /* 18A8 800110A8 */  nop
@@ -610,7 +610,7 @@ glabel tmdStreamDrawGt4
     /* 1AD0 800112D0 */  addu        $v0, $zero, $a2
     /* 1AD4 800112D4 */  jr          $ra
     /* 1AD8 800112D8 */  nop
-glabel tmdStreamXformVerts
+glabel tmdXformStreamVerts
     /* 1ADC 800112DC */  lw          $t9, 0x18($a0)
     /* 1AE0 800112E0 */  lw          $a3, 0x1C($a0)
     /* 1AE4 800112E4 */  lw          $t8, 0x4($a0)
@@ -868,7 +868,7 @@ glabel Tmd_StreamHandler_Op79
     /* 1E6C 8001166C */  addu        $v0, $zero, $a2
     /* 1E70 80011670 */  jr          $ra
     /* 1E74 80011674 */  nop
-glabel tmdStreamPrimG3
+glabel tmdDrawStreamPrimG3
     /* 1E78 80011678 */  lw          $t9, 0x18($a0)
     /* 1E7C 8001167C */  lw          $a3, 0x1C($a0)
     /* 1E80 80011680 */  lw          $t8, 0x0($a0)
@@ -1085,13 +1085,13 @@ glabel Tmd_StreamHandler_Op40
     /* 2188 80011988 */  addu        $v0, $zero, $a2
     /* 218C 8001198C */  jr          $ra
     /* 2190 80011990 */  nop
-alabel Tmd_StreamHandler_Op1A
+alabel tmdDrawStreamPrimGt3OneNormalSemiTrans
     /* 2194 80011994 */  lui         $t0, 0x3680
     /* 2198 80011998 */  ori         $t0, $t0, 0x8080
     /* 219C 8001199C */  mtc2        $t0, $6
     /* 21A0 800119A0 */  j           .L800119B4
     /* 21A4 800119A4 */  nop
-glabel tmdDrawPrimGt3OneNormal
+glabel tmdDrawStreamPrimGt3OneNormal
     /* 21A8 800119A8 */  lui         $t0, 0x3480
     /* 21AC 800119AC */  ori         $t0, $t0, 0x8080
     /* 21B0 800119B0 */  mtc2        $t0, $6
@@ -1895,7 +1895,7 @@ glabel tmdDrawStreamPrimGt3CornerColors
   .L80012518:
     /* 2D18 80012518 */  j           .L80012530
     /* 2D1C 8001251C */  nop
-glabel tmdStreamPrimGt4CornerColors
+glabel tmdDrawStreamPrimGt4CornerColors
     /* 2D20 80012520 */  andi        $t0, $a1, 0x2
     /* 2D24 80012524 */  bnez        $t0, .L80012514
     /* 2D28 80012528 */  nop
@@ -2048,5 +2048,5 @@ glabel tmdStreamPrimGt4CornerColors
     /* 2F44 80012744 */  addu        $v0, $zero, $a2
     /* 2F48 80012748 */  jr          $ra
     /* 2F4C 8001274C */  nop
-endlabel tmdStreamPrimGt4CornerColors
+endlabel tmdDrawStreamPrimGt4CornerColors
 

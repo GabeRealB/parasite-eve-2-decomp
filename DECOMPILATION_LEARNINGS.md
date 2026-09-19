@@ -131342,7 +131342,7 @@ config's `name:` before deciding which case a unit is in.
 
 ## A model stream record's packet type is in its draw-path twin
 
-A model's packet stream is dispatched twice: `Tmd_ProcessStream` (main) switches
+A model's packet stream is dispatched twice: `tmdProcessStream` (main) switches
 on the opcode and calls the C bodies in the gameplay overlay that lay each
 record's packet into the buffer, while the draw path takes the handler out of the
 record's slot — the one `Tmd_InitSourceStream` patched — and `Tmd_DispatchStream`
@@ -131379,13 +131379,13 @@ named rather than the twin's own label list. A draw handler can branch on its
 variant), and the process path may merge into one arm what the draw path splits.
 
 The two arms write one packet between them, rather than one writing it and the
-other reading it. `Tmd_ProcessStream` lays the texture words down and the draw
+other reading it. `tmdProcessStream` lays the texture words down and the draw
 handler completes the same primitive in place with what only a transform can
 decide — its projected corners, its lit corner colours, its primitive code and
 its ordering-table link. That is why a draw handler looks truncated beside the
 body it completes, and why it steps over the packets one primitive at a time:
 the step is the primitive's size (`0x34` for the `POLY_GT4` that
-`tmdStreamPrimGt4CornerColors` completes, `0x1C` for the `POLY_G3` of `0x20`),
+`tmdDrawStreamPrimGt4CornerColors` completes, `0x1C` for the `POLY_G3` of `0x20`),
 and that arithmetic is what shows the two passes share the region.
 `Tmd_SetupDraw` sets its cursor to the half and the region the process pass
 wrote into, in the other half of the alternating pair.
@@ -132469,7 +132469,7 @@ none, its draw twin loading the fixed `0x808080` instead.
 The build handler never reads that word — it only starts its texture copy one
 word later — so an unidentified handler of the family is settled by its draw
 twin's `ldrgb`: `func_8009D0DC` (`0x70`, a `POLY_GT4`) loads the element's word
-for `NCCT`, where `tmdStreamDrawGt4` (`0x78`, the same primitive) loads
+for `NCCT`, where `tmdDrawStreamGt4` (`0x78`, the same primitive) loads
 `0x3C808080` before its loop. That is what makes the twins' words come out at
 `5,6,7` and `4,5,6` respectively (`gpStreamPrimGt4ElemColor` against
 `gpStreamPrimGt4`), and the same read separates `0x30` from `0x38`.
@@ -132492,7 +132492,7 @@ the element names none.
 
 Their offsets are what a draw handler's UV indices are measured against, since
 the colour words sit between the element's refs and its UV words. The
-`0x170` family is the worked example: `tmdStreamPrimGt4CornerColors` loads four
+`0x170` family is the worked example: `tmdDrawStreamPrimGt4CornerColors` loads four
 element words (`0x10`, `0x14`, `0x18`, `0x1C`) into `RGB`, one ahead of each
 corner's lighting step, and its draw handler reads the UV words at `stream[8]`
 where the families whose elements name no colour read them at `stream[3]` or
@@ -132707,7 +132707,7 @@ rewritten line has to be re-aligned by hand or the table stops being readable.
 ## A guard whose constant is wider than the field it tests cannot fire
 
 An arm of a handler is evidence of a rule only where the arm is reachable, and
-a compare against a field can be dead on its face. `tmdStreamDrawGt4`'s element
+a compare against a field can be dead on its face. `tmdDrawStreamGt4`'s element
 loop guards its fourth corner with `beq` against a constant loaded whole
 (`lui $v1, 0xFFF`, so `0x0FFF0000`) while the value it compares was extracted
 from an element word (`srl $t4, $t3, 16`, a ref of 16 bits, since element refs
@@ -132728,7 +132728,7 @@ process path's, a C body named for the packet it lays out. They answer the same
 record, so the second name is what the first should read as: `0x0`'s process arm
 (`gpStreamPrimG3`) reserves one `POLY_G3` per element, and the `0x0` draw handler
 builds that same packet whole - transform, lighting, cull, ordering-table link -
-so it is that packet's draw side, `tmdStreamPrimG3` beside it.
+so it is that packet's draw side, `tmdDrawStreamPrimG3` beside it.
 
 The arms do not line up one for one, so the name is not copied as it stands. The
 process pass merges every opcode whose packet has the same size and the same
@@ -132745,3 +132745,18 @@ A draw body names its own packet without help from the twin: the primitive
 cursor's increment and the `lui` tag word give the packet's size and length, and
 the GTE ops give the lighting. Do not take the kind from the file header comment
 in `Tmd_StreamHandlers_Ops.s`: its family groupings are wrong in both directions.
+## A stream handler belongs to the pass that runs it, not the one that resolved it
+
+A model's packet stream is walked twice. `tmdProcessStream` lays each record's
+texture words into the buffer half when a model's buffer is allocated; the draw pass
+- `Tmd_SetupDraw` to `Tmd_SetupGteMatrices` to `Tmd_DispatchStream` - runs per frame,
+takes each element's triangle to screen space, lights and culls it and links its
+packet into the ordering table. Only the second jalrs the handler a record carries,
+which is the one `Tmd_InitSourceStream` stored there at init, so the handlers in
+`src/main/hasm/Tmd_StreamHandlers_Ops.s` are the per-frame drawing code.
+
+`doc/TMD_FORMAT.md` labels the two sets the other way round - the handwritten
+handlers "init", the gameplay bodies "draw" - naming each after the function that
+selects it rather than the pass that runs it. A body that writes no screen
+coordinate is not the drawing one, so take the label from what runs the handler: the
+dispatcher that jalrs a set is what makes it the draw pass's, and the name follows.
