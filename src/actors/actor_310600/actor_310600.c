@@ -66,7 +66,7 @@ void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 /// `field_47C` selects, then advances the root part by `step`: each axis'
 /// accumulator carries a 16.16 offset whose whole part is added to the world
 /// translation and whose fraction is kept, and clearing `flg` makes
-/// `Gp_UpdateCoordTree` rebuild the world matrix from it.
+/// `_gpUpdateCoordTree` rebuild the world matrix from it.
 ///
 /// Once the slots have been started (`field_474`) every animation slot is
 /// ticked, and the frame counter `field_478` is walked against the cue list

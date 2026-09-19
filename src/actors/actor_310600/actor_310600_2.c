@@ -64,7 +64,7 @@ void func_actor_310600_80162A7C(Task* task)
 /// Turns the actor's root part to face the work block's stored point: normalises
 /// the offset from the part's own translation, takes its yaw with `ratan2`, and
 /// rebuilds the local matrix from that yaw alone. Clearing `flg` makes
-/// `Gp_UpdateCoordTree` recompute the world matrix from it, and bumping
+/// `_gpUpdateCoordTree` recompute the world matrix from it, and bumping
 /// `field_47E` moves the actor on to the next handler of its state table.
 void func_actor_310600_80162AD8(Task* task)
 {

@@ -171,7 +171,7 @@ def read_skeleton(data: bytes, base: int, src_off: int) -> dict | None:
     owns - the vertex array is grouped by part, and the counts sum to the
     array length - and ``+0x1C`` one 0x24-byte bone per part holding a rest
     rotation (identity on disc), a translation from the parent, and the parent
-    index. Composing those the way ``Gp_UpdateCoordTree`` does is what turns a
+    index. Composing those the way ``_gpUpdateCoordTree`` does is what turns a
     pile of part-local geometry into a standing character.
     """
     end = base + len(data)

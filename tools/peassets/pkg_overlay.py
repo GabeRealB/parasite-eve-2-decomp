@@ -223,7 +223,7 @@ class Mesh:
 
 
 def compose_skeleton(skel: dict) -> list[tuple[list, list]]:
-    """World (rotation, translation) per bone, as `Gp_UpdateCoordTree` does it.
+    """World (rotation, translation) per bone, as `_gpUpdateCoordTree` does it.
 
     ``workm.m = parent.workm.m * coord.m`` and
     ``workm.t = parent.workm.m * coord.t + parent.workm.t`` - the rotate-and-

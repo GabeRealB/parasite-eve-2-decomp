@@ -32,7 +32,7 @@ STATIC_ASSERT_SIZEOF(ActorsShared801334c4Coord, 0x4C);
 /// Places the actor at `args`: drops the opcode's translation straight into the
 /// root part's local matrix, stores its Euler angles in the coordinate's own
 /// `rot` slot, rebuilds the rotation from them, and clears `TmdObject::flags`
-/// bit 0x80. Clearing `flg` makes `Gp_UpdateCoordTree` recompute the world
+/// bit 0x80. Clearing `flg` makes `_gpUpdateCoordTree` recompute the world
 /// matrix from it.
 s32 ActorsShared801334c4(Task* task, s32 arg1, ActorsShared801334c4Args* args, s32 arg3);
 

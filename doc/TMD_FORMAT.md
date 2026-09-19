@@ -137,7 +137,7 @@ Two consequences:
   `aya_10200`, 300 for the Kyle body), so the vertex array is grouped
   by part and each vertex's bone is known.
 
-  Composing those through the parent the way `Gp_UpdateCoordTree` does —
+  Composing those through the parent the way `_gpUpdateCoordTree` does —
   `workm.m = parent.workm.m * coord.m`, `workm.t = parent.workm.m * coord.t +
   parent.workm.t` — assembles the character. For Kyle it yields a
   pelvis at `y = -951`, a head at `-1594`, arms out to `x = ±211` and feet at

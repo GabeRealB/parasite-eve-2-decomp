@@ -275,16 +275,18 @@ s32  func_800A7550(void);
     (d)->m[2][1] = t5;           \
     (d)->m[2][2] = t6;
 
-void func_800A4904(s32 arg0);
-void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_800A7824(s32 arg0, s32 arg1, s32 arg2);
-void Gp_DrawHudNumbers(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-s32  Gp_SpawnViewCoordTask(GsCOORDINATE2* arg0, VECTOR* arg1);
-void Gp_FinishLoadWait(Task* task);
-void func_807150F8(s32 arg0);
-void func_80715198(void);
+static void _gpUpdateCoordTree(GsCOORDINATE2* coord, s32 stamp, s32 parity,
+                               GsCOORDINATE2* root);
+void        func_800A4904(s32 arg0);
+void        Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void        Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void        func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void        func_800A7824(s32 arg0, s32 arg1, s32 arg2);
+void        Gp_DrawHudNumbers(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+s32         Gp_SpawnViewCoordTask(GsCOORDINATE2* arg0, VECTOR* arg1);
+void        Gp_FinishLoadWait(Task* task);
+void        func_807150F8(s32 arg0);
+void        func_80715198(void);
 
 void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
 {
@@ -319,7 +321,7 @@ void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
                 }
             } else {
                 if ((parent->flg == 0) || ((parent->flg >> 31) != bit)) {
-                    Gp_UpdateCoordTree(parent, flag, bit, 0);
+                    _gpUpdateCoordTree(parent, flag, bit, 0);
                 }
                 if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
                     MATRIX*          pwm;
@@ -491,7 +493,7 @@ void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
                         }
                     } else {
                         if ((parent->flg == 0) || ((parent->flg >> 31) != bit)) {
-                            Gp_UpdateCoordTree(parent, flag, bit, 0);
+                            _gpUpdateCoordTree(parent, flag, bit, 0);
                         }
                         if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
                             MATRIX*          pwm;
@@ -683,7 +685,7 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
                 }
             } else {
                 if ((parent->flg == 0) || ((parent->flg >> 31) != bit)) {
-                    Gp_UpdateCoordTree(parent, flag, bit, 0);
+                    _gpUpdateCoordTree(parent, flag, bit, 0);
                 }
                 if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
                     MATRIX*          pwm;
@@ -855,7 +857,7 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
                         }
                     } else {
                         if ((parent->flg == 0) || ((parent->flg >> 31) != bit)) {
-                            Gp_UpdateCoordTree(parent, flag, bit, 0);
+                            _gpUpdateCoordTree(parent, flag, bit, 0);
                         }
                         if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
                             MATRIX*          pwm;
@@ -1017,17 +1019,17 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
 void Gp_UpdateCoord(GsCOORDINATE2* arg0)
 {
     Gp_CurCoord = arg0;
-    Gp_UpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, 0);
+    _gpUpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, 0);
 }
 
-void Gp_UpdateCoordEx(GsCOORDINATE2* arg0, s32 arg1)
+void Gp_UpdateCoordEx(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
 {
     if (arg0->sub == NULL) {
         Gp_CurCoord = arg0;
-        Gp_UpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, 0);
+        _gpUpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, 0);
         Gp_WorldToLocal(&Gfx_ViewWorldMtx, &arg0->workm, &arg0->coord);
     } else {
-        Gp_UpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, arg1);
+        _gpUpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, arg1);
     }
 }
 
@@ -1180,28 +1182,43 @@ void Gp_RestoreTmdLists(void)
     gTmdDisp2dList = Gp_TmdListAltStash;
 }
 
-void Gp_UpdateCoordTree(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Brings a coordinate's world matrix up to date, and its ancestors' with it.
+///
+/// The chain of `sub` links is walked to `root` and composed on the way back
+/// down, so a coordinate's world matrix is its parent's world matrix multiplied
+/// by its own local one. Each coordinate records in `flg` the stamp of the pass
+/// that last rebuilt it, and is rebuilt when that stamp is older than its
+/// parent's — which is what clearing `flg` asks for. A coordinate whose `flg` is
+/// clear at the walk's end has never been composed and takes its local matrix
+/// as its world matrix.
+///
+/// `parity` is the value written to the top bit of `flg`; it differs from one
+/// pass to the next, which is what tells the walk an ancestor has already been
+/// reached in this one. `root` ends the walk: the composed matrices are left
+/// relative to it, and its own world matrix is neither updated nor folded in,
+/// because the caller that passes one applies that transformation itself.
+/// `NULL` stops at the top of the chain.
+static void _gpUpdateCoordTree(GsCOORDINATE2* coord, s32 stamp, s32 parity,
+                               GsCOORDINATE2* root)
 {
-    GsCOORDINATE2* coord;
     register s32   s2 asm("s2");
     s32            s3;
     register s32   vy asm("t7");
     GsCOORDINATE2* parent;
 
-    coord = arg0;
-    s2    = arg1;
-    s3    = arg2;
+    s2 = stamp;
+    s3 = parity;
     TOUCH_REG3(coord, s2, s3);
     parent     = coord->sub;
     coord->flg = (coord->flg << 1) >> 1;
-    if (parent == (GsCOORDINATE2*)arg3) {
+    if (parent == root) {
         if (coord->flg == 0) {
             coord->workm = coord->coord;
             coord->flg   = s2;
         }
     } else {
         if ((parent->flg == 0) || ((parent->flg >> 31) != s3)) {
-            Gp_UpdateCoordTree(parent, s2, s3, arg3);
+            _gpUpdateCoordTree(parent, s2, s3, root);
         }
         if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
             MATRIX*          pwm;

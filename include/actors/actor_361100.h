@@ -172,7 +172,7 @@ STATIC_ASSERT_SIZEOF(Actor361100HeadAim, 0xC);
 /// Places the actor at `placement`: drops the opcode's translation straight
 /// into the root part's local matrix, stores its Euler angles in the
 /// coordinate's own `rot` slot and rebuilds the rotation from them with
-/// `RotMatrixZYX`. Clearing `flg` makes `Gp_UpdateCoordTree` recompute the
+/// `RotMatrixZYX`. Clearing `flg` makes `_gpUpdateCoordTree` recompute the
 /// world matrix from it, and the six words the body then clears are the work
 /// block's two vector accumulators.
 s32 func_actor_361100_80162F58(Task* task, s32 arg1, Actor361100Placement* placement);

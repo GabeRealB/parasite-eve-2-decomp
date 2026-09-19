@@ -34,7 +34,7 @@ STATIC_ASSERT_SIZEOF(ActorsShared80132860Coord, 0x4C);
 /// Turns the actor's root part to face `work->target`: normalises the offset
 /// from the part's own translation, takes its yaw with `ratan2`, and rebuilds
 /// the local matrix from that yaw alone. Clearing `flg` makes
-/// `Gp_UpdateCoordTree` recompute the world matrix from it.
+/// `_gpUpdateCoordTree` recompute the world matrix from it.
 ///
 /// Shared verbatim by `actor_120400`, `actor_135600`, `actor_335800` and
 /// `actor_350700`.

@@ -58,7 +58,7 @@ void func_actor_350700_8016261C(Task* arg0)
 /// widening of the extracted yaw -- and otherwise snaps the yaw to the target
 /// and plays anim 0x7D3, clearing the two body counters. Either way the root
 /// coordinate is rebuilt as the identity matrix rotated by `vec`, which
-/// `Gp_UpdateCoordTree` picks up once `flg` is cleared.
+/// `_gpUpdateCoordTree` picks up once `flg` is cleared.
 void func_actor_350700_80162764(Task* arg0)
 {
     Actor350700Work*      work;

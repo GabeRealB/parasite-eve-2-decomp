@@ -863,7 +863,7 @@ void func_actor_503500_80137074(Actor503500* arg0, s8 arg1, s16 arg2)
 /// `rot` slot and rebuilds the rotation from them, exactly as
 /// `ActorsShared8013231c` does. It then keeps two derived copies in the work
 /// block -- the yaw recovered from the matrix it just built, and the same
-/// translation in 16.16 fixed point. Clearing `flg` makes `Gp_UpdateCoordTree`
+/// translation in 16.16 fixed point. Clearing `flg` makes `_gpUpdateCoordTree`
 /// recompute the world matrix from the new local one.
 s32 func_actor_503500_80137088(Actor503500* arg0, s32 arg1, Actor503500PlaceArgs* args)
 {

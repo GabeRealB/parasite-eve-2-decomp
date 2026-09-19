@@ -1534,7 +1534,7 @@ class AssetViewer(tk.Tk):
             lines += [
                 f"Posed with the rest skeleton from TmdSource+0x1C ({len(mesh.bones)}",
                 "bones), composed through the parent index the way",
-                "Gp_UpdateCoordTree does. Vertices are assigned to bones by the",
+                "_gpUpdateCoordTree does. Vertices are assigned to bones by the",
                 "per-part counts at TmdSource+0x10.",
                 "",
                 "bone   parent   verts   world position",

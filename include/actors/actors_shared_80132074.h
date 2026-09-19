@@ -19,7 +19,7 @@ STATIC_ASSERT_SIZEOF(ActorsShared80132074Args, 0x18);
 
 /// Places the actor: builds the root part's local matrix from the opcode's
 /// Euler angles, drops the translation into it and clears `flg` so
-/// `Gp_UpdateCoordTree` recomputes the world matrix from it.
+/// `_gpUpdateCoordTree` recomputes the world matrix from it.
 ///
 /// Shared verbatim by `actor_110700`, `actor_510900`, `actor_511000` and
 /// `actor_521100`; `actor_100300` / `actor_200300` carry the same body inside

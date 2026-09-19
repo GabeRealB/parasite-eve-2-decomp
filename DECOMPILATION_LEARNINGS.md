@@ -39668,7 +39668,7 @@ the target is `and t4, s0, t4`, not `and t4, t4, s0`. A tiny helper
 #define and_mask(dst, m) __asm__ volatile("and %0, %1, %0" : "+r"(dst) : "r"(m))
 ```
 
-locks that operand order. `Gp_UpdateCoordTree` is the example.
+locks that operand order. `_gpUpdateCoordTree` is the example.
 
 ## Reuse the clut local for UV V so `li` fills the `field_22` load delay
 
@@ -131217,21 +131217,21 @@ the child list. The game uses neither that way: `super` appears in no
 decompiled source, and 0x4C is what an object, effect or room writes when it
 hangs itself off the world - `coord->sub = &gGfxViewCoord`.
 
-`Gp_UpdateCoordTree` fixes the direction, because it recurses before it
+`_gpUpdateCoordTree` fixes the direction, because it recurses before it
 composes: the parent's matrix multiplies the child's local one, so the chain
 climbs `sub` toward the root rather than away from it.
 
 ```c
 parent = coord->sub;
-if (parent == (GsCOORDINATE2*)arg3) {
-    coord->workm = coord->coord;                   /* walk ends: local is it */
+if (parent == root) {
+    coord->workm = coord->coord;                      /* walk ends: local is it */
 } else {
-    Gp_UpdateCoordTree(parent, s2, s3, arg3);      /* recurse toward the root */
-    coord->workm = parent->workm * coord->coord;   /* then compose back down */
+    _gpUpdateCoordTree(parent, stamp, parity, root);   /* recurse toward the root */
+    coord->workm = parent->workm * coord->coord;      /* then compose back down */
 }
 ```
 
-`arg3` is where the walk stops: `Gp_UpdateCoord` passes `NULL`, `Gp_UpdateCoordEx`
+`root` is where the walk stops: `Gp_UpdateCoord` passes `NULL`, `Gp_UpdateCoordEx`
 passes either `NULL` or an explicit root. Read the field as "the coordinate this
 one hangs off"; the transformation helpers' "walk up to world" means stopping
 once the walk reaches `gGfxViewCoord`. A leaf's chain passes through that
@@ -133293,3 +133293,43 @@ global one; the unit simply starts reading the new address, and the only symptom
 is a checksum mismatch on code whose C did not change. Declare such a symbol
 `extern` in the `.c`, keep the `_` marker, and say that `static` was not
 available rather than dropping the marker to make the declaration look natural.
+## Naming a parameter after the local that copies it means deleting the local
+
+A decompiled body often opens by copying its parameter into a local of the same
+role - `coord = arg0;` in `_gpUpdateCoordTree` - because that copy is what pinned
+the value in a callee-saved register. Naming the parameter `coord` makes the
+local shadow it and turns the copy into a self-assignment of an uninitialised
+pointer.
+
+Delete the local declaration and the copy rather than invent a second name for
+one object. The value is live across the recursive call either way, so GCC moves
+the argument into a callee-saved register in the prologue exactly as it did
+before and the checksum is unchanged. The local was a register-allocation
+artifact, not a distinction the original source had.
+
+## Privatising a matched function: the declaration moves into the `.c`
+
+An item the worklist calls `public (asm)` may still be a translation-unit
+helper. The column cannot tell: `dep_graph.asm_used` greps every line of
+`asm/<version>` for the name and skips only the label directives, so the
+defining unit's own callers count, and any function anything calls reads
+`public (asm)`. The check the convention names settles it -
+`find_references.py <spec> --asm` reports the file each reference sits in - and
+where every `jal` and the `glabel` are in the defining unit's own files, the
+function is private: `_`-prefixed, declared in the `.c`, `static`.
+
+Leaving the declaration in the module header is not something to rely on the
+compiler to reject. The prototype there is a non-static declaration, and a
+`static` definition later in the same translation unit draws only
+`static declaration for ... follows non-static` as a warning, which this build
+line's `-w` suppresses. The definition still emits a local symbol, so the
+function stops being exported while the header goes on advertising it, and
+nothing says so.
+Move the declaration and its `///` block into the `.c` with the other forward
+declarations, ahead of the earliest caller, and leave the definition carrying
+the documentation.
+
+Rename with `--sidecars` so the symbol map takes the `_` name, then re-split.
+Splat still classifies the function as matched - its `.s` lands under
+`matchings/`, not `nonmatchings/` - `static` emits the same code, and no caller
+outside the unit has to change, because by the check above there is none.

@@ -824,7 +824,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
         k = 0;
         do {
             if (p->field_0 != 0) {
-                Gp_UpdateCoordEx(&p->coord, (s32)&gGfxViewCoord);
+                Gp_UpdateCoordEx(&p->coord, &gGfxViewCoord);
             }
             k += 1;
             p += 1;
@@ -841,7 +841,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
         if (set->n60 > 0) {
             do {
                 cur = p;
-                Gp_UpdateCoordEx(&cur->coord, (s32)&gGfxViewCoord);
+                Gp_UpdateCoordEx(&cur->coord, &gGfxViewCoord);
                 i += 1;
                 p  = cur + 1;
             } while (i < set->n60);
@@ -857,7 +857,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
         if (set->n6C > 0) {
             do {
                 cur = obj;
-                Gp_UpdateCoordEx(&cur->coord, (s32)&gGfxViewCoord);
+                Gp_UpdateCoordEx(&cur->coord, &gGfxViewCoord);
                 i  += 1;
                 obj = cur + 1;
             } while (i < set->n6C);
@@ -869,7 +869,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
 
         p = set->arr58;
         for (i = 0; i < set->n58;) {
-            Gp_UpdateCoordEx(&p->coord, (s32)&gGfxViewCoord);
+            Gp_UpdateCoordEx(&p->coord, &gGfxViewCoord);
             i += 1;
             p += 1;
         }
