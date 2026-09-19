@@ -210,7 +210,7 @@ def main() -> int:
 
     refs, scanned = cref.find_refs(usrs, spec.token, root, db, jobs=args.jobs, names=names,
                                    prefilter=not args.no_prefilter, progress=progress,
-                                   decl_file=where.rsplit(":", 1)[0],
+                                   decl_file=where.rsplit(":", 1)[0], kind=kind,
                                    filter_token=spec.owner if kind == "parameter" else None)
     if not args.quiet:
         print(f"\r  parsed {scanned} TUs" + " " * 20, file=sys.stderr)

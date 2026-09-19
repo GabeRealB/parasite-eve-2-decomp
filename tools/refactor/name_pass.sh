@@ -217,10 +217,20 @@ declared in: $([[ "$file" == "-" ]] && echo "not defined in C (assembly or a hea
 referrers: $refs
 "
     if [[ "$file" != "-" ]]; then
+      # One query answers for the item and for everything it contains, so the
+      # brief carries both: the per-member counts, which are short and say at a
+      # glance which members are live, and the item's own sites, which are the
+      # part that can run long. `refs` is already the referrer count read from
+      # the row, so the capture uses names of its own.
+      local fr_out fr_members fr_sites
+      fr_out=$(timeout 600 venv/bin/python3 tools/refactor/find_references.py \
+                 "$file/$name" -q 2>/dev/null)
+      fr_members=$(printf '%s\n' "$fr_out" | sed -n '/^# [0-9][0-9]* symbol/,/^$/p')
+      fr_sites=$(printf '%s\n' "$fr_out" | sed '/^# [0-9][0-9]* symbol/,/^$/d' | tail -40)
       line+="
 references (how each use reads or writes it):
 \`\`\`
-$(timeout 300 venv/bin/python3 tools/refactor/find_references.py "$file/$name" -q 2>/dev/null | tail -40)
+${fr_members}${fr_sites}
 \`\`\`
 "
     fi
@@ -253,7 +263,10 @@ The conventions, the compiler's limits and what counts as evidence are above
    appends to is what tells the pass this item is done:
      venv/bin/python3 tools/refactor/rename_item.py <file>/<oldName> <newName> --sidecars
 3. Apply the same to what the item contains: its fields, and its parameters in
-   both the prototype and the definition.
+   both the prototype and the definition. The reference listing above already
+   covers them - one line per member, with the counts that say which are live -
+   so read that rather than querying each one, and open the file it names when
+   you need a member's individual sites.
 4. If its visibility above is \`private\`, its declaration belongs in the \`.c\`
    that uses it rather than a header, with the \`_\` marker; add \`static\` if
    the build still matches.

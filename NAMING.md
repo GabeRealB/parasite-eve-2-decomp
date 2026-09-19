@@ -575,10 +575,23 @@ Category tables:
 Finding references and renaming go through `tools/refactor/`, which resolves
 symbols with libclang and the compilation database instead of matching text:
 
-- `find_references.py <spec>` — every reference, each classified as read,
-  write, read-write, address-of, call, declaration or definition. `--asm` adds
-  assembly references and reports whether the symbol's address is unique or
-  shared between images.
+- `find_references.py <spec> [<spec>…]` — every reference, each classified as
+  read, write, read-write, address-of, call, declaration or definition. `--asm`
+  adds assembly references and reports whether the symbol's address is unique
+  or shared between images.
+
+  A query covers what the symbol contains as well: a type brings its fields, a
+  function brings its parameters. They share one scan, because the units that
+  can reference a member are very nearly the units that can reference its
+  owner, so the members cost little beyond the owner and a great deal less than
+  asking about each of them in turn. Their sites go to a file under
+  `local/refs/`, summarised on standard output so a long listing does not crowd
+  out the answer; `--shallow` asks about the named symbol alone. Several specs
+  given at once share one scan the same way.
+
+  Mentions in prose are counted for names that mean something and skipped for
+  generated ones, where the identifier is too common for a mention to be about
+  this symbol rather than another declaration spelling it the same way.
 - `rename_item.py <spec> <newName>` — rewrites the declaration and every
   reference at the exact locations the parser reports, along with the mentions
   of the name in comments and in the markdown at the repository root and under

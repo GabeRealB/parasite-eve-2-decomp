@@ -106,6 +106,7 @@ def load_db(root: str, version: str = DEFAULT_VERSION) -> dict[str, list[str]]:
             # here lets the tools run from any directory.
             if want_inc:
                 args.append(_abs_inc(tok, root))
+                _note_include_root(root, tok)
                 want_inc = False
                 continue
             if tok == "-I":
@@ -114,10 +115,33 @@ def load_db(root: str, version: str = DEFAULT_VERSION) -> dict[str, list[str]]:
                 continue
             if tok.startswith("-I"):
                 args.append("-I" + _abs_inc(tok[2:], root))
+                _note_include_root(root, tok[2:])
                 continue
             args.append(tok)
         db[entry["file"]] = args + _EXTRA_FLAGS
     return db
+
+
+_INCLUDE_ROOTS: dict[str, set[str]] = {}
+
+
+def _note_include_root(root: str, path: str) -> None:
+    """Remember a directory the build searches for headers.
+
+    Resolving an include the way the compiler does needs the search path the
+    compiler was given; guessing a couple of conventional directories instead
+    leaves every header found through any other root unreachable, and a search
+    narrowed by reachability would then quietly miss whatever those headers
+    declare.
+    """
+    if os.path.isabs(path):
+        try:
+            path = os.path.relpath(path, root)
+        except ValueError:
+            return
+    path = os.path.normpath(path)
+    if not path.startswith(".."):
+        _INCLUDE_ROOTS.setdefault(root, set()).add("" if path == "." else path)
 
 
 def _abs_inc(path: str, root: str) -> str:
@@ -405,6 +429,17 @@ def _grep_files(root: str, token: str, candidates: list[str]) -> list[str]:
 
 
 _INC_RE = re.compile(r'^\s*#\s*include\s*"([^"]+)"', re.M)
+# Reachability counts an edge whichever way a header is named. Quoting is a
+# convention in this tree rather than a distinction that matters for headers
+# living under the project's own include root, so a graph that recognised one
+# spelling would under-report which units reach a header - and anything that
+# narrows a search by reachability would then silently lose the references it
+# could not see. Rewriting an include is a different question, and keeps to the
+# spelling it was written with.
+_INC_ANY_RE = re.compile(r'^\s*#\s*include\s*[<"]([^>"]+)[>"]', re.M)
+
+
+_INCLUDE_CACHE: dict[str, dict[str, set[str]]] = {}
 
 
 def _include_index(root: str) -> dict[str, set[str]]:
@@ -415,7 +450,11 @@ def _include_index(root: str) -> dict[str, set[str]]:
     enough to walk the graph without invoking the preprocessor, which would
     cost another full parse of every translation unit.
     """
+    cached = _INCLUDE_CACHE.get(root)
+    if cached is not None:
+        return cached
     rev: dict[str, set[str]] = {}
+    bases = set(_INCLUDE_ROOTS.get(root) or set()) | {"include", ""}
     out = subprocess.run(["grep", "-rl", "#include", "src", "include"],
                          cwd=root, capture_output=True, text=True).stdout.split()
     for f in out:
@@ -424,10 +463,11 @@ def _include_index(root: str) -> dict[str, set[str]]:
         except OSError:
             continue
         here = os.path.dirname(f)
-        for inc in _INC_RE.findall(text):
-            for cand in (os.path.normpath(os.path.join("include", inc)),
-                         os.path.normpath(os.path.join(here, inc))):
+        for inc in _INC_ANY_RE.findall(text):
+            for base in bases | {here}:
+                cand = os.path.normpath(os.path.join(base, inc))
                 rev.setdefault(cand, set()).add(f)
+    _INCLUDE_CACHE[root] = rev
     return rev
 
 
@@ -514,6 +554,32 @@ def prefilter_tus(root: str, token: str, candidates: list[str], decl_file: str |
     return tus
 
 
+def anchor_candidates(root: str, decl_file: str | None, candidates: list[str],
+                      kind: str | None = None) -> list[str]:
+    """Candidates narrowed to the units that can see a record's definition.
+
+    Naming a member requires the complete type, so a unit that does not reach
+    the header defining it cannot hold a reference to one. That is a rule of
+    the language rather than a guess about spelling, so unlike a textual filter
+    it can never discard a real site - which is what makes it worth having for
+    members, whose own identifiers are often too common to select on while the
+    header defining them is not.
+
+    No other kind of symbol carries that guarantee. A type can be named by a
+    forward declaration, and a function or a global by an `extern` written out
+    in the unit itself, neither of which needs the declaring header at all, so
+    narrowing those would drop real references. Only members are narrowed, and
+    a header the include graph cannot reach is left alone as well, so a gap in
+    that graph costs speed and never correctness.
+    """
+    if kind != "field" or not decl_file or not decl_file.endswith(".h"):
+        return candidates
+    reach = _tus_reaching(root, [decl_file], candidates)
+    if not reach:
+        return candidates
+    return [f for f in candidates if f in reach]
+
+
 # --------------------------------------------------------------------------
 # references in prose
 # --------------------------------------------------------------------------
@@ -544,6 +610,18 @@ def comment_refs(root: str, token: str, owner: str | None = None,
     # it appears. An unqualified one is not: `->field_0` or a backticked
     # `arg2` occurs in the prose of hundreds of unrelated symbols, so those
     # count only in files that really reference this one.
+    return _prose_refs(_prose_lines(root, [token]), token, owner, only_files)
+
+
+def _prose_lines(root: str, tokens: list[str]) -> list[str]:
+    """`grep -n` output for every token at once, over sources and over prose.
+
+    One sweep costs what one token used to, so expanding a query into a symbol
+    and everything it contains does not multiply the cost of the prose pass by
+    the number of members. Each line is re-tested against the caller's own
+    pattern afterwards, so sharing the sweep cannot widen what any one of them
+    matches.
+    """
     scope = ["src", "include"]
     # Prose outside the sources names symbols too - the learnings file, the
     # format notes - and a rename that stops at the code leaves those citing a
@@ -551,9 +629,10 @@ def comment_refs(root: str, token: str, owner: str | None = None,
     docs = sorted(glob.glob(os.path.join(root, "*.md"))
                   + glob.glob(os.path.join(root, "doc", "*.md")))
     doc_scope = [os.path.relpath(d, root) for d in docs]
+    alt = "|".join(re.escape(t) for t in sorted(set(tokens)))
     try:
         out = subprocess.run(
-            ["grep", "-rnw", "--include=*.c", "--include=*.h", token] + scope,
+            ["grep", "-rnwE", "--include=*.c", "--include=*.h", alt] + scope,
             cwd=root, capture_output=True, text=True, timeout=300,
         ).stdout.splitlines()
         if doc_scope:
@@ -562,11 +641,17 @@ def comment_refs(root: str, token: str, owner: str | None = None,
             # must be cited the way this project cites a symbol, in backticks
             # or qualified, so a common word is not caught.
             out += [f"{r}" for r in subprocess.run(
-                ["grep", "-nw", token] + doc_scope,
+                ["grep", "-nwE", alt] + doc_scope,
                 cwd=root, capture_output=True, text=True, timeout=300,
             ).stdout.splitlines()]
     except Exception:
         return []
+    return out
+
+
+def _prose_refs(out: list[str], token: str, owner: str | None = None,
+                only_files=None) -> list:
+    """Mentions of one identifier among lines a prose sweep returned."""
     # A bare word in prose is not evidence that the symbol is meant: renaming
     # every mention of "work" would rewrite unrelated sentences. Require the
     # mention to be qualified - `Type::field`, `->field`, `.field` - or set in
@@ -633,6 +718,7 @@ class Ref:
     context: str = ""
     enclosing: str = ""
     spelling: str = ""   # which alias is actually written at this site
+    usr: str = ""        # the declaration this site resolved to
 
 
 # Declarations of the symbol itself. A prototype is not a DECL_REF_EXPR, so
@@ -809,10 +895,12 @@ def collect_in_tu(job):
             ref = cur.referenced
             if ref is None or ref.get_usr() not in usrs:
                 continue
+            matched = ref.get_usr()
             decl_here = False
         elif cur.kind in _DECL_KINDS:
             if cur.get_usr() not in usrs:
                 continue
+            matched = cur.get_usr()
             decl_here = True
         else:
             continue
@@ -840,21 +928,22 @@ def collect_in_tu(job):
         written = next((n for n in sorted(names, key=len, reverse=True)
                         if raw[col - 1:].startswith(n)
                         or any(raw[col - 1:].startswith(k + n)
-                               for k in ("struct ", "union ", "enum "))), token)
-        token = written
-        if not raw[col - 1:].startswith(token):
+                               for k in ("struct ", "union ", "enum "))),
+                       token or cur.spelling)
+        if not raw[col - 1:].startswith(written):
             # A reference to a tagged type is located at the keyword, so step
             # over it to reach the identifier itself.
             for kw in ("struct ", "union ", "enum "):
-                if raw[col - 1:].startswith(kw + token):
+                if raw[col - 1:].startswith(kw + written):
                     col += len(kw)
                     break
-        if not raw[col - 1:].startswith(token):
+        if not raw[col - 1:].startswith(written):
             # A reference inside a macro body is reported at the *invocation*,
             # where the identifier does not appear. The site is real, but the
             # edit belongs in the macro definition rather than here.
             use = f"{use} (via macro)"
-        refs.append(Ref(fname, loc.line, col, use, text, _enclosing(cur, parents), token))
+        refs.append(Ref(fname, loc.line, col, use, text,
+                        _enclosing(cur, parents), written, matched))
     return refs
 
 
@@ -917,9 +1006,163 @@ def _enclosing(cur, parents) -> str:
     return ""
 
 
+@dataclass
+class Entry:
+    """One resolved symbol in a query, and how to look for it.
+
+    A query names a symbol, but the work a caller wants is usually that symbol
+    together with whatever it contains, and the units that must be scanned for
+    each of them overlap almost entirely. Resolving each into an entry lets one
+    walk serve all of them, with every reference attributed by the declaration
+    it resolved to rather than by the spelling written at the site.
+    """
+    label: str
+    usrs: set
+    names: set
+    kind: str
+    where: str
+    anchor: str | None = None
+    filter_token: str | None = None
+    prose: bool = True
+
+    @property
+    def token(self) -> str:
+        return self.label.rsplit("::", 1)[-1]
+
+
+def resolve_entry(spec: Spec, root: str, db) -> Entry:
+    """Resolve a spec into an entry, as `resolve` does for a single query."""
+    usrs, names, kind, where = resolve(spec, root, db)
+    return Entry(label=(f"{spec.owner}::{spec.name}" if spec.owner else spec.name),
+                 usrs=set(usrs), names=set(names), kind=kind, where=where,
+                 anchor=where.rsplit(":", 1)[0],
+                 filter_token=spec.owner if kind == "parameter" else None)
+
+
+def members_of(spec: Spec, entry: Entry, root: str, db) -> list[Entry]:
+    """The fields of a record, or the parameters of a function, as entries.
+
+    Members are located by the position their owner resolved to rather than by
+    name, so an unnamed record is reached the same way a named one is. Their
+    identity comes from the cursors found there, which costs one parse for the
+    whole set instead of one resolution apiece.
+    """
+    if entry.kind not in ("typedef", "struct", "union", "function"):
+        return []
+    path, _, line = entry.where.rpartition(":")
+    if not line.isdigit():
+        return []
+    line = int(line)
+    for tu_file in _candidate_tus(spec, root, db):
+        tu = parse_tu(tu_file, db.get(tu_file), root)
+        if tu is None:
+            continue
+        for cur in tu.cursor.walk_preorder():
+            loc = cur.location
+            if loc.file is None or loc.line != line:
+                continue
+            if relpath(loc.file.name, root) != path:
+                continue
+            if cur.kind == ci.CursorKind.FUNCTION_DECL and cur.spelling == spec.name:
+                return [Entry(label=f"{spec.name}::{a.spelling}",
+                              usrs={f"{cur.get_usr()}#param{i}"}, names={a.spelling},
+                              kind="parameter", where=_loc(a, root),
+                              anchor=None, filter_token=spec.name)
+                        for i, a in enumerate(cur.get_arguments()) if a.spelling]
+            rec = _record_of(cur)
+            if rec is None:
+                continue
+            out = []
+            for k in rec.get_children():
+                if k.kind != ci.CursorKind.FIELD_DECL or not k.spelling:
+                    continue
+                out.append(Entry(label=f"{spec.name}::{k.spelling}",
+                                 usrs={k.get_usr()}, names={k.spelling},
+                                 kind="field", where=_loc(k, root),
+                                 anchor=path, filter_token=None))
+            if out:
+                return out
+    return []
+
+
+def _entry_candidates(entry: Entry, root: str, db, prefilter=True) -> list[str]:
+    files = list(db)
+    if not prefilter:
+        return files
+    keep = set()
+    for t in ({entry.filter_token} if entry.filter_token else entry.names):
+        keep |= set(prefilter_tus(root, t, files, entry.anchor))
+    files = [f for f in files if f in keep]
+    return anchor_candidates(root, entry.anchor, files, entry.kind)
+
+
+def find_refs_multi(entries: list, root: str, db, jobs: int = 8, prefilter=True,
+                    progress=None) -> dict:
+    """References for many entries from one walk over the union of their units.
+
+    A parameter is matched positionally inside its own function rather than by
+    a stable USR, so those entries keep their own pass; everything else shares
+    the walk and is separated afterwards by the declaration each site resolved
+    to.
+    """
+    params = [e for e in entries if e.kind == "parameter"]
+    shared = [e for e in entries if e.kind != "parameter"]
+    out: dict[str, list] = {}
+
+    scanned = 0
+    for e in params:
+        refs, n = find_refs(e.usrs, e.token, root, db, jobs=jobs, names=e.names,
+                            prefilter=prefilter, decl_file=e.anchor,
+                            filter_token=e.filter_token, kind=e.kind)
+        out[e.label] = refs
+        scanned += n
+
+    if shared:
+        union: set[str] = set()
+        for e in shared:
+            union |= set(_entry_candidates(e, root, db, prefilter))
+        files = sorted(union)
+        scanned += len(files)
+        usrs = set().union(*[e.usrs for e in shared])
+        names = set().union(*[e.names for e in shared])
+        jobs_list = [(f, db[f], root, usrs, "", names) for f in files]
+        by_usr: dict[str, list] = {}
+        done = 0
+        with Pool(jobs) as pool:
+            for refs in pool.imap_unordered(collect_in_tu, jobs_list, chunksize=4):
+                done += 1
+                if progress:
+                    progress(done, len(jobs_list))
+                for r in refs:
+                    by_usr.setdefault(r.usr, []).append(r)
+        for e in shared:
+            got = [r for u in e.usrs for r in by_usr.get(u, ())]
+            seen, uniq = set(), []
+            for r in sorted(got, key=lambda r: (r.file, r.line, r.col)):
+                k = (r.file, r.line, r.col)
+                if k not in seen:
+                    seen.add(k)
+                    uniq.append(r)
+            out[e.label] = uniq
+    return out, scanned
+
+
+def prose_refs_multi(root: str, entries: list, only_files: dict) -> dict:
+    """Prose mentions for many entries, from one sweep of the sources and docs."""
+    want = [e for e in entries if e.prose]
+    if not want:
+        return {}
+    lines = _prose_lines(root, [e.token for e in want])
+    out = {}
+    for e in want:
+        owner = e.label.rsplit("::", 1)[0] if "::" in e.label else None
+        out[e.label] = _prose_refs(lines, e.token, owner, only_files.get(e.label))
+    return out
+
+
 def find_refs(usrs, token: str, root: str, db, jobs: int = 8, prefilter=True,
               progress=None, decl_file: str | None = None,
-              filter_token: str | None = None, names=None):
+              filter_token: str | None = None, names=None, kind: str | None = None):
     """filter_token narrows the candidate set by a *different* identifier than
     the one being matched. A parameter name is usually too common to select on,
     while every reference to it lies inside one function, so the function's name
@@ -934,6 +1177,7 @@ def find_refs(usrs, token: str, root: str, db, jobs: int = 8, prefilter=True,
         for t in ({filter_token} if filter_token else names):
             keep |= set(prefilter_tus(root, t, files, decl_file))
         files = [f for f in files if f in keep]
+        files = anchor_candidates(root, decl_file, files, kind)
     usrs = set(usrs) if not isinstance(usrs, str) else {usrs}
     jobs_list = [(f, db[f], root, usrs, token, names) for f in files]
     out: list[Ref] = []

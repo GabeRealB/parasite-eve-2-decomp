@@ -206,7 +206,10 @@ the generic ones in the conventions and the prose about unrelated types that
 declare the same member. That is not limited to a parameter's `argN`: a dry run
 on one `field_XX` member reported 243 comment edits outside the code, nearly all
 of them other structs' fields. Rename with `--no-comments`, then update the
-mentions that really are this item's by hand.
+mentions that really are this item's by hand. `find_references.py` already
+leaves prose out for a generated name, so a listing that reports no mentions is
+not evidence that a rename would leave none - the two tools differ here on
+purpose, and the rename is the one that needs telling.
 
 ## What the tools reach, and what they do not
 
@@ -229,15 +232,22 @@ step.
   one.
 
 `find_references.py` reaches the same C references, and with `--asm` the
-generated assembly under `asm/`. One gap matters when the item is a type: a
-type no code spells by name is reached only through the member that declares
-it, and the listing a step is handed reports none of those uses - it can name
-only a mention in prose while the functions that touch that member use the type
-throughout. The `referrers` count above comes from the dependency graph, which
-does see them, so a listing far smaller than that count is the signal. Find the
-users through the owner (`find_references.py <header>/<Owner>`) before
-concluding anything from the listing; deleting or inlining an "unused" type is
-the wrong move when its uses are simply filed under its owner.
+generated assembly under `asm/`. It answers for what the item contains as well:
+asking about a type also reports every one of its fields, and asking about a
+function also reports every one of its parameters, from a single scan. So the
+step does not need a query per member - the counts are already in front of you,
+and the individual sites are in the file the run names under `local/refs/`.
+`--shallow` asks about the named symbol alone.
+
+One gap still matters when the item is a type: a type no code spells by name is
+reached only through the member that declares it, and the listing reports none
+of those uses - it can name only a mention in prose while the functions that
+touch that member use the type throughout. The `referrers` count above comes
+from the dependency graph, which does see them, so a listing far smaller than
+that count is the signal. Ask about the owner (`find_references.py
+<header>/<Owner>`), whose answer now names the member carrying the type and
+counts its uses directly; deleting or inlining an "unused" type is the wrong
+move when its uses are simply filed under its owner.
 
 Everything below is outside both, and is yours to do by hand and to name in the
 report:
