@@ -29,7 +29,8 @@ typedef struct Actor403600Work {
     /* 0x5C0 */ GpObj                field_5C0;
     /* 0x5E0 */ byte                 pad_5E0[0x18];
     /* 0x5F8 */ GpRec18              field_5F8[4];
-    /* 0x658 */ byte                 pad_658[0x58];
+    /* 0x658 */ GpEffArg             field_658;
+    /* 0x660 */ byte                 pad_660[0x50];
     /* 0x6B0 */ VECTOR               field_6B0;
     /* 0x6C0 */ GsCOORDINATE2*       field_6C0;
     /* 0x6C4 */ s16                  field_6C4;
@@ -64,7 +65,8 @@ typedef struct Actor403600Work {
     /* 0x752 */ byte                 pad_752[2];
     /* 0x754 */ s16                  field_754;
     /* 0x756 */ s16                  field_756;
-    /* 0x758 */ byte                 pad_758[6];
+    /* 0x758 */ s16                  field_758;
+    /* 0x75A */ byte                 pad_75A[4];
     /* 0x75E */ s16                  field_75E;
     /* 0x760 */ u16                  field_760;
     /* 0x762 */ s16                  field_762;
@@ -105,11 +107,26 @@ typedef struct Actor403600Work {
     /* 0x7A8 */ s16                  field_7A8;
     /* 0x7AA */ byte                 pad_7AA[2];
     /* 0x7AC */ s16                  field_7AC;
-    /* 0x7AE */ byte                 pad_7AE[2];
+    /* 0x7AE */ s16                  field_7AE;
     /* 0x7B0 */ s16                  field_7B0;
     /* 0x7B2 */ byte                 pad_7B2[6];
 } Actor403600Work;
 STATIC_ASSERT_SIZEOF(Actor403600Work, 0x7B8);
+
+typedef struct Actor403600DamageRow {
+    /* 0x0 */ s16 threshold;
+    /* 0x2 */ u16 field_2;
+    /* 0x4 */ u16 field_4;
+    /* 0x6 */ u16 pad_6;
+} Actor403600DamageRow;
+STATIC_ASSERT_SIZEOF(Actor403600DamageRow, 0x8);
+
+typedef struct Actor403600DamageScratch {
+    /* 0x00 */ u8             pad_0[0x20];
+    /* 0x20 */ GpDeltaScratch delta;
+    /* 0x30 */ u8             pad_30[0x18];
+} Actor403600DamageScratch;
+STATIC_ASSERT_SIZEOF(Actor403600DamageScratch, 0x48);
 
 typedef struct Actor403600MotionState {
     /* 0x00 */ s16  field_0[0x40];

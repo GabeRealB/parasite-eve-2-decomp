@@ -133865,3 +133865,12 @@ Controlled allocation inputs: base_6.i `24ac91cc0561d05f353058dd9722a747e9494b74
 base_8.i `54ce3898f15cec2e5b6701de354fc3272cb96c6bb6f1cd5fd5869e0724acc1f8`.
 Spill-order inputs: base_9.i `5e0e69c54d633bee3565252d3538dcecab0a34069af2653dd2fe009f919a13d9`,
 base_10.i `8fa550b70b830f485eccaa0c281ace92eb61ab100ed12070d2a0afae0e97b44b`.
+
+
+## A constant passed through SOFT_TOUCH_REG can split too late to fill a load delay (func_actor_403600_8013D15C, 2026-09-20)
+
+Passing the full `0x71357911` through `SOFT_TOUCH_REG` gave this function the required RNG registers, but CSE put the constant directly into the asm input. Reload materialized it as one full-width SET (archived base_8 UID1377), still one SET at sched2. Final emission split it into LUI/ORI after scheduling, leaving the following RNG load with an extra nop.
+
+The retry prediction used `increment = 0x71350000; SOFT_TOUCH_REG(increment); increment |= 0x7911;`. In current base_1, reload UID1379 is a single-instruction high-half SET, and OR UID672 already exists before sched2. RNG load UID675 fits between them. The required v0 load, v1 accumulation and a0 increment survive. This is evidence about materialization timing, not a general allocation priority rule. The baseline-to-base_1 edit also explicitly accumulates into the existing SI result; the archived base_8 already had that source form.
+
+Input hashes: current base_1.i `39af116cfd26c13fc2d8896eb42989481cbbd6e6faf8f3ce459bf134fc89198a`; archived base_8.i `6f91bc81a25d5678dee2c2070d20b058886b83165fea80490a0784205672b624`. Retained evidence: `tools/permuter_findings/func_actor_403600_8013D15C/`, the 2026-09-20 session LEARNINGS/PERMUTER_ANALYSIS, base_1/base_3 dumps and prior archived base_8 .greg/.sched2. The normal C/header port passed unscoped build verification. Its scratch score still reports seven symbolic-vs-numeric RNG operand differences; those resolve to identical linked bytes. Never port the scratch's old 0x80150000 RNG page: the real Gp_LcgState is 0x80070F60.
