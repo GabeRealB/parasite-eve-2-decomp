@@ -400,7 +400,7 @@ void Tmd_ProcessStream(TmdObject* obj)
                 break;
             case 0x58:
             case 0x5A:
-                handler = gpStreamPrimGt4SingleNormal;
+                handler = gpStreamPrimGt4OneNormal;
                 break;
             case 0x1C:
             case 0x1E:
@@ -414,7 +414,7 @@ void Tmd_ProcessStream(TmdObject* obj)
                 handler = gpStreamPrimGt3ElemColor;
                 break;
             case 0x130:
-                handler = gpStreamPrimGt3VtxColor;
+                handler = gpStreamPrimGt3CornerColors;
                 break;
             case 0x70:
                 handler = gpStreamPrimGt4ElemColor;

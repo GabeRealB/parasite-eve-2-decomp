@@ -320,20 +320,24 @@ u32* gpStreamPrimGt3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// the model's texture page and CLUT to the primitive's own, which are stored
 /// relative to the model.
 u32* gpStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-/// Handler of a stream's textured-triangle records whose elements carry one
-/// colour word per vertex (`0x130`): each element contributes one triangle to
-/// the buffer half's second region, with the element's texture words written
-/// into it.
+
+/// Handler of a stream's textured-triangle records that carry a colour per corner
+/// (`0x130`): each element contributes one triangle to the buffer half's second
+/// region, with the element's texture words written into it.
 ///
 /// The record is not pre-transformed, so its triangle is built in the region the
 /// draw pass transforms; this command writes only the polygon's `u`/`v` fields,
 /// and adds the model's texture page and CLUT to the primitive's own, which are
-/// stored relative to the model.
+/// stored relative to the model. Ahead of its texture words the element names a
+/// colour for each of the triangle's corners — the material the record's
+/// transform pass lights into the primitive's own corner colours — so the texture
+/// words sit further into the record than `gpStreamPrimGt3ElemColor`'s do.
 ///
-/// The colour words are the draw pass's: it lights each vertex from the colour
-/// the element carries for that vertex, and this command only steps over them to
+/// The corner colours are the transform pass's: it lights each corner from the
+/// colour the element carries for it, and this command only steps over them to
 /// reach the texture words that follow.
-u32* gpStreamPrimGt3VtxColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt3CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 /// Handler of a stream's one-normal textured-triangle records (`0x18`, `0x1A`):
 /// each element contributes one triangle to the buffer half's second region, with
 /// the element's texture words written into it.
@@ -358,12 +362,7 @@ u32* gpStreamPrimGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's textured-quad records whose elements carry a colour
 /// (`0x70`): each element contributes one quad to the buffer half's second
-/// Handler of a stream's textured-quad records that carry a colour per corner
-/// (`0x170`): each element contributes one quad to the buffer half's second
 /// region, with the element's texture words written into it.
-/// Handler of a stream's textured-quad records whose element carries a single
-/// normal (`0x58`, `0x5A`): each element contributes one quad to the buffer
-/// half's second region, with the element's texture words written into it.
 ///
 /// The record is not pre-transformed, so its quad is built in the region the
 /// draw pass transforms; this command writes only the polygon's `u`/`v` fields,
@@ -377,16 +376,33 @@ u32* gpStreamPrimGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// colour. That is why the texture words are one word further into the element
 /// here.
 u32* gpStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+/// Handler of a stream's textured-quad records that carry a colour per corner
+/// (`0x170`): each element contributes one quad to the buffer half's second
+/// region, with the element's texture words written into it.
+///
+/// The record is not pre-transformed, so its quad is built in the region the
+/// draw pass transforms; this command writes only the polygon's `u`/`v` fields,
+/// and adds the model's texture page and CLUT to the primitive's own, which are
 /// stored relative to the model. Ahead of its texture words the element names a
 /// colour for each of the quad's corners — the material the record's transform
 /// pass lights into the primitive's own corner colours — so the texture words
 /// sit further into the record than `gpStreamPrimGt4`'s do.
 u32* gpStreamPrimGt4CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+/// Handler of a stream's one-normal textured-quad records (`0x58`, `0x5A`): each
+/// element contributes one quad to the buffer half's second region, with the
+/// element's texture words written into it.
+///
+/// The record is not pre-transformed, so its quad is built in the region the
+/// draw pass transforms; this command writes only the polygon's `u`/`v` fields,
+/// and adds the model's texture page and CLUT to the primitive's own, which are
 /// stored relative to the model. The element carries one normal where the
 /// per-corner-normal records carry one per corner, so the whole quad is lit from
 /// that one normal and the element is a word shorter than the one
 /// `gpStreamPrimGt4` reads.
-u32* gpStreamPrimGt4SingleNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt4OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 /// Handler of a stream's unlit textured-quad records (`0x156`): each element
 /// contributes one quad to the buffer half's second region, with the element's
 /// own four colours and its texture words written into it.
@@ -399,6 +415,7 @@ u32* gpStreamPrimGt4SingleNormal(TmdScratchModelBlock* ws, s32 flags, u32* strea
 /// are for a lit quad, with the model's texture page and CLUT added to the
 /// primitive's own, which are stored relative to the model.
 u32* gpStreamPrimGt4Unlit(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 /// Handler of a stream's flat textured-triangle records (`0x1C`, `0x1E`): each
 /// element contributes one triangle to the buffer half's second region, with the
 /// element's texture words written into it.
@@ -410,6 +427,7 @@ u32* gpStreamPrimGt4Unlit(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// textured triangle, which takes one colour for the whole primitive rather than
 /// one per corner, where `gpStreamPrimGt3` builds the gouraud one.
 u32* gpStreamPrimFt3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 /// Handler of a stream's flat-textured-quad records (`0x5C`, `0x5E`): each
 /// element contributes one quad to the buffer half's second region, with the
 /// element's texture words written into it.
@@ -421,6 +439,7 @@ u32* gpStreamPrimFt3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// texture page and CLUT to the primitive's own, which are stored relative to
 /// the model.
 u32* gpStreamPrimFt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 /// Handler of a stream's flat-quad records (`0x44`): each element contributes one
 /// untextured quad to the buffer half's second region, with the element's colour
 /// word written into it.
@@ -429,6 +448,7 @@ u32* gpStreamPrimFt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// pass transforms: only the packet's fixed fields are written here — its length,
 /// its primitive code and the element's colour.
 u32* gpStreamPrimF4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 /// Handler of a stream's flat-triangle records (`0x4`): each element contributes
 /// one untextured triangle to the buffer half's second region, with the
 /// element's colour word written into it.
@@ -437,6 +457,7 @@ u32* gpStreamPrimF4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// draw pass transforms; this command writes only the packet's fixed fields — its
 /// length, its primitive code and the element's colour.
 u32* gpStreamPrimF3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 /// Handler of a stream's layered textured-triangle records (`0x4038`) whose
 /// semi-transparent layer is textured from the object: each element contributes two
 /// triangles to the buffer half's second region, with the element's texture words

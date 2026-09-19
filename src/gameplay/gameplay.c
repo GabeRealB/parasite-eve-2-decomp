@@ -4032,7 +4032,7 @@ u32* gpStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt3VtxColor(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt3CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
     POLY_GT3* poly;
 
@@ -4114,7 +4114,7 @@ u32* gpStreamPrimGt3OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt4SingleNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt4OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
     POLY_GT4* poly;
 
