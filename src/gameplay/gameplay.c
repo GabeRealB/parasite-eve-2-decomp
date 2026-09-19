@@ -31,25 +31,30 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-extern u8             Gp_StrItemObtained[]; // "Item obtained!"
-extern u8             Gp_StrBonusItem[];    // "Bonus item!!"
-extern s32            Gp_ItemGrantCooldown;
-extern GpItemScan     D_8010CA2C;
-extern UiObjectDesc   D_8010CA40;
-extern UiObjectDesc   D_8010CA78[];
-extern UiObjectDesc   D_8010D6D8;
-extern UiObjectDesc   D_80185000;
-extern TaskDesc       D_8010CAB0;
-extern TaskDesc       D_8010CABC;
-extern TaskDesc       D_8010D1FC;
-extern TmdListHead    Gp_TmdListStash;
-extern s32            D_80114A24;
-extern s32            D_80114A34;
-extern u8             D_80062734;
-extern u16            D_8007A39C;
-extern TmdListHead    Gp_TmdListAltStash;
-extern Task*          Gp_TmdStashTask;
-extern GsCOORDINATE2* Gp_CurCoord;
+extern u8           Gp_StrItemObtained[]; // "Item obtained!"
+extern u8           Gp_StrBonusItem[];    // "Bonus item!!"
+extern s32          Gp_ItemGrantCooldown;
+extern GpItemScan   D_8010CA2C;
+extern UiObjectDesc D_8010CA40;
+extern UiObjectDesc D_8010CA78[];
+extern UiObjectDesc D_8010D6D8;
+extern UiObjectDesc D_80185000;
+extern TaskDesc     D_8010CAB0;
+extern TaskDesc     D_8010CABC;
+extern TaskDesc     D_8010D1FC;
+extern TmdListHead  Gp_TmdListStash;
+extern s32          D_80114A24;
+extern s32          D_80114A34;
+extern u8           D_80062734;
+extern u16          D_8007A39C;
+extern TmdListHead  Gp_TmdListAltStash;
+extern Task*        Gp_TmdStashTask;
+/// The coordinate a world-matrix update was most recently run for.
+///
+/// The entry points that refresh a coordinate record it before the ancestor
+/// chain is walked, and nothing ever reads it: what the recorded coordinate is
+/// kept for is not established.
+extern GsCOORDINATE2* _gGpCurCoord;
 extern CVECTOR        D_80114BA4;
 extern u16            D_80114BB0[];
 extern RECT           D_80114BD0;
@@ -1018,14 +1023,14 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0)
 {
-    Gp_CurCoord = arg0;
+    _gGpCurCoord = arg0;
     _gpUpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, 0);
 }
 
 void Gp_UpdateCoordEx(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
 {
     if (arg0->sub == NULL) {
-        Gp_CurCoord = arg0;
+        _gGpCurCoord = arg0;
         _gpUpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, 0);
         Gp_WorldToLocal(&Gfx_ViewWorldMtx, &arg0->workm, &arg0->coord);
     } else {

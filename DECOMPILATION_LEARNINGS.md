@@ -133372,3 +133372,24 @@ A forward declaration is the other way out - give the type a tag, declare
 is already used elsewhere in the tree. It only covers a family that needs the
 pointer; a unit that reads the fields needs the definition, so the separate
 header is the general answer.
+## A data item can have no reader, and the built tree cannot show that
+
+A global whose C references are all writes is not simply private-but-unproven:
+it may have no reader at all in the shipped code. The built tree cannot settle
+that, because the images it does not carry can reach the address too - an
+overlay loaded over another module's data region reads that module's globals,
+and packages outside the built set are not split into `asm/`.
+
+The images can settle it. A `pe2pkg` is a flat, uncompressed copy of an overlay
+placed at its load address, so a reference to a fixed address is the pair the
+compiler emits for one: a `lui` of the high half, then within the next few
+instructions a load, store or immediate using the low half in the same register.
+Scanning every package for that pair, and separately for a raw little-endian
+pointer to the address, takes seconds and turns "no C reader" into "no reader
+anywhere"; a reference computed some other way would still hide from it.
+
+What that leaves the naming pass is a role derived from the write sites alone,
+so the name may say only what is stored, and the comment has to record that the
+consumer is unestablished rather than invent one. Privacy is decided as always:
+with nothing reading the value, nothing outside the unit reaches it, so it is
+private.
