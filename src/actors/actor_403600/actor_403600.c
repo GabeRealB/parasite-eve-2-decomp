@@ -25,6 +25,29 @@
 #define gte_mvmva_10030() __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_mvmva_10000() __asm__ volatile("nop; nop; .word 0x4A480012")
 #define gte_nccs_real()   __asm__ volatile("nop; nop; .word 0x4B08041B")
+#define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
+    __asm__ volatile(                                      \
+        "lhu $12, %2(%0);"                                 \
+        "lhu $13, %3(%0);"                                 \
+        "lhu $14, %4(%0);"                                 \
+        "sh $12, 0(%1);"                                   \
+        "sh $13, 2(%1);"                                   \
+        "sh $14, 4(%1)"                                    \
+        :                                                  \
+        : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
+        : "$12", "$13", "$14", "memory")
+
+/* The read/write matrix operand permits the stack-vector address to be
+ * scheduled after the matrix load. The vector load consumes that operand to
+ * preserve the order of the two GTE transfers. */
+#define actor_403600_set_rot_matrix_dep(matrix)                  \
+    __asm__("lw $12,0(%0);lw $13,4(%0);ctc2 $12,$0;ctc2 $13,$1;" \
+            "lw $12,8(%0);lw $13,12(%0);lw $14,16(%0);"          \
+            "ctc2 $12,$2;ctc2 $13,$3;ctc2 $14,$4"                \
+            : "+r"(matrix) : : "$12", "$13", "$14", "memory")
+#define actor_403600_ldv0_dep(vector, matrix) \
+    __asm__ volatile("lwc2 $0,0(%0);lwc2 $1,4(%0)" : : "r"(vector), "r"(matrix))
+
 #define actor_403600_d_x(out, hi) \
     __asm__("lh %0, %%lo(D_actor_403600_801605D4)(%1)" : "=r"(out) : "r"(hi))
 #define actor_403600_load_scratch_head(out) \
@@ -561,7 +584,430 @@ void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, TaskIdMap* ar
     *(s32*)0x1F8003FC = *(s32*)0x1F8003FC + 0x1C;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80132E40);
+void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Work* arg2)
+{
+    SVECTOR      local;
+    SVECTOR*     local4;
+    SVECTOR*     local0;
+    Actor403600* actor;
+    u8*          coords;
+    u8*          center;
+    u8*          head;
+    u8*          scratch;
+    u8*          coord0;
+    u8*          coord3;
+    u8*          coord4;
+    u8*          current0;
+    u8*          current1;
+    u8*          current2;
+    u8*          current4;
+    u8*          saved4;
+    u8*          saved3;
+    u8*          saved2;
+    u8*          column1;
+    u8*          column2;
+    u8*          firstOutput;
+    u8*          stepOutput;
+    u8*          secondOutput;
+    u8*          thirdOutput;
+    u8*          next2;
+    SVECTOR*     output0;
+    MATRIX*      centerBasis3;
+    SVECTOR*     output4;
+    MATRIX*      matrix3;
+    MATRIX*      matrix4;
+    MATRIX*      basis3;
+    MATRIX*      basis4;
+    MATRIX*      basis0;
+    MATRIX*      worldArg0;
+    MATRIX*      worldArg1;
+    MATRIX*      transposed0;
+    MATRIX*      transposed1;
+    u8*          viewWorld0;
+    u8*          viewWorld1;
+    u8*          viewCoord0;
+    u8*          viewCoord4;
+    s32          i;
+    s32          j;
+    s32          offset0;
+    s32          offset1;
+    s32          offset2;
+    s16          value;
+    u16          x4;
+    u16          y4;
+    u16          z4;
+    u16          stepHeight;
+    TmdObject*   node4;
+    u16          neg0;
+    u16          neg1;
+    u16          neg2;
+    u16          old18;
+    u16          oldc;
+
+    actor  = (Actor403600*)arg0->parent;
+    coords = (u8*)actor->field_2C->coords;
+    center = coords + 0x280;
+    if (D_801153F4 == 0) {
+        head    = *(u8**)0x1F8003FC;
+        scratch = (*(u8**)0x1F8003FC = head - 0x88);
+        Gp_UpdateCoord((GsCOORDINATE2*)((u8*)actor->field_2C->coords + 0x370));
+        if (*(s32*)((u8*)arg2 + 0x118) == 0) {
+            viewWorld0 = (u8*)&Gfx_ViewWorldMtx;
+            worldArg0  = (MATRIX*)viewWorld0;
+            TOUCH_REG(worldArg0);
+            transposed0 = (MATRIX*)(scratch + 0x10);
+            TransposeMatrix(worldArg0, transposed0);
+            viewWorld0           -= 0x24;
+            *(s16*)(scratch + 8)  = *(u16*)(center + 0x38) - *(u16*)(viewWorld0 + 0x38);
+            *(s16*)(scratch + 10) = *(u16*)(center + 0x3C) - *(u16*)(viewWorld0 + 0x3C);
+            *(s16*)(scratch + 12) = *(u16*)(center + 0x40) - *(u16*)(viewWorld0 + 0x40);
+
+            SCHED_BARRIER();
+            firstOutput = scratch + 8;
+            TOUCH_REG(firstOutput);
+            local = *(SVECTOR*)(scratch + 8);
+            actor_403600_set_rot_matrix_dep(transposed0);
+            actor_403600_ldv0_dep(&local, transposed0);
+            gte_mvmva_10030();
+            gte_stsv(firstOutput);
+
+            *(s16*)(scratch + 0) = 0;
+            *(s16*)(scratch + 2) = 0;
+            *(s16*)(scratch + 4) = -0x485;
+            local                = *(SVECTOR*)scratch;
+            gte_SetRotMatrix(center + 0x24);
+            gte_ldv0(&local);
+            gte_mvmva_10030();
+            gte_stsv(scratch);
+
+            local = *(SVECTOR*)scratch;
+            gte_SetRotMatrix(transposed0);
+            gte_ldv0(&local);
+            gte_mvmva_10030();
+            gte_stsv(scratch);
+
+            current0 = (u8*)arg2;
+            i        = 0;
+            do {
+                *(SVECTOR*)(current0 + 8) = *(SVECTOR*)(scratch + 8);
+                *(s16*)(current0 + 8)    += *(s16*)(scratch + 0) * i;
+                *(s16*)(current0 + 10)   += *(s16*)(scratch + 2) * i;
+                *(s16*)(current0 + 12)   += *(s16*)(scratch + 4) * i;
+                current0                 += 8;
+                i++;
+            } while (i < 4);
+
+            i          = 0;
+            viewCoord0 = (u8*)&gGfxViewCoord;
+            basis0     = (MATRIX*)(scratch + 0x10);
+            output0    = (SVECTOR*)(scratch + 8);
+            local0     = &local;
+            offset0    = 0x4B0;
+            do {
+                current1 = (u8*)arg2 + i * 8;
+                coord0   = (u8*)actor->field_2C->coords + offset0;
+                Gp_UpdateCoord((GsCOORDINATE2*)coord0);
+                *(s16*)(scratch + 8)  = *(u16*)(coord0 + 0x38) - *(u16*)(viewCoord0 + 0x38);
+                *(s16*)(scratch + 10) = *(u16*)(coord0 + 0x3C) - *(u16*)(viewCoord0 + 0x3C);
+                *(s16*)(scratch + 12) = *(u16*)(coord0 + 0x40) - *(u16*)(viewCoord0 + 0x40);
+                local                 = *(SVECTOR*)(scratch + 8);
+                gte_SetRotMatrix(basis0);
+                gte_ldv0(local0);
+                gte_mvmva_10030();
+                gte_stsv(output0);
+
+                *(s16*)(scratch + 0) = 0;
+                *(s16*)(scratch + 2) = 0x898;
+                *(s16*)(scratch + 4) = 0;
+                local                = *(SVECTOR*)scratch;
+                gte_SetRotMatrix(center + 0x24);
+                gte_ldv0(local0);
+                gte_mvmva_10030();
+                gte_stsv(scratch);
+
+                local = *(SVECTOR*)scratch;
+                gte_SetRotMatrix(basis0);
+                gte_ldv0(local0);
+                gte_mvmva_10030();
+                gte_stsv(scratch);
+                *(s16*)(current1 + 0x108) = *(u16*)(scratch + 8) + *(u16*)(scratch + 0);
+                *(s16*)(current1 + 0x10A) = *(u16*)(scratch + 10) + *(u16*)(scratch + 2);
+                *(s16*)(current1 + 0x10C) = *(u16*)(scratch + 12) + *(u16*)(scratch + 4);
+                offset0                  += 0x140;
+                i++;
+            } while (i < 2);
+            *(s32*)((u8*)arg2 + 0x118) += 1;
+        } else {
+            viewWorld1 = (u8*)&Gfx_ViewWorldMtx;
+            worldArg1  = (MATRIX*)viewWorld1;
+            TOUCH_REG(worldArg1);
+            transposed1 = (MATRIX*)(scratch + 0x10);
+            TransposeMatrix(worldArg1, transposed1);
+            viewWorld1           -= 0x24;
+            *(s16*)(scratch + 8)  = *(u16*)(center + 0x38) - *(u16*)(viewWorld1 + 0x38);
+            *(s16*)(scratch + 10) = *(u16*)(center + 0x3C) - *(u16*)(viewWorld1 + 0x3C);
+            *(s16*)(scratch + 12) = *(u16*)(center + 0x40) - *(u16*)(viewWorld1 + 0x40);
+            stepOutput            = scratch + 8;
+            TOUCH_REG(stepOutput);
+            local = *(SVECTOR*)(scratch + 8);
+            actor_403600_set_rot_matrix_dep(transposed1);
+            actor_403600_ldv0_dep(&local, transposed1);
+            gte_mvmva_10030();
+            gte_stsv(stepOutput);
+            *(SVECTOR*)((u8*)arg2 + 8) = *(SVECTOR*)(scratch + 8);
+
+            *(s16*)(scratch + 8)  = 0;
+            *(s16*)(scratch + 10) = 0;
+            stepHeight            = *(u16*)((u8*)arg1 + 0x70C);
+            SOFT_TOUCH_REG_USE(stepOutput, stepHeight);
+            *(s16*)(scratch + 12) = -(stepHeight + 0x200);
+            secondOutput          = stepOutput;
+            SOFT_TOUCH_REG(secondOutput);
+            local = *(SVECTOR*)(scratch + 8);
+            gte_SetRotMatrix(center + 0x24);
+            gte_ldv0(&local);
+            gte_mvmva_10030();
+            gte_stsv(secondOutput);
+            thirdOutput = stepOutput;
+            SOFT_TOUCH_REG(thirdOutput);
+            local = *(SVECTOR*)(scratch + 8);
+            gte_SetRotMatrix(transposed1);
+            gte_ldv0(&local);
+            gte_mvmva_10030();
+            gte_stsv(thirdOutput);
+
+            if (*(s16*)((u8*)arg1 + 0x70A) != 0) {
+                gte_lddp(*(u16*)((u8*)arg1 + 0x70A));
+                gte_ldsv(stepOutput);
+                gte_gpf12_real();
+                gte_stsv(scratch + 0x80);
+            }
+
+            i = 0;
+            do {
+                j = i + 1;
+                TOUCH_REG(j);
+                next2                   = (u8*)arg2 + j * 8;
+                current2                = (u8*)arg2 + i * 8;
+                *(s16*)(scratch + 0)    = *(s16*)(next2 + 8) - *(s16*)(current2 + 8);
+                *(s16*)(scratch + 2)    = *(s16*)(next2 + 10) - *(s16*)(current2 + 10);
+                *(s16*)(scratch + 4)    = *(s16*)(next2 + 12) - *(s16*)(current2 + 12);
+                *(s16*)(scratch + 0)   += *(s16*)(scratch + 8);
+                *(s16*)(scratch + 2)   += *(s16*)(scratch + 10);
+                *(s16*)(scratch + 4)   += *(s16*)(scratch + 12);
+                *(s16*)(scratch + 8)  >>= 1;
+                *(s16*)(scratch + 10) >>= 1;
+                *(s16*)(scratch + 12) >>= 1;
+                VectorNormalSS((SVECTOR*)scratch, (SVECTOR*)scratch);
+                saved2                     = scratch + i * 8;
+                *(SVECTOR*)(saved2 + 0x60) = *(SVECTOR*)scratch;
+                gte_lddp(0x485);
+                gte_ldsv(scratch);
+                gte_gpf12_real();
+                gte_stsv(scratch);
+                *(s16*)(next2 + 8)  = *(u16*)(current2 + 8) + *(u16*)(scratch + 0);
+                *(s16*)(next2 + 10) = *(u16*)(current2 + 10) + *(u16*)(scratch + 2);
+                *(s16*)(next2 + 12) = *(u16*)(current2 + 12) + *(u16*)(scratch + 4);
+                i                   = j;
+            } while (i < 3);
+
+            i            = 0;
+            centerBasis3 = (MATRIX*)(center + 0x24);
+            matrix3      = (MATRIX*)(scratch + 0x30);
+            basis3       = (MATRIX*)(scratch + 0x10);
+            column1      = scratch + 0x32;
+            column2      = scratch + 0x34;
+            SCHED_BARRIER();
+            offset1 = 0x2D0;
+            SOFT_USE_REG(center);
+            do {
+                saved3 = (u8*)(i * 8 + (u32)scratch);
+                SOFT_TOUCH_REG_USE(saved3, actor);
+                saved3 += 0x60;
+                coord3  = (u8*)actor->field_2C->coords + offset1;
+                gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+                gte_ldv0(saved3);
+                gte_mvmva_10030();
+                gte_stsv(scratch);
+                TransposeMatrix(centerBasis3, matrix3);
+                local = *(SVECTOR*)scratch;
+                gte_SetRotMatrix(matrix3);
+                gte_ldv0(&local);
+                gte_mvmva_10030();
+                gte_stsv(scratch);
+                *(s16*)(scratch + 8)  = 0;
+                *(s16*)(scratch + 10) = 0x1000;
+                *(s16*)(scratch + 12) = 0;
+                *(s16*)(scratch + 0)  = -*(s16*)(scratch + 0);
+                *(s16*)(scratch + 2)  = -*(s16*)(scratch + 2);
+                *(s16*)(scratch + 4)  = -*(s16*)(scratch + 4);
+                Gfx_OrthonormalBasis(basis3, (SVECTOR*)scratch, (SVECTOR*)(scratch + 8));
+
+                gte_SetRotMatrix(matrix3);
+                gte_ldclmv(coord3 + 0x24);
+                gte_rtir_real();
+                gte_stclmv(matrix3);
+                gte_ldclmv(coord3 + 0x26);
+                gte_rtir_real();
+                gte_stclmv(column1);
+                gte_ldclmv(coord3 + 0x28);
+                gte_rtir_real();
+                gte_stclmv(column2);
+
+                gte_SetRotMatrix(basis3);
+                gte_ldclmv(matrix3);
+                gte_rtir_real();
+                gte_stclmv(matrix3);
+                gte_ldclmv(column1);
+                gte_rtir_real();
+                gte_stclmv(column1);
+                gte_ldclmv(column2);
+                gte_rtir_real();
+                gte_stclmv(column2);
+
+                gte_SetRotMatrix(centerBasis3);
+                gte_ldclmv(matrix3);
+                gte_rtir_real();
+                gte_stclmv(matrix3);
+                gte_ldclmv(column1);
+                gte_rtir_real();
+                gte_stclmv(column1);
+                gte_ldclmv(column2);
+                gte_rtir_real();
+                gte_stclmv(column2);
+
+                TransposeMatrix((MATRIX*)(*(u8**)(coord3 + 0x4C) + 0x24), basis3);
+                gte_SetRotMatrix(basis3);
+                gte_ldclmv(matrix3);
+                gte_rtir_real();
+                gte_stclmv(coord3 + 4);
+                gte_ldclmv(column1);
+                gte_rtir_real();
+                gte_stclmv(coord3 + 6);
+                gte_ldclmv(column2);
+                gte_rtir_real();
+                gte_stclmv(coord3 + 8);
+                *(s32*)coord3 = 0;
+                Gp_UpdateCoord((GsCOORDINATE2*)coord3);
+                offset1 += 0x50;
+                i++;
+            } while (i < 3);
+
+            i        = 0;
+            basis4   = (MATRIX*)(scratch + 0x10);
+            output4  = (SVECTOR*)(scratch + 8);
+            local4   = &local;
+            saved4   = scratch;
+            current4 = (u8*)arg2;
+            offset2  = 0x4B0;
+            do {
+                SOFT_TOUCH_REG(current4);
+                node4 = actor->field_2C;
+                SOFT_USE_REG(node4);
+                coord4 = (u8*)node4->coords + offset2;
+                TransposeMatrix(&Gfx_ViewWorldMtx, basis4);
+                Gp_UpdateCoord((GsCOORDINATE2*)coord4);
+                viewCoord4            = (u8*)&gGfxViewCoord;
+                *(s16*)(scratch + 8)  = *(u16*)(coord4 + 0x38) - *(u16*)(viewCoord4 + 0x38);
+                *(s16*)(scratch + 10) = *(u16*)(coord4 + 0x3C) - *(u16*)(viewCoord4 + 0x3C);
+                *(s16*)(scratch + 12) = *(u16*)(coord4 + 0x40) - *(u16*)(viewCoord4 + 0x40);
+                local                 = *(SVECTOR*)(scratch + 8);
+                gte_SetRotMatrix(basis4);
+                gte_ldv0(local4);
+                gte_mvmva_10030();
+                gte_stsv(output4);
+
+                *(s16*)(scratch + 0) = 0;
+                *(s16*)(scratch + 2) = *(s16*)((u8*)arg1 + 0x70E) + 0x200;
+                *(s16*)(scratch + 4) = 0;
+                local                = *(SVECTOR*)scratch;
+                gte_SetRotMatrix(coord4 + 0x24);
+                gte_ldv0(local4);
+                gte_mvmva_10030();
+                gte_stsv(scratch);
+                local = *(SVECTOR*)scratch;
+                gte_SetRotMatrix(basis4);
+                gte_ldv0(local4);
+                gte_mvmva_10030();
+                gte_stsv(scratch);
+
+                *(s16*)(scratch + 0) += *(s16*)(current4 + 0x108) - *(s16*)(scratch + 8);
+                *(s16*)(scratch + 2) += *(s16*)(current4 + 0x10A) - *(s16*)(scratch + 10);
+                *(s16*)(scratch + 4) += *(s16*)(current4 + 0x10C) - *(s16*)(scratch + 12);
+                if (*(s16*)((u8*)arg1 + 0x70A) != 0) {
+                    *(s16*)(scratch + 0) += *(s16*)(scratch + 0x80);
+                    *(s16*)(scratch + 2) += *(s16*)(scratch + 0x82);
+                    *(s16*)(scratch + 4) += *(s16*)(scratch + 0x84);
+                }
+                VectorNormalSS((SVECTOR*)scratch, (SVECTOR*)scratch);
+                *(SVECTOR*)(saved4 + 0x60) = *(SVECTOR*)scratch;
+                gte_lddp(0x898);
+                gte_ldsv(scratch);
+                gte_gpf12_real();
+                gte_stsv(scratch);
+                *(s16*)(current4 + 0x108) = *(u16*)(scratch + 8) + *(u16*)(scratch + 0);
+                *(s16*)(current4 + 0x10A) = *(u16*)(scratch + 10) + *(u16*)(scratch + 2);
+                *(s16*)(current4 + 0x10C) = *(u16*)(scratch + 12) + *(u16*)(scratch + 4);
+
+                gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+                gte_ldv0(saved4 + 0x60);
+                gte_mvmva_10030();
+                gte_stsv(scratch);
+                matrix4 = (MATRIX*)(scratch + 0x30);
+                TransposeMatrix((MATRIX*)(coord4 + 0x24), matrix4);
+                local = *(SVECTOR*)scratch;
+                gte_SetRotMatrix(matrix4);
+                gte_ldv0(local4);
+                gte_mvmva_10030();
+                gte_stsv(scratch);
+                *(s16*)(scratch + 8)  = 0;
+                *(s16*)(scratch + 10) = 0;
+                *(s16*)(scratch + 12) = 0x1000;
+                Gfx_OrthonormalBasis(basis4, (SVECTOR*)scratch, output4);
+                ACTOR_COPY_MATRIX_COLUMN_TO_SV(basis4, output4, 4, 10, 16);
+
+                neg0  = *(u16*)(scratch + 0x10);
+                neg1  = *(u16*)(scratch + 0x16);
+                old18 = *(u16*)(scratch + 0x18);
+                x4    = *(u16*)(scratch + 0x1E);
+                y4    = *(u16*)(scratch + 8);
+                z4    = *(u16*)(scratch + 10);
+                oldc  = *(u16*)(scratch + 12);
+                SCHED_BARRIER();
+                *(s16*)(scratch + 0x10) = -neg0;
+                neg2                    = *(u16*)(scratch + 0x1C);
+                *(s16*)(scratch + 0x16) = -neg1;
+                SCHED_BARRIER();
+                value                   = *(s16*)(scratch + 0x12);
+                *(s16*)(scratch + 0x1A) = old18;
+                *(s16*)(scratch + 0x20) = x4;
+                *(s16*)(scratch + 0x12) = y4;
+                *(s16*)(scratch + 0x18) = z4;
+                *(s16*)(scratch + 0x1E) = oldc;
+                *(s16*)(scratch + 0x1C) = -neg2;
+                *(s16*)(scratch + 0x14) = value;
+
+                gte_SetRotMatrix(basis4);
+                gte_ldclmv(coord4 + 4);
+                gte_rtir_real();
+                gte_stclmv(coord4 + 4);
+                gte_ldclmv(coord4 + 6);
+                gte_rtir_real();
+                gte_stclmv(coord4 + 6);
+                gte_ldclmv(coord4 + 8);
+                gte_rtir_real();
+                gte_stclmv(coord4 + 8);
+                *(s32*)coord4 = 0;
+                Gp_UpdateCoord((GsCOORDINATE2*)coord4);
+                saved4   += 8;
+                current4 += 8;
+                offset2  += 0x140;
+                i++;
+            } while (i < 2);
+        }
+        *(u8**)0x1F8003FC += 0x88;
+    }
+}
 
 void func_actor_403600_80134288(Task* arg0)
 {

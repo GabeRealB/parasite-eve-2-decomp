@@ -132008,3 +132008,15 @@ Two earlier controlled fixes in this function are useful instances of the existi
 Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 Inputs: base_18.i 5bf2b43167995b99146b0c7b9cf424e108b56600439f4b1dfc23e7d86ed479a8; controlled base_25.i b25baf46d951804628ca509581066fbf281bfc7f9b542c4a92dde49ad5134769; exact base_26.i 1dfddbdccc9835783430fa554721adc72b1cad2bdc35e66f222c4ddb8a71ff12.
 Evidence: tools/permuter_findings/func_actor_403600_801353D0/, session 7e5b0e5b1efc4d79ae6a941746a140c8, PERMUTER_EVIDENCE/530fa5ab835846bd/analysis/manual_match/. The router failed normalization and produced no discovery; these were manual changes. Header port base_27 stayed exact and the unscoped build passed.
+
+## A dependent GTE load permits a frame-address calculation to cross the matrix load (func_actor_403600_80132E40)
+
+CSE reused the address pseudo created by an SVECTOR struct-copy expansion for subsequent `gte_ldv0(&local)` inputs. The address was therefore born before the copy, and the input-only `gte_SetRotMatrix` asm was implicitly volatile: sched1/sched2 kept the address before that matrix load. The target computes it afterward. Naming another pointer added a copy; an inline by-value helper kept the early address and enlarged the frame.
+
+The planned base_29 made the matrix-load asm nonvolatile with a read/write matrix operand and memory clobber, then added that operand as an input to the following volatile vector-load asm. The output remains the unchanged pointer, and its consumed dependency preserves the GTE transfer order. Both frame-address calculations moved to the target position in sched/sched2. This also changed earlier pointer setup scheduling: dbr stole a common destination-pointer addiu instead of the world-matrix lui. Base_30 explicitly initialized the world pointer first; base_31 used separate touched call-argument locals before destination setup. Its lreg r115/r116 are local,2 refs/3 insns, and both receive a0. Those controlled changes preserved the frame-address schedule and fixed the two remaining swaps, yielding100%. The normal-style port and unscoped build both passed. No pins or tracer were used.
+
+This is a demonstrated dependency transformation for these paired GTE transfers, not permission to make hardware asm freely movable or give it unused outputs. The subsequent volatile consumer and retained matrix accesses matter.
+
+Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+Inputs: base_29.i 6bd152160d825bffa3e64fce99bb39ea82db0d2a4f13619a6e4178d81641f5ab; base_30.i 57a1d123f1ca6bec2d790c02fc9b354404cf91a7f9cddf17e53f98f0f707609e; base_31.i 4dfbb29f68ed4af7ef629da4867ca28bdcb8bdaeed4e9e9e3112a3a60ff0a0f5; port base_32.i cf40abdd56bbc7a8a3e88cdae27eff8b5d4255f69398113318a3052a376c1924.
+Evidence: tools/permuter_findings/func_actor_403600_80132E40/, session80eca9187dc049c6b722d7be32850d97, PERMUTER_EVIDENCE/e3b7c513460b4b2b/analysis/manual_match/. The router failed parsing and produced no discovery; these were manual experiments.
