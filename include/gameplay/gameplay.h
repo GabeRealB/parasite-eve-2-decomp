@@ -338,18 +338,21 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(GpCoordFromT, 0x50);
 
 /// A 2D-display body: the node a spawnType-2 task carries and hangs on
-/// `gTmdDisp2dList`.
+/// `gTmdDisp2dList`, holding one coordinate of its own instead of a model.
 ///
-/// Where a model body owns a whole array of coordinate nodes, this one owns a
-/// single node embedded in it. The model subsystem reads the body through
-/// `TmdObject`, so `coords` names the embedded node the same way a model's
-/// array is named.
-typedef struct _GpDisp2d {
-    TmdListHead* next; // Following node of the list, or NULL past the last
-    TmdListHead* prev; // Preceding node, or the head at the front
-    RoomCoord*   coords;
-    s32          field_C;
-    RoomCoord    coord; // The coordinate itself, placed by the coordinate pass
+/// Nothing is drawn from the body — the model passes compose its coordinate once
+/// a frame and walk on — so what it is for is the task that owns it, which
+/// places the coordinate and reads back the world matrix composed from it. Code
+/// outside this overlay reaches the body as a `TmdObject`, so the head is laid
+/// out like that type's and, as on a model body, `coords` is where the
+/// coordinate is found. A 2D-display body has a single one, so that field points
+/// at the node's own `coord` rather than at an array of them.
+typedef struct {
+    TmdListHead* next;    // Following node of the list, or NULL past the last
+    TmdListHead* prev;    // Preceding node, or the head at the front
+    RoomCoord*   coords;  // The body's coordinate, i.e. `&coord`
+    s32          field_C; // Set to 1 when the body is attached; no reader found, so the role is unproven
+    RoomCoord    coord;   // Coordinate the body occupies: its task places it, the passes compose `workm` from it
 } GpDisp2d;
 STATIC_ASSERT_SIZEOF(GpDisp2d, 0x60);
 

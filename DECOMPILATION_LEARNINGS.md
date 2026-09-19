@@ -51463,6 +51463,15 @@ rather than a type to name.
 points `coords` at its own copy — and even it reads through `TmdObject` when the
 model subsystem walks the 2D-display list.
 
+Which body a task's `extra` is, the task says, not the access path: `spawnType`
+is 1 for a model body and 2 for a 2D-display one, and both are reached by the
+same expression, `((TmdObject*)task->extra)->coords`, because the display body's
+head is laid out like the model type's. So a site that reads a coordinate off a
+task cannot be classified by its spelling — a display body's `coords` points at
+a single coordinate embedded in the node, where a model body's points at the
+per-part array that follows it — and the task's own spawn type (or the
+descriptor that built it) is what decides which type is in hand.
+
 ## `andi 0x7F` narrowed to `0x7C`: an `s16` local's `(v & K)` is folded into HImode and re-extended
 
 `func_acropolis_helicopter_landing_pad_801818F0` stores a frame counter times
