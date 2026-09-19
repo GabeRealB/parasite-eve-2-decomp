@@ -2390,14 +2390,14 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     ACTOR_FIELD(temp_v0, s16*, 0x7A0) = 0;
     ACTOR_FIELD(temp_v0, s16*, 0x7AE) = 0;
     func_actor_403600_8014174C(task);
-    D_actor_403600_8016056C           = 0;
-    D_actor_403600_801606B8.field_2   = 0;
-    D_actor_403600_801606B8.field_0   = 0;
-    task->msgTable                    = D_actor_403600_80160504;
-    task->exitCallback                = func_actor_403600_80141598;
-    ACTOR_FIELD(temp_v0, s16*, 0x730) = 0;
-    D_actor_403600_801606BC           = 0;
-    task->state                       = (s32)(task->state + 1);
+    D_actor_403600_8016056C                = 0;
+    D_actor_403600_801606B8.fields.field_2 = 0;
+    D_actor_403600_801606B8.fields.field_0 = 0;
+    task->msgTable                         = D_actor_403600_80160504;
+    task->exitCallback                     = func_actor_403600_80141598;
+    ACTOR_FIELD(temp_v0, s16*, 0x730)      = 0;
+    D_actor_403600_801606BC                = 0;
+    task->state                            = (s32)(task->state + 1);
 }
 
 void ActorsShared80131e24Sub1(Actor403600Ctx* arg0, Actor403600* arg1)
@@ -3450,7 +3450,241 @@ s32 func_actor_403600_8013E7D4(s32 arg0, s32 arg1)
     return var_s4;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013EA04);
+void func_actor_403600_8013EA04(Actor403600* arg0)
+{
+    s16                   temp_a3;
+    u32                   temp_a0_3;
+    u32                   temp_a2;
+    s32                   temp_lo;
+    s32                   temp_lo_3;
+    s32                   temp_s0;
+    s32                   temp_s0_2;
+    register s32          temp_threshold asm("a0");
+    s32                   temp_work_limit;
+    s32                   temp_v0_3;
+    s32                   temp_v1;
+    s32                   temp_v1_2;
+    s32                   temp_v1_3;
+    s32                   temp_v1_4;
+    s32                   delta;
+    u32                   temp_a0;
+    u32                   temp_a0_2;
+    u32                   temp_a0_4;
+    u32                   temp_a1;
+    u32                   temp_a2_2;
+    u32                   temp_v0;
+    u32                   temp_v0_2;
+    u32                   temp_v0_4;
+    u32                   var_v0;
+    u32                   var_v1;
+    s32                   temp_lo_2;
+    s32                   temp_lo_4;
+    register s32          case_value asm("a1");
+    register Actor403600* call_actor asm("a0");
+    s32                   var_a2;
+    Actor403600Work*      temp_s2;
+    GpEnemy*              temp_t0;
+
+    temp_s2            = arg0->field_1C;
+    temp_t0            = arg0->field_20;
+    var_a2             = 0;
+    temp_s2->field_772 = 0;
+    if (temp_s2->field_4B4 != 0) {
+        var_v0      = (Gp_LcgState * 5) + 0x71357911;
+        var_a2      = 3;
+        Gp_LcgState = var_v0;
+        if ((var_v0 >> 0x10) & 1) {
+            var_a2 = 2;
+        }
+    } else {
+        temp_v1 = D_80073B8C->t[1];
+        if (temp_v1 >= -0x7D0) {
+            temp_a0            = (Gp_LcgState * 5) + 0x71357911;
+            temp_s2->field_772 = 2;
+            temp_v1_2          = (temp_a0 >> 0x10) & 0xF;
+            Gp_LcgState        = temp_a0;
+            if (temp_v1_2 < 3) {
+                var_a2 = 2;
+            } else if (temp_v1_2 < 6) {
+                var_a2 = 3;
+            } else if (temp_v1_2 < 0xB) {
+                var_a2 = 5;
+            } else {
+                temp_v0     = (temp_a0 * 5) + 0x71357911;
+                Gp_LcgState = temp_v0;
+                var_a2      = 4;
+                if ((temp_v0 >> 0x10) & 1) {
+                    var_a2 = 6;
+                }
+            }
+        } else if (temp_v1 >= -0x1004) {
+            if (((u32)(D_80073B8C->t[0] - 0xFA0) < 0x1F41U) &&
+                ((u32)(D_80073B8C->t[2] - 0xBB8) < 0x1F41U)) {
+                temp_a1            = (Gp_LcgState * 5) + 0x71357911;
+                temp_s2->field_772 = 1;
+                temp_threshold     = temp_t0->field_40;
+                temp_v1_3          = temp_a1 >> 0x10;
+                temp_v1_3         &= 0xF;
+                temp_work_limit    = temp_s2->field_798;
+                Gp_LcgState        = temp_a1;
+                if (temp_work_limit < temp_threshold) {
+                    var_a2 = 1;
+                    if (temp_v1_3 & 1) {
+                        var_a2 = 4;
+                    }
+                } else {
+                    if (temp_v1_3 < 2) {
+                        var_a2 = 4;
+                    } else if (temp_v1_3 < 6) {
+                        var_a2 = 3;
+                    } else {
+                        temp_v0_2   = (temp_a1 * 5) + 0x71357911;
+                        Gp_LcgState = temp_v0_2;
+                        var_a2      = 1;
+                        if ((temp_v0_2 >> 0x10) & 1) {
+                            var_a2 = 2;
+                        }
+                    }
+                }
+            } else {
+                temp_a0_2          = (Gp_LcgState * 5) + 0x71357911;
+                temp_s2->field_772 = 3;
+                temp_v1_4          = (temp_a0_2 >> 0x10) & 0xF;
+                Gp_LcgState        = temp_a0_2;
+                if (temp_v1_4 < 2) {
+                    var_a2 = 3;
+                } else if (temp_v1_4 < 5) {
+                    var_a2 = 6;
+                } else if (temp_v1_4 < 8) {
+                    var_a2 = 4;
+                } else {
+                    var_v0      = (temp_a0_2 * 5) + 0x71357911;
+                    Gp_LcgState = var_v0;
+                    var_a2      = 5;
+                    if ((var_v0 >> 0x10) & 1) {
+                        var_a2 = 2;
+                    }
+                }
+            }
+        }
+    }
+    if (D_actor_403600_80160695 != 0) {
+        var_a2 = D_actor_403600_80160694;
+    } else {
+        if (!((((u32)(var_a2 - 2) >= 2U) || (temp_t0->field_40 <= temp_s2->field_798)) &&
+              ((var_a2 != 5) ||
+               ((temp_t0->field_40 <= temp_s2->field_79A) && (temp_s2->field_7B0 < 0xA))) &&
+              ((D_actor_403600_801606B8.values[0] != var_a2) ||
+               (D_actor_403600_801606B8.values[1] != var_a2)))) {
+            return;
+        }
+        D_actor_403600_801606B8.values[D_actor_403600_801606BC] = (u16)var_a2;
+        D_actor_403600_801606BC                                ^= 1;
+    }
+    var_v1 = var_a2 - 1;
+    switch (var_v1) {
+        case 0:
+            temp_s2->field_746 = 1;
+            temp_s2->field_75E = 0;
+            temp_s2->field_732 = 0;
+            temp_s2->field_73E = 0xA;
+            return;
+        case 1:
+            temp_s2->field_736 = 0x10;
+            temp_s2->field_734 = 0x32;
+            temp_s2->field_746 = 0;
+            temp_s2->field_73E = 0x14;
+            return;
+        case 2:
+            delta     = Player_Status.coordMtx->t[0] - D_actor_403600_8016063C.x0;
+            temp_lo   = delta * delta;
+            delta     = Player_Status.coordMtx->t[2] - D_actor_403600_8016063C.z0;
+            temp_s0   = SquareRoot0(temp_lo + (delta * delta));
+            delta     = Player_Status.coordMtx->t[0] - D_actor_403600_8016063C.x1;
+            temp_lo_2 = delta * delta;
+            delta     = Player_Status.coordMtx->t[2] - D_actor_403600_8016063C.z1;
+            temp_v0_3 = SquareRoot0(temp_lo_2 + (delta * delta));
+            if (temp_s2->field_772 == 1) {
+                if (temp_s0 < temp_v0_3) {
+                    temp_s2->field_770    = 0U;
+                    temp_s2->field_6F0.vx = (s32)D_actor_403600_8016063C.x1;
+                    temp_s2->field_6F0.vy = (s32)D_actor_403600_8016063C.y1;
+                    temp_s2->field_6F0.vz = (s32)D_actor_403600_8016063C.z1;
+                } else {
+                    temp_s2->field_770    = 1U;
+                    temp_s2->field_6F0.vx = (s32)D_actor_403600_8016063C.x0;
+                    temp_s2->field_6F0.vy = (s32)D_actor_403600_8016063C.y0;
+                    temp_s2->field_6F0.vz = (s32)D_actor_403600_8016063C.z0;
+                }
+            } else {
+                if (temp_s0 < temp_v0_3) {
+                    temp_s2->field_770    = 0U;
+                    temp_s2->field_6F0.vx = (s32)D_actor_403600_8016063C.x0;
+                    temp_s2->field_6F0.vy = (s32)D_actor_403600_8016063C.y0;
+                    temp_s2->field_6F0.vz = (s32)D_actor_403600_8016063C.z0;
+                } else {
+                    temp_s2->field_770    = 1U;
+                    temp_s2->field_6F0.vx = (s32)D_actor_403600_8016063C.x1;
+                    temp_s2->field_6F0.vy = (s32)D_actor_403600_8016063C.y1;
+                    temp_s2->field_6F0.vz = (s32)D_actor_403600_8016063C.z1;
+                }
+                delta     = Player_Status.coordMtx->t[0] - D_actor_403600_8016064C.x0;
+                temp_lo_3 = delta * delta;
+                delta     = Player_Status.coordMtx->t[2] - D_actor_403600_8016064C.z0;
+                temp_s0_2 = SquareRoot0(temp_lo_3 + (delta * delta));
+                delta     = Player_Status.coordMtx->t[0] - D_actor_403600_8016064C.x1;
+                temp_lo_4 = delta * delta;
+                delta     = Player_Status.coordMtx->t[2] - D_actor_403600_8016064C.z1;
+                if (SquareRoot0(temp_lo_4 + (delta * delta)) < temp_s0_2) {
+                    temp_s2->field_770 = (u16)(temp_s2->field_770 | 2);
+                }
+            }
+            temp_s2->field_774 = 1;
+            temp_s2->field_732 = 0;
+            temp_s2->field_746 = 0;
+            temp_s2->field_734 = 0;
+            temp_s2->field_73E = 0x1E;
+            return;
+        case 3:
+            temp_v0_4                                                     = (Gp_LcgState * 5) + 0x71357911;
+            call_actor                                                    = arg0;
+            case_value                                                    = 1;
+            *(s16*)((u8*)temp_s2 + OFFSET_OF(Actor403600Work, field_774)) = case_value;
+            *(s16*)((u8*)temp_s2 + OFFSET_OF(Actor403600Work, field_746)) = case_value;
+            temp_a2                                                       = temp_v0_4 * 5;
+            temp_a2_2                                                     = temp_a2 + 0x71357911;
+            case_value                                                    = 0x28;
+            temp_s2->field_73E                                            = case_value;
+            case_value                                                    = 1;
+            temp_s2->field_732                                            = 0;
+            Gp_LcgState                                                   = temp_v0_4;
+            temp_s2->field_782                                            = (s16)((temp_v0_4 >> 0xF) & 6);
+            Gp_LcgState                                                   = temp_a2_2;
+            temp_s2->field_5C0.flags                                      = (u16)(temp_s2->field_5C0.flags | 0x4000);
+            temp_a3                                                       = ((temp_a2_2 >> 0x10) % 0x14) + 0x28;
+            temp_s2->field_734                                            = temp_a3;
+            func_actor_403600_8013CCEC(call_actor, case_value);
+            return;
+        case 4:
+            temp_a0_3          = Gp_LcgState * 5;
+            temp_a0_4          = temp_a0_3 + 0x71357911;
+            temp_s2->field_746 = 0;
+            temp_s2->field_736 = 2;
+            temp_s2->field_73E = 0x32;
+            temp_lo_2          = (s16)((u16)temp_s2->field_7B0 + 1);
+            Gp_LcgState        = temp_a0_4;
+            temp_s2->field_7B0 = temp_lo_2;
+            temp_s2->field_734 = (s16)(((temp_a0_4 >> 0x10) % 0x14) + 0x28);
+            return;
+        case 5:
+            temp_s2->field_736 = 2;
+            temp_s2->field_734 = 0xD2;
+            temp_s2->field_73E = 0x3C;
+            temp_s2->field_792 = 0x14;
+            temp_s2->field_794 = 0x13;
+            break;
+    }
+}
 
 void func_actor_403600_8013F0C0(Actor403600* arg0)
 {

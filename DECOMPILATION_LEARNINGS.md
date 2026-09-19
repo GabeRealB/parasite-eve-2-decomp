@@ -131955,3 +131955,27 @@ Full dumps and traces are retained in the function's `tools/permuter_findings/`
 session archive, under `PERMUTER_EVIDENCE/441f64dcd757472f/analysis/`.
 The router produced no improvement in this retry; these were manual experiments.
 The original C-only spelling of the retained bounds/early-return asm is unresolved.
+
+## A shared distance delta breaks the player-load local tie (func_actor_403600_8013EA04, 2026-09-19)
+
+The archived unpinned source at distance 830 used eight separate delta locals.
+For each first point, the tracer observed local quantities {delta, player_load}
+with five references over four half-insns, priority 25000, in v0. The table loads
+had two references over four half-insns, priority 5000, in v1. The target keeps
+those load homes but writes each subtraction and square operand in v1.
+
+A planned change reused one s32 delta for all eight calculations, preserving
+expressions and evaluation order. In base_2.i.lreg it has 24 references, accumulated
+live length 16 and eight deaths, so it is excluded from local tying. It is the
+first global allocno, conflicts with hard v0 during second-point calculations
+while the first SquareRoot0 result remains live, prefers v1 and receives v1.
+The now-independent first-point loads keep v0/v1. All distance instructions
+match; distance 830 becomes 770 with no changes elsewhere. This is an eligibility
+and conflict mechanism, not a ranking claim based on per-pseudo local statistics.
+
+The final function matched using additional local register lifetime constraints
+and scalar store dependencies; those paired port edits are not isolated general
+findings. Full evidence: tools/permuter_findings/func_actor_403600_8013EA04/,
+session 59f9959a577f4a1ab4e9e16ca359859d, TRACE_BASE, base_2 dumps and its plan.
+Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+Baseline input: bf7300060a1d07e0a79ddf00037665c9ddadf1cc374f0018bc59d8bf422a8a5a; controlled base_2 input: 852997d1104b4cd83c27869a996ff1212472455b56d1fc2c29523500b8fb1547.

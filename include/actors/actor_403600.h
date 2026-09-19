@@ -73,7 +73,8 @@ typedef struct Actor403600Work {
     /* 0x76A */ s16                  field_76A;
     /* 0x76C */ s16                  field_76C;
     /* 0x76E */ s16                  field_76E;
-    /* 0x770 */ byte                 pad_770[4];
+    /* 0x770 */ u16                  field_770;
+    /* 0x772 */ s16                  field_772;
     /* 0x774 */ s16                  field_774;
     /* 0x776 */ s16                  field_776;
     /* 0x778 */ s16                  field_778;
@@ -92,7 +93,9 @@ typedef struct Actor403600Work {
     /* 0x792 */ s16                  field_792;
     /* 0x794 */ s16                  field_794;
     /* 0x796 */ s16                  field_796;
-    /* 0x798 */ byte                 pad_798[6];
+    /* 0x798 */ s16                  field_798;
+    /* 0x79A */ s16                  field_79A;
+    /* 0x79C */ byte                 pad_79C[2];
     /* 0x79E */ u16                  field_79E;
     /* 0x7A0 */ u16                  field_7A0;
     /* 0x7A2 */ s16                  field_7A2;
@@ -101,7 +104,9 @@ typedef struct Actor403600Work {
     /* 0x7A8 */ s16                  field_7A8;
     /* 0x7AA */ byte                 pad_7AA[2];
     /* 0x7AC */ s16                  field_7AC;
-    /* 0x7AE */ byte                 pad_7AE[0xA];
+    /* 0x7AE */ byte                 pad_7AE[2];
+    /* 0x7B0 */ s16                  field_7B0;
+    /* 0x7B2 */ byte                 pad_7B2[6];
 } Actor403600Work;
 STATIC_ASSERT_SIZEOF(Actor403600Work, 0x7B8);
 
@@ -255,12 +260,32 @@ typedef struct Actor403600Point {
 STATIC_ASSERT_SIZEOF(Actor403600Point, 0x8);
 
 /// The two `s16` halves of `D_actor_403600_801606B8`, zeroed together when the
-/// actor is spawned. Kept as one object so the accesses stay member accesses.
-typedef struct {
-    /* 0x0 */ s16 field_0;
-    /* 0x2 */ s16 field_2;
+/// actor is spawned. The indexed view records the two most recent action choices.
+typedef union {
+    struct {
+        /* 0x0 */ s16 field_0;
+        /* 0x2 */ s16 field_2;
+    } fields;
+    u16 values[2];
 } Actor403600Pair;
 STATIC_ASSERT_SIZEOF(Actor403600Pair, 0x4);
+
+typedef struct Actor403600TargetPair {
+    /* 0x00 */ s16 x0;
+    /* 0x02 */ s16 y0;
+    /* 0x04 */ s16 z0;
+    /* 0x06 */ s16 pad_6;
+    /* 0x08 */ s16 x1;
+    /* 0x0A */ s16 y1;
+    /* 0x0C */ s16 z1;
+    /* 0x0E */ s16 pad_E;
+} Actor403600TargetPair;
+STATIC_ASSERT_SIZEOF(Actor403600TargetPair, 0x10);
+
+extern Actor403600TargetPair D_actor_403600_8016063C;
+extern Actor403600TargetPair D_actor_403600_8016064C;
+extern u8                    D_actor_403600_80160694;
+extern u8                    D_actor_403600_80160695;
 
 typedef struct Actor403600Ctx {
     /* 0x00 */ byte pad_0[0x14];
