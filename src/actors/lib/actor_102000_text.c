@@ -1981,7 +1981,7 @@ void Actor02000_Fn03690(void* arg0, Task* task)
             effect = Gp_SpawnEff(D_8011572C | 0x80000000,
                                  &((TmdObject*)task->parent->extra)->coords[7], 0, NULL);
             if (effect != NULL) {
-                Task_Reparent(task, effect->field_0);
+                Task_Reparent(task, effect->task);
             }
         }
     }

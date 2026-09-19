@@ -43,28 +43,28 @@ void func_acropolis_cafeteria_8017E708(Task* task)
     }
     task->msgTable = D_acropolis_cafeteria_80184CEC;
     Game_SetPtrSlot(task, 5);
-    vec                            = (SVECTOR*)&work->field_10;
+    vec                            = &work->move;
     D_acropolis_cafeteria_80184CFC = 0;
-    work->field_10                 = 0x220;
-    work->field_12                 = -0x12C;
-    work->field_14                 = -0x6A0;
+    work->move.vx                  = 0x220;
+    work->move.vy                  = -0x12C;
+    work->move.vz                  = -0x6A0;
     Gp_SpawnEff(0x60064, coord, 0, vec);
-    work->field_10 = 0x400;
-    work->field_12 = -0x12C;
-    work->field_14 = -0x260;
+    work->move.vx = 0x400;
+    work->move.vy = -0x12C;
+    work->move.vz = -0x260;
     Gp_SpawnEff(0x60064, coord, 0, vec);
-    work->field_10 = 0x370;
-    work->field_12 = -0x12C;
-    work->field_14 = -0x860;
+    work->move.vx = 0x370;
+    work->move.vy = -0x12C;
+    work->move.vz = -0x860;
     Gp_SpawnEff(0x60064, coord, 0, vec);
-    task->state    = task->state + 1;
-    work->field_10 = 0xBB8;
-    work->field_12 = -0x834;
-    work->field_14 = -0x7D0;
+    task->state   = task->state + 1;
+    work->move.vx = 0xBB8;
+    work->move.vy = -0x834;
+    work->move.vz = -0x7D0;
     Gp_SpawnEff(0x60064, coord, 1, vec);
-    work->field_10 = 0xB22;
-    work->field_12 = -0x834;
-    work->field_14 = -0x900;
+    work->move.vx = 0xB22;
+    work->move.vy = -0x834;
+    work->move.vz = -0x900;
     Gp_SpawnEff(0x60064, coord, 1, vec);
     D_80115758 = 0x6028D;
     D_8011572C = 0x6028E;
@@ -90,29 +90,29 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
     mode = gGameSession->at4.loc.view;
     if (mode == 9) {
         count = 0x28;
-        if (work->field_24 != mode) {
+        if (work->scale != mode) {
             flags = 0x1000;
         } else {
             count = 2;
             flags = 0;
         }
         for (i = 0; i < count; i++) {
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            rnd            = (u32)Gp_LcgState >> 16;
-            work->field_10 = (u32)rnd % 2620 + 0x230;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            rnd            = (u32)Gp_LcgState >> 16;
-            work->field_12 = -0x12C - (u16)((u32)rnd % 5) * 0x190;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            rnd            = (u32)Gp_LcgState >> 16;
-            work->field_14 = (rnd & 0x3FF) + 0xB00;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            rnd            = (u32)Gp_LcgState >> 16;
-            spawnArg       = flags + 0x180;
-            Gp_SpawnEff(0x60061, coord, (rnd & 0xFF) + spawnArg, (SVECTOR*)&work->field_10);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rnd           = (u32)Gp_LcgState >> 16;
+            work->move.vx = (u32)rnd % 2620 + 0x230;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rnd           = (u32)Gp_LcgState >> 16;
+            work->move.vy = -0x12C - (u16)((u32)rnd % 5) * 0x190;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rnd           = (u32)Gp_LcgState >> 16;
+            work->move.vz = (rnd & 0x3FF) + 0xB00;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rnd           = (u32)Gp_LcgState >> 16;
+            spawnArg      = flags + 0x180;
+            Gp_SpawnEff(0x60061, coord, (rnd & 0xFF) + spawnArg, &work->move);
         }
     }
-    work->field_24 = gGameSession->at4.loc.view;
+    work->scale = gGameSession->at4.loc.view;
 }
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_7", func_acropolis_cafeteria_8017EA90);

@@ -31,45 +31,45 @@ void RoomsShared8017fdd4(Task* arg0)
         goto kill;
     } else {
         Gp_UpdateCoord(coord);
-        mem->field_22++;
+        mem->age++;
         switch (arg0->state) {
             case 0:
-                mem->field_24 = 0;
-                mem->field_26 = 0x80;
-                mem->field_2A = 0x100 / arg0->spawnArg1;
-                arg0->state   = 1;
+                mem->scale  = 0;
+                mem->angle  = 0x80;
+                mem->step   = 0x100 / arg0->spawnArg1;
+                arg0->state = 1;
                 return;
             case 1:
-                mem->field_24   += mem->field_2A;
-                mem->field_26   += mem->field_2A;
+                mem->scale      += mem->step;
+                mem->angle      += mem->step;
                 arg0->spawnArg1 -= 1;
-                rgb[0]           = mem->field_24;
-                rgb[1]           = (u16)mem->field_24 >> 2;
-                rgb[2]           = (u16)mem->field_24 >> 1;
-                RoomsShared8017fdd4Ring(coord, mem->field_26, rgb);
+                rgb[0]           = mem->scale;
+                rgb[1]           = (u16)mem->scale >> 2;
+                rgb[2]           = (u16)mem->scale >> 1;
+                RoomsShared8017fdd4Ring(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
                 rgb[2] = rgb[2] >> 1;
-                RoomsShared8017fdd4Ring(coord, (u16)mem->field_26 * 2, rgb);
-                Room_Draw02(coord, 0x300 - (u16)mem->field_26 * 2, 0x80, rgb);
+                RoomsShared8017fdd4Ring(coord, (u16)mem->angle * 2, rgb);
+                Room_Draw02(coord, 0x300 - (u16)mem->angle * 2, 0x80, rgb);
                 if (arg0->spawnArg1 == 0) {
-                    mem->field_24 = 0xFF;
-                    arg0->state   = 2;
-                    rgb[0]        = mem->field_24;
-                    rgb[1]        = (u16)mem->field_24 >> 2;
-                    rgb[2]        = (u16)mem->field_24 >> 1;
+                    mem->scale  = 0xFF;
+                    arg0->state = 2;
+                    rgb[0]      = mem->scale;
+                    rgb[1]      = (u16)mem->scale >> 2;
+                    rgb[2]      = (u16)mem->scale >> 1;
                     Gp_DrawFadeQuad(rgb, 1);
                     return;
                 }
                 return;
             case 2:
-                if (mem->field_24 >= 0x11) {
-                    rgb[0] = mem->field_24;
-                    rgb[1] = (u16)mem->field_24 >> 2;
-                    rgb[2] = (u16)mem->field_24 >> 1;
-                    RoomsShared8017fdd4Fade(coord, mem->field_26 * 3, rgb);
-                    mem->field_24 -= 0x10;
-                    mem->field_26 -= 8;
+                if (mem->scale >= 0x11) {
+                    rgb[0] = mem->scale;
+                    rgb[1] = (u16)mem->scale >> 2;
+                    rgb[2] = (u16)mem->scale >> 1;
+                    RoomsShared8017fdd4Fade(coord, mem->angle * 3, rgb);
+                    mem->scale -= 0x10;
+                    mem->angle -= 8;
                     return;
                 }
                 /* fallthrough */

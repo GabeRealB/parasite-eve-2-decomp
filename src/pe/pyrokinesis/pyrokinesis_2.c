@@ -43,19 +43,19 @@ void func_pyrokinesis_801311B8(Task* arg0)
             }
             if (arg0->state == 0) {
                 Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1, 0);
-                coord->flg    = 0;
-                mem->field_24 = 0x80;
-                mem->field_26 = 0x100;
-                arg0->state   = 1;
+                coord->flg  = 0;
+                mem->scale  = 0x80;
+                mem->angle  = 0x100;
+                arg0->state = 1;
             }
             Gp_UpdateCoord(coord);
-            func_pyrokinesis_801312B4(coord, mem->field_26, 0x100, mem->field_24);
-            angle         = (u16)mem->field_26;
-            scale         = (u16)mem->field_24;
-            angle        += 0x80;
-            scale        -= 8;
-            mem->field_24 = scale;
-            mem->field_26 = angle;
+            func_pyrokinesis_801312B4(coord, mem->angle, 0x100, mem->scale);
+            angle      = (u16)mem->angle;
+            scale      = (u16)mem->scale;
+            angle     += 0x80;
+            scale     -= 8;
+            mem->scale = scale;
+            mem->angle = angle;
             if ((s16)scale >= 9) {
                 return;
             }
@@ -273,20 +273,20 @@ void func_pyrokinesis_80131CE4(Task* arg0)
             if (flag != 0) {
                 return;
             }
-            mem->field_22 = (u16)mem->field_22 + 1;
+            mem->age = (u16)mem->age + 1;
             if (arg0->state == 0) {
-                mem->field_24 = 0xC0;
-                mem->field_26 = 0x100;
-                arg0->state   = 1;
+                mem->scale  = 0xC0;
+                mem->angle  = 0x100;
+                arg0->state = 1;
             }
             Gp_UpdateCoord(coord);
-            func_pyrokinesis_8012FC34(((TmdObject*)arg0->extra)->coords, mem->field_26, mem->field_24);
-            angle         = (u16)mem->field_26;
-            scale         = (u16)mem->field_24;
-            angle        += 0x40;
-            scale        -= 0x10;
-            mem->field_24 = scale;
-            mem->field_26 = angle;
+            func_pyrokinesis_8012FC34(((TmdObject*)arg0->extra)->coords, mem->angle, mem->scale);
+            angle      = (u16)mem->angle;
+            scale      = (u16)mem->scale;
+            angle     += 0x40;
+            scale     -= 0x10;
+            mem->scale = scale;
+            mem->angle = angle;
             if ((s16)scale >= 0x10) {
                 return;
             }

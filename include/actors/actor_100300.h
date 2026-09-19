@@ -144,7 +144,7 @@ typedef struct Actor100300Work {
     /* 0x628 */ MATRIX              field_628;
     /* 0x648 */ s32                 field_648;
     /* 0x64C */ byte                pad_64C[0x8];
-    /* 0x654 */ struct _GpEffWork*  field_654;
+    /* 0x654 */ struct GpEffWork*   field_654;
     /* 0x658 */ s32                 field_658;
     /* 0x65C */ SVECTOR             field_65C;
     /* 0x664 */ s16                 field_664;

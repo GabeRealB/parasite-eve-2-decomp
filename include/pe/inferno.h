@@ -21,9 +21,9 @@ STATIC_ASSERT_SIZEOF(InfernoIdMap, 0xC);
 
 /// One ring's geometry in `D_inferno_801304E4`, indexed by the `kind` the
 /// caster passes to the fan routines (0 = inner ring, 1 = outer ring).
-/// `field_0` is added to `GpEffWork::field_26` to give the ring's radius in
+/// `field_0` is added to `GpEffWork::angle` to give the ring's radius in
 /// the ground plane, `field_2` is how far the inner rim is lifted along local
-/// Y, and `field_4` plus `GpEffWork::field_2A` widens the outer rim.
+/// Y, and `field_4` plus `GpEffWork::step` widens the outer rim.
 typedef struct InfernoFanParam {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u16 field_2;

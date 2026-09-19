@@ -25,10 +25,10 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 /// two timers on the work area and unlinks its third display object.
 void func_actor_207200_8014CFEC(Actor207200* arg0)
 {
-    GpEffArg*          effArg;
-    struct _GpEffWork* effect;
-    Actor207200Work*   work;
-    Actor207200Ctx*    ctx;
+    GpEffArg*         effArg;
+    struct GpEffWork* effect;
+    Actor207200Work*  work;
+    Actor207200Ctx*   ctx;
 
     work = arg0->field_1C;
     ctx  = arg0->field_20;
@@ -38,7 +38,7 @@ void func_actor_207200_8014CFEC(Actor207200* arg0)
     D_80062730 = (s32)&D_actor_207200_801517F8;
     effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->field_2C)->coords + 3, 0, NULL);
     if (effect != NULL) {
-        ActorsShared8013851c(effect->field_0, (Task*)arg0);
+        ActorsShared8013851c(effect->task, (Task*)arg0);
     }
     effArg = &work->field_3F4;
     func_800FDB18(5, (*(TmdObject**)&arg0->field_2C)->coords + 3, &D_actor_207200_80153F18, effArg);

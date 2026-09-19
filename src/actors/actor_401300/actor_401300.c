@@ -3160,7 +3160,7 @@ static __inline__ void Actor401300_TintEffect(GpEffWork* eff, GpEnemy* enemy)
     if (eff != NULL) {
         sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
         raw        = enemy->placeKey;
-        model      = (TmdObject*)eff->field_0->extra;
+        model      = (TmdObject*)eff->task->extra;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
         key.room   = sessionKey->room;

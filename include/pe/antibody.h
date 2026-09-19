@@ -6,10 +6,10 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-/// One 14-byte row of `D_antibody_80130BD4`, indexed by `GpEffWork.field_20`
+/// One 14-byte row of `D_antibody_80130BD4`, indexed by `GpEffWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`, so the effect scales with the combo
 /// counter). `field_6` is the draw parameter `func_antibody_8012F734` seeds
-/// `GpEffWork.field_24` with, and `field_8` is the base it is re-rolled from
+/// `GpEffWork.scale` with, and `field_8` is the base it is re-rolled from
 /// on later frames (doubled in state 3). The remaining fields belong to the
 /// draw helpers.
 typedef struct AntibodyStep {

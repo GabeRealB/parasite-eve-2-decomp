@@ -297,7 +297,7 @@ void func_actor_400600_80137240(Task* arg0)
     eff           = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[4], 0x200, NULL);
     if (eff != NULL) {
         src        = (TmdObject*)arg0->extra;
-        dst        = (TmdObject*)eff->field_0->extra;
+        dst        = (TmdObject*)eff->task->extra;
         dst->tpage = src->tpage;
         dst->clut  = src->clut;
         if (dst->buffer != NULL) {
@@ -309,7 +309,7 @@ void func_actor_400600_80137240(Task* arg0)
     eff2          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[2], 0x200, NULL);
     if (eff2 != NULL) {
         src2        = (TmdObject*)arg0->extra;
-        dst2        = (TmdObject*)eff2->field_0->extra;
+        dst2        = (TmdObject*)eff2->task->extra;
         dst2->tpage = src2->tpage;
         dst2->clut  = src2->clut;
         if (dst2->buffer != NULL) {
@@ -321,7 +321,7 @@ void func_actor_400600_80137240(Task* arg0)
     eff3          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[16], 0x200, NULL);
     if (eff3 != NULL) {
         src3        = (TmdObject*)arg0->extra;
-        dst3        = (TmdObject*)eff3->field_0->extra;
+        dst3        = (TmdObject*)eff3->task->extra;
         dst3->tpage = src3->tpage;
         dst3->clut  = src3->clut;
         if (dst3->buffer != NULL) {
@@ -333,7 +333,7 @@ void func_actor_400600_80137240(Task* arg0)
     eff4          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[10], 0x200, NULL);
     if (eff4 != NULL) {
         src4        = (TmdObject*)arg0->extra;
-        dst4        = (TmdObject*)eff4->field_0->extra;
+        dst4        = (TmdObject*)eff4->task->extra;
         dst4->tpage = src4->tpage;
         dst4->clut  = src4->clut;
         if (dst4->buffer != NULL) {

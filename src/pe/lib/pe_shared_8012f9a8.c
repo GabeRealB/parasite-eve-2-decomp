@@ -20,35 +20,35 @@ void PeShared8012f9a8(Task* arg0)
     s16            step;
     u16            spawn;
 
-    mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->coords;
-    mem->field_22 = (u16)mem->field_22 + 1;
-    state         = arg0->state;
+    mem      = arg0->spawnArg2;
+    coord    = ((TmdObject*)arg0->extra)->coords;
+    mem->age = (u16)mem->age + 1;
+    state    = arg0->state;
     switch (state) {
         case 0:
-            mem->field_12 = 4;
-            mem->field_10 = 0;
-            mem->field_14 = 0;
-            arg0->state   = 1;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            mem->field_24 = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            spawn         = (u16)arg0->spawnArg1;
-            mem->field_28 = 0x1000;
-            mem->field_26 = spawn & 0xFFF;
+            mem->move.vy = 4;
+            mem->move.vx = 0;
+            mem->move.vz = 0;
+            arg0->state  = 1;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            spawn        = (u16)arg0->spawnArg1;
+            mem->period  = 0x1000;
+            mem->angle   = spawn & 0xFFF;
             return;
         case 1:
-            step              = mem->field_12;
+            step              = mem->move.vy;
             y                 = coord->coord.t[1] + step;
             coord->flg        = 0;
             coord->coord.t[1] = y;
             Gp_UpdateCoord(coord);
-            if (!((u16)mem->field_22 & 1)) {
-                mem->field_20 = (u16)mem->field_20 + 1;
+            if (!((u16)mem->age & 1)) {
+                mem->index = (u16)mem->index + 1;
             }
-            if (mem->field_20 < 8) {
-                if ((u16)mem->field_22 & 1) {
-                    Gp_DrawFxQuad(coord, (u16)mem->field_20, mem->field_26,
-                                  (u16)mem->field_24 | (u16)mem->field_28);
+            if (mem->index < 8) {
+                if ((u16)mem->age & 1) {
+                    Gp_DrawFxQuad(coord, (u16)mem->index, mem->angle,
+                                  (u16)mem->scale | (u16)mem->period);
                     return;
                 }
             } else {

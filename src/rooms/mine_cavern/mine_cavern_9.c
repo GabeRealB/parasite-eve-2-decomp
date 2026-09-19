@@ -459,9 +459,9 @@ void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1)
             printf(D_mine_cavern_8017D7F0);
             eff = Gp_SpawnEff(0x6005C, ((TmdObject*)arg1->extra)->coords, 0x01000580, NULL);
             if (eff != NULL) {
-                eff->field_10 = 0;
-                eff->field_12 = -0xA;
-                eff->field_14 = 0;
+                eff->move.vx = 0;
+                eff->move.vy = -0xA;
+                eff->move.vz = 0;
             }
             return;
 

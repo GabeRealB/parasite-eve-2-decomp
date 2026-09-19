@@ -48,14 +48,14 @@ void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 /// work block.
 ///
 /// State 0 parents the coordinate with an identity rotation at the origin,
-/// seeds `field_20` from the combo counter, refills `D_antibody_80130C0C`
+/// seeds `index` from the combo counter, refills `D_antibody_80130C0C`
 /// with one yaw per wedge, and plays the row's cue. State 1 grows the draw
-/// parameter `field_24` by the row's `field_4`, draws three rings plus the
+/// parameter `scale` by the row's `field_4`, draws three rings plus the
 /// `field_0` wedges (and an arc above the weakest row), and for the first
 /// 0x14 ticks spawns four `0x600F5` motes on a `field_A`-radius circle every
-/// `field_C` frames, reparenting each onto this task. Once `field_24` passes
+/// `field_C` frames, reparenting each onto this task. Once `scale` passes
 /// the row's `field_2` cap it spawns the `0x800600AC` burst, latches
-/// `field_28` and moves to state 2, which shrinks `field_24` by 0x10 a frame
+/// `period` and moves to state 2, which shrinks `scale` by 0x10 a frame
 /// and redraws at the capped radius until it drops below 0x11.
 /// Scratch for the mote ring's per-frame vertex work.
 /// lists an object in the linker script at its first subsegment, and this has
@@ -73,13 +73,13 @@ void func_antibody_8012EF34(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
     if ((state->field_3 != -2) && (Gp_State1C->fadeState < 4)) {
-        mem->field_22 = (u16)mem->field_22 + 1;
+        mem->age = (u16)mem->age + 1;
         switch (arg0->state) {
             case 0: {
                 GpMtxWords* rot;
 
                 rot               = (GpMtxWords*)&coord->coord;
-                coord->sub        = mem->field_8;
+                coord->sub        = mem->parent;
                 rot->w0           = 0x1000;
                 rot->w1           = 0;
                 rot->w2           = 0x1000;
@@ -93,26 +93,26 @@ void func_antibody_8012EF34(Task* arg0)
                 Gp_State1C->peFxFlags &= 0xFDFF;
                 state->field_6        |= 8;
                 arg0->state            = 1;
-                mem->field_20          = (Gp_StateC08.field_0 % 10) - 1;
+                mem->index             = (Gp_StateC08.field_0 % 10) - 1;
                 i                      = 0;
-                if (D_antibody_80130BD4[mem->field_20].field_0 > 0) {
+                if (D_antibody_80130BD4[mem->index].field_0 > 0) {
                     do {
                         s16* dst;
                         s32  lo;
                         s32  rng;
 
                         dst         = D_antibody_80130C0C;
-                        lo          = i * (0x1000 / D_antibody_80130BD4[mem->field_20].field_0);
+                        lo          = i * (0x1000 / D_antibody_80130BD4[mem->index].field_0);
                         rng         = Gp_LcgState * 5 + 0x71357911;
                         dst[i]      = lo + (((u32)rng >> 16) & 0x1FF);
                         Gp_LcgState = rng;
-                    } while (++i < D_antibody_80130BD4[mem->field_20].field_0);
+                    } while (++i < D_antibody_80130BD4[mem->index].field_0);
                 }
                 {
                     s32 pan;
 
                     pan = (s8)Gp_GetObjPan(coord);
-                    SndEvt_EnqueueType6(D_antibody_80130C00[mem->field_20], pan,
+                    SndEvt_EnqueueType6(D_antibody_80130C00[mem->index], pan,
                                         (s8)Gp_GetObjDepth(coord));
                 }
                 return;
@@ -127,60 +127,60 @@ void func_antibody_8012EF34(Task* arg0)
                 s16           count;
 
                 table             = D_antibody_80130BD4;
-                mem->field_24     = (u16)mem->field_24 + table[mem->field_20].field_4;
-                rgb[0]            = *(u8*)&mem->field_24;
-                rgb[1]            = *(u8*)&mem->field_24;
-                rgb[2]            = (u16)mem->field_24 >> 1;
+                mem->scale        = (u16)mem->scale + table[mem->index].field_4;
+                rgb[0]            = *(u8*)&mem->scale;
+                rgb[1]            = *(u8*)&mem->scale;
+                rgb[2]            = (u16)mem->scale >> 1;
                 coord->coord.t[1] = -0x400;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                Gp_DrawRing(coord, (s16)(mem->field_24 * 4), rgb);
-                Gp_DrawRing(coord, (s16)(mem->field_24 * 8), rgb);
-                Gp_DrawRing(coord, (s16)(mem->field_24 * 0xC), rgb);
-                if (mem->field_20 != 0) {
+                Gp_DrawRing(coord, (s16)(mem->scale * 4), rgb);
+                Gp_DrawRing(coord, (s16)(mem->scale * 8), rgb);
+                Gp_DrawRing(coord, (s16)(mem->scale * 0xC), rgb);
+                if (mem->index != 0) {
                     rgb[0] >>= 1;
                     rgb[1] >>= 1;
                     rgb[2] >>= 1;
-                    Gp_DrawArc(coord, (s16)(mem->field_24 * 8), 0x80, rgb);
+                    Gp_DrawArc(coord, (s16)(mem->scale * 8), 0x80, rgb);
                 }
                 i     = 0;
-                count = table[mem->field_20].field_0;
+                count = table[mem->index].field_0;
                 if (count > 0) {
                     t2 = table;
                     p  = D_antibody_80130C0C;
                     do {
-                        PeShared801305c0(coord, (s16)(mem->field_24 * 6), *p, rgb);
+                        PeShared801305c0(coord, (s16)(mem->scale * 6), *p, rgb);
                         p += 1;
-                    } while (++i < t2[mem->field_20].field_0);
+                    } while (++i < t2[mem->index].field_0);
                 }
                 coord->coord.t[1] = 0;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                if (mem->field_22 < 0x14) {
-                    if ((mem->field_22 % D_antibody_80130BD4[mem->field_20].field_C) == 1) {
+                if (mem->age < 0x14) {
+                    if ((mem->age % D_antibody_80130BD4[mem->index].field_C) == 1) {
                         i = 0;
                         do {
-                            rng           = Gp_LcgState * 5 + 0x71357911;
-                            ang           = i + (((u32)rng >> 16) & 0x3FF);
-                            Gp_LcgState   = rng;
-                            mem->field_26 = ang;
-                            mem->field_10 =
-                                (D_antibody_80130BD4[mem->field_20].field_A * rsin(ang)) >> 12;
-                            mem->field_14 = (D_antibody_80130BD4[mem->field_20].field_A *
-                                             rcos(mem->field_26)) >>
-                                            12;
-                            eff = Gp_SpawnEff(0x600F5, coord, 0, (SVECTOR*)&mem->field_10);
+                            rng         = Gp_LcgState * 5 + 0x71357911;
+                            ang         = i + (((u32)rng >> 16) & 0x3FF);
+                            Gp_LcgState = rng;
+                            mem->angle  = ang;
+                            mem->move.vx =
+                                (D_antibody_80130BD4[mem->index].field_A * rsin(ang)) >> 12;
+                            mem->move.vz = (D_antibody_80130BD4[mem->index].field_A *
+                                            rcos(mem->angle)) >>
+                                           12;
+                            eff = Gp_SpawnEff(0x600F5, coord, 0, &mem->move);
                             if (eff != NULL) {
-                                Task_Reparent(arg0, eff->field_0);
+                                Task_Reparent(arg0, eff->task);
                             }
                             i += 0x400;
                         } while (i < 0x1000);
                     }
                 }
-                if (mem->field_24 > D_antibody_80130BD4[mem->field_20].field_2) {
+                if (mem->scale > D_antibody_80130BD4[mem->index].field_2) {
                     Gp_SpawnEff(0x800600AC, coord, 0, 0);
-                    mem->field_28 = (u16)mem->field_24;
-                    arg0->state   = 2;
+                    mem->period = (u16)mem->scale;
+                    arg0->state = 2;
                 }
                 return;
             }
@@ -190,38 +190,38 @@ void func_antibody_8012EF34(Task* arg0)
                 s16*          p;
                 s16           count;
 
-                if (mem->field_24 < 0x11) {
+                if (mem->scale < 0x11) {
                     goto release;
                 }
-                mem->field_24     = (u16)mem->field_24 - 0x10;
-                rgb[0]            = *(u8*)&mem->field_24;
-                rgb[1]            = *(u8*)&mem->field_24;
-                rgb[2]            = (u16)mem->field_24 >> 1;
+                mem->scale        = (u16)mem->scale - 0x10;
+                rgb[0]            = *(u8*)&mem->scale;
+                rgb[1]            = *(u8*)&mem->scale;
+                rgb[2]            = (u16)mem->scale >> 1;
                 coord->coord.t[1] = -0x400;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
                 table = D_antibody_80130BD4;
-                Gp_DrawRing(coord, (s16)(table[mem->field_20].field_2 * 4), rgb);
-                Gp_DrawRing(coord, (s16)(table[mem->field_20].field_2 * 8), rgb);
-                Gp_DrawRing(coord, (s16)(table[mem->field_20].field_2 * 0xC), rgb);
-                if (mem->field_20 != 0) {
-                    if (mem->field_20 == 2) {
-                        mem->field_28 = (u16)mem->field_28 + table[mem->field_20].field_4;
+                Gp_DrawRing(coord, (s16)(table[mem->index].field_2 * 4), rgb);
+                Gp_DrawRing(coord, (s16)(table[mem->index].field_2 * 8), rgb);
+                Gp_DrawRing(coord, (s16)(table[mem->index].field_2 * 0xC), rgb);
+                if (mem->index != 0) {
+                    if (mem->index == 2) {
+                        mem->period = (u16)mem->period + table[mem->index].field_4;
                     }
                     rgb[0] >>= 1;
                     rgb[1] >>= 1;
                     rgb[2] >>= 1;
-                    Gp_DrawArc(coord, (s16)(mem->field_28 * 8), 0x80, rgb);
+                    Gp_DrawArc(coord, (s16)(mem->period * 8), 0x80, rgb);
                 }
                 i     = 0;
-                count = D_antibody_80130BD4[mem->field_20].field_0;
+                count = D_antibody_80130BD4[mem->index].field_0;
                 if (count > 0) {
                     t2 = D_antibody_80130BD4;
                     p  = D_antibody_80130C0C;
                     do {
-                        PeShared801305c0(coord, (s16)(mem->field_28 * 6), *p, rgb);
+                        PeShared801305c0(coord, (s16)(mem->period * 6), *p, rgb);
                         p += 1;
-                    } while (++i < t2[mem->field_20].field_0);
+                    } while (++i < t2[mem->index].field_0);
                 }
                 coord->coord.t[1] = 0;
                 coord->flg        = 0;
@@ -236,17 +236,17 @@ release:
 }
 
 /// Runs one frame of an antibody mote. State 0 re-bases the effect coordinate
-/// on the `GpEffWork.field_8` parent with an identity rotation and the work
-/// block's `field_18`..`field_1C` offset, then GPF-scales that offset by 0x100
-/// (a sixteenth) into `field_10`..`field_14` as the per-frame step, and seeds
-/// the intensity `field_20` from the combo counter, the draw parameter
-/// `field_24` from that row's `field_6` and the phase `field_26` from
+/// on the `GpEffWork.parent` parent with an identity rotation and the work
+/// block's `pos` offset, then GPF-scales that offset by 0x100
+/// (a sixteenth) into `move` as the per-frame step, and seeds
+/// the intensity `index` from the combo counter, the draw parameter
+/// `scale` from that row's `field_6` and the phase `angle` from
 /// `Gp_LcgState`. State 1 walks the coordinate back down that step every frame
 /// and draws with `func_antibody_8012FBB0`; past tick 0x10 it parks a `-0x80`
-/// Y drift in `field_12` and moves to state 2, and one frame in sixteen it
+/// Y drift in `move.vy` and moves to state 2, and one frame in sixteen it
 /// jumps straight to state 3 instead. State 2 applies that Y drift and keeps
 /// drawing; state 3 draws the larger `func_antibody_8012FFEC` /
-/// `func_antibody_80130428` pair. All three re-roll `field_24` / `field_26`
+/// `func_antibody_80130428` pair. All three re-roll `scale` / `angle`
 /// from the row's `field_8` one frame in eight, and states 2 and 3 release the
 /// effect at tick 0x15.
 void func_antibody_8012F734(Task* arg0)
@@ -267,36 +267,36 @@ void func_antibody_8012F734(Task* arg0)
     s32            rng3c;
     s16            idx;
 
-    mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->coords;
-    mem->field_22 = (u16)mem->field_22 + 1;
-    coord->flg    = 0;
+    mem        = arg0->spawnArg2;
+    coord      = ((TmdObject*)arg0->extra)->coords;
+    mem->age   = (u16)mem->age + 1;
+    coord->flg = 0;
     switch (arg0->state) {
         case 0:
             rot        = (GpMtxWords*)&coord->coord;
-            coord->sub = mem->field_8;
+            coord->sub = mem->parent;
             rot->w0    = 0x1000;
             rot->w1    = 0;
             rot->w2    = 0x1000;
             rot->w3    = 0;
             rot->h4    = 0x1000;
 
-            coord->coord.t[0] = mem->field_18;
-            coord->coord.t[1] = mem->field_1A;
-            coord->coord.t[2] = mem->field_1C;
+            coord->coord.t[0] = mem->pos.vx;
+            coord->coord.t[1] = mem->pos.vy;
+            coord->coord.t[2] = mem->pos.vz;
 
             gte_lddp(0x100);
-            gte_ldsv(&mem->field_18);
+            gte_ldsv(&mem->pos);
             gte_gpf12_real();
-            gte_stsv(&mem->field_10);
+            gte_stsv(&mem->move);
 
-            arg0->state   = 1;
-            rng0          = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState   = rng0;
-            idx           = Gp_StateC08.field_0 % 10 - 1;
-            mem->field_20 = idx;
-            mem->field_24 = D_antibody_80130BD4[idx].field_6;
-            mem->field_26 = ((u32)rng0 >> 16) & 0xFFF;
+            arg0->state = 1;
+            rng0        = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState = rng0;
+            idx         = Gp_StateC08.field_0 % 10 - 1;
+            mem->index  = idx;
+            mem->scale  = D_antibody_80130BD4[idx].field_6;
+            mem->angle  = ((u32)rng0 >> 16) & 0xFFF;
             /* fallthrough */
         case 1:
             rng1a       = Gp_LcgState * 5 + 0x71357911;
@@ -304,21 +304,21 @@ void func_antibody_8012F734(Task* arg0)
             if ((((u32)rng1a >> 16) & 7) == 0) {
                 rng1b       = rng1a * 5 + 0x71357911;
                 Gp_LcgState = rng1b;
-                mem->field_24 =
-                    D_antibody_80130BD4[mem->field_20].field_8 + (((u32)rng1b >> 16) & 0x1FF);
-                rng1c         = rng1b * 5 + 0x71357911;
-                Gp_LcgState   = rng1c;
-                mem->field_26 = ((u32)rng1c >> 16) & 0xFFF;
+                mem->scale =
+                    D_antibody_80130BD4[mem->index].field_8 + (((u32)rng1b >> 16) & 0x1FF);
+                rng1c       = rng1b * 5 + 0x71357911;
+                Gp_LcgState = rng1c;
+                mem->angle  = ((u32)rng1c >> 16) & 0xFFF;
             }
-            coord->coord.t[0] -= mem->field_10;
-            coord->coord.t[1] -= mem->field_12;
-            coord->coord.t[2] -= mem->field_14;
+            coord->coord.t[0] -= mem->move.vx;
+            coord->coord.t[1] -= mem->move.vy;
+            coord->coord.t[2] -= mem->move.vz;
             coord->flg         = 0;
             Gp_UpdateCoord(coord);
-            func_antibody_8012FBB0(coord, mem->field_22, mem->field_24, mem->field_26);
-            if (mem->field_22 >= 0x10) {
-                mem->field_12 = -0x80;
-                arg0->state   = 2;
+            func_antibody_8012FBB0(coord, mem->age, mem->scale, mem->angle);
+            if (mem->age >= 0x10) {
+                mem->move.vy = -0x80;
+                arg0->state  = 2;
                 return;
             }
             rng1d       = Gp_LcgState * 5 + 0x71357911;
@@ -333,34 +333,34 @@ void func_antibody_8012F734(Task* arg0)
             if ((((u32)rng2a >> 16) & 7) == 0) {
                 rng2b       = rng2a * 5 + 0x71357911;
                 Gp_LcgState = rng2b;
-                mem->field_24 =
-                    D_antibody_80130BD4[mem->field_20].field_8 + (((u32)rng2b >> 16) & 0x1FF);
-                rng2c         = rng2b * 5 + 0x71357911;
-                Gp_LcgState   = rng2c;
-                mem->field_26 = ((u32)rng2c >> 16) & 0xFFF;
+                mem->scale =
+                    D_antibody_80130BD4[mem->index].field_8 + (((u32)rng2b >> 16) & 0x1FF);
+                rng2c       = rng2b * 5 + 0x71357911;
+                Gp_LcgState = rng2c;
+                mem->angle  = ((u32)rng2c >> 16) & 0xFFF;
             }
-            coord->coord.t[1] += mem->field_12;
+            coord->coord.t[1] += mem->move.vy;
             coord->flg         = 0;
             Gp_UpdateCoord(coord);
-            func_antibody_8012FBB0(coord, mem->field_22, mem->field_24, mem->field_26);
+            func_antibody_8012FBB0(coord, mem->age, mem->scale, mem->angle);
             goto check;
         case 3:
             rng3a       = Gp_LcgState * 5 + 0x71357911;
             Gp_LcgState = rng3a;
             if ((((u32)rng3a >> 16) & 7) == 0) {
-                rng3b         = rng3a * 5 + 0x71357911;
-                Gp_LcgState   = rng3b;
-                mem->field_24 = (s16)D_antibody_80130BD4[mem->field_20].field_8 * 2 +
-                                (((u32)rng3b >> 16) & 0x1FF);
-                rng3c         = rng3b * 5 + 0x71357911;
-                Gp_LcgState   = rng3c;
-                mem->field_26 = ((u32)rng3c >> 16) & 0xFFF;
+                rng3b       = rng3a * 5 + 0x71357911;
+                Gp_LcgState = rng3b;
+                mem->scale  = (s16)D_antibody_80130BD4[mem->index].field_8 * 2 +
+                             (((u32)rng3b >> 16) & 0x1FF);
+                rng3c       = rng3b * 5 + 0x71357911;
+                Gp_LcgState = rng3c;
+                mem->angle  = ((u32)rng3c >> 16) & 0xFFF;
             }
             Gp_UpdateCoord(coord);
-            func_antibody_8012FFEC(coord, mem->field_22, mem->field_24, mem->field_26);
-            func_antibody_80130428(coord, mem->field_22, mem->field_24);
+            func_antibody_8012FFEC(coord, mem->age, mem->scale, mem->angle);
+            func_antibody_80130428(coord, mem->age, mem->scale);
         check:
-            if (mem->field_22 >= 0x15) {
+            if (mem->age >= 0x15) {
                 Gp_ReleaseState1CMem(mem, arg0);
             }
             break;

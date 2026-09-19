@@ -54,11 +54,11 @@ typedef struct Actor102300Work {
     /* 0x680 */ s32  field_680;
     /* 0x684 */ byte pad_684[4];
     /// Hit tilt, seeded from the LCG when a hit lands with no reaction state.
-    /* 0x688 */ SVECTOR            field_688;
-    /* 0x690 */ struct _GpEffWork* field_690;
-    /* 0x694 */ s16                field_694;
-    /* 0x696 */ byte               pad_696[2];
-    /* 0x698 */ s16                field_698;
+    /* 0x688 */ SVECTOR           field_688;
+    /* 0x690 */ struct GpEffWork* field_690;
+    /* 0x694 */ s16               field_694;
+    /* 0x696 */ byte              pad_696[2];
+    /* 0x698 */ s16               field_698;
     /// Hit cooldown in frames, seeded from `Gp_GetIdParam2`; while non-zero the
     /// weapon-hit records are ignored.
     /* 0x69A */ s16  field_69A;

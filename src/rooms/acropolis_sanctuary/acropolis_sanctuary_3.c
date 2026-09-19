@@ -317,21 +317,21 @@ void func_acropolis_sanctuary_8017E134(Task* arg0)
         return;
     }
     for (i = 0; i < 0x48; i++) {
-        tile          = &D_acropolis_sanctuary_80182320[i];
-        quad          = tile->quad;
-        mem->field_10 = 0;
-        mem->field_12 = ((tile->col * 1145) >> 7) - D_acropolis_sanctuary_80182710[quad].corner[0].vy;
-        mem->field_14 = -((tile->row * 2147) >> 8) - D_acropolis_sanctuary_80182710[quad].corner[0].vz;
-        Gp_SpawnEff(0x60079, coord, i, (SVECTOR*)&mem->field_10);
+        tile         = &D_acropolis_sanctuary_80182320[i];
+        quad         = tile->quad;
+        mem->move.vx = 0;
+        mem->move.vy = ((tile->col * 1145) >> 7) - D_acropolis_sanctuary_80182710[quad].corner[0].vy;
+        mem->move.vz = -((tile->row * 2147) >> 8) - D_acropolis_sanctuary_80182710[quad].corner[0].vz;
+        Gp_SpawnEff(0x60079, coord, i, &mem->move);
     }
     for (i = 0; i < 0x10; i++) {
-        idx           = D_acropolis_sanctuary_80182750[i];
-        tile          = &D_acropolis_sanctuary_80182320[idx];
-        quad          = tile->quad;
-        mem->field_10 = 0;
-        mem->field_12 = ((tile->col * 1145) >> 7) - D_acropolis_sanctuary_80182710[quad].corner[0].vy;
-        mem->field_14 = -((tile->row * 2147) >> 8) - D_acropolis_sanctuary_80182710[quad].corner[0].vz;
-        Gp_SpawnEff(0x60079, coord, idx, (SVECTOR*)&mem->field_10);
+        idx          = D_acropolis_sanctuary_80182750[i];
+        tile         = &D_acropolis_sanctuary_80182320[idx];
+        quad         = tile->quad;
+        mem->move.vx = 0;
+        mem->move.vy = ((tile->col * 1145) >> 7) - D_acropolis_sanctuary_80182710[quad].corner[0].vy;
+        mem->move.vz = -((tile->row * 2147) >> 8) - D_acropolis_sanctuary_80182710[quad].corner[0].vz;
+        Gp_SpawnEff(0x60079, coord, idx, &mem->move);
     }
     arg0->state = arg0->state + 1;
 }
@@ -346,15 +346,15 @@ void func_acropolis_sanctuary_8017E134(Task* arg0)
 /// piece of the mosaic sheet at full size -- this is the intact tile,
 /// `func_acropolis_sanctuary_8017EC90` draws the shards it breaks into.
 ///
-/// The drift (`field_10`..`field_14`) and spin (`field_18`..`field_1C`) are
+/// The drift (`move`) and spin (`pos`) are
 /// seeded from the LCG on the first drawn frame, in one of two strengths
 /// chosen by the tile's `field_8`: a fast, wide-tumbling one and a slow one
-/// whose life (`field_26`) also gets a random 0..7 bonus. Life is the tile's
-/// `field_A`, and `field_22` is the frame counter measured against it -- the
+/// whose life (`angle`) also gets a random 0..7 bonus. Life is the tile's
+/// `field_A`, and `age` is the frame counter measured against it -- the
 /// tile drifts while it is still young, and the work block is released 0x3C
 /// frames past that.
 ///
-/// While drifting, a tile of the fast kind (`field_24` zero) has a 1-in-60
+/// While drifting, a tile of the fast kind (`scale` zero) has a 1-in-60
 /// chance per frame -- or a certainty once past y = -0xBFF -- of shedding one
 /// to four 0x6007A shards, tagged 0x1000 so they spawn as the airborne
 /// variant. Crossing x = -0x2740 above y = -0xED7 either shatters a
@@ -413,38 +413,38 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
     gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
     gte_stszotz(&blk->otz);
     if (blk->otz >= 0x11) {
-        if (mem->field_22 == 0) {
-            mem->field_24 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_8;
-            if (mem->field_24 != 0) {
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_10 = -(((u32)Gp_LcgState >> 16) & 0xFF);
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_12 = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_14 = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_18 = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_1A = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_1C = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                mem->field_26 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_A;
+        if (mem->age == 0) {
+            mem->scale = D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_8;
+            if (mem->scale != 0) {
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vx = -(((u32)Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vy = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vz = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->pos.vx  = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->pos.vy  = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->pos.vz  = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                mem->angle   = D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_A;
             } else {
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_10 = -(((u32)Gp_LcgState >> 16) & 0x1F);
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_12 = ((u32)Gp_LcgState >> 16) & 7;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_14 = 4 - (((u32)Gp_LcgState >> 16) & 7);
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_18 = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_1A = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_1C = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_26 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_A +
-                                (((u32)Gp_LcgState >> 16) & 7);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vx = -(((u32)Gp_LcgState >> 16) & 0x1F);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vy = ((u32)Gp_LcgState >> 16) & 7;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vz = 4 - (((u32)Gp_LcgState >> 16) & 7);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->pos.vx  = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->pos.vy  = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->pos.vz  = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->angle   = D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_A +
+                             (((u32)Gp_LcgState >> 16) & 7);
             }
         }
         prim->tpage = 0x8C;
@@ -466,18 +466,18 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
                 prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
-    if (mem->field_26 + 0x3C < mem->field_22) {
+    if (mem->angle + 0x3C < mem->age) {
         Gp_ReleaseState1CMem(mem, arg0);
         return;
     }
-    if (mem->field_26 < mem->field_22) {
-        coord->coord.t[0] += mem->field_10;
-        coord->coord.t[1] += mem->field_12;
-        coord->coord.t[2] += mem->field_14;
-        Gfx_RotMatrixYXZ(&coord->coord, (SVECTOR*)&mem->field_18, 0);
-        coord->flg    = 0;
-        mem->field_12 = mem->field_12 + 3;
-        if (mem->field_24 == 0) {
+    if (mem->angle < mem->age) {
+        coord->coord.t[0] += mem->move.vx;
+        coord->coord.t[1] += mem->move.vy;
+        coord->coord.t[2] += mem->move.vz;
+        Gfx_RotMatrixYXZ(&coord->coord, &mem->pos, 0);
+        coord->flg   = 0;
+        mem->move.vy = mem->move.vy + 3;
+        if (mem->scale == 0) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((u16)(((u32)Gp_LcgState >> 16) % 60U) == 0 || coord->coord.t[1] >= -0xBFF) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -485,7 +485,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
                 for (i = 0; i < n; i++) {
                     Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1 | 0x1000, NULL);
                 }
-                mem->field_22 = mem->field_22 + 0x64;
+                mem->age = mem->age + 0x64;
             }
         }
     }
@@ -500,28 +500,28 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
                 for (i = 0; i < quad; i++) {
                     Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1, NULL);
                 }
-                mem->field_22 = mem->field_22 + 0x64;
+                mem->age = mem->age + 0x64;
             } else {
-                coord->coord.t[1] -= mem->field_12 * 2;
-                mem->field_12      = -(mem->field_12 >> 1);
+                coord->coord.t[1] -= mem->move.vy * 2;
+                mem->move.vy       = -(mem->move.vy >> 1);
             }
         } else {
-            coord->coord.t[1] -= mem->field_12 * 2;
-            mem->field_12      = -(mem->field_12 >> 1);
+            coord->coord.t[1] -= mem->move.vy * 2;
+            mem->move.vy       = -(mem->move.vy >> 1);
         }
     }
     if ((u8)gGameSession->at4.loc.view != 0x10 && D_acropolis_sanctuary_80182770 != 0 &&
         (coord->coord.t[0] < -0x28C0 ||
          (coord->coord.t[0] < -0x2740 && coord->coord.t[1] >= -0xED7))) {
-        mem->field_22 = mem->field_22 + 0x3C;
+        mem->age = mem->age + 0x3C;
     }
-    mem->field_22 = mem->field_22 + 1;
+    mem->age = mem->age + 1;
 }
 
 /// Draws one frame of a mosaic shard: a semi-transparent textured triangle
 /// whose three corners come from the first three corners of
 /// `D_acropolis_sanctuary_80182710`, scaled about the origin by the shard's
-/// size (`field_26`) with the GTE's `gpf` interpolator and rotated by the
+/// size (`angle`) with the GTE's `gpf` interpolator and rotated by the
 /// task's own `workm`, then projected through `GsWSMATRIX` with `rtpt` into an
 /// `AcsMosaicScratch` block taken from `G_SCRATCH_HEAD`; shards inside `otz`
 /// 0x11 are dropped. The texture window is the tile's `row` / `col` corner
@@ -531,8 +531,8 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
 /// `Task::spawnArg1` is unpacked on the first frame: bits 12..15 select the
 /// drift pattern, the high halfword is the size (defaulting to 0x1000) and only
 /// the low 12 bits are kept, as the index into the tile table. The same frame
-/// seeds the per-frame drift (`field_10`..`field_14`) and spin
-/// (`field_18`..`field_1C`) from the LCG -- pattern 0 falls faster, since its
+/// seeds the per-frame drift (`move`) and spin
+/// (`pos`) from the LCG -- pattern 0 falls faster, since its
 /// vertical step is seeded negative.
 ///
 /// Each frame the shard drifts by that step, gains 3 of downward speed, and is
@@ -561,7 +561,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
 
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if (mem->field_22 >= 0x3D || mem->field_20 >= 2) {
+    if (mem->age >= 0x3D || mem->index >= 2) {
         Gp_ReleaseState1CMem(mem, arg0);
         return;
     }
@@ -570,36 +570,36 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
     head     = *scratch;
     *scratch = head - 0x20;
     blk      = (AcsMosaicScratch*)(head - 0x20);
-    if (mem->field_22 == 0) {
-        mem->field_24 = (arg0->spawnArg1 >> 12) & 0xF;
-        hi            = (s16)(arg0->spawnArg1 >> 16);
-        size          = 0x1000;
+    if (mem->age == 0) {
+        mem->scale = (arg0->spawnArg1 >> 12) & 0xF;
+        hi         = (s16)(arg0->spawnArg1 >> 16);
+        size       = 0x1000;
         if ((u16)hi != 0) {
             size = hi;
         }
-        mem->field_26   = size;
+        mem->angle      = size;
         arg0->spawnArg1 = arg0->spawnArg1 & 0xFFF;
-        if (mem->field_24 != 0) {
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            mem->field_10 = 8 - (((u32)Gp_LcgState >> 16) & 0xF);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            mem->field_12 = ((u32)Gp_LcgState >> 16) & 0xF;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            mem->field_14 = 8 - (((u32)Gp_LcgState >> 16) & 0xF);
+        if (mem->scale != 0) {
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->move.vx = 8 - (((u32)Gp_LcgState >> 16) & 0xF);
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->move.vy = ((u32)Gp_LcgState >> 16) & 0xF;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->move.vz = 8 - (((u32)Gp_LcgState >> 16) & 0xF);
         } else {
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            mem->field_10 = 8 - (((u32)Gp_LcgState >> 16) & 0xF);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            mem->field_12 = -(((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            mem->field_14 = 8 - (((u32)Gp_LcgState >> 16) & 0xF);
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->move.vx = 8 - (((u32)Gp_LcgState >> 16) & 0xF);
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->move.vy = -(((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->move.vz = 8 - (((u32)Gp_LcgState >> 16) & 0xF);
         }
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        mem->field_18 = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        mem->field_1A = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        mem->field_1C = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        mem->pos.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        mem->pos.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        mem->pos.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     corner = D_acropolis_sanctuary_80182710->corner;
@@ -611,7 +611,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
         sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(AcsMosaicScratch, v));
         sv->vy = corner[i].vy;
         sv->vz = corner[i].vz;
-        gte_lddp(mem->field_26);
+        gte_lddp(mem->angle);
         gte_ldsv(&blk->v[i]);
         gte_gpf12_real();
         gte_stsv(&blk->v[i]);
@@ -639,51 +639,51 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
         prim->u0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1].row;
         prim->v0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1].col;
         prim->u1    = D_acropolis_sanctuary_80182320[arg0->spawnArg1].row +
-                   ((D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_0 * mem->field_26) >> 12);
+                   ((D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_0 * mem->angle) >> 12);
         prim->v1 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].col;
         prim->u2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].row;
         prim->v2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1].col +
-                   ((D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_2 * mem->field_26) >> 12);
+                   ((D_acropolis_sanctuary_80182320[arg0->spawnArg1].field_2 * mem->angle) >> 12);
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    coord->coord.t[0]      += mem->field_10;
-    coord->coord.t[1]      += mem->field_12;
+    coord->coord.t[0]      += mem->move.vx;
+    coord->coord.t[1]      += mem->move.vy;
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
-    coord->coord.t[2]      += mem->field_14;
-    Gfx_RotMatrixYXZ(&coord->coord, (SVECTOR*)&mem->field_18, 0);
-    coord->flg    = 0;
-    mem->field_12 = mem->field_12 + 3;
+    coord->coord.t[2]      += mem->move.vz;
+    Gfx_RotMatrixYXZ(&coord->coord, &mem->pos, 0);
+    coord->flg   = 0;
+    mem->move.vy = mem->move.vy + 3;
     if (coord->coord.t[0] < -0x2740 && coord->coord.t[1] >= -0xED7) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         n           = ((u32)Gp_LcgState >> 16) & 1;
-        if (mem->field_26 >= 0x401 && n != 0) {
+        if (mem->angle >= 0x401 && n != 0) {
             n = n + 1;
             for (i = 0; i < n; i++) {
-                Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1 | (mem->field_26 << 15), NULL);
+                Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1 | (mem->angle << 15), NULL);
             }
-            mem->field_22 = mem->field_22 + 0x3C;
+            mem->age = mem->age + 0x3C;
         } else {
-            coord->coord.t[1] -= mem->field_12 * 2;
-            mem->field_12      = -(mem->field_12 >> 1);
-            mem->field_20      = mem->field_20 + 1;
+            coord->coord.t[1] -= mem->move.vy * 2;
+            mem->move.vy       = -(mem->move.vy >> 1);
+            mem->index         = mem->index + 1;
         }
-    } else if (mem->field_26 >= 0x401) {
+    } else if (mem->angle >= 0x401) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         if ((u16)(((u32)Gp_LcgState >> 16) % 60U) == 0 || coord->coord.t[1] >= -0xBFF) {
             for (i = 0; i < 2; i++) {
-                flags = (mem->field_26 << 15) | 0x1000;
+                flags = (mem->angle << 15) | 0x1000;
                 Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1 | flags, NULL);
             }
-            mem->field_22 = mem->field_22 + 0x3C;
+            mem->age = mem->age + 0x3C;
         }
     }
     if ((u8)gGameSession->at4.loc.view != 0x10 && D_acropolis_sanctuary_80182770 != 0 &&
         (coord->coord.t[0] < -0x28C0 ||
          (coord->coord.t[0] < -0x2740 && coord->coord.t[1] >= -0xED7))) {
-        mem->field_22 = mem->field_22 + 0x3C;
+        mem->age = mem->age + 0x3C;
     }
-    mem->field_22 = mem->field_22 + 1;
+    mem->age = mem->age + 1;
 }
 
 /// Draws one frame of the sanctuary's flame sprite. The task's coordinate is
@@ -725,11 +725,11 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
             base            = D_acropolis_sanctuary_8017D5D8;
             step            = D_acropolis_sanctuary_8017D5DC;
             param           = arg0->spawnArg1;
-            mem->field_24   = (param & 0x0FFF0000) ? ((param >> 16) & 0xFFF) : 0x280;
-            mem->field_26   = (arg0->spawnArg1 >> 8) & 3;
+            mem->scale      = (param & 0x0FFF0000) ? ((param >> 16) & 0xFFF) : 0x280;
+            mem->angle      = (arg0->spawnArg1 >> 8) & 3;
             arg0->spawnArg1 = arg0->spawnArg1 & 0xF;
-            mem->field_28   = base.v[mem->field_26];
-            mem->field_2A   = step.v[mem->field_26];
+            mem->period     = base.v[mem->angle];
+            mem->step       = step.v[mem->angle];
             arg0->state++;
         }
         blk->pos.vx = *(u16*)&coord->workm.t[0];
@@ -746,20 +746,20 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
         gte_stsxy(&blk->sx);
         gte_stszotz(&blk->otz);
         if (blk->otz >= 0x11) {
-            lvl         = (u8)mem->field_28 + (gDisplayState.animFrame & 1) * mem->field_2A;
+            lvl         = (u8)mem->period + (gDisplayState.animFrame & 1) * mem->step;
             prim->tpage = 0x2B;
             prim->code |= 2;
             setRGB0(prim, lvl, lvl, lvl);
-            prim->clut = getClut(mem->field_26 * 0x10, 0x10E);
-            prim->u0   = mem->field_26 * 0x28;
+            prim->clut = getClut(mem->angle * 0x10, 0x10E);
+            prim->u0   = mem->angle * 0x28;
             prim->v0   = 0;
-            prim->u1   = mem->field_26 * 0x28 + 0x27;
+            prim->u1   = mem->angle * 0x28 + 0x27;
             prim->v1   = 0;
-            prim->u2   = mem->field_26 * 0x28;
+            prim->u2   = mem->angle * 0x28;
             prim->v2   = 0x27;
-            prim->u3   = mem->field_26 * 0x28 + 0x27;
+            prim->u3   = mem->angle * 0x28 + 0x27;
             prim->v3   = 0x27;
-            blk->half  = (mem->field_24 * 0x27) / blk->otz;
+            blk->half  = (mem->scale * 0x27) / blk->otz;
             x          = blk->sx - (u16)blk->half;
             prim->x2   = x;
             prim->x0   = x;

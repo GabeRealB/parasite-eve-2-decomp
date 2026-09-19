@@ -28,18 +28,18 @@ void RoomsShared80181f58(Task* arg0)
         goto kill;
     } else {
         Gp_UpdateCoord(coord);
-        mem->field_22++;
-        if (mem->field_22 >= 0x15) {
+        mem->age++;
+        if (mem->age >= 0x15) {
         kill:
             Gp_ReleaseState1CMem(mem, arg0);
             return;
         }
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        ang           = mem->field_24 + ((((u32)Gp_LcgState >> 16) & 0x1FF) + 0x200);
-        mem->field_24 = ang;
-        mem->field_10 = (u32)(rcos(ang) * 3) >> 4;
-        mem->field_12 = -mem->field_22 * 128;
-        mem->field_14 = (u32)(rsin(mem->field_24) * 3) >> 4;
-        Gp_SpawnEff(D_80115728, coord, 0x30080201, (SVECTOR*)&mem->field_10);
+        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+        ang          = mem->scale + ((((u32)Gp_LcgState >> 16) & 0x1FF) + 0x200);
+        mem->scale   = ang;
+        mem->move.vx = (u32)(rcos(ang) * 3) >> 4;
+        mem->move.vy = -mem->age * 128;
+        mem->move.vz = (u32)(rsin(mem->scale) * 3) >> 4;
+        Gp_SpawnEff(D_80115728, coord, 0x30080201, &mem->move);
     }
 }

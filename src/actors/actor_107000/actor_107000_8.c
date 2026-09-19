@@ -47,21 +47,21 @@ void func_actor_107000_801367E0(Task* arg0)
             D_80062730 = (s32)&D_actor_107000_8013D550;
             effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->extra)->coords + 1, 0, NULL);
             if (effect != NULL) {
-                ActorsShared8013851c(effect->field_0, arg0);
+                ActorsShared8013851c(effect->task, arg0);
             }
             break;
         case 2:
             D_80062730 = (s32)&D_actor_107000_8013CFB4;
             effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->extra)->coords + 5, 0, NULL);
             if (effect != NULL) {
-                ActorsShared8013851c(effect->field_0, arg0);
+                ActorsShared8013851c(effect->task, arg0);
             }
             break;
         case 3:
             D_80062730 = (s32)&D_actor_107000_8013C960;
             effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->extra)->coords + 4, 0, NULL);
             if (effect != NULL) {
-                ActorsShared8013851c(effect->field_0, arg0);
+                ActorsShared8013851c(effect->task, arg0);
             }
             break;
     }

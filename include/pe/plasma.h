@@ -37,9 +37,9 @@ typedef struct PlasmaJitter {
 STATIC_ASSERT_SIZEOF(PlasmaJitter, 0x60);
 
 /// Per-ring radius scale for `func_plasma_8012F568`, indexed by ring number
-/// (0..2). `rInner` widens the inner radius (`GpEffWork::field_26`), `rExtra`
-/// the outer radius on top of that (`+ field_2A`), and `yOff` raises the
-/// inner edge above `field_28`.
+/// (0..2). `rInner` widens the inner radius (`GpEffWork::angle`), `rExtra`
+/// the outer radius on top of that (`+ GpEffWork::step`), and `yOff` raises
+/// the inner edge above `GpEffWork::period`.
 typedef struct PlasmaRingScale {
     /* 0x0 */ s16 rInner;
     /* 0x2 */ s16 yOff;

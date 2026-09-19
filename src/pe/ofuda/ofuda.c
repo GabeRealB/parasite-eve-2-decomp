@@ -43,13 +43,13 @@ void ofudaEffectTask(Task* arg0)
         goto kill;
     }
 
-    mem->field_22 = (u16)mem->field_22 + 1;
+    mem->age = (u16)mem->age + 1;
     switch (arg0->state) {
         case 0:
             arg0->spawnArg1 = 0x1E;
-            mem->field_24   = 0;
-            mem->field_26   = 0x100;
-            mem->field_2A   = 0x100 / arg0->spawnArg1;
+            mem->scale      = 0;
+            mem->angle      = 0x100;
+            mem->step       = 0x100 / arg0->spawnArg1;
             arg0->state     = 1;
             pan             = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(0xE03D0001, pan, (s8)Gp_GetObjDepth(coord));
@@ -59,19 +59,19 @@ void ofudaEffectTask(Task* arg0)
             s32 addend;
             s32 copy;
 
-            cur           = (u16)mem->field_24;
-            addend        = (u16)mem->field_2A;
-            mem->field_24 = cur + addend;
-            copy          = addend;
+            cur        = (u16)mem->scale;
+            addend     = (u16)mem->step;
+            mem->scale = cur + addend;
+            copy       = addend;
             COPY_REG_EC(copy, addend);
-            mem->field_26 = (u16)mem->field_26 + (copy << 3);
+            mem->angle = (u16)mem->angle + (copy << 3);
         }
             arg0->spawnArg1 = arg0->spawnArg1 - 1;
-            rgb[0]          = *(u8*)&mem->field_24;
-            rgb[1]          = (u16)mem->field_24 >> 2;
-            rgb[2]          = (u16)mem->field_24 >> 1;
-            Gp_DrawRing(coord, mem->field_26, rgb);
-            Gp_DrawRing(coord, (s16)((u16)mem->field_26 * 2), rgb);
+            rgb[0]          = *(u8*)&mem->scale;
+            rgb[1]          = (u16)mem->scale >> 2;
+            rgb[2]          = (u16)mem->scale >> 1;
+            Gp_DrawRing(coord, mem->angle, rgb);
+            Gp_DrawRing(coord, (s16)((u16)mem->angle * 2), rgb);
             Gp_DrawArc(coord, (s16)(((u16)arg0->spawnArg1 << 4) + 0x800), 0x100, rgb);
             {
                 GsCOORDINATE2* c;
@@ -94,24 +94,24 @@ void ofudaEffectTask(Task* arg0)
                 Gp_DrawArc(c, (s16)(((u16)arg0->spawnArg1 << 5) + 0xC00), span, rgb);
             }
             if (arg0->spawnArg1 == 0) {
-                mem->field_24   = 0xFF;
+                mem->scale      = 0xFF;
                 arg0->state     = 2;
-                mem->field_28   = 0x600;
-                mem->field_2A   = 0;
+                mem->period     = 0x600;
+                mem->step       = 0;
                 state->field_6 |= 8;
             }
             return;
         case 2:
-            if (mem->field_24 < 9) {
+            if (mem->scale < 9) {
                 goto kill;
             }
-            rgb[0] = *(u8*)&mem->field_24;
-            rgb[1] = (u16)mem->field_24 >> 2;
-            rgb[2] = (u16)mem->field_24 >> 1;
-            Gp_DrawRing(coord, mem->field_26, rgb);
-            Gp_DrawRing(coord, (s16)((u16)mem->field_26 * 2), rgb);
-            mem->field_24 = (u16)mem->field_24 - 8;
-            mem->field_26 = (u16)mem->field_26 - 0x30;
+            rgb[0] = *(u8*)&mem->scale;
+            rgb[1] = (u16)mem->scale >> 2;
+            rgb[2] = (u16)mem->scale >> 1;
+            Gp_DrawRing(coord, mem->angle, rgb);
+            Gp_DrawRing(coord, (s16)((u16)mem->angle * 2), rgb);
+            mem->scale = (u16)mem->scale - 8;
+            mem->angle = (u16)mem->angle - 0x30;
             Gp_DrawFadeQuad(rgb, 1);
             Gp_DrawFadeQuad(rgb, 1);
             return;

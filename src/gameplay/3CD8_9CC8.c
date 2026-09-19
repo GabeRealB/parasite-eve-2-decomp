@@ -330,9 +330,9 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
         if (arg3 == NULL) {
             arg3 = &vec;
         }
-        mem->field_18 = arg3->vx;
-        mem->field_1A = arg3->vy;
-        mem->field_1C = arg3->vz;
+        mem->pos.vx = arg3->vx;
+        mem->pos.vy = arg3->vy;
+        mem->pos.vz = arg3->vz;
         if (arg1->sub == &gGfxViewCoord) {
             coord->coord = arg1->coord;
             gte_SetRotMatrix(&arg1->coord);
@@ -353,7 +353,7 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
         coord->sub = &gGfxViewCoord;
         coord->flg = 0;
         Gp_UpdateCoord(coord);
-        mem->field_8 = arg1;
+        mem->parent = arg1;
     } else {
         GsCOORDINATE2* coord;
         SVECTOR        vec;
@@ -364,9 +364,9 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
         if (arg3 == NULL) {
             arg3 = &vec;
         }
-        mem->field_18 = arg3->vx;
-        mem->field_1A = arg3->vy;
-        mem->field_1C = arg3->vz;
+        mem->pos.vx = arg3->vx;
+        mem->pos.vy = arg3->vy;
+        mem->pos.vz = arg3->vz;
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(arg3);
@@ -375,22 +375,22 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
         coord->sub = &gGfxViewCoord;
         coord->flg = 0;
         Gp_UpdateCoord(coord);
-        mem->field_8 = &gGfxViewCoord;
+        mem->parent = &gGfxViewCoord;
     }
 
     task->spawnArg2    = mem;
     task->exitCallback = Gp_KillState1CTask;
-    mem->field_0       = task;
-    mem->field_20      = 0;
-    mem->field_22      = 0;
-    mem->field_24      = 0;
-    mem->field_26      = 0;
-    mem->field_28      = 0;
-    mem->field_2A      = 0;
+    mem->task          = task;
+    mem->index         = 0;
+    mem->age           = 0;
+    mem->scale         = 0;
+    mem->angle         = 0;
+    mem->period        = 0;
+    mem->step          = 0;
     mem->field_4       = 0;
-    mem->field_10      = 0;
-    mem->field_12      = 0;
-    mem->field_14      = 0;
+    mem->move.vx       = 0;
+    mem->move.vy       = 0;
+    mem->move.vz       = 0;
     return mem;
 }
 
@@ -899,49 +899,49 @@ void func_800EC47C(Task* arg0)
         case 0:
             Gp_State1C->screenFxFlags |= 1;
             arg0->state                = 1;
-            mem->field_26              = 0x10;
+            mem->angle                 = 0x10;
         case 1:
-            if (mem->field_24 < mem->field_26) {
-                mem->field_24 += 8;
+            if (mem->scale < mem->angle) {
+                mem->scale += 8;
             } else {
                 arg0->state = 2;
             }
             if (!(Player_Status.peStateFlags & 1)) {
                 arg0->state = 3;
             }
-            rgb[0] = rgb[1] = rgb[2] = mem->field_24;
+            rgb[0] = rgb[1] = rgb[2] = mem->scale;
             Gp_DrawFadeQuad(rgb, 2);
             break;
         case 2:
-            current = mem->field_24;
-            target  = mem->field_26;
+            current = mem->scale;
+            target  = mem->angle;
             if (current == target) {
-                count         = (u16)mem->field_28 + 1;
-                random        = Gp_LcgState * 5 + 0x71357911;
-                mem->field_28 = count;
-                Gp_LcgState   = random;
-                mem->field_26 = ((count & 1) << (((random >> 16) & 1) + 4)) + 0x10;
+                count       = (u16)mem->period + 1;
+                random      = Gp_LcgState * 5 + 0x71357911;
+                mem->period = count;
+                Gp_LcgState = random;
+                mem->angle  = ((count & 1) << (((random >> 16) & 1) + 4)) + 0x10;
             } else {
                 if (current < target) {
-                    mem->field_24 = current + 8;
+                    mem->scale = current + 8;
                 } else {
-                    mem->field_24 = current - 8;
+                    mem->scale = current - 8;
                 }
             }
             if (!(Player_Status.peStateFlags & 1)) {
                 arg0->state = 3;
             }
-            rgb[0] = rgb[1] = rgb[2] = mem->field_24;
+            rgb[0] = rgb[1] = rgb[2] = mem->scale;
             Gp_DrawFadeQuad(rgb, 2);
             break;
         case 3:
             if (Player_Status.peStateFlags & 1) {
                 arg0->state = 0;
-                rgb[0] = rgb[1] = rgb[2] = mem->field_24;
+                rgb[0] = rgb[1] = rgb[2] = mem->scale;
                 Gp_DrawFadeQuad(rgb, 2);
-            } else if (mem->field_24 >= 9) {
-                mem->field_24 -= 8;
-                rgb[0] = rgb[1] = rgb[2] = mem->field_24;
+            } else if (mem->scale >= 9) {
+                mem->scale -= 8;
+                rgb[0] = rgb[1] = rgb[2] = mem->scale;
                 Gp_DrawFadeQuad(rgb, 2);
             } else {
                 Gp_State1C->screenFxFlags &= 0xFFFE;
@@ -969,16 +969,16 @@ void Gp_FadeWaveTask(Task* arg0)
         return;
     }
 
-    mem->field_24 += 0x180;
-    mem->field_26  = rsin(mem->field_24) >> 5;
+    mem->scale += 0x180;
+    mem->angle  = rsin(mem->scale) >> 5;
     if (arg0->spawnArg1 != 0) {
         color  = Gp_FadeQuadColors[(cln(arg0->spawnArg1 << 12) / 2839) & 7];
-        rgb[0] = (mem->field_26 * ((color >> 8) & 0xF)) >> 3;
-        rgb[1] = (mem->field_26 * ((color >> 4) & 0xF)) >> 3;
-        rgb[2] = (mem->field_26 * (color & 0xF)) >> 3;
+        rgb[0] = (mem->angle * ((color >> 8) & 0xF)) >> 3;
+        rgb[1] = (mem->angle * ((color >> 4) & 0xF)) >> 3;
+        rgb[2] = (mem->angle * (color & 0xF)) >> 3;
         Gp_DrawFadeQuad(rgb, color >> 12);
     }
-    if (mem->field_24 >= 0x700) {
+    if (mem->scale >= 0x700) {
         Gp_State1C->effectCount--;
         memFree(mem);
         taskKill(arg0);

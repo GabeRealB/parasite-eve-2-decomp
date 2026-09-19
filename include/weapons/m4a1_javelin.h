@@ -80,7 +80,7 @@ extern SVECTOR D_m4a1_javelin_8011FA98;
 /// end (`[5]`, bit 1: retake the beam angle) to the muzzle (`[0]`, bit 0: cap
 /// the near end).
 extern u16 D_m4a1_javelin_8011FAA0[6];
-/// The four RGB444 beam colours `GpEffWork::field_2A` fades through.
+/// The four RGB444 beam colours `GpEffWork::step` fades through.
 extern u16 D_m4a1_javelin_8011FAAC[4];
 
 extern u16     D_m4a1_javelin_8012EB60;

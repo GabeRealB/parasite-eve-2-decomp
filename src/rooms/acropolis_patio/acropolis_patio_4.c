@@ -73,7 +73,7 @@ void func_acropolis_patio_8017E054(Task* task)
 /// index rides in the low byte and the flags pick the jet's size and blend.
 ///
 /// The three main jets then get three puffs of mist each (effect 0x6008F).
-/// Every puff re-uses the task's own `GpEffWork.field_10` triple as a scratch
+/// Every puff re-uses the task's own `GpEffWork.move` triple as a scratch
 /// offset: three 11-bit LCG draws centred on 0x400 give a `+/-0x400` jitter,
 /// which is added to the jet's anchor before the spawn reads it. The work block
 /// is scratch, not state - each spawn copies the vector out immediately - so
@@ -101,16 +101,16 @@ void func_acropolis_patio_8017E100(Task* task)
         task->state++;
         for (i = 0; i < 3; i++) {
             for (j = 0; j < 3; j++) {
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_10  = 0x400 - (((u32)Gp_LcgState >> 16) & 0x7FF);
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_12  = 0x400 - (((u32)Gp_LcgState >> 16) & 0x7FF);
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_14  = 0x400 - (((u32)Gp_LcgState >> 16) & 0x7FF);
-                work->field_10 += D_acropolis_patio_80182DDC[i].vx;
-                work->field_12 += D_acropolis_patio_80182DDC[i].vy;
-                work->field_14 += D_acropolis_patio_80182DDC[i].vz;
-                Gp_SpawnEff(0x6008F, objCoord, i, (SVECTOR*)&work->field_10);
+                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+                work->move.vx  = 0x400 - (((u32)Gp_LcgState >> 16) & 0x7FF);
+                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+                work->move.vy  = 0x400 - (((u32)Gp_LcgState >> 16) & 0x7FF);
+                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+                work->move.vz  = 0x400 - (((u32)Gp_LcgState >> 16) & 0x7FF);
+                work->move.vx += D_acropolis_patio_80182DDC[i].vx;
+                work->move.vy += D_acropolis_patio_80182DDC[i].vy;
+                work->move.vz += D_acropolis_patio_80182DDC[i].vz;
+                Gp_SpawnEff(0x6008F, objCoord, i, &work->move);
             }
         }
     }
@@ -124,8 +124,8 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_patio/acropolis_patio_4", func_acropol
 /// `D_acropolis_patio_80182E4C` names, and the whole draw stops once
 /// `Gp_State1C::field_4` reaches 4 (the room is fading out).
 ///
-/// `GpEffWork::field_20` is the puff's mode and the per-frame step in
-/// `field_10`..`field_14` is its velocity. In drift mode (0) the velocity is
+/// `GpEffWork::index` is the puff's mode and the per-frame step in
+/// `GpEffWork.move` is its velocity. In drift mode (0) the velocity is
 /// re-rolled every frame as `0x10 - rand[0,0x1F]` per axis, a random walk
 /// centred just above zero, and a 1-in-60 draw flips the puff into gather
 /// mode. In gather mode (non-zero) the velocity is instead re-aimed at the
@@ -154,56 +154,56 @@ void func_acropolis_patio_8017E730(Task* task)
         sc = (ApMistScratch*)(SCRATCH_SP -= 0xC);
         Gp_UpdateCoord(coord);
         if (task->state == 0) {
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_10 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_12 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_14 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
             task->state++;
         }
-        if (work->field_20 != 0) {
+        if (work->index != 0) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-                anchors        = D_acropolis_patio_80182DDC;
-                dir            = (SVECTOR*)&work->field_10;
-                work->field_10 = *(u16*)&anchors[task->spawnArg1].vx -
-                                 *(u16*)&coord->coord.t[0];
-                work->field_12 = *(u16*)&anchors[task->spawnArg1].vy -
-                                 *(u16*)&coord->coord.t[1];
-                work->field_14 = *(u16*)&anchors[task->spawnArg1].vz -
-                                 *(u16*)&coord->coord.t[2];
+                anchors       = D_acropolis_patio_80182DDC;
+                dir           = &work->move;
+                work->move.vx = *(u16*)&anchors[task->spawnArg1].vx -
+                                *(u16*)&coord->coord.t[0];
+                work->move.vy = *(u16*)&anchors[task->spawnArg1].vy -
+                                *(u16*)&coord->coord.t[1];
+                work->move.vz = *(u16*)&anchors[task->spawnArg1].vz -
+                                *(u16*)&coord->coord.t[2];
                 VectorNormalSS(dir, dir);
                 gte_lddp(0x20);
                 gte_ldsv(dir);
                 gte_gpf12_real();
                 gte_stsv(dir);
             }
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-            work->field_10 -= (((u32)Gp_LcgState >> 16) & 0xF) - 8;
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-            work->field_12 -= (((u32)Gp_LcgState >> 16) & 0xF) - 8;
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-            work->field_14 -= (((u32)Gp_LcgState >> 16) & 0xF) - 8;
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            work->move.vx -= (((u32)Gp_LcgState >> 16) & 0xF) - 8;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            work->move.vy -= (((u32)Gp_LcgState >> 16) & 0xF) - 8;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            work->move.vz -= (((u32)Gp_LcgState >> 16) & 0xF) - 8;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
             if ((u16)(((u32)Gp_LcgState >> 16) % 0x78) == 0) {
-                work->field_20 = 0;
+                work->index = 0;
             }
         } else {
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_10 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_12 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_14 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
             if ((u16)(((u32)Gp_LcgState >> 16) % 0x3C) == 0) {
-                work->field_20 = 1;
+                work->index = 1;
             }
         }
-        coord->coord.t[0] += work->field_10;
-        coord->coord.t[1] += work->field_12;
-        coord->coord.t[2] += work->field_14;
+        coord->coord.t[0] += work->move.vx;
+        coord->coord.t[1] += work->move.vy;
+        coord->coord.t[2] += work->move.vz;
         coord->flg         = 0;
         sc->pos.vx         = *(u16*)&coord->workm.t[0];
         sc->pos.vy         = *(u16*)&coord->workm.t[1];

@@ -1205,7 +1205,7 @@ void func_actor_421600_8013C8E0(Actor421600* arg0)
         if (effect1 != NULL) {
             sessionKey1 = (GpAreaKey*)&gGameSession->at4.loc;
             raw1        = ctx->placeKey;
-            model1      = (TmdObject*)effect1->field_0->extra;
+            model1      = (TmdObject*)effect1->task->extra;
             key.stage   = sessionKey1->stage;
             key.area    = sessionKey1->area;
             key.room    = sessionKey1->room;
@@ -1234,7 +1234,7 @@ void func_actor_421600_8013C8E0(Actor421600* arg0)
         if (effect2 != NULL) {
             sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
             raw2        = ctx->placeKey;
-            model2      = (TmdObject*)effect2->field_0->extra;
+            model2      = (TmdObject*)effect2->task->extra;
             key.stage   = sessionKey2->stage;
             key.area    = sessionKey2->area;
             key.room    = sessionKey2->room;
@@ -1261,7 +1261,7 @@ void func_actor_421600_8013C8E0(Actor421600* arg0)
         if (effect3 != NULL) {
             sessionKey3 = (GpAreaKey*)&gGameSession->at4.loc;
             raw3        = ctx->placeKey;
-            model3      = (TmdObject*)effect3->field_0->extra;
+            model3      = (TmdObject*)effect3->task->extra;
             key.stage   = sessionKey3->stage;
             key.area    = sessionKey3->area;
             key.room    = sessionKey3->room;
@@ -1288,7 +1288,7 @@ void func_actor_421600_8013C8E0(Actor421600* arg0)
         if (effect4 != NULL) {
             sessionKey4 = (GpAreaKey*)&gGameSession->at4.loc;
             raw4        = ctx->placeKey;
-            model4      = (TmdObject*)effect4->field_0->extra;
+            model4      = (TmdObject*)effect4->task->extra;
             key.stage   = sessionKey4->stage;
             key.area    = sessionKey4->area;
             key.room    = sessionKey4->room;

@@ -81,14 +81,14 @@ void func_pyrokinesis_8012EF48(Task* arg0)
     s16            amp;
     s32            tz;
 
-    work          = (PyroWork*)arg0->work;
-    mem           = arg0->spawnArg2;
-    tmdo          = arg0->extra;
-    coord         = tmdo->coords;
-    mem->field_22 = (u16)mem->field_22 + 1;
-    base          = Gp_RoomCoords;
-    slotc         = &base->coord;
-    slot          = (GpCoordTail*)slotc;
+    work     = (PyroWork*)arg0->work;
+    mem      = arg0->spawnArg2;
+    tmdo     = arg0->extra;
+    coord    = tmdo->coords;
+    mem->age = (u16)mem->age + 1;
+    base     = Gp_RoomCoords;
+    slotc    = &base->coord;
+    slot     = (GpCoordTail*)slotc;
     switch (arg0->state) {
         case 0:
             if (Gp_StateC08.field_3 == -2) {
@@ -101,12 +101,12 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             if (fade != 0) {
-                mem->field_22 = (u16)mem->field_22 - 1;
+                mem->age = (u16)mem->age - 1;
                 return;
             }
             work = memCalloc(0x58, 0);
             if (work == NULL) {
-                mem->field_22 = 0;
+                mem->age = 0;
                 return;
             }
             player     = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
@@ -119,27 +119,27 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             dstm->h4   = srcm->h4;
             coord->flg = 0;
             Gp_UpdateCoord(coord);
-            mem->field_10 = 0;
-            mem->field_12 = 0;
-            mem->field_14 = (Gp_StateC08.field_0 % 10) * 64 + 0x1C0;
+            mem->move.vx = 0;
+            mem->move.vy = 0;
+            mem->move.vz = (Gp_StateC08.field_0 % 10) * 64 + 0x1C0;
             gte_SetRotMatrix((MATRIX*)srcm);
-            gte_ldv0(&mem->field_10);
+            gte_ldv0(&mem->move);
             gte_rtv0_real();
-            gte_stsv(&mem->field_10);
+            gte_stsv(&mem->move);
             for (i = 0; i < 16; i++) {
                 Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
                 D_pyrokinesis_80131DFC[i] = ((u32)Gp_LcgState >> 16) & 0xFF;
             }
-            mem->field_24 = 0xC0;
-            mem->field_26 = 0x500;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            mem->field_28 = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            mem->field_20 = (Gp_StateC08.field_0 % 10) - 1;
-            pan           = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(D_pyrokinesis_80131DD8[mem->field_20 * 3 + arg0->spawnArg1], pan,
+            mem->scale  = 0xC0;
+            mem->angle  = 0x500;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            mem->period = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            mem->index  = (Gp_StateC08.field_0 % 10) - 1;
+            pan         = (s8)Gp_GetObjPan(coord);
+            SndEvt_EnqueueType6(D_pyrokinesis_80131DD8[mem->index * 3 + arg0->spawnArg1], pan,
                                 (s8)Gp_GetObjDepth(coord));
-            Gp_SpawnPadLerp((s16)(mem->field_20 * 2 + 8), 0xFF, 8);
-            if (mem->field_20 == 1) {
+            Gp_SpawnPadLerp((s16)(mem->index * 2 + 8), 0xFF, 8);
+            if (mem->index == 1) {
                 arg0->spawnArg1 = 1;
             } else if (arg0->spawnArg1 == 1) {
                 arg0->spawnArg1 = 0;
@@ -150,7 +150,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             work->obj.key      = ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 +
                             ((u16)((u16)(Gp_StateC08.field_0 % 100) / 10) - 1) * 3 +
                             (u16)(Gp_StateC08.field_0 % 10) + 0x28000;
-            work->obj.radius = mem->field_26;
+            work->obj.radius = mem->angle;
             work->obj.flags  = 1;
             Gp_LinkObj(1, &work->obj);
             work->rec.flags     = 2;
@@ -158,7 +158,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             work->obj2.ctx.recs = &work->rec;
             work->obj2.key      = 0;
             work->obj.flags    |= 0x8000;
-            work->obj2.radius   = (s16)((u16)mem->field_26 << 16 >> 19);
+            work->obj2.radius   = (s16)((u16)mem->angle << 16 >> 19);
             work->obj2.flags    = 1;
             Gp_LinkObj(7, &work->obj2);
             work->obj2.flags = (work->obj2.flags & 0x7FFF) | 0x4400;
@@ -168,16 +168,16 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             rgb[2] = 0x3F;
             Gp_DrawFadeQuad(rgb, 1);
             arg0->state = 1;
-            func_pyrokinesis_80130848(coord, mem->field_22, mem->field_26, mem->field_28);
-            func_pyrokinesis_80130130(coord, mem->field_26, (s16)((u16)mem->field_24 << 16 >> 17));
+            func_pyrokinesis_80130848(coord, mem->age, mem->angle, mem->period);
+            func_pyrokinesis_80130130(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             if (Gp_CountRec18Hi(work->obj.ctx.recs, 0x30000) != 0) {
                 Gp_UnlinkObj(&work->obj);
-                radius        = (mem->field_20 << 9) + 0x380;
-                mem->field_26 = radius;
+                radius     = (mem->index << 9) + 0x380;
+                mem->angle = radius;
                 for (i = 0; i < 0x556; i += 0x2AA) {
                     spawned = Gp_SpawnEff(0x600F6, coord, i, NULL);
                     if (spawned != NULL) {
-                        Task_Reparent(arg0, spawned->field_0);
+                        Task_Reparent(arg0, spawned->task);
                     }
                 }
                 next = 3;
@@ -202,37 +202,37 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             if (fade != 0) {
-                mem->field_22 = (u16)mem->field_22 - 1;
+                mem->age = (u16)mem->age - 1;
                 return;
             }
-            radius             = (mem->field_20 << 9) + 0x380;
-            mem->field_26      = radius;
+            radius             = (mem->index << 9) + 0x380;
+            mem->angle         = radius;
             work->obj.radius   = radius;
-            coord->coord.t[0] += mem->field_10;
-            coord->coord.t[1] += mem->field_12;
-            coord->coord.t[2] += mem->field_14;
+            coord->coord.t[0] += mem->move.vx;
+            coord->coord.t[1] += mem->move.vy;
+            coord->coord.t[2] += mem->move.vz;
             coord->flg         = 0;
             Gp_UpdateCoord(coord);
             SOFT_USE_REG(coord);
-            func_pyrokinesis_80130848(coord, mem->field_22, mem->field_26, mem->field_28);
-            func_pyrokinesis_80130130(coord, mem->field_26, (s16)((u16)mem->field_24 << 16 >> 17));
+            func_pyrokinesis_80130848(coord, mem->age, mem->angle, mem->period);
+            func_pyrokinesis_80130130(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             if (arg0->spawnArg1 != 0) {
-                func_pyrokinesis_80131784(coord, mem->field_22, mem->field_26, 0);
-                func_pyrokinesis_80131784(coord, mem->field_22, mem->field_26, 1);
+                func_pyrokinesis_80131784(coord, mem->age, mem->angle, 0);
+                func_pyrokinesis_80131784(coord, mem->age, mem->angle, 1);
             }
-            if (mem->field_22 < 0x1E) {
+            if (mem->age < 0x1E) {
                 spawned = Gp_SpawnEff(0x60069, coord, 0, NULL);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->field_0);
+                    Task_Reparent(arg0, spawned->task);
                 }
             }
             if (Gp_State1C->groundTrace != 0) {
                 if (Gp_TraceGroundCoord(coord, &ground) == 1) {
-                    func_pyrokinesis_801304C4(&ground, mem->field_26);
+                    func_pyrokinesis_801304C4(&ground, mem->angle);
                 }
             }
             base->field_0     = 4;
-            slot->field_58    = (mem->field_20 << 9) + 0x200;
+            slot->field_58    = (mem->index << 9) + 0x200;
             slot->field_5C    = slot->field_58 * 16;
             Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
             amp               = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
@@ -249,7 +249,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 for (i = 0; i < 0x556; i += 0x2AA) {
                     spawned = Gp_SpawnEff(0x600F6, coord, i, NULL);
                     if (spawned != NULL) {
-                        Task_Reparent(arg0, spawned->field_0);
+                        Task_Reparent(arg0, spawned->task);
                     }
                 }
                 next = 3;
@@ -264,8 +264,8 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 arg0->state = 2;
                 return;
             }
-            tick = mem->field_22;
-            if (tick * 6 > D_80113D40[mem->field_20].field_4) {
+            tick = mem->age;
+            if (tick * 6 > D_80113D40[mem->index].field_4) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_UnlinkObj(&work->obj2);
                 arg0->state = 2;
@@ -286,19 +286,19 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             if (fade != 0) {
-                mem->field_22 = (u16)mem->field_22 - 1;
+                mem->age = (u16)mem->age - 1;
                 return;
             }
             Gp_UpdateCoord(coord);
-            radius           = (u16)mem->field_26 - 0x40;
-            mem->field_26    = radius;
+            radius           = (u16)mem->angle - 0x40;
+            mem->angle       = radius;
             work->obj.radius = radius;
-            func_pyrokinesis_80130848(coord, mem->field_22, mem->field_26, mem->field_28);
-            func_pyrokinesis_80130130(coord, mem->field_26, (s16)((u16)mem->field_24 << 16 >> 17));
-            if (mem->field_26 >= 0x81) {
+            func_pyrokinesis_80130848(coord, mem->age, mem->angle, mem->period);
+            func_pyrokinesis_80130130(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
+            if (mem->angle >= 0x81) {
                 spawned = Gp_SpawnEff(0x60069, coord, 0, NULL);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->field_0);
+                    Task_Reparent(arg0, spawned->task);
                 }
             }
             if (Gp_CountRec18Hi(work->obj.ctx.recs, 0x30000) != 0) {
@@ -306,7 +306,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 for (i = 0; i < 0x556; i += 0x2AA) {
                     spawned = Gp_SpawnEff(0x600F6, coord, i, NULL);
                     if (spawned != NULL) {
-                        Task_Reparent(arg0, spawned->field_0);
+                        Task_Reparent(arg0, spawned->task);
                     }
                 }
                 next = 3;
@@ -316,7 +316,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 arg0->state = next;
                 return;
             }
-            if (mem->field_26 < 0x80) {
+            if (mem->angle < 0x80) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
@@ -336,16 +336,16 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             if (fade != 0) {
-                mem->field_22 = (u16)mem->field_22 - 1;
+                mem->age = (u16)mem->age - 1;
                 return;
             }
             Gp_UpdateCoord(coord);
-            func_pyrokinesis_80130848(coord, mem->field_22, mem->field_26, mem->field_28);
-            func_pyrokinesis_80130130(coord, mem->field_26, (s16)((u16)mem->field_24 << 16 >> 17));
-            func_pyrokinesis_80130130(coord, (s16)((u16)mem->field_26 * 2),
-                                      (s16)((u16)mem->field_24 << 16 >> 17));
-            mem->field_26 = (u16)mem->field_26 + 0x40;
-            if (mem->field_26 > ((mem->field_20 << 9) + 0x580)) {
+            func_pyrokinesis_80130848(coord, mem->age, mem->angle, mem->period);
+            func_pyrokinesis_80130130(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
+            func_pyrokinesis_80130130(coord, (s16)((u16)mem->angle * 2),
+                                      (s16)((u16)mem->scale << 16 >> 17));
+            mem->angle = (u16)mem->angle + 0x40;
+            if (mem->angle > ((mem->index << 9) + 0x580)) {
                 Gp_UnlinkObj(&work->obj2);
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
@@ -364,18 +364,18 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             if (fade != 0) {
-                mem->field_22 = (u16)mem->field_22 - 1;
+                mem->age = (u16)mem->age - 1;
                 return;
             }
             Gp_UpdateCoord(coord);
-            func_pyrokinesis_80130848(coord, mem->field_22, mem->field_26, mem->field_28);
-            func_pyrokinesis_80130130(coord, mem->field_26, (s16)((u16)mem->field_24 << 16 >> 17));
-            func_pyrokinesis_80130130(coord, (s16)((u16)mem->field_26 * 2),
-                                      (s16)((u16)mem->field_24 << 16 >> 17));
-            mem->field_26 = (u16)mem->field_26 + 0x40;
-            if (mem->field_26 > ((mem->field_20 << 9) + 0x580)) {
-                if (mem->field_24 >= 9) {
-                    mem->field_24 = (u16)mem->field_24 - 8;
+            func_pyrokinesis_80130848(coord, mem->age, mem->angle, mem->period);
+            func_pyrokinesis_80130130(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
+            func_pyrokinesis_80130130(coord, (s16)((u16)mem->angle * 2),
+                                      (s16)((u16)mem->scale << 16 >> 17));
+            mem->angle = (u16)mem->angle + 0x40;
+            if (mem->angle > ((mem->index << 9) + 0x580)) {
+                if (mem->scale >= 9) {
+                    mem->scale = (u16)mem->scale - 8;
                     return;
                 }
                 Gp_UnlinkObj(&work->obj2);
@@ -403,7 +403,7 @@ void func_pyrokinesis_8012FAC8(Task* arg0)
                 if (flag != 0) {
                     return;
                 }
-                mem->field_22 = (u16)mem->field_22 + 1;
+                mem->age = (u16)mem->age + 1;
                 Gp_UpdateCoord(coord);
                 state = arg0->state;
                 if (state == scene) {
@@ -427,13 +427,13 @@ void func_pyrokinesis_8012FAC8(Task* arg0)
                 arg0->state = scene;
                 return;
             L_case1:
-                if (mem->field_22 == 8) {
+                if (mem->age == 8) {
                     Gp_SpawnEff(0x80060010, coord, 1, 0);
                     arg0->state = 2;
                 }
                 return;
             L_case2:
-                if (mem->field_22 == 0x10) {
+                if (mem->age == 0x10) {
                     Gp_SpawnEff(0x80060000 | 0x10, coord, 2, 0);
                     arg0->state = 3;
                 }
@@ -794,25 +794,25 @@ void func_pyrokinesis_80130C54(Task* arg0)
             if (flag != 0) {
                 return;
             }
-            mem->field_22 = (u16)mem->field_22 + 1;
+            mem->age = (u16)mem->age + 1;
             if (arg0->state == 0) {
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_12 = -(((u32)Gp_LcgState >> 16) & 0x1F);
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_24 = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                arg0->state   = 1;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vy = -(((u32)Gp_LcgState >> 16) & 0x1F);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
+                arg0->state  = 1;
             }
-            y                 = coord->coord.t[1] + mem->field_12;
+            y                 = coord->coord.t[1] + mem->move.vy;
             coord->flg        = 0;
             coord->coord.t[1] = y;
             Gp_UpdateCoord(coord);
-            if (!((u16)mem->field_22 & 1)) {
-                mem->field_20 = (u16)mem->field_20 + 1;
+            if (!((u16)mem->age & 1)) {
+                mem->index = (u16)mem->index + 1;
             }
-            temp_a1 = mem->field_20;
+            temp_a1 = mem->index;
             if (temp_a1 < 8) {
-                if ((u16)mem->field_22 & 1) {
-                    PeShared8012fb14(coord, temp_a1, 0x300, mem->field_24);
+                if ((u16)mem->age & 1) {
+                    PeShared8012fb14(coord, temp_a1, 0x300, mem->scale);
                 }
                 return;
             }

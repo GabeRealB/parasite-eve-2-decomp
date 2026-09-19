@@ -15,7 +15,7 @@
 const u32 D_healing_8012EF30 = 55;
 
 /// Per-level tuning for the healing aura: rows are PE levels 1-3, selected by
-/// `field_20`. `field_2` is the brightness ceiling, `field_4` the per-tick
+/// `index`. `field_2` is the brightness ceiling, `field_4` the per-tick
 /// spin, `field_6` the radius the ring grows to before the effect ends.
 HealingScale D_healing_8012FC1C[] = {
     { 0x0008, 0x0080, 0x0040, 0x0400 },
@@ -61,7 +61,7 @@ void func_healing_8012EF34(Task* arg0)
         return;
     }
 
-    mem->field_22 = (u16)mem->field_22 + 1;
+    mem->age = (u16)mem->age + 1;
     switch (arg0->state) {
         case 0:
             rot               = (GpMtxWords*)&coord->coord;
@@ -77,57 +77,57 @@ void func_healing_8012EF34(Task* arg0)
             coord->flg        = 0;
             Gp_UpdateCoord(coord);
             arg0->state     = 1;
-            mem->field_20   = (Gp_StateC08.field_0 % 10) - 1;
-            mem->field_26   = 0x80;
+            mem->index      = (Gp_StateC08.field_0 % 10) - 1;
+            mem->angle      = 0x80;
             state->field_6 |= 8;
             pan             = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(D_healing_8012FC34[mem->field_20], pan,
+            SndEvt_EnqueueType6(D_healing_8012FC34[mem->index], pan,
                                 (s8)Gp_GetObjDepth(coord));
             /* fallthrough */
         case 1:
-            bright = mem->field_24;
-            if (bright < D_healing_8012FC1C[mem->field_20].field_2) {
+            bright = mem->scale;
+            if (bright < D_healing_8012FC1C[mem->index].field_2) {
                 bright += 0x10;
             }
-            mem->field_24 = bright;
-            mem->field_26 = (u16)mem->field_26 + (u16)D_healing_8012FC1C[mem->field_20].field_4;
-            Gfx_RotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->field_20].field_4 * 2), 0);
+            mem->scale = bright;
+            mem->angle = (u16)mem->angle + (u16)D_healing_8012FC1C[mem->index].field_4;
+            Gfx_RotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
             coord->flg = 0;
             Gp_UpdateCoord(coord);
-            rng           = Gp_LcgState * 5 + 0x71357911;
-            ang           = ((u32)rng >> 16) & 0xFFF;
-            Gp_LcgState   = rng;
-            mem->field_2A = ang;
-            mem->field_10 = (rcos(ang) * ((s16)mem->field_26 * 3 / 2)) >> 12;
-            temp_lo       = rsin(mem->field_2A) * ((s16)mem->field_26 * 3 / 2);
-            rng           = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState   = rng;
-            mem->field_12 = temp_lo >> 12;
-            mem->field_14 = (rsin(((u32)rng >> 16) & 0xFFF) * mem->field_10) >> 12;
-            spawned       = Gp_SpawnEff(0x60017, coord, D_healing_8012FC1C[mem->field_20].field_6,
-                                        (SVECTOR*)&mem->field_10);
+            rng          = Gp_LcgState * 5 + 0x71357911;
+            ang          = ((u32)rng >> 16) & 0xFFF;
+            Gp_LcgState  = rng;
+            mem->step    = ang;
+            mem->move.vx = (rcos(ang) * ((s16)mem->angle * 3 / 2)) >> 12;
+            temp_lo      = rsin(mem->step) * ((s16)mem->angle * 3 / 2);
+            rng          = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState  = rng;
+            mem->move.vy = temp_lo >> 12;
+            mem->move.vz = (rsin(((u32)rng >> 16) & 0xFFF) * mem->move.vx) >> 12;
+            spawned      = Gp_SpawnEff(0x60017, coord, D_healing_8012FC1C[mem->index].field_6,
+                                       &mem->move);
             if (spawned != NULL) {
-                Task_Reparent(arg0, spawned->field_0);
+                Task_Reparent(arg0, spawned->task);
             }
-            if (mem->field_26 >= D_healing_8012FC1C[mem->field_20].field_6) {
+            if (mem->angle >= D_healing_8012FC1C[mem->index].field_6) {
                 arg0->state = 2;
             }
             goto draw;
         case 2:
-            Gfx_RotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->field_20].field_4 * 2), 0);
+            Gfx_RotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
             coord->flg = 0;
             Gp_UpdateCoord(coord);
-            mem->field_24 = (u16)mem->field_24 - 0x10;
-            mem->field_26 = (u16)mem->field_26 + (u16)D_healing_8012FC1C[mem->field_20].field_4;
-            if (mem->field_24 < 0x11) {
+            mem->scale = (u16)mem->scale - 0x10;
+            mem->angle = (u16)mem->angle + (u16)D_healing_8012FC1C[mem->index].field_4;
+            if (mem->scale < 0x11) {
                 arg0->state = 3;
             }
         draw:
-            rgb[0] = (u16)mem->field_24 >> 2;
-            rgb[1] = (u16)mem->field_24 >> 1;
-            rgb[2] = *(u8*)&mem->field_24;
-            Gp_DrawRing(coord, (s32)((u16)mem->field_26 << 16) >> 17, rgb);
-            Gp_DrawRing(coord, (s32)((u16)mem->field_26 << 16) >> 17, rgb);
+            rgb[0] = (u16)mem->scale >> 2;
+            rgb[1] = (u16)mem->scale >> 1;
+            rgb[2] = *(u8*)&mem->scale;
+            Gp_DrawRing(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
+            Gp_DrawRing(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
             {
                 GsCOORDINATE2* c;
                 s32            span;
@@ -146,12 +146,12 @@ void func_healing_8012EF34(Task* arg0)
                 g      = rgb[1];
                 rgb[2] = b >> 1;
                 rgb[1] = g >> 1;
-                Gp_DrawArc(c, mem->field_26, span, rgb);
+                Gp_DrawArc(c, mem->angle, span, rgb);
             }
-            if ((u16)mem->field_22 & 1) {
-                Gp_DrawArc(coord, 0x80, mem->field_26, rgb);
+            if ((u16)mem->age & 1) {
+                Gp_DrawArc(coord, 0x80, mem->angle, rgb);
             }
-            if (mem->field_20 != 0) {
+            if (mem->index != 0) {
                 GsCOORDINATE2* c;
                 s32            span;
                 unsigned int   r;
@@ -169,15 +169,15 @@ void func_healing_8012EF34(Task* arg0)
                 g      = rgb[1];
                 rgb[2] = b >> 1;
                 rgb[1] = g >> 1;
-                Gp_DrawArc(c, (s16)((u16)mem->field_26 + 0x200), span, rgb);
+                Gp_DrawArc(c, (s16)((u16)mem->angle + 0x200), span, rgb);
             }
             return;
         case 3:
-            Gfx_RotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->field_20].field_4 * 2), 0);
+            Gfx_RotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
             coord->flg = 0;
             Gp_UpdateCoord(coord);
-            mem->field_28 = (u16)mem->field_28 + 1;
-            if ((s16)mem->field_28 < 0x1F) {
+            mem->period = (u16)mem->period + 1;
+            if ((s16)mem->period < 0x1F) {
                 return;
             }
             Gp_ReleaseState1CMem(mem, arg0);

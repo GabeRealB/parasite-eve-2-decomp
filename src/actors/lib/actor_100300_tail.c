@@ -102,9 +102,9 @@ void Actor00300_Fn04D28(Actor100300* arg0)
             work->field_67A = 0;
             work->field_66E = 0xF;
             if (effect != NULL) {
-                effect->field_0->state = 3;
-                work->field_654        = NULL;
-                work->field_69C        = 0;
+                effect->task->state = 3;
+                work->field_654     = NULL;
+                work->field_69C     = 0;
                 SndEvt_EnqueueType7(work->field_658, 1);
             }
             if (Gp_TickObjFlag2((GpObj5D*)arg0->field_20) != 0) {

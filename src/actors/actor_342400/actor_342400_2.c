@@ -31,7 +31,7 @@ void func_actor_342400_801637DC(Task* arg0)
     eff           = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[6], 0x200, NULL);
     if (eff != NULL) {
         src        = (TmdObject*)arg0->extra;
-        dst        = (TmdObject*)eff->field_0->extra;
+        dst        = (TmdObject*)eff->task->extra;
         dst->tpage = src->tpage;
         dst->clut  = src->clut;
         if (dst->buffer != NULL) {
@@ -49,7 +49,7 @@ void func_actor_342400_801637DC(Task* arg0)
     }
     if (eff2 != NULL) {
         src2        = (TmdObject*)arg0->extra;
-        dst2        = (TmdObject*)eff2->field_0->extra;
+        dst2        = (TmdObject*)eff2->task->extra;
         dst2->tpage = src2->tpage;
         dst2->clut  = src2->clut;
         if (dst2->buffer != NULL) {

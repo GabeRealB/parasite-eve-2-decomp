@@ -75,8 +75,8 @@ void        func_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
 void        func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2);
 
 /// Per-frame update for one gallery muzzle-flash / tracer effect. The task's
-/// `GpEffWork` holds the tracer's endpoint (`field_18`..`field_1C`), its spin
-/// angle (`field_26`) and its brightness ramp (`field_24`); the handwritten GTE
+/// `GpEffWork` holds the tracer's endpoint (`pos`), its spin angle (`angle`)
+/// and its brightness ramp (`scale`); the handwritten GTE
 /// routines below draw the beam and its glow from the task's own coordinate.
 /// While `Gp_State1C` is fading (`field_4 != 0`) the effect only redraws; once
 /// the fade is over it seeds a random endpoint around the coordinate's world
@@ -94,47 +94,47 @@ void func_mist_shooting_gallery_80182064(Task* task)
     coord = ((TmdObject*)task->extra)->coords;
 
     if (Gp_State1C->eventState != 0) {
-        func_mist_shooting_gallery_80182294(coord, work->field_20, 0x600, work->field_26);
-        func_mist_shooting_gallery_801826C4(coord, (SVECTOR*)&work->field_18, work->field_20, 0x600);
-        rgb[0] = (u16)work->field_24 >> 1;
-        rgb[1] = (u16)work->field_24 >> 1;
-        rgb[2] = work->field_24;
+        func_mist_shooting_gallery_80182294(coord, work->index, 0x600, work->angle);
+        func_mist_shooting_gallery_801826C4(coord, &work->pos, work->index, 0x600);
+        rgb[0] = (u16)work->scale >> 1;
+        rgb[1] = (u16)work->scale >> 1;
+        rgb[2] = work->scale;
         Gp_DrawFadeQuad(rgb, 1);
         return;
     }
 
-    work->field_22++;
+    work->age++;
     switch (task->state) {
         case 0:
-            coord->sub        = work->field_8;
+            coord->sub        = work->parent;
             coord->coord.t[0] = 0;
             coord->coord.t[1] = 0;
             coord->coord.t[2] = 0;
             coord->flg        = 0;
             task->state       = 1;
 
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            rand0          = Gp_LcgState;
-            work->field_18 = *(u16*)&coord->workm.t[0] - ((rand0 >> 16 & 0x3FF) - 0x200);
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            rand1          = Gp_LcgState;
-            work->field_1A = coord->workm.t[1] - 0x800;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            rand2          = Gp_LcgState;
-            work->field_1C = *(u16*)&coord->workm.t[2] - ((rand1 >> 16 & 0x3FF) - 0x200);
-            work->field_24 = 0x80;
-            work->field_26 = rand2 >> 16 & 0xFFF;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            rand0        = Gp_LcgState;
+            work->pos.vx = *(u16*)&coord->workm.t[0] - ((rand0 >> 16 & 0x3FF) - 0x200);
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            rand1        = Gp_LcgState;
+            work->pos.vy = coord->workm.t[1] - 0x800;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            rand2        = Gp_LcgState;
+            work->pos.vz = *(u16*)&coord->workm.t[2] - ((rand1 >> 16 & 0x3FF) - 0x200);
+            work->scale  = 0x80;
+            work->angle  = rand2 >> 16 & 0xFFF;
         case 1:
-            if (work->field_22 & 1) {
-                func_mist_shooting_gallery_80182294(coord, ++work->field_20, 0x400, work->field_26);
-                func_mist_shooting_gallery_801826C4(coord, (SVECTOR*)&work->field_18, work->field_20, 0x400);
+            if (work->age & 1) {
+                func_mist_shooting_gallery_80182294(coord, ++work->index, 0x400, work->angle);
+                func_mist_shooting_gallery_801826C4(coord, &work->pos, work->index, 0x400);
             }
-            rgb[0] = (u16)work->field_24 >> 1;
-            rgb[1] = (u16)work->field_24 >> 1;
-            rgb[2] = work->field_24;
+            rgb[0] = (u16)work->scale >> 1;
+            rgb[1] = (u16)work->scale >> 1;
+            rgb[2] = work->scale;
             Gp_DrawFadeQuad(rgb, 1);
-            work->field_24 -= 8;
-            if (work->field_24 < 8) {
+            work->scale -= 8;
+            if (work->scale < 8) {
                 Gp_ReleaseState1CMem(work, task);
             }
             return;

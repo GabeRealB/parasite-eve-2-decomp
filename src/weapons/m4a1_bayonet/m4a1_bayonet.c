@@ -35,7 +35,7 @@ SVECTOR D_m4a1_bayonet_8011DED0 = { 0, 0x0180, 0x0040, 0 };
 /// `D_m4a1_bayonet_8011DEC8[0]` under the muzzle and the hilt frame at
 /// `[1]` under it, then seeds all sixteen trail slots with that pose. State 1
 /// re-poses both frames every frame, writes them into trail slot
-/// `field_22 & 7`, re-runs the whole ring so the older slots follow their
+/// `age & 7`, re-runs the whole ring so the older slots follow their
 /// parents, and hands the ribbon to `func_m4a1_bayonet_8011D69C`. The task
 /// lives 13 frames.
 void func_m4a1_bayonet_8011D1E4(Task* task)
@@ -56,10 +56,10 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
     coord = ((TmdObject*)task->extra)->coords;
     phase = Gp_State1C->eventState;
     if (phase == 0) {
-        work->field_22++;
+        work->age++;
         switch (task->state) {
             case 0:
-                coord->sub        = work->field_8;
+                coord->sub        = work->parent;
                 coord->coord.t[0] = D_m4a1_bayonet_8011DEC8[0].vx;
                 coord->coord.t[1] = D_m4a1_bayonet_8011DEC8[0].vy;
                 coord->coord.t[2] = D_m4a1_bayonet_8011DEC8[0].vz;
@@ -98,21 +98,21 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
                 coord->flg = 0;
                 Gp_UpdateCoord(coord);
 
-                hilt.sub        = work->field_8;
+                hilt.sub        = work->parent;
                 hilt.flg        = 0;
                 hilt.coord.t[0] = D_m4a1_bayonet_8011DED0.vx;
                 hilt.coord.t[1] = D_m4a1_bayonet_8011DED0.vy;
                 hilt.coord.t[2] = D_m4a1_bayonet_8011DED0.vz;
                 Gp_UpdateCoord(&hilt);
 
-                slot        = &D_m4a1_bayonet_8012D398[work->field_22 & 7];
+                slot        = &D_m4a1_bayonet_8012D398[work->age & 7];
                 slot->sub   = &gGfxViewCoord;
                 slot->workm = coord->workm;
                 gte_SetRotMatrix(&coord->workm);
                 gte_SetTransMatrix(&coord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
 
-                slot        = &D_m4a1_bayonet_8012D618[work->field_22 & 7];
+                slot        = &D_m4a1_bayonet_8012D618[work->age & 7];
                 slot->sub   = &gGfxViewCoord;
                 slot->workm = hilt.workm;
                 gte_SetRotMatrix(&hilt.workm);
@@ -127,10 +127,10 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
                     slot->flg = 0;
                     Gp_UpdateCoord(slot);
                 }
-                func_m4a1_bayonet_8011D69C(work->field_22 & 7, 0x112);
+                func_m4a1_bayonet_8011D69C(work->age & 7, 0x112);
                 break;
         }
-        alive = work->field_22 < 0xD;
+        alive = work->age < 0xD;
     } else {
         alive = phase < 4;
     }

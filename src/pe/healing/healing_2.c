@@ -38,46 +38,46 @@ void func_healing_8012F5E4(Task* arg0)
     s16            kind;
     GpEffWork*     spawned;
 
-    mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->coords;
-    mem->field_22 = (u16)mem->field_22 + 1;
+    mem      = arg0->spawnArg2;
+    coord    = ((TmdObject*)arg0->extra)->coords;
+    mem->age = (u16)mem->age + 1;
     if (arg0->state == 0) {
-        coord->sub        = mem->field_8;
-        coord->coord.t[0] = mem->field_18;
-        coord->coord.t[1] = mem->field_1A;
-        coord->coord.t[2] = mem->field_1C;
+        coord->sub        = mem->parent;
+        coord->coord.t[0] = mem->pos.vx;
+        coord->coord.t[1] = mem->pos.vy;
+        coord->coord.t[2] = mem->pos.vz;
         coord->flg        = 0;
         Gp_UpdateCoord(coord);
-        mem->field_12 = 4;
-        mem->field_10 = 0;
-        mem->field_14 = 0;
-        arg0->state   = 1;
-        kind          = (Gp_StateC08.field_0 % 10U) - 1;
-        mem->field_2A = kind;
-        mem->field_24 = D_healing_8012FC1C[kind].field_2;
-        mem->field_26 = (u16)arg0->spawnArg1 & 0xFFF;
+        mem->move.vy = 4;
+        mem->move.vx = 0;
+        mem->move.vz = 0;
+        arg0->state  = 1;
+        kind         = (Gp_StateC08.field_0 % 10U) - 1;
+        mem->step    = kind;
+        mem->scale   = D_healing_8012FC1C[kind].field_2;
+        mem->angle   = (u16)arg0->spawnArg1 & 0xFFF;
     }
-    step              = mem->field_12;
+    step              = mem->move.vy;
     y                 = coord->coord.t[1] + step;
     coord->flg        = 0;
     coord->coord.t[1] = y;
     Gp_UpdateCoord(coord);
-    if (mem->field_22 < 0x1E) {
-        if ((u16)mem->field_22 & 1) {
-            mem->field_20 = (u16)mem->field_20 + 1;
-            if (mem->field_22 >= 0x10) {
-                mem->field_24 = (u16)mem->field_24 - ((s16)D_healing_8012FC1C[mem->field_2A].field_2 >> 4);
+    if (mem->age < 0x1E) {
+        if ((u16)mem->age & 1) {
+            mem->index = (u16)mem->index + 1;
+            if (mem->age >= 0x10) {
+                mem->scale = (u16)mem->scale - ((s16)D_healing_8012FC1C[mem->step].field_2 >> 4);
             }
-            if (mem->field_2A < 2) {
-                func_800EB6E8(coord, (u16)mem->field_20, (u16)mem->field_26,
-                              (u16)mem->field_24);
+            if (mem->step < 2) {
+                func_800EB6E8(coord, (u16)mem->index, (u16)mem->angle,
+                              (u16)mem->scale);
             } else {
-                func_healing_8012F7FC(coord, mem->field_20, mem->field_26, mem->field_24);
+                func_healing_8012F7FC(coord, mem->index, mem->angle, mem->scale);
             }
-            if (((u16)mem->field_22 & 7) == 1) {
-                spawned = Gp_SpawnEff(0x60016, coord, mem->field_26, 0);
+            if (((u16)mem->age & 7) == 1) {
+                spawned = Gp_SpawnEff(0x60016, coord, mem->angle, 0);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->field_0);
+                    Task_Reparent(arg0, spawned->task);
                 }
             }
         }

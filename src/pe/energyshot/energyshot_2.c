@@ -119,28 +119,28 @@ void func_energyshot_8012FFB8(Task* arg0)
     GsCOORDINATE2* coord;
     s32            y;
 
-    mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->coords;
-    mem->field_22 = (u16)mem->field_22 + 1;
+    mem      = arg0->spawnArg2;
+    coord    = ((TmdObject*)arg0->extra)->coords;
+    mem->age = (u16)mem->age + 1;
     if (arg0->state == 0) {
-        mem->field_10 = 0;
-        mem->field_14 = 0;
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        mem->field_12 = 0xFFF0 - (((u32)Gp_LcgState >> 16) & 0x3F);
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        mem->field_24 = ((u32)Gp_LcgState >> 16) & 0xFFF;
-        arg0->state   = 1;
+        mem->move.vx = 0;
+        mem->move.vz = 0;
+        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+        mem->move.vy = 0xFFF0 - (((u32)Gp_LcgState >> 16) & 0x3F);
+        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+        mem->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
+        arg0->state  = 1;
     }
 
-    y                 = coord->coord.t[1] + mem->field_12;
+    y                 = coord->coord.t[1] + mem->move.vy;
     coord->flg        = 0;
     coord->coord.t[1] = y;
     Gp_UpdateCoord(coord);
-    if ((mem->field_22 & 3) == 0) {
-        mem->field_20 = (u16)mem->field_20 + 1;
+    if ((mem->age & 3) == 0) {
+        mem->index = (u16)mem->index + 1;
     }
-    if (mem->field_20 < 8) {
-        Gp_DrawFxQuad(coord, (u16)mem->field_20, 0x400, (u16)mem->field_24);
+    if (mem->index < 8) {
+        Gp_DrawFxQuad(coord, (u16)mem->index, 0x400, (u16)mem->scale);
         return;
     }
     Gp_ReleaseState1CMem(mem, arg0);

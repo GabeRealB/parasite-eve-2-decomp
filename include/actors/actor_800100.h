@@ -22,7 +22,7 @@
 /// projectile's object plus its one-entry collision table, whose `field_0` is
 /// armed with 2. `obj.ctx.recs` points at `rec`, `obj.coord` at the task's
 /// own coordinate, and `obj.key` is the hit payload `0x21C9E`. The
-/// projectile flies out along `work->field_26` while `field_24` opens, then
+/// projectile flies out along `work->angle` while `work->scale` opens, then
 /// drops; `func_actor_800100_801631C8` hands the block back to `Gp_UnlinkObj`
 /// on teardown. Same shape as the m4a1_pyke dart's `M4a1PykeBeam`.
 typedef struct _Actor800100Beam {

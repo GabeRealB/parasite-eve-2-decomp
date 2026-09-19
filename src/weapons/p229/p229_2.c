@@ -98,7 +98,7 @@ void func_p229_8011DDA0(GpActorWork* arg0)
                                   (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 5,
                                   NULL);
                 if (eff != NULL) {
-                    Task_Reparent(actor->field_91C, eff->field_0);
+                    Task_Reparent(actor->field_91C, eff->task);
                 }
             }
             actor->field_12A |= 0xC000;

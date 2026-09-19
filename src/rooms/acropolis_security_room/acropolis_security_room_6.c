@@ -221,8 +221,8 @@ L_case2:
 /// the four screen CLUTs from the unlit palette, state 1 re-blends each of
 /// them towards its lit palette by that feed's brightness and spawns the
 /// flash effects. `Task::spawnArg2` is the `GpEffWork` holding the lit-feed
-/// bitmask (`field_20`) and the four per-feed brightnesses
-/// (`field_24` .. `field_2A`).
+/// bitmask (`index`) and the four per-feed brightnesses
+/// (`scale` .. `step`).
 void func_acropolis_security_room_801805A4(Task* task)
 {
     GpEffWork*     work;
@@ -262,7 +262,7 @@ void func_acropolis_security_room_801805A4(Task* task)
         }
 
         case 1:
-            work->field_20 = D_acropolis_security_room_80183968[GameFlag_GetNibble(9)];
+            work->index = D_acropolis_security_room_80183968[GameFlag_GetNibble(9)];
             if ((Gp_GetViewIndex() & 0xFF) == 6) {
                 u16* pal  = D_acropolis_security_room_80182918;
                 u16* base = D_acropolis_security_room_80182718;
@@ -270,29 +270,29 @@ void func_acropolis_security_room_801805A4(Task* task)
                 s32  limit;
 
                 // The cap flickers by one step every other frame.
-                limit          = 0x1000 - ((gDisplayState.animFrame & 1) << 9);
-                work->field_24 = (work->field_20 & 1) ? ((work->field_24 < limit) ? work->field_24 + 0x200 : limit) : 0;
-                work->field_26 = (work->field_20 & 2) ? ((work->field_26 < limit) ? work->field_26 + 0x200 : limit) : 0;
-                work->field_28 = (work->field_20 & 4) ? ((work->field_28 < limit) ? work->field_28 + 0x200 : limit) : 0;
-                work->field_2A = (work->field_20 & 8) ? ((work->field_2A < limit) ? work->field_2A + 0x200 : limit) : 0;
+                limit        = 0x1000 - ((gDisplayState.animFrame & 1) << 9);
+                work->scale  = (work->index & 1) ? ((work->scale < limit) ? work->scale + 0x200 : limit) : 0;
+                work->angle  = (work->index & 2) ? ((work->angle < limit) ? work->angle + 0x200 : limit) : 0;
+                work->period = (work->index & 4) ? ((work->period < limit) ? work->period + 0x200 : limit) : 0;
+                work->step   = (work->index & 8) ? ((work->step < limit) ? work->step + 0x200 : limit) : 0;
 
                 for (i = 0; i < 0x100; i += 0x10) {
-                    Gp_BlendRgb555Clut(&pal[i], &base[i], work->field_24, &out[i]);
+                    Gp_BlendRgb555Clut(&pal[i], &base[i], work->scale, &out[i]);
                 }
                 pal = D_acropolis_security_room_80182B18;
                 out = D_acropolis_security_room_80183318;
                 for (i = 0; i < 0x100; i += 0x10) {
-                    Gp_BlendRgb555Clut(&pal[i], &base[i], work->field_26, &out[i]);
+                    Gp_BlendRgb555Clut(&pal[i], &base[i], work->angle, &out[i]);
                 }
                 pal = D_acropolis_security_room_80182D18;
                 out = D_acropolis_security_room_80183518;
                 for (i = 0; i < 0x100; i += 0x10) {
-                    Gp_BlendRgb555Clut(&pal[i], &base[i], work->field_28, &out[i]);
+                    Gp_BlendRgb555Clut(&pal[i], &base[i], work->period, &out[i]);
                 }
                 pal = D_acropolis_security_room_80182F18;
                 out = D_acropolis_security_room_80183718;
                 for (i = 0; i < 0x100; i += 0x10) {
-                    Gp_BlendRgb555Clut(&pal[i], &base[i], work->field_2A, &out[i]);
+                    Gp_BlendRgb555Clut(&pal[i], &base[i], work->step, &out[i]);
                 }
                 Gp_LoadImages(D_acropolis_security_room_80183918);
 
@@ -301,7 +301,7 @@ void func_acropolis_security_room_801805A4(Task* task)
                 }
             } else if (((Gp_GetViewIndex() & 0xFF) != 8) && ((Gp_GetViewIndex() & 0xFF) != 0x10)) {
                 for (i = 0; i < 4; i++) {
-                    if ((work->field_20 >> i) & 1) {
+                    if ((work->index >> i) & 1) {
                         Gp_SpawnEff(0x600A0, coord, D_acropolis_security_room_801839B8[i],
                                     &D_acropolis_security_room_80183998[i]);
                     }
@@ -406,32 +406,32 @@ void func_acropolis_security_room_80180E34(Task* arg0)
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
-    mem->field_24 = *(u16*)&arg0->spawnArg1 & 3;
-    prim->tpage   = 0xAB;
-    prim->code   |= 3;
-    prim->clut    = D_acropolis_security_room_80183970[mem->field_24].clut << 6;
-    cx            = D_acropolis_security_room_80183970[mem->field_24].x;
-    cy            = D_acropolis_security_room_80183970[mem->field_24].y;
-    prim->u0      = D_acropolis_security_room_80183970[mem->field_24].u;
-    prim->v0      = D_acropolis_security_room_80183970[mem->field_24].v;
-    prim->u1      = D_acropolis_security_room_80183970[mem->field_24].u + 0x7F;
-    prim->v1      = D_acropolis_security_room_80183970[mem->field_24].v;
-    prim->u2      = D_acropolis_security_room_80183970[mem->field_24].u;
-    prim->v2      = D_acropolis_security_room_80183970[mem->field_24].v + 0x7F;
-    prim->u3      = D_acropolis_security_room_80183970[mem->field_24].u + 0x7F;
-    prim->v3      = D_acropolis_security_room_80183970[mem->field_24].v + 0x7F;
-    x             = cx - 0x40;
-    prim->x2      = x;
-    prim->x0      = x;
-    x             = cx + 0x3F;
-    prim->x3      = x;
-    prim->x1      = x;
-    y             = cy - 0x40;
-    prim->y1      = y;
-    prim->y0      = y;
-    y             = cy + 0x3F;
-    prim->y3      = y;
-    prim->y2      = y;
+    mem->scale  = *(u16*)&arg0->spawnArg1 & 3;
+    prim->tpage = 0xAB;
+    prim->code |= 3;
+    prim->clut  = D_acropolis_security_room_80183970[mem->scale].clut << 6;
+    cx          = D_acropolis_security_room_80183970[mem->scale].x;
+    cy          = D_acropolis_security_room_80183970[mem->scale].y;
+    prim->u0    = D_acropolis_security_room_80183970[mem->scale].u;
+    prim->v0    = D_acropolis_security_room_80183970[mem->scale].v;
+    prim->u1    = D_acropolis_security_room_80183970[mem->scale].u + 0x7F;
+    prim->v1    = D_acropolis_security_room_80183970[mem->scale].v;
+    prim->u2    = D_acropolis_security_room_80183970[mem->scale].u;
+    prim->v2    = D_acropolis_security_room_80183970[mem->scale].v + 0x7F;
+    prim->u3    = D_acropolis_security_room_80183970[mem->scale].u + 0x7F;
+    prim->v3    = D_acropolis_security_room_80183970[mem->scale].v + 0x7F;
+    x           = cx - 0x40;
+    prim->x2    = x;
+    prim->x0    = x;
+    x           = cx + 0x3F;
+    prim->x3    = x;
+    prim->x1    = x;
+    y           = cy - 0x40;
+    prim->y1    = y;
+    prim->y0    = y;
+    y           = cy + 0x3F;
+    prim->y3    = y;
+    prim->y2    = y;
     addPrim((u_long*)(((((u32)0x30 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     Gp_ReleaseState1CMem(mem, arg0);
 }
@@ -455,25 +455,25 @@ void func_acropolis_security_room_80181108(Task* arg0)
     mem                     = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
 
-    if (mem->field_22 == 0) {
-        mem->field_24 = 0x20;
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        mem->field_28 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1F0);
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        mem->field_2A = 0x80 - (((u32)Gp_LcgState >> 16) & 0xF0);
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        mem->field_10 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        mem->field_12 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        mem->field_14 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+    if (mem->age == 0) {
+        mem->scale   = 0x20;
+        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+        mem->period  = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1F0);
+        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+        mem->step    = 0x80 - (((u32)Gp_LcgState >> 16) & 0xF0);
+        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+        mem->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+        mem->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+        mem->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
     }
 
     for (i = 0; i < 4; i++) {
         sv           = ((AsrQuadScratch*)((SVECTOR*)blk + i))->v;
-        blk->v[i].vx = D_acropolis_security_room_801839C0[i].x * mem->field_24;
+        blk->v[i].vx = D_acropolis_security_room_801839C0[i].x * mem->scale;
         sv->vy       = 0;
-        sv->vz       = D_acropolis_security_room_801839C0[i].z * mem->field_24;
+        sv->vz       = D_acropolis_security_room_801839C0[i].z * mem->scale;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->v[i]);
         gte_rtv0_real();
@@ -512,59 +512,59 @@ void func_acropolis_security_room_80181108(Task* arg0)
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AsrQuadScratch);
 
-    if (mem->field_20 == 0) {
-        coord->coord.t[0] += mem->field_10;
-        coord->coord.t[1] += mem->field_12;
-        coord->coord.t[2] += mem->field_14;
-        Gfx_RotMatrixX(&coord->coord, mem->field_28, 0);
-        Gfx_RotMatrixZ(&coord->coord, mem->field_2A, 0);
+    if (mem->index == 0) {
+        coord->coord.t[0] += mem->move.vx;
+        coord->coord.t[1] += mem->move.vy;
+        coord->coord.t[2] += mem->move.vz;
+        Gfx_RotMatrixX(&coord->coord, mem->period, 0);
+        Gfx_RotMatrixZ(&coord->coord, mem->step, 0);
         coord->flg = 0;
 
-        ty = mem->field_12;
+        ty = mem->move.vy;
         if (ty >= 0x1D) {
             ty--;
         } else {
             ty++;
         }
-        mem->field_12 = ty;
+        mem->move.vy = ty;
 
-        tx = mem->field_10;
+        tx = mem->move.vx;
         if (tx == 0) {
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            mem->field_10 += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->move.vx += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
         } else {
             if (tx > 0) {
                 tx--;
             } else {
                 tx++;
             }
-            mem->field_10 = tx;
+            mem->move.vx = tx;
         }
 
-        tz = mem->field_14;
+        tz = mem->move.vz;
         if (tz == 0) {
-            mem->field_14 += mem->field_2A % 32;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            mem->field_14 += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
+            mem->move.vz += mem->step % 32;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->move.vz += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
         } else {
             if (tz > 0) {
                 tz--;
             } else {
                 tz++;
             }
-            mem->field_14 = tz;
+            mem->move.vz = tz;
         }
 
-        Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-        mem->field_28 += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 16;
-        Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-        mem->field_2A += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 8;
+        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+        mem->period += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 16;
+        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+        mem->step   += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 8;
         if (coord->coord.t[1] >= -0x1A3) {
-            mem->field_20 = 1;
+            mem->index = 1;
         }
     }
 
-    mem->field_22 = mem->field_22 + 1;
+    mem->age = mem->age + 1;
     if ((u8)gGameSession->at4.loc.view != 0xF) {
         Gp_ReleaseState1CMem(mem, arg0);
     }

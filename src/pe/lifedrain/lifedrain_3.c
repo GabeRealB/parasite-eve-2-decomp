@@ -30,27 +30,27 @@ void func_lifedrain_801308C0(Task* arg0)
 
     if (arg0->state == 0) {
         Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1 & 0xFFF, 0);
-        coord->flg    = 0;
-        kind          = (Gp_StateC08.field_0 % 10U) - 1;
-        mem->field_20 = kind;
-        val           = D_lifedrain_80130AB4[kind].field_2;
-        mem->field_26 = 0x80;
-        mem->field_24 = val;
-        mem->field_28 = D_lifedrain_80130AB4[mem->field_20].field_4;
-        arg0->state   = 1;
+        coord->flg  = 0;
+        kind        = (Gp_StateC08.field_0 % 10U) - 1;
+        mem->index  = kind;
+        val         = D_lifedrain_80130AB4[kind].field_2;
+        mem->angle  = 0x80;
+        mem->scale  = val;
+        mem->period = D_lifedrain_80130AB4[mem->index].field_4;
+        arg0->state = 1;
     }
 
     Gp_UpdateCoord(coord);
-    mem->field_26 = (u16)mem->field_26 + ((s16)D_lifedrain_80130AB4[mem->field_20].field_2 / 3);
-    mem->field_28 = (u16)mem->field_28 + ((s16)D_lifedrain_80130AB4[mem->field_20].field_2 >> 1);
-    rgb[0]        = (u16)mem->field_24 >> 1;
-    rgb[1]        = (u16)mem->field_24 >> 1;
-    rgb[2]        = *(u8*)&mem->field_24;
-    Gp_DrawBandEx(coord, mem->field_26, mem->field_28, rgb);
+    mem->angle  = (u16)mem->angle + ((s16)D_lifedrain_80130AB4[mem->index].field_2 / 3);
+    mem->period = (u16)mem->period + ((s16)D_lifedrain_80130AB4[mem->index].field_2 >> 1);
+    rgb[0]      = (u16)mem->scale >> 1;
+    rgb[1]      = (u16)mem->scale >> 1;
+    rgb[2]      = *(u8*)&mem->scale;
+    Gp_DrawBandEx(coord, mem->angle, mem->period, rgb);
 
-    scale         = (u16)mem->field_24;
-    scale        -= 8;
-    mem->field_24 = scale;
+    scale      = (u16)mem->scale;
+    scale     -= 8;
+    mem->scale = scale;
     if ((s16)scale < 9) {
         Gp_ReleaseState1CMem(mem, arg0);
     }

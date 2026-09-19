@@ -56,7 +56,7 @@ void func_energyshot_8012EF34(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
     if ((state->field_3 != -2) && (Gp_State1C->fadeState < 4)) {
-        mem->field_22 = (u16)mem->field_22 + 1;
+        mem->age = (u16)mem->age + 1;
         switch (arg0->state) {
             case 0: {
                 GpMtxWords* rot;
@@ -65,7 +65,7 @@ void func_energyshot_8012EF34(Task* arg0)
                 u16         level;
 
                 rot               = (GpMtxWords*)&coord->coord;
-                coord->sub        = mem->field_8;
+                coord->sub        = mem->parent;
                 rot->w0           = 0x1000;
                 rot->w1           = 0;
                 rot->w2           = 0x1000;
@@ -81,7 +81,7 @@ void func_energyshot_8012EF34(Task* arg0)
                 st1c->burstRequest = 0;
                 st1c->peFxFlags   &= 0xFBFF;
                 arg0->state        = 1;
-                mem->field_20      = (Gp_StateC08.field_0 % 10) - 1;
+                mem->index         = (Gp_StateC08.field_0 % 10) - 1;
                 i                  = 0;
                 {
                     s16* frames;
@@ -102,8 +102,8 @@ void func_energyshot_8012EF34(Task* arg0)
                     EnergyShotScale* tbl;
 
                     tbl   = D_energyshot_801300E4;
-                    count = tbl[mem->field_20].field_0;
-                    level = mem->field_20;
+                    count = tbl[mem->index].field_0;
+                    level = mem->index;
                     if (count > 0) {
                         do {
                             s32 lo;
@@ -114,8 +114,8 @@ void func_energyshot_8012EF34(Task* arg0)
                             D_energyshot_80130128[i] = lo + (((u32)rng >> 16) & 0x1FF);
                             i                       += 1;
                             Gp_LcgState              = rng;
-                            count                    = D_energyshot_801300E4[mem->field_20].field_0;
-                            level                    = mem->field_20;
+                            count                    = D_energyshot_801300E4[mem->index].field_0;
+                            level                    = mem->index;
                         } while (i < count);
                     }
                 }
@@ -123,7 +123,7 @@ void func_energyshot_8012EF34(Task* arg0)
                     s32 pan;
 
                     pan = (s8)Gp_GetObjPan(coord);
-                    SndEvt_EnqueueType6(D_energyshot_801300FC[mem->field_20], pan,
+                    SndEvt_EnqueueType6(D_energyshot_801300FC[mem->index], pan,
                                         (s8)Gp_GetObjDepth(coord));
                 }
                 SOFT_USE_REG(arg0);
@@ -138,54 +138,54 @@ void func_energyshot_8012EF34(Task* arg0)
                 s16              count;
 
                 table             = D_energyshot_801300E4;
-                mem->field_24     = (u16)mem->field_24 + table[mem->field_20].field_4;
-                rgb[0]            = *(u8*)&mem->field_24;
-                rgb[1]            = (u16)mem->field_24 >> 1;
-                rgb[2]            = *(u8*)&mem->field_24;
-                coord->coord.t[1] = -table[mem->field_20].field_6;
+                mem->scale        = (u16)mem->scale + table[mem->index].field_4;
+                rgb[0]            = *(u8*)&mem->scale;
+                rgb[1]            = (u16)mem->scale >> 1;
+                rgb[2]            = *(u8*)&mem->scale;
+                coord->coord.t[1] = -table[mem->index].field_6;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                Gp_DrawRing(coord, (s16)(mem->field_24 * 4), rgb);
-                Gp_DrawRing(coord, (s16)(mem->field_24 * 8), rgb);
-                Gp_DrawRing(coord, (s16)(mem->field_24 * 0xC), rgb);
+                Gp_DrawRing(coord, (s16)(mem->scale * 4), rgb);
+                Gp_DrawRing(coord, (s16)(mem->scale * 8), rgb);
+                Gp_DrawRing(coord, (s16)(mem->scale * 0xC), rgb);
                 i     = 0;
-                count = table[mem->field_20].field_0;
+                count = table[mem->index].field_0;
                 if (count > 0) {
                     t2 = table;
                     p  = D_energyshot_80130128;
                     do {
-                        PeShared801305c0(coord, (s16)(mem->field_24 * 6), *p, rgb);
+                        PeShared801305c0(coord, (s16)(mem->scale * 6), *p, rgb);
                         p += 1;
-                    } while (++i < t2[mem->field_20].field_0);
+                    } while (++i < t2[mem->index].field_0);
                 }
                 coord->coord.t[1] = 0;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                if (mem->field_20 != 0) {
-                    if (mem->field_20 == 2) {
-                        func_energyshot_8012FA50(coord, (s16)(mem->field_24 * 8),
+                if (mem->index != 0) {
+                    if (mem->index == 2) {
+                        func_energyshot_8012FA50(coord, (s16)(mem->scale * 8),
                                                  (s32)((u16)D_energyshot_801300E4[2].field_6 << 16) >> 17, rgb);
                     }
                     func_energyshot_8012FA50(
-                        coord, (s16)(mem->field_24 * 4),
-                        (s32)((u16)D_energyshot_801300E4[mem->field_20].field_6 << 17) >> 16, rgb);
+                        coord, (s16)(mem->scale * 4),
+                        (s32)((u16)D_energyshot_801300E4[mem->index].field_6 << 17) >> 16, rgb);
                 }
                 func_energyshot_8012FA50(
-                    coord, (s16)(mem->field_24 * 6),
-                    (s16)((u16)D_energyshot_801300E4[mem->field_20].field_6 - 0x100), rgb);
-                rng           = Gp_LcgState * 5 + 0x71357911;
-                ang           = ((u32)rng >> 16) & 0xFFF;
-                Gp_LcgState   = rng;
-                mem->field_26 = ang;
-                mem->field_10 = (u32)(rsin(ang) * mem->field_24 * 3) >> 11;
-                mem->field_14 = (u32)(rcos(mem->field_26) * mem->field_24 * 3) >> 11;
+                    coord, (s16)(mem->scale * 6),
+                    (s16)((u16)D_energyshot_801300E4[mem->index].field_6 - 0x100), rgb);
+                rng          = Gp_LcgState * 5 + 0x71357911;
+                ang          = ((u32)rng >> 16) & 0xFFF;
+                Gp_LcgState  = rng;
+                mem->angle   = ang;
+                mem->move.vx = (u32)(rsin(ang) * mem->scale * 3) >> 11;
+                mem->move.vz = (u32)(rcos(mem->angle) * mem->scale * 3) >> 11;
                 Gp_SpawnEff(0x600F4, coord,
-                            D_energyshot_801300E4[mem->field_20].field_6 | 0x8000,
-                            (SVECTOR*)&mem->field_10);
-                if (D_energyshot_801300E4[mem->field_20].field_2 < mem->field_24) {
+                            D_energyshot_801300E4[mem->index].field_6 | 0x8000,
+                            &mem->move);
+                if (D_energyshot_801300E4[mem->index].field_2 < mem->scale) {
                     Gp_SpawnEff(0x800600F3, coord, 0, 0);
-                    mem->field_28 = (u16)mem->field_24;
-                    arg0->state   = 2;
+                    mem->period = (u16)mem->scale;
+                    arg0->state = 2;
                 }
                 return;
             }
@@ -195,49 +195,49 @@ void func_energyshot_8012EF34(Task* arg0)
                 s16*             p;
                 s16              count;
 
-                if (mem->field_24 < 0x11) {
+                if (mem->scale < 0x11) {
                     goto release;
                 }
-                mem->field_24     = (u16)mem->field_24 - 0x10;
-                rgb[0]            = *(u8*)&mem->field_24;
-                rgb[1]            = (u16)mem->field_24 >> 1;
-                rgb[2]            = *(u8*)&mem->field_24;
+                mem->scale        = (u16)mem->scale - 0x10;
+                rgb[0]            = *(u8*)&mem->scale;
+                rgb[1]            = (u16)mem->scale >> 1;
+                rgb[2]            = *(u8*)&mem->scale;
                 table             = D_energyshot_801300E4;
-                coord->coord.t[1] = -table[mem->field_20].field_6;
+                coord->coord.t[1] = -table[mem->index].field_6;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                Gp_DrawRing(coord, (s16)(table[mem->field_20].field_2 * 4), rgb);
-                Gp_DrawRing(coord, (s16)(table[mem->field_20].field_2 * 8), rgb);
-                Gp_DrawRing(coord, (s16)(table[mem->field_20].field_2 * 0xC), rgb);
+                Gp_DrawRing(coord, (s16)(table[mem->index].field_2 * 4), rgb);
+                Gp_DrawRing(coord, (s16)(table[mem->index].field_2 * 8), rgb);
+                Gp_DrawRing(coord, (s16)(table[mem->index].field_2 * 0xC), rgb);
                 i     = 0;
-                count = table[mem->field_20].field_0;
+                count = table[mem->index].field_0;
                 if (count > 0) {
                     t2 = table;
                     p  = D_energyshot_80130128;
                     do {
-                        PeShared801305c0(coord, (s16)(mem->field_28 * 6), *p, rgb);
+                        PeShared801305c0(coord, (s16)(mem->period * 6), *p, rgb);
                         p += 1;
-                    } while (++i < t2[mem->field_20].field_0);
+                    } while (++i < t2[mem->index].field_0);
                 }
                 coord->coord.t[1] = 0;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                if (mem->field_20 != 0) {
-                    if (mem->field_20 == 2) {
-                        mem->field_28 =
-                            (u16)mem->field_28 + D_energyshot_801300E4[2].field_4;
+                if (mem->index != 0) {
+                    if (mem->index == 2) {
+                        mem->period =
+                            (u16)mem->period + D_energyshot_801300E4[2].field_4;
                         func_energyshot_8012FA50(
-                            coord, (s16)(mem->field_28 * 8),
-                            (s32)((u16)D_energyshot_801300E4[mem->field_20].field_6 << 16) >> 17,
+                            coord, (s16)(mem->period * 8),
+                            (s32)((u16)D_energyshot_801300E4[mem->index].field_6 << 16) >> 17,
                             rgb);
                     }
                     func_energyshot_8012FA50(
-                        coord, (s16)(mem->field_28 * 4),
-                        (s32)((u16)D_energyshot_801300E4[mem->field_20].field_6 << 17) >> 16, rgb);
+                        coord, (s16)(mem->period * 4),
+                        (s32)((u16)D_energyshot_801300E4[mem->index].field_6 << 17) >> 16, rgb);
                 }
                 func_energyshot_8012FA50(
-                    coord, (s16)(mem->field_28 * 6),
-                    (s16)((u16)D_energyshot_801300E4[mem->field_20].field_6 - 0x100), rgb);
+                    coord, (s16)(mem->period * 6),
+                    (s16)((u16)D_energyshot_801300E4[mem->index].field_6 - 0x100), rgb);
                 return;
             }
         }

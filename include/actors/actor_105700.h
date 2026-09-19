@@ -60,8 +60,8 @@ typedef struct Actor105700Work {
     /* 0x680 */ s32      field_680;
     /* 0x684 */ byte     pad_684[4];
     /// Tilt angles decayed toward zero by `func_actor_105700_801334F0`.
-    /* 0x688 */ SVECTOR            field_688;
-    /* 0x690 */ struct _GpEffWork* field_690;
+    /* 0x688 */ SVECTOR           field_688;
+    /* 0x690 */ struct GpEffWork* field_690;
     /// Animation index selected by the state machine; 4 is the "handover"
     /// clip of `func_actor_105700_80136AE0`'s state 0.
     /* 0x694 */ s16 field_694;

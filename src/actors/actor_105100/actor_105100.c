@@ -861,8 +861,8 @@ void func_actor_105100_801360AC(Actor105100* arg0)
             eff                = work->field_55C;
             work->obj4E4.flags = work->obj4E4.flags & 0x7FFF;
             if (eff != NULL) {
-                eff->field_0->state = 4;
-                work->field_55C     = NULL;
+                eff->task->state = 4;
+                work->field_55C  = NULL;
             }
             if (work->field_5B6 == 0) {
                 work->field_5AA = 0x1E;
@@ -907,8 +907,8 @@ void func_actor_105100_801361C4(Actor105100* arg0)
             eff                = work->field_55C;
             work->obj4E4.flags = work->obj4E4.flags & 0x7FFF;
             if (eff != NULL) {
-                eff->field_0->state = 4;
-                work->field_55C     = NULL;
+                eff->task->state = 4;
+                work->field_55C  = NULL;
             }
             if (work->field_5B6 == 0) {
                 work->field_5AA = 0x1E;
@@ -1002,8 +1002,8 @@ void func_actor_105100_80136318(Actor105100* arg0)
     eff                = work->field_55C;
     work->obj4E4.flags = work->obj4E4.flags & 0x7FFF;
     if (eff != NULL) {
-        eff->field_0->state = 4;
-        work->field_55C     = NULL;
+        eff->task->state = 4;
+        work->field_55C  = NULL;
     }
 
     arg0->state = 2;

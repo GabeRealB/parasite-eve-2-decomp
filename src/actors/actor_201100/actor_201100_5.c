@@ -16,11 +16,11 @@
 /// then ticks down and the task calls its exit callback once it reaches zero.
 void ActorsShared8013845cSub1(Task* task)
 {
-    Actor101100Work*   work;
-    GsCOORDINATE2*     coord;
-    GpObj*             obj;
-    struct _GpEffWork* eff;
-    s16                countdown;
+    Actor101100Work*  work;
+    GsCOORDINATE2*    coord;
+    GpObj*            obj;
+    struct GpEffWork* eff;
+    s16               countdown;
 
     work  = (Actor101100Work*)task->work;
     coord = ((TmdObject*)task->extra)->coords;
@@ -30,7 +30,7 @@ void ActorsShared8013845cSub1(Task* task)
             if (((u16)task->killCountdown & 1) == 0) {
                 eff = Gp_SpawnEff(0x60070, coord, 0xC0031FFF, NULL);
                 if (eff != NULL) {
-                    Task_Reparent(task, eff->field_0);
+                    Task_Reparent(task, eff->task);
                 }
             }
             if (Gp_CountRec18Hi(&work->rec[0], 0x10000) != 0) {

@@ -31,7 +31,7 @@ SVECTOR D_m4a1_javelin_8011FA98 = { 0, 0x800, 0, 0 };
 /// the near end).
 u16 D_m4a1_javelin_8011FAA0[6] = { 1, 0, 0, 0, 0, 2 };
 
-/// The four RGB444 beam colours `GpEffWork::field_2A` fades through.
+/// The four RGB444 beam colours `GpEffWork::step` fades through.
 u16 D_m4a1_javelin_8011FAAC[4] = { 0x12, 0x124, 0x248, 0x36C };
 
 /// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
@@ -50,22 +50,22 @@ extern u32 Gp_LcgState;
 /// hangs on. Any room fade of 4 or more tears the effect down; a fade of 1 to 3
 /// freezes it.
 ///
-/// - State 0 hangs the coordinate off `GpEffWork::field_8` at the fixed offset
+/// - State 0 hangs the coordinate off `GpEffWork::parent` at the fixed offset
 ///   `D_m4a1_javelin_8011FA90` with an identity rotation, seeds the beam
 ///   parameters and falls through to state 1.
 /// - State 1 is the muzzle flare: it claims room-light slot 1 as a narrowing
 ///   (`0x100` / `0x1000`) light whose radius halves every frame, then draws
 ///   eight `func_m4a1_javelin_8011EE78` tracers around a ring that widens by
-///   `0x20` a frame until `field_24` reaches `0xC0`, which moves it to state 2.
+///   `0x20` a frame until `scale` reaches `0xC0`, which moves it to state 2.
 /// - State 2 is the beam itself. The far end is either the cached
-///   `D_m4a1_javelin_8012EB68` impact point or `GpEffWork::field_10` rotated
-///   into world space, and `field_18` / `field_1A` / `field_1C` are a sixth of
-///   the way back towards the muzzle. Six segments are drawn with
+///   `D_m4a1_javelin_8012EB68` impact point or `GpEffWork::move` rotated
+///   into world space, and `pos` is a sixth of the way back towards the
+///   muzzle. Six segments are drawn with
 ///   `func_m4a1_javelin_8011DAB0`; while `Gp_State1C::field_6` is set each
 ///   segment also probes `D_m4a1_javelin_8011FA98` (0x800 along +Y) with
 ///   `func_800DE7CC` and skins the ground contact with
 ///   `func_m4a1_javelin_8011E4A8` as long as the probe keeps hitting. The beam
-///   fades one `D_m4a1_javelin_8011FAAC` colour step every 0x20 of `field_22`
+///   fades one `D_m4a1_javelin_8011FAAC` colour step every 0x20 of `age`
 ///   and releases the work block when the last step runs out.
 void func_m4a1_javelin_8011D1E4(Task* task)
 {
@@ -99,11 +99,11 @@ void func_m4a1_javelin_8011D1E4(Task* task)
         return;
     }
 
-    work->field_22 = (u16)work->field_22 + 1;
+    work->age = (u16)work->age + 1;
     switch (task->state) {
         case 0:
             dstm              = (GpMtxWords*)&coord->coord;
-            coord->sub        = work->field_8;
+            coord->sub        = work->parent;
             dstm->w0          = 0x1000;
             dstm->w1          = 0;
             dstm->w2          = 0x1000;
@@ -115,15 +115,15 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             coord->flg        = 0;
             Gp_UpdateCoord(coord);
             task->state                = 1;
-            work->field_12             = 0x1F40;
-            work->field_10             = 0;
-            work->field_14             = 0;
+            work->move.vy              = 0x1F40;
+            work->move.vx              = 0;
+            work->move.vz              = 0;
             D_m4a1_javelin_8012EB68.vx = 0;
             D_m4a1_javelin_8012EB68.vy = 0;
             D_m4a1_javelin_8012EB68.vz = 0;
             D_m4a1_javelin_8012EB70    = 0;
-            work->field_28             = 0x600;
-            work->field_2A             = 3;
+            work->period               = 0x600;
+            work->step                 = 3;
             D_m4a1_javelin_8012EB62    = 0;
             D_m4a1_javelin_8012EB60    = 0;
             /* fallthrough */
@@ -139,20 +139,20 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             slot->field_54 = ((Gp_LcgState >> 16) & 0x700) + 0x400;
             Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
             light->flg = 0;
-            if (work->field_24 == 0xC0) {
+            if (work->scale == 0xC0) {
                 task->state = 2;
             } else {
-                work->field_24 = (u16)work->field_24 + 0x20;
-                work->field_26 = (u16)work->field_26 + 0xC0;
-                work->field_28 = (u16)work->field_28 - 0xF0;
+                work->scale  = (u16)work->scale + 0x20;
+                work->angle  = (u16)work->angle + 0xC0;
+                work->period = (u16)work->period - 0xF0;
             }
             pa.vx = ((M4a1JavelinVecLo*)coord->workm.t)->vx;
             pa.vy = ((M4a1JavelinVecLo*)coord->workm.t)->vy;
             pa.vz = ((M4a1JavelinVecLo*)coord->workm.t)->vz;
             for (i = 0; i < 0x1000; i += 0x200) {
-                pb.vx = (work->field_28 * rsin(i)) >> 12;
-                pb.vy = (u16)work->field_26;
-                pb.vz = (work->field_28 * rcos(i)) >> 12;
+                pb.vx = (work->period * rsin(i)) >> 12;
+                pb.vy = (u16)work->angle;
+                pb.vz = (work->period * rcos(i)) >> 12;
                 gte_SetRotMatrix(&coord->workm);
                 gte_ldv0(&pb);
                 gte_rtv0_real();
@@ -160,7 +160,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
                 pb.vx = (u16)pb.vx + (u16)pa.vx;
                 pb.vy = (u16)pb.vy + (u16)pa.vy;
                 pb.vz = (u16)pb.vz + (u16)pa.vz;
-                func_m4a1_javelin_8011EE78(&pa, &pb, work->field_24);
+                func_m4a1_javelin_8011EE78(&pa, &pb, work->scale);
             }
             return;
         case 2:
@@ -186,7 +186,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
                 pb.vz = D_m4a1_javelin_8012EB68.vz;
             } else {
                 gte_SetRotMatrix(&coord->workm);
-                gte_ldv0(&work->field_10);
+                gte_ldv0(&work->move);
                 gte_rtv0_real();
                 gte_stsv(&pb);
                 pa.vx = ((M4a1JavelinVecLo*)coord->workm.t)->vx;
@@ -196,12 +196,12 @@ void func_m4a1_javelin_8011D1E4(Task* task)
                 pb.vy = (u16)pb.vy + (u16)pa.vy;
                 pb.vz = (u16)pb.vz + (u16)pa.vz;
             }
-            work->field_18 = (pa.vx - pb.vx) / 6;
-            work->field_1A = (pa.vy - pb.vy) / 6;
-            work->field_1C = (pa.vz - pb.vz) / 6;
-            pa.vx          = (u16)pb.vx;
-            pa.vy          = (u16)pb.vy;
-            pa.vz          = (u16)pb.vz;
+            work->pos.vx = (pa.vx - pb.vx) / 6;
+            work->pos.vy = (pa.vy - pb.vy) / 6;
+            work->pos.vz = (pa.vz - pb.vz) / 6;
+            pa.vx        = (u16)pb.vx;
+            pa.vy        = (u16)pb.vy;
+            pa.vz        = (u16)pb.vz;
             if (Gp_State1C->groundTrace != 0) {
                 gte_SetRotMatrix(&Gfx_ViewWorldMtx);
                 gte_ldv0(&D_m4a1_javelin_8011FA98);
@@ -218,11 +218,11 @@ void func_m4a1_javelin_8011D1E4(Task* task)
                 }
                 pb.vy = (u16)pb.vy + 0x100;
                 for (i = 5; i >= 0; i--) {
-                    pa.vx = (u16)pa.vx + (u16)work->field_18;
-                    pa.vy = (u16)pa.vy + (u16)work->field_1A;
-                    pa.vz = (u16)pa.vz + (u16)work->field_1C;
+                    pa.vx = (u16)pa.vx + (u16)work->pos.vx;
+                    pa.vy = (u16)pa.vy + (u16)work->pos.vy;
+                    pa.vz = (u16)pa.vz + (u16)work->pos.vz;
                     func_m4a1_javelin_8011DAB0(&pa, &pb, D_m4a1_javelin_8011FAA0[i],
-                                               D_m4a1_javelin_8011FAAC[work->field_2A]);
+                                               D_m4a1_javelin_8011FAAC[work->step]);
                     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
                     gte_ldv0(&D_m4a1_javelin_8011FA98);
                     gte_rtv0_real();
@@ -234,7 +234,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
                     if (func_800DE7CC(&qa, &pa, &qa, NULL) == 1) {
                         if (i < lim) {
                             func_m4a1_javelin_8011E4A8(&qa, &qb, D_m4a1_javelin_8011FAA0[i],
-                                                       D_m4a1_javelin_8011FAAC[(s16)(u16)work->field_2A >> 1]);
+                                                       D_m4a1_javelin_8011FAAC[(s16)(u16)work->step >> 1]);
                         }
                         lim = i;
                     } else {
@@ -250,22 +250,22 @@ void func_m4a1_javelin_8011D1E4(Task* task)
                 }
             } else {
                 for (i = 5; i >= 0; i--) {
-                    pa.vx = (u16)pa.vx + (u16)work->field_18;
-                    pa.vy = (u16)pa.vy + (u16)work->field_1A;
-                    pa.vz = (u16)pa.vz + (u16)work->field_1C;
+                    pa.vx = (u16)pa.vx + (u16)work->pos.vx;
+                    pa.vy = (u16)pa.vy + (u16)work->pos.vy;
+                    pa.vz = (u16)pa.vz + (u16)work->pos.vz;
                     func_m4a1_javelin_8011DAB0(&pa, &pb, D_m4a1_javelin_8011FAA0[i], 0x36C);
                     pb.vx = (u16)pa.vx;
                     pb.vy = (u16)pa.vy;
                     pb.vz = (u16)pa.vz;
                 }
             }
-            if (work->field_22 >= 0x21) {
-                work->field_2A = (u16)work->field_2A - 1;
-                if (work->field_2A < 0) {
+            if (work->age >= 0x21) {
+                work->step = (u16)work->step - 1;
+                if (work->step < 0) {
                     Gp_ReleaseState1CMem(work, task);
                 }
             } else if (*(s32*)&actor->field_954 != 0x40000) {
-                work->field_22 = (u16)work->field_22 + 0x20;
+                work->age = (u16)work->age + 0x20;
             }
             break;
     }
@@ -711,15 +711,15 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
         return;
     }
 
-    mem->field_22++;
+    mem->age++;
     if (arg0->state == 0) {
-        mem->field_24 = 0x200;
-        Gp_LcgState   = (Gp_LcgState * 5) + 0x71357911;
-        mem->field_26 = (Gp_LcgState >> 16) & 0xFFF;
-        arg0->state   = 1;
+        mem->scale  = 0x200;
+        Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
+        mem->angle  = (Gp_LcgState >> 16) & 0xFFF;
+        arg0->state = 1;
     }
-    func_m4a1_javelin_8011F0AC((M4a1JavelinVecLo*)&coord->workm.t, mem->field_22 - 1, mem->field_24, mem->field_26);
-    if (mem->field_22 == 8) {
+    func_m4a1_javelin_8011F0AC((M4a1JavelinVecLo*)&coord->workm.t, mem->age - 1, mem->scale, mem->angle);
+    if (mem->age == 8) {
         Gp_ReleaseState1CMem(mem, arg0);
     }
 }
@@ -805,7 +805,7 @@ void func_m4a1_javelin_8011F5D4(GpActorWork* arg0)
                                   (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                   0x1D, NULL);
                 if (eff != NULL) {
-                    Task_Reparent(actor->field_91C, eff->field_0);
+                    Task_Reparent(actor->field_91C, eff->task);
                 }
                 Gp_PlayObjSfx(arg0->extra->coords, 0x201D0005, 1);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 3);
@@ -870,7 +870,7 @@ void func_m4a1_javelin_8011F5D4(GpActorWork* arg0)
                 func_m4a1_javelin_8011F4A4((M4a1JavelinVecLo*)spot->workm.t);
                 eff = Gp_SpawnEff(0x60183, spot, 0, NULL);
                 if (eff != NULL) {
-                    Task_Reparent(actor->field_91C, eff->field_0);
+                    Task_Reparent(actor->field_91C, eff->task);
                 }
             } else {
                 func_m4a1_javelin_8011F4A4(NULL);

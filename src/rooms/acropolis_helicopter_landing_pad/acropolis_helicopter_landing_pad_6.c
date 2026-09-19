@@ -285,18 +285,18 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
 }
 
 /// Draws one helipad ember / spark sprite. `spawnArg1` non-zero spawns the
-/// bright variant (`field_24` 0x300..0x3FF, no drift beyond a fixed -0x18 on
-/// Y, `field_2A` 2..5 with `field_28` up to 0x3F); zero spawns the dim one
-/// (`field_24` 0x100..0x1FF, random 3D drift, `field_2A` / `field_28` 1..4).
-/// The sprite lives `field_2A * 6` frames counted in `field_22`. Each frame
+/// bright variant (`scale` 0x300..0x3FF, no drift beyond a fixed -0x18 on
+/// Y, `step` 2..5 with `period` up to 0x3F); zero spawns the dim one
+/// (`scale` 0x100..0x1FF, random 3D drift, `step` / `period` 1..4).
+/// The sprite lives `step * 6` frames counted in `age`. Each frame
 /// the coord's translation is projected through `GsWSMATRIX` into a
 /// semi-transparent `POLY_FT4` (tpage 0x2B, clut 0x4383, one of the 32x32
 /// cells on row 0x28) whose corners are the projected centre plus / minus
-/// `field_24 * 31 / otz` rotated by `field_26` and `field_26 + 0x400`. A
+/// `scale * 31 / otz` rotated by `angle` and `angle + 0x400`. A
 /// bright sprite (`spawnArg1 == 1`) flickers a random green / blue-white tint
 /// on 1-in-4 LCG rolls and, before its last two frames, fires a 0x600E0
 /// effect on 1-in-16. While `Gp_State1C::field_4` is 0 the coord drifts,
-/// `field_24` grows by `field_28` and the frame counter advances until it
+/// `scale` grows by `period` and the frame counter advances until it
 /// expires, which releases the state-1C memory; `field_4 >= 4` releases it at
 /// once and 2..3 idles.
 void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
@@ -322,32 +322,32 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
         Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
             if (arg0->spawnArg1 != 0) {
-                mem->field_10 = 0;
-                mem->field_12 = -0x18;
-                mem->field_14 = 0;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_24 = (((u32)Gp_LcgState >> 16) & 0xFF) + 0x300;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_28 = ((u32)Gp_LcgState >> 16) & 0x3F;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_2A = (((u32)Gp_LcgState >> 16) & 3) + 2;
+                mem->move.vx = 0;
+                mem->move.vy = -0x18;
+                mem->move.vz = 0;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->scale   = (((u32)Gp_LcgState >> 16) & 0xFF) + 0x300;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->angle   = ((u32)Gp_LcgState >> 16) & 0xFFF;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->period  = ((u32)Gp_LcgState >> 16) & 0x3F;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->step    = (((u32)Gp_LcgState >> 16) & 3) + 2;
             } else {
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_24 = (((u32)Gp_LcgState >> 16) & 0xFF) + 0x100;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_28 = (((u32)Gp_LcgState >> 16) & 3) + 1;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_2A = (((u32)Gp_LcgState >> 16) & 3) + 1;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_10 = (((u32)Gp_LcgState >> 16) & 7) - 4;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_12 = ~(((u32)Gp_LcgState >> 16) & 0xF);
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_14 = (((u32)Gp_LcgState >> 16) & 7) - 4;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->scale   = (((u32)Gp_LcgState >> 16) & 0xFF) + 0x100;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->angle   = ((u32)Gp_LcgState >> 16) & 0xFFF;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->period  = (((u32)Gp_LcgState >> 16) & 3) + 1;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->step    = (((u32)Gp_LcgState >> 16) & 3) + 1;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vx = (((u32)Gp_LcgState >> 16) & 7) - 4;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vy = ~(((u32)Gp_LcgState >> 16) & 0xF);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vz = (((u32)Gp_LcgState >> 16) & 7) - 4;
             }
             arg0->state++;
         }
@@ -378,7 +378,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
                 } else {
                     prim->code |= 1;
                 }
-                if (mem->field_22 < mem->field_2A * 6 - 2) {
+                if (mem->age < mem->step * 6 - 2) {
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                     if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && Gp_State1C->eventState == 0) {
                         Gp_SpawnEff(0x600E0, coord, 0x100, NULL);
@@ -390,22 +390,22 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
             prim->tpage = 0x2B;
             prim->clut  = 0x4383;
             prim->code |= 2;
-            prim->u0    = (mem->field_22 / mem->field_2A + 1) * 0x20;
+            prim->u0    = (mem->age / mem->step + 1) * 0x20;
             prim->v0    = 0x28;
-            prim->u1    = (mem->field_22 / mem->field_2A + 1) * 0x20 + 0x1F;
+            prim->u1    = (mem->age / mem->step + 1) * 0x20 + 0x1F;
             prim->v1    = 0x28;
-            prim->u2    = (mem->field_22 / mem->field_2A + 1) * 0x20;
+            prim->u2    = (mem->age / mem->step + 1) * 0x20;
             prim->v2    = 0x47;
-            prim->u3    = (mem->field_22 / mem->field_2A + 1) * 0x20 + 0x1F;
+            prim->u3    = (mem->age / mem->step + 1) * 0x20 + 0x1F;
             prim->v3    = 0x47;
-            blk->dx     = ((mem->field_24 * 0x1F / blk->otz) * rsin(mem->field_26)) >> 12;
-            blk->dy     = ((mem->field_24 * 0x1F / blk->otz) * rcos(mem->field_26)) >> 12;
+            blk->dx     = ((mem->scale * 0x1F / blk->otz) * rsin(mem->angle)) >> 12;
+            blk->dy     = ((mem->scale * 0x1F / blk->otz) * rcos(mem->angle)) >> 12;
             prim->x0    = blk->sx + (u16)blk->dx;
             prim->x3    = blk->sx - (u16)blk->dx;
             prim->y0    = blk->sy - (u16)blk->dy;
             prim->y3    = blk->sy + (u16)blk->dy;
-            blk->dx     = ((mem->field_24 * 0x1F / blk->otz) * rsin(mem->field_26 + 0x400)) >> 12;
-            blk->dy     = ((mem->field_24 * 0x1F / blk->otz) * rcos(mem->field_26 + 0x400)) >> 12;
+            blk->dx     = ((mem->scale * 0x1F / blk->otz) * rsin(mem->angle + 0x400)) >> 12;
+            blk->dy     = ((mem->scale * 0x1F / blk->otz) * rcos(mem->angle + 0x400)) >> 12;
             prim->x1    = blk->sx + (u16)blk->dx;
             prim->x2    = blk->sx - (u16)blk->dx;
             prim->y1    = blk->sy - (u16)blk->dy;
@@ -414,14 +414,14 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
         if (Gp_State1C->eventState == 0) {
-            coord->coord.t[0] += mem->field_10;
-            coord->coord.t[1] += mem->field_12;
-            coord->coord.t[2] += mem->field_14;
+            coord->coord.t[0] += mem->move.vx;
+            coord->coord.t[1] += mem->move.vy;
+            coord->coord.t[2] += mem->move.vz;
             coord->flg         = 0;
-            mem->field_24     += mem->field_28;
-            n                  = mem->field_22 + 1;
-            mem->field_22      = n;
-            if (n > mem->field_2A * 6 - 1) {
+            mem->scale        += mem->period;
+            n                  = mem->age + 1;
+            mem->age           = n;
+            if (n > mem->step * 6 - 1) {
                 Gp_ReleaseState1CMem(mem, arg0);
             }
         }
@@ -429,12 +429,12 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 }
 
 /// Effect task for the helipad floodlights anchored to `Gp_RoomCoords[4]` and
-/// `[5]`. On first run it parents the coord to the work's `field_8` and
-/// positions it from `field_18..1C`. State 0 rolls 0-3 spawns of
+/// `[5]`. On first run it parents the coord to the work's `parent` and
+/// positions it from `pos`. State 0 rolls 0-3 spawns of
 /// `func_acropolis_helicopter_landing_pad_80180664`, a 1-in-4 roll of
 /// `func_acropolis_helicopter_landing_pad_80180A64`, and claims slot 4 as a
 /// light (refcount 4). State 1 (also reached by fallthrough) rearms
-/// `field_24` on a 1-in-4 roll every 8th frame; when armed it plays sound
+/// `scale` on a 1-in-4 roll every 8th frame; when armed it plays sound
 /// `0x51100001` panned at the coord, spawns one 0x6003B and six 0x600A4
 /// effects reparented under this task, and claims slot 5 as a light. State 2
 /// releases the state-1C memory, the only step taken while
@@ -458,17 +458,17 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
         }
         return;
     }
-    if (mem->field_20 == 0) {
-        coord->sub        = mem->field_8;
-        coord->coord.t[0] = mem->field_18;
-        coord->coord.t[1] = mem->field_1A;
-        coord->coord.t[2] = mem->field_1C;
+    if (mem->index == 0) {
+        coord->sub        = mem->parent;
+        coord->coord.t[0] = mem->pos.vx;
+        coord->coord.t[1] = mem->pos.vy;
+        coord->coord.t[2] = mem->pos.vz;
         coord->flg        = 0;
         Gp_UpdateCoord(coord);
-        mem->field_24 = 1;
-        mem->field_20++;
+        mem->scale = 1;
+        mem->index++;
     }
-    mem->field_22++;
+    mem->age++;
     switch (arg0->state) {
         case 0:
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -498,21 +498,21 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
             if ((D_80070F70 & 7) == 0) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-                    mem->field_24 = 1;
+                    mem->scale = 1;
                 }
             }
-            if (mem->field_24 != 0) {
+            if (mem->scale != 0) {
                 pan = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(0x51100001, pan, (s8)Gp_GetObjDepth(coord));
-                mem->field_24 = 0;
-                eff           = Gp_SpawnEff(0x6003B, coord, 0x200, NULL);
+                mem->scale = 0;
+                eff        = Gp_SpawnEff(0x6003B, coord, 0x200, NULL);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->field_0);
+                    Task_Reparent(arg0, eff->task);
                 }
                 for (i = 0; i < 6; i++) {
                     eff = Gp_SpawnEff(0x600A4, coord, 1, NULL);
                     if (eff != NULL) {
-                        Task_Reparent(arg0, eff->field_0);
+                        Task_Reparent(arg0, eff->task);
                     }
                 }
                 base           = &Gp_RoomCoords[5];
@@ -745,14 +745,14 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 }
 
 /// Effect task for one helipad lens flare. State 0 seeds the `GpEffWork`
-/// from the LCG: a 0x200..0x3FF radius (`field_24`), a 12-bit angle
-/// (`field_26`), a 1..4 lifetime scale (`field_2A`, the flare lives
-/// `field_2A * 6` frames counted in `field_22`) and a per-frame drift
-/// (`field_10` / `field_12` / `field_14`). Each frame the coord's translation
+/// from the LCG: a 0x200..0x3FF radius (`scale`), a 12-bit angle
+/// (`angle`), a 1..4 lifetime scale (`step`, the flare lives
+/// `step * 6` frames counted in `age`) and a per-frame drift
+/// (`move` / `move.vy` / `move.vz`). Each frame the coord's translation
 /// is projected through `GsWSMATRIX` into a semi-transparent `POLY_FT4`
-/// (tpage 0x2B, clut 0x4384, one of `field_2A` 40x40 cells on row 0x48)
+/// (tpage 0x2B, clut 0x4384, one of `step` 40x40 cells on row 0x48)
 /// whose four corners are the projected centre plus / minus
-/// `field_24 * 39 / otz` rotated by `field_26` and `field_26 + 0x400`. The
+/// `scale * 39 / otz` rotated by `angle` and `angle + 0x400`. The
 /// last eight frames fade to grey; before that a spawned flare
 /// (`spawnArg1`) flickers a random green / blue-white tint on 1-in-4 LCG rolls
 /// and fires a 0x600E0 effect on 1-in-16, and every flare fires 0x6005A on
@@ -783,18 +783,18 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
     {
         Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            mem->field_24 = (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x200;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            mem->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            mem->field_2A = (((u32)Gp_LcgState >> 16) & 3) + 1;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            mem->field_10 = -(((u32)Gp_LcgState >> 16) & 0x1F) - 0x40;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            mem->field_12 = (((u32)Gp_LcgState >> 16) & 0xF) - 8;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            mem->field_14 = (((u32)Gp_LcgState >> 16) & 0xF) - 8;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->scale   = (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x200;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->angle   = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->step    = (((u32)Gp_LcgState >> 16) & 3) + 1;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->move.vx = -(((u32)Gp_LcgState >> 16) & 0x1F) - 0x40;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->move.vy = (((u32)Gp_LcgState >> 16) & 0xF) - 8;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->move.vz = (((u32)Gp_LcgState >> 16) & 0xF) - 8;
             arg0->state++;
         }
         scratch     = (void**)G_SCRATCH_HEAD;
@@ -815,8 +815,8 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
             prim           = (POLY_FT4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
-            span = mem->field_2A * 6;
-            n    = mem->field_22;
+            span = mem->step * 6;
+            n    = mem->age;
             if (span - 8 < n) {
                 lvl = (span - n + 1) * 16;
                 setRGB0(prim, lvl, lvl, lvl);
@@ -845,22 +845,22 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
             prim->tpage = 0x2B;
             prim->code |= 2;
             prim->clut  = 0x4384;
-            prim->u0    = (mem->field_22 / mem->field_2A) * 0x28;
+            prim->u0    = (mem->age / mem->step) * 0x28;
             prim->v0    = 0x48;
-            prim->u1    = (mem->field_22 / mem->field_2A) * 0x28 + 0x27;
+            prim->u1    = (mem->age / mem->step) * 0x28 + 0x27;
             prim->v1    = 0x48;
-            prim->u2    = (mem->field_22 / mem->field_2A) * 0x28;
+            prim->u2    = (mem->age / mem->step) * 0x28;
             prim->v2    = 0x6F;
-            prim->u3    = (mem->field_22 / mem->field_2A) * 0x28 + 0x27;
+            prim->u3    = (mem->age / mem->step) * 0x28 + 0x27;
             prim->v3    = 0x6F;
-            blk->dx     = ((mem->field_24 * 0x27 / blk->otz) * rsin(mem->field_26)) >> 12;
-            blk->dy     = ((mem->field_24 * 0x27 / blk->otz) * rcos(mem->field_26)) >> 12;
+            blk->dx     = ((mem->scale * 0x27 / blk->otz) * rsin(mem->angle)) >> 12;
+            blk->dy     = ((mem->scale * 0x27 / blk->otz) * rcos(mem->angle)) >> 12;
             prim->x0    = blk->sx + (u16)blk->dx;
             prim->x3    = blk->sx - (u16)blk->dx;
             prim->y0    = blk->sy - (u16)blk->dy;
             prim->y3    = blk->sy + (u16)blk->dy;
-            blk->dx     = ((mem->field_24 * 0x27 / blk->otz) * rsin(mem->field_26 + 0x400)) >> 12;
-            blk->dy     = ((mem->field_24 * 0x27 / blk->otz) * rcos(mem->field_26 + 0x400)) >> 12;
+            blk->dx     = ((mem->scale * 0x27 / blk->otz) * rsin(mem->angle + 0x400)) >> 12;
+            blk->dy     = ((mem->scale * 0x27 / blk->otz) * rcos(mem->angle + 0x400)) >> 12;
             prim->x1    = blk->sx + (u16)blk->dx;
             prim->x2    = blk->sx - (u16)blk->dx;
             prim->y1    = blk->sy - (u16)blk->dy;
@@ -869,12 +869,12 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
         if (Gp_State1C->eventState == 0) {
-            coord->coord.t[0] += mem->field_10;
-            coord->coord.t[1] += mem->field_12;
-            coord->coord.t[2] += mem->field_14;
+            coord->coord.t[0] += mem->move.vx;
+            coord->coord.t[1] += mem->move.vy;
+            coord->coord.t[2] += mem->move.vz;
             coord->flg         = 0;
-            mem->field_22++;
-            if (mem->field_22 > mem->field_2A * 6 - 1) {
+            mem->age++;
+            if (mem->age > mem->step * 6 - 1) {
                 Gp_ReleaseState1CMem(mem, arg0);
             }
         }
@@ -883,7 +883,7 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
 
 /// Per-frame driver of the twelve helipad lights. Flags `Gp_State1C::field_8`
 /// while view 0x12 is active, folds the frame counter `D_80070F70 * 4` into a
-/// 0..0xFE triangle wave kept in the effect work's `field_24` (the low two bits
+/// 0..0xFE triangle wave kept in the effect work's `scale` (the low two bits
 /// are dropped on the rising half so the ramp steps in fours), then runs
 /// `func_acropolis_helicopter_landing_pad_8017F010` once per light position.
 void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
@@ -900,18 +900,18 @@ void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
         Gp_State1C->groundShade = 0;
     }
 
-    v              = D_80070F70 << 2;
-    work->field_24 = v;
+    v           = D_80070F70 << 2;
+    work->scale = v;
     if (v & 0x80) {
         level = 0x7F - (v & 0x7F);
     } else {
         level = v & 0x7C;
     }
-    work->field_24 = level * 2;
+    work->scale = level * 2;
 
     i   = 0;
     pos = D_acropolis_helicopter_landing_pad_80184E80;
     for (; i < 12; i++) {
-        func_acropolis_helicopter_landing_pad_8017F010(pos++, i, work->field_24);
+        func_acropolis_helicopter_landing_pad_8017F010(pos++, i, work->scale);
     }
 }

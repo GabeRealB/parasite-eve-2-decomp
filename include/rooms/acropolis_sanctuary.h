@@ -143,7 +143,7 @@ STATIC_ASSERT_SIZEOF(AcsSprayScratch, 0x14);
 
 /// Per-frame scratch the sanctuary's mosaic-shard task builds at
 /// `G_SCRATCH_HEAD`: `v` holds the three corners of the shard's triangle,
-/// first scaled by `GpEffWork::field_26` through the GTE's `gpf` interpolator
+/// first scaled by `GpEffWork::angle` through the GTE's `gpf` interpolator
 /// and rotated by the task's own `workm`, then offset by that matrix's
 /// translation, and `otz` is the depth (`SZ3 >> 2`) the ordering-table slot is
 /// taken from. The block is 0x20 bytes even though only 0x1C are used, because

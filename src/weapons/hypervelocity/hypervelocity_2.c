@@ -38,19 +38,19 @@ void func_hypervelocity_8011F168(Task* arg0)
     }
 
     Gp_UpdateCoord(coord);
-    mem->field_22++;
+    mem->age++;
     if (arg0->state == 0) {
-        mem->field_24 = 0xF0;
-        mem->field_26 = 0x100;
-        arg0->state   = 1;
+        mem->scale  = 0xF0;
+        mem->angle  = 0x100;
+        arg0->state = 1;
     }
-    rgb[0] = mem->field_24 >> 1;
-    rgb[1] = mem->field_24 >> 1;
-    rgb[2] = mem->field_24;
-    Gp_DrawBand(coord, mem->field_26, rgb);
-    mem->field_26 += 0x40;
-    val            = mem->field_24 - 0x10;
-    mem->field_24  = val;
+    rgb[0] = mem->scale >> 1;
+    rgb[1] = mem->scale >> 1;
+    rgb[2] = mem->scale;
+    Gp_DrawBand(coord, mem->angle, rgb);
+    mem->angle += 0x40;
+    val         = mem->scale - 0x10;
+    mem->scale  = val;
     if (val < 0x10) {
         Gp_ReleaseState1CMem(mem, arg0);
     }
@@ -76,19 +76,19 @@ void func_hypervelocity_8011F270(Task* arg0)
     }
 
     Gp_UpdateCoord(coord);
-    mem->field_22++;
+    mem->age++;
     if (arg0->state == 0) {
-        mem->field_24 = 0x80;
-        mem->field_26 = 0x200;
-        arg0->state   = 1;
+        mem->scale  = 0x80;
+        mem->angle  = 0x200;
+        arg0->state = 1;
     }
-    rgb[0] = mem->field_24;
-    rgb[1] = mem->field_24;
-    rgb[2] = mem->field_24;
-    func_hypervelocity_8011EC1C(coord, mem->field_22, mem->field_26, rgb);
-    mem->field_26 += 0x60;
-    val            = mem->field_24 - 8;
-    mem->field_24  = val;
+    rgb[0] = mem->scale;
+    rgb[1] = mem->scale;
+    rgb[2] = mem->scale;
+    func_hypervelocity_8011EC1C(coord, mem->age, mem->angle, rgb);
+    mem->angle += 0x60;
+    val         = mem->scale - 8;
+    mem->scale  = val;
     if (val < 6) {
         Gp_ReleaseState1CMem(mem, arg0);
     }

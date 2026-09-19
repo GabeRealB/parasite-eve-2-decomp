@@ -139,7 +139,7 @@ void func_m4a1_bayonet_8011DA34(GpActorWork* arg0)
                                       (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                       0x1A, NULL);
                     if (eff != NULL) {
-                        Task_Reparent(actor->field_91C, eff->field_0);
+                        Task_Reparent(actor->field_91C, eff->task);
                     }
                 } else {
                     actor->field_95E  = 7;

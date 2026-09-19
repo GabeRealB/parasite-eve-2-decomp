@@ -1946,7 +1946,7 @@ void Actor00100_Fn09310(Actor00100* arg0)
         vector.vx     = 0;
         effect        = Gp_SpawnEff(0xA0005, &arg0->field_2C->coords[9], 0x200, &vector);
         if (effect != NULL) {
-            task                             = effect->field_0;
+            task                             = effect->task;
             ((TmdObject*)task->extra)->tpage = (u8)arg0->field_2C->tpage;
             ((TmdObject*)task->extra)->clut  = (u8)arg0->field_2C->clut;
             effectObj                        = task->extra;
@@ -1961,7 +1961,7 @@ void Actor00100_Fn09310(Actor00100* arg0)
             vector.vx     = 0;
             effect2       = Gp_SpawnEff(0xA0005, &arg0->field_2C->coords[12], 0x200, &vector);
             if (effect2 != NULL) {
-                task2                             = effect2->field_0;
+                task2                             = effect2->task;
                 ((TmdObject*)task2->extra)->tpage = (u8)arg0->field_2C->tpage;
                 ((TmdObject*)task2->extra)->clut  = (u8)arg0->field_2C->clut;
                 effectObj2                        = task2->extra;
@@ -1976,7 +1976,7 @@ void Actor00100_Fn09310(Actor00100* arg0)
         D_80114B78[0] = &Actor00100_D12470;
         effect3       = Gp_SpawnEff(0xA0005, &arg0->field_2C->coords[1], 0x200, NULL);
         if (effect3 != NULL) {
-            task3                             = effect3->field_0;
+            task3                             = effect3->task;
             ((TmdObject*)task3->extra)->tpage = (u8)arg0->field_2C->tpage;
             ((TmdObject*)task3->extra)->clut  = (u8)arg0->field_2C->clut;
             effectObj3                        = task3->extra;
@@ -1990,7 +1990,7 @@ void Actor00100_Fn09310(Actor00100* arg0)
         D_80114B78[0] = &Actor00100_D11F90;
         effect4       = Gp_SpawnEff(0xA0000 | 5, &arg0->field_2C->coords[3], 0x200, NULL);
         if (effect4 != NULL) {
-            task4                             = effect4->field_0;
+            task4                             = effect4->task;
             ((TmdObject*)task4->extra)->tpage = (u8)arg0->field_2C->tpage;
             ((TmdObject*)task4->extra)->clut  = (u8)arg0->field_2C->clut;
             effectObj4                        = task4->extra;

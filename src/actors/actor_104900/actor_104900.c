@@ -424,8 +424,8 @@ void func_actor_104900_80137C88(Task* task)
         Task_CallExit(task);
         return;
     }
-    task->spawnArg2 = eff->field_0;
-    Task_Reparent(task, eff->field_0);
+    task->spawnArg2 = eff->task;
+    Task_Reparent(task, eff->task);
     angle               = task->spawnArg1;
     task->killCountdown = 0x5A;
 

@@ -1053,7 +1053,7 @@ void Actor00300_Fn01F9C(Actor100300* arg0)
                                 Actor00300_D15FF8[work->field_66A] - 0x32, &scratch->rot);
                 work->field_654 = effect;
                 if (effect != NULL) {
-                    Task_Reparent((Task*)arg0, effect->field_0);
+                    Task_Reparent((Task*)arg0, effect->task);
                     work->field_69C = Actor00300_D15FF8[work->field_66A] - 0x32;
                 }
                 work->field_658 =
@@ -1254,7 +1254,7 @@ void Actor00300_Fn028D0(Actor100300* arg0)
                 effect          = Gp_SpawnEff(D_80115744, coord, 0x10014, &sp10);
                 work->field_654 = effect;
                 if (effect != NULL) {
-                    Task_Reparent((Task*)arg0, effect->field_0);
+                    Task_Reparent((Task*)arg0, effect->task);
                     work->field_69C = 0x13;
                 }
                 work->field_658 = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x40030009;
@@ -1294,7 +1294,7 @@ void Actor00300_Fn028D0(Actor100300* arg0)
                 func_800DA6E8(&enemy->node, -0x64, 0);
                 burst = Gp_SpawnEff(D_80115720, coord, 0, NULL);
                 if (burst != NULL) {
-                    Task_Reparent((Task*)arg0, burst->field_0);
+                    Task_Reparent((Task*)arg0, burst->task);
                 }
                 sound = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x4003000B;
                 pan1  = (s8)Gp_GetObjPan(coord);
@@ -1341,9 +1341,9 @@ void Actor00300_Fn02CE8(Actor100300* arg0)
             work->field_67C     = 0;
             work->obj5B8.flags &= 0x7FFF;
             if (effect != NULL) {
-                effect->field_0->state = 3;
-                work->field_654        = NULL;
-                work->field_69C        = 0;
+                effect->task->state = 3;
+                work->field_654     = NULL;
+                work->field_69C     = 0;
                 SndEvt_EnqueueType7(work->field_658, 1);
             }
             if (enemy->hp <= 0) {
@@ -1702,7 +1702,7 @@ void Actor00300_Fn03618(Actor100300* arg0)
     if (effect1 != NULL) {
         sessionKey1 = (GpAreaKey*)&gGameSession->at4.loc;
         raw1        = (u16)arg0->field_20->placeKey;
-        model1      = (TmdObject*)effect1->field_0->extra;
+        model1      = (TmdObject*)effect1->task->extra;
         key.stage   = sessionKey1->stage;
         key.area    = sessionKey1->area;
         key.room    = sessionKey1->room;
@@ -1724,7 +1724,7 @@ void Actor00300_Fn03618(Actor100300* arg0)
     if (effect2 != NULL) {
         sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
         raw2        = (u16)arg0->field_20->placeKey;
-        model2      = (TmdObject*)effect2->field_0->extra;
+        model2      = (TmdObject*)effect2->task->extra;
         key.stage   = sessionKey2->stage;
         key.area    = sessionKey2->area;
         key.room    = sessionKey2->room;
@@ -1746,7 +1746,7 @@ void Actor00300_Fn03618(Actor100300* arg0)
     if (effect3 != NULL) {
         sessionKey3 = (GpAreaKey*)&gGameSession->at4.loc;
         raw3        = (u16)arg0->field_20->placeKey;
-        model3      = (TmdObject*)effect3->field_0->extra;
+        model3      = (TmdObject*)effect3->task->extra;
         key.stage   = sessionKey3->stage;
         key.area    = sessionKey3->area;
         key.room    = sessionKey3->room;
@@ -1768,7 +1768,7 @@ void Actor00300_Fn03618(Actor100300* arg0)
     if (effect4 != NULL) {
         sessionKey4 = (GpAreaKey*)&gGameSession->at4.loc;
         raw4        = (u16)arg0->field_20->placeKey;
-        model4      = (TmdObject*)effect4->field_0->extra;
+        model4      = (TmdObject*)effect4->task->extra;
         key.stage   = sessionKey4->stage;
         key.area    = sessionKey4->area;
         key.room    = sessionKey4->room;
@@ -1790,7 +1790,7 @@ void Actor00300_Fn03618(Actor100300* arg0)
     if (effect5 != NULL) {
         sessionKey5 = (GpAreaKey*)&gGameSession->at4.loc;
         raw5        = (u16)arg0->field_20->placeKey;
-        model5      = (TmdObject*)effect5->field_0->extra;
+        model5      = (TmdObject*)effect5->task->extra;
         key.stage   = sessionKey5->stage;
         key.area    = sessionKey5->area;
         key.room    = sessionKey5->room;
@@ -1893,9 +1893,9 @@ common:
             vec.vz = c->workm.t[2];
             Gp_UpdateActorColor(arg1->field_20, &vec, 0, 0);
             if (work->field_654 != NULL) {
-                work->field_654->field_0->state = 3;
-                work->field_654                 = NULL;
-                work->field_69C                 = 0;
+                work->field_654->task->state = 3;
+                work->field_654              = NULL;
+                work->field_69C              = 0;
                 SndEvt_EnqueueType7(work->field_658, 1);
             }
             sound = (((u16)arg1->field_20->placeKey >> 12) << 8) | 0x40030008;

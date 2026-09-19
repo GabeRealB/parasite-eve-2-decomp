@@ -124,10 +124,10 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
             if (arg0->state == 0) {
                 base            = D_acropolis_roof_garden_8017D5D0;
                 param           = arg0->spawnArg1;
-                mem->field_24   = (param & 0x0FFF0000) ? ((param >> 16) & 0xFFF) : 0x280;
-                mem->field_26   = (arg0->spawnArg1 >> 8) & 3;
+                mem->scale      = (param & 0x0FFF0000) ? ((param >> 16) & 0xFFF) : 0x280;
+                mem->angle      = (arg0->spawnArg1 >> 8) & 3;
                 arg0->spawnArg1 = arg0->spawnArg1 & 0xF;
-                mem->field_28   = base.v[mem->field_26];
+                mem->period     = base.v[mem->angle];
                 arg0->state++;
             }
             blk->vec.vx = *(u16*)&coord->workm.t[0];
@@ -145,21 +145,21 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
             gte_stszotz(&blk->otz);
             if (blk->otz >= 0x11) {
                 flicker     = ((u8)gDisplayState.animFrame & 1) * 0x10;
-                lvl         = (u8)mem->field_28 + flicker;
+                lvl         = (u8)mem->period + flicker;
                 prim->tpage = 0x2B;
                 setRGB0(prim, lvl, lvl, lvl);
                 prim->code |= 2;
-                prim->clut  = getClut(mem->field_26 * 0x10, 0x10E);
-                prim->u0    = mem->field_26 * 0x28;
+                prim->clut  = getClut(mem->angle * 0x10, 0x10E);
+                prim->u0    = mem->angle * 0x28;
                 prim->v0    = 0;
-                prim->u1    = mem->field_26 * 0x28 + 0x27;
+                prim->u1    = mem->angle * 0x28 + 0x27;
                 prim->v1    = 0;
-                prim->u2    = mem->field_26 * 0x28;
+                prim->u2    = mem->angle * 0x28;
                 prim->v2    = 0x27;
-                prim->u3    = mem->field_26 * 0x28 + 0x27;
+                prim->u3    = mem->angle * 0x28 + 0x27;
                 prim->v3    = 0x27;
 
-                blk->halfWidth = (mem->field_24 * 0x27) / blk->otz;
+                blk->halfWidth = (mem->scale * 0x27) / blk->otz;
                 x              = blk->sx - (u16)blk->halfWidth;
                 prim->x2       = x;
                 prim->x0       = x;

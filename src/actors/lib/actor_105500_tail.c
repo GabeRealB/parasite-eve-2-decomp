@@ -42,7 +42,7 @@ void Actor05500_Fn03C54(Actor105500* actor)
     }
     sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
     raw        = ((Actor105500Ctx*)actor->field_20)->field_8;
-    model      = (TmdObject*)eff->field_0->extra;
+    model      = (TmdObject*)eff->task->extra;
     key.stage  = sessionKey->stage;
     key.area   = sessionKey->area;
     key.room   = sessionKey->room;

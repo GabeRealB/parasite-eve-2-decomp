@@ -108,7 +108,7 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
                             if (eff != NULL) {
                                 sessionKey    = (GpAreaKey*)&gGameSession->at4.loc;
                                 raw           = ((Actor103700Spawn*)task->spawnArg2)->field_8;
-                                effModel      = (TmdObject*)eff->field_0->extra;
+                                effModel      = (TmdObject*)eff->task->extra;
                                 buf.key.stage = sessionKey->stage;
                                 buf.key.area  = sessionKey->area;
                                 buf.key.room  = sessionKey->room;

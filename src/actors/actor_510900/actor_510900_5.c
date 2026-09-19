@@ -76,7 +76,7 @@ void func_actor_510900_8013B0D8(Task* arg0)
                     Gp_SpawnEff(0x6003B, &coord->field_0, 0, NULL);
                     eff = Gp_SpawnEff(0x8006005F, &coord->field_0, 0, NULL);
                     if (eff != NULL) {
-                        spawned        = eff->field_0;
+                        spawned        = eff->task;
                         work->field_70 = spawned;
                         Task_Reparent(arg0, spawned);
                     }

@@ -50,10 +50,10 @@ typedef struct ApobiosisShardScratch {
 STATIC_ASSERT_SIZEOF(ApobiosisShardScratch, 0x28);
 
 /// One 8-byte row of `D_apobiosis_80130B5C`, indexed by the effect's
-/// `GpEffWork.field_20` / `field_2A` (`Gp_StateC08.field_0 % 10 - 1`, so the
+/// `GpEffWork.index` / `step` (`Gp_StateC08.field_0 % 10 - 1`, so the
 /// burst scales with the combo counter). `field_0` is half the number of ring
 /// points the cast lays out, `field_2` the ring radius it draws them at and
-/// `field_4` the per-frame growth added to the cast's `GpEffWork.field_24`.
+/// `field_4` the per-frame growth added to the cast's `GpEffWork.scale`.
 /// `field_6` is the shard radius `func_apobiosis_8012FE10` hands to
 /// `func_apobiosis_8013017C` / `func_apobiosis_80130630` - doubled while the
 /// shard is still parented to the cast (state 1), plain once it flies free

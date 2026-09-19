@@ -37,12 +37,12 @@ void func_apobiosis_80130630(GsCOORDINATE2* arg0, s16* arg1, s16 arg2, s16 arg3)
 /// The apobiosis cast. Six states drive one screen flash plus a growing ring
 /// of shards, scaled by `D_apobiosis_80130B5C[Gp_StateC08.field_0 % 10 - 1]`
 /// so a longer combo casts a wider burst. State 0 parents the effect
-/// coordinate on `GpEffWork.field_8` at the origin, publishes the task in
+/// coordinate on `GpEffWork.parent` at the origin, publishes the task in
 /// `D_apobiosis_80130BA0` so every shard can reparent onto it, plays the row's
 /// `SndEvt_EnqueueType6` id panned at the coordinate, and seeds
 /// `D_apobiosis_80130B80` with `field_0 * 2` angles - the ring's two rows of
-/// azimuths. State 1 flashes at `field_2A`, drags the coordinate down 0x400,
-/// grows `field_24` by the row's `field_4` each frame and redraws both the
+/// azimuths. State 1 flashes at `step`, drags the coordinate down 0x400,
+/// grows `scale` by the row's `field_4` each frame and redraws both the
 /// player's ring and the shard ring, jittering every angle by +-0x80 per frame.
 /// States 2..4 fade the flash out at 0x10 / 0xC / 8 a frame while spawning
 /// 0x600F7 sparks on random polar offsets - one in four frames in state 2, one
@@ -67,12 +67,12 @@ void func_apobiosis_8012EF4C(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
     if ((D_80114C0B != -2) && (Gp_State1C->fadeState < 4)) {
-        mem->field_22 = (u16)mem->field_22 + 1;
+        mem->age = (u16)mem->age + 1;
         switch (arg0->state) {
             case 0:
                 D_apobiosis_80130BA0 = arg0;
                 rot                  = (GpMtxWords*)&coord->coord;
-                coord->sub           = mem->field_8;
+                coord->sub           = mem->parent;
                 rot->w0              = 0x1000;
                 rot->w1              = 0;
                 rot->w2              = 0x1000;
@@ -86,12 +86,12 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 pan = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(D_apobiosis_80130B74[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
                                     (s8)Gp_GetObjDepth(coord));
-                arg0->state   = 1;
-                mem->field_20 = Gp_StateC08.field_0 % 10 - 1;
-                mem->field_24 = 0x200;
-                mem->field_28 = 0x80;
-                mem->field_2A = 0xF0;
-                for (i = 0; i < D_apobiosis_80130B5C[mem->field_20].field_0 * 2; i++) {
+                arg0->state = 1;
+                mem->index  = Gp_StateC08.field_0 % 10 - 1;
+                mem->scale  = 0x200;
+                mem->period = 0x80;
+                mem->step   = 0xF0;
+                for (i = 0; i < D_apobiosis_80130B5C[mem->index].field_0 * 2; i++) {
                     Gp_LcgState             = Gp_LcgState * 5 + 0x71357911;
                     D_apobiosis_80130B80[i] = (i << 10) + (((u32)Gp_LcgState >> 16) & 0x3FF);
                 }
@@ -99,40 +99,40 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 /* fallthrough */
             case 1:
                 Gp_UpdateCoord(coord);
-                if (mem->field_22 == 4) {
+                if (mem->age == 4) {
                     Gp_StateC08.field_6 |= 8;
                 }
-                func_apobiosis_8012F808(mem->field_2A);
-                rgb[0] = rgb[1]    = mem->field_2A >> 2;
-                rgb[2]             = (u16)mem->field_2A >> 1;
+                func_apobiosis_8012F808(mem->step);
+                rgb[0] = rgb[1]    = mem->step >> 2;
+                rgb[2]             = (u16)mem->step >> 1;
                 coord->workm.t[1] -= 0x400;
-                mem->field_24      = (u16)mem->field_24 + D_apobiosis_80130B5C[mem->field_20].field_4;
+                mem->scale         = (u16)mem->scale + D_apobiosis_80130B5C[mem->index].field_4;
                 func_apobiosis_8013017C(
-                    &((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[1], mem->field_22,
-                    D_apobiosis_80130B5C[mem->field_20].field_2, 0);
-                func_apobiosis_8012F9D0(coord, mem->field_24, 0x80, rgb);
-                if (mem->field_22 & 1) {
-                    func_apobiosis_8012F9D0(coord, 0x80, mem->field_24, rgb);
+                    &((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[1], mem->age,
+                    D_apobiosis_80130B5C[mem->index].field_2, 0);
+                func_apobiosis_8012F9D0(coord, mem->scale, 0x80, rgb);
+                if (mem->age & 1) {
+                    func_apobiosis_8012F9D0(coord, 0x80, mem->scale, rgb);
                 }
-                for (i = 0; i < D_apobiosis_80130B5C[mem->field_20].field_0; i++) {
+                for (i = 0; i < D_apobiosis_80130B5C[mem->index].field_0; i++) {
                     Gp_LcgState              = Gp_LcgState * 5 + 0x71357911;
                     D_apobiosis_80130B80[i] -= (((u32)Gp_LcgState >> 16) & 0xFF) - 0x80;
-                    n                        = i + D_apobiosis_80130B5C[mem->field_20].field_4;
+                    n                        = i + D_apobiosis_80130B5C[mem->index].field_4;
                     Gp_LcgState              = Gp_LcgState * 5 + 0x71357911;
                     D_apobiosis_80130B80[n] -= (((u32)Gp_LcgState >> 16) & 0xFF) - 0x80;
-                    mem->field_18            = mem->field_24 * rsin(D_apobiosis_80130B80[i]) >> 12;
-                    mem->field_1A            = mem->field_24 * rcos(D_apobiosis_80130B80[i]) >> 12;
-                    mem->field_1C =
-                        mem->field_18 *
+                    mem->pos.vx              = mem->scale * rsin(D_apobiosis_80130B80[i]) >> 12;
+                    mem->pos.vy              = mem->scale * rcos(D_apobiosis_80130B80[i]) >> 12;
+                    mem->pos.vz =
+                        mem->pos.vx *
                             rcos(D_apobiosis_80130B80
-                                     [i + D_apobiosis_80130B5C[mem->field_20].field_4]) >>
+                                     [i + D_apobiosis_80130B5C[mem->index].field_4]) >>
                         12;
-                    func_apobiosis_80130630(coord, &mem->field_18, mem->field_22,
-                                            D_apobiosis_80130B5C[mem->field_20].field_6);
+                    func_apobiosis_80130630(coord, &mem->pos, mem->age,
+                                            D_apobiosis_80130B5C[mem->index].field_6);
                 }
                 coord->workm.t[1] += 0x400;
-                if (mem->field_2A >= 0x19) {
-                    mem->field_2A = (u16)mem->field_2A - 0x18;
+                if (mem->step >= 0x19) {
+                    mem->step = (u16)mem->step - 0x18;
                     return;
                 }
                 arg0->state = 2;
@@ -140,72 +140,72 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 return;
             case 2:
                 Gp_UpdateCoord(coord);
-                func_apobiosis_8012F808(mem->field_2A);
-                if (mem->field_2A >= 0x41) {
-                    mem->field_2A = (u16)mem->field_2A - 0x10;
+                func_apobiosis_8012F808(mem->step);
+                if (mem->step >= 0x41) {
+                    mem->step = (u16)mem->step - 0x10;
                 }
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    mem->field_24 = ((u32)Gp_LcgState >> 16) & 0x3FF;
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    mem->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                    mem->field_10 = mem->field_24 * rsin(mem->field_26) >> 12;
-                    mem->field_14 = mem->field_24 * rcos(mem->field_26) >> 12;
-                    Gp_SpawnEff(0x600F7, coord, 0, (SVECTOR*)&mem->field_10);
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    mem->field_2A = (((u32)Gp_LcgState >> 16) & 0x7F) + 0x60;
+                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                    mem->scale   = ((u32)Gp_LcgState >> 16) & 0x3FF;
+                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                    mem->angle   = ((u32)Gp_LcgState >> 16) & 0xFFF;
+                    mem->move.vx = mem->scale * rsin(mem->angle) >> 12;
+                    mem->move.vz = mem->scale * rcos(mem->angle) >> 12;
+                    Gp_SpawnEff(0x600F7, coord, 0, &mem->move);
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    mem->step   = (((u32)Gp_LcgState >> 16) & 0x7F) + 0x60;
                 }
-                if (mem->field_22 == 0x14) {
-                    mem->field_2A = 0xF0;
-                    arg0->state   = 3;
+                if (mem->age == 0x14) {
+                    mem->step   = 0xF0;
+                    arg0->state = 3;
                 }
                 return;
             case 3:
-                func_apobiosis_8012F808(mem->field_2A);
-                if (mem->field_2A >= 0x21) {
-                    mem->field_2A = (u16)mem->field_2A - 0xC;
+                func_apobiosis_8012F808(mem->step);
+                if (mem->step >= 0x21) {
+                    mem->step = (u16)mem->step - 0xC;
                 }
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_24 = ((u32)Gp_LcgState >> 16) & 0x7FF;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                mem->field_10 = mem->field_24 * rsin(mem->field_26) >> 12;
-                mem->field_14 = mem->field_24 * rcos(mem->field_26) >> 12;
-                Gp_SpawnEff(0x600F7, coord, 0, (SVECTOR*)&mem->field_10);
-                if (mem->field_22 == 0x1E) {
-                    if (mem->field_20 <= 0) {
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->scale   = ((u32)Gp_LcgState >> 16) & 0x7FF;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->angle   = ((u32)Gp_LcgState >> 16) & 0xFFF;
+                mem->move.vx = mem->scale * rsin(mem->angle) >> 12;
+                mem->move.vz = mem->scale * rcos(mem->angle) >> 12;
+                Gp_SpawnEff(0x600F7, coord, 0, &mem->move);
+                if (mem->age == 0x1E) {
+                    if (mem->index <= 0) {
                         arg0->state = 5;
-                        Gp_SpawnPadLerp(mem->field_20 * 8 + 0x12, 0xFF, 8);
+                        Gp_SpawnPadLerp(mem->index * 8 + 0x12, 0xFF, 8);
                     } else {
-                        mem->field_2A = 0xF0;
-                        arg0->state   = 4;
+                        mem->step   = 0xF0;
+                        arg0->state = 4;
                         Gp_SpawnPadLerp(0x22, 0xFF, 8);
                     }
                 }
                 return;
             case 4:
-                func_apobiosis_8012F808(mem->field_2A);
-                if (mem->field_2A >= 9) {
-                    mem->field_2A = (u16)mem->field_2A - 8;
+                func_apobiosis_8012F808(mem->step);
+                if (mem->step >= 9) {
+                    mem->step = (u16)mem->step - 8;
                 }
                 for (i = 0; i < 2; i++) {
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    mem->field_24 = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    mem->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                    mem->field_10 = mem->field_24 * rsin(mem->field_26) >> 12;
-                    mem->field_14 = mem->field_24 * rcos(mem->field_26) >> 12;
-                    Gp_SpawnEff(0x600F7, coord, 0, (SVECTOR*)&mem->field_10);
+                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                    mem->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
+                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                    mem->angle   = ((u32)Gp_LcgState >> 16) & 0xFFF;
+                    mem->move.vx = mem->scale * rsin(mem->angle) >> 12;
+                    mem->move.vz = mem->scale * rcos(mem->angle) >> 12;
+                    Gp_SpawnEff(0x600F7, coord, 0, &mem->move);
                 }
-                if (mem->field_22 == 0x28) {
+                if (mem->age == 0x28) {
                     arg0->state = 5;
                 }
                 return;
             case 5:
-                func_apobiosis_8012F808(mem->field_2A);
-                if (mem->field_2A >= 9) {
-                    mem->field_2A = (u16)mem->field_2A - 8;
+                func_apobiosis_8012F808(mem->step);
+                if (mem->step >= 9) {
+                    mem->step = (u16)mem->step - 8;
                     return;
                 }
                 break;
@@ -354,14 +354,14 @@ void func_apobiosis_8012F9D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 }
 
 /// One shard of the apobiosis burst. Every frame it ticks the shard's life
-/// counter `GpEffWork.field_22` and bails out - handing the work block back -
+/// counter `GpEffWork.age` and bails out - handing the work block back -
 /// once the player is dying (`D_80114C0B`), the room is fading (`Gp_State1C`)
 /// or the shard has outlived its state. State 0 reparents the shard onto the
 /// cast task and splits on `spawnArg1`: a non-zero arg pins the shard to the
 /// cast's coordinate at the origin (state 1), a zero arg gives it a random
-/// drift `field_10`..`field_14` and lets it fly (state 2). Either way the tail
-/// seeds the shard's `field_18`..`field_1C` offset, its radius `field_26` and
-/// the intensity `field_2A` that picks a `D_apobiosis_80130B5C` row. Both live
+/// drift `move` and lets it fly (state 2). Either way the tail
+/// seeds the shard's `pos` offset, its radius `angle` and
+/// the intensity `step` that picks a `D_apobiosis_80130B5C` row. Both live
 /// states redraw the shard every other frame, at twice the row's radius while
 /// pinned and at the plain radius once free.
 void func_apobiosis_8012FE10(Task* arg0)
@@ -372,12 +372,12 @@ void func_apobiosis_8012FE10(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
     if ((D_80114C0B != -2) && (Gp_State1C->fadeState < 4)) {
-        mem->field_22 = (u16)mem->field_22 + 1;
+        mem->age = (u16)mem->age + 1;
         switch (arg0->state) {
             case 0:
                 Task_Reparent(D_apobiosis_80130BA0, arg0);
                 if (arg0->spawnArg1 != 0) {
-                    coord->sub        = mem->field_8;
+                    coord->sub        = mem->parent;
                     coord->coord.t[0] = 0;
                     coord->coord.t[1] = 0;
                     coord->coord.t[2] = 0;
@@ -385,52 +385,52 @@ void func_apobiosis_8012FE10(Task* arg0)
                     Gp_UpdateCoord(coord);
                     arg0->state = 1;
                 } else {
-                    mem->field_12 = 0;
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    mem->field_10 = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    mem->field_14 = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                    arg0->state   = 2;
+                    mem->move.vy = 0;
+                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                    mem->move.vx = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                    mem->move.vz = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                    arg0->state  = 2;
                 }
-                mem->field_1A = -0x1000;
-                mem->field_24 = 0x80;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_18 = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_1C = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                mem->field_2A = Gp_StateC08.field_0 % 10 - 1;
+                mem->pos.vy = -0x1000;
+                mem->scale  = 0x80;
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                mem->pos.vx = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                mem->pos.vz = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                mem->angle  = ((u32)Gp_LcgState >> 16) & 0xFFF;
+                mem->step   = Gp_StateC08.field_0 % 10 - 1;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
-                if (mem->field_22 & 1) {
-                    mem->field_20 = (u16)mem->field_20 + 1;
-                    func_apobiosis_8013017C(coord, mem->field_20,
-                                            D_apobiosis_80130B5C[mem->field_2A].field_6 * 2,
-                                            mem->field_26);
-                    func_apobiosis_80130630(coord, &mem->field_18, mem->field_20,
-                                            D_apobiosis_80130B5C[mem->field_2A].field_6 * 2);
+                if (mem->age & 1) {
+                    mem->index = (u16)mem->index + 1;
+                    func_apobiosis_8013017C(coord, mem->index,
+                                            D_apobiosis_80130B5C[mem->step].field_6 * 2,
+                                            mem->angle);
+                    func_apobiosis_80130630(coord, &mem->pos, mem->index,
+                                            D_apobiosis_80130B5C[mem->step].field_6 * 2);
                 }
-                if (mem->field_22 < 0x19) {
+                if (mem->age < 0x19) {
                     return;
                 }
                 break;
             case 2:
-                coord->coord.t[0] += mem->field_10;
-                coord->coord.t[1] += mem->field_12;
-                coord->coord.t[2] += mem->field_14;
+                coord->coord.t[0] += mem->move.vx;
+                coord->coord.t[1] += mem->move.vy;
+                coord->coord.t[2] += mem->move.vz;
                 coord->flg         = 0;
                 Gp_UpdateCoord(coord);
-                if (mem->field_22 & 1) {
-                    mem->field_20 = (u16)mem->field_20 + 1;
-                    func_apobiosis_8013017C(coord, mem->field_20,
-                                            D_apobiosis_80130B5C[mem->field_2A].field_6,
-                                            mem->field_26);
-                    func_apobiosis_80130630(coord, &mem->field_18, mem->field_20,
-                                            D_apobiosis_80130B5C[mem->field_2A].field_6);
+                if (mem->age & 1) {
+                    mem->index = (u16)mem->index + 1;
+                    func_apobiosis_8013017C(coord, mem->index,
+                                            D_apobiosis_80130B5C[mem->step].field_6,
+                                            mem->angle);
+                    func_apobiosis_80130630(coord, &mem->pos, mem->index,
+                                            D_apobiosis_80130B5C[mem->step].field_6);
                 }
-                if (mem->field_22 < 0x11) {
+                if (mem->age < 0x11) {
                     return;
                 }
                 break;

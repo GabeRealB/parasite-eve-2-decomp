@@ -23,11 +23,11 @@ typedef struct CombustionQuadScratch {
 } CombustionQuadScratch;
 STATIC_ASSERT_SIZEOF(CombustionQuadScratch, 0x1C);
 
-/// One 8-byte row of `D_combustion_80130980`, indexed by `GpEffWork.field_20`
+/// One 8-byte row of `D_combustion_80130980`, indexed by `GpEffWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`, so the burn scales with the combo counter).
 /// `field_0` / `field_2` are the per-frame Y / Z drift added to the flame
-/// overlay `GpEffWork.field_12` / `field_14`. `field_4` is the last
-/// `GpEffWork.field_22` tick that still spawns flames, and `field_6` is the
+/// overlay `GpEffWork.move`. `field_4` is the last
+/// `GpEffWork.age` tick that still spawns flames, and `field_6` is the
 /// last tick of the burn as a whole; it is also the pad-rumble duration
 /// `Gp_SpawnPadLerp` is given when the effect starts.
 typedef struct CombustionStep {

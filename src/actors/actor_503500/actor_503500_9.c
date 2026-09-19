@@ -511,7 +511,7 @@ void func_actor_503500_801455A4(Task* arg0)
         func_actor_503500_80145950(arg0);
         return;
     }
-    child          = eff->field_0;
+    child          = eff->task;
     work->field_38 = child;
     Task_Reparent(arg0, child);
     pan = (s8)Gp_GetObjPan(coord);
@@ -664,7 +664,7 @@ void func_actor_503500_80145A2C(Task* arg0)
         func_actor_503500_80145E98(arg0);
         return;
     }
-    child          = eff->field_0;
+    child          = eff->task;
     work->field_98 = child;
     Task_Reparent(arg0, child);
     if (gGameSession->eventState != 0) {

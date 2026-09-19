@@ -155,7 +155,7 @@ void func_actor_510900_80136184(Actor510900* arg0)
             if (--work->field_59E == 0) {
                 eff = Gp_SpawnEff(0x80060044, &arg0->field_2C->field_8[4].field_0, 0, NULL);
                 if (eff != NULL) {
-                    Task_Reparent((Task*)arg0, eff->field_0);
+                    Task_Reparent((Task*)arg0, eff->task);
                 }
                 work->field_59E = 0x28;
                 snd             = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x4078000E;
@@ -1924,7 +1924,7 @@ void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
         Gp_SpawnEff(0x60070, coord, 0xC1001200, NULL);
         eff = Gp_SpawnEff(0x80060185, coord, 0, NULL);
         if (eff != NULL) {
-            Task_Reparent(task, eff->field_0);
+            Task_Reparent(task, eff->task);
         }
         if (work->rec60.key != 0) {
             work->field_CA = 2;
@@ -2339,7 +2339,7 @@ case0:
         scratch->rot.vz = 0;
         eff             = Gp_SpawnEff(0x8006005B, coord, 0, &scratch->rot);
         if (eff != NULL) {
-            spawned         = eff->field_0;
+            spawned         = eff->task;
             work->field_32C = spawned;
             Task_Reparent(task, spawned);
         }

@@ -170,8 +170,8 @@ void func_actor_105700_80131ED0(Actor105700* arg0)
                             work->field_6A8        = 0;
                             work->field_5E4.flags &= 0x7FFF;
                             if (work->field_690 != NULL) {
-                                work->field_690->field_0->state = 3;
-                                work->field_690                 = NULL;
+                                work->field_690->task->state = 3;
+                                work->field_690              = NULL;
                             }
                         }
                         func_800DA6E8(&enemy->node, 0, 0);
@@ -309,8 +309,8 @@ void func_actor_105700_80131ED0(Actor105700* arg0)
                         break;
                 }
                 if (result != 0 && work->field_690 != NULL) {
-                    work->field_690->field_0->state = 3;
-                    work->field_690                 = NULL;
+                    work->field_690->task->state = 3;
+                    work->field_690              = NULL;
                 }
                 break;
             case 3:

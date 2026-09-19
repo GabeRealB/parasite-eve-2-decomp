@@ -31,34 +31,34 @@ void RoomsShared8017e890(Task* arg0)
         }
         goto kill;
     } else {
-        mem->field_22++;
+        mem->age++;
         if (arg0->state == 0) {
-            mem->field_22 = 1;
-            mem->field_24 = 0xE0;
-            mem->field_26 = 0x80;
-            mem->field_28 = 0xE0;
-            mem->field_2A = 0x80;
-            arg0->state   = 1;
+            mem->age    = 1;
+            mem->scale  = 0xE0;
+            mem->angle  = 0x80;
+            mem->period = 0xE0;
+            mem->step   = 0x80;
+            arg0->state = 1;
         }
         Gp_UpdateCoord(coord);
-        rgb[0]        = mem->field_24;
-        rgb[1]        = (u16)mem->field_24 >> 1;
-        rgb[2]        = (u16)mem->field_24 >> 2;
-        step          = mem->field_26 + 0x10;
-        mem->field_26 = step;
+        rgb[0]     = mem->scale;
+        rgb[1]     = (u16)mem->scale >> 1;
+        rgb[2]     = (u16)mem->scale >> 2;
+        step       = mem->angle + 0x10;
+        mem->angle = step;
         RoomsShared8017e4f8Halo(coord, step * 2, rgb);
-        RoomsShared8017e890Draw(coord, mem->field_26);
-        if (mem->field_28 >= 0x19) {
-            rgb[0] = mem->field_28;
-            rgb[1] = (u16)mem->field_28 >> 1;
-            rgb[2] = (u16)mem->field_28 >> 2;
-            Room_Draw09(coord, mem->field_2A * 3 / 2, 0x60, rgb);
-            mem->field_28 -= 0x18;
-            mem->field_2A += 0x30;
+        RoomsShared8017e890Draw(coord, mem->angle);
+        if (mem->period >= 0x19) {
+            rgb[0] = mem->period;
+            rgb[1] = (u16)mem->period >> 1;
+            rgb[2] = (u16)mem->period >> 2;
+            Room_Draw09(coord, mem->step * 3 / 2, 0x60, rgb);
+            mem->period -= 0x18;
+            mem->step   += 0x30;
             return;
         }
-        mem->field_24 -= 0x18;
-        if (mem->field_24 < 0x18) {
+        mem->scale -= 0x18;
+        if (mem->scale < 0x18) {
         kill:
             Gp_ReleaseState1CMem(mem, arg0);
         }

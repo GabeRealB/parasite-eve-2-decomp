@@ -97,7 +97,7 @@ void func_tonfa_baton_8011DBFC(GpActorWork* arg0)
                                       (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                       0, NULL);
                     if (eff != NULL) {
-                        Task_Reparent(actor->field_91C, eff->field_0);
+                        Task_Reparent(actor->field_91C, eff->task);
                     }
                 }
             }
@@ -116,7 +116,7 @@ void func_tonfa_baton_8011DBFC(GpActorWork* arg0)
                         0x6003A, (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 1,
                         NULL);
                     if (eff != NULL) {
-                        Task_Reparent(actor->field_91C, eff->field_0);
+                        Task_Reparent(actor->field_91C, eff->task);
                     }
                     Gp_AnimResetChildSlots(arg0, 0xB);
                 } else {

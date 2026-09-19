@@ -39770,7 +39770,7 @@ the clut math. Combined with the `s32` `uv` load it becomes `lh` /
 `li a0, 0x50` / `sb`, matching the target. Same pattern for the second
 V pair with `t = 0x77`. `Gp_EffSprTaskE0` is the example.
 
-Copying `GpEffSpawnArg.field_2` (s16) straight into `GpEffWork.field_2A`
+Copying `GpEffSpawnArg.field_2` (s16) straight into `GpEffWork.step`
 (s16) also emits `lhu`; assign through an `s32` local first to get `lh`.
 
 ## Hoist the `gte_ldv0` alias above the init block to get a callee-saved register
@@ -62359,7 +62359,7 @@ Rewrite from the nearest matched sibling's shape, then look at dumps.
 ## A volatile halfword reload is `lhu` + `sll`/`sra`, never `lh`; separate it from the store with an unrelated global store instead
 
 `func_combustion_8012F888`'s archived seed stored `mem->field_2A = kind` and
-read it straight back through `((volatile GpEffWork*)mem)->field_2A` so the
+read it straight back through `((volatile GpEffWork*)mem)->step` so the
 reload would not be forwarded from `kind`. That reload can only ever be
 `lhu; sll 16; sra 10`: MIPS `extendhisi2` expands an optimised `sign_extend
 (mem:HI)` as a plain `movhi` load plus two shifts, and it is *combine* that
@@ -133691,3 +133691,39 @@ Two consequences when one struct's fields are all being named:
   comments and every `Type::field_XX`-style mention left in the tree and in
   these notes are hand edits afterwards; grepping `src` and `include` for the
   retired path is what shows they are all done.
+## Regrouping split halfwords into an aggregate: the address of a later component keeps the component
+
+A struct decompilation left as `s16 a; s16 b; s16 c;` may really hold one
+`SVECTOR`, and folding the three into it is a readable win: the `(SVECTOR*)&x->a`
+casts at the GTE calls and at the spawn arguments fall away, because the member
+already has the type. The fold is code for code - the members sit at the same
+offsets, the loads and stores are the same width, and a pass over the sites the
+parser reports changes nothing else - **except where the code takes the address
+of a component that is not the first**. That case compiles, links and quietly
+reads the wrong halfword.
+
+```c
+/* before: the address of a later halfword, cast to read it as unsigned */
+x->b = -((s32)(*(u16*)&x->b << 16) >> 17);
+
+/* after, wrong: `&x->v` is the vector, so this reads and writes `vx` */
+x->v.vy = -((s32)(*(u16*)&x->v << 16) >> 17);
+
+/* after, right: the component's own address */
+x->v.vy = -((s32)(*(u16*)&x->v.vy << 16) >> 17);
+```
+
+Drive the rewrite from `find_references.py` rather than from sight, and check
+the `address-of` uses one by one: `&x->a` may become `&x->v`, but `&x->b` and
+`&x->c` must keep their component. The failure shows up as a checksum mismatch
+in one overlay only, with everything else green, so byte-compare the built image
+against its package and map the differing offsets back through the symbol map
+before doubting the fold - the offsets name the function, and the function names
+the site.
+
+The other edge is the tool boundary every rename has: a reference a macro
+invocation carries as an argument is reported but not rewritten. The GTE macros,
+the primitive setters (`setUV4`, `setRGB0`) and the texture helpers (`getClut`)
+all carry member accesses that way, so they need hand edits. They are hard
+errors once the old member is gone, which makes the compiler the cheapest way to
+enumerate them - build once before hunting leftovers by eye.

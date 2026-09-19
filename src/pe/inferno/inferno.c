@@ -43,7 +43,7 @@ void func_inferno_8012FF34(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
 /// roar from `D_inferno_801304F0` and lands the task on state 1, 5 or 9.
 /// State 1 spawns the two ignition effects, state 5 fans six flames around a
 /// 0x400 step, state 9 the ground burst; states 10 and 11 fade the effect
-/// brightness `GpEffWork::field_26` down and back up and each fire one ring of
+/// brightness scalar (`GpEffWork::angle`) down and back up and each fire one ring of
 /// flames on their own tick, and state 12 fades out and releases. Every state
 /// updates the effect coordinate first, and any state releases immediately if
 /// the player is dying (`D_80114C0B`) or the room is fading (`Gp_State1C`).
@@ -61,12 +61,12 @@ void func_inferno_8012EF88(Task* arg0)
     }
     coord->flg = 0;
     Gp_UpdateCoord(coord);
-    mem->field_22 = (u16)mem->field_22 + 1;
+    mem->age = (u16)mem->age + 1;
     switch (arg0->state) {
         case 0:
-            mem->field_24 = 0x200;
-            mem->field_26 = 0xFF;
-            pan           = (s8)Gp_GetObjPan(coord);
+            mem->scale = 0x200;
+            mem->angle = 0xFF;
+            pan        = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(D_inferno_801304F0[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
                                 (s8)Gp_GetObjDepth(coord));
             arg0->state = ((u16)(Gp_StateC08.field_0 % 10) - 1) * 4 + 1;
@@ -80,14 +80,14 @@ void func_inferno_8012EF88(Task* arg0)
             return;
         case 5:
             i = 0x200;
-            func_inferno_8012F3EC(mem->field_26);
+            func_inferno_8012F3EC(mem->angle);
             Gp_SpawnEff(0x800600DA, coord, 3, NULL);
-            mem->field_24 = 0x600;
+            mem->scale = 0x600;
             do {
-                mem->field_10 = (rsin(i) * mem->field_24) >> 12;
-                mem->field_14 = (rcos(i) * mem->field_24) >> 12;
-                i            += 0x400;
-                Gp_SpawnEff(0x800600DA, coord, 4, (SVECTOR*)&mem->field_10);
+                mem->move.vx = (rsin(i) * mem->scale) >> 12;
+                mem->move.vz = (rcos(i) * mem->scale) >> 12;
+                i           += 0x400;
+                Gp_SpawnEff(0x800600DA, coord, 4, &mem->move);
             } while (i < 0x1200);
             Gp_StateC08.field_6 |= 8;
             Gp_SpawnPadLerp(0x14, 0xFF, 8);
@@ -99,47 +99,47 @@ void func_inferno_8012EF88(Task* arg0)
             arg0->state = 0xA;
             return;
         case 10:
-            func_inferno_8012F3EC(mem->field_26);
-            mem->field_26 = (u16)mem->field_26 - 0x10;
-            if (mem->field_22 != 0xC) {
+            func_inferno_8012F3EC(mem->angle);
+            mem->angle = (u16)mem->angle - 0x10;
+            if (mem->age != 0xC) {
                 return;
             }
-            mem->field_24 = 0x600;
-            i             = 0x155;
+            mem->scale = 0x600;
+            i          = 0x155;
             do {
-                mem->field_10 = (rsin(i) * mem->field_24) >> 12;
-                mem->field_14 = (rcos(i) * mem->field_24) >> 12;
-                i            += 0x2AA;
-                Gp_SpawnEff(0x800600DA, coord, 1, (SVECTOR*)&mem->field_10);
+                mem->move.vx = (rsin(i) * mem->scale) >> 12;
+                mem->move.vz = (rcos(i) * mem->scale) >> 12;
+                i           += 0x2AA;
+                Gp_SpawnEff(0x800600DA, coord, 1, &mem->move);
             } while (i < 0x1151);
             Gp_SpawnPadLerp(0xC, 0xFF, 8);
             arg0->state = 0xB;
             return;
         case 11:
-            func_inferno_8012F3EC(mem->field_26);
-            if (mem->field_26 < 0xF0) {
-                mem->field_26 = (u16)mem->field_26 + 0x10;
+            func_inferno_8012F3EC(mem->angle);
+            if (mem->angle < 0xF0) {
+                mem->angle = (u16)mem->angle + 0x10;
             }
-            if (mem->field_22 != 0x18) {
+            if (mem->age != 0x18) {
                 return;
             }
-            mem->field_24 = 0x900;
-            i             = 0;
+            mem->scale = 0x900;
+            i          = 0;
             do {
-                mem->field_10 = (rsin(i) * mem->field_24) >> 12;
-                mem->field_14 = (rcos(i) * mem->field_24) >> 12;
-                i            += 0x2AA;
-                Gp_SpawnEff(0x800600DA, coord, 2, (SVECTOR*)&mem->field_10);
+                mem->move.vx = (rsin(i) * mem->scale) >> 12;
+                mem->move.vz = (rcos(i) * mem->scale) >> 12;
+                i           += 0x2AA;
+                Gp_SpawnEff(0x800600DA, coord, 2, &mem->move);
             } while (i < 0xFFC);
             Gp_StateC08.field_6 |= 8;
             Gp_SpawnPadLerp(0x18, 0xFF, 8);
-            arg0->state   = 0xC;
-            mem->field_26 = 0xFF;
+            arg0->state = 0xC;
+            mem->angle  = 0xFF;
             return;
         case 12:
-            func_inferno_8012F3EC(mem->field_26);
-            if (mem->field_26 >= 9) {
-                mem->field_26 = (u16)mem->field_26 - 8;
+            func_inferno_8012F3EC(mem->angle);
+            if (mem->angle >= 9) {
+                mem->angle = (u16)mem->angle - 8;
                 return;
             }
             break;
@@ -190,11 +190,11 @@ void func_inferno_8012F3EC(s16 arg0)
 const u32 D_inferno_8012EF68 = 0;
 
 /// Companion inferno-cast task: state 0 allocates a 12-byte `InfernoIdMap`
-/// of LCG jitter, scales `GpEffWork::field_18` by 0x80 (`gte_gpf12`) and
-/// rotates it into `field_10`. States 1–6 fade `field_24` while spinning
-/// `field_26` / `field_28` / `field_2A` and drawing through
+/// of LCG jitter, scales `GpEffWork::pos` by 0x80 (`gte_gpf12`) and
+/// rotates it into `move`. States 1–6 fade `scale` while spinning
+/// `angle` / `period` / `step` and drawing through
 /// `func_inferno_8012F978` (kind 0) and `func_inferno_8012FF34` (kind 1).
-/// State 3 also walks the effect coordinate by `field_10`. Releases if the
+/// State 3 also walks the effect coordinate by `move`. Releases if the
 /// player is dying, the room is fading, or the state's brightness floor is
 /// hit. `Task::spawnArg1 + 1` selects the chain from state 0.
 void func_inferno_8012F530(Task* arg0)
@@ -215,17 +215,17 @@ void func_inferno_8012F530(Task* arg0)
     }
     coord->flg = 0;
     Gp_UpdateCoord(coord);
-    mem->field_22 = (u16)mem->field_22 + 1;
+    mem->age = (u16)mem->age + 1;
     switch (arg0->state) {
         case 0:
             map = memCalloc(0xC, 0);
             if (map == NULL) {
-                mem->field_22 = 0;
+                mem->age = 0;
                 return;
             }
-            arg0->work    = (TaskIdMap*)map;
-            mem->field_24 = 0x80;
-            i             = 0;
+            arg0->work = (TaskIdMap*)map;
+            mem->scale = 0x80;
+            i          = 0;
             do {
                 p           = &map->field_0[0][i];
                 rng         = Gp_LcgState * 5 + 0x71357911;
@@ -238,83 +238,83 @@ void func_inferno_8012F530(Task* arg0)
             } while (i < 6);
             arg0->state = arg0->spawnArg1 + 1;
             gte_lddp(0x80);
-            gte_ldsv((SVECTOR*)&mem->field_18);
+            gte_ldsv(&mem->pos);
             gte_gpf12_real();
-            gte_stsv((SVECTOR*)&mem->field_10);
+            gte_stsv(&mem->move);
             gte_SetRotMatrix(&coord->coord);
-            gte_ldv0((SVECTOR*)&mem->field_10);
+            gte_ldv0(&mem->move);
             gte_rtv0_real();
-            gte_stsv((SVECTOR*)&mem->field_10);
+            gte_stsv(&mem->move);
             return;
         case 1:
-            if (mem->field_24 >= 5) {
-                if (mem->field_28 < 0xC00) {
-                    mem->field_28 = (u16)mem->field_28 + 0xC0;
+            if (mem->scale >= 5) {
+                if (mem->period < 0xC00) {
+                    mem->period = (u16)mem->period + 0xC0;
                 } else {
-                    mem->field_24 = (u16)mem->field_24 - 4;
+                    mem->scale = (u16)mem->scale - 4;
                 }
-                mem->field_26 = (u16)mem->field_26 + 0x20;
-                mem->field_2A = (u16)mem->field_2A + 0x18;
+                mem->angle = (u16)mem->angle + 0x20;
+                mem->step  = (u16)mem->step + 0x18;
                 func_inferno_8012F978(mem, coord, 0, map);
                 func_inferno_8012FF34(mem, coord, 1, map);
                 return;
             }
             break;
         case 2:
-            if (mem->field_24 >= 9) {
-                mem->field_24 = (u16)mem->field_24 - 8;
-                mem->field_26 = (u16)mem->field_26 + 0x20;
-                mem->field_28 = (u16)mem->field_28 + 0xC0;
-                mem->field_2A = (u16)mem->field_2A + 0x18;
+            if (mem->scale >= 9) {
+                mem->scale  = (u16)mem->scale - 8;
+                mem->angle  = (u16)mem->angle + 0x20;
+                mem->period = (u16)mem->period + 0xC0;
+                mem->step   = (u16)mem->step + 0x18;
                 func_inferno_8012F978(mem, coord, 0, map);
                 func_inferno_8012FF34(mem, coord, 1, map);
                 return;
             }
             break;
         case 3:
-            coord->coord.t[0] += mem->field_10;
-            coord->coord.t[1] += mem->field_12;
-            tz                 = coord->coord.t[2] + mem->field_14;
+            coord->coord.t[0] += mem->move.vx;
+            coord->coord.t[1] += mem->move.vy;
+            tz                 = coord->coord.t[2] + mem->move.vz;
             coord->flg         = 0;
             coord->coord.t[2]  = tz;
-            if (mem->field_24 >= 9) {
-                mem->field_24 = (u16)mem->field_24 - 8;
-                mem->field_26 = (u16)mem->field_26 + 0x20;
-                mem->field_28 = (u16)mem->field_28 + 0xC0;
-                mem->field_2A = (u16)mem->field_2A + 0x18;
+            if (mem->scale >= 9) {
+                mem->scale  = (u16)mem->scale - 8;
+                mem->angle  = (u16)mem->angle + 0x20;
+                mem->period = (u16)mem->period + 0xC0;
+                mem->step   = (u16)mem->step + 0x18;
                 func_inferno_8012F978(mem, coord, 0, map);
                 func_inferno_8012FF34(mem, coord, 1, map);
                 return;
             }
             break;
         case 4:
-            if (mem->field_24 >= 7) {
-                mem->field_24 = (u16)mem->field_24 - 6;
-                mem->field_26 = (u16)mem->field_26 + 0x40;
-                mem->field_28 = (u16)mem->field_28 + 0xC0;
-                mem->field_2A = (u16)mem->field_2A + 0x10;
+            if (mem->scale >= 7) {
+                mem->scale  = (u16)mem->scale - 6;
+                mem->angle  = (u16)mem->angle + 0x40;
+                mem->period = (u16)mem->period + 0xC0;
+                mem->step   = (u16)mem->step + 0x10;
                 func_inferno_8012F978(mem, coord, 0, map);
                 func_inferno_8012FF34(mem, coord, 1, map);
                 return;
             }
             break;
         case 5:
-            if (mem->field_24 >= 7) {
-                mem->field_24 = (u16)mem->field_24 - 6;
-                mem->field_26 = (u16)mem->field_26 + 0x40;
-                mem->field_28 = (u16)mem->field_28 + 0x40;
-                mem->field_2A = (u16)mem->field_2A + 0x18;
+            if (mem->scale >= 7) {
+                mem->scale  = (u16)mem->scale - 6;
+                mem->angle  = (u16)mem->angle + 0x40;
+                mem->period = (u16)mem->period + 0x40;
+                mem->step   = (u16)mem->step + 0x18;
                 func_inferno_8012F978(mem, coord, 0, map);
                 func_inferno_8012FF34(mem, coord, 1, map);
                 return;
             }
             break;
         case 6:
-            if (mem->field_24 >= 7) {
-                mem->field_24 = (u16)mem->field_24 - 6;
-                mem->field_26 = (u16)mem->field_26 + 0x80;
-                mem->field_28 = (u16)mem->field_28 + 0x20;
-                mem->field_2A = (u16)mem->field_2A + 0x20;
+            if (mem->scale >= 7) {
+                mem->scale  = (u16)mem->scale - 6;
+                mem->angle  = (u16)mem->angle + 0x80;
+                mem->period = (u16)mem->period + 0x20;
+                mem->step   = (u16)mem->step + 0x20;
                 func_inferno_8012F978(mem, coord, 0, map);
                 func_inferno_8012FF34(mem, coord, 1, map);
                 return;
@@ -329,8 +329,8 @@ release:
 
 /// Draws the lifted ring of the inferno's ground fan, the twin of
 /// `func_inferno_8012FF34`: identical geometry and prim setup, except the
-/// inner rim is lifted `GpEffWork::field_28 + field_2` along local Y instead
-/// of `field_2` alone, so the ring rises as the caster's `field_28` winds up.
+/// inner rim is lifted `GpEffWork::period + field_2` along local Y instead
+/// of `field_2` alone, so the ring rises as the caster's `period` winds up.
 /// `kind` picks the row of `D_inferno_801304E4` that sizes it.
 void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, InfernoIdMap* map)
 {
@@ -355,9 +355,9 @@ void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
     scratch  = (void**)G_SCRATCH_HEAD;
     tbl      = D_inferno_801304E4;
     row      = &tbl[kind];
-    h        = (u16)mem->field_28 + row->field_2;
-    inner    = (u16)mem->field_26 + row->field_0;
-    outer    = row->field_4 + (inner + (u16)mem->field_2A);
+    h        = (u16)mem->period + row->field_2;
+    inner    = (u16)mem->angle + row->field_0;
+    outer    = row->field_4 + (inner + (u16)mem->step);
     head     = (u8*)*scratch;
     *scratch = head - 0x70;
     block    = (InfernoFanScratch*)(head - 0x70);
@@ -390,7 +390,7 @@ void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
     for (i = 0; i < 6; i++) {
         gte_ldv0(&block->inner[i]);
         gte_rtps_real();
-        frame = (map->field_0[kind][i] + mem->field_22) % 6;
+        frame = (map->field_0[kind][i] + mem->age) % 6;
         gte_stsxy(&block->sxy0);
         next = i + 1;
         gte_ldv3(&block->inner[next % 6], &block->outer[i], &block->outer[next % 6]);
@@ -404,7 +404,7 @@ void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2E);
-            setRGB0(prim, mem->field_24, mem->field_24, mem->field_24);
+            setRGB0(prim, mem->scale, mem->scale, mem->scale);
             prim->tpage = 0x2A;
             prim->clut  = 0x4282;
             u           = frame * 0x28;
@@ -426,12 +426,12 @@ void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
 
 /// Draws one ring of the inferno's ground fan. `kind` picks the row of
 /// `D_inferno_801304E4` that sizes it: six inner rim points of radius
-/// `field_26 + field_0` lifted `field_2` along local Y and six outer rim
-/// points of radius `field_26 + field_0 + field_2A + field_4` in the local XY
+/// `angle + field_0` lifted `field_2` along local Y and six outer rim
+/// points of radius `angle + field_0 + step + field_4` in the local XY
 /// plane are built by `rsin` / `rcos` a sixth of a turn apart, rotated by
 /// `coord`'s `workm` and offset by its translation. Each of the six segments
 /// is then projected through `GsWSMATRIX` and linked as one semi-transparent
-/// `POLY_FT4`; `map` and `GpEffWork::field_22` pick which of the six 0x28-wide
+/// `POLY_FT4`; `map` and `GpEffWork::age` pick which of the six 0x28-wide
 /// texture frames it uses, and a negative `gte_stflg` drops the segment.
 void func_inferno_8012FF34(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, InfernoIdMap* map)
 {
@@ -456,8 +456,8 @@ void func_inferno_8012FF34(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
     scratch  = (void**)G_SCRATCH_HEAD;
     tbl      = D_inferno_801304E4;
     row      = &tbl[kind];
-    inner    = (u16)mem->field_26 + row->field_0;
-    outer    = row->field_4 + (inner + (u16)mem->field_2A);
+    inner    = (u16)mem->angle + row->field_0;
+    outer    = row->field_4 + (inner + (u16)mem->step);
     h        = row->field_2;
     head     = (u8*)*scratch;
     *scratch = head - 0x70;
@@ -491,7 +491,7 @@ void func_inferno_8012FF34(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
     for (i = 0; i < 6; i++) {
         gte_ldv0(&block->inner[i]);
         gte_rtps_real();
-        frame = (map->field_0[kind][i] + mem->field_22) % 6;
+        frame = (map->field_0[kind][i] + mem->age) % 6;
         gte_stsxy(&block->sxy0);
         next = i + 1;
         gte_ldv3(&block->inner[next % 6], &block->outer[i], &block->outer[next % 6]);
@@ -505,7 +505,7 @@ void func_inferno_8012FF34(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2E);
-            setRGB0(prim, mem->field_24, mem->field_24, mem->field_24);
+            setRGB0(prim, mem->scale, mem->scale, mem->scale);
             prim->tpage = 0x2A;
             prim->clut  = 0x4282;
             u           = frame * 0x28;

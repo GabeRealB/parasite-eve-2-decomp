@@ -64,8 +64,8 @@ void func_pepper_spray_8012EF34(Task* arg0)
         Gp_ReleaseState1CMem(mem, arg0);
         return;
     }
-    age           = (u16)mem->field_22 + 1;
-    mem->field_22 = age;
+    age      = (u16)mem->age + 1;
+    mem->age = age;
     switch (arg0->state) {
         case 0:
             slot->coord.coord.t[0] = coord->coord.t[0];
@@ -83,9 +83,9 @@ void func_pepper_spray_8012EF34(Task* arg0)
             slot->field_5C         = 0x12C0;
             base->field_0          = 6;
             slot->coord.coord.t[2] = tz;
-            mem->field_28          = 0xE0;
-            mem->field_24          = yaw;
-            mem->field_26          = spread;
+            mem->period            = 0xE0;
+            mem->scale             = yaw;
+            mem->angle             = spread;
             arg0->state            = 1;
             for (i = 0; i < 6; i++) {
                 Gp_LcgState                = Gp_LcgState * 5 + 0x71357911;
@@ -96,20 +96,20 @@ void func_pepper_spray_8012EF34(Task* arg0)
             SndEvt_EnqueueType6(0xE03F0001, pan, (s8)Gp_GetObjDepth(coord));
             break;
         case 1:
-            mem->field_24 = (u16)mem->field_24 - age * ((s16)mem->field_24 >> 4);
-            mem->field_28 = (u16)mem->field_28 - (u16)mem->field_22 * ((s16)mem->field_28 >> 4);
+            mem->scale  = (u16)mem->scale - age * ((s16)mem->scale >> 4);
+            mem->period = (u16)mem->period - (u16)mem->age * ((s16)mem->period >> 4);
             break;
     }
-    func_pepper_spray_8012F21C(coord, mem->field_24, mem->field_26);
-    rgb[0] = rgb[1] = rgb[2] = mem->field_28;
+    func_pepper_spray_8012F21C(coord, mem->scale, mem->angle);
+    rgb[0] = rgb[1] = rgb[2] = mem->period;
     Gp_DrawFadeQuad(rgb, 1);
     for (i = 0; i < 6; i++) {
-        func_pepper_spray_8012F634(coord, D_pepper_spray_8012FB9C[i], mem->field_28);
+        func_pepper_spray_8012F634(coord, D_pepper_spray_8012FB9C[i], mem->period);
     }
     if (slot->field_58 >= 0x191) {
         slot->field_58 -= 0x190;
     }
-    if (mem->field_22 >= 9) {
+    if (mem->age >= 9) {
         Gp_ReleaseState1CMem(mem, arg0);
     }
 }

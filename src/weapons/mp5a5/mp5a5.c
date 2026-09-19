@@ -25,7 +25,7 @@ SVECTOR D_mp5a5_8011E128 = { 0, 0x240, 0x40, 0 };
 /// Per-frame muzzle-flash task for the MP5A5. Frame 0 claims room-coord slot 0
 /// as a white 0x1000 light at the weapon's world position, parks the task's own
 /// coordinate on the muzzle offset under the hand frame, and rolls the flash
-/// size (`field_24`), its spin (`field_26`) and the four quad angles; every
+/// size (`scale`), its spin (`angle`) and the four quad angles; every
 /// later frame just halves the size and the brightness. Each frame then draws
 /// the core (`WeaponsShared8011d468`), a full-screen fade at the current
 /// brightness and the four flash quads, decays the light's range by 0x190 and
@@ -49,7 +49,7 @@ void func_mp5a5_8011D1E0(Task* task)
         return;
     }
 
-    work->field_22++;
+    work->age++;
     switch (task->state) {
         case 0:
             slot->coord.coord.t[0] = coord->coord.t[0];
@@ -63,19 +63,19 @@ void func_mp5a5_8011D1E0(Task* task)
             slot->field_5C         = 0x12C0;
             base->field_0          = 4;
 
-            coord->sub        = work->field_8;
+            coord->sub        = work->parent;
             coord->coord.t[0] = D_mp5a5_8011E128.vx;
             coord->coord.t[1] = D_mp5a5_8011E128.vy;
             coord->coord.t[2] = D_mp5a5_8011E128.vz;
             coord->flg        = 0;
             Gp_UpdateCoord(coord);
 
-            work->field_28 = 0xC0;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_24 = (((u32)Gp_LcgState >> 16) & 0x3FF) + 0x600;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            task->state    = 1;
+            work->period = 0xC0;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            work->scale  = (((u32)Gp_LcgState >> 16) & 0x3FF) + 0x600;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            work->angle  = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            task->state  = 1;
             for (i = 0; i < 4; i++) {
                 Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
                 D_mp5a5_8012B508[i] = ((i & 3) << 10) + (((u32)Gp_LcgState >> 16) & 0x3FF);
@@ -86,24 +86,24 @@ void func_mp5a5_8011D1E0(Task* task)
                both fields with `lhu` and sign-extends in the shift pair
                (`sll 16` / `sra 17`). A plain `>>= 1` on the `s16` field emits
                `lh` / `sra 1` instead. */
-            work->field_24 = (s16)(u16)work->field_24 >> 1;
-            work->field_28 = (s16)(u16)work->field_28 >> 1;
+            work->scale  = (s16)(u16)work->scale >> 1;
+            work->period = (s16)(u16)work->period >> 1;
             break;
     }
 
-    WeaponsShared8011d468(coord, work->field_24, work->field_26);
+    WeaponsShared8011d468(coord, work->scale, work->angle);
     /* Chained on purpose: it is one `lbu` stored three times, in reverse index
        order. Three separate assignments reload the field each time, because the
        stores into `rgb` may alias it. */
-    rgb[0] = rgb[1] = rgb[2] = work->field_28;
+    rgb[0] = rgb[1] = rgb[2] = work->period;
     Gp_DrawFadeQuad(rgb, 1);
     for (i = 0; i < 4; i++) {
-        WeaponsShared8011d864(coord, D_mp5a5_8012B508[i], work->field_28);
+        WeaponsShared8011d864(coord, D_mp5a5_8012B508[i], work->period);
     }
     if (slot->field_58 >= 0x191) {
         slot->field_58 -= 0x190;
     }
-    if (work->field_22 >= 7) {
+    if (work->age >= 7) {
         Gp_ReleaseState1CMem(work, task);
     }
 }

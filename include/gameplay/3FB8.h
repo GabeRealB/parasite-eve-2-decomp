@@ -201,73 +201,29 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 extern GpEffArg D_80112C74;
 extern s32      D_80112C7C[];
 
-/// 0x2C-byte work at `Task::spawnArg2` for `Gp_EffCtlTask6E` / `Gp_EffCtlTask3B` /
-/// `Gp_EffPolyTask9C` / `Gp_EffSprTask46` / `Gp_DrawEffSprite81` / `Gp_EffSprTask81` /
-/// `Gp_EffCtlTaskC1` /
-/// `Gp_EffCtlTaskF3` / `Gp_EffCtlTaskF4` / `Gp_EffCtlTaskA5` / `Gp_EffCtlTaskA6` /
-/// `Gp_EffCtlTaskE3` (`memCalloc(0x2C)` in `Gp_SpawnEff`).
-/// `field_0` is the spawned `Task*` (`Gp_SpawnEff` stores it; `Gp_SpawnWeaponEff`
-/// copies it onto `GameActor.field_914`).
-/// `field_8` is the parent coordinate copied onto `GsCOORDINATE2.sub`.
-/// `field_10` is the 3-halfword overlay `Gp_EffCtlTaskE3` passes to
-/// `Gp_SpawnEff`; `Gp_EffCtlTaskF4` also zeros `field_10` / `field_14` on
-/// first run. `Gp_EffCtlTask9B` treats `field_10` / `field_18` as `SVECTOR`s
-/// (`VectorNormalSS` of `field_18` into `field_10`, then GPF-scales `field_10`
-/// onto the spawned work). `Gp_EffCtlTaskA6` rotates `field_10` by `coord` and
-/// adds the result at `field_18` onto `coord.t[]`; `field_14` is also a
-/// lifetime that starts at `(field_24 & 0x1F) % (spawnArg1 * 3) + 7` and
-/// decays by `(field_22 & 3) / 3`. `field_12` is the per-frame Y step (`0xFFF0` minus
-/// an LCG nibble in `Gp_EffCtlTaskF4`). `field_18` / `field_1A` / `field_1C` are
-/// sign-extended into `coord.t[]` on first run. If they are all zero,
-/// `Gp_EffCtlTask9B` fills them from three LCG draws centered on 0. `field_20` is the spawn-wave count
-/// (`Gp_EffCtlTaskA5`), the draw-step counter that `Gp_EffCtlTaskF4` increments
-/// every 4 `field_22` ticks and kills at 8, or
-/// `(Gp_StateC08.field_0 % 10) - 1` (`Gp_EffCtlTaskF3` / `Gp_EffCtlTaskAC`). `field_22` is the step
-/// counter (`Gp_EffCtlTask6E` / `Gp_EffCtlTask3B` / `Gp_EffPolyTask9C` /
-/// `Gp_EffCtlTaskF3` / `Gp_EffCtlTaskF4` / `Gp_EffCtlTaskAC` / `Gp_EffCtlTaskA5` / `Gp_EffCtlTaskA6`).
-/// `field_24` is the lifetime (`Gp_EffCtlTask6E`, `spawnArg1 >> 16` or 0xC),
-/// the current scale stepped toward `field_26` (`Gp_EffSprTask46`),
-/// the LCG angle (`Gp_EffCtlTask3B`), a 0x10 start that decays by 2
-/// (`Gp_EffPolyTask9C`), a 0x80 start that decays by 8 (`Gp_EffCtlTaskC1`), the
-/// spawn/wait phase flag (`Gp_EffCtlTaskA5`), or the LCG draw param
-/// (`Gp_EffCtlTaskF4`). `Gp_EffCtlTaskA6` uses `field_24` as the LCG Y angle
-/// (`Gfx_RotMatrixY` with `& 0xFF0`), `field_26` as `(field_24 & 0xF) + 8`
-/// then a state-2 decay of `field_22 & 1`, `field_28` as
-/// `-(spawnArg1 << 4) - (LCG >> 16 & 0x7F)` stepped by +2, and `field_2A`
-/// as `spawnArg1 * 24 + 0xC0` stepped by +2 (also `* 3 + 0x3000` into
-/// `Gp_SpawnEff`). `Gp_EffCtlTaskE3` copies `spawnArg1` into `field_24` /
-/// `field_26` and sets `field_28 = field_26 << 2`. `Gp_EffCtlTaskC1` inits
-/// `field_26` to 0x100 and adds 0x80 each frame, and copies
-/// `D_80112C6C[field_2 & 3]` into `field_28`. `Gp_EffCtlTaskF4` copies
-/// `spawnArg1 & 0xFFF` into `field_26` and `spawnArg1 & 0xF000` into
-/// `field_28` (bit `0x8000` selects the LCG `| 0x1000` draw path).
-/// `Gp_EffPolyTask9C` inits `field_26` to 0x20 and adds `field_2A` each frame.
-/// `Gp_EffCtlTaskF3` inits `field_26` to 0x20, `field_28` to
-/// `(field_20 << 7) + 0x180`, and `field_2A` to `(field_20 << 8) + 0x400`.
-/// `Gp_EffCtlTaskAC` inits `field_26` to 0x20, `field_28` to
-/// `((field_20 + 1) * 3) << 7`, and `field_2A` to `Player_Status.hp`.
-/// `Gp_EffCtlTaskA5` uses `field_26` as the inter-wave wait timer. `field_2A`
-/// is the packed parameter passed through to `Gp_DrawEffSprite46`, the per-frame
-/// `field_26` step, or `Gp_EffCtlTaskF3`'s `Gp_SpawnEff` spawn arg.
-typedef struct _GpEffWork {
-    /* 0x00 */ struct Task*           field_0;
-    /* 0x04 */ s32                    field_4;
-    /* 0x08 */ struct _GsCOORDINATE2* field_8;
-    /* 0x0C */ SVECTOR*               field_C;
-    /* 0x10 */ s16                    field_10;
-    /* 0x12 */ s16                    field_12;
-    /* 0x14 */ s16                    field_14;
-    /* 0x16 */ s16                    pad_16;
-    /* 0x18 */ s16                    field_18;
-    /* 0x1A */ s16                    field_1A;
-    /* 0x1C */ s16                    field_1C;
-    /* 0x1E */ byte                   pad_1E[2];
-    /* 0x20 */ s16                    field_20;
-    /* 0x22 */ s16                    field_22;
-    /* 0x24 */ s16                    field_24;
-    /* 0x26 */ s16                    field_26;
-    /* 0x28 */ s16                    field_28;
-    /* 0x2A */ s16                    field_2A;
+/// Per-effect work area. `Gp_SpawnEff` allocates one (`memCalloc(0x2C)`) for
+/// every effect it spawns and parks it in that task's `Task::spawnArg2`, which
+/// is the only handle the rest of the engine has on it: the block is freed
+/// with the task that carries it.
+///
+/// Each effect task reads the block in its own terms, so most of its slots
+/// hold whatever that task animates - a billboard's size and spin, a ring's
+/// brightness and radius, a palette blend - and the comments below give the
+/// reading its users most often give them. `task`, `parent`, `pos` and `age`
+/// are the part they all agree on.
+typedef struct GpEffWork {
+    struct Task*           task;    // the effect's own task, which carries this block as its `spawnArg2`
+    s32                    field_4; // role unproven: zeroed by the spawn path, never read
+    struct _GsCOORDINATE2* parent;  // coordinate the effect hangs off, copied onto `GsCOORDINATE2.sub`
+    SVECTOR*               field_C; // role unproven: the offset vector the spawn was called with, never read
+    SVECTOR                move;    // vector the owning task moves the effect by
+    SVECTOR                pos;     // where the effect sits under `parent`, seeded from the spawn's offset vector
+    s16                    index;   // the owning task's index into the table that picks the effect's frame or level
+    s16                    age;     // frames since the effect was spawned
+    s16                    scale;   // magnitude the task animates: a brightness for a ring or flash, a billboard size for a sprite
+    s16                    angle;   // rotation the task spins the effect by, or the radius a ring effect draws it at
+    s16                    period;  // frames the task's current phase lasts, or the size it holds while it lasts
+    s16                    step;    // per-frame step the task advances another slot by, or a packed draw parameter
 } GpEffWork;
 STATIC_ASSERT_SIZEOF(GpEffWork, 0x2C);
 
@@ -285,7 +241,7 @@ typedef struct _GpMtxWords {
 } GpMtxWords;
 
 /// 4-byte row of `D_8011291C`, indexed by `Task::spawnArg1`.
-/// `Gp_EffPolyTask9C` copies `field_0` / `field_2` into `GpEffWork.field_28` /
+/// `Gp_EffPolyTask9C` copies `field_0` / `field_2` into `GpEffWork.period` /
 /// `field_2A` (draw param for `Gp_DrawEffShard` and per-frame `field_26` step).
 typedef struct _GpEffRec {
     /* 0x0 */ u16 field_0;
@@ -295,7 +251,7 @@ STATIC_ASSERT_SIZEOF(GpEffRec, 4);
 
 extern GpEffRec D_8011291C[];
 
-/// 0xC-byte sprite frame of `Gp_EffSprRecs`, indexed by `GpEffWork.field_22`.
+/// 0xC-byte sprite frame of `Gp_EffSprRecs`, indexed by `GpEffWork.age`.
 /// `w` is both the UV quad size and the billboard scale factor. `u` / `v` are
 /// the UV origin. `clutX` / `clutY` feed `getClut`; `tpageX` feeds
 /// `getTPage(0, 1, tpageX, 0)`.
@@ -314,7 +270,7 @@ STATIC_ASSERT_SIZEOF(GpEffSprRec, 0xC);
 extern GpEffSprRec Gp_EffSprRecs[];
 
 /// 8-byte sprite frame of `D_80111E48`, indexed by
-/// `GpEffWork.field_22 / GpEffWork.field_28` in `Gp_EffSprTask5C`.
+/// `GpEffWork.age / GpEffWork.period` in `Gp_EffSprTask5C`.
 /// `u` / `v` are the UV origin of a 0x28-wide quad; `clutX` / `clutY` feed
 /// `getClut`. TPage is hardcoded to 0x29.
 typedef struct _GpEffUv8 {
@@ -329,7 +285,7 @@ STATIC_ASSERT_SIZEOF(GpEffUv8, 8);
 
 extern GpEffUv8 D_80111E48[];
 
-/// Overlay of `D_80112964` at `u16` index `GpEffWork.field_2A`.
+/// Overlay of `D_80112964` at `u16` index `GpEffWork.step`.
 /// `Gp_DrawEffSprite81` loads `field_4`, shifts it into a CLUT X nibble, and
 /// ORs `0x4280`. `Gp_DrawEffQuadT29` uses the same table at byte offset 8.
 typedef struct _GpEffClutOff {
@@ -340,8 +296,8 @@ typedef struct _GpEffClutOff {
     /* 0x8 */ u16 field_8;
 } GpEffClutOff;
 
-/// u16 CLUT-source table. Indexed as `&D_80112964[field_2A]` then overlaid
-/// with `GpEffClutOff` so the load is `lhu 4(base + field_2A * 2)`.
+/// u16 CLUT-source table. Indexed as `&D_80112964[step]` then overlaid
+/// with `GpEffClutOff` so the load is `lhu 4(base + step * 2)`.
 extern u16 D_80112964[];
 
 /// Spawn-id words indexed by the 3-digit packing of `Gp_StateC08.field_0`
@@ -360,7 +316,7 @@ extern s32 D_80112B94[];
 extern u16 D_80112B28[];
 
 /// 4 packed RGB-nibble colors. `Gp_EffCtlTaskC1` indexes with
-/// `GpEffSpawnArg.field_2 & 3` and stores the halfword in `GpEffWork.field_28`.
+/// `GpEffSpawnArg.field_2 & 3` and stores the halfword in `GpEffWork.period`.
 extern u16 D_80112C6C[];
 
 /// Message-handler table stored in `Task::msgTable` by `Gp_InitPlayerWork`.
@@ -372,7 +328,7 @@ extern s32 Gp_PlayerMsgTable[];
 /// `0x20000000` / `0x10000000` bits pick the start state. `Gp_EffCtlTaskC1`
 /// uses the parent word's low 12 bits as a Z rotation and `field_2 & 3` as
 /// an index into `D_80112C6C`. `Gp_EffCtlTaskF4` copies `field_0 & 0xFFF` to
-/// `GpEffWork.field_26` and `field_0 & 0xF000` to `field_28`.
+/// `GpEffWork.angle` and `field_0 & 0xF000` to `period`.
 typedef struct _GpEffSpawnArg {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ s16 field_2;
@@ -380,7 +336,7 @@ typedef struct _GpEffSpawnArg {
 STATIC_ASSERT_SIZEOF(GpEffSpawnArg, 4);
 
 /// Overlay of `Task::spawnArg1` when the high byte is an `lb` nibble.
-/// `Gp_EffSprTask5C` copies `field_3 & 0xF` into `GpEffWork.field_20`.
+/// `Gp_EffSprTask5C` copies `field_3 & 0xF` into `GpEffWork.index`.
 typedef struct _GpEffSpawnArgHi {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u8  pad_2;
@@ -426,7 +382,7 @@ typedef struct _GpMoveArg {
 /// `Gp_EffSprTask8D`.
 /// `vec` is `workm.t[]` truncated to s16 for `gte_ldv0`. `otz` is
 /// `gte_stszotz` then incremented; `flag` is `gte_stflg`; `size` is
-/// `(field_24 * 15 / otz) >> 1` (`Gp_DrawEffSprite81`) or `field_28 * 23 / otz`
+/// `(scale * 15 / otz) >> 1` (`Gp_DrawEffSprite81`) or `period * 23 / otz`
 /// (`Gp_EffSprTask8D`); `sx`/`sy` are `gte_stsxy`.
 typedef struct _GpEffFt4Scratch {
     /* 0x00 */ SVECTOR vec;
@@ -489,7 +445,7 @@ STATIC_ASSERT_SIZEOF(GpEffBeamScratch, 0x1C);
 /// coordinate's `workm.t[]` truncated to s16 and fed to `gte_ldv0`, `otz` is
 /// `gte_stszotz` then incremented, `flag` is `gte_stflg` and `sxy` is
 /// `gte_stsxy` of the single RTPS. `dx` / `dy` are the rotated half-extents
-/// `(field_26 * 31 / otz) * rsin/rcos(angle) >> 12` that offset `sxy` into
+/// `(angle * 31 / otz) * rsin/rcos(angle) >> 12` that offset `sxy` into
 /// the four corners of the billboard `POLY_FT4`.
 typedef struct _GpEffFlareScratch {
     /* 0x00 */ s32     otz;
@@ -533,9 +489,9 @@ STATIC_ASSERT_SIZEOF(GpEffTileScratch, 0x14);
 /// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `Gp_EffLineTask92` and
 /// `Gp_EffLineTaskA3`.
 /// `vec0` is the coordinate's current `workm.t[]` truncated to s16.
-/// `Gp_EffLineTask92` puts the previous-frame position (`GpEffWork.field_18`
-/// ..`field_1C`) in `vec1`. `Gp_EffLineTaskA3` rotates `field_10` through
-/// `field_8->coord` and `Gfx_ViewWorldMtx`, scales by `field_22 << 11 + 0x1000`,
+/// `Gp_EffLineTask92` puts the previous-frame position (`GpEffWork.pos`) in
+/// `vec1`. `Gp_EffLineTaskA3` rotates `move` through
+/// `parent->coord` and `Gfx_ViewWorldMtx`, scales by `age << 11 + 0x1000`,
 /// and adds `vec0` into `vec1`. Each vector is projected with its own RTPS:
 /// `sxy0` / `sxy1` receive `gte_stsxy`, `flag` `gte_stflg` and `otz`
 /// `gte_stszotz`, giving the two endpoints of a trail `LINE_F2` /

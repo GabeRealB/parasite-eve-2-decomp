@@ -3,9 +3,9 @@
 
 #include "common.h"
 
-/// One 8-byte row of `D_energyshot_801300E4`, indexed by `GpEffWork.field_20`
+/// One 8-byte row of `D_energyshot_801300E4`, indexed by `GpEffWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the wedge count. `field_2` is
-/// the brightness cap state 1 grows `GpEffWork.field_24` toward (and the ring
+/// the brightness cap state 1 grows `GpEffWork.scale` toward (and the ring
 /// radius in state 2). `field_4` is the per-frame brightness step. `field_6` is
 /// the beam depth / spawn height.
 typedef struct EnergyShotScale {

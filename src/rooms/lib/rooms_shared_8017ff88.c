@@ -30,58 +30,58 @@ void RoomsShared8017ff88(Task* arg0)
         }
         goto kill;
     } else {
-        mem->field_22++;
+        mem->age++;
         switch (arg0->state) {
             case 0:
                 rot               = (GpMtxWords*)&coord->coord;
-                coord->sub        = mem->field_8;
+                coord->sub        = mem->parent;
                 rot->w0           = 0x1000;
                 rot->w1           = 0;
                 rot->w2           = 0x1000;
                 rot->w3           = 0;
                 rot->h4           = 0x1000;
-                coord->coord.t[0] = mem->field_18;
-                coord->coord.t[1] = mem->field_1A;
-                coord->coord.t[2] = mem->field_1C;
+                coord->coord.t[0] = mem->pos.vx;
+                coord->coord.t[1] = mem->pos.vy;
+                coord->coord.t[2] = mem->pos.vz;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
                 shift           = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
-                mem->field_20   = shift;
+                mem->index      = shift;
                 arg0->spawnArg1 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0;
                 arg0->state     = 1;
-                mem->field_2A   = 0x100 / arg0->spawnArg1;
+                mem->step       = 0x100 / arg0->spawnArg1;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
-                mem->field_24   += mem->field_2A;
-                mem->field_26   += mem->field_2A;
+                mem->scale      += mem->step;
+                mem->angle      += mem->step;
                 arg0->spawnArg1 -= 1;
-                rgb[0]           = mem->field_24 >> RoomsShared8017ff88Shades[mem->field_20].r;
-                rgb[1]           = mem->field_24 >> RoomsShared8017ff88Shades[mem->field_20].g;
-                rgb[2]           = mem->field_24 >> RoomsShared8017ff88Shades[mem->field_20].b;
-                Room_Draw04(coord, mem->field_26, rgb);
+                rgb[0]           = mem->scale >> RoomsShared8017ff88Shades[mem->index].r;
+                rgb[1]           = mem->scale >> RoomsShared8017ff88Shades[mem->index].g;
+                rgb[2]           = mem->scale >> RoomsShared8017ff88Shades[mem->index].b;
+                Room_Draw04(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
                 rgb[2] = rgb[2] >> 1;
-                if (mem->field_22 & 1) {
-                    Room_Draw04(coord, (s16)((u16)mem->field_26 + 0x100), rgb);
+                if (mem->age & 1) {
+                    Room_Draw04(coord, (s16)((u16)mem->angle + 0x100), rgb);
                 }
-                Room_Draw09(coord, 0x300 - (u16)mem->field_26 * 2, 0x80, rgb);
+                Room_Draw09(coord, 0x300 - (u16)mem->angle * 2, 0x80, rgb);
                 if (arg0->spawnArg1 == 0) {
-                    mem->field_24 = 0xFF;
-                    arg0->state   = 2;
+                    mem->scale  = 0xFF;
+                    arg0->state = 2;
                     return;
                 }
                 return;
             case 2:
                 Gp_UpdateCoord(coord);
-                if (mem->field_24 >= 0x11) {
-                    rgb[0] = mem->field_24 >> RoomsShared8017ff88Shades[mem->field_20].r;
-                    rgb[1] = mem->field_24 >> RoomsShared8017ff88Shades[mem->field_20].g;
-                    rgb[2] = mem->field_24 >> RoomsShared8017ff88Shades[mem->field_20].b;
-                    Room_DrawBillboard(coord, (u16)mem->field_26 * 4, rgb);
-                    mem->field_24 -= 0x10;
-                    mem->field_26 += 8;
+                if (mem->scale >= 0x11) {
+                    rgb[0] = mem->scale >> RoomsShared8017ff88Shades[mem->index].r;
+                    rgb[1] = mem->scale >> RoomsShared8017ff88Shades[mem->index].g;
+                    rgb[2] = mem->scale >> RoomsShared8017ff88Shades[mem->index].b;
+                    Room_DrawBillboard(coord, (u16)mem->angle * 4, rgb);
+                    mem->scale -= 0x10;
+                    mem->angle += 8;
                     return;
                 }
                 /* fallthrough */

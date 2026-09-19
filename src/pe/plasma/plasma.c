@@ -41,17 +41,17 @@ PlasmaJitter D_plasma_8012FF54 = { 0 };
 
 extern s32 Gp_LcgState;
 
-/// Plasma PE ring. `Task::spawnArg2` is the `GpEffWork` block (`field_24`
-/// brightness, `field_20` combo index, `field_22` tick / inner radius);
+/// Plasma PE ring. `Task::spawnArg2` is the `GpEffWork` block (`scale`
+/// brightness, `index` combo index, `age` tick / inner radius);
 /// `Task::extra` reaches the coordinate. Cancel (`Gp_StateC08.field_3 == -2`
 /// or `Gp_State1C->fadeState >= 4`) releases the pool block.
 ///
 /// State 0 seeds brightness, the combo index, and three 16-entry LCG columns
 /// in `D_plasma_8012FF54`, plays the combo-indexed cue, and starts a pad
 /// lerp. States 1 and 2 decay brightness and draw three rings via
-/// `func_plasma_8012FB10` (the third only when `field_20 != 0`) after
+/// `func_plasma_8012FB10` (the third only when `index != 0`) after
 /// `func_plasma_8012F568` has applied each jitter column. State 1 is the
-/// weaker combo (`field_20 < 2`). Either state releases once brightness
+/// weaker combo (`index < 2`). Either state releases once brightness
 /// drops below 9.
 void func_plasma_8012EF34(Task* arg0)
 {
@@ -77,16 +77,16 @@ void func_plasma_8012EF34(Task* arg0)
 
     coord->flg = 0;
     Gp_UpdateCoord(coord);
-    prev          = mem->field_22;
-    next          = prev + 1;
-    mem->field_22 = next;
+    prev     = mem->age;
+    next     = prev + 1;
+    mem->age = next;
     USE_REG(arg0);
     USE_REG(arg0);
     switch (arg0->state) {
         case 0:
-            mem->field_24 = 0xA0;
-            mem->field_20 = (Gp_StateC08.field_0 % 10) - 1;
-            i             = 0;
+            mem->scale = 0xA0;
+            mem->index = (Gp_StateC08.field_0 % 10) - 1;
+            i          = 0;
             do {
                 row                     = &D_plasma_8012FF54.a + i;
                 Gp_LcgState             = Gp_LcgState * 5 + 0x71357911;
@@ -98,44 +98,44 @@ void func_plasma_8012EF34(Task* arg0)
                 i                      += 1;
             } while (i < 0x10);
             st = 2;
-            if (mem->field_20 < 2) {
+            if (mem->index < 2) {
                 st = 1;
             }
             arg0->state = st;
             pan         = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(D_plasma_8012FF48[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
                                 (s8)Gp_GetObjDepth(coord));
-            Gp_SpawnPadLerp((s16)(mem->field_20 * 4 + 0x10), 0xFF, 8);
+            Gp_SpawnPadLerp((s16)(mem->index * 4 + 0x10), 0xFF, 8);
             return;
         case 1:
-            if (mem->field_24 < 9) {
+            if (mem->scale < 9) {
                 goto release;
             }
             if (Gp_State1C->fadeState == 0) {
                 if ((s16)next == 8) {
                     state->field_6 |= 8;
                 }
-                mem->field_24 = (u16)mem->field_24 - 8;
-                mem->field_26 = (u16)mem->field_26 + 0x60 + (mem->field_20 * 0x30);
-                mem->field_28 = (u16)mem->field_28 - 0x20;
-                mem->field_2A = (u16)mem->field_2A + 0x20;
+                mem->scale  = (u16)mem->scale - 8;
+                mem->angle  = (u16)mem->angle + 0x60 + (mem->index * 0x30);
+                mem->period = (u16)mem->period - 0x20;
+                mem->step   = (u16)mem->step + 0x20;
             } else {
-                mem->field_22 = prev;
+                mem->age = prev;
             }
             func_plasma_8012F568(mem, coord, 0);
             func_plasma_8012F568(mem, coord, 1);
             func_plasma_8012F568(mem, coord, 2);
-            bright             = *(u8*)&mem->field_24;
+            bright             = *(u8*)&mem->scale;
             rgb[1]             = bright;
             rgb[0]             = bright;
-            rgb[2]             = mem->field_24 * 3 / 2;
-            coord->workm.t[1] -= mem->field_22 << 6;
+            rgb[2]             = mem->scale * 3 / 2;
+            coord->workm.t[1] -= mem->age << 6;
             {
                 s32 a1tmp;
                 s32 a2tmp;
 
-                a1tmp = mem->field_22;
-                a2tmp = mem->field_20;
+                a1tmp = mem->age;
+                a2tmp = mem->index;
                 func_plasma_8012FB10(coord, (s16)(a1tmp << 6), (s16)((a2tmp << 7) + 0x100), rgb);
             }
             {
@@ -158,12 +158,12 @@ void func_plasma_8012EF34(Task* arg0)
                 g                  = rgb[1];
                 rgb[2]             = b >> 1;
                 rgb[1]             = g >> 1;
-                coord->workm.t[1] -= mem->field_22 << 6;
-                a1tmp              = mem->field_22;
-                a2tmp              = mem->field_20;
+                coord->workm.t[1] -= mem->age << 6;
+                a1tmp              = mem->age;
+                a2tmp              = mem->index;
                 func_plasma_8012FB10(c, (s16)(a1tmp << 7), (s16)((a2tmp << 7) + 0x100), color);
             }
-            if (mem->field_20 != 0) {
+            if (mem->index != 0) {
                 GsCOORDINATE2* c;
                 unsigned int   r;
                 unsigned int   g;
@@ -183,39 +183,39 @@ void func_plasma_8012EF34(Task* arg0)
                 g              = rgb[1];
                 rgb[2]         = b >> 1;
                 rgb[1]         = g >> 1;
-                c->workm.t[1] -= mem->field_22 << 6;
-                a1tmp          = mem->field_22;
-                a2tmp          = mem->field_20;
+                c->workm.t[1] -= mem->age << 6;
+                a1tmp          = mem->age;
+                a2tmp          = mem->index;
                 func_plasma_8012FB10(c, (s16)(a1tmp * 0xC0), (s16)((a2tmp << 7) + 0x100), color);
             }
             return;
         case 2:
-            if (mem->field_24 < 9) {
+            if (mem->scale < 9) {
                 goto release;
             }
             if (Gp_State1C->fadeState == 0) {
                 if ((s16)next == 8) {
                     state->field_6 |= 8;
                 }
-                mem->field_24 = (u16)mem->field_24 - 8;
-                mem->field_26 = (u16)mem->field_26 + 0xC0;
-                mem->field_28 = (u16)mem->field_28 - 0x20;
-                mem->field_2A = (u16)mem->field_2A + 0x20;
+                mem->scale  = (u16)mem->scale - 8;
+                mem->angle  = (u16)mem->angle + 0xC0;
+                mem->period = (u16)mem->period - 0x20;
+                mem->step   = (u16)mem->step + 0x20;
             } else {
-                mem->field_22 = prev;
+                mem->age = prev;
             }
             func_plasma_8012F568(mem, coord, 0);
             func_plasma_8012F568(mem, coord, 1);
             func_plasma_8012F568(mem, coord, 2);
-            bright             = *(u8*)&mem->field_24;
+            bright             = *(u8*)&mem->scale;
             rgb[1]             = bright;
             rgb[0]             = bright;
-            rgb[2]             = mem->field_24 * 3 / 2;
-            coord->workm.t[1] -= mem->field_22 << 7;
+            rgb[2]             = mem->scale * 3 / 2;
+            coord->workm.t[1] -= mem->age << 7;
             {
                 s32 a1tmp;
 
-                a1tmp = mem->field_22;
+                a1tmp = mem->age;
                 span  = (s16)(a1tmp << 6);
                 func_plasma_8012FB10(coord, span, span, rgb);
             }
@@ -235,12 +235,12 @@ void func_plasma_8012EF34(Task* arg0)
                 g                  = rgb[1];
                 rgb[2]             = b >> 1;
                 rgb[1]             = g >> 1;
-                coord->workm.t[1] -= mem->field_22 << 7;
-                a1tmp              = mem->field_22;
+                coord->workm.t[1] -= mem->age << 7;
+                a1tmp              = mem->age;
                 span               = (s16)(a1tmp << 7);
                 func_plasma_8012FB10(c, span, span, rgb);
             }
-            if (mem->field_20 != 0) {
+            if (mem->index != 0) {
                 GsCOORDINATE2* c;
                 unsigned int   r;
                 unsigned int   g;
@@ -256,8 +256,8 @@ void func_plasma_8012EF34(Task* arg0)
                 g              = rgb[1];
                 rgb[2]         = b >> 1;
                 rgb[1]         = g >> 1;
-                c->workm.t[1] -= mem->field_22 << 7;
-                a1tmp          = mem->field_22;
+                c->workm.t[1] -= mem->age << 7;
+                a1tmp          = mem->age;
                 span           = (s16)(a1tmp * 0xC0);
                 func_plasma_8012FB10(c, span, span, rgb);
             }
@@ -287,11 +287,11 @@ void func_plasma_8012F568(GpEffWork* arg0, GsCOORDINATE2* arg1, s32 arg2)
     u16              f28;
 
     row      = &D_plasma_8012FF34[arg2];
-    f28      = (u16)arg0->field_28;
-    r1       = (u16)arg0->field_26;
+    f28      = (u16)arg0->period;
+    r1       = (u16)arg0->angle;
     y        = f28 + (u16)row->yOff;
     r1      += (u16)row->rInner;
-    r0       = r1 + (u16)arg0->field_2A + (u16)row->rExtra;
+    r0       = r1 + (u16)arg0->step + (u16)row->rExtra;
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = (u8*)*scratch;
     *scratch = head - 0x118;
@@ -325,7 +325,7 @@ void func_plasma_8012F568(GpEffWork* arg0, GsCOORDINATE2* arg1, s32 arg2)
     for (i = 0; i < 16; i++) {
         gte_ldv0(&block->inner[i]);
         gte_rtps_real();
-        idx = ((&D_plasma_8012FF54.a + i)[arg2 * 16] + arg0->field_22) % 6;
+        idx = ((&D_plasma_8012FF54.a + i)[arg2 * 16] + arg0->age) % 6;
         gte_stsxy(&block->sxy0);
         next = (i + 1) & 0xF;
         gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
@@ -338,7 +338,7 @@ void func_plasma_8012F568(GpEffWork* arg0, GsCOORDINATE2* arg1, s32 arg2)
             prim           = (POLY_FT4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
-            setRGB0(prim, *(u8*)&arg0->field_24, *(u8*)&arg0->field_24, *(u8*)&arg0->field_24);
+            setRGB0(prim, *(u8*)&arg0->scale, *(u8*)&arg0->scale, *(u8*)&arg0->scale);
             setSemiTrans(prim, 1);
             prim->tpage = 0x2A;
             prim->clut  = 0x42C1;

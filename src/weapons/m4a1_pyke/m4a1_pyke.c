@@ -48,14 +48,14 @@ void WeaponsShared8011e4ac(Task* task);
 ///
 /// - 1 draws the beam head at `workm.t` every frame and claims room-light slot
 ///   1 as a narrow (`0x80` / `0x400`) light aimed at a random angle in
-///   `0x400..0xB00`, arming the flare width in `field_24`.
+///   `0x400..0xB00`, arming the flare width in `scale`.
 /// - 2 widens that flare by 0x40 a frame up to 0x180, spawns effect `0x6017F`
 ///   as a child of this task, and re-claims the light with a much wider
 ///   (`0x400` / `0x4000`) falloff and a `0x800..0xF00` angle.
 /// - 3 and 4 switch back to sub-state 1 and 0, and 5 releases the pool block.
 ///
 /// While `Gp_State1C->eventState` is non-zero the two drawing sub-states wind
-/// `field_22` back down instead of advancing.
+/// `age` back down instead of advancing.
 void func_m4a1_pyke_8011D1F8(Task* task)
 {
     GpEffWork*     work;
@@ -78,11 +78,11 @@ void func_m4a1_pyke_8011D1F8(Task* task)
     if (Gp_State1C->eventState >= 2) {
         return;
     }
-    work->field_22++;
+    work->age++;
     switch (task->state) {
         case 0:
             rot               = (GpMtxWords*)&coord->coord;
-            coord->sub        = work->field_8;
+            coord->sub        = work->parent;
             rot->w0           = 0x1000;
             rot->w1           = 0;
             rot->w2           = 0x1000;
@@ -101,13 +101,13 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     break;
                 case 1:
                     if (Gp_State1C->eventState != 0) {
-                        work->field_22--;
+                        work->age--;
                         func_m4a1_pyke_8011D548(
-                            (VECTOR3*)&coord->workm.t, work->field_22, 0x80);
+                            (VECTOR3*)&coord->workm.t, work->age, 0x80);
                         break;
                     }
                     Gp_UpdateCoord(coord);
-                    func_m4a1_pyke_8011D548((VECTOR3*)&coord->workm.t, work->field_22, 0x80);
+                    func_m4a1_pyke_8011D548((VECTOR3*)&coord->workm.t, work->age, 0x80);
                     base->field_0  = 4;
                     slot->field_58 = 0x80;
                     slot->field_5C = 0x400;
@@ -121,21 +121,21 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     slot->field_52 = (u16)slot->field_50 >> 1;
                     slot->field_54 = slot->field_50 >> 2;
                     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
-                    light->flg     = 0;
-                    work->field_24 = 0x40;
+                    light->flg  = 0;
+                    work->scale = 0x40;
                     break;
                 case 2:
                     if (Gp_State1C->eventState != 0) {
-                        work->field_22--;
+                        work->age--;
                         break;
                     }
                     Gp_UpdateCoord(coord);
-                    if (work->field_24 < 0x180) {
-                        work->field_24 = (u16)work->field_24 + 0x40;
+                    if (work->scale < 0x180) {
+                        work->scale = (u16)work->scale + 0x40;
                     }
-                    eff = Gp_SpawnEff(0x6017F, coord, work->field_24, NULL);
+                    eff = Gp_SpawnEff(0x6017F, coord, work->scale, NULL);
                     if (eff != NULL) {
-                        Task_Reparent(task, eff->field_0);
+                        Task_Reparent(task, eff->task);
                     }
                     base->field_0  = 4;
                     slot->field_58 = 0x400;
@@ -242,9 +242,9 @@ void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
 }
 
 /// Per-frame task for one dart the Pyke throws. `Task::spawnArg2` is the
-/// `Gp_State1C` work block holding the dart's velocity (`field_10` / `field_12`
-/// / `field_14`), its age (`field_22`), its flare width (`field_24`) and its
-/// spin angle (`field_26`); `Task::extra` reaches the coordinate the dart flies
+/// `Gp_State1C` work block holding the dart's velocity (`move` / `move.vy`
+/// / `move.vz`), its age (`age`), its flare width (`scale`) and its
+/// spin angle (`angle`); `Task::extra` reaches the coordinate the dart flies
 /// on. Everything stops once the room is fading out (`Gp_State1C->eventState >=
 /// 4`); while the fade is merely under way the dart is only redrawn.
 ///
@@ -284,39 +284,39 @@ void func_m4a1_pyke_8011D7D4(Task* task)
     }
     if (fade != 0) {
         func_m4a1_pyke_8011DCEC((VECTOR3*)coord->workm.t,
-                                ((s16)(u16)work->field_22 >> 1) + 1, work->field_24, work->field_26);
+                                ((s16)(u16)work->age >> 1) + 1, work->scale, work->angle);
         return;
     }
-    work->field_22 = (u16)work->field_22 + 1;
+    work->age = (u16)work->age + 1;
     switch (task->state) {
         case 0:
             beam = memCalloc(sizeof(M4a1PykeBeam), 0);
             if (beam == NULL) {
-                work->field_22 = 0;
+                work->age = 0;
                 return;
             }
             task->exitCallback = WeaponsShared8011e4ac;
             /* The three halfwords are the SVECTOR `gte_rtv0_real` rotates in
                place, so `field_14` has to be cleared after the random pitch is
                written to `field_12`, not alongside `field_10`. */
-            work->field_10 = 0;
-            ang0           = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState    = ang0;
-            work->field_12 = (u16)task->spawnArg1 - ((ang0 >> 16) & 0x3F);
-            work->field_14 = 0;
+            work->move.vx = 0;
+            ang0          = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState   = ang0;
+            work->move.vy = (u16)task->spawnArg1 - ((ang0 >> 16) & 0x3F);
+            work->move.vz = 0;
             gte_SetRotMatrix(&coord->coord);
-            gte_ldv0(&work->field_10);
+            gte_ldv0(&work->move);
             gte_rtv0_real();
-            gte_stsv(&work->field_10);
-            work->field_24     = (u16)task->spawnArg1 + 0x180;
+            gte_stsv(&work->move);
+            work->scale        = (u16)task->spawnArg1 + 0x180;
             ang1               = Gp_LcgState * 5 + 0x71357911;
-            work->field_26     = (ang1 >> 16) & 0xFFF;
+            work->angle        = (ang1 >> 16) & 0xFFF;
             task->state        = 1;
             task->work         = (TaskIdMap*)beam;
             beam->obj.coord    = coord;
             beam->obj.ctx.recs = beam->rec;
             beam->obj.key      = 0x21C1E;
-            beam->obj.radius   = (s16)(u16)work->field_24 >> 1;
+            beam->obj.radius   = (s16)(u16)work->scale >> 1;
             Gp_LcgState        = ang1;
             beam->obj.flags    = 1;
             Gp_LinkObj(1, &beam->obj);
@@ -324,28 +324,28 @@ void func_m4a1_pyke_8011D7D4(Task* task)
             beam->obj.flags   |= 0x8000;
             /* fallthrough */
         case 1:
-            work->field_24     = (u16)work->field_24 + 0x10;
-            work->field_12     = (u16)work->field_12 + 8;
+            work->scale        = (u16)work->scale + 0x10;
+            work->move.vy      = (u16)work->move.vy + 8;
             before.vx          = coord->workm.t[0];
             before.vy          = coord->workm.t[1];
             before.vz          = coord->workm.t[2];
-            coord->coord.t[0] += work->field_10;
-            coord->coord.t[1] += work->field_12;
-            coord->coord.t[2] += work->field_14;
+            coord->coord.t[0] += work->move.vx;
+            coord->coord.t[1] += work->move.vy;
+            coord->coord.t[2] += work->move.vz;
             coord->flg         = 0;
             Gp_UpdateCoord(coord);
             after.vx = coord->workm.t[0];
             after.vy = coord->workm.t[1];
             after.vz = coord->workm.t[2];
             func_m4a1_pyke_8011DCEC((VECTOR3*)coord->workm.t,
-                                    ((s16)(u16)work->field_22 >> 1) + 1, work->field_24,
-                                    work->field_26);
+                                    ((s16)(u16)work->age >> 1) + 1, work->scale,
+                                    work->angle);
             ang2        = Gp_LcgState * 5 + 0x71357911;
             Gp_LcgState = ang2;
             if ((u16)((ang2 >> 16) % 3) == 0 && Gp_State1C->groundTrace != 0 &&
                 Gp_TraceGroundCoord(coord, &ground) == 1) {
                 func_m4a1_pyke_8011E168((VECTOR3*)ground.workm.t,
-                                        (s16)((work->field_24 * 2) / 3));
+                                        (s16)((work->scale * 2) / 3));
             }
             if (Gp_CountRec18Hi(beam->obj.ctx.recs, 0x30000) != 0) {
                 Gp_UnlinkObj(&beam->obj);
@@ -354,15 +354,15 @@ void func_m4a1_pyke_8011D7D4(Task* task)
             }
             if (func_800DE7CC(&after, &before, NULL, NULL) == 1) {
                 Gp_UnlinkObj(&beam->obj);
-                task->state    = 2;
-                work->field_10 = (u32)rcos(work->field_26) >> 8;
-                work->field_12 = (u32)rsin(work->field_26) >> 8;
-                ang3           = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState    = ang3;
-                work->field_14 = (u32)rsin((ang3 >> 16) & 0xFFF) >> 8;
+                task->state   = 2;
+                work->move.vx = (u32)rcos(work->angle) >> 8;
+                work->move.vy = (u32)rsin(work->angle) >> 8;
+                ang3          = Gp_LcgState * 5 + 0x71357911;
+                Gp_LcgState   = ang3;
+                work->move.vz = (u32)rsin((ang3 >> 16) & 0xFFF) >> 8;
                 return;
             }
-            if (work->field_22 >= 0x15) {
+            if (work->age >= 0x15) {
                 Gp_UnlinkObj(&beam->obj);
                 Gp_ReleaseState1CMem(work, task);
                 return;
@@ -370,16 +370,16 @@ void func_m4a1_pyke_8011D7D4(Task* task)
             Gp_ClearRec18Occupied(beam->rec);
             return;
         case 2:
-            work->field_24     = (u16)work->field_24 + 0x40;
-            coord->coord.t[0] += work->field_10;
-            coord->coord.t[1] += work->field_12;
-            coord->coord.t[2] += work->field_14;
+            work->scale        = (u16)work->scale + 0x40;
+            coord->coord.t[0] += work->move.vx;
+            coord->coord.t[1] += work->move.vy;
+            coord->coord.t[2] += work->move.vz;
             coord->flg         = 0;
             Gp_UpdateCoord(coord);
             func_m4a1_pyke_8011DCEC((VECTOR3*)coord->workm.t,
-                                    ((s16)(u16)work->field_22 >> 1) + 1, work->field_24,
-                                    work->field_26);
-            if (work->field_22 >= 0x15) {
+                                    ((s16)(u16)work->age >> 1) + 1, work->scale,
+                                    work->angle);
+            if (work->age >= 0x15) {
                 Gp_ReleaseState1CMem(work, task);
             }
             break;

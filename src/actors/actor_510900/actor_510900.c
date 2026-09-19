@@ -96,15 +96,15 @@ void func_actor_510900_80131F24(Task* arg0)
     }
     if (arg0->state == 0) {
         mat               = (Actor510900MatrixWords*)&coord->coord;
-        coord->sub        = mem->field_8;
+        coord->sub        = mem->parent;
         mat->m00_m01      = 0x1000;
         mat->m02_m10      = 0;
         mat->m11_m12      = 0x1000;
         mat->m20_m21      = 0;
         mat->m22          = 0x1000;
-        coord->coord.t[0] = mem->field_18;
-        coord->coord.t[1] = mem->field_1A;
-        z                 = mem->field_1C;
+        coord->coord.t[0] = mem->pos.vx;
+        coord->coord.t[1] = mem->pos.vy;
+        z                 = mem->pos.vz;
         coord->flg        = 0;
         coord->coord.t[2] = z;
         arg0->state       = 1;
@@ -122,24 +122,24 @@ void func_actor_510900_80131F24(Task* arg0)
         base->coord.flg = 0;
         if (base->field_0 == 0) {
             arg0->spawnArg1 = 0;
-            mem->field_22   = 0;
-            mem->field_24   = 0;
+            mem->age        = 0;
+            mem->scale      = 0;
         }
     }
     switch (arg0->spawnArg1) {
         case 0:
             break;
         case 1:
-            mem->field_24 = (mem->field_24 < 0x100) ? mem->field_24 + 0x10 : 0x100;
+            mem->scale = (mem->scale < 0x100) ? mem->scale + 0x10 : 0x100;
             for (i = 0; i < 2; i++) {
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_10 = -((Gp_LcgState >> 16) % 0x2C0) - 0x80;
-                mem->field_12 = 0x40;
-                mem->field_14 = 0;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                eff           = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + mem->field_24, (SVECTOR*)&mem->field_10);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vx = -((Gp_LcgState >> 16) % 0x2C0) - 0x80;
+                mem->move.vy = 0x40;
+                mem->move.vz = 0;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                eff          = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + mem->scale, &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->field_0);
+                    Task_Reparent(arg0, eff->task);
                 }
             }
             base->field_0  = 0x10;
@@ -151,64 +151,64 @@ void func_actor_510900_80131F24(Task* arg0)
              * operand. Written plainly, `fold` reassociates the constant onto
              * the draw; held in a local, sched1 moves the load ahead of it. */
             if (!(bits & 3)) {
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->field_12 = 0x40;
-                mem->field_14 = 0;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                eff           = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + ({ mem->field_24 + 0x10000; }),
-                                            (SVECTOR*)&mem->field_10);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy = 0x40;
+                mem->move.vz = 0;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                eff          = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + ({ mem->scale + 0x10000; }),
+                                           &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->field_0);
+                    Task_Reparent(arg0, eff->task);
                 }
             }
             bits >>= 1;
             if (!(bits & 3)) {
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->field_12 = 0;
-                mem->field_14 = 0;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                eff           = Gp_SpawnEff(0x6004C, coord, ((Gp_LcgState >> 16) & 0xF0) + ({ mem->field_24 + 0x10000; }),
-                                            (SVECTOR*)&mem->field_10);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy = 0;
+                mem->move.vz = 0;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                eff          = Gp_SpawnEff(0x6004C, coord, ((Gp_LcgState >> 16) & 0xF0) + ({ mem->scale + 0x10000; }),
+                                           &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->field_0);
+                    Task_Reparent(arg0, eff->task);
                 }
             }
             bits >>= 1;
             if (!(bits & 3)) {
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->field_12 = 0;
-                mem->field_14 = 0;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                eff           = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) + mem->field_24, (SVECTOR*)&mem->field_10);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy = 0;
+                mem->move.vz = 0;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                eff          = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) + mem->scale, &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->field_0);
+                    Task_Reparent(arg0, eff->task);
                 }
             }
             bits >>= 1;
             if (bits % 3 == 0) {
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->field_12 = 0x80;
-                mem->field_14 = 0;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                eff           = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x10080, (SVECTOR*)&mem->field_10);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy = 0x80;
+                mem->move.vz = 0;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                eff          = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x10080, &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->field_0);
+                    Task_Reparent(arg0, eff->task);
                 }
             }
             bits >>= 1;
             if (!(bits & 3)) {
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->field_12 = -0x80;
-                mem->field_14 = 0;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                eff           = Gp_SpawnEff(0x60059, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x180, (SVECTOR*)&mem->field_10);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy = -0x80;
+                mem->move.vz = 0;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                eff          = Gp_SpawnEff(0x60059, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x180, &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->field_0);
+                    Task_Reparent(arg0, eff->task);
                 }
             }
             break;
@@ -217,143 +217,143 @@ void func_actor_510900_80131F24(Task* arg0)
             slot->field_58 = 0x1F40;
             slot->field_5C = 0x2710;
             for (i = 0; i < 3; i++) {
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->field_12 = 0x40;
-                mem->field_14 = 0;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                eff           = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x10100, (SVECTOR*)&mem->field_10);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy = 0x40;
+                mem->move.vz = 0;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                eff          = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x10100, &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->field_0);
+                    Task_Reparent(arg0, eff->task);
                 }
             }
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             bits        = Gp_LcgState >> 16;
             if (!(bits & 7)) {
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->field_12 = 0;
-                mem->field_14 = 0;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                eff           = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x100, (SVECTOR*)&mem->field_10);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy = 0;
+                mem->move.vz = 0;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                eff          = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x100, &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->field_0);
+                    Task_Reparent(arg0, eff->task);
                 }
             }
             bits >>= 1;
             if (!(bits & 3)) {
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->field_12 = 0x80;
-                mem->field_14 = 0;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                eff           = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x10080, (SVECTOR*)&mem->field_10);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy = 0x80;
+                mem->move.vz = 0;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                eff          = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x10080, &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->field_0);
+                    Task_Reparent(arg0, eff->task);
                 }
             }
             bits >>= 1;
             if (!(bits & 7)) {
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->field_12 = -0x80;
-                mem->field_14 = 0;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                eff           = Gp_SpawnEff(0x60059, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x180, (SVECTOR*)&mem->field_10);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy = -0x80;
+                mem->move.vz = 0;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                eff          = Gp_SpawnEff(0x60059, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x180, &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->field_0);
+                    Task_Reparent(arg0, eff->task);
                 }
             }
             break;
         case 3:
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             bits        = Gp_LcgState >> 16;
-            mem->field_22++;
-            if (mem->field_22 < 0x1E) {
+            mem->age++;
+            if (mem->age < 0x1E) {
                 if (!(bits & 7)) {
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    mem->field_10 = -((Gp_LcgState >> 16) % 0x2C0) - 0x80;
-                    mem->field_12 = 0x40;
-                    mem->field_14 = 0;
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    eff           = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x80, (SVECTOR*)&mem->field_10);
+                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                    mem->move.vx = -((Gp_LcgState >> 16) % 0x2C0) - 0x80;
+                    mem->move.vy = 0x40;
+                    mem->move.vz = 0;
+                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                    eff          = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x80, &mem->move);
                     if (eff != NULL) {
-                        Task_Reparent(arg0, eff->field_0);
+                        Task_Reparent(arg0, eff->task);
                     }
                 }
                 bits >>= 1;
                 if (!(bits & 3)) {
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                    mem->field_12 = 0x40;
-                    mem->field_14 = 0;
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    eff           = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x10080, (SVECTOR*)&mem->field_10);
+                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                    mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                    mem->move.vy = 0x40;
+                    mem->move.vz = 0;
+                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                    eff          = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x10080, &mem->move);
                     if (eff != NULL) {
-                        Task_Reparent(arg0, eff->field_0);
+                        Task_Reparent(arg0, eff->task);
                     }
                 }
                 for (i = 0; i < 2; i++) {
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                    mem->field_12 = 0;
-                    mem->field_14 = 0;
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    eff           = Gp_SpawnEff(0x6004C, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x10100, (SVECTOR*)&mem->field_10);
+                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                    mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                    mem->move.vy = 0;
+                    mem->move.vz = 0;
+                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                    eff          = Gp_SpawnEff(0x6004C, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x10100, &mem->move);
                     if (eff != NULL) {
-                        Task_Reparent(arg0, eff->field_0);
+                        Task_Reparent(arg0, eff->task);
                     }
                 }
                 bits >>= 1;
                 if (!(bits & 7)) {
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                    mem->field_12 = 0;
-                    mem->field_14 = 0;
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    eff           = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x100, (SVECTOR*)&mem->field_10);
+                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                    mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                    mem->move.vy = 0;
+                    mem->move.vz = 0;
+                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                    eff          = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x100, &mem->move);
                     if (eff != NULL) {
-                        Task_Reparent(arg0, eff->field_0);
+                        Task_Reparent(arg0, eff->task);
                     }
                 }
                 bits >>= 1;
                 if (!(bits & 7)) {
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                    mem->field_12 = 0x80;
-                    mem->field_14 = 0;
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    eff           = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x10080, (SVECTOR*)&mem->field_10);
+                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                    mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                    mem->move.vy = 0x80;
+                    mem->move.vz = 0;
+                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                    eff          = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x10080, &mem->move);
                     if (eff != NULL) {
-                        Task_Reparent(arg0, eff->field_0);
+                        Task_Reparent(arg0, eff->task);
                     }
                 }
                 for (i = 0; i < 2; i++) {
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                    mem->field_12 = -0x80;
-                    mem->field_14 = 0;
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    eff           = Gp_SpawnEff(0x60059, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x180, (SVECTOR*)&mem->field_10);
+                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                    mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                    mem->move.vy = -0x80;
+                    mem->move.vz = 0;
+                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                    eff          = Gp_SpawnEff(0x60059, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x180, &mem->move);
                     if (eff != NULL) {
-                        Task_Reparent(arg0, eff->field_0);
+                        Task_Reparent(arg0, eff->task);
                     }
                 }
                 base->field_0  = 0x10;
                 slot->field_58 = 0x1F40;
                 slot->field_5C = 0x2710;
-            } else if (mem->field_22 < 0x3C) {
+            } else if (mem->age < 0x3C) {
                 base->field_0  = 2;
                 slot->field_58 = 0x190;
                 slot->field_5C = 0x190;
                 Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                mem->field_10  = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->field_12  = 0x80;
-                mem->field_14  = 0;
+                mem->move.vx   = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy   = 0x80;
+                mem->move.vz   = 0;
                 Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                eff            = Gp_SpawnEff(0x60059, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x100, (SVECTOR*)&mem->field_10);
+                eff            = Gp_SpawnEff(0x60059, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x100, &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->field_0);
+                    Task_Reparent(arg0, eff->task);
                 }
             }
             break;
@@ -534,31 +534,31 @@ void func_actor_510900_801332EC(Task* arg0)
                 } else {
                     amt = 0x200;
                 }
-                mem->field_24 = amt;
+                mem->scale = amt;
                 if (arg0->spawnArg1 & 0x10000) {
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    mem->field_28 = ((u32)Gp_LcgState >> 16) % 0x30;
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    mem->period = ((u32)Gp_LcgState >> 16) % 0x30;
                 }
                 arg0->state++;
             }
             prim->tpage = 0x2B;
             prim->code |= 3;
-            amt         = mem->field_22;
+            amt         = mem->age;
             prim->clut  = (amt & 0x3F) | 0x43C0;
-            amt         = mem->field_22;
+            amt         = mem->age;
             prim->v0    = 0x70;
             prim->u0    = amt * 32;
-            amt         = mem->field_22;
+            amt         = mem->age;
             prim->v1    = 0x70;
             prim->u1    = amt * 32 + 0x1F;
-            amt         = mem->field_22;
+            amt         = mem->age;
             prim->v2    = 0x9F;
             prim->u2    = amt * 32;
-            amt         = mem->field_22;
+            amt         = mem->age;
             prim->v3    = 0x9F;
             prim->u3    = amt * 32 + 0x1F;
-            block->dx   = (mem->field_24 * 31) / block->otz;
-            block->dy   = (mem->field_24 * 47) / block->otz;
+            block->dx   = (mem->scale * 31) / block->otz;
+            block->dy   = (mem->scale * 47) / block->otz;
             x           = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
             prim->x2    = x;
             prim->x0    = x;
@@ -578,13 +578,13 @@ void func_actor_510900_801332EC(Task* arg0)
         if (Gp_State1C->eventState != 0) {
             return;
         }
-        x = mem->field_28;
+        x = mem->period;
         if (x != 0) {
             coord->flg         = 0;
             coord->coord.t[1] -= x;
         }
-        mem->field_22++;
-        if (mem->field_22 < 8) {
+        mem->age++;
+        if (mem->age < 8) {
             return;
         }
     } else if (flag < 4) {
@@ -641,36 +641,36 @@ void func_actor_510900_8013371C(Task* arg0)
                 } else {
                     amt = 0x200;
                 }
-                mem->field_24 = amt;
-                if (mem->field_28 = (u16)((u32)arg0->spawnArg1 >> 16) & 1) {
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    mem->field_28 = ((u32)Gp_LcgState >> 16) % 0x30;
+                mem->scale = amt;
+                if (mem->period = (u16)((u32)arg0->spawnArg1 >> 16) & 1) {
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    mem->period = ((u32)Gp_LcgState >> 16) % 0x30;
                 }
                 arg0->state++;
             }
             prim->tpage = 0x2B;
             prim->code |= 3;
-            amt         = mem->field_22;
+            amt         = mem->age;
             prim->clut  = ((amt + 8) & 0x3F) | 0x43C0;
-            x           = mem->field_22;
+            x           = mem->age;
             prim->u0    = (s16)(x % 8) * 32;
-            x           = mem->field_22;
+            x           = mem->age;
             prim->v0    = (x / 8) * 48 - 0x60;
-            x           = mem->field_22;
+            x           = mem->age;
             prim->u1    = (s16)(x % 8) * 32 + 0x1F;
-            x           = mem->field_22;
+            x           = mem->age;
             prim->v1    = (x / 8) * 48 - 0x60;
-            x           = mem->field_22;
+            x           = mem->age;
             prim->u2    = (s16)(x % 8) * 32;
-            x           = mem->field_22;
+            x           = mem->age;
             prim->v2    = (x / 8) * 48 - 0x31;
-            x           = mem->field_22;
+            x           = mem->age;
             prim->u3    = (s16)(x % 8) * 32 + 0x1F;
-            x           = mem->field_22;
+            x           = mem->age;
             prim->v3    = (x / 8) * 48 - 0x31;
-            block->dx   = (mem->field_24 * 31) / block->otz;
-            block->dy   = (mem->field_24 * 47) / block->otz;
-            block->dx >>= mem->field_28;
+            block->dx   = (mem->scale * 31) / block->otz;
+            block->dy   = (mem->scale * 47) / block->otz;
+            block->dx >>= mem->period;
             x           = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
             prim->x2    = x;
             prim->x0    = x;
@@ -690,12 +690,12 @@ void func_actor_510900_8013371C(Task* arg0)
         if (Gp_State1C->eventState != 0) {
             return;
         }
-        if (mem->field_28 != 0) {
+        if (mem->period != 0) {
             coord->flg         = 0;
             coord->coord.t[1] += 0x38;
         }
-        mem->field_22++;
-        if (mem->field_22 < 12) {
+        mem->age++;
+        if (mem->age < 12) {
             return;
         }
     } else if (flag < 4) {
@@ -752,28 +752,28 @@ void func_actor_510900_80133C84(Task* arg0)
                 } else {
                     amt = 0x200;
                 }
-                mem->field_24 = amt;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_28 = ((u32)Gp_LcgState >> 16) % 0x30;
+                mem->scale  = amt;
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                mem->period = ((u32)Gp_LcgState >> 16) % 0x30;
                 arg0->state++;
             }
             prim->tpage = 0x4B;
             prim->code |= 3;
             prim->clut  = 0x4382;
-            x           = mem->field_22;
+            x           = mem->age;
             prim->v0    = 0xD0;
             prim->u0    = (x / 2 + 4) * 32;
-            x           = mem->field_22;
+            x           = mem->age;
             prim->v1    = 0xD0;
             prim->u1    = (x / 2 + 4) * 32 + 0x1F;
-            x           = mem->field_22;
+            x           = mem->age;
             prim->v2    = 0xEF;
             prim->u2    = (x / 2 + 4) * 32;
-            x           = mem->field_22;
+            x           = mem->age;
             prim->v3    = 0xEF;
             prim->u3    = (x / 2 + 4) * 32 + 0x1F;
-            block->dx   = (mem->field_24 * 31) / block->otz;
-            block->dy   = (mem->field_24 * 31) / block->otz;
+            block->dx   = (mem->scale * 31) / block->otz;
+            block->dy   = (mem->scale * 31) / block->otz;
             x           = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
             prim->x2    = x;
             prim->x0    = x;
@@ -793,13 +793,13 @@ void func_actor_510900_80133C84(Task* arg0)
         if (Gp_State1C->eventState != 0) {
             return;
         }
-        x = mem->field_28;
+        x = mem->period;
         if (x != 0) {
             coord->flg         = 0;
             coord->coord.t[1] -= x;
         }
-        mem->field_22++;
-        if (mem->field_22 < 8) {
+        mem->age++;
+        if (mem->age < 8) {
             return;
         }
     } else if (flag < 4) {
@@ -828,23 +828,23 @@ void func_actor_510900_801340E8(Task* arg0)
         return;
     }
     mat                       = (Actor510900MatrixWords*)&coord->field_0.coord;
-    coord->field_0.sub        = eff->field_8;
+    coord->field_0.sub        = eff->parent;
     mat->m00_m01              = 0x1000;
     mat->m02_m10              = 0;
     mat->m11_m12              = 0x1000;
     mat->m20_m21              = 0;
     mat->m22                  = 0x1000;
-    coord->field_0.coord.t[0] = eff->field_18;
-    coord->field_0.coord.t[1] = eff->field_1A;
-    coord->field_0.coord.t[2] = eff->field_1C;
+    coord->field_0.coord.t[0] = eff->pos.vx;
+    coord->field_0.coord.t[1] = eff->pos.vy;
+    coord->field_0.coord.t[2] = eff->pos.vz;
     coord->field_0.flg        = 0;
     Gp_UpdateCoord(&coord->field_0);
-    eff->field_10 = -0x200;
-    eff->field_12 = 0x40;
-    eff->field_14 = 0;
-    Gp_SpawnEff(0x6003B, &coord->field_0, 0x180, (SVECTOR*)&eff->field_10);
+    eff->move.vx = -0x200;
+    eff->move.vy = 0x40;
+    eff->move.vz = 0;
+    Gp_SpawnEff(0x6003B, &coord->field_0, 0x180, &eff->move);
     for (i = 0; i < 6; i++) {
-        Gp_SpawnEff(0x60065, &coord->field_0, 0, (SVECTOR*)&eff->field_10);
+        Gp_SpawnEff(0x60065, &coord->field_0, 0, &eff->move);
         Gp_SpawnEff(0x600A4, &coord->field_0, 1, NULL);
     }
     base->field_0 = 4;
@@ -886,29 +886,29 @@ void func_actor_510900_80134284(Task* arg0)
     }
     Gp_UpdateCoord(coord);
     if (arg0->state == 0) {
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        eff->field_10 = 0x20 - ((Gp_LcgState >> 16) & 0x3F);
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        eff->field_12 = -((Gp_LcgState >> 16) & 0x3F) - 0x10;
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        eff->field_14 = 0x20 - ((Gp_LcgState >> 16) & 0x3F);
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        step          = 2;
+        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+        eff->move.vx = 0x20 - ((Gp_LcgState >> 16) & 0x3F);
+        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+        eff->move.vy = -((Gp_LcgState >> 16) & 0x3F) - 0x10;
+        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+        eff->move.vz = 0x20 - ((Gp_LcgState >> 16) & 0x3F);
+        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+        step         = 2;
         if (((Gp_LcgState >> 16) & 3) != 0) {
             step = 1;
         }
-        rng           = Gp_LcgState * 5 + 0x71357911;
-        eff->field_24 = step;
-        eff->field_26 = (((u32)rng >> 16) & 1) + 1;
-        Gp_LcgState   = rng;
+        rng         = Gp_LcgState * 5 + 0x71357911;
+        eff->scale  = step;
+        eff->angle  = (((u32)rng >> 16) & 1) + 1;
+        Gp_LcgState = rng;
         arg0->state++;
     }
     block->vec0.vx     = *(u16*)&coord->workm.t[0];
     block->vec0.vy     = *(u16*)&coord->workm.t[1];
     block->vec0.vz     = *(u16*)&coord->workm.t[2];
-    coord->coord.t[0] += eff->field_10;
-    coord->coord.t[1] += eff->field_12;
-    coord->coord.t[2] += eff->field_14;
+    coord->coord.t[0] += eff->move.vx;
+    coord->coord.t[1] += eff->move.vy;
+    coord->coord.t[2] += eff->move.vz;
     coord->flg         = 0;
     Gp_UpdateCoord(coord);
     block->vec1.vx = *(u16*)&coord->workm.t[0];
@@ -932,9 +932,9 @@ void func_actor_510900_80134284(Task* arg0)
             gGpuPrimCursor = prim + 1;
             setlen(prim, 3);
             setcode(prim, 0x40);
-            val      = 0xFF - (eff->field_22 << (5 - eff->field_24));
+            val      = 0xFF - (eff->age << (5 - eff->scale));
             prim->r0 = val;
-            prim->g0 = val >> eff->field_26;
+            prim->g0 = val >> eff->angle;
             prim->b0 = val >> 3;
             prim->x0 = *(u16*)&block->sxy0.vx;
             prim->y0 = *(u16*)&block->sxy0.vy;
@@ -947,10 +947,10 @@ void func_actor_510900_80134284(Task* arg0)
         }
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor510900TrailScratch);
-    eff->field_12          += 6;
-    count                   = eff->field_22 + 1;
-    eff->field_22           = count;
-    if (count > eff->field_24 * 16 - 1) {
+    eff->move.vy           += 6;
+    count                   = eff->age + 1;
+    eff->age                = count;
+    if (count > eff->scale * 16 - 1) {
         Gp_ReleaseState1CMem(eff, arg0);
     }
 }
@@ -970,29 +970,29 @@ void func_actor_510900_801346D4(Task* arg0)
         }
         return;
     }
-    eff->field_22++;
+    eff->age++;
     switch (arg0->state) {
         case 0:
             eff = Gp_SpawnEff(0x60184, coord, 0x480, NULL);
             if (eff != NULL) {
-                Task_Reparent(arg0, eff->field_0);
+                Task_Reparent(arg0, eff->task);
             }
             arg0->state++;
             break;
         case 1:
-            if (eff->field_22 >= 9) {
+            if (eff->age >= 9) {
                 arg0->state++;
             }
             break;
         case 2:
             Gp_SpawnEff(0x60070, coord, 0x82004400, NULL);
-            if (eff->field_22 >= 0x33) {
+            if (eff->age >= 0x33) {
                 arg0->state++;
             }
             break;
         case 3:
             Gp_SpawnEff(0x60070, coord, 0xD2004400, NULL);
-            if (eff->field_22 >= 0x3D) {
+            if (eff->age >= 0x3D) {
                 arg0->state++;
             }
             break;
@@ -1023,51 +1023,51 @@ void func_actor_510900_8013482C(Task* arg0)
         }
         return;
     }
-    eff->field_22++;
+    eff->age++;
     if (arg0->state == 0) {
         scale = 0x300;
         if (arg0->spawnArg1 & 0xFFF) {
             scale = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
         }
-        eff->field_24 = scale;
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        eff->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+        eff->scale  = scale;
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        eff->angle  = ((u32)Gp_LcgState >> 16) & 0xFFF;
         if (arg0->spawnArg1 & 0xF000) {
             step = (arg0->spawnArg1 >> 12) & 0xF;
         } else {
             step = 2;
         }
-        eff->field_28 = step;
-        eff->field_2A = (s32)(*(u16*)&eff->field_24 << 16) >> 23;
-        tmp           = ((GpEffSpawnArgHi*)&arg0->spawnArg1)->field_3;
-        eff->field_20 = tmp & 0xF;
-        if (eff->field_20 != 0) {
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            eff->field_10 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            eff->field_12 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            eff->field_14 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            gte_lddp(eff->field_24 << 3);
-            gte_ldsv((SVECTOR*)&eff->field_10);
+        eff->period = step;
+        eff->step   = (s32)(*(u16*)&eff->scale << 16) >> 23;
+        tmp         = ((GpEffSpawnArgHi*)&arg0->spawnArg1)->field_3;
+        eff->index  = tmp & 0xF;
+        if (eff->index != 0) {
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            eff->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            eff->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            eff->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            gte_lddp(eff->scale << 3);
+            gte_ldsv(&eff->move);
             gte_gpf12_real();
-            gte_stsv((SVECTOR*)&eff->field_10);
-            gte_lddp(eff->field_20 << 12);
-            gte_ldsv((SVECTOR*)&eff->field_10);
+            gte_stsv(&eff->move);
+            gte_lddp(eff->index << 12);
+            gte_ldsv(&eff->move);
             gte_gpf12_real();
-            gte_stsv((SVECTOR*)&eff->field_10);
-            gte_SetRotMatrix(&eff->field_8->coord);
-            gte_ldv0((SVECTOR*)&eff->field_10);
+            gte_stsv(&eff->move);
+            gte_SetRotMatrix(&eff->parent->coord);
+            gte_ldv0(&eff->move);
             gte_rtv0_real();
-            gte_stsv((SVECTOR*)&eff->field_10);
+            gte_stsv(&eff->move);
         } else if (!(arg0->spawnArg1 & 0xF0000000)) {
             n = D_80070F70 & 3;
             i = 0;
             if (n != 0) {
                 do {
-                    spawned = Gp_SpawnEff(0x60184, coord, ((s32)(*(u16*)&eff->field_24 << 16) >> 17) | 0x02001000, NULL);
+                    spawned = Gp_SpawnEff(0x60184, coord, ((s32)(*(u16*)&eff->scale << 16) >> 17) | 0x02001000, NULL);
                     if (spawned != NULL) {
-                        Task_Reparent(arg0, spawned->field_0);
+                        Task_Reparent(arg0, spawned->task);
                     }
                     i += 1;
                 } while (i < n);
@@ -1076,24 +1076,24 @@ void func_actor_510900_8013482C(Task* arg0)
             i = 0;
             if (i < n) {
                 do {
-                    spawned = Gp_SpawnEff(0x60184, coord, ((s32)(*(u16*)&eff->field_24 << 16) >> 17) | 0x01002000, NULL);
+                    spawned = Gp_SpawnEff(0x60184, coord, ((s32)(*(u16*)&eff->scale << 16) >> 17) | 0x01002000, NULL);
                     if (spawned != NULL) {
-                        Task_Reparent(arg0, spawned->field_0);
+                        Task_Reparent(arg0, spawned->task);
                     }
                     i += 1;
                 } while (i < n);
             }
         }
-        eff->field_22--;
+        eff->age--;
         arg0->state = 1;
     }
-    func_actor_510900_80134C90(coord, eff->field_22 / eff->field_28, eff->field_24, eff->field_26);
-    coord->coord.t[0] += eff->field_10;
-    coord->coord.t[1] += eff->field_12;
-    coord->coord.t[2] += eff->field_14;
+    func_actor_510900_80134C90(coord, eff->age / eff->period, eff->scale, eff->angle);
+    coord->coord.t[0] += eff->move.vx;
+    coord->coord.t[1] += eff->move.vy;
+    coord->coord.t[2] += eff->move.vz;
     coord->flg         = 0;
-    eff->field_24     += eff->field_2A;
-    if (eff->field_22 > eff->field_28 * 11 - 1) {
+    eff->scale        += eff->step;
+    if (eff->age > eff->period * 11 - 1) {
         Gp_ReleaseState1CMem(eff, arg0);
     }
 }
@@ -1267,8 +1267,8 @@ void func_actor_510900_801350F8(Actor510900Ctx* arg0, Actor510900* arg1)
     work->field_568 = spawned->task;
     eff             = Gp_SpawnEff(0x80060043, ((TmdObject*)spawned->task->extra)->coords, 0, NULL);
     if (eff != NULL) {
-        work->field_564 = (s32*)eff->field_0;
-        Task_Reparent((Task*)arg1, eff->field_0);
+        work->field_564 = (s32*)eff->task;
+        Task_Reparent((Task*)arg1, eff->task);
     }
     if (work->field_564 != NULL) {
         work->field_564[0xD] = 0;

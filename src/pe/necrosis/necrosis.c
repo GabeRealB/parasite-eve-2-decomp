@@ -18,7 +18,7 @@
 const u32 D_necrosis_8012EF30 = 51;
 
 /// Per-level tuning for the necrosis burst: rows are PE levels 1-3, selected
-/// by `field_20`. `field_0` is the `Gp_SpawnEff` draw parameter; `field_2` is
+/// by `index`. `field_0` is the `Gp_SpawnEff` draw parameter; `field_2` is
 /// the last spawn-loop tick, and `field_2 + 0xC` the pad-rumble duration.
 NecrosisStep D_necrosis_801306BC[] = {
     { 0x03C0, 0x000A },
@@ -65,12 +65,12 @@ void func_necrosis_8012EF34(Task* arg0)
     s32            tick;
     s16            fade;
 
-    work          = (NecrosisWork*)arg0->work;
-    mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->coords;
-    old           = mem->field_22;
-    tick          = old + 1;
-    mem->field_22 = tick;
+    work     = (NecrosisWork*)arg0->work;
+    mem      = arg0->spawnArg2;
+    coord    = ((TmdObject*)arg0->extra)->coords;
+    old      = mem->age;
+    tick     = old + 1;
+    mem->age = tick;
     SOFT_USE_REG(tick);
     switch (arg0->state) {
         case 0:
@@ -82,12 +82,12 @@ void func_necrosis_8012EF34(Task* arg0)
                 goto release;
             }
             if (fade != 0) {
-                mem->field_22 = old;
+                mem->age = old;
                 return;
             }
             work = memCalloc(0x58, 0);
             if (work == NULL) {
-                mem->field_22 = 0;
+                mem->age = 0;
                 return;
             }
             player     = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
@@ -100,21 +100,21 @@ void func_necrosis_8012EF34(Task* arg0)
             dstm->h4   = srcm->h4;
             coord->flg = 0;
             Gp_UpdateCoord(coord);
-            mem->field_10 = 0;
-            mem->field_12 = 0;
-            mem->field_14 = 0x90;
+            mem->move.vx = 0;
+            mem->move.vy = 0;
+            mem->move.vz = 0x90;
             gte_SetRotMatrix((MATRIX*)srcm);
-            gte_ldv0(&mem->field_10);
+            gte_ldv0(&mem->move);
             gte_rtv0_real();
-            gte_stsv(&mem->field_10);
+            gte_stsv(&mem->move);
             rec                = &work->rec;
-            mem->field_20      = (Gp_StateC08.field_0 % 10) - 1;
+            mem->index         = (Gp_StateC08.field_0 % 10) - 1;
             arg0->work         = (TaskIdMap*)work;
             work->obj.coord    = coord;
             work->obj.ctx.recs = rec;
             work->obj.key =
                 ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 + ((u16)((u16)(Gp_StateC08.field_0 % 100) / 10) - 1) * 3 + (u16)(Gp_StateC08.field_0 % 10) + 0x28000;
-            work->obj.radius = D_necrosis_801306BC[mem->field_20].field_0;
+            work->obj.radius = D_necrosis_801306BC[mem->index].field_0;
             work->obj.flags  = 1;
             Gp_LinkObj(1, &work->obj);
             rec->flags          = 2;
@@ -129,45 +129,45 @@ void func_necrosis_8012EF34(Task* arg0)
             pan              = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(D_necrosis_801306C8[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
                                 (s8)Gp_GetObjDepth(coord));
-            Gp_SpawnPadLerp((s16)((u16)D_necrosis_801306BC[mem->field_20].field_2 + 0xC), 0xFF, 8);
+            Gp_SpawnPadLerp((s16)((u16)D_necrosis_801306BC[mem->index].field_2 + 0xC), 0xFF, 8);
             arg0->state = 1;
             /* fallthrough */
         case 1:
             if (Gp_State1C->fadeState == 0) {
                 gte_lddp(0x1100);
-                gte_ldsv(&mem->field_10);
+                gte_ldsv(&mem->move);
                 gte_gpf12_real();
-                gte_stsv(&mem->field_10);
-                coord->coord.t[0] += mem->field_10;
-                coord->coord.t[1] += mem->field_12;
-                coord->coord.t[2] += mem->field_14;
+                gte_stsv(&mem->move);
+                coord->coord.t[0] += mem->move.vx;
+                coord->coord.t[1] += mem->move.vy;
+                coord->coord.t[2] += mem->move.vz;
                 coord->flg         = 0;
                 Gp_UpdateCoord(coord);
                 spawned = Gp_SpawnEff(0x80060019, coord,
-                                      (s16)D_necrosis_801306BC[mem->field_20].field_0 + ((s16)mem->field_22 * 0x60),
+                                      (s16)D_necrosis_801306BC[mem->index].field_0 + ((s16)mem->age * 0x60),
                                       NULL);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->field_0);
+                    Task_Reparent(arg0, spawned->task);
                 }
                 work->obj.radius = (u16)work->obj.radius + 0x20;
             } else {
-                mem->field_22 = (u16)mem->field_22 - 1;
+                mem->age = (u16)mem->age - 1;
             }
             if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4)) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_UnlinkObj(&work->obj2);
                 goto release;
             }
-            if ((s16)mem->field_22 > D_necrosis_801306BC[mem->field_20].field_2) {
+            if ((s16)mem->age > D_necrosis_801306BC[mem->index].field_2) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_UnlinkObj(&work->obj2);
                 arg0->state = 2;
                 return;
             }
             if (Gp_FindRec18(work->obj2.ctx.recs, 0x100000) != 0) {
-                mem->field_10 = 0;
-                mem->field_12 = 0;
-                mem->field_14 = 0;
+                mem->move.vx = 0;
+                mem->move.vy = 0;
+                mem->move.vz = 0;
                 Gp_UnlinkObj(&work->obj2);
             }
             Gp_ClearRec18Occupied(&work->rec);
@@ -180,7 +180,7 @@ void func_necrosis_8012EF34(Task* arg0)
                 goto release;
             }
             tick = (s16)tick;
-            if ((D_necrosis_801306BC[mem->field_20].field_2 + 0x10) < tick) {
+            if ((D_necrosis_801306BC[mem->index].field_2 + 0x10) < tick) {
             release:
                 Gp_ReleaseState1CMem(mem, arg0);
             }
@@ -203,31 +203,31 @@ void func_necrosis_8012F52C(Task* arg0)
         return;
     }
 
-    mem->field_22 = (u16)mem->field_22 + 1;
+    mem->age = (u16)mem->age + 1;
     if (arg0->state == 0) {
-        mem->field_24 = (u16)arg0->spawnArg1 & 0xFFF;
-        rng           = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState   = rng;
-        mem->field_26 = ((u32)rng >> 16) & 0xFFF;
+        mem->scale  = (u16)arg0->spawnArg1 & 0xFFF;
+        rng         = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState = rng;
+        mem->angle  = ((u32)rng >> 16) & 0xFFF;
         SOFT_COMPILER_BARRIER();
-        val           = (u16)mem->field_24;
-        step          = val;
-        val           = val - 0x100;
-        mem->field_28 = val;
-        mem->field_2A = (s32)(step << 16) >> 20;
-        arg0->state   = 1;
+        val         = (u16)mem->scale;
+        step        = val;
+        val         = val - 0x100;
+        mem->period = val;
+        mem->step   = (s32)(step << 16) >> 20;
+        arg0->state = 1;
     }
     Gp_UpdateCoord(coord);
-    func_necrosis_8012F6EC(coord, (s16)(mem->field_22 % 6), mem->field_24, mem->field_26);
-    mem->field_24 = (u16)mem->field_24 - (u16)mem->field_2A;
-    if ((s16)mem->field_24 < mem->field_2A) {
+    func_necrosis_8012F6EC(coord, (s16)(mem->age % 6), mem->scale, mem->angle);
+    mem->scale = (u16)mem->scale - (u16)mem->step;
+    if ((s16)mem->scale < mem->step) {
         Gp_ReleaseState1CMem(mem, arg0);
         return;
     }
-    if ((s16)(mem->field_22 % 3) == 0) {
-        spawned = Gp_SpawnEff(0x6001A, coord, mem->field_28, 0);
+    if ((s16)(mem->age % 3) == 0) {
+        spawned = Gp_SpawnEff(0x6001A, coord, mem->period, 0);
         if (spawned != NULL) {
-            Task_Reparent(arg0, spawned->field_0);
+            Task_Reparent(arg0, spawned->task);
         }
     }
 }
@@ -317,63 +317,63 @@ void func_necrosis_8012FAF8(Task* arg0)
         return;
     }
 
-    mem->field_22 = (u16)mem->field_22 + 1;
+    mem->age = (u16)mem->age + 1;
     switch (arg0->state) {
         case 0:
-            mem->field_22 = 0;
-            temp_v0       = arg0->spawnArg1;
-            mem->field_28 = temp_v0 & 0xFFF;
-            rng1          = (Gp_LcgState * 5) + 0x71357911;
-            mem->field_24 = ((u32)rng1 >> 16) & 0xFFF;
-            Gp_LcgState   = rng1;
-            mem->field_26 = mem->field_28 / 20;
-            mem->field_10 = (rsin(mem->field_24) * mem->field_26) >> 12;
-            temp_lo       = rcos(mem->field_24) * mem->field_26;
-            rng2          = (Gp_LcgState * 5) + 0x71357911;
-            Gp_LcgState   = rng2;
-            mem->field_12 = temp_lo >> 12;
-            mem->field_14 = (rsin(((u32)rng2 >> 16) & 0xFFF) * mem->field_10) >> 12;
-            rng3          = (Gp_LcgState * 5) + 0x71357911;
-            Gp_LcgState   = rng3;
+            mem->age     = 0;
+            temp_v0      = arg0->spawnArg1;
+            mem->period  = temp_v0 & 0xFFF;
+            rng1         = (Gp_LcgState * 5) + 0x71357911;
+            mem->scale   = ((u32)rng1 >> 16) & 0xFFF;
+            Gp_LcgState  = rng1;
+            mem->angle   = mem->period / 20;
+            mem->move.vx = (rsin(mem->scale) * mem->angle) >> 12;
+            temp_lo      = rcos(mem->scale) * mem->angle;
+            rng2         = (Gp_LcgState * 5) + 0x71357911;
+            Gp_LcgState  = rng2;
+            mem->move.vy = temp_lo >> 12;
+            mem->move.vz = (rsin(((u32)rng2 >> 16) & 0xFFF) * mem->move.vx) >> 12;
+            rng3         = (Gp_LcgState * 5) + 0x71357911;
+            Gp_LcgState  = rng3;
             if ((s32)(((u32)rng3 >> 16) & 3) < ((u16)(Gp_StateC08.field_0 % 10U) - 1)) {
-                mem->field_2A = 0x1000;
+                mem->step = 0x1000;
             }
             if ((u16)(Gp_StateC08.field_0 % 10U) - 1 < 2) {
                 arg0->state = 1;
                 return;
             }
             var_v1 = 2;
-            if (mem->field_2A != 0) {
+            if (mem->step != 0) {
                 var_v1 = 1;
             }
             arg0->state = var_v1;
             return;
         case 1:
-            coord->coord.t[0] += mem->field_10;
-            coord->coord.t[1] += mem->field_12;
-            coord->coord.t[2] += mem->field_14;
+            coord->coord.t[0] += mem->move.vx;
+            coord->coord.t[1] += mem->move.vy;
+            coord->coord.t[2] += mem->move.vz;
             coord->flg         = 0;
             Gp_UpdateCoord(coord);
-            tick          = (u16)mem->field_20 + 1;
-            mem->field_20 = tick;
+            tick       = (u16)mem->index + 1;
+            mem->index = tick;
             if (tick < 8) {
-                func_necrosis_8012FE64(coord, (s16)(tick | (u16)mem->field_2A), mem->field_28,
-                                       mem->field_24);
+                func_necrosis_8012FE64(coord, (s16)(tick | (u16)mem->step), mem->period,
+                                       mem->scale);
                 return;
             }
             Gp_ReleaseState1CMem(mem, arg0);
             return;
         case 2:
-            coord->coord.t[0] += mem->field_10;
-            coord->coord.t[1] += mem->field_12;
-            coord->coord.t[2] += mem->field_14;
+            coord->coord.t[0] += mem->move.vx;
+            coord->coord.t[1] += mem->move.vy;
+            coord->coord.t[2] += mem->move.vz;
             coord->flg         = 0;
             Gp_UpdateCoord(coord);
-            tick          = (u16)mem->field_20 + 1;
-            mem->field_20 = tick;
+            tick       = (u16)mem->index + 1;
+            mem->index = tick;
             if (tick < 6) {
-                func_necrosis_80130288(coord, (s16)(tick | (u16)mem->field_2A), mem->field_28,
-                                       mem->field_24);
+                func_necrosis_80130288(coord, (s16)(tick | (u16)mem->step), mem->period,
+                                       mem->scale);
                 return;
             }
             Gp_ReleaseState1CMem(mem, arg0);

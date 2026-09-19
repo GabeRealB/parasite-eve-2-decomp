@@ -148,9 +148,9 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
     }
 }
 
-/// Per-frame update of the lift bay's lighting: ramps `GpEffWork::field_24`
+/// Per-frame update of the lift bay's lighting: ramps `GpEffWork::scale`
 /// from 0 to 0x1000 in 0x800 steps, re-blending the bay CLUT towards its lit
-/// palette on every step it takes, and latching `field_26` once the ramp is
+/// palette on every step it takes, and latching `angle` once the ramp is
 /// full. On every session phase but 5 the CLUT is then blended straight back
 /// to the unlit palette and the effect's work object is released, so only
 /// phase 5 keeps the lit bay on screen.
@@ -162,10 +162,10 @@ void func_acropolis_west_elevator_hall_8017F990(Task* task)
 
     work  = (GpEffWork*)task->spawnArg2;
     blend = 0;
-    if (work->field_26 == 0) {
-        work->field_24 = work->field_24 + 0x800;
-        if (work->field_24 == 0x1000) {
-            work->field_26 = 1;
+    if (work->angle == 0) {
+        work->scale = work->scale + 0x800;
+        if (work->scale == 0x1000) {
+            work->angle = 1;
         }
         blend = 1;
     }
@@ -173,7 +173,7 @@ void func_acropolis_west_elevator_hall_8017F990(Task* task)
     if (blend != 0) {
         for (i = 0; i < 0x100; i += 0x10) {
             Gp_BlendRgb555Clut(&D_acropolis_west_elevator_hall_80184C04[i],
-                               &D_acropolis_west_elevator_hall_80184A04[i], work->field_24,
+                               &D_acropolis_west_elevator_hall_80184A04[i], work->scale,
                                &D_acropolis_west_elevator_hall_80184E04[i]);
         }
         Gp_LoadImages(D_acropolis_west_elevator_hall_80185004);

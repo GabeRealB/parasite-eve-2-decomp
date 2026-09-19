@@ -33,7 +33,7 @@ extern u32 Gp_LcgState;
 /// Any room fade of 2 or more, and the player being in the state flagged by
 /// `TmdObject::flags & 0x80`, freeze the task outright.
 ///
-/// - State 0 hangs the coordinate off `GpEffWork::field_8` at the fixed offset
+/// - State 0 hangs the coordinate off `GpEffWork::parent` at the fixed offset
 ///   `D_m4a1_hammer_8011EB60` with an identity rotation, publishes the task as
 ///   `D_m4a1_hammer_8012D660` and moves to state 1.
 /// - State 1 first republishes the flare's world position as
@@ -45,7 +45,7 @@ extern u32 Gp_LcgState;
 ///   frame it walks each spark, rotates its offset through the flare's frame
 ///   and draws it, then widens the light to `0x400` / `0x4000`; five charge
 ///   frames drop back to phase 1. Phase 3 tears the flare down. A room fade
-///   winds `field_22` back down and redraws instead of advancing.
+///   winds `age` back down and redraws instead of advancing.
 void func_m4a1_hammer_8011D1E0(Task* task)
 {
     GpEffWork*     work;
@@ -64,11 +64,11 @@ void func_m4a1_hammer_8011D1E0(Task* task)
     slot  = (GpCoordTail*)light;
 
     if ((((TmdObject*)(gameGetPtrSlot(3))->extra)->flags & 0x80) == 0 && Gp_State1C->eventState < 2) {
-        work->field_22 = (u16)work->field_22 + 1;
+        work->age = (u16)work->age + 1;
         switch (task->state) {
             case 0:
                 dstm              = (GpMtxWords*)&coord->coord;
-                coord->sub        = work->field_8;
+                coord->sub        = work->parent;
                 dstm->w0          = 0x1000;
                 dstm->w2          = 0x1000;
                 dstm->h4          = 0x1000;
@@ -92,23 +92,23 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         break;
                     case 1:
                         if (Gp_State1C->eventState != 0) {
-                            work->field_22 = (u16)work->field_22 - 1;
-                            if ((work->field_22 & 1) == 0) {
-                                func_m4a1_hammer_8011D904(coord->workm.t, work->field_22 >> 1, work->field_28,
-                                                          work->field_26);
+                            work->age = (u16)work->age - 1;
+                            if ((work->age & 1) == 0) {
+                                func_m4a1_hammer_8011D904(coord->workm.t, work->age >> 1, work->period,
+                                                          work->angle);
                             }
                             return;
                         }
                         Gp_UpdateCoord(coord);
-                        if ((work->field_22 & 0xF) == 0) {
-                            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                            work->field_26 = (Gp_LcgState >> 16) & 0xFFF;
+                        if ((work->age & 0xF) == 0) {
+                            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                            work->angle = (Gp_LcgState >> 16) & 0xFFF;
                         }
-                        Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                        work->field_28 = ((Gp_LcgState >> 16) & 0xFF) + 0xC0;
-                        if ((work->field_22 & 1) == 0) {
-                            func_m4a1_hammer_8011D904(coord->workm.t, work->field_22 >> 1, work->field_28,
-                                                      work->field_26);
+                        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                        work->period = ((Gp_LcgState >> 16) & 0xFF) + 0xC0;
+                        if ((work->age & 1) == 0) {
+                            func_m4a1_hammer_8011D904(coord->workm.t, work->age >> 1, work->period,
+                                                      work->angle);
                         }
                         base->field_0  = 4;
                         slot->field_58 = 0x80;
@@ -118,20 +118,20 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         slot->field_50 = (u16)slot->field_54 >> 1;
                         slot->field_52 = (u16)slot->field_54 >> 1;
                         Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
-                        light->flg     = 0;
-                        work->field_20 = 0;
+                        light->flg  = 0;
+                        work->index = 0;
                         return;
                     case 2:
                         if (Gp_State1C->eventState != 0) {
-                            work->field_22 = (u16)work->field_22 - 1;
-                            if ((work->field_22 & 1) == 0) {
-                                func_m4a1_hammer_8011DE60(coord, work->field_22 >> 1, work->field_28,
-                                                          work->field_26);
+                            work->age = (u16)work->age - 1;
+                            if ((work->age & 1) == 0) {
+                                func_m4a1_hammer_8011DE60(coord, work->age >> 1, work->period,
+                                                          work->angle);
                             }
                             return;
                         }
                         Gp_UpdateCoord(coord);
-                        if (work->field_20 == 0) {
+                        if (work->index == 0) {
                             for (i = 0; i < 8; i++) {
                                 Gp_LcgState                    = Gp_LcgState * 5 + 0x71357911;
                                 D_m4a1_hammer_8012D630[i]      = (i << 9) + ((Gp_LcgState >> 16) & 0x1FF);
@@ -141,33 +141,33 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                                 D_m4a1_hammer_8012D630[i + 16] = (Gp_LcgState >> 16) & 0x3FF;
                             }
                         }
-                        if ((work->field_22 & 0xF) == 0) {
-                            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                            work->field_26 = (Gp_LcgState >> 16) & 0xFFF;
+                        if ((work->age & 0xF) == 0) {
+                            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                            work->angle = (Gp_LcgState >> 16) & 0xFFF;
                         }
-                        Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                        work->field_28 = ((Gp_LcgState >> 16) & 0x3FF) + 0x400;
-                        if ((work->field_22 & 1) == 0) {
-                            func_m4a1_hammer_8011DE60(coord, work->field_22 >> 1, work->field_28, work->field_26);
+                        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                        work->period = ((Gp_LcgState >> 16) & 0x3FF) + 0x400;
+                        if ((work->age & 1) == 0) {
+                            func_m4a1_hammer_8011DE60(coord, work->age >> 1, work->period, work->angle);
                             for (i = 0; i < 8; i++) {
                                 j                          = i + 8;
                                 Gp_LcgState                = Gp_LcgState * 5 + 0x71357911;
                                 D_m4a1_hammer_8012D630[i] -= ((Gp_LcgState >> 16) & 0x1FF) - 0x100;
                                 Gp_LcgState                = Gp_LcgState * 5 + 0x71357911;
                                 D_m4a1_hammer_8012D630[j] += (Gp_LcgState >> 16) & 0xFF;
-                                work->field_18 =
+                                work->pos.vx =
                                     (D_m4a1_hammer_8012D630[i + 16] * rsin(D_m4a1_hammer_8012D630[i])) >> 12;
-                                work->field_1C =
+                                work->pos.vz =
                                     (D_m4a1_hammer_8012D630[i + 16] * rcos(D_m4a1_hammer_8012D630[i])) >> 12;
-                                work->field_1A = D_m4a1_hammer_8012D630[j];
+                                work->pos.vy = D_m4a1_hammer_8012D630[j];
                                 gte_SetRotMatrix(&coord->workm);
-                                gte_ldv0(&work->field_18);
+                                gte_ldv0(&work->pos);
                                 gte_rtv0_real();
-                                gte_stsv(&work->field_18);
-                                work->field_18 = (u16)work->field_18 + (u16)D_m4a1_hammer_8012D668.vx;
-                                work->field_1A = (u16)work->field_1A + (u16)D_m4a1_hammer_8012D668.vy;
-                                work->field_1C = (u16)work->field_1C + (u16)D_m4a1_hammer_8012D668.vz;
-                                func_m4a1_hammer_8011E29C(coord, (SVECTOR*)&work->field_18, work->field_22, 0x280);
+                                gte_stsv(&work->pos);
+                                work->pos.vx = (u16)work->pos.vx + (u16)D_m4a1_hammer_8012D668.vx;
+                                work->pos.vy = (u16)work->pos.vy + (u16)D_m4a1_hammer_8012D668.vy;
+                                work->pos.vz = (u16)work->pos.vz + (u16)D_m4a1_hammer_8012D668.vz;
+                                func_m4a1_hammer_8011E29C(coord, &work->pos, work->age, 0x280);
                             }
                         }
                         base->field_0  = 4;
@@ -178,9 +178,9 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         slot->field_50 = (u16)slot->field_54 >> 1;
                         slot->field_52 = (s16)(u16)slot->field_54 >> 1;
                         Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
-                        light->flg     = 0;
-                        work->field_20 = (u16)work->field_20 + 1;
-                        if (work->field_20 >= 5) {
+                        light->flg  = 0;
+                        work->index = (u16)work->index + 1;
+                        if (work->index >= 5) {
                             task->spawnArg1 = 1;
                         }
                         return;
@@ -267,12 +267,12 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
 
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
-    mem->field_22++;
+    mem->age++;
     switch (arg0->state) {
         case 0:
             Task_Reparent(D_m4a1_hammer_8012D660, arg0);
             if (arg0->spawnArg1 != 0) {
-                parent            = mem->field_8;
+                parent            = mem->parent;
                 coord->coord.t[0] = 0;
                 coord->coord.t[1] = 0;
                 coord->coord.t[2] = 0;
@@ -281,18 +281,18 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
                 Gp_UpdateCoord(coord);
                 arg0->state = 1;
             }
-            mem->field_24 = 0x80;
-            Gp_LcgState   = (Gp_LcgState * 5) + 0x71357911;
-            mem->field_26 = (Gp_LcgState >> 16) & 0xFFF;
+            mem->scale  = 0x80;
+            Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
+            mem->angle  = (Gp_LcgState >> 16) & 0xFFF;
             /* fallthrough */
         case 1:
-            if (mem->field_22 & 1) {
-                func_m4a1_hammer_8011DE60(coord, ++mem->field_20, 0x400, mem->field_26);
-                if (mem->field_22 < 8) {
-                    func_m4a1_hammer_8011E29C(coord, &D_m4a1_hammer_8012D668, mem->field_20, 0x280);
+            if (mem->age & 1) {
+                func_m4a1_hammer_8011DE60(coord, ++mem->index, 0x400, mem->angle);
+                if (mem->age < 8) {
+                    func_m4a1_hammer_8011E29C(coord, &D_m4a1_hammer_8012D668, mem->index, 0x280);
                 }
             }
-            if (mem->field_22 >= 0x19) {
+            if (mem->age >= 0x19) {
                 Gp_ReleaseState1CMem(mem, arg0);
             }
             break;

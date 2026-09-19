@@ -49,8 +49,8 @@ void func_metabolism_8012F840(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
 /// picks the intensity row from the combo counter, seeds one random angle per
 /// fan wedge into `D_metabolism_8012FB78`, and plays the combo-indexed cue.
 /// State 1 grows brightness and radius, and each frame spins the coordinate to
-/// three random yaws, rotating `GpEffWork.field_10` through the new frame and
-/// then overwriting it with the `field_26` circle at `field_2A`, to parent
+/// three random yaws, rotating `GpEffWork.move` through the new frame and
+/// then overwriting it with the `angle` circle at `step`, to parent
 /// three `0x60013` sparks; it hands over to state 2 once the radius reaches
 /// the row's `field_6`. State 2 shrinks brightness by 0x10 a frame and drops
 /// to state 3 - release - below 0x11. States 1 and 2 both draw the fan wedges,
@@ -75,7 +75,7 @@ void func_metabolism_8012EF34(Task* arg0)
         return;
     }
 
-    mem->field_22 = (u16)mem->field_22 + 1;
+    mem->age = (u16)mem->age + 1;
     switch (arg0->state) {
         case 0:
             rot               = (GpMtxWords*)&coord->coord;
@@ -90,13 +90,13 @@ void func_metabolism_8012EF34(Task* arg0)
             coord->coord.t[2] = 0;
             coord->flg        = 0;
             Gp_UpdateCoord(coord);
-            arg0->state   = 1;
-            mem->field_20 = (Gp_StateC08.field_0 % 10) - 1;
-            mem->field_26 = 0x80;
+            arg0->state = 1;
+            mem->index  = (Gp_StateC08.field_0 % 10) - 1;
+            mem->angle  = 0x80;
             {
                 s32 rng;
 
-                for (i = 0; i < D_metabolism_8012FB54[mem->field_20].field_0; i++) {
+                for (i = 0; i < D_metabolism_8012FB54[mem->index].field_0; i++) {
                     rng                      = Gp_LcgState * 5 + 0x71357911;
                     D_metabolism_8012FB78[i] = (i << 10) + (((u32)rng >> 16) & 0x3FF);
                     Gp_LcgState              = rng;
@@ -104,69 +104,69 @@ void func_metabolism_8012EF34(Task* arg0)
             }
             Gp_StateC08.field_6 |= 8;
             pan                  = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(D_metabolism_8012FB6C[mem->field_20], pan,
+            SndEvt_EnqueueType6(D_metabolism_8012FB6C[mem->index], pan,
                                 (s8)Gp_GetObjDepth(coord));
             /* fallthrough */
         case 1:
             Gp_UpdateCoord(coord);
-            bright = mem->field_24;
-            if (bright < D_metabolism_8012FB54[mem->field_20].field_2) {
+            bright = mem->scale;
+            if (bright < D_metabolism_8012FB54[mem->index].field_2) {
                 bright += 0x10;
             }
-            mem->field_24 = bright;
-            mem->field_26 = (u16)mem->field_26 + D_metabolism_8012FB54[mem->field_20].field_4;
+            mem->scale = bright;
+            mem->angle = (u16)mem->angle + D_metabolism_8012FB54[mem->index].field_4;
             {
                 s32 rng;
                 s32 rng2;
 
                 for (i = 0; i < 3; i++) {
-                    rng           = Gp_LcgState * 5 + 0x71357911;
-                    rng2          = rng * 5 + 0x71357911;
-                    Gp_LcgState   = rng;
-                    mem->field_2A = ((u32)rng >> 16) & 0xFFF;
-                    Gp_LcgState   = rng2;
+                    rng         = Gp_LcgState * 5 + 0x71357911;
+                    rng2        = rng * 5 + 0x71357911;
+                    Gp_LcgState = rng;
+                    mem->step   = ((u32)rng >> 16) & 0xFFF;
+                    Gp_LcgState = rng2;
                     Gfx_RotMatrixY(&coord->coord, ((u32)rng2 >> 16) & 0xFFF, 0);
                     gte_SetRotMatrix(&coord->coord);
-                    gte_ldv0(&mem->field_10);
+                    gte_ldv0(&mem->move);
                     gte_rtv0_real();
-                    gte_stsv(&mem->field_10);
-                    mem->field_10 = (rcos(mem->field_2A) * mem->field_26) >> 12;
-                    temp_lo       = rsin(mem->field_2A) * mem->field_26;
-                    mem->field_14 = 0;
-                    mem->field_12 = temp_lo >> 12;
-                    spawned       = Gp_SpawnEff(0x60013, coord,
-                                                D_metabolism_8012FB54[mem->field_20].field_6,
-                                                (SVECTOR*)&mem->field_10);
+                    gte_stsv(&mem->move);
+                    mem->move.vx = (rcos(mem->step) * mem->angle) >> 12;
+                    temp_lo      = rsin(mem->step) * mem->angle;
+                    mem->move.vz = 0;
+                    mem->move.vy = temp_lo >> 12;
+                    spawned      = Gp_SpawnEff(0x60013, coord,
+                                               D_metabolism_8012FB54[mem->index].field_6,
+                                               &mem->move);
                     if (spawned != NULL) {
-                        Task_Reparent(arg0, spawned->field_0);
+                        Task_Reparent(arg0, spawned->task);
                     }
                 }
             }
-            if (mem->field_26 >= D_metabolism_8012FB54[mem->field_20].field_6) {
+            if (mem->angle >= D_metabolism_8012FB54[mem->index].field_6) {
                 arg0->state = 2;
             }
-            for (i = 0; i < D_metabolism_8012FB54[mem->field_20].field_0; i++) {
-                func_metabolism_8012F840(coord, mem->field_26, D_metabolism_8012FB78[i],
-                                         mem->field_24);
+            for (i = 0; i < D_metabolism_8012FB54[mem->index].field_0; i++) {
+                func_metabolism_8012F840(coord, mem->angle, D_metabolism_8012FB78[i],
+                                         mem->scale);
             }
             goto draw;
         case 2:
             Gp_UpdateCoord(coord);
-            for (i = 0; i < D_metabolism_8012FB54[mem->field_20].field_0; i++) {
-                func_metabolism_8012F840(coord, mem->field_26, D_metabolism_8012FB78[i],
-                                         mem->field_24);
+            for (i = 0; i < D_metabolism_8012FB54[mem->index].field_0; i++) {
+                func_metabolism_8012F840(coord, mem->angle, D_metabolism_8012FB78[i],
+                                         mem->scale);
             }
-            mem->field_24 = (u16)mem->field_24 - 0x10;
-            mem->field_26 = (u16)mem->field_26 + D_metabolism_8012FB54[mem->field_20].field_4;
-            if (mem->field_24 < 0x11) {
+            mem->scale = (u16)mem->scale - 0x10;
+            mem->angle = (u16)mem->angle + D_metabolism_8012FB54[mem->index].field_4;
+            if (mem->scale < 0x11) {
                 arg0->state = 3;
             }
         draw:
-            rgb[0] = (u16)mem->field_24 >> 2;
-            rgb[1] = *(u8*)&mem->field_24;
-            rgb[2] = (u16)mem->field_24 >> 1;
-            Gp_DrawRing(coord, (s32)((u16)mem->field_26 << 16) >> 17, rgb);
-            Gp_DrawRing(coord, (s32)((u16)mem->field_26 << 16) >> 17, rgb);
+            rgb[0] = (u16)mem->scale >> 2;
+            rgb[1] = *(u8*)&mem->scale;
+            rgb[2] = (u16)mem->scale >> 1;
+            Gp_DrawRing(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
+            Gp_DrawRing(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
             {
                 GsCOORDINATE2* c;
                 s32            span;
@@ -185,9 +185,9 @@ void func_metabolism_8012EF34(Task* arg0)
                 g      = rgb[1];
                 rgb[2] = b >> 1;
                 rgb[1] = g >> 1;
-                Gp_DrawArc(c, mem->field_26, span, rgb);
+                Gp_DrawArc(c, mem->angle, span, rgb);
             }
-            if ((u16)mem->field_22 & 1) {
+            if ((u16)mem->age & 1) {
                 unsigned int g;
                 unsigned int b;
 
@@ -195,9 +195,9 @@ void func_metabolism_8012EF34(Task* arg0)
                 b      = rgb[2];
                 rgb[1] = g >> 1;
                 rgb[2] = b << 1;
-                Gp_DrawArc(coord, 0x80, mem->field_26, rgb);
+                Gp_DrawArc(coord, 0x80, mem->angle, rgb);
             }
-            if (mem->field_20 != 0) {
+            if (mem->index != 0) {
                 GsCOORDINATE2* c;
                 s32            span;
                 unsigned int   r;
@@ -215,7 +215,7 @@ void func_metabolism_8012EF34(Task* arg0)
                 g      = rgb[1];
                 rgb[2] = b >> 1;
                 rgb[1] = g >> 1;
-                Gp_DrawArc(c, (s16)((u16)mem->field_26 + 0x200), span, rgb);
+                Gp_DrawArc(c, (s16)((u16)mem->angle + 0x200), span, rgb);
             }
             return;
         case 3:
@@ -238,42 +238,42 @@ void func_metabolism_8012F5A0(Task* arg0)
     u16            kind;
     u16            roll;
 
-    mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->coords;
-    mem->field_22 = (u16)mem->field_22 + 1;
+    mem      = arg0->spawnArg2;
+    coord    = ((TmdObject*)arg0->extra)->coords;
+    mem->age = (u16)mem->age + 1;
     switch (arg0->state) {
         case 0:
-            mem->field_10 = 0;
-            mem->field_12 = 8;
-            mem->field_14 = 0;
-            mem->field_26 = arg0->spawnArg1 & 0xFFF;
-            kind          = Gp_StateC08.field_0 % 10U;
+            mem->move.vx = 0;
+            mem->move.vy = 8;
+            mem->move.vz = 0;
+            mem->angle   = arg0->spawnArg1 & 0xFFF;
+            kind         = Gp_StateC08.field_0 % 10U;
             if (kind - 1 < 2 ||
                 (Gp_LcgState = Gp_LcgState * 5 + 0x71357911,
                  roll        = ((u32)Gp_LcgState >> 16) % 3U, roll != 0)) {
-                arg0->state   = 1;
-                mem->field_28 = 0x1000;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_24 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+                arg0->state = 1;
+                mem->period = 0x1000;
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                mem->scale  = ((u32)Gp_LcgState >> 16) & 0xFFF;
             } else {
-                arg0->state   = 2;
-                mem->field_24 = 0xC0;
-                mem->field_28 = 0x3000;
+                arg0->state = 2;
+                mem->scale  = 0xC0;
+                mem->period = 0x3000;
             }
             return;
         case 1:
-            step              = mem->field_12;
+            step              = mem->move.vy;
             y                 = coord->coord.t[1] + step;
             coord->flg        = 0;
             coord->coord.t[1] = y;
             Gp_UpdateCoord(coord);
-            if (!((u16)mem->field_22 & 1)) {
-                mem->field_20 = (u16)mem->field_20 + 1;
+            if (!((u16)mem->age & 1)) {
+                mem->index = (u16)mem->index + 1;
             }
-            if (mem->field_20 < 8) {
-                if ((u16)mem->field_22 & 1) {
-                    Gp_DrawFxQuad(coord, (u16)mem->field_20, mem->field_26,
-                                  (u16)mem->field_24 | (u16)mem->field_28);
+            if (mem->index < 8) {
+                if ((u16)mem->age & 1) {
+                    Gp_DrawFxQuad(coord, (u16)mem->index, mem->angle,
+                                  (u16)mem->scale | (u16)mem->period);
                     return;
                 }
             } else {
@@ -282,19 +282,19 @@ void func_metabolism_8012F5A0(Task* arg0)
             }
             break;
         case 2:
-            step              = mem->field_12;
+            step              = mem->move.vy;
             y                 = coord->coord.t[1] + step;
             coord->flg        = 0;
             coord->coord.t[1] = y;
             Gp_UpdateCoord(coord);
-            if (!((u16)mem->field_22 & 1)) {
-                mem->field_20 = (u16)mem->field_20 + 1;
+            if (!((u16)mem->age & 1)) {
+                mem->index = (u16)mem->index + 1;
             }
-            if (mem->field_20 < 8) {
-                if ((u16)mem->field_22 & 1) {
-                    func_800EB6E8(coord, (u16)mem->field_20, (u16)mem->field_26,
-                                  (u16)mem->field_24 | (u16)mem->field_28);
-                    mem->field_24 = (u16)mem->field_24 - 0x18;
+            if (mem->index < 8) {
+                if ((u16)mem->age & 1) {
+                    func_800EB6E8(coord, (u16)mem->index, (u16)mem->angle,
+                                  (u16)mem->scale | (u16)mem->period);
+                    mem->scale = (u16)mem->scale - 0x18;
                     return;
                 }
             } else {

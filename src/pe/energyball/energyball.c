@@ -59,33 +59,33 @@ void func_energyball_8012EF48(Task* arg0)
     s32            level;
     s32            rng;
 
-    mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->coords;
-    mem->field_22 = (u16)mem->field_22 + 1;
+    mem      = arg0->spawnArg2;
+    coord    = ((TmdObject*)arg0->extra)->coords;
+    mem->age = (u16)mem->age + 1;
     switch (arg0->state) {
         case 0:
-            mem->field_20 = Gp_StateC08.field_0 % 10 - 1;
-            level         = mem->field_20;
-            mem->field_26 = (level << 8) + 0x300;
+            mem->index = Gp_StateC08.field_0 % 10 - 1;
+            level      = mem->index;
+            mem->angle = (level << 8) + 0x300;
             if (D_80115724 < 0) {
                 D_80115724 = 0;
             }
             if (D_80115724 == 0) {
-                SndEvt_EnqueueType6(D_energyball_8013117C[mem->field_20], 0, 0);
+                SndEvt_EnqueueType6(D_energyball_8013117C[mem->index], 0, 0);
             }
             for (i = 0; i < 0x10; i++) {
                 rng                      = Gp_LcgState * 5 + 0x71357911;
                 D_energyball_801311A0[i] = ((u32)rng >> 16) & 0xFF;
                 Gp_LcgState              = rng;
             }
-            for (i = 0; i < mem->field_20 + 1; i++) {
+            for (i = 0; i < mem->index + 1; i++) {
                 if (D_80115724 + i >= 3) {
                     break;
                 }
-                mem->field_24 = i * 0x555 - (s16)(u16)mem->field_20 * 0x2AA;
-                mem->field_10 = (mem->field_26 * rsin(mem->field_24)) >> 12;
-                mem->field_14 = (mem->field_26 * rcos(mem->field_24)) >> 12;
-                Gp_SpawnEff(0x800600F8, coord, i, (SVECTOR*)&mem->field_10);
+                mem->scale   = i * 0x555 - (s16)(u16)mem->index * 0x2AA;
+                mem->move.vx = (mem->angle * rsin(mem->scale)) >> 12;
+                mem->move.vz = (mem->angle * rcos(mem->scale)) >> 12;
+                Gp_SpawnEff(0x800600F8, coord, i, &mem->move);
             }
             arg0->state = 1;
             return;
@@ -101,7 +101,7 @@ void func_energyball_8012EF48(Task* arg0)
 /// fade passes 4. Otherwise it walks `Task::state`: 0 allocates the
 /// `EnergyBallWork` collision block, picks the charge row of
 /// `D_energyball_80131194` from the combo counter and seeds a random spin
-/// `field_28`; 1 grows the ball by the row's `field_2` per frame until it
+/// `period`; 1 grows the ball by the row's `field_2` per frame until it
 /// reaches `field_0`, then links it on list 1 with a random direction; 2
 /// flies it, re-aiming at the player every eighth frame and nudging each
 /// velocity component by 0x10 on odd frames, bursting into three 0x600F9
@@ -140,7 +140,7 @@ void func_energyball_8012F180(Task* arg0)
             if (D_80115724 > 0) {
                 D_80115724 -= 1;
                 if (D_80115724 == 0) {
-                    SndEvt_EnqueueType7(D_energyball_8013117C[mem->field_20], 1);
+                    SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                 }
             }
             if (arg0->state != 0) {
@@ -150,42 +150,42 @@ void func_energyball_8012F180(Task* arg0)
             goto release;
         }
         Gp_UpdateCoord(coord);
-        func_energyball_8013035C(coord, mem->field_22, mem->field_26, mem->field_28);
-        func_energyball_8012FFD0(coord, mem->field_26, (s16)(u16)mem->field_24 >> 2);
+        func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
+        func_energyball_8012FFD0(coord, mem->angle, (s16)(u16)mem->scale >> 2);
         if ((arg0->state < 3) && (Gp_State1C->groundTrace != 0) &&
             (Gp_TraceGroundCoord(coord, &ground) == 1)) {
-            func_energyball_801307D4(&ground, mem->field_26);
+            func_energyball_801307D4(&ground, mem->angle);
         }
         return;
     }
 
-    mem->field_22 = (u16)mem->field_22 + 1;
+    mem->age = (u16)mem->age + 1;
     switch (arg0->state) {
         case 0:
             work = memCalloc(0x38, 0);
             if (work == NULL) {
-                mem->field_22 = 0;
+                mem->age = 0;
                 return;
             }
-            arg0->work    = (TaskIdMap*)work;
-            mem->field_20 = (Gp_StateC08.field_0 % 10) - 1;
-            mem->field_10 = 0;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            mem->field_12 = -(u16)D_energyball_80131194[mem->field_20].field_2;
-            mem->field_14 = 0;
-            mem->field_26 = 0;
-            mem->field_28 = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            D_80115724   += 1;
-            mem->field_24 = 0xC0;
-            mem->field_2A = 0x20;
-            arg0->state   = 1;
+            arg0->work   = (TaskIdMap*)work;
+            mem->index   = (Gp_StateC08.field_0 % 10) - 1;
+            mem->move.vx = 0;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->move.vy = -(u16)D_energyball_80131194[mem->index].field_2;
+            mem->move.vz = 0;
+            mem->angle   = 0;
+            mem->period  = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            D_80115724  += 1;
+            mem->scale   = 0xC0;
+            mem->step    = 0x20;
+            arg0->state  = 1;
             /* fallthrough */
         case 1:
-            if (mem->field_26 < D_energyball_80131194[mem->field_20].field_0) {
-                mem->field_26      = (u16)mem->field_26 + (u16)D_energyball_80131194[mem->field_20].field_2;
-                coord->coord.t[0] += mem->field_10;
-                coord->coord.t[1] += mem->field_12;
-                coord->coord.t[2] += mem->field_14;
+            if (mem->angle < D_energyball_80131194[mem->index].field_0) {
+                mem->angle         = (u16)mem->angle + (u16)D_energyball_80131194[mem->index].field_2;
+                coord->coord.t[0] += mem->move.vx;
+                coord->coord.t[1] += mem->move.vy;
+                coord->coord.t[2] += mem->move.vz;
                 coord->flg         = 0;
                 Gp_UpdateCoord(coord);
             } else {
@@ -196,27 +196,27 @@ void func_energyball_8012F180(Task* arg0)
                 work->obj.key      = ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 +
                                 ((u16)((u16)(Gp_StateC08.field_0 % 100) / 10) - 1) * 3 +
                                 (u16)(Gp_StateC08.field_0 % 10) + 0x28000;
-                work->obj.radius = (s16)(u16)mem->field_26 >> 1;
+                work->obj.radius = (s16)(u16)mem->angle >> 1;
                 work->obj.flags  = 1;
                 Gp_LinkObj(1, &work->obj);
-                dir              = (SVECTOR*)&mem->field_10;
+                dir              = &mem->move;
                 work->rec.flags  = 2;
                 work->obj.flags |= 0x8000;
                 arg0->state      = 2;
                 Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-                mem->field_10    = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
+                mem->move.vx     = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
                 Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-                mem->field_12    = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
+                mem->move.vy     = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
                 Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-                mem->field_14    = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
+                mem->move.vz     = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
                 VectorNormalSS(dir, dir);
-                gte_lddp((u16)mem->field_2A);
+                gte_lddp((u16)mem->step);
                 gte_ldsv(dir);
                 gte_gpf12_real();
                 gte_stsv(dir);
-                mem->field_18 = 0;
-                mem->field_1A = -(u16)D_energyball_80131194[mem->field_20].field_2;
-                mem->field_1C = 0;
+                mem->pos.vx = 0;
+                mem->pos.vy = -(u16)D_energyball_80131194[mem->index].field_2;
+                mem->pos.vz = 0;
             }
             slot->field_0  = 2;
             tail->field_58 = 0x100;
@@ -230,21 +230,21 @@ void func_energyball_8012F180(Task* arg0)
             sc->coord.t[1] = coord->coord.t[1];
             sc->coord.t[2] = coord->coord.t[2];
             sc->flg        = 0;
-            func_energyball_8013035C(coord, mem->field_22, mem->field_26, mem->field_28);
-            func_energyball_8012FFD0(coord, mem->field_26, (s16)(u16)mem->field_24 >> 2);
+            func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
+            func_energyball_8012FFD0(coord, mem->angle, (s16)(u16)mem->scale >> 2);
             if ((Gp_State1C->groundTrace != 0) && (Gp_TraceGroundCoord(coord, &ground) == 1)) {
-                func_energyball_801307D4(&ground, mem->field_26);
+                func_energyball_801307D4(&ground, mem->angle);
             }
-            coord->workm.t[1] += D_energyball_80131194[mem->field_20].field_2 * mem->field_22;
-            func_energyball_80130B54(coord, mem->field_26,
-                                     (D_energyball_80131194[mem->field_20].field_0 - mem->field_26) / 5);
-            coord->workm.t[1] -= D_energyball_80131194[mem->field_20].field_2 * mem->field_22;
+            coord->workm.t[1] += D_energyball_80131194[mem->index].field_2 * mem->age;
+            func_energyball_80130B54(coord, mem->angle,
+                                     (D_energyball_80131194[mem->index].field_0 - mem->angle) / 5);
+            coord->workm.t[1] -= D_energyball_80131194[mem->index].field_2 * mem->age;
             if ((u16)(Gp_StateC08.field_0 / 10) != 0x2B) {
                 if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
                     if (D_80115724 > 0) {
                         D_80115724 -= 1;
                         if (D_80115724 == 0) {
-                            SndEvt_EnqueueType7(D_energyball_8013117C[mem->field_20], 1);
+                            SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                         }
                     }
                     goto unlink;
@@ -252,35 +252,35 @@ void func_energyball_8012F180(Task* arg0)
             }
             return;
         case 2:
-            if (((u16)mem->field_22 & 7) == 0) {
+            if (((u16)mem->age & 7) == 0) {
                 player = &((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[1];
                 vec.vx = player->workm.t[0] - coord->workm.t[0];
                 vec.vy = player->workm.t[1] - coord->workm.t[1];
                 vec.vz = player->workm.t[2] - coord->workm.t[2];
                 ApplyTransposeMatrixLV(&coord->workm, &vec, &vec);
-                mem->field_18 = vec.vx;
-                mem->field_1A = vec.vy;
-                mem->field_1C = vec.vz;
+                mem->pos.vx = vec.vx;
+                mem->pos.vy = vec.vy;
+                mem->pos.vz = vec.vz;
                 gte_SetRotMatrix(&coord->coord);
-                gte_ldv0(&mem->field_18);
+                gte_ldv0(&mem->pos);
                 gte_rtv0_real();
-                gte_stsv(&mem->field_18);
-                gte_lddp(mem->field_20 * 0x180 + 0xA00);
-                gte_ldsv(&mem->field_10);
+                gte_stsv(&mem->pos);
+                gte_lddp(mem->index * 0x180 + 0xA00);
+                gte_ldsv(&mem->move);
                 gte_gpf12_real();
-                gte_stsv(&mem->field_10);
+                gte_stsv(&mem->move);
             }
-            if ((u16)mem->field_22 & 1) {
-                cur           = mem->field_10;
-                mem->field_10 = (cur < mem->field_18) ? cur + 0x10 : cur - 0x10;
-                cur           = mem->field_12;
-                mem->field_12 = (cur < mem->field_1A) ? cur + 0x10 : cur - 0x10;
-                cur           = mem->field_14;
-                mem->field_14 = (cur < mem->field_1C) ? cur + 0x10 : cur - 0x10;
+            if ((u16)mem->age & 1) {
+                cur          = mem->move.vx;
+                mem->move.vx = (cur < mem->pos.vx) ? cur + 0x10 : cur - 0x10;
+                cur          = mem->move.vy;
+                mem->move.vy = (cur < mem->pos.vy) ? cur + 0x10 : cur - 0x10;
+                cur          = mem->move.vz;
+                mem->move.vz = (cur < mem->pos.vz) ? cur + 0x10 : cur - 0x10;
             }
-            coord->coord.t[0] += mem->field_10;
-            coord->coord.t[1] += mem->field_12;
-            coord->coord.t[2] += mem->field_14;
+            coord->coord.t[0] += mem->move.vx;
+            coord->coord.t[1] += mem->move.vy;
+            coord->coord.t[2] += mem->move.vz;
             coord->flg         = 0;
             Gp_UpdateCoord(coord);
             slot->field_0  = 2;
@@ -295,11 +295,11 @@ void func_energyball_8012F180(Task* arg0)
             sc->coord.t[1] = coord->coord.t[1];
             sc->coord.t[2] = coord->coord.t[2];
             sc->flg        = 0;
-            func_energyball_8013035C(coord, mem->field_22, mem->field_26, mem->field_28);
-            func_energyball_8012FFD0(coord, mem->field_26, (s16)(u16)mem->field_24 >> 2);
+            func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
+            func_energyball_8012FFD0(coord, mem->angle, (s16)(u16)mem->scale >> 2);
             if (Gp_State1C->groundTrace != 0) {
                 if (Gp_TraceGroundCoord(coord, &ground) == 1) {
-                    func_energyball_801307D4(&ground, mem->field_26);
+                    func_energyball_801307D4(&ground, mem->angle);
                 }
             }
             if ((u16)(Gp_StateC08.field_0 / 10) != 0x2B) {
@@ -307,7 +307,7 @@ void func_energyball_8012F180(Task* arg0)
                     if (D_80115724 > 0) {
                         D_80115724 -= 1;
                         if (D_80115724 == 0) {
-                            SndEvt_EnqueueType7(D_energyball_8013117C[mem->field_20], 1);
+                            SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                             SCHED_BARRIER();
                         }
                     }
@@ -317,21 +317,21 @@ void func_energyball_8012F180(Task* arg0)
             if (Gp_CountRec18Hi(work->obj.ctx.recs, 0x30000) != 0) {
                 spawned = Gp_SpawnEff(0x600F9, coord, 0, NULL);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->field_0);
+                    Task_Reparent(arg0, spawned->task);
                 }
                 spawned = Gp_SpawnEff(0x600F9, coord, 0x2AA, NULL);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->field_0);
+                    Task_Reparent(arg0, spawned->task);
                 }
                 spawned = Gp_SpawnEff(0x600F9, coord, 0x555, NULL);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->field_0);
+                    Task_Reparent(arg0, spawned->task);
                 }
                 snd = D_energyball_8013117C;
-                SndEvt_EnqueueType6(snd[mem->field_20 + 3], 0, 0);
+                SndEvt_EnqueueType6(snd[mem->index + 3], 0, 0);
                 Gp_UnlinkObj(&work->obj);
-                mem->field_26 = (u16)D_energyball_80131194[mem->field_20].field_0;
-                arg0->state   = 3;
+                mem->angle  = (u16)D_energyball_80131194[mem->index].field_0;
+                arg0->state = 3;
                 return;
             }
             if (Gp_State1C->battleState != 1) {
@@ -343,26 +343,26 @@ void func_energyball_8012F180(Task* arg0)
             return;
         case 3:
             Gp_UpdateCoord(coord);
-            func_energyball_8013035C(coord, mem->field_22, mem->field_26, mem->field_28);
-            func_energyball_8012FFD0(coord, mem->field_26, (s16)(u16)mem->field_24 >> 2);
-            func_energyball_8012FFD0(coord, (u16)mem->field_26 * 2, (s16)(u16)mem->field_24 >> 2);
-            mem->field_26 = (u16)mem->field_26 + (u16)D_energyball_80131194[mem->field_20].field_2;
+            func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
+            func_energyball_8012FFD0(coord, mem->angle, (s16)(u16)mem->scale >> 2);
+            func_energyball_8012FFD0(coord, (u16)mem->angle * 2, (s16)(u16)mem->scale >> 2);
+            mem->angle = (u16)mem->angle + (u16)D_energyball_80131194[mem->index].field_2;
             if (((u16)(Gp_StateC08.field_0 / 10) != 0x2B) &&
                 ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4))) {
                 if (D_80115724 > 0) {
                     D_80115724 -= 1;
                     if (D_80115724 == 0) {
-                        SndEvt_EnqueueType7(D_energyball_8013117C[mem->field_20], 1);
+                        SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                     }
                 }
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
-            if (D_energyball_80131194[mem->field_20].field_0 * 2 < mem->field_26) {
+            if (D_energyball_80131194[mem->index].field_0 * 2 < mem->angle) {
                 if (D_80115724 > 0) {
                     D_80115724 -= 1;
                     if (D_80115724 == 0) {
-                        SndEvt_EnqueueType7(D_energyball_8013117C[mem->field_20], 1);
+                        SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                     }
                 }
                 Gp_ReleaseState1CMem(mem, arg0);
@@ -371,26 +371,26 @@ void func_energyball_8012F180(Task* arg0)
             return;
         case 4:
             Gp_UpdateCoord(coord);
-            func_energyball_8013035C(coord, mem->field_22, mem->field_26, mem->field_28);
-            func_energyball_8012FFD0(coord, mem->field_26, (s16)(u16)mem->field_24 >> 2);
-            func_energyball_8012FFD0(coord, (u16)mem->field_26 * 2, (s16)(u16)mem->field_24 >> 2);
-            mem->field_26 = (u16)mem->field_26 - (u16)D_energyball_80131194[mem->field_20].field_2;
+            func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
+            func_energyball_8012FFD0(coord, mem->angle, (s16)(u16)mem->scale >> 2);
+            func_energyball_8012FFD0(coord, (u16)mem->angle * 2, (s16)(u16)mem->scale >> 2);
+            mem->angle = (u16)mem->angle - (u16)D_energyball_80131194[mem->index].field_2;
             if (((u16)(Gp_StateC08.field_0 / 10) != 0x2B) &&
                 ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4))) {
                 if (D_80115724 > 0) {
                     D_80115724 -= 1;
                     if (D_80115724 == 0) {
-                        SndEvt_EnqueueType7(D_energyball_8013117C[mem->field_20], 1);
+                        SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                     }
                 }
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
-            if (mem->field_26 < D_energyball_80131194[mem->field_20].field_2) {
+            if (mem->angle < D_energyball_80131194[mem->index].field_2) {
                 if (D_80115724 > 0) {
                     D_80115724 -= 1;
                     if (D_80115724 == 0) {
-                        SndEvt_EnqueueType7(D_energyball_8013117C[mem->field_20], 1);
+                        SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                     }
                 }
                 Gp_ReleaseState1CMem(mem, arg0);
@@ -767,24 +767,24 @@ void func_energyball_8013107C(Task* arg0)
 
     if (arg0->state == 0) {
         Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1 & 0xFFF, 0);
-        coord->flg    = 0;
-        mem->field_24 = 0x80;
-        mem->field_26 = 0x100;
-        arg0->state   = 1;
+        coord->flg  = 0;
+        mem->scale  = 0x80;
+        mem->angle  = 0x100;
+        arg0->state = 1;
     }
 
     Gp_UpdateCoord(coord);
-    rgb[0] = (u16)mem->field_24 >> 1;
-    rgb[1] = *(u8*)&mem->field_24;
-    rgb[2] = (u16)mem->field_24 >> 1;
-    Gp_DrawBandEx(coord, mem->field_26, 0x180, rgb);
+    rgb[0] = (u16)mem->scale >> 1;
+    rgb[1] = *(u8*)&mem->scale;
+    rgb[2] = (u16)mem->scale >> 1;
+    Gp_DrawBandEx(coord, mem->angle, 0x180, rgb);
 
-    angle         = (u16)mem->field_26;
-    scale         = (u16)mem->field_24;
-    angle        += 0x80;
-    scale        -= 8;
-    mem->field_24 = scale;
-    mem->field_26 = angle;
+    angle      = (u16)mem->angle;
+    scale      = (u16)mem->scale;
+    angle     += 0x80;
+    scale     -= 8;
+    mem->scale = scale;
+    mem->angle = angle;
     if ((s16)scale < 9) {
         Gp_ReleaseState1CMem(mem, arg0);
     }

@@ -8,7 +8,7 @@ struct Task;
 
 /// Per-level band row. `field_2` is the starting inner radius (also the per-frame
 /// inner/outer step); `field_4` is the starting outer radius; `unk6` is the wedge
-/// radius `func_lifedrain_8012FAF8` copies into `GpEffWork.field_26`. Indexed by
+/// radius `func_lifedrain_8012FAF8` copies into `GpEffWork.angle`. Indexed by
 /// `(Gp_StateC08.field_0 % 10) - 1`.
 typedef struct LifeDrainScale {
     /* 0x0 */ s16 unk0;
@@ -21,7 +21,7 @@ STATIC_ASSERT_SIZEOF(LifeDrainScale, 0xA);
 
 extern LifeDrainScale D_lifedrain_80130AB4[];
 
-/// `SndEvt` id of the drain's opening cue, indexed by `GpEffWork.field_20`
+/// `SndEvt` id of the drain's opening cue, indexed by `GpEffWork.index`
 /// when the cast has drained nothing yet and by `field_20 + 3` once there is
 /// health banked in `D_80115404`.
 extern s32 D_lifedrain_80130AD4[];

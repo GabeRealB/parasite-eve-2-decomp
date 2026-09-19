@@ -55,9 +55,9 @@ void func_combustion_8012EF34(Task* arg0)
     s32            pan;
     u8             rgb[3];
 
-    mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->coords;
-    mem->field_22 = (u16)mem->field_22 + 1;
+    mem      = arg0->spawnArg2;
+    coord    = ((TmdObject*)arg0->extra)->coords;
+    mem->age = (u16)mem->age + 1;
     switch (arg0->state) {
         case 0:
             if (arg0->spawnArg1 == 0) {
@@ -77,30 +77,30 @@ void func_combustion_8012EF34(Task* arg0)
             Gfx_RotMatrixY(&coord->coord, arg0->spawnArg1 << 9, 0);
             coord->flg = 0;
             Gp_UpdateCoord(coord);
-            mem->field_14 = 0x200;
-            pan           = (s8)Gp_GetObjPan(coord);
+            mem->move.vz = 0x200;
+            pan          = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(D_combustion_80130998[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
                                 (s8)Gp_GetObjDepth(coord));
             rgb[0] = 0xFF;
             rgb[1] = 0x7F;
             rgb[2] = 0x3F;
             Gp_DrawFadeQuad(rgb, 1);
-            arg0->state   = 1;
-            mem->field_20 = Gp_StateC08.field_0 % 10 - 1;
-            Gp_SpawnPadLerp(D_combustion_80130980[mem->field_20].field_6, 0xFF, 8);
+            arg0->state = 1;
+            mem->index  = Gp_StateC08.field_0 % 10 - 1;
+            Gp_SpawnPadLerp(D_combustion_80130980[mem->index].field_6, 0xFF, 8);
             /* fallthrough */
         case 1:
             Gp_UpdateCoord(coord);
             if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
                 goto release;
             }
-            mem->field_12 = (u16)mem->field_12 + D_combustion_80130980[mem->field_20].field_0;
-            mem->field_14 = (u16)mem->field_14 + D_combustion_80130980[mem->field_20].field_2;
-            spawned       = Gp_SpawnEff(0x8006001C, coord, mem->field_22, (SVECTOR*)&mem->field_10);
+            mem->move.vy = (u16)mem->move.vy + D_combustion_80130980[mem->index].field_0;
+            mem->move.vz = (u16)mem->move.vz + D_combustion_80130980[mem->index].field_2;
+            spawned      = Gp_SpawnEff(0x8006001C, coord, mem->age, &mem->move);
             if (spawned != NULL) {
-                Task_Reparent(arg0, spawned->field_0);
+                Task_Reparent(arg0, spawned->task);
             }
-            if (D_combustion_80130980[mem->field_20].field_4 < mem->field_22) {
+            if (D_combustion_80130980[mem->index].field_4 < mem->age) {
                 Gp_StateC08.field_6 |= 8;
                 arg0->state          = 2;
                 return;
@@ -109,7 +109,7 @@ void func_combustion_8012EF34(Task* arg0)
         case 2:
             Gp_UpdateCoord(coord);
             if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4) ||
-                (mem->field_22 > D_combustion_80130980[mem->field_20].field_6)) {
+                (mem->age > D_combustion_80130980[mem->index].field_6)) {
             release:
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
@@ -121,13 +121,13 @@ void func_combustion_8012EF34(Task* arg0)
 }
 
 /// One flame of the combustion burn. State 0 re-bases the effect coordinate on
-/// the `GpEffWork.field_8` parent with an identity rotation and the work
-/// block's `field_18`..`field_1C` offset, seeds the phase `field_22` from
-/// `Gp_LcgState`, the radius `field_24` from `spawnArg1` and the intensity
-/// `field_20` from `Gp_StateC08.field_0 % 10 - 1`, then splits: `spawnArg1`
+/// the `GpEffWork.parent` parent with an identity rotation and the work
+/// block's `pos` offset, seeds the phase `age` from
+/// `Gp_LcgState`, the radius `scale` from `spawnArg1` and the intensity
+/// `index` from `Gp_StateC08.field_0 % 10 - 1`, then splits: `spawnArg1`
 /// past the `D_combustion_80130980` row's `field_4` runs the wide state 2,
 /// anything smaller the narrow state 1. Both states redraw every frame -
-/// `field_20 < 2` picks the small draw helper, otherwise the large one - and
+/// `index < 2` picks the small draw helper, otherwise the large one - and
 /// one frame in four spawn a trailing ember that adopts this task as its
 /// parent. Either state releases the effect once the player is dying
 /// (`D_80114C0B`), the room is fading (`Gp_State1C`) or the flame has lived
@@ -145,31 +145,31 @@ void func_combustion_8012F2BC(Task* arg0)
     s32            spawnRng2b;
     s32            last;
 
-    mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->coords;
-    mem->field_22 = (u16)mem->field_22 + 1;
+    mem      = arg0->spawnArg2;
+    coord    = ((TmdObject*)arg0->extra)->coords;
+    mem->age = (u16)mem->age + 1;
     switch (arg0->state) {
         case 0:
             rot        = (GpMtxWords*)&coord->coord;
-            coord->sub = mem->field_8;
+            coord->sub = mem->parent;
             rot->w0    = 0x1000;
             rot->w1    = 0;
             rot->w2    = 0x1000;
             rot->w3    = 0;
             rot->h4    = 0x1000;
 
-            coord->coord.t[0] = mem->field_18;
-            coord->coord.t[1] = mem->field_1A;
-            coord->coord.t[2] = mem->field_1C;
+            coord->coord.t[0] = mem->pos.vx;
+            coord->coord.t[1] = mem->pos.vy;
+            coord->coord.t[2] = mem->pos.vz;
             coord->flg        = 0;
             Gp_UpdateCoord(coord);
 
-            rng           = Gp_LcgState * 5 + 0x71357911;
-            mem->field_22 = ((u32)rng >> 16) & 0xF;
-            mem->field_24 = arg0->spawnArg1 * 32 + 512;
-            mem->field_20 = Gp_StateC08.field_0 % 10 - 1;
-            last          = D_combustion_80130980[mem->field_20].field_4;
-            Gp_LcgState   = rng;
+            rng         = Gp_LcgState * 5 + 0x71357911;
+            mem->age    = ((u32)rng >> 16) & 0xF;
+            mem->scale  = arg0->spawnArg1 * 32 + 512;
+            mem->index  = Gp_StateC08.field_0 % 10 - 1;
+            last        = D_combustion_80130980[mem->index].field_4;
+            Gp_LcgState = rng;
             if (last < arg0->spawnArg1) {
                 arg0->state = 2;
                 return;
@@ -178,12 +178,12 @@ void func_combustion_8012F2BC(Task* arg0)
             return;
         case 1:
             Gp_UpdateCoord(coord);
-            if (mem->field_20 < 2) {
-                func_combustion_8012F5EC(coord, mem->field_22, mem->field_24);
+            if (mem->index < 2) {
+                func_combustion_8012F5EC(coord, mem->age, mem->scale);
             } else {
-                func_combustion_801305F8(coord, mem->field_22, mem->field_24);
+                func_combustion_801305F8(coord, mem->age, mem->scale);
             }
-            if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4) || (mem->field_22 >= 0x21)) {
+            if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4) || (mem->age >= 0x21)) {
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
@@ -194,18 +194,18 @@ void func_combustion_8012F2BC(Task* arg0)
                 Gp_LcgState = spawnRng1b;
                 spawned     = Gp_SpawnEff(0x600A9, coord, ((u32)spawnRng1b >> 16) & 1, 0);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->field_0);
+                    Task_Reparent(arg0, spawned->task);
                 }
             }
             return;
         case 2:
             Gp_UpdateCoord(coord);
-            if (mem->field_20 < 2) {
-                func_combustion_80130184(coord, mem->field_22, mem->field_24 * 3 / 2, 0);
+            if (mem->index < 2) {
+                func_combustion_80130184(coord, mem->age, mem->scale * 3 / 2, 0);
             } else {
-                func_combustion_80130184(coord, mem->field_22, mem->field_24 * 4, 0);
+                func_combustion_80130184(coord, mem->age, mem->scale * 4, 0);
             }
-            if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4) || (mem->field_22 >= 0x21)) {
+            if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4) || (mem->age >= 0x21)) {
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
@@ -216,7 +216,7 @@ void func_combustion_8012F2BC(Task* arg0)
                 Gp_LcgState = spawnRng2b;
                 spawned     = Gp_SpawnEff(0x600A9, coord, ((u32)spawnRng2b >> 16) & 1, 0);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->field_0);
+                    Task_Reparent(arg0, spawned->task);
                 }
             }
             return;
@@ -297,13 +297,13 @@ void func_combustion_8012F5EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 }
 
 /// One trailing ember shed by a `func_combustion_8012F2BC` flame. State 0 rolls
-/// the kind from `Gp_StateC08.field_0 % 10 - 1` into `field_2A`, two
-/// `Gp_LcgState` draws into the spin `field_24` and the per-frame rise
-/// `field_12` (`-(rand & 0xFF) - kind * 64`, so bigger embers climb faster),
-/// sizes the sprite as `kind * 0x100 + 0x300` in `field_26`, and enters
+/// the kind from `Gp_StateC08.field_0 % 10 - 1` into `step`, two
+/// `Gp_LcgState` draws into the spin `scale` and the per-frame rise
+/// `move.vy` (`-(rand & 0xFF) - kind * 64`, so bigger embers climb faster),
+/// sizes the sprite as `kind * 0x100 + 0x300` in `angle`, and enters
 /// `spawnArg1 + 1` - or one state later on a coin flip when `kind >= 2`. Every
-/// later state lifts the coordinate by `field_12` and redraws: state 1 steps
-/// `field_20` every other frame and draws the shared `PeShared8012fb14` flame
+/// later state lifts the coordinate by `move.vy` and redraws: state 1 steps
+/// `index` every other frame and draws the shared `PeShared8012fb14` flame
 /// on the odd frames, state 2 draws `func_combustion_8012FF0C` and state 3 the
 /// small `func_combustion_8012F5EC`, each releasing the ember after eight (six
 /// for state 3) frames.
@@ -322,45 +322,45 @@ void func_combustion_8012F888(Task* arg0)
     s32            hi;
     s32            tmp2;
 
-    mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->coords;
-    mem->field_22 = (u16)mem->field_22 + 1;
-    state         = arg0->state;
+    mem      = arg0->spawnArg2;
+    coord    = ((TmdObject*)arg0->extra)->coords;
+    mem->age = (u16)mem->age + 1;
+    state    = arg0->state;
     switch (state) {
         case 0:
-            kind          = (Gp_StateC08.field_0 % 10U) - 1;
-            rng           = Gp_LcgState * 5 + 0x71357911;
-            rng2          = rng * 5 + 0x71357911;
-            mem->field_24 = ((u32)rng2 >> 16) & 0xFFF;
-            hi            = ((u32)rng >> 16) & 0xFF;
-            mem->field_2A = kind;
+            kind       = (Gp_StateC08.field_0 % 10U) - 1;
+            rng        = Gp_LcgState * 5 + 0x71357911;
+            rng2       = rng * 5 + 0x71357911;
+            mem->scale = ((u32)rng2 >> 16) & 0xFFF;
+            hi         = ((u32)rng >> 16) & 0xFF;
+            mem->step  = kind;
             /* The global store between the `field_2A` store and its reload keeps
              * GCC from forwarding `kind` into the `lh`. */
-            Gp_LcgState   = rng;
-            tmp           = mem->field_2A;
-            mem->field_12 = -hi - (tmp << 6);
-            Gp_LcgState   = rng2;
-            arg0->state   = arg0->spawnArg1 + 1;
-            tmp2          = mem->field_2A;
-            mem->field_26 = (tmp2 << 8) + 0x300;
-            if (mem->field_2A >= 2) {
+            Gp_LcgState  = rng;
+            tmp          = mem->step;
+            mem->move.vy = -hi - (tmp << 6);
+            Gp_LcgState  = rng2;
+            arg0->state  = arg0->spawnArg1 + 1;
+            tmp2         = mem->step;
+            mem->angle   = (tmp2 << 8) + 0x300;
+            if (mem->step >= 2) {
                 Gp_LcgState  = rng2 * 5 + 0x71357911;
                 arg0->state += ((u32)Gp_LcgState >> 16) & 1;
             }
             /* fallthrough */
         case 1:
-            step              = mem->field_12;
+            step              = mem->move.vy;
             y                 = coord->coord.t[1] + step;
             coord->flg        = 0;
             coord->coord.t[1] = y;
             Gp_UpdateCoord(coord);
-            if (!((u16)mem->field_22 & 1)) {
-                mem->field_20 = (u16)mem->field_20 + 1;
+            if (!((u16)mem->age & 1)) {
+                mem->index = (u16)mem->index + 1;
             }
-            frame = mem->field_20;
+            frame = mem->index;
             if (frame < 8) {
-                if ((u16)mem->field_22 & 1) {
-                    PeShared8012fb14(coord, frame, mem->field_26, mem->field_24);
+                if ((u16)mem->age & 1) {
+                    PeShared8012fb14(coord, frame, mem->angle, mem->scale);
                     return;
                 }
             } else {
@@ -369,29 +369,29 @@ void func_combustion_8012F888(Task* arg0)
             }
             break;
         case 2:
-            step              = mem->field_12;
+            step              = mem->move.vy;
             y                 = coord->coord.t[1] + step;
             coord->flg        = 0;
             coord->coord.t[1] = y;
             Gp_UpdateCoord(coord);
-            frame         = (u16)mem->field_20 + 1;
-            mem->field_20 = frame;
+            frame      = (u16)mem->index + 1;
+            mem->index = frame;
             if (frame < 8) {
-                func_combustion_8012FF0C(coord, frame, mem->field_26);
+                func_combustion_8012FF0C(coord, frame, mem->angle);
                 return;
             }
             Gp_ReleaseState1CMem(mem, arg0);
             return;
         case 3:
-            step              = mem->field_12;
+            step              = mem->move.vy;
             y                 = coord->coord.t[1] + step;
             coord->flg        = 0;
             coord->coord.t[1] = y;
             Gp_UpdateCoord(coord);
-            frame         = (u16)mem->field_20 + 1;
-            mem->field_20 = frame;
+            frame      = (u16)mem->index + 1;
+            mem->index = frame;
             if (frame < 6) {
-                func_combustion_8012F5EC(coord, frame, mem->field_26);
+                func_combustion_8012F5EC(coord, frame, mem->angle);
                 return;
             }
             Gp_ReleaseState1CMem(mem, arg0);

@@ -50,10 +50,10 @@ void func_tonfa_baton_8011D1EC(Task* task)
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
-        work->field_22++;
+        work->age++;
         switch (task->state) {
             case 0:
-                coord->sub        = work->field_8;
+                coord->sub        = work->parent;
                 coord->coord.t[0] = D_tonfa_baton_8011E0F0[0].vx;
                 coord->coord.t[1] = D_tonfa_baton_8011E0F0[0].vy;
                 coord->coord.t[2] = D_tonfa_baton_8011E0F0[0].vz;
@@ -90,19 +90,19 @@ void func_tonfa_baton_8011D1EC(Task* task)
             case 1:
                 coord->flg = 0;
                 Gp_UpdateCoord(coord);
-                local.sub        = work->field_8;
+                local.sub        = work->parent;
                 local.coord.t[0] = D_tonfa_baton_8011E0F8.vx;
                 local.coord.t[1] = D_tonfa_baton_8011E0F8.vy;
                 local.coord.t[2] = D_tonfa_baton_8011E0F8.vz;
                 local.flg        = 0;
                 Gp_UpdateCoord(&local);
-                dst        = &D_tonfa_baton_8012BBEC[work->field_22 & 7];
+                dst        = &D_tonfa_baton_8012BBEC[work->age & 7];
                 dst->sub   = &gGfxViewCoord;
                 dst->workm = coord->workm;
                 gte_SetRotMatrix(&coord->workm);
                 gte_SetTransMatrix(&coord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &D_tonfa_baton_8012BE6C[work->field_22 & 7];
+                dst        = &D_tonfa_baton_8012BE6C[work->age & 7];
                 dst->sub   = &gGfxViewCoord;
                 dst->workm = local.workm;
                 gte_SetRotMatrix(&local.workm);
@@ -116,10 +116,10 @@ void func_tonfa_baton_8011D1EC(Task* task)
                     dst->flg = 0;
                     Gp_UpdateCoord(dst);
                 }
-                func_tonfa_baton_8011D6B0(work->field_22 & 7, D_tonfa_baton_8012C0EC);
+                func_tonfa_baton_8011D6B0(work->age & 7, D_tonfa_baton_8012C0EC);
                 break;
         }
-        if (work->field_22 >= 0x1F) {
+        if (work->age >= 0x1F) {
             Gp_ReleaseState1CMem(work, task);
         }
     }

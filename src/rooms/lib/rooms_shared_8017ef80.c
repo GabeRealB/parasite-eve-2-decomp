@@ -27,44 +27,44 @@ void RoomsShared8017ef80(Task* task)
         }
     } else {
         Gp_UpdateCoord(coord);
-        work->field_22++;
+        work->age++;
         switch (task->state) {
             case 0:
-                work->field_24 = 0;
-                work->field_26 = 0x80;
-                work->field_2A = 0x100 / task->spawnArg1;
-                task->state    = 1;
+                work->scale = 0;
+                work->angle = 0x80;
+                work->step  = 0x100 / task->spawnArg1;
+                task->state = 1;
                 break;
             case 1:
-                work->field_24 += work->field_2A;
-                work->field_26 += work->field_2A;
+                work->scale += work->step;
+                work->angle += work->step;
                 task->spawnArg1--;
-                rgb[0] = work->field_24;
-                rgb[1] = (u16)work->field_24 >> 2;
-                rgb[2] = (u16)work->field_24 >> 1;
-                Room_Draw04(coord, (s16)work->field_26, rgb);
+                rgb[0] = work->scale;
+                rgb[1] = (u16)work->scale >> 2;
+                rgb[2] = (u16)work->scale >> 1;
+                Room_Draw04(coord, (s16)work->angle, rgb);
                 rgb[0] >>= 1;
                 rgb[1] >>= 1;
                 rgb[2] >>= 1;
-                Room_Draw04(coord, (s16)((u16)work->field_26 * 2), rgb);
-                Room_Draw02(coord, (s16)(0x300 - (u16)work->field_26 * 2), 0x80, rgb);
+                Room_Draw04(coord, (s16)((u16)work->angle * 2), rgb);
+                Room_Draw02(coord, (s16)(0x300 - (u16)work->angle * 2), 0x80, rgb);
                 if (task->spawnArg1 == 0) {
-                    work->field_24 = 0xFF;
-                    task->state    = 2;
-                    rgb[0]         = work->field_24;
-                    rgb[1]         = (u16)work->field_24 >> 2;
-                    rgb[2]         = (u16)work->field_24 >> 1;
+                    work->scale = 0xFF;
+                    task->state = 2;
+                    rgb[0]      = work->scale;
+                    rgb[1]      = (u16)work->scale >> 2;
+                    rgb[2]      = (u16)work->scale >> 1;
                     Gp_DrawFadeQuad(rgb, 1);
                 }
                 break;
             case 2:
-                if ((s16)work->field_24 >= 0x11) {
-                    rgb[0] = work->field_24;
-                    rgb[1] = (u16)work->field_24 >> 2;
-                    rgb[2] = (u16)work->field_24 >> 1;
-                    Room_DrawBillboard(coord, (s16)((s16)work->field_26 * 3), rgb);
-                    work->field_24 -= 0x10;
-                    work->field_26 -= 8;
+                if ((s16)work->scale >= 0x11) {
+                    rgb[0] = work->scale;
+                    rgb[1] = (u16)work->scale >> 2;
+                    rgb[2] = (u16)work->scale >> 1;
+                    Room_DrawBillboard(coord, (s16)((s16)work->angle * 3), rgb);
+                    work->scale -= 0x10;
+                    work->angle -= 8;
                     break;
                 }
                 /* fallthrough */

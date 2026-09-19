@@ -54,13 +54,13 @@ void flareEffectTask(Task* arg0)
         Gp_ReleaseState1CMem(mem, arg0);
         return;
     }
-    mem->field_22 = (u16)mem->field_22 + 1;
+    mem->age = (u16)mem->age + 1;
     if (arg0->state == 0) {
         pan = (s8)Gp_GetObjPan(coord);
         SndEvt_EnqueueType6(0xE03E0001, pan, (s8)Gp_GetObjDepth(coord));
         arg0->state = 1;
     }
-    tick = mem->field_22;
+    tick = mem->age;
     if (tick < 0x14) {
         if (tick == 8) {
             state->field_6 |= 8;
@@ -69,7 +69,7 @@ void flareEffectTask(Task* arg0)
         Gp_LcgState = rng;
         spawned     = Gp_SpawnEff(0x6019E, coord, (((u32)rng >> 16) & 0x1FF) + 0x680, 0);
         if (spawned != NULL) {
-            Task_Reparent(arg0, spawned->field_0);
+            Task_Reparent(arg0, spawned->task);
         }
         return;
     }
@@ -101,9 +101,9 @@ void flareSparkTask(Task* arg0)
     s32            pitch;
     s32            rsin_arg;
 
-    mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->coords;
-    mem->field_22 = (u16)mem->field_22 + 1;
+    mem      = arg0->spawnArg2;
+    coord    = ((TmdObject*)arg0->extra)->coords;
+    mem->age = (u16)mem->age + 1;
     if (arg0->state == 0) {
         player     = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
         dstm       = (GpMtxWords*)&coord->coord;
@@ -121,38 +121,38 @@ void flareSparkTask(Task* arg0)
             SCHED_BARRIER();
             ang = (u16)arg0->spawnArg1;
             TOUCH_REG(ang);
-            mem->field_24 = hi & 0xFFF;
+            mem->scale = hi & 0xFFF;
             SOFT_COMPILER_BARRIER();
-            rsin_arg = mem->field_24;
+            rsin_arg = mem->scale;
             SCHED_BARRIER();
         } while (0);
-        Gp_LcgState   = rng;
-        ang           = ang & 0xFFF;
-        mem->field_28 = ang;
+        Gp_LcgState = rng;
+        ang         = ang & 0xFFF;
+        mem->period = ang;
         SCHED_BARRIER();
         pitch = ang;
         TOUCH_REG(pitch);
-        mem->field_26 = (s32)(pitch << 16) >> 21;
-        mem->field_10 = (rsin(rsin_arg) * mem->field_26) >> 12;
-        temp_lo       = rcos(mem->field_24) * mem->field_26;
-        mem->field_14 = 0x100;
-        mem->field_12 = temp_lo >> 12;
+        mem->angle   = (s32)(pitch << 16) >> 21;
+        mem->move.vx = (rsin(rsin_arg) * mem->angle) >> 12;
+        temp_lo      = rcos(mem->scale) * mem->angle;
+        mem->move.vz = 0x100;
+        mem->move.vy = temp_lo >> 12;
         gte_SetRotMatrix((MATRIX*)srcm);
-        gte_ldv0(&mem->field_10);
+        gte_ldv0(&mem->move);
         gte_rtv0_real();
-        gte_stsv(&mem->field_10);
+        gte_stsv(&mem->move);
         arg0->state = 1;
     }
-    coord->coord.t[0] += mem->field_10;
-    coord->coord.t[1] += mem->field_12;
-    coord->coord.t[2] += mem->field_14;
+    coord->coord.t[0] += mem->move.vx;
+    coord->coord.t[1] += mem->move.vy;
+    coord->coord.t[2] += mem->move.vz;
     coord->flg         = 0;
     Gp_UpdateCoord(coord);
-    if (!((u16)mem->field_22 & 1)) {
-        mem->field_20 = (u16)mem->field_20 + 1;
+    if (!((u16)mem->age & 1)) {
+        mem->index = (u16)mem->index + 1;
     }
-    if (mem->field_20 < 8) {
-        flareDrawSparkQuad(coord, mem->field_20, mem->field_28, mem->field_24);
+    if (mem->index < 8) {
+        flareDrawSparkQuad(coord, mem->index, mem->period, mem->scale);
         return;
     }
     Gp_ReleaseState1CMem(mem, arg0);

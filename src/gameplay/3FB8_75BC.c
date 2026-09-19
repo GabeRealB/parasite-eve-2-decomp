@@ -28,7 +28,7 @@ void Gp_EffSprTask46(Task* arg0)
         if (flag >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
-        Gp_DrawEffSprite46(coord, mem->field_24, mem->field_28, mem->field_2A);
+        Gp_DrawEffSprite46(coord, mem->scale, mem->period, mem->step);
         return;
     }
 
@@ -37,48 +37,48 @@ void Gp_EffSprTask46(Task* arg0)
         case 0:
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
-            coord->flg    = 0;
-            mem->field_26 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
-            param         = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
-            mem->field_2A = param & 0xF;
+            coord->flg = 0;
+            mem->angle = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
+            param      = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+            mem->step  = param & 0xF;
             if (arg0->spawnArg1 & 0x20000000) {
-                mem->field_28 = 0x80;
-                mem->field_24 = mem->field_26;
-                arg0->state   = 4;
+                mem->period = 0x80;
+                mem->scale  = mem->angle;
+                arg0->state = 4;
             } else if (arg0->spawnArg1 & 0x10000000) {
-                mem->field_28 = 0x40;
-                mem->field_24 = mem->field_26;
-                arg0->state   = 2;
+                mem->period = 0x40;
+                mem->scale  = mem->angle;
+                arg0->state = 2;
             } else {
-                mem->field_28 = 0x80;
-                mem->field_24 = 0;
-                arg0->state   = 1;
+                mem->period = 0x80;
+                mem->scale  = 0;
+                arg0->state = 1;
             }
             break;
         case 1:
-            Gp_DrawEffSprite46(coord, mem->field_24, mem->field_28, mem->field_2A);
-            if (mem->field_24 < mem->field_26) {
-                mem->field_24 += 6;
+            Gp_DrawEffSprite46(coord, mem->scale, mem->period, mem->step);
+            if (mem->scale < mem->angle) {
+                mem->scale += 6;
             } else {
-                mem->field_24 = mem->field_26;
-                arg0->state   = 2;
+                mem->scale  = mem->angle;
+                arg0->state = 2;
             }
             break;
         case 2:
-            Gp_DrawEffSprite46(coord, mem->field_24, mem->field_28, mem->field_2A);
-            if (mem->field_28 >= 0x41) {
-                mem->field_28--;
+            Gp_DrawEffSprite46(coord, mem->scale, mem->period, mem->step);
+            if (mem->period >= 0x41) {
+                mem->period--;
             }
             break;
         case 3:
-            Gp_DrawEffSprite46(coord, mem->field_24, mem->field_28, mem->field_2A);
-            mem->field_28 -= 4;
-            if (mem->field_28 < 4) {
+            Gp_DrawEffSprite46(coord, mem->scale, mem->period, mem->step);
+            mem->period -= 4;
+            if (mem->period < 4) {
                 Gp_ReleaseState1CMem(mem, arg0);
             }
             break;
         case 4:
-            Gp_DrawEffSprite46(coord, mem->field_24, mem->field_28, mem->field_2A);
+            Gp_DrawEffSprite46(coord, mem->scale, mem->period, mem->step);
             break;
     }
 }

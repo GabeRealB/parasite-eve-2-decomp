@@ -69,24 +69,24 @@ void Gp_DrawEffSprite81(Task* arg0)
         TOUCH_REG2(len, code);
         setlen(prim, len);
         setcode(prim, code);
-        if (mem->field_26 != 0) {
+        if (mem->angle != 0) {
             setcode(prim, 0x2F);
         }
         prim->tpage = 0x29;
-        prim->clut  = ((((GpEffClutOff*)&D_80112964[mem->field_2A])->field_4 >> 4) & 0x3F) | 0x4280;
-        t           = mem->field_22;
+        prim->clut  = ((((GpEffClutOff*)&D_80112964[mem->step])->field_4 >> 4) & 0x3F) | 0x4280;
+        t           = mem->age;
         prim->v0    = 0xB8;
         prim->u0    = (t * 8) & 0x70;
-        t           = mem->field_22;
+        t           = mem->age;
         prim->v1    = 0xB8;
         prim->u1    = ((t * 8) & 0x70) + 0xF;
-        t           = mem->field_22;
+        t           = mem->age;
         prim->v2    = 0xC7;
         prim->u2    = (t * 8) & 0x70;
-        t           = mem->field_22;
+        t           = mem->age;
         prim->v3    = 0xC7;
         prim->u3    = ((t * 8) & 0x70) + 0xF;
-        block->size = ((mem->field_24 * 0xF) / block->otz) >> 1;
+        block->size = ((mem->scale * 0xF) / block->otz) >> 1;
         x           = *(u16*)&block->sx - *(u16*)&block->size;
         prim->x2    = x;
         prim->x0    = x;
@@ -200,7 +200,7 @@ void Gp_EffSprTask81(Task* arg0)
     mem    = arg0->spawnArg2;
     flag   = Gp_State1C->eventState;
     coord  = (GsCOORDINATE2*)extra->coords;
-    parent = mem->field_8;
+    parent = mem->parent;
     if (flag >= 2) {
         Gp_ReleaseState1CMem(mem, arg0);
         return;
@@ -217,14 +217,14 @@ void Gp_EffSprTask81(Task* arg0)
 
     switch (arg0->spawnArg1) {
         case 0:
-            mem->field_24   = 0x280;
-            mem->field_2A   = 1;
-            mem->field_26   = 0;
+            mem->scale      = 0x280;
+            mem->step       = 1;
+            mem->angle      = 0;
             arg0->spawnArg1 = 1;
             if (Gp_State1C->eventState != 0) {
                 break;
             }
-            Gp_SpawnEff(0x60042, coord, mem->field_24 + 0x22200 + mem->field_24, 0);
+            Gp_SpawnEff(0x60042, coord, mem->scale + 0x22200 + mem->scale, 0);
             break;
         case 1:
             Gp_DrawEffSprite81(arg0);
@@ -233,17 +233,17 @@ void Gp_EffSprTask81(Task* arg0)
             }
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-                Gp_SpawnEff(0x60042, coord, mem->field_24 + 0x21000, 0);
+                Gp_SpawnEff(0x60042, coord, mem->scale + 0x21000, 0);
             }
-            mem->field_22++;
+            mem->age++;
             break;
         case 2:
             if (Gp_State1C->eventState == 0) {
-                if (mem->field_20 == 0) {
-                    Gp_SpawnEff(0x60042, coord, mem->field_24 + 0x22200, 0);
-                    mem->field_20        = 1;
-                    mem->field_22        = 0;
-                    mem->field_24      >>= 2;
+                if (mem->index == 0) {
+                    Gp_SpawnEff(0x60042, coord, mem->scale + 0x22200, 0);
+                    mem->index           = 1;
+                    mem->age             = 0;
+                    mem->scale         >>= 2;
                     one                  = ONE;
                     *(s32*)&coord->coord = one;
                     m                    = &coord->coord;
@@ -252,24 +252,24 @@ void Gp_EffSprTask81(Task* arg0)
                     *(s32*)&m->m[2][0]   = 0;
                     m->m[2][2]           = one;
                 }
-                mem->field_22 += (u16)gDisplayState.animFrame & 1;
+                mem->age += (u16)gDisplayState.animFrame & 1;
             }
-            if (mem->field_22 < 0x10) {
-                Gp_DrawEffQuadT29(coord, mem->field_24, mem->field_22 >> 1, mem->field_2A);
+            if (mem->age < 0x10) {
+                Gp_DrawEffQuadT29(coord, mem->scale, mem->age >> 1, mem->step);
             } else {
                 arg0->spawnArg1 = 4;
                 break;
             }
             goto lcg;
         case 3:
-            if (Gp_State1C->eventState == 0 && mem->field_20 == 0) {
-                Gp_SpawnEff(0x60042, coord, mem->field_24 + 0x22200, 0);
-                mem->field_20   = 1;
-                mem->field_22   = 0;
-                mem->field_24 >>= 2;
+            if (Gp_State1C->eventState == 0 && mem->index == 0) {
+                Gp_SpawnEff(0x60042, coord, mem->scale + 0x22200, 0);
+                mem->index   = 1;
+                mem->age     = 0;
+                mem->scale >>= 2;
             }
-            mem->field_22++;
-            if (mem->field_22 >= 0x10) {
+            mem->age++;
+            if (mem->age >= 0x10) {
                 arg0->spawnArg1 = 4;
                 break;
             }
@@ -279,7 +279,7 @@ void Gp_EffSprTask81(Task* arg0)
             }
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((u16)(((u32)Gp_LcgState >> 16) % 3U) == 0) {
-                Gp_SpawnEff(0x6003F, coord, mem->field_24, 0);
+                Gp_SpawnEff(0x6003F, coord, mem->scale, 0);
             }
             break;
         case 4:

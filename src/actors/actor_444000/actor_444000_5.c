@@ -1990,7 +1990,7 @@ void func_actor_444000_80139594(GpEnemy* enemy, Actor444000Drop* task)
 
     work->eff = Gp_SpawnEff(0x6019B, task->extra->coords, 0, NULL);
     if (work->eff != NULL) {
-        Task_Reparent((Task*)task, work->eff->field_0);
+        Task_Reparent((Task*)task, work->eff->task);
     }
     task->state++;
 }
@@ -2084,7 +2084,7 @@ void func_actor_444000_80139C80(GpEnemy* enemy, Actor444000Drop* task)
             task->extra->coords->coord.t[1] = 0;
             work->timer                     = 0;
             if (work->eff != NULL) {
-                work->eff->field_0->spawnArg1 = 2;
+                work->eff->task->spawnArg1 = 2;
             }
             task->state++;
             snd = ((owner->placeKey >> 12) << 8) | 0x4020000C;

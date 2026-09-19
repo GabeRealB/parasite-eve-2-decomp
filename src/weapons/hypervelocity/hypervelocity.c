@@ -48,15 +48,15 @@ void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin);
 
 /// Per-frame task for the muzzle flare the hypervelocity round leaves behind.
 /// `Task::spawnArg2` is the `Gp_State1C` work block holding the flare's drift
-/// (`field_10` / `field_12` / `field_14`), its age (`field_22`), the ring
-/// brightness (`field_24`), the ring radius (`field_26`), the arc brightness
-/// (`field_28`) and the per-frame brightness step (`field_2A`);
+/// (`move` / `move.vy` / `move.vz`), its age (`age`), the ring
+/// brightness (`scale`), the ring radius (`angle`), the arc brightness
+/// (`period`) and the per-frame brightness step (`step`);
 /// `Task::extra` reaches the coordinate it hangs on and `Task::spawnArg1` is
 /// the charge counter the firing code drives. Any room fade
 /// (`Gp_State1C->eventState`) freezes the task, and a fade of 4 or more restarts
 /// it at state 1.
 ///
-/// - State 0 hangs the coordinate off `GpEffWork::field_8` at the fixed muzzle
+/// - State 0 hangs the coordinate off `GpEffWork::parent` at the fixed muzzle
 ///   offset `D_hypervelocity_8011FB74` with an identity rotation, then falls
 ///   through to state 1, which waits for `spawnArg1` to reach 1 before arming
 ///   the charge at state 2.
@@ -67,7 +67,7 @@ void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin);
 ///   or more it seeds the ring and moves to state 3 with the brightness step
 ///   scaled so the ring fills over `spawnArg1` frames.
 /// - State 3 fires: the light widens to `0x400` / `0x4000`, the ring brightens
-///   by `field_2A` and grows by 8 a frame, both ring halves are drawn, and past
+///   by `step` and grows by 8 a frame, both ring halves are drawn, and past
 ///   half brightness the arc is drawn too with a one-shot report. Running the
 ///   charge out spawns the discharge effect as a child task and moves to state
 ///   4; a negative charge cancels back to state 1 with the stop sound.
@@ -100,11 +100,11 @@ void func_hypervelocity_8011D1E8(Task* task)
         return;
     }
 
-    work->field_22 = (u16)work->field_22 + 1;
+    work->age = (u16)work->age + 1;
     switch (task->state) {
         case 0:
             dstm              = (GpMtxWords*)&coord->coord;
-            coord->sub        = work->field_8;
+            coord->sub        = work->parent;
             dstm->w0          = 0x1000;
             dstm->w1          = 0;
             dstm->w2          = 0x1000;
@@ -118,15 +118,15 @@ void func_hypervelocity_8011D1E8(Task* task)
             /* fallthrough */
         case 1:
             if (task->spawnArg1 == 1) {
-                task->state    = 2;
-                work->field_22 = 0;
+                task->state = 2;
+                work->age   = 0;
             }
             return;
         case 2:
             Gp_UpdateCoord(coord);
-            work->field_12 = -((work->field_22 & 0xF) << 5);
-            if (work->field_22 & 1) {
-                Gp_SpawnEff(0x600E1, coord, 0x180, (SVECTOR*)&work->field_10);
+            work->move.vy = -((work->age & 0xF) << 5);
+            if (work->age & 1) {
+                Gp_SpawnEff(0x600E1, coord, 0x180, &work->move);
             }
             base->field_0  = 4;
             slot->field_58 = 0x100;
@@ -142,21 +142,21 @@ void func_hypervelocity_8011D1E8(Task* task)
                 task->state     = 1;
                 return;
             }
-            if (work->field_22 >= 0x41) {
+            if (work->age >= 0x41) {
                 task->spawnArg1 = 0x18;
             }
             if (task->spawnArg1 >= 2) {
-                work->field_24 = 0;
-                work->field_26 = 0x40;
-                work->field_28 = 0;
-                work->field_2A = 0x100 / task->spawnArg1;
-                task->state    = 3;
+                work->scale  = 0;
+                work->angle  = 0x40;
+                work->period = 0;
+                work->step   = 0x100 / task->spawnArg1;
+                task->state  = 3;
             }
             return;
         case 3:
             Gp_UpdateCoord(coord);
-            work->field_12 = -((work->field_22 & 0xF) << 6);
-            Gp_SpawnEff(0x600E0, coord, 0x180, (SVECTOR*)&work->field_10);
+            work->move.vy = -((work->age & 0xF) << 6);
+            Gp_SpawnEff(0x600E0, coord, 0x180, &work->move);
             base->field_0  = 4;
             slot->field_58 = 0x400;
             slot->field_5C = 0x4000;
@@ -165,32 +165,32 @@ void func_hypervelocity_8011D1E8(Task* task)
             slot->field_50 = (u16)slot->field_54 >> 1;
             slot->field_52 = (s16)(u16)slot->field_54 >> 1;
             Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
-            light->flg      = 0;
-            work->field_24 += work->field_2A;
-            if (work->field_24 >= 0x100) {
-                work->field_24 = 0xFF;
+            light->flg   = 0;
+            work->scale += work->step;
+            if (work->scale >= 0x100) {
+                work->scale = 0xFF;
             }
-            work->field_26 += 8;
-            if (work->field_26 >= 0x201) {
-                work->field_26 = 0x200;
+            work->angle += 8;
+            if (work->angle >= 0x201) {
+                work->angle = 0x200;
             }
-            rgb[0] = (u16)work->field_24 >> 1;
-            rgb[1] = (u16)work->field_24 >> 1;
-            rgb[2] = work->field_24;
-            Gp_DrawRing(coord, work->field_26, rgb);
-            Gp_DrawRing(coord, (s16)((u16)work->field_26 * 2), rgb);
-            if (work->field_24 >= 0x81) {
-                if (work->field_28 == 0) {
+            rgb[0] = (u16)work->scale >> 1;
+            rgb[1] = (u16)work->scale >> 1;
+            rgb[2] = work->scale;
+            Gp_DrawRing(coord, work->angle, rgb);
+            Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
+            if (work->scale >= 0x81) {
+                if (work->period == 0) {
                     pan = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(0x20160006, pan, (s8)Gp_GetObjDepth(coord));
                 }
-                work->field_28 += (u16)work->field_2A * 2;
-                if (work->field_28 >= 0x100) {
-                    work->field_28 = 0xFF;
+                work->period += (u16)work->step * 2;
+                if (work->period >= 0x100) {
+                    work->period = 0xFF;
                 }
-                rgb[0] = (u16)work->field_28 >> 1;
-                rgb[1] = (u16)work->field_28 >> 1;
-                rgb[2] = work->field_28;
+                rgb[0] = (u16)work->period >> 1;
+                rgb[1] = (u16)work->period >> 1;
+                rgb[2] = work->period;
                 Gp_DrawArc(coord, (s16)((u16)task->spawnArg1 * 128), 0x60, rgb);
             }
             if (task->spawnArg1 < 0) {
@@ -204,29 +204,29 @@ void func_hypervelocity_8011D1E8(Task* task)
                 task->state = 4;
                 eff         = Gp_SpawnEff(0x6000C, coord, 0, NULL);
                 if (eff != NULL) {
-                    Task_Reparent(task, eff->field_0);
+                    Task_Reparent(task, eff->task);
                 }
-                work->field_24 = 0xFF;
+                work->scale = 0xFF;
             }
             return;
         case 4:
             Gp_UpdateCoord(coord);
-            work->field_12 = -((work->field_22 & 0xF) << 6);
-            Gp_SpawnEff(0x600E1, coord, 0x180, (SVECTOR*)&work->field_10);
-            if (work->field_26 > 0) {
-                rgb[0] = (u16)work->field_24 >> 1;
-                rgb[1] = (u16)work->field_24 >> 1;
-                rgb[2] = work->field_24;
-                Gp_DrawRing(coord, work->field_26, rgb);
-                Gp_DrawRing(coord, (s16)((u16)work->field_26 * 2), rgb);
+            work->move.vy = -((work->age & 0xF) << 6);
+            Gp_SpawnEff(0x600E1, coord, 0x180, &work->move);
+            if (work->angle > 0) {
+                rgb[0] = (u16)work->scale >> 1;
+                rgb[1] = (u16)work->scale >> 1;
+                rgb[2] = work->scale;
+                Gp_DrawRing(coord, work->angle, rgb);
+                Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
                 Gp_DrawFadeQuad(rgb, 1);
-                work->field_24 = (u16)work->field_24 - 0x20;
-                work->field_26 = (u16)work->field_26 - 0x20;
+                work->scale = (u16)work->scale - 0x20;
+                work->angle = (u16)work->angle - 0x20;
             }
             player      = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gp_SpawnEff(0x60054, &player[((((u32)Gp_LcgState >> 16) & 1) * 3) + 15], 0x2300, NULL);
-            if (work->field_22 >= 0x6F || task->spawnArg1 < 0) {
+            if (work->age >= 0x6F || task->spawnArg1 < 0) {
                 task->state = 1;
             }
             return;
@@ -234,10 +234,10 @@ void func_hypervelocity_8011D1E8(Task* task)
 }
 
 /// Per-frame task for the hypervelocity round in flight. `Task::spawnArg2` is
-/// the `Gp_State1C` work block holding the round's velocity (`field_10` /
-/// `field_12` / `field_14`), its age (`field_22`), the trail brightness
-/// (`field_24`), the ring spin (`field_26`) and the ring's start angle
-/// (`field_28`); `Task::extra` reaches the coordinate it flies on. A room fade
+/// the `Gp_State1C` work block holding the round's velocity (`move` /
+/// `move.vy` / `move.vz`), its age (`age`), the trail brightness
+/// (`scale`), the ring spin (`angle`) and the ring's start angle
+/// (`period`); `Task::extra` reaches the coordinate it flies on. A room fade
 /// (`Gp_State1C->eventState`) winds the age back down instead of advancing, and
 /// tears the round down once the fade reaches 4.
 ///
@@ -280,7 +280,7 @@ void func_hypervelocity_8011D830(Task* task)
     slot  = (GpCoordTail*)light;
 
     if (Gp_State1C->eventState != 0) {
-        work->field_22 = (u16)work->field_22 - 1;
+        work->age = (u16)work->age - 1;
         if (Gp_State1C->eventState >= 4) {
             if (task->state != 0) {
                 Gp_UnlinkObj(&beam->obj);
@@ -290,12 +290,12 @@ void func_hypervelocity_8011D830(Task* task)
         return;
     }
 
-    work->field_22 = (u16)work->field_22 + 1;
+    work->age = (u16)work->age + 1;
     switch (task->state) {
         case 0:
             beam = memCalloc(sizeof(HyperBeam), 0);
             if (beam == NULL) {
-                work->field_22 = 0;
+                work->age = 0;
                 return;
             }
             task->exitCallback = WeaponsShared8011e4ac;
@@ -310,21 +310,21 @@ void func_hypervelocity_8011D830(Task* task)
             coord->flg         = 0;
             gGfxViewCoord.flg  = 0;
             Gp_UpdateCoord(coord);
-            work->field_10 = 0;
-            work->field_12 = 0;
-            work->field_14 = 0x400;
+            work->move.vx = 0;
+            work->move.vy = 0;
+            work->move.vz = 0x400;
             gte_SetRotMatrix((MATRIX*)srcm);
-            gte_ldv0(&work->field_10);
+            gte_ldv0(&work->move);
             gte_rtv0_real();
-            gte_stsv(&work->field_10);
+            gte_stsv(&work->move);
             for (i = 0; i < 0x10; i++) {
                 Gp_LcgState                 = Gp_LcgState * 5 + 0x71357911;
                 D_hypervelocity_8012EF0C[i] = ((u32)Gp_LcgState >> 16) & 0xFF;
             }
-            work->field_24     = 0xC0;
-            work->field_26     = 0x500;
+            work->scale        = 0xC0;
+            work->angle        = 0x500;
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->field_28     = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            work->period       = ((u32)Gp_LcgState >> 16) & 0xFFF;
             task->work         = (TaskIdMap*)beam;
             beam->obj.ctx.recs = beam->rec;
             beam->obj.radius   = 0x800;
@@ -336,11 +336,11 @@ void func_hypervelocity_8011D830(Task* task)
             beam->obj.flags   |= 0x8000;
             eff                = Gp_SpawnEff(0x6000D, coord, 0, NULL);
             if (eff != NULL) {
-                Task_Reparent(task, eff->field_0);
+                Task_Reparent(task, eff->task);
             }
             task->state       = 1;
             base->field_0     = 4;
-            slot->field_58    = (work->field_20 << 9) + 0x200;
+            slot->field_58    = (work->index << 9) + 0x200;
             slot->field_5C    = slot->field_58 * 16;
             ang               = Gp_LcgState * 5 + 0x71357911;
             slot->field_54    = ((ang >> 16) & 0x700) + 0x800;
@@ -350,42 +350,42 @@ void func_hypervelocity_8011D830(Task* task)
             light->coord.t[1] = coord->coord.t[1];
             light->coord.t[2] = coord->coord.t[2];
             light->flg        = 0;
-            rgb[0]            = (u16)work->field_24 >> 2;
-            rgb[1]            = (u16)work->field_24 >> 2;
-            rgb[2]            = (u16)work->field_24 >> 1;
+            rgb[0]            = (u16)work->scale >> 2;
+            rgb[1]            = (u16)work->scale >> 2;
+            rgb[2]            = (u16)work->scale >> 1;
             Gp_LcgState       = ang;
-            func_hypervelocity_8011E494(coord, work->field_22, work->field_26, work->field_28);
-            Gp_DrawRing(coord, work->field_26, rgb);
+            func_hypervelocity_8011E494(coord, work->age, work->angle, work->period);
+            Gp_DrawRing(coord, work->angle, rgb);
             return;
         case 1:
             Gp_UpdateCoord(coord);
             before.vx          = coord->workm.t[0];
             before.vy          = coord->workm.t[1];
             before.vz          = coord->workm.t[2];
-            coord->coord.t[0] += work->field_10;
-            coord->coord.t[1] += work->field_12;
-            coord->coord.t[2] += work->field_14;
+            coord->coord.t[0] += work->move.vx;
+            coord->coord.t[1] += work->move.vy;
+            coord->coord.t[2] += work->move.vz;
             coord->flg         = 0;
             gGfxViewCoord.flg  = 0;
             Gp_UpdateCoord(coord);
             after.vx = coord->workm.t[0];
             after.vy = coord->workm.t[1];
             after.vz = coord->workm.t[2];
-            rgb[0]   = (u16)work->field_24 >> 2;
-            rgb[1]   = (u16)work->field_24 >> 2;
-            rgb[2]   = (u16)work->field_24 >> 1;
-            func_hypervelocity_8011E494(coord, work->field_22, work->field_26, work->field_28);
-            Gp_DrawRing(coord, work->field_26, rgb);
-            func_hypervelocity_8011DF34(coord, work->field_22, work->field_26, 0);
-            func_hypervelocity_8011DF34(coord, work->field_22, work->field_26, 1);
+            rgb[0]   = (u16)work->scale >> 2;
+            rgb[1]   = (u16)work->scale >> 2;
+            rgb[2]   = (u16)work->scale >> 1;
+            func_hypervelocity_8011E494(coord, work->age, work->angle, work->period);
+            Gp_DrawRing(coord, work->angle, rgb);
+            func_hypervelocity_8011DF34(coord, work->age, work->angle, 0);
+            func_hypervelocity_8011DF34(coord, work->age, work->angle, 1);
             if (Gp_State1C->groundTrace != 0 && Gp_TraceGroundCoord(coord, &ground) == 1) {
-                func_hypervelocity_8011E8A0(&ground, work->field_26);
+                func_hypervelocity_8011E8A0(&ground, work->angle);
             }
-            if (work->field_22 < 0x15) {
+            if (work->age < 0x15) {
                 Gp_SpawnEff(0x600E0, coord, 0x400, NULL);
                 eff = Gp_SpawnEff(0x6000B, coord, 0, NULL);
                 if (eff != NULL) {
-                    Task_Reparent(task, eff->field_0);
+                    Task_Reparent(task, eff->task);
                 }
             }
             light->coord.t[0] = coord->coord.t[0];
@@ -402,7 +402,7 @@ void func_hypervelocity_8011D830(Task* task)
                 task->state = 2;
                 return;
             }
-            if (work->field_22 >= 0x15) {
+            if (work->age >= 0x15) {
                 Gp_UnlinkObj(&beam->obj);
                 Gp_ReleaseState1CMem(work, task);
                 return;
@@ -411,13 +411,13 @@ void func_hypervelocity_8011D830(Task* task)
             return;
         case 2:
             Gp_UpdateCoord(coord);
-            work->field_26 = (u16)work->field_26 - 0x40;
-            rgb[0]         = (u16)work->field_24 >> 2;
-            rgb[1]         = (u16)work->field_24 >> 2;
-            rgb[2]         = (u16)work->field_24 >> 1;
-            func_hypervelocity_8011E494(coord, work->field_22, work->field_26, work->field_28);
-            Gp_DrawRing(coord, work->field_26, rgb);
-            if (work->field_26 < 0x80) {
+            work->angle = (u16)work->angle - 0x40;
+            rgb[0]      = (u16)work->scale >> 2;
+            rgb[1]      = (u16)work->scale >> 2;
+            rgb[2]      = (u16)work->scale >> 1;
+            func_hypervelocity_8011E494(coord, work->age, work->angle, work->period);
+            Gp_DrawRing(coord, work->angle, rgb);
+            if (work->angle < 0x80) {
                 Gp_ReleaseState1CMem(work, task);
                 return;
             }

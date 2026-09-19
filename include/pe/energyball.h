@@ -8,16 +8,16 @@
 
 #include "gameplay/3A34.h"
 
-/// `SndEvt` ids for the energy ball, indexed by `GpEffWork.field_20`
+/// `SndEvt` ids for the energy ball, indexed by `GpEffWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`, so the sound scales with the combo
 /// counter). The first three are the charge loop `func_energyball_8012EF48`
 /// starts with `SndEvt_EnqueueType6`; the last three are the matching `...0001`
 /// variants.
 extern s32 D_energyball_8013117C[];
 
-/// One 4-byte row of `D_energyball_80131194`, indexed by `GpEffWork.field_20`
+/// One 4-byte row of `D_energyball_80131194`, indexed by `GpEffWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the full size the ball grows
-/// to before it is launched (`GpEffWork.field_26`; half of it is the linked
+/// to before it is launched (`GpEffWork.angle`; half of it is the linked
 /// `GpObj.radius`, twice it the burst's final size) and `field_2` the
 /// per-frame growth step, also the initial upward speed while charging.
 typedef struct EnergyBallStep {

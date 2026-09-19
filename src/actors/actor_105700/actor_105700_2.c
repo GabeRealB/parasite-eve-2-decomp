@@ -498,9 +498,9 @@ void func_actor_105700_801336FC(Actor105700* arg0)
     }
 }
 
-void               Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
-struct _GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
-void               func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
+void              Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+struct GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
+void              func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 /// Teardown / effect tail of the approach cycle, the same body as
 /// `Actor02000_Fn01A20` of `actor_102000`. `D_801153F4` overrides the state
@@ -1296,7 +1296,7 @@ void func_actor_105700_80135750(Actor105700* arg0)
                 }
                 work->field_6CE = 0;
                 if (work->field_690 != NULL) {
-                    work->field_690->field_0->state = 3;
+                    work->field_690->task->state = 3;
                 }
                 work->field_690 = NULL;
             } else if (++work->field_6AE >= 0x96) {

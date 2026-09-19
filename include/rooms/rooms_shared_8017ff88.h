@@ -6,7 +6,7 @@
 #include "main/task.h"
 
 /// One row of `RoomsShared8017ff88Shades`, indexed by
-/// `GpEffWork.field_20` (the palette selector packed into the spawn arg).
+/// `GpEffWork.index` (the palette selector packed into the spawn arg).
 /// Each field is the right-shift applied to the effect's fade level to get
 /// that colour channel, so a row picks the tint of the halo.
 typedef struct _RoomsShared8017ff88Shade {

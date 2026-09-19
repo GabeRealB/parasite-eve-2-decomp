@@ -245,7 +245,7 @@ extern GsCOORDINATE2 D_dryfield_dilapidated_house_8018A060[8];
 /// frames every frame, writes them into slot `field_22 & 7`, re-runs the whole
 /// ring so the older slots follow their parents, and hands the ribbon to
 /// `func_dryfield_dilapidated_house_801823B8`. The task frees itself once
-/// `field_22` reaches spawn arg 1. It idles whole while `Gp_State1C->eventState`
+/// `age` reaches spawn arg 1. It idles whole while `Gp_State1C->eventState`
 /// is 2 or more.
 void func_dryfield_dilapidated_house_80181F08(Task* task)
 {
@@ -260,17 +260,17 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
     objCoord = ((TmdObject*)task->extra)->coords;
 
     if (Gp_State1C->eventState < 2) {
-        work->field_22++;
+        work->age++;
         switch (task->state) {
             case 0:
-                objCoord->sub        = work->field_8;
+                objCoord->sub        = work->parent;
                 objCoord->coord.t[0] = D_dryfield_dilapidated_house_80186944[0].vx;
                 objCoord->coord.t[1] = D_dryfield_dilapidated_house_80186944[0].vy;
                 objCoord->coord.t[2] = D_dryfield_dilapidated_house_80186944[0].vz;
                 objCoord->flg        = 0;
                 Gp_UpdateCoord(objCoord);
                 task->state      = 1;
-                coord.sub        = work->field_8;
+                coord.sub        = work->parent;
                 vec              = &D_dryfield_dilapidated_house_80186944[1];
                 coord.coord.t[0] = vec->vx;
                 coord.coord.t[1] = vec->vy;
@@ -296,19 +296,19 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->field_8;
+                coord.sub        = work->parent;
                 coord.coord.t[0] = D_dryfield_dilapidated_house_8018694C.vx;
                 coord.coord.t[1] = D_dryfield_dilapidated_house_8018694C.vy;
                 coord.coord.t[2] = D_dryfield_dilapidated_house_8018694C.vz;
                 coord.flg        = 0;
                 Gp_UpdateCoord(&coord);
-                dst        = &D_dryfield_dilapidated_house_80189DE0[work->field_22 & 7];
+                dst        = &D_dryfield_dilapidated_house_80189DE0[work->age & 7];
                 dst->sub   = &gGfxViewCoord;
                 dst->workm = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &D_dryfield_dilapidated_house_8018A060[work->field_22 & 7];
+                dst        = &D_dryfield_dilapidated_house_8018A060[work->age & 7];
                 dst->sub   = &gGfxViewCoord;
                 dst->workm = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
@@ -322,8 +322,8 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
                     dst->flg = 0;
                     Gp_UpdateCoord(dst);
                 }
-                func_dryfield_dilapidated_house_801823B8(work->field_22 & 7, 0x210);
-                if (work->field_22 == task->spawnArg1 && work->field_22 != 0) {
+                func_dryfield_dilapidated_house_801823B8(work->age & 7, 0x210);
+                if (work->age == task->spawnArg1 && work->age != 0) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
@@ -475,7 +475,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             do {
                 eff = Gp_SpawnEff(0x60275, coord, i, NULL);
                 if (eff != NULL) {
-                    Task_Reparent(task, eff->field_0);
+                    Task_Reparent(task, eff->task);
                 }
                 i += 0x2AA;
             } while (i < 0x556);

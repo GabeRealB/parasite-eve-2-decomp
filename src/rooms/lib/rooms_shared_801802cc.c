@@ -30,7 +30,7 @@ void RoomsShared801802cc(Task* task)
     }
 
     Gp_UpdateCoord(objCoord);
-    work->field_22++;
+    work->age++;
 
     switch (task->state) {
         case 0:
@@ -41,36 +41,36 @@ void RoomsShared801802cc(Task* task)
             } else {
                 Gp_SpawnEff(0x6007C, objCoord, 0x100, NULL);
                 Gp_SpawnEff(0x6007C, objCoord, 0x100, NULL);
-                work->field_24 = 0x100;
-                work->field_26 = 0xC0;
-                task->state    = 2;
+                work->scale = 0x100;
+                work->angle = 0xC0;
+                task->state = 2;
             }
             break;
 
         case 1:
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_10 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_12 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_14 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vy = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
             Gp_SpawnEff(0x60070, objCoord, (((u32)Gp_LcgState >> 16) & 0x1FF) | 0x82003400,
-                        (SVECTOR*)&work->field_10);
-            if (work->field_22 >= 7) {
+                        &work->move);
+            if (work->age >= 7) {
                 task->state = 3;
             }
             break;
 
         case 2:
-            work->field_26 -= 0x20;
-            work->field_24 += 0x30;
-            rgb[0]          = work->field_26;
-            rgb[1]          = (u16)work->field_26 >> 1;
-            rgb[2]          = (u16)work->field_26 >> 2;
+            work->angle -= 0x20;
+            work->scale += 0x30;
+            rgb[0]       = work->angle;
+            rgb[1]       = (u16)work->angle >> 1;
+            rgb[2]       = (u16)work->angle >> 2;
             Room_Draw02(objCoord, 0x100, 0x100, rgb);
-            Room_Draw02(objCoord, work->field_24, work->field_24, rgb);
-            if (work->field_22 >= 7) {
+            Room_Draw02(objCoord, work->scale, work->scale, rgb);
+            if (work->age >= 7) {
                 task->state = 3;
             }
             break;

@@ -10,7 +10,7 @@
 #include "main/session.h"
 #include "main/task.h"
 
-struct _GpEffWork;
+struct GpEffWork;
 
 /// 0xC-byte sequence-table record. `Gp_CapTable` is the current table
 /// (`Gp_StartCap` stores its first arg there). `Gp_FindCapEvt` walks
@@ -516,7 +516,7 @@ void Gp_InitRoomCoords(void);
 /// re-parented to `gGfxViewCoord`. `arg2` becomes `Task::spawnArg1`; `arg3` is an
 /// optional offset vector (`NULL` = zero) rotated into the parent's space and
 /// kept in `GpEffWork::field_C`. Returns the work object, or `NULL`.
-struct _GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
+struct GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
 /// Full-screen semi-trans POLY_F4. `arg0` is RGB; `arg1` is ABR (low 2 bits).
 void Gp_DrawFadeQuad(u8* arg0, s32 arg1);
 /// Handwritten GTE routine. Draws a textured sprite at `arg0`; `arg1` is a
