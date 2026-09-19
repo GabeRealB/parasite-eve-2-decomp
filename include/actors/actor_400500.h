@@ -23,6 +23,42 @@ typedef union Actor400500Matrix {
 } Actor400500Matrix;
 STATIC_ASSERT_SIZEOF(Actor400500Matrix, 0x20);
 
+/// State handlers copied onto the stack by func_actor_400500_80135770.
+typedef struct Actor400500TaskFuncTable13 {
+    TaskFunc funcs[13];
+} Actor400500TaskFuncTable13;
+STATIC_ASSERT_SIZEOF(Actor400500TaskFuncTable13, 0x34);
+
+/// X/Z bounds and result id; an id of -1 terminates the zone table.
+typedef struct Actor400500Zone {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 z;
+    /* 0x4 */ s16 w;
+    /* 0x6 */ s16 h;
+    /* 0x8 */ s16 id;
+} Actor400500Zone;
+STATIC_ASSERT_SIZEOF(Actor400500Zone, 0xA);
+
+/// Payload sent to session task slot 3 with message 0x3F4 or 0x3FF.
+typedef struct Actor400500Msg3FF {
+    /* 0x00 */ void* field_0;
+    /* 0x04 */ s32   field_4;
+    /* 0x08 */ s32   field_8;
+    /* 0x0C */ s32   field_C;
+    /* 0x10 */ s32   field_10;
+} Actor400500Msg3FF;
+STATIC_ASSERT_SIZEOF(Actor400500Msg3FF, 0x14);
+
+/// Scratchpad projection of the origin of model part 2, used for draw depth.
+typedef struct Actor400500ProjScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     sxy;
+    /* 0x0C */ s32     dp;
+    /* 0x10 */ s32     flag;
+    /* 0x14 */ s32     otz;
+} Actor400500ProjScratch;
+STATIC_ASSERT_SIZEOF(Actor400500ProjScratch, 0x18);
+
 /// View-space sample written by `func_actor_400500_8013DBCC`: the X and Z of
 /// the translation `Gp_WorldToLocal` produces for one of the actor's
 /// coordinate nodes. `func_actor_400500_80132C54` passes
@@ -171,17 +207,20 @@ typedef struct Actor400500Work {
     /* 0xA44 */ s16                field_A44; // hit cooldown
     /* 0xA46 */ s8                 field_A46; // signed flag; 0x81 means active mode 1
     /* 0xA47 */ s8                 field_A47;
-    /* 0xA48 */ byte               pad_A48;
+    /* 0xA48 */ s8                 field_A48; // session-message handshake state
     /* 0xA49 */ s8                 field_A49;
     /* 0xA4A */ s8                 field_A4A;
     /* 0xA4B */ s8                 field_A4B; // last message kind 1..4
     /* 0xA4C */ s8                 field_A4C; // set with kind 1
-    /* 0xA4D */ byte               pad_A4D[0x3];
+    /* 0xA4D */ u8                 field_A4D; // selects message 0x3FF instead of 0x3F4
+    /* 0xA4E */ byte               pad_A4E[2];
 } Actor400500Work;
 STATIC_ASSERT_SIZEOF(Actor400500Work, 0xA50);
 
 extern u8              D_801153F4;
 extern TaskFuncTable10 D_actor_400500_80131F7C;
+extern u8              D_actor_400500_80153CB0[];
+extern Actor400500Zone D_actor_400500_80153D6C[];
 
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 void ActorsShared80132c4c(MATRIX* src, MATRIX* dst);

@@ -131595,3 +131595,38 @@ successful anchor base_15
 `1939f0d58c6837513710387829353848283c77b9c7e233207618e37e6f7ec812`.
 The retained base_9/base_11 observer reports also verify earlier scheduler and
 quantity decisions with unchanged traced assembly.
+
+
+## Literal loop sentinel can retain a preheader copy that a named invariant removes (actor_400500_80135770, 2026-09-19)
+
+In this inline zone-table walk, the guard checks a signed halfword id and the
+back edge directly tests `zone->id != -1`. An explicit `neg = -1` used by the
+loop let CSE share one global t1 value with the guard; target instead has
+`li a0,-1` at the guard and `move t1,a0` before the loop. Removing the named
+invariant and using literal -1 at both compares is the controlled base_6 →
+base_7 change (98.634% → 99.152%). `.loop` creates a separate loop-invariant
+constant (r205, UID1090) from the guard constant (r165, UID286). UID1090
+remains a constant assignment through `.greg` (now t1), then becomes a copy
+from a0 in `.sched2`, across the post-reload CSE boundary. Allocation retains
+the separate homes before that substitution. Both
+lookup expansions gain the predicted copy, with their lh/lhu pairs and hit
+trampolines preserved. This is a consequence of the pass sequence in this
+shape, not a general promise that literal constants prevent CSE.
+
+A second controlled change, base_8 → base_10, defines the matrix pointer
+`src = &rot` after a preceding player-null conditional. `.lreg` changes it
+from global (7 refs/39 insns, s2) to local (7 refs/14 insns, s1), ahead of
+the coordinate quantity (2 refs/27 insns, s2). `.dbr` still puts the pure
+address definition in the earlier conditional branch's delay slot. Thus
+matching final instruction placement does not require matching source
+placement; delay filling can preserve placement while local allocation
+changes. This improved 99.558% → 99.654% without pins or empty asm.
+
+The final function and helpers in `src/actors/actor_400500/actor_400500.c`
+match all 467 instructions and pass the unscoped build. Session evidence:
+`nonmatchings/func_actor_400500_80135770-vacuum/LEARNINGS.md`, experiments,
+base_6/base_7/base_8/base_10 dumps. Preprocessed input SHA256 for base_7:
+`0dd51b60856c1e5cc7276896e84203111b1678ed6435ec877e1164efe6c38750`;
+base_10: `45416fc914f19849fb2c96b29088c21b745a46689bdfffddf2c51d47e9ea0ef0`.
+Compiler SHA256:
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

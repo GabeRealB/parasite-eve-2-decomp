@@ -9,6 +9,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -1836,7 +1837,277 @@ void func_actor_400500_80135414(Task* arg0)
 
 INCLUDE_RODATA("actors/nonmatchings/actor_400500/actor_400500", ActorsShared801328ccTable);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80135770);
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+
+void func_actor_400500_80132438(Task* arg0);
+void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2);
+void func_actor_400500_80132E94(Task* arg0);
+void func_actor_400500_8013456C(Task* arg0);
+void func_actor_400500_80134D6C(s32 otz);
+void func_actor_400500_80135EBC(Task* arg0);
+void func_actor_400500_801385D0(Task* arg0);
+void func_actor_400500_8013899C(Task* arg0);
+void func_actor_400500_80138EA0(Task* arg0);
+void func_actor_400500_8013905C(Task* arg0);
+void func_actor_400500_801392D8(Task* arg0);
+void func_actor_400500_801395D0(Task* arg0);
+void func_actor_400500_80139C1C(Task* arg0);
+void func_actor_400500_80139F6C(Task* arg0);
+void func_actor_400500_8013A484(Task* arg0);
+void func_actor_400500_8013AD60(Task* arg0);
+void func_actor_400500_8013B5E0(Task* arg0);
+void func_actor_400500_8013BA24(Task* arg0);
+
+static __inline__ s32 lookup_zone(Task* task)
+{
+    Actor400500Zone* zone;
+    u16              id_u;
+    s16              zone_id;
+    GsCOORDINATE2*   root;
+    u16              px_u, pz_u;
+    s16              px, pz;
+
+    zone    = D_actor_400500_80153D6C;
+    id_u    = (u16)zone->id;
+    root    = ((TmdObject*)task->extra)->coords;
+    zone_id = zone->id;
+    px_u    = (u16)root->coord.t[0];
+    pz_u    = (u16)root->coord.t[2];
+    if (zone_id != -1) {
+        px = (s16)px_u;
+        pz = (s16)pz_u;
+        do {
+            if ((px >= zone->x) && ((zone->x + zone->w) >= px) &&
+                (pz >= zone->z) && ((zone->z + zone->h) >= pz)) {
+                return (s16)id_u;
+            }
+            zone++;
+            id_u = (u16)zone->id;
+        } while (zone->id != -1);
+    }
+    return 0;
+}
+
+static __inline__ VECTOR* push_color(GsCOORDINATE2* coord)
+{
+    VECTOR* block = (VECTOR*)(*(u8**)G_SCRATCH_HEAD - 0x10);
+
+    ((VECTOR*)(*(u8**)G_SCRATCH_HEAD - 0x10))->vx = coord->workm.t[0];
+    block->vy                                     = coord->workm.t[1];
+    block->vz                                     = coord->workm.t[2];
+    *(VECTOR**)G_SCRATCH_HEAD                     = block;
+    return block;
+}
+
+static __inline__ void pop_scratch(s32 n)
+{
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + n;
+}
+
+static __inline__ u8* push_proj(void)
+{
+    u8*                     head  = *(u8**)G_SCRATCH_HEAD;
+    Actor400500ProjScratch* block = (Actor400500ProjScratch*)(head - 0x18);
+
+    *(Actor400500ProjScratch**)G_SCRATCH_HEAD        = block;
+    ((Actor400500ProjScratch*)(head - 0x18))->vec.vx = 0;
+    block->vec.vy                                    = 0;
+    block->vec.vz                                    = 0;
+    return head;
+}
+
+const Actor400500TaskFuncTable13 D_actor_400500_80131E5C = { {
+    func_actor_400500_80135EBC,
+    func_actor_400500_8013BA24,
+    func_actor_400500_801385D0,
+    func_actor_400500_8013899C,
+    func_actor_400500_80138EA0,
+    func_actor_400500_8013905C,
+    func_actor_400500_801392D8,
+    func_actor_400500_801395D0,
+    func_actor_400500_80139C1C,
+    func_actor_400500_80139F6C,
+    func_actor_400500_8013AD60,
+    func_actor_400500_8013B5E0,
+    func_actor_400500_8013A484,
+} };
+
+void func_actor_400500_80135770(Task* arg0)
+{
+    Actor400500Work*           work;
+    GpEnemy*                   enemy;
+    TmdObject*                 extra0;
+    TmdObject*                 obj;
+    GpActorWork*               slot;
+    GsCOORDINATE2*             part2;
+    PlayerStatus*              cfg;
+    Actor400500Msg3FF          msg;
+    Actor400500TaskFuncTable13 sp;
+    Actor400500Matrix          rot;
+    s8                         handshake;
+    Actor400500Work*           work_pos;
+    Actor400500Work*           work_dead;
+    Actor400500Work*           work_rot;
+    Actor400500Matrix*         src;
+    s32                        one;
+    s16                        ang;
+    s16                        ang_z;
+    s16                        ang_y;
+    GsCOORDINATE2*             rot_root;
+    GsCOORDINATE2*             player;
+    TmdObject*                 extra;
+    TmdObject*                 extra2;
+    TmdObject*                 trans_obj;
+    VECTOR*                    color;
+    u8*                        head;
+    GsCOORDINATE2*             color_part;
+    u8                         mode;
+    s16                        trans;
+    s16                        trans_y;
+    Actor400500ProjScratch*    proj;
+    SVECTOR*                   vecp;
+    MATRIX*                    workm;
+
+    cfg    = &Player_Status;
+    work   = (Actor400500Work*)arg0->work;
+    enemy  = (GpEnemy*)arg0->spawnArg2;
+    extra0 = arg0->extra;
+    part2  = extra0->coords + 2;
+    obj    = extra0;
+    slot   = *Gp_ActorSlots;
+    sp     = D_actor_400500_80131E5C;
+
+    handshake = work->field_A48;
+    switch (handshake) {
+        case 1:
+            if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+                work->field_A48 = 2;
+            }
+            break;
+        case 2:
+            msg.field_0  = &D_actor_400500_80153CB0;
+            msg.field_8  = 0;
+            msg.field_C  = 0;
+            msg.field_10 = 0;
+            if (work->field_A4D != 0) {
+                msg.field_4     = 3;
+                work->field_A48 = 4;
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&msg, 0);
+            } else {
+                msg.field_4     = handshake;
+                work->field_A48 = 3;
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+            }
+            break;
+        case 3:
+            if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+                work->field_A48 = 0;
+            }
+            break;
+    }
+
+    switch (D_801153F4) {
+        case 2:
+            obj->flags |= 0x80;
+            return;
+        case 0:
+            func_actor_400500_80132438(arg0);
+            work->field_A1A = lookup_zone(arg0);
+            if (slot == NULL) {
+                work->field_A1C = 0;
+            } else {
+                work->field_A1C = lookup_zone((Task*)slot);
+            }
+            sp.funcs[(s16)work->field_A06](arg0);
+            work_pos = (Actor400500Work*)arg0->work;
+            if (*Gp_ActorSlots != NULL) {
+                player                 = (*Gp_ActorSlots)->extra->coords;
+                work_pos->field_9D0.vx = (u16)player->coord.t[0];
+                work_pos->field_9D0.vy = (u16)player->coord.t[1];
+                work_pos->field_9D0.vz = (u16)player->coord.t[2];
+            }
+            src                 = &rot;
+            work_rot            = (Actor400500Work*)arg0->work;
+            rot_root            = ((TmdObject*)arg0->extra)->coords;
+            ang                 = work_rot->field_948;
+            ang_y               = work_rot->field_94A;
+            work_rot->field_948 = ang & 0xFFF;
+            ang_z               = work_rot->field_94C;
+            work_rot->field_94A = ang_y & 0xFFF;
+            work_rot->field_94C = ang_z & 0xFFF;
+            one                 = 0x1000;
+            rot.ident.m00_m01   = one;
+            rot.ident.m02_m10   = 0;
+            src->ident.m11_m12  = one;
+            rot.ident.m20_m21   = 0;
+            src->ident.m22      = one;
+            RotMatrixZ(work_rot->field_94C, &src->mat);
+            RotMatrixX(work_rot->field_948, &src->mat);
+            func_8004BFF8(work_rot->field_94A, &src->mat);
+            ActorsShared80132c4c(&src->mat, &rot_root->coord);
+            func_actor_400500_80132E94(arg0);
+            if (work->field_A32 > 0) {
+                work->field_A32 = (u16)work->field_A32 - 1;
+                work->field_A34 = 1;
+            } else {
+                work->field_A34 = 0;
+            }
+            obj->flags &= 0xFF7F;
+            if ((enemy->field_40 > 0) || (cfg->hp <= 0)) {
+                func_actor_400500_8013456C(arg0);
+            } else if ((work->field_A42 == 0) && (work->field_A48 == 0)) {
+                work_dead            = (Actor400500Work*)arg0->work;
+                arg0->state          = 2;
+                work_dead->field_A06 = 0;
+                work_dead->field_A08 = 0;
+            }
+        case 1:
+            extra      = arg0->extra;
+            extra2     = extra;
+            color_part = extra->coords + 1;
+            color      = push_color(color_part);
+            Gp_UpdateActorColor(arg0->spawnArg2, color, 0, 0);
+            mode = gGameSession->at4.loc.room;
+            if ((mode == 1) || (mode == 3) || (mode == 5) || (mode == 6)) {
+                trans_obj = extra2;
+                trans     = 0x200;
+                trans_y   = trans;
+            } else {
+                trans_obj = extra;
+                trans     = 0x400;
+                trans_y   = 0x1000;
+            }
+            Gp_SetObjTrans((GpObj20*)trans_obj, trans, trans_y, trans);
+            pop_scratch(0x10);
+            if (gGameSession->field_65 != 0) {
+                func_actor_400500_80132AB0(arg0, -0xFA0, (u8)work->field_A28);
+                return;
+            }
+            func_actor_400500_80132AB0(arg0, -0xFA0, ((u16)work->field_A28 >> 2) & 0xFF);
+            func_actor_400500_80132AB0(arg0, -0x3E8, (u8)work->field_A28);
+            head = push_proj();
+            proj = (Actor400500ProjScratch*)(head - 0x18);
+            Gp_UpdateCoord(part2);
+            vecp  = &proj->vec;
+            workm = &part2->workm;
+            gte_SetRotMatrix(workm);
+            gte_SetTransMatrix(workm);
+            gte_ldv0(vecp);
+            gte_rtps_real();
+            gte_stsxy(&((Actor400500ProjScratch*)(head - 0x18))->sxy);
+            gte_stdp(&((Actor400500ProjScratch*)(head - 0x18))->dp);
+            gte_stflg(&((Actor400500ProjScratch*)(head - 0x18))->flag);
+            gte_stszotz(&((Actor400500ProjScratch*)(head - 0x18))->otz);
+            if (proj->flag < 0) {
+                proj->otz = 0;
+            }
+            proj->otz = (proj->otz >> 4) + 0x1E;
+            func_actor_400500_80134D6C(proj->otz);
+            pop_scratch(0x18);
+            return;
+    }
+}
 
 extern TaskFuncTable11 D_actor_400500_80131E90;
 extern TaskFuncTable3  D_actor_400500_80131EBC;
