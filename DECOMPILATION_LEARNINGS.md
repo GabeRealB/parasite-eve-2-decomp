@@ -131494,3 +131494,32 @@ Applying independent pointer locals to all four blocks and splitting the reused 
 The permuter's preceding gain has a separate controlled explanation. Its do-once loop around the second movement x calculation introduces a scheduling boundary that prevents the subobject address from hoisting above the x store. Paired scratch distance1376 ->1181 (search claimed1175). Planned base_12 replaced that wrapper with only SCHED_BARRIER after the x store in the normal-header seed and reproduced distance1181 and identical normalized instructions; `.sched` address UID713 depends on barrier UID710 after store UID708. Saved and arithmetic register homes remained unchanged. The final sibling-shaped source removes that barrier and the pointer touches entirely.
 
 Evidence: `tools/permuter_findings/func_actor_400500_80133B14/` retained run `9795dcbbac6740ae`, PERMUTER_ANALYSIS.md and controlled dumps. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Input hashes: baseline base_11 `3e449c49f7ccbc883fc7c50e35055b9c477d69354706459eda2e4cac1d837903`; controlled base_12 `6b5bef972e5a668a63b740dcdf8a36c5f7a81d5adfd6d51df2309b78ad4f66ab`; base_13 `936edcfd0c39b7b240a1efa05ab2d7e86a2dd46c49ed3015ac3f3b5489483452`; final base_15 `59e7f0659ec25331a70ba77d8fe7d6b82580a7e71a3f45990bcf5575fb20e642`. No pins or tracer required.
+
+## Reusing a sound ID excludes its arithmetic chain from local allocation (func_actor_400500_801335E8, 2026-09-19)
+
+The matched sibling 80133B14 transferred to this function at 99.637%, with
+only 24 register differences in two sound blocks. Separate `soundId` locals
+were eligible for local allocation, and each ID's load/shift/OR chain used
+s0 while pan used s1. The target wants the chain in v0, ID in s1, pan in s0.
+
+A permuter split the second ID expression into two assignments. Its pseudo
+then died twice in the same block, so `local-alloc.c:472` excluded it from
+local allocation. A planned normal-header port reproduced distance120 ->70:
+base_2 r103 had four refs/ten insns/two deaths, appeared in global allocation,
+conflicted with hard s0, and got s1; pan2 remained local in s0. Instruction
+order was unchanged. The split preserved values (u16 field shifted right12
+is 0..15), but its intermediate s1 shift still differed from the target.
+
+A second planned variation reused one soundId across both sound blocks,
+leaving pan/pan2 separate. That made the ID global without the intermediate
+assignment: base_3 r101 had two deaths across two blocks and got s1;
+local pans r102/r103 got s0 and the ID chains stayed in v0. Exact match,
+full unscoped verification passed. This is an eligibility/conflict change,
+not evidence for a per-pseudo priority ranking of local quantities.
+
+Evidence: `tools/permuter_findings/func_actor_400500_801335E8/`, session
+`3e536964d1e8407eada4d7cfda8d71fe`, primary run `bf9e48833d134373`.
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Inputs: base_1 `fe8c1f265ff1719113684262a1da77741f9928a2943f094d12125e1c6968112e`;
+base_2 `52ceccdfb00e0a3ffd7ff3f30badedc1d55966938357de27ff1eeb510d51e0e4`;
+base_3 `f761bda786eb3f085236580205a80d8d74141869b6b1c40bb3ba3d8e323270cf`.
