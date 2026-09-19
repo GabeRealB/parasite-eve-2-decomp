@@ -36889,7 +36889,7 @@ add an `_s0` variant of the macro rather than reusing the existing `$24` one —
 exist for exactly this. Reusing the wrong one costs the whole prologue plus
 every fifo load.
 
-`func_80099FF4` is the pure example: it is the POLY_GT4 (0x34 stride, `avsz4`,
+`gpDrawStreamPrimGt4PreXformLayer` is the pure example: it is the POLY_GT4 (0x34 stride, `avsz4`,
 len 12 / code 0x3C-0x3E, 4-iteration u-fixup loop) sibling of the POLY_GT3
 `gpDrawStreamPrimGt3PreXformFixedLayer`, and porting that function with the
 type, stride, loop bound and `_s0` macros swapped matched on the first attempt. When a TU holds a family
@@ -132791,6 +132791,31 @@ handlers "init", the gameplay bodies "draw" - naming each after the function tha
 selects it rather than the pass that runs it. A body that writes no screen
 coordinate is not the drawing one, so take the label from what runs the handler: the
 dispatcher that jalrs a set is what makes it the draw pass's, and the name follows.
+
+## A layered quad's two facing tests are taken with opposite senses, and the losing half is folded away
+
+A `0x4000` quad element is culled by two `NCLIP`s over the same four corners: the
+fifo loads corners 0, 1 and 2, then pushes corner 3, which shifts the window to 1,
+2, 3, so the two results are the quad's two halves, sharing the 1-2 edge. The
+results are then tested with *opposite* senses - `> 0` keeps the first half, `< 0`
+keeps the second - which reads as a contradiction until the four outcomes are
+mapped, because what the element draws is the halves that survive:
+
+| first | second | drawn |
+|---|---|---|
+| `> 0` | `< 0` | the whole quad |
+| `> 0` | `>= 0` | the first half, the third corner copied over the fourth |
+| `<= 0` | `< 0` | the second half, the first corner copied over the second |
+| `<= 0` | `>= 0` | nothing: the element is stepped over, its packets' room with it |
+
+The copies go into both of the element's packets, so the pair stays consistent, and
+they are what trims the quad: the polygon then has two corners in the same place,
+so what it covers is the surviving triangle. `gpDrawStreamPrimGt4PreXformLayer`
+(`0x4079`) is the pre-transformed example and `func_8009C414` (`0x4078`) the
+transform-region one. The quad twin that takes the layer's page from the object
+instead (`func_8009A57C`) keeps or drops the element on the same two tests but
+takes no copies, and the triangles of either family test one half only, having no
+fourth corner to fold.
 
 ## A draw handler's lighting word says whether its record carries a normal per corner
 

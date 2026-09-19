@@ -731,8 +731,10 @@ u32* tmdDrawStreamPrimGt4CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* 
 /// `flags` to select, so it goes unread.
 u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
-// Overlay stream commands (src/gameplay/gameplay.c), selected by
-// tmdProcessStream.
+// Overlay stream commands (src/gameplay/gameplay.c): the handlers a model's
+// packet stream reaches that live in the gameplay overlay — the process pass's
+// family (`gpStreamPrim*`), which tmdProcessStream selects by opcode, and the
+// draw pass's, which Tmd_InitSourceStream resolves into the stream.
 
 /// Handler of a stream's pre-transformed textured-triangle records (`0x31`,
 /// `0x39`, `0x3B`, `0x131`, `0x8039`): each element contributes one triangle to
@@ -1073,6 +1075,41 @@ u32* gpStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
 /// object's extra page and CLUT offsets in their place, along with the
 /// semi-transparency rate it blends at.
 u32* gpStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+/// Draw-pass handler of a stream's layered pre-transformed textured-quad records
+/// (`0x4079`): each element's two quads — the base the model is drawn from and the
+/// semi-transparent layer drawn over it — are culled against the corners the
+/// packets already carry, stamped, and linked into the ordering table at the depth
+/// those corners average to.
+///
+/// The opcode says the quads' corners are already in screen space: the record's
+/// vertex commands put them there and left each corner's screen Z in the
+/// per-vertex cache, where a corner whose projection failed carries its sign bit.
+/// The element's corner refs index that cache, and an element naming a failed
+/// corner is passed over. The facing test is taken on the layer's corners, read
+/// back out of the packet, as the two triangles the quad's corners make: where one
+/// half alone survives, the element is trimmed onto it — the corner that half does
+/// not use takes a copy of one it does, in each of the element's two packets — and
+/// where neither survives the element is passed over. Either way its packets' room
+/// is stepped over, so the primitives stay in step with the elements that named
+/// them.
+///
+/// The layer is this pass's to texture. Its page is the one the corners' marks
+/// select — the marks being what the record's vertex commands left in the layer's
+/// corner code bytes as they worked out its texture coordinates — and a corner
+/// carrying none has its coordinate folded back into that page, dropped by `0x80`
+/// where it ran into the upper half of its range and taken as the page's start
+/// where it did not. Both packets are then stamped with their length and their
+/// code, `0x3E` on the layer and `0x3C` on the base, and filed together at the
+/// depth the four cached corners average to.
+///
+/// The record has two draw handlers, and this is the one that runs where the layer
+/// is left for this pass to texture. The other runs where the process pass textured
+/// the layer itself, page and coordinates both coming from the object's offsets
+/// (`gpStreamPrimGt4PreXformOffsetLayer` is that record's process-pass handler).
+/// Which of the two a record gets is settled where its handler is resolved, from
+/// the area the session is in, so the `flags` this one is handed goes unread.
+u32* gpDrawStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's untextured gouraud-triangle records (`0x0`, `0x20`,
 /// `0x120`, `0x4000`, `0x4020`, `0x4120`): each element reserves one `POLY_G3`'s
