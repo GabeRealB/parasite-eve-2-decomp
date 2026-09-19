@@ -173,14 +173,20 @@ typedef struct Actor403100Work {
             byte             pad_12E[0x2E6];
         } legacy;
     } field_B8;
-    /* 0x414 */ GpObj            field_414; // display nodes unlinked on death
-    /* 0x434 */ byte             pad_434[0x48];
-    /* 0x47C */ GpObj            field_47C;
-    /* 0x49C */ byte             pad_49C[0xC0];
-    /* 0x55C */ GpObj            field_55C;
-    /* 0x57C */ byte             pad_57C[0x18];
-    /* 0x594 */ GpObj            field_594;
-    /* 0x5B4 */ byte             pad_5B4[0x1C];
+    /* 0x414 */ GpObj field_414; // display nodes unlinked on death
+    /* 0x434 */ byte  pad_434[0x48];
+    /* 0x47C */ GpObj field_47C;
+    /// Contact records the actor's own body collects, under `field_414`:
+    /// `func_actor_403100_8013335C` walks all eight for kind-2 hits and
+    /// `Gp_ClearRec18Occupied` empties the table each frame.
+    /* 0x49C */ GpRec18 pad_49C[8];
+    /* 0x55C */ GpObj   field_55C;
+    /// Contact records from the first attached collider (`field_55C`).
+    /* 0x57C */ GpRec18 pad_57C[1];
+    /* 0x594 */ GpObj   field_594;
+    /// Contact records from the second attached collider (`field_594`).
+    /* 0x5B4 */ GpRec18          pad_5B4[1];
+    /* 0x5CC */ byte             pad_5CC[4];
     /* 0x5D0 */ s32              field_5D0;
     /* 0x5D4 */ s32              field_5D4;
     /* 0x5D8 */ s16              field_5D8;
@@ -189,7 +195,7 @@ typedef struct Actor403100Work {
     /* 0x5DE */ s16              field_5DE; // animation id
     /* 0x5E0 */ u16              field_5E0;
     /* 0x5E2 */ s16              field_5E2;
-    /* 0x5E4 */ byte             pad_5E4[0x2];
+    /* 0x5E4 */ s16              field_5E4; // frames until the next hit is taken
     /* 0x5E6 */ s16              field_5E6;
     /* 0x5E8 */ s16              field_5E8;
     /* 0x5EA */ s16              field_5EA;

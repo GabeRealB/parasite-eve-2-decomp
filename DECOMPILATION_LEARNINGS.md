@@ -132208,3 +132208,82 @@ Two further constraints mattered. Initialize the separate u16 loop counter insid
 Evidence: scratch `nonmatchings/func_actor_560800_80134BFC-vacuum/LEARNINGS.md`, dumps and experiment journal. `base_10.i` SHA256 `4600b357087d9360be29cb8d200baa10aff99a852e9364e638892d55984396cd`; normal-style port `base_11.i` SHA256 `f17afb7496261a9677c4d8e36332ee0cc5a57821ba674c7732963af82298e247`. Both score 100%, and the unscoped integration build passed. Original source spelling remains unresolved; no claim about scheduler hazard selection follows from the failed ordering variants.
 
 The search router skipped this function because target.o's interior `alabel func_801353D0` is typed FUNC at offset2004. Removing that symbol from a separate diagnostic copy (never from the scored target) confirms matching blocks/predicates/calls. This is metadata ambiguity, not evidence of a second callable body.
+## A prologue constant register can be compiler-made from literal uses, not a source variable (func_actor_403100_8013335C, 2026-09-19)
+
+`func_actor_403100_8013335C` looked like a function that keeps the value 1 in a
+callee-saved register: `addiu s6,zero,1` in the prologue, read by a compare and
+two halfword stores. Three sessions modelled that register as a C variable
+(`s32 one = 1;` before the loop) and could not reproduce one detail: the target
+emits the enemy-pointer pair `sw s5,0x24(sp); lui s5,%hi(...)` *before* the pair
+`sw s6,0x28(sp); addiu s6,zero,1`, while every variable-based source emits them
+in the opposite order.
+
+The register is not a variable. A literal constant used in a loop is
+materialized per use by the expander (a store to memory and a compare both need
+it in a register), and `loop.c`:
+
+* `combine_movables` merges movables that load the same value into the first,
+  summing `savings` and `lifetime` (loop.c:1262-1296);
+* `move_movables` then hoists the merged movable when
+  `threshold * savings * lifetime >= insn_count`, with
+  `threshold = (loop_has_call ? 1 : 2) * (1 + n_non_fixed_regs)` (loop.c:535,
+  1640), and emits it with `emit_insn_before (..., loop_start)` — i.e. *after*
+  the loop's address-invariant hoists, since those are processed earlier in body
+  order (loop.c:1863, 1717).
+
+So the hoisted `addiu s6,zero,1` lands behind the hoisted `lui` and the prologue
+pair order comes out as the target has it. A named variable cannot: assigned
+before the loop it is emitted before the invariants, and set inside the loop it
+is not movable at all — `REG_USERVAR_P` fails the second case of the movable
+test, and the first case needs `!maybe_never`, which any label or jump in the
+body clears (loop.c:698-703, 922-931). CSE does not fold the variable away
+either; it survives as a register (only the *constant* uses are rewritten).
+
+The lever is the number of merging members. With three materializations
+(savings 3, lifetime 3) the product was 9 against a 229-instruction loop and the
+`.loop` dump said `not desirable`; adding a fourth use moved the same group to
+`life 4, savings 3 — moved`. The natural fourth member is a switch whose
+identical cases are written out separately: `case 4: case 5: case 6: case 7:
+field = 1;` collapses to one body in the source and one materialization, but
+four separate `case N: field = 1; break;` arms give four, which merge; once the
+constant register is shared, the four arms become identical and the post-reload
+jump pass cross-jumps them back to a single target, so the final code still
+shows one body and one `li`.
+
+Practical rule: when a prologue `li`/`addiu` of a small constant sits *after* an
+address materialization and the surrounding code reads like a named variable,
+try literals, and if the hoist is still missing, count the constant's
+register-requiring uses in the loop — `combine_movables` needs the summed
+`savings * lifetime` to clear the loop's own threshold. Read `.loop`: it prints
+every movable with its savings, lifetime and `not desirable` verdict.
+
+Evidence: scratch `nonmatchings/func_actor_403100_8013335C-vacuum`, base_3
+(literals, 3 members, `not desirable`) and base_5 (split case arms, hoisted,
+99.892% with `regs=8`), plus base_4's `.loop`. base_5.i SHA256
+`73d6317a1bfab849435e80de7a4dceff6b6251beeb6edcc981bff00e1a4d5c87`; base_4.i
+`3b68e016d63357bc06ff3a04979b40da53db3e8193bd370cdc5c98ad167cc7a9`; base_3.i
+`13be8de4e33bf1ea5d58f0b22de3b6f4b2b9647142af27ccf536e79551a9d098`. Compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+The sibling `func_actor_400500_8013456C` is the same shape and is already
+matched with literals: its prologue hoists `addiu s6,zero,1`,
+`addiu s5,zero,2` and `addiu s7,zero,4` for constants 1, 2 and 4 used only by
+stores. It is worth reading before treating a prologue constant register as a
+source variable.
+
+## A relocated load in a jump-table arm reads as `%lo(sym)` to the scorer, not as its offset (func_actor_403100_8013335C, 2026-09-19)
+
+Splat renders an address as `%lo(sym)(reg)` when it can prove the register's
+value, and as a bare offset when it cannot — which is the case in the arms of a
+jump-table switch, where it loses the register provenance across the `jr`. A
+function compiled from C always emits the symbol form, so its object dump
+differs from the split target's at every such load even though the linked bytes
+are identical (the relocation resolves to the same offset). Those lines are
+counted as `regs` differences, so a fully matched function can score ~99.9%
+with `regs` in the single digits and still be exact.
+
+Consequence: the "100.00% with all-zero penalties, so it must be rodata" rule
+does not cover this case. Compare instruction *words* (`mips-linux-gnu-objdump
+-d` on both objects, ignoring the immediates that the target has resolved) or
+build the linked overlay and byte-compare it before concluding that a residual
+penalty is codegen.

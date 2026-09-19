@@ -455,11 +455,152 @@ void func_actor_403100_801331D4(Task* arg0)
         D_actor_403100_80155808->field_630 = SquareRoot0((dx2 * dx2) + (dz2 * dz2));
     }
 }
-INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131E20);
+void func_actor_403100_8013335C(Task* arg0)
+{
+    s16 damage;
+    s16 scaledDamage;
+    s32 hitId;
+    s16 effectKind;
+    s32 i;
+    u16 hp;
+    u32 tickDamage;
+    u32 kind;
+    s32 expired;
 
-INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131E24);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013335C);
+    effectKind                          = 0;
+    D_actor_403100_80155808->pad_66A[2] = 0;
+    i                                   = 0;
+    for (; i < 8; i++) {
+        hitId = D_actor_403100_80155808->pad_49C[i].key;
+        if ((hitId & 0xFFFF0000) == 0x20000) {
+            if (D_actor_403100_80155808->field_5E4 == 0) {
+                D_actor_403100_80155808->pad_66A[2] = 1;
+                damage                              = Gp_ComputeDamage(D_actor_403100_80155808->pad_49C[i].key, D_actor_403100_80155808->field_630 / 2, 0, 0);
+                scaledDamage                        = damage;
+                D_actor_403100_80155808->field_5E4  = Gp_GetIdParam2(D_actor_403100_80155808->pad_49C[i].key);
+                if (Gp_RollEnemyChance(D_actor_403100_8015580C, D_actor_403100_80155808->pad_49C[i].key, 0) != 0) {
+                    scaledDamage = damage * 4;
+                    effectKind   = 1;
+                }
+                if ((u8)D_actor_403100_80155808->pad_670[3] != 0) {
+                    effectKind   = 2;
+                    scaledDamage = scaledDamage * 2;
+                }
+                kind = effectKind;
+                if (kind == 1)
+                    goto effect1;
+                if (kind == 2)
+                    goto effect2;
+                goto effect_end;
+            effect1:
+                Gp_SpawnEff(0x6009C, &((TmdObject*)arg0->extra)->coords[4], 0, 0);
+                goto effect_end;
+            effect2:
+                Gp_SpawnEff(0x6009C, &((TmdObject*)arg0->extra)->coords[4], 3, 0);
+            effect_end:
+                func_800E2C78((GpObj40*)D_actor_403100_8015580C, D_actor_403100_80155808->pad_49C[i].key, scaledDamage, 0);
+                func_800DA6E8(&D_actor_403100_8015580C->node, scaledDamage, 0);
+                do {
+                    hp                                = (u16)D_actor_403100_8015580C->field_40 - scaledDamage;
+                    D_actor_403100_8015580C->field_40 = hp;
+                    if ((s16)hp < 0) {
+                        D_actor_403100_8015580C->field_40 = 0U;
+                    }
+                    func_800FDB18(Gp_GetIdParam1(D_actor_403100_80155808->pad_49C[i].key) & 0xFFFF, &((TmdObject*)arg0->extra)->coords[4], 0, &D_actor_403100_80155630);
+                    D_actor_403100_80155808->field_62A = 1;
+                    kind                               = Gp_GetIdParam0(D_actor_403100_80155808->pad_49C[i].key) & 0xFFFF;
+                } while (0);
+                switch (kind) {
+                    case 0:
+                        break;
+                    case 1:
+                        Gp_SetObjFlag1((GpObj4C*)D_actor_403100_8015580C);
+                        break;
+                    case 2:
+                        Gp_SetObjFlag2((GpObj5D*)D_actor_403100_8015580C, D_actor_403100_80155808->pad_49C[i].key, 0);
+                        break;
+                    case 3:
+                        Gp_SetObjFlag4((GpObj5C*)D_actor_403100_8015580C, D_actor_403100_80155808->pad_49C[i].key, 0);
+                        break;
+                    case 4:
+                        D_actor_403100_80155808->field_62A = 1;
+                        break;
+                    case 5:
+                        D_actor_403100_80155808->field_62A = 1;
+                        break;
+                    case 6:
+                        D_actor_403100_80155808->field_62A = 1;
+                        break;
+                    case 7:
+                        D_actor_403100_80155808->field_62A = 1;
+                        break;
+                    case 8:
+                        D_actor_403100_80155808->field_62A  = 0;
+                        D_actor_403100_80155808->pad_66A[2] = 0;
+                        break;
+                    case 9:
+                        D_actor_403100_80155808->field_62A = 2;
+                        break;
+                }
+                if (D_actor_403100_80155808->field_62A != 0) {
+                    D_actor_403100_80155808->field_60C = 0x10;
+                    Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 1);
+                }
+            } else if ((Gp_GetIdParam1(hitId) & 0xFFFF) == 0xD) {
+                func_800FDB18(0xD, &((TmdObject*)arg0->extra)->coords[4], 0, &D_actor_403100_80155630);
+            }
+        }
+        if (D_actor_403100_80155808->pad_66A[2] != 0)
+            break;
+    }
+    if (D_actor_403100_8015580C->field_4C & 1) {
+        D_actor_403100_8015580C->field_4C &= ~1;
+        D_actor_403100_80155808->field_62A = 2;
+    }
+    if (D_actor_403100_8015580C->field_4C & 2) {
+        D_actor_403100_8015580C->field_4C &= ~2;
+        D_actor_403100_80155808->field_60C = 0x5A;
+        D_actor_403100_80155808->field_62A = 3;
+    }
+    if (D_actor_403100_8015580C->field_4C & 0xC) {
+        tickDamage = (u32)Gp_TickObjFlag4((GpObj5C*)D_actor_403100_8015580C) >> 2;
+        if ((s16)tickDamage != 0) {
+            D_actor_403100_8015580C->field_40 = (u16)((u16)D_actor_403100_8015580C->field_40 - tickDamage);
+            ((void (*)(void*, s32, s32, u32))func_800DA6E8)(&D_actor_403100_8015580C->node, (s16)tickDamage, 0, tickDamage);
+            if ((s16)D_actor_403100_8015580C->field_40 < 0) {
+                D_actor_403100_8015580C->field_40 = 0U;
+            }
+            D_actor_403100_80155808->pad_66A[2] = 1;
+            D_actor_403100_80155808->field_62A  = 2;
+        }
+        expired = Gp_ObjFlag4Expired((GpObj5C*)D_actor_403100_8015580C);
+        if (expired != 0) {
+            D_actor_403100_8015580C->field_4C = (u8)(D_actor_403100_8015580C->field_4C & 0xF3);
+        }
+    }
+    if (Gp_FindRec18(D_actor_403100_80155808->field_55C.ctx.recs, 0) != 0) {
+        for (i = 0; i < 1; i++) {
+            if ((D_actor_403100_80155808->pad_57C[i].key & 0xFFFF0000) == 0x10000) {
+                D_actor_403100_80155808->field_668.b.field_668 = 1;
+            }
+        }
+    }
+    if (Gp_FindRec18(D_actor_403100_80155808->field_594.ctx.recs, 0) != 0) {
+        for (i = 0; i < 1; i++) {
+            if ((D_actor_403100_80155808->pad_5B4[i].key & 0xFFFF0000) == 0x10000) {
+                D_actor_403100_80155808->field_668.b.field_669 = 1;
+            }
+        }
+    }
+    Gp_ClearRec18Occupied(D_actor_403100_80155808->pad_57C);
+    Gp_ClearRec18Occupied(D_actor_403100_80155808->pad_5B4);
+    Gp_ClearRec18Occupied(D_actor_403100_80155808->pad_49C);
+    if (D_actor_403100_80155808->field_5E4 > 0) {
+        D_actor_403100_80155808->field_5E4 = (s16)((u16)D_actor_403100_80155808->field_5E4 - 1);
+        return;
+    }
+    D_actor_403100_80155808->field_5E4 = 0;
+}
 
 s32 func_actor_403100_80133928(void)
 {
