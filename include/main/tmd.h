@@ -283,7 +283,26 @@ u32* Tmd_StreamHandler_Prim38(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// packet's code byte is the element's own — carried in its colour word and
 /// taken to the packet by the lighting step.
 u32* tmdDrawStreamPrimG3CornerNormals(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_Op60(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Draw handler of a stream's untextured gouraud-quad records (`0x60`): each
+/// element is one `POLY_G4` in the buffer half's second region, built whole here
+/// as the record is transformed.
+///
+/// The record is the `0x40` quad's with one normal per corner in place of the one
+/// it lights the whole face from: the element names a vertex and a normal per
+/// corner, and the one colour word the quad is lit from. The corners are
+/// projected, and the quad is dropped where either projection raises a GTE error
+/// or the facing tests reject it; what survives is lit corner by corner — three
+/// corners in one lighting step and the fourth in a step of its own, so each
+/// corner of the packet carries the colour its own normal gives — and it is
+/// linked into the ordering table at the depth it came out at. A dropped quad
+/// still consumes its packet's room, because the room was reserved for every
+/// element by the process pass (`gpStreamPrimG4`), whose cursor this one stays in
+/// step with.
+///
+/// The packet's primitive code is the top byte of that same colour word, which is
+/// all the record's `0x62` form — the semi-transparent one — differs in. The two
+/// share this body, so `flags` has no variant to select and goes unread.
+u32* tmdDrawStreamPrimG4CornerNormals(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_OpC0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// The draw pass's handler for a stream's gouraud textured-triangle records that
 /// ask for the semi-transparent primitive (`0x3A`): each element's three corners
@@ -753,7 +772,8 @@ u32* gpStreamPrimF3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// are, and it is untextured, so there are no texture words either. The command's work
 /// is to move both cursors on, which it must still do — the half is written by both
 /// passes, so a record one of them skipped would put every primitive after it at the
-/// wrong address in the other.
+/// wrong address in the other. What fills the room a `0x60` record reserves is the
+/// draw pass's (`tmdDrawStreamPrimG4CornerNormals`), one quad per element.
 u32* gpStreamPrimG4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's layered textured-triangle records (`0x4038`) whose

@@ -17,7 +17,8 @@
  *
  * tmdDrawStreamPrimG3CornerNormals  untextured triangle, one normal per corner
  * tmdDrawStreamPrimG3   the same triangle, one normal for the whole face
- * tmdDrawStreamPrimG4   the 0x40 record, one POLY_G4 built per element
+ * tmdDrawStreamPrimG4CornerNormals  untextured quad, one normal per corner
+ * tmdDrawStreamPrimG4   the same quad, one normal for the whole face
  * tmdDrawStreamGt3SemiTrans/tmdDrawStreamGt3  gouraud textured triangle (+ ABR)
  * Op7A/tmdDrawStreamGt4  gouraud textured quad (+ ABR)
  * tmdDrawStreamPrimGt3PreXform/tmdDrawStreamPrimGt3PreXformSemiTrans,
@@ -126,7 +127,7 @@ glabel tmdDrawStreamPrimG3CornerNormals
     /* 13E8 80010BE8 */  addu        $v0, $zero, $a2
     /* 13EC 80010BEC */  jr          $ra
     /* 13F0 80010BF0 */  nop
-glabel Tmd_StreamHandler_Op60
+glabel tmdDrawStreamPrimG4CornerNormals
     /* 13F4 80010BF4 */  lw          $t9, 0x18($a0)
     /* 13F8 80010BF8 */  lw          $a3, 0x1C($a0)
     /* 13FC 80010BFC */  lw          $t8, 0x0($a0)

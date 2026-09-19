@@ -80,7 +80,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     break;
                 case 0x60:
                 case 0x62:
-                    handler = Tmd_StreamHandler_Op60;
+                    handler = tmdDrawStreamPrimG4CornerNormals;
                     break;
                 case 0xC0:
                     handler = Tmd_StreamHandler_OpC0;

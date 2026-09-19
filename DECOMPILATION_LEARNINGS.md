@@ -132910,3 +132910,24 @@ the opcode sets `0x20` — is what the data bears out, and the table's own rows
 elsewhere (a colour word after eight refs, in a ten-slot block) leave padding
 uncounted. Where a ref count and a handler's load disagree, read the discarded
 half against the array it would index.
+## A twin split across two draw arms takes the word the family already uses
+
+The twin rule above assumes one twin per draw body, and the untextured families
+break that assumption: `gpStreamPrimG4` answers `0x40` and `0x60` alike, because
+reserving the room is the whole of its work and both records reserve the same
+room, while the draw pass needs a body each — the `0x40` element names a single
+normal for the whole quad, the `0x60` one a normal per corner and is lit corner by
+corner. One twin's name therefore has to be split, and the word that splits it is
+the one the family already uses for that distinction: the untextured triangles are
+bare `tmdDrawStreamPrimG3` for the record carrying one normal and
+`tmdDrawStreamPrimG3CornerNormals` for the one carrying a normal per corner, so
+the quads read `tmdDrawStreamPrimG4` and `tmdDrawStreamPrimG4CornerNormals`.
+
+Not the textured families' `OneNormal`: that word names their single-normal arm
+from the family that carries three normals (`gpStreamPrimGt3OneNormal` beside
+`gpStreamPrimGt3`), so it reads as a different rule beside an untextured family
+whose base record already is the single-normal one.
+
+Two steps naming one body from the same twin can also collide, since each picks a
+defensible word without seeing the other's; where they do, reconcile against the
+family the record belongs to rather than against the step that named it.
