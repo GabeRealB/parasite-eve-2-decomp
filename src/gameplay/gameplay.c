@@ -4484,21 +4484,21 @@ u32* gpStreamPrimG4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* func_8009FC90(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* gpStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
     u8* prims;
     s32 stride;
 
-    prims = arg0->primWrite;
-    if (arg0->elemCount-- > 0) {
-        stride = arg0->elemStride;
+    prims = ws->primWrite;
+    if (ws->elemCount-- > 0) {
+        stride = ws->elemStride;
         do {
-            arg2  += stride;
-            prims += 0x1C;
-        } while (arg0->elemCount-- > 0);
+            stream += stride;
+            prims  += 0x1C;
+        } while (ws->elemCount-- > 0);
     }
-    arg0->primWrite = prims;
-    return arg2;
+    ws->primWrite = prims;
+    return stream;
 }
 
 u32* func_8009FCDC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)

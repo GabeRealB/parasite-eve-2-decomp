@@ -444,10 +444,10 @@ different jobs:
 | Switch | Handlers | What it does |
 |---|---|---|
 | `Tmd_InitSourceStream` | main, `Tmd_StreamHandler_*` at `0x80010A90` | one-shot, guarded by `TmdSource.handlersResolved`. Resolves 61 opcodes to 53 handlers and **writes the pointer into the packet's slot word**. These are the transform/light/cull routines: they read vertices, run `RTPT`/`NCLIP`/`AVSZ`, and store screen XY and lit RGB. |
-| `Tmd_ProcessStream` | the loaded overlay, `0x8009xxxx`, decompiled in `src/gameplay/gameplay.c` | walks the stream on each draw call. Reads the dims word, copies the cached pointer from the slot into `ws->opcode`, then calls the overlay handler, which fills the primitive's **static** fields — UV, CLUT, tpage. |
+| `Tmd_ProcessStream` | the loaded overlay, `0x8009xxxx`, decompiled in `src/gameplay/gameplay.c` | walks the stream when a model's primitives are built, and again when the model's texture page or CLUT changes: it lays the primitives out and fills their **static** fields — UV, CLUT, tpage. It picks the handler from the record's own opcode and steps over the slot word, which is the draw pass's to read. |
 
 That split is why the untextured families do nothing per pass:
-`func_8009FC90` and `gpStreamPrimG4` only advance `prims` by `0x1C` and `0x24`
+`gpStreamPrimG3` and `gpStreamPrimG4` only advance `prims` by `0x1C` and `0x24`
 and step the stream cursor by the stride. An untextured `POLY_G3`/`POLY_G4` has
 no UV to refresh, so there is nothing for that handler to copy — and their prim
 advance is what confirms the primitive type for opcodes whose handler names no
@@ -493,7 +493,7 @@ range-check in §3.1.
 
 | Base | Primitive | Corners | Refs | UV words | Opcodes | Elements |
 |---|---|---|---|---|---|---:|
-| `0x0` | untextured | 3 | — | — | `0x0` `0x20` `0x120` `0x4000` `0x4020` `0x4120` | 146169 |
+| `0x0` | POLY_G3 | 3 | — | — | `0x0` `0x20` `0x120` `0x4000` `0x4020` `0x4120` | 146169 |
 | `0x4` | POLY_F3 | 3 | — | — | `0x4` | 52 |
 | `0x5` | POLY_F3 | 3 | 3v (cache) | — | `0x5` | — |
 | `0x18` | POLY_GT3 | 3 | 3v + 1n | u0=w2 u1=w3 u2=w4 lo | `0x18` `0x1A` | 128 |
@@ -501,7 +501,7 @@ range-check in §3.1.
 | `0x30` | POLY_GT3 | 3 | 3v + 3n, colour | u0=w4 u1=w5 u2=w6 lo | `0x30` | 28 |
 | `0x31` | POLY_GT3 | 3 | 3v (cache) | u0=w2 u1=w3 u2=w4 lo | `0x31` `0x39` `0x3B` `0x131` `0x8039` | 6395 |
 | `0x38` | POLY_GT3 | 3 | 3v + 3n | u0=w3 u1=w4 u2=w5 lo | `0x38` `0x3A` `0x8038` `0x10038` `0x1003A` `0x20038` | 13925 |
-| `0x40` | untextured | 4 | — | — | `0x40` `0x60` `0x160` `0x4040` `0x4060` `0x4160` | 173 |
+| `0x40` | POLY_G4 | 4 | — | — | `0x40` `0x60` `0x160` `0x4040` `0x4060` `0x4160` | 173 |
 | `0x44` | POLY_F4 | 4 | — | — | `0x44` | 122 |
 | `0x45` | POLY_F4 | 4 | 4v (cache) | — | `0x45` | — |
 | `0x58` | POLY_GT4 | 4 | 4v + 2n | u0=w3 u1=w4 u2=w5 lo u3=w5 hi | `0x58` `0x5A` | 407 |

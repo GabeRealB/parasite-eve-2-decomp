@@ -592,4 +592,16 @@ u32* gpStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
 /// semi-transparency rate it blends at.
 u32* gpStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+/// Handler of a stream's untextured gouraud-triangle records (`0x0`, `0x20`,
+/// `0x120`, `0x4000`, `0x4020`, `0x4120`): each element reserves one `POLY_G3`'s
+/// worth of the buffer half's second region, and nothing is written into it.
+///
+/// The packet has no field this pass could fill. It carries no texture, and its
+/// colours are lit from the element's material rather than copied from it, so the
+/// draw pass writes the packet whole — colours, screen coordinates and link into
+/// the ordering table — as it transforms the record. What is left here is the
+/// packet's room: stepping the primitive cursor past it is what keeps the records
+/// that follow building where the draw pass will look for them.
+u32* gpStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 #endif // TMD_H
