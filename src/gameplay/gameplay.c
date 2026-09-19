@@ -4164,24 +4164,24 @@ u32* gpStreamPrimGt4Unlit(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* func_8009F360(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* gpStreamPrimFt3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
     POLY_FT3* poly;
 
-    poly = (POLY_FT3*)arg0->primWrite;
-    if (arg0->elemCount-- > 0) {
+    poly = (POLY_FT3*)ws->primWrite;
+    if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = arg2[2];
-            *(s32*)&poly->u1 = arg2[3];
-            *(u16*)&poly->u2 = *(u16*)&arg2[4];
-            poly->tpage     += arg0->tpage;
-            poly->clut      += arg0->clut;
+            *(s32*)&poly->u0 = stream[2];
+            *(s32*)&poly->u1 = stream[3];
+            *(u16*)&poly->u2 = *(u16*)&stream[4];
+            poly->tpage     += ws->tpage;
+            poly->clut      += ws->clut;
             poly++;
-            arg2 += arg0->elemStride;
-        } while (arg0->elemCount-- > 0);
+            stream += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    arg0->primWrite = (u8*)poly;
-    return arg2;
+    ws->primWrite = (u8*)poly;
+    return stream;
 }
 
 u32* func_8009F3F8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
