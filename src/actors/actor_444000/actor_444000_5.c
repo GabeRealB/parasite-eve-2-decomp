@@ -1008,15 +1008,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000
 static __inline__ void Actor444000_LinkWorkObj(GsCOORDINATE2* coord, GpObj* obj, GpRec18* rec,
                                                SVECTOR* pos, s16 field1C, s32 prio, s32 kind)
 {
-    obj->field_8  = coord;
-    obj->field_C  = rec;
-    obj->field_10 = pos->vx;
-    obj->field_12 = pos->vy;
-    obj->field_14 = pos->vz;
-    obj->field_1C = field1C;
+    obj->coord    = coord;
+    obj->ctx.recs = rec;
+    obj->pos.vx   = pos->vx;
+    obj->pos.vy   = pos->vy;
+    obj->pos.vz   = pos->vz;
+    obj->radius   = field1C;
     obj->flags    = 1;
     Gp_LinkObj(prio, obj);
-    Gp_InitRec18Table(obj->field_C, kind, 0);
+    Gp_InitRec18Table(obj->ctx.recs, kind, 0);
 }
 
 /// Spawn state of the enemy dispatched through `D_actor_444000_80131EA8`:
@@ -1072,9 +1072,9 @@ void func_actor_444000_80137594(GpEnemy* enemy, Actor444000Grab* task)
     pos.vx = pos.vy = pos.vz = 0;
     Actor444000_LinkWorkObj(task->extra->coords, &work->obj0, &work->rec0, &pos, 0x394, 3, 1);
 
-    work->obj0.flags   &= 0x7FFF;
-    work->obj0.field_18 = Gp_PackObjPair((GpObj50*)owner, 2);
-    work->field_1A8     = 1;
+    work->obj0.flags &= 0x7FFF;
+    work->obj0.key    = Gp_PackObjPair((GpObj50*)owner, 2);
+    work->field_1A8   = 1;
     task->state++;
 }
 
@@ -1614,20 +1614,20 @@ void func_actor_444000_80138B94(GpEnemy* enemy, Actor444000Grab* task)
 
     Actor444000_LinkWorkObj(task->extra->coords, &work->obj0, &work->rec0, &vec, 0x100, 3, 1);
 
-    work->obj1.field_8  = task->extra->coords;
-    work->obj1.field_C  = &work->rec1;
-    work->obj1.field_10 = 0;
-    work->obj1.field_12 = 0;
-    work->obj1.field_14 = 0;
-    work->obj1.field_18 = 0x3000A;
-    work->obj1.field_1C = 0x100;
+    work->obj1.coord    = task->extra->coords;
+    work->obj1.ctx.recs = &work->rec1;
+    work->obj1.pos.vx   = 0;
+    work->obj1.pos.vy   = 0;
+    work->obj1.pos.vz   = 0;
+    work->obj1.key      = 0x3000A;
+    work->obj1.radius   = 0x100;
     work->obj1.flags    = 1;
     Gp_LinkObj(2, &work->obj1);
 
     work->obj0.flags |= 0x8000;
-    Gp_InitRec18Table(work->obj1.field_C, 3, 0);
-    work->obj1.flags   |= 0x4000;
-    work->obj0.field_18 = Gp_PackObjPair((GpObj50*)owner, 5);
+    Gp_InitRec18Table(work->obj1.ctx.recs, 3, 0);
+    work->obj1.flags |= 0x4000;
+    work->obj0.key    = Gp_PackObjPair((GpObj50*)owner, 5);
 
     task->extra->lightMtx = &work->lightMtx;
     task->extra->colorMtx = &work->colorMtx;
@@ -1907,7 +1907,7 @@ void func_actor_444000_80139594(GpEnemy* enemy, Actor444000Drop* task)
     task->extra->coords->coord.t[1] = vec.vy;
     task->extra->coords->coord.t[2] = vec.vz + ((TmdObject*)parent->extra)->coords->coord.t[2];
 
-    work->obj.field_18 = Gp_PackObjPair((GpObj50*)owner, 1);
+    work->obj.key = Gp_PackObjPair((GpObj50*)owner, 1);
 
     vec.vx = 0;
     vec.vy = 0;

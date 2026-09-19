@@ -361,7 +361,7 @@ found:
     sc->id = id;
 
     if (id != 0) {
-        func_actor_403200_80134044(work->hits[0].obj.field_8, id);
+        func_actor_403200_80134044(work->hits[0].obj.coord, id);
         param           = Gp_GetIdParam2(sc->id);
         work->field_E90 = param;
         work->field_E8E = param;
@@ -522,7 +522,7 @@ missed1:
 found1:
     sc->id = id;
     if (id != 0) {
-        coord = work->hits[1].obj.field_8;
+        coord = work->hits[1].obj.coord;
         goto hit;
     }
 
@@ -547,7 +547,7 @@ found2:
     if (id == 0) {
         goto out;
     }
-    coord = work->hits[2].obj.field_8;
+    coord = work->hits[2].obj.coord;
 hit:
     func_actor_403200_80134044(coord, id);
     if (sc->id != 0) {
@@ -729,7 +729,7 @@ missed1:
 found1:
     sc->id = id;
     if (id != 0) {
-        func_actor_403200_80134044(work->hits[3].obj.field_8, id);
+        func_actor_403200_80134044(work->hits[3].obj.coord, id);
         if (sc->id != 0) {
             goto body;
         }
@@ -754,7 +754,7 @@ missed2:
 found2:
     sc->id = id;
     if (id != 0) {
-        func_actor_403200_80134044(work->hits[4].obj.field_8, id);
+        func_actor_403200_80134044(work->hits[4].obj.coord, id);
         if (sc->id != 0) {
             goto body;
         }
@@ -781,7 +781,7 @@ found3:
     if (id == 0) {
         goto out;
     }
-    func_actor_403200_80134044(work->hits[5].obj.field_8, id);
+    func_actor_403200_80134044(work->hits[5].obj.coord, id);
     if (sc->id == 0) {
         goto out;
     }

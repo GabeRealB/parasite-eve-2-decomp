@@ -58,33 +58,33 @@ void func_actor_104900_80132B10(GpEnemy* enemy, Task* task, ActorShared801384acW
     if (CdCmd_IsIdle() & 0xFFFF) {
         Gp_LinkNode(&enemy->node);
         obj           = &work->field_9A8[0];
-        obj->field_8  = ((TmdObject*)task->extra)->coords;
-        obj->field_C  = &work->field_A28[0][0];
-        obj->field_10 = 0;
-        obj->field_12 = -0x1D8;
-        obj->field_14 = 0;
-        obj->field_18 = 0x30000;
-        obj->field_1C = 0x258;
+        obj->coord    = ((TmdObject*)task->extra)->coords;
+        obj->ctx.recs = &work->field_A28[0][0];
+        obj->pos.vx   = 0;
+        obj->pos.vy   = -0x1D8;
+        obj->pos.vz   = 0;
+        obj->key      = 0x30000;
+        obj->radius   = 0x258;
         obj->flags    = 1;
         Gp_LinkObj(2, obj);
         obj->flags |= 0x4000;
-        Gp_InitRec18Table(obj->field_C, 3, 0);
+        Gp_InitRec18Table(obj->ctx.recs, 3, 0);
 
         obj           = &work->field_9A8[3];
-        obj->field_8  = &((TmdObject*)task->extra)->coords[3];
-        obj->field_C  = &work->field_A28[3][0];
-        obj->field_10 = 0;
-        obj->field_12 = 0;
-        obj->field_14 = 0;
-        obj->field_18 = 0x3000B;
-        obj->field_1C = 0x1C2;
+        obj->coord    = &((TmdObject*)task->extra)->coords[3];
+        obj->ctx.recs = &work->field_A28[3][0];
+        obj->pos.vx   = 0;
+        obj->pos.vy   = 0;
+        obj->pos.vz   = 0;
+        obj->key      = 0x3000B;
+        obj->radius   = 0x1C2;
         obj->flags    = 1;
         Gp_LinkObj(2, obj);
         obj->flags |= 0x8000;
-        Gp_InitRec18Table(obj->field_C, 3, 0);
-        obj->field_10 = 0;
-        obj->field_12 = -0xC8;
-        obj->field_14 = 0xC8;
+        Gp_InitRec18Table(obj->ctx.recs, 3, 0);
+        obj->pos.vx = 0;
+        obj->pos.vy = -0xC8;
+        obj->pos.vz = 0xC8;
 
         i      = 0;
         reach  = 0x12C;
@@ -95,22 +95,22 @@ void func_actor_104900_80132B10(GpEnemy* enemy, Task* task, ActorShared801384acW
             if (i == 0) {
                 idx = 0xC;
             }
-            obj->field_8 = &((TmdObject*)task->extra)->coords[idx];
-            obj->field_C = (GpRec18*)((u8*)work + recOff);
+            obj->coord    = &((TmdObject*)task->extra)->coords[idx];
+            obj->ctx.recs = (GpRec18*)((u8*)work + recOff);
             do {
                 if (i == 0) {
-                    obj->field_10 = -0x12C;
+                    obj->pos.vx = -0x12C;
                 } else {
-                    obj->field_10 = reach;
+                    obj->pos.vx = reach;
                 }
-                obj->field_12 = 0;
-                obj->field_14 = 0;
-                obj->field_1C = reach;
-                obj->field_18 = Gp_PackObjPair((GpObj50*)enemy, 1);
-                obj->flags    = 1;
+                obj->pos.vy = 0;
+                obj->pos.vz = 0;
+                obj->radius = reach;
+                obj->key    = Gp_PackObjPair((GpObj50*)enemy, 1);
+                obj->flags  = 1;
                 Gp_LinkObj(3, obj);
                 obj->flags &= 0x3FFF;
-                Gp_InitRec18Table(obj->field_C, 3, 0);
+                Gp_InitRec18Table(obj->ctx.recs, 3, 0);
                 recOff += 0x48;
                 i++;
                 obj = &work->field_9A8[i + 1];
@@ -462,16 +462,16 @@ void func_actor_104900_80137C88(Task* task)
     coord->coord.t[2] += work->vel.vz;
     coord->flg         = 0;
 
-    obj           = &work->obj;
-    rec           = &work->rec;
-    obj->field_8  = coord;
-    obj->field_C  = (GpRec18*)rec;
-    obj->field_10 = 0;
-    obj->field_12 = 0;
-    obj->field_14 = 0;
-    obj->field_1C = 0;
-    obj->field_18 = Gp_PackPair(&D_actor_104900_801392F0[0], 5);
-    obj->flags    = 3;
+    obj            = &work->obj;
+    rec            = &work->rec;
+    obj->coord     = coord;
+    obj->ctx.d4rec = rec;
+    obj->pos.vx    = 0;
+    obj->pos.vy    = 0;
+    obj->pos.vz    = 0;
+    obj->radius    = 0;
+    obj->key       = Gp_PackPair(&D_actor_104900_801392F0[0], 5);
+    obj->flags     = 3;
 
     rec->field_14 = work->rec18;
     rec->field_8  = 0;

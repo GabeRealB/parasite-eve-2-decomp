@@ -107,12 +107,12 @@ void func_actor_403000_8013D850(Actor403000* arg0)
         work->field_FCA = 0;
         obj->flags      = 0;
         Tmd_AllocBuffers(obj);
-        work->objB50.obj.field_1C = 0x3E8;
-        work->field_AC0           = 1;
-        work->field_ACA           = 0x10;
-        work->field_AC2           = 0;
-        work->field_AC6           = 0x10;
-        work->objD18.obj.flags   |= 0x4000;
+        work->objB50.obj.radius = 0x3E8;
+        work->field_AC0         = 1;
+        work->field_ACA         = 0x10;
+        work->field_AC2         = 0;
+        work->field_AC6         = 0x10;
+        work->objD18.obj.flags |= 0x4000;
         func_actor_403000_80133AF8(arg0);
         work->field_6 = 0;
     }

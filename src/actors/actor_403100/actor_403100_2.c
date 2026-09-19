@@ -863,7 +863,7 @@ void func_actor_403100_80138F88(Task* arg0)
         work->field_A2                  = 0x270;
         work->field_A4                  = -0xA0;
         part->coord.t[0]                = -0x1120;
-        work->field_47C.field_1C        = 0x500;
+        work->field_47C.radius          = 0x500;
         func_actor_403100_8013D74C(arg0);
         D_actor_403100_80155808->field_664.b.field_667 = 0;
         D_actor_403100_80155808->field_65F             = 0;
@@ -1354,7 +1354,7 @@ void func_actor_403100_8013A254(void)
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
             work                                = D_actor_403100_80155808;
             work->pad_670[3]                    = 0;
-            work->field_47C.field_1C            = 0x400;
+            work->field_47C.radius              = 0x400;
             D_actor_403100_80155808->pad_670[1] = 0;
             D_actor_403100_80155808->field_5F8  = 1;
             D_actor_403100_80155808->field_5FA  = 0;

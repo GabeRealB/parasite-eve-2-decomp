@@ -63,7 +63,7 @@ extern u16 D_actor_105100_8014139C[1];
 extern s16 D_actor_105100_801414C8[];
 
 /// The spawn's pair tables. `Gp_PackPair` packs the `GpU16Pair` at 0x80141380
-/// into the work's third list node (`Actor105100Work::field_4FC`), and the
+/// into the work's third list node (`Actor105100Work::obj4E4.key`), and the
 /// `GpPairSrcE` at 0x80141398 is the pair source the context points at with
 /// `Actor105100Ctx::field_50` -- its `field_4` seeds the enemy's HP.
 extern GpU16Pair  D_actor_105100_80141380;
@@ -139,48 +139,48 @@ void func_actor_105100_801327B4(Actor105100Ctx* arg0, Actor105100* arg1)
         Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
     }
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    work->field_560 = coord->coord;
-    work->field_594 = 0x2800;
-    work->field_5A8 = 1;
-    work->field_59E = 0xF;
-    work->field_59A = 0x96;
-    work->field_484 = &arg1->field_2C->field_8[3];
-    records1        = work->field_49C;
-    work->field_488 = records1;
-    work->field_48C = 0;
-    work->field_48E = 0x1F4;
-    work->field_490 = 0;
-    work->field_494 = 0x30033;
-    work->field_498 = 0x320;
-    work->field_49A = 1U;
-    Gp_LinkObj(2, (GpObj*)work->field_47C);
+    work->field_560       = coord->coord;
+    work->field_594       = 0x2800;
+    work->field_5A8       = 1;
+    work->field_59E       = 0xF;
+    work->field_59A       = 0x96;
+    work->obj47C.coord    = &arg1->field_2C->field_8[3];
+    records1              = work->field_49C;
+    work->obj47C.ctx.recs = records1;
+    work->obj47C.pos.vx   = 0;
+    work->obj47C.pos.vy   = 0x1F4;
+    work->obj47C.pos.vz   = 0;
+    work->obj47C.key      = 0x30033;
+    work->obj47C.radius   = 0x320;
+    work->obj47C.flags    = 1U;
+    Gp_LinkObj(2, &work->obj47C);
     Gp_InitRec18Table(records1, 3, 0);
-    work->field_49A = (u16)(work->field_49A | 0x8000);
-    work->field_524 = arg1->field_2C->field_8;
-    records2        = work->field_53C;
-    work->field_528 = records2;
-    work->field_52C = 0;
-    work->field_52E = 0;
-    work->field_530 = -0x12C;
-    work->field_534 = 0;
-    work->field_538 = 0x4B0;
-    work->field_53A = 1U;
-    Gp_LinkObj(2, (GpObj*)work->field_51C);
+    work->obj47C.flags    = (u16)(work->obj47C.flags | 0x8000);
+    work->obj51C.coord    = arg1->field_2C->field_8;
+    records2              = work->field_53C;
+    work->obj51C.ctx.recs = records2;
+    work->obj51C.pos.vx   = 0;
+    work->obj51C.pos.vy   = 0;
+    work->obj51C.pos.vz   = -0x12C;
+    work->obj51C.key      = 0;
+    work->obj51C.radius   = 0x4B0;
+    work->obj51C.flags    = 1U;
+    Gp_LinkObj(2, &work->obj51C);
     Gp_InitRec18Table(records2, 1, 0);
-    work->field_53A = (u16)(work->field_53A | 0x8000);
-    work->field_4EC = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
-    records3        = work->field_504;
-    work->field_4F0 = records3;
-    work->field_4F4 = 0;
-    work->field_4F6 = 0;
-    work->field_4F8 = 0;
-    work->field_4FC = Gp_PackPair(&D_actor_105100_80141380, 5);
-    work->field_500 = 0x1F4;
-    work->field_502 = 1U;
-    Gp_LinkObj(3, (GpObj*)work->field_4E4);
+    work->obj51C.flags    = (u16)(work->obj51C.flags | 0x8000);
+    work->obj4E4.coord    = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    records3              = work->field_504;
+    work->obj4E4.ctx.recs = records3;
+    work->obj4E4.pos.vx   = 0;
+    work->obj4E4.pos.vy   = 0;
+    work->obj4E4.pos.vz   = 0;
+    work->obj4E4.key      = Gp_PackPair(&D_actor_105100_80141380, 5);
+    work->obj4E4.radius   = 0x1F4;
+    work->obj4E4.flags    = 1U;
+    Gp_LinkObj(3, &work->obj4E4);
     Gp_InitRec18Table(records3, 1, 0);
-    work->field_502 = work->field_502 & 0x7FFF;
-    arg1->state     = 1;
+    work->obj4E4.flags = work->obj4E4.flags & 0x7FFF;
+    arg1->state        = 1;
 }
 
 void func_actor_105100_80132AA0(Actor105100Ctx* arg0, Actor105100* arg1)
@@ -576,11 +576,11 @@ void func_actor_105100_80133A14(Actor105100* arg0, Actor105100Ctx* arg1)
             break;
         case 2:
             if ((s16)work->field_592 == 0xC) {
-                work->field_55C  = NULL;
-                work->field_502 |= 0x8000;
+                work->field_55C     = NULL;
+                work->obj4E4.flags |= 0x8000;
                 Gp_SpawnPadLerp(0xF, 0xFF, 0x80);
             } else {
-                work->field_502 &= 0x7FFF;
+                work->obj4E4.flags &= 0x7FFF;
             }
             if ((s16)work->field_592 >= 0x1B) {
                 work->field_598 = 3;
@@ -751,15 +751,15 @@ void func_actor_105100_801359B4(Actor105100* arg0)
             vec->vy = 0;
             vec->vz = D_actor_105100_80141418[rec->field_44].vz - coord->coord.t[2];
             VectorNormalS(vec, (SVECTOR*)&work->obj38);
-            dx                   = vec->vx;
-            dz                   = vec->vz;
-            speed                = SquareRoot0(dx * dx + dz * dz) / work->obj38.field_10;
-            rec->field_46        = 1;
-            work->obj38.field_14 = speed;
+            dx                 = vec->vx;
+            dz                 = vec->vz;
+            speed              = SquareRoot0(dx * dx + dz * dz) / work->obj38.pos.vx;
+            rec->field_46      = 1;
+            work->obj38.pos.vz = speed;
             break;
         case 1:
-            coord->coord.t[0] += (((SVECTOR*)&work->obj38)->vx * work->obj38.field_14) >> 12;
-            coord->coord.t[2] += (((SVECTOR*)&work->obj38)->vz * work->obj38.field_14) >> 12;
+            coord->coord.t[0] += (((SVECTOR*)&work->obj38)->vx * work->obj38.pos.vz) >> 12;
+            coord->coord.t[2] += (((SVECTOR*)&work->obj38)->vz * work->obj38.pos.vz) >> 12;
             break;
     }
     *(VECTOR**)0x1F8003FC += 1;
@@ -834,7 +834,7 @@ void func_actor_105100_80135FCC(Actor105100* arg0)
 }
 
 /// Opening stage of the `field_598` schedule: arms pose 8, releases the held
-/// effect slot and drops the `field_502` pose bit, then waits on
+/// effect slot and drops the `obj4E4.flags` pose bit, then waits on
 /// `Gp_TickObjFlag2` before clearing the enemy's flag-2 bit. On the last stage
 /// it waits out the `field_592` timer and returns the schedule to step 0.
 void func_actor_105100_801360AC(Actor105100* arg0)
@@ -858,8 +858,8 @@ void func_actor_105100_801360AC(Actor105100* arg0)
             }
             work->field_5AC = 0;
             func_actor_105100_801362A0(arg0);
-            eff             = work->field_55C;
-            work->field_502 = work->field_502 & 0x7FFF;
+            eff                = work->field_55C;
+            work->obj4E4.flags = work->obj4E4.flags & 0x7FFF;
             if (eff != NULL) {
                 eff->field_0->state = 4;
                 work->field_55C     = NULL;
@@ -904,8 +904,8 @@ void func_actor_105100_801361C4(Actor105100* arg0)
             work->field_5B4 = 0;
             work->field_5AC = 0;
             func_actor_105100_801362A0(arg0);
-            eff             = work->field_55C;
-            work->field_502 = work->field_502 & 0x7FFF;
+            eff                = work->field_55C;
+            work->obj4E4.flags = work->obj4E4.flags & 0x7FFF;
             if (eff != NULL) {
                 eff->field_0->state = 4;
                 work->field_55C     = NULL;
@@ -955,13 +955,13 @@ void func_actor_105100_801362A0(Actor105100* arg0)
 
 /// Last-enemy handler. While the remaining-enemy count is still positive it
 /// retires the queued sound events, unlinks the running effect, drops the
-/// 0x8000 bit of `field_502` and pins the task to the tick handler (`state` 2);
+/// 0x8000 bit of `obj4E4.flags` and pins the task to the tick handler (`state` 2);
 /// once the count is spent it puts the enemy's HP (`Actor105100Ctx::field_40`)
 /// at 1 and arms pose 6, leaving `state` alone.
 ///
 /// The work block is read twice on purpose. The two loads do not CSE (the
 /// `field_5B4` / `field_5AC` stores sit between them), and the first pointer is
-/// still live at the tail for `field_502` and `field_55C`, so the second one
+/// still live at the tail for `obj4E4.flags` and `field_55C`, so the second one
 /// needs a register of its own.
 void func_actor_105100_80136318(Actor105100* arg0)
 {
@@ -999,8 +999,8 @@ void func_actor_105100_80136318(Actor105100* arg0)
         sndWork->field_588 = 0;
     }
 
-    eff             = work->field_55C;
-    work->field_502 = work->field_502 & 0x7FFF;
+    eff                = work->field_55C;
+    work->obj4E4.flags = work->obj4E4.flags & 0x7FFF;
     if (eff != NULL) {
         eff->field_0->state = 4;
         work->field_55C     = NULL;

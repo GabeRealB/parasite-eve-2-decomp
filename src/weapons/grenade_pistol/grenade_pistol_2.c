@@ -72,7 +72,7 @@ void func_grenade_pistol_8011D6FC(Task* arg0)
         work->field_88.w        = clip;
         work->obj.flags        &= 0xBFFF;
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GrenadePistolScratch);
-        work->obj.field_1C      = D_grenade_pistol_8012B430[blk->sfx - 0xA];
+        work->obj.radius        = D_grenade_pistol_8012B430[blk->sfx - 0xA];
         return;
     }
 

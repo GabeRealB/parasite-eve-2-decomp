@@ -216,28 +216,28 @@ typedef struct _GameActor {
     /* 0x064 */ s16                 field_64; // pitch; Gp_AimPitchToLockAlt
     /* 0x066 */ byte                pad_66[2];
     /* 0x068 */ s16                 field_68;
-    /* 0x06A */ s16                 field_6A;       // aim/look yaw offset; func_8010BE5C
+    /* 0x06A */ s16                 field_6A;        // aim/look yaw offset; func_8010BE5C
     /* 0x06C */ byte                pad_6C[4];
-    /* 0x070 */ s16                 field_70;       // pitch-like angle; Gp_AimPitchRec
+    /* 0x070 */ s16                 field_70;        // pitch-like angle; Gp_AimPitchRec
     /* 0x072 */ byte                pad_72[6];
-    /* 0x078 */ s16                 field_78;       // pitch; Gp_AimPitchDirect
+    /* 0x078 */ s16                 field_78;        // pitch; Gp_AimPitchDirect
     /* 0x07A */ byte                pad_7A[6];
-    /* 0x080 */ s16                 field_80;       // copied from func_80104F5C arg2
-    /* 0x082 */ s16                 field_82;       // target facing angle; func_80104E00 / Gp_PlayerMode2State2
+    /* 0x080 */ s16                 field_80;        // copied from func_80104F5C arg2
+    /* 0x082 */ s16                 field_82;        // target facing angle; func_80104E00 / Gp_PlayerMode2State2
     /* 0x084 */ byte                pad_84[4];
-    /* 0x088 */ byte                field_88[8];    // address taken as GpObj.field_C
+    /* 0x088 */ byte                field_88[8];     // address taken as `GpObj.ctx.dir`
     /* 0x090 */ s32                 field_90;
-    /* 0x094 */ byte                field_94[8];    // address taken as GpObj.field_C
+    /* 0x094 */ byte                field_94[8];     // address taken as `GpObj.ctx.dir`
     /* 0x09C */ s32                 field_9C;
-    /* 0x0A0 */ byte                field_A0[8];    // address taken as GpObj.field_C
+    /* 0x0A0 */ byte                field_A0[8];     // address taken as `GpObj.ctx.dir`
     /* 0x0A8 */ s32                 field_A8;
-    /* 0x0AC */ byte                field_AC[0x20]; // 0x20-byte list node (Gp_UnlinkObj)
-    /* 0x0CC */ byte                field_CC[0x20];
-    /* 0x0EC */ byte                field_EC[0x20];
-    /* 0x10C */ byte                field_10C[0x18]; // 0x20-byte list node; field_124 is +0x18
+    /* 0x0AC */ byte                field_AC[0x20];  // first of the five `GpObj` nodes at 0xAC..0x14C
+    /* 0x0CC */ byte                field_CC[0x20];  // `GpObj` node
+    /* 0x0EC */ byte                field_EC[0x20];  // `GpObj` node
+    /* 0x10C */ byte                field_10C[0x18]; // `GpObj` node; `field_124` is its key
     /* 0x124 */ u32                 field_124;
     /* 0x128 */ byte                pad_128[2];
-    /* 0x12A */ u16                 field_12A;
+    /* 0x12A */ u16                 field_12A;       // that node's flags
     /* 0x12C */ byte                field_12C[0x20];
     /* 0x14C */ byte                field_14C[0x18]; // GpActorD4Rec; Gp_AttachActorObj
     /* 0x164 */ byte                pad_164[0x18];

@@ -20,7 +20,7 @@
 /// The trio at +0x50 is a second rotation set: `func_actor_107600_80134A50`
 /// wraps each to 12 bits and feeds them to `Gfx_RotMatrixX/Y/Z` in turn.
 ///
-/// `rec18` is the collision table `obj.field_C` points at and
+/// `rec18` is the collision table `obj.ctx.recs` points at and
 /// `func_actor_107600_80134958` hands to `Gp_InitRec18Table` with count 8, so
 /// it really runs to +0x140 and `field_13E` sits inside its last record.
 /// `field_162` is the spawn variant `func_actor_107600_80132ED0` takes from
@@ -77,7 +77,7 @@ typedef struct Actor107600Work {
     /* 0x15C */ s16  field_15C;
     /* 0x15E */ u16  field_15E;
     /* 0x160 */ s16  field_160; // damage of the last hit
-    /* 0x162 */ s16  field_162; // spawn variant; 1 selects the 0x220 obj.field_1C
+    /* 0x162 */ s16  field_162; // spawn variant; 1 selects the 0x220 obj.radius
     /* 0x164 */ byte pad_164[0x2];
     /* 0x166 */ u16  field_166; // frame counter of the post-death light cycle
     /* 0x168 */ u8   field_168; // percent scale applied to coord.m[0][0]

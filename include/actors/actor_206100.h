@@ -89,7 +89,7 @@ extern const Actor206100StateTable4 D_actor_206100_80149EC0;
 /// retires the actor, plus the area-record list that handler applies.
 extern GpAreaApplyRec D_8018590C;
 
-/// The pair table the beam's collision object carries at `GpObj.field_18`
+/// The pair table the beam's collision object carries at `GpObj.key`
 /// (`Gp_PackPair` kind 1). One word, `field_0` = 0x1A and `field_2` = 5.
 extern GpU16Pair D_actor_206100_80155194;
 
@@ -206,7 +206,7 @@ STATIC_ASSERT_SIZEOF(Actor206100DistScratch, 0xC);
 ///
 /// `obj_364` / `obj_414` are the two `Gp_LinkObj` nodes the actor's retirement
 /// handler `func_actor_206100_8014FBE4` unlinks, alongside the enemy's own
-/// `GpLinkNode`.  Both nodes point their `field_C` at the same six-entry
+/// `GpLinkNode`.  Both nodes point their `ctx.recs` at the same six-entry
 /// `GpRec18` table `func_actor_206100_8014F18C` zeroes in `rec_384`, which is
 /// why `Gp_InitRec18Table` is called once for the pair.
 typedef struct Actor206100Work {
@@ -225,7 +225,7 @@ typedef struct Actor206100Work {
     /* 0x360 */ byte  pad_360[0x4];
     /* 0x364 */ GpObj obj_364;
     /// The six-entry contact table `func_actor_206100_8014F18C` zeroes and both
-    /// objects above point their `field_C` at.  `func_actor_206100_8014BAA8`
+    /// objects above point their `ctx.recs` at.  `func_actor_206100_8014BAA8`
     /// walks it one record a step: `field_4` carries the packed hit id whose
     /// high half selects kind 2, and the walk stops early once `field_52A` goes
     /// up.  The record's own `field_0` / `field_8..field_14` are the occupancy
@@ -443,7 +443,7 @@ STATIC_ASSERT_SIZEOF(Actor206100Work, 0x558);
 /// `obj` is the kind-1 `GpObj` the spawn state `func_actor_206100_8014EEC0`
 /// links into the collision list and `func_actor_206100_8014FBE4` unlinks
 /// again on retirement, so the 0x8 before it is not the node's own header and
-/// stays zero.  `rec` is the two-entry `GpRec18` table `obj.field_C` points at.
+/// stays zero.  `rec` is the two-entry `GpRec18` table `obj.ctx.recs` points at.
 /// `field_58` / `field_5A` / `field_5C` are the view-space deltas the spawner
 /// stores from the actor's coordinate, `field_60` the pair index the setup
 /// hands to `func_actor_206100_8014A70C`, and `field_64` the scale word it

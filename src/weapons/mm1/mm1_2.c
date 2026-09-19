@@ -72,7 +72,7 @@ void func_mm1_8011D704(Task* arg0)
         work->field_88.w        = clip;
         work->obj.flags        &= 0xBFFF;
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Mm1Scratch);
-        work->obj.field_1C      = D_mm1_8012D2D0[blk->sfx - 0xA];
+        work->obj.radius        = D_mm1_8012D2D0[blk->sfx - 0xA];
         return;
     }
 

@@ -263,11 +263,11 @@ void func_actor_521100_801335B4(Actor521100* arg0)
                 Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
                 work->field_68E = tbl[(Gp_LcgState >> 16) & 0xF];
             } else {
-                work->field_6A2       = 2;
-                work->field_686       = 8;
-                pair                  = Gp_PackPair(&D_actor_521100_8015F550, 2);
-                work->obj57C.field_18 = pair;
-                work->obj59C.field_18 = pair;
+                work->field_6A2  = 2;
+                work->field_686  = 8;
+                pair             = Gp_PackPair(&D_actor_521100_8015F550, 2);
+                work->obj57C.key = pair;
+                work->obj59C.key = pair;
             }
             break;
         case 2:

@@ -43,11 +43,9 @@ typedef struct _GpLinkNode {
 } GpLinkNode;
 STATIC_ASSERT_SIZEOF(GpLinkNode, 0x8);
 
-/// Payload a kind-4 `GpObj` points at with `field_C` (`GameActor.field_88`,
-/// followed by `GameActor.field_90`). `dir` is the facing vector
-/// `Gp_UpdatePlayerMove` writes there each frame; `field_8` is the `GpRec18` table
-/// `Gp_CollideObjGridDir` walks for that object. `func_800DBA20` reaches the same
-/// pointer by casting `field_C` to a `GpObj*` and reading its `field_8`.
+/// What a kind-4 `GpObj` holds in `ctx.dir` (`GameActor.field_88`, followed by
+/// `GameActor.field_90`). `dir` is the facing vector written there each frame;
+/// `field_8` is the `GpRec18` table the object's contacts are recorded in.
 typedef struct _GpObjDirRec {
     /* 0x0 */ SVECTOR  dir;
     /* 0x8 */ GpRec18* field_8;
@@ -851,8 +849,8 @@ typedef struct _GpSpotScratch {
 STATIC_ASSERT_SIZEOF(GpSpotScratch, 0x2C);
 
 /// 0x28-byte scratch from `G_SCRATCH_HEAD` used by `Gp_FindNearestSlot`.
-/// `local` is `GpActorD4Rec.field_8/A/C` plus `GpObj.field_10/12/14`,
-/// rotated by `field_8->workm`. `vec` is that GTE output (then overwritten
+/// `local` is `GpActorD4Rec.field_8/A/C` plus `GpObj.pos`,
+/// rotated by `coord->workm`. `vec` is that GTE output (then overwritten
 /// with per-slot XYZ deltas). `world` is `vec + workm.t`.
 typedef struct _GpNearScratch {
     /* 0x00 */ VECTOR3 vec;
@@ -940,8 +938,8 @@ typedef struct _GpRayHitScratch {
 STATIC_ASSERT_SIZEOF(GpRayHitScratch, 0x40);
 
 /// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_800DEC80`.
-/// `local` is `field_C` as `SVECTOR[2]` plus the object's 0x10 SVECTOR,
-/// rotated by `field_8->workm` into `vec` then added to `workm.t`.
+/// `local` is `GpObj.ctx.d4rec` as `SVECTOR[2]` plus `GpObj.pos`,
+/// rotated by `coord->workm` into `vec` then added to `workm.t`.
 /// `vec` is reused as `arg1[0] - arg1[1]` for `VectorNormalS`.
 typedef struct _GpNormScratch {
     /* 0x00 */ VECTOR  vec;
@@ -976,8 +974,8 @@ typedef struct _GpFaceHitScratch {
 STATIC_ASSERT_SIZEOF(GpFaceHitScratch, 0x80);
 
 /// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_800E0994`.
-/// `local[0]` / `local[1]` are `(0, field_12 +/- field_1C, 0)` in the
-/// object's local space, rotated by `field_8->workm` into `vec` then added
+/// `local[0]` / `local[1]` are `(0, pos.vy +/- radius, 0)` in the
+/// object's local space, rotated by `coord->workm` into `vec` then added
 /// to `workm.t` to give the two world points `arg1[0]` / `arg1[1]`.
 /// `vec` is reused as `arg1[0] - arg1[1]` for `VectorNormalS`.
 typedef struct _GpAxisScratch {
@@ -988,10 +986,10 @@ STATIC_ASSERT_SIZEOF(GpAxisScratch, 0x20);
 
 /// 0x50-byte scratch from `G_SCRATCH_HEAD` used by `func_800DDC2C` and
 /// `func_800DE150`. `src[0]` / `src[1]` are the local XZ endpoints of
-/// `GpObj.field_10/14` offset by `field_C` (as an SVECTOR) scaled by
-/// `field_1C >> 12` (`func_800DDC2C`), or by the two `SVECTOR`s `field_C`
-/// points at (`func_800DE150`, which passes 1 to `func_800DE2C0`). `mat`
-/// is `Gfx_ViewWorldMtx * field_8->workm`. `pos` holds the rotated endpoints
+/// `GpObj.pos` offset by `ctx.dir->dir` (as an SVECTOR) scaled by
+/// `radius >> 12` (`func_800DDC2C`), or by the two `SVECTOR`s `ctx.d4rec`
+/// leads with (`func_800DE150`, which passes 1 to `func_800DE2C0`). `mat`
+/// is `Gfx_ViewWorldMtx * coord->workm`. `pos` holds the rotated endpoints
 /// plus `mat.t[0]/t[2]` and `Gp_GridParams` grid offsets, then passed to
 /// `func_800DE2C0`.
 typedef struct _GpEdgeScratch {
@@ -1522,8 +1520,8 @@ s32 func_800E0C10(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
 /// records there. Returns 0 when nothing contributed, 2 when two kind-0
 /// records push in opposing directions, and 1 otherwise.
 s32 func_800E0FEC(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
-/// Transforms `arg0`'s local offset (`GpActorD4Rec` at `field_C` plus the
-/// 0x10 SVECTOR) by `field_8->workm` and returns the 1-based index of the
+/// Transforms `arg0`'s local offset (`ctx.d4rec` plus `pos`) by
+/// `coord->workm` and returns the 1-based index of the
 /// closest occupied `GpRec18` in `rec->field_14` whose `key` high 16
 /// bits match `arg1`, or 0 if none match.
 s32  Gp_FindNearestSlot(GpObj* arg0, s32 arg1);

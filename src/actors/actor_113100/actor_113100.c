@@ -117,17 +117,17 @@ void func_actor_113100_80131E58(Task* task)
     ActorsShared80132f24(task);
 
     obj           = &work->obj;
-    obj->field_8  = &((TmdObject*)task->extra)->coords[1];
-    obj->field_C  = &work->field_4D8;
-    obj->field_18 = 0x30000;
-    obj->field_1C = 0x100;
-    obj->field_10 = 0;
-    obj->field_12 = 0;
-    obj->field_14 = 0;
+    obj->coord    = &((TmdObject*)task->extra)->coords[1];
+    obj->ctx.recs = &work->field_4D8;
+    obj->key      = 0x30000;
+    obj->radius   = 0x100;
+    obj->pos.vx   = 0;
+    obj->pos.vy   = 0;
+    obj->pos.vz   = 0;
     obj->flags    = 1;
     Gp_LinkObj(2, obj);
     obj->flags |= 0x8000;
-    Gp_InitRec18Table(obj->field_C, 1, 0);
+    Gp_InitRec18Table(obj->ctx.recs, 1, 0);
 
     task->msgTable = &D_actor_113100_80144338;
     func_80183BAC(1);

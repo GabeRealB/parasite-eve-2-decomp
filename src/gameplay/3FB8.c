@@ -3197,7 +3197,7 @@ void Gp_InitPlayerWork(GpActorWork* arg0)
     GsCOORDINATE2* coord;
     GpObj*         obj;
     GpRec18*       recs;
-    GpRec18*       link;
+    GpObjDirRec*   link;
     McSaveData*    save;
     s32            packed;
     s32            size;
@@ -3232,20 +3232,20 @@ void Gp_InitPlayerWork(GpActorWork* arg0)
 
     recs            = actor->field_17C;
     obj             = (GpObj*)actor->field_AC;
-    obj->field_C    = (GpRec18*)actor->field_88;
-    obj->field_8    = coord;
+    obj->ctx.dir    = (GpObjDirRec*)actor->field_88;
+    obj->coord      = coord;
     actor->field_90 = (s32)recs;
-    obj->field_12   = -0x12C;
+    obj->pos.vy     = -0x12C;
     save            = &Mc_SaveData;
-    obj->field_10   = 0;
-    obj->field_14   = 0;
+    obj->pos.vx     = 0;
+    obj->pos.vz     = 0;
     {
         s32 temp;
-        temp          = save->field_22;
-        obj->field_1C = 0x12C;
-        obj->flags    = 4;
-        packed        = 0x10000;
-        obj->field_18 = temp | packed;
+        temp        = save->field_22;
+        obj->radius = 0x12C;
+        obj->flags  = 4;
+        packed      = 0x10000;
+        obj->key    = temp | packed;
         Gp_LinkObj(0, obj);
     }
     Gp_InitRec18Table((GpRec18*)actor->field_90, 0x12, 0);
@@ -3256,40 +3256,40 @@ void Gp_InitPlayerWork(GpActorWork* arg0)
         GsCOORDINATE2* next;
         zero = 0;
         TOUCH_REG(zero);
-        link            = (GpRec18*)actor->field_94;
+        link            = (GpObjDirRec*)actor->field_94;
         size            = 0xDC;
         obj->flags     |= 0xF200;
         obj             = (GpObj*)actor->field_CC;
         next            = (GsCOORDINATE2*)arg0->extra->coords;
-        obj->field_C    = link;
-        obj->field_8    = next + 4;
+        obj->ctx.dir    = link;
+        obj->coord      = next + 4;
         actor->field_9C = (s32)recs;
-        obj->field_12   = 0x64;
-        obj->field_10   = 0;
-        obj->field_14   = 0x28;
+        obj->pos.vy     = 0x64;
+        obj->pos.vx     = 0;
+        obj->pos.vz     = 0x28;
         temp            = save->field_22;
-        obj->field_1C   = size;
+        obj->radius     = size;
         obj->flags      = 0x14;
-        obj->field_18   = temp | packed;
+        obj->key        = temp | packed;
         Gp_LinkObj(zero, obj);
     }
 
     zero = 0;
     TOUCH_REG(zero);
     obj->flags     |= 0x8000;
-    link            = (GpRec18*)actor->field_A0;
+    link            = (GpObjDirRec*)actor->field_A0;
     obj             = (GpObj*)actor->field_EC;
     next            = (GsCOORDINATE2*)arg0->extra->coords;
-    obj->field_C    = link;
-    obj->field_8    = next + 1;
+    obj->ctx.dir    = link;
+    obj->coord      = next + 1;
     actor->field_A8 = (s32)recs;
-    obj->field_10   = 0;
-    obj->field_12   = 0x52;
-    obj->field_14   = 0;
+    obj->pos.vx     = 0;
+    obj->pos.vy     = 0x52;
+    obj->pos.vz     = 0;
     temp            = save->field_22;
-    obj->field_1C   = size;
+    obj->radius     = size;
     obj->flags      = 0x24;
-    obj->field_18   = temp | packed;
+    obj->key        = temp | packed;
     Gp_LinkObj(zero, obj);
     obj->flags |= 0xC000;
 
@@ -3400,11 +3400,11 @@ void Gp_AttachActorObj(GpActorWork* arg0, s32 arg1, s32 arg2)
         src                               = (GsCOORDINATE2*)((TmdObject*)extra)->coords;
         *(GsCOORDINATE2*)actor->field_3D4 = *src;
         Gfx_RotMatrixX(&((GsCOORDINATE2*)actor->field_3D4)->workm, 0x400, 0);
-        obj->field_8                     = actor->field_3D4;
+        obj->coord                       = actor->field_3D4;
         ((GpActorSvec*)actor)->field_418 = 0;
         ((GpActorSvec*)actor)->field_41A = 0;
         ((GpActorSvec*)actor)->field_41C = 0;
-        obj->field_C                     = (GpRec18*)actor->field_14C;
+        obj->ctx.d4rec                   = (GpActorD4Rec*)actor->field_14C;
         COMPILER_BARRIER();
         three            = 3;
         packed           = id << 8;
@@ -3412,9 +3412,9 @@ void Gp_AttachActorObj(GpActorWork* arg0, s32 arg1, s32 arg2)
         flag             = 0x20000;
         flag             = kind | flag;
         packed          |= flag;
-        obj->field_10    = 0;
-        obj->field_12    = 0;
-        obj->field_14    = 0;
+        obj->pos.vx      = 0;
+        obj->pos.vy      = 0;
+        obj->pos.vz      = 0;
         actor->field_124 = packed;
         *tmp             = D_80112FA4[id];
         rec->field_8     = tmp->vx;
@@ -8434,7 +8434,7 @@ void func_80109844(GpActorWork* arg0)
     switch (inner->field_95E) {
         case 0:
             inner->field_95E   = 1;
-            coord              = (GsCOORDINATE2*)((GpObj*)inner->field_AC)[(s8)inner->field_993].field_8;
+            coord              = (GsCOORDINATE2*)((GpObj*)inner->field_AC)[(s8)inner->field_993].coord;
             params->field_4    = (temp * 0x20) + 0x120;
             params->field_6    = temp + 1;
             D_80113358.field_0 = coord;
@@ -8575,16 +8575,16 @@ void func_80109BB4(GpActorWork* arg0, GpRec18* arg1)
                     id = rec->id;
                     if (id < 0x46 && D_80113F9C[id] == 1) {
                         obj = &((GpObj*)actor->field_AC)[(u8)rec->flags >> 4];
-                        gte_SetRotMatrix(&((GsCOORDINATE2*)obj->field_8)->workm);
-                        gte_ldv0(&obj->field_10);
+                        gte_SetRotMatrix(&obj->coord->workm);
+                        gte_ldv0(&obj->pos);
                         gte_rtv0_real();
                         gte_stlvnl(&s->delta);
-                        s->pos.vx = ((GsCOORDINATE2*)obj->field_8)->workm.t[0] +
+                        s->pos.vx = ((GsCOORDINATE2*)obj->coord)->workm.t[0] +
                                     s->delta.vx;
                         s->pos.vy =
-                            ((GsCOORDINATE2*)obj->field_8)->workm.t[1] + s->delta.vy;
+                            ((GsCOORDINATE2*)obj->coord)->workm.t[1] + s->delta.vy;
                         s->pos.vz =
-                            ((GsCOORDINATE2*)obj->field_8)->workm.t[2] + s->delta.vz;
+                            ((GsCOORDINATE2*)obj->coord)->workm.t[2] + s->delta.vz;
                         s->delta.vx = s->pos.vx - rec->x;
                         s->delta.vy = s->pos.vy - rec->y;
                         s->delta.vz = s->pos.vz - rec->z;
@@ -9157,7 +9157,7 @@ void func_8010AD64(GpActorWork* arg0)
         case 0:
             idx                     = (s8)inner->field_993;
             inner->field_95E        = 1;
-            coord                   = (GsCOORDINATE2*)((GpObj*)inner->field_AC)[idx].field_8;
+            coord                   = (GsCOORDINATE2*)((GpObj*)inner->field_AC)[idx].coord;
             params->field_4         = 0xC0;
             params->field_6         = 2;
             D_80113358.field_0      = coord;
@@ -9938,29 +9938,29 @@ void Gp_BindActorD4(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2)
     GpActorD4Rec*  rec;
     s16            vz;
 
-    block         = arg0->actor->field_910;
-    src           = (GsCOORDINATE2*)arg0->extra->coords;
-    obj           = (GpObj*)block->field_68;
-    rec           = &block->field_88;
-    dest          = (GsCOORDINATE2*)block->field_18;
-    *dest         = *src;
-    obj->field_8  = block->field_18;
-    obj->field_14 = -0xA0;
-    obj->field_18 = 0x60000;
-    obj->field_C  = (GpRec18*)rec;
-    obj->field_10 = 0;
-    obj->field_12 = 0;
-    obj->flags    = 3;
-    rec->field_8  = arg1->vx;
-    rec->field_A  = arg1->vy;
-    vz            = arg1->vz;
-    rec->field_4  = arg2;
-    rec->field_0  = rec->field_8;
-    rec->field_12 = 0x80;
-    rec->field_10 = 0x80;
-    rec->field_14 = &block->field_A0;
-    rec->field_C  = vz;
-    rec->field_2  = rec->field_A;
+    block          = arg0->actor->field_910;
+    src            = (GsCOORDINATE2*)arg0->extra->coords;
+    obj            = (GpObj*)block->field_68;
+    rec            = &block->field_88;
+    dest           = (GsCOORDINATE2*)block->field_18;
+    *dest          = *src;
+    obj->coord     = block->field_18;
+    obj->pos.vz    = -0xA0;
+    obj->key       = 0x60000;
+    obj->ctx.d4rec = rec;
+    obj->pos.vx    = 0;
+    obj->pos.vy    = 0;
+    obj->flags     = 3;
+    rec->field_8   = arg1->vx;
+    rec->field_A   = arg1->vy;
+    vz             = arg1->vz;
+    rec->field_4   = arg2;
+    rec->field_0   = rec->field_8;
+    rec->field_12  = 0x80;
+    rec->field_10  = 0x80;
+    rec->field_14  = &block->field_A0;
+    rec->field_C   = vz;
+    rec->field_2   = rec->field_A;
     Gp_LinkObj(1, obj);
     Gp_InitRec18Table(rec->field_14, 1, 0);
     obj->flags |= 0xC800;
@@ -10197,15 +10197,15 @@ s32 Gp_HurtAlly(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
 
 void func_8010C980(void* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3, s32 arg4, s32 arg5)
 {
-    arg1->field_8  = arg0;
-    arg1->field_C  = arg2;
-    arg1->field_10 = 0;
-    arg1->field_12 = 0;
-    arg1->field_14 = 0;
+    arg1->coord    = arg0;
+    arg1->ctx.recs = arg2;
+    arg1->pos.vx   = 0;
+    arg1->pos.vy   = 0;
+    arg1->pos.vz   = 0;
     arg1->flags    = 1;
-    arg1->field_18 = arg4 | 0x30000;
-    arg1->field_1C = arg5;
+    arg1->key      = arg4 | 0x30000;
+    arg1->radius   = arg5;
     Gp_LinkObj(2, arg1);
     arg1->flags |= 0x8000;
-    Gp_InitRec18Table(arg1->field_C, (s16)arg3, 0);
+    Gp_InitRec18Table(arg1->ctx.recs, (s16)arg3, 0);
 }

@@ -103,7 +103,7 @@ extern u32 Gp_LcgState;
 
 void func_800B4114(Actor101500Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
-/// Pair packed into the third collision object's `field_18` at spawn.
+/// Pair packed into the third collision object's `key` at spawn.
 extern GpU16Pair D_actor_101500_8013BDD4;
 /// Enemy stat block; `field_4` seeds the hit points.
 extern GpPairSrcE D_actor_101500_8013BDD8;

@@ -140,20 +140,20 @@ void func_actor_342400_801648E4(Task* arg0)
         return;
     }
     if ((s16)work->field_412 >= 47) {
-        root->coord.t[1]       += work->field_42A;
-        work->obj_2CC.field_12 += work->field_42A;
-        work->field_428        += 30;
-        work->field_42A        += work->field_428;
+        root->coord.t[1]     += work->field_42A;
+        work->obj_2CC.pos.vy += work->field_42A;
+        work->field_428      += 30;
+        work->field_42A      += work->field_428;
         if (root->coord.t[1] >= (s16)work->field_92) {
             Actor342400Work* w = (Actor342400Work*)arg0->work;
 
-            w->field_426           = 2;
-            w->field_41C           = 0x10;
-            w->field_418           = 0x12;
-            w->field_414           = 1;
-            root->coord.t[1]       = (s16)work->field_92;
-            work->obj_2CC.field_12 = 0;
-            work->field_412        = 0;
+            w->field_426         = 2;
+            w->field_41C         = 0x10;
+            w->field_418         = 0x12;
+            w->field_414         = 1;
+            root->coord.t[1]     = (s16)work->field_92;
+            work->obj_2CC.pos.vy = 0;
+            work->field_412      = 0;
             work->field_422++;
         }
     }

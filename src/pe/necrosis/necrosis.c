@@ -107,21 +107,21 @@ void func_necrosis_8012EF34(Task* arg0)
             gte_ldv0(&mem->field_10);
             gte_rtv0_real();
             gte_stsv(&mem->field_10);
-            rec               = &work->rec;
-            mem->field_20     = (Gp_StateC08.field_0 % 10) - 1;
-            arg0->work        = (TaskIdMap*)work;
-            work->obj.field_8 = coord;
-            work->obj.field_C = rec;
-            work->obj.field_18 =
+            rec                = &work->rec;
+            mem->field_20      = (Gp_StateC08.field_0 % 10) - 1;
+            arg0->work         = (TaskIdMap*)work;
+            work->obj.coord    = coord;
+            work->obj.ctx.recs = rec;
+            work->obj.key =
                 ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 + ((u16)((u16)(Gp_StateC08.field_0 % 100) / 10) - 1) * 3 + (u16)(Gp_StateC08.field_0 % 10) + 0x28000;
-            work->obj.field_1C = D_necrosis_801306BC[mem->field_20].field_0;
-            work->obj.flags    = 1;
+            work->obj.radius = D_necrosis_801306BC[mem->field_20].field_0;
+            work->obj.flags  = 1;
             Gp_LinkObj(1, &work->obj);
             rec->flags          = 2;
-            work->obj2.field_8  = coord;
-            work->obj2.field_C  = rec;
-            work->obj2.field_18 = 0;
-            work->obj2.field_1C = 0x80;
+            work->obj2.coord    = coord;
+            work->obj2.ctx.recs = rec;
+            work->obj2.key      = 0;
+            work->obj2.radius   = 0x80;
             work->obj2.flags    = 1;
             work->obj.flags    |= 0x8000;
             Gp_LinkObj(7, &work->obj2);
@@ -149,7 +149,7 @@ void func_necrosis_8012EF34(Task* arg0)
                 if (spawned != NULL) {
                     Task_Reparent(arg0, spawned->field_0);
                 }
-                work->obj.field_1C = (u16)work->obj.field_1C + 0x20;
+                work->obj.radius = (u16)work->obj.radius + 0x20;
             } else {
                 mem->field_22 = (u16)mem->field_22 - 1;
             }
@@ -164,7 +164,7 @@ void func_necrosis_8012EF34(Task* arg0)
                 arg0->state = 2;
                 return;
             }
-            if (Gp_FindRec18(work->obj2.field_C, 0x100000) != 0) {
+            if (Gp_FindRec18(work->obj2.ctx.recs, 0x100000) != 0) {
                 mem->field_10 = 0;
                 mem->field_12 = 0;
                 mem->field_14 = 0;

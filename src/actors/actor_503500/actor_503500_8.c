@@ -687,13 +687,13 @@ void func_actor_503500_8013CAE4(Actor503500* arg0)
     enemy->field_54              = (s32)rec;
     enemy->field_40              = enemy->field_50->field_4;
 
-    work->obj.field_8  = coord;
-    work->obj.field_C  = rec;
-    work->obj.field_10 = pos->vx;
-    work->obj.field_12 = pos->vy;
-    work->obj.field_14 = pos->vz;
-    work->obj.field_18 = 0x30023;
-    work->obj.field_1C = 0x190;
+    work->obj.coord    = coord;
+    work->obj.ctx.recs = rec;
+    work->obj.pos.vx   = pos->vx;
+    work->obj.pos.vy   = pos->vy;
+    work->obj.pos.vz   = pos->vz;
+    work->obj.key      = 0x30023;
+    work->obj.radius   = 0x190;
     work->obj.flags    = 1;
     Gp_LinkObj(2, &work->obj);
     Gp_InitRec18Table(rec, 8, 0);
@@ -1197,14 +1197,14 @@ void func_actor_503500_8013DD10(Actor503500* arg0)
     enemy->field_54     = (s32)rec;
     enemy->field_40     = enemy->field_50->field_4;
 
-    D_actor_503500_8017797C.obj.field_8  = coord;
-    D_actor_503500_8017797C.obj.field_C  = rec;
-    D_actor_503500_8017797C.obj.field_18 = 0x30023;
-    D_actor_503500_8017797C.obj.field_1C = 0x3E8;
+    D_actor_503500_8017797C.obj.coord    = coord;
+    D_actor_503500_8017797C.obj.ctx.recs = rec;
+    D_actor_503500_8017797C.obj.key      = 0x30023;
+    D_actor_503500_8017797C.obj.radius   = 0x3E8;
     D_actor_503500_8017797C.obj.flags    = 1;
-    D_actor_503500_8017797C.obj.field_10 = D_actor_503500_8016F2D8.vx;
-    D_actor_503500_8017797C.obj.field_12 = D_actor_503500_8016F2D8.vy;
-    D_actor_503500_8017797C.obj.field_14 = D_actor_503500_8016F2D8.vz;
+    D_actor_503500_8017797C.obj.pos.vx   = D_actor_503500_8016F2D8.vx;
+    D_actor_503500_8017797C.obj.pos.vy   = D_actor_503500_8016F2D8.vy;
+    D_actor_503500_8017797C.obj.pos.vz   = D_actor_503500_8016F2D8.vz;
     Gp_LinkObj(2, &D_actor_503500_8017797C.obj);
     Gp_InitRec18Table(rec, 8, 0);
     D_actor_503500_8017797C.field_E4   = 0x600;
@@ -1617,13 +1617,13 @@ void func_actor_503500_8013ECBC(Actor503500* arg0)
     enemy->field_54      = (s32)rec;
     enemy->field_40      = enemy->field_50->field_4;
 
-    D_actor_503500_80177A6C.obj.field_8  = coord;
-    D_actor_503500_80177A6C.obj.field_C  = rec;
-    D_actor_503500_80177A6C.obj.field_10 = D_actor_503500_8016F36C.vx;
-    D_actor_503500_80177A6C.obj.field_12 = D_actor_503500_8016F36C.vy;
-    D_actor_503500_80177A6C.obj.field_14 = D_actor_503500_8016F36C.vz;
-    D_actor_503500_80177A6C.obj.field_18 = 0x30023;
-    D_actor_503500_80177A6C.obj.field_1C = 0x320;
+    D_actor_503500_80177A6C.obj.coord    = coord;
+    D_actor_503500_80177A6C.obj.ctx.recs = rec;
+    D_actor_503500_80177A6C.obj.pos.vx   = D_actor_503500_8016F36C.vx;
+    D_actor_503500_80177A6C.obj.pos.vy   = D_actor_503500_8016F36C.vy;
+    D_actor_503500_80177A6C.obj.pos.vz   = D_actor_503500_8016F36C.vz;
+    D_actor_503500_80177A6C.obj.key      = 0x30023;
+    D_actor_503500_80177A6C.obj.radius   = 0x320;
     D_actor_503500_80177A6C.obj.flags    = 1;
     Gp_LinkObj(2, &D_actor_503500_80177A6C.obj);
     Gp_InitRec18Table(rec, 8, 0);
@@ -2048,25 +2048,25 @@ void func_actor_503500_8013FA74(Actor503500* arg0)
     enemy->field_50     = &D_actor_503500_8016E7EC[arg0->spawnArg1];
     enemy->field_54     = (s32)rec;
 
-    work->obj160.field_8  = part;
-    work->obj160.field_C  = rec;
-    work->obj160.field_10 = D_actor_503500_8016F3EC.vx;
-    work->obj160.field_12 = D_actor_503500_8016F3EC.vy;
-    work->obj160.field_14 = D_actor_503500_8016F3EC.vz;
-    work->obj160.field_18 = 0x30023;
-    work->obj160.field_1C = 0x258;
+    work->obj160.coord    = part;
+    work->obj160.ctx.recs = rec;
+    work->obj160.pos.vx   = D_actor_503500_8016F3EC.vx;
+    work->obj160.pos.vy   = D_actor_503500_8016F3EC.vy;
+    work->obj160.pos.vz   = D_actor_503500_8016F3EC.vz;
+    work->obj160.key      = 0x30023;
+    work->obj160.radius   = 0x258;
     work->obj160.flags    = 1;
     Gp_LinkObj(2, &work->obj160);
     Gp_InitRec18Table(rec, 8, 0);
     rec2                  = work->rec260;
-    work->obj240.field_8  = part;
-    work->obj240.field_C  = rec2;
+    work->obj240.coord    = part;
+    work->obj240.ctx.recs = rec2;
     work->obj160.flags   &= 0x7FFF;
-    work->obj240.field_10 = D_actor_503500_8016F3F4[idx].vx;
-    work->obj240.field_12 = D_actor_503500_8016F3F4[idx].vy;
-    work->obj240.field_14 = D_actor_503500_8016F3F4[idx].vz;
-    work->obj240.field_18 = Gp_PackPair(enemy->field_50->field_0, 0);
-    work->obj240.field_1C = 0x1F4;
+    work->obj240.pos.vx   = D_actor_503500_8016F3F4[idx].vx;
+    work->obj240.pos.vy   = D_actor_503500_8016F3F4[idx].vy;
+    work->obj240.pos.vz   = D_actor_503500_8016F3F4[idx].vz;
+    work->obj240.key      = Gp_PackPair(enemy->field_50->field_0, 0);
+    work->obj240.radius   = 0x1F4;
     work->obj240.flags    = 1;
     Gp_LinkObj(3, &work->obj240);
     Gp_InitRec18Table(rec2, 4, 0);
@@ -3140,13 +3140,13 @@ void func_actor_503500_801423C8(Actor503500* arg0)
     enemy->field_54     = (s32)rec;
     enemy->field_40     = enemy->field_50->field_4;
 
-    work->obj0.field_8  = coord;
-    work->obj0.field_C  = rec;
-    work->obj0.field_10 = ofs->vx;
-    work->obj0.field_12 = ofs->vy;
-    work->obj0.field_14 = ofs->vz;
-    work->obj0.field_18 = 0x30023;
-    work->obj0.field_1C = 0x5DC;
+    work->obj0.coord    = coord;
+    work->obj0.ctx.recs = rec;
+    work->obj0.pos.vx   = ofs->vx;
+    work->obj0.pos.vy   = ofs->vy;
+    work->obj0.pos.vz   = ofs->vz;
+    work->obj0.key      = 0x30023;
+    work->obj0.radius   = 0x5DC;
     work->obj0.flags    = 1;
     Gp_LinkObj(2, &work->obj0);
     Gp_InitRec18Table(rec, 8, 0);
@@ -3154,16 +3154,16 @@ void func_actor_503500_801423C8(Actor503500* arg0)
 
     parts = ((TmdObject*)parent->extra)->coords;
     if (slot != 0) {
-        work->obj1.field_8 = &parts[6];
+        work->obj1.coord = &parts[6];
     } else {
-        work->obj1.field_8 = &parts[12];
+        work->obj1.coord = &parts[12];
     }
-    work->obj1.field_C  = work->rec1;
-    work->obj1.field_10 = 0;
-    work->obj1.field_12 = 0;
-    work->obj1.field_14 = 0;
-    work->obj1.field_18 = 0x30023;
-    work->obj1.field_1C = 0x320;
+    work->obj1.ctx.recs = work->rec1;
+    work->obj1.pos.vx   = 0;
+    work->obj1.pos.vy   = 0;
+    work->obj1.pos.vz   = 0;
+    work->obj1.key      = 0x30023;
+    work->obj1.radius   = 0x320;
     work->obj1.flags    = 1;
     Gp_LinkObj(3, &work->obj1);
     Gp_InitRec18Table(work->rec1, 4, 0);
@@ -3171,16 +3171,16 @@ void func_actor_503500_801423C8(Actor503500* arg0)
 
     parts2 = ((TmdObject*)parent->extra)->coords;
     if (slot != 0) {
-        work->obj2.field_8 = &parts2[7];
+        work->obj2.coord = &parts2[7];
     } else {
-        work->obj2.field_8 = &parts2[13];
+        work->obj2.coord = &parts2[13];
     }
-    work->obj2.field_C  = work->rec1;
-    work->obj2.field_10 = 0;
-    work->obj2.field_12 = 0x190;
-    work->obj2.field_14 = 0;
-    work->obj2.field_18 = 0x30023;
-    work->obj2.field_1C = 0x4B0;
+    work->obj2.ctx.recs = work->rec1;
+    work->obj2.pos.vx   = 0;
+    work->obj2.pos.vy   = 0x190;
+    work->obj2.pos.vz   = 0;
+    work->obj2.key      = 0x30023;
+    work->obj2.radius   = 0x4B0;
     work->obj2.flags    = 1;
     Gp_LinkObj(3, &work->obj2);
     Gp_InitRec18Table(work->rec1, 4, 0);
@@ -4034,13 +4034,13 @@ void func_actor_503500_80144300(Task* arg0)
     }
     rec = work->rec;
 
-    work->obj.field_8  = coord;
-    work->obj.field_C  = rec;
-    work->obj.field_10 = D_actor_503500_801715AC.vx;
-    work->obj.field_12 = D_actor_503500_801715AC.vy;
-    work->obj.field_14 = D_actor_503500_801715AC.vz;
-    work->obj.field_18 = Gp_PackPair(D_actor_503500_8016E7CC[0], arg0->spawnArg1);
-    work->obj.field_1C = 0x12C;
+    work->obj.coord    = coord;
+    work->obj.ctx.recs = rec;
+    work->obj.pos.vx   = D_actor_503500_801715AC.vx;
+    work->obj.pos.vy   = D_actor_503500_801715AC.vy;
+    work->obj.pos.vz   = D_actor_503500_801715AC.vz;
+    work->obj.key      = Gp_PackPair(D_actor_503500_8016E7CC[0], arg0->spawnArg1);
+    work->obj.radius   = 0x12C;
     work->obj.flags    = 1;
     Gp_LinkObj(3, &work->obj);
     Gp_InitRec18Table(rec, 4, 0);
@@ -4076,13 +4076,13 @@ void func_actor_503500_80144520(Actor503500* arg0)
         case 0:
             work->field_A4.vy += 9.8 * 0x10000;
             if (work->field_B4 != 0) {
-                work->obj.field_1C = 0x258;
-                work->field_A4.vx  = 0;
-                work->field_A4.vy  = 0;
-                work->field_A4.vz  = 0;
-                work->field_BF     = 1;
-                work->field_B4     = 0;
-                work->field_BA     = 0;
+                work->obj.radius  = 0x258;
+                work->field_A4.vx = 0;
+                work->field_A4.vy = 0;
+                work->field_A4.vz = 0;
+                work->field_BF    = 1;
+                work->field_B4    = 0;
+                work->field_BA    = 0;
                 work->field_BC++;
             } else {
                 work->field_BA++;
@@ -4220,13 +4220,13 @@ void func_actor_503500_801448E8(Task* arg0)
     }
     rec = work->rec;
 
-    work->obj.field_8  = coord;
-    work->obj.field_C  = rec;
-    work->obj.field_10 = D_actor_503500_801715B4.vx;
-    work->obj.field_12 = D_actor_503500_801715B4.vy;
-    work->obj.field_14 = D_actor_503500_801715B4.vz;
-    work->obj.field_18 = Gp_PackPair(D_actor_503500_8016E7D0[0], arg0->spawnArg1);
-    work->obj.field_1C = 0x898;
+    work->obj.coord    = coord;
+    work->obj.ctx.recs = rec;
+    work->obj.pos.vx   = D_actor_503500_801715B4.vx;
+    work->obj.pos.vy   = D_actor_503500_801715B4.vy;
+    work->obj.pos.vz   = D_actor_503500_801715B4.vz;
+    work->obj.key      = Gp_PackPair(D_actor_503500_8016E7D0[0], arg0->spawnArg1);
+    work->obj.radius   = 0x898;
     work->obj.flags    = 1;
     Gp_LinkObj(3, &work->obj);
     Gp_InitRec18Table(rec, 4, 0);
@@ -4384,14 +4384,14 @@ void func_actor_503500_80144E8C(Task* arg0)
     d4  = &work->head.d4;
     rec = work->head.rec;
 
-    work->head.obj.field_8  = coord;
-    work->head.obj.field_C  = (GpRec18*)d4;
-    work->head.obj.field_10 = D_actor_503500_801715C4.vx;
-    work->head.obj.field_12 = D_actor_503500_801715C4.vy;
-    work->head.obj.field_14 = D_actor_503500_801715C4.vz;
-    work->head.obj.field_18 = Gp_PackPair(D_actor_503500_8016E7D4[0], 0);
-    work->head.obj.flags    = 3;
-    work->head.obj.field_1C = 0;
+    work->head.obj.coord     = coord;
+    work->head.obj.ctx.d4rec = d4;
+    work->head.obj.pos.vx    = D_actor_503500_801715C4.vx;
+    work->head.obj.pos.vy    = D_actor_503500_801715C4.vy;
+    work->head.obj.pos.vz    = D_actor_503500_801715C4.vz;
+    work->head.obj.key       = Gp_PackPair(D_actor_503500_8016E7D4[0], 0);
+    work->head.obj.flags     = 3;
+    work->head.obj.radius    = 0;
 
     d4->field_14 = rec;
     d4->field_8  = 0;

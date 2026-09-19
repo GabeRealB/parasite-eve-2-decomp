@@ -62,8 +62,8 @@ typedef struct Actor05300Work {
 /// 0x48-byte part object the spawn allocates with `Mem_Calloc` and parks in
 /// `Task::work`. It leads with the `GpObj` list node linked into
 /// `Gp_ObjLists[2]` -- and the one the shared teardown hands back to
-/// `Gp_UnlinkObj` -- so `obj.field_C` is the single-entry `GpRec18` collision
-/// table at 0x20. `field_38` is the same coordinate `obj.field_8` points at,
+/// `Gp_UnlinkObj` -- so `obj.ctx.recs` is the single-entry `GpRec18` collision
+/// table at 0x20. `field_38` is the same coordinate `obj.coord` points at,
 /// and `field_46` is the `ActorsShared80133838Work::field_46` the teardown
 /// reads back to pick its death flag.
 typedef struct Actor05300Part {

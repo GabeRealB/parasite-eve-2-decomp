@@ -493,13 +493,13 @@ void func_actor_503500_801455A4(Task* arg0)
     m->w3 = 0;
     m->h4 = 0x1000;
 
-    work->head.obj.field_8  = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
-    work->head.obj.field_C  = &work->head.rec;
-    work->head.obj.field_10 = D_actor_503500_801715D4.vx;
-    work->head.obj.field_12 = D_actor_503500_801715D4.vy;
-    work->head.obj.field_14 = D_actor_503500_801715D4.vz;
-    work->head.obj.field_18 = Gp_PackPair(D_actor_503500_8016E7D4[1], 0);
-    work->head.obj.field_1C = 0x12C;
+    work->head.obj.coord    = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    work->head.obj.ctx.recs = &work->head.rec;
+    work->head.obj.pos.vx   = D_actor_503500_801715D4.vx;
+    work->head.obj.pos.vy   = D_actor_503500_801715D4.vy;
+    work->head.obj.pos.vz   = D_actor_503500_801715D4.vz;
+    work->head.obj.key      = Gp_PackPair(D_actor_503500_8016E7D4[1], 0);
+    work->head.obj.radius   = 0x12C;
     work->head.obj.flags    = 1;
     Gp_LinkObj(3, &work->head.obj);
     Gp_InitRec18Table(&work->head.rec, 1, 0);
@@ -635,14 +635,14 @@ void func_actor_503500_80145A2C(Task* arg0)
     d4  = &work->head.d4;
     rec = work->head.rec;
 
-    work->head.obj.field_8  = coord;
-    work->head.obj.field_C  = (GpRec18*)d4;
-    work->head.obj.field_10 = D_actor_503500_801715DC.vx;
-    work->head.obj.field_12 = D_actor_503500_801715DC.vy;
-    work->head.obj.field_14 = D_actor_503500_801715DC.vz;
-    work->head.obj.field_18 = Gp_PackPair(D_actor_503500_8016E7DC[0], 0);
-    work->head.obj.flags    = 3;
-    work->head.obj.field_1C = 0;
+    work->head.obj.coord     = coord;
+    work->head.obj.ctx.d4rec = d4;
+    work->head.obj.pos.vx    = D_actor_503500_801715DC.vx;
+    work->head.obj.pos.vy    = D_actor_503500_801715DC.vy;
+    work->head.obj.pos.vz    = D_actor_503500_801715DC.vz;
+    work->head.obj.key       = Gp_PackPair(D_actor_503500_8016E7DC[0], 0);
+    work->head.obj.flags     = 3;
+    work->head.obj.radius    = 0;
 
     d4->field_14 = rec;
     d4->field_8  = 0;

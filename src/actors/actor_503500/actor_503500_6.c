@@ -979,14 +979,14 @@ void func_actor_503500_801372C8(Actor503500* arg0)
     enemy->field_54     = (s32)rec;
     enemy->field_40     = enemy->field_50->field_4;
 
-    D_actor_503500_80176D88.slot40.obj.field_8  = coord;
-    D_actor_503500_80176D88.slot40.obj.field_C  = rec;
-    D_actor_503500_80176D88.slot40.obj.field_18 = 0x30023;
-    D_actor_503500_80176D88.slot40.obj.field_1C = 0x320;
+    D_actor_503500_80176D88.slot40.obj.coord    = coord;
+    D_actor_503500_80176D88.slot40.obj.ctx.recs = rec;
+    D_actor_503500_80176D88.slot40.obj.key      = 0x30023;
+    D_actor_503500_80176D88.slot40.obj.radius   = 0x320;
     D_actor_503500_80176D88.slot40.obj.flags    = 1;
-    D_actor_503500_80176D88.slot40.obj.field_10 = D_actor_503500_8016F068.vx;
-    D_actor_503500_80176D88.slot40.obj.field_12 = D_actor_503500_8016F068.vy;
-    D_actor_503500_80176D88.slot40.obj.field_14 = D_actor_503500_8016F068.vz;
+    D_actor_503500_80176D88.slot40.obj.pos.vx   = D_actor_503500_8016F068.vx;
+    D_actor_503500_80176D88.slot40.obj.pos.vy   = D_actor_503500_8016F068.vy;
+    D_actor_503500_80176D88.slot40.obj.pos.vz   = D_actor_503500_8016F068.vz;
     Gp_LinkObj(2, &D_actor_503500_80176D88.slot40.obj);
     Gp_InitRec18Table(rec, 8, 0);
     D_actor_503500_80176D88.field_124         = 0x400;
@@ -1525,13 +1525,13 @@ void func_actor_503500_8013852C(Actor503500* arg0)
     enemy->field_54     = (s32)rec;
     enemy->field_40     = enemy->field_50->field_4;
 
-    work->obj.field_8  = part;
-    work->obj.field_C  = rec;
-    work->obj.field_10 = D_actor_503500_8016F0B0.vx;
-    work->obj.field_12 = D_actor_503500_8016F0B0.vy;
-    work->obj.field_14 = D_actor_503500_8016F0B0.vz;
-    work->obj.field_18 = 0x30023;
-    work->obj.field_1C = 0x320;
+    work->obj.coord    = part;
+    work->obj.ctx.recs = rec;
+    work->obj.pos.vx   = D_actor_503500_8016F0B0.vx;
+    work->obj.pos.vy   = D_actor_503500_8016F0B0.vy;
+    work->obj.pos.vz   = D_actor_503500_8016F0B0.vz;
+    work->obj.key      = 0x30023;
+    work->obj.radius   = 0x320;
     work->obj.flags    = 1;
     Gp_LinkObj(2, &work->obj);
     Gp_InitRec18Table(rec, 8, 0);
@@ -2529,13 +2529,13 @@ void func_actor_503500_8013AD64(Actor503500* arg0)
     enemy->field_54      = (s32)rec;
     enemy->field_40      = enemy->field_50->field_4;
 
-    work->obj.field_8  = coord;
-    work->obj.field_C  = rec;
-    work->obj.field_10 = D_actor_503500_8016F0F0[idx].vx;
-    work->obj.field_12 = D_actor_503500_8016F0F0[idx].vy;
-    work->obj.field_14 = D_actor_503500_8016F0F0[idx].vz;
-    work->obj.field_18 = 0x30023;
-    work->obj.field_1C = 0x5DC;
+    work->obj.coord    = coord;
+    work->obj.ctx.recs = rec;
+    work->obj.pos.vx   = D_actor_503500_8016F0F0[idx].vx;
+    work->obj.pos.vy   = D_actor_503500_8016F0F0[idx].vy;
+    work->obj.pos.vz   = D_actor_503500_8016F0F0[idx].vz;
+    work->obj.key      = 0x30023;
+    work->obj.radius   = 0x5DC;
     work->obj.flags    = 1;
     Gp_LinkObj(2, &work->obj);
     Gp_InitRec18Table(rec, 8, 0);

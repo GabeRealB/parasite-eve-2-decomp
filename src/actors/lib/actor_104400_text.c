@@ -748,20 +748,20 @@ void Actor04400_Fn017B0(Task* arg0)
         return;
     }
     if ((s16)work->field_412 >= 47) {
-        root->coord.t[1]       += work->field_42A;
-        work->obj_2CC.field_12 += work->field_42A;
-        work->field_428        += 30;
-        work->field_42A        += work->field_428;
+        root->coord.t[1]     += work->field_42A;
+        work->obj_2CC.pos.vy += work->field_42A;
+        work->field_428      += 30;
+        work->field_42A      += work->field_428;
         if (root->coord.t[1] >= (s16)work->field_92) {
             Actor104400Work* w = (Actor104400Work*)arg0->work;
 
-            w->field_426           = 2;
-            w->field_41C           = 0x10;
-            w->field_418           = 0x12;
-            w->field_414           = 1;
-            root->coord.t[1]       = (s16)work->field_92;
-            work->obj_2CC.field_12 = 0;
-            work->field_412        = 0;
+            w->field_426         = 2;
+            w->field_41C         = 0x10;
+            w->field_418         = 0x12;
+            w->field_414         = 1;
+            root->coord.t[1]     = (s16)work->field_92;
+            work->obj_2CC.pos.vy = 0;
+            work->field_412      = 0;
             work->field_422++;
         }
     }
@@ -820,18 +820,18 @@ void Actor04400_Fn01CA0(Task* arg0)
     ((TmdObject*)arg0->extra)->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 16;
     ((TmdObject*)arg0->extra)->coords->flg         = 0;
     coord->coord.t[1]                             += work->field_42A;
-    work->obj_2CC.field_12                        += work->field_42A;
+    work->obj_2CC.pos.vy                          += work->field_42A;
     work->field_428                               += 0xE;
     work->field_42A                               += work->field_428;
     if (coord->coord.t[1] >= (s16)work->field_92) {
-        anim                   = (Actor104400Work*)arg0->work;
-        anim->field_426        = 2;
-        anim->field_41C        = 0x10;
-        anim->field_418        = 0x13;
-        anim->field_414        = 1;
-        coord->coord.t[1]      = (s16)work->field_92;
-        work->obj_2CC.field_12 = 0;
-        work->field_412        = 0;
+        anim                 = (Actor104400Work*)arg0->work;
+        anim->field_426      = 2;
+        anim->field_41C      = 0x10;
+        anim->field_418      = 0x13;
+        anim->field_414      = 1;
+        coord->coord.t[1]    = (s16)work->field_92;
+        work->obj_2CC.pos.vy = 0;
+        work->field_412      = 0;
         work->field_422++;
     }
 }
@@ -1268,37 +1268,37 @@ void Actor04400_Fn02D18(Task* arg0)
 {
     Actor104400Work* work = (Actor104400Work*)arg0->work;
 
-    work->obj_2AC.field_8  = &((TmdObject*)arg0->extra)->coords[1];
-    work->obj_2AC.field_C  = work->rec_2EC;
-    work->obj_2AC.field_10 = 0;
-    work->obj_2AC.field_12 = 0;
-    work->obj_2AC.field_14 = 0;
-    work->obj_2AC.field_18 = 0x3002C;
-    work->obj_2AC.field_1C = 0x170;
+    work->obj_2AC.coord    = &((TmdObject*)arg0->extra)->coords[1];
+    work->obj_2AC.ctx.recs = work->rec_2EC;
+    work->obj_2AC.pos.vx   = 0;
+    work->obj_2AC.pos.vy   = 0;
+    work->obj_2AC.pos.vz   = 0;
+    work->obj_2AC.key      = 0x3002C;
+    work->obj_2AC.radius   = 0x170;
     work->obj_2AC.flags    = 1;
     Gp_LinkObj(2, &work->obj_2AC);
     Gp_InitRec18Table(work->rec_2EC, 8, 0);
     work->obj_2AC.flags |= 0x8000;
 
-    work->obj_3AC.field_8  = &((TmdObject*)arg0->extra)->coords[1];
-    work->obj_3AC.field_C  = work->rec_3CC;
-    work->obj_3AC.field_10 = 0;
-    work->obj_3AC.field_12 = 0;
-    work->obj_3AC.field_14 = 0;
-    work->obj_3AC.field_18 = Gp_PackObjPair(arg0->spawnArg2, 0);
-    work->obj_3AC.field_1C = 0x170;
+    work->obj_3AC.coord    = &((TmdObject*)arg0->extra)->coords[1];
+    work->obj_3AC.ctx.recs = work->rec_3CC;
+    work->obj_3AC.pos.vx   = 0;
+    work->obj_3AC.pos.vy   = 0;
+    work->obj_3AC.pos.vz   = 0;
+    work->obj_3AC.key      = Gp_PackObjPair(arg0->spawnArg2, 0);
+    work->obj_3AC.radius   = 0x170;
     work->obj_3AC.flags    = 1;
     Gp_LinkObj(2, &work->obj_3AC);
     Gp_InitRec18Table(work->rec_3CC, 2, 0);
     work->obj_3AC.flags &= 0x7FFF;
 
-    work->obj_2CC.field_8  = &((TmdObject*)arg0->extra)->coords[1];
-    work->obj_2CC.field_C  = work->rec_2EC;
-    work->obj_2CC.field_10 = 0;
-    work->obj_2CC.field_12 = 0;
-    work->obj_2CC.field_14 = 0;
-    work->obj_2CC.field_18 = 0x3002C;
-    work->obj_2CC.field_1C = 0x224;
+    work->obj_2CC.coord    = &((TmdObject*)arg0->extra)->coords[1];
+    work->obj_2CC.ctx.recs = work->rec_2EC;
+    work->obj_2CC.pos.vx   = 0;
+    work->obj_2CC.pos.vy   = 0;
+    work->obj_2CC.pos.vz   = 0;
+    work->obj_2CC.key      = 0x3002C;
+    work->obj_2CC.radius   = 0x224;
     work->obj_2CC.flags    = 1;
     Gp_LinkObj(2, &work->obj_2CC);
     work->obj_2CC.flags |= 0x4000;

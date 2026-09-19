@@ -70,7 +70,7 @@ void ActorsShared80139ee4(GpEnemy* enemy, ActorsShared80139ee4Task* task)
         spin = (s16)work->timer * 0x40 + 0x100;
         __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(tail) : "memory");
         TOUCH_REG(tail);
-        work->obj.field_1C = spin;
+        work->obj.radius = spin;
     } else {
         u8* tail;
         u16 m22;
@@ -107,7 +107,7 @@ void ActorsShared80139ee4(GpEnemy* enemy, ActorsShared80139ee4Task* task)
         tail       = tail + 0x34;
         __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(tail) : "memory");
         coord->coord.m[2][2] = m22;
-        work->obj.field_1C   = 0x380;
+        work->obj.radius     = 0x380;
     }
 
     Gp_ClearRec18Occupied(&work->rec);

@@ -80,7 +80,7 @@ void Actor02500_Fn012F0(Actor02500* actor)
             } else {
                 Gp_SetLightMode(actor->field_20, 0);
                 obj->field_C              = (u16)obj->field_C | 2;
-                work->field_1A4.flags    |= 0x8000;
+                work->obj1A4.flags       |= 0x8000;
                 actor->field_20->field_54 = work->field_1C4;
                 work->field_31C           = 0xA;
                 work->field_32E           = 0;

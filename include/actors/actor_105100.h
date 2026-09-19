@@ -39,17 +39,10 @@ STATIC_ASSERT_SIZEOF(Actor105100Anim, 0x30C);
 /// `func_actor_105100_801361C4` cast at the use (`(s16)work->field_592`)
 /// instead of retyping the field.
 ///
-/// The three 0x20-byte groups at 0x47C / 0x4E4 / 0x51C are `GpObj` list nodes
-/// and their members are spelled out flat here, at the offsets the `GpObj`
-/// layout gives them: `field_484` / `field_524` are `field_8` (the coordinate
-/// the node hangs off -- `&coord[3]` for the first, the model's own coordinate
-/// and the third-party model's for the others), `field_488` / `field_4F0` /
-/// `field_528` are the `field_C` collision table pointers, `field_48C` ..
-/// `field_498` and their siblings are `field_10` .. `field_1C`, and
-/// `field_49A` / `field_502` / `field_53A` are `flags`. They are not typed as
-/// `GpObj` because the matched handlers reach the flags directly -- the
-/// `0x8000` last-element bit is read and written as `field_502` -- and a
-/// `GpObj` member cannot overlap them.
+/// The three objects at 0x47C / 0x4E4 / 0x51C are `GpObj` collision bodies,
+/// each with the `GpRec18` run that follows it as its table: the first hangs
+/// off `&coord[3]`, the second off the model's own coordinate and the third
+/// off the third-party model's.
 typedef struct Actor105100Work {
     /* 0x000 */ GpObj          obj0;
     /* 0x020 */ byte           pad_20[4];
@@ -60,38 +53,11 @@ typedef struct Actor105100Work {
     /* 0x30C */ byte           field_30C[0x130];
     /* 0x43C */ MATRIX         field_43C;
     /* 0x45C */ MATRIX         field_45C;
-    /* 0x47C */ byte           field_47C[8];
-    /* 0x484 */ void*          field_484;
-    /* 0x488 */ GpRec18*       field_488;
-    /* 0x48C */ u16            field_48C;
-    /* 0x48E */ s16            field_48E;
-    /* 0x490 */ u16            field_490;
-    /* 0x492 */ byte           pad_492[2];
-    /* 0x494 */ u32            field_494;
-    /* 0x498 */ u16            field_498;
-    /* 0x49A */ u16            field_49A;
+    /* 0x47C */ GpObj          obj47C;
     /* 0x49C */ GpRec18        field_49C[3];
-    /* 0x4E4 */ byte           field_4E4[8];
-    /* 0x4EC */ void*          field_4EC;
-    /* 0x4F0 */ GpRec18*       field_4F0;
-    /* 0x4F4 */ u16            field_4F4;
-    /* 0x4F6 */ s16            field_4F6;
-    /* 0x4F8 */ u16            field_4F8;
-    /* 0x4FA */ byte           pad_4FA[2];
-    /* 0x4FC */ u32            field_4FC;
-    /* 0x500 */ u16            field_500;
-    /* 0x502 */ u16            field_502;
+    /* 0x4E4 */ GpObj          obj4E4;
     /* 0x504 */ GpRec18        field_504[1];
-    /* 0x51C */ byte           field_51C[8];
-    /* 0x524 */ void*          field_524;
-    /* 0x528 */ GpRec18*       field_528;
-    /* 0x52C */ u16            field_52C;
-    /* 0x52E */ s16            field_52E;
-    /* 0x530 */ s16            field_530;
-    /* 0x532 */ byte           pad_532[2];
-    /* 0x534 */ u32            field_534;
-    /* 0x538 */ u16            field_538;
-    /* 0x53A */ u16            field_53A;
+    /* 0x51C */ GpObj          obj51C;
     /* 0x53C */ GpRec18        field_53C[1];
     /* 0x554 */ GsCOORDINATE2* field_554;
     /* 0x558 */ u16            field_558;
@@ -141,7 +107,7 @@ typedef struct Actor105100Work {
 /// `field_44` is the approach point `Actor105100Work`'s `obj38` vector is
 /// aimed at and `field_46` the pass they are on -- 0 builds that aim, 1 walks
 /// the coordinate along it. A `GpObj` cannot carry either, `field_44` sitting
-/// over its `field_C` collision pointer, which is why
+/// over its `ctx.recs` collision pointer, which is why
 /// `func_actor_105100_801359B4` reads them here and takes the aim vector
 /// itself from `Actor105100Work::obj38`.
 typedef struct Actor105100Rec {

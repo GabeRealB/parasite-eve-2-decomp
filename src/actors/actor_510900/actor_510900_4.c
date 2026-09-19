@@ -411,11 +411,11 @@ void func_actor_510900_80136B70(Actor510900* arg0)
                 work->field_5C0 = 1;
             }
             if (work->field_58A == 9) {
-                work->obj4E4.flags   |= 0x8000;
-                work->obj504.flags   |= 0x8000;
-                pair                  = Gp_PackPair(&D_actor_510900_80167968, 2);
-                work->obj4E4.field_18 = pair;
-                work->obj504.field_18 = pair;
+                work->obj4E4.flags |= 0x8000;
+                work->obj504.flags |= 0x8000;
+                pair                = Gp_PackPair(&D_actor_510900_80167968, 2);
+                work->obj4E4.key    = pair;
+                work->obj504.key    = pair;
             }
             if (work->field_58A >= 0x1D) {
                 if (work->field_5B2 != 0) {
@@ -530,11 +530,11 @@ void func_actor_510900_80137008(Actor510900* arg0)
                 work->field_57C = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4078000D;
                 SndEvt_EnqueueType6(work->field_57C, (s8)Gp_GetObjPan((GpObj38*)coord),
                                     (s8)Gp_GetObjDepth((GpObj38*)coord));
-                work->obj4E4.flags   |= 0x8000;
-                work->obj504.flags   |= 0x8000;
-                pair                  = Gp_PackPair(&D_actor_510900_80167968, 5);
-                work->obj4E4.field_18 = pair;
-                work->obj504.field_18 = pair;
+                work->obj4E4.flags |= 0x8000;
+                work->obj504.flags |= 0x8000;
+                pair                = Gp_PackPair(&D_actor_510900_80167968, 5);
+                work->obj4E4.key    = pair;
+                work->obj504.key    = pair;
             }
             if (work->field_58A == 0x41) {
                 snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780006;
@@ -557,12 +557,12 @@ void func_actor_510900_80137008(Actor510900* arg0)
             }
             work->field_5A2 = ((u32)((u16)work->field_58A - 0x17) < 0x19U) ? work->field_59C : 0;
             if (work->field_58A == 0x19) {
-                work->obj4E4.flags   |= 0x8000;
-                work->obj504.flags   |= 0x8000;
-                pair                  = Gp_PackPair(&D_actor_510900_80167968, 1);
-                work->obj4E4.field_18 = pair;
-                work->obj504.field_18 = pair;
-                snd                   = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780007;
+                work->obj4E4.flags |= 0x8000;
+                work->obj504.flags |= 0x8000;
+                pair                = Gp_PackPair(&D_actor_510900_80167968, 1);
+                work->obj4E4.key    = pair;
+                work->obj504.key    = pair;
+                snd                 = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780007;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
                                     (s8)Gp_GetObjDepth((GpObj38*)coord));
             }
@@ -702,13 +702,13 @@ void func_actor_510900_801375D8(Actor510900* arg0)
         case 1:
             work->field_5A2 = 0x84;
             if (work->field_5AC < 0x514) {
-                work->field_590       = 2;
-                work->field_586       = 0xD;
-                work->obj4E4.flags   |= 0x8000;
-                work->obj504.flags   |= 0x8000;
-                pair                  = Gp_PackPair(&D_actor_510900_80167968, 0);
-                work->obj4E4.field_18 = pair;
-                work->obj504.field_18 = pair;
+                work->field_590     = 2;
+                work->field_586     = 0xD;
+                work->obj4E4.flags |= 0x8000;
+                work->obj504.flags |= 0x8000;
+                pair                = Gp_PackPair(&D_actor_510900_80167968, 0);
+                work->obj4E4.key    = pair;
+                work->obj504.key    = pair;
             } else {
                 work->field_59C -= 0x84;
                 if (work->field_59C < 0 || work->field_5AE < 0x384) {
@@ -782,11 +782,11 @@ void func_actor_510900_80137868(Actor510900* arg0)
                 work->field_57C = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4078000D;
                 SndEvt_EnqueueType6(work->field_57C, (s8)Gp_GetObjPan((GpObj38*)coord),
                                     (s8)Gp_GetObjDepth((GpObj38*)coord));
-                work->obj4E4.flags   |= 0x8000;
-                work->obj504.flags   |= 0x8000;
-                pair                  = Gp_PackPair(&D_actor_510900_80167968, 5);
-                work->obj4E4.field_18 = pair;
-                work->obj504.field_18 = pair;
+                work->obj4E4.flags |= 0x8000;
+                work->obj504.flags |= 0x8000;
+                pair                = Gp_PackPair(&D_actor_510900_80167968, 5);
+                work->obj4E4.key    = pair;
+                work->obj504.key    = pair;
             }
             if (work->field_58A >= 0x5A) {
                 work->field_586 = 0x1A;
@@ -806,12 +806,12 @@ void func_actor_510900_80137868(Actor510900* arg0)
             break;
         case 2:
             if (work->field_58A == 0x50) {
-                work->field_5B4       = 2;
-                work->obj4E4.flags   |= 0x8000;
-                work->obj504.flags   |= 0x8000;
-                pair                  = Gp_PackPair(&D_actor_510900_80167968, 3);
-                work->obj4E4.field_18 = pair;
-                work->obj504.field_18 = pair;
+                work->field_5B4     = 2;
+                work->obj4E4.flags |= 0x8000;
+                work->obj504.flags |= 0x8000;
+                pair                = Gp_PackPair(&D_actor_510900_80167968, 3);
+                work->obj4E4.key    = pair;
+                work->obj504.key    = pair;
 
                 gGameSession->deathRestartDelay = 0x80;
                 gGameSession->areaBgmCountdown  = 0x7F;
@@ -1582,13 +1582,13 @@ s32 func_actor_510900_801391B8(Actor510900* arg0, s32 arg1, s32 arg2)
                 if (work->field_564 != NULL) {
                     work->field_564[0xD] = 1;
                 }
-                work->field_598       = 0xF0;
-                work->obj4E4.flags   |= 0x8000;
-                work->obj504.flags   |= 0x8000;
-                pair                  = Gp_PackPair(&D_actor_510900_80167968, 5);
-                work->obj4E4.field_18 = pair;
-                work->obj504.field_18 = pair;
-                work->field_57C       = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4078000D;
+                work->field_598     = 0xF0;
+                work->obj4E4.flags |= 0x8000;
+                work->obj504.flags |= 0x8000;
+                pair                = Gp_PackPair(&D_actor_510900_80167968, 5);
+                work->obj4E4.key    = pair;
+                work->obj504.key    = pair;
+                work->field_57C     = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4078000D;
                 SndEvt_EnqueueType6(work->field_57C, (s8)Gp_GetObjPan((GpObj38*)coord),
                                     (s8)Gp_GetObjDepth((GpObj38*)coord));
             }
@@ -1799,35 +1799,35 @@ void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
     }
 
     work->field_CE       = D_actor_510900_80167C94[idx];
-    work->obj40.field_8  = coord;
-    work->obj40.field_C  = &work->rec60;
-    work->obj40.field_10 = 0;
-    work->obj40.field_12 = 0;
-    work->obj40.field_14 = 0;
-    work->obj40.field_18 = 0;
-    work->obj40.field_1C = 0xC8;
+    work->obj40.coord    = coord;
+    work->obj40.ctx.recs = &work->rec60;
+    work->obj40.pos.vx   = 0;
+    work->obj40.pos.vy   = 0;
+    work->obj40.pos.vz   = 0;
+    work->obj40.key      = 0;
+    work->obj40.radius   = 0xC8;
     work->obj40.flags    = 1;
     Gp_LinkObj(3, &work->obj40);
     Gp_InitRec18Table(&work->rec60, 1, 0);
 
-    work->d4rec.field_0  = 0;
-    work->d4rec.field_2  = 0;
-    work->d4rec.field_4  = 0;
-    work->d4rec.field_8  = 0;
-    work->d4rec.field_A  = 0x1F4;
-    work->d4rec.field_C  = 0;
-    work->d4rec.field_10 = 1;
-    work->d4rec.field_12 = 1;
-    work->d4rec.field_14 = &work->recB0;
-    work->obj78.field_C  = (GpRec18*)&work->d4rec;
-    work->obj78.field_8  = coord;
-    work->obj78.field_10 = 0;
-    work->obj78.field_12 = 0;
-    work->obj78.field_14 = 0;
-    work->obj78.field_18 = 0;
-    work->obj78.field_1C = 0;
-    work->obj78.flags    = 3;
-    work->obj40.flags   |= 0x8000;
+    work->d4rec.field_0   = 0;
+    work->d4rec.field_2   = 0;
+    work->d4rec.field_4   = 0;
+    work->d4rec.field_8   = 0;
+    work->d4rec.field_A   = 0x1F4;
+    work->d4rec.field_C   = 0;
+    work->d4rec.field_10  = 1;
+    work->d4rec.field_12  = 1;
+    work->d4rec.field_14  = &work->recB0;
+    work->obj78.ctx.d4rec = &work->d4rec;
+    work->obj78.coord     = coord;
+    work->obj78.pos.vx    = 0;
+    work->obj78.pos.vy    = 0;
+    work->obj78.pos.vz    = 0;
+    work->obj78.key       = 0;
+    work->obj78.radius    = 0;
+    work->obj78.flags     = 3;
+    work->obj40.flags    |= 0x8000;
     Gp_LinkObj(3, &work->obj78);
     Gp_InitRec18Table(&work->recB0, 1, 0);
     work->obj78.flags |= 0x4000;
@@ -1972,10 +1972,10 @@ void func_actor_510900_8013A100(GpEnemy* enemy, Task* task)
                 tick           = work->field_C8 + 1;
                 work->field_C8 = tick;
                 if (tick >= 0x10) {
-                    work->obj40.field_1C = 0x258;
-                    work->field_CA       = 1;
-                    work->field_C8       = 0;
-                    work->obj40.flags   |= 0x8000;
+                    work->obj40.radius = 0x258;
+                    work->field_CA     = 1;
+                    work->field_C8     = 0;
+                    work->obj40.flags |= 0x8000;
                     return;
                 }
                 if (parent->field_592 == 0) {
@@ -2156,23 +2156,23 @@ void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task)
         Gp_AnimResetSlot(&work->anim, i, 1);
         i++;
     } while (i < 0xB);
-    work->obj2BC.field_10 = -0xC8;
-    work->obj2BC.field_8  = coord;
-    work->obj2BC.field_12 = 0;
-    work->obj2BC.field_14 = 0;
-    work->obj2BC.field_C  = &work->rec2DC;
-    work->obj2BC.field_18 = 0;
-    work->obj2BC.field_1C = 0xC8;
+    work->obj2BC.pos.vx   = -0xC8;
+    work->obj2BC.coord    = coord;
+    work->obj2BC.pos.vy   = 0;
+    work->obj2BC.pos.vz   = 0;
+    work->obj2BC.ctx.recs = &work->rec2DC;
+    work->obj2BC.key      = 0;
+    work->obj2BC.radius   = 0xC8;
     work->obj2BC.flags    = 1;
     Gp_LinkObj(2, &work->obj2BC);
     Gp_InitRec18Table(&work->rec2DC, 1, 0);
-    work->obj2F4.field_18 = 0x50002;
-    work->obj2F4.field_8  = coord;
-    work->obj2F4.field_10 = 0;
-    work->obj2F4.field_12 = 0;
-    work->obj2F4.field_14 = 0;
-    work->obj2F4.field_C  = &work->rec314;
-    work->obj2F4.field_1C = 0x15E;
+    work->obj2F4.key      = 0x50002;
+    work->obj2F4.coord    = coord;
+    work->obj2F4.pos.vx   = 0;
+    work->obj2F4.pos.vy   = 0;
+    work->obj2F4.pos.vz   = 0;
+    work->obj2F4.ctx.recs = &work->rec314;
+    work->obj2F4.radius   = 0x15E;
     work->obj2F4.flags    = 1;
     work->obj2BC.flags   &= 0x7FFF;
     Gp_LinkObj(8, &work->obj2F4);
@@ -2438,23 +2438,23 @@ void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
     enemy->field_1C.vx  = 0;
     enemy->field_1C.vy  = 0;
     enemy->field_1C.vz  = 0;
-    work->obj0.field_8  = coord;
-    work->obj0.field_10 = 0;
-    work->obj0.field_12 = 0;
-    work->obj0.field_14 = 0;
-    work->obj0.field_C  = &work->rec20;
-    work->obj0.field_18 = 0;
-    work->obj0.field_1C = 0x12C;
+    work->obj0.coord    = coord;
+    work->obj0.pos.vx   = 0;
+    work->obj0.pos.vy   = 0;
+    work->obj0.pos.vz   = 0;
+    work->obj0.ctx.recs = &work->rec20;
+    work->obj0.key      = 0;
+    work->obj0.radius   = 0x12C;
     work->obj0.flags    = 1;
     Gp_LinkObj(2, &work->obj0);
     Gp_InitRec18Table(&work->rec20, 1, 0);
-    work->obj38.field_12 = -0x200;
-    work->obj38.field_8  = coord;
-    work->obj38.field_10 = 0;
-    work->obj38.field_14 = 0;
-    work->obj38.field_C  = &work->rec58;
-    work->obj38.field_18 = 0;
-    work->obj38.field_1C = 0x200;
+    work->obj38.pos.vy   = -0x200;
+    work->obj38.coord    = coord;
+    work->obj38.pos.vx   = 0;
+    work->obj38.pos.vz   = 0;
+    work->obj38.ctx.recs = &work->rec58;
+    work->obj38.key      = 0;
+    work->obj38.radius   = 0x200;
     work->obj38.flags    = 1;
     work->obj0.flags    &= 0x7FFF;
     Gp_LinkObj(8, &work->obj38);

@@ -95,41 +95,41 @@ void func_actor_101500_80131EB4(GpEnemy* arg0, Actor101500* arg1)
             func_800B4114(work, i, work->field_352, 0, r);
         }
     }
-    work->field_1DC.field_8  = &arg1->field_2C->coords[2];
-    work->field_1DC.field_C  = work->field_1FC;
-    work->field_1DC.field_10 = 0;
-    work->field_1DC.field_12 = 0;
-    work->field_1DC.field_14 = 0;
-    work->field_1DC.field_18 = 0x3000F;
-    work->field_1DC.field_1C = 0x12C;
+    work->field_1DC.coord    = &arg1->field_2C->coords[2];
+    work->field_1DC.ctx.recs = work->field_1FC;
+    work->field_1DC.pos.vx   = 0;
+    work->field_1DC.pos.vy   = 0;
+    work->field_1DC.pos.vz   = 0;
+    work->field_1DC.key      = 0x3000F;
+    work->field_1DC.radius   = 0x12C;
     work->field_1DC.flags    = 1;
     Gp_LinkObj(2, &work->field_1DC);
     Gp_InitRec18Table(work->field_1FC, 3, 0);
-    work->field_244.field_C  = work->field_264;
-    work->field_244.field_8  = coord;
-    work->field_244.field_10 = 0;
+    work->field_244.ctx.recs = work->field_264;
+    work->field_244.coord    = coord;
+    work->field_244.pos.vx   = 0;
     work->field_1DC.flags   |= 0x8000;
     if (work->field_36E == 0) {
-        work->field_244.field_12 = 0;
-        work->field_244.field_14 = -0x12C;
+        work->field_244.pos.vy = 0;
+        work->field_244.pos.vz = -0x12C;
     } else {
-        work->field_244.field_12 = 0x12C;
-        work->field_244.field_14 = 0;
+        work->field_244.pos.vy = 0x12C;
+        work->field_244.pos.vz = 0;
     }
-    work->field_244.field_18 = 0x3000F;
-    work->field_244.field_1C = 0x12C;
-    work->field_244.flags    = 1;
+    work->field_244.key    = 0x3000F;
+    work->field_244.radius = 0x12C;
+    work->field_244.flags  = 1;
     Gp_LinkObj(2, &work->field_244);
     Gp_InitRec18Table(work->field_264, 5, 0);
     records                  = work->field_2FC;
-    work->field_2DC.field_8  = coord;
-    work->field_2DC.field_C  = records;
-    work->field_2DC.field_10 = 0;
-    work->field_2DC.field_12 = 0;
-    work->field_2DC.field_14 = 0x190;
+    work->field_2DC.coord    = coord;
+    work->field_2DC.ctx.recs = records;
+    work->field_2DC.pos.vx   = 0;
+    work->field_2DC.pos.vy   = 0;
+    work->field_2DC.pos.vz   = 0x190;
     work->field_244.flags   |= 0x4200;
-    work->field_2DC.field_18 = Gp_PackPair(&D_actor_101500_8013BDD4, 0);
-    work->field_2DC.field_1C = 0x12C;
+    work->field_2DC.key      = Gp_PackPair(&D_actor_101500_8013BDD4, 0);
+    work->field_2DC.radius   = 0x12C;
     work->field_2DC.flags    = 1;
     Gp_LinkObj(3, &work->field_2DC);
     Gp_InitRec18Table(records, 1, 0);
@@ -173,12 +173,12 @@ void func_actor_101500_8013230C(Actor101500* actor)
     result                                  = func_800E0C10(work->field_264, &frame->delta, 5, NULL);
     if (result != 0) {
         if (work->field_370 == 0 && work->field_35A == 3 && frame->delta.vy.w == 0) {
-            work->field_35A          = 6;
-            work->field_358          = 0;
-            work->field_244.field_12 = 0;
-            work->field_244.field_14 = -300;
-            Gp_LcgState              = Gp_LcgState * 5 + 0x71357911;
-            work->field_362          = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
+            work->field_35A        = 6;
+            work->field_358        = 0;
+            work->field_244.pos.vy = 0;
+            work->field_244.pos.vz = -300;
+            Gp_LcgState            = Gp_LcgState * 5 + 0x71357911;
+            work->field_362        = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
             for (i = 0; i < 5; i++) {
                 if ((work->field_264[i].key & 0xFFFF0000) == 0x100000) {
                     frame->dx       = work->field_264[i].at10.normal.vx;
@@ -329,9 +329,9 @@ void func_actor_101500_8013291C(Actor101500* actor, s32 damage)
     if (enemy->field_40 <= (D_actor_101500_8013BDDC * 60) / 100) {
         work->field_358 = 2;
         if (work->field_35A != 5) {
-            work->field_35A          = 4;
-            work->field_244.field_12 = -300;
-            work->field_244.field_14 = 0;
+            work->field_35A        = 4;
+            work->field_244.pos.vy = -300;
+            work->field_244.pos.vz = 0;
         }
     } else {
         work->field_35A = 7;

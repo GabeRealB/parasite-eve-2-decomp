@@ -20,8 +20,8 @@
 /// 0x38 block `func_actor_800100_801624F0` allocates with `Mem_Calloc` when
 /// its task enters state 0 and stores at `Task::work`: the launched
 /// projectile's object plus its one-entry collision table, whose `field_0` is
-/// armed with 2. `obj.field_C` points at `rec`, `obj.field_8` at the task's
-/// own coordinate, and `obj.field_18` is the hit payload `0x21C9E`. The
+/// armed with 2. `obj.ctx.recs` points at `rec`, `obj.coord` at the task's
+/// own coordinate, and `obj.key` is the hit payload `0x21C9E`. The
 /// projectile flies out along `work->field_26` while `field_24` opens, then
 /// drops; `func_actor_800100_801631C8` hands the block back to `Gp_UnlinkObj`
 /// on teardown. Same shape as the m4a1_pyke dart's `M4a1PykeBeam`.

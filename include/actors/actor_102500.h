@@ -2,6 +2,7 @@
 #define ACTOR_102500_H
 
 #include "common.h"
+#include "gameplay/3FB8.h"
 #include "main/session.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -16,25 +17,6 @@ typedef union Actor02500Fixed {
     } p;
 } Actor02500Fixed;
 STATIC_ASSERT_SIZEOF(Actor02500Fixed, 0x4);
-
-/// Collision/proximity list node this overlay embeds four times in
-/// `Actor02500Work`. `Gp_LinkObj` appends it to one of the global object
-/// lists and `Gp_UnlinkObj` takes it back off; `field_C` points at the
-/// `GpRec18` table that follows the node in the work block.
-typedef struct Actor02500Obj {
-    /* 0x00 */ struct Actor02500Obj* next;
-    /* 0x04 */ struct Actor02500Obj* prev;
-    /* 0x08 */ void*                 field_8;
-    /* 0x0C */ GpRec18*              field_C;
-    /* 0x10 */ s16                   field_10;
-    /* 0x12 */ s16                   field_12;
-    /* 0x14 */ s16                   field_14;
-    /* 0x16 */ byte                  pad_16[2];
-    /* 0x18 */ s32                   field_18;
-    /* 0x1C */ s16                   field_1C;
-    /* 0x1E */ u16                   flags;
-} Actor02500Obj;
-STATIC_ASSERT_SIZEOF(Actor02500Obj, 0x20);
 
 /// The five 0x28-byte animation slots at `Actor02500Work + 0x14`; the work
 /// block opens with the 0x14-byte animation context `func_800B3F84` fills in,
@@ -63,13 +45,13 @@ typedef struct Actor02500Work {
     /* 0x0DC */ byte                field_DC[0x50];
     /* 0x12C */ byte                field_12C[0x20];
     /* 0x14C */ byte                field_14C[0x20];
-    /* 0x16C */ Actor02500Obj       field_16C;
+    /* 0x16C */ GpObj               obj16C;
     /* 0x18C */ GpRec18             field_18C[1];
-    /* 0x1A4 */ Actor02500Obj       field_1A4;
+    /* 0x1A4 */ GpObj               obj1A4;
     /* 0x1C4 */ GpRec18             field_1C4[3];
-    /* 0x20C */ Actor02500Obj       field_20C;
+    /* 0x20C */ GpObj               obj20C;
     /* 0x22C */ GpRec18             field_22C[5];
-    /* 0x2A4 */ Actor02500Obj       field_2A4;
+    /* 0x2A4 */ GpObj               obj2A4;
     /* 0x2C4 */ GpRec18             field_2C4[1];
     /* 0x2DC */ GsCOORDINATE2*      field_2DC;
     /* 0x2E0 */ s16                 field_2E0;
@@ -130,7 +112,7 @@ typedef struct Actor02500Eff {
 /// `GpRec18` table, then the spawned effect and the countdown/state
 /// pair `Actor02500_Fn02874` runs on.
 typedef struct Actor02500EffWork {
-    /* 0x00 */ Actor02500Obj  obj;
+    /* 0x00 */ GpObj          obj;
     /* 0x20 */ GpRec18        rec18[1];
     /* 0x38 */ Actor02500Eff* field_38;
     /* 0x3C */ s16            field_3C;

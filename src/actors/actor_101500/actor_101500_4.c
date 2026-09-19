@@ -297,13 +297,13 @@ void func_actor_101500_80133EF8(Actor101500* arg0)
             } else {
                 work->field_366 = dy > 0 ? 30 : -30;
             }
-            vec->vx                  = D_actor_101500_8013BEB0.vx - coord->coord.t[0];
-            vec->vy                  = 0;
-            vec->vz                  = D_actor_101500_8013BEB0.vz - coord->coord.t[2];
-            work->field_372          = ratan2((s16)vec->vx, (s16)vec->vz) & 0xFFF;
-            work->field_376          = 100;
-            work->field_244.field_12 = -300;
-            work->field_244.field_14 = 0;
+            vec->vx                = D_actor_101500_8013BEB0.vx - coord->coord.t[0];
+            vec->vy                = 0;
+            vec->vz                = D_actor_101500_8013BEB0.vz - coord->coord.t[2];
+            work->field_372        = ratan2((s16)vec->vx, (s16)vec->vz) & 0xFFF;
+            work->field_376        = 100;
+            work->field_244.pos.vy = -300;
+            work->field_244.pos.vz = 0;
             break;
         case 1:
             work->field_366 = 0;

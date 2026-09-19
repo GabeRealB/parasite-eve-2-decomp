@@ -436,14 +436,14 @@ void Actor05500_Fn00A94(Actor105500* arg0)
                     D_80115412 = 1;
                 }
                 Gp_ArmStateF0(1);
-                work->field_39C          = 1;
-                work->field_392          = 7;
-                work->field_3A8          = Actor05500_D089A0[((Actor105500Ctx*)actor->field_20)->field_3C->field_F];
-                work->field_2E4.field_8  = coord;
-                work->field_2E4.field_1C = 0x12C;
-                work->field_2E4.field_12 = -0x12C;
-                work->field_2E4.field_18 = Gp_PackPair(&Actor05500_D08958, 5);
-                work->field_2E4.flags   |= 0x8000;
+                work->field_39C        = 1;
+                work->field_392        = 7;
+                work->field_3A8        = Actor05500_D089A0[((Actor105500Ctx*)actor->field_20)->field_3C->field_F];
+                work->field_2E4.coord  = coord;
+                work->field_2E4.radius = 0x12C;
+                work->field_2E4.pos.vy = -0x12C;
+                work->field_2E4.key    = Gp_PackPair(&Actor05500_D08958, 5);
+                work->field_2E4.flags |= 0x8000;
                 if ((sessionFlags & 0xFFFF0000) == 0x05200000) {
                     value = (((u16)((Actor105500Ctx*)actor->field_20)->field_8 >> 0xC) << 8) | 0x55200006;
                     pan0  = (s8)Gp_GetObjPan((GpObj38*)coord);
@@ -454,15 +454,15 @@ void Actor05500_Fn00A94(Actor105500* arg0)
                     Gp_StateF0.field_22 = 1;
                 }
                 Gp_ArmStateF0(1);
-                work->field_39C          = 2;
-                work->field_392          = 9;
-                work->field_3A8          = Actor05500_D089A0[((Actor105500Ctx*)actor->field_20)->field_3C->field_F];
-                work->field_3BC          = 0x2D;
-                work->field_2E4.field_1C = 0x12C;
-                work->field_2E4.field_8  = coord;
-                work->field_2E4.field_12 = -0x12C;
-                work->field_2E4.field_18 = Gp_PackPair(&Actor05500_D08958, 5);
-                work->field_2E4.flags   |= 0x8000;
+                work->field_39C        = 2;
+                work->field_392        = 9;
+                work->field_3A8        = Actor05500_D089A0[((Actor105500Ctx*)actor->field_20)->field_3C->field_F];
+                work->field_3BC        = 0x2D;
+                work->field_2E4.radius = 0x12C;
+                work->field_2E4.coord  = coord;
+                work->field_2E4.pos.vy = -0x12C;
+                work->field_2E4.key    = Gp_PackPair(&Actor05500_D08958, 5);
+                work->field_2E4.flags |= 0x8000;
                 if ((sessionFlags & 0xFFFF0000) == 0x05200000) {
                     value = (((u16)((Actor105500Ctx*)actor->field_20)->field_8 >> 0xC) << 8) | 0x55200006;
                     pan1  = (s8)Gp_GetObjPan((GpObj38*)coord);
@@ -499,16 +499,16 @@ void Actor05500_Fn00A94(Actor105500* arg0)
         case 3:
             if ((s16)work->field_396 >= 0x1E) {
                 Gp_ArmStateF0(1);
-                work->field_39A          = state;
-                work->field_39C          = 0;
-                work->field_392          = 1;
-                index                    = ((Actor105500Ctx*)actor->field_20)->field_3C->field_F;
-                work->field_39E          = Actor05500_D08980[index] + (((random = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
-                work->field_2E4.field_8  = actor->field_2C->field_8 + 4;
-                work->field_2E4.field_1C = 0xC8;
-                work->field_2E4.field_12 = 0;
-                work->field_3C8          = 0;
-                Gp_LcgState              = random;
+                work->field_39A        = state;
+                work->field_39C        = 0;
+                work->field_392        = 1;
+                index                  = ((Actor105500Ctx*)actor->field_20)->field_3C->field_F;
+                work->field_39E        = Actor05500_D08980[index] + (((random = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
+                work->field_2E4.coord  = actor->field_2C->field_8 + 4;
+                work->field_2E4.radius = 0xC8;
+                work->field_2E4.pos.vy = 0;
+                work->field_3C8        = 0;
+                Gp_LcgState            = random;
                 if (((Actor105500Ctx*)actor->field_20)->field_40 <= 0) {
                     work->field_39A = 9;
                     work->field_39C = 0;
@@ -681,7 +681,7 @@ void Actor05500_Fn0143C(Actor105500* arg0)
                         index = 4;
                     }
                 }
-                work->field_2E4.field_18 = Gp_PackPair(&Actor05500_D08958, index);
+                work->field_2E4.key = Gp_PackPair(&Actor05500_D08958, index);
                 if (((s16)work->field_396 < 0x23) && ((work->field_3D0 != 0) || (work->field_3CE != 0))) {
                     work->field_39C        = 1;
                     work->field_3CA        = 0;
@@ -1361,49 +1361,49 @@ void Actor05500_Fn02FFC(GpEnemy* ctx, Task* actor)
     }
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     rec0                     = work->field_234;
-    work->field_214.field_8  = coord;
-    work->field_214.field_C  = rec0;
-    work->field_214.field_10 = 0;
-    work->field_214.field_12 = -0x12C;
-    work->field_214.field_14 = 0;
-    work->field_214.field_18 = 0x30037;
-    work->field_214.field_1C = 0x12C;
+    work->field_214.coord    = coord;
+    work->field_214.ctx.recs = rec0;
+    work->field_214.pos.vx   = 0;
+    work->field_214.pos.vy   = -0x12C;
+    work->field_214.pos.vz   = 0;
+    work->field_214.key      = 0x30037;
+    work->field_214.radius   = 0x12C;
     work->field_214.flags    = 1;
     Gp_LinkObj(2, &work->field_214);
     Gp_InitRec18Table(rec0, 4, 0);
     work->field_214.flags   |= 0x4200;
-    work->field_294.field_8  = ((Actor105500Obj2C*)actor->extra)->field_8 + 1;
+    work->field_294.coord    = ((Actor105500Obj2C*)actor->extra)->field_8 + 1;
     rec1                     = work->field_2B4;
-    work->field_294.field_C  = rec1;
-    work->field_294.field_10 = 0;
-    work->field_294.field_12 = -0x64;
-    work->field_294.field_14 = 0;
-    work->field_294.field_18 = 0x30037;
-    work->field_294.field_1C = 0x12C;
+    work->field_294.ctx.recs = rec1;
+    work->field_294.pos.vx   = 0;
+    work->field_294.pos.vy   = -0x64;
+    work->field_294.pos.vz   = 0;
+    work->field_294.key      = 0x30037;
+    work->field_294.radius   = 0x12C;
     work->field_294.flags    = 1;
     Gp_LinkObj(2, &work->field_294);
     Gp_InitRec18Table(rec1, 2, 0);
     work->field_294.flags   |= 0x8000;
-    work->field_2E4.field_8  = ((Actor105500Obj2C*)actor->extra)->field_8 + 4;
+    work->field_2E4.coord    = ((Actor105500Obj2C*)actor->extra)->field_8 + 4;
     rec2                     = work->field_304;
-    work->field_2E4.field_C  = rec2;
-    work->field_2E4.field_10 = 0;
-    work->field_2E4.field_12 = 0;
-    work->field_2E4.field_14 = 0;
-    work->field_2E4.field_18 = 0;
-    work->field_2E4.field_1C = 0xC8;
+    work->field_2E4.ctx.recs = rec2;
+    work->field_2E4.pos.vx   = 0;
+    work->field_2E4.pos.vy   = 0;
+    work->field_2E4.pos.vz   = 0;
+    work->field_2E4.key      = 0;
+    work->field_2E4.radius   = 0xC8;
     work->field_2E4.flags    = 1;
     Gp_LinkObj(3, &work->field_2E4);
     Gp_InitRec18Table(rec2, 1, 0);
     work->field_2E4.flags   &= 0x7FFF;
-    work->field_31C.field_8  = ((Actor105500Obj2C*)actor->extra)->field_8 + 4;
+    work->field_31C.coord    = ((Actor105500Obj2C*)actor->extra)->field_8 + 4;
     rec3                     = work->field_33C;
-    work->field_31C.field_C  = rec3;
-    work->field_31C.field_10 = 0;
-    work->field_31C.field_12 = 0;
-    work->field_31C.field_14 = 0;
-    work->field_31C.field_18 = 0x22424;
-    work->field_31C.field_1C = 0x1F4;
+    work->field_31C.ctx.recs = rec3;
+    work->field_31C.pos.vx   = 0;
+    work->field_31C.pos.vy   = 0;
+    work->field_31C.pos.vz   = 0;
+    work->field_31C.key      = 0x22424;
+    work->field_31C.radius   = 0x1F4;
     work->field_31C.flags    = 1;
     Gp_LinkObj(1, &work->field_31C);
     Gp_InitRec18Table(rec3, 1, 0);

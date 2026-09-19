@@ -3494,10 +3494,10 @@ void func_actor_403600_801400BC(Actor403600* arg0)
             }
             break;
         case 3:
-            temp_s1->field_588.field_18 = Gp_PackPair(&D_actor_403600_80150EB0, 0);
-            temp_s1->field_736          = 0xC;
-            temp_s1->field_73C          = 0U;
-            temp_s1->field_74A          = 0;
+            temp_s1->field_588.key = Gp_PackPair(&D_actor_403600_80150EB0, 0);
+            temp_s1->field_736     = 0xC;
+            temp_s1->field_73C     = 0U;
+            temp_s1->field_74A     = 0;
             if (temp_s1->field_73A == 0xE) {
                 temp_s0   = &temp_s1->field_4B8;
                 temp_s2   = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x5416000D;
@@ -3530,10 +3530,10 @@ void func_actor_403600_801400BC(Actor403600* arg0)
             }
             break;
         case 4:
-            temp_s1->field_588.field_18 = Gp_PackPair(&D_actor_403600_80150EB0, 1);
-            temp_s1->field_736          = 0xD;
-            temp_s1->field_73C          = 0U;
-            temp_s1->field_74A          = 0;
+            temp_s1->field_588.key = Gp_PackPair(&D_actor_403600_80150EB0, 1);
+            temp_s1->field_736     = 0xD;
+            temp_s1->field_73C     = 0U;
+            temp_s1->field_74A     = 0;
             if (temp_s1->field_73A == 9) {
                 temp_s0_3 = &temp_s1->field_4B8;
                 temp_s2   = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x5416000D;

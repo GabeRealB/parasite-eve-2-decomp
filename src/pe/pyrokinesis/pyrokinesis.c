@@ -145,20 +145,20 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 arg0->spawnArg1 = 0;
             }
             arg0->work         = (TaskIdMap*)work;
-            work->obj.field_8  = coord;
-            work->obj.field_C  = &work->rec;
-            work->obj.field_18 = ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 +
-                                 ((u16)((u16)(Gp_StateC08.field_0 % 100) / 10) - 1) * 3 +
-                                 (u16)(Gp_StateC08.field_0 % 10) + 0x28000;
-            work->obj.field_1C = mem->field_26;
-            work->obj.flags    = 1;
+            work->obj.coord    = coord;
+            work->obj.ctx.recs = &work->rec;
+            work->obj.key      = ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 +
+                            ((u16)((u16)(Gp_StateC08.field_0 % 100) / 10) - 1) * 3 +
+                            (u16)(Gp_StateC08.field_0 % 10) + 0x28000;
+            work->obj.radius = mem->field_26;
+            work->obj.flags  = 1;
             Gp_LinkObj(1, &work->obj);
             work->rec.flags     = 2;
-            work->obj2.field_8  = coord;
-            work->obj2.field_C  = &work->rec;
-            work->obj2.field_18 = 0;
+            work->obj2.coord    = coord;
+            work->obj2.ctx.recs = &work->rec;
+            work->obj2.key      = 0;
             work->obj.flags    |= 0x8000;
-            work->obj2.field_1C = (s16)((u16)mem->field_26 << 16 >> 19);
+            work->obj2.radius   = (s16)((u16)mem->field_26 << 16 >> 19);
             work->obj2.flags    = 1;
             Gp_LinkObj(7, &work->obj2);
             work->obj2.flags = (work->obj2.flags & 0x7FFF) | 0x4400;
@@ -170,7 +170,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             arg0->state = 1;
             func_pyrokinesis_80130848(coord, mem->field_22, mem->field_26, mem->field_28);
             func_pyrokinesis_80130130(coord, mem->field_26, (s16)((u16)mem->field_24 << 16 >> 17));
-            if (Gp_CountRec18Hi(work->obj.field_C, 0x30000) != 0) {
+            if (Gp_CountRec18Hi(work->obj.ctx.recs, 0x30000) != 0) {
                 Gp_UnlinkObj(&work->obj);
                 radius        = (mem->field_20 << 9) + 0x380;
                 mem->field_26 = radius;
@@ -187,7 +187,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 arg0->state = next;
                 return;
             }
-            if (Gp_FindRec18(work->obj2.field_C, 0x100000) != 0) {
+            if (Gp_FindRec18(work->obj2.ctx.recs, 0x100000) != 0) {
                 Gp_UnlinkObj(&work->obj2);
                 arg0->state = 2;
                 return;
@@ -207,7 +207,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             }
             radius             = (mem->field_20 << 9) + 0x380;
             mem->field_26      = radius;
-            work->obj.field_1C = radius;
+            work->obj.radius   = radius;
             coord->coord.t[0] += mem->field_10;
             coord->coord.t[1] += mem->field_12;
             coord->coord.t[2] += mem->field_14;
@@ -244,7 +244,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             tz                = coord->coord.t[2];
             slotc->flg        = 0;
             slotc->coord.t[2] = tz;
-            if (Gp_CountRec18Hi(work->obj.field_C, 0x30000) != 0) {
+            if (Gp_CountRec18Hi(work->obj.ctx.recs, 0x30000) != 0) {
                 Gp_UnlinkObj(&work->obj);
                 for (i = 0; i < 0x556; i += 0x2AA) {
                     spawned = Gp_SpawnEff(0x600F6, coord, i, NULL);
@@ -259,7 +259,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 arg0->state = next;
                 return;
             }
-            if (Gp_FindRec18(work->obj2.field_C, 0x100000) != 0) {
+            if (Gp_FindRec18(work->obj2.ctx.recs, 0x100000) != 0) {
                 Gp_UnlinkObj(&work->obj2);
                 arg0->state = 2;
                 return;
@@ -290,9 +290,9 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             Gp_UpdateCoord(coord);
-            radius             = (u16)mem->field_26 - 0x40;
-            mem->field_26      = radius;
-            work->obj.field_1C = radius;
+            radius           = (u16)mem->field_26 - 0x40;
+            mem->field_26    = radius;
+            work->obj.radius = radius;
             func_pyrokinesis_80130848(coord, mem->field_22, mem->field_26, mem->field_28);
             func_pyrokinesis_80130130(coord, mem->field_26, (s16)((u16)mem->field_24 << 16 >> 17));
             if (mem->field_26 >= 0x81) {
@@ -301,7 +301,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                     Task_Reparent(arg0, spawned->field_0);
                 }
             }
-            if (Gp_CountRec18Hi(work->obj.field_C, 0x30000) != 0) {
+            if (Gp_CountRec18Hi(work->obj.ctx.recs, 0x30000) != 0) {
                 Gp_UnlinkObj(&work->obj);
                 for (i = 0; i < 0x556; i += 0x2AA) {
                     spawned = Gp_SpawnEff(0x600F6, coord, i, NULL);

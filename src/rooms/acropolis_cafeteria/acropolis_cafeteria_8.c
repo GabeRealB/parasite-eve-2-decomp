@@ -57,16 +57,16 @@ void func_acropolis_cafeteria_801818DC(Task* task)
     coord->coord.t[0]  = player->coord.t[0];
     coord->coord.t[1]  = player->coord.t[1] - 0x800;
     coord->coord.t[2]  = player->coord.t[2] + 0x800;
-    work->obj.field_C  = work->slots;
-    work->obj.field_18 = 0x50000;
-    work->obj.field_1C = 0xFA;
-    work->obj.field_8  = coord;
-    work->obj.field_10 = 0;
-    work->obj.field_12 = 0;
-    work->obj.field_14 = 0;
+    work->obj.ctx.recs = work->slots;
+    work->obj.key      = 0x50000;
+    work->obj.radius   = 0xFA;
+    work->obj.coord    = coord;
+    work->obj.pos.vx   = 0;
+    work->obj.pos.vy   = 0;
+    work->obj.pos.vz   = 0;
     work->obj.flags    = 1;
     Gp_LinkObj(4, &work->obj);
-    Gp_InitRec18Table(work->obj.field_C, 6, 0);
+    Gp_InitRec18Table(work->obj.ctx.recs, 6, 0);
     work->obj.flags |= 0x8000;
 }
 
@@ -88,7 +88,7 @@ void func_acropolis_cafeteria_80181A3C(Task* task)
     Gp_UpdateCoord(coord);
     switch (work->field_D4) {
         case 0:
-            if (Gp_FindRec18(work->obj.field_C, 0)) {
+            if (Gp_FindRec18(work->obj.ctx.recs, 0)) {
                 work->field_D4++;
                 head[-1]  = coord->coord;
                 direction = &work->field_CC;

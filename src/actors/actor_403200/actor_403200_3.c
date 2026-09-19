@@ -356,15 +356,15 @@ void func_actor_403200_80134D40(Task* arg0)
 static __inline__ void Actor403200_LinkWorkObj(GsCOORDINATE2* coord, GpObj* obj, GpRec18* rec,
                                                SVECTOR* pos, s16 field1C, s32 prio, s32 kind)
 {
-    obj->field_8  = coord;
-    obj->field_C  = rec;
-    obj->field_10 = pos->vx;
-    obj->field_12 = pos->vy;
-    obj->field_14 = pos->vz;
-    obj->field_1C = field1C;
+    obj->coord    = coord;
+    obj->ctx.recs = rec;
+    obj->pos.vx   = pos->vx;
+    obj->pos.vy   = pos->vy;
+    obj->pos.vz   = pos->vz;
+    obj->radius   = field1C;
     obj->flags    = 1;
     Gp_LinkObj(prio, obj);
-    Gp_InitRec18Table(obj->field_C, kind, 0);
+    Gp_InitRec18Table(obj->ctx.recs, kind, 0);
 }
 
 /// Second entry of the spawn table `D_actor_403200_80131E90`: allocate the
@@ -422,9 +422,9 @@ void func_actor_403200_8013509C(GpEnemy* enemy, Task* task)
     Actor403200_LinkWorkObj(((TmdObject*)task->extra)->coords, &work->obj0, &work->rec0, &pos, 0x394, 3,
                             1);
 
-    work->obj0.flags   &= 0x7FFF;
-    work->obj0.field_18 = Gp_PackObjPair((GpObj50*)owner, 2);
-    work->field_1A8     = 1;
+    work->obj0.flags &= 0x7FFF;
+    work->obj0.key    = Gp_PackObjPair((GpObj50*)owner, 2);
+    work->field_1A8   = 1;
     task->state++;
 }
 
@@ -498,20 +498,20 @@ void func_actor_403200_8013669C(GpEnemy* enemy, Task* task)
 
     Actor403200_LinkWorkObj(((TmdObject*)task->extra)->coords, &work->obj0, &work->rec0, &vec, 0x100, 3, 1);
 
-    work->obj1.field_8  = ((TmdObject*)task->extra)->coords;
-    work->obj1.field_C  = &work->rec1;
-    work->obj1.field_10 = 0;
-    work->obj1.field_12 = 0;
-    work->obj1.field_14 = 0;
-    work->obj1.field_18 = 0x3000A;
-    work->obj1.field_1C = 0x100;
+    work->obj1.coord    = ((TmdObject*)task->extra)->coords;
+    work->obj1.ctx.recs = &work->rec1;
+    work->obj1.pos.vx   = 0;
+    work->obj1.pos.vy   = 0;
+    work->obj1.pos.vz   = 0;
+    work->obj1.key      = 0x3000A;
+    work->obj1.radius   = 0x100;
     work->obj1.flags    = 1;
     Gp_LinkObj(2, &work->obj1);
 
     work->obj0.flags |= 0x8000;
-    Gp_InitRec18Table(work->obj1.field_C, 3, 0);
-    work->obj1.flags   |= 0x4000;
-    work->obj0.field_18 = Gp_PackObjPair((GpObj50*)owner, 5);
+    Gp_InitRec18Table(work->obj1.ctx.recs, 3, 0);
+    work->obj1.flags |= 0x4000;
+    work->obj0.key    = Gp_PackObjPair((GpObj50*)owner, 5);
 
     ((TmdObject*)task->extra)->lightMtx = &work->lightMtx;
     ((TmdObject*)task->extra)->colorMtx = &work->colorMtx;

@@ -8,41 +8,37 @@
 #include "main/tmd.h"
 
 #include <psyq/libgte.h>
+#include <psyq/libgs.h>
 
 struct _GsCOORDINATE2;
+struct _GpObjDirRec;
+struct _GpActorD4Rec;
 
-/// Linked object used as a list head/node by the 3A34 pair/filter helpers.
-/// `next` is at 0x0, `prev` at 0x4, and `flags` at 0x1E. Bit 0x8 means the
-/// node is on the `Gp_ObjLists` list (set by `Gp_LinkObj`, cleared by
-/// `Gp_UnlinkObj`, keeping bits 0x7). `func_8010C980` fills `field_8` /
-/// `field_C` / the 0x10 SVECTOR / `field_18` / `field_1C` and ORs `flags`
-/// with 0x8000 after linking. `field_8` is a `GsCOORDINATE2*`; `Gp_ObjWorldPos`
-/// applies `workm` to the 0x10 SVECTOR and adds `workm.t` into a `VECTOR3`.
-/// `Gp_FindNearestSlot` treats `field_C` as a `GpActorD4Rec*` whose `field_14`
-/// is the `GpRec18` table walked for the nearest matching slot.
-/// `func_800DEC80` uses that same table: flag `0x800` copies the first
-/// occupied slot's `point` (unless `arg3 != 0`), flag `0x400`
-/// copies the first occupied slot whose `key` high 16 bits equal
-/// `0x10`. Remaining of two world points come from `field_C` as
-/// `SVECTOR[2]` plus this object's 0x10 SVECTOR, rotated by `workm`.
-/// `func_800DBA20` selects that table from `flags & 7`: 1 is `field_C`
-/// itself, 2 is `((GpObj*)field_C)->field_C`, 3 is `GpActorD4Rec.field_14`,
-/// 4 is `((GpObj*)field_C)->field_8`.
-/// Embedded as 0x20-byte nodes in `GameActor`
-/// (`field_AC` / `field_CC` / `field_EC` / `field_10C` / `field_12C`).
-/// Full object size is not known for other list users.
+/// One body an actor puts on the world's object lists: a sphere of `radius`
+/// whose centre is `pos`, a local offset under `coord`, and which the contacts
+/// it takes part in name by `key`.
+///
+/// `flags` bits 0-2 select what `ctx` points at, which is how the collision
+/// passes reach the `GpRec18` table recording that body's contacts: 0 nothing,
+/// 1 the table itself, 2 a node whose own table is used, 3 a `GpActorD4Rec`,
+/// 4 a `GpObjDirRec`. Bit 3 marks a node sitting on a `Gp_ObjLists` list, bit
+/// 0x800 makes the contacts it produces name the node instead of a direction,
+/// and bits 0x4000 and 0x8000 enable the grid and pair passes, which skip a
+/// node whose bit is clear.
 typedef struct _GpObj {
-    /* 0x00 */ struct _GpObj* next;
-    /* 0x04 */ struct _GpObj* prev;
-    /* 0x08 */ void*          field_8;
-    /* 0x0C */ GpRec18*       field_C;
-    /* 0x10 */ s16            field_10;
-    /* 0x12 */ s16            field_12;
-    /* 0x14 */ s16            field_14;
-    /* 0x16 */ byte           pad_16[2];
-    /* 0x18 */ s32            field_18;
-    /* 0x1C */ s16            field_1C;
-    /* 0x1E */ u16            flags;
+    struct _GpObj* next;             // next on the list
+    struct _GpObj* prev;             // previous on the list
+    GsCOORDINATE2* coord;            // transform `pos` is an offset under
+    union {
+        GpRec18*              recs;  // kind 1: the body's own contact table
+        struct _GpObj*        node;  // kind 2: the node whose table is used
+        struct _GpActorD4Rec* d4rec; // kind 3: the record whose `field_14` table is used
+        struct _GpObjDirRec*  dir;   // kind 4: the record whose `field_8` table is used
+    } ctx;                           // the body's collision context; see the kind bits
+    SVECTOR pos;                     // centre, in the `coord` frame
+    s32     key;                     // identity in the contact records: class << 16 | id
+    u16     radius;                  // collision radius
+    u16     flags;                   // kind, list membership and pass enables; see above
 } GpObj;
 STATIC_ASSERT_SIZEOF(GpObj, 0x20);
 
@@ -660,8 +656,8 @@ typedef struct _GpMoveScratch {
 STATIC_ASSERT_SIZEOF(GpMoveScratch, 0x40);
 
 /// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_80109BB4`.
-/// `pos` is the world position of the colliding `GpObj` (its 0x10 SVECTOR
-/// rotated by `field_8->workm` plus that matrix's translation), later
+/// `pos` is the world position of the colliding `GpObj` (`pos` rotated by
+/// `coord->workm`, plus that matrix's translation), later
 /// reused to save the actor's pre-push `coord.t[0]` / `t[2]`. `delta` is
 /// `pos` minus the contact point, `unit` its `VectorNormal`, and `local`
 /// that direction in grid space via `Gp_GridParams->field_0->workm`.

@@ -10,7 +10,7 @@
 /// 0x2E4-byte work block the enemy's spawn function allocates with `Mem_Calloc`
 /// and parks in the task's `Task::work` slot (that slot is not a `TaskIdMap`
 /// here). It embeds four `GpObj` list nodes, each followed by the `GpRec18`
-/// table `Gp_InitRec18Table` zeroes and the node's `field_C` points at;
+/// table `Gp_InitRec18Table` zeroes and the node's `ctx.recs` points at;
 /// `ActorsShared8014ca28` hands all four back to `Gp_UnlinkObj`.
 typedef struct ActorShared8014ca28Work {
     /* 0x000 */ byte    pad_0[0xFC];

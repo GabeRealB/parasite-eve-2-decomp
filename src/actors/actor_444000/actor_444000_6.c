@@ -721,12 +721,12 @@ void func_actor_444000_8013AFF8(GpEnemy* enemy, Actor444000* task)
     func_8010C980(&((TmdObject*)task->extra)->coords[4], &work->hits[1].obj, work->hits[1].recs, 5, 0x20, 0x300);
     func_8010C980(&((TmdObject*)task->extra)->coords[1], &work->hits[2].obj, work->hits[2].recs, 5, 0x20, 0xBB8);
 
-    work->hits[1].obj.field_10 = 0;
-    work->hits[1].obj.field_12 = 0;
-    work->hits[1].obj.field_14 = -0x100;
-    work->hits[2].obj.field_10 = 0;
-    work->hits[2].obj.field_12 = 0x400;
-    work->hits[2].obj.field_14 = -0x400;
+    work->hits[1].obj.pos.vx = 0;
+    work->hits[1].obj.pos.vy = 0;
+    work->hits[1].obj.pos.vz = -0x100;
+    work->hits[2].obj.pos.vx = 0;
+    work->hits[2].obj.pos.vy = 0x400;
+    work->hits[2].obj.pos.vz = -0x400;
 
     Gfx_MatrixCol2(&((TmdObject*)task->extra)->coords->coord, &dir);
     dir.vy = 0;
@@ -878,13 +878,13 @@ void func_actor_444000_8013AFF8(GpEnemy* enemy, Actor444000* task)
     work->d4rec.field_8  = 0;
     work->d4rec.field_A  = 0;
     work->d4rec.field_14 = work->recs2;
-    work->obj.field_8    = freeCoord;
-    work->obj.field_C    = (GpRec18*)&work->d4rec;
-    work->obj.field_10   = 0;
-    work->obj.field_12   = -0xFA;
-    work->obj.field_14   = 0x25F;
-    work->obj.field_18   = 0x30000 | 0x20;
-    work->obj.field_1C   = 0;
+    work->obj.coord      = freeCoord;
+    work->obj.ctx.d4rec  = &work->d4rec;
+    work->obj.pos.vx     = 0;
+    work->obj.pos.vy     = -0xFA;
+    work->obj.pos.vz     = 0x25F;
+    work->obj.key        = 0x30000 | 0x20;
+    work->obj.radius     = 0;
     work->obj.flags      = 3;
     Gp_LinkObj(2, &work->obj);
     Gp_InitRec18Table(work->recs2, 5, 0);
@@ -1034,7 +1034,7 @@ found:
     sc->id = id;
 
     if (id != 0) {
-        func_actor_444000_80134688(work->hits[0].obj.field_8, id);
+        func_actor_444000_80134688(work->hits[0].obj.coord, id);
         work->field_E8C = Gp_GetIdParam2(sc->id);
         Gp_GetIdParam0(sc->id);
 
@@ -1163,7 +1163,7 @@ missed1:
 found1:
     sc->id = id;
     if (id != 0) {
-        coord = work->hits[1].obj.field_8;
+        coord = work->hits[1].obj.coord;
         goto hit;
     }
 
@@ -1188,7 +1188,7 @@ found2:
     if (id == 0) {
         goto out;
     }
-    coord = work->hits[2].obj.field_8;
+    coord = work->hits[2].obj.coord;
 hit:
     func_actor_444000_80134688(coord, id);
     if (sc->id != 0) {
@@ -1346,7 +1346,7 @@ missed1:
 found1:
     sc->id = id;
     if (id != 0) {
-        coord = work->hits[3].obj.field_8;
+        coord = work->hits[3].obj.coord;
         goto hit;
     }
 
@@ -1369,7 +1369,7 @@ missed2:
 found2:
     sc->id = id;
     if (id != 0) {
-        coord = work->hits[4].obj.field_8;
+        coord = work->hits[4].obj.coord;
     hit:
         func_actor_444000_80134688(coord, id);
         if (sc->id != 0) {
@@ -1398,7 +1398,7 @@ found3:
     if (id == 0) {
         goto out;
     }
-    func_actor_444000_80134688(work->hits[5].obj.field_8, id);
+    func_actor_444000_80134688(work->hits[5].obj.coord, id);
     if (sc->id == 0) {
         goto out;
     }
@@ -1549,7 +1549,7 @@ missed1:
 found1:
     sc->id = id;
     if (id != 0) {
-        coord = work->hits[6].obj.field_8;
+        coord = work->hits[6].obj.coord;
         goto hit;
     }
 
@@ -1572,7 +1572,7 @@ missed2:
 found2:
     sc->id = id;
     if (id != 0) {
-        coord = work->hits[7].obj.field_8;
+        coord = work->hits[7].obj.coord;
     hit:
         func_actor_444000_80134688(coord, id);
         if (sc->id != 0) {
@@ -1601,7 +1601,7 @@ found3:
     if (id == 0) {
         goto out;
     }
-    func_actor_444000_80134688(work->hits[8].obj.field_8, id);
+    func_actor_444000_80134688(work->hits[8].obj.coord, id);
     if (sc->id == 0) {
         goto out;
     }

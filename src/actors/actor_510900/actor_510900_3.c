@@ -40,13 +40,13 @@ void func_actor_510900_80135E90(Actor510900* arg0)
             break;
         case 1:
             if (work->field_58A >= 0x14) {
-                work->field_590       = 2;
-                work->field_586       = 8;
-                work->obj4E4.flags   |= 0x8000;
-                work->obj504.flags   |= 0x8000;
-                pair                  = Gp_PackPair(&D_actor_510900_80167968, 2);
-                work->obj4E4.field_18 = pair;
-                work->obj504.field_18 = pair;
+                work->field_590     = 2;
+                work->field_586     = 8;
+                work->obj4E4.flags |= 0x8000;
+                work->obj504.flags |= 0x8000;
+                pair                = Gp_PackPair(&D_actor_510900_80167968, 2);
+                work->obj4E4.key    = pair;
+                work->obj504.key    = pair;
             }
             break;
         case 2:

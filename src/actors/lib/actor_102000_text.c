@@ -497,17 +497,17 @@ void Actor02000_Fn00E0C(Actor02000* arg0)
     switch (state) {
         case 0:
             if (work->field_6AA == 0) {
-                work->field_694          = 0x16;
-                work->field_6A8          = 1;
-                work->field_6B8          = 1;
-                work->field_4CC.field_14 = -0xA7;
+                work->field_694        = 0x16;
+                work->field_6A8        = 1;
+                work->field_6B8        = 1;
+                work->field_4CC.pos.vz = -0xA7;
             } else {
-                work->field_694          = 0x1A;
-                work->field_6A8          = 2;
-                work->field_6B8          = 2;
-                work->field_4CC.field_14 = 0x109;
+                work->field_694        = 0x1A;
+                work->field_6A8        = 2;
+                work->field_6B8        = 2;
+                work->field_4CC.pos.vz = 0x109;
             }
-            work->field_4CC.field_1C = 0x15E;
+            work->field_4CC.radius   = 0x15E;
             work->field_69C          = 0;
             work->field_69E          = 0;
             work->field_6DE          = 1;
@@ -660,19 +660,19 @@ void Actor02000_Fn012E0(Actor02000* arg0)
     switch (state) {
         case 0:
             if (work->field_6AA == 0) {
-                work->field_694          = 0x16;
-                work->field_6A8          = 1;
-                work->field_6B8          = 1;
-                work->field_6AE          = 0x42;
-                work->field_4CC.field_14 = -0xA7;
+                work->field_694        = 0x16;
+                work->field_6A8        = 1;
+                work->field_6B8        = 1;
+                work->field_6AE        = 0x42;
+                work->field_4CC.pos.vz = -0xA7;
             } else {
-                work->field_694          = 0x1A;
-                work->field_6A8          = 1;
-                work->field_6B8          = 2;
-                work->field_6AE          = 0x31;
-                work->field_4CC.field_14 = 0x109;
+                work->field_694        = 0x1A;
+                work->field_6A8        = 1;
+                work->field_6B8        = 2;
+                work->field_6AE        = 0x31;
+                work->field_4CC.pos.vz = 0x109;
             }
-            work->field_4CC.field_1C = 0x15E;
+            work->field_4CC.radius   = 0x15E;
             work->field_69C          = 0;
             work->field_69E          = 0;
             work->field_6DE          = 1;
@@ -899,7 +899,7 @@ void      Gp_DrawEffGroundQuad(VECTOR3*, s32, s32);
 void      Gp_ReleaseStateF0Add(Actor02000*, s32);
 void      Gp_SaveEnemyPose(Actor02000Ctx*);
 void      Gp_UnlinkNode(Actor02000Node*);
-void      Gp_UnlinkObj(Actor02000Obj*);
+void      Gp_UnlinkObj(GpObj*);
 void      Gp_UpdateActorColor(Actor02000Ctx*, VECTOR3*, s32, s32);
 void      Gp_UpdateCoord(GsCOORDINATE2*);
 void      func_800B4114(Actor02000Work*, s32, s32, s32, s32);
@@ -1204,8 +1204,8 @@ void Actor02000_Fn02294(Actor02000* arg0)
             work->field_69E = 0x14;
             work->field_6A4 = (s16)(ratan2((s32)(s16)delta->vx, (s32)(s16)delta->vz) & 0xFFF);
             if (work->field_698 == (Actor02000_D03784[work->field_694] + 0x20)) {
-                work->field_5E4.flags    = (u16)(work->field_5E4.flags | 0x8000);
-                work->field_5E4.field_18 = Gp_PackPair(Actor02000_D15CFC, 0);
+                work->field_5E4.flags = (u16)(work->field_5E4.flags | 0x8000);
+                work->field_5E4.key   = Gp_PackPair(Actor02000_D15CFC, 0);
             }
             if (work->field_698 == (Actor02000_D03784[work->field_694] + 0x21)) {
                 sound = Actor02000_D15E30 | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
@@ -1238,7 +1238,7 @@ void                 func_800B3F84(Actor02000Work* arg0, void* arg1, TmdObject* 
                                    Actor02000AnimSlots* arg4);
 void                 Gp_AnimResetSlot(Actor02000Work* arg0, s32 arg1, s32 arg2);
 void                 Gp_IncStateF0Ref(s32 arg0);
-void                 Gp_LinkObj(s32 arg0, Actor02000Obj* arg1);
+void                 Gp_LinkObj(s32 arg0, GpObj* arg1);
 void                 Gp_InitRec18Table(GpRec18* arg0, s32 arg1, s32 arg2);
 Actor02000Eff*       Gp_SpawnEnemyFromTable(void* table, s32 idx, s32 arg2, void* parent);
 void                 Gp_SyncAreaKeyIndex(GpAreaKey* arg0);
@@ -1391,63 +1391,63 @@ case0:
         CdCmd_Enqueue(0x21, param1, param2);
     }
 
-    work->field_49C.field_4  = 0x1F40;
-    work->field_49C.field_10 = 0x3E8;
-    work->field_49C.field_0  = 0;
-    work->field_49C.field_2  = 0;
-    work->field_49C.field_8  = 0;
-    work->field_49C.field_A  = 0;
-    work->field_49C.field_C  = 0;
-    work->field_49C.field_12 = 0x5DC;
-    work->field_49C.field_14 = work->field_4B4;
-    partsA                   = actor->field_2C->coords;
-    work->field_47C.field_C  = &work->field_49C;
-    work->field_47C.field_10 = 0;
-    work->field_47C.field_12 = 0;
-    work->field_47C.field_14 = 0;
-    work->field_47C.field_18 = 0;
-    work->field_47C.field_1C = 0;
-    work->field_47C.flags    = 3;
-    work->field_47C.field_8  = &partsA[4];
+    work->field_49C.field_4   = 0x1F40;
+    work->field_49C.field_10  = 0x3E8;
+    work->field_49C.field_0   = 0;
+    work->field_49C.field_2   = 0;
+    work->field_49C.field_8   = 0;
+    work->field_49C.field_A   = 0;
+    work->field_49C.field_C   = 0;
+    work->field_49C.field_12  = 0x5DC;
+    work->field_49C.field_14  = work->field_4B4;
+    partsA                    = actor->field_2C->coords;
+    work->field_47C.ctx.d4rec = &work->field_49C;
+    work->field_47C.pos.vx    = 0;
+    work->field_47C.pos.vy    = 0;
+    work->field_47C.pos.vz    = 0;
+    work->field_47C.key       = 0;
+    work->field_47C.radius    = 0;
+    work->field_47C.flags     = 3;
+    work->field_47C.coord     = &partsA[4];
     Gp_LinkObj(3, &work->field_47C);
     Gp_InitRec18Table(work->field_4B4, 1, 0);
     work->field_47C.flags |= 0xCC00;
 
     partsB                   = actor->field_2C->coords;
-    work->field_4CC.field_C  = work->field_4EC;
-    work->field_4CC.field_10 = 0;
-    work->field_4CC.field_12 = 0;
-    work->field_4CC.field_14 = 0;
-    work->field_4CC.field_18 = 0x30014;
-    work->field_4CC.field_1C = 0x190;
+    work->field_4CC.ctx.recs = work->field_4EC;
+    work->field_4CC.pos.vx   = 0;
+    work->field_4CC.pos.vy   = 0;
+    work->field_4CC.pos.vz   = 0;
+    work->field_4CC.key      = 0x30014;
+    work->field_4CC.radius   = 0x190;
     work->field_4CC.flags    = 1;
-    work->field_4CC.field_8  = &partsB[3];
+    work->field_4CC.coord    = &partsB[3];
     Gp_LinkObj(2, &work->field_4CC);
     Gp_InitRec18Table(work->field_4EC, 5, 0);
     work->field_4CC.flags |= 0x8000;
 
     partsC                   = actor->field_2C->coords;
-    work->field_564.field_12 = -0x226;
-    work->field_564.field_C  = work->field_584;
-    work->field_564.field_10 = 0;
-    work->field_564.field_14 = 0;
-    work->field_564.field_18 = 0;
-    work->field_564.field_1C = 0x226;
+    work->field_564.pos.vy   = -0x226;
+    work->field_564.ctx.recs = work->field_584;
+    work->field_564.pos.vx   = 0;
+    work->field_564.pos.vz   = 0;
+    work->field_564.key      = 0;
+    work->field_564.radius   = 0x226;
     work->field_564.flags    = 1;
-    work->field_564.field_8  = partsC;
+    work->field_564.coord    = partsC;
     Gp_LinkObj(2, &work->field_564);
     Gp_InitRec18Table(work->field_584, 4, 0);
     work->field_564.flags |= 0x4200;
 
     effParts                 = eff->task->field_2C->coords;
-    work->field_5E4.field_C  = work->field_604;
-    work->field_5E4.field_10 = 0;
-    work->field_5E4.field_12 = 0x1F4;
-    work->field_5E4.field_14 = 0;
-    work->field_5E4.field_18 = 0;
-    work->field_5E4.field_1C = 0x1F4;
+    work->field_5E4.ctx.recs = work->field_604;
+    work->field_5E4.pos.vx   = 0;
+    work->field_5E4.pos.vy   = 0x1F4;
+    work->field_5E4.pos.vz   = 0;
+    work->field_5E4.key      = 0;
+    work->field_5E4.radius   = 0x1F4;
     work->field_5E4.flags    = 1;
-    work->field_5E4.field_8  = effParts;
+    work->field_5E4.coord    = effParts;
     Gp_LinkObj(3, &work->field_5E4);
     Gp_InitRec18Table(work->field_604, 1, 0);
     work->field_5E4.flags &= 0x7FFF;

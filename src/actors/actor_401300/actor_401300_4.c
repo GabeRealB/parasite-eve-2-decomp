@@ -168,16 +168,16 @@ void func_actor_401300_80141C88(Actor401300* arg0)
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
-        arg0->field_2C->flags    = 0;
-        work->field_970.field_1C = 0x280;
-        work->field_BF0.flags   &= 0x7FFF;
-        work->field_AB0.flags   |= 0x4000;
-        enemy->node.field_4      = 0;
-        work->field_89C          = 2;
-        work->field_8A2          = 8;
-        work->field_8B4          = 0;
-        work->field_8B2          = 0;
-        work->field_8A6          = work->field_8A8;
+        arg0->field_2C->flags  = 0;
+        work->field_970.radius = 0x280;
+        work->field_BF0.flags &= 0x7FFF;
+        work->field_AB0.flags |= 0x4000;
+        enemy->node.field_4    = 0;
+        work->field_89C        = 2;
+        work->field_8A2        = 8;
+        work->field_8B4        = 0;
+        work->field_8B2        = 0;
+        work->field_8A6        = work->field_8A8;
     }
     func_actor_401300_80133A3C(arg0);
     if (work->field_6C & 0x100) {
@@ -197,16 +197,16 @@ void func_actor_401300_80141D50(Actor401300* arg0)
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
-        arg0->field_2C->flags    = 0;
-        work->field_970.field_1C = 0x280;
-        work->field_BF0.flags   &= 0x7FFF;
-        work->field_AB0.flags   |= 0x4000;
-        enemy->node.field_4      = 0;
-        work->field_89C          = 2;
-        work->field_8A2          = 0x16;
-        work->field_8B4          = 0;
-        work->field_8B2          = 0;
-        work->field_8A6          = work->field_8A8;
+        arg0->field_2C->flags  = 0;
+        work->field_970.radius = 0x280;
+        work->field_BF0.flags &= 0x7FFF;
+        work->field_AB0.flags |= 0x4000;
+        enemy->node.field_4    = 0;
+        work->field_89C        = 2;
+        work->field_8A2        = 0x16;
+        work->field_8B4        = 0;
+        work->field_8B2        = 0;
+        work->field_8A6        = work->field_8A8;
     }
     func_actor_401300_80133A3C(arg0);
     if (work->field_6C & 0x100) {

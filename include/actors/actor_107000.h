@@ -98,7 +98,7 @@ typedef struct Actor107000Work {
 
 /// The same 0x2E4-byte work block as its spawn handler builds it, seen from the
 /// side that names the render nodes: four `GpObj`s at 0xFC / 0x134 / 0x1B4 /
-/// 0x1EC, each followed by the `GpRec18` collision table its `field_C` points
+/// 0x1EC, each followed by the `GpRec18` collision table its `ctx.recs` points
 /// at, `node + 0x20` (`&work->rec11C` and friends, handed to
 /// `Gp_InitRec18Table`), then the transform node at 0x27C whose coordinate the
 /// handler only wires up through `field_284`.
@@ -153,7 +153,7 @@ STATIC_ASSERT_SIZEOF(Actor107000SpawnWork, 0x2E4);
 /// the same `GpAnimCtx`, seven animation slots instead of three, then three
 /// `GpObj` render nodes where that one has four.
 ///
-/// Node 1's `field_C` is not a record table but the `GpActorD4Rec` at 0x1FC -
+/// Node 1's `ctx.d4rec` is not a record table but the `GpActorD4Rec` at 0x1FC -
 /// the shape `GpActorD4` keeps, where the record's own `field_14` points at the
 /// `GpRec18` run beside it (here the single record at 0x214). Nodes 2 and 3
 /// hold plain tables of four and one, the way `Actor107000SpawnWork`'s do.

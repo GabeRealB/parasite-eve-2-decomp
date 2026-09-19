@@ -199,16 +199,16 @@ void func_actor_401800_8013E44C(Actor401800* arg0)
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
-        arg0->field_2C->flags    = 0;
-        work->field_8C8.field_1C = 0x12C;
-        work->field_B48.flags   &= 0x7FFF;
-        work->field_A08.flags   |= 0x4000;
-        enemy->node.field_4      = 0;
-        work->field_898          = 2;
-        work->field_89E          = 8;
-        work->field_8B0          = 0;
-        work->field_8AE          = 0;
-        work->field_8A2          = work->field_8A4;
+        arg0->field_2C->flags  = 0;
+        work->field_8C8.radius = 0x12C;
+        work->field_B48.flags &= 0x7FFF;
+        work->field_A08.flags |= 0x4000;
+        enemy->node.field_4    = 0;
+        work->field_898        = 2;
+        work->field_89E        = 8;
+        work->field_8B0        = 0;
+        work->field_8AE        = 0;
+        work->field_8A2        = work->field_8A4;
     }
     func_actor_401800_80133EB8(arg0);
     if (work->field_68 & 1) {
@@ -224,17 +224,17 @@ void func_actor_401800_8013E4F0(Actor401800* arg0)
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
-        arg0->field_2C->flags    = 0;
-        work->field_8C8.field_1C = 0x12C;
-        work->field_B48.flags   &= 0x7FFF;
-        work->field_A08.flags   |= 0x4000;
-        enemy->node.field_4      = 0;
-        work->field_898          = 2;
-        work->field_89E          = 0x16;
-        work->field_8B0          = 0;
-        work->field_8AE          = 0;
-        work->field_6            = 0;
-        work->field_8A2          = work->field_8A4;
+        arg0->field_2C->flags  = 0;
+        work->field_8C8.radius = 0x12C;
+        work->field_B48.flags &= 0x7FFF;
+        work->field_A08.flags |= 0x4000;
+        enemy->node.field_4    = 0;
+        work->field_898        = 2;
+        work->field_89E        = 0x16;
+        work->field_8B0        = 0;
+        work->field_8AE        = 0;
+        work->field_6          = 0;
+        work->field_8A2        = work->field_8A4;
     }
     work->field_6 = (u16)(work->field_6 + 1);
     func_actor_401800_80133EB8(arg0);

@@ -1072,7 +1072,7 @@ void func_actor_107600_80133DC4(Task* arg0)
     enemy                  = arg0->spawnArg2;
     *(s32*)G_SCRATCH_HEAD -= 8;
     work->field_156        = 0;
-    if (Gp_FindRec18(work->obj.field_C, 0) != 0) {
+    if (Gp_FindRec18(work->obj.ctx.recs, 0) != 0) {
         for (i = 0; i < 8; i++) {
             if ((work->rec18[i].key & 0xFFFF0000) == 0x20000) {
                 work->field_156                        = 1;
@@ -1376,13 +1376,13 @@ void func_actor_107600_80134958(Task* arg0)
     GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->coords;
     GpRec18*         rec   = work->rec18;
 
-    work->obj.field_8  = coord;
-    work->obj.field_C  = rec;
-    work->obj.field_10 = 0;
-    work->obj.field_12 = -0x250;
-    work->obj.field_14 = 0;
-    work->obj.field_18 = 0x3004C;
-    work->obj.field_1C = (work->field_162 == 1) ? 0x220 : 0x190;
+    work->obj.coord    = coord;
+    work->obj.ctx.recs = rec;
+    work->obj.pos.vx   = 0;
+    work->obj.pos.vy   = -0x250;
+    work->obj.pos.vz   = 0;
+    work->obj.key      = 0x3004C;
+    work->obj.radius   = (work->field_162 == 1) ? 0x220 : 0x190;
     work->obj.flags    = 1;
     Gp_LinkObj(2, &work->obj);
     Gp_InitRec18Table(rec, 8, 0);

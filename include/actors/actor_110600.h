@@ -397,7 +397,7 @@ typedef struct Actor110600Work {
     /// The `GpRec18` table the spawn handler links behind `field_8B8`: five
     /// records, cleared first by the tick's teardown.
     /* 0x8D8 */ GpRec18 recs_8D8[5];
-    /// The second display node, whose `field_10` / `field_12` / `field_14`
+    /// The second display node, whose `pos`
     /// carry a model position: the spawn handler seeds the three halfwords
     /// from a stack `SVECTOR` and the tick restamps the model root's
     /// translation onto them every frame.

@@ -46875,7 +46875,7 @@ the function comes out one insn short. `Actor02000_Fn0251C` is the example
 
 ## One `GsCOORDINATE2*` base local per `Gp_LinkObj` block
 
-Repeated `obj.field_8 = &actor->field_2C->field_8[N]` blocks want the two loads
+Repeated `obj.coord = &actor->field_2C->field_8[N]` blocks want the two loads
 hoisted to the top of the block and the `+N*0x50` left next to the store
 (`lw v1, 8(v0)` … `addiu v1, v1, 0x140` / `sw v1`). Writing the expression
 inline emits all three at the end; a single reused base local emits the add
@@ -63593,7 +63593,7 @@ does not.
 `ActorsShared80164b68` (matched as `func_actor_341700_80164B68`) initialises
 three `GpObj`s in a row, each a block of eight constant stores plus one field
 whose value walks a pointer chain:
-`obj.field_8 = &((TmdObject*)task->extra)->coords[1]`. Writing that assignment
+`obj.coord = &((TmdObject*)task->extra)->coords[1]`. Writing that assignment
 last in each block - the position m2c emits it in, because the store is the
 last one the target executes - scored 78% with `reorder=12 insert=6 delete=6`.
 
@@ -72762,11 +72762,11 @@ through the block until it meets an ALU insn with a **higher** luid, which it
 wins on the same luid tie-break in `rank_for_schedule`.
 
 That last comparison is the whole leftover. Writing the two objects interleaved
-(`d4rec.field_C/10/12`, `obj.field_C/12/14`, `d4rec.field_0..A/14`, `obj.*`)
+(`d4rec.field_C/10/12`, `obj.ctx.recs/pos` + `radius`, `d4rec.field_0..A/14`, `obj.*`)
 gives the table pointer a luid *after* `li 0x25f`, so it stops there. Writing all
 of `d4rec` first and all of `obj` afterwards keeps both groups' internal order -
 so every store still lands where it did - while moving the pointer's luid before
-`obj.field_12`/`field_14`, and it floats the remaining seven slots to its target
+`obj.pos.vy`/`pos.vz`, and it floats the remaining seven slots to its target
 position. `reorder` went 1 → 0 with no other change.
 
 Worth reaching for whenever a single address computation sits a few slots off
@@ -75405,19 +75405,19 @@ call), so `birth` had to move two scheduled positions earlier.
 `birth` is `2 x` the add's position in the *sched1* order, and sched1 is a
 backward list scheduler whose ready list ranks by descending `INSN_PRIORITY`
 then descending LUID — ties prefer the instruction written **later** in the C.
-The add became ready only when its last successor, the `field_C = &rec` store,
-was placed; that store and the `li/sh` pair for the neighbouring `field_1C =
+The add became ready only when its last successor, the `ctx.recs = &rec` store,
+was placed; that store and the `li/sh` pair for the neighbouring `radius =
 0x140` were both priority 4, so the store won the tie on its larger LUID and
 the add landed one position after it. Writing the two statements the other way
 round in the C gave the `0x140` pair the larger LUID, the store was placed
 first, and the add reached position 22:
 
 ```c
-work->obj.field_1C = 0x140;      /* base_1: 1666 -> $s1 (wrong) */
-work->obj.field_C  = rec;        /* add scheduled second, birth +2 */
+work->obj.radius   = 0x140;      /* base_1: 1666 -> $s1 (wrong) */
+work->obj.ctx.recs = rec;        /* add scheduled second, birth +2 */
 
-work->obj.field_C  = rec;        /* base_2: 1363 -> $s2 (match)  */
-work->obj.field_1C = 0x140;      /* add scheduled first, birth -2 */
+work->obj.ctx.recs = rec;        /* base_2: 1363 -> $s2 (match)  */
+work->obj.radius   = 0x140;      /* add scheduled first, birth -2 */
 ```
 
 1666 -> 1363 drops `&rec` below the task pointer's 1372 and the allocation
@@ -127252,7 +127252,7 @@ loads it signed in one place and unsigned in the other:
 
 ```
 lh    v1,8(v0)     lh v1,0xa(v0)     lh t0,0xc(v0)     # -> GpEnemy::field_1C.vx/vy/vz (long)
-lhu   v0,8(v1)     lhu v0,0xa(v1)    lhu v1,0xc(v1)    # -> GpObj::field_10/12/14   (s16)
+lhu   v0,8(v1)     lhu v0,0xa(v1)    lhu v1,0xc(v1)    # -> GpObj::pos.vx/vy/vz     (s16)
 ```
 
 Both groups use the *same base register shape* - the symbol materialised whole
@@ -130784,3 +130784,51 @@ rec = (GpAnimRec*)((idx << 2) + (s32)recs);
 
 `Gp_AnimAdvanceSlot` and its seven siblings are the example - all eight sites
 flip together.
+
+## Folding several members into one: let the compiler enumerate the sites
+
+Replacing a run of sibling members (`field_10` / `field_12` / `field_14`) with a
+single aggregate member, or a plain pointer member with a union, means editing
+every use in the tree. A `find_references.py` dump is the obvious worklist and
+is not a safe one: a run that is still writing its output, or one whose file set
+misses a translation unit, looks exactly like a complete list, and the sites it
+omits go unnoticed while the tree still compiles around them - here a member
+that had already been renamed away, so the stale sites only surfaced as
+`structure has no member named 'field_14'` from the compiler.
+
+Fold first, then build with `ninja -k 0`. Removing the members turns every
+remaining site into a hard error, the diagnostic names the member and the
+position, and `-k 0` keeps going so one build reports all of them at once
+(hundreds, across dozens of units) instead of the first few. Map each diagnostic
+back to its source line by text: the `.i` collapses runs of whitespace and drops
+trailing comments, so compare with whitespace and comments normalised off both,
+and assert the normalised forms are equal before rewriting.
+
+The same ordering makes the *shape* safe. A member that no longer compiles is
+also a member nothing can silently keep using: an aggregate fold that leaves one
+site writing the old member is a build failure, not a wrong answer, so the
+checksum does not have to be the only oracle over the sweep.
+
+## A union member naming the enclosing type needs its tag, not its typedef
+
+`GpObj*` inside the definition of `GpObj` is a parse error in this front end:
+
+```c
+typedef struct _GpObj {
+    union { GpObj* node; } ctx;    /* parse error before `GpObj' */
+} GpObj;
+
+typedef struct _GpObj {
+    union { struct _GpObj* node; } ctx;   /* accepted */
+} GpObj;
+```
+
+The typedef name is not in scope until its declarator completes, so a member
+that refers to the type being defined - which a union of payload views usually
+does, at least for the "another one of these" arm - has to spell the tag. The
+same applies to every *other* type the union names: a type declared later in the
+same header (`GpActorD4Rec`, `GpObjDirRec` behind the union's other arms) is not
+in scope either, and needs `struct _Tag;` forward declarations above the
+definition, with its arms spelled `struct _Tag*`. A forward declaration of the
+tag is enough because the arms are pointers; only the tag spelling is load
+bearing.

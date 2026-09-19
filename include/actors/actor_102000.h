@@ -13,38 +13,7 @@ extern u8 D_801153F2;
 
 typedef struct Actor02000Eff Actor02000Eff;
 
-typedef struct {
-    u32 sp;
-} Actor02000ScratchStack;
-
-typedef struct Actor02000AnimRec {
-    /* 0x00 */ u16 field_0;
-    /* 0x02 */ u8  field_2;
-    /* 0x03 */ u8  field_3;
-} Actor02000AnimRec;
-STATIC_ASSERT_SIZEOF(Actor02000AnimRec, 4);
-
-/// Collision/proximity list node this overlay embeds four times in
-/// `Actor02000Work`. `Gp_LinkObj` appends it to one of the global object
-/// lists and `Gp_UnlinkObj` takes it back off; `field_C` points either
-/// straight at a `GpRec18` table or (list 3, `flags & 7 == 3`) at
-/// an `Actor02000ObjRec` whose `field_14` holds the table.
-typedef struct Actor02000Obj {
-    /* 0x00 */ struct Actor02000Obj* next;
-    /* 0x04 */ struct Actor02000Obj* prev;
-    /* 0x08 */ GsCOORDINATE2*        field_8;
-    /* 0x0C */ void*                 field_C;
-    /* 0x10 */ s16                   field_10;
-    /* 0x12 */ s16                   field_12;
-    /* 0x14 */ s16                   field_14;
-    /* 0x16 */ byte                  pad_16[2];
-    /* 0x18 */ s32                   field_18;
-    /* 0x1C */ s16                   field_1C;
-    /* 0x1E */ u16                   flags;
-} Actor02000Obj;
-STATIC_ASSERT_SIZEOF(Actor02000Obj, 0x20);
-
-/// Indirection record an `Actor02000Obj.field_C` ca point at (same shape as
+/// Indirection record a `GpObj.field_C` ca point at (same shape as
 /// the gameplay `GpActorD4Rec`): a bounding box plus the `GpRec18`
 /// table proper at `field_14`.
 typedef struct Actor02000ObjRec {
@@ -80,16 +49,16 @@ typedef struct Actor02000Work {
     /* 0x30C */ byte                field_30C[0x130];
     /* 0x43C */ MATRIX              field_43C;
     /* 0x45C */ MATRIX              field_45C;
-    /* 0x47C */ Actor02000Obj       field_47C;
+    /* 0x47C */ GpObj       field_47C;
     /* 0x49C */ Actor02000ObjRec    field_49C;
     /* 0x4B4 */ GpRec18     field_4B4[1];
-    /* 0x4CC */ Actor02000Obj       field_4CC;
+    /* 0x4CC */ GpObj       field_4CC;
     /* 0x4EC */ GpRec18     field_4EC[5];
-    /* 0x564 */ Actor02000Obj       field_564;
+    /* 0x564 */ GpObj       field_564;
     /* 0x584 */ GpRec18     field_584[4];
-    /* 0x5E4 */ Actor02000Obj       field_5E4;
+    /* 0x5E4 */ GpObj       field_5E4;
     /* 0x604 */ GpRec18     field_604[1];
-    /* 0x61C */ Actor02000Obj       field_61C;
+    /* 0x61C */ GpObj       field_61C;
     /* 0x63C */ byte                pad_63C[0x30];
     /* 0x66C */ s16*                field_66C;
     /* 0x670 */ GsCOORDINATE2*      field_670;

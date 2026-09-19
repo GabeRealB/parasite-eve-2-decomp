@@ -34,7 +34,7 @@ typedef struct Actor105600FxWork {
 STATIC_ASSERT_SIZEOF(Actor105600FxWork, 0xF0);
 
 /// 0x14-byte placement descriptor in the overlay's `.data`, handed to
-/// `Gp_PackPair` as the source of the body objects' `GpObj.field_18`.
+/// `Gp_PackPair` as the source of the body objects' `GpObj.key`.
 /// `field_E` is the variant flag `func_actor_105600_80134FD0` latches into its
 /// work block: it is 1 when the actor is placed normally, and anything else
 /// puts the body in the other pose.

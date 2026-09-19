@@ -1148,9 +1148,9 @@ extern s32                    D_acropolis_bridge_80191744;
 /// Copies a scratch `SVECTOR3` onto a `GpObj`'s three position halfwords.
 static __inline__ void bridge_set_obj_pos(GpObj* obj, SVECTOR3* pos)
 {
-    obj->field_10 = pos->vx;
-    obj->field_12 = pos->vy;
-    obj->field_14 = pos->vz;
+    obj->pos.vx = pos->vx;
+    obj->pos.vy = pos->vy;
+    obj->pos.vz = pos->vz;
 }
 
 /// One-time setup for the bridge enemy: allocates the 0x294-byte work block,
@@ -1214,33 +1214,33 @@ void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
                   work->slots);
     work->field_108 = 0x10;
     link            = &work->body;
-    link->field_8   = &((TmdObject*)task->extra)->coords[3];
-    link->field_C   = work->recs;
-    link->field_10  = 0;
-    link->field_12  = 0;
-    link->field_14  = 0;
-    link->field_18  = 0x30029;
-    link->field_1C  = 0x100;
+    link->coord     = &((TmdObject*)task->extra)->coords[3];
+    link->ctx.recs  = work->recs;
+    link->pos.vx    = 0;
+    link->pos.vy    = 0;
+    link->pos.vz    = 0;
+    link->key       = 0x30029;
+    link->radius    = 0x100;
     link->flags     = 1;
     Gp_LinkObj(2, link);
     link->flags |= 0x8000;
-    Gp_InitRec18Table(link->field_C, 3, 0);
-    pos.vx         = 0;
-    pos.vy         = 0;
-    pos.vz         = 0;
-    link2          = &work->hit;
-    link2->field_8 = &((TmdObject*)task->extra)->coords[1];
-    link2->field_C = work->hitRecs;
+    Gp_InitRec18Table(link->ctx.recs, 3, 0);
+    pos.vx          = 0;
+    pos.vy          = 0;
+    pos.vz          = 0;
+    link2           = &work->hit;
+    link2->coord    = &((TmdObject*)task->extra)->coords[1];
+    link2->ctx.recs = work->hitRecs;
     bridge_set_obj_pos(link2, &pos);
-    link2->field_1C = 0x100;
-    link2->flags    = 1;
+    link2->radius = 0x100;
+    link2->flags  = 1;
     Gp_LinkObj(3, link2);
-    Gp_InitRec18Table(link2->field_C, 1, 0);
-    work->hit.field_18 = Gp_PackObjPair((GpObj50*)enemy, 0);
-    coord->sub         = &Gfx_ViewCoord;
-    work->yaw          = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    work->field_100    = 2;
-    work->field_104    = 2;
+    Gp_InitRec18Table(link2->ctx.recs, 1, 0);
+    work->hit.key   = Gp_PackObjPair((GpObj50*)enemy, 0);
+    coord->sub      = &Gfx_ViewCoord;
+    work->yaw       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    work->field_100 = 2;
+    work->field_104 = 2;
     func_acropolis_bridge_8018581C(task);
     enemy->field_18    = &((TmdObject*)task->extra)->coords[3];
     enemy->field_1C.vx = 0;
@@ -1561,7 +1561,7 @@ void func_acropolis_bridge_801861A0(Task* task)
         work->walker.state    = 1;
         work->hit.flags      |= 0x8000;
         work->body.flags     |= 0x8000;
-        work->hit.field_18    = Gp_PackObjPair((GpObj50*)enemy, 0);
+        work->hit.key         = Gp_PackObjPair((GpObj50*)enemy, 0);
         enemy->node.field_4   = 0;
         work->field_100       = 2;
         work->field_104       = 2;

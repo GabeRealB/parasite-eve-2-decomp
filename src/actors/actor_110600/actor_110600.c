@@ -1188,13 +1188,13 @@ void func_actor_110600_80135B84(Actor110600* arg0)
         enemy->node.field_4   = 8;
         work->field_88C       = 1;
         if (arg0->field_1C->field_BE6 != 0) {
-            work->field_A90.field_18 = Gp_PackObjPair((GpObj50*)enemy, 0);
-            work->field_892          = 4;
-            work->field_896          = 0x1A;
+            work->field_A90.key = Gp_PackObjPair((GpObj50*)enemy, 0);
+            work->field_892     = 4;
+            work->field_896     = 0x1A;
         } else {
-            work->field_A90.field_18 = Gp_PackObjPair((GpObj50*)enemy, 1);
-            work->field_892          = 5;
-            work->field_896          = 0x10;
+            work->field_A90.key = Gp_PackObjPair((GpObj50*)enemy, 1);
+            work->field_892     = 5;
+            work->field_896     = 0x10;
         }
         work->field_B90  = 1;
         walker           = (Actor110600Walker*)((u8*)work + 0xB28);
@@ -1960,13 +1960,13 @@ void func_actor_110600_80137F2C(GpEnemy* arg0, Actor110600* arg1)
     }
     work->field_2 = (u16)work->field_0;
 
-    work->field_950.field_10 = *(u16*)&arg1->field_2C->coords->coord.t[0];
-    work->field_950.field_12 = *(u16*)&arg1->field_2C->coords->coord.t[1];
-    work->field_950.field_14 = *(u16*)&arg1->field_2C->coords->coord.t[2];
+    work->field_950.pos.vx = *(u16*)&arg1->field_2C->coords->coord.t[0];
+    work->field_950.pos.vy = *(u16*)&arg1->field_2C->coords->coord.t[1];
+    work->field_950.pos.vz = *(u16*)&arg1->field_2C->coords->coord.t[2];
     states.fn[work->field_0](arg1);
-    work->field_950.field_10 = *(u16*)&arg1->field_2C->coords->coord.t[0];
-    work->field_950.field_12 = (u16)(*(u16*)&arg1->field_2C->coords->coord.t[1] - 0x124);
-    work->field_950.field_14 = *(u16*)&arg1->field_2C->coords->coord.t[2];
+    work->field_950.pos.vx = *(u16*)&arg1->field_2C->coords->coord.t[0];
+    work->field_950.pos.vy = (u16)(*(u16*)&arg1->field_2C->coords->coord.t[1] - 0x124);
+    work->field_950.pos.vz = *(u16*)&arg1->field_2C->coords->coord.t[2];
 
     if (arg0->field_40 > 0) {
         if (work->field_8AA > 0) {

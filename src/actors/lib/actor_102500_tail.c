@@ -25,7 +25,7 @@ void  func_800B3F84(Actor02500Work* arg0, void* arg1, Actor02500Obj2C* arg2, voi
 void  Gp_AnimResetSlot(Actor02500Work* arg0, s32 arg1, s32 arg2);
 void  Gp_IncStateF0Ref(s32 arg0);
 void  Gp_SetLightMode(Actor02500Ctx* arg0, s32 arg1);
-void  Gp_LinkObj(s32 arg0, Actor02500Obj* arg1);
+void  Gp_LinkObj(s32 arg0, GpObj* arg1);
 void  Gp_InitRec18Table(GpRec18* arg0, s32 arg1, s32 arg2);
 s32   Gp_PackPair(void* arg0, s32 arg1);
 void  Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
@@ -268,10 +268,10 @@ death:
     work->field_2E4 = coord->coord;
     arg0->field_54  = NULL;
     Gp_UnlinkNode(&arg0->node);
-    Gp_UnlinkObj(&work->field_16C);
-    Gp_UnlinkObj(&work->field_1A4);
-    Gp_UnlinkObj(&work->field_20C);
-    Gp_UnlinkObj(&work->field_2A4);
+    Gp_UnlinkObj(&work->obj16C);
+    Gp_UnlinkObj(&work->obj1A4);
+    Gp_UnlinkObj(&work->obj20C);
+    Gp_UnlinkObj(&work->obj2A4);
     Gp_SetLightMode(arg0, 1);
     Gp_ReleaseStateF0Add(arg1, 0x19);
     c      = arg1->field_2C->field_8;
@@ -676,7 +676,6 @@ void Actor02500_Fn02574(Actor02500* arg0)
     sp.funcs[arg0->field_30](arg0->field_20, arg0);
 }
 
-void                 Task_DetachFromParent(Actor02500* task);
 extern GsCOORDINATE2 Gfx_ViewCoord;
 
 void Actor02500_Fn025D0(Actor02500Ctx* ctx, Actor02500* task)
@@ -702,15 +701,15 @@ void Actor02500_Fn025D0(Actor02500Ctx* ctx, Actor02500* task)
     coord->coord.t[2]  = parentCoord->coord.t[2];
     coord->flg         = 0;
     effect             = Gp_SpawnEff(0x80060046, coord, 0x10280, NULL);
-    work->obj.field_8  = coord;
+    work->obj.coord    = coord;
     rec                = work->rec18;
     work->field_38     = effect;
-    work->obj.field_C  = rec;
-    work->obj.field_10 = 0;
-    work->obj.field_12 = 0;
-    work->obj.field_14 = 0;
-    work->obj.field_18 = Gp_PackPair(&Actor02500_D05B30, 1);
-    work->obj.field_1C = 0xC8;
+    work->obj.ctx.recs = rec;
+    work->obj.pos.vx   = 0;
+    work->obj.pos.vy   = 0;
+    work->obj.pos.vz   = 0;
+    work->obj.key      = Gp_PackPair(&Actor02500_D05B30, 1);
+    work->obj.radius   = 0xC8;
     work->obj.flags    = 1U;
     Gp_LinkObj(3, &work->obj);
     Gp_InitRec18Table(rec, 1, 0);

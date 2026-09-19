@@ -11,25 +11,25 @@ void func_actor_206100_8014F18C(Task* task)
 
     work = (Actor206100Work*)task->work;
 
-    work->obj_364.field_8  = &((TmdObject*)task->extra)->coords[1];
-    work->obj_364.field_C  = work->rec_384;
-    work->obj_364.field_10 = 0;
-    work->obj_364.field_12 = 0;
-    work->obj_364.field_14 = 0;
-    work->obj_364.field_18 = 0x3003D;
-    work->obj_364.field_1C = 0x400;
+    work->obj_364.coord    = &((TmdObject*)task->extra)->coords[1];
+    work->obj_364.ctx.recs = work->rec_384;
+    work->obj_364.pos.vx   = 0;
+    work->obj_364.pos.vy   = 0;
+    work->obj_364.pos.vz   = 0;
+    work->obj_364.key      = 0x3003D;
+    work->obj_364.radius   = 0x400;
     work->obj_364.flags    = 1;
     Gp_LinkObj(2, &work->obj_364);
     Gp_InitRec18Table(work->rec_384, 6, 0);
     work->obj_364.flags &= 0x7FFF;
 
-    work->obj_414.field_8  = &((TmdObject*)task->extra)->coords[4];
-    work->obj_414.field_C  = work->rec_384;
-    work->obj_414.field_10 = 0;
-    work->obj_414.field_12 = 0;
-    work->obj_414.field_14 = 0;
-    work->obj_414.field_18 = 0x3003D;
-    work->obj_414.field_1C = 0x200;
+    work->obj_414.coord    = &((TmdObject*)task->extra)->coords[4];
+    work->obj_414.ctx.recs = work->rec_384;
+    work->obj_414.pos.vx   = 0;
+    work->obj_414.pos.vy   = 0;
+    work->obj_414.pos.vz   = 0;
+    work->obj_414.key      = 0x3003D;
+    work->obj_414.radius   = 0x200;
     work->obj_414.flags    = 1;
     Gp_LinkObj(2, &work->obj_414);
     work->obj_414.flags &= 0x7FFF;

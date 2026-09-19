@@ -10,9 +10,9 @@
 /// Work block of the `actor_113100` enemy task. `func_actor_113100_80131E58`
 /// (state 0) `Mem_Calloc`s 0x540 bytes and parks the pointer in the task's
 /// `Task::work` slot -- that slot is not a `TaskIdMap` here. The same
-/// function builds the display node at +0x4B8: it points `GpObj::field_C` at
-/// the record that follows the node (block + 0x4D8), sets `field_18` to
-/// 0x30000 and `field_1C` to 0x100, zeroes the position triple and sets
+/// function builds the display node at +0x4B8: it points `ctx.recs` at
+/// the record that follows the node (block + 0x4D8), sets `key` to
+/// 0x30000 and `radius` to 0x100, zeroes `pos` and sets
 /// `flags` to 1. The exit callback `func_actor_113100_80132EF0` hands that
 /// node back to `Gp_UnlinkObj`.
 /// `field_53E` latches the `GameFlag_GetNibble(0xED)` result that
@@ -46,7 +46,7 @@ typedef struct Actor113100Work {
     /* 0x477 */ s8    field_477;
     /* 0x478 */ byte  pad_478[0x40];
     /* 0x4B8 */ GpObj obj;
-    /// The `GpRec18` table `GpObj::field_C` points at (`Gp_InitRec18Table` is
+    /// The `GpRec18` table `GpObj.ctx.recs` points at (`Gp_InitRec18Table` is
     /// called on it right after `Gp_LinkObj`).
     /* 0x4D8 */ GpRec18 field_4D8;
     /* 0x4F0 */ s32     field_4F0;

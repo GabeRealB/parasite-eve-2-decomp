@@ -22,13 +22,13 @@ typedef struct Actor105700Work {
     /* 0x014 */ byte      slots[19][0x28];
     /* 0x30C */ byte      pad_30C[0x170];
     /// First body object, handed to `Gp_UnlinkObj` by the teardown of
-    /// `func_actor_105700_80133878`; its `field_14` is the pose the state-0
+    /// `func_actor_105700_80133878`; its `pos.vz` is the pose the state-0
     /// branch of `func_actor_105700_80133138` parks (-0xA7 or 0x109) and its
-    /// `field_1C` the frame count parked alongside it.
+    /// `radius` the frame count parked alongside it.
     /* 0x47C */ GpObj   field_47C;
     /* 0x49C */ byte    pad_49C[0x18];
     /* 0x4B4 */ GpRec18 field_4B4[1];
-    /// Second body object; `field_14` is the pose the state-0 branch parks
+    /// Second body object; `pos.vz` is the pose the state-0 branch parks
     /// (0x15E) and `flags` the bits whose 0x4000 it raises.
     /* 0x4CC */ GpObj   field_4CC;
     /* 0x4EC */ GpRec18 field_4EC[5];
@@ -36,7 +36,7 @@ typedef struct Actor105700Work {
     /// branch clears.
     /* 0x564 */ GpObj   field_564;
     /* 0x584 */ GpRec18 field_584[4];
-    /// Fourth body object: `field_18` is the object `Gp_PackPair` hands it when
+    /// Fourth body object: `key` is the object `Gp_PackPair` hands it when
     /// `field_698` first reaches the animation's 0x1C mark and `flags` the
     /// bits whose 0x8000 is raised with it and dropped at the 0x28 mark
     /// (`func_actor_105700_801341CC`).
@@ -176,7 +176,7 @@ typedef struct Actor105700 {
 } Actor105700;
 
 /// 0x14-byte placement descriptor in the overlay's `.data`, handed to
-/// `Gp_PackPair` as the source of the body objects' `GpObj.field_18`.
+/// `Gp_PackPair` as the source of the body objects' `GpObj.key`.
 /// `field_E` is the variant flag `func_actor_105700_80134FDC` latches into its
 /// work block: it is 1 (the table's own value is 2) when the actor is placed
 /// normally, and anything else puts the body in the other pose.

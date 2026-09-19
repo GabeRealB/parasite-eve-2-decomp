@@ -172,12 +172,12 @@ void func_actor_421600_8013E9D8(Actor421600* arg0)
         arg0->field_20->node.field_4 = 0;
         obj->flags                   = 0;
         Tmd_AllocBuffers(obj);
-        work->field_8EC.field_1C = 0x19C;
-        work->field_828          = 1;
-        work->field_832          = 0x10;
-        work->field_82A          = 0;
-        work->field_82E          = 4;
-        work->field_B6C.flags   |= 0x4000;
+        work->field_8EC.radius = 0x19C;
+        work->field_828        = 1;
+        work->field_832        = 0x10;
+        work->field_82A        = 0;
+        work->field_82E        = 4;
+        work->field_B6C.flags |= 0x4000;
         func_actor_421600_80134604(arg0);
         return;
     }
@@ -204,12 +204,12 @@ void func_actor_421600_8013EAAC(Actor421600* arg0)
         arg0->field_20->node.field_4 = 0;
         obj->flags                   = 0;
         Tmd_AllocBuffers(obj);
-        work->field_8EC.field_1C = 0x19C;
-        work->field_828          = 1;
-        work->field_832          = 0x10;
-        work->field_82A          = 0;
-        work->field_82E          = 8;
-        work->field_B6C.flags   |= 0x4000;
+        work->field_8EC.radius = 0x19C;
+        work->field_828        = 1;
+        work->field_832        = 0x10;
+        work->field_82A        = 0;
+        work->field_82E        = 8;
+        work->field_B6C.flags |= 0x4000;
         func_actor_421600_80134604(arg0);
     }
     func_actor_421600_8013285C(arg0->field_2C->coords, &work->field_B8C, 0xC);
@@ -231,12 +231,12 @@ void func_actor_421600_8013EB7C(Actor421600* arg0)
         arg0->field_20->node.field_4 = 0;
         obj->flags                   = 0;
         Tmd_AllocBuffers(obj);
-        work->field_8EC.field_1C = 0x19C;
-        work->field_828          = 1;
-        work->field_832          = 0x10;
-        work->field_82A          = 0;
-        work->field_82E          = 0xC;
-        work->field_B6C.flags   |= 0x4000;
+        work->field_8EC.radius = 0x19C;
+        work->field_828        = 1;
+        work->field_832        = 0x10;
+        work->field_82A        = 0;
+        work->field_82E        = 0xC;
+        work->field_B6C.flags |= 0x4000;
         func_actor_421600_80134604(arg0);
     }
     func_actor_421600_80134604(arg0);
@@ -253,16 +253,16 @@ void func_actor_421600_8013EC28(Actor421600* arg0)
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
-        arg0->field_2C->flags    = 0;
-        work->field_8EC.field_1C = 0x19C;
-        work->field_B6C.flags   |= 0x4000;
-        enemy->node.field_4      = 0;
-        work->field_828          = 1;
-        work->field_82E          = 0xA;
-        work->field_832          = 0x10;
-        work->field_844          = 0;
-        work->field_840          = 0;
-        work->field_83E          = 0;
+        arg0->field_2C->flags  = 0;
+        work->field_8EC.radius = 0x19C;
+        work->field_B6C.flags |= 0x4000;
+        enemy->node.field_4    = 0;
+        work->field_828        = 1;
+        work->field_82E        = 0xA;
+        work->field_832        = 0x10;
+        work->field_844        = 0;
+        work->field_840        = 0;
+        work->field_83E        = 0;
         if (enemy->field_40 <= 0) {
             Gp_SetStateF0Byte3(1);
         }
@@ -291,15 +291,15 @@ void func_actor_421600_8013ED24(Actor421600* arg0)
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
-        arg0->field_2C->flags    = 0;
-        work->field_8EC.field_1C = 0x19C;
-        work->field_B6C.flags   |= 0x4000;
-        enemy->node.field_4      = 0;
-        work->field_828          = 1;
-        work->field_82E          = 0x13;
-        work->field_832          = 0x10;
-        work->field_840          = 0;
-        work->field_83E          = 0;
+        arg0->field_2C->flags  = 0;
+        work->field_8EC.radius = 0x19C;
+        work->field_B6C.flags |= 0x4000;
+        enemy->node.field_4    = 0;
+        work->field_828        = 1;
+        work->field_82E        = 0x13;
+        work->field_832        = 0x10;
+        work->field_840        = 0;
+        work->field_83E        = 0;
         if (enemy->field_40 <= 0) {
             Gp_SetStateF0Byte3(1);
         }
@@ -327,16 +327,16 @@ void func_actor_421600_8013EE0C(Actor421600* arg0)
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
-        obj                      = arg0->field_2C;
-        obj->flags               = 0;
-        work->field_8EC.field_1C = 0x19C;
-        work->field_B6C.flags   |= 0x4000;
-        enemy->node.field_4      = 1;
-        work->field_828          = 1;
-        work->field_82E          = 0x16;
-        work->field_832          = 0x10;
-        work->field_840          = 0;
-        work->field_83E          = 0;
+        obj                    = arg0->field_2C;
+        obj->flags             = 0;
+        work->field_8EC.radius = 0x19C;
+        work->field_B6C.flags |= 0x4000;
+        enemy->node.field_4    = 1;
+        work->field_828        = 1;
+        work->field_82E        = 0x16;
+        work->field_832        = 0x10;
+        work->field_840        = 0;
+        work->field_83E        = 0;
         if (enemy->field_40 <= 0) {
             Gp_SetStateF0Byte3(1);
         }

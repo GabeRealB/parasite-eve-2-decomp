@@ -11,7 +11,7 @@
 
 /// 0x2B0-byte work block the enemy's spawn function allocates with `Mem_Calloc`
 /// and parks in the task's `Task::work` slot (that slot is not a `TaskIdMap`
-/// here). It embeds three `GpObj` list nodes; the first points its `field_C` at
+/// here). It embeds three `GpObj` list nodes; the first points its `ctx.recs` at
 /// the `GpActorD4Rec` that follows it, the other two point straight at their
 /// own `GpRec18` table, and `Gp_InitRec18Table` zeroes each table.
 /// `ActorsShared8014df20` hands all three nodes back to `Gp_UnlinkObj`.

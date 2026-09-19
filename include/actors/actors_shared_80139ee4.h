@@ -26,7 +26,7 @@ typedef struct ActorsShared80139ee4Work {
     /* 0x000 */ byte          pad_0[0x10];
     /* 0x010 */ GsCOORDINATE2 coord; ///< kept on the floor under the model
     /* 0x060 */ byte          pad_60[0x50];
-    /* 0x0B0 */ GpObj         obj;   ///< collision node; `field_1C` is the marker size
+    /* 0x0B0 */ GpObj         obj;   ///< collision node; `radius` is the marker size
     /* 0x0D0 */ byte          pad_D0[0x20];
     /* 0x0F0 */ GpRec18       rec;
     /* 0x108 */ byte          pad_108[0xA4];

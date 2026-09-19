@@ -18,7 +18,7 @@ extern s32 D_energyball_8013117C[];
 /// One 4-byte row of `D_energyball_80131194`, indexed by `GpEffWork.field_20`
 /// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the full size the ball grows
 /// to before it is launched (`GpEffWork.field_26`; half of it is the linked
-/// `GpObj.field_1C` radius, twice it the burst's final size) and `field_2` the
+/// `GpObj.radius`, twice it the burst's final size) and `field_2` the
 /// per-frame growth step, also the initial upward speed while charging.
 typedef struct EnergyBallStep {
     /* 0x0 */ s16 field_0;
@@ -27,7 +27,7 @@ typedef struct EnergyBallStep {
 STATIC_ASSERT_SIZEOF(EnergyBallStep, 4);
 
 /// Collision block allocated by `func_energyball_8012F180` (`Mem_Calloc(0x38)`)
-/// and stored in `Task::work`: `obj` is linked on list 1 with `field_C`
+/// and stored in `Task::work`: `obj` is linked on list 1 with `ctx.recs`
 /// pointing at the one-element `rec` table (terminator `field_0 = 2`).
 typedef struct EnergyBallWork {
     /* 0x00 */ GpObj   obj;

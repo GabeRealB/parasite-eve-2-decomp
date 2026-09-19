@@ -76,30 +76,30 @@ void func_actor_102400_801345B0(GpEnemy* arg0, Task* arg1)
     work->field_AC    = parentCoord->coord.m[2][2];
 
     objCoord             = ((TmdObject*)arg1->extra)->coords;
-    work->obj_0.field_C  = &work->rec_40;
-    work->obj_0.field_10 = 0;
-    work->obj_0.field_12 = 0;
-    work->obj_0.field_14 = 0;
-    work->obj_0.field_8  = objCoord;
-    work->obj_0.field_18 = Gp_PackPair(&D_actor_102400_801363C4, (parentWork->field_14E * 2) | 1);
-    work->obj_0.field_1C = 0xC8;
+    work->obj_0.ctx.recs = &work->rec_40;
+    work->obj_0.pos.vx   = 0;
+    work->obj_0.pos.vy   = 0;
+    work->obj_0.pos.vz   = 0;
+    work->obj_0.coord    = objCoord;
+    work->obj_0.key      = Gp_PackPair(&D_actor_102400_801363C4, (parentWork->field_14E * 2) | 1);
+    work->obj_0.radius   = 0xC8;
     work->obj_0.flags    = 1;
     Gp_LinkObj(3, &work->obj_0);
     Gp_InitRec18Table(&work->rec_40, 1, 0);
     work->obj_0.flags    |= 0x8000;
     objCoord2             = ((TmdObject*)arg1->extra)->coords;
-    work->obj_20.field_C  = &work->rec_40;
-    work->obj_20.field_10 = 0;
-    work->obj_20.field_12 = 0;
-    work->obj_20.field_14 = 0;
-    work->obj_20.field_8  = objCoord2;
+    work->obj_20.ctx.recs = &work->rec_40;
+    work->obj_20.pos.vx   = 0;
+    work->obj_20.pos.vy   = 0;
+    work->obj_20.pos.vz   = 0;
+    work->obj_20.coord    = objCoord2;
     if (parentWork->field_14E == 0) {
-        work->obj_20.field_18 = 0x22D2D;
+        work->obj_20.key = 0x22D2D;
     } else {
-        work->obj_20.field_18 = 0x22E2E;
+        work->obj_20.key = 0x22E2E;
     }
-    work->obj_20.field_1C = 0xC8;
-    work->obj_20.flags    = 1;
+    work->obj_20.radius = 0xC8;
+    work->obj_20.flags  = 1;
     Gp_LinkObj(1, &work->obj_20);
 
     work->pose_78.field_C  = -0xD2;
@@ -113,14 +113,14 @@ void func_actor_102400_801345B0(GpEnemy* arg0, Task* arg1)
     work->pose_78.field_14 = &work->field_90;
     work->obj_20.flags    |= 0x8000;
     objCoord3              = ((TmdObject*)arg1->extra)->coords;
-    work->obj_58.field_C   = (GpRec18*)&work->pose_78;
-    work->obj_58.field_10  = 0;
-    work->obj_58.field_12  = 0;
-    work->obj_58.field_14  = 0;
-    work->obj_58.field_18  = 0;
-    work->obj_58.field_1C  = 0;
+    work->obj_58.ctx.d4rec = &work->pose_78;
+    work->obj_58.pos.vx    = 0;
+    work->obj_58.pos.vy    = 0;
+    work->obj_58.pos.vz    = 0;
+    work->obj_58.key       = 0;
+    work->obj_58.radius    = 0;
     work->obj_58.flags     = 3;
-    work->obj_58.field_8   = objCoord3;
+    work->obj_58.coord     = objCoord3;
     Gp_LinkObj(3, &work->obj_58);
     Gp_InitRec18Table(&work->field_90, 1, 0);
     work->field_B0      = 0x5A;

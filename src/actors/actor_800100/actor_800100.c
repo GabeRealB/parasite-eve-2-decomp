@@ -277,10 +277,10 @@ void func_actor_800100_801624F0(Task* task)
             work->field_26     = (ang1 >> 16) & 0xFFF;
             task->state        = 1;
             task->work         = (TaskIdMap*)beam;
-            beam->obj.field_8  = coord;
-            beam->obj.field_C  = beam->rec;
-            beam->obj.field_18 = 0x21C9E;
-            beam->obj.field_1C = (s16)(u16)work->field_24 >> 1;
+            beam->obj.coord    = coord;
+            beam->obj.ctx.recs = beam->rec;
+            beam->obj.key      = 0x21C9E;
+            beam->obj.radius   = (s16)(u16)work->field_24 >> 1;
             Gp_LcgState        = ang1;
             beam->obj.flags    = 1;
             Gp_LinkObj(1, &beam->obj);
@@ -311,7 +311,7 @@ void func_actor_800100_801624F0(Task* task)
                 func_actor_800100_80162E90((VECTOR3*)ground.workm.t,
                                            (s16)((work->field_24 * 2) / 3));
             }
-            if (Gp_CountRec18Hi(beam->obj.field_C, 0x30000) != 0) {
+            if (Gp_CountRec18Hi(beam->obj.ctx.recs, 0x30000) != 0) {
                 Gp_UnlinkObj(&beam->obj);
                 Gp_ReleaseState1CMem(work, task);
                 return;

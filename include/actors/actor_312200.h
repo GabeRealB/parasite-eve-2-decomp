@@ -37,7 +37,7 @@ STATIC_ASSERT_SIZEOF(Actor312200Rate, 0x2);
 ///
 /// `field_8BC` is the display node the spawn handler
 /// `func_actor_312200_80163178` builds in place and hands to `Gp_LinkObj` - the
-/// `GpObj` whose `field_C` it points at a three-entry `GpRec18` table at 0x8DC.
+/// `GpObj` whose `ctx.recs` is a three-entry `GpRec18` table at 0x8DC.
 /// `func_actor_312200_80163778` clears bit 0x8000 of that node's `flags`.
 typedef struct Actor312200Work {
     /* 0x000 */ s16 field_0;

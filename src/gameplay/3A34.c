@@ -3777,7 +3777,7 @@ void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2)
     u16               f0;
     s32               key;
 
-    if (arg1->field_18 == 0) {
+    if (arg1->key == 0) {
         return;
     }
 
@@ -3786,13 +3786,13 @@ void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2)
         case 0:
             break;
         case 1:
-            a3v = (s32)arg0->field_C;
+            a3v = (s32)arg0->ctx.recs;
             break;
         case 2:
-            a3v = (s32)((GpObj*)arg0->field_C)->field_C;
+            a3v = (s32)arg0->ctx.node->ctx.recs;
             break;
         case 3:
-            a3v = (s32)((GpActorD4Rec*)arg0->field_C)->field_14;
+            a3v = (s32)arg0->ctx.d4rec->field_14;
             break;
         empty_or: /* between case 3 and 4 so the empty-slot trampoline matches */
         {
@@ -3802,7 +3802,7 @@ void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2)
             goto fill;
         }
         case 4:
-            a3v = (s32)((GpObj*)arg0->field_C)->field_8;
+            a3v = (s32)arg0->ctx.dir->field_8;
             break;
     }
     slot = (GpRec18*)a3v;
@@ -3825,23 +3825,23 @@ void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2)
                         case 0:
                             break;
                         case 1:
-                            otable = ((GpObj*)a3v)->field_C;
+                            otable = ((GpObj*)a3v)->ctx.recs;
                             break;
                         case 2:
-                            otable = ((GpObj*)((GpObj*)a3v)->field_C)->field_C;
+                            otable = ((GpObj*)a3v)->ctx.node->ctx.recs;
                             break;
                         case 3:
-                            otable = ((GpActorD4Rec*)((GpObj*)a3v)->field_C)->field_14;
+                            otable = ((GpObj*)a3v)->ctx.d4rec->field_14;
                             break;
                         case 4:
-                            otable = (GpRec18*)((GpObj*)((GpObj*)a3v)->field_C)->field_8;
+                            otable = ((GpObj*)a3v)->ctx.dir->field_8;
                             break;
                     }
                     otherSlot = otable;
                     if (otherSlot == NULL) {
                         return;
                     }
-                    key = arg0->field_18;
+                    key = arg0->key;
                 loop:
                     if (otherSlot->key != key) {
                         if (otherSlot->flags & 2) {
@@ -3884,7 +3884,7 @@ void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2)
     }
 
 fill:
-    slot->key                     = arg1->field_18;
+    slot->key                     = arg1->key;
     slot->depth                   = (u16)arg2->rsum;
     slot->point                   = arg2->src;
     *(SVECTOR*)&slot->at10.normal = arg2->extra;
@@ -3940,7 +3940,7 @@ s32 Gp_PairHandler1(GpObj* arg0, GpObj* arg1)
     c             = dx * dx;
     dx            = block->delta.vz;
     a             = dx * dx;
-    rsum          = (u16)arg0->field_1C + (u16)arg1->field_1C;
+    rsum          = (u16)arg0->radius + (u16)arg1->radius;
     block->rsum32 = rsum;
     dx            = t0 + c + a;
     if (dx < (b = rsum * rsum)) {
@@ -4015,15 +4015,15 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1)
     head     = *scratch;
     pos      = (VECTOR3*)(head - 0x78);
     *scratch = head - 0x8C;
-    rec      = (GpActorD4Rec*)arg1->field_C;
+    rec      = arg1->ctx.d4rec;
     block    = (GpCapsuleScratch*)(head - 0x8C);
     Gp_ObjWorldPos(arg0, pos);
     ends = (VECTOR*)(head - 0x68);
     func_800DEC80(arg1, ends, (SVECTOR*)(head - 0x18), 0);
 
-    block->scaled.vx = (block->normal.vx * (u16)arg0->field_1C) >> 12;
-    block->scaled.vy = (block->normal.vy * (u16)arg0->field_1C) >> 12;
-    block->scaled.vz = (block->normal.vz * (u16)arg0->field_1C) >> 12;
+    block->scaled.vx = (block->normal.vx * (u16)arg0->radius) >> 12;
+    block->scaled.vy = (block->normal.vy * (u16)arg0->radius) >> 12;
+    block->scaled.vz = (block->normal.vz * (u16)arg0->radius) >> 12;
 
     block->planeA.vx = block->end0.vx + block->scaled.vx;
     block->planeA.vy = block->end0.vy + block->scaled.vy;
@@ -4053,7 +4053,7 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1)
     r1      = rec->field_10;
     tapered = r1 != rec->field_12;
     if (!tapered) {
-        radius        = (u16)arg0->field_1C + r1;
+        radius        = (u16)arg0->radius + r1;
         block->hit.vx = (u16)block->planeB.vx + ((block->normal.vx * proj) >> 12);
         block->hit.vy = (u16)block->planeB.vy + ((block->normal.vy * proj) >> 12);
         block->hit.vz = (u16)block->planeB.vz + ((block->normal.vz * proj) >> 12);
@@ -4062,16 +4062,16 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1)
     }
 
     if (arg1->flags & 0xC00) {
-        gte_SetRotMatrix(&((GsCOORDINATE2*)arg1->field_8)->workm);
-        block->scaled.vx = (u16)rec->field_0 + (u16)arg1->field_10;
-        block->scaled.vy = (u16)rec->field_2 + (u16)arg1->field_12;
-        block->scaled.vz = (u16)rec->field_4 + (u16)arg1->field_14;
+        gte_SetRotMatrix(&arg1->coord->workm);
+        block->scaled.vx = (u16)rec->field_0 + (u16)arg1->pos.vx;
+        block->scaled.vy = (u16)rec->field_2 + (u16)arg1->pos.vy;
+        block->scaled.vz = (u16)rec->field_4 + (u16)arg1->pos.vz;
         gte_ldv0((SVECTOR*)(head - 8));
         gte_rtv0_real();
         gte_stlvnl(ends);
-        block->end0.vx += ((GsCOORDINATE2*)arg1->field_8)->workm.t[0];
-        block->end0.vy += ((GsCOORDINATE2*)arg1->field_8)->workm.t[1];
-        block->end0.vz += ((GsCOORDINATE2*)arg1->field_8)->workm.t[2];
+        block->end0.vx += ((GsCOORDINATE2*)arg1->coord)->workm.t[0];
+        block->end0.vy += ((GsCOORDINATE2*)arg1->coord)->workm.t[1];
+        block->end0.vz += ((GsCOORDINATE2*)arg1->coord)->workm.t[2];
     }
 
     block->delta.vx = block->end0.vx - block->end1.vx;
@@ -4095,7 +4095,7 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1)
     proj       = (plen << 12) / proj;
     ratioDelta = r0 - 0x1000;
     SOFT_TOUCH_REG_USE(ratioDelta, r0);
-    r1            = (u16)arg0->field_1C;
+    r1            = (u16)arg0->radius;
     proj          = r1 + ((((ratioDelta * proj) >> 12) * rec->field_12 >> 12) + rec->field_12);
     block->hit.vx = (u16)block->scaled.vx + (u16)block->planeB.vx;
     block->hit.vy = (u16)block->scaled.vy + (u16)block->planeB.vy;
@@ -4202,7 +4202,7 @@ void Gp_CollideObjGrid(GpObj* arg0)
                          block->normal.vz * block->pos.vz) >>
                         12) -
                        faceDot;
-                if ((u16)arg0->field_1C >= ABS((s16)dist)) {
+                if ((u16)arg0->radius >= ABS((s16)dist)) {
                     goto edges;
                 }
                 continue;
@@ -4213,7 +4213,7 @@ void Gp_CollideObjGrid(GpObj* arg0)
 
             fill:
                 slot->flags       = flags | 1;
-                slot->depth       = (u16)arg0->field_1C - dist;
+                slot->depth       = (u16)arg0->radius - dist;
                 slot->key         = face->field_A | 0x100000;
                 slot->point.vx    = 0;
                 slot->point.vy    = 0;
@@ -4263,7 +4263,7 @@ void Gp_CollideObjGrid(GpObj* arg0)
                     continue;
                 }
 
-                slot = arg0->field_C;
+                slot = arg0->ctx.recs;
                 for (;;) {
                     flags = slot->flags;
                     if (!(flags & 1)) {
@@ -4309,7 +4309,7 @@ void Gp_CollideObjGridDir(GpObj* arg0)
     pos      = (VECTOR3*)(head - 0x80);
     *scratch = head - 0x88;
     block    = (GpGridHitScratch*)(head - 0x88);
-    rec      = (GpObjDirRec*)arg0->field_C;
+    rec      = arg0->ctx.dir;
     Gp_ObjWorldPos(arg0, pos);
     Gp_LocalToGrid(pos, &block->grid);
 
@@ -4360,7 +4360,7 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                                 faceDot;
                     dist = planeDist;
                     TOUCH_REG(planeDist);
-                    if ((u16)arg0->field_1C >= ABS((s16)planeDist)) {
+                    if ((u16)arg0->radius >= ABS((s16)planeDist)) {
                         goto edges;
                     }
                 }
@@ -4404,7 +4404,7 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                                   block->delta.vz * block->pos.vz) >>
                                  12) -
                                 edgeDot);
-                    if (val - (u16)arg0->field_1C > 0) {
+                    if (val - (u16)arg0->radius > 0) {
                         outside = 1;
                         goto edges_done;
                     }
@@ -4420,7 +4420,7 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                     continue;
                 }
 
-                slot = ((GpObjDirRec*)arg0->field_C)->field_8;
+                slot = arg0->ctx.dir->field_8;
                 for (;;) {
                     flags = slot->flags;
                     if (flags & 1) {
@@ -4428,15 +4428,15 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                             if (slot->at10.normal.vx == Gp_GridParams->field_4[face->field_8].vx &&
                                 slot->at10.normal.vy == Gp_GridParams->field_4[face->field_8].vy &&
                                 slot->at10.normal.vz == Gp_GridParams->field_4[face->field_8].vz) {
-                                if (slot->depth < (s32)(u16)arg0->field_1C - (s16)dist) {
-                                    slot->depth = (u16)arg0->field_1C - dist;
+                                if (slot->depth < (s32)(u16)arg0->radius - (s16)dist) {
+                                    slot->depth = (u16)arg0->radius - dist;
                                 }
                                 goto next_face;
                             }
                         }
                     } else {
                         slot->flags       = flags | 1;
-                        slot->depth       = (u16)arg0->field_1C - dist;
+                        slot->depth       = (u16)arg0->radius - dist;
                         faceKind          = face->field_A | 0x100000;
                         slot->key         = extra | faceKind;
                         slot->point.vx    = 0;
@@ -4586,7 +4586,7 @@ void func_800DD940(GpObj* arg0)
         if (D_80115450[i] &&
             Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8].vy < -0xDDA &&
             func_800DD324(i, block->seg, block->ray, (s32)arg0)) {
-            slot  = ((GpObjDirRec*)arg0->field_C)->field_8;
+            slot  = arg0->ctx.dir->field_8;
             flags = slot->flags;
             if (flags & 1) {
                 if ((u32)(slot->key & 0xF) < (u32)Gp_GridParams->field_C[i].field_A) {
@@ -4623,29 +4623,29 @@ void func_800DDC2C(GpObj* arg0)
     s32             x;
 
     obj     = arg0;
-    dir     = (SVECTOR*)obj->field_C;
-    prod    = dir->vx * (u16)obj->field_1C;
+    dir     = &obj->ctx.dir->dir;
+    prod    = dir->vx * (u16)obj->radius;
     scratch = (void**)G_SCRATCH_HEAD;
     head    = *scratch;
     {
         register s32 tmp asm("v0");
 
         tmp              = (s32)head - 0x50;
-        x                = (u16)obj->field_10;
+        x                = (u16)obj->pos.vx;
         block            = (GpEdgeScratch*)tmp;
         block->src[0].vy = 0;
         x               += prod >> 12;
         block->src[0].vx = x;
     }
-    block->src[0].vz = (u16)obj->field_14 + ((dir->vz * (u16)obj->field_1C) >> 12);
-    prod             = dir->vx * (u16)obj->field_1C;
-    x                = (u16)obj->field_10;
+    block->src[0].vz = (u16)obj->pos.vz + ((dir->vz * (u16)obj->radius) >> 12);
+    prod             = dir->vx * (u16)obj->radius;
+    x                = (u16)obj->pos.vx;
     block->src[1].vy = 0;
     x               += (-prod) >> 12;
     block->src[1].vx = x;
     head            -= 0x20;
-    block->src[1].vz = (u16)obj->field_14 + ((-(dir->vz * (u16)obj->field_1C)) >> 12);
-    coord            = (GsCOORDINATE2*)obj->field_8;
+    block->src[1].vz = (u16)obj->pos.vz + ((-(dir->vz * (u16)obj->radius)) >> 12);
+    coord            = (GsCOORDINATE2*)obj->coord;
     *scratch         = block;
     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, (MATRIX*)head);
     gte_SetRotMatrix((MATRIX*)head);
@@ -4718,7 +4718,7 @@ void func_800DDDF8(GpObj* node)
         for (i = 0; i < Gp_GridParams->field_22; i++) {
             if (D_80115450[i] != 0) {
                 if (func_800DD324(i, block->pos, block->ray, (s32)obj) != 0) {
-                    rec  = (GpActorD4Rec*)obj->field_C;
+                    rec  = obj->ctx.d4rec;
                     slot = rec->field_14;
                     if (obj->flags & 0x400) {
                         if (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1]
@@ -4787,18 +4787,18 @@ void func_800DE150(GpObj* arg0)
     GsCOORDINATE2* coord;
     MATRIX*        mat;
 
-    coord                   = (GsCOORDINATE2*)arg0->field_8;
+    coord                   = (GsCOORDINATE2*)arg0->coord;
     head                    = *(void**)G_SCRATCH_HEAD;
     *(void**)G_SCRATCH_HEAD = head - 0x50;
     block                   = (GpEdgeScratch*)(head - 0x50);
     mat                     = (MATRIX*)(head - 0x20);
-    src                     = (SVECTOR*)arg0->field_C;
+    src                     = (SVECTOR*)arg0->ctx.d4rec;
     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, mat);
     gte_SetRotMatrix(mat);
     for (i = 0; i < 2; i++) {
-        block->src[i].vx = (u16)src[i].vx + (u16)arg0->field_10;
+        block->src[i].vx = (u16)src[i].vx + (u16)arg0->pos.vx;
         block->src[i].vy = 0;
-        block->src[i].vz = (u16)src[i].vz + (u16)arg0->field_14;
+        block->src[i].vz = (u16)src[i].vz + (u16)arg0->pos.vz;
         gte_ldv0(&block->src[i]);
         gte_rtv0_real();
         gte_stlvnl(&block->pos[i]);
@@ -5029,7 +5029,7 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
     found    = 0;
     head    -= 0x18;
     *scratch = head;
-    rec      = (GpActorD4Rec*)obj->field_C;
+    rec      = obj->ctx.d4rec;
     block    = (GpNormScratch*)head;
 
     if (arg3 == 0) {
@@ -5052,7 +5052,7 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
                 slot++;
             }
         } else if (obj->flags & 0x400) {
-            slot = ((GpActorD4Rec*)obj->field_C)->field_14;
+            slot = obj->ctx.d4rec->field_14;
             for (;;) {
                 if (slot->flags & 1) {
                     if ((slot->key & 0xFFFF0000) == 0x100000) {
@@ -5070,7 +5070,7 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
             }
         }
     } else if (obj->flags & 0x400) {
-        slot = ((GpActorD4Rec*)obj->field_C)->field_14;
+        slot = obj->ctx.d4rec->field_14;
         for (;;) {
             if (slot->flags & 1) {
                 if ((slot->key & 0xFFFF0000) == 0x100000) {
@@ -5089,7 +5089,7 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
     }
 
 done_search:
-    gte_SetRotMatrix(&((GsCOORDINATE2*)obj->field_8)->workm);
+    gte_SetRotMatrix(&obj->coord->workm);
     if (found < 2) {
         local = &block->local;
         temp  = found << 4;
@@ -5097,15 +5097,15 @@ done_search:
         temp  = found << 3;
         src   = (SVECTOR*)(temp + (s32)rec);
         do {
-            block->local.vx = (u16)src->vx + (u16)obj->field_10;
-            block->local.vy = (u16)src->vy + (u16)obj->field_12;
-            block->local.vz = (u16)src->vz + (u16)obj->field_14;
+            block->local.vx = (u16)src->vx + (u16)obj->pos.vx;
+            block->local.vy = (u16)src->vy + (u16)obj->pos.vy;
+            block->local.vz = (u16)src->vz + (u16)obj->pos.vz;
             gte_ldv0(local);
             gte_rtv0_real();
             gte_stlvnl(&block->vec);
-            pos->vx = block->vec.vx + ((GsCOORDINATE2*)obj->field_8)->workm.t[0];
-            pos->vy = block->vec.vy + ((GsCOORDINATE2*)obj->field_8)->workm.t[1];
-            pos->vz = block->vec.vz + ((GsCOORDINATE2*)obj->field_8)->workm.t[2];
+            pos->vx = block->vec.vx + ((GsCOORDINATE2*)obj->coord)->workm.t[0];
+            pos->vy = block->vec.vy + ((GsCOORDINATE2*)obj->coord)->workm.t[1];
+            pos->vz = block->vec.vz + ((GsCOORDINATE2*)obj->coord)->workm.t[2];
             src++;
             found++;
             pos++;
@@ -5127,13 +5127,13 @@ static __inline__ void Gp_ObjWorldPosInline(GpObj* obj, VECTOR* pos)
     h                       = *(u8**)G_SCRATCH_HEAD;
     vec                     = (VECTOR*)(h - 0x30);
     *(void**)G_SCRATCH_HEAD = vec;
-    gte_SetRotMatrix(&((GsCOORDINATE2*)obj->field_8)->workm);
-    gte_ldv0(&obj->field_10);
+    gte_SetRotMatrix(&obj->coord->workm);
+    gte_ldv0(&obj->pos);
     gte_rtv0_real();
     gte_stlvnl(vec);
-    pos->vx                 = ((GsCOORDINATE2*)obj->field_8)->workm.t[0] + ((VECTOR*)(h - 0x30))->vx;
-    pos->vy                 = ((GsCOORDINATE2*)obj->field_8)->workm.t[1] + vec->vy;
-    pos->vz                 = ((GsCOORDINATE2*)obj->field_8)->workm.t[2] + vec->vz;
+    pos->vx                 = ((GsCOORDINATE2*)obj->coord)->workm.t[0] + ((VECTOR*)(h - 0x30))->vx;
+    pos->vy                 = ((GsCOORDINATE2*)obj->coord)->workm.t[1] + vec->vy;
+    pos->vz                 = ((GsCOORDINATE2*)obj->coord)->workm.t[2] + vec->vz;
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;
 }
 
@@ -5183,7 +5183,7 @@ void func_800DEF80(GpObj* arg0, GpObj4C* arg1)
     block->delta.vz = block->world.vz - block->nodePos.vz;
     distSq          = block->delta.vx * block->delta.vx + block->delta.vy * block->delta.vy +
              block->delta.vz * block->delta.vz;
-    nodeRadius = (u16)node->field_1C;
+    nodeRadius = (u16)node->radius;
     /* Keep the node radius in a separate allocation from the radius sum. */
     SOFT_TOUCH_REG(nodeRadius);
     SOFT_TOUCH_REG(nodeRadius);
@@ -5199,7 +5199,7 @@ void func_800DEF80(GpObj* arg0, GpObj4C* arg1)
         {
             GsCOORDINATE2* c;
             s32            a;
-            c   = (GsCOORDINATE2*)node->field_8;
+            c   = (GsCOORDINATE2*)node->coord;
             a   = other->field_3C.vx;
             m0  = a * c->coord.m[0][2];
             a   = other->field_3C.vy;
@@ -5229,7 +5229,7 @@ void func_800DEF80(GpObj* arg0, GpObj4C* arg1)
 case4_far:
     block->local.vx = *(u16*)&other->field_C.vx;
     block->local.vy =
-        *(u16*)&((GsCOORDINATE2*)node->field_8)->coord.t[1] + (u16)node->field_12;
+        *(u16*)&((GsCOORDINATE2*)node->coord)->coord.t[1] + (u16)node->pos.vy;
     block->local.vz = *(u16*)&other->field_C.vz;
     gte_SetRotMatrix(&((GsCOORDINATE2*)other->field_8)->workm);
     gte_ldv0((SVECTOR*)(head - 8));
@@ -5245,7 +5245,7 @@ case4_far:
     {
         GsCOORDINATE2* c;
         s32            n0, n1, n2;
-        c   = (GsCOORDINATE2*)node->field_8;
+        c   = (GsCOORDINATE2*)node->coord;
         n0  = block->delta.vx * c->workm.m[0][2];
         n1  = block->delta.vy * c->workm.m[1][2];
         n2  = block->delta.vz * c->workm.m[2][2];
@@ -5282,7 +5282,7 @@ collide:
     if (dist >= 0) {
         goto fail;
     }
-    if (dist >= -(s32)(u16)node->field_1C) {
+    if (dist >= -(s32)(u16)node->radius) {
         goto do_edges;
     }
 fail:
@@ -5379,9 +5379,9 @@ void func_800DF6AC(GpObj* arg0, GpObj4C* arg1, VECTOR3* arg2)
     head         = *scratch;
     *scratch     = (VECTOR*)(head - 0xB0);
     block        = *scratch;
-    block[10].vx = ((GsCOORDINATE2*)obj->field_8)->coord.t[0] - arg2->vx;
-    block[10].vy = ((GsCOORDINATE2*)obj->field_8)->coord.t[1] - arg2->vy;
-    block[10].vz = ((GsCOORDINATE2*)obj->field_8)->coord.t[2] - arg2->vz;
+    block[10].vx = ((GsCOORDINATE2*)obj->coord)->coord.t[0] - arg2->vx;
+    block[10].vy = ((GsCOORDINATE2*)obj->coord)->coord.t[1] - arg2->vy;
+    block[10].vz = ((GsCOORDINATE2*)obj->coord)->coord.t[2] - arg2->vz;
     SquareRoot0(block[10].vx * block[10].vx + block[10].vy * block[10].vy + block[10].vz * block[10].vz);
     VectorNormal((VECTOR*)(head - 0x10), (VECTOR*)(head - 0x10));
 
@@ -5402,7 +5402,7 @@ void func_800DF6AC(GpObj* arg0, GpObj4C* arg1, VECTOR3* arg2)
     block[6].vy  = block[4].vy - block[8].vy;
     block[6].vz  = block[4].vz - block[8].vz;
     dx2          = block[6].vx * block[6].vx + block[6].vy * block[6].vy + block[6].vz * block[6].vz;
-    tmp2         = (u16)arg1->field_44 + (u16)obj->field_1C;
+    tmp2         = (u16)arg1->field_44 + (u16)obj->radius;
     if ((tmp2 * tmp2) < dx2) {
         *scratch = (u8*)*scratch + 0xB0;
         return;
@@ -5428,7 +5428,7 @@ void func_800DF6AC(GpObj* arg0, GpObj4C* arg1, VECTOR3* arg2)
         return;
     }
 
-    radius3 = -(s32)(u16)obj->field_1C;
+    radius3 = -(s32)(u16)obj->radius;
     if (plane3 >= radius3) {
         goto body;
     }
@@ -5850,13 +5850,13 @@ void Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1)
     vec      = (VECTOR3*)(head - 0x30);
     *scratch = vec;
     COMPILER_BARRIER();
-    gte_SetRotMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
-    gte_ldv0(&arg0->field_10);
+    gte_SetRotMatrix(&arg0->coord->workm);
+    gte_ldv0(&arg0->pos.vx);
     gte_rtv0_real();
     gte_stlvnl(vec);
-    arg1->vx = ((GsCOORDINATE2*)arg0->field_8)->workm.t[0] + ((VECTOR3*)(head - 0x30))->vx;
-    arg1->vy = ((GsCOORDINATE2*)arg0->field_8)->workm.t[1] + vec->vy;
-    arg1->vz = ((GsCOORDINATE2*)arg0->field_8)->workm.t[2] + vec->vz;
+    arg1->vx = ((GsCOORDINATE2*)arg0->coord)->workm.t[0] + ((VECTOR3*)(head - 0x30))->vx;
+    arg1->vy = ((GsCOORDINATE2*)arg0->coord)->workm.t[1] + vec->vy;
+    arg1->vz = ((GsCOORDINATE2*)arg0->coord)->workm.t[2] + vec->vz;
     *scratch = (u8*)*scratch + 0x30;
 }
 
@@ -5875,20 +5875,20 @@ void func_800E0994(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2)
         block = (GpAxisScratch*)tmp;
     }
     block->local[0].vx = 0;
-    block->local[0].vy = (u16)arg0->field_12 + (u16)arg0->field_1C;
+    block->local[0].vy = (u16)arg0->pos.vy + (u16)arg0->radius;
     block->local[0].vz = 0;
     block->local[1].vx = 0;
-    block->local[1].vy = (u16)arg0->field_12 - (u16)arg0->field_1C;
+    block->local[1].vy = (u16)arg0->pos.vy - (u16)arg0->radius;
     block->local[1].vz = 0;
     *scratch           = block;
-    gte_SetRotMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
+    gte_SetRotMatrix(&arg0->coord->workm);
     for (i = 0; i < 2; i++) {
         gte_ldv0(&block->local[i]);
         gte_rtv0_real();
         gte_stlvnl(&block->vec);
-        arg1[i].vx = block->vec.vx + ((GsCOORDINATE2*)arg0->field_8)->workm.t[0];
-        arg1[i].vy = block->vec.vy + ((GsCOORDINATE2*)arg0->field_8)->workm.t[1];
-        arg1[i].vz = block->vec.vz + ((GsCOORDINATE2*)arg0->field_8)->workm.t[2];
+        arg1[i].vx = block->vec.vx + ((GsCOORDINATE2*)arg0->coord)->workm.t[0];
+        arg1[i].vy = block->vec.vy + ((GsCOORDINATE2*)arg0->coord)->workm.t[1];
+        arg1[i].vz = block->vec.vz + ((GsCOORDINATE2*)arg0->coord)->workm.t[2];
     }
     block->vec.vx = arg1[0].vx - arg1[1].vx;
     block->vec.vy = arg1[0].vy - arg1[1].vy;
@@ -6127,22 +6127,22 @@ s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
     index    = 0;
     best     = index;
     scratch  = (void**)G_SCRATCH_HEAD;
-    rec      = (GpActorD4Rec*)arg0->field_C;
+    rec      = arg0->ctx.d4rec;
     head     = *scratch;
     slot     = rec->field_14;
     *scratch = (void*)(head - 0x28);
     COMPILER_BARRIER();
     block = (GpNearScratch*)(head - 0x28);
-    gte_SetRotMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
-    block->local.vx = (u16)rec->field_8 + (u16)arg0->field_10;
-    block->local.vy = (u16)rec->field_A + (u16)arg0->field_12;
-    block->local.vz = (u16)rec->field_C + (u16)arg0->field_14;
+    gte_SetRotMatrix(&arg0->coord->workm);
+    block->local.vx = (u16)rec->field_8 + (u16)arg0->pos.vx;
+    block->local.vy = (u16)rec->field_A + (u16)arg0->pos.vy;
+    block->local.vz = (u16)rec->field_C + (u16)arg0->pos.vz;
     gte_ldv0((SVECTOR*)(head - 8));
     gte_rtv0_real();
     gte_stlvnl(block);
-    block->world.vx = ((VECTOR3*)(head - 0x28))->vx + ((GsCOORDINATE2*)arg0->field_8)->workm.t[0];
-    block->world.vy = block->vec.vy + ((GsCOORDINATE2*)arg0->field_8)->workm.t[1];
-    block->world.vz = block->vec.vz + ((GsCOORDINATE2*)arg0->field_8)->workm.t[2];
+    block->world.vx = ((VECTOR3*)(head - 0x28))->vx + ((GsCOORDINATE2*)arg0->coord)->workm.t[0];
+    block->world.vy = block->vec.vy + ((GsCOORDINATE2*)arg0->coord)->workm.t[1];
+    block->world.vz = block->vec.vz + ((GsCOORDINATE2*)arg0->coord)->workm.t[2];
 
     for (;;) {
         if ((slot->flags & 1) && ((slot->key & 0xFFFF0000) == arg1)) {

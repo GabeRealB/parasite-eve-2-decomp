@@ -83,11 +83,11 @@ void func_actor_510900_8013B0D8(Task* arg0)
                     work->obj0.flags  &= 0x7FFF;
                     work->obj38.flags |= 0x8000;
                     if (parent->field_5C4 == 2) {
-                        work->field_78       = tag;
-                        work->obj38.field_18 = 0x50003;
+                        work->field_78  = tag;
+                        work->obj38.key = 0x50003;
                     } else {
-                        work->field_78       = 0;
-                        work->obj38.field_18 = 0x50004;
+                        work->field_78  = 0;
+                        work->obj38.key = 0x50004;
                     }
                     snd = (((u16)ctx->field_8 >> 0xC) << 8) | 0x51100002;
                     pan = (s8)Gp_GetObjPan((GpObj38*)coord);

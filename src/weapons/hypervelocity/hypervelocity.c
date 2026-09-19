@@ -326,10 +326,10 @@ void func_hypervelocity_8011D830(Task* task)
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
             work->field_28     = ((u32)Gp_LcgState >> 16) & 0xFFF;
             task->work         = (TaskIdMap*)beam;
-            beam->obj.field_C  = beam->rec;
-            beam->obj.field_1C = 0x800;
-            beam->obj.field_8  = coord;
-            beam->obj.field_18 = 0x2161A;
+            beam->obj.ctx.recs = beam->rec;
+            beam->obj.radius   = 0x800;
+            beam->obj.coord    = coord;
+            beam->obj.key      = 0x2161A;
             beam->obj.flags    = 1;
             Gp_LinkObj(1, &beam->obj);
             beam->rec[0].flags = 2;

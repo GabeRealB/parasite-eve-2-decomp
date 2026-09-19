@@ -297,14 +297,14 @@ void func_actor_503500_80132F64(Actor503500* arg0)
     enemy->field_54      = (s32)recs;
     enemy->field_40      = enemy->field_50->field_4;
 
-    work->field_5D4.field_8  = part;
-    work->field_5D4.field_C  = recs;
-    work->field_5D4.field_18 = 0x30023;
-    work->field_5D4.field_1C = 0x258;
+    work->field_5D4.coord    = part;
+    work->field_5D4.ctx.recs = recs;
+    work->field_5D4.key      = 0x30023;
+    work->field_5D4.radius   = 0x258;
     work->field_5D4.flags    = 1;
-    work->field_5D4.field_10 = D_actor_503500_8016EC50.vx;
-    work->field_5D4.field_12 = D_actor_503500_8016EC50.vy;
-    work->field_5D4.field_14 = D_actor_503500_8016EC50.vz;
+    work->field_5D4.pos.vx   = D_actor_503500_8016EC50.vx;
+    work->field_5D4.pos.vy   = D_actor_503500_8016EC50.vy;
+    work->field_5D4.pos.vz   = D_actor_503500_8016EC50.vz;
     Gp_LinkObj(2, &work->field_5D4);
     Gp_InitRec18Table(recs, 8, 0);
     work->field_6E4.field_4 = 0x600;
@@ -1638,7 +1638,7 @@ s32 func_actor_503500_80135950(Actor503500* arg0, s32 arg1, Actor503500AnimPrese
     if (arg2->field_0 != work->field_7D6) {
         work->field_7D6 = arg2->field_0;
         func_800B3F84((GpAnimCtx*)work, D_actor_503500_8016EAB8[work->field_7D6], (GpAnimObj*)ext,
-                      work->field_334, (GpAnimSlot*)&work->obj.field_14);
+                      work->field_334, (GpAnimSlot*)&work->obj.pos.vz);
         work->field_7D4 = 0;
     }
     work->field_7D5 = arg2->field_4;

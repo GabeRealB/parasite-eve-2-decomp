@@ -16,7 +16,7 @@ extern u8 D_801153F2;
 /// `TaskIdMap` here. The same block lies under the `Actor101100Work` of the four
 /// sibling slots (`actor_101100`, `actor_201100`, `actor_204900`,
 /// `actor_301100`), whose 0x28 run is the `GpActorD4Rec` filled in here: the
-/// object's `field_C` points at it and its `field_14` at the one-entry `GpRec18`
+/// object's `ctx.d4rec` points at it and its `field_14` at the one-entry `GpRec18`
 /// collision table at 0x40, which is where the 0x58 bytes end.
 typedef struct Actor104900Work {
     /// Effect velocity: the random direction vector rotated by the actor's

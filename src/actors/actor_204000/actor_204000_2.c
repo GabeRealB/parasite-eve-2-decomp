@@ -67,17 +67,17 @@ void func_actor_204000_8014AED8(GpEnemy* arg0, Actor104000* arg1)
     func_800B3F84(&work->anim, D_actor_204000_801562E4, (GpAnimObj*)obj, work->poses, work->slots);
 
     o1           = &work->obj270;
-    o1->field_8  = arg1->field_2C->field_8 + 1;
-    o1->field_C  = work->rec1B0;
-    o1->field_12 = -0x110;
-    o1->field_10 = 0;
-    o1->field_14 = 0;
-    o1->field_18 = 0x3000C;
-    o1->field_1C = 0x190;
+    o1->coord    = arg1->field_2C->field_8 + 1;
+    o1->ctx.recs = work->rec1B0;
+    o1->pos.vy   = -0x110;
+    o1->pos.vx   = 0;
+    o1->pos.vz   = 0;
+    o1->key      = 0x3000C;
+    o1->radius   = 0x190;
     o1->flags    = 1;
     Gp_LinkObj(2, o1);
     o1->flags |= 0x4000;
-    Gp_InitRec18Table(o1->field_C, 8, 0);
+    Gp_InitRec18Table(o1->ctx.recs, 8, 0);
 
     o2           = &work->obj350;
     sv.vx        = 0;
@@ -85,42 +85,42 @@ void func_actor_204000_8014AED8(GpEnemy* arg0, Actor104000* arg1)
     sv.vz        = 0;
     p            = &sv;
     hits         = work->hits;
-    o2->field_8  = arg1->field_2C->field_8 + 2;
-    o2->field_C  = hits;
-    o2->field_10 = p->vx;
-    o2->field_12 = p->vy;
-    o2->field_14 = p->vz;
-    o2->field_18 = 0x3000C;
-    o2->field_1C = 0x168;
+    o2->coord    = arg1->field_2C->field_8 + 2;
+    o2->ctx.recs = hits;
+    o2->pos.vx   = p->vx;
+    o2->pos.vy   = p->vy;
+    o2->pos.vz   = p->vz;
+    o2->key      = 0x3000C;
+    o2->radius   = 0x168;
     o2->flags    = 1;
     Gp_LinkObj(2, o2);
     o2->flags |= 0x8000;
-    Gp_InitRec18Table(o2->field_C, 8, 0);
+    Gp_InitRec18Table(o2->ctx.recs, 8, 0);
 
     sv.vx        = 0;
     sv.vy        = 0;
     sv.vz        = 0;
     o3           = &work->obj388;
-    o3->field_8  = &Gfx_ViewCoord;
-    o3->field_C  = &work->rec370;
-    o3->field_10 = p->vx;
-    o3->field_12 = p->vy;
-    o3->field_14 = p->vz;
-    o3->field_1C = 0x500;
+    o3->coord    = &Gfx_ViewCoord;
+    o3->ctx.recs = &work->rec370;
+    o3->pos.vx   = p->vx;
+    o3->pos.vy   = p->vy;
+    o3->pos.vz   = p->vz;
+    o3->radius   = 0x500;
     o3->flags    = 1;
     Gp_LinkObj(3, o3);
-    Gp_InitRec18Table(o3->field_C, 1, 0);
+    Gp_InitRec18Table(o3->ctx.recs, 1, 0);
 
     o4           = &work->obj3C0;
-    o4->field_8  = &Gfx_ViewCoord;
-    o4->field_C  = &work->rec3A8;
-    o4->field_10 = p->vx;
-    o4->field_12 = p->vy;
-    o4->field_14 = p->vz;
-    o4->field_1C = 0x80;
+    o4->coord    = &Gfx_ViewCoord;
+    o4->ctx.recs = &work->rec3A8;
+    o4->pos.vx   = p->vx;
+    o4->pos.vy   = p->vy;
+    o4->pos.vz   = p->vz;
+    o4->radius   = 0x80;
     o4->flags    = 1;
     Gp_LinkObj(8, o4);
-    Gp_InitRec18Table(o4->field_C, 1, 0);
+    Gp_InitRec18Table(o4->ctx.recs, 1, 0);
 
     arg0->field_4     = &coord->coord;
     arg0->field_48    = 0;
@@ -422,26 +422,26 @@ void func_actor_204000_8014BC3C(Actor104000Ctx* arg0, Actor104000* arg1)
     work = arg1->field_1C;
     obj  = arg1->field_2C;
     if (work->field_4 != 0) {
-        arg0->field_14        = 1;
-        obj->field_C          = 0;
-        work->obj350.flags   &= 0x7FFF;
-        work->obj388.flags   &= 0x7FFF;
-        work->obj3C0.flags   &= 0x7FFF;
-        work->obj388.field_18 = Gp_PackObjPair((GpObj50*)arg0, 1);
-        work->obj3C0.field_18 = 0x22222;
-        work->field_6         = 0;
-        work->obj270.flags   |= 0x4000;
-        work->savedColorMtx   = work->colorMtx;
-        work->field_174       = 0xE;
-        work->field_170       = 1;
-        work->field_178       = 0;
+        arg0->field_14      = 1;
+        obj->field_C        = 0;
+        work->obj350.flags &= 0x7FFF;
+        work->obj388.flags &= 0x7FFF;
+        work->obj3C0.flags &= 0x7FFF;
+        work->obj388.key    = Gp_PackObjPair((GpObj50*)arg0, 1);
+        work->obj3C0.key    = 0x22222;
+        work->field_6       = 0;
+        work->obj270.flags |= 0x4000;
+        work->savedColorMtx = work->colorMtx;
+        work->field_174     = 0xE;
+        work->field_170     = 1;
+        work->field_178     = 0;
         func_actor_204000_8014AC8C(arg1);
-        work->obj3C0.field_10           = arg1->field_2C->field_8->coord.t[0];
-        work->obj3C0.field_12           = arg1->field_2C->field_8->coord.t[1] - 0x1F4;
-        work->obj3C0.field_14           = arg1->field_2C->field_8->coord.t[2];
-        work->obj388.field_10           = arg1->field_2C->field_8->coord.t[0];
-        work->obj388.field_12           = arg1->field_2C->field_8->coord.t[1];
-        work->obj388.field_14           = arg1->field_2C->field_8->coord.t[2];
+        work->obj3C0.pos.vx             = arg1->field_2C->field_8->coord.t[0];
+        work->obj3C0.pos.vy             = arg1->field_2C->field_8->coord.t[1] - 0x1F4;
+        work->obj3C0.pos.vz             = arg1->field_2C->field_8->coord.t[2];
+        work->obj388.pos.vx             = arg1->field_2C->field_8->coord.t[0];
+        work->obj388.pos.vy             = arg1->field_2C->field_8->coord.t[1];
+        work->obj388.pos.vz             = arg1->field_2C->field_8->coord.t[2];
         D_actor_204000_80156350.field_4 = 2;
         Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, &D_actor_204000_80156350, 0);
         work->field_6 = 0;
@@ -473,18 +473,18 @@ void func_actor_204000_8014BC3C(Actor104000Ctx* arg0, Actor104000* arg1)
         case 1:
             Gp_SpawnScript18Ex((s32)&D_actor_204000_80150EB4, (s32)&D_actor_204000_80150EC0,
                                (s16)Gp_GetObjDepth((GpObj38*)arg1->field_2C->field_8));
-            work->obj388.field_1C = 0x3E8;
-            work->obj3C0.field_1C = 0xFA;
-            work->obj388.flags   |= 0x8000;
-            work->obj3C0.flags   |= 0x8000;
+            work->obj388.radius = 0x3E8;
+            work->obj3C0.radius = 0xFA;
+            work->obj388.flags |= 0x8000;
+            work->obj3C0.flags |= 0x8000;
             Gp_SpawnEff(0x6009C, &arg1->field_2C->field_8[2], 1, NULL);
             break;
         case 2:
-            work->obj3C0.field_1C = 0x1F4;
+            work->obj3C0.radius = 0x1F4;
             break;
         case 3:
-            work->obj3C0.field_1C = 0x3E8;
-            work->obj388.flags   &= 0x7FFF;
+            work->obj3C0.radius = 0x3E8;
+            work->obj388.flags &= 0x7FFF;
             break;
         case 5:
             Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0xC);
@@ -684,24 +684,24 @@ void func_actor_204000_8014CD68(Actor104000Ctx* arg0, Actor104000* arg1)
     work = arg1->field_1C;
     obj  = arg1->field_2C;
     if (work->field_4 != 0) {
-        arg0->field_14        = 1;
-        obj->field_C          = 0;
-        work->obj350.flags   |= 0x8000;
-        work->obj388.flags   &= 0x7FFF;
-        work->obj3C0.flags   &= 0x7FFF;
-        work->obj388.field_18 = Gp_PackObjPair((GpObj50*)arg0, 1);
-        work->obj3C0.field_18 = 0x22222;
-        work->field_6         = 0;
-        work->obj270.flags   |= 0x4000;
-        work->savedColorMtx   = work->colorMtx;
-        work->field_178       = 0;
+        arg0->field_14      = 1;
+        obj->field_C        = 0;
+        work->obj350.flags |= 0x8000;
+        work->obj388.flags &= 0x7FFF;
+        work->obj3C0.flags &= 0x7FFF;
+        work->obj388.key    = Gp_PackObjPair((GpObj50*)arg0, 1);
+        work->obj3C0.key    = 0x22222;
+        work->field_6       = 0;
+        work->obj270.flags |= 0x4000;
+        work->savedColorMtx = work->colorMtx;
+        work->field_178     = 0;
         func_actor_204000_8014AC8C(arg1);
-        work->obj3C0.field_10 = arg1->field_2C->field_8->coord.t[0];
-        work->obj3C0.field_12 = arg1->field_2C->field_8->coord.t[1] - 0x1F4;
-        work->obj3C0.field_14 = arg1->field_2C->field_8->coord.t[2];
-        work->obj388.field_10 = arg1->field_2C->field_8->coord.t[0];
-        work->obj388.field_12 = arg1->field_2C->field_8->coord.t[1];
-        work->obj388.field_14 = arg1->field_2C->field_8->coord.t[2];
+        work->obj3C0.pos.vx = arg1->field_2C->field_8->coord.t[0];
+        work->obj3C0.pos.vy = arg1->field_2C->field_8->coord.t[1] - 0x1F4;
+        work->obj3C0.pos.vz = arg1->field_2C->field_8->coord.t[2];
+        work->obj388.pos.vx = arg1->field_2C->field_8->coord.t[0];
+        work->obj388.pos.vy = arg1->field_2C->field_8->coord.t[1];
+        work->obj388.pos.vz = arg1->field_2C->field_8->coord.t[2];
         if (work->field_194 == 0x1003) {
             D_actor_204000_80156538[arg0->field_8 >> 12] = NULL;
         }
@@ -724,18 +724,18 @@ void func_actor_204000_8014CD68(Actor104000Ctx* arg0, Actor104000* arg1)
         case 2:
             Gp_SpawnScript18Ex((s32)&D_actor_204000_80150EB4, (s32)&D_actor_204000_80150EC0,
                                (s16)Gp_GetObjDepth((GpObj38*)arg1->field_2C->field_8));
-            work->obj388.field_1C = 0x3E8;
-            work->obj3C0.field_1C = 0xFA;
+            work->obj388.radius = 0x3E8;
+            work->obj3C0.radius = 0xFA;
             Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, 0, 0x7DE);
             work->obj388.flags |= 0x8000;
             work->obj3C0.flags |= 0x8000;
             Gp_SpawnEff(0x6009C, &arg1->field_2C->field_8[2], 1, NULL);
             break;
         case 3:
-            work->obj3C0.field_1C = 0x1F4;
+            work->obj3C0.radius = 0x1F4;
             break;
         case 4:
-            work->obj3C0.field_1C = 0x3E8;
+            work->obj3C0.radius = 0x3E8;
             break;
         case 6:
             Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0xC);
@@ -812,27 +812,27 @@ void func_actor_204000_8014D5B8(Actor104000Ctx* arg0, Actor104000* arg1)
     work = arg1->field_1C;
     obj  = arg1->field_2C;
     if (work->field_4 != 0) {
-        arg0->field_14        = 1;
-        obj->field_C          = 0;
-        work->obj350.flags   &= 0x7FFF;
-        work->obj388.flags   &= 0x7FFF;
-        work->obj3C0.flags   &= 0x7FFF;
-        work->obj388.field_18 = Gp_PackObjPair((GpObj50*)arg0, 1);
-        work->obj3C0.field_18 = 0x22222;
-        work->field_6         = 0;
-        work->obj270.flags   &= 0xBFFF;
-        work->savedColorMtx   = work->colorMtx;
-        work->field_174       = 0xA;
-        work->field_170       = 1;
-        work->field_178       = 0;
-        work->field_176       = 0x2C;
+        arg0->field_14      = 1;
+        obj->field_C        = 0;
+        work->obj350.flags &= 0x7FFF;
+        work->obj388.flags &= 0x7FFF;
+        work->obj3C0.flags &= 0x7FFF;
+        work->obj388.key    = Gp_PackObjPair((GpObj50*)arg0, 1);
+        work->obj3C0.key    = 0x22222;
+        work->field_6       = 0;
+        work->obj270.flags &= 0xBFFF;
+        work->savedColorMtx = work->colorMtx;
+        work->field_174     = 0xA;
+        work->field_170     = 1;
+        work->field_178     = 0;
+        work->field_176     = 0x2C;
         func_actor_204000_8014AC8C(arg1);
-        work->obj3C0.field_10 = arg1->field_2C->field_8->coord.t[0];
-        work->obj3C0.field_12 = arg1->field_2C->field_8->coord.t[1] - 0x1F4;
-        work->obj3C0.field_14 = arg1->field_2C->field_8->coord.t[2];
-        work->obj388.field_10 = arg1->field_2C->field_8->coord.t[0];
-        work->obj388.field_12 = arg1->field_2C->field_8->coord.t[1];
-        work->obj388.field_14 = arg1->field_2C->field_8->coord.t[2];
+        work->obj3C0.pos.vx = arg1->field_2C->field_8->coord.t[0];
+        work->obj3C0.pos.vy = arg1->field_2C->field_8->coord.t[1] - 0x1F4;
+        work->obj3C0.pos.vz = arg1->field_2C->field_8->coord.t[2];
+        work->obj388.pos.vx = arg1->field_2C->field_8->coord.t[0];
+        work->obj388.pos.vy = arg1->field_2C->field_8->coord.t[1];
+        work->obj388.pos.vz = arg1->field_2C->field_8->coord.t[2];
         Gp_ArmStateF0(1);
         if (work->field_194 == 0x1003) {
             D_actor_204000_80156538[arg0->field_8 >> 12] = NULL;
@@ -847,22 +847,22 @@ void func_actor_204000_8014D5B8(Actor104000Ctx* arg0, Actor104000* arg1)
             arg1->field_2C->field_C = 2;
             break;
         case 1:
-            work->obj388.field_1C = 0x3E8;
-            work->obj388.flags   |= 0x8000;
+            work->obj388.radius = 0x3E8;
+            work->obj388.flags |= 0x8000;
             Gp_SpawnEff(0x6009C, &arg1->field_2C->field_8[2], 1, NULL);
             Gp_SpawnScript18((s32)&D_actor_204000_80150EB4, (s32)&D_actor_204000_80150EC0);
             break;
         case 2:
             Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0xC);
-            work->obj3C0.field_1C = 0xFA;
-            work->obj388.flags   &= 0x7FFF;
-            work->obj3C0.flags   |= 0x8000;
+            work->obj3C0.radius = 0xFA;
+            work->obj388.flags &= 0x7FFF;
+            work->obj3C0.flags |= 0x8000;
             break;
         case 3:
-            work->obj3C0.field_1C = 0x1F4;
+            work->obj3C0.radius = 0x1F4;
             break;
         case 4:
-            work->obj3C0.field_1C = 0x3E8;
+            work->obj3C0.radius = 0x3E8;
             break;
         case 6:
             work->obj3C0.flags &= 0x7FFF;
@@ -1303,11 +1303,11 @@ void func_actor_204000_8014F04C(Actor104000Ctx* arg0, Actor104000* arg1)
         Gfx_RotMatrixX(&arg1->field_2C->field_8->coord, 0x400, 0);
         arg1->field_2C->field_8->flg = 0;
         work->field_479              = 1;
-        work->obj350.field_8         = &Gfx_ViewCoord;
-        work->obj350.field_10        = -0x3AC;
-        work->obj350.field_12        = -0xF0;
+        work->obj350.coord           = &Gfx_ViewCoord;
+        work->obj350.pos.vx          = -0x3AC;
+        work->obj350.pos.vy          = -0xF0;
         work->field_6                = 0;
-        work->obj350.field_14        = 0x166C;
+        work->obj350.pos.vz          = 0x166C;
         return;
     }
     switch ((s16)++work->field_6 % 32) {

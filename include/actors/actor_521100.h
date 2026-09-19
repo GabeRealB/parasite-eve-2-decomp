@@ -136,11 +136,11 @@ typedef struct Actor521100Work {
     /* 0x4B4 */ byte       pad_4B4[0xC8];
     /// The two collision nodes the burn-out sequence arms, the pair
     /// `Actor510900Work`'s `obj4E4` / `obj504` carry. `ActorsShared80131e24Sub0`
-    /// fills both - the two pointers, the three halfwords at 0x10 and
-    /// `field_18` / `field_1C` - and links them. The state bodies then raise
+    /// fills both - the two pointers, `pos` and
+    /// `key` / `radius` - and links them. The state bodies then raise
     /// `flags` bit 0x8000 on the frame their effect fires, hand both back with
     /// an `&= 0x7FFF` when the sequence advances, and take the word
-    /// `Gp_PackPair` returns into `field_18`.
+    /// `Gp_PackPair` returns into `key`.
     /* 0x57C */ GpObj obj57C;
     /// See `obj57C`.
     /* 0x59C */ GpObj obj59C;

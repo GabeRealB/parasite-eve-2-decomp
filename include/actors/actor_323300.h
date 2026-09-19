@@ -31,7 +31,7 @@
 /// the enemy task down. The size is the allocation, and the fields below are
 /// the ones the init seeds: the two `sb` bytes at 0x43D/0x43E and the `sh` at
 /// 0x502 are set to -1, and 0x500 is set to 1. `rec` is the one-entry `GpRec18`
-/// collision table `Gp_InitRec18Table` seeds at 0x4A0; `obj.field_C` addresses
+/// collision table `Gp_InitRec18Table` seeds at 0x4A0; `obj.ctx.recs` addresses
 /// it and `Gp_FindNearestSlot` walks it through that pointer.
 typedef struct Actor323300Work {
     /* 0x000 */ GpAnimCtx  anim;
@@ -44,7 +44,7 @@ typedef struct Actor323300Work {
     /* 0x440 */ MATRIX     light;
     /* 0x460 */ MATRIX     color;
     /* 0x480 */ GpObj      obj;
-    /* 0x4A0 */ GpRec18    rec; // seed table `obj.field_C` points at
+    /* 0x4A0 */ GpRec18    rec; // seed table `obj.ctx.recs` points at
     /* 0x4B8 */ byte       pad_4B8[0x14];
     /* 0x4CC */ s32        field_4CC;
     /* 0x4D0 */ s32        field_4D0;
