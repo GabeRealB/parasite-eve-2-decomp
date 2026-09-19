@@ -325,7 +325,7 @@ s32 arg0;
     if ((var_s0 & 0xF0000000) == 0x10000000) {
         temp_v0 = SndBankSlot_Find(0x1000, 1);
         if (temp_v0 != NULL) {
-            var_s0 = (temp_v0->field_0->field_4 << 0x10) + (var_s0 & 0xFFFF);
+            var_s0 = (temp_v0->field_0->bankId << 0x10) + (var_s0 & 0xFFFF);
         }
     }
     return var_s0;
@@ -431,11 +431,12 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
         bank  = SndBankSlot_Find((u32)arg0 >> 16, 0);
         index = (u32)arg0 & 0xFF;
         if ((bank == NULL) ||
-            (header = bank->field_0, (index >= header->field_6))) {
+            (header = bank->field_0, (index >= header->entryCount))) {
             return -2;
         }
-        offset =
-            ((SndBankHdrOff*)((index * 2) + (s32)header))->field_8;
+        // Pointer form: a subscript would emit the addition base-first, and the
+        // target adds the index first.
+        offset = *(header->entryOffsets + index);
         if (offset == 0) {
             return -3;
         }
@@ -1085,9 +1086,9 @@ s32 SndScript_Exec(SndScript* script)
     SndVoice*     voice;
     SndNote*      note;
     SpuVoiceAttr* attr;
-    SndScriptCtx* ctx;
+    SndBankSlot*  ctx;
     SndBank*      bank;
-    u8*           data;
+    SndBankHdr*   header;
     s32           result;
     s32           ticks;
     s32           step;
@@ -1155,8 +1156,10 @@ s32 SndScript_Exec(SndScript* script)
             result = 1;
             goto done;
         case 0x43656E6F:
-            data             = script->field_44->field_0;
-            script->field_4C = (SndVoiceParams*)(data + ((SndScriptTable*)((u8)script->field_0 * 2 + (u32)data))->offsets[0]);
+            header = script->field_44->field_0;
+            // Pointer form: a subscript would emit the addition base-first, and
+            // the target adds the index first.
+            script->field_4C = (SndVoiceParams*)((u8*)header + *(header->entryOffsets + (u8)script->field_0));
             script->field_48 = (SndScriptCmd*)((u8*)script->field_48 + 0x10);
         case 0x56656E6F:
             oneV  = (SndOneV*)script->field_48;
@@ -1217,7 +1220,7 @@ s32 SndScript_Exec(SndScript* script)
                 } else {
                     voice->field_3 = 0x7F;
                 }
-                if (SndScript_FindOneA(script->field_44->field_0, oneV->field_12, (SndOneAOut*)attr) == -1) {
+                if (SndScript_FindOneA((u8*)script->field_44->field_0, oneV->field_12, (SndOneAOut*)attr) == -1) {
                     attr->adsr1 = note->adsr1;
                     attr->adsr2 = note->adsr2;
                 }
@@ -1714,7 +1717,7 @@ void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, s32 arg4, SndVoicePara
     }
     p->field_16 = 1;
     p->field_40 = NULL;
-    p->field_44 = (SndScriptCtx*)arg4;
+    p->field_44 = (SndBankSlot*)arg4;
     p->field_0  = arg3;
     p->field_4  = 0;
     p->field_10 = arg1;

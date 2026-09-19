@@ -126,25 +126,20 @@ typedef struct _SpuVoiceRange {
 } SpuVoiceRange;
 STATIC_ASSERT_SIZEOF(SpuVoiceRange, 0x4);
 
-/// Header for the bank table blob pointed to by SndBankSlot.field_0.
-/// field_4 is the bank ID (high halfword remapped by SndBank_RemapId when the
-/// request high nibble is 0x1); field_6 is the entry count used by SndEvt_EnqueueType6.
-/// A u16 offset table follows at 0x8 (indexed via SndBankHdrOff).
-typedef struct _SndBankHdr {
-    /* 0x0 */ u8  unknown_0[4];
-    /* 0x4 */ u16 field_4;
-    /* 0x6 */ u16 field_6;
+/// Header of the sound-bank image held by a `SndBankSlot`.
+///
+/// The image is one allocation: this header, then the table of entry offsets
+/// declared below, then each entry's `SndVoiceParams` block and the `oneA` /
+/// `oneE` chunks, all addressed by byte offset from the header. An entry is
+/// selected by the low byte of a sound request id and its offset is where that
+/// entry's block begins.
+typedef struct {
+    u8  unknown_0[4];
+    u16 bankId;          // Supplies the high half of a 0x1xxx request id
+    u16 entryCount;      // Entries in the offset table below
+    u16 entryOffsets[0]; // Byte offsets to each entry's `SndVoiceParams`, relative to this header
 } SndBankHdr;
 STATIC_ASSERT_SIZEOF(SndBankHdr, 0x8);
-
-/// Overlay for reading the u16 offset table that follows SndBankHdr at +0x8.
-/// Formed as (SndBankHdrOff*)((index * 2) + (s32)header) so lhu 8(base)
-/// picks offsets[index] (SndEvt_EnqueueType6).
-typedef struct _SndBankHdrOff {
-    /* 0x0 */ u8  pad[8];
-    /* 0x8 */ u16 field_8;
-} SndBankHdrOff;
-STATIC_ASSERT_SIZEOF(SndBankHdrOff, 0xA);
 
 /// 16-byte slot in SndBank_Slots[16] (BSS size 0x100). Indexed by SndBankSlot_Get
 /// and related helpers in 43FFC.c / 410B0.c.
@@ -492,15 +487,6 @@ struct _SndVoiceParams {
 };
 STATIC_ASSERT_SIZEOF(SndVoiceParams, 0x10);
 
-/// Context pointed to by SndScript::field_44 (set from SndScript_Play arg4).
-/// field_0 is the raw script/data base used for oneC offset tables and oneA
-/// lookups; field_4 is the default sound bank when a oneV command has bank id 0.
-typedef struct _SndScriptCtx {
-    /* 0x0 */ u8*      field_0;
-    /* 0x4 */ SndBank* field_4;
-} SndScriptCtx;
-STATIC_ASSERT_SIZEOF(SndScriptCtx, 0x8);
-
 /// "oneV" (0x56656E6F) voice-on script command consumed by SndScript_Exec.
 /// Also the 0x18-byte payload after a "oneC" (0x43656E6F) command.
 typedef struct _SndOneV {
@@ -538,12 +524,6 @@ typedef struct _SndWaitCmd {
 } SndWaitCmd;
 STATIC_ASSERT_SIZEOF(SndWaitCmd, 0x8);
 
-/// Script data header followed by offsets to per-slot voice parameters.
-typedef struct _SndScriptTable {
-    /* 0x0 */ u8  pad_0[8];
-    /* 0x8 */ u16 offsets[1];
-} SndScriptTable;
-
 /// 0x60-byte slot in SndScript_Slots[8]. field_0 is an ID looked up by
 /// SndVoice_FindById; field_16 holds status flags (mask 0xA3 selects active entries).
 /// field_E is a dirty flag; field_10/11/12 and field_13/14/15 are paired ramps
@@ -551,7 +531,9 @@ typedef struct _SndScriptTable {
 /// field_17/field_18/field_20 are a loop stack (depth, remaining counts, restart
 /// positions) used by Loop/endL in SndScript_Exec.
 /// field_40 is the head of a SndVoice voice list (cleared/walked by SndScript_Play);
-/// field_44 is a SndScriptCtx* script base; field_48 is the current script cursor;
+/// field_44 is the `SndBankSlot` whose bank the script plays (its image holds the
+/// `oneC` entry offsets, its bank is the default for a `oneV` with bank id 0);
+/// field_48 is the current script cursor;
 /// field_F is bit1 of SndVoiceParams::field_E.
 /// field_4C is a voice-param block (volume scale at field_5) walked with field_40.
 /// field_50 is a volume interpolator driven by SndVoice_FadeMatching via LinInterp_Setup.
@@ -574,7 +556,7 @@ typedef struct _SndScript {
     /* 0x18 */ u8              field_18[8];
     /* 0x20 */ SndScriptCmd*   field_20[8];
     /* 0x40 */ SndVoice*       field_40;
-    /* 0x44 */ SndScriptCtx*   field_44;
+    /* 0x44 */ SndBankSlot*    field_44;
     /* 0x48 */ SndScriptCmd*   field_48;
     /* 0x4C */ SndVoiceParams* field_4C;
     /* 0x50 */ LinInterp       field_50;

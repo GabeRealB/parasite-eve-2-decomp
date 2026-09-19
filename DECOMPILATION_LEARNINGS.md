@@ -22199,12 +22199,14 @@ Column targets use `head - 0x42` (col1) and `head - 0x40` (col2), same
 
 - `field_17` / `field_18[8]` / `field_20[8]` are a loop stack (depth, remaining
   counts, restart cursors) for `"Loop"`/`"endL"`. They fill the old `pad_18[0x28]`.
-- `field_44` is a `SndScriptCtx*` (`u8* data`, `SndBank* bank`), not a bare `s32`.
+- `field_44` is a `SndBankSlot*` (its `field_0` is the bank image, its `field_4`
+  the `SndBank`), not a bare `s32`.
 - `field_48` is a script cursor (`SndScriptCmd*`); `"oneV"` payloads are
   0x18-byte `SndOneV` records (bank id, note, duration, pan/vol,
   reverb gate, pitch, oneA/oneE offsets).
-- `"oneC"` advances the cursor by 0x10, resolves `field_4C` via
-  `base[*(u16*)(base + (u8)field_0 * 2 + 8)]`, then falls into `"oneV"`.
+- `"oneC"` advances the cursor by 0x10, resolves `field_4C` from the bank
+  image's entry-offset table, `*(image->entryOffsets + (u8)field_0)`, then falls
+  into `"oneV"`.
 - Shared wait-tick path: when high-half of `field_8` is below the command's
   duration, add `gDisplayState.region == 1 ? 0x9999 : 0x10000` and return 0;
   on success subtract `duration << 16` and return 1 (caller loops while nonzero).
@@ -64989,10 +64991,11 @@ without a pin or emitted instruction. The required permuter first found a
 countdown-local reuse that reduced oneV to 17 references; the final source
 keeps the direct countdown ternary and avoids its redundant overwritten load.
 
-The last `addu` operand swap used the established integer-address form:
-`((SndScriptTable*)((u8)script->field_0 * 2 + (u32)data))->offsets[0]`.
-Indexing `((SndScriptTable*)data)->offsets[index]` generated base-first addition.
-The final scratch candidate is `base_21.c`; all penalties are zero.
+The last `addu` operand swap used the established index-first form,
+`*(image->entryOffsets + (u8)script->field_0)`, which keeps the index as the
+left operand. Indexing the same member, `image->entryOffsets[index]`, generated
+base-first addition. The final scratch candidate is `base_21.c`; all penalties
+are zero.
 
 
 ## A keep-live can lower allocation priority when the added lifetime outweighs its reference
