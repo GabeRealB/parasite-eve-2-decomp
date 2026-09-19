@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "scope": "Self-contained real-compiler smoke fixture. All source inputs are embedded; outputs are built fresh.",
+  "function": "f",
+  "sources": {
+    "target": "int f(int a, int b)\n{\n    return a + b;\n}\n",
+    "base": "int f(int a, int b)\n{\n    return a - b;\n}\n",
+    "improved": "int f(int a, int b)\n{\n    int unused;\n    return a + b;\n}\n"
+  },
+  "plan": {
+    "constraints": [
+      {
+        "kind": "distance_le",
+        "value": 0
+      }
+    ],
+    "mutations": [
+      {
+        "id": "correct_operation",
+        "edits": [
+          {
+            "before": "a - b",
+            "after": "a + b"
+          }
+        ]
+      },
+      {
+        "id": "irrelevant_declaration",
+        "edits": [
+          {
+            "before": "{\n",
+            "after": "{\n    int unused;\n"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,4 @@
+;; Function fixture
+;; Register dispositions:
+80 in 4 81 in 5
+(insn 7 0 0 (set (reg:SI 4) (sign_extend:SI (mem:HI (reg:SI 5)))) -1 (nil) (nil))

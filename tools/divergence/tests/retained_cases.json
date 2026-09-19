@@ -1,0 +1,61 @@
+{
+  "scope": "Bundled synthetic assembly/RTL parser fixtures; no external scratch or compiler checkout required.",
+  "cases": [
+    {
+      "name": "allocation",
+      "scratch": "fixtures/allocation",
+      "stem": "base",
+      "function": "fixture",
+      "identity": {
+        "target_sha256": "7e9551aee69b6ab80facfe864c2820d89355279dcbfe6e100fca242084668ea5",
+        "assembly_sha256": "a693902ec8a14cd3de390772014c0c9499d4130ca04925662fa2f729001c2dca"
+      },
+      "families": [
+        "register"
+      ],
+      "observations": [
+        "allocation_snapshot",
+        "instruction_link",
+        "rtl_change"
+      ],
+      "proposals": [
+        "lifetime",
+        "operand_order"
+      ],
+      "constraints": [
+        {
+          "kind": "instruction",
+          "target_index": 0,
+          "pattern": "^addu v0,"
+        },
+        {
+          "kind": "rtl",
+          "target_index": 0,
+          "pass": "lreg",
+          "pattern": "plus:SI"
+        }
+      ]
+    },
+    {
+      "name": "extension",
+      "scratch": "fixtures/extension",
+      "stem": "base",
+      "function": "fixture",
+      "identity": {
+        "target_sha256": "f7713a8e65d8d133563067d0b3926fe0e8d3993ddb7fcfc5e54aa02b9cfbb2b7",
+        "assembly_sha256": "67174195f2b8780d3f5c265c2d358f8b287c766e41a1b070fd73ea1920f00946"
+      },
+      "families": [
+        "opcode"
+      ],
+      "observations": [
+        "access_mode",
+        "instruction_link",
+        "expression_shape"
+      ],
+      "proposals": [
+        "access_type"
+      ]
+    }
+  ]
+}

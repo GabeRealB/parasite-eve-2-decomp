@@ -1,0 +1,6 @@
+;; Function fixture
+;; 1 regs to allocate: 80
+;; 80 conflicts: 2 3
+;; Register dispositions:
+80 in 2
+(insn 1 0 0 (set (reg:SI 2) (plus:SI (reg:SI 5) (reg:SI 6))) -1 (nil) (nil))

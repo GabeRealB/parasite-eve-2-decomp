@@ -17,7 +17,40 @@ Score with `./build.sh`. 100% is a match. Read the **Penalties:** line (`stack` 
    Read `CODEGEN_MODEL.md` first — it is the short general model the corpus
    entries are instances of, and it settles most mismatches on its own.
 
-`build.sh` keeps the `.s` with RTL insn uids (`# 31 movsi_internal2/5`), and those uids are stable across every RTL pass. `./insn.py <uid>` walks one instruction through the passes and prints only the passes that *changed* it - start from a mismatching output line with `./insn.py --asm-line N`, or follow a pseudo with `./insn.py --reg N`. Reading nine dumps with `sed -n 'X,Yp'` to reconstruct that by hand is the slow way round. At ≥90% it runs `./dump.sh` and prints a **NEXT:** line naming dump files. The printed summary is not enough — **open those files** (`base_N.i.lreg`, …) before the next C edit. You can also run `./dump.sh base_N.c` by hand.
+`build.sh` keeps the `.s` with RTL insn uids (`# 31 movsi_internal2/5`), and those uids are stable across every RTL pass. `./insn.py <uid>` walks one instruction through the passes and prints only the passes that *changed* it - start from a mismatching output line with `./insn.py --asm-line N`, or follow a pseudo with `./insn.py --reg N`. Reading nine dumps with `sed -n 'X,Yp'` to reconstruct that by hand is the slow way round. At ≥90% it runs `./dump.sh`, prints a **diagnosis** (below), and prints a **NEXT:** line naming dump files. The printed summary is not enough — **open those files** (`base_N.i.lreg`, …) before the next C edit. You can also run `./dump.sh base_N.c` by hand.
+
+## Diagnosis
+
+At ≥90% `build.sh` prints `tools/divergence/toolset.py diagnose`, which names the
+compilation decision behind each remaining difference instead of only the dump
+to read. Run it yourself on any attempt:
+
+```sh
+python3 tools/divergence/toolset.py diagnose <scratch> base_N        # --limit 0 for every site
+python3 tools/divergence/toolset.py propose  <scratch> base_N        # source experiments
+python3 tools/divergence/toolset.py compare  <scratch> base_1 base_2 # did the edit move the decision
+```
+
+The report keeps three things apart, and so must you:
+
+* `observed:` is present in the assembly, a dump or an accepted trace. Use it.
+* `mechanism to check:` is the compiler algorithm that *may* explain the
+  observation, with its source file and line. Routing by opcode or pass does not
+  establish cause — confirm it in the dumps before acting on it.
+* `propose [...]:` is an experiment with a precondition and a prediction, not an
+  instruction. If its precondition does not hold, it is the wrong experiment.
+* `unresolved:` names what the dumps cannot settle. Do not fill that gap with a guess.
+
+`compare` is the one to reach for when an edit leaves the score unchanged. An
+edit that shortens a live range or frees a register but emits identical code
+scores exactly like an edit that did nothing; `compare` reads the deciding
+inputs instead, so real movement is visible. A score that did not move is not
+evidence that the edit did nothing.
+
+Algorithm citations need the patched compiler source; without it the assembly
+and dump parts still work and citations are marked unavailable rather than
+invented. Initialize it once from the repository root with
+`bash tools/fetch_gcc_source.sh`.
 
 | leftover | file | what to do |
 |---|---|---|

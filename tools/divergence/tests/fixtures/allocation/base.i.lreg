@@ -1,0 +1,3 @@
+;; Function fixture
+Register 80 used 3 times across 7 insns.
+(insn 1 0 0 (set (reg:SI 80) (plus:SI (reg:SI 81) (reg:SI 82))) -1 (nil) (nil))

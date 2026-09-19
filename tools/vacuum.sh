@@ -1429,6 +1429,12 @@ worktree_hint_diff() {
 copy_giveup_to_main() {
   local func=$1
   local scratch=$2
+  # Record the divergence the session ended on. The archive keeps the sources;
+  # this keeps what they still differed by, which is what a later retry needs
+  # in order to start from the decision rather than from the score.
+  python3 "$ROOT/tools/divergence/capture.py" record --func "$func" \
+    --scratch "$scratch" --note "gave up" \
+    2>&1 | tee -a "$LOG_FILE" || true
   python3 "$ROOT/tools/archive_giveup.py" --func "$func" --scratch "$scratch" \
     2>&1 | tee -a "$LOG_FILE"
   local archive_status=${PIPESTATUS[0]}
@@ -1743,6 +1749,11 @@ vacuum_orch_loop() {
         fi
       fi
       if [[ "$status" == "matched" ]]; then
+        # Record what the session learned before the archive is cleared: the
+        # near-miss and the change that closed it only exist together here.
+        python3 "$ROOT/tools/divergence/capture.py" record --func "$func" \
+          --scratch "$scratch" --note "matched by vacuum" \
+          2>&1 | tee -a "$LOG_FILE" || true
         python3 "$ROOT/tools/archive_giveup.py" --func "$func" --clear \
           2>&1 | tee -a "$LOG_FILE" || true
       fi
@@ -2023,6 +2034,11 @@ while true; do
   commit_match_if_needed "$simplest_func" "$scratch"
   match_status=$?
   if [[ $match_status -eq 0 || $match_status -eq 2 ]]; then
+    # Record what the session learned before the archive is cleared: the
+    # near-miss and the change that closed it only exist together here.
+    python3 tools/divergence/capture.py record --func "$simplest_func" \
+      --scratch "$scratch" --note "matched by vacuum" \
+      2>&1 | tee -a "$LOG_FILE" || true
     python3 tools/archive_giveup.py --func "$simplest_func" --clear \
       2>&1 | tee -a "$LOG_FILE" || true
   elif [[ $STOP_REQUESTED -eq 1 ]]; then

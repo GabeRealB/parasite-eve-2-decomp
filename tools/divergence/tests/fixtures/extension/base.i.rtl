@@ -1,0 +1,2 @@
+;; Function fixture
+(insn 7 0 0 (set (reg:SI 80) (sign_extend:SI (mem:HI (reg:SI 81)))) -1 (nil) (nil))

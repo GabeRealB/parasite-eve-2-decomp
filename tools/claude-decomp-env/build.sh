@@ -128,6 +128,15 @@ if [[ -n "$MATCH_PERCENT" ]] && awk -v p="$MATCH_PERCENT" 'BEGIN { exit !(p + 0 
     echo "Score ≥ 90% — running ./dump.sh $1 (RTL summary below). Do not add register pins yet."
     "$SCRIPT_PATH/dump.sh" "$INPUT" || echo "dump.sh failed (score above still stands)"
 
+    # Name the decision behind each remaining difference, not just the dump to
+    # read. This reads the dumps written just above, so it runs after them, and
+    # a failure here never changes the score already printed.
+    echo
+    python3 "$PROJECT_ROOT/tools/divergence/toolset.py" diagnose \
+        "$(dirname "$INPUT")" "$(basename "${INPUT%.c}")" --limit 5 \
+        || echo "diagnose failed (score above still stands)"
+    echo
+
     # Name the dump files the next tool call must open. Penalty mix decides;
     # the printed summary is not a substitute for reading these files.
     stem="${1%.c}"
