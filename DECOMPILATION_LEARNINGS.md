@@ -133916,3 +133916,16 @@ Compiler SHA256:60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd
 base_1 input:c32ac0f06f51e4306b8a96b08648e426082b75b0fa70f40573f26f8c4eaa1442.
 base_2 input:eeb68acc8379740f26c98084114266e316966e5fbcde57c6775f6812039406bf.
 Final input:489cc0624d28301ab202835f5fe68c64d5095ddab5d893ae8d34229559882aaa.
+
+
+## Move a repeated pointer definition after the join to make it local; a pitch read before the branch fixes both scheduling and allocation (func_actor_206100_8014E228, 2026-09-20)
+
+A retry seed at 98.915% assigned `m2 = &c2->coord` on two incoming paths before a named join. Its `.lreg` showed r91 spanning blocks (11 refs/73 instructions), and `.greg` allocated it globally in s6 after the block-local matrix pointers/constants had occupied s0-s5. The old notes called this a global priority rotation. It was actually an eligibility boundary: changing global rank could not outrank those local quantities.
+
+One definition **after** the join gives r91 10 refs/71 instructions in block 10 and local home s1, removes it from the global allocation list, and shifts all other saved-register homes into the target order. Reorg still fills the target branch delay slot with the address calculation. The controlled prediction was recorded before base_1, which reaches 99.519%. An older negative experiment was invalid: its lone definition was before the label and the goto bypassed initialization. Check all paths before trusting a retry result.
+
+The last difference was an unsigned pitch read inside the conditional update. Hoisting it into the predecessor with a u16 temporary, while retaining the signed load for the deadband comparison, gives a cross-block value allocated globally in v1. The update's shifted difference/add/store remains in v0. In base_2, UID228's unsigned load appears between compare UID239 and branch UID240 in sched2; the instruction count and every byte now match. This is a change of basic-block membership, not evidence of a scheduler tie. Removing the redundant goto in base_5 preserves 100%.
+
+The router independently found the same unsigned-read transformation on an alternate seed. Controlled base_4 strips its if(1) wrapper and declaration reorder, reproducing the full verified 992 -> 692 distance gain. CSE deletes the repeated addend load UID249 and rewrites add UID253 to the hoisted r98. `.lreg` reports r98 across blocks, 4 refs/6 instructions; `.greg` assigns v1. `.sched` places load UID231 before branch UID239. No unobserved comparator or quantity tie is claimed.
+
+Inputs (SHA256): baseline `f3325cde03dec34452d8cebb7dfc78bf0d04088d8460bdfc6a056a72aa91ccb8`; base_1 `5f587c95c26384881722d43b34012808373f82790159e9cfd24457c0b98f12db`; base_2 `9ae83bbf6405dd2eaf2219f4a6337967ebf162aef07f583b452dd27216d09aa3`; base_4 `9d61e0472d78120b0ecbe2b05a8bd046823a2e04a32a7687a85a8cc4216023d2`. Compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; target object `bfc46784f243eff70364272c30290f56ea077403ab747bc687b69c00b8e1da11`. Full paired sources, plans, conclusions and dumps are retained under `tools/permuter_findings/func_actor_206100_8014E228/`; scratch base_5 is the structured exact port.

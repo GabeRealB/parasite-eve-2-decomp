@@ -1712,7 +1712,164 @@ void func_actor_206100_8014E0C0(Task* task)
             break;
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014E228);
+void func_actor_206100_8014E228(Task* task)
+{
+    SVECTOR                 ang;
+    SVECTOR*                aim;
+    SVECTOR                 rot1;
+    SVECTOR                 rot2;
+    MATRIX                  t1;
+    MATRIX                  t2;
+    MATRIX                  t3;
+    Actor206100Matrix       ma;
+    Actor206100Matrix       mb;
+    Actor206100Matrix       mc;
+    MATRIX                  view;
+    VECTOR                  delta;
+    VECTOR                  local;
+    GsCOORDINATE2*          c1;
+    GsCOORDINATE2*          c3;
+    GsCOORDINATE2*          c4;
+    Actor206100Work*        work;
+    GsCOORDINATE2*          base;
+    GsCOORDINATE2*          c2;
+    Actor206100MatrixWords* ia;
+    Actor206100MatrixWords* ib;
+    Actor206100MatrixWords* ic;
+    MATRIX*                 m2;
+    MATRIX*                 m3;
+    MATRIX*                 dest;
+    s32                     hx;
+    s32                     hy;
+    s32                     hz;
+    s32                     total;
+    u16                     yaw;
+    u16                     pitch;
+    u32                     pitchDiff;
+    s16                     limit;
+
+    base = ((TmdObject*)task->extra)->coords;
+    work = (Actor206100Work*)task->work;
+    c1   = &base[1];
+    c2   = &base[2];
+    c3   = &base[3];
+    c4   = &base[4];
+    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &c4->workm, &view);
+    delta.vx = (s16)work->field_4D0 - view.t[0];
+    delta.vy = (s16)work->field_4D2 - (view.t[1] + 0x100);
+    delta.vz = (s16)work->field_4D4 - view.t[2];
+    ApplyTransposeMatrixLV(&base->coord, &delta, &local);
+    aim             = &ang;
+    aim->vx         = (ratan2(-local.vy, local.vz) << 20) >> 20;
+    aim->vy         = (ratan2(local.vx, local.vz) << 20) >> 20;
+    aim->vz         = 0;
+    hx              = (s16)work->field_35C;
+    hy              = (s16)work->field_35E;
+    hz              = (s16)work->field_360;
+    work->field_35C = hx;
+    work->field_35E = hy;
+    work->field_360 = hz;
+    if ((u16)(ang.vy + 0x3FF) < 0x7FF) {
+        if ((u32)(((s16)ang.vy - (s16)work->field_35E) + 0x20) >= 0x41) {
+            work->field_35E = ((s16)work->field_35E < ang.vy) ? work->field_35E + 0x18
+                                                              : work->field_35E - 0x18;
+        }
+        yaw = ang.vx;
+        if ((u16)(yaw + 0x3FF) < 0x7FF) {
+            pitchDiff = ((s16)yaw - (s16)work->field_35C) + 0x20;
+            pitch     = work->field_35C;
+            if (pitchDiff >= 0x41) {
+                work->field_35C = pitch + ((s32)(((u16)yaw - pitch) << 20) >> 23);
+            }
+        }
+    } else {
+        work->field_35E = work->field_35E + ((s32) - (s16)(work->field_35E * 0x10) >> 8);
+        work->field_35C = work->field_35C + ((s32) - (s16)(work->field_35C * 0x10) >> 8);
+    }
+    m2 = &c2->coord;
+    ia = &ma.ident;
+    ib = &mb.ident;
+    ic = &mc.ident;
+
+    ma.ident.m00_m01 = 0x1000;
+    ma.ident.m02_m10 = 0;
+    ia->m11_m12      = 0x1000;
+    ma.ident.m20_m21 = 0;
+    ia->m22          = 0x1000;
+    mb.ident.m00_m01 = 0x1000;
+    mb.ident.m02_m10 = 0;
+    ib->m11_m12      = 0x1000;
+    mb.ident.m20_m21 = 0;
+    ib->m22          = 0x1000;
+    mc.ident.m00_m01 = 0x1000;
+    mc.ident.m02_m10 = 0;
+    ic->m11_m12      = 0x1000;
+    mc.ident.m20_m21 = 0;
+    ic->m22          = 0x1000;
+
+    Gp_MtxToEuler(m2, &rot1);
+    m3 = &c3->coord;
+    Gp_MtxToEuler(&c3->coord, &rot2);
+    RotMatrixX(rot1.vx + (s16)((s16)(u16)work->field_542 / 3), &ma.mat);
+    RotMatrixX(rot2.vx + (s16)((s16)(u16)work->field_542 / 3), &mb.mat);
+    c2->coord.m[0][0] = ma.mat.m[0][0];
+    m2->m[0][1]       = ma.mat.m[0][1];
+    m2->m[0][2]       = ma.mat.m[0][2];
+    m2->m[1][0]       = ma.mat.m[1][0];
+    m2->m[1][1]       = ma.mat.m[1][1];
+    m2->m[1][2]       = ma.mat.m[1][2];
+    m2->m[2][0]       = ma.mat.m[2][0];
+    m2->m[2][1]       = ma.mat.m[2][1];
+    m2->m[2][2]       = ma.mat.m[2][2];
+    c3->coord.m[0][0] = mb.mat.m[0][0];
+    m3->m[0][1]       = mb.mat.m[0][1];
+    m3->m[0][2]       = mb.mat.m[0][2];
+    m3->m[1][0]       = mb.mat.m[1][0];
+    m3->m[1][1]       = mb.mat.m[1][1];
+    m3->m[1][2]       = mb.mat.m[1][2];
+    m3->m[2][0]       = mb.mat.m[2][0];
+    m3->m[2][1]       = mb.mat.m[2][1];
+    m3->m[2][2]       = mb.mat.m[2][2];
+    Gp_UpdateCoord(c1);
+    Gp_UpdateCoord(c2);
+    Gp_UpdateCoord(c3);
+    func_actor_206100_8014BEC4(c2, (s16)(u16)work->field_35E / 3);
+    func_actor_206100_8014BEC4(c3, (s16)(u16)work->field_35E / 3);
+
+    mc.ident.m00_m01 = 0x1000;
+    mc.ident.m02_m10 = 0;
+    ic->m11_m12      = 0x1000;
+    mc.ident.m20_m21 = 0;
+    ic->m22          = 0x1000;
+
+    total = (s16)work->field_35C + work->field_542;
+    limit = total;
+    if (limit >= 0x300) {
+        limit = 0x300;
+    } else if (limit < -0x200) {
+        limit = -0x200;
+    }
+    RotMatrixX((s32)limit, &mc.mat);
+    func_8004BFF8((s16)(u16)work->field_35E / 3, &mc.mat);
+    TransposeMatrix(&c1->coord, &t1);
+    TransposeMatrix(&c2->coord, &t2);
+    TransposeMatrix(&c3->coord, &t3);
+    MulMatrix(&t1, &t2);
+    MulMatrix(&t1, &t3);
+    MulMatrix(&t1, &mc.mat);
+    dest          = &c4->coord;
+    dest->m[0][0] = t1.m[0][0];
+    dest->m[0][1] = t1.m[0][1];
+    dest->m[0][2] = t1.m[0][2];
+    dest->m[1][0] = t1.m[1][0];
+    dest->m[1][1] = t1.m[1][1];
+    dest->m[1][2] = t1.m[1][2];
+    dest->m[2][0] = t1.m[2][0];
+    dest->m[2][1] = t1.m[2][1];
+    dest->m[2][2] = t1.m[2][2];
+    c4->flg       = 0;
+    Gp_UpdateCoord(c4);
+}
 
 /// Effect-mode tick of the `field_520` state table `D_actor_206100_80149EC0`,
 /// keyed on `D_801153F4`.  Mode 2 only sets the model's deferred-kill bit and

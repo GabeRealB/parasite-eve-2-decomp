@@ -222,7 +222,8 @@ typedef struct Actor206100Work {
     /// is unsigned-promoted, and each is stored with a plain `sh`.
     /* 0x35C */ u16   field_35C;
     /* 0x35E */ u16   field_35E;
-    /* 0x360 */ byte  pad_360[0x4];
+    /* 0x360 */ u16   field_360;
+    /* 0x362 */ byte  pad_362[0x2];
     /* 0x364 */ GpObj obj_364;
     /// The six-entry contact table `func_actor_206100_8014F18C` zeroes and both
     /// objects above point their `ctx.recs` at.  `func_actor_206100_8014BAA8`
