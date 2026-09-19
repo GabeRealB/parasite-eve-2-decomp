@@ -2978,7 +2978,156 @@ void func_actor_400500_80139F6C(Task* arg0)
     work3->field_A49 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013A0B8);
+void func_actor_400500_8013A0B8(Task* arg0)
+{
+    Actor400500Matrix      rot;
+    MATRIX                 local2;
+    Actor400500Matrix*     src;
+    Actor400500Work*       work;
+    Actor400500Work*       ang;
+    Actor400500Work*       work3;
+    Actor400500Work*       nextWork;
+    Actor400500Work*       anim;
+    Actor400500HitView*    hit;
+    Actor400500AnimStride* stride;
+    Actor400500ViewPos*    pos;
+    GsCOORDINATE2*         coords;
+    GsCOORDINATE2*         coord;
+    GsCOORDINATE2*         coord14;
+    GpEnemy*               enemy;
+    MATRIX*                view;
+    Actor400500ViewPos*    pos2;
+    s32                    z;
+    s32                    cond;
+    s32                    flag;
+    s32                    i;
+    s32                    dx;
+    s32                    dz;
+    s32                    delta;
+    s32                    neg;
+    u32                    rnd;
+
+    neg    = -1;
+    coords = ((TmdObject*)arg0->extra)->coords;
+    work   = (Actor400500Work*)arg0->work;
+    enemy  = (GpEnemy*)arg0->spawnArg2;
+    if ((s16)work->field_A04 == neg) {
+        coord14 = &coords[0xE];
+        Gp_UpdateCoord(coord14);
+        pos2 = &work->field_9A0;
+        view = &Gfx_ViewWorldMtx;
+        Gp_WorldToLocal(view, &coords->workm, &rot.mat);
+        Gp_WorldToLocal(view, &coord14->workm, &local2);
+        dx                 = local2.t[0] - rot.mat.t[0];
+        coords->coord.t[0] = work->field_9A0.x - dx;
+        pos                = pos2;
+        z                  = pos->z;
+        delta              = local2.t[2] - rot.mat.t[2];
+        coords->flg        = 0;
+        coord14->flg       = 0;
+        dz                 = delta;
+        coords->coord.t[2] = z - dz;
+        Gp_UpdateCoord(coord14);
+        Gp_UpdateCoord(coords);
+    }
+    hit = (Actor400500HitView*)arg0->work;
+    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        src = &rot;
+        if (enemy->field_40 > 0) {
+            work->field_A1E   &= 0xFFFD;
+            work->field_94A    = ((u16)work->field_94A + 0x800) & 0xFFF;
+            ang                = (Actor400500Work*)arg0->work;
+            coord              = ((TmdObject*)arg0->extra)->coords;
+            ang->field_948    &= 0xFFF;
+            ang->field_94A    &= 0xFFF;
+            ang->field_94C    &= 0xFFF;
+            rot.ident.m00_m01  = 0x1000;
+            rot.ident.m02_m10  = 0;
+            src->ident.m11_m12 = 0x1000;
+            rot.ident.m20_m21  = 0;
+            src->ident.m22     = 0x1000;
+            RotMatrixZ(ang->field_94C, &src->mat);
+            RotMatrixX(ang->field_948, &src->mat);
+            func_8004BFF8(ang->field_94A, &src->mat);
+            ActorsShared80132c4c(&src->mat, &coord->coord);
+            work3            = (Actor400500Work*)arg0->work;
+            work3->field_9F8 = 0x10;
+            work3->field_9FE = 1;
+            work3->field_9FA = 2;
+            anim             = (Actor400500Work*)arg0->work;
+            if (anim->field_9FA == 1) {
+                if ((s16)anim->field_9FC != anim->field_9FE) {
+                    anim->field_A00 = 0;
+                } else {
+                    anim->field_A00 = func_actor_400500_8013DD8C(arg0, anim->field_A00);
+                }
+                func_actor_400500_8013DCD4(arg0);
+                anim->field_9FA = 3;
+            } else if (anim->field_9FA == 2) {
+                func_actor_400500_8013DC4C(arg0);
+                anim->field_9FA = 3;
+                anim->field_A00 = 0;
+            } else if (anim->field_9FA == 3) {
+                anim->field_A00 = (u16)anim->field_A00 + 1;
+            }
+            i      = 1;
+            stride = (Actor400500AnimStride*)anim + 1;
+            do {
+                stride->field_1D = (u8)anim->field_9F8;
+                Gp_AnimTickIndex(&anim->anim, i);
+                i++;
+                stride++;
+            } while (i < 0x12);
+            coords->flg = 0;
+            Gp_UpdateCoord(coords);
+            work3 = (Actor400500Work*)arg0->work;
+            if (work3->field_A4A != 0) {
+                work3->field_A4A = 0;
+                func_actor_400500_8013DB64(arg0, 5);
+                flag = 1;
+            } else {
+                flag = 0;
+            }
+            if (flag == 0) {
+                rnd         = ((u32)Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState = rnd;
+                if (((rnd >> 0x10) & 1) == 0) {
+                    nextWork            = (Actor400500Work*)arg0->work;
+                    nextWork->field_A06 = 0;
+                    nextWork->field_A08 = 0;
+                    return;
+                }
+                work3            = (Actor400500Work*)arg0->work;
+                work3->field_A06 = 8;
+                work3->field_A08 = 0;
+            }
+        } else {
+            work->field_A42    = 0;
+            work->field_94A    = ((u16)work->field_94A + 0x800) & 0xFFF;
+            ang                = (Actor400500Work*)arg0->work;
+            coord              = ((TmdObject*)arg0->extra)->coords;
+            ang->field_948    &= 0xFFF;
+            ang->field_94A    &= 0xFFF;
+            ang->field_94C    &= 0xFFF;
+            rot.ident.m00_m01  = 0x1000;
+            rot.ident.m02_m10  = 0;
+            src->ident.m11_m12 = 0x1000;
+            rot.ident.m20_m21  = 0;
+            src->ident.m22     = 0x1000;
+            RotMatrixZ(ang->field_94C, &src->mat);
+            RotMatrixX(ang->field_948, &src->mat);
+            func_8004BFF8(ang->field_94A, &src->mat);
+            ActorsShared80132c4c(&src->mat, &coord->coord);
+            coords->flg = 0;
+            Gp_UpdateCoord(coords);
+        }
+    }
+}
 
 extern TaskFuncTable7 D_actor_400500_80131F60;
 

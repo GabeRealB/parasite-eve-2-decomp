@@ -131398,3 +131398,36 @@ archive tools/permuter_findings/func_actor_400500_8013973C/ with
 PERMUTER_EVIDENCE/retry_resolution/manifest.json. Input SHA256:
 base_1.i `faa1032d42587bb19cf9ca05f8584cab1048635d893d0c0bcfba3a397fcc0042`;
 base_2.i `4f1d00ee43514c8f43ea709cc11821d1536f55ddf346b8b911925c255b136d3b`.
+
+
+## Cross-call address hoisting needs the correct load/store boundary (func_actor_400500_8013A0B8, 2026-09-19)
+
+An archived 98.342% seed lacked an address addiu. The permuter hoisted an alias
+to a stack matrix array before two calls, changing distance 403 to 310. A planned
+normal-header port reproduced it: address UID41 survives combine (which refuses
+nonconstant substitutions across CALL_INSN, gcc/combine.c:936), then sched1 sinks
+it after the X-coordinate store. It is local at allocation, not a saved pointer
+held across the calls. This supports inspecting pass timing before interpreting
+a source-level hoist as a call-crossing lifetime.
+
+Transferring that construction to the actor position alone had failed in older
+retries. The Z load was still written after two flag stores and depended on them
+in sched1. Hoisting the position address before calls **and** reading Z before
+those stores reproduced the complete coordinate block while retaining the X
+register homes. Final input UID92 loads pos+4; flag stores102/105 depend on it,
+rather than the load depending on the stores.
+
+The remaining angle issue needed the matched sibling's direct compound masks
+(948,94A,94C source order), avoiding artificial cross-arm pitch/roll locals. A
+separate nextWork pointer for the zero LCG arm removed a global v0 conflict.
+The final source matches exactly without pins or asm helpers. The mask ordering
+is an observed outcome for this function, not a general scheduler reversal rule.
+
+Evidence: tools/permuter_findings/func_actor_400500_8013A0B8/, session
+d0310d88f0914a738171e8b1d17ce8e3. Compiler SHA256
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd. Controlled
+base_1 preprocessed SHA256
+1d5204164b53538277966f50d716f4a7550813c2df2da5d901c141ecc25eced1; final base_8
+441f2f3a357cb91ef01bb15307e93eea7aa4ff445d2daefd92cd7a29121c0d52.
+A neutral base_2 trace and failed helper variants are retained alongside the
+plans, conclusions and full verification log.
