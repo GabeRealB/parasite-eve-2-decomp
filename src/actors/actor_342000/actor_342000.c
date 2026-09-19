@@ -546,7 +546,7 @@ void func_actor_342000_80162BBC(Task* arg0)
                         msg.field_8    = 0;
                         msg.field_C    = 0;
                         msg.field_10   = 0;
-                        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&msg, 0);
                     }
                     return;
             }
@@ -558,7 +558,7 @@ void func_actor_342000_80162BBC(Task* arg0)
             msg.field_8  = 0;
             msg.field_C  = 0;
             msg.field_10 = 0;
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&msg, 0);
             break;
         case 4:
             msg.field_0  = D_actor_342000_801647E8;
@@ -566,7 +566,7 @@ void func_actor_342000_80162BBC(Task* arg0)
             msg.field_8  = 1;
             msg.field_C  = 10;
             msg.field_10 = 0;
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&msg, 0);
             break;
         case 5: {
             s32 weaponId;
@@ -579,7 +579,7 @@ void func_actor_342000_80162BBC(Task* arg0)
             msg.field_8  = 0;
             msg.field_C  = 0;
             msg.field_10 = 0;
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
             break;
         }
         case 6:
@@ -588,7 +588,7 @@ void func_actor_342000_80162BBC(Task* arg0)
             msg.field_8  = 1;
             msg.field_C  = 10;
             msg.field_10 = 0;
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&msg, 0);
             break;
         case 7: {
             s32 weaponId;
@@ -601,7 +601,7 @@ void func_actor_342000_80162BBC(Task* arg0)
             msg.field_8  = 1;
             msg.field_C  = 10;
             msg.field_10 = 0;
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
             break;
         }
         case 8:
@@ -610,7 +610,7 @@ void func_actor_342000_80162BBC(Task* arg0)
             msg.field_8  = 0;
             msg.field_C  = 0;
             msg.field_10 = 0;
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&msg, 0);
             ev = (Actor342000EventWork*)D_actor_342000_80165070->work;
             if (ev->field_7A == 0) {
                 SndEvt_EnqueueType6(0x54280005, 0, 0);
@@ -738,7 +738,7 @@ void func_actor_342000_8016382C(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(alloc, 0U, 0x80U);
-                alloc->field_48         = (Task*)Game_GetPtrSlot(3);
+                alloc->field_48         = gameGetPtrSlot(3);
                 D_actor_342000_80165070 = arg0;
                 alloc->field_4C         = (s32)Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8))->field_0;
             }
@@ -747,7 +747,7 @@ void func_actor_342000_8016382C(Task* arg0)
                 msg.field_0 = gGameSession->at4.loc.stage;
                 msg.field_1 = gGameSession->at4.loc.area;
                 msg.field_2 = 0;
-                Gp_DispatchMsg((Task*)Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+                Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
                 work->field_5C = Task_SpawnFromTable(&D_actor_342000_80164FF8, 8, 0, (s32)arg0);
                 work->field_60 = Task_SpawnFromTable(&D_actor_342000_80164FF8, 9, 0, (s32)arg0);
                 goto next;
@@ -827,7 +827,7 @@ void func_actor_342000_8016382C(Task* arg0)
                 msg.field_0 = gGameSession->at4.loc.stage;
                 msg.field_1 = gGameSession->at4.loc.area;
                 msg.field_2 = 0;
-                Gp_DispatchMsg((Task*)Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+                Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
                 arg0->killCountdown = 0;
                 arg0->state++;
                 break;

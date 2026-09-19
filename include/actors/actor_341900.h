@@ -28,7 +28,7 @@ STATIC_ASSERT_SIZEOF(Actor341900MsgPos, 0x18);
 /// `func_actor_341900_801628B8` / `func_actor_341900_80162AD4` in the base unit
 /// are handed the same task as their argument and index it identically.
 ///
-/// `field_0` is the `Game_GetPtrSlot(3)` task the overlay's messages are aimed
+/// `field_0` is the `gameGetPtrSlot(3)` task the overlay's messages are aimed
 /// at (0x3E8 and 0x3F3), and `field_8` / `field_C` / `field_10` are child tasks
 /// the senders null-check first (0x7D5 goes to `field_8`);
 /// `func_actor_341900_80163488` disposes of `field_8` by killing it and clearing
@@ -46,7 +46,7 @@ STATIC_ASSERT_SIZEOF(Actor341900MsgPos, 0x18);
 /// `Gp_KillPlayerEffs`) and `func_actor_341900_80163438` (calls
 /// `Gp_SpawnWeaponEff` while it is set, then clears it).
 typedef struct Actor341900Work {
-    /* 0x00 */ Task*             field_0; // Game_GetPtrSlot(3)
+    /* 0x00 */ Task*             field_0; // gameGetPtrSlot(3)
     /* 0x04 */ Task*             field_4; // Gp_FindWorkById(session slot)->field_0
     /* 0x08 */ Task*             field_8;
     /* 0x0C */ Task*             field_C;

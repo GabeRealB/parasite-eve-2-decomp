@@ -39,7 +39,7 @@ void func_actor_800200_80162750(GpActorWork* arg0)
     s32            diff;
 
     coord             = arg0->extra->coords;
-    target            = (GsCOORDINATE2*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    target            = (GsCOORDINATE2*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     head              = *(u8**)0x1F8003FC;
     vec               = (VECTOR3*)(head - 0x10);
     *(u8**)0x1F8003FC = head - 0x10;
@@ -234,7 +234,7 @@ void func_actor_800200_80162E0C(GpActorWork* arg0)
     s32            delay;
 
     coord  = arg0->extra->coords;
-    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    target = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     actor  = arg0->actor;
     d4     = actor->field_910;
     switch (actor->field_960) {

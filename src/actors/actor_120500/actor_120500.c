@@ -186,7 +186,7 @@ void func_actor_120500_80132028(Task* arg0)
 }
 
 /// Builds the actor's work block for its scene: `Mem_Malloc(0x4CC, 0)`, and
-/// on failure it kills the task and returns.  The allocation's `Game_GetPtrSlot(3)`
+/// on failure it kills the task and returns.  The allocation's `gameGetPtrSlot(3)`
 /// task goes to `field_4B4`, the task itself is published in
 /// `D_actor_120500_80138454`, and the model in `Task::extra` gets its
 /// coordinate parented to `gGfxViewCoord` plus the light and colour matrices at
@@ -217,7 +217,7 @@ void func_actor_120500_801322A0(Task* arg0)
     }
     work = (Actor120500Work*)map;
     Mem_Set(work, 0, 0x4CC);
-    work->field_4B4         = Game_GetPtrSlot(3);
+    work->field_4B4         = gameGetPtrSlot(3);
     D_actor_120500_80138454 = (Actor120500*)arg0;
     coord->sub              = &gGfxViewCoord;
     tmd->lightMtx           = &work->field_474;
@@ -286,7 +286,7 @@ void func_actor_120500_8013241C(Task* arg0)
                 args.msg.field_8  = 1;
                 args.msg.field_C  = 10;
                 args.msg.field_10 = 0;
-                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&args.msg, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&args.msg, 0);
                 func_800E3FAC(0xA2, 0xD);
                 func_800E8634((s32)D_actor_120500_801380D8, 0, (s32)D_actor_120500_80138318);
                 arg0->state += 1;

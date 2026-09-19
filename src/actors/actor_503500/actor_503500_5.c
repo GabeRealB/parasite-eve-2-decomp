@@ -179,7 +179,7 @@ void func_actor_503500_80132DEC(void)
     GsCOORDINATE2* coord;
     SVECTOR*       rot;
 
-    slot3 = Game_GetPtrSlot(3);
+    slot3 = gameGetPtrSlot(3);
     coord = ((TmdObject*)slot3->extra)->coords;
 
     D_actor_503500_8017655C.x = coord->coord.t[0];
@@ -199,7 +199,7 @@ void func_actor_503500_80132E7C(void)
 {
     Task* slot3;
 
-    slot3 = Game_GetPtrSlot(3);
+    slot3 = gameGetPtrSlot(3);
     if ((D_actor_503500_8017655C.x != 0) || (D_actor_503500_8017655C.y != 0) ||
         (D_actor_503500_8017655C.z != 0)) {
         Gp_DispatchMsg(slot3, 0x3E9, (s32)&D_actor_503500_8017655C, 0);
@@ -213,7 +213,7 @@ void func_actor_503500_80132EE8(u8 arg0)
 
 void func_actor_503500_80132EF4(void)
 {
-    func_80106350(Game_GetPtrSlot(3), D_80073BA9, 0);
+    func_80106350((GpActorWork*)gameGetPtrSlot(3), D_80073BA9, 0);
 }
 
 void func_actor_503500_80132F28(void)
@@ -523,11 +523,11 @@ s32 func_actor_503500_80133684(Actor503500* arg0)
          (slots[7] == NULL) || (slots[8] == NULL) || (slots[10] == NULL) ||
          (slots[11] == NULL) || ((slots[9] == NULL) && (slot1 == NULL)) ||
          ((slots[4]->hp == 0) && (slots[5]->hp == 0)))) {
-        if ((((GameActor*)((Task*)Game_GetPtrSlot(3))->work)->field_954 != 2) &&
+        if ((((GameActor*)(gameGetPtrSlot(3))->work)->field_954 != 2) &&
             (D_80073BA0 > 0) && (D_80114C12 != 1)) {
             ret = 1;
             if (D_80071075 == 0) {
-                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, 0, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
                 work->field_774 |= 8;
                 /* `ret` has to be dead across the call for GCC to keep it in
                  * $a1: it is re-set on the way out of both arms. */
@@ -997,9 +997,9 @@ void func_actor_503500_80134408(Actor503500* arg0)
             break;
         case 1:
             if (++work->field_7BC >= 0x1F &&
-                ((GameActor*)((Task*)Game_GetPtrSlot(3))->work)->field_954 != 2 &&
+                ((GameActor*)(gameGetPtrSlot(3))->work)->field_954 != 2 &&
                 D_80073BA0 > 0 && D_80114C12 != 1 && D_80071075 == 0) {
-                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, 0, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
                 SndEvt_EnqueueType7(0x40230010, 0x2D);
                 work->field_7DA = work->field_7DA + 1;
             }

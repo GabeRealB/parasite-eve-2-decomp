@@ -3320,7 +3320,7 @@ void Gp_SavePlayerPos(void)
     PlayerStatus* cfg;
     McSaveData*   save;
 
-    coord  = (GpCoordYaw*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    coord  = (GpCoordYaw*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     temp   = coord->field_18;
     p      = &Player_Status.pos;
     p->x   = temp;

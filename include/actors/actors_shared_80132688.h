@@ -54,7 +54,7 @@ typedef struct ActorShared80132688Obj2C {
 } ActorShared80132688Obj2C;
 
 /// Actor context: `field_1C` is the work block above and `field_2C` the
-/// display object. The player (`Game_GetPtrSlot(3)`) is read the same way.
+/// display object. The player (`gameGetPtrSlot(3)`) is read the same way.
 typedef struct ActorShared80132688 {
     /* 0x00 */ byte                      pad_0[0x1C];
     /* 0x1C */ ActorShared80132688Work*  field_1C;

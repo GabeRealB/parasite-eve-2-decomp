@@ -65,7 +65,7 @@ void func_combustion_8012EF34(Task* arg0)
             }
             D_combustion_801309A4 = coord->workm.t[1];
             rot                   = (GpMtxWords*)&coord->coord;
-            coord->sub            = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+            coord->sub            = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
             rot->w0               = 0x1000;
             rot->w2               = 0x1000;
             rot->h4               = 0x1000;

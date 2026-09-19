@@ -3179,7 +3179,7 @@ void Gp_EffSprTask53(Task* arg0)
     GsCOORDINATE2* coord;
     GsCOORDINATE2* parent;
 
-    slot  = Game_GetPtrSlot(3);
+    slot  = gameGetPtrSlot(3);
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (slot != NULL) {
         if (arg0->state == 0) {
@@ -3224,7 +3224,7 @@ void Gp_EffAttachTask37(Task* arg0)
     extra  = (TmdObject*)arg0->extra;
     mem    = arg0->spawnArg2;
     coord  = (GsCOORDINATE2*)extra->coords;
-    player = (GsCOORDINATE2*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    player = (GsCOORDINATE2*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     flag   = Gp_State1C->field_4;
     if (flag != 0) {
         if (flag < 4) {

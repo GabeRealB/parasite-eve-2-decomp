@@ -344,7 +344,7 @@ void func_actor_205200_8014C0C0(Actor205200* arg0)
     s32                       count;
 
     work                    = arg0->field_1C;
-    player                  = Game_GetPtrSlot(3);
+    player                  = gameGetPtrSlot(3);
     head                    = *(void**)G_SCRATCH_HEAD;
     *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(Actor205200AttackScratch);
     scratch                 = *(Actor205200AttackScratch**)G_SCRATCH_HEAD;

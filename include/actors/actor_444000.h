@@ -236,7 +236,7 @@ STATIC_ASSERT_SIZEOF(Actor444000Work, 0xF24);
 ///
 /// `func_actor_444000_80132358` allocates it with `memCalloc(0x34, 0)`,
 /// `Mem_Set`s 0x34 bytes and parks it in that task's `Task::work` slot, so
-/// the size is anchored; the same function stores the `Game_GetPtrSlot(3)`
+/// the size is anchored; the same function stores the `gameGetPtrSlot(3)`
 /// task in `field_20` and publishes its owning task in
 /// `D_actor_444000_80161860`. `field_20` is the target of every
 /// `Gp_DispatchMsg` the leaf helpers send, and they null-check it first
@@ -246,7 +246,7 @@ STATIC_ASSERT_SIZEOF(Actor444000Work, 0xF24);
 /// cue `func_actor_444000_80132608` enqueues.
 typedef struct Actor444000EventWork {
     /* 0x00 */ byte  pad_0[0x20];
-    /* 0x20 */ Task* field_20; // Game_GetPtrSlot(3) task, the Gp_DispatchMsg target
+    /* 0x20 */ Task* field_20; // gameGetPtrSlot(3) task, the Gp_DispatchMsg target
     /* 0x24 */ Task* field_24; // subordinate task, killed and cleared by func_actor_444000_80132694
                                /// Area-record id published to `D_8007216C` on every enter/re-enter. The
                                /// spawn state writes it as a halfword, clearing the byte at 0x29 with it,

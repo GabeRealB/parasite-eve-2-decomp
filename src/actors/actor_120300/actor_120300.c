@@ -355,7 +355,7 @@ void func_actor_120300_801335D8(Task* arg0)
     }
     work = (Actor120300Work*)map;
     Mem_Set(work, 0, 0x4E4);
-    work->field_4B4         = Game_GetPtrSlot(3);
+    work->field_4B4         = gameGetPtrSlot(3);
     D_actor_120300_80141BA8 = (Actor120300*)arg0;
     coord->sub              = &gGfxViewCoord;
     Tmd_AllocBuffers(tmd);

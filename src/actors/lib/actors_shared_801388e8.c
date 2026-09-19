@@ -20,7 +20,7 @@ s32 ActorsShared801388e8(GsCOORDINATE2* arg0)
     Task*          task;
     s32            ret;
 
-    task = (Task*)Game_GetPtrSlot(3);
+    task = gameGetPtrSlot(3);
     if (task != NULL) {
         coord    = ((TmdObject*)task->extra)->coords;
         scratch  = (void**)G_SCRATCH_HEAD;

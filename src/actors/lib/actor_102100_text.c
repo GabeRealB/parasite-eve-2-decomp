@@ -479,9 +479,9 @@ void Actor02100_Fn00DCC(Actor02100* arg0)
     blk                   = (Actor02100Sight*)(head - 0x20);
 
     if (work->field_178 == 4) {
-        target = &((Actor02100*)Game_GetPtrSlot(3))->field_2C->field_8[0];
+        target = &((Actor02100*)gameGetPtrSlot(3))->field_2C->field_8[0];
     } else {
-        target = &((Actor02100*)Game_GetPtrSlot(3))->field_2C->field_8[3];
+        target = &((Actor02100*)gameGetPtrSlot(3))->field_2C->field_8[3];
     }
     target->flg = 0;
     Gp_UpdateCoord(target);
@@ -503,7 +503,7 @@ void Actor02100_Fn00DCC(Actor02100* arg0)
                 blk->to.vy   = self->workm.t[1];
                 blk->to.vz   = self->workm.t[2];
                 if (Actor02100_Fn0337C(&blk->from, &blk->to) == 0) {
-                    work->field_140 = Game_GetPtrSlot(3);
+                    work->field_140 = (Actor02100*)gameGetPtrSlot(3);
                     work->field_164 = dist;
                     work->field_180 = 1;
                 }
@@ -524,7 +524,7 @@ void Actor02100_Fn00DCC(Actor02100* arg0)
             blk->to.vy   = self->workm.t[1];
             blk->to.vz   = self->workm.t[2];
             if (Actor02100_Fn0337C(&blk->from, &blk->to) == 0) {
-                work->field_140 = Game_GetPtrSlot(3);
+                work->field_140 = (Actor02100*)gameGetPtrSlot(3);
                 work->field_164 = 1;
                 work->field_180 = 1;
             }
@@ -571,7 +571,7 @@ void Actor02100_Fn011C4(Actor02100* arg0)
     s32                       index;
     s32                       dist;
 
-    list  = (Task*)Game_GetPtrSlot(4);
+    list  = gameGetPtrSlot(4);
     coord = arg0->field_2C->field_8;
     head  = (Actor02100*)list->firstChild;
     work  = arg0->field_1C;

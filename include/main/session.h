@@ -262,7 +262,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(GpAnimSlot, 0x28);
 
 /// Large object pointed to by Task::work for the slot-3 game object
-/// (Game_GetPtrSlot(3)). Sparse fields used by Display_SpawnFromMode.
+/// (gameGetPtrSlot(3)). Sparse fields used by Display_SpawnFromMode.
 typedef struct _GameActor {
     /* 0x000 */ s32                field_0;  // per-frame X velocity (Gp_PlayerMode2State3)
     /* 0x004 */ s32                field_4;  // per-frame Y velocity
@@ -418,12 +418,24 @@ STATIC_ASSERT_SIZEOF(GameActor, 0x994);
 extern GameSession* gGameSession;
 extern GameSession  D61CC0_800714C0;
 
-/// Session pointer-slot table on `gGameSession` (`ptrSlots`).
-void         Game_SetPtrSlot(void* ptr, s32 index);
-struct Task* Game_GetPtrSlot(s32 index);
-void         Game_ClearPtrSlots(void);
-void         Game_ClearSession(void);
-void         Game_ClearEd68(void);
+/// Stores a task in the session's pointer-slot table.
+void Game_SetPtrSlot(void* ptr, s32 index);
+
+/// Returns the task the session keeps in a pointer slot.
+///
+/// A slot is how the session holds on to a task past the call that spawned it:
+/// the task is filed under a slot number, and the code that files it and the
+/// code that reads it agree on what that number means. The table itself records
+/// nothing about a slot's meaning.
+///
+/// @param slot Slot number, 0 to 15.
+/// @return The task in that slot, or `NULL` while the slot is empty.
+struct Task* gameGetPtrSlot(s32 slot);
+
+/// Empties every pointer slot.
+void Game_ClearPtrSlots(void);
+void Game_ClearSession(void);
+void Game_ClearEd68(void);
 
 extern s32 D_8005ED68;
 extern s32 D_8005ED8C;

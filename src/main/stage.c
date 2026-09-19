@@ -182,7 +182,7 @@ Task* Display_SpawnFromMode(void)
 
     block_case4:
         Stage_Ctx->field_11 = 2;
-        slot                = Game_GetPtrSlot(3);
+        slot                = gameGetPtrSlot(3);
         obj                 = (GameActor*)slot->work;
         flag                = obj->field_984 & 1;
         ptr                 = ((TmdObject*)slot->extra)->coords;
@@ -215,7 +215,7 @@ block_default:
     Mem_InitAux();
     gDisplayState.at100.flags.flipMode    = 1;
     gDisplayState.at100.flags.imageSource = 3;
-    slot                                  = Game_GetPtrSlot(3);
+    slot                                  = gameGetPtrSlot(3);
     obj                                   = (GameActor*)slot->work;
     flag                                  = obj->field_984 & 1;
     ptr                                   = ((TmdObject*)slot->extra)->coords;
@@ -254,7 +254,7 @@ void Display_TransitionTask(Task* arg0)
                 gDisplayState.at100.flags.flipMode = 2;
                 Mem_ConfigureAuxHeap(gGameSession->at4.loc.stage, gGameSession->at4.loc.area);
                 if (!(Stage_Ctx->field_1c & 0x10000000)) {
-                    ((Task*)Game_GetPtrSlot(1))->spawnArg1 = (u8)gGameSession->at4.loc.view;
+                    (gameGetPtrSlot(1))->spawnArg1 = (u8)gGameSession->at4.loc.view;
                     ResetGraph(1);
                     Gpu_ClearOTag(0);
                     Gpu_ClearOTag(1);

@@ -42,7 +42,7 @@ void func_dryfield_water_tower_80180194(void)
         msg.field_0 = gGameSession->at4.loc.stage;
         msg.field_1 = gGameSession->at4.loc.area;
         msg.field_2 = 0;
-        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         work->field_14 = 1;
     }
 }

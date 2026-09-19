@@ -14,7 +14,7 @@
 /// `D_acropolis_sanctuary_80186C90`. Reach it with `(AcsCutsceneWork*)task->work`.
 ///
 /// `target` is the slot-3 task the block's messages are addressed to, captured
-/// once from `Game_GetPtrSlot(3)`. `phase` is the script step the driver in
+/// once from `gameGetPtrSlot(3)`. `phase` is the script step the driver in
 /// `func_acropolis_sanctuary_8017DA40` runs -- it only acts on phase 2, and
 /// then only while `step` is still 0, bumping `step` once the scene has been
 /// dispatched so it fires exactly once.

@@ -11,7 +11,7 @@
 ///
 /// The room's overlay carries the same cutscene-task body as
 /// `dryfield_gas_station` and `dryfield_water_tank`, so the layout is shared:
-/// `owner` is the slot-3 game pointer (`Game_GetPtrSlot(3)`) the task dispatches
+/// `owner` is the slot-3 game pointer (`gameGetPtrSlot(3)`) the task dispatches
 /// its messages to, `field_6` selects the script step
 /// (`func_dryfield_warehouse_8017DBB0` branches on it), and `playerEffActive`
 /// is the flag guarding `Gp_SpawnWeaponEff` / `Gp_KillPlayerEffs`.

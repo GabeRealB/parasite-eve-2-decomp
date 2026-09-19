@@ -64,7 +64,7 @@ void func_neo_ark_observatory_8017FCE0(Task* arg0)
 {
     arg0->msgTable = &D_neo_ark_observatory_801811B8;
     Game_SetPtrSlot(arg0, 7);
-    if ((Game_GetPtrSlot(0xA) != NULL) && (gGameSession->at4.loc.place == 1)) {
+    if ((gameGetPtrSlot(0xA) != NULL) && (gGameSession->at4.loc.place == 1)) {
         func_801322F8();
     } else {
         func_neo_ark_observatory_8017FA98(0);

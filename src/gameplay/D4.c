@@ -276,7 +276,7 @@ void Gp_ReloadFromSave(void)
     Task*       slot;
     McSaveData* save;
 
-    slot            = Game_GetPtrSlot(1);
+    slot            = gameGetPtrSlot(1);
     save            = &Mc_SaveData;
     slot->spawnArg1 = save->at4.loc.view;
     ResetGraph(1);
@@ -293,7 +293,7 @@ void Gp_ReloadAtLoc(s32 arg0)
 {
     Task* slot;
 
-    slot                       = Game_GetPtrSlot(1);
+    slot                       = gameGetPtrSlot(1);
     Mc_SaveData.at4.loc.view   = arg0;
     gGameSession->at4.loc.view = arg0;
     slot->spawnArg1            = (u8)arg0;
@@ -793,7 +793,7 @@ void func_800AA548(s32 arg0)
         flags.field_2 = 0;
         Gp_SetupCompanionActor((GpActorArg*)&rec.field_14, &flags.field_0);
     }
-    model        = ((Task*)Game_GetPtrSlot(3))->extra;
+    model        = (gameGetPtrSlot(3))->extra;
     model->tpage = 6;
     model->clut  = 0;
     tmdProcessStream(model);
@@ -2287,7 +2287,7 @@ void func_800AD6BC(void)
 
     funcs = Gp_DirActionFns;
     cfg   = &Player_Status;
-    slot  = Game_GetPtrSlot(1);
+    slot  = gameGetPtrSlot(1);
     if (slot != NULL) {
         if (slot->spawnArg1 != Mc_SaveData.at4.loc.view) {
             func_800A7F24();
@@ -2382,8 +2382,8 @@ void Gp_SetupDirWarp(void)
     sess  = &gGameSession->at4.loc;
     stage = sess->stage;
     room  = sess->area;
-    slot7 = Game_GetPtrSlot(7);
-    slot3 = Game_GetPtrSlot(3);
+    slot7 = gameGetPtrSlot(7);
+    slot3 = gameGetPtrSlot(3);
     cfg   = &Player_Status;
     actor = ((GpActorWork*)slot3)->actor;
 
@@ -2498,7 +2498,7 @@ void Gp_FadeDirWaitMsg(void)
     void* slot;
     u8    fade;
 
-    slot = Game_GetPtrSlot(3);
+    slot = gameGetPtrSlot(3);
     if (*(s16*)&Gp_DirFadeLevel != 0) {
         fade = *(u8*)&Gp_DirFadeLevel;
         Fade_DrawOverlay(fade, fade, fade, 2);
@@ -2525,9 +2525,9 @@ void Gp_CommitWarp(void)
     GpSaveLoc*    loc;
     u8            fade;
 
-    slot3 = Game_GetPtrSlot(3);
+    slot3 = gameGetPtrSlot(3);
     cfg   = &Player_Status;
-    slot7 = Game_GetPtrSlot(7);
+    slot7 = gameGetPtrSlot(7);
 
     sess = &gGameSession->at4.loc;
     rec  = Gp_WarpTables[sess->stage - 1][sess->area - 1][(Gp_DirNibble >> 4) - 1];
@@ -2593,7 +2593,7 @@ void Gp_MsgPlayerDirFacing(void)
     s32        facing;
     u8*        row;
 
-    actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+    actor = ((GpActorWork*)gameGetPtrSlot(3))->actor;
     flags = Gp_DirByte;
     if (flags & 0x80) {
         facing = actor->field_82;
@@ -2608,7 +2608,7 @@ void Gp_MsgPlayerDirFacing(void)
         actor->field_930 = (flags & 0x70) >> 4;
     }
 
-    slot = Game_GetPtrSlot(3);
+    slot = gameGetPtrSlot(3);
     if (Gp_DispatchMsg(slot, 0x3F0, 0, 0) == 0) {
         Gp_DispatchMsg(slot, 0x3F1, 0, 0);
         D_80114CF8      = 0;
@@ -2633,7 +2633,7 @@ void Gp_CommitDirWarp(void)
     GpSaveLoc*  loc;
     McSaveData* save;
 
-    slot = Game_GetPtrSlot(7);
+    slot = gameGetPtrSlot(7);
     loc  = &Gp_WarpLoc;
 
     /* first two bytes as one halfword (field_1 cleared) */
@@ -2665,7 +2665,7 @@ void Gp_PostDirIfCapIdle(void)
     if (gGameSession->eventState == 0) {
         if (Gp_CapBusy() == 0) {
             if (Gp_DirNibble == 0xFF) {
-                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F0, Gp_DirByte, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F0, Gp_DirByte, 0);
             } else {
                 Gp_SpawnIfCapIdle(Gp_DirByte, Gp_DirNibble);
             }

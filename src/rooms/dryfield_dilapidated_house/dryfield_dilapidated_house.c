@@ -145,7 +145,7 @@ void func_dryfield_dilapidated_house_8017E014(void)
     }
     if ((D_8007107A != 0) && (Gp_LookupSlot4(1) != 0)) {
         func_80724608(Gp_LookupSlot4(1), -0x8C, 0xA, &D_dryfield_dilapidated_house_8017D5D0);
-        func_80724608(Game_GetPtrSlot(3), -0x8C, 0x14, &D_dryfield_dilapidated_house_8017D5D8);
+        func_80724608(gameGetPtrSlot(3), -0x8C, 0x14, &D_dryfield_dilapidated_house_8017D5D8);
     }
 }
 
@@ -429,7 +429,7 @@ void func_dryfield_dilapidated_house_8017E6DC(Task* arg0)
     s32   temp_a1;
     s32   temp_v1;
 
-    temp_s1 = Game_GetPtrSlot(3);
+    temp_s1 = gameGetPtrSlot(3);
     temp_a1 = Gp_LookupSlot4(1);
     temp_v1 = arg0->state;
     switch (temp_v1) { /* irregular */

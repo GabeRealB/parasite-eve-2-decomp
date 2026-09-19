@@ -115,8 +115,8 @@ void func_acropolis_security_room_8017D834(Task* arg0)
             return;
         case 1:
             if (Task_PollKill(D_acropolis_security_room_801855AC, &sp10) != 0) {
-                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
-                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F3, 1, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F3, 1, 0);
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
                 D_acropolis_security_room_801855AC = NULL;

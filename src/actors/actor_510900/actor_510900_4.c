@@ -879,8 +879,8 @@ void func_actor_510900_80137868(Actor510900* arg0)
             work->field_59C++;
             if (work->field_59C >= 6) {
                 work->field_59C               = 0;
-                D_actor_510900_80167B7C.coord = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
-                func_800FDB18(5, &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[4], NULL,
+                D_actor_510900_80167B7C.coord = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+                func_800FDB18(5, &((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[4], NULL,
                               &D_actor_510900_80167B7C);
             }
             switch (work->field_5B6) {
@@ -892,9 +892,9 @@ void func_actor_510900_80137868(Actor510900* arg0)
                     break;
                 case 2:
                     if (CdCmd_IsIdle() == 1) {
-                        coord = (Actor510900Coord*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
-                        SndEvt_EnqueueType6(0x70010001, (s8)Gp_GetObjPan(coord),
-                                            (s8)Gp_GetObjDepth(coord));
+                        coord = (Actor510900Coord*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+                        SndEvt_EnqueueType6(0x70010001, (s8)Gp_GetObjPan((GsCOORDINATE2*)coord),
+                                            (s8)Gp_GetObjDepth((GsCOORDINATE2*)coord));
                         work->field_5B6 = 0;
                     }
                     break;
@@ -2046,7 +2046,7 @@ void func_actor_510900_8013A310(Task* task)
 
     work                    = (Actor510900ChildFx*)task->work;
     parent                  = (Actor510900Work*)task->parent->work;
-    player                  = Game_GetPtrSlot(3);
+    player                  = gameGetPtrSlot(3);
     head                    = *(void**)G_SCRATCH_HEAD;
     *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(Actor510900HitScratch);
     scratch                 = (Actor510900HitScratch*)*(void**)G_SCRATCH_HEAD;

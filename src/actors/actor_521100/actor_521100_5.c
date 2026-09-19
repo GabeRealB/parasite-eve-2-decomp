@@ -278,7 +278,7 @@ void func_actor_521100_80136404(Task* task)
             D_actor_521100_8016A3E8.coord.t[1] -= 0xFA + (s32)(((u32)Gp_LcgState >> 16) - 0x8000) * 0xC8 / 0x10000;
             D_actor_521100_8016A3E8.coord.t[0] -= 0x32;
         } else {
-            D_actor_521100_8016A3E8             = ((Actor521100*)Game_GetPtrSlot(3))->field_2C->field_8[0];
+            D_actor_521100_8016A3E8             = ((Actor521100*)gameGetPtrSlot(3))->field_2C->field_8[0];
             D_actor_521100_8016A3E8.coord.t[1] -= 0x384;
             D_actor_521100_8016A3E8.coord.t[0] += 0x2BC;
         }

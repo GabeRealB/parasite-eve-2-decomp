@@ -49,8 +49,8 @@ void func_mine_mesa_8017E7B0(Task* task)
     void* slotA;
     u16   tick;
 
-    slot3 = Game_GetPtrSlot(3);
-    slotA = Game_GetPtrSlot(0xA);
+    slot3 = gameGetPtrSlot(3);
+    slotA = gameGetPtrSlot(0xA);
     if (D_801156F9 == 0) {
         if ((slot3 == NULL) || (slotA == NULL)) {
             task->state = -1;

@@ -86,7 +86,7 @@ void func_actor_107600_80131F10(Task* arg0)
     obj       = arg0->extra;
     enemy     = arg0->spawnArg2;
     coord     = obj->coords;
-    target    = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    target    = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     scratch   = (void**)G_SCRATCH_HEAD;
     head      = *scratch;
     block     = (VECTOR*)(head - 0x10);
@@ -723,7 +723,7 @@ void func_actor_107600_80133024(Task* arg0)
 /// eases `field_50` down, alternates `field_50` for four frames and raises bit
 /// 0x20. From then on, while bit 0x20000000 is set, `field_166` counts frames:
 /// at 120 it switches the light mode, at 210 it spawns an effect on the
-/// `Game_GetPtrSlot(3)` actor's fifth coordinate and updates that actor.
+/// `gameGetPtrSlot(3)` actor's fifth coordinate and updates that actor.
 void func_actor_107600_801332D4(Task* arg0)
 {
     Actor107600Work* work  = (Actor107600Work*)arg0->work;
@@ -805,8 +805,8 @@ void func_actor_107600_801332D4(Task* arg0)
             } else if ((s16)work->field_166 == 210) {
                 GsCOORDINATE2* c;
                 s32            p;
-                player          = Game_GetPtrSlot(3);
-                c               = &player->extra->coords[4];
+                player         = (GpActorWork*)gameGetPtrSlot(3);
+                c              = &player->extra->coords[4];
                 actor           = player->actor;
                 work->field_166 = 0;
                 Gp_SetLightMode((GpObj4C*)enemy, 0);

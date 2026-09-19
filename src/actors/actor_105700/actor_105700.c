@@ -347,7 +347,7 @@ void func_actor_105700_80131ED0(Actor105700* arg0)
     }
     work->field_6B2 = 0;
     if (Gp_CountRec18Hi(work->field_4B4, 0x10000) != 0) {
-        part               = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[4];
+        part               = &((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[4];
         scratch->effOfs.vx = part->workm.t[0];
         scratch->effOfs.vy = part->workm.t[1];
         scratch->effOfs.vz = part->workm.t[2];

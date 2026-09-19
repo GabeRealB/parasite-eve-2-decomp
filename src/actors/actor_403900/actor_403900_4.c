@@ -76,7 +76,7 @@ void func_actor_403900_8013314C(Actor403900* arg0)
 
     work                   = arg0->field_1C;
     coord                  = arg0->field_2C->field_8;
-    player                 = Game_GetPtrSlot(3);
+    player                 = gameGetPtrSlot(3);
     *(u8**)G_SCRATCH_HEAD -= sizeof(Actor403900GrabScratch);
     sc                     = *(Actor403900GrabScratch**)G_SCRATCH_HEAD;
     pcoord                 = ((Actor403900*)player)->field_2C->field_8;
@@ -276,7 +276,7 @@ void func_actor_403900_8013314C(Actor403900* arg0)
                 sc->in.vy                                = -0x96;
                 sc->in.vx                                = 0;
                 sc->in.vz                                = 0xC8;
-                func_800FDB18(1, &((Actor403900*)Game_GetPtrSlot(3))->field_2C->field_8->field_140, &sc->in, &D_actor_403900_801540C8);
+                func_800FDB18(1, &((Actor403900*)gameGetPtrSlot(3))->field_2C->field_8->field_140, &sc->in, &D_actor_403900_801540C8);
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);
                 Gp_DispatchMsg(player, 0x400, 0, 0);
                 D_80073BA0 = 0;
@@ -300,7 +300,7 @@ void func_actor_403900_8013314C(Actor403900* arg0)
                     break;
                 case 1:
                     if ((CdCmd_IsIdle() & 0xFFFF) == 1) {
-                        coord = ((Actor403900*)Game_GetPtrSlot(3))->field_2C->field_8;
+                        coord = ((Actor403900*)gameGetPtrSlot(3))->field_2C->field_8;
                         SndEvt_EnqueueType6(0x70010001, (s8)Gp_GetObjPan((GsCOORDINATE2*)coord), (s8)Gp_GetObjDepth((GsCOORDINATE2*)coord));
                         work->field_6D4 = 2;
                     }

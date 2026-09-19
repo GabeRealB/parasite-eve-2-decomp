@@ -87,8 +87,8 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             func_800E9BDC(3, 0x9FF);
             Gp_StateF0.field_4                   = 2;
             ((AfrStreamWork*)task->work)->mtx    = D_80073B8C;
-            ((AfrStreamWork*)task->work)->target = Game_GetPtrSlot(3);
-            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
+            ((AfrStreamWork*)task->work)->target = gameGetPtrSlot(3);
+            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
             place.rot.vy = 0x400;
             place.rot.vx = 0;
             place.rot.vz = 0;
@@ -188,9 +188,9 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                 taskKill(task);
                 break;
             }
-            ((AfrStreamWork*)task->work)->target = Game_GetPtrSlot(3);
+            ((AfrStreamWork*)task->work)->target = gameGetPtrSlot(3);
             ((AfrStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
-            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
             weaponId     = Player_Status.weapon;
             rec.field_0  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.field_4  = 1;
@@ -256,7 +256,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
                 Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
                 D_8007216C = Gp_FindViewIndex(5);
-                Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA5, 0, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
                 func_800E9BDC(2, 0x9FF);
                 Gp_StateF0.field_4            = 0;
                 gGameSession->padScriptFlags &= 0x7F;

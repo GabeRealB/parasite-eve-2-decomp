@@ -64,7 +64,7 @@ s32 func_actor_521100_80132C70(Actor521100* arg0)
     s32                ret;
 
     work   = arg0->field_1C;
-    player = Game_GetPtrSlot(3);
+    player = gameGetPtrSlot(3);
     msg    = (Actor521100Msg3F8*)(SCRATCH_SP -= 0x18);
 
     diff  = work->field_698 - work->field_696;

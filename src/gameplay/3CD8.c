@@ -138,7 +138,7 @@ void Gp_RunCapCmd1(s32 arg0)
 
 void Gp_MsgPlayer3F3(s32 arg0)
 {
-    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F3, arg0, 0);
+    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F3, arg0, 0);
 }
 
 void Gp_MsgPlayerWeapon(s32 arg0)
@@ -148,9 +148,9 @@ void Gp_MsgPlayerWeapon(s32 arg0)
     if (arg0 == 0) {
         sp         = Gp_WeaponMsgRec;
         sp.field_0 = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.weapon;
-        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&sp, 0);
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&sp, 0);
     } else {
-        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
     }
 }
 
@@ -159,7 +159,7 @@ void Gp_MsgSlot4Chain(s32 arg0, s32 arg1)
     s32 out;
 
     arg0 = (arg0 << 12) | (gGameSession->at4.loc.stage << 8) | gGameSession->at4.loc.area;
-    Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7D0, arg0, (s32)&out);
+    Gp_DispatchMsg(gameGetPtrSlot(4), 0x7D0, arg0, (s32)&out);
     if (out != 0) {
         Gp_DispatchMsg((Task*)out, 0x7D5, arg1, 0);
     }
@@ -227,7 +227,7 @@ void Gp_MsgAlly3F3(s32 arg0)
 {
     Task* slot;
 
-    slot = Game_GetPtrSlot(0xA);
+    slot = gameGetPtrSlot(0xA);
     if (slot != NULL) {
         Gp_DispatchMsg(slot, 0x3F3, arg0, 0);
     }
@@ -238,7 +238,7 @@ void Gp_MsgAllyWeapon(s32 arg0)
     Task*   slot;
     GpRec14 sp;
 
-    slot = Game_GetPtrSlot(0xA);
+    slot = gameGetPtrSlot(0xA);
     if (slot != NULL) {
         if (arg0 == 0) {
             sp         = Gp_WeaponMsgRec;
@@ -491,7 +491,7 @@ void func_800E44A0(Task* task)
         }
         D_8011566D               = Mc_SaveData.at4.loc.view;
         Mc_SaveData.at4.loc.view = D_80115694;
-        Gp_DispatchMsg(Game_GetPtrSlot(5), 0xBB8, 0, 0);
+        Gp_DispatchMsg(gameGetPtrSlot(5), 0xBB8, 0, 0);
         Stage_RequestImageCapture();
         Task_Spawn(1, 0x2C, 0, (s32)&D_801155A0);
     }
@@ -520,7 +520,7 @@ void func_800E44A0(Task* task)
         goto resumeView;
     }
     D_8011566E = nextPhase + 1;
-    Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA7, (s32)(s8)D_801155BB, 0);
+    Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA7, (s32)(s8)D_801155BB, 0);
     return;
 resumeView:
     if (D_801156A4 & 0x20) {
@@ -609,7 +609,7 @@ resumeView:
         } else {
             if (D_80115648 == 0) {
                 if (Gp_CapTable[(s16)D_801155AE].field_4 & 0xFE) {
-                    Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F2, (s32)((u8)Gp_CapTable[(s16)D_801155AE].field_4 >> 1), 0);
+                    Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F2, (s32)((u8)Gp_CapTable[(s16)D_801155AE].field_4 >> 1), 0);
                     D_80115648 = 1;
                 }
             }
@@ -628,7 +628,7 @@ resumeView:
                             goto spawnDialog;
                         }
                     }
-                    lookupTask = Game_GetPtrSlot(4);
+                    lookupTask = gameGetPtrSlot(4);
                     target     = lookupTask;
                     Gp_DispatchMsg(lookupTask, 0x7D8, D_801155A0.field_0 - 0x64, (s32)&target);
                     if (target != NULL) {
@@ -1232,7 +1232,7 @@ void Gp_CapExit(Task* arg0)
 
     queue = &CdCmd_Queue;
     if (D_80115666 == 2) {
-        Gp_DispatchMsg(Game_GetPtrSlot(5), 0xBB8, 0, 0);
+        Gp_DispatchMsg(gameGetPtrSlot(5), 0xBB8, 0, 0);
     }
     if (D_80115666 != 0) {
         if (Mc_SaveData.at4.loc.view == D_8011566C) {
@@ -1792,9 +1792,9 @@ void Gp_DelayedMsgTask(Task* task)
                 mode = arg->field_2;
                 val  = arg->field_0;
                 if (mode == 0) {
-                    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x401, val, 0);
+                    Gp_DispatchMsg(gameGetPtrSlot(3), 0x401, val, 0);
                 } else if (mode == 1) {
-                    slot = Game_GetPtrSlot(0xA);
+                    slot = gameGetPtrSlot(0xA);
                     if (slot != NULL) {
                         Gp_DispatchMsg(slot, 0x401, val, 0);
                     }
@@ -1827,7 +1827,7 @@ void func_800E70AC(Task* task)
         switch (task->state) {
             case 0:
                 if (D_80115666 == 2) {
-                    Gp_DispatchMsg(Game_GetPtrSlot(5), 0xBB8, 1, 0);
+                    Gp_DispatchMsg(gameGetPtrSlot(5), 0xBB8, 1, 0);
                 }
                 task->state++;
                 break;

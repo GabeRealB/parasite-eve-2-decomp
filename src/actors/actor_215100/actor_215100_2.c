@@ -119,7 +119,7 @@ void func_actor_215100_8014A398(void)
     s32            z;
     s32            facing;
 
-    task  = (Task*)Game_GetPtrSlot(3);
+    task  = gameGetPtrSlot(3);
     actor = (GameActor*)task->work;
     coord = ((TmdObject*)task->extra)->coords;
     if (D_actor_215100_8014D038 != 0) {
@@ -249,7 +249,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
 {
     GameActor* actor;
 
-    actor = (GameActor*)((Task*)Game_GetPtrSlot(3))->work;
+    actor = (GameActor*)(gameGetPtrSlot(3))->work;
     switch (arg0->state) {
         case 0:
             if (Gp_CapBusy() != 0) {

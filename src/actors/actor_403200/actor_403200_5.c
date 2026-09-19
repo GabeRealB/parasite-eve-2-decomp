@@ -55,7 +55,7 @@ s32 func_actor_403200_801411A8(void)
     s32   view;
 
     view = Gp_GetViewIndex() & 0xFF;
-    task = (Task*)Game_GetPtrSlot(3);
+    task = gameGetPtrSlot(3);
     if (view == 0x1E) {
         flag  = ((TmdObject*)task->extra)->coords->coord.t[0];
         flag  = flag < 0x3A98;
@@ -95,7 +95,7 @@ void func_actor_403200_8014123C(Task* arg0)
     }
     func_actor_403200_80133DD8(arg0);
     if (work->field_6 == 8) {
-        Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, 0, 0);
+        Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
         SndEvt_EnqueueType7(((enemy->placeKey >> 12) << 8) | 0x4020000A, 1);
     }
 }

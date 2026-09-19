@@ -161,7 +161,7 @@ void func_800AEE8C(Task* arg0)
     TaskFuncTable3 sp;
     void*          slot;
 
-    slot = Game_GetPtrSlot(3);
+    slot = gameGetPtrSlot(3);
     sp   = Gp_DirTaskStates;
     if (slot != NULL) {
         sp.funcs[arg0->state](arg0);
@@ -223,7 +223,7 @@ void Gp_PostMsg13EF(void)
             sp.field_0 = Gp_DirFlags;
             sp.field_2 = Gp_DirByte;
             sp.field_3 = Gp_DirNibble;
-            slot       = Game_GetPtrSlot(7);
+            slot       = gameGetPtrSlot(7);
             Gp_DispatchMsg(slot, 0x13EF, (s32)&sp, 0);
         }
     }
@@ -293,7 +293,7 @@ void Gp_MsgPlayer3EE(void)
     GpMsg3EE sp;
     void*    slot;
 
-    slot = Game_GetPtrSlot(3);
+    slot = gameGetPtrSlot(3);
     if (gGameSession->eventState != 0) {
         D_80114CF8      = 0;
         Gp_DirNibble    = 0;
@@ -314,7 +314,7 @@ void Gp_MsgPlayer3EE(void)
 
 void Gp_MsgPlayer3F0(void)
 {
-    if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F0, 0, 0) == 0) {
+    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
         Gp_DirPhase++;
     }
 }
@@ -324,7 +324,7 @@ void Gp_MsgPlayer3EF(void)
     s32   sp[2];
     void* slot;
 
-    slot  = Game_GetPtrSlot(3);
+    slot  = gameGetPtrSlot(3);
     sp[0] = (Gp_DirFlags >> 8) & 1;
     sp[1] = Gp_DirByte & 0xF;
     Gp_DispatchMsg(slot, 0x3EF, (s32)sp, 0);

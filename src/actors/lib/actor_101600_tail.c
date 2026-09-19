@@ -996,7 +996,7 @@ u8 Actor01600_Fn06F78(Actor01600* arg0)
     Actor01600* head;
     Actor01600* iter;
 
-    head = ((Actor01600*)Game_GetPtrSlot(4))->field_C;
+    head = ((Actor01600*)gameGetPtrSlot(4))->field_C;
     if (head == NULL) {
         return 0xFF;
     }

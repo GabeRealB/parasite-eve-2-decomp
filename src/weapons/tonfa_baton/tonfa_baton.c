@@ -218,9 +218,9 @@ void func_tonfa_baton_8011DA74(Task* arg0)
 
     extra        = (TmdObject*)arg0->extra;
     coord        = (TonfaCoord*)extra->coords;
-    actor        = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+    actor        = ((GpActorWork*)gameGetPtrSlot(3))->actor;
     coord->flg   = 0;
-    extra->flags = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->flags;
+    extra->flags = ((TmdObject*)(gameGetPtrSlot(3))->extra)->flags;
 
     coord->coord.t[0] = 0;
     coord->coord.t[1] = 0x60;

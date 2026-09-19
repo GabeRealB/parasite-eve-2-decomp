@@ -49,7 +49,7 @@ void func_dryfield_main_street_8017E3A8(Task* task)
                 }
             }
             work = Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8));
-            func_800B0928(Game_GetPtrSlot(3), (Task*)work->field_0, 0x300, 0x200, task->killCountdown);
+            func_800B0928(gameGetPtrSlot(3), (Task*)work->field_0, 0x300, 0x200, task->killCountdown);
         } else {
             taskKill(task);
         }

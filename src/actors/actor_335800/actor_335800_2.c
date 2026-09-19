@@ -73,7 +73,7 @@ void func_actor_335800_80162114(void)
     TmdObject*     extra;
     GsCOORDINATE2* coord;
 
-    slot = Game_GetPtrSlot(3);
+    slot = gameGetPtrSlot(3);
     if (slot != NULL) {
         extra = slot->extra;
         coord = extra->coords;
@@ -96,7 +96,7 @@ void func_actor_335800_801621B4(s32 arg0)
     s32            highIdx;
     s32            unit;
 
-    slot = Game_GetPtrSlot(3);
+    slot = gameGetPtrSlot(3);
     if (slot != NULL) {
         extra  = slot->extra;
         coord  = extra->coords;
@@ -125,7 +125,7 @@ void func_actor_335800_8016224C(void)
     TmdObject*     extra;
     GsCOORDINATE2* coord;
 
-    slot = Game_GetPtrSlot(3);
+    slot = gameGetPtrSlot(3);
     if (slot != NULL) {
         areaId = 6;
         extra  = slot->extra;
@@ -220,7 +220,7 @@ void func_actor_335800_801624DC(Task* arg0)
     Task* slot;
 
     if (gGameSession->field_126 != 0) {
-        slot = Game_GetPtrSlot(3);
+        slot = gameGetPtrSlot(3);
         Gp_PlayerWeaponId(&D_actor_335800_80164E7C.field_0);
         Gp_DispatchMsg(slot, 0x3E8, (s32)&D_actor_335800_80164E7C, 0);
         taskKill(arg0);

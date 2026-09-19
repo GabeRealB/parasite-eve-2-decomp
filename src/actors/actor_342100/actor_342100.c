@@ -372,7 +372,7 @@ void func_actor_342100_80162C88(void)
 /// Spawn task of the overlay's spawn table (`func_actor_342100_80162748`'s
 /// neighbour entry, started with the encounter): each tick rolls the LCG and
 /// aims the overlay's effect record at one part of the player's model, taken
-/// from the coordinate array `Game_GetPtrSlot(3)`'s display object owns.
+/// from the coordinate array `gameGetPtrSlot(3)`'s display object owns.
 ///
 /// State 0 fires unconditionally -- the wide pick, scale 0x100 -- and steps to
 /// state 1. State 1 fires only on a frame the `D_80070F70` gate lets through,
@@ -393,7 +393,7 @@ void func_actor_342100_80162DDC(Task* arg0)
     Task* slot;
     s32   idx;
 
-    slot        = Game_GetPtrSlot(3);
+    slot        = gameGetPtrSlot(3);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     idx         = Gp_LcgState >> 16;
 
@@ -457,7 +457,7 @@ s32 func_actor_342100_80162F54(Task* arg0)
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;
             func_800E8614((s32)&D_actor_342100_801649C8, 0);
-            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
             work->field_34 = Task_SpawnFromTable(&D_actor_342100_80164B78, 2, 0, (s32)arg0);
             work->field_3E = work->field_3E + 1;
             break;
@@ -514,7 +514,7 @@ void func_actor_342100_801630A4(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(newWork, 0, 0x44);
-                newWork->field_2C       = Game_GetPtrSlot(3);
+                newWork->field_2C       = gameGetPtrSlot(3);
                 D_actor_342100_80164BB8 = arg0;
             }
             Task_SpawnFromTable(&D_8018B57C, 0, 0xD0, 0);
@@ -633,7 +633,7 @@ void func_actor_342100_80163454(s32 arg0)
         msg.field_1 = 0x2C;
         msg.field_0 = 0;
         msg.field_2 = 4;
-        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         if (work->field_30 != NULL) {
             Gp_DispatchMsg(work->field_30, 0x7DB, (s32)&msg, 0);
         }

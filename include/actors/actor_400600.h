@@ -47,7 +47,7 @@ typedef union Actor400600State {
 } Actor400600State;
 STATIC_ASSERT_SIZEOF(Actor400600State, 0x4);
 
-/// Payload `func_actor_400600_80133FC0` sends the `Game_GetPtrSlot(3)` task as
+/// Payload `func_actor_400600_80133FC0` sends the `gameGetPtrSlot(3)` task as
 /// message 0x3FF, with `field_0` pointing at `D_actor_400600_80151A48`.
 typedef struct Actor400600Msg3FF {
     /* 0x00 */ void* field_0;

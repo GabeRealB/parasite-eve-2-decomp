@@ -43,7 +43,7 @@ void func_actor_800100_80161F20(Task* task)
     base  = &D_8011505C;
     light = &base->coord;
     slot  = (GpCoordTail*)light;
-    if ((((GpActorWork*)Game_GetPtrSlot(10))->extra->flags & 0x80) != 0) {
+    if ((((GpActorWork*)gameGetPtrSlot(10))->extra->flags & 0x80) != 0) {
         return;
     }
     if (Gp_State1C->field_4 >= 2) {

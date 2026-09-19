@@ -408,7 +408,7 @@ void Actor01600_Fn04054(Actor01600Ctx* arg0, Actor01600* arg1)
                     }
                     pad->field_6 |= 1;
                     Gp_PulseState1C();
-                    Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, arg1, 0);
+                    Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, arg1, 0);
                     work->field_502        = 0xFF;
                     arg1->field_2C->flags |= 0x80;
                     arg1->field_2C->flags |= 4;

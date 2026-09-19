@@ -34,7 +34,7 @@ STATIC_ASSERT_SIZEOF(Actor160900ChildWork, 0x20);
 ///
 /// `func_actor_160900_8013418C` allocates it with `Mem_Malloc(0x68, 0)` and
 /// zeroes all 0x68 bytes, so the size below is the allocation. That function
-/// fills `field_34` with `Game_GetPtrSlot(3)` -- the task every `Gp_DispatchMsg`
+/// fills `field_34` with `gameGetPtrSlot(3)` -- the task every `Gp_DispatchMsg`
 /// in this overlay targets -- and 0x38/0x3C/0x40 with the tasks it spawns from
 /// `ActorsShared80136280Desc` indices 3, 5 and 6.
 ///
@@ -46,7 +46,7 @@ typedef struct Actor160900Work {
     /* 0x04 */ s16   field_4;     // set to 2 by 0x4C == 5
     /* 0x06 */ byte  pad_6[6];
     /* 0x0C */ Task* field_C[10]; // child tasks, killed on death
-    /* 0x34 */ Task* field_34;    // Game_GetPtrSlot(3), Gp_DispatchMsg target
+    /* 0x34 */ Task* field_34;    // gameGetPtrSlot(3), Gp_DispatchMsg target
     /* 0x38 */ Task* field_38;    // ActorsShared80136280Desc[3]
     /* 0x3C */ Task* field_3C;    // ActorsShared80136280Desc[5]
     /* 0x40 */ Task* field_40;    // ActorsShared80136280Desc[6]

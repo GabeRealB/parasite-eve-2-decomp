@@ -30,7 +30,7 @@ typedef union Actor405800Flags83C {
 } Actor405800Flags83C;
 STATIC_ASSERT_SIZEOF(Actor405800Flags83C, 0x4);
 
-/// Payload `func_actor_405800_801340E0` sends the `Game_GetPtrSlot(3)` task as
+/// Payload `func_actor_405800_801340E0` sends the `gameGetPtrSlot(3)` task as
 /// message 0x3FF, with `field_0` pointing at `D_actor_405800_801513F8`.
 typedef struct Actor405800Msg3FF {
     /* 0x00 */ void* field_0;

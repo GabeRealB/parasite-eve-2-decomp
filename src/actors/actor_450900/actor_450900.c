@@ -59,7 +59,7 @@ void func_actor_450900_80131E38(Task* task)
     s8             depth;
     void*          slot;
 
-    slot  = Game_GetPtrSlot(0xA);
+    slot  = gameGetPtrSlot(0xA);
     state = task->state;
     switch (state) {
         case 0:
@@ -84,7 +84,7 @@ void func_actor_450900_80131E38(Task* task)
             if (D_actor_450900_80135E74 == 0 && (s16)Mc_SaveData.field_6C8 > 0 && t >= 0) {
                 D_actor_450900_80135E70 = state;
                 if (t % 210 == 0) {
-                    coord = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->coords;
+                    coord = ((TmdObject*)(gameGetPtrSlot(0xA))->extra)->coords;
                     pan   = (s8)Gp_GetObjPan(coord);
                     depth = (s8)Gp_GetObjDepth(coord);
                     if (rand() & 1) {
@@ -217,7 +217,7 @@ void func_actor_450900_80132548(Task* task)
     void*               slot;
     u16                 rate;
 
-    slot = Game_GetPtrSlot(3);
+    slot = gameGetPtrSlot(3);
     switch (task->state) {
         case 0:
             aim = memCalloc(sizeof(Actor450900HeadAim), false);
@@ -245,7 +245,7 @@ void func_actor_450900_80132548(Task* task)
                     aim->rate = 0;
                 }
             }
-            func_800B17D4(slot, Game_GetPtrSlot(0xA), (GpHeadAim*)aim);
+            func_800B17D4(slot, gameGetPtrSlot(0xA), (GpHeadAim*)aim);
             return;
         default:
             taskKill(task);
@@ -267,7 +267,7 @@ void func_actor_450900_80132684(s32 arg0)
     s8             pan;
     s8             depth;
 
-    coord = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->coords;
+    coord = ((TmdObject*)(gameGetPtrSlot(0xA))->extra)->coords;
     pan   = (s8)Gp_GetObjPan(coord);
     depth = (s8)Gp_GetObjDepth(coord);
     if (arg0 != 0) {
@@ -315,7 +315,7 @@ void func_actor_450900_80132834(void)
 {
     GsCOORDINATE2* coord;
 
-    coord = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->coords;
+    coord = ((TmdObject*)(gameGetPtrSlot(0xA))->extra)->coords;
     if (coord->coord.t[2] < -0x76C) {
         Task_SpawnFromTable(&D_actor_450900_80135E78, 4, 0, 0);
     } else {

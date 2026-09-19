@@ -155,7 +155,7 @@ void func_acropolis_bridge_8017F544(Task* task)
     } else {
         AcropolisBridgeMsg7DA msg = { 1, 0xE, 2 };
 
-        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         SndEvt_EnqueueType6(0x510E0009, 0, 0);
         task->state = 6;
     }

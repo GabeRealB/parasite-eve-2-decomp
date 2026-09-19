@@ -13,7 +13,7 @@
 /// `(DwtwWork*)task->work`.
 ///
 /// The first three fields are the tasks the room's script dispatches its
-/// messages to: `field_0` is the slot-3 game pointer (`Game_GetPtrSlot(3)`),
+/// messages to: `field_0` is the slot-3 game pointer (`gameGetPtrSlot(3)`),
 /// and `field_4` / `field_8` are `Gp_FindWorkById(...)->field_0` for two ids
 /// built from the session's `at4.loc.area` / `at4.loc.stage` bytes (the second id has
 /// 0x1000 OR'd in). `func_dryfield_water_tower_80180220` sends the 0x7D4 pair
@@ -28,7 +28,7 @@
 /// `field_E`'s meaning is not yet known. `field_14` is a 0/1 latch that lets
 /// `func_dryfield_water_tower_80180194` dispatch its one-shot message once.
 typedef struct DwtwWork {
-    /* 0x00 */ Task* field_0; // Game_GetPtrSlot(3), Gp_DispatchMsg target
+    /* 0x00 */ Task* field_0; // gameGetPtrSlot(3), Gp_DispatchMsg target
     /* 0x04 */ Task* field_4; // Gp_FindWorkById(...)->field_0
     /* 0x08 */ Task* field_8; // Gp_FindWorkById(...)->field_0
     /* 0x0C */ s16   field_C;
@@ -144,7 +144,7 @@ STATIC_ASSERT_SIZEOF(DwtwStep, 0x4);
 /// allocates the same block, so the prop tasks reached through `field_44` /
 /// `field_48` carry one too.
 ///
-/// `field_40` is the slot-3 game pointer (`Game_GetPtrSlot(3)`), the task the
+/// `field_40` is the slot-3 game pointer (`gameGetPtrSlot(3)`), the task the
 /// 0x3E9 player-placement messages go to. `field_44` / `field_48` are the two
 /// prop tasks `func_dryfield_water_tower_8017F128` spawns as types 1 and 2 of
 /// `D_..._80182384` -- the 0x7D4 (`Room_Util08`) targets -- and `field_4C` is
@@ -178,7 +178,7 @@ STATIC_ASSERT_SIZEOF(DwtwStep, 0x4);
 /// 0x5214000C is due.
 typedef struct DryfieldWaterTowerState {
     /* 0x00 */ u8    pad_0[0x40];
-    /* 0x40 */ Task* field_40; // Game_GetPtrSlot(3)
+    /* 0x40 */ Task* field_40; // gameGetPtrSlot(3)
     /* 0x44 */ Task* field_44;
     /* 0x48 */ Task* field_48;
     /* 0x4C */ Task* field_4C;

@@ -630,7 +630,7 @@ void func_actor_136100_80133A88(Task* arg0)
     }
     work = (Actor136100Work*)map;
     Mem_Set(work, 0, 0x4F0);
-    work->field_4B4         = Game_GetPtrSlot(3);
+    work->field_4B4         = gameGetPtrSlot(3);
     D_actor_136100_8014078C = arg0;
     coord->sub              = &gGfxViewCoord;
     Tmd_AllocBuffers(tmd);
@@ -779,7 +779,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 Mem_CopyUnaligned(&D_actor_136100_8013F2C4, &D_80183ACC, 0x30);
                 Mem_CopyUnaligned(&D_actor_136100_8013F244, &D_801834AC, 0x80);
             }
-            work->field_4C0 = Game_GetPtrSlot(0xA);
+            work->field_4C0 = gameGetPtrSlot(0xA);
             arg0->state++;
             break;
         case 1:

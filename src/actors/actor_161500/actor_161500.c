@@ -163,8 +163,8 @@ void func_actor_161500_80132210(void)
     GsCOORDINATE2* target;
     GsCOORDINATE2* player;
 
-    target = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->coords;
-    player = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    target = ((TmdObject*)(gameGetPtrSlot(0xA))->extra)->coords;
+    player = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     Gp_UpdateCoord(target);
     Gp_UpdateCoord(player);
     D_actor_161500_801376F2 =
@@ -180,7 +180,7 @@ void func_actor_161500_801322A0(void)
 {
     s32 temp_v0;
 
-    if (Game_GetPtrSlot(0xA) != NULL) {
+    if (gameGetPtrSlot(0xA) != NULL) {
         temp_v0 = GameFlag_GetNibble(0xE4);
         if (temp_v0 == 1) {
             if (Gp_GetCurBit2Flag(3) == temp_v0) {
@@ -196,7 +196,7 @@ void func_actor_161500_8013230C(void)
 {
     s32 temp_v0;
 
-    if (Game_GetPtrSlot(0xA) != NULL) {
+    if (gameGetPtrSlot(0xA) != NULL) {
         temp_v0 = GameFlag_GetNibble(0xE4);
         switch (temp_v0) {
             case 0:

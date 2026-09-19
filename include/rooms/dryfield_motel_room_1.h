@@ -14,7 +14,7 @@
 /// reaches the room state through.
 ///
 /// `func_dryfield_motel_room_1_8017DC2C` allocates it (`Mem_Malloc(0x38)`) and
-/// fills `field_0` from `Game_GetPtrSlot(3)` and `field_4` .. `field_10` from
+/// fills `field_0` from `gameGetPtrSlot(3)` and `field_4` .. `field_10` from
 /// `Gp_FindWorkById(session id | index)`, which makes `field_C` / `field_10`
 /// the two placed objects `func_dryfield_motel_room_1_8017DF08` addresses its
 /// 0x7D4 placements to. `field_2C` is an action index the room's script driver

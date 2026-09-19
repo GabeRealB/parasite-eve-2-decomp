@@ -192,7 +192,7 @@ void func_dryfield_breezeway_8017DDB0(Task* task)
         msg.field_0 = gGameSession->at4.loc.stage;
         msg.field_1 = gGameSession->at4.loc.area;
         msg.field_2 = 0;
-        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         Task_SpawnFromTable(D_dryfield_breezeway_801820B0, 0, 0, 0);
     }
     task->state++;

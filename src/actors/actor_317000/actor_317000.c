@@ -69,7 +69,7 @@ void func_actor_317000_80161E68(Task* task)
             work->field_4C6 = 0;
         }
     }
-    func_actor_317000_801621F4(task, Game_GetPtrSlot(3), 0x400, 0x200, work->field_4C6);
+    func_actor_317000_801621F4(task, gameGetPtrSlot(3), 0x400, 0x200, work->field_4C6);
     if (work->field_4C8 >= 0) {
         if (work->field_4C8 == 0) {
             Tmd_FreeBuffers(ext);
@@ -79,7 +79,7 @@ void func_actor_317000_80161E68(Task* task)
 }
 
 /// Turn-toward-target body of the facing state `func_actor_317000_80161E68`
-/// dispatches on. The actor's own coordinate and the `Game_GetPtrSlot(3)` task's
+/// dispatches on. The actor's own coordinate and the `gameGetPtrSlot(3)` task's
 /// (the player) are normalised into `dir`, whose yaw `ratan2` takes over
 /// `dir.vz`, and the result is written as the roll/pitch-free facing
 /// `{ 0, yaw, 0 }` at `Actor317000Coord::rot`. The same yaw is then compared
@@ -103,7 +103,7 @@ void func_actor_317000_801620BC(Task* task)
     s32               y;
 
     coord  = (Actor317000Coord*)((TmdObject*)task->extra)->coords;
-    target = (Actor317000Coord*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    target = (Actor317000Coord*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     work   = (Actor317000Work*)task->work;
 
     delta.vx = target->coord.t[0] - coord->coord.t[0];
@@ -138,7 +138,7 @@ void func_actor_317000_801620BC(Task* task)
 }
 
 /// Aim body of the facing state `func_actor_317000_80161E68` dispatches on,
-/// which calls it with `Game_GetPtrSlot(3)` (the player) as the second
+/// which calls it with `gameGetPtrSlot(3)` (the player) as the second
 /// argument and passes three more it never reads (0x400, 0x200 and
 /// `Actor317000Work::field_4C6`). The delta from the actor's sixth coordinate
 /// (`coord[5]`) to the target's fifth is normalised, taken through the

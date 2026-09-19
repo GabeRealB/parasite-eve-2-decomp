@@ -217,7 +217,7 @@ L_case0:
             taskKill(task);
         } else {
             Mem_Set(work, 0, 0xC);
-            work->owner             = Game_GetPtrSlot(3);
+            work->owner             = gameGetPtrSlot(3);
             RoomsShared80180b2cTask = task;
         }
         weaponId        = D_80073BA9;
@@ -227,7 +227,7 @@ L_case0:
         script.field_8  = 1;
         script.field_C  = 0xA;
         script.field_10 = 0;
-        Gp_DispatchMsg((Task*)Game_GetPtrSlot(3), 0x3E8, (s32)&script, 0);
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&script, 0);
         func_800E8634((s32)&D_dryfield_water_tank_8018050C, 0,
                       (s32)&D_dryfield_water_tank_8018068C);
         goto advance;

@@ -12,7 +12,7 @@
 /// it with `Mem_Set` and parks the pointer in the task's `Task::work` slot
 /// (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
 /// `(Actor303600Work*)task->work`.  The same function publishes the task
-/// itself in `D_actor_303600_8016E4C0` and stores the `Game_GetPtrSlot(3)` task
+/// itself in `D_actor_303600_8016E4C0` and stores the `gameGetPtrSlot(3)` task
 /// in `field_0`.
 ///
 /// `command` is the request the overlay's state machine dispatches on:
@@ -23,7 +23,7 @@
 /// `func_actor_303600_801624B0` / `func_actor_303600_8016253C` test before
 /// sending another.
 typedef struct Actor303600Work {
-    /* 0x0 */ Task* field_0; // Game_GetPtrSlot(3) task
+    /* 0x0 */ Task* field_0; // gameGetPtrSlot(3) task
     /* 0x4 */ u16   command; // state-machine request, see jtbl_actor_303600_80161E24
     /* 0x6 */ s16   field_6; // cleared alongside command
     /* 0x8 */ byte  pad_8[0x4];

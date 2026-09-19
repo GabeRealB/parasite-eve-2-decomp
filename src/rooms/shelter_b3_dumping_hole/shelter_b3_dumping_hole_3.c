@@ -555,7 +555,7 @@ void func_shelter_b3_dumping_hole_80181430(void)
     desc.field_0                       = gGameSession->at4.loc.stage;
     desc.field_1                       = gGameSession->at4.loc.area;
     desc.field_2                       = 0x13;
-    Gp_DispatchMsg((Task*)Game_GetPtrSlot(4), 0x7DA, (s32)&desc, 0x7DB);
+    Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&desc, 0x7DB);
 
     Display_ClampField126(0);
     Gp_DispatchMsg(ent->field_84, 0x7D5, 1, 0);
@@ -567,7 +567,7 @@ void func_shelter_b3_dumping_hole_80181430(void)
     desc3[2] = 0;
     desc3[3] = 0;
     desc3[4] = 0;
-    Gp_DispatchMsg((Task*)Game_GetPtrSlot(3), 0x3E8, (s32)desc3, 0);
+    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)desc3, 0);
     CdCmd_CancelReplaceAndActivate();
 }
 

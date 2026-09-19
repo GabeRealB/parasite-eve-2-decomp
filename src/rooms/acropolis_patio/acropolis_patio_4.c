@@ -39,7 +39,7 @@ void func_acropolis_patio_8017E054(Task* task)
     GameActor* actor;
     s16        angle;
 
-    actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+    actor = ((GpActorWork*)gameGetPtrSlot(3))->actor;
 
     switch (task->state) {
         case 0:

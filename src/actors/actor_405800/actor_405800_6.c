@@ -595,9 +595,9 @@ void func_actor_405800_80139700(Task* task)
     Actor405800Work* work2;
 
     work->field_84 += -(s16)work->field_84 >> 2;
-    if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
         if (work->field_88C == 0) {
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
         }
         func_actor_405800_80137994(task, 0x3C);
         work->field_84   = 0;

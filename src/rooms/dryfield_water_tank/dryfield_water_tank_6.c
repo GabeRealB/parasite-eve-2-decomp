@@ -73,7 +73,7 @@ void func_dryfield_water_tank_8017EBA0(void)
     rec.field_8  = 0;
     rec.field_C  = 0;
     rec.field_10 = 0;
-    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&rec, 0);
+    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
     SetDispMask(1);
 }
 
@@ -101,7 +101,7 @@ void func_dryfield_water_tank_8017EC6C(Task* arg0)
     rec.rot.vy = -0x7FF;
     rec.rot.vz = 0;
     arg0->killCountdown++;
-    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E9, (s32)&rec, 0);
+    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&rec, 0);
 }
 
 /// The tank's second run leg, the continuation of `func_dryfield_water_tank_8017EC6C`:
@@ -124,7 +124,7 @@ void func_dryfield_water_tank_8017ED30(Task* arg0)
     rec.rot.vy = 0x400;
     rec.rot.vz = 0;
     arg0->killCountdown++;
-    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E9, (s32)&rec, 0);
+    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&rec, 0);
 }
 
 /// Per-frame model update for the tank: the callback word at 0x801868A8 in the

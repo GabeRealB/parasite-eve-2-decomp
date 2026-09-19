@@ -197,13 +197,13 @@ void func_actor_143000_801342F8(s32 x, s32 y, u16* codes, s32 index, s32 active)
         if (active != 0) {
             if ((codes[index] & 0xF000) == 0x3000) {
                 Gp_PlayerWeaponId(&D_actor_143000_80135124);
-                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&D_actor_143000_80135124, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&D_actor_143000_80135124, 0);
                 D_actor_143000_801351AC = 1;
             }
             if (codes[index] == 0xFFFE && D_actor_143000_801351AC == 1) {
                 D_actor_143000_801351AC = 0;
                 Gp_PlayerWeaponId(&D_actor_143000_8013514C);
-                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&D_actor_143000_8013514C, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&D_actor_143000_8013514C, 0);
             }
         }
         prim           = (POLY_F4*)Gpu_PrimCursor;

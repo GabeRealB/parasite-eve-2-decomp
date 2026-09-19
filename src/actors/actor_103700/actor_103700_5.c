@@ -85,7 +85,7 @@ s32 func_actor_103700_80134F50(Task* task)
     s32                     ret;
 
     work                    = (Actor103700Work*)task->work;
-    player                  = Game_GetPtrSlot(3);
+    player                  = gameGetPtrSlot(3);
     head                    = *(void**)G_SCRATCH_HEAD;
     *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(Actor103700HoldScratch);
     scratch                 = (Actor103700HoldScratch*)*(void**)G_SCRATCH_HEAD;

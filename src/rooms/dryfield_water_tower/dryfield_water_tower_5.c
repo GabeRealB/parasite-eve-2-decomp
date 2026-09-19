@@ -347,14 +347,14 @@ void func_dryfield_water_tower_8017FD64(Task* task)
             msg.field_8  = 1;
             msg.field_C  = 0xA;
             msg.field_10 = 0;
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
             work       = (DwtwWork*)Mem_Malloc(0x18, 0);
             task->work = (TaskIdMap*)work;
             if (work == NULL) {
                 taskKill(task);
             } else {
                 Mem_Set(work, 0, 0x18);
-                work->field_0                   = (Task*)Game_GetPtrSlot(3);
+                work->field_0                   = gameGetPtrSlot(3);
                 D_dryfield_water_tower_801876AC = task;
                 id                              = gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8);
                 work->field_4                   = (Task*)Gp_FindWorkById(id)->field_0;

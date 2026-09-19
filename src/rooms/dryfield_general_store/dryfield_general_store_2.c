@@ -12,7 +12,7 @@ s32 func_dryfield_general_store_8017DD58(s32 arg0, s32 arg1, s32 arg2)
     void* slot;
 
     if (arg2 == 0x18) {
-        slot = Game_GetPtrSlot(0xA);
+        slot = gameGetPtrSlot(0xA);
         arg  = 0x19;
         if (slot != 0) {
             arg = 0x18;

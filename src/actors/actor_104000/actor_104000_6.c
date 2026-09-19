@@ -24,7 +24,7 @@ void func_actor_104000_80138CC8(Task* arg0)
     msg.field_0                = 3;
     msg.field_1                = 0x10;
     msg.field_2                = 1;
-    Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+    Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
     arg0->state = arg0->state + 1;
 }
 

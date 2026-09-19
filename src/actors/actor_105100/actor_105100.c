@@ -168,7 +168,7 @@ void func_actor_105100_801327B4(Actor105100Ctx* arg0, Actor105100* arg1)
     Gp_LinkObj(2, &work->obj51C);
     Gp_InitRec18Table(records2, 1, 0);
     work->obj51C.flags    = (u16)(work->obj51C.flags | 0x8000);
-    work->obj4E4.coord    = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    work->obj4E4.coord    = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     records3              = work->field_504;
     work->obj4E4.ctx.recs = records3;
     work->obj4E4.pos.vx   = 0;

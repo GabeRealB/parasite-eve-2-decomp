@@ -284,7 +284,7 @@ void func_actor_204000_8014B4AC(Actor104000Ctx* arg0, Actor104000* arg1)
     s32                    mag;
 
     work   = arg1->field_1C;
-    player = (GpActorWork*)Game_GetPtrSlot(3);
+    player = (GpActorWork*)gameGetPtrSlot(3);
     actor  = player->actor;
     if (work->field_4 != 0) {
         obj                      = arg1->field_2C;
@@ -327,7 +327,7 @@ void func_actor_204000_8014B4AC(Actor104000Ctx* arg0, Actor104000* arg1)
         if (mag < 0x200) {
             if (actor->field_954 != 2) {
                 work->field_490 = 0xC;
-                if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)work->field_47C, 0) == 0) {
+                if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)work->field_47C, 0) == 0) {
                     coord     = player->extra->coords;
                     angle     = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
                     sc->angle = Actor204000_WrapAngle(angle);
@@ -337,7 +337,7 @@ void func_actor_204000_8014B4AC(Actor104000Ctx* arg0, Actor104000* arg1)
                         D_actor_204000_80156350.field_0 = D_actor_204000_80156340;
                     }
                     D_actor_204000_80156350.field_4 = 1;
-                    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&D_actor_204000_80156350, 0);
+                    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&D_actor_204000_80156350, 0);
                     work->field_0   = 0xB;
                     work->field_496 = 1;
                     Gfx_MatrixCol0(&player->extra->coords->coord, &sc->d);
@@ -443,7 +443,7 @@ void func_actor_204000_8014BC3C(Actor104000Ctx* arg0, Actor104000* arg1)
         work->obj388.pos.vy             = arg1->field_2C->field_8->coord.t[1];
         work->obj388.pos.vz             = arg1->field_2C->field_8->coord.t[2];
         D_actor_204000_80156350.field_4 = 2;
-        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, &D_actor_204000_80156350, 0);
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, &D_actor_204000_80156350, 0);
         work->field_6 = 0;
     }
     if ((s16)work->field_6 < 0x13) {
@@ -463,8 +463,8 @@ void func_actor_204000_8014BC3C(Actor104000Ctx* arg0, Actor104000* arg1)
     switch ((s16)(work->field_6 - 0x5B)) {
         case 0:
             if (work->field_496 == 1) {
-                if (((GameActor*)((Task*)Game_GetPtrSlot(3))->work)->field_954 == 2) {
-                    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+                if (((GameActor*)(gameGetPtrSlot(3))->work)->field_954 == 2) {
+                    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
                 }
                 work->field_496 = 0;
             }
@@ -714,8 +714,8 @@ void func_actor_204000_8014CD68(Actor104000Ctx* arg0, Actor104000* arg1)
             break;
         case 1:
             if (work->field_496 == 1) {
-                if (((GameActor*)((Task*)Game_GetPtrSlot(3))->work)->field_954 == 2) {
-                    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+                if (((GameActor*)(gameGetPtrSlot(3))->work)->field_954 == 2) {
+                    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
                 }
                 work->field_496 = 0;
             }
@@ -726,7 +726,7 @@ void func_actor_204000_8014CD68(Actor104000Ctx* arg0, Actor104000* arg1)
                                (s16)Gp_GetObjDepth((GsCOORDINATE2*)arg1->field_2C->field_8));
             work->obj388.radius = 0x3E8;
             work->obj3C0.radius = 0xFA;
-            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, 0, 0x7DE);
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 0, 0x7DE);
             work->obj388.flags |= 0x8000;
             work->obj3C0.flags |= 0x8000;
             Gp_SpawnEff(0x6009C, &arg1->field_2C->field_8[2], 1, NULL);
@@ -1049,8 +1049,8 @@ found:
             work->field_0 = 6;
         }
         if (work->field_496 == 1) {
-            if (((GpActorWork*)Game_GetPtrSlot(3))->actor->field_954 == 2) {
-                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+            if (((GpActorWork*)gameGetPtrSlot(3))->actor->field_954 == 2) {
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
             }
             work->field_496 = 0;
         }
@@ -1622,9 +1622,9 @@ void func_actor_204000_8014FD2C(GpEnemy* arg0, Actor104000* arg1)
     work->field_2 = work->field_0;
     table.fn[work->field_0]((Actor104000Ctx*)arg0, arg1);
     if (work->field_496 == 1) {
-        if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0 || arg0->hp < 0) {
-            if (((GpActorWork*)Game_GetPtrSlot(3))->actor->field_954 == 2) {
-                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+        if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0 || arg0->hp < 0) {
+            if (((GpActorWork*)gameGetPtrSlot(3))->actor->field_954 == 2) {
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
             }
             work->field_496 = 0;
         }

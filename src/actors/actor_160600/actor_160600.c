@@ -18,8 +18,8 @@ void ActorsShared80132378(Task* task);
 
 void func_actor_160600_80131E24(void)
 {
-    if (Game_GetPtrSlot(0xA) != NULL) {
-        Task_CallExit(Game_GetPtrSlot(0xA));
+    if (gameGetPtrSlot(0xA) != NULL) {
+        Task_CallExit(gameGetPtrSlot(0xA));
         Game_SetPtrSlot(NULL, 0xA);
     }
 }

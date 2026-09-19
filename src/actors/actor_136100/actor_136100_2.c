@@ -68,5 +68,5 @@ void func_actor_136100_8013467C(void)
     rec.field_8  = 0;
     rec.field_C  = 0;
     rec.field_10 = 0;
-    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&rec, 0);
+    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
 }

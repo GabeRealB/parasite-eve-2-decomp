@@ -940,7 +940,7 @@ void Gp_EffTask07State1(Task* arg0)
     s32   spawnId;
     s32   idx;
 
-    slot = Game_GetPtrSlot(3);
+    slot = gameGetPtrSlot(3);
     if (slot == NULL) {
         return;
     }
@@ -1055,7 +1055,7 @@ void Gp_EffCtlTask32(Task* arg0)
             mem->field_10 = (rcos(temp) * mem->field_2A) >> 0xC;
             mem->field_12 = ((rsin(mem->field_14) * mem->field_2A) >> 0xC) - 0x400;
             parent =
-                (GsCOORDINATE2*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+                (GsCOORDINATE2*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
             one                  = ONE;
             *(s32*)&coord->coord = one;
             coord->sub           = parent;
@@ -1165,7 +1165,7 @@ void Gp_EffCtlTaskAE(Task* arg0)
     switch (state) {
         case 0:
             parent =
-                (GsCOORDINATE2*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+                (GsCOORDINATE2*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
             one                  = ONE;
             *(s32*)&coord->coord = one;
             coord->sub           = parent + 12;
@@ -1345,7 +1345,7 @@ void Gp_EffCtlTaskF3(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (Gp_State1C->field_E != 0 ||
-        (((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->flags & 0x80)) {
+        (((TmdObject*)(gameGetPtrSlot(3))->extra)->flags & 0x80)) {
         if (Gp_State1C->field_E < 4) {
             return;
         }
@@ -1358,7 +1358,7 @@ void Gp_EffCtlTaskF3(Task* arg0)
         s32 y;
 
         Gp_State1C->field_12 |= 0x400;
-        slot                  = Game_GetPtrSlot(3);
+        slot                  = gameGetPtrSlot(3);
         parent                = (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords;
         coord->coord.t[0]     = 0;
         coord->coord.t[1]     = 0;
@@ -1403,7 +1403,7 @@ lcg:
     if (((u32)Gp_LcgState >> 16) & 3) {
         return;
     }
-    slot        = Game_GetPtrSlot(3);
+    slot        = gameGetPtrSlot(3);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     Gp_SpawnEff(0x600F4,
                 (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords +
@@ -1497,7 +1497,7 @@ void Gp_EffCtlTaskF4(Task* arg0)
         if (flag >= 4) {
             goto kill;
         }
-        slot = Game_GetPtrSlot(3);
+        slot = gameGetPtrSlot(3);
         if (((TmdObject*)slot->extra)->flags & 0x80) {
             return;
         }
@@ -1557,7 +1557,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (Gp_State1C->field_E != 0 ||
-        (((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->flags & 0x80)) {
+        (((TmdObject*)(gameGetPtrSlot(3))->extra)->flags & 0x80)) {
         if (Gp_State1C->field_E < 4) {
             return;
         }
@@ -1569,7 +1569,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
         s32 x;
 
         Gp_State1C->field_12 |= 0x200;
-        slot                  = Game_GetPtrSlot(3);
+        slot                  = gameGetPtrSlot(3);
         parent                = (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords;
         coord->coord.t[0]     = 0;
         coord->coord.t[1]     = 0;
@@ -1629,7 +1629,7 @@ continue_fx:
     } else {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-            slot        = Game_GetPtrSlot(3);
+            slot        = gameGetPtrSlot(3);
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gp_SpawnEff(0x600E0,
                         (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords +
@@ -1647,7 +1647,7 @@ continue_fx:
     if (((u32)Gp_LcgState >> 16) & 1) {
         return;
     }
-    slot        = Game_GetPtrSlot(3);
+    slot        = gameGetPtrSlot(3);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     Gp_SpawnEff(0x600E0,
                 (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords +
@@ -1679,7 +1679,7 @@ void Gp_EffCtlTask0E(Task* arg0)
     mem->field_22++;
     if (arg0->state == 0) {
         Gp_State1C->field_12 |= 0x800;
-        slot                  = Game_GetPtrSlot(3);
+        slot                  = gameGetPtrSlot(3);
         parent                = (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords;
         one                   = ONE;
         *(s32*)&coord->coord  = one;
@@ -2168,7 +2168,7 @@ void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3)
     s16        id;
 
     id    = arg0;
-    actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+    actor = ((GpActorWork*)gameGetPtrSlot(3))->actor;
     if (arg3 == NULL) {
         arg3        = &D_80112C74;
         arg3->coord = arg1;
@@ -3588,7 +3588,7 @@ void Gp_UpdatePlayerMove(void)
     MATRIX*             mat;
     register s8         f973 asm("a1");
 
-    work     = Game_GetPtrSlot(3);
+    work     = gameGetPtrSlot(3);
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
     newhead  = head - 8;
@@ -4677,7 +4677,7 @@ s32 Gp_SpawnWeaponEff(void)
     TmdObject*    anim;
     register s32  ret asm("v0");
 
-    work  = Game_GetPtrSlot(3);
+    work  = gameGetPtrSlot(3);
     actor = work->actor;
     if (!work | !actor) {
         return 0;
@@ -5092,7 +5092,7 @@ GsCOORDINATE2* func_8010403C(s32 arg0)
     Task* slot;
     u8    idx;
 
-    slot = Game_GetPtrSlot(3);
+    slot = gameGetPtrSlot(3);
     idx  = D_80112E2C[Mc_SaveData.field_22 - 1][arg0];
     return &((GsCOORDINATE2*)((TmdObject*)slot->extra)->coords)[idx];
 }
@@ -5216,7 +5216,7 @@ s32 Gp_KillPlayerEffs(void)
     GameActor*   actor;
     Task*        task;
 
-    work  = Game_GetPtrSlot(3);
+    work  = gameGetPtrSlot(3);
     actor = work->actor;
     if (!work | !actor) {
         return 0;
@@ -6070,7 +6070,7 @@ s32 Gp_ApplyPlayerDamage(GpActorWork* arg0, s32 arg1, s32 arg2)
     if (Mc_SaveData.field_5C2 == 0) {
         ret = Gp_ApplyHpDamage((s16)Gp_ScaleDamage(arg2, 0, &out, 0));
         if (ret != 0) {
-            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, 0, 0x7DE);
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 0, 0x7DE);
         } else if (actor->field_910 == 0) {
             func_8010A42C(arg0, (u8)out);
         }
@@ -6140,7 +6140,7 @@ void func_80105B74(VECTOR3* arg0)
 {
     GameActor* actor;
 
-    actor           = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+    actor           = ((GpActorWork*)gameGetPtrSlot(3))->actor;
     actor->field_40 = arg0->vx;
     actor->field_44 = arg0->vy;
     actor->field_48 = arg0->vz;
@@ -6408,7 +6408,7 @@ void func_801061F0(void)
     register s32  f21 asm("a1");
     s32           f22;
 
-    work                   = Game_GetPtrSlot(3);
+    work                   = gameGetPtrSlot(3);
     p                      = &Player_Status;
     flag                   = 0x20000;
     f21                    = p->weapon;
@@ -7779,7 +7779,7 @@ void func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2)
         inner->field_95C = 0xA;
         mode             = 0x14;
         if (Mc_SaveData.field_13 == 1) {
-            func_80166E94(Game_GetPtrSlot(0xA), 0);
+            func_80166E94(gameGetPtrSlot(0xA), 0);
         }
     } else {
         if (arg2 == 1) {
@@ -7942,7 +7942,7 @@ void Gp_PlayerMode2State6(GpActorWork* arg0)
     if (inner->field_93E >= inner->field_934) {
         inner->field_97A = 0x12;
         if (inner->field_95E == 0) {
-            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, 0, 0x7DE);
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 0, 0x7DE);
             inner->field_95E = 1;
         }
     } else if (inner->field_966 & 0xF0F0) {
@@ -8723,7 +8723,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
 
     mask = arg1;
     if (arg0 == 0) {
-        work = Game_GetPtrSlot(3);
+        work = gameGetPtrSlot(3);
         if (arg1 & 1) {
             inner = work->actor;
             if (func_800B9D80(0x101) == 0) {
@@ -8990,7 +8990,7 @@ s32 Gp_ApplyHpDamage(s32 arg0)
     if (func_800B9D80(0x200) != 0) {
         p = &Player_Status;
         if (p->hp >= 5 && (s16)amount >= p->hp) {
-            slot   = Game_GetPtrSlot(3);
+            slot   = gameGetPtrSlot(3);
             coords = ((TmdObject*)slot->extra)->coords;
             p->hp  = 1;
             Gp_SpawnEff(0x6009C, coords + 1, 5, 0);
@@ -9432,7 +9432,7 @@ void func_8010B3F8(Task* arg0)
     u16            count;
     s16            next;
 
-    slot = Game_GetPtrSlot(3);
+    slot = gameGetPtrSlot(3);
     switch (arg0->state) {
         case 0:
             arg0->state         = 1;
@@ -9474,7 +9474,7 @@ void func_8010B520(Task* arg0)
     GsCOORDINATE2* coords;
 
     params             = &D_80113358;
-    slot               = Game_GetPtrSlot(3);
+    slot               = gameGetPtrSlot(3);
     extra              = slot->extra;
     raw                = extra->coords;
     params->spawnArgLo = 0xC0;
@@ -9583,7 +9583,7 @@ s32 Gp_SetupAllyWeapon(void)
     TmdObject*   extra;
     s32          ret;
 
-    work  = Game_GetPtrSlot(0xA);
+    work  = gameGetPtrSlot(0xA);
     actor = work->actor;
     if (!work | !actor) {
         return 0;
@@ -9749,7 +9749,7 @@ s32 func_8010BC70(GsCOORDINATE2* arg0)
     TmdObject* extra;
     s32        ret;
 
-    extra    = (TmdObject*)((Task*)Game_GetPtrSlot(3))->extra;
+    extra    = (TmdObject*)(gameGetPtrSlot(3))->extra;
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
     vec      = (VECTOR3*)(head - 0x10);
@@ -10186,7 +10186,7 @@ s32 Gp_HurtAlly(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (Mc_SaveData.field_5C2 == 0) {
         Mc_SaveData.field_6C8 -= Gp_ScaleDamage(arg2, 0, 0, 1);
         if ((s16)Mc_SaveData.field_6C8 <= 0) {
-            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, 0, 0x7DE);
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 0, 0x7DE);
             ret = 1;
         }
     }

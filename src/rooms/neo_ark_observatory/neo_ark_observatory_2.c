@@ -125,7 +125,7 @@ void func_neo_ark_observatory_8017F588(Task* arg0)
     GpMsg3EE msg;
     void*    slot;
 
-    slot = Game_GetPtrSlot(3);
+    slot = gameGetPtrSlot(3);
     switch (arg0->state) {
         case 0:
             msg.field_12 = D_neo_ark_observatory_80187A34;
@@ -180,10 +180,10 @@ void func_neo_ark_observatory_8017FA98(void)
     Task* task;
     Task* slotA;
 
-    task  = Game_GetPtrSlot(0xA);
+    task  = gameGetPtrSlot(0xA);
     slotA = task;
     if (task == NULL) {
-        task = Game_GetPtrSlot(3);
+        task = gameGetPtrSlot(3);
     }
     if (slotA != NULL && GameFlag_GetNibble(0xD7) != 0) {
         D_neo_ark_observatory_8018136A = 0;

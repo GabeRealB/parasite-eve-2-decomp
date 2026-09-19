@@ -31,7 +31,7 @@ s32 ActorsShared80136614(GsCOORDINATE2* arg0, u32* arg1)
     void*          vec;
     void*          matrix;
 
-    coord = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    coord = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     head  = *(void**)0x1F8003FC;
     base  = head - 0x40;
     __asm__("move %0,%1" : "=r"(vec) : "r"(base));

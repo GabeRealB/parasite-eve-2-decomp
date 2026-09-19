@@ -34,7 +34,7 @@ void ActorsShared80132688(ActorShared80132688* arg0)
                         sc->out.vz = work->field_6B4[i].field_6 - Player_Status.coordMtx->t[2];
                         if (SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vz * sc->out.vz) < work->field_6B4[i].field_2) {
                             work->field_6CE = 1;
-                            coord           = ((ActorShared80132688*)Game_GetPtrSlot(3))->field_2C->field_8;
+                            coord           = ((ActorShared80132688*)gameGetPtrSlot(3))->field_2C->field_8;
                             work->field_6E6 = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
                             sc->in.vx       = 0;
                             sc->in.vy       = 0;

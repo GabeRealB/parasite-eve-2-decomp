@@ -528,7 +528,7 @@ void func_actor_444000_8013482C(Actor444000* task)
             if (((TmdObject*)task->extra)->coords->coord.t[2] < -0x4203) {
                 work->field_0 = 0x10;
                 work->field_F08++;
-                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, 0, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
             }
             break;
     }
@@ -1311,7 +1311,7 @@ void func_actor_444000_80137D4C(GpEnemy* enemy, Actor444000Grab* task)
 
     owner  = task->parent->spawnArg2;
     host   = owner->task->work;
-    player = Game_GetPtrSlot(3);
+    player = gameGetPtrSlot(3);
 
     if (D_actor_444000_80144A68 == 1) {
         Gp_DestroyEnemy(enemy, (Task*)task);
@@ -1499,13 +1499,13 @@ void func_actor_444000_80138490(GpEnemy* enemy, Actor444000Grab* task)
     s32                  shrink;
 
     work   = task->field_1C;
-    player = Game_GetPtrSlot(3);
+    player = gameGetPtrSlot(3);
     actor  = (GameActor*)player->work;
     cfg    = &Player_Status;
 
     if (D_actor_444000_80144A68 == 1) {
         if (work->field_1B2 == 1) {
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
             work->field_1B2 = 0;
         }
         Gp_DestroyEnemy(enemy, (Task*)task);
@@ -1531,7 +1531,7 @@ void func_actor_444000_80138490(GpEnemy* enemy, Actor444000Grab* task)
         if (Actor444000_OutOfReach(&gap) == 0 && actor->field_954 != 2 &&
             cfg->hp > 0) {
             D_actor_444000_80161898.field_14 = 0x28;
-            if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&D_actor_444000_80161898, 0) == 0) {
+            if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_444000_80161898, 0) == 0) {
                 D_actor_444000_80144A6C = 1;
                 work->anim.field_0      = D_actor_444000_80161694;
                 work->anim.field_4      = 1;
@@ -1576,10 +1576,10 @@ void func_actor_444000_801389EC(GpEnemy* enemy, Actor444000Grab* task)
     s32                  armed;
 
     work   = task->field_1C;
-    player = Game_GetPtrSlot(3);
+    player = gameGetPtrSlot(3);
     if (D_actor_444000_80144A68 == 1) {
         if (work->field_1B2 == 1) {
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
             work->field_1B2 = 0;
         }
         Gp_DestroyEnemy(enemy, (Task*)task);
@@ -1604,7 +1604,7 @@ void func_actor_444000_801389EC(GpEnemy* enemy, Actor444000Grab* task)
     }
 
     if (work->field_1AC >= 9) {
-        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
         work->field_1B2 = 0;
         task->state++;
     }
@@ -1634,7 +1634,7 @@ void func_actor_444000_80138B94(GpEnemy* enemy, Actor444000Grab* task)
     s32                  pan;
 
     owner  = task->parent->spawnArg2;
-    player = Game_GetPtrSlot(3);
+    player = gameGetPtrSlot(3);
 
     if (D_actor_444000_80144A68 == 1 ||
         (work = memCalloc(sizeof(Actor444000GrabWork), false), task->field_1C = work, work == NULL)) {
@@ -1882,7 +1882,7 @@ void func_actor_444000_80139594(GpEnemy* enemy, Actor444000Drop* task)
     s32                  snd;
     s32                  pan;
 
-    player = Game_GetPtrSlot(3);
+    player = gameGetPtrSlot(3);
     owner  = task->parent->spawnArg2;
     parent = task->parent;
 

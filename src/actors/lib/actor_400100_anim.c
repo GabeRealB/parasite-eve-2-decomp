@@ -236,7 +236,7 @@ s32 Actor00100_Fn00BF8(Actor00100* arg0)
     SVECTOR*                v;
     SVECTOR*                out;
 
-    player                = Game_GetPtrSlot(3);
+    player                = gameGetPtrSlot(3);
     head                  = *(u8**)G_SCRATCH_HEAD;
     local                 = (SVECTOR*)(head - 0xC);
     s                     = (Actor00100SightScratch*)(head - 0x1C);

@@ -117,7 +117,7 @@ void func_actor_460200_801330C8(Task* task)
     fns[task->state](task->spawnArg2, task);
 }
 
-/// Per-tick state 1 of this actor: faces the model toward the `Game_GetPtrSlot(3)`
+/// Per-tick state 1 of this actor: faces the model toward the `gameGetPtrSlot(3)`
 /// task. The root coordinate of the model is updated, a copy of its translation
 /// lifted by 0x320 is used as the look-at point, and the work block's
 /// `field_4F0` rate is stepped +0x200 or -0x200 per tick depending on
@@ -152,7 +152,7 @@ void func_actor_460200_8013311C(void* enemy, Task* task)
             work->field_4F0 = 0;
         }
     }
-    func_800B0928(task, Game_GetPtrSlot(3), 0x200, 0x100, (s16)work->field_4F0);
+    func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, (s16)work->field_4F0);
     func_actor_460200_80133254(task);
 }
 

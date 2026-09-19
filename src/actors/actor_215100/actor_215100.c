@@ -128,7 +128,7 @@ void func_actor_215100_80149F2C(Task* task)
             break;
         case 0x1E:
             Gp_PlayerWeaponId(&D_actor_215100_8014CF84);
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&D_actor_215100_8014CF84, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&D_actor_215100_8014CF84, 0);
             Gp_DispatchMsg((Task*)Gp_LookupSlot4(1), 0x7D3, (s32)&D_actor_215100_8014D010, 0);
             task->killCountdown = 0x1B;
             Gp_StartCapSlot(0xB, 0, 0);

@@ -57,7 +57,7 @@ void func_actor_450200_801322F8(void)
     } else {
         func_8017FA98(0);
     }
-    if (Game_GetPtrSlot(0xA) != NULL) {
+    if (gameGetPtrSlot(0xA) != NULL) {
         D_actor_450200_801401E0 = Task_SpawnFromTable(&D_actor_450200_80137A60, 2, 0, 0);
     }
 }

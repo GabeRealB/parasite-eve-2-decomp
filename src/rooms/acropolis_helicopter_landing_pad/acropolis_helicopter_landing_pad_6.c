@@ -51,7 +51,7 @@ void func_acropolis_helicopter_landing_pad_8017ED00(Task* arg0)
 /// room's `GpSaveLoc`); advances on success, otherwise kills the task.
 void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0)
 {
-    Task* slot = Game_GetPtrSlot(7);
+    Task* slot = gameGetPtrSlot(7);
 
     D_acropolis_helicopter_landing_pad_80187F90.field_4 = 1;
     D_acropolis_helicopter_landing_pad_80187F90.field_3 = 1;
@@ -71,7 +71,7 @@ void func_acropolis_helicopter_landing_pad_8017EDD4(Task* arg0)
     GpMsg3EE msg;
     Task*    slot;
 
-    slot         = Game_GetPtrSlot(3);
+    slot         = gameGetPtrSlot(3);
     msg.field_10 = 0;
     msg.field_12 = 0;
     msg.field_14 = 0;
@@ -86,7 +86,7 @@ void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
     s32   args[2];
     Task* slot;
 
-    slot    = Game_GetPtrSlot(3);
+    slot    = gameGetPtrSlot(3);
     args[0] = 1;
     args[1] = 3;
     Gp_DispatchMsg(slot, 0x3EF, (s32)args, 0);
@@ -95,7 +95,7 @@ void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
 
 void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0)
 {
-    if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F0, 0, 0) == 0) {
+    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
         Mc_SaveData.at4.loc.area = D_acropolis_helicopter_landing_pad_80187F90.field_0;
         Mc_SaveData.at4.loc.warp = D_acropolis_helicopter_landing_pad_80187F90.field_2;
         Mc_SaveData.at4.loc.room = D_acropolis_helicopter_landing_pad_80187F90.field_3;
@@ -113,7 +113,7 @@ void func_acropolis_helicopter_landing_pad_8017EF60(void)
 /// on the stack. Marks the player actor's `field_930` as 2 before every step.
 void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
 {
-    GameActor* actor     = (GameActor*)((Task*)Game_GetPtrSlot(3))->work;
+    GameActor* actor     = (GameActor*)(gameGetPtrSlot(3))->work;
     TaskFunc   states[5] = {
         func_acropolis_helicopter_landing_pad_8017ED50,
         func_acropolis_helicopter_landing_pad_8017EDD4,

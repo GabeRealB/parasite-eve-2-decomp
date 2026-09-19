@@ -529,11 +529,11 @@ void Gp_MenuRootTask(Task* arg0)
                 *flag = 1;
                 Gp_SpawnWeaponEff();
                 if (Gp_StateF0.field_0 == 1) {
-                    func_8010870C(Game_GetPtrSlot(3), 5);
+                    func_8010870C(gameGetPtrSlot(3), 5);
                 }
                 if (arg0->spawnArg1 == 0x44) {
                     Gp_PlayerWeaponId(&D_8010E7F4);
-                    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&D_8010E7F4, 0);
+                    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&D_8010E7F4, 0);
                 }
                 *flag = 0;
                 Task_SetActiveList(prev);
@@ -4386,7 +4386,7 @@ void Gp_UseKeyItemRow(Task* arg0)
     obj->field_2E = 0;
     if (arg0->state == 0) {
         menu = &D_8010E960;
-        slot = Game_GetPtrSlot(7);
+        slot = gameGetPtrSlot(7);
         item = Gp_NthCollectedId(menu->field_10, 0);
         ret  = Gp_DispatchMsg(slot, 0x13F1, item, 0);
         if (ret == 1) {

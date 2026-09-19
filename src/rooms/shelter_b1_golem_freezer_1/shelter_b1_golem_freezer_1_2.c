@@ -36,7 +36,7 @@ void func_shelter_b1_golem_freezer_1_8017D744(void)
     s32   isNull = (slot == NULL);
 
     if (isNull) {
-        task = Game_GetPtrSlot(3);
+        task = gameGetPtrSlot(3);
     }
     if (slot != NULL) {
         if (gGameSession->at4.loc.place == 0x15) {

@@ -101,7 +101,7 @@ void func_actor_800300_801628D0(GpActorWork* arg0)
     s32            arg;
 
     coord  = arg0->extra->coords;
-    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    target = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     actor  = arg0->actor;
     switch (actor->field_95E) {
         case 0:
@@ -179,7 +179,7 @@ void func_actor_800300_80162A98(GpActorWork* arg0)
     s32            flag;
 
     actor             = arg0->actor;
-    extra             = (TmdObject*)((Task*)Game_GetPtrSlot(3))->extra;
+    extra             = (TmdObject*)(gameGetPtrSlot(3))->extra;
     head              = *(u8**)0x1F8003FC;
     *(u8**)0x1F8003FC = head - 0x10;
     vec               = (VECTOR3*)(head - 0x10);
@@ -256,7 +256,7 @@ void func_actor_800300_80162C98(GpActorWork* arg0)
 
     actor  = arg0->actor;
     coord  = arg0->extra->coords;
-    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    target = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     if (arg0->actor->field_910->decisionTimer <= 0) {
         func_8010BF7C(arg0, 0x14, 0x3F);
         if ((u32)(func_8010BC70(coord) - 0x581) < 0x87F) {
@@ -286,7 +286,7 @@ void func_actor_800300_80162D74(GpActorWork* arg0)
     u16            state;
 
     coord             = arg0->extra->coords;
-    target            = (GsCOORDINATE2*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    target            = (GsCOORDINATE2*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     head              = *(u8**)0x1F8003FC;
     *(u8**)0x1F8003FC = head - 0x10;
     vec               = (VECTOR3*)(head - 0x10);

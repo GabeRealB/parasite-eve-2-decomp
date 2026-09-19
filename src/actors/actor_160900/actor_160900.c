@@ -465,7 +465,7 @@ void func_actor_160900_80133238(Task* arg0)
                 msg.field_8  = 0;
                 msg.field_C  = 0;
                 msg.field_10 = 0;
-                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
                 Gp_DispatchMsg(work->field_34, 0x3E9, (s32)D_actor_160900_8013F228, 0);
                 msg.field_0 = (u8*)-0x7D0;
                 msg.field_4 = 0;
@@ -907,7 +907,7 @@ void func_actor_160900_8013418C(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(work, 0, 0x68);
-                work->field_34          = Game_GetPtrSlot(3);
+                work->field_34          = gameGetPtrSlot(3);
                 D_actor_160900_8013FBB4 = arg0;
                 work->field_38          = Task_SpawnFromTable(&ActorsShared80136280Desc, 3, 0, (s32)arg0);
                 work->field_3C          = Task_SpawnFromTable(&ActorsShared80136280Desc, 5, 1, (s32)work->field_38);

@@ -347,7 +347,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
                     taskKill(arg0);
                 } else {
                     Mem_Set(mem, 0, 0x7C);
-                    ((DryfieldWaterTowerState*)mem)->field_40 = Game_GetPtrSlot(3);
+                    ((DryfieldWaterTowerState*)mem)->field_40 = gameGetPtrSlot(3);
                     modelCoord->sub                           = &gGfxViewCoord;
                     model->flags                              = 0;
                     Tmd_AllocBuffers(model);
@@ -675,7 +675,7 @@ void func_dryfield_water_tower_8017F700(s32 arg0)
     rec.field_8  = value != 0;
     rec.field_C  = value;
     rec.field_10 = 0;
-    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&rec, 0);
+    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
 }
 
 /* The jump tables the two script commands `func_dryfield_water_tower_8017EB7C`

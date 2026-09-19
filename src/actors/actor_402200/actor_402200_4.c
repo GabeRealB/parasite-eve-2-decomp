@@ -51,7 +51,7 @@ extern s32 D_actor_402200_8015415C;
 /// `func_800FDB18` argument record for the grab's finishing spark.
 extern GpEffArg D_actor_402200_80154170;
 
-/// Parks the actor's target position off the player (`Game_GetPtrSlot(3)`).
+/// Parks the actor's target position off the player (`gameGetPtrSlot(3)`).
 /// State 3 takes `field_6E6` from the player's heading and rotates a -0x5AA
 /// z offset through the player's root matrix; state 4 rolls `field_6E6` from
 /// `Gp_LcgState`, derives `field_5DC`/`field_5E0` from it, adds the player's
@@ -71,7 +71,7 @@ void func_actor_402200_80132E34(Actor402200* arg0)
     sc                    = (Actor402200OffsetScratch*)(head - sizeof(Actor402200OffsetScratch));
     work                  = arg0->field_1C;
     if (work->field_6CE == 3) {
-        coord           = ((Actor402200*)Game_GetPtrSlot(3))->field_2C->field_8;
+        coord           = ((Actor402200*)gameGetPtrSlot(3))->field_2C->field_8;
         work->field_6E6 = ratan2(coord->field_0.coord.m[0][2], coord->field_0.coord.m[2][2]) & 0xFFF;
         sc->in.vz       = -0x5AA;
         sc->in.vx       = 0;
@@ -104,7 +104,7 @@ void func_actor_402200_80132E34(Actor402200* arg0)
         work->field_5DC  = (u32)(rsin(work->field_6E6) * 0x7D) >> 8;
         work->field_5DE  = -0x3E8;
         work->field_5E0  = (u32)(rcos(work->field_6E6) * 0x7D) >> 8;
-        coord            = ((Actor402200*)Game_GetPtrSlot(3))->field_2C->field_8;
+        coord            = ((Actor402200*)gameGetPtrSlot(3))->field_2C->field_8;
         work->field_6E6  = (work->field_6E6 + (ratan2(coord->field_0.coord.m[0][2], coord->field_0.coord.m[2][2]) & 0xFFF)) & 0xFFF;
         sc->in.vx        = (u32)(rsin(work->field_6E6) * 0x4B) >> 8;
         sc->in.vz        = (u32)(rcos(work->field_6E6) * 0x4B) >> 8;
@@ -145,7 +145,7 @@ void func_actor_402200_8013314C(Actor402200* arg0)
 
     work                   = arg0->field_1C;
     coord                  = arg0->field_2C->field_8;
-    player                 = Game_GetPtrSlot(3);
+    player                 = gameGetPtrSlot(3);
     *(u8**)G_SCRATCH_HEAD -= sizeof(Actor402200GrabScratch);
     sc                     = *(Actor402200GrabScratch**)G_SCRATCH_HEAD;
     pcoord                 = ((Actor402200*)player)->field_2C->field_8;
@@ -345,7 +345,7 @@ void func_actor_402200_8013314C(Actor402200* arg0)
                 sc->in.vy                                = -0x96;
                 sc->in.vx                                = 0;
                 sc->in.vz                                = 0xC8;
-                func_800FDB18(1, &((Actor402200*)Game_GetPtrSlot(3))->field_2C->field_8->field_140, &sc->in, &D_actor_402200_80154170);
+                func_800FDB18(1, &((Actor402200*)gameGetPtrSlot(3))->field_2C->field_8->field_140, &sc->in, &D_actor_402200_80154170);
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);
                 Gp_DispatchMsg(player, 0x400, 0, 0);
                 D_80073BA0 = 0;
@@ -369,7 +369,7 @@ void func_actor_402200_8013314C(Actor402200* arg0)
                     break;
                 case 1:
                     if ((CdCmd_IsIdle() & 0xFFFF) == 1) {
-                        coord = ((Actor402200*)Game_GetPtrSlot(3))->field_2C->field_8;
+                        coord = ((Actor402200*)gameGetPtrSlot(3))->field_2C->field_8;
                         SndEvt_EnqueueType6(0x70010001, (s8)Gp_GetObjPan((GsCOORDINATE2*)coord), (s8)Gp_GetObjDepth((GsCOORDINATE2*)coord));
                         work->field_6D4 = 2;
                     }

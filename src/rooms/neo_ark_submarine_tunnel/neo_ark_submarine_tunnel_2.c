@@ -92,7 +92,7 @@ void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0)
 
 void func_neo_ark_submarine_tunnel_8017F414(void)
 {
-    Game_GetPtrSlot(3);
+    gameGetPtrSlot(3);
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel_2", jtbl_neo_ark_submarine_tunnel_8017D620);

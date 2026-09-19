@@ -15,7 +15,7 @@
 /// `mtx` is `Player_Status.coordMtx`, the player actor's coordinate matrix; the
 /// task walks its translation along `D_acropolis_promenade_80181184` once per
 /// frame while the stream runs. `target` is the slot-3 task every message the
-/// scene sends is addressed to, captured once from `Game_GetPtrSlot(3)`.
+/// scene sends is addressed to, captured once from `gameGetPtrSlot(3)`.
 /// `child` is the prompt task spawned from `D_acropolis_promenade_80181148`
 /// entry 3 and polled with `Task_PollKill`; `spawned` records that it exists,
 /// since the calloc leaves it at 0. `script` is the scene's script task, which

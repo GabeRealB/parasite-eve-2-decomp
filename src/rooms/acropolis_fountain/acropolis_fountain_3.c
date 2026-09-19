@@ -59,7 +59,7 @@ void func_acropolis_fountain_8017DAA4(Task* arg0)
     GpMsg3EE msg;
     Task*    slot;
 
-    slot         = Game_GetPtrSlot(3);
+    slot         = gameGetPtrSlot(3);
     msg.field_10 = 0;
     msg.field_12 = 0x800;
     msg.field_14 = 0;
@@ -69,7 +69,7 @@ void func_acropolis_fountain_8017DAA4(Task* arg0)
 
 void func_acropolis_fountain_8017DB00(Task* arg0)
 {
-    if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F0, 0, 0) == 0) {
+    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
         arg0->state = (s32)(arg0->state + 1);
     }
 }
@@ -79,7 +79,7 @@ void func_acropolis_fountain_8017DB54(Task* arg0)
     s32   args[2];
     Task* slot;
 
-    slot    = Game_GetPtrSlot(3);
+    slot    = gameGetPtrSlot(3);
     args[0] = 0;
     args[1] = 1;
     Gp_DispatchMsg(slot, 0x3EF, (s32)args, 0);
@@ -88,7 +88,7 @@ void func_acropolis_fountain_8017DB54(Task* arg0)
 
 void func_acropolis_fountain_8017DBAC(Task* arg0)
 {
-    if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F0, 0, 0) == 0) {
+    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
         arg0->state = (s32)(arg0->state + 1);
     }
 }
@@ -98,8 +98,8 @@ void func_acropolis_fountain_8017DC00(Task* arg0)
     GpMsg3EE msg;
     Task*    slot;
 
-    Game_GetPtrSlot(3);
-    slot        = Game_GetPtrSlot(3);
+    gameGetPtrSlot(3);
+    slot        = gameGetPtrSlot(3);
     msg.field_0 = 0xA27;
     msg.field_4 = -0xC8;
     msg.field_8 = -0x17A6;
@@ -111,7 +111,7 @@ void func_acropolis_fountain_8017DC6C(Task* arg0)
 {
     Task* temp_v0;
 
-    temp_v0 = Game_GetPtrSlot(3);
+    temp_v0 = gameGetPtrSlot(3);
     if (Gp_DispatchMsg(temp_v0, 0x3F0, 0, 0) == 0) {
         Gp_DispatchMsg(temp_v0, 0x3F1, 0, 0);
         taskKill(arg0);

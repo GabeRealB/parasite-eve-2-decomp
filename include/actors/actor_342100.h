@@ -19,7 +19,7 @@ typedef struct Actor342100 {
 /// the task in `D_actor_342100_80164BB8`. Every leaf helper reaches the block
 /// that way, `(Actor342100Work*)D_actor_342100_80164BB8->work`.
 ///
-/// `field_2C` is the `Game_GetPtrSlot(3)` task the overlay aims its messages
+/// `field_2C` is the `gameGetPtrSlot(3)` task the overlay aims its messages
 /// at. `field_30` and `field_34` are further message targets, both sent
 /// 0x7DB, and `field_38` is a task the overlay spawns itself: with a non-zero
 /// argument `func_actor_342100_80163454` writes 1 into its
@@ -40,7 +40,7 @@ typedef struct Actor342100Work {
     /* 0x22 */ s16   field_22;
     /* 0x24 */ s16   field_24;
     /* 0x26 */ byte  pad_26[0x6];
-    /* 0x2C */ Task* field_2C; // Game_GetPtrSlot(3)
+    /* 0x2C */ Task* field_2C; // gameGetPtrSlot(3)
     /* 0x30 */ Task* field_30;
     /* 0x34 */ Task* field_34;
     /* 0x38 */ Task* field_38;

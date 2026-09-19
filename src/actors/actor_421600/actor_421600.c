@@ -149,14 +149,14 @@ s32 func_actor_421600_80132A00(Actor421600* arg0, s32 arg1, Actor421600Msg* arg2
             }
         blockDE0:
             if (D_actor_421600_80151268 == 0) {
-                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, 0, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
             }
             return 1;
 
         case 3:
             if (work->field_E9C == 1) {
                 work->field_E9C = 0;
-                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
             }
             if (work->field_0 != 0x14 && work->field_0 != 0x11 && work->field_0 != 0x15 &&
                 work->field_0 != 0x16 && work->field_0 != 0 && work->field_0 != 8) {
@@ -480,7 +480,7 @@ void func_actor_421600_8013848C(Actor421600* arg0)
     u16              tick;
 
     work                       = arg0->field_1C;
-    player                     = Game_GetPtrSlot(3);
+    player                     = gameGetPtrSlot(3);
     head                       = *(SVECTOR**)G_SCRATCH_HEAD;
     vec                        = head - 2;
     *(SVECTOR**)G_SCRATCH_HEAD = vec;

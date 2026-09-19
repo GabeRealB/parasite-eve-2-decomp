@@ -49,7 +49,7 @@ void func_actor_303600_80161F40(Task* arg0)
             msg.field_0 = gGameSession->at4.loc.stage;
             msg.field_1 = gGameSession->at4.loc.area;
             msg.field_2 = 1;
-            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 1;
             break;
         case 2:
@@ -57,7 +57,7 @@ void func_actor_303600_80161F40(Task* arg0)
             msg.field_0 = gGameSession->at4.loc.stage;
             msg.field_1 = gGameSession->at4.loc.area;
             msg.field_2 = 2;
-            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 2;
             break;
         case 3:
@@ -65,7 +65,7 @@ void func_actor_303600_80161F40(Task* arg0)
             msg.field_0 = gGameSession->at4.loc.stage;
             msg.field_1 = gGameSession->at4.loc.area;
             msg.field_2 = 3;
-            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 3;
             break;
         case 4:
@@ -73,7 +73,7 @@ void func_actor_303600_80161F40(Task* arg0)
             msg.field_0 = gGameSession->at4.loc.stage;
             msg.field_1 = gGameSession->at4.loc.area;
             msg.field_2 = 4;
-            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 4;
             if (D_actor_303600_8016E4C4 != NULL) {
                 taskKill(D_actor_303600_8016E4C4);
@@ -86,7 +86,7 @@ void func_actor_303600_80161F40(Task* arg0)
             msg.field_0 = gGameSession->at4.loc.stage;
             msg.field_1 = gGameSession->at4.loc.area;
             msg.field_2 = 5;
-            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 5;
             break;
         case 6:
@@ -110,7 +110,7 @@ void func_actor_303600_80161F40(Task* arg0)
 /// Cutscene controller for the overlay. State 0 arms it once: a `D_80114C12` of
 /// 1 or a live `D_80071075` both mean a cutscene is already up, so the state is
 /// left where it is and the task returns; otherwise it allocates the
-/// `Actor303600Work` block, zeroes it, parks the `Game_GetPtrSlot(3)` task in
+/// `Actor303600Work` block, zeroes it, parks the `gameGetPtrSlot(3)` task in
 /// `field_0` and publishes itself in `D_actor_303600_8016E4C0` with
 /// `D_actor_303600_8016E4C4` cleared, then falls into state 1, which hands the
 /// overlay's two cutscene script blocks to `func_800E8634`. State 2 waits for
@@ -134,7 +134,7 @@ void func_actor_303600_8016216C(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(work, 0, 0x10);
-                work->field_0           = (Task*)Game_GetPtrSlot(3);
+                work->field_0           = gameGetPtrSlot(3);
                 D_actor_303600_8016E4C0 = arg0;
                 D_actor_303600_8016E4C4 = NULL;
             }
@@ -252,7 +252,7 @@ void func_actor_303600_801624B0(void)
         msg.field_0 = gGameSession->at4.loc.stage;
         msg.field_1 = gGameSession->at4.loc.area;
         msg.field_2 = 9;
-        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         work->field_C = 9;
         work->field_E = 1;
     }
@@ -279,7 +279,7 @@ void func_actor_303600_8016253C(void)
         msg.field_0 = gGameSession->at4.loc.stage;
         msg.field_1 = gGameSession->at4.loc.area;
         msg.field_2 = 9;
-        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         work->field_C = 9;
         work->field_E = 1;
     }

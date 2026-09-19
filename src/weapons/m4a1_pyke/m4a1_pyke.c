@@ -72,7 +72,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
     base  = &Gp_RoomCoords[1];
     light = &base->coord;
     slot  = (GpCoordTail*)light;
-    if ((((GpActorWork*)Game_GetPtrSlot(3))->extra->flags & 0x80) != 0) {
+    if ((((GpActorWork*)gameGetPtrSlot(3))->extra->flags & 0x80) != 0) {
         return;
     }
     if (Gp_State1C->field_4 >= 2) {

@@ -202,7 +202,7 @@ ge2:
 case0:
     Gp_ArmStateF0(1);
     if (work->field_33C == 0) {
-        work->field_33C = ((Actor00700*)Game_GetPtrSlot(3))->field_2C->field_8;
+        work->field_33C = ((Actor00700*)gameGetPtrSlot(3))->field_2C->field_8;
     }
     target          = work->field_33C;
     vec->vx         = target->coord.t[0] - coord->coord.t[0];

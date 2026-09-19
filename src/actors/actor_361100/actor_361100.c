@@ -107,7 +107,7 @@ void func_actor_361100_801627D4(Task* task)
     Actor361100HeadAim* aim;
     u16                 rate;
 
-    looker = Game_GetPtrSlot(3);
+    looker = gameGetPtrSlot(3);
     target = (Task*)Gp_LookupSlot4(2);
     if (D_801156F9 == 0) {
         if ((looker == NULL) || (target == NULL)) {

@@ -494,7 +494,7 @@ void func_actor_503500_801455A4(Task* arg0)
     m->w3 = 0;
     m->h4 = 0x1000;
 
-    work->head.obj.coord    = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    work->head.obj.coord    = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     work->head.obj.ctx.recs = &work->head.rec;
     work->head.obj.pos.vx   = D_actor_503500_801715D4.vx;
     work->head.obj.pos.vy   = D_actor_503500_801715D4.vy;

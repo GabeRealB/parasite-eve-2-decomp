@@ -82,7 +82,7 @@ void func_mine_mesa_8017D808(void)
 
     if ((gGameSession->eventState == 0) && (D_80114C12 != 1) && (field9 = gGameSession->at4.loc.place, field9 == 1)) {
         if (GameFlag_GetNibble(0x90) == 0) {
-            if (Game_GetPtrSlot(0xA) != NULL) {
+            if (gameGetPtrSlot(0xA) != NULL) {
                 func_800E8634((s32)&D_mine_mesa_8018578C, 0, (s32)&D_mine_mesa_801861DC);
             }
             func_800E3FAC(0xA2, 0x1B);

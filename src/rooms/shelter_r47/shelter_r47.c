@@ -83,7 +83,7 @@ s32 func_shelter_r47_8017FE84(s32 arg0, s32 arg1, RoomEventMsg* arg2)
         if (kind < 6) {
             if (kind < 4) {
                 if ((kind == 1) && (GameFlag_GetNibble(0x83) == 0) && (GameFlag_GetNibble(0x80) == 0)) {
-                    if (Game_GetPtrSlot(0xA) != 0) {
+                    if (gameGetPtrSlot(0xA) != 0) {
                         func_800E8634((s32)&D_801350BC, 0, (s32)&D_801359D4);
                     }
                     func_800E3FAC(0xA2, 0x2A);
@@ -108,7 +108,7 @@ s32 func_shelter_r47_8017FE84(s32 arg0, s32 arg1, RoomEventMsg* arg2)
                 if (spawned_a0 != NULL) {
                     Gp_MsgPlayer3F3(0);
                     Gp_MsgPlayerWeapon(0);
-                    if (Game_GetPtrSlot(0xA) != 0) {
+                    if (gameGetPtrSlot(0xA) != 0) {
                         Gp_MsgAlly3F3(0);
                         Gp_MsgAllyWeapon(0);
                     }
@@ -130,7 +130,7 @@ s32 func_shelter_r47_8017FE84(s32 arg0, s32 arg1, RoomEventMsg* arg2)
                 if (spawned_a1 != NULL) {
                     Gp_MsgPlayer3F3(0);
                     Gp_MsgPlayerWeapon(0);
-                    if (Game_GetPtrSlot(0xA) != 0) {
+                    if (gameGetPtrSlot(0xA) != 0) {
                         Gp_MsgAlly3F3(0);
                         Gp_MsgAllyWeapon(0);
                     }
@@ -144,7 +144,7 @@ s32 func_shelter_r47_8017FE84(s32 arg0, s32 arg1, RoomEventMsg* arg2)
                 if (spawned_a != NULL) {
                     Gp_MsgPlayer3F3(0);
                     Gp_MsgPlayerWeapon(0);
-                    if (Game_GetPtrSlot(0xA) != 0) {
+                    if (gameGetPtrSlot(0xA) != 0) {
                         Gp_MsgAlly3F3(0);
                         Gp_MsgAllyWeapon(0);
                     }

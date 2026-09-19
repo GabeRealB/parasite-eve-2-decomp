@@ -122,7 +122,7 @@ void func_shelter_r47_80180714(Task* task)
         if (gGameSession->at4.loc.place == 1) {
             Gp_MsgSlot4Chain(0, 1);
         }
-        if (Game_GetPtrSlot(0xA) != NULL) {
+        if (gameGetPtrSlot(0xA) != NULL) {
             Gp_MsgAlly3F3(1);
             Gp_MsgAllyWeapon(1);
         }

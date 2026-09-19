@@ -700,7 +700,7 @@ GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent)
     if (parent != NULL) {
         Task_Reparent(parent->task, task);
     } else {
-        Task_Reparent(Game_GetPtrSlot(4), enemy->task);
+        Task_Reparent(gameGetPtrSlot(4), enemy->task);
     }
     return enemy;
 }
@@ -3097,7 +3097,7 @@ void Gp_ApplyAreaTmdFlags(void)
     u16           limit;
     u8            idx;
 
-    head = ((Task*)Game_GetPtrSlot(4))->firstChild;
+    head = (gameGetPtrSlot(4))->firstChild;
     if (head != NULL) {
         iter = head;
         do {
@@ -3161,7 +3161,7 @@ GpWorkObj* Gp_FindWorkById(u16 arg0)
     s32        key;
 
     work = NULL;
-    head = ((Task*)Game_GetPtrSlot(4))->firstChild;
+    head = (gameGetPtrSlot(4))->firstChild;
     if (head != NULL) {
         iter = head;
         work = iter->spawnArg2;
@@ -3476,7 +3476,7 @@ s32 Gp_SendMsgType9(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 
 void Gp_KillSlot4Children(void)
 {
-    Task_KillChildren(Game_GetPtrSlot(4));
+    Task_KillChildren(gameGetPtrSlot(4));
 }
 
 void func_800B6014(void)
@@ -3580,7 +3580,7 @@ void Gp_FreeSlot4TmdBuffers(void)
     Task*      iter;
     TmdObject* obj;
 
-    child = ((Task*)Game_GetPtrSlot(4))->firstChild;
+    child = (gameGetPtrSlot(4))->firstChild;
     if (child != NULL) {
         iter = child;
         do {
@@ -3723,7 +3723,7 @@ void func_800B65B0(Task* task)
                 desc = &D_8010F010;
                 break;
             case 8:
-                coord  = (GpCoordYaw*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+                coord  = (GpCoordYaw*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
                 temp   = coord->field_18;
                 p      = &Player_Status.pos;
                 p->x   = temp;

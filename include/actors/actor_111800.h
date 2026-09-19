@@ -22,7 +22,7 @@ typedef struct Actor111800Work {
     /* 0x30C */ byte       field_30C[0x130];
     /* 0x43C */ MATRIX     field_43C;
     /* 0x45C */ MATRIX     field_45C;
-    /* 0x47C */ void*      field_47C; // Game_GetPtrSlot(3)
+    /* 0x47C */ void*      field_47C; // gameGetPtrSlot(3)
     /* 0x480 */ MATRIX*    field_480; // D_80073B8C, the view matrix
     /* 0x484 */ byte       pad_484[0xE];
     /* 0x492 */ s16        field_492;

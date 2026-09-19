@@ -102,10 +102,10 @@ void func_acropolis_sanctuary_8017D8CC(void)
 {
     if (D_80073BA9 == 2) {
         Gp_PlayerWeaponId(&D_acropolis_sanctuary_801809F8.field_0);
-        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&D_acropolis_sanctuary_801809F8, 0);
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&D_acropolis_sanctuary_801809F8, 0);
     } else {
         Gp_PlayerWeaponId(&D_acropolis_sanctuary_80180A0C.field_0);
-        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&D_acropolis_sanctuary_80180A0C, 0);
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&D_acropolis_sanctuary_80180A0C, 0);
     }
 }
 

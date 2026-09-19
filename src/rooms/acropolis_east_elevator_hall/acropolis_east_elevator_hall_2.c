@@ -65,9 +65,9 @@ void func_acropolis_east_elevator_hall_8017F478(Task* task)
 void func_acropolis_east_elevator_hall_8017F4E8(void)
 {
     if (gDisplayState.field_112 != 0) {
-        func_807245E4(Game_GetPtrSlot(3));
+        func_807245E4(gameGetPtrSlot(3));
         if (gDisplayState.field_112 != 0) {
-            func_80724608(Game_GetPtrSlot(3), -0x8C, -0x32, &D_acropolis_east_elevator_hall_8017D5E0);
+            func_80724608(gameGetPtrSlot(3), -0x8C, -0x32, &D_acropolis_east_elevator_hall_8017D5E0);
         }
     }
 }

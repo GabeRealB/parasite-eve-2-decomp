@@ -48,7 +48,7 @@ void func_actor_111800_80132390(Task* task)
     obj->flags    = 0;
     func_800B3F84(&work->anim, D_actor_111800_8013A448, obj, work->field_30C,
                   &work->slots[0]);
-    work->field_47C  = Game_GetPtrSlot(3);
+    work->field_47C  = gameGetPtrSlot(3);
     work->field_480  = D_80073B8C[0];
     i                = 1;
     work2            = (Actor111800Work*)task->work;

@@ -330,7 +330,7 @@ slots (see [`include/main/task.h`](../include/main/task.h)):
 | `killCountdown` | The task's own frame timer; the teardown delay while the task is being freed |
 | `extraState` | A payload the task carries; `Task_PollKill` hands it back with the stop request |
 
-`Game_SetPtrSlot` / `Game_GetPtrSlot` (`GameSession::ptrSlots`) is a parallel
+`Game_SetPtrSlot` / `gameGetPtrSlot` (`GameSession::ptrSlots`) is a parallel
 pointer table some tasks publish into; it is not the task list.
 
 ---

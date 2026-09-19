@@ -61,7 +61,7 @@ void func_dryfield_night_dilapidated_house_8017D970(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     arg0->state = (s32)(arg0->state + 1);
     if (GameFlag_GetNibble(0x92) == 0) {
-        if (Game_GetPtrSlot(0xA) != 0) {
+        if (gameGetPtrSlot(0xA) != 0) {
             func_800E8634((s32)&D_dryfield_night_dilapidated_house_801868F4, 0,
                           (s32)&D_dryfield_night_dilapidated_house_80187134);
         }

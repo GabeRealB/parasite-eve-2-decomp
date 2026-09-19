@@ -180,7 +180,7 @@ void func_actor_136300_801329EC(void)
         var_s0 = &D_actor_136300_8013B230;
     }
     Gp_AllyAnimId(var_s0);
-    Gp_DispatchMsg(Game_GetPtrSlot(0xA), 0x3E8, (s32)var_s0, 0);
+    Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3E8, (s32)var_s0, 0);
 }
 
 void func_actor_136300_80132A4C(s32 arg0)

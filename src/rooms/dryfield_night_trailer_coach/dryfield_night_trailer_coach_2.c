@@ -35,9 +35,9 @@ void func_dryfield_night_trailer_coach_8018231C(Task* task)
 {
     task->msgTable = &D_dryfield_night_trailer_coach_8018794C;
     Game_SetPtrSlot(task, 7);
-    if (Game_GetPtrSlot(0xA) != NULL) {
-        Gp_DispatchMsg(Game_GetPtrSlot(0xA), 0x3E9, (s32)&D_dryfield_night_trailer_coach_801879B8, 0);
-        Gp_DispatchMsg(Game_GetPtrSlot(0xA), 0x3E8, (s32)&D_dryfield_night_trailer_coach_80187CEC, 0);
+    if (gameGetPtrSlot(0xA) != NULL) {
+        Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3E9, (s32)&D_dryfield_night_trailer_coach_801879B8, 0);
+        Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3E8, (s32)&D_dryfield_night_trailer_coach_80187CEC, 0);
     }
     if (Mc_SaveData.at4.loc.warp == 2) {
         func_800E8634((s32)&D_dryfield_night_trailer_coach_80187D00, 0, (s32)&D_dryfield_night_trailer_coach_80187F58);

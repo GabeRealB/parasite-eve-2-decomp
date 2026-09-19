@@ -888,8 +888,8 @@ void func_actor_400600_80133FC0(Task* arg0)
         return;
     }
     query.field_14 = 8;
-    if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&query, 0) != 0) {
-        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&query, 0) != 0) {
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
         if (work->field_768 == 0) {
             work3            = (Actor400600Work*)arg0->work;
             work3->field_71C = 2;
@@ -912,7 +912,7 @@ void func_actor_400600_80133FC0(Task* arg0)
     msg.field_C          = 0;
     msg.field_10         = 0;
     msg.field_4          = 1;
-    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&msg, 0);
+    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&msg, 0);
     work->obj_4B4.flags &= 0x3FFF;
     work2                = (Actor400600Work*)arg0->work;
     work2->field_720     = 4;
@@ -974,7 +974,7 @@ void func_actor_400600_80134218(Task* arg0)
             msg.field_C  = 8;
             msg.field_10 = 0;
             msg.field_4  = 2;
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&msg, 0);
         }
         work2                = (Actor400600Work*)arg0->work;
         work2->field_720     = 8;
@@ -998,7 +998,7 @@ void func_actor_400600_80134218(Task* arg0)
         sound2 = id | ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8);
         pan2   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
         SndEvt_EnqueueType6(sound2, pan2, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
-        if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 1), 0) != 0) {
+        if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 1), 0) != 0) {
             work->field_764 = 1;
         }
         vec.vx = 0;

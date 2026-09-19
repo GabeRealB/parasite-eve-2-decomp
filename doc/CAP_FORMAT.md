@@ -138,7 +138,7 @@ state that something else owns.
 ### 3 — delegate
 
 ```c
-Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F0, index, 0);
+Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F0, index, 0);
 ```
 Hands the decision to slot 7's task with message `0x13F0`. The room decides;
 the file only marks the hand-off point.

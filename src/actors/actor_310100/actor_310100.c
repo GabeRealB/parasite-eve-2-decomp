@@ -266,7 +266,7 @@ void func_actor_310100_80162414(Task* task, s32 arg1)
     }
     work->field_508 = arg1;
     Mem_Set(task->work, 0U, 0x50CU);
-    work->field_4E8 = Game_GetPtrSlot(3);
+    work->field_4E8 = gameGetPtrSlot(3);
     coord->sub      = &gGfxViewCoord;
     Tmd_AllocBuffers(obj);
     obj->lightMtx = &work->field_43C;
@@ -326,7 +326,7 @@ void func_actor_310100_801625E4(Task* task, s32 arg1)
     }
     work->field_508 = arg1;
     Mem_Set(task->work, 0U, 0x50CU);
-    work->field_4E8 = Game_GetPtrSlot(3);
+    work->field_4E8 = gameGetPtrSlot(3);
     coord->sub      = &gGfxViewCoord;
     Tmd_AllocBuffers(obj);
     obj->lightMtx = &work->field_43C;

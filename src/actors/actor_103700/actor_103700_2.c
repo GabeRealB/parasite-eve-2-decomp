@@ -240,7 +240,7 @@ void func_actor_103700_80133370(Task* task)
 
     work                    = (Actor103700Work*)task->work;
     obj                     = ((TmdObject*)task->extra)->coords;
-    player                  = Game_GetPtrSlot(3);
+    player                  = gameGetPtrSlot(3);
     head                    = *(void**)G_SCRATCH_HEAD;
     *(void**)G_SCRATCH_HEAD = (u8*)head - 0x1C;
     arg                     = (GpAnimArg*)*(void**)G_SCRATCH_HEAD;
@@ -401,7 +401,7 @@ void func_actor_103700_80133AB4(Task* task)
 
     work                    = (Actor103700Work*)task->work;
     obj                     = ((TmdObject*)task->extra)->coords;
-    player                  = Game_GetPtrSlot(3);
+    player                  = gameGetPtrSlot(3);
     head                    = *(void**)G_SCRATCH_HEAD;
     *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(GpAnimArg);
     arg                     = (GpAnimArg*)*(void**)G_SCRATCH_HEAD;

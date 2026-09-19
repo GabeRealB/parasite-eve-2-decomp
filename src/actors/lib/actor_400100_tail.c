@@ -473,7 +473,7 @@ void Actor00100_Fn0BC1C(Actor00100* arg0)
     Task*           task;
 
     work = arg0->field_1C;
-    task = Game_GetPtrSlot(3);
+    task = gameGetPtrSlot(3);
     if ((task != NULL) && (work->field_8E8 == 7)) {
         coord    = ((TmdObject*)task->extra)->coords;
         slotY    = coord->coord.t[1];

@@ -288,7 +288,7 @@ void func_mist_shooting_gallery_80182B1C(Task* arg0)
     GameActor*               actor;
     MistShootingGalleryWork* work;
 
-    slot  = (GpActorWork*)Game_GetPtrSlot(3);
+    slot  = (GpActorWork*)gameGetPtrSlot(3);
     actor = slot->actor;
 
     work       = (MistShootingGalleryWork*)memCalloc(0x24, 0);
@@ -892,17 +892,17 @@ void func_mist_shooting_gallery_801838FC(Task* arg0)
                     func_800E9BDC(5, 0xA);
                     xform.field_12 = 0xC00;
                     ((void (*)(GpActorWork*, s32, GpXformArg*, s32))func_80104E00)(
-                        (GpActorWork*)Game_GetPtrSlot(3), 0, &xform, 0);
+                        (GpActorWork*)gameGetPtrSlot(3), 0, &xform, 0);
                 }
                 work->field_20++;
             }
             break;
         case 6:
-            actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+            actor = ((GpActorWork*)gameGetPtrSlot(3))->actor;
             func_800E9BDC(5, 0xA);
             if (actor->field_982 == 0) {
                 ((void (*)(GpActorWork*, s32, s32, s32))Gp_EnterActorMode2)(
-                    (GpActorWork*)Game_GetPtrSlot(3), 0, 2, 0);
+                    (GpActorWork*)gameGetPtrSlot(3), 0, 2, 0);
                 work->field_04++;
                 mode                 = 0x10;
                 Gp_StateC08.field_6 |= 0x10;
@@ -1157,7 +1157,7 @@ void func_mist_shooting_gallery_801842D0(Task* arg0)
     GameActor*               actor;
 
     work  = (MistShootingGalleryWork*)arg0->work;
-    actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+    actor = ((GpActorWork*)gameGetPtrSlot(3))->actor;
 
     switch (work->field_04) {
         case 0:
@@ -1400,7 +1400,7 @@ void func_mist_shooting_gallery_80184A80(Task* arg0)
 {
     GameActor* actor;
 
-    actor                             = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+    actor                             = ((GpActorWork*)gameGetPtrSlot(3))->actor;
     actor->field_97B                  = 0;
     actor->field_983                  = 7;
     ((GpObj*)actor->field_AC)->flags |= 0x2000;

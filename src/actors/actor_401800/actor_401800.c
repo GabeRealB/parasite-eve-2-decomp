@@ -1282,8 +1282,8 @@ void func_actor_401800_80136EAC(Actor401800* arg0)
     }
     Actor401800_ConfigPositionDelta(&Player_Status, arg0->field_2C->coords, &s->delta);
     if (work->field_8 >= 7) {
-        s->playerYaw  = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][0],
-                               ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][2]);
+        s->playerYaw  = ratan2(-((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
+                               ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
         s->yaw        = ratan2(s->delta.vx, s->delta.vz) + 0x800;
         s->yaw        = Actor401800_NormalizeYaw(s->yaw);
         work->field_0 = 0x1A;
@@ -1337,8 +1337,8 @@ void func_actor_401800_80136EAC(Actor401800* arg0)
     }
     if (work->field_BFE == 0) {
         if (++work->field_6 == 5) {
-            s->playerYaw = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][0],
-                                  ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][2]);
+            s->playerYaw = ratan2(-((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
+                                  ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
             Actor401800_ConfigPositionDelta(&Player_Status, arg0->field_2C->coords, &s->delta);
             s->yaw = ratan2(s->delta.vx, s->delta.vz) + 0x800;
             yaw    = Actor401800_NormalizeYaw(s->yaw);
@@ -1567,7 +1567,7 @@ void func_actor_401800_80137DDC(Actor401800* arg0)
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_801381E4);
 
 /// Live-actor body: arms the animation slots and the two `field_8C8` /
-/// `field_A08` nodes, then aims the actor at the `Game_GetPtrSlot(3)` task's
+/// `field_A08` nodes, then aims the actor at the `gameGetPtrSlot(3)` task's
 /// root position — the XZ offset normalized by `VectorNormalSS` and GPF-scaled
 /// by 0x3E8, the heading taken through `ratan2` — sends it as message 0x3E9
 /// and spawns the 0xC/8/0x8F pad-lerp. On work flag bit 0 while `field_89E` is
@@ -1582,7 +1582,7 @@ void func_actor_401800_80138C28(Actor401800* arg0)
     SVECTOR*         pdir;
 
     if (work->field_4 != 0) {
-        player                                   = Game_GetPtrSlot(3);
+        player                                   = gameGetPtrSlot(3);
         work->field_8C8.radius                   = 0x12C;
         work->field_B48.flags                   &= 0x7FFF;
         work->field_A08.flags                   |= 0x4000;
@@ -1630,7 +1630,7 @@ void func_actor_401800_80138C28(Actor401800* arg0)
 }
 
 /// On the live-actor flag, raises the three animation slots, sends the `0x3FF`
-/// animation record and the `0x3F9` object pair to the `Game_GetPtrSlot(3)`
+/// animation record and the `0x3F9` object pair to the `gameGetPtrSlot(3)`
 /// task, then spawns the 5/0xFF/8 pad-lerp. On work flag bit 0, restarts the
 /// actor's model (`field_0 = 0xE`, the 0x8B8 effect record for the second
 /// coordinate) and finally copies the `field_5A` clip id into `field_894` and
@@ -1650,8 +1650,8 @@ void func_actor_401800_80138F5C(Actor401800* arg0)
         work->field_898 = 2;
         msg             = &D_actor_401800_80155A0C;
         msg->field_4    = 2;
-        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)msg, 0);
-        player = Game_GetPtrSlot(3);
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)msg, 0);
+        player = gameGetPtrSlot(3);
         Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 0), 0);
         Gp_SpawnPadLerp(5, 0xFF, 8);
     }
@@ -1674,7 +1674,7 @@ void func_actor_401800_80138F5C(Actor401800* arg0)
 
 /// Per-frame body of the live actor while it walks: on work flag bit 0 it
 /// raises the `0x10`/7/2 render slots, re-sends the `0x3FF` animation record
-/// with clip 3 to the `Game_GetPtrSlot(3)` task and seeds the walk step
+/// with clip 3 to the `gameGetPtrSlot(3)` task and seeds the walk step
 /// `field_C04` to -0x78; otherwise, while the `field_5A` clip is one of
 /// `0x10..0x16`, it advances the actor along its own local Z by `field_C04`
 /// once `func_actor_401800_80133558` says the path is still clear and halves
@@ -1699,15 +1699,15 @@ void func_actor_401800_80139118(Actor401800* arg0)
         func_actor_401800_80133EB8(arg0);
         D_actor_401800_80155A0C.field_4 = 3;
         if (config->hp > 0) {
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&D_actor_401800_80155A0C, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&D_actor_401800_80155A0C, 0);
         }
         work->field_C04        = -0x78;
         work->field_6          = 0;
         work->field_A08.flags |= 0x4000;
         return;
     }
-    if ((Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) && (config->hp > 0) && (work->field_C20 == 1)) {
-        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+    if ((Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) && (config->hp > 0) && (work->field_C20 == 1)) {
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
         work->field_C20 = 0;
     }
     if ((u32)((work->field_5A & 0x3FF) - 0x10) < 7) {
@@ -1732,7 +1732,7 @@ void func_actor_401800_80139118(Actor401800* arg0)
             work->field_0 = 6;
         }
         if ((config->hp > 0) && (work->field_C20 == 1)) {
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
             work->field_C20 = 0;
         }
     }
@@ -2765,8 +2765,8 @@ void func_actor_401800_8013CD98(Actor401800* arg0)
     Actor401800_ConfigPositionDelta(&Player_Status, arg0->field_2C->coords, &s->delta);
     arg0->field_2C->coords->flg = 0;
     func_actor_401800_80133EB8(arg0);
-    s->playerYaw = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][0],
-                          ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][2]);
+    s->playerYaw = ratan2(-((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
+                          ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
     Actor401800_ConfigPositionDelta(&Player_Status, arg0->field_2C->coords, &s->delta);
     s->yaw = ratan2(s->delta.vx, s->delta.vz) + 0x800;
     s->yaw = Actor401800_NormalizeYaw(s->yaw);

@@ -9,7 +9,7 @@
 taskKill = 0x8002CCB8; // absolute:True
 Task_Spawn = 0x8002CFDC; // absolute:True
 Task_Reparent = 0x8002D14C; // absolute:True
-Game_GetPtrSlot = 0x8002D22C; // absolute:True
+gameGetPtrSlot = 0x8002D22C; // absolute:True
 Mem_Set = 0x8002D894; // absolute:True
 memCalloc = 0x8002D978; // absolute:True
 Gfx_MatrixCol2 = 0x8003C768; // absolute:True

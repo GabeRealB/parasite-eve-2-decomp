@@ -28,7 +28,7 @@ void func_dryfield_night_factory_8017FEF4(Task* task)
             goto advance;
         case 1:
             if (GameFlag_GetNibble(0x4A) < 2) {
-                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F3, 0, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F3, 0, 0);
             }
             task->state++;
             /* fallthrough */
@@ -45,7 +45,7 @@ void func_dryfield_night_factory_8017FEF4(Task* task)
             }
             Gp_MsgPlayerWeapon(1);
             Gp_MsgAllyWeapon(1);
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F3, 1, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F3, 1, 0);
             taskKill(task);
             break;
     }

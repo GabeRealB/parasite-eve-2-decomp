@@ -64,8 +64,8 @@ void func_acropolis_observatory_8017D9A8(Task* task)
                 taskKill(task);
                 break;
             }
-            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
-            ((AobStreamWork*)task->work)->target = Game_GetPtrSlot(3);
+            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
+            ((AobStreamWork*)task->work)->target = gameGetPtrSlot(3);
             ((AobStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             weaponId                             = Player_Status.weapon;
             rec.field_0                          = (Mc_SaveData.field_22 == 1) ? weaponId + 1 : weaponId + 0x22;
@@ -130,7 +130,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
             break;
 
         case 4:
-            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA5, 0, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
             func_800E9BDC(2, 0x9FF);
             Gp_StateF0.field_4            = 0;
             gGameSession->padScriptFlags &= 0x7F;
@@ -173,8 +173,8 @@ void func_acropolis_observatory_8017DD3C(Task* task)
                 taskKill(task);
                 break;
             }
-            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
-            ((AobStreamWork*)task->work)->target = Game_GetPtrSlot(3);
+            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
+            ((AobStreamWork*)task->work)->target = gameGetPtrSlot(3);
             ((AobStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             weaponId                             = Player_Status.weapon;
             rec.field_0                          = (Mc_SaveData.field_22 == 1) ? weaponId + 1 : weaponId + 0x22;
@@ -239,7 +239,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
             break;
 
         case 4:
-            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA5, 0, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
             func_800E9BDC(2, 0x9FF);
             Gp_StateF0.field_4            = 0;
             gGameSession->padScriptFlags &= 0x7F;

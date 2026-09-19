@@ -812,7 +812,7 @@ void func_actor_206100_8014CB68(Task* task)
         msg.rot.vx           = 0;
         msg.rot.vy           = 0x200;
         msg.rot.vz           = 0;
-        Gp_DispatchMsg((Task*)Game_GetPtrSlot(3), 0x3E9, (s32)&msg, 0);
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&msg, 0);
         work2                         = (Actor206100Work*)task->work;
         work2->field_51A              = 0x10;
         work2->field_510              = 3;
@@ -869,7 +869,7 @@ void func_actor_206100_8014CD08(Task* task)
         msg.rot.vx = 0;
         msg.rot.vy = 0xA00;
         msg.rot.vz = 0;
-        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E9, (s32)&msg, 0);
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&msg, 0);
         work2            = (Actor206100Work*)task->work;
         work2->field_51A = 0x10;
         work2->field_510 = 1;

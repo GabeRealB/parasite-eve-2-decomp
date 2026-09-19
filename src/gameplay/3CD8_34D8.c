@@ -50,7 +50,7 @@ void Gp_RunCapCmd(s32 arg0, s16 arg1)
                 Gp_StartCapSlot(arg0, arg1, GameFlag_GetNibble(flagId));
                 return;
             case 3:
-                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F0, arg0, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F0, arg0, 0);
                 return;
             case 4:
                 i   = 0;

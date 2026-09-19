@@ -547,7 +547,7 @@ void func_actor_800200_80163F5C(GpActorWork* arg0)
     s32            angle;
 
     coord  = arg0->extra->coords;
-    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    target = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     actor  = arg0->actor;
     dist   = func_actor_800200_801660E8(coord, &actor->field_910->contact, NULL);
     if (dist != 0 && dist < 0x301) {
@@ -639,7 +639,7 @@ void func_actor_800200_80164180(GpActorWork* arg0)
 
     actor             = arg0->actor;
     d4                = actor->field_910;
-    target            = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    target            = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     head              = *(u8**)0x1F8003FC;
     tmp               = head - 0x10;
     *(u8**)0x1F8003FC = tmp;
@@ -718,7 +718,7 @@ void func_actor_800200_8016436C(GpActorWork* arg0)
 
     actor             = arg0->actor;
     d4                = actor->field_910;
-    target            = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    target            = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     head              = *(u8**)0x1F8003FC;
     tmp               = head - 0x10;
     *(u8**)0x1F8003FC = tmp;
@@ -1485,7 +1485,7 @@ void func_actor_800200_80165D44(GpActorWork* arg0)
     GsCOORDINATE2* target;
 
     coord  = arg0->extra->coords;
-    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    target = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     actor  = arg0->actor;
     switch (actor->field_95E) {
         case 1:

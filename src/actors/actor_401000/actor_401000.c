@@ -741,7 +741,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8
 /// chase scratch off `G_SCRATCH_HEAD` and, on the live-actor flag, key the
 /// two animation nodes, the frame counter and the `field_C06` clip phase.
 /// Once `field_8` has counted 7 frames the arm aims at the player - the yaw
-/// toward `Game_GetPtrSlot(3)` goes in `pad_8`, the wrapped yaw toward
+/// toward `gameGetPtrSlot(3)` goes in `pad_8`, the wrapped yaw toward
 /// `Player_Status.coordMtx` in `pad_A` - and the root is turned by the facing
 /// yaw plus a +-0x60 clamp of the turn's 1000 bias. The forward draw
 /// `field_C04` is the doubled frame parameter (halved while `field_89A` is
@@ -795,8 +795,8 @@ void func_actor_401000_801365C8(Actor401000* arg0)
     }
     Actor401000_ConfigPositionDelta(&Player_Status, arg0->field_2C->coords, &chase->delta);
     if (work->field_8 >= 7) {
-        chase->pad_8  = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][0],
-                               ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][2]);
+        chase->pad_8  = ratan2(-((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
+                               ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
         chase->pad_A  = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
         chase->pad_A  = Actor401000_NormalizeYaw(chase->pad_A);
         work->field_0 = 0x1A;
@@ -850,8 +850,8 @@ void func_actor_401000_801365C8(Actor401000* arg0)
     }
     if (work->field_C06 == 0) {
         if (++work->field_6 == 5) {
-            chase->pad_8 = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][0],
-                                  ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][2]);
+            chase->pad_8 = ratan2(-((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
+                                  ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
             Actor401000_ConfigPositionDelta(&Player_Status, arg0->field_2C->coords, &chase->delta);
             chase->pad_A = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
             chase->pad_A = Actor401000_NormalizeYaw(chase->pad_A);
@@ -1111,7 +1111,7 @@ void func_actor_401000_801380B8(Actor401000* arg0)
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
-        player                                   = Game_GetPtrSlot(3);
+        player                                   = gameGetPtrSlot(3);
         work->field_8D0.radius                   = 0x1AE;
         work->field_B50.flags                   &= 0x7FFF;
         work->field_A10.flags                   |= 0x4000;
@@ -1174,8 +1174,8 @@ void func_actor_401000_801383F0(Actor401000* arg0)
         work->field_898 = 2;
         msg             = &D_actor_401000_80154F1C;
         msg->field_4    = 2;
-        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)msg, 0);
-        player = Game_GetPtrSlot(3);
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)msg, 0);
+        player = gameGetPtrSlot(3);
         Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 0), 0);
         Gp_SpawnPadLerp(5, 0xFF, 8);
     }
@@ -1215,15 +1215,15 @@ void func_actor_401000_801385B0(Actor401000* arg0)
         msg          = &D_actor_401000_80154F1C;
         msg->field_4 = 3;
         if (cfg->hp > 0) {
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)msg, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)msg, 0);
         }
         work->field_C0C        = -0x78;
         work->field_6          = 0;
         work->field_A10.flags |= 0x4000;
         return;
     }
-    if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0 && cfg->hp > 0 && work->field_C28 == 1) {
-        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0 && cfg->hp > 0 && work->field_C28 == 1) {
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
         work->field_C28 = 0;
     }
     if ((u32)((work->field_5A & 0x3FF) - 0x10) < 7U) {
@@ -1248,7 +1248,7 @@ void func_actor_401000_801385B0(Actor401000* arg0)
             work->field_0 = 6;
         }
         if (cfg->hp > 0 && work->field_C28 == 1) {
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
             work->field_C28 = 0;
         }
     }
@@ -2319,8 +2319,8 @@ void func_actor_401000_8013C46C(Actor401000* arg0)
     Actor401000_ConfigPositionDelta(&Player_Status, arg0->field_2C->coords, &s->delta);
     arg0->field_2C->coords->flg = 0;
     func_actor_401000_80132EF0(arg0);
-    s->pad_8 = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][0],
-                      ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][2]);
+    s->pad_8 = ratan2(-((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
+                      ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
     Actor401000_ConfigPositionDelta(&Player_Status, arg0->field_2C->coords, &s->delta);
     yaw             = ratan2(s->delta.vx, s->delta.vz) + 0x800;
     s->pad_A        = yaw;

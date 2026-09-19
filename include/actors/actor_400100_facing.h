@@ -90,7 +90,7 @@ typedef struct {
 
 static __inline__ s32 Actor00100_PlayerContactMessage(Actor00100Ctx* ctx, s32 mode)
 {
-    Task* player = Game_GetPtrSlot(3);
+    Task* player = gameGetPtrSlot(3);
     return Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair((GpObj50*)ctx, mode), 0);
 }
 

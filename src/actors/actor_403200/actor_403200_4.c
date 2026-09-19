@@ -1105,13 +1105,13 @@ void func_actor_403200_8013C84C(Task* arg0)
 
     work  = (Actor403200Work*)arg0->work;
     enemy = arg0->spawnArg2;
-    task  = Game_GetPtrSlot(3);
+    task  = gameGetPtrSlot(3);
     cfg   = &Player_Status;
     if (work->field_4 != 0) {
         D_actor_403200_8015F8F4.field_0 = 0;
         D_actor_403200_8015F8F4.field_1 = 0x2C;
         D_actor_403200_8015F8F4.field_2 = 3;
-        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
+        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
         D_actor_403200_80141C5A = 0;
         SndEvt_EnqueueType7((((u16)enemy->placeKey >> 12) << 8) | 0x4020000A, 1);
         work->field_7B3                  = 0xF;
@@ -1166,7 +1166,7 @@ void func_actor_403200_8013C84C(Task* arg0)
         D_actor_403200_8015F8F4.field_0 = 0;
         D_actor_403200_8015F8F4.field_1 = 0x2C;
         D_actor_403200_8015F8F4.field_2 = 3;
-        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
+        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
         work->field_E96         = 0x9C4;
         D_actor_403200_80141C5A = 0;
         Gp_StateC08.field_6    |= 1;
@@ -1186,7 +1186,7 @@ void func_actor_403200_8013C84C(Task* arg0)
     }
     if (work->field_7B3 == 0xF) {
         if (cfg->hp > 0) {
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 3), 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 3), 0);
             if (cfg->hp <= 0) {
                 ((GameActor*)task->work)->field_956 = 0xA;
                 gGameSession->areaBgmCountdown      = 0x1E;
@@ -1232,7 +1232,7 @@ void func_actor_403200_8013C84C(Task* arg0)
         }
         work->field_7A8 = work->field_9A & 0x3FF;
     }
-    if ((Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) && (cfg->hp > 0)) {
+    if ((Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) && (cfg->hp > 0)) {
         D_actor_403200_8015F9C0.vx = ((TmdObject*)arg0->extra)->coords[0].coord.t[0];
         D_actor_403200_8015F9C0.vy = ((TmdObject*)arg0->extra)->coords[0].coord.t[1];
         D_actor_403200_8015F9C0.vz = ((TmdObject*)arg0->extra)->coords[0].coord.t[2];
@@ -1309,7 +1309,7 @@ void func_actor_403200_8013D028(Task* arg0)
 
     work        = (Actor403200Work*)arg0->work;
     enemy       = arg0->spawnArg2;
-    task        = Game_GetPtrSlot(3);
+    task        = gameGetPtrSlot(3);
     SCRATCH_SP -= 0x30;
 
     if (work->field_4 != 0) {
@@ -1448,8 +1448,8 @@ missed:
     found = 0;
 scanned:
     if (found != 0 && enemy->hp > 0 &&
-        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&D_actor_403200_8015FA00, 0) == 0) {
-        target          = Game_GetPtrSlot(3);
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_403200_8015FA00, 0) == 0) {
+        target          = gameGetPtrSlot(3);
         reply           = Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 4), 0);
         work->field_ECA = reply;
         if (reply == 1) {
@@ -1995,7 +1995,7 @@ void func_actor_403200_8013EB64(Task* arg0)
 
     work   = (Actor403200Work*)arg0->work;
     enemy  = arg0->spawnArg2;
-    player = Game_GetPtrSlot(3);
+    player = gameGetPtrSlot(3);
 
     if (work->field_4 != 0) {
         work->field_EF6 = 1;
@@ -2140,7 +2140,7 @@ void func_actor_403200_80140E6C(Task* arg0)
     GsCOORDINATE2*        selfCoord;
 
     sp     = D_actor_403200_801321B8;
-    player = Game_GetPtrSlot(3);
+    player = gameGetPtrSlot(3);
     work   = (Actor403200Work*)arg0->work;
     enemy  = arg0->spawnArg2;
     if (work != NULL) {

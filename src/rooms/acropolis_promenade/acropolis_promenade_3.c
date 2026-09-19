@@ -77,8 +77,8 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                 taskKill(task);
                 break;
             }
-            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
-            ((ApmStreamWork*)task->work)->target = Game_GetPtrSlot(3);
+            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
+            ((ApmStreamWork*)task->work)->target = gameGetPtrSlot(3);
             ((ApmStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             weaponId                             = Player_Status.weapon;
             rec.field_0                          = (Mc_SaveData.field_22 == 1) ? weaponId + 1 : weaponId + 0x22;
@@ -137,7 +137,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
         case 3:
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
                 Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
-                Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA5, 0, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
                 Mc_SaveData.at4.loc.view = 2;
                 func_800E9BDC(2, 0x9FF);
                 Gp_StateF0.field_4            = 0;

@@ -92,7 +92,7 @@ s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
     switch (msg->field_2) {
         case 1:
             if (GameFlag_GetNibble(0x71) == 0) {
-                if (Game_GetPtrSlot(0xA) != NULL) {
+                if (gameGetPtrSlot(0xA) != NULL) {
                     func_800E8614((s32)&D_mine_mesa_801850E4, 0);
                 }
                 func_800E3FAC(0xA2, 0x1C);
@@ -103,11 +103,11 @@ s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
         case 2:
             if (GameFlag_GetNibble(0x71) <= 0) {
                 if (GameFlag_GetNibble(0x91) == 0) {
-                    if (Game_GetPtrSlot(0xA) != NULL) {
+                    if (gameGetPtrSlot(0xA) != NULL) {
                         func_800E8634((s32)&D_mine_mesa_80184D9C, 1, (s32)&D_mine_mesa_80184FF4);
                     }
                     GameFlag_SetNibble(0x91, 1);
-                } else if (Game_GetPtrSlot(0xA) != NULL) {
+                } else if (gameGetPtrSlot(0xA) != NULL) {
                     func_800E8634((s32)&D_mine_mesa_801854BC, 1, (s32)&D_mine_mesa_801856B4);
                 }
             }
@@ -123,7 +123,7 @@ s32 func_mine_mesa_8017DBC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
     field9 = gGameSession->at4.loc.place;
     if (field9 == 1) {
         if (GameFlag_GetNibble(0xCD) == 0) {
-            if (Game_GetPtrSlot(0xA) != NULL) {
+            if (gameGetPtrSlot(0xA) != NULL) {
                 Gp_StateC08.field_6 |= 1;
                 Gp_PulseState1C();
                 D_mine_mesa_80189B50 = field9;
@@ -141,7 +141,7 @@ void func_mine_mesa_8017DC80(Task* arg0)
     arg0->msgTable = D_mine_mesa_80181904;
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0x90) == 0) {
-        if (Game_GetPtrSlot(0xA) != NULL) {
+        if (gameGetPtrSlot(0xA) != NULL) {
             D_80072830 = 5;
             Task_SpawnFromTable(&D_mine_mesa_80181990, 0, 0, 0);
         }

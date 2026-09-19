@@ -75,7 +75,7 @@ void func_actor_341300_80161E84(void)
     }
 }
 
-/// Per-frame task that turns the player (`Game_GetPtrSlot(3)`, whose
+/// Per-frame task that turns the player (`gameGetPtrSlot(3)`, whose
 /// `Task::work` is the `GameActor` block) to face the object the area work
 /// id resolves to, then kills itself once it is close enough.
 ///
@@ -101,7 +101,7 @@ void func_actor_341300_80162278(Task* task)
     s32            step;
     s32            wrapped;
 
-    player = Game_GetPtrSlot(3);
+    player = gameGetPtrSlot(3);
     actor  = (GameActor*)player->work;
     work   = Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8));
     if ((work != NULL) && (gGameSession->eventState != 0)) {

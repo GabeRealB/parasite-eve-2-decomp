@@ -1027,7 +1027,7 @@ s32  Gp_SpawnWeaponEff(void);
 s32  Gp_SetupAllyWeapon(void);
 void func_80106350(GpActorWork* arg0, s32 arg1, s32 arg2);
 void func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2);
-/// Overlay import. `func_801088D4` calls it with `Game_GetPtrSlot(0xA)` when
+/// Overlay import. `func_801088D4` calls it with `gameGetPtrSlot(0xA)` when
 /// `Mc_SaveData.field_13 == 1`.
 void  func_80166E94(void* arg0, s32 arg1);
 void  Gp_PlayerMode1State0(GpActorWork* arg0);

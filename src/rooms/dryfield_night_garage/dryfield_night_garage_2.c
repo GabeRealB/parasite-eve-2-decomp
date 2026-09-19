@@ -68,7 +68,7 @@ void func_dryfield_night_garage_8017FF2C(Task* task)
     task->msgTable = D_dryfield_night_garage_80181C38;
     Game_SetPtrSlot(task, 7);
     D_dryfield_night_garage_80186E60->field_4A &= 0xBF;
-    player                                      = Game_GetPtrSlot(0xA);
+    player                                      = gameGetPtrSlot(0xA);
     if (gGameSession->at4.loc.place == 3 && player != NULL) {
         Gp_DispatchMsg(player, 0x3E9, (s32)&D_8013B570, 0);
         Gp_AllyAnimId(&D_dryfield_night_garage_80181C68);
@@ -141,7 +141,7 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, GpMsg13EF* msg, s
             Gp_SpawnIfCapIdle(0x36, 0);
         }
     }
-    if (msg->field_2 == 2 && gGameSession->at4.loc.place == 3 && Game_GetPtrSlot(0xA) != NULL) {
+    if (msg->field_2 == 2 && gGameSession->at4.loc.place == 3 && gameGetPtrSlot(0xA) != NULL) {
         Task_SpawnFromTable(D_8013B11C, 1, 0, 0);
     }
     return 0;

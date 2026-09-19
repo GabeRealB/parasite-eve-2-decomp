@@ -41,7 +41,7 @@ void func_actor_450200_80131E24(Task* task)
     GsCOORDINATE2* coord;
     s16            countdown;
 
-    slot  = Game_GetPtrSlot(0xA);
+    slot  = gameGetPtrSlot(0xA);
     coord = &((TmdObject*)slot->extra)->coords[D_actor_450200_8013885C[(rand() * 11) >> 15]];
     switch (task->state) {
         case 0:
@@ -98,7 +98,7 @@ STATIC_ASSERT_SIZEOF(Actor450200HeadAim, 0xC);
 /// 0x100, state 1 ramps its `rate` up toward 0x1000 while `Task::spawnArg1` is
 /// set and back down toward 0 while it is not, then hands the record to
 /// `func_800B17D4` between the slot-3 task whose head turns and the
-/// `Game_GetPtrSlot(0xA)` task it turns toward. A failed allocation, and every
+/// `gameGetPtrSlot(0xA)` task it turns toward. A failed allocation, and every
 /// state past 1, kill the task; only the latter clears
 /// `D_actor_450200_801401E0`, which is why the two `taskKill` calls are
 /// distinct.
@@ -108,7 +108,7 @@ void func_actor_450200_80131FA8(Task* arg0)
     Actor450200HeadAim* aim;
     u16                 rate;
 
-    looker = Game_GetPtrSlot(3);
+    looker = gameGetPtrSlot(3);
     switch (arg0->state) {
         case 0:
             aim = memCalloc(sizeof(Actor450200HeadAim), false);
@@ -136,7 +136,7 @@ void func_actor_450200_80131FA8(Task* arg0)
                     aim->rate = 0;
                 }
             }
-            func_800B17D4(looker, Game_GetPtrSlot(0xA), (GpHeadAim*)aim);
+            func_800B17D4(looker, gameGetPtrSlot(0xA), (GpHeadAim*)aim);
             return;
         default:
             taskKill(arg0);

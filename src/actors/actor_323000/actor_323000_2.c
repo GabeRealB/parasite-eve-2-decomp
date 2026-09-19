@@ -628,7 +628,7 @@ void func_actor_323000_801645A4(GpEnemy* enemy, Task* task)
     SVECTOR*                pos;
 
     work = (Actor323000Work*)task->work;
-    Game_GetPtrSlot(3);
+    gameGetPtrSlot(3);
     sp                                     = D_actor_323000_80161E24;
     ((TmdObject*)task->extra)->coords->flg = 0;
     head                                   = *(u8**)G_SCRATCH_HEAD;

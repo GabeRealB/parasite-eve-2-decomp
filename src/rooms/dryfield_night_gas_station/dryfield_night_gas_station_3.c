@@ -66,7 +66,7 @@ void func_dryfield_night_gas_station_801802EC(void)
     *(s32*)&m->m[1][1] = one;
     *(s32*)&m->m[2][0] = 0;
     m->m[2][2]         = one;
-    coord              = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->coords;
+    coord              = ((TmdObject*)(gameGetPtrSlot(0xA))->extra)->coords;
     Gp_ComposeParentWorld((GsCOORDINATE2*)((u8*)coord + 0x280), m, &pos);
     ApplyMatrixSV(&mtx, &off, &p0);
     p0.vx  += pos.vx;

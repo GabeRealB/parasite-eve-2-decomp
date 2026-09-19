@@ -683,7 +683,7 @@ void Actor00300_Fn00E54(Actor100300* arg0)
     }
     work->field_6A2 = 0;
     if ((work->rec4A0[1].key & 0xFFFF0000) == 0x10000) {
-        srcCoord                        = ((Actor100300*)Game_GetPtrSlot(3))->field_2C->field_8 + 3;
+        srcCoord                        = ((Actor100300*)gameGetPtrSlot(3))->field_2C->field_8 + 3;
         ((SVECTOR*)(scratch + 2))[0].vx = (u16)srcCoord->workm.t[0];
         ((SVECTOR*)(scratch + 2))[0].vy = (u16)srcCoord->workm.t[1];
         ((SVECTOR*)(scratch + 2))[0].vz = (u16)srcCoord->workm.t[2];

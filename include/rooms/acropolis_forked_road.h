@@ -14,7 +14,7 @@
 /// `mtx` is `D_80073B8C`, the camera-target matrix the scene walks along
 /// `D_acropolis_forked_road_80180F80` once per streamed frame. `target` is the
 /// slot-3 task every placement message is addressed to, captured once from
-/// `Game_GetPtrSlot(3)`. `script` is the scene's script task, which the room
+/// `gameGetPtrSlot(3)`. `script` is the scene's script task, which the room
 /// task reparents itself under. The return ride
 /// (`func_acropolis_forked_road_8017DD60`) also uses `skipper`, the task it
 /// spawns when the pad asks to skip the scene, and `skipping`, the flag that

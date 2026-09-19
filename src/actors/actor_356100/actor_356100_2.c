@@ -169,8 +169,8 @@ void func_actor_356100_8016A468(Actor356100* arg0)
         work->field_978 = 2;
         msg             = &D_actor_356100_80173244;
         msg->field_4    = 2;
-        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)msg, 0);
-        player = Game_GetPtrSlot(3);
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)msg, 0);
+        player = gameGetPtrSlot(3);
         Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 0), 0);
     }
     if (work->field_68 & 2) {

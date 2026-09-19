@@ -145,7 +145,7 @@ extern void func_8018507C(void);
 /// Warps the slot-3 task to the overlay's fixed placement (0x3E9), installs
 /// the animation set the current weapon selects (`D_80073BA9 + 1` for the
 /// alternate block, `+ 0x22` for the base one, sent as 0x3E8 to the slot
-/// `Game_GetPtrSlot(3)` returns), raises 0x3F3, kills the child in
+/// `gameGetPtrSlot(3)` returns), raises 0x3F3, kills the child in
 /// `field_64`, and cancels any pending CD command replacement.
 void func_actor_342000_8016439C(void)
 {
@@ -164,7 +164,7 @@ void func_actor_342000_8016439C(void)
     msg.field_8  = 0;
     msg.field_C  = 0;
     msg.field_10 = 0;
-    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
     Gp_DispatchMsg(((Actor342000EventWork*)D_actor_342000_80165070->work)->field_48, 0x3F3, 1, 0);
     if (work->field_64 != NULL) {
         taskKill(work->field_64);

@@ -11,7 +11,7 @@
 /// (`memCalloc(8, 0)` in state 0 of `func_acropolis_observatory_8017E19C`).
 ///
 /// `target` is the slot-3 task every message the scene sends is addressed to,
-/// captured once from `Game_GetPtrSlot(3)`. `step` selects the follow-up
+/// captured once from `gameGetPtrSlot(3)`. `step` selects the follow-up
 /// record in `D_acropolis_observatory_8017FE68`: the calloc leaves it at 0,
 /// which is the `-1` entry that means "nothing to send".
 typedef struct AobSceneWork {
@@ -28,7 +28,7 @@ STATIC_ASSERT_SIZEOF(AobSceneWork, 8);
 /// `mtx` is `Player_Status.coordMtx`, the player actor's coordinate matrix; the
 /// task walks its translation along `D_acropolis_observatory_8017F16C` once per
 /// frame while the stream runs. `target` is the slot-3 task every message the
-/// scene sends is addressed to, captured once from `Game_GetPtrSlot(3)`.
+/// scene sends is addressed to, captured once from `gameGetPtrSlot(3)`.
 /// `child` is the prompt task spawned from `D_acropolis_observatory_8017E7DC`
 /// entry 2 and polled with `Task_PollKill`; `spawned` records that it exists,
 /// since the calloc leaves it at 0. `script` is the scene's script task, which

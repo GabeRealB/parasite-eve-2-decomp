@@ -123,7 +123,7 @@ STATIC_ASSERT_SIZEOF(Actor342000Work, 0x2AC);
 /// `D_actor_342000_80165070`, which is how the leaf helpers below reach it:
 /// `(Actor342000EventWork*)D_actor_342000_80165070->work`.
 ///
-/// `field_48` is the `Game_GetPtrSlot(3)` task every `Gp_DispatchMsg` in the
+/// `field_48` is the `gameGetPtrSlot(3)` task every `Gp_DispatchMsg` in the
 /// overlay is aimed at; `field_50` / `field_5C` / `field_60` / `field_64` are
 /// spawned child tasks the teardown helpers kill. `field_7A` and `field_7C`
 /// are once-only latches guarding a sound cue and the fade-out setup.
@@ -152,7 +152,7 @@ typedef struct Actor342000EventWork {
 } Actor342000EventWork;
 STATIC_ASSERT_SIZEOF(Actor342000EventWork, 0x80);
 
-/// Session id payload of message 0x7DA, sent to the `Game_GetPtrSlot(4)` task
+/// Session id payload of message 0x7DA, sent to the `gameGetPtrSlot(4)` task
 /// by `func_actor_342000_8016382C`: `GameSession::at4.loc.stage`, then `at4.loc.area`.
 typedef struct Actor342000Msg7DA {
     /* 0x0 */ u8  field_0;

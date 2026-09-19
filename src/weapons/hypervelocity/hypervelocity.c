@@ -223,7 +223,7 @@ void func_hypervelocity_8011D1E8(Task* task)
                 work->field_24 = (u16)work->field_24 - 0x20;
                 work->field_26 = (u16)work->field_26 - 0x20;
             }
-            player      = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+            player      = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gp_SpawnEff(0x60054, &player[((((u32)Gp_LcgState >> 16) & 1) * 3) + 15], 0x2300, NULL);
             if (work->field_22 >= 0x6F || task->spawnArg1 < 0) {
@@ -299,7 +299,7 @@ void func_hypervelocity_8011D830(Task* task)
                 return;
             }
             task->exitCallback = WeaponsShared8011e4ac;
-            player             = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+            player             = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
             dstm               = (GpMtxWords*)&coord->coord;
             srcm               = (GpMtxWords*)&player->coord;
             dstm->w0           = srcm->w0;

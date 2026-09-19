@@ -49,7 +49,7 @@ void func_actor_800100_80163D54(GpActorWork* arg0)
 
     actor  = arg0->actor;
     coord  = arg0->extra->coords;
-    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    target = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     flag   = (*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x042A0000;
     if (arg0->actor->field_910->decisionTimer <= 0) {
         func_8010BF7C(arg0, 0xA, 0x1F);
@@ -191,7 +191,7 @@ void func_actor_800100_80164184(GpActorWork* arg0)
     u16            timer;
 
     coord  = arg0->extra->coords;
-    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    target = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     actor  = arg0->actor;
     flag   = (*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x042A0000;
     dist   = func_actor_800100_8016709C(coord, &actor->field_910->contact, NULL);
@@ -281,7 +281,7 @@ void func_actor_800100_801643F4(GpActorWork* arg0)
     s32            flag;
 
     actor    = arg0->actor;
-    extra    = (TmdObject*)((Task*)Game_GetPtrSlot(3))->extra;
+    extra    = (TmdObject*)(gameGetPtrSlot(3))->extra;
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
     *scratch = (u8*)head - 0x10;
@@ -608,7 +608,7 @@ void func_actor_800100_80164B9C(GpActorWork* arg0)
     s32                     val;
 
     coord  = arg0->extra->coords;
-    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+    target = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     actor  = arg0->actor;
     angle  = func_actor_800100_8016709C(coord, &actor->field_910->contact, NULL);
     if (angle != 0 && angle < 0x301) {

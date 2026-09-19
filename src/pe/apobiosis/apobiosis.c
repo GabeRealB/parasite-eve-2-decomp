@@ -108,7 +108,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 coord->workm.t[1] -= 0x400;
                 mem->field_24      = (u16)mem->field_24 + D_apobiosis_80130B5C[mem->field_20].field_4;
                 func_apobiosis_8013017C(
-                    &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[1], mem->field_22,
+                    &((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[1], mem->field_22,
                     D_apobiosis_80130B5C[mem->field_20].field_2, 0);
                 func_apobiosis_8012F9D0(coord, mem->field_24, 0x80, rgb);
                 if (mem->field_22 & 1) {

@@ -105,7 +105,7 @@ void func_hypervelocity_8011F374(Task* arg0)
     s16          count;
 
     parent      = arg0->parent;
-    work        = (GpActorWork*)Game_GetPtrSlot(3);
+    work        = (GpActorWork*)gameGetPtrSlot(3);
     extra       = (TmdObject*)arg0->extra;
     playerExtra = work->extra;
     coord       = (HyperCoord*)extra->coords;

@@ -528,8 +528,8 @@ void func_actor_356100_80164158(Actor356100* arg0)
     Actor356100_ConfigPositionDelta(&Player_Status, arg0->field_2C->coords, &aim->delta);
     arg0->field_2C->coords->flg = 0;
     func_actor_356100_80163508(arg0);
-    aim->target = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][0],
-                         ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][2]);
+    aim->target = ratan2(-((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
+                         ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
     Actor356100_ConfigPositionDelta(&Player_Status, arg0->field_2C->coords, &aim->delta);
     yaw             = ratan2(aim->delta.vx, aim->delta.vz) + 0x800;
     aim->current    = yaw;
@@ -794,7 +794,7 @@ void func_actor_356100_80166018(Actor356100* arg0)
 
     enemy  = arg0->field_20;
     work   = arg0->field_1C;
-    player = (GameActor*)((Task*)Game_GetPtrSlot(3))->work;
+    player = (GameActor*)(gameGetPtrSlot(3))->work;
     config = &Player_Status;
     if (work->field_4 != 0) {
         work->field_9BC   = 0x180;
@@ -824,11 +824,11 @@ void func_actor_356100_80166018(Actor356100* arg0)
                 D_actor_356100_80173244.field_0 = &D_actor_356100_80173228;
             }
             D_actor_356100_801732D0.field_14 = 8;
-            if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&D_actor_356100_801732D0, 0) == 0) {
+            if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_356100_801732D0, 0) == 0) {
                 work->field_0                   = 0xC;
                 work->field_B68                 = 1;
                 D_actor_356100_80173244.field_4 = 1;
-                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&D_actor_356100_80173244, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&D_actor_356100_80173244, 0);
             }
         }
     }
@@ -866,7 +866,7 @@ void func_actor_356100_801666B4(Actor356100* arg0)
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
-        player                                   = Game_GetPtrSlot(3);
+        player                                   = gameGetPtrSlot(3);
         work->field_9BC                          = 0x180;
         enemy->node.flags                        = 0;
         work->field_978                          = 1;

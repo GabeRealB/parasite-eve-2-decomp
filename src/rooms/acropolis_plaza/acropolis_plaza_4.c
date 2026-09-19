@@ -109,7 +109,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
                 return;
             }
             Mem_Set(newWork, 0, 8);
-            ((AcropolisPlazaWarpWork*)task->work)->slot3 = Game_GetPtrSlot(3);
+            ((AcropolisPlazaWarpWork*)task->work)->slot3 = gameGetPtrSlot(3);
             place.field_0                                = 0x3804;
             place.field_4                                = 0;
             place.field_8                                = 0xFC8;
@@ -184,7 +184,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
                 return;
             }
             Mem_Set(newWork, 0, 8);
-            ((AcropolisPlazaWarpWork*)task->work)->slot3 = Game_GetPtrSlot(3);
+            ((AcropolisPlazaWarpWork*)task->work)->slot3 = gameGetPtrSlot(3);
             place.field_0                                = 0xF6E;
             place.field_4                                = 0;
             place.field_8                                = 0x2328;
@@ -244,7 +244,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
                 buf.weapon.rec.field_8  = 0;
                 rec->field_C            = 0xA;
                 buf.weapon.rec.field_10 = 0;
-                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&buf.weapon.rec, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf.weapon.rec, 0);
 
                 coord            = ((TmdObject*)((AcropolisPlazaWarpWork*)task->work)->slot3->extra)->coords;
                 buf.place.pos.vx = coord->coord.t[0];
@@ -320,7 +320,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 return;
             }
             Mem_Set(newWork, 0, 8);
-            ((AcropolisPlazaOpeningWork*)task->work)->slot3 = Game_GetPtrSlot(3);
+            ((AcropolisPlazaOpeningWork*)task->work)->slot3 = gameGetPtrSlot(3);
             place.field_0                                   = 0x3DE;
             place.field_4                                   = 0;
             place.field_8                                   = 0x33FE;
@@ -577,7 +577,7 @@ void func_acropolis_plaza_8017F48C(Task* task)
             rec.field_8  = 0;
             rec.field_C  = 0xA;
             rec.field_10 = 0;
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&rec, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
             task->state = task->state + 1;
             break;
         case 1:
@@ -627,7 +627,7 @@ void func_acropolis_plaza_8017F620(Task* task)
             rec.field_8  = 0;
             rec.field_C  = 0xA;
             rec.field_10 = 0;
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&rec, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
             task->state = task->state + 1;
             break;
         case 1:
@@ -639,7 +639,7 @@ void func_acropolis_plaza_8017F620(Task* task)
             }
             break;
         case 2:
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 1, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 1, 0);
             Task_RequestKill(task, 0);
             break;
     }
@@ -932,7 +932,7 @@ void func_acropolis_plaza_80180054(Task* task)
                 return;
             }
             Mem_Set(newWork, 0, 0x28);
-            ((AcropolisPlazaWork*)task->work)->slot3 = Game_GetPtrSlot(3);
+            ((AcropolisPlazaWork*)task->work)->slot3 = gameGetPtrSlot(3);
             ((AcropolisPlazaWork*)task->work)->field_C =
                 Task_SpawnFromTable(&D_acropolis_plaza_80183824, 5, 0, 0);
             Gp_KillPlayerEffs();
@@ -948,7 +948,7 @@ void func_acropolis_plaza_80180054(Task* task)
             vec.vy = 0x370;
             vec.vz = 0x370;
             Gp_SetOverrideVec(&vec);
-            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
             work->field_12 = 0;
             work->field_10 = 0;
             work->field_8  = Task_SpawnFromTable(&D_acropolis_plaza_80183824, 1, 0, (s32)&work->field_10);

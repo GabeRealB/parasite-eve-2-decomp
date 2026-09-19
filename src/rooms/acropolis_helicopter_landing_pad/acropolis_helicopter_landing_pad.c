@@ -265,7 +265,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             break;
         case 2:
             if (Mc_SaveData.at4.loc.place < 2) {
-                Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7D9, 0, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(4), 0x7D9, 0, 0);
             }
             task->state += 1;
             break;
@@ -277,16 +277,16 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             task->state += 1;
             break;
         case 5:
-            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7D8, 0x28, (s32)&spawned);
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7D8, 0x28, (s32)&spawned);
             Gp_DispatchMsg(spawned, 0x7D3, (s32)&D_acropolis_helicopter_landing_pad_80184E28, 0);
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E9, (s32)&D_acropolis_helicopter_landing_pad_801837B0, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&D_acropolis_helicopter_landing_pad_801837B0, 0);
             D_acropolis_helicopter_landing_pad_80184E3C.field_4 = 9;
             D_acropolis_helicopter_landing_pad_80184E3C.field_0 = D_80073BA9 + 1;
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&D_acropolis_helicopter_landing_pad_80184E3C, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&D_acropolis_helicopter_landing_pad_80184E3C, 0);
             coord = ((TmdObject*)spawned->extra)->coords;
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F5, (s32)coord, 0);
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E9, (s32)&D_acropolis_helicopter_landing_pad_801837B0, 0);
-            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F5, (s32)coord, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&D_acropolis_helicopter_landing_pad_801837B0, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
             task->state += 1;
             break;
         case 6:
@@ -415,7 +415,7 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
 /// the same registers as the original.
 void func_acropolis_helicopter_landing_pad_8017E0F8(Task* arg0)
 {
-    GameActor* actor = (GameActor*)((Task*)Game_GetPtrSlot(3))->work;
+    GameActor* actor = (GameActor*)(gameGetPtrSlot(3))->work;
     s32        wrapped;
     s32        tmp;
     s32        dist;
@@ -489,7 +489,7 @@ void func_acropolis_helicopter_landing_pad_8017E270(Task* task)
     MATRIX         unusedM;
     SVECTOR        unusedC;
 
-    coord  = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[4];
+    coord  = &((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[4];
     dir.vx = -0x249;
     dir.vy = 0;
     dir.vz = 0xB8;

@@ -50,7 +50,8 @@ void func_dryfield_dilapidated_house_8017E9A4(s32 arg0)
 void func_dryfield_dilapidated_house_8017EA10(s32 arg0)
 {
     if (arg0 != 0) {
-        D_dryfield_dilapidated_house_801857E8 = Task_SpawnFromTable(&D_dryfield_dilapidated_house_80186854, 0, 3, Game_GetPtrSlot(3));
+        D_dryfield_dilapidated_house_801857E8 =
+            Task_SpawnFromTable(&D_dryfield_dilapidated_house_80186854, 0, 3, (s32)gameGetPtrSlot(3));
         return;
     }
     if (D_dryfield_dilapidated_house_801857E8 != NULL) {

@@ -203,7 +203,7 @@ void func_dryfield_gas_station_801807E0(Task* task)
                     taskKill(task);
                 } else {
                     Mem_Set(work, 0, 0x10);
-                    work->owner             = Game_GetPtrSlot(3);
+                    work->owner             = gameGetPtrSlot(3);
                     RoomsShared80180b2cTask = task;
                 }
                 work2 = (DgsWork*)task->work;

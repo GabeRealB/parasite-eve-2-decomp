@@ -18,7 +18,7 @@ void func_mist_parking_801828F0(Task* task)
     s32        flag;
     u16        tick;
 
-    actor = (GameActor*)((Task*)Game_GetPtrSlot(3))->work;
+    actor = (GameActor*)(gameGetPtrSlot(3))->work;
     if (D_801156F9 == 0) {
         idx = actor->field_438[1].nextSet - 0x2F;
         if ((idx > 0) && (idx < D_mist_parking_8018D830)) {
@@ -41,7 +41,7 @@ void func_mist_parking_801828F0(Task* task)
                 }
             }
             work = Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8));
-            func_800B0928(Game_GetPtrSlot(3), (Task*)work->field_0, 0x200, 0x100, task->killCountdown);
+            func_800B0928(gameGetPtrSlot(3), (Task*)work->field_0, 0x200, 0x100, task->killCountdown);
         } else {
             taskKill(task);
         }

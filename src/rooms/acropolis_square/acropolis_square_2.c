@@ -207,7 +207,7 @@ void func_acropolis_square_80181AEC(Task* task)
                     GameFlag_SetNibble(0x155, 2);
                     D_acropolis_square_8018382C = 0;
                 }
-                Gp_DispatchMsg((Task*)Game_GetPtrSlot(5), 0xC1F, 0, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(5), 0xC1F, 0, 0);
                 SndEvt_EnqueueType7(0x51010009, 1);
                 taskKill(task);
                 return;

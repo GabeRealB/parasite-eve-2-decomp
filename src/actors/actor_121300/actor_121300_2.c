@@ -275,7 +275,7 @@ void func_actor_121300_80133BFC(Task* arg0)
     }
     work = (Actor121300Work*)map;
     Mem_Set(work, 0, 0x4B0);
-    work->field_488         = Game_GetPtrSlot(3);
+    work->field_488         = gameGetPtrSlot(3);
     D_actor_121300_8013D418 = arg0;
     coord->sub              = &gGfxViewCoord;
     tmd->lightMtx           = &work->field_43C;
@@ -355,7 +355,7 @@ void func_actor_121300_80133D98(Task* arg0)
                 scratch.msg.field_8  = 0;
                 scratch.msg.field_C  = 0;
                 scratch.msg.field_10 = 0;
-                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&scratch.msg, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&scratch.msg, 0);
                 func_actor_121300_80133BFC(arg0);
                 arg0->state += 1;
                 break;

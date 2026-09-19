@@ -12,7 +12,7 @@
 /// zeroes it with `Mem_Set` and parks the pointer in the task's `Task::work`
 /// slot (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
 /// `(Actor136100Work*)task->work`.  The same function publishes the task
-/// itself in `D_actor_136100_8014078C` and stores the `Game_GetPtrSlot(3)`
+/// itself in `D_actor_136100_8014078C` and stores the `gameGetPtrSlot(3)`
 /// task in `field_4B4`.
 ///
 /// The block opens with the 0x14-byte animation context and its twenty
@@ -29,7 +29,7 @@ typedef struct Actor136100Work {
     /* 0x334 */ byte       pad_334[0x140];
     /* 0x474 */ MATRIX     field_474; // light matrix, into TmdObject::lightMtx
     /* 0x494 */ MATRIX     field_494; // colour matrix, into TmdObject::colorMtx
-    /* 0x4B4 */ Task*      field_4B4; // Game_GetPtrSlot(3) task
+    /* 0x4B4 */ Task*      field_4B4; // gameGetPtrSlot(3) task
     /* 0x4B8 */ Task*      field_4B8; // Task_SpawnFromTable(ActorsShared80134898Desc, 2) task
     /* 0x4BC */ Task*      field_4BC; // Task_SpawnFromTable(ActorsShared80134898Desc, 3) task
     /* 0x4C0 */ Task*      field_4C0; // second dispatch task (NULL-checked senders)

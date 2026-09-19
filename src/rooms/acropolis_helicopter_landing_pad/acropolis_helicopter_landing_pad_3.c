@@ -32,7 +32,7 @@ void func_acropolis_helicopter_landing_pad_8017E64C(void)
 void func_acropolis_helicopter_landing_pad_8017E67C(void)
 {
     if (D_acropolis_helicopter_landing_pad_80187F84 != 0) {
-        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E9, (s32)&D_acropolis_helicopter_landing_pad_80184E50, 0);
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&D_acropolis_helicopter_landing_pad_80184E50, 0);
     }
 }
 

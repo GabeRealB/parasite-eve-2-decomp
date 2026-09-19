@@ -1288,7 +1288,7 @@ void func_actor_403000_80134F44(Actor403000* arg0)
     s32                       dy;
     s32                       dz;
 
-    player = Game_GetPtrSlot(3);
+    player = gameGetPtrSlot(3);
     enemy  = arg0->field_20;
     config = &Player_Status;
     work   = arg0->field_1C;
@@ -1470,7 +1470,7 @@ void func_actor_403000_80134F44(Actor403000* arg0)
                 D_actor_403000_80158D8C.field_0 = 9;
                 D_actor_403000_80158D8C.field_1 = 1;
                 D_actor_403000_80158D8C.field_2 = 3;
-                Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_actor_403000_80158D8C, 0x7DB);
+                Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_403000_80158D8C, 0x7DB);
                 if ((s8)arg0->field_2C->tpage == 0) {
                     func_actor_403000_PlaySound(arg0, enemy, 0x401E0011);
                 } else {
@@ -1603,7 +1603,7 @@ void func_actor_403000_8013603C(Actor403000* arg0)
         Gp_SetLightMode((GpObj4C*)enemy, 0);
     }
     if (work->field_F8C == 1 && D_80114C12 != work->field_F8C && D_80071075 == 0) {
-        Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, 0, 0);
+        Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
         work->field_F8C = 0;
     }
     if ((s16)work->field_6 <= 0x1000) {
@@ -1913,7 +1913,7 @@ void func_actor_403000_80137084(Actor403000* arg0)
     TmdObject*               tmd;
 
     work                                       = arg0->field_1C;
-    player                                     = Game_GetPtrSlot(3);
+    player                                     = gameGetPtrSlot(3);
     wip                                        = &Player_Status;
     head                                       = *(Actor403000ChaseScratch**)G_SCRATCH_HEAD;
     *(Actor403000ChaseScratch**)G_SCRATCH_HEAD = head - 1;
@@ -2091,7 +2091,7 @@ void func_actor_403000_801377C8(Actor403000* arg0)
     s16                     cell;
 
     work                                      = arg0->field_1C;
-    player                                    = Game_GetPtrSlot(3);
+    player                                    = gameGetPtrSlot(3);
     head                                      = *(Actor403000GrabScratch**)G_SCRATCH_HEAD;
     *(Actor403000GrabScratch**)G_SCRATCH_HEAD = head - 1;
     enemy                                     = arg0->field_20;
@@ -2156,13 +2156,13 @@ void func_actor_403000_801377C8(Actor403000* arg0)
                 }
                 found = 0;
             done:
-                if (found != 0 && enemy->hp > 0 && Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&D_actor_403000_80158DD0, 0) == 0) {
+                if (found != 0 && enemy->hp > 0 && Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_403000_80158DD0, 0) == 0) {
                     work->field_0      = 6;
                     work->field_FC0    = 1;
                     work->field_F74    = player->field_2C->coords->coord.t[0] - arg0->field_2C->coords->coord.t[0];
                     work->field_F76    = player->field_2C->coords->coord.t[1] - arg0->field_2C->coords->coord.t[1];
                     work->field_F78    = player->field_2C->coords->coord.t[2] - arg0->field_2C->coords->coord.t[2];
-                    scratch->playerYaw = ratan2(-((Actor403000*)Game_GetPtrSlot(3))->field_2C->coords->coord.m[2][0], ((Actor403000*)Game_GetPtrSlot(3))->field_2C->coords->coord.m[2][2]);
+                    scratch->playerYaw = ratan2(-((Actor403000*)gameGetPtrSlot(3))->field_2C->coords->coord.m[2][0], ((Actor403000*)gameGetPtrSlot(3))->field_2C->coords->coord.m[2][2]);
                     t                  = &scratch->target;
                     pos                = arg0->field_2C->coords;
                     t->vx              = Player_Status.coordMtx->t[0] - pos->coord.t[0];
@@ -2194,7 +2194,7 @@ void func_actor_403000_801377C8(Actor403000* arg0)
                         work->field_F98 = 0;
                         work->field_F9C = 0;
                         work->field_FA0 = 1;
-                        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
+                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
                         dir = &scratch->target;
                         Gfx_MatrixCol2(&arg0->field_2C->coords->coord, dir);
                         VectorNormalSS(dir, dir);
@@ -2219,7 +2219,7 @@ void func_actor_403000_801377C8(Actor403000* arg0)
                         work->field_F98 = 0;
                         work->field_F9C = 0;
                         work->field_FA0 = 1;
-                        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
+                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
                         dir = &scratch->target;
                         Gfx_MatrixCol2(&arg0->field_2C->coords->coord, dir);
                         VectorNormalSS(dir, dir);
@@ -2239,7 +2239,7 @@ void func_actor_403000_801377C8(Actor403000* arg0)
                         D_actor_403000_80158D90.field_14   = 0;
                         Gp_DispatchMsg((Task*)player, 0x3E9, (s32)&D_actor_403000_80158D90, 0);
                     }
-                    task         = Game_GetPtrSlot(3);
+                    task         = gameGetPtrSlot(3);
                     scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 1), 0);
                     if (scratch->ret == 1) {
                         pw                              = (GameActor*)player->field_1C;
@@ -2346,7 +2346,7 @@ void func_actor_403000_801384E8(Actor403000* arg0)
     s32                     ret;
 
     work                                      = arg0->field_1C;
-    player                                    = Game_GetPtrSlot(3);
+    player                                    = gameGetPtrSlot(3);
     scratch                                   = *(Actor403000PushScratch**)G_SCRATCH_HEAD - 1;
     *(Actor403000PushScratch**)G_SCRATCH_HEAD = scratch;
     if (work->field_4 != 0) {
@@ -2415,7 +2415,7 @@ void func_actor_403000_801386E8(Actor403000* arg0)
     GameActor*               pw;
 
     work                                       = arg0->field_1C;
-    player                                     = Game_GetPtrSlot(3);
+    player                                     = gameGetPtrSlot(3);
     head                                       = *(Actor403000LungeScratch**)G_SCRATCH_HEAD;
     *(Actor403000LungeScratch**)G_SCRATCH_HEAD = head - 1;
     enemy                                      = arg0->field_20;
@@ -2497,7 +2497,7 @@ void func_actor_403000_801386E8(Actor403000* arg0)
         }
         found = 0;
     done:
-        if (found != 0 && enemy->hp > 0 && Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&D_actor_403000_80158DD0, 0) == 0) {
+        if (found != 0 && enemy->hp > 0 && Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_403000_80158DD0, 0) == 0) {
             D_actor_403000_80158D90.x        = player->field_2C->coords->coord.t[0];
             D_actor_403000_80158D90.y        = player->field_2C->coords->coord.t[1];
             D_actor_403000_80158D90.z        = player->field_2C->coords->coord.t[2];
@@ -2505,7 +2505,7 @@ void func_actor_403000_801386E8(Actor403000* arg0)
             D_actor_403000_80158D90.field_12 = ratan2(-arg0->field_2C->coords->coord.m[2][0], arg0->field_2C->coords->coord.m[2][2]) - 0x400;
             D_actor_403000_80158D90.field_14 = 0;
             Gp_DispatchMsg((Task*)player, 0x3E9, (s32)&D_actor_403000_80158D90, 0);
-            task         = Game_GetPtrSlot(3);
+            task         = gameGetPtrSlot(3);
             scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 0), 0);
             if (scratch->ret == 1) {
                 pw                              = (GameActor*)player->field_1C;
@@ -2519,7 +2519,7 @@ void func_actor_403000_801386E8(Actor403000* arg0)
             work->field_F98 = 0;
             work->field_F9C = 3;
             work->field_FA0 = 1;
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
             work->field_FC0 = 1;
         }
     }
@@ -2569,7 +2569,7 @@ void func_actor_403000_80138DB0(Actor403000* arg0)
     s16                      cell;
 
     work                                       = arg0->field_1C;
-    player                                     = Game_GetPtrSlot(3);
+    player                                     = gameGetPtrSlot(3);
     head                                       = *(Actor403000ChaseScratch**)G_SCRATCH_HEAD;
     *(Actor403000ChaseScratch**)G_SCRATCH_HEAD = head - 1;
     scratch                                    = head - 1;
@@ -2721,7 +2721,7 @@ void func_actor_403000_80138DB0(Actor403000* arg0)
         work->field_F98 = 0;
         work->field_F9C = 0;
         work->field_FA0 = 1;
-        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
     }
     if (work->field_60.half & 1) {
         scratch->playerCell = Actor403000_Cell(player->field_2C->coords);
@@ -2825,7 +2825,7 @@ void func_actor_403000_80139AE0(Actor403000* arg0)
     s8                      dir;
 
     work    = arg0->field_1C;
-    player  = Game_GetPtrSlot(3);
+    player  = gameGetPtrSlot(3);
     scratch = (*(Actor403000SeekScratch**)G_SCRATCH_HEAD -= 1);
     if (work->field_4 != 0) {
         obj             = arg0->field_2C;
@@ -2938,7 +2938,7 @@ void func_actor_403000_8013A08C(Actor403000* arg0)
     s8                      dir;
 
     work    = arg0->field_1C;
-    player  = Game_GetPtrSlot(3);
+    player  = gameGetPtrSlot(3);
     scratch = (*(Actor403000SeekScratch**)G_SCRATCH_HEAD -= 1);
     if (work->field_4 != 0) {
         obj             = arg0->field_2C;
@@ -3059,7 +3059,7 @@ void func_actor_403000_8013A678(Actor403000* arg0)
     s8                      goal;
 
     work    = arg0->field_1C;
-    player  = Game_GetPtrSlot(3);
+    player  = gameGetPtrSlot(3);
     scratch = (*(Actor403000SeekScratch**)G_SCRATCH_HEAD -= 1);
     if (work->field_4 != 0) {
         obj             = arg0->field_2C;
@@ -3215,7 +3215,7 @@ void func_actor_403000_8013ACBC(Actor403000* arg0)
     SVECTOR*                last;
 
     work    = arg0->field_1C;
-    player  = Game_GetPtrSlot(3);
+    player  = gameGetPtrSlot(3);
     scratch = (*(Actor403000SeekScratch**)G_SCRATCH_HEAD -= 1);
     if (work->field_4 != 0) {
         obj             = arg0->field_2C;
@@ -3626,7 +3626,7 @@ void func_actor_403000_8013BDE0(Actor403000* arg0)
     s32                     pan;
 
     work                                      = arg0->field_1C;
-    player                                    = Game_GetPtrSlot(3);
+    player                                    = gameGetPtrSlot(3);
     scratch                                   = *(Actor403000PushScratch**)G_SCRATCH_HEAD - 1;
     *(Actor403000PushScratch**)G_SCRATCH_HEAD = scratch;
     if (work->field_4 != 0) {
@@ -3675,7 +3675,7 @@ void func_actor_403000_8013C050(Actor403000* arg0)
     s32              pan2;
 
     work   = arg0->field_1C;
-    player = Game_GetPtrSlot(3);
+    player = gameGetPtrSlot(3);
     enemy  = arg0->field_20;
     if (work->field_4 != 0) {
         work->field_FD6                    = 0;
@@ -3737,7 +3737,7 @@ void func_actor_403000_8013C2D4(Actor403000* arg0)
     s8                      base;
 
     work    = arg0->field_1C;
-    player  = Game_GetPtrSlot(3);
+    player  = gameGetPtrSlot(3);
     scratch = (*(Actor403000SeekScratch**)G_SCRATCH_HEAD -= 1);
     if (work->field_4 != 0) {
         obj             = arg0->field_2C;
@@ -3857,7 +3857,7 @@ void func_actor_403000_8013C864(GpEnemy* arg0, Actor403000* arg1)
     s32                       pan;
 
     work                        = arg1->field_1C;
-    player                      = Game_GetPtrSlot(3);
+    player                      = gameGetPtrSlot(3);
     config                      = &Player_Status;
     states                      = D_actor_403000_80131F44;
     arg1->field_2C->coords->flg = 0;
@@ -4001,7 +4001,7 @@ void func_actor_403000_8013C864(GpEnemy* arg0, Actor403000* arg1)
                     break;
             }
         }
-        if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+        if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
             work->field_FCC = 0;
             if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + D_80073BA9]) {
                 switch (work->field_F94) {
@@ -4010,21 +4010,21 @@ void func_actor_403000_8013C864(GpEnemy* arg0, Actor403000* arg1)
                         work->field_F98 = 1;
                         work->field_F9C = 0;
                         work->field_FA0 = 1;
-                        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
+                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
                         break;
                     case 3:
                         work->field_F94 = 4;
                         work->field_F98 = 1;
                         work->field_F9C = 0;
                         work->field_FA0 = 1;
-                        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
+                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
                         break;
                     case 5:
                         work->field_F94 = 6;
                         work->field_F98 = 1;
                         work->field_F9C = 0;
                         work->field_FA0 = 1;
-                        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
+                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
                         break;
                     case 2:
                     case 4:
@@ -4034,11 +4034,11 @@ void func_actor_403000_8013C864(GpEnemy* arg0, Actor403000* arg1)
                         work->field_F9C = 0x10;
                         work->field_F98 = 0;
                         work->field_FA0 = 1;
-                        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
+                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
                         break;
                 }
             } else {
-                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
                 work->field_FC0 = 0;
             }
         }

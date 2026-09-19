@@ -90,7 +90,7 @@ void func_necrosis_8012EF34(Task* arg0)
                 mem->field_22 = 0;
                 return;
             }
-            player     = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+            player     = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
             dstm       = (GpMtxWords*)&coord->coord;
             srcm       = (GpMtxWords*)&player->coord;
             dstm->w0   = srcm->w0;

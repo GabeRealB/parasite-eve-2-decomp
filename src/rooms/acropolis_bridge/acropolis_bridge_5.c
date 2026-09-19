@@ -48,7 +48,7 @@ void func_acropolis_bridge_8017DDEC(Task* arg0)
     s32 killed;
 
     if (Task_PollKill(D_acropolis_bridge_8019179C, &killed) != 0) {
-        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, 1, 0x7D5);
+        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 1, 0x7D5);
         Mc_SaveData.at4.loc.view    = 6;
         Mc_SaveData.at4.loc.room    = 2;
         gGameSession->at4.loc.room  = 2;

@@ -105,7 +105,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                     taskKill(arg0);
                 } else {
                     Mem_Set(work, 0, 0xC);
-                    work->target                   = Game_GetPtrSlot(3);
+                    work->target                   = gameGetPtrSlot(3);
                     D_acropolis_sanctuary_80186C90 = arg0;
                 }
                 slot     = (AcsCutsceneWork*)arg0->work;

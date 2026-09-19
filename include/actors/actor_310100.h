@@ -30,7 +30,7 @@ typedef struct Actor310100Work {
     /* 0x45C */ MATRIX     field_45C;
     /* 0x47C */ byte       pad_47C[0x68];
     /* 0x4E4 */ Task*      field_4E4; // display task, killed and cleared by func_actor_310100_80162F34
-    /* 0x4E8 */ Task*      field_4E8; // Game_GetPtrSlot(3)
+    /* 0x4E8 */ Task*      field_4E8; // gameGetPtrSlot(3)
     /* 0x4EC */ GpAnimRec* field_4EC; // record the frame handler last saw on slot 1
     /* 0x4F0 */ u16        field_4F0; // display state, parked at 2 by func_actor_310100_80162CDC
     /* 0x4F2 */ byte       pad_4F2[0x4];

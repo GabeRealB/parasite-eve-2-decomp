@@ -18,7 +18,7 @@ void func_dryfield_night_gas_station_80180828(Task* task)
     Task* owner;
     u16   tick;
 
-    owner = Game_GetPtrSlot(3);
+    owner = gameGetPtrSlot(3);
     if (D_801156F9 == 0) {
         if (owner == 0) {
             task->state = -1;
@@ -37,7 +37,7 @@ void func_dryfield_night_gas_station_80180828(Task* task)
                     task->killCountdown = 0;
                 }
             }
-            func_800B0928(owner, Game_GetPtrSlot(0xA), 0x300, 0x10, task->killCountdown);
+            func_800B0928(owner, gameGetPtrSlot(0xA), 0x300, 0x10, task->killCountdown);
             return;
         }
         taskKill(task);

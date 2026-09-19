@@ -459,7 +459,7 @@ void func_actor_403200_8013669C(GpEnemy* enemy, Task* task)
     s32                  pan;
 
     owner  = task->parent->spawnArg2;
-    player = Game_GetPtrSlot(3);
+    player = gameGetPtrSlot(3);
 
     if (D_actor_403200_80141C50 == 1 ||
         (work = memCalloc(sizeof(Actor403200GrabWork), false), task->work = (TaskIdMap*)work, work == NULL)) {

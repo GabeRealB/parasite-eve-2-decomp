@@ -1715,7 +1715,7 @@ void Gp_MenuExitCallback(Task* arg0)
 {
     void* slot;
 
-    slot = Game_GetPtrSlot(3);
+    slot = gameGetPtrSlot(3);
     if ((Gp_PendingRelatedId != 0) && (Gp_RelatedPending != 0)) {
         if (Gp_IsStateF0Active() == 0) {
             Gp_PendingRelatedId = 0;
@@ -2746,7 +2746,7 @@ void Gp_DrawMapCursor(Task* arg0)
 
     obj   = arg0->spawnArg2;
     cfg   = &Player_Status;
-    actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+    actor = ((GpActorWork*)gameGetPtrSlot(3))->actor;
     rec   = Gp_MapRecTables[gGameSession->at4.loc.stage - 1];
     rec   = rec + gGameSession->at4.loc.area;
     if (rec->field_C != (s8)Gp_MapRoomId) {

@@ -3642,7 +3642,7 @@ void func_actor_503500_801431EC(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
 }
 
 /// Scans the 0x224 enemy's shared record table. For each record whose
-/// `key` high half is 1 - unless the player task (`Game_GetPtrSlot(3)`)
+/// `key` high half is 1 - unless the player task (`gameGetPtrSlot(3)`)
 /// is in mode 2 or answers message 0x3F8 - copies the parent's root rotation
 /// into `field_40` and turns it by +/-0x5DC with `func_8004BFF8` (sign from
 /// `field_220`), then takes the world position of parent coordinate 5 or 11
@@ -3670,7 +3670,7 @@ void func_actor_503500_801437D0(Actor503500* arg0, GpRec18* rec, s32 count)
     work  = (Actor503500Work224*)arg0->field_1C;
     for (i = 0; i < count; i++) {
         if ((rec[i].key & 0xFFFF0000) == 0x10000) {
-            player = Game_GetPtrSlot(3);
+            player = gameGetPtrSlot(3);
             pcoord = ((TmdObject*)player->extra)->coords;
             if (((GameActor*)player->work)->field_954 != 2 &&
                 Gp_DispatchMsg(player, 0x3F8, (s32)&D_actor_503500_80171544, 0) == 0) {
@@ -3744,7 +3744,7 @@ void func_actor_503500_80143AC0(Task* arg0)
     s32                shake;
 
     work   = &D_actor_503500_80178F10;
-    player = Game_GetPtrSlot(3);
+    player = gameGetPtrSlot(3);
     if (D_801153F4 != 0) {
         return;
     }

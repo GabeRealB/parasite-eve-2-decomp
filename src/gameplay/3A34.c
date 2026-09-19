@@ -82,7 +82,7 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
     ret   = 0;
     flag  = 1;
     id    = arg0->itemId;
-    actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+    actor = ((GpActorWork*)gameGetPtrSlot(3))->actor;
     cfg   = &Player_Status;
 
     if (id != 0) {
@@ -1816,7 +1816,7 @@ void Gp_DebugPanTask(Task* arg0)
     s32            i;
     s32            val;
 
-    slot = Game_GetPtrSlot(3);
+    slot = gameGetPtrSlot(3);
     cfg  = &Player_Status;
     if (slot == NULL) {
         return;
@@ -2578,7 +2578,7 @@ void Gp_BindDefaultMtx(Task* arg0)
     MATRIX*      mtxB;
     register s32 addr asm("v0");
 
-    slot  = Game_GetPtrSlot(3);
+    slot  = gameGetPtrSlot(3);
     extra = slot->extra;
     if (slot != NULL) {
         result = Gp_GetRoomCoordSet(&gGameSession->at4.loc);
@@ -3697,7 +3697,7 @@ void Gp_ReleaseStateF0(GpObj20E* arg0, s32 arg1)
 
 void Gp_TickWorldCollision(void)
 {
-    if (Game_GetPtrSlot(3) != NULL) {
+    if (gameGetPtrSlot(3) != NULL) {
         Gp_UpdatePlayerMove();
         Gp_CollideListGrid(Gp_ObjList0);
         Gp_CollideListGrid(Gp_ObjList1);
@@ -5792,7 +5792,7 @@ void func_800E06AC(GpObj* node, s32 mask, s32 match)
     idx   = 3;
     msk   = mask;
     mch   = match;
-    actor = ((GpActorWork*)Game_GetPtrSlot(idx))->actor;
+    actor = ((GpActorWork*)gameGetPtrSlot(idx))->actor;
     for (; node != NULL; node = node->next) {
         if ((node->flags & msk) == mch) {
             for (; other != NULL; other = other->next) {
@@ -6831,7 +6831,7 @@ s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
     s32            extra;
     s32            rand;
 
-    slot = Game_GetPtrSlot(3);
+    slot = gameGetPtrSlot(3);
     if (slot == NULL) {
         return 0;
     }
@@ -7279,7 +7279,7 @@ void Gp_EvtCapTask(Task* arg0)
                 Gp_MsgPlayer3F3(1);
             }
             if (D_80115598 != 0) {
-                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F2, (s32)arg0->spawnArg2 + 0x64, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F2, (s32)arg0->spawnArg2 + 0x64, 0);
             }
             taskKill(arg0);
             break;

@@ -115,7 +115,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                     taskKill(arg0);
                 } else {
                     Mem_Set(work, 0, 0x10);
-                    work->owner             = Game_GetPtrSlot(3);
+                    work->owner             = gameGetPtrSlot(3);
                     RoomsShared80180b2cTask = arg0;
                 }
                 weaponId     = D_80073BA9;
@@ -125,7 +125,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                 rec.field_8  = 0;
                 rec.field_C  = 0;
                 rec.field_10 = 0;
-                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&rec, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
                 D_dryfield_warehouse_801821C0 = NULL;
                 D_80115768                    = 1;
                 arg0->state                   = arg0->state + 1;

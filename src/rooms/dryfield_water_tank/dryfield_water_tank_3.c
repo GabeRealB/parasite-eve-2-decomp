@@ -68,7 +68,7 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(mtx, 0, 0x58);
-                mtx->owner   = (Task*)Game_GetPtrSlot(3);
+                mtx->owner   = gameGetPtrSlot(3);
                 coord->sub   = &gGfxViewCoord;
                 extra->flags = 0x80;
                 Tmd_AllocBuffers(extra);
@@ -120,7 +120,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(work, 0, 0x58);
-                work->owner                    = (Task*)Game_GetPtrSlot(3);
+                work->owner                    = gameGetPtrSlot(3);
                 D_dryfield_water_tank_80188D4C = arg0;
             }
             work        = (DwtScriptWork*)arg0->work;

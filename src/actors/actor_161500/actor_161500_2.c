@@ -43,6 +43,6 @@ void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
             work->field_4F0 = 0;
         }
     }
-    func_800B0928(task, Game_GetPtrSlot(3), 0x200, 0x100, work->field_4F0);
+    func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, work->field_4F0);
     ActorsShared80132378(task);
 }

@@ -63,7 +63,7 @@ void func_dryfield_night_water_hole_8017D958(Task* arg0)
             Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7DB, (s32)&D_dryfield_night_water_hole_8018065C, 0);
         }
     }
-    if (gGameSession->at4.loc.place == 0xA && Game_GetPtrSlot(0xA) != 0 && GameFlag_GetNibble(0xCF) == 0) {
+    if (gGameSession->at4.loc.place == 0xA && gameGetPtrSlot(0xA) != 0 && GameFlag_GetNibble(0xCF) == 0) {
         GameFlag_SetNibble(0xCF, 2);
         func_800E3FAC(0xA2, 0x25);
         Task_SpawnFromTable(D_801351FC, 1, 0, 0);

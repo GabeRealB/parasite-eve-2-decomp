@@ -13,7 +13,7 @@
 /// slot (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
 /// `(Actor121300Work*)task->work`.  The same function publishes the task
 /// itself in `D_actor_121300_8013D418` and stores the
-/// `Game_GetPtrSlot(3)` task in `field_488`, which is the target of every
+/// `gameGetPtrSlot(3)` task in `field_488`, which is the target of every
 /// `Gp_DispatchMsg` the overlay sends.
 ///
 /// The block opens with the animation prefix `actor_105100` and `actor_136100`
@@ -31,7 +31,7 @@ typedef struct Actor121300Work {
     /* 0x47C */ byte       pad_47C[0x4];
     /* 0x480 */ s16        field_480;        // state index driven by func_actor_121300_80133854
     /* 0x482 */ byte       pad_482[0x6];
-    /* 0x488 */ Task*      field_488;        // Game_GetPtrSlot(3) task, the Gp_DispatchMsg target
+    /* 0x488 */ Task*      field_488;        // gameGetPtrSlot(3) task, the Gp_DispatchMsg target
     /* 0x48C */ byte       pad_48C[0xC];
     /* 0x498 */ s16        field_498;        // set by func_actor_121300_80134250
     /* 0x49A */ s16        field_49A;        // cleared alongside field_498

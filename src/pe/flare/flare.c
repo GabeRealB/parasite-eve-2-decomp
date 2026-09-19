@@ -105,7 +105,7 @@ void flareSparkTask(Task* arg0)
     coord         = ((TmdObject*)arg0->extra)->coords;
     mem->field_22 = (u16)mem->field_22 + 1;
     if (arg0->state == 0) {
-        player     = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+        player     = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
         dstm       = (GpMtxWords*)&coord->coord;
         srcm       = (GpMtxWords*)&player->coord;
         dstm->w0   = srcm->w0;

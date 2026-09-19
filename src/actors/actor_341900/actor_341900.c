@@ -356,7 +356,7 @@ void func_actor_341900_801628B8(Task* arg0)
                 msg.field_8  = 0;
                 msg.field_C  = 0;
                 msg.field_10 = 0;
-                Gp_DispatchMsg((Task*)Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
             }
             break;
         case 2:
@@ -396,7 +396,7 @@ void func_actor_341900_801628B8(Task* arg0)
             msg.field_8  = 0;
             msg.field_C  = 0;
             msg.field_10 = 0;
-            Gp_DispatchMsg((Task*)Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
         }
             Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_actor_341900_80163B10, 0);
             break;
@@ -557,7 +557,7 @@ void func_actor_341900_80162EFC(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(work, 0U, 0x70U);
-                work->field_0           = (Task*)Game_GetPtrSlot(3);
+                work->field_0           = gameGetPtrSlot(3);
                 D_actor_341900_80164208 = arg0;
                 work->field_4           = (Task*)Gp_FindWorkById(
                                     gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8))
@@ -567,7 +567,7 @@ void func_actor_341900_80162EFC(Task* arg0)
             sessionIdLo  = gGameSession->at4.loc.area;
             sp10.field_2 = 0;
             sp10.field_1 = sessionIdLo;
-            Gp_DispatchMsg((Task*)Game_GetPtrSlot(4), 0x7DA, (s32)&sp10, 0x7DB);
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&sp10, 0x7DB);
             seqWork          = (Actor341900Work*)arg0->work;
             seqWork->field_8 = Task_SpawnFromTable(&D_actor_341900_80164190, 2, 0, (s32)arg0);
             for (var_s0 = 0; (u32)(var_s0 & 0xFFFF) < 5U; var_s0++) {

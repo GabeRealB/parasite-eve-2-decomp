@@ -12,7 +12,7 @@
 /// `owner` is written by that run, so the block's tail is outside its
 /// allocation. The layout is the one the same cutscene-task body has in
 /// `dryfield_gas_station` (`DgsWork`, which allocates the full 0x10):
-/// `owner` is the slot-3 game pointer (`Game_GetPtrSlot(3)`) the task dispatches
+/// `owner` is the slot-3 game pointer (`gameGetPtrSlot(3)`) the task dispatches
 /// its messages to, and the two shorts at 0x4 are script parameters written
 /// together by `RoomsShared80180b2c`.
 typedef struct DwtWork {
@@ -43,7 +43,7 @@ STATIC_ASSERT_SIZEOF(DwtMsg7DB, 0x4);
 /// `D_dryfield_water_tank_80188D4C`, which is how the sibling entry points
 /// `func_dryfield_water_tank_8017E194` and `..._8017E1B4` reach this block.
 ///
-/// `owner` is `Game_GetPtrSlot(3)`, the task every `Gp_DispatchMsg` in the
+/// `owner` is `gameGetPtrSlot(3)`, the task every `Gp_DispatchMsg` in the
 /// driver targets; `child` is the task spawned from
 /// `D_dryfield_water_tank_8017FF88`, the one messages 0x7D4 / 0x7D5 / 0x7DB are
 /// sent to. `field_50` is a request the driver's per-frame switch consumes and
@@ -71,7 +71,7 @@ STATIC_ASSERT_SIZEOF(DwtScriptWork, 0x58);
 /// the pair `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` /
 /// `Gp_DefaultMtx2`. The task parks the block in `Task::work` (0x1C), which is
 /// not a `TaskIdMap` here; `owner` is the slot-3 game task the same allocation
-/// is registered with (`Game_GetPtrSlot(3)`).
+/// is registered with (`gameGetPtrSlot(3)`).
 ///
 /// A different block from `DwtScriptWork`, which the room's script driver
 /// allocates at the same 0x58 size: this one belongs to the model task and
@@ -80,7 +80,7 @@ STATIC_ASSERT_SIZEOF(DwtScriptWork, 0x58);
 typedef struct DwtColorMtx {
     /* 0x00 */ MATRIX light; // TmdObject::lightMtx
     /* 0x20 */ MATRIX color; // TmdObject::colorMtx
-    /* 0x40 */ Task*  owner; // Game_GetPtrSlot(3)
+    /* 0x40 */ Task*  owner; // gameGetPtrSlot(3)
     /* 0x44 */ byte   pad_44[0x14];
 } DwtColorMtx;
 STATIC_ASSERT_SIZEOF(DwtColorMtx, 0x58);

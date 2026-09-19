@@ -90,7 +90,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
                 taskKill(task);
             } else {
                 Mem_Set(blk, 0, 8);
-                blk->target = Game_GetPtrSlot(3);
+                blk->target = gameGetPtrSlot(3);
             }
             work = (AobSceneWork*)task->work;
             if (work->target != NULL) {

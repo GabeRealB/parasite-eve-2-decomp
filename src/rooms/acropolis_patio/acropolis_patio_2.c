@@ -48,7 +48,7 @@ void func_acropolis_patio_8017DE2C(Task* task)
     Task*        target;
     s32          offset;
 
-    target                = Game_GetPtrSlot(3);
+    target                = gameGetPtrSlot(3);
     work.coord.coord.t[0] = -0x1F40;
     work.coord.coord.t[1] = 0;
     work.coord.coord.t[2] = 0x384;

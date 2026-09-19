@@ -32,7 +32,7 @@ void RoomsShared8017d5f0(Task* task)
     Task*           spawned;
     s32             i;
 
-    owner = Game_GetPtrSlot(3);
+    owner = gameGetPtrSlot(3);
     if (Gp_AttachTmd(task, ((TmdObject*)owner->extra)->source) == NULL) {
         taskKill(task);
         return;

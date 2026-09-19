@@ -93,7 +93,7 @@ const SVECTOR D_actor_341300_80161E64 = { 100, -200, -100, 0 };
 void func_actor_341300_801625AC(void)
 {
     SVECTOR        vec   = D_actor_341300_80161E64;
-    GsCOORDINATE2* coord = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[2];
+    GsCOORDINATE2* coord = &((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[2];
 
     Gp_SpawnEff(0x60055, coord, 0x10013300, &vec);
     Gp_SpawnEff(0x60055, coord, 0x10112280, &vec);

@@ -253,7 +253,7 @@ void func_energyball_8012F180(Task* arg0)
             return;
         case 2:
             if (((u16)mem->field_22 & 7) == 0) {
-                player = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[1];
+                player = &((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[1];
                 vec.vx = player->workm.t[0] - coord->workm.t[0];
                 vec.vy = player->workm.t[1] - coord->workm.t[1];
                 vec.vz = player->workm.t[2] - coord->workm.t[2];

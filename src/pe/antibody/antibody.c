@@ -533,7 +533,7 @@ void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     s32                 ang2;
     u16                 vz;
 
-    player                                      = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[1];
+    player                                      = &((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[1];
     scratch                                     = (void**)G_SCRATCH_HEAD;
     head                                        = *scratch;
     ((AntibodyArcScratch*)(head - 0x28))->v0.vx = *(u16*)&arg0->workm.t[0];

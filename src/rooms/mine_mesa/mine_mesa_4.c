@@ -73,7 +73,7 @@ void func_mine_mesa_8017E074(Task* arg0)
     rec.rot.vy  = 0x311;
     rec.rot.vz  = 0;
     arg0->killCountdown++;
-    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E9, (s32)&rec, 0);
+    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&rec, 0);
 }
 
 /// Head-aim state of the mesa's run task, run only while `D_801156F9` is clear:
@@ -95,8 +95,8 @@ void func_mine_mesa_8017E15C(Task* arg0)
     u16              rateUp;
     u16              rateDown;
 
-    turner = Game_GetPtrSlot(3);
-    looker = Game_GetPtrSlot(0xA);
+    turner = gameGetPtrSlot(3);
+    looker = gameGetPtrSlot(0xA);
     if (D_801156F9 == 0) {
         if ((turner == NULL) || (looker == NULL)) {
             arg0->state = -1;
@@ -139,12 +139,12 @@ void func_mine_mesa_8017E15C(Task* arg0)
 }
 
 /// Head-aim state of the mesa's tracked task, run only while `D_801156F9` is
-/// clear: a missing `Game_GetPtrSlot(0xA)` task parks the state machine on -1.
+/// clear: a missing `gameGetPtrSlot(0xA)` task parks the state machine on -1.
 /// State 0 allocates the `MineMesaHeadAim` record into `Task::work` and seeds
 /// its clamps to 0x300 yaw and 0x100 pitch; state 1 ramps its `rate` up toward
 /// 0x1000 while `Task::spawnArg1` is set and back down toward 0 while it is
 /// not, then hands the record to `func_800B17D4` between the
-/// `Game_GetPtrSlot(0xA)` task whose head turns and the slot-3 task it turns
+/// `gameGetPtrSlot(0xA)` task whose head turns and the slot-3 task it turns
 /// toward -- the reverse of `func_mine_mesa_8017E15C` and of
 /// `func_actor_450200_80131FA8`, which look from slot 3. Every other state
 /// kills the task and clears `D_mine_mesa_80189B58`, and a state-0 NULL
@@ -155,7 +155,7 @@ void func_mine_mesa_8017E2A4(Task* arg0)
     MineMesaHeadAim* aim;
     u16              rate;
 
-    looker = Game_GetPtrSlot(0xA);
+    looker = gameGetPtrSlot(0xA);
     if (D_801156F9 == 0) {
         if (looker == NULL) {
             arg0->state = -1;
@@ -184,7 +184,7 @@ void func_mine_mesa_8017E2A4(Task* arg0)
                                 aim->rate = 0;
                             }
                         }
-                        func_800B17D4(looker, Game_GetPtrSlot(3), (GpHeadAim*)aim);
+                        func_800B17D4(looker, gameGetPtrSlot(3), (GpHeadAim*)aim);
                         return;
                 }
                 /* fallthrough */

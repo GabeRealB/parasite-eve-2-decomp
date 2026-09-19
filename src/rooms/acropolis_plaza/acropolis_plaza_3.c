@@ -277,7 +277,7 @@ L_case1:
     if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
         goto L_tail;
     }
-    slot3       = (Task*)Game_GetPtrSlot(3);
+    slot3       = gameGetPtrSlot(3);
     work->slot3 = slot3;
     work->actor = (GameActor*)slot3->work;
     SetDispMask(1);

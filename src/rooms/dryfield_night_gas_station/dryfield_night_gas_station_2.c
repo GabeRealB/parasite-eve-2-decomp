@@ -143,7 +143,7 @@ s32 func_dryfield_night_gas_station_8017F89C(s32 arg0, s32 arg1, s32 arg2)
 /// reached 2 and pointer slot 0xA is live.
 s32 func_dryfield_night_gas_station_8017F990(Task* task, s32 msgId, GpMsg13EF* msg)
 {
-    if ((msg->field_2 == 0xE) && (Game_GetPtrSlot(0xA) != NULL) && (GameFlag_GetNibble(0x63) >= 2)) {
+    if ((msg->field_2 == 0xE) && (gameGetPtrSlot(0xA) != NULL) && (GameFlag_GetNibble(0x63) >= 2)) {
         func_800E8614((s32)&D_dryfield_night_gas_station_8018920C, 0);
     }
     return 0;

@@ -47,7 +47,7 @@ void func_actor_146300_80131ECC(Task* task)
                 case 3:
                     if (Gp_HasCollectedBit(0x119) == 0) {
                         if (Gp_GetCurBit2Flag(0x1F) == 1) {
-                            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
+                            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
                             D_actor_146300_80142824 = 0x13;
                             task->state             = 0x14;
                         } else {
@@ -64,7 +64,7 @@ void func_actor_146300_80131ECC(Task* task)
                 case 4:
                     if (Gp_HasCollectedBit(0x119) == 0) {
                         if (Gp_GetCurBit2Flag(0x20) == 1) {
-                            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
+                            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
                             D_actor_146300_80142824 = 0x14;
                             task->state             = 0x14;
                         } else {
@@ -79,7 +79,7 @@ void func_actor_146300_80131ECC(Task* task)
                     break;
                 case 5:
                     if (Gp_GetCurBit2Flag(0x21) == 1) {
-                        Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
+                        Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
                         task->state = 0x28;
                     } else {
                         func_800E8614((s32)&D_actor_146300_80138AC8, 0);

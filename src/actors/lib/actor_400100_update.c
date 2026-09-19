@@ -71,7 +71,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
     void*                  nextMessage;
 
     work                         = actor->field_1C;
-    player                       = Game_GetPtrSlot(3);
+    player                       = (Actor00100*)gameGetPtrSlot(3);
     config                       = &Player_Status;
     states                       = Actor00100_D000F0;
     actor->field_2C->coords->flg = 0;
@@ -124,7 +124,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
     if (work->field_C18 == 1) {
         if ((state != excludedState) && (state != 0) && (state != 6) && (state != 3)) {
             actorWork = actor->field_1C;
-            slot      = Game_GetPtrSlot(3);
+            slot      = (Actor00100*)gameGetPtrSlot(3);
             if ((slot != NULL) && (actorWork->field_8E8 == 7)) {
                 playerCoord = slot->field_2C->coords;
                 actorcoord  = actor->field_2C->coords;
@@ -169,7 +169,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
                         if (config->hp > 0) {
                             for (i = 0; i < 10; i++) {
                                 gGameSession->areaBgmCountdown = 0x7F;
-                                playerSlot                     = Game_GetPtrSlot(3);
+                                playerSlot                     = (Actor00100*)gameGetPtrSlot(3);
                                 if (Gp_DispatchMsg(playerSlot, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 4), 0) == 1)
                                     break;
                             }
@@ -253,12 +253,12 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
                 break;
             case 5:
                 if ((config->hp > 0) && ((s16)work->field_C28 >= 7)) {
-                    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
+                    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
                     work->field_C18 = 0;
                 }
                 break;
         }
-        if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+        if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
             nextAction = work->field_BFC;
             switch (nextAction) {
                 case 1:
@@ -290,7 +290,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
                 case 4:
                 case 7:
                     if (config->hp > 0) {
-                        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
+                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
                         work->field_C18 = 0;
                     }
                     break;

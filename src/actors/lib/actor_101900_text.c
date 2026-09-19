@@ -471,7 +471,7 @@ s32 Actor01900_Fn016F0(Actor01900* arg0)
     SVECTOR*                v;
     SVECTOR*                out;
 
-    player                = Game_GetPtrSlot(3);
+    player                = gameGetPtrSlot(3);
     head                  = *(u8**)G_SCRATCH_HEAD;
     local                 = (SVECTOR*)(head - 0xC);
     s                     = (Actor01900SightScratch*)(head - 0x1C);
@@ -1084,7 +1084,7 @@ void Actor01900_Fn02A50(Actor01900* arg0)
         s->id = Actor01900_FindHit(&work->field_8E8, &head[-1].hitPos);
         if (s->id != 0) {
             if (s->id & 0x8000) {
-                player       = Game_GetPtrSlot(3);
+                player       = gameGetPtrSlot(3);
                 s->hitPos.vx = ((TmdObject*)player->extra)->coords->workm.t[0];
                 s->hitPos.vy = ((TmdObject*)player->extra)->coords->workm.t[1];
                 s->hitPos.vz = ((TmdObject*)player->extra)->coords->workm.t[2];
@@ -1172,7 +1172,7 @@ void Actor01900_Fn02A50(Actor01900* arg0)
                 SndEvt_EnqueueType7(0x51030008, 1);
             }
             if ((work->field_0 == 0xC || work->field_0 == 0xD) && config->hp > 0 && work->field_C44 == 1) {
-                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
             }
             if (enemy->hp <= 0) {
                 deathSound = ((enemy->placeKey >> 0xC) << 8) | 0x400A0008;
@@ -1394,7 +1394,7 @@ static __inline__ s32 Actor01900_ArmIfPlayerLevel(Actor01900* arg0)
     GpActorWork* player;
     s32          dy;
 
-    player = Game_GetPtrSlot(3);
+    player = gameGetPtrSlot(3);
     if (player->actor->field_954 != 2) {
         dy = arg0->field_2C->coords->coord.t[1] - player->extra->coords->coord.t[1];
         if (ABS(dy) < 0x1F4) {
@@ -1687,8 +1687,8 @@ void Actor01900_Fn042BC(Actor01900* arg0)
     Actor01900_ConfigPositionDelta(&Player_Status, arg0->field_2C->coords, &s->delta);
     arg0->field_2C->coords->flg = 0;
     Actor01900_Fn01C94(arg0);
-    s->playerYaw = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][0],
-                          ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][2]);
+    s->playerYaw = ratan2(-((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
+                          ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
     Actor01900_ConfigPositionDelta(&Player_Status, arg0->field_2C->coords, &s->delta);
     s->yaw          = ratan2(s->delta.vx, s->delta.vz) + 0x800;
     s->yaw          = Actor01900_NormalizeYaw(s->yaw);
@@ -1808,8 +1808,8 @@ void Actor01900_Fn04D14(Actor01900* arg0)
     }
     Actor01900_ConfigPositionDelta(&Player_Status, arg0->field_2C->coords, &s->delta);
     if (work->field_8 >= 7) {
-        s->playerYaw  = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][0],
-                               ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][2]);
+        s->playerYaw  = ratan2(-((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
+                               ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
         s->yaw        = ratan2(s->delta.vx, s->delta.vz) + 0x800;
         s->yaw        = Actor01900_NormalizeYaw(s->yaw);
         work->field_0 = 0x1A;
@@ -1861,8 +1861,8 @@ void Actor01900_Fn04D14(Actor01900* arg0)
     }
     if (work->field_C26 == 0) {
         if (++work->field_6 == 5) {
-            s->playerYaw = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][0],
-                                  ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][2]);
+            s->playerYaw = ratan2(-((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
+                                  ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
             Actor01900_ConfigPositionDelta(&Player_Status, arg0->field_2C->coords, &s->delta);
             s->yaw = ratan2(s->delta.vx, s->delta.vz) + 0x800;
             yaw    = Actor01900_NormalizeYaw(s->yaw);

@@ -1007,7 +1007,7 @@ void Actor00100_Fn0375C(Actor00100* arg0)
                 work->field_904 = 9;
                 work->field_905 = 1;
                 work->field_906 = 4;
-                Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&work->field_904, 0x7DB);
+                Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&work->field_904, 0x7DB);
                 if ((Gp_GetIdParam0(scratch->field_20) & 0xFFFF) == 4) {
                     work->field_0 = 3;
                 } else {

@@ -184,7 +184,7 @@ void func_actor_104900_801339B0(GpEnemy* enemy, Task* task, ActorsShared80138efc
             flag = 1;
         }
     } else if (task->spawnArg1 == 0x20000) {
-        Task*      player = (Task*)Game_GetPtrSlot(3);
+        Task*      player = gameGetPtrSlot(3);
         GameActor* actor;
 
         if (player != NULL) {
@@ -194,7 +194,7 @@ void func_actor_104900_801339B0(GpEnemy* enemy, Task* task, ActorsShared80138efc
             }
         }
     } else {
-        Task*      player = (Task*)Game_GetPtrSlot(3);
+        Task*      player = gameGetPtrSlot(3);
         GameActor* actor;
 
         if (player != NULL) {

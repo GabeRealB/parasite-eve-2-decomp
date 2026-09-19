@@ -26,7 +26,7 @@ void func_dryfield_night_junk_yard_8017D8B0(Task* task)
     Game_SetPtrSlot(task, 7);
     subId = gGameSession->at4.loc.place;
     if (subId == 1 && GameFlag_GetNibble(0x9F) == subId) {
-        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_dryfield_night_junk_yard_801805A0, 0x7DB);
+        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_dryfield_night_junk_yard_801805A0, 0x7DB);
     }
     func_dryfield_night_junk_yard_8017D9B8(GameFlag_GetNibble(0x9F));
     task->state = task->state + 1;

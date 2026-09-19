@@ -87,7 +87,7 @@ void func_acropolis_bridge_8017F868(Task* task)
 
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
-    owner = Game_GetPtrSlot(3);
+    owner = gameGetPtrSlot(3);
     part  = ((TmdObject*)owner->extra)->coords;
     view  = Gp_GetViewIndex();
     if (Gp_State1C->field_4 >= 4) {

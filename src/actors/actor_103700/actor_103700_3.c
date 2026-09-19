@@ -50,7 +50,7 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
     work   = (Actor103700Work*)task->work;
     obj    = ((TmdObject*)task->extra)->coords;
     model  = (TmdObject*)task->extra;
-    player = Game_GetPtrSlot(3);
+    player = gameGetPtrSlot(3);
 
     switch (D_801153F4) {
         case 1:

@@ -34,11 +34,11 @@ void func_acropolis_helicopter_landing_pad_8017E76C(Task* task)
         case 0:
             args[0] = 0xC;
             args[1] = 9;
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F2, (s32)&D_acropolis_helicopter_landing_pad_801837E0, (s32)args);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F2, (s32)&D_acropolis_helicopter_landing_pad_801837E0, (s32)args);
             task->state++;
             break;
         case 1:
-            if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F0, 0, 0) == 0) {
+            if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
                 taskKill(task);
             }
             break;

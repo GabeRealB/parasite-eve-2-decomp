@@ -82,7 +82,7 @@ void func_actor_444000_80132054(Task* task)
             msg.field_8  = 1;
             msg.field_C  = 0xA;
             msg.field_10 = 0;
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
             break;
         case 2:
             if (work->field_20 != NULL) {
@@ -206,7 +206,7 @@ void func_actor_444000_80132358(Task* task)
                 taskKill(task);
             } else {
                 Mem_Set(alloc, 0, sizeof(Actor444000EventWork));
-                alloc->field_20         = Game_GetPtrSlot(3);
+                alloc->field_20         = gameGetPtrSlot(3);
                 D_actor_444000_80161860 = task;
             }
             if (task->spawnArg1 != 0) {
@@ -298,7 +298,7 @@ void func_actor_444000_801326DC(void)
     msg.field_0 = 0;
     msg.field_1 = 0x2C;
     msg.field_2 = 3;
-    Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+    Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
 }
 
 INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", D_actor_444000_80131E20);

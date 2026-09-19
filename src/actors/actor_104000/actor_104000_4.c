@@ -36,14 +36,14 @@ void func_actor_104000_80138698(Actor104000Ctx* arg0, Actor104000* arg1)
     func_actor_104000_80132C8C(arg1);
     if ((work->field_6 & 7) == 0) {
         Gp_SpawnPadLerp(3, 0xFF, 8);
-        task = Game_GetPtrSlot(3);
+        task = gameGetPtrSlot(3);
         Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair((GpObj50*)arg0, 0), 0);
     }
     counter       = work->field_6 + 1;
     work->field_6 = counter;
     if (counter >= 0x29) {
         work->field_490 = 0x270F;
-        if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)work->field_47C, 0) == 0) {
+        if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)work->field_47C, 0) == 0) {
             work->field_0 = 5;
         } else {
             work->field_0 = 0xD;

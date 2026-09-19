@@ -6502,7 +6502,7 @@ void Gp_UseItemTask(GpIdMapC* arg0)
     }
     if (Gp_StateC08.field_A == 1) {
         if (gGameSession->padPrev & 0x50) {
-            work = (GpActorWork*)Game_GetPtrSlot(3);
+            work = (GpActorWork*)gameGetPtrSlot(3);
             if (work != NULL) {
                 work->actor->field_962 |= 0x40;
             }
@@ -6615,7 +6615,7 @@ void Gp_UseItemTask(GpIdMapC* arg0)
     if (func_800A2104(arg0, x, y) != 0) {
         flag = 1;
     }
-    actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+    actor = ((GpActorWork*)gameGetPtrSlot(3))->actor;
     if ((Gp_StateC08.field_E != 0 && actor->field_954 == 2) || (Gp_StateC08.field_6 & 1)) {
         Gp_StateC08.field_E = 0;
     }
@@ -6739,7 +6739,7 @@ void Gp_HudTask(GpIdMapC* arg0)
         arg0->field_14 = 0;
     }
 
-    slot = Game_GetPtrSlot(1);
+    slot = gameGetPtrSlot(1);
     if (slot != NULL) {
         if (slot->spawnArg1 != Mc_SaveData.at4.loc.view) {
             bad = 1;
@@ -6905,7 +6905,7 @@ after:
                 if ((gGameSession->flowFlags & 0x80) == 0) {
                     goto inc1;
                 }
-                work = Game_GetPtrSlot(3);
+                work = gameGetPtrSlot(3);
                 func_80106350(work, Player_Status.weapon, 0);
                 if (gGameSession->flowFlags & 0x40) {
                     Gp_MsgPlayerWeapon(0);
@@ -6950,7 +6950,7 @@ after:
                     p->field_1 = c - 1;
                 }
             }
-            w = Game_GetPtrSlot(3);
+            w = gameGetPtrSlot(3);
             if (w == NULL) {
                 goto inc1;
             }
@@ -6968,7 +6968,7 @@ after:
             GpActorWork* w;
             s32          c;
 
-            w   = Game_GetPtrSlot(3);
+            w   = gameGetPtrSlot(3);
             hit = 0;
             p2  = &Gp_StateF0;
             c   = p2->field_1;
@@ -7367,7 +7367,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     s32              t;
     s32              pass;
 
-    slot = Game_GetPtrSlot(3);
+    slot = gameGetPtrSlot(3);
     {
         void**       scratch;
         register u8* newhead asm("v1");
@@ -8474,7 +8474,7 @@ void Gp_UpdateLinkXforms(void)
         void**              scratch;
         register u8*        newhead asm("v1");
 
-        slot = Game_GetPtrSlot(3);
+        slot = gameGetPtrSlot(3);
         if (slot == NULL) {
             return;
         }

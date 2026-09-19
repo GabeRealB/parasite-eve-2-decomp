@@ -72,7 +72,7 @@ s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, GpMsg13EF* ar
             msg.field_0 = gGameSession->at4.loc.stage;
             msg.field_1 = gGameSession->at4.loc.area;
             msg.field_2 = 1;
-            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             GameFlag_SetNibble(0xB0, 1);
         }
     }
@@ -94,7 +94,7 @@ void func_dryfield_night_saloon_g_r_8017DF90(Task* task)
         msg.field_0 = gGameSession->at4.loc.stage;
         msg.field_1 = gGameSession->at4.loc.area;
         msg.field_2 = 0;
-        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
     }
     task->state = task->state + 1;
 }
