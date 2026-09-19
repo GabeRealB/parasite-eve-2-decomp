@@ -131303,6 +131303,17 @@ handlers behind one config entry, and converting one of them is a label edit and
 nothing else. Unlike the single-symbol case this half fails loudly - the C that
 calls the renamed handler no longer resolves - where the file named after its
 symbol fails silently.
+A unit holding several symbols is the other case, and the advice above inverts
+there: the config names the *region* it covers (`name: hasm/<Unit>`, naming no
+symbol in particular), so the path is not any one symbol's and a `git mv` on it
+breaks the config instead of completing the rename. Only the `glabel` moves, by
+hand, for the same reason as above - no tool sees an assembly label, and
+`--sidecars` reaches no further than the symbol map and the C references. A
+rename inside such a unit therefore costs one line of assembly and one
+declaration, and needs no re-split to be safe, because the region's output path
+never moved. `Tmd_StreamHandlers_Ops.s` is that shape - twenty stream handlers
+in one region - and `tmdDrawStreamPrimGt3CornerColors` (`Op130`) was converted
+in exactly that way.
 
 ## A model stream record's packet type is in its draw-path twin
 

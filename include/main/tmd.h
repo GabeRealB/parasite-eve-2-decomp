@@ -340,7 +340,21 @@ u32* Tmd_StreamHandler_Op1A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op18(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op58(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op5A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_Op130(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Handler of a stream's textured-triangle records that carry a colour per
+/// corner (`0x130`): each element contributes one triangle, projected, shaded
+/// and linked into the ordering table.
+///
+/// The element names a vertex, a normal and a colour for each of the triangle's
+/// three corners, so every corner is shaded from a pair of its own where the
+/// record families that carry one colour for the whole element shade all three
+/// from that one colour. An element whose vertices fall behind the camera, or
+/// whose triangle faces away, contributes nothing. The model's flags choose
+/// between the opaque and the semi-transparent form of the primitive.
+///
+/// The element's texture words are not this handler's: the other pass over the
+/// same stream copies them into the model's buffer when the model is created,
+/// and this one leaves them where they lie.
+u32* tmdDrawStreamPrimGt3CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op170(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 // Overlay stream commands (src/gameplay/gameplay.c), selected by

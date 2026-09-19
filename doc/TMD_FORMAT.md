@@ -309,12 +309,13 @@ a family-dependent amount: +2 words for `0x30`→`0x130`, +3 for `0x70`→`0x170
 and +0 for `0x31`→`0x131` and `0x71`→`0x171`. What they move behind is the
 element's colour: a family clearing `0x08` carries its material colour in the
 element, and `0x100` makes that one word per corner instead of one for the
-element. The init handlers are where this shows — `Tmd_StreamHandler_Op130`
-loads three such words into the GTE colour register, one ahead of each corner's
-lighting step, and `Op170` loads four, each result stored into the matching
-corner colour of the `POLY_GT3`/`POLY_GT4` packet they build. The families that
-gain nothing are the pre-transformed ones (bit `0x01`), whose colours the `0xC8`
-pass writes into the primitive buffer, so their elements carry none to shift.
+element. The early-image handlers are where this shows —
+`tmdDrawStreamPrimGt3CornerColors` loads three such words into the GTE colour
+register, one ahead of each corner's lighting step, and `Op170` loads four, each
+result stored into the matching corner colour of the `POLY_GT3`/`POLY_GT4`
+packet they build. The families that gain nothing are the pre-transformed ones
+(bit `0x01`), whose colours the `0xC8` pass writes into the primitive buffer, so
+their elements carry none to shift.
 
 ### 3.3 How arity was established
 

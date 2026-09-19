@@ -7,11 +7,13 @@
  * TMD early-image stream handlers  (VRAM 0x80010A90 / ROM 0x1290)
  * ------------------------------------------------------------
  * Permanent handwritten assembly (splat type: hasm).
- * Named by primary Tmd_InitSourceStream opcode (OpXX) until the handler's role
- * is settled, which is when it takes a role name instead. Dual-entry alternates
- * use alabel (e.g. alabel Tmd_StreamHandler_Op3A shares the body of glabel
- * tmdDrawStreamGt3). A handler named for what it does rather than for its
- * opcode is documented at its declaration in include/main/tmd.h.
+ * One body per stream opcode: Tmd_InitSourceStream resolves the body into the
+ * stream beside the opcode, and Tmd_DispatchStream jalr's it. Each body is named
+ * after the opcode it serves (OpXX) until the handler's role is settled, which
+ * is when it takes a role name instead. Dual-entry alternates use alabel (e.g.
+ * alabel Tmd_StreamHandler_Op3A shares the body of glabel tmdDrawStreamGt3). A
+ * handler named for what it does rather than for its opcode is documented at its
+ * declaration in include/main/tmd.h.
  * Early-image placement (linker_section_order: .rodata).
  *
  * Op20/Op60/Op40        flat / clipped triangle & quad families
@@ -1779,7 +1781,7 @@ glabel Tmd_StreamHandler_Op5A
   .L80012374:
     /* 2B74 80012374 */  j           .L8001238C
     /* 2B78 80012378 */  nop
-glabel Tmd_StreamHandler_Op130
+glabel tmdDrawStreamPrimGt3CornerColors
     /* 2B7C 8001237C */  andi        $t0, $a1, 0x2
     /* 2B80 80012380 */  bnez        $t0, .L80012370
     /* 2B84 80012384 */  nop
