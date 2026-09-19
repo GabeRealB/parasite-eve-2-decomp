@@ -47,14 +47,14 @@ tmdDrawStreamPrimGt3PreXformSemiTrans      = 0x800113B4; // type:func  (alabel, 
 tmdDrawStreamPrimGt3PreXform      = 0x800113E8; // type:func
 Tmd_StreamHandler_Op7B      = 0x800114FC; // type:func  (alabel, ABR entry into Op79)
 Tmd_StreamHandler_Op79      = 0x80011530; // type:func
-tmdDrawStreamPrimG3             = 0x80011678; // type:func
-tmdDrawStreamPrimG4         = 0x800117BC; // type:func
-tmdDrawStreamPrimGt3OneNormalSemiTrans      = 0x80011994; // type:func  (alabel into tmdDrawStreamPrimGt3OneNormal)
-tmdDrawStreamPrimGt3OneNormal      = 0x800119A8; // type:func
-tmdDrawStreamPrimGt4OneNormal      = 0x80011AF4; // type:func  (alabel, opaque entry into Op5A)
-Tmd_StreamHandler_Op5A      = 0x80011B08; // type:func
-tmdDrawStreamPrimGt3CornerColors  = 0x8001237C; // type:func
-tmdDrawStreamPrimGt4CornerColors    = 0x80012520; // type:func
+tmdDrawStreamPrimG3                    = 0x80011678; // type:func
+tmdDrawStreamPrimG4                    = 0x800117BC; // type:func
+tmdDrawStreamPrimGt3OneNormalSemiTrans = 0x80011994; // type:func  (alabel into tmdDrawStreamPrimGt3OneNormal)
+tmdDrawStreamPrimGt3OneNormal          = 0x800119A8; // type:func
+tmdDrawStreamPrimGt4OneNormal          = 0x80011AF4; // type:func  (alabel, opaque entry into tmdDrawStreamPrimGt4OneNormalSemiTrans)
+tmdDrawStreamPrimGt4OneNormalSemiTrans = 0x80011B08; // type:func
+tmdDrawStreamPrimGt3CornerColors       = 0x8001237C; // type:func
+tmdDrawStreamPrimGt4CornerColors       = 0x80012520; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x02F50   VA: 0x80012750   subsegment: .rodata, boot

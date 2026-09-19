@@ -132514,6 +132514,20 @@ and those instructions can look like the answer, since a neighbouring family's
 colour load is exactly what is being looked for. Read each body to its `jr $ra`
 exits instead, and check that a candidate load falls inside the block the
 opcode's own refs end at before recording it.
+*forward* into `tmdDrawStreamPrimGt4OneNormalSemiTrans`'s body. Reading from one
+label to the next therefore attributes the following opcode family's
+instructions to the one being read — and those instructions can look like the
+answer, since a neighbouring family's colour load is exactly what is being
+looked for. Read each body to its `jr $ra` exits instead, and check that a
+candidate load falls inside the block the opcode's own refs end at before
+recording it.
+
+The span the symbol map gives that label is not the entry's body either: the
+next named row can be thousands of bytes away, and the code in between is what
+the named handlers reach by branch — a variant loop the `flags` test at a
+handler's front selects, shared by the several entries that ask for it. So a
+handler is its entry address, not a range; a step that reads a symbol's body
+from the map's rows will attribute a neighbour's variant to it.
 
 ## A phantom view folds into its owner only in the form the target used: the offset is an `addiu`, the owner's own pointer member is a load (GpAnimCtx, 2026-09-19)
 

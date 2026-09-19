@@ -329,6 +329,7 @@ directions.
 | `tmdDrawStreamGt3` | `0x8`, `0x14`, `0x20` | `POLY_GT3` | triangle |
 | `Tmd_StreamHandler_Op60` | `0x10`, `0x18`, `0x20` | `POLY_G4` | quad |
 | `tmdDrawStreamGt4` | `0x14`, `0x20`, `0x2C` | `POLY_GT4` | quad |
+| `tmdDrawStreamPrimGt4OneNormal` | `0x8`, `0x14`, `0x20`, `0x2C` | `POLY_GT4` | quad |
 
 The quad handlers store three coordinates because the fourth is written on a
 second pass.

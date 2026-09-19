@@ -486,12 +486,28 @@ u32* tmdDrawStreamPrimGt3OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* str
 /// a quad the facing tests reject, is not drawn, though the packet's room is
 /// passed over either way, so the primitives stay in step with the elements.
 ///
-/// The `0x5A` entry shares this body and differs only in the primitive code the
-/// quad is drawn with, which this family carries in a fixed material colour
-/// instead of reading one from the element: `0x3C` opaque, `0x3E` blended. Which
-/// of the two is drawn is settled by the opcode alone, so `flags` selects nothing.
+/// This entry is the opaque one and the `0x5A` record asks for the blended form
+/// by its opcode alone; the two differ in nothing but the primitive code the quad
+/// is drawn under, which this family carries in a fixed material colour rather
+/// than in the element: `0x3C` here, `0x3E` there.
 u32* tmdDrawStreamPrimGt4OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_Op5A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+/// The draw pass's handler for a stream's one-normal textured-quad records that
+/// ask for the semi-transparent primitive (`0x5A`): each element's quad is taken to
+/// screen space and lit from the element's one normal, and its packet is filled in
+/// with the resulting screen coordinates and colour and linked into the ordering
+/// table, unless the transform clipped it or the facing tests turned it away.
+///
+/// The element is the opaque `0x58` quad's — one normal for the whole quad rather
+/// than one per corner, and the same refs and texture words — and the two entries
+/// share one body, so the primitive code the packet is built under is the whole of
+/// the difference between the two records: `0x3C` for the opaque quad and `0x3E`
+/// here, the semi-transparency bit being the difference. The element names no
+/// colour, so the quad is lit from a fixed mid-grey, and the same constant carries
+/// both, the code in its top byte. The opcode alone selects the variant, so `flags`
+/// goes unread.
+u32* tmdDrawStreamPrimGt4OneNormalSemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 /// Handler of a stream's textured-triangle records that carry a colour per
 /// corner (`0x130`): each element contributes one triangle, projected, shaded
 /// and linked into the ordering table.

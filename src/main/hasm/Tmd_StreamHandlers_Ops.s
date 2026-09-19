@@ -22,10 +22,11 @@
  * Op7A/tmdDrawStreamGt4  gouraud textured quad (+ ABR)
  * tmdDrawStreamPrimGt3PreXform/tmdDrawStreamPrimGt3PreXformSemiTrans,
  * Op79/Op7B              pre-transformed textured gouraud (+ ABR) tri/quad
- * 0x18/0x1A, 0x58/0x5A  one-normal textured tri/quad (+ ABR), fixed colour
+ * tmdDrawStreamPrimGt3OneNormal/SemiTrans (0x18/0x1A)  one-normal textured tri, fixed colour
+ * tmdDrawStreamPrimGt4OneNormal/SemiTrans (0x58/0x5A)  one-normal textured quad, fixed colour
  * OpC0/tmdXformStreamVerts  stream transform helpers
- * Op130                 extended 0x30-family path
- * 0x170                 extended 0x70-family path
+ * tmdDrawStreamPrimGt3CornerColors  extended 0x30-family path
+ * tmdDrawStreamPrimGt4CornerColors  extended 0x70-family path
  */
 
 .section .text, "ax"
@@ -1189,7 +1190,7 @@ alabel tmdDrawStreamPrimGt4OneNormal
     /* 22FC 80011AFC */  mtc2        $t0, $6
     /* 2300 80011B00 */  j           .L80011B14
     /* 2304 80011B04 */  nop
-glabel Tmd_StreamHandler_Op5A
+glabel tmdDrawStreamPrimGt4OneNormalSemiTrans
     /* 2308 80011B08 */  lui         $t0, 0x3E80
     /* 230C 80011B0C */  ori         $t0, $t0, 0x8080
     /* 2310 80011B10 */  mtc2        $t0, $6
