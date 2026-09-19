@@ -4594,7 +4594,7 @@ void Gp_InitPlayClock(Task* task)
     gGameSession->field_5E = 1;
     rec                    = Mem_Calloc(0x30, 0);
     if (rec == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     Gp_ResetHudFx(&rec->extra);
@@ -4858,7 +4858,7 @@ countdown:
     arg0->killCountdown--;
     if (arg0->killCountdown <= 0) {
         if (D_80062734 == 0xFF) {
-            Task_Kill(arg0);
+            taskKill(arg0);
             Stage_SetEndingFlag();
         }
     }
@@ -5266,7 +5266,7 @@ void Gp_AreaEnterTask(Task* arg0)
             if (CdCmd_IsIdle() & 0xFFFF) {
                 GameMain_SetFrameTiming(1);
                 SndEvt_EnqueueType9(0xD);
-                Task_Kill(arg0);
+                taskKill(arg0);
                 Stage_ReleasePrimBuf();
                 Stage_SetEndingFlag();
             }
@@ -9142,7 +9142,7 @@ s32 Gp_SpawnViewCoordTask(GsCOORDINATE2* arg0, VECTOR* arg1)
     }
     pos = Mem_Calloc(sizeof(VECTOR), 0);
     if (pos == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return 0;
     }
     task->work = (TaskIdMap*)pos;
@@ -9221,7 +9221,7 @@ void func_800A8654(Task* task)
     Gfx_ViewOffsetCoord.flg = 0;
     D_80070E40.flg          = 0;
     Gfx_ViewCoord.flg       = 0;
-    Task_Kill(task);
+    taskKill(task);
 }
 
 void Gp_LoadStageView(void)
@@ -9432,7 +9432,7 @@ void Gp_ApplyViewTask(Task* task)
     Gfx_ViewOffsetCoord.flg                                                 = 0;
     ((GsCOORDINATE2*)((u8*)rot - OFFSET_OF(GsCOORDINATE2, coord)))->flg     = 0;
     ((GsCOORDINATE2*)((u8*)trans - OFFSET_OF(GsCOORDINATE2, coord.t)))->flg = 0;
-    Task_Kill(task);
+    taskKill(task);
 }
 
 void func_800A8D5C(void)

@@ -102,7 +102,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 work       = Mem_Calloc(0xC, 0);
                 arg0->work = (TaskIdMap*)work;
                 if (work == NULL) {
-                    Task_Kill(arg0);
+                    taskKill(arg0);
                 } else {
                     Mem_Set(work, 0, 0xC);
                     work->target                   = Game_GetPtrSlot(3);
@@ -133,7 +133,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 Mc_SaveData.at4.loc.room  = 1;
                 D_80071076                = 1;
                 Task_Spawn(0, 0x11, 0, 0);
-                Task_Kill(arg0);
+                taskKill(arg0);
                 break;
             }
             cutscene = (AcsCutsceneWork*)arg0->work;

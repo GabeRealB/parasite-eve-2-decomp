@@ -87,7 +87,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
             temp       = (blk == NULL);
             task->work = (TaskIdMap*)blk;
             if (temp) {
-                Task_Kill(task);
+                taskKill(task);
             } else {
                 Mem_Set(blk, 0, 8);
                 blk->target = Game_GetPtrSlot(3);
@@ -131,7 +131,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
             break;
         case 6:
             Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 

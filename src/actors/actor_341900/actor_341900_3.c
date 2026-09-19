@@ -60,7 +60,7 @@ void func_actor_341900_80163488(void)
     Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
 
     if (work->field_8 != NULL) {
-        Task_Kill(work->field_8);
+        taskKill(work->field_8);
         work->field_8 = NULL;
     }
 }
@@ -70,11 +70,11 @@ void func_actor_341900_801634D0(void)
     Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
 
     if (work->field_C != NULL) {
-        Task_Kill(work->field_C);
+        taskKill(work->field_C);
         work->field_C = NULL;
     }
     if (work->field_10 != NULL) {
-        Task_Kill(work->field_10);
+        taskKill(work->field_10);
         work->field_10 = NULL;
     }
 }

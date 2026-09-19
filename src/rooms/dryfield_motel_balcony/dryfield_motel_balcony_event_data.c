@@ -21,5 +21,5 @@ void                        func_dryfield_motel_balcony_8017DBC8(Task* arg0);
 const TaskFuncTable3 RoomsShared8017d878Table = {
     RoomsShared8017db84,
     func_dryfield_motel_balcony_8017DBC8,
-    Task_Kill,
+    taskKill,
 };

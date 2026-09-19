@@ -166,7 +166,7 @@ void func_actor_310100_801620FC(Task* task)
             Gfx_RotMatrixY(&coord->coord, place->field_A, 0);
             display            = (Actor310100Work*)work->field_4E4->work;
             display->field_4F0 = 0;
-            Task_Kill(task);
+            taskKill(task);
             Display_ResetHeapWrapper();
             break;
     }
@@ -230,7 +230,7 @@ void func_actor_310100_80162284(Task* task)
             Gfx_RotMatrixY(&coord->coord, place->field_A, 0);
             display            = (Actor310100Work*)work->field_4E4->work;
             display->field_4F0 = 0;
-            Task_Kill(task);
+            taskKill(task);
             Display_ResetHeapWrapper();
             break;
     }
@@ -261,7 +261,7 @@ void func_actor_310100_80162414(Task* task, s32 arg1)
     mode       = arg1;
     task->work = (TaskIdMap*)work;
     if (work == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     work->field_508 = arg1;
@@ -321,7 +321,7 @@ void func_actor_310100_801625E4(Task* task, s32 arg1)
     mode       = arg1;
     task->work = (TaskIdMap*)work;
     if (work == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     work->field_508 = arg1;
@@ -424,7 +424,7 @@ void func_actor_310100_801627BC(Task* task)
             if (!on) {
                 work2 = (Actor310100Work*)task->work;
                 task->state--;
-                Task_Kill(work2->field_4E4);
+                taskKill(work2->field_4E4);
                 work2->field_4E4 = NULL;
             }
             break;
@@ -508,7 +508,7 @@ void func_actor_310100_801629FC(Task* task)
             if (!on) {
                 work->field_504 = ((Actor310100Work*)work->field_4E4->work)->field_504;
                 task->state--;
-                Task_Kill(work->field_4E4);
+                taskKill(work->field_4E4);
                 work->field_4E4 = NULL;
             }
             break;
@@ -521,7 +521,7 @@ void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, Actor310100Plac
 
     work = (Actor310100Work*)task->work;
     if (work->field_4E4 != NULL) {
-        Task_Kill(work->field_4E4);
+        taskKill(work->field_4E4);
     }
     work->field_506 = placement->pos.vy;
     Display_SpawnWithOt(&D_actor_310100_801798E4, 0, arg2, (s32)task);
@@ -542,7 +542,7 @@ void func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2)
         return;
     }
     if (work->field_4E4 != NULL) {
-        Task_Kill(work->field_4E4);
+        taskKill(work->field_4E4);
     }
     Display_SpawnWithOt(&D_actor_310100_801798F0, 0, arg2, (s32)task);
 }
@@ -632,7 +632,7 @@ void func_actor_310100_80162F34(Task* task)
 
     work = (Actor310100Work*)task->work;
     if (work->field_4E4 != NULL) {
-        Task_Kill(work->field_4E4);
+        taskKill(work->field_4E4);
         work->field_4E4 = NULL;
     }
     task->state = 3;

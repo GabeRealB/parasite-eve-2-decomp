@@ -3750,7 +3750,7 @@ void func_actor_503500_80143AC0(Task* arg0)
     switch (arg0->state) {
         case 0:
             if (D_80073BA0 <= 0) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             Mem_Set(work, 0, sizeof(Actor503500Work38));
@@ -3830,7 +3830,7 @@ void func_actor_503500_80143AC0(Task* arg0)
         case 4:
             if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
                 Gp_DispatchMsg(player, 0x3F1, 2, 0);
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }
@@ -4006,7 +4006,7 @@ void func_actor_503500_80144300(Task* arg0)
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = Mem_Calloc(sizeof(*work), false);
     if (work == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     arg0->work = (TaskIdMap*)work;
@@ -4133,7 +4133,7 @@ void func_actor_503500_8014473C(Task* arg0)
 {
     func_actor_503500_801372AC(1);
     Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void func_actor_503500_80144778(Actor503500* arg0)
@@ -4194,7 +4194,7 @@ void func_actor_503500_801448E8(Task* arg0)
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = Mem_Calloc(sizeof(*work), false);
     if (work == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     arg0->work = (TaskIdMap*)work;
@@ -4331,7 +4331,7 @@ void func_actor_503500_80144DA8(Task* arg0)
         SndEvt_EnqueueType7(0x40230007, 1);
     }
     Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 void func_actor_503500_80144E10(Task* arg0)
 {
@@ -4361,7 +4361,7 @@ void func_actor_503500_80144E8C(Task* arg0)
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = Mem_Calloc(sizeof(*work), false);
     if (work == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     arg0->work     = (TaskIdMap*)work;

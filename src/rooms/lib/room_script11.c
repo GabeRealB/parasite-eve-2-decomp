@@ -18,8 +18,8 @@ void Room_Script11(Task* arg0)
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;
     D_8007216C                 = 4;
-    /* Without the barrier GCC fills Task_Kill's delay slot with the byte store. */
+    /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     SOFT_BARRIER();
-    Task_Kill((Task*)arg0->spawnArg2);
+    taskKill((Task*)arg0->spawnArg2);
     Task_RequestKill(arg0, 0);
 }

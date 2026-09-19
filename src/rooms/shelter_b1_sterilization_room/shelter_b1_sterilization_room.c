@@ -157,7 +157,7 @@ void func_shelter_b1_sterilization_room_80180188(Task* task)
         case 8:
             Gp_MsgPlayerWeapon(1);
             Gp_ResetCap();
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

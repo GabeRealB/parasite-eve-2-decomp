@@ -63,7 +63,7 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
         default:
             return;
     }
-    Task_Kill(task);
+    taskKill(task);
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_saloon_g_r/dryfield_night_saloon_g_r", D_dryfield_night_saloon_g_r_8017D600);

@@ -10,7 +10,7 @@
 /// model that task owns. `Tmd_Create` starts `field_C` at 0x80 and sets bit
 /// 0x4 when it allocated the draw buffers, so clearing 0x4 hands the object
 /// back to `Tmd_AllocBuffers` to rebuild them, while bit 0x80 is the deferred
-/// kill `Task_Kill` sets.
+/// kill `taskKill` sets.
 void ActorsShared80132390(Task* task);
 
 #endif

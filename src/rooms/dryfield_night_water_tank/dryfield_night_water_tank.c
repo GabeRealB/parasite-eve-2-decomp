@@ -53,7 +53,7 @@ void func_dryfield_night_water_tank_8017D5D0(Task* task)
                 func_800E8634((s32)&D_80137C28, 0, (s32)&D_80138570);
                 GameFlag_SetNibble(3, 0);
                 GameFlag_SetNibble(0x155, 0xE);
-                Task_Kill(task);
+                taskKill(task);
                 return;
             }
             task->killCountdown = task->killCountdown - 1;

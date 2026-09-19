@@ -53,7 +53,7 @@ L_case2:
     if (GameFlag_GetNibble(0xCF) != 0) {
         Gp_RunCapCmd(4, 0);
         Task_SpawnFromTable(D_shelter_b3_elevator_hall_80182A2C, 0, 0x542A0001, 0);
-        Task_Kill(task);
+        taskKill(task);
         SCHED_BARRIER();
     } else {
         Gp_RunCapCmd1(3);
@@ -74,7 +74,7 @@ L_case4:
     } else {
         Gp_MsgPlayerWeapon(1);
         D_801153F4 = 0;
-        Task_Kill(task);
+        taskKill(task);
     }
     goto advance;
 
@@ -90,7 +90,7 @@ L_case6:
     SndEvt_EnqueueType7(0x80000000, 0);
     D_80071076 = 1;
     Task_Spawn(0, 0x11, 0, 0);
-    Task_Kill(task);
+    taskKill(task);
 }
 
 s32 func_shelter_b3_elevator_hall_8017DC78(void)

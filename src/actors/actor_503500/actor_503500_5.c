@@ -142,7 +142,7 @@ extern s8 D_801153F1;
 void func_actor_503500_80132D20(Task* arg0)
 {
     func_800E8634((s32)D_actor_503500_8014CD98, 0, (s32)D_actor_503500_8014D098);
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void func_actor_503500_80132D60(void)

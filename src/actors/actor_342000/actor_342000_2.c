@@ -14,5 +14,5 @@ void func_actor_342000_80163F88(Task* task)
     work  = (Actor342000Work*)task->work;
 
     coord->sub = work->field_2A4;
-    Task_Kill(task);
+    taskKill(task);
 }

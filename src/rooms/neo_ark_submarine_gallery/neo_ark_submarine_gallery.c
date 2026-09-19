@@ -58,7 +58,7 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             break;
         case 2:
             if (Gp_GetCapEventKey() != 0xA) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
                 D_801153F4 = 0;
                 break;
@@ -86,7 +86,7 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             Mc_SaveData.at4.loc.warp = D_neo_ark_submarine_gallery_80185924.field_4;
             Mc_SaveData.at4.loc.room = D_neo_ark_submarine_gallery_80185924.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

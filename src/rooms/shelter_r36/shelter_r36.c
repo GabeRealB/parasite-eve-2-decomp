@@ -40,7 +40,7 @@ void func_shelter_r36_8017D5E8(Task* task)
                 if (GameFlag_GetNibble(0x113) == 0) {
                     gGameSession->restartMode = 0xFF;
                     gGameSession->field_12E   = state;
-                    Task_Kill(task);
+                    taskKill(task);
                 } else {
                     Gp_ResetCap();
                     task->state++;
@@ -49,7 +49,7 @@ void func_shelter_r36_8017D5E8(Task* task)
             break;
         case 2:
             func_800E8634((s32)&D_shelter_r36_8017E664, 0, (s32)&D_shelter_r36_8017E8BC);
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }
@@ -82,7 +82,7 @@ void func_shelter_r36_8017D7B4(Task* task)
         case 2:
             gGameSession->restartMode = 0xFF;
             gGameSession->field_12E   = 1;
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

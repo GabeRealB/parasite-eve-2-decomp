@@ -117,7 +117,7 @@ void func_dryfield_gas_station_8017F4B4(Task* task)
         case 5:
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
                 SndEvt_EnqueueType7(script->field_10, 1);
-                Task_Kill(D_dryfield_gas_station_80184BD0);
+                taskKill(D_dryfield_gas_station_80184BD0);
                 task->state++;
             } else if (Task_PollKill(D_dryfield_gas_station_80184BD0, &poll) != 0) {
                 task->state++;
@@ -213,7 +213,7 @@ void func_dryfield_gas_station_8017F4B4(Task* task)
                 Gp_ResetCap();
             }
             D_80114D08 = 0xA;
-            Task_Kill(task);
+            taskKill(task);
             break;
         case 15:
         case 16:

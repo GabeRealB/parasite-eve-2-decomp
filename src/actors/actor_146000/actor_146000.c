@@ -47,7 +47,7 @@ void func_actor_146000_80131E24(Task* arg0)
             Mc_SaveData.at4.loc.room = state;
             D_80071076               = 1;
             Task_Spawn(0, 0x11, 0, 0);
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

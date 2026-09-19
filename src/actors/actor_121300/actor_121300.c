@@ -26,7 +26,7 @@ void func_actor_121300_801326EC(Task* arg0)
             alloc      = (Actor121300FadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             fade    = alloc;
@@ -48,7 +48,7 @@ void func_actor_121300_801326EC(Task* arg0)
             fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1);
             fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1);
             if ((s16)fade->r < 0) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }
@@ -119,7 +119,7 @@ void func_actor_121300_8013293C(Task* arg0)
     obj   = arg0->extra;
     coord = obj->coords;
     if (D_actor_121300_8013D41C == 0) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     switch (arg0->state) {
@@ -127,7 +127,7 @@ void func_actor_121300_8013293C(Task* arg0)
             alloc      = (Actor121300DebrisWork*)Mem_Malloc(0x5C, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             work = alloc;
@@ -267,7 +267,7 @@ void func_actor_121300_8013293C(Task* arg0)
             Gfx_RotMatrixZ(&coord->coord, work->rotZ, 0);
             coord->flg = 0;
             if (coord->coord.t[1] >= -499) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }

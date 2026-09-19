@@ -74,7 +74,7 @@ void func_dryfield_gas_station_8017FE20(Task* arg0)
             }
             break;
         case 2:
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

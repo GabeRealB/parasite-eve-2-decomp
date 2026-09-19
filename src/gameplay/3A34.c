@@ -689,7 +689,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
         set = (GpRoomCoordSet*)Gp_GetRoomCoordSet(&gs->at4.loc);
     }
     if (set == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
 
@@ -2584,7 +2584,7 @@ void Gp_BindDefaultMtx(Task* arg0)
         result = Gp_GetRoomCoordSet(&gGameSession->at4.loc);
         i      = 0;
         if (result == 0) {
-            Task_Kill(arg0);
+            taskKill(arg0);
             return;
         }
         addr = (s32)&Gp_DefaultMtx;
@@ -7281,7 +7281,7 @@ void Gp_EvtCapTask(Task* arg0)
             if (D_80115598 != 0) {
                 Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F2, (s32)arg0->spawnArg2 + 0x64, 0);
             }
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

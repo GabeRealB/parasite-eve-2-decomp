@@ -62,7 +62,7 @@ void func_mine_mesa_8017D670(Task* arg0)
             Mc_SaveData.at4.loc.warp = D_mine_mesa_80189B40.field_2;
             Mc_SaveData.at4.loc.room = D_mine_mesa_80189B40.field_3;
             Task_Spawn(0, 0x11, 0, 0);
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

@@ -6,7 +6,7 @@
 // same here as it does in main/ or gameplay/.
 
 // --- from main (26 symbols)
-Task_Kill = 0x8002CCB8; // absolute:True
+taskKill = 0x8002CCB8; // absolute:True
 Task_Spawn = 0x8002CFDC; // absolute:True
 Task_Reparent = 0x8002D14C; // absolute:True
 Game_GetPtrSlot = 0x8002D22C; // absolute:True

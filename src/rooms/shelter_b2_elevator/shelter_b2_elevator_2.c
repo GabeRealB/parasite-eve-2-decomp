@@ -59,7 +59,7 @@ void func_shelter_b2_elevator_8017D888(Task* task)
             Mc_SaveData.at4.loc.warp = msg2.field_2;
             Mc_SaveData.at4.loc.room = msg2.field_3;
             Task_Spawn(0, 0x11, 0, 0);
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

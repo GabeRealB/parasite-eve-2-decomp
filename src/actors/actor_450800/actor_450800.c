@@ -304,9 +304,9 @@ void func_actor_450800_80132868(Task* task)
     Actor450800Work* work = (Actor450800Work*)task->work;
 
     Gp_DestroyEnemy(task->spawnArg2, task);
-    Task_Kill(work->field_4F0);
-    Task_Kill(work->field_4F4);
-    Task_Kill(work->field_4F8);
+    taskKill(work->field_4F0);
+    taskKill(work->field_4F4);
+    taskKill(work->field_4F8);
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_801328BC);

@@ -6,7 +6,7 @@
 #include "main/task.h"
 
 /// `Task::exitCallback` the overlay's controller task is handed once the actor
-/// is up: it only hands the task to `Task_Kill`.
+/// is up: it only hands the task to `taskKill`.
 void ActorsShared80162850(Task* task);
 
 #endif

@@ -1048,7 +1048,7 @@ void func_mist_shooting_gallery_8017FDD0(Task* arg0)
         case 2:
             Gp_MsgPlayerWeapon(1);
             Gp_ResetCap();
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

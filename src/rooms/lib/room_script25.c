@@ -96,6 +96,6 @@ L_case6:
         return;
     }
 kill:
-    Task_Kill(task);
+    taskKill(task);
     Display_ResetHeapWrapper();
 }

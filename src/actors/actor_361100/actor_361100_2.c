@@ -31,7 +31,7 @@ void func_actor_361100_801629D0(s32 arg0)
                 return;
             }
         }
-        Task_Kill(D_actor_361100_80171BE0);
+        taskKill(D_actor_361100_80171BE0);
         D_actor_361100_80171BE0 = NULL;
     }
 }
@@ -53,6 +53,6 @@ void func_actor_361100_80162A54(Task* arg0)
     }
     if ((arg0->spawnArg1 <= 0) || (gGameSession->evtSkipped != 0)) {
         Display_ClampField126(0);
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }

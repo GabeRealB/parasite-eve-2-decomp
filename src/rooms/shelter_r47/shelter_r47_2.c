@@ -107,7 +107,7 @@ void func_shelter_r47_80180650(Task* task)
         case 2:
             Gp_MsgPlayerWeapon(1);
             Gp_ResetCap();
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }
@@ -127,7 +127,7 @@ void func_shelter_r47_80180714(Task* task)
             Gp_MsgAllyWeapon(1);
         }
         D_shelter_r47_8018A690 = NULL;
-        Task_Kill(task);
+        taskKill(task);
     }
 }
 

@@ -54,7 +54,7 @@ void func_dryfield_junk_yard_8017D5F4(Task* task)
 /// matrix, draws the ground-effect quad at its position.
 ///
 /// Skipped outright once the model is marked for deferred kill (`field_C` bit
-/// 0x80, what `Task_Kill` ORs in for a spawnType-1 task) or before its aux
+/// 0x80, what `taskKill` ORs in for a spawnType-1 task) or before its aux
 /// buffers exist (`field_18`, allocated by `Tmd_AllocBuffers`), so a model
 /// still streaming in draws nothing. `0x1A0` and `0xC0` are the same width and
 /// height the room's other ground quads pass.
@@ -107,7 +107,7 @@ void func_dryfield_junk_yard_8017D708(Task* arg0)
 /// script pointer; cases 4 and 6 send the bare `0x3F0` / `0x3ED` and stop the
 /// sequence when the driver answers nonzero. Case 1 gates the whole thing on
 /// `gGameSession->eventState` (the field `func_dryfield_junk_yard_8017D708` tests
-/// as `field_8`), and cases 7/2 fall through to `Task_Kill`.
+/// as `field_8`), and cases 7/2 fall through to `taskKill`.
 void func_dryfield_junk_yard_8017D848(Task* task)
 {
     switch (task->state) {
@@ -145,7 +145,7 @@ void func_dryfield_junk_yard_8017D848(Task* task)
             Gp_DispatchMsg(Game_GetPtrSlot(0xA), 0x3E8, (s32)&D_dryfield_junk_yard_8017DDEC, 0);
             /* fallthrough */
         case 2:
-            Task_Kill(task);
+            taskKill(task);
             return;
     }
 }

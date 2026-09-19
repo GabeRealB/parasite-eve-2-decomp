@@ -64,7 +64,7 @@ void func_actor_341300_80162478(Task* arg0)
                 return;
             }
         default:
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }
@@ -260,7 +260,7 @@ void func_actor_341300_80162878(Task* arg0)
         case 1:
             if (coord->coord.t[1] > 0) {
             kill:
-                Task_Kill(arg0);
+                taskKill(arg0);
                 break;
             }
             work->vel.vy      += 8;
@@ -422,7 +422,7 @@ void func_actor_341300_801631D4(Task* arg0)
         case 1:
             if (coord->coord.t[1] > 0) {
             kill:
-                Task_Kill(arg0);
+                taskKill(arg0);
                 break;
             }
             work->vel.vy      += 8;
@@ -474,7 +474,7 @@ void func_actor_341300_8016398C(s32 arg0)
 void func_actor_341300_801639CC(s32 arg0)
 {
     if (((arg0 << 0x10) == 0) && (D_actor_341300_80165A2C != NULL)) {
-        Task_Kill(D_actor_341300_80165A2C);
+        taskKill(D_actor_341300_80165A2C);
         D_actor_341300_80165A2C = NULL;
     }
 }

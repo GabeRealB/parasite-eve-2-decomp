@@ -331,11 +331,11 @@ void func_actor_400600_8013AAD8(Task* arg0)
     SOFT_BARRIER();
     child = work->field_704;
     if (child != NULL) {
-        Task_Kill(child);
+        taskKill(child);
     }
     child2 = work->field_708;
     if (child2 != NULL) {
-        Task_Kill(child2);
+        taskKill(child2);
     }
     work->field_718 = 0;
     work->field_71C = work->field_71C + 1;

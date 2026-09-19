@@ -256,7 +256,7 @@ done:
     gGameSession->cutsceneHold = 0;
     gGameSession->hideHud      = 0;
     gGameSession->eventState   = 0;
-    Task_Kill((Task*)task->spawnArg2);
+    taskKill((Task*)task->spawnArg2);
     Task_RequestKill(task, 0);
 }
 

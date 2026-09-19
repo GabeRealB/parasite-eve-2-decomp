@@ -28,7 +28,7 @@ void Room_Script24(Task* task)
         default:
             Gp_MsgPlayerWeapon(1);
             Gp_MsgAllyWeapon(1);
-            Task_Kill(task);
+            taskKill(task);
             return;
     }
 }

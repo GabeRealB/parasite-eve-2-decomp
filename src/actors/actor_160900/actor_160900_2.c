@@ -17,7 +17,7 @@ void func_actor_160900_80134710(void)
     for (i = 0; i < 10; i++) {
         task = work->field_C[i];
         if (task != NULL) {
-            Task_Kill(task);
+            taskKill(task);
             work->field_C[i] = NULL;
         }
     }

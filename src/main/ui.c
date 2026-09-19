@@ -1959,7 +1959,7 @@ UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0_, s32 arg1, s32 arg2, s32 arg3)
                 obj->timer         = dummy;
                 obj->callback      = cb;
             } else {
-                Task_Kill(task);
+                taskKill(task);
             }
         }
         result = obj;
@@ -2157,7 +2157,7 @@ UiObject* Ui_SpawnFromDesc(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3, UiO
                 Task_Reparent(arg4->owner, task);
             }
         } else {
-            Task_Kill(task);
+            taskKill(task);
         }
     }
     return obj;
@@ -2187,7 +2187,7 @@ void Ui_FreeAndKill(Task* arg0)
     if (arg0->spawnArg2 != NULL) {
         memFree(arg0->spawnArg2);
     }
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void Ui_SetState4(Task* arg0, Task* arg1)

@@ -48,7 +48,7 @@ void func_mine_mesa_8017E024(Task* arg0)
     Display_SpawnWithOt(&D_mine_mesa_80181990, 1, 0, 0);
     D_8007106B = 1;
     Gp_SpawnViewTasks();
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 /// Walks the mesa one step along `D_mine_mesa_80184184` per frame: sends slot 3
@@ -61,7 +61,7 @@ void func_mine_mesa_8017E074(Task* arg0)
     RoomPlacement rec;
 
     if (arg0->killCountdown >= 0x2E || gGameSession->evtSkipped != 0) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     rec.pos.vx  = D_mine_mesa_80184184[arg0->killCountdown].vx;
@@ -131,7 +131,7 @@ void func_mine_mesa_8017E15C(Task* arg0)
                 }
                 /* fallthrough */
             default:
-                Task_Kill(arg0);
+                taskKill(arg0);
                 RoomsShared8018459cTask = NULL;
                 break;
         }
@@ -189,7 +189,7 @@ void func_mine_mesa_8017E2A4(Task* arg0)
                 }
                 /* fallthrough */
             default:
-                Task_Kill(arg0);
+                taskKill(arg0);
                 D_mine_mesa_80189B58 = NULL;
                 break;
         }
@@ -228,11 +228,11 @@ void func_mine_mesa_8017E3E0(Task* arg0)
         case 2:
             arg0->killCountdown -= 8;
             if (arg0->killCountdown < 0) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
         default:
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
     tile           = (TILE*)Gpu_PrimCursor;

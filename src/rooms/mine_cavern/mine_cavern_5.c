@@ -26,7 +26,7 @@ void func_mine_cavern_8017E18C(Task* task)
             break;
     }
     if ((gGameSession->evtSkipped != 0) || (task->killCountdown >= 0x219)) {
-        Task_Kill(task);
+        taskKill(task);
     }
 }
 

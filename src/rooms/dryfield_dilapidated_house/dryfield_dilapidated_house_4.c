@@ -109,7 +109,7 @@ void func_dryfield_dilapidated_house_8018118C(Task* arg0)
     coord = obj->coords;
     work  = (DdhModelWork*)Mem_Malloc(0x24, false);
     if (work == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     arg0->work     = (TaskIdMap*)work;
@@ -147,7 +147,7 @@ void func_dryfield_dilapidated_house_80181340(Task* arg0)
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     work  = Mem_Malloc(4, false);
     if (work == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     arg0->work = work;
@@ -174,7 +174,7 @@ void func_dryfield_dilapidated_house_8018142C(Task* arg0)
 
     coord      = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     coord->sub = &Gfx_ViewCoord;
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_8018145C);
@@ -196,7 +196,7 @@ void func_dryfield_dilapidated_house_801814B4(Task* arg0)
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     work  = (DdhAngleStep*)Mem_Malloc(0x40, false);
     if (work == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     arg0->work = (TaskIdMap*)work;
@@ -222,7 +222,7 @@ void func_dryfield_dilapidated_house_801815B8(Task* arg0)
 
     coord      = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     coord->sub = &Gfx_ViewCoord;
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_801815E8);

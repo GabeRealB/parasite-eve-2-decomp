@@ -58,7 +58,7 @@ void func_acropolis_patio_8017E054(Task* task)
             }
             /* fallthrough */
         default:
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

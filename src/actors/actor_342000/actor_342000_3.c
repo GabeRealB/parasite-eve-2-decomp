@@ -69,10 +69,10 @@ void func_actor_342000_801641FC(void)
 
     work = (Actor342000EventWork*)D_actor_342000_80165070->work;
     if (work->field_5C != NULL) {
-        Task_Kill(work->field_5C);
+        taskKill(work->field_5C);
     }
     if (work->field_60 != NULL) {
-        Task_Kill(work->field_60);
+        taskKill(work->field_60);
     }
     work->field_5C = NULL;
     work->field_60 = NULL;
@@ -167,7 +167,7 @@ void func_actor_342000_8016439C(void)
     Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
     Gp_DispatchMsg(((Actor342000EventWork*)D_actor_342000_80165070->work)->field_48, 0x3F3, 1, 0);
     if (work->field_64 != NULL) {
-        Task_Kill(work->field_64);
+        taskKill(work->field_64);
         work->field_64 = NULL;
     }
     CdCmd_CancelReplaceAndActivate();

@@ -73,7 +73,7 @@ void func_actor_120500_80131E58(Task* arg0)
             Task_SpawnOnDefaultList(&D_actor_120500_80138418, 1, 8, 0);
             Mem_Set(Fs_ImgBuffers, 0, 0x25800);
             SetDispMask(1);
-            Task_Kill(task);
+            taskKill(task);
             Display_ResetHeapWrapper();
             return;
     }
@@ -212,7 +212,7 @@ void func_actor_120500_801322A0(Task* arg0)
     map        = Mem_Malloc(0x4CC, 0);
     arg0->work = map;
     if (map == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     work = (Actor120500Work*)map;

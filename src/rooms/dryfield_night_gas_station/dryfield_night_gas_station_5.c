@@ -40,7 +40,7 @@ void func_dryfield_night_gas_station_80180828(Task* task)
             func_800B0928(owner, Game_GetPtrSlot(0xA), 0x300, 0x10, task->killCountdown);
             return;
         }
-        Task_Kill(task);
+        taskKill(task);
         RoomsShared801807d4Task = 0;
     }
 }

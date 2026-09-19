@@ -45,7 +45,7 @@ L_case0:
 
 L_case2:
     if (Gp_GetCapEventKey() == 0xB) {
-        Task_Kill(task);
+        taskKill(task);
         Gp_MsgPlayerWeapon(1);
     }
     goto advance;
@@ -77,5 +77,5 @@ L_case5:
     Mc_SaveData.at4.loc.room = 1;
     D_80071076               = 1;
     Task_Spawn(0, 0x11, 0, 0);
-    Task_Kill(task);
+    taskKill(task);
 }

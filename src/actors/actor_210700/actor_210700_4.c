@@ -12,7 +12,7 @@ extern GpImgRec D_actor_210700_8015858C;
 /// Message-0x7D5 handler: the four-way visibility/mode switch on the message's
 /// mode word, run against the `TmdObject` parked in `Task::extra`. `field_C`
 /// bit 0x80 marks the model hidden -- its `Tmd_Create` initial value, and the
-/// bit `Task_Kill`'s type-1 path sets -- while bit 0x4 is the one modes 2 and 3
+/// bit `taskKill`'s type-1 path sets -- while bit 0x4 is the one modes 2 and 3
 /// raise. Mode 0 hides the model and drops 0x4, 1 shows it, reinstates the aux
 /// buffers through `Tmd_AllocBuffers` and drops 0x4, 2 hides it and latches the
 /// mode into the work block's `field_53E`, and 3 shows it while raising 0x4.

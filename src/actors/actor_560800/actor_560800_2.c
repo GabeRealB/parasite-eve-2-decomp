@@ -195,7 +195,7 @@ void func_actor_560800_801366B0(Task* arg0)
             D5B498_8006C234 = 8;
             Fs_LoadImageChunk(D_8006C45C, 1);
             D5B498_8006C234 = 0;
-            Task_Kill(arg0);
+            taskKill(arg0);
             Display_ResetHeapWrapper();
             work->field_4 = Task_SpawnOnDefaultList(&ActorsShared80136280Desc, 0xB, 1, (s32)D_actor_560800_8017578C);
             break;

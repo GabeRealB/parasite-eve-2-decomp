@@ -92,7 +92,7 @@ void func_dryfield_water_tank_8017E3C4(Task* arg0)
             fade->b += (u16)arg0->spawnArg1;
             if (fade->r >= 0x100) {
             kill:
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }
@@ -162,7 +162,7 @@ void func_dryfield_water_tank_8017E568(Task* task)
             SndEvt_EnqueueType6(0x52150009, 0, 0);
             Mem_Set(Fs_ImgBuffers, 0, 0x25800);
             SetDispMask(1);
-            Task_Kill(task);
+            taskKill(task);
             Task_SpawnOnDefaultList(&D_dryfield_water_tank_80180764, 2, 8, 0);
             Display_ResetHeapWrapper();
             return;
@@ -214,7 +214,7 @@ L_case0:
         work       = Mem_Malloc(0xC, false);
         task->work = (TaskIdMap*)work;
         if (work == NULL) {
-            Task_Kill(task);
+            taskKill(task);
         } else {
             Mem_Set(work, 0, 0xC);
             work->owner             = Game_GetPtrSlot(3);

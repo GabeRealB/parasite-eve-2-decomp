@@ -98,7 +98,7 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
             work       = (DbwWork*)Mem_Malloc(0x14, 0);
             arg0->work = (TaskIdMap*)work;
             if (work == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             } else {
                 Mem_Set(work, 0, 0x14);
                 work->field_0                 = (void*)Game_GetPtrSlot(3);
@@ -111,7 +111,7 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
             arg0->state += 1;
             return;
         case 1:
-            Task_Kill(arg0);
+            taskKill(arg0);
             return;
     }
 }
@@ -156,7 +156,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
             work       = (DbwWork*)Mem_Malloc(0x14, 0);
             arg0->work = (TaskIdMap*)work;
             if (work == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             } else {
                 Mem_Set(work, 0, 0x14);
                 work->field_0                 = (void*)Game_GetPtrSlot(3);
@@ -178,7 +178,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
             break;
         case 1:
             if (gGameSession->eventState == 0) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             break;
@@ -277,7 +277,7 @@ void func_dryfield_breezeway_8017E464(Task* arg0)
 
     work = (DbwEventWork*)Mem_Calloc(0x60, false);
     if (work == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
 

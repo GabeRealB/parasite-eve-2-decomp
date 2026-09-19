@@ -88,7 +88,7 @@ void func_actor_143000_80133800(Task* arg0)
     } else {
         Task_SpawnFromTable(&D_actor_143000_801350B0, 1, 0, (s32)&D_actor_143000_80135C08);
     }
-    Task_Kill((Task*)arg0->spawnArg2);
+    taskKill((Task*)arg0->spawnArg2);
     Task_RequestKill(arg0, work->field_C);
 }
 

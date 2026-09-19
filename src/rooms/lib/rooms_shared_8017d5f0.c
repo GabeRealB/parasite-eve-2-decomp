@@ -33,18 +33,18 @@ void RoomsShared8017d5f0(Task* task)
 
     owner = Game_GetPtrSlot(3);
     if (Gp_AttachTmd(task, ((TmdObject*)owner->extra)->source) == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     extra = task->extra;
     parts = extra->coords;
     if ((u32)task->spawnArg1 >= 2U) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     work = Mem_Calloc(sizeof(RoomMirrorWork), 0);
     if (work == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     task->work   = (TaskIdMap*)work;

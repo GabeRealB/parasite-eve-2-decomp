@@ -598,30 +598,30 @@ void func_actor_800100_80163C04(GpActorWork* arg0)
     Gp_ActorSlots[1] = NULL;
     task             = actor->field_914;
     if (task != NULL) {
-        Task_Kill(task);
+        taskKill(task);
     }
     task = actor->field_918;
     if (task != NULL) {
-        Task_Kill(task);
+        taskKill(task);
     }
     task = actor->field_91C;
     if (task != NULL) {
-        Task_Kill(task);
+        taskKill(task);
     }
     task = actor->field_920;
     if (task != NULL) {
-        Task_Kill(task);
+        taskKill(task);
     }
     task = actor->field_924;
     if (task != NULL) {
-        Task_Kill(task);
+        taskKill(task);
     }
     Gp_UnlinkObj((GpObj*)actor->field_AC);
     Gp_UnlinkObj((GpObj*)actor->field_CC);
     Gp_UnlinkObj((GpObj*)actor->field_EC);
     Gp_UnlinkObj((GpObj*)actor->field_10C);
     Gp_UnlinkObj((GpObj*)d4->field_68);
-    Task_Kill((Task*)arg0);
+    taskKill((Task*)arg0);
 }
 
 INCLUDE_RODATA("actors/nonmatchings/actor_800100/actor_800100", ActorsShared801328ccTable);

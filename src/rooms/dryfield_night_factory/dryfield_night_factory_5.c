@@ -166,7 +166,7 @@ void func_dryfield_night_factory_8018076C(Task* task)
             return;
         case 1:
             if (Task_PollKill(*D_dryfield_night_factory_8018A7E8, &poll) != 0) {
-                Task_Kill(task);
+                taskKill(task);
             }
             return;
     }

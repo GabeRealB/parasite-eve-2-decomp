@@ -17,7 +17,7 @@ void func_dryfield_night_factory_8018182C(Task* task)
 
     work = Mem_Calloc(0x10, 0);
     if (work == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     task->spawnArg2 = Task_SpawnFromTable(D_dryfield_night_factory_80186E94, 0, 1, 0);

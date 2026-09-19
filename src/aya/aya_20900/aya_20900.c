@@ -43,7 +43,7 @@ void func_aya_20900_8011578C(Task* arg0)
     }
 
     if (arg0->killCountdown >= 0x100) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
 
@@ -200,7 +200,7 @@ void func_aya_20900_80115CFC(Task* arg0)
             temp_v0    = Mem_Malloc(8U, false);
             arg0->work = temp_v0;
             if (temp_v0 == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             Mem_Set(temp_v0, 0U, 8U);

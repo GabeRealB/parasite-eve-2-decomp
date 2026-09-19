@@ -80,7 +80,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             blk        = Mem_Calloc(0x14, 0);
             task->work = (TaskIdMap*)blk;
             if (blk == NULL) {
-                Task_Kill(task);
+                taskKill(task);
                 break;
             }
             queue->field_1EA = 1;
@@ -146,7 +146,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             D_80071076                = 1;
             Task_Spawn(0, 0x11, 0, 0);
             gGameSession->padScriptFlags &= 0x7F;
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }
@@ -185,7 +185,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             blk        = Mem_Calloc(0x14, 0);
             task->work = (TaskIdMap*)blk;
             if (blk == NULL) {
-                Task_Kill(task);
+                taskKill(task);
                 break;
             }
             ((AfrStreamWork*)task->work)->target = Game_GetPtrSlot(3);
@@ -260,7 +260,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                 func_800E9BDC(2, 0x9FF);
                 Gp_StateF0.field_4            = 0;
                 gGameSession->padScriptFlags &= 0x7F;
-                Task_Kill(task);
+                taskKill(task);
             }
             break;
     }

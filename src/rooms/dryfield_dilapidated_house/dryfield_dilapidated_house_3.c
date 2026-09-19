@@ -258,7 +258,7 @@ void func_dryfield_dilapidated_house_80180B84(Task* task)
     parentCoord = parentObj->coords;
     work        = (DdhCoordWork*)Mem_Malloc(0x6C, false);
     if (work == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     task->work    = (TaskIdMap*)work;

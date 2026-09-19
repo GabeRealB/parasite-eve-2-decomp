@@ -267,10 +267,10 @@ void func_actor_405800_80138EF0(Task* task)
 
     work = (Actor405800Work*)task->work;
     if (work->field_824 != NULL) {
-        Task_Kill(work->field_824);
+        taskKill(work->field_824);
     }
     if (work->field_828 != NULL) {
-        Task_Kill(work->field_828);
+        taskKill(work->field_828);
     }
     work->field_842 = 0;
     work->field_846 = work->field_846 + 1;

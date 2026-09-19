@@ -110,7 +110,7 @@ void func_actor_160900_80132A14(Task* arg0)
         block      = Mem_Malloc(0x4BC, 0);
         arg0->work = (TaskIdMap*)block;
         if (block == NULL) {
-            Task_Kill(arg0);
+            taskKill(arg0);
             return;
         }
         work = block;
@@ -208,7 +208,7 @@ void func_actor_160900_80132C08(Task* task)
             failed = 0;
         }
         if ((u16)failed) {
-            Task_Kill(task);
+            taskKill(task);
             return;
         }
         func_actor_160900_InitAnim(task, (GpAnimObj*)task->extra);
@@ -590,7 +590,7 @@ void func_actor_160900_80133880(void)
     alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
     task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     work = alloc;
@@ -619,7 +619,7 @@ void func_actor_160900_80133880(void)
     alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
     task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     work = alloc;
@@ -657,7 +657,7 @@ void func_actor_160900_80133A84(void)
     alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
     task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     work = alloc;
@@ -686,7 +686,7 @@ void func_actor_160900_80133A84(void)
     alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
     task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     work = alloc;
@@ -715,7 +715,7 @@ void func_actor_160900_80133A84(void)
     alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
     task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     work = alloc;
@@ -744,7 +744,7 @@ void func_actor_160900_80133A84(void)
     alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
     task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     work = alloc;
@@ -773,7 +773,7 @@ void func_actor_160900_80133A84(void)
     alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
     task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     work = alloc;
@@ -802,7 +802,7 @@ void func_actor_160900_80133A84(void)
     alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
     task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     work = alloc;
@@ -840,7 +840,7 @@ void func_actor_160900_80133F90(void)
     alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
     task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     work = alloc;
@@ -869,7 +869,7 @@ void func_actor_160900_80133F90(void)
     alloc      = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
     task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     work = alloc;
@@ -904,7 +904,7 @@ void func_actor_160900_8013418C(Task* arg0)
             work       = (Actor160900Work*)Mem_Malloc(0x68, 0);
             arg0->work = (TaskIdMap*)work;
             if (work == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             } else {
                 Mem_Set(work, 0, 0x68);
                 work->field_34          = Game_GetPtrSlot(3);
@@ -966,7 +966,7 @@ void func_actor_160900_801343E4(Task* arg0)
             alloc      = (Actor160900FadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             work         = alloc;
@@ -999,7 +999,7 @@ void func_actor_160900_801344D8(Task* arg0)
             alloc      = (Actor160900FadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             work    = alloc;
@@ -1020,7 +1020,7 @@ void func_actor_160900_801344D8(Task* arg0)
             work->g -= (u16)arg0->spawnArg1;
             work->b -= (u16)arg0->spawnArg1;
             if ((s16)work->r < 0) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }

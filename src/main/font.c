@@ -53,7 +53,7 @@ void Task_AllocIdMap(Task* arg0)
         if (temp_s1 == 0xFF) {
             SndEvt_EnqueueType2(D_80062739, D_8007A39C);
             D_80062734 = temp_s1;
-            Task_Kill(arg0);
+            taskKill(arg0);
             return;
         }
         D_80062734 = 0;
@@ -75,7 +75,7 @@ void Task_AllocIdMap(Task* arg0)
     }
 block_20:
     D_80062734 = 0xFF;
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void Stage_LoadOrCountdownTask(Task* arg0)
@@ -119,7 +119,7 @@ void Stage_LoadOrCountdownTask(Task* arg0)
         }
         if (D_8007A39A <= 0) {
             D_80062734 = flag;
-            Task_Kill(arg0);
+            taskKill(arg0);
         }
     }
 }
@@ -147,7 +147,7 @@ void Stage_ApplyTableEntryWhenIdle(Task* arg0)
         }
         D_80062734 = 0xFF;
         D_80062739 = temp->table[temp->index].id;
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 
@@ -205,7 +205,7 @@ void Stage_KillWhenIdle(Task* arg0)
 {
     if (CdCmd_IsIdle() != 0) {
         D_80062734 = 0xFF;
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 

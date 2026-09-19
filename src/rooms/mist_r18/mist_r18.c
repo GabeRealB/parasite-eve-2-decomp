@@ -123,7 +123,7 @@ void func_mist_r18_8017D5F4(Task* task)
     return;
 
 kill:
-    Task_Kill(task);
+    taskKill(task);
 }
 
 void func_mist_r18_8017D960(void)
@@ -190,7 +190,7 @@ void func_mist_r18_8017DA8C(Task* task)
             }
             break;
         default:
-            Task_Kill(task);
+            taskKill(task);
             return;
     }
     func_mist_r18_8017DBB8(shade, task->killCountdown);

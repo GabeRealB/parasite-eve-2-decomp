@@ -44,7 +44,7 @@ Allocated with `Mem_Calloc(0x48, 0)`. Inserted into the **active list**
 | `0xE0`–`0xF8` | Draw / load-wait (late in the list) |
 
 Parent/child is a **sibling ring**: `firstChild` is the head, `nextSibling`
-walks the ring and is self when the task is an only child. `Task_Kill` runs
+walks the ring and is self when the task is an only child. `taskKill` runs
 every child’s `exitCallback` first (with `parent` cleared). `Task_Reparent`
 moves a live task onto another parent’s ring.
 
@@ -81,7 +81,7 @@ Spawn type (low byte of `flags`, stored as `Task::spawnType`) is the body:
 | 2 | `Gp_AttachDisp2d(task)` — 2D | unlink Disp2d (often deferred 1 frame) |
 
 If attach fails, spawn returns NULL and frees the `Task`. `exitCallback`
-defaults to `Task_Kill`.
+defaults to `taskKill`.
 
 ### 1.3 Tick
 
@@ -103,7 +103,7 @@ Each node’s `callback` runs. Two early-outs:
 
 ### 1.4 Kill
 
-`Task_Kill` is also the default `exitCallback`. It:
+`taskKill` is also the default `exitCallback`. It:
 
 1. Detaches children and calls each child’s `exitCallback`.
 2. Unlinks from the parent ring.
@@ -137,7 +137,7 @@ still lands on the main frame walk.
 
 `Task_DescBanks` is 15 pointers (0x3C bytes at `0x8005EF74`). Banks **11–13
 are aliases of bank 2**. Deduped size is **996** descriptors (~1047 if aliases
-are counted). Roughly 155 of those are `Task_Kill` placeholders and 13 are
+are counted). Roughly 155 of those are `taskKill` placeholders and 13 are
 NULL.
 
 | Bank | Symbol | n | What it is |
@@ -145,7 +145,7 @@ NULL.
 | 0 | `D_8005EDA0` | 39 | System: boot, title, gameflow, memcard, view, HUD |
 | 1 | `D_800670D0` | 51 | Enemies / room coords / TMD helpers + `0x807xxxxx` overlay |
 | 2 (=11–13) | `D_80067828` | 17 | Caption, pad helpers, script-18, room overlay, one stage overlay |
-| 3 | `D_80062780` | 8 | Four `Task_Kill` stubs + four `0x807xxxxx` |
+| 3 | `D_80062780` | 8 | Four `taskKill` stubs + four `0x807xxxxx` |
 | 4 | `D_800676A8` | 9 | Stubs + TMD / overlay |
 | 5 | `D_800626AC` | 5 | Stubs + `Task_KillMaybeSpawn` + one overlay |
 | 6 | `D_8010FC2C` | **667** | Room-overlay actor catalog (gameplay data → `0x8017xxxx`) |
@@ -183,7 +183,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `04` | `C0` | `GameFlow_DispatchTable5` | Title load-style gameflow. Also a `Title_MenuSpawnIds` entry |
 | `05` | `C0` | `Text_UiTaskCallback` | Text / UI. Also a `Title_MenuSpawnIds` entry |
 | `06` | `C0` | `Title_ExitTask` | Title exit. Also a `Title_MenuSpawnIds` entry |
-| `07` | `C0` | `Task_Kill` | Unused slot |
+| `07` | `C0` | `taskKill` | Unused slot |
 | `08` | `00` | NULL | Unused |
 | `09` | `18` | `GameFlow_DispatchTable` | **Main in-game flow.** Spawned after session reset, from title, etc. |
 | `0A` | `10` | `Mc_DispatchStateTable` | Memcard state machine |
@@ -197,7 +197,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `12` | `10` | `Mc_DispatchStateTable` | Same as `0A` |
 | `13` | `10` | `Mc_DispatchStateTable26` | Same as `0B` |
 | `14` | `1F` | `func_800AEE8C` | Area / dir helper (`1A8.c`, matched) |
-| `15` | `C0` | `Task_Kill` | Unused |
+| `15` | `C0` | `taskKill` | Unused |
 | `16` | `30` | `Gp_ViewGateTask` | Gameplay dispatcher |
 | `17` | `2F` | `Gp_AllocSprtListsTask` | HUD sprite lists. Spawned next to the view task |
 | `18` | `C0` | `Stage_TaskExit` | Stage teardown |
@@ -227,7 +227,7 @@ Several `func_*` rows are already matched C and only lack a role name.
 
 | Type | Pri | Callback | Notes |
 |------|-----|----------|-------|
-| `00`–`05`, `09`–`0A`, `0F`–`10` | `C0`/`20` | `Task_Kill` or NULL | Unused |
+| `00`–`05`, `09`–`0A`, `0F`–`10` | `C0`/`20` | `taskKill` or NULL | Unused |
 | `06` | `80` | `func_800E7570` | Unnamed |
 | `07` | `20` | `func_800E8830` | Spawned from fade setup (`Task_Spawn(9, 7, …)`) |
 | `08` | `80` | `func_800E8888` | Live pointer `D_801156B8` |
@@ -260,7 +260,7 @@ Payload structs: `include/gameplay/3CD8.h`.
 
 Named / matched: `Gp_EnemyDispatch` (`0xB`), `Gp_UpdateRoomCoords` (`0xF`),
 `Tmd_DispatchTask` (`0x21`), `Tmd_AllocNodeBuffers` (`0x22`),
-`Gp_FadeTileTask` (`0x27`). The rest is `Task_Kill`, `func_*`, or
+`Gp_FadeTileTask` (`0x27`). The rest is `taskKill`, `func_*`, or
 `0x807xxxxx` (many type-1 with `setupArg = 0x8075BED4`).
 
 `Gp_SpawnEnemy(bank, type, arg, parent)` is `Task_Spawn` plus a `GpEnemy*`
@@ -278,7 +278,7 @@ decompiling the overlay it points at.
 
 ### Bank 7 — equipped TMD attaches
 
-~80 `Task_Kill` stubs; the rest are type 1, priority `0x50`/`0x52`, callback
+~80 `taskKill` stubs; the rest are type 1, priority `0x50`/`0x52`, callback
 usually `func_8010B610` (gameplay-resident), `setupArg` a `TmdSource*` in
 weapon / actor overlay RAM (`0x8011xxxx`, `0x8016xxxx`, `0x8018xxxx`).
 

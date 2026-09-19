@@ -147,10 +147,10 @@ void Actor01900_Fn0A6CC(Task* task)
     enemy = (GpEnemy*)task->spawnArg2;
     if (work != NULL) {
         if (work->field_C38 != NULL) {
-            Task_Kill(work->field_C38);
+            taskKill(work->field_C38);
         }
         if (work->field_C3C != NULL) {
-            Task_Kill(work->field_C3C);
+            taskKill(work->field_C3C);
         }
         Gp_UnlinkObj(&work->field_B48);
         Gp_UnlinkObj(&work->field_8C8);

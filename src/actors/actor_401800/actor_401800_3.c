@@ -66,10 +66,10 @@ void func_actor_401800_8013E0A0(Task* task)
     enemy = (GpEnemy*)task->spawnArg2;
     if (work != NULL) {
         if (work->field_C14 != NULL) {
-            Task_Kill(work->field_C14);
+            taskKill(work->field_C14);
         }
         if (work->field_C18 != NULL) {
-            Task_Kill(work->field_C18);
+            taskKill(work->field_C18);
         }
         Gp_UnlinkObj(&work->field_B48);
         Gp_UnlinkObj(&work->field_8C8);

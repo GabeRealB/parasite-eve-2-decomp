@@ -83,7 +83,7 @@ void func_actor_146300_80131ECC(Task* task)
                         task->state = 0x28;
                     } else {
                         func_800E8614((s32)&D_actor_146300_80138AC8, 0);
-                        Task_Kill(task);
+                        taskKill(task);
                     }
                     break;
                 default:
@@ -93,7 +93,7 @@ void func_actor_146300_80131ECC(Task* task)
             break;
         case 1:
             Gp_MsgPlayerWeapon(1);
-            Task_Kill(task);
+            taskKill(task);
             break;
         case 10:
             Gp_StartCapSlot((s16)D_actor_146300_80142824, 0, 0);

@@ -241,7 +241,7 @@ segments:
       - [0x1bf74, o, libpad/waitrc2] # setRC2wait, chkRC2wait
       - [0x1c034, c, "gameflow"] # game-flow state handlers (pre-pad/task)
       - [0x1d068, c, padutil] # Pad_CheckButtons / cooldown / events
-      - [0x1d304, c, task] # Task_Spawn / Task_Kill / list exec
+      - [0x1d304, c, task] # Task_Spawn / taskKill / list exec
       - [0x1e094, c, mem]
       - [0x1e464, o, libapi/i_heap3] # InitHeap3
       - [0x1e4c4, o, libapi/malloc3] # malloc3

@@ -180,7 +180,7 @@ void func_dryfield_night_gas_station_8017FA6C(Task* arg0)
     func_800E8634((s32)&D_dryfield_night_gas_station_801840AC, 0, (s32)&D_dryfield_night_gas_station_801841FC);
     func_800E3FAC(0xA2, 0x16);
     D_8007272D = 4;
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 /// Runs the room's one-shot post-sequence event: with the session still on its

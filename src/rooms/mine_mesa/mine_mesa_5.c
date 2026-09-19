@@ -24,7 +24,7 @@ void func_mine_mesa_8017E70C(s32 arg0)
                 return;
             }
         }
-        Task_Kill(D_mine_mesa_80189B58);
+        taskKill(D_mine_mesa_80189B58);
         D_mine_mesa_80189B58 = NULL;
     }
 }
@@ -32,7 +32,7 @@ void func_mine_mesa_8017E70C(s32 arg0)
 void func_mine_mesa_8017E760(void)
 {
     if (RoomsShared8018459cTask != NULL) {
-        Task_Kill(RoomsShared8018459cTask);
+        taskKill(RoomsShared8018459cTask);
     }
     RoomsShared8018459cTask = Task_SpawnFromTable(&RoomsShared8017daf0Desc, 3, 0, 0);
 }
@@ -72,7 +72,7 @@ void func_mine_mesa_8017E7B0(Task* task)
             func_800B0928(slot3, slotA, 0x300, 0x10, task->killCountdown);
             return;
         }
-        Task_Kill(task);
+        taskKill(task);
         RoomsShared8018459cTask = NULL;
     }
 }

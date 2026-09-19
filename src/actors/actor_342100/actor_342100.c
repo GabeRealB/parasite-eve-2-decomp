@@ -113,7 +113,7 @@ void func_actor_342100_80162748(Task* arg0)
             alloc      = (Actor342100FadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             work           = alloc;
@@ -263,7 +263,7 @@ void func_actor_342100_80162AB0(Task* arg0)
         case 0:
             arg0->work = (TaskIdMap*)Mem_Malloc(8, 0);
             if (arg0->work == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             eff = (GpEffArg*)arg0->work;
@@ -511,7 +511,7 @@ void func_actor_342100_801630A4(Task* arg0)
             newWork    = Mem_Malloc(0x44, 0);
             arg0->work = (TaskIdMap*)newWork;
             if (newWork == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             } else {
                 Mem_Set(newWork, 0, 0x44);
                 newWork->field_2C       = Game_GetPtrSlot(3);

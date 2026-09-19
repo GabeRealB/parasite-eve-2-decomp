@@ -146,7 +146,7 @@ L_case0:
     alloc      = (AsrAmbienceState*)Mem_Calloc(sizeof(AsrAmbienceState), 0);
     task->work = (TaskIdMap*)alloc;
     if (alloc == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     Mem_Set(alloc, 0, sizeof(AsrAmbienceState));

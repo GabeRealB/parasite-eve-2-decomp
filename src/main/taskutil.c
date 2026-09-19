@@ -32,5 +32,5 @@ void Task_KillMaybeSpawn(Task* arg0)
     if (gDisplayState.field_112 != 0) {
         Task_SpawnFromTable((TaskDesc*)&D_80725C54, 0, 0, 0);
     }
-    Task_Kill(arg0);
+    taskKill(arg0);
 }

@@ -105,7 +105,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
             newWork    = Mem_Malloc(8, 0);
             task->work = (TaskIdMap*)newWork;
             if (newWork == NULL) {
-                Task_Kill(task);
+                taskKill(task);
                 return;
             }
             Mem_Set(newWork, 0, 8);
@@ -135,7 +135,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
                 return;
             }
             ((AcropolisPlazaCutWork*)task->spawnArg2)->field_1A = q->field_1EE;
-            Task_Kill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
+            taskKill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
             func_800E8634((s32)D_acropolis_plaza_80182734, 1, (s32)D_acropolis_plaza_80182A34);
             task->state = task->state + 1;
             return;
@@ -180,7 +180,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             newWork    = Mem_Malloc(8, 0);
             task->work = (TaskIdMap*)newWork;
             if (newWork == NULL) {
-                Task_Kill(task);
+                taskKill(task);
                 return;
             }
             Mem_Set(newWork, 0, 8);
@@ -216,7 +216,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
                 return;
             }
             ((AcropolisPlazaCutWork*)task->spawnArg2)->field_1A = q->field_1EE;
-            Task_Kill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
+            taskKill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
             q->field_1EE = 1;
             q->field_1EA = 1;
             q->field_1F8 = 2;
@@ -316,7 +316,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             newWork    = Mem_Malloc(8, 0);
             task->work = (TaskIdMap*)newWork;
             if (newWork == NULL) {
-                Task_Kill(task);
+                taskKill(task);
                 return;
             }
             Mem_Set(newWork, 0, 8);
@@ -345,7 +345,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             if (CdCmd_IsIdle() == 0) {
                 return;
             }
-            Task_Kill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
+            taskKill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
             q->field_1EE = 1;
             q->field_1EA = 1;
             q->field_1F8 = 4;
@@ -583,7 +583,7 @@ void func_acropolis_plaza_8017F48C(Task* task)
         case 1:
             if (CdCmd_IsIdle() != 0) {
                 ((AcropolisPlazaCutWork*)task->spawnArg2)->field_1A = q->field_1EE;
-                Task_Kill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
+                taskKill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
                 switch (task->spawnArg1) {
                     case 0:
                         func_800E8614((s32)D_acropolis_plaza_80183554, 1);
@@ -633,7 +633,7 @@ void func_acropolis_plaza_8017F620(Task* task)
         case 1:
             if (CdCmd_IsIdle() != 0) {
                 ((AcropolisPlazaCutWork*)task->spawnArg2)->field_1A = q->field_1EE;
-                Task_Kill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
+                taskKill(((AcropolisPlazaCutWork*)task->spawnArg2)->task);
                 Gp_RunCapCmd1(((AcropolisPlazaCutWork*)task->spawnArg2)->capCmd);
                 task->state = task->state + 1;
             }
@@ -928,7 +928,7 @@ void func_acropolis_plaza_80180054(Task* task)
             newWork    = (AcropolisPlazaWork*)Mem_Malloc(0x28, 0);
             task->work = (TaskIdMap*)newWork;
             if (newWork == NULL) {
-                Task_Kill(task);
+                taskKill(task);
                 return;
             }
             Mem_Set(newWork, 0, 0x28);
@@ -974,7 +974,7 @@ void func_acropolis_plaza_80180054(Task* task)
             SndEvt_EnqueueType7(0x80000000, 0);
             Task_Spawn(0, 0x11, 0, 0);
             q->field_244 = 0;
-            Task_Kill(task);
+            taskKill(task);
             return;
     }
 }
@@ -984,7 +984,7 @@ void func_acropolis_plaza_80180270(Task* arg0)
     Display_SpawnWithOt(&D_acropolis_plaza_80183824, 0xA, 0, 0);
     D_8007106B = 1;
     Gp_SpawnViewTasks();
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void func_acropolis_plaza_801802C0(Task* task)

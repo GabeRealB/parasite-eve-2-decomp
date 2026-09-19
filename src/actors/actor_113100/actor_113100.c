@@ -273,7 +273,7 @@ void func_actor_113100_8013264C(Task* task)
 /// literal, and a mode outside 0..3 is answered with 1, the "not handled"
 /// return the dispatch expects. All four modes lift the 0x8000 bit the setup
 /// handler raised on the work block's display node and then rewrite the
-/// actor's own `TmdObject::flags`, whose bit 0x80 is `Task_Kill`'s type-1
+/// actor's own `TmdObject::flags`, whose bit 0x80 is `taskKill`'s type-1
 /// deferred kill and whose 0x4 is the flag `Tmd_Create` seeds from `flags & 1`:
 /// mode 0 shows the model and clears 0x4; mode 1 hides it, hands the object to
 /// `Tmd_AllocBuffers` and clears 0x4; mode 2 hides it, latches 2 into

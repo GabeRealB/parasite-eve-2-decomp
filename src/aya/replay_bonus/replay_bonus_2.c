@@ -520,7 +520,7 @@ void func_replay_bonus_80117A08(Task* arg0)
             return;
         case 25:
             SetDispMask(1);
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }
@@ -951,7 +951,7 @@ void func_replay_bonus_80118C64(Task* arg0)
     switch (temp_v1) {
         case 0:
             if ((u32)(D_replay_bonus_80119225 - 1) < 2U) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 break;
             }
             stream                  = D_replay_bonus_801192BC;
@@ -970,7 +970,7 @@ void func_replay_bonus_80118C64(Task* arg0)
                 D_replay_bonus_80119227  = 0x78;
                 D_replay_bonus_80119226 ^= 1;
                 D_replay_bonus_80119225  = 2;
-                Task_Kill(t);
+                taskKill(t);
             }
             break;
     }
@@ -991,7 +991,7 @@ void func_replay_bonus_80118D7C(Task* arg0)
             temp_v0             = arg0->killCountdown - 1;
             arg0->killCountdown = temp_v0;
             if ((temp_v0 << 0x10) <= 0) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }
@@ -1013,7 +1013,7 @@ void func_replay_bonus_80118E3C(Task* arg0)
             temp_v0             = arg0->killCountdown + 1;
             arg0->killCountdown = temp_v0;
             if ((s16)temp_v0 >= arg0->spawnArg1) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }

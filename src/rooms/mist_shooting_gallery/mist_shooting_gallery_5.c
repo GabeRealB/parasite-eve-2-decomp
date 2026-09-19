@@ -294,7 +294,7 @@ void func_mist_shooting_gallery_80182B1C(Task* arg0)
     work       = (MistShootingGalleryWork*)Mem_Calloc(0x24, 0);
     arg0->work = (TaskIdMap*)work;
     if (work == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
 
@@ -1136,7 +1136,7 @@ void func_mist_shooting_gallery_80183E78(Task* arg0)
             work->field_0A = timer;
             if ((s32)(timer << 16) <= 0) {
                 ((void (*)(Task*, s32))Gp_ReleaseStateF0Clear)(arg0, 0);
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             break;
@@ -1195,7 +1195,7 @@ void func_mist_shooting_gallery_801842D0(Task* arg0)
         case 4:
             if (gGameSession->field_126 == 1) {
                 Display_ReleaseRef();
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             return;
     }
@@ -1406,7 +1406,7 @@ void func_mist_shooting_gallery_80184A80(Task* arg0)
     ((GpObj*)actor->field_AC)->flags |= 0x2000;
     Display_ReleaseRef();
     ((void (*)(Task*, s32))Gp_ReleaseStateF0Clear)(arg0, 0);
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 u16 func_mist_shooting_gallery_80184AE0(MistShootingGalleryWork* work)
@@ -1431,7 +1431,7 @@ void func_mist_shooting_gallery_80184B10(Task* arg0)
         case 1:
             count = --arg0->killCountdown;
             if (count <= 0) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             if (count < 0x1F) {
@@ -1471,7 +1471,7 @@ void func_mist_shooting_gallery_80184C0C(Task* arg0)
             func_8014B0D4();
             return;
         case 2:
-            Task_Kill(arg0);
+            taskKill(arg0);
             Stage_SetEndingFlag();
             return;
     }

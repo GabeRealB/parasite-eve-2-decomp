@@ -51,7 +51,7 @@ void func_actor_303600_80162950(Task* task)
 
     mats = Mem_Calloc(0x44, 0);
     if (mats == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
 

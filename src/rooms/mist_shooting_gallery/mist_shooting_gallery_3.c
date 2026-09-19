@@ -184,7 +184,7 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
 
         case 5:
             D_80071068[0] = 0;
-            Task_Kill(arg0);
+            taskKill(arg0);
             Display_ResetHeapWrapper();
             return;
 
@@ -266,7 +266,7 @@ L_case5:
     }
     gDisplayState.at100.flags.imageSource = 1;
     Mem_Set(Fs_ImgBuffers, 0, 0x25800);
-    Task_Kill(task);
+    taskKill(task);
     Display_ResetHeapWrapper();
 }
 
@@ -289,7 +289,7 @@ void func_mist_shooting_gallery_801810D8(Task* task)
             Display_SpawnWithOt(&D_mist_shooting_gallery_80185384, 1, 0, 0);
             D_8007106B = 1;
             Gp_SpawnViewTasks();
-            Task_Kill(task);
+            taskKill(task);
             return;
     }
 }

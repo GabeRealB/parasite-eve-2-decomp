@@ -89,7 +89,7 @@ void func_acropolis_security_room_8017D77C(Task* arg0)
             if (Task_PollKill(D_acropolis_security_room_801855A8, &sp10) != 0) {
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             return;
     }
@@ -120,7 +120,7 @@ void func_acropolis_security_room_8017D834(Task* arg0)
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
                 D_acropolis_security_room_801855AC = NULL;
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             return;
     }

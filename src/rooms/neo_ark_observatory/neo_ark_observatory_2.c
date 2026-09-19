@@ -162,7 +162,7 @@ void func_neo_ark_observatory_8017F588(Task* arg0)
             Mc_SaveData.at4.loc.warp  = D_neo_ark_observatory_80187A30.field_2;
             Mc_SaveData.at4.loc.room  = D_neo_ark_observatory_80187A30.field_3;
             Task_Spawn(0, 0x11, 0, 0);
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
         default:
             break;
@@ -212,7 +212,7 @@ void func_neo_ark_observatory_8017FB1C(Task* task)
         case 2:
             Gp_MsgPlayerWeapon(1);
             Gp_ResetCap();
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

@@ -39,7 +39,7 @@ void func_acropolis_helicopter_landing_pad_8017E76C(Task* task)
             break;
         case 1:
             if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F0, 0, 0) == 0) {
-                Task_Kill(task);
+                taskKill(task);
             }
             break;
     }
@@ -65,7 +65,7 @@ void func_acropolis_helicopter_landing_pad_8017E81C(Task* arg0)
         case 1:
             if (lo < arg0->spawnArg1) {
                 Display_ClampField126(0);
-                Task_Kill(arg0);
+                taskKill(arg0);
             } else {
                 tmp         = ABS(arg0->spawnArg1);
                 hi          = lo - tmp;
@@ -104,7 +104,7 @@ void func_acropolis_helicopter_landing_pad_8017E974(Task* task)
             if (Gp_CapBusy() == 0) {
                 if (D_801156A8 == 1) {
                     Gp_MsgPlayerWeapon(1);
-                    Task_Kill(task);
+                    taskKill(task);
                     break;
                 }
                 Display_AcquireRef();
@@ -115,7 +115,7 @@ void func_acropolis_helicopter_landing_pad_8017E974(Task* task)
         case 4:
             D_acropolis_helicopter_landing_pad_80184D9C = 3;
             Task_SpawnFromTable(RoomsShared8017e5b8Desc, 0, 0, 0);
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

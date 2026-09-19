@@ -18,7 +18,7 @@
 /// player rotates at a fixed rate. Inside `0x80` of the target the facing
 /// snaps to the exact angle and the task ends.
 ///
-/// The task's own argument is only ever the `Task_Kill` target, reached both
+/// The task's own argument is only ever the `taskKill` target, reached both
 /// when the work lookup or `gGameSession::eventState` fails and on the frame the
 /// facing settles.
 void func_dryfield_main_street_8017E1C0(Task* task)
@@ -61,7 +61,7 @@ void func_dryfield_main_street_8017E1C0(Task* task)
         }
         actor->field_52 = angle;
     }
-    Task_Kill(task);
+    taskKill(task);
 }
 
 void func_dryfield_main_street_8017E2F4(s32 arg0)

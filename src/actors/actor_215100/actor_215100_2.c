@@ -195,7 +195,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
             if (Gp_GetCapEventKey() == 1) {
                 Gp_MsgPlayerWeapon(1);
                 D_801153F4 = 0;
-                Task_Kill(arg0);
+                taskKill(arg0);
                 break;
             }
             if (arg0->spawnArg1 != 0) {
@@ -218,7 +218,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
             SndEvt_EnqueueType2(0, 0x1E);
             Gp_MsgPlayerWeapon(1);
             D_801153F4 = 0;
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
@@ -232,7 +232,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
                 Mc_SaveData.at4.loc.warp = D_actor_215100_8015E678.field_2;
                 Mc_SaveData.at4.loc.room = D_actor_215100_8015E678.field_3;
                 Task_Spawn(0, 0x11, 0, 0);
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }
@@ -259,7 +259,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
                 Task_CallExit(D_8018E0C4);
                 arg0->state++;
             } else {
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
         case 1:
@@ -279,7 +279,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
             if (D_80071085 != 0) {
                 Display_ReleaseRef();
             }
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }
@@ -375,7 +375,7 @@ void func_actor_215100_8014ABAC(Task* arg0)
                 arg0->state++;
             } else {
                 Task_SpawnFromTable(&D_actor_215100_8014E13C, 1, 0, 0);
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
         case 1:
@@ -399,7 +399,7 @@ void func_actor_215100_8014ABAC(Task* arg0)
         case 4:
             Gp_StartCapSlot(8, 0, 0);
             func_800E8614((s32)&D_actor_215100_8014EBE0, 1);
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
         case 10:
             Gp_StartCapSlot(7, 0, 0);
@@ -409,7 +409,7 @@ void func_actor_215100_8014ABAC(Task* arg0)
         case 11:
             if (gGameSession->eventState == 0) {
                 Task_SpawnFromTable(&D_actor_215100_8014E13C, 1, 0, 0);
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }
@@ -442,7 +442,7 @@ void func_actor_215100_8014AE2C(s32 arg0)
         return;
     }
     if (D_actor_215100_8015E64C != NULL) {
-        Task_Kill(D_actor_215100_8015E64C);
+        taskKill(D_actor_215100_8015E64C);
         D_actor_215100_8015E64C = NULL;
     }
 }
@@ -1038,7 +1038,7 @@ void func_actor_215100_8014C46C(Task* task)
     remaining       = task->spawnArg1 - 1;
     task->spawnArg1 = remaining;
     if (remaining <= 0) {
-        Task_Kill(task);
+        taskKill(task);
     }
     func_actor_215100_8014B0D4();
 }
@@ -1057,7 +1057,7 @@ void func_actor_215100_8014C4A8(Task* task)
             remaining       = task->spawnArg1 - 1;
             task->spawnArg1 = remaining;
             if ((remaining <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0)) {
-                Task_Kill(task);
+                taskKill(task);
                 Stage_SetEndingFlag();
             }
             break;

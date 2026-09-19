@@ -1635,7 +1635,7 @@ void Actor00400_Fn03920(Actor100400* arg0)
             if (task != NULL) {
                 quad = Mem_Calloc(sizeof(Actor100400QuadWork), 0);
                 if (quad == NULL) {
-                    Task_Kill(task);
+                    taskKill(task);
                 } else {
                     task->work           = (TaskIdMap*)quad;
                     quad->vertices[0].vx = pos->x - 0x5DC;
@@ -2803,7 +2803,7 @@ static inline void Actor00400_SpawnMarker(Actor100400* arg0)
     if (task != NULL) {
         marker = Mem_Calloc(sizeof(Actor100400MarkerWork), false);
         if (marker == NULL) {
-            Task_Kill(task);
+            taskKill(task);
         } else {
             base.vx = 0;
             base.vy = 0;

@@ -143,7 +143,7 @@ the copied local does:
     killCopy = kill;
     TOUCH_REG(killCopy);
     if (killCopy != 0) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
 ```
@@ -4379,7 +4379,7 @@ case 0:
         Task_CallExit(D_8018E0C4);
         arg0->state++;          /* same tail as case 1 */
     } else {
-        Task_Kill(arg0);        /* same tail as case 2 */
+        taskKill(arg0);        /* same tail as case 2 */
     }
     break;
 case 1:
@@ -4388,14 +4388,14 @@ case 1:
     break;
 case 2:
     ...
-    Task_Kill(arg0);            /* the copy that survives */
+    taskKill(arg0);            /* the copy that survives */
     break;
 ```
 
 `func_actor_215100_8014A7C4` is the worked example. The surviving block is the
 one later in insn order: the increment ends up between case 1 and case 2, the
-`Task_Kill` after case 2, and the earlier case branches forward to it (`j` from
-case 0's success path, `bne` straight to the `Task_Kill` from its failure path).
+`taskKill` after case 2, and the earlier case branches forward to it (`j` from
+case 0's success path, `bne` straight to the `taskKill` from its failure path).
 So the target's block order is the source's case order with each merged tail
 left where the *later* case put it — a `goto` reaches the same target but parks
 the block wherever the first user sits.
@@ -4758,23 +4758,23 @@ coordinates with the project's `(u32)rsin(...) >> 3` (m2c's
 first try.  The matched sibling `func_actor_206100_8014D8E8` in the same TU is
 the same ring and the source to copy.
 
-## Split a shared `Task_Kill` so the kill-arg can occupy `$a0`
+## Split a shared `taskKill` so the kill-arg can occupy `$a0`
 
-A two-case switch that shares one `Task_Kill(arg0)` via `goto kill` makes
+A two-case switch that shares one `taskKill(arg0)` via `goto kill` makes
 the kill-arg a global-alloc pseudo. local-alloc then hands `$a0` to a
 short-lived global address in the case-1 body (`lui a0, %hi(flag)`), so
-the kill-arg lands in `$a2` and `jal Task_Kill` takes `move a0, a2` in
+the kill-arg lands in `$a2` and `jal taskKill` takes `move a0, a2` in
 its delay — both incoming branches then fill with `move a2, s0` instead
 of the target's `move a0, s0` / `jal`+`nop`.
 
-Write a `Task_Kill` on each path instead of the goto. Case 0 can pass
+Write a `taskKill` on each path instead of the goto. Case 0 can pass
 `arg0` directly; case 1 needs a block-local copy live across the stores
 so local-alloc puts *it* in `$a0` and the flag address drops to `$a2`:
 
 ```c
 case 0:
     if (already_running) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         break;
     }
     /* spawn ... */
@@ -4783,13 +4783,13 @@ case 1:
     if (Task_PollKill(child, &poll) != 0) {
         t     = arg0;
         flag ^= 1;
-        Task_Kill(t);
+        taskKill(t);
     }
     break;
 ```
 
 GCC still cross-jumps the two calls into one `jal` (shared tail after
-case 1). The two `t = arg0` / `Task_Kill(arg0)` copies fill the `bnez` /
+case 1). The two `t = arg0` / `taskKill(arg0)` copies fill the `bnez` /
 `beqz` delays as `move a0, s0`, and the merged `jal` keeps a `nop`.
 `func_replay_bonus_80118C64` is the example. A function-scope
 `register Task *t asm("a0")` pin is the wrong fix: it reserves `$a0`
@@ -6106,7 +6106,7 @@ Gp_LinkObj(zero, obj);
 A fade-in/fade-out overlay that sets `flag = 0` on the way down and `flag = 1`
 on the way up wants the incomplete fade-in (`flag == 0 && count > 0`) to land
 on the `else if (flag == 1)` compare (`bgtz` delay `li v0, 1` / `bne s1, v0`),
-and the completed fade-in to share `GameMain_SetFrameTiming` / `Task_Kill`
+and the completed fade-in to share `GameMain_SetFrameTiming` / `taskKill`
 with the fade-out tail (`beq spawnArg, 4` / `j kill`). Nested
 
 ```c
@@ -6125,10 +6125,10 @@ if ((flag == 0) && (count <= 0)) {
     if (arg == 4) {
         GameMain_SetFrameTiming(0);
     }
-    Task_Kill(arg0);
+    taskKill(arg0);
 } else if (flag == 1) {
     if (count >= 8) {
-        /* fade-out done; shared SetFrameTiming / Task_Kill tail */
+        /* fade-out done; shared SetFrameTiming / taskKill tail */
     }
 }
 ```
@@ -7150,7 +7150,7 @@ and a third that exists only for the post-`Gp_AnimResetChildSlots` stores:
 
 ```c
 actor = arg0->actor;
-/* Task_Kill(actor->field_91C); actor->field_91C = NULL; */
+/* taskKill(actor->field_91C); actor->field_91C = NULL; */
 inner            = arg0->actor;
 inner->field_93A = table[idx] + addend;
 inner->field_928 = ptrs[inner->field_93A];
@@ -7160,7 +7160,7 @@ next            = arg0->actor;
 next->field_954 = 0;
 /* ... */
 Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 4);
-/* Task_Kill(actor->field_914); */
+/* taskKill(actor->field_914); */
 ```
 
 `Gp_EndPlayerActorTask` is the example. One reused reload stuck at 98.8%
@@ -19839,7 +19839,7 @@ re-pin (or reuse) `$v1` in a second block for the late phase:
 }
 ```
 
-`Task_Kill` is the pure example: parent detach needs `$v1`/`$a0`, and the
+`taskKill` is the pure example: parent detach needs `$v1`/`$a0`, and the
 immediate-free path reuses `$v1` for the type byte and `%hi(gTaskActiveList)`.
 
 ## `if (ptr == NULL)` vs `!= NULL` for `bnez` delay-slot stores
@@ -20591,7 +20591,7 @@ epilogue:
 ```
 
 `Task_AllocIdMap` is the pure example (`field_1 == 1` → `SndEvt_EnqueueType2` then
-shared `D_80062734 = 0xFF; Task_Kill`). Explicit `goto epilogue` on the
+shared `D_80062734 = 0xFF; taskKill`). Explicit `goto epilogue` on the
 `Midi_IsBusy != 0` path inverted the `field_1` branch to `beq` with the
 bodies swapped.
 
@@ -22936,7 +22936,7 @@ to the renamed import. Overlay C should include the matching main/psyq
 header (or a local prototype with the same name). Keep a *local*
 overlay prototype only when the match needs a different signature
 (dummy extra arg, `void` vs `s32` return) — do not change the main
-header. `func_800CFD78` / `Task_Kill` is the example.
+header. `func_800CFD78` / `taskKill` is the example.
 
 ## `s32 flag = (s8)u8_field` gives `lb` and hoists the next store
 
@@ -22985,12 +22985,12 @@ work->field_18 = NULL; /* must precede the global */
 Gp_ActorSlots[0]  = NULL; /* declare as T* volatile, not volatile T* */
 task           = inner->field_914;
 if (task != NULL) {
-    Task_Kill(task);
+    taskKill(task);
 }
 ```
 
 Copy each field into a temp before the call: a volatile `if (inner->field)` /
-`Task_Kill(inner->field)` pair loads twice.
+`taskKill(inner->field)` pair loads twice.
 
 Declare the global as `T* volatile`, not `volatile T*`. The latter makes the
 *pointee* volatile; `g = NULL` is then a non-volatile pointer store and sinks
@@ -23023,7 +23023,7 @@ return 0;
 ```
 
 `func_800E73E8` is the example. The sibling `func_800E7434` can use
-`if (ptr == NULL) return 0; Task_Kill(ptr);` because the call creates a
+`if (ptr == NULL) return 0; taskKill(ptr);` because the call creates a
 stack frame and a shared epilogue.
 
 ## Duplicate a call in both branches so a constant address lands in `$a0`
@@ -23161,7 +23161,7 @@ void* mem;
 mem = arg0->spawnArg2;
 Gp_State1C->field_0--;
 memFree(mem);
-Task_Kill(arg0);
+taskKill(arg0);
 ```
 
 Inlining `memFree(arg0->spawnArg2)` after the decrement is the 83% form.
@@ -23379,12 +23379,12 @@ addiu v0, v0, 4
 
 `if (next != NULL) { pp = &next->prev; } else { pp = &D_xxx; }` is the same
 logic but `-fdelayed-branch` parks `addiu v0,v0,4` in the `bnez` delay slot
-and drops the `j`. `Task_Kill`'s inline unlink and `gpUnlinkDisp2d` both need
+and drops the `j`. `taskKill`'s inline unlink and `gpUnlinkDisp2d` both need
 the `== NULL` form.
 
 The tail needs no symbol of its own: the field access is what the target emits.
 Where the function already holds the head's address the target reuses that
-register and puts `addiu v0, v0, 0x4` in the `j` delay slot — `Task_Kill`'s
+register and puts `addiu v0, v0, 0x4` in the `j` delay slot — `taskKill`'s
 inline unlink, `gpUnlinkTmd` and `gpUnlinkDisp2d` all match as `&<head>.prev`.
 An interior alias for the field (`D_800711C4`-style) is what the overlay import
 lists used to carry and no longer do, so a body that matches with the field
@@ -24172,7 +24172,7 @@ body:
     q = Mem_Calloc(SIZE, 0);
 ```
 
-The same layout places a shared `Task_Kill` *between* two allocs: jump
+The same layout places a shared `taskKill` *between* two allocs: jump
 forward over the kill on the first success, jump back on the second
 fail. Nested `if (p != NULL)` without those gotos parks the kill after
 the success path and uses `beqz`.
@@ -41087,10 +41087,40 @@ access path in a snippet (`extra->field_8`). Both are safe to rewrite
 textually *because* they name what they mean; a bare `field_8` is not, and
 searching for one finds hundreds of lines about other types.
 
+## A rename step has to sweep for what `rename_item.py` cannot see
+
+The rename is parser-resolved, which is what makes it safe, but three kinds of
+occurrence sit outside what the parser reads. Each survives the pass's own
+completeness check - a word-boundary grep of `src` and `include` for the old
+spelling - so the step reads as finished with them still in the tree:
+
+- **A symbol named inside an inline-asm string.** An `__asm__` block emitting
+  `.word <symbol>` is a relocation the parser never reads, so no rename of the C
+  reaches it, and the symbol maps it resolves against have moved.
+- **A block comment's continuation lines.** `cref.comment_refs` recognises a
+  comment line by its opening `//`, `///`, `*` or `/*`, so a middle line that
+  starts with prose - or with a backticked word - is not treated as a comment at
+  all.
+- **A second whole-word mention on one markdown line.** The markdown branch
+  rewrites the first match on the line and moves on, leaving any later mention
+  spelled the old way.
+
+Sweep for them after the tool and fix each by hand, since there is nothing for
+the parser-resolved pass to resolve against:
+
+    grep -rnw <OldName> . --exclude-dir=.git --exclude-dir=build \
+        --exclude-dir=asm --exclude-dir=linkers --exclude-dir=assets \
+        --exclude-dir=rom --exclude-dir=venv
+
+A parameter rename is the mirror image and needs `--no-comments`: the markdown
+branch has no per-symbol filter, so a parameter named `arg0` matches every
+backticked `arg0` in this file and the generic ones in `NAMING.md`. Same
+over-reach as the `field_XX` entry above, same escape.
+
 ## Name a cross-overlay import after the overlay that defines it
 
 The rule already documented for overlay code calling main (`func_800CFD78` /
-`Task_Kill`) runs the other way too, and that direction was not being followed.
+`taskKill`) runs the other way too, and that direction was not being followed.
 `src/main/tmd.c` called 53 gameplay functions as `D_800xxxxx` while
 `src/gameplay/gameplay.c` defines the same addresses as `func_800xxxxx`.
 
@@ -41538,7 +41568,7 @@ case-2 `a1 = 1; 8614(cap, flag)` label (`j` onto that `jal`, `delete` the first
 call). `SOFT_BARRIER()` between the first `8614` and `goto inc` keeps it
 separate.
 
-The case-0 "already seen" fork (two scripts, then `Task_Kill`) wants **direct
+The case-0 "already seen" fork (two scripts, then `taskKill`) wants **direct
 calls**, not an address local:
 
 ```c
@@ -41551,7 +41581,7 @@ if (GameFlag_GetNibble(0xE0) == 0) {
 }
 func_800E8614((s32)&scriptB, 0);
 kill:
-    Task_Kill(task);
+    taskKill(task);
 ```
 
 A `script` local there emits `lui v0` / `addiu a0, v0` and folds the `7A < 4`
@@ -41637,11 +41667,11 @@ in every case, and end each case with `break`. GCC re-merges them itself, in
 its own direction. `func_shelter_1f_airlock_8017D6D0` is the minimal example
 (two arms of 8 and 14 `SVECTOR` emitter calls sharing one last call).
 
-A post-switch shared `Task_Kill(arg0)` after `break` is **not** the same rewrite.
+A post-switch shared `taskKill(arg0)` after `break` is **not** the same rewrite.
 That shape scores ~95% with `insert=1 delete=1`: GCC sinks `move a0,s1` into
-the `jal Task_Kill` delay slot, so the earlier if/else join becomes
+the `jal taskKill` delay slot, so the earlier if/else join becomes
 `j jal; nop` instead of the ROM's extra stub `j jal; move a0,s1` (and default
-then has a `nop` load delay instead of the same `move a0`). Write `Task_Kill`
+then has a `nop` load delay instead of the same `move a0`). Write `taskKill`
 in the case that owns the if/else *and* in `default` (each followed by
 `return`). Cross-jumping then emits that join stub. `func_shelter_b1_sterilization_room_801813A0`
 went 91% (m2c backward goto) → 95% (post-switch tail) → 100% (duplicated call).
@@ -42319,7 +42349,7 @@ each arm and let GCC merge onto `$v0`.
 ## Room task state machines: plain `switch` + `break`, not `goto advance` / `goto kill`
 
 A room/actor `Task` state machine whose cases all end in `task->state++` or
-`Task_Kill(task)` looks like it wants shared labels, and m2c writes it that way.
+`taskKill(task)` looks like it wants shared labels, and m2c writes it that way.
 Do not keep them. Write the switch naturally — every case gets its own copy of
 the tail and a `break` — and let GCC 2.8.1 cross-jump the copies back together:
 
@@ -42330,7 +42360,7 @@ switch (task->state) {
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FA, 0, 0);
             task->state = task->state + 1;      /* duplicated, not `goto` */
         } else {
-            Task_Kill(task);                    /* duplicated, not `goto` */
+            taskKill(task);                    /* duplicated, not `goto` */
         }
         break;
     /* ... */
@@ -42338,7 +42368,7 @@ switch (task->state) {
 ```
 
 The merged block survives at the **last** case that uses it, which is what puts
-the `state++` tail between the case-7 and case-8 bodies and the `Task_Kill` tail
+the `state++` tail between the case-7 and case-8 bodies and the `taskKill` tail
 after case 8 in `func_acropolis_cafeteria_8017DD1C`. Hand-written `goto advance`
 / `goto kill` labels put the tail wherever the label sits in the source and, far
 worse, free cross-jumping to merge something else: there it ate a
@@ -42430,15 +42460,15 @@ the barrier ahead of the pair because a barrier between the last insn and the
 delay slot, the barrier belongs *after* the duplicated insns instead — there is
 nothing left to sink, and placing it before does not break the match at all.
 
-Two switch cases ending `Task_Kill(task); goto advance;` cross-jump into one
-tail (97.66%, `branch`=4 `delete`=2). A `SCHED_BARRIER()` before `Task_Kill` in
-the earlier case changes nothing: the merge compares `jal Task_Kill` /
+Two switch cases ending `taskKill(task); goto advance;` cross-jump into one
+tail (97.66%, `branch`=4 `delete`=2). A `SCHED_BARRIER()` before `taskKill` in
+the earlier case changes nothing: the merge compares `jal taskKill` /
 `move a0,s0`, and the barrier sits ahead of both. Putting it after the call
 splits them and reproduces the ROM's duplicated tail (97.66% → 99.9%):
 
 ```c
 Task_SpawnFromTable(D_shelter_b3_elevator_hall_80182A2C, 0, 0x542A0001, 0);
-Task_Kill(task);
+taskKill(task);
 SCHED_BARRIER();   /* after: breaks the merge; target's `j advance` slot is nop */
 ```
 
@@ -43136,7 +43166,7 @@ case 3:
     kill:
         Gp_MsgPlayerWeapon(1);
         D_801153F4 = 0;
-        Task_Kill(task);
+        taskKill(task);
     }
     break;
 ```
@@ -43260,7 +43290,7 @@ switch (task->state) {
         task->state = task->state + 1;
         return;
 }
-Task_Kill(task);
+taskKill(task);
 ```
 
 `func_dryfield_water_tank_8017D618` is the example. The sibling
@@ -43801,7 +43831,7 @@ void func_actor_535700_80131E2C(Task* task)
     TILE* tile;
     s32   count;          /* $v0: the count the hoisted load left there */
 
-    if (count != 0) { ... } else { Task_Kill(task); }
+    if (count != 0) { ... } else { taskKill(task); }
     D_actor_535700_80146840--;
 }
 ```
@@ -44663,7 +44693,7 @@ slot -- the delay slot fills and a `nop` goes missing, which reads as a
 ```c
 gGameSession->field_66 = 0;      /* mem/s:QI (plus <reg> 102)  -- in struct, varying */
 D_8007216C             = 3;      /* mem:QI (lo_sum <reg> <sym>) -- scalar, fixed */
-Task_Kill((Task*)arg0->spawnArg2);   /* lw a0: mem/s, in struct, varying */
+taskKill((Task*)arg0->spawnArg2);   /* lw a0: mem/s, in struct, varying */
 ```
 
 No dependence is recorded between the store and the load, and `sched1` then
@@ -44677,18 +44707,18 @@ So the `lw v0, gGameSession` already in the block passes 2 to the byte store
 that depends on it, that store passes `2 + 1 - 1 = 2` to the `lw a0`, and the
 `lui`/`li` of the scalar global -- depending only on an earlier call, cost 1 --
 stay at 1. The load outranks them, is scheduled first, and `reorg` then has
-something to put in `Task_Kill`'s delay slot. With the priority difference
+something to put in `taskKill`'s delay slot. With the priority difference
 explained, the barrier is no longer a shot in the dark:
 
 ```c
 D_8007216C = 3;
 SOFT_BARRIER();                  /* 93.53% -> 100% */
-Task_Kill((Task*)arg0->spawnArg2);
+taskKill((Task*)arg0->spawnArg2);
 ```
 
 Retail's own source evidently had *something* there: the two matched siblings of
 this body, `Room_Script10` and `Room_Script11` in `src/rooms/lib/`, carry the
-same barrier with the comment "Without the barrier GCC fills Task_Kill's delay
+same barrier with the comment "Without the barrier GCC fills taskKill's delay
 slot with the byte store". Read the matched bodies the brief lists as similar
 before attacking the schedule -- here they were the whole answer.
 ## The same heuristic runs the other way: struct-typing a *store* frees a global's *load* to hoist
@@ -45147,7 +45177,7 @@ the destination of a store. `func_actor_341900_801633F8 1 attempt, base_1.c
 
 Two type facts worth not re-deriving. `GameActorExt` (`include/main/session.h`)
 and `TmdObject` (`include/main/tmd.h`) describe the same object: `field_8` is
-the `GsCOORDINATE2*`, `field_C` the u16 flag halfword `Task_Kill` ORs 0x80 into,
+the `GsCOORDINATE2*`, `field_C` the u16 flag halfword `taskKill` ORs 0x80 into,
 `field_18` the buffer `Tmd_AllocBuffers` / `Tmd_FreeBuffers` own. An actor body
 that calls `Tmd_FreeBuffers(task->extra)` is not confused; cast and move on.
 
@@ -46087,7 +46117,7 @@ Tmd_Create:  Mem_Calloc(partCount * 0x50 + 0x34, 0)
 That single `Mem_Calloc` says the object is 0x34 bytes followed by
 `partCount` × `GsCOORDINATE2` (0x50), and that `field_8` points at its own tail.
 `Gp_AttachTmd` stores that pointer into `Task::extra` and sets
-`Task::spawnType = 1`, and `Task_Kill`'s type-1 branch pokes `field_C` on the
+`Task::spawnType = 1`, and `taskKill`'s type-1 branch pokes `field_C` on the
 same pointer — so "`Task::extra`" and "TMD model node" were never two things.
 The 0x24 model was simply truncated: `func_actor_400600_80137240` reading
 `field_24` / `field_25` was reading one and two bytes past its end.
@@ -46648,7 +46678,7 @@ work = Mem_Calloc(sizeof(M4a1GrenadeWork), 0);
 vec  = blk;
 if (work == NULL) {
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
-    Task_Kill(arg0);
+    taskKill(arg0);
     return;
 }
 ```
@@ -47323,7 +47353,7 @@ void func_dryfield_motel_balcony_8017DBD0(Task* task)
 const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC = {
     func_dryfield_motel_balcony_8017DB84,
     func_dryfield_motel_balcony_8017DBC8,
-    Task_Kill,
+    taskKill,
 };
 ```
 
@@ -50080,7 +50110,7 @@ if (arg0 < 0) {
 t->spawnArg1 = arg0;
 return;
 kill:
-    Task_Kill(D_mist_parking_8019532C);
+    taskKill(D_mist_parking_8019532C);
     D_mist_parking_8019532C = NULL;
 ```
 
@@ -53805,7 +53835,7 @@ glabel func_acropolis_promenade_8017D5EC
 Two tells confirm it before you touch anything: the "rodata" words disassemble
 as instructions, and a task table in the real rodata takes that address as a
 function pointer (`D_..._8017D5C4` holds `{ func_..._8017D9E0, D_..._8017D5E4,
-Task_Kill }`).
+taskKill }`).
 
 Fix it in the manifest, not in the C — pin the span with the `text` key,
 regenerate, delete the affected `src/` file so splat re-emits the
@@ -63580,12 +63610,12 @@ Writing the body over an explicit alias —
 
 ```c
 Task* task = arg0;
-switch (task->state) { ... Task_Kill(task); }
+switch (task->state) { ... taskKill(task); }
 ```
 
 made GCC read state via `a0` and slip the `move $s1, $a0` into the delay slot
 of the first `beqz`, and reordered the register saves to `ra, s1, s0`. Dropping
-the local and using `arg0` throughout (`switch (arg0->state)`, `Task_Kill(arg0)`)
+the local and using `arg0` throughout (`switch (arg0->state)`, `taskKill(arg0)`)
 forced the early prologue copy and the `s1, ra, s0` save order — instant match.
 
 Rule: when the prologue's saved-reg copy/order is the only diff and a parameter
@@ -76788,7 +76818,7 @@ Move the arithmetic to the join and update **one** variable in place:
 var_v0 = arg0->spawnArg1;
 if (var_v0 < 0) {
     Stage_SetEndingFlag();
-    Task_Kill(arg0);
+    taskKill(arg0);
     var_v0 = arg0->spawnArg1;   /* still dead across the calls */
 }
 var_v0 = var_v0 - 1;
@@ -79543,7 +79573,7 @@ shape (`alloc` short-lived, `fade` long-lived) and is the source pattern to copy
 map = Mem_Malloc(0x4F0, 0);
 arg0->idMap = map;
 if (map == NULL) {
-    Task_Kill(arg0);
+    taskKill(arg0);
     return;
 }
 work = (Actor136100Work*)map;
@@ -80136,7 +80166,7 @@ Which task owns the block is the part that takes work, because `task->state` is
 shared by every task in the overlay: **two state tables keyed on `task->state`
 are two tasks**, so the nearest matched sibling is not evidence of ownership.
 Follow the dispatch chain: `D_actor_141000_80131E30` is
-`{80132C7C, 80132D3C, Task_Kill}` - the controller - and `80132D3C` dispatches
+`{80132C7C, 80132D3C, taskKill}` - the controller - and `80132D3C` dispatches
 `idMap + 0xC` through a *second* table, `D_actor_141000_80131E3C`, while the
 0x4CC `Actor141000Work` belongs to a third task whose table
 `D_actor_141000_80131E4C` = `{8013392C, …}` is entered from `801338C0` by
@@ -80496,7 +80526,7 @@ with 33 instructions against the target's 29:
         ((Actor310100Work*)work->field_4E4->idMap)->field_4F0 = 2;
         return;
     }
-    if (work->field_4E4 != NULL) { Task_Kill(work->field_4E4); }
+    if (work->field_4E4 != NULL) { taskKill(work->field_4E4); }
 ```
 
 Both `lw 0x4E4` and `lw 0x1C` land in the branch arm, and the else path issues a
@@ -80515,7 +80545,7 @@ in the entry block's RTL to begin with:
         display->field_4F0 = 2;
         return;
     }
-    if (work->field_4E4 != NULL) { Task_Kill(work->field_4E4); }
+    if (work->field_4E4 != NULL) { taskKill(work->field_4E4); }
 ```
 
 100.000%, 29 instructions, one `lw 0x4E4` that the later `beqz $a0` re-uses.
@@ -81867,7 +81897,7 @@ sets it. Dumps: `base_9.i.sched` (chain order), `lregwalk.py base_9.i.lreg 89 90
 ```
     beqz  $a0, .L60
      addiu $v0, $s1, 1      /* # 64 addsi3_internal */
-    jal   Task_Kill
+    jal   taskKill
     nop
     sw    $zero, 0xC($s0)
     addiu $v0, $s1, 1       /* # 64 addsi3_internal */
@@ -81879,7 +81909,7 @@ m2c reads the pair literally and writes the increment twice, the second copy
 inside the `if` (`var_v0 = var_s1 + 1;` / `if (...) { ...; var_v0 = var_s1 + 1; }`).
 That seed scored 77.78% with `regs=10 branch=1 reorder=1 insert=2 delete=4` on a
 matching topology, and the registers are swapped: `var_v0` is then live across
-the `Task_Kill` call, so it takes a callee-saved register (`$s1`) and the loop
+the `taskKill` call, so it takes a callee-saved register (`$s1`) and the loop
 variable is demoted to `$v1`.
 
 The two `addiu`s carry the same `# 64 addsi3_internal` in this project's `-dp`
@@ -81900,7 +81930,7 @@ natural loop and let `.loop` and `.dbr` produce the pair:
 for (i = 0; i < 10; i++) {
     task = work->field_C[i];
     if (task != NULL) {
-        Task_Kill(task);
+        taskKill(task);
         work->field_C[i] = NULL;
     }
 }
@@ -81955,7 +81985,7 @@ move   a1, zero
 beqz   v0, .Lkill
  sw    v0, 0x1C(s1)      /* allocator's home is still $v0 here */
 .Lkill:
-jal    Task_Kill
+jal    taskKill
 ...
 .Lcont:
 addu   s0, v0            /* the copy, in the continuation block */
@@ -81970,7 +82000,7 @@ that. Naming the result twice splits the range:
 alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
 task->work = (TaskIdMap*)alloc;
 if (alloc == NULL) {
-    Task_Kill(task);
+    taskKill(task);
     return;
 }
 work = alloc;            /* born after the branch, so the copy lands there */
@@ -81991,10 +82021,10 @@ exactly this, and `func_actor_560800_80135BD8` uses one name and compiles to
 guess — when the target tests `$v0` after a call whose result is stored and kept,
 count the names in the source.
 
-## Two identical `Task_Kill(t); return;` tails collapse into one block, placed where the second one was
+## Two identical `taskKill(t); return;` tails collapse into one block, placed where the second one was
 
 The same function spawns two children, and each of its null checks ends in the same
-`Task_Kill(task); return;`. The target has one kill block, sitting *between* the
+`taskKill(task); return;`. The target has one kill block, sitting *between* the
 second calloc and the second half of the function: the first check branches forward
 to it (`beqz $v0, .Lkill`) and the second inverts to jump over it
 (`bnez $v0, .Lcont`), which reads like hand-written control flow.
@@ -82026,7 +82056,7 @@ first-build rewrite in the idiom of its already-matched sibling
 `func_actor_160900_80133F90` (same TU, same shape). Two source-shape effects,
 both visible in the object dump rather than in any pass dump:
 
-**The two `Task_Kill(task); return;` tails.** m2c emits one `Task_Kill` and
+**The two `taskKill(task); return;` tails.** m2c emits one `taskKill` and
 reaches it from both allocation checks with `goto block_4;`. The target instead
 has two duplicate tails, which GCC cross-jumps itself, keeping the *second*
 one's position:
@@ -82036,10 +82066,10 @@ beqz  v0, .L...B90     # first check, jumps forward over the whole first half
 ...
 bnez  v0, .L...BC0     # second check, inverted, falls into the shared block
  sw   v0, 0x1C(s1)
-.L...B90: jal Task_Kill
+.L...B90: jal taskKill
 ```
 
-Writing the two `if (alloc == NULL) { Task_Kill(task); return; }` out in full,
+Writing the two `if (alloc == NULL) { taskKill(task); return; }` out in full,
 as the sibling does, reproduces that polarity and placement. The seed's version
 leaves both branches `beqz` to a block placed after the second half, and the
 `branch`/`insert`/`delete` penalties come with it.
@@ -84746,7 +84776,7 @@ subtract in the shared tail:
     var_v0 = arg0->spawnArg1;
     if (var_v0 < 0) {
         Stage_SetEndingFlag();
-        Task_Kill(arg0);
+        taskKill(arg0);
         var_v0 = arg0->spawnArg1;
     }
     var_v0          = var_v0 - 1;
@@ -85692,7 +85722,7 @@ Inputs: `base.i`
 ## Target `jal`+`nop`: the argument load is hoisted above a byte store's address pair, and reorg fills the slot (func_neo_ark_shrine_8017EED4, 2026-09-15)
 
 The room-script tail `Display_ReleaseRef(); gGameSession->eventState/0x68/0x66 = 0;
-D_8007216C = N; Task_Kill(task->spawnArg2);` recurs across rooms: the shared
+D_8007216C = N; taskKill(task->spawnArg2);` recurs across rooms: the shared
 bodies `Room_Script10`/`Room_Script11` are the same tail with other constants,
 and this overlay's own `func_neo_ark_shrine_8017F0F0` has it. Retail keeps source
 order and takes a genuine `nop`:
@@ -85700,7 +85730,7 @@ order and takes a genuine `nop`:
 ```asm
 sb   $s0,%lo(D_8007216C)($v0)
 lw   $a0,0x20($s1)
-jal  Task_Kill
+jal  taskKill
 nop
 ```
 
@@ -85929,7 +85959,7 @@ move  a1,zero
 move  v1,v0
 bnez  v1, .L514
 sw    v1,0x1C(s2)      # delay: task->work = block, taken or not
-jal   Task_Kill
+jal   taskKill
 move  a0,s2
 j     .L560
 nop
@@ -85939,7 +85969,7 @@ addiu v0,v1,0x20
 ```
 
 Every other room that allocates a work block writes the store *after* the
-check - `if (work == NULL) { Task_Kill(task); return; } task->work = work;` -
+check - `if (work == NULL) { taskKill(task); return; } task->work = work;` -
 and following that convention here scored 97.273% with `reorder=2`: sched2
 hoisted the `func_neo_ark_shrine_8017F86C` argument into the branch delay slot
 (`bnez v1,4c` / `move a0,s2`) and pushed the store past `addiu v0,v1,0x20`.
@@ -86969,7 +86999,7 @@ void func_mine_mesa_8017E70C(s32 arg0)
                 return;
             }
         }
-        Task_Kill(D_mine_mesa_80189B58);
+        taskKill(D_mine_mesa_80189B58);
         D_mine_mesa_80189B58 = NULL;
     }
 }
@@ -90036,7 +90066,7 @@ unsigned mask, which is what the target's *sibling* function does not do:
 u16 temp_v0;
 temp_v0 = arg0->killCountdown - 1;
 arg0->killCountdown = temp_v0;
-if (temp_v0 & 0x8000) { Task_Kill(arg0); }   /* andi v0,v0,0x8000; beqz */
+if (temp_v0 & 0x8000) { taskKill(arg0); }   /* andi v0,v0,0x8000; beqz */
 ```
 
 ```
@@ -90056,7 +90086,7 @@ and let the assignment truncate; the subtraction still reads the field through
 s16 temp_v0;
 temp_v0 = (u16)arg0->killCountdown - 1;
 arg0->killCountdown = temp_v0;
-if (temp_v0 < 0) { Task_Kill(arg0); }        /* sll v0,v0,0x10; bgez */
+if (temp_v0 < 0) { taskKill(arg0); }        /* sll v0,v0,0x10; bgez */
 ```
 
 `func_dryfield_general_store_8017DFB4` is the example: 90.909% with
@@ -96759,7 +96789,7 @@ function, and its known-good C is already in `src/` under the other family's nam
 Worked case: the source of `func_dryfield_water_tower_80180038` (fade-*out*, channels
 raised from 0 until `(s16)r` passes `0x100`), ported verbatim with only the game's own
 naming changed, matched `func_actor_120300_80133B5C` at 100.000% with all penalties
-zero on the first build after the baseline — and the two Task_Kill call sites that
+zero on the first build after the baseline — and the two taskKill call sites that
 source writes merge into the target's single call through the cross-jumping already
 described above. The room copy itself was matched first as a private body
 (`src/rooms/dryfield_water_tower/`, the fade-out direction deliberately not shared
@@ -98589,10 +98619,10 @@ one. The new overlay's C body belongs in its own TU, as a second copy.
 
 **Port the twin's control flow verbatim, gotos and all.** m2c renders the shared
 exit as a nested `block_7` label inside the `else` of `if (temp_v0 != NULL)`,
-which invites restructuring; the twin's plain two-`Task_Kill(arg0)`-calls shape
+which invites restructuring; the twin's plain two-`taskKill(arg0)`-calls shape
 is what the target has, because `reorg` cross-jumps the identical tails. The
 merge shows up at the same place as the entry above: `.sched2` still has both
-`call_insn`s (4 total, both `Task_Kill`s present), `.dbr` has one.
+`call_insn`s (4 total, both `taskKill`s present), `.dbr` has one.
 
 Inputs: `base_1.i`
 `2939c045e98d94813eff515ade12f5c7af939d1aa63c86de3df930c9f1133d9a`.
@@ -98680,7 +98710,7 @@ candidate that tops `calls` *and* `fields` (here `func_actor_136100_80134588`,
 verbatim and change only the overlay's own literals. The m2c seed scored 60.9%
 because it nested the `case 1` arm inside the allocation-failure test -- the
 usual m2c `switch`/fallthrough damage, 9 `insert` + 12 `delete` -- while the
-sibling's shape (allocate, `Task_Kill` and `return` on failure, fall through
+sibling's shape (allocate, `taskKill` and `return` on failure, fall through
 into `case 1`) matched 100% on the first build.
 
 The sibling's cast spellings are part of that, not decoration. Both read the
@@ -118213,7 +118243,7 @@ case0:  beq  v1,v0,.Lepilogue     # cutscene running
         ... malloc, msg 0x3E8, func_800E8634, state += 1 ...
         j    .Ltail
 case1:  bnez v0,.Ltail            # sequence still running
-        jal  Task_Kill
+        jal  taskKill
         j    .Lepilogue
 Ltail:  jal  func_..._8017DEC0
 ```
@@ -118233,7 +118263,7 @@ switch (arg0->state) {
         break;
     case 1:
         if (gGameSession->eventState == 0) {
-            Task_Kill(arg0);
+            taskKill(arg0);
             return;
         }
         break;
@@ -122049,7 +122079,7 @@ jal     Mem_Malloc                  jal     Mem_Malloc
 move    a1,zero                     move    a1,zero
 bnez    v0,50                      move    s2,v0
 sw      v0,0x1c(s3)                 bnez    s2,54
-jal     Task_Kill                   sw      s2,0x1c(s3)
+jal     taskKill                   sw      s2,0x1c(s3)
 ...                                 ...
 move    s2,v0                       move    a0,s2
 move    a0,s2
@@ -122064,7 +122094,7 @@ every later use reads `$s2`. Splitting it the way the matched sibling
 ```c
 TaskIdMap* map = Mem_Malloc(0x4E4, 0);
 arg0->idMap    = map;
-if (map == NULL) { Task_Kill(arg0); return; }
+if (map == NULL) { taskKill(arg0); return; }
 work = (Actor120300Work*)map;      /* long-lived copy, only this one needs $s2 */
 ```
 
@@ -126645,7 +126675,7 @@ expression the test reads:
 ```c
     work        = (Actor111800Work*)Mem_Calloc(0x498, false);   /* copy first */
     task->work = (TaskIdMap*)work;
-    if (work == NULL) { Task_Kill(task); return; }
+    if (work == NULL) { taskKill(task); return; }
 ```
 ```
 addu    s2,v0,zero          /* the copy, before the test */
@@ -126655,7 +126685,7 @@ sw      s2,0x1c(s1)         /* dbr fills the delay slot from the target block */
 against
 ```c
     task->work = (TaskIdMap*)Mem_Calloc(0x498, false);         /* copy last */
-    if (task->work == NULL) { Task_Kill(task); return; }
+    if (task->work == NULL) { taskKill(task); return; }
     work = (Actor111800Work*)task->work;
 ```
 ```

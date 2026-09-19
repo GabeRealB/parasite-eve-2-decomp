@@ -22,7 +22,7 @@ void func_shelter_b1_pod_service_gantry_8017D81C(Task* arg0)
     temp_v0    = Mem_Malloc(8U, false);
     arg0->work = temp_v0;
     if (temp_v0 == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     Mem_Set(temp_v0, 0U, 8U);

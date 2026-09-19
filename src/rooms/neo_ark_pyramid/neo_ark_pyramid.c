@@ -85,7 +85,7 @@ void func_neo_ark_pyramid_8017D600(Task* task)
             D_801153F4[0]            = 0;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

@@ -73,7 +73,7 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
             Gp_DispatchMsg(
                 (Task*)func_dryfield_night_garage_80180A64(0), 0x7DB, (s32)&D_dryfield_night_garage_80182DE4, 0);
         default:
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

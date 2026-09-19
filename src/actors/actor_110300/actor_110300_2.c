@@ -45,7 +45,7 @@ void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
 
 void func_actor_110300_80132088(Task* arg0)
 {
-    Task_Kill(D_actor_110300_8013A0A8);
+    taskKill(D_actor_110300_8013A0A8);
     Gp_DestroyEnemy(arg0->spawnArg2, arg0);
 }
 

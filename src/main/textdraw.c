@@ -1068,5 +1068,5 @@ void Text_BootTask(Task* arg0)
     Display_SetMode(0x1010);
     Game_ClearSession();
     Task_SpawnFromTable(Title_TaskDescs, 0, 0, 0);
-    Task_Kill(arg0);
+    taskKill(arg0);
 }

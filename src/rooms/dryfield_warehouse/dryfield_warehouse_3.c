@@ -22,7 +22,7 @@ void func_dryfield_warehouse_8017E308(Task* arg0)
             alloc      = (DwhFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             fade         = alloc;
@@ -41,7 +41,7 @@ void func_dryfield_warehouse_8017E308(Task* arg0)
             }
             SetDispMask(0);
             D_dryfield_warehouse_801821C0 = NULL;
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

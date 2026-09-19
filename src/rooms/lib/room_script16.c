@@ -4,5 +4,5 @@
 
 void Room_Script16(Task* task)
 {
-    Task_Kill(task);
+    taskKill(task);
 }

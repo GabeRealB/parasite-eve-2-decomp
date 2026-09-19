@@ -200,7 +200,7 @@ void func_acropolis_patio_8017DA5C(Task* task)
             Mc_SaveData.at4.loc.room = D_acropolis_patio_80187065;
             Task_Spawn(0, 0x11, 0, 0);
         kill:
-            Task_Kill(task);
+            taskKill(task);
             return;
     }
 }

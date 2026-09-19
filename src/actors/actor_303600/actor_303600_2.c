@@ -31,7 +31,7 @@ void func_actor_303600_801626C0(Task* task)
 
     work = Mem_Calloc(0x3C, 0);
     if (work == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     task->work        = (TaskIdMap*)work;

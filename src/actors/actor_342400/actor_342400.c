@@ -24,7 +24,7 @@ void func_actor_342400_80162084(Task* arg0)
     work->enemy1 = Gp_SpawnEnemyFromTable(&D_80151E60, 1, 1, 0);
     if (work->enemy0 == NULL && work->enemy1 == NULL) {
     kill:
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     if (work->enemy0 != NULL) {
@@ -240,7 +240,7 @@ void func_actor_342400_801628F0(Task* arg0)
 
     if ((u8)gGameSession->spawnPhase[1] == 2 || (u8)gGameSession->spawnPhase[0] == 0 ||
         (work = Mem_Calloc(6, 0)) == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     for (i = 16; i >= 0; i--) {
@@ -295,7 +295,7 @@ void func_actor_342400_80162AB0(Task* arg0)
         if (count == 17) {
             ((void (*)(Task*, s32))Gp_ReleaseStateF0Clear)(arg0, 0);
             gGameSession->spawnPhase[1] = 2;
-            Task_Kill(arg0);
+            taskKill(arg0);
         }
     }
 }
@@ -318,7 +318,7 @@ void func_actor_342400_80162B60(Task* arg0)
             return;
         }
     }
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void func_actor_342400_80162C10(Task* arg0)
@@ -362,7 +362,7 @@ void func_actor_342400_80162CBC(Task* arg0)
     coord = ((TmdObject*)task->extra)->coords;
     if (enemy->field_40 <= 0) {
         D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 2;
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     if (func_actor_342400_801626CC(gGameSession->enemyCullZone, coord->coord.t[0], coord->coord.t[2])) {
@@ -371,7 +371,7 @@ void func_actor_342400_80162CBC(Task* arg0)
         msg.field_2 = 5;
         Gp_DispatchMsg(task, 0x7DB, (s32)&msg, 0);
         D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 2;
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 
@@ -397,7 +397,7 @@ void func_actor_342400_80162DA0(Task* arg0)
             return;
         }
     }
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void func_actor_342400_80162E6C(Task* arg0)
@@ -441,7 +441,7 @@ void func_actor_342400_80162F1C(Task* arg0)
     coord = ((TmdObject*)task->extra)->coords;
     if (enemy->field_40 <= 0) {
         D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 2;
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     if (func_actor_342400_801626CC(gGameSession->enemyCullZone, coord->coord.t[0], coord->coord.t[2])) {
@@ -450,7 +450,7 @@ void func_actor_342400_80162F1C(Task* arg0)
         msg.field_2 = 5;
         Gp_DispatchMsg(task, 0x7DB, (s32)&msg, 0);
         D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 2;
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 
@@ -518,7 +518,7 @@ void func_actor_342400_80163178(Task* arg0)
     func_actor_342400_801621D8(arg0);
     if (work->field_A == 3) {
         D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 2;
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 

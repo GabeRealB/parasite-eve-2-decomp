@@ -115,7 +115,7 @@ const TaskFuncTable4 D_neo_ark_forest_zone_8017D634 = { {
     func_neo_ark_forest_zone_80180BB4,
     func_neo_ark_forest_zone_80180D24,
     func_neo_ark_forest_zone_80181508,
-    Task_Kill,
+    taskKill,
 } };
 
 void func_neo_ark_forest_zone_8018151C(Task* task)

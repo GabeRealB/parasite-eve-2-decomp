@@ -38,7 +38,7 @@ void func_mine_refuge_8017FA08(Task* task)
             return;
         case 5:
             SndEvt_EnqueueType6(0x54060008, 0, 0);
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

@@ -36,7 +36,7 @@ void func_actor_111800_80132390(Task* task)
     obj        = (TmdObject*)task->extra;
     task->work = (TaskIdMap*)Mem_Calloc(0x498, false);
     if (task->work == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     work = (Actor111800Work*)task->work;

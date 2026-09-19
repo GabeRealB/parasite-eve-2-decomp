@@ -54,7 +54,7 @@ void func_shelter_b4_reservoir_8017E400(Task* arg0)
     arg0->killCountdown             = temp_v1;
     D_shelter_b4_reservoir_80184F80 = temp_v0 - 0x7D0;
     if (arg0->spawnArg1 < temp_v1) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         D_shelter_b4_reservoir_8018492C = 0;
     }
 }
@@ -69,7 +69,7 @@ void func_shelter_b4_reservoir_8017E4B0(Task* arg0)
     arg0->killCountdown             = temp_v1;
     D_shelter_b4_reservoir_80184F82 = (s16)temp_v0;
     if (arg0->spawnArg1 < temp_v1) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         D_shelter_b4_reservoir_8018492C = 0;
     }
 }

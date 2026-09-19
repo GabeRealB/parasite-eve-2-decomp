@@ -31,7 +31,7 @@ void Actor00400_Fn0A364(Task* arg0)
     intensity       = work->intensity - 1;
     work->intensity = intensity;
     if (intensity == 0) {
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 

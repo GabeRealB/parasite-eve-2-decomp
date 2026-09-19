@@ -916,7 +916,7 @@ void func_actor_206100_8014CE60(Task* task)
     frame = (s16)work->field_51E;
     if (frame == 3) {
         if (work->field_4F8 != NULL) {
-            Task_Kill(work->field_4F8);
+            taskKill(work->field_4F8);
         }
         if ((s16)work->field_51E == frame) {
             SndEvt_EnqueueType6(0x551E0003, 0, 0);

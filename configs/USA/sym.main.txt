@@ -782,7 +782,7 @@ Pad_CheckSpecialCombo       = 0x8002CAB8; // type:func
 //--- PA: 0x1D304   VA: 0x8002CB04   subsegment: c, task
 //--------------------------------------------------------------------
 Task_SpawnFromDesc          = 0x8002CB04; // type:func
-Task_Kill                   = 0x8002CCB8; // type:func
+taskKill                   = 0x8002CCB8; // type:func
 Task_SpawnFromTable         = 0x8002CFA0; // type:func
 Task_Spawn                  = 0x8002CFDC; // type:func
 Task_KillChildren           = 0x8002D03C; // type:func

@@ -37,7 +37,7 @@ void func_acropolis_patio_8017DD80(Task* task)
             if (Gp_GetCapEventKey() == 1) {
                 GameFlag_SetNibble(0x15, 1);
             }
-            Task_Kill(task);
+            taskKill(task);
             return;
     }
 }

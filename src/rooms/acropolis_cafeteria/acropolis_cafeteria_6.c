@@ -99,6 +99,6 @@ L_case5:
     if (task->spawnArg1 == 0) {
         Stage_RequestFromAreaTable(0);
     }
-    Task_Kill(task);
+    taskKill(task);
     Display_ResetHeapWrapper();
 }

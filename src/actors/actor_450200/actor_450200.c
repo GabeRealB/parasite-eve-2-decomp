@@ -100,7 +100,7 @@ STATIC_ASSERT_SIZEOF(Actor450200HeadAim, 0xC);
 /// `func_800B17D4` between the slot-3 task whose head turns and the
 /// `Game_GetPtrSlot(0xA)` task it turns toward. A failed allocation, and every
 /// state past 1, kill the task; only the latter clears
-/// `D_actor_450200_801401E0`, which is why the two `Task_Kill` calls are
+/// `D_actor_450200_801401E0`, which is why the two `taskKill` calls are
 /// distinct.
 void func_actor_450200_80131FA8(Task* arg0)
 {
@@ -113,7 +113,7 @@ void func_actor_450200_80131FA8(Task* arg0)
         case 0:
             aim = Mem_Calloc(sizeof(Actor450200HeadAim), false);
             if (aim == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             arg0->work      = (TaskIdMap*)aim;
@@ -139,7 +139,7 @@ void func_actor_450200_80131FA8(Task* arg0)
             func_800B17D4(looker, Game_GetPtrSlot(0xA), (GpHeadAim*)aim);
             return;
         default:
-            Task_Kill(arg0);
+            taskKill(arg0);
             D_actor_450200_801401E0 = NULL;
             return;
     }
@@ -152,7 +152,7 @@ void func_actor_450200_801320D4(s32 arg0)
 {
     if (arg0 == 0) {
         if (D_actor_450200_801401E4 != NULL) {
-            Task_Kill(D_actor_450200_801401E4);
+            taskKill(D_actor_450200_801401E4);
             D_actor_450200_801401E4 = NULL;
         }
     } else if (arg0 == 1) {

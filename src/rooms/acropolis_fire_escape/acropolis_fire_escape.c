@@ -117,7 +117,7 @@ void func_acropolis_fire_escape_8017F48C(Task* task)
         case 5:
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
                 SndEvt_EnqueueType7(script->field_10, 1);
-                Task_Kill(D_acropolis_fire_escape_80183044);
+                taskKill(D_acropolis_fire_escape_80183044);
                 task->state++;
             } else if (Task_PollKill(D_acropolis_fire_escape_80183044, &poll) != 0) {
                 task->state++;
@@ -213,7 +213,7 @@ void func_acropolis_fire_escape_8017F48C(Task* task)
                 Gp_ResetCap();
             }
             D_80114D08 = 0xA;
-            Task_Kill(task);
+            taskKill(task);
             break;
         case 15:
         case 16:

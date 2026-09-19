@@ -2128,7 +2128,7 @@ void Mc_StateClosePrompt(Task* arg0, McWork* arg1)
 void Mc_KillIfCountdown(Task* arg0, McWork* arg1)
 {
     if (arg0->killCountdown != 0) {
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 
@@ -2694,7 +2694,7 @@ void Mc_StatePromptTimeout(Task* arg0, McWork* arg1)
 void Mc_KillIfCountdownAlt(Task* arg0)
 {
     if (arg0->killCountdown != 0) {
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 

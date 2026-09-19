@@ -217,7 +217,7 @@ void Gp_ScriptTaskState1(Task* arg0)
 
             case 5:
                 if (st->msgTask != NULL) {
-                    Task_Kill(st->msgTask);
+                    taskKill(st->msgTask);
                     st->msgTask = NULL;
                 }
                 break;
@@ -348,7 +348,7 @@ void Gp_ScriptTaskState1(Task* arg0)
                 st2 = (GpEvsState*)arg0->work;
                 if (st2->fadeTask != NULL) {
                     if (D_801156D8.field_1 != 2) {
-                        Task_Kill(st2->fadeTask);
+                        taskKill(st2->fadeTask);
                     }
                     st2->fadeTask = NULL;
                 }
@@ -374,7 +374,7 @@ void Gp_ScriptTaskState1(Task* arg0)
 
             case 26:
                 if (D_8010FBE4 != NULL) {
-                    Task_Kill(D_8010FBE4);
+                    taskKill(D_8010FBE4);
                 }
                 D_801156DC.field_0 = (u16)st->pc->arg0;
                 D_801156DC.field_2 = (u16)st->pc->arg1;
@@ -383,7 +383,7 @@ void Gp_ScriptTaskState1(Task* arg0)
 
             case 27:
                 if (D_8010FBE8 != NULL) {
-                    Task_Kill(D_8010FBE8);
+                    taskKill(D_8010FBE8);
                 }
                 D_801156E0.field_0 = st->pc->arg0;
                 D_801156E0.field_6 = (u16)st->pc->arg1;
@@ -455,7 +455,7 @@ void Gp_ScriptTaskState1(Task* arg0)
                 st2 = (GpEvsState*)arg0->work;
                 if (st2->fadeTask != NULL) {
                     if (D_801156D8.field_1 != 2) {
-                        Task_Kill(st2->fadeTask);
+                        taskKill(st2->fadeTask);
                     }
                     st2->fadeTask = NULL;
                 }
@@ -546,7 +546,7 @@ void Gp_VolFadeTask(Task* arg0)
         case 0:
             if (fade->field_2 == 0) {
                 Snd_ApplyVolumeTable(fade->field_0);
-                Task_Kill(arg0);
+                taskKill(arg0);
                 D_8010FBE4 = 0;
             } else {
                 D_801156C2 = 0;
@@ -559,7 +559,7 @@ void Gp_VolFadeTask(Task* arg0)
             volume = (D_801156C0 * (fade->field_2 - D_801156C2) + fade->field_0 * D_801156C2) / fade->field_2;
             Snd_ApplyVolumeTable(volume & 0xFFFF);
             if (D_801156C2 == fade->field_2) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 D_8010FBE4 = 0;
             }
             break;
@@ -577,7 +577,7 @@ void Gp_SndFadeTask(Task* arg0)
             if (fade->field_8 == 0) {
                 SndEvt_EnqueueTypeA(fade->field_0, 0, (s8)fade->field_6);
                 fade->field_4 = fade->field_6;
-                Task_Kill(arg0);
+                taskKill(arg0);
                 D_8010FBE8 = 0;
             } else {
                 D_801156C6 = 0;
@@ -591,7 +591,7 @@ void Gp_SndFadeTask(Task* arg0)
             SndEvt_EnqueueTypeA(fade->field_0, 0, (s8)volume);
             fade->field_4 = volume;
             if (D_801156C6 == fade->field_8) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 D_8010FBE8 = 0;
             }
             break;
@@ -637,7 +637,7 @@ void Gp_ScriptInit(Task* arg0)
 
     mem = Mem_Calloc(0x34, 0);
     if (mem == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     D_801156F9 = 0;
@@ -687,7 +687,7 @@ void func_800E8888(Task* arg0)
             tmp = arg0->killCountdown;
             if (tmp < 0) {
                 gGameSession->hudShakeY = 0;
-                Task_Kill(arg0);
+                taskKill(arg0);
             } else {
                 gGameSession->hudShakeY = tmp * 2;
             }
@@ -715,7 +715,7 @@ void Gp_ShakeTask(Task* arg0)
         case 1:
             if (lo < arg0->spawnArg1) {
                 Display_ClampField126(0);
-                Task_Kill(arg0);
+                taskKill(arg0);
             } else {
                 tmp         = ABS(arg0->spawnArg1);
                 hi          = lo - tmp;
@@ -1050,7 +1050,7 @@ void Gp_PadHoldTask(Task* task)
             gGameSession->padScriptFlags |= 1;
         } else {
             gGameSession->padScriptFlags &= ~1;
-            Task_Kill(task);
+            taskKill(task);
         }
     }
 }
@@ -1068,7 +1068,7 @@ void Gp_PadLerpTask(Task* task)
             gGameSession->padScriptFlags |= 2;
         } else {
             gGameSession->padScriptFlags &= ~2;
-            Task_Kill(task);
+            taskKill(task);
         }
     }
 }

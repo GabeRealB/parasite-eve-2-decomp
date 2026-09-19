@@ -82,7 +82,7 @@ void func_dryfield_motel_room_6_80181A08(Task* arg0)
             }
             break;
         case 2:
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

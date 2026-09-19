@@ -75,7 +75,7 @@ void func_dryfield_garage_8017DAA0(Task* arg0)
             arg0->state               += 1;
             break;
         case 1:
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

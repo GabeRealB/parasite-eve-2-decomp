@@ -234,7 +234,7 @@ void func_shelter_r47_80185098(Task* task)
             gGameSession->eventState = 0;
         }
         gGameSession->cutsceneHold = 0;
-        Task_Kill((Task*)task->spawnArg2);
+        taskKill((Task*)task->spawnArg2);
         Task_RequestKill(task, 0);
     }
     SndEvt_EnqueueType7(0x542F0005, 1);

@@ -201,12 +201,12 @@ void func_shelter_b3_dumping_hole_801836E0(DumpingHoleState* arg0)
     s32                i;
 
     if ((u8)gGameSession->spawnPhase[0] == 2) {
-        Task_Kill((Task*)arg0);
+        taskKill((Task*)arg0);
         return;
     }
     work = Mem_Calloc(6, 0);
     if (work == NULL) {
-        Task_Kill((Task*)arg0);
+        taskKill((Task*)arg0);
         return;
     }
     for (i = 15; i >= 0; i--) {
@@ -259,7 +259,7 @@ void func_shelter_b3_dumping_hole_801838A0(DumpingHoleState* arg0)
         if (count == 0x10) {
             ((void (*)(Task*, s32))Gp_ReleaseStateF0Clear)((Task*)arg0, 0);
             gGameSession->spawnPhase[0] = 2;
-            Task_Kill((Task*)arg0);
+            taskKill((Task*)arg0);
         }
     }
 }
@@ -282,7 +282,7 @@ void func_shelter_b3_dumping_hole_80183950(DumpingHoleState* arg0)
             return;
         }
     }
-    Task_Kill((Task*)arg0);
+    taskKill((Task*)arg0);
 }
 
 void func_shelter_b3_dumping_hole_80183A00(DumpingHoleState* arg0)
@@ -309,7 +309,7 @@ void func_shelter_b3_dumping_hole_80183A98(DumpingHoleState* arg0)
 {
     if (arg0->field_1C->field_0->field_40 <= 0) {
         D_shelter_b3_dumping_hole_8018B7BC[arg0->field_36].field_6 = 2;
-        Task_Kill((Task*)arg0);
+        taskKill((Task*)arg0);
     }
 }
 
@@ -331,7 +331,7 @@ void func_shelter_b3_dumping_hole_80183AEC(DumpingHoleState* arg0)
             return;
         }
     }
-    Task_Kill((Task*)arg0);
+    taskKill((Task*)arg0);
 }
 
 void func_shelter_b3_dumping_hole_80183B9C(DumpingHoleState* arg0)
@@ -358,6 +358,6 @@ void func_shelter_b3_dumping_hole_80183C38(DumpingHoleState* arg0)
 {
     if (arg0->field_1C->field_0->field_40 <= 0) {
         D_shelter_b3_dumping_hole_8018B7BC[arg0->field_36].field_6 = 2;
-        Task_Kill((Task*)arg0);
+        taskKill((Task*)arg0);
     }
 }

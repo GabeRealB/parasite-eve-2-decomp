@@ -442,7 +442,7 @@ void func_actor_503500_80145480(Task* arg0)
     ext                                = arg0->extra;
     ((GsCOORDINATE2*)ext->coords)->sub = &Gfx_ViewCoord;
     Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void func_actor_503500_801454E0(Actor503500* arg0)
@@ -481,7 +481,7 @@ void func_actor_503500_801455A4(Task* arg0)
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = Mem_Calloc(sizeof(*work), false);
     if (work == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     arg0->work = (TaskIdMap*)work;
@@ -589,7 +589,7 @@ void func_actor_503500_80145950(Task* arg0)
     ext                                = arg0->extra;
     ((GsCOORDINATE2*)ext->coords)->sub = &Gfx_ViewCoord;
     Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void func_actor_503500_801459B0(Task* arg0)
@@ -620,7 +620,7 @@ void func_actor_503500_80145A2C(Task* arg0)
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = Mem_Calloc(sizeof(*work), false);
     if (work == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     arg0->work = (TaskIdMap*)work;
@@ -753,7 +753,7 @@ void func_actor_503500_80145E98(Task* arg0)
     ext                                = arg0->extra;
     ((GsCOORDINATE2*)ext->coords)->sub = &Gfx_ViewCoord;
     Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void func_actor_503500_80145F18(Actor503500* arg0)

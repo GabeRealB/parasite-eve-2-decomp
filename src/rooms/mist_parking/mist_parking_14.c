@@ -132,7 +132,7 @@ void func_mist_parking_80183D58(Task* task)
             work = Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8));
             func_800B0928(Game_GetPtrSlot(3), (Task*)work->field_0, 0x200, 0x100, task->killCountdown);
         } else {
-            Task_Kill(task);
+            taskKill(task);
         }
     }
 }
@@ -302,7 +302,7 @@ void func_mist_parking_80183EAC(Task* task)
         case 10:
             Gp_MsgPlayerWeapon(1);
             func_mist_parking_801846A4(0);
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }
@@ -345,7 +345,7 @@ void func_mist_parking_801842DC(Task* task)
                 Gp_MsgPlayerWeapon(1);
             }
             func_mist_parking_801846A4(0);
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

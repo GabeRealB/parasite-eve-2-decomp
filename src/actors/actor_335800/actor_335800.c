@@ -48,20 +48,20 @@ void func_actor_335800_80161E88(Task* task)
             }
             coord->coord.t[2] += task->killCountdown;
             if (gGameSession->viewReady != 0) {
-                Task_Kill(task);
+                taskKill(task);
             }
             break;
         case 2:
             if (++task->killCountdown < 4) {
                 if (gGameSession->viewReady != 0) {
-                    Task_Kill(task);
+                    taskKill(task);
                 }
             } else {
-                Task_Kill(task);
+                taskKill(task);
             }
             break;
         default:
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
     if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords->workm.t, &pos) != 0) {

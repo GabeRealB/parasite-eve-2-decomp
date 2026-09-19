@@ -105,7 +105,7 @@ void func_mine_refuge_8017FDBC(Task* arg0)
         default:
             return;
     }
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 /// Fills `D_mine_refuge_80182AE0` with the script for the mine's epilogue cap

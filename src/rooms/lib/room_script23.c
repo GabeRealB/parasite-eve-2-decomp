@@ -19,7 +19,7 @@ void Room_Script23(Task* task)
         case 2:
             if (Gp_GetCapEventKey() == 0xF) {
                 Gp_MsgPlayerWeapon(1);
-                Task_Kill(task);
+                taskKill(task);
             } else {
                 task->state = 0;
             }

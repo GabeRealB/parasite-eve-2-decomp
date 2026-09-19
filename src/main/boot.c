@@ -161,7 +161,7 @@ do_fade:
 
 L_case4:
     Task_Spawn(0, 0xD, 0, 0);
-    Task_Kill(a0);
+    taskKill(a0);
     SetDispMask(1);
     gDisplayState.field_112 = 0;
 }
@@ -291,7 +291,7 @@ void Boot_LoadTask(Task* arg0)
                 SetDispMask(1);
                 Mem_ConfigureAuxHeap(0, 0);
                 Task_SpawnFromTable(Title_TaskDescs, 0, 0, 0);
-                Task_Kill(arg0);
+                taskKill(arg0);
                 gDisplayState.field_112 = 0;
             }
             return;

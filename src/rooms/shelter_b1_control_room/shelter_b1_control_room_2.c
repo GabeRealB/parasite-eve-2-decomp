@@ -23,7 +23,7 @@ void func_shelter_b1_control_room_8017F100(Task* arg0)
     Display_SpawnWithOt(&D_shelter_b1_control_room_80181BBC, 1, 0, 0);
     D_8007106B = 1;
     Gp_SpawnViewTasks();
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void func_shelter_b1_control_room_8017F150(Task* task)

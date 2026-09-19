@@ -46,7 +46,7 @@ void func_dryfield_night_factory_8017FEF4(Task* task)
             Gp_MsgPlayerWeapon(1);
             Gp_MsgAllyWeapon(1);
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F3, 1, 0);
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

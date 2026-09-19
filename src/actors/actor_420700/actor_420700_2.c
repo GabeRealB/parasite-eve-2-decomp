@@ -5,7 +5,7 @@
 
 void func_actor_420700_8013239C(Task* arg0)
 {
-    Task_Kill(D_actor_420700_8013EFE8);
+    taskKill(D_actor_420700_8013EFE8);
     Gp_DestroyEnemy(arg0->spawnArg2, arg0);
 }
 

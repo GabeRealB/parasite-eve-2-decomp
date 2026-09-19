@@ -295,7 +295,7 @@ void func_neo_ark_altar_8017ED60(Task* arg0)
     work       = Mem_Calloc(0x10, 0);
     arg0->work = work;
     if (work == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     func_neo_ark_altar_8017E148();

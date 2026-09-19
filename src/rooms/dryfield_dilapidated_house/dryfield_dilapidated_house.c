@@ -95,7 +95,7 @@ void func_dryfield_dilapidated_house_8017DE88(Task* task)
                     args->done = 1;
                 }
                 if (args->done != 0) {
-                    Task_Kill(task);
+                    taskKill(task);
                     gDisplayState.skipDraw = 0;
                 }
                 break;
@@ -277,7 +277,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
                 D_80071076                = 1;
                 Task_Spawn(0, 0x11, 0, 0);
             }
-            Task_Kill(task);
+            taskKill(task);
             return;
     }
 }
@@ -466,7 +466,7 @@ void func_dryfield_dilapidated_house_8017E780(Task* arg0)
             temp_v0                               = D_dryfield_dilapidated_house_80189B6C - 1;
             D_dryfield_dilapidated_house_80189B6C = temp_v0;
             if (temp_v0 == 0) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             return;
     }
@@ -479,7 +479,7 @@ void func_dryfield_dilapidated_house_8017E858(Task* arg0)
     var_v0 = arg0->spawnArg1;
     if (var_v0 < 0) {
         Stage_SetEndingFlag();
-        Task_Kill(arg0);
+        taskKill(arg0);
         var_v0 = arg0->spawnArg1;
     }
     var_v0          = var_v0 - 1;

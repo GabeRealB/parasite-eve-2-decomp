@@ -17,7 +17,7 @@ const TaskFuncTable5 Title_PhaseTable = {
         Title_FlagAdvanceTask,
         Title_MenuTask,
         Title_MenuTask,
-        Task_Kill,
+        taskKill,
     },
 };
 const char Title_DemoStartMsg[]       = "##########DEMO START\n";

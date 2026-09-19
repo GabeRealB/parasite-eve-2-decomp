@@ -39,7 +39,7 @@ void RoomsShared8017ff9c(Task* task)
         if (task->killCountdown <= 0) {
             GameMain_SetFrameTiming(1);
             gGameSession->uiOpen = 0;
-            Task_Kill(task);
+            taskKill(task);
             Stage_ReleasePrimBuf();
             Stage_SetEndingFlag();
         }

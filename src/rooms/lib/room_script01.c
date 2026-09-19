@@ -72,7 +72,7 @@ void Room_Script01(Task* task)
             if (gGameSession->at4.loc.room >= 5) {
                 gGameSession->viewDirty = 1;
             }
-            Task_Kill(task);
+            taskKill(task);
             return;
     }
 }

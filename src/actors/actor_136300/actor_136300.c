@@ -56,7 +56,7 @@ void func_actor_136300_8013267C(Task* arg0)
             if (Gp_GetCapEventKey() == 2) {
                 gGameSession->hideHud = 0;
                 Gp_MsgPlayerWeapon(1);
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             func_800E8614((s32)&D_actor_136300_8013C6C0, 1);
@@ -90,7 +90,7 @@ void func_actor_136300_8013267C(Task* arg0)
             Gp_ClearCollectedBit(0x116);
             D_80071076 = 1;
             Task_Spawn(0, 0x11, 0, 0);
-            Task_Kill(arg0);
+            taskKill(arg0);
             return;
     }
 }
@@ -110,7 +110,7 @@ void func_actor_136300_80132854(Task* arg0)
     var_v0 = arg0->spawnArg1;
     if (var_v0 < 0) {
         Stage_SetEndingFlag();
-        Task_Kill(arg0);
+        taskKill(arg0);
         var_v0 = arg0->spawnArg1;
     }
     var_v0          = var_v0 - 1;

@@ -12,5 +12,5 @@ void RoomsShared8017dce0(Task* arg0)
     Display_SpawnWithOt(&RoomsShared8017daf0Desc, 1, 0, 0);
     D_8007106B = 1;
     Gp_SpawnViewTasks();
-    Task_Kill(arg0);
+    taskKill(arg0);
 }

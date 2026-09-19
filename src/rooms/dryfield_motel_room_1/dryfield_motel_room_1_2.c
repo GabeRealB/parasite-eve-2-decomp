@@ -36,7 +36,7 @@ void func_dryfield_motel_room_1_8017DC2C(Task* arg0)
     work       = (Dmr1Work*)Mem_Malloc(0x38, 0);
     arg0->work = (TaskIdMap*)work;
     if (work == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     Mem_Set(work, 0, 0x38);
@@ -91,7 +91,7 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
                 buf.msg.field_1 = gGameSession->at4.loc.area;
                 buf.msg.field_2 = 3;
                 Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&buf.msg, 0x7DB);
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             break;

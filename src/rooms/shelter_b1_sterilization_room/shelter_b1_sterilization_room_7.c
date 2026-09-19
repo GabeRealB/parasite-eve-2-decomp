@@ -40,11 +40,11 @@ void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
                 gGameSession->eventState = 0;
                 Gp_MsgPlayerWeapon(1);
             }
-            Task_Kill(arg0);
+            taskKill(arg0);
             return;
         default:
             gGameSession->eventState = 0;
-            Task_Kill(arg0);
+            taskKill(arg0);
             return;
     }
 }
@@ -68,7 +68,7 @@ void func_shelter_b1_sterilization_room_80181588(Task* arg0)
         return;
     }
     Gp_MsgPlayerWeapon(1);
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void func_shelter_b1_sterilization_room_801815EC(void)
@@ -82,7 +82,7 @@ void func_shelter_b1_sterilization_room_801815EC(void)
 void func_shelter_b1_sterilization_room_80181634(Task* arg0)
 {
     D_shelter_b1_sterilization_room_8018C340 = 0;
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void func_shelter_b1_sterilization_room_80181658(void)
@@ -135,7 +135,7 @@ void func_shelter_b1_sterilization_room_801816E0(Task* task)
         case 1:
             if (Gp_CapBusy() == 0) {
                 Gp_ResetCap();
-                Task_Kill(task);
+                taskKill(task);
             }
             return;
     }
@@ -155,7 +155,7 @@ void func_shelter_b1_sterilization_room_801817EC(Task* task)
         case 1:
             if (Gp_CapBusy() == 0) {
                 Gp_ResetCap();
-                Task_Kill(task);
+                taskKill(task);
             }
             break;
     }

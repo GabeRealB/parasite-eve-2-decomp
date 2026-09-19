@@ -84,7 +84,7 @@ L_case5:
     if ((Stream_RestoreAfterLoad(0, 0) & 0xFFFF) == 0) {
         return;
     }
-    Task_Kill(task);
+    taskKill(task);
     Display_ResetHeapWrapper();
 }
 
@@ -109,7 +109,7 @@ void func_shelter_1f_bulwark_8017DE04(Task* arg0)
             D_80071076                = 1;
             Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 0);
             Task_Spawn(0, 0x11, 0x10, 0);
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

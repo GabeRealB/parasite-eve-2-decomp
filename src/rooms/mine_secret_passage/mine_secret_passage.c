@@ -44,7 +44,7 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
             goto advance;
         case 2:
             if (Gp_GetCapEventKey() != 0xA) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
                 D_801153F4 = 0;
                 break;
@@ -82,7 +82,7 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
             Mc_SaveData.at4.loc.warp = (u8)D_mine_secret_passage_80183448.field_4;
             Mc_SaveData.at4.loc.room = (u8)D_mine_secret_passage_80183448.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

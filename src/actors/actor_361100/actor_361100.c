@@ -141,7 +141,7 @@ void func_actor_361100_801627D4(Task* task)
                 }
                 /* fallthrough */
             default:
-                Task_Kill(task);
+                taskKill(task);
                 D_actor_361100_80171BE0 = NULL;
                 break;
         }

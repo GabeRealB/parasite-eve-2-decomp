@@ -230,7 +230,7 @@ s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
         case 0:
             state->field_70 = 1;
             if (state->field_48 != NULL) {
-                Task_Kill(state->field_48);
+                taskKill(state->field_48);
                 state->field_48 = NULL;
             }
             Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_dryfield_water_tower_80181AB8, 0);
@@ -343,7 +343,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
                 mem        = (MATRIX*)Mem_Malloc(0x7C, false);
                 arg0->work = (TaskIdMap*)mem;
                 if (mem == 0) {
-                    Task_Kill(arg0);
+                    taskKill(arg0);
                 } else {
                     Mem_Set(mem, 0, 0x7C);
                     ((DryfieldWaterTowerState*)mem)->field_40 = Game_GetPtrSlot(3);
@@ -361,7 +361,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
 
             case 1:
                 if (state->field_48 != 0) {
-                    Task_Kill(state->field_48);
+                    taskKill(state->field_48);
                     state->field_48 = 0;
                 }
                 break;

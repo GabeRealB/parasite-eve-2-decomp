@@ -74,7 +74,7 @@ void func_dryfield_water_tank_8017D948(Task* task)
             return;
         case 1:
             if (Task_PollKill(D_dryfield_water_tank_80188D44, &poll) != 0) {
-                Task_Kill(task);
+                taskKill(task);
             }
             return;
     }

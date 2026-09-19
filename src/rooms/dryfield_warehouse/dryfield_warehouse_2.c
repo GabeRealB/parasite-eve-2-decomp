@@ -46,7 +46,7 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
     switch (arg0) {
         case 0:
             if (D_dryfield_warehouse_801821C0 != 0) {
-                Task_Kill(D_dryfield_warehouse_801821C0);
+                taskKill(D_dryfield_warehouse_801821C0);
             }
             SetDispMask(1);
             work = (DwhWork*)RoomsShared80180b2cTask->work;
@@ -112,7 +112,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                 work       = Mem_Malloc(0x10, false);
                 arg0->work = (TaskIdMap*)work;
                 if (work == NULL) {
-                    Task_Kill(arg0);
+                    taskKill(arg0);
                 } else {
                     Mem_Set(work, 0, 0x10);
                     work->owner             = Game_GetPtrSlot(3);

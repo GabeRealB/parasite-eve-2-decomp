@@ -61,7 +61,7 @@ void func_acropolis_west_elevator_hall_8017F64C(Task* task)
     coord = extra->coords;
     work  = (AwehElevatorState*)Mem_Calloc(sizeof(AwehElevatorState), 0);
     if (work == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     task->work        = (TaskIdMap*)work;

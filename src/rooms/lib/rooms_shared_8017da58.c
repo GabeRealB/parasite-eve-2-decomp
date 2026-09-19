@@ -79,7 +79,7 @@ void RoomsShared8017da58(Task* arg0)
             fade->b -= (u16)arg0->spawnArg1;
             if (fade->r < 0) {
             kill:
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }

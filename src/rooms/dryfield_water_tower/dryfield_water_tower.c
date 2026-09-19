@@ -69,7 +69,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
         default:
             return;
     }
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 /* func_dryfield_water_tower_8017DAF8 is the room's message handler; it is the

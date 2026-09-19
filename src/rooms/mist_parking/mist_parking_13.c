@@ -11,7 +11,7 @@ void      func_mist_parking_80183A28(Task* task);
 
 void func_mist_parking_80183B40(Task* task)
 {
-    TaskFunc states[3] = { func_mist_parking_801839CC, func_mist_parking_80183A28, Task_Kill };
+    TaskFunc states[3] = { func_mist_parking_801839CC, func_mist_parking_80183A28, taskKill };
 
     if (D_801153F4 == 0) {
         states[task->state](task);

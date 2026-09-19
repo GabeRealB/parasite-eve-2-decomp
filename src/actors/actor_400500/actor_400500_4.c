@@ -49,7 +49,7 @@ void func_actor_400500_8013DF74(Task* arg0)
     for (i = 0; i < 2; i++) {
         child = work->field_9F0[i];
         if (child != NULL) {
-            Task_Kill(child);
+            taskKill(child);
         }
     }
     work->field_A04 = 0;

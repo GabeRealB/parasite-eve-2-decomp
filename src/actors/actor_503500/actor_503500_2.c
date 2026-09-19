@@ -206,7 +206,7 @@ void func_actor_503500_80132778(Task* task)
         coord->flg        = 0;
         work              = Mem_Calloc(0xC, false);
         if (work == NULL) {
-            Task_Kill(task);
+            taskKill(task);
             return;
         }
         task->work      = (TaskIdMap*)work;
@@ -227,7 +227,7 @@ void func_actor_503500_80132778(Task* task)
         case 0:
         case 1:
             if (gGameSession->eventState == 0) {
-                Task_Kill(task);
+                taskKill(task);
                 return;
             }
             done = gGameSession->evtSkipped;
@@ -250,11 +250,11 @@ void func_actor_503500_80132778(Task* task)
             done             = work->field_8.w > 0x100000;
             break;
         default:
-            Task_Kill(task);
+            taskKill(task);
             return;
     }
     if (done) {
-        Task_Kill(task);
+        taskKill(task);
     }
 }
 
@@ -279,11 +279,11 @@ void func_actor_503500_80132990(Task* task)
             case 2:
                 task->killCountdown -= 8;
                 if (task->killCountdown < 0) {
-                    Task_Kill(task);
+                    taskKill(task);
                 }
                 break;
             default:
-                Task_Kill(task);
+                taskKill(task);
                 break;
         }
     }

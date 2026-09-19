@@ -169,6 +169,31 @@ bookkeeping - it puts the worklist out of step with the tree.
 If the rename is one the tool cannot express, do it by hand and say so plainly
 in your report, naming the old and new spelling, so the row can be added.
 
+**The parser-resolved pass cannot see every occurrence, so sweep after it.** The
+step's completeness check - a word-boundary grep of `src` and `include` for the
+old spelling - passes with these still in the tree, and each of them is a stale
+reference the next reader will follow:
+
+- a symbol named inside an inline-asm string, which is a relocation the parser
+  never reads rather than a reference it resolves;
+- a block comment's continuation lines, which count as comments only when they
+  start with `//`, `///`, `*` or `/*`;
+- a second whole-word mention on one markdown line, of which only the first is
+  rewritten;
+
+    grep -rnw <OldName> . --exclude-dir=.git --exclude-dir=build \
+        --exclude-dir=asm --exclude-dir=linkers --exclude-dir=assets \
+        --exclude-dir=rom --exclude-dir=venv
+
+Fix each by hand and name the spellings in the report, as above.
+
+**A parameter rename takes `--no-comments`.** The markdown branch of the comment
+pass has no per-symbol filter, so renaming a parameter whose name is a
+placeholder rewrites every backticked use of that name in the learnings file and
+in `NAMING.md`, including the generic ones in the conventions. Rename the
+parameter with `--no-comments`, then update the mentions that really are this
+function's by hand.
+
 ## Documentation
 
 `///` immediately above the declaration, opening with one summary sentence, with

@@ -35,7 +35,7 @@ void func_actor_560800_801369A0(void)
 void func_actor_560800_801369E0(Task* arg0)
 {
     if (CdCmd_IsIdle() & 0xFFFF) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         Display_ResetHeapWrapper();
     }
 }

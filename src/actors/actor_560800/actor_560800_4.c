@@ -231,7 +231,7 @@ void func_actor_560800_801376E0(Task* arg0)
     mem        = (Actor560800ModelWork*)Mem_Malloc(0x28C, 0);
     arg0->work = (TaskIdMap*)mem;
     if (mem == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     Mem_Set(mem, 0, 0x28C);
@@ -356,7 +356,7 @@ void func_actor_560800_80137820(Task* arg0)
             break;
         case 5:
             if (++arg0->killCountdown >= 2) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             break;
@@ -451,7 +451,7 @@ void func_actor_560800_80137BEC(Task* task)
                                 (s16)t288;
             coord->flg = 0;
             if (coord->coord.t[1] > 10000) {
-                Task_Kill(task);
+                taskKill(task);
                 return;
             }
             break;
@@ -523,7 +523,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
             i = 0;
             do {
                 if ((i & 0xFFFF) >= 4U) {
-                    Task_Kill(work->parts[i & 0xFFFF]);
+                    taskKill(work->parts[i & 0xFFFF]);
                     work->parts[i & 0xFFFF] = NULL;
                 }
                 i++;
@@ -714,7 +714,7 @@ void func_actor_560800_801386D4(Task* task)
             w          = (Actor560800PartsWork*)Mem_Malloc(0x4C, 0);
             task->work = (TaskIdMap*)w;
             if (w == NULL) {
-                Task_Kill(task);
+                taskKill(task);
             } else {
                 root->sub = &Gfx_ViewCoord;
                 Mem_Set(task->work, 0, 0x4C);
@@ -1024,7 +1024,7 @@ void func_actor_560800_80138FC8(Task* task)
             root       = obj->coords;
             task->work = Mem_Malloc(0x28C, 0);
             if (task->work == NULL) {
-                Task_Kill(task);
+                taskKill(task);
             } else {
                 Mem_Set(task->work, 0, 0x28C);
                 mem            = (Actor560800ModelWork*)task->work;

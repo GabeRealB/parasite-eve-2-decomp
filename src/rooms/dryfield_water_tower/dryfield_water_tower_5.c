@@ -351,7 +351,7 @@ void func_dryfield_water_tower_8017FD64(Task* task)
             work       = (DwtwWork*)Mem_Malloc(0x18, 0);
             task->work = (TaskIdMap*)work;
             if (work == NULL) {
-                Task_Kill(task);
+                taskKill(task);
             } else {
                 Mem_Set(work, 0, 0x18);
                 work->field_0                   = (Task*)Game_GetPtrSlot(3);

@@ -181,7 +181,7 @@ void func_mist_parking_80182A44(Task* task)
             break;
         case 10:
             Gp_MsgPlayerWeapon(1);
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }
@@ -222,7 +222,7 @@ void func_mist_parking_80182F60(Task* task)
             if (task->spawnArg1 == 4) {
                 Gp_MsgPlayerWeapon(1);
             }
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

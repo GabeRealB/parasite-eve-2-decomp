@@ -128,7 +128,7 @@ L_case5:
     if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
         return;
     }
-    Task_Kill(task);
+    taskKill(task);
     Display_ResetHeapWrapper();
 }
 
@@ -301,7 +301,7 @@ void func_actor_560800_801326C4(Task* arg0)
                 }
             }
             if (failed) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             ((TmdObject*)arg0->extra)->flags &= ~0x84;
@@ -382,7 +382,7 @@ void func_actor_560800_80132A14(Task* arg0)
         block      = Mem_Malloc(0x4CC, 0);
         arg0->work = (TaskIdMap*)block;
         if (block == NULL) {
-            Task_Kill(arg0);
+            taskKill(arg0);
             return;
         }
         work = block;
@@ -478,7 +478,7 @@ void func_actor_560800_80132C60(Task* arg0)
             }
         }
         if (failed) {
-            Task_Kill(arg0);
+            taskKill(arg0);
             return;
         }
         work = (Actor560800AnimWork*)arg0->work;
@@ -568,7 +568,7 @@ void func_actor_560800_80132F64(Task* arg0)
             }
         }
         if (failed) {
-            Task_Kill(arg0);
+            taskKill(arg0);
             return;
         }
         work = (Actor560800AnimWork*)arg0->work;
@@ -1154,7 +1154,7 @@ void func_actor_560800_80135BD8(Task* arg0)
     work       = (Actor560800Work*)Mem_Malloc(0x68, 0);
     arg0->work = (TaskIdMap*)work;
     if (work == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     Mem_Set(work, 0, 0x68);
@@ -1224,7 +1224,7 @@ void func_actor_560800_80135D54(Task* arg0)
             break;
         case 1:
             if (work->field_4 != NULL) {
-                Task_Kill(work->field_4);
+                taskKill(work->field_4);
             }
             Display_SpawnWithOt(&ActorsShared80136280Desc, 0xC, 0, 0);
             break;
@@ -1237,7 +1237,7 @@ void func_actor_560800_80135F50(Task* arg0)
     Display_SpawnWithOt(&D_actor_560800_8016EA28, 1, arg0->spawnArg1, 0);
     D_8007106B = 1;
     Gp_SpawnViewTasks();
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void func_actor_560800_80135FA0(Task* arg0)
@@ -1251,7 +1251,7 @@ void func_actor_560800_80135FA0(Task* arg0)
             alloc      = (Actor560800FadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             work    = alloc;
@@ -1268,7 +1268,7 @@ void func_actor_560800_80135FA0(Task* arg0)
             work->b += (u16)arg0->spawnArg1;
             if ((s16)work->r >= 0x100) {
                 SetDispMask(0);
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }
@@ -1285,7 +1285,7 @@ void func_actor_560800_80136094(Task* arg0)
             alloc      = (Actor560800FadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             work    = alloc;
@@ -1310,7 +1310,7 @@ void func_actor_560800_80136094(Task* arg0)
             work->g -= (u16)arg0->spawnArg1;
             work->b -= (u16)arg0->spawnArg1;
             if ((s16)work->r < 0) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }

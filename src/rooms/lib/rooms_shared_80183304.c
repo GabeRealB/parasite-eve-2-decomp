@@ -23,7 +23,7 @@ void RoomsShared80183304(Task* task)
     block = Mem_Calloc(sizeof(RoomTextBlock), 0);
     node  = block->lines;
     if (block == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
 

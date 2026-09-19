@@ -109,7 +109,7 @@ L_case5:
         return;
     }
     Mem_Set(Fs_ImgBuffers, 0, 0x25800);
-    Task_Kill(task);
+    taskKill(task);
     Task_SpawnOnDefaultList(D_dryfield_gas_station_80181E7C, 2, 8, 0);
     Display_ResetHeapWrapper();
 }
@@ -149,7 +149,7 @@ L_case0:
     child      = Mem_Malloc(4, false);
     task->work = (TaskIdMap*)child;
     if (child == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     Display_SpawnWithOt(D_dryfield_gas_station_80181E7C, 1, 0, 0);
@@ -200,7 +200,7 @@ void func_dryfield_gas_station_801807E0(Task* task)
                 work       = Mem_Malloc(0x10, false);
                 task->work = (TaskIdMap*)work;
                 if (work == NULL) {
-                    Task_Kill(task);
+                    taskKill(task);
                 } else {
                     Mem_Set(work, 0, 0x10);
                     work->owner             = Game_GetPtrSlot(3);

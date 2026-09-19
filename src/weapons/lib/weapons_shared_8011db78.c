@@ -4,5 +4,5 @@
 
 void WeaponsShared8011db78(Task* task)
 {
-    Task_Kill(task);
+    taskKill(task);
 }

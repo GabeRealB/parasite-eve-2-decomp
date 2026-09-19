@@ -76,7 +76,7 @@ void func_actor_303600_80161F40(Task* arg0)
             Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 4;
             if (D_actor_303600_8016E4C4 != NULL) {
-                Task_Kill(D_actor_303600_8016E4C4);
+                taskKill(D_actor_303600_8016E4C4);
                 D_actor_303600_8016E4C4 = NULL;
             }
             Task_SpawnFromTable(&D_actor_303600_80162E98, 1, 4, 0);
@@ -97,7 +97,7 @@ void func_actor_303600_80161F40(Task* arg0)
             break;
         case 8:
             if (D_actor_303600_8016E4C4 != NULL) {
-                Task_Kill(D_actor_303600_8016E4C4);
+                taskKill(D_actor_303600_8016E4C4);
                 D_actor_303600_8016E4C4 = NULL;
             }
             Task_SpawnFromTable(&D_actor_303600_80162E98, 3, 0, 0);
@@ -131,7 +131,7 @@ void func_actor_303600_8016216C(Task* arg0)
             work       = (Actor303600Work*)Mem_Malloc(0x10, 0);
             arg0->work = (TaskIdMap*)work;
             if (work == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             } else {
                 Mem_Set(work, 0, 0x10);
                 work->field_0           = (Task*)Game_GetPtrSlot(3);
@@ -152,7 +152,7 @@ void func_actor_303600_8016216C(Task* arg0)
                 Mc_SaveData.at4.loc.room  = 1;
                 D_80071076                = 1;
                 Task_Spawn(0, 0x11, 0x10, 0);
-                Task_Kill(arg0);
+                taskKill(arg0);
                 break;
             }
             func_actor_303600_80161F40(arg0);
@@ -177,7 +177,7 @@ void func_actor_303600_801622E8(Task* arg0)
             alloc      = (Actor303600FadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             work         = alloc;
@@ -193,7 +193,7 @@ void func_actor_303600_801622E8(Task* arg0)
             work->b -= (u16)arg0->spawnArg1;
             if ((s16)work->r < 0) {
                 D_actor_303600_8016E4C4 = NULL;
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }
@@ -217,7 +217,7 @@ void func_actor_303600_801623CC(Task* arg0)
             alloc      = (Actor303600FadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             work         = alloc;
@@ -233,7 +233,7 @@ void func_actor_303600_801623CC(Task* arg0)
             work->b += (u16)arg0->spawnArg1;
             if ((s16)work->r >= 0x100) {
                 D_actor_303600_8016E4C4 = NULL;
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }
@@ -270,7 +270,7 @@ void func_actor_303600_8016253C(void)
     Actor303600Msg7DA msg;
 
     if (D_actor_303600_8016E4C4 != NULL) {
-        Task_Kill(D_actor_303600_8016E4C4);
+        taskKill(D_actor_303600_8016E4C4);
         D_actor_303600_8016E4C4 = NULL;
     }
 

@@ -202,7 +202,7 @@ void func_map_akropolis_80179E8C(Task* task)
         if (task->killCountdown <= 0) {
             GameMain_SetFrameTiming(1);
             gGameSession->uiOpen = 0;
-            Task_Kill(task);
+            taskKill(task);
             Stage_ReleasePrimBuf();
             Stage_SetEndingFlag();
         }

@@ -56,7 +56,7 @@ void func_actor_443500_80131F88(Task* arg0)
     temp_v0             = (u16)arg0->killCountdown + 1;
     arg0->killCountdown = temp_v0;
     if (temp_v0 >= 0x1E) {
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 

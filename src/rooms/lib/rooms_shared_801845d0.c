@@ -21,6 +21,6 @@ void RoomsShared801845d0(s32 arg0)
     t->spawnArg1 = arg0;
     return;
 kill:
-    Task_Kill(RoomsShared8018459cTask);
+    taskKill(RoomsShared8018459cTask);
     RoomsShared8018459cTask = NULL;
 }

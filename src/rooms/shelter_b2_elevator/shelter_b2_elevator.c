@@ -54,7 +54,7 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
         case 0:
             car = Mem_Calloc(4, 0);
             if (car == NULL) {
-                Task_Kill(task);
+                taskKill(task);
                 return;
             }
             task->work        = (TaskIdMap*)car;

@@ -36,7 +36,7 @@ void func_mist_parking_80183634(s32 arg0)
     t->spawnArg1 = arg0;
     return;
 kill:
-    Task_Kill(RoomsShared8017ea2cTask);
+    taskKill(RoomsShared8017ea2cTask);
     RoomsShared8017ea2cTask = NULL;
 }
 
@@ -52,7 +52,7 @@ void func_mist_parking_801836CC(Task* arg0)
     temp_v0         = arg0->spawnArg1 - 1;
     arg0->spawnArg1 = temp_v0;
     if (temp_v0 < 0) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         Stage_SetEndingFlag();
     }
 }
@@ -172,6 +172,6 @@ L_case5:
     }
     Mem_Set(Fs_ImgBuffers, 0, 0x25800);
     SetDispMask(1);
-    Task_Kill(task);
+    taskKill(task);
     Display_ResetHeapWrapper();
 }

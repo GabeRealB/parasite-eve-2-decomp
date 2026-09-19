@@ -152,7 +152,7 @@ void func_dryfield_breezeway_8017DC3C(Task* arg0)
         case 1:
             if (Task_PollKill(D_dryfield_breezeway_801843A8, &sp10) != 0) {
                 D_dryfield_breezeway_801843A8 = NULL;
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             return;
     }
@@ -176,7 +176,7 @@ void func_dryfield_breezeway_8017DCE4(Task* task)
                     }
                 }
                 Gp_MsgPlayerWeapon(1);
-                Task_Kill(task);
+                taskKill(task);
             }
             break;
     }

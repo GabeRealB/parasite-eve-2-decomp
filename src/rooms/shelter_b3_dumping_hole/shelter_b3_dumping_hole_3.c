@@ -101,7 +101,7 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
     DumpingHoleEntity*   entity = D_shelter_b3_dumping_hole_8018F4A8->field_1C;
 
     if (entity->field_42 == 1) {
-        Task_Kill((Task*)arg0);
+        taskKill((Task*)arg0);
         return;
     }
 
@@ -140,7 +140,7 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
                 *(u16*)&W->field_1C = *(u16*)&W->field_1C + 1;
                 W->field_1E         = 0;
                 if (*(u16*)&D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_0 == 0xFFFF) {
-                    Task_Kill((Task*)arg0);
+                    taskKill((Task*)arg0);
                     return;
                 }
             }
@@ -160,7 +160,7 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
             D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_0,
             D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_4,
             W->field_8, 0x43C0, 0) != 0) {
-        Task_Kill((Task*)arg0);
+        taskKill((Task*)arg0);
         return;
     }
     coord->flg = 0;
@@ -183,7 +183,7 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
     s16                  delta;
 
     if (*(u16*)&D_shelter_b3_dumping_hole_8018F4A8->field_1C->field_48 == 1) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
 
@@ -196,7 +196,7 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
             coord->coord.t[2] = vec.vz;
             arg0->work        = (TaskIdMap*)Mem_Malloc(0x24, 0);
             if (arg0->work == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             work = (DumpingHoleAnimWork*)arg0->work;
@@ -251,7 +251,7 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
                 *(u16*)&work->field_1C = *(u16*)&work->field_1C + 1;
                 work->field_1E         = 0;
                 if (*(u16*)&D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_0 == 0xFFFF) {
-                    Task_Kill(arg0);
+                    taskKill(arg0);
                     return;
                 }
             }
@@ -303,7 +303,7 @@ void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     work       = (DumpingHoleCoordWork*)Mem_Malloc(0x5C, 0);
     arg0->work = (TaskIdMap*)work;
     if (work == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     Mem_Set(work, 0, 0x5C);
@@ -353,7 +353,7 @@ void func_shelter_b3_dumping_hole_8017FBA0(Task* arg0)
     ent  = D_shelter_b3_dumping_hole_8018F4A8->field_1C;
     fade = (DumpingHoleFadeWork*)arg0->work;
     if (ent->field_4C == 1) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     switch (arg0->state) {
@@ -361,7 +361,7 @@ void func_shelter_b3_dumping_hole_8017FBA0(Task* arg0)
             alloc      = (DumpingHoleFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             fade         = alloc;
@@ -376,7 +376,7 @@ void func_shelter_b3_dumping_hole_8017FBA0(Task* arg0)
             fade->g -= (u16)arg0->spawnArg1;
             fade->b -= (u16)arg0->spawnArg1;
             if (fade->r < 0) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }
@@ -406,7 +406,7 @@ void func_shelter_b3_dumping_hole_8017FCF4(Task* arg0, DumpingHoleSpawnArg* arg1
     work       = (DumpingHoleSpawnWork*)Mem_Malloc(0x24, 0);
     task->work = (TaskIdMap*)work;
     if (work == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     Mem_Set(work, 0, 0x24);

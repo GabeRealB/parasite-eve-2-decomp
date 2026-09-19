@@ -133,7 +133,7 @@ void func_dryfield_night_driveway_8017DAF4(Task* arg0)
         func_800E3FAC(0xA2, 0x10);
         func_800E8634((s32)&D_dryfield_night_driveway_8017F54C, 0, (s32)&D_dryfield_night_driveway_8017F6CC);
     } else {
-        Task_Kill(arg0);
+        taskKill(arg0);
         Gp_ClearCollectedBit(0x114);
     }
     arg0->state = (s32)(arg0->state + 1);
@@ -165,7 +165,7 @@ void func_dryfield_night_driveway_8017DB8C(Task* arg0)
         case 3:
             if (gGameSession->eventState == 0) {
                 Gp_ClearAreaFlag4((GpAreaKey*)&gGameSession->at4.loc);
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             return;
     }

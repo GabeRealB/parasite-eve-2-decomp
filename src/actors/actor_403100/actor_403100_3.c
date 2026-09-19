@@ -531,7 +531,7 @@ void func_actor_403100_8013E6F0(Task* arg0)
         if ((countdown << 0x10) <= 0) {
             arg0->killCountdown = 0;
             arg0->state         = arg0->state + 1;
-            Task_Kill(arg0);
+            taskKill(arg0);
         }
     }
 }
@@ -543,7 +543,7 @@ void func_actor_403100_8013E784(Task* arg0)
     temp_v0             = arg0->killCountdown + 1;
     arg0->killCountdown = temp_v0;
     if ((s16)temp_v0 >= 0x1E) {
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 
@@ -569,7 +569,7 @@ void func_actor_403100_8013E7C8(Task* arg0)
         if ((countdown << 0x10) <= 0) {
             arg0->killCountdown = 0;
             arg0->state         = arg0->state + 1;
-            Task_Kill(arg0);
+            taskKill(arg0);
         }
     }
 }
@@ -590,7 +590,7 @@ void func_actor_403100_8013E88C(Task* arg0)
         if ((countdown << 0x10) <= 0) {
             arg0->killCountdown = 0;
             arg0->state         = arg0->state + 1;
-            Task_Kill(arg0);
+            taskKill(arg0);
         }
     }
 }
@@ -602,7 +602,7 @@ void func_actor_403100_8013E920(Task* arg0)
     temp_v0             = arg0->killCountdown + 1;
     arg0->killCountdown = temp_v0;
     if ((s16)temp_v0 >= 0x1E) {
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 void func_actor_403100_8013E964(void)

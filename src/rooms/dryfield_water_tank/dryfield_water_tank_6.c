@@ -91,7 +91,7 @@ void func_dryfield_water_tank_8017EC6C(Task* arg0)
     RoomPlacement rec;
 
     if (arg0->killCountdown >= 0x34) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     rec.pos.vx = D_dryfield_water_tank_80184530[arg0->killCountdown].vx;
@@ -114,7 +114,7 @@ void func_dryfield_water_tank_8017ED30(Task* arg0)
     RoomPlacement rec;
 
     if (arg0->killCountdown >= 0x34) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     rec.pos.vx = D_dryfield_water_tank_801847C0[arg0->killCountdown].vx;

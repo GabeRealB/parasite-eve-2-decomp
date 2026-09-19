@@ -49,7 +49,7 @@ void Gp_InitState1C(Task* arg0)
     val = 0;
     p   = Mem_Calloc(0x1C, val);
     if (p == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
 
@@ -315,7 +315,7 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
     }
     mem = Mem_Calloc(sizeof(GpEffWork), false);
     if (mem == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return NULL;
     }
     Gp_State1C->field_0++;
@@ -947,7 +947,7 @@ void func_800EC47C(Task* arg0)
                 Gp_State1C->field_10 &= 0xFFFE;
                 Gp_State1C->field_0--;
                 memFree(mem);
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }
@@ -965,7 +965,7 @@ void Gp_FadeWaveTask(Task* arg0)
     if (p->field_18 != arg0->spawnArg1) {
         p->field_0--;
         memFree(mem);
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
 
@@ -981,7 +981,7 @@ void Gp_FadeWaveTask(Task* arg0)
     if (mem->field_24 >= 0x700) {
         Gp_State1C->field_0--;
         memFree(mem);
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 
@@ -989,7 +989,7 @@ void Gp_ReleaseState1CMem(void* arg0, Task* arg1)
 {
     Gp_State1C->field_0--;
     memFree(arg0);
-    Task_Kill(arg1);
+    taskKill(arg1);
 }
 
 void Gp_KillState1CTask(Task* arg0)
@@ -999,7 +999,7 @@ void Gp_KillState1CTask(Task* arg0)
     mem = arg0->spawnArg2;
     Gp_State1C->field_0--;
     memFree(mem);
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void Gp_PulseState1C(void)

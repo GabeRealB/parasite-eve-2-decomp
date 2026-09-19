@@ -112,7 +112,7 @@ void func_acropolis_security_room_8017F1BC(Task* task)
             task->state = 6;
             func_800E9BDC(1, 0xF9FF);
             Gp_ApplyAreaRecs(D_acropolis_security_room_80184F80);
-            Task_Kill((Task*)task->spawnArg2);
+            taskKill((Task*)task->spawnArg2);
             return;
         } else {
             Gp_StartCapSlot(3, 1, 2);
@@ -155,7 +155,7 @@ void func_acropolis_security_room_8017F300(Task* task)
             } else {
                 Gp_ApplyAreaRecs(D_acropolis_security_room_80184F7C);
             }
-            Task_Kill((Task*)task->spawnArg2);
+            taskKill((Task*)task->spawnArg2);
             return;
         } else {
             Gp_StartCapSlot(4, 1, 2);
@@ -396,7 +396,7 @@ void func_acropolis_security_room_8017FA18(Task* task)
 
     st = Mem_Calloc(sizeof(AcropolisSecurityRoomState), 0);
     if (st == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     task->spawnArg2 = Task_SpawnFromTable(D_acropolis_security_room_801826C0, 0, 1, 0);
@@ -484,7 +484,7 @@ void func_acropolis_security_room_8017FC30(Task* task)
     gGameSession->cutsceneHold = 0;
     D_8007216C                 = 3;
     Display_ReleaseRef();
-    Task_Kill((Task*)task->spawnArg2);
+    taskKill((Task*)task->spawnArg2);
     Task_RequestKill(task, 0);
 }
 

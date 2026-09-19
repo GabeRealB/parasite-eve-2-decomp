@@ -13,6 +13,6 @@ void Room_Script14(Task* task)
         if (Gp_HasCollectedBit(0x119) != 0 && Gp_HasCollectedBit(0x11A) != 0) {
             Gp_ClearCollectedBit(0x11A);
         }
-        Task_Kill(task);
+        taskKill(task);
     }
 }

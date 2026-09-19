@@ -32,7 +32,7 @@ extern TaskDesc RoomsShared8017e5b8Desc;
 void func_mist_r18_8017EA60(void)
 {
     if (RoomsShared8017ea2cTask != NULL) {
-        Task_Kill(RoomsShared8017ea2cTask);
+        taskKill(RoomsShared8017ea2cTask);
     }
     RoomsShared8017ea2cTask = NULL;
 }

@@ -28,7 +28,7 @@ void RoomsShared8017daa4(Task* task)
     coord = extra->coords;
     work  = (RoomsShared8017daa4Work*)Mem_Calloc(sizeof(RoomsShared8017daa4Work), 0);
     if (work == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     task->work        = (TaskIdMap*)work;

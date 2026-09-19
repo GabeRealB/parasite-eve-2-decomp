@@ -114,7 +114,7 @@ void func_acropolis_fountain_8017DC6C(Task* arg0)
     temp_v0 = Game_GetPtrSlot(3);
     if (Gp_DispatchMsg(temp_v0, 0x3F0, 0, 0) == 0) {
         Gp_DispatchMsg(temp_v0, 0x3F1, 0, 0);
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 
@@ -365,7 +365,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
         case 0:
             task->work = Mem_Calloc(4, 0);
             if (task->work == NULL) {
-                Task_Kill(task);
+                taskKill(task);
                 return;
             }
             Mem_Set(task->work, 0, 4);
@@ -435,6 +435,6 @@ void func_acropolis_fountain_8017E3D4(Task* task)
 
 void func_acropolis_fountain_8017E72C(Task* arg0)
 {
-    Task_Kill(D_acropolis_fountain_80183BB4);
-    Task_Kill(arg0);
+    taskKill(D_acropolis_fountain_80183BB4);
+    taskKill(arg0);
 }

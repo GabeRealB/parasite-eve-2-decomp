@@ -27,7 +27,7 @@ void func_acropolis_cafeteria_8017E6B8(Task* arg0)
     Display_SpawnWithOt(&D_acropolis_cafeteria_80184178, 2, 0, 0);
     D_8007106B = 1;
     Gp_SpawnViewTasks();
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void func_acropolis_cafeteria_8017E708(Task* task)

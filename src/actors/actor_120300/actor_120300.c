@@ -119,7 +119,7 @@ void func_actor_120300_80132004(Task* arg0)
         killCopy = kill;
         TOUCH_REG(killCopy);
         if (killCopy != 0) {
-            Task_Kill(arg0);
+            taskKill(arg0);
             return;
         }
         place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
@@ -191,7 +191,7 @@ void func_actor_120300_801321C8(Task* arg0)
         killCopy = kill;
         TOUCH_REG(killCopy);
         if (killCopy != 0) {
-            Task_Kill(arg0);
+            taskKill(arg0);
             return;
         }
         arg0->state += 1;
@@ -349,7 +349,7 @@ void func_actor_120300_801335D8(Task* arg0)
     map        = Mem_Malloc(0x4E4, 0);
     arg0->work = map;
     if (map == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     work = (Actor120300Work*)map;

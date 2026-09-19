@@ -44,7 +44,7 @@ void func_acropolis_cafeteria_8017DF68(Task* task)
             D_acropolis_cafeteria_8018D6A8 = D_acropolis_cafeteria_8018D6A8 / 2;
             if (D_acropolis_cafeteria_8018D6A0 == 0 && D_acropolis_cafeteria_8018D6A8 == 0 &&
                 coord->coord.t[1] == -0x12C) {
-                Task_Kill(task);
+                taskKill(task);
             }
             break;
     }

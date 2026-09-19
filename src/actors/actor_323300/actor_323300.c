@@ -404,7 +404,7 @@ void func_actor_323300_801634B0(Task* arg0)
     sub                                      = ((TmdObject*)arg0->extra)->coords + 5;
     sub->sub                                 = node;
     ((TmdObject*)arg0->extra)->coords[6].sub = sub;
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 /// Splats an identity light/colour pair into the `Mem_Calloc(0x6B0)` work block

@@ -44,7 +44,7 @@ void func_acropolis_helicopter_landing_pad_8017ED00(Task* arg0)
     Display_SpawnWithOt(&D_acropolis_helicopter_landing_pad_80184E68, 1, 0, 0);
     D_8007106B = 1;
     Gp_SpawnViewTasks();
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 /// Asks the slot-7 task to warp to stage 0xF, room 3 (message 0x13EE with the
@@ -62,7 +62,7 @@ void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0)
                        (s32)&D_acropolis_helicopter_landing_pad_80187F90) != 0) {
         arg0->state += 1;
     } else {
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 
@@ -100,7 +100,7 @@ void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0)
         Mc_SaveData.at4.loc.warp = D_acropolis_helicopter_landing_pad_80187F90.field_2;
         Mc_SaveData.at4.loc.room = D_acropolis_helicopter_landing_pad_80187F90.field_3;
         Task_Spawn(0, 0x11, 0, 0);
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 

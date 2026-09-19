@@ -24,7 +24,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900_2", ActorsShared80131
 
 void func_actor_202900_8014A158(Task* arg0)
 {
-    Task_Kill(D_actor_202900_80156E5C);
+    taskKill(D_actor_202900_80156E5C);
     Gp_DestroyEnemy(arg0->spawnArg2, arg0);
 }
 
@@ -150,7 +150,7 @@ s32 func_actor_202900_8014A3E0(Task* task, s32 arg1, Actor202900AnimArgs* args)
 
 /// Message 0x7D5 handler: applies the draw-state flags to the model the actor's
 /// work block points at and to the one its display task carries. Bit 0 picks
-/// visible (`field_C` cleared) or hidden, the 0x80 `Task_Kill` also ORs in; bit
+/// visible (`field_C` cleared) or hidden, the 0x80 `taskKill` also ORs in; bit
 /// 1 sets 0x4, the flag `Gp_UpdateActorColor` reads as "rebuild the colour
 /// matrix". The two models are the same object reached two ways, and both are
 /// updated in the same order everywhere.

@@ -61,7 +61,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
             blk        = Mem_Calloc(0x14, 0);
             task->work = (TaskIdMap*)blk;
             if (blk == NULL) {
-                Task_Kill(task);
+                taskKill(task);
                 break;
             }
             Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
@@ -134,7 +134,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
             func_800E9BDC(2, 0x9FF);
             Gp_StateF0.field_4            = 0;
             gGameSession->padScriptFlags &= 0x7F;
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }
@@ -170,7 +170,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
             blk        = Mem_Calloc(0x14, 0);
             task->work = (TaskIdMap*)blk;
             if (blk == NULL) {
-                Task_Kill(task);
+                taskKill(task);
                 break;
             }
             Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
@@ -243,7 +243,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
             func_800E9BDC(2, 0x9FF);
             Gp_StateF0.field_4            = 0;
             gGameSession->padScriptFlags &= 0x7F;
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

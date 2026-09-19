@@ -23,9 +23,9 @@ void func_actor_548100_80134E0C(Task* arg0)
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;
     D_8007216C                 = 3;
-    /* Without the barrier GCC fills Task_Kill's delay slot with the byte store. */
+    /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     SOFT_BARRIER();
-    Task_Kill((Task*)arg0->spawnArg2);
+    taskKill((Task*)arg0->spawnArg2);
     Task_RequestKill(arg0, 0);
 }
 

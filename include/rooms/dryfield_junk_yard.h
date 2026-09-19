@@ -39,7 +39,7 @@ extern s32 D_dryfield_junk_yard_8017D5D0;
 
 /// State 1 of the yard's room task, whose table is
 /// `RoomsShared8017d878Table` (entry `0x8017D5C8`, between
-/// `func_dryfield_junk_yard_8017D708` and `Task_Kill`).
+/// `func_dryfield_junk_yard_8017D708` and `taskKill`).
 ///
 /// It waits for a stream file to be open (`D_8007107A`, the main-executable
 /// halfword the room overlays gate streamed scenes on) and for the slot-0xA

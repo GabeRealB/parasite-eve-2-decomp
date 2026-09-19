@@ -57,7 +57,7 @@ void GameFlow_StateByField34(Task* arg0)
             Snd_SetMutedVolumes(1);
             ds->at100.flags.pendingPlayerPos = 0;
             ds->stopTaskWalk                 = one;
-            Task_Kill(arg0);
+            taskKill(arg0);
             Task_ResetDefaultList();
             Tmd_InitLists();
             Mem_Init();
@@ -100,7 +100,7 @@ void GameFlow_StateByField34(Task* arg0)
             gGameSession->applySavePlace               = 1;
         }
         gDisplayState.stopTaskWalk = 1;
-        Task_Kill(arg0);
+        taskKill(arg0);
         Task_ResetDefaultList();
         Tmd_InitLists();
         Mem_Init();
@@ -229,11 +229,11 @@ void GameFlow_SpawnMainWhenReady(Task* arg0)
     if (gDisplayState.at100.flags.pendingPlayerPos == 0) {
         Task_Spawn(0, 2, 0, 0);
         Display_SetMode(0x5010);
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     gDisplayState.stopTaskWalk = 1;
-    Task_Kill(arg0);
+    taskKill(arg0);
     Task_ResetDefaultList();
     Tmd_InitLists();
     Mem_Init();
@@ -283,7 +283,7 @@ void GameFlow_SpawnWhenIdle(Task* arg0)
 {
     if (CdCmd_IsIdle() != 0) {
         Task_Spawn(0, 0x11, 1, 0);
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 

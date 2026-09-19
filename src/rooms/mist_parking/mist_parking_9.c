@@ -28,7 +28,7 @@ void func_mist_parking_8018345C(Task* arg0)
         } else {
             func_800E8614((s32)&D_mist_parking_8018F4AC, 1);
         }
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 
@@ -40,6 +40,6 @@ void func_mist_parking_801834D4(Task* arg0)
         } else {
             func_800E8614((s32)&D_mist_parking_8018FA4C, 1);
         }
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }

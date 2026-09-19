@@ -85,7 +85,7 @@ void func_actor_341300_80161E84(void)
 /// player rotates at a fixed rate. Inside `0x80` of the target the facing
 /// snaps to the exact angle and the task ends.
 ///
-/// The task's own argument is only ever the `Task_Kill` target, reached both
+/// The task's own argument is only ever the `taskKill` target, reached both
 /// when the work lookup or `gGameSession::eventState` fails and on the frame the
 /// facing settles.
 void func_actor_341300_80162278(Task* task)
@@ -128,5 +128,5 @@ void func_actor_341300_80162278(Task* task)
         }
         actor->field_52 = angle;
     }
-    Task_Kill(task);
+    taskKill(task);
 }

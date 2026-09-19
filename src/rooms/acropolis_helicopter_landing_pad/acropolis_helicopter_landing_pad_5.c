@@ -81,6 +81,6 @@ L_case5:
     }
     Mem_Set(Fs_ImgBuffers, 0, 0x25800);
     SetDispMask(1);
-    Task_Kill(task);
+    taskKill(task);
     Display_ResetHeapWrapper();
 }

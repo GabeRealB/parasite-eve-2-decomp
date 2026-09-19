@@ -39,7 +39,7 @@ void RoomsShared8017ff5c(Task* arg0)
             alloc      = (RoomsShared8017ff5cWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             work         = alloc;
@@ -54,7 +54,7 @@ void RoomsShared8017ff5c(Task* arg0)
             work->g -= (u16)arg0->spawnArg1;
             work->b -= (u16)arg0->spawnArg1;
             if ((s16)work->r < 0) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }

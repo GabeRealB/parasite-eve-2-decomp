@@ -150,7 +150,7 @@ void func_dryfield_warehouse_8017D8D4(Task* arg0)
             }
             return;
         case 2:
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

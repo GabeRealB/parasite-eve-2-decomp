@@ -39,7 +39,7 @@ void func_dryfield_night_gas_station_80180998(Task* arg0)
             return;
         }
     }
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 /// Spawns the room's second tracked task (slot 2 of the shared table) and
@@ -82,7 +82,7 @@ void func_dryfield_night_gas_station_80180A60(Task* arg0)
         }
     } else {
         func_dryfield_night_gas_station_80180DC8(0);
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 
@@ -124,7 +124,7 @@ void func_dryfield_night_gas_station_80180B5C(Task* arg0)
                 return;
             }
         default:
-            Task_Kill(arg0);
+            taskKill(arg0);
             return;
     }
 }

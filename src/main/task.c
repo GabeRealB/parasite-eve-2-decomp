@@ -52,7 +52,7 @@ merge:
     if (((u8)desc->flags == 0) || (extra != NULL)) {
         task->callback     = desc->callback;
         priority           = *(u8*)&desc->priority;
-        task->exitCallback = Task_Kill;
+        task->exitCallback = taskKill;
         task->priority     = priority;
         flags_lo           = (u8)desc->flags;
         task->extra        = extra;
@@ -89,7 +89,7 @@ merge:
     return task;
 }
 
-void Task_Kill(Task* arg0)
+void taskKill(Task* task)
 {
     Task*      start;
     Task*      cur;
@@ -104,7 +104,7 @@ void Task_Kill(Task* arg0)
     Task*      p;
     Task*      n;
 
-    temp = arg0->firstChild;
+    temp = task->firstChild;
     if (temp != NULL) {
         start = temp;
         cur   = start;
@@ -115,31 +115,31 @@ void Task_Kill(Task* arg0)
         } while (cur != start);
     }
 
-    p = arg0->parent;
+    p = task->parent;
     if (p != NULL) {
-        n = arg0->nextSibling;
-        if (n == arg0) {
+        n = task->nextSibling;
+        if (n == task) {
             p->firstChild = NULL;
         } else {
-            if (p->firstChild == arg0) {
+            if (p->firstChild == task) {
                 p->firstChild = n;
             }
-            cur = arg0;
-            if (arg0->nextSibling != arg0) {
+            cur = task;
+            if (task->nextSibling != task) {
                 do {
                     cur = cur->nextSibling;
-                } while (cur->nextSibling != arg0);
+                } while (cur->nextSibling != task);
             }
-            cur->nextSibling = arg0->nextSibling;
+            cur->nextSibling = task->nextSibling;
         }
     }
 
-    if (arg0->work != NULL) {
-        memFree(arg0->work);
+    if (task->work != NULL) {
+        memFree(task->work);
     }
 
     if (gDisplayState.skipTeardown == 0) {
-        type = arg0->spawnType;
+        type = task->spawnType;
         if (type == 1) {
             goto case1;
         }
@@ -152,61 +152,61 @@ void Task_Kill(Task* arg0)
         goto def_case;
 
     case1:
-        ((TmdObject*)arg0->extra)->flags |= 0x80;
-        arg0->killCountdown               = 2;
-        arg0->callback                    = taskCountdownCallback;
-        arg0->state                       = 0;
-        arg0->exitCallback                = textNoopCallback;
+        ((TmdObject*)task->extra)->flags |= 0x80;
+        task->killCountdown               = 2;
+        task->callback                    = taskCountdownCallback;
+        task->state                       = 0;
+        task->exitCallback                = textNoopCallback;
         return;
 
     case2:
-        gpUnlinkDisp2d(arg0->extra);
-        arg0->killCountdown = 1;
-        arg0->callback      = textNoopCallback;
-        arg0->exitCallback  = textNoopCallback;
-        arg0->killCountdown--;
-        if (arg0->killCountdown != 0) {
+        gpUnlinkDisp2d(task->extra);
+        task->killCountdown = 1;
+        task->callback      = textNoopCallback;
+        task->exitCallback  = textNoopCallback;
+        task->killCountdown--;
+        if (task->killCountdown != 0) {
             return;
         }
-        if (arg0->spawnType == 1) {
+        if (task->spawnType == 1) {
             goto cu1;
         }
-        if (arg0->spawnType != type) {
+        if (task->spawnType != type) {
             goto cu_def;
         }
         goto cu2;
 
     def_case:
-        arg0->killCountdown = 1;
-        arg0->callback      = textNoopCallback;
-        arg0->exitCallback  = textNoopCallback;
-        arg0->killCountdown--;
-        if (arg0->killCountdown != 0) {
+        task->killCountdown = 1;
+        task->callback      = textNoopCallback;
+        task->exitCallback  = textNoopCallback;
+        task->killCountdown--;
+        if (task->killCountdown != 0) {
             return;
         }
-        if (arg0->spawnType == 1) {
+        if (task->spawnType == 1) {
             goto cu1;
         }
-        if (arg0->spawnType == 2) {
+        if (task->spawnType == 2) {
             goto cu2;
         }
         goto cu_def;
 
     cu1:
-        extra = arg0->extra;
+        extra = task->extra;
         gpUnlinkTmd(extra);
         gpFreeTmd(extra);
         goto cu_def;
 
     cu2:
-        gpFreeDisp2d(arg0->extra);
+        gpFreeDisp2d(task->extra);
 
     cu_def:
-        arg0->spawnType = 0xFF;
+        task->spawnType = 0xFF;
         return;
     }
 
-    t = arg0->spawnType;
+    t = task->spawnType;
     if (t == 1) {
         goto imm1;
     }
@@ -216,27 +216,27 @@ void Task_Kill(Task* arg0)
     goto imm_unlink;
 
 imm1:
-    gpUnlinkTmd(arg0->extra);
-    gpFreeTmd(arg0->extra);
+    gpUnlinkTmd(task->extra);
+    gpFreeTmd(task->extra);
     goto imm_unlink;
 
 imm2:
-    gpUnlinkDisp2d(arg0->extra);
-    gpFreeDisp2d(arg0->extra);
+    gpUnlinkDisp2d(task->extra);
+    gpFreeDisp2d(task->extra);
 
 imm_unlink:
     saved           = gTaskActiveList;
-    next            = arg0->node.next;
+    next            = task->node.next;
     gTaskActiveList = &gTaskDefaultList;
     if (next == NULL) {
         pp = &gTaskDefaultList.prev;
     } else {
         pp = &next->node.prev;
     }
-    prev       = arg0->node.prev;
+    prev       = task->node.prev;
     *pp        = prev;
-    prev->next = arg0->node.next;
-    memFree(arg0);
+    prev->next = task->node.next;
+    memFree(task);
     gTaskActiveList = saved;
 }
 

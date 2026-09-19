@@ -118,7 +118,7 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
             task->state++;
             break;
         case 3:
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

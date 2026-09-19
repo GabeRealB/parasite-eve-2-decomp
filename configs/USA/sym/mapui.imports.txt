@@ -8,7 +8,7 @@
 // --- from main (22 symbols)
 GameMain_SetFrameTiming = 0x800280F4; // absolute:True
 Pad_CheckButtons = 0x8002C868; // absolute:True
-Task_Kill = 0x8002CCB8; // absolute:True
+taskKill = 0x8002CCB8; // absolute:True
 Text_DrawPrompt = 0x8002FDCC; // absolute:True
 Stage_SetEndingFlag = 0x8003F6F8; // absolute:True
 Stage_InitPrimBufOnce = 0x8003F9AC; // absolute:True

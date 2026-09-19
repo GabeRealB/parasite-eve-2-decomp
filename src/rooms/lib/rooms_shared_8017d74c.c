@@ -53,7 +53,7 @@ void RoomsShared8017d74c(Task* task)
             Mc_SaveData.at4.loc.warp = RoomsShared8017d638Msg.field_2;
             Mc_SaveData.at4.loc.room = (u8)RoomsShared8017d638Msg.field_3;
             Task_Spawn(0, 0x11, 0, 0);
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

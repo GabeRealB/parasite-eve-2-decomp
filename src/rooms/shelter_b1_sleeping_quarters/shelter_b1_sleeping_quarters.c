@@ -38,7 +38,7 @@ void func_shelter_b1_sleeping_quarters_8017D778(Task* task)
         case 2:
             Gp_MsgPlayerWeapon(1);
             Gp_ResetCap();
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

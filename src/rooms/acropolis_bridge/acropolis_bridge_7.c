@@ -171,7 +171,7 @@ void func_acropolis_bridge_8017F658(Task* task)
 {
     Display_ReleaseRef();
     func_acropolis_bridge_8017E60C(0xFFF, 0);
-    Task_Kill((Task*)task->spawnArg2);
+    taskKill((Task*)task->spawnArg2);
     Task_RequestKill(task, D_acropolis_bridge_801917A8);
     gGameSession->eventState   = 0;
     gGameSession->hideHud      = 0;

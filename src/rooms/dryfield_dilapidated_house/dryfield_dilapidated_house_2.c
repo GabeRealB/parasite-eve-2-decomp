@@ -54,7 +54,7 @@ void func_dryfield_dilapidated_house_8017EA10(s32 arg0)
         return;
     }
     if (D_dryfield_dilapidated_house_801857E8 != NULL) {
-        Task_Kill(D_dryfield_dilapidated_house_801857E8);
+        taskKill(D_dryfield_dilapidated_house_801857E8);
         D_dryfield_dilapidated_house_801857E8 = NULL;
     }
 }

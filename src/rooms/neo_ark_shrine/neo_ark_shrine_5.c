@@ -31,7 +31,7 @@ void func_neo_ark_shrine_8017ECC4(Task* task)
 
     st = Mem_Calloc(0x10, 0);
     if (st == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     task->spawnArg2 = Task_SpawnFromTable(D_neo_ark_shrine_80182404, 0, 1, 0);

@@ -137,7 +137,7 @@ void func_actor_341900_80162200(Task* arg0)
         mtx        = (Actor341900ColorMtx*)Mem_Malloc(0x44, 0);
         arg0->work = (TaskIdMap*)mtx;
         if (mtx == NULL) {
-            Task_Kill(arg0);
+            taskKill(arg0);
         } else {
             Mem_Set(mtx, 0, 0x44);
             mtx->field_40                          = (Task*)arg0->spawnArg2;
@@ -177,7 +177,7 @@ void func_actor_341900_80162330(Task* arg0)
     work       = (Actor341900AnimWork*)Mem_Malloc(0x258, 0);
     arg0->work = (TaskIdMap*)work;
     if (work == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     w = work;
@@ -554,7 +554,7 @@ void func_actor_341900_80162EFC(Task* arg0)
             work       = (Actor341900Work*)Mem_Calloc(0x70U, false);
             arg0->work = (TaskIdMap*)work;
             if (work == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             } else {
                 Mem_Set(work, 0U, 0x70U);
                 work->field_0           = (Task*)Game_GetPtrSlot(3);

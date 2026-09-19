@@ -24,7 +24,7 @@ void func_dryfield_night_motel_balcony_8017E0C8(Task* arg0)
     D_8007106B = 1;
     Gp_SpawnViewTasks();
     SndEvt_EnqueueType7(0x60010001, 1);
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_3", func_dryfield_night_motel_balcony_8017E128);

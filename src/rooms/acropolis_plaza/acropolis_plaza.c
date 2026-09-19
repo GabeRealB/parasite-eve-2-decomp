@@ -139,7 +139,7 @@ void func_acropolis_plaza_8017D8AC(Task* arg0)
             if (fade->r >= 0x100) {
                 SetDispMask(0);
             kill:
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }

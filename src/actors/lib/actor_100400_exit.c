@@ -16,6 +16,6 @@ void Actor00400_Fn0A28C(Task* task)
     task->killCountdown = countdown;
     if ((s16)countdown >= 0xC) {
         Gp_UnlinkObj((GpObj*)work->field_8);
-        Task_Kill(task);
+        taskKill(task);
     }
 }

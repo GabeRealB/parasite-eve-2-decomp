@@ -21,7 +21,7 @@ void ActorsShared80163148(Task* arg0)
             alloc      = (ActorsShared80163148Fade*)Mem_Calloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             fade         = alloc;
@@ -36,7 +36,7 @@ void ActorsShared80163148(Task* arg0)
             fade->g -= (u16)arg0->spawnArg1;
             fade->b -= (u16)arg0->spawnArg1;
             if (fade->r < 0) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }

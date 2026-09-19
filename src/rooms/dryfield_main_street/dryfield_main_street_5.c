@@ -24,7 +24,7 @@ void func_dryfield_main_street_8017E354(s32 arg0)
     t->spawnArg1 = arg0;
     return;
 kill:
-    Task_Kill(RoomsShared8017e320Task);
+    taskKill(RoomsShared8017e320Task);
     RoomsShared8017e320Task = NULL;
 }
 
@@ -51,7 +51,7 @@ void func_dryfield_main_street_8017E3A8(Task* task)
             work = Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8));
             func_800B0928(Game_GetPtrSlot(3), (Task*)work->field_0, 0x300, 0x200, task->killCountdown);
         } else {
-            Task_Kill(task);
+            taskKill(task);
         }
     }
 }

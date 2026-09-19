@@ -44,7 +44,7 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
         case 2:
             D_80114D08 = 0xA;
             if (Gp_GetCapEventKey() == 0xC) {
-                Task_Kill(task);
+                taskKill(task);
                 Gp_MsgPlayerWeapon(1);
                 return;
             }
@@ -77,7 +77,7 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
             wp->field_3                          = param.field_3;
             D_neo_ark_eve_access_tunnel_801807A8 = work;
             Task_SpawnFromTable(&D_neo_ark_eve_access_tunnel_8017EA88, 0, 0, 0);
-            Task_Kill(task);
+            taskKill(task);
             break;
         }
     }
@@ -102,7 +102,7 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
         case 2:
             D_80114D08 = 0xA;
             if (Gp_GetCapEventKey() == 0xC) {
-                Task_Kill(task);
+                taskKill(task);
                 Gp_MsgPlayerWeapon(1);
                 return;
             }
@@ -125,7 +125,7 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             Mc_SaveData.at4.loc.warp = D_neo_ark_eve_access_tunnel_801807A0.field_4;
             Mc_SaveData.at4.loc.room = D_neo_ark_eve_access_tunnel_801807A0.field_1;
             Task_Spawn(0, 0x11, 0, 0);
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

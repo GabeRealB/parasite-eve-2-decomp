@@ -738,7 +738,7 @@ __asm__(".section .rodata\n"
         "Gp_EffTask07States:\n"
         "\t.word Gp_EffTask07State0\n"
         "\t.word Gp_EffTask07State1\n"
-        "\t.word Task_Kill\n"
+        "\t.word taskKill\n"
         ".section .text\n");
 #endif
 
@@ -3529,30 +3529,30 @@ void Gp_TeardownSlot0(GpActorWork* arg0)
     Gp_ActorSlots[0] = NULL;
     task             = inner->field_914;
     if (task != NULL) {
-        Task_Kill(task);
+        taskKill(task);
     }
     task = inner->field_918;
     if (task != NULL) {
-        Task_Kill(task);
+        taskKill(task);
     }
     task = inner->field_91C;
     if (task != NULL) {
-        Task_Kill(task);
+        taskKill(task);
     }
     task = inner->field_920;
     if (task != NULL) {
-        Task_Kill(task);
+        taskKill(task);
     }
     task = inner->field_924;
     if (task != NULL) {
-        Task_Kill(task);
+        taskKill(task);
     }
     Gp_UnlinkObj((GpObj*)inner->field_AC);
     Gp_UnlinkObj((GpObj*)inner->field_CC);
     Gp_UnlinkObj((GpObj*)inner->field_EC);
     Gp_UnlinkObj((GpObj*)inner->field_10C);
     Gp_UnlinkObj((GpObj*)inner->field_12C);
-    Task_Kill((Task*)arg0);
+    taskKill((Task*)arg0);
 }
 
 void Gp_PlayerWorkTask(Task* arg0)
@@ -4625,11 +4625,11 @@ Task* func_80103294(GpActorWork* arg0, s32 arg1, s32 arg2)
 
     actor = arg0->actor;
     if (actor->field_920 != NULL) {
-        Task_Kill(actor->field_920);
+        taskKill(actor->field_920);
     }
     actor->field_920 = spawn_tmd_attach(arg0, 0, arg1, arg2);
     if (actor->field_924 != NULL) {
-        Task_Kill(actor->field_924);
+        taskKill(actor->field_924);
     }
     actor->field_924 = spawn_tmd_attach(arg0, 1, arg1, arg2);
     return actor->field_924;
@@ -4770,7 +4770,7 @@ have_task:
     if (actor != NULL) {
         goto have_actor;
     }
-    Task_Kill(task);
+    taskKill(task);
     return NULL;
 
 have_actor:
@@ -5224,19 +5224,19 @@ s32 Gp_KillPlayerEffs(void)
 
     task = actor->field_918;
     if (task != NULL) {
-        Task_Kill(task);
+        taskKill(task);
         actor->field_918 = NULL;
     }
 
     task = actor->field_91C;
     if (task != NULL) {
-        Task_Kill(task);
+        taskKill(task);
         actor->field_91C = NULL;
     }
 
     task = actor->field_914;
     if (task != NULL) {
-        Task_Kill(task);
+        taskKill(task);
         actor->field_914 = NULL;
     }
 
@@ -9446,7 +9446,7 @@ void func_8010B3F8(Task* arg0)
                 arg0->killCountdown = next;
                 idx                 = arg0->spawnArg1 & 3;
                 if (next >= 0x300) {
-                    Task_Kill(arg0);
+                    taskKill(arg0);
                 } else {
                     arg0->killCountdown = next | 6;
                 }
@@ -9482,7 +9482,7 @@ void func_8010B520(Task* arg0)
     params->field_0 = coords;
     params->field_6 = (u16)arg0->spawnArg1 + 1;
     func_800FDB18(2, coords, 0, params);
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void func_8010B590(Task* arg0)
@@ -9517,7 +9517,7 @@ void func_8010B5E4(Task* arg0)
 
 void func_8010B5F0(Task* arg0)
 {
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void func_8010B610(Task* arg0)
@@ -9539,7 +9539,7 @@ void Gp_EndPlayerActorTask(GpActorWork* arg0)
     actor = arg0->actor;
     task  = actor->field_91C;
     if (task != NULL) {
-        Task_Kill(task);
+        taskKill(task);
         actor->field_91C = NULL;
         extra            = (GpAnimObj*)arg0->extra;
         inner            = arg0->actor;
@@ -9563,7 +9563,7 @@ void Gp_EndPlayerActorTask(GpActorWork* arg0)
     }
     task = actor->field_914;
     if (task != NULL) {
-        Task_Kill(task);
+        taskKill(task);
         actor->field_914 = NULL;
     }
 }
@@ -9696,7 +9696,7 @@ have_task:
         goto have_actor;
     }
 fail:
-    Task_Kill(task);
+    taskKill(task);
     return NULL;
 
 have_actor:

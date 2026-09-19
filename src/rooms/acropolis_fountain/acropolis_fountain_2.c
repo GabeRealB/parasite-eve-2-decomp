@@ -94,7 +94,7 @@ void func_acropolis_fountain_8017D868(Task* task)
             D_80071076               = 1;
             Task_Spawn(0, 0x11, 0, 0);
             GameFlag_SetNibble(0, 5);
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

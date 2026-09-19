@@ -538,7 +538,7 @@ L_case7:
     if ((Stream_RestoreAfterLoad(0, 0) & 0xFFFF) == 0) {
         return;
     }
-    Task_Kill(task);
+    taskKill(task);
     Display_ResetHeapWrapper();
 }
 
@@ -581,7 +581,7 @@ void Title_BootTask(Task* arg0)
         case 5:
             SetDispMask(1);
             Wip_SysFlags.field_4 = 1;
-            Task_Kill(task);
+            taskKill(task);
             return;
         case 6:
             param1[3] = 0;

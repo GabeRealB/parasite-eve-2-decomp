@@ -48,7 +48,7 @@ void func_neo_ark_island_8017E844(Task* arg0)
             goto L_advance;
         case 2:
             if (Gp_GetCapEventKey() != 0xA) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
                 return;
             }
@@ -65,7 +65,7 @@ void func_neo_ark_island_8017E844(Task* arg0)
             Mc_SaveData.at4.loc.warp = D_neo_ark_island_80184008.field_4;
             Mc_SaveData.at4.loc.room = D_neo_ark_island_80184008.field_1;
             Task_Spawn(0, 0x11, 0, 0);
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

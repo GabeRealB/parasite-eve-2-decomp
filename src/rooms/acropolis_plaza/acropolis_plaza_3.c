@@ -244,7 +244,7 @@ L_case0:
     block      = (TaskIdMap*)Mem_Malloc(0x34, 0);
     task->work = block;
     if (block == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     Mem_Set(block, 0, 0x34);

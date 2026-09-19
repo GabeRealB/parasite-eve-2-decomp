@@ -176,7 +176,7 @@ void func_actor_335800_80162364(Task* arg0)
         arg0->state += 1;
         return;
     }
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void func_actor_335800_801623D8(void)
@@ -223,7 +223,7 @@ void func_actor_335800_801624DC(Task* arg0)
         slot = Game_GetPtrSlot(3);
         Gp_PlayerWeaponId(&D_actor_335800_80164E7C.field_0);
         Gp_DispatchMsg(slot, 0x3E8, (s32)&D_actor_335800_80164E7C, 0);
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 
@@ -253,7 +253,7 @@ void func_actor_335800_80162588(Task* arg0)
         return;
     }
     Display_ClampField126(0);
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void func_actor_335800_80162640(Task* arg0)

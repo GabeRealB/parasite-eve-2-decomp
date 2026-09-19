@@ -41,7 +41,7 @@ void func_acropolis_cafeteria_801818DC(Task* task)
     coord = obj->coords;
     work  = Mem_Calloc(0xD8, 0);
     if (work == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     task->work         = (TaskIdMap*)work;
@@ -156,5 +156,5 @@ void func_acropolis_cafeteria_80181E30(Task* arg0)
 void func_acropolis_cafeteria_80181E3C(Task* arg0)
 {
     Gp_UnlinkObj(arg0->work);
-    Task_Kill(arg0);
+    taskKill(arg0);
 }

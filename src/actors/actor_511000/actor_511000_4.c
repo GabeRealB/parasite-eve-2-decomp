@@ -382,7 +382,7 @@ void func_actor_511000_80133034(Task* task)
     extra = (TmdObject*)task->extra;
     work  = (Actor511000Work*)Mem_Calloc(0x70, 0);
     if (work == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     task->work    = (TaskIdMap*)work;
@@ -444,7 +444,7 @@ void func_actor_511000_801330F0(Task* task)
 
 void func_actor_511000_80133220(Task* task)
 {
-    Task_Kill(task);
+    taskKill(task);
 }
 
 /// Inherits the parent model's light/color and visibility bit, chains this
@@ -512,7 +512,7 @@ void func_actor_511000_801332E4(Task* task)
 
 void func_actor_511000_801333A4(Task* task)
 {
-    Task_Kill(task);
+    taskKill(task);
 }
 
 /// Inherits the parent model's light/color and visibility bit, chains this
@@ -551,7 +551,7 @@ void func_actor_511000_801333C4(Task* task)
 
 void func_actor_511000_80133498(Task* task)
 {
-    Task_Kill(task);
+    taskKill(task);
 }
 
 s32 func_actor_511000_801334B8(Task* arg0)

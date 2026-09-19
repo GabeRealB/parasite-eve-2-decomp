@@ -75,7 +75,7 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
             }
             func_800E8614((s32)&D_dryfield_night_trailer_coach_80188348, 0);
         kill:
-            Task_Kill(task);
+            taskKill(task);
             return;
         case 2:
             if (Gp_GetCapEventKey() == 0xB) {
@@ -114,7 +114,7 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
             task->state = task->state + 1;
             return;
         case 4:
-            Task_Kill(task);
+            taskKill(task);
             return;
     }
 }

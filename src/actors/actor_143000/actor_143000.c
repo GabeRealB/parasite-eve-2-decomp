@@ -49,7 +49,7 @@ void func_actor_143000_801324C8(Task* arg0)
     p    = D_actor_143000_80134580;
     work = Mem_Calloc(0x1CU, false);
     if (work == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     arg0->spawnArg2          = Task_SpawnFromTable(&D_actor_143000_80134558, 0, 1, 0);

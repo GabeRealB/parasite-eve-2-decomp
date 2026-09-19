@@ -6,7 +6,7 @@
 // same here as it does in main/ or gameplay/.
 
 // --- from main (10 symbols)
-Task_Kill = 0x8002CCB8; // absolute:True
+taskKill = 0x8002CCB8; // absolute:True
 Mem_Set = 0x8002D894; // absolute:True
 Mem_Calloc = 0x8002D978; // absolute:True
 Gfx_MatrixCol2 = 0x8003C768; // absolute:True

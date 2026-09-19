@@ -34,7 +34,7 @@ void func_mine_forked_tunnel_8017E2E0(Task* arg0)
                     func_800E8634((s32)&D_mine_forked_tunnel_801831AC, 0, (s32)&D_mine_forked_tunnel_801834F4);
                     GameFlag_SetNibble(0x75, 1);
                 }
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }
@@ -66,7 +66,7 @@ void func_mine_forked_tunnel_8017E38C(Task* arg0)
                     func_mine_forked_tunnel_8017E48C(1);
                 }
                 Gp_MsgPlayerWeapon(1);
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }

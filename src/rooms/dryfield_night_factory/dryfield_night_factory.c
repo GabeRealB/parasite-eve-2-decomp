@@ -34,7 +34,7 @@ void func_dryfield_night_factory_8017D6F8(Task* task)
     coord = obj->coords;
     work  = Mem_Calloc(0x58, 0);
     if (work == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     task->work     = (TaskIdMap*)work;

@@ -119,7 +119,7 @@ void func_dryfield_night_motel_room_6_801811F0(Task* task)
         case 5:
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
                 SndEvt_EnqueueType7(script->field_10, 1);
-                Task_Kill(D_dryfield_night_motel_room_6_801862B4);
+                taskKill(D_dryfield_night_motel_room_6_801862B4);
                 task->state++;
             } else if (Task_PollKill(D_dryfield_night_motel_room_6_801862B4, &poll) != 0) {
                 task->state++;
@@ -215,7 +215,7 @@ void func_dryfield_night_motel_room_6_801811F0(Task* task)
                 Gp_ResetCap();
             }
             D_80114D08 = 0xA;
-            Task_Kill(task);
+            taskKill(task);
             break;
         case 15:
         case 16:

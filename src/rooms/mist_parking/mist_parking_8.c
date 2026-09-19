@@ -71,7 +71,7 @@ void func_mist_parking_8018326C(s32 arg0)
 {
     if (arg0 == 0) {
         if (D_mist_parking_80195320 != NULL) {
-            Task_Kill(D_mist_parking_80195320);
+            taskKill(D_mist_parking_80195320);
         }
         D_mist_parking_80195320 = NULL;
     }

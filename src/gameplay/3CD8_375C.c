@@ -44,7 +44,7 @@ void Gp_EvtCapWeaponTask(Task* arg0)
                 arg0->state++;
             }
             if (actor->field_954 != 2) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
         case 3:
@@ -91,12 +91,12 @@ void Gp_EvtCapWeaponTask(Task* arg0)
                 arg0->state++;
             }
             if (actor->field_954 != 2) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 Gp_StateF0.field_4 = 0;
             }
             break;
         case 8:
-            Task_Kill(arg0);
+            taskKill(arg0);
             Gp_StateF0.field_4 = 0;
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
             break;

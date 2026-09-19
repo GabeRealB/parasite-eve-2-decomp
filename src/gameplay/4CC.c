@@ -1589,7 +1589,7 @@ void Gp_FadeTileTask(Task* arg0)
         if (arg0->spawnArg1 == 4) {
             GameMain_SetFrameTiming(0);
         }
-        Task_Kill(arg0);
+        taskKill(arg0);
     } else if (flag == 1) {
         if (arg0->killCountdown >= 8) {
             if (arg0->spawnArg1 == 5) {
@@ -1598,7 +1598,7 @@ void Gp_FadeTileTask(Task* arg0)
                 gDisplayState.at100.flags.flipMode = flag;
                 GameMain_SetFrameTiming(0);
             }
-            Task_Kill(arg0);
+            taskKill(arg0);
         }
     }
 }

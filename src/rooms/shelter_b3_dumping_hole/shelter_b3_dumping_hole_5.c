@@ -55,7 +55,7 @@ void func_shelter_b3_dumping_hole_80181A48(Task* arg0)
             break;
         default:
             Display_ClampField126(0);
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }
@@ -346,7 +346,7 @@ loop:
 void func_shelter_b3_dumping_hole_80183024(Task* arg0)
 {
     if ((arg0->spawnArg1 -= 1) <= 0) {
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
     func_shelter_b3_dumping_hole_80181C8C();
 }
@@ -360,7 +360,7 @@ void func_shelter_b3_dumping_hole_80183060(Task* arg0)
         case 1:
             arg0->spawnArg1 -= 1;
             if (arg0->spawnArg1 <= 0 || Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 Stage_SetEndingFlag();
             }
             break;

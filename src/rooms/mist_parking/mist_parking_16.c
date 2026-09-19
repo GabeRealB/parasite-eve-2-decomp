@@ -28,7 +28,7 @@ void func_mist_parking_80184668(Task* arg0)
     temp_v0         = arg0->spawnArg1 - 1;
     arg0->spawnArg1 = temp_v0;
     if (temp_v0 < 0) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         Stage_SetEndingFlag();
     }
 }

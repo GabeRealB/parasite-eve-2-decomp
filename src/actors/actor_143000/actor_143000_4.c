@@ -104,7 +104,7 @@ void func_actor_143000_80133EE4(Task* arg0)
             return;
         case 12:
             Gp_ResetCap();
-            Task_Kill(arg0);
+            taskKill(arg0);
             return;
         case 20:
             i = 10;
@@ -183,7 +183,7 @@ void func_actor_143000_80133EE4(Task* arg0)
                 GameFlag_SetNibble(3, 0);
                 GameFlag_SetNibble(0x155, 3);
                 func_800E8634((s32)&D_actor_143000_801351B0, 0, (s32)&D_actor_143000_80135870);
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             return;
     }

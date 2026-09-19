@@ -40,7 +40,7 @@ void func_shelter_b1_underground_parking_80184778(Task* task)
     func_shelter_b1_underground_parking_80183B9C();
     func_shelter_b1_underground_parking_8018491C();
     task->killCountdown = 0;
-    Task_Kill((Task*)task->spawnArg2);
+    taskKill((Task*)task->spawnArg2);
     task->state++;
 }
 

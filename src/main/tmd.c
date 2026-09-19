@@ -857,7 +857,7 @@ void Tmd_AllocNodeBuffers(Task* task)
         }
         node = (TmdObject*)node->next;
     }
-    Task_Kill(task);
+    taskKill(task);
 }
 
 void Tmd_DrawFlaggedNodes(TmdObject* node)

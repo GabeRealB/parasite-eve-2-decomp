@@ -9,6 +9,6 @@ void Room_Script03(Task* arg0)
     temp_v0             = arg0->killCountdown + 4;
     arg0->killCountdown = temp_v0;
     if ((s16)temp_v0 >= 0x100) {
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }

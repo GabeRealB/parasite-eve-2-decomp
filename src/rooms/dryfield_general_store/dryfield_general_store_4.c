@@ -25,7 +25,7 @@ void func_dryfield_general_store_8017DFB4(Task* arg0)
             temp_v0             = (u16)arg0->killCountdown - 1;
             arg0->killCountdown = temp_v0;
             if (temp_v0 < 0) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             return;
     }
@@ -48,7 +48,7 @@ void func_dryfield_general_store_8017E064(Task* arg0)
             if (temp_v0 < 0) {
                 Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_dryfield_general_store_8017E564, 0x7DB);
                 Gp_MsgPlayerWeapon(1);
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             return;
     }

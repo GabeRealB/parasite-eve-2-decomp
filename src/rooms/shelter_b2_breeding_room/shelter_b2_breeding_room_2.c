@@ -46,7 +46,7 @@ void func_shelter_b2_breeding_room_8017D7A8(Task* arg0)
     if (Gp_CapBusy() == 0) {
         Gp_ResetCap();
         Gp_MsgPlayerWeapon(1);
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 

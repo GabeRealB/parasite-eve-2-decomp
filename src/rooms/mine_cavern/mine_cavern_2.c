@@ -68,7 +68,7 @@ void func_mine_cavern_8017DD6C(Task* task)
             GameFlag_SetNibble(0xBB, 1);
             GameFlag_SetNibble(0x1B9, 0);
         }
-        Task_Kill(task);
+        taskKill(task);
     }
 }
 

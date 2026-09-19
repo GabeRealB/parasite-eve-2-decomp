@@ -44,7 +44,7 @@ void WeaponsShared8011d3a0(Task* arg0)
     vec      = blk;
     if (work == NULL) {
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     arg0->work         = (TaskIdMap*)work;

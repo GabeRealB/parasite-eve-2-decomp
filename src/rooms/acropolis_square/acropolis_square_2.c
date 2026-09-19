@@ -208,7 +208,7 @@ void func_acropolis_square_80181AEC(Task* task)
                 }
                 Gp_DispatchMsg((Task*)Game_GetPtrSlot(5), 0xC1F, 0, 0);
                 SndEvt_EnqueueType7(0x51010009, 1);
-                Task_Kill(task);
+                taskKill(task);
                 return;
             }
             count2                      = D_acropolis_square_80188898 + 1;
@@ -276,7 +276,7 @@ void func_acropolis_square_80181DD0(Task* task)
 
         case 4:
             D_8007216C = 0xD;
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 

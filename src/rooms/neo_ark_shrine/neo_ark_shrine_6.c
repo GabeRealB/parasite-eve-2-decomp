@@ -100,9 +100,9 @@ void func_neo_ark_shrine_8017EED4(Task* task)
     gGameSession->cutsceneHold = 0;
     D_8007216C                 = 0xA;
     /* Without this the scheduler hoists the `spawnArg2` load above the
-       `D_8007216C` byte store, which then fills `Task_Kill`'s delay slot. */
+       `D_8007216C` byte store, which then fills `taskKill`'s delay slot. */
     SOFT_BARRIER();
-    Task_Kill((Task*)task->spawnArg2);
+    taskKill((Task*)task->spawnArg2);
     Task_RequestKill(task, 0);
 }
 
@@ -162,7 +162,7 @@ void func_neo_ark_shrine_8017F094(Task* task)
     st                        = (NeoArkShrineScript*)task->work;
     D_neo_ark_shrine_8018686A = 1;
     func_neo_ark_shrine_8017EAC0();
-    Task_Kill((Task*)task->spawnArg2);
+    taskKill((Task*)task->spawnArg2);
     st->timer = 0;
     task->state++;
 }
@@ -316,7 +316,7 @@ void func_neo_ark_shrine_8017F4C8(Task* task)
     st         = (NeoArkShrineFall*)Mem_Calloc(sizeof(NeoArkShrineFall), 0);
     task->work = (TaskIdMap*)st;
     if (st == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     extra->lightMtx   = &st->light;
@@ -381,7 +381,7 @@ void func_neo_ark_shrine_8017F688(Task* task)
     st         = (NeoArkShrineFall*)Mem_Calloc(sizeof(NeoArkShrineFall), 0);
     task->work = (TaskIdMap*)st;
     if (st == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     extra->lightMtx   = &st->light;

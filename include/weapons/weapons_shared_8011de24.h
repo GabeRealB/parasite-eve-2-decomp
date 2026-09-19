@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "main/task.h"
+
 /// 0x20-byte `GpObj` list node. Two of them lead the weapon's work block and
 /// are unlinked together when its task tears down.
 typedef struct WeaponShared8011de24Obj {
@@ -20,6 +22,6 @@ typedef struct WeaponShared8011de24 {
     /* 0x1C */ WeaponShared8011de24Work* field_1C;
 } WeaponShared8011de24;
 
-void WeaponsShared8011de24(WeaponShared8011de24* arg0);
+void WeaponsShared8011de24(Task* task);
 
 #endif

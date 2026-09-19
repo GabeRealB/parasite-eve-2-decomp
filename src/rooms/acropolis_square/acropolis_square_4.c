@@ -51,7 +51,7 @@ void func_acropolis_square_80182148(Task* task)
         case 2:
         case 7:
             GameFlag_SetNibble(0x15, 1);
-            Task_Kill(task);
+            taskKill(task);
             return;
     }
 }
@@ -63,7 +63,7 @@ void func_acropolis_square_80182200(s32 arg0)
             D_acropolis_square_8018889C = Task_SpawnFromTable(&D_acropolis_square_80183808, 2, 0, 0);
             return;
         case 1:
-            Task_Kill(D_acropolis_square_8018889C);
+            taskKill(D_acropolis_square_8018889C);
             return;
     }
 }

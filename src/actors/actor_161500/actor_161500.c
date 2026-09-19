@@ -155,7 +155,7 @@ void func_actor_161500_801321B4(Task* arg0)
     Gp_SetItemSeenBit(0x124, 1);
     GameFlag_SetNibble(0xE4, 2);
     func_800E8614((s32)&D_actor_161500_80137AB8, 0);
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void func_actor_161500_80132210(void)

@@ -40,7 +40,7 @@ void func_dryfield_night_garage_801809A4(Task* arg0)
             }
             return;
     }
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 Task* func_dryfield_night_garage_80180A64(s32 arg0)
@@ -160,6 +160,6 @@ L_case5:
     if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
         return;
     }
-    Task_Kill(task);
+    taskKill(task);
     Display_ResetHeapWrapper();
 }

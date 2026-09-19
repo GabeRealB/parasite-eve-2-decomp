@@ -1267,7 +1267,7 @@ void Gp_CapExit(Task* arg0)
     Gp_CapTable = 0;
     D_8011565A  = 0;
     D_801156A4  = 0;
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 void Gp_DrawCapCaret(void)
@@ -1768,7 +1768,7 @@ void func_800E6EF4(Task* task)
         if (Gp_CapTable != 0 && D_8011565A == 0) {
             Gp_CapTable = 0;
         }
-        Task_Kill(task);
+        taskKill(task);
     }
     task->state++;
 }
@@ -1804,7 +1804,7 @@ void Gp_DelayedMsgTask(Task* task)
                         Gp_DispatchMsg(slot, 0x7E0, val, 0);
                     }
                 }
-                Task_Kill(task);
+                taskKill(task);
             }
             task->killCountdown--;
             break;
@@ -1849,7 +1849,7 @@ void Gp_EndWaitTask(Task* task)
         case 1:
             if (flag->field_2 != 0) {
                 Stage_SetEndingFlag();
-                Task_Kill(task);
+                taskKill(task);
             }
             break;
     }
@@ -1861,7 +1861,7 @@ void Gp_InitCapTask(Task* task)
 
     mem = Mem_Calloc(4, 0);
     if (mem == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     Gp_ResetCap();
@@ -1954,7 +1954,7 @@ s32 func_800E7434(void)
         if (D_801156B8 == NULL) {
             return 0;
         }
-        Task_Kill(D_801156B8);
+        taskKill(D_801156B8);
         D_801156B8 = NULL;
     } else {
         gGameSession->hideHud = 0;

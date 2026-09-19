@@ -119,7 +119,7 @@ void func_shelter_b3_dumping_hole_80183E08(DumpingHoleState* arg0)
     func_shelter_b3_dumping_hole_80183F04(arg0);
     if (ent->field_A == 3) {
         D_shelter_b3_dumping_hole_8018B7BC[arg0->field_36].field_6 = 2;
-        Task_Kill((Task*)arg0);
+        taskKill((Task*)arg0);
     }
 }
 

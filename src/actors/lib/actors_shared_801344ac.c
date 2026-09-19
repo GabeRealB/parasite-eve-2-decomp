@@ -20,7 +20,7 @@ void ActorsShared801344ac(Task* arg0)
             alloc      = (ActorShared801344acWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             fade         = alloc;
@@ -37,7 +37,7 @@ void ActorsShared801344ac(Task* arg0)
             if (fade->r >= 0) {
                 return;
             }
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

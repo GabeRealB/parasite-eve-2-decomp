@@ -64,7 +64,7 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
             mtx        = (DwtColorMtx*)Mem_Malloc(0x58, 0);
             arg0->work = (TaskIdMap*)mtx;
             if (mtx == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             } else {
                 Mem_Set(mtx, 0, 0x58);
                 mtx->owner   = (Task*)Game_GetPtrSlot(3);
@@ -116,7 +116,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             work       = (DwtScriptWork*)Mem_Malloc(0x58, 0);
             arg0->work = (TaskIdMap*)work;
             if (work == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             } else {
                 Mem_Set(work, 0, 0x58);
                 work->owner                    = (Task*)Game_GetPtrSlot(3);

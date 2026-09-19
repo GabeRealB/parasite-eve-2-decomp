@@ -633,7 +633,7 @@ void Gp_DestroyEnemy(GpEnemy* enemy, Task* task)
 {
     Gp_UnlinkNode(&enemy->node);
     memFree(enemy);
-    Task_Kill(task);
+    taskKill(task);
 }
 
 void Gp_EnemyTaskExit(Task* task)
@@ -643,7 +643,7 @@ void Gp_EnemyTaskExit(Task* task)
     enemy = task->spawnArg2;
     Gp_UnlinkNode(&enemy->node);
     memFree(enemy);
-    Task_Kill(task);
+    taskKill(task);
 }
 
 Task* Gp_CopyCoordOffset(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
@@ -690,7 +690,7 @@ GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent)
     enemy = Mem_Calloc(0x60, 0);
     if (enemy == NULL) {
         printf(Gp_StrNewEnemyNull);
-        Task_Kill(task);
+        taskKill(task);
         return NULL;
     }
 
@@ -819,7 +819,7 @@ void Gp_FinishStageLoad(Task* task)
         gDisplayState.at100.flags.imageSource = 1;
         if (gGameSession->restartMode == 0xFF) {
             Task_SpawnFromTable(D_8011922C, 0, 0, 0);
-            Task_Kill(task);
+            taskKill(task);
         } else {
             task->spawnArg2 = Task_SpawnFromTable(D_80115D9C, 0, 0, 0);
             SndEvt_EnqueueType1(0x62, 0);
@@ -838,7 +838,7 @@ void Gp_StageLoadState2(Task* task)
         task->killCountdown = 0;
         ds->gameMode        = 1;
         ds->loadBusy        = 0;
-        Task_Kill(task);
+        taskKill(task);
     }
 }
 
@@ -1619,11 +1619,11 @@ void Gp_FadeWorkTask(Task* arg0)
             t->killCountdown = t->killCountdown - 1;
             if (t->killCountdown <= 0) {
                 work->field_1 = 2;
-                Task_Kill(t);
+                taskKill(t);
             }
             break;
         default:
-            Task_Kill(t);
+            taskKill(t);
             break;
     }
 }
@@ -3715,7 +3715,7 @@ void func_800B65B0(Task* task)
         if (Gp_LookupBit2Item(work->field_0) == 0) {
             work->field_3 = 0;
             work->field_2 = 1;
-            Task_Kill(task);
+            taskKill(task);
             return;
         }
         switch (Gp_PubItemLoc >> 8) {
@@ -3810,7 +3810,7 @@ void func_800B65B0(Task* task)
             work->field_2          = 1;
             gDisplayState.gameMode = 0;
             Stage_ReleasePrimBuf();
-            Task_Kill(task);
+            taskKill(task);
         }
     }
 }

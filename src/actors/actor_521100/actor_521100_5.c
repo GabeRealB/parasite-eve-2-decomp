@@ -288,7 +288,7 @@ void func_actor_521100_80136404(Task* task)
         func_800FDB18(D_actor_521100_8016A3D4, &D_actor_521100_8016A3E8, NULL, &D_actor_521100_8016A3CC);
     }
     if (task->state >= 0x83) {
-        Task_Kill(task);
+        taskKill(task);
         if (task->spawnArg1 == 0) {
             D_actor_521100_8016A3E0 = NULL;
         } else {

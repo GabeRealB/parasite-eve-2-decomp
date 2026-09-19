@@ -52,7 +52,7 @@ void func_acropolis_security_room_8017D9DC(Task* task)
 
     work = (AsrMonitorWork*)Mem_Calloc(sizeof(AsrMonitorWork), 0);
     if (work == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     task->spawnArg2  = Task_SpawnFromTable(&D_acropolis_security_room_8018263C, 0, 1, 0);

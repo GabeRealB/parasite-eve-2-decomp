@@ -244,7 +244,7 @@ void Gp_FinishLoadWait(Task* task)
     if (task->spawnArg1 == 0) {
         Stage_RequestSpecialFlag(1);
         gGameSession->viewDirty = 0;
-        Task_Kill(task);
+        taskKill(task);
         Display_ResetHeapWrapper();
     } else {
         if (task->spawnArg1 == 1) {
@@ -253,7 +253,7 @@ void Gp_FinishLoadWait(Task* task)
         gDisplayState.at100.flags.imageSource = 2;
         Task_Spawn(0, 0x17, 0, 0);
         gGameSession->viewReady = 1;
-        Task_Kill(task);
+        taskKill(task);
     }
 }
 
@@ -309,7 +309,7 @@ void Gp_CommitSpawnLoc(Task* task)
     val                        = *(u8*)&task->spawnArg1;
     Mc_SaveData.at4.loc.view   = val;
     gGameSession->at4.loc.view = val;
-    Task_Kill(task);
+    taskKill(task);
 }
 
 void func_800A99B4(void)
@@ -330,7 +330,7 @@ void Gp_SetupSprtDisplay(Task* task)
         Tmd_AllocMissingBuffers();
     }
     Gp_AllocSprtLists();
-    Task_Kill(task);
+    taskKill(task);
     Display_ResetHeapWrapper();
 }
 
@@ -1521,7 +1521,7 @@ void Gp_ResumeSessionTask(Task* task)
 {
     SndBank_SetEnableFlags(0, 0x40000000);
     if (gGameSession->deathVariant != 0) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     if ((task->spawnArg1 & 0x10) == 0) {
@@ -1549,7 +1549,7 @@ void Gp_LoadFinishTask(Task* task)
         Gpu_ClearOTag(0);
         Gpu_ClearOTag(1);
         Pad_RemapState->field_3 = 0;
-        Task_Kill(task);
+        taskKill(task);
         if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x1050000) {
             func_800AA548(1);
         } else {
@@ -1618,7 +1618,7 @@ void Gp_FlashWhiteTask(Task* task)
                 queue->field_244 = 0;
             }
             Display_ReleaseRef();
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }
@@ -2238,7 +2238,7 @@ void func_800AD50C(Task* task)
 void Gp_AllocSprtListsTask(Task* task)
 {
     Gp_AllocSprtLists();
-    Task_Kill(task);
+    taskKill(task);
 }
 
 void func_800AD5B8(Task* task)

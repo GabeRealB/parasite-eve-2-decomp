@@ -48,7 +48,7 @@ void func_mine_gorge_8017D828(Task* arg0)
         gGameSession->hideHud = 1;
         func_800E8634((s32)&D_mine_gorge_8017E2F0, 0, (s32)&D_mine_gorge_8017E500);
     } else {
-        Task_Kill(arg0);
+        taskKill(arg0);
         Gp_ClearCollectedBit(0x11F);
     }
     arg0->state = arg0->state + 1;

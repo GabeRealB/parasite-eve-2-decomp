@@ -37,7 +37,7 @@ void RoomsShared8017fbf4(Task* task)
     u16                      flags;
 
     if (work == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     task->work   = (TaskIdMap*)work;

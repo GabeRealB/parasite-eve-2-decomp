@@ -92,7 +92,7 @@ void func_actor_136100_801320E0(Task* arg0)
         work       = Mem_Malloc(0x4F0, 0);
         arg0->work = (TaskIdMap*)work;
         if (work == NULL) {
-            Task_Kill(arg0);
+            taskKill(arg0);
         } else {
             Mem_Set(work, 0, 0x4F0);
             coord->sub                       = (GsCOORDINATE2*)arg0->spawnArg2;
@@ -138,7 +138,7 @@ void func_actor_136100_80132284(Task* arg0)
         work       = Mem_Malloc(0x4F0, 0);
         arg0->work = (TaskIdMap*)work;
         if (work == NULL) {
-            Task_Kill(arg0);
+            taskKill(arg0);
         } else {
             Mem_Set(work, 0, 0x4F0);
             coord->sub                       = (GsCOORDINATE2*)arg0->spawnArg2;
@@ -625,7 +625,7 @@ void func_actor_136100_80133A88(Task* arg0)
     map        = Mem_Malloc(0x4F0, 0);
     arg0->work = map;
     if (map == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     work = (Actor136100Work*)map;
@@ -760,7 +760,7 @@ void func_actor_136100_80133BC8(Task* arg0)
     switch (arg0->state) {
         case 0:
             if (GameFlag_GetNibble(0x7C) != 0) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             func_actor_136100_80133A88(arg0);

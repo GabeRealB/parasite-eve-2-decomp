@@ -17,5 +17,5 @@ void ActorsShared801625a8(Task* task)
     Gp_ActorSlots[1] = NULL;
     Gp_UnlinkObj((GpObj*)actor->field_AC);
     Gp_UnlinkObj((GpObj*)actor->field_CC);
-    Task_Kill(task);
+    taskKill(task);
 }

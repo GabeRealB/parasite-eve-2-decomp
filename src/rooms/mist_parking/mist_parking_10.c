@@ -31,5 +31,5 @@ void func_mist_parking_8018357C(Task* arg0)
     Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 1);
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
-    Task_Kill(arg0);
+    taskKill(arg0);
 }

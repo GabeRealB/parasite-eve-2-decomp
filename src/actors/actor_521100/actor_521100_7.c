@@ -25,11 +25,11 @@ s32 func_actor_521100_80136AE0(Task* task, s32 arg1, Actor521100Msg* msg)
 
         case 3:
             if (D_actor_521100_8016A3E0 != NULL) {
-                Task_Kill(D_actor_521100_8016A3E0);
+                taskKill(D_actor_521100_8016A3E0);
                 D_actor_521100_8016A3E0 = NULL;
             }
             if (D_actor_521100_8016A3E4 != NULL) {
-                Task_Kill(D_actor_521100_8016A3E4);
+                taskKill(D_actor_521100_8016A3E4);
                 D_actor_521100_8016A3E4 = NULL;
             }
             /* fall through -- the jump table's index 0 lands on the same store */

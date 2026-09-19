@@ -40,7 +40,7 @@ void func_dryfield_night_motel_loft_8017D6F8(Task* arg0)
             }
             D_801153F4 = 0;
             Gp_MsgPlayerWeapon(1);
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

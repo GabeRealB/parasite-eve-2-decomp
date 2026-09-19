@@ -327,7 +327,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             if (task->spawnArg1 <= 0) {
                 func_800E8634((s32)&D_acropolis_helicopter_landing_pad_8018467C, 1,
                               (s32)&D_acropolis_helicopter_landing_pad_80184CF4);
-                Task_Kill(task);
+                taskKill(task);
             }
             break;
     }
@@ -363,7 +363,7 @@ void func_acropolis_helicopter_landing_pad_8017DE78(Task* task)
             Gp_SpawnScript18((s32)&D_acropolis_helicopter_landing_pad_80187D40, (s32)&D_acropolis_helicopter_landing_pad_80187D48);
             break;
         case 0x280:
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
     task->state += 1;
@@ -398,7 +398,7 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
             D_80071076                = 1;
             Task_Spawn(0, 0x11, 0, 0);
             Display_ReleaseRef();
-            Task_Kill(arg0);
+            taskKill(arg0);
             return;
     }
 }
@@ -458,13 +458,13 @@ void func_acropolis_helicopter_landing_pad_8017E0F8(Task* arg0)
                 target = arg0->spawnArg1;
                 if (target < tmp) {
                     D_acropolis_helicopter_landing_pad_80187F74 = target;
-                    Task_Kill(arg0);
+                    taskKill(arg0);
                 }
             }
             if (D_acropolis_helicopter_landing_pad_80187F78 < 0) {
                 if (D_acropolis_helicopter_landing_pad_80187F74 < arg0->spawnArg1) {
                     D_acropolis_helicopter_landing_pad_80187F74 = arg0->spawnArg1;
-                    Task_Kill(arg0);
+                    taskKill(arg0);
                 }
             }
             actor->field_52 = D_acropolis_helicopter_landing_pad_80187F74;

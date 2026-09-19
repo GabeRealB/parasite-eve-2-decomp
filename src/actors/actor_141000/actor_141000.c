@@ -169,7 +169,7 @@ void func_actor_141000_80132C7C(Task* task)
     coord = obj->coords;
     work  = Mem_Calloc(0x10, 0);
     if (work == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     task->work    = (TaskIdMap*)work;
@@ -199,6 +199,6 @@ void func_actor_141000_80132D3C(Task* task)
         Gp_SpawnEff(0x60070, (GsCOORDINATE2*)((TmdObject*)task->extra)->coords, 0x24200, NULL);
     }
     if (gGameSession->viewReady != 0) {
-        Task_Kill(task);
+        taskKill(task);
     }
 }

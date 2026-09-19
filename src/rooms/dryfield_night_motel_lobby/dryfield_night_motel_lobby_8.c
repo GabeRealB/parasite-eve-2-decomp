@@ -9,7 +9,7 @@ void func_dryfield_night_motel_lobby_80181138(Task* arg0)
 {
     Gp_ApplyAreaRecs(&D_dryfield_night_motel_lobby_801844AC);
     gGameSession->eventState = 1;
-    Task_Kill(arg0->spawnArg2);
+    taskKill(arg0->spawnArg2);
     GameFlag_SetNibble(0x74, 1);
     arg0->state = (s32)(arg0->state + 1);
 }

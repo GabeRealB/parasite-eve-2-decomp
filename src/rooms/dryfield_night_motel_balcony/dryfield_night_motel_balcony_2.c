@@ -104,7 +104,7 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
             if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
                 return;
             }
-            Task_Kill(task);
+            taskKill(task);
             Display_ResetHeapWrapper();
             return;
     }

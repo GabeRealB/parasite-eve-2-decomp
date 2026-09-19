@@ -50,7 +50,7 @@ void func_actor_215100_80149F2C(Task* task)
     switch (task->state) {
         case 0x0:
             if (D_actor_215100_8014D038 != 0) {
-                Task_Kill(task);
+                taskKill(task);
                 return;
             }
             if (task->spawnArg1 == 0) {
@@ -84,7 +84,7 @@ void func_actor_215100_80149F2C(Task* task)
             }
             Gp_StartCapSlot(slot, 0, 0);
             func_800E8614((s32)&D_actor_215100_8014EBE0, 1);
-            Task_Kill(task);
+            taskKill(task);
             break;
         case 0x5:
             slot = 7;
@@ -183,7 +183,7 @@ void func_actor_215100_80149F2C(Task* task)
             gGameSession->flowFlags &= 0x7F;
             Task_SpawnFromTable(&D_801856B8, 0, D_actor_215100_8015E670 - 1, 0);
             D_actor_215100_8014D03C = 1;
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

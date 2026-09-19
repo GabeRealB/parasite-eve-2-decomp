@@ -136,7 +136,7 @@ s32 func_dryfield_general_store_8017D8D4(s32 arg0, s32 arg1, RoomEventMsg* in, R
 /// `Mc_SaveData.at4.loc.warp` / `field_5` and spawns helper task 0x11.
 ///
 /// Every arm that is finished with the task, state 5's and the cut-short arm of
-/// state 4's, leaves through the shared `Task_Kill` below the switch.
+/// state 4's, leaves through the shared `taskKill` below the switch.
 void func_dryfield_general_store_8017DAC0(Task* arg0)
 {
     switch (arg0->state) {
@@ -184,7 +184,7 @@ void func_dryfield_general_store_8017DAC0(Task* arg0)
         default:
             return;
     }
-    Task_Kill(arg0);
+    taskKill(arg0);
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_general_store/dryfield_general_store", RoomsShared8017d878Table);

@@ -46,7 +46,7 @@ void func_actor_121300_8013322C(Task* arg0)
             rect.w = 0xE;
             rect.h = 0x14;
             LoadImage(&rect, D_actor_121300_8013C7A0);
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
         case 1:
             switch (arg0->state) {
@@ -70,7 +70,7 @@ void func_actor_121300_8013322C(Task* arg0)
                     rect.w = 0x19;
                     rect.h = 0x14;
                     LoadImage(&rect, D_actor_121300_8013C3B8);
-                    Task_Kill(arg0);
+                    taskKill(arg0);
                     break;
             }
             break;
@@ -96,7 +96,7 @@ void func_actor_121300_8013322C(Task* arg0)
                     rect.w = 0x19;
                     rect.h = 0x14;
                     LoadImage(&rect, D_actor_121300_8013BBE8);
-                    Task_Kill(arg0);
+                    taskKill(arg0);
                     break;
             }
             break;
@@ -112,7 +112,7 @@ void func_actor_121300_8013322C(Task* arg0)
             rect.w = 0xE;
             rect.h = 0x14;
             LoadImage(&rect, D_actor_121300_8013C9D0);
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }
@@ -270,7 +270,7 @@ void func_actor_121300_80133BFC(Task* arg0)
     map        = Mem_Malloc(0x4B0, 0);
     arg0->work = map;
     if (map == NULL) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     work = (Actor121300Work*)map;
@@ -386,7 +386,7 @@ void func_actor_121300_80133D98(Task* arg0)
             Mc_SaveData.at4.loc.warp  = state;
             D_80071076                = 1;
             Task_Spawn(0, 0x11, 0, 0);
-            Task_Kill(arg0);
+            taskKill(arg0);
             return;
     }
     func_actor_121300_80133854(arg0);
@@ -409,7 +409,7 @@ void func_actor_121300_8013400C(Task* arg0)
             alloc      = (Actor121300FadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             fade         = alloc;
@@ -427,7 +427,7 @@ void func_actor_121300_8013400C(Task* arg0)
                 return;
             }
             SetDispMask(0);
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

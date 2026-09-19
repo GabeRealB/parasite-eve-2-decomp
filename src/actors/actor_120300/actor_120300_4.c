@@ -15,7 +15,7 @@ void func_actor_120300_80133F14(Task* arg0)
             break;
         case 1:
             if (gGameSession->eventState == 0) {
-                Task_Kill(arg0);
+                taskKill(arg0);
             }
             break;
     }

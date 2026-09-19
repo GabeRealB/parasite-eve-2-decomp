@@ -45,7 +45,7 @@ void func_mist_r18_8017E3A4(Task* task)
             return;
         }
     }
-    Task_Kill(task);
+    taskKill(task);
 }
 
 /// Emit the sprite's screen rectangle as a flat-shaded `TILE` into OT slot 5.
@@ -148,12 +148,12 @@ void func_mist_r18_8017E784(s32 idx)
 {
     if (idx == 0) {
         if (D_mist_r18_80186E90 != NULL) {
-            Task_Kill(D_mist_r18_80186E90);
+            taskKill(D_mist_r18_80186E90);
         }
         D_mist_r18_80186E90 = NULL;
     } else if (idx == 1) {
         if (D_mist_r18_80186E94 != NULL) {
-            Task_Kill(D_mist_r18_80186E94);
+            taskKill(D_mist_r18_80186E94);
         }
         D_mist_r18_80186E94 = NULL;
     }

@@ -28,7 +28,7 @@ void func_actor_136100_80134588(Task* arg0)
             alloc      = (Actor136100FadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             fade         = alloc;
@@ -43,14 +43,14 @@ void func_actor_136100_80134588(Task* arg0)
             fade->g = (s16)((u16)fade->g + (u16)arg0->spawnArg1);
             fade->b = (s16)((u16)fade->b + (u16)arg0->spawnArg1);
             if (D_actor_136100_8013F17C != 0) {
-                Task_Kill(arg0);
+                taskKill(arg0);
                 return;
             }
             if ((s16)fade->r < 0x100) {
                 return;
             }
             SetDispMask(0);
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

@@ -25,7 +25,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
                 Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FA, 0, 0);
                 task->state = task->state + 1;
             } else {
-                Task_Kill(task);
+                taskKill(task);
             }
             break;
 
@@ -50,7 +50,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
         case 3:
             if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
                 Gp_MsgPlayerWeapon(1);
-                Task_Kill(task);
+                taskKill(task);
             }
             break;
 
@@ -82,7 +82,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             Mc_SaveData.at4.loc.room  = 3;
             D_80071076                = 1;
             Task_Spawn(0, 0x11, 0, 0);
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

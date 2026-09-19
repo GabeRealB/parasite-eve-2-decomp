@@ -80,7 +80,7 @@ void func_actor_460200_80131E2C(Task* task)
                     args->done = 1;
                 }
                 if (args->done != 0) {
-                    Task_Kill(task);
+                    taskKill(task);
                     gDisplayState.skipDraw = 0;
                 }
                 break;
@@ -167,7 +167,7 @@ void func_actor_460200_80132090(Task* arg0)
     var_v0 = arg0->spawnArg1;
     if (var_v0 < 0) {
         Stage_SetEndingFlag();
-        Task_Kill(arg0);
+        taskKill(arg0);
         var_v0 = arg0->spawnArg1;
     }
     var_v0          = var_v0 - 1;

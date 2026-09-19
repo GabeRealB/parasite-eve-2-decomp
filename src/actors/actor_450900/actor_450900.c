@@ -35,7 +35,7 @@ extern s32 D_actor_450900_80136BD8;
 extern Task* D_actor_450900_80136C9C;
 
 /// This overlay's own spawn table, six `TaskDesc` entries. Index 0 is the exit
-/// handler `Task_Kill`; 1..5 are the overlay's state handlers, and the "next
+/// handler `taskKill`; 1..5 are the overlay's state handlers, and the "next
 /// stage" of each is the next entry: `func_actor_450900_80131E38` spawns 5 on
 /// its way through, and `func_actor_450900_80132834` spawns 4
 /// (`func_actor_450900_8013235C`, the save-data teardown) when the ally has
@@ -135,7 +135,7 @@ void func_actor_450900_8013223C(Task* task)
             kill:
                 Gp_MsgPlayerWeapon(1);
                 D_801153F4 = 0;
-                Task_Kill(task);
+                taskKill(task);
             }
             break;
     }
@@ -155,7 +155,7 @@ void func_actor_450900_8013235C(Task* task)
             break;
         case 2:
             if (Gp_GetCapEventKey() != 0xB) {
-                Task_Kill(task);
+                taskKill(task);
                 Gp_MsgPlayerWeapon(1);
             } else {
                 func_800E8614((s32)&D_actor_450900_80136BD8, 0);
@@ -185,7 +185,7 @@ void func_actor_450900_8013235C(Task* task)
             D_80071076               = 1;
             Task_Spawn(0, 0x11, 0, 0);
             Gp_RestoreStreamRng();
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }
@@ -222,7 +222,7 @@ void func_actor_450900_80132548(Task* task)
         case 0:
             aim = Mem_Calloc(sizeof(Actor450900HeadAim), false);
             if (aim == NULL) {
-                Task_Kill(task);
+                taskKill(task);
                 return;
             }
             task->work      = (TaskIdMap*)aim;
@@ -248,7 +248,7 @@ void func_actor_450900_80132548(Task* task)
             func_800B17D4(slot, Game_GetPtrSlot(0xA), (GpHeadAim*)aim);
             return;
         default:
-            Task_Kill(task);
+            taskKill(task);
             D_actor_450900_80136C9C = NULL;
             return;
     }

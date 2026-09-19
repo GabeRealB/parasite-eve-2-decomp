@@ -1697,7 +1697,7 @@ void Gp_PickupExitTask(Task* arg0)
 {
     arg0->killCountdown--;
     if (arg0->killCountdown <= 0) {
-        Task_Kill(arg0);
+        taskKill(arg0);
         Stage_ReleasePrimBuf();
         Stage_SetEndingFlag();
     }
@@ -2604,7 +2604,7 @@ void func_800CFD78(Task* arg0)
             func_801811A0(arg0);
             break;
         default:
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }
@@ -4576,7 +4576,7 @@ void Gp_MapScreenTask(Task* arg0)
         if (arg0->killCountdown <= 0) {
             GameMain_SetFrameTiming(1);
             gGameSession->uiOpen = 0;
-            Task_Kill(arg0);
+            taskKill(arg0);
             Stage_ReleasePrimBuf();
             Stage_SetEndingFlag();
         }

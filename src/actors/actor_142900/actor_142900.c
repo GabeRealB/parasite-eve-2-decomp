@@ -32,7 +32,7 @@ void func_actor_142900_80131E24(Task* arg0)
     }
     if (D_actor_142900_801382AC == 0) {
         Display_ClampField126(0);
-        Task_Kill(arg0);
+        taskKill(arg0);
     } else {
         Display_ClampField126(var_a0);
     }

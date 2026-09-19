@@ -94,6 +94,6 @@ L_case5:
     if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
         return;
     }
-    Task_Kill(task);
+    taskKill(task);
     Display_ResetHeapWrapper();
 }

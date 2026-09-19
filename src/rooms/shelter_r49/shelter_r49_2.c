@@ -96,7 +96,7 @@ L_case6:
     if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
         return;
     }
-    Task_Kill(task);
+    taskKill(task);
     Display_ResetHeapWrapper();
 }
 
@@ -121,7 +121,7 @@ void func_shelter_r49_8017D8D8(Task* arg0)
             Mc_SaveData.at4.loc.room  = 1;
             D_80071076                = 1;
             Task_Spawn(0, 0x11, 0, 0);
-            Task_Kill(arg0);
+            taskKill(arg0);
             break;
     }
 }

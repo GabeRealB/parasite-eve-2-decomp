@@ -28,7 +28,7 @@ void Room_Script22(Task* task)
             task->state = task->state + 1;
             break;
         case 3:
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }

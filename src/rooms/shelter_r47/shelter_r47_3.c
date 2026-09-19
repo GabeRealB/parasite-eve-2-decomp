@@ -110,7 +110,7 @@ void func_shelter_r47_8018080C(Task* task)
                 GameFlag_SetNibble(0x165, nibble + 1);
             }
         default:
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }
@@ -133,7 +133,7 @@ void func_shelter_r47_801808D4(Task* task)
             Gp_ResetCap();
             Gp_MsgPlayerWeapon(1);
         default:
-            Task_Kill(task);
+            taskKill(task);
             break;
     }
 }
@@ -185,7 +185,7 @@ void func_shelter_r47_80182348(Task* task)
         gGameSession->eventState   = 0;
         gGameSession->hideHud      = 0;
         gGameSession->cutsceneHold = 0;
-        Task_Kill((Task*)task->spawnArg2);
+        taskKill((Task*)task->spawnArg2);
         Task_RequestKill(task, 0);
     }
     level = (u8)state->fade;

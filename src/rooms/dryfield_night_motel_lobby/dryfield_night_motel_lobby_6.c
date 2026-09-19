@@ -21,7 +21,7 @@ void func_dryfield_night_motel_lobby_80180E98(Task* task)
 
     work = Mem_Calloc(0xA, 0);
     if (work == NULL) {
-        Task_Kill(task);
+        taskKill(task);
         return;
     }
     task->spawnArg2 = Task_SpawnFromTable(D_dryfield_night_motel_lobby_80182814, 0, 1, 0);

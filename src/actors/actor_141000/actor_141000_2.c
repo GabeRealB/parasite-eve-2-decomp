@@ -190,7 +190,7 @@ void func_actor_141000_801330C0(Task* arg0)
         }
     }
     if ((gGameSession->viewReady != 0) || (gGameSession->evtSkipped != 0)) {
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 

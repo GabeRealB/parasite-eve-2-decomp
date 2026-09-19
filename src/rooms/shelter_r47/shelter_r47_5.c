@@ -81,7 +81,7 @@ void func_shelter_r47_80185510(Task* task)
     gGameSession->eventState   = 0;
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;
-    Task_Kill((Task*)task->spawnArg2);
+    taskKill((Task*)task->spawnArg2);
     Task_RequestKill(task, 0);
 }
 

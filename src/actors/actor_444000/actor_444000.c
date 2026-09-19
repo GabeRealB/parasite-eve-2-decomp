@@ -203,7 +203,7 @@ void func_actor_444000_80132358(Task* task)
             alloc      = (Actor444000EventWork*)Mem_Calloc(sizeof(Actor444000EventWork), false);
             task->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
-                Task_Kill(task);
+                taskKill(task);
             } else {
                 Mem_Set(alloc, 0, sizeof(Actor444000EventWork));
                 alloc->field_20         = Game_GetPtrSlot(3);
@@ -253,7 +253,7 @@ void func_actor_444000_80132358(Task* task)
                 D_801855DE               = 0;
                 gGameSession->sceneClock = D_8018FBC8;
                 Task_SpawnFromTable(&D_80187150, 0, 1, 0);
-                Task_Kill(task);
+                taskKill(task);
                 return;
             }
             break;
@@ -286,7 +286,7 @@ void func_actor_444000_80132694(void)
     Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
 
     if (work->field_24 != NULL) {
-        Task_Kill(work->field_24);
+        taskKill(work->field_24);
         work->field_24 = NULL;
     }
 }

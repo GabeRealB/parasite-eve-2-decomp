@@ -24,7 +24,7 @@ void func_mist_r21_8017D678(Task* arg0)
         Mc_SaveData.at4.loc.view = 2;
         Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 0);
         Task_Spawn(0, 0x11, 1, 0);
-        Task_Kill(arg0);
+        taskKill(arg0);
     }
 }
 

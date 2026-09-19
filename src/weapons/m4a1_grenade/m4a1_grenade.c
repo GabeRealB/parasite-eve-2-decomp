@@ -190,7 +190,7 @@ void func_m4a1_grenade_8011D654(Task* arg0)
     vec      = blk;
     if (work == NULL) {
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
-        Task_Kill(arg0);
+        taskKill(arg0);
         return;
     }
     arg0->work         = (TaskIdMap*)work;
