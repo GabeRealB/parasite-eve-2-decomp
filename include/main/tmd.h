@@ -256,8 +256,9 @@ u32* Tmd_StreamHandler_Prim30(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Prim3A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Prim38(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
-// Early-image handlers in Tmd_StreamHandlers_Ops.s, named by the stream opcode
-// they serve until the handler's role is settled.
+// Early-image handlers in Tmd_StreamHandlers_Ops.s, one per stream opcode: a
+// handler still named by the opcode it serves is one whose record has not been
+// read, and it takes a role name once the role is settled.
 u32* Tmd_StreamHandler_Op20(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op60(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_OpC0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -319,7 +320,21 @@ u32* Tmd_StreamHandler_Op3B(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op39(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op7B(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op79(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_Op00(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Handler of a stream's untextured gouraud-triangle records (`0x0`): each
+/// element is one `POLY_G3` in the buffer half's second region, built whole here
+/// as the record is transformed.
+///
+/// The element names the triangle's three vertices, the one normal it is lit
+/// from and the colour word whose top byte is the packet's primitive code. The
+/// vertices are projected, and the triangle is dropped where that transform
+/// raises a GTE error or the triangle faces away; what survives has the
+/// element's colour — lit from that normal, which is why the three corners
+/// share it — written to all of them, and the packet linked into the ordering
+/// table at the depth it came out at. A dropped triangle still consumes its
+/// packet's room, because the room was reserved for every element by the
+/// process pass (`gpStreamPrimG3`), whose cursor this one stays in step with.
+/// The record has no variant for `flags` to select, so it goes unread.
+u32* tmdStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op40(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op1A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op18(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -676,7 +691,8 @@ u32* gpStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
 /// draw pass writes the packet whole — colours, screen coordinates and link into
 /// the ordering table — as it transforms the record. What is left here is the
 /// packet's room: stepping the primitive cursor past it is what keeps the records
-/// that follow building where the draw pass will look for them.
+/// that follow building where the draw pass will look for them, and the `0x0`
+/// records are built there by `tmdStreamPrimG3`.
 u32* gpStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 #endif // TMD_H

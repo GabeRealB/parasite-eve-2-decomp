@@ -14,7 +14,8 @@
  * opcode is documented at its declaration in include/main/tmd.h.
  * Early-image placement (linker_section_order: .rodata).
  *
- * Op20/Op60/Op00/Op40  flat / clipped triangle & quad families
+ * Op20/Op60/Op40        flat / clipped triangle & quad families
+ * tmdStreamPrimG3       the 0x0 record, one POLY_G3 built per element
  * Op3A/tmdDrawStreamGt3  gouraud textured triangle (+ ABR)
  * Op78/Op7A             gouraud textured quad (+ ABR)
  * Op39/Op3B, Op79/Op7B  textured gouraud (+ ABR) tri/quad
@@ -865,7 +866,7 @@ glabel Tmd_StreamHandler_Op79
     /* 1E6C 8001166C */  addu        $v0, $zero, $a2
     /* 1E70 80011670 */  jr          $ra
     /* 1E74 80011674 */  nop
-glabel Tmd_StreamHandler_Op00
+glabel tmdStreamPrimG3
     /* 1E78 80011678 */  lw          $t9, 0x18($a0)
     /* 1E7C 8001167C */  lw          $a3, 0x1C($a0)
     /* 1E80 80011680 */  lw          $t8, 0x0($a0)

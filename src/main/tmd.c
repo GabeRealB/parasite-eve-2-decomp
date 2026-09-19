@@ -182,7 +182,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     }
                     break;
                 case 0:
-                    handler = Tmd_StreamHandler_Op00;
+                    handler = tmdStreamPrimG3;
                     break;
                 case 0x40:
                     handler = Tmd_StreamHandler_Op40;
