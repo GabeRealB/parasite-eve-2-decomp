@@ -130198,3 +130198,45 @@ from a narrowing memory read that post-reload CSE folded, the load's dependence
 on the preceding store is what orders the pair; a C-level copy loses that, and
 on a flat scheduling priority plateau the copy is emitted first regardless of
 source order.
+
+## One variable reused for two values in different blocks is allocated by `global-alloc`, and that is usually the wrong register
+
+m2c names a variable once and reuses it for every value that happened to share a
+register, so a single local often carries one value computed across a branch and
+a second, unrelated value read later in the join block. That single pseudo is
+referenced in more than one basic block, so `local_alloc` marks it ineligible
+(`reg_basic_block[i] >= 0 && reg_n_deaths[i] == 1 && …` in `local-alloc.c`) and
+`global_alloc` assigns it — **after** every block-local quantity has already
+claimed a register.
+
+Order matters because locals win: `global_alloc` avoids the hard registers that
+conflicting locals hold, never the reverse. So the reused variable's second
+range cannot take a register some short-lived local in the same block is sitting
+on, and every value that would otherwise have been pushed off that register
+keeps it. The symptom is a *consistent swap*: two or three values trade
+registers pairwise while the instruction sequence is already exact.
+
+Splitting the second role into its own local restores the normal order — it
+becomes a block-local quantity, claims the register in the local pass, and the
+values that were crowding it are pushed out to where the target has them.
+
+```c
+/* m2c: one pseudo, multi-block, allocated last */
+var = cond ? K : 0;
+... product = field * var ...
+var = obj->mirrorSrc;            /* unrelated value, same variable */
+obj->mirrorDst = var;
+
+/* split: the mirror is now a local quantity and takes the register first */
+var = cond ? K : 0;
+... product = field * var ...
+mirror = obj->mirrorSrc;
+obj->mirrorDst = mirror;
+```
+
+Keep the *form* of the second read when splitting. Assigning a narrowing memory
+read to a word-sized local keeps the `zero_extend`/`sign_extend` load; writing
+the field-to-field assignment directly gives a half-word pseudo instead. Both
+emit the same load here, but they differ in scheduling depth and in whether
+post-reload CSE can later fold the load into a register copy, so check the
+object rather than assuming the two are interchangeable.
