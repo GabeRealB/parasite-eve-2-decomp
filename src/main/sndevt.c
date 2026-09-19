@@ -108,23 +108,23 @@ SndEvt* sndEvtAlloc(void)
     return NULL;
 }
 
-void SndEvt_Enqueue(SndEvt* arg0)
+void sndEvtEnqueue(SndEvt* event)
 {
     SndEvt* temp;
 
-    if (arg0 != NULL) {
+    if (event != NULL) {
         _gSndEvtProcessEnabled = 0;
         if (_gSndEvtHead == NULL) {
-            _gSndEvtTail = arg0;
-            _gSndEvtHead = arg0;
-            arg0->prev   = NULL;
+            _gSndEvtTail = event;
+            _gSndEvtHead = event;
+            event->prev  = NULL;
         } else {
             temp         = _gSndEvtTail;
-            _gSndEvtTail = arg0;
-            arg0->prev   = temp;
-            temp->next   = arg0;
+            _gSndEvtTail = event;
+            event->prev  = temp;
+            temp->next   = event;
         }
-        arg0->next             = NULL;
+        event->next            = NULL;
         _gSndEvtProcessEnabled = 1;
     }
 }
@@ -506,7 +506,7 @@ s32 SndEvt_EnqueueType1(s32 arg0, s32 arg1)
     temp->handlerIdx           = 1;
     temp->args.midi.song       = arg0;
     temp->args.midi.fadeFrames = arg1;
-    SndEvt_Enqueue(temp);
+    sndEvtEnqueue(temp);
     return 0;
 }
 
@@ -524,7 +524,7 @@ s32 SndEvt_EnqueueType2(s32 arg0, s32 arg1)
     temp->handlerIdx           = 2;
     temp->args.midi.song       = arg0;
     temp->args.midi.fadeFrames = arg1 & 0xFFFC;
-    SndEvt_Enqueue(temp);
+    sndEvtEnqueue(temp);
     return 0;
 }
 
@@ -541,7 +541,7 @@ s32 SndEvt_EnqueueType3(s32 arg0)
     }
     temp->handlerIdx     = 3;
     temp->args.midi.song = arg0;
-    SndEvt_Enqueue(temp);
+    sndEvtEnqueue(temp);
     return 0;
 }
 
@@ -558,7 +558,7 @@ s32 SndEvt_EnqueueType4(s32 arg0)
     }
     temp->handlerIdx     = 4;
     temp->args.midi.song = arg0;
-    SndEvt_Enqueue(temp);
+    sndEvtEnqueue(temp);
     return 0;
 }
 
@@ -582,7 +582,7 @@ s32 SndEvt_EnqueueType5(s32 arg0, s32 arg1)
     } else {
         args->volumeScale = 0x7F;
     }
-    SndEvt_Enqueue(temp);
+    sndEvtEnqueue(temp);
     D_800820E8 = args->volumeScale;
     return 0;
 }
@@ -750,7 +750,7 @@ void SndEvt_EnqueueType5Pending(void)
         temp->handlerIdx  = 5;
         args->song        = 0;
         args->volumeScale = 0;
-        SndEvt_Enqueue(temp);
+        sndEvtEnqueue(temp);
         D_800820E8 = args->volumeScale;
     }
 }
@@ -774,7 +774,7 @@ void SndEvt_FlushType5Pending(void)
             } else {
                 args->volumeScale = 0x7F;
             }
-            SndEvt_Enqueue(temp);
+            sndEvtEnqueue(temp);
             D_800820E8 = args->volumeScale;
         }
     }

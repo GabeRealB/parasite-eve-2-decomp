@@ -457,7 +457,7 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
             args->level.attenuation = arg2;
             args->bank              = bank;
             args->params            = entry;
-            SndEvt_Enqueue(temp);
+            sndEvtEnqueue(temp);
             goto ret_orig;
         }
         goto ret_neg1;
@@ -479,7 +479,7 @@ void SndEvt_EnqueueType7(s32 arg0, s32 arg1)
         args             = &temp->args.voice;
         args->id         = SndBank_RemapId(arg0);
         args->stopFrames = arg1;
-        SndEvt_Enqueue(temp);
+        sndEvtEnqueue(temp);
     }
 }
 
@@ -494,7 +494,7 @@ void SndEvt_EnqueueType8(s32 arg0)
             temp->handlerIdx = 8;
             args             = &temp->args.voice;
             args->id         = SndBank_RemapId(arg0);
-            SndEvt_Enqueue(temp);
+            sndEvtEnqueue(temp);
         }
     }
 }
@@ -510,7 +510,7 @@ void SndEvt_EnqueueType9(s32 arg0)
             temp->handlerIdx = 9;
             args             = &temp->args.voice;
             args->id         = SndBank_RemapId(arg0);
-            SndEvt_Enqueue(temp);
+            sndEvtEnqueue(temp);
         }
     }
 }
@@ -528,7 +528,7 @@ void SndEvt_EnqueueTypeA(s32 arg0, s32 arg1, s32 arg2)
             args->id                = SndBank_RemapId(arg0);
             args->pan               = arg1;
             args->level.attenuation = arg2;
-            SndEvt_Enqueue(temp);
+            sndEvtEnqueue(temp);
         }
     }
 }
@@ -548,7 +548,7 @@ void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1)
             if ((s8)arg1 < 0) {
                 args->level.loudness = 0x7F;
             }
-            SndEvt_Enqueue(temp);
+            sndEvtEnqueue(temp);
         }
     }
 }
@@ -582,7 +582,7 @@ void SndBank_SetEnableFlags(s32 arg0, s32 arg1)
                     args             = &temp->args.voice;
                     args->id         = SndBank_RemapId(0x40000000);
                     args->stopFrames = 1;
-                    SndEvt_Enqueue(temp);
+                    sndEvtEnqueue(temp);
                 }
             }
         }
@@ -606,7 +606,7 @@ void SndEvt_EnqueueTypeD(void)
     temp = sndEvtAlloc();
     if (temp != NULL) {
         temp->handlerIdx = 0xD;
-        SndEvt_Enqueue(temp);
+        sndEvtEnqueue(temp);
     }
 }
 
@@ -617,7 +617,7 @@ void SndEvt_EnqueueTypeE(void)
     temp = sndEvtAlloc();
     if (temp != NULL) {
         temp->handlerIdx = 0xE;
-        SndEvt_Enqueue(temp);
+        sndEvtEnqueue(temp);
     }
 }
 
@@ -628,7 +628,7 @@ void SndEvt_EnqueueTypeF(void)
     temp = sndEvtAlloc();
     if (temp != NULL) {
         temp->handlerIdx = 0xF;
-        SndEvt_Enqueue(temp);
+        sndEvtEnqueue(temp);
     }
 }
 

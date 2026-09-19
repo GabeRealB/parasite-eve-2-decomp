@@ -180,16 +180,17 @@ STATIC_ASSERT_SIZEOF(SndEvtArgs, 0x10);
 
 /// Deferred sound event: one queued audio command, in a slot of `_gSndEvtPool`.
 ///
-/// `SndEvt_Enqueue*` fills in the arguments and appends the event to the pending
-/// queue; `SndEvt_Process` passes the oldest event to the handler `handlerIdx`
-/// selects and returns the slot to the pool. A freed slot is only marked, never
-/// cleared, so an enqueue writes every argument its handler reads.
+/// An event is filled in and then passed to `sndEvtEnqueue`, which appends it to
+/// the pending queue; `SndEvt_Process` passes the oldest event to the handler
+/// `handlerIdx` selects and returns the slot to the pool. A freed slot is only
+/// marked, never cleared, so filling one in writes every argument its handler
+/// reads.
 typedef struct SndEvt {
     s16            allocated;  // 0 free, 1 in use
     s16            handlerIdx; // Which command the event carries; indexes SndEvt_Handlers
     SndEvtArgs     args;       // Arguments, read according to the command
-    struct SndEvt* prev;       // List links, maintained by SndEvt_Enqueue and SndEvt_Free
-    struct SndEvt* next;
+    struct SndEvt* prev;       // Previous event in the pending queue
+    struct SndEvt* next;       // Next event in the pending queue
 } SndEvt;
 STATIC_ASSERT_SIZEOF(SndEvt, 0x1C);
 
@@ -722,13 +723,18 @@ void           SndEvt_Process(void);
 /// growing it: an enqueuer either reports that failure to its own caller or
 /// drops the command. The slot comes back with its command cleared and no
 /// arguments written, so the caller sets both before queueing it with
-/// `SndEvt_Enqueue`.
-SndEvt*      sndEvtAlloc(void);
-s32          SndEvt_EnqueueType1(s32 arg0, s32 arg1);
-s32          SndEvt_EnqueueType2(s32 arg0, s32 arg1);
-s32          Midi_IsBusy(s32 arg0);
-s32          Midi_IsChannelFree(u8 arg0);
-void         SndEvt_Enqueue(SndEvt* arg0);
+/// `sndEvtEnqueue`.
+SndEvt* sndEvtAlloc(void);
+s32     SndEvt_EnqueueType1(s32 arg0, s32 arg1);
+s32     SndEvt_EnqueueType2(s32 arg0, s32 arg1);
+s32     Midi_IsBusy(s32 arg0);
+s32     Midi_IsChannelFree(u8 arg0);
+/// Appends an already-filled-in event to the pending queue, where a later
+/// processing pass runs the handler its command selects.
+///
+/// The queue takes the event as it stands, so the caller writes the arguments
+/// first; a `NULL` event is ignored.
+void    sndEvtEnqueue(SndEvt* event);
 void         SndEvt_Free(SndEvt* arg0);
 void         SndEvt_HandleInitSequence(SndEvt* arg0);
 void         SndEvt_HandleStartFadeOut(SndEvt* arg0);

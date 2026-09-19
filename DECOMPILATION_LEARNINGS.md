@@ -133471,3 +133471,21 @@ Folding them into one means rebasing the index expressions at each use
 (`aux[id - 0x80]` in place of `slots[id]`), which changes the address
 arithmetic of matched functions and has to be checked against the checksum site
 by site.
+
+## Documenting one prototype re-aligns every declaration under it
+
+`AlignConsecutiveDeclarations` runs with `AcrossComments: false` in the project's
+`.clang-format`, so a `///` block ends an alignment run rather than sitting
+inside one. Adding a doc comment to a single prototype in a header's API list
+therefore re-indents every declaration below it to the column of the shorter run
+that remains, and several dozen unchanged lines appear in the diff. Nothing
+broke, and re-reverting the re-indent only makes the next build redo it: the
+re-aligned block is the file's canonical shape.
+
+The comment stays where it is regardless. A public symbol is documented at its
+declaration, so a documented list keeps the run split; treat the block of
+re-aligned neighbours in a rename's diff as expected, not as damage.
+
+`clang-format --dry-run --style=file <header>` prints nothing once the file
+matches what the build will produce, which is the cheap way to tell a real
+mishap from this one.
