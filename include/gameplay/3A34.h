@@ -721,19 +721,6 @@ typedef struct _GpPerspScratch {
 } GpPerspScratch;
 STATIC_ASSERT_SIZEOF(GpPerspScratch, 0x14);
 
-/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `Gp_GetObjPan` and
-/// `Gp_DrawTargetCursor`. Same RTPS outputs as `GpPerspScratch`, plus the packed
-/// `SXY2` at 0x14 (`sx` / `sy` are the projected screen coords).
-typedef struct _GpPanScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     p;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     otz;
-    /* 0x14 */ s16     sx;
-    /* 0x16 */ s16     sy;
-} GpPanScratch;
-STATIC_ASSERT_SIZEOF(GpPanScratch, 0x18);
-
 /// Nearest room light selected by `func_800D78A4`. `kind` is -1 when no
 /// light is selected, 1 for `GpRoomCoordSet.arr60`, or 2 for `arr6C`.
 /// `light` points to the selected coordinate entry; `field_4` is cleared.

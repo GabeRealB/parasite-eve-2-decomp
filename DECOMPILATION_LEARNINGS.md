@@ -133727,3 +133727,44 @@ the primitive setters (`setUV4`, `setRGB0`) and the texture helpers (`getClut`)
 all carry member accesses that way, so they need hand edits. They are hard
 errors once the old member is gone, which makes the compiler the cheapest way to
 enumerate them - build once before hunting leftovers by eye.
+## A split interrupted partway is cached, and every later build serves the truncated file
+
+The stamp in `linkers/USA/.split/<name>.json` is what says a unit's split is
+current, and nothing re-checks the files that split produced. So a build stopped
+partway through the split phase - Ctrl-C, a killed job, a machine under enough
+load that a write is the first thing to be cut - can leave one of a unit's
+generated `.s` files short or empty while its stamp still reads up to date. Every
+later build then reuses it, because the stamp is the only thing consulted.
+
+The symptom points somewhere else entirely. A truncated assembly file is
+well-formed, so nothing complains where the damage is: the object assembles
+empty, the labels that file was going to define are simply never defined, and
+the build fails much later at the link of an overlay that references them, as
+undefined references in a file no one edited. That overlay shares its code with
+many overlays that link fine, so the shared body it is missing looks like a
+config or symbol-map problem rather than a stale artifact.
+
+The cure is to delete that unit's stamp, and the truncated file with it, so the
+next run re-splits the unit; `--clean` or `ninja_config.py --fresh` do the same
+for the whole tree at the cost of splitting all of it. One room's data blob was
+the only zero-byte file of 168 in the tree with a current stamp; dropping the
+stamp rewrote it at 141990 bytes and the link passed.
+
+## `rename_item.py`'s `via macro` list names the wrong place to edit, and the count excludes those sites
+
+The renamer will not rewrite a reference that arrives through a macro expansion,
+because the position the parser hands back is the invocation's rather than the
+identifier's. It prints those references instead, under a line that says the
+macro body is the place to edit - true only when the name is spelled *in* the
+body. The common shape here spells it in the argument, since the `gte_*` store
+macros take the address of a struct field:
+
+    gte_stdp(&((_GpPanScratch*)(head - 0x18))->dp);
+
+There the invocation is the place, and the edit count printed at the end of the
+run counts none of them: a rename of a type used only this way can report nine
+edits and leave twelve sites still spelling the old name. So a step walks the
+printed list by hand and treats the count as a floor, and the word-boundary sweep
+of `src` and `include` is what proves the rename finished. That sweep does see
+these sites - the argument is ordinary source text, and the tool's refusal is
+about its own rewriting, not about the parser's reach.

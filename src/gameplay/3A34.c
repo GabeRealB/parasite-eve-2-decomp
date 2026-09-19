@@ -46,6 +46,21 @@
         gte_stclmv((char*)(r3) + 4);    \
     }
 
+/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `Gp_GetObjPan`,
+/// `Gp_DebugPanTask` and `Gp_DrawTargetCursor`: one world point projected to
+/// the screen, with the depth the projection returned kept beside the screen
+/// position. `GpPerspScratch` is the shorter block a projection carves when
+/// the screen position is not kept in it.
+typedef struct {
+    SVECTOR vec;  // the point projected, in the space of the matrix the GTE holds
+    s32     dp;   // depth-cue coefficient of the projection (`gte_stdp`)
+    s32     flag; // projection status (`gte_stflg`); a negative value leaves no usable position
+    s32     otz;  // distance of the point (`gte_stszotz`, `SZ3 >> 2`)
+    s16     sx;   // screen X the point landed on (`gte_stsxy`)
+    s16     sy;   // screen Y the point landed on
+} _GpPanScratch;
+STATIC_ASSERT_SIZEOF(_GpPanScratch, 0x18);
+
 void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 extern s32        Gp_LcgState;
@@ -1809,7 +1824,7 @@ void Gp_DebugPanTask(Task* arg0)
     MATRIX*        mtx;
     void**         scratch;
     u8*            head;
-    GpPanScratch*  block;
+    _GpPanScratch* block;
     SVECTOR*       vecp;
     VECTOR         vec;
     TextDrawReq    req;
@@ -1832,7 +1847,7 @@ void Gp_DebugPanTask(Task* arg0)
     if (Pad_RemapState->field_1 == 0x13) {
         scratch             = (void**)G_SCRATCH_HEAD;
         head                = *scratch;
-        block               = (GpPanScratch*)(head - 0x18);
+        block               = (_GpPanScratch*)(head - 0x18);
         *scratch            = block;
         D_80760618->field_1 = 1;
         func_800D7A9C(extra, &vec, 0, 3);
@@ -1841,15 +1856,15 @@ void Gp_DebugPanTask(Task* arg0)
         D_80760618->field_1 = 0;
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_SetTransMatrix(&GsWSMATRIX);
-        ((GpPanScratch*)(head - 0x18))->vec.vx = vec.vx;
-        block->vec.vy                          = vec.vy;
-        block->vec.vz                          = vec.vz;
+        ((_GpPanScratch*)(head - 0x18))->vec.vx = vec.vx;
+        block->vec.vy                           = vec.vy;
+        block->vec.vz                           = vec.vz;
         gte_ldv0(vecp);
         gte_rtps_real();
-        gte_stsxy(&((GpPanScratch*)(head - 0x18))->sx);
-        gte_stdp(&((GpPanScratch*)(head - 0x18))->p);
-        gte_stflg(&((GpPanScratch*)(head - 0x18))->flag);
-        gte_stszotz(&((GpPanScratch*)(head - 0x18))->otz);
+        gte_stsxy(&((_GpPanScratch*)(head - 0x18))->sx);
+        gte_stdp(&((_GpPanScratch*)(head - 0x18))->dp);
+        gte_stflg(&((_GpPanScratch*)(head - 0x18))->flag);
+        gte_stszotz(&((_GpPanScratch*)(head - 0x18))->otz);
         if (block->flag >= 0) {
             req.x          = block->sx;
             req.y          = block->sy;
@@ -2229,15 +2244,15 @@ s32 Gp_GetObjDepth(GsCOORDINATE2* coord)
 
 s32 Gp_GetObjPan(GsCOORDINATE2* coord)
 {
-    void**        scratch;
-    u8*           head;
-    GpPanScratch* block;
-    SVECTOR*      vec;
-    s32           ret;
+    void**         scratch;
+    u8*            head;
+    _GpPanScratch* block;
+    SVECTOR*       vec;
+    s32            ret;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
-    block    = (GpPanScratch*)(head - 0x18);
+    block    = (_GpPanScratch*)(head - 0x18);
     *scratch = block;
     vec      = &block->vec;
     gte_SetRotMatrix(&coord->workm);
@@ -2247,10 +2262,10 @@ s32 Gp_GetObjPan(GsCOORDINATE2* coord)
     block->vec.vx = 0;
     gte_ldv0(vec);
     gte_rtps_real();
-    gte_stsxy(&((GpPanScratch*)(head - 0x18))->sx);
-    gte_stdp(&((GpPanScratch*)(head - 0x18))->p);
-    gte_stflg(&((GpPanScratch*)(head - 0x18))->flag);
-    gte_stszotz(&((GpPanScratch*)(head - 0x18))->otz);
+    gte_stsxy(&((_GpPanScratch*)(head - 0x18))->sx);
+    gte_stdp(&((_GpPanScratch*)(head - 0x18))->dp);
+    gte_stflg(&((_GpPanScratch*)(head - 0x18))->flag);
+    gte_stszotz(&((_GpPanScratch*)(head - 0x18))->otz);
     if (block->flag >= 0) {
         if (block->sx >= 0xA0) {
             block->sx = 0x9F;
@@ -2613,23 +2628,23 @@ void Gp_BindDefaultMtx(Task* arg0)
 
 void Gp_DrawTargetCursor(void)
 {
-    GpLinkXform*  node;
-    GameSession*  sess;
-    u8            stateA;
-    void**        scratch;
-    u8*           head;
-    GpPanScratch* block;
-    POLY_FT4*     prim;
-    DisplayState* ds;
-    register s32  small asm("s4");
-    s32           frame;
-    s32           tu;
-    s32           tv;
-    s32           u0;
-    s32           u1;
-    u32           mask;
-    s32           val;
-    s32           n;
+    GpLinkXform*   node;
+    GameSession*   sess;
+    u8             stateA;
+    void**         scratch;
+    u8*            head;
+    _GpPanScratch* block;
+    POLY_FT4*      prim;
+    DisplayState*  ds;
+    register s32   small asm("s4");
+    s32            frame;
+    s32            tu;
+    s32            tv;
+    s32            u0;
+    s32            u1;
+    u32            mask;
+    s32            val;
+    s32            n;
 
     node = (GpLinkXform*)Gp_LinkList;
     if (Pad_RemapState->field_A != 0) {
@@ -2662,12 +2677,12 @@ void Gp_DrawTargetCursor(void)
             if (((GpLinkNode*)node)->flags & 1) {
                 goto next;
             }
-            head                                   = *scratch;
-            ((GpPanScratch*)(head - 0x18))->vec.vx = *(u16*)&node->src.vx;
+            head                                    = *scratch;
+            ((_GpPanScratch*)(head - 0x18))->vec.vx = *(u16*)&node->src.vx;
             {
                 register u8* tmp asm("v0");
                 tmp   = head - 0x18;
-                block = (GpPanScratch*)tmp;
+                block = (_GpPanScratch*)tmp;
             }
             block->vec.vy = *(u16*)&node->src.vy;
             block->vec.vz = *(u16*)&node->src.vz;
@@ -2678,10 +2693,10 @@ void Gp_DrawTargetCursor(void)
             gte_SetTransMatrix(&node->coord->workm);
             gte_ldv0(&block->vec);
             gte_rtps_real();
-            gte_stsxy(&((GpPanScratch*)(head - 0x18))->sx);
-            gte_stdp(&((GpPanScratch*)(head - 0x18))->p);
-            gte_stflg(&((GpPanScratch*)(head - 0x18))->flag);
-            gte_stszotz(&((GpPanScratch*)(head - 0x18))->otz);
+            gte_stsxy(&((_GpPanScratch*)(head - 0x18))->sx);
+            gte_stdp(&((_GpPanScratch*)(head - 0x18))->dp);
+            gte_stflg(&((_GpPanScratch*)(head - 0x18))->flag);
+            gte_stszotz(&((_GpPanScratch*)(head - 0x18))->otz);
             if (D_80115260 != node) {
                 if (D_80115260 == NULL) {
                     D_80115264 = 0xFF;
