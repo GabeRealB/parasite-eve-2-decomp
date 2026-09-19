@@ -132287,3 +132287,36 @@ does not cover this case. Compare instruction *words* (`mips-linux-gnu-objdump
 -d` on both objects, ignoring the immediates that the target has resolved) or
 build the linked overlay and byte-compare it before concluding that a residual
 penalty is codegen.
+
+## Pointer-plus-offset operand order follows front-end rewriting, not the source (func_actor_403100_8013480C, 2026-09-20)
+
+A `(u8*)base + offset` address whose RTL prints as `addu dst,base,offset` in the
+seed prints as `addu dst,offset,base` in the target. Three separate rules decide
+this, and only the last is source-controlled:
+
+* `pointer_int_sum()` always builds `PLUS_EXPR(ptrop, intop)`, so writing
+  `offset + (u8*)base` in C does not change the tree: the pointer stays first.
+* `expand_binop()` swaps the operands of a commutative op when the second is a
+  REG and the first is not. A symbol address (`&SYM`, a `high`/`lo_sum`
+  sequence) is not a REG, so `(u8*)&SYM + offset` already emits `(offset, base)`
+  while `(u8*)var + offset` does not.
+* To move a variable base behind the offset, make the addition an **integer**
+  one with the offset on the left: `(Actor403100Entry*)(offset + (u32)var)`.
+  Integer operand order survives to the RTL, and because the variable is still
+  read it keeps its hoisted register, which the symbol form does not (that form
+  lets it die and rematerialises the address per site).
+
+`fold()` then moves any constant to the offset side: its `associate:` case
+rewrites `A + (B + c)` as `(A + c) + B` and `(B + c) + A` as `B + (A + c)`
+(fold-const.c, the `split_tree (arg1, ...)` branch). So a site needing the
+constant on the *base* — target `addiu a0,s7,0x20; addu a0,s2,a0` — is not
+reachable from a single C expression, and neither is the address-of spelling
+`&base[1] + offset`: `&base[1]` folds to a `PLUS_EXPR` before the outer add is
+built, and the same reassociation applies.
+
+Evidence: scratch `nonmatchings/func_actor_403100_8013480C-vacuum`, base_1
+(symbol bases, correct order, 95.757% — the address is rematerialised per site),
+base_2 (integer adds, 97.804 → 98.635 with the recursion above), base_3
+(`&objects[1] + offset` for the one remaining site, same shape as base_2).
+`.lreg` insns 362/475/561 and the `.rtl` dump of insn 500 show the two orders;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
