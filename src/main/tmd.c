@@ -45,7 +45,6 @@ u32* func_8009E274(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009E4A0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009E770(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009EAA4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009EF64(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009EFFC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009F0A0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009F144(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -425,7 +424,7 @@ void Tmd_ProcessStream(TmdObject* obj)
                 handler = gpStreamPrimGt3ElemColor;
                 break;
             case 0x130:
-                handler = func_8009EF64;
+                handler = gpStreamPrimGt3VtxColor;
                 break;
             case 0x70:
                 handler = func_8009EFFC;

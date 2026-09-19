@@ -320,6 +320,20 @@ u32* gpStreamPrimGt3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// the model's texture page and CLUT to the primitive's own, which are stored
 /// relative to the model.
 u32* gpStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Handler of a stream's textured-triangle records whose elements carry one
+/// colour word per vertex (`0x130`): each element contributes one triangle to
+/// the buffer half's second region, with the element's texture words written
+/// into it.
+///
+/// The record is not pre-transformed, so its triangle is built in the region the
+/// draw pass transforms; this command writes only the polygon's `u`/`v` fields,
+/// and adds the model's texture page and CLUT to the primitive's own, which are
+/// stored relative to the model.
+///
+/// The colour words are the draw pass's: it lights each vertex from the colour
+/// the element carries for that vertex, and this command only steps over them to
+/// reach the texture words that follow.
+u32* gpStreamPrimGt3VtxColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's textured-quad records (`0x78`, `0x7A`, `0x8078`,
 /// `0x10078`, `0x20078`): each element contributes one quad to the buffer half's
