@@ -636,9 +636,9 @@ Layout, from `Gp_AnimInitCtx` / `Gp_AnimResetSlot` / `Gp_AnimResetSlotEx` in
 table entry ─→ GpAnimSet*[]        slot 0 unused; NULL entries are holes
 
 GpAnimSet (types in include/gameplay/1BC.h):
-  0x00  GpAnimRec*     field_0   base of the 4-byte clip records
-  0x04  u16*           field_4   clip index table (values are record indices)
-  0x08  void*          field_8[] pose banks, indexed by a record's flags & 0xF
+  0x00  GpAnimRec*     recs        base of the 4-byte clip records
+  0x04  u16*           trackStart  clip index table (values are record indices)
+  0x08  GpPackedSvec*  poseBanks[8] pose banks, indexed by a record's flags & 0xF
 
 GpAnimRec (4 bytes):
   0x00  u16 pose       word offset into the pose bank; on a control entry,

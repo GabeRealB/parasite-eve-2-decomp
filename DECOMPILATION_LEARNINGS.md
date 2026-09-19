@@ -131113,3 +131113,31 @@ the same pair says 11 bits at the bottom of the word.
 The write side corroborates the split: one `lw`, then `and 0xFFFFF800` / `srl 3`
 / `andi 0x7FF` per field, and a single `sw`, which is one word carrying one field
 set rather than three halfwords.
+
+## A descriptor whose size no code pins is sized by the asset data packed around it
+
+A type reached only through a `T*` has no size in the match: the field listing
+gives the offset of every access, so the declaration ends at the last field the
+code reads and nothing says where the object does. For a descriptor that lives
+inside an extracted package, the package is the second witness. Its data is
+packed descriptor and content together, so the distance from the descriptor to
+the next structure in that package *is* its size — and a declaration that stops
+one field short leaves that distance at 4 or 0xC instead of the real stride.
+
+Measure it over every instance of the kind, never one. A correct size repeats as
+a single value across nearly all of them; the outliers are the places where
+something unrelated (a mesh stream, a texture) sits between the two structures,
+and those gaps are larger by an unknown amount, never smaller. A wrong size does
+not repeat — a descriptor declared three words long when it is ten is followed by
+the *same* next structure at a 4-byte gap, every time. `tools/peassets/pkg_anim.py`
+already hands over the addresses (`s.va`, `s.records_va`, `s.index_va`,
+`s.pose_banks`), so the measurement is sorting them and taking the gap after each
+descriptor address.
+
+`GpAnimSet` is the worked example. Two pointers followed by eight pose-bank
+pointers is 0x28; the offsets to the next structure were 0x28 for 43 of 44 sets
+in `m93r`, 34–36 of 44 in the other three weapons, and 18 of 34 / 9 of 34 in the
+two actors that carry an animation block — the rest larger. That turns the
+placeholder `GpPackedSvec* poseBanks[1]`, which compiled because nothing checks
+an index against the declared length at runtime, into `poseBanks[8]` under a
+`STATIC_ASSERT_SIZEOF(GpAnimSet, 0x28)` that the build now enforces.

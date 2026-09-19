@@ -13,13 +13,13 @@ the right block per package on its own.
 
 Layout, from ``Gp_AnimInitCtx`` / ``Gp_AnimResetSlot`` in ``src/gameplay/1BC.c``:
 
-    table entry          -> GpAnimSet*[]  (slot 0 unused)
-    GpAnimSet.field_0    -> GpAnimRec[]   4-byte records; a clip ends at the
-                            first record with flags >= 0xC0
-    GpAnimSet.field_4    -> u16[]         clip index table, values are record
-                            indices
-    GpAnimSet.field_8[n] -> pose bank, selected by a record's ``flags & 0xF``
-                            (1 = GpPackedPose, 4 = GpPackedSvec)
+    table entry            -> GpAnimSet*[]  (slot 0 unused)
+    GpAnimSet.recs         -> GpAnimRec[]   4-byte records; a clip ends at the
+                              first record with flags >= 0xC0
+    GpAnimSet.trackStart   -> u16[]         clip index table, values are record
+                              indices
+    GpAnimSet.poseBanks[n] -> pose bank, selected by a record's ``flags & 0xF``
+                              (1 = GpPackedPose, 4 = GpPackedSvec)
 
 This writes structure, not poses: how many clips a weapon or actor has, how
 long each is, and which pose format it uses. Decoding the banks themselves

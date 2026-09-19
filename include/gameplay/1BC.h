@@ -190,7 +190,7 @@ typedef struct _GpAnimMtxRec {
 } GpAnimMtxRec;
 STATIC_ASSERT_SIZEOF(GpAnimMtxRec, 0x50);
 
-/// One entry of an animation set's 4-byte record array (`GpAnimSet::field_0`),
+/// One entry of an animation set's 4-byte record array (`GpAnimSet.recs`),
 /// walked by the slot code to find the pose a clip is showing. A keyframe entry
 /// names that pose, how many frames it is held, and how the pose is encoded;
 /// the two cue bits in `flags` mark keyframes a frame handler wants to know
@@ -226,17 +226,19 @@ typedef struct _GpPickupWork {
 } GpPickupWork;
 STATIC_ASSERT_SIZEOF(GpPickupWork, 6);
 
-/// Object behind each pointer in `GpAnimSlot::field_20` (same table as
-/// `GpAnimCtx::field_0`). `field_0` is the base of 4-byte records.
-/// `field_4` is a u16 table indexed by `GpAnimSlot::field_15`.
-/// `field_8` is a table of pose banks indexed by `GpAnimSlot::field_B`
-/// (`func_800B3448`); each bank is addressed with a 4-byte stride, so it is
-/// `GpPackedSvec*` for `field_B == 4` and `GpPackedPose*` for `field_B == 1`.
-typedef struct _GpAnimSet {
-    /* 0x00 */ GpAnimRec*    field_0;
-    /* 0x04 */ u16*          field_4;
-    /* 0x08 */ GpPackedSvec* field_8[1];
+/// One animation of a model: the clip data behind a single pointer of the table
+/// at `GpAnimSlot::field_20` (the same table as `GpAnimCtx::field_0`), indexed
+/// by animation id.
+///
+/// An animation carries one track per model part, each a run of `recs`
+/// keyframes that begins at the record `trackStart` names, plus one pose bank
+/// per pose encoding, which those records index into by 4-byte word.
+typedef struct {
+    GpAnimRec*    recs;         // keyframe records of every track, one run per model part
+    u16*          trackStart;   // record index each track begins at, indexed by `GpAnimSlot::field_15`
+    GpPackedSvec* poseBanks[8]; // pose bank per pose encoding, indexed by `GpAnimRec.flags & 0xF` (1 `GpPackedPose`, 4 `GpPackedSvec`)
 } GpAnimSet;
+STATIC_ASSERT_SIZEOF(GpAnimSet, 0x28);
 
 /// 0x18-byte scratch `func_800B3448` allocates from `G_SCRATCH_HEAD` before
 /// dispatching to `Gp_AnimBlendPose` / `Gp_AnimBlendPacked`; only `src` is
