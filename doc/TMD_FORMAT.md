@@ -273,6 +273,14 @@ semi-transparent layer that the transform handler links into the ordering table
 after it. Verified on all four pairs (`0x38`, `0x78`, `0x39`, `0x79`):
 primitives per element goes 1 → 2 with the UV word positions unchanged.
 
+The layer is never textured from the element. Each pair has a second handler,
+taken where the object carries extra page and CLUT offsets of its own, which is
+what the layer takes its page and CLUT from (`gpStreamPrimGt3OffsetLayer` is the
+transform-region triangle one). The default handlers differ by region: the
+transform-region ones fill the base alone and leave the layer to the transform
+pass, while the pre-transformed ones write a fixed page and CLUT into it
+(`gpStreamPrimGt3PreXformFixedLayer`).
+
 **`0x8000` / `0x10000` / `0x20000` — the model brings its own transform
 routine.** These resolve to init handlers at `0x8013xxxx`, which is inside the
 **actor package overlay**, not main or gameplay:

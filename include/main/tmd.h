@@ -516,4 +516,16 @@ u32* gpStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream
 /// the walk takes a sibling handler instead.
 u32* gpStreamPrimGt4Base(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+/// Handler of a stream's layered textured-triangle records (`0x4039`): each element
+/// contributes two triangles to the buffer half's first region — the base the model
+/// is drawn from, and the semi-transparent layer drawn over it.
+///
+/// The record is pre-transformed, so its triangles are already in screen space and
+/// there is no transform or cull for this command to do. `0x4000` asks for two
+/// primitives per element: the element's texture words go into the base, with the
+/// model's texture page and CLUT added to the primitive's own, and the layer's page
+/// and CLUT are written here as fixed values rather than from the object's extra
+/// page and CLUT offsets.
+u32* gpStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 #endif // TMD_H
