@@ -133223,3 +133223,16 @@ resolve to its declaration.
 Test before writing a role off: grep the headers for a member at the same offset
 in a type the object is cast to, and read that type's users instead. The view's
 own member is the field's other name.
+## A data symbol whose storage is an assembly segment's cannot also be declared `static`
+
+The private treatment for a data symbol is a declaration in the `.c` that uses
+it, marked `_`, and made `static` where the build still matches. For a global
+whose bytes come from a generated data/bss segment rather than from C - the
+usual case until something moves it into `src/` - that last step is unavailable.
+`static` is a definition: it allocates a second object in that unit's own
+`.bss` and leaves the segment's copy where it was. Neither the compiler nor the
+linker objects, because a file-local symbol cannot collide with the segment's
+global one; the unit simply starts reading the new address, and the only symptom
+is a checksum mismatch on code whose C did not change. Declare such a symbol
+`extern` in the `.c`, keep the `_` marker, and say that `static` was not
+available rather than dropping the marker to make the declaration look natural.

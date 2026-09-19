@@ -4,6 +4,12 @@
 #include "main/cdaudio.h"
 #include "main/fs.h"
 
+/// Whether the sound-event queue may be processed (0 suspended, 1 runnable).
+///
+/// Cleared only while a node is being linked into the list, so a processing
+/// pass cannot walk a half-linked list; a reset leaves the queue processable.
+extern s32 _gSndEvtProcessEnabled;
+
 void SndEvt_Process(void)
 {
     SndEvt* next;
@@ -11,7 +17,7 @@ void SndEvt_Process(void)
     u32     i;
     s32*    ptr;
 
-    if (SndEvt_Lock == 0) {
+    if (_gSndEvtProcessEnabled == 0) {
         return;
     }
     if (SndEvt_Head == NULL) {
@@ -28,9 +34,9 @@ void SndEvt_Process(void)
                 i++;
                 ptr++;
             } while (i < 0x1C0U);
-            SndEvt_Head = NULL;
-            SndEvt_Tail = NULL;
-            SndEvt_Lock = 1;
+            SndEvt_Head            = NULL;
+            SndEvt_Tail            = NULL;
+            _gSndEvtProcessEnabled = 1;
             return;
         }
         SndEvt_Handlers[cur->handlerIdx](cur);
@@ -58,9 +64,9 @@ void SndEvt_Reset(void)
         i++;
         ptr++;
     } while (i < 0x1C0U);
-    SndEvt_Head = NULL;
-    SndEvt_Tail = NULL;
-    SndEvt_Lock = 1;
+    SndEvt_Head            = NULL;
+    SndEvt_Tail            = NULL;
+    _gSndEvtProcessEnabled = 1;
 }
 
 SndEvt* SndEvt_Alloc(void)
@@ -86,7 +92,7 @@ void SndEvt_Enqueue(SndEvt* arg0)
     SndEvt* temp;
 
     if (arg0 != NULL) {
-        SndEvt_Lock = 0;
+        _gSndEvtProcessEnabled = 0;
         if (SndEvt_Head == NULL) {
             SndEvt_Tail = arg0;
             SndEvt_Head = arg0;
@@ -97,8 +103,8 @@ void SndEvt_Enqueue(SndEvt* arg0)
             arg0->prev  = temp;
             temp->next  = arg0;
         }
-        arg0->next  = NULL;
-        SndEvt_Lock = 1;
+        arg0->next             = NULL;
+        _gSndEvtProcessEnabled = 1;
     }
 }
 

@@ -810,7 +810,6 @@ extern u32              Spu_KeyOnMask;
 extern u32              Spu_KeyOnMaskExtra;
 extern u32              Spu_KeyOffMask;
 extern SpuReverbConfig  Spu_ReverbCfg;
-extern s32              SndEvt_Lock;
 extern SndEvt*          SndEvt_Head;
 extern SndEvt*          SndEvt_Tail;
 extern SndEvt           SndEvt_Pool[0x40];
