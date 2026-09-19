@@ -161,13 +161,13 @@ void Tmd_InitSourceStream(TmdSource* src)
                 case 0x71:
                 case 0x79:
                 case 0x171:
-                    handler = Tmd_StreamHandler_Op79;
+                    handler = tmdDrawStreamPrimGt4PreXform;
                     break;
                 case 0x8079:
                     handler = D_80136C00;
                     break;
                 case 0x7B:
-                    handler = tmdDrawStreamGt4PreXformSemiTrans;
+                    handler = tmdDrawStreamPrimGt4PreXformSemiTrans;
                     break;
                 case 0x4039:
                     handler = func_80099D40;

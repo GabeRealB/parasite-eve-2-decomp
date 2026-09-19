@@ -9,10 +9,10 @@
  * Permanent handwritten assembly (splat type: hasm).
  * One body per stream opcode: Tmd_InitSourceStream resolves the body into the
  * stream beside the opcode, and Tmd_DispatchStream jalr's it. Each body is
- * labelled by the opcode it is keyed by (OpXX) or for the command it serves where
- * that has been read (documented in include/main/tmd.h). Dual-entry alternates
- * use alabel (e.g. alabel tmdDrawStreamPrimGt3OneNormalSemiTrans shares the body
- * of glabel tmdDrawStreamPrimGt3OneNormal).
+ * labelled for the command it serves (documented in include/main/tmd.h).
+ * Dual-entry alternates use alabel (e.g.
+ * alabel tmdDrawStreamPrimGt3OneNormalSemiTrans shares the body of glabel
+ * tmdDrawStreamPrimGt3OneNormal).
  * Early-image placement (linker_section_order: .rodata).
  *
  * tmdDrawStreamPrimG3CornerNormals  untextured triangle, one normal per corner
@@ -22,7 +22,7 @@
  * tmdDrawStreamGt3SemiTrans/tmdDrawStreamGt3  gouraud textured triangle (+ ABR)
  * tmdDrawStreamGt4SemiTrans/tmdDrawStreamGt4  gouraud textured quad (+ ABR)
  * tmdDrawStreamPrimGt3PreXform/tmdDrawStreamPrimGt3PreXformSemiTrans,
- * tmdDrawStreamGt4PreXformSemiTrans/Op79
+ * tmdDrawStreamPrimGt4PreXform/tmdDrawStreamPrimGt4PreXformSemiTrans
  *                        pre-transformed textured gouraud (+ ABR) tri/quad
  * tmdDrawStreamPrimGt3OneNormal/SemiTrans (0x18/0x1A)  one-normal textured tri, fixed colour
  * tmdDrawStreamPrimGt4OneNormal/SemiTrans (0x58/0x5A)  one-normal textured quad, fixed colour
@@ -768,7 +768,7 @@ glabel tmdDrawStreamPrimGt3PreXform
     /* 1CF0 800114F0 */  addu        $v0, $zero, $a2
     /* 1CF4 800114F4 */  jr          $ra
     /* 1CF8 800114F8 */  nop
-alabel tmdDrawStreamGt4PreXformSemiTrans
+alabel tmdDrawStreamPrimGt4PreXformSemiTrans
     /* 1CFC 800114FC */  lw          $t9, 0x18($a0)
   .L80011500:
     /* 1D00 80011500 */  lw          $a3, 0x1C($a0)
@@ -783,9 +783,9 @@ alabel tmdDrawStreamGt4PreXformSemiTrans
     /* 1D24 80011524 */  lw          $a1, 0x84($a0)
     /* 1D28 80011528 */  j           .L80011578
     /* 1D2C 8001152C */  nop
-glabel Tmd_StreamHandler_Op79
+glabel tmdDrawStreamPrimGt4PreXform
     /* 1D30 80011530 */  andi        $t0, $a1, 0x2
-    /* 1D34 80011534 */  bnez        $t0, tmdDrawStreamGt4PreXformSemiTrans
+    /* 1D34 80011534 */  bnez        $t0, tmdDrawStreamPrimGt4PreXformSemiTrans
     /* 1D38 80011538 */  nop
     /* 1D3C 8001153C */  lw          $t9, 0x18($a0)
     /* 1D40 80011540 */  lw          $a3, 0x1C($a0)

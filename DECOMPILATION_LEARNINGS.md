@@ -131312,7 +131312,7 @@ hand, for the same reason as above - no tool sees an assembly label, and
 rename inside such a unit therefore costs one line of assembly and one
 declaration, and needs no re-split to be safe, because the region's output path
 never moved. `Tmd_StreamHandlers_Ops.s` is that shape - twenty stream handlers
-in one region - and `tmdDrawStreamPrimGt3CornerColors` (`Op130`) was converted
+in one region - and `tmdDrawStreamPrimGt3CornerColors` was converted
 in exactly that way.
 Where the unit holds several symbols, none of that applies, and reaching for
 `git mv` would take the whole file away from the handlers that keep their names.
@@ -131374,8 +131374,8 @@ words of a `POLY_GT3`).
 
 The arms do not line up one for one, so read the one that selects the body being
 named rather than the twin's own label list. A draw handler can branch on its
-`flags` argument instead of on the opcode (`Tmd_StreamHandler_Op79` jumps into
-`tmdDrawStreamGt4PreXformSemiTrans` when `flags & 2`, which is the semi-transparent
+`flags` argument instead of on the opcode (`tmdDrawStreamPrimGt4PreXform` jumps into
+`tmdDrawStreamPrimGt4PreXformSemiTrans` when `flags & 2`, which is the semi-transparent
 variant), and the process path may merge into one arm what the draw path splits.
 
 The two arms write one packet between them, rather than one writing it and the
@@ -132508,12 +132508,6 @@ the bit is in `doc/TMD_FORMAT.md` §3.2.1.
 **The handler file's labels do not delimit the bodies.** The opcode entries are
 packed contiguously and several share one body with a stub apiece at the front:
 `alabel tmdDrawStreamPrimGt4OneNormal` loads a colour constant and then jumps
-*forward* into `Op5A`'s body. Reading from one label to the next therefore
-attributes the following opcode family's instructions to the one being read —
-and those instructions can look like the answer, since a neighbouring family's
-colour load is exactly what is being looked for. Read each body to its `jr $ra`
-exits instead, and check that a candidate load falls inside the block the
-opcode's own refs end at before recording it.
 *forward* into `tmdDrawStreamPrimGt4OneNormalSemiTrans`'s body. Reading from one
 label to the next therefore attributes the following opcode family's
 instructions to the one being read — and those instructions can look like the
@@ -132699,15 +132693,17 @@ file, and relocating it would mean carving the subsegment in the config and
 inventing a translation unit the original did not have.
 ## A hasm handler is also cited by its opcode, which neither the tool nor `-w` sees
 
-The early-image handlers are named after the stream opcode that resolves to them
-(`Tmd_StreamHandler_Op<hex>`), and the symbol map, the notes and the handler's
-own file cite them that way too - `Op20`, "the ABR entry into `Op39`",
-`Op39/Op3B`. Renaming one leaves every abbreviated mention in place:
-`rename_item.py` does not read assembly, so the label and the file's comments are
-hand work, and the step's completeness sweep is a word-boundary match for the
-full name, which an abbreviation is not.
+The early-image handlers were named after the stream opcode that resolves to them
+(`Tmd_StreamHandler_Op<hex>`, a form the `Tmd_StreamHandler_Prim<hex>` handlers
+still carry and the pass replaces one at a time), and the symbol map, the notes
+and the handler's own file cite them that way too - a bare opcode, a note naming
+the sibling an alabel enters, a pair of them written together. Renaming one
+leaves every abbreviated mention in place: `rename_item.py` does not read
+assembly, so the label and the file's comments are hand work, and the step's
+completeness sweep is a word-boundary match for the full name, which an
+abbreviation is not.
 
-    grep -rnw 'Op39' . --exclude-dir=.git --exclude-dir=build --exclude-dir=asm \
+    grep -rnw '<abbrev>' . --exclude-dir=.git --exclude-dir=build --exclude-dir=asm \
         --exclude-dir=linkers --exclude-dir=assets --exclude-dir=rom --exclude-dir=venv
 
 Read each hit before rewriting it: one that names the *symbol* takes the new
@@ -132715,9 +132711,10 @@ name, while one that names the *opcode* as such - a column of the opcode table
 in the format doc, the summary of a whole family - stays as it is.
 
 The symbol map is where these hide, because its per-line notes name a sibling:
-renaming a glabel leaves the alabel's note ("ABR entry into `Op39`") pointing at
-a name that is no longer in the file. Those entries are aligned in columns, so a
-rewritten line has to be re-aligned by hand or the table stops being readable.
+renaming a glabel leaves the alabel's note - a line naming the sibling it enters -
+pointing at a name that is no longer in the file. Those entries are aligned in
+columns, so a rewritten line has to be re-aligned by hand or the table stops being
+readable.
 ## A guard whose constant is wider than the field it tests cannot fire
 
 An arm of a handler is evidence of a rule only where the arm is reachable, and
@@ -132737,9 +132734,10 @@ normal array with its low three bits used as flags, so `0xFFF` is not one
 ## A draw-path stream handler is named from its process-path twin
 
 Every model stream opcode selects two handlers: the draw path's, a `glabel` in
-`src/main/hasm/Tmd_StreamHandlers_Ops.s` named `OpXX` for its opcode, and the
-process path's, a C body named for the packet it lays out. They answer the same
-record, so the second name is what the first should read as: `0x0`'s process arm
+`src/main/hasm/Tmd_StreamHandlers_Ops.s` (named `OpXX` for its opcode until the
+pass reaches it), and the process path's, a C body named for the packet it lays
+out. They answer the same record, so the second name is what the first should
+read as: `0x0`'s process arm
 (`gpStreamPrimG3`) reserves one `POLY_G3` per element, and the `0x0` draw handler
 builds that same packet whole - transform, lighting, cull, ordering-table link -
 so it is that packet's draw side, `tmdDrawStreamPrimG3` beside it.
@@ -132824,7 +132822,7 @@ account for the two, and write the cull against `flags` rather than a constant.
 The early-image draw handlers lay their element walk out twice and choose between
 the two copies with a bit of the `flags` argument. `tmdDrawStreamGt3` does it on
 `flags & 0x10`, and the same shape repeats in the pre-transformed triangle and
-quad families (`tmdDrawStreamPrimGt3PreXform`, `Tmd_StreamHandler_Op79`), so it is the
+quad families (`tmdDrawStreamPrimGt3PreXform`, `tmdDrawStreamPrimGt4PreXform`), so it is the
 family's, not one handler's. The copies are the same instructions except for the
 branch that follows the facing result: one skips the element when `MAC0 <= 0`,
 the other when `MAC0 >= 0`. The bit therefore picks which winding the walk keeps,
@@ -132967,3 +132965,19 @@ Read a guard's constant against the register's live range at that point, not
 against the field it is compared with. A register the loop reloads every
 iteration - and a delay slot is where the reload hides - makes a wide constant a
 sentinel, and the arm it opens the common case rather than the unreachable one.
+## One record family can end a parallel round spelled two ways
+
+A naming pass that runs its steps in parallel has each worker author against the
+state it started from, so a name one worker corrects is invisible to another
+naming the same structure from the other side of it. Two entries sharing a body,
+or one family's triangle and quad forms, then land with names differing by a token
+that neither record's semantics justifies - and the difference reads as a finding
+about the records when it is only the round's shape.
+
+Resolve by the family's own line rather than by whichever name landed last: the
+spelling the rest of the family already carries wins, and so does a name a second
+rename produced, since a step renaming its own symbol twice is usually correcting
+what it first got wrong. The process-pass family is a second reading when the two
+disagree, because both passes name the same record from the same words. Move the
+odd name in the same step that finds it: leaving the two for a later reconcile
+round costs a step, and leaves the pair reading as two things until it is run.

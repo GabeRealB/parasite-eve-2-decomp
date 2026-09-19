@@ -18,7 +18,7 @@ That is the first normal module `.rodata`; PsyQ `.rdata` follows.
 | `Tmd_StreamHandler_Prim3A.s` | `Prim3A` + alabel `Prim38` | `0x800106F0` / `0x80010718` | GTE prim stream (codes 0x3A / 0x38) |
 | `Tmd_SetupGteMatrices.s` | `Tmd_SetupGteMatrices` | `0x80010848` | TMD draw: GTE light matrices + transforms |
 | `Tmd_DispatchStream.s` | `Tmd_DispatchStream` | `0x80010A20` | Stream walk + `jalr` handlers (callee of Setup) |
-| `Tmd_StreamHandlers_Ops.s` | 20 handlers, one per record family | `0x80010A90`–`0x80012750` | TMD draw: completes and links each record's packet, named for the command it serves where that has been read |
+| `Tmd_StreamHandlers_Ops.s` | 20 handlers, one per record family | `0x80010A90`–`0x80012750` | TMD draw: completes and links each record's packet, each named for the command it serves |
 
 ## `Fs_DecompressChunk` (jtbl + code in one file)
 
