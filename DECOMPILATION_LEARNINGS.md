@@ -131158,3 +131158,25 @@ absence of one is not evidence that it is right: at a use that narrows the value
 the declaration does not decide the load form. Where the full-width value *is*
 consumed — compared against `-1`, divided, shifted into the sign bit — the load
 form is observable and the cast is what selects it.
+
+## A renamed hasm symbol renames its file too, or splat writes a disassembly over it
+
+A handwritten unit under `src/main/hasm/` is named by the symbol it defines: with
+`hasm_in_src_path: True`, splat resolves `{ type: hasm, name: hasm/<Symbol> }` to
+`src/main/hasm/<Symbol>.s`. The config's `name:` is therefore a path, and
+`rename_item.py --sidecars` rewrites it as one - the tool sees no assembly file
+labels at all, so the symbol moves in the config while the `.s` keeps the old
+spelling and the two disagree.
+
+The disagreement is silent. `CommonSegHasm.split` writes a disassembly of the
+segment to its output path whenever that path does not exist, so the next split
+finds nothing at the new name, creates it, and leaves the handwritten source
+orphaned beside it. The region holds the same bytes in either form, so the
+checksum does not move and nothing in the build reports the swap; what is lost is
+the curated file - its comments, its role note, its provenance as handwriting
+rather than a dump.
+
+So rename a hasm symbol with `git mv` on the `.s` and edit its `glabel` /
+`endlabel` by hand, then re-split: the config is only half the rename, and no
+tool completes the other half. The `Tmd_StreamHandler_*` handlers are the worked
+example, `tmdSkipStreamRecord` the first one converted.

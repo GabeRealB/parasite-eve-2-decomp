@@ -213,10 +213,19 @@ void Tmd_AllocNodeBuffers(struct Task* task);
 /// Total bytes the attached models hold in their buffers.
 s32 Tmd_SumBufferBytes(void);
 
-// Early-image handlers (src/main/hasm/Tmd_StreamHandler_*.s).
+// Early-image handlers (src/main/hasm/).
 // Same ABI for model and draw scratch (shared offsets 0x18/0x1C/…); declared
-// as model-side type for ProcessStream. Draw path is jalr from hasm only.
-u32* Tmd_StreamHandler_Default(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+// as model-side type for Tmd_ProcessStream. Draw path is jalr from hasm only.
+
+/// Handler of a stream record nothing is built from: it steps over the record's
+/// elements and returns the cursor that follows them.
+///
+/// A record is walked past even when nothing is made from it, because the walk
+/// reads its next opcode where this handler leaves the cursor. A record whose
+/// opcode names no handler of its own is left with this one, which is how both
+/// passes over a model's stream step over what they do not build. The record
+/// has no variant for `flags` to select, so it goes unread.
+u32* tmdSkipStreamRecord(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Prim32(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Prim30(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Prim3A(TmdScratchModelBlock* ws, s32 flags, u32* stream);

@@ -284,7 +284,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     handler = func_8009D900;
                     break;
                 default:
-                    handler = Tmd_StreamHandler_Default;
+                    handler = tmdSkipStreamRecord;
                     break;
             }
 
@@ -464,7 +464,7 @@ void Tmd_ProcessStream(TmdObject* obj)
                 handler = func_8009FC44;
                 break;
             default:
-                handler = Tmd_StreamHandler_Default;
+                handler = tmdSkipStreamRecord;
                 break;
             case 0:
             case 0x20:

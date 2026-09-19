@@ -4,16 +4,17 @@
 .set noreorder
 
 /*
- * Tmd_StreamHandler_Default  (VRAM 0x800105ac / ROM 0xdac)
+ * tmdSkipStreamRecord  (VRAM 0x800105ac / ROM 0xdac)
  * ------------------------------------------------------------
  * Permanent handwritten assembly (splat type: hasm).
- * TMD stream handler (function pointer from Tmd_InitSourceStream).
+ * Role: the stream record handler a record whose opcode names no handler of
+ * its own is left with. Documented at its declaration in include/main/tmd.h.
  * Early-image placement (linker_section_order: .rodata).
  */
 
 .section .text, "ax"
 
-glabel Tmd_StreamHandler_Default
+glabel tmdSkipStreamRecord
     /* DAC 800105AC */  lw          $t9, 0x18($a0)
     /* DB0 800105B0 */  lw          $a3, 0x1C($a0)
     /* DB4 800105B4 */  sll         $t9, $t9, 2
@@ -22,4 +23,4 @@ glabel Tmd_StreamHandler_Default
     /* DC0 800105C0 */  addu        $v0, $t9, $a2
     /* DC4 800105C4 */  jr          $ra
     /* DC8 800105C8 */  nop
-endlabel Tmd_StreamHandler_Default
+endlabel tmdSkipStreamRecord
