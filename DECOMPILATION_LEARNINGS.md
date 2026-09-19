@@ -131523,3 +131523,34 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 Inputs: base_1 `fe8c1f265ff1719113684262a1da77741f9928a2943f094d12125e1c6968112e`;
 base_2 `52ceccdfb00e0a3ffd7ff3f30badedc1d55966938357de27ff1eeb510d51e0e4`;
 base_3 `f761bda786eb3f085236580205a80d8d74141869b6b1c40bb3ba3d8e323270cf`.
+
+## Shared sound-ID destination prevents local tying of its input shifts
+
+`func_actor_400500_8013403C` reached 99.639% after adapting its matched sibling.
+Only the two sound blocks differed: with separate soundId/soundId2 locals,
+GCC tied each dying load/shift chain to its call-crossing result in s0, and
+put pan in s1. Target uses v0 for the input chain, s1 for the result, s0 for pan.
+
+The router extracted the second input into reused cond, improving distance
+120 → 80. cond already spans flag-test blocks, so its new definition cannot
+join a block-local quantity. The input chain moved to v0 and pan2 to s0,
+but the constant now shared soundId2's s1. Source normalization was neutral.
+A planned counterfactual using a fresh soundBits local restored the complete
+original assembly (distance 120): extraction alone was insufficient.
+
+The clean final change, also present in the other matched sibling, shares
+one soundId destination across both sound blocks. In base_3.lreg its r101
+is global (4 refs/16 insns, 2 deaths, 4 calls). Final .greg: r101=s1,
+local pans r102/r103=s0, input shifts=v0. This fulfilled the recorded prediction
+and scored 100%, all penalties zero. This supports the existing local-eligibility
+model; exact quantity priorities were not traced. No register pins were used.
+
+Retained evidence: `tools/permuter_findings/func_actor_400500_8013403C/`,
+run 07820552e7c34075; `PERMUTER_ANALYSIS.md`, planned base_2 counterfactual,
+base_3 final port, sources/dumps/journals. Compiler SHA256:
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+Preprocessed hashes: base_1/normalized parent
+`efbe99efdb072f9261a31f916531e7f0e5cf4808c49a6fc9098fc7ca3f814421`;
+mutation `6dd80d3e9efd9070511dfcdcde6837d3289253e7e56371d09f60793780b6e4b9`;
+base_2 `52c640f76c29c273374cbb1edd7a0767cca2f603b0afeda8f9b883c405c5a7fb`;
+base_3 `1bb1bd51de00efc93f732c6082301c3eafc01431f07fff21f5b56c3bbd75ed1d`.

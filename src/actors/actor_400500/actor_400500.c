@@ -1122,7 +1122,179 @@ void func_actor_400500_80133B14(Task* arg0)
     root->flg = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013403C);
+void func_actor_400500_8013403C(Task* arg0)
+{
+    MATRIX                 local;
+    MATRIX                 local2;
+    MATRIX                 world;
+    Actor400500Work*       work;
+    Actor400500Work*       work2;
+    Actor400500AnimStride* stride;
+    Actor400500HitView*    hit;
+    Actor400500ViewPos*    posA;
+    Actor400500ViewPos*    posB;
+    Actor400500ViewPos*    posC;
+    Actor400500ViewPos*    posD;
+    Actor400500ViewPos*    saveA;
+    Actor400500ViewPos*    saveB;
+    Actor400500ViewPos*    saveC;
+    Actor400500ViewPos*    saveD;
+    GsCOORDINATE2*         root;
+    GsCOORDINATE2*         coords;
+    GsCOORDINATE2*         coord;
+    GsCOORDINATE2*         soundCoords;
+    GsCOORDINATE2*         soundCoords2;
+    s32                    i;
+    s32                    cond;
+    s32                    z;
+    s32                    soundId;
+    s32                    pan;
+    s32                    pan2;
+    s32                    sc0;
+    s32                    sc1;
+    s32                    cur;
+    s32                    q0;
+    s32                    q1;
+    s32                    q2;
+    s32                    dx;
+    s32                    dz;
+    s32                    posZ;
+    s32                    dx2;
+    s32                    dz2;
+    s32                    posZ2;
+
+    work = (Actor400500Work*)arg0->work;
+    root = ((TmdObject*)arg0->extra)->coords;
+    if (work->field_9FE != 4) {
+        work->field_9F8 = 0x10;
+        work->field_9FE = 4;
+        work->field_9FA = 2;
+        work2           = (Actor400500Work*)arg0->work;
+        if (work2->field_9FA == 1) {
+            if ((s16)work2->field_9FC != work2->field_9FE) {
+                work2->field_A00 = 0;
+            } else {
+                work2->field_A00 = func_actor_400500_8013DD8C(arg0, work2->field_A00);
+            }
+            func_actor_400500_8013DCD4(arg0);
+            work2->field_9FA = 3;
+        } else if (work2->field_9FA == 2) {
+            func_actor_400500_8013DC4C(arg0);
+            work2->field_9FA = 3;
+            work2->field_A00 = 0;
+        } else if (work2->field_9FA == 3) {
+            work2->field_A00 = (u16)work2->field_A00 + 1;
+        }
+        i      = 1;
+        stride = (Actor400500AnimStride*)work2 + 1;
+        do {
+            stride->field_1D = (u8)work2->field_9F8;
+            Gp_AnimTickIndex(&work2->anim, i);
+            i++;
+            stride++;
+        } while (i < 0x12);
+    }
+
+    sc0 = ((Actor400500Work*)arg0->work)->field_9F8;
+    if (sc0 == 0) {
+        cur = 0;
+    } else {
+        cur = (u32)(0xD00 / sc0) >> 4;
+    }
+    q0 = cur;
+
+    sc1 = ((Actor400500Work*)arg0->work)->field_9F8;
+    if (sc1 == 0) {
+        cur = 0;
+    } else {
+        cur = (u32)(0xE00 / sc1) >> 4;
+        COMPILER_BARRIER();
+        sc1 = ((Actor400500Work*)arg0->work)->field_9F8;
+    }
+    q1 = cur;
+
+    if (sc1 == 0) {
+        sc0 = 0;
+    } else {
+        sc0 = (u32)(0x1B00 / sc1) >> 4;
+    }
+    q2 = sc0;
+
+    hit = (Actor400500HitView*)arg0->work;
+    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work->field_A00 = 0;
+    }
+
+    SOFT_MOVE_ZERO(z);
+    if (work->field_A00 == z) {
+        saveA       = &work->field_9A0;
+        soundCoords = ((TmdObject*)arg0->extra)->coords;
+        Gp_UpdateCoord(&soundCoords[8]);
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &soundCoords[8].workm, &local);
+        posA               = saveA;
+        posA->x            = local.t[0];
+        posA->z            = local.t[2];
+        soundCoords[8].flg = 0;
+        soundId            = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050001;
+        pan                = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
+    }
+    if (work->field_A00 == (s32)(q1 & 0xFF)) {
+        saveB        = &work->field_9A0;
+        soundCoords2 = ((TmdObject*)arg0->extra)->coords;
+        Gp_UpdateCoord(&soundCoords2[0xB]);
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &soundCoords2[0xB].workm, &local);
+        posB                  = saveB;
+        posB->x               = local.t[0];
+        posB->z               = local.t[2];
+        soundCoords2[0xB].flg = 0;
+        soundId               = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050002;
+        pan2                  = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(soundId, pan2, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
+    }
+    if ((work->field_A00 >= z) && (work->field_A00 <= (s32)(q0 & 0xFF))) {
+        coords = ((TmdObject*)arg0->extra)->coords;
+        coord  = &coords[8];
+        Gp_UpdateCoord(coord);
+        saveC = &work->field_9A0;
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords->workm, &local2);
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &world);
+        dx                 = world.t[0] - local2.t[0];
+        coords->coord.t[0] = work->field_9A0.x - dx;
+        posC               = saveC;
+        posZ               = posC->z;
+        dz                 = world.t[2] - local2.t[2];
+        coords->flg        = 0;
+        coords[8].flg      = 0;
+        coords->coord.t[2] = posZ - dz;
+        Gp_UpdateCoord(coord);
+        Gp_UpdateCoord(coords);
+    }
+    if ((work->field_A00 >= (s32)(q1 & 0xFF)) && (work->field_A00 <= (s32)(q2 & 0xFF))) {
+        coords = ((TmdObject*)arg0->extra)->coords;
+        coord  = &coords[0xB];
+        Gp_UpdateCoord(coord);
+        saveD = &work->field_9A0;
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords->workm, &local);
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &local2);
+        dx2                = local2.t[0] - local.t[0];
+        coords->coord.t[0] = work->field_9A0.x - dx2;
+        posD               = saveD;
+        posZ2              = posD->z;
+        dz2                = local2.t[2] - local.t[2];
+        coords->flg        = 0;
+        coords[0xB].flg    = 0;
+        coords->coord.t[2] = posZ2 - dz2;
+        Gp_UpdateCoord(coord);
+        Gp_UpdateCoord(coords);
+    }
+    root->flg = 0;
+}
 
 void func_actor_400500_8013456C(Task* arg0)
 {
