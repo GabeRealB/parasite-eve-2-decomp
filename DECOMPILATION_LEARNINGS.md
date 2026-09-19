@@ -130164,3 +130164,37 @@ value: the read needs an extension, so CSE cannot fold it and a load is emitted
 instead of the copy. A narrow variable cannot hold a wide constant either, so a
 32-bit constant and a 16-bit mirror value can never be the same C variable, no
 matter which register the target gives them.
+
+## Keeping a C register copy alive needs two different blockers, one live and one dead
+
+A plain `x = y;` between two same-width variables is erased twice over, and the
+two passes that erase it need different interventions.
+
+`cse` rewrites the later use of `x` back to `y`. `make_regs_eqv` only makes the
+newly assigned register the canonical member of the equivalence class when it
+lives outside the current cse basic block, so within one block the source stays
+canonical and every use of the destination is substituted; the copy is then
+dead. Reassigning the source between the copy and the use invalidates the class
+and the use keeps reading the destination. `cse` runs before `flow`, so it still
+sees insns that are dead, and a dead reassignment is enough for this one.
+
+`combine` then propagates the source into the use of whatever survived. `flow`
+runs before `combine` and deletes dead insns, so only a **live** intervening set
+of the source blocks it. A dead store placed for cse's benefit is already gone
+by the time `combine` runs.
+
+So a copy that has to reach the output needs a live reassignment of its source
+between the copy and its use — ideally one the function performs anyway. Watch
+what that reassignment puts in the register: if it is a small `SImode` constant,
+`cse` will reuse that register for every later literal of the same value,
+including call arguments, which can extend a short-lived temporary across calls
+into a callee-saved register and shift the whole frame. A second, dead
+reassignment after the live one clears the constant from cse's table without
+costing an instruction. The same leak does not happen when the value lives in a
+`HImode` pseudo, because `cse` will not use it for an `SImode` operand.
+
+A register copy also carries no memory dependence. Where the target's copy came
+from a narrowing memory read that post-reload CSE folded, the load's dependence
+on the preceding store is what orders the pair; a C-level copy loses that, and
+on a flat scheduling priority plateau the copy is emitted first regardless of
+source order.
