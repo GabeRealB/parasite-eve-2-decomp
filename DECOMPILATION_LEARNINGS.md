@@ -64823,8 +64823,8 @@ arguments were stale argument-register values, not parameters.
 
 ## Midi_Event1: shift the selected bend range after the branch
 
-When two arms select `scale = note->field_B << 8` /
-`scale = note->field_A << 8`, GCC 2.8.1 allocates the short-lived scale before
+When two arms select `scale = note->bendUp << 8` /
+`scale = note->bendDown << 8`, GCC 2.8.1 allocates the short-lived scale before
 the bend value: the scale takes `$v0`, bend takes `$v1`. The scratch was
 99.778% with `regs=11` and every other penalty zero. Selecting the unshifted
 byte in each arm, then computing `product = (scale << 8) * bend` at the join,

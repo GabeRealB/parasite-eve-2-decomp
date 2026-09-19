@@ -1191,20 +1191,20 @@ s32 SndScript_Exec(SndScript* script)
                 note         = Snd_GetNote(bank, (u8)oneV->field_6, oneV->field_7);
                 attr         = voiceRef.field_4;
                 masterVolume = D_80082748;
-                attr->addr   = (s32)note->field_10;
+                attr->addr   = note->waveAddr;
                 if ((D_80082749 != 0) && (script->field_4C->field_E & 2)) {
                     masterVolume = D_80082749;
                 }
                 noteVolume = (u8)oneV->field_D;
                 if (oneV->field_D < 0) {
-                    noteVolume = note->field_3;
+                    noteVolume = note->volume;
                 }
                 voice->field_A = noteVolume;
                 voice->field_2 = (s8)((masterVolume * script->field_4C->field_5 * voice->field_A) / 16129);
                 pan            = script->field_4C->field_6;
                 panSum         = oneV->field_C;
                 if (panSum < 0) {
-                    panSum = note->field_1;
+                    panSum = note->pan;
                 }
                 panSum  += (s16)(pan - 0x40);
                 voicePan = panSum;
@@ -1218,11 +1218,11 @@ s32 SndScript_Exec(SndScript* script)
                     voice->field_3 = 0x7F;
                 }
                 if (SndScript_FindOneA(script->field_44->field_0, oneV->field_12, (SndOneAOut*)attr) == -1) {
-                    attr->adsr1 = (u16)note->field_C;
-                    attr->adsr2 = (u16)note->field_E;
+                    attr->adsr1 = note->adsr1;
+                    attr->adsr2 = note->adsr2;
                 }
-                pitchValue = pitch = oneV->field_14 + (note->field_8 << 7);
-                attr->pitch        = Spu_CalcVolume((u32)(pitch & 0xFFFF) >> 7, (pitchValue & 0x7F) * 2, note->field_4, note->field_5);
+                pitchValue = pitch = oneV->field_14 + (note->keyMin << 7);
+                attr->pitch        = Spu_CalcVolume((u32)(pitch & 0xFFFF) >> 7, (pitchValue & 0x7F) * 2, note->rootKey, note->rootFine);
                 if (oneV->field_E == 3) {
                     if (D_8008274B >= 2) {
                         reverbGate    = 1;
@@ -1973,7 +1973,7 @@ void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* arg2, LinInterp* arg3, s16
     }
 }
 
-void SndVoice_SetupEnvelope(SndVoice* arg0, s16 arg1, u32 arg2, SndNote* arg3)
+void SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitch, SndNote* note)
 {
     SndVoiceFx* p;
     u8*         base;
@@ -1981,31 +1981,31 @@ void SndVoice_SetupEnvelope(SndVoice* arg0, s16 arg1, u32 arg2, SndNote* arg3)
     s32         magic;
     s16         temp;
 
-    p = (SndVoiceFx*)&arg0->field_10;
-    if (arg1 == -1) {
-        arg0->field_10 = 0;
+    p = (SndVoiceFx*)&voice->field_10;
+    if (envelopeOffset == -1) {
+        voice->field_10 = 0;
         return;
     }
-    if (arg0->field_34 == NULL) {
-        arg0->field_10 = 0;
+    if (voice->field_34 == NULL) {
+        voice->field_10 = 0;
         return;
     }
-    base        = *arg0->field_34->field_44;
-    chunk       = (SndOneE*)&base[arg1];
+    base        = *voice->field_34->field_44;
+    chunk       = (SndOneE*)&base[envelopeOffset];
     p->field_20 = chunk;
     magic       = chunk->magic;
     if (magic == 0x45656E6F) {
-        arg0->field_10 = 1;
-        p->field_1     = 0;
-        p->field_2     = 0;
-        p->field_4     = arg2 & 0xFFFF;
-        p->field_8     = arg3->field_4;
-        temp           = arg3->field_5;
-        p->field_C     = 0;
-        p->field_14    = 0;
-        p->field_18    = 0;
-        p->field_1C    = 0;
-        p->field_A     = temp;
+        voice->field_10 = 1;
+        p->field_1      = 0;
+        p->field_2      = 0;
+        p->field_4      = pitch & 0xFFFF;
+        p->field_8      = note->rootKey;
+        temp            = note->rootFine;
+        p->field_C      = 0;
+        p->field_14     = 0;
+        p->field_18     = 0;
+        p->field_1C     = 0;
+        p->field_A      = temp;
     }
 }
 

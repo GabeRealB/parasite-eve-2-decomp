@@ -341,7 +341,7 @@ STATIC_ASSERT_SIZEOF(LinInterp, 0x10);
 /// Midi_InitChannelTable seeds each entry with 0x407F4000 / 0.
 /// voiceSlots holds up to 18 active SPU voice indices (field_0 = -1 when free).
 typedef struct _SndBank      SndBank;
-typedef struct _SndNote      SndNote;
+typedef struct SndNote       SndNote;
 typedef struct _SndBankGroup SndBankGroup;
 typedef struct _MidiSong {
     /* 0x00 */ u8              field_0;
@@ -371,25 +371,27 @@ typedef struct _MidiSong {
 } MidiSong;
 STATIC_ASSERT_SIZEOF(MidiSong, 0x5DC);
 
-/// 0x14-byte sound/note entry indexed by Snd_GetNote.
-/// field_0 reverb enable; field_1 pan; field_3 volume; field_4/5 root-key pitch;
-/// field_6 priority; field_8/9 MIDI key range; field_A/B bend ranges;
-/// field_C/E ADSR; field_10 SPU waveform address.
-struct _SndNote {
-    /* 0x00 */ u8  field_0;  // reverbEnable
-    /* 0x01 */ u8  field_1;  // pan
-    /* 0x02 */ u8  pad_2;
-    /* 0x03 */ u8  field_3;  // volume
-    /* 0x04 */ u8  field_4;  // rootKey
-    /* 0x05 */ u8  field_5;  // rootFine
-    /* 0x06 */ u16 field_6;  // priority
-    /* 0x08 */ u8  field_8;  // keyMin
-    /* 0x09 */ u8  field_9;  // keyMax
-    /* 0x0A */ u8  field_A;  // bendDown
-    /* 0x0B */ u8  field_B;  // bendUp
-    /* 0x0C */ u16 field_C;  // adsr1
-    /* 0x0E */ u16 field_E;  // adsr2
-    /* 0x10 */ s32 field_10; // waveAddr
+/// One layer of a sound-bank group: the key range it answers to, the sample it
+/// plays and the parameters a voice is started with.
+///
+/// A group's layers are contiguous in the bank, so `Snd_GetNote` returns the
+/// first of them and a caller walks the rest, each layer's key range deciding
+/// which of them a played key selects.
+struct SndNote {
+    u8  reverb;   // Reverb send (0 off, 1 on)
+    u8  pan;      // Pan (0x40 = centre)
+    u8  field_2;  // Role unproven
+    u8  volume;   // Volume scale (0-127), multiplied by the group's
+    u8  rootKey;  // Key the sample plays at its recorded pitch
+    u8  rootFine; // Fine-tune of the root pitch (1/128 semitone)
+    u16 priority; // Voice-allocation priority (0 prefers the second voice range)
+    u8  keyMin;   // Lowest key that selects this layer
+    u8  keyMax;   // Highest key that selects this layer
+    u8  bendDown; // Downward pitch-bend range (semitones)
+    u8  bendUp;   // Upward pitch-bend range (semitones)
+    u16 adsr1;    // SPU ADSR register 1 (attack, decay, sustain level)
+    u16 adsr2;    // SPU ADSR register 2 (sustain rate, release)
+    u32 waveAddr; // Waveform address in SPU RAM
 };
 STATIC_ASSERT_SIZEOF(SndNote, 0x14);
 
@@ -492,8 +494,8 @@ typedef struct _SndOneV {
     /* 0x07 */ u8  field_7;  // note index for Snd_GetNote
     /* 0x08 */ u16 field_8;  // duration (high half of field_8 timer units)
     /* 0x0A */ u16 field_A;  // voice countdown (0 → 0x7FFFFFFF)
-    /* 0x0C */ s8  field_C;  // pan bias (<0 → use SndNote::field_1)
-    /* 0x0D */ s8  field_D;  // volume scale (<0 → use SndNote::field_3)
+    /* 0x0C */ s8  field_C;  // pan bias (<0 → use SndNote::pan)
+    /* 0x0D */ s8  field_D;  // volume scale (<0 → use SndNote::volume)
     /* 0x0E */ s8  field_E;  // reverb gate vs D_8008274B
     /* 0x0F */ u8  pad_F;
     /* 0x10 */ u16 field_10; // voice-alloc priority for SndVoice_Alloc
@@ -645,7 +647,7 @@ void           Spu_ArmKeyOn(u32 voiceIdx);
 void           Spu_KeyOff(u32 voiceIdx);
 void           Spu_KeyOnClearOff(u32 voiceIdx);
 u16            Spu_CalcVolume(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-SndNote*       Snd_GetNote(SndBank* arg0, u8 arg1, u8 arg2);
+SndNote*       Snd_GetNote(SndBank* bank, u8 group, u8 layer);
 void           Spu_FlushVoiceUpdates(void);
 s32            Spu_ReleaseVoiceSlot(u32 voiceIdx);
 void           Spu_QueryReverbVoices(void);
@@ -750,7 +752,7 @@ SndVoice*      SndVoice_Alloc(s32 arg0);
 void           SndVoice_Attach(SndVoiceOwner* arg0, SndVoice* arg1);
 s32            SndScript_TickVoices(SndScript* arg0);
 void           SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* arg2, LinInterp* arg3, s16* arg4);
-void           SndVoice_SetupEnvelope(SndVoice* arg0, s16 arg1, u32 arg2, SndNote* arg3);
+void           SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitch, SndNote* note);
 s32            SndScript_FindOneA(u8* arg0, s16 arg1, SndOneAOut* arg2);
 void           SndVoice_ClearActive(void);
 void           SndEvt_EnqueueType7(s32 arg0, s32 arg1);

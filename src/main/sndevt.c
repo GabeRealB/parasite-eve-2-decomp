@@ -1083,8 +1083,8 @@ u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2)
         key     = arg1[1];
         note    = Snd_GetNote(arg2->field_40, program, 0);
         for (layer = 0; layer < group->field_0; layer++, note++) {
-            priority = note->field_6;
-            if (key >= note->field_8 && note->field_9 >= key) {
+            priority = note->priority;
+            if (key >= note->keyMin && note->keyMax >= key) {
                 if (priority == 0) {
                     priorities[0] = 2;
                     priorities[1] = 0;
@@ -1102,8 +1102,8 @@ u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2)
                     slot->field_1 = channel;
                     slot->field_3 = velocity;
                     slot->field_2 = key;
-                    slot->field_4 = (group->field_2 * note->field_3) >> 7;
-                    pan           = group->field_3 + note->field_1 - 0x40;
+                    slot->field_4 = (group->field_2 * note->volume) >> 7;
+                    pan           = group->field_3 + note->pan - 0x40;
                     panByte       = pan;
                     TOUCH_REG(panByte);
                     panValue = pan;
@@ -1120,7 +1120,7 @@ u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2)
                     }
                     slot->field_6 = program;
                     slot->field_7 = layer;
-                    reverb        = note->field_0;
+                    reverb        = note->reverb;
                     if (reverb == 1) {
                         Spu_EnableReverbVoice(slot->field_0);
                         slot->field_A = reverb;
@@ -1131,18 +1131,18 @@ u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2)
                     bend = arg2->field_484[channel].field_6;
                     if (bend != 0) {
                         if (bend > 0) {
-                            scale = note->field_B;
+                            scale = note->bendUp;
                         } else {
-                            scale = note->field_A;
+                            scale = note->bendDown;
                         }
                         product       = (scale << 8) * bend;
                         slot->field_8 = product / 8191;
                     }
                     attr        = ref.field_4;
-                    attr->addr  = note->field_10;
-                    attr->adsr1 = note->field_C;
-                    attr->adsr2 = note->field_E;
-                    attr->pitch = Spu_CalcVolume(key, slot->field_8, note->field_4, note->field_5);
+                    attr->addr  = note->waveAddr;
+                    attr->adsr1 = note->adsr1;
+                    attr->adsr2 = note->adsr2;
+                    attr->pitch = Spu_CalcVolume(key, slot->field_8, note->rootKey, note->rootFine);
                     attr->mask  = 0x60090;
                     Spu_KeyOn(slot->field_0);
                 }
@@ -1418,9 +1418,9 @@ u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* arg2)
             Spu_GetVoiceRef(slot->field_0, &sp10);
             note = Snd_GetNote(arg2->field_40, slot->field_6, slot->field_7);
             if (pitchBend >= 0) {
-                scale = note->field_B << 8;
+                scale = note->bendUp << 8;
             } else {
-                scale = note->field_A << 8;
+                scale = note->bendDown << 8;
             }
             prod  = scale * pitchBend;
             key   = (s8) * (volatile u8*)&slot->field_2 & 0xFFFF;
@@ -1429,7 +1429,7 @@ u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* arg2)
             slot->field_8 = pitch;
             attr          = sp10.field_4;
             attr->pitch =
-                Spu_CalcVolume(key, pitch, note->field_4, note->field_5);
+                Spu_CalcVolume(key, pitch, note->rootKey, note->rootFine);
             attr->mask |= SPU_VOICE_PITCH;
         }
         i      += 1;
@@ -1680,7 +1680,7 @@ success:
         entry = raw;
         do {
             i               -= 1;
-            entry->field_10 += base;
+            entry->waveAddr += base;
             entry++;
         } while (i != end);
     }
