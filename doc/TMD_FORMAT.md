@@ -412,8 +412,8 @@ constant on `0xC8`. The byte a packet draws with is not either of those: the
 handler that completes a pre-transformed record (`0x39`, `0x79`) runs after the
 pre-pass and writes its own code over the first corner's.
 
-`0xC4`'s handler is decompiled C (`func_8009EAA4` in `src/gameplay/gameplay.c`)
-and spells out what the hasm versions do:
+`0xC4`'s handler is decompiled C (`gpXformStreamVertsUnlit` in
+`src/gameplay/gameplay.c`) and spells out what the hasm versions do:
 
 ```c
 idx = rec[0];
@@ -561,7 +561,7 @@ transform, a cull, a packet's filing and its ordering-table link.
 | `0x61` | `tmdDrawStreamPrimG4PreXform` | — | — | the pre-transformed untextured quad — face-tested, coded and linked into the ordering table — **solved**, §3.2 |
 | `0x62` | `tmdDrawStreamPrimG4CornerNormals` | 5 | 26 | ? |
 | `0xC0` | `tmdXformStreamVertsElemColor` | 3 | 6 | vertex transform + lighting pre-pass, colour per element — **solved**, §3.5 |
-| `0xC4` | `D_8009EAA4` | — | — | "stream transform helper"; unsolved, never seen in data |
+| `0xC4` | `gpXformStreamVertsUnlit` | — | — | the `0xC8` pre-pass with the lighting dropped; never seen in data — **solved**, §3.5 |
 | `0xC8` | `tmdXformStreamVerts` | 2 | 30262 | vertex transform + lighting pre-pass — **solved**, §3.5 |
 | `0x121` | `tmdDrawStreamPrimG3PreXform` | — | — | the `0x21` triangle in the opcode form that names a colour per corner; the colour is the vertex pass's business, so the two forms resolve to one body |
 | `0x122` | `D_8009E274` | — | — | ? |

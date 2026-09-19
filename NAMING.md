@@ -612,6 +612,13 @@ the error it is.
 - inline assembly in C, which is a relocation rather than a parsed reference;
 - references reached through a macro, which are listed rather than edited,
   since the macro body is where the name is spelled;
+- a reference a macro invocation carries *as an argument*, which the parser
+  reports at the invocation rather than at the argument. A symbol used that way
+  everywhere cannot be renamed by the tool at all: the run refuses the whole
+  file with `expected '<old>', found '<other>'` rather than corrupting it, and
+  those sites are hand edits. The uses that are not macro arguments are still
+  the tool's, so splitting one rename into a hand edit of the rest plus a run
+  over what remains is worth doing;
 - prose outside the scanned set, such as the agent rules files and tool
   docstrings.
 

@@ -32,7 +32,6 @@ u32* func_8009DE48(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009E048(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009E274(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009E4A0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009EAA4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_80136224(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_80136500(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_8013685C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -74,7 +73,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     handler = tmdXformStreamVertsElemColor;
                     break;
                 case 0xC4:
-                    handler = func_8009EAA4;
+                    handler = gpXformStreamVertsUnlit;
                     break;
                 case 5:
                     handler = gpDrawStreamPrimF3PreXform;

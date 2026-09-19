@@ -3842,25 +3842,23 @@ void func_8009EA50(s32 arg0)
     D_80114BA8.r = D_80114BA8.g = D_80114BA8.b = temp;
 }
 
-u32* func_8009EAA4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* gpXformStreamVertsUnlit(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
-    TmdScratchModelBlock* ws;
-    s32                   prev;
-    s32                   count;
-    u32                   idx;
-    u16*                  rec;
+    s32  prev;
+    s32  count;
+    u32  idx;
+    u16* rec;
 
-    ws    = arg0;
     prev  = -1;
     count = ws->elemCount;
     if (count == 0) {
-        return arg2;
+        return stream;
     }
     TOUCH_REG(prev);
     ws->elemCount = count + prev;
     if (count > 0) {
         do {
-            rec = (u16*)arg2;
+            rec = (u16*)stream;
             idx = rec[0];
             if (idx != prev) {
                 gte_ldv0((u8*)ws->verts + (idx & 0xFFF8));
@@ -3869,14 +3867,14 @@ u32* func_8009EAA4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                 if (ws->gteFlag & 0x80000000) {
                     ws->gteResult |= 0x80000000;
                 }
-                ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;
+                ws->szTable[*(u16*)stream >> 3] = ws->gteResult;
             }
             prev = rec[0];
             gte_stsxy(ws->preXformWrite + rec[1]);
-            arg2 += ws->elemStride;
+            stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
     }
-    return arg2;
+    return stream;
 }
 
 u32* gpStreamPrimGt3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)

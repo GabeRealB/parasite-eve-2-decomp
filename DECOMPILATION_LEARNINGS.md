@@ -6088,7 +6088,8 @@ col = Gp_ColorOrange;
 gte_ldrgb(&col);
 ```
 
-`func_8009AA5C` is the example. Same `+r` pin as `func_8009EAA4`'s `prev = -1`.
+`func_8009AA5C` is the example. Same `+r` pin as `gpXformStreamVertsUnlit`'s
+`prev = -1`.
 
 ## An m2c `ws = arg0` needs no pin when another variable wants `$a0`
 
@@ -6103,8 +6104,11 @@ declaration and the assignment left the body byte-identical in
 whose `sz` is pinned to `$a0`.
 
 So the shape is load-bearing only where something pins *it* — `TOUCH_REG(ws)` or
-`asm volatile("" : "+r"(ws))`, as `func_8009AA5C` and `func_8009EAA4` above — and
-m2c residue where the pinned register belongs to another variable.
+`asm volatile("" : "+r"(ws))`, as `func_8009AA5C` above — and m2c residue where
+the pinned register belongs to another variable: `gpXformStreamVertsUnlit` pins
+its `prev` with `+r` (so `prev` takes `$a0`), and naming the parameter and
+deleting the local declaration and the assignment left the body byte-identical
+there too.
 
 ## Pin a scratch block so a later dest copy uses `$s0`, not the alloc temp
 
@@ -29389,7 +29393,7 @@ ws->elemCount = count + prev;
 
 Reload the halfword as `*(u16*)stream` for the depth-table store so it
 takes `$v0` and `>> 3` is `srl`. Reusing the first `idx` local leaves
-it in `$v1` and emits `sra`. `func_8009EAA4` is the example.
+it in `$v1` and emits `sra`. `gpXformStreamVertsUnlit` is the example.
 
 ## Assign an `s16` to `s32` before `& mask` so the load is `lh`
 

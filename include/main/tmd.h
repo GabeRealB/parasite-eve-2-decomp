@@ -454,7 +454,8 @@ u32* tmdDrawStreamGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// its results go: the vertex is projected into screen coordinates, the normal
 /// is lit into a colour, and both are written where the element names. The
 /// elements carry no colour word, so the lighting uses a fixed colour instead;
-/// the record whose elements name one is `tmdXformStreamVertsElemColor`.
+/// the record whose elements name one is `tmdXformStreamVertsElemColor`, and the
+/// record that drops the lighting altogether is `gpXformStreamVertsUnlit`.
 ///
 /// The projection is reused where consecutive elements name the same vertex, and
 /// each vertex's depth goes to the per-vertex cache: the commands that build a
@@ -491,6 +492,25 @@ u32* tmdXformStreamVerts(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 ///
 /// The record has no variant for `flags` to select, so it goes unread.
 u32* gpXformStreamVertsOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Handler of a stream's unlit transform pre-pass records (`0xC4`): each element
+/// projects the vertex it names into the buffer half, and the record writes no
+/// colour and builds no primitive.
+///
+/// The record is `tmdXformStreamVerts`'s with the lighting dropped, which is the
+/// `0x04` bit's meaning in a transform pass: an element names a vertex and the
+/// place in the buffer half its projection goes, while the normal the lit passes
+/// light a colour from goes unread, so nothing is written into the packet's
+/// colour word and no colour is loaded into the GTE. What the record keeps is
+/// what the commands drawing from that buffer depend on — the vertex is
+/// transformed into screen coordinates, its depth cached in the per-vertex table,
+/// the projection reused where consecutive elements name the same vertex, and the
+/// cached depth marked failed with the sign bit where the frame's flag word reads
+/// as failed. That word is read as the record finds it, not refreshed from the
+/// transform it has just run, so the mark describes the last transform that
+/// stored one.
+///
+/// The record has no variant for `flags` to select, so it goes unread.
+u32* gpXformStreamVertsUnlit(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// The draw pass's handler for a stream's pre-transformed textured-triangle
 /// records that ask for the semi-transparent primitive (`0x3B`): each element's
 /// triangle is linked into the ordering table under the blended primitive code,
