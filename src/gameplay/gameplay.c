@@ -3890,24 +3890,24 @@ u32* func_8009EAA4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_8009EB84(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* gpStreamPrimGt3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
     POLY_GT3* poly;
 
-    poly = (POLY_GT3*)arg0->preXformWrite;
-    if (arg0->elemCount-- > 0) {
+    poly = (POLY_GT3*)ws->preXformWrite;
+    if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = arg2[2];
-            *(s32*)&poly->u1 = arg2[3];
-            *(u16*)&poly->u2 = *(u16*)&arg2[4];
-            poly->tpage     += arg0->tpage;
-            poly->clut      += arg0->clut;
+            *(s32*)&poly->u0 = stream[2];
+            *(s32*)&poly->u1 = stream[3];
+            *(u16*)&poly->u2 = *(u16*)&stream[4];
+            poly->tpage     += ws->tpage;
+            poly->clut      += ws->clut;
             poly++;
-            arg2 += arg0->elemStride;
-        } while (arg0->elemCount-- > 0);
+            stream += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    arg0->preXformWrite = (u8*)poly;
-    return arg2;
+    ws->preXformWrite = (u8*)poly;
+    return stream;
 }
 
 u32* func_8009EC1C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)

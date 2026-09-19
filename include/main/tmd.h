@@ -253,4 +253,18 @@ u32* Tmd_StreamHandler_Op5A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op130(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op170(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+// Overlay stream commands (src/gameplay/gameplay.c), selected by
+// Tmd_ProcessStream.
+
+/// Handler of a stream's pre-transformed textured-triangle records (`0x31`,
+/// `0x39`, `0x3B`, `0x131`, `0x8039`): each element contributes one triangle to
+/// the buffer half's first region, with the element's texture words written into
+/// it.
+///
+/// The opcode says the triangle's vertices are already in screen space, so there
+/// is no transform or cull for this command to do. It writes the polygon's
+/// `u`/`v` fields, and adds the model's texture page and CLUT to the primitive's
+/// own, which are stored relative to the model.
+u32* gpStreamPrimGt3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 #endif // TMD_H

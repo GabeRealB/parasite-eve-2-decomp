@@ -45,7 +45,6 @@ u32* func_8009E274(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009E4A0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009E770(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009EAA4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009EB84(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009EC1C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009ECC0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009ED28(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -391,7 +390,7 @@ void Tmd_ProcessStream(TmdObject* obj)
             case 0x3B:
             case 0x131:
             case 0x8039:
-                handler = func_8009EB84;
+                handler = gpStreamPrimGt3PreXform;
                 break;
             case 0x71:
             case 0x79:
