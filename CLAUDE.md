@@ -322,6 +322,12 @@ overlay.
   it after anything that could move allocation - a compiler patch, a new maspsx -
   or on a function class the model has not been checked against.
 - `python3 tools/check_pointer_arithmetic.py <file or directory>` detect pointer arithmetic with casts that should be replaced with struct field access. Use `--strict` to fail on violations.
+- `tools/refactor/find_references.py` / `rename_item.py` resolve and rename C
+  symbols through libclang and the compilation database, never by text
+  substitution. A spec names the file the symbol is **declared** in. `NAMING.md`
+  § Tooling states what they reach and what stays a hand edit — handwritten
+  assembly, inline asm, macro-reached references and a symbol map's prose are
+  all outside them.
 
 ## Code Quality Standards
 

@@ -580,9 +580,13 @@ symbols with libclang and the compilation database instead of matching text:
   assembly references and reports whether the symbol's address is unique or
   shared between images.
 - `rename_item.py <spec> <newName>` — rewrites the declaration and every
-  reference at the exact locations the parser reports. `--dry-run` shows the
-  plan; `--sidecars` also rewrites the symbol maps and linker scripts, which
-  belong to no translation unit.
+  reference at the exact locations the parser reports, along with the mentions
+  of the name in comments and in the markdown at the repository root and under
+  `doc/`. `--dry-run` shows the plan; `--sidecars` also rewrites the version's
+  `configs/` tree — symbol maps, splat configs, the overlay manifest — which
+  belongs to no translation unit. Generated linker scripts are left alone on
+  purpose: the next split rebuilds them, and they are not tracked, so writing
+  to them only survives a revert of the sources.
 
 A spec is a source path with the symbol appended:
 
@@ -593,6 +597,26 @@ A spec is a source path with the symbol appended:
 ```
 
 Both tools take `--version` (default `USA`).
+
+**The path in a spec is where the symbol is declared**, not where it is used. A
+path that does not declare it cannot resolve, and the tools say so only after
+parsing every translation unit in turn, which reads as a hang rather than as
+the error it is.
+
+**What the tools do not reach**, each of which is a hand edit:
+
+- handwritten assembly under a source tree — its labels, and any sibling symbol
+  it branches to. `--asm` scans the generated tree only. Generated assembly is
+  the opposite case: never edit it, rename in the symbol map and re-split;
+- notes in a symbol map that name a *different* symbol than the one renamed;
+- inline assembly in C, which is a relocation rather than a parsed reference;
+- references reached through a macro, which are listed rather than edited,
+  since the macro body is where the name is spelled;
+- prose outside the scanned set, such as the agent rules files and tool
+  docstrings.
+
+`rename_item.py` logs functions, globals and types to `local/renames.tsv`; a
+field or parameter rename leaves no row, by design.
 
 Why a parser and not a search-and-replace: hundreds of unrelated types here
 declare a member of the same placeholder name, and one function may declare the

@@ -212,7 +212,9 @@ mentions that really are this item's by hand.
 
 The refactor tools understand C and nothing else. Knowing where their edge is
 saves both halves of the usual failure - trusting them with something they never
-touched, and re-doing by hand what they already did.
+touched, and re-doing by hand what they already did. `NAMING.md`'s Tooling
+section states the same boundary for readers outside this pass; keep the two in
+step.
 
 `rename_item.py` reaches:
 
