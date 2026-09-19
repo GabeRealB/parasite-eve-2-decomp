@@ -543,25 +543,28 @@ resolve a real page.
 the `clut` (in `u0`) or `tpage` (in `u1`) halfword, exactly as `POLY_GT3` /
 `POLY_GT4` lay them out. `u2`/`u3` are halfword writes — UV only.
 
-### Init-only opcodes
+### Records the build pass steps over
 
-Resolved by `Tmd_InitSourceStream` but absent from the process pass's table
-(`tmdProcessStream`), so filling a model's buffers builds nothing for them. Their
-handler still runs on every walk of the draw pass: the work they do is by nature
-per-frame — a transform, a cull, a packet's filing and its ordering-table link.
+`tmdProcessStream` — the pass that lays a record's packets out — has no entry for
+these opcodes, so it walks past their elements and builds nothing for them. That
+says nothing about what a frame draws from the record: `Tmd_InitSourceStream`
+still resolves a handler into it, and the draw walk (`Tmd_DispatchStream`) runs
+that handler every frame like any other. So each of these opcodes does draw, and
+what it draws is its own handler's to say; the work is per-frame by nature — a
+transform, a cull, a packet's filing and its ordering-table link.
 
 | Opcode | Init handler | Stride | Elements | Role |
 |---|---|---:|---:|---|
 | `0x21` | `tmdDrawStreamPrimG3PreXform` | 2 | 2 | pre-transformed `POLY_G3`: the vertex pass already placed the corners, so the handler culls the triangle, averages the cached depths and links the packet — **solved**, §3.5 |
 | `0x22` | `tmdDrawStreamPrimG3CornerNormals` | 4 | 8 | the `0x20` triangle in its semi-transparent form; the two opcodes resolve to one body |
-| `0x61` | `Tmd_StreamHandler_Prim38` | — | — | ? |
+| `0x61` | `tmdDrawStreamPrimG4PreXform` | — | — | the pre-transformed untextured quad — face-tested, coded and linked into the ordering table — **solved**, §3.2 |
 | `0x62` | `tmdDrawStreamPrimG4CornerNormals` | 5 | 26 | ? |
 | `0xC0` | `tmdXformStreamVertsElemColor` | 3 | 6 | vertex transform + lighting pre-pass, colour per element — **solved**, §3.5 |
 | `0xC4` | `D_8009EAA4` | — | — | "stream transform helper"; unsolved, never seen in data |
 | `0xC8` | `tmdXformStreamVerts` | 2 | 30262 | vertex transform + lighting pre-pass — **solved**, §3.5 |
 | `0x121` | `tmdDrawStreamPrimG3PreXform` | — | — | the `0x21` triangle in the opcode form that names a colour per corner; the colour is the vertex pass's business, so the two forms resolve to one body |
 | `0x122` | `D_8009E274` | — | — | ? |
-| `0x161` | `Tmd_StreamHandler_Prim38` | — | — | ? |
+| `0x161` | `tmdDrawStreamPrimG4PreXform` | — | — | the `0x61` record with the per-corner colour bit; the two opcodes resolve to one body |
 | `0x162` | `D_8009E770` | — | — | ? |
 | `0x40C8` | `D_8009AF90` | 2 | 1568 | `0xC8` with a different shading path |
 | `0x200C8` | `D_801386EC` | 2 | 607 | `0xC8` with a different shading path |

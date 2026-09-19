@@ -133000,3 +133000,20 @@ renaming it in passing: retiring a twin is usually wider than its symbol - the
 file that defines it, the config entry that names that file and the notes that
 describe the pair may each carry the spelling - so a rename that stops at the
 label leaves two conventions in one file and no record that the rest is owed.
+
+## The packet's primitive code carries the quad and gouraud bits in the other order from the record opcode
+
+A record's opcode and the primitive code the packet it draws carries encode the
+same two properties in different bit positions, and reading one as the other
+makes a correct handler look like it stamps the wrong shape. In the opcode `0x20`
+is the per-corner normal (gouraud) bit and `0x40` the quad bit; in the primitive
+code `0x10` is gouraud and `0x08` is quad, over `0x04` texturing and `0x02`
+semi-transparency. A gouraud triangle's packet is therefore stamped `0x30` and a
+flat quad's `0x28` - each reading like the other's shape.
+
+Check the code against the packet's size, which `setlen` pins: `setlen(poly, 6)`
+is six words following the tag, a `POLY_G3`'s 28 bytes, and the handler that
+lights three corners into it (`gte_stsxy3_g3`) stamps `0x30`; `setlen(poly, 5)`
+is a `POLY_F4`'s 24 bytes and the one that writes a single colour into it stamps
+`0x28`. The same reading puts `0x34` on the 40-byte textured gouraud triangle and
+`0x3C`/`0x3E` on the textured gouraud quads.

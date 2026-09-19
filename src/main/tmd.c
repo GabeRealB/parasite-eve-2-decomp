@@ -100,7 +100,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     break;
                 case 0x61:
                 case 0x161:
-                    handler = Tmd_StreamHandler_Prim38;
+                    handler = tmdDrawStreamPrimG4PreXform;
                     break;
                 case 0x38:
                     handler = tmdDrawStreamGt3;

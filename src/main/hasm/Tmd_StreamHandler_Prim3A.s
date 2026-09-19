@@ -9,6 +9,12 @@
  * Permanent handwritten assembly (splat type: hasm).
  * TMD stream handler (function pointer from Tmd_InitSourceStream).
  * Early-image placement (linker_section_order: .rodata).
+ *
+ * Two entries onto one body, one per primitive code the body stamps: the
+ * opaque quad, tmdDrawStreamPrimG4PreXform (0x38), and the blended one,
+ * Tmd_StreamHandler_Prim3A (0x3A). Tmd_InitSourceStream resolves the opaque
+ * entry for records 0x61/0x161; no opcode resolves the blended entry, and
+ * nothing else in the image references it either.
  */
 
 .section .text, "ax"
@@ -24,7 +30,7 @@ glabel Tmd_StreamHandler_Prim3A
     /* F0C 8001070C */  addiu       $v1, $zero, 0x3A
     /* F10 80010710 */  j           .L80010748
     /* F14 80010714 */  lw          $a1, 0x84($a0)
-alabel Tmd_StreamHandler_Prim38
+alabel tmdDrawStreamPrimG4PreXform
     /* F18 80010718 */  lw          $t9, 0x18($a0)
     /* F1C 8001071C */  lw          $a3, 0x1C($a0)
     /* F20 80010720 */  lw          $t8, 0x4($a0)

@@ -86,7 +86,7 @@ segments:
       # TMD stream handlers (function pointers from Tmd_InitSourceStream), not rodata.
       - { start: 0xDAC, type: hasm, name: hasm/tmdSkipStreamRecord, linker_section_order: .rodata }
       - { start: 0xDCC, type: hasm, name: hasm/Tmd_StreamHandler_Prim32, linker_section_order: .rodata } # +alabel tmdDrawStreamPrimG3PreXform
-      - { start: 0xEF0, type: hasm, name: hasm/Tmd_StreamHandler_Prim3A, linker_section_order: .rodata } # +alabel Prim38
+      - { start: 0xEF0, type: hasm, name: hasm/Tmd_StreamHandler_Prim3A, linker_section_order: .rodata } # +alabel tmdDrawStreamPrimG4PreXform
       - { start: 0x1048, type: hasm, name: hasm/Tmd_SetupGteMatrices, linker_section_order: .rodata }
       - { start: 0x1220, type: hasm, name: hasm/Tmd_DispatchStream, linker_section_order: .rodata }
       - { start: 0x1290, type: hasm, name: hasm/Tmd_StreamHandlers_Ops, linker_section_order: .rodata }

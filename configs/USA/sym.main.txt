@@ -20,7 +20,7 @@ tmdSkipStreamRecord         = 0x800105AC; // type:func
 Tmd_StreamHandler_Prim32    = 0x800105CC; // type:func
 tmdDrawStreamPrimG3PreXform = 0x800105F4; // type:func  (alabel)
 Tmd_StreamHandler_Prim3A    = 0x800106F0; // type:func
-Tmd_StreamHandler_Prim38    = 0x80010718; // type:func  (alabel)
+tmdDrawStreamPrimG4PreXform = 0x80010718; // type:func  (alabel)
 
 //--------------------------------------------------------------------
 //--- PA: 0x01048   VA: 0x80010848   subsegment: hasm, Tmd_SetupGteMatrices

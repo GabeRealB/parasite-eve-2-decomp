@@ -280,7 +280,32 @@ u32* Tmd_StreamHandler_Prim32(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// rather than a `flags` choice, so `flags` goes unread here.
 u32* tmdDrawStreamPrimG3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Prim3A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_Prim38(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Draw-pass handler of a stream's pre-transformed untextured quad records
+/// (`0x61`, `0x161`): each element completes one `POLY_G4` in the buffer half's
+/// first region, whose corners are already in screen space, and links it into the
+/// ordering table at the depth they average to.
+///
+/// Nothing is projected or lit here. The pass that projects the stream's vertices
+/// (`tmdXformStreamVerts`) has written each corner's screen coordinates and lit
+/// colour into the packet, and its depth into the screen-Z table, so an element
+/// names its corners in that table rather than in the vertex array. What a frame
+/// adds is the quad's filing: the facing comes from the coordinates the packet
+/// already carries, the cached depths are averaged for the ordering-table link,
+/// and the packet's tag and primitive code are written.
+///
+/// The facing test is taken first, on the quad's first three corners; where it
+/// turns them away, the fourth corner is put through the test as well, and only a
+/// quad that both tests reject is left unlinked. The depths are read after that,
+/// and an element naming a corner the pre-pass marked as failed is not linked
+/// either. Either way the element consumes its packet's room: the first region's
+/// cursor advances by one packet per element, which is what keeps the packets in
+/// step with the elements that named them.
+///
+/// The record has no variant for `flags` to select: the primitive code is this
+/// entry's own constant, and the body's other entry
+/// (`Tmd_StreamHandler_Prim3A`) stamps the blended one, which no opcode resolves
+/// to.
+u32* tmdDrawStreamPrimG4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 // Early-image draw handlers in Tmd_StreamHandlers_Ops.s, one per record family:
 // `Tmd_InitSourceStream` patches each into a model's stream for the opcodes it
