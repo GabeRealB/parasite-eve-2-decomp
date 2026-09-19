@@ -824,7 +824,7 @@ typedef struct _GpSpotScratch {
 STATIC_ASSERT_SIZEOF(GpSpotScratch, 0x2C);
 
 /// 0x28-byte scratch from `G_SCRATCH_HEAD` used by `Gp_FindNearestSlot`.
-/// `local` is `GpActorD4Rec.field_8/A/C` plus `GpObj.pos`,
+/// `local` is the collider's `end1` plus `GpObj.pos`,
 /// rotated by `coord->workm`. `vec` is that GTE output (then overwritten
 /// with per-slot XYZ deltas). `world` is `vec + workm.t`.
 typedef struct _GpNearScratch {
@@ -1510,9 +1510,9 @@ s32 func_800E0C10(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
 /// records there. Returns 0 when nothing contributed, 2 when two kind-0
 /// records push in opposing directions, and 1 otherwise.
 s32 func_800E0FEC(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
-/// Transforms `arg0`'s local offset (`ctx.d4rec` plus `pos`) by
+/// Transforms `arg0`'s local offset (`ctx.d4rec`'s `end1` plus `pos`) by
 /// `coord->workm` and returns the 1-based index of the
-/// closest occupied `GpRec18` in `rec->field_14` whose `key` high 16
+/// closest occupied `GpRec18` in the shape's `recs` whose `key` high 16
 /// bits match `arg1`, or 0 if none match.
 s32  Gp_FindNearestSlot(GpObj* arg0, s32 arg1);
 void Gp_LinkObj(s32 arg0, GpObj* arg1);

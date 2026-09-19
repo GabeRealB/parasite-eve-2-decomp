@@ -42,7 +42,7 @@ void func_m4a1_hammer_8011E710(GpActorWork* arg0)
 
     actor                 = arg0->actor;
     coord                 = arg0->extra->coords;
-    rec                   = (GpActorD4Rec*)actor->field_14C;
+    rec                   = &actor->field_14C;
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD - 0x50;
     spot                  = (GsCOORDINATE2*)*(u8**)G_SCRATCH_HEAD;
     switch (actor->field_95E) {
@@ -74,9 +74,9 @@ void func_m4a1_hammer_8011E710(GpActorWork* arg0)
                 actor->field_979  = 9;
                 actor->field_93E  = 3;
                 actor->field_124  = Player_Status.weaponSlotItem | 0x21900;
-                rec->field_10     = 0x100;
-                rec->field_12     = 0x100;
-                rec->field_4      = rec->field_C + D_80112F60[0x19];
+                rec->end0Radius   = 0x100;
+                rec->end1Radius   = 0x100;
+                rec->end0.vz      = rec->end1.vz + D_80112F60[0x19];
                 actor->field_12A |= 0x800;
                 func_80106238(arg0, 0, 1);
             } else if (actor->field_97F & 2) {
@@ -86,9 +86,9 @@ void func_m4a1_hammer_8011E710(GpActorWork* arg0)
                 actor->field_93E  = 0x14;
                 actor->field_934  = 3;
                 actor->field_124  = 0x2191C;
-                rec->field_10     = 0x400;
-                rec->field_12     = 0x400;
-                rec->field_4      = rec->field_C + 0xA00;
+                rec->end0Radius   = 0x400;
+                rec->end1Radius   = 0x400;
+                rec->end0.vz      = rec->end1.vz + 0xA00;
                 actor->field_12A &= 0xF7FF;
                 func_80106238(arg0, 0, 0);
                 hammer = actor->field_914;

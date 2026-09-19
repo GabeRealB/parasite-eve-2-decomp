@@ -74,13 +74,13 @@ void func_mp5a5_p2_8011DDA4(GpActorWork* arg0)
             /* fallthrough */
         case 3:
             if (--actor->field_934 == 0) {
-                rec = (GpActorD4Rec*)actor->field_14C;
+                rec = &actor->field_14C;
                 if (actor->field_97F == 1) {
                     actor->field_95E  = 4;
                     actor->field_934  = 3;
                     actor->field_940  = 0;
                     actor->field_124  = Player_Status.weaponSlotItem | 0x22000;
-                    rec->field_10     = rec->field_12;
+                    rec->end0Radius   = rec->end1Radius;
                     actor->field_12A |= 0x800;
                     func_80106238(arg0, 0, 1);
                     Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20200004, 1);
@@ -94,7 +94,7 @@ void func_mp5a5_p2_8011DDA4(GpActorWork* arg0)
                     actor->field_940  = 0x12;
                     actor->field_934  = 0x12;
                     actor->field_124  = 0x22016;
-                    rec->field_10     = 0xC00;
+                    rec->end0Radius   = 0xC00;
                     actor->field_12A &= 0xF7FF;
                     func_80106238(arg0, 0, 0);
                     Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20200005, 0);

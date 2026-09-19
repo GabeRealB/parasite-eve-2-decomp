@@ -581,7 +581,7 @@ STATIC_ASSERT_SIZEOF(Actor503500Work44, 0x44);
 /// four-entry record table (`func_actor_503500_801454E0` and
 /// `func_actor_503500_80145F18`, the same body twice). It follows the gameplay
 /// `GpActorD4` convention: the display node's `ctx.d4rec` points at the
-/// `GpActorD4Rec` directly behind it, whose `field_14` in turn points at the
+/// `GpActorD4Rec` directly behind it, whose `recs` in turn points at the
 /// `GpRec18` table that `Gp_InitRec18Table(_, 4, 0)` zeroes at 0x38. Like
 /// `Actor503500ObjWork` this type stops where the two blocks stop agreeing:
 /// `func_actor_503500_80144E8C` allocates 0xD0 and `func_actor_503500_80145A2C`

@@ -154,7 +154,7 @@ STATIC_ASSERT_SIZEOF(Actor107000SpawnWork, 0x2E4);
 /// `GpObj` render nodes where that one has four.
 ///
 /// Node 1's `ctx.d4rec` is not a record table but the `GpActorD4Rec` at 0x1FC -
-/// the shape `GpActorD4` keeps, where the record's own `field_14` points at the
+/// the shape `GpActorD4` keeps, where the record's own `recs` points at the
 /// `GpRec18` run beside it (here the single record at 0x214). Nodes 2 and 3
 /// hold plain tables of four and one, the way `Actor107000SpawnWork`'s do.
 ///

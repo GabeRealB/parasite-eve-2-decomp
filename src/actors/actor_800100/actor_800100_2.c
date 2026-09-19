@@ -1380,7 +1380,7 @@ void func_actor_800100_80166514(GpActorWork* arg0)
     blk      = (Actor800100PlaceScratch*)((u8*)head - 0x5C);
     *scratch = blk;
 
-    Gp_FindRec18(obj->ctx.d4rec->field_14, 0);
+    Gp_FindRec18(obj->ctx.d4rec->recs, 0);
     Gfx_RotMatrixX(&sp10.workm, 0x400, 0);
     blk->rot.vx = 0;
     blk->rot.vy = 0x120;

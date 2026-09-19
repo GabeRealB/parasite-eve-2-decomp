@@ -143,7 +143,7 @@ typedef struct Actor444000Work {
     /* 0x7F4 */ Actor444000HitGroup hits[9];
     /// The tenth collision object, the one `func_actor_444000_8013AFF8` links by
     /// hand rather than through `func_8010C980`: a kind-3 `GpObj` whose `ctx.d4rec`
-    /// is `d4rec`, whose own `field_14` points at the `GpRec18` table
+    /// is `d4rec`, whose own `recs` points at the `GpRec18` table
     /// `recs2`. The arena tick raises `obj.flags` bit 0x8000 while the swipe is
     /// live and clears it otherwise.
     /* 0xD4C */ GpObj        obj;

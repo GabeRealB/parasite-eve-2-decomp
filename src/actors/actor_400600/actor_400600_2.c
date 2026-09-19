@@ -395,32 +395,32 @@ void func_actor_400600_80137498(Task* arg0, s16 arg1)
                 RotMatrixZ(-(s16)work->field_84, &m->mat);
                 ApplyMatrixSV(&m->mat, &v, &out);
             }
-            work->rec_624.field_0  = out.vx;
-            work->rec_624.field_2  = out.vy;
-            n                      = out.vz;
-            work->rec_624.field_4  = n;
-            n                      = 0xA;
-            work->rec_624.field_10 = n;
-            work->rec_624.field_12 = n;
+            work->rec_624.end0.vx    = out.vx;
+            work->rec_624.end0.vy    = out.vy;
+            n                        = out.vz;
+            work->rec_624.end0.vz    = n;
+            n                        = 0xA;
+            work->rec_624.end0Radius = n;
+            work->rec_624.end1Radius = n;
             break;
         case 1:
-            work->rec_624.field_0  = 0;
-            work->rec_624.field_2  = 0x190;
-            work->rec_624.field_4  = -0xBB8;
-            work->rec_624.field_10 = 0x50;
-            work->rec_624.field_12 = 0x50;
+            work->rec_624.end0.vx    = 0;
+            work->rec_624.end0.vy    = 0x190;
+            work->rec_624.end0.vz    = -0xBB8;
+            work->rec_624.end0Radius = 0x50;
+            work->rec_624.end1Radius = 0x50;
             break;
         case 2:
-            work->rec_624.field_0  = 0;
-            work->rec_624.field_2  = -0xBB8;
-            work->rec_624.field_4  = 0;
-            work->rec_624.field_10 = 0xA;
-            work->rec_624.field_12 = 0xA;
+            work->rec_624.end0.vx    = 0;
+            work->rec_624.end0.vy    = -0xBB8;
+            work->rec_624.end0.vz    = 0;
+            work->rec_624.end0Radius = 0xA;
+            work->rec_624.end1Radius = 0xA;
             break;
     }
-    work->rec_624.field_8 = 0;
-    work->rec_624.field_A = 0x64;
-    work->rec_624.field_C = 0;
+    work->rec_624.end1.vx = 0;
+    work->rec_624.end1.vy = 0x64;
+    work->rec_624.end1.vz = 0;
     Gp_ClearRec18Occupied(work->rec_63C);
     work->obj_604.flags |= 0x4000;
 }

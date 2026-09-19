@@ -3792,7 +3792,7 @@ void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2)
             a3v = (s32)arg0->ctx.node->ctx.recs;
             break;
         case 3:
-            a3v = (s32)arg0->ctx.d4rec->field_14;
+            a3v = (s32)arg0->ctx.d4rec->recs;
             break;
         empty_or: /* between case 3 and 4 so the empty-slot trampoline matches */
         {
@@ -3831,7 +3831,7 @@ void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2)
                             otable = ((GpObj*)a3v)->ctx.node->ctx.recs;
                             break;
                         case 3:
-                            otable = ((GpObj*)a3v)->ctx.d4rec->field_14;
+                            otable = ((GpObj*)a3v)->ctx.d4rec->recs;
                             break;
                         case 4:
                             otable = ((GpObj*)a3v)->ctx.dir->field_8;
@@ -4050,8 +4050,8 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1)
         return 0;
     }
 
-    r1      = rec->field_10;
-    tapered = r1 != rec->field_12;
+    r1      = rec->end0Radius;
+    tapered = r1 != rec->end1Radius;
     if (!tapered) {
         radius        = (u16)arg0->radius + r1;
         block->hit.vx = (u16)block->planeB.vx + ((block->normal.vx * proj) >> 12);
@@ -4063,9 +4063,9 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1)
 
     if (arg1->flags & 0xC00) {
         gte_SetRotMatrix(&arg1->coord->workm);
-        block->scaled.vx = (u16)rec->field_0 + (u16)arg1->pos.vx;
-        block->scaled.vy = (u16)rec->field_2 + (u16)arg1->pos.vy;
-        block->scaled.vz = (u16)rec->field_4 + (u16)arg1->pos.vz;
+        block->scaled.vx = (u16)rec->end0.vx + (u16)arg1->pos.vx;
+        block->scaled.vy = (u16)rec->end0.vy + (u16)arg1->pos.vy;
+        block->scaled.vz = (u16)rec->end0.vz + (u16)arg1->pos.vz;
         gte_ldv0((SVECTOR*)(head - 8));
         gte_rtv0_real();
         gte_stlvnl(ends);
@@ -4091,12 +4091,12 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1)
     proj             = len;
     plen             = SquareRoot0(dx3 + dy3 + dz3);
 
-    r0         = (rec->field_10 << 12) / rec->field_12;
+    r0         = (rec->end0Radius << 12) / rec->end1Radius;
     proj       = (plen << 12) / proj;
     ratioDelta = r0 - 0x1000;
     SOFT_TOUCH_REG_USE(ratioDelta, r0);
     r1            = (u16)arg0->radius;
-    proj          = r1 + ((((ratioDelta * proj) >> 12) * rec->field_12 >> 12) + rec->field_12);
+    proj          = r1 + ((((ratioDelta * proj) >> 12) * rec->end1Radius >> 12) + rec->end1Radius);
     block->hit.vx = (u16)block->scaled.vx + (u16)block->planeB.vx;
     block->hit.vy = (u16)block->scaled.vy + (u16)block->planeB.vy;
     block->hit.vz = (u16)block->scaled.vz + (u16)block->planeB.vz;
@@ -4719,7 +4719,7 @@ void func_800DDDF8(GpObj* node)
             if (D_80115450[i] != 0) {
                 if (func_800DD324(i, block->pos, block->ray, (s32)obj) != 0) {
                     rec  = obj->ctx.d4rec;
-                    slot = rec->field_14;
+                    slot = rec->recs;
                     if (obj->flags & 0x400) {
                         if (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1]
                                               [gGameSession->at4.loc.area - 1]
@@ -5036,7 +5036,7 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
         if (obj->flags & 0x800) {
             temp = (s32)rec;
             TOUCH_REG(temp);
-            slot = ((GpActorD4Rec*)temp)->field_14;
+            slot = ((GpActorD4Rec*)temp)->recs;
             for (;;) {
                 flags = slot->flags;
                 if (flags & 1) {
@@ -5052,7 +5052,7 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
                 slot++;
             }
         } else if (obj->flags & 0x400) {
-            slot = obj->ctx.d4rec->field_14;
+            slot = obj->ctx.d4rec->recs;
             for (;;) {
                 if (slot->flags & 1) {
                     if ((slot->key & 0xFFFF0000) == 0x100000) {
@@ -5070,7 +5070,7 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
             }
         }
     } else if (obj->flags & 0x400) {
-        slot = obj->ctx.d4rec->field_14;
+        slot = obj->ctx.d4rec->recs;
         for (;;) {
             if (slot->flags & 1) {
                 if ((slot->key & 0xFFFF0000) == 0x100000) {
@@ -6129,14 +6129,14 @@ s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
     scratch  = (void**)G_SCRATCH_HEAD;
     rec      = arg0->ctx.d4rec;
     head     = *scratch;
-    slot     = rec->field_14;
+    slot     = rec->recs;
     *scratch = (void*)(head - 0x28);
     COMPILER_BARRIER();
     block = (GpNearScratch*)(head - 0x28);
     gte_SetRotMatrix(&arg0->coord->workm);
-    block->local.vx = (u16)rec->field_8 + (u16)arg0->pos.vx;
-    block->local.vy = (u16)rec->field_A + (u16)arg0->pos.vy;
-    block->local.vz = (u16)rec->field_C + (u16)arg0->pos.vz;
+    block->local.vx = (u16)rec->end1.vx + (u16)arg0->pos.vx;
+    block->local.vy = (u16)rec->end1.vy + (u16)arg0->pos.vy;
+    block->local.vz = (u16)rec->end1.vz + (u16)arg0->pos.vz;
     gte_ldv0((SVECTOR*)(head - 8));
     gte_rtv0_real();
     gte_stlvnl(block);

@@ -4394,15 +4394,15 @@ void func_actor_503500_80144E8C(Task* arg0)
     work->head.obj.flags     = 3;
     work->head.obj.radius    = 0;
 
-    d4->field_14 = rec;
-    d4->field_8  = 0;
-    d4->field_A  = 0;
-    d4->field_C  = 0;
-    d4->field_0  = D_actor_503500_801715CC.vx;
-    d4->field_2  = D_actor_503500_801715CC.vy;
-    d4->field_4  = D_actor_503500_801715CC.vz;
-    d4->field_12 = 0x3E8;
-    d4->field_10 = 0x7D0;
+    d4->recs       = rec;
+    d4->end1.vx    = 0;
+    d4->end1.vy    = 0;
+    d4->end1.vz    = 0;
+    d4->end0.vx    = D_actor_503500_801715CC.vx;
+    d4->end0.vy    = D_actor_503500_801715CC.vy;
+    d4->end0.vz    = D_actor_503500_801715CC.vz;
+    d4->end1Radius = 0x3E8;
+    d4->end0Radius = 0x7D0;
 
     Gp_LinkObj(3, &work->head.obj);
     Gp_InitRec18Table(rec, 4, 0);

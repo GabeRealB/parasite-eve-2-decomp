@@ -384,25 +384,25 @@ void func_actor_405800_8013706C(Task* arg0, s16 arg1)
                 RotMatrixZ(-(s16)work->field_84, &m->mat);
                 ApplyMatrixSV(&m->mat, &v, &out);
             }
-            work->rec_744.field_0  = out.vx;
-            work->rec_744.field_2  = out.vy;
-            n                      = out.vz;
-            work->rec_744.field_4  = n;
-            n                      = 0xA;
-            work->rec_744.field_10 = n;
-            work->rec_744.field_12 = n;
+            work->rec_744.end0.vx    = out.vx;
+            work->rec_744.end0.vy    = out.vy;
+            n                        = out.vz;
+            work->rec_744.end0.vz    = n;
+            n                        = 0xA;
+            work->rec_744.end0Radius = n;
+            work->rec_744.end1Radius = n;
             break;
         case 1:
-            work->rec_744.field_0  = 0;
-            work->rec_744.field_2  = 0x190;
-            work->rec_744.field_4  = -0x1770;
-            work->rec_744.field_10 = 0x50;
-            work->rec_744.field_12 = 0x50;
+            work->rec_744.end0.vx    = 0;
+            work->rec_744.end0.vy    = 0x190;
+            work->rec_744.end0.vz    = -0x1770;
+            work->rec_744.end0Radius = 0x50;
+            work->rec_744.end1Radius = 0x50;
             break;
     }
-    work->rec_744.field_8 = 0;
-    work->rec_744.field_A = 0;
-    work->rec_744.field_C = 0;
+    work->rec_744.end1.vx = 0;
+    work->rec_744.end1.vy = 0;
+    work->rec_744.end1.vz = 0;
     Gp_ClearRec18Occupied(work->rec_75C);
     work->obj_724.flags |= 0x4000;
 }

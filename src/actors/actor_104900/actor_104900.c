@@ -390,8 +390,8 @@ void func_actor_104900_80137B1C(GpEnemy* enemy, Task* task, ActorsShared80138efc
 /// added to its translation and a 7-bit draw to the Y, and `flg` is cleared.
 ///
 /// The display node is linked as kind 3 pointing at the coordinate and at the
-/// 0x28 record, which takes 0x96s for `field_10` / `field_12` and points
-/// `field_14` at the one-entry collision table `Gp_InitRec18Table` zeroes, and
+/// 0x28 record, which takes 0x96 for `end0Radius` / `end1Radius` and points
+/// `recs` at the one-entry collision table `Gp_InitRec18Table` zeroes, and
 /// its `0xC000` flag pair is ORed in on top of `Gp_LinkObj`'s `flags = 3`. The
 /// actor takes `ActorsShared801511c8` as its exit callback and steps on to the
 /// next state, which it also runs immediately.
@@ -473,15 +473,15 @@ void func_actor_104900_80137C88(Task* task)
     obj->key       = Gp_PackPair(&D_actor_104900_801392F0[0], 5);
     obj->flags     = 3;
 
-    rec->field_14 = work->rec18;
-    rec->field_8  = 0;
-    rec->field_A  = 0;
-    rec->field_C  = 0;
-    rec->field_0  = 0;
-    rec->field_2  = 0;
-    rec->field_4  = 0;
-    rec->field_10 = 0x96;
-    rec->field_12 = 0x96;
+    rec->recs       = work->rec18;
+    rec->end1.vx    = 0;
+    rec->end1.vy    = 0;
+    rec->end1.vz    = 0;
+    rec->end0.vx    = 0;
+    rec->end0.vy    = 0;
+    rec->end0.vz    = 0;
+    rec->end0Radius = 0x96;
+    rec->end1Radius = 0x96;
     Gp_InitRec18Table(work->rec18, 1, 0);
     Gp_LinkObj(3, obj);
     obj->flags |= 0xC000;

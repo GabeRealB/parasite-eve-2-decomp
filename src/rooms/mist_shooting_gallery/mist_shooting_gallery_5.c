@@ -304,8 +304,8 @@ void func_mist_shooting_gallery_80182B1C(Task* arg0)
     work->difficulty = arg0->spawnArg1 & 0xF;
     work->field_0C   = -0xDC;
 
-    ((GpActorD4Rec*)actor->field_14C)->field_4 =
-        (((GpActorD4Rec*)actor->field_14C)->field_C + D_80112F60[D_80073BA9]) << 1;
+    actor->field_14C.end0.vz =
+        (actor->field_14C.end1.vz + D_80112F60[D_80073BA9]) << 1;
     func_801066DC(slot, 1);
 
     if (work->difficulty < 3) {

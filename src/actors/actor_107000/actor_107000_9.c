@@ -32,8 +32,8 @@ extern u8 D_actor_107000_8013F5E0[];
 /// render nodes and their collision tables, and hand the task over to the state
 /// table in `Task::msgTable`.
 ///
-/// Node 1 is the odd one: it points `field_C` at the `GpActorD4Rec` at 0x1FC
-/// rather than at a record table, and the record's own `field_14` names the one
+/// Node 1 is the odd one: it points its context at the `GpActorD4Rec` at 0x1FC
+/// rather than at a record table, and the record's own `recs` names the one
 /// `GpRec18` beside it - the pair `GpActorD4` keeps, and the three constants it
 /// carries are that record's fields rather than an object's. Node 3's `field_8`
 /// is the model's seventh coordinate (`&coord[6]`), which is the value the
@@ -95,25 +95,25 @@ void func_actor_107000_80136E88(GpEnemy* arg0, Task* arg1)
         i += 1;
     } while (i < 7);
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    work->field_370          = 1;
-    work->field_372          = 1;
-    work->field_388          = 0;
-    work->field_384          = 0;
-    work->field_386          = 0;
-    work->field_38E          = 0;
-    work->field_38A          = 0;
-    work->field_1FC.field_4  = 0xBB8;
-    work->field_1FC.field_10 = 0xFA0;
-    work->field_1FC.field_12 = 0x7D0;
-    work->field_1FC.field_14 = work->field_214;
-    work->obj1.ctx.d4rec     = &work->field_1FC;
-    work->obj1.coord         = coord;
-    work->obj1.pos.vx        = 0;
-    work->obj1.pos.vy        = 0;
-    work->obj1.pos.vz        = 0;
-    work->obj1.key           = 0;
-    work->obj1.radius        = 0;
-    work->obj1.flags         = 3U;
+    work->field_370            = 1;
+    work->field_372            = 1;
+    work->field_388            = 0;
+    work->field_384            = 0;
+    work->field_386            = 0;
+    work->field_38E            = 0;
+    work->field_38A            = 0;
+    work->field_1FC.end0.vz    = 0xBB8;
+    work->field_1FC.end0Radius = 0xFA0;
+    work->field_1FC.end1Radius = 0x7D0;
+    work->field_1FC.recs       = work->field_214;
+    work->obj1.ctx.d4rec       = &work->field_1FC;
+    work->obj1.coord           = coord;
+    work->obj1.pos.vx          = 0;
+    work->obj1.pos.vy          = 0;
+    work->obj1.pos.vz          = 0;
+    work->obj1.key             = 0;
+    work->obj1.radius          = 0;
+    work->obj1.flags           = 3U;
     Gp_LinkObj(3, &work->obj1);
     Gp_InitRec18Table(work->field_214, 1, 0);
     work->obj2.coord    = coord;

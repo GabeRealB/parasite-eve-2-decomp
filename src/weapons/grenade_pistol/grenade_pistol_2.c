@@ -118,7 +118,7 @@ move:
     coord->coord.t[0]  += blk->delta.vx.w;
     coord->coord.t[1]  += blk->delta.vy.w;
     coord->coord.t[2]  += blk->delta.vz.w;
-    work->d4rec.field_C = -(work->field_88.w >> 9);
+    work->d4rec.end1.vz = -(work->field_88.w >> 9);
     work->field_88.w   += 0x1800;
     if (work->field_88.w > 0xDFFFF) {
         goto explode;

@@ -3390,7 +3390,7 @@ void Gp_AttachActorObj(GpActorWork* arg0, s32 arg1, s32 arg2)
     actor = arg0->actor;
     p     = head - 0x10;
     obj   = (GpObj*)actor->field_10C;
-    rec   = (GpActorD4Rec*)actor->field_14C;
+    rec   = &actor->field_14C;
     asm("" : "+r"(obj), "+r"(rec) : "r"(p));
     *scratch = p;
     task     = actor->field_91C;
@@ -3404,7 +3404,7 @@ void Gp_AttachActorObj(GpActorWork* arg0, s32 arg1, s32 arg2)
         ((GpActorSvec*)actor)->field_418 = 0;
         ((GpActorSvec*)actor)->field_41A = 0;
         ((GpActorSvec*)actor)->field_41C = 0;
-        obj->ctx.d4rec                   = (GpActorD4Rec*)actor->field_14C;
+        obj->ctx.d4rec                   = &actor->field_14C;
         COMPILER_BARRIER();
         three            = 3;
         packed           = id << 8;
@@ -3417,27 +3417,27 @@ void Gp_AttachActorObj(GpActorWork* arg0, s32 arg1, s32 arg2)
         obj->pos.vz      = 0;
         actor->field_124 = packed;
         *tmp             = D_80112FA4[id];
-        rec->field_8     = tmp->vx;
-        rec->field_A     = tmp->vy;
+        rec->end1.vx     = tmp->vx;
+        rec->end1.vy     = tmp->vy;
         vz               = tmp->vz;
-        rec->field_0     = rec->field_8;
-        rec->field_C     = vz;
-        rec->field_2     = rec->field_A;
-        rec->field_4     = rec->field_C + D_80112F60[id];
+        rec->end0.vx     = rec->end1.vx;
+        rec->end1.vz     = vz;
+        rec->end0.vy     = rec->end1.vy;
+        rec->end0.vz     = rec->end1.vz + D_80112F60[id];
         USE_REG(id);
         scale = 0x100;
         if (Player_Status.weapon == 0x13) {
             scale = 0x280;
         }
-        rec->field_12 = scale;
+        rec->end1Radius = scale;
         if (kind != 0xD) {
-            rec->field_10 = scale;
+            rec->end0Radius = scale;
         } else {
-            rec->field_10 = 0x900;
+            rec->end0Radius = 0x900;
         }
-        rec->field_14 = actor->field_32C;
+        rec->recs = actor->field_32C;
         Gp_LinkObj(1, obj);
-        Gp_InitRec18Table(rec->field_14, 6, 0);
+        Gp_InitRec18Table(rec->recs, 6, 0);
         USE_REG(actor);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
@@ -9938,31 +9938,31 @@ void Gp_BindActorD4(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2)
     GpActorD4Rec*  rec;
     s16            vz;
 
-    block          = arg0->actor->field_910;
-    src            = (GsCOORDINATE2*)arg0->extra->coords;
-    obj            = (GpObj*)block->field_68;
-    rec            = &block->field_88;
-    dest           = (GsCOORDINATE2*)block->field_18;
-    *dest          = *src;
-    obj->coord     = block->field_18;
-    obj->pos.vz    = -0xA0;
-    obj->key       = 0x60000;
-    obj->ctx.d4rec = rec;
-    obj->pos.vx    = 0;
-    obj->pos.vy    = 0;
-    obj->flags     = 3;
-    rec->field_8   = arg1->vx;
-    rec->field_A   = arg1->vy;
-    vz             = arg1->vz;
-    rec->field_4   = arg2;
-    rec->field_0   = rec->field_8;
-    rec->field_12  = 0x80;
-    rec->field_10  = 0x80;
-    rec->field_14  = &block->field_A0;
-    rec->field_C   = vz;
-    rec->field_2   = rec->field_A;
+    block           = arg0->actor->field_910;
+    src             = (GsCOORDINATE2*)arg0->extra->coords;
+    obj             = (GpObj*)block->field_68;
+    rec             = &block->field_88;
+    dest            = (GsCOORDINATE2*)block->field_18;
+    *dest           = *src;
+    obj->coord      = block->field_18;
+    obj->pos.vz     = -0xA0;
+    obj->key        = 0x60000;
+    obj->ctx.d4rec  = rec;
+    obj->pos.vx     = 0;
+    obj->pos.vy     = 0;
+    obj->flags      = 3;
+    rec->end1.vx    = arg1->vx;
+    rec->end1.vy    = arg1->vy;
+    vz              = arg1->vz;
+    rec->end0.vz    = arg2;
+    rec->end0.vx    = rec->end1.vx;
+    rec->end1Radius = 0x80;
+    rec->end0Radius = 0x80;
+    rec->recs       = &block->field_A0;
+    rec->end1.vz    = vz;
+    rec->end0.vy    = rec->end1.vy;
     Gp_LinkObj(1, obj);
-    Gp_InitRec18Table(rec->field_14, 1, 0);
+    Gp_InitRec18Table(rec->recs, 1, 0);
     obj->flags |= 0xC800;
 }
 

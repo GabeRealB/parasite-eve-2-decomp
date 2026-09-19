@@ -60,7 +60,7 @@ void func_gunblade_8011E040(GpActorWork* arg0)
     shake                 = 0;
     actor                 = arg0->actor;
     sfx                   = (D_80073BAA - 0xD) << 24;
-    rec                   = (GpActorD4Rec*)actor->field_14C;
+    rec                   = &actor->field_14C;
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD - sizeof(GunbladeScratch);
     blk                   = (GunbladeScratch*)*(u8**)G_SCRATCH_HEAD;
     coord                 = arg0->extra->coords;
@@ -97,24 +97,24 @@ void func_gunblade_8011E040(GpActorWork* arg0)
                 actor->field_952 = 0x39;
                 func_80106518(0x17);
                 actor->field_124  = 0x2171B;
-                rec->field_10     = 0x180;
-                rec->field_12     = 0x180;
-                rec->field_4      = rec->field_C + D_80112F8E;
+                rec->end0Radius   = 0x180;
+                rec->end1Radius   = 0x180;
+                rec->end0.vz      = rec->end1.vz + D_80112F8E;
                 actor->field_12A &= 0xF7FF;
                 Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 3);
                 break;
             }
             actor->field_95E = 6;
-            ((GpActorD4Rec*)actor->field_14C)->field_4 =
-                ((GpActorD4Rec*)actor->field_14C)->field_C + 0x2200;
+            actor->field_14C.end0.vz =
+                actor->field_14C.end1.vz + 0x2200;
             actor->field_124 = Player_Status.weaponSlotItem | 0x21700;
-            rec->field_12    = 0x100;
-            rec->field_4     = rec->field_C + 0x2200;
+            rec->end1Radius  = 0x100;
+            rec->end0.vz     = rec->end1.vz + 0x2200;
             spread           = 0x900;
             if (Player_Status.weaponSlotItem != 0xD) {
                 spread = 0x100;
             }
-            rec->field_10 = spread;
+            rec->end0Radius = spread;
             if (Player_Status.weaponSlotItem == 0xE) {
                 actor->field_12A |= 0x800;
             } else {

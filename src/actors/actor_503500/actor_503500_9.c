@@ -403,8 +403,8 @@ void func_actor_503500_801450A0(Actor503500* arg0)
         if (work->field_C4 < 0x200) {
             work->field_C4 = 0x200;
         }
-        d4->field_10 = work->field_C4 * 0x177 >> 9;
-        d4->field_12 = work->field_C4 * 0x7D >> 9;
+        d4->end0Radius = work->field_C4 * 0x177 >> 9;
+        d4->end1Radius = work->field_C4 * 0x7D >> 9;
         gte_SetRotMatrix(&work->field_9C);
         gte_ldv0(&D_actor_503500_801715CC);
         gte_rtv0_real();
@@ -645,15 +645,15 @@ void func_actor_503500_80145A2C(Task* arg0)
     work->head.obj.flags     = 3;
     work->head.obj.radius    = 0;
 
-    d4->field_14 = rec;
-    d4->field_8  = 0;
-    d4->field_A  = 0;
-    d4->field_C  = 0;
-    d4->field_0  = D_actor_503500_801715E4.vx;
-    d4->field_2  = D_actor_503500_801715E4.vy;
-    d4->field_4  = D_actor_503500_801715E4.vz;
-    d4->field_12 = 0x7D0;
-    d4->field_10 = 0xBB8;
+    d4->recs       = rec;
+    d4->end1.vx    = 0;
+    d4->end1.vy    = 0;
+    d4->end1.vz    = 0;
+    d4->end0.vx    = D_actor_503500_801715E4.vx;
+    d4->end0.vy    = D_actor_503500_801715E4.vy;
+    d4->end0.vz    = D_actor_503500_801715E4.vz;
+    d4->end1Radius = 0x7D0;
+    d4->end0Radius = 0xBB8;
 
     Gp_LinkObj(3, &work->head.obj);
     Gp_InitRec18Table(rec, 4, 0);

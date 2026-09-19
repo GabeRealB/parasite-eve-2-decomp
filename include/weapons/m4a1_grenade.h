@@ -13,7 +13,7 @@
 /// `WeaponsShared8011de24` hands back to `Gp_UnlinkObj` on teardown: `obj` is
 /// a `flags & 7 == 1` node whose `ctx.recs` is `rec0` directly, `obj2` is a
 /// `flags & 7 == 3` node whose `ctx.d4rec` is `d4rec`, reaching `rec1` through
-/// `GpActorD4Rec::field_14`. `field_88` is the flight countdown
+/// the shape's `recs`. `field_88` is the flight countdown
 /// `WeaponsShared8011ddf8` decrements, and `dir` is the launch direction:
 /// column 2 of the muzzle matrix pitched up 0x400, normalized. `field_88` is
 /// 16.16: the whole word is the flight timer, while its high half is the

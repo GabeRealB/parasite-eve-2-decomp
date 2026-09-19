@@ -36,7 +36,7 @@ void func_p229_8011DDA0(GpActorWork* arg0)
 
     actor = arg0->actor;
     coord = arg0->extra->coords;
-    rec   = (GpActorD4Rec*)actor->field_14C;
+    rec   = &actor->field_14C;
     /* Pinned to `$v0`: the scratch block's address is stored back to
        `G_SCRATCH_HEAD` from `$v0` and copied into the callee-saved `spot`,
        so the two uses must not be coalesced into one register. This block
@@ -76,7 +76,7 @@ void func_p229_8011DDA0(GpActorWork* arg0)
                 actor->field_95E  = 3;
                 actor->field_979  = 0xA;
                 actor->field_124  = Player_Status.weaponSlotItem | 0x20500;
-                rec->field_10     = rec->field_12;
+                rec->end0Radius   = rec->end1Radius;
                 actor->field_12A |= 0x800;
                 func_80106238(arg0, 0, 0);
                 Gp_ConsumeSlotQty(0x84, 1);
@@ -89,7 +89,7 @@ void func_p229_8011DDA0(GpActorWork* arg0)
                 actor->field_95E  = 4;
                 actor->field_979  = 6;
                 actor->field_124  = 0x20516;
-                rec->field_10     = 0xC00;
+                rec->end0Radius   = 0xC00;
                 actor->field_12A &= 0xF7FF;
                 func_80106238(arg0, 0, 1);
                 Gp_ConsumeSlotQty(0x84, 0x101);

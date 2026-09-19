@@ -35848,7 +35848,7 @@ so a `beqz flags` delay is `move v0, t7` / `lw 0x14(v0)` rather than
 register s32 temp asm("v0");
 temp = (s32)rec;
 asm volatile("" : "+r"(temp));
-slot = ((GpActorD4Rec*)temp)->field_14;
+slot = ((GpActorD4Rec*)temp)->recs;
 ```
 
 Index a `VECTOR` / `SVECTOR` with that same `$v0` temp so the shifts stay
@@ -49004,12 +49004,11 @@ the case the label goes in, and every other user of it becomes a forward goto.
 
 ## Do not cache an interior sub-struct pointer in a local
 
-A byte array inside a struct is often really a nested record, and the natural C
-is to name it once:
+A nested record inside a struct reads naturally through one named pointer:
 
 ```c
-GpActorD4Rec* rec = (GpActorD4Rec*)actor->field_14C; /* field_14C is byte[0x18] */
-rec->field_4 = (rec->field_C + D_80112F60[D_80073BA9]) << 1;
+GpActorD4Rec* rec = &actor->field_14C;
+rec->end0.vz = (rec->end1.vz + D_80112F60[D_80073BA9]) << 1;
 ```
 
 That scores 98% with `regs`/`branch` leftovers, because the local forces GCC to
@@ -49022,13 +49021,13 @@ sh    v1,4(a2)         /* target: sh  v1,0x150(s3) */
 ```
 
 The base register is already live, so the target just folds `0x14C + field` into
-each load/store displacement. Repeat the cast expression at every use instead —
+each load/store displacement. Repeat the member path at every use instead —
 GCC CSEs the constant offset into the addressing mode and never materializes the
 interior pointer:
 
 ```c
-((GpActorD4Rec*)actor->field_14C)->field_4 =
-    (((GpActorD4Rec*)actor->field_14C)->field_C + D_80112F60[D_80073BA9]) << 1;
+actor->field_14C.end0.vz =
+    (actor->field_14C.end1.vz + D_80112F60[D_80073BA9]) << 1;
 ```
 
 This is the opposite of "Hold a global's address in a local pointer": a global
@@ -54949,7 +54948,7 @@ scratch load's delay slot:
 ```c
 actor = arg0->actor;
 coord = arg0->extra->coords;
-rec   = (GpActorD4Rec*)actor->field_14C;
+rec   = &actor->field_14C;
 { /* scratch borrow, as above */ }
 switch (actor->field_95E) {
 ```
@@ -79135,8 +79134,8 @@ Inputs: `base_1.i`
 
 `func_actor_105700_80134FDC` (USA/actors/actor_105700) fills a 0xF0-byte body
 block whose `obj98` `GpObj` at 0x98 points at a `GpActorD4Rec` at 0xB8. The ROM
-emits `obj98.field_C`, then the whole `d4rec` run (`field_0` … `field_14`),
-then `obj98.field_8` / `_10` / `_12` / `_14` / `_18` / `_1C` / `flags` — the
+emits `obj98.ctx.d4rec`, then the whole `d4rec` run (`end0` … `recs`),
+then `obj98.coord` / `pos` / `key` / `radius` / `flags` — the
 parent's fields are split *around* the sub-record, not grouped.
 
 Writing the parent's block first and the sub-record after it scores 97.04%
@@ -79147,10 +79146,10 @@ only lever is where each store sits, and the matching form is exactly the ROM
 order:
 
 ```c
-work->d4rec.field_0  = 0;
-/* … field_2 / field_4 / field_8 / field_A / field_C / field_10 / field_12 */
-work->d4rec.field_14 = work->recD0;
-work->obj98.field_C  = (GpRec18*)&work->d4rec;
+work->d4rec.end0.vx = 0;
+/* … end0.vy / end0.vz / end1.vx / end1.vy / end1.vz / end0Radius / end1Radius */
+work->d4rec.recs    = work->recD0;
+work->obj98.ctx.d4rec = &work->d4rec;
 work->obj98.field_8  = coord;
 /* … field_10 / _12 / _14 / _18 / _1C */
 work->obj98.flags    = 3;
@@ -114140,18 +114139,18 @@ blocks. Three statement moves closed it:
    order is per-function, so do not carry it over.
 
 2. **Which statement first names a CSE'd address decides where its `addiu` lands.**
-   `work->field_214` is named twice (`field_1FC.field_14 = work->field_214;` and
+   `work->field_214` is named twice (`field_1FC.recs = work->field_214;` and
    `Gp_InitRec18Table(work->field_214, 1, 0)`), so CSE materialises one `addiu`.
-   With `obj1.field_C = (GpRec18*)&work->field_1FC;` written first, that `addiu`
+   With `obj1.ctx.d4rec = &work->field_1FC;` written first, that `addiu`
    sits one slot too late and the last insn lands after `addiu v0, s2, 0x1FC`
-   instead of before `sh v0, 0x20E`. Moving the `field_14` assignment above the
-   `field_C` assignment moved it one slot earlier and the function went to
+   instead of before `sh v0, 0x20E`. Moving the `recs` assignment above the
+   `ctx.d4rec` assignment moved it one slot earlier and the function went to
    100.000%.
 
 3. Everything else was already right: the `one` local (a named `s32 one = 1`)
    keeps `$s5` live across `Gp_LinkNode`, `part = &coord[6]` lands in `$s7` in
    the `bne` delay slot, and the work block's 0x1FC run is a `GpActorD4Rec`
-   whose `field_14` names the single `GpRec18` beside it - not, as the m2c
+   whose `recs` names the single `GpRec18` beside it - not, as the m2c
    spelling suggests, a `GpRec18` at 0x1FC plus a stray word store at 0x210.
 
 The body is byte-identical to `func_actor_207000_8014EE88`, but promotion is
@@ -131113,11 +131112,42 @@ The typedef name is not in scope until its declarator completes, so a member
 that refers to the type being defined - which a union of payload views usually
 does, at least for the "another one of these" arm - has to spell the tag. The
 same applies to every *other* type the union names: a type declared later in the
-same header (`GpActorD4Rec`, `GpObjDirRec` behind the union's other arms) is not
+same header (`GpObjDirRec` behind the union's other arms) is not
 in scope either, and needs `struct _Tag;` forward declarations above the
 definition, with its arms spelled `struct _Tag*`. A forward declaration of the
 tag is enough because the arms are pointers; only the tag spelling is load
 bearing.
+
+## A record a main struct embeds by value is declared main-side, not cast at every use
+
+The two header trees point one way: overlay headers include `main/session.h`, so
+`main/session.h` cannot include one back. That leaves a main struct that
+*embeds* an overlay record - by value, not through a pointer - unable to name
+it, and the usual response is to keep the member a byte run and cast at each
+use:
+
+```c
+/* GameActor */
+/* 0x14C */ byte field_14C[0x18];   /* record type; the function that fills it */
+
+/* every overlay that reads it */
+rec = (Record*)actor->field_14C;
+```
+
+Those casts are the count of what this costs. The fix is not a restated
+duplicate, which only trades the casts for two declarations of one layout, but
+the declaration itself, moved into the owner's header beside the records main
+already embeds - precisely how `GpRec18` and `GpLinkNode` came to be declared in
+`main/session.h`, neither of which has a caller in `src/main/`. A prototype that
+merely *names* an overlay type is the other case: there the include goes at the
+one call site that needs it.
+
+Folding the record's own scalars into nested aggregates at the same time left
+every match standing, which is worth remembering for its own sake: a member
+group whose accesses keep their offsets and widths is the same code, so the two
+`SVECTOR`s the six `s16`s became compile to the same loads and stores. What
+finds the sites afterwards is the compiler - drop the old names and every
+remaining use is an error, including in files you never opened.
 
 ## A main-side prototype that names an overlay type moves the include, not the type
 

@@ -182,6 +182,33 @@ typedef struct {
 } GpRec18;
 STATIC_ASSERT_SIZEOF(GpRec18, 0x18);
 
+/// The collision shape a body carries: the segment between two local
+/// endpoints, the radius at each, and the table the contacts it makes are
+/// recorded in. A body whose kind bits name this shape reaches it through its
+/// `GpObj` context.
+///
+/// Both endpoints are offsets under the body's own position in its own frame,
+/// so the shape travels with it. The grid passes sweep the segment between the
+/// two, and the pair passes test the cylinder that the segment and the two
+/// radii describe, which is a capsule while the radii are equal and tapers
+/// between them when they are not.
+///
+/// The table is the shape's link to its owner: it is sized and cleared when the
+/// shape is set up, and the collision passes fill it as contacts are made. A
+/// weapon re-arms the shape as it unfolds, pushing one endpoint out along its
+/// reach and widening that end's radius with the spread.
+///
+/// Declared main-side because `GameActor` embeds one by value; the work blocks
+/// that carry the same shape reach it through this declaration.
+typedef struct {
+    /* 0x00 */ SVECTOR  end0;       // one end of the segment, offset under the body
+    /* 0x08 */ SVECTOR  end1;       // the other end
+    /* 0x10 */ s16      end0Radius; // radius at `end0`
+    /* 0x12 */ s16      end1Radius; // radius at `end1`; equal to `end0Radius` unless tapered
+    /* 0x14 */ GpRec18* recs;       // table the contacts this body makes are recorded in
+} GpActorD4Rec;
+STATIC_ASSERT_SIZEOF(GpActorD4Rec, 0x18);
+
 /// 0x28-byte record in `GameActor.field_438`, the actor's own `GpAnimSlot`
 /// array (`gameplay/1BC.h`); `GameActor.field_424` is the `GpAnimCtx` whose
 /// `field_C` points here. Count is `GameActor.field_938` (init 0x13).
@@ -255,7 +282,7 @@ typedef struct _GameActor {
     /* 0x128 */ byte               pad_128[2];
     /* 0x12A */ u16                field_12A;       // that node's flags
     /* 0x12C */ byte               field_12C[0x20];
-    /* 0x14C */ byte               field_14C[0x18]; // GpActorD4Rec; Gp_AttachActorObj
+    /* 0x14C */ GpActorD4Rec       field_14C;       // the actor's own collision shape; the weapon attach re-arms it
     /* 0x164 */ byte               pad_164[0x18];
     /* 0x17C */ GpRec18            field_17C[18];   // Gp_ClearRec18Occupied / func_801041B4
     /* 0x32C */ GpRec18            field_32C[6];    // Gp_AttachActorObj / Gp_InitRec18Table

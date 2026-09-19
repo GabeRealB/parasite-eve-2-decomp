@@ -12,7 +12,6 @@
 
 struct _GsCOORDINATE2;
 struct _GpObjDirRec;
-struct _GpActorD4Rec;
 
 /// One body an actor puts on the world's object lists: a sphere of `radius`
 /// whose centre is `pos`, a local offset under `coord`, and which the contacts
@@ -20,25 +19,25 @@ struct _GpActorD4Rec;
 ///
 /// `flags` bits 0-2 select what `ctx` points at, which is how the collision
 /// passes reach the `GpRec18` table recording that body's contacts: 0 nothing,
-/// 1 the table itself, 2 a node whose own table is used, 3 a `GpActorD4Rec`,
-/// 4 a `GpObjDirRec`. Bit 3 marks a node sitting on a `Gp_ObjLists` list, bit
+/// 1 the table itself, 2 a node whose own table is used, 3 the `GpActorD4Rec`
+/// shape the body carries, 4 a `GpObjDirRec`. Bit 3 marks a node sitting on a `Gp_ObjLists` list, bit
 /// 0x800 makes the contacts it produces name the node instead of a direction,
 /// and bits 0x4000 and 0x8000 enable the grid and pair passes, which skip a
 /// node whose bit is clear.
 typedef struct _GpObj {
-    struct _GpObj* next;             // next on the list
-    struct _GpObj* prev;             // previous on the list
-    GsCOORDINATE2* coord;            // transform `pos` is an offset under
+    struct _GpObj* next;            // next on the list
+    struct _GpObj* prev;            // previous on the list
+    GsCOORDINATE2* coord;           // transform `pos` is an offset under
     union {
-        GpRec18*              recs;  // kind 1: the body's own contact table
-        struct _GpObj*        node;  // kind 2: the node whose table is used
-        struct _GpActorD4Rec* d4rec; // kind 3: the record whose `field_14` table is used
-        struct _GpObjDirRec*  dir;   // kind 4: the record whose `field_8` table is used
-    } ctx;                           // the body's collision context; see the kind bits
-    SVECTOR pos;                     // centre, in the `coord` frame
-    s32     key;                     // identity in the contact records: class << 16 | id
-    u16     radius;                  // collision radius
-    u16     flags;                   // kind, list membership and pass enables; see above
+        GpRec18*             recs;  // kind 1: the body's own contact table
+        struct _GpObj*       node;  // kind 2: the node whose table is used
+        GpActorD4Rec*        d4rec; // kind 3: the shape the body carries
+        struct _GpObjDirRec* dir;   // kind 4: the record whose `field_8` table is used
+    } ctx;                          // the body's collision context; see the kind bits
+    SVECTOR pos;                    // centre, in the `coord` frame
+    s32     key;                    // identity in the contact records: class << 16 | id
+    u16     radius;                 // collision radius
+    u16     flags;                  // kind, list membership and pass enables; see above
 } GpObj;
 STATIC_ASSERT_SIZEOF(GpObj, 0x20);
 
@@ -117,29 +116,10 @@ typedef struct _GpActorFlags {
 } GpActorFlags;
 STATIC_ASSERT_SIZEOF(GpActorFlags, 0x4);
 
-/// 0x18-byte record at `GpActorD4.field_88`. `Gp_BindActorD4` copies `arg1`
-/// into `field_8` / `field_A` / `field_C`, mirrors `field_8` / `field_A`
-/// into `field_0` / `field_2`, stores `arg2` at `field_4`, writes 0x80 to
-/// `field_10` / `field_12`, and points `field_14` at `field_A0`.
-typedef struct _GpActorD4Rec {
-    /* 0x00 */ s16      field_0;
-    /* 0x02 */ s16      field_2;
-    /* 0x04 */ s16      field_4;
-    /* 0x06 */ s16      pad_6;
-    /* 0x08 */ s16      field_8;
-    /* 0x0A */ s16      field_A;
-    /* 0x0C */ s16      field_C;
-    /* 0x0E */ s16      pad_E;
-    /* 0x10 */ s16      field_10;
-    /* 0x12 */ s16      field_12;
-    /* 0x14 */ GpRec18* field_14;
-} GpActorD4Rec;
-STATIC_ASSERT_SIZEOF(GpActorD4Rec, 0x18);
-
 /// 0xD4-byte block allocated by `Gp_SpawnAlly` (`Mem_Set` size 0xD4) and
 /// stored at `GameActor.field_910`. `Gp_BindActorD4` copies a `GsCOORDINATE2`
-/// into `field_18`, treats `field_68` as a `GpObj`, fills `field_88`, and
-/// points `field_88.field_14` at `field_A0`. `func_8010BF7C` writes `field_C4`.
+/// into `field_18`, treats `field_68` as a `GpObj`, fills `field_88` and points
+/// its `recs` at `field_A0`. `func_8010BF7C` writes `field_C4`.
 /// `Gp_SetupAllyWeapon` writes `field_CD` from `D_80167230[Mc_SaveData.field_5C7]`.
 /// `field_D0` is an `lb`/`sb` flag (`func_actor_800200_80165644` / `_8016599C`).
 typedef struct _GpActorD4 {
@@ -950,8 +930,8 @@ extern u8 D_80112EF8[];
 /// makes `func_801088D4` abort the item-use path (`field_95E = 0x3E8`).
 extern u8 D_80112F1C[][2];
 
-/// u16 table indexed by `Gp_AttachActorObj` arg1 and added onto
-/// `GpActorD4Rec.field_C` when filling `field_4`.
+/// u16 table indexed by `Gp_AttachActorObj` arg1: the reach a weapon of that
+/// attach id adds to the shape's `end1` to give its `end0`.
 extern u16 D_80112F60[];
 
 /// `D_80112F60[0x17]`, the row for attach id 0x17. Spelled out for the same
@@ -963,9 +943,9 @@ extern u16 D_80112F8E;
 /// out here; `func_m4a1_bayonet_8011DA34` is the only user.
 extern u16 D_80112F94;
 
-/// 0x10-byte `VECTOR` rows indexed by `Gp_AttachActorObj` arg1. Copied through
-/// scratch; the low 16 bits of `vx`/`vy`/`vz` seed `GpActorD4Rec.field_8` /
-/// `field_A` / `field_C`.
+/// 0x10-byte `VECTOR` rows indexed by `Gp_AttachActorObj` arg1: where the
+/// weapon of that attach id sits on the actor. Copied through scratch; the low
+/// 16 bits of `vx`/`vy`/`vz` seed the shape's `end1`.
 extern VECTOR D_80112FA4[];
 
 /// Overlay-imported s16 table indexed by `Mc_SaveData.field_5C7` and passed
