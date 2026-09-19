@@ -167,7 +167,7 @@ typedef union {
 } SndEvtArgs;
 STATIC_ASSERT_SIZEOF(SndEvtArgs, 0x10);
 
-/// Deferred sound event: one queued audio command, in a slot of `SndEvt_Pool`.
+/// Deferred sound event: one queued audio command, in a slot of `_gSndEvtPool`.
 ///
 /// `SndEvt_Enqueue*` fills in the arguments and appends the event to the pending
 /// queue; `SndEvt_Process` passes it to the handler `handlerIdx` selects and
@@ -840,7 +840,6 @@ extern u32              Spu_KeyOnMaskExtra;
 extern u32              Spu_KeyOffMask;
 extern SpuReverbConfig  Spu_ReverbCfg;
 extern SndEvt*          SndEvt_Tail;
-extern SndEvt           SndEvt_Pool[0x40];
 extern MidiSong         Midi_Song;
 extern SndBank          Snd_Banks[];
 extern SndBankSlot      SndBank_Slots[16];

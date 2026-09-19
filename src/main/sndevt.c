@@ -10,6 +10,14 @@
 /// pass cannot walk a half-linked list; a reset leaves the queue processable.
 extern s32 _gSndEvtProcessEnabled;
 
+/// The slots the deferred sound events live in: 0x40 of them, one per queued
+/// command.
+///
+/// `SndEvt_Alloc` takes a free slot and `SndEvt_Free` marks it free again, so
+/// this array's length is how many events can be pending at once; an enqueue
+/// that finds no free slot reports the failure rather than allocating.
+extern SndEvt _gSndEvtPool[0x40];
+
 /// Oldest event still waiting to be processed, or `NULL` while the queue is
 /// empty.
 ///
@@ -34,7 +42,7 @@ void SndEvt_Process(void)
     do {
         cur = _gSndEvtHead;
         if ((u16)cur->handlerIdx >= 0x10U) {
-            ptr = (s32*)SndEvt_Pool;
+            ptr = (s32*)_gSndEvtPool;
             i   = 0;
             do {
                 *ptr = 0;
@@ -64,7 +72,7 @@ void SndEvt_Reset(void)
     u32  i;
     s32* ptr;
 
-    ptr = (s32*)SndEvt_Pool;
+    ptr = (s32*)_gSndEvtPool;
     i   = 0;
     do {
         *ptr = 0;
@@ -84,7 +92,7 @@ SndEvt* SndEvt_Alloc(void)
 
     i    = 0;
     flag = 1;
-    for (ptr = SndEvt_Pool; i < 0x40; i++, ptr++) {
+    for (ptr = _gSndEvtPool; i < 0x40; i++, ptr++) {
         if (ptr->allocated == 0) {
             ptr->allocated  = flag;
             ptr->handlerIdx = 0;

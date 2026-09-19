@@ -8061,10 +8061,10 @@ otCtx->field_0 = depth;
 with a local:
 
 ```c
-/* Matches: li a1,1 then lui/addiu of SndEvt_Pool */
+/* Matches: li a1,1 then lui/addiu of _gSndEvtPool */
 i = 0;
 flag = 1;
-for (ptr = SndEvt_Pool; i < 0x40; i++, ptr++) {
+for (ptr = _gSndEvtPool; i < 0x40; i++, ptr++) {
     if (ptr->allocated == 0) {
         ptr->allocated = flag;
         ...
