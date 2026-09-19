@@ -2859,7 +2859,177 @@ void func_actor_400500_801375B8(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013771C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80138088);
+void func_actor_400500_80138088(Task* arg0)
+{
+    MATRIX                 normal;
+    MATRIX                 parent;
+    Actor400500Work*       work;
+    Actor400500Work*       work2;
+    Actor400500AnimStride* stride;
+    GsCOORDINATE2*         view;
+    GsCOORDINATE2*         view2;
+    MATRIX*                parentp;
+    MATRIX*                tmp;
+    u8*                    head;
+    u8*                    head2;
+    u8*                    head3;
+    MATRIX*                allocated;
+    MATRIX*                matrix;
+    GsCOORDINATE2*         coords;
+    GsCOORDINATE2*         coords2;
+    GsCOORDINATE2*         coord;
+    GsCOORDINATE2*         current;
+    GsCOORDINATE2*         dest;
+    Actor400500HitView*    hit;
+    Actor400500Work*       work3;
+    Actor400500Work*       work4;
+    s32                    i;
+    s32                    cond;
+    s32                    flag;
+    u16                    angle;
+    u16                    addend;
+    s32                    delta;
+    TmdObject*             model2;
+    TmdObject*             model;
+
+    work            = (Actor400500Work*)arg0->work;
+    work->field_A04 = work->field_A04 + 1;
+    work2           = (Actor400500Work*)arg0->work;
+    if (work2->field_9FA == 1) {
+        if ((s16)work2->field_9FC != work2->field_9FE) {
+            work2->field_A00 = 0;
+        } else {
+            work2->field_A00 = func_actor_400500_8013DD8C(arg0, work2->field_A00);
+        }
+        func_actor_400500_8013DCD4(arg0);
+        work2->field_9FA = 3;
+    } else if (work2->field_9FA == 2) {
+        func_actor_400500_8013DC4C(arg0);
+        work2->field_9FA = 3;
+        work2->field_A00 = 0;
+    } else if (work2->field_9FA == 3) {
+        work2->field_A00 = (u16)work2->field_A00 + 1;
+    }
+    i      = 1;
+    stride = (Actor400500AnimStride*)work2 + 1;
+    do {
+        stride->field_1D = (u8)work2->field_9F8;
+        Gp_AnimTickIndex(&work2->anim, i);
+        i++;
+        stride++;
+    } while (i < 0x12);
+
+    addend = *(volatile u16*)&work->field_9BC;
+    SOFT_USE_REG(work);
+    __asm__("lui %0,%%hi(%1)" : "=r"(model) : "i"(&gGfxViewCoord));
+    __asm__("addiu %0,%1,%%lo(%2)" : "=r"(view) : "r"(model), "i"(&gGfxViewCoord));
+    SOFT_USE_REG(work);
+    delta = work->field_9BC;
+    __asm__("lui %0, 0x1F80" : "=r"(head) : "r"(delta));
+    head   = *(u8**)(head + 0x3FC);
+    addend = addend + ((s32) - (delta * 0x10) >> 7);
+    SOFT_TOUCH_REG(addend);
+    allocated = (MATRIX*)(head - sizeof(MATRIX));
+    SOFT_TOUCH_REG(allocated);
+    work->field_9BC = (s16)addend;
+    model           = (TmdObject*)arg0->extra;
+    __asm__("move %0,%1" : "=r"(matrix) : "r"(allocated), "r"(model));
+    SOFT_TOUCH_REG_USE(model, matrix);
+    coords = model->coords;
+    SOFT_USE_REG(work);
+    parentp                           = &parent;
+    coord                             = &coords[6];
+    current                           = coord->sub;
+    angle                             = addend;
+    *(void**)G_SCRATCH_HEAD           = matrix;
+    *(MATRIX*)(head - sizeof(MATRIX)) = coords[6].coord;
+    __asm__("" : "+r"(current), "=r"(head), "=r"(addend));
+    while (1) {
+        if (current == NULL) {
+            break;
+        }
+        if (current == view) {
+            break;
+        }
+        parent = current->coord;
+        tmp    = &parent;
+        MatrixNormal(tmp, tmp);
+        gte_SetRotMatrix(parentp);
+        MulRotMatrix(matrix);
+        MatrixNormal(matrix, &normal);
+        *matrix = normal;
+        current = current->sub;
+    }
+    func_8004BFF8((s16)angle, matrix);
+    func_actor_400500_8013B720(coord, matrix);
+    dest = coord;
+    __builtin_memcpy(&dest->coord, matrix, 18);
+    SOFT_TOUCH_REG_USE(dest, work);
+    dest->flg = 0;
+    Gp_UpdateCoord(dest);
+    SOFT_BARRIER();
+
+    view2 = &gGfxViewCoord;
+    SOFT_USE_REG(work);
+    parentp = &parent;
+    model2  = (TmdObject*)arg0->extra;
+    coords2 = model2->coords;
+    __asm__("lui %0, 0x1F80" : "=r"(head2) : "r"(model2));
+    head2   = *(u8**)(head2 + 0x3FC);
+    angle   = (u16)work->field_9BC;
+    coord   = &coords2[9];
+    current = coord->sub;
+    __asm__("move %0,%1" : "=r"(matrix) : "r"(head2), "r"(current));
+    __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(head2 + sizeof(MATRIX)) : "memory");
+    __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(head2) : "memory");
+    *matrix = coords2[9].coord;
+    while (1) {
+        if (current == NULL) {
+            break;
+        }
+        if (current == view2) {
+            break;
+        }
+        parent = current->coord;
+        tmp    = &parent;
+        MatrixNormal(tmp, tmp);
+        gte_SetRotMatrix(parentp);
+        MulRotMatrix(matrix);
+        MatrixNormal(matrix, &normal);
+        *matrix = normal;
+        current = current->sub;
+    }
+    func_8004BFF8((s16)angle, matrix);
+    func_actor_400500_8013B720(coord, matrix);
+    dest = coord;
+    __builtin_memcpy(&dest->coord, matrix, 18);
+    SOFT_TOUCH_REG_USE(dest, work);
+    dest->flg = 0;
+    Gp_UpdateCoord(dest);
+
+    hit                     = (Actor400500HitView*)arg0->work;
+    head3                   = (u8*)PSX_SCRATCH;
+    head3                   = *(u8**)(head3 + 0x3FC);
+    *(void**)G_SCRATCH_HEAD = head3 + sizeof(MATRIX);
+    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work->obj0.radius = 0x260;
+        work4             = (Actor400500Work*)arg0->work;
+        work4->field_A06  = 0;
+        work4->field_A08  = 0;
+        work3             = (Actor400500Work*)arg0->work;
+        if (((work3->field_A46 >= 0) || ((u8)work3->field_A46 & 0x7F)) && (work3->field_A30 == 0)) {
+            flag             = 0x80;
+            work3->field_A46 = flag;
+            work3->field_A47 = 0;
+        }
+        work->field_A32 = 0x3C;
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_400500/actor_400500", D_actor_400500_80131EE4);
 

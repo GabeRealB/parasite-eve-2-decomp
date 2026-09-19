@@ -131554,3 +131554,44 @@ Preprocessed hashes: base_1/normalized parent
 mutation `6dd80d3e9efd9070511dfcdcde6837d3289253e7e56371d09f60793780b6e4b9`;
 base_2 `52c640f76c29c273374cbb1edd7a0767cca2f603b0afeda8f9b883c405c5a7fb`;
 base_3 `1bb1bd51de00efc93f732c6082301c3eafc01431f07fff21f5b56c3bbd75ed1d`.
+
+## Retained unused outputs: the anchor's register conflict still matters (actor_400500_80138088, 2026-09-19)
+
+A retained unused definition can give a pseudo a second death and move it from
+local to global allocation (CODEGEN_MODEL §10.1), but the other outputs of that
+asm still conflict with it. Choosing the anchor is part of the intervention.
+
+The retry reached 99.911% with exact instruction order/counts and six temporary
+register differences. Explicit HI/LO materialization through a reused model
+pointer made that pointer global, freeing local allocated-address for v0, but
+local head/addend then occupied v1/a0. Making head/addend global with unused
+outputs at an existing `dest` touch fixed model=v1 but failed overall: dest=a0
+conflicted at that asm, pushing addend to a1 and head to a2. Reload consequently
+moved the four block-copy scratch registers from a2..t1 to a3..t2 throughout the
+function. The score dropped to 98.104%; this was an allocation conflict, with
+unchanged opcode counts and block connections.
+
+A controlled prediction moved the unused definitions after head/addend's last
+actual uses, anchored on the still-live current coordinate pointer instead:
+
+```c
+__asm__("" : "+r"(current), "=r"(head), "=r"(addend));
+```
+
+Both discarded outputs are `REG_UNUSED`; neither is read again. Current keeps
+its matching input/output constraint and s0 home. The `.lreg` dump gives head
+and addend two deaths; `.greg` gives model=v1, addend=a0, head=a1 and allocated=v0,
+without the previous a0 conflict. `base_15.c` matched 100%, as did the cleaned
+port and unscoped integration build. This supports the eligibility/conflict
+mechanism, not a claim about the original source's spelling.
+
+Evidence is retained under `tools/permuter_findings/func_actor_400500_80138088/`
+and scratch `PERMUTER_EVIDENCE/manual-matching-analysis`. The router found no
+candidate; these were manual controlled experiments. Patched compiler SHA256:
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Preprocessed inputs: failed anchor base_14
+`7a0c73eba90e29fb466c5e08ec373e13a5210e6f3d2670e26bdbd25f6ab6680b`;
+successful anchor base_15
+`1939f0d58c6837513710387829353848283c77b9c7e233207618e37e6f7ec812`.
+The retained base_9/base_11 observer reports also verify earlier scheduler and
+quantity decisions with unchanged traced assembly.

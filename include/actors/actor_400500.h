@@ -186,5 +186,7 @@ extern TaskFuncTable10 D_actor_400500_80131F7C;
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 void ActorsShared80132c4c(MATRIX* src, MATRIX* dst);
 void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, s32 shade);
+void func_actor_400500_80138088(Task* task);
+s32  func_actor_400500_8013B720(GsCOORDINATE2* coord, MATRIX* matrix);
 
 #endif
