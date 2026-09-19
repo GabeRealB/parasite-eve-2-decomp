@@ -779,9 +779,128 @@ INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013403C);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_400500/actor_400500", D_actor_400500_80131E20);
+void func_actor_400500_8013456C(Task* arg0)
+{
+    Actor400500Work* work;
+    GpEnemy*         enemy;
+    u32              dmg;
+    u32              amount;
+    s16              amount16;
+    s16              hp;
+    u8               flags;
+    s32              tmp;
+    s16              tick;
+    s32              i;
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013456C);
+    work  = (Actor400500Work*)arg0->work;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    for (i = 0; i < 3; i++) {
+        if ((work->rec0[i].key & 0xFFFF0000) == 0x20000) {
+            if (work->field_A44 == 0) {
+                work->field_A3C = 1;
+                dmg             = Gp_ComputeDamage(work->rec0[i].key, work->field_A16, 0, 0);
+                amount          = dmg;
+                work->field_A44 = Gp_GetIdParam2(work->rec0[i].key);
+                if (Gp_RollEnemyChance(enemy, work->rec0[i].key, 0) != 0) {
+                    amount = ((u32)dmg << 16) >> 14;
+                    Gp_SpawnEff(0x6009C, &((TmdObject*)arg0->extra)->coords[3], 0, NULL);
+                }
+                amount16 = amount;
+                func_800E2C78((GpObj40*)enemy, work->rec0[i].key, amount16, 0);
+                func_800DA6E8(&enemy->node, amount16, 0);
+                hp              = (u16)enemy->field_40 - amount;
+                enemy->field_40 = hp;
+                if ((hp << 16) <= 0) {
+                    enemy->field_40 = 0;
+                    work->field_A42 = 1;
+                }
+                func_800FDB18(
+                    Gp_GetIdParam1(work->rec0[i].key) & 0xFFFF,
+                    &((TmdObject*)arg0->extra)->coords[3],
+                    NULL,
+                    &work->eff_940);
+                if (amount16 >= 0x32) {
+                    work->field_A3E = 2;
+                    amount          = dmg;
+                    work->field_A40 = 2;
+                } else {
+                    work->field_A3E = 1;
+                    work->field_A40 = 1;
+                }
+            } else if ((Gp_GetIdParam1(work->rec0[i].key) & 0xFFFF) == 0xD) {
+                func_800FDB18(0xD, &((TmdObject*)arg0->extra)->coords[1], NULL, &work->eff_940);
+            }
+            switch (Gp_GetIdParam0(work->rec0[i].key) & 0xFFFF) {
+                case 0:
+                    break;
+                case 1:
+                    Gp_SetObjFlag1((GpObj4C*)enemy);
+                    break;
+                case 2:
+                    Gp_SetObjFlag2((GpObj5D*)enemy, work->rec0[i].key, 0);
+                    break;
+                case 3:
+                    Gp_SetObjFlag4((GpObj5C*)enemy, work->rec0[i].key, 0);
+                    break;
+                case 4:
+                    work->field_A3E = 4;
+                    work->field_A40 = 4;
+                    break;
+                case 5:
+                    work->field_A3E = 2;
+                    work->field_A40 = 2;
+                    break;
+                case 6:
+                    work->field_A3E = 4;
+                    work->field_A40 = 4;
+                    break;
+                case 7:
+                    work->field_A3E = 2;
+                    work->field_A40 = 2;
+                    break;
+                case 8:
+                case 9:
+                    work->field_A4A = 1;
+                    break;
+            }
+        }
+    }
+
+    flags = enemy->field_4C;
+    if (flags & 1) {
+        enemy->field_4C = flags & 0xFE;
+        work->field_A3E = 2;
+        work->field_A40 = 2;
+    }
+    if (enemy->field_4C & 2) {
+        enemy->field_4C &= 0xFD;
+        work->field_A3E  = 3;
+        work->field_A40  = 3;
+    }
+    if (enemy->field_4C & 0xC) {
+        tmp  = Gp_TickObjFlag4((GpObj5C*)enemy);
+        tick = tmp;
+        if (tick != 0) {
+            enemy->field_40 = (u16)enemy->field_40 - tmp;
+            func_800DA6E8(&enemy->node, tick, 0);
+            if (enemy->field_40 < 0) {
+                enemy->field_40 = 0;
+            }
+            work->field_A3C = 1;
+            work->field_A3E = 2;
+            work->field_A40 = 2;
+        }
+        if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+            enemy->field_4C &= 0xF3;
+        }
+    }
+    Gp_ClearRec18Occupied(work->rec0);
+    if (work->field_A44 > 0) {
+        work->field_A44 = (u16)work->field_A44 - 1;
+        return;
+    }
+    work->field_A44 = 0;
+}
 
 void func_actor_400500_801348D8(Task* arg0, s32 arg1)
 {

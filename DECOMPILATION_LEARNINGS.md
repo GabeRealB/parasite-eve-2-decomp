@@ -131431,3 +131431,43 @@ base_1 preprocessed SHA256
 441f2f3a357cb91ef01bb15307e93eea7aa4ff445d2daefd92cd7a29121c0d52.
 A neutral base_2 trace and failed helper variants are retained alongside the
 plans, conclusions and full verification log.
+
+
+## Repeated switch arms hoist constants before late cross-jumping (func_actor_400500_8013456C, 2026-09-19)
+
+A grouped `case 4: case 6:` storing 4 to two halfword fields kept the literal
+inside this three-record loop. Separate identical bodies for cases 4 and 6 let
+loop invariant motion merge the constant definitions: `.loop` changed its
+life/savings from 2/1 (not desirable) to 4/2 (hoisted). Separating cases 5 and 7,
+which store 2, also increased that constant's weighted references. In the
+controlled base_2 build, `.lreg` has constant 2 at 13 refs / 254 insns, constant 1
+at 11 / 256, and constant 4 at 9 / 252; `.greg` allocates those global pseudos
+in that order to s5/s6/s7, pushing the task pointer into fp. The duplicated
+stores still exist during allocation; `.jump2` subsequently merges their tails.
+This changes hoisting and allocation while producing the same final switch
+connections. The prediction preceded the build; 97.146% became 100% without
+pins or empty asm.
+
+The prerequisite was natural `work->rec0[i].key` accesses instead of computing a
+cast record pointer only once at loop entry. As in actor_205200_8014BD4C, repeated
+multiply chains survive CSE across switch destinations; `combine_givs` combines
+their benefit, and `.loop` can eliminate the counter while keeping a work-based
+walker with `lw 0x84c(s3)`. The earlier seed's lone lifetime-1 multiply chain
+failed the worth-while test and retained the counter. The controlled base_1
+confirmed elimination while preserving enemy=s2 and damage=s1. This is a
+conditional compiler mechanism, not a rule to duplicate every switch arm.
+
+The router's best output was rejected: it removed the record pointer assignment
+but still dereferenced it in `Gp_ComputeDamage`. Another retained output exposed
+indexed addresses without changing values; the controlled port used normal
+array accesses. Search distance is not semantic evidence.
+
+Evidence: scratch `nonmatchings/func_actor_400500_8013456C-vacuum`, retained under
+`tools/permuter_findings/func_actor_400500_8013456C/`; base_1/base_2 loop, allocation
+and jump2 dumps, plans and conclusions. Input SHA256: base_1
+`8c68ed56b5bd710ce48e6d7be42ac7abbefdcfcd1c2b21e59747eeff04c781a9`, base_2
+`c5dade95b59fab0f5970bb1fe93a580348a4ddb6f700881f41a57d20e4807d40`;
+compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+The for-loop port base_3 also matches. Integration required `rodata_head = "0x4"`
+to keep the overlay ID word ahead of the generated table; the unscoped build
+succeeded.

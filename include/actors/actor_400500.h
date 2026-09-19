@@ -168,7 +168,7 @@ typedef struct Actor400500Work {
     /* 0xA3E */ s16                field_A3E;
     /* 0xA40 */ s16                field_A40;
     /* 0xA42 */ s16                field_A42;
-    /* 0xA44 */ byte               pad_A44[2];
+    /* 0xA44 */ s16                field_A44; // hit cooldown
     /* 0xA46 */ s8                 field_A46; // signed flag; 0x81 means active mode 1
     /* 0xA47 */ s8                 field_A47;
     /* 0xA48 */ byte               pad_A48;
