@@ -292,7 +292,7 @@ void func_actor_121300_80133BFC(Task* arg0)
     }
     Gp_SetTmdBytes(tmd, ((s8*)place)[0xD], ((s8*)place)[0xE]);
     work->field_4AC = (s16)(s8)place->field_D;
-    func_800B3F84(&work->anim, &D_actor_121300_8013CC08, (GpAnimObj*)tmd, work->field_30C,
+    func_800B3F84(&work->anim, &D_actor_121300_8013CC08, tmd, work->field_30C,
                   work->slots);
     slotsWork            = (Actor121300Work*)arg0->work;
     slotsWork->field_4A0 = 1;

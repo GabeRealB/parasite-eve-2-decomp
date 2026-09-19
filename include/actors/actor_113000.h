@@ -31,7 +31,7 @@ extern void* D_actor_113000_8013ABB0[];
 
 /// Work block this actor parks in `Task::work`. The block is fronted by a
 /// `GpAnimCtx` -- the start handler passes the block itself, its `slots` array
-/// and its `GpAnimMtxRec` table at 0x334 to `func_800B3F84`, the same three
+/// and its pose buffer at 0x334 to `func_800B3F84`, the same three
 /// addresses `Actor113100Work` hands over. Twenty 0x28-byte slots fit exactly
 /// between 0x14 and 0x334, and the tick loop walks indices 1..0x13.
 /// The per-frame state fields (`0x474`..`0x4C8`) are the animation context its
@@ -41,7 +41,7 @@ extern void* D_actor_113000_8013ABB0[];
 typedef struct Actor113000Work {
     /* 0x000 */ GpAnimCtx  anim;
     /* 0x014 */ GpAnimSlot slots[20];
-    /// The `GpAnimMtxRec` table `func_800B3F84` fills, immediately after the
+    /// The pose buffer `func_800B3F84` is handed, immediately after the
     /// slots.
     /* 0x334 */ byte field_334[0x140];
     /// Raised once the slots have been started, so the next preset takes the

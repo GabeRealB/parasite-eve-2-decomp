@@ -87,7 +87,7 @@ void func_actor_107000_80136E88(GpEnemy* arg0, Task* arg1)
     work->field_35C   = &((TmdObject*)arg1->extra)->coords[1];
     work->field_360   = 0x100;
     work->field_362   = one;
-    func_800B3F84((GpAnimCtx*)work, D_actor_107000_8013F59C, (GpAnimObj*)obj, work->field_12C,
+    func_800B3F84((GpAnimCtx*)work, D_actor_107000_8013F59C, obj, work->field_12C,
                   (GpAnimSlot*)&work->slots[0]);
     i = 1;
     do {

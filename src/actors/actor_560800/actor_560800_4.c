@@ -248,7 +248,7 @@ void func_actor_560800_801376E0(Task* arg0)
     work->field_274 = Gp_LcgState >> 16;
     Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
     work->field_278 = (Gp_LcgState >> 16) & 0x3FF;
-    func_800B3F84(&work->anim, D_actor_560800_801752F0, (GpAnimObj*)obj, work->poseBuf,
+    func_800B3F84(&work->anim, D_actor_560800_801752F0, obj, work->poseBuf,
                   work->slots);
     work->field_280 = arg0->spawnArg1;
 }

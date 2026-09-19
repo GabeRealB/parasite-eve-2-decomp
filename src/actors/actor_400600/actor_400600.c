@@ -648,7 +648,7 @@ void func_actor_400600_80133434(Task* arg0)
     work->eff_6FC.field_4 = 0x300;
     work->eff_6FC.field_6 = 2;
     enemy->field_40 = enemy->field_42 = D_actor_400600_80144EB0.field_4;
-    func_800B3F84(&work->anim, D_actor_400600_80151A54, (GpAnimObj*)model, work->pad_394, work->slots);
+    func_800B3F84(&work->anim, D_actor_400600_80151A54, model, work->pad_394, work->slots);
 
     w2            = (Actor400600Work*)arg0->work;
     w2->field_726 = 0x10;

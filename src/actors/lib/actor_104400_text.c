@@ -296,7 +296,7 @@ void Actor04400_Fn00B24(Task* arg0)
     w->eff_3FC.field_4 = 0x140;
     w->eff_3FC.field_6 = 2;
     e->field_40 = e->field_42 = Actor04400_D0D318.field_4;
-    func_800B3F84(&w->anim, Actor04400_D10778, (GpAnimObj*)obj, w->field_21C, &w->slot_B4);
+    func_800B3F84(&w->anim, Actor04400_D10778, obj, w->field_21C, &w->slot_B4);
     w2            = (Actor104400Work*)arg0->work;
     w2->field_41C = 0x10;
     w2->field_418 = 7;
@@ -393,7 +393,7 @@ void Actor04400_Fn00D3C(Task* arg0)
     w->eff_3FC.field_4 = 0x140;
     w->eff_3FC.field_6 = two;
     e->field_40 = e->field_42 = Actor04400_D0D318.field_4;
-    func_800B3F84(&w->anim, Actor04400_D10778, (GpAnimObj*)obj, w->field_21C, &w->slot_B4);
+    func_800B3F84(&w->anim, Actor04400_D10778, obj, w->field_21C, &w->slot_B4);
     w2            = (Actor104400Work*)arg0->work;
     w2->field_41C = 0x10;
     w2->field_418 = 7;

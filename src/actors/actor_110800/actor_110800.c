@@ -48,7 +48,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     coord->flg              = 0;
     D_actor_110800_80139F14 = (GpActorWork*)task;
     D_actor_110800_80139F18 = Task_SpawnFromTable(D_actor_110800_80139EDC, 1, 0, 0);
-    func_800B3F84(&ActorsShared80131f9cWork->anim, D_actor_110800_80139EF4, (GpAnimObj*)obj,
+    func_800B3F84(&ActorsShared80131f9cWork->anim, D_actor_110800_80139EF4, obj,
                   ActorsShared80131f9cWork->aux, ActorsShared80131f9cWork->slots);
     ActorsShared80131f9cWork->animId    = 1;
     ActorsShared80131f9cWork->field_474 = 2;

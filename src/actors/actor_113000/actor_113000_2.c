@@ -126,7 +126,7 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 s32 func_actor_113000_80132208(Task* task, s32 msgId, Actor113000AnimPreset* msg, s32 arg3)
 {
     Actor113000Work* work;
-    GpAnimObj*       ext;
+    TmdObject*       ext;
     s32              i;
 
     work = (Actor113000Work*)task->work;

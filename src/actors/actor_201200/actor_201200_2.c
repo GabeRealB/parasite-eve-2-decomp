@@ -66,7 +66,7 @@ void func_actor_201200_8014A88C(GpEnemy* arg0, Actor201200* arg1)
     arg1->field_24 = D_actor_201200_80150E78;
     coord->sub     = &gGfxViewCoord;
     obj->flags     = 0;
-    func_800B3F84(&work->anim, D_actor_201200_80150DB8, (GpAnimObj*)obj, work->poses, work->slots);
+    func_800B3F84(&work->anim, D_actor_201200_80150DB8, obj, work->poses, work->slots);
 
     o1           = &work->obj230;
     o1->ctx.recs = &work->rec1B8;

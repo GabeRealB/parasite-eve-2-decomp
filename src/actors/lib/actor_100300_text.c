@@ -343,7 +343,7 @@ void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
     work->field_5F0    = (void*)(((Actor100300Obj2C*)task->extra)->field_8 + 3);
     work->field_5F4    = 0x300;
     work->field_5F6    = 2;
-    func_800B3F84((GpAnimCtx*)work, &Actor00300_D1633C, (GpAnimObj*)obj,
+    func_800B3F84((GpAnimCtx*)work, &Actor00300_D1633C, (TmdObject*)obj,
                   work->field_30C, work->field_14);
     do {
         Gp_AnimResetSlot((GpAnimCtx*)work, slot, 1);

@@ -20,7 +20,7 @@ typedef struct ActorsShared80133f64Work {
     /* 0x000 */ byte       pad_0[0xC];
     /* 0x00C */ GpAnimCtx  anim0;
     /* 0x020 */ GpAnimSlot slots0[8];
-    /* 0x160 */ byte       aux0[0x80]; // GpAnimCtx::field_8, one 0x10-byte record per slot
+    /* 0x160 */ byte       aux0[0x80]; // GpAnimCtx.poses, one 0x10-byte record per slot
     /* 0x1E0 */ GpAnimCtx  anim1;
     /* 0x1F4 */ GpAnimSlot slots1[8];
     /* 0x334 */ byte       aux1[0x80];

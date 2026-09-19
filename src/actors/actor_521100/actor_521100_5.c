@@ -108,7 +108,7 @@ void func_actor_521100_80135DDC(void* spawnArg2, Task* task)
     ActorsShared801326b4Task = task;
     vec.vz                   = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    Gp_AnimInitCtx(&D_actor_521100_8016A3D8->anim, &D_actor_521100_8016A3A0, (GpAnimObj*)obj, D_actor_521100_8016A3D8->pad_34C);
+    Gp_AnimInitCtx(&D_actor_521100_8016A3D8->anim, &D_actor_521100_8016A3A0, obj, D_actor_521100_8016A3D8->pad_34C);
     D_actor_521100_8016A3D8->animId    = 1;
     D_actor_521100_8016A3D8->field_47C = 2;
     task->msgTable                     = &D_actor_521100_8016A358;

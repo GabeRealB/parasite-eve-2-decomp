@@ -1725,7 +1725,7 @@ Task* func_800B2968(void)
     return Task_SpawnFromTable(D_80119218, 0, 0, 0);
 }
 
-void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2,
+void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GsCOORDINATE2* arg1, GpAnimSlot* arg2,
                      GpAnimScratch80* s)
 {
     if (arg2->bufPose != 0) {
@@ -1742,11 +1742,11 @@ void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2,
         gte_stsv(&s->vec1);
         RotMatrix_gte(&s->vec1, &s->mtx2);
         if (arg0->field_C == NULL) {
-            Gp_MulMatrix0(&s->mtx2, &s->mtx0, &arg1->mtx);
+            Gp_MulMatrix0(&s->mtx2, &s->mtx0, &arg1->coord);
             if (arg0->field_8 != NULL) {
-                Gfx_MatrixToEuler(&arg1->mtx, &s->vec1);
+                Gfx_MatrixToEuler(&arg1->coord, &s->vec1);
             }
-            arg1->field_0 = 0;
+            arg1->flg = 0;
         } else {
             Gp_MulMatrix0(&s->mtx2, &s->mtx0, &s->mtx2);
             Gfx_MatrixToEuler(&s->mtx2, &s->vec1);
@@ -1761,15 +1761,15 @@ void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2,
         gte_gpl12_real();
         gte_stsv(&s->vec1);
         if (arg0->field_C == NULL) {
-            RotMatrix_gte(&s->vec1, &arg1->mtx);
-            arg1->field_0 = 0;
+            RotMatrix_gte(&s->vec1, &arg1->coord);
+            arg1->flg = 0;
         } else {
             arg0->field_C->rot = s->vec1;
         }
     }
 }
 
-void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2)
+void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GsCOORDINATE2* arg1, GpAnimSlot* arg2)
 {
     register void**           scratch asm("v1");
     register GpAnimScratch80* tmp asm("v0");
@@ -1807,11 +1807,11 @@ void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2
         gte_gpl12_real();
         gte_stsv(&s->trans);
         if (arg0->field_C == NULL) {
-            arg1->mtx.t[0] = s->trans.vx;
-            arg1->mtx.t[1] = s->trans.vy;
-            z              = s->trans.vz;
-            arg1->field_0  = 0;
-            arg1->mtx.t[2] = z;
+            arg1->coord.t[0] = s->trans.vx;
+            arg1->coord.t[1] = s->trans.vy;
+            z                = s->trans.vz;
+            arg1->flg        = 0;
+            arg1->coord.t[2] = z;
         } else {
             arg0->field_C->trans.vx = s->trans.vx;
             arg0->field_C->trans.vy = s->trans.vy;
@@ -1839,7 +1839,7 @@ void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2
     }
 }
 
-void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2)
+void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GsCOORDINATE2* arg1, GpAnimSlot* arg2)
 {
     register void**           scratch asm("v1");
     register GpAnimScratch80* tmp asm("v0");
@@ -1896,7 +1896,7 @@ void Gp_AnimAdvanceSlot(GpAnimCtx* arg0, s32 arg1)
     s32         setIdx;
     u16         val;
 
-    slot        = &arg0->field_C[arg1];
+    slot        = &arg0->slots[arg1];
     slot->flags = 0;
     if (*(s32*)&slot->curSet != *(s32*)&slot->nextSet) {
         sets = slot->sets;
@@ -1937,7 +1937,7 @@ void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     GpAnimScratch18*  s;
     GpAnimSlot*       slot;
-    GpAnimMtxRec*     mtx;
+    GsCOORDINATE2*    coord;
     GpAnimSet*        set;
     GpAnimRec*        recs;
     GpAnimRec*        rec;
@@ -1954,8 +1954,8 @@ void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
     GpAnimScratch18** head;
 
     head        = (GpAnimScratch18**)G_SCRATCH_HEAD;
-    slot        = &arg0->field_C[arg1];
-    mtx         = &((GpAnimMtxRec*)arg0->field_4)[slot->mtxIndex];
+    slot        = &arg0->slots[arg1];
+    coord       = &arg0->coords[slot->mtxIndex];
     *head       = *head - 1;
     s           = *head;
     slot->flags = 0;
@@ -2039,7 +2039,7 @@ void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
     s->src.field_10 = slot->bufPose;
     slot->bufPose   = 0;
     if (slot->curSet == 0x7FFF) {
-        s->src.field_0 = (GpPackedSvec*)((s32)arg0->field_8 + (arg1 << 4));
+        s->src.field_0 = (GpPackedSvec*)((s32)arg0->poses + (arg1 << 4));
         slot->bufPose  = 1;
     } else {
         recs           = slot->sets[slot->curSet]->recs;
@@ -2047,7 +2047,7 @@ void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
         s->src.field_0 = &poses[recs[slot->curRec].pose];
     }
     if (slot->nextSet == 0x7FFF) {
-        s->src.field_4 = (GpPackedSvec*)((s32)arg0->field_8 + (arg1 << 4));
+        s->src.field_4 = (GpPackedSvec*)((s32)arg0->poses + (arg1 << 4));
         slot->bufPose  = 1;
     } else {
         set            = slot->sets[slot->nextSet];
@@ -2064,13 +2064,13 @@ void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
     s->src.field_C = (GpAnimPose*)arg2;
     switch (op) {
         case 1:
-            Gp_AnimBlendPose(&s->src, mtx, slot);
+            Gp_AnimBlendPose(&s->src, coord, slot);
             break;
         case 2:
             printf(D_80093A44);
             break;
         case 4:
-            Gp_AnimBlendPacked(&s->src, mtx, slot);
+            Gp_AnimBlendPacked(&s->src, coord, slot);
             break;
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
@@ -2095,11 +2095,11 @@ void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
     s32                  saved2;
 
     extra  = arg3;
-    slot   = &arg0->field_C[arg1];
+    slot   = &arg0->slots[arg1];
     raw    = arg2;
     saved2 = raw;
     off    = arg1 << 4;
-    f8     = (s32)arg0->field_8;
+    f8     = (s32)arg0->poses;
     TOUCH_REG(raw);
     scaled = raw << 2;
     recs2  = (*(GpAnimSet**)(scaled + (s32)slot->sets))->recs;
@@ -2154,12 +2154,12 @@ void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
 
         idx            = arg1->trackIndex;
         setIdx         = arg3;
-        arg0->field_C  = arg1 - idx;
+        arg0->slots    = arg1 - idx;
         arg1->mtxIndex = arg2;
         idx            = arg1->trackIndex;
         off            = idx << 4;
-        slot           = &arg0->field_C[idx];
-        func_800B3448(arg0, idx, 0, (s32)arg0->field_8 + off);
+        slot           = &arg0->slots[idx];
+        func_800B3448(arg0, idx, 0, (s32)arg0->poses + off);
         slot->curSet = 0x7FFF;
         set          = slot->sets[(u16)setIdx];
         recs         = set->recs;
@@ -2198,7 +2198,7 @@ void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
         arg1->mtxIndex   = arg2;
         arg1->trackIndex = arg2;
         arg1->nextSet    = arg3;
-        sets             = arg0->field_0;
+        sets             = arg0->sets;
         arg1->sets       = sets;
         arg1->nextRec    = sets[arg3]->trackStart[arg1->trackIndex];
         arg1->curRec     = arg1->sets[arg3]->trackStart[arg1->trackIndex];
@@ -2210,12 +2210,12 @@ void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
     }
 }
 
-void Gp_AnimInitCtx(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3)
+void Gp_AnimInitCtx(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3)
 {
-    arg0->field_0  = arg1;
-    arg0->field_4  = &arg2->field_34;
-    arg0->field_8  = arg3;
-    arg0->field_10 = arg2->field_30;
+    arg0->sets      = arg1;
+    arg0->coords    = (GsCOORDINATE2*)(arg2 + 1);
+    arg0->poses     = arg3;
+    arg0->partCount = arg2->partCount;
 }
 
 void Gp_AnimInitSlot(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3)
@@ -2236,7 +2236,7 @@ void Gp_AnimInitSlot(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3)
     arg1->mtxIndex   = arg2;
     arg1->trackIndex = arg2;
     arg1->nextSet    = arg3;
-    sets             = arg0->field_0;
+    sets             = arg0->sets;
     arg1->sets       = sets;
     arg1->nextRec    = sets[arg3]->trackStart[arg1->trackIndex];
     arg1->curRec     = arg1->sets[arg3]->trackStart[arg1->trackIndex];
@@ -2251,8 +2251,8 @@ void Gp_AnimTickSlot(GpAnimCtx* arg0, GpAnimSlot* arg1)
 {
     u8 idx;
 
-    idx           = arg1->trackIndex;
-    arg0->field_C = arg1 - idx;
+    idx         = arg1->trackIndex;
+    arg0->slots = arg1 - idx;
     func_800B3448(arg0, idx, 0, 0);
 }
 
@@ -2260,8 +2260,8 @@ void Gp_AnimTickSlot2(GpAnimCtx* arg0, GpAnimSlot* arg1)
 {
     u8 idx;
 
-    idx           = arg1->trackIndex;
-    arg0->field_C = arg1 - idx;
+    idx         = arg1->trackIndex;
+    arg0->slots = arg1 - idx;
     func_800B3448(arg0, idx, 0, 0);
 }
 
@@ -2269,8 +2269,8 @@ void Gp_AnimTickSlot3(GpAnimCtx* arg0, GpAnimSlot* arg1)
 {
     u8 idx;
 
-    idx           = arg1->trackIndex;
-    arg0->field_C = arg1 - idx;
+    idx         = arg1->trackIndex;
+    arg0->slots = arg1 - idx;
     func_800B3448(arg0, idx, 0, 0);
 }
 
@@ -2298,16 +2298,16 @@ void func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
     arg1->timeLeft = val;
 }
 
-void Gp_AnimInitCtxSlots(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4)
+void Gp_AnimInitCtxSlots(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3, GpAnimSlot* arg4)
 {
-    arg0->field_0  = arg1;
-    arg0->field_4  = &arg2->field_34;
-    arg0->field_8  = arg3;
-    arg0->field_10 = arg2->field_30;
-    arg0->field_C  = arg4;
+    arg0->sets      = arg1;
+    arg0->coords    = (GsCOORDINATE2*)(arg2 + 1);
+    arg0->poses     = arg3;
+    arg0->partCount = arg2->partCount;
+    arg0->slots     = arg4;
 }
 
-void func_800B3F84(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4)
+void func_800B3F84(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3, GpAnimSlot* arg4)
 {
     Gp_AnimInitCtxSlots(arg0, arg1, arg2, arg3, arg4);
 }
@@ -2318,7 +2318,7 @@ void Gp_AnimResetSlot(GpAnimCtx* arg0, s32 arg1, s32 arg2)
     GpAnimSet** sets;
     u8          op;
 
-    slot             = &arg0->field_C[arg1];
+    slot             = &arg0->slots[arg1];
     slot->rate       = 0x10;
     slot->timeLeft   = 0;
     slot->curSet     = arg2;
@@ -2326,7 +2326,7 @@ void Gp_AnimResetSlot(GpAnimCtx* arg0, s32 arg1, s32 arg2)
     slot->mtxIndex   = arg1;
     slot->trackIndex = arg1;
     slot->nextSet    = arg2;
-    sets             = arg0->field_0;
+    sets             = arg0->sets;
     slot->sets       = sets;
     slot->nextRec    = sets[arg2]->trackStart[slot->trackIndex];
     op               = slot->sets[slot->nextSet]->recs[slot->nextRec].flags;
@@ -2342,7 +2342,7 @@ void Gp_AnimResetSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     GpAnimSet** sets;
     u8          op;
 
-    slot             = &arg0->field_C[arg1];
+    slot             = &arg0->slots[arg1];
     slot->rate       = 0x10;
     slot->timeLeft   = 0;
     slot->curSet     = arg2;
@@ -2350,7 +2350,7 @@ void Gp_AnimResetSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     slot->mtxIndex   = arg4;
     slot->trackIndex = arg3;
     slot->nextSet    = arg2;
-    sets             = arg0->field_0;
+    sets             = arg0->sets;
     slot->sets       = sets;
     slot->nextRec    = sets[arg2]->trackStart[slot->trackIndex];
     op               = slot->sets[slot->nextSet]->recs[slot->nextRec].flags;
@@ -2376,8 +2376,8 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3, s32 arg4)
     s32         off;
 
     off  = arg1 << 4;
-    slot = &arg0->field_C[arg1];
-    func_800B3448(arg0, arg1, 0, (s32)arg0->field_8 + off);
+    slot = &arg0->slots[arg1];
+    func_800B3448(arg0, arg1, 0, (s32)arg0->poses + off);
     slot->curSet = 0x7FFF;
     set          = slot->sets[arg2];
     recs         = set->recs;
@@ -2410,7 +2410,7 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
     void**            scratch;
     void*             head;
     GpAnimSlot*       slot;
-    GpAnimMtxRec*     dest;
+    GsCOORDINATE2*    dest;
     register SVECTOR* st asm("a0");
     SVECTOR*          trans;
     SVECTOR*          rot;
@@ -2418,14 +2418,14 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
     s32               off;
 
     scratch  = (void**)G_SCRATCH_HEAD;
-    slot     = &arg0->field_C[arg1];
+    slot     = &arg0->slots[arg1];
     head     = *scratch;
     idx      = slot->mtxIndex;
     trans    = (SVECTOR*)((u8*)head - 0x10);
     *scratch = trans;
     off      = idx * 0x50;
     USE_REG(off);
-    dest = &((GpAnimMtxRec*)arg0->field_4)[idx];
+    dest = &arg0->coords[idx];
     if (slot->poseKind == 1) {
         st = trans;
         gte_lddp(arg4);
@@ -2435,10 +2435,10 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
         gte_ldsv(&arg3->trans);
         gte_gpl12_real();
         gte_stsv(st);
-        dest->mtx.t[0] = trans->vx;
+        dest->coord.t[0] = trans->vx;
         COPY_REG(trans, trans);
-        dest->mtx.t[1] = trans->vy;
-        dest->mtx.t[2] = trans->vz;
+        dest->coord.t[1] = trans->vy;
+        dest->coord.t[2] = trans->vz;
     }
     gte_lddp(arg4);
     gte_ldsv(&arg2->rot);
@@ -2448,31 +2448,31 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
     gte_gpl12_real();
     rot = (SVECTOR*)((u8*)head - 8);
     gte_stsv(rot);
-    RotMatrix_gte(rot, &dest->mtx);
-    dest->field_0           = 0;
+    RotMatrix_gte(rot, &dest->coord);
+    dest->flg               = 0;
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
 }
 
 void Gp_AnimWritePoseCopy(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
                           s32 arg5)
 {
-    void**        scratch;
-    void*         head;
-    GpAnimSlot*   slot;
-    GpAnimMtxRec* dest;
-    SVECTOR*      rot;
-    s32           idx;
+    void**         scratch;
+    void*          head;
+    GpAnimSlot*    slot;
+    GsCOORDINATE2* dest;
+    SVECTOR*       rot;
+    s32            idx;
 
     scratch  = (void**)G_SCRATCH_HEAD;
-    slot     = &arg0->field_C[arg1];
+    slot     = &arg0->slots[arg1];
     head     = *scratch;
     idx      = slot->mtxIndex;
     *scratch = (u8*)head - 0x10;
-    dest     = &((GpAnimMtxRec*)arg0->field_4)[idx];
+    dest     = &arg0->coords[idx];
     if (slot->poseKind == 1) {
-        dest->mtx.t[0] = arg2->trans.vx;
-        dest->mtx.t[1] = arg2->trans.vy;
-        dest->mtx.t[2] = arg2->trans.vz;
+        dest->coord.t[0] = arg2->trans.vx;
+        dest->coord.t[1] = arg2->trans.vy;
+        dest->coord.t[2] = arg2->trans.vz;
     }
     gte_lddp(arg4);
     gte_ldsv(&arg2->rot);
@@ -2482,8 +2482,8 @@ void Gp_AnimWritePoseCopy(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPos
     gte_gpl12_real();
     rot = (SVECTOR*)((u8*)head - 8);
     gte_stsv(rot);
-    RotMatrix_gte(rot, &dest->mtx);
-    dest->field_0           = 0;
+    RotMatrix_gte(rot, &dest->coord);
+    dest->flg               = 0;
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
 }
 
@@ -2503,8 +2503,8 @@ void func_800B4538(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 
     s32         off;
 
     off  = arg1 << 4;
-    slot = &arg0->field_C[arg1];
-    func_800B3448(arg0, arg1, arg2, (s32)arg0->field_8 + off);
+    slot = &arg0->slots[arg1];
+    func_800B3448(arg0, arg1, arg2, (s32)arg0->poses + off);
     slot->curSet = 0x7FFF;
     set          = slot->sets[arg3];
     recs         = set->recs;
@@ -2600,12 +2600,12 @@ void Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s3
     extra = arg4;
     sets  = arg7;
     off   = arg1 << 4;
-    slot  = &arg0->field_C[arg1];
-    func_800B3448(arg0, arg1, arg2, (s32)arg0->field_8 + off);
+    slot  = &arg0->slots[arg1];
+    func_800B3448(arg0, arg1, arg2, (s32)arg0->poses + off);
     slot->curSet = 0x7FFF;
     if (sets != NULL) {
-        arg0->field_0 = sets;
-        slot->sets    = sets;
+        arg0->sets = sets;
+        slot->sets = sets;
     }
     set  = slot->sets[arg3];
     recs = set->recs;

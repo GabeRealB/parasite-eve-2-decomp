@@ -111,7 +111,7 @@ void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
     work->field_228   = 0x100;
     work->field_22A   = 1;
     work->field_224   = coord;
-    func_800B3F84((GpAnimCtx*)work, &D_actor_300700_80165B94, (GpAnimObj*)obj,
+    func_800B3F84((GpAnimCtx*)work, &D_actor_300700_80165B94, obj,
                   work->field_B4, (GpAnimSlot*)work->field_14);
     for (i = 1; i < 4; i++) {
         Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
@@ -762,7 +762,7 @@ void func_actor_300700_80163510(GpEnemy* arg0, Task* arg1)
     work->field_338   = 0x100;
     work->field_33A   = 1;
     work->field_334   = coord;
-    func_800B3F84((GpAnimCtx*)work, &D_actor_300700_801693B8, (GpAnimObj*)obj,
+    func_800B3F84((GpAnimCtx*)work, &D_actor_300700_801693B8, obj,
                   work->field_12C, (GpAnimSlot*)work->field_14);
     for (i = 1; i < 7; i++) {
         Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);

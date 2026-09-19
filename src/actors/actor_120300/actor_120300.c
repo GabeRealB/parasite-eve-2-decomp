@@ -372,7 +372,7 @@ void func_actor_120300_801335D8(Task* arg0)
         id = place->field_0;
     }
     Gp_SetTmdBytes(tmd, ((s8*)place)[0xD], ((s8*)place)[0xE]);
-    func_800B3F84(&work->anim, &D_actor_120300_80140910, (GpAnimObj*)tmd, work->pad_334, work->slots);
+    func_800B3F84(&work->anim, &D_actor_120300_80140910, tmd, work->pad_334, work->slots);
     animWork            = (Actor120300Work*)arg0->work;
     animWork->field_4D4 = 0xE;
     i                   = 1;

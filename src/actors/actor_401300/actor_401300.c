@@ -974,9 +974,9 @@ void func_actor_401300_80134454(GpEnemy* enemy, Actor401300* actor)
     enemy->field_40   = (s16)D_actor_401300_80141FA0.field_4;
     enemy->field_50   = &D_actor_401300_80141FA0;
     enemy->field_54   = (s32)&work->field_990;
-    Gp_AnimInitCtxSlots(&((Actor401300AnimWork*)work)->anim, &D_actor_401300_80158838, (GpAnimObj*)obj,
+    Gp_AnimInitCtxSlots(&((Actor401300AnimWork*)work)->anim, &D_actor_401300_80158838, obj,
                         ((Actor401300AnimWork*)work)->pad_32C, ((Actor401300AnimWork*)work)->slots);
-    Gp_AnimInitCtxSlots(&((Actor401300AnimWork*)work)->blendAnim, &D_actor_401300_80158838, (GpAnimObj*)obj,
+    Gp_AnimInitCtxSlots(&((Actor401300AnimWork*)work)->blendAnim, &D_actor_401300_80158838, obj,
                         ((Actor401300AnimWork*)work)->pad_768, ((Actor401300AnimWork*)work)->blendSlots);
     work->field_89C = 2;
     work->field_89E = 0;

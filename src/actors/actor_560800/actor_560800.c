@@ -308,7 +308,7 @@ void func_actor_560800_801326C4(Task* arg0)
             ((TmdObject*)arg0->extra)->flags &= ~0x84;
             work                              = (Actor560800AnimWork*)arg0->work;
             {
-                GpAnimObj* obj = arg0->extra;
+                TmdObject* obj = arg0->extra;
                 func_800B3F84(&work->anim, &D_actor_560800_8016EB04, obj, work->animAux, work->slots);
             }
             work->field_4BA = 0x13;
@@ -484,7 +484,7 @@ void func_actor_560800_80132C60(Task* arg0)
         }
         work = (Actor560800AnimWork*)arg0->work;
         {
-            GpAnimObj* obj = arg0->extra;
+            TmdObject* obj = arg0->extra;
             func_800B3F84(&work->anim, &D_actor_560800_8016EA74, obj, work->animAux, work->slots);
         }
         work->field_4BA = 0x14;
@@ -574,7 +574,7 @@ void func_actor_560800_80132F64(Task* arg0)
         }
         work = (Actor560800AnimWork*)arg0->work;
         {
-            GpAnimObj* obj = arg0->extra;
+            TmdObject* obj = arg0->extra;
             func_800B3F84(&work->anim, &D_actor_560800_8016EB30, obj, work->animAux, work->slots);
         }
         work->field_4BA = 0x13;

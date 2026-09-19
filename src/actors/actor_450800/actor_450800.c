@@ -209,7 +209,7 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
     vec.vy        = coord->workm.t[1] - 0x320;
     vec.vz        = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&work->anim, D_actor_450800_8014ACC4, (GpAnimObj*)obj, work->pad_374,
+    func_800B3F84(&work->anim, D_actor_450800_8014ACC4, obj, work->pad_374,
                   work->slots);
     work->field_4B8 = 1;
     work->state     = 2;

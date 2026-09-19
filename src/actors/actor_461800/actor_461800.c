@@ -241,7 +241,7 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
     D_actor_461800_80143898 = task;
     vec.vz                  = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&D_actor_461800_80143894->anim, D_actor_461800_80139FB0, (GpAnimObj*)obj,
+    func_800B3F84(&D_actor_461800_80143894->anim, D_actor_461800_80139FB0, obj,
                   D_actor_461800_80143894->pad_374, D_actor_461800_80143894->slots);
     D_actor_461800_80143894->field_4B8 = 1;
     D_actor_461800_80143894->field_4B4 = 2;

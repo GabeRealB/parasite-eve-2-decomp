@@ -1638,7 +1638,7 @@ s32 func_actor_503500_80135950(Actor503500* arg0, s32 arg1, Actor503500AnimPrese
     ext  = arg0->extra;
     if (arg2->field_0 != work->field_7D6) {
         work->field_7D6 = arg2->field_0;
-        func_800B3F84((GpAnimCtx*)work, D_actor_503500_8016EAB8[work->field_7D6], (GpAnimObj*)ext,
+        func_800B3F84((GpAnimCtx*)work, D_actor_503500_8016EAB8[work->field_7D6], ext,
                       work->field_334, (GpAnimSlot*)&work->obj.pos.vz);
         work->field_7D4 = 0;
     }

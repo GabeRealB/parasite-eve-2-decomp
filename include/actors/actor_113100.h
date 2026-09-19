@@ -27,13 +27,13 @@
 /// preset it sends when it snaps. Both reset `field_530` / `field_532` there.
 /// The block is fronted by a `GpAnimCtx` -- `func_actor_113100_801331E8` and
 /// `func_actor_113100_801328EC` pass the block itself, its `slots` array and
-/// its `GpAnimMtxRec` table at 0x334 to `func_800B3F84`, the same three
+/// its pose buffer at 0x334 to `func_800B3F84`, the same three
 /// addresses `Actor503500WorkBoss` hands over. Twenty 0x28-byte slots fit
 /// exactly between 0x14 and 0x334, and both tick loops walk indices 1..0x13.
 typedef struct Actor113100Work {
     /* 0x000 */ GpAnimCtx  anim;
     /* 0x014 */ GpAnimSlot slots[20];
-    /// The matrix table `func_800B3F84` fills, immediately after the slots.
+    /// The pose buffer `func_800B3F84` is handed, immediately after the slots.
     /// `field_474` is the latch the 0x7D3 handler raises once the slots have
     /// been started; `func_actor_113100_801328EC` seeds it the same way.
     /* 0x334 */ byte field_334[0x140];

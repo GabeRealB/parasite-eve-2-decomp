@@ -144,7 +144,7 @@ void func_actor_202600_8014CE1C(GpEnemy* ctx, Task* actor)
                 coord->coord.t[1] += 0x3E8;
         }
     }
-    func_800B3F84((GpAnimCtx*)work, D_actor_202600_801528EC, (GpAnimObj*)obj, work->field_154, ((Actor202600Anim*)work)->slots);
+    func_800B3F84((GpAnimCtx*)work, D_actor_202600_801528EC, (TmdObject*)obj, work->field_154, ((Actor202600Anim*)work)->slots);
     for (i = 1; i < 8; i++) {
         Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
     }

@@ -62,7 +62,7 @@ void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
     arg0->field_50    = &D_actor_207200_8014DBBC;
     arg0->field_54    = (s32)work->field_1A4;
     arg0->field_40    = D_actor_207200_8014DBBC.field_4;
-    func_800B3F84(&work->context, D_actor_207200_8014E7B0, (GpAnimObj*)obj, work->field_8C, work->slots);
+    func_800B3F84(&work->context, D_actor_207200_8014E7B0, obj, work->field_8C, work->slots);
     i = 1;
     do {
         Gp_AnimResetSlot(&work->context, i, 1);

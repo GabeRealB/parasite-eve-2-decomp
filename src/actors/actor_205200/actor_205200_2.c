@@ -176,7 +176,7 @@ void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
     work->field_554    = &((TmdObject*)task->extra)->coords[3];
     work->field_558    = 0x200;
     work->field_55A    = 1;
-    func_800B3F84((GpAnimCtx*)work, &D_actor_205200_801567E8, (GpAnimObj*)tmd, work->field_30C,
+    func_800B3F84((GpAnimCtx*)work, &D_actor_205200_801567E8, tmd, work->field_30C,
                   (GpAnimSlot*)&work->pad_14);
     i = 1;
     do {

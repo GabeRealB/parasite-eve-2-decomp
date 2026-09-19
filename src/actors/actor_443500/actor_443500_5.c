@@ -26,7 +26,7 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, GpAnimArg* params, s32 arg3
     ext  = task->extra;
     if (params->field_0 != work->field_476) {
         work->field_476 = params->field_0;
-        func_800B3F84(&work->anim, D_actor_443500_80158724[work->field_476], (GpAnimObj*)ext, work->field_334,
+        func_800B3F84(&work->anim, D_actor_443500_80158724[work->field_476], ext, work->field_334,
                       work->slots);
     }
     work->field_475 = params->field_4;

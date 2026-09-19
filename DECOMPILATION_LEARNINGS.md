@@ -33026,7 +33026,7 @@ array index (CSE reuses the offset):
 ```c
 off = idx * 0x50;
 asm volatile("" :: "r"(off));
-dest = &((GpAnimMtxRec*)arg0->field_4)[idx];
+dest = &arg0->coords[idx];
 ```
 
 `+r`(off) instead of `"r"(off)` copies `v0` to `v1` so the `lw` can take
@@ -81206,9 +81206,9 @@ already written this way). Input `base_1.i`
 `8080b9c2b7f7099aa79305af544c7edb78587a6b3e880f99af0e2b1363f1bd62`.
 
 **Sizing the array.** Such a block hands `func_800B3F84` the block itself as its
-`GpAnimCtx`, the slot array as its `GpAnimSlot*`, and a `GpAnimMtxRec` table
+`GpAnimCtx`, the slot array as its `GpAnimSlot*`, and a pose buffer
 directly after it; those last two addresses bound the array, since
-`0x14 + N*0x28` is the table address. actor_323300 passes `+0x14` and `+0x30C`,
+`0x14 + N*0x28` is the buffer's address. actor_323300 passes `+0x14` and `+0x30C`,
 so `N = 19`. The tick loops then walk indices 1..0x13 -- index 0 exists and is
 simply never touched, so a `slti` loop that starts at 1 is not evidence that the
 array starts at 0x28.
@@ -99780,7 +99780,7 @@ The struct that fixes it here is also the layout worth reusing in this family:
 typedef struct Actor311900Anim {
     /* 0x000 */ GpAnimCtx  context;
     /* 0x014 */ GpAnimSlot slots[0x14];  /* 20 * 0x28 fills the gap to 0x334 */
-    /* 0x334 */ byte       poses[0x140]; /* GpAnimCtx::field_8, GpPackedSvec at a 0x10 stride */
+    /* 0x334 */ byte       poses[0x140]; /* GpAnimCtx.poses, GpPackedSvec at a 0x10 stride */
 } Actor311900Anim;
 STATIC_ASSERT_SIZEOF(Actor311900Anim, 0x474);
 ```
@@ -119988,8 +119988,8 @@ not fix it.
 
 **Cause/fix.** `expand_call` loads a `MEM` argument straight into the hard
 register at the end of the setup, so sched keeps it late. Writing the anim-init
-tail as a `static inline` helper that takes `GpAnimObj* obj` and calling it with
-`(GpAnimObj*)task->extra` evaluates the load into the parameter's pseudo *before*
+tail as a `static inline` helper that takes `TmdObject* obj` and calling it with
+`task->extra` evaluates the load into the parameter's pseudo *before*
 the body, which reached 99.24% (`reorder=2`). A constant parameter (`D` address)
 did nothing - it is substituted, not stored. The last pair was `i = 1`: moving it
 below the second `work = task->work` reload raised its luid and gave the target
@@ -124230,7 +124230,7 @@ Inputs: scratch `nonmatchings/func_actor_323300_80163718-vacuum`, `base_2.c`
 
 ## A call argument that is a load through a parameter keeps that parameter live into the call sequence: hoist it to a local (func_actor_323300_80163718, 2026-09-17)
 
-Passing `(GpAnimObj*)arg0->extra` inline as the third argument of a call inside
+Passing `arg0->extra` inline as the third argument of a call inside
 the `if` body made `arg0` live until the call sequence, where `$a0` is
 reassigned for the callee's own first argument. Global-alloc then gave `arg0` a
 different home and the function opened with a copy:
@@ -132408,3 +132408,54 @@ instructions can look like the answer, since a neighbouring family's colour load
 is exactly what is being looked for. Read each body to its `jr $ra` exits
 instead, and check that a candidate load falls inside the block the opcode's own
 refs end at before recording it.
+
+## A phantom view folds into its owner only in the form the target used: the offset is an `addiu`, the owner's own pointer member is a load (GpAnimCtx, 2026-09-19)
+
+Decompilation invents views of an existing object: a type that pads to an offset
+and names what sits there (a view of the model object's tail), or a truncation of
+a library type (a record standing for the first 0x24 bytes of `GsCOORDINATE2`).
+Folding one away means writing the owner's own member at that offset instead, and
+that is not free even though both spellings denote the same address -- the view's
+`&obj->field_34` is an address computation, the owner's pointer member is a load:
+
+```asm
+addiu $v0, $a2, 0x34     ; &obj->field_34, i.e. (GsCOORDINATE2*)(obj + 1)
+lw    $v0, 0x30($a2)     ; obj->partCount -- a scalar member, so a load either way
+lw    $v0, 0x8($a2)      ; obj->coords -- the pointer to that same array
+```
+
+The last two are the trap. `obj->coords` is the honest name for the array the
+view addresses, and the array really is the object's -- the object's own
+constructor computes it as `(GsCOORDINATE2*)(obj + 1)` and stores it -- but the
+original source did not read that member, so writing it fails the checksum with
+nothing in the C to suggest why. Read the initialiser in the target `.s` first
+and keep the form it uses.
+
+The casts are the free half of the same fold. Deleting 128 `(VP*)` casts at call
+sites changed no code, because a cast between two views of one address is a
+no-op; only the sites whose argument is a genuinely different pointer type need
+one kept.
+
+## The build compiles with `-w`, so a mass edit's type errors are invisible - re-run one `cc1` line without it (2026-09-19)
+
+Dropping the cast at every call site of a retyped parameter leaves the tree
+compiling whatever the argument's declared type happens to be: passing an
+incompatible pointer is a *warning*, and `rules.ninja`'s `cc` rule passes `-w`.
+Nothing else reports it - `cpp` cannot see types, and the checksum only compares
+instructions, so a call site that now hands over the wrong pointer type matches
+exactly as before.
+
+The check is one command per translation unit. `ninja -t commands <target>.c.s`
+prints the `cpp` + `cc1` pair the build runs; run the `cc1` line with `-w`
+removed and its `-o` redirected, then read stderr:
+
+```
+cc1 -O2 ... -o /dev/null build/USA/src/<pkg>/<unit>.i 2>&1 >/dev/null \
+  | grep -E "warning:.*(pointer|argument)"
+```
+
+Of 128 rewritten call sites nine reported, and they were exactly the ones whose
+operand is a per-actor view of the same object rather than the type the parameter
+now takes; the rest were the redundant casts that simply went away. Run it after
+any change that relies on the compiler noticing a type, since the default build
+will not.

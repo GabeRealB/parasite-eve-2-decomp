@@ -164,7 +164,7 @@ void func_actor_206100_8014AF74(Task* task)
     enemy->field_42   = hp;
     enemy->field_40   = hp;
     coord->sub        = &gGfxViewCoord;
-    func_800B3F84(&work->anim, D_actor_206100_80158B24, (GpAnimObj*)tmd, work->animAux, work->slots);
+    func_800B3F84(&work->anim, D_actor_206100_80158B24, tmd, work->animAux, work->slots);
     func_actor_206100_8014F18C(task);
     work->field_43E = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     work->field_557 = 4;

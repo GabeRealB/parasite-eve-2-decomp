@@ -133,7 +133,7 @@ void func_actor_105100_801327B4(Actor105100Ctx* arg0, Actor105100* arg1)
     work->field_554 = &arg1->field_2C->field_8[3];
     work->field_558 = 0x500;
     work->field_55A = 3;
-    func_800B3F84((GpAnimCtx*)work, D_actor_105100_80141488, (GpAnimObj*)obj, work->field_30C,
+    func_800B3F84((GpAnimCtx*)work, D_actor_105100_80141488, (TmdObject*)obj, work->field_30C,
                   ((Actor105100Anim*)work)->slots);
     for (i = 1; i < 0x13; i++) {
         Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);

@@ -1690,7 +1690,7 @@ void func_actor_403100_80136610(Task* arg0)
     flags                               = &obj->flags;
     *flags                              = 0;
     D_actor_403100_80155808->field_658  = -1;
-    func_800B3F84(&D_actor_403100_80155808->field_B8.animation.anim, &D_actor_403100_8015572C, (GpAnimObj*)obj, &D_actor_403100_80155808->field_B8.legacy.pad_12E[0x1F6], D_actor_403100_80155808->field_B8.animation.slots);
+    func_800B3F84(&D_actor_403100_80155808->field_B8.animation.anim, &D_actor_403100_8015572C, obj, &D_actor_403100_80155808->field_B8.legacy.pad_12E[0x1F6], D_actor_403100_80155808->field_B8.animation.slots);
     D_actor_403100_80155808->field_5E2 = 0x10;
     D_actor_403100_80155808->field_5DE = 1;
     D_actor_403100_80155808->field_5DA = 2;

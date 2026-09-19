@@ -2151,7 +2151,7 @@ void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task)
     coords->coord.t[1] = D_actor_510900_80167CB8[work->field_334].vy;
     coords->coord.t[2] = D_actor_510900_80167CB8[work->field_334].vz;
     coords->sub        = &gGfxViewCoord;
-    func_800B3F84(&work->anim, D_actor_510900_80167CAC, (GpAnimObj*)tmd, work->poses, work->slots);
+    func_800B3F84(&work->anim, D_actor_510900_80167CAC, tmd, work->poses, work->slots);
     do {
         Gp_AnimResetSlot(&work->anim, i, 1);
         i++;

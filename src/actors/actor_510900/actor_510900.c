@@ -1239,7 +1239,7 @@ void func_actor_510900_801350F8(Actor510900Ctx* arg0, Actor510900* arg1)
     work->field_53C = &((TmdObject*)arg1->field_2C)->coords[3];
     work->field_540 = 0x400;
     work->field_542 = 2;
-    func_800B3F84((GpAnimCtx*)work, D_actor_510900_80167AA4, (GpAnimObj*)obj,
+    func_800B3F84((GpAnimCtx*)work, D_actor_510900_80167AA4, (TmdObject*)obj,
                   ((Actor510900Anim*)work)->poses, ((Actor510900Anim*)work)->slots);
     for (i = 1; i < 0x13; i++) {
         Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);

@@ -501,7 +501,7 @@ s32 func_actor_323300_80163718(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2
     if (arg2->field_0 != work->field_440) {
         work->field_440 = arg2->field_0;
         work->field_444 = -1;
-        func_800B3F84(&work->anim, D_actor_323300_80174A70[work->field_440], (GpAnimObj*)ext,
+        func_800B3F84(&work->anim, D_actor_323300_80174A70[work->field_440], ext,
                       work->pad_30C, work->slots);
     }
     if (arg2->field_4 != work->field_444) {

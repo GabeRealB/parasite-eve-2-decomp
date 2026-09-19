@@ -21,9 +21,9 @@
 ///
 /// The block opens with animation head `anim`: `func_actor_323300_801628B8`
 /// hands the block itself to `func_800B3F84` as its `GpAnimCtx`, the slot
-/// array inline at 0x14 as the `GpAnimSlot*`, and 0x30C as the `GpAnimMtxRec`
-/// table -- the same three addresses `Actor503500Effect4CC` passes. The 19
-/// 0x28-byte slots run exactly up to that table, and every tick loop walks
+/// array inline at 0x14 as the `GpAnimSlot*`, and 0x30C as the pose buffer
+/// -- the same three addresses `Actor503500Effect4CC` passes. The 19
+/// 0x28-byte slots run exactly up to that buffer, and every tick loop walks
 /// indices 1..0x13, leaving slot 0 alone.
 ///
 /// The display node at +0x480 is the one the exit callback
@@ -131,9 +131,9 @@ typedef struct {
 ///
 /// The prefix is the same animation shape the 0x504 block opens with: the
 /// `GpAnimCtx` at 0, the `GpAnimSlot` array inline at 0x14 and the
-/// `GpAnimMtxRec` table at 0x30C -- the three addresses
+/// pose buffer at 0x30C -- the three addresses
 /// `func_actor_323300_80163718` hands `func_800B3F84`. Its animation state
-/// sits in the four `s32` words past that table rather than in the byte fields
+/// sits in the four `s32` words past that buffer rather than in the byte fields
 /// `Actor323300Work` uses: `field_440` is the preset bank index, `field_444`
 /// the preset animation id (`func_actor_323300_80162BE4` seeds both to -1) and
 /// `field_43C` the once-only flag its tick path sets. `field_44C` is the 0x3000

@@ -666,7 +666,7 @@ void func_actor_102300_801346CC(GpEnemy* enemy, Actor102300* actor)
     work->field_670.field_0 = &actor->field_2C->coords[3];
     work->field_670.field_4 = 0x500;
     work->field_670.field_6 = 2;
-    func_800B3F84(&work->anim, D_actor_102300_80147ADC, (GpAnimObj*)obj, work->poses, work->slots);
+    func_800B3F84(&work->anim, D_actor_102300_80147ADC, obj, work->poses, work->slots);
     for (i = 1; i < 0x13; i++) {
         Gp_AnimResetSlot(&work->anim, i, 1);
     }

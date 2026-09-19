@@ -100,19 +100,9 @@ extern GpEnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
 
 void func_800B25B0(void);
 
-/// Source object for `Gp_AnimInitCtx` / `Gp_AnimInitCtxSlots`. Word at 0x30 is
-/// copied into the dest context; the address of 0x34 is stored as dest
-/// `field_4` (base of 0x50-byte `GpAnimMtxRec` records in `func_800B3448`
-/// / `Gp_AnimWritePoseBlend` / `Gp_AnimWritePoseCopy`).
-typedef struct _GpAnimObj {
-    /* 0x00 */ byte  pad_0[0x30];
-    /* 0x30 */ void* field_30;
-    /* 0x34 */ byte  field_34;
-} GpAnimObj;
-
 /// Pose pair used by `Gp_AnimWritePoseBlend` / `Gp_AnimWritePoseCopy`. Translation is
 /// GPF/GPL-blended (`Gp_AnimWritePoseBlend`) or copied (`Gp_AnimWritePoseCopy`) into
-/// `GpAnimMtxRec.mtx.t` when `GpAnimSlot.poseKind == 1`; rotation is
+/// `GsCOORDINATE2.coord.t` when `GpAnimSlot.poseKind == 1`; rotation is
 /// GPF/GPL-blended with the other pose and fed to `RotMatrix_gte`.
 typedef struct _GpAnimPose {
     /* 0x00 */ SVECTOR trans;
@@ -180,16 +170,6 @@ typedef struct _GpAnimScratch80 {
 } GpAnimScratch80;
 STATIC_ASSERT_SIZEOF(GpAnimScratch80, 0x80);
 
-/// 0x50-byte dest record at `GpAnimCtx.field_4`, indexed by
-/// `GpAnimSlot.mtxIndex`. `Gp_AnimWritePoseBlend` / `Gp_AnimWritePoseCopy` write `mtx`
-/// (rotation at +4, translation at +0x18) and clear `field_0`.
-typedef struct _GpAnimMtxRec {
-    /* 0x00 */ s32    field_0;
-    /* 0x04 */ MATRIX mtx;
-    /* 0x24 */ byte   pad_24[0x2C];
-} GpAnimMtxRec;
-STATIC_ASSERT_SIZEOF(GpAnimMtxRec, 0x50);
-
 /// One entry of an animation set's 4-byte record array (`GpAnimSet.recs`),
 /// walked by the slot code to find the pose a clip is showing. A keyframe entry
 /// names that pose, how many frames it is held, and how the pose is encoded;
@@ -227,7 +207,7 @@ typedef struct _GpPickupWork {
 STATIC_ASSERT_SIZEOF(GpPickupWork, 6);
 
 /// One animation of a model: the clip data behind a single pointer of the table
-/// at `GpAnimSlot.sets` (the same table as `GpAnimCtx::field_0`), indexed
+/// at `GpAnimSlot.sets` (the same table as `GpAnimCtx.sets`), indexed
 /// by animation id.
 ///
 /// An animation carries one track per model part, each a run of `recs`
@@ -260,9 +240,9 @@ STATIC_ASSERT_SIZEOF(GpAnimScratch18, 0x18);
 /// what it did in `flags`.
 ///
 /// A slot's track and its transform are separate: `trackIndex` names the track
-/// it reads and `mtxIndex` the matrix record it writes, the same part unless a
+/// it reads and `mtxIndex` the coordinate it writes, the same part unless a
 /// caller pairs a slot with another part's track. Slots sit in the array
-/// `GpAnimCtx.field_C` points at, and the tick helpers recover that array as
+/// `GpAnimCtx.slots` points at, and the tick helpers recover that array as
 /// `slot - slot->trackIndex`, so a slot following another part's track cannot
 /// be ticked through a pointer alone.
 ///
@@ -282,7 +262,7 @@ typedef struct {
     /* 0x0E */ u16         timeSpan;    // that keyframe's `duration` in the same units; the blend's denominator
     /* 0x10 */ u16         flags;       // bit 0 the walk took the clip's end, bit 1 it followed a control entry, bit 8 the clip has ended and settled on its last pose
     /* 0x12 */ u16         field_12;    // role unproven: written 0 by every initialiser, never read
-    /* 0x14 */ u8          mtxIndex;    // `GpAnimMtxRec` the slot writes: the model part whose transform it drives
+    /* 0x14 */ u8          mtxIndex;    // `GpAnimCtx.coords` entry the slot writes: the model part whose transform it drives
     /* 0x15 */ u8          trackIndex;  // track the slot reads: the model part whose keyframes it follows
     /* 0x16 */ u8          atEnd;       // the clip has run to its end: the slot holds its last pose and does not advance
     /* 0x17 */ u8          bufPose;     // the pose came from the context's pose buffer rather than a pose bank
@@ -292,16 +272,23 @@ typedef struct {
 } GpAnimSlot;
 STATIC_ASSERT_SIZEOF(GpAnimSlot, 0x28);
 
-/// 0x14-byte context filled by `Gp_AnimInitCtx` (no `field_C`) and
-/// `Gp_AnimInitCtxSlots` (also writes `field_C`). Nearby helpers index
-/// `field_C` as a 0x28-byte slot array, `field_4` as a 0x50-byte
-/// `GpAnimMtxRec` array, and `field_8` at a 0x10 stride.
+/// One model's animation state: what its playback reads and the slots that walk
+/// it.
+///
+/// A context is built once from the model body it animates and the animation
+/// tables its slots index, and is handed to every later animation call on that
+/// model. It borrows the model's own per-part coordinate array and part count,
+/// so a slot tick needs nothing but the context.
+///
+/// The slots and the pose buffer are the caller's: one playback slot per model
+/// part, and one pose record per slot, where a slot keeps a pose that no
+/// keyframe supplies.
 typedef struct _GpAnimCtx {
-    /* 0x00 */ GpAnimSet** field_0;
-    /* 0x04 */ void*       field_4;
-    /* 0x08 */ void*       field_8;
-    /* 0x0C */ GpAnimSlot* field_C;
-    /* 0x10 */ void*       field_10;
+    GpAnimSet**    sets;      // Set table the slots index by animation id
+    GsCOORDINATE2* coords;    // The model's per-part coordinate array: each slot writes the transform of the part it drives
+    GpPackedSvec*  poses;     // Pose buffer, one 0x10-byte record per slot, in the encoding that slot's `GpAnimSlot.poseKind` names
+    GpAnimSlot*    slots;     // Playback state, one slot per model part
+    s32            partCount; // Parts the model is divided into, mirrored from `TmdObject.partCount`
 } GpAnimCtx;
 STATIC_ASSERT_SIZEOF(GpAnimCtx, 0x14);
 
@@ -499,22 +486,30 @@ STATIC_ASSERT_SIZEOF(GpFadeWork, 4);
 /// of the current ordering table, backing up 0xA entries when the current
 /// OT is not one of the two `Gpu_OrderingTables` roots.
 void Gp_FadeWorkTask(Task* arg0);
-void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2,
+void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GsCOORDINATE2* arg1, GpAnimSlot* arg2,
                      GpAnimScratch80* arg3);
-void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2);
-void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2);
+void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GsCOORDINATE2* arg1, GpAnimSlot* arg2);
+void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GsCOORDINATE2* arg1, GpAnimSlot* arg2);
 void Gp_AnimAdvanceSlot(GpAnimCtx* arg0, s32 arg1);
 void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
-void Gp_AnimInitCtx(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3);
+/// Fills `arg0` from the model body `arg2` animates and the animation tables
+/// `arg1` names. The context borrows the model's per-part coordinate array and
+/// part count, and takes the caller's pose buffer; the slots are filled in
+/// separately by `Gp_AnimInitSlot`.
+void Gp_AnimInitCtx(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3);
 void Gp_AnimInitSlot(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
 void Gp_AnimTickSlot(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void Gp_AnimTickSlot2(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void Gp_AnimTickSlot3(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void func_800B3E74(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
 void func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4);
-void Gp_AnimInitCtxSlots(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4);
-void func_800B3F84(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4);
+/// `Gp_AnimInitCtx` with the model's playback slots handed in as well, for a
+/// caller whose slot array is part of a block of its own.
+void Gp_AnimInitCtxSlots(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3, GpAnimSlot* arg4);
+/// Forwards to `Gp_AnimInitCtxSlots`, which most callers reach by this name
+/// rather than its own.
+void func_800B3F84(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3, GpAnimSlot* arg4);
 void Gp_AnimResetSlot(GpAnimCtx* arg0, s32 arg1, s32 arg2);
 void Gp_AnimResetSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 /// `func_800B4114` is deliberately not declared here. Its definition in

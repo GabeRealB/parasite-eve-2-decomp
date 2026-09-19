@@ -195,7 +195,7 @@ void func_actor_341900_80162330(Task* arg0)
     Gp_SetTmdBytes(extra, (s8)rec->field_D, (s8)rec->field_E);
     switch (arg0->spawnArg1) {
         case 0:
-            func_800B3F84(&w->ctx, D_actor_341900_801639AC, (GpAnimObj*)extra, &w->pad_154, w->slots);
+            func_800B3F84(&w->ctx, D_actor_341900_801639AC, extra, &w->pad_154, w->slots);
             ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 1; i < 8; i++) {
                 ctx->slots[i].rate = 0x10;
@@ -208,7 +208,7 @@ void func_actor_341900_80162330(Task* arg0)
             } while (0);
         case 1:
             ((Actor341900AnimWork*)w->field_248->work)->field_24C = arg0;
-            func_800B3F84(&w->ctx, D_actor_341900_801639B8, (GpAnimObj*)extra, &w->pad_154, w->slots);
+            func_800B3F84(&w->ctx, D_actor_341900_801639B8, extra, &w->pad_154, w->slots);
             ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx->slots[i].rate = 0x10;
@@ -217,7 +217,7 @@ void func_actor_341900_80162330(Task* arg0)
             break;
         case 2:
             ((Actor341900AnimWork*)w->field_248->work)->field_250 = arg0;
-            func_800B3F84(&w->ctx, D_actor_341900_801639C4, (GpAnimObj*)extra, &w->pad_154, w->slots);
+            func_800B3F84(&w->ctx, D_actor_341900_801639C4, extra, &w->pad_154, w->slots);
             ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx->slots[i].rate = 0x10;

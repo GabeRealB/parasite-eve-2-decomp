@@ -185,7 +185,7 @@ void func_actor_450800_80132E9C(void* enemyArg, Task* task)
     vec.vy          = coord->workm.t[1] - 0x320;
     vec.vz          = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&work->anim, D_actor_450800_801539F4, (GpAnimObj*)obj,
+    func_800B3F84(&work->anim, D_actor_450800_801539F4, obj,
                   &work->field_34C, work->slots);
     work->animId   = 1;
     work->state    = 2;

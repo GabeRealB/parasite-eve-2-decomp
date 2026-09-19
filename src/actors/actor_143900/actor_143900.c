@@ -80,7 +80,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     ActorsShared801326b4Task = task;
     vec.vz                   = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&ActorsShared80131f9cWork->anim, D_actor_143900_801413F8, (GpAnimObj*)obj,
+    func_800B3F84(&ActorsShared80131f9cWork->anim, D_actor_143900_801413F8, obj,
                   &ActorsShared80131f9cWork->pad_374, ActorsShared80131f9cWork->slots);
     ActorsShared80131f9cWork->field_4B8 = 1;
     ActorsShared80131f9cWork->field_4B4 = 2;

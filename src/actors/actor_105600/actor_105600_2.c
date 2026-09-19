@@ -403,7 +403,7 @@ void func_actor_105600_80135744(GpEnemy* ctx, Task* actor)
     work->field_670 = &((TmdObject*)actor->extra)->coords[3];
     work->field_674 = 0x500;
     work->field_676 = 2;
-    func_800B3F84(&work->ctx, &D_actor_105600_801482E4, (GpAnimObj*)obj, work->field_30C, work->slots);
+    func_800B3F84(&work->ctx, &D_actor_105600_801482E4, obj, work->field_30C, work->slots);
     for (i = 1; i < 0x13; i++) {
         Gp_AnimResetSlot(&work->ctx, i, 1);
     }

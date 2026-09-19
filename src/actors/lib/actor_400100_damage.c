@@ -376,7 +376,7 @@ void Actor00100_Fn02788(Actor00100* arg0)
             TOUCH_REG(seekWork);
             seekIndex = 1;
             table     = (u32)&Actor00100_D1B6D0;
-            seekSlot  = (s8*)&work->anim0.field_C;
+            seekSlot  = (s8*)&work->anim0.slots;
             do {
                 seekSlotIndex  = seekIndex;
                 seekSlot[0x39] = (u8)seekWork->field_832;
@@ -395,7 +395,7 @@ void Actor00100_Fn02788(Actor00100* arg0)
         resetWork = work;
         TOUCH_REG(resetWork);
         resetIndex = 1;
-        resetSlot  = (s8*)&work->anim0.field_C;
+        resetSlot  = (s8*)&work->anim0.slots;
         do {
             resetSlotIndex  = resetIndex;
             resetSlot[0x39] = (u8)resetWork->field_832;
@@ -411,7 +411,7 @@ void Actor00100_Fn02788(Actor00100* arg0)
     if (work->field_836 == 2) {
         secondaryWork  = arg0->field_1C;
         secondaryIndex = 1;
-        secondarySlot  = (s8*)&secondaryWork->anim0.field_C;
+        secondarySlot  = (s8*)&secondaryWork->anim0.slots;
         do {
             secondarySlotIndex  = secondaryIndex;
             secondarySlot[0x39] = (u8)secondaryWork->field_83A;
@@ -425,7 +425,7 @@ void Actor00100_Fn02788(Actor00100* arg0)
     if ((s16)work->field_82A == 0) {
         tickWork  = arg0->field_1C;
         tickIndex = 1;
-        tickSlot  = (s8*)&tickWork->anim0.field_C;
+        tickSlot  = (s8*)&tickWork->anim0.slots;
         do {
             tickSlotIndex  = tickIndex;
             tickSlot[0x39] = (u8)tickWork->field_832;
@@ -565,8 +565,8 @@ void Actor00100_Fn02C54(GpEnemy* arg0, Task* arg1)
     arg0->field_40   = Actor00100_D0BDA4.field_4;
     arg0->field_50   = &Actor00100_D0BDA4;
     arg0->field_54   = (s32)&work->objs[0].field_20;
-    func_800B3F84(&work->anim0, &Actor00100_D1B944, (GpAnimObj*)tmd, work->data0, &work->slot0);
-    func_800B3F84(&work->anim1, &Actor00100_D1B944, (GpAnimObj*)tmd, work->data1, &work->slot1);
+    func_800B3F84(&work->anim0, &Actor00100_D1B944, tmd, work->data0, &work->slot0);
+    func_800B3F84(&work->anim1, &Actor00100_D1B944, tmd, work->data1, &work->slot1);
     work->field_828 = 2;
     work->field_82A = 0;
     work->field_82E = 0;

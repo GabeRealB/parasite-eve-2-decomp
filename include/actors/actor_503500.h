@@ -688,14 +688,14 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkB4, 0xB4);
 /// `Mem_Set(_, 0x7E8)`), viewed through its own type rather than the shared
 /// `Actor503500Work`: the boss fronts its allocation with a `GpAnimCtx` --
 /// `func_actor_503500_80136D30` passes the block itself to `Gp_AnimTickIndex`
-/// -- whose slot array is inline at 0x14 and whose `GpAnimMtxRec` table starts
+/// -- whose slot array is inline at 0x14 and whose pose buffer starts
 /// at 0x334, the two addresses `func_actor_503500_80135950` hands to
 /// `func_800B3F84`. Twenty 0x28-byte slots fit exactly between them, and both
 /// tick loops walk indices 1..0x13. That run covers 0x40..0x60, where the
 /// shared view names the 0x160 block's display node, so the two blocks
 /// genuinely disagree about it: the halfword the shared view calls
 /// `Actor503500Slot40::boss.flags_4C` is `slots[1].field_10`, that animation
-/// slot's flags word. This type stops at the matrix table.
+/// slot's flags word. This type stops at the pose buffer.
 typedef struct Actor503500WorkBoss {
     /* 0x000 */ GpAnimCtx  anim;
     /* 0x014 */ GpAnimSlot slots[20];

@@ -14,7 +14,7 @@
 /// Z - and it is the only part `func_800B0CF4` reads, so the rest of the
 /// block is left uninitialised. It is a `GsCOORDINATE2` rather than a bare
 /// `VECTOR` because that is what puts the translation at +0x18, the same
-/// offset the callee reads the skeleton's own `GpAnimMtxRec.mtx.t` from.
+/// offset the callee reads the skeleton's own `GsCOORDINATE2.coord.t` from.
 typedef struct ApLookAtWork {
     /* 0x00 */ GsCOORDINATE2 coord;
     /* 0x50 */ byte          pad_50[0x28];

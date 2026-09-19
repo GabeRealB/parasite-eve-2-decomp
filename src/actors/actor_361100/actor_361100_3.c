@@ -155,7 +155,7 @@ s32 func_actor_361100_80162E20(Task* task, s32 arg1, Actor361100AnimPreset* msg)
     if (msg->field_0 != work->field_43E) {
         work->field_43E = msg->field_0;
         work->field_43D = -1;
-        func_800B3F84(&work->anim, D_actor_361100_8016BAE0[work->field_43E], (GpAnimObj*)ext, work->field_30C,
+        func_800B3F84(&work->anim, D_actor_361100_8016BAE0[work->field_43E], ext, work->field_30C,
                       work->slots);
     }
     if (msg->field_4 != work->field_43D) {
@@ -382,7 +382,7 @@ s32 func_actor_361100_801634D0(Task* task, s32 arg1, Actor361100AnimPreset* msg)
     if (msg->field_0 != work->field_43E) {
         work->field_43E = msg->field_0;
         work->field_43D = -1;
-        func_800B3F84(&work->anim, D_actor_361100_80171BA8[work->field_43E], (GpAnimObj*)ext, work->field_30C,
+        func_800B3F84(&work->anim, D_actor_361100_80171BA8[work->field_43E], ext, work->field_30C,
                       work->slots);
     }
     work->field_43D = msg->field_4;

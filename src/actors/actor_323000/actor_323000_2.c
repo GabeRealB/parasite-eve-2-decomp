@@ -452,8 +452,8 @@ void func_actor_323000_80163EA0(GpEnemy* enemy, Task* task)
     enemy->field_4C   = 0;
     enemy->field_40   = 0;
     enemy->field_54   = 0;
-    func_800B3F84(&work->anim, D_actor_323000_8017387C, (GpAnimObj*)obj, work->poses, work->slots);
-    func_800B3F84(&work->blendAnim, D_actor_323000_8017387C, (GpAnimObj*)obj, work->blendPoses, work->blendSlots);
+    func_800B3F84(&work->anim, D_actor_323000_8017387C, obj, work->poses, work->slots);
+    func_800B3F84(&work->blendAnim, D_actor_323000_8017387C, obj, work->blendPoses, work->blendSlots);
     work->field_828 = 2;
     work->field_82E = 1;
     work->field_82A = 0;

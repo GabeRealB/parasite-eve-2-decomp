@@ -146,8 +146,8 @@ Two consequences:
   rather than a heap.
 
   Animation replaces the *local* matrix of each bone and leaves the parent
-  links alone: `Gp_BlendAnimRot` writes `GpAnimMtxRec.mtx`, which is the same
-  `GsCOORDINATE2.coord` slot the rest pose initialises. So playback is this
+  links alone: `Gp_BlendAnimRot` writes `GsCOORDINATE2.coord`, the same
+  slot the rest pose initialises. So playback is this
   same composition with `coord` overwritten per frame, and an animation set
   carries exactly one track per bone (`ASSET_FORMATS.md` §9.3.1).
 

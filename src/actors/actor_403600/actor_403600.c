@@ -3019,7 +3019,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     var_s0                            = 1;
     ACTOR_FIELD(temp_v0, s16*, 0x798) = (s16)((temp_a0_2 * 0x3C) / 100);
     ACTOR_FIELD(temp_v0, s16*, 0x79A) = (s16)((ACTOR_FIELD(temp_v0, s16*, 0x78A) * 0x23) / 100);
-    func_800B3F84((GpAnimCtx*)temp_v0, D_actor_403600_8016057C, (GpAnimObj*)temp_s2,
+    func_800B3F84((GpAnimCtx*)temp_v0, D_actor_403600_8016057C, temp_s2,
                   temp_v0 + 0x334, (GpAnimSlot*)(temp_v0 + 0x14));
     do {
         Gp_AnimResetSlot(temp_v0, var_s0, 1);

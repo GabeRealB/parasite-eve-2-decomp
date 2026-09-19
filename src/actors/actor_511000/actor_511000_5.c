@@ -195,7 +195,7 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     model->flags    = 0x80;
     model->lightMtx = &work->field_45C;
     model->colorMtx = &work->field_43C;
-    func_800B3F84(&work->anim, &D_actor_511000_801550C0, (GpAnimObj*)model, work->field_30C, work->slots);
+    func_800B3F84(&work->anim, &D_actor_511000_801550C0, model, work->field_30C, work->slots);
     work->field_47C = 0;
     task->msgTable  = &D_actor_511000_801550A0;
     coord->flg      = 0;

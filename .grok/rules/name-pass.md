@@ -187,12 +187,14 @@ reference the next reader will follow:
 
 Fix each by hand and name the spellings in the report, as above.
 
-**A parameter rename takes `--no-comments`.** The markdown branch of the comment
-pass has no per-symbol filter, so renaming a parameter whose name is a
-placeholder rewrites every backticked use of that name in the learnings file and
-in `NAMING.md`, including the generic ones in the conventions. Rename the
-parameter with `--no-comments`, then update the mentions that really are this
-function's by hand.
+**Renaming a placeholder-spelled name takes `--no-comments`.** The markdown
+branch of the comment pass has no per-symbol filter, so it rewrites every
+backticked use of the name in the learnings file and in `NAMING.md`, including
+the generic ones in the conventions and the prose about unrelated types that
+declare the same member. That is not limited to a parameter's `argN`: a dry run
+on one `field_XX` member reported 243 comment edits outside the code, nearly all
+of them other structs' fields. Rename with `--no-comments`, then update the
+mentions that really are this item's by hand.
 
 ## Documentation
 

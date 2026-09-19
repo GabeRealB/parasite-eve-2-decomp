@@ -594,7 +594,7 @@ void func_actor_403600_80141F28(Actor403600* arg0)
     Gp_EnemyTaskExit((Task*)arg0);
 }
 
-void func_actor_403600_80141F58(GpAnimMtxRec* arg0, s32 arg1)
+void func_actor_403600_80141F58(GsCOORDINATE2* arg0, s32 arg1)
 {
     void**   scratch;
     void*    head;
@@ -605,7 +605,7 @@ void func_actor_403600_80141F58(GpAnimMtxRec* arg0, s32 arg1)
     head     = *scratch;
     vec      = (SVECTOR*)((u8*)head - 8);
     *scratch = vec;
-    matrix   = &arg0->mtx;
+    matrix   = &arg0->coord;
 
     ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 0, 6, 12);
     gte_lddp(arg1);
@@ -628,7 +628,7 @@ void func_actor_403600_80141F58(GpAnimMtxRec* arg0, s32 arg1)
     gte_stsv(vec);
     ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 4, 10, 16);
 
-    head          = *scratch;
-    arg0->field_0 = 0;
-    *scratch      = (u8*)head + 8;
+    head      = *scratch;
+    arg0->flg = 0;
+    *scratch  = (u8*)head + 8;
 }

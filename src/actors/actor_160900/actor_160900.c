@@ -156,7 +156,7 @@ void func_actor_160900_80132A14(Task* arg0)
 
 /// Binds the child's animation context and resets slots 1-19. Taking the model
 /// as a parameter is what schedules its load after the work-block load.
-static inline void func_actor_160900_InitAnim(Task* task, GpAnimObj* obj)
+static inline void func_actor_160900_InitAnim(Task* task, TmdObject* obj)
 {
     Actor160900Child3Work* work;
     s32                    i;
@@ -211,7 +211,7 @@ void func_actor_160900_80132C08(Task* task)
             taskKill(task);
             return;
         }
-        func_actor_160900_InitAnim(task, (GpAnimObj*)task->extra);
+        func_actor_160900_InitAnim(task, task->extra);
         task->state++;
     }
     func_actor_160900_80132844(task);

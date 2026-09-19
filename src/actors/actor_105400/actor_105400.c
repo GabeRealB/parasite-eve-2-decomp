@@ -100,7 +100,7 @@ void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
     work->coord       = coord;
     work->field_2F8   = 0x500;
     work->field_2FA   = 3;
-    func_800B3F84((GpAnimCtx*)work, D_actor_105400_8013CEB8, (GpAnimObj*)obj, work->poses,
+    func_800B3F84((GpAnimCtx*)work, D_actor_105400_8013CEB8, obj, work->poses,
                   work->slots);
     for (i = 1; i < 0xA; i++) {
         Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);

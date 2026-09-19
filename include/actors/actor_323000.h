@@ -39,7 +39,7 @@ typedef struct Actor323000Work {
     /* 0x008 */ byte       pad_8[0x14];
     /* 0x01C */ GpAnimCtx  anim;
     /* 0x030 */ GpAnimSlot slots[18];
-    /// Pose buffer `func_800B3F84` takes as its arg3, `GpAnimCtx::field_8`.
+    /// Pose buffer `func_800B3F84` takes as its arg3, `GpAnimCtx.poses`.
     /* 0x300 */ byte       poses[0x120];
     /* 0x420 */ GpAnimCtx  blendAnim;
     /* 0x434 */ GpAnimSlot blendSlots[18];

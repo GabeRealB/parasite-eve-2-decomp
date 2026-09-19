@@ -84,7 +84,7 @@ void func_actor_107000_80131F0C(GpEnemy* arg0, Task* arg1)
     arg0->field_50    = &D_actor_107000_80138748;
     arg0->field_54    = (s32)&work->rec154[0];
     arg0->field_40    = D_actor_107000_80138748.field_4;
-    func_800B3F84((GpAnimCtx*)work, D_actor_107000_80139E78, (GpAnimObj*)obj, work->field_8C,
+    func_800B3F84((GpAnimCtx*)work, D_actor_107000_80139E78, obj, work->field_8C,
                   (GpAnimSlot*)work->slots);
     i = 1;
     do {
@@ -596,7 +596,7 @@ void func_actor_107000_80133690(GpEnemy* arg0, Task* arg1)
     arg0->field_50    = &D_actor_107000_80138748;
     arg0->field_54    = (s32)&work->rec154[0];
     arg0->field_40    = D_actor_107000_80138748.field_4;
-    func_800B3F84((GpAnimCtx*)work, D_actor_107000_80139E78, (GpAnimObj*)obj, work->field_8C,
+    func_800B3F84((GpAnimCtx*)work, D_actor_107000_80139E78, obj, work->field_8C,
                   (GpAnimSlot*)work->slots);
     i = 1;
     do {

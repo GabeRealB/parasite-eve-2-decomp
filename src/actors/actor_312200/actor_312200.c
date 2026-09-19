@@ -264,7 +264,7 @@ void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
     enemy->field_4D   = 0;
     enemy->field_4C   = 0;
     enemy->field_4D   = 0;
-    func_800B3F84(&work->anim, D_actor_312200_80169F44, (GpAnimObj*)obj, work->poses, work->slots);
+    func_800B3F84(&work->anim, D_actor_312200_80169F44, obj, work->poses, work->slots);
     work->field_88C      = 2;
     work->field_892      = 1;
     work->field_896.half = 0x10;

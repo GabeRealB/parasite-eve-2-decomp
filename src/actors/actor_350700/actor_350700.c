@@ -117,7 +117,7 @@ s32 func_actor_350700_801621B4(Task* task, s32 arg1, Actor350700Placement* place
     if (msg->field_0 != work->field_43E) {
         work->field_43E = msg->field_0;
         work->field_43D = -1;
-        func_800B3F84((GpAnimCtx*)work, D_actor_350700_80169D0C[work->field_43E], (GpAnimObj*)ext, work->poses,
+        func_800B3F84((GpAnimCtx*)work, D_actor_350700_80169D0C[work->field_43E], ext, work->poses,
                       work->slots);
     }
     if (msg->field_4 != work->field_43D) {

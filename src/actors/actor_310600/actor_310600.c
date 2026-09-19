@@ -242,7 +242,7 @@ s32 func_actor_310600_8016246C(Task* task, s32 arg1, Actor310600Cmd* cmd, s32 ar
     if (cmd->animId != work->field_476) {
         work->field_476 = cmd->animId;
         work->field_475 = -1;
-        func_800B3F84(&work->anim, D_actor_310600_80179640[work->field_476], (GpAnimObj*)ext, work->field_334,
+        func_800B3F84(&work->anim, D_actor_310600_80179640[work->field_476], ext, work->field_334,
                       work->slots);
     }
     if (cmd->state != work->field_475) {

@@ -64,7 +64,7 @@ void func_actor_204000_8014AED8(GpEnemy* arg0, Actor104000* arg1)
     work->field_188 = 0;
     work->field_190 = 1;
     obj->field_C    = 0;
-    func_800B3F84(&work->anim, D_actor_204000_801562E4, (GpAnimObj*)obj, work->poses, work->slots);
+    func_800B3F84(&work->anim, D_actor_204000_801562E4, (TmdObject*)obj, work->poses, work->slots);
 
     o1           = &work->obj270;
     o1->coord    = arg1->field_2C->field_8 + 1;

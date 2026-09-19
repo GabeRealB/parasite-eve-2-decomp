@@ -83,7 +83,7 @@ void func_actor_101500_80131EB4(GpEnemy* arg0, Actor101500* arg1)
             break;
     }
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    func_800B3F84((GpAnimCtx*)work, D_actor_101500_8013BE34, (GpAnimObj*)obj, work->field_12C,
+    func_800B3F84((GpAnimCtx*)work, D_actor_101500_8013BE34, obj, work->field_12C,
                   (GpAnimSlot*)work->field_14);
     for (i = 1; i < 7; i++) {
         Gp_AnimResetSlot((GpAnimCtx*)work, i, (s16)work->field_352);

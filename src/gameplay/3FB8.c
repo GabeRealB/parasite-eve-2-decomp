@@ -4674,7 +4674,7 @@ s32 Gp_SpawnWeaponEff(void)
     GpCoordExt*   coord;
     GpEffWork*    eff;
     GameActor*    inner;
-    GpAnimObj*    anim;
+    TmdObject*    anim;
     register s32  ret asm("v0");
 
     work  = Game_GetPtrSlot(3);
@@ -4741,7 +4741,7 @@ join_4C:
 join_50:
     actor->field_98F = 0;
     inner            = work->actor;
-    anim             = (GpAnimObj*)work->extra;
+    anim             = work->extra;
     inner->field_93A = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.weapon;
     inner->field_928 = Gp_PlayerAnimBlkTbl[inner->field_93A];
     func_800B3F84((GpAnimCtx*)inner->field_424, inner->field_928, anim, &inner->field_7A8,
@@ -4812,10 +4812,10 @@ void Gp_CaptureActorPad(GpActorWork* arg0)
 void Gp_BindActorAnim(GpActorWork* arg0)
 {
     GameActor* actor;
-    GpAnimObj* extra;
+    TmdObject* extra;
 
     actor            = arg0->actor;
-    extra            = (GpAnimObj*)arg0->extra;
+    extra            = arg0->extra;
     actor->field_93A = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.weapon;
     actor->field_928 = Gp_PlayerAnimBlkTbl[actor->field_93A];
     func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
@@ -5266,11 +5266,11 @@ Task* func_80104490(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
 s32 func_80104508(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3)
 {
     GameActor*    actor;
-    GpAnimObj*    extra;
+    TmdObject*    extra;
     PlayerStatus* p;
 
     actor             = arg0->actor;
-    extra             = (GpAnimObj*)arg0->extra;
+    extra             = arg0->extra;
     p                 = &Player_Status;
     actor->field_954  = 2;
     actor->field_95E  = 0;
@@ -5431,7 +5431,7 @@ s32 Gp_EnterActorMode2(GpActorWork* arg0, s32 arg1, s32 arg2)
     actor->field_983                  = 7;
     ((GpObj*)actor->field_AC)->flags |= 0x2000;
     if (Gp_StateF0.field_0 == 1) {
-        func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, (GpAnimObj*)extra, &actor->field_7A8,
+        func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
                       (GpAnimSlot*)actor->field_438);
         if (arg2 == mode) {
             Gp_ResetActorAnimState(arg0, 0);
@@ -5445,7 +5445,7 @@ s32 Gp_EnterActorMode2(GpActorWork* arg0, s32 arg1, s32 arg2)
         return 0;
     }
     if (arg2 == 1) {
-        func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, (GpAnimObj*)extra, &actor->field_7A8,
+        func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
                       (GpAnimSlot*)actor->field_438);
         func_801066DC(arg0, 1);
     } else {
@@ -5504,11 +5504,11 @@ void func_80104AAC(GpActorWork* arg0)
 s32 func_80104B54(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
 {
     GameActor*    actor;
-    GpAnimObj*    extra;
+    TmdObject*    extra;
     PlayerStatus* p;
 
     actor             = arg0->actor;
-    extra             = (GpAnimObj*)arg0->extra;
+    extra             = arg0->extra;
     p                 = &Player_Status;
     actor->field_954  = 2;
     actor->field_95E  = 0;
@@ -5551,11 +5551,11 @@ s32 func_80104B54(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
 s32 func_80104CAC(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
 {
     GameActor* actor;
-    GpAnimObj* extra;
+    TmdObject* extra;
     s32        flag;
 
     actor            = arg0->actor;
-    extra            = (GpAnimObj*)arg0->extra;
+    extra            = arg0->extra;
     actor->field_928 = arg2->field_0;
     actor->field_93A = 0x7FFF;
     actor->field_985 = 0x10;
@@ -9533,7 +9533,7 @@ void Gp_EndPlayerActorTask(GpActorWork* arg0)
     GameActor* actor;
     GameActor* inner;
     GameActor* next;
-    GpAnimObj* extra;
+    TmdObject* extra;
     Task*      task;
 
     actor = arg0->actor;
@@ -9541,7 +9541,7 @@ void Gp_EndPlayerActorTask(GpActorWork* arg0)
     if (task != NULL) {
         taskKill(task);
         actor->field_91C = NULL;
-        extra            = (GpAnimObj*)arg0->extra;
+        extra            = arg0->extra;
         inner            = arg0->actor;
         inner->field_93A = Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
         inner->field_928 = Gp_AnimBlkTbl[inner->field_93A];
@@ -9580,7 +9580,7 @@ s32 Gp_SetupAllyWeapon(void)
     s16          val1;
     s16          val2;
     GpEffWork*   eff;
-    GpAnimObj*   extra;
+    TmdObject*   extra;
     s32          ret;
 
     work  = Game_GetPtrSlot(0xA);
@@ -9612,7 +9612,7 @@ s32 Gp_SetupAllyWeapon(void)
     }
 
     inner            = work->actor;
-    extra            = (GpAnimObj*)work->extra;
+    extra            = work->extra;
     inner->field_93A = Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
     inner->field_928 = Gp_AnimBlkTbl[inner->field_93A];
     func_800B3F84((GpAnimCtx*)inner->field_424, inner->field_928, extra, &inner->field_7A8,
@@ -9854,10 +9854,10 @@ void func_8010BF7C(GpActorWork* arg0, s32 arg1, s32 arg2)
 void func_8010BFCC(GpActorWork* arg0)
 {
     GameActor* actor;
-    GpAnimObj* extra;
+    TmdObject* extra;
 
     actor            = arg0->actor;
-    extra            = (GpAnimObj*)arg0->extra;
+    extra            = arg0->extra;
     actor->field_93A = Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
     actor->field_928 = Gp_AnimBlkTbl[actor->field_93A];
     func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
@@ -9997,7 +9997,7 @@ s32 func_8010C30C(GpActorWork* arg0)
     anim               = Gp_AnimBlkTbl[actor->field_93A];
     changed            = prev != anim;
     actor->field_928   = anim;
-    func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, (GpAnimObj*)extra, &actor->field_7A8,
+    func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
                   (GpAnimSlot*)actor->field_438);
     actor->field_985 = 0x10;
     actor->field_983 = 7;
@@ -10031,10 +10031,10 @@ void func_8010C46C(GpActorWork* arg0)
 s32 func_8010C4F0(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
 {
     GameActor* actor;
-    GpAnimObj* extra;
+    TmdObject* extra;
 
     actor             = arg0->actor;
-    extra             = (GpAnimObj*)arg0->extra;
+    extra             = arg0->extra;
     actor->field_954  = 2;
     actor->field_95E  = 0;
     actor->field_973  = 0;

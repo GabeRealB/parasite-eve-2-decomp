@@ -1210,7 +1210,7 @@ void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     work->field_10E = 1;
     enemy->field_42 = work->field_10C;
     enemy->field_40 = enemy->field_42;
-    func_800B3F84(&work->anim, &D_acropolis_bridge_801915C8, (GpAnimObj*)obj, work->pad_C0,
+    func_800B3F84(&work->anim, &D_acropolis_bridge_801915C8, obj, work->pad_C0,
                   work->slots);
     work->field_108 = 0x10;
     link            = &work->body;

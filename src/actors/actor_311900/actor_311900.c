@@ -222,7 +222,7 @@ void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
     obj->flags      = 0;
-    func_800B3F84((GpAnimCtx*)work, D_actor_311900_8016EBE8, (GpAnimObj*)obj, work->anim.poses,
+    func_800B3F84((GpAnimCtx*)work, D_actor_311900_8016EBE8, obj, work->anim.poses,
                   work->anim.slots);
     coord->sub      = &gGfxViewCoord;
     work->field_474 = 2;

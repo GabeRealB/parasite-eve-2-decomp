@@ -62,7 +62,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     vec.vy         = coord->workm.t[1] - 0x320;
     vec.vz         = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&work->anim, D_actor_451100_8014E6FC, (GpAnimObj*)obj, &work->slots[0x13],
+    func_800B3F84(&work->anim, D_actor_451100_8014E6FC, obj, &work->slots[0x13],
                   work->slots);
     work->animId   = 1;
     work->state    = 2;

@@ -1003,9 +1003,9 @@ void func_actor_403000_801343B8(GpEnemy* arg0, Task* arg1)
     arg0->field_40  = D_actor_403000_8013DA00.field_4;
     arg0->field_50  = &D_actor_403000_8013DA00;
     arg0->field_54  = (s32)(firstRec = work->objB50.rec);
-    func_800B3F84(&((Actor403000AnimWork*)work)->anim, animSrc, (GpAnimObj*)obj,
+    func_800B3F84(&((Actor403000AnimWork*)work)->anim, animSrc, obj,
                   ((Actor403000AnimWork*)work)->pad_3E8, ((Actor403000AnimWork*)work)->slots);
-    func_800B3F84(&((Actor403000AnimWork*)work)->blendAnim, animSrc, (GpAnimObj*)obj,
+    func_800B3F84(&((Actor403000AnimWork*)work)->blendAnim, animSrc, obj,
                   ((Actor403000AnimWork*)work)->pad_93C, ((Actor403000AnimWork*)work)->blendSlots);
     work->field_AC0 = 2;
     work->field_AC2 = 0;

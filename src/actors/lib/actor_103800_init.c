@@ -77,7 +77,7 @@ void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
     work->field_2C4   = &((Actor103800Obj2C*)arg1->extra)->field_8[3];
     work->field_2C8   = 0x200;
     work->field_2CA   = 1;
-    func_800B3F84(&work->anim, Actor03800_D05F60, (GpAnimObj*)extra, work->field_104, work->slots);
+    func_800B3F84(&work->anim, Actor03800_D05F60, (TmdObject*)extra, work->field_104, work->slots);
     for (i = 1; i < 6; i++) {
         Gp_AnimResetSlot(&work->anim, i, 1);
     }
