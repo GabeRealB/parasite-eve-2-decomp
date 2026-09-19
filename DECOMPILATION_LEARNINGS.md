@@ -131630,3 +131630,14 @@ base_6/base_7/base_8/base_10 dumps. Preprocessed input SHA256 for base_7:
 base_10: `45416fc914f19849fb2c96b29088c21b745a46689bdfffddf2c51d47e9ea0ef0`.
 Compiler SHA256:
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+
+### A separate matrix-pointer local changes launch priority and stops an unwanted tail merge (func_actor_405800_801375C4, 2026-09-19)
+
+A shared identity-matrix pointer assigned in four arms held its address initialization at priority 1 in sched1. Both negative-angle arms then scheduled identically, so jump2 merged their child flags store and extra reload (14 blocks instead of 15). Splitting only the final arm to `ActorsShared8016a538Mat* m2` creates a set-once pseudo: `birthing_insn_p` in patched GCC 2.8.1 `sched.c:2499` checks `REG_N_SETS == 1`, and `adjust_priority` promotes its definition. This is a scheduler change even though both pointers ultimately occupy a1.
+
+Controlled base_1 -> base_2: at backward T-37, UID501 changes from priority 1 (UID495 selected) to `0x7f000001` (UID501 selected). Its address initialization therefore moves later in forward order, after the extra reload. Local allocation gives m2/r85 a1 and preserves raw angle/r189 in a0. sched2 interleaves negu/sll/sra in three pointer-load delays; jump2 keeps distinct predecessors. Score 94.459% -> 100.000%, all penalties zero. A plan before the controlled change predicted both late pointer initialization and preservation of angle/store placement.
+
+The prerequisite was `(s16)-angle` at the final call, not `-angle`: truncating after negation retains the raw decay sum through its signed compare. The compare can use v0 while the raw sum stays a0, removing the hard-register overwrite that had forced the angle store before the comparison. dbr can then use that store in the branch slot. The cast alone reproduces the unwanted tail merge; it needs the pointer split. No pins or asm helpers.
+
+Evidence in func_actor_405800_801375C4 scratch/archive LEARNINGS.md and base_1/base_2 `.sched`, `.lreg`, `.greg`, `.sched2`, `.jump2`, `.dbr`. Input SHA256: base_1.i `9dc7fa53ff44b1fe14180f7eeaaf1ff66ff3623ee6c4482376a78b07dd6b9d8c`; base_2.i `5d80286ab0879a0548b4444fa8e57a4cee163542e85a7306b6f2565d62717b45`. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Router found no discovery; these were manual controlled experiments. This case confirms the existing launch-priority rule; splitting alone does not override arbitrary dependencies or hazards.

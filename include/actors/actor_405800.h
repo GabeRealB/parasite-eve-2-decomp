@@ -170,7 +170,9 @@ typedef struct Actor405800Work {
     /* 0x870 */ s16                 field_870; // animation id now playing
     /* 0x872 */ s16                 field_872; // animation id
     /* 0x874 */ s16                 field_874; // sound step index
-    /* 0x876 */ byte                pad_876[0x6];
+    /* 0x876 */ byte                pad_876[0x2];
+    /* 0x878 */ s16                 field_878;
+    /* 0x87A */ s16                 field_87A;
     /* 0x87C */ u16                 field_87C; // down-counter
     /* 0x87E */ s16                 field_87E;
     /* 0x880 */ s16                 field_880;

@@ -553,7 +553,138 @@ s32 func_actor_405800_801373E0(Task* arg0)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_2", func_actor_405800_801375C4);
+void func_actor_405800_801375C4(Task* arg0)
+{
+    Actor405800Work*         work;
+    Task*                    child;
+    TmdObject*               extra;
+    ActorsShared8016a538Mat  rot;
+    ActorsShared8016a538Mat* m;
+    ActorsShared8016a538Mat* m2;
+    s16                      angle;
+    s16*                     p;
+
+    work = (Actor405800Work*)arg0->work;
+    if ((u8)work->field_88D != 0) {
+        angle                             = (u16)work->field_87A + ((0x380 - work->field_87A) >> 2);
+        work->field_87A                   = angle;
+        child                             = ((Actor405800Work*)arg0->work)->field_828;
+        ((TmdObject*)child->extra)->flags = 0;
+        extra                             = (TmdObject*)child->extra;
+        p                                 = (s16*)extra->coords;
+        m                                 = &rot;
+        rot.ident.m00_m01                 = 0x1000;
+        rot.ident.m02_m10                 = 0;
+        m->ident.m11_m12                  = 0x1000;
+        rot.ident.m20_m21                 = 0;
+        m->ident.m22                      = 0x1000;
+        func_8004BFF8(angle, &m->mat);
+        p[2] = rot.mat.m[0][0];
+        p   += 2;
+        p[1] = rot.mat.m[0][1];
+        p[2] = rot.mat.m[0][2];
+        p[3] = rot.mat.m[1][0];
+        p[4] = rot.mat.m[1][1];
+        p[5] = rot.mat.m[1][2];
+        p[6] = rot.mat.m[2][0];
+        p[7] = rot.mat.m[2][1];
+        p[8] = rot.mat.m[2][2];
+    } else {
+        work->obj_6B4.flags &= 0x7FFF;
+        work->obj_674.flags &= 0x7FFF;
+        angle                = (u16)work->field_87A + (-work->field_87A >> 3);
+        work->field_87A      = angle;
+        if (angle < 9) {
+            ((TmdObject*)((Actor405800Work*)arg0->work)->field_828->extra)->flags = 0x80;
+        } else {
+            child                             = ((Actor405800Work*)arg0->work)->field_828;
+            ((TmdObject*)child->extra)->flags = 0;
+            extra                             = (TmdObject*)child->extra;
+            p                                 = (s16*)extra->coords;
+            m                                 = &rot;
+            rot.ident.m00_m01                 = 0x1000;
+            rot.ident.m02_m10                 = 0;
+            m->ident.m11_m12                  = 0x1000;
+            rot.ident.m20_m21                 = 0;
+            m->ident.m22                      = 0x1000;
+            func_8004BFF8(angle, &m->mat);
+            p[2] = rot.mat.m[0][0];
+            p   += 2;
+            p[1] = rot.mat.m[0][1];
+            p[2] = rot.mat.m[0][2];
+            p[3] = rot.mat.m[1][0];
+            p[4] = rot.mat.m[1][1];
+            p[5] = rot.mat.m[1][2];
+            p[6] = rot.mat.m[2][0];
+            p[7] = rot.mat.m[2][1];
+            p[8] = rot.mat.m[2][2];
+        }
+    }
+
+    if ((u8)work->field_88E != 0) {
+        angle                             = (u16)work->field_878 + ((0x380 - work->field_878) >> 2);
+        work->field_878                   = angle;
+        child                             = ((Actor405800Work*)arg0->work)->field_824;
+        angle                             = -angle;
+        ((TmdObject*)child->extra)->flags = 0;
+        extra                             = (TmdObject*)child->extra;
+        p                                 = (s16*)extra->coords;
+        m                                 = &rot;
+        rot.ident.m00_m01                 = 0x1000;
+        rot.ident.m02_m10                 = 0;
+        m->ident.m11_m12                  = 0x1000;
+        rot.ident.m20_m21                 = 0;
+        m->ident.m22                      = 0x1000;
+        func_8004BFF8(angle, &m->mat);
+        p[2] = rot.mat.m[0][0];
+        p   += 2;
+        p[1] = rot.mat.m[0][1];
+        p[2] = rot.mat.m[0][2];
+        p[3] = rot.mat.m[1][0];
+        p[4] = rot.mat.m[1][1];
+        p[5] = rot.mat.m[1][2];
+        p[6] = rot.mat.m[2][0];
+        p[7] = rot.mat.m[2][1];
+        p[8] = rot.mat.m[2][2];
+    } else {
+        work->obj_6D4.flags &= 0x7FFF;
+        work->obj_694.flags &= 0x7FFF;
+        angle                = (u16)work->field_878 + (-work->field_878 >> 3);
+        work->field_878      = angle;
+        if (angle < 9) {
+            ((TmdObject*)((Actor405800Work*)arg0->work)->field_824->extra)->flags = 0x80;
+        } else {
+            child                             = ((Actor405800Work*)arg0->work)->field_824;
+            ((TmdObject*)child->extra)->flags = 0;
+            extra                             = (TmdObject*)child->extra;
+            p                                 = (s16*)extra->coords;
+            m2                                = &rot;
+            rot.ident.m00_m01                 = 0x1000;
+            rot.ident.m02_m10                 = 0;
+            m2->ident.m11_m12                 = 0x1000;
+            rot.ident.m20_m21                 = 0;
+            m2->ident.m22                     = 0x1000;
+            func_8004BFF8((s16)-angle, &m2->mat);
+            p[2] = rot.mat.m[0][0];
+            p   += 2;
+            p[1] = rot.mat.m[0][1];
+            p[2] = rot.mat.m[0][2];
+            p[3] = rot.mat.m[1][0];
+            p[4] = rot.mat.m[1][1];
+            p[5] = rot.mat.m[1][2];
+            p[6] = rot.mat.m[2][0];
+            p[7] = rot.mat.m[2][1];
+            p[8] = rot.mat.m[2][2];
+        }
+    }
+
+    if ((u32)(work->field_846 - 6) >= 2U) {
+        work->obj_6B4.flags &= 0x7FFF;
+        work->obj_6D4.flags &= 0x7FFF;
+        work->obj_674.flags &= 0x7FFF;
+        work->obj_694.flags &= 0x7FFF;
+    }
+}
 
 s32 func_actor_405800_80137908(Task* arg0)
 {
