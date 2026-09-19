@@ -1127,10 +1127,11 @@ u32* gpStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 // Draw handlers in src/gameplay/gameplay.c: the overlay's half of the draw pass,
 // one per record family whose drawing needs it. `Tmd_InitSourceStream` resolves a
-// record's draw handler into the model's stream and the draw walk
-// (`Tmd_DispatchStream`, reached from `Tmd_SetupDraw`) jalrs it, so the entries
-// here sit beside the `gpStreamPrim*` commands of the same family above: the
-// command lays the record's packets out, the handler draws them.
+// record's draw handler into the model's stream, and the draw walk
+// (`Tmd_DispatchStream`, reached from `Tmd_SetupDraw`) jalrs it as it does the
+// early-image set, so the entries here follow the `gpStreamPrim*` commands of the
+// same family above: the command lays the record's packets out, the handler draws
+// them.
 
 /// The draw pass's handler for a stream's layered pre-transformed textured-triangle
 /// records whose semi-transparent layer is textured from a page of its own
@@ -1164,5 +1165,33 @@ u32* gpStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// is picked when the model's stream is resolved, by the area the session is in, so
 /// `flags` selects nothing here and goes unread.
 u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+/// Draw handler of a stream's layered pre-transformed textured-triangle records
+/// (`0x4039`) whose semi-transparent layer is textured from the drawing object:
+/// each element's two packets are completed and linked into the ordering table at
+/// the depth its three corners average to.
+///
+/// The element is the plain pre-transformed triangle's
+/// (`tmdDrawStreamPrimGt3PreXform`), with the layered draw's second packet: its refs
+/// name the triangle's three corners in the per-vertex screen-Z cache rather than in
+/// the vertex array, because the stream's transform commands have already written
+/// each corner's screen coordinates and lit colour into both packets, and its depth
+/// into that cache. What a frame settles is what a transform cannot: the facing, out
+/// of the corners already in the packets; the slot the corners' average depth files
+/// the pair under; the length and primitive code both packets are drawn with; and
+/// their two links. A corner whose cached depth carries the transform's error mark,
+/// or a triangle that turns away, leaves both packets out of the ordering table,
+/// though their room is stepped over either way, so the primitives stay in step with
+/// the elements that named them.
+///
+/// The two are one layered draw — the base the model is drawn from, and the
+/// semi-transparent layer blended over it — which is the difference between the two
+/// codes they are stamped with: `0x34` for the base and `0x36` for the layer, the
+/// semi-transparency bit between them. Nothing of the layer's texture is the draw
+/// pass's to settle here: it takes its page and CLUT from the drawing object's
+/// offsets, which the pass that builds the primitives wrote in. The record's other
+/// entry is the same walk with the layer's page settled there instead, and the
+/// session's current place is what picks between them; neither entry reads `flags`.
+u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 #endif // TMD_H

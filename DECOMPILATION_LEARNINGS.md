@@ -35091,7 +35091,7 @@ lw     t8, -0x8(a1)
 mtc2   t8, $15
 ```
 
-`func_8009A348` is the example. The GT4 pair (`func_8009A57C`) uses the
+`gpDrawStreamPrimGt3PreXformOffsetLayer` is the example. The GT4 pair (`func_8009A57C`) uses the
 same `$t8` temp; `xy = poly + 1` so first-packet `x0`/`x1`/`x2` are
 `-44`/`-32`/`-20`, and the F4-style fourth SXY is `-8` (`x3`).
 
@@ -35099,6 +35099,8 @@ same `$t8` temp; `xy = poly + 1` so first-packet `x0`/`x1`/`x2` are
 
 `func_8009A57C` stacks `gpDrawStreamPrimF4PreXform`'s four-vertex nclip with
 `func_8009A348`'s dual-packet OT insert:
+`func_8009A57C` stacks `func_80099994`'s four-vertex nclip with
+`gpDrawStreamPrimGt3PreXformOffsetLayer`'s dual-packet OT insert:
 
 ```c
 if (ws->gteResult > 0) {
@@ -133108,3 +133110,38 @@ the symbol maps, and a name derived from an address cannot follow a name given t
 symbol; the sweep that decides whether a rename is complete runs over the source tree
 for that reason. Check before chasing one: if no symbol-addrs file still spells the old
 name, the occurrence is splat's own.
+
+## The two stream switches pair their variant arms, not their conditions
+
+A model's packet stream is walked twice, by the opcode switch in
+`Tmd_InitSourceStream` (the draw pass, which writes the resolved handler's
+address into the record) and by the one in `tmdProcessStream` (the pass that
+builds the primitives). Every record family that has a second, layered form
+appears in both as
+
+```c
+handler = <first>;
+if (flag != 0) {
+    handler = <second>;
+}
+```
+
+and the two switches' *conditions* are not the same expression - one accepts a
+place the other rejects - so an area exists where the passes pick different
+forms of the same record. Do not derive one switch's arm from the other's
+condition; pair the arms. The `if (flag != 0)` arm of one switch is the same
+form of the record as the `if (flag != 0)` arm of the other, and the form's role
+can then be read off whichever side is named. The pass that builds the
+primitives is decompiled and named (`gpStreamPrim*`), so an unnamed draw handler
+takes its sibling's suffix: a family split into a `...FixedLayer` and a
+`...OffsetLayer` has the same split on the draw side, which is what settles the
+role of a handler that would otherwise be read as one of two near-identical
+bodies.
+
+The borrowed role still has to be confirmed against the body, and the check is
+cheap because the pair differs in one thing: the layer of the object-textured
+form is textured in the build pass, so that form's draw handler is the arm that
+leaves the layer's page and texture coordinates alone, and the other arm is the
+one that settles them. Where the other switch does not cover the family at all,
+there is no sibling to borrow from and the arm has to be read from the body
+alone.

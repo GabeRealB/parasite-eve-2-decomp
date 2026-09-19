@@ -19,7 +19,6 @@
 typedef u32* (*_TmdModelStreamHandler)(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 // Other model stream handlers (same ABI as _TmdModelStreamHandler; not yet in hasm).
-u32* func_8009A348(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009A57C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009AF90(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009B2F4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -168,7 +167,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                 case 0x4039:
                     handler = gpDrawStreamPrimGt3PreXformFixedLayer;
                     if (flag != 0) {
-                        handler = func_8009A348;
+                        handler = gpDrawStreamPrimGt3PreXformOffsetLayer;
                     }
                     break;
                 case 0x4079:
