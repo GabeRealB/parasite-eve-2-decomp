@@ -207,7 +207,7 @@ void func_actor_405800_80138224(Task* task)
     work = (Actor405800Work*)task->work;
     i    = 1;
     do {
-        work->slots[i].field_9 = work->field_850;
+        work->slots[i].rate = work->field_850;
         Gp_AnimResetSlot(&work->anim, i, work->field_872);
         i++;
     } while (i < 0x12);
@@ -227,14 +227,14 @@ void func_actor_405800_80138294(Task* arg0)
     if (work->field_870 == work->field_872) {
         i = 1;
         do {
-            work->slots[i].field_9 = work->field_850;
+            work->slots[i].rate = work->field_850;
             func_800B4114(&work->anim, i, work->field_872, 0, work->field_84A);
             i++;
         } while (i < 0x12);
     } else {
         i = 1;
         do {
-            work->slots[i].field_9 = work->field_850;
+            work->slots[i].rate = work->field_850;
             func_800B4114(&work->anim, i, work->field_872, 0, work->field_84A);
             i++;
         } while (i < 0x12);

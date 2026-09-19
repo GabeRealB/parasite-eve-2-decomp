@@ -473,7 +473,7 @@ void func_actor_136100_80133690(void)
     animWork->field_4E0 = 1;
     i                   = 1;
     do {
-        animWork->slots[(u16)i].field_9 = 0x10;
+        animWork->slots[(u16)i].rate = 0x10;
         Gp_AnimResetSlot(&animWork->anim, (u16)i, 1);
         i++;
     } while ((u16)i < 0x14U);
@@ -527,7 +527,7 @@ void func_actor_136100_8013379C(s32 arg0)
     animWork->field_4E0 = 3;
     i                   = 1;
     do {
-        animWork->slots[(u16)i].field_9 = 0x10;
+        animWork->slots[(u16)i].rate = 0x10;
         Gp_AnimResetSlot(&animWork->anim, (u16)i, 3);
         i++;
     } while ((u16)i < 0x14U);
@@ -680,7 +680,7 @@ static inline void func_actor_136100_ResetSlots(Task* task, s32 count)
     work->field_4E0 = count;
     i               = 1;
     do {
-        work->slots[(u16)i].field_9 = 0x10;
+        work->slots[(u16)i].rate = 0x10;
         Gp_AnimResetSlot(&work->anim, (u16)i, count);
         i++;
     } while ((u16)i < 0x14U);

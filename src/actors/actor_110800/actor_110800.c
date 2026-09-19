@@ -95,49 +95,49 @@ void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
     func_actor_110800_80132368(task);
     switch ((s16)ActorsShared80131f9cWork->animId) {
         case 4:
-            if ((ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF) == 0xC8) {
-                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF)) {
+            if ((ActorsShared80131f9cWork->slots[19].curRec & 0x3FF) == 0xC8) {
+                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D0011, 0, 0);
                 }
-                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF;
+                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].curRec & 0x3FF;
             }
-            if ((ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF) == 0xCA) {
-                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF)) {
+            if ((ActorsShared80131f9cWork->slots[19].curRec & 0x3FF) == 0xCA) {
+                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D000D, 0, 0);
                 }
-                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF;
+                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].curRec & 0x3FF;
             }
-            if ((ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF) == 0xCD) {
-                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF)) {
+            if ((ActorsShared80131f9cWork->slots[19].curRec & 0x3FF) == 0xCD) {
+                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D000E, 0, 0);
                 }
-                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF;
+                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].curRec & 0x3FF;
             }
             break;
         case 5:
-            if ((ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF) == 0x115) {
-                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF)) {
+            if ((ActorsShared80131f9cWork->slots[19].curRec & 0x3FF) == 0x115) {
+                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D000F, 0, 0);
                 }
-                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF;
+                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].curRec & 0x3FF;
             }
-            if ((ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF) == 0x11F) {
-                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF)) {
+            if ((ActorsShared80131f9cWork->slots[19].curRec & 0x3FF) == 0x11F) {
+                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D000F, 0, 0);
                 }
-                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF;
+                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].curRec & 0x3FF;
             }
-            if ((ActorsShared80131f9cWork->slots[16].field_2 & 0x3FF) == 0xCE) {
-                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[16].field_2 & 0x3FF)) {
+            if ((ActorsShared80131f9cWork->slots[16].curRec & 0x3FF) == 0xCE) {
+                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[16].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D0010, 0, 0);
                 }
-                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[16].field_2 & 0x3FF;
+                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[16].curRec & 0x3FF;
             }
-            if ((ActorsShared80131f9cWork->slots[16].field_2 & 0x3FF) == 0xD8) {
-                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[16].field_2 & 0x3FF)) {
+            if ((ActorsShared80131f9cWork->slots[16].curRec & 0x3FF) == 0xD8) {
+                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[16].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D0010, 0, 0);
                 }
-                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[16].field_2 & 0x3FF;
+                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[16].curRec & 0x3FF;
             }
             break;
     }

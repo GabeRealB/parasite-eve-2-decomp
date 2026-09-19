@@ -1827,7 +1827,7 @@ void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2)
     D_actor_503500_80176574.field_730[arg1] = arg2;
 }
 
-/// Sets the per-slot rate `GpAnimSlot::field_9` on animation slots 1..16 of the
+/// Sets the per-slot playback rate `GpAnimSlot.rate` on animation slots 1..16 of the
 /// boss block -- `rate` of 0 meaning `Gp_AnimResetSlot`'s own 0x10 default,
 /// exactly as `func_actor_503500_80137048` does -- then applies preset `arg1`.
 void func_actor_503500_80135FB4(Actor503500* arg0, s32 arg1, s32 rate)
@@ -1842,7 +1842,7 @@ void func_actor_503500_80135FB4(Actor503500* arg0, s32 arg1, s32 rate)
         rate = 0x10;
     }
     for (i = 0xF; i >= 0; i--) {
-        slot->field_9 = rate;
+        slot->rate = rate;
         slot++;
     }
     func_actor_503500_80135950(arg0, 0x7D3, &D_actor_503500_8016EAC0[arg1], 0);

@@ -107,7 +107,7 @@ void func_actor_312200_801637CC(Task* task)
         work->field_896.half = 0x10;
         func_actor_312200_80162FB4(task);
     }
-    if ((s16)work->field_892 == 0x10 && (work->slots[1].field_10 & 1)) {
+    if ((s16)work->field_892 == 0x10 && (work->slots[1].flags & 1)) {
         work->field_892 = 4;
         work->field_88C = 1;
     }

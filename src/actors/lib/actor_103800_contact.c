@@ -238,7 +238,7 @@ next_contact:
     contactWork = (Actor103800Work*)((u8*)contactWork + 0x18);
 }
 contact_test:
-    if ((s32)contactWork < (s32)&work->slots[1].field_C)
+    if ((s32)contactWork < (s32)&work->slots[1].timeLeft)
         goto contact_loop;
     if ((push > 0) && (work->field_350 == 0)) {
         coord->coord.t[0] += (s32)(push * scratch[2].vx.w) >> 0xC;

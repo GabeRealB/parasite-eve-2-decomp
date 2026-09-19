@@ -294,7 +294,7 @@ static __inline__ void Actor204000_ResetSlots(Actor104000Work* arg0)
     s32              i;
 
     for (i = 1; i < 6; i++) {
-        work->slots[i].field_9 = work->field_176 + work->field_178;
+        work->slots[i].rate = work->field_176 + work->field_178;
         Gp_AnimResetSlot(&work->anim, i, work->field_174);
     }
     work->field_172 = work->field_174;
@@ -308,7 +308,7 @@ static __inline__ void Actor204000_TickSlots(Actor104000* arg0)
 
     work = arg0->field_1C;
     for (i = 1; i < 6; i++) {
-        work->slots[i].field_9 = work->field_176 + work->field_178;
+        work->slots[i].rate = work->field_176 + work->field_178;
         Gp_AnimTickIndex(&work->anim, i);
     }
 }

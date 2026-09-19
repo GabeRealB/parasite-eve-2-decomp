@@ -1982,7 +1982,7 @@ void func_actor_444000_8013E058(Actor444000* task)
             sc->period = 0xE;
             break;
     }
-    if (((u32)((work->slots0[1].field_2 & 0x3FF) - 0xA) < 9U) && ((work->field_6 % sc->period) == 0)) {
+    if (((u32)((work->slots0[1].curRec & 0x3FF) - 0xA) < 9U) && ((work->field_6 % sc->period) == 0)) {
         Gp_SpawnScript18((s32)&D_actor_444000_80144A94, (s32)&D_actor_444000_80144AA0);
     }
 
@@ -2018,7 +2018,7 @@ void func_actor_444000_8013E058(Actor444000* task)
     }
 
     work->field_EFA = 1;
-    switch (work->slots0[1].field_2 & 0x3FF) {
+    switch (work->slots0[1].curRec & 0x3FF) {
         case 9:
             gte_lddp(-(sc->pull + 0x19) / 4);
             gte_ldsv(&sc->dir);
@@ -2081,7 +2081,7 @@ void func_actor_444000_8013E058(Actor444000* task)
             break;
     }
 
-    if (((u32)((work->slots0[1].field_2 & 0x3FF) - 0xB) < 5U) && (sc->dist < 0x4B0) && (work->field_F08 < 6)) {
+    if (((u32)((work->slots0[1].curRec & 0x3FF) - 0xB) < 5U) && (sc->dist < 0x4B0) && (work->field_F08 < 6)) {
         if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&D_actor_444000_80161928, 0) == 0) {
             work->field_0   = 0xD;
             work->field_EC8 = 1;
@@ -2103,7 +2103,7 @@ void func_actor_444000_8013E058(Actor444000* task)
         }
     }
 
-    if (work->slots0[1].field_10 & 1) {
+    if (work->slots0[1].flags & 1) {
         D_actor_444000_80161888.field_0 = 0;
         D_actor_444000_80161888.field_1 = 0x2C;
         D_actor_444000_80161888.field_2 = 3;
@@ -2340,7 +2340,7 @@ void func_actor_444000_8013EC84(Actor444000* arg0)
         sc = (Actor444000WarpScratch*)(SCRATCH_SP -= sizeof(Actor444000WarpScratch));
         func_actor_444000_8013441C(arg0);
 
-        if ((work->slots0[1].field_10 & 1) && work->field_7B3 == 0xF) {
+        if ((work->slots0[1].flags & 1) && work->field_7B3 == 0xF) {
             work->field_7B0 = 2;
             work->field_7B3 = 0xE;
         }
@@ -2356,22 +2356,22 @@ void func_actor_444000_8013EC84(Actor444000* arg0)
                     gGameSession->deathRestartDelay       = 0x5A;
                 }
             }
-            frame = work->slots0[3].field_2 & 0x3FF;
+            frame = work->slots0[3].curRec & 0x3FF;
             if (frame == 0x19 && work->field_7A8 != frame) {
                 cueId  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200011;
                 cuePan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
                 SndEvt_EnqueueType6(cueId, cuePan,
                                     (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
             }
-            work->field_7A8 = work->slots0[3].field_2 & 0x3FF;
+            work->field_7A8 = work->slots0[3].curRec & 0x3FF;
         }
 
         if (work->field_7B3 == 0xE) {
-            frame = work->slots0[3].field_2 & 0x3FF;
+            frame = work->slots0[3].curRec & 0x3FF;
             if (frame == 0x1D && work->field_7A8 != frame) {
                 Gp_SpawnPadLerp(4, 0xFF, 8);
             }
-            frame = work->slots0[3].field_2 & 0x3FF;
+            frame = work->slots0[3].curRec & 0x3FF;
             if (frame == 0x23 && work->field_7A8 != frame) {
                 hitId  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200012;
                 hitPan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
@@ -2379,7 +2379,7 @@ void func_actor_444000_8013EC84(Actor444000* arg0)
                                     (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
                 Gp_SpawnPadLerp(4, 0xFF, 8);
             }
-            frame = work->slots0[3].field_2 & 0x3FF;
+            frame = work->slots0[3].curRec & 0x3FF;
             if (frame == 0x27 && work->field_7A8 != frame) {
                 endId  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200012;
                 endPan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
@@ -2387,7 +2387,7 @@ void func_actor_444000_8013EC84(Actor444000* arg0)
                                     (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
                 Gp_SpawnPadLerp(4, 0xFF, 8);
             }
-            work->field_7A8 = work->slots0[3].field_2 & 0x3FF;
+            work->field_7A8 = work->slots0[3].curRec & 0x3FF;
         }
 
         if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
@@ -2524,7 +2524,7 @@ void func_actor_444000_8013FB74(Actor444000* arg0)
     work->field_E3C.c.flg = 0;
     Gp_UpdateCoord(coord);
 
-    if (work->field_7B3 == 4 && (frame = work->slots0[1].field_2 & 0x3FF) == 0xC &&
+    if (work->field_7B3 == 4 && (frame = work->slots0[1].curRec & 0x3FF) == 0xC &&
         work->field_7AC != frame) {
         Gfx_RotMatrixY(&work->field_E3C.c.coord, work->field_7C8, 1);
         work->field_E3C.c.flg = 0;
@@ -2548,7 +2548,7 @@ void func_actor_444000_8013FB74(Actor444000* arg0)
         work->obj.flags &= 0x7FFF;
     }
 
-    if (work->field_7B3 == 5 && (frame2 = work->slots0[2].field_2 & 0x3FF) == 0x1C &&
+    if (work->field_7B3 == 5 && (frame2 = work->slots0[2].curRec & 0x3FF) == 0x1C &&
         work->field_7AC != frame2) {
         work->field_EAC = 3;
         Gp_SpawnPadLerp(0x20, 0x8F, 8);
@@ -2561,9 +2561,9 @@ void func_actor_444000_8013FB74(Actor444000* arg0)
     }
 
     if (work->field_7B3 == 4) {
-        work->field_7AC = work->slots0[1].field_2 & 0x3FF;
+        work->field_7AC = work->slots0[1].curRec & 0x3FF;
     } else {
-        work->field_7AC = work->slots0[2].field_2 & 0x3FF;
+        work->field_7AC = work->slots0[2].curRec & 0x3FF;
     }
 
     switch (work->field_6) {
@@ -2815,7 +2815,7 @@ void func_actor_444000_801404C0(Actor444000* arg0)
 
     func_actor_444000_8013441C(arg0);
 
-    if (work->slots0[1].field_10 & 1) {
+    if (work->slots0[1].flags & 1) {
         work->field_0 = 0xA;
         SndEvt_EnqueueType7((((u16)enemy->field_8 >> 12) << 8) | 0x4020000D, 1);
     }
@@ -2874,12 +2874,12 @@ void func_actor_444000_80140BBC(Actor444000* arg0)
         work->field_7B6 = 0x10;
     }
     if (work->field_7B3 == 0xD) {
-        frame = work->slots0[2].field_2 & 0x3FF;
+        frame = work->slots0[2].curRec & 0x3FF;
         if (frame == 0x15 && work->field_7D8 != frame) {
             work->field_EAC = 3;
             Gp_SpawnScript18((s32)&D_actor_444000_80144A84, (s32)&D_actor_444000_80144A8C);
         }
-        work->field_7D8 = work->slots0[2].field_2 & 0x3FF;
+        work->field_7D8 = work->slots0[2].curRec & 0x3FF;
     }
     if (work->field_7B3 == 9 && work->field_6 == 0x2D) {
         coords                                = ((TmdObject*)arg0->extra)->coords;
@@ -2896,7 +2896,7 @@ void func_actor_444000_80140BBC(Actor444000* arg0)
         D_actor_444000_801618B8.c.sub         = &coords[4];
         Gp_UpdateCoord(&D_actor_444000_801618B8.c);
     }
-    if (work->field_7B3 == 0x14 && (work->slots0[1].field_10 & 1)) {
+    if (work->field_7B3 == 0x14 && (work->slots0[1].flags & 1)) {
         work->field_7B3 = 0xD;
         work->field_7B0 = 1;
     }
@@ -2968,12 +2968,12 @@ void func_actor_444000_80140E28(Actor444000* arg0)
     }
     func_actor_444000_8013441C(arg0);
     ((TmdObject*)arg0->extra)->coords->flg = 0;
-    frame                                  = work->slots0[2].field_2 & 0x3FF;
+    frame                                  = work->slots0[2].curRec & 0x3FF;
     if (frame == 0x1C && work->field_7D8 != frame) {
         work->field_EAC = 3;
         Gp_SpawnScript18((s32)&D_actor_444000_80144A74, (s32)&D_actor_444000_80144A7C);
     }
-    work->field_7D8 = work->slots0[2].field_2 & 0x3FF;
+    work->field_7D8 = work->slots0[2].curRec & 0x3FF;
 }
 
 void func_actor_444000_8014105C(Actor444000* arg0)
@@ -3014,7 +3014,7 @@ void func_actor_444000_8014105C(Actor444000* arg0)
         D_actor_444000_80144A70 = (u16)D_actor_444000_80144A70 - 0xC8;
     }
     func_actor_444000_8013441C(arg0);
-    if (work->slots0[1].field_10 & 1) {
+    if (work->slots0[1].flags & 1) {
         work->field_0 = 0xA;
     }
     SCRATCH_SP += 0xC;
@@ -3248,7 +3248,7 @@ void func_actor_444000_80141618(Actor444000* task)
         D_actor_444000_80144A70 = (u16)D_actor_444000_80144A70 - 0xC8;
     }
     func_actor_444000_8013441C(task);
-    if (work->field_7B3 == 0x13 && (frame = work->slots0[1].field_2 & 0x3FF) >= 4 && frame < 0xD) {
+    if (work->field_7B3 == 0x13 && (frame = work->slots0[1].curRec & 0x3FF) >= 4 && frame < 0xD) {
         work->field_EFA = 1;
     } else {
         work->field_EFA = 0;
@@ -3274,7 +3274,7 @@ void func_actor_444000_80141618(Actor444000* task)
         }
     }
     work->field_7C4 = angle;
-    if ((work->slots0[1].field_10 & 1) && work->field_7B3 == 0x13) {
+    if ((work->slots0[1].flags & 1) && work->field_7B3 == 0x13) {
         work->field_7B3 = 1;
         work->field_7B0 = 1;
         work->field_7B6 = 0x10;

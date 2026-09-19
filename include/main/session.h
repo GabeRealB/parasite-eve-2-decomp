@@ -185,18 +185,16 @@ STATIC_ASSERT_SIZEOF(GpRec18, 0x18);
 /// 0x28-byte record in `GameActor.field_438`, the actor's own `GpAnimSlot`
 /// array (`gameplay/1BC.h`); `GameActor.field_424` is the `GpAnimCtx` whose
 /// `field_C` points here. Count is `GameActor.field_938` (init 0x13).
-/// Restated main-side so `session.h` does not depend on a gameplay header:
-/// `field_4` is `GpAnimSlot::field_4`, `field_9` the clamped 1..0x7F
-/// slid-actor byte written by `func_801058BC`, and `field_10` the flag
-/// halfword (bits 0/1: `Gp_TickActorAnimState` case 8; bit 0x100:
-/// `func_8010583C`; bits 0x102: `func_80105894`).
+/// Restated main-side rather than taken from the gameplay header, which
+/// reaches `main/session.h` through its own includes; the members named here
+/// are `GpAnimSlot`'s, under its names.
 typedef struct _GameActorSlot {
     /* 0x00 */ byte pad_0[4];
-    /* 0x04 */ u16  field_4;
+    /* 0x04 */ u16  nextSet;
     /* 0x06 */ byte pad_6[3];
-    /* 0x09 */ u8   field_9;
+    /* 0x09 */ u8   rate;
     /* 0x0A */ byte pad_A[6];
-    /* 0x10 */ u16  field_10;
+    /* 0x10 */ u16  flags;
     /* 0x12 */ byte pad_12[0x16];
 } GameActorSlot;
 STATIC_ASSERT_SIZEOF(GameActorSlot, 0x28);

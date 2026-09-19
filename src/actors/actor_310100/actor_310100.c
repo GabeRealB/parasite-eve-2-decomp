@@ -59,7 +59,7 @@ s32 func_actor_310100_80161E24(Task* task)
         Gp_AnimTickIndex(&work->anim, i & 0xFFFF);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
-    return work->slots[1].field_10 & 1;
+    return work->slots[1].flags & 1;
 }
 
 void func_actor_310100_80161F80(Task* task)
@@ -283,7 +283,7 @@ void func_actor_310100_80162414(Task* task, s32 arg1)
     active = task->spawnArg1;
     work2  = (Actor310100Work*)task->work;
     do {
-        work2->slots[i & 0xFFFF].field_9 = 0x10;
+        work2->slots[i & 0xFFFF].rate = 0x10;
         Gp_AnimResetSlot(&work2->anim, i & 0xFFFF, active);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
@@ -344,7 +344,7 @@ void func_actor_310100_801625E4(Task* task, s32 arg1)
     active          = work->field_504;
     work2           = (Actor310100Work*)task->work;
     do {
-        work2->slots[i & 0xFFFF].field_9 = 0x10;
+        work2->slots[i & 0xFFFF].rate = 0x10;
         Gp_AnimResetSlot(&work2->anim, i & 0xFFFF, active);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
@@ -592,7 +592,7 @@ void func_actor_310100_80162D50(Task* task, s32 msgId, Actor310100Placement* pla
         i         = 1;
         if (blend == 0) {
             do {
-                resetDisp->slots[i & 0xFFFF].field_9 = 0x10;
+                resetDisp->slots[i & 0xFFFF].rate = 0x10;
                 Gp_AnimResetSlot(&resetDisp->anim, i & 0xFFFF, active);
                 i += 1;
             } while ((u32)(i & 0xFFFF) < 0x13U);

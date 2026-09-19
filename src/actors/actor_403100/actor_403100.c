@@ -173,11 +173,11 @@ void func_actor_403100_801326DC(Actor403100Work* work)
 
     if ((s16)D_actor_403100_80155808->field_5DC == D_actor_403100_80155808->field_5DE) {
         for (i = 1; i < 15; i++) {
-            D_actor_403100_80155808->field_B8.animation.slots[i].field_9 = (u8)D_actor_403100_80155808->field_5E2;
+            D_actor_403100_80155808->field_B8.animation.slots[i].rate = (u8)D_actor_403100_80155808->field_5E2;
         }
     } else {
         for (i = 1; i < 15; i++) {
-            D_actor_403100_80155808->field_B8.animation.slots[i].field_9 = (u8)D_actor_403100_80155808->field_5E2;
+            D_actor_403100_80155808->field_B8.animation.slots[i].rate = (u8)D_actor_403100_80155808->field_5E2;
             func_800B4114(&D_actor_403100_80155808->field_B8.animation.anim, i, D_actor_403100_80155808->field_5DE, 0, D_actor_403100_80155808->field_5FC);
         }
         D_actor_403100_80155808->field_5FC = 0;
@@ -194,7 +194,7 @@ void func_actor_403100_801327CC()
     } else if (D_actor_403100_80155808->field_5DA == 2) {
         for (i = 1; i < 15; i++) {
             Gp_AnimResetSlot(&D_actor_403100_80155808->field_B8.animation.anim, i, D_actor_403100_80155808->field_5DE);
-            D_actor_403100_80155808->field_B8.animation.slots[i].field_9 = (u8)D_actor_403100_80155808->field_5E2;
+            D_actor_403100_80155808->field_B8.animation.slots[i].rate = (u8)D_actor_403100_80155808->field_5E2;
         }
         D_actor_403100_80155808->field_5DA = 3;
         D_actor_403100_80155808->field_5E0 = 0;

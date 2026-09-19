@@ -238,7 +238,7 @@ void func_actor_120500_801322A0(Task* arg0)
     arg0->msgTable = &D_actor_120500_80138408;
     i              = 1;
     do {
-        slotsWork->slots[(u16)i].field_9 = 0x10;
+        slotsWork->slots[(u16)i].rate = 0x10;
         Gp_AnimResetSlot(&slotsWork->anim, (u16)i, 1);
         i++;
     } while ((u16)i < 0x14U);
@@ -251,7 +251,7 @@ void func_actor_120500_801322A0(Task* arg0)
 /// once the session's field_1 clears.
 ///
 /// Every state then steps the tick handler, ticks the nineteen animation slots
-/// past slot 0 and walks the slots to the first whose `field_10` bit 0 is
+/// past slot 0 and walks the slots to the first whose `flags` bit 0 is
 /// clear. The request/phase pair at 0x4C0 spawns effect 0x601B4 (table entry 1)
 /// plus the placement record, and the one at 0x4C8 spawns table entry 2 or
 /// raises `D_8007106B` and the view tasks before clearing the code. The model's
@@ -313,7 +313,7 @@ void func_actor_120500_8013241C(Task* arg0)
 
     i = 1;
 loop_slots:
-    if ((slotsWork->slots[(u16)i].field_10 & 1) != 0) {
+    if ((slotsWork->slots[(u16)i].flags & 1) != 0) {
         i++;
         if ((u16)i < 0x14U) {
             goto loop_slots;

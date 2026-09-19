@@ -180,7 +180,7 @@ void Actor01600_Fn03D48(Actor01600* arg0)
         } else {
             work->field_50A = (u16)work->field_50A + 1;
             for (i = 1; i < 9; i++) {
-                work->slots[i].field_9 = (u8)work->field_538;
+                work->slots[i].rate = (u8)work->field_538;
                 Gp_AnimTickIndex(&work->anim, i);
             }
         }

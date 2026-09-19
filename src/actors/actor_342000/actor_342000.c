@@ -35,7 +35,7 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Ticks slots `(arg1 == 8)..arg1-1` of the task's animation context (slot 0 is
 /// skipped for the eight-slot actor). If every one of them then has
-/// `GpAnimSlot::field_10` bit 0x100 set, passes them the
+/// `GpAnimSlot.flags` bit 0x100 set, passes them the
 /// `D_actor_342000_80164810` id and returns 1; otherwise returns 0. The gotos
 /// reproduce retail's block layout.
 s32 func_actor_342000_80161EA4(Task* arg0, u16 arg1)
@@ -57,7 +57,7 @@ s32 func_actor_342000_80161EA4(Task* arg0, u16 arg1)
     i    = start;
     done = 1;
     for (; i < arg1; i++) {
-        if (!(work->slots[i].field_10 & 0x100)) {
+        if (!(work->slots[i].flags & 0x100)) {
             goto fail;
         }
     }
@@ -197,7 +197,7 @@ void func_actor_342000_80162158(Task* arg0)
             func_800B3F84(&w->ctx, D_actor_342000_801647F8, (GpAnimObj*)extra, &w->pad_154, w->slots);
             ctx = (Actor342000Work*)arg0->work;
             for (i = 1; i < 8; i++) {
-                ctx->slots[i].field_9 = 0x10;
+                ctx->slots[i].rate = 0x10;
                 Gp_AnimResetSlot(&ctx->ctx, i, 0);
             }
             break;
@@ -210,7 +210,7 @@ void func_actor_342000_80162158(Task* arg0)
             func_800B3F84(&w->ctx, D_actor_342000_80164800, (GpAnimObj*)extra, &w->pad_154, w->slots);
             ctx2 = (Actor342000Work*)arg0->work;
             for (i = 0; i < 4; i++) {
-                ctx2->slots[i].field_9 = 0x10;
+                ctx2->slots[i].rate = 0x10;
                 Gp_AnimResetSlot(&ctx2->ctx, i, 0);
             }
             break;
@@ -223,7 +223,7 @@ void func_actor_342000_80162158(Task* arg0)
             func_800B3F84(&w->ctx, D_actor_342000_80164808, (GpAnimObj*)extra, &w->pad_154, w->slots);
             ctx3 = (Actor342000Work*)arg0->work;
             for (i = 0; i < 4; i++) {
-                ctx3->slots[i].field_9 = 0x10;
+                ctx3->slots[i].rate = 0x10;
                 Gp_AnimResetSlot(&ctx3->ctx, i, 0);
             }
             break;

@@ -195,7 +195,7 @@ void func_actor_103700_80132FD4(Task* task)
                 work->field_256 = SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz) / work->field_252;
                 slot            = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) + 17;
                 for (i = 1; i < 6; i++) {
-                    work->slots[i].field_9 = slot;
+                    work->slots[i].rate = slot;
                 }
                 coord = ((TmdObject*)task->extra)->coords;
                 sound = ((((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) << 8) | 0x40250002;
@@ -324,7 +324,7 @@ void func_actor_103700_801336E8(Task* task)
             work->field_26C = 0;
             slot            = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) + 10;
             for (i = 1; i < 6; i++) {
-                work->slots[i].field_9 = slot;
+                work->slots[i].rate = slot;
             }
             break;
         case 1:

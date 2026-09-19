@@ -830,7 +830,7 @@ s32 func_actor_503500_80136FDC(Actor503500Work* work, s32 slot)
     }
     return ret;
 }
-/// Sets `GpAnimSlot::field_9` -- the per-slot value `Gp_AnimResetSlot` seeds
+/// Sets `GpAnimSlot.rate` -- the per-slot value `Gp_AnimResetSlot` seeds
 /// with 0x10 -- on animation slots 1..16 of the boss block, `rate` of 0
 /// meaning that default.
 void func_actor_503500_80137048(Actor503500* arg0, s32 rate)
@@ -845,7 +845,7 @@ void func_actor_503500_80137048(Actor503500* arg0, s32 rate)
         rate = 0x10;
     }
     for (i = 0xF; i >= 0; i--) {
-        slot->field_9 = rate;
+        slot->rate = rate;
         slot++;
     }
 }

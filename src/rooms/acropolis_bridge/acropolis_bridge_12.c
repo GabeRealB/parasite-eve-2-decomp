@@ -1108,7 +1108,7 @@ void func_acropolis_bridge_8018581C(Task* task)
     if (work->field_100 == 1) {
         start = (AcropolisBridgeEnemyWork*)task->work;
         for (i = 1; i < 4; i++) {
-            start->slots[i].field_9 = start->field_108;
+            start->slots[i].rate = start->field_108;
             func_800B4114(&start->anim, i, start->field_104, 0,
                           D_acropolis_bridge_801915E4[start->field_102][start->field_104]);
         }
@@ -1118,7 +1118,7 @@ void func_acropolis_bridge_8018581C(Task* task)
     if (work->field_100 == 2) {
         reset = (AcropolisBridgeEnemyWork*)task->work;
         for (j = 1; j < 4; j++) {
-            reset->slots[j].field_9 = reset->field_108;
+            reset->slots[j].rate = reset->field_108;
             Gp_AnimResetSlot(&reset->anim, j, reset->field_104);
         }
         reset->field_102 = reset->field_104;
@@ -1131,7 +1131,7 @@ void func_acropolis_bridge_8018581C(Task* task)
         work->field_106++;
         tick = (AcropolisBridgeEnemyWork*)task->work;
         for (k = 1; k < 4; k++) {
-            tick->slots[k].field_9 = tick->field_108;
+            tick->slots[k].rate = tick->field_108;
             Gp_AnimTickIndex(&tick->anim, k);
         }
     }
@@ -1779,7 +1779,7 @@ void func_acropolis_bridge_80186618(Task* task)
     }
     if (((TmdObject*)task->extra)->coords->coord.t[1] < 0x320) {
         anim = (AcropolisBridgeEnemyWork*)task->work;
-        if (anim->slots[1].field_2 == anim->slots[1].field_6) {
+        if (anim->slots[1].curRec == anim->slots[1].nextRec) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((((u32)Gp_LcgState >> 16) & 0x1F) == 0) {
                 work->field_108 = 0x10;
@@ -1871,7 +1871,7 @@ void func_acropolis_bridge_80186BBC(Task* task)
     }
     if (((TmdObject*)task->extra)->coords->coord.t[1] < 0x320) {
         anim = (AcropolisBridgeEnemyWork*)task->work;
-        if (anim->slots[1].field_2 == anim->slots[1].field_6) {
+        if (anim->slots[1].curRec == anim->slots[1].nextRec) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((((u32)Gp_LcgState >> 16) & 0x1F) == 0) {
                 work->field_108 = 0x10;

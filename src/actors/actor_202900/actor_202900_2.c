@@ -74,7 +74,7 @@ void func_actor_202900_8014A260(void)
 
     i = 1;
     do {
-        ActorsShared80131f9cWork->slots[i].field_9 = 1;
+        ActorsShared80131f9cWork->slots[i].rate = 1;
         Gp_AnimInitSlot(&ActorsShared80131f9cWork->anim, &ActorsShared80131f9cWork->slots[i], i,
                         (s16)ActorsShared80131f9cWork->animId);
         i++;
@@ -114,7 +114,7 @@ s32 func_actor_202900_8014A394(void)
 {
     u16 frame;
 
-    frame = ActorsShared80131f9cWork->slots[1].field_2;
+    frame = ActorsShared80131f9cWork->slots[1].curRec;
     if ((frame & 0x3FF) == 0x15) {
         if (ActorsShared80131f9cWork->field_484 != (frame & 0x3FF)) {
             ActorsShared80131f9cWork->field_484 = frame & 0x3FF;

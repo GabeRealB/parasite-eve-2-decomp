@@ -25,7 +25,7 @@ void func_actor_521100_8013677C(void)
 
     i = 1;
     do {
-        D_actor_521100_8016A3D8->slots[i].field_9 = 1;
+        D_actor_521100_8016A3D8->slots[i].rate = 1;
         Gp_AnimInitSlot(&D_actor_521100_8016A3D8->anim, &D_actor_521100_8016A3D8->slots[i], i,
                         (s16)D_actor_521100_8016A3D8->animId);
         i++;

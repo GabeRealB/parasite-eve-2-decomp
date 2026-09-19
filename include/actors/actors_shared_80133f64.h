@@ -15,7 +15,7 @@
 /// three argument groups the carrier's setup routine hands to `func_800B3F84`,
 /// which is what anchors every offset here. They pair up (0/1, 2/3, 4/5) with
 /// eight slots in the first pair and four in the others. `field_7BE` is the
-/// `GpAnimSlot::field_9` the resets seed with and `field_7BC` the animation id.
+/// `GpAnimSlot.rate` the resets seed with and `field_7BC` the animation id.
 typedef struct ActorsShared80133f64Work {
     /* 0x000 */ byte       pad_0[0xC];
     /* 0x00C */ GpAnimCtx  anim0;
@@ -45,7 +45,7 @@ typedef struct ActorsShared80133f64Work {
 STATIC_ASSERT_SIZEOF(ActorsShared80133f64Work, 0x7C4);
 
 /// Re-seed the three animation pairs: for each pair, stamp the pending
-/// `GpAnimSlot::field_9` onto the even context's slots while resetting the odd
+/// `GpAnimSlot.rate` onto the even context's slots while resetting the odd
 /// context's slots to the pending animation id.
 void ActorsShared80133f64(Task* task);
 

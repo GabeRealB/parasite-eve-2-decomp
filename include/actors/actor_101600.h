@@ -56,11 +56,12 @@ typedef struct Actor01600Range {
 } Actor01600Range;
 STATIC_ASSERT_SIZEOF(Actor01600Range, 0x8);
 
-/// Overlay-local animation views; gameplay/1BC.h also declares incompatible
-/// full gameplay actor globals. Slots begin at 0x14 of the work block.
+/// Overlay-local animation views: this family's units declare the gameplay API
+/// locally and their prototypes disagree with `gameplay/1BC.h`, so the header
+/// cannot be included here. Slots begin at 0x14 of the work block.
 typedef struct Actor01600AnimSlot {
     /* 0x00 */ byte pad_0[9];
-    /* 0x09 */ u8   field_9;
+    /* 0x09 */ u8   rate;
     /* 0x0A */ byte pad_A[0x1E];
 } Actor01600AnimSlot;
 STATIC_ASSERT_SIZEOF(Actor01600AnimSlot, 0x28);

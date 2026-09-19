@@ -50,7 +50,7 @@ STATIC_ASSERT_SIZEOF(Actor311900Anim, 0x474);
 /// the animation request `field_474` and the two ids beside it: `field_478` is
 /// the id the slots are seeded with, `field_476` latches it as the one now
 /// playing once the slots have been seeded, `field_47C` is the rate byte every
-/// seeding writes into `GpAnimSlot::field_9`, and `field_47A` counts frames
+/// seeding writes into `GpAnimSlot.rate`, and `field_47A` counts frames
 /// while `field_474` is 3 -- the running step, which is where both seeding
 /// steps leave it.
 typedef struct Actor311900Work {

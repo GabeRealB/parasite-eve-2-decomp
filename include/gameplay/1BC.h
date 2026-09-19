@@ -112,7 +112,7 @@ typedef struct _GpAnimObj {
 
 /// Pose pair used by `Gp_AnimWritePoseBlend` / `Gp_AnimWritePoseCopy`. Translation is
 /// GPF/GPL-blended (`Gp_AnimWritePoseBlend`) or copied (`Gp_AnimWritePoseCopy`) into
-/// `GpAnimMtxRec.mtx.t` when `GpAnimSlot.field_B == 1`; rotation is
+/// `GpAnimMtxRec.mtx.t` when `GpAnimSlot.poseKind == 1`; rotation is
 /// GPF/GPL-blended with the other pose and fed to `RotMatrix_gte`.
 typedef struct _GpAnimPose {
     /* 0x00 */ SVECTOR trans;
@@ -136,7 +136,7 @@ STATIC_ASSERT_SIZEOF(GpPackedSvec, 4);
 /// Packed translation + rotation (no `SVECTOR` pad). `Gp_AnimBlendPose`
 /// GPF/GPL-blends `vx`/`vy`/`vz` and copies `rx`/`ry`/`rz` into
 /// `GpAnimScratch80.vec0` / `vec1`. `func_800B3448` dispatches here when
-/// `GpAnimSlot.field_B == 1`.
+/// `GpAnimSlot.poseKind == 1`.
 typedef struct _GpPackedPose {
     /* 0x00 */ s16 vx;
     /* 0x02 */ s16 vy;
@@ -150,10 +150,10 @@ STATIC_ASSERT_SIZEOF(GpPackedPose, 0xC);
 /// Source/dest pointers for `Gp_AnimBlendPacked` / `Gp_AnimBlendPose`. Lives at
 /// offset 4 of the 0x18-byte scratch `func_800B3448` allocates from
 /// `G_SCRATCH_HEAD`. `field_0` / `field_4` are the current and next-frame
-/// sources (`GpPackedSvec` when `field_B == 4`, `GpPackedPose` when
-/// `field_B == 1`); `field_8` is an optional packed dest (`arg3` of
+/// sources (`GpPackedSvec` when the slot's `poseKind` is 4, `GpPackedPose`
+/// when it is 1); `field_8` is an optional packed dest (`arg3` of
 /// `func_800B3448`). `field_C` is `arg2` of `func_800B3448` (optional
-/// translation dest); `field_10` is a copy of `GpAnimSlot.field_17`.
+/// translation dest); `field_10` is a copy of `GpAnimSlot.bufPose`.
 typedef struct _GpAnimBlendSrc {
     /* 0x00 */ GpPackedSvec* field_0;
     /* 0x04 */ GpPackedSvec* field_4;
@@ -181,7 +181,7 @@ typedef struct _GpAnimScratch80 {
 STATIC_ASSERT_SIZEOF(GpAnimScratch80, 0x80);
 
 /// 0x50-byte dest record at `GpAnimCtx.field_4`, indexed by
-/// `GpAnimSlot.field_14`. `Gp_AnimWritePoseBlend` / `Gp_AnimWritePoseCopy` write `mtx`
+/// `GpAnimSlot.mtxIndex`. `Gp_AnimWritePoseBlend` / `Gp_AnimWritePoseCopy` write `mtx`
 /// (rotation at +4, translation at +0x18) and clear `field_0`.
 typedef struct _GpAnimMtxRec {
     /* 0x00 */ s32    field_0;
@@ -227,7 +227,7 @@ typedef struct _GpPickupWork {
 STATIC_ASSERT_SIZEOF(GpPickupWork, 6);
 
 /// One animation of a model: the clip data behind a single pointer of the table
-/// at `GpAnimSlot::field_20` (the same table as `GpAnimCtx::field_0`), indexed
+/// at `GpAnimSlot.sets` (the same table as `GpAnimCtx::field_0`), indexed
 /// by animation id.
 ///
 /// An animation carries one track per model part, each a run of `recs`
@@ -235,7 +235,7 @@ STATIC_ASSERT_SIZEOF(GpPickupWork, 6);
 /// per pose encoding, which those records index into by 4-byte word.
 typedef struct {
     GpAnimRec*    recs;         // keyframe records of every track, one run per model part
-    u16*          trackStart;   // record index each track begins at, indexed by `GpAnimSlot::field_15`
+    u16*          trackStart;   // record index each track begins at, indexed by `GpAnimSlot.trackIndex`
     GpPackedSvec* poseBanks[8]; // pose bank per pose encoding, indexed by `GpAnimRec.flags & 0xF` (1 `GpPackedPose`, 4 `GpPackedSvec`)
 } GpAnimSet;
 STATIC_ASSERT_SIZEOF(GpAnimSet, 0x28);
@@ -249,49 +249,45 @@ typedef struct _GpAnimScratch18 {
 } GpAnimScratch18;
 STATIC_ASSERT_SIZEOF(GpAnimScratch18, 0x18);
 
-/// 0x28-byte animation slot. `field_15` is this slot's index in the
-/// `GpAnimCtx::field_C` array; `Gp_AnimTickSlot` / `Gp_AnimTickSlot2` /
-/// `Gp_AnimTickSlot3` recover the base as `slot - slot->field_15`.
-/// `field_0 == 0x7FFF` marks the slot inactive. `field_0`/`field_2` and
-/// `field_4`/`field_6` are the two (set, frame) pairs. `field_10` is a
-/// flags word (`func_800B4754` sets bit 0 when clamping `field_2`;
-/// `Gp_AnimAdvanceSlot` / `Gp_AnimSeekSlotEx` / `func_800B46A4` / `func_800B4114` /
-/// `func_800B4538` / `Gp_AnimPlaySlot` set bit 0/1 while walking `flags`
-/// links). `Gp_AnimSeekSlotEx` / `func_800B4114` / `func_800B4538` /
-/// `Gp_AnimPlaySlot` also clear `field_17` and write a `<< 4` value into
-/// `field_C` / `field_E` (`Gp_AnimSeekSlotEx` then overwrites both from
-/// `recs[field_6].duration`). `Gp_AnimPlaySlot` installs a
-/// non-NULL last arg into `GpAnimCtx::field_0` and `field_20` first.
-/// `Gp_AnimInitSlot` inits a passed-in slot (set index 0 becomes 1; a
-/// negative set index is negated) and also writes `field_2` from the
-/// same `field_4[field_15]` table as `field_6`. `Gp_AnimResetSlot` writes
-/// `field_9 = 0x10`, copies `arg1` to both `field_14` and `field_15`,
-/// and stores `recs[field_6].flags & 0xF` in `field_B`.
-/// `Gp_AnimResetSlotEx` is the same init with separate `field_14` /
-/// `field_15` arguments. `Gp_AnimWritePoseBlend` / `Gp_AnimWritePoseCopy` index
-/// `GpAnimCtx.field_4` by `field_14`; `Gp_AnimWritePoseBlend` GPF/GPL-blends
-/// pose translation when `field_B == 1`, `Gp_AnimWritePoseCopy` copies it.
-/// `func_800B3448` dispatches `field_B == 1` to `Gp_AnimBlendPose` and
-/// `field_B == 4` to `Gp_AnimBlendPacked`.
-typedef struct _GpAnimSlot {
-    /* 0x00 */ u16         field_0;
-    /* 0x02 */ u16         field_2;
-    /* 0x04 */ u16         field_4;
-    /* 0x06 */ u16         field_6;
+/// One animation slot: the playback state of one model part's animation.
+///
+/// The slot walks the keyframe records of a single track, blending the pose it
+/// has reached (`curSet`/`curRec`) into the one it is heading for
+/// (`nextSet`/`nextRec`), which takes that keyframe's `duration` as the length
+/// of the segment. `timeLeft` counts the segment down under `rate` and is the
+/// blend's numerator, `timeSpan` its denominator. Records that are control
+/// entries rather than poses are not shown: the walk follows them and reports
+/// what it did in `flags`.
+///
+/// A slot's track and its transform are separate: `trackIndex` names the track
+/// it reads and `mtxIndex` the matrix record it writes, the same part unless a
+/// caller pairs a slot with another part's track. Slots sit in the array
+/// `GpAnimCtx.field_C` points at, and the tick helpers recover that array as
+/// `slot - slot->trackIndex`, so a slot following another part's track cannot
+/// be ticked through a pointer alone.
+///
+/// Either keyframe may instead be a pose the caller supplies, kept per slot in
+/// the context's pose buffer and marked by the 0x7FFF sentinel; `bufPose` says
+/// one of the two is that kind.
+typedef struct {
+    /* 0x00 */ u16         curSet;      // set of the keyframe the slot has reached; 0x7FFF takes the pose from the context's pose buffer
+    /* 0x02 */ u16         curRec;      // that keyframe's record index
+    /* 0x04 */ u16         nextSet;     // set of the keyframe it is heading for; 0x7FFF as in `curSet`
+    /* 0x06 */ u16         nextRec;     // that keyframe's record index
     /* 0x08 */ byte        pad_8;
-    /* 0x09 */ u8          field_9;
-    /* 0x0A */ byte        pad_A;
-    /* 0x0B */ u8          field_B;
-    /* 0x0C */ u16         field_C;
-    /* 0x0E */ u16         field_E;
-    /* 0x10 */ u16         field_10;
-    /* 0x12 */ u16         field_12;
-    /* 0x14 */ u8          field_14;
-    /* 0x15 */ u8          field_15;
-    /* 0x16 */ u8          field_16;
-    /* 0x17 */ u8          field_17;
-    /* 0x18 */ SVECTOR     field_18;
-    /* 0x20 */ GpAnimSet** field_20;
+    /* 0x09 */ u8          rate;        // segment advance per tick in 16ths of a frame (0x10 one frame), read signed, so a negative rate runs the segment backwards
+    /* 0x0A */ u8          field_A;     // role unproven: written 0 by the walk, never read
+    /* 0x0B */ u8          poseKind;    // pose encoding of the keyframe being headed for (`GpAnimRec.flags & 0xF`): the `GpAnimSet.poseBanks` entry its pose comes from
+    /* 0x0C */ s16         timeLeft;    // frames left in the segment, in 16ths; it runs past zero until the walk catches up
+    /* 0x0E */ u16         timeSpan;    // that keyframe's `duration` in the same units; the blend's denominator
+    /* 0x10 */ u16         flags;       // bit 0 the walk took the clip's end, bit 1 it followed a control entry, bit 8 the clip has ended and settled on its last pose
+    /* 0x12 */ u16         field_12;    // role unproven: written 0 by every initialiser, never read
+    /* 0x14 */ u8          mtxIndex;    // `GpAnimMtxRec` the slot writes: the model part whose transform it drives
+    /* 0x15 */ u8          trackIndex;  // track the slot reads: the model part whose keyframes it follows
+    /* 0x16 */ u8          atEnd;       // the clip has run to its end: the slot holds its last pose and does not advance
+    /* 0x17 */ u8          bufPose;     // the pose came from the context's pose buffer rather than a pose bank
+    /* 0x18 */ SVECTOR     bufRotDelta; // Euler angles of the rotation from the previous buffered pose to the current, applied while both ticks are buffered
+    /* 0x20 */ GpAnimSet** sets;        // the animation set table `curSet` and `nextSet` index (the context's)
     /* 0x24 */ byte        pad_24[4];
 } GpAnimSlot;
 STATIC_ASSERT_SIZEOF(GpAnimSlot, 0x28);

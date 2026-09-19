@@ -28,7 +28,7 @@ extern s16 D_actor_120300_80140980[];
 extern TaskDesc ActorsShared80134898Desc;
 
 /// Ticks slots 1..19 of a task's animation context and, if every one of them
-/// then has `GpAnimSlot::field_10` bit 0x100 set, re-reads the work block and
+/// then has `GpAnimSlot.flags` bit 0x100 set, re-reads the work block and
 /// restarts all twenty slots on the id `D_actor_120300_80140980` selects for
 /// `field_4D4`, returning 1; a negative entry or an unset slot returns 0. The
 /// gotos reproduce retail's block layout.
@@ -47,7 +47,7 @@ s32 func_actor_120300_80131EE0(Task* arg0)
     i    = 1;
     done = 1;
     for (; i < 0x14; i++) {
-        if (!(work->slots[i].field_10 & 0x100)) {
+        if (!(work->slots[i].flags & 0x100)) {
             goto fail;
         }
     }
@@ -245,7 +245,7 @@ void func_actor_120300_80133330(s32 arg0)
     animWork->field_4D4 = 8;
     i                   = 1;
     do {
-        animWork->slots[(u16)i].field_9 = 0x10;
+        animWork->slots[(u16)i].rate = 0x10;
         Gp_AnimResetSlot(&animWork->anim, (u16)i, 8);
         i++;
     } while ((u16)i < 0x14U);
@@ -377,7 +377,7 @@ void func_actor_120300_801335D8(Task* arg0)
     animWork->field_4D4 = 0xE;
     i                   = 1;
     do {
-        animWork->slots[(u16)i].field_9 = 0x10;
+        animWork->slots[(u16)i].rate = 0x10;
         Gp_AnimResetSlot(&animWork->anim, (u16)i, 0xE);
         i++;
     } while ((u16)i < 0x14U);

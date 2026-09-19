@@ -136,7 +136,7 @@ void func_actor_311900_80162100(Task* task)
     if (work->field_474 == 1) {
         start = (Actor311900Work*)task->work;
         for (i = 1; i < 0x14; i++) {
-            start->anim.slots[i].field_9 = start->field_47C;
+            start->anim.slots[i].rate = start->field_47C;
             func_800B4114(&start->anim.context, i, (s16)start->field_478, 0, 0);
         }
         start->field_476 = start->field_478;
@@ -147,7 +147,7 @@ void func_actor_311900_80162100(Task* task)
     if (work->field_474 == 2) {
         start = (Actor311900Work*)task->work;
         for (j = 1; j < 0x14; j++) {
-            start->anim.slots[j].field_9 = start->field_47C;
+            start->anim.slots[j].rate = start->field_47C;
             Gp_AnimResetSlot(&start->anim.context, j, (s16)start->field_478);
         }
         start->field_476 = start->field_478;

@@ -45,7 +45,7 @@ void func_actor_210600_8014B2C0(Task* task)
     if (work->field_87C == 1) {
         start = (Actor210600Work*)task->work;
         for (i = 1; i < 0x13; i++) {
-            start->slots[i].field_9 = start->field_886.byte;
+            start->slots[i].rate = start->field_886.byte;
             func_800B4114(&start->anim, i, (s16)start->field_882, 0,
                           D_actor_210600_8015A498[start->field_880][(s16)start->field_882]);
         }
@@ -55,7 +55,7 @@ void func_actor_210600_8014B2C0(Task* task)
     if (work->field_87C == 2) {
         reset = (Actor210600Work*)task->work;
         for (j = 1; j < 0x13; j++) {
-            reset->slots[j].field_9 = reset->field_886.byte;
+            reset->slots[j].rate = reset->field_886.byte;
             Gp_AnimResetSlot(&reset->anim, j, (s16)reset->field_882);
         }
         reset->field_880 = reset->field_882;
@@ -69,7 +69,7 @@ void func_actor_210600_8014B2C0(Task* task)
     work->field_884++;
     tick = (Actor210600Work*)task->work;
     for (k = 1; k < 0x13; k++) {
-        tick->slots[k].field_9 = tick->field_886.byte;
+        tick->slots[k].rate = tick->field_886.byte;
         Gp_AnimTickIndex(&tick->anim, k);
     }
 }
@@ -134,7 +134,7 @@ void func_actor_210600_8014B434(void* spawnArg2, Task* task)
         func_actor_210600_8014B2C0(task);
         Actor210600_ScaleRotation(task, 0xC00);
 
-        id = work->slots[1].field_2 & 0x3FF;
+        id = work->slots[1].curRec & 0x3FF;
         if (id == 7 && work->field_896 != id) {
             memset(&vec, 0, 8);
             eff.field_0 = ((TmdObject*)task->extra)->coords;
@@ -142,7 +142,7 @@ void func_actor_210600_8014B434(void* spawnArg2, Task* task)
             eff.field_6 = 2;
             func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, ((TmdObject*)task->extra)->coords + 1, &vec, &eff);
         }
-        work->field_896 = work->slots[0].field_2 & 0x3FF;
+        work->field_896 = work->slots[0].curRec & 0x3FF;
     }
 }
 

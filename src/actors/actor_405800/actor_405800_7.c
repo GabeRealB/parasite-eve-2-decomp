@@ -32,7 +32,7 @@ void func_actor_405800_8013A0F4(Task* arg0)
     }
     i = 1;
     do {
-        work->slots[i].field_9 = work->field_850;
+        work->slots[i].rate = work->field_850;
         Gp_AnimTickIndex(&work->anim, i);
         i++;
     } while (i < 0x12);

@@ -1465,7 +1465,7 @@ void func_actor_206100_8014DA28(Task* task)
             for (i = 1; i < 0xF; i++) {
                 Gp_AnimTickIndex(&next->anim, i);
             }
-            work->flags_514.parts.half = work->slots[1].field_10;
+            work->flags_514.parts.half = work->slots[1].flags;
             func_actor_206100_8014B0AC(task, work->field_54D);
             coord                = ((TmdObject*)task->extra)->coords;
             sub                  = (Actor206100Work*)task->work;
@@ -1743,7 +1743,7 @@ void func_actor_206100_8014E7D4(Task* task)
             return;
         case 0:
             states.funcs[(s16)work->field_520](task, &states);
-            work->flags_514.half = work->slots[1].field_10;
+            work->flags_514.half = work->slots[1].flags;
             coord->coord.t[0]    = coord->coord.t[0] + (-coord->coord.t[0] >> 4);
             coord->coord.t[2]    = coord->coord.t[2] + (-coord->coord.t[2] >> 4);
             coord->coord.t[1] =

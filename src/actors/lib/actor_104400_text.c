@@ -1231,12 +1231,12 @@ void Actor04400_Fn02B8C(Task* arg0)
         start = work;
         if (start->field_416 == start->field_418) {
             for (i = 1; i < 9; i++) {
-                (&start->slot_B4)[i].field_9 = start->field_41C;
+                (&start->slot_B4)[i].rate = start->field_41C;
                 func_800B4114(&start->anim, i, start->field_418, 0, start->field_426);
             }
         } else {
             for (i = 1; i < 9; i++) {
-                (&start->slot_B4)[i].field_9 = start->field_41C;
+                (&start->slot_B4)[i].rate = start->field_41C;
                 func_800B4114(&start->anim, i, start->field_418, 0, start->field_426);
             }
             start->field_426 = 0;
@@ -1247,7 +1247,7 @@ void Actor04400_Fn02B8C(Task* arg0)
         start = work;
         for (j = 1; j < 9; j++) {
             Gp_AnimResetSlot(&start->anim, j, start->field_418);
-            (&start->slot_B4)[j].field_9 = start->field_41C;
+            (&start->slot_B4)[j].rate = start->field_41C;
         }
     advance:
         start->field_416 = start->field_418;
@@ -1257,7 +1257,7 @@ void Actor04400_Fn02B8C(Task* arg0)
         work->field_41A++;
     }
     for (k = 1; k < 9; k++) {
-        (&work->slot_B4)[k].field_9 = work->field_41C;
+        (&work->slot_B4)[k].rate = work->field_41C;
         Gp_AnimTickIndex(&work->anim, k);
     }
 }

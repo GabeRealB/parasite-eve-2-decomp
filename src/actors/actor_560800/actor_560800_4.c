@@ -318,7 +318,7 @@ void func_actor_560800_80137820(Task* arg0)
             id   = work->field_280;
             anim = (Actor560800ModelWork*)arg0->work;
             do {
-                anim->slots[i & 0xFFFF].field_9 = 0x10;
+                anim->slots[i & 0xFFFF].rate = 0x10;
                 Gp_AnimResetSlot(&anim->anim, i & 0xFFFF, id);
                 i++;
             } while ((u32)(i & 0xFFFF) < 7U);
@@ -332,7 +332,7 @@ void func_actor_560800_80137820(Task* arg0)
                 i++;
             } while ((u32)(i & 0xFFFF) < 7U);
             for (i = 1; (u32)(i & 0xFFFF) < 7U; i++) {
-                if (!(anim->slots[i & 0xFFFF].field_10 & 0x100)) {
+                if (!(anim->slots[i & 0xFFFF].flags & 0x100)) {
                     break;
                 }
             }

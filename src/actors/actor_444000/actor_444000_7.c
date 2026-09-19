@@ -93,7 +93,7 @@ void func_actor_444000_801435CC(Actor444000* arg0)
         SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
     }
     func_actor_444000_8013441C(arg0);
-    if (work->slots0[1].field_10 & 1) {
+    if (work->slots0[1].flags & 1) {
         work->field_0 = 9;
     }
 }

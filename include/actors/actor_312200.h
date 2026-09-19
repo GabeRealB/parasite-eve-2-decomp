@@ -8,7 +8,7 @@
 #include "main/task.h"
 
 /// Dual-width view of the animation rate the seeding body
-/// `func_actor_312200_80162FB4` copies into every slot's `GpAnimSlot::field_9`:
+/// `func_actor_312200_80162FB4` copies into every slot's `GpAnimSlot.rate`:
 /// the state handlers arm it as a halfword, the seeding body reads back only
 /// its low byte. Same overlap as `Actor210600Rate`.
 typedef union Actor312200Rate {

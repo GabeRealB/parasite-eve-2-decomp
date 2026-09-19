@@ -3702,7 +3702,7 @@ void Gp_TickActorAnimState(GpActorWork* arg0)
                 do {
                     Gp_AnimPlaySlot((GpAnimCtx*)actor->field_424, i, 0, anim, 0, 0, extra,
                                     actor->field_928);
-                    actor->field_438[i].field_9 = actor->field_985;
+                    actor->field_438[i].rate = actor->field_985;
                     i++;
                 } while (i < actor->field_938);
             }
@@ -3734,7 +3734,7 @@ void Gp_TickActorAnimState(GpActorWork* arg0)
             break;
         case 8:
             if (rec != NULL) {
-                flags = actor->field_438[1].field_10;
+                flags = actor->field_438[1].flags;
                 if ((flags & 1) || (flags & 2)) {
                     actor->field_95E++;
                     func_801066DC(arg0, 0);
@@ -4832,7 +4832,7 @@ void Gp_AnimResetChildSlots(GpActorWork* arg0, s32 arg1)
     if (i < actor->field_938) {
         do {
             Gp_AnimResetSlot((GpAnimCtx*)actor->field_424, i, arg1);
-            actor->field_438[i].field_9 = actor->field_985;
+            actor->field_438[i].rate = actor->field_985;
             i++;
         } while (i < actor->field_938);
     }
@@ -4848,7 +4848,7 @@ void Gp_AnimPlayChildSlots(GpActorWork* arg0, s32 arg1, s32 arg2)
     if (i < actor->field_938) {
         do {
             Gp_AnimPlaySlot((GpAnimCtx*)actor->field_424, i, 0, arg1, 0, 0, 0, actor->field_928);
-            actor->field_438[i].field_9 = actor->field_985;
+            actor->field_438[i].rate = actor->field_985;
             i++;
         } while (i < actor->field_938);
     }
@@ -4864,7 +4864,7 @@ void Gp_AnimPlayChildSlotsEx(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (i < actor->field_938) {
         do {
             Gp_AnimPlaySlot((GpAnimCtx*)actor->field_424, i, 0, arg1, 0, 0, arg3, actor->field_928);
-            actor->field_438[i].field_9 = actor->field_985;
+            actor->field_438[i].rate = actor->field_985;
             i++;
         } while (i < actor->field_938);
     }
@@ -6001,7 +6001,7 @@ s32 func_8010583C(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
     actor = arg0->actor;
     ret   = 0;
     for (i = actor->field_938 - 1; i > 0; i--) {
-        if ((actor->field_438[i].field_10 & 0x100) == 0) {
+        if ((actor->field_438[i].flags & 0x100) == 0) {
             ret = 1;
             break;
         }
@@ -6014,7 +6014,7 @@ s32 func_80105894(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
     GameActor* actor;
 
     actor = (GameActor*)((arg1 * sizeof(GameActorSlot)) + (s32)arg0->actor);
-    return (actor->field_438[0].field_10 & 0x102) == 0;
+    return (actor->field_438[0].flags & 0x102) == 0;
 }
 
 s32 func_801058BC(GpActorWork* arg0, s32 arg1, s32 arg2)
@@ -6031,7 +6031,7 @@ s32 func_801058BC(GpActorWork* arg0, s32 arg1, s32 arg2)
     i = 1;
     if (i < actor->field_938) {
         do {
-            actor->field_438[i].field_9 = arg2;
+            actor->field_438[i].rate = arg2;
             i++;
         } while (i < actor->field_938);
     }

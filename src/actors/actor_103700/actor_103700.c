@@ -94,7 +94,7 @@ void func_actor_103700_80131EC4(GpEnemy* arg0, Task* task)
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     kind        = (Gp_LcgState >> 16) & 3;
     for (i = 1; i < 6; i++) {
-        work->slots[i].field_9 += kind;
+        work->slots[i].rate += kind;
     }
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     work->field_234.vx = coord->coord.t[0];

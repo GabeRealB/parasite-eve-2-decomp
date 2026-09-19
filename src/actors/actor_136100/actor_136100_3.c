@@ -14,7 +14,7 @@ void func_actor_136100_801347B8(void)
     work->field_4E0 = 1;
     i               = 1;
     do {
-        work->slots[(u16)i].field_9 = 0x10;
+        work->slots[(u16)i].rate = 0x10;
         Gp_AnimResetSlot(&work->anim, (u16)i, 1);
         i++;
     } while ((u16)i < 0x14U);

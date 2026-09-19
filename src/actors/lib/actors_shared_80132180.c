@@ -13,7 +13,7 @@ void ActorsShared80132180(void)
 
     i = 1;
     do {
-        ActorsShared80131f9cWork->slots[i].field_9 = 1;
+        ActorsShared80131f9cWork->slots[i].rate = 1;
         Gp_AnimResetSlot(&ActorsShared80131f9cWork->anim, i, (s16)ActorsShared80131f9cWork->animId);
         i++;
     } while (i < 0x14);

@@ -30,7 +30,7 @@ void func_actor_461800_80133770(void)
     D_actor_461800_801438A0->field_4B8 = 0;
     i                                  = 1;
     do {
-        D_actor_461800_801438A0->slots[i].field_9 = 1;
+        D_actor_461800_801438A0->slots[i].rate = 1;
         Gp_AnimResetSlot(&D_actor_461800_801438A0->anim, i, D_actor_461800_801438A0->field_480);
         i++;
     } while (i < 0x13);

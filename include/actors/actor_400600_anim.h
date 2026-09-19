@@ -75,7 +75,7 @@ static __inline__ void Actor400600_TickAnim(Task* arg0)
     }
     i = 1;
     do {
-        work->slots[i].field_9 = work->field_726;
+        work->slots[i].rate = work->field_726;
         Gp_AnimTickIndex(&work->anim, i);
         i++;
     } while (i < 0x12);

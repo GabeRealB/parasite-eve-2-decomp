@@ -169,7 +169,7 @@ static inline void func_actor_160900_InitAnim(Task* task, GpAnimObj* obj)
     work->field_4B8 = 0;
     work->field_4BA = 0;
     do {
-        work->slots[(u16)i].field_9 = 0x10;
+        work->slots[(u16)i].rate = 0x10;
         Gp_AnimResetSlot(&work->anim, (u16)i, 0);
         i++;
     } while ((u16)i < 0x14U);

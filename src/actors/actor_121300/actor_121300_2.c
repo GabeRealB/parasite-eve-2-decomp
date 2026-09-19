@@ -298,7 +298,7 @@ void func_actor_121300_80133BFC(Task* arg0)
     slotsWork->field_4A0 = 1;
     i                    = 1;
     do {
-        slotsWork->slots[(u16)i].field_9 = 0x10;
+        slotsWork->slots[(u16)i].rate = 0x10;
         Gp_AnimResetSlot(&slotsWork->anim, (u16)i, 1);
         i++;
     } while ((u16)i < 0x13U);

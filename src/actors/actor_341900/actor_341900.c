@@ -61,7 +61,7 @@ s32 func_actor_341900_80161E58(Task* arg0, u16 arg1)
     i    = start;
     done = 1;
     for (; i < arg1; i++) {
-        if (!(work->slots[i].field_10 & 0x100)) {
+        if (!(work->slots[i].flags & 0x100)) {
             goto fail;
         }
     }
@@ -96,7 +96,7 @@ static inline void Actor341900_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
     ctx = (Actor341900AnimWork*)task->work;
     if (blend == 0) {
         for (i = n == 8; i < n; i++) {
-            ctx->slots[i].field_9 = 0x10;
+            ctx->slots[i].rate = 0x10;
             Gp_AnimResetSlot(&ctx->ctx, i, anim);
         }
     } else {
@@ -198,7 +198,7 @@ void func_actor_341900_80162330(Task* arg0)
             func_800B3F84(&w->ctx, D_actor_341900_801639AC, (GpAnimObj*)extra, &w->pad_154, w->slots);
             ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 1; i < 8; i++) {
-                ctx->slots[i].field_9 = 0x10;
+                ctx->slots[i].rate = 0x10;
                 Gp_AnimResetSlot(&ctx->ctx, i, 0);
             }
             break;
@@ -211,7 +211,7 @@ void func_actor_341900_80162330(Task* arg0)
             func_800B3F84(&w->ctx, D_actor_341900_801639B8, (GpAnimObj*)extra, &w->pad_154, w->slots);
             ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 0; i < 4; i++) {
-                ctx->slots[i].field_9 = 0x10;
+                ctx->slots[i].rate = 0x10;
                 Gp_AnimResetSlot(&ctx->ctx, i, 0);
             }
             break;
@@ -220,7 +220,7 @@ void func_actor_341900_80162330(Task* arg0)
             func_800B3F84(&w->ctx, D_actor_341900_801639C4, (GpAnimObj*)extra, &w->pad_154, w->slots);
             ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 0; i < 4; i++) {
-                ctx->slots[i].field_9 = 0x10;
+                ctx->slots[i].rate = 0x10;
                 Gp_AnimResetSlot(&ctx->ctx, i, 0);
             }
             break;

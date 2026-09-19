@@ -405,13 +405,13 @@ void func_actor_403000_801336B4(Actor403000* arg0)
     anim   = &work->anim;
     for (i = 1; i < 0x18; i++) {
         if (i < 0xB) {
-            work->blendSlots[i].field_9 = (u8)work->field_AD2;
-            work->slots[i].field_9      = (u8)(work->field_ACA - 3);
+            work->blendSlots[i].rate = (u8)work->field_AD2;
+            work->slots[i].rate      = (u8)(work->field_ACA - 3);
             func_800B3448(anim, i, (s32)&pose, 0);
             func_800B3448(&work->blendAnim, i, (s32)&blendPose, 0);
             Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
-            work->slots[i].field_9 = (u8)(work->field_ACA - 3);
+            work->slots[i].rate = (u8)(work->field_ACA - 3);
             Gp_AnimTickIndex(&work->anim, i);
         }
     }
@@ -422,68 +422,68 @@ s32 func_actor_403000_801337E0(s32 arg0, Actor403000AnimWork* work)
     s32 ret;
 
     ret = 0;
-    if (work->field_AF0 == (work->slots[1].field_2 & 0x3FF)) {
+    if (work->field_AF0 == (work->slots[1].curRec & 0x3FF)) {
         return ret;
     }
     switch ((s16)(work->field_AC6 - 1)) {
         case 0:
-            if ((work->slots[1].field_2 & 0x3FF) >= 0x21 && work->field_AF0 < 0x21) {
+            if ((work->slots[1].curRec & 0x3FF) >= 0x21 && work->field_AF0 < 0x21) {
                 ret = 0x401E0002;
             }
-            if ((work->slots[1].field_2 & 0x3FF) >= 0x2C && work->field_AF0 < 0x2C) {
+            if ((work->slots[1].curRec & 0x3FF) >= 0x2C && work->field_AF0 < 0x2C) {
                 ret = 0x401E0001;
             }
             break;
         case 8:
-            if ((work->slots[1].field_2 & 0x3FF) >= 5 && work->field_AF0 < 5) {
+            if ((work->slots[1].curRec & 0x3FF) >= 5 && work->field_AF0 < 5) {
                 ret = 0x401E0002;
             }
-            if ((work->slots[1].field_2 & 0x3FF) >= 0xA && work->field_AF0 < 0xA) {
+            if ((work->slots[1].curRec & 0x3FF) >= 0xA && work->field_AF0 < 0xA) {
                 ret = 0x401E0001;
             }
             break;
         case 13:
-            if ((work->slots[1].field_2 & 0x3FF) >= 0xF && work->field_AF0 < 0xF) {
+            if ((work->slots[1].curRec & 0x3FF) >= 0xF && work->field_AF0 < 0xF) {
                 ret = 0x401E000E;
             }
             break;
         case 1:
-            if ((work->slots[1].field_2 & 0x3FF) >= 0x1D && work->field_AF0 < 0x1D) {
+            if ((work->slots[1].curRec & 0x3FF) >= 0x1D && work->field_AF0 < 0x1D) {
                 ret = 0x401E0003;
             }
-            if ((work->slots[1].field_2 & 0x3FF) >= 0x17 && work->field_AF0 < 0x17) {
+            if ((work->slots[1].curRec & 0x3FF) >= 0x17 && work->field_AF0 < 0x17) {
                 ret = 0x401E0004;
             }
             break;
         case 11:
-            if ((work->slots[1].field_2 & 0x3FF) >= 0x13 && work->field_AF0 < 0x13) {
+            if ((work->slots[1].curRec & 0x3FF) >= 0x13 && work->field_AF0 < 0x13) {
                 ret = 0x401E0008;
             }
         case 10:
-            if ((work->slots[1].field_2 & 0x3FF) >= 0x12 && work->field_AF0 < 0x12) {
+            if ((work->slots[1].curRec & 0x3FF) >= 0x12 && work->field_AF0 < 0x12) {
                 ret = 0x401E0007;
             }
-            if ((work->slots[1].field_2 & 0x3FF) >= 0xF && work->field_AF0 < 0xF) {
+            if ((work->slots[1].curRec & 0x3FF) >= 0xF && work->field_AF0 < 0xF) {
                 ret = 0x401E000C;
             }
             break;
         case 6:
-            if ((work->slots[1].field_2 & 0x3FF) >= 0x15 && work->field_AF0 < 0x15) {
+            if ((work->slots[1].curRec & 0x3FF) >= 0x15 && work->field_AF0 < 0x15) {
                 ret = 0x401E0009;
             }
             break;
         case 16:
-            if ((work->slots[1].field_2 & 0x3FF) >= 8 && work->field_AF0 < 8) {
+            if ((work->slots[1].curRec & 0x3FF) >= 8 && work->field_AF0 < 8) {
                 ret = 0x401E000B;
             }
             break;
         case 7:
-            if ((work->slots[1].field_2 & 0x3FF) >= 0xD && work->field_AF0 < 0xD) {
+            if ((work->slots[1].curRec & 0x3FF) >= 0xD && work->field_AF0 < 0xD) {
                 ret = 0x401E000D;
             }
             break;
     }
-    work->field_AF0 = work->slots[1].field_2 & 0x3FF;
+    work->field_AF0 = work->slots[1].curRec & 0x3FF;
     return ret;
 }
 
@@ -538,11 +538,11 @@ void func_actor_403000_80133AF8(Actor403000* arg0)
             table     = (u32)D_actor_403000_80158364;
             seekSlot  = work->slots;
             do {
-                seekSlotIndex       = seekIndex;
-                seekSlot[1].field_9 = (u8)seekWork->field_ACA;
-                animation           = seekWork->field_AC6;
-                seekSlot           += 1;
-                index               = seekWork->field_AC4 * 0x2D;
+                seekSlotIndex    = seekIndex;
+                seekSlot[1].rate = (u8)seekWork->field_ACA;
+                animation        = seekWork->field_AC6;
+                seekSlot        += 1;
+                index            = seekWork->field_AC4 * 0x2D;
                 func_800B4114(&seekWork->anim, seekSlotIndex, animation, 0, (s32) * (s8*)((animation + index) + table));
                 seekIndex += 1;
             } while (seekIndex < 0x18);
@@ -557,9 +557,9 @@ void func_actor_403000_80133AF8(Actor403000* arg0)
         resetIndex = 1;
         resetSlot  = work->slots;
         do {
-            resetSlotIndex       = resetIndex;
-            resetSlot[1].field_9 = (u8)resetWork->field_ACA;
-            resetSlot           += 1;
+            resetSlotIndex    = resetIndex;
+            resetSlot[1].rate = (u8)resetWork->field_ACA;
+            resetSlot        += 1;
             Gp_AnimResetSlot(&resetWork->anim, resetSlotIndex, (s32)resetWork->field_AC6);
             resetIndex += 1;
         } while (resetIndex < 0x18);
@@ -575,9 +575,9 @@ void func_actor_403000_80133AF8(Actor403000* arg0)
         secondaryWork->field_AD2 = 0x20;
         secondaryWork->field_AD4 = 0x800;
         do {
-            secondarySlotIndex       = secondaryIndex;
-            secondarySlot[1].field_9 = (u8)secondaryWork->field_AD2;
-            secondarySlot           += 1;
+            secondarySlotIndex    = secondaryIndex;
+            secondarySlot[1].rate = (u8)secondaryWork->field_AD2;
+            secondarySlot        += 1;
             Gp_AnimResetSlot(&secondaryWork->blendAnim, secondarySlotIndex, (s32)secondaryWork->field_AD0);
             secondaryIndex += 1;
         } while (secondaryIndex < 0x18);
@@ -589,15 +589,15 @@ void func_actor_403000_80133AF8(Actor403000* arg0)
         tickIndex = 1;
         tickSlot  = tickWork->slots;
         do {
-            tickSlotIndex       = tickIndex;
-            tickSlot[1].field_9 = (u8)tickWork->field_ACA;
+            tickSlotIndex    = tickIndex;
+            tickSlot[1].rate = (u8)tickWork->field_ACA;
             Gp_AnimTickIndex(&tickWork->anim, tickSlotIndex);
             tickSlot  += 1;
             tickIndex += 1;
         } while (tickIndex < 0x18);
     } else {
         func_actor_403000_801336B4(arg0);
-        if (work->blendSlots[1].field_10 & 0x100) {
+        if (work->blendSlots[1].flags & 0x100) {
             work->field_AC2 = 0;
         }
     }

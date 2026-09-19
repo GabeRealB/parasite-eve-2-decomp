@@ -9,7 +9,7 @@
 
 /// Dual-width view of the animation rate at 0x886. The message handler
 /// `func_actor_210600_8014B770` arms the pair as one halfword, while the
-/// seeding body copies the low byte into every slot's `GpAnimSlot::field_9`,
+/// seeding body copies the low byte into every slot's `GpAnimSlot.rate`,
 /// the rate `Gp_AnimResetSlot` otherwise writes 0x10 into; the same
 /// `word` / `half` overlap `ActorsShared80168d3cFlags` describes.
 typedef union Actor210600Rate {

@@ -520,13 +520,13 @@ void Actor01900_Fn01950(Actor01900* arg0)
     anim   = &work->anim;
     for (i = 1; i < 0x13; i++) {
         if (i < 0xB) {
-            work->blendSlots[i].field_9 = (u8)work->field_8AA;
-            work->slots[i].field_9      = (u8)(work->field_8A2 - 3);
+            work->blendSlots[i].rate = (u8)work->field_8AA;
+            work->slots[i].rate      = (u8)(work->field_8A2 - 3);
             func_800B3448(anim, i, (s32)&pose, 0);
             func_800B3448(&work->blendAnim, i, (s32)&blendPose, 0);
             Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
-            work->slots[i].field_9 = (u8)(work->field_8A2 - 3);
+            work->slots[i].rate = (u8)(work->field_8A2 - 3);
             Gp_AnimTickIndex(&work->anim, i);
         }
     }

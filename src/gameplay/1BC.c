@@ -1728,16 +1728,16 @@ Task* func_800B2968(void)
 void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2,
                      GpAnimScratch80* s)
 {
-    if (arg2->field_17 != 0) {
+    if (arg2->bufPose != 0) {
         RotMatrix_gte(&s->vec0, &s->mtx0);
         if (arg0->field_10 == 1) {
             RotMatrix_gte(&s->vec1, &s->mtx1);
             TransposeMatrix(&s->mtx0, &s->mtx2);
             Gp_MulMatrix0(&s->mtx1, &s->mtx2, &s->mtx2);
-            Gfx_MatrixToEuler(&s->mtx2, &arg2->field_18);
+            Gfx_MatrixToEuler(&s->mtx2, &arg2->bufRotDelta);
         }
         gte_lddp(s->invBlend);
-        gte_ldsv(&arg2->field_18);
+        gte_ldsv(&arg2->bufRotDelta);
         gte_gpf12_real();
         gte_stsv(&s->vec1);
         RotMatrix_gte(&s->vec1, &s->mtx2);
@@ -1780,16 +1780,16 @@ void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2
     s32                       inv;
     s32                       z;
 
-    if (arg2->field_E != 0) {
+    if (arg2->timeSpan != 0) {
         scratch  = (void**)G_SCRATCH_HEAD;
         tmp      = *scratch;
         tmp     -= 1;
         *scratch = tmp;
         if (arg0->field_0 != arg0->field_4) {
             s        = tmp;
-            blend    = (s16)arg2->field_C << 12;
+            blend    = arg2->timeLeft << 12;
             s->blend = blend;
-            blend    = blend / (s32)arg2->field_E;
+            blend    = blend / (s32)arg2->timeSpan;
             inv      = 0x1000 - blend;
             s->blend = blend;
         } else {
@@ -1849,16 +1849,16 @@ void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* ar
     GpAnimScratch80*          s;
     s32                       inv;
 
-    if (arg2->field_E != 0) {
+    if (arg2->timeSpan != 0) {
         scratch  = (void**)G_SCRATCH_HEAD;
         tmp      = *scratch;
         tmp     -= 1;
         *scratch = tmp;
         if (arg0->field_0 != arg0->field_4) {
             s        = tmp;
-            blend    = (s16)arg2->field_C << 12;
+            blend    = arg2->timeLeft << 12;
             s->blend = blend;
-            blend    = blend / (s32)arg2->field_E;
+            blend    = blend / (s32)arg2->timeSpan;
             inv      = 0x1000 - blend;
             s->blend = blend;
         } else {
@@ -1896,40 +1896,40 @@ void Gp_AnimAdvanceSlot(GpAnimCtx* arg0, s32 arg1)
     s32         setIdx;
     u16         val;
 
-    slot           = &arg0->field_C[arg1];
-    slot->field_10 = 0;
-    if (*(s32*)&slot->field_0 != *(s32*)&slot->field_4) {
-        sets = slot->field_20;
+    slot        = &arg0->field_C[arg1];
+    slot->flags = 0;
+    if (*(s32*)&slot->curSet != *(s32*)&slot->nextSet) {
+        sets = slot->sets;
         do {
-            *(s32*)&slot->field_0 = *(s32*)&slot->field_4;
-            idx                   = slot->field_6 + 1;
-            setIdx                = slot->field_4;
-            recs                  = sets[setIdx]->recs;
+            *(s32*)&slot->curSet = *(s32*)&slot->nextSet;
+            idx                  = slot->nextRec + 1;
+            setIdx               = slot->nextSet;
+            recs                 = sets[setIdx]->recs;
             while ((s8)recs[idx].flags < 0) {
                 rec = (GpAnimRec*)((idx << 2) + (s32)recs);
                 if (rec->flags < 0xC0) {
                     idx = rec->pose;
-                    if (idx == slot->field_6) {
-                        slot->field_10 |= 1;
+                    if (idx == slot->nextRec) {
+                        slot->flags |= 1;
                     }
-                    slot->field_10 |= 2;
+                    slot->flags |= 2;
                 } else {
-                    idx             = slot->field_6;
-                    slot->field_10 |= 1;
+                    idx          = slot->nextRec;
+                    slot->flags |= 1;
                     break;
                 }
             }
-            slot->field_6 = idx;
-            slot->field_4 = setIdx;
-            if (slot->field_10 & 3) {
+            slot->nextRec = idx;
+            slot->nextSet = setIdx;
+            if (slot->flags & 3) {
                 break;
             }
-        } while (*(s32*)&slot->field_0 != *(s32*)&slot->field_4);
+        } while (*(s32*)&slot->curSet != *(s32*)&slot->nextSet);
     }
 
-    val           = slot->field_20[slot->field_4]->recs[slot->field_6].duration << 4;
-    slot->field_E = val;
-    slot->field_C = val;
+    val            = slot->sets[slot->nextSet]->recs[slot->nextRec].duration << 4;
+    slot->timeSpan = val;
+    slot->timeLeft = val;
     func_800B3448(arg0, arg1, 0, 0);
 }
 
@@ -1953,110 +1953,110 @@ void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
     u16               base;
     GpAnimScratch18** head;
 
-    head           = (GpAnimScratch18**)G_SCRATCH_HEAD;
-    slot           = &arg0->field_C[arg1];
-    mtx            = &((GpAnimMtxRec*)arg0->field_4)[slot->field_14];
-    *head          = *head - 1;
-    s              = *head;
-    slot->field_10 = 0;
-    if (slot->field_16 == 1) {
-        if (*(s32*)&slot->field_4 == *(s32*)&slot->field_0) {
-            slot->field_10 = 0x100;
+    head        = (GpAnimScratch18**)G_SCRATCH_HEAD;
+    slot        = &arg0->field_C[arg1];
+    mtx         = &((GpAnimMtxRec*)arg0->field_4)[slot->mtxIndex];
+    *head       = *head - 1;
+    s           = *head;
+    slot->flags = 0;
+    if (slot->atEnd == 1) {
+        if (*(s32*)&slot->nextSet == *(s32*)&slot->curSet) {
+            slot->flags = 0x100;
         } else {
-            slot->field_16 = 0;
+            slot->atEnd = 0;
         }
     } else {
         if (gGameSession->deathVariant != 0) {
-            base          = slot->field_C - 1;
-            slot->field_C = base - (((s8)slot->field_9 - 1) >> 1);
+            base           = slot->timeLeft - 1;
+            slot->timeLeft = base - (((s8)slot->rate - 1) >> 1);
         } else {
-            slot->field_C -= (s8)slot->field_9;
+            slot->timeLeft -= (s8)slot->rate;
         }
     }
 
-    rem = slot->field_C;
+    rem = slot->timeLeft;
     if (rem <= 0) {
-        slot->pad_A = 0;
-        while ((s16)slot->field_C <= 0) {
-            *(s32*)&slot->field_0 = *(s32*)&slot->field_4;
-            idx                   = slot->field_6 + 1;
-            setIdx                = slot->field_4;
-            recs                  = slot->field_20[setIdx]->recs;
+        slot->field_A = 0;
+        while (slot->timeLeft <= 0) {
+            *(s32*)&slot->curSet = *(s32*)&slot->nextSet;
+            idx                  = slot->nextRec + 1;
+            setIdx               = slot->nextSet;
+            recs                 = slot->sets[setIdx]->recs;
             while ((s8)recs[idx].flags < 0) {
                 rec = (GpAnimRec*)((idx << 2) + (s32)recs);
                 if (rec->flags < 0xC0) {
                     idx = rec->pose;
-                    if (idx == slot->field_6) {
-                        slot->field_10 |= 1;
+                    if (idx == slot->nextRec) {
+                        slot->flags |= 1;
                     }
-                    slot->field_10 |= 2;
+                    slot->flags |= 2;
                 } else {
-                    idx             = slot->field_6;
-                    slot->field_10 |= 1;
+                    idx          = slot->nextRec;
+                    slot->flags |= 1;
                     break;
                 }
             }
-            slot->field_4  = setIdx;
-            slot->field_6  = idx;
-            recs           = slot->field_20[slot->field_4]->recs;
-            val            = recs[slot->field_6].duration << 4;
-            slot->field_E  = val;
-            slot->field_C += val;
+            slot->nextSet   = setIdx;
+            slot->nextRec   = idx;
+            recs            = slot->sets[slot->nextSet]->recs;
+            val             = recs[slot->nextRec].duration << 4;
+            slot->timeSpan  = val;
+            slot->timeLeft += val;
         }
-        if (slot->field_10 & 1) {
-            slot->field_16  = 1;
-            slot->field_10 |= 0x100;
+        if (slot->flags & 1) {
+            slot->atEnd  = 1;
+            slot->flags |= 0x100;
         } else {
-            slot->field_16 = 0;
+            slot->atEnd = 0;
         }
-    } else if (slot->field_E < rem) {
-        slot->pad_A = 0;
-        while ((s16)slot->field_C > slot->field_E) {
-            slot->field_C        -= slot->field_E;
-            *(s32*)&slot->field_4 = *(s32*)&slot->field_0;
-            setIdx2               = slot->field_0;
-            idx2                  = slot->field_2 - 1;
-            lim                   = slot->field_20[setIdx2]->trackStart[slot->field_15];
+    } else if (slot->timeSpan < rem) {
+        slot->field_A = 0;
+        while (slot->timeLeft > slot->timeSpan) {
+            slot->timeLeft       -= slot->timeSpan;
+            *(s32*)&slot->nextSet = *(s32*)&slot->curSet;
+            setIdx2               = slot->curSet;
+            idx2                  = slot->curRec - 1;
+            lim                   = slot->sets[setIdx2]->trackStart[slot->trackIndex];
             if (idx2 < lim) {
-                idx2            = lim;
-                slot->field_10 |= 1;
+                idx2         = lim;
+                slot->flags |= 1;
             }
-            slot->field_2 = idx2;
-            slot->field_0 = setIdx2;
-            recs          = slot->field_20[slot->field_4]->recs;
-            val           = recs[slot->field_6].duration << 4;
-            slot->field_E = val;
+            slot->curRec   = idx2;
+            slot->curSet   = setIdx2;
+            recs           = slot->sets[slot->nextSet]->recs;
+            val            = recs[slot->nextRec].duration << 4;
+            slot->timeSpan = val;
         }
-        if (slot->field_10 & 1) {
-            slot->field_16  = 1;
-            slot->field_10 |= 0x100;
+        if (slot->flags & 1) {
+            slot->atEnd  = 1;
+            slot->flags |= 0x100;
         } else {
-            slot->field_16 = 0;
+            slot->atEnd = 0;
         }
     }
 
-    op              = slot->field_B;
-    s->src.field_10 = slot->field_17;
-    slot->field_17  = 0;
-    if (slot->field_0 == 0x7FFF) {
+    op              = slot->poseKind;
+    s->src.field_10 = slot->bufPose;
+    slot->bufPose   = 0;
+    if (slot->curSet == 0x7FFF) {
         s->src.field_0 = (GpPackedSvec*)((s32)arg0->field_8 + (arg1 << 4));
-        slot->field_17 = 1;
+        slot->bufPose  = 1;
     } else {
-        recs           = slot->field_20[slot->field_0]->recs;
-        poses          = slot->field_20[slot->field_0]->poseBanks[op];
-        s->src.field_0 = &poses[recs[slot->field_2].pose];
+        recs           = slot->sets[slot->curSet]->recs;
+        poses          = slot->sets[slot->curSet]->poseBanks[op];
+        s->src.field_0 = &poses[recs[slot->curRec].pose];
     }
-    if (slot->field_4 == 0x7FFF) {
+    if (slot->nextSet == 0x7FFF) {
         s->src.field_4 = (GpPackedSvec*)((s32)arg0->field_8 + (arg1 << 4));
-        slot->field_17 = 1;
+        slot->bufPose  = 1;
     } else {
-        set            = slot->field_20[slot->field_4];
+        set            = slot->sets[slot->nextSet];
         recs           = set->recs;
         poses          = set->poseBanks[op];
-        s->src.field_4 = &poses[recs[slot->field_6].pose];
+        s->src.field_4 = &poses[recs[slot->nextRec].pose];
     }
-    if ((s->src.field_10 == 0) && (slot->field_17 == 1)) {
-        s->src.field_10 = slot->field_17;
+    if ((s->src.field_10 == 0) && (slot->bufPose == 1)) {
+        s->src.field_10 = slot->bufPose;
     } else {
         s->src.field_10 = 0;
     }
@@ -2102,38 +2102,38 @@ void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
     f8     = (s32)arg0->field_8;
     TOUCH_REG(raw);
     scaled = raw << 2;
-    recs2  = (*(GpAnimSet**)(scaled + (s32)slot->field_20))->recs;
+    recs2  = (*(GpAnimSet**)(scaled + (s32)slot->sets))->recs;
     func_800B3448(arg0, arg1, 0, f8 + off);
-    slot->field_0 = 0x7FFF;
-    set           = slot->field_20[(u16)saved2];
-    recs          = set->recs;
-    idx           = set->trackStart[slot->field_15] + extra;
-    p             = slot;
+    slot->curSet = 0x7FFF;
+    set          = slot->sets[(u16)saved2];
+    recs         = set->recs;
+    idx          = set->trackStart[slot->trackIndex] + extra;
+    p            = slot;
     while ((s8)recs[idx].flags < 0) {
         rec = (GpAnimRec*)((idx << 2) + (s32)recs);
         if (rec->flags < 0xC0) {
             idx = rec->pose;
-            if (idx == p->field_6) {
-                p->field_10 |= 1;
+            if (idx == p->nextRec) {
+                p->flags |= 1;
             }
-            p->field_10 |= 2;
+            p->flags |= 2;
         } else {
-            idx          = p->field_6;
-            p->field_10 |= 1;
+            idx       = p->nextRec;
+            p->flags |= 1;
             break;
         }
     }
     one = 1;
     TOUCH_REG(one);
-    val           = one << 4;
-    p->field_6    = idx;
-    p->field_4    = saved2;
-    p->field_E    = val;
-    p->field_C    = val;
-    p->field_17   = 0;
-    val           = recs2[slot->field_6].duration << 4;
-    slot->field_E = val;
-    slot->field_C = val;
+    val            = one << 4;
+    p->nextRec     = idx;
+    p->nextSet     = saved2;
+    p->timeSpan    = val;
+    p->timeLeft    = val;
+    p->bufPose     = 0;
+    val            = recs2[slot->nextRec].duration << 4;
+    slot->timeSpan = val;
+    slot->timeLeft = val;
 }
 
 void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5)
@@ -2152,38 +2152,38 @@ void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
         u8  idx;
         s32 off;
 
-        idx            = arg1->field_15;
+        idx            = arg1->trackIndex;
         setIdx         = arg3;
         arg0->field_C  = arg1 - idx;
-        arg1->field_14 = arg2;
-        idx            = arg1->field_15;
+        arg1->mtxIndex = arg2;
+        idx            = arg1->trackIndex;
         off            = idx << 4;
         slot           = &arg0->field_C[idx];
         func_800B3448(arg0, idx, 0, (s32)arg0->field_8 + off);
-        slot->field_0 = 0x7FFF;
-        set           = slot->field_20[(u16)setIdx];
-        recs          = set->recs;
-        recIdx        = set->trackStart[slot->field_15] + arg4;
+        slot->curSet = 0x7FFF;
+        set          = slot->sets[(u16)setIdx];
+        recs         = set->recs;
+        recIdx       = set->trackStart[slot->trackIndex] + arg4;
         while ((s8)recs[recIdx].flags < 0) {
             rec = (GpAnimRec*)((recIdx << 2) + (s32)recs);
             if (rec->flags < 0xC0) {
                 recIdx = rec->pose;
-                if (recIdx == slot->field_6) {
-                    slot->field_10 |= 1;
+                if (recIdx == slot->nextRec) {
+                    slot->flags |= 1;
                 }
-                slot->field_10 |= 2;
+                slot->flags |= 2;
             } else {
-                recIdx          = slot->field_6;
-                slot->field_10 |= 1;
+                recIdx       = slot->nextRec;
+                slot->flags |= 1;
                 break;
             }
         }
-        slot->field_6  = recIdx;
-        slot->field_4  = setIdx;
+        slot->nextRec  = recIdx;
+        slot->nextSet  = setIdx;
         val            = arg5 << 4;
-        slot->field_E  = val;
-        slot->field_C  = val;
-        slot->field_17 = 0;
+        slot->timeSpan = val;
+        slot->timeLeft = val;
+        slot->bufPose  = 0;
     } else {
         if (arg3 == 0) {
             arg3 = 1;
@@ -2191,22 +2191,22 @@ void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
             arg3 = -arg3;
         }
 
-        arg1->field_9  = 0x10;
-        arg1->field_C  = 0;
-        arg1->field_0  = arg3;
-        arg1->field_2  = 0;
-        arg1->field_14 = arg2;
-        arg1->field_15 = arg2;
-        arg1->field_4  = arg3;
-        sets           = arg0->field_0;
-        arg1->field_20 = sets;
-        arg1->field_6  = sets[arg3]->trackStart[arg1->field_15];
-        arg1->field_2  = arg1->field_20[arg3]->trackStart[arg1->field_15];
-        op             = arg1->field_20[arg1->field_4]->recs[arg1->field_6].flags;
-        arg1->field_12 = 0;
-        arg1->field_10 = 0;
-        arg1->field_16 = 0;
-        arg1->field_B  = op & 0xF;
+        arg1->rate       = 0x10;
+        arg1->timeLeft   = 0;
+        arg1->curSet     = arg3;
+        arg1->curRec     = 0;
+        arg1->mtxIndex   = arg2;
+        arg1->trackIndex = arg2;
+        arg1->nextSet    = arg3;
+        sets             = arg0->field_0;
+        arg1->sets       = sets;
+        arg1->nextRec    = sets[arg3]->trackStart[arg1->trackIndex];
+        arg1->curRec     = arg1->sets[arg3]->trackStart[arg1->trackIndex];
+        op               = arg1->sets[arg1->nextSet]->recs[arg1->nextRec].flags;
+        arg1->field_12   = 0;
+        arg1->flags      = 0;
+        arg1->atEnd      = 0;
+        arg1->poseKind   = op & 0xF;
     }
 }
 
@@ -2229,29 +2229,29 @@ void Gp_AnimInitSlot(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3)
         arg3 = -arg3;
     }
 
-    arg1->field_9  = 0x10;
-    arg1->field_C  = 0;
-    arg1->field_0  = arg3;
-    arg1->field_2  = 0;
-    arg1->field_14 = arg2;
-    arg1->field_15 = arg2;
-    arg1->field_4  = arg3;
-    sets           = arg0->field_0;
-    arg1->field_20 = sets;
-    arg1->field_6  = sets[arg3]->trackStart[arg1->field_15];
-    arg1->field_2  = arg1->field_20[arg3]->trackStart[arg1->field_15];
-    op             = arg1->field_20[arg1->field_4]->recs[arg1->field_6].flags;
-    arg1->field_12 = 0;
-    arg1->field_10 = 0;
-    arg1->field_16 = 0;
-    arg1->field_B  = op & 0xF;
+    arg1->rate       = 0x10;
+    arg1->timeLeft   = 0;
+    arg1->curSet     = arg3;
+    arg1->curRec     = 0;
+    arg1->mtxIndex   = arg2;
+    arg1->trackIndex = arg2;
+    arg1->nextSet    = arg3;
+    sets             = arg0->field_0;
+    arg1->sets       = sets;
+    arg1->nextRec    = sets[arg3]->trackStart[arg1->trackIndex];
+    arg1->curRec     = arg1->sets[arg3]->trackStart[arg1->trackIndex];
+    op               = arg1->sets[arg1->nextSet]->recs[arg1->nextRec].flags;
+    arg1->field_12   = 0;
+    arg1->flags      = 0;
+    arg1->atEnd      = 0;
+    arg1->poseKind   = op & 0xF;
 }
 
 void Gp_AnimTickSlot(GpAnimCtx* arg0, GpAnimSlot* arg1)
 {
     u8 idx;
 
-    idx           = arg1->field_15;
+    idx           = arg1->trackIndex;
     arg0->field_C = arg1 - idx;
     func_800B3448(arg0, idx, 0, 0);
 }
@@ -2260,7 +2260,7 @@ void Gp_AnimTickSlot2(GpAnimCtx* arg0, GpAnimSlot* arg1)
 {
     u8 idx;
 
-    idx           = arg1->field_15;
+    idx           = arg1->trackIndex;
     arg0->field_C = arg1 - idx;
     func_800B3448(arg0, idx, 0, 0);
 }
@@ -2269,7 +2269,7 @@ void Gp_AnimTickSlot3(GpAnimCtx* arg0, GpAnimSlot* arg1)
 {
     u8 idx;
 
-    idx           = arg1->field_15;
+    idx           = arg1->trackIndex;
     arg0->field_C = arg1 - idx;
     func_800B3448(arg0, idx, 0, 0);
 }
@@ -2279,11 +2279,11 @@ void func_800B3E74(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3)
     GpAnimRec* recs;
     u16        val;
 
-    recs = arg1->field_20[arg3]->recs;
+    recs = arg1->sets[arg3]->recs;
     func_800B3AA4(arg0, arg1, arg2, arg3, 0, 8);
-    val           = recs[arg1->field_6].duration << 4;
-    arg1->field_E = val;
-    arg1->field_C = val;
+    val            = recs[arg1->nextRec].duration << 4;
+    arg1->timeSpan = val;
+    arg1->timeLeft = val;
 }
 
 void func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4)
@@ -2291,11 +2291,11 @@ void func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
     GpAnimRec* recs;
     u16        val;
 
-    recs = arg1->field_20[arg3]->recs;
+    recs = arg1->sets[arg3]->recs;
     func_800B3AA4(arg0, arg1, arg2, arg3, arg4, 8);
-    val           = recs[arg1->field_6].duration << 4;
-    arg1->field_E = val;
-    arg1->field_C = val;
+    val            = recs[arg1->nextRec].duration << 4;
+    arg1->timeSpan = val;
+    arg1->timeLeft = val;
 }
 
 void Gp_AnimInitCtxSlots(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4)
@@ -2318,22 +2318,22 @@ void Gp_AnimResetSlot(GpAnimCtx* arg0, s32 arg1, s32 arg2)
     GpAnimSet** sets;
     u8          op;
 
-    slot           = &arg0->field_C[arg1];
-    slot->field_9  = 0x10;
-    slot->field_C  = 0;
-    slot->field_0  = arg2;
-    slot->field_2  = 0;
-    slot->field_14 = arg1;
-    slot->field_15 = arg1;
-    slot->field_4  = arg2;
-    sets           = arg0->field_0;
-    slot->field_20 = sets;
-    slot->field_6  = sets[arg2]->trackStart[slot->field_15];
-    op             = slot->field_20[slot->field_4]->recs[slot->field_6].flags;
-    slot->field_10 = 0;
-    slot->field_16 = 0;
-    slot->field_12 = 0;
-    slot->field_B  = op & 0xF;
+    slot             = &arg0->field_C[arg1];
+    slot->rate       = 0x10;
+    slot->timeLeft   = 0;
+    slot->curSet     = arg2;
+    slot->curRec     = 0;
+    slot->mtxIndex   = arg1;
+    slot->trackIndex = arg1;
+    slot->nextSet    = arg2;
+    sets             = arg0->field_0;
+    slot->sets       = sets;
+    slot->nextRec    = sets[arg2]->trackStart[slot->trackIndex];
+    op               = slot->sets[slot->nextSet]->recs[slot->nextRec].flags;
+    slot->flags      = 0;
+    slot->atEnd      = 0;
+    slot->field_12   = 0;
+    slot->poseKind   = op & 0xF;
 }
 
 void Gp_AnimResetSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
@@ -2342,22 +2342,22 @@ void Gp_AnimResetSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     GpAnimSet** sets;
     u8          op;
 
-    slot           = &arg0->field_C[arg1];
-    slot->field_9  = 0x10;
-    slot->field_C  = 0;
-    slot->field_0  = arg2;
-    slot->field_2  = 0;
-    slot->field_14 = arg4;
-    slot->field_15 = arg3;
-    slot->field_4  = arg2;
-    sets           = arg0->field_0;
-    slot->field_20 = sets;
-    slot->field_6  = sets[arg2]->trackStart[slot->field_15];
-    op             = slot->field_20[slot->field_4]->recs[slot->field_6].flags;
-    slot->field_10 = 0;
-    slot->field_16 = 0;
-    slot->field_12 = 0;
-    slot->field_B  = op & 0xF;
+    slot             = &arg0->field_C[arg1];
+    slot->rate       = 0x10;
+    slot->timeLeft   = 0;
+    slot->curSet     = arg2;
+    slot->curRec     = 0;
+    slot->mtxIndex   = arg4;
+    slot->trackIndex = arg3;
+    slot->nextSet    = arg2;
+    sets             = arg0->field_0;
+    slot->sets       = sets;
+    slot->nextRec    = sets[arg2]->trackStart[slot->trackIndex];
+    op               = slot->sets[slot->nextSet]->recs[slot->nextRec].flags;
+    slot->flags      = 0;
+    slot->atEnd      = 0;
+    slot->field_12   = 0;
+    slot->poseKind   = op & 0xF;
 }
 
 void Gp_AnimSeekSlot(GpAnimCtx* arg0, s32 arg1, s32 arg2)
@@ -2378,30 +2378,30 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3, s32 arg4)
     off  = arg1 << 4;
     slot = &arg0->field_C[arg1];
     func_800B3448(arg0, arg1, 0, (s32)arg0->field_8 + off);
-    slot->field_0 = 0x7FFF;
-    set           = slot->field_20[arg2];
-    recs          = set->recs;
-    idx           = set->trackStart[slot->field_15] + arg3;
+    slot->curSet = 0x7FFF;
+    set          = slot->sets[arg2];
+    recs         = set->recs;
+    idx          = set->trackStart[slot->trackIndex] + arg3;
     while ((s8)recs[idx].flags < 0) {
         rec = (GpAnimRec*)((idx << 2) + (s32)recs);
         if (rec->flags < 0xC0) {
             idx = rec->pose;
-            if (idx == slot->field_6) {
-                slot->field_10 |= 1;
+            if (idx == slot->nextRec) {
+                slot->flags |= 1;
             }
-            slot->field_10 |= 2;
+            slot->flags |= 2;
         } else {
-            idx             = slot->field_6;
-            slot->field_10 |= 1;
+            idx          = slot->nextRec;
+            slot->flags |= 1;
             break;
         }
     }
-    slot->field_6  = idx;
-    slot->field_4  = arg2;
+    slot->nextRec  = idx;
+    slot->nextSet  = arg2;
     val            = arg4 << 4;
-    slot->field_E  = val;
-    slot->field_C  = val;
-    slot->field_17 = 0;
+    slot->timeSpan = val;
+    slot->timeLeft = val;
+    slot->bufPose  = 0;
 }
 
 void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
@@ -2420,13 +2420,13 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
     scratch  = (void**)G_SCRATCH_HEAD;
     slot     = &arg0->field_C[arg1];
     head     = *scratch;
-    idx      = slot->field_14;
+    idx      = slot->mtxIndex;
     trans    = (SVECTOR*)((u8*)head - 0x10);
     *scratch = trans;
     off      = idx * 0x50;
     USE_REG(off);
     dest = &((GpAnimMtxRec*)arg0->field_4)[idx];
-    if (slot->field_B == 1) {
+    if (slot->poseKind == 1) {
         st = trans;
         gte_lddp(arg4);
         gte_ldsv(&arg2->trans);
@@ -2466,10 +2466,10 @@ void Gp_AnimWritePoseCopy(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPos
     scratch  = (void**)G_SCRATCH_HEAD;
     slot     = &arg0->field_C[arg1];
     head     = *scratch;
-    idx      = slot->field_14;
+    idx      = slot->mtxIndex;
     *scratch = (u8*)head - 0x10;
     dest     = &((GpAnimMtxRec*)arg0->field_4)[idx];
-    if (slot->field_B == 1) {
+    if (slot->poseKind == 1) {
         dest->mtx.t[0] = arg2->trans.vx;
         dest->mtx.t[1] = arg2->trans.vy;
         dest->mtx.t[2] = arg2->trans.vz;
@@ -2505,30 +2505,30 @@ void func_800B4538(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 
     off  = arg1 << 4;
     slot = &arg0->field_C[arg1];
     func_800B3448(arg0, arg1, arg2, (s32)arg0->field_8 + off);
-    slot->field_0 = 0x7FFF;
-    set           = slot->field_20[arg3];
-    recs          = set->recs;
-    idx           = set->trackStart[slot->field_15] + arg4;
+    slot->curSet = 0x7FFF;
+    set          = slot->sets[arg3];
+    recs         = set->recs;
+    idx          = set->trackStart[slot->trackIndex] + arg4;
     while ((s8)recs[idx].flags < 0) {
         rec = (GpAnimRec*)((idx << 2) + (s32)recs);
         if (rec->flags < 0xC0) {
             idx = rec->pose;
-            if (idx == slot->field_6) {
-                slot->field_10 |= 1;
+            if (idx == slot->nextRec) {
+                slot->flags |= 1;
             }
-            slot->field_10 |= 2;
+            slot->flags |= 2;
         } else {
-            idx             = slot->field_6;
-            slot->field_10 |= 1;
+            idx          = slot->nextRec;
+            slot->flags |= 1;
             break;
         }
     }
-    slot->field_6  = idx;
-    slot->field_4  = arg3;
+    slot->nextRec  = idx;
+    slot->nextSet  = arg3;
     val            = arg6 << 4;
-    slot->field_E  = val;
-    slot->field_C  = val;
-    slot->field_17 = 0;
+    slot->timeSpan = val;
+    slot->timeLeft = val;
+    slot->bufPose  = 0;
 }
 
 GpAnimRec* Gp_AnimGetRec(GpAnimCtx* arg0, GpAnimSlot* arg1)
@@ -2536,13 +2536,13 @@ GpAnimRec* Gp_AnimGetRec(GpAnimCtx* arg0, GpAnimSlot* arg1)
     u16        idx;
     GpAnimRec* ret;
 
-    idx = arg1->field_0;
+    idx = arg1->curSet;
     switch (idx) {
         case 0x7FFF:
             return NULL;
         default:
-            ret  = arg1->field_20[idx]->recs;
-            ret += arg1->field_2;
+            ret  = arg1->sets[idx]->recs;
+            ret += arg1->curRec;
             return ret;
     }
 }
@@ -2552,36 +2552,36 @@ void func_800B46A4(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
     GpAnimRec* recs;
     GpAnimRec* rec;
 
-    recs = arg1->field_20[arg2]->recs;
+    recs = arg1->sets[arg2]->recs;
     while ((s8)recs[arg3].flags < 0) {
         rec = (GpAnimRec*)((arg3 << 2) + (s32)recs);
         if (rec->flags < 0xC0) {
             arg3 = rec->pose;
-            if (arg3 == arg1->field_6) {
-                arg1->field_10 |= 1;
+            if (arg3 == arg1->nextRec) {
+                arg1->flags |= 1;
             }
-            arg1->field_10 |= 2;
+            arg1->flags |= 2;
         } else {
-            arg3            = arg1->field_6;
-            arg1->field_10 |= 1;
+            arg3         = arg1->nextRec;
+            arg1->flags |= 1;
             break;
         }
     }
-    arg1->field_6 = arg3;
-    arg1->field_4 = arg2;
+    arg1->nextRec = arg3;
+    arg1->nextSet = arg2;
 }
 
 void func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
 {
     u16 limit;
 
-    limit = arg1->field_20[arg2]->trackStart[arg1->field_15];
+    limit = arg1->sets[arg2]->trackStart[arg1->trackIndex];
     if (arg3 < limit) {
-        arg3            = limit;
-        arg1->field_10 |= 1;
+        arg3         = limit;
+        arg1->flags |= 1;
     }
-    arg1->field_2 = arg3;
-    arg1->field_0 = arg2;
+    arg1->curRec = arg3;
+    arg1->curSet = arg2;
 }
 
 void Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
@@ -2602,34 +2602,34 @@ void Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s3
     off   = arg1 << 4;
     slot  = &arg0->field_C[arg1];
     func_800B3448(arg0, arg1, arg2, (s32)arg0->field_8 + off);
-    slot->field_0 = 0x7FFF;
+    slot->curSet = 0x7FFF;
     if (sets != NULL) {
-        arg0->field_0  = sets;
-        slot->field_20 = sets;
+        arg0->field_0 = sets;
+        slot->sets    = sets;
     }
-    set  = slot->field_20[arg3];
+    set  = slot->sets[arg3];
     recs = set->recs;
-    idx  = set->trackStart[slot->field_15] + extra;
+    idx  = set->trackStart[slot->trackIndex] + extra;
     while ((s8)recs[idx].flags < 0) {
         rec = (GpAnimRec*)((idx << 2) + (s32)recs);
         if (rec->flags < 0xC0) {
             idx = rec->pose;
-            if (idx == slot->field_6) {
-                slot->field_10 |= 1;
+            if (idx == slot->nextRec) {
+                slot->flags |= 1;
             }
-            slot->field_10 |= 2;
+            slot->flags |= 2;
         } else {
-            idx             = slot->field_6;
-            slot->field_10 |= 1;
+            idx          = slot->nextRec;
+            slot->flags |= 1;
             break;
         }
     }
-    slot->field_6  = idx;
-    slot->field_4  = arg3;
+    slot->nextRec  = idx;
+    slot->nextSet  = arg3;
     val            = arg6 << 4;
-    slot->field_E  = val;
-    slot->field_C  = val;
-    slot->field_17 = 0;
+    slot->timeSpan = val;
+    slot->timeLeft = val;
+    slot->bufPose  = 0;
 }
 
 void Gp_SaveEnemyPose(GpEnemy* arg0)

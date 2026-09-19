@@ -648,7 +648,7 @@ GpAnimRec (4 bytes):
                        0x80 marks a control entry, 0xC0 ends the clip
 ```
 
-Pose bank formats, dispatched by `func_800B3448` on `GpAnimSlot.field_B`:
+Pose bank formats, dispatched by `func_800B3448` on `GpAnimSlot.poseKind`:
 
 | `flags & 0xF` | Bank type | Layout |
 |---|---|---|
@@ -767,9 +767,11 @@ Angles use `4096` for a full turn and the rotation order is PsyQ's `RotMatrix`
   [`TMD_FORMAT.md` §5](TMD_FORMAT.md#5-opcode-reference) with what is still
   missing in [§6](TMD_FORMAT.md#6-what-is-still-open).
 - **The `flags` cue bits.** `0x10` and `0x20` appear on some keyframes and
-  are not decoded; `Gp_BlendAnimRot` has a second path (`GpAnimSlot.field_17`)
-  that blends through a delta matrix rather than the Euler angles, and these
-  are likely what selects it.
+  are not decoded; a frame handler reads them off the record `Gp_AnimGetRec`
+  hands it, so what each one means is the handler's own. `Gp_BlendAnimRot`
+  has a second path (`GpAnimSlot.bufPose`) that blends through a delta matrix
+  rather than the Euler angles, taken when the pose comes from the context's
+  pose buffer instead of a keyframe.
 - **Pose banks.** The per-model bone count is now available — it is the number
   of `0xFFFFFFFE`-delimited parts in the model stream
   ([`TMD_FORMAT.md` §2.2](TMD_FORMAT.md)), and §9.3.1 binds tracks to parts —

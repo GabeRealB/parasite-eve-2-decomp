@@ -211,7 +211,7 @@ static inline void Actor560800_ReseedAnim(Task* arg0, u16 id, s16 rate)
 
 /// Ticks every animation slot, then advances the script at `field_4B4`: a step
 /// with a non-zero hold waits `field_0` frames in `field_4BE`, a zero hold waits
-/// for every slot to finish (bit 0x100 of `field_10`). Returns 1 when the next
+/// for every slot to finish (bit 0x100 of the slot's `flags`). Returns 1 when the next
 /// step's id is negative (the script ended), 0 otherwise.
 ///
 /// The step is re-indexed at every use rather than held in a local, and the
@@ -233,7 +233,7 @@ s32 func_actor_560800_80132498(Task* arg0)
     i    = 1;
     done = 1;
     for (; i < work->field_4BA; i++) {
-        if (!(work->slots[i].field_10 & 0x100)) {
+        if (!(work->slots[i].flags & 0x100)) {
             done = 0;
             break;
         }
@@ -322,7 +322,7 @@ void func_actor_560800_801326C4(Task* arg0)
                 w->field_4C8 = fade;
                 w->field_4BE = 0;
                 for (i = 1; i < w->field_4BA; i++) {
-                    w->slots[i].field_9 = fade;
+                    w->slots[i].rate = fade;
                     Gp_AnimResetSlot(&w->anim, i, 0);
                 }
             } else {
@@ -334,7 +334,7 @@ void func_actor_560800_801326C4(Task* arg0)
                 w->field_4C8 = fade;
                 w->field_4BE = 0;
                 for (i = 1; i < w->field_4BA; i++) {
-                    w->slots[i].field_9 = fade;
+                    w->slots[i].rate = fade;
                     Gp_AnimResetSlot(&w->anim, i, 2);
                 }
             }
@@ -498,7 +498,7 @@ void func_actor_560800_80132C60(Task* arg0)
             w->field_4C8 = fade;
             w->field_4BE = 0;
             for (i = 1; i < w->field_4BA; i++) {
-                w->slots[i].field_9 = fade;
+                w->slots[i].rate = fade;
                 Gp_AnimResetSlot(&w->anim, i, 0);
             }
         }
@@ -588,7 +588,7 @@ void func_actor_560800_80132F64(Task* arg0)
             w->field_4C8 = fade;
             w->field_4BE = 0;
             for (i = 1; i < w->field_4BA; i++) {
-                w->slots[i].field_9 = fade;
+                w->slots[i].rate = fade;
                 Gp_AnimResetSlot(&w->anim, i, 0);
             }
         }
@@ -1070,7 +1070,7 @@ void func_actor_560800_80134258(Task* task)
             anim->field_4BE = 0;
             if (i < anim->field_4BA) {
                 do {
-                    anim->slots[i].field_9 = rate;
+                    anim->slots[i].rate = rate;
                     Gp_AnimResetSlot(&anim->anim, i, 3);
                     i++;
                 } while (i < anim->field_4BA);
@@ -1083,7 +1083,7 @@ void func_actor_560800_80134258(Task* task)
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80134384);
 
 /// Reseeds the sub-task's animation slots from clip 0x20 -- writing the slot
-/// count with the 0x10 restart rate and every slot's `field_9` -- then spawns
+/// count with the 0x10 restart rate and every slot's `rate` -- then spawns
 /// effect 0x6002B on the ninth per-part coordinate of the task at `field_8`
 /// and posts the pad event that releases the input lock.
 ///
@@ -1109,7 +1109,7 @@ void func_actor_560800_80134B14(void)
     i               = 1;
     if (i < anim->field_4BA) {
         do {
-            anim->slots[i].field_9 = rate;
+            anim->slots[i].rate = rate;
             Gp_AnimResetSlot(&anim->anim, i, 0x20);
             i++;
         } while (i < anim->field_4BA);

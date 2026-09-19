@@ -737,7 +737,7 @@ void func_actor_400600_801337A8(Task* arg0)
             func_actor_400600_80137840(arg0);
             func_actor_400600_80136558(arg0);
             Actor400600_TickAnim(arg0);
-            work->field_710.h.flags = work->slots[1].field_10;
+            work->field_710.h.flags = work->slots[1].flags;
             Actor400600_RebuildRotation(arg0);
             func_actor_400600_80136968(arg0);
             if (enemy->field_40 <= 0 && (u8)work->field_767 == 0) {

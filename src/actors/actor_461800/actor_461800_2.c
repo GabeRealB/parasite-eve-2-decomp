@@ -68,7 +68,7 @@ void func_actor_461800_80132C74(void)
 
     i = 1;
     do {
-        D_actor_461800_80143894->slots[i].field_9 = 1;
+        D_actor_461800_80143894->slots[i].rate = 1;
         Gp_AnimResetSlot(&D_actor_461800_80143894->anim, i, D_actor_461800_80143894->field_4B8);
         i++;
     } while (i < 0x14);

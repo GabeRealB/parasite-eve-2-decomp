@@ -550,7 +550,7 @@ void func_actor_405800_80133800(Task* arg0)
             func_actor_405800_801375C4(arg0);
             func_actor_405800_8013315C(arg0);
             Actor405800_TickAnim(arg0);
-            work->flags_83C.half = work->slots[1].field_10;
+            work->flags_83C.half = work->slots[1].flags;
             root->flg            = 0;
             Actor405800_RebuildRotation(arg0);
             func_actor_405800_80136388(arg0);

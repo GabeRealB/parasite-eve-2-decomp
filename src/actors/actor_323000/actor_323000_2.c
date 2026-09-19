@@ -15,7 +15,7 @@ s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
     reset = 1;
     switch (work->field_82E) {
         case 0: {
-            s32 clip = work->slots[9].field_2 & 0x3FF;
+            s32 clip = work->slots[9].curRec & 0x3FF;
             s32 old;
 
             if (clip == 0x58) {
@@ -33,7 +33,7 @@ s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
             }
         }
             {
-                s32 clip = work->slots[7].field_2 & 0x3FF;
+                s32 clip = work->slots[7].curRec & 0x3FF;
                 s32 old;
 
                 if (clip == 0x3E) {
@@ -51,7 +51,7 @@ s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
                 }
             }
             {
-                s32 clip = work->slots[14].field_2 & 0x3FF;
+                s32 clip = work->slots[14].curRec & 0x3FF;
                 s32 old;
 
                 if (clip == 0x84) {
@@ -69,7 +69,7 @@ s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
                 }
             }
             {
-                s32 clip = work->slots[17].field_2 & 0x3FF;
+                s32 clip = work->slots[17].curRec & 0x3FF;
                 s32 old;
 
                 if (clip == 0xA9) {
@@ -88,7 +88,7 @@ s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
             }
             break;
         case 10: {
-            s32 clip = work->slots[1].field_2 & 0x3FF;
+            s32 clip = work->slots[1].curRec & 0x3FF;
             s32 old;
 
             if (clip == 0x9) {
@@ -106,7 +106,7 @@ s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
             }
         } break;
         case 3: {
-            s32 clip = work->slots[1].field_2 & 0x3FF;
+            s32 clip = work->slots[1].curRec & 0x3FF;
             s32 old;
 
             if (clip == 0x4) {
@@ -120,7 +120,7 @@ s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
             }
         }
             {
-                s32 clip = work->slots[1].field_2 & 0x3FF;
+                s32 clip = work->slots[1].curRec & 0x3FF;
                 s32 old;
 
                 if (clip == 0x8) {
@@ -135,7 +135,7 @@ s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
             }
             break;
         case 6: {
-            s32 clip = work->slots[1].field_2 & 0x3FF;
+            s32 clip = work->slots[1].curRec & 0x3FF;
             s32 old;
 
             if (clip == 0x6) {
@@ -157,7 +157,7 @@ s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
             }
         }
             {
-                s32 clip = work->slots[1].field_2 & 0x3FF;
+                s32 clip = work->slots[1].curRec & 0x3FF;
                 s32 old;
 
                 if (clip == 0xB) {
@@ -179,7 +179,7 @@ s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
                 }
             }
             {
-                s32 clip = work->slots[1].field_2 & 0x3FF;
+                s32 clip = work->slots[1].curRec & 0x3FF;
                 s32 old;
 
                 if (clip == 0xC) {
@@ -209,7 +209,7 @@ s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
                 }
             }
             {
-                s32 clip = work->slots[1].field_2 & 0x3FF;
+                s32 clip = work->slots[1].curRec & 0x3FF;
                 s32 old;
 
                 if (clip == 0xD) {
@@ -286,10 +286,10 @@ void func_actor_323000_80163A30(Task* task)
             seekIndex = 1;
             table     = (u32)D_actor_323000_80173090;
             do {
-                seekSlotIndex                  = seekIndex;
-                work->slots[seekIndex].field_9 = (u8)seekWork->field_832;
-                animation                      = seekWork->field_82E;
-                index                          = seekWork->field_82C * 0x2D;
+                seekSlotIndex               = seekIndex;
+                work->slots[seekIndex].rate = (u8)seekWork->field_832;
+                animation                   = seekWork->field_82E;
+                index                       = seekWork->field_82C * 0x2D;
                 func_800B4114(&seekWork->anim, seekSlotIndex, animation, 0, (s32) * (s8*)((animation + index) + table));
                 seekIndex += 1;
             } while (seekIndex < 0x12);
@@ -303,8 +303,8 @@ void func_actor_323000_80163A30(Task* task)
         TOUCH_REG(resetWork);
         resetIndex = 1;
         do {
-            resetSlotIndex                  = resetIndex;
-            work->slots[resetIndex].field_9 = (u8)resetWork->field_832;
+            resetSlotIndex               = resetIndex;
+            work->slots[resetIndex].rate = (u8)resetWork->field_832;
             Gp_AnimResetSlot(&resetWork->anim, resetSlotIndex, (s32)resetWork->field_82E);
             resetIndex += 1;
         } while (resetIndex < 0x12);
@@ -319,8 +319,8 @@ void func_actor_323000_80163A30(Task* task)
         secondaryWork->field_83A = 0x20;
         secondaryWork->field_83C = 0x800;
         do {
-            secondarySlotIndex                           = secondaryIndex;
-            secondaryWork->slots[secondaryIndex].field_9 = (u8)secondaryWork->field_83A;
+            secondarySlotIndex                        = secondaryIndex;
+            secondaryWork->slots[secondaryIndex].rate = (u8)secondaryWork->field_83A;
             Gp_AnimResetSlot(&secondaryWork->blendAnim, secondarySlotIndex, (s32)secondaryWork->field_838);
             secondaryIndex += 1;
         } while (secondaryIndex < 0x12);
@@ -331,14 +331,14 @@ void func_actor_323000_80163A30(Task* task)
         tickWork  = (Actor323000Work*)task->work;
         tickIndex = 1;
         do {
-            tickSlotIndex                      = tickIndex;
-            tickWork->slots[tickIndex].field_9 = (u8)tickWork->field_832;
+            tickSlotIndex                   = tickIndex;
+            tickWork->slots[tickIndex].rate = (u8)tickWork->field_832;
             Gp_AnimTickIndex(&tickWork->anim, tickSlotIndex);
             tickIndex += 1;
         } while (tickIndex < 0x12);
     } else {
         ActorsShared8016331c(task);
-        if (work->blendSlots[1].field_10 & 1) {
+        if (work->blendSlots[1].flags & 1) {
             work->field_82A = 0;
         }
     }
@@ -503,7 +503,7 @@ void func_actor_323000_8016409C(GpEnemy* enemy, Task* task)
         return;
     }
     func_actor_323000_80163A30(task);
-    if (work->slots[1].field_10 & 1) {
+    if (work->slots[1].flags & 1) {
         if (work->field_82E == 0xF) {
             work->field_828 = 2;
             work->field_82E = 0x10;
@@ -511,13 +511,13 @@ void func_actor_323000_8016409C(GpEnemy* enemy, Task* task)
         func_actor_323000_80163A30(task);
     }
     if (work->field_82E == 0xE) {
-        if ((work->slots[1].field_2 & 0x3FF) == 7 || (work->slots[1].field_2 & 0x3FF) == 9) {
+        if ((work->slots[1].curRec & 0x3FF) == 7 || (work->slots[1].curRec & 0x3FF) == 9) {
             sp10.vx = -0x3E8;
             sp10.vz = 0xC8;
             sp10.vy = 0x28A;
             Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[7], 0x80002300, &sp10);
         }
-        if ((work->slots[1].field_2 & 0x3FF) == 8) {
+        if ((work->slots[1].curRec & 0x3FF) == 8) {
             sp10.vx = -0x3E8;
             sp10.vz = 0xC8;
             sp10.vy = 0x28A;

@@ -72,7 +72,7 @@ extern s8 D_actor_444000_80160C5C[][0x2D];
 
 /// Reseed every slot of the three even animation members from `field_7B3` when
 /// the id it names differs from the latched `field_7B2`, then latch it. Each
-/// slot also has its `field_9` seeded from `field_7B6`, and the reset argument
+/// slot also has its `rate` seeded from `field_7B6`, and the reset argument
 /// comes from the `[field_7B2][field_7B3]` transition table.
 void func_actor_444000_80134040(Actor444000* arg0)
 {
@@ -81,17 +81,17 @@ void func_actor_444000_80134040(Actor444000* arg0)
 
     if (work->field_7B2 != work->field_7B3) {
         for (i = 1; i < 8; i++) {
-            work->slots0[i].field_9 = work->field_7B6;
+            work->slots0[i].rate = work->field_7B6;
             func_800B4114(&work->anim0, i, work->field_7B3, 0,
                           D_actor_444000_80160C5C[work->field_7B2][work->field_7B3]);
         }
         for (i = 0; i < 4; i++) {
-            work->slots2[i].field_9 = work->field_7B6;
+            work->slots2[i].rate = work->field_7B6;
             func_800B4114(&work->anim2, i, work->field_7B3, 0,
                           D_actor_444000_80160C5C[work->field_7B2][work->field_7B3]);
         }
         for (i = 0; i < 4; i++) {
-            work->slots4[i].field_9 = work->field_7B6;
+            work->slots4[i].rate = work->field_7B6;
             func_800B4114(&work->anim4, i, work->field_7B3, 0,
                           D_actor_444000_80160C5C[work->field_7B2][work->field_7B3]);
         }
@@ -101,7 +101,7 @@ void func_actor_444000_80134040(Actor444000* arg0)
 
 /// Advance every animation slot of the three context pairs and write the blended
 /// pose out of each pair's even member. Both members of a pair are ticked with
-/// the same slot index; the odd member's `field_9` is seeded from `field_7BE`
+/// the same slot index; the odd member's `rate` is seeded from `field_7BE`
 /// and the even member's from `field_7B6 - 3`. `field_7C0` is the copy weight,
 /// with `0x1000 - field_7C0` as its complement.
 void func_actor_444000_801341C4(Actor444000* arg0)
@@ -115,28 +115,28 @@ void func_actor_444000_801341C4(Actor444000* arg0)
 
     for (i = 1; i < 8; i++) {
         if (i < 11) {
-            work->slots1[i].field_9 = work->field_7BE;
-            work->slots0[i].field_9 = work->field_7B6 - 3;
+            work->slots1[i].rate = work->field_7BE;
+            work->slots0[i].rate = work->field_7B6 - 3;
             func_800B3448(&work->anim0, i, (s32)&pose0, 0);
             func_800B3448(&work->anim1, i, (s32)&pose1, 0);
             Gp_AnimWritePoseCopy(&work->anim0, i, &pose0, &pose1, blend, invBlend);
         } else {
-            work->slots0[i].field_9 = work->field_7B6 - 3;
+            work->slots0[i].rate = work->field_7B6 - 3;
             Gp_AnimTickIndex(&work->anim0, i);
         }
     }
 
     for (i = 0; i < 4; i++) {
-        work->slots3[i].field_9 = work->field_7BE;
-        work->slots2[i].field_9 = work->field_7B6 - 3;
+        work->slots3[i].rate = work->field_7BE;
+        work->slots2[i].rate = work->field_7B6 - 3;
         func_800B3448(&work->anim2, i, (s32)&pose0, 0);
         func_800B3448(&work->anim3, i, (s32)&pose1, 0);
         Gp_AnimWritePoseCopy(&work->anim2, i, &pose0, &pose1, blend, invBlend);
     }
 
     for (i = 0; i < 4; i++) {
-        work->slots5[i].field_9 = work->field_7BE;
-        work->slots4[i].field_9 = work->field_7B6 - 3;
+        work->slots5[i].rate = work->field_7BE;
+        work->slots4[i].rate = work->field_7B6 - 3;
         func_800B3448(&work->anim4, i, (s32)&pose0, 0);
         func_800B3448(&work->anim5, i, (s32)&pose1, 0);
         Gp_AnimWritePoseCopy(&work->anim4, i, &pose0, &pose1, blend, invBlend);
@@ -164,15 +164,15 @@ void func_actor_444000_8013441C(Actor444000* arg0)
     } else if (work->field_7B0 == 2) {
         w = arg0->field_1C;
         for (i = 1; i < 8; i++) {
-            w->slots0[i].field_9 = w->field_7B6;
+            w->slots0[i].rate = w->field_7B6;
             Gp_AnimResetSlot(&w->anim0, i, w->field_7B3);
         }
         for (i = 0; i < 4; i++) {
-            w->slots2[i].field_9 = w->field_7B6;
+            w->slots2[i].rate = w->field_7B6;
             Gp_AnimResetSlot(&w->anim2, i, w->field_7B3);
         }
         for (i = 0; i < 4; i++) {
-            w->slots4[i].field_9 = w->field_7B6;
+            w->slots4[i].rate = w->field_7B6;
             Gp_AnimResetSlot(&w->anim4, i, w->field_7B3);
         }
         w->field_7B2    = w->field_7B3;
@@ -191,20 +191,20 @@ void func_actor_444000_8013441C(Actor444000* arg0)
     if (work->field_7B1 == 0) {
         w = arg0->field_1C;
         for (i = 1; i < 8; i++) {
-            w->slots0[i].field_9 = w->field_7B6;
+            w->slots0[i].rate = w->field_7B6;
             Gp_AnimTickIndex(&w->anim0, i);
         }
         for (i = 0; i < 4; i++) {
-            w->slots2[i].field_9 = w->field_7B6;
+            w->slots2[i].rate = w->field_7B6;
             Gp_AnimTickIndex(&w->anim2, i);
         }
         for (i = 0; i < 4; i++) {
-            w->slots4[i].field_9 = w->field_7B6;
+            w->slots4[i].rate = w->field_7B6;
             Gp_AnimTickIndex(&w->anim4, i);
         }
     } else {
         func_actor_444000_801341C4(arg0);
-        if (work->slots1[1].field_10 & 1) {
+        if (work->slots1[1].flags & 1) {
             work->field_7B1 = 0;
         }
     }
@@ -361,7 +361,7 @@ void func_actor_444000_8013482C(Actor444000* task)
 
     func_actor_444000_8013441C(task);
 
-    frame = work->slots0[2].field_2 & 0x3FF;
+    frame = work->slots0[2].curRec & 0x3FF;
     if (frame == 0x12 && work->field_7D8 != frame) {
         s32 id;
         s32 pan;
@@ -373,7 +373,7 @@ void func_actor_444000_8013482C(Actor444000* task)
         SndEvt_EnqueueType6(id, pan, (s8)(Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->coords) / 2));
     }
 
-    frame = work->slots0[2].field_2 & 0x3FF;
+    frame = work->slots0[2].curRec & 0x3FF;
     if (frame == 0x18 && work->field_7D8 != frame) {
         s32 id;
         s32 pan;
@@ -385,7 +385,7 @@ void func_actor_444000_8013482C(Actor444000* task)
         SndEvt_EnqueueType6(id, pan, (s8)(Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->coords) / 2));
     }
 
-    work->field_7D8 = work->slots0[2].field_2 & 0x3FF;
+    work->field_7D8 = work->slots0[2].curRec & 0x3FF;
 
     model      = ((TmdObject*)task->extra)->coords;
     sc->dir.vx = Player_Status.coordMtx->t[0] - model->coord.t[0];
@@ -640,19 +640,19 @@ void func_actor_444000_80135448(Actor444000* task)
         return;
     }
 
-    if (work->slots0[1].field_10 & 1) {
+    if (work->slots0[1].flags & 1) {
         work->field_6 = 0;
         func_actor_444000_8013441C(task);
     }
 
-    if (!(work->slots0[1].field_10 & 0x100)) {
+    if (!(work->slots0[1].flags & 0x100)) {
         if (D_actor_444000_80144A70 >= 0x191) {
             D_actor_444000_80144A70 = (u16)D_actor_444000_80144A70 - 0xC8;
         }
 
         func_actor_444000_8013441C(task);
 
-        frame = work->slots0[3].field_2 & 0x3FF;
+        frame = work->slots0[3].curRec & 0x3FF;
         if (frame == 0x33 && work->field_7A8 != frame) {
             s32 id;
             s32 pan;
@@ -662,7 +662,7 @@ void func_actor_444000_80135448(Actor444000* task)
             SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->coords));
         }
 
-        frame = work->slots0[3].field_2 & 0x3FF;
+        frame = work->slots0[3].curRec & 0x3FF;
         if (frame == 0x3D && work->field_7A8 != frame) {
             s32 id;
             s32 pan;
@@ -672,7 +672,7 @@ void func_actor_444000_80135448(Actor444000* task)
             SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->coords));
         }
 
-        frame = work->slots0[3].field_2 & 0x3FF;
+        frame = work->slots0[3].curRec & 0x3FF;
         if (frame == 0x4E && work->field_7A8 != frame) {
             s32 id;
             s32 pan;
@@ -682,7 +682,7 @@ void func_actor_444000_80135448(Actor444000* task)
             SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->coords));
         }
 
-        frame = work->slots0[3].field_2 & 0x3FF;
+        frame = work->slots0[3].curRec & 0x3FF;
         if (frame == 0x71 && work->field_7A8 != frame) {
             s32 id;
             s32 pan;
@@ -692,7 +692,7 @@ void func_actor_444000_80135448(Actor444000* task)
             SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->coords));
         }
 
-        work->field_7A8 = work->slots0[3].field_2 & 0x3FF;
+        work->field_7A8 = work->slots0[3].curRec & 0x3FF;
 
         switch (work->field_6) {
             case 0x14:

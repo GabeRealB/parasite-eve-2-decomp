@@ -185,7 +185,7 @@ void func_actor_312200_80162FB4(Task* task)
     if (work->field_88C == 1) {
         start = (Actor312200Work*)task->work;
         for (i = 1; i < 0x13; i++) {
-            start->slots[i].field_9 = start->field_896.byte;
+            start->slots[i].rate = start->field_896.byte;
             func_800B4114(&start->anim, i, (s16)start->field_892, 0,
                           D_actor_312200_80169F28[start->field_890][(s16)start->field_892]);
         }
@@ -195,7 +195,7 @@ void func_actor_312200_80162FB4(Task* task)
     if (work->field_88C == 2) {
         reset = (Actor312200Work*)task->work;
         for (j = 1; j < 0x13; j++) {
-            reset->slots[j].field_9 = reset->field_896.byte;
+            reset->slots[j].rate = reset->field_896.byte;
             Gp_AnimResetSlot(&reset->anim, j, (s16)reset->field_892);
         }
         reset->field_890 = reset->field_892;
@@ -209,7 +209,7 @@ void func_actor_312200_80162FB4(Task* task)
         second->field_89E.half = 0x30;
         second->field_8A0      = 0x500;
         for (k = 1; k < 0x13; k++) {
-            second->slots[k].field_9 = second->field_89E.byte;
+            second->slots[k].rate = second->field_89E.byte;
             Gp_AnimResetSlot(&second->anim2, k, (s16)second->field_89C);
         }
         work->field_89A = 3;
@@ -217,7 +217,7 @@ void func_actor_312200_80162FB4(Task* task)
     work->field_894++;
     tick = (Actor312200Work*)task->work;
     for (m = 1; m < 0x13; m++) {
-        tick->slots[m].field_9 = tick->field_896.byte;
+        tick->slots[m].rate = tick->field_896.byte;
         Gp_AnimTickIndex(&tick->anim, m);
     }
 }

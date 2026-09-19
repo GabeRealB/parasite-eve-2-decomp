@@ -173,7 +173,7 @@ void func_actor_460200_8013332C(Task* task)
     work = (ActorsShared80132514Work*)task->work;
     i    = 1;
     do {
-        work->slots[i].field_9 = 1;
+        work->slots[i].rate = 1;
         Gp_AnimResetSlot(&work->anim, i, work->field_4B8);
         i++;
     } while (i < 0x14);

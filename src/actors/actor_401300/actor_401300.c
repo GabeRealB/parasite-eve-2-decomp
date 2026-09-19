@@ -300,7 +300,7 @@ void func_actor_401300_80133254(Actor401300* arg0)
 
     if (work->field_8A0 != work->field_8A2) {
         for (i = 1; i < 0x13; i++) {
-            work->slots[i].field_9 = work->field_8A6;
+            work->slots[i].rate = work->field_8A6;
             if (i >= 7) {
                 if (i < 9) {
                     continue;
@@ -325,8 +325,8 @@ void func_actor_401300_80133324(Actor401300* arg0)
     weight = work->field_8B0;
     for (i = 1; i < 0x13; i++) {
         if (i < 0xB) {
-            work->blendSlots[i].field_9 = (u8)work->field_8AE;
-            work->slots[i].field_9      = (u8)(work->field_8A6 - 3);
+            work->blendSlots[i].rate = (u8)work->field_8AE;
+            work->slots[i].rate      = (u8)(work->field_8A6 - 3);
             if (i >= 7) {
                 if (i < 9) {
                     continue;
@@ -338,7 +338,7 @@ void func_actor_401300_80133324(Actor401300* arg0)
                 Gp_AnimWritePoseCopy(&work->anim, i, &pose, &blendPose, weight, 0x1000 - weight);
             } while (0);
         } else {
-            work->slots[i].field_9 = (u8)(work->field_8A6 - 3);
+            work->slots[i].rate = (u8)(work->field_8A6 - 3);
             Gp_AnimTickIndex(&work->anim, i);
         }
     }
@@ -689,7 +689,7 @@ static __inline__ void Actor401300_ResetAnim(Actor401300* arg0)
 
     work = (Actor401300AnimWork*)arg0->field_1C;
     for (i = 1; i < 0x13; i++) {
-        work->slots[i].field_9 = work->field_8A6;
+        work->slots[i].rate = work->field_8A6;
         if (i < 7) {
             Gp_AnimResetSlotEx(&work->anim, i, work->field_8A2, i, i);
         } else if (i >= 9) {
@@ -708,7 +708,7 @@ static __inline__ void Actor401300_ResetBlendAnim(Actor401300* arg0)
     work->field_8AE = 0x30;
     work->field_8B0 = 0x800;
     for (i = 1; i < 0x13; i++) {
-        work->slots[i].field_9 = work->field_8AE;
+        work->slots[i].rate = work->field_8AE;
         if (i < 7) {
             Gp_AnimResetSlotEx(&work->blendAnim, i, work->field_8AC, i, i);
         } else if (i >= 9) {
@@ -724,7 +724,7 @@ static __inline__ void Actor401300_TickAnim(Actor401300* arg0)
 
     work = (Actor401300AnimWork*)arg0->field_1C;
     for (i = 1; i < 0x13; i++) {
-        work->slots[i].field_9 = work->field_8A6;
+        work->slots[i].rate = work->field_8A6;
         if (i < 7) {
             Gp_AnimTickIndex(&work->anim, i);
         } else if (i >= 9) {
@@ -769,7 +769,7 @@ void func_actor_401300_80133A3C(Actor401300* arg0)
         Actor401300_TickAnim(arg0);
     } else {
         func_actor_401300_80133324(arg0);
-        if (((Actor401300AnimWork*)work)->blendSlots[1].field_10 & 0x100) {
+        if (((Actor401300AnimWork*)work)->blendSlots[1].flags & 0x100) {
             work->field_89E = 0;
         }
     }

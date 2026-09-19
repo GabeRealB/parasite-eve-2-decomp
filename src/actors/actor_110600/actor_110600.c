@@ -710,7 +710,7 @@ s32 func_actor_110600_80134040(Actor110600* arg0, s32 arg1, Actor110600Event* ar
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_801341A4);
 
 /// Per-tick animation pass: for each clip id 1..0x12, the first ten (`i < 0xB`)
-/// write the two clip ids into their slot's `field_9` and tick the primary and
+/// seed their slot's `rate` from the two work bytes and tick the primary and
 /// blend contexts through `func_800B3448`, then hand both poses to
 /// `Gp_AnimWritePoseCopy` with `weight` at 0x8A0 and its complement; the rest
 /// only rewrite the primary slot and `Gp_AnimTickIndex` it. Same body as
@@ -729,13 +729,13 @@ void func_actor_110600_80134438(Actor110600* arg0)
     anim   = &work->anim;
     for (i = 1; i < 0x13; i++) {
         if (i < 0xB) {
-            work->blendSlots[i].field_9 = (u8)work->field_89E;
-            work->slots[i].field_9      = (u8)(work->field_896 - 3);
+            work->blendSlots[i].rate = (u8)work->field_89E;
+            work->slots[i].rate      = (u8)(work->field_896 - 3);
             func_800B3448(anim, i, (s32)&pose, 0);
             func_800B3448(&work->blendAnim, i, (s32)&blendPose, 0);
             Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
-            work->slots[i].field_9 = (u8)(work->field_896 - 3);
+            work->slots[i].rate = (u8)(work->field_896 - 3);
             Gp_AnimTickIndex(&work->anim, i);
         }
     }
@@ -763,7 +763,7 @@ s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
     state = (u16)anim->field_892 - 2;
     switch (state) {
         case 1:
-            id14 = anim->slots[14].field_2 & 0x3FF;
+            id14 = anim->slots[14].curRec & 0x3FF;
             if (id14 == 0xC5) {
                 prev = anim->field_8AC;
                 if (prev != id14) {
@@ -773,7 +773,7 @@ s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
                 anim->field_8AC = prev;
                 return 0;
             }
-            id18 = anim->slots[18].field_2 & 0x3FF;
+            id18 = anim->slots[18].curRec & 0x3FF;
             if (id18 == 0xFD) {
                 if (anim->field_8AC != 0xFC) {
                     anim->field_8AC = id18;
@@ -785,7 +785,7 @@ s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
             anim->field_8AC = 0;
             break;
         case 0:
-            id2 = anim->slots[1].field_2 & 0x3FF;
+            id2 = anim->slots[1].curRec & 0x3FF;
             if (id2 == 0x33) {
                 if (anim->field_8AC != id2) {
                     anim->field_8AC = id2;
@@ -804,28 +804,28 @@ s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
             }
             break;
         case 19:
-            id21 = anim->slots[1].field_2 & 0x3FF;
+            id21 = anim->slots[1].curRec & 0x3FF;
             if (id21 == 4 && anim->field_8AC != id21) {
                 anim->field_8AC = id21;
                 return 0x401D0006;
             }
-            anim->field_8AC = anim->slots[1].field_2 & 0x3FF;
+            anim->field_8AC = anim->slots[1].curRec & 0x3FF;
             break;
         case 2:
-            id4 = anim->slots[1].field_2 & 0x3FF;
+            id4 = anim->slots[1].curRec & 0x3FF;
             if (id4 == 9 && anim->field_8AC != id4) {
                 anim->field_8AC = id4;
                 return 0x401D000C;
             }
-            anim->field_8AC = anim->slots[1].field_2 & 0x3FF;
+            anim->field_8AC = anim->slots[1].curRec & 0x3FF;
             break;
         case 3:
-            id5 = anim->slots[1].field_2 & 0x3FF;
+            id5 = anim->slots[1].curRec & 0x3FF;
             if (id5 == 0xB && anim->field_8AC != id5) {
                 anim->field_8AC = id5;
                 return 0x401D000C;
             }
-            anim->field_8AC = anim->slots[1].field_2 & 0x3FF;
+            anim->field_8AC = anim->slots[1].curRec & 0x3FF;
             break;
     }
     return 0;
@@ -894,9 +894,9 @@ void func_actor_110600_80134728(Actor110600* arg0)
         seekIndex = 1;
         table     = (u32)D_actor_110600_80147D20;
         do {
-            work->slots[seekIndex].field_9 = (u8)seekWork->field_896;
-            animation                      = seekWork->field_892;
-            index                          = seekWork->field_890 * 0x2D;
+            work->slots[seekIndex].rate = (u8)seekWork->field_896;
+            animation                   = seekWork->field_892;
+            index                       = seekWork->field_890 * 0x2D;
             func_800B4114(&seekWork->anim, seekIndex, animation, 0, (s32) * (s8*)((animation + index) + table));
             seekIndex += 1;
         } while (seekIndex < 0x13);
@@ -908,7 +908,7 @@ void func_actor_110600_80134728(Actor110600* arg0)
         resetWork  = work;
         resetIndex = 1;
         do {
-            work->slots[resetIndex].field_9 = (u8)resetWork->field_896;
+            work->slots[resetIndex].rate = (u8)resetWork->field_896;
             Gp_AnimResetSlot(&resetWork->anim, resetIndex, (s32)resetWork->field_892);
             resetIndex += 1;
         } while (resetIndex < 0x13);
@@ -920,7 +920,7 @@ void func_actor_110600_80134728(Actor110600* arg0)
         warmWork  = work;
         warmIndex = 1;
         do {
-            work->slots[warmIndex].field_9 = 0x10;
+            work->slots[warmIndex].rate = 0x10;
             Gp_AnimResetSlot(&warmWork->anim, warmIndex, (s32)warmWork->field_892);
             warmIndex += 1;
         } while (warmIndex < 0x13);
@@ -930,7 +930,7 @@ void func_actor_110600_80134728(Actor110600* arg0)
             tickWork  = (Actor110600AnimWork*)arg0->field_1C;
             tickIndex = 1;
             do {
-                tickWork->slots[tickIndex].field_9 = (u8)tickWork->field_896;
+                tickWork->slots[tickIndex].rate = (u8)tickWork->field_896;
                 Gp_AnimTickIndex(&tickWork->anim, tickIndex);
                 tickIndex += 1;
             } while (tickIndex < 0x13);
@@ -946,7 +946,7 @@ void func_actor_110600_80134728(Actor110600* arg0)
         blendWork->field_89E = 0x30;
         blendWork->field_8A0 = 0xB78;
         do {
-            blendWork->slots[blendIndex].field_9 = (u8)blendWork->field_89E;
+            blendWork->slots[blendIndex].rate = (u8)blendWork->field_89E;
             Gp_AnimResetSlot(&blendWork->blendAnim, blendIndex, (s32)blendWork->field_89C);
             blendIndex += 1;
         } while (blendIndex < 0x13);
@@ -957,13 +957,13 @@ void func_actor_110600_80134728(Actor110600* arg0)
         tickWork  = (Actor110600AnimWork*)arg0->field_1C;
         tickIndex = 1;
         do {
-            tickWork->slots[tickIndex].field_9 = (u8)tickWork->field_896;
+            tickWork->slots[tickIndex].rate = (u8)tickWork->field_896;
             Gp_AnimTickIndex(&tickWork->anim, tickIndex);
             tickIndex += 1;
         } while (tickIndex < 0x13);
     } else {
         func_actor_110600_80134438(arg0);
-        if (work->blendSlots[1].field_10 & 0x1) {
+        if (work->blendSlots[1].flags & 0x1) {
             work->field_88E = 0;
         }
     }

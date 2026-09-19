@@ -78,7 +78,7 @@ s32 func_actor_121300_80132818(Task* arg0)
     i    = 1;
     done = 1;
     for (; i < 0x13; i++) {
-        if (!(work->slots[i].field_10 & 0x100)) {
+        if (!(work->slots[i].flags & 0x100)) {
             goto fail;
         }
     }

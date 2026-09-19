@@ -258,13 +258,13 @@ void func_actor_421600_80133B30(Actor421600* arg0)
         }
         invBlend = 0x1000 - blend;
         if (index < 0xB) {
-            work->blendSlots[index].field_9 = (u8)work->field_83A;
-            work->slots[index].field_9      = (s8)(work->field_832 - 3);
+            work->blendSlots[index].rate = (u8)work->field_83A;
+            work->slots[index].rate      = (s8)(work->field_832 - 3);
             func_800B3448(&work->anim, index, (s32)&pose, 0);
             func_800B3448(&work->blendAnim, index, (s32)&blendPose, 0);
             Gp_AnimWritePoseCopy(&work->anim, index, &pose, &blendPose, blend, invBlend);
         } else {
-            work->slots[index].field_9 = (s8)(work->field_832 - 3);
+            work->slots[index].rate = (s8)(work->field_832 - 3);
             Gp_AnimTickIndex(&work->anim, index);
         }
         next  = index + 1;

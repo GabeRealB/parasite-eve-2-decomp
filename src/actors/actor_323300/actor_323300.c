@@ -76,7 +76,7 @@ void func_actor_323300_80161FE8(Task* arg0)
             Gp_AnimTickIndex((GpAnimCtx*)work, i);
         }
         if (work->field_500 != 0) {
-            if (work->slots[1].field_10 & 2) {
+            if (work->slots[1].flags & 2) {
                 if (gGameSession->at4.loc.view == 2) {
                     SndEvt_EnqueueType6(0x52100006, 0, 0x28);
                 } else {
@@ -230,7 +230,7 @@ void func_actor_323300_80162748(Task* arg0)
     work = (Actor323300Work*)arg0->work;
     func_actor_323300_801628B8(arg0, 0x7D3, &D_actor_323300_801725C8, 0);
     for (i = 1; i < 0x13; i++) {
-        work->slots[i].field_9 = 8;
+        work->slots[i].rate = 8;
     }
     work->field_4CC = 0;
     work->field_4D0 = 0;
@@ -275,7 +275,7 @@ void func_actor_323300_801627B4(Task* arg0)
         vec.vy = work->field_4F6;
         func_actor_323300_801628B8(arg0, 0x7D3, &D_actor_323300_801725DC, 0);
         for (i = 1; i < 0x13; i++) {
-            work->slots[i].field_9 = 0x16;
+            work->slots[i].rate = 0x16;
         }
         work->field_4FC = 0;
         work->field_4FE = 0;
