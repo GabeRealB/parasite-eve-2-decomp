@@ -24250,8 +24250,9 @@ still assigns `saved` to `$s1` and `actor` to `$s2`.
 
 ## Keep the `i * sizeof(slot)` overlay inside the loop body
 
-`GameActor` helpers slide the actor pointer by `i * sizeof(GameActorSlot)` and
-then store through a field on that overlay (`func_80105894` / `func_801058BC`).
+`GameActor` helpers walk the actor's animation slots (`GameActor.field_438`),
+each `sizeof(GpAnimSlot)` past the one before, and then store through the
+slot's own field (`func_80105894` / `func_801058BC`).
 A 1-based walk that the target implements as
 
 ```
@@ -24260,7 +24261,7 @@ sb    a2, 0x441(a0)    /* overlay field */
 addiu a0, a0, 0x28
 ```
 
-will not come from `slot[i - 1].field_21` — that strength-reduces to base
+will not come from `slot[i - 1].rate` — that strength-reduces to base
 offset 0 and store offset `0x469`. Precomputing the first slid pointer
 before the `i < count` test is also wrong: `i = 1` gets hoisted into the
 previous branch delay slot and `i++` moves *before* the store.
@@ -24272,13 +24273,48 @@ has filled the `lh count` delay:
 i = 1;
 if (i < actor->field_938) {
     do {
-        ((GameActor*)((i * sizeof(GameActorSlot)) + (s32)actor))->field_441 = arg2;
+        actor->field_438[i].rate = arg2;
         i++;
     } while (i < actor->field_938);
 }
 ```
 
 `func_801058BC` is the example.
+
+## An index-`sizeof` sum must be the address's left operand
+
+The same stride where the index is used once instead of walked: a helper
+reaching slot `arg1` of an actor's `field_438` array and reading its `flags`
+at 0x448. Written as the indexing the type supports,
+`arg0->actor->field_438[arg1].flags`, GCC emits the sum with the base as its
+destination:
+
+```
+addu v1, v1, v0        /* base = base + index */
+lhu  v0, 0x448(v1)
+```
+
+The target has the index product as the destination instead:
+
+```
+addu v0, v0, v1        /* index = index + base */
+lhu  v0, 0x448(v0)
+```
+
+Two encodings differ and nothing else in the function does, so the overlay
+fails its checksum with no other symptom. Put the multiply first and the
+array's own address second:
+
+```c
+slot = (GpAnimSlot*)((arg1 * sizeof(GpAnimSlot)) + (s32)arg0->actor->field_438);
+return (slot->flags & 0x102) == 0;
+```
+
+Casting the *struct* pointer instead and reading `field_438[0]` through it
+lands on the same byte, but states a view of the struct that does not exist;
+the array's address is the base to use.
+
+`func_80105894` is the example.
 
 ## Variable-shift bit test: `p += i/32` then `i %= 32` then `val = *p & (1 << i)`
 
@@ -108524,7 +108560,7 @@ dump (`func_actor_800100_80164E60`):
   target's bare `addiu $a0, $s0, 0x424` is the tell: a two-instruction constant
   where the target has a one-instruction small immediate means the argument's
   cast is missing. Use the project idiom (`(GpAnimCtx*)actor->field_424`,
-  `(GpAnimSlot*)actor->field_438 + 1`) so the pointee is byte-sized.
+  `actor->field_438 + 1`) so the pointee is byte-sized.
 - A `sll $v0, $v0, 2` before the `addu` that the target does not have means the
   indexed symbol is a byte array: declare `extern u8 D_...[ ];` rather than the
   scalar m2c invents for `*(idx + &sym)`, and the scale disappears.

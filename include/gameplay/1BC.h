@@ -201,7 +201,7 @@ STATIC_ASSERT_SIZEOF(GpPickupWork, 6);
 /// An animation carries one track per model part, each a run of `recs`
 /// keyframes that begins at the record `trackStart` names, plus one pose bank
 /// per pose encoding, which those records index into by 4-byte word.
-typedef struct {
+typedef struct GpAnimSet {
     GpAnimRec*    recs;         // keyframe records of every track, one run per model part
     u16*          trackStart;   // record index each track begins at, indexed by `GpAnimSlot.trackIndex`
     GpPackedSvec* poseBanks[8]; // pose bank per pose encoding, indexed by `GpAnimRec.flags & 0xF` (1 `GpPackedPose`, 4 `GpPackedSvec`)
@@ -216,49 +216,6 @@ typedef struct _GpAnimScratch18 {
     /* 0x04 */ GpAnimBlendSrc src;
 } GpAnimScratch18;
 STATIC_ASSERT_SIZEOF(GpAnimScratch18, 0x18);
-
-/// One animation slot: the playback state of one model part's animation.
-///
-/// The slot walks the keyframe records of a single track, blending the pose it
-/// has reached (`curSet`/`curRec`) into the one it is heading for
-/// (`nextSet`/`nextRec`), which takes that keyframe's `duration` as the length
-/// of the segment. `timeLeft` counts the segment down under `rate` and is the
-/// blend's numerator, `timeSpan` its denominator. Records that are control
-/// entries rather than poses are not shown: the walk follows them and reports
-/// what it did in `flags`.
-///
-/// A slot's track and its transform are separate: `trackIndex` names the track
-/// it reads and `mtxIndex` the coordinate it writes, the same part unless a
-/// caller pairs a slot with another part's track. Slots sit in the array
-/// `GpAnimCtx.slots` points at, and the tick helpers recover that array as
-/// `slot - slot->trackIndex`, so a slot following another part's track cannot
-/// be ticked through a pointer alone.
-///
-/// Either keyframe may instead be a pose the caller supplies, kept per slot in
-/// the context's pose buffer and marked by the 0x7FFF sentinel; `bufPose` says
-/// one of the two is that kind.
-typedef struct {
-    /* 0x00 */ u16         curSet;      // set of the keyframe the slot has reached; 0x7FFF takes the pose from the context's pose buffer
-    /* 0x02 */ u16         curRec;      // that keyframe's record index
-    /* 0x04 */ u16         nextSet;     // set of the keyframe it is heading for; 0x7FFF as in `curSet`
-    /* 0x06 */ u16         nextRec;     // that keyframe's record index
-    /* 0x08 */ byte        pad_8;
-    /* 0x09 */ u8          rate;        // segment advance per tick in 16ths of a frame (0x10 one frame), read signed, so a negative rate runs the segment backwards
-    /* 0x0A */ u8          field_A;     // role unproven: written 0 by the walk, never read
-    /* 0x0B */ u8          poseKind;    // pose encoding of the keyframe being headed for (`GpAnimRec.flags & 0xF`): the `GpAnimSet.poseBanks` entry its pose comes from
-    /* 0x0C */ s16         timeLeft;    // frames left in the segment, in 16ths; it runs past zero until the walk catches up
-    /* 0x0E */ u16         timeSpan;    // that keyframe's `duration` in the same units; the blend's denominator
-    /* 0x10 */ u16         flags;       // bit 0 the walk took the clip's end, bit 1 it followed a control entry, bit 8 the clip has ended and settled on its last pose
-    /* 0x12 */ u16         field_12;    // role unproven: written 0 by every initialiser, never read
-    /* 0x14 */ u8          mtxIndex;    // `GpAnimCtx.coords` entry the slot writes: the model part whose transform it drives
-    /* 0x15 */ u8          trackIndex;  // track the slot reads: the model part whose keyframes it follows
-    /* 0x16 */ u8          atEnd;       // the clip has run to its end: the slot holds its last pose and does not advance
-    /* 0x17 */ u8          bufPose;     // the pose came from the context's pose buffer rather than a pose bank
-    /* 0x18 */ SVECTOR     bufRotDelta; // Euler angles of the rotation from the previous buffered pose to the current, applied while both ticks are buffered
-    /* 0x20 */ GpAnimSet** sets;        // the animation set table `curSet` and `nextSet` index (the context's)
-    /* 0x24 */ byte        pad_24[4];
-} GpAnimSlot;
-STATIC_ASSERT_SIZEOF(GpAnimSlot, 0x28);
 
 /// One model's animation state: what its playback reads and the slots that walk
 /// it.

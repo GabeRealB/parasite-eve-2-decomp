@@ -695,7 +695,7 @@ void func_actor_800100_80164E60(GpActorWork* arg0)
 
     actor = arg0->actor;
     d4    = actor->field_910;
-    rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->field_438 + 1);
+    rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
     coord = (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords;
     sel   = D_actor_800100_80167218[D_8007272F];
 
@@ -1270,7 +1270,7 @@ void func_actor_800100_80166190(GpActorWork* arg0)
 
         case 1:
             if (Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
-                              (GpAnimSlot*)actor->field_438 + 1) != NULL) {
+                              actor->field_438 + 1) != NULL) {
                 actor->field_960 += 1;
             }
             break;

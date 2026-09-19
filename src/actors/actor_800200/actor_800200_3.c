@@ -1067,7 +1067,7 @@ s32 func_actor_800200_80165104(GpActorWork* arg0)
     sound = 0;
     actor = arg0->actor;
     obj   = (GpObj38*)arg0->extra->coords;
-    rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->field_438 + 1);
+    rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
     if (rec != NULL && rec != actor->field_92C) {
         actor->field_92C = rec;
         switch (flags = rec->flags & 0x30) {
