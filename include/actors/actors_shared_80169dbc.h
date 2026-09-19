@@ -6,7 +6,7 @@
 #include "main/task.h"
 
 /// 0x454-byte work block `actor_341700` and `actor_342400` allocate with
-/// `Mem_Calloc` and park in `Task::work` (that slot is not a `TaskIdMap`
+/// `memCalloc` and park in `Task::work` (that slot is not a `TaskIdMap`
 /// here). `field_412` is the per-state frame counter, `field_422` the
 /// sub-state index the handler table walks, and `field_414` .. `field_426` the
 /// animation request the actor hands to its player. The size below is the

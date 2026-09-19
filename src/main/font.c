@@ -15,7 +15,7 @@ void Task_AllocIdMap(Task* arg0)
     s32        field34;
 
     temp_s4 = D_80062764[gGameSession->at4.loc.stage - 1];
-    temp_v0 = Mem_Calloc(8, 0);
+    temp_v0 = memCalloc(8, 0);
     if (temp_v0 != NULL) {
         arg0->work = temp_v0;
         if (D_80062737 != 0) {

@@ -19,7 +19,7 @@ void func_dryfield_night_motel_lobby_80180E98(Task* task)
     u8               empty;
     s32              i;
 
-    work = Mem_Calloc(0xA, 0);
+    work = memCalloc(0xA, 0);
     if (work == NULL) {
         taskKill(task);
         return;

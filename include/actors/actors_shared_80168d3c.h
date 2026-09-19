@@ -18,7 +18,7 @@ typedef union ActorsShared80168d3cFlags {
 STATIC_ASSERT_SIZEOF(ActorsShared80168d3cFlags, 0x4);
 
 /// 0x454-byte work block `actor_341700` and `actor_342400` allocate with
-/// `Mem_Calloc` and park in `Task::work` (that slot is not a `TaskIdMap`
+/// `memCalloc` and park in `Task::work` (that slot is not a `TaskIdMap`
 /// here). `field_92` is the low half of the model root `coord.t[1]`,
 /// `obj_2AC` / `obj_2CC` / `obj_3AC` the `Gp_LinkObj` nodes the death handler
 /// unlinks, `field_412` the per-state frame counter, `field_422` the sub-state

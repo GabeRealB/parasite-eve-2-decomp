@@ -9,7 +9,7 @@
 
 /// Work block the actors sharing this body hang off the task's `Task::work`
 /// slot (0x1C), which is not a `TaskIdMap` here. Each overlay's spawn routine
-/// allocates it with `Mem_Calloc` and stores it into that field; the carriers
+/// allocates it with `memCalloc` and stores it into that field; the carriers
 /// ask for different sizes (`actor_160600` for 0x4F8, `actor_161500` for
 /// 0x4FC, `actor_450800` for 0x504), so only the prefix this body reaches is
 /// described here rather than a whole-block size that would be wrong for some

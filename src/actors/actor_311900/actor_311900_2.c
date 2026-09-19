@@ -50,7 +50,7 @@ void func_actor_311900_801624F8(GpEnemy* enemy, Task* task)
     obj   = (TmdObject*)task->extra;
     coord = obj->coords;
     if (GameFlag_GetNibble(1) >= 3 ||
-        (work = Mem_Calloc(0x4CC, 0), task->work = (TaskIdMap*)work, work == NULL)) {
+        (work = memCalloc(0x4CC, 0), task->work = (TaskIdMap*)work, work == NULL)) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }

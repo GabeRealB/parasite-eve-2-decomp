@@ -16,7 +16,7 @@ extern SVECTOR D_actor_450800_80131E24;
 
 /// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. `func_actor_450800_80132160` allocates it
-/// with `Mem_Calloc(0x504, 0)` and stores it straight into that field, so the
+/// with `memCalloc(0x504, 0)` and stores it straight into that field, so the
 /// size below is the allocation and not a guess. Reach it with
 /// `(Actor450800Work*)task->work`.
 ///
@@ -78,7 +78,7 @@ STATIC_ASSERT_SIZEOF(Actor450800Work, 0x504);
 /// The overlay's *second* work block, hung off the `Task::work` slot exactly
 /// as `Actor450800Work` is but never on the same task: this one is the enemy's,
 /// allocated by the spawn handler `func_actor_450800_80132E9C` with
-/// `Mem_Calloc(0x4C0, 0)` and driven by the state `ActorsShared801330ac`
+/// `memCalloc(0x4C0, 0)` and driven by the state `ActorsShared801330ac`
 /// reads at 0x47C, while `Actor450800Work` (0x504) belongs to the actor's own
 /// handler `func_actor_450800_80132160`. The overlay's two `fns` dispatchers
 /// (`func_actor_450800_80133264` and `func_actor_450800_80132790`) are what keep

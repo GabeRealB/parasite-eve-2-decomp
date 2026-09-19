@@ -9,7 +9,7 @@
 /// Per-actor work block for the `actor_260500` overlay.
 ///
 /// The overlay's `ActorsShared80131f9cSub0` (here at 0x80149FB0) allocates it
-/// with `Mem_Calloc(0x4B8, 0)` and stores the pointer both in
+/// with `memCalloc(0x4B8, 0)` and stores the pointer both in
 /// `ActorsShared80131f9cWork` and in the task's 0x1C slot, so the size below is
 /// the allocation and not a guess. Every other function in the overlay reaches
 /// the block through the global.

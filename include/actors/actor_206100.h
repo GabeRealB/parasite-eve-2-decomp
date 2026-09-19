@@ -177,12 +177,12 @@ STATIC_ASSERT_SIZEOF(Actor206100DistScratch, 0xC);
 
 /// Per-actor state block for the `actor_206100` overlay's enemy.
 ///
-/// `func_actor_206100_8014C274` allocates it with `Mem_Calloc(0x558, 0)` and
+/// `func_actor_206100_8014C274` allocates it with `memCalloc(0x558, 0)` and
 /// stores it straight into the `Task::work` slot (0x1C), so the size below is
 /// the allocation and not a guess: this overlay reuses that pointer field for
 /// its own work block and it is *not* a `TaskIdMap` here.  Reach it with
 /// `(Actor206100Work*)task->work`.  (The overlay's only other allocation,
-/// `Mem_Calloc(0x68, 0)` in `func_actor_206100_8014C458`, belongs to the child
+/// `memCalloc(0x68, 0)` in `func_actor_206100_8014C458`, belongs to the child
 /// task that `Task_SpawnFromTable` returns there, so it is a different `Task`
 /// and a different block.)
 ///
@@ -437,7 +437,7 @@ STATIC_ASSERT_SIZEOF(Actor206100Work, 0x558);
 
 /// Work block of the beam task `func_actor_206100_8014C458` spawns off
 /// `D_actor_206100_80158B0C` when `Actor206100Work::field_555` is set: it
-/// `Mem_Calloc(0x68, 0)`s one and parks it in the child's `Task::work`, the
+/// `memCalloc(0x68, 0)`s one and parks it in the child's `Task::work`, the
 /// same reuse `Actor206100Work` makes of the parent's slot.
 ///
 /// `obj` is the kind-1 `GpObj` the spawn state `func_actor_206100_8014EEC0`

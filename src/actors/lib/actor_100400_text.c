@@ -1577,7 +1577,7 @@ void Actor00400_Fn03920(Actor100400* arg0)
         Gp_DestroyEnemy(obj, arg0);
         return;
     }
-    arg0->field_1C = Mem_Calloc(sizeof(Actor100400Work), 0);
+    arg0->field_1C = memCalloc(sizeof(Actor100400Work), 0);
     work           = arg0->field_1C;
     if (work == NULL) {
         Gp_DestroyEnemy(obj, arg0);
@@ -1632,7 +1632,7 @@ void Actor00400_Fn03920(Actor100400* arg0)
             y             = pos->y;
             task          = Task_SpawnFromTable(&Actor00400_D16028, 2, 0, 0);
             if (task != NULL) {
-                quad = Mem_Calloc(sizeof(Actor100400QuadWork), 0);
+                quad = memCalloc(sizeof(Actor100400QuadWork), 0);
                 if (quad == NULL) {
                     taskKill(task);
                 } else {
@@ -2800,7 +2800,7 @@ static inline void Actor00400_SpawnMarker(Actor100400* arg0)
     span   = &coords[4];
     task   = Task_SpawnFromTable(&Actor00400_D16028, 1, 0, 0);
     if (task != NULL) {
-        marker = Mem_Calloc(sizeof(Actor100400MarkerWork), false);
+        marker = memCalloc(sizeof(Actor100400MarkerWork), false);
         if (marker == NULL) {
             taskKill(task);
         } else {

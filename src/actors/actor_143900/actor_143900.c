@@ -39,7 +39,7 @@ void func_actor_143900_80131E24(void)
 /// same way the step-1 handler is handed its slot array.
 ///
 /// Every access to the block goes through `ActorsShared80131f9cWork` rather
-/// than the `Mem_Calloc` result, which is why the pointer is reloaded at each
+/// than the `memCalloc` result, which is why the pointer is reloaded at each
 /// use instead of staying in a callee-saved register; the same two loads
 /// publish the block's matrices, which go to the object's `field_1C` /
 /// `field_20`. `task->msgTable` takes the message table
@@ -58,7 +58,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
 
     obj                      = task->extra;
     coord                    = obj->coords;
-    work                     = Mem_Calloc(0x4F0, 0);
+    work                     = memCalloc(0x4F0, 0);
     ActorsShared80131f9cWork = work;
     task->work               = (TaskIdMap*)work;
     if (work == NULL) {

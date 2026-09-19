@@ -176,7 +176,7 @@ void func_actor_503500_80132430(Task* arg0)
     Actor503500ColorMtx* work;
 
     ext  = arg0->extra;
-    work = Mem_Calloc(sizeof(Actor503500ColorMtx), false);
+    work = memCalloc(sizeof(Actor503500ColorMtx), false);
     if (work == NULL) {
         Gp_EnemyTaskExit(arg0);
         return;

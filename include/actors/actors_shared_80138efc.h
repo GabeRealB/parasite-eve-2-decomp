@@ -37,7 +37,7 @@ STATIC_ASSERT_SIZEOF(ActorsShared80138efcMotion, 0xAFC);
 /// table onto the stack and then calls `table[work->state](enemy, task, work)`,
 /// reading the index with `lb` from 0xBA7 - which is why that field is named
 /// rather than numbered. The same slot allocates the block with
-/// `Mem_Calloc(0xBCC, 0)` in `func_actor_104900_8013279C` and parks it in
+/// `memCalloc(0xBCC, 0)` in `func_actor_104900_8013279C` and parks it in
 /// `Task::work` (0x1C), so the size below is that allocation rather than a
 /// guess; other slots carry the body with a differently sized block, and only
 /// the fields this handler touches are laid out here.

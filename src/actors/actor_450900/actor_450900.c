@@ -206,7 +206,7 @@ void func_actor_450900_80132518(s32 arg0)
 
 /// State handler of the save-point capture task `func_actor_450900_80131E38`
 /// spawns. State 0 allocates the head-aim record the capture cursor sweeps with
-/// (`Mem_Calloc(0xC, false)` into `Task::work`); state 1 ramps its `rate` one
+/// (`memCalloc(0xC, false)` into `Task::work`); state 1 ramps its `rate` one
 /// 0x200 step per frame, up or down according to `Task::spawnArg1` (the flag
 /// `func_actor_450900_80132518` arms), and hands the record to `func_800B17D4`
 /// between the slot-3 task and the ally's own slot-0xA task. Any other state
@@ -220,7 +220,7 @@ void func_actor_450900_80132548(Task* task)
     slot = Game_GetPtrSlot(3);
     switch (task->state) {
         case 0:
-            aim = Mem_Calloc(sizeof(Actor450900HeadAim), false);
+            aim = memCalloc(sizeof(Actor450900HeadAim), false);
             if (aim == NULL) {
                 taskKill(task);
                 return;

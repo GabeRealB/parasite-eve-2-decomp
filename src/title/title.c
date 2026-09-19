@@ -53,7 +53,7 @@ void Title_InitTask(Task* arg0)
         arg0->spawnArg1 -= 1;
         return;
     }
-    work = Mem_Calloc(0x18, 0);
+    work = memCalloc(0x18, 0);
     if (work != NULL) {
         arg0->work                            = (TaskIdMap*)work;
         *(volatile s32*)&work->menuCount      = 5;

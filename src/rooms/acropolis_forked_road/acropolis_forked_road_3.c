@@ -77,7 +77,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
     work  = (AfrStreamWork*)task->work;
     switch (task->state) {
         case 0:
-            blk        = Mem_Calloc(0x14, 0);
+            blk        = memCalloc(0x14, 0);
             task->work = (TaskIdMap*)blk;
             if (blk == NULL) {
                 taskKill(task);
@@ -182,7 +182,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
     work  = (AfrStreamWork*)task->work;
     switch (task->state) {
         case 0:
-            blk        = Mem_Calloc(0x14, 0);
+            blk        = memCalloc(0x14, 0);
             task->work = (TaskIdMap*)blk;
             if (blk == NULL) {
                 taskKill(task);

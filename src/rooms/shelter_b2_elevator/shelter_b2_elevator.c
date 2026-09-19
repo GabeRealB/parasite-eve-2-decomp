@@ -53,7 +53,7 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
     coord = obj->coords;
     switch (task->state) {
         case 0:
-            car = Mem_Calloc(4, 0);
+            car = memCalloc(4, 0);
             if (car == NULL) {
                 taskKill(task);
                 return;

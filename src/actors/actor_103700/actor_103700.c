@@ -21,7 +21,7 @@ void func_actor_103700_80131EC4(GpEnemy* arg0, Task* task)
 
     obj   = (TmdObject*)task->extra;
     coord = obj->coords;
-    work  = Mem_Calloc(0x270, 0);
+    work  = memCalloc(0x270, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, task);
         return;

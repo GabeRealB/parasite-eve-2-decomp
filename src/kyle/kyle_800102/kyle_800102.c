@@ -46,7 +46,7 @@ void func_kyle_800102_80167A84(Task* arg0)
     idx      = ((u32)arg0->spawnArg1 >> 16) & 0xF;
     coord    = extra->coords;
     muzzle   = coord->sub;
-    work     = Mem_Calloc(sizeof(Kyle800102Work), 0);
+    work     = memCalloc(sizeof(Kyle800102Work), 0);
     vec      = blk;
     if (work == NULL) {
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;

@@ -30,7 +30,7 @@ of function pointers, not a cast list.
 
 ### 1.1 `Task` (0x48)
 
-Allocated with `Mem_Calloc(0x48, 0)`. Inserted into the **active list**
+Allocated with `memCalloc(0x48, 0)`. Inserted into the **active list**
 (`gTaskActiveList`, usually `gTaskDefaultList`) in **priority order**: lower
 `priority` runs earlier. Typical values:
 
@@ -48,7 +48,7 @@ walks the ring and is self when the task is an only child. `taskKill` runs
 every child’s `exitCallback` first (with `parent` cleared). `Task_Reparent`
 moves a live task onto another parent’s ring.
 
-`work` is an optional `TaskIdMap*` (`Mem_Calloc(8)` in `Task_AllocIdMap`).
+`work` is an optional `TaskIdMap*` (`memCalloc(8)` in `Task_AllocIdMap`).
 Kill always `memFree`s it. UI, scripts, and title reuse the slot as a work
 pointer (`TitleWork`, `GpState34`, …) — the type is a lie at those call sites.
 

@@ -9,7 +9,7 @@
 #include "gameplay/1BC.h"
 
 /// 0x20-byte block `func_actor_160900_80133F90` allocates with
-/// `Mem_Calloc(0x20, 0)` for each of the two child tasks it spawns from index 7
+/// `memCalloc(0x20, 0)` for each of the two child tasks it spawns from index 7
 /// of `ActorsShared80136280Desc`, and parks in that child's `Task::work` slot
 /// (0x1C) -- a third work block in this overlay, not a `TaskIdMap`. The size
 /// below is the allocation: the function zeroes all 0x20 bytes with `Mem_Set`.

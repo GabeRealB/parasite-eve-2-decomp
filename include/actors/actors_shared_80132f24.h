@@ -9,7 +9,7 @@
 
 /// Leading part of the work block the actors sharing this body hang off the
 /// task's `Task::work` slot (0x1C), which is not a `TaskIdMap` here. Each
-/// sharer's spawn routine `Mem_Calloc`s its own, larger block -- 0x4C4 for
+/// sharer's spawn routine `memCalloc`s its own, larger block -- 0x4C4 for
 /// `actor_443500` up to 0x540 for `actor_113100` -- but every one of them
 /// keeps the light/colour matrix pair at the same 0x478 / 0x498, which is why
 /// the body below is byte-identical across all six overlays. The size below is

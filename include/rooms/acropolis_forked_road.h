@@ -9,7 +9,7 @@
 
 /// 0x14 work block the forked road's streamed-scene task
 /// (`func_acropolis_forked_road_8017DA24`) keeps at `Task::work`
-/// (`Mem_Calloc(0x14, 0)` in its state 0).
+/// (`memCalloc(0x14, 0)` in its state 0).
 ///
 /// `mtx` is `D_80073B8C`, the camera-target matrix the scene walks along
 /// `D_acropolis_forked_road_80180F80` once per streamed frame. `target` is the

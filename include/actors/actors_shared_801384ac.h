@@ -8,7 +8,7 @@
 #include "gameplay/3A34.h"
 
 /// 0xBCC-byte work block this enemy's spawn function allocates with
-/// `Mem_Calloc` and parks in the task's `Task::work` slot (that slot is not a
+/// `memCalloc` and parks in the task's `Task::work` slot (that slot is not a
 /// `TaskIdMap` here). The run of four `GpObj` display nodes at 0x9A8 is what
 /// `ActorsShared801384ac` hands back to `Gp_UnlinkObj`; the setup body at
 /// 0x80132B10 fills all four and gives each one its own three-entry `GpRec18`

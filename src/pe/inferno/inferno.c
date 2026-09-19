@@ -218,7 +218,7 @@ void func_inferno_8012F530(Task* arg0)
     mem->field_22 = (u16)mem->field_22 + 1;
     switch (arg0->state) {
         case 0:
-            map = Mem_Calloc(0xC, 0);
+            map = memCalloc(0xC, 0);
             if (map == NULL) {
                 mem->field_22 = 0;
                 return;

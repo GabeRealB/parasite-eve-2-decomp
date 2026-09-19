@@ -18,7 +18,7 @@ typedef union Actor312200Rate {
 STATIC_ASSERT_SIZEOF(Actor312200Rate, 0x2);
 
 /// Private work block of the actor 312200 task, hanging off `Task::work`,
-/// `Mem_Calloc(sizeof(Actor312200Work), 0)` in the spawn handler.
+/// `memCalloc(sizeof(Actor312200Work), 0)` in the spawn handler.
 ///
 /// Only the fields the matched code touches are named so far: `yaw` at 0x08 is
 /// the heading `func_actor_312200_801635CC` reads back from the root

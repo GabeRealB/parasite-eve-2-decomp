@@ -363,7 +363,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
     }
     switch (task->state) {
         case 0:
-            task->work = Mem_Calloc(4, 0);
+            task->work = memCalloc(4, 0);
             if (task->work == NULL) {
                 taskKill(task);
                 return;

@@ -10,7 +10,7 @@
 /// Per-actor work block for the `actor_461800` overlay.
 ///
 /// The spawn routine `func_actor_461800_80132390` allocates it with
-/// `Mem_Calloc(0x4F8, 0)` and stores the pointer both here (in
+/// `memCalloc(0x4F8, 0)` and stores the pointer both here (in
 /// `D_actor_461800_80143894`) and in the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` in this overlay -- so the size below is the
 /// allocation and not a guess. Every other function in the overlay reaches the
@@ -53,7 +53,7 @@ extern Task* D_actor_461800_80143898;
 void func_actor_461800_80132660(Task* task);
 
 /// Work block of the overlay's second actor variant. `func_actor_461800_8013307C`
-/// allocates it with `Mem_Calloc(0x4C0, 0)` and stores the pointer in
+/// allocates it with `memCalloc(0x4C0, 0)` and stores the pointer in
 /// `D_actor_461800_801438A0` and in the task's `Task::work` slot, the same pair
 /// of places the first variant's block goes -- so the size below is the
 /// allocation, not a guess. The animation context sits at the same 0x40, but

@@ -29,7 +29,7 @@ void func_actor_460200_80132D74(GpEnemy* enemy, Task* task)
 
     coord      = ((TmdObject*)task->extra)->coords;
     obj        = task->extra;
-    work       = (Actor460200PairWork*)Mem_Calloc(0x4FC, false);
+    work       = (Actor460200PairWork*)memCalloc(0x4FC, false);
     task->work = (TaskIdMap*)work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);

@@ -56,7 +56,7 @@ void func_actor_113100_80131E58(Task* task)
     u32              index2;
     u32              index3;
 
-    work = Mem_Calloc(0x540, 0);
+    work = memCalloc(0x540, 0);
     if (work == NULL) {
         Gp_EnemyTaskExit(task);
         return;

@@ -1859,7 +1859,7 @@ void Gp_InitCapTask(Task* task)
 {
     void* mem;
 
-    mem = Mem_Calloc(4, 0);
+    mem = memCalloc(4, 0);
     if (mem == NULL) {
         taskKill(task);
         return;

@@ -10,7 +10,7 @@
 
 /// Work block this overlay hangs off its task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. `ActorsShared80131e24Sub0` allocates it
-/// with `Mem_Calloc(0x4C0, 0)`, and the size below is that allocation.
+/// with `memCalloc(0x4C0, 0)`, and the size below is that allocation.
 ///
 /// `state` drives `ActorsShared80132a1c`: 1 starts the animation through
 /// `ActorsShared80132640`, 2 through `ActorsShared801325c8`, and both then

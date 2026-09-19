@@ -15,7 +15,7 @@
 #include "rooms/room_common.h"
 
 /// Scratch state of the shrine's cap script, stored at `Task::work`
-/// (`Mem_Calloc(0x10)` in `func_neo_ark_shrine_8017ECC4`).
+/// (`memCalloc(0x10)` in `func_neo_ark_shrine_8017ECC4`).
 typedef struct {
     /* 0x00 */ u8  pad_0[8];
     /* 0x08 */ u16 timer; ///< frames the current script step has run
@@ -26,7 +26,7 @@ typedef struct {
 } NeoArkShrineScript;
 
 /// Scratch state of the two falling-prop tasks, stored at `Task::work`
-/// (`Mem_Calloc(0x48)` in `func_neo_ark_shrine_8017F4C8` / `_8017F688`).
+/// (`memCalloc(0x48)` in `func_neo_ark_shrine_8017F4C8` / `_8017F688`).
 /// `color` / `light` are the prop's own matrices, republished onto
 /// `TmdObject::lightMtx` / `field_20` by the two spawn handlers; `speed` /
 /// `delta` / `ticks` are the fall itself, stepped by `func_neo_ark_shrine_8017F578`.
@@ -314,7 +314,7 @@ void func_neo_ark_shrine_8017F4C8(Task* task)
 
     extra      = (TmdObject*)task->extra;
     coord      = extra->coords;
-    st         = (NeoArkShrineFall*)Mem_Calloc(sizeof(NeoArkShrineFall), 0);
+    st         = (NeoArkShrineFall*)memCalloc(sizeof(NeoArkShrineFall), 0);
     task->work = (TaskIdMap*)st;
     if (st == NULL) {
         taskKill(task);
@@ -379,7 +379,7 @@ void func_neo_ark_shrine_8017F688(Task* task)
 
     extra      = (TmdObject*)task->extra;
     coord      = extra->coords;
-    st         = (NeoArkShrineFall*)Mem_Calloc(sizeof(NeoArkShrineFall), 0);
+    st         = (NeoArkShrineFall*)memCalloc(sizeof(NeoArkShrineFall), 0);
     task->work = (TaskIdMap*)st;
     if (st == NULL) {
         taskKill(task);

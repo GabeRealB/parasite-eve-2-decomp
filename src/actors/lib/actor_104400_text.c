@@ -276,7 +276,7 @@ void Actor04400_Fn00B24(Task* arg0)
 
     enemy      = arg0->spawnArg2;
     root       = ((TmdObject*)arg0->extra)->coords;
-    arg0->work = Mem_Calloc(0x454, 0);
+    arg0->work = memCalloc(0x454, 0);
     work       = (Actor104400Work*)arg0->work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, arg0);
@@ -363,7 +363,7 @@ void Actor04400_Fn00D3C(Task* arg0)
     model      = arg0->extra;
     enemy      = arg0->spawnArg2;
     root       = model->coords;
-    arg0->work = Mem_Calloc(0x454, 0);
+    arg0->work = memCalloc(0x454, 0);
     work       = (Actor104400Work*)arg0->work;
     if (work == NULL) {
         goto destroy;

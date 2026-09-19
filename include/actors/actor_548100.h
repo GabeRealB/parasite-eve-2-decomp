@@ -7,7 +7,7 @@
 #include <psyq/libgte.h>
 
 /// Per-instance work block of actor_548100, parked in `Task::work` -- that
-/// slot is not a `TaskIdMap` here, it is the `Mem_Calloc(0x18, 0)` block
+/// slot is not a `TaskIdMap` here, it is the `memCalloc(0x18, 0)` block
 /// `func_actor_548100_80132420` allocates at spawn and stores at
 /// `Task::work` (0x1C). Reach it with `(Actor548100Work*)task->work`.
 ///

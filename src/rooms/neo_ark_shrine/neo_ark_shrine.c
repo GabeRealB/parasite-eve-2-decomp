@@ -11,7 +11,7 @@
 #include "rooms/rooms_shared_8017ecb4.h"
 
 /// Scratch state of the shrine's cap script, stored at `Task::work`
-/// (`Mem_Calloc(0x10)` in `func_neo_ark_shrine_8017ECC4`).
+/// (`memCalloc(0x10)` in `func_neo_ark_shrine_8017ECC4`).
 typedef struct {
     /* 0x00 */ u8  pad_0[8];
     /* 0x08 */ u16 timer; ///< frames the current script step has run

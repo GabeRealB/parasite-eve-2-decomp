@@ -205,7 +205,7 @@ extern s32      D_80112C7C[];
 /// `Gp_EffPolyTask9C` / `Gp_EffSprTask46` / `Gp_DrawEffSprite81` / `Gp_EffSprTask81` /
 /// `Gp_EffCtlTaskC1` /
 /// `Gp_EffCtlTaskF3` / `Gp_EffCtlTaskF4` / `Gp_EffCtlTaskA5` / `Gp_EffCtlTaskA6` /
-/// `Gp_EffCtlTaskE3` (`Mem_Calloc(0x2C)` in `Gp_SpawnEff`).
+/// `Gp_EffCtlTaskE3` (`memCalloc(0x2C)` in `Gp_SpawnEff`).
 /// `field_0` is the spawned `Task*` (`Gp_SpawnEff` stores it; `Gp_SpawnWeaponEff`
 /// copies it onto `GameActor.field_914`).
 /// `field_8` is the parent coordinate copied onto `GsCOORDINATE2.sub`.

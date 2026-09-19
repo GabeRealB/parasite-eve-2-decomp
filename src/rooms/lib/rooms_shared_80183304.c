@@ -20,7 +20,7 @@ void RoomsShared80183304(Task* task)
     s32            mode;
     s32            i;
 
-    block = Mem_Calloc(sizeof(RoomTextBlock), 0);
+    block = memCalloc(sizeof(RoomTextBlock), 0);
     node  = block->lines;
     if (block == NULL) {
         taskKill(task);

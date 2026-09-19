@@ -50,7 +50,7 @@ typedef struct {
 } GpPromptTexts;
 STATIC_ASSERT_SIZEOF(GpPromptTexts, 0x10);
 
-/// 0x1C work block allocated by `Gp_ItemMoveTask` (`Mem_Calloc(0x1C, 0)`)
+/// 0x1C work block allocated by `Gp_ItemMoveTask` (`memCalloc(0x1C, 0)`)
 /// and stored at `Task::work` / `Gp_ItemMoveWork`. `objs` holds the first two
 /// `Ui_SpawnFromDesc` results (the source / dest inventory panes); `field_8` is
 /// the index of the pane that currently has focus and is used to index `objs`

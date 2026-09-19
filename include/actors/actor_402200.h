@@ -76,7 +76,7 @@ typedef struct Actor402200MatrixWords {
 } Actor402200MatrixWords;
 
 /// Per-instance work block the overlay's setup `func_actor_402200_80137444`
-/// allocates with `Mem_Calloc(0x71C)` and parks in the 0x1C slot below (the
+/// allocates with `memCalloc(0x71C)` and parks in the 0x1C slot below (the
 /// task's `Task::work`, which is not a `TaskIdMap` here).
 ///
 /// `field_6E2` is the ground-shadow shade the shared ground-quad body

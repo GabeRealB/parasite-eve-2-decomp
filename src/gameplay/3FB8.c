@@ -4766,7 +4766,7 @@ Task* Gp_SpawnPlayer(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3)
     return NULL;
 
 have_task:
-    actor = Mem_Calloc(0x998, 0);
+    actor = memCalloc(0x998, 0);
     if (actor != NULL) {
         goto have_actor;
     }
@@ -9691,7 +9691,7 @@ Task* Gp_SpawnAlly(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3)
     return NULL;
 
 have_task:
-    actor = Mem_Calloc(0x998, 0);
+    actor = memCalloc(0x998, 0);
     if (actor != NULL) {
         goto have_actor;
     }
@@ -9700,7 +9700,7 @@ fail:
     return NULL;
 
 have_actor:
-    block = Mem_Calloc(0xD4, 0);
+    block = memCalloc(0xD4, 0);
     if (block == NULL) {
         goto fail;
     }

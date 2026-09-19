@@ -31,7 +31,7 @@ void RoomsShared8017f9e4(Task* task)
         work->field_22++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)Mem_Calloc(0x500, 0);
+                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->field_22 = 0;
                     return;

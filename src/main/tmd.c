@@ -500,7 +500,7 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags)
     void*          mem = NULL;
 
     Tmd_InitSourceStream(src);
-    obj = Mem_Calloc((src->partCount * sizeof(GsCOORDINATE2)) + sizeof(TmdObject), 0);
+    obj = memCalloc((src->partCount * sizeof(GsCOORDINATE2)) + sizeof(TmdObject), 0);
     if (obj != NULL) {
         obj->flags       = 0x80;
         obj->partCount   = src->partCount;
@@ -527,7 +527,7 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags)
         }
         obj->buffer = NULL;
         if (flags == 0) {
-            mem = Mem_Calloc(src->halfSize * 2, 1);
+            mem = memCalloc(src->halfSize * 2, 1);
             if (mem != NULL) {
                 obj->buffer = mem;
                 Tmd_ProcessStream(obj);
@@ -678,7 +678,7 @@ s32 Tmd_AllocBuffers(TmdObject* obj)
 
     result = 0;
     if (obj->buffer == NULL) {
-        mem         = Mem_Calloc(obj->source->halfSize * 2, 1);
+        mem         = memCalloc(obj->source->halfSize * 2, 1);
         obj->buffer = mem;
         if (mem != NULL) {
             obj->bufferIndex = 0;
@@ -825,7 +825,7 @@ void Tmd_AllocMissingBuffers(void)
     while (node != NULL) {
         if (node->buffer == NULL) {
             if (!(node->flags & 4)) {
-                mem = Mem_Calloc(node->source->halfSize * 2, 1);
+                mem = memCalloc(node->source->halfSize * 2, 1);
                 if (mem != NULL) {
                     node->buffer      = mem;
                     node->bufferIndex = 0;
@@ -846,7 +846,7 @@ void Tmd_AllocNodeBuffers(Task* task)
     node = (TmdObject*)gTmdList.next;
     while (node != NULL) {
         if (node->buffer == NULL) {
-            mem = Mem_Calloc(node->source->halfSize * 2, 1);
+            mem = memCalloc(node->source->halfSize * 2, 1);
             if (mem != NULL) {
                 node->buffer      = mem;
                 node->bufferIndex = 0;

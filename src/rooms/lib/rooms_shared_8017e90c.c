@@ -31,7 +31,7 @@ void RoomsShared8017e90c(Task* task)
     obj->field_2E = 0;
     Ui_DrawText((UiPanel*)obj, (char*)RoomsShared8017e90cTitle);
     if (task->state == 0) {
-        mem  = Mem_Calloc(sizeof(RoomShopList), 0);
+        mem  = memCalloc(sizeof(RoomShopList), 0);
         shop = mem;
         if (mem != NULL) {
             /* Keeps the allocation's own register distinct from the tested one,

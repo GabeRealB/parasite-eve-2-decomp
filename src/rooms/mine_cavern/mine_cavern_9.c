@@ -367,7 +367,7 @@ void func_mine_cavern_801836D0(GpEnemy* arg0, Task* arg1)
     MineCavernWork* work;
     VECTOR          vec;
 
-    mem        = (MineCavernWork*)Mem_Calloc(0x14C, false);
+    mem        = (MineCavernWork*)memCalloc(0x14C, false);
     work       = mem;
     arg1->work = (TaskIdMap*)mem;
     if (mem == NULL) {

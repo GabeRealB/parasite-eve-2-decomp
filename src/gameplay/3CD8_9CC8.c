@@ -47,7 +47,7 @@ void Gp_InitState1C(Task* arg0)
     s32        val;
 
     val = 0;
-    p   = Mem_Calloc(0x1C, val);
+    p   = memCalloc(0x1C, val);
     if (p == NULL) {
         taskKill(arg0);
         return;
@@ -313,7 +313,7 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
     if (task == NULL) {
         return NULL;
     }
-    mem = Mem_Calloc(sizeof(GpEffWork), false);
+    mem = memCalloc(sizeof(GpEffWork), false);
     if (mem == NULL) {
         taskKill(task);
         return NULL;

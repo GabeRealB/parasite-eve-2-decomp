@@ -91,7 +91,7 @@ typedef struct NightFactoryWork {
 } NightFactoryWork;
 STATIC_ASSERT_SIZEOF(NightFactoryWork, 0x58);
 
-/// Work block `func_dryfield_night_factory_8018182C` allocates (Mem_Calloc(0x10))
+/// Work block `func_dryfield_night_factory_8018182C` allocates (memCalloc(0x10))
 /// and hangs off the `Task::work` slot (0x1C) -- that slot is *not* a
 /// `TaskIdMap` here, it is the block the task's init state allocated. Reach it
 /// with `(NightFactoryScriptWork*)task->work`.

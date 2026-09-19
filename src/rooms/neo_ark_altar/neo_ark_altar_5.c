@@ -292,7 +292,7 @@ void func_neo_ark_altar_8017ED60(Task* arg0)
 {
     TaskIdMap* work;
 
-    work       = Mem_Calloc(0x10, 0);
+    work       = memCalloc(0x10, 0);
     arg0->work = work;
     if (work == NULL) {
         taskKill(arg0);

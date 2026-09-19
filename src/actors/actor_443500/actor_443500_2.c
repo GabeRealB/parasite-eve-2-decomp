@@ -47,7 +47,7 @@ void func_actor_443500_80132078(Task* task)
     s32              idx;
     u32              raw;
 
-    work = Mem_Calloc(0x4C4, 0);
+    work = memCalloc(0x4C4, 0);
     if (work == NULL) {
         Gp_EnemyTaskExit(task);
         return;

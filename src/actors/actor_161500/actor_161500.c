@@ -222,7 +222,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
 
     coord      = ((TmdObject*)task->extra)->coords;
     obj        = task->extra;
-    work       = (Actor161500Work*)Mem_Calloc(0x4FC, false);
+    work       = (Actor161500Work*)memCalloc(0x4FC, false);
     task->work = (TaskIdMap*)work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);

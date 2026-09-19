@@ -96,7 +96,7 @@ typedef struct _TaskIdPair {
 } TaskIdPair;
 STATIC_ASSERT_SIZEOF(TaskIdPair, 0x2);
 
-/// Index + pointer into a TaskIdPair table. Allocated (Mem_Calloc(8)) and stored
+/// Index + pointer into a TaskIdPair table. Allocated (memCalloc(8)) and stored
 /// at Task::work by Task_AllocIdMap; read by Stage_ApplyTableEntryWhenIdle / Stage_LoadOrCountdownTask.
 typedef struct _TaskIdMap {
     /* 0x0 */ u16         index;

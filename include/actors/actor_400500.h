@@ -76,7 +76,7 @@ STATIC_ASSERT_SIZEOF(Actor400500AnimStride, 0x28);
 /// Per-actor state block for the `actor_400500` overlay.
 ///
 /// `func_actor_400500_80135414` is the overlay's only allocator: it calls
-/// `Mem_Calloc(0xA50, 0)` and stores the result in the `Task::work` slot
+/// `memCalloc(0xA50, 0)` and stores the result in the `Task::work` slot
 /// (0x1C), which an enemy actor reuses for its own work block, so it is *not*
 /// a `TaskIdMap` here. Reach it with `(Actor400500Work*)task->work`. The
 /// same function hands `&work->lightMtx` / `&work->colorMtx` to the

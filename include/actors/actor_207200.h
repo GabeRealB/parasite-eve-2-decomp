@@ -77,7 +77,7 @@ typedef struct Actor207200Work {
 } Actor207200Work;
 
 /// The 0x4AC-byte allocation `func_actor_207200_8014B278` makes with
-/// `Mem_Calloc` and stores in `Task::work`: the animation context
+/// `memCalloc` and stores in `Task::work`: the animation context
 /// `func_800B3F84` fills in, five `GpObj` render nodes with their `GpRec18`
 /// tables (`Gp_LinkObj` shapes 3/2/2/3/3) and three `func_800FDB18` argument
 /// records. `Actor207200Work` is the tick handlers' view of the same block and

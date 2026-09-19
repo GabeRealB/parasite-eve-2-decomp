@@ -111,7 +111,7 @@ void func_actor_450200_80131FA8(Task* arg0)
     looker = Game_GetPtrSlot(3);
     switch (arg0->state) {
         case 0:
-            aim = Mem_Calloc(sizeof(Actor450200HeadAim), false);
+            aim = memCalloc(sizeof(Actor450200HeadAim), false);
             if (aim == NULL) {
                 taskKill(arg0);
                 return;

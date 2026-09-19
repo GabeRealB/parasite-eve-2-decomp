@@ -428,7 +428,7 @@ void func_actor_323000_80163EA0(GpEnemy* enemy, Task* task)
 
     obj        = (TmdObject*)task->extra;
     coord      = obj->coords;
-    mem        = (Actor323000Work*)Mem_Calloc(0x934, 0);
+    mem        = (Actor323000Work*)memCalloc(0x934, 0);
     work       = mem;
     task->work = (TaskIdMap*)mem;
     if (mem == NULL) {

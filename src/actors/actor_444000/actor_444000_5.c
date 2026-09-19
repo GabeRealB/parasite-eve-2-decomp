@@ -1046,7 +1046,7 @@ void func_actor_444000_80137594(GpEnemy* enemy, Actor444000Grab* task)
 
     if (D_actor_444000_80144A68 == 1 || (s16)host->field_0 == 0x10 || (s16)host->field_0 == 5 ||
         (s16)host->field_0 == 0xC || (s16)host->field_0 == 0x12 ||
-        (work = Mem_Calloc(sizeof(Actor444000GrabWork), false), task->field_1C = work, work == NULL)) {
+        (work = memCalloc(sizeof(Actor444000GrabWork), false), task->field_1C = work, work == NULL)) {
         Gp_DestroyEnemy(enemy, (Task*)task);
         return;
     }
@@ -1259,7 +1259,7 @@ void func_actor_444000_80137D4C(GpEnemy* enemy, Actor444000Grab* task)
         return;
     }
 
-    work           = Mem_Calloc(sizeof(Actor444000GrabWork), false);
+    work           = memCalloc(sizeof(Actor444000GrabWork), false);
     task->field_1C = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, (Task*)task);
@@ -1578,7 +1578,7 @@ void func_actor_444000_80138B94(GpEnemy* enemy, Actor444000Grab* task)
     player = Game_GetPtrSlot(3);
 
     if (D_actor_444000_80144A68 == 1 ||
-        (work = Mem_Calloc(sizeof(Actor444000GrabWork), false), task->field_1C = work, work == NULL)) {
+        (work = memCalloc(sizeof(Actor444000GrabWork), false), task->field_1C = work, work == NULL)) {
         Gp_DestroyEnemy(enemy, (Task*)task);
         return;
     }
@@ -1831,7 +1831,7 @@ void func_actor_444000_80139594(GpEnemy* enemy, Actor444000Drop* task)
         Gp_DestroyEnemy(enemy, (Task*)task);
         return;
     }
-    work           = Mem_Calloc(sizeof(Actor444000DropWork), false);
+    work           = memCalloc(sizeof(Actor444000DropWork), false);
     task->field_1C = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, (Task*)task);

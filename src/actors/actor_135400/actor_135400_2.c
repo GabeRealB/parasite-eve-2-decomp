@@ -186,7 +186,7 @@ void func_actor_135400_80132B60(Task* arg0)
     memset(&params, 0, sizeof(params));
     params.field_4 = 1;
     spawn          = D_actor_135400_80131EA0;
-    if ((GameFlag_GetNibble(0x6C) > 0) || ((work = Mem_Calloc(0x498, 0)) == NULL)) {
+    if ((GameFlag_GetNibble(0x6C) > 0) || ((work = memCalloc(0x498, 0)) == NULL)) {
         Gp_EnemyTaskExit(arg0);
         return;
     }

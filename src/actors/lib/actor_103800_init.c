@@ -52,7 +52,7 @@ void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
     Actor103800Obj2C* extra;
 
     extra = arg1->extra;
-    work  = Mem_Calloc(0x384, 0);
+    work  = memCalloc(0x384, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;

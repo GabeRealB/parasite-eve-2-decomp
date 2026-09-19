@@ -17,7 +17,7 @@ typedef struct NecrosisStep {
 } NecrosisStep;
 STATIC_ASSERT_SIZEOF(NecrosisStep, 4);
 
-/// Collision pair allocated by `func_necrosis_8012EF34` (`Mem_Calloc(0x58)`)
+/// Collision pair allocated by `func_necrosis_8012EF34` (`memCalloc(0x58)`)
 /// and stored in `Task::work`. `obj` is linked on list 1, `obj2` on list 7;
 /// both point `ctx.recs` at the one-element `rec` table (terminator `field_0
 /// = 2`).

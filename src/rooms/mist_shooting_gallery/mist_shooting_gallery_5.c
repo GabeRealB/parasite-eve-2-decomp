@@ -291,7 +291,7 @@ void func_mist_shooting_gallery_80182B1C(Task* arg0)
     slot  = (GpActorWork*)Game_GetPtrSlot(3);
     actor = slot->actor;
 
-    work       = (MistShootingGalleryWork*)Mem_Calloc(0x24, 0);
+    work       = (MistShootingGalleryWork*)memCalloc(0x24, 0);
     arg0->work = (TaskIdMap*)work;
     if (work == NULL) {
         taskKill(arg0);

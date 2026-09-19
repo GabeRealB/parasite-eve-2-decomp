@@ -48,7 +48,7 @@ void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
 
     obj   = (TmdObject*)arg1->extra;
     coord = obj->coords;
-    work  = Mem_Calloc(0x4ACU, false);
+    work  = memCalloc(0x4ACU, false);
     part6 = coord + 6;
     part3 = coord + 3;
     if (work == NULL) {

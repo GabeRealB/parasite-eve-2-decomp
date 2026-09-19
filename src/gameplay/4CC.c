@@ -209,7 +209,7 @@ void Gp_ItemMoveTask(Task* arg0)
         Wip_UiHolder = NULL;
         D_80067634   = NULL;
         Gp_ClearPreviewItems();
-        mem = Mem_Calloc(0x1C, 0);
+        mem = memCalloc(0x1C, 0);
         i   = 0;
         if (mem == NULL) {
             code          = -1;
@@ -804,7 +804,7 @@ void func_800BDF6C(Task* task)
     width         = ((s16)obj->field_1E - obj->field_1C) - 0x50;
     Ui_DrawText((UiPanel*)obj, (char*)Gp_StrBullet);
     if (task->state == 0) {
-        state = (GpAmmoSplitState*)Mem_Calloc(0x18U, 0);
+        state = (GpAmmoSplitState*)memCalloc(0x18U, 0);
         if (state == NULL) {
             obj->field_2E = 9;
             return;
@@ -1195,7 +1195,7 @@ void Gp_ItemPickupTilt(Task* arg0)
         }
     }
     if (arg0->state == 0) {
-        mem = (MATRIX*)Mem_Calloc(0x40, 0);
+        mem = (MATRIX*)memCalloc(0x40, 0);
         if (mem != NULL) {
             vec             = D_80093DB0;
             extra->lightMtx = mem;

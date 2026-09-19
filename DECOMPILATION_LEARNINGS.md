@@ -329,7 +329,7 @@ Corner-major order (`x0`,`y0`,`x1`,`y1`,…) also emits each pair in RTL order b
 with the lower offset first, which costs four reorderings (98.25% vs 98.76%).
 The paired values must be the same expression for the stores to collapse; two
 different expressions that happen to be equal are two pseudos.
-## Naming one `Mem_Calloc` result twice is how the target keeps it in `$v0` *and* `$a0`
+## Naming one `memCalloc` result twice is how the target keeps it in `$v0` *and* `$a0`
 
 `func_mine_cavern_801836D0` reached 99.900% with only two instructions differing:
 the target tests and parks the allocation through `$v0` (`bnez $v0` then
@@ -345,7 +345,7 @@ call already returned in, so the copy `addu $a0,$v0,$zero` stays and every use
 reads its destination. Naming the same block twice,
 
 ```c
-mem         = (MineCavernWork*)Mem_Calloc(0x14C, false);
+mem         = (MineCavernWork*)memCalloc(0x14C, false);
 work        = mem;
 arg1->idMap = (TaskIdMap*)mem;
 if (mem == NULL) { Gp_DestroyEnemy(arg0, arg1); return; }
@@ -358,7 +358,7 @@ the arm of the copy, while the long-lived `work` takes `$a0`. 100.000%.
 
 Note the direction: this is the mirror of the `reg/v` pseudo with two
 *definitions* - there one variable is two pseudos too many, here one variable is
-one pseudo too few. `func_actor_210600_8014B8C8` is the same `mem = Mem_Calloc(...);
+one pseudo too few. `func_actor_210600_8014B8C8` is the same `mem = memCalloc(...);
 work = mem;` shape already matched, and is worth reading before reaching for a
 pin when a calloc result's register pair looks wrong.
 
@@ -17322,7 +17322,7 @@ UiObject* obj;
 obj = NULL;
 task = Task_SpawnFromTable(&desc, (s32)obj, arg1, (s32)obj);
 if (task != NULL) {
-    obj = (UiObject*)Mem_Calloc(0x30, (s32)obj);
+    obj = (UiObject*)memCalloc(0x30, (s32)obj);
     ...
 }
 return obj;
@@ -24147,7 +24147,7 @@ back to the `srav` form. `Gp_HasCollectedBit` is the example.
 
 ## `if (p != NULL) goto body; return NULL` emits `bnez` + `j` epilogue
 
-A shared-epilogue `return NULL` after `Task_Spawn` / `Mem_Calloc` wants:
+A shared-epilogue `return NULL` after `Task_Spawn` / `memCalloc` wants:
 
 ```
 bnez  s0, body
@@ -24155,7 +24155,7 @@ li    a0, SIZE     /* delay: first insn of body */
 j     epilogue
 move  v0, zero
 body:
-jal   Mem_Calloc
+jal   memCalloc
 ```
 
 `if (p == NULL) return NULL;` and `if (p != NULL) { ... } return NULL;`
@@ -24169,7 +24169,7 @@ if (p != NULL) {
 }
 return NULL;
 body:
-    q = Mem_Calloc(SIZE, 0);
+    q = memCalloc(SIZE, 0);
 ```
 
 The same layout places a shared `taskKill` *between* two allocs: jump
@@ -27491,7 +27491,7 @@ the zero stores (the pointer still occupies `$a0`).
 ```c
 register GpDisp2dCoord* coord asm("v1");
 
-node  = Mem_Calloc(0x60, 0);
+node  = memCalloc(0x60, 0);
 coord = &node->coord;
 if (node != NULL) {
     node->field_C = 1;
@@ -32249,18 +32249,18 @@ back to a single `sh` after the join.
 
 `Gp_LookupBit2Item` is the example.
 
-## Seed a later `$s1` result as `Mem_Calloc`'s heap flag
+## Seed a later `$s1` result as `memCalloc`'s heap flag
 
-When the target copies `$s1` into `Mem_Calloc`'s second argument (`addu a1,
+When the target copies `$s1` into `memCalloc`'s second argument (`addu a1,
 s1, zero`) and later reuses that same register as a table-lookup result,
-`Mem_Calloc(size, 0)` emits `move a1, zero` and leaves `$s1` free for
+`memCalloc(size, 0)` emits `move a1, zero` and leaves `$s1` free for
 something else. Write:
 
 ```c
 s32 val;
 
 val = 0;
-p   = Mem_Calloc(size, val);
+p   = memCalloc(size, val);
 /* … */
 val = table[idx];
 ```
@@ -45307,7 +45307,7 @@ a `GpObj*` - which compiles to `addiu a0,s0,0x400` / `0xb00` for 99.73% with
 recovers 0x20, and the base here is the block's *first* `GpObj`, at offset 0, so
 three `GpObj` members at 0x00 / 0x20 / 0x58 with `u16 field_B0` and `s16 field_B2`
 behind 0x78 padding were the whole fix (100.00%, one attempt). The block's size
-came from `Mem_Calloc(0xB4, 0)` in a still-`INCLUDE_ASM` sibling rather than from
+came from `memCalloc(0xB4, 0)` in a still-`INCLUDE_ASM` sibling rather than from
 the seed, which is the cheap way to bound a struct whose tail no matched body
 reaches yet.
 
@@ -45435,15 +45435,15 @@ identical objects).
 
 ## An overlay can allocate more than one `Task::work` work block
 
-`actor_341700` calls `Mem_Calloc` three times: `0x454` in
+`actor_341700` calls `memCalloc` three times: `0x454` in
 `func_actor_341700_80162974` and `func_actor_341700_80162B8C`, and `0x80` in
 `func_actor_341700_8016D130`. All three store the result straight into
 `Task::work`, because the overlay runs two different task families out of one
 `.text` - the enemy itself and a smaller companion task. Sizing a single struct
-from the first `Mem_Calloc` you find would have put a `0x454`-byte block under
+from the first `memCalloc` you find would have put a `0x454`-byte block under
 `func_actor_341700_8016D2E8`'s `lh 0x4(idMap)`, which belongs to the `0x80` one.
 
-So grep the whole overlay for `jal Mem_Calloc` and read `$a0` at every site
+So grep the whole overlay for `jal memCalloc` and read `$a0` at every site
 before naming a work struct, then decide per function which block its
 `arg0->idMap` points at. Address order is the cheap tell: the functions around
 the `0x80` allocator use the `0x80` block.
@@ -45462,12 +45462,12 @@ separate 0x3C-byte structure, and the same task's state-1 handler
 work produces.
 
 Here the handler and the allocator are in different units of the overlay, so the
-`Mem_Calloc` grep plus address order says nothing. What identifies the task is
+`memCalloc` grep plus address order says nothing. What identifies the task is
 the handler's own address: it is a `.word` in the overlay's data, paired with an
 id in a `GpMsgEntry` table (`D_actor_303600_8016E480`, id 0x7DB, in
 `actor_303600_data_2.data.s`). Read the function that stores *that* table into
 `Task::msgTable` (`func_actor_303600_801626C0`) — that is the handler's task, and
-it is also where its `Mem_Calloc(0x3C, 0)` names the block the handler sees.
+it is also where its `memCalloc(0x3C, 0)` names the block the handler sees.
 
 So follow the `(id, handler)` table to the function that installs it whenever the
 handler is not adjacent to the allocator; the offsets are then read against that
@@ -45879,7 +45879,7 @@ already-matched label.
 
 ## A room overlay is several task families, each with its own `Task::work` block
 
-The actor playbook -- one `Mem_Calloc` literal sizes one work struct, the block
+The actor playbook -- one `memCalloc` literal sizes one work struct, the block
 lives at `Task::work`, and most of the overlay reaches it from there -- only
 half transfers to rooms, and the half that does not is the half a typing pass
 would anchor on.
@@ -45898,7 +45898,7 @@ What is different:
   `0x6C`, `0x40`, `0x24`, `0x4` -- and each is the state-0 entry of its own
   `TaskFuncTable3` in the overlay's `.rodata`. 33 of the 88 allocating rooms
   have more than one site, and rooms reach for `Mem_Malloc` as well as
-  `Mem_Calloc` (11 rooms vs 81), so grep for both.
+  `memCalloc` (11 rooms vs 81), so grep for both.
 * Sizes are tiny (0x4, 0x8, 0xC, 0x14, 0x24, 0xC4) beside an actor's 0x454 /
   0x678, so a room work struct is two or three fields and padding.
 
@@ -46111,9 +46111,9 @@ The `TaskFuncTable` recipe ("A room overlay is several task families, each with
 its own `Task::work` block") settles the *dispatched* states, but a room's
 `.text` is mostly helpers that appear in no state table at all, and two families
 in one room routinely use the same low offsets. `shelter_r47` has two:
-`D_shelter_r47_8017D6C8` (state 0 `func_shelter_r47_8018138C`, `Mem_Calloc(0x54)`)
+`D_shelter_r47_8017D6C8` (state 0 `func_shelter_r47_8018138C`, `memCalloc(0x54)`)
 and `D_shelter_r47_8017D7DC` (state 0 `func_shelter_r47_8018431C`,
-`Mem_Calloc(0x30)`). Both read `idMap` fields `0x18` and `0x1C` as `s16`, so the
+`memCalloc(0x30)`). Both read `idMap` fields `0x18` and `0x1C` as `s16`, so the
 access pattern alone cannot tell them apart, and picking the wrong struct still
 scores 100% because the two spellings emit the same `lh`.
 
@@ -46125,7 +46125,7 @@ grep -rn 'jal *func_shelter_r47_8018337C' asm/USA/rooms/nonmatchings/shelter_r47
 ```
 
 A helper is reached only from its own family's dispatcher chain, so one caller
-is enough. (A third allocator, `Mem_Calloc(0xC4)` in `func_shelter_r47_8017EA50`,
+is enough. (A third allocator, `memCalloc(0xC4)` in `func_shelter_r47_8017EA50`,
 belongs to a `Ui_SpawnFromDesc` task and is a different `Task` entirely — count
 allocators per *family*, not per overlay.)
 
@@ -46175,12 +46175,12 @@ for months because every access was through explicit casts. The tie-breaker is
 never "which field list looks more complete" — it is the one allocation site:
 
 ```
-Tmd_Create:  Mem_Calloc(partCount * 0x50 + 0x34, 0)
+Tmd_Create:  memCalloc(partCount * 0x50 + 0x34, 0)
              sw (obj + 0x34), 0x8(obj)      # field_8 = the trailing array
              sh 0x80, 0xC(obj) / sw partCount, 0x30(obj)
 ```
 
-That single `Mem_Calloc` says the object is 0x34 bytes followed by
+That single `memCalloc` says the object is 0x34 bytes followed by
 `partCount` × `GsCOORDINATE2` (0x50), and that `field_8` points at its own tail.
 `Gp_AttachTmd` stores that pointer into `Task::extra` and sets
 `Task::spawnType = 1`, and `taskKill`'s type-1 branch pokes `field_C` on the
@@ -46728,7 +46728,7 @@ need **two** live pointers, not one. `func_m4a1_grenade_8011D654` carves 0x28
 bytes off `G_SCRATCH_HEAD` and passes the block to `gte_ldv0`; the target keeps
 `$s0` for the head store and the `vy`/`vz` writes and a *second* callee-saved
 `$s7` for the `lwc2` pair, with `move s7, s0` sitting in the `bnez` delay slot
-of the `Mem_Calloc == NULL` test. Writing the obvious single variable gives one
+of the `memCalloc == NULL` test. Writing the obvious single variable gives one
 pseudo, one fewer saved register (frame 0x30 instead of 0x38) and `move a0, s2`
 in that delay slot.
 
@@ -46740,7 +46740,7 @@ made *between the call and the test*, so its live range already spans the
 branch:
 
 ```c
-work = Mem_Calloc(sizeof(M4a1GrenadeWork), 0);
+work = memCalloc(sizeof(M4a1GrenadeWork), 0);
 vec  = blk;
 if (work == NULL) {
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
@@ -46756,11 +46756,11 @@ remaining values shift up one register each (`extra` ends in `$fp`).
 
 ## The same scratch-pointer copy, but spanning a GTE `FLAG` test
 
-`func_m4a1_javelin_8011EE78` is the entry above without a `Mem_Calloc`: it
+`func_m4a1_javelin_8011EE78` is the entry above without a `memCalloc`: it
 carves 0x14 bytes off `G_SCRATCH_HEAD` for one projected `LINE_G2`, and the
 target keeps both `$a3` (the block, live for every later field access) and a
 `move t0, a3` used *only* as the `gte_stszotz` operand inside the
-`gte_stflg` / `bltz` guard. The rule generalises past `Mem_Calloc`: the extra
+`gte_stflg` / `bltz` guard. The rule generalises past `memCalloc`: the extra
 copy has to be created in the block *before* the branch it must outlive.
 Taking the address at its use site — `gte_stszotz(&sc->otz0)` inside the
 `if` — folds back to `$a3` and loses the `move`; hoisting it to a plain local
@@ -47700,7 +47700,7 @@ so whichever sorts first takes `$s0`, and `allocno_compare` ranks by
 
 ```c
 if (D_actor_444000_80144A68 == 1 ||
-    (work = Mem_Calloc(sizeof(Actor444000GrabWork), false), task->field_1C = work, work == NULL)) {
+    (work = memCalloc(sizeof(Actor444000GrabWork), false), task->field_1C = work, work == NULL)) {
     Gp_DestroyEnemy(enemy, (Task*)task);
     return;
 }
@@ -47717,7 +47717,7 @@ if (D_actor_444000_80144A68 == 1) {
     return;
 }
 
-work           = Mem_Calloc(sizeof(Actor444000GrabWork), false);
+work           = memCalloc(sizeof(Actor444000GrabWork), false);
 task->field_1C = work;
 if (work == NULL) {
     Gp_DestroyEnemy(enemy, (Task*)task);
@@ -50436,7 +50436,7 @@ question is only which side of the branch it lands on:
 
 ```
 # target                     # plain `p = alloc(); if (p != NULL)`
-jal   Mem_Calloc             jal   Mem_Calloc
+jal   memCalloc             jal   memCalloc
  move a1,zero                 move a1,zero
 beqz  v0,skip                move  s0,v0
  move s0,v0                  beqz  s0,skip
@@ -50455,7 +50455,7 @@ any more, and the two pseudos still cannot merge.
 void*         mem;
 RoomShopList* shop;
 
-mem  = Mem_Calloc(sizeof(RoomShopList), 0);
+mem  = memCalloc(sizeof(RoomShopList), 0);
 shop = mem;
 if (mem != NULL) {
     SOFT_TOUCH_REG(shop);
@@ -50464,7 +50464,7 @@ if (mem != NULL) {
 ```
 
 `func_mist_parking_8017E90C`; the same shape should apply to any
-`Mem_Calloc` whose pointer is live across the calls that follow.
+`memCalloc` whose pointer is live across the calls that follow.
 
 Two locals *are* enough when the copy's source is still used after the copy.
 Every spawn handler in the actors family stores the allocation into the task
@@ -50473,7 +50473,7 @@ placement rule, because the block that has to see the two as one pseudo runs
 past a second read of the source:
 
 ```c
-mem         = Mem_Calloc(sizeof(Actor312200Work), 0);
+mem         = memCalloc(sizeof(Actor312200Work), 0);
 work        = mem;
 task->work = (TaskIdMap*)mem;    /* mem is live past the copy */
 if (mem == NULL) { ... }
@@ -63468,7 +63468,7 @@ path named. In a family where one name has many carriers that is arbitrary.
 `actor_260500`, `actor_420700`, `actor_451100` and `actor_535700`. Asked for the
 `actor_110300` copy the tool answered `src/actors/actor_260400/actor_260400.c`
 and the brief printed that file's INCLUDE_ASM site - and 260400's copy is a
-different function, allocating `Mem_Calloc(0x4F8, 0)` where this one allocates
+different function, allocating `memCalloc(0x4F8, 0)` where this one allocates
 `0x55C`. Landing the matched body there would have replaced another overlay's
 handler, and the build would still have passed for 260400 only if its own body
 happened to be untouched.
@@ -69381,7 +69381,7 @@ survives, and `srl`/`sh 0x716` drop to the end of the block as in retail.
 
 Same function, first instruction mismatch: `sw s3,0x1c(s4)` where the target has
 `addu s3,v0,zero; bnez s3; sw v0,0x1c(s4)`. Write
-`arg0->idMap = Mem_Calloc(...); work = arg0->idMap;` rather than assigning
+`arg0->idMap = memCalloc(...); work = arg0->idMap;` rather than assigning
 `work` first, chained or not. The store's source is then the call-value pseudo
 (`$v0`) and `work` is a separate copy that the test reads.
 
@@ -70583,9 +70583,9 @@ build and only shows up as a wrong `STATIC_ASSERT_SIZEOF` and wrong padding.
 
 **Fix.** Anchor each block to its own allocation before adding a field to it. The
 allocation site names both the size and the owning global:
-`func_actor_444000_80132358` does `Mem_Calloc(0x34, 0)`, stores it in
+`func_actor_444000_80132358` does `memCalloc(0x34, 0)`, stores it in
 `task->work` and publishes that task in `80161860`, while
-`func_actor_444000_8013AFF8` does `Mem_Calloc(0xF24, 0)` for `80161878`. Those are
+`func_actor_444000_8013AFF8` does `memCalloc(0xF24, 0)` for `80161878`. Those are
 two structs. The family convention for the smaller one is a separate
 `…EventWork` typedef reached by casting, as in `actor_342000` and `actor_121300`:
 
@@ -70594,7 +70594,7 @@ Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->idM
 ```
 
 Finding the writers is one grep — `grep -rn 'D_<overlay>_<addr>' asm/… | grep 'sw '`
-returns the single publisher of each global, and the `Mem_Calloc` a few lines above
+returns the single publisher of each global, and the `memCalloc` a few lines above
 it gives the size.
 
 ## `addu dst, idx, base`: subscript the pointer, do not assign the sum to a local
@@ -76363,7 +76363,7 @@ a clean `stack=0` does not rule it out.
 
 ## A 0x2F4 actor spawn work is three `GpObj` nodes and their `GpRec18` tables
 
-Spawn handlers that `Mem_Calloc(0x2F4)` and fill render nodes link three
+Spawn handlers that `memCalloc(0x2F4)` and fill render nodes link three
 `GpObj`s at 0x134 / 0x16C / 0x1EC, each with a `GpRec18` table directly behind
 it (0x154, `rec18C[4]` at 0x18C, 0x20C). `Actor00700SpawnWork` models these as
 raw byte runs plus offset-named halfwords (`field_134[8]`, `field_13C`,
@@ -77045,14 +77045,14 @@ The spawn routine scored 99.877% with `regs=2`: it emitted `addu s1,v0,$zero`
 then `sw $s1,0x1C(s4)` / `bnez $s1`, where the target stores and tests the raw
 call result (`sw $v0,0x1C(s4)` / `bnez $v0`).
 
-With `work = (Actor460200Work*)Mem_Calloc(0x4F8, 0); task->work =
+With `work = (Actor460200Work*)memCalloc(0x4F8, 0); task->work =
 (TaskIdMap*)work; if (work == NULL) ...`, the pseudo the store and the NULL test
 read *is* `work`, which is live across four later calls. `global.c` therefore
 homes it in `$s1` and every use follows it; `cse` has no second value to fold
 the store onto. Assigning the call to a distinct variable first splits that:
 
 ```c
-workMem = Mem_Calloc(0x4F8, 0);
+workMem = memCalloc(0x4F8, 0);
 work    = (Actor460200Work*)workMem;
 if ((task->work = (TaskIdMap*)work) == NULL) { ... }
 ```
@@ -77093,7 +77093,7 @@ addiu    v0,s0,0x100       ; m2c's same &work->anim
 sw       v0,0x4f4(s0)
 ```
 
-m2c typed the `Mem_Calloc` result as `TaskIdMap*` (its 8-byte return type for
+m2c typed the `memCalloc` result as `TaskIdMap*` (its 8-byte return type for
 this callee) and then wrote `temp_v0 + 0x20`, `temp_v0 + 0x374`, `temp_v0 +
 0x54` for what are byte offsets into a 0x4F8 work block. `M2C_FIELD` keeps its
 offsets in bytes, so the *field* stores all matched; only the bare pointer
@@ -78150,7 +78150,7 @@ renumbered around the new span.
 
 An actors overlay publishes its controller task in a `D_actor_<name>_<addr>`
 global -- the `sw $s2, %lo(...)` sits in that task's own callback, right after
-it stores a `Mem_Malloc`/`Mem_Calloc` result into `0x1C($s2)`, i.e. its
+it stores a `Mem_Malloc`/`memCalloc` result into `0x1C($s2)`, i.e. its
 `Task::work` slot. Leaf functions then read
 `lw $v0,%lo(D_actor_...)(v0); lw $v0,0x1C($v0)` and touch offsets in that
 block, so the whole overlay's work state is one struct reached through
@@ -78159,7 +78159,7 @@ header but is repurposed here, and the cast is the documented convention
 (`actor_342000.h`, `actor_560800.h`).
 
 **The `0x1C($a0)` in the overlay's base unit is not necessarily that block.**
-`actor_341900` allocates three: `Mem_Malloc(0x44, 0)`, `Mem_Calloc(0x70, 0)` and
+`actor_341900` allocates three: `Mem_Malloc(0x44, 0)`, `memCalloc(0x70, 0)` and
 `Mem_Malloc(0x258, 0)`, each stored into a *different* task's `0x1C`. Only the
 0x70 one is published in `D_actor_341900_80164208`. The base unit's dispatchers
 `func_actor_341900_801628B8` / `func_actor_80162AD4` look like ordinary
@@ -78172,7 +78172,7 @@ So identify the block by the **single writer of the published global**, not by
 any `0x1C(...)` load in the overlay, and take the struct size from the
 allocation at that writer -- not from a sibling overlay's header, and not from
 the largest offset a leaf touches. `grep -rln 'sw.*%lo(D_actor_<name>_)'`
-returns the one site; the size is the constant in the `Mem_Malloc`/`Mem_Calloc`
+returns the one site; the size is the constant in the `Mem_Malloc`/`memCalloc`
 immediately above the `sw` that stores it.
 
 Inside the block, a recurring shape worth naming on sight: a *one-shot request
@@ -79294,11 +79294,11 @@ refuses them — the body names its own overlay's globals and callee.
 
 ## One alloc result kept in two registers: assign the call to a short-lived pointer, then copy it
 
-The target holds a `Mem_Calloc` result twice — one copy that does the early
+The target holds a `memCalloc` result twice — one copy that does the early
 stores and dies, one that lives to the end:
 
 ```
-jal   Mem_Calloc
+jal   memCalloc
 move  a1, zero
 addu  v1, v0, zero      /* short-lived copy */
 addu  s2, v1, zero      /* the survivor */
@@ -79314,7 +79314,7 @@ single pseudo and it takes a single register, so the natural form emits one
 test. Write the result out twice instead —
 
 ```c
-mem  = (Work*)Mem_Calloc(0x4C0, false);   /* $v1: dies at the last early use */
+mem  = (Work*)memCalloc(0x4C0, false);   /* $v1: dies at the last early use */
 work = (Work*)mem;                        /* $s2: live to the end */
 task->work = (TaskIdMap*)mem;
 if (mem == NULL) { … }
@@ -80210,7 +80210,7 @@ Example: `func_actor_141000_80132E24` (scratch `base_1.c`; the `tmd`-local shape
 is the counter-example that failed the overlay checksum). Input `base_1.i`
 `6eebf6fc90486fed6cad608d91068483eab7f8a516ed9387d802fa52140a4597`.
 
-## A `Mem_Calloc` result parked in `Task::work` is a work block, not a `TaskIdMap`
+## A `memCalloc` result parked in `Task::work` is a work block, not a `TaskIdMap`
 
 `task.h` types that slot `TaskIdMap*` (8 bytes), so m2c renders a work block
 stored there as byte arithmetic - and a plain `*temp_v0 = 0xFFF;` does not even
@@ -80221,7 +80221,7 @@ untyped, and an untyped body is a seed, not a landing.
 
 Two things in the target give the real type, and neither is a guess:
 
-- **The allocation size is the struct size.** `work = Mem_Calloc(0x10, 0);`
+- **The allocation size is the struct size.** `work = memCalloc(0x10, 0);`
   makes the block a 0x10-byte struct, so its `STATIC_ASSERT_SIZEOF` is anchored
   to the caller rather than to a hand count.
 - **The store width is the field type.** `sw` at 0 → `s32`; `sh` at
@@ -81006,7 +81006,7 @@ off it and the displacement disappears from the encoding.
 
 The same overlay can carry more than one work block: `arg0->idMap` is the
 0x504 `Actor323300Work` in most of `actor_323300`, but the 0x6B0 block
-`func_actor_323300_80162BE4` allocates in this one. Check the `Mem_Calloc`
+`func_actor_323300_80162BE4` allocates in this one. Check the `memCalloc`
 argument at the allocation site before assuming a function's `idMap` is the
 overlay's named work struct.
 
@@ -81817,7 +81817,7 @@ to the *earlier* arm and mirrors the target's layout.
 ## An m2c seed can need two of its temps *merged*: the argument-register preference is on the other one
 
 **Symptom.** `func_actor_361100_801627D4` sat at 94.817% with `regs=5` and
-nothing else wrong: the `Mem_Calloc` result and every use of it were in `$v1`
+nothing else wrong: the `memCalloc` result and every use of it were in `$v1`
 where the target had `$a2` — `move a2,v0` / `beqz a2` / `sw a2,0x1c(s0)` /
 `sh v0,0(a2)` / `sh v0,2(a2)`, five operands, one value.
 
@@ -81841,7 +81841,7 @@ preference across both live ranges.
 **Fix.** Give both assignments the same variable:
 
 ```c
-aim = Mem_Calloc(sizeof(Actor361100HeadAim), false);   /* was temp_v0 */
+aim = memCalloc(sizeof(Actor361100HeadAim), false);   /* was temp_v0 */
 if (aim != NULL) {
     task->work = (TaskIdMap*)aim;
     …
@@ -82046,7 +82046,7 @@ width before the first edit.
 the raw return register both times, with the copy to `$s0` *after* the branch:
 
 ```
-jal    Mem_Calloc
+jal    memCalloc
 move   a1, zero
 beqz   v0, .Lkill
  sw    v0, 0x1C(s1)      /* allocator's home is still $v0 here */
@@ -82063,7 +82063,7 @@ call, so global-alloc hands it a callee-saved register and the NULL test reads
 that. Naming the result twice splits the range:
 
 ```c
-alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
+alloc       = (Actor160900ChildWork*)memCalloc(0x20, 0);
 task->work = (TaskIdMap*)alloc;
 if (alloc == NULL) {
     taskKill(task);
@@ -84791,7 +84791,7 @@ neighbouring words say which kind. `func_dryfield_breezeway_8017FBC8` sits in
 `0x7FFFFFFF` after it: that is the `GpMsgEntry` spelling above, a one-entry
 message table plus terminator. The room function that owns the table confirms
 it - `func_dryfield_breezeway_8017E464` stores `&D_dryfield_breezeway_80182DCC`
-(the record's id half) into `Task::msgTable` and a `Mem_Calloc(0x60, 0)` block
+(the record's id half) into `Task::msgTable` and a `memCalloc(0x60, 0)` block
 into `Task::work`, and the handler reaches its work as `task->work`.
 
 The trap is the argument split. `GpMsgHandler` is
@@ -85225,7 +85225,7 @@ checklist asks for.
 `func_dryfield_night_factory_80180438`, earlier in the same unit, *writes* both:
 `sw $v0, %lo(D_x_A7E0)` where `$v0` was produced by
 `addiu $v0, $v0, %lo(D_..._80186E94)`. A stored *address* proves the slot is a
-pointer and names the table it selects, and a `Mem_Calloc(4, 0)` result stored
+pointer and names the table it selects, and a `memCalloc(4, 0)` result stored
 into the neighbour proves that one is a `Task**`. Read the unit's other functions
 before declaring an m2c global `s32`; here it settled both types without a guess.
 
@@ -86020,7 +86020,7 @@ Inputs: `base.i` `6c2870c680e9ba0288857295bc5606f260d14ffa5dc8fb15ef5840e1b7cf09
 `Task::work`, and kills the task when the allocation failed:
 
 ```
-jal   Mem_Calloc
+jal   memCalloc
 move  a1,zero
 move  v1,v0
 bnez  v1, .L514
@@ -89466,7 +89466,7 @@ function can possibly need it was computed by a source statement ahead of the
 `if`, so the pseudo is live across the whole body and must land in `$sN`:
 
 ```c
-work  = Mem_Calloc(sizeof(*work), 0);
+work  = memCalloc(sizeof(*work), 0);
 coord = &coords[10];          /* before the null test */
 if (work == NULL) { ... return; }
 ```
@@ -92452,7 +92452,7 @@ beq  $v1, $v0, .Lexit
  move $a3, $s3           # a second copy, used only inside the lookup loop
 ```
 
-Assigning `work = Mem_Calloc(...); arg0->field_1C = work;` gives one pseudo, so
+Assigning `work = memCalloc(...); arg0->field_1C = work;` gives one pseudo, so
 the store reads `$s3` and no `$a3` copy exists — and with the lookup loop using
 `work` directly, `work` outranks `arg0` in allocation priority and every
 callee-saved register comes out permuted.
@@ -92461,7 +92461,7 @@ callee-saved register comes out permuted.
 a later region needs it:
 
 ```c
-arg0->field_1C = Mem_Calloc(sizeof(Actor100400Work), 0);
+arg0->field_1C = memCalloc(sizeof(Actor100400Work), 0);
 work           = arg0->field_1C;          /* cse -> move s3, v0 */
 ...
 Actor100400Work* work = arg0->field_1C;   /* inside the helper: move a3, s3 */
@@ -94184,7 +94184,7 @@ Hoisting the assignment *above* the allocation it is unrelated to is what works:
 ```c
 parentCoords = ((TmdObject*)arg1->parent->extra)->coords;
 parentCoord  = &parentCoords[3];          /* block 1 */
-work         = Mem_Calloc(sizeof(Actor510900ChildFx), false);
+work         = memCalloc(sizeof(Actor510900ChildFx), false);
 if (work == NULL) { ... return; }
 ```
 
@@ -95036,7 +95036,7 @@ wrong.
 
 **Problem.** 98.879% with `regs=13`, `branch=0`, `reorder=0`, `delete=0`: every
 instruction present and in order, and the whole diff was `$s0`/`$s1` swapped
-between the parameter `task` and the `Mem_Calloc` pointer `st`. `.greg` ranked
+between the parameter `task` and the `memCalloc` pointer `st`. `.greg` ranked
 `113 81 80 82 95`; `tools/trace_gcc.py --regs 80 81` printed the inputs
 `global.c` used:
 
@@ -96410,13 +96410,13 @@ Session: `nonmatchings/func_actor_521100_80135680-vacuum` (`base_2.i.greg`,
 
 ## A pointer cached in a local is its own allocno: read the global the target reloads (func_actor_521100_80135DDC, 2026-09-16)
 
-The create body calls `Mem_Calloc`, publishes the result as the overlay's
+The create body calls `memCalloc`, publishes the result as the overlay's
 work-block global `D_actor_521100_8016A3D8` and in `Task::work`, then fills
 two matrices *inside* that block. m2c's seed reached the block through the
 calloc local instead:
 
 ```c
-mem = Mem_Calloc(0x4B4, 0);
+mem = memCalloc(0x4B4, 0);
 D_actor_521100_8016A3D8 = mem;
 ...
 obj->field_1C = &mem->light;     /* target: lw v0,%lo(glob)(s4), no register */
@@ -97072,7 +97072,7 @@ scalar, the local is not a memory object yet: its address is ADDRESSOF of the
 register that holds it, materialised once per use --
 
     (insn 79 (set (reg:SI 96) (addressof:SI (reg:SI 92) 81)))
-    ... Mem_Calloc, then the OR/store of field_C ...
+    ... memCalloc, then the OR/store of field_C ...
     (insn 93 (set (reg:SI 98) (addressof:SI (reg:SI 92) 81)))
 
 `.cse` merges the two (from then on the second use reads `reg:SI 96`), so one
@@ -98737,7 +98737,7 @@ Inputs: `base_1.i`
 ## m2c's scalar locals for a copied table become callee-saved registers across a call
 
 `func_actor_135400_80132B60` copies five words out of a rodata table into a
-local, and copies that local into its work block *after* a `Mem_Calloc`. m2c
+local, and copies that local into its work block *after* a `memCalloc`. m2c
 renders the local as five sibling `s32` scalars, and GCC keeps them in
 `$s2`-`$s6` across the call: the object saves five `$s` registers, the frame is
 0x38 where the target's is 0x48, and the table never touches the stack. The
@@ -99613,7 +99613,7 @@ the next build, registers, order and delay slot untouched - so a seed whose only
 remaining delta is a store width is a one-word edit, not a search.
 
 Two things about the shape are worth carrying to the sibling overlays. The block
-is not a `TaskIdMap`: the spawn state `Mem_Calloc`s it (0x4CC here) into
+is not a `TaskIdMap`: the spawn state `memCalloc`s it (0x4CC here) into
 `Task::work`, exactly as in `actor_141000` / `actor_317000` / `actor_350500` /
 `actor_350700`, and this function republishes `&work->light` / `&work->color`
 onto `TmdObject::lightMtx` / `field_20` - the pair `Gp_BindDefaultMtx` otherwise
@@ -99649,7 +99649,7 @@ constant offset reports `regs=N` with every other penalty at zero, and the
 brief's leftover table sends you to `.lreg` / `.greg` for an allocation story
 that is not there.
 
-Here the m2c seed typed the `Mem_Calloc(0x4CC, 0)` result as `GpAnimCtx*`
+Here the m2c seed typed the `memCalloc(0x4CC, 0)` result as `GpAnimCtx*`
 (propagated back from `func_800B3F84`'s first parameter), so the two offsets
 into that block which the assembly writes as plain byte offsets scaled by
 `sizeof(GpAnimCtx) == 0x14`:
@@ -99715,7 +99715,7 @@ block -
 
 ```c
     if (!(GameFlag_GetNibble(0xA) & 2)) {
-        temp_v0 = Mem_Calloc(0x4CC, 0);
+        temp_v0 = memCalloc(0x4CC, 0);
         task->work = temp_v0;
         if (temp_v0 == NULL) {
             goto fail;
@@ -99740,7 +99740,7 @@ the then-arm of one `if`:
 
 ```c
     if ((GameFlag_GetNibble(0xA) & 2) ||
-        (work = Mem_Calloc(0x4CC, 0), task->work = (TaskIdMap*)work, work == NULL)) {
+        (work = memCalloc(0x4CC, 0), task->work = (TaskIdMap*)work, work == NULL)) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
@@ -99851,7 +99851,7 @@ also types `Task::spawnArg2`: the handler's other argument (`$s0` here) gets
 0x1C and `sb` at 0x48/0x4C/0x4D - all `GpEnemy` - so the ctx is `GpEnemy*`, not
 an overlay-local ctx, and 0x4D is a real field (`pad_4D` renamed to `field_4D`,
 size and offset unchanged). `Gp_AllocEnemy` confirms it from the other side:
-`Mem_Calloc(0x60, 0)` stored into `task->spawnArg2`.
+`memCalloc(0x60, 0)` stored into `task->spawnArg2`.
 
 The instruction stream is also the check on the idiom: `func_actor_421600_8013E858`
 is the same body in another overlay, identical for its first 13 instructions,
@@ -100224,7 +100224,7 @@ if (func_800EA1A8((VECTOR3*)extra->coords[1].workm.t, &pos) != 0) {
 ```
 
 Writing the same access the way the target reads it — a fresh load of
-`task->extra`, which no call can CSE away because `Mem_Calloc` has already
+`task->extra`, which no call can CSE away because `memCalloc` has already
 clobbered memory:
 
 ```c
@@ -100246,7 +100246,7 @@ order" line prints the allocnos in it:
          (2*7/8 = 1.75)          (3*10/82 = 0.37)         (1*3/13 = 0.23)
 ```
 
-`r81` is the work block (`$v1` both times — it is born after the `Mem_Calloc`
+`r81` is the work block (`$v1` both times — it is born after the `memCalloc`
 call), `r80` the task parameter, `r82` the extra pointer. Dropping one
 reference moves it below the parameter, and `find_reg` gives each allocno in
 rank order the lowest free callee-saved register, so the two swap homes. The
@@ -100561,7 +100561,7 @@ puts it on is where it stays. In the seed the state value is born before the
 `jal` and dies at the second compare, so its live range **crosses the call** and
 local-alloc cannot give it a caller-saved register - it takes `$s1`. That is
 one of the three callee-saved registers this body needs, and the pressure pushes
-`arg0` down to `$s0` and the `Mem_Calloc` result out of the saved set entirely.
+`arg0` down to `$s0` and the `memCalloc` result out of the saved set entirely.
 
 **Fix.** Write the call first and switch on the field directly:
 
@@ -100884,7 +100884,7 @@ Inputs: `base.i`
 
 ## An actor spawn-handler seed: retype from a matched sibling before forcing `&local` rematerialization (func_actor_443500_80132078, 2026-09-16)
 
-Every enemy actor's spawn handler is the same shape — `Mem_Calloc` a work block,
+Every enemy actor's spawn handler is the same shape — `memCalloc` a work block,
 seed its head, `Task_SpawnFromTable` a child, copy the location out of the
 session area key onto the child's `TmdObject`, install `Task::msgTable` (the
 `(anim id, handler)` table), `Task::exitCallback` and `Task::state++`. Because
@@ -100925,11 +100925,11 @@ individual contributions are not separated — the measured fact is the pair.
 
 ## A call result that is both tested and kept needs two locals, not one
 
-**Problem:** m2c's spawn-body shape puts `Mem_Calloc`'s result in one local and
+**Problem:** m2c's spawn-body shape puts `memCalloc`'s result in one local and
 uses it for the null test, the `Task::work` store and every later use:
 
 ```c
-temp_v0 = Mem_Calloc(0x8D8, 0);
+temp_v0 = memCalloc(0x8D8, 0);
 M2C_FIELD(arg1, void **, 0x1C) = temp_v0;
 if (temp_v0 == NULL) { Gp_DestroyEnemy(arg0, arg1); return; }
 ...
@@ -100957,7 +100957,7 @@ call" above.
 that lives on.
 
 ```c
-mem         = (Actor210600Work*)Mem_Calloc(0x8D8, false);
+mem         = (Actor210600Work*)memCalloc(0x8D8, false);
 work        = mem;
 task->work = (TaskIdMap*)mem;
 if (mem == NULL) {
@@ -107582,7 +107582,7 @@ the checksum fails naming a whole executable or overlay rather than the function
 that moved.
 
 `src/main/mem.c` is the worked example. `memSetActiveHeap` stands between
-`Mem_Calloc`, which `jal`s it, and `Mem_Malloc`, whose body carries the setter's
+`memCalloc`, which `jal`s it, and `Mem_Malloc`, whose body carries the setter's
 code integrated; marking the setter's definition `inline` to integrate that call
 too reorders the object:
 
@@ -107600,7 +107600,7 @@ So a helper whose address stands between its callers was a plain function, and
 the bodies below it that carry its code were written out in the source rather
 than integrated. Read the helper's position before reaching for `inline`:
 where its copy has to keep its place, the repetition is the shape that matches,
-and `Mem_Calloc`'s `jal` is the same fact seen from the other side.
+and `memCalloc`'s `jal` is the same fact seen from the other side.
 
 ## An `SVECTOR` copy is invisible to m2c: the seed collapses each `lwl`/`lwr` pair and scores ~30%
 
@@ -113862,13 +113862,13 @@ rewrite a whole .c` warns about, with the extra twist that a marker-based edit
 can take the wrong function: a search for a doc-comment line matched the
 *sibling's* comment, which deleted a matched body three functions away.
 
-## m2c types the `Mem_Calloc` result from its first store, so every later offset is scaled by that pointee's size (func_actor_107000_80131F0C, 2026-09-17)
+## m2c types the `memCalloc` result from its first store, so every later offset is scaled by that pointee's size (func_actor_107000_80131F0C, 2026-09-17)
 
 A seed whose diff is a wall of `addiu` immediates that are all exact multiples of
 the offsets the function wants - `0x50` against `0x140`, `0xDC` against `0x6E0`,
 `0x154` against `0xAA0` - is not a scheduling or an allocation problem, and no
 amount of restructuring the statements will move it. m2c back-propagated the
-type of the `Mem_Calloc` result from `arg1->idMap = temp_v0;`, so the work block
+type of the `memCalloc` result from `arg1->idMap = temp_v0;`, so the work block
 is a `TaskIdMap*` in its output and every `temp_v0 + 0xDC` in the *source* is
 scaled by 8 in the *RTL*; the `s32*` pieces in the same expressions scale by 4.
 The work block's own field accesses come out wrong too, because m2c writes them
@@ -115559,19 +115559,19 @@ loop indexed 100.000%.  Target `fdc808aca8578d4ac0b9cd1864208f170d45eab46a28622b
 
 ## A call result stored straight into a field keeps the store on `$v0`
 
-`func_actor_206100_8014C274` (actors/actor_206100) parks `Mem_Calloc`'s result in
+`func_actor_206100_8014C274` (actors/actor_206100) parks `memCalloc`'s result in
 `Task::work` and keeps using that block after the calls that follow, so the
 value has to survive in a callee-saved register:
 
 ```
-jal   Mem_Calloc
+jal   memCalloc
  move a1,zero
 move  s2,v0          # the survivor
 bnez  s2,.L
  sw   v0,0x1C(s3)    # the store still reads the raw call result
 ```
 
-m2c's `p = Mem_Calloc(); task->work = p;` gives `sw s2,0x1C(s3)` instead: one
+m2c's `p = memCalloc(); task->work = p;` gives `sw s2,0x1C(s3)` instead: one
 pseudo for the whole live range, homed in the saved register, so the store reads
 that register (`regs=1`).  A second local for the survivor (`work = p;` after the
 null test) is not the fix -- it reallocates the whole function (`regs=35`,
@@ -115579,7 +115579,7 @@ null test) is not the fix -- it reallocates the whole function (`regs=35`,
 and read it back into the single local:
 
 ```c
-    task->work = Mem_Calloc(0x558, 0);
+    task->work = memCalloc(0x558, 0);
     work        = (Actor206100Work*)task->work;
     if (work == NULL) { ... }
 ```
@@ -115587,7 +115587,7 @@ and read it back into the single local:
 The front end stores a call result with the hard return register as the store's
 source, and `cse` forwards the read-back into a copy of that value, which is the
 same `move sN,v0` -- now with the store left on `$v0`.  The read-back form gets
-the shape with one variable; `alloc = Mem_Calloc(0x20, 0); task->work =
+the shape with one variable; `alloc = memCalloc(0x20, 0); task->work =
 (TaskIdMap*)alloc; if (alloc == NULL) {...} work = alloc;` in
 `src/actors/actor_160900/actor_160900.c` reaches it with two.
 
@@ -116830,7 +116830,7 @@ Two lessons, and the second is the general one:
 ## Splitting one variable into an m2c temp pair also splits its *preferences* (func_mine_mesa_8017E15C, 2026-09-17)
 
 `func_mine_mesa_8017E15C` keeps a `MineMesaHeadAim*` in `$a2` from the moment
-`Mem_Calloc` returns it (`move a2,v0`), through the two clamp stores, until the
+`memCalloc` returns it (`move a2,v0`), through the two clamp stores, until the
 record is handed to `func_800B17D4` as its `arg2`; the case-1 re-read
 `aim = (MineMesaHeadAim*)arg0->idMap;` is likewise `lw $a2,0x1C($s0)`. m2c wrote
 that one source variable as two -- `temp_v0` for the allocation, `temp_a2` for
@@ -118417,7 +118417,7 @@ in `$v1`.
 
 **Chain.** With the three descriptor stores (`Task::msgTable`, `Task::work`,
 the global) as plain statements, the state reload's only dependence is the
-`Mem_Calloc` call insn, so sched1 is free to hoist it; its live range then
+`memCalloc` call insn, so sched1 is free to hoist it; its live range then
 covers the `6`'s position, local-alloc hands the reload `$v0` first, and the
 `6` falls through to `$v1` (an exact `QTY_CMP_PRI` tie is broken by quantity
 number, i.e. birth order). Wrapping exactly those three statements in a
@@ -121102,7 +121102,7 @@ local-alloc ranks them with `QTY_CMP_PRI`
 by quantity number, and allocates in that order. Written as two statements
 
 ```c
-    slot = Mem_Calloc(4, 0);
+    slot = memCalloc(4, 0);
     D_..._A7E8 = slot;
 ```
 
@@ -121112,11 +121112,11 @@ predecessor has just freed), and pushes the load to `$a0`. Chaining the store
 into the assignment
 
 ```c
-    slot = (D_..._A7E8 = Mem_Calloc(4, 0));
+    slot = (D_..._A7E8 = memCalloc(4, 0));
 ```
 
 makes GCC materialise the destination address *before* the call (`.rtl`: `hi` at
-insn 23, `lo_sum` 24, the `Mem_Calloc` call at 30), so that quantity spans 10
+insn 23, `lo_sum` 24, the `memCalloc` call at 30), so that quantity spans 10
 insns and `.lreg` reports it as `used 2 times across 10 insns` instead of 4. Its
 priority now sits below the load's, so the load takes `$v1` and the address
 falls to `$a0` - the target. Lengthening one quantity's live range past a call
@@ -122560,7 +122560,7 @@ scheduler:
   One addressable aggregate — `VECTOR block; block.vx = coord->workm.t[0]; ...` —
   reproduces the whole three-`lw`/three-`sw` run.
 * The calloc result is named twice on purpose, as
-  "Naming one `Mem_Calloc` result twice" describes: `idMap = Mem_Calloc(0x80, 0);
+  "Naming one `memCalloc` result twice" describes: `idMap = memCalloc(0x80, 0);
   work = (Actor341700SubWork*)idMap; arg1->idMap = idMap; if (idMap == NULL)`
   gives the target's `addu s3,v0` / `bnez v0` / `sw v0,0x1c(s2)`, where a single
   variable puts all three in `$s3` (`regs=5`).
@@ -124497,7 +124497,7 @@ m2c rendered the part object's `0x18` store as a fresh
 `arg1->parent->idMap->field_29C` while the rest of the function keeps that same
 pointer in a local (`$s4`), and the target's three loads — `lw $v0,8($s5)`,
 `lw $v0,0x1C($v0)`, `lw $v1,0x29C($v0)` — are exactly that re-derivation. The
-chain crosses the `Mem_Calloc` call, so it cannot be CSEd into the live local:
+chain crosses the `memCalloc` call, so it cannot be CSEd into the live local:
 the reload is real code, not a scheduling artefact. Writing the natural
 `part->field_18 = work->field_29C;` scored 95.109% (`delete=4`, the three loads
 gone and every later store re-scheduled around the gap); the re-derived form is
@@ -126734,12 +126734,12 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 ## Naming a call result through the field it is stored into puts the caller-side copy *after* the null test
 
 `func_actor_111800_80132390` allocates its work block and keeps it in the task:
-`Mem_Calloc` returns in `$v0`, and the surviving copy of that value into its home
+`memCalloc` returns in `$v0`, and the surviving copy of that value into its home
 register (`$s2`) is a real instruction. Where that copy lands is decided by which
 expression the test reads:
 
 ```c
-    work        = (Actor111800Work*)Mem_Calloc(0x498, false);   /* copy first */
+    work        = (Actor111800Work*)memCalloc(0x498, false);   /* copy first */
     task->work = (TaskIdMap*)work;
     if (work == NULL) { taskKill(task); return; }
 ```
@@ -126750,7 +126750,7 @@ sw      s2,0x1c(s1)         /* dbr fills the delay slot from the target block */
 ```
 against
 ```c
-    task->work = (TaskIdMap*)Mem_Calloc(0x498, false);         /* copy last */
+    task->work = (TaskIdMap*)memCalloc(0x498, false);         /* copy last */
     if (task->work == NULL) { taskKill(task); return; }
     work = (Actor111800Work*)task->work;
 ```
@@ -128100,7 +128100,7 @@ register.
 
 ## An inline helper taking the scratch vector's address is what puts it in `$s0` — and reshuffles the other pointers (func_actor_123200_8013352C, 2026-09-17)
 
-**Symptom.** `regs=71` at 95%: the incoming `GpEnemy*` and the `Mem_Calloc`
+**Symptom.** `regs=71` at 95%: the incoming `GpEnemy*` and the `memCalloc`
 result had swapped `$s0` / `$s1` against the target, and the address of a stack
 `SVECTOR` was materialised twice — once for `VectorNormalSS`'s two arguments and
 again for the `gte_ldsv` / `gte_stsv` operands.
@@ -128294,13 +128294,13 @@ which is how this function then needed the `.greg` priority analysis above.
 raw return value while a callee-saved copy carries it past the branch:
 
 ```
-jal   Mem_Calloc
+jal   memCalloc
 move  $s1, $v0
 bnez  $v0, .Lok
  sw   $v0, 0x1C($s4)
 ```
 
-The natural C - `work = (T*)Mem_Calloc(size, 0); task->work = (TaskIdMap*)work;
+The natural C - `work = (T*)memCalloc(size, 0); task->work = (TaskIdMap*)work;
 if (work == NULL)` - gives one pseudo for all three uses, so the store and the
 `bnez` read `$s1` too, and the function sits at 99.89% on a 2-instruction `regs`
 penalty. The sibling body in `actor_161500` really is written that way and
@@ -128310,7 +128310,7 @@ really does emit `$s1` in all three places, so the shapes are not interchangeabl
 of it:
 
 ```c
-block       = Mem_Calloc(0x4C0, false);
+block       = memCalloc(0x4C0, false);
 work        = (Actor451100Work*)block;
 task->work = (TaskIdMap*)block;
 if (block == NULL) {
@@ -130597,7 +130597,7 @@ substitution and are found only by grepping the notes for the retired names.
 
 ## The heap wrappers are libapi `heap3`, and writing `_freep` is what selects a heap
 
-`Mem_Malloc`, `Mem_Calloc`, `memFree` and `memFreeFromHeap` own no allocator:
+`Mem_Malloc`, `memCalloc`, `memFree` and `memFreeFromHeap` own no allocator:
 each points libapi's `_freep` at a heap and calls `malloc3` / `free3`. In libapi,
 `_freep` is the block that those two routines begin their search from inside
 one heap's free-block ring. `InitHeap3` sets it to the heap it initializes, and
@@ -130614,11 +130614,11 @@ objects are in `lib/libapi`, so this is readable rather than inferred, and it is
 the reason a wrapper takes the heap as a flag at all.
 
 The assignment appears in the wrappers in both shapes, and each wrapper's target
-decides which. `Mem_Calloc` calls `memSetActiveHeap` and its target has the
+decides which. `memCalloc` calls `memSetActiveHeap` and its target has the
 `jal`; `Mem_Malloc`, `memFree` and `memFreeFromHeap` write the assignment out,
 so theirs have the repeated `lui` / `lw` / `sw`, with `memFree` taking the
 primary branch alone. The three could not have called the setter and been
-integrated: its address stands between `Mem_Calloc` and `Mem_Malloc`, and an
+integrated: its address stands between `memCalloc` and `Mem_Malloc`, and an
 `inline` function's out-of-line copy is emitted at the end of the unit, so
 marking it `inline` to integrate those calls moves it and shifts every function
 below it. The repetition is what matches; do not factor it out.
@@ -131043,3 +131043,19 @@ privatise has to run the check the convention names: `find_references.py <spec>
 --asm` lists every assembly reference with the file it sits in, which tells the
 defining unit's own `jal` apart from another overlay's, and reports whether the
 address is unique or shared between images.
+
+## A renamed symbol is also a pattern inside the tooling, where the sweep does not reach
+
+`rename_item.py` resolves C references and rewrites markdown mentions, and the
+step's completeness check greps `src` and `include`. Neither reaches a name that
+appears under `tools/` as part of a *pattern* rather than as a mention: a regex
+listing the helpers that take a byte count, or an agent brief that tells its
+reader to `grep 'jal.*Mem_'` over an overlay's `.s`. Those keep matching the old
+spelling and stop matching the new one without saying anything, so the size
+evidence silently drops out of the index and the brief comes back reporting that
+an overlay allocates nothing.
+
+So grep `tools/` for the retired spelling after a rename, and write such lists to
+cover the migration rather than one spelling: both `Mem_Verb` and `memVerb` are
+live in the tree at once, so an alternation, or a case-folded pattern, is right
+while either spelling alone is wrong on one side of the sweep.

@@ -186,7 +186,7 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
 
     model = task->extra;
     coord = model->coords;
-    work  = Mem_Calloc(0x488, 0);
+    work  = memCalloc(0x488, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;

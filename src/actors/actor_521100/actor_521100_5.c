@@ -87,7 +87,7 @@ void func_actor_521100_80135DDC(void* spawnArg2, Task* task)
     enemy                   = (GpEnemy*)spawnArg2;
     obj                     = task->extra;
     coord                   = obj->coords;
-    mem                     = Mem_Calloc(0x4B4, 0);
+    mem                     = memCalloc(0x4B4, 0);
     D_actor_521100_8016A3D8 = mem;
     task->work              = (TaskIdMap*)mem;
     if (mem == NULL) {

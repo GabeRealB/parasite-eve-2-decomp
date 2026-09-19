@@ -26,7 +26,7 @@ void func_actor_310600_80161E64(Task* task)
     Actor310600Work* work;
     GpObj*           obj;
 
-    work = Mem_Calloc(0x538, 0);
+    work = memCalloc(0x538, 0);
     if (work == NULL) {
         Gp_EnemyTaskExit(task);
         return;

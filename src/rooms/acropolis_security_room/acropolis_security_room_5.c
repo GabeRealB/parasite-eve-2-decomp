@@ -60,7 +60,7 @@ extern GpAreaApplyRec D_acropolis_security_room_80184F78[];
 extern GpAreaApplyRec D_acropolis_security_room_80184F7C[];
 extern GpAreaApplyRec D_acropolis_security_room_80184F80[];
 /// Scratch state of the security-room ambience task, stored at `Task::work`.
-/// `func_acropolis_security_room_80180368` allocates it with `Mem_Calloc(4, 0)`,
+/// `func_acropolis_security_room_80180368` allocates it with `memCalloc(4, 0)`,
 /// so the size below is the allocation and not a guess.
 typedef struct {
     /* 0x0 */ u16  fadeStarted; // the looping ambience has already been faded out
@@ -394,7 +394,7 @@ void func_acropolis_security_room_8017FA18(Task* task)
     AcropolisSecurityRoomState* st;
     RoomHotspot*                hs;
 
-    st = Mem_Calloc(sizeof(AcropolisSecurityRoomState), 0);
+    st = memCalloc(sizeof(AcropolisSecurityRoomState), 0);
     if (st == NULL) {
         taskKill(task);
         return;

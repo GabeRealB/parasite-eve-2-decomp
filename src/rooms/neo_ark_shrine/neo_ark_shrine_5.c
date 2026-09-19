@@ -7,7 +7,7 @@
 #include "rooms/room_common.h"
 
 /// Scratch state of the shrine's cap script, stored at `Task::work`
-/// (`Mem_Calloc(0x10)` in `func_neo_ark_shrine_8017ECC4`).
+/// (`memCalloc(0x10)` in `func_neo_ark_shrine_8017ECC4`).
 typedef struct {
     /* 0x00 */ u8  pad_0[8];
     /* 0x08 */ u16 timer; ///< frames the current script step has run
@@ -29,7 +29,7 @@ void func_neo_ark_shrine_8017ECC4(Task* task)
     NeoArkShrineScript* st;
     RoomHotspot*        hs;
 
-    st = Mem_Calloc(0x10, 0);
+    st = memCalloc(0x10, 0);
     if (st == NULL) {
         taskKill(task);
         return;

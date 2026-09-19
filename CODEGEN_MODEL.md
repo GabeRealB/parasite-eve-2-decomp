@@ -299,7 +299,7 @@ What the codegen does constrain:
   different code — take a typed pointer to the sub-object.
 - **Element stride pins the struct size.** `i * 36` means the element is exactly
   0x24 bytes; that is a hard constraint, unlike a field's name.
-- **The allocator pins the block size.** A literal `Mem_Calloc`/`Mem_Malloc`
+- **The allocator pins the block size.** A literal `memCalloc`/`Mem_Malloc`
   argument gives the work struct's size directly — grep `-B14 'jal.*Mem_'` over
   the overlay's asm.
 - **Prefer a cast at the use over changing a field's type** (§3), because the

@@ -66,7 +66,7 @@ typedef struct Actor303600Msg7DA {
 STATIC_ASSERT_SIZEOF(Actor303600Msg7DA, 0x4);
 
 /// Light / colour matrix pair the overlay's actor hands to its model: the pair
-/// `func_actor_303600_80162950` allocates with `Mem_Calloc(0x44, 0)` and parks
+/// `func_actor_303600_80162950` allocates with `memCalloc(0x44, 0)` and parks
 /// in its own task's `Task::work` slot (0x1C, again not a `TaskIdMap`), so
 /// reach it with `(Actor303600LightMats*)task->work`.  The four bytes after
 /// the two matrices are part of the allocation and are never read here.
@@ -91,7 +91,7 @@ typedef union Actor303600RigAngle {
 
 /// Work block of the task `func_actor_303600_80162A7C` dispatches through
 /// `D_actor_303600_80161E48`: `func_actor_303600_801626C0` allocates it with
-/// `Mem_Calloc(0x3C, 0)`, parks it in `Task::work` (0x1C, again not a
+/// `memCalloc(0x3C, 0)`, parks it in `Task::work` (0x1C, again not a
 /// `TaskIdMap`), fills `children` with the five model tasks it spawns -- one
 /// `Task_SpawnFromTable` of `D_actor_303600_8016E468` entry 1 each, spread
 /// 8000 units apart in y and spliced under this task's own coordinate, so

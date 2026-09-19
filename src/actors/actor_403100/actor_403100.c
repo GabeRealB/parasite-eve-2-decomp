@@ -1450,7 +1450,7 @@ void func_actor_403100_80136610(Task* arg0)
     obj   = arg0->extra;
     coord = obj->coords;
     if ((*(u32*)&gGameSession->at4.loc & ~0xFF) != 0x031D0200 ||
-        (arg0->work = Mem_Calloc(0x678U, false)) == NULL) {
+        (arg0->work = memCalloc(0x678U, false)) == NULL) {
         Gp_DestroyEnemy(D_actor_403100_8015580C, arg0);
         return;
     }

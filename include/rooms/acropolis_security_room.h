@@ -11,7 +11,7 @@
 
 /// 0xA work block of the security-monitor task, hung off the `Task::work`
 /// slot (0x1C) -- that slot is *not* a `TaskIdMap` here, it is the
-/// `Mem_Calloc(0xA)` block `func_acropolis_security_room_8017D9DC` allocates.
+/// `memCalloc(0xA)` block `func_acropolis_security_room_8017D9DC` allocates.
 /// Reach it with `(AsrMonitorWork*)task->work`.
 ///
 /// `cameraId` is the camera the monitor is currently showing, seeded from the
@@ -59,11 +59,11 @@ STATIC_ASSERT_SIZEOF(AsrRect, 0x8);
 ///
 /// `func_acropolis_security_room_8017FA18` -- state 0 of the family whose
 /// handler table is `D_acropolis_security_room_8017D63C` -- allocates it with
-/// `Mem_Calloc(0x10, 0)` and stores it straight into the `Task::work` slot,
+/// `memCalloc(0x10, 0)` and stores it straight into the `Task::work` slot,
 /// so the size below is the allocation and not a guess; the same function
 /// parks the family's `GpMsgEntry[]` in `Task::msgTable`. The overlay's other
-/// two allocators (`Mem_Calloc(0xA)` in `func_acropolis_security_room_8017D9DC`
-/// and `Mem_Calloc(4)` in `func_acropolis_security_room_80180368`) belong to
+/// two allocators (`memCalloc(0xA)` in `func_acropolis_security_room_8017D9DC`
+/// and `memCalloc(4)` in `func_acropolis_security_room_80180368`) belong to
 /// other task families and to a different block.
 typedef struct AcropolisSecurityRoomState {
     /* 0x0 */ s32   field_0;    // sub-step picked by the previous cap event

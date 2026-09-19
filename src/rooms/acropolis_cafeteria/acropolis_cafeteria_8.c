@@ -37,7 +37,7 @@ void func_acropolis_cafeteria_801818DC(Task* task)
 
     obj   = (TmdObject*)task->extra;
     coord = obj->coords;
-    work  = Mem_Calloc(0xD8, 0);
+    work  = memCalloc(0xD8, 0);
     if (work == NULL) {
         taskKill(task);
         return;

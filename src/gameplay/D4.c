@@ -1897,7 +1897,7 @@ void Gp_AllocSprtLists(void)
         Gp_SprtLists[0] = NULL;
         return;
     }
-    Gp_SprtLists[0] = Mem_Calloc(count, 1);
+    Gp_SprtLists[0] = memCalloc(count, 1);
     if (Gp_SprtLists[0] == NULL) {
         return;
     }

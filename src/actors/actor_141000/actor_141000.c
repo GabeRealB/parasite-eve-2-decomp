@@ -167,7 +167,7 @@ void func_actor_141000_80132C7C(Task* task)
 
     obj   = task->extra;
     coord = obj->coords;
-    work  = Mem_Calloc(0x10, 0);
+    work  = memCalloc(0x10, 0);
     if (work == NULL) {
         taskKill(task);
         return;

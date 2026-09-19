@@ -1191,7 +1191,7 @@ void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
 
     obj        = (TmdObject*)task->extra;
     coord      = obj->coords;
-    work       = (AcropolisBridgeEnemyWork*)Mem_Calloc(sizeof(AcropolisBridgeEnemyWork), 0);
+    work       = (AcropolisBridgeEnemyWork*)memCalloc(sizeof(AcropolisBridgeEnemyWork), 0);
     task->work = (TaskIdMap*)work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);

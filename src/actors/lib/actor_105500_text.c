@@ -1247,7 +1247,7 @@ void Actor05500_Fn02FFC(GpEnemy* ctx, Task* actor)
 
     obj   = actor->extra;
     coord = obj->field_8;
-    work  = Mem_Calloc(sizeof(Actor105500Work), 0);
+    work  = memCalloc(sizeof(Actor105500Work), 0);
     if (work == NULL) {
         Gp_DestroyEnemy(ctx, actor);
         return;

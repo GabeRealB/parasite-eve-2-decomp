@@ -26,7 +26,7 @@ void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1)
 
     model      = (TmdObject*)arg1->extra;
     coord      = model->coords;
-    idMap      = Mem_Calloc(0x80U, false);
+    idMap      = memCalloc(0x80U, false);
     work       = (Actor341700SubWork*)idMap;
     arg1->work = idMap;
     if (idMap == NULL) {

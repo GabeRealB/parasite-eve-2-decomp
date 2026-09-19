@@ -679,7 +679,7 @@ void func_actor_206100_8014BAA8(Task* task)
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014BEC4);
 
 /// Spawn state of `D_actor_206100_80149E94`: builds the actor's work block --
-/// `Mem_Calloc(0x558, 0)` parked straight in `Task::work`, the actor destroyed
+/// `memCalloc(0x558, 0)` parked straight in `Task::work`, the actor destroyed
 /// if that fails -- empties both companion slots of `D_actor_206100_80158CBC`
 /// through their index (the walked-pointer form gives the timer field an
 /// induction variable of its own) and calls the setup `func_actor_206100_8014AF74`
@@ -715,7 +715,7 @@ void func_actor_206100_8014C274(Task* task)
 
     enemy      = task->spawnArg2;
     coord      = ((TmdObject*)task->extra)->coords;
-    task->work = Mem_Calloc(0x558, 0);
+    task->work = memCalloc(0x558, 0);
     work       = (Actor206100Work*)task->work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);

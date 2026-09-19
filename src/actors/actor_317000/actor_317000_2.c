@@ -25,7 +25,7 @@ void func_actor_317000_8016267C(Task* arg0)
 {
     Actor317000Work* work;
 
-    work = Mem_Calloc(sizeof(Actor317000Work), false);
+    work = memCalloc(sizeof(Actor317000Work), false);
     if (work == NULL) {
         Gp_EnemyTaskExit(arg0);
         return;

@@ -732,7 +732,7 @@ void func_actor_342000_8016382C(Task* arg0)
     }
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor342000EventWork*)Mem_Calloc(0x80U, false);
+            alloc      = (Actor342000EventWork*)memCalloc(0x80U, false);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

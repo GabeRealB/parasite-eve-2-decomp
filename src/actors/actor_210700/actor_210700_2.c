@@ -33,7 +33,7 @@ void func_actor_210700_80149F90(Task* task)
     VECTOR3                  pos;
 
     extra = (TmdObject*)task->extra;
-    work  = (Actor210700Work*)Mem_Calloc(0x540, 0);
+    work  = (Actor210700Work*)memCalloc(0x540, 0);
     if (work == NULL) {
         Gp_EnemyTaskExit(task);
         return;

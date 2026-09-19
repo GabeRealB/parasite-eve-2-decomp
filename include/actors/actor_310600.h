@@ -12,7 +12,7 @@
 #include "main/task.h"
 
 /// 0x538-byte work block `func_actor_310600_80161E64` allocates with
-/// `Mem_Calloc` and hangs off `Task::work`. The display node at `obj` is
+/// `memCalloc` and hangs off `Task::work`. The display node at `obj` is
 /// linked by `Gp_LinkObj` at spawn (its `ctx.recs` points at `rec`, the
 /// `GpRec18` table `Gp_InitRec18Table` fills) and unlinked again by the
 /// exit callback `func_actor_310600_80162A24`.

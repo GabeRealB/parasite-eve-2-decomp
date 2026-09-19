@@ -293,7 +293,7 @@ void func_hypervelocity_8011D830(Task* task)
     work->field_22 = (u16)work->field_22 + 1;
     switch (task->state) {
         case 0:
-            beam = Mem_Calloc(sizeof(HyperBeam), 0);
+            beam = memCalloc(sizeof(HyperBeam), 0);
             if (beam == NULL) {
                 work->field_22 = 0;
                 return;

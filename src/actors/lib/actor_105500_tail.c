@@ -115,7 +115,7 @@ void Actor05500_Fn03E34(GpEnemy* enemy, Task* task)
     coord       = ((TmdObject*)task->extra)->coords;
     parentWork  = (ActorsShared80135c4cParentWork*)parent->work;
     parentCoord = &parentObj->coords[4];
-    work        = Mem_Calloc(sizeof(*work), false);
+    work        = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;

@@ -9,7 +9,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Work block allocated by `func_actor_350700_80162404` (`Mem_Calloc(0x4C8)`)
+/// Work block allocated by `func_actor_350700_80162404` (`memCalloc(0x4C8)`)
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_350700_801624B4` republishes the two matrices
 /// onto `TmdObject::lightMtx` / `field_20`, the light/colour pair
@@ -94,7 +94,7 @@ typedef struct Actor350700MatWords {
 } Actor350700MatWords;
 STATIC_ASSERT_SIZEOF(Actor350700MatWords, 0x14);
 
-/// Work block allocated by `func_actor_350700_80162B30` (`Mem_Calloc(0x50C)`)
+/// Work block allocated by `func_actor_350700_80162B30` (`memCalloc(0x50C)`)
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here, just as with `Actor350700Work`. This is the parent
 /// actor's block, the same shape as `Actor335800MainWork`: the init seeds the

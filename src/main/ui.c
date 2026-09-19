@@ -1943,7 +1943,7 @@ UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0_, s32 arg1, s32 arg2, s32 arg3)
         task              = Task_SpawnFromTable(&sp.desc, (s32)obj, (s32)arg0, (s32)obj);
         dummy             = 1;
         if (task != NULL) {
-            obj = (UiObject*)Mem_Calloc(0x30, (s32)obj);
+            obj = (UiObject*)memCalloc(0x30, (s32)obj);
             if (obj != NULL) {
                 task->spawnArg2    = obj;
                 task->exitCallback = Ui_FreeAndKill;
@@ -2139,7 +2139,7 @@ UiObject* Ui_SpawnFromDesc(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3, UiO
     desc.arg.value = field_8;
     task           = Task_SpawnFromTable(&desc, (s32)obj, arg1, (s32)obj);
     if (task != NULL) {
-        obj = (UiObject*)Mem_Calloc(0x30, (s32)obj);
+        obj = (UiObject*)memCalloc(0x30, (s32)obj);
         if (obj != NULL) {
             task->spawnArg2    = obj;
             task->exitCallback = Ui_FreeAndKill;

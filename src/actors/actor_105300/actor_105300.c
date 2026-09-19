@@ -200,7 +200,7 @@ void func_actor_105300_80132BAC(GpEnemy* arg0, Task* arg1)
     obj   = arg1->extra;
     coord = obj->field_8;
     work  = (Actor05300Work*)arg1->parent->work;
-    part  = Mem_Calloc(0x48, 0);
+    part  = memCalloc(0x48, 0);
     if (part == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;

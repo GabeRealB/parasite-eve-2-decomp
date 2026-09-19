@@ -9,7 +9,7 @@
 #include "main/task.h"
 
 /// Work block this overlay hangs off its task's `Task::work` slot (0x1C).
-/// `ActorsShared80131e24Sub0` allocates it with `Mem_Calloc(0x4F8, 0)`, and
+/// `ActorsShared80131e24Sub0` allocates it with `memCalloc(0x4F8, 0)`, and
 /// the size below is that allocation. `light` / `color` go to the object's
 /// `field_1C` / `field_20`; `anim`, `slots` and `field_374` are what
 /// `func_800B3F84` fills in.

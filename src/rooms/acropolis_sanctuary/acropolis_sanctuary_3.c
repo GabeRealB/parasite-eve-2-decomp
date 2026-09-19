@@ -99,7 +99,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
     switch (state) {
         case 0:
             if (D_80114C12 != 1 && D_80071075 == 0) {
-                work       = Mem_Calloc(0xC, 0);
+                work       = memCalloc(0xC, 0);
                 arg0->work = (TaskIdMap*)work;
                 if (work == NULL) {
                     taskKill(arg0);

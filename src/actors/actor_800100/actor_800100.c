@@ -257,7 +257,7 @@ void func_actor_800100_801624F0(Task* task)
     work->field_22 = (u16)work->field_22 + 1;
     switch (task->state) {
         case 0:
-            beam = Mem_Calloc(sizeof(Actor800100Beam), 0);
+            beam = memCalloc(sizeof(Actor800100Beam), 0);
             if (beam == NULL) {
                 work->field_22 = 0;
                 return;

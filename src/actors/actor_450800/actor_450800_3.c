@@ -116,7 +116,7 @@ s32 func_actor_450800_80132D74(Task* task, s32 arg1, VECTOR* target, s32 mode)
 /// across the first call, which costs a callee-saved register and grows the
 /// frame; `SOFT_BARRIER()` keeps each materialization next to its own call and
 /// `TOUCH_REG` makes the second a fresh computation. The `mem` / `work` pair is
-/// the same kind of pin on the `Mem_Calloc` result: the ROM keeps a short-lived
+/// the same kind of pin on the `memCalloc` result: the ROM keeps a short-lived
 /// copy for the `work` store, the NULL test and `field_4BC`, and a longer-lived
 /// one for everything after.
 void func_actor_450800_80132E9C(void* enemyArg, Task* task)
@@ -140,7 +140,7 @@ void func_actor_450800_80132E9C(void* enemyArg, Task* task)
 
     obj        = task->extra;
     coord      = obj->coords;
-    mem        = (Actor450800SpawnWork*)Mem_Calloc(0x4C0, false);
+    mem        = (Actor450800SpawnWork*)memCalloc(0x4C0, false);
     work       = mem;
     task->work = (TaskIdMap*)mem;
     if (mem == NULL) {

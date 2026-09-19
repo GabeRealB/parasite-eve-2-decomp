@@ -102,7 +102,7 @@ void func_actor_107600_80131F10(Task* arg0)
         Gp_DestroyEnemy(enemy, arg0);
         return;
     }
-    work       = Mem_Calloc(0x14C, false);
+    work       = memCalloc(0x14C, false);
     arg0->work = (TaskIdMap*)work;
     if (work == NULL) {
         goto fail;
@@ -619,7 +619,7 @@ void func_actor_107600_80132ED0(Task* arg0)
     variant = *(u8*)&arg0->spawnArg1;
     enemy   = arg0->spawnArg2;
     coord   = obj->coords;
-    if (variant == 0xFF || (work = (Actor107600Work*)Mem_Calloc(0x16C, false), arg0->work = (TaskIdMap*)work, work == NULL)) {
+    if (variant == 0xFF || (work = (Actor107600Work*)memCalloc(0x16C, false), arg0->work = (TaskIdMap*)work, work == NULL)) {
         Gp_DestroyEnemy(enemy, arg0);
         return;
     }

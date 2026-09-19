@@ -104,7 +104,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 mem->field_22 = (u16)mem->field_22 - 1;
                 return;
             }
-            work = Mem_Calloc(0x58, 0);
+            work = memCalloc(0x58, 0);
             if (work == NULL) {
                 mem->field_22 = 0;
                 return;

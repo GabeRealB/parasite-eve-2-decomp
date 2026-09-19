@@ -620,7 +620,7 @@ void func_actor_400600_80133434(Task* arg0)
     model      = (TmdObject*)arg0->extra;
     enemy      = (GpEnemy*)arg0->spawnArg2;
     coord      = model->coords;
-    arg0->work = Mem_Calloc(0x770U, false);
+    arg0->work = memCalloc(0x770U, false);
     work       = (Actor400600Work*)arg0->work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, arg0);

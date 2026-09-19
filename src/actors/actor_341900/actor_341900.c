@@ -551,7 +551,7 @@ void func_actor_341900_80162EFC(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            work       = (Actor341900Work*)Mem_Calloc(0x70U, false);
+            work       = (Actor341900Work*)memCalloc(0x70U, false);
             arg0->work = (TaskIdMap*)work;
             if (work == NULL) {
                 taskKill(arg0);

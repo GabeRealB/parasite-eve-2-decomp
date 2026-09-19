@@ -8,7 +8,7 @@
 
 /// Work block the motel lobby's examine task keeps at `Task::work` (0x1C) --
 /// that slot is *not* a `TaskIdMap` here. `func_dryfield_night_motel_lobby_80180E98`
-/// allocates it with `Mem_Calloc(0xA, 0)`, and every examine state reaches it
+/// allocates it with `memCalloc(0xA, 0)`, and every examine state reaches it
 /// with `(DnmlExamineWork*)task->work`.
 ///
 /// `promptKind` is the display mode `func_dryfield_night_motel_lobby_80180FD8`

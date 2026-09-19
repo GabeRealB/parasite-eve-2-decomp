@@ -36,7 +36,7 @@ void func_actor_202600_8014CE1C(GpEnemy* ctx, Task* actor)
 
     obj   = actor->extra;
     coord = obj->field_8;
-    work  = Mem_Calloc(sizeof(Actor202600Work), 0);
+    work  = memCalloc(sizeof(Actor202600Work), 0);
     if (work == NULL) {
         Gp_DestroyEnemy(ctx, actor);
         return;

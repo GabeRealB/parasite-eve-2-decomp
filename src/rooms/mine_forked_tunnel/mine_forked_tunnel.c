@@ -20,7 +20,7 @@ void func_mine_forked_tunnel_8017D5E8(Task* arg0)
     MineForkedTunnelWork* work;
     RoomPlacement         placement;
 
-    work = Mem_Calloc(0x48, 0);
+    work = memCalloc(0x48, 0);
     if (work == NULL) {
         Gp_EnemyTaskExit(arg0);
         return;

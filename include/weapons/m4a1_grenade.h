@@ -8,7 +8,7 @@
 #include "main/session.h"
 #include "main/task.h"
 
-/// 0xA0 work block the grenade's spawn state allocates with `Mem_Calloc` and
+/// 0xA0 work block the grenade's spawn state allocates with `memCalloc` and
 /// parks in `Task::work`. It leads with the two `GpObj` list nodes
 /// `WeaponsShared8011de24` hands back to `Gp_UnlinkObj` on teardown: `obj` is
 /// a `flags & 7 == 1` node whose `ctx.recs` is `rec0` directly, `obj2` is a

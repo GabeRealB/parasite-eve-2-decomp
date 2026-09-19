@@ -71,7 +71,7 @@ void Mem_Set(void* dest, u32 ch, u32 count)
 // NOLINTNEXTLINE
 extern u8* _freep;
 
-void* Mem_Calloc(size_t size, bool auxHeap)
+void* memCalloc(size_t size, bool auxHeap)
 {
     u32   i;
     void* ptr;

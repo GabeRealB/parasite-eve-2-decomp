@@ -148,7 +148,7 @@ void func_actor_444000_8013A1C4(GpEnemy* enemy, Actor444000Spinner* task)
         return;
     }
 
-    work           = Mem_Calloc(0xA0, 0);
+    work           = memCalloc(0xA0, 0);
     task->field_1C = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, (Task*)task);
@@ -685,7 +685,7 @@ void func_actor_444000_8013AFF8(GpEnemy* enemy, Actor444000* task)
     tmd   = (TmdObject*)task->extra;
     coord = tmd->coords;
 
-    work           = Mem_Calloc(0xF24, 0);
+    work           = memCalloc(0xF24, 0);
     task->field_1C = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, (Task*)task);

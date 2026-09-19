@@ -47,7 +47,7 @@ void func_actor_143000_801324C8(Task* arg0)
     u8               temp_a0;
 
     p    = D_actor_143000_80134580;
-    work = Mem_Calloc(0x1CU, false);
+    work = memCalloc(0x1CU, false);
     if (work == NULL) {
         taskKill(arg0);
         return;

@@ -49,7 +49,7 @@ void func_actor_303600_80162950(Task* task)
     GsCOORDINATE2*        parentCoord = parentObj->coords;
     Actor303600LightMats* mats;
 
-    mats = Mem_Calloc(0x44, 0);
+    mats = memCalloc(0x44, 0);
     if (mats == NULL) {
         taskKill(task);
         return;

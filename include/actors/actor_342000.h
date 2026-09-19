@@ -117,7 +117,7 @@ STATIC_ASSERT_SIZEOF(Actor342000Work, 0x2AC);
 /// Work block of the overlay's event/sequence task -- the one
 /// `D_actor_342000_80165070` points at.
 ///
-/// `func_actor_342000_8016382C` allocates it with `Mem_Calloc(0x80, 0)`,
+/// `func_actor_342000_8016382C` allocates it with `memCalloc(0x80, 0)`,
 /// `Mem_Set`s 0x80 bytes and stores it in that task's `Task::work` slot, so
 /// the size is anchored. The same function publishes its owning task in
 /// `D_actor_342000_80165070`, which is how the leaf helpers below reach it:

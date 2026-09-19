@@ -198,7 +198,7 @@ void func_actor_341300_80162878(Task* arg0)
     coord = ((TmdObject*)arg0->extra)->coords;
     switch (arg0->state) {
         case 0:
-            arg0->work = Mem_Calloc(0x30, 0);
+            arg0->work = memCalloc(0x30, 0);
             if (arg0->work == NULL) {
                 goto kill;
             }
@@ -356,7 +356,7 @@ void func_actor_341300_801631D4(Task* arg0)
     coord = ((TmdObject*)arg0->extra)->coords;
     switch (arg0->state) {
         case 0:
-            arg0->work = Mem_Calloc(0x30, 0);
+            arg0->work = memCalloc(0x30, 0);
             if (arg0->work == NULL) {
                 goto kill;
             }

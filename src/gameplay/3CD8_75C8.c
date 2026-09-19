@@ -635,7 +635,7 @@ void Gp_ScriptInit(Task* arg0)
     GpState34*   mem;
     GpScriptCmd* script;
 
-    mem = Mem_Calloc(0x34, 0);
+    mem = memCalloc(0x34, 0);
     if (mem == NULL) {
         taskKill(arg0);
         return;
@@ -849,7 +849,7 @@ void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2)
     s32        end;
 
     if (arg0 != 0) {
-        mem = Mem_Calloc(0xC, 0);
+        mem = memCalloc(0xC, 0);
         if (mem != NULL) {
             task = Task_Spawn(2, 0xC, 0, 0);
             if (task == NULL) {
@@ -876,7 +876,7 @@ void Gp_SpawnPadLerpScaled(s16 arg0, u8 arg1, u8 arg2, s16 arg3)
     s32        temp;
 
     if (arg0 != 0) {
-        mem = Mem_Calloc(0xC, 0);
+        mem = memCalloc(0xC, 0);
         if (mem != NULL) {
             task = Task_Spawn(2, 0xC, 0, 0);
             if (task == NULL) {
@@ -915,7 +915,7 @@ Task* Gp_SpawnScript18(s32 arg0, s32 arg1)
     Task*      task;
     GpState18* mem;
 
-    mem = Mem_Calloc(0x18, 0);
+    mem = memCalloc(0x18, 0);
     if (mem != NULL) {
         task = Task_Spawn(2, 0xD, 0, 0);
         if (task != NULL) {
@@ -965,7 +965,7 @@ Task* Gp_SpawnScript18Ex(s32 arg0, s32 arg1, s32 arg2)
     Task*      task;
     GpState18* mem;
 
-    mem = Mem_Calloc(0x18, 0);
+    mem = memCalloc(0x18, 0);
     if (mem != NULL) {
         task = Task_Spawn(2, 0xD, 0, 0);
         if (task != NULL) {

@@ -333,7 +333,7 @@ void func_actor_110600_80133550(Actor110600Walker* work, SVECTOR3* pos);
 
 /// Work block this overlay parks in the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. `func_actor_110600_80134AB4` allocates it
-/// with `Mem_Calloc(0xBEC, 0)`, so the size below is the allocation.
+/// with `memCalloc(0xBEC, 0)`, so the size below is the allocation.
 ///
 /// `field_0` is the state index `func_actor_110600_801387C0` writes. `field_4`
 /// is the live-actor flag `func_actor_110600_801388A4` tests, and

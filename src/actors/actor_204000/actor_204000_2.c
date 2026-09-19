@@ -50,7 +50,7 @@ void func_actor_204000_8014AED8(GpEnemy* arg0, Actor104000* arg1)
 
     obj            = arg1->field_2C;
     coord          = obj->field_8;
-    work           = Mem_Calloc(sizeof(Actor104000Work), 0);
+    work           = memCalloc(sizeof(Actor104000Work), 0);
     arg1->field_1C = work;
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, (Task*)arg1);

@@ -33,7 +33,7 @@ void RoomsShared8017fbf4(Task* task)
     TmdObject*               capModel = cap->extra;
     GsCOORDINATE2*           coord    = model->coords;
     GsCOORDINATE2*           capCoord = capModel->coords;
-    RoomsShared8017fbf4Work* work     = Mem_Calloc(0xC, 0);
+    RoomsShared8017fbf4Work* work     = memCalloc(0xC, 0);
     u16                      flags;
 
     if (work == NULL) {

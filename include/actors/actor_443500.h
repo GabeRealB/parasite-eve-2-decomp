@@ -17,7 +17,7 @@ typedef struct Actor443500Ctx {
     /* 0x08 */ u16  field_8;
 } Actor443500Ctx;
 
-/// Work block `func_actor_443500_80132078` `Mem_Calloc`s (0x4C4) and parks in
+/// Work block `func_actor_443500_80132078` `memCalloc`s (0x4C4) and parks in
 /// the task's `Task::work` slot (0x1C) -- that slot is not a `TaskIdMap`
 /// here, just as with `Actor335800Work` and the other sharers of
 /// `ActorsShared80132f24`. The spawn handler seeds the two `sb` bytes at

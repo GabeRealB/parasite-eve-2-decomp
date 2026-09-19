@@ -32,7 +32,7 @@ void func_dryfield_night_factory_8017D6F8(Task* task)
 
     obj   = (TmdObject*)task->extra;
     coord = obj->coords;
-    work  = Mem_Calloc(0x58, 0);
+    work  = memCalloc(0x58, 0);
     if (work == NULL) {
         taskKill(task);
         return;

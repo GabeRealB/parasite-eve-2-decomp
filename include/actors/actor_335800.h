@@ -10,7 +10,7 @@
 
 #include "gameplay/1BC.h"
 
-/// Work block allocated by `func_actor_335800_80163AA0` (`Mem_Calloc(0x4C8)`)
+/// Work block allocated by `func_actor_335800_80163AA0` (`memCalloc(0x4C8)`)
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_335800_80163B54` republishes the two matrices
 /// onto `TmdObject::lightMtx` / `field_20`, the light/colour pair
@@ -56,7 +56,7 @@ STATIC_ASSERT_SIZEOF(Actor335800Work, 0x4C8);
 /// `.rodata`, so the address comes from the per-overlay symbol map.
 extern VECTOR D_actor_335800_80161E78;
 
-/// Work block allocated by `func_actor_335800_80162640` (`Mem_Calloc(0x50C)`)
+/// Work block allocated by `func_actor_335800_80162640` (`memCalloc(0x50C)`)
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here, just as with `Actor335800Work`. This is the parent
 /// actor's block: the init seeds the two `sb` bytes at 0x475/0x476 and the

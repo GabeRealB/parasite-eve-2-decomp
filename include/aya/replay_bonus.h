@@ -32,7 +32,7 @@ extern s16 D_replay_bonus_8011926E;
 /// 0/1 selector for the double-buffer; toggled after each LoadImage.
 extern u16 D_replay_bonus_80119270;
 
-/// 16-byte MDEC stream context (`Mem_Calloc(0x10)`). Offset 0 is the VLC
+/// 16-byte MDEC stream context (`memCalloc(0x10)`). Offset 0 is the VLC
 /// table from `func_replay_bonus_80115C68`; `fileId` indexes `D_8006C338`;
 /// `x,y,w,h` is the VRAM destination (`x=0x280`, `w=0xF0`, `h=0xB0`,
 /// `y = (flip ^ 1) << 8`). Passed as spawnArg2 of the `D_replay_bonus_80118F6C`

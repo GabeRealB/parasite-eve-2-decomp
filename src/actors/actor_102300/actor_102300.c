@@ -651,7 +651,7 @@ void func_actor_102300_801346CC(GpEnemy* enemy, Actor102300* actor)
 
     obj   = actor->field_2C;
     coord = obj->coords;
-    work  = Mem_Calloc(0x6E4, 0);
+    work  = memCalloc(0x6E4, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, (Task*)actor);
         return;

@@ -418,7 +418,7 @@ void func_replay_bonus_80117A08(Task* arg0)
             D_replay_bonus_80119226        = 0;
             D_replay_bonus_80119227        = 0;
             D_replay_bonus_801192AC        = 0;
-            D_replay_bonus_801192BC        = Mem_Calloc(0x10U, false);
+            D_replay_bonus_801192BC        = memCalloc(0x10U, false);
             temp_v0                        = func_replay_bonus_80115C68();
             D_replay_bonus_80119228        = NULL;
             D_replay_bonus_80119225        = 0;

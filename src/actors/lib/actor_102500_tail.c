@@ -6,6 +6,7 @@
 #include "main/session.h"
 #include "main/gfx.h"
 #include "main/wipsys.h"
+#include "main/mem.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
@@ -18,17 +19,16 @@ extern s16 Actor02500_D05B58[];
 void Gp_AnimTickIndex(Actor02500Work* arg0, s32 arg1);
 void func_800B4114(Actor02500Work* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void* Mem_Calloc(s32 size, s32 arg1);
-void  Gp_DestroyEnemy(Actor02500Ctx* ctx, Actor02500* actor);
-void  func_800B3F84(Actor02500Work* arg0, void* arg1, Actor02500Obj2C* arg2, void* arg3,
-                    Actor02500AnimSlots* arg4);
-void  Gp_AnimResetSlot(Actor02500Work* arg0, s32 arg1, s32 arg2);
-void  Gp_IncStateF0Ref(s32 arg0);
-void  Gp_SetLightMode(Actor02500Ctx* arg0, s32 arg1);
-void  Gp_LinkObj(s32 arg0, GpObj* arg1);
-void  Gp_InitRec18Table(GpRec18* arg0, s32 arg1, s32 arg2);
-s32   Gp_PackPair(void* arg0, s32 arg1);
-void  Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+void Gp_DestroyEnemy(Actor02500Ctx* ctx, Actor02500* actor);
+void func_800B3F84(Actor02500Work* arg0, void* arg1, Actor02500Obj2C* arg2, void* arg3,
+                   Actor02500AnimSlots* arg4);
+void Gp_AnimResetSlot(Actor02500Work* arg0, s32 arg1, s32 arg2);
+void Gp_IncStateF0Ref(s32 arg0);
+void Gp_SetLightMode(Actor02500Ctx* arg0, s32 arg1);
+void Gp_LinkObj(s32 arg0, GpObj* arg1);
+void Gp_InitRec18Table(GpRec18* arg0, s32 arg1, s32 arg2);
+s32  Gp_PackPair(void* arg0, s32 arg1);
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 void Actor02500_Fn016FC(Actor02500* arg0)
 {
@@ -685,7 +685,7 @@ void Actor02500_Fn025D0(Actor02500Ctx* ctx, Actor02500* task)
 
     coord       = task->field_2C->field_8;
     parentCoord = task->parent->field_2C->field_8;
-    work        = Mem_Calloc(0x40, 0);
+    work        = memCalloc(0x40, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(ctx, task);
         return;

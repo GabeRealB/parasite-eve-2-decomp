@@ -10,7 +10,7 @@
 
 /// Work block this overlay hangs off its task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. This overlay's own
-/// `ActorsShared80131e24Sub0` allocates it with `Mem_Calloc(0x4C0, 0)` and
+/// `ActorsShared80131e24Sub0` allocates it with `memCalloc(0x4C0, 0)` and
 /// stores the result straight into that field, so the size below is the
 /// allocation and not a guess; the same routine parks the block's first matrix
 /// in the object's `field_1C` and the second in `field_20`, which is why the

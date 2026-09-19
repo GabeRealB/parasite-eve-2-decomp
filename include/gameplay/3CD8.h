@@ -220,7 +220,7 @@ typedef struct _GpScriptRec {
 } GpScriptRec;
 STATIC_ASSERT_SIZEOF(GpScriptRec, 4);
 
-/// 0x34-byte dual-script state allocated by `Gp_ScriptInit` (`Mem_Calloc(0x34, 0)`)
+/// 0x34-byte dual-script state allocated by `Gp_ScriptInit` (`memCalloc(0x34, 0)`)
 /// and stored on the owner task at +0x1C (`Task::work`).
 /// `field_10` / `field_11` are delay counters for scripts A / B.
 typedef struct _GpState34 {
@@ -245,7 +245,7 @@ typedef struct _GpState34 {
 STATIC_ASSERT_SIZEOF(GpState34, 0x34);
 
 /// 0xC-byte interpolator state allocated by `Gp_SpawnPadLerp` / `Gp_SpawnPadLerpScaled`
-/// (`Mem_Calloc(0xC, 0)`) and stored at `Task::work` for bank-2 type 0xC.
+/// (`memCalloc(0xC, 0)`) and stored at `Task::work` for bank-2 type 0xC.
 /// `field_8` is the duration; `field_4.as_s32` is start<<8; `field_0` is the
 /// per-frame step `((end<<8) - (start<<8)) / duration`.
 /// `Gp_PadLerpTask` posts `field_4.bytes.as_u8` (the 8-bit interpolator,
@@ -265,7 +265,7 @@ typedef struct _GpState0C {
 STATIC_ASSERT_SIZEOF(GpState0C, 0xC);
 
 /// 0x18-byte work block allocated by `Gp_SpawnScript18` / `Gp_SpawnScript18Ex`
-/// (`Mem_Calloc(0x18)`) and stored at `Task::work` for bank-2 type 0xD.
+/// (`memCalloc(0x18)`) and stored at `Task::work` for bank-2 type 0xD.
 /// `Gp_SpawnScript18` writes `field_0`/`field_4` from its args and clears
 /// `field_8`; `Gp_SpawnScript18Ex` writes all three. `Gp_DispatchScript18` indexes
 /// dispatch tables with `field_A` and `field_C`.
@@ -280,7 +280,7 @@ typedef struct _GpState18 {
 } GpState18;
 STATIC_ASSERT_SIZEOF(GpState18, 0x18);
 
-/// 0x1C-byte halfword state allocated by `Gp_InitState1C` (`Mem_Calloc(0x1C, 0)`)
+/// 0x1C-byte halfword state allocated by `Gp_InitState1C` (`memCalloc(0x1C, 0)`)
 /// and stored in `Gp_State1C` (also written to the owner task at +0x1C).
 /// `Gp_InitState1C` sets `field_6` to 1 and the rest to 0.
 typedef struct _GpState1C {
@@ -498,7 +498,7 @@ s32  func_800EA318(s16 arg0, s16 arg1, s16 arg2);
 void func_800EA3A0(s32 arg0);
 void Gp_DecRoomCoordRefs(void);
 void Gp_InitRoomCoords(void);
-/// Spawns a `GpState1C` effect task and its `GpEffWork` (`Mem_Calloc(0x2C)`).
+/// Spawns a `GpState1C` effect task and its `GpEffWork` (`memCalloc(0x2C)`).
 /// `arg0` packs the `Task_Spawn` bank in bits 16..30 and the type in the low
 /// 16 bits; a negative `arg0` bypasses the 0x80 live-effect cap in
 /// `GpState1C::field_0`. `arg1` is the parent coordinate (`NULL` = world):

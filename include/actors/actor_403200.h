@@ -91,7 +91,7 @@ STATIC_ASSERT_SIZEOF(Actor403200TurnScratch, 0xC);
 
 /// Per-actor state block for the `actor_403200` overlay.
 ///
-/// `func_actor_403200_80138AFC` allocates it with `Mem_Calloc(0xF24, 0)` and
+/// `func_actor_403200_80138AFC` allocates it with `memCalloc(0xF24, 0)` and
 /// stores the result in the `Task::work` slot (0x1C), which this enemy actor
 /// reuses for its own work block, so it is *not* a `TaskIdMap` here. Reach it
 /// with `(Actor403200Work*)task->work`. The size below is the allocation, not
@@ -305,7 +305,7 @@ typedef struct Actor403200Work {
 STATIC_ASSERT_SIZEOF(Actor403200Work, 0xF24);
 
 /// Work block of the enemy `func_actor_403200_8013669C` stands up: that state
-/// allocates it with `Mem_Calloc(0x1C0, 0)` and parks it in its task's
+/// allocates it with `memCalloc(0x1C0, 0)` and parks it in its task's
 /// `Task::work` slot, so the size below is the allocation, not a guess.
 ///
 /// The state drops the model onto the view coordinate and hangs two `GpObj`

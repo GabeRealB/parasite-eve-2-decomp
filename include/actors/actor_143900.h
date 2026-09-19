@@ -11,7 +11,7 @@
 /// Per-actor work block for the `actor_143900` overlay.
 ///
 /// The overlay's state-0 handler (`ActorsShared80131f9cSub0`, here at
-/// 0x80131E70) allocates it with `Mem_Calloc(0x4F0, 0)` and
+/// 0x80131E70) allocates it with `memCalloc(0x4F0, 0)` and
 /// stores the pointer both in `ActorsShared80131f9cWork` and in the task's
 /// 0x1C slot, so the size below is the allocation and not a guess. Every
 /// other function in the overlay reaches the block through the global.
@@ -48,8 +48,8 @@ extern Actor143900Work* ActorsShared80131f9cWork;
 
 /// The overlay's own variant publishes the task's work block here, the same
 /// pair of places `func_actor_143900_801328D4` fills in. It is not the block
-/// above: that one is the shared body's `Mem_Calloc(0x4F0, 0)`, while this
-/// variant allocates `Mem_Calloc(0x4F8, 0)` and keeps two helper tasks at
+/// above: that one is the shared body's `memCalloc(0x4F0, 0)`, while this
+/// variant allocates `memCalloc(0x4F8, 0)` and keeps two helper tasks at
 /// 0x4F0 / 0x4F4 - the `ActorsShared80132eccWork` shape, which is what the
 /// dispatcher here parks in the task's 0x1C slot.
 extern ActorsShared80132eccWork* D_actor_143900_801496C4;

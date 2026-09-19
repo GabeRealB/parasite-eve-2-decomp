@@ -306,7 +306,7 @@ void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
 
     obj   = task->extra;
     coord = obj->field_8;
-    work  = Mem_Calloc(sizeof(Actor00300MainWork), 0);
+    work  = memCalloc(sizeof(Actor00300MainWork), 0);
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
@@ -2020,7 +2020,7 @@ void Actor00300_Fn040A4(GpEnemy* arg0, Task* arg1)
     coord               = ((Actor100300Obj2C*)arg1->extra)->field_8;
     parentCoord         = ((Actor100300Obj2C*)parent->extra)->field_8;
     parentWork          = (Actor100300Work*)parent->work;
-    work                = Mem_Calloc(0x8C, 0);
+    work                = memCalloc(0x8C, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;

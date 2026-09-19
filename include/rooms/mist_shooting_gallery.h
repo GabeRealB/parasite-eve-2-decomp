@@ -9,7 +9,7 @@
 #include <psyq/libgte.h>
 
 /// Per-run state of the Mist shooting gallery mini-game: a 0x24-byte
-/// `Mem_Calloc` allocation that `func_mist_shooting_gallery_80182B1C` stores at
+/// `memCalloc` allocation that `func_mist_shooting_gallery_80182B1C` stores at
 /// `Task::work` of the gallery's controller task, which it also publishes in
 /// `D_mist_shooting_gallery_8018E0C4` so the round scripts can reach it without
 /// a task pointer. `difficulty` is seeded from the low nibble of the task's

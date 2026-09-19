@@ -48,7 +48,7 @@ void func_actor_213100_8014A118(Task* arg0)
     TmdObject*            ext;
     Task*                 child;
 
-    work = (Actor213100Work*)Mem_Calloc(0x488, 0);
+    work = (Actor213100Work*)memCalloc(0x488, 0);
     if (work == NULL) {
         Gp_EnemyTaskExit(arg0);
         return;

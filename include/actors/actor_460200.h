@@ -41,7 +41,7 @@ typedef struct Actor460200Work {
 STATIC_ASSERT_SIZEOF(Actor460200Work, 0x4F8);
 
 /// Work block of the actors whose spawn routine allocates it with
-/// `Mem_Calloc(0x4F8, 0)` and hangs it off `Task::work` (0x1C); the same
+/// `memCalloc(0x4F8, 0)` and hangs it off `Task::work` (0x1C); the same
 /// `Actor460200Work` prefix through `animArg`. Past that it diverges from the
 /// 0x4FC-sized carriers `Actor460200Work` describes, so only the one field
 /// this body reaches is described rather than a whole-block size that would
@@ -67,7 +67,7 @@ typedef struct Actor460200AnimArgs {
 } Actor460200AnimArgs;
 
 /// Work block of the paired variant whose spawn routine allocates it with
-/// `Mem_Calloc(0x4FC, 0)`: `light` / `color` go to the sub-model's
+/// `memCalloc(0x4FC, 0)`: `light` / `color` go to the sub-model's
 /// `TmdObject::lightMtx` / `field_20`, and `anim`, `slots` and `pose` are what
 /// `func_800B3F84` fills in. When `Task::spawnArg1` is set the routine spawns a
 /// partner enemy, reparents its own task under the partner's and parks that task

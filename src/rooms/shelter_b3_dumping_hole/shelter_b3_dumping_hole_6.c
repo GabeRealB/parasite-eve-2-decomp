@@ -204,7 +204,7 @@ void func_shelter_b3_dumping_hole_801836E0(DumpingHoleState* arg0)
         taskKill((Task*)arg0);
         return;
     }
-    work = Mem_Calloc(6, 0);
+    work = memCalloc(6, 0);
     if (work == NULL) {
         taskKill((Task*)arg0);
         return;
@@ -266,7 +266,7 @@ void func_shelter_b3_dumping_hole_801838A0(DumpingHoleState* arg0)
 
 void func_shelter_b3_dumping_hole_80183950(DumpingHoleState* arg0)
 {
-    DumpingHoleEntity* work = Mem_Calloc(8, 0);
+    DumpingHoleEntity* work = memCalloc(8, 0);
     if (work != NULL) {
         DumpingHoleTarget* enemy;
         arg0->field_1C = work;
@@ -315,7 +315,7 @@ void func_shelter_b3_dumping_hole_80183A98(DumpingHoleState* arg0)
 
 void func_shelter_b3_dumping_hole_80183AEC(DumpingHoleState* arg0)
 {
-    DumpingHoleEntity* work = Mem_Calloc(8, 0);
+    DumpingHoleEntity* work = memCalloc(8, 0);
     if (work != NULL) {
         DumpingHoleTarget* enemy;
         arg0->field_1C = work;

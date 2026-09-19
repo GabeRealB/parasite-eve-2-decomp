@@ -214,7 +214,7 @@ void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
     obj   = (TmdObject*)task->extra;
     coord = obj->coords;
     if ((GameFlag_GetNibble(0xA) & 2) ||
-        (work = Mem_Calloc(0x4CC, 0), task->work = (TaskIdMap*)work, work == NULL)) {
+        (work = memCalloc(0x4CC, 0), task->work = (TaskIdMap*)work, work == NULL)) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }

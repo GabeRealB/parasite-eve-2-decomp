@@ -964,7 +964,7 @@ void Actor00700_Fn01FE0(Actor00700Ctx* ctx, Actor00700* actor)
 
     obj   = (TmdObject*)actor->field_2C;
     coord = obj->coords;
-    work  = Mem_Calloc(0x2F4U, false);
+    work  = memCalloc(0x2F4U, false);
     if (work == NULL) {
         Gp_DestroyEnemy(ctx, actor);
         return;

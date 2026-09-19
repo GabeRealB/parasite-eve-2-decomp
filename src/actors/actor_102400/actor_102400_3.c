@@ -53,7 +53,7 @@ void func_actor_102400_801345B0(GpEnemy* arg0, Task* arg1)
     coord               = ((TmdObject*)arg1->extra)->coords;
     parentCoord         = ((TmdObject*)parent->extra)->coords;
     parentWork          = (ActorsShared801351d4Parent*)parent->work;
-    work                = Mem_Calloc(0xB4, 0);
+    work                = memCalloc(0xB4, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;

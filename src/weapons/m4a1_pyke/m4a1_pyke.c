@@ -290,7 +290,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
     work->field_22 = (u16)work->field_22 + 1;
     switch (task->state) {
         case 0:
-            beam = Mem_Calloc(sizeof(M4a1PykeBeam), 0);
+            beam = memCalloc(sizeof(M4a1PykeBeam), 0);
             if (beam == NULL) {
                 work->field_22 = 0;
                 return;

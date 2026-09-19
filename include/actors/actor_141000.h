@@ -18,7 +18,7 @@ typedef struct Actor141000Point {
     /* 0x4 */ byte pad_4[4];
 } Actor141000Point;
 
-/// Work block allocated by `func_actor_141000_8013392C` (`Mem_Calloc(0x4CC)`)
+/// Work block allocated by `func_actor_141000_8013392C` (`memCalloc(0x4CC)`)
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_141000_801339DC` republishes the two matrices
 /// onto `TmdObject::lightMtx` / `field_20`, the light/colour pair
@@ -80,7 +80,7 @@ extern VECTOR D_actor_141000_80131E68;
 /// states are `D_actor_141000_80131E30`, which spawns the actor and then drives
 /// its model through the four animation states at 0x80131E3C.
 ///
-/// `func_actor_141000_80132C7C` allocates it with `Mem_Calloc(0x10, 0)` and
+/// `func_actor_141000_80132C7C` allocates it with `memCalloc(0x10, 0)` and
 /// parks it in that task's `Task::work` slot, so the size below is the
 /// allocation and not a guess; the slot is not a `TaskIdMap` here.
 ///

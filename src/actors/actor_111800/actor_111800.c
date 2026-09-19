@@ -19,7 +19,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_111800/actor_111800", func_actor_111800_8
 /// and applies the nested area record matching id 0x13 through `Gp_SetTmdBytes`.
 ///
 /// The allocation is parked in `Task::work` and read back before it is used, so
-/// the first thing the block is named by is a reload: the `Mem_Calloc` result is
+/// the first thing the block is named by is a reload: the `memCalloc` result is
 /// stored straight from `$v0` and the failing branch tests that register, which
 /// is what leaves the surviving copy of it to be emitted *after* the branch --
 /// one declaration earlier and the copy lands before the test.
@@ -34,7 +34,7 @@ void func_actor_111800_80132390(Task* task)
 
     coord      = ((TmdObject*)task->extra)->coords;
     obj        = (TmdObject*)task->extra;
-    task->work = (TaskIdMap*)Mem_Calloc(0x498, false);
+    task->work = (TaskIdMap*)memCalloc(0x498, false);
     if (task->work == NULL) {
         taskKill(task);
         return;

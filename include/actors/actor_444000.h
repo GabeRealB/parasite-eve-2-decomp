@@ -43,7 +43,7 @@ STATIC_ASSERT_SIZEOF(Actor444000DropCoord, 0x50);
 /// at, reached through the `Task::work` slot (0x1C) rather than being a
 /// `TaskIdMap` here.
 ///
-/// `func_actor_444000_8013AFF8` allocates it with `Mem_Calloc(0xF24, 0)` and
+/// `func_actor_444000_8013AFF8` allocates it with `memCalloc(0xF24, 0)` and
 /// stores the result in that slot, so the size below is the allocation rather
 /// than a guess. `field_0` is the leading state word, which
 /// `func_actor_444000_80143D7C` reads with `lhu` and range-checks and the
@@ -234,7 +234,7 @@ STATIC_ASSERT_SIZEOF(Actor444000Work, 0xF24);
 /// `D_actor_444000_80161860` points at, which is a different and much smaller
 /// block than the enemy's `Actor444000Work` above.
 ///
-/// `func_actor_444000_80132358` allocates it with `Mem_Calloc(0x34, 0)`,
+/// `func_actor_444000_80132358` allocates it with `memCalloc(0x34, 0)`,
 /// `Mem_Set`s 0x34 bytes and parks it in that task's `Task::work` slot, so
 /// the size is anchored; the same function stores the `Game_GetPtrSlot(3)`
 /// task in `field_20` and publishes its owning task in
@@ -360,7 +360,7 @@ typedef struct Actor444000 {
 
 /// Work block of the overlay's *other* enemy, the one dispatched through
 /// `D_actor_444000_80131F30` rather than `D_actor_444000_80131E90`.
-/// `func_actor_444000_8013A1C4` allocates it with `Mem_Calloc(0xA0, 0)` and
+/// `func_actor_444000_8013A1C4` allocates it with `memCalloc(0xA0, 0)` and
 /// parks it in that task's `Task::work` slot, so the size is anchored rather
 /// than guessed. The two matrices are this instance's own light and colour
 /// matrices: the spawn state points the model object's `field_1C` / `field_20`
@@ -398,7 +398,7 @@ typedef struct Actor444000Spinner {
 
 /// Work block of the enemy dispatched through `D_actor_444000_80131F1C` -- the
 /// one that rises out of view and then slams back down onto the floor.
-/// `func_actor_444000_80139594` allocates it with `Mem_Calloc(0x1C0, 0)` and
+/// `func_actor_444000_80139594` allocates it with `memCalloc(0x1C0, 0)` and
 /// parks it in that task's `Task::work` slot, so the size is anchored rather
 /// than guessed.
 ///
@@ -462,7 +462,7 @@ typedef struct Actor444000Drop {
 /// Work block of the enemy dispatched through `D_actor_444000_80131EA8`, the
 /// one that seizes the player: its states install a scripted animation on the
 /// slot-3 task with message 0x3FF and cancel it again with message 0x3F1.
-/// `func_actor_444000_80137D4C` allocates it with `Mem_Calloc(0x1C0, 0)` and
+/// `func_actor_444000_80137D4C` allocates it with `memCalloc(0x1C0, 0)` and
 /// parks it in that task's `Task::work` slot, so the size is anchored rather
 /// than guessed.
 ///
@@ -528,7 +528,7 @@ typedef struct Actor444000Grab {
 
 /// Work block of the enemy dispatched through `D_actor_444000_80131F0C` --
 /// named for that table because the creature itself is not identified yet.
-/// `func_actor_444000_80138B94` allocates it with `Mem_Calloc(0x1C0, 0)` and
+/// `func_actor_444000_80138B94` allocates it with `memCalloc(0x1C0, 0)` and
 /// parks it in that task's `Task::work` slot, so the size is anchored rather
 /// than guessed.
 ///

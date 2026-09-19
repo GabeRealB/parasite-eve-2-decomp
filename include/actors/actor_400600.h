@@ -68,7 +68,7 @@ STATIC_ASSERT_SIZEOF(Actor400600Msg3F8, 0x18);
 
 /// Per-actor state block for the `actor_400600` overlay.
 ///
-/// `func_actor_400600_80133434` allocates it with `Mem_Calloc(0x770)` and
+/// `func_actor_400600_80133434` allocates it with `memCalloc(0x770)` and
 /// stores it in the `Task::work` slot (0x1C): an enemy actor reuses that
 /// pointer field for its own work block, so it is *not* a `TaskIdMap` here.
 /// Reach it with `(Actor400600Work*)task->work`.

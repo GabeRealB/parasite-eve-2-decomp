@@ -385,7 +385,7 @@ void func_actor_403600_80134288(Task* arg0)
 
     var_a2 = (Actor403600Work*)arg0->parent->work;
     if (arg0->state == 0) {
-        temp_v0 = Mem_Calloc(0x11C, false);
+        temp_v0 = memCalloc(0x11C, false);
         if (temp_v0 == NULL) {
             Task_CallExit(arg0);
             return;
@@ -486,7 +486,7 @@ void func_actor_403600_80135C28(Task* arg0)
         return;
     }
     if (arg0->state == 0) {
-        temp_v0_2 = Mem_Calloc(0xE8, 0);
+        temp_v0_2 = memCalloc(0xE8, 0);
         if (temp_v0_2 != NULL) {
             arg0->work          = (TaskIdMap*)temp_v0_2;
             temp_v0_2->field_E0 = 0;
@@ -2097,7 +2097,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
 
     temp_s2 = task->extra;
     temp_s0 = ACTOR_FIELD(temp_s2, void**, 8);
-    temp_v0 = Mem_Calloc(0x7B8, 0);
+    temp_v0 = memCalloc(0x7B8, 0);
     temp_s5 = temp_s0 + 0x50;
     if (temp_v0 == NULL) {
         Gp_DestroyEnemy(enemy, task);

@@ -221,7 +221,7 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
 
     obj        = task->extra;
     coord      = obj->coords;
-    task->work = (TaskIdMap*)(D_actor_461800_80143894 = Mem_Calloc(0x4F8, false));
+    task->work = (TaskIdMap*)(D_actor_461800_80143894 = memCalloc(0x4F8, false));
     if (D_actor_461800_80143894 == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;

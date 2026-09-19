@@ -204,7 +204,7 @@ void func_actor_503500_80132778(Task* task)
         rot->w3           = 0;
         rot->h4           = 0x1000;
         coord->flg        = 0;
-        work              = Mem_Calloc(0xC, false);
+        work              = memCalloc(0xC, false);
         if (work == NULL) {
             taskKill(task);
             return;

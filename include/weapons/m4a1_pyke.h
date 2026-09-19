@@ -7,7 +7,7 @@
 #include "gameplay/3A34.h"
 #include "main/session.h"
 
-/// 0x38 block the flying dart's spawn state allocates with `Mem_Calloc` and
+/// 0x38 block the flying dart's spawn state allocates with `memCalloc` and
 /// parks in `Task::work`. It leads with the `GpObj` list node
 /// `WeaponsShared8011e4ac` hands back to `Gp_UnlinkObj` on teardown; `rec` is
 /// the single-entry `GpRec18` collision table `obj.ctx.recs` points at, and its

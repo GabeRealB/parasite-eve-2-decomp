@@ -52,7 +52,7 @@ typedef struct Actor403900Spot {
 STATIC_ASSERT_SIZEOF(Actor403900Spot, 0x8);
 
 /// Per-instance work block the actor's task holds in the 0x1C slot of
-/// `Actor403900`, allocated with `Mem_Calloc(0x71C)` by the spawn handler
+/// `Actor403900`, allocated with `memCalloc(0x71C)` by the spawn handler
 /// `func_actor_403900_80137444`; the same shape the other enemy overlays give
 /// their work blocks.
 ///

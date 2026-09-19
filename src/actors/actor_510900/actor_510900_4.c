@@ -1744,7 +1744,7 @@ void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
     coord        = tmd->coords;
     parentCoords = ((TmdObject*)arg1->parent->extra)->coords;
     parentCoord  = &parentCoords[3];
-    work         = Mem_Calloc(sizeof(Actor510900ChildFx), false);
+    work         = memCalloc(sizeof(Actor510900ChildFx), false);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
@@ -2119,7 +2119,7 @@ void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task)
 
     tmd    = task->extra;
     coords = tmd->coords;
-    work   = Mem_Calloc(sizeof(Actor510900ChildAnim), 0);
+    work   = memCalloc(sizeof(Actor510900ChildAnim), 0);
     coord  = &coords[10];
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
@@ -2413,7 +2413,7 @@ void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
     Actor510900ChildWork*   work;
 
     coord = ((Actor510900Obj2C*)task->extra)->field_8;
-    work  = Mem_Calloc(sizeof(Actor510900ChildWork), false);
+    work  = memCalloc(sizeof(Actor510900ChildWork), false);
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;

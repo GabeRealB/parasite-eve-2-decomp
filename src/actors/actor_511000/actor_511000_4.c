@@ -380,7 +380,7 @@ void func_actor_511000_80133034(Task* task)
     TmdObject*       extra;
 
     extra = (TmdObject*)task->extra;
-    work  = (Actor511000Work*)Mem_Calloc(0x70, 0);
+    work  = (Actor511000Work*)memCalloc(0x70, 0);
     if (work == NULL) {
         taskKill(task);
         return;

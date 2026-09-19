@@ -17,7 +17,7 @@
 /// `gte_rtpt` as the retail build emits it: the full `rtpt` word.
 #define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
-/// 0x38 block `func_actor_800100_801624F0` allocates with `Mem_Calloc` when
+/// 0x38 block `func_actor_800100_801624F0` allocates with `memCalloc` when
 /// its task enters state 0 and stores at `Task::work`: the launched
 /// projectile's object plus its one-entry collision table, whose `field_0` is
 /// armed with 2. `obj.ctx.recs` points at `rec`, `obj.coord` at the task's

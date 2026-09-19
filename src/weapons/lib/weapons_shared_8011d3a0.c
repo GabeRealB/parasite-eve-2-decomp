@@ -40,7 +40,7 @@ void WeaponsShared8011d3a0(Task* arg0)
     idx      = ((u32)arg0->spawnArg1 >> 16) & 0xF;
     coord    = extra->coords;
     muzzle   = coord->sub;
-    work     = Mem_Calloc(sizeof(M4a1GrenadeWork), 0);
+    work     = memCalloc(sizeof(M4a1GrenadeWork), 0);
     vec      = blk;
     if (work == NULL) {
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;

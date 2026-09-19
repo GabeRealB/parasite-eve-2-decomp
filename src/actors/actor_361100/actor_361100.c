@@ -57,7 +57,7 @@ void func_actor_361100_80161E3C(Task* arg0)
         streamLeft &= ~7;
         writePtr    = D_8005C374 + D_8006D868;
         if (arg0->state == 0) {
-            state = Mem_Calloc(sizeof(Actor361100EffectState), false);
+            state = memCalloc(sizeof(Actor361100EffectState), false);
             if (state == NULL) {
                 Task_CallExit(arg0);
                 i = 0;
@@ -115,7 +115,7 @@ void func_actor_361100_801627D4(Task* task)
         }
         switch (task->state) {
             case 0:
-                aim = Mem_Calloc(sizeof(Actor361100HeadAim), false);
+                aim = memCalloc(sizeof(Actor361100HeadAim), false);
                 if (aim != NULL) {
                     task->work      = (TaskIdMap*)aim;
                     aim->yawLimit   = 0x300;

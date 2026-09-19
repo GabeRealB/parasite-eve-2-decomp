@@ -11,7 +11,7 @@
 #include "gameplay/1BC.h"
 
 /// Work block allocated by `func_actor_361100_80162D28` and
-/// `func_actor_361100_80163410` (`Mem_Calloc(0x4A4)`)
+/// `func_actor_361100_80163410` (`memCalloc(0x4A4)`)
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_361100_80162E04` and
 /// `func_actor_361100_801634B4` republish the two matrices
@@ -113,7 +113,7 @@ typedef struct Actor361100Coord {
 } Actor361100Coord;
 STATIC_ASSERT_SIZEOF(Actor361100Coord, 0x4C);
 
-/// State block `func_actor_361100_80161E3C` allocates with `Mem_Calloc(0xE8)`
+/// State block `func_actor_361100_80161E3C` allocates with `memCalloc(0xE8)`
 /// and parks in `Task::work` -- that slot is not a `TaskIdMap` here. The body
 /// seeds the two halfwords at `field_8E` / `field_E0` and then hands the block
 /// to the shared state tick and its coordinate upload, which this package calls

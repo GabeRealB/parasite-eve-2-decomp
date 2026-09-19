@@ -19,7 +19,7 @@ STATIC_ASSERT_SIZEOF(Actor342400Flags, 0x4);
 /// Per-actor state block for the `actor_342400` overlay's main enemy.
 ///
 /// `func_actor_342400_80163C58` and `func_actor_342400_80163E70` both allocate
-/// it with `Mem_Calloc(0x454, 0)` and store it in the `Task::work` slot
+/// it with `memCalloc(0x454, 0)` and store it in the `Task::work` slot
 /// (0x1C), so the size below is the allocation, not a guess: this actor reuses
 /// that pointer field for its own work block and it is *not* a `TaskIdMap`
 /// here. Reach it with `(Actor342400Work*)task->work`.
@@ -142,7 +142,7 @@ STATIC_ASSERT_SIZEOF(Actor342400Limit, 0x4);
 
 /// Work block of the child task handled by `func_actor_342400_80163178`,
 /// stored in its `Task::work` slot; it is killed once `field_A` reaches 3.
-/// `func_actor_342400_80162084` allocates it (`Mem_Calloc(0xC, 0)`) and
+/// `func_actor_342400_80162084` allocates it (`memCalloc(0xC, 0)`) and
 /// spawns the two enemies it holds.
 typedef struct Actor342400ChildWork {
     /* 0x0 */ GpEnemy* enemy0;
@@ -153,7 +153,7 @@ typedef struct Actor342400ChildWork {
 STATIC_ASSERT_SIZEOF(Actor342400ChildWork, 0xC);
 
 /// Work block of the controller task set up by `func_actor_342400_801628F0`
-/// (`Mem_Calloc(6, 0)`, stored in its `Task::work` slot).
+/// (`memCalloc(6, 0)`, stored in its `Task::work` slot).
 /// `func_actor_342400_80162A34` counts `field_0` up to 15 before arming
 /// `Gp_StateF0`.
 typedef struct Actor342400CtrlWork {
@@ -164,7 +164,7 @@ typedef struct Actor342400CtrlWork {
 STATIC_ASSERT_SIZEOF(Actor342400CtrlWork, 0x6);
 
 /// Work block of the spawner task set up by `func_actor_342400_80162B60`
-/// (`Mem_Calloc(8, 0)`, stored in its `Task::work` slot); holds the enemy it
+/// (`memCalloc(8, 0)`, stored in its `Task::work` slot); holds the enemy it
 /// spawned from `D_actor_342400_80173A54`. `func_actor_342400_80162C10`
 /// counts `field_4` up past 60 before releasing the enemy.
 typedef struct Actor342400SpawnWork {

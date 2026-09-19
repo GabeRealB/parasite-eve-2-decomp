@@ -16,7 +16,7 @@
 #include "gameplay/3FB8.h"
 
 /// Work block allocated by `func_actor_503500_80132430`
-/// (`Mem_Calloc(0x48)`) and parked in that task's `Task::work` slot.
+/// (`memCalloc(0x48)`) and parked in that task's `Task::work` slot.
 /// `func_actor_503500_801324EC` republishes the two matrices onto
 /// `TmdObject::lightMtx` / `field_20` -- the colour/light matrix pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`
@@ -81,7 +81,7 @@ typedef struct Actor503500MsgPos {
 } Actor503500MsgPos;
 STATIC_ASSERT_SIZEOF(Actor503500MsgPos, 0x18);
 
-/// Work block `func_actor_503500_80132778` allocates (`Mem_Calloc(0xC)`) and
+/// Work block `func_actor_503500_80132778` allocates (`memCalloc(0xC)`) and
 /// parks in `Task::work`. Each spawn packs `field_0 & 0xFFF` and
 /// `field_4 & 0xF000` into the `Gp_SpawnEff` argument; `field_8` is a 16.16
 /// period whose integer half is the `Task::killCountdown` limit between
@@ -555,7 +555,7 @@ typedef struct Actor503500Work2EC {
 STATIC_ASSERT_SIZEOF(Actor503500Work2EC, 0x2EC);
 
 /// Work block shape of the `actor_503500` effect tasks -- the ones whose
-/// state-0 init `Mem_Calloc`s the block instead of pointing `Task::work` at a
+/// state-0 init `memCalloc`s the block instead of pointing `Task::work` at a
 /// static global: `func_actor_503500_80144300` (0xC0),
 /// `func_actor_503500_801448E8` (0xB4), `func_actor_503500_80144E8C` (0xD0),
 /// `func_actor_503500_801455A4` (0x44), `func_actor_503500_80145A2C` (0xAC)
@@ -591,7 +591,7 @@ STATIC_ASSERT_SIZEOF(Actor503500Work44, 0x44);
 /// `GpRec18` table that `Gp_InitRec18Table(_, 4, 0)` zeroes at 0x38. Like
 /// `Actor503500ObjWork` this type stops where the two blocks stop agreeing:
 /// `func_actor_503500_80144E8C` allocates 0xD0 and `func_actor_503500_80145A2C`
-/// allocates 0xAC, both with `Mem_Calloc(_, 0)`.
+/// allocates 0xAC, both with `memCalloc(_, 0)`.
 typedef struct Actor503500WorkRec4 {
     /* 0x00 */ GpObj        obj;
     /* 0x20 */ GpActorD4Rec d4;
@@ -898,7 +898,7 @@ typedef struct Actor503500Work774C0 {
 STATIC_ASSERT_SIZEOF(Actor503500Work774C0, 0xF0);
 
 /// The 0x4CC effect work block, allocated by `func_actor_503500_8014642C`
-/// (`Mem_Calloc(0x4CC)`) and parked in that task's `Task::work` slot -- that
+/// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot -- that
 /// slot is not a `TaskIdMap` here. Unlike the tasks covered by
 /// `Actor503500ObjWork` this one exits through `ActorsShared801327b4`, which
 /// only calls `Gp_EnemyTaskExit`, so the block does not open with a `GpObj`.

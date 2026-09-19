@@ -162,7 +162,7 @@ void func_energyball_8012F180(Task* arg0)
     mem->field_22 = (u16)mem->field_22 + 1;
     switch (arg0->state) {
         case 0:
-            work = Mem_Calloc(0x38, 0);
+            work = memCalloc(0x38, 0);
             if (work == NULL) {
                 mem->field_22 = 0;
                 return;

@@ -43,7 +43,7 @@ void RoomsShared8017d5f0(Task* task)
         taskKill(task);
         return;
     }
-    work = Mem_Calloc(sizeof(RoomMirrorWork), 0);
+    work = memCalloc(sizeof(RoomMirrorWork), 0);
     if (work == NULL) {
         taskKill(task);
         return;

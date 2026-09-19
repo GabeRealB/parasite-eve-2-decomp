@@ -158,7 +158,7 @@ void func_actor_403900_80137444(GpEnemy* arg0, Actor403900* arg1)
 
     obj   = arg1->field_2C;
     coord = obj->field_8;
-    work  = Mem_Calloc(0x71C, 0);
+    work  = memCalloc(0x71C, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;

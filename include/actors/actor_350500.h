@@ -8,7 +8,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Work block allocated by `func_actor_350500_801623CC` (`Mem_Calloc(0x4C8)`)
+/// Work block allocated by `func_actor_350500_801623CC` (`memCalloc(0x4C8)`)
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_350500_8016247C` republishes the two matrices
 /// onto `TmdObject::lightMtx` / `field_20`, the light/colour pair

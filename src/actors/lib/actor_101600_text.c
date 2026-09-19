@@ -25,7 +25,7 @@ void Actor01600_Fn001F4(Actor01600Ctx* ctx, Actor01600* actor)
 
     obj        = actor->field_2C;
     coord      = obj->coords;
-    work       = Mem_Calloc(0x558U, false);
+    work       = memCalloc(0x558U, false);
     next_coord = coord + 1;
     if (work == NULL) {
         Gp_DestroyEnemy(ctx, actor);

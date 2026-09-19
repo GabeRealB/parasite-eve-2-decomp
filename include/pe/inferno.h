@@ -10,7 +10,7 @@
 extern s32 D_inferno_801304F0[];
 
 /// 0xC jitter block `func_inferno_8012F530` hangs off `Task::work` via
-/// `Mem_Calloc(0xC)`. It is two parallel 6-byte columns, one per ring drawn
+/// `memCalloc(0xC)`. It is two parallel 6-byte columns, one per ring drawn
 /// by the pair of fan routines: `field_0[0][i]` seeds the inner ring's
 /// texture frame and `field_0[1][i]` the outer one. State 0 fills both with
 /// one walker, `p = &field_0[0][i]`, writing `p[0]` and `p[6]`.

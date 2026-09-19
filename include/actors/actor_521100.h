@@ -99,7 +99,7 @@ typedef struct Actor521100 {
     /* 0x2C */ Actor521100Obj2C*       field_2C;
 } Actor521100;
 
-/// Per-actor work block. `Mem_Calloc(0x4B4, 0)` in `func_actor_521100_80135DDC`
+/// Per-actor work block. `memCalloc(0x4B4, 0)` in `func_actor_521100_80135DDC`
 /// stores the pointer both in `D_actor_521100_8016A3D8` and in the task's
 /// 0x1C slot. `anim` sits at 0x40 and the slot array at 0x54, the same layout
 /// as `Actor202900Work`; the nineteen slots are the ones

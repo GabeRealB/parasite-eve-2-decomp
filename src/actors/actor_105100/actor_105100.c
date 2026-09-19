@@ -110,7 +110,7 @@ void func_actor_105100_801327B4(Actor105100Ctx* arg0, Actor105100* arg1)
 
     obj   = arg1->field_2C;
     coord = obj->field_8;
-    work  = Mem_Calloc(0x5C4, 0);
+    work  = memCalloc(0x5C4, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;

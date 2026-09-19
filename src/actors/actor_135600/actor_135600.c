@@ -185,7 +185,7 @@ void func_actor_135600_80132234(Task* task)
     Actor135600AnimPreset preset;
     GpAreaKey             key;
 
-    work = (Actor135600Work*)Mem_Calloc(0x50C, false);
+    work = (Actor135600Work*)memCalloc(0x50C, false);
     if (work == NULL) {
         Gp_EnemyTaskExit(task);
         return;

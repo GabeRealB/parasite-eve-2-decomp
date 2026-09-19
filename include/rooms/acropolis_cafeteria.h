@@ -11,7 +11,7 @@
 #include <psyq/libgte.h>
 
 /// 0xD8 work block the falling-debris task keeps at `Task::work`
-/// (`Mem_Calloc(0xD8)` in `func_acropolis_cafeteria_801818DC`, released by
+/// (`memCalloc(0xD8)` in `func_acropolis_cafeteria_801818DC`, released by
 /// `func_acropolis_cafeteria_80181E3C` through `Gp_UnlinkObj`).
 ///
 /// It opens with the `GpObj` list node linked onto `Gp_ObjLists[4]`, whose

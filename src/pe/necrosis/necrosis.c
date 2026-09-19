@@ -85,7 +85,7 @@ void func_necrosis_8012EF34(Task* arg0)
                 mem->field_22 = old;
                 return;
             }
-            work = Mem_Calloc(0x58, 0);
+            work = memCalloc(0x58, 0);
             if (work == NULL) {
                 mem->field_22 = 0;
                 return;

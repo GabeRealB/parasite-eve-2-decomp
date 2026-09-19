@@ -187,7 +187,7 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
 
     obj        = task->extra;
     coord      = obj->coords;
-    work       = Mem_Calloc(0x504, 0);
+    work       = memCalloc(0x504, 0);
     task->work = (TaskIdMap*)work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);

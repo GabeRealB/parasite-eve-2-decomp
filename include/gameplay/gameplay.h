@@ -232,7 +232,7 @@ STATIC_ASSERT_SIZEOF(GpStateBE8, 0x8);
 extern GpStateBE8 Gp_HpMpWork;
 
 /// +0xC overlay of the 0x30-byte record `Gp_InitPlayClock` allocates with
-/// `Mem_Calloc(0x30, 0)` and stores at `Task::work`. `Gp_ResetHudFx` is
+/// `memCalloc(0x30, 0)` and stores at `Task::work`. `Gp_ResetHudFx` is
 /// called with that pointer + 0xC; it writes `field_16 = -1` and clears
 /// `field_18`. `Gp_UseItemTask` clears `field_10` (word) and `field_E` (`sb`)
 /// on entry and reads `field_15` (`lb`) as a gate on the pad poll.
@@ -349,7 +349,7 @@ typedef struct {
 } GpCoordFromT;
 STATIC_ASSERT_SIZEOF(GpCoordFromT, 0x50);
 
-/// 0x60-byte spawnType-2 extra (`Mem_Calloc` in `Gp_AttachDisp2d`, fail string
+/// 0x60-byte spawnType-2 extra (`memCalloc` in `Gp_AttachDisp2d`, fail string
 /// `"new_disp_2d ----> NULL"`). Linked onto `gTmdDisp2dList`. `field_8` points at
 /// the embedded coord; `field_C` is stored as a word 1.
 typedef struct _GpDisp2d {

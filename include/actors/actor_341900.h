@@ -19,7 +19,7 @@ STATIC_ASSERT_SIZEOF(Actor341900MsgPos, 0x18);
 /// Work block of the overlay's sequence/event task -- the one
 /// `D_actor_341900_80164208` points at.
 ///
-/// `func_actor_341900_80162EFC` allocates it with `Mem_Calloc(0x70, 0)`,
+/// `func_actor_341900_80162EFC` allocates it with `memCalloc(0x70, 0)`,
 /// `Mem_Set`s the same 0x70 bytes over it and stores it in its own task's
 /// `Task::work` slot (0x1C), which is not a `TaskIdMap` here, then publishes
 /// that task in `D_actor_341900_80164208`. Every helper in unit

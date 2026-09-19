@@ -412,7 +412,7 @@ void func_actor_405800_801334B8(Task* arg0)
         Gp_DestroyEnemy(enemy, arg0);
         return;
     }
-    arg0->work = Mem_Calloc(0x89CU, false);
+    arg0->work = memCalloc(0x89CU, false);
     work       = (Actor405800Work*)arg0->work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, arg0);

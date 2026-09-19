@@ -55,7 +55,7 @@ void func_actor_143900_801328D4(GpEnemy* enemy, Task* task)
 
     obj                     = task->extra;
     coord                   = obj->coords;
-    work                    = Mem_Calloc(0x4F8, false);
+    work                    = memCalloc(0x4F8, false);
     D_actor_143900_801496C4 = work;
     task->work              = (TaskIdMap*)work;
     if (work == NULL) {

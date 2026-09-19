@@ -58,7 +58,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
     work  = (AobStreamWork*)task->work;
     switch (task->state) {
         case 0:
-            blk        = Mem_Calloc(0x14, 0);
+            blk        = memCalloc(0x14, 0);
             task->work = (TaskIdMap*)blk;
             if (blk == NULL) {
                 taskKill(task);
@@ -167,7 +167,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
     work  = (AobStreamWork*)task->work;
     switch (task->state) {
         case 0:
-            blk        = Mem_Calloc(0x14, 0);
+            blk        = memCalloc(0x14, 0);
             task->work = (TaskIdMap*)blk;
             if (blk == NULL) {
                 taskKill(task);

@@ -413,7 +413,7 @@ void func_actor_104900_80137C88(Task* task)
     s32              angle;
 
     coord = ((TmdObject*)task->extra)->coords;
-    work  = Mem_Calloc(0x58, 0);
+    work  = memCalloc(0x58, 0);
     if (work == NULL) {
         Task_CallExit(task);
         return;

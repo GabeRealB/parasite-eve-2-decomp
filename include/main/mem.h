@@ -49,14 +49,18 @@ void* Mem_Malloc(size_t size, bool auxHeap);
 
 /// Allocates a zeroed block of memory.
 ///
-/// Prior to allocating the data, it makes the heap it allocates from the
-/// active one. See `memSetActiveHeap` for more details.
+/// The block is zeroed before it is returned, so a caller can read any of its
+/// fields before writing them. A failed allocation is reported and `NULL` is
+/// returned.
+///
+/// An allocation is served from the active heap, so the heap `auxHeap` names is
+/// made the active one first; see `memSetActiveHeap`.
 ///
 /// @param size Number of bytes to allocate.
 /// @param auxHeap If `true`, the block is allocated from the auxiliary heap,
 ///                otherwise from the primary one.
 /// @return Allocated block or `NULL`.
-void* Mem_Calloc(size_t size, bool auxHeap);
+void* memCalloc(size_t size, bool auxHeap);
 
 /// Frees a block, returning it to the primary heap.
 ///

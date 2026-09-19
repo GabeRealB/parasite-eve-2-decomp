@@ -10,7 +10,7 @@
 #include <psyq/libgte.h>
 
 /// Scratch state of the task, stored at `Task::work`. The allocation below is
-/// `Mem_Calloc(4, 0)`, so the size is the allocation and not a guess.
+/// `memCalloc(4, 0)`, so the size is the allocation and not a guess.
 typedef struct {
     /* 0x0 */ s32 field_0;
 } RoomsShared8017daa4Work;
@@ -27,7 +27,7 @@ void RoomsShared8017daa4(Task* task)
 
     extra = (TmdObject*)task->extra;
     coord = extra->coords;
-    work  = (RoomsShared8017daa4Work*)Mem_Calloc(sizeof(RoomsShared8017daa4Work), 0);
+    work  = (RoomsShared8017daa4Work*)memCalloc(sizeof(RoomsShared8017daa4Work), 0);
     if (work == NULL) {
         taskKill(task);
         return;

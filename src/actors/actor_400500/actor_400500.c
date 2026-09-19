@@ -981,7 +981,7 @@ void func_actor_400500_80135414(Task* arg0)
     extra      = arg0->extra;
     enemy      = arg0->spawnArg2;
     coord      = extra->coords;
-    arg0->work = Mem_Calloc(0xA50, 0);
+    arg0->work = memCalloc(0xA50, 0);
     work       = (Actor400500Work*)arg0->work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, arg0);

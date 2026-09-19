@@ -792,7 +792,7 @@ void Actor01900_Fn02018(GpEnemy* enemy, Actor01900* actor)
 
     root            = actor->field_2C->coords;
     obj             = actor->field_2C;
-    work            = Mem_Calloc(0xC9C, 0);
+    work            = memCalloc(0xC9C, 0);
     actor->field_1C = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, (Task*)actor);

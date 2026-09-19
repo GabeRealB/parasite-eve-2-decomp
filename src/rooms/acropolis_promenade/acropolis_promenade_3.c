@@ -71,7 +71,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
     work  = (ApmStreamWork*)task->work;
     switch (task->state) {
         case 0:
-            blk        = Mem_Calloc(0x14, 0);
+            blk        = memCalloc(0x14, 0);
             task->work = (TaskIdMap*)blk;
             if (blk == NULL) {
                 taskKill(task);

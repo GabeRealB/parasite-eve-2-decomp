@@ -480,7 +480,7 @@ void func_actor_503500_801455A4(Task* arg0)
     s32                pan;
 
     coord = ((TmdObject*)arg0->extra)->coords;
-    work  = Mem_Calloc(sizeof(*work), false);
+    work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(arg0);
         return;
@@ -619,7 +619,7 @@ void func_actor_503500_80145A2C(Task* arg0)
     s32                pan2;
 
     coord = ((TmdObject*)arg0->extra)->coords;
-    work  = Mem_Calloc(sizeof(*work), false);
+    work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(arg0);
         return;
@@ -922,7 +922,7 @@ void func_actor_503500_8014642C(Actor503500* arg0)
     enemy = arg0->field_20;
     coord = arg0->extra->coords;
 
-    work = Mem_Calloc(sizeof(Actor503500Effect4CC), false);
+    work = memCalloc(sizeof(Actor503500Effect4CC), false);
     if (work == NULL) {
         Gp_EnemyTaskExit((Task*)arg0);
         return;

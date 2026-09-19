@@ -17,7 +17,7 @@ Task* Task_SpawnFromDesc(TaskDesc* desc, s32 arg1, s32 arg2, TaskNode* list)
     register Task* curr asm("a3");
     TaskNode**     link;
 
-    task = Mem_Calloc(0x48, 0);
+    task = memCalloc(0x48, 0);
     if (task == NULL) {
         return NULL;
     }

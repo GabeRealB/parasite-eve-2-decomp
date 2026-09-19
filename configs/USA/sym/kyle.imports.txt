@@ -8,7 +8,7 @@
 // --- from main (10 symbols)
 taskKill = 0x8002CCB8; // absolute:True
 Mem_Set = 0x8002D894; // absolute:True
-Mem_Calloc = 0x8002D978; // absolute:True
+memCalloc = 0x8002D978; // absolute:True
 Gfx_MatrixCol2 = 0x8003C768; // absolute:True
 Gfx_RotMatrixX = 0x8003C788; // absolute:True
 VectorNormalSS = 0x8003D5D8; // absolute:True

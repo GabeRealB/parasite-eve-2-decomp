@@ -408,7 +408,7 @@ void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
         size           = size + 1;
         size           = size << 7;
         work->field_20 = size;
-        mem            = Mem_Calloc(size, 0);
+        mem            = memCalloc(size, 0);
         if (mem != 0) {
             work->field_18 = (s32)mem;
             if (work->field_24 == nine) {

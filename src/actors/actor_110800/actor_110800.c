@@ -16,7 +16,7 @@
 /// publish it, and hand the model's animation context its slot array.
 ///
 /// Every access to the block goes through `ActorsShared80131f9cWork` rather
-/// than the `Mem_Calloc` result, which is why the pointer is reloaded at each
+/// than the `memCalloc` result, which is why the pointer is reloaded at each
 /// use instead of staying in a callee-saved register. `task->msgTable` takes
 /// the message table the step-1 handler leaves behind.
 ///
@@ -31,7 +31,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
 
     obj                      = task->extra;
     coord                    = obj->coords;
-    work                     = Mem_Calloc(0x55C, 0);
+    work                     = memCalloc(0x55C, 0);
     ActorsShared80131f9cWork = work;
     task->work               = work;
     if (work == NULL) {

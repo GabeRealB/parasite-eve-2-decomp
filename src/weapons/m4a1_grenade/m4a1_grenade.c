@@ -186,7 +186,7 @@ void func_m4a1_grenade_8011D654(Task* arg0)
     blk      = (SVECTOR*)(head - 0x28);
     *scratch = blk;
     muzzle   = coord->sub;
-    work     = Mem_Calloc(sizeof(M4a1GrenadeWork), 0);
+    work     = memCalloc(sizeof(M4a1GrenadeWork), 0);
     vec      = blk;
     if (work == NULL) {
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;

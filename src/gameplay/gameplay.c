@@ -1047,7 +1047,7 @@ void* Gp_AttachDisp2d(Task* task)
     s32                     one;
     register GpDisp2dCoord* coord asm("v1");
 
-    node  = Mem_Calloc(0x60, 0);
+    node  = memCalloc(0x60, 0);
     coord = &node->coord;
     if (node != NULL) {
         node->field_C           = 1;
@@ -4591,7 +4591,7 @@ void Gp_InitPlayClock(Task* task)
 
     Gp_UpdatePadInput();
     gGameSession->field_5E = 1;
-    rec                    = Mem_Calloc(0x30, 0);
+    rec                    = memCalloc(0x30, 0);
     if (rec == NULL) {
         taskKill(task);
         return;
@@ -9139,7 +9139,7 @@ s32 Gp_SpawnViewCoordTask(GsCOORDINATE2* arg0, VECTOR* arg1)
     if (task == NULL) {
         return 0;
     }
-    pos = Mem_Calloc(sizeof(VECTOR), 0);
+    pos = memCalloc(sizeof(VECTOR), 0);
     if (pos == NULL) {
         taskKill(task);
         return 0;

@@ -1063,7 +1063,7 @@ void func_actor_105700_80134FDC(GpEnemy* arg0, Task* arg1)
     coord       = tmd->coords;
     parent      = arg1->parent;
     parentCoord = ((TmdObject*)parent->extra)->coords;
-    work        = Mem_Calloc(0xF0, false);
+    work        = memCalloc(0xF0, false);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;

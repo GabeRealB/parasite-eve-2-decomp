@@ -27,7 +27,7 @@ STATIC_ASSERT_SIZEOF(AcropolisFireEscapeEvt, 0x18);
 extern AcropolisFireEscapeEvt D_acropolis_fire_escape_80183048;
 
 /// Work block the "Play Data" weapon / PE list tasks allocate at
-/// `Task::work` (`Mem_Calloc(0xC4)`). `ids` holds the item / PE ids the list
+/// `Task::work` (`memCalloc(0xC4)`). `ids` holds the item / PE ids the list
 /// shows, sorted by use count; `bars` is the per-row bar length and `vals` the
 /// scaled use count. `func_acropolis_fire_escape_8017E298` fills it for the
 /// weapon list and `func_acropolis_fire_escape_8017E594` for the PE list.

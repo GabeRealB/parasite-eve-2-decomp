@@ -83,7 +83,7 @@ void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
 
     obj   = (TmdObject*)arg1->extra;
     coord = obj->coords;
-    work  = Mem_Calloc(0x2F4U, false);
+    work  = memCalloc(0x2F4U, false);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
@@ -738,7 +738,7 @@ void func_actor_300700_80163510(GpEnemy* arg0, Task* arg1)
 
     obj   = (TmdObject*)arg1->extra;
     coord = obj->coords;
-    work  = Mem_Calloc(0x39CU, false);
+    work  = memCalloc(0x39CU, false);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;

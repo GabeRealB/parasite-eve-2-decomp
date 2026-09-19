@@ -83,7 +83,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
             if (D_80114C12 == 1 || D_80071075 != 0) {
                 return;
             }
-            blk        = Mem_Calloc(8, 0);
+            blk        = memCalloc(8, 0);
             temp       = (blk == NULL);
             task->work = (TaskIdMap*)blk;
             if (temp) {

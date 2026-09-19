@@ -15,7 +15,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
 
     obj        = ACTOR_FIELD(task, void**, 0x2C);
     coordFlags = ACTOR_FIELD(obj, s32**, 8);
-    work       = Mem_Calloc(0x480, false);
+    work       = memCalloc(0x480, false);
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;

@@ -137,7 +137,7 @@ void func_acropolis_bridge_8017E04C(Task* task)
     GpSprtRec*                 rec;
     s32                        view;
 
-    work = (AcropolisBridgePromptWork*)Mem_Calloc(0x10, 0);
+    work = (AcropolisBridgePromptWork*)memCalloc(0x10, 0);
     if (work == NULL) {
         Task_RequestKill(task, 0);
         return;

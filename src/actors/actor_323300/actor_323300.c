@@ -19,7 +19,7 @@ void func_actor_323300_80161E78(Task* arg0)
     TmdObject*       extra;
     GpObj*           obj;
 
-    if (GameFlag_GetNibble(0x60) != 0 || (work = Mem_Calloc(0x504, 0)) == NULL) {
+    if (GameFlag_GetNibble(0x60) != 0 || (work = memCalloc(0x504, 0)) == NULL) {
         Gp_EnemyTaskExit(arg0);
         return;
     }
@@ -407,7 +407,7 @@ void func_actor_323300_801634B0(Task* arg0)
     taskKill(arg0);
 }
 
-/// Splats an identity light/colour pair into the `Mem_Calloc(0x6B0)` work block
+/// Splats an identity light/colour pair into the `memCalloc(0x6B0)` work block
 /// `func_actor_323300_80162BE4` parked in `Task::work`, republishes them onto
 /// `TmdObject::lightMtx` / `field_20`, then re-derives model part 1's world
 /// matrix -- clearing its dirty flag, rebuilding it from its parent and

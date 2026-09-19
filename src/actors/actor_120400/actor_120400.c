@@ -38,7 +38,7 @@ void func_actor_120400_80131E5C(Task* arg0)
     u8*                  keyAddr;
     Task*                spawned;
 
-    work = (Actor120400MainWork*)Mem_Calloc(0x504, false);
+    work = (Actor120400MainWork*)memCalloc(0x504, false);
     if (work == NULL) {
         Gp_EnemyTaskExit(arg0);
         return;

@@ -11,7 +11,7 @@ extern TaskDesc   D_actor_303600_8016E468[];
 extern GpMsgEntry D_actor_303600_8016E480[];
 
 /// Spawn state of the overlay's rig controller: allocates the work block the
-/// later states read through `Task::work` (`Mem_Calloc(0x3C, 0)`, the struct's
+/// later states read through `Task::work` (`memCalloc(0x3C, 0)`, the struct's
 /// own size), clears the task's own root coordinate, then spawns the five child
 /// models -- one `Task_SpawnFromTable` of `D_actor_303600_8016E468` entry 1
 /// each, parked in `children` and spread 8000 apart in Y.  The spread reaches
@@ -29,7 +29,7 @@ void func_actor_303600_801626C0(Task* task)
     Task*               child;
     s32                 i;
 
-    work = Mem_Calloc(0x3C, 0);
+    work = memCalloc(0x3C, 0);
     if (work == NULL) {
         taskKill(task);
         return;

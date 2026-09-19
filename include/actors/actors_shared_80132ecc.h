@@ -10,7 +10,7 @@
 
 /// Work block the actors sharing this body hang off the task's `Task::work`
 /// slot (0x1C), which is not a `TaskIdMap` here. Each overlay's spawn routine
-/// allocates it with `Mem_Calloc(0x4F8, 0)` and stores it into that field, so
+/// allocates it with `memCalloc(0x4F8, 0)` and stores it into that field, so
 /// the size below is the allocation and not a guess.
 ///
 /// The head is the model bind, laid out as `Actor160600Work` keeps it and as

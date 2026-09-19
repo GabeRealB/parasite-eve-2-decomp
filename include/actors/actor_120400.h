@@ -9,7 +9,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Work block allocated by `func_actor_120400_80131E5C` (`Mem_Calloc(0x504)`)
+/// Work block allocated by `func_actor_120400_80131E5C` (`memCalloc(0x504)`)
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here, just as with `Actor335800MainWork` / `Actor350700MainWork`,
 /// which this body is a two-child copy of: the init seeds the two `sb` bytes at

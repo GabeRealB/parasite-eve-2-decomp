@@ -360,9 +360,10 @@ across the whole overlay.
 
 `arg0` is usually a `Task*` (`include/main/task.h`, 0x48); 0x1C/0x2C/0x30 are
 `idMap`/`extra`/`state`. Actors park their own work block in `idMap` and its
-size is pinned by a literal `Mem_Calloc`/`Mem_Malloc`/`Mem_Set` argument —
-`grep -B14 'jal.*Mem_' ` over the overlay's `.s`. Expect more than one
-allocator; overlays have had 1, 2, 4 and 12 distinct blocks. If none of your
+size is pinned by a literal `memCalloc`/`memMalloc`/`memSet` argument —
+`grep -B14 -iE 'jal.*mem' ` over the overlay's `.s` (the tree is mid-rename
+from the `Mem_Verb` spelling, hence the case-insensitive pattern). Expect more
+than one allocator; overlays have had 1, 2, 4 and 12 distinct blocks. If none of your
 functions dereferences `idMap`, record the anchor and do not invent a struct.
 
 Rooms differ: 80 of 168 allocate nothing at all, and the anchor is

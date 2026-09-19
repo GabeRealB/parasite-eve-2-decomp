@@ -43,7 +43,7 @@ void func_actor_511000_80132480(Task* task)
     u16               flags;
 
     extra = (TmdObject*)task->extra;
-    work  = (Actor511000Work2*)Mem_Calloc(0x4D4, 0);
+    work  = (Actor511000Work2*)memCalloc(0x4D4, 0);
     if (work == NULL) {
         Gp_EnemyTaskExit(task);
         return;

@@ -1119,7 +1119,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
 
     obj        = task->extra;
     coord      = obj->coords;
-    mem        = (Actor215100Work*)Mem_Calloc(0x4F8, false);
+    mem        = (Actor215100Work*)memCalloc(0x4F8, false);
     work       = (Actor215100Work*)mem;
     task->work = (TaskIdMap*)mem;
     if (mem == NULL) {

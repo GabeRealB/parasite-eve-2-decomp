@@ -15,7 +15,7 @@ void func_dryfield_night_factory_8018182C(Task* task)
     NightFactoryScriptWork* work;
     RoomHotspot*            hs;
 
-    work = Mem_Calloc(0x10, 0);
+    work = memCalloc(0x10, 0);
     if (work == NULL) {
         taskKill(task);
         return;

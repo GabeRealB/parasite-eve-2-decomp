@@ -32,7 +32,7 @@ void RoomsShared8017e8b4(Task* task)
         Ui_DrawText((UiPanel*)obj, RoomsShared8017e8b4PeTitle);
     }
     if (task->state == 0) {
-        work = Mem_Calloc(0xC4, 0);
+        work = memCalloc(0xC4, 0);
         if (work == NULL) {
             return;
         }

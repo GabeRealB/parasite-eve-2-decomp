@@ -7,7 +7,7 @@
 #include "gameplay/3A34.h"
 #include "main/task.h"
 
-/// Work block the spawn state allocates with `Mem_Calloc(0x58, 0)` and parks in
+/// Work block the spawn state allocates with `memCalloc(0x58, 0)` and parks in
 /// the `Task::work` slot (0x1C), which is not a `TaskIdMap` here. Only the
 /// fields the two state handlers touch are filled in: the `GpObj` at 0x08,
 /// whose `flags` carry the 0xC000 pair the spawn state ORs in and the per-frame

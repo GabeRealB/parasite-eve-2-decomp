@@ -104,7 +104,7 @@ void func_mine_mesa_8017E15C(Task* arg0)
         state = arg0->state;
         switch (state) {
             case 0:
-                aim = Mem_Calloc(sizeof(MineMesaHeadAim), false);
+                aim = memCalloc(sizeof(MineMesaHeadAim), false);
                 if (aim != NULL) {
                     arg0->work      = (TaskIdMap*)aim;
                     aim->yawLimit   = 0x300;
@@ -162,7 +162,7 @@ void func_mine_mesa_8017E2A4(Task* arg0)
         }
         switch (arg0->state) {
             case 0:
-                aim = Mem_Calloc(sizeof(MineMesaHeadAim), false);
+                aim = memCalloc(sizeof(MineMesaHeadAim), false);
                 if (aim != NULL) {
                     arg0->work      = (TaskIdMap*)aim;
                     aim->yawLimit   = 0x300;

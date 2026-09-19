@@ -341,7 +341,7 @@ Neither is proof, and how much weight to give one depends on how distinctive the
 size is. A size of 8, 16 or 32 coincides constantly: dozens of types declare
 each, and over fifty memory operations pass 8 as a literal. A distinctive size
 is worth much more. `0x4CC` is the useful kind: four separately named `…Work`
-types declare it, several actor overlays allocate with `Mem_Calloc(0x4CC, 0)`,
+types declare it, several actor overlays allocate with `memCalloc(0x4CC, 0)`,
 and one assigns the result to an `Actor113000Work*`. That corroborates the size
 and, at the same time, suggests the four types are one type named four times.
 
@@ -522,7 +522,7 @@ genuinely cannot be answered, so recording it and moving on is right.
 
 A later pass should replace literal sizes with `sizeof(T)` where a type is the
 right one, and give names to the remaining magic numbers. Beyond reading better,
-it converts a guess into something the build checks: `Mem_Calloc(sizeof(T), 0)`
+it converts a guess into something the build checks: `memCalloc(sizeof(T), 0)`
 only keeps matching while `T` really is that size, so a wrong size stops being
 invisible.
 

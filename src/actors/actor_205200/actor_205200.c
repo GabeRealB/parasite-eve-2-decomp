@@ -40,7 +40,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    work = Mem_Calloc(0x30, false);
+    work = memCalloc(0x30, false);
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
@@ -156,7 +156,7 @@ void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1)
 
     coord = ((TmdObject*)arg1->extra)->coords;
     pwork = (Actor205200Work*)arg1->parent->work;
-    part  = Mem_Calloc(0x7CU, false);
+    part  = memCalloc(0x7CU, false);
     if (part == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;

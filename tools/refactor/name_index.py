@@ -156,8 +156,12 @@ _ASSERT = re.compile(r"STATIC_ASSERT_SIZEOF\(\s*(\w+)\s*,\s*([^)]+)\)")
 # Any call that takes a byte count. A constant here that equals a type's
 # declared size is evidence for that size, because the number reaches the
 # instruction stream instead of living only in a declaration.
+# Both spellings of each helper are listed: the tree is migrating from the
+# old `Mem_Verb` form to `memVerb`, and a name that is no longer matched here
+# drops out of the size evidence silently.
 _MEMOP = re.compile(
-    r"\b(Mem_Set|Mem_Malloc|Mem_Calloc|Mem_CopyUnaligned|memcpy|memset|bcopy)\s*\(([^;]{0,200})\)")
+    r"\b(Mem_Set|memSet|Mem_Malloc|memMalloc|Mem_Calloc|memCalloc"
+    r"|Mem_CopyUnaligned|memCopyUnaligned|memcpy|memset|bcopy)\s*\(([^;]{0,200})\)")
 _NUM = re.compile(r"\b(0x[0-9A-Fa-f]+|\d+)\b")
 
 

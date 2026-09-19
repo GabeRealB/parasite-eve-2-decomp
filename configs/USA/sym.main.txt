@@ -813,7 +813,7 @@ Mem_CopyUnaligned               = 0x8002D7A8; // type:func
 //--- PA: 0x1E094   VA: 0x8002D894   subsegment: c, mem
 //--------------------------------------------------------------------
 Mem_Set                     = 0x8002D894; // type:func
-Mem_Calloc                  = 0x8002D978; // type:func
+memCalloc                  = 0x8002D978; // type:func
 memSetActiveHeap            = 0x8002DA90; // type:func
 Mem_Malloc                  = 0x8002DABC; // type:func
 memFree                    = 0x8002DB20; // type:func

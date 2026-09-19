@@ -78,7 +78,7 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, MineForkedTunnelMsg7D
 /// `func_mine_forked_tunnel_8017D5E8` registers.
 extern s32 D_mine_forked_tunnel_80181B8C;
 
-/// Per-task work block for the tunnel's enemy: a 0x48-byte `Mem_Calloc`
+/// Per-task work block for the tunnel's enemy: a 0x48-byte `memCalloc`
 /// allocation `func_mine_forked_tunnel_8017D5E8` stores at `Task::work`,
 /// seeding `field_44` to -1. The two leading matrices are the light and colour
 /// matrices `func_mine_forked_tunnel_8017DC70` republishes onto the task's

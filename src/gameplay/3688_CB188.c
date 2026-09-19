@@ -562,7 +562,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             slotSrc    = Gp_GetItemSlot(src);
             slotDst    = Gp_GetItemSlot(result);
             rec        = Gp_FindItemById(src);
-            newWork    = (GpUseCreateWork*)Mem_Calloc(0x14, 0);
+            newWork    = (GpUseCreateWork*)memCalloc(0x14, 0);
             scanInit   = &Mc_SaveData.field_5BC;
             arg1->work = (TaskIdMap*)newWork;
             Gp_RemoveItem(scanInit, (GpItemRec*)Gp_SelItemRec, 1);
@@ -1756,7 +1756,7 @@ void Gp_ItemMenuInit(UiObject* arg0, Task* arg1)
     s32   scale;
 
     Wip_UiHolder = (WipUiHolder*)arg0;
-    mem          = Mem_Calloc(4, 0);
+    mem          = memCalloc(4, 0);
     if (mem != NULL) {
         arg1->work = mem;
         if (gGameSession->cutsceneHold == 1) {

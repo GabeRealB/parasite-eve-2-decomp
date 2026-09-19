@@ -5,7 +5,7 @@
 #include "main/session.h"
 
 /// The 0x2F4-byte allocation `func_actor_300700_80161E80` makes with
-/// `Mem_Calloc` and stores in the task's work slot, then fills with the three
+/// `memCalloc` and stores in the task's work slot, then fills with the three
 /// `GpObj` render nodes (`Gp_LinkObj`, shapes 2/2/3) and their `GpRec18`
 /// tables. `Actor300700Work` is the wider view the tick handlers use of the
 /// same object.

@@ -19,7 +19,7 @@ typedef union Actor210600Rate {
 STATIC_ASSERT_SIZEOF(Actor210600Rate, 0x2);
 
 /// Per-actor state block for the `actor_210600` overlay. `func_actor_210600_8014B8C8`
-/// is the overlay's allocator: it calls `Mem_Calloc(0x8D8, 0)` and stores the
+/// is the overlay's allocator: it calls `memCalloc(0x8D8, 0)` and stores the
 /// result in `Task::work` (0x1C), which an enemy actor reuses for its own work
 /// block, so it is *not* a `TaskIdMap` here. The same function hands
 /// `work + 0x898` and `work + 0x8B8` to the task's own 0x1C / 0x20 slots. The

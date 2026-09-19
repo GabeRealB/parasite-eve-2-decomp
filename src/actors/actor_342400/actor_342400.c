@@ -15,7 +15,7 @@ void func_actor_342400_80162084(Task* arg0)
     Task*                 task;
     TmdObject*            obj;
 
-    work = Mem_Calloc(0xC, 0);
+    work = memCalloc(0xC, 0);
     if (work == NULL) {
         goto kill;
     }
@@ -239,7 +239,7 @@ void func_actor_342400_801628F0(Task* arg0)
     s32                  i;
 
     if ((u8)gGameSession->spawnPhase[1] == 2 || (u8)gGameSession->spawnPhase[0] == 0 ||
-        (work = Mem_Calloc(6, 0)) == NULL) {
+        (work = memCalloc(6, 0)) == NULL) {
         taskKill(arg0);
         return;
     }
@@ -305,7 +305,7 @@ void func_actor_342400_80162B60(Task* arg0)
     Actor342400SpawnWork* work;
     GpEnemy*              enemy;
 
-    work = Mem_Calloc(8, 0);
+    work = memCalloc(8, 0);
     if (work != NULL) {
         arg0->work = (TaskIdMap*)work;
         enemy      = Gp_SpawnEnemyFromTable(&D_actor_342400_80173A54, 1, 0, 0);
@@ -381,7 +381,7 @@ void func_actor_342400_80162DA0(Task* arg0)
     GpEnemy*              enemy;
     TmdObject*            obj;
 
-    work = Mem_Calloc(8, 0);
+    work = memCalloc(8, 0);
     if (work != NULL) {
         arg0->work = (TaskIdMap*)work;
         enemy      = Gp_SpawnEnemyFromTable(&D_801575F0, 2, 0, 0);

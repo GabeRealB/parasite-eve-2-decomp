@@ -78,7 +78,7 @@ void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
     TmdObject* obj = task->extra;
     void*      mem;
 
-    mem = Mem_Calloc(0x54, false);
+    mem = memCalloc(0x54, false);
     if (mem == NULL) {
         Gp_EnemyTaskExit(task);
         return;

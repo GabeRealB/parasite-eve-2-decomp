@@ -43,7 +43,7 @@ STATIC_ASSERT_SIZEOF(DbwWork, 0x14);
 
 /// 0x60 work block of the second task family in this room, also hung off
 /// `Task::work` (0x1C): `func_dryfield_breezeway_8017E464` allocates it with
-/// `Mem_Calloc(0x60, 0)` and parks the family's `GpMsgEntry[]`
+/// `memCalloc(0x60, 0)` and parks the family's `GpMsgEntry[]`
 /// (`D_dryfield_breezeway_80182DCC`, a single 0x13F1 entry) in
 /// `Task::msgTable`, which is what makes `Gp_DispatchMsg` route messages into
 /// this family at all. Reach the block with `(DbwEventWork*)task->work`.

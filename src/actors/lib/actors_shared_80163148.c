@@ -18,7 +18,7 @@ void ActorsShared80163148(Task* arg0)
     fade = (ActorsShared80163148Fade*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (ActorsShared80163148Fade*)Mem_Calloc(8, 0);
+            alloc      = (ActorsShared80163148Fade*)memCalloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

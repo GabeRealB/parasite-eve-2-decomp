@@ -7,7 +7,7 @@
 
 #include "gameplay/3A34.h"
 
-/// 0x2E4-byte work block the enemy's spawn function allocates with `Mem_Calloc`
+/// 0x2E4-byte work block the enemy's spawn function allocates with `memCalloc`
 /// and parks in the task's `Task::work` slot (that slot is not a `TaskIdMap`
 /// here). It embeds four `GpObj` list nodes, each followed by the `GpRec18`
 /// table `Gp_InitRec18Table` zeroes and the node's `ctx.recs` points at;

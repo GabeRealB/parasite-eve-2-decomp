@@ -523,7 +523,7 @@ void func_actor_403600_80141D30(GpEnemy* arg0, Task* arg1)
     MATRIX*          matrix2;
 
     coord = ((TmdObject*)arg1->extra)->coords;
-    work  = Mem_Calloc(sizeof(*work), false);
+    work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;

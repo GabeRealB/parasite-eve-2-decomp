@@ -61,7 +61,7 @@ void func_actor_107000_80136E88(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    work = Mem_Calloc(0x39CU, false);
+    work = memCalloc(0x39CU, false);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;

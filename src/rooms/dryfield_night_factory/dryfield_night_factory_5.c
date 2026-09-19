@@ -24,12 +24,12 @@ extern void Room_Util16(s32);
 /// `D_..._A7E0` / `D_..._A7E4` hold the address of whichever spawn table
 /// `func_dryfield_night_factory_80180438` selected for the current session
 /// (it stores `&D_..._80186E94` / `&D_..._80186E28` / ... into them), and
-/// `D_..._A7E8` points at the `Mem_Calloc(4, 0)` slot the spawned task is
+/// `D_..._A7E8` points at the `memCalloc(4, 0)` slot the spawned task is
 /// parked in. Both are read as values here, which is why the target loads
 /// them (`lw $a0, %lo(...)`) rather than forming `&symbol`.
 ///
 /// Room entry task tick: publish the room's message table in `Task::msgTable`
-/// and claim game pointer slot 7, then park the `Mem_Calloc` slot the poller
+/// and claim game pointer slot 7, then park the `memCalloc` slot the poller
 /// `func_dryfield_night_factory_8018076C` watches in it. Session variant
 /// `gGameSession::at4.loc.stage == 2` (the night factory) picks the larger spawn
 /// tables and the second progress-nibble interpretation; every other variant
@@ -39,7 +39,7 @@ extern void Room_Util16(s32);
 /// target keeps both copies of it.
 ///
 /// `slot` and the store to `D_..._A7E8` are one chained assignment on purpose:
-/// that makes GCC materialise the global's address ahead of `Mem_Calloc`, so
+/// that makes GCC materialise the global's address ahead of `memCalloc`, so
 /// the address quantity's live range spans the call. `local-alloc.c`'s
 /// `QTY_CMP_PRI` divides by the range length, which drops it below the
 /// `gGameSession` load quantity, and that load then wins `$v1` -- the target's
@@ -51,7 +51,7 @@ void func_dryfield_night_factory_80180438(Task* arg0)
 
     arg0->msgTable = D_dryfield_night_factory_80186E64;
     Game_SetPtrSlot(arg0, 7);
-    slot       = (D_dryfield_night_factory_8018A7E8 = Mem_Calloc(4, 0));
+    slot       = (D_dryfield_night_factory_8018A7E8 = memCalloc(4, 0));
     arg0->work = (TaskIdMap*)slot;
     if (gGameSession->at4.loc.stage == 2) {
         D_dryfield_night_factory_8018A7E4 = D_dryfield_night_factory_80186E28;

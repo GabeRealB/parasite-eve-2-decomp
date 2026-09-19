@@ -9,7 +9,7 @@
 /// Per-actor work block for the `actor_535700` overlay.
 ///
 /// The overlay's state-0 handler (`ActorsShared80131f9cSub0`, here at
-/// 0x80131FA0) allocates it with `Mem_Calloc(0x4C0, 0)` and stores it in
+/// 0x80131FA0) allocates it with `memCalloc(0x4C0, 0)` and stores it in
 /// `ActorsShared80131f9cWork`, so the size below is the allocation and not a
 /// guess. Every other function in the overlay reaches the block through that
 /// global. The block belongs to the `ActorsShared80131f9c` family, so its

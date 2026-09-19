@@ -4005,7 +4005,7 @@ void func_actor_503500_80144300(Task* arg0)
     s32                pan;
 
     coord = ((TmdObject*)arg0->extra)->coords;
-    work  = Mem_Calloc(sizeof(*work), false);
+    work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(arg0);
         return;
@@ -4193,7 +4193,7 @@ void func_actor_503500_801448E8(Task* arg0)
     s32                pan2;
 
     coord = ((TmdObject*)arg0->extra)->coords;
-    work  = Mem_Calloc(sizeof(*work), false);
+    work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(arg0);
         return;
@@ -4360,7 +4360,7 @@ void func_actor_503500_80144E8C(Task* arg0)
     s32                pan;
 
     coord = ((TmdObject*)arg0->extra)->coords;
-    work  = Mem_Calloc(sizeof(*work), false);
+    work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(arg0);
         return;

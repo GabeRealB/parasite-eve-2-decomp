@@ -686,7 +686,7 @@ GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent)
 {
     GpEnemy* enemy;
 
-    enemy = Mem_Calloc(0x60, 0);
+    enemy = memCalloc(0x60, 0);
     if (enemy == NULL) {
         printf(Gp_StrNewEnemyNull);
         taskKill(task);

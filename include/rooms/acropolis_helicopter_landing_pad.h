@@ -10,7 +10,7 @@
 #include <psyq/libgte.h>
 
 /// 0x54 work block of the helipad enemy task, hung off the `Task::work`
-/// slot -- it is the `Mem_Calloc(0x54)` block that
+/// slot -- it is the `memCalloc(0x54)` block that
 /// `func_acropolis_helicopter_landing_pad_8017D658` allocates, not a
 /// `TaskIdMap`. Reach it with `(AhlpEnemyWork*)task->work`.
 ///

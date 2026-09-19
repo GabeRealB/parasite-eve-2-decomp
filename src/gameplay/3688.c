@@ -2076,7 +2076,7 @@ void Gp_ItemListTask(Task* arg0)
     obj->field_2E = 0;
     if (arg0->state == 0) {
         Gp_ItemOrderMode = 0;
-        map              = Mem_Calloc(4, 0);
+        map              = memCalloc(4, 0);
         if (map == NULL) {
             Ui_TeardownTree(obj, arg0);
             return;
@@ -5052,7 +5052,7 @@ void Gp_EquipSummaryTask(Task* arg0)
     }
 
     if (arg0->state == 0) {
-        stored           = Mem_Calloc(4, 0);
+        stored           = memCalloc(4, 0);
         Gp_ItemCountShow = 1;
         arg0->work       = (TaskIdMap*)stored;
         *stored          = item;
