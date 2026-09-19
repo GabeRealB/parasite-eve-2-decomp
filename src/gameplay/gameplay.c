@@ -2245,20 +2245,18 @@ u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_8009B2F4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* gpXformStreamVertsOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
-    TmdScratchModelBlock* ws;
-    s32                   prev;
-    s32                   count;
-    u32                   idx;
-    u16*                  rec;
-    CVECTOR               col;
-    CVECTOR               col2;
-    u8*                   dest;
-    s32                   val;
-    s32                   inv;
+    s32     prev;
+    s32     count;
+    u32     idx;
+    u16*    rec;
+    CVECTOR col;
+    CVECTOR col2;
+    u8*     dest;
+    s32     val;
+    s32     inv;
 
-    ws = arg0;
     TOUCH_REG(ws);
     col    = gGpColorWhite;
     col2   = gGpColorGrey;
@@ -2272,13 +2270,13 @@ u32* func_8009B2F4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     col2.r = inv;
     count  = ws->elemCount;
     if (count == 0) {
-        return arg2;
+        return stream;
     }
     prev          = -1;
     ws->elemCount = count + prev;
     if (count > 0) {
         do {
-            rec = (u16*)arg2;
+            rec = (u16*)stream;
             idx = rec[0];
             if (idx != prev) {
                 gte_ldv0((u8*)ws->verts + (idx & 0xFFF8));
@@ -2288,7 +2286,7 @@ u32* func_8009B2F4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                 if (ws->gteFlag & 0x80000000) {
                     ws->gteResult |= 0x80000000;
                 }
-                ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;
+                ws->szTable[*(u16*)stream >> 3] = ws->gteResult;
             }
             prev = rec[0];
             dest = ws->preXformWrite + rec[2] + 4;
@@ -2305,10 +2303,10 @@ u32* func_8009B2F4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             gte_strgb(ws->preXformWrite + rec[3]);
             gte_rtv0_real();
             gte_stsv(&ws->elemNormal);
-            arg2 += ws->elemStride;
+            stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
     }
-    return arg2;
+    return stream;
 }
 
 u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)

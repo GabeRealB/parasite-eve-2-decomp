@@ -463,6 +463,34 @@ u32* tmdDrawStreamGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// its sign bit set, which is how those commands know the primitive cannot be
 /// drawn. The record has no variant for `flags` to select, so it goes unread.
 u32* tmdXformStreamVerts(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Handler of a stream's layered transform records (`0x40C8`): each element
+/// projects the vertex it names into one corner of both primitives of a layered
+/// pair, and lights the normal it names into the colour each of those two
+/// corners draws with.
+///
+/// The record is `tmdXformStreamVerts`'s with the `0x4000` bit set, and the two
+/// destinations an element names are what that bit changes: the unlayered pass
+/// writes the corner of one primitive, where this one writes that same corner in
+/// the base primitive and in the semi-transparent layer drawn over it. The rest
+/// is the unlayered pass's — the vertex is projected, its depth cached per
+/// vertex, the projection reused where consecutive elements name the same
+/// vertex, and a vertex whose transform reported an error stored with its sign
+/// bit set — and both corners take the one projection the element produced.
+///
+/// The colour is where the record's two handlers part company. This one splits
+/// the neutral material grey between the pair by the object's lighting level, the
+/// layer taking the share the level sets and the base the remainder, so at either
+/// end of the level one of the two is left black. It writes no texture coordinate
+/// and no colour code of its own, which is what a layer textured from the record
+/// needs: this is the handler the record resolves to in the areas whose layered
+/// draws take their layer's page and CLUT from the object. The other handler
+/// serves a layer that has a page of its own, and derives that layer's texture
+/// coordinates from the projected vertices. The projection and the normal the
+/// lighting rotates are both kept in the frame's scratch either way, and this
+/// handler reads neither.
+///
+/// The record has no variant for `flags` to select, so it goes unread.
+u32* gpXformStreamVertsOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// The draw pass's handler for a stream's pre-transformed textured-triangle
 /// records that ask for the semi-transparent primitive (`0x3B`): each element's
 /// triangle is linked into the ordering table under the blended primitive code,
