@@ -120,11 +120,20 @@ STATIC_ASSERT_SIZEOF(SndBankSlot, 0x10);
 /// Arguments of the sequence commands, which address a `MidiSong` rather than a
 /// sound-bank voice: initialize a sequence, start and stop its fades, and set
 /// its volume scale.
+///
+/// Every command reads `song`. The two that take a fade length read
+/// `fadeFrames` — initializing a sequence fades it in, and the fade-out command
+/// fades it out — while the one that re-scales a sequence reads `volumeScale`,
+/// so a command leaves any field it does not read holding whatever the slot's
+/// previous occupant wrote. The commands acting on an already-loaded sequence
+/// treat a `song` of 0 as every loaded one; initializing a sequence matches the
+/// id exactly instead.
 typedef struct {
-    u8  song;   // Sequence the command acts on (0xFF none loaded, 0 every loaded one)
-    u8  volume; // Volume scale applied over the master volume (0-127)
-    u16 frames; // Fade length in frames
+    u8  song;        // Which loaded sequence the command acts on
+    u8  volumeScale; // Scale applied over the master volume (0 silent, 0x7F full)
+    u16 fadeFrames;  // Length of the fade the command starts, in frames (0 no fade)
 } SndEvtMidiArgs;
+STATIC_ASSERT_SIZEOF(SndEvtMidiArgs, 0x4);
 
 /// Arguments of the voice commands, which address a sound-bank entry and the
 /// voices playing from it: allocate a voice, ramp its pan or volume, and stop
@@ -147,11 +156,11 @@ STATIC_ASSERT_SIZEOF(SndEvtVoiceArgs, 0x10);
 
 /// Arguments of a `SndEvt`, one arm per family of handlers.
 ///
-/// Which arm an event uses follows from its command: the sequence commands
-/// (`SndEvt_HandleInitSequence` and the other `Midi_*` handlers) read `midi`,
-/// the voice commands (`SndEvt_HandleAllocVoice` and the other `SndVoice_*`
-/// handlers) read `voice`. The enqueuer writes the arm its command reads and
-/// leaves the rest, so every event carries room for the larger one.
+/// Which arm an event uses follows from its command: the sequence commands, the
+/// handlers that act on a `MidiSong`, read `midi`, and the voice commands,
+/// which act on a bank entry or the voices started from it, read `voice`. The
+/// enqueuer writes the arm its command reads and leaves the rest, so every
+/// event carries room for the larger one.
 typedef union {
     SndEvtMidiArgs  midi;
     SndEvtVoiceArgs voice;

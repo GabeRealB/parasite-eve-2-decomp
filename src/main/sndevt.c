@@ -123,12 +123,12 @@ void func_80050AAC(void)
 
 void SndEvt_HandleInitSequence(SndEvt* arg0)
 {
-    Midi_InitSequence(arg0->args.midi.song, arg0->args.midi.frames);
+    Midi_InitSequence(arg0->args.midi.song, arg0->args.midi.fadeFrames);
 }
 
 void SndEvt_HandleStartFadeOut(SndEvt* arg0)
 {
-    Midi_StartFadeOut(arg0->args.midi.song, arg0->args.midi.frames);
+    Midi_StartFadeOut(arg0->args.midi.song, arg0->args.midi.fadeFrames);
 }
 
 void SndEvt_HandleFadeOn(SndEvt* arg0)
@@ -143,7 +143,7 @@ void SndEvt_HandleFadeOff(SndEvt* arg0)
 
 void SndEvt_HandleSetVolume(SndEvt* arg0)
 {
-    Midi_SetVolumeScale(arg0->args.midi.song, arg0->args.midi.volume);
+    Midi_SetVolumeScale(arg0->args.midi.song, arg0->args.midi.volumeScale);
 }
 
 void SndEvt_HandleAllocVoice(SndEvt* arg0)
@@ -482,9 +482,9 @@ s32 SndEvt_EnqueueType1(s32 arg0, s32 arg1)
     if (temp == NULL) {
         return -2;
     }
-    temp->handlerIdx       = 1;
-    temp->args.midi.song   = arg0;
-    temp->args.midi.frames = arg1;
+    temp->handlerIdx           = 1;
+    temp->args.midi.song       = arg0;
+    temp->args.midi.fadeFrames = arg1;
     SndEvt_Enqueue(temp);
     return 0;
 }
@@ -500,9 +500,9 @@ s32 SndEvt_EnqueueType2(s32 arg0, s32 arg1)
     if (temp == NULL) {
         return -2;
     }
-    temp->handlerIdx       = 2;
-    temp->args.midi.song   = arg0;
-    temp->args.midi.frames = arg1 & 0xFFFC;
+    temp->handlerIdx           = 2;
+    temp->args.midi.song       = arg0;
+    temp->args.midi.fadeFrames = arg1 & 0xFFFC;
     SndEvt_Enqueue(temp);
     return 0;
 }
@@ -557,12 +557,12 @@ s32 SndEvt_EnqueueType5(s32 arg0, s32 arg1)
     args             = &temp->args.midi;
     args->song       = arg0;
     if ((s8)arg1 >= 0) {
-        args->volume = arg1;
+        args->volumeScale = arg1;
     } else {
-        args->volume = 0x7F;
+        args->volumeScale = 0x7F;
     }
     SndEvt_Enqueue(temp);
-    D_800820E8 = args->volume;
+    D_800820E8 = args->volumeScale;
     return 0;
 }
 
@@ -725,12 +725,12 @@ void SndEvt_EnqueueType5Pending(void)
     D_800820E9 = 1;
     temp       = SndEvt_Alloc();
     if (temp != NULL) {
-        args             = &temp->args.midi;
-        temp->handlerIdx = 5;
-        args->song       = 0;
-        args->volume     = 0;
+        args              = &temp->args.midi;
+        temp->handlerIdx  = 5;
+        args->song        = 0;
+        args->volumeScale = 0;
         SndEvt_Enqueue(temp);
-        D_800820E8 = args->volume;
+        D_800820E8 = args->volumeScale;
     }
 }
 
@@ -749,12 +749,12 @@ void SndEvt_FlushType5Pending(void)
             temp->handlerIdx = 5;
             args->song       = 0;
             if ((s8)saved >= 0) {
-                args->volume = saved;
+                args->volumeScale = saved;
             } else {
-                args->volume = 0x7F;
+                args->volumeScale = 0x7F;
             }
             SndEvt_Enqueue(temp);
-            D_800820E8 = args->volume;
+            D_800820E8 = args->volumeScale;
         }
     }
 }

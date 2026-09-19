@@ -131044,6 +131044,21 @@ rewrites the duplicate's declaration too, so the merged type arrives as a second
 `typedef` of the same name that has to be deleted by hand before the tree
 compiles again.
 
+## A rename rewrites its declaration line by name, trailing comment included
+
+The declaration rewrite does not go through the parser. It takes the position
+the parser reported for the declaration, reads that line's text, and rewrites
+every whole-word occurrence of the old name on it - so a trailing comment on the
+same line that names the field goes with it, even under `--no-comments`, the
+flag that otherwise keeps a field rename out of the prose:
+
+    u16 frames;  // Fade length in frames  ->  u16 fadeFrames;  // Fade length in fadeFrames
+
+The C still compiles and the match still holds; the comment is just no longer
+English. Write a field's trailing comment *after* the rename, and read the
+declaration line back afterwards. A prototype line carries a comment naming its
+function or a parameter the same way.
+
 ## A commutative address add encodes its operands in the order the C wrote them
 
 Rewriting a hand-scaled record address as array indexing builds the same
