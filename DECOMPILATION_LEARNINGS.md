@@ -130240,3 +130240,51 @@ the field-to-field assignment directly gives a half-word pseudo instead. Both
 emit the same load here, but they differ in scheduling depth and in whether
 post-reload CSE can later fold the load into a register copy, so check the
 object rather than assuming the two are interchangeable.
+
+## Two reloads of just-stored fields are always scheduled adjacently
+
+**Problem.** A block re-reads two fields it has just written, and the allocation
+needs an unrelated store to die between the two reloads — so that one reload's
+quantity is live where the store's value dies while the other's is not yet born.
+No statement order produces it: the two loads always come out on consecutive
+sched1 positions with nothing between them.
+
+**Mechanism.** `sched.c` schedules backwards, and `adjust_priority` raises a
+newly-ready insn to `LAUNCH_PRIORITY` (0x7f000001) when `birthing_insn_p` holds:
+
+```c
+if (GET_CODE (pat) == SET && GET_CODE (SET_DEST (pat)) == REG) {
+    if (REGNO_REG_SET_P (bb_live_regs, i)) return (REG_N_SETS (i) == 1);
+```
+
+A load into a live pseudo that is set once, with a bare `REG` destination, is
+therefore launched ahead of every ordinary insn. Two such reloads are released
+within a cycle of each other, are blocked by the same memory-unit hazard while
+the surrounding stores issue, and unblock on the same cycle — so they are picked
+back to back. An ordinary store can never be scheduled between them, whatever
+its source position, because its priority is the store group's and theirs is
+`LAUNCH_PRIORITY`.
+
+**The two escapes, and why they usually fail together.** Making a reload
+non-birthing needs either `REG_N_SETS >= 2` or a non-`REG` `SET_DEST`:
+
+* A second set inside the block gives the pseudo a second `REG_DEAD` note, and
+  `local_alloc` only claims pseudos with `REG_N_DEATHS == 1`
+  (`local-alloc.c`, the `reg_qty[i] = -2` test). A second set in another block
+  makes it multi-block. Either way it becomes a global allocno — invisible to
+  the local scan, so it can no longer deny a hard register to a block-local
+  quantity. *Non-birthing* and *block-local* are mutually exclusive for a value
+  with a single live range.
+* A partial set via a union member (`u.h = obj->field;` with `u` word-sized)
+  does give `(set (subreg:HI (reg:SI …)) (mem:HI …))`, but `combine` widens it
+  straight back to a `zero_extend` into the full register whenever the rest of
+  the pseudo is dead. `SET_DEST` is a bare `REG` again and the load is launched
+  as before. Keeping the upper half live means sharing the register with a
+  second value, which is usually the thing the split was meant to avoid.
+
+**What to do.** Stop permuting statements — the priorities are fixed by the
+dependence graph (a mirror store sits exactly one above the store-group floor
+whenever the floor is the priority of the store it reloads), so source order
+only chooses between the two objects the fork already produces. The edges have
+to change: look for a shape where one of the re-read values has a second source
+and is not a reload of the field just written.
