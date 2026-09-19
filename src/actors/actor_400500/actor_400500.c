@@ -3128,7 +3128,275 @@ void func_actor_400500_801375B8(Task* arg0)
     work->field_A08 = work->field_A08 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013771C);
+void func_actor_400500_8013771C(Task* arg0)
+{
+    SVECTOR            in;
+    SVECTOR            out;
+    Actor400500Matrix  rot;
+    Actor400500Matrix* src;
+    union {
+        MATRIX    mat;
+        GpAnimArg msg;
+    } slot;
+    MATRIX                 parent;
+    MATRIX*                parentp;
+    MATRIX*                tmp;
+    MATRIX*                mtx;
+    MATRIX*                scratch;
+    MATRIX*                scratch2;
+    MATRIX*                scratch3;
+    u8*                    scratchBase;
+    MATRIX*                viewWorld;
+    TmdObject*             model2;
+    GsCOORDINATE2*         coords2;
+    GsCOORDINATE2*         coords;
+    GsCOORDINATE2*         coord8;
+    GsCOORDINATE2*         playerCoords;
+    GsCOORDINATE2*         walker;
+    GsCOORDINATE2*         viewCoord;
+    GsCOORDINATE2*         viewCoord2;
+    GsCOORDINATE2*         part;
+    Actor400500Work*       work;
+    Actor400500Work*       work2;
+    Actor400500Work*       work3;
+    Actor400500Work*       work4;
+    Actor400500Work*       work5;
+    Actor400500AnimStride* stride;
+    Actor400500HitView*    hit;
+    GameActor*             player;
+    void*                  spawn;
+    SVECTOR                dvec;
+    s16                    vz;
+    s32                    dist;
+    s32                    delta;
+    s32                    ident;
+    s32                    one;
+    s32                    i;
+    s32                    flag;
+    s32                    cond;
+    s32                    soundId;
+    s32                    soundId2;
+    s32                    soundId3;
+    s32                    pan;
+    s32                    pan2;
+    s32                    pan3;
+    s32                    r;
+    u16                    heading;
+    u16                    heading2;
+    s32                    cur;
+
+    work            = (Actor400500Work*)arg0->work;
+    player          = Gp_ActorSlots[0]->actor;
+    spawn           = arg0->spawnArg2;
+    work->field_A04 = work->field_A04 + 1;
+    work2           = (Actor400500Work*)arg0->work;
+    if (work2->field_9FA == 1) {
+        if ((s16)work2->field_9FC != work2->field_9FE) {
+            work2->field_A00 = 0;
+        } else {
+            work2->field_A00 = func_actor_400500_8013DD8C(arg0, work2->field_A00);
+        }
+        func_actor_400500_8013DCD4(arg0);
+        work2->field_9FA = 3;
+    } else if (work2->field_9FA == 2) {
+        func_actor_400500_8013DC4C(arg0);
+        work2->field_9FA = 3;
+        work2->field_A00 = 0;
+    } else if (work2->field_9FA == 3) {
+        work2->field_A00 = (u16)work2->field_A00 + 1;
+    }
+    i      = 1;
+    stride = (Actor400500AnimStride*)work2 + 1;
+    do {
+        stride->field_1D = (u8)work2->field_9F8;
+        Gp_AnimTickIndex(&work2->anim, i);
+        i++;
+        stride++;
+    } while (i < 0x12);
+    src = &rot;
+    if ((s16)work->field_A04 < 0xF) {
+        in.vx              = (u16)work->field_9E0;
+        in.vy              = 0;
+        vz                 = (u16)work->field_9E4;
+        ident              = 0x1000;
+        rot.ident.m00_m01  = ident;
+        rot.ident.m02_m10  = 0;
+        in.vz              = vz;
+        src->ident.m11_m12 = ident;
+        rot.ident.m20_m21  = 0;
+        src->ident.m22     = ident;
+        func_8004BFF8(work->field_94A, &src->mat);
+        ApplyMatrixSV(&src->mat, &in, &out);
+        r     = ratan2(out.vx, work->field_9E2 - 0x6A0);
+        cur   = (u16)work->field_9BC;
+        delta = (-r - cur) << 20;
+    } else {
+        cur   = (u16)work->field_9BC;
+        delta = -(cur << 20);
+    }
+    cur             = cur + (delta >> 23);
+    work->field_9BC = cur;
+    cur             = (s16)work->field_A04;
+    if (cur == 7) {
+        if (player->field_954 != 2) {
+            coords = ((TmdObject*)arg0->extra)->coords;
+            coord8 = coords + 8;
+            if (Gp_ActorSlots[0] == NULL) {
+                dist = 0x7FFF;
+            } else {
+                playerCoords = Gp_ActorSlots[0]->extra->coords;
+                Gp_UpdateCoord(playerCoords + 4);
+                Gp_UpdateCoord(coord8);
+                viewWorld = &Gfx_ViewWorldMtx;
+                Gp_WorldToLocal(viewWorld, &playerCoords[4].workm, &slot.mat);
+                Gp_WorldToLocal(viewWorld, &coords[8].workm, &parent);
+                dvec.vx = (u16)slot.mat.t[0] - (u16)parent.t[0];
+                dvec.vz = (u16)slot.mat.t[2] - (u16)parent.t[2];
+                dist    = SquareRoot0((dvec.vx * dvec.vx) + (dvec.vz * dvec.vz));
+            }
+            if ((s16)dist < 0x500) {
+                one               = 1;
+                slot.msg.field_0  = D_actor_400500_80153CB0;
+                slot.msg.field_4  = one;
+                slot.msg.field_8  = 0;
+                slot.msg.field_C  = 0;
+                slot.msg.field_10 = 0;
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F4, (s32)&slot.msg, 0);
+                work->field_A48      = one;
+                Gp_StateC08.field_6 |= one;
+                work->field_A18      = one;
+            }
+        }
+        cur = (s16)work->field_A04;
+    }
+    if ((cur == 0xE) && (work->field_A18 == 0)) {
+        work3            = (Actor400500Work*)arg0->work;
+        work3->field_A0E = 2;
+        work3->field_9F8 = 0x10;
+        work3->field_9FE = 6;
+        work3->field_9FA = 1;
+        work->field_A04  = 0;
+        work4            = (Actor400500Work*)arg0->work;
+        if (((work4->field_A46 >= 0) || ((u8)work4->field_A46 & 0x7F)) && (work4->field_A30 == 0)) {
+            flag             = 0x80;
+            work4->field_A46 = flag;
+            work4->field_A47 = 0;
+        }
+        work->field_A08 = work->field_A08 + 1;
+    }
+    viewCoord                        = &gGfxViewCoord;
+    parentp                          = &parent;
+    heading                          = work->field_9BC;
+    part                             = ((TmdObject*)arg0->extra)->coords + 6;
+    scratch                          = (*(MATRIX**)G_SCRATCH_HEAD);
+    walker                           = part->sub;
+    scratchBase                      = (u8*)PSX_SCRATCH;
+    *(MATRIX**)(scratchBase + 0x3FC) = scratch - 1;
+    scratch[-1]                      = part->coord;
+    mtx                              = scratch - 1;
+    while (1) {
+        if (walker == NULL) {
+            break;
+        }
+        if (walker == viewCoord) {
+            break;
+        }
+        parent = walker->coord;
+        tmp    = &parent;
+        MatrixNormal(tmp, tmp);
+        gte_SetRotMatrix(parentp);
+        MulRotMatrix(mtx);
+        MatrixNormal(mtx, &slot.mat);
+        *mtx   = slot.mat;
+        walker = walker->sub;
+    }
+    func_8004BFF8((s16)heading, mtx);
+    func_actor_400500_8013B720(part, mtx);
+    __builtin_memcpy(&part->coord, mtx, 18);
+    part->flg = 0;
+    Gp_UpdateCoord(part);
+    SOFT_BARRIER();
+    viewCoord2 = &gGfxViewCoord;
+    SOFT_USE_REG(work);
+    parentp = &parent;
+    model2  = (TmdObject*)arg0->extra;
+    coords2 = model2->coords;
+    __asm__("lui %0, 0x1F80" : "=r"(scratch2) : "r"(model2));
+    scratch2 = *(MATRIX**)((u8*)scratch2 + 0x3FC);
+    heading2 = (u16)work->field_9BC;
+    part     = &coords2[9];
+    walker   = part->sub;
+    __asm__("move %0,%1" : "=r"(mtx) : "r"(scratch2), "r"(walker));
+    __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(scratch2 + 1) : "memory");
+    __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(scratch2) : "memory");
+    *mtx = part->coord;
+    while (1) {
+        if (walker == NULL) {
+            break;
+        }
+        if (walker == viewCoord2) {
+            break;
+        }
+        parent = walker->coord;
+        tmp    = &parent;
+        MatrixNormal(tmp, tmp);
+        gte_SetRotMatrix(parentp);
+        MulRotMatrix(mtx);
+        MatrixNormal(mtx, &slot.mat);
+        *mtx   = slot.mat;
+        walker = walker->sub;
+    }
+    func_8004BFF8((s16)heading2, mtx);
+    func_actor_400500_8013B720(part, mtx);
+    __builtin_memcpy(&part->coord, mtx, 18);
+    part->flg = 0;
+    Gp_UpdateCoord(part);
+    scratch3                         = (*(MATRIX**)G_SCRATCH_HEAD);
+    scratchBase                      = (u8*)PSX_SCRATCH;
+    *(MATRIX**)(scratchBase + 0x3FC) = scratch3 + 1;
+    if (((u32)(work->field_A04 - 7) < 4U) && (work->field_A18 == 1)) {
+        func_actor_400500_801348D8(arg0, 1);
+    }
+    if (((u32)(work->field_A04 - 0xB) < 0x14U) && (work->field_A18 == 1)) {
+        func_actor_400500_801348D8(arg0, 0);
+    }
+    if (((s16)work->field_A04 == 0xC) && (work->field_A18 != 0)) {
+        soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 6;
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
+    }
+    if ((s16)work->field_A04 == 0x1E) {
+        soundId2 = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050007;
+        pan2     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(soundId2, pan2, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
+    }
+    if ((s16)work->field_A04 == 0x2A) {
+        Gp_SpawnPadLerp(8, 0xC0U, 8U);
+        soundId3 = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050008;
+        pan3     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(soundId3, pan3, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
+    }
+    if ((s16)work->field_A04 == 0x1F) {
+        Gp_SpawnPadLerp(6, 0xFFU, 0x80U);
+        if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)spawn, 1), 0) != 0) {
+            player->field_956 = 0xA;
+            work->field_A4D   = 1;
+        }
+    }
+    hit = (Actor400500HitView*)arg0->work;
+    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work5             = (Actor400500Work*)arg0->work;
+        work5->field_A06  = 0;
+        work5->field_A08  = 0;
+        work->field_A32   = 0x3C;
+        work->obj0.radius = 0x260;
+    }
+}
 
 void func_actor_400500_80138088(Task* arg0)
 {
