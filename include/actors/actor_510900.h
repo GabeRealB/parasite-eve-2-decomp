@@ -116,14 +116,12 @@ typedef struct Actor510900Work {
     /* 0x504 */ GpObj   obj504;
     /// Shared collision table of `obj4E4` and `obj504`; only `obj4E4`'s
     /// `Gp_InitRec18Table` seeds it.
-    /* 0x524 */ GpRec18        rec524[1];
-    /* 0x53C */ GsCOORDINATE2* field_53C; ///< `&coord[3]`, as the context's `field_18`
-    /* 0x540 */ s16            field_540;
-    /* 0x542 */ s16            field_542;
-    /* 0x544 */ MATRIX         field_544;
-    /* 0x564 */ s32*           field_564; // 0x34 receives field_594 when it changes
-                                          /// Task of the second enemy the spawn creates from `D_actor_510900_80167A18`;
-                                          /// `obj4E4` hangs off its model's first coordinate.
+    /* 0x524 */ GpRec18  rec524[1];
+    /* 0x53C */ GpEffArg field_53C; // record the hit's effect is spawned with; `coord` is `&coord[3]`, as the context's `field_18`
+    /* 0x544 */ MATRIX   field_544;
+    /* 0x564 */ s32*     field_564; // 0x34 receives field_594 when it changes
+                                    /// Task of the second enemy the spawn creates from `D_actor_510900_80167A18`;
+                                    /// `obj4E4` hangs off its model's first coordinate.
     /* 0x568 */ Task* field_568;
     /// Task of the third enemy spawned from the same table.
     /* 0x56C */ Task* field_56C;

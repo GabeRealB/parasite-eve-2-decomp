@@ -284,7 +284,7 @@ void func_actor_521100_80136404(Task* task)
         }
         D_actor_521100_8016A3E8.flg = 0;
         Gp_UpdateCoord(&D_actor_521100_8016A3E8);
-        D_actor_521100_8016A3CC.field_0 = &D_actor_521100_8016A3E8;
+        D_actor_521100_8016A3CC.coord = &D_actor_521100_8016A3E8;
         func_800FDB18(D_actor_521100_8016A3D4, &D_actor_521100_8016A3E8, NULL, &D_actor_521100_8016A3CC);
     }
     if (task->state >= 0x83) {

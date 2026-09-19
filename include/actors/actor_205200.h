@@ -54,9 +54,7 @@ typedef struct Actor205200Work {
     /* 0x4E4 */ GpObj          field_4E4;
     /* 0x504 */ GpRec18        field_504;
     /* 0x51C */ byte           pad_51C[0x38];
-    /* 0x554 */ GsCOORDINATE2* field_554;
-    /* 0x558 */ s16            field_558;
-    /* 0x55A */ s16            field_55A;
+    /* 0x554 */ GpEffArg       field_554; // record the charge's hit effect is spawned with
     /* 0x55C */ byte           pad_55C[0x20];
     /* 0x57C */ s16            field_57C;
     /* 0x57E */ s16            field_57E; // animation id the work is playing, the same pair `Actor207200Work.field_28C`/`field_28E` holds
@@ -78,17 +76,15 @@ typedef struct Actor205200Work {
 /// and hangs off its `Task::work`. `field_78` is the slot the part took in the
 /// parent's `Actor205200Work.field_0` / `field_18` arrays.
 typedef struct Actor205200Part {
-    /* 0x00 */ GpObj          obj;
-    /* 0x20 */ GpRec18        recs[3];
-    /* 0x68 */ GsCOORDINATE2* field_68;
-    /* 0x6C */ s16            field_6C;
-    /* 0x6E */ s16            field_6E;
-    /* 0x70 */ s16            field_70; // hit-stun countdown; hits are ignored while non-zero
-    /* 0x72 */ s16            field_72;
-    /* 0x74 */ u16            field_74;
-    /* 0x76 */ s16            field_76;
-    /* 0x78 */ s16            field_78;
-    /* 0x7A */ byte           pad_7A[2];
+    /* 0x00 */ GpObj    obj;
+    /* 0x20 */ GpRec18  recs[3];
+    /* 0x68 */ GpEffArg field_68; // record the hit's effect is spawned with
+    /* 0x70 */ s16      field_70; // hit-stun countdown; hits are ignored while non-zero
+    /* 0x72 */ s16      field_72;
+    /* 0x74 */ u16      field_74;
+    /* 0x76 */ s16      field_76;
+    /* 0x78 */ s16      field_78;
+    /* 0x7A */ byte     pad_7A[2];
 } Actor205200Part;
 STATIC_ASSERT_SIZEOF(Actor205200Part, 0x7C);
 

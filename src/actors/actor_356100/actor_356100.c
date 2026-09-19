@@ -265,10 +265,10 @@ void func_actor_356100_8016382C(GpEnemy* enemy, Actor356100* actor)
     pos.vy = root->workm.t[1];
     pos.vz = root->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
-    D_actor_356100_801732A8.field_0 = actor->field_2C->coords;
-    D_actor_356100_801732A8.field_4 = 0x100;
-    D_actor_356100_801732A8.field_6 = 2;
-    kind                            = actor->field_36;
+    D_actor_356100_801732A8.coord      = actor->field_2C->coords;
+    D_actor_356100_801732A8.spawnArgLo = 0x100;
+    D_actor_356100_801732A8.spawnArgHi = 2;
+    kind                               = actor->field_36;
     switch (kind & 0xF) {
         case 2:
             work->field_2 = -1;
@@ -1158,9 +1158,9 @@ void func_actor_356100_80167818(Actor356100* arg0)
     }
     func_actor_356100_80163508(arg0);
     if ((work->field_5A & 0x3FF) == 4 && work->field_994 != (work->field_5A & 0x3FF)) {
-        D_actor_356100_801732A8.field_0 = arg0->field_2C->coords;
-        D_actor_356100_801732A8.field_4 = 0x100;
-        D_actor_356100_801732A8.field_6 = 2;
+        D_actor_356100_801732A8.coord      = arg0->field_2C->coords;
+        D_actor_356100_801732A8.spawnArgLo = 0x100;
+        D_actor_356100_801732A8.spawnArgHi = 2;
         func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->field_2C->coords + 5, NULL,
                       &D_actor_356100_801732A8);
     }

@@ -137,9 +137,9 @@ void func_actor_210600_8014B434(void* spawnArg2, Task* task)
         id = work->slots[1].curRec & 0x3FF;
         if (id == 7 && work->field_896 != id) {
             memset(&vec, 0, 8);
-            eff.field_0 = ((TmdObject*)task->extra)->coords;
-            eff.field_4 = 0x100;
-            eff.field_6 = 2;
+            eff.coord      = ((TmdObject*)task->extra)->coords;
+            eff.spawnArgLo = 0x100;
+            eff.spawnArgHi = 2;
             func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, ((TmdObject*)task->extra)->coords + 1, &vec, &eff);
         }
         work->field_896 = work->slots[0].curRec & 0x3FF;

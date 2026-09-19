@@ -971,11 +971,11 @@ void func_actor_204000_8014DB50(Actor104000* arg0, s16 arg1, u32 arg2)
             sc->vz  = 100;
         }
     }
-    work->effOfs      = *sc;
-    coord             = &arg0->field_2C->field_8[sc->pad];
-    work->eff.field_4 = 0x100;
-    work->eff.field_6 = 1;
-    work->eff.field_0 = coord;
+    work->effOfs         = *sc;
+    coord                = &arg0->field_2C->field_8[sc->pad];
+    work->eff.spawnArgLo = 0x100;
+    work->eff.spawnArgHi = 1;
+    work->eff.coord      = coord;
     func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->field_2C->field_8[sc->pad], &work->effOfs, &work->eff);
     SCRATCH_SP += sizeof(SVECTOR);
 }

@@ -72,7 +72,8 @@ typedef struct Actor300700Work {
     /* 0x2E6 */ s16                       field_2E6;
     /* 0x2E8 */ byte                      pad_2E8[0x32];
     /* 0x31A */ u16                       field_31A;
-    /* 0x31C */ byte                      pad_31C[0x20];
+    /* 0x31C */ byte                      pad_31C[0x18];
+    /* 0x334 */ GpEffArg                  field_334; // record the hit's effect is spawned with
     /* 0x33C */ GsCOORDINATE2*            field_33C;
     /* 0x340 */ MATRIX                    field_340;
     /* 0x360 */ s32                       field_360;

@@ -1193,14 +1193,14 @@ void func_actor_403000_80134910(Actor403000* arg0, s16 arg1, s32 arg2)
         scratch[0] = D_actor_403000_80158C48[10];
         scratch[1] = D_actor_403000_80158C48[11];
     }
-    work->field_FA8.field_0 = &arg0->field_2C->coords[scratch[0].pad];
-    work->field_FA8.field_4 = 0x500;
-    work->field_FA8.field_6 = 3;
-    eff                     = &work->field_FA8;
+    work->field_FA8.coord      = &arg0->field_2C->coords[scratch[0].pad];
+    work->field_FA8.spawnArgLo = 0x500;
+    work->field_FA8.spawnArgHi = 3;
+    eff                        = &work->field_FA8;
     func_800FDB18((u16)Gp_GetIdParam1(arg2), &arg0->field_2C->coords[scratch[0].pad], &scratch[0], eff);
-    work->field_FA8.field_0 = &arg0->field_2C->coords[scratch[1].pad];
-    work->field_FA8.field_4 = 0x400;
-    work->field_FA8.field_6 = 2;
+    work->field_FA8.coord      = &arg0->field_2C->coords[scratch[1].pad];
+    work->field_FA8.spawnArgLo = 0x400;
+    work->field_FA8.spawnArgHi = 2;
     func_800FDB18((u16)Gp_GetIdParam1(arg2), &arg0->field_2C->coords[scratch[1].pad], &scratch[1], eff);
     *(SVECTOR**)G_SCRATCH_HEAD += 2;
 }
@@ -2626,9 +2626,9 @@ void func_actor_403000_80138DB0(Actor403000* arg0)
         D_actor_403000_80158DB0.field_10 = 7;
         D_actor_403000_80158DB0.field_12 = 1;
         Gp_SpawnPadLerp(5, 0xFF, 0x80);
-        work->field_FA8.field_0 = &player->field_2C->coords[3];
-        work->field_FA8.field_4 = 0x500;
-        work->field_FA8.field_6 = 3;
+        work->field_FA8.coord      = &player->field_2C->coords[3];
+        work->field_FA8.spawnArgLo = 0x500;
+        work->field_FA8.spawnArgHi = 3;
         func_800FDB18(Gp_GetIdParam1(0x100F) & 0xFFFF, &player->field_2C->coords[3], 0, &work->field_FA8);
     }
     if ((s16)work->field_6 < 10) {

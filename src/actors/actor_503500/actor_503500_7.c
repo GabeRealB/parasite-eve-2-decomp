@@ -436,7 +436,7 @@ void func_actor_503500_8013AF60(Actor503500* arg0, Actor503500Work* arg1, GpRec1
         pos.vx += D_actor_503500_8016F0F0[work->field_EC].vx;
         pos.vy += D_actor_503500_8016F0F0[work->field_EC].vy;
         pos.vz += D_actor_503500_8016F0F0[work->field_EC].vz;
-        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, (GpEffArg*)&work->field_E0);
+        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_E0);
         if (crit != 0) {
             Gp_SpawnEff(0x6009C, coord, 0, &pos);
         }
@@ -807,10 +807,10 @@ void func_actor_503500_8013BEE4(Actor503500* arg0)
     D_actor_503500_801776A0.obj.pos.vz   = D_actor_503500_8016F1B0.vz;
     Gp_LinkObj(2, &D_actor_503500_801776A0.obj);
     Gp_InitRec18Table(rec, 8, 0);
-    D_actor_503500_801776A0.field_E4   = 0x600;
-    D_actor_503500_801776A0.field_E0   = coord;
-    D_actor_503500_801776A0.field_E6   = 3;
-    D_actor_503500_801776A0.obj.flags |= 0x8000;
+    D_actor_503500_801776A0.field_E0.spawnArgLo = 0x600;
+    D_actor_503500_801776A0.field_E0.coord      = coord;
+    D_actor_503500_801776A0.field_E0.spawnArgHi = 3;
+    D_actor_503500_801776A0.obj.flags          |= 0x8000;
     func_actor_503500_8013CA74(arg0, 0);
     arg0->exitCallback = (TaskFunc)func_actor_503500_8013C900;
     arg0->state       += 1;

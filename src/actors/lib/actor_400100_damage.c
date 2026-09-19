@@ -665,10 +665,10 @@ void Actor00100_Fn02C54(GpEnemy* arg0, Task* arg1)
     color.vy = coord->workm.t[1];
     color.vz = coord->workm.t[2];
     Gp_UpdateActorColor(arg0, &color, 0, 0);
-    work->field_890.field_0 = &((TmdObject*)arg1->extra)->coords[1];
-    work->field_890.field_4 = 0x100;
-    work->field_890.field_6 = 2;
-    kind                    = (arg1->spawnArg1 >> 16) & 0xF;
+    work->field_890.coord      = &((TmdObject*)arg1->extra)->coords[1];
+    work->field_890.spawnArgLo = 0x100;
+    work->field_890.spawnArgHi = 2;
+    kind                       = (arg1->spawnArg1 >> 16) & 0xF;
     if (kind == 1) {
         goto state1;
     }
@@ -812,10 +812,10 @@ void Actor00100_Fn03340(Actor00100* arg0, s16 arg1, s32 arg2)
             *sc = Actor00100_D1B9F4[11];
         }
     }
-    work->field_890.field_0 = &arg0->field_2C->coords[sc->pad];
-    work->field_890.field_4 = 0x100;
-    work->field_890.field_6 = 2;
-    work->field_8A0         = *sc;
+    work->field_890.coord      = &arg0->field_2C->coords[sc->pad];
+    work->field_890.spawnArgLo = 0x100;
+    work->field_890.spawnArgHi = 2;
+    work->field_8A0            = *sc;
     func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->field_2C->coords[sc->pad], &work->field_8A0, &work->field_890);
     *(u32*)G_SCRATCH_HEAD += 8;
 }

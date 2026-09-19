@@ -94,16 +94,10 @@ typedef struct Actor223600Turn {
 } Actor223600Turn;
 STATIC_ASSERT_SIZEOF(Actor223600Turn, 0xC);
 
-/// Overlay-wide record the spawn handler points at the instance's coordinate,
-/// tagging it with a 0x100 weight and a mode of 1.
-typedef struct Actor223600Anchor {
-    /* 0x0 */ GsCOORDINATE2* coord;
-    /* 0x4 */ s16            field_4;
-    /* 0x6 */ s16            field_6;
-} Actor223600Anchor;
-STATIC_ASSERT_SIZEOF(Actor223600Anchor, 0x8);
-
-extern Actor223600Anchor D_actor_223600_80150B5C;
+/// Overlay-wide spawn record the spawn handler fills for the instance's own
+/// coordinate, with the 0x100 / 1 argument pair. Each overlay that spawns this
+/// way keeps one, and they differ only in the coordinate and the argument.
+extern GpEffArg D_actor_223600_80150B5C;
 
 /// Pair source the spawn handler installs at `GpEnemy::field_50`.
 extern GpPairSrcE D_actor_223600_8014CFCC;

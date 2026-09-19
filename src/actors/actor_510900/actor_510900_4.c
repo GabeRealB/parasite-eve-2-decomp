@@ -878,8 +878,8 @@ void func_actor_510900_80137868(Actor510900* arg0)
             }
             work->field_59C++;
             if (work->field_59C >= 6) {
-                work->field_59C                 = 0;
-                D_actor_510900_80167B7C.field_0 = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+                work->field_59C               = 0;
+                D_actor_510900_80167B7C.coord = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
                 func_800FDB18(5, &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[4], NULL,
                               &D_actor_510900_80167B7C);
             }

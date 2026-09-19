@@ -188,11 +188,11 @@ void func_actor_201200_8014A88C(GpEnemy* arg0, Actor201200* arg1)
     } else {
         work->field_0 = 7;
     }
-    work->field_2        = -1;
-    part                 = arg1->field_2C->coords;
-    work->eff1A8.field_4 = 0x80;
-    work->eff1A8.field_6 = 2;
-    work->eff1A8.field_0 = part + 1;
+    work->field_2           = -1;
+    part                    = arg1->field_2C->coords;
+    work->eff1A8.spawnArgLo = 0x80;
+    work->eff1A8.spawnArgHi = 2;
+    work->eff1A8.coord      = part + 1;
     arg1->state++;
 }
 
@@ -386,9 +386,9 @@ void func_actor_201200_8014B5FC(Actor201200Ctx* arg0, Actor201200* arg1)
             Gp_SpawnEff(0x60030, arg1->field_2C->coords, 0x10100, &ofs);
             break;
         case 1:
-            work->eff1A8.field_0 = &arg1->field_2C->coords[4];
-            work->eff1A8.field_4 = 0x120;
-            work->eff1A8.field_6 = 2;
+            work->eff1A8.coord      = &arg1->field_2C->coords[4];
+            work->eff1A8.spawnArgLo = 0x120;
+            work->eff1A8.spawnArgHi = 2;
             func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->field_2C->coords[4], NULL, &work->eff1A8);
             Gp_SpawnScript18Ex((s32)&D_actor_201200_8014DE64, (s32)&D_actor_201200_8014DE70, (s16)Gp_GetObjDepth((GpObj38*)arg1->field_2C->coords));
             work->obj300.radius = 0x320;
@@ -402,9 +402,9 @@ void func_actor_201200_8014B5FC(Actor201200Ctx* arg0, Actor201200* arg1)
             work->obj300.flags &= 0x7FFF;
             break;
         case 3:
-            work->eff1A8.field_0 = &arg1->field_2C->coords[1];
-            work->eff1A8.field_4 = 0x80;
-            work->eff1A8.field_6 = 2;
+            work->eff1A8.coord      = &arg1->field_2C->coords[1];
+            work->eff1A8.spawnArgLo = 0x80;
+            work->eff1A8.spawnArgHi = 2;
             func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->field_2C->coords[1], NULL, &work->eff1A8);
             work->obj338.radius = 0x320;
             break;
@@ -412,9 +412,9 @@ void func_actor_201200_8014B5FC(Actor201200Ctx* arg0, Actor201200* arg1)
             work->obj338.flags &= 0x7FFF;
             break;
         case 7:
-            work->eff1A8.field_0 = &arg1->field_2C->coords[1];
-            work->eff1A8.field_4 = 0x200;
-            work->eff1A8.field_6 = 2;
+            work->eff1A8.coord      = &arg1->field_2C->coords[1];
+            work->eff1A8.spawnArgLo = 0x200;
+            work->eff1A8.spawnArgHi = 2;
             func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->field_2C->coords[1], NULL, &work->eff1A8);
             Gp_SpawnEff(0x6009E, arg1->field_2C->coords, 0, &ofs);
             id  = ((arg0->field_8 >> 12) << 8) | 0x400C0004;
@@ -524,9 +524,9 @@ void func_actor_201200_8014BDFC(Actor201200Ctx* arg0, Actor201200* arg1)
             work->obj300.flags |= 0x8000;
             Gp_SpawnEff(0x6009C, &arg1->field_2C->coords[2], 1, NULL);
             Gp_SpawnScript18((s32)&D_actor_201200_8014DE64, (s32)&D_actor_201200_8014DE70);
-            work->eff1A8.field_0 = &arg1->field_2C->coords[4];
-            work->eff1A8.field_4 = 0x120;
-            work->eff1A8.field_6 = 2;
+            work->eff1A8.coord      = &arg1->field_2C->coords[4];
+            work->eff1A8.spawnArgLo = 0x120;
+            work->eff1A8.spawnArgHi = 2;
             func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->field_2C->coords[4], NULL, &work->eff1A8);
             break;
         case 2:
@@ -535,10 +535,10 @@ void func_actor_201200_8014BDFC(Actor201200Ctx* arg0, Actor201200* arg1)
             work->obj338.flags |= 0x8000;
             break;
         case 3:
-            work->obj338.radius  = 0x190;
-            work->eff1A8.field_0 = &arg1->field_2C->coords[2];
-            work->eff1A8.field_4 = 0x100;
-            work->eff1A8.field_6 = 2;
+            work->obj338.radius     = 0x190;
+            work->eff1A8.coord      = &arg1->field_2C->coords[2];
+            work->eff1A8.spawnArgLo = 0x100;
+            work->eff1A8.spawnArgHi = 2;
             func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->field_2C->coords[2], NULL, &work->eff1A8);
             break;
         case 4:
@@ -550,9 +550,9 @@ void func_actor_201200_8014BDFC(Actor201200Ctx* arg0, Actor201200* arg1)
             ofs.vy              = arg1->field_2C->coords->coord.t[1];
             ofs.vz              = arg1->field_2C->coords->coord.t[2];
             Gp_SpawnEff(0x6009E, &gGfxViewCoord, 0, &ofs);
-            work->eff1A8.field_0 = &arg1->field_2C->coords[1];
-            work->eff1A8.field_4 = 0x200;
-            work->eff1A8.field_6 = 2;
+            work->eff1A8.coord      = &arg1->field_2C->coords[1];
+            work->eff1A8.spawnArgLo = 0x200;
+            work->eff1A8.spawnArgHi = 2;
             func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->field_2C->coords[1], NULL, &work->eff1A8);
             break;
         case 8:

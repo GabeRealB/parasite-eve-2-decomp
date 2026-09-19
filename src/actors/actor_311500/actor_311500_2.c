@@ -90,9 +90,9 @@ s32 func_actor_311500_80162F28(Actor311500 *arg0)
     }
     while (((u32) (i & 0xFFFF)) < 0x13U);
       anim2 = arg0->field_1C;
-      eff.field_0 = &arg0->field_2C->coords[2];
-      eff.field_4 = 0x100;
-      eff.field_6 = 2;
+      eff.coord = &arg0->field_2C->coords[2];
+      eff.spawnArgLo = 0x100;
+      eff.spawnArgHi = 2;
       pos.vx = 0x3C;
       pos.vy = -0xC;
       pos.vz = 0x1E;

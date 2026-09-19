@@ -1296,9 +1296,9 @@ void func_actor_110600_80135E20(Actor110600* arg0, s16 arg1, s32 arg2)
             *sc = D_actor_110600_801485C4[11];
         }
     }
-    D_actor_110600_80148698.field_0 = &arg0->field_2C->coords[1];
-    D_actor_110600_80148698.field_4 = 0x100;
-    D_actor_110600_80148698.field_6 = 3;
+    D_actor_110600_80148698.coord      = &arg0->field_2C->coords[1];
+    D_actor_110600_80148698.spawnArgLo = 0x100;
+    D_actor_110600_80148698.spawnArgHi = 3;
     func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->field_2C->coords[sc->pad], sc, &D_actor_110600_80148698);
     *(u32*)G_SCRATCH_HEAD += 8;
 }

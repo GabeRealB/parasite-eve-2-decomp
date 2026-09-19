@@ -52,19 +52,19 @@ void func_actor_202600_8014CE1C(GpEnemy* ctx, Task* actor)
     ctx->field_4    = matrix;
     ctx->field_48   = 0;
     Gp_LinkNode(&ctx->node);
-    ctx->field_18           = ((Actor202600Obj2C*)actor->extra)->field_8 + 1;
-    ctx->field_1C.vy        = -0x64;
-    ctx->field_54           = (s32)work->field_2B4;
-    ctx->field_1C.vx        = 0;
-    ctx->field_1C.vz        = 0;
-    ctx->field_50           = &D_actor_202600_80152788;
-    ctx->field_40           = (s16)D_actor_202600_80152788.field_4;
-    work->field_354.field_0 = coord;
-    work->field_354.field_4 = 0x100;
-    work->field_354.field_6 = 1;
-    work->field_3C4         = (s16)((Actor202600Params*)ctx->field_3C)->field_1;
-    params                  = ctx->field_3C;
-    mode                    = params->field_2;
+    ctx->field_18              = ((Actor202600Obj2C*)actor->extra)->field_8 + 1;
+    ctx->field_1C.vy           = -0x64;
+    ctx->field_54              = (s32)work->field_2B4;
+    ctx->field_1C.vx           = 0;
+    ctx->field_1C.vz           = 0;
+    ctx->field_50              = &D_actor_202600_80152788;
+    ctx->field_40              = (s16)D_actor_202600_80152788.field_4;
+    work->field_354.coord      = coord;
+    work->field_354.spawnArgLo = 0x100;
+    work->field_354.spawnArgHi = 1;
+    work->field_3C4            = (s16)((Actor202600Params*)ctx->field_3C)->field_1;
+    params                     = ctx->field_3C;
+    mode                       = params->field_2;
     if (mode < 10) {
         switch (mode) {
             case 0:

@@ -23649,9 +23649,9 @@ GpEffArg*      params;
 params          = &D_80113358;          /* before the call — pins $s0 */
 slot            = Game_GetPtrSlot(3);
 raw             = extra->coords;       /* extra local is required */
-params->field_4 = 0xC0;
-coords          = &((GsCOORDINATE2*)raw)[3];
-params->field_0 = coords;               /* sw %lo(Global)(s0) */
+params->spawnArgLo = 0xC0;
+coords             = &((GsCOORDINATE2*)raw)[3];
+params->coord      = coords;            /* sw %lo(Global)(s0) */
 func_800FDB18(2, coords, 0, params);
 ```
 
@@ -29149,8 +29149,8 @@ if (temp < 3) {
     idx = temp;
 }
 temp            = idx;
-params->field_4 = (temp * 0x60) + 0xC0;
-params->field_6 = temp + 1;
+params->spawnArgLo = (temp * 0x60) + 0xC0;
+params->spawnArgHi = temp + 1;
 func_800FDB18(3, coords, 0, params);
 ```
 
@@ -41163,6 +41163,15 @@ access path in a snippet (`extra->field_8`). Both are safe to rewrite
 textually *because* they name what they mean; a bare `field_8` is not, and
 searching for one finds hundreds of lines about other types.
 
+The reach test above is the rule for the sources; markdown is a separate pass
+with a separate rule, and it does not apply to a `field_XX`. A markdown mention
+counts when the token is *distinctive* - it carries an underscore, or two
+capitals - and every placeholder does, because `field_NN` has the underscore.
+Renaming one struct's `field_0` therefore proposes 415 edits in
+DECOMPILATION_LEARNINGS.md alone, 478 comment-writes in all, on a run whose
+resolved code edits number 90. Pass `--no-comments` for any `field_XX`, not
+just for the structs whose fields are all placeholders.
+
 ## A rename step has to sweep for what `rename_item.py` cannot see
 
 The rename is parser-resolved, which is what makes it safe, but three kinds of
@@ -46284,7 +46293,7 @@ one register:
 
 ```c
 raw             = extra->coords;   // keep the temp: dropping it let GCC
-params->field_4 = 0xC0;             // sink the load past the store (+3 insns)
+params->spawnArgLo = 0xC0;          // sink the load past the store (+3 insns)
 coords          = &raw[3];
 ```
 
@@ -75756,9 +75765,9 @@ the pointer chain is a *second* walk of `task->extra`:
 
 ```c
 coord                 = tmd->field_8;
-work->eff_4C0.field_4 = 0x580;
-work->eff_4C0.field_6 = 3;
-work->eff_4C0.field_0 = &((TmdObject*)task->extra)->coords[1];
+work->eff_4C0.spawnArgLo = 0x580;
+work->eff_4C0.spawnArgHi = 3;
+work->eff_4C0.coord      = &((TmdObject*)task->extra)->coords[1];
 ```
 
 That last statement is `lw $2,44($19)` / `lw $2,8($2)` / `addiu $2,$2,80` /
@@ -75774,9 +75783,9 @@ Writing the block pointer-first fixes all three hunks at once (100.000%,
 
 ```c
 coord                 = tmd->field_8;
-work->eff_4C0.field_0 = &((TmdObject*)task->extra)->coords[1];  /* to the head */
-work->eff_4C0.field_4 = 0x580;
-work->eff_4C0.field_6 = 3;
+work->eff_4C0.coord      = &((TmdObject*)task->extra)->coords[1]; /* to the head */
+work->eff_4C0.spawnArgLo = 0x580;
+work->eff_4C0.spawnArgHi = 3;
 ```
 
 `.lreg` is the read-out and it costs nothing to read: `;; Register 90 in 2.` /
@@ -96098,7 +96107,7 @@ carried the statement order the next paragraph needed.
 
 The neighbouring `field_8B8` block (a `GpEffArg` the effect call fills) needed
 that order rather than a different register: with the pointer store written
-*first*, `work->field_8B8.field_0 = arg0->field_2C->field_8 + 5;` before the two
+*first*, `work->field_8B8.coord = arg0->field_2C->field_8 + 5;` before the two
 constant halfword stores, sched1 issues the `field_8` load chain early, the
 value is born while `$v0` still holds the `0x2C` pointer and lands in `$v1`, and
 the store sinks into the following call's delay slot — the target's order. With
@@ -125797,9 +125806,9 @@ two halves of that guard read **different slots** -- do not assume symmetry:
 id = work->slots[1].curRec & 0x3FF;                   /* 0x3E, `lhu` + `andi` */
 if (id == 7 && work->field_896 != id) {
     memset(&vec, 0, 8);                               /* SVECTOR, not NULL */
-    eff.field_0 = ((TmdObject*)task->extra)->coords;  /* part 0, no addiu */
-    eff.field_4 = 0x100;
-    eff.field_6 = 2;
+    eff.coord      = ((TmdObject*)task->extra)->coords; /* part 0, no addiu */
+    eff.spawnArgLo = 0x100;
+    eff.spawnArgHi = 2;
     func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, ((TmdObject*)task->extra)->coords + 1, &vec, &eff);
 }
 work->field_896 = work->slots[0].curRec & 0x3FF;      /* 0x16 -- slot 0, not 1 */
@@ -127902,8 +127911,8 @@ compiler emit it where the scheduler can hoist it between the `field_2C` and
 
 ```c
 anim2       = arg0->field_1C;                    /* reload, after the loop's calls */
-eff.field_0 = &arg0->field_2C->field_8[2];       /* the two loads it sits between */
-eff.field_4 = 0x100;
+eff.coord      = &arg0->field_2C->field_8[2];    /* the two loads it sits between */
+eff.spawnArgLo = 0x100;
 ...
 ```
 
@@ -132485,3 +132494,23 @@ the function came back bit-identical - but it costs a cast at every site in the
 group that wants the other width, and the type that goes is the one whose
 description of the table (the entry scheme, in this case) is not about bytes at
 all.
+## Collapsing a member trio into one aggregate member must not reorder the seeds
+
+A shape that turns up across the actor overlays is a record of a pointer and
+two halfwords that a nearby view spells as three members (`GsCOORDINATE2*
+field_X` plus `s16 field_X4` / `field_X6`). When such a view is folded onto the
+aggregate type the record really is, the three seed stores become stores into
+one member: `work->field_E4 = 0x600; work->field_E0 = coord; work->field_E6 = 3;`
+becomes `work->field_E0.spawnArgLo = 0x600; work->field_E0.coord = coord;
+work->field_E0.spawnArgHi = 3;`.
+
+Regroup the statements by the new member name - pointer, then low, then high -
+and seven overlays fail the checksum, because the target emits the stores in the
+order the source wrote them and that order is *not* address order in these
+seeds. Keep each store where it was: the rewrite is a change of spelling, not of
+sequence, and the same rule the rest of this file records for ordinary field
+stores applies to a member that changed its type.
+
+The reverse also holds: a seed written in address order stays in address order.
+Both forms occur, so read the original statement sequence rather than the field
+offsets.

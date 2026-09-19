@@ -237,7 +237,7 @@ void Actor02100_Fn004C4(Actor02100* arg0)
                         scratch->shortVec.vz = 0xC8;
                         if ((Gp_GetIdParam0(work->field_60.key) & 0xFFFF) == 7) {
                             Gp_SpawnEff(0x6007F, coord,
-                                        work->field_100.field_4 | (work->field_100.field_6 << 16),
+                                        work->field_100.spawnArgLo | (work->field_100.spawnArgHi << 16),
                                         &scratch->shortVec);
                         }
                         func_800FDB18(7, coord, &scratch->shortVec, &work->field_100);

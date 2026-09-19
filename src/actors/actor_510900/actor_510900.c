@@ -1229,16 +1229,16 @@ void func_actor_510900_801350F8(Actor510900Ctx* arg0, Actor510900* arg1)
     arg0->field_4      = &coord->field_0.coord;
     arg0->field_48     = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18  = &((TmdObject*)arg1->field_2C)->coords[3];
-    arg0->field_1C  = 0;
-    arg0->field_20  = 0;
-    arg0->field_24  = 0;
-    arg0->field_50  = &D_actor_510900_80167980;
-    arg0->field_54  = (s32)work->rec49C;
-    arg0->field_40  = D_actor_510900_80167980.field_4;
-    work->field_53C = &((TmdObject*)arg1->field_2C)->coords[3];
-    work->field_540 = 0x400;
-    work->field_542 = 2;
+    arg0->field_18             = &((TmdObject*)arg1->field_2C)->coords[3];
+    arg0->field_1C             = 0;
+    arg0->field_20             = 0;
+    arg0->field_24             = 0;
+    arg0->field_50             = &D_actor_510900_80167980;
+    arg0->field_54             = (s32)work->rec49C;
+    arg0->field_40             = D_actor_510900_80167980.field_4;
+    work->field_53C.coord      = &((TmdObject*)arg1->field_2C)->coords[3];
+    work->field_53C.spawnArgLo = 0x400;
+    work->field_53C.spawnArgHi = 2;
     func_800B3F84((GpAnimCtx*)work, D_actor_510900_80167AA4, (TmdObject*)obj,
                   ((Actor510900Anim*)work)->poses, ((Actor510900Anim*)work)->slots);
     for (i = 1; i < 0x13; i++) {

@@ -188,7 +188,7 @@ void func_actor_510900_80135744(Actor510900* arg0)
                 }
                 if (lastId != work->rec49C[i].key) {
                     lastId = work->rec49C[i].key;
-                    func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, &arg0->field_2C->field_8[1].field_50, NULL, (GpEffArg*)&work->field_53C);
+                    func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, &arg0->field_2C->field_8[1].field_50, NULL, &work->field_53C);
                 }
                 wait = Gp_GetIdParam2(work->rec49C[i].key);
                 if (wait > 0) {

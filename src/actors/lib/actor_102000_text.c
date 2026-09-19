@@ -226,7 +226,7 @@ void Actor02000_Fn00078(Actor02000* arg0)
                     scratch->effOfs.vy = 0;
                     scratch->effOfs.vz = (work->field_6AA == 1) ? 0x12C : -0x96;
                     func_800FDB18(Gp_GetIdParam1(work->field_4EC[i].key) & 0xFFFF, &arg0->field_2C->coords[3],
-                                  &scratch->effOfs, (GpEffArg*)&work->field_670);
+                                  &scratch->effOfs, &work->field_670);
                 }
                 cooldown = Gp_GetIdParam2(work->field_4EC[i].key);
                 if (cooldown > 0) {
@@ -1289,16 +1289,16 @@ void Actor02000_Fn0251C(Actor02000Ctx* ctx, Actor02000* actor)
         Gp_DestroyEnemy(ctx, actor);
         return;
     }
-    actor->field_1C = work;
-    obj->flags      = 0;
-    coord->flg      = 0;
-    obj->lightMtx   = &work->field_45C;
-    obj->colorMtx   = &work->field_43C;
-    work->field_6CA = 0x14;
-    work->field_66C = Actor02000_D15FD0;
-    work->field_670 = &actor->field_2C->coords[3];
-    work->field_674 = 0x500;
-    work->field_676 = 2;
+    actor->field_1C            = work;
+    obj->flags                 = 0;
+    coord->flg                 = 0;
+    obj->lightMtx              = &work->field_45C;
+    obj->colorMtx              = &work->field_43C;
+    work->field_6CA            = 0x14;
+    work->field_66C            = Actor02000_D15FD0;
+    work->field_670.coord      = &actor->field_2C->coords[3];
+    work->field_670.spawnArgLo = 0x500;
+    work->field_670.spawnArgHi = 2;
     func_800B3F84(work, &Actor02000_D15FE8, obj, work->field_30C, &work->field_14);
     for (i = 1; i < 0x13; i++) {
         Gp_AnimResetSlot(work, i, 1);

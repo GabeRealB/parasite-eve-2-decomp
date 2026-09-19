@@ -641,12 +641,12 @@ void func_actor_400600_80133434(Task* arg0)
     enemy->field_1C.vz = 0;
     enemy->field_18    = &((TmdObject*)arg0->extra)->coords[3];
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags     = 5;
-    enemy->field_50       = &D_actor_400600_80144EB0;
-    enemy->field_54       = (s32)work->rec_4D4;
-    work->eff_6FC.field_0 = &((TmdObject*)arg0->extra)->coords[3];
-    work->eff_6FC.field_4 = 0x300;
-    work->eff_6FC.field_6 = 2;
+    enemy->node.flags        = 5;
+    enemy->field_50          = &D_actor_400600_80144EB0;
+    enemy->field_54          = (s32)work->rec_4D4;
+    work->eff_6FC.coord      = &((TmdObject*)arg0->extra)->coords[3];
+    work->eff_6FC.spawnArgLo = 0x300;
+    work->eff_6FC.spawnArgHi = 2;
     enemy->field_40 = enemy->field_42 = D_actor_400600_80144EB0.field_4;
     func_800B3F84(&work->anim, D_actor_400600_80151A54, model, work->pad_394, work->slots);
 

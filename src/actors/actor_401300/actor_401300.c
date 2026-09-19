@@ -1068,9 +1068,9 @@ void func_actor_401300_80134454(GpEnemy* enemy, Actor401300* actor)
     pos.vz = root->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
 
-    work->field_910.field_0 = &actor->field_2C->coords[1];
-    work->field_910.field_4 = 0x300;
-    work->field_910.field_6 = 2;
+    work->field_910.coord      = &actor->field_2C->coords[1];
+    work->field_910.spawnArgLo = 0x300;
+    work->field_910.spawnArgHi = 2;
     switch ((u8)actor->field_36) {
         case 2:
             work->field_2   = -1;
@@ -1171,9 +1171,9 @@ void func_actor_401300_80134BA4(Actor401300* arg0, s16 arg1, s32 arg2)
             *sc = D_actor_401300_80158928[11];
         }
     }
-    work->field_910.field_0 = &arg0->field_2C->coords[1];
-    work->field_910.field_4 = 0x300;
-    work->field_910.field_6 = 2;
+    work->field_910.coord      = &arg0->field_2C->coords[1];
+    work->field_910.spawnArgLo = 0x300;
+    work->field_910.spawnArgHi = 2;
     func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->field_2C->coords[sc->pad], sc, &work->field_910);
     *(u32*)G_SCRATCH_HEAD += 8;
 }
@@ -2434,9 +2434,9 @@ void func_actor_401300_80138800(Actor401300* arg0)
     arg0->field_2C->coords[5].flg = 0;
     Gp_UpdateCoord(&arg0->field_2C->coords[3]);
     if (work->field_8A2 == 5 && (work->field_6C & 0x100)) {
-        work->field_910.field_0 = &arg0->field_2C->coords[1];
-        work->field_910.field_4 = 0x300;
-        work->field_910.field_6 = 2;
+        work->field_910.coord      = &arg0->field_2C->coords[1];
+        work->field_910.spawnArgLo = 0x300;
+        work->field_910.spawnArgHi = 2;
         func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg0->field_2C->coords[5], NULL, &work->field_910);
         work->field_0 = 0xD;
     }
@@ -2460,9 +2460,9 @@ void func_actor_401300_80138B24(Actor401300* arg0)
         work->field_D22 = 0;
     }
     if (work->field_6C & 2) {
-        work->field_910.field_0 = &arg0->field_2C->coords[1];
-        work->field_910.field_4 = 0x300;
-        work->field_910.field_6 = 2;
+        work->field_910.coord      = &arg0->field_2C->coords[1];
+        work->field_910.spawnArgLo = 0x300;
+        work->field_910.spawnArgHi = 2;
         func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg0->field_2C->coords[5], NULL, &work->field_910);
         work->field_0 = 0xE;
     }
@@ -2769,9 +2769,9 @@ void func_actor_401300_801397F8(Actor401300* arg0)
     }
     func_actor_401300_80133A3C(arg0);
     if ((work->field_5E & 0x3FF) == 4 && work->field_8BC != (work->field_5E & 0x3FF)) {
-        work->field_910.field_0 = arg0->field_2C->coords + 1;
-        work->field_910.field_4 = 0x300;
-        work->field_910.field_6 = 2;
+        work->field_910.coord      = arg0->field_2C->coords + 1;
+        work->field_910.spawnArgLo = 0x300;
+        work->field_910.spawnArgHi = 2;
         func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->field_2C->coords + 5, NULL, &work->field_910);
     }
     work->field_8BC = work->field_5E & 0x3FF;

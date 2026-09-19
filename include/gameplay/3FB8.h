@@ -187,14 +187,22 @@ typedef struct _GpActorSvec {
     /* 0x41C */ s16  field_41C;
 } GpActorSvec;
 
-/// 8-byte argument record for `func_800FDB18`. `field_0` is a coordinate
-/// (fallback `gGfxViewCoord`); `field_4` / `field_6` are packed into the
-/// `Gp_SpawnEff` argument. The third `func_800FDB18` argument is an
-/// `SVECTOR*` (or NULL).
-typedef struct _GpEffArg {
-    /* 0x0 */ struct _GsCOORDINATE2* field_0;
-    /* 0x4 */ s16                    field_4;
-    /* 0x6 */ s16                    field_6;
+/// Argument record for `func_800FDB18`, the id-dispatched effect spawner: the
+/// coordinate its effects are placed under, and the word they are spawned with.
+///
+/// The spawner fills `coord` in on first use -- while it is NULL it takes the
+/// coordinate the call was handed, or the view coordinate if it was handed none
+/// -- so a record that outlives one call carries its coordinate into the next.
+/// Every effect the call spawns reads the two halves back as its own
+/// `Task::spawnArg1`, where what they mean is that effect's business; the
+/// effects that come in a series are spawned `spawnArgHi` times.
+///
+/// A record is either a global of the overlay that spawns the effects or a
+/// member of the work block the spawner keeps beside it.
+typedef struct {
+    GsCOORDINATE2* coord;      // coordinate the effects are placed under, filled in on first use
+    s16            spawnArgLo; // low half of the spawned effect's `Task::spawnArg1`
+    s16            spawnArgHi; // high half; also the repeat count of an effect spawned in a series
 } GpEffArg;
 STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 

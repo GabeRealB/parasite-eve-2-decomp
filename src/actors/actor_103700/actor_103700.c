@@ -34,18 +34,18 @@ void func_actor_103700_80131EC4(GpEnemy* arg0, Task* task)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_50          = &D_actor_103700_80139D2C;
-    arg0->field_18          = coord;
-    arg0->node.flags        = 0;
-    arg0->field_1C.vx       = 0;
-    arg0->field_1C.vy       = 0;
-    arg0->field_1C.vz       = 0;
-    arg0->field_54          = (s32)work->records;
-    work->field_224.field_0 = &((TmdObject*)task->extra)->coords[1];
-    work->field_224.field_4 = 0x100;
-    work->field_224.field_6 = 1;
-    work->field_246         = ((Actor103700Kind*)arg0->field_3C)->field_A;
-    kind                    = ((Actor103700Kind*)arg0->field_3C)->field_2;
+    arg0->field_50             = &D_actor_103700_80139D2C;
+    arg0->field_18             = coord;
+    arg0->node.flags           = 0;
+    arg0->field_1C.vx          = 0;
+    arg0->field_1C.vy          = 0;
+    arg0->field_1C.vz          = 0;
+    arg0->field_54             = (s32)work->records;
+    work->field_224.coord      = &((TmdObject*)task->extra)->coords[1];
+    work->field_224.spawnArgLo = 0x100;
+    work->field_224.spawnArgHi = 1;
+    work->field_246            = ((Actor103700Kind*)arg0->field_3C)->field_A;
+    kind                       = ((Actor103700Kind*)arg0->field_3C)->field_2;
     switch (kind / 10) {
         case 0:
             Tmd_AllocBuffers(obj);

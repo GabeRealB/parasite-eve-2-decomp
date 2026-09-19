@@ -229,9 +229,9 @@ void func_actor_444000_80134688(GsCOORDINATE2* coord, s32 id)
 {
     Actor444000EffScratch* sc = (Actor444000EffScratch*)(SCRATCH_SP -= sizeof(Actor444000EffScratch));
 
-    sc->eff.field_4 = 0x500;
-    sc->eff.field_0 = coord;
-    sc->eff.field_6 = 3;
+    sc->eff.spawnArgLo = 0x500;
+    sc->eff.coord      = coord;
+    sc->eff.spawnArgHi = 3;
 
     switch (Gp_GetIdParam0(id) & 0xFFFF) {
         case 2:

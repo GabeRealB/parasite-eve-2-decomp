@@ -308,10 +308,10 @@ void func_actor_503500_80132F64(Actor503500* arg0)
     work->field_5D4.pos.vz   = D_actor_503500_8016EC50.vz;
     Gp_LinkObj(2, &work->field_5D4);
     Gp_InitRec18Table(recs, 8, 0);
-    work->field_6E4.field_4 = 0x600;
-    work->field_6E4.field_0 = part;
-    work->field_6E4.field_6 = 3;
-    work->field_5D4.flags  &= 0x7FFF;
+    work->field_6E4.spawnArgLo = 0x600;
+    work->field_6E4.coord      = part;
+    work->field_6E4.spawnArgHi = 3;
+    work->field_5D4.flags     &= 0x7FFF;
 
     for (i = 1; i < 12; i++) {
         child = Gp_SpawnEnemyFromTable(&D_actor_503500_8016E924, i, i, enemy);

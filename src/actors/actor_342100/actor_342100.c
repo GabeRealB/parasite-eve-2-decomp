@@ -268,9 +268,9 @@ void func_actor_342100_80162AB0(Task* arg0)
             }
             eff = (GpEffArg*)arg0->work;
             Mem_Set(eff, 0, 8);
-            eff->field_4 = 0x100;
-            eff->field_0 = ((TmdObject*)arg0->extra)->coords;
-            eff->field_6 = 1;
+            eff->spawnArgLo = 0x100;
+            eff->coord      = ((TmdObject*)arg0->extra)->coords;
+            eff->spawnArgHi = 1;
             arg0->state++;
             return;
         case 1:
@@ -399,9 +399,9 @@ void func_actor_342100_80162DDC(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            idx                            &= 3;
-            D_actor_342100_801649A0.field_4 = 0x100;
-            D_actor_342100_801649A0.field_0 = &((TmdObject*)slot->extra)->coords[D_actor_342100_801649A8[idx]];
+            idx                               &= 3;
+            D_actor_342100_801649A0.spawnArgLo = 0x100;
+            D_actor_342100_801649A0.coord      = &((TmdObject*)slot->extra)->coords[D_actor_342100_801649A8[idx]];
             func_800FDB18(3, ((TmdObject*)slot->extra)->coords, NULL, &D_actor_342100_801649A0);
             arg0->state++;
             return;
@@ -410,18 +410,18 @@ void func_actor_342100_80162DDC(Task* arg0)
                 if (D_80070F70 & 0xF) {
                     return;
                 }
-                idx                            &= 3;
-                D_actor_342100_801649A0.field_4 = 0x10;
-                D_actor_342100_801649A0.field_0 = &((TmdObject*)slot->extra)->coords[D_actor_342100_801649A8[idx]];
+                idx                               &= 3;
+                D_actor_342100_801649A0.spawnArgLo = 0x10;
+                D_actor_342100_801649A0.coord      = &((TmdObject*)slot->extra)->coords[D_actor_342100_801649A8[idx]];
                 func_800FDB18(3, ((TmdObject*)slot->extra)->coords, NULL, &D_actor_342100_801649A0);
                 return;
             }
             if (D_80070F70 & 7) {
                 return;
             }
-            idx                            &= 0xF;
-            D_actor_342100_801649A0.field_4 = 0x100;
-            D_actor_342100_801649A0.field_0 = &((TmdObject*)slot->extra)->coords[D_actor_342100_801649A8[idx]];
+            idx                               &= 0xF;
+            D_actor_342100_801649A0.spawnArgLo = 0x100;
+            D_actor_342100_801649A0.coord      = &((TmdObject*)slot->extra)->coords[D_actor_342100_801649A8[idx]];
             func_800FDB18(3, ((TmdObject*)slot->extra)->coords, NULL, &D_actor_342100_801649A0);
             return;
     }

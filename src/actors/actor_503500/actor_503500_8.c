@@ -470,7 +470,7 @@ void func_actor_503500_8013C088(Actor503500* arg0, Actor503500Work* arg1, GpRec1
         pos.vx += D_actor_503500_8016F1B0.vx;
         pos.vy += D_actor_503500_8016F1B0.vy;
         pos.vz += D_actor_503500_8016F1B0.vz;
-        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, (GpEffArg*)&work->field_E0);
+        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_E0);
         if (crit != 0) {
             Gp_SpawnEff(0x6009C, coord, 0, &pos);
         }
@@ -698,10 +698,10 @@ void func_actor_503500_8013CAE4(Actor503500* arg0)
     work->obj.flags    = 1;
     Gp_LinkObj(2, &work->obj);
     Gp_InitRec18Table(rec, 8, 0);
-    work->field_E4   = 0x600;
-    work->field_E0   = coord;
-    work->field_E6   = 3;
-    work->obj.flags &= 0x7FFF;
+    work->field_E0.spawnArgLo = 0x600;
+    work->field_E0.coord      = coord;
+    work->field_E0.spawnArgHi = 3;
+    work->obj.flags          &= 0x7FFF;
     func_actor_503500_8013DBA8(arg0, 0);
     arg0->exitCallback = (TaskFunc)func_actor_503500_8013D85C;
     arg0->state       += 1;
@@ -803,7 +803,7 @@ void func_actor_503500_8013CCBC(Actor503500* arg0, Actor503500Work* arg1, GpRec1
         pos.vx += D_actor_503500_8016F210[arg0->spawnArg1].vx;
         pos.vy += D_actor_503500_8016F210[arg0->spawnArg1].vy;
         pos.vz += D_actor_503500_8016F210[arg0->spawnArg1].vz;
-        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, (GpEffArg*)&work->field_E0);
+        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_E0);
         if (crit != 0) {
             Gp_SpawnEff(0x6009C, coord, 0, &pos);
         }
@@ -1208,10 +1208,10 @@ void func_actor_503500_8013DD10(Actor503500* arg0)
     D_actor_503500_8017797C.obj.pos.vz   = D_actor_503500_8016F2D8.vz;
     Gp_LinkObj(2, &D_actor_503500_8017797C.obj);
     Gp_InitRec18Table(rec, 8, 0);
-    D_actor_503500_8017797C.field_E4   = 0x600;
-    D_actor_503500_8017797C.field_E0   = coord;
-    D_actor_503500_8017797C.field_E6   = 3;
-    D_actor_503500_8017797C.obj.flags |= 0x8000;
+    D_actor_503500_8017797C.field_E0.spawnArgLo = 0x600;
+    D_actor_503500_8017797C.field_E0.coord      = coord;
+    D_actor_503500_8017797C.field_E0.spawnArgHi = 3;
+    D_actor_503500_8017797C.obj.flags          |= 0x8000;
     func_actor_503500_8013EC20(arg0, 0);
     arg0->exitCallback = (TaskFunc)func_actor_503500_8013EA2C;
     arg0->state       += 1;
@@ -1311,7 +1311,7 @@ void func_actor_503500_8013DEB4(Actor503500* arg0, Actor503500Work* arg1, GpRec1
         pos.vx += D_actor_503500_8016F2D8.vx;
         pos.vy += D_actor_503500_8016F2D8.vy;
         pos.vz += D_actor_503500_8016F2D8.vz;
-        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, (GpEffArg*)&work->field_E0);
+        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_E0);
         if (crit != 0) {
             Gp_SpawnEff(0x6009C, coord, 0, &pos);
         }
@@ -1628,10 +1628,10 @@ void func_actor_503500_8013ECBC(Actor503500* arg0)
     D_actor_503500_80177A6C.obj.flags    = 1;
     Gp_LinkObj(2, &D_actor_503500_80177A6C.obj);
     Gp_InitRec18Table(rec, 8, 0);
-    D_actor_503500_80177A6C.field_E4   = 0x600;
-    D_actor_503500_80177A6C.field_E0   = coord;
-    D_actor_503500_80177A6C.field_E6   = 3;
-    D_actor_503500_80177A6C.obj.flags &= 0x7FFF;
+    D_actor_503500_80177A6C.field_E0.spawnArgLo = 0x600;
+    D_actor_503500_80177A6C.field_E0.coord      = coord;
+    D_actor_503500_80177A6C.field_E0.spawnArgHi = 3;
+    D_actor_503500_80177A6C.obj.flags          &= 0x7FFF;
     func_actor_503500_8013F9D4(arg0, 3);
     arg0->exitCallback = (TaskFunc)func_actor_503500_8013F778;
     arg0->state       += 1;
@@ -1733,7 +1733,7 @@ void func_actor_503500_8013EE5C(Actor503500* arg0, Actor503500Work* arg1, GpRec1
         pos.vx += D_actor_503500_8016F36C.vx;
         pos.vy += D_actor_503500_8016F36C.vy;
         pos.vz += D_actor_503500_8016F36C.vz;
-        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, (GpEffArg*)&work->field_E0);
+        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_E0);
         if (crit != 0) {
             Gp_SpawnEff(0x6009C, coord, 0, &pos);
         }
@@ -2071,10 +2071,10 @@ void func_actor_503500_8013FA74(Actor503500* arg0)
     work->obj240.flags    = 1;
     Gp_LinkObj(3, &work->obj240);
     Gp_InitRec18Table(rec2, 4, 0);
-    work->field_2C0.field_4 = 0x600;
-    work->field_2C0.field_0 = part;
-    work->field_2C0.field_6 = 3;
-    work->obj240.flags     &= 0x7FFF;
+    work->field_2C0.spawnArgLo = 0x600;
+    work->field_2C0.coord      = part;
+    work->field_2C0.spawnArgHi = 3;
+    work->obj240.flags        &= 0x7FFF;
 
     copyVector(&work->field_368, &D_actor_503500_8016F414[arg0->spawnArg1 - 0xD]);
     copyVector(&work->field_358, &D_actor_503500_8016F414[arg0->spawnArg1 - 0xD]);
@@ -3185,10 +3185,10 @@ void func_actor_503500_801423C8(Actor503500* arg0)
     work->obj2.flags    = 1;
     Gp_LinkObj(3, &work->obj2);
     Gp_InitRec18Table(work->rec1, 4, 0);
-    work->field_1E4   = 0x600;
-    work->field_1E0   = coord;
-    work->field_1E6   = 3;
-    work->obj2.flags &= 0x7FFF;
+    work->field_1E0.spawnArgLo = 0x600;
+    work->field_1E0.coord      = coord;
+    work->field_1E0.spawnArgHi = 3;
+    work->obj2.flags          &= 0x7FFF;
     func_actor_503500_80144238(arg0, 0);
     arg0->exitCallback = (TaskFunc)func_actor_503500_80143F78;
     arg0->state       += 1;
@@ -3624,7 +3624,7 @@ void func_actor_503500_801431EC(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
         pos.vx += D_actor_503500_80171480[work->field_220].vx;
         pos.vy += D_actor_503500_80171480[work->field_220].vy;
         pos.vz += D_actor_503500_80171480[work->field_220].vz;
-        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, (GpEffArg*)&work->field_1E0);
+        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_1E0);
         if (crit != 0) {
             Gp_SpawnEff(0x6009C, coord, (crit == 2) * 2, &pos);
         }

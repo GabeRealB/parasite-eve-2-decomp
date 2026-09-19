@@ -75,11 +75,11 @@ void ActorsShared8014c4c0(Actor201200* arg0, s16 arg1, u32 arg2)
             sc->vz  = 100;
         }
     }
-    coord                = &arg0->field_2C->coords[1];
-    work->eff1A8.field_4 = 0x80;
-    work->eff1A8.field_6 = 2;
-    work->eff1A8.field_0 = coord;
-    work->effOfs         = *sc;
+    coord                   = &arg0->field_2C->coords[1];
+    work->eff1A8.spawnArgLo = 0x80;
+    work->eff1A8.spawnArgHi = 2;
+    work->eff1A8.coord      = coord;
+    work->effOfs            = *sc;
     func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->field_2C->coords[sc->pad], &work->effOfs, &work->eff1A8);
     *(u32*)G_SCRATCH_HEAD += sizeof(SVECTOR);
 }

@@ -72,9 +72,7 @@ typedef struct Actor02000Work {
     /* 0x61C */ GpObj               field_61C;
     /* 0x63C */ byte                pad_63C[0x30];
     /* 0x66C */ s16*                field_66C;
-    /* 0x670 */ GsCOORDINATE2*      field_670;
-    /* 0x674 */ s16                 field_674;
-    /* 0x676 */ s16                 field_676;
+    /* 0x670 */ GpEffArg            field_670; // record the hit's effect is spawned with
     /* 0x678 */ s32                 field_678;
     /* 0x67C */ s32                 field_67C;
     /* 0x680 */ s32                 field_680;

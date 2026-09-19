@@ -214,9 +214,9 @@ void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
     work->field_0 = 0;
     work->field_2 = -1;
 
-    D_actor_223600_80150B5C.coord   = ((TmdObject*)task->extra)->coords;
-    D_actor_223600_80150B5C.field_4 = 0x100;
-    D_actor_223600_80150B5C.field_6 = 1;
+    D_actor_223600_80150B5C.coord      = ((TmdObject*)task->extra)->coords;
+    D_actor_223600_80150B5C.spawnArgLo = 0x100;
+    D_actor_223600_80150B5C.spawnArgHi = 1;
     task->state++;
 }
 

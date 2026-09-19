@@ -168,11 +168,11 @@ void func_actor_123200_8013352C(GpEnemy* enemy, Task* task)
     dir.vy = 0;
     Actor123200_ScaleForward(&dir);
 
-    work->field_0                   = 0;
-    work->field_2                   = -1;
-    D_actor_123200_80137248.coord   = ((TmdObject*)task->extra)->coords;
-    D_actor_123200_80137248.field_4 = 0x100;
-    D_actor_123200_80137248.field_6 = 1;
+    work->field_0                      = 0;
+    work->field_2                      = -1;
+    D_actor_123200_80137248.coord      = ((TmdObject*)task->extra)->coords;
+    D_actor_123200_80137248.spawnArgLo = 0x100;
+    D_actor_123200_80137248.spawnArgHi = 1;
     task->state++;
 }
 

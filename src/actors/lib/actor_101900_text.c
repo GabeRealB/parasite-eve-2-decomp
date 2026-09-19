@@ -890,10 +890,10 @@ void Actor01900_Fn02018(GpEnemy* enemy, Actor01900* actor)
     pos.vz = root->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
 
-    work->field_8B8.field_0 = &actor->field_2C->coords[1];
-    work->field_8B8.field_4 = 0x300;
-    work->field_8B8.field_6 = 2;
-    kind                    = actor->field_36;
+    work->field_8B8.coord      = &actor->field_2C->coords[1];
+    work->field_8B8.spawnArgLo = 0x300;
+    work->field_8B8.spawnArgHi = 2;
+    kind                       = actor->field_36;
     switch (kind & 0xF) {
         case 2:
             work->field_2 = -1;
@@ -1025,10 +1025,10 @@ void Actor01900_Fn02664(Actor01900* arg0, s16 yaw, s32 id)
             head[-1] = Actor01900_D1722C[11];
         }
     }
-    coord                   = arg0->field_2C->coords;
-    work->field_8B8.field_4 = 0x300;
-    work->field_8B8.field_6 = 2;
-    work->field_8B8.field_0 = coord + 1;
+    coord                      = arg0->field_2C->coords;
+    work->field_8B8.spawnArgLo = 0x300;
+    work->field_8B8.spawnArgHi = 2;
+    work->field_8B8.coord      = coord + 1;
     func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, arg0->field_2C->coords + dir->pad, dir, &work->field_8B8);
     *(SVECTOR**)G_SCRATCH_HEAD = *(SVECTOR**)G_SCRATCH_HEAD + 1;
 }
@@ -2327,9 +2327,9 @@ void Actor01900_Fn06B4C(Actor01900* arg0)
         }
     }
     if ((work->field_5A & 0x3FF) == 5 && work->field_894 != (work->field_5A & 0x3FF)) {
-        work->field_8B8.field_0 = arg0->field_2C->coords + 1;
-        work->field_8B8.field_4 = 0x200;
-        work->field_8B8.field_6 = 2;
+        work->field_8B8.coord      = arg0->field_2C->coords + 1;
+        work->field_8B8.spawnArgLo = 0x200;
+        work->field_8B8.spawnArgHi = 2;
         if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x01030000 || (u8)Gp_GetViewIndex() != 0x10) {
             func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->field_2C->coords + 5, NULL, &work->field_8B8);
         }

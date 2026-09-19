@@ -470,10 +470,10 @@ void func_actor_323000_80163EA0(GpEnemy* enemy, Task* task)
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
-    D_actor_323000_80173A24.field_0 = ((TmdObject*)task->extra)->coords;
-    D_actor_323000_80173A24.field_4 = 0x100;
-    D_actor_323000_80173A24.field_6 = 2;
-    work->field_0                   = 0;
+    D_actor_323000_80173A24.coord      = ((TmdObject*)task->extra)->coords;
+    D_actor_323000_80173A24.spawnArgLo = 0x100;
+    D_actor_323000_80173A24.spawnArgHi = 2;
+    work->field_0                      = 0;
     task->state++;
 }
 

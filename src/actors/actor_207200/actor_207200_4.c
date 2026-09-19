@@ -147,17 +147,17 @@ void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
     Gp_InitRec18Table(work->rec5, 1, 0);
     work->obj5.flags &= 0x7FFF;
 
-    work->eff0.field_0 = ((TmdObject*)arg1->extra)->coords + 3;
-    work->eff0.field_4 = 0x100;
-    work->eff0.field_6 = 1;
-    work->eff2.field_0 = ((TmdObject*)arg1->extra)->coords + 3;
-    work->eff2.field_4 = 0x400;
-    work->eff2.field_6 = 3;
-    work->eff1.field_0 = ((TmdObject*)arg1->extra)->coords + 1;
-    work->eff1.field_4 = 0x100;
-    work->eff1.field_6 = 1;
-    work->field_4A8    = 0;
-    arg1->exitCallback = (void (*)(Task*))func_actor_207200_8014DB4C;
+    work->eff0.coord      = ((TmdObject*)arg1->extra)->coords + 3;
+    work->eff0.spawnArgLo = 0x100;
+    work->eff0.spawnArgHi = 1;
+    work->eff2.coord      = ((TmdObject*)arg1->extra)->coords + 3;
+    work->eff2.spawnArgLo = 0x400;
+    work->eff2.spawnArgHi = 3;
+    work->eff1.coord      = ((TmdObject*)arg1->extra)->coords + 1;
+    work->eff1.spawnArgLo = 0x100;
+    work->eff1.spawnArgHi = 1;
+    work->field_4A8       = 0;
+    arg1->exitCallback    = (void (*)(Task*))func_actor_207200_8014DB4C;
     arg1->state++;
 }
 

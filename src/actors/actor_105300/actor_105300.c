@@ -94,7 +94,7 @@ void func_actor_105300_80131E3C(Actor05300* arg0)
             scr->ofs.vy = D_actor_105300_80133A40[work->field_334].vy;
             scr->ofs.vz = D_actor_105300_80133A40[work->field_334].vz;
             if (val == 3) {
-                Gp_SpawnEff(0x6007F, coord, work->field_2F4.field_4 | (work->field_2F4.field_6 << 16), &scr->ofs);
+                Gp_SpawnEff(0x6007F, coord, work->field_2F4.spawnArgLo | (work->field_2F4.spawnArgHi << 16), &scr->ofs);
             } else {
                 func_800FDB18((u16)val, coord, &scr->ofs, &work->field_2F4);
             }
@@ -214,25 +214,25 @@ void func_actor_105300_80132BAC(GpEnemy* arg0, Task* arg1)
     arg0->field_4     = &coord->coord;
     arg0->field_48    = 0;
     Gp_LinkNode(&arg0->node);
-    rec18              = part->rec18;
-    arg0->field_18     = coord;
-    arg0->field_1C.vx  = 0;
-    arg0->field_1C.vy  = 0;
-    arg0->field_1C.vz  = 0;
-    arg0->field_50     = &D_actor_105300_8013D3A0;
-    arg0->field_54     = (s32)rec18;
-    arg0->field_40     = D_actor_105300_8013D3A0.field_4;
-    part->field_3C     = 0x500;
-    part->field_38     = coord;
-    part->field_3E     = 2;
-    part->obj.coord    = coord;
-    part->obj.ctx.recs = rec18;
-    part->obj.pos.vx   = 0;
-    part->obj.pos.vy   = 0;
-    part->obj.pos.vz   = 0;
-    part->obj.key      = ((Actor05300Work*)arg1->parent->work)->field_29C;
-    part->obj.radius   = 0xC8;
-    part->obj.flags    = 1;
+    rec18                     = part->rec18;
+    arg0->field_18            = coord;
+    arg0->field_1C.vx         = 0;
+    arg0->field_1C.vy         = 0;
+    arg0->field_1C.vz         = 0;
+    arg0->field_50            = &D_actor_105300_8013D3A0;
+    arg0->field_54            = (s32)rec18;
+    arg0->field_40            = D_actor_105300_8013D3A0.field_4;
+    part->field_38.spawnArgLo = 0x500;
+    part->field_38.coord      = coord;
+    part->field_38.spawnArgHi = 2;
+    part->obj.coord           = coord;
+    part->obj.ctx.recs        = rec18;
+    part->obj.pos.vx          = 0;
+    part->obj.pos.vy          = 0;
+    part->obj.pos.vz          = 0;
+    part->obj.key             = ((Actor05300Work*)arg1->parent->work)->field_29C;
+    part->obj.radius          = 0xC8;
+    part->obj.flags           = 1;
     Gp_LinkObj(2, &part->obj);
     Gp_InitRec18Table(rec18, 1, 0);
     part->obj.flags |= 0x8000;
@@ -306,9 +306,9 @@ void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
             } else if (damage > 0) {
                 if (part->field_44 == 0) {
                     if ((Gp_GetIdParam0(part->rec18[0].key) & 0xFFFF) == 7) {
-                        func_800FDB18(3, coord, NULL, (GpEffArg*)&part->field_38);
+                        func_800FDB18(3, coord, NULL, &part->field_38);
                     }
-                    func_800FDB18(7, coord, NULL, (GpEffArg*)&part->field_38);
+                    func_800FDB18(7, coord, NULL, &part->field_38);
                     part->field_44 = 10;
                 }
                 hitTime = Gp_GetIdParam2(part->rec18[0].key);

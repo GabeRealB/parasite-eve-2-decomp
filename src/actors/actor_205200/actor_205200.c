@@ -189,17 +189,17 @@ void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1)
     arg0->field_54    = (s32)part->recs;
     arg0->field_40    = D_actor_205200_8014C9BC.field_4;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    part->field_6C     = 0x400;
-    part->field_6E     = 3;
-    part->field_68     = coord;
-    part->obj.coord    = coord;
-    part->obj.ctx.recs = part->recs;
-    part->obj.pos.vx   = 0;
-    part->obj.pos.vy   = 0;
-    part->obj.pos.vz   = 0;
-    part->obj.key      = 0x30034;
-    part->obj.radius   = 0x1C2;
-    part->obj.flags    = 1;
+    part->field_68.spawnArgLo = 0x400;
+    part->field_68.spawnArgHi = 3;
+    part->field_68.coord      = coord;
+    part->obj.coord           = coord;
+    part->obj.ctx.recs        = part->recs;
+    part->obj.pos.vx          = 0;
+    part->obj.pos.vy          = 0;
+    part->obj.pos.vz          = 0;
+    part->obj.key             = 0x30034;
+    part->obj.radius          = 0x1C2;
+    part->obj.flags           = 1;
     Gp_LinkObj(2, &part->obj);
     Gp_InitRec18Table(part->recs, 3, 0);
     part->obj.flags |= 0x8000;
@@ -267,9 +267,9 @@ void func_actor_205200_8014B048(Actor205200* arg0, s32 arg1)
             } else if (damage > 0) {
                 if (part->field_76 == 0) {
                     if ((Gp_GetIdParam0(part->recs[i].key) & 0xFFFF) == 7) {
-                        func_800FDB18(3, coord, NULL, (GpEffArg*)&part->field_68);
+                        func_800FDB18(3, coord, NULL, &part->field_68);
                     }
-                    func_800FDB18(7, coord, NULL, (GpEffArg*)&part->field_68);
+                    func_800FDB18(7, coord, NULL, &part->field_68);
                     part->field_76 = 10;
                 }
                 if (damage < 201) {
@@ -346,7 +346,7 @@ void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
             if ((s16)--part->field_74 <= 0) {
                 Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
                 part->field_74 = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
-                func_800FDB18(7, coord, NULL, (GpEffArg*)&part->field_68);
+                func_800FDB18(7, coord, NULL, &part->field_68);
                 Gp_SpawnEff(0x60070, coord, 0xF2001400, NULL);
                 view = Gp_GetStageView(&gGameSession->at4.loc.view);
                 d.vx = view->mtx.t[0] + coord->coord.t[0];

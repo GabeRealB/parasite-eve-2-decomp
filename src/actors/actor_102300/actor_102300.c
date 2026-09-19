@@ -656,16 +656,16 @@ void func_actor_102300_801346CC(GpEnemy* enemy, Actor102300* actor)
         Gp_DestroyEnemy(enemy, (Task*)actor);
         return;
     }
-    actor->field_1C         = work;
-    obj->flags              = 0;
-    coord->flg              = 0;
-    obj->lightMtx           = &work->field_45C;
-    obj->colorMtx           = &work->field_43C;
-    work->field_6CA         = 0x17;
-    work->field_66C         = &D_actor_102300_80147AB8;
-    work->field_670.field_0 = &actor->field_2C->coords[3];
-    work->field_670.field_4 = 0x500;
-    work->field_670.field_6 = 2;
+    actor->field_1C            = work;
+    obj->flags                 = 0;
+    coord->flg                 = 0;
+    obj->lightMtx              = &work->field_45C;
+    obj->colorMtx              = &work->field_43C;
+    work->field_6CA            = 0x17;
+    work->field_66C            = &D_actor_102300_80147AB8;
+    work->field_670.coord      = &actor->field_2C->coords[3];
+    work->field_670.spawnArgLo = 0x500;
+    work->field_670.spawnArgHi = 2;
     func_800B3F84(&work->anim, D_actor_102300_80147ADC, obj, work->poses, work->slots);
     for (i = 1; i < 0x13; i++) {
         Gp_AnimResetSlot(&work->anim, i, 1);

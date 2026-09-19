@@ -185,30 +185,26 @@ typedef struct Actor503500Work {
     /* 0x080 */ byte    pad_80[0x60];
     /// Coordinate the 0xF4 block at `D_actor_503500_80177A6C` republishes
     /// alongside its display node: `func_actor_503500_8013ECBC` stores the
-    /// task's own `TmdObject::coords` here together with the 0xE4 / 0xE6
-    /// pair it seeds to 0x600 and 3.
-    /* 0x0E0 */ GsCOORDINATE2* field_E0;
-    /* 0x0E4 */ s16            field_E4;
-    /* 0x0E6 */ s16            field_E6;
-    /* 0x0E8 */ s16            field_E8; // per-frame countdown, clamped at 0
-    /* 0x0EA */ s16            field_EA;
-    /* 0x0EC */ s8             field_EC; // sub-state index
-    /* 0x0ED */ s8             field_ED; // sub-state index
-    /* 0x0EE */ s8             field_EE; // sub-state phase, cleared with field_ED
-    /* 0x0EF */ byte           pad_EF[0x1];
-    /* 0x0F0 */ s8             field_F0; // sub-state index
-    /* 0x0F1 */ s8             field_F1; // sub-state phase, cleared with field_F0
-    /* 0x0F2 */ byte           pad_F2[0x2E];
-    /// The same coordinate / 0x124 / 0x126 trio as `field_E0`, at the 0x160
-    /// block's own offsets: `func_actor_503500_801372C8` republishes the task's
-    /// `TmdObject::coords` here alongside the 0x400 / 3 pair it seeds.
-    /* 0x120 */ GsCOORDINATE2* field_120;
-    /* 0x124 */ s16            field_124;
-    /* 0x126 */ s16            field_126;
-    /// 16.16 Euler angles, velocity and position of the 0x160 block's death
-    /// fall, stepped by `func_actor_503500_80137678`: the angles' high halves
-    /// build the rotation and the position's high halves are added onto the
-    /// coordinate's translation each frame.
+    /// task's own `TmdObject::coords` in it and seeds the record's 0x600 / 3
+    /// argument pair.
+    /* 0x0E0 */ GpEffArg field_E0; // record the block's effects are spawned with
+    /* 0x0E8 */ s16      field_E8; // per-frame countdown, clamped at 0
+    /* 0x0EA */ s16      field_EA;
+    /* 0x0EC */ s8       field_EC; // sub-state index
+    /* 0x0ED */ s8       field_ED; // sub-state index
+    /* 0x0EE */ s8       field_EE; // sub-state phase, cleared with field_ED
+    /* 0x0EF */ byte     pad_EF[0x1];
+    /* 0x0F0 */ s8       field_F0; // sub-state index
+    /* 0x0F1 */ s8       field_F1; // sub-state phase, cleared with field_F0
+    /* 0x0F2 */ byte     pad_F2[0x2E];
+    /// The 0x160 block's own spawn record, seeded the way `field_E0` is:
+    /// `func_actor_503500_801372C8` republishes the task's `TmdObject::coords`
+    /// here alongside the 0x400 / 3 pair it seeds.
+    /* 0x120 */ GpEffArg field_120; // record the block's effects are spawned with
+                                    /// 16.16 Euler angles, velocity and position of the 0x160 block's death
+                                    /// fall, stepped by `func_actor_503500_80137678`: the angles' high halves
+                                    /// build the rotation and the position's high halves are added onto the
+                                    /// coordinate's translation each frame.
     /* 0x128 */ Actor503500FixVec rot;
     /* 0x138 */ Actor503500FixVec vel;
     /* 0x148 */ Actor503500FixVec pos;
@@ -329,7 +325,7 @@ typedef struct Actor503500Work {
     /// same translation into the coordinate's own matrix.
     /* 0x6C4 */ VECTOR field_6C4;
     /* 0x6D4 */ VECTOR field_6D4; // previous frame's coordinate translation
-                                  /// The boss's coordinate / 0x600 / 3 trio, the same shape as `field_E0`:
+                                  /// The boss's own spawn record, seeded the way `field_E0` is:
                                   /// `func_actor_503500_80132F64` stores model part 3 here and
                                   /// `func_actor_503500_80134EAC` hands the record to `func_800FDB18` as its
                                   /// hit-effect argument.
@@ -446,7 +442,7 @@ typedef struct Actor503500Work3D8 {
     /* 0x180 */ GpRec18   rec180[8]; // obj160's table, count 8
     /* 0x240 */ GpObj     obj240;
     /* 0x260 */ GpRec18   rec260[4]; // obj240's table, count 4
-    /* 0x2C0 */ GpEffArg  field_2C0; // coordinate / 0x600 / 3 trio
+    /* 0x2C0 */ GpEffArg  field_2C0; // record this block's effects are spawned with
     /* 0x2C8 */ SVECTOR   pts[9];
     /* 0x310 */ SVECTOR   angles[9];
     /* 0x358 */ SVECTOR   field_358;
@@ -505,23 +501,21 @@ static inline void func_actor_503500_SetRotIdentity(MATRIX* m)
 /// Element of `D_actor_503500_80176EE8`, the two 0x2EC blocks
 /// `func_actor_503500_8013852C` clears for spawn slots 2 and 3. The shared
 /// `Actor503500Work` cannot be indexed at this stride, and this block puts a
-/// coordinate / 0x244 / 0x246 trio at 0x240 where the shared view names the
+/// spawn record at 0x240 where the shared view names the
 /// 0x3D8 block's `obj240`, so the array gets its own type; the task's
 /// `field_1C` still points at the block through the shared view, whose
 /// 0x2D4..0x2EB fields agree with the ones below. It opens with the light and
 /// colour matrices the init republishes on `TmdObject::lightMtx` / `field_20`,
 /// then a private copy of model parts 1..8's `coord` matrices.
 typedef struct Actor503500Work2EC {
-    /* 0x000 */ MATRIX         light;
-    /* 0x020 */ MATRIX         color;
-    /* 0x040 */ MATRIX         mats[9];
-    /* 0x160 */ GpObj          obj;
-    /* 0x180 */ GpRec18        rec[8]; // Gp_InitRec18Table(rec, 8, 0)
-    /* 0x240 */ GsCOORDINATE2* field_240;
-    /* 0x244 */ s16            field_244;
-    /* 0x246 */ s16            field_246;
-    /// Cleared by `func_actor_503500_801395BC` once `field_2E2` has faded
-    /// to 0; the same offset as the shared view's `obj240.field_8`.
+    /* 0x000 */ MATRIX   light;
+    /* 0x020 */ MATRIX   color;
+    /* 0x040 */ MATRIX   mats[9];
+    /* 0x160 */ GpObj    obj;
+    /* 0x180 */ GpRec18  rec[8];    // Gp_InitRec18Table(rec, 8, 0)
+    /* 0x240 */ GpEffArg field_240; // record the 0x2EC block's effects are spawned with
+                                    /// Cleared by `func_actor_503500_801395BC` once `field_2E2` has faded
+                                    /// to 0; the same offset as the shared view's `obj240.field_8`.
     /* 0x248 */ void* field_248;
     /// Bezier-sampled chain polyline, root first, that
     /// `func_actor_503500_8013A0D0` re-aims the model's links along.
@@ -781,13 +775,12 @@ typedef struct Actor503500Work224 {
     /* 0x140 */ GpObj   obj1;
     /* 0x160 */ GpObj   obj2;
     /* 0x180 */ GpRec18 rec1[4];
-    /// The same coordinate / 0x600 / 3 trio as `Actor503500Work::field_E0`.
-    /* 0x1E0 */ GsCOORDINATE2* field_1E0;
-    /* 0x1E4 */ s16            field_1E4;
-    /* 0x1E6 */ s16            field_1E6;
-    /// 16.16 Euler angles, velocity and position of the death fall stepped
-    /// by `func_actor_503500_80142980`, as `Actor503500Work::rot` / `vel` /
-    /// `pos` are for the 0x160 block.
+    /// The 0x224 block's own spawn record, seeded the way
+    /// `Actor503500Work::field_E0` is.
+    /* 0x1E0 */ GpEffArg field_1E0; // record the 0x224 block's effects are spawned with
+                                    /// 16.16 Euler angles, velocity and position of the death fall stepped
+                                    /// by `func_actor_503500_80142980`, as `Actor503500Work::rot` / `vel` /
+                                    /// `pos` are for the 0x160 block.
     /* 0x1E8 */ Actor503500FixVec rot;
     /* 0x1F8 */ Actor503500FixVec vel;
     /* 0x208 */ Actor503500FixVec pos;
@@ -838,18 +831,16 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkF4, 0xF4);
 /// puts its counter pair at 0xEA / 0xEC. Its sub-state index is `field_F0`,
 /// the one `func_actor_503500_8013D990` dispatches on.
 typedef struct Actor503500Work770E8 {
-    /* 0x00 */ GpObj          obj;
-    /* 0x20 */ GpRec18        rec[8]; // Gp_InitRec18Table(rec, 8, 0)
-    /* 0xE0 */ GsCOORDINATE2* field_E0;
-    /* 0xE4 */ s16            field_E4;
-    /* 0xE6 */ s16            field_E6;
-    /* 0xE8 */ s16            field_E8; // per-frame countdown, as in `Actor503500Work`
-    /* 0xEA */ byte           pad_EA[0x2];
-    /* 0xEC */ u16            field_EC; // sub-state frame counter
-    /* 0xEE */ s16            field_EE;
-    /* 0xF0 */ s8             field_F0; // sub-state index
-    /* 0xF1 */ s8             field_F1; // sub-state phase, cleared with field_F0
-    /* 0xF2 */ byte           pad_F2[0x2];
+    /* 0x00 */ GpObj    obj;
+    /* 0x20 */ GpRec18  rec[8];   // Gp_InitRec18Table(rec, 8, 0)
+    /* 0xE0 */ GpEffArg field_E0; // record the block's effects are spawned with
+    /* 0xE8 */ s16      field_E8; // per-frame countdown, as in `Actor503500Work`
+    /* 0xEA */ byte     pad_EA[0x2];
+    /* 0xEC */ u16      field_EC; // sub-state frame counter
+    /* 0xEE */ s16      field_EE;
+    /* 0xF0 */ s8       field_F0; // sub-state index
+    /* 0xF1 */ s8       field_F1; // sub-state phase, cleared with field_F0
+    /* 0xF2 */ byte     pad_F2[0x2];
 } Actor503500Work770E8;
 STATIC_ASSERT_SIZEOF(Actor503500Work770E8, 0xF4);
 
@@ -862,18 +853,16 @@ STATIC_ASSERT_SIZEOF(Actor503500Work770E8, 0xF4);
 /// byte triple. Its sub-state index is `field_F0`, the one
 /// `func_actor_503500_8013CA34` dispatches on.
 typedef struct Actor503500Work776A0 {
-    /* 0x00 */ GpObj          obj;
-    /* 0x20 */ GpRec18        rec[8]; // Gp_InitRec18Table(rec, 8, 0)
-    /* 0xE0 */ GsCOORDINATE2* field_E0;
-    /* 0xE4 */ s16            field_E4;
-    /* 0xE6 */ s16            field_E6;
-    /* 0xE8 */ s16            field_E8; // per-frame countdown, as in `Actor503500Work`
-    /* 0xEA */ s16            field_EA; // sub-state frame counter
-    /* 0xEC */ u16            field_EC; // scale handed to func_actor_503500_80135E20
-    /* 0xEE */ s16            field_EE; // per-frame step of field_EC, stepped down by 4
-    /* 0xF0 */ s8             field_F0; // sub-state index
-    /* 0xF1 */ s8             field_F1; // sub-state phase, cleared with field_F0
-    /* 0xF2 */ byte           pad_F2[0x2];
+    /* 0x00 */ GpObj    obj;
+    /* 0x20 */ GpRec18  rec[8];   // Gp_InitRec18Table(rec, 8, 0)
+    /* 0xE0 */ GpEffArg field_E0; // record the block's effects are spawned with
+    /* 0xE8 */ s16      field_E8; // per-frame countdown, as in `Actor503500Work`
+    /* 0xEA */ s16      field_EA; // sub-state frame counter
+    /* 0xEC */ u16      field_EC; // scale handed to func_actor_503500_80135E20
+    /* 0xEE */ s16      field_EE; // per-frame step of field_EC, stepped down by 4
+    /* 0xF0 */ s8       field_F0; // sub-state index
+    /* 0xF1 */ s8       field_F1; // sub-state phase, cleared with field_F0
+    /* 0xF2 */ byte     pad_F2[0x2];
 } Actor503500Work776A0;
 STATIC_ASSERT_SIZEOF(Actor503500Work776A0, 0xF4);
 
@@ -885,15 +874,13 @@ STATIC_ASSERT_SIZEOF(Actor503500Work776A0, 0xF4);
 /// the slot (`spawnArg1 - 4`) that selects this enemy's parent part and
 /// local offset.
 typedef struct Actor503500Work774C0 {
-    /* 0x00 */ GpObj          obj;
-    /* 0x20 */ GpRec18        rec;
-    /* 0x38 */ byte           pad_38[0xA8];
-    /* 0xE0 */ GsCOORDINATE2* field_E0;
-    /* 0xE4 */ s16            field_E4;
-    /* 0xE6 */ s16            field_E6;
-    /* 0xE8 */ byte           pad_E8[0x4];
-    /* 0xEC */ s8             field_EC;
-    /* 0xED */ byte           pad_ED[0x3];
+    /* 0x00 */ GpObj    obj;
+    /* 0x20 */ GpRec18  rec;
+    /* 0x38 */ byte     pad_38[0xA8];
+    /* 0xE0 */ GpEffArg field_E0; // record the block's effects are spawned with
+    /* 0xE8 */ byte     pad_E8[0x4];
+    /* 0xEC */ s8       field_EC;
+    /* 0xED */ byte     pad_ED[0x3];
 } Actor503500Work774C0;
 STATIC_ASSERT_SIZEOF(Actor503500Work774C0, 0xF0);
 

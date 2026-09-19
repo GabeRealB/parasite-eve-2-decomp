@@ -165,17 +165,17 @@ void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
     enemy->field_4  = &coords->coord;
     enemy->field_48 = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->field_18    = &((TmdObject*)task->extra)->coords[3];
-    enemy->node.flags  = 5;
-    enemy->field_1C.vx = 0;
-    enemy->field_1C.vy = 0;
-    enemy->field_1C.vz = 0;
-    enemy->field_54    = (s32)work->field_49C;
-    enemy->field_50    = NULL;
-    enemy->field_40    = 0;
-    work->field_554    = &((TmdObject*)task->extra)->coords[3];
-    work->field_558    = 0x200;
-    work->field_55A    = 1;
+    enemy->field_18            = &((TmdObject*)task->extra)->coords[3];
+    enemy->node.flags          = 5;
+    enemy->field_1C.vx         = 0;
+    enemy->field_1C.vy         = 0;
+    enemy->field_1C.vz         = 0;
+    enemy->field_54            = (s32)work->field_49C;
+    enemy->field_50            = NULL;
+    enemy->field_40            = 0;
+    work->field_554.coord      = &((TmdObject*)task->extra)->coords[3];
+    work->field_554.spawnArgLo = 0x200;
+    work->field_554.spawnArgHi = 1;
     func_800B3F84((GpAnimCtx*)work, &D_actor_205200_801567E8, tmd, work->field_30C,
                   (GpAnimSlot*)&work->pad_14);
     i = 1;
@@ -248,7 +248,7 @@ void func_actor_205200_8014BD4C(Actor205200* arg0)
             if (last != work->field_49C[i].key) {
                 last = work->field_49C[i].key;
                 func_800FDB18(Gp_GetIdParam1(last) & 0xFFFF, &arg0->field_2C->field_8[3], NULL,
-                              (GpEffArg*)&work->field_554);
+                              &work->field_554);
             }
             if ((n = Gp_GetIdParam2(work->field_49C[i].key)) > 0) {
                 work->field_57C = n;

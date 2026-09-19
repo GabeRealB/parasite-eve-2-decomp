@@ -63,19 +63,17 @@ typedef struct Actor05300Work {
 /// `Task::work`. It leads with the `GpObj` list node linked into
 /// `Gp_ObjLists[2]` -- and the one the shared teardown hands back to
 /// `Gp_UnlinkObj` -- so `obj.ctx.recs` is the single-entry `GpRec18` collision
-/// table at 0x20. `field_38` is the same coordinate `obj.coord` points at,
+/// table at 0x20. `field_38` holds the same coordinate `obj.coord` points at,
 /// and `field_46` is the `ActorsShared80133838Work::field_46` the teardown
 /// reads back to pick its death flag.
 typedef struct Actor05300Part {
-    /* 0x00 */ GpObj          obj;
-    /* 0x20 */ GpRec18        rec18[1];
-    /* 0x38 */ GsCOORDINATE2* field_38;
-    /* 0x3C */ s16            field_3C;
-    /* 0x3E */ s16            field_3E;
-    /* 0x40 */ s16            field_40;
-    /* 0x42 */ u16            field_42;
-    /* 0x44 */ s16            field_44;
-    /* 0x46 */ u16            field_46;
+    /* 0x00 */ GpObj    obj;
+    /* 0x20 */ GpRec18  rec18[1];
+    /* 0x38 */ GpEffArg field_38; // record this part's death effect is spawned with
+    /* 0x40 */ s16      field_40;
+    /* 0x42 */ u16      field_42;
+    /* 0x44 */ s16      field_44;
+    /* 0x46 */ u16      field_46;
 } Actor05300Part;
 STATIC_ASSERT_SIZEOF(Actor05300Part, 0x48);
 

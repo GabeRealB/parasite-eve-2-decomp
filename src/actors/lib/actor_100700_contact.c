@@ -155,7 +155,7 @@ damage_contact:
         hitId = contactWork->field_22C.contacts.recs[0].key;
         if (lastId != hitId) {
             lastId = hitId;
-            func_800FDB18(Gp_GetIdParam1((s32)hitId) & 0xFFFF, coord, NULL, (GpEffArg*)&work->pad_31C[0x18]);
+            func_800FDB18(Gp_GetIdParam1((s32)hitId) & 0xFFFF, coord, NULL, &work->field_334);
         }
         cooldownParam = Gp_GetIdParam2(contactWork->field_22C.contacts.recs[0].key);
         if (cooldownParam > 0) {

@@ -2027,9 +2027,9 @@ void func_acropolis_bridge_801874DC(Task* task)
         if (enemy->field_40 > 0) {
             Gp_ReleaseStateF0Add((GpObj20E*)task, 0x29);
         }
-        work->field_1F0.field_0 = &((TmdObject*)task->extra)->coords[1];
-        work->field_1F0.field_4 = 0xA0;
-        work->field_1F0.field_6 = 2;
+        work->field_1F0.coord      = &((TmdObject*)task->extra)->coords[1];
+        work->field_1F0.spawnArgLo = 0xA0;
+        work->field_1F0.spawnArgHi = 2;
         func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &((TmdObject*)task->extra)->coords[1], NULL,
                       &work->field_1F0);
         Gp_SetLightMode((GpObj4C*)enemy, 1);
@@ -2073,10 +2073,10 @@ void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
     s16                       state;
 
     if (work->field_10C > 0) {
-        damage                  = Gp_ComputeDamage(attackId, 0, 0, 0x1000);
-        work->field_1F0.field_0 = &((TmdObject*)task->extra)->coords[1];
-        work->field_1F0.field_4 = 0x80;
-        work->field_1F0.field_6 = 2;
+        damage                     = Gp_ComputeDamage(attackId, 0, 0, 0x1000);
+        work->field_1F0.coord      = &((TmdObject*)task->extra)->coords[1];
+        work->field_1F0.spawnArgLo = 0x80;
+        work->field_1F0.spawnArgHi = 2;
         func_800FDB18(Gp_GetIdParam1(attackId) & 0xFFFF, &((TmdObject*)task->extra)->coords[1],
                       NULL, &work->field_1F0);
         if (Gp_RollEnemyChance(enemy, attackId, 0) != 0) {

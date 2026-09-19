@@ -2170,26 +2170,26 @@ void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3)
     id    = arg0;
     actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
     if (arg3 == NULL) {
-        arg3          = &D_80112C74;
-        arg3->field_0 = arg1;
+        arg3        = &D_80112C74;
+        arg3->coord = arg1;
     } else {
-        if (arg3->field_0 == NULL) {
+        if (arg3->coord == NULL) {
             if (arg1 == NULL) {
-                arg3->field_0 = &gGfxViewCoord;
-                arg1          = arg3->field_0;
+                arg3->coord = &gGfxViewCoord;
+                arg1        = arg3->coord;
             } else {
-                arg3->field_0 = arg1;
+                arg3->coord = arg1;
             }
         } else if (arg1 == NULL) {
-            arg1 = arg3->field_0;
+            arg1 = arg3->coord;
         }
     }
     switch ((u16)id) {
         case 1:
             if (actor->field_124 & 0x4000) {
                 Gp_SpawnEff(0x60055, arg1, 0x12300, arg2);
-                if (arg3->field_6 >= 2) {
-                    for (i = 0; i < arg3->field_6; i++) {
+                if (arg3->spawnArgHi >= 2) {
+                    for (i = 0; i < arg3->spawnArgHi; i++) {
                         Gp_SpawnEff(0x60055, arg1, 0x111280, arg2);
                     }
                 }
@@ -2197,7 +2197,7 @@ void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3)
                 Gp_SpawnEff(0x60055, arg1, 0x12380, arg2);
                 Gp_SpawnEff(0x60055, arg1, 0x111300, arg2);
                 Gp_SpawnEff(0x60055, arg1, 0x111300, arg2);
-                for (i = 0; i < arg3->field_6; i++) {
+                for (i = 0; i < arg3->spawnArgHi; i++) {
                     Gp_SpawnEff(0x60055, arg1, 0x111280, arg2);
                 }
             }
@@ -2206,38 +2206,38 @@ void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3)
             Gp_SpawnEff(0x60055, arg1, 0x10013380, arg2);
             Gp_SpawnEff(0x60055, arg1, 0x10111300, arg2);
             Gp_SpawnEff(0x60055, arg1, 0x10111300, arg2);
-            for (i = 0; i < arg3->field_6; i++) {
+            for (i = 0; i < arg3->spawnArgHi; i++) {
                 Gp_SpawnEff(0x60055, arg1, 0x10112280, arg2);
             }
             break;
         case 4:
-            Gp_SpawnEff(0x6009A, arg3->field_0, arg3->field_4 | (arg3->field_6 << 16), arg2);
+            Gp_SpawnEff(0x6009A, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
             break;
         case 5:
-            Gp_SpawnEff(0x6009B, arg1, arg3->field_4 | (arg3->field_6 << 16), arg2);
+            Gp_SpawnEff(0x6009B, arg1, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
             break;
         case 6:
             Gp_SpawnEff(0x6003B, arg1, 0x400, arg2);
-            for (i = 0; i < arg3->field_6; i++) {
+            for (i = 0; i < arg3->spawnArgHi; i++) {
                 Gp_SpawnEff(0x60055, arg1, 0x112300, arg2);
             }
             break;
         case 7:
-            Gp_SpawnEff(0x6008E, arg3->field_0, arg3->field_4 | (arg3->field_6 << 16), arg2);
+            Gp_SpawnEff(0x6008E, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
             break;
         case 8:
-            for (i = 0; i < arg3->field_6 * 3; i++) {
-                Gp_SpawnEff(0x60055, arg3->field_0, 0x1112300, arg2);
+            for (i = 0; i < arg3->spawnArgHi * 3; i++) {
+                Gp_SpawnEff(0x60055, arg3->coord, 0x1112300, arg2);
             }
             break;
         case 9:
-            Gp_SpawnEff(0x6009B, arg1, arg3->field_4 | (arg3->field_6 << 16), arg2);
+            Gp_SpawnEff(0x6009B, arg1, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
             break;
         case 10:
-            Gp_SpawnEff(0x600E3, arg1, arg3->field_4 | 0x10000, arg2);
+            Gp_SpawnEff(0x600E3, arg1, arg3->spawnArgLo | 0x10000, arg2);
             break;
         case 11:
-            Gp_SpawnEff(0x6007F, arg3->field_0, arg3->field_4 | (arg3->field_6 << 16), NULL);
+            Gp_SpawnEff(0x6007F, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), NULL);
             pan = (s8)Gp_GetObjPan((GpObj38*)arg1);
             SndEvt_EnqueueType6(D_80112C7C[(u16)(Gp_StateC08.field_0 % 10U) - 1], pan,
                                 (s8)Gp_GetObjDepth((GpObj38*)arg1));
@@ -2246,20 +2246,20 @@ void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3)
             Gp_SpawnEff(0x600F7, arg1, 1, NULL);
             break;
         case 13:
-            for (i = 0; i < arg3->field_6; i++) {
+            for (i = 0; i < arg3->spawnArgHi; i++) {
                 Gp_SpawnEff(0x800600AF, arg1, 1, NULL);
             }
             break;
         case 15:
-            Gp_SpawnEff(0x6008E, arg3->field_0, arg3->field_4 | (arg3->field_6 << 16), arg2);
+            Gp_SpawnEff(0x6008E, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
             Gp_SpawnEff(0x60182, arg1, 1, NULL);
             break;
         case 16:
             if (actor->field_124 & 0x4000) {
-                Gp_SpawnEff(0x6007F, arg3->field_0, arg3->field_4 | 0x10000, arg2);
+                Gp_SpawnEff(0x6007F, arg3->coord, arg3->spawnArgLo | 0x10000, arg2);
             } else {
                 case 3:
-                    Gp_SpawnEff(0x6007F, arg3->field_0, arg3->field_4 | (arg3->field_6 << 16), arg2);
+                    Gp_SpawnEff(0x6007F, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
             }
             break;
     }
@@ -8435,9 +8435,9 @@ void func_80109844(GpActorWork* arg0)
         case 0:
             inner->field_95E   = 1;
             coord              = (GsCOORDINATE2*)((GpObj*)inner->field_AC)[(s8)inner->field_993].coord;
-            params->field_4    = (temp * 0x20) + 0x120;
-            params->field_6    = temp + 1;
-            D_80113358.field_0 = coord;
+            params->spawnArgLo = (temp * 0x20) + 0x120;
+            params->spawnArgHi = temp + 1;
+            D_80113358.coord   = coord;
             inner->field_934   = 0;
             inner->field_93E   = temp;
             /* fallthrough */
@@ -8460,7 +8460,7 @@ void func_80109844(GpActorWork* arg0)
                 }
                 vec->vy = val;
                 vec->vz = 0;
-                func_800FDB18(idx, params->field_0, vec, params);
+                func_800FDB18(idx, params->coord, vec, params);
             } else {
                 inner->field_934--;
             }
@@ -8505,16 +8505,16 @@ void func_80109A1C(GpActorWork* arg0)
                 } else {
                     inner->field_934 = 6;
                 }
-                coords          = &((GsCOORDINATE2*)arg0->extra->coords)[inner->field_93E + 1];
-                params->field_0 = coords;
-                temp            = (u16)((u16)inner->field_96E / 12);
-                idx             = 2;
+                coords        = &((GsCOORDINATE2*)arg0->extra->coords)[inner->field_93E + 1];
+                params->coord = coords;
+                temp          = (u16)((u16)inner->field_96E / 12);
+                idx           = 2;
                 if (temp < 3) {
                     idx = temp;
                 }
-                temp            = idx;
-                params->field_4 = (temp * 0x60) + 0xC0;
-                params->field_6 = temp + 1;
+                temp               = idx;
+                params->spawnArgLo = (temp * 0x60) + 0xC0;
+                params->spawnArgHi = temp + 1;
                 func_800FDB18(3, coords, 0, params);
             } else {
                 inner->field_934--;
@@ -9158,9 +9158,9 @@ void func_8010AD64(GpActorWork* arg0)
             idx                     = (s8)inner->field_993;
             inner->field_95E        = 1;
             coord                   = (GsCOORDINATE2*)((GpObj*)inner->field_AC)[idx].coord;
-            params->field_4         = 0xC0;
-            params->field_6         = 2;
-            D_80113358.field_0      = coord;
+            params->spawnArgLo      = 0xC0;
+            params->spawnArgHi      = 2;
+            D_80113358.coord        = coord;
             ((SVECTOR*)head)[-1].vx = 0;
             val                     = 0;
             if ((s8)inner->field_993 == 0) {
@@ -9168,7 +9168,7 @@ void func_8010AD64(GpActorWork* arg0)
             }
             vec->vy = val;
             vec->vz = 0;
-            func_800FDB18(2, D_80113358.field_0, vec, params);
+            func_800FDB18(2, D_80113358.coord, vec, params);
             break;
         case 1:
             break;
@@ -9450,13 +9450,13 @@ void func_8010B3F8(Task* arg0)
                 } else {
                     arg0->killCountdown = next | 6;
                 }
-                coords          = (GsCOORDINATE2*)slot->extra;
-                count           = arg0->killCountdown;
-                coords          = (GsCOORDINATE2*)((TmdObject*)coords)->coords;
-                params->field_4 = (idx * 0x60) + 0xC0;
-                params->field_6 = idx + 1;
-                coords          = &coords[((count & 0xF00) >> 8) + 1];
-                params->field_0 = coords;
+                coords             = (GsCOORDINATE2*)slot->extra;
+                count              = arg0->killCountdown;
+                coords             = (GsCOORDINATE2*)((TmdObject*)coords)->coords;
+                params->spawnArgLo = (idx * 0x60) + 0xC0;
+                params->spawnArgHi = idx + 1;
+                coords             = &coords[((count & 0xF00) >> 8) + 1];
+                params->coord      = coords;
                 func_800FDB18(3, coords, 0, params);
             } else {
                 arg0->killCountdown = count - 1;
@@ -9473,14 +9473,14 @@ void func_8010B520(Task* arg0)
     GpEffArg*      params;
     GsCOORDINATE2* coords;
 
-    params          = &D_80113358;
-    slot            = Game_GetPtrSlot(3);
-    extra           = slot->extra;
-    raw             = extra->coords;
-    params->field_4 = 0xC0;
-    coords          = &raw[3];
-    params->field_0 = coords;
-    params->field_6 = (u16)arg0->spawnArg1 + 1;
+    params             = &D_80113358;
+    slot               = Game_GetPtrSlot(3);
+    extra              = slot->extra;
+    raw                = extra->coords;
+    params->spawnArgLo = 0xC0;
+    coords             = &raw[3];
+    params->coord      = coords;
+    params->spawnArgHi = (u16)arg0->spawnArg1 + 1;
     func_800FDB18(2, coords, 0, params);
     taskKill(arg0);
 }

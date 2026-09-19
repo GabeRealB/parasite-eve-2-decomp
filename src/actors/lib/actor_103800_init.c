@@ -66,17 +66,17 @@ void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &work->field_344->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18    = &((Actor103800Obj2C*)arg1->extra)->field_8[3];
-    arg0->node.flags  = 0;
-    arg0->field_1C.vx = 0;
-    arg0->field_54    = (s32)work->field_1C4;
-    arg0->field_1C.vy = 0;
-    arg0->field_1C.vz = 0;
-    arg0->field_50    = &Actor03800_D05F44;
-    arg0->field_40    = (s16)Actor03800_D05F44.field_4;
-    work->field_2C4   = &((Actor103800Obj2C*)arg1->extra)->field_8[3];
-    work->field_2C8   = 0x200;
-    work->field_2CA   = 1;
+    arg0->field_18             = &((Actor103800Obj2C*)arg1->extra)->field_8[3];
+    arg0->node.flags           = 0;
+    arg0->field_1C.vx          = 0;
+    arg0->field_54             = (s32)work->field_1C4;
+    arg0->field_1C.vy          = 0;
+    arg0->field_1C.vz          = 0;
+    arg0->field_50             = &Actor03800_D05F44;
+    arg0->field_40             = (s16)Actor03800_D05F44.field_4;
+    work->field_2C4.coord      = &((Actor103800Obj2C*)arg1->extra)->field_8[3];
+    work->field_2C4.spawnArgLo = 0x200;
+    work->field_2C4.spawnArgHi = 1;
     func_800B3F84(&work->anim, Actor03800_D05F60, (TmdObject*)extra, work->field_104, work->slots);
     for (i = 1; i < 6; i++) {
         Gp_AnimResetSlot(&work->anim, i, 1);

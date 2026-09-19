@@ -339,10 +339,10 @@ void func_actor_421600_801350BC(Actor421600* arg0, s16 arg1, s32 arg2)
             *sc = D_actor_421600_801510B8[11];
         }
     }
-    work->field_890.field_0 = &arg0->field_2C->coords[sc->pad];
-    work->field_890.field_4 = 0x100;
-    work->field_890.field_6 = 2;
-    work->field_898         = *sc;
+    work->field_890.coord      = &arg0->field_2C->coords[sc->pad];
+    work->field_890.spawnArgLo = 0x100;
+    work->field_890.spawnArgHi = 2;
+    work->field_898            = *sc;
     func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->field_2C->coords[sc->pad], &work->field_898, &work->field_890);
     *(u32*)G_SCRATCH_HEAD += 8;
 }

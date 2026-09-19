@@ -748,10 +748,10 @@ void func_actor_444000_8013AFF8(GpEnemy* enemy, Actor444000* task)
     coord->flg          = 0;
     Gp_UpdateCoord(coord);
 
-    D_actor_444000_80161880.field_0 = ((TmdObject*)task->extra)->coords;
-    D_actor_444000_80161880.field_4 = 0x100;
-    D_actor_444000_80161880.field_6 = 2;
-    work->field_2                   = -1;
+    D_actor_444000_80161880.coord      = ((TmdObject*)task->extra)->coords;
+    D_actor_444000_80161880.spawnArgLo = 0x100;
+    D_actor_444000_80161880.spawnArgHi = 2;
+    work->field_2                      = -1;
 
     model   = (TmdObject*)task->extra;
     buffers = task->field_1C;

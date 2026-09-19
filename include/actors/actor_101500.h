@@ -12,50 +12,48 @@
 /// `func_actor_101500_80134778` re-seeds the slots from the per-state id table
 /// when they differ and ticks them while they match.
 typedef struct Actor101500Work {
-    /* 0x000 */ byte           pad_0[0x14];
-    /* 0x014 */ byte           field_14[0x118]; // animation slots, handed to `func_800B3F84`
-    /* 0x12C */ byte           field_12C[0x70]; // pose buffer, handed to `func_800B3F84`
-    /* 0x19C */ MATRIX         field_19C;       // model colour matrix
-    /* 0x1BC */ MATRIX         field_1BC;       // model light matrix
-    /* 0x1DC */ GpObj          field_1DC;
-    /* 0x1FC */ GpRec18        field_1FC[3];
-    /* 0x244 */ GpObj          field_244;
-    /* 0x264 */ GpRec18        field_264[5];
-    /* 0x2DC */ GpObj          field_2DC;
-    /* 0x2FC */ GpRec18        field_2FC[1];
-    /* 0x314 */ GsCOORDINATE2* field_314;
-    /* 0x318 */ s16            field_318;
-    /* 0x31A */ s16            field_31A;
-    /* 0x31C */ VECTOR3        field_31C; // position before this frame's step
-    /* 0x328 */ byte           pad_328[4];
-    /* 0x32C */ MATRIX         field_32C;
-    /* 0x34C */ s32            field_34C;
-    /* 0x350 */ s16            field_350; // hit cooldown, reloaded from `Gp_GetIdParam2`
-    /* 0x352 */ u16            field_352;
-    /* 0x354 */ s16            field_354;
-    /* 0x356 */ u16            field_356;
-    /* 0x358 */ s16            field_358;
-    /* 0x35A */ s16            field_35A;
-    /* 0x35C */ s16            field_35C;
-    /* 0x35E */ u16            field_35E;
-    /* 0x360 */ s16            field_360;
-    /* 0x362 */ s16            field_362;
-    /* 0x364 */ s16            field_364;
-    /* 0x366 */ s16            field_366;
-    /* 0x368 */ s16            field_368;
-    /* 0x36A */ s16            field_36A;
-    /* 0x36C */ s16            field_36C;
-    /* 0x36E */ s16            field_36E;
-    /* 0x370 */ s16            field_370;
-    /* 0x372 */ u16            field_372;
-    /* 0x374 */ s16            field_374;
-    /* 0x376 */ s16            field_376;
-    /* 0x378 */ s16            field_378;
-    /* 0x37A */ s16            field_37A;
-    /* 0x37C */ s16            field_37C;
-    /* 0x37E */ s16            field_37E;
-    /* 0x380 */ s16            field_380;
-    /* 0x382 */ s16            field_382; // spawn variant, `GpAreaPlace.field_1`
+    /* 0x000 */ byte     pad_0[0x14];
+    /* 0x014 */ byte     field_14[0x118]; // animation slots, handed to `func_800B3F84`
+    /* 0x12C */ byte     field_12C[0x70]; // pose buffer, handed to `func_800B3F84`
+    /* 0x19C */ MATRIX   field_19C;       // model colour matrix
+    /* 0x1BC */ MATRIX   field_1BC;       // model light matrix
+    /* 0x1DC */ GpObj    field_1DC;
+    /* 0x1FC */ GpRec18  field_1FC[3];
+    /* 0x244 */ GpObj    field_244;
+    /* 0x264 */ GpRec18  field_264[5];
+    /* 0x2DC */ GpObj    field_2DC;
+    /* 0x2FC */ GpRec18  field_2FC[1];
+    /* 0x314 */ GpEffArg field_314; // record the hit's effect is spawned with
+    /* 0x31C */ VECTOR3  field_31C; // position before this frame's step
+    /* 0x328 */ byte     pad_328[4];
+    /* 0x32C */ MATRIX   field_32C;
+    /* 0x34C */ s32      field_34C;
+    /* 0x350 */ s16      field_350; // hit cooldown, reloaded from `Gp_GetIdParam2`
+    /* 0x352 */ u16      field_352;
+    /* 0x354 */ s16      field_354;
+    /* 0x356 */ u16      field_356;
+    /* 0x358 */ s16      field_358;
+    /* 0x35A */ s16      field_35A;
+    /* 0x35C */ s16      field_35C;
+    /* 0x35E */ u16      field_35E;
+    /* 0x360 */ s16      field_360;
+    /* 0x362 */ s16      field_362;
+    /* 0x364 */ s16      field_364;
+    /* 0x366 */ s16      field_366;
+    /* 0x368 */ s16      field_368;
+    /* 0x36A */ s16      field_36A;
+    /* 0x36C */ s16      field_36C;
+    /* 0x36E */ s16      field_36E;
+    /* 0x370 */ s16      field_370;
+    /* 0x372 */ u16      field_372;
+    /* 0x374 */ s16      field_374;
+    /* 0x376 */ s16      field_376;
+    /* 0x378 */ s16      field_378;
+    /* 0x37A */ s16      field_37A;
+    /* 0x37C */ s16      field_37C;
+    /* 0x37E */ s16      field_37E;
+    /* 0x380 */ s16      field_380;
+    /* 0x382 */ s16      field_382; // spawn variant, `GpAreaPlace.field_1`
 } Actor101500Work;
 
 /// 0x58-byte frame allocated on the scratchpad stack by

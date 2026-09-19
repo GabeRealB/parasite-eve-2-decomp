@@ -207,7 +207,7 @@ damage_contact:
         hitId = contactWork->field_1C4[0].key;
         if (lastId != hitId) {
             lastId = hitId;
-            func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, arg0->field_2C->field_8 + 3, NULL, (GpEffArg*)&work->field_2C4);
+            func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, arg0->field_2C->field_8 + 3, NULL, &work->field_2C4);
         }
         result = Gp_GetIdParam2(contactWork->field_1C4[0].key);
         if (result > 0) {
