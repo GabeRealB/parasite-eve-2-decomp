@@ -312,6 +312,10 @@ u32* tmdDrawStreamPrimG4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* strea
 // `Tmd_InitSourceStream` patches each into a model's stream for the opcodes it
 // answers to, and the draw walk jalrs it. Each is named for the opcode it serves
 // or for the command it serves where that has been read.
+//
+// Not every draw body is in that file: some opcodes resolve to a body in the
+// gameplay overlay (src/gameplay/gameplay.c), which is declared at the end of
+// this list and opens with that package's prefix.
 /// Draw-pass handler of a stream's untextured triangle records that name a
 /// normal per corner (`0x20`, `0x22`): each element is one `POLY_G3` in the
 /// buffer half's second region, built whole here as the record is transformed.
@@ -706,6 +710,26 @@ u32* tmdDrawStreamPrimGt3CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* 
 /// itself, texture words included, was written when the stream was compiled into
 /// the buffer, so this command completes it in place.
 u32* tmdDrawStreamPrimGt4CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+/// Draw-pass handler of a stream's pre-transformed flat-triangle records
+/// (`0x5`): each element contributes one untextured `POLY_F3` to the buffer
+/// half's first region, where its corners are already in screen space, and links
+/// it into the ordering table at the depth its three corners average to.
+///
+/// Nothing here transforms or lights the triangle: the pass that projects the
+/// stream's vertices (`tmdXformStreamVerts`) has already written each corner's
+/// screen coordinates into the packet this handler files, and its depth into the
+/// per-vertex screen-Z table, so an element names its three corners in that table
+/// rather than in the vertex array. The packet's fixed fields — its length, its
+/// primitive code and the element's colour — are the build pass's
+/// (`gpStreamPrimF3PreXform`), so what a frame adds is the triangle's filing:
+/// the three cached depths are averaged for the ordering-table link, and the
+/// facing comes from the coordinates the packet already carries.
+///
+/// An element whose cached depth is marked off screen, or whose triangle turns
+/// away, is stepped over rather than linked. The record has no variant for
+/// `flags` to select, so it goes unread.
+u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 // Overlay stream commands (src/gameplay/gameplay.c), selected by
 // tmdProcessStream.

@@ -33200,7 +33200,7 @@ idx = rec[0] & 0xFFFC;
 sz  = *(s32*)(idx + (s32)szTable);
 ```
 
-`func_80099B94` is the example.
+`gpDrawStreamPrimF3PreXform` is the example.
 
 ## Keep `&poly->x2` as a live `POLY_F3*` so both cursors `addiu 0x14`
 
@@ -33216,15 +33216,16 @@ addiu  t0, t0, 0x14
 Assigning `xy` only once without incrementing it (or recomputing
 `&poly->x2` each iteration) either freezes the SXY pointer or emits
 `addiu a3, t0, 0x10`. Pin `poly` to `$t0` and `xy` to `$a3`.
-`func_80099B94` is the example.
+`gpDrawStreamPrimF3PreXform` is the example.
 
 ## POLY_F4 SXY FIFO from `&x3` plus `goto draw` for the 4th-vertex nclip
 
-The quad sibling of the POLY_F3 OT insert (`func_80099B94`) points `xy`
-at `&poly->x3` so the first nclip loads `x0`/`x1`/`x2` as `lw -12/-8/-4`
-/ `mtc2 $15`. A 4th `lw 0(xy)` / nclip only runs when the first OPZ
-is `<= 0`; `if (opz > 0) goto draw;` then `if (opz < 0) { draw: ... }`
-emits `bgtz` to the SZ/OT body and `bgez` over it. Pin `opz` to `$t1`
+The quad sibling of the POLY_F3 OT insert (`gpDrawStreamPrimF3PreXform`)
+points `xy` at `&poly->x3` so the first nclip loads `x0`/`x1`/`x2` as
+`lw -12/-8/-4` / `mtc2 $15`. A 4th `lw 0(xy)` / nclip only runs when the
+first OPZ is `<= 0`; `if (opz > 0) goto draw;` then
+`if (opz < 0) { draw: ... }` emits `bgtz` to the SZ/OT body and `bgez`
+over it. Pin `opz` to `$t1`
 and `mask` to `$t2` (swapped vs the F3 handler). Do not name the SZ3
 load `gte_ldsz3` — PsyQ already uses that for the 3-arg SZ1/SZ2/SZ3
 macro. `gpDrawStreamPrimF4PreXform` is the example.
@@ -133035,3 +133036,34 @@ source-level knob the entry above describes: a body that reloads `$a0` with a
 table base, a count or a pointer keeps its copy either way, and its parameter can
 be named. Bodies that leave `$a0` alone are the ones where adding or removing the
 local moves the allocation, and there the copy is load-bearing.
+
+## A scoped build leaves the whole-tree rename pass looking at one unit
+
+The refactor tools resolve references through the top-level `compile_commands.json`,
+and a scoped build rewrites that file with only the units it selected. A rename run
+afterwards still exits `done` and still reports the edits it made - but it parsed one
+translation unit, so a declaration or a reference living in any other unit keeps the
+old spelling, silently and with nothing in the output to say so. The count on the
+progress line is the tell (`parsed 1/1 TUs`), and so is the file count beside the edit
+total: a symbol whose callers sit in other units has to show edits in those units.
+
+Regenerate the database with an unscoped configure run before making a rename the
+whole tree should see, and when the first run's edit count does not cover every
+reference, name another declaring file and run it again. The reference listing is read
+from the same file, so one taken under a scoped build is short for the same reason.
+
+## A generated tree names RAM beyond the last symbol with placeholders a rename cannot change
+
+splat generates its own names for addresses no symbol-addrs file covers - `func_<VRAM>`
+for a run it takes to be code, `D_<VRAM>` for one it takes to be data - and the regions
+it does that for include RAM an overlay is loaded into at run time. A symbol defined
+there is named from the overlay's own symbol map when the overlay is split, but the
+other image's generated listing spells the address instead, which is the old
+placeholder form exactly: after the symbol is renamed, the generated file still shows
+the retired spelling and looks like a rename that missed a file.
+
+Nothing is left to do when it does. Those trees are regenerated from the binary and
+the symbol maps, and a name derived from an address cannot follow a name given to the
+symbol; the sweep that decides whether a rename is complete runs over the source tree
+for that reason. Check before chasing one: if no symbol-addrs file still spells the old
+name, the occurrence is splat's own.
