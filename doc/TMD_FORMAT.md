@@ -268,8 +268,9 @@ different mechanisms:
 **`0x4000` — two primitives per element.** `func_8009F670` (`0x4038`) is
 `gpStreamPrimGt3` (`0x38`) with an extra `poly++` before the UV writes, so the
 handler consumes two primitive slots per element and fills only the second.
-That is a layered draw — the same face emitted twice, presumably opaque plus a
-blended pass. Verified on all four pairs (`0x38`, `0x78`, `0x39`, `0x79`):
+That is a layered draw — the same face emitted twice, as an opaque base and a
+semi-transparent layer that the transform handler links into the ordering table
+after it. Verified on all four pairs (`0x38`, `0x78`, `0x39`, `0x79`):
 primitives per element goes 1 → 2 with the UV word positions unchanged.
 
 **`0x8000` / `0x10000` / `0x20000` — the model brings its own transform

@@ -30185,12 +30185,12 @@ Ui_LayoutWithMode0(arg0, (void*)arg1, (void*)(arg2 - 0xE),
 
 `Gp_DrawItemNameRow` is the example.
 
-## Split `tpage +=` / `tpage |=` with a named reload so `field_27` fills `lhu`
+## Split `tpage +=` / `tpage |=` with a named reload so `clutOffset` fills `lhu`
 
 A dual-poly UV copy that adjusts the first prim from `TmdObject` bytes
-(`field_26` added to `tpage`, `field_27 << 6` added to `clut`) and then
+(`tpageOffset` added to `tpage`, `clutOffset << 6` added to `clut`) and then
 sets ABR (`tpage |= 0x20`) wants a store after the add, a reload of
-`tpage`, and the `field_27` `lbu` in that `lhu` delay slot:
+`tpage`, and the `clutOffset` `lbu` in that `lhu` delay slot:
 
 ```
 sh    v1, 0xc(a1)
@@ -30204,14 +30204,14 @@ sll   v1, v1, 0x18
 sra   v1, v1, 0x12
 ```
 
-`poly->tpage += (s8)obj->field_26; poly->tpage |= 0x20;` CSE's the add
+`poly->tpage += (s8)obj->tpageOffset; poly->tpage |= 0x20;` CSE's the add
 into the OR (`addu` / `ori` / one `sh`). A `TmdObject*` for the second
-load puts `field_80` in `$v0` and keeps the prior `tpage` in `$v1`.
+load puts `obj` in `$v0` and keeps the prior `tpage` in `$v1`.
 Assign the clut addend first, then reload `tpage` into its own `s32`:
 
 ```c
-poly->tpage += (s8)arg0->field_80->field_26;
-tmp          = arg0->field_80->field_27;
+poly->tpage += (s8)arg0->obj->tpageOffset;
+tmp          = arg0->obj->clutOffset;
 tpage        = poly->tpage;
 tpage       |= 0x20;
 poly->tpage  = tpage;
@@ -30219,7 +30219,7 @@ poly->clut  += (s8)tmp << 6;
 ```
 
 `func_8009FA24` is the example. Same split is needed for the
-`field_0` / `POLY_GT4` siblings (`func_8009F56C`, `func_8009F708`,
+`field_0` / `POLY_GT4` siblings (`gpStreamPrimGt3OffsetLayer`, `func_8009F708`,
 `func_8009FB28`).
 
 ## Finish the 2D byte offset before adding the table base
