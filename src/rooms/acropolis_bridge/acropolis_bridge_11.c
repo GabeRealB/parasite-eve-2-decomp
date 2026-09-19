@@ -92,7 +92,7 @@ extern void func_acropolis_bridge_801833A0(GsCOORDINATE2* arg0, u16 arg1, s16 ar
 /// Once running, a piece with a non-zero `field_2A` adds its velocity onto the
 /// coordinate's translation each tick and bends Y by 6 as it goes, and every
 /// `field_28` ticks steps `field_20`; the eighth step releases the work block.
-/// While `Gp_State1C::field_4` is set the room is fading out, so the piece only
+/// While `Gp_State1C->eventState` is set the room is fading out, so the piece only
 /// keeps drawing, and releases itself once the fade reaches 4.
 void func_acropolis_bridge_80182AF8(Task* task)
 {

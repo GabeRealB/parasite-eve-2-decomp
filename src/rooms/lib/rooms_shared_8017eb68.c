@@ -16,7 +16,7 @@ extern s32 Gp_LcgState;
 /// effect keeps whatever coordinate frame the spawner left rather than
 /// rebuilding it each frame.
 ///
-/// While the room is still fading in (`Gp_State1C::field_4 == 0`) it ticks the
+/// While the room is still fading in (`Gp_State1C->eventState == 0`) it ticks the
 /// task's lifetime counter and walks the size ramp (`field_24`, dropped by 2 a
 /// frame), drawing the effect at the ramp's current size each frame; on the
 /// first frame it seeds the size from the LCG and the angle from the spawn

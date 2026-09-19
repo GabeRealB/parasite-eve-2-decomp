@@ -34,7 +34,7 @@ void func_mine_mesa_8017EB38(void)
 
 INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_9", func_mine_mesa_8017EB54);
 
-/// Publishes the mesa's three effect ids as `Gp_State1C::field_A` variant `2`
+/// Publishes the mesa's three effect ids as `Gp_State1C->roomEffectMode` variant `2`
 /// on the task's first tick, then draws every emitter the current camera view
 /// shows: one `Room_Draw17` quad per position, UV column `arg1` and half-extent
 /// 0x200 - 0x300 for the two column-0 positions of views 2 and 5. Each view is

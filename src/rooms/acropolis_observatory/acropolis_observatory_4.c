@@ -239,7 +239,7 @@ void func_acropolis_observatory_8017E424(Task* arg0)
 
 /// Re-spawns the observatory's ambient effects for the current camera view,
 /// one per entry whose view mask contains the active view. Skipped entirely
-/// once `Gp_State1C::field_4` has reached 4, i.e. once the room has faded out.
+/// once `Gp_State1C->eventState` has reached 4, i.e. once the room has faded out.
 void func_acropolis_observatory_8017E6F8(Task* task)
 {
     GsCOORDINATE2* coord;

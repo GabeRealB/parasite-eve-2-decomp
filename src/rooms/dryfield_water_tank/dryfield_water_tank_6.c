@@ -21,7 +21,7 @@
 extern TaskDesc D_dryfield_water_tank_80184DF4;
 
 /// Per-view halfword table, indexed 1-based by `Gp_GetViewIndex()`. The value
-/// the room publishes as its `Gp_State1C::field_A` variant index.
+/// the room publishes as its `Gp_State1C->roomEffectMode` variant index.
 extern u16 D_dryfield_water_tank_801868CC[];
 
 /// The tank's wobble spring, the four words at 0x801868BC: `801868BC` is the

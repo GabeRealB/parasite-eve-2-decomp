@@ -31,7 +31,7 @@ void func_dryfield_night_junk_yard_8017D9B8(u8 arg0)
 }
 
 /// Junk yard room draw: on the task's first pass the room's three effect-id
-/// slots are pointed at the junk yard's own ids, `Gp_State1C::field_A` is set
+/// slots are pointed at the junk yard's own ids, `Gp_State1C->roomEffectMode` is set
 /// to 2, and the props of the phase `gGameSession->at4.loc.view` selects are queued -
 /// phases 2/8 five points off the room's first prop table, 4/9 three off the
 /// second, 5/10 and 7 four off the first. Every phase ends with the same

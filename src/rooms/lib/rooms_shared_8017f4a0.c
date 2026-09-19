@@ -15,7 +15,7 @@
 extern s32 Gp_LcgState;
 
 /// Per-frame driver for one of a room's `Gp_State1C` effect tasks, carried by
-/// eleven rooms. While the room is still fading in (`Gp_State1C::field_4 == 0`)
+/// eleven rooms. While the room is still fading in (`Gp_State1C->eventState == 0`)
 /// it advances the task's own coordinate frame, ticks the lifetime counter and
 /// walks the size ramp (`field_24`, dropped by 2 a frame), drawing the effect at
 /// the ramp's current size each frame; on the first frame it seeds the size from

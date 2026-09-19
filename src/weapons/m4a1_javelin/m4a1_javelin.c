@@ -61,7 +61,7 @@ extern u32 Gp_LcgState;
 ///   `D_m4a1_javelin_8012EB68` impact point or `GpEffWork::move` rotated
 ///   into world space, and `pos` is a sixth of the way back towards the
 ///   muzzle. Six segments are drawn with
-///   `func_m4a1_javelin_8011DAB0`; while `Gp_State1C::field_6` is set each
+///   `func_m4a1_javelin_8011DAB0`; while `Gp_State1C->groundTrace` is set each
 ///   segment also probes `D_m4a1_javelin_8011FA98` (0x800 along +Y) with
 ///   `func_800DE7CC` and skins the ground contact with
 ///   `func_m4a1_javelin_8011E4A8` as long as the probe keeps hitting. The beam

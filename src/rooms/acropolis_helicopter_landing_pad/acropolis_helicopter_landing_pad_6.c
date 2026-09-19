@@ -127,7 +127,7 @@ void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
 }
 
 /// Draws one helipad floodlight glow. Light `index` owns record `index & 1`
-/// of `D_80115188`; the light is skipped while `Gp_State1C::field_4` is
+/// of `D_80115188`; the light is skipped while `Gp_State1C->eventState` is
 /// non-zero (clearing the record's `state` once it reaches 4) and unless the
 /// current view's bit is set in the light's
 /// `D_acropolis_helicopter_landing_pad_80184EE0` mask. Otherwise `pos` is
@@ -295,7 +295,7 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
 /// `scale * 31 / otz` rotated by `angle` and `angle + 0x400`. A
 /// bright sprite (`spawnArg1 == 1`) flickers a random green / blue-white tint
 /// on 1-in-4 LCG rolls and, before its last two frames, fires a 0x600E0
-/// effect on 1-in-16. While `Gp_State1C::field_4` is 0 the coord drifts,
+/// effect on 1-in-16. While `Gp_State1C->eventState` is 0 the coord drifts,
 /// `scale` grows by `period` and the frame counter advances until it
 /// expires, which releases the state-1C memory; `field_4 >= 4` releases it at
 /// once and 2..3 idles.
@@ -438,7 +438,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 /// `0x51100001` panned at the coord, spawns one 0x6003B and six 0x600A4
 /// effects reparented under this task, and claims slot 5 as a light. State 2
 /// releases the state-1C memory, the only step taken while
-/// `Gp_State1C::field_4` is set.
+/// `Gp_State1C->eventState` is set.
 void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
 {
     GpEffWork*     mem;
@@ -690,7 +690,7 @@ void func_acropolis_helicopter_landing_pad_80180A64(GsCOORDINATE2* coord)
 /// light parameters from the coord and an LCG draw; state 1 spawns two more
 /// with arg 0; state 2 fires a 0x6005A effect on 1-in-16 LCG rolls every
 /// 64th frame; state 3 releases the state-1C memory. Idle while
-/// `Gp_State1C::field_4` is set.
+/// `Gp_State1C->eventState` is set.
 void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 {
     GpEffWork*     mem;
@@ -756,7 +756,7 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 /// last eight frames fade to grey; before that a spawned flare
 /// (`spawnArg1`) flickers a random green / blue-white tint on 1-in-4 LCG rolls
 /// and fires a 0x600E0 effect on 1-in-16, and every flare fires 0x6005A on
-/// 1-in-16. While `Gp_State1C::field_4` is 0 the coord drifts and the frame
+/// 1-in-16. While `Gp_State1C->eventState` is 0 the coord drifts and the frame
 /// counter advances until it expires, which releases the state-1C memory;
 /// `field_4 >= 4` releases it at once and 2..3 idles.
 void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
@@ -881,7 +881,7 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
     }
 }
 
-/// Per-frame driver of the twelve helipad lights. Flags `Gp_State1C::field_8`
+/// Per-frame driver of the twelve helipad lights. Flags `Gp_State1C->groundShade`
 /// while view 0x12 is active, folds the frame counter `D_80070F70 * 4` into a
 /// 0..0xFE triangle wave kept in the effect work's `scale` (the low two bits
 /// are dropped on the rising half so the ramp steps in fours), then runs

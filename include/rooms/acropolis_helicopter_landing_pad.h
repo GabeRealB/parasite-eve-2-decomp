@@ -61,7 +61,7 @@ STATIC_ASSERT_SIZEOF(AhlpLightWork, 0x60);
 
 /// One of the two helipad floodlight records at `D_80115188` (main BSS).
 /// Light `index` uses record `index & 1`. `state` is 2 while the light is
-/// being drawn and reset to 0 once `Gp_State1C::field_4` reaches 4.
+/// being drawn and reset to 0 once `Gp_State1C->eventState` reaches 4.
 typedef struct AhlpLight {
     /* 0x00 */ s32           state;
     /* 0x04 */ AhlpLightWork work;

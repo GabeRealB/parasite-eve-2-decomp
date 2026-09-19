@@ -142,7 +142,7 @@ void func_acropolis_fountain_8017DCD4(Task* arg0)
 /// distance and is dropped entirely inside `otz` 0x11. The grey level
 /// alternates between 0x40 and 0x50 with the frame counter's low bit, which
 /// makes the spray flicker. Only the eight camera views in the `0x1040C0` mask
-/// see the fountain, and the whole draw is skipped once `Gp_State1C::field_4`
+/// see the fountain, and the whole draw is skipped once `Gp_State1C->eventState`
 /// reaches 4 (the room is fading out).
 void func_acropolis_fountain_8017DD44(Task* task)
 {

@@ -14,7 +14,7 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse_4", func_d
 
 /// Per-frame effect on the room's model task: re-poses the model for the
 /// current stage visit, then publishes variant 2 as the room's
-/// `Gp_State1C::field_A` index. `Task::extra` is the task's `TmdObject`, so
+/// `Gp_State1C->roomEffectMode` index. `Task::extra` is the task's `TmdObject`, so
 /// `field_8` is the coordinate every pose shares. The stage-visit byte
 /// `gGameSession->at4.loc.view` is used as a bit index: bits 2, 3, 6 and 9 (`0x24C`)
 /// pose through `func_dryfield_warehouse_8017E414`, bit 2 (`4`) also drives

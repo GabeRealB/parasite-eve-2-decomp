@@ -122,7 +122,7 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_patio/acropolis_patio_4", func_acropol
 ///
 /// The puff only exists for the camera views its anchor's mask in
 /// `D_acropolis_patio_80182E4C` names, and the whole draw stops once
-/// `Gp_State1C::field_4` reaches 4 (the room is fading out).
+/// `Gp_State1C->eventState` reaches 4 (the room is fading out).
 ///
 /// `GpEffWork::index` is the puff's mode and the per-frame step in
 /// `GpEffWork.move` is its velocity. In drift mode (0) the velocity is

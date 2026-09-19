@@ -63,7 +63,7 @@ void func_acropolis_forked_road_8017E298(Task* task)
 
 /// Draws one frame of a forked-road wall lamp: a flickering, screen-aligned
 /// sprite at the task's own coordinate frame. The lamp is skipped entirely
-/// while the effect pool is busy (`Gp_State1C::field_4` at 4 or more) and on
+/// while the effect pool is busy (`Gp_State1C->eventState` at 4 or more) and on
 /// the days whose bit is clear in `D_acropolis_forked_road_801821E8`, indexed
 /// by the low nibble of `Task::spawnArg1`.
 ///

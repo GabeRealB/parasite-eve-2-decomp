@@ -15,7 +15,7 @@ extern SVECTOR D_mine_tunnel_entrance_8017DB30[];
 extern SVECTOR D_mine_tunnel_entrance_8017DB38[];
 extern SVECTOR D_mine_tunnel_entrance_8017DB48[];
 
-/// Publishes variant `2` as the room's `Gp_State1C::field_A` index, then draws
+/// Publishes variant `2` as the room's `Gp_State1C->roomEffectMode` index, then draws
 /// every emitter the current camera view shows: one `Room_Draw17` quad per
 /// position, UV column `arg1` and half-extent 0x300. Views 2-5 each end on the
 /// same call, which the compiler merges into one shared tail; view 2 draws

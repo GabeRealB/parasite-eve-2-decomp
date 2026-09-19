@@ -234,7 +234,7 @@ void Gp_EffCtlTask6B(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     st    = Gp_State1C;
-    if (st->field_4 < 2) {
+    if (st->eventState < 2) {
         mem->age++;
         if (arg0->state == 0) {
             temp                   = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;

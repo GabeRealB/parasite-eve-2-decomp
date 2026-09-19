@@ -6,7 +6,7 @@
 #include "rooms/room_common.h"
 
 /// Per-view halfword table, indexed 1-based by `Gp_GetViewIndex()`. The value
-/// the room publishes as its `Gp_State1C::field_A` variant index.
+/// the room publishes as its `Gp_State1C->roomEffectMode` variant index.
 extern u16 D_mine_gorge_8017E760[];
 
 /// The gorge's per-view prop placements, one `SVECTOR` per position, 8 bytes
