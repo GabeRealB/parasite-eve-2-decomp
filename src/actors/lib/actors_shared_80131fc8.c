@@ -26,10 +26,10 @@ void ActorsShared80131fc8(s32 otz)
 
     extra                   = Gp_GetViewSprtExtra();
     head                    = *(u8**)G_SCRATCH_HEAD;
-    area                    = (DR_AREA*)Gpu_PrimCursor;
+    area                    = (DR_AREA*)gGpuPrimCursor;
     allocated               = head - 0x14;
     *(void**)G_SCRATCH_HEAD = allocated;
-    Gpu_PrimCursor          = (DR_TPAGE*)(area + 1);
+    gGpuPrimCursor          = (DR_TPAGE*)(area + 1);
     USE_REG(allocated);
     scratch      = (ActorsDrawScratch*)allocated;
     scratch->otz = otz;
@@ -52,23 +52,23 @@ void ActorsShared80131fc8(s32 otz)
     }
     clip = &scratch->rect;
     SetDrawArea(area, clip);
-    addPrim(&Gpu_CurrentOt[scratch->otz], area);
+    addPrim(&gGpuCurrentOt[scratch->otz], area);
 
-    stp            = (DR_STP*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(stp + 1);
+    stp            = (DR_STP*)gGpuPrimCursor;
+    gGpuPrimCursor = (DR_TPAGE*)(stp + 1);
     SetDrawStp(stp, 0);
-    addPrim(&Gpu_CurrentOt[scratch->otz], stp);
+    addPrim(&gGpuCurrentOt[scratch->otz], stp);
 
     ofs             = scratch->ofs;
-    off             = (DR_OFFSET*)Gpu_PrimCursor;
-    Gpu_PrimCursor  = (DR_TPAGE*)(off + 1);
+    off             = (DR_OFFSET*)gGpuPrimCursor;
+    gGpuPrimCursor  = (DR_TPAGE*)(off + 1);
     scratch->ofs[0] = 0xA0;
     scratch->ofs[1] = gDisplayState.drawBuffer * 0x110 + 0x78;
     SetDrawOffset(off, ofs);
-    addPrim(&Gpu_CurrentOt[scratch->otz], off);
+    addPrim(&gGpuCurrentOt[scratch->otz], off);
 
-    sprt           = (SPRT*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+    sprt           = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = (DR_TPAGE*)(sprt + 1);
     sprt->x0       = -0xA0;
     sprt->y0       = -0x78;
     sprt->w        = 0xA0;
@@ -77,15 +77,15 @@ void ActorsShared80131fc8(s32 otz)
     sprt->v0       = gDisplayState.drawBuffer * 0x10;
     setlen(sprt, 4);
     setcode(sprt, 0x65);
-    addPrim(&Gpu_CurrentOt[scratch->otz], sprt);
+    addPrim(&gGpuCurrentOt[scratch->otz], sprt);
 
-    tpage          = Gpu_PrimCursor;
-    Gpu_PrimCursor = tpage + 1;
+    tpage          = gGpuPrimCursor;
+    gGpuPrimCursor = tpage + 1;
     setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0, gDisplayState.drawBuffer << 8));
-    addPrim(&Gpu_CurrentOt[scratch->otz], tpage);
+    addPrim(&gGpuCurrentOt[scratch->otz], tpage);
 
-    sprt           = (SPRT*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+    sprt           = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = (DR_TPAGE*)(sprt + 1);
     sprt->x0       = 0;
     sprt->y0       = -0x78;
     sprt->w        = 0xA0;
@@ -94,15 +94,15 @@ void ActorsShared80131fc8(s32 otz)
     sprt->v0       = gDisplayState.drawBuffer * 0x10;
     setlen(sprt, 4);
     setcode(sprt, 0x65);
-    addPrim(&Gpu_CurrentOt[scratch->otz], sprt);
+    addPrim(&gGpuCurrentOt[scratch->otz], sprt);
 
-    tpage          = Gpu_PrimCursor;
-    Gpu_PrimCursor = tpage + 1;
+    tpage          = gGpuPrimCursor;
+    gGpuPrimCursor = tpage + 1;
     setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0x80, gDisplayState.drawBuffer << 8));
-    addPrim(&Gpu_CurrentOt[scratch->otz], tpage);
+    addPrim(&gGpuCurrentOt[scratch->otz], tpage);
 
-    tile           = (TILE*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+    tile           = (TILE*)gGpuPrimCursor;
+    gGpuPrimCursor = (DR_TPAGE*)(tile + 1);
     setlen(tile, 3);
     setcode(tile, 0x60);
     tile->b0 = 2;
@@ -112,28 +112,28 @@ void ActorsShared80131fc8(s32 otz)
     tile->y0 = -0x78;
     tile->w  = 0x140;
     tile->h  = 0xF0;
-    addPrim(&Gpu_CurrentOt[scratch->otz], tile);
+    addPrim(&gGpuCurrentOt[scratch->otz], tile);
 
-    stp            = (DR_STP*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(stp + 1);
+    stp            = (DR_STP*)gGpuPrimCursor;
+    gGpuPrimCursor = (DR_TPAGE*)(stp + 1);
     SetDrawStp(stp, 1);
-    addPrim(&Gpu_CurrentOt[scratch->otz], stp);
+    addPrim(&gGpuCurrentOt[scratch->otz], stp);
 
-    off             = (DR_OFFSET*)Gpu_PrimCursor;
-    Gpu_PrimCursor  = (DR_TPAGE*)(off + 1);
+    off             = (DR_OFFSET*)gGpuPrimCursor;
+    gGpuPrimCursor  = (DR_TPAGE*)(off + 1);
     scratch->ofs[0] = 0x260;
     scratch->ofs[1] = 0x178;
     SetDrawOffset(off, ofs);
-    addPrim(&Gpu_CurrentOt[scratch->otz], off);
+    addPrim(&gGpuCurrentOt[scratch->otz], off);
 
-    area            = (DR_AREA*)Gpu_PrimCursor;
-    Gpu_PrimCursor  = (DR_TPAGE*)(area + 1);
+    area            = (DR_AREA*)gGpuPrimCursor;
+    gGpuPrimCursor  = (DR_TPAGE*)(area + 1);
     scratch->rect.x = 0x1C0;
     scratch->rect.y = 0x100;
     scratch->rect.w = 0x140;
     scratch->rect.h = 0xF0;
     SetDrawArea(area, clip);
-    addPrim(&Gpu_CurrentOt[scratch->otz], area);
+    addPrim(&gGpuCurrentOt[scratch->otz], area);
 
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
 }

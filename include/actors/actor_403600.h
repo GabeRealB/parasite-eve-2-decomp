@@ -342,9 +342,8 @@ s32  func_actor_403600_8013DFE0(Actor403600* arg0);
 void func_actor_403600_8013E470(GsCOORDINATE2* arg0, s32* arg1, s32* arg2);
 s32  func_actor_403600_8013E7D4(s32 arg0, s32 arg1);
 s32  func_actor_403600_801406A4(Actor403600* arg0, s32 arg1, Actor403600MsgArg* arg2);
-void func_actor_403600_80140B4C(struct _GpEnemy* arg0, Actor403600* arg1);
+void func_actor_403600_80140B4C(struct GpEnemy* arg0, Actor403600* arg1);
 
-struct _GpAnimMtxRec;
-void func_actor_403600_80141F58(struct _GpAnimMtxRec* arg0, s32 arg1);
+void func_actor_403600_80141F58(GsCOORDINATE2* arg0, s32 arg1);
 
 #endif

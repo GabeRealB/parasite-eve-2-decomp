@@ -3384,7 +3384,7 @@ void func_actor_444000_80141DFC(Actor444000* arg0)
     GpEnemy*         child;
     GpAreaKey*       sessionKey;
     GpAreaRec*       rec;
-    GpCdRec10*       entry;
+    GpAreaPlace*     entry;
     GsCOORDINATE2*   coord;
     GsCOORDINATE2*   headCoord;
     TmdObject*       tmd;
@@ -3446,9 +3446,9 @@ void func_actor_444000_80141DFC(Actor444000* arg0)
             }
             break;
         case 0x74:
-            id  = (((u16)obj->field_8 >> 12) << 8) | 0x40200017;
-            pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
+            id  = (((u16)obj->placeKey >> 12) << 8) | 0x40200017;
+            pan = (s8)Gp_GetObjPan((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords);
+            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords));
             break;
         case 0x1A4:
             work->field_0   = 0xA;
@@ -3462,7 +3462,7 @@ void func_actor_444000_80141DFC(Actor444000* arg0)
         case 0xAF:
         case 0x145:
             child           = Gp_SpawnEnemyFromTable(&D_actor_444000_801617DC, 3, 0, arg0->field_20);
-            child->field_A  = 0x900;
+            child->workType = 0x900;
             work->field_EF0 = child;
             if (child != NULL) {
                 model      = (TmdObject*)child->task->extra;
@@ -3477,12 +3477,12 @@ void func_actor_444000_80141DFC(Actor444000* arg0)
                 key.view = areaByte0;
                 Gp_SyncAreaKeyIndex(keyPtr);
                 rec          = Gp_GetNestedAreaRec(&key);
-                entry        = (GpCdRec10*)((s32)rec->field_0 + 0x20);
-                model->tpage = entry->field_D;
-                model->clut  = entry->field_E;
+                entry        = (GpAreaPlace*)((s32)rec->field_0 + 0x20);
+                model->tpage = entry->tpage;
+                model->clut  = entry->clut;
                 if (model->buffer != NULL) {
-                    Tmd_ProcessStream(model);
-                    Tmd_ProcessStream(model);
+                    tmdProcessStream(model);
+                    tmdProcessStream(model);
                 }
                 work->field_EFE = 0;
             }

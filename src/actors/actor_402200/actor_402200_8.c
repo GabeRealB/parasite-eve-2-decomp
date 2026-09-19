@@ -21,16 +21,16 @@ void func_actor_402200_801380D8(Actor402200* arg0)
     s32              sound;
     s32              pan;
     Task*            slot;
-    GpObj38*         coord;
+    GsCOORDINATE2*   coord;
 
     work  = arg0->field_1C;
-    coord = (GpObj38*)arg0->field_2C->field_8;
-    slot  = Game_GetPtrSlot(3);
+    coord = (GsCOORDINATE2*)arg0->field_2C->field_8;
+    slot  = gameGetPtrSlot(3);
     if (work->field_718 != 0) {
         if (work->field_71A == 0x14) {
-            sound = D_actor_402200_80138474 | ((arg0->field_20->field_8 >> 12) << 8);
+            sound = D_actor_402200_80138474 | ((arg0->field_20->placeKey >> 12) << 8);
             pan   = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(coord));
+            SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
         }
         timer           = (u16)work->field_71A + 1;
         work->field_71A = timer;

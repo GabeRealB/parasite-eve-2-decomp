@@ -1808,7 +1808,7 @@ void func_actor_401300_801365F8(Actor401300* arg0)
 
     config = &Player_Status;
     work   = arg0->field_1C;
-    player = (GameActor*)((Task*)Game_GetPtrSlot(3))->work;
+    player = (GameActor*)((Task*)gameGetPtrSlot(3))->work;
     mask   = 0xF0;
     if ((arg0->field_36 & mask) == 0x10) {
         work->field_0 = 0x1E;
@@ -2066,7 +2066,7 @@ void func_actor_401300_80136CE8(Actor401300* arg0)
             } else if ((s->dist < 0x898 && Actor401300_Abs(Actor401300_NormalizeYaw(ratan2(-arg0->field_2C->coords->coord.m[2][0], arg0->field_2C->coords->coord.m[2][2]) - work->home.pad)) < 0x200) || work->field_6 > 0xB4) {
                 work->field_8A2 = 0x20;
                 work->field_89C = 1;
-                SndEvt_EnqueueType6(0x551D0008, (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords), (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
+                SndEvt_EnqueueType6(0x551D0008, (s8)Gp_GetObjPan((GsCOORDINATE2*)arg0->field_2C->coords), (s8)gpGetObjDepth((GsCOORDINATE2*)arg0->field_2C->coords));
                 work->field_AB0.flags &= 0x7FFF;
             }
             s->angle += ratan2(-arg0->field_2C->coords->coord.m[2][0], arg0->field_2C->coords->coord.m[2][2]);
@@ -2087,7 +2087,7 @@ void func_actor_401300_80136CE8(Actor401300* arg0)
             Gp_UpdateCoord(arg0->field_2C->coords);
             if (work->field_6C & 0x100) {
                 work->field_0 = 0;
-                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, enemy->field_40, 0);
+                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, enemy->hp, 0);
             }
             break;
     }

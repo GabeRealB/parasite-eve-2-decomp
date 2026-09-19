@@ -1438,7 +1438,7 @@ void Actor00700_Fn02D28(Actor00700Ctx* arg0, Actor00700* arg1)
                     ((Actor00700SpawnWork*)work)->field_20A = ((Actor00700SpawnWork*)work)->field_20A | 0x8000;
                     id                                      = ((arg0->field_8 >> 12) << 8) | 0x40070006;
                     pan                                     = (s8)Gp_GetObjPan(coord);
-                    SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(coord));
+                    SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(coord));
                     Gp_UnlinkNode(&arg0->node);
                     Gp_ReleaseStateF0Add(arg1, 8);
                     work->field_2E0 = 1;

@@ -276,8 +276,8 @@ void func_actor_403000_80132AE0(GsCOORDINATE2* parent)
     D_actor_403000_80158DF0[0].vy = scratch->pos.vy;
     D_actor_403000_80158DF0[0].vz = scratch->pos.vz;
     for (i = 0; i < 18; i++) {
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = (DR_TPAGE*)(prim + 1);
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_SetTransMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(&D_actor_403000_80158DF0[i]);
@@ -328,7 +328,7 @@ void func_actor_403000_80132AE0(GsCOORDINATE2* parent)
                 *(s32*)&prim->r0 = ((17 - i) * 4) & 0xFF;
                 setlen(prim, 9);
                 prim->code = 0x2E;
-                addPrim(&Gpu_CurrentOt[(((u32)(scratch->otz - 10) << gDisplayState.otDepthShift) >> 4) & 0x3FF], prim);
+                addPrim(&gGpuCurrentOt[(((u32)(scratch->otz - 10) << gDisplayState.otDepthShift) >> 4) & 0x3FF], prim);
             }
         }
         previousFlag       = scratch->flag;
@@ -3475,7 +3475,7 @@ void func_actor_403000_8013B74C(Actor403000* arg0)
     s16                     angle;
     s32                     mag;
     work   = arg0->field_1C;
-    player = Game_GetPtrSlot(3);
+    player = gameGetPtrSlot(3);
     enemy  = arg0->field_20;
     if (work->field_4 != 0) {
         work->field_F74                    = player->field_2C->coords->coord.t[0];
@@ -3544,9 +3544,9 @@ void func_actor_403000_8013B74C(Actor403000* arg0)
         scratch->target.vx = work->field_F74 - player->field_2C->coords->coord.t[0];
         scratch->target.vy = work->field_F76 - player->field_2C->coords->coord.t[1];
         scratch->target.vz = work->field_F78 - player->field_2C->coords->coord.t[2];
-        if (!Actor403000_Outside(&scratch->target, 1000) && enemy->field_40 > 0 &&
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&D_actor_403000_80158DD0, 0) == 0) {
-            task         = Game_GetPtrSlot(3);
+        if (!Actor403000_Outside(&scratch->target, 1000) && enemy->hp > 0 &&
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_403000_80158DD0, 0) == 0) {
+            task         = gameGetPtrSlot(3);
             scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 3), 0);
             if (scratch->ret == 1) {
                 pw                              = (GameActor*)player->field_1C;
@@ -3560,7 +3560,7 @@ void func_actor_403000_8013B74C(Actor403000* arg0)
             work->field_F98 = 0;
             work->field_F9C = 0;
             work->field_FA0 = 1;
-            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
             work->field_FC0 = 1;
         }
     }

@@ -537,7 +537,7 @@ void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, TaskIdMap* ar
             poly->code           = 0x2C;
         }
         __asm__ volatile("lui %0, 0xFF; ori %0, %0, 0xFFFF" : "=r"(mask));
-        ot = (s32*)Gpu_CurrentOt;
+        ot = (s32*)gGpuCurrentOt;
         __asm__ volatile("lui %0, 0xFF00" : "=r"(mask_hi));
         scratch->otz = 0;
         high         = poly->tag & mask_hi;
@@ -570,14 +570,14 @@ void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, TaskIdMap* ar
         ((u8*)&tile->tag)[3]                  = 3;
         *(s32*)&tile->r0                      = color;
         tile->code                            = 0x62;
-        draw_mode                             = Gpu_PrimCursor;
-        Gpu_PrimCursor                        = draw_mode + 1;
-        tile->tag                             = (tile->tag & mask_hi) | (((POLY_FT4*)(Gpu_CurrentOt - 1))->tag & mask);
-        ((POLY_FT4*)(Gpu_CurrentOt - 1))->tag = (((POLY_FT4*)(Gpu_CurrentOt - 1))->tag & mask_hi) | ((u32)tile & mask);
+        draw_mode                             = gGpuPrimCursor;
+        gGpuPrimCursor                        = draw_mode + 1;
+        tile->tag                             = (tile->tag & mask_hi) | (((POLY_FT4*)(gGpuCurrentOt - 1))->tag & mask);
+        ((POLY_FT4*)(gGpuCurrentOt - 1))->tag = (((POLY_FT4*)(gGpuCurrentOt - 1))->tag & mask_hi) | ((u32)tile & mask);
         ((u8*)&draw_mode->tag)[3]             = 1;
-        mode_ot                               = Gpu_CurrentOt - 1;
+        mode_ot                               = gGpuCurrentOt - 1;
         draw_mode->code[0]                    = tpage | 0x220;
-        draw_mode->tag                        = (draw_mode->tag & mask_hi) | (((POLY_FT4*)(Gpu_CurrentOt - 1))->tag & mask);
+        draw_mode->tag                        = (draw_mode->tag & mask_hi) | (((POLY_FT4*)(gGpuCurrentOt - 1))->tag & mask);
         ((POLY_FT4*)mode_ot)->tag             = (((POLY_FT4*)mode_ot)->tag & mask_hi) | ((u32)draw_mode & mask);
     }
     ActorsShared80131fc8(0);
@@ -1212,7 +1212,7 @@ void func_actor_403600_801353D0(Actor403600EffectState* arg0, GsCOORDINATE2* arg
                 if (scratch->maxOtz < scratch->otz) {
                     scratch->maxOtz = scratch->otz;
                 }
-                ot     = Gpu_CurrentOt;
+                ot     = gGpuCurrentOt;
                 otz    = scratch->otz;
                 maskHi = 0xFF000000;
                 SOFT_TOUCH_REG_USE(maskHi, otz);
@@ -3383,22 +3383,22 @@ void func_actor_403600_801396F8(Actor403600* arg0)
                 D_800626EC[5].arg.model = &D_80187B10;
                 temp_v0_5               = Gp_SpawnEff(0x80005, &arg0->field_2C->coords[1], 0, NULL);
                 if (temp_v0_5 != NULL) {
-                    func_actor_403600_801419E8((Actor403600*)temp_v0_5->field_0);
+                    func_actor_403600_801419E8((Actor403600*)temp_v0_5->task);
                 }
                 D_800626EC[5].arg.model = &D_80187E14;
                 temp_v0_6               = Gp_SpawnEff(0x80005, &arg0->field_2C->coords[1], 0, NULL);
                 if (temp_v0_6 != NULL) {
-                    func_actor_403600_801419E8((Actor403600*)temp_v0_6->field_0);
+                    func_actor_403600_801419E8((Actor403600*)temp_v0_6->task);
                 }
                 D_800626EC[5].arg.model = &D_80188264;
                 temp_v0_7               = Gp_SpawnEff(0x80005, &arg0->field_2C->coords[1], 0, NULL);
                 if (temp_v0_7 != NULL) {
-                    func_actor_403600_801419E8((Actor403600*)temp_v0_7->field_0);
+                    func_actor_403600_801419E8((Actor403600*)temp_v0_7->task);
                 }
                 D_800626EC[5].arg.model = &D_8018864C;
                 temp_v0_8               = Gp_SpawnEff(0x80005, &arg0->field_2C->coords[1], 0, NULL);
                 if (temp_v0_8 != NULL) {
-                    func_actor_403600_801419E8((Actor403600*)temp_v0_8->field_0);
+                    func_actor_403600_801419E8((Actor403600*)temp_v0_8->task);
                 }
                 Gp_SpawnEff(0x60030, &arg0->field_2C->coords[1], 0x800, NULL);
             }
@@ -3455,9 +3455,9 @@ void func_actor_403600_801396F8(Actor403600* arg0)
                 if (temp_v1_3 < 0x2F) {
                     if (temp_v1_3 == 0x2E) {
                         temp_s0    = &temp_s1->field_4B8;
-                        temp_s2    = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x54160013;
+                        temp_s2    = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160013;
                         temp_s0_2  = (s8)Gp_GetObjPan(temp_s0);
-                        temp_v0_10 = Gp_GetObjDepth(temp_s0);
+                        temp_v0_10 = gpGetObjDepth(temp_s0);
                         SndEvt_EnqueueType6(temp_s2, temp_s0_2, (s32)(((temp_v0_10 >> 0x1F) + temp_v0_10) << 0x17) >> 0x18);
                     }
                     if (((u16)temp_s1->field_73A & 0xF) == 0xF) {
@@ -3467,9 +3467,9 @@ void func_actor_403600_801396F8(Actor403600* arg0)
                     func_80181940(arg0);
                     if (temp_s1->field_73A == 0x32) {
                         temp_s0_3  = &temp_s1->field_4B8;
-                        temp_s2    = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x54160014;
+                        temp_s2    = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160014;
                         temp_s0_4  = (s8)Gp_GetObjPan(temp_s0_3);
-                        temp_v0_11 = Gp_GetObjDepth(temp_s0_3);
+                        temp_v0_11 = gpGetObjDepth(temp_s0_3);
                         SndEvt_EnqueueType6(temp_s2, temp_s0_4, (s32)(((temp_v0_11 >> 0x1F) + temp_v0_11) << 0x17) >> 0x18);
                         Gp_SpawnEff(0x601BC, &arg0->field_2C->coords[1], 0x1E, NULL);
                     }
@@ -4742,7 +4742,7 @@ void func_actor_403600_8013EA04(Actor403600* arg0)
                 ((u32)(D_80073B8C->t[2] - 0xBB8) < 0x1F41U)) {
                 temp_a1            = (Gp_LcgState * 5) + 0x71357911;
                 temp_s2->field_772 = 1;
-                temp_threshold     = temp_t0->field_40;
+                temp_threshold     = temp_t0->hp;
                 temp_v1_3          = temp_a1 >> 0x10;
                 temp_v1_3         &= 0xF;
                 temp_work_limit    = temp_s2->field_798;
@@ -4791,9 +4791,9 @@ void func_actor_403600_8013EA04(Actor403600* arg0)
     if (D_actor_403600_80160695 != 0) {
         var_a2 = D_actor_403600_80160694;
     } else {
-        if (!((((u32)(var_a2 - 2) >= 2U) || (temp_t0->field_40 <= temp_s2->field_798)) &&
+        if (!((((u32)(var_a2 - 2) >= 2U) || (temp_t0->hp <= temp_s2->field_798)) &&
               ((var_a2 != 5) ||
-               ((temp_t0->field_40 <= temp_s2->field_79A) && (temp_s2->field_7B0 < 0xA))) &&
+               ((temp_t0->hp <= temp_s2->field_79A) && (temp_s2->field_7B0 < 0xA))) &&
               ((D_actor_403600_801606B8.values[0] != var_a2) ||
                (D_actor_403600_801606B8.values[1] != var_a2)))) {
             return;
@@ -5188,15 +5188,15 @@ void func_actor_403600_8013F7B8(GpEnemy* enemy, Task* task)
     enemy->field_4  = &modelCoord[1].coord;
     enemy->field_48 = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags  = 8;
-    enemy->field_18    = bodyCoord;
-    enemy->field_1C.vx = 0;
-    enemy->field_1C.vy = 0;
-    enemy->field_1C.vz = 0;
-    enemy->field_50    = &D_actor_403600_80150ED8;
-    enemy->field_54    = (s32)work->field_528;
-    enemy->field_40    = (s16)D_actor_403600_80150ED8.field_4;
-    func_800B3F84((GpAnimCtx*)work, D_actor_403600_8016057C, (GpAnimObj*)model,
+    enemy->node.flags = 8;
+    enemy->coord      = bodyCoord;
+    enemy->bodyPos.vx = 0;
+    enemy->bodyPos.vy = 0;
+    enemy->bodyPos.vz = 0;
+    enemy->param      = &D_actor_403600_80150ED8;
+    enemy->recs       = (s32)work->field_528;
+    enemy->hp         = (s16)D_actor_403600_80150ED8.hpMax;
+    func_800B3F84((GpAnimCtx*)work, D_actor_403600_8016057C, (GsCOORDINATE2*)model,
                   (u8*)work + 0x334, (GpAnimSlot*)((u8*)work + 0x14));
     i = 1;
     do {
@@ -5995,7 +5995,7 @@ void func_actor_403600_80140B4C(GpEnemy* enemy, Actor403600* actor)
     screenDistance             = 0x149;
     D_actor_403600_80160700[8] = screenDistance;
     Gp_TrySpawnViewTask((s32)D_actor_403600_80160700);
-    func_actor_403600_80141F58((GpAnimMtxRec*)&work->field_4B8, (s16)work->field_744);
+    func_actor_403600_80141F58((GsCOORDINATE2*)&work->field_4B8, (s16)work->field_744);
     nextViewIndex   = (u16)work->field_77C + 1;
     work->field_77C = nextViewIndex;
     if (nextViewIndex >= 0x2BC) {

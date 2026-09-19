@@ -40,8 +40,8 @@ void Actor02100_Fn00048(GpEnemy* arg0, Actor02100* arg1)
         return;
     }
     arg1->field_1C  = work;
-    work->field_176 = (s16)((((Actor02100Params*)arg0->field_3C)->field_1 / 10) & 0xFF);
-    variant         = (((Actor02100Params*)arg0->field_3C)->field_1 % 10) & 0xFF;
+    work->field_176 = (s16)((((Actor02100Params*)arg0->place)->field_1 / 10) & 0xFF);
+    variant         = (((Actor02100Params*)arg0->place)->field_1 % 10) & 0xFF;
     work->field_178 = variant;
     if ((work->field_176 >= 5) || (variant >= 5)) {
         Gp_DestroyEnemy(arg0, (Task*)arg1);
@@ -56,7 +56,7 @@ void Actor02100_Fn00048(GpEnemy* arg0, Actor02100* arg1)
     rotation->vx               = 0;
     rotation->vy               = 0;
     *(SVECTOR**)G_SCRATCH_HEAD = rotation;
-    rotation->vz               = ((Actor02100Params*)arg0->field_3C)->field_2;
+    rotation->vz               = ((Actor02100Params*)arg0->place)->field_2;
     RotMatrix(rotation, &head[-1].matrix);
     matrix = &coord->coord;
     gte_SetRotMatrix(matrix);
@@ -74,16 +74,16 @@ void Actor02100_Fn00048(GpEnemy* arg0, Actor02100* arg1)
     arg0->field_4  = matrix;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_1C.vz       = 0x96;
-    arg0->field_18          = coord;
-    arg0->field_1C.vx       = 0;
-    arg0->field_1C.vy       = 0;
-    arg0->field_50          = &Actor02100_D03D78;
-    arg0->field_54          = (s32)&work->field_60;
-    arg0->field_40          = (u16)Actor02100_D03D78.field_4;
-    work->field_100.field_0 = coord;
-    work->field_100.field_4 = 0x200;
-    work->field_100.field_6 = 1;
+    arg0->bodyPos.vz           = 0x96;
+    arg0->coord                = coord;
+    arg0->bodyPos.vx           = 0;
+    arg0->bodyPos.vy           = 0;
+    arg0->param                = &Actor02100_D03D78;
+    arg0->recs                 = (s32)&work->field_60;
+    arg0->hp                   = (u16)Actor02100_D03D78.hpMax;
+    work->field_100.coord      = coord;
+    work->field_100.spawnArgLo = 0x200;
+    work->field_100.spawnArgHi = 1;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     scale = 0x19;
     if (work->field_176 == 0) {

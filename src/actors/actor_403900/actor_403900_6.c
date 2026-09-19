@@ -67,21 +67,21 @@ void func_actor_403900_80137444(GpEnemy* arg0, Actor403900* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->field_1C          = work;
-    obj->field_C            = 0;
-    coord->field_0.flg      = 0;
-    obj->field_1C           = &work->field_45C;
-    obj->field_20           = &work->field_43C;
-    work->field_65C.field_0 = &arg1->field_2C->field_8->field_F0;
-    work->field_65C.field_4 = 0x500;
-    work->field_65C.field_6 = 2;
-    func_800B3F84((GpAnimCtx*)work, D_actor_403900_801540EC, (GpAnimObj*)obj, work->field_30C, &work->field_14);
+    arg1->field_1C             = work;
+    obj->field_C               = 0;
+    coord->field_0.flg         = 0;
+    obj->field_1C              = &work->field_45C;
+    obj->field_20              = &work->field_43C;
+    work->field_65C.coord      = &arg1->field_2C->field_8->field_F0;
+    work->field_65C.spawnArgLo = 0x500;
+    work->field_65C.spawnArgHi = 2;
+    func_800B3F84((GpAnimCtx*)work, D_actor_403900_801540EC, (GsCOORDINATE2*)obj, work->field_30C, &work->field_14);
     work->field_6C0 = 0xB;
     work->field_6C2 = 0xB;
     for (i = 1; i < 0x13; i++) {
         Gp_AnimResetSlot((GpAnimCtx*)work, i, work->field_6C0);
     }
-    kind = arg0->field_4B;
+    kind = arg0->spawnState;
     switch (kind) {
         case 0:
             work->field_6D8 = 0xFF;
@@ -91,13 +91,13 @@ void func_actor_403900_80137444(GpEnemy* arg0, Actor403900* arg1)
             arg0->field_4   = &coord->field_0.coord;
             arg0->field_48  = 0;
             Gp_LinkNode(&arg0->node);
-            arg0->field_18    = &arg1->field_2C->field_8->field_F0;
-            arg0->field_1C.vx = 0;
-            arg0->field_1C.vy = 0;
-            arg0->field_1C.vz = 0;
-            arg0->field_50    = &D_actor_403900_80153C00;
-            arg0->field_54    = (s32)work->field_49C;
-            arg0->field_40    = D_actor_403900_80153C00.field_4;
+            arg0->coord      = &arg1->field_2C->field_8->field_F0;
+            arg0->bodyPos.vx = 0;
+            arg0->bodyPos.vy = 0;
+            arg0->bodyPos.vz = 0;
+            arg0->param      = &D_actor_403900_80153C00;
+            arg0->recs       = (s32)work->field_49C;
+            arg0->hp         = D_actor_403900_80153C00.hpMax;
             for (i = 0; D_actor_403900_80153C7C[i].field_0 != 0; i++) {
                 if (gGameSession->at4.loc.stage == D_actor_403900_80153C7C[i].field_2 && gGameSession->at4.loc.area == D_actor_403900_80153C7C[i].field_4) {
                     work->field_6B4 = D_actor_403900_80153F04[D_actor_403900_80153C7C[i].field_0];
@@ -167,7 +167,7 @@ void func_actor_403900_80137444(GpEnemy* arg0, Actor403900* arg1)
             work->field_5EE  = 0x1F4;
             records4         = &work->field_5F4;
             work->field_5F0  = records4;
-            work->field_5A4  = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+            work->field_5A4  = ((TmdObject*)((Task*)gameGetPtrSlot(3))->extra)->coords;
             work->field_5A8  = &work->field_5DC;
             work->field_5AC  = 0;
             work->field_5AE  = 0;
@@ -178,7 +178,7 @@ void func_actor_403900_80137444(GpEnemy* arg0, Actor403900* arg1)
             Gp_LinkObj(3, (GpObj*)work->field_59C);
             Gp_InitRec18Table(records4, 1, 0);
             work->field_5BA &= 0xBFFF;
-            work->field_5C4  = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+            work->field_5C4  = ((TmdObject*)((Task*)gameGetPtrSlot(3))->extra)->coords;
             work->field_5C8  = records4;
             work->field_5CC  = 0;
             work->field_5CE  = -0x320;

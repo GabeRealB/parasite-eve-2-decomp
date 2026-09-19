@@ -381,7 +381,7 @@ void func_actor_510900_80132D4C(Task* arg0)
     s32               x2;
 
     mem   = arg0->spawnArg2;
-    flag  = Gp_State1C->field_4;
+    flag  = Gp_State1C->eventState;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag >= 2) {
         if (flag < 4) {
@@ -408,22 +408,22 @@ void func_actor_510900_80132D4C(Task* arg0)
         gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
             gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
-            prim           = (POLY_FT4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = (DR_TPAGE*)(prim + 1);
             setlen(prim, 9);
             setcode(prim, 0x2C);
             if (arg0->state == 0) {
-                mem->field_24 = (u16)arg0->spawnArg1 & 0xFFF;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                mem->field_26 = ((u32)Gp_LcgState >> 16) & 0xF;
+                mem->scale  = (u16)arg0->spawnArg1 & 0xFFF;
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                mem->angle  = ((u32)Gp_LcgState >> 16) & 0xF;
                 if (arg0->spawnArg1 & 0x10000) {
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    mem->field_28 = ((u32)Gp_LcgState >> 16) % 0x30;
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    mem->period = ((u32)Gp_LcgState >> 16) % 0x30;
                 }
                 arg0->state++;
             }
-            if (mem->field_26 - 8 < mem->field_22) {
-                x2 = (mem->field_26 - mem->field_22 + 1) * 16;
+            if (mem->angle - 8 < mem->age) {
+                x2 = (mem->angle - mem->age + 1) * 16;
                 __asm__ volatile("" : "=r"(col) : "0"(x2));
                 prim->r0 = x2;
                 prim->g0 = x2;
@@ -435,16 +435,16 @@ void func_actor_510900_80132D4C(Task* arg0)
             prim->tpage = 0x2B;
             prim->clut  = 0x4380;
             prim->code |= 2;
-            prim->u0    = (mem->field_22 % 6) * 32;
+            prim->u0    = (mem->age % 6) * 32;
             prim->v0    = 0;
-            prim->u1    = (mem->field_22 % 6) * 32 + 0x1F;
+            prim->u1    = (mem->age % 6) * 32 + 0x1F;
             prim->v1    = 0;
-            prim->u2    = (mem->field_22 % 6) * 32;
+            prim->u2    = (mem->age % 6) * 32;
             prim->v2    = 0x27;
-            prim->u3    = (mem->field_22 % 6) * 32 + 0x1F;
+            prim->u3    = (mem->age % 6) * 32 + 0x1F;
             prim->v3    = 0x27;
-            block->dx   = (mem->field_24 * 31) / block->otz;
-            block->dy   = (mem->field_24 * 39) / block->otz;
+            block->dx   = (mem->scale * 31) / block->otz;
+            block->dy   = (mem->scale * 39) / block->otz;
             x           = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
             prim->x2    = x;
             prim->x0    = x;
@@ -457,29 +457,29 @@ void func_actor_510900_80132D4C(Task* arg0)
             x           = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
             prim->y3    = x;
             prim->y2    = x;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
-            if (coord->coord.t[1] < 0 && (mem->field_22 & 1)) {
+            if (coord->coord.t[1] < 0 && (mem->age & 1)) {
                 hit.sub        = coord->sub;
                 hit.coord.t[0] = coord->coord.t[0];
                 hit.coord.t[1] = 0;
                 hit.coord.t[2] = coord->coord.t[2];
                 hit.flg        = 0;
                 Gp_UpdateCoord(&hit);
-                Gp_DrawEffSprite7C(&hit, (s32)(*(u16*)&mem->field_24 << 16) >> 17, (u8)col);
+                Gp_DrawEffSprite7C(&hit, (s32)(*(u16*)&mem->scale << 16) >> 17, (u8)col);
             }
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
-        if (Gp_State1C->field_4 != 0) {
+        if (Gp_State1C->eventState != 0) {
             return;
         }
-        x = mem->field_28;
+        x = mem->period;
         if (x != 0) {
             coord->flg         = 0;
             coord->coord.t[1] -= x;
         }
-        mem->field_22++;
-        if (mem->field_26 >= mem->field_22) {
+        mem->age++;
+        if (mem->angle >= mem->age) {
             return;
         }
     }

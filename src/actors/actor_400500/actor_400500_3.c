@@ -246,8 +246,8 @@ void func_actor_400500_8013B4A4(Task* arg0)
         s32 maxHp;
         s32 quarter;
 
-        hp      = enemy->field_40;
-        maxHp   = enemy->field_42 << 0x10;
+        hp      = enemy->hp;
+        maxHp   = enemy->hpMax << 0x10;
         quarter = maxHp >> 0x12;
         if ((quarter + (maxHp >> 0x11)) < hp) {
             work->field_A2C = 0x10;
@@ -277,8 +277,8 @@ void func_actor_400500_8013B4A4(Task* arg0)
         s32 maxHp;
         s32 quarter;
 
-        hp      = enemy->field_40;
-        maxHp   = enemy->field_42 << 0x10;
+        hp      = enemy->hp;
+        maxHp   = enemy->hpMax << 0x10;
         quarter = maxHp >> 0x12;
         if ((quarter + (maxHp >> 0x11)) < hp) {
             work->field_A2C = 0x2000;
