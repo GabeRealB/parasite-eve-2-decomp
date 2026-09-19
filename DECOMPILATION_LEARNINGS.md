@@ -130087,3 +130087,44 @@ whether the arms share a local. The reverse direction is equally usable: a
 variable that the original reused for a later temporary has two sets and so is
 never boosted, which is sometimes the only way to keep an address computation
 ahead of the stores that follow it.
+
+## Giving a pseudo a second set moves it out of `local-alloc` entirely, which is how a long-lived constant gets a register `local-alloc` would have spent
+
+`local_alloc` marks a pseudo as a candidate quantity only when it lives in one
+basic block **and** `REG_N_DEATHS == 1` (`local-alloc.c`); everything else gets
+`reg_qty = -1` and is left to `global-alloc`. That threshold is a lever, because
+the two allocators see different things: `local-alloc` knows nothing about the
+global pseudos that will be allocated after it, so it happily spends a register
+that a global pseudo needs, and `global-alloc` then has to take second best.
+
+The symptom is a swap between a block-local value and a value that is live
+across a branch: the local one holds the register the branch-crossing value
+wants. The dumps say it directly - the local value appears in the
+`;; Register N in M.` list of the `.lreg` dump, and the branch-crossing one only
+in `;; Register dispositions:` in `.greg`.
+
+Writing the local value into a variable that is assigned twice gives it two
+deaths, so it leaves that list, `global-alloc` allocates both values, and it
+respects the other one's claim. The scheduler changes too, and usually in the
+same direction: a twice-set pseudo is not a birthing insn, so its defining insns
+keep their ordinary priority instead of being welded to their use.
+
+## CSE deletes a register copy you write in C, but keeps the one it creates itself from a narrowing memory read
+
+A mirror field assignment `dst->b = dst->a;` where the value of `a` is still in a
+register compiles to a register copy: CSE replaces the memory read with the
+register, leaving `(set (reg:HI t) ...)` and a store of `t`. That copy survives
+to the output.
+
+Assigning the same value through a variable of the register's own width instead
+- `t = value; dst->b = t;` - does not survive: the copy and its use have the
+same mode, so CSE substitutes the source into the store and the copy is gone by
+the `.cse` dump. Compare the store's source in `base_N.i.cse`: a surviving copy
+reads a separate narrow pseudo, a folded one already reads
+`(subreg:HI (reg:SI ...))`.
+
+The practical consequence is that a wide variable cannot carry a narrow mirror
+value: the read needs an extension, so CSE cannot fold it and a load is emitted
+instead of the copy. A narrow variable cannot hold a wide constant either, so a
+32-bit constant and a 16-bit mirror value can never be the same C variable, no
+matter which register the target gives them.
