@@ -138,7 +138,8 @@ typedef struct Actor400600Work {
     /* 0x746 */ s16                field_746; // animation id
     /* 0x748 */ s16                field_748; // sound step index (func_actor_400600_801361AC)
     /* 0x74A */ s16                field_74A; // hit cooldown, seeded from Gp_GetIdParam2
-    /* 0x74C */ byte               pad_74C[0x4];
+    /* 0x74C */ s16                field_74C;
+    /* 0x74E */ s16                field_74E;
     /* 0x750 */ u16                field_750; // countdown to state 0xB
     /* 0x752 */ s16                field_752;
     /* 0x754 */ s16                field_754;

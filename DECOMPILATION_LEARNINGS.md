@@ -3,6 +3,33 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## A soft register dependency can preserve load order while losing store order (func_actor_400600_80137840, 2026-09-19)
+
+The target stores a raw halfword sum, sign-extends it to a0, then reloads the
+task's work and child pointers in v0. Storing the converted value retained
+the load order but emitted `sh a0` after the shifts (98.837%). A raw store
+followed by `angle = work->field_74E` and `SOFT_TOUCH_REG_USE(task, angle)`
+supplied the missing angle -> helper -> task-load dependency, but reached only
+96.395%: in sched1, the raw store (UID163) and flag store (UID148) won potential
+hazard selection over helper UID170 at T-6/T-7. In forward order they followed
+the shifts, keeping the raw sum live in v1.
+
+The controlled base_5 change to `TOUCH_REG_USE(task, angle)` added volatile
+ordering. UID170 now depends on both stores and is the only ready instruction
+at T-6; it releases sra UID168 at T-7, sll UID167 at T-8, and the raw store at
+T-9. Forward order is raw store -> shifts -> helper -> task load. Allocation
+puts the sum and shift intermediate in v0, angle in a0, and child in v0.
+Sched2 preserves this order; the helper emits no instructions. Scratch reaches
+100% and the unscoped build verifies. This demonstrates both requirements:
+the explicit register dependency alone did not preserve the earlier stores.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Preprocessed inputs: base_4 `765f97c95bebf292fc1b4f2f268708a57abf8dab01165b35e837eb9cbbdeeb0c`;
+base_5 `50b9ef86ae0c7e2419e9d8f46b776f7c0e2018c0e53a87ede3a5acccd39684ec`.
+Evidence: `tools/permuter_findings/func_actor_400600_80137840/`, session
+`8b65875338ca42d5b7466268333f6fdb`, `PERMUTER_EVIDENCE/manual-base_5/`.
+This was a manual prediction; the bounded permuter found no improvement.
+
 ## A local shared by two copies of a duplicated tail becomes a global pseudo, and that is what frees a call-saved register
 
 Cross-jumping runs in the `jump2` pass, **after** reload. So a body written once

@@ -466,7 +466,146 @@ s32 func_actor_400600_801376EC(Task* arg0)
     return dist;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400600/actor_400600_2", func_actor_400600_80137840);
+void func_actor_400600_80137840(Task* arg0)
+{
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    Actor400600Work* work3;
+    Actor400600Work* work4;
+    Actor400600Work* work5;
+    Task*            child;
+    Task*            child2;
+    Task*            child3;
+    Task*            child4;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   coord2;
+    GsCOORDINATE2*   coord3;
+    GsCOORDINATE2*   coord4;
+    ActorsShared8016a538Mat  rot;
+    ActorsShared8016a538Mat* m1;
+    ActorsShared8016a538Mat* m2;
+    ActorsShared8016a538Mat* m3;
+    ActorsShared8016a538Mat* m4;
+    MATRIX*                  dst;
+    MATRIX*                  dst2;
+    MATRIX*                  dst3;
+    MATRIX*                  dst4;
+    s16                      angle1;
+    s32                      angle2;
+    s16                      angle3;
+    s16                      angle4;
+
+    work = (Actor400600Work*)arg0->work;
+    if ((u8)work->field_765 != 0) {
+        work->field_74E += (0x380 - work->field_74E) >> 2;
+        angle1           = work->field_74E;
+        work2            = (Actor400600Work*)arg0->work;
+        child            = work2->field_708;
+        if (child != NULL) {
+            coord             = ((TmdObject*)child->extra)->coords;
+            rot.ident.m00_m01 = 0x1000;
+            rot.ident.m02_m10 = 0;
+            m1                = &rot;
+            m1->ident.m11_m12 = 0x1000;
+            rot.ident.m20_m21 = 0;
+            m1->ident.m22     = 0x1000;
+            func_8004BFF8(angle1, &m1->mat);
+            dst          = &coord->coord;
+            dst->m[0][0] = rot.mat.m[0][0];
+            dst->m[0][1] = rot.mat.m[0][1];
+            dst->m[0][2] = rot.mat.m[0][2];
+            dst->m[1][0] = rot.mat.m[1][0];
+            dst->m[1][1] = rot.mat.m[1][1];
+            dst->m[1][2] = rot.mat.m[1][2];
+            dst->m[2][0] = rot.mat.m[2][0];
+            dst->m[2][1] = rot.mat.m[2][1];
+            dst->m[2][2] = rot.mat.m[2][2];
+        }
+    } else {
+        work->obj_594.flags &= 0x7FFF;
+        work->field_74E     += -work->field_74E >> 3;
+        angle2               = work->field_74E;
+        TOUCH_REG_USE(arg0, angle2);
+        work3  = (Actor400600Work*)arg0->work;
+        child2 = work3->field_708;
+        if (child2 != NULL) {
+            coord2            = ((TmdObject*)child2->extra)->coords;
+            rot.ident.m00_m01 = 0x1000;
+            rot.ident.m02_m10 = 0;
+            m2                = &rot;
+            m2->ident.m11_m12 = 0x1000;
+            rot.ident.m20_m21 = 0;
+            m2->ident.m22     = 0x1000;
+            func_8004BFF8(angle2, &m2->mat);
+            dst2          = &coord2->coord;
+            dst2->m[0][0] = rot.mat.m[0][0];
+            dst2->m[0][1] = rot.mat.m[0][1];
+            dst2->m[0][2] = rot.mat.m[0][2];
+            dst2->m[1][0] = rot.mat.m[1][0];
+            dst2->m[1][1] = rot.mat.m[1][1];
+            dst2->m[1][2] = rot.mat.m[1][2];
+            dst2->m[2][0] = rot.mat.m[2][0];
+            dst2->m[2][1] = rot.mat.m[2][1];
+            dst2->m[2][2] = rot.mat.m[2][2];
+        }
+    }
+    if ((u8)work->field_766 != 0) {
+        work->field_74C += (0x380 - work->field_74C) >> 2;
+        angle3           = work->field_74C;
+        work4            = (Actor400600Work*)arg0->work;
+        child3           = work4->field_704;
+        if (child3 != NULL) {
+            coord3            = ((TmdObject*)child3->extra)->coords;
+            rot.ident.m00_m01 = 0x1000;
+            rot.ident.m02_m10 = 0;
+            m3                = &rot;
+            m3->ident.m11_m12 = 0x1000;
+            rot.ident.m20_m21 = 0;
+            m3->ident.m22     = 0x1000;
+            func_8004BFF8((s16)-angle3, &m3->mat);
+            dst3          = &coord3->coord;
+            dst3->m[0][0] = rot.mat.m[0][0];
+            dst3->m[0][1] = rot.mat.m[0][1];
+            dst3->m[0][2] = rot.mat.m[0][2];
+            dst3->m[1][0] = rot.mat.m[1][0];
+            dst3->m[1][1] = rot.mat.m[1][1];
+            dst3->m[1][2] = rot.mat.m[1][2];
+            dst3->m[2][0] = rot.mat.m[2][0];
+            dst3->m[2][1] = rot.mat.m[2][1];
+            dst3->m[2][2] = rot.mat.m[2][2];
+        }
+    } else {
+        work->obj_5CC.flags &= 0x7FFF;
+        work->field_74C     += -work->field_74C >> 3;
+        angle4               = work->field_74C;
+        work5                = (Actor400600Work*)arg0->work;
+        child4               = work5->field_704;
+        if (child4 != NULL) {
+            coord4            = ((TmdObject*)child4->extra)->coords;
+            rot.ident.m00_m01 = 0x1000;
+            rot.ident.m02_m10 = 0;
+            m4                = &rot;
+            m4->ident.m11_m12 = 0x1000;
+            rot.ident.m20_m21 = 0;
+            m4->ident.m22     = 0x1000;
+            func_8004BFF8((s16)-angle4, &m4->mat);
+            dst4          = &coord4->coord;
+            dst4->m[0][0] = rot.mat.m[0][0];
+            dst4->m[0][1] = rot.mat.m[0][1];
+            dst4->m[0][2] = rot.mat.m[0][2];
+            dst4->m[1][0] = rot.mat.m[1][0];
+            dst4->m[1][1] = rot.mat.m[1][1];
+            dst4->m[1][2] = rot.mat.m[1][2];
+            dst4->m[2][0] = rot.mat.m[2][0];
+            dst4->m[2][1] = rot.mat.m[2][1];
+            dst4->m[2][2] = rot.mat.m[2][2];
+        }
+    }
+    if ((u32)(work->field_71C - 6) >= 2U) {
+        work->obj_594.flags &= 0x7FFF;
+        work->obj_5CC.flags &= 0x7FFF;
+    }
+}
 
 s32 func_actor_400600_80137AF0(Task* arg0)
 {
