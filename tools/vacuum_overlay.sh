@@ -513,6 +513,12 @@ if manifest_is_mergeable; then
 else
     log "manifest: both sides changed ${MANIFEST_CONFLICT} - not auto-mergeable"
 fi
+# Only committed work is landed, so only committed paths can collide. Diffing
+# the worktree's working tree instead counted files a sweep never touched: a
+# formatter run inside the worktree left one unrelated source dirty, trunk had
+# reformatted that same file, and a landing with no real collision went to the
+# agent - and then failed there, stranding 12 verified matches. Use the same
+# committed range EXTRAS and the replay check already use.
 DRIFTED=""
 while read -r f; do
     [[ -n "$f" ]] || continue
@@ -520,7 +526,7 @@ while read -r f; do
     if ! git diff --quiet "$BASE" -- "$f" 2>/dev/null; then
         DRIFTED="$DRIFTED $f"
     fi
-done < <(git -C "$WT" diff --name-only --diff-filter=ACDMR "$BASE")
+done < <(git -C "$WT" diff --name-only --diff-filter=ACDMR "$BASE"..HEAD)
 
 if [[ -n "$DRIFTED" ]]; then
     log "trunk diverged in:$DRIFTED"
@@ -557,20 +563,33 @@ Then:
 Do not modify the worktree. Do not touch any overlay other than $OVERLAY."
 
     # This arm is written against claude's flags, so a land profile on another
-    # api cannot be honoured here; say so rather than silently ignoring it.
-    if [[ -n "${VACUUM_LAND_API:-}" && "$VACUUM_LAND_API" != "claude" ]]; then
-        log "warning: land profile uses api '$VACUUM_LAND_API', but the drift landing agent only speaks claude; using claude"
+    # api cannot be honoured here. Neither can its model or its launch wrapper:
+    # those name a model of *that* api, and passing one to claude is a 404 that
+    # fails the landing before the agent says a word - actor_400500 stranded 12
+    # verified matches on `claude --model <a codex model>`. So when the landing
+    # api is not claude, drop the whole triple and run claude's own default
+    # rather than half-honouring a profile that cannot apply.
+    # The model falls back to the matching session's when the land profile names
+    # none, so the api to test is the land profile's if it set one and the
+    # session's otherwise.
+    land_api="${VACUUM_LAND_API:-$CLI}"
+    land_launch="${VACUUM_LAND_LAUNCH:-}"
+    land_model="${VACUUM_LAND_MODEL-${VACUUM_MODEL:-}}"
+    if [[ "$land_api" != "claude" ]]; then
+        log "warning: landing api is '$land_api', but the drift landing agent only speaks claude; using claude with its default model"
+        land_launch=""
+        land_model=""
     fi
     land_cmd=(claude)
-    if [[ -n "${VACUUM_LAND_LAUNCH:-}" ]]; then
-        read -ra land_cmd <<<"$VACUUM_LAND_LAUNCH"
+    if [[ -n "$land_launch" ]]; then
+        read -ra land_cmd <<<"$land_launch"
     fi
     if command -v "${land_cmd[0]}" >/dev/null 2>&1; then
         # Landing is mechanical next to matching, so it can run on a cheaper
-        # model; the land profile selects it, falling back to the session's.
-        # A launch wrapper names the model itself, so do not pass it twice.
-        land_model="${VACUUM_LAND_MODEL-${VACUUM_MODEL:-}}"
-        [[ -n "${VACUUM_LAND_LAUNCH:-}" ]] && land_model=""
+        # model; the land profile selects it above, falling back to the
+        # session's. A launch wrapper names the model itself, so do not pass it
+        # twice.
+        [[ -n "$land_launch" ]] && land_model=""
         log "drift landing agent, model ${land_model:-default}"
         # Cap it. The agent holds the global merge lock for its whole run, so
         # one that stops converging stalls every other lane's landing behind it:
