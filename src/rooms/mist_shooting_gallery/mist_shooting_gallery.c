@@ -113,11 +113,11 @@ void func_mist_shooting_gallery_8017DCAC(s32 mode)
         case 4:
             Gp_SetItemSeenBit(0x40, 1);
             Gp_SetItemSeenBit(5, 1);
-            Gp_GiveItem(scan, 0x40, 1)->field_1 = 2;
-            Gp_GiveItem(scan, 5, 1)->field_1    = 3;
-            Gp_GiveItem(scan, 5, 1)->field_1    = 4;
-            Gp_DebugAttachLevels[0xA]           = 1;
-            Gp_DebugAttachLevels[1]             = 1;
+            Gp_GiveItem(scan, 0x40, 1)->attachSlot = 2;
+            Gp_GiveItem(scan, 5, 1)->attachSlot    = 3;
+            Gp_GiveItem(scan, 5, 1)->attachSlot    = 4;
+            Gp_DebugAttachLevels[0xA]              = 1;
+            Gp_DebugAttachLevels[1]                = 1;
             break;
         case 5:
             Gp_SetItemSeenBit(0x40, 1);
@@ -182,7 +182,7 @@ void func_mist_shooting_gallery_8017DE7C(DialogPrompt* arg0, UiObject* arg1)
             Gp_GiveItem(scan, item, 1);
             Gp_GiveItem(scan, 0x6C, 1);
             Gp_EquipMod(0x6C);
-            Gp_GiveItem(scan, ammo, 0x3E7)->field_1 = selected;
+            Gp_GiveItem(scan, ammo, 0x3E7)->attachSlot = selected;
             Gp_EquipRelatedItem(scan, item, ammo, -1);
             Gp_FillHpMp();
             arg1->field_2E = 6;

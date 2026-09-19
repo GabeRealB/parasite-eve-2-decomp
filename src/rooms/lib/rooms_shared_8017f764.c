@@ -72,7 +72,7 @@ void RoomsShared8017f764(Task* task)
             n   = D_80072724.field_1;
             SOFT_USE_REG2(guard, guard);
             for (i = 0; i < n; i++) {
-                if (rec[i].field_0 == item) {
+                if (rec[i].itemId == item) {
                     count++;
                 }
             }

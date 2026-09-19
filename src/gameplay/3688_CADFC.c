@@ -33,7 +33,7 @@ void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, GpItemRec* arg3
                 Gp_ItemCmdFns[n++] = Gp_DrawMovePrompt;
                 Gp_ItemCmdFns[n++] = Gp_DrawDiscardCmd;
             } else if ((u32)(arg2 - 0xA0) < 0x20U) {
-                if ((arg3->field_2 - Gp_CountEquippedRelated(&Mc_SaveData.field_5BC, arg2)) > 0) {
+                if ((arg3->qty - Gp_CountEquippedRelated(&Mc_SaveData.field_5BC, arg2)) > 0) {
                     Gp_ItemCmdFns[n++] = Gp_DrawLoadCmd;
                 }
                 Gp_ItemCmdFns[n++] = Gp_DrawMovePrompt;
@@ -77,7 +77,7 @@ void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, GpItemRec* arg3
             } else if ((u32)(arg2 - 0x60) < 0x20U) {
             } else if ((u32)(arg2 - 0xA0) < 0x20U) {
                 Gp_ItemCmdFns[n++] = Gp_DrawExchangeSlotCmd;
-                if ((arg3->field_2 - Gp_CountEquippedRelated(&Mc_SaveData.field_5BC, arg2)) > 0) {
+                if ((arg3->qty - Gp_CountEquippedRelated(&Mc_SaveData.field_5BC, arg2)) > 0) {
                     Gp_ItemCmdFns[n++] = Gp_DrawLoadCmd;
                 }
                 Gp_ItemCmdFns[n++] = Gp_DrawDiscardCmd;

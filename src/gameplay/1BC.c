@@ -4104,7 +4104,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                 limit = end;
                 rec   = (GpItemRec*)(off + (s32)table);
                 for (; i < limit; i++, rec++) {
-                    if (rec->field_0 == arg1) {
+                    if (rec->itemId == arg1) {
                         found = 1;
                         break;
                     }
@@ -4233,7 +4233,7 @@ s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
             limit = end;
             rec   = (GpItemRec*)(off + (s32)table);
             for (; i < limit; i++, rec++) {
-                if (rec->field_0 == arg1) {
+                if (rec->itemId == arg1) {
                     found = 1;
                     break;
                 }

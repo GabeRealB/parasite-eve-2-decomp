@@ -209,12 +209,12 @@ void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx)
     dest  = ids;
     i     = count;
     do {
-        item = rec->field_0;
+        item = rec->itemId;
         if (item != 0) {
             item += 0x60;
             if ((u8)item >= 0x20U) {
                 found = 1;
-                id    = rec->field_0;
+                id    = rec->itemId;
                 p     = D_replay_bonus_8011908C;
                 j     = 0;
             loop_4:
@@ -229,7 +229,7 @@ void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx)
                 }
                 if (found != 0) {
                     count += 1;
-                    *dest  = rec->field_0;
+                    *dest  = rec->itemId;
                     dest  += 1;
                 }
             }

@@ -81,7 +81,7 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
 
     ret   = 0;
     flag  = 1;
-    id    = arg0->field_0;
+    id    = arg0->itemId;
     actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
     cfg   = &Player_Status;
 
@@ -98,13 +98,13 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                 table = &table[scanEquip->field_0];
                 count = scanEquip->field_1;
                 for (i = 0; i < count; i++) {
-                    if (table->field_0 == prevId) {
+                    if (table->itemId == prevId) {
                         rec = table;
                     }
                     table++;
                 }
                 if (rec != NULL) {
-                    rec->field_1 = arg0->field_1;
+                    rec->attachSlot = arg0->attachSlot;
                     Gp_RefreshItemRow(arg0);
                 }
                 Gp_SetItemSeenBit(id, 1);
@@ -151,13 +151,13 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                 table   = &table[scanRel->field_0];
                 count   = scanRel->field_1;
                 for (; i < count; i++) {
-                    if (table->field_0 == relId) {
+                    if (table->itemId == relId) {
                         hit = table;
                     }
                     table++;
                 }
                 found = hit;
-                if (found != NULL && (s8)found->field_1 == 0) {
+                if (found != NULL && found->attachSlot == 0) {
                     slotNum  = -1;
                     scanFree = &Mc_SaveData.field_5BC;
                     Gp_GetItemTable(scanFree);
@@ -168,7 +168,7 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                         table = &table[scanFree->field_0];
                         count = scanFree->field_1;
                         for (; i < count; i++) {
-                            if (table->field_0 != 0 && (s8)table->field_1 == k + 1) {
+                            if (table->itemId != 0 && table->attachSlot == k + 1) {
                                 avail = 0;
                                 break;
                             }
@@ -188,18 +188,18 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                         table  = &table[scanId->field_0];
                         count  = scanId->field_1;
                         for (; i < count; i++) {
-                            if (table->field_0 == id) {
+                            if (table->itemId == id) {
                                 hit = table;
                             }
                             table++;
                         }
                         if (hit != NULL) {
-                            sel            = (s8)hit->field_1;
-                            hit->field_1   = 0;
-                            found->field_1 = sel;
+                            sel               = hit->attachSlot;
+                            hit->attachSlot   = 0;
+                            found->attachSlot = sel;
                         }
                     } else {
-                        found->field_1 = slotNum;
+                        found->attachSlot = slotNum;
                     }
                 }
             }
@@ -304,9 +304,9 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
             }
 
             if (ret == 1 && flag != 0) {
-                arg0->field_0 = 0;
-                arg0->field_2 = 0;
-                arg0->field_1 = 0;
+                arg0->itemId     = 0;
+                arg0->qty        = 0;
+                arg0->attachSlot = 0;
                 Gp_SetItemSeenBit(id, 1);
             }
         }
@@ -328,7 +328,7 @@ s32 Gp_ItemIsUnusable(s32 arg0, GpItemRec* arg1)
             ret = 0;
         } else if ((u32)(arg0 - 0xA0) < 0x20U) {
             scan = &Mc_SaveData.field_5BC;
-            val  = arg1->field_2 - Gp_CountEquippedRelated(scan, arg0);
+            val  = arg1->qty - Gp_CountEquippedRelated(scan, arg0);
             if (val > 0) {
                 if (Gp_EquipRelatedItem(scan, cfg->weapon + 0x7F, arg0, 0) == 0) {
                     ret = 0;
@@ -454,7 +454,7 @@ void func_800D6334(Task* task)
         firstTable   = &firstTable[firstScan->field_0];
         firstCount   = firstScan->field_1;
         for (; firstI < firstCount; firstI++) {
-            if ((s8)firstTable->field_1 == selectedSlot + 1) {
+            if (firstTable->attachSlot == selectedSlot + 1) {
                 firstRec = firstTable;
                 break;
             }
@@ -462,7 +462,7 @@ void func_800D6334(Task* task)
         }
         selected = firstRec;
         if (selected != NULL) {
-            item            = selected->field_0;
+            item            = selected->itemId;
             name.x          = panel->baseX + x;
             name.y          = panel->baseY + 10 + y;
             name.otIndex    = (s16)panel->drawOrder + 1;
@@ -491,7 +491,7 @@ void func_800D6334(Task* task)
                 i        = 0;
                 table    = &table[scan->field_0];
                 for (; i < scan->field_1; i++) {
-                    if ((s8)table->field_1 == slot + 1) {
+                    if (table->attachSlot == slot + 1) {
                         selected = table;
                         break;
                     }
@@ -499,7 +499,7 @@ void func_800D6334(Task* task)
                 }
                 item = 0;
                 if (selected != NULL) {
-                    item = selected->field_0;
+                    item = selected->itemId;
                 }
                 flags = (Gp_ItemIsUnusable(item, selected) != 0) * 4;
                 Gp_DrawItemIcon(panel, selectedX, y, item, flags);
@@ -529,7 +529,7 @@ void func_800D6334(Task* task)
                 useTable = &useTable[useScan->field_0];
                 useCount = useScan->field_1;
                 for (; useI < useCount; useI++) {
-                    if ((s8)useTable->field_1 == useSlot + 1) {
+                    if (useTable->attachSlot == useSlot + 1) {
                         useRec = useTable;
                         break;
                     }
@@ -603,7 +603,7 @@ GpItemRec* Gp_FindItemById(s32 arg0)
     table = &table[scan->field_0];
     count = scan->field_1;
     for (; i < count; i++) {
-        if (table->field_0 == arg0) {
+        if (table->itemId == arg0) {
             rec = table;
         }
         table++;
@@ -626,7 +626,7 @@ GpItemRec* Gp_FindItemByKind(s32 arg0)
     table = &table[scan->field_0];
     count = scan->field_1;
     for (; i < count; i++) {
-        if ((s8)table->field_1 == arg0 + 1) {
+        if (table->attachSlot == arg0 + 1) {
             rec = table;
             break;
         }
@@ -648,7 +648,7 @@ GpItemRec* Gp_FindItemInScan(s32 arg0, GpItemScan* arg1)
     table = &table[arg1->field_0];
     count = arg1->field_1;
     for (; i < count; i++) {
-        if (table->field_0 == arg0) {
+        if (table->itemId == arg0) {
             rec = table;
         }
         table++;

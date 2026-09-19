@@ -566,7 +566,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             scanInit   = &Mc_SaveData.field_5BC;
             arg1->work = (TaskIdMap*)newWork;
             Gp_RemoveItem(scanInit, (GpItemRec*)Gp_SelItemRec, 1);
-            rec->field_0 = (u8)result;
+            rec->itemId = (u8)result;
             Gp_ClearEquipSlotSel(result, 0);
             slotDst->field_0 = slotSrc->field_0;
             Gp_EquipRelatedItem(scanInit, result, slotDst->field_0, slotSrc->field_1);
@@ -1501,8 +1501,8 @@ void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, GpItemRec* arg3, s32 a
     s32         count;
 
     if (arg3 != NULL) {
-        if ((u32)(arg3->field_0 - 0xA0) < 0x20U) {
-            count          = arg3->field_2 - Gp_CountEquippedRelated(&Mc_SaveData.field_5BC, arg3->field_0);
+        if ((u32)(arg3->itemId - 0xA0) < 0x20U) {
+            count          = arg3->qty - Gp_CountEquippedRelated(&Mc_SaveData.field_5BC, arg3->itemId);
             req.x          = arg0->baseX + 0x84 + arg1;
             y              = arg0->baseY - 3;
             req.y          = y + arg2;
@@ -1932,7 +1932,7 @@ GpItemRec* func_800CE980(GpItemScan* arg0, s32 arg1)
     table = &table[arg0->field_0];
     count = arg0->field_1;
     for (; i < count; i++) {
-        if ((s8)table->field_1 == arg1 + 1) {
+        if (table->attachSlot == arg1 + 1) {
             rec = table;
             break;
         }
@@ -1954,7 +1954,7 @@ s32 func_800CEA00(GpItemScan* arg0, s32 arg1)
     table = &table[arg0->field_0];
     count = arg0->field_1;
     for (; i < count; i++) {
-        if ((s8)table->field_1 == arg1 + 1) {
+        if (table->attachSlot == arg1 + 1) {
             rec = table;
             break;
         }
@@ -1963,7 +1963,7 @@ s32 func_800CEA00(GpItemScan* arg0, s32 arg1)
     if (rec == NULL) {
         return 0;
     }
-    return rec->field_0;
+    return rec->itemId;
 }
 
 void Gp_WeaponSummaryTask(Task* arg0)
@@ -2018,8 +2018,8 @@ s32 func_800CEC5C(GpItemRec* arg0)
 
     p     = &Player_Status;
     ret   = 1;
-    count = arg0->field_1;
-    id    = arg0->field_0;
+    count = arg0->attachSlot;
+    id    = arg0->itemId;
     if (count != 0) {
         ret = 0;
     } else if (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) {
@@ -2053,8 +2053,8 @@ GpItemRec* func_800CECC0(GpItemScan* arg0, s32 arg1)
         n   = count;
         do {
             ok = 1;
-            id = table->field_0;
-            if ((s8)table->field_1 != 0) {
+            id = table->itemId;
+            if (table->attachSlot != 0) {
                 ok = 0;
             } else if (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) {
                 ok = 0;
@@ -2186,7 +2186,7 @@ void func_800CF090(UiList* arg0, UiObject* arg1)
     i     = 0;
     table = &table[scan->field_0];
     for (; i < scan->field_1; i++) {
-        if (((u32)(table->field_0 - 0x60) < 0x20U) && (p->armor != table->field_0 - 0x5F)) {
+        if (((u32)(table->itemId - 0x60) < 0x20U) && (p->armor != table->itemId - 0x5F)) {
             count++;
         }
         table++;
@@ -2333,10 +2333,10 @@ void Gp_EquipHeld(s32 arg0)
     if (field21 != arg0 - 0x7F) {
         if (field21 != 0) {
             prev = Gp_FindItemById(field21 + 0x7F);
-            if ((s8)rec->field_1 > 0) {
-                prev->field_1 = rec->field_1;
+            if (rec->attachSlot > 0) {
+                prev->attachSlot = rec->attachSlot;
             } else {
-                Gp_ClearEquipSlotSel(prev->field_0, 0);
+                Gp_ClearEquipSlotSel(prev->itemId, 0);
             }
         }
         p->weapon = arg0 - 0x7F;

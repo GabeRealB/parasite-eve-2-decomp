@@ -6580,7 +6580,7 @@ void Gp_UseItemTask(GpIdMapC* arg0)
                     }
                 }
                 if (Gp_StateC08.field_5 >= 0xC) {
-                    Gp_SetItemSeenBit(Gp_SelItemRec->field_0, 1);
+                    Gp_SetItemSeenBit(Gp_SelItemRec->itemId, 1);
                     Gp_RemoveItem(NULL, Gp_SelItemRec, 0);
                 }
                 if (Mc_SaveData.field_862[Gp_StateC08.field_5] < 0x270F) {

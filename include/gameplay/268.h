@@ -36,14 +36,8 @@ STATIC_ASSERT_SIZEOF(GpItemMap, 0x4);
 /// by `Gp_ResetScanDefault`.
 typedef McItemScan GpItemScan;
 
-/// 4-byte row in the item tables selected by `GpItemScan`
-/// (`Mc_SaveData.field_1AC` / `Gp_ItemTable2` / `*Gp_ItemTable1`). field_0 is the
-/// item id looked up by `Gp_FindItemById` / `Gp_FindItemInScan` / returned by
-/// `Gp_GetScanItemId` / matched by `Gp_HasStockedItem`; field_1 is a count
-/// compared as signed by `Gp_EquipHeld` / `Gp_RefreshItemRow` /
-/// `Gp_FindItemByKind` (`== arg0 + 1`) /
-/// `Gp_HasStockedItem` (`> 0`); field_2 is a u16 quantity added by
-/// `Gp_SumScanQty`.
+/// Row of the item tables `GpItemScan` selects between; gameplay's name for
+/// `McItemRec`.
 typedef McItemRec GpItemRec;
 
 /// 4-byte entry in `Gp_RelatedQty1` / `Gp_RelatedQty0` (32 entries, item ids

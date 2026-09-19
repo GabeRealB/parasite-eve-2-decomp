@@ -23637,15 +23637,15 @@ default:
 
 ## Second pointer so `addu` dest is `$v0`, not the table reg
 
-After a switch that leaves the table in `$v1`, `return table[i].field_0`
+After a switch that leaves the table in `$v1`, `return table[i].itemId`
 emits `addu v0, v0, v1` (offset first). Assigning the address back into
-`table` then loading (`table = &table[i]; return table->field_0`) flips
+`table` then loading (`table = &table[i]; return table->itemId`) flips
 the dest to `$v1` (`addu v1, v1, v0` / `lbu v0, 0(v1)`). A *second*
 pointer keeps dest `$v0` and base-first operands:
 
 ```c
 rec = &table[arg0->field_0 + arg1]; /* addu v0, v1, v0 */
-return rec->field_0;                /* lbu  v0, 0(v0) */
+return rec->itemId;                /* lbu  v0, 0(v0) */
 ```
 
 `Gp_GetScanItemId` is the load-from-row companion of `Gp_GetScanSlot`.
@@ -24516,7 +24516,7 @@ The target wants `beqz` to the epilogue with `lbu` as fall-through
 
 ```c
 for (; i < count; i++) {
-    if ((s8)cur->field_1 == key) {
+    if (cur->attachSlot == key) {
         rec = cur;
         break;
     }
@@ -24525,7 +24525,7 @@ for (; i < count; i++) {
 if (rec == NULL) {
     return 0;
 }
-return rec->field_0;
+return rec->itemId;
 ```
 
 A `do { ... } while (i < count)` of the same body inlines the break
@@ -27135,7 +27135,7 @@ later (`Gp_GetViewSprtExtra`). `Gp_ViewSprtCmdEmpty` is the example.
 
 ## `volatile` walk pointer so a field reloads after `sltiu`
 
-Two reads of the same `u8` on a loop pointer (`table->field_0` for a
+Two reads of the same `u8` on a loop pointer (`table->itemId` for a
 range check, then again for `id - K`) CSE into a spare register. The
 first `lbu` is kept, `-K` fills the `beqz` delay slot, and the extra
 temp steals `$a0` from the pointer so `i` / the bound swap (`$a1`/`$a2`
@@ -27165,8 +27165,8 @@ in `$a1` instead of `$a2`.
 volatile GpItemRec* table;
 ...
 for (; i < scan->field_1; i++) {
-    if (((u32)(table->field_0 - 0x60) < 0x20U) &&
-        (p->field_23 != table->field_0 - 0x5F)) {
+    if (((u32)(table->itemId - 0x60) < 0x20U) &&
+        (p->field_23 != table->itemId - 0x5F)) {
         count++;
     }
     table++;
@@ -27197,16 +27197,17 @@ unsigned type. `Gp_DrawExchangeSlotCmd` is the example. The bare
 `obj->field_E = -0x5C` stuck at 99.8% with only those two `li`
 encodings different.
 
-The same fold happens for `u8`: `found->field_1 = -1` emits `li v0, 0xff`
-instead of `li v0, -1` (`addiu v0, zero, -1`) in a `beqz` delay. Stage
-`-1` through an `s32` so `sb` keeps the signed immediate:
+The same fold happens for an unsigned byte field: assigning `-1` to one
+emits `li v0, 0xff` instead of `li v0, -1` (`addiu v0, zero, -1`) in a
+`beqz` delay. Stage `-1` through an `s32` so `sb` keeps the signed
+immediate:
 
 ```c
-neg            = -1;
-found->field_1 = neg;
+neg  = -1;
+slot = neg;
 ```
 
-`Gp_EquipMod` is the example.
+A signed field needs no staging: the literal already fits.
 
 ### ...and the staging temp has to be a *fresh* quantity
 
@@ -28005,9 +28006,9 @@ was 98.3% — same tests, but default landed before case 1.
 
 ## Assign the loop compare constant before the item-table switch
 
-A scan that compares `rec->field_0 == K` after the usual
+A scan that compares `rec->itemId == K` after the usual
 `switch (scan->field_2)` table select wants `li tN, K` in the delay slot
-of the first `beq field_2, 1`. Writing `if (rec->field_0 == 0x81)` (or
+of the first `beq field_2, 1`. Writing `if (rec->itemId == 0x81)` (or
 assigning `item = 0x81` after the switch) materializes K later, often
 clobbering the table pointer's register and skipping the shared `i = 0`
 epilogue.
@@ -28031,8 +28032,8 @@ switch (scan->field_2) {
 }
 table = tmp;
 ...
-if (rec->field_0 == item) {
-    acc += rec->field_2;
+if (rec->itemId == item) {
+    acc += rec->qty;
 }
 ```
 
@@ -28248,7 +28249,7 @@ after_qty:
 after_loop:
 ```
 
-`if (rec->id == item) { qty = rec->field_2; break; }` (or an `else` after
+`if (rec->itemId == item) { qty = rec->qty; break; }` (or an `else` after
 `!=`) emits the `lhu` after the loop plus an extra `j after; nop` to skip
 it. GCC 2.8.1 will not move that block into the hole between `case 1` and
 `default`.
@@ -28264,7 +28265,7 @@ switch (scan->field_2) {
         tmp = Gp_ItemTable1;
         break;
     found:
-        qty = rec->field_2;
+        qty = rec->qty;
         goto after_loop;
     default:
         tmp = Mc_SaveData.field_1AC;
@@ -28274,7 +28275,7 @@ table = tmp;
 qty   = 0;
 asm volatile("" ::"r"(qty));
 /* ... */
-if (rec->field_0 != item) {
+if (rec->itemId != item) {
     i++;
     rec++;
     if (i < loop_end) {
@@ -28289,7 +28290,7 @@ after_loop:
 `qty = 0` plus the volatile keeps `move t0, 0` in the case-1 delay slot
 (so that jump skips the join). Without the pin, `qty = 0` sinks into a
 later delay slot and the gap collapses. `Gp_RemoveItem` is the example.
-A loop-local `qty = rec->field_2` stuck at 93% with only that block
+A loop-local `qty = rec->qty` stuck at 93% with only that block
 after the loop instead of in the switch.
 
 ## Write `addPrim` OT as `mask + (s32)Gpu_CurrentOt`, no `&Global` hoist
@@ -30564,7 +30565,7 @@ if ((u8)wrap < 0x20) {
 ```
 
 `Gp_NthEquippableRec` is the example. The same wrap vs range pair is in
-`Gp_RefreshItemRow`, which avoids the CSE by reloading `field_0` after a
+`Gp_RefreshItemRow`, which avoids the CSE by reloading `itemId` after a
 store instead.
 
 ## Split the first-walk count so it can live in `$a2` then move to `$t1`
@@ -30629,7 +30630,7 @@ j     out
 
 ```c
 found = 2;
-if (cap->field_2 >= walker->field_2 + arg2) {
+if (cap->field_2 >= walker->qty + arg2) {
     found = 1;
 }
 ```
@@ -30867,7 +30868,7 @@ Zeroing a loop index and then loading an unrelated field:
 
 ```c
 i    = 0;
-item = rec->field_0;
+item = rec->itemId;
 off  = (item - 0x80) * 4;
 ```
 
@@ -30881,13 +30882,13 @@ nop
 addiu v0, v1, -0x80
 ```
 
-`rec[i].field_0` does not help — GCC folds `i == 0` and still moves the
+`rec[i].itemId` does not help — GCC folds `i == 0` and still moves the
 zero. Pin the index after the store so the load cannot sneak in front:
 
 ```c
 i = 0;
 asm volatile("" ::"r"(i));
-item = rec->field_0;
+item = rec->itemId;
 ```
 
 Same barrier already used in `Gp_ClearScanItems`. A later copy of the same
@@ -30915,10 +30916,10 @@ addiu a0, v0, %lo(Mc_SaveData+0x1AC)
 still lands in `$a0` when the else path indexes it after the range
 check. `Gp_SetScanItem` is the example.
 
-## Reassign the running pointer before a field-2 store to kill the IV
+## Reassign the running pointer before a `qty` store to kill the IV
 
-A search loop that both walks `walker++` and writes `walker->field_2 = 0`
-lets GCC keep `&walker->field_2` as a second induction variable
+A search loop that both walks `walker++` and writes `walker->qty = 0`
+lets GCC keep `&walker->qty` as a second induction variable
 (`addiu a2, a1, 2` / `addiu a2, a2, 4`). The target uses `lhu`/`sh` at
 `2(a1)` only.
 
@@ -30927,12 +30928,12 @@ store through the copy:
 
 ```c
 found          = walker;
-found->field_0 = 0;
+found->itemId  = 0;
 table          = found;
-table->field_2 = 0;
+table->qty     = 0;
 ```
 
-`found->field_2 = 0` still builds the IV. `Gp_SetScanItem` is the example.
+`found->qty = 0` still builds the IV. `Gp_SetScanItem` is the example.
 
 ## Occupied-slot `return dest` after a delayed `dest = jal` skips `move v0, s0`
 
@@ -32278,8 +32279,8 @@ Write the store through the computed address so dest stays in `$v0`:
 
 ## Occupancy walk: goto, not `while`, so the ptr step stays in the continue delay
 
-Walking toward a hole (`if (rec->field_0 == 0) break; i--; if (src < i) rec--;`)
-as a `while (rec->field_0 != 0)` rotates: the `lbu` moves to the bottom and
+Walking toward a hole (`if (rec->itemId == 0) break; i--; if (src < i) rec--;`)
+as a `while (rec->itemId != 0)` rotates: the `lbu` moves to the bottom and
 the bound check becomes `beqz` plus a compensating `i++`. The target checks
 at the top and only steps the pointer when continuing:
 
@@ -133393,3 +133394,26 @@ so the name may say only what is stored, and the comment has to record that the
 consumer is unestablished rather than invent one. Privacy is decided as always:
 with nothing reading the value, nothing outside the unit reaches it, so it is
 private.
+## A run's extent comes from the loop that clears it, not from the member split
+
+A field-split can cut one run into several members that each look like their own
+array, and the declared sizes then disagree with what the code addresses. In
+`McSaveData` the item table is declared as three members in a row - an item-row
+array of seven, then a slot array of 0x7C, then a four-byte blob - while the
+scans that index it start anywhere in 0x100 rows of the run.
+
+The extent is in the clear loop. The save-data init routine walks from the row
+base with `addiu $v1, $v1, 0x4` under `slti $v0, $a0, 0x100`, so the run is
+0x100 rows and ends exactly where the collected-item bit word begins. Read the
+stride off the pointer increment and the count off the `slti` bound before
+believing a declared size.
+
+The slot view is phantom, and the way to see that is the index range at each
+use rather than the layout: every access through it is an item id of `0x80`
+or more (guarded by `(u32)(id - 0x80) < 0x20`), which lands past the declared
+entries in the aux array the reset routine clears as a 0x20-entry table. So the
+run is described twice, by two members whose index spaces do not overlap.
+Folding them into one means rebasing the index expressions at each use
+(`aux[id - 0x80]` in place of `slots[id]`), which changes the address
+arithmetic of matched functions and has to be checked against the checksum site
+by site.

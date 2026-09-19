@@ -66,11 +66,16 @@ typedef struct _McWork {
     /* 0xA24 */ u8            field_A24[0x10];
 } McWork;
 
-/// 4-byte save-inventory row (`Mc_SaveData.field_1AC`).
-typedef struct _McItemRec {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ u16 field_2;
+/// One row of an item table: the item it holds, the attachment slot that item
+/// occupies and its stack count. The tables a `McItemScan` chooses between
+/// (`Mc_SaveData.field_1AC`, `Gp_ItemTable1`, `Gp_ItemTable2`) are arrays of
+/// these rows. A non-zero `attachSlot` marks the row as in use: 1..n is the
+/// slot the item occupies in the equipped weapon's or armour's attachment list,
+/// and -1 marks the row whose item is the equipped armour itself.
+typedef struct {
+    u8  itemId;     // Item id; 0 marks the row free
+    s8  attachSlot; // Attachment slot the item occupies (-1 = the equipped armour itself)
+    u16 qty;        // Stack count
 } McItemRec;
 STATIC_ASSERT_SIZEOF(McItemRec, 0x4);
 

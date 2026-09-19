@@ -71,10 +71,10 @@ void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
             i       = 0;
             if (scanSrc->field_1 != 0) {
                 do {
-                    if (tbl[base].field_0 != 0) {
-                        Gp_GiveItem(&Gp_MoveScanDst, tbl[base].field_0, tbl[base].field_2);
-                        tbl[base].field_0 = 0;
-                        tbl[base].field_2 = 0;
+                    if (tbl[base].itemId != 0) {
+                        Gp_GiveItem(&Gp_MoveScanDst, tbl[base].itemId, tbl[base].qty);
+                        tbl[base].itemId = 0;
+                        tbl[base].qty    = 0;
                     }
                     i++;
                     base++;
@@ -129,18 +129,18 @@ void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
                 }
                 dst    = &Gp_MoveScanDst;
                 recDst = Gp_GetScanSlot(dst, rowDst, 0);
-                qtyDst = recDst->field_2;
-                idDst  = recDst->field_0;
+                qtyDst = recDst->qty;
+                idDst  = recDst->itemId;
                 Gp_RemoveItem(dst, recDst, qtyDst);
                 src    = dst - 1;
                 recSrc = Gp_GetScanSlot(src, rowSrc, 0);
-                qtySrc = recSrc->field_2;
-                idSrc  = recSrc->field_0;
+                qtySrc = recSrc->qty;
+                idSrc  = recSrc->itemId;
                 Gp_RemoveItem(src, recSrc, qtySrc);
                 Gp_SetScanItem(dst, rowDst, idSrc, qtySrc);
                 Gp_SetScanItem(src, rowSrc, idDst, qtyDst);
-                if ((u8)(recDst->field_0 + 0x80) < 0x20) {
-                    Gp_ClearEquipSlot(recDst->field_0);
+                if ((u8)(recDst->itemId + 0x80) < 0x20) {
+                    Gp_ClearEquipSlot(recDst->itemId);
                 }
             } else {
                 rowA = mem->field_14;
@@ -148,17 +148,17 @@ void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
                 if (rowA != rowB) {
                     scan = &Gp_MoveScanSrc + mem->field_10;
                     recA = Gp_GetScanSlot(scan, rowA, 0);
-                    qtyA = recA->field_2;
-                    idA  = recA->field_0;
-                    subA = (s8)recA->field_1;
+                    qtyA = recA->qty;
+                    idA  = recA->itemId;
+                    subA = recA->attachSlot;
                     Gp_RemoveItem(scan, recA, qtyA);
                     recB = Gp_GetScanSlot(scan, rowB, 0);
-                    qtyB = recB->field_2;
-                    idB  = recB->field_0;
-                    subB = (s8)recB->field_1;
+                    qtyB = recB->qty;
+                    idB  = recB->itemId;
+                    subB = recB->attachSlot;
                     Gp_RemoveItem(scan, recB, qtyB);
-                    Gp_SetScanItem(scan, rowA, idB, qtyB)->field_1 = subB;
-                    Gp_SetScanItem(scan, rowB, idA, qtyA)->field_1 = subA;
+                    Gp_SetScanItem(scan, rowA, idB, qtyB)->attachSlot = subB;
+                    Gp_SetScanItem(scan, rowB, idA, qtyA)->attachSlot = subA;
                 }
             }
             mem->objs[mem->field_8]->owner->state     = 1;
@@ -289,7 +289,7 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
     rec = Gp_GetScanSlot(&Gp_MoveScanSrc + arg1->owner->spawnArg1, arg0->field_8, 0);
     TOUCH_REG(rec);
     one  = 1;
-    item = rec->field_0;
+    item = rec->itemId;
     if (arg0->field_C != one) {
         owner = arg1->owner;
         if ((owner->state != one) && (arg0->field_8 == Gp_ItemMoveWork->field_14) &&
@@ -307,13 +307,13 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
     }
     if (arg1->owner->spawnArg1 == 0) {
         Gp_DrawItemLabel(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 0);
-    } else if ((s8)rec->field_1 <= 0) {
+    } else if (rec->attachSlot <= 0) {
         Gp_DrawItemLabel(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 1);
     } else {
         Gp_DrawItemLabel(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 2);
     }
     if ((u32)(item - 0xA0) < 0x20U) {
-        Gp_DrawQty(arg1, arg0->field_18, arg0->field_1A, rec->field_2, arg0->field_1C);
+        Gp_DrawQty(arg1, arg0->field_18, arg0->field_1A, rec->qty, arg0->field_1C);
     }
     selected = arg0->field_C;
     if (selected == 1) {
@@ -334,7 +334,7 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             idx   = arg1->owner->spawnArg1;
-            item2 = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].field_10, 0)->field_0;
+            item2 = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].field_10, 0)->itemId;
             SndEvt_EnqueueType6(3, 0, 0);
             owner = arg1->owner;
             item  = -1;
@@ -540,8 +540,8 @@ void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1)
         chooseQty = 0;
         idx       = arg1->owner->spawnArg1;
         rec       = Gp_GetScanSlot((&Gp_MoveScanSrc + (idx)), Gp_InvLists[idx].field_10, 0);
-        item      = rec->field_0;
-        qty       = rec->field_2;
+        item      = rec->itemId;
+        qty       = rec->qty;
         SndEvt_EnqueueType6(3, 0, 0);
         if ((u32)(item - 0xA0) < 0x20U) {
             scanOwner = arg1->owner;
@@ -623,7 +623,7 @@ void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1)
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             idx  = arg1->owner->spawnArg1;
             rec  = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].field_10, 0);
-            item = rec->field_0;
+            item = rec->itemId;
             SndEvt_EnqueueType6(3, 0, 0);
 
             owner = arg1->owner;
@@ -669,7 +669,7 @@ void Gp_FillItemActions(UiList* arg0, UiObject* arg1)
     rec   = Gp_GetScanSlot(scan, Gp_InvLists[idx].field_10, 0);
     item  = 0;
     if (rec != NULL) {
-        item = rec->field_0;
+        item = rec->itemId;
     }
     if (item == 0) {
         Gp_ItemActionFns[0] = Gp_ItemActionConfirm;
@@ -1089,8 +1089,8 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
                     rec  = &rec[scan->field_0];
                     if (scan->field_1 != 0) {
                         do {
-                            if ((u8)(rec->field_0 + 0x80) < 0x20) {
-                                slot   = Gp_GetItemSlot(rec->field_0);
+                            if ((u8)(rec->itemId + 0x80) < 0x20) {
+                                slot   = Gp_GetItemSlot(rec->itemId);
                                 attach = slot->field_0;
                                 if ((attach != 0) && (attach != 0xB9)) {
                                     if (Gp_SumScanQty(scan, attach) == 0) {
@@ -1121,8 +1121,8 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
                 rec  = &rec[scan->field_0];
                 if (scan->field_1 != 0) {
                     do {
-                        if ((u8)(rec->field_0 + 0x80) < 0x20) {
-                            slot   = Gp_GetItemSlot(rec->field_0);
+                        if ((u8)(rec->itemId + 0x80) < 0x20) {
+                            slot   = Gp_GetItemSlot(rec->itemId);
                             attach = slot->field_0;
                             if ((attach != 0) && (attach != 0xB9)) {
                                 if (Gp_SumScanQty(scan, attach) == 0) {

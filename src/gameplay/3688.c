@@ -1441,7 +1441,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
                 if (count != 0) {
                     slot = i + 1;
                 loop_search:
-                    if ((s8)table->field_1 == slot) {
+                    if (table->attachSlot == slot) {
                         goto found_assign;
                     }
                     j++;
@@ -1453,7 +1453,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
             done_search:
                 id = 0;
                 if (found != NULL) {
-                    id = found->field_0;
+                    id = found->itemId;
                 }
                 if (id != 0) {
                     Gp_DrawItemIcon(obj, x + col * 16, y + row * 16, id, 0);
@@ -1770,8 +1770,8 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
             n       = count;
             do {
                 ok = 1;
-                id = table->field_0;
-                if ((s8)table->field_1 != 0) {
+                id = table->itemId;
+                if (table->attachSlot != 0) {
                     ok = 0;
                 } else if (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) {
                     ok = 0;
@@ -1796,7 +1796,7 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
         return;
     }
 
-    item   = sel->field_0;
+    item   = sel->itemId;
     status = arg1->status;
     if (((status >> 16) == 1) || (status == 1)) {
         if (arg0->field_10 == arg0->field_8) {
@@ -1840,8 +1840,8 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
         y     = arg0->field_1A;
         color = arg0->field_1C;
         if (sel != NULL) {
-            if ((u32)(sel->field_0 - 0xA0) < 0x20U) {
-                qty            = sel->field_2 - Gp_CountEquippedRelated(&Mc_SaveData.field_5BC, sel->field_0);
+            if ((u32)(sel->itemId - 0xA0) < 0x20U) {
+                qty            = sel->qty - Gp_CountEquippedRelated(&Mc_SaveData.field_5BC, sel->itemId);
                 req.x          = arg1->baseX + 0x84 + x;
                 baseY          = arg1->baseY - 3;
                 req.y          = baseY + y;
@@ -1953,20 +1953,20 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
         temp   = item << 2;
         rec    = (McItemRec*)(temp + (s32)table);
         do {
-            if ((u8)(rec->field_0 + 0x80) < 0x20) {
+            if ((u8)(rec->itemId + 0x80) < 0x20) {
                 rec2 = rec;
                 if (arg1 == 0) {
                     goto increment;
                 }
                 j = 0;
                 USE_REG(j);
-                item = rec->field_0;
+                item = rec->itemId;
                 off  = (item - 0x80) * 4;
                 item = item - 0x7F;
                 do {
                     temp = j + off;
                     if (((GpItemQty*)(temp + (s32)table0))->field_1 == arg1) {
-                        if ((s8)rec2->field_1 > 0) {
+                        if (rec2->attachSlot > 0) {
                             count++;
                         } else if (cfg->weapon == item) {
                             count++;
@@ -1977,14 +1977,14 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
                 } while (j < 3);
 
                 j    = 0;
-                item = rec->field_0;
+                item = rec->itemId;
                 rec2 = rec;
                 off  = (item - 0x80) * 4;
                 item = item - 0x7F;
                 do {
                     temp = j + off;
                     if (((GpItemQty*)(temp + (s32)table1))->field_1 == arg1) {
-                        if ((s8)rec2->field_1 > 0) {
+                        if (rec2->attachSlot > 0) {
                             goto increment;
                         }
                         if (cfg->weapon != item) {
@@ -2034,9 +2034,9 @@ static __inline__ void countItemRows(UiList* menu)
         p     = &Player_Status;
         count = n;
         do {
-            id = table->field_0;
+            id = table->itemId;
             ok = 1;
-            if (((s8)table->field_1 != 0) ||
+            if ((table->attachSlot != 0) ||
                 (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) ||
                 (((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F))) {
                 ok = 0;
@@ -2276,7 +2276,7 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
                 table += idx;
                 if (flag < count) {
                     for (i = 0; i < count; i++, table++) {
-                        if (table->field_0 == item) {
+                        if (table->itemId == item) {
                             break;
                         }
                     }
@@ -2759,7 +2759,7 @@ void func_800C41A4(DialogPrompt* prompt, UiObject* obj)
         item  = 0;
         table = &table[scan->field_0];
         for (; i < scan->field_1; i++, table++) {
-            if ((s8)table->field_1 == row + 1) {
+            if (table->attachSlot == row + 1) {
                 found = table;
                 break;
             }
@@ -2767,7 +2767,7 @@ void func_800C41A4(DialogPrompt* prompt, UiObject* obj)
         rec = found;
     }
     if (rec != NULL) {
-        item = rec->field_0;
+        item = rec->itemId;
     }
     status = obj->status;
     if (((status >> 16) == 1 || status == 1) && prompt->field_10 == prompt->field_8) {
@@ -2789,12 +2789,12 @@ void func_800C41A4(DialogPrompt* prompt, UiObject* obj)
         s32 off;
         s32 id;
         s32 count;
-        id    = rec->field_0;
+        id    = rec->itemId;
         x     = prompt->field_18;
         y     = prompt->field_1A;
         color = prompt->field_1C;
         if ((u32)(id - 0xA0) < 0x20U) {
-            count                   = rec->field_2 - Gp_CountEquippedRelated(&Mc_SaveData.field_5BC, id);
+            count                   = rec->qty - Gp_CountEquippedRelated(&Mc_SaveData.field_5BC, id);
             draw.qty.req.x          = obj->baseX + 0x84 + x;
             off                     = obj->baseY - 3;
             draw.qty.req.y          = off + y;
@@ -3059,7 +3059,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                     table = (GpItemRec*)((s32)table + idx);
                     if (flag < count) {
                         do {
-                            if (table->field_0 == item) {
+                            if (table->itemId == item) {
                                 locals.x      = obj->field_1C + 2;
                                 Gp_SelItemRec = (u8*)table;
                                 locals.y      = obj->field_18 + 0xF;
@@ -3346,7 +3346,7 @@ GpItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2)
     rec   = NULL;
     table = &table[arg0->field_0];
     for (i = 0; i < arg0->field_1; i++, table++) {
-        id = table->field_0;
+        id = table->itemId;
         if ((Gp_ItemDescs[id].field_3 & 4) || (id == 0)) {
             continue;
         }
@@ -3405,7 +3405,7 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
     rec = Gp_NthEquippableRec(scan, prompt->field_8, 0);
     if (rec != NULL) {
         TOUCH_REG(rec);
-        item = rec->field_0;
+        item = rec->itemId;
         {
             s32 color;
             s32 x;
@@ -3416,7 +3416,7 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
             y     = prompt->field_1A;
             color = prompt->field_1C;
             if ((u32)(item - 0xA0) < 0x20U) {
-                qty                       = rec->field_2 - Gp_CountEquippedRelated(scan, item);
+                qty                       = rec->qty - Gp_CountEquippedRelated(scan, item);
                 draw.count.req.x          = obj->baseX + 0x84 + x;
                 draw.count.req.y          = obj->baseY + (y - 3);
                 draw.count.req.otIndex    = (s16)obj->drawOrder + 1;
@@ -3431,7 +3431,7 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
         }
 
         five = 5;
-        if ((s8)rec->field_1 > 0) {
+        if (rec->attachSlot > 0) {
             s32 x;
             s32 y;
             s32 color;
@@ -3517,7 +3517,7 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
                 table = &table[scan->field_0];
                 if (count != 0) {
                     do {
-                        if ((s8)table->field_1 == menu->field_10 + 1) {
+                        if (table->attachSlot == menu->field_10 + 1) {
                             Gp_RefreshItemRow(table);
                             break;
                         }
@@ -3525,8 +3525,8 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
                         table++;
                     } while (i < count);
                 }
-                rec->field_1  = (u8)menu->field_10 + 1;
-                obj->field_2E = 9;
+                rec->attachSlot = menu->field_10 + 1;
+                obj->field_2E   = 9;
             } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
                 SndEvt_EnqueueType6(3, 0, 0);
                 Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, obj);
@@ -3577,7 +3577,7 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
                     rec = (GpItemRec*)((s32)tmp + idx);
                     if (n != 0) {
                         do {
-                            if ((s8)rec->field_1 == target) {
+                            if (rec->attachSlot == target) {
                                 Gp_RefreshItemRow(rec);
                                 break;
                             }
@@ -3609,7 +3609,7 @@ void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
     count = 0;
     table = &table[scan->field_0];
     for (; i < scan->field_1; i++, table++) {
-        id = table->field_0;
+        id = table->itemId;
         if ((Gp_ItemDescs[id].field_3 & 4) || (id == 0)) {
             continue;
         }
@@ -3667,7 +3667,7 @@ void Gp_EquipSelectMenuTask(Task* arg0)
     Ui_UpdateListNoAnim(menu, obj);
     rec = Gp_NthEquippableRec(&Mc_SaveData.field_5BC, menu->field_10, 0);
     if (rec != NULL) {
-        val = rec->field_0;
+        val = rec->itemId;
     }
     Gp_ItemRowSelect(menu, obj, val, 2);
     if (obj->status == 1) {
@@ -5502,7 +5502,7 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* arg0, UiObject* arg1)
 
     if (item != 0) {
         rec = Gp_FindItemById(item);
-        qty = rec->field_2 - Gp_CountEquippedRelated(&Mc_SaveData.field_5BC, item);
+        qty = rec->qty - Gp_CountEquippedRelated(&Mc_SaveData.field_5BC, item);
         if (Gp_ReloadMode == 0) {
             attach = Gp_GetItemSlot(spawnArg);
             if (attach->field_0 == item) {
@@ -5941,8 +5941,8 @@ void Gp_DrawArmorSelectRow(DialogPrompt* arg0, UiObject* arg1)
         n = count;
         do {
         loop:
-            if ((u32)(table->field_0 - 0x60) < 0x20U) {
-                id = table->field_0;
+            if ((u32)(table->itemId - 0x60) < 0x20U) {
+                id = table->itemId;
                 if (cfg->armor != id - 0x5F) {
                     remaining--;
                     if (remaining < 0) {
@@ -6057,8 +6057,8 @@ void Gp_SelectArmorMenuTask(Task* arg0)
             recTable = (volatile GpItemRec*)((s32)rec + idx);
             if (n != 0) {
                 do {
-                    if ((u32)(recTable->field_0 - 0x60) < 0x20U) {
-                        if (cfg->armor != recTable->field_0 - 0x5F) {
+                    if ((u32)(recTable->itemId - 0x60) < 0x20U) {
+                        if (cfg->armor != recTable->itemId - 0x5F) {
                             hi++;
                         }
                     }
@@ -6113,8 +6113,8 @@ void Gp_SelectArmorMenuTask(Task* arg0)
                 count = n;
                 do {
                 loop:
-                    if ((u32)(recTable->field_0 - 0x60) < 0x20U) {
-                        id = recTable->field_0;
+                    if ((u32)(recTable->itemId - 0x60) < 0x20U) {
+                        id = recTable->itemId;
                         if (cfg->armor != id - 0x5F) {
                             remaining--;
                             if (remaining < 0) {
@@ -6377,10 +6377,10 @@ void Gp_EquipPromptTask(Task* arg0)
             if (field21 != val - 0x7F) {
                 if (field21 != 0) {
                     prev = Gp_FindItemById(field21 + 0x7F);
-                    if ((s8)rec->field_1 > 0) {
-                        prev->field_1 = rec->field_1;
+                    if (rec->attachSlot > 0) {
+                        prev->attachSlot = rec->attachSlot;
                     } else {
-                        Gp_ClearEquipSlotSel(prev->field_0, 0);
+                        Gp_ClearEquipSlotSel(prev->itemId, 0);
                     }
                 }
                 p->weapon = val - 0x7F;
