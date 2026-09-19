@@ -33693,18 +33693,18 @@ Pin all three after the store so the overwrite sticks:
 
 ```c
 register MATRIX*          src asm("a3");
-register GpRelMatScratch* tmp asm("a0");
+register _GpRelMatScratch* tmp asm("a0");
 
 src      = arg0;
-tmp      = (GpRelMatScratch*)(head - 0x30);
+tmp      = (_GpRelMatScratch*)(head - 0x30);
 *scratch = tmp;
 __asm__ volatile("" : "+r"(tmp), "+r"(src), "+r"(head));
 ```
 
 Type that scratch as `MATRIX` + `VECTOR` (0x30) and keep `tmp` itself
 pinned to `$a0`. A second `Scratch*` copy of `tmp` emits `move t1, a0`
-and `sw 0x20(t1)` for the translation delta. Pass the vec to
-`ApplyMatrixLV` as `(VECTOR*)(head - 0x10)` (not `&tmp->vec`) so the
+and `sw 0x20(t1)` for the translation delta. Pass the delta to
+`ApplyMatrixLV` as `(VECTOR*)(head - 0x10)` (not `&tmp->delta`) so the
 call is `addiu a1, t0, -0x10`; dest is `(VECTOR*)arg2->t` (`addiu a2,
 a2, 0x14` in the second subtract's load delay).
 

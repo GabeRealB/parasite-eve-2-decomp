@@ -109,15 +109,6 @@ typedef struct {
 } GpWheelScratch;
 STATIC_ASSERT_SIZEOF(GpWheelScratch, 0x68);
 
-/// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `Gp_WorldToLocal`.
-/// `mat` is the transpose of the parent rotation; `vec` is
-/// `child.t - parent.t` before `ApplyMatrixLV` rotates it into dest translation.
-typedef struct _GpRelMatScratch {
-    /* 0x00 */ MATRIX mat;
-    /* 0x20 */ VECTOR vec;
-} GpRelMatScratch;
-STATIC_ASSERT_SIZEOF(GpRelMatScratch, 0x30);
-
 /// 0x48-byte scratch from `G_SCRATCH_HEAD` used by `Gp_UpdateLinkXforms`.
 /// `mat` is the transpose of the player `workm`; `vec` at +0x40 is the
 /// packed SVECTOR that `gte_stsv` / translation add-sub share. The

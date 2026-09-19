@@ -293,6 +293,19 @@ void        Gp_FinishLoadWait(Task* task);
 void        func_807150F8(s32 arg0);
 void        func_80715198(void);
 
+/// Working state of a relative transform between two coordinate frames, carved
+/// from the scratch arena that `G_SCRATCH_HEAD` heads.
+///
+/// `rot` is the source frame's rotation transposed, so that multiplying a
+/// matrix by it yields that matrix's orientation relative to the source;
+/// `delta` is the target origin relative to the source, which the same
+/// rotation turns into the destination translation.
+typedef struct {
+    MATRIX rot;   // source frame's rotation, transposed
+    VECTOR delta; // target origin minus source origin
+} _GpRelMatScratch;
+STATIC_ASSERT_SIZEOF(_GpRelMatScratch, 0x30);
+
 void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
 {
     TmdObject*             node;
@@ -9037,14 +9050,14 @@ s32 Gp_SpendMp(s32 arg0)
 /// `out->t`.
 static __inline__ void coordToRoot(GsCOORDINATE2* arg0, GsCOORDINATE2* root, MATRIX* out)
 {
-    register short   t4 asm("t4");
-    register short   t5 asm("t5");
-    register short   t6 asm("t6");
-    GpRelMatScratch* tmp;
-    register MATRIX* rootm asm("a3");
-    register MATRIX* world asm("a2");
-    u8*              head;
-    VECTOR*          vec;
+    register short    t4 asm("t4");
+    register short    t5 asm("t5");
+    register short    t6 asm("t6");
+    _GpRelMatScratch* tmp;
+    register MATRIX*  rootm asm("a3");
+    register MATRIX*  world asm("a2");
+    u8*               head;
+    VECTOR*           vec;
 
     Gp_UpdateCoord(arg0);
     Gp_UpdateCoord(root);
@@ -9052,20 +9065,20 @@ static __inline__ void coordToRoot(GsCOORDINATE2* arg0, GsCOORDINATE2* root, MAT
     rootm = &root->workm;
     world = &arg0->workm;
     head  = *(u8**)G_SCRATCH_HEAD;
-    tmp   = (GpRelMatScratch*)(head - 0x30);
+    tmp   = (_GpRelMatScratch*)(head - 0x30);
 
     *(void**)G_SCRATCH_HEAD = tmp;
     TOUCH_REG3(tmp, rootm, head);
 
-    TRANSPOSE_ROT_3X3(&tmp->mat, rootm)
+    TRANSPOSE_ROT_3X3(&tmp->rot, rootm)
 
-    gte_MulMatrix0_real(&tmp->mat, world, out);
+    gte_MulMatrix0_real(&tmp->rot, world, out);
 
-    tmp->vec.vx = world->t[0] - rootm->t[0];
-    tmp->vec.vy = world->t[1] - rootm->t[1];
-    tmp->vec.vz = world->t[2] - rootm->t[2];
-    vec         = (VECTOR*)(head - 0x10);
-    ApplyMatrixLV(&tmp->mat, vec, (VECTOR*)out->t);
+    tmp->delta.vx = world->t[0] - rootm->t[0];
+    tmp->delta.vy = world->t[1] - rootm->t[1];
+    tmp->delta.vz = world->t[2] - rootm->t[2];
+    vec           = (VECTOR*)(head - 0x10);
+    ApplyMatrixLV(&tmp->rot, vec, (VECTOR*)out->t);
 
     *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;
 }
@@ -9275,52 +9288,52 @@ void Gp_LoadStageView(void)
 
 void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2)
 {
-    void**           scratch;
-    u8*              head;
-    register MATRIX* src asm("a3");
-    GpRelMatScratch* tmp;
-    register short   t4 asm("t4");
-    register short   t5 asm("t5");
-    register short   t6 asm("t6");
-    VECTOR*          vec;
-    VECTOR*          out;
+    void**            scratch;
+    u8*               head;
+    register MATRIX*  src asm("a3");
+    _GpRelMatScratch* tmp;
+    register short    t4 asm("t4");
+    register short    t5 asm("t5");
+    register short    t6 asm("t6");
+    VECTOR*           vec;
+    VECTOR*           out;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
     src      = arg0;
-    tmp      = (GpRelMatScratch*)(head - 0x30);
+    tmp      = (_GpRelMatScratch*)(head - 0x30);
     *scratch = tmp;
     TOUCH_REG3(tmp, src, head);
 
     t4               = src->m[0][0];
     t5               = src->m[1][0];
     t6               = src->m[2][0];
-    tmp->mat.m[0][0] = t4;
-    tmp->mat.m[0][1] = t5;
-    tmp->mat.m[0][2] = t6;
+    tmp->rot.m[0][0] = t4;
+    tmp->rot.m[0][1] = t5;
+    tmp->rot.m[0][2] = t6;
 
     t4               = src->m[0][1];
     t5               = src->m[1][1];
     t6               = src->m[2][1];
-    tmp->mat.m[1][0] = t4;
-    tmp->mat.m[1][1] = t5;
-    tmp->mat.m[1][2] = t6;
+    tmp->rot.m[1][0] = t4;
+    tmp->rot.m[1][1] = t5;
+    tmp->rot.m[1][2] = t6;
 
     t4               = src->m[0][2];
     t5               = src->m[1][2];
     t6               = src->m[2][2];
-    tmp->mat.m[2][0] = t4;
-    tmp->mat.m[2][1] = t5;
-    tmp->mat.m[2][2] = t6;
+    tmp->rot.m[2][0] = t4;
+    tmp->rot.m[2][1] = t5;
+    tmp->rot.m[2][2] = t6;
 
-    gte_MulMatrix0_real(&tmp->mat, arg1, arg2);
+    gte_MulMatrix0_real(&tmp->rot, arg1, arg2);
 
-    tmp->vec.vx = arg1->t[0] - src->t[0];
-    tmp->vec.vy = arg1->t[1] - src->t[1];
-    tmp->vec.vz = arg1->t[2] - src->t[2];
-    vec         = (VECTOR*)(head - 0x10);
-    out         = (VECTOR*)arg2->t;
-    ApplyMatrixLV(&tmp->mat, vec, out);
+    tmp->delta.vx = arg1->t[0] - src->t[0];
+    tmp->delta.vy = arg1->t[1] - src->t[1];
+    tmp->delta.vz = arg1->t[2] - src->t[2];
+    vec           = (VECTOR*)(head - 0x10);
+    out           = (VECTOR*)arg2->t;
+    ApplyMatrixLV(&tmp->rot, vec, out);
 
     *scratch = (u8*)*scratch + 0x30;
 }
