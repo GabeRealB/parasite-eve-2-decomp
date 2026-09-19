@@ -115,7 +115,7 @@ void func_actor_310100_80161F80(Task* task)
 /// `D_actor_310100_80179920` with display id 0x6D, or `D_actor_310100_801798FC`
 /// with 0x6C. It then walks the nested area place list for the record carrying
 /// that id, drops the record's translation into the spawned model's root
-/// coordinate frame, yaws that frame to the record's `field_A`, parks the
+/// coordinate frame, yaws that frame to the record's `yaw`, parks the
 /// display work block's `field_4F0` at 0 and tears this task down.
 void func_actor_310100_801620FC(Task* task)
 {
@@ -155,15 +155,15 @@ void func_actor_310100_801620FC(Task* task)
         skip:
             modelTask = work->field_4E4;
             place     = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
-            while (place->field_0 != 0xFF && place->field_0 != mode) {
+            while (place->entryId != 0xFF && place->entryId != mode) {
                 place++;
             }
             obj               = (TmdObject*)modelTask->extra;
             coord             = obj->coords;
-            coord->coord.t[0] = place->field_4;
-            coord->coord.t[1] = place->field_6;
-            coord->coord.t[2] = place->field_8;
-            Gfx_RotMatrixY(&coord->coord, place->field_A, 0);
+            coord->coord.t[0] = place->x;
+            coord->coord.t[1] = place->y;
+            coord->coord.t[2] = place->z;
+            Gfx_RotMatrixY(&coord->coord, place->yaw, 0);
             display            = (Actor310100Work*)work->field_4E4->work;
             display->field_4F0 = 0;
             taskKill(task);
@@ -219,15 +219,15 @@ void func_actor_310100_80162284(Task* task)
         skip:
             modelTask = work->field_4E4;
             place     = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
-            while (place->field_0 != 0xFF && place->field_0 != mode) {
+            while (place->entryId != 0xFF && place->entryId != mode) {
                 place++;
             }
             obj               = (TmdObject*)modelTask->extra;
             coord             = obj->coords;
-            coord->coord.t[0] = place->field_4;
-            coord->coord.t[1] = place->field_6;
-            coord->coord.t[2] = place->field_8;
-            Gfx_RotMatrixY(&coord->coord, place->field_A, 0);
+            coord->coord.t[0] = place->x;
+            coord->coord.t[1] = place->y;
+            coord->coord.t[2] = place->z;
+            Gfx_RotMatrixY(&coord->coord, place->yaw, 0);
             display            = (Actor310100Work*)work->field_4E4->work;
             display->field_4F0 = 0;
             taskKill(task);
@@ -291,10 +291,10 @@ void func_actor_310100_80162414(Task* task, s32 arg1)
     task->msgTable = &D_actor_310100_801798B4;
     id             = mode;
     place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
-    while (place->field_0 != 0xFF && place->field_0 != id) {
+    while (place->entryId != 0xFF && place->entryId != id) {
         place++;
     }
-    Gp_SetTmdBytes(obj, (s8)place->field_D, (s8)place->field_E);
+    Gp_SetTmdBytes(obj, (s8)place->tpage, (s8)place->clut);
 }
 
 /// Common spawn of the two floor-quad display handlers: `func_actor_310100_801631B0`
@@ -352,10 +352,10 @@ void func_actor_310100_801625E4(Task* task, s32 arg1)
     task->msgTable = &D_actor_310100_801798B4;
     id             = mode;
     place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
-    while (place->field_0 != 0xFF && place->field_0 != id) {
+    while (place->entryId != 0xFF && place->entryId != id) {
         place++;
     }
-    Gp_SetTmdBytes(obj, (s8)place->field_D, (s8)place->field_E);
+    Gp_SetTmdBytes(obj, (s8)place->tpage, (s8)place->clut);
 }
 
 /// Controller for the display model spawned from `D_actor_310100_801798FC`.
@@ -400,16 +400,16 @@ void func_actor_310100_801627BC(Task* task)
             if (on) {
                 work  = (Actor310100Work*)task->work;
                 place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
-                while (place->field_0 != 0xFF && place->field_0 != 0x6C) {
+                while (place->entryId != 0xFF && place->entryId != 0x6C) {
                     place++;
                 }
                 child             = Task_SpawnFromTable(&D_actor_310100_801798FC, 2, 1, 0);
                 work->field_4E4   = child;
                 coord             = ((TmdObject*)child->extra)->coords;
-                coord->coord.t[0] = place->field_4;
-                coord->coord.t[1] = place->field_6;
-                coord->coord.t[2] = place->field_8;
-                Gfx_RotMatrixY(&coord->coord, place->field_A, 0);
+                coord->coord.t[0] = place->x;
+                coord->coord.t[1] = place->y;
+                coord->coord.t[2] = place->z;
+                Gfx_RotMatrixY(&coord->coord, place->yaw, 0);
                 task->state++;
             }
             break;
@@ -478,16 +478,16 @@ void func_actor_310100_801629FC(Task* task)
             }
             if (on) {
                 place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
-                while (place->field_0 != 0xFF && place->field_0 != 0x6D) {
+                while (place->entryId != 0xFF && place->entryId != 0x6D) {
                     place++;
                 }
                 child             = Task_SpawnFromTable(&D_actor_310100_80179920, 2, work->field_504, 0);
                 work->field_4E4   = child;
                 coord             = ((TmdObject*)child->extra)->coords;
-                coord->coord.t[0] = place->field_4;
-                coord->coord.t[1] = place->field_6;
-                coord->coord.t[2] = place->field_8;
-                Gfx_RotMatrixY(&coord->coord, place->field_A, 0);
+                coord->coord.t[0] = place->x;
+                coord->coord.t[1] = place->y;
+                coord->coord.t[2] = place->z;
+                Gfx_RotMatrixY(&coord->coord, place->yaw, 0);
                 task->state++;
             }
             break;

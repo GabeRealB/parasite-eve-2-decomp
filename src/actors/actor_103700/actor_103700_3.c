@@ -38,7 +38,7 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
     GpAreaKey*     keyPtr;
     u8             areaByte0;
     GpAreaRec*     rec;
-    GpCdRec10*     entry;
+    GpAreaPlace*   entry;
     GpEffWork*     eff;
     TmdObject*     effModel;
     s32            sound;
@@ -119,9 +119,9 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
                                 buf.key.view = areaByte0;
                                 Gp_SyncAreaKeyIndex(keyPtr);
                                 rec             = Gp_GetNestedAreaRec(&buf.key);
-                                entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
-                                effModel->tpage = entry->field_D;
-                                effModel->clut  = entry->field_E;
+                                entry           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+                                effModel->tpage = entry->tpage;
+                                effModel->clut  = entry->clut;
                                 if (effModel->buffer != NULL) {
                                     tmdProcessStream(effModel);
                                     tmdProcessStream(effModel);

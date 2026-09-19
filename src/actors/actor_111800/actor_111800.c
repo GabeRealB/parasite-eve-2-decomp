@@ -60,10 +60,10 @@ void func_actor_111800_80132390(Task* task)
     } while ((u32)(i & 0xFFFF) < 0x13U);
     work->field_494 = 0x155;
     place           = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
-    while (place->field_0 != 0xFF && place->field_0 != 0x13) {
+    while (place->entryId != 0xFF && place->entryId != 0x13) {
         place++;
     }
-    Gp_SetTmdBytes(obj, (s8)place->field_D, (s8)place->field_E);
+    Gp_SetTmdBytes(obj, (s8)place->tpage, (s8)place->clut);
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_111800/actor_111800", func_actor_111800_8013251C);

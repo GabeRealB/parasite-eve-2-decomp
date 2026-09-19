@@ -3147,15 +3147,15 @@ void func_actor_401300_8013AE48(Actor401300* arg0)
 /// Tint a freshly spawned effect model from the enemy's area record.
 static __inline__ void Actor401300_TintEffect(GpEffWork* eff, GpEnemy* enemy)
 {
-    GpAreaKey  key;
-    GpAreaKey* sessionKey;
-    GpAreaKey* keyPtr;
-    u8         areaByte0;
-    GpAreaRec* rec;
-    GpCdRec10* entry;
-    TmdObject* model;
-    s32        idx;
-    u32        raw;
+    GpAreaKey    key;
+    GpAreaKey*   sessionKey;
+    GpAreaKey*   keyPtr;
+    u8           areaByte0;
+    GpAreaRec*   rec;
+    GpAreaPlace* entry;
+    TmdObject*   model;
+    s32          idx;
+    u32          raw;
 
     if (eff != NULL) {
         sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
@@ -3172,9 +3172,9 @@ static __inline__ void Actor401300_TintEffect(GpEffWork* eff, GpEnemy* enemy)
         key.view = areaByte0;
         Gp_SyncAreaKeyIndex(keyPtr);
         rec          = Gp_GetNestedAreaRec(&key);
-        entry        = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
-        model->tpage = entry->field_D;
-        model->clut  = entry->field_E;
+        entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        model->tpage = entry->tpage;
+        model->clut  = entry->clut;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);

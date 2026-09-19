@@ -516,9 +516,9 @@ s32 Gp_PollAreaCdLoads(void)
     u8           param1[8];
     u8           param2[8];
     GpCdAreaRec* rec;
-    GpCdRec10*   rec10;
-    GpCdRec10*   match;
-    GpCdRec10*   next;
+    GpAreaPlace* place;
+    GpAreaPlace* match;
+    GpAreaPlace* next;
     GpCdRec0C*   rec12;
     s32          val;
     u8           temp;
@@ -539,28 +539,28 @@ s32 Gp_PollAreaCdLoads(void)
             }
             Gp_AreaCdPhase++;
         case 1:
-            if (Gp_CdRecCur->field_0 != 0xFF) {
+            if (Gp_CdRecCur->entryId != 0xFF) {
                 do {
-                    rec10 = Gp_CdRecCur;
-                    if (rec10->field_0 == 0) {
-                        next        = rec10 + 1;
+                    place = Gp_CdRecCur;
+                    if (place->entryId == 0) {
+                        next        = place + 1;
                         Gp_CdRecCur = next;
                     } else {
                         D_80114C68 = D_80114C64->field_4;
                         if (D_80114C68->field_0 != 0xFF) {
                             SCHED_BARRIER();
-                            match = rec10;
+                            match = place;
                             for (; D_80114C68->field_0 != 0xFF; D_80114C68++) {
-                                if (match->field_0 == D_80114C68->field_0) {
+                                if (match->entryId == D_80114C68->field_0) {
                                     break;
                                 }
                             }
                         }
-                        if (Gp_CdRecCur->field_C == 0) {
+                        if (Gp_CdRecCur->pad_C == 0) {
                             Gp_CdRecCur++;
                         } else {
                             param1[3] = 0;
-                            param1[0] = Gp_CdRecCur->field_C;
+                            param1[0] = Gp_CdRecCur->pad_C;
                             rec12     = D_80114C68;
                             val       = (s16)rec12->field_2;
                             if (val >= 0x64) {
@@ -573,26 +573,26 @@ s32 Gp_PollAreaCdLoads(void)
                             param1[2] = temp;
                             COMPILER_BARRIER();
                             param2[1] = 0;
-                            param2[2] = Gp_CdRecCur->field_D;
-                            param2[3] = Gp_CdRecCur->field_E;
+                            param2[2] = Gp_CdRecCur->tpage;
+                            param2[3] = Gp_CdRecCur->clut;
                             CdCmd_Enqueue(0x21, param1, param2);
                             Gp_AreaCdPhase++;
                             break;
                         }
                     }
                     {
-                        extern GpCdRec10*   cursor asm("Gp_CdRecCur");
-                        register GpCdRec10* p asm("v0");
+                        extern GpAreaPlace*   cursor asm("Gp_CdRecCur");
+                        register GpAreaPlace* p asm("v0");
 
                         p = cursor;
                         __asm__("" : "+r"(p) : "m"(cursor) : "v1");
-                        if (p->field_0 == 0xFF) {
+                        if (p->entryId == 0xFF) {
                             break;
                         }
                     }
                 } while (1);
             }
-            if (Gp_CdRecCur->field_0 == 0xFF) {
+            if (Gp_CdRecCur->entryId == 0xFF) {
                 return 1;
             }
             break;
@@ -640,10 +640,10 @@ s32 func_800AA120(void)
             do {
                 Gp_CdRecCur = D_80114C64->field_0;
                 D_80114C72  = 0;
-                if (Gp_CdRecCur->field_0 != 0xFF) {
+                if (Gp_CdRecCur->entryId != 0xFF) {
                     key = D_80114C68->field_0;
-                    while (Gp_CdRecCur->field_0 != 0xFF) {
-                        if (Gp_CdRecCur->field_0 == key && Gp_CdRecCur->field_C == 0) {
+                    while (Gp_CdRecCur->entryId != 0xFF) {
+                        if (Gp_CdRecCur->entryId == key && Gp_CdRecCur->pad_C == 0) {
                             D_80114C72 = 1;
                             break;
                         }
@@ -653,8 +653,8 @@ s32 func_800AA120(void)
                 rec12 = D_80114C68;
                 if (rec12->field_4 != 5) {
                     if (D_80114C72 != 0) {
-                        d         = (s8)Gp_CdRecCur->field_D;
-                        e         = (s8)Gp_CdRecCur->field_E;
+                        d         = (s8)Gp_CdRecCur->tpage;
+                        e         = (s8)Gp_CdRecCur->clut;
                         param1[3] = 0;
                         param1[0] = 0;
                         val       = (s16)rec12->field_2;
@@ -690,8 +690,8 @@ s32 func_800AA120(void)
                         goto queued;
                     }
                 } else if (D_80114C72 != 0) {
-                    d         = (s8)Gp_CdRecCur->field_D;
-                    e         = (s8)Gp_CdRecCur->field_E;
+                    d         = (s8)Gp_CdRecCur->tpage;
+                    e         = (s8)Gp_CdRecCur->clut;
                     param1[3] = 0;
                     param1[0] = 0;
                     val       = (s16)rec12->field_2;

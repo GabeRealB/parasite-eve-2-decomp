@@ -119,7 +119,7 @@ void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
     Gp_LinkObj(2, &work->field_184);
     Gp_InitRec18Table(records3, 4, 0);
     work->field_184.flags = work->field_184.flags | 0xC200;
-    work->field_2AC       = arg0->place->field_2;
+    work->field_2AC       = arg0->place->mode;
     if (work->field_2AC == 1 && arg1->spawnType == work->field_2AC) {
         obj->tpage++;
         obj->clut++;

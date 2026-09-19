@@ -360,31 +360,31 @@ INCLUDE_ASM("actors/nonmatchings/actor_105600/actor_105600_2", func_actor_105600
 /// channel.
 void func_actor_105600_80135744(GpEnemy* ctx, Task* actor)
 {
-    Actor105600Work*    work;
-    TmdObject*          obj;
-    TmdObject*          model;
-    GsCOORDINATE2*      coord;
-    GsCOORDINATE2*      parts;
-    GsCOORDINATE2*      partsA;
-    GsCOORDINATE2*      partsB;
-    GsCOORDINATE2*      partsC;
-    GsCOORDINATE2*      partsD;
-    GsCOORDINATE2*      effParts;
-    GpAreaKey*          sessionKey;
-    GpAreaKey*          keyPtr;
-    u8                  areaByte0;
-    GpAreaRec*          rec;
-    Actor105600AreaRec* entry;
-    GpEnemy*            eff;
-    u16*                tbl;
-    u8                  param1[8];
-    u8                  param2[8];
-    GpAreaKey           key;
-    s32                 i;
-    s32                 one;
-    s32                 kind;
-    s32                 idx;
-    s32                 param;
+    Actor105600Work* work;
+    TmdObject*       obj;
+    TmdObject*       model;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   parts;
+    GsCOORDINATE2*   partsA;
+    GsCOORDINATE2*   partsB;
+    GsCOORDINATE2*   partsC;
+    GsCOORDINATE2*   partsD;
+    GsCOORDINATE2*   effParts;
+    GpAreaKey*       sessionKey;
+    GpAreaKey*       keyPtr;
+    u8               areaByte0;
+    GpAreaRec*       rec;
+    GpAreaPlace*     entry;
+    GpEnemy*         eff;
+    u16*             tbl;
+    u8               param1[8];
+    u8               param2[8];
+    GpAreaKey        key;
+    s32              i;
+    s32              one;
+    s32              kind;
+    s32              idx;
+    s32              param;
 
     obj   = actor->extra;
     coord = obj->coords;
@@ -428,9 +428,9 @@ void func_actor_105600_80135744(GpEnemy* ctx, Task* actor)
     rec = Gp_GetNestedAreaRec(&key);
     /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
        onto the table (`addu s0, s0, v0`). */
-    entry        = (Actor105600AreaRec*)((idx << 4) + (s32)rec->field_0);
-    model->tpage = entry->field_D;
-    model->clut  = entry->field_E;
+    entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    model->tpage = entry->tpage;
+    model->clut  = entry->clut;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
@@ -467,14 +467,14 @@ case0:
     ctx->coord      = &parts[3];
     ctx->hp         = D_actor_105600_80147FF0->hpMax;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    work->field_6AC = ctx->place->field_2 & 1;
+    work->field_6AC = ctx->place->mode & 1;
     if (work->field_6AC == 0) {
         work->field_694 = one;
         work->field_6A6 = 0;
     } else {
         work->field_694 = 2;
         work->field_6A6 = one;
-        param           = ctx->place->field_1;
+        param           = ctx->place->variant;
         work->field_6DA = param * 1000;
     }
 

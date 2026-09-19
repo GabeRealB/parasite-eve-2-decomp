@@ -18,21 +18,21 @@
 /// timer. Modes >= 10 re-read the variant index from the parameters.
 void func_actor_202600_8014CE1C(GpEnemy* ctx, Task* actor)
 {
-    SVECTOR            rot;
-    GpRec18*           rec0;
-    GpRec18*           rec1;
-    GpRec18*           rec2;
-    GpRec18*           rec3;
-    SVECTOR*           positions;
-    MATRIX*            matrix;
-    Actor202600Work*   work;
-    s32                variant;
-    s32                quotient;
-    s32                i;
-    s32                mode;
-    Actor202600Params* params;
-    GsCOORDINATE2*     coord;
-    Actor202600Obj2C*  obj;
+    SVECTOR           rot;
+    GpRec18*          rec0;
+    GpRec18*          rec1;
+    GpRec18*          rec2;
+    GpRec18*          rec3;
+    SVECTOR*          positions;
+    MATRIX*           matrix;
+    Actor202600Work*  work;
+    s32               variant;
+    s32               quotient;
+    s32               i;
+    s32               mode;
+    GpAreaPlace*      params;
+    GsCOORDINATE2*    coord;
+    Actor202600Obj2C* obj;
 
     obj   = actor->extra;
     coord = obj->field_8;
@@ -62,9 +62,9 @@ void func_actor_202600_8014CE1C(GpEnemy* ctx, Task* actor)
     work->field_354.coord      = coord;
     work->field_354.spawnArgLo = 0x100;
     work->field_354.spawnArgHi = 1;
-    work->field_3C4            = (s16)((Actor202600Params*)ctx->place)->field_1;
+    work->field_3C4            = (s16)ctx->place->variant;
     params                     = ctx->place;
-    mode                       = params->field_2;
+    mode                       = params->mode;
     if (mode < 10) {
         switch (mode) {
             case 0:
@@ -97,7 +97,7 @@ void func_actor_202600_8014CE1C(GpEnemy* ctx, Task* actor)
                 break;
         }
     } else {
-        work->field_3C4 = (s16)params->field_1;
+        work->field_3C4 = (s16)params->variant;
         quotient        = mode / 10;
         variant         = mode - quotient * 10;
         switch (variant) {

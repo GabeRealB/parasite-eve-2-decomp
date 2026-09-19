@@ -33,14 +33,14 @@ void ActorsShared801343e8(Task* task)
 
     switch (work->field_250) {
         case 0:
-            diff = spawn->field_3C->field_2 - 9;
+            diff = spawn->field_3C->mode - 9;
             if (D_8011540A >= diff) {
                 work->field_250 = 1;
                 work->field_256 = 5;
             }
             break;
         case 1:
-            diff = spawn->field_3C->field_2 - 9;
+            diff = spawn->field_3C->mode - 9;
             if (--work->field_256 <= 0) {
                 work->field_1C2 |= 0xC000;
                 if (diff < 10) {

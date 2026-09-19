@@ -8,7 +8,7 @@
 #include "main/tmd.h"
 
 /// Spawn handler: allocates the work area, binds the model and collision
-/// objects, and seeds the pose from the spawn variant in `GpAreaPlace.field_1`.
+/// objects, and seeds the pose from the spawn variant in `GpAreaPlace.variant`.
 void func_actor_101500_80131EB4(GpEnemy* arg0, Actor101500* arg1)
 {
     Actor101500Work* work;
@@ -47,10 +47,10 @@ void func_actor_101500_80131EB4(GpEnemy* arg0, Actor101500* arg1)
     work->field_314.spawnArgLo = 0x300;
     work->field_314.spawnArgHi = 1;
     place                      = arg0->place;
-    switch (work->field_382 = place->field_1) {
+    switch (work->field_382 = place->variant) {
         case 0:
-            work->field_36E = arg0->place->field_2 & 1;
-            work->field_370 = (arg0->place->field_2 >> 1) & 1;
+            work->field_36E = arg0->place->mode & 1;
+            work->field_370 = (arg0->place->mode >> 1) & 1;
             switch (work->field_36E) {
                 case 0:
                     work->field_352 = 1;

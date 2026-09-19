@@ -183,7 +183,7 @@ void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
         Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
         i++;
     } while (i < 0x13);
-    work->field_596          = enemy->place->field_2;
+    work->field_596          = enemy->place->mode;
     work->field_47C.pos.vy   = -300;
     work->field_47C.coord    = coords;
     work->field_47C.ctx.recs = work->field_49C;

@@ -6,43 +6,38 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/areaplace.h"
 #include "gameplay/pairsrc.h"
 #include "main/tmd.h"
 #include "main/task.h"
 #include "main/session.h"
 
-/// Fields read from this actor's spawn parameter record. Byte 1 selects the
-/// variant `Actor01600_Fn05F80` runs: 1 is the main state machine, 2 and 4 run
-/// their own countdown on `Actor01600Work.field_524` (byte 2 is the kind
-/// `Actor01600_Fn05400` switches on).
-typedef struct Actor01600Params {
-    /* 0x00 */ byte pad_0[1];
-    /* 0x01 */ u8   field_1;
-    /* 0x02 */ u16  field_2;
-    /* 0x04 */ byte pad_4[6];
-    /* 0x0A */ s16  field_A;
-} Actor01600Params;
-
+/// Fields this actor reads from its spawn argument (`Task::spawnArg2`), the
+/// enemy object: the placement key at `field_8` and the placement record at
+/// `field_3C`, whose `variant` selects the state machine `Actor01600_Fn05F80`
+/// runs -- 1 is the main one, 2 and 4 run their own countdown on
+/// `Actor01600Work.field_524` -- and whose `mode` is the kind
+/// `Actor01600_Fn05400` switches on.
 typedef struct Actor01600Ctx {
-    /* 0x00 */ byte              pad_0[4];
-    /* 0x04 */ MATRIX*           field_4;
-    /* 0x08 */ u16               field_8;
-    /* 0x0A */ byte              pad_A[0x6];
-    /* 0x10 */ GpLinkNode        node;
-    /* 0x18 */ GsCOORDINATE2*    field_18;
-    /* 0x1C */ s32               field_1C;
-    /* 0x20 */ s32               field_20;
-    /* 0x24 */ s32               field_24;
-    /* 0x28 */ byte              pad_28[0x14];
-    /* 0x3C */ Actor01600Params* field_3C;
-    /* 0x40 */ u16               field_40;
-    /* 0x42 */ byte              pad_42[6];
-    /* 0x48 */ u8                field_48;
-    /* 0x49 */ byte              pad_49[3];
-    /* 0x4C */ u8                field_4C;
-    /* 0x4D */ byte              pad_4D[3];
-    /* 0x50 */ GpPairSrcE*       field_50;
-    /* 0x54 */ s32               field_54;
+    /* 0x00 */ byte           pad_0[4];
+    /* 0x04 */ MATRIX*        field_4;
+    /* 0x08 */ u16            field_8;
+    /* 0x0A */ byte           pad_A[0x6];
+    /* 0x10 */ GpLinkNode     node;
+    /* 0x18 */ GsCOORDINATE2* field_18;
+    /* 0x1C */ s32            field_1C;
+    /* 0x20 */ s32            field_20;
+    /* 0x24 */ s32            field_24;
+    /* 0x28 */ byte           pad_28[0x14];
+    /* 0x3C */ GpAreaPlace*   field_3C;
+    /* 0x40 */ u16            field_40;
+    /* 0x42 */ byte           pad_42[6];
+    /* 0x48 */ u8             field_48;
+    /* 0x49 */ byte           pad_49[3];
+    /* 0x4C */ u8             field_4C;
+    /* 0x4D */ byte           pad_4D[3];
+    /* 0x50 */ GpPairSrcE*    field_50;
+    /* 0x54 */ s32            field_54;
 } Actor01600Ctx;
 STATIC_ASSERT_SIZEOF(Actor01600Ctx, 0x58);
 

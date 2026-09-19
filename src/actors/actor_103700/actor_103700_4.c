@@ -99,7 +99,7 @@ void func_actor_103700_801347E0(Task* task)
             coord->coord.t[0] += (scratch->normal.vx * 5) >> 9;
             coord->coord.t[1] += (scratch->normal.vy * 5) >> 9;
             coord->coord.t[2] += (scratch->normal.vz * 5) >> 9;
-            work->field_254    = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->field_F];
+            work->field_254    = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->rowIndex];
             ActorsShared80133d68((ActorShared80133d68*)task);
 
             Actor103700_BobInline(task, 0, 21);
@@ -116,7 +116,7 @@ void func_actor_103700_801347E0(Task* task)
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
             work->field_23C.vy = Player_Status.coordMtx->t[1] - (((Gp_LcgState >> 16) & 0x3FF) + 800);
             work->field_23C.vz = Player_Status.coordMtx->t[2];
-            work->field_254    = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->field_F];
+            work->field_254    = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->rowIndex];
             ActorsShared80133d68((ActorShared80133d68*)task);
 
             Actor103700_BobInline(task, 0, 21);

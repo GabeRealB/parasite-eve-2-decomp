@@ -136,7 +136,7 @@ void func_actor_202600_8014B950(Actor202600* arg0)
                 work->field_39C = 0;
                 work->field_392 = 1;
                 randomDelay     = (Gp_LcgState * 5) + 0x71357911;
-                work->field_39E = D_actor_202600_80152798[((Actor202600Ctx*)arg0->field_20)->field_3C->field_F] + ((randomDelay >> 0x10) & 0xF);
+                work->field_39E = D_actor_202600_80152798[((Actor202600Ctx*)arg0->field_20)->field_3C->rowIndex] + ((randomDelay >> 0x10) & 0xF);
                 Gp_LcgState     = randomDelay;
                 Gp_ArmStateF0(1);
             }

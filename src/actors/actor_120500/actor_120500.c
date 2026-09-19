@@ -224,13 +224,13 @@ void func_actor_120500_801322A0(Task* arg0)
     tmd->flags              = 0;
     tmd->colorMtx           = &work->field_494;
     place                   = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
-    id                      = place->field_0;
+    id                      = place->entryId;
     while (id != 0xFF) {
         if (id == 0x65) {
             break;
         }
         place++;
-        id = place->field_0;
+        id = place->entryId;
     }
     Gp_SetTmdBytes(tmd, ((s8*)place)[0xD], ((s8*)place)[0xE]);
     func_800B3F84(&work->anim, D_actor_120500_80138088, tmd, work->field_334, work->slots);

@@ -53,7 +53,7 @@ typedef struct Actor101500Work {
     /* 0x37C */ s16      field_37C;
     /* 0x37E */ s16      field_37E;
     /* 0x380 */ s16      field_380;
-    /* 0x382 */ s16      field_382; // spawn variant, `GpAreaPlace.field_1`
+    /* 0x382 */ s16      field_382; // spawn variant, `GpAreaPlace.variant`
 } Actor101500Work;
 
 /// 0x58-byte frame allocated on the scratchpad stack by

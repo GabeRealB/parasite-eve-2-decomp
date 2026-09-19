@@ -129,8 +129,8 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
        onto the table (`addu s0, s0, v0`). */
     place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-    model->tpage = place->field_D;
-    model->clut  = place->field_E;
+    model->tpage = place->tpage;
+    model->clut  = place->clut;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);

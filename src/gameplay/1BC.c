@@ -2739,7 +2739,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
     if (place == NULL) {
         return;
     }
-    if (place->field_0 == 0xFF) {
+    if (place->entryId == 0xFF) {
         return;
     }
     do {
@@ -2748,7 +2748,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
         if (id != 0xFF) {
             packed = fp << 24;
             do {
-                if (id == place->field_0) {
+                if (id == place->entryId) {
                     if (obj->field_1 & 2) {
                         McPosRec*    rec;
                         s32          found;
@@ -2776,7 +2776,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                         }
                     }
                     enemy = Gp_SpawnEnemyFromTable((TaskDesc*)entry->field_8, entry->field_5,
-                                                   (place->field_1 << 16) | place->field_2, NULL);
+                                                   (place->variant << 16) | place->mode, NULL);
                     if (enemy != NULL) {
                         register s32 f3 asm("v1");
                         s32          f2;
@@ -2796,19 +2796,19 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                             extra = (TmdObject*)task->extra;
                             coord = (GpCoordPose*)extra->coords;
                             if (task->spawnType == 1) {
-                                extra->tpage = place->field_D;
-                                extra->clut  = place->field_E;
+                                extra->tpage = place->tpage;
+                                extra->clut  = place->clut;
                                 if (extra->buffer != NULL) {
                                     tmdProcessStream(extra);
                                     tmdProcessStream(extra);
                                 }
                             }
                             if (!(obj->field_1 & 2)) {
-                                coord->coord.t[0] = place->field_4;
-                                coord->coord.t[1] = place->field_6;
-                                coord->coord.t[2] = place->field_8;
-                                coord->field_46   = place->field_A;
-                                Gfx_RotMatrixY(&coord->coord, place->field_A, 1);
+                                coord->coord.t[0] = place->x;
+                                coord->coord.t[1] = place->y;
+                                coord->coord.t[2] = place->z;
+                                coord->field_46   = place->yaw;
+                                Gfx_RotMatrixY(&coord->coord, place->yaw, 1);
                             } else {
                                 McPosRec* rec;
 
@@ -2844,7 +2844,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
         }
         fp++;
         place++;
-    } while (place->field_0 != 0xFF);
+    } while (place->entryId != 0xFF);
 }
 
 void Gp_DrawFloorQuad(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2)
@@ -3090,8 +3090,8 @@ void Gp_ApplyAreaTmdFlags(void)
     GpAreaTmdRec* table;
     GpAreaTmdRec* entry;
     GpWorkObj*    work;
+    GpAreaPlace*  place;
     TmdObject*    extra;
-    u8*           bytes;
     u16           id;
     u16           flags;
     u16           limit;
@@ -3107,7 +3107,7 @@ void Gp_ApplyAreaTmdFlags(void)
                 idx   = key->stage;
                 extra = iter->extra;
                 rec   = Gp_AreaTables[idx];
-                bytes = work->field_3C;
+                place = work->field_3C;
                 table = NULL;
                 if (rec != NULL) {
                     rec = rec[key->area].field_0;
@@ -3120,7 +3120,7 @@ void Gp_ApplyAreaTmdFlags(void)
                 if (id != 0xFF) {
                     limit = 0xFF;
                     do {
-                        if (id == *bytes) {
+                        if (id == place->entryId) {
                             flags = *entry->field_8;
                             if (flags == 1) {
                                 extra->flags &= 0xFFFB;

@@ -3187,7 +3187,7 @@ void func_actor_444000_80141618(Actor444000* task)
     GsCOORDINATE2*           coord;
     GsCOORDINATE2*           facing;
     TmdObject*               model;
-    GpCdRec10*               entry;
+    GpAreaPlace*             entry;
     GpAreaKey                key;
     GpAreaKey*               sessionKey;
     s32                      cueId;
@@ -3227,9 +3227,9 @@ void func_actor_444000_80141618(Actor444000* task)
                     key.room   = sessionKey->room;
                     key.view   = sessionKey->view;
                     Gp_SyncAreaKeyIndex(&key);
-                    entry        = (GpCdRec10*)((s32)Gp_GetNestedAreaRec(&key)->field_0 + 0x20);
-                    model->tpage = entry->field_D;
-                    model->clut  = entry->field_E;
+                    entry        = (GpAreaPlace*)((s32)Gp_GetNestedAreaRec(&key)->field_0 + 0x20);
+                    model->tpage = entry->tpage;
+                    model->clut  = entry->clut;
                     if (model->buffer != NULL) {
                         tmdProcessStream(model);
                         tmdProcessStream(model);

@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/areaplace.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -21,17 +22,12 @@ typedef struct ActorShared801343e8Work {
     /* 0x256 */ s16     field_256;
 } ActorShared801343e8Work;
 
-typedef struct ActorShared801343e8Kind {
-    /* 0x0 */ byte pad_0[0x2];
-    /* 0x2 */ u16  field_2;
-} ActorShared801343e8Kind;
-
 /// Spawn argument reached through `Task::spawnArg2`.
 typedef struct ActorShared801343e8Spawn {
-    /* 0x00 */ byte                     pad_0[0x14];
-    /* 0x14 */ u8                       field_14;
-    /* 0x15 */ byte                     pad_15[0x27];
-    /* 0x3C */ ActorShared801343e8Kind* field_3C;
+    /* 0x00 */ byte         pad_0[0x14];
+    /* 0x14 */ u8           field_14;
+    /* 0x15 */ byte         pad_15[0x27];
+    /* 0x3C */ GpAreaPlace* field_3C;
 } ActorShared801343e8Spawn;
 
 void ActorsShared801343e8(Task* task);

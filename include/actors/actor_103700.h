@@ -83,22 +83,11 @@ STATIC_ASSERT_SIZEOF(Actor103700HoldScratch, 0x2C);
 /// Spawn argument reached through `Task::spawnArg2`: the high nibble of
 /// `field_8` selects the sound bank `func_actor_103700_80133AB4` plays from.
 typedef struct Actor103700Spawn {
-    /* 0x00 */ byte                    pad_0[0x8];
-    /* 0x08 */ u16                     field_8;
-    /* 0x0A */ byte                    pad_A[0x32];
-    /* 0x3C */ struct Actor103700Kind* field_3C;
+    /* 0x00 */ byte         pad_0[0x8];
+    /* 0x08 */ u16          field_8;
+    /* 0x0A */ byte         pad_A[0x32];
+    /* 0x3C */ GpAreaPlace* field_3C;
 } Actor103700Spawn;
-
-/// Record `Actor103700Spawn::field_3C` points at; `field_F` indexes the
-/// halfword table `D_actor_103700_80139D9C`.
-typedef struct Actor103700Kind {
-    /* 0x0 */ byte pad_0[0x2];
-    /* 0x2 */ u16  field_2; // variant; `/ 10` picks the spawn mode
-    /* 0x4 */ byte pad_4[0x6];
-    /* 0xA */ u16  field_A;
-    /* 0xC */ byte pad_C[0x3];
-    /* 0xF */ u8   field_F;
-} Actor103700Kind;
 
 extern u16 D_actor_103700_80139D9C[];
 

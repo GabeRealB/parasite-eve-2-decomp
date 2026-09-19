@@ -137,7 +137,7 @@ void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
     arg1->state     = 1;
 }
 
-/// Applies the spawn variant (`GpAreaPlace::field_2`) to the freshly allocated
+/// Applies the spawn variant (`GpAreaPlace::mode`) to the freshly allocated
 /// work block: the tens digit picks the mode (`field_350`) and the units digit
 /// of mode 0 the idle pose, seeding the look-around countdown from the LCG.
 /// Modes 1 and 2 instead detach the model: the work block's own coordinate is
@@ -162,12 +162,12 @@ void Actor03800_Fn003B8(Task* arg0)
     ctx  = (Actor103800Ctx*)arg0->spawnArg2;
     work = (Actor103800Work*)arg0->work;
     src  = ((Actor103800Obj2C*)arg0->extra)->field_8;
-    mode = ctx->field_3C->field_2 / 10;
+    mode = ctx->field_3C->mode / 10;
 
     work->field_350 = mode;
     switch (mode) {
         case 0:
-            kind            = ctx->field_3C->field_2 % 10;
+            kind            = ctx->field_3C->mode % 10;
             work->field_352 = kind;
             switch (kind) {
                 case 0:

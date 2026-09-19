@@ -211,12 +211,12 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
     u32            raw1, index1;
     Task*          spawned1;
     TmdObject*     model1;
-    GpCdRec10*     entry1;
+    GpAreaPlace*   entry1;
     GpAreaKey*     sessionKey1;
     u32            raw2, index2;
     Task*          spawned2;
     TmdObject*     model2;
-    GpCdRec10*     entry2;
+    GpAreaPlace*   entry2;
     GpAreaKey*     sessionKey2;
 
     obj        = task->extra;
@@ -263,9 +263,9 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
         index1    = raw1 >> 12;
         key.view  = areaByte0;
         Gp_SyncAreaKeyIndex(keyp);
-        entry1        = (GpCdRec10*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model1->tpage = entry1->field_D;
-        model1->clut  = entry1->field_E;
+        entry1        = (GpAreaPlace*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model1->tpage = entry1->tpage;
+        model1->clut  = entry1->clut;
         if (model1->buffer != NULL) {
             tmdProcessStream(model1);
             tmdProcessStream(model1);
@@ -289,9 +289,9 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
         index2    = raw2 >> 12;
         key.view  = areaByte0;
         Gp_SyncAreaKeyIndex(keyp);
-        entry2        = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model2->tpage = entry2->field_D;
-        model2->clut  = entry2->field_E;
+        entry2        = (GpAreaPlace*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model2->tpage = entry2->tpage;
+        model2->clut  = entry2->clut;
         if (model2->buffer != NULL) {
             tmdProcessStream(model2);
             tmdProcessStream(model2);

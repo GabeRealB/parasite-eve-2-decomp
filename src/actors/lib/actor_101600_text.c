@@ -814,7 +814,7 @@ void Actor01600_Fn017BC(Actor01600* actor)
             if (work->field_50A >= 0x3E) {
                 work->field_50A = 0;
             }
-            if (ctx->field_3C->field_2 == 0) {
+            if (ctx->field_3C->mode == 0) {
                 if (((u8)Gp_StateF0.flags.bytes[2] & 1) || (Gp_StateF0.flags.word & 0xFF140000)) {
                     work->field_53A = 1;
                 }

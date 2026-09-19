@@ -130,7 +130,7 @@ typedef struct Actor105600Work {
     /* 0x6A8 */ s16  field_6A8;
     /* 0x6AA */ byte pad_6AA[2];
     /// Awake variant the actor was placed in (bit 0 of the placement record's
-    /// `field_2`); non-zero starts it on the longer approach.
+    /// `mode`); non-zero starts it on the longer approach.
     /* 0x6AC */ s16  field_6AC;
     /* 0x6AE */ s16  field_6AE;
     /* 0x6B0 */ byte pad_6B0[2];
@@ -150,7 +150,7 @@ typedef struct Actor105600Work {
     /// Streaming cue id for this room, looked up in `D_actor_105600_80148298`.
     /* 0x6D6 */ s16  field_6D6;
     /* 0x6D8 */ byte pad_6D8[2];
-    /// Approach budget, 1000 per unit of the placement record's byte 1.
+    /// Approach budget, 1000 per unit of the placement record's `variant`.
     /* 0x6DA */ s16  field_6DA;
     /* 0x6DC */ s16  field_6DC;
     /* 0x6DE */ s16  field_6DE; ///< below 2 the actor also drifts upward
@@ -158,17 +158,6 @@ typedef struct Actor105600Work {
     /* 0x6E2 */ byte pad_6E2[2];
 } Actor105600Work;
 STATIC_ASSERT_SIZEOF(Actor105600Work, 0x6E4);
-
-/// 0x10-byte per-room record reached through `GpAreaRec::field_0`, the same
-/// table `Actor02000AreaRec` describes. `field_D` / `field_E` are the texture
-/// page and CLUT row the spawn handler copies into the companion model object.
-typedef struct Actor105600AreaRec {
-    /* 0x00 */ byte pad_0[0xD];
-    /* 0x0D */ u8   field_D;
-    /* 0x0E */ u8   field_E;
-    /* 0x0F */ byte pad_F[1];
-} Actor105600AreaRec;
-STATIC_ASSERT_SIZEOF(Actor105600AreaRec, 0x10);
 
 /// Placement descriptor for this actor.
 extern Actor105600PlaceSrc D_actor_105600_80147FDC;

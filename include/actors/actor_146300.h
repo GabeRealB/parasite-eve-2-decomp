@@ -63,18 +63,6 @@ extern Task* D_actor_146300_8014282C;
 /// `field_C` here.
 extern s16 D_actor_146300_8014279C;
 
-/// 0x10-byte per-room record in the nested list `Gp_GetNestedAreaRec` reaches
-/// through `GpAreaRec::field_0`, the same table `Actor02000AreaRec` describes.
-/// `field_D` / `field_E` are the texture page and CLUT row the spawn handler
-/// copies into the companion model object.
-typedef struct Actor146300AreaRec {
-    /* 0x00 */ byte pad_0[0xD];
-    /* 0x0D */ u8   field_D;
-    /* 0x0E */ u8   field_E;
-    /* 0x0F */ byte pad_F[1];
-} Actor146300AreaRec;
-STATIC_ASSERT_SIZEOF(Actor146300AreaRec, 0x10);
-
 /// The companion task `ActorsShared80131f9cSub0` starts from
 /// `D_actor_146300_801427C8`; its `extra` is the model whose texture page and
 /// CLUT row come out of the area record, and the actor's own task is reparented

@@ -2,6 +2,7 @@
 #define ACTOR_102500_H
 
 #include "common.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/pairsrc.h"
 #include "gameplay/3FB8.h"
 #include "main/session.h"
@@ -121,35 +122,30 @@ typedef struct Actor02500EffWork {
 } Actor02500EffWork;
 STATIC_ASSERT_SIZEOF(Actor02500EffWork, 0x40);
 
-/// Spawn record at `Actor02500Ctx.field_3C`; `field_2` selects the variant
-/// this enemy starts in (0 idle, 1 and 2 already awake).
-typedef struct Actor02500Kind {
-    /* 0x0 */ byte pad_0[2];
-    /* 0x2 */ u16  field_2;
-    /* 0x4 */ byte pad_4[0xB];
-    /* 0xF */ u8   field_F;
-} Actor02500Kind;
-
+/// Task context (`Task::spawnArg2`): the enemy object. Its placement record
+/// hangs at `field_3C`, and that record's `mode` selects the variant this enemy
+/// starts in (0 idle, 1 and 2 already awake); its `rowIndex` selects the row of
+/// the actor's own per-placement tables.
 typedef struct Actor02500Ctx {
-    /* 0x00 */ byte            pad_0[4];
-    /* 0x04 */ MATRIX*         field_4;
-    /* 0x08 */ u16             field_8;
-    /* 0x0A */ byte            pad_A[6];
-    /* 0x10 */ GpLinkNode      node;
-    /* 0x18 */ GsCOORDINATE2*  field_18;
-    /* 0x1C */ s32             field_1C;
-    /* 0x20 */ s32             field_20;
-    /* 0x24 */ s32             field_24;
-    /* 0x28 */ byte            pad_28[0x14];
-    /* 0x3C */ Actor02500Kind* field_3C;
-    /* 0x40 */ s16             field_40;
-    /* 0x42 */ byte            pad_42[6];
-    /* 0x48 */ u8              field_48;
-    /* 0x49 */ byte            pad_49[3];
-    /* 0x4C */ u8              field_4C;
-    /* 0x4D */ byte            pad_4D[3];
-    /* 0x50 */ GpPairSrcE*     field_50;
-    /* 0x54 */ GpRec18*        field_54;
+    /* 0x00 */ byte           pad_0[4];
+    /* 0x04 */ MATRIX*        field_4;
+    /* 0x08 */ u16            field_8;
+    /* 0x0A */ byte           pad_A[6];
+    /* 0x10 */ GpLinkNode     node;
+    /* 0x18 */ GsCOORDINATE2* field_18;
+    /* 0x1C */ s32            field_1C;
+    /* 0x20 */ s32            field_20;
+    /* 0x24 */ s32            field_24;
+    /* 0x28 */ byte           pad_28[0x14];
+    /* 0x3C */ GpAreaPlace*   field_3C;
+    /* 0x40 */ s16            field_40;
+    /* 0x42 */ byte           pad_42[6];
+    /* 0x48 */ u8             field_48;
+    /* 0x49 */ byte           pad_49[3];
+    /* 0x4C */ u8             field_4C;
+    /* 0x4D */ byte           pad_4D[3];
+    /* 0x50 */ GpPairSrcE*    field_50;
+    /* 0x54 */ GpRec18*       field_54;
 } Actor02500Ctx;
 STATIC_ASSERT_SIZEOF(Actor02500Ctx, 0x58);
 
@@ -221,18 +217,12 @@ void Actor02500_Fn01AC8(Actor02500Ctx* arg0, Actor02500* arg1);
 void Actor02500_Fn01E60(Actor02500Ctx* arg0, Actor02500* arg1);
 void Actor02500_Fn01F8C(Actor02500* actor);
 
-/// Per-room texture-page and CLUT record returned by the area lookup.
-typedef struct Actor02500AreaRec {
-    /* 0x00 */ u8 pad_0[0xD];
-    /* 0x0D */ u8 field_D;
-    /* 0x0E */ u8 field_E;
-    /* 0x0F */ u8 pad_F;
-} Actor02500AreaRec;
-STATIC_ASSERT_SIZEOF(Actor02500AreaRec, 0x10);
-
+/// What the area lookup returns: the placement table of the room, whose
+/// records the spawn handlers read for the texture page and CLUT of the models
+/// they start.
 typedef struct Actor02500AreaTable {
-    /* 0x0 */ Actor02500AreaRec* field_0;
-    /* 0x4 */ void*              field_4;
+    /* 0x0 */ GpAreaPlace* field_0;
+    /* 0x4 */ void*        field_4;
 } Actor02500AreaTable;
 
 typedef struct {

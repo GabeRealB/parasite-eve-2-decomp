@@ -605,7 +605,7 @@ void func_actor_510900_801373B8(Actor510900* arg0)
     GpAreaKey*        sessionKey;
     TmdObject*        model;
     GpAreaRec*        rec;
-    GpCdRec10*        entry;
+    GpAreaPlace*      entry;
     GpAreaKey         key;
     s32               idx;
     s32               snd;
@@ -632,9 +632,9 @@ void func_actor_510900_801373B8(Actor510900* arg0)
         rec = Gp_GetNestedAreaRec(&key);
         /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled
            index onto the table (`addu s0, s0, v0`). */
-        entry        = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
-        model->tpage = entry->field_D;
-        model->clut  = entry->field_E;
+        entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        model->tpage = entry->tpage;
+        model->clut  = entry->clut;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);

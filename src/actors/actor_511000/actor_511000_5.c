@@ -220,8 +220,8 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     rec          = Gp_GetNestedAreaRec(&key);
     idx        <<= 4;
     idx         += (s32)rec->field_0;
-    model->tpage = ((GpCdRec10*)idx)->field_D;
-    model->clut  = ((GpCdRec10*)idx)->field_E;
+    model->tpage = ((GpAreaPlace*)idx)->tpage;
+    model->clut  = ((GpAreaPlace*)idx)->clut;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
@@ -243,8 +243,8 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     rec          = Gp_GetNestedAreaRec(&key);
     idx        <<= 4;
     idx         += (s32)rec->field_0;
-    model->tpage = ((GpCdRec10*)idx)->field_D;
-    model->clut  = ((GpCdRec10*)idx)->field_E;
+    model->tpage = ((GpAreaPlace*)idx)->tpage;
+    model->clut  = ((GpAreaPlace*)idx)->clut;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);

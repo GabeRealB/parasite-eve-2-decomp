@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/areaplace.h"
 #include "main/display.h"
 #include "main/task.h"
 
@@ -229,23 +230,9 @@ extern GpSprtPrim* Gp_SprtLists[];
 /// `Gp_SetSprtShadeBits`, advanced by `Gp_LinkSprtCmd`.
 extern GpSprtPrim* Gp_SprtCursor;
 
-/// 0x10-byte 0xFF-terminated CdCmd 0x21 source list at inner
-/// `GpAreaRec.field_0`. Walked by `Gp_PollAreaCdLoads`: `field_0` matches
-/// `GpCdRec0C.field_0` (0 skips the record); `field_C` is param1[0]
-/// (0 skips); `field_D` / `field_E` are param2[2] / param2[3].
-typedef struct _GpCdRec10 {
-    /* 0x00 */ u8   field_0;
-    /* 0x01 */ byte pad_1[0xB];
-    /* 0x0C */ u8   field_C;
-    /* 0x0D */ u8   field_D;
-    /* 0x0E */ u8   field_E;
-    /* 0x0F */ byte pad_F;
-} GpCdRec10;
-STATIC_ASSERT_SIZEOF(GpCdRec10, 0x10);
-
 /// 0xC-byte 0xFF-terminated list at inner `GpAreaRec.field_4`, also
 /// stored in `D_80114C68`. `Gp_PollAreaCdLoads` matches `field_0` against
-/// `GpCdRec10.field_0`. `field_2` is the packed CdCmd 0x21 location
+/// `GpAreaPlace.entryId`. `field_2` is the packed CdCmd 0x21 location
 /// (`% 100` / `/ 100` when `>= 100`); `field_4` indexes `D_8010CAD0`.
 typedef struct _GpCdRec0C {
     /* 0x0 */ u16  field_0;
@@ -256,10 +243,10 @@ typedef struct _GpCdRec0C {
 STATIC_ASSERT_SIZEOF(GpCdRec0C, 0xC);
 
 /// Inner `Gp_GetNestedAreaRec` record as used by `Gp_PollAreaCdLoads`: `field_0` is
-/// the 0x10-byte list, `field_4` is the 0xC-byte list.
+/// the placement list, `field_4` is the 0xC-byte list.
 typedef struct _GpCdAreaRec {
-    /* 0x0 */ GpCdRec10* field_0;
-    /* 0x4 */ GpCdRec0C* field_4;
+    /* 0x0 */ GpAreaPlace* field_0;
+    /* 0x4 */ GpCdRec0C*   field_4;
 } GpCdAreaRec;
 STATIC_ASSERT_SIZEOF(GpCdAreaRec, 8);
 
@@ -285,8 +272,11 @@ extern GpCdAreaRec* D_80114C64;
 /// Cursor into the inner rec's 0xC-byte list (`GpCdAreaRec.field_4`).
 extern GpCdRec0C* D_80114C68;
 
-/// Cursor into the inner rec's 0x10-byte list (`GpCdAreaRec.field_0`).
-extern GpCdRec10* Gp_CdRecCur;
+/// Cursor into the inner rec's placement list (`GpCdAreaRec.field_0`), walked
+/// as `GpAreaPlace`: `entryId` names the entry of the 0xC-byte list being loaded
+/// (0 skips the record), and the tail bytes are forwarded into the load command
+/// - `pad_C` as param1[0] (0 skips), `tpage` / `clut` as param2[2] / param2[3].
+extern GpAreaPlace* Gp_CdRecCur;
 
 /// Phase for `func_800AA120`. `Gp_LoadWaitAreaCd` clears it when entering
 /// its own phase 1.

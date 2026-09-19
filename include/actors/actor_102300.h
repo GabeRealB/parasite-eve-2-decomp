@@ -74,8 +74,8 @@ typedef struct Actor102300Work {
     /// 1 when the attacker is in front of this enemy, 0 behind; taken from the
     /// sign of the hit vector against the root's forward axis.
     /* 0x6AA */ s16 field_6AA;
-    /// Awake variant this enemy starts in, taken from bit 0 of the spawn
-    /// record's `field_2`.
+    /// Awake variant this enemy starts in, taken from bit 0 of the placement
+    /// record's `mode`.
     /* 0x6AC */ s16  field_6AC;
     /* 0x6AE */ s16  field_6AE;
     /* 0x6B0 */ byte pad_6B0[2];
@@ -110,7 +110,7 @@ typedef struct Actor102300Work {
     /// `D_actor_102300_80147AA0` and queued with `CdCmd_Enqueue(0x21, ...)`.
     /* 0x6D6 */ s16  field_6D6;
     /* 0x6D8 */ byte pad_6D8[2];
-    /// Dwell budget in thousandths, scaled by the spawn record's byte 1.
+    /// Dwell budget in thousandths, scaled by the placement record's `variant`.
     /* 0x6DA */ s16  field_6DA;
     /* 0x6DC */ s16  field_6DC;
     /* 0x6DE */ byte pad_6DE[2];

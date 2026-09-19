@@ -128,15 +128,15 @@ void func_actor_160900_80132A14(Task* arg0)
         tmd->colorMtx = &work->color;
         if (arg0->spawnArg1 < 2) {
             place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
-            id    = place->field_0;
+            id    = place->entryId;
             while (id != 0xFF) {
                 if (id == 0x65) {
                     break;
                 }
                 place++;
-                id = place->field_0;
+                id = place->entryId;
             }
-            Gp_SetTmdBytes((TmdObject*)arg0->extra, (s8)place->field_D, (s8)place->field_E);
+            Gp_SetTmdBytes((TmdObject*)arg0->extra, (s8)place->tpage, (s8)place->clut);
         } else if (arg0->spawnArg1 == 2) {
             Gp_SetTmdBytes((TmdObject*)arg0->extra, 0, 0);
         }
@@ -200,10 +200,10 @@ void func_actor_160900_80132C08(Task* task)
             obj->flags    |= 0x84;
             task->msgTable = D_actor_160900_8013F200;
             place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
-            while (place->field_0 != 0xFF && place->field_0 != 0x65) {
+            while (place->entryId != 0xFF && place->entryId != 0x65) {
                 place++;
             }
-            Gp_SetTmdBytes((TmdObject*)task->extra, (s8)place->field_D, (s8)place->field_E);
+            Gp_SetTmdBytes((TmdObject*)task->extra, (s8)place->tpage, (s8)place->clut);
             Task_Reparent(D_actor_160900_8013FBB4, task);
             failed = 0;
         }

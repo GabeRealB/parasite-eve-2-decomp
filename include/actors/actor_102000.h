@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "main/session.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/pairsrc.h"
 #include "gameplay/3FB8.h"
 #include "main/tmd.h"
@@ -119,39 +120,33 @@ typedef struct Actor02000Work {
 } Actor02000Work;
 STATIC_ASSERT_SIZEOF(Actor02000Work, 0x6E4);
 
-/// Overlay-local view of the spawn parameter block (`Actor02000Ctx.field_3C`).
-/// Byte 1 scales the state-1 dwell timer; bit 0 of `field_2` picks the awake
-/// variant this enemy starts in.
-typedef struct Actor02000Params {
-    /* 0x0 */ byte pad_0[1];
-    /* 0x1 */ u8   field_1;
-    /* 0x2 */ u16  field_2;
-} Actor02000Params;
-
-/// Task context (`Task::spawnArg2`). `field_4B` selects how
-/// `Actor02000_Fn0251C` starts the enemy: 0 builds the full object set, 1 and
-/// 2 only prime the animation state.
+/// Task context (`Task::spawnArg2`): the enemy object. `field_3C` is its
+/// placement record, whose `variant` scales the state-1 dwell timer and whose
+/// `mode` bit 0 picks the awake variant this enemy starts in.
+///
+/// `field_4B` selects how `Actor02000_Fn0251C` starts the enemy: 0 builds the
+/// full object set, 1 and 2 only prime the animation state.
 typedef struct Actor02000Ctx {
-    /* 0x00 */ byte              pad_0[4];
-    /* 0x04 */ MATRIX*           field_4;
-    /* 0x08 */ u16               field_8;
-    /* 0x0A */ byte              pad_A[6];
-    /* 0x10 */ GpLinkNode        node;
-    /* 0x18 */ GsCOORDINATE2*    field_18;
-    /* 0x1C */ s32               field_1C;
-    /* 0x20 */ s32               field_20;
-    /* 0x24 */ s32               field_24;
-    /* 0x28 */ byte              pad_28[0x14];
-    /* 0x3C */ Actor02000Params* field_3C;
-    /* 0x40 */ s16               field_40;
-    /* 0x42 */ byte              pad_42[6];
-    /* 0x48 */ u8                field_48;
-    /* 0x49 */ byte              pad_49[2];
-    /* 0x4B */ u8                field_4B;
-    /* 0x4C */ u8                field_4C;
-    /* 0x4D */ byte              pad_4D[3];
-    /* 0x50 */ GpPairSrcE*       field_50;
-    /* 0x54 */ GpRec18*          field_54;
+    /* 0x00 */ byte           pad_0[4];
+    /* 0x04 */ MATRIX*        field_4;
+    /* 0x08 */ u16            field_8;
+    /* 0x0A */ byte           pad_A[6];
+    /* 0x10 */ GpLinkNode     node;
+    /* 0x18 */ GsCOORDINATE2* field_18;
+    /* 0x1C */ s32            field_1C;
+    /* 0x20 */ s32            field_20;
+    /* 0x24 */ s32            field_24;
+    /* 0x28 */ byte           pad_28[0x14];
+    /* 0x3C */ GpAreaPlace*   field_3C;
+    /* 0x40 */ s16            field_40;
+    /* 0x42 */ byte           pad_42[6];
+    /* 0x48 */ u8             field_48;
+    /* 0x49 */ byte           pad_49[2];
+    /* 0x4B */ u8             field_4B;
+    /* 0x4C */ u8             field_4C;
+    /* 0x4D */ byte           pad_4D[3];
+    /* 0x50 */ GpPairSrcE*    field_50;
+    /* 0x54 */ GpRec18*       field_54;
 } Actor02000Ctx;
 STATIC_ASSERT_SIZEOF(Actor02000Ctx, 0x58);
 
@@ -171,21 +166,12 @@ typedef struct {
 extern Actor02000StateFuncTable3 Actor02000_D00060;
 extern Actor02000StateFuncTable3 Actor02000_D0006C;
 
-/// 0x10-byte per-room record in the list `Gp_GetNestedAreaRec` reaches
-/// (the gameplay `GpCdRec10`). `field_D` / `field_E` are the texture page and
-/// CLUT row copied into the model object.
-typedef struct Actor02000AreaRec {
-    /* 0x00 */ byte pad_0[0xD];
-    /* 0x0D */ u8   field_D;
-    /* 0x0E */ u8   field_E;
-    /* 0x0F */ byte pad_F[1];
-} Actor02000AreaRec;
-STATIC_ASSERT_SIZEOF(Actor02000AreaRec, 0x10);
-
-/// What `Gp_GetNestedAreaRec` returns (the gameplay `GpCdAreaRec`).
+/// What `Gp_GetNestedAreaRec` returns: the room's placement table, whose
+/// records the spawn handler reads for the texture page and CLUT of the model
+/// it starts.
 typedef struct Actor02000AreaTable {
-    /* 0x0 */ Actor02000AreaRec* field_0;
-    /* 0x4 */ void*              field_4;
+    /* 0x0 */ GpAreaPlace* field_0;
+    /* 0x4 */ void*        field_4;
 } Actor02000AreaTable;
 
 /// Handle `Gp_SpawnEnemyFromTable` returns, seen here only through its owning

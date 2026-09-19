@@ -299,7 +299,7 @@ void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
     u32                 rawId;
     u8                  areaByte0;
     GpAreaKey*          sessionKey;
-    GpCdRec10*          entry;
+    GpAreaPlace*        entry;
     Actor100300Obj2C*   obj;
     GsCOORDINATE2*      coord;
     GsCOORDINATE2*      parts;
@@ -319,11 +319,11 @@ void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
             (gGameSession->at4.loc.area == Actor00300_D16020[areaIndex].room)) {
             work->field_648 =
                 Actor00300_D16278[Actor00300_D16020[areaIndex].id]
-                                 [((Actor00300SpawnArgs*)enemy->place)->field_2];
+                                 [enemy->place->mode];
             work->field_68C = (u16)Actor00300_D16020[areaIndex].value;
         }
     }
-    work->field_698 = (s16)((Actor00300SpawnArgs*)enemy->place)->field_1;
+    work->field_698 = (s16)enemy->place->variant;
     obj->field_C    = 0;
     coord->flg      = 0;
     obj->field_1C   = work->field_460;
@@ -365,9 +365,9 @@ void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
     key.view        = areaByte0;
     Gp_SyncAreaKeyIndex(&key);
     entry =
-        (GpCdRec10*)((index * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-    model->tpage = entry->field_D;
-    model->clut  = entry->field_E;
+        (GpAreaPlace*)((index * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+    model->tpage = entry->tpage;
+    model->clut  = entry->clut;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
@@ -1669,33 +1669,33 @@ extern void* D_80067704[1];
 
 void Actor00300_Fn03618(Actor100300* arg0)
 {
-    GpAreaKey  key;
-    u8         areaByte0;
-    u32        raw1, index1;
-    GpEffWork* effect1;
-    TmdObject* model1;
-    GpCdRec10* entry1;
-    GpAreaKey* sessionKey1;
-    u32        raw2, index2;
-    GpEffWork* effect2;
-    TmdObject* model2;
-    GpCdRec10* entry2;
-    GpAreaKey* sessionKey2;
-    u32        raw3, index3;
-    GpEffWork* effect3;
-    TmdObject* model3;
-    GpCdRec10* entry3;
-    GpAreaKey* sessionKey3;
-    u32        raw4, index4;
-    GpEffWork* effect4;
-    TmdObject* model4;
-    GpCdRec10* entry4;
-    GpAreaKey* sessionKey4;
-    u32        raw5, index5;
-    GpEffWork* effect5;
-    TmdObject* model5;
-    GpCdRec10* entry5;
-    GpAreaKey* sessionKey5;
+    GpAreaKey    key;
+    u8           areaByte0;
+    u32          raw1, index1;
+    GpEffWork*   effect1;
+    TmdObject*   model1;
+    GpAreaPlace* entry1;
+    GpAreaKey*   sessionKey1;
+    u32          raw2, index2;
+    GpEffWork*   effect2;
+    TmdObject*   model2;
+    GpAreaPlace* entry2;
+    GpAreaKey*   sessionKey2;
+    u32          raw3, index3;
+    GpEffWork*   effect3;
+    TmdObject*   model3;
+    GpAreaPlace* entry3;
+    GpAreaKey*   sessionKey3;
+    u32          raw4, index4;
+    GpEffWork*   effect4;
+    TmdObject*   model4;
+    GpAreaPlace* entry4;
+    GpAreaKey*   sessionKey4;
+    u32          raw5, index5;
+    GpEffWork*   effect5;
+    TmdObject*   model5;
+    GpAreaPlace* entry5;
+    GpAreaKey*   sessionKey5;
 
     D_80067704[0] = Actor00300_D0AA18;
     effect1       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x200, NULL);
@@ -1710,9 +1710,9 @@ void Actor00300_Fn03618(Actor100300* arg0)
         index1      = raw1 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry1        = (GpCdRec10*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model1->tpage = entry1->field_D;
-        model1->clut  = entry1->field_E;
+        entry1        = (GpAreaPlace*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model1->tpage = entry1->tpage;
+        model1->clut  = entry1->clut;
         if (model1->buffer != NULL) {
             tmdProcessStream(model1);
             tmdProcessStream(model1);
@@ -1732,9 +1732,9 @@ void Actor00300_Fn03618(Actor100300* arg0)
         index2      = raw2 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry2        = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model2->tpage = entry2->field_D;
-        model2->clut  = entry2->field_E;
+        entry2        = (GpAreaPlace*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model2->tpage = entry2->tpage;
+        model2->clut  = entry2->clut;
         if (model2->buffer != NULL) {
             tmdProcessStream(model2);
             tmdProcessStream(model2);
@@ -1754,9 +1754,9 @@ void Actor00300_Fn03618(Actor100300* arg0)
         index3      = raw3 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry3        = (GpCdRec10*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model3->tpage = entry3->field_D;
-        model3->clut  = entry3->field_E;
+        entry3        = (GpAreaPlace*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model3->tpage = entry3->tpage;
+        model3->clut  = entry3->clut;
         if (model3->buffer != NULL) {
             tmdProcessStream(model3);
             tmdProcessStream(model3);
@@ -1776,9 +1776,9 @@ void Actor00300_Fn03618(Actor100300* arg0)
         index4      = raw4 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry4        = (GpCdRec10*)((index4 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model4->tpage = entry4->field_D;
-        model4->clut  = entry4->field_E;
+        entry4        = (GpAreaPlace*)((index4 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model4->tpage = entry4->tpage;
+        model4->clut  = entry4->clut;
         if (model4->buffer != NULL) {
             tmdProcessStream(model4);
             tmdProcessStream(model4);
@@ -1798,9 +1798,9 @@ void Actor00300_Fn03618(Actor100300* arg0)
         index5      = raw5 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry5        = (GpCdRec10*)((index5 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model5->tpage = entry5->field_D;
-        model5->clut  = entry5->field_E;
+        entry5        = (GpAreaPlace*)((index5 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model5->tpage = entry5->tpage;
+        model5->clut  = entry5->clut;
         if (model5->buffer != NULL) {
             tmdProcessStream(model5);
             tmdProcessStream(model5);

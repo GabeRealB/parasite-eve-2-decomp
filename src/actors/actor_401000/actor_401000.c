@@ -1994,14 +1994,14 @@ void func_actor_401000_8013A930(Actor401000* arg0)
 /// over 104) above `idx` (24 over 28) in `global.c` and hand it `$s0`.
 static __inline__ void Actor401000_TintEffect(GpEffWork* eff, GpEnemy* enemy)
 {
-    GpAreaKey  key;
-    GpAreaKey* sessionKey;
-    u8         areaByte0;
-    GpAreaRec* rec;
-    GpCdRec10* entry;
-    TmdObject* model;
-    s32        idx;
-    u32        raw;
+    GpAreaKey    key;
+    GpAreaKey*   sessionKey;
+    u8           areaByte0;
+    GpAreaRec*   rec;
+    GpAreaPlace* entry;
+    TmdObject*   model;
+    s32          idx;
+    u32          raw;
 
     if (eff != NULL) {
         sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
@@ -2017,9 +2017,9 @@ static __inline__ void Actor401000_TintEffect(GpEffWork* eff, GpEnemy* enemy)
         rec = Gp_GetNestedAreaRec(&key);
         /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled
            index onto the table (`addu s0, s0, v0`). */
-        entry        = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
-        model->tpage = entry->field_D;
-        model->clut  = entry->field_E;
+        entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        model->tpage = entry->tpage;
+        model->clut  = entry->clut;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);

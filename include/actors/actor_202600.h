@@ -19,29 +19,17 @@ typedef struct Actor202600Obj2C {
     /* 0x20 */ MATRIX*        field_20;
 } Actor202600Obj2C;
 
-/// Per-spawn parameters; `field_1` is the per-actor variant index and
-/// `field_2` the spawn mode (`func_actor_202600_8014CE1C` splits it into a
-/// tens digit and a units digit). `field_F` selects the row of the overlay's
-/// per-actor data table.
-typedef struct Actor202600Params {
-    /* 0x00 */ byte pad_0[1];
-    /* 0x01 */ u8   field_1;
-    /* 0x02 */ u16  field_2;
-    /* 0x04 */ byte pad_4[0xB];
-    /* 0x0F */ u8   field_F;
-} Actor202600Params;
-
 typedef struct Actor202600Ctx {
-    /* 0x00 */ byte               pad_0[8];
-    /* 0x08 */ u16                field_8;
-    /* 0x0A */ byte               pad_A[6];
-    /* 0x10 */ s32                field_10;
-    /* 0x14 */ u8                 field_14;
-    /* 0x15 */ byte               pad_15[0x27];
-    /* 0x3C */ Actor202600Params* field_3C;
-    /* 0x40 */ s16                field_40;
-    /* 0x42 */ byte               pad_42[0x12];
-    /* 0x54 */ s32                field_54;
+    /* 0x00 */ byte         pad_0[8];
+    /* 0x08 */ u16          field_8;
+    /* 0x0A */ byte         pad_A[6];
+    /* 0x10 */ s32          field_10;
+    /* 0x14 */ u8           field_14;
+    /* 0x15 */ byte         pad_15[0x27];
+    /* 0x3C */ GpAreaPlace* field_3C;
+    /* 0x40 */ s16          field_40;
+    /* 0x42 */ byte         pad_42[0x12];
+    /* 0x54 */ s32          field_54;
 } Actor202600Ctx;
 
 /// The work starts with a linked `GpObj` and its 0x18-byte collision record,

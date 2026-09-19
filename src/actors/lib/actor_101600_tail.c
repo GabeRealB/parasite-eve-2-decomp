@@ -76,7 +76,7 @@ void Actor01600_Fn05400(Actor01600* arg0)
     Actor01600Work* work;
 
     ctx  = arg0->field_20;
-    kind = ctx->field_3C->field_2;
+    kind = ctx->field_3C->mode;
     work = arg0->field_1C;
     switch (kind) {
         case 0:
@@ -94,7 +94,7 @@ void Actor01600_Fn05400(Actor01600* arg0)
             work->field_52E    = 0;
             work->field_530    = 1;
             work->field_4D8    = 0;
-            work->field_4DA    = (u16)ctx->field_3C->field_A;
+            work->field_4DA    = (u16)ctx->field_3C->yaw;
             work->field_4DC    = 0;
             Actor01600_D12874 += 1;
             return;
@@ -139,28 +139,28 @@ static __inline__ void update_actor_color(Actor01600Ctx* ctx, GsCOORDINATE2* att
 
 s32 Actor01600_Fn05558(Actor01600* arg0)
 {
-    SVECTOR           rot;
-    Actor01600Ctx*    ctx;
-    Actor01600Params* params;
-    Actor01600Work*   work;
-    GsCOORDINATE2*    rootCoord;
-    GsCOORDINATE2*    coord;
-    TmdObject*        obj;
-    TmdObject*        obj2;
-    TmdObject*        obj3;
-    TmdObject*        obj4;
-    SVECTOR*          pos;
-    SVECTOR*          tableA;
-    SVECTOR*          tableB;
-    SVECTOR*          pos2;
-    s16               countdown;
-    s16               countdown2;
-    s16               countdown3;
-    s32               event;
-    s32               pan;
-    s32               scriptArg;
-    u16               kind;
-    u8                mode;
+    SVECTOR         rot;
+    Actor01600Ctx*  ctx;
+    GpAreaPlace*    params;
+    Actor01600Work* work;
+    GsCOORDINATE2*  rootCoord;
+    GsCOORDINATE2*  coord;
+    TmdObject*      obj;
+    TmdObject*      obj2;
+    TmdObject*      obj3;
+    TmdObject*      obj4;
+    SVECTOR*        pos;
+    SVECTOR*        tableA;
+    SVECTOR*        tableB;
+    SVECTOR*        pos2;
+    s16             countdown;
+    s16             countdown2;
+    s16             countdown3;
+    s32             event;
+    s32             pan;
+    s32             scriptArg;
+    u16             kind;
+    u8              mode;
 
     coord = arg0->field_2C->coords;
     ctx   = arg0->field_20;
@@ -176,7 +176,7 @@ s32 Actor01600_Fn05558(Actor01600* arg0)
             work->field_4FE = 4;
         }
     }
-    if (((u8)ctx->field_3C->pad_0[1] & 0x80) && ((u16)work->field_4FE < 2U)) {
+    if (((u8)ctx->field_3C->variant & 0x80) && ((u16)work->field_4FE < 2U)) {
         work->field_4FE = 4;
     }
     if (work->field_52E != 0) {
@@ -184,7 +184,7 @@ s32 Actor01600_Fn05558(Actor01600* arg0)
     }
 
     params = ctx->field_3C;
-    kind   = params->field_2;
+    kind   = params->mode;
     switch (kind) {
         case 1:
         case 2:
@@ -202,7 +202,7 @@ s32 Actor01600_Fn05558(Actor01600* arg0)
                 if ((countdown << 0x10) != 0) {
                     goto running;
                 }
-                if ((u8)ctx->field_3C->pad_0[1] == 0) {
+                if ((u8)ctx->field_3C->variant == 0) {
                     work->field_516 = 6;
                     work->field_506 = 0x1A;
                 } else {
@@ -246,7 +246,7 @@ s32 Actor01600_Fn05558(Actor01600* arg0)
             return 0;
         case 3:
             if (D_8011540C == kind) {
-                if ((u8)params->pad_0[1] == 1) {
+                if ((u8)params->variant == 1) {
                     Actor01600_Fn06FDC(arg0, 1);
                 running:
                     return 1;
@@ -280,7 +280,7 @@ s32 Actor01600_Fn05558(Actor01600* arg0)
             coord->flg = 0;
             goto running;
         default:
-            if (D_8011540C < (s32)ctx->field_3C->field_2) {
+            if (D_8011540C < (s32)ctx->field_3C->mode) {
                 goto running;
             }
             countdown3      = (u16)work->field_536 - 1;
@@ -325,7 +325,7 @@ s32 Actor01600_Fn05B08(Actor01600* arg0, s32 arg1, Actor01600Msg7DB* arg2)
     ctx     = arg0->field_20;
     coord   = arg0->field_2C->coords;
     work    = arg0->field_1C;
-    variant = ctx->field_3C->field_1;
+    variant = ctx->field_3C->variant;
 
     switch (arg2->field_2) {
         case 1:
@@ -469,7 +469,7 @@ void Actor01600_Fn05F80(Actor01600* arg0)
 
     coord   = arg0->field_2C->coords;
     work    = arg0->field_1C;
-    variant = arg0->field_20->field_3C->field_1;
+    variant = arg0->field_20->field_3C->variant;
     part1   = &arg0->field_2C->coords[1];
 
     if (variant == 1) {

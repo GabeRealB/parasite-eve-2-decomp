@@ -120,8 +120,8 @@ typedef struct Actor103800Ctx {
     /* 0x0A */ byte       pad_A[6];
     /* 0x10 */ GpLinkNode node;
     /* 0x18 */ byte       pad_18[0x24];
-    /// `GpAreaPlace*` placement record (`GpEnemy::place`); `field_2` is the
-    /// spawn variant `Actor03800_Fn003B8` splits into `field_350` / `field_352`.
+    /// The placement record (`GpEnemy::place`), whose `mode` the spawn handler
+    /// `Actor03800_Fn003B8` splits into `field_350` / `field_352`.
     /* 0x3C */ GpAreaPlace* field_3C;
     /* 0x40 */ s16          field_40;
     /* 0x42 */ byte         pad_42[0xA];

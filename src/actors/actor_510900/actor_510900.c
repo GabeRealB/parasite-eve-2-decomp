@@ -1204,8 +1204,8 @@ void func_actor_510900_801350F8(Actor510900Ctx* arg0, Actor510900* arg1)
     u32               index2;
     TmdObject*        model1;
     TmdObject*        model2;
-    GpCdRec10*        entry1;
-    GpCdRec10*        entry2;
+    GpAreaPlace*      entry1;
+    GpAreaPlace*      entry2;
     GpAreaKey         key;
     GpAreaKey*        sessionKey1;
     GpAreaKey*        sessionKey2;
@@ -1257,9 +1257,9 @@ void func_actor_510900_801350F8(Actor510900Ctx* arg0, Actor510900* arg1)
     areaByte0   = gGameSession->at4.loc.view;
     key.view    = areaByte0;
     Gp_SyncAreaKeyIndex(&key);
-    entry1        = (GpCdRec10*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-    model1->tpage = entry1->field_D;
-    model1->clut  = entry1->field_E;
+    entry1        = (GpAreaPlace*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+    model1->tpage = entry1->tpage;
+    model1->clut  = entry1->clut;
     if (model1->buffer != NULL) {
         tmdProcessStream(model1);
         tmdProcessStream(model1);
@@ -1284,9 +1284,9 @@ void func_actor_510900_801350F8(Actor510900Ctx* arg0, Actor510900* arg1)
     areaByte0   = gGameSession->at4.loc.view;
     key.view    = areaByte0;
     Gp_SyncAreaKeyIndex(&key);
-    entry2        = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-    model2->tpage = entry2->field_D;
-    model2->clut  = entry2->field_E;
+    entry2        = (GpAreaPlace*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+    model2->tpage = entry2->tpage;
+    model2->clut  = entry2->clut;
     if (model2->buffer != NULL) {
         tmdProcessStream(model2);
         tmdProcessStream(model2);

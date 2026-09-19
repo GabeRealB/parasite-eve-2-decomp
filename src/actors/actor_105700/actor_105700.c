@@ -374,7 +374,7 @@ const s32 D_actor_105700_80131E68 = 0;
 /// every frame; when the budget runs out it switches to animation 4 and state
 /// 1. State 1 waits for `field_698` to reach 0x60, then either falls back to
 /// animation 2 (budget left) or starts the lunge: animation 3, state 2, a fresh
-/// budget of 1000 per unit of the spawn record's byte 1, and `field_6A2` /
+/// budget of 1000 per unit of the placement record's `variant`, and `field_6A2` /
 /// `field_6A4` set to the actor's current yaw and its opposite. State 2 holds
 /// `field_69E` at 0x3B until `field_698` reaches 0x23, then returns to animation
 /// 2 and state 0. A set `field_6B2` or `D_80115419` overrides everything with
@@ -420,7 +420,7 @@ void func_actor_105700_80132944(Actor105700* arg0)
             work->field_69E = 0;
             if (work->field_698 >= 0x60) {
                 if (work->field_6DA <= 0) {
-                    param           = spawn->field_3C->field_1;
+                    param           = spawn->field_3C->variant;
                     work->field_694 = 3;
                     work->field_6A8 = 2;
                     work->field_6DA = param * 1000;

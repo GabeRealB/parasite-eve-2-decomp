@@ -606,7 +606,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_102300/actor_102300", func_actor_102300_8
 /// model object to the block's own light/colour matrices, primes the nineteen
 /// animation slots, then spawns the two companion enemies from the overlay's
 /// table (entries 2 and 1) and points each one's model at the texture page and
-/// CLUT row its room's `GpCdRec10` names.
+/// CLUT row its room's `GpAreaPlace` names.
 ///
 /// `GpEnemy::spawnState` then picks how the enemy starts: 0 builds the full
 /// object set -- the four `GpObj` nodes with their `GpRec18` tables, the voice
@@ -633,8 +633,8 @@ void func_actor_102300_801346CC(GpEnemy* enemy, Actor102300* actor)
     u8               areaByte02;
     GpAreaRec*       rec;
     GpAreaRec*       rec2;
-    GpCdRec10*       entry;
-    GpCdRec10*       entry2;
+    GpAreaPlace*     entry;
+    GpAreaPlace*     entry2;
     GpEnemy*         eff;
     GpEnemy*         eff2;
     u16*             tbl;
@@ -690,9 +690,9 @@ void func_actor_102300_801346CC(GpEnemy* enemy, Actor102300* actor)
     SOFT_DEF_REG(keyPtr);
     keyPtr       = &key;
     rec          = Gp_GetNestedAreaRec(keyPtr);
-    entry        = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
-    model->tpage = entry->field_D;
-    model->clut  = entry->field_E;
+    entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    model->tpage = entry->tpage;
+    model->clut  = entry->clut;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
@@ -713,9 +713,9 @@ void func_actor_102300_801346CC(GpEnemy* enemy, Actor102300* actor)
     SOFT_DEF_REG(keyPtr2);
     keyPtr2       = &key;
     rec2          = Gp_GetNestedAreaRec(keyPtr2);
-    entry2        = (GpCdRec10*)((idx2 << 4) + (s32)rec2->field_0);
-    model2->tpage = entry2->field_D;
-    model2->clut  = entry2->field_E;
+    entry2        = (GpAreaPlace*)((idx2 << 4) + (s32)rec2->field_0);
+    model2->tpage = entry2->tpage;
+    model2->clut  = entry2->clut;
     if (model2->buffer != NULL) {
         tmdProcessStream(model2);
         tmdProcessStream(model2);
@@ -752,14 +752,14 @@ case0:
     enemy->coord      = &parts[3];
     enemy->hp         = D_actor_102300_801477F8.hpMax;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    work->field_6AC = enemy->place->field_2 & 1;
+    work->field_6AC = enemy->place->mode & 1;
     if (work->field_6AC == 0) {
         work->field_694 = one;
         work->field_6A6 = 0;
     } else {
         work->field_694 = 2;
         work->field_6A6 = one;
-        param           = enemy->place->field_1;
+        param           = enemy->place->variant;
         work->field_6DA = param * 1000;
     }
 

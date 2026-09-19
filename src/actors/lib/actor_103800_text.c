@@ -443,15 +443,15 @@ void Actor03800_Fn02E50(Actor103800* actor)
 
 void Actor03800_Fn03008(Actor103800* actor, u32 variant)
 {
-    GpAreaKey  key;
-    GpAreaKey* sessionKey;
-    u8         areaByte0;
-    GpAreaRec* rec;
-    GpCdRec10* entry;
-    GpEffWork* eff;
-    TmdObject* model;
-    s32        idx;
-    u32        raw;
+    GpAreaKey    key;
+    GpAreaKey*   sessionKey;
+    u8           areaByte0;
+    GpAreaRec*   rec;
+    GpAreaPlace* entry;
+    GpEffWork*   eff;
+    TmdObject*   model;
+    s32          idx;
+    u32          raw;
 
     switch (variant) {
         case 0:
@@ -486,9 +486,9 @@ void Actor03800_Fn03008(Actor103800* actor, u32 variant)
     Gp_SyncAreaKeyIndex(&key);
     rec = Gp_GetNestedAreaRec(&key);
 
-    entry        = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
-    model->tpage = entry->field_D;
-    model->clut  = entry->field_E;
+    entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    model->tpage = entry->tpage;
+    model->clut  = entry->clut;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);

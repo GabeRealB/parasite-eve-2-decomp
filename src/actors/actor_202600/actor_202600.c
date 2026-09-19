@@ -48,7 +48,7 @@ void func_actor_202600_8014A574(Actor202600* arg0)
                 work->field_39A = 3;
                 work->field_39C = 0;
                 work->field_392 = state;
-                index           = arg0->field_20->field_3C->field_F;
+                index           = arg0->field_20->field_3C->rowIndex;
                 random          = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState     = random;
                 work->field_39E = D_actor_202600_80152798[index] + ((random >> 0x10) & 0xF);
@@ -154,7 +154,7 @@ void func_actor_202600_8014A8B4(Actor202600* arg0)
                 Gp_ArmStateF0(1);
                 work->field_39C        = 1;
                 work->field_392        = 7;
-                work->field_3A8        = D_actor_202600_801527B8[actor->field_20->field_3C->field_F];
+                work->field_3A8        = D_actor_202600_801527B8[actor->field_20->field_3C->rowIndex];
                 work->field_2E4.coord  = coord;
                 work->field_2E4.radius = 0x12C;
                 work->field_2E4.pos.vy = -0x12C;
@@ -172,7 +172,7 @@ void func_actor_202600_8014A8B4(Actor202600* arg0)
                 Gp_ArmStateF0(1);
                 work->field_39C        = 2;
                 work->field_392        = 9;
-                work->field_3A8        = D_actor_202600_801527B8[actor->field_20->field_3C->field_F];
+                work->field_3A8        = D_actor_202600_801527B8[actor->field_20->field_3C->rowIndex];
                 work->field_3BC        = 0x2D;
                 work->field_2E4.radius = 0x12C;
                 work->field_2E4.coord  = coord;
@@ -218,7 +218,7 @@ void func_actor_202600_8014A8B4(Actor202600* arg0)
                 work->field_39A        = state;
                 work->field_39C        = 0;
                 work->field_392        = 1;
-                index                  = actor->field_20->field_3C->field_F;
+                index                  = actor->field_20->field_3C->rowIndex;
                 work->field_39E        = D_actor_202600_80152798[index] + (((random = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
                 work->field_2E4.coord  = actor->field_2C->field_8 + 4;
                 work->field_2E4.radius = 0xC8;
@@ -271,7 +271,7 @@ void func_actor_202600_8014ADC0(Actor202600* arg0)
                 work->field_39C = 1;
                 work->field_392 = 2;
                 random          = (Gp_LcgState * 5) + 0x71357911;
-                work->field_39E = D_actor_202600_801527A8[arg0->field_20->field_3C->field_F] + ((random >> 0x10) & 0x3FF);
+                work->field_39E = D_actor_202600_801527A8[arg0->field_20->field_3C->rowIndex] + ((random >> 0x10) & 0x3FF);
                 Gp_LcgState     = random;
                 return;
             }
@@ -291,7 +291,7 @@ void func_actor_202600_8014ADC0(Actor202600* arg0)
                 work->field_39C = 0;
                 work->field_392 = state;
                 random2         = (Gp_LcgState * 5) + 0x71357911;
-                work->field_39E = D_actor_202600_80152798[arg0->field_20->field_3C->field_F] + ((random2 >> 0x10) & 0xF);
+                work->field_39E = D_actor_202600_80152798[arg0->field_20->field_3C->rowIndex] + ((random2 >> 0x10) & 0xF);
                 Gp_LcgState     = random2;
                 return;
             }
@@ -351,7 +351,7 @@ void func_actor_202600_8014B108(Actor202600* arg0)
         work->field_39C = 0;
         work->field_392 = 1;
         random          = (Gp_LcgState * 5) + 0x71357911;
-        work->field_39E = D_actor_202600_80152798[arg0->field_20->field_3C->field_F] + ((random >> 0x10) & 0xF);
+        work->field_39E = D_actor_202600_80152798[arg0->field_20->field_3C->rowIndex] + ((random >> 0x10) & 0xF);
         Gp_LcgState     = random;
     }
 }
@@ -435,7 +435,7 @@ void func_actor_202600_8014B25C(Actor202600* arg0)
                 work->field_39C = 0;
                 work->field_392 = 1;
                 random          = (Gp_LcgState * 5) + 0x71357911;
-                work->field_39E = D_actor_202600_80152798[((Actor202600Ctx*)arg0->field_20)->field_3C->field_F] + ((random >> 0x10) & 0xF);
+                work->field_39E = D_actor_202600_80152798[((Actor202600Ctx*)arg0->field_20)->field_3C->rowIndex] + ((random >> 0x10) & 0xF);
                 Gp_LcgState     = random;
             }
             break;
@@ -475,7 +475,7 @@ void func_actor_202600_8014B25C(Actor202600* arg0)
                 work->field_39A = 3;
                 work->field_39C = 0;
                 work->field_392 = 1;
-                work->field_39E = D_actor_202600_80152798[((Actor202600Ctx*)arg0->field_20)->field_3C->field_F] + (((Gp_LcgState = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
+                work->field_39E = D_actor_202600_80152798[((Actor202600Ctx*)arg0->field_20)->field_3C->rowIndex] + (((Gp_LcgState = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
                 work->field_3AA = 1;
                 if (work->field_3C8 == 2) {
                     work->field_3A2 = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;

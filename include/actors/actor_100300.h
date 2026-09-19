@@ -91,12 +91,6 @@ typedef struct Actor00300MainWork {
     /* 0x69A */ u8             pad_69A[0xA];
 } Actor00300MainWork;
 STATIC_ASSERT_SIZEOF(Actor00300MainWork, 0x6A4);
-typedef struct Actor00300SpawnArgs {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ u16 field_2;
-} Actor00300SpawnArgs;
-STATIC_ASSERT_SIZEOF(Actor00300SpawnArgs, 4);
 typedef struct Actor00300AreaConfig {
     /* 0x0 */ s16 id;
     /* 0x2 */ s16 area;

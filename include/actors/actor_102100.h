@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "main/session.h"
+#include "gameplay/areaplace.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
 #include <psyq/libgte.h>
@@ -32,12 +33,12 @@ typedef struct Actor02100Params {
 } Actor02100Params;
 
 typedef struct Actor02100Spawn {
-    /* 0x00 */ byte              pad_0[8];
-    /* 0x08 */ u16               field_8;
-    /* 0x0A */ byte              pad_A[6];
-    /* 0x10 */ byte              field_10[0x2C];
-    /* 0x3C */ Actor02100Params* field_3C;
-    /* 0x40 */ s16               field_40;
+    /* 0x00 */ byte         pad_0[8];
+    /* 0x08 */ u16          field_8;
+    /* 0x0A */ byte         pad_A[6];
+    /* 0x10 */ byte         field_10[0x2C];
+    /* 0x3C */ GpAreaPlace* field_3C;
+    /* 0x40 */ s16          field_40;
 } Actor02100Spawn;
 
 typedef struct Actor02100Fn00048Scratch {

@@ -167,7 +167,7 @@ void func_actor_342000_80162158(Task* arg0)
     Actor342000Work* ctx2;
     Actor342000Work* ctx3;
     Actor342000Work* w;
-    GpCdRec10*       rec;
+    GpAreaPlace*     rec;
     u16              i;
 
     extra      = (TmdObject*)arg0->extra;
@@ -184,12 +184,12 @@ void func_actor_342000_80162158(Task* arg0)
     extra->colorMtx = &w->color;
     arg0->msgTable  = D_actor_342000_801648E8;
     rec             = ((GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc))->field_0;
-    for (; rec->field_0 != 0xFF; rec++) {
-        if (rec->field_0 == 0x20) {
+    for (; rec->entryId != 0xFF; rec++) {
+        if (rec->entryId == 0x20) {
             break;
         }
     }
-    Gp_SetTmdBytes(extra, (s8)rec->field_D, (s8)rec->field_E);
+    Gp_SetTmdBytes(extra, (s8)rec->tpage, (s8)rec->clut);
     switch (arg0->spawnArg1) {
         case 0:
             w->field_2A4 = &gGfxViewCoord;

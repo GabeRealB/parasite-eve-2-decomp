@@ -308,7 +308,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
     AcropolisPlazaOpeningWork* work = (AcropolisPlazaOpeningWork*)task->work;
     AcropolisPlazaOpeningWork* newWork;
     GpAreaKey*                 sessionKey;
-    GpCdRec10*                 entry;
+    GpAreaPlace*               entry;
     s32                        idx;
 
     switch (task->state) {
@@ -404,19 +404,19 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             buf.key.room     = gGameSession->sprtVariant;
             buf.key.view     = gGameSession->at4.loc.view;
             buf.key.place    = sessionKey->place;
-            entry            = (GpCdRec10*)Gp_GetNestedAreaRec(&buf.key)->field_0;
+            entry            = (GpAreaPlace*)Gp_GetNestedAreaRec(&buf.key)->field_0;
             idx              = 0;
             /* `for (;;)` with a `goto` out: a `break` here makes GCC copy the
                first exit test into the loop preheader and the walk stops
                matching. */
-            if (entry->field_0 != 0xFF) {
+            if (entry->entryId != 0xFF) {
                 for (;;) {
-                    if (entry->field_0 == 0x6C) {
+                    if (entry->entryId == 0x6C) {
                         goto found6;
                     }
                     entry++;
                     idx++;
-                    if (entry->field_0 == 0xFF) {
+                    if (entry->entryId == 0xFF) {
                         goto found6;
                     }
                 }
@@ -449,16 +449,16 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 buf.key.room  = gGameSession->sprtVariant;
                 buf.key.view  = gGameSession->at4.loc.view;
                 buf.key.place = sessionKey->place;
-                entry         = (GpCdRec10*)Gp_GetNestedAreaRec(&buf.key)->field_0;
+                entry         = (GpAreaPlace*)Gp_GetNestedAreaRec(&buf.key)->field_0;
                 idx           = 0;
-                if (entry->field_0 != 0xFF) {
+                if (entry->entryId != 0xFF) {
                     for (;;) {
-                        if (entry->field_0 == 0x6C) {
+                        if (entry->entryId == 0x6C) {
                             goto found8;
                         }
                         entry++;
                         idx++;
-                        if (entry->field_0 == 0xFF) {
+                        if (entry->entryId == 0xFF) {
                             goto found8;
                         }
                     }

@@ -88,7 +88,7 @@ void Actor02500_Fn00078(Actor02500Ctx* ctx, Actor02500* actor)
         Gp_AnimResetSlot(work, i, work->field_31C);
     }
     Gp_IncStateF0Ref(0);
-    switch (ctx->field_3C->field_2) {
+    switch (ctx->field_3C->mode) {
         case 0:
             work->field_322 = 0;
             work->field_324 = 0;
@@ -139,7 +139,7 @@ void Actor02500_Fn00078(Actor02500Ctx* ctx, Actor02500* actor)
     Gp_LinkObj(2, &work->obj1A4);
     Gp_InitRec18Table(work->field_1C4, 3, 0);
 
-    if (ctx->field_3C->field_2 == 0) {
+    if (ctx->field_3C->mode == 0) {
         work->obj1A4.flags |= 0x8000;
     } else {
         work->obj1A4.flags &= 0x7FFF;
@@ -466,7 +466,7 @@ void Actor02500_Fn00B18(Actor02500* actor)
             }
             break;
         case 2:
-            work->field_326   = (s16)Actor02500_D05B58[actor->field_20->field_3C->field_F];
+            work->field_326   = (s16)Actor02500_D05B58[actor->field_20->field_3C->rowIndex];
             scratchEnd[-1].vx = (s32)(work->field_314 - coord->coord.t[0]);
             vector->vy        = 0;
             dz                = work->field_318 - coord->coord.t[2];
@@ -498,7 +498,7 @@ void Actor02500_Fn00B18(Actor02500* actor)
             work->field_324   = 1;
             break;
     }
-    work->field_328 = (s16)Actor02500_D05B48[actor->field_20->field_3C->field_F];
+    work->field_328 = (s16)Actor02500_D05B48[actor->field_20->field_3C->rowIndex];
     SCRATCH_SP     += 0x10;
 }
 
@@ -535,7 +535,7 @@ void Actor02500_Fn00DD8(Actor02500* actor)
             work->field_324 = 1;
             break;
         case 1:
-            work->field_326   = (s16)Actor02500_D05B78[actor->field_20->field_3C->field_F];
+            work->field_326   = (s16)Actor02500_D05B78[actor->field_20->field_3C->rowIndex];
             scratchEnd[-1].vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
             vector->vy        = 0;
             vector->vz        = Player_Status.coordMtx->t[2] - coord->coord.t[2];
@@ -596,7 +596,7 @@ void Actor02500_Fn00DD8(Actor02500* actor)
             work->field_31C = state;
             break;
     }
-    work->field_328 = (s16)Actor02500_D05B68[actor->field_20->field_3C->field_F];
+    work->field_328 = (s16)Actor02500_D05B68[actor->field_20->field_3C->rowIndex];
     SCRATCH_SP     += 0x10;
 }
 

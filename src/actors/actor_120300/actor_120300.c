@@ -124,13 +124,13 @@ void func_actor_120300_80132004(Task* arg0)
             return;
         }
         place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
-        id    = place->field_0;
+        id    = place->entryId;
         while (id != 0xFF) {
             if (id == 0x6A) {
                 break;
             }
             place++;
-            id = place->field_0;
+            id = place->entryId;
         }
         Gp_SetTmdBytes(arg0->extra, ((s8*)place)[0xD], ((s8*)place)[0xE]);
         arg0->state += 1;
@@ -363,13 +363,13 @@ void func_actor_120300_801335D8(Task* arg0)
     tmd->colorMtx = &work->field_494;
     tmd->flags   &= 0xFFFB;
     place         = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
-    id            = place->field_0;
+    id            = place->entryId;
     while (id != 0xFF) {
         if (id == 0x6A) {
             break;
         }
         place++;
-        id = place->field_0;
+        id = place->entryId;
     }
     Gp_SetTmdBytes(tmd, ((s8*)place)[0xD], ((s8*)place)[0xE]);
     func_800B3F84(&work->anim, &D_actor_120300_80140910, tmd, work->pad_334, work->slots);

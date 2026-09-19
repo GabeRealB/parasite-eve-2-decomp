@@ -495,7 +495,7 @@ void Actor02100_Fn00DCC(Actor02100* arg0)
              (blk->delta.vz * self->workm.m[2][2])) > 0) {
             dist = SquareRoot0((blk->delta.vx * blk->delta.vx) + (blk->delta.vy * blk->delta.vy) +
                                (blk->delta.vz * blk->delta.vz));
-            if (dist < Actor02100_D03E00[arg0->field_20->field_3C->field_F & 7]) {
+            if (dist < Actor02100_D03E00[arg0->field_20->field_3C->rowIndex & 7]) {
                 blk->from.vx = target->workm.t[0];
                 blk->from.vy = target->workm.t[1];
                 blk->from.vz = target->workm.t[2];
@@ -602,7 +602,7 @@ void Actor02100_Fn011C4(Actor02100* arg0)
                                        (scratch->delta.vz * scratch->delta.vz));
                     if ((work->field_164 == 0 || (u32)dist < (u32)work->field_164) &&
                         (u32)dist <
-                            (u32)Actor02100_D03E00[arg0->field_20->field_3C->field_F & 7]) {
+                            (u32)Actor02100_D03E00[arg0->field_20->field_3C->rowIndex & 7]) {
                         scratch->from.vx = (u16)scratch->lock.vx;
                         scratch->from.vy = (u16)scratch->lock.vy;
                         scratch->from.vz = (u16)scratch->lock.vz;

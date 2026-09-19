@@ -2777,7 +2777,7 @@ void Actor00400_Fn06380(Actor100400* arg0)
 /// the per-enemy value `Actor00400_D1609C` selects - is stored in the work.
 static inline void Actor00400_SpawnMarker(Actor100400* arg0)
 {
-    Actor100400Params*     params;
+    GpAreaPlace*           params;
     Actor100400MarkerWork* marker;
     GsCOORDINATE2*         coords;
     GsCOORDINATE2*         origin;
@@ -2791,7 +2791,7 @@ static inline void Actor00400_SpawnMarker(Actor100400* arg0)
 
     params = arg0->field_20->field_3C;
     if (params != NULL) {
-        height = Actor00400_D1609C[params->field_F & 7];
+        height = Actor00400_D1609C[params->rowIndex & 7];
     } else {
         height = 0xBE;
     }

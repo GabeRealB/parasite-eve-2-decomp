@@ -43,7 +43,7 @@ typedef struct Actor121300Work {
     /* 0x4A6 */ s16        field_4A6;        // waypoint index handed to func_8017F334 / Task_SpawnFromTable
     /* 0x4A8 */ s16        field_4A8;        // effect-count reduction, bumped by func_actor_121300_80133580
     /* 0x4AA */ s16        field_4AA;        // frame counter for field_4A8 (wraps at 20)
-    /* 0x4AC */ s16        field_4AC;        // GpAreaPlace::field_D, the TmdObject texture page
+    /* 0x4AC */ s16        field_4AC;        // GpAreaPlace::tpage, the TmdObject texture page
     /* 0x4AE */ byte       pad_4AE[0x2];
 } Actor121300Work;
 STATIC_ASSERT_SIZEOF(Actor121300Work, 0x4B0);

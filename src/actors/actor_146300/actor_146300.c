@@ -203,18 +203,18 @@ void func_actor_146300_80132418(s32 arg0)
 /// animation state is reset to mode 2 / id 0xB and the shared tick runs.
 void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
 {
-    VECTOR              vec;
-    GpAreaKey           key;
-    Actor146300Work*    work;
-    TmdObject*          obj;
-    TmdObject*          model;
-    GsCOORDINATE2*      coord;
-    GpAreaKey*          sessionKey;
-    Actor146300AreaRec* entry;
-    Task*               helper;
-    GpAreaKey*          keyPtr;
-    u8                  areaByte0;
-    u32                 idx;
+    VECTOR           vec;
+    GpAreaKey        key;
+    Actor146300Work* work;
+    TmdObject*       obj;
+    TmdObject*       model;
+    GsCOORDINATE2*   coord;
+    GpAreaKey*       sessionKey;
+    GpAreaPlace*     entry;
+    Task*            helper;
+    GpAreaKey*       keyPtr;
+    u8               areaByte0;
+    u32              idx;
 
     obj                      = task->extra;
     coord                    = obj->coords;
@@ -255,9 +255,9 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     Gp_SyncAreaKeyIndex(keyPtr);
     /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
        onto the table (`addu s0, s0, v0`). */
-    entry        = (Actor146300AreaRec*)((idx << 4) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-    model->tpage = entry->field_D;
-    model->clut  = entry->field_E;
+    entry        = (GpAreaPlace*)((idx << 4) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+    model->tpage = entry->tpage;
+    model->clut  = entry->clut;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);

@@ -8,31 +8,10 @@
 #include <psyq/libgs.h>
 
 #include "gameplay/3A34.h"
+#include "gameplay/areaplace.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
-
-/// 0x10-byte placement record in the 0xFF-terminated table at nested
-/// `GpAreaRec.field_0` (`Gp_SpawnArea`). `field_0` is matched against
-/// `GpAreaTmdRec.field_0`. `field_1` / `field_2` pack into `Gp_SpawnEnemyFromTable`
-/// arg2. `field_4` / `field_6` / `field_8` are default world XYZ;
-/// `field_A` is yaw (`GpCoordPlace.field_46` / `Gfx_RotMatrixY`).
-/// `field_D` / `field_E` are copied to `TmdObject.tpage` / `field_25`
-/// when `Task::spawnType == 1`.
-typedef struct _GpAreaPlace {
-    /* 0x00 */ u8  field_0;
-    /* 0x01 */ u8  field_1;
-    /* 0x02 */ u16 field_2;
-    /* 0x04 */ s16 field_4;
-    /* 0x06 */ s16 field_6;
-    /* 0x08 */ s16 field_8;
-    /* 0x0A */ s16 field_A;
-    /* 0x0C */ u8  pad_C;
-    /* 0x0D */ u8  field_D;
-    /* 0x0E */ u8  field_E;
-    /* 0x0F */ u8  pad_F;
-} GpAreaPlace;
-STATIC_ASSERT_SIZEOF(GpAreaPlace, 0x10);
 
 /// One enemy: the work object `Gp_AllocEnemy` allocates and hangs off
 /// `Task::spawnArg2`, which the enemy's task frees again when it dies.
@@ -327,7 +306,7 @@ STATIC_ASSERT_SIZEOF(GpCoordPose, 0x4C);
 
 /// 0xC-byte record in the 0xFF-terminated table at nested `GpAreaRec.field_4`
 /// (`Gp_ApplyAreaTmdFlags` / `Gp_SpawnArea`). `field_0` is compared with the byte at
-/// `GpWorkObj.field_3C` / `GpAreaPlace.field_0`. `field_5` is the
+/// `GpWorkObj.field_3C` / `GpAreaPlace.entryId`. `field_5` is the
 /// `Gp_SpawnEnemyFromTable` table index. `field_8` points at a halfword whose value 1
 /// clears `TmdObject.flags` bit 2 and 0x101 sets it (`Gp_ApplyAreaTmdFlags`), or
 /// at a `TaskDesc` table (`Gp_SpawnArea`).
@@ -355,8 +334,8 @@ STATIC_ASSERT_SIZEOF(GpAreaRec, 8);
 /// the work type (`Gp_FindChildType9` / `Gp_ExitChildrenType9` / `Gp_SendMsgType9` match 9;
 /// `Gp_FindChildExceptType9` skips 9). `field_8` is the id compared against the search
 /// key (`as_u16` / `as_u8`; `Gp_FindWorkById` matches `as_u16` on slot 4's
-/// children). `field_3C` is a byte pointer compared with `GpAreaTmdRec.field_0`
-/// by `Gp_ApplyAreaTmdFlags` on spawnType-1 children of slot 4. Full size unknown.
+/// children). `field_3C` is the placement record the children of slot 4 were
+/// spawned from, whose `entryId` `Gp_ApplyAreaTmdFlags` matches. Full size unknown.
 typedef struct _GpWorkObj {
     /* 0x00 */ s32  field_0;
     /* 0x04 */ byte pad_4[4];
@@ -364,9 +343,9 @@ typedef struct _GpWorkObj {
         u16 as_u16;
         u8  as_u8;
     } field_8;
-    /* 0x0A */ u16  field_A;
-    /* 0x0C */ byte pad_C[0x30];
-    /* 0x3C */ u8*  field_3C;
+    /* 0x0A */ u16          field_A;
+    /* 0x0C */ byte         pad_C[0x30];
+    /* 0x3C */ GpAreaPlace* field_3C;
 } GpWorkObj;
 
 /// 8-byte mask/flag record. `Gp_SndMaskTable` is a 0-terminated table of these.

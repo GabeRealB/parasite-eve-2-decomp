@@ -67,8 +67,8 @@ void func_actor_120400_80131E5C(Task* arg0)
         Gp_SyncAreaKeyIndex(&key);
         rec          = Gp_GetNestedAreaRec(&key);
         place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-        model->tpage = place->field_D;
-        model->clut  = place->field_E;
+        model->tpage = place->tpage;
+        model->clut  = place->clut;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);
@@ -95,8 +95,8 @@ void func_actor_120400_80131E5C(Task* arg0)
         Gp_SyncAreaKeyIndex(&key);
         rec          = Gp_GetNestedAreaRec(&key);
         place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-        model->tpage = place->field_D;
-        model->clut  = place->field_E;
+        model->tpage = place->tpage;
+        model->clut  = place->clut;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);

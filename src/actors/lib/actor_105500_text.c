@@ -335,7 +335,7 @@ void Actor05500_Fn00754(Actor105500* arg0)
                 work->field_39A = 3;
                 work->field_39C = 0;
                 work->field_392 = state;
-                index           = ((Actor105500Ctx*)arg0->field_20)->field_3C->field_F;
+                index           = ((Actor105500Ctx*)arg0->field_20)->field_3C->rowIndex;
                 random          = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState     = random;
                 work->field_39E = Actor05500_D08980[index] + ((random >> 0x10) & 0xF);
@@ -438,7 +438,7 @@ void Actor05500_Fn00A94(Actor105500* arg0)
                 Gp_ArmStateF0(1);
                 work->field_39C        = 1;
                 work->field_392        = 7;
-                work->field_3A8        = Actor05500_D089A0[((Actor105500Ctx*)actor->field_20)->field_3C->field_F];
+                work->field_3A8        = Actor05500_D089A0[((Actor105500Ctx*)actor->field_20)->field_3C->rowIndex];
                 work->field_2E4.coord  = coord;
                 work->field_2E4.radius = 0x12C;
                 work->field_2E4.pos.vy = -0x12C;
@@ -456,7 +456,7 @@ void Actor05500_Fn00A94(Actor105500* arg0)
                 Gp_ArmStateF0(1);
                 work->field_39C        = 2;
                 work->field_392        = 9;
-                work->field_3A8        = Actor05500_D089A0[((Actor105500Ctx*)actor->field_20)->field_3C->field_F];
+                work->field_3A8        = Actor05500_D089A0[((Actor105500Ctx*)actor->field_20)->field_3C->rowIndex];
                 work->field_3BC        = 0x2D;
                 work->field_2E4.radius = 0x12C;
                 work->field_2E4.coord  = coord;
@@ -502,7 +502,7 @@ void Actor05500_Fn00A94(Actor105500* arg0)
                 work->field_39A        = state;
                 work->field_39C        = 0;
                 work->field_392        = 1;
-                index                  = ((Actor105500Ctx*)actor->field_20)->field_3C->field_F;
+                index                  = ((Actor105500Ctx*)actor->field_20)->field_3C->rowIndex;
                 work->field_39E        = Actor05500_D08980[index] + (((random = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
                 work->field_2E4.coord  = actor->field_2C->field_8 + 4;
                 work->field_2E4.radius = 0xC8;
@@ -555,7 +555,7 @@ void Actor05500_Fn00FA0(Actor105500* arg0)
                 work->field_39C = 1;
                 work->field_392 = 2;
                 random          = (Gp_LcgState * 5) + 0x71357911;
-                work->field_39E = Actor05500_D08990[((Actor105500Ctx*)arg0->field_20)->field_3C->field_F] + ((random >> 0x10) & 0x3FF);
+                work->field_39E = Actor05500_D08990[((Actor105500Ctx*)arg0->field_20)->field_3C->rowIndex] + ((random >> 0x10) & 0x3FF);
                 Gp_LcgState     = random;
                 return;
             }
@@ -575,7 +575,7 @@ void Actor05500_Fn00FA0(Actor105500* arg0)
                 work->field_39C = 0;
                 work->field_392 = state;
                 random2         = (Gp_LcgState * 5) + 0x71357911;
-                work->field_39E = Actor05500_D08980[((Actor105500Ctx*)arg0->field_20)->field_3C->field_F] + ((random2 >> 0x10) & 0xF);
+                work->field_39E = Actor05500_D08980[((Actor105500Ctx*)arg0->field_20)->field_3C->rowIndex] + ((random2 >> 0x10) & 0xF);
                 Gp_LcgState     = random2;
                 return;
             }
@@ -635,7 +635,7 @@ void Actor05500_Fn012E8(Actor105500* arg0)
         work->field_39C = 0;
         work->field_392 = 1;
         random          = (Gp_LcgState * 5) + 0x71357911;
-        work->field_39E = Actor05500_D08980[((Actor105500Ctx*)arg0->field_20)->field_3C->field_F] + ((random >> 0x10) & 0xF);
+        work->field_39E = Actor05500_D08980[((Actor105500Ctx*)arg0->field_20)->field_3C->rowIndex] + ((random >> 0x10) & 0xF);
         Gp_LcgState     = random;
     }
 }
@@ -717,7 +717,7 @@ void Actor05500_Fn0143C(Actor105500* arg0)
                 work->field_39C = 0;
                 work->field_392 = 1;
                 random          = (Gp_LcgState * 5) + 0x71357911;
-                work->field_39E = Actor05500_D08980[((Actor105500Ctx*)arg0->field_20)->field_3C->field_F] + ((random >> 0x10) & 0xF);
+                work->field_39E = Actor05500_D08980[((Actor105500Ctx*)arg0->field_20)->field_3C->rowIndex] + ((random >> 0x10) & 0xF);
                 Gp_LcgState     = random;
             }
             break;
@@ -757,7 +757,7 @@ void Actor05500_Fn0143C(Actor105500* arg0)
                 work->field_39A = 3;
                 work->field_39C = 0;
                 work->field_392 = 1;
-                work->field_39E = Actor05500_D08980[((Actor105500Ctx*)arg0->field_20)->field_3C->field_F] + (((Gp_LcgState = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
+                work->field_39E = Actor05500_D08980[((Actor105500Ctx*)arg0->field_20)->field_3C->rowIndex] + (((Gp_LcgState = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
                 work->field_3AA = 1;
                 if (work->field_3C8 == 2) {
                     work->field_3A2 = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;
@@ -908,7 +908,7 @@ void Actor05500_Fn01B30(Actor105500* arg0)
                 work->field_39C = 0;
                 work->field_392 = 1;
                 randomDelay     = (Gp_LcgState * 5) + 0x71357911;
-                work->field_39E = Actor05500_D08980[((Actor105500Ctx*)arg0->field_20)->field_3C->field_F] + ((randomDelay >> 0x10) & 0xF);
+                work->field_39E = Actor05500_D08980[((Actor105500Ctx*)arg0->field_20)->field_3C->rowIndex] + ((randomDelay >> 0x10) & 0xF);
                 Gp_LcgState     = randomDelay;
                 Gp_ArmStateF0(1);
             }
@@ -1229,21 +1229,21 @@ void Actor05500_Fn02954(Actor105500* actor, s32 frame)
 
 void Actor05500_Fn02FFC(GpEnemy* ctx, Task* actor)
 {
-    SVECTOR            rot;
-    GpRec18*           rec0;
-    GpRec18*           rec1;
-    GpRec18*           rec2;
-    GpRec18*           rec3;
-    SVECTOR*           positions;
-    MATRIX*            matrix;
-    Actor105500Work*   work;
-    s32                variant;
-    s32                quotient;
-    s32                i;
-    s32                mode;
-    Actor105500Params* params;
-    GsCOORDINATE2*     coord;
-    Actor105500Obj2C*  obj;
+    SVECTOR           rot;
+    GpRec18*          rec0;
+    GpRec18*          rec1;
+    GpRec18*          rec2;
+    GpRec18*          rec3;
+    SVECTOR*          positions;
+    MATRIX*           matrix;
+    Actor105500Work*  work;
+    s32               variant;
+    s32               quotient;
+    s32               i;
+    s32               mode;
+    GpAreaPlace*      params;
+    GsCOORDINATE2*    coord;
+    Actor105500Obj2C* obj;
 
     obj   = actor->extra;
     coord = obj->field_8;
@@ -1273,9 +1273,9 @@ void Actor05500_Fn02FFC(GpEnemy* ctx, Task* actor)
     work->field_354.coord      = coord;
     work->field_354.spawnArgLo = 0x100;
     work->field_354.spawnArgHi = 1;
-    work->field_3C4            = (s16)((Actor105500Params*)ctx->place)->field_1;
+    work->field_3C4            = (s16)ctx->place->variant;
     params                     = ctx->place;
-    mode                       = params->field_2;
+    mode                       = params->mode;
     if (mode < 10) {
         switch (mode) {
             case 0:
@@ -1308,7 +1308,7 @@ void Actor05500_Fn02FFC(GpEnemy* ctx, Task* actor)
                 break;
         }
     } else {
-        work->field_3C4 = (s16)params->field_1;
+        work->field_3C4 = (s16)params->variant;
         quotient        = mode / 10;
         variant         = mode - quotient * 10;
         switch (variant) {

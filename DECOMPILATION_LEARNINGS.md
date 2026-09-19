@@ -110461,7 +110461,7 @@ value "modified", so cse cannot fold the second `&key` into it:
         TOUCH_REG(keyp);
         key.field_0 = areaByte0;
         Gp_SyncAreaKeyIndex(keyp);
-        entry       = (GpCdRec10*)(0x20 + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        entry       = (GpAreaPlace*)(0x20 + (s32)Gp_GetNestedAreaRec(&key)->field_0);
 ```
 
 Each argument then keeps its own single-use pseudo, which dies at its call and
@@ -122417,17 +122417,17 @@ matched* scored 100.000% with every penalty zero on the first build.
 ```c
 /* from func_actor_120300_801335D8, same file, already matched */
 place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc.view)->field_0;
-id    = place->field_0;
+id    = place->entryId;
 while (id != 0xFF) {
     if (id == 0x6A) { break; }
     place++;
-    id = place->field_0;
+    id = place->entryId;
 }
 Gp_SetTmdBytes(arg0->extra, ((s8*)place)[0xD], ((s8*)place)[0xE]);
 ```
 
 Three things came along with the splice that would each have cost a build to
-rediscover: the `(s8*)` cast the `u8`-declared `field_D`/`field_E` need (the
+rediscover: the `(s8*)` cast the `u8`-declared `tpage`/`clut` need (the
 `lb`-versus-`lbu` trap above), the two-variable `kill` / `killCopy` + `TOUCH_REG`
 pair the NULL test needs, and the loop's `while` + `break` shape instead of
 m2c's `goto`. The only genuine edit was the coordinate part index:
@@ -126577,7 +126577,7 @@ key.field_1 = sessionKey->field_1;
 TOUCH_REG(keyp);
 ...
 Gp_SyncAreaKeyIndex(keyp);      /* first call through the pointer */
-entry = (GpCdRec10*)((idx * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+entry = (GpAreaPlace*)((idx * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
 ```
 
 Placement is load-bearing. With the barrier one statement later -- after
@@ -133333,3 +133333,27 @@ Rename with `--sidecars` so the symbol map takes the `_` name, then re-split.
 Splat still classifies the function as matched - its `.s` lands under
 `matchings/`, not `nonmatchings/` - `static` emits the same code, and no caller
 outside the unit has to change, because by the check above there is none.
+
+## A shared type cannot move into the header that owns it if an overlay family redeclares that header's prototypes (2026-09-19)
+
+Folding a duplicated record type into the module header that owns it is the
+right move for the code, and it fails the build for a reason that has nothing
+to do with the type. A family whose units declare the gameplay API locally -
+because their own prototypes for those functions deliberately disagree with the
+module header's - cannot include that header at all. The include drags in every
+one of those prototypes and the compile stops with `conflicting types for ...`,
+one line per symbol the family redeclares. The named symbols are other
+functions, never the type being moved, which is the tell.
+
+Do not loosen the prototypes to make it fit. Put the type in a header of its
+own, carrying nothing but that type, and include it from both sides: the module
+header includes it so nothing else changes, and each family header includes it
+instead of the module header. A header holding one type and no declarations has
+no prototypes to collide with. `include/gameplay/pairsrc.h` is the worked
+example, and says the same thing in its own comment.
+
+A forward declaration is the other way out - give the type a tag, declare
+`struct Tag;` in the family header and make the member a `struct Tag*` - and it
+is already used elsewhere in the tree. It only covers a family that needs the
+pointer; a unit that reads the fields needs the definition, so the separate
+header is the general answer.

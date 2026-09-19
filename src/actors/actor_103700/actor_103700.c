@@ -6,7 +6,7 @@
 
 /// Spawn handler. Allocates the 0x270-byte work block onto the task, points the
 /// model at its light/colour matrices and links the enemy node. The model
-/// variant (`Actor103700Kind::field_2`) picks the mode: tens digit 0 allocates
+/// variant (`GpAreaPlace::mode`) picks the mode: tens digit 0 allocates
 /// the model buffers and takes the units digit (0..2) as the pose, nudging the
 /// root coordinate for poses 1 and 2; 1..3 set model flag 4 and mode 7 or 10.
 /// The animation slots then get a shared random phase, and the collision object
@@ -44,8 +44,8 @@ void func_actor_103700_80131EC4(GpEnemy* arg0, Task* task)
     work->field_224.coord      = &((TmdObject*)task->extra)->coords[1];
     work->field_224.spawnArgLo = 0x100;
     work->field_224.spawnArgHi = 1;
-    work->field_246            = ((Actor103700Kind*)arg0->place)->field_A;
-    kind                       = ((Actor103700Kind*)arg0->place)->field_2;
+    work->field_246            = arg0->place->yaw;
+    kind                       = arg0->place->mode;
     switch (kind / 10) {
         case 0:
             Tmd_AllocBuffers(obj);

@@ -395,7 +395,7 @@ void Actor02000_Fn00AEC(Actor02000* arg0)
             work->field_69E = 0;
             if (work->field_698 >= 0x60) {
                 if (work->field_6DA <= 0) {
-                    param           = spawn->field_3C->field_1;
+                    param           = spawn->field_3C->variant;
                     work->field_694 = 3;
                     work->field_6A8 = 2;
                     work->field_6DA = param * 1000;
@@ -1270,7 +1270,7 @@ void Actor02000_Fn0251C(Actor02000Ctx* ctx, Actor02000* actor)
     GpAreaKey*           keyPtr;
     u8                   areaByte0;
     Actor02000AreaTable* rec;
-    Actor02000AreaRec*   entry;
+    GpAreaPlace*         entry;
     Actor02000Eff*       eff;
     u16*                 tbl;
     u8                   param1[8];
@@ -1324,9 +1324,9 @@ void Actor02000_Fn0251C(Actor02000Ctx* ctx, Actor02000* actor)
     rec = Gp_GetNestedAreaRec(&key);
     /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
        onto the table (`addu s0, s0, v0`). */
-    entry        = (Actor02000AreaRec*)((idx << 4) + (s32)rec->field_0);
-    model->tpage = entry->field_D;
-    model->clut  = entry->field_E;
+    entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    model->tpage = entry->tpage;
+    model->clut  = entry->clut;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
@@ -1363,14 +1363,14 @@ case0:
     ctx->field_18 = &parts[3];
     ctx->field_40 = Actor02000_D15D10.hpMax;
     Gp_IncStateF0Ref(0);
-    work->field_6AC = ctx->field_3C->field_2 & 1;
+    work->field_6AC = ctx->field_3C->mode & 1;
     if (work->field_6AC == 0) {
         work->field_694 = one;
         work->field_6A6 = 0;
     } else {
         work->field_694 = 2;
         work->field_6A6 = one;
-        param           = ctx->field_3C->field_1;
+        param           = ctx->field_3C->variant;
         work->field_6DA = param * 1000;
     }
 

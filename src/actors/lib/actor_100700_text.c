@@ -88,7 +88,7 @@ case0:
     rng0        = Gp_LcgState * 5 + 0x71357911;
     Gp_LcgState = rng0;
     if ((s32)(((u32)rng0 >> 16) & 0xF) <
-        Actor00700_D06DF0[arg0->field_20->field_3C->field_F]) {
+        Actor00700_D06DF0[arg0->field_20->field_3C->rowIndex]) {
         work->field_37E = 7;
         next            = Actor00700_D06E00[((u32)(rng1 = rng0 * 5 + 0x71357911) >> 16) & 0xF];
         Gp_LcgState     = rng1;
@@ -99,7 +99,7 @@ case0:
     rng2        = rng0 * 5 + 0x71357911;
     Gp_LcgState = rng2;
     if ((s32)(((u32)rng2 >> 16) & 0xF) <
-        Actor00700_D06E20[arg0->field_20->field_3C->field_F]) {
+        Actor00700_D06E20[arg0->field_20->field_3C->rowIndex]) {
         work->field_37E = 2;
         next            = Actor00700_D06E30[((u32)(rng3 = rng2 * 5 + 0x71357911) >> 16) & 0xF];
         Gp_LcgState     = rng3;
@@ -270,7 +270,7 @@ case2:
     pan = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    if ((s32)(((u32)Gp_LcgState >> 16) & 0xF) < Actor00700_D06E50[arg0->field_20->field_3C->field_F]) {
+    if ((s32)(((u32)Gp_LcgState >> 16) & 0xF) < Actor00700_D06E50[arg0->field_20->field_3C->rowIndex]) {
         work->field_37C = 0;
         work->field_37E = state;
         goto pop;
@@ -1001,7 +1001,7 @@ void Actor00700_Fn01FE0(Actor00700Ctx* ctx, Actor00700* actor)
     work->field_2AC = (s32)coord->coord.t[0];
     work->field_2B0 = (s32)coord->coord.t[1];
     work->field_2B4 = (s32)coord->coord.t[2];
-    work->field_2DC = (u16)actor->field_20->field_3C->field_A;
+    work->field_2DC = (u16)actor->field_20->field_3C->yaw;
     rec1            = &work->field_154;
     work->field_13C = coord;
     work->field_140 = rec1;
@@ -1367,7 +1367,7 @@ void Actor00700_Fn02A28(Actor00700* arg0)
             }
             break;
         case 1:
-            speed = Actor00700_D07598[arg0->field_20->field_3C->field_F] +
+            speed = Actor00700_D07598[arg0->field_20->field_3C->rowIndex] +
                     (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1F);
             coord->coord.t[0] += (coord->coord.m[0][2] * speed) >> 12;
             coord->coord.t[2] += (coord->coord.m[2][2] * speed) >> 12;

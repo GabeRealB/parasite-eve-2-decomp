@@ -251,7 +251,7 @@ void func_actor_503500_80132F64(Actor503500* arg0)
     GpAreaKey*     sessionKey;
     u8             areaByte0;
     GpAreaRec*     rec;
-    GpCdRec10*     entry;
+    GpAreaPlace*   entry;
     GpEnemy*       child;
     TmdObject*     model;
     u32            raw;
@@ -327,9 +327,9 @@ void func_actor_503500_80132F64(Actor503500* arg0)
             key.view   = areaByte0;
             Gp_SyncAreaKeyIndex(&key);
             rec          = Gp_GetNestedAreaRec(&key);
-            entry        = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
-            model->tpage = entry->field_D;
-            model->clut  = entry->field_E;
+            entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+            model->tpage = entry->tpage;
+            model->clut  = entry->clut;
             if (model->buffer != NULL) {
                 tmdProcessStream(model);
                 tmdProcessStream(model);
@@ -1742,15 +1742,15 @@ void func_actor_503500_80135CE8(Task* arg0, s32 arg1)
 /// work block's `enemies` array. Returns the new enemy, or NULL.
 GpEnemy* func_actor_503500_80135D00(Actor503500* arg0, s32 arg1)
 {
-    GpAreaKey  key;
-    GpAreaKey* sessionKey;
-    u8         areaByte0;
-    GpAreaRec* rec;
-    GpCdRec10* entry;
-    GpEnemy*   enemy;
-    TmdObject* model;
-    s32        idx;
-    u32        raw;
+    GpAreaKey    key;
+    GpAreaKey*   sessionKey;
+    u8           areaByte0;
+    GpAreaRec*   rec;
+    GpAreaPlace* entry;
+    GpEnemy*     enemy;
+    TmdObject*   model;
+    s32          idx;
+    u32          raw;
     /* Taken before the spawn call: the ROM keeps the address in s4 across
        every call rather than rebuilding it at the store. */
     Actor503500Work* work = &D_actor_503500_80176574;
@@ -1768,9 +1768,9 @@ GpEnemy* func_actor_503500_80135D00(Actor503500* arg0, s32 arg1)
         key.view   = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
         rec          = Gp_GetNestedAreaRec(&key);
-        entry        = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
-        model->tpage = entry->field_D;
-        model->clut  = entry->field_E;
+        entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        model->tpage = entry->tpage;
+        model->clut  = entry->clut;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);

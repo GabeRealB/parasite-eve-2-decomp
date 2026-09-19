@@ -118,27 +118,19 @@ typedef struct Actor105500StateFuncTable3 {
 extern Actor105500StateFuncTable3 Actor05500_D0002C;
 extern Actor105500StateFuncTable3 Actor05500_D00038;
 
-typedef struct Actor105500Params {
-    /* 0x00 */ byte pad_0;
-    /* 0x01 */ u8   field_1;
-    /* 0x02 */ u16  field_2;
-    /* 0x04 */ byte pad_4[0xB];
-    /* 0x0F */ u8   field_F;
-} Actor105500Params;
-
 typedef struct Actor105500Ctx {
-    /* 0x00 */ byte               pad_0[8];
-    /* 0x08 */ u16                field_8;
-    /* 0x0A */ byte               pad_A[6];
-    /* 0x10 */ s32                field_10;
-    /* 0x14 */ u8                 field_14;
-    /* 0x15 */ byte               pad_15[0x27];
-    /* 0x3C */ Actor105500Params* field_3C;
-    /* 0x40 */ s16                field_40;
-    /* 0x42 */ byte               pad_42[0xA];
-    /* 0x4C */ u8                 field_4C;
-    /* 0x4D */ byte               pad_4D[7];
-    /* 0x54 */ s32                field_54;
+    /* 0x00 */ byte         pad_0[8];
+    /* 0x08 */ u16          field_8;
+    /* 0x0A */ byte         pad_A[6];
+    /* 0x10 */ s32          field_10;
+    /* 0x14 */ u8           field_14;
+    /* 0x15 */ byte         pad_15[0x27];
+    /* 0x3C */ GpAreaPlace* field_3C;
+    /* 0x40 */ s16          field_40;
+    /* 0x42 */ byte         pad_42[0xA];
+    /* 0x4C */ u8           field_4C;
+    /* 0x4D */ byte         pad_4D[7];
+    /* 0x54 */ s32          field_54;
 } Actor105500Ctx;
 
 void Actor05500_Fn03560(Actor105500Ctx* arg0, Actor105500* arg1);

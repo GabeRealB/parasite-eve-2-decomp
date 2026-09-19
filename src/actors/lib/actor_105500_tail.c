@@ -25,15 +25,15 @@ void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 
 void Actor05500_Fn03C54(Actor105500* actor)
 {
-    GpAreaKey  key;
-    GpAreaKey* sessionKey;
-    u8         areaByte0;
-    GpAreaRec* rec;
-    GpCdRec10* entry;
-    GpEffWork* eff;
-    TmdObject* model;
-    s32        idx;
-    u32        raw;
+    GpAreaKey    key;
+    GpAreaKey*   sessionKey;
+    u8           areaByte0;
+    GpAreaRec*   rec;
+    GpAreaPlace* entry;
+    GpEffWork*   eff;
+    TmdObject*   model;
+    s32          idx;
+    u32          raw;
 
     D_80067704[0] = Actor05500_D05F18;
     eff           = Gp_SpawnEff(0x40007, actor->field_2C->field_8 + 4, 0x100, NULL);
@@ -51,9 +51,9 @@ void Actor05500_Fn03C54(Actor105500* actor)
     key.view   = areaByte0;
     Gp_SyncAreaKeyIndex(&key);
     rec          = Gp_GetNestedAreaRec(&key);
-    entry        = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
-    model->tpage = entry->field_D;
-    model->clut  = entry->field_E;
+    entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    model->tpage = entry->tpage;
+    model->clut  = entry->clut;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);

@@ -47,8 +47,8 @@ void func_actor_113100_80131E58(Task* task)
     GpAreaKey*       sessionKey3;
     TmdObject*       model2;
     TmdObject*       model3;
-    GpCdRec10*       entry2;
-    GpCdRec10*       entry3;
+    GpAreaPlace*     entry2;
+    GpAreaPlace*     entry3;
     GpObj*           obj;
     u8               areaByte0;
     u32              raw2;
@@ -84,9 +84,9 @@ void func_actor_113100_80131E58(Task* task)
         index2      = raw2 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry2        = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model2->tpage = entry2->field_D;
-        model2->clut  = entry2->field_E;
+        entry2        = (GpAreaPlace*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model2->tpage = entry2->tpage;
+        model2->clut  = entry2->clut;
         if (model2->buffer != NULL) {
             tmdProcessStream(model2);
             tmdProcessStream(model2);
@@ -105,9 +105,9 @@ void func_actor_113100_80131E58(Task* task)
         index3      = raw3 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry3        = (GpCdRec10*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model3->tpage = entry3->field_D;
-        model3->clut  = entry3->field_E;
+        entry3        = (GpAreaPlace*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model3->tpage = entry3->tpage;
+        model3->clut  = entry3->clut;
         if (model3->buffer != NULL) {
             tmdProcessStream(model3);
             tmdProcessStream(model3);

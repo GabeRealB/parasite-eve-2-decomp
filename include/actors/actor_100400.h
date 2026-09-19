@@ -7,42 +7,39 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/areaplace.h"
 #include "gameplay/pairsrc.h"
 #include "gameplay/3FB8.h"
 
-/// Overlay-local view of the spawn parameter block reached through
-/// `Actor100400Obj.field_3C`. Byte 0xF selects, in its low 3 bits, the marker
-/// height `Actor00400_Fn064B0` reads out of `Actor00400_D1609C`.
-typedef struct Actor100400Params {
-    /* 0x0 */ byte pad_0[0xF];
-    /* 0xF */ u8   field_F;
-} Actor100400Params;
-
 /// Object the actor pushes damage and hit flags into (`Actor00400_Fn01B90`).
+///
+/// It is the enemy object of the task, so `field_3C` is its placement record:
+/// the `rowIndex` of that record selects, in its low 3 bits, the marker height
+/// `Actor00400_Fn064B0` reads out of `Actor00400_D1609C`.
 typedef struct Actor100400Obj {
-    /* 0x00 */ byte               pad_0[4];
-    /* 0x04 */ MATRIX*            field_4;
-    /* 0x08 */ u16                field_8;
-    /* 0x0A */ byte               pad_A[6];
-    /* 0x10 */ byte               field_10[4];
-    /* 0x14 */ u8                 field_14;
-    /* 0x15 */ byte               pad_15[3];
-    /* 0x18 */ GsCOORDINATE2*     field_18;
-    /* 0x1C */ s32                field_1C;
-    /* 0x20 */ s32                field_20;
-    /* 0x24 */ s32                field_24;
-    /* 0x28 */ byte               pad_28[0x14];
-    /* 0x3C */ Actor100400Params* field_3C;
-    /* 0x40 */ u16                field_40;
-    /* 0x42 */ u16                field_42;
-    /* 0x44 */ byte               pad_44[4];
-    /* 0x48 */ u8                 field_48;
-    /* 0x49 */ byte               pad_49[3];
-    /* 0x4C */ u8                 field_4C;
-    /* 0x4D */ byte               pad_4D[3];
-    /* 0x50 */ GpPairSrcE*        field_50;
-    /* 0x54 */ GpRec18*           field_54;
-    /* 0x58 */ byte               pad_58[8];
+    /* 0x00 */ byte           pad_0[4];
+    /* 0x04 */ MATRIX*        field_4;
+    /* 0x08 */ u16            field_8;
+    /* 0x0A */ byte           pad_A[6];
+    /* 0x10 */ byte           field_10[4];
+    /* 0x14 */ u8             field_14;
+    /* 0x15 */ byte           pad_15[3];
+    /* 0x18 */ GsCOORDINATE2* field_18;
+    /* 0x1C */ s32            field_1C;
+    /* 0x20 */ s32            field_20;
+    /* 0x24 */ s32            field_24;
+    /* 0x28 */ byte           pad_28[0x14];
+    /* 0x3C */ GpAreaPlace*   field_3C;
+    /* 0x40 */ u16            field_40;
+    /* 0x42 */ u16            field_42;
+    /* 0x44 */ byte           pad_44[4];
+    /* 0x48 */ u8             field_48;
+    /* 0x49 */ byte           pad_49[3];
+    /* 0x4C */ u8             field_4C;
+    /* 0x4D */ byte           pad_4D[3];
+    /* 0x50 */ GpPairSrcE*    field_50;
+    /* 0x54 */ GpRec18*       field_54;
+    /* 0x58 */ byte           pad_58[8];
 } Actor100400Obj;
 
 typedef struct Actor100400QuadWork {

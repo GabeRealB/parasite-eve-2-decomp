@@ -51,7 +51,7 @@ extern s8  D_80115408;
 extern s32 Gp_LcgState;
 /// `D_80073B8C` is the camera-target matrix positions are measured from.
 extern MATRIX* D_80073B8C;
-/// Per-variant base speed, indexed by `Actor300700Params.field_F`.
+/// Per-variant base speed, indexed by `GpAreaPlace::rowIndex`.
 extern u16 D_actor_300700_80165B78[];
 
 /// Spawn pair table packed by `Gp_PackPair`, and the enemy record whose
@@ -121,7 +121,7 @@ void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
     work->field_2AC       = (s32)coord->coord.t[0];
     work->field_2B0       = (s32)coord->coord.t[1];
     work->field_2B4       = (s32)coord->coord.t[2];
-    work->field_2DC       = (u16)((Actor300700Ctx*)arg1->spawnArg2)->field_3C->field_A;
+    work->field_2DC       = (u16)((Actor300700Ctx*)arg1->spawnArg2)->field_3C->yaw;
     work->obj134.coord    = coord;
     work->obj134.ctx.recs = &work->rec154;
     work->obj134.pos.vx   = 0;
@@ -483,7 +483,7 @@ void func_actor_300700_801628C8(Actor300700* arg0)
             }
             break;
         case 1:
-            speed = D_actor_300700_80165B78[arg0->field_20->field_3C->field_F] +
+            speed = D_actor_300700_80165B78[arg0->field_20->field_3C->rowIndex] +
                     (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1F);
             coord->coord.t[0] += (coord->coord.m[0][2] * speed) >> 12;
             coord->coord.t[2] += (coord->coord.m[2][2] * speed) >> 12;
@@ -1077,7 +1077,7 @@ case0:
     rng0        = Gp_LcgState * 5 + 0x71357911;
     Gp_LcgState = rng0;
     if ((s32)(((u32)rng0 >> 16) & 0xF) <
-        D_actor_300700_8016933C[arg0->field_20->field_3C->field_F]) {
+        D_actor_300700_8016933C[arg0->field_20->field_3C->rowIndex]) {
         work->field_37E = 7;
         next            = D_actor_300700_8016934C[((u32)(rng1 = rng0 * 5 + 0x71357911) >> 16) & 0xF];
         Gp_LcgState     = rng1;
@@ -1088,7 +1088,7 @@ case0:
     rng2        = rng0 * 5 + 0x71357911;
     Gp_LcgState = rng2;
     if ((s32)(((u32)rng2 >> 16) & 0xF) <
-        D_actor_300700_8016936C[arg0->field_20->field_3C->field_F]) {
+        D_actor_300700_8016936C[arg0->field_20->field_3C->rowIndex]) {
         work->field_37E = 2;
         next            = D_actor_300700_8016937C[((u32)(rng3 = rng2 * 5 + 0x71357911) >> 16) & 0xF];
         Gp_LcgState     = rng3;
@@ -1259,7 +1259,7 @@ case2:
     pan = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    if ((s32)(((u32)Gp_LcgState >> 16) & 0xF) < D_actor_300700_8016939C[arg0->field_20->field_3C->field_F]) {
+    if ((s32)(((u32)Gp_LcgState >> 16) & 0xF) < D_actor_300700_8016939C[arg0->field_20->field_3C->rowIndex]) {
         work->field_37C = 0;
         work->field_37E = state;
         goto pop;
