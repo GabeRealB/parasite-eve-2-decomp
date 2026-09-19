@@ -145,6 +145,20 @@ typedef struct Actor403600Msg {
 } Actor403600Msg;
 STATIC_ASSERT_SIZEOF(Actor403600Msg, 0x8);
 
+/// Incoming scripted message; field_2 selects the actor's transition.
+typedef struct Actor403600MsgArg {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor403600MsgArg;
+STATIC_ASSERT_SIZEOF(Actor403600MsgArg, 0x4);
+
+/// Position and rotation sent to the player with message 0x3E9.
+typedef struct Actor403600MsgPos {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor403600MsgPos;
+STATIC_ASSERT_SIZEOF(Actor403600MsgPos, 0x18);
+
 /// 0x18-byte block temporarily taken from `G_SCRATCH_HEAD` while projecting
 /// an actor's origin and calculating its ordering-table depth.
 typedef struct Actor403600ProjectScratch {
@@ -212,9 +226,12 @@ typedef struct Actor403600Ctx {
     /* 0x14 */ u8   field_14;
 } Actor403600Ctx;
 
-extern SVECTOR D_actor_403600_801605E4;
-extern SVECTOR D_actor_403600_801605EC;
-extern s16     D_actor_403600_801606F2;
+extern SVECTOR           D_actor_403600_801605E4;
+extern SVECTOR           D_actor_403600_801605EC;
+extern s16               D_actor_403600_801606F2;
+extern TaskDesc          D_actor_403600_80160514;
+extern Task*             D_actor_403600_801606B0;
+extern Actor403600MsgPos D_actor_403600_801606E0;
 
 void ActorsShared80131e24Sub1(Actor403600Ctx* arg0, Actor403600* arg1);
 void func_actor_403600_80138C9C(Actor403600MotionState* arg0);
@@ -226,5 +243,6 @@ s32  func_actor_403600_8013DDF4(Actor403600* arg0, s16 arg1);
 s32  func_actor_403600_8013DFE0(Actor403600* arg0);
 void func_actor_403600_8013E470(GsCOORDINATE2* arg0, s32* arg1, s32* arg2);
 s32  func_actor_403600_8013E7D4(s32 arg0, s32 arg1);
+s32  func_actor_403600_801406A4(Actor403600* arg0, s32 arg1, Actor403600MsgArg* arg2);
 
 #endif

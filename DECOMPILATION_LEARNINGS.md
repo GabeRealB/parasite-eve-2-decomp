@@ -131797,3 +131797,45 @@ The actual obstruction was visible in `.sched`: the two reads for `task->extra->
 The matching `.sched` reads UID291/293 depend only on the first three stores and the previous call. Following stores instead carry anti-dependencies on the reads. `.lreg/.greg` give the coordinate load/add r131/r132 v1 and the packed key r135 a2; all saved-register homes remain unchanged. `.sched` now sets a0 earlier and a1 between the reads, and `.sched2/.dbr` reproduce the target store order and final call delay store. Early call arguments were downstream of the memory dependency graph, not an independent lifetime requirement. Actual allocator priority/hazard tie decisions were not traced.
 
 Prediction and both schedule/allocation outcomes are retained in scratch `nonmatchings/func_actor_403600_8013F7B8-vacuum/LEARNINGS.md`, `experiments.jsonl`, `base_1.insn.txt`, `base_2.insn.txt` and the corresponding RTL dumps. Input SHA-256: base_1.i `c037aa537b38e344c75545f8cb1cf2d871f6a4774853c48953edf702e1d53349`, base_2.i `4c7327de57967e3e801adae9140e3bcfa6607811cfccf50da365a54298a7a678`; compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Final typed base_4 also scored 100%, and the integrated host passed unscoped build verification. The required router produced no discovery.
+
+
+## Explicit address definitions and tied asm operands preserve setup dependencies (func_actor_403600_801406A4, 2026-09-19)
+
+The archived unpinned seed reproduced 99.732% with two scheduler clusters.
+Both fixes were predicted before compiling and checked in the RTL dumps;
+the resulting 100% port passed the unscoped build-and-verify.sh.
+
+1. A volatile real `li` with the two later RotMatrix addresses as input operands
+   puts the constant after both address calculations without moving its stores.
+   Passing `&angles` directly leaves a virtual-stack register in initial RTL;
+   instantiation inserts its addiu at late UID779, after the matrix-address UID538.
+   Sched1's reverse original-order tie therefore emits matrix then stack address.
+   Defining `rotation = &angles` explicitly before the asm gives that addiu its
+   own early UID538, before matrix UID541, and fixes the order. Both pointers
+   still coalesce to the eventual a0/a1 call arguments. base_4 -> base_5 changes
+   only this pointer spelling and reaches 99.799%, with case 7 exact.
+
+2. Plain constant/address asm inputs can fold to CONST_INT/SYMBOL_REF and be
+   materialized only at reload, losing the connection to later argument homes.
+   That failed probe generated t0/t1 inputs and duplicate setup. The successful
+   case-1 helper reads Gp_ActorSlots[0] through an m operand, emits zero then lw,
+   and forwards the message id and position pointer via read/write operands.
+   Those forwarded variables feed the later call and position stores. The
+   matching dump has a1=id, v1=position HIGH, a2=position address, s0=slot HIGH,
+   then the helper's a3=0/a0=slot load. A direct global access for pos.vx keeps
+   the original position HIGH live in v1. The other stores use the forwarded
+   a2. No hard-register pins or added instructions are needed.
+
+The latter result is scoped to the combined source transformation: forwarding
+both values and accessing the position through the forwarded pointer were
+changed together. It does not establish a universal rule about every asm input.
+The zero output uses early-clobber because the next instruction reads a memory
+address; the forwarded inputs themselves are unchanged by the asm.
+
+Evidence is retained under tools/permuter_findings/func_actor_403600_801406A4/
+and in the session LEARNINGS.md. The router found no discovery; these were
+independent controlled experiments. A pure-C solution remains unresolved.
+
+base_5.i SHA256: `550b4c76e730d9633b594557f552a137ec8731f441596fe75d59a6ffc7468bbd`.
+
+base_9.i SHA256: `37d28e8d8dcfe50410e668a433078c8dc0e5ed23be7d7f5a9cff5e628d0891a8`.

@@ -190,6 +190,8 @@
 extern u8               D_80071075;
 extern s8               D_8007216C;
 extern u8               D_801153F4;
+extern s8               D_801153F1;
+extern TaskDesc         D_8016E468;
 extern MATRIX*          D_80073B8C;
 extern s32              D_8005C374;
 extern s32              D_8007107C;
@@ -3911,7 +3913,191 @@ common:
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801406A4);
+s32 func_actor_403600_801406A4(Actor403600* arg0, s32 arg1, Actor403600MsgArg* arg2)
+{
+    SVECTOR            angles;
+    s32                messageZero;
+    s32                messageId;
+    Actor403600MsgPos* position;
+    Task*              actor;
+    s16                nodeFlags;
+    SVECTOR*           rotation;
+    u16                message;
+    GpEnemy*           enemy;
+    Actor403600Work*   work;
+    Actor403600Work*   initialWork;
+    Actor403600Work*   resetWork;
+    TmdObject*         hiddenObject;
+    TmdObject*         bufferedObject;
+    TmdObject*         resetBuffers;
+    TmdObject*         shownObject;
+    TmdObject*         restartBuffers;
+    TmdObject*         restartedObject;
+    TmdObject*         stoppedObject;
+    TmdObject*         stoppedBuffers;
+    Actor403600Work*   childWork;
+    TmdObject*         childObject;
+
+    message = arg2->field_2;
+    work    = arg0->field_1C;
+    enemy   = arg0->field_20;
+    switch (message) {
+        case 1:
+            initialWork            = arg0->field_1C;
+            initialWork->field_756 = 8;
+            initialWork->field_778 = 0x10;
+            initialWork->field_742 = 0;
+            initialWork->field_746 = 0;
+            initialWork->field_774 = 0;
+            initialWork->field_77A = 0;
+            initialWork->field_784 = 0;
+            initialWork->field_73C = 0;
+            initialWork->field_73E = 0;
+            initialWork->field_74A = 0;
+            initialWork->field_73A = 0;
+            initialWork->field_776 = 0xA;
+            initialWork->field_76E = 0x40;
+            initialWork->field_75E = 0;
+            initialWork->field_7A4 = 0;
+            initialWork->field_7A6 = 0;
+            initialWork->field_7AC = 0;
+            enemy->node.flags      = 1;
+            Gp_ClearNodeSlots(&enemy->node);
+            work->field_736            = 1;
+            work->field_4B8.coord.t[0] = 0x1D7A;
+            work->field_4B8.coord.t[1] = -0x145A;
+            work->field_4B8.coord.t[2] = 0x19AE;
+            work->field_730            = 0xA;
+            work->field_738            = 0;
+            angles.vx                  = 0;
+            angles.vy                  = 0x200;
+            angles.vz                  = 0;
+            RotMatrix(&angles, &work->field_4B8.coord);
+            messageId = 0x3E9;
+            position  = &D_actor_403600_801606E0;
+            __asm__("addu %1,$zero,$zero; lw %0,%4"
+                    : "=r"(actor), "=&r"(messageZero), "+r"(messageId), "+r"(position)
+                    : "m"(Gp_ActorSlots[0]));
+            position->rot.vy               = -0x600;
+            position->rot.vx               = 0;
+            position->rot.vz               = 0;
+            D_actor_403600_801606E0.pos.vx = 0x1E8D;
+            position->pos.vy               = -0xF9F;
+            position->pos.vz               = 0x1AC6;
+            Gp_DispatchMsg(actor, messageId, (s32)position, messageZero);
+            D_actor_403600_80160568.field_4 = 9;
+            Gp_DispatchMsg((Task*)Gp_ActorSlots[0], 0x3F4, (s32)&D_actor_403600_80160568, 0);
+            break;
+        case 2:
+            work->field_736                 = 0x15;
+            work->field_738                 = 0;
+            D_actor_403600_80160568.field_4 = 0xA;
+            Gp_DispatchMsg((Task*)Gp_ActorSlots[0], 0x3F4, (s32)&D_actor_403600_80160568, 0);
+            break;
+        case 3:
+            work->field_77A = 0x3E8;
+            work->field_730 = 0xB;
+            break;
+        case 4:
+            D_actor_403600_801606B0 = Task_SpawnFromTable(&D_8016E468, 0, 0, 0);
+            Gp_DispatchMsg((Task*)Gp_ActorSlots[0], 0x3F3, 0, 0);
+            hiddenObject          = arg0->field_2C;
+            hiddenObject->flags   = (u16)(hiddenObject->flags | 0x80);
+            bufferedObject        = arg0->field_2C;
+            bufferedObject->flags = (u16)(bufferedObject->flags | 4);
+            work->field_4B4       = (Actor403600**)Gp_SpawnEnemyFromTable(&D_actor_403600_80160514, 2, 0, 0);
+            break;
+        case 5:
+            D_actor_403600_801606E0.rot.vx = 0;
+            D_actor_403600_801606E0.rot.vy = 0;
+            D_actor_403600_801606E0.rot.vz = 0;
+            D_actor_403600_801606E0.pos.vx = 0;
+            D_actor_403600_801606E0.pos.vy = 0;
+            D_actor_403600_801606E0.pos.vz = 0;
+            Gp_DispatchMsg((Task*)Gp_ActorSlots[0], 0x3E9, (s32)&D_actor_403600_801606E0, 0);
+            D_actor_403600_80160568.field_4 = 0xB;
+            Gp_DispatchMsg((Task*)Gp_ActorSlots[0], 0x3F4, (s32)&D_actor_403600_80160568, 0);
+            childWork               = (*work->field_4B4)->field_1C;
+            childObject             = (*work->field_4B4)->field_2C;
+            childWork->field_730    = 0xD;
+            childObject->lightLevel = 0;
+            break;
+        case 6:
+            work->field_73C            = -0x50;
+            work->field_730            = 0xC;
+            work->field_736            = 1;
+            work->field_4B8.coord.t[0] = 0x196E;
+            work->field_4B8.coord.t[1] = -0x7D0;
+            work->field_4B8.coord.t[2] = 0x1630;
+            work->field_738            = 0;
+            angles.vx                  = 0;
+            angles.vy                  = 0x200;
+            angles.vz                  = 0;
+            RotMatrix(&angles, &work->field_4B8.coord);
+            work->field_4B8.flg = 0;
+            Gp_UpdateCoord(&work->field_4B8);
+            Tmd_AllocBuffers(arg0->field_2C);
+            resetBuffers        = arg0->field_2C;
+            resetBuffers->flags = (u16)(resetBuffers->flags & 0xFFFB);
+            shownObject         = arg0->field_2C;
+            shownObject->flags  = (u16)(shownObject->flags & 0xFF7F);
+            work->field_732     = 0;
+            break;
+        case 7:
+            rotation = &angles;
+            __asm__ volatile("li %0,8" : "=r"(nodeFlags) : "r"(rotation), "r"(&work->field_4B8.coord));
+            resetWork                  = arg0->field_1C;
+            resetWork->field_778       = 0x10;
+            resetWork->field_776       = 0xA;
+            resetWork->field_742       = 0;
+            resetWork->field_756       = nodeFlags;
+            resetWork->field_746       = 0;
+            resetWork->field_774       = 0;
+            resetWork->field_77A       = 0;
+            resetWork->field_784       = 0;
+            resetWork->field_73C       = 0;
+            resetWork->field_73E       = 0;
+            resetWork->field_74A       = 0;
+            resetWork->field_73A       = 0;
+            resetWork->field_76E       = 0x40;
+            resetWork->field_75E       = 0;
+            resetWork->field_7A4       = 0;
+            resetWork->field_7A6       = 0;
+            resetWork->field_7AC       = 0;
+            work->field_730            = 1;
+            work->field_732            = 0;
+            enemy->node.flags          = nodeFlags;
+            work->field_736            = 1;
+            work->field_4B8.coord.t[0] = 0x196E;
+            work->field_4B8.coord.t[1] = -0x1B62;
+            work->field_4B8.coord.t[2] = 0x1630;
+            work->field_738            = 0;
+            angles.vx                  = 0;
+            angles.vy                  = 0x200;
+            angles.vz                  = 0;
+            RotMatrix(rotation, &work->field_4B8.coord);
+            Tmd_AllocBuffers(arg0->field_2C);
+            restartBuffers         = arg0->field_2C;
+            restartBuffers->flags  = (u16)(restartBuffers->flags & 0xFFFB);
+            restartedObject        = arg0->field_2C;
+            restartedObject->flags = (u16)(restartedObject->flags & 0xFF7F);
+            break;
+        case 8:
+            work->field_730       = 0;
+            stoppedObject         = arg0->field_2C;
+            stoppedObject->flags  = (u16)(stoppedObject->flags | 0x80);
+            stoppedBuffers        = arg0->field_2C;
+            stoppedBuffers->flags = (u16)(stoppedBuffers->flags | 4);
+            enemy->node.flags     = 1;
+            break;
+        case 9:
+            Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0x24);
+            gGameSession->flowFlags = (u8)(gGameSession->flowFlags | 0x80);
+            D_801153F1              = 5;
+            break;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80140B4C);
 
