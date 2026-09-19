@@ -629,18 +629,18 @@ void Actor01600_Fn0646C(Actor01600* arg0)
     s32          choice;
 
     if (arg0->field_1C->field_540 != 0) {
-        D_800626EC[5].setupArg = (s32)&Actor01600_D0973C;
-        effect                 = Gp_SpawnEff(0x80005, arg0->field_2C->coords + 1, 0, NULL);
+        D_800626EC[5].arg.model = &Actor01600_D0973C;
+        effect                  = Gp_SpawnEff(0x80005, arg0->field_2C->coords + 1, 0, NULL);
         if (effect != NULL) {
             Actor01600_Fn070AC(*effect, arg0);
         }
-        D_800626EC[5].setupArg = (s32)&Actor01600_D09EE0;
-        effect                 = Gp_SpawnEff(0x80005, arg0->field_2C->coords + 2, 0, NULL);
+        D_800626EC[5].arg.model = &Actor01600_D09EE0;
+        effect                  = Gp_SpawnEff(0x80005, arg0->field_2C->coords + 2, 0, NULL);
         if (effect != NULL) {
             Actor01600_Fn070AC(*effect, arg0);
         }
-        D_800626EC[5].setupArg = (s32)&Actor01600_D09EE0;
-        effect                 = Gp_SpawnEff(0x80005, arg0->field_2C->coords + 3, 0, NULL);
+        D_800626EC[5].arg.model = &Actor01600_D09EE0;
+        effect                  = Gp_SpawnEff(0x80005, arg0->field_2C->coords + 3, 0, NULL);
         if (effect != NULL) {
             Actor01600_Fn070AC(*effect, arg0);
         }
@@ -653,22 +653,22 @@ void Actor01600_Fn0646C(Actor01600* arg0)
     switch (choice) {
         case 0:
         case 1:
-            D_800626EC[5].setupArg = (s32)&Actor01600_D0973C;
-            effect                 = Gp_SpawnEff(0x80005, arg0->field_2C->coords + 1, 0, NULL);
+            D_800626EC[5].arg.model = &Actor01600_D0973C;
+            effect                  = Gp_SpawnEff(0x80005, arg0->field_2C->coords + 1, 0, NULL);
             if (effect != NULL) {
                 Actor01600_Fn070AC(*effect, arg0);
             }
             break;
         case 2:
-            D_800626EC[5].setupArg = (s32)&Actor01600_D09EE0;
-            effect                 = Gp_SpawnEff(0x80005, arg0->field_2C->coords + 2, 0, NULL);
+            D_800626EC[5].arg.model = &Actor01600_D09EE0;
+            effect                  = Gp_SpawnEff(0x80005, arg0->field_2C->coords + 2, 0, NULL);
             if (effect != NULL) {
                 Actor01600_Fn070AC(*effect, arg0);
             }
             break;
         case 3:
-            D_800626EC[5].setupArg = (s32)&Actor01600_D09CFC;
-            effect                 = Gp_SpawnEff(0x80005, arg0->field_2C->coords + 6, 0, NULL);
+            D_800626EC[5].arg.model = &Actor01600_D09CFC;
+            effect                  = Gp_SpawnEff(0x80005, arg0->field_2C->coords + 6, 0, NULL);
             if (effect != NULL) {
                 Actor01600_Fn070AC(*effect, arg0);
             }

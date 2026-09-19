@@ -1934,14 +1934,14 @@ UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0_, s32 arg1, s32 arg2, s32 arg3)
     result = NULL;
     SOFT_TOUCH_REG(arg0);
     if (arg0->count > 0) {
-        obj              = NULL;
-        sp.desc.flags    = D_80067678.field_10;
-        sp.desc.priority = D_80067678.field_12;
-        field_8          = D_80067678.field_18;
-        sp.desc.callback = Ui_DispatchObjectState;
-        sp.desc.setupArg = field_8;
-        task             = Task_SpawnFromTable(&sp.desc, (s32)obj, (s32)arg0, (s32)obj);
-        dummy            = 1;
+        obj               = NULL;
+        sp.desc.flags     = D_80067678.field_10;
+        sp.desc.priority  = D_80067678.field_12;
+        field_8           = D_80067678.field_18;
+        sp.desc.callback  = Ui_DispatchObjectState;
+        sp.desc.arg.value = field_8;
+        task              = Task_SpawnFromTable(&sp.desc, (s32)obj, (s32)arg0, (s32)obj);
+        dummy             = 1;
         if (task != NULL) {
             obj = (UiObject*)Mem_Calloc(0x30, (s32)obj);
             if (obj != NULL) {
@@ -2131,13 +2131,13 @@ UiObject* Ui_SpawnFromDesc(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3, UiO
     UiObject* obj;
     s32       field_8;
 
-    obj           = NULL;
-    desc.flags    = arg0->field_10;
-    desc.priority = arg0->field_12;
-    field_8       = arg0->field_18;
-    desc.callback = Ui_DispatchObjectState;
-    desc.setupArg = field_8;
-    task          = Task_SpawnFromTable(&desc, (s32)obj, arg1, (s32)obj);
+    obj            = NULL;
+    desc.flags     = arg0->field_10;
+    desc.priority  = arg0->field_12;
+    field_8        = arg0->field_18;
+    desc.callback  = Ui_DispatchObjectState;
+    desc.arg.value = field_8;
+    task           = Task_SpawnFromTable(&desc, (s32)obj, arg1, (s32)obj);
     if (task != NULL) {
         obj = (UiObject*)Mem_Calloc(0x30, (s32)obj);
         if (obj != NULL) {

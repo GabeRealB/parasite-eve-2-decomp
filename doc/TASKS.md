@@ -70,14 +70,14 @@ Task* Task_SpawnFromDesc(TaskDesc* desc, s32 spawnArg1, s32 spawnArg2, TaskNode*
 | 0x0 | `flags` | Low byte = spawn type (0/1/2). Bit `0x100` is a type-1 setup flag |
 | 0x2 | `priority` | Low byte copied to `Task::priority` |
 | 0x4 | `callback` | Per-frame entry (`Task::callback`) |
-| 0x8 | `setupArg` | Type-1 only: `TmdSource*` for `Gp_AttachTmdFlags` |
+| 0x8 | `arg.model` / `arg.value` | Type-1 only, the `TmdSource*` for `Gp_AttachTmdFlags`; the descriptor's own value otherwise |
 
 Spawn type (low byte of `flags`, stored as `Task::spawnType`) is the body:
 
 | Type | Attach (`Task::extra`) | Kill teardown |
 |------|------------------------|---------------|
 | 0 | none | free the `Task` |
-| 1 | `Gp_AttachTmdFlags(task, setupArg, flags)` — 3D TMD | unlink + free TMD (often deferred 2 frames) |
+| 1 | `Gp_AttachTmdFlags(task, arg.model, flags)` — 3D TMD | unlink + free TMD (often deferred 2 frames) |
 | 2 | `Gp_AttachDisp2d(task)` — 2D | unlink Disp2d (often deferred 1 frame) |
 
 If attach fails, spawn returns NULL and frees the `Task`. `exitCallback`
@@ -149,7 +149,7 @@ NULL.
 | 4 | `D_800676A8` | 9 | Stubs + TMD / overlay |
 | 5 | `D_800626AC` | 5 | Stubs + `Task_KillMaybeSpawn` + one overlay |
 | 6 | `D_8010FC2C` | **667** | Room-overlay actor catalog (gameplay data → `0x8017xxxx`) |
-| 7 | `D_800678F4` | 164 | Equipped TMD attaches (`func_8010B610` + per-item `setupArg`) |
+| 7 | `D_800678F4` | 164 | Equipped TMD attaches (`func_8010B610` + per-item `arg.model`) |
 | 8 | `D_800626EC` | 6 | Stubs + shared `Gp_EffAttachTask37` |
 | 9 | `D_80067734` | 19 | FX / wait: shake, volume fade, sound fade, end-wait |
 | 10 | `0x80114B34` | 6 | Stubs + `Gp_EffAttachTask37` (splat-merged into `Gp_CollectedIds`) |
@@ -261,7 +261,7 @@ Payload structs: `include/gameplay/3CD8.h`.
 Named / matched: `Gp_EnemyDispatch` (`0xB`), `Gp_UpdateRoomCoords` (`0xF`),
 `Tmd_DispatchTask` (`0x21`), `Tmd_AllocNodeBuffers` (`0x22`),
 `Gp_FadeTileTask` (`0x27`). The rest is `taskKill`, `func_*`, or
-`0x807xxxxx` (many type-1 with `setupArg = 0x8075BED4`).
+`0x807xxxxx` (many type-1 with `arg.model = 0x8075BED4`).
 
 `Gp_SpawnEnemy(bank, type, arg, parent)` is `Task_Spawn` plus a `GpEnemy*`
 hung off `spawnArg2` (`Gp_AllocEnemy`). Exit path is `Gp_EnemyTaskExit`.
@@ -279,7 +279,7 @@ decompiling the overlay it points at.
 ### Bank 7 — equipped TMD attaches
 
 ~80 `taskKill` stubs; the rest are type 1, priority `0x50`/`0x52`, callback
-usually `func_8010B610` (gameplay-resident), `setupArg` a `TmdSource*` in
+usually `func_8010B610` (gameplay-resident), `arg.model` a `TmdSource*` in
 weapon / actor overlay RAM (`0x8011xxxx`, `0x8016xxxx`, `0x8018xxxx`).
 
 `src/gameplay/3FB8.c` spawns these as `Task_Spawn(7, type, …)` when attaching

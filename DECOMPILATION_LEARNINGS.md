@@ -30202,7 +30202,7 @@ if (swap == 0) {
 
 ## Loop-invariant `0xFFFF` can steal `$a1` from a live location key
 
-A `TaskDesc` walk that compares `setupArg` with a precomputed location
+A `TaskDesc` walk that compares `arg.value` with a precomputed location
 key (`stage * 10000 + room * 100`) wants that key in `$a1` after the
 table pointer is consumed:
 
@@ -44776,8 +44776,8 @@ lw   a1,8(v0)
 
 *after* the `sw` to the bare scalar `D_80062730`, and reaches that scalar
 through `%lo(D_80062730)` - so the aggregate and owning-struct forms are both
-excluded by the bytes (`D_80062730` is `D_800626EC[5].setupArg`, and the sibling
-`Actor01600_Fn0646C` in the same build compiles `D_800626EC[5].setupArg = x` to
+excluded by the bytes (`D_80062730` is `D_800626EC[5].arg.model`, and the sibling
+`Actor01600_Fn0646C` in the same build compiles `D_800626EC[5].arg.model = x` to
 `lui $v0,%hi(D_800626EC); addiu $s1,$v0,%lo(D_800626EC); … sw $v0,0x44($s1)`).
 Writing the field as a typed member - `arg0->field_2C->field_8 + 3` - scores
 93.291%, with those loads floated above the `sw`; `SOFT_BARRIER()` after the

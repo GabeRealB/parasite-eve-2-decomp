@@ -5,7 +5,7 @@
 model":
 
     type = desc->flags & 0xFF
-    type == 1  ->  Gp_AttachTmdFlags(task, (TmdSource*)desc->setupArg, ...)
+    type == 1  ->  Gp_AttachTmdFlags(task, desc->arg.model, ...)
     type == 2  ->  Gp_AttachDisp2d                     (2D sprite, no model)
 
 So the strongest evidence a run of bytes is a model is that a type-1 `TaskDesc`
@@ -32,7 +32,7 @@ they are equal.
 
 Tiers, strongest first:
     taskdesc      a type-1 descriptor points at it - the game demonstrably spawns it
-    data-ref      some data word points at it, but not as a setupArg
+    data-ref      some data word points at it, but not through a descriptor's model
     code-ref      code loads its address (%hi/%lo of its symbol)
     bank          reached by id through Task_DescBanks - Gp_SpawnEff(0x60017) is
                   bank 6 entry 0x17 - so nothing in its own package points at it
@@ -76,7 +76,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "peassets"))
 import pkg_model  # noqa: E402
 
 DESC_SIZE = 0xC
-SETUP_ARG = 8          # offset of setupArg within a TaskDesc
+SETUP_ARG = 8          # offset of TaskDesc::arg within a descriptor
 
 
 
@@ -124,7 +124,7 @@ def resident_words() -> dict[int, int]:
 
 
 def bank_models(words: dict[int, int], limit: int = 256) -> dict[int, list[int]]:
-    """setupArg of every type-1 descriptor reachable through Task_DescBanks.
+    """Model of every type-1 descriptor reachable through Task_DescBanks.
 
     `Task_Spawn(bank, idx)` is `Task_DescBanks[bank][idx]` (src/main/task.c), and
     `Gp_SpawnEff` packs both into one id - `Gp_SpawnEff(0x60017)` is bank 6,

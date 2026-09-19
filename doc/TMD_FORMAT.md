@@ -36,7 +36,7 @@ inverse direction for import. See §6.
 
 The face stream alone is not a model: the vertices live outside it. A
 `TmdSource` record ties the pieces together, and `Gp_AttachTmd` reaches one
-through `TaskDesc.setupArg`:
+through `TaskDesc.arg.model`:
 
 ```text
 TmdSource (0x24 bytes; handlersResolved is 0 on disc, set to 1 after first use)

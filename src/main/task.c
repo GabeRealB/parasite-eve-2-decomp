@@ -42,7 +42,7 @@ case1:
     if (D_8005ED8C != 0) {
         flags_a2 |= 2;
     }
-    extra = Gp_AttachTmdFlags(task, (TmdSource*)desc->setupArg, flags_a2);
+    extra = Gp_AttachTmdFlags(task, desc->arg.model, flags_a2);
     goto merge;
 
 case2:

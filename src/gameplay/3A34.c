@@ -7218,7 +7218,7 @@ void func_800E31E8(Task* arg0)
     kind  = 0x200000;
 loop:
     if (desc->flagsAndPriority == kind &&
-        (desc->task.setupArg == room || desc->task.setupArg == area)) {
+        (desc->task.arg.value == room || desc->task.arg.value == area)) {
         Task_SpawnFromTable(&table->task, index, 0, 0);
         goto done;
     }

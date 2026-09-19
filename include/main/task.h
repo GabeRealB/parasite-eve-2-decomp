@@ -148,12 +148,24 @@ typedef struct Task {
 } Task;
 STATIC_ASSERT_SIZEOF(Task, 0x48);
 
-/// Descriptor used to spawn a task. Indexed via `Task_DescBanks[bank][type]`.
-typedef struct _TaskDesc {
-    /* 0x0 */ u16      flags;    // low byte type 0/1/2; bit 0x100 type-1 setup
-    /* 0x2 */ u16      priority; // low byte → Task::priority
-    /* 0x4 */ TaskFunc callback;
-    /* 0x8 */ s32      setupArg; // type-1 setup arg
+/// One entry of a task table: what a spawn helper turns into a running `Task`.
+///
+/// The shared tables are reached by name — `Task_DescBanks[bank][type]` for the
+/// banks, a package's own table for its rooms and actors — and every spawn path
+/// ends in `Task_SpawnFromDesc`, which reads these four fields and nothing else.
+/// A table that is walked rather than indexed ends on an entry whose `flags` is
+/// all ones.
+///
+/// The argument is the descriptor's own: a kind-1 descriptor names the model its
+/// task attaches, and one that attaches no model keeps whatever it needs there.
+typedef struct {
+    u16      flags;    // Body kind in the low byte (0 none, 1 TMD model, 2 2D display), plus bit 8 to attach the model without allocating its buffer
+    u16      priority; // List position the spawned task takes; its low byte is what `Task::priority` gets
+    TaskFunc callback; // Per-frame entry point the spawned task runs
+    union {
+        void* model;   // Kind 1: the model the task attaches
+        s32   value;   // The descriptor's own value, where it attaches no model
+    } arg;
 } TaskDesc;
 STATIC_ASSERT_SIZEOF(TaskDesc, 0xc);
 

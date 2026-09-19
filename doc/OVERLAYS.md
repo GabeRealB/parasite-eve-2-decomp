@@ -589,7 +589,7 @@ live in the actor overlay** (`D_80136224`, `D_8013700C`, … at
 `Tmd_InitSourceStream` patches the handler-slot word in place.
 
 `TmdSource` (`tmd.h`) points at this stream via `stream`. Type-1
-`TaskDesc.setupArg` is a `TmdSource*` (`Task_SpawnFromDesc`).
+`TaskDesc.arg.model` is a `TmdSource*` (`Task_SpawnFromDesc`).
 
 ### 6.3 Animation split
 

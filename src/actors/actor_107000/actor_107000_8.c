@@ -24,7 +24,7 @@ extern u8 D_actor_107000_8013CFB4[];
 extern u8 D_actor_107000_8013D550[];
 
 /// Setup-argument slot in the main executable; a task spawned through
-/// `Gp_SpawnEff` reads it as its own setup argument (`D_800626EC[5].setupArg`,
+/// `Gp_SpawnEff` reads it as its own setup argument (`D_800626EC[5].arg.model`,
 /// see include/actors/actor_207200.h).
 extern s32 D_80062730;
 
