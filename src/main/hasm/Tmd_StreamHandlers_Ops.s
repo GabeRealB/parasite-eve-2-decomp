@@ -7,7 +7,8 @@
  * TMD early-image stream handlers  (VRAM 0x80010A90 / ROM 0x1290)
  * ------------------------------------------------------------
  * Permanent handwritten assembly (splat type: hasm).
- * Named by primary Tmd_InitSourceStream opcode (OpXX). Dual-entry alternates
+ * Named by primary Tmd_InitSourceStream opcode (OpXX) until the handler's role
+ * is settled, which is when it takes a role name instead. Dual-entry alternates
  * use alabel (e.g. alabel Tmd_StreamHandler_Op3A shares the body of glabel
  * tmdDrawStreamGt3). A handler named for what it does rather than for its
  * opcode is documented at its declaration in include/main/tmd.h.
@@ -18,7 +19,7 @@
  * Op78/Op7A             gouraud textured quad (+ ABR)
  * Op39/Op3B, Op79/Op7B  textured gouraud (+ ABR) tri/quad
  * Op18/Op1A, Op58/Op5A  fixed-color packet variants
- * OpC0/OpC8             stream transform helpers
+ * OpC0 / 0xC8           stream transform helpers
  * Op130/Op170           extended 0x30/0x70-family paths
  */
 
@@ -606,7 +607,7 @@ glabel tmdStreamDrawGt4
     /* 1AD0 800112D0 */  addu        $v0, $zero, $a2
     /* 1AD4 800112D4 */  jr          $ra
     /* 1AD8 800112D8 */  nop
-glabel Tmd_StreamHandler_OpC8
+glabel tmdStreamXformVerts
     /* 1ADC 800112DC */  lw          $t9, 0x18($a0)
     /* 1AE0 800112E0 */  lw          $a3, 0x1C($a0)
     /* 1AE4 800112E4 */  lw          $t8, 0x4($a0)

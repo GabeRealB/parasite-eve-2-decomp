@@ -2806,7 +2806,7 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         *(u8**)0x1F8003FC = *(u8**)0x1F8003FC + 0x7C;
         return (u32*)stream;
     }
-    return Tmd_StreamHandler_OpC8(arg0, arg1, (u32*)stream);
+    return tmdStreamXformVerts(arg0, arg1, (u32*)stream);
 }
 
 void func_actor_403600_80138C34(Task* arg0)

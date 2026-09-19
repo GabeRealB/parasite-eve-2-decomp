@@ -256,7 +256,8 @@ u32* Tmd_StreamHandler_Prim30(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Prim3A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Prim38(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
-// Early-image handlers in Tmd_StreamHandlers_Ops.s (named by stream opcode).
+// Early-image handlers in Tmd_StreamHandlers_Ops.s, named by the stream opcode
+// they serve until the handler's role is settled.
 u32* Tmd_StreamHandler_Op20(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op60(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_OpC0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -298,7 +299,22 @@ u32* Tmd_StreamHandler_Op7A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// it, which is what this handler reads `flags` for: the `0x7A` record's handler
 /// shares this body and asks unconditionally.
 u32* tmdStreamDrawGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_OpC8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Handler of a stream's transform pre-pass records (`0xC8`): each element
+/// contributes one transformed vertex to the buffer half, and the record builds
+/// no primitive of its own.
+///
+/// An element names a vertex, a normal, and the two places in the buffer half
+/// its results go: the vertex is projected into screen coordinates, the normal
+/// is lit into a colour, and both are written where the element names. The
+/// elements carry no colour word, so the lighting uses a fixed colour instead.
+///
+/// The projection is reused where consecutive elements name the same vertex, and
+/// each vertex's depth goes to the per-vertex cache: the commands that build a
+/// primitive from screen coordinates already in the buffer average those depths
+/// to order it, and a vertex whose transform reported an error is stored with
+/// its sign bit set, which is how those commands know the primitive cannot be
+/// drawn. The record has no variant for `flags` to select, so it goes unread.
+u32* tmdStreamXformVerts(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op3B(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op39(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op7B(TmdScratchModelBlock* ws, s32 flags, u32* stream);

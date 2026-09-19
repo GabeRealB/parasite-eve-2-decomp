@@ -131295,6 +131295,15 @@ So rename a hasm symbol with `git mv` on the `.s` and edit its `glabel` /
 tool completes the other half. The `Tmd_StreamHandler_*` handlers are the worked
 example, `tmdSkipStreamRecord` the first one converted.
 
+A unit that defines **several** symbols is the other half of the same rule. Its
+config entry names the *file* rather than the symbol, so nothing under `configs/`
+moves and `--sidecars` is right to leave it alone: the `glabel` is the whole
+rename. The opcode-handler unit under `src/main/hasm/` is the case, twenty
+handlers behind one config entry, and converting one of them is a label edit and
+nothing else. Unlike the single-symbol case this half fails loudly - the C that
+calls the renamed handler no longer resolves - where the file named after its
+symbol fails silently.
+
 ## A model stream record's packet type is in its draw-path twin
 
 A model's packet stream is dispatched by opcode twice: `tmdProcessStream` (main)

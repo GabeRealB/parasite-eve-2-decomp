@@ -136,7 +136,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     handler = Tmd_StreamHandler_Op7A;
                     break;
                 case 0xC8:
-                    handler = Tmd_StreamHandler_OpC8;
+                    handler = tmdStreamXformVerts;
                     break;
                 case 0x40C8:
                     handler = func_8009AF90;

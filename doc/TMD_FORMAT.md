@@ -394,14 +394,14 @@ vertices.
 
 The pass also writes a **per-vertex depth cache** at `ws->szTable`, and that
 is what settles the `ref / 4` divisor of §3.4 from the source rather than by
-inference. `Tmd_StreamHandler_OpC8` stores the `RTPS` result with
+inference. `tmdStreamXformVerts` stores the `RTPS` result with
 `t3 = ws->szTable + (vertex_byte_offset >> 1)`, so the cache holds one word
 per vertex; `Tmd_StreamHandler_Op39` then reads its refs as
 `ws->szTable + ref` and feeds them to `SZ1`/`SZ2`/`SZ3`. Halving an 8-byte
 stride gives 4, so a pre-transformed ref is `vertex_index * 4` and the cache
 slot maps to a vertex one-to-one. The negative-value check either side of it
-(`bltz` on the loaded word) is the off-screen flag `OpC8` sets from GTE
-`FLAG`.
+(`bltz` on the loaded word) is the off-screen flag `tmdStreamXformVerts` sets
+from GTE `FLAG`.
 
 `0xC4`'s handler is decompiled C (`func_8009EAA4` in `src/gameplay/gameplay.c`)
 and spells out what the hasm versions do:
@@ -547,7 +547,7 @@ switch, so they run once at setup rather than every frame.
 | `0x62` | `Tmd_StreamHandler_Op60` | 5 | 26 | ? |
 | `0xC0` | `Tmd_StreamHandler_OpC0` | 3 | 6 | "stream transform helper" per the hasm header; unsolved |
 | `0xC4` | `D_8009EAA4` | — | — | "stream transform helper"; unsolved, never seen in data |
-| `0xC8` | `Tmd_StreamHandler_OpC8` | 2 | 30262 | vertex transform + lighting pre-pass — **solved**, §3.0 |
+| `0xC8` | `tmdStreamXformVerts` | 2 | 30262 | vertex transform + lighting pre-pass — **solved**, §3.0 |
 | `0x121` | `Tmd_StreamHandler_Prim30` | — | — | ? |
 | `0x122` | `D_8009E274` | — | — | ? |
 | `0x161` | `Tmd_StreamHandler_Prim38` | — | — | ? |
