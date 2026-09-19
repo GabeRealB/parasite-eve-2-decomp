@@ -4298,38 +4298,38 @@ u32* gpStreamPrimGt3Base(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* func_8009F708(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* gpStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
     POLY_GT4* poly;
     s32       tpage;
     s32       tmp;
 
-    poly = (POLY_GT4*)arg0->primWrite;
-    if (arg0->elemCount-- > 0) {
+    poly = (POLY_GT4*)ws->primWrite;
+    if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = arg2[4];
-            *(s32*)&poly->u1 = arg2[5];
-            *(u16*)&poly->u2 = *(u16*)&arg2[6];
-            *(u16*)&poly->u3 = ((u16*)&arg2[6])[1];
-            poly->tpage     += (s8)arg0->obj->tpageOffset;
-            tmp              = arg0->obj->clutOffset;
+            *(s32*)&poly->u0 = stream[4];
+            *(s32*)&poly->u1 = stream[5];
+            *(u16*)&poly->u2 = *(u16*)&stream[6];
+            *(u16*)&poly->u3 = ((u16*)&stream[6])[1];
+            poly->tpage     += (s8)ws->obj->tpageOffset;
+            tmp              = ws->obj->clutOffset;
             tpage            = poly->tpage;
             tpage           |= 0x20;
             poly->tpage      = tpage;
             poly->clut      += (s8)tmp << 6;
             poly++;
-            *(s32*)&poly->u0 = arg2[4];
-            *(s32*)&poly->u1 = arg2[5];
-            *(u16*)&poly->u2 = *(u16*)&arg2[6];
-            *(u16*)&poly->u3 = ((u16*)&arg2[6])[1];
-            poly->tpage     += arg0->tpage;
-            poly->clut      += arg0->clut;
+            *(s32*)&poly->u0 = stream[4];
+            *(s32*)&poly->u1 = stream[5];
+            *(u16*)&poly->u2 = *(u16*)&stream[6];
+            *(u16*)&poly->u3 = ((u16*)&stream[6])[1];
+            poly->tpage     += ws->tpage;
+            poly->clut      += ws->clut;
             poly++;
-            arg2 += arg0->elemStride;
-        } while (arg0->elemCount-- > 0);
+            stream += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    arg0->primWrite = (u8*)poly;
-    return arg2;
+    ws->primWrite = (u8*)poly;
+    return stream;
 }
 
 u32* func_8009F824(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)

@@ -30219,8 +30219,8 @@ poly->clut  += (s8)tmp << 6;
 ```
 
 `func_8009FA24` is the example. Same split is needed for the
-`field_0` / `POLY_GT4` siblings (`gpStreamPrimGt3OffsetLayer`, `func_8009F708`,
-`func_8009FB28`).
+`primWrite` / `POLY_GT4` siblings (`gpStreamPrimGt3OffsetLayer`,
+`gpStreamPrimGt4OffsetLayer`, `func_8009FB28`).
 
 ## Finish the 2D byte offset before adding the table base
 

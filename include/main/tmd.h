@@ -488,4 +488,19 @@ u32* gpStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream
 /// layer is textured from the element as well.
 u32* gpStreamPrimGt3Base(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+/// Handler of a stream's layered textured-quad records (`0x4078`) whose
+/// semi-transparent layer takes its texture page from the object: each element
+/// contributes two quads to the buffer half's second region, with the element's
+/// texture words written into both.
+///
+/// The record is not pre-transformed, so its quads are built in the region the
+/// draw pass transforms. `0x4000` asks for two primitives per element — the base
+/// the model is drawn from, and the semi-transparent layer drawn over it — and
+/// that layer is normally the draw pass's to texture, from a page of its own. The
+/// walk takes this handler where both quads are written from the record instead:
+/// the same `u`/`v` fields go into each, the base takes the model's texture page
+/// and CLUT, and the layer takes the object's extra page and CLUT offsets, along
+/// with the semi-transparency rate it blends at.
+u32* gpStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 #endif // TMD_H
