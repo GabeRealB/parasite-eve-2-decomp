@@ -132348,3 +132348,24 @@ base_2 (integer adds, 97.804 → 98.635 with the recursion above), base_3
 (`&objects[1] + offset` for the one remaining site, same shape as base_2).
 `.lreg` insns 362/475/561 and the `.rtl` dump of insn 500 show the two orders;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## The model stream's colour bit puts a word between the refs and the texture words
+
+Opcode bit `0x08` is documented as "use a constant instead of a per-element
+value" (`doc/TMD_FORMAT.md` §3.2). For the textured primitive families that value
+is a colour, and it is the only thing that separates two handlers whose bodies
+are otherwise identical: the `0x08`-clear record's element carries an RGB word
+between its refs and its texture words, and the `0x08`-set record's element has
+none, its draw twin loading the fixed `0x808080` instead.
+
+The build handler never reads that word — it only starts its texture copy one
+word later — so an unidentified handler of the family is settled by its draw
+twin's `ldrgb`: `func_8009D0DC` (`0x70`, a `POLY_GT4`) loads the element's word
+for `NCCT`, where `Tmd_StreamHandler_Op78` (`0x78`, the same primitive) loads
+`0x3C808080` before its loop. That is what makes the twins' words come out at
+`5,6,7` and `4,5,6` respectively (`gpStreamPrimGt4ElemColor` against
+`gpStreamPrimGt4`), and the same read separates `0x30` from `0x38`.
+
+§5.1's "Refs" column counts the colour word as normal refs, since it derives the
+ref block from the first texture word — so its `0x30` and `0x70` rows read as if a
+gouraud primitive had five or six normals. Locating the texture words is still
+right; what the words between refs and texture hold is what the twin settles.

@@ -345,4 +345,21 @@ u32* gpStreamPrimGt3VtxColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// stored relative to the model.
 u32* gpStreamPrimGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+/// Handler of a stream's textured-quad records whose elements carry a colour
+/// (`0x70`): each element contributes one quad to the buffer half's second
+/// region, with the element's texture words written into it.
+///
+/// The record is not pre-transformed, so its quad is built in the region the
+/// draw pass transforms; this command writes only the polygon's `u`/`v` fields,
+/// and adds the model's texture page and CLUT to the primitive's own, which are
+/// stored relative to the model.
+///
+/// This is `gpStreamPrimGt4`'s family with the opcode's colour bit clear, which
+/// is the whole of the difference between them: the element carries an RGB word
+/// between its refs and its texture words that the draw pass lights the quad
+/// with, where the other family's records carry none and are lit against a fixed
+/// colour. That is why the texture words are one word further into the element
+/// here.
+u32* gpStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 #endif // TMD_H
