@@ -46,7 +46,6 @@ u32* func_8009B500(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// textures the layer itself. The walk's `flags` select no variant of the record
 /// on top of that, so they go unread.
 u32* gpDrawStreamGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009C024(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009C414(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009CED0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009D0DC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -219,7 +218,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                 case 0x4078:
                     handler = func_8009C414;
                     if (flag != 0) {
-                        handler = func_8009C024;
+                        handler = gpDrawStreamPrimGt4OffsetLayer;
                     }
                     break;
                 case 0x4038:

@@ -39090,7 +39090,7 @@ Do not instead replace the named temps with literals: that drops the live
 pseudos, lowers register pressure, and the prologue stops saving the `s`
 registers the target saves (here `s5`/`s4`/`s3`, two of them unused in the body).
 Keep the variables, just move where they are assigned. Worth 99.8% → 100% on
-`func_8009C024`.
+`gpDrawStreamPrimGt4OffsetLayer`.
 
 ## `u16` flag local so its `1` cannot be CSE'd into later `+ 1` / compares
 
@@ -41247,6 +41247,16 @@ usually reads better, since it is usually the more specific quantity - and check
 before running the pass:
 
     grep -n "\b<newName>\b" <file>
+
+A local that is nothing but a copy of the parameter is the case to handle the
+other way. The decomp needs a name for the parameter before it has one, so it
+pairs the two (`ws = arg0;`), and that makes the local an alias of the parameter
+rather than a distinct quantity - so naming the parameter after it leaves
+`ws = ws;` over an uninitialized local, and the fix is to drop the local and its
+assignment so the parameter is used directly, which is what the body meant.
+Whether that keeps the match is a codegen question the checksum answers rather
+than a convention: it held where it was tried, but a copy costs nothing only
+while the allocator puts both names in one register, so verify it.
 
 The tools cannot catch this for you. A parameter rename already needs
 `--no-comments`, so the prose sweep that would have shown the name in context is

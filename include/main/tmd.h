@@ -1253,4 +1253,31 @@ u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, 
 /// session's current place is what picks between them; neither entry reads `flags`.
 u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+/// The draw pass's handler for a stream's layered textured-quad records
+/// (`0x4078`) whose semi-transparent layer takes its texture page from the
+/// object: each element contributes two quads to the buffer half's second region
+/// — the opaque base the model is drawn from and the semi-transparent layer drawn
+/// over it — projected and lit into the slots the process pass laid out for them,
+/// and linked into the ordering table at the depth their four corners average to.
+///
+/// The element is the `0x78` quad's — a vertex and a normal per corner, and the
+/// element's own texture words — and the `0x4000` bit is the whole of what makes
+/// it two primitives rather than one. Both primitives' texture words, page and
+/// CLUT are the process pass's: it wrote the element's words into each, and biased
+/// their page and CLUT — the base's by the model's, the layer's by the object's
+/// extra page and CLUT offsets (`gpStreamPrimGt4OffsetLayer`, whose cursor this
+/// handler stays in step with) — so nothing is textured here. The record's other
+/// draw handler is the one that textures the layer itself, from the corners'
+/// normals and a page of its own.
+///
+/// The two primitives are lit from the same normals under complementary greys:
+/// the layer at the object's light level scaled to the colour range, the base at
+/// that range less the level, so the pair trades brightness between them as the
+/// level moves. Three corners are lit in one step and the fourth in a step of its
+/// own. A corner the GTE reports off screen, or a quad of which neither half faces
+/// the camera, keeps its packets out of the ordering table — the room is consumed
+/// either way, since the process pass reserved it for every element of the record.
+/// The record has no variant for `flags` to select, so it goes unread.
+u32* gpDrawStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 #endif // TMD_H

@@ -2629,27 +2629,25 @@ u32* gpDrawStreamGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream
     return stream;
 }
 
-u32* func_8009C024(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* gpDrawStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
-    TmdScratchModelBlock* ws;
-    POLY_GT4*             poly;
-    s32*                  opz;
-    DisplayState*         ds;
-    u32                   mask;
-    u32                   maskHi;
-    u32                   clipMask;
-    s32*                  flg;
-    u16*                  rec;
-    u8*                   verts;
-    u8*                   norms;
-    CVECTOR               col;
-    CVECTOR               col2;
-    s32                   len;
-    s32                   code;
-    s32                   val;
-    s32                   inv;
+    POLY_GT4*     poly;
+    s32*          opz;
+    DisplayState* ds;
+    u32           mask;
+    u32           maskHi;
+    u32           clipMask;
+    s32*          flg;
+    u16*          rec;
+    u8*           verts;
+    u8*           norms;
+    CVECTOR       col;
+    CVECTOR       col2;
+    s32           len;
+    s32           code;
+    s32           val;
+    s32           inv;
 
-    ws     = arg0;
     poly   = (POLY_GT4*)ws->primWrite;
     col    = gGpColorGrey;
     col2   = gGpColorGrey;
@@ -2666,7 +2664,7 @@ u32* func_8009C024(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         clipMask = 0x80000000;
         opz      = &ws->gteResult;
         do {
-            rec   = (u16*)arg2;
+            rec   = (u16*)stream;
             verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
@@ -2724,12 +2722,12 @@ u32* func_8009C024(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     }
                 }
             }
-            poly += 2;
-            arg2 += ws->elemStride;
+            poly   += 2;
+            stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
     }
     ws->primWrite = (u8*)poly;
-    return arg2;
+    return stream;
 }
 
 u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
