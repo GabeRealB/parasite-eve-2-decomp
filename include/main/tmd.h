@@ -788,7 +788,7 @@ u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
 /// record's other handler, which is taken where the layer is the drawing pass's
 /// to texture. The record has no variant for `flags` to select, so it goes
 /// unread.
-u32* tmdDrawStreamGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 // Overlay stream commands (src/gameplay/gameplay.c): the handlers a model's
 // packet stream reaches that live in the gameplay overlay — the process pass's
@@ -1252,6 +1252,32 @@ u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, 
 /// entry is the same walk with the layer's page settled there instead, and the
 /// session's current place is what picks between them; neither entry reads `flags`.
 u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+/// The draw pass's handler for a stream's layered textured-triangle records
+/// (`0x4038`) whose semi-transparent layer is textured from the object: each
+/// element's triangle is projected and lit into the pair of packets the process
+/// pass laid out for it, and both are linked into the ordering table at the
+/// depth it came out at.
+///
+/// `0x4000` asks for two primitives per element — the base the model is drawn
+/// from and the semi-transparent layer drawn over it — and the texture words of
+/// both are the process pass's, taken from the element and the object's extra
+/// page and CLUT offsets (`gpStreamPrimGt3OffsetLayer`). What a frame adds is the
+/// rest of each packet: the triangle's screen coordinates, the colours the pair
+/// is lit from, their lengths and primitive codes, and the links. The layer is
+/// lit from a grey material colour that follows the model's light level and the
+/// base from that colour's complement, so the level is what divides the record's
+/// brightness between the two of them; the layer is completed under the
+/// semi-transparent primitive code with its page's semi-transparency rate set,
+/// and the base under the opaque code. An element whose projection the GTE
+/// rejects, or whose triangle turns away, is stepped over rather than drawn,
+/// though its two packets are passed over either way, so the pair stays in step
+/// with the elements that named it.
+///
+/// The place the session is in picks between this handler and a sibling that
+/// textures the layer itself. The walk's `flags` select no variant of the record
+/// on top of that, so they go unread.
+u32* gpDrawStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 /// The draw pass's handler for a stream's layered textured-quad records
 /// (`0x4078`) whose semi-transparent layer takes its texture page from the

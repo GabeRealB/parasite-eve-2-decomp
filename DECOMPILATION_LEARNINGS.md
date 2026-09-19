@@ -35092,13 +35092,13 @@ mtc2   t8, $15
 ```
 
 `gpDrawStreamPrimGt3PreXformOffsetLayer` is the example. The GT4 pair
-(`tmdDrawStreamGt4PreXformOffsetLayer`) uses the same `$t8` temp; `xy = poly + 1`
+(`gpDrawStreamPrimGt4PreXformOffsetLayer`) uses the same `$t8` temp; `xy = poly + 1`
 so first-packet `x0`/`x1`/`x2` are `-44`/`-32`/`-20`, and the F4-style fourth SXY
 is `-8` (`x3`).
 
 ## Dual-packet GT4 = F4 nclip-goto + paired GT3 OT link
 
-`tmdDrawStreamGt4PreXformOffsetLayer` stacks `gpDrawStreamPrimF4PreXform`'s four-vertex
+`gpDrawStreamPrimGt4PreXformOffsetLayer` stacks `gpDrawStreamPrimF4PreXform`'s four-vertex
 nclip with `gpDrawStreamPrimGt3PreXformOffsetLayer`'s dual-packet OT insert:
 
 ```c
@@ -37208,7 +37208,7 @@ function is one instruction long. Adjust the allocation priority instead.
 
 ## Drop the `ws = arg0` local when a two-register pair comes out swapped
 
-`gpDrawStreamGt3OffsetLayer` reached 98.98% with *every* instruction correct and only one
+`gpDrawStreamPrimGt3OffsetLayer` reached 98.98% with *every* instruction correct and only one
 defect: the scratch pointer sat in `$a3` and the second-packet induction
 variable in `$t0`, while the target wants `$t0` / `$a3`. The C had the usual
 `ws = arg0;` copy that the neighbouring handlers use.
@@ -37267,11 +37267,11 @@ setcode(&poly[1], code);
 Assign these locals in the order the target's preheader sets them (here after
 `opz = &ws->gteResult` and before `ds = &gDisplayState`), since explicit
 assignments are emitted in source order while LICM appends its own hoists
-afterwards. `gpDrawStreamGt3OffsetLayer` went 90.4% → 98.98% on this change alone.
+afterwards. `gpDrawStreamPrimGt3OffsetLayer` went 90.4% → 98.98% on this change alone.
 
 ## Two packets per stream record: index one pointer, do not keep two
 
-`gpDrawStreamGt3OffsetLayer` writes a `POLY_GT3` pair per record and advances by 0x50. Two
+`gpDrawStreamPrimGt3OffsetLayer` writes a `POLY_GT3` pair per record and advances by 0x50. Two
 parallel pointers (`poly`, `poly2`, each `+= 2`) make the loop optimizer create
 *four* induction variables — one per address form, including the byte-field
 addresses used by `setlen`/`setcode` — and the extra pressure spills into
@@ -132824,7 +132824,7 @@ they are what trims the quad: the polygon then has two corners in the same place
 so what it covers is the surviving triangle. `gpDrawStreamPrimGt4PreXformLayer`
 (`0x4079`) is the pre-transformed example and `func_8009C414` (`0x4078`) the
 transform-region one. The quad twin that takes the layer's page from the object
-instead (`func_8009A57C`) keeps or drops the element on the same two tests but
+instead (`gpDrawStreamPrimGt4PreXformOffsetLayer`) keeps or drops the element on the same two tests but
 takes no copies, and the triangles of either family test one half only, having no
 fourth corner to fold.
 
@@ -133034,6 +133034,26 @@ what it first got wrong. The process-pass family is a second reading when the tw
 disagree, because both passes name the same record from the same words. Move the
 odd name in the same step that finds it: leaving the two for a later reconcile
 round costs a step, and leaves the pair reading as two things until it is run.
+
+In the two-pass stream families the check is mechanical, and it is worth running
+before the round is read as settled: a draw handler's name is its process-pass
+twin's with the process prefix replaced by the draw one, and a record whose draw
+side has two entries selected the way its process side does carries the same two
+suffixes in the same order. A name carrying fewer tokens than its twin is the odd
+one, whatever the rest of the family looks like.
+
+## A parallel round interleaves its renames in the notes the steps share
+
+Where two steps rename different symbols inside one sentence, git merges the
+sentence but cannot rewrite it: each step's whole-line rewrite lands as its own
+line, so the merged text carries both versions, one above the other, each true of
+the symbol it renamed and neither true of the file. The code merges cleanly, the
+duplication is prose, and the build is silent about it - so the region is read
+rather than assumed, and the sentence written once with every rename applied.
+
+The same applies to any union the landing produces. Two sides' documentation of
+one declaration concatenates to a text neither step wrote, and the union is only
+correct once someone has read it as one statement.
 ## A naming-pass item no C code names is not on the plan
 
 The naming worklist is built from the references the parser resolves. A function

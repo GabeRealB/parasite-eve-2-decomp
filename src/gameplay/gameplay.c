@@ -1844,7 +1844,7 @@ u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags,
     return stream;
 }
 
-u32* tmdDrawStreamGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
     POLY_GT4*          poly;
     register POLY_GT4* xy asm("a1");
@@ -2551,7 +2551,7 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* gpDrawStreamGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpDrawStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
     POLY_GT3*     poly;
     s32*          opz;
