@@ -731,6 +731,37 @@ u32* tmdDrawStreamPrimGt4CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* 
 /// `flags` to select, so it goes unread.
 u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+// Overlay draw handlers (src/gameplay/gameplay.c), selected by
+// Tmd_InitSourceStream.
+
+/// The draw pass's handler for a stream's layered pre-transformed textured-quad
+/// records (`0x4079`) whose semi-transparent layer is textured from the object:
+/// each element's two quads sit in the buffer half's first region — the quad the
+/// model is drawn from and the layer drawn over it — and this handler links both
+/// into the ordering table at the depth their corners measured.
+///
+/// Nothing is projected or lit here. The record is pre-transformed, so a
+/// transform command has already written the corners and lit colours into the
+/// packets and their depths into the per-vertex screen-Z table, where an element
+/// names the four corners of its quad. What a frame adds is the filing: those
+/// four cached depths are averaged for the ordering-table link, the facing comes
+/// from the coordinates the packets already carry, and each packet is given the
+/// length and primitive code it is drawn under — `0x3E` for the layer and `0x3C`
+/// for the base, the two linked back to back so that the base is drawn under the
+/// layer. A quad is drawn where either of its halves faces the viewer, and left
+/// out of the ordering table where neither does; the room its packets take is
+/// passed over either way, which keeps the packets in step with the elements that
+/// named them.
+///
+/// The layer's texture is not this entry's to settle: the command that builds the
+/// record writes the page and CLUT the layer draws from — the object's own page
+/// and CLUT offsets — and the coordinates it samples, so nothing here touches
+/// either packet's texture words. That is what distinguishes this entry from the
+/// record's other handler, which is taken where the layer is the drawing pass's
+/// to texture. The record has no variant for `flags` to select, so it goes
+/// unread.
+u32* tmdDrawStreamGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 // Overlay stream commands (src/gameplay/gameplay.c): the handlers a model's
 // packet stream reaches that live in the gameplay overlay — the process pass's
 // family (`gpStreamPrim*`), which tmdProcessStream selects by opcode, and the

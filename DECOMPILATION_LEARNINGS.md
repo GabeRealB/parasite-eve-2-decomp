@@ -35091,16 +35091,15 @@ lw     t8, -0x8(a1)
 mtc2   t8, $15
 ```
 
-`gpDrawStreamPrimGt3PreXformOffsetLayer` is the example. The GT4 pair (`func_8009A57C`) uses the
-same `$t8` temp; `xy = poly + 1` so first-packet `x0`/`x1`/`x2` are
-`-44`/`-32`/`-20`, and the F4-style fourth SXY is `-8` (`x3`).
+`gpDrawStreamPrimGt3PreXformOffsetLayer` is the example. The GT4 pair
+(`tmdDrawStreamGt4PreXformOffsetLayer`) uses the same `$t8` temp; `xy = poly + 1`
+so first-packet `x0`/`x1`/`x2` are `-44`/`-32`/`-20`, and the F4-style fourth SXY
+is `-8` (`x3`).
 
 ## Dual-packet GT4 = F4 nclip-goto + paired GT3 OT link
 
-`func_8009A57C` stacks `gpDrawStreamPrimF4PreXform`'s four-vertex nclip with
-`func_8009A348`'s dual-packet OT insert:
-`func_8009A57C` stacks `func_80099994`'s four-vertex nclip with
-`gpDrawStreamPrimGt3PreXformOffsetLayer`'s dual-packet OT insert:
+`tmdDrawStreamGt4PreXformOffsetLayer` stacks `gpDrawStreamPrimF4PreXform`'s four-vertex
+nclip with `gpDrawStreamPrimGt3PreXformOffsetLayer`'s dual-packet OT insert:
 
 ```c
 if (ws->gteResult > 0) {
@@ -133145,3 +133144,16 @@ leaves the layer's page and texture coordinates alone, and the other arm is the
 one that settles them. Where the other switch does not cover the family at all,
 there is no sibling to borrow from and the arm has to be read from the body
 alone.
+
+## A quad's second `nclip` sees the fifo-rotated triple, so its MAC0 sign is inverted
+
+The two `nclip`s a quad handler gates its OT link with do not test the two
+halves in the same order. Neither `mtc2 $15` names a register: each pushes the
+SXY stack, so once the fourth corner has gone in the triple holds `(x3,x2,x1)` —
+the second triangle reversed — and its MAC0 is the first one's with the sign
+flipped. That is why the two comparisons read `> 0` then `< 0` instead of alike,
+and the reversal is what makes the branchy variant's corner fix-ups coherent
+rather than backwards: a first half found facing away collapses `x0` onto `x1`
+and draws only where the second MAC0 is `< 0`, which under the reversal is the
+second half facing towards. Read such a pair as "a quad is drawn where either of
+its halves faces the viewer", not as an asymmetry to fix.

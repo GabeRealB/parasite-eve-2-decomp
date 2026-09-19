@@ -2876,3 +2876,4 @@ Mc_FileSelectStates         = 0x80013ACC;
 Mc_PromptStates             = 0x800139AC;
 Tmd_TaskStates              = 0x80013EDC;
 Ui_ObjectStates             = 0x80013F2C;
+tmdDrawStreamGt4PreXformOffsetLayer = 0x8009a57c; // type:func
