@@ -584,6 +584,41 @@ def topo_order(nodes, edges, comp, vendor=frozenset()):
     return order
 
 
+def _step_numbers(order, nodes, edges, comp, done):
+    """Step number per component, and the last step each one waits on.
+
+    The worklist is a total order, but most of it is free: a step is only
+    genuinely after another when it depends on it. Recording, for each step, the
+    highest step number among the items it uses turns that freedom into
+    something a driver can read - a set of steps may be worked at the same time
+    when none of them waits on a step in the set. Because dependencies always
+    precede their users here, the maximum over the direct dependencies is also
+    the maximum over the transitive ones, so one pass over the edges is enough.
+
+    A dependency that has already been processed carries no step number and
+    imposes no wait, which is what lets the front of the list widen as the pass
+    advances.
+    """
+    step_of, idx = {}, 0
+    for g in order:
+        if any(u not in done for u in g):
+            idx += 1
+            step_of[g] = idx
+    after = {}
+    for g in step_of:
+        last = 0
+        for u in g:
+            for d in edges.get(u, ()):
+                if d not in nodes:
+                    continue
+                h = comp.get(d, (d,))
+                if h is g:
+                    continue
+                last = max(last, step_of.get(h, 0))
+        after[g] = last
+    return step_of, after
+
+
 def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str):
     vendor = name_index.vendored_names(root)
     order = topo_order(nodes, edges, comp, vendor)
@@ -599,12 +634,17 @@ def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str):
                   if u not in done and nodes[u].get("file")}
     used_in_asm = asm_used(root, version, todo_names)
 
+    step_of, after = _step_numbers(order, nodes, edges, comp, done)
+
     rows, idx = [], 0
     for g in order:
         pending = [u for u in g if u not in done]
         if not pending:
             continue
         idx += 1
+        # The wait column is only meaningful against the numbers written here,
+        # so the two countings of the same sequence must not drift apart.
+        assert step_of[g] == idx, "step numbering disagrees with the wait map"
         for usr in sorted(pending, key=lambda u: nodes[u]["name"]):
             meta = nodes[usr]
             name, where = meta["name"], meta.get("file", "")
@@ -640,9 +680,10 @@ def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str):
             else:
                 vis = "private"
             rows.append((str(idx), str(len(pending)), name, kind, vis, state,
-                         where, str(len(refs))))
+                         where, str(len(refs)), str(after.get(g, 0))))
     with open(out_path, "w") as fh:
-        fh.write("order\tgroup_size\tname\tkind\tvisibility\tstate\tfile\treferrers\n")
+        fh.write("order\tgroup_size\tname\tkind\tvisibility\tstate\tfile"
+                 "\treferrers\tafter\n")
         for r in rows:
             fh.write("\t".join(r) + "\n")
     return rows
