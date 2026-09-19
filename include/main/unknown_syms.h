@@ -27,7 +27,6 @@ extern void  func_8002C1D8(void);
 extern void  Gp_DrawActorTmdFlagged(GpuOtBuf* arg0);
 extern void  Gp_DrawActorTmdActive(GpuOtBuf* arg0);
 extern void  Gp_SpawnCurView(s32 arg0);
-extern void* Gp_AttachDisp2d(Task* task);
 extern void* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags);
 extern void  Gp_ClearRec18Occupied(GpRec18* arg0);
 extern s32   func_801011D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);

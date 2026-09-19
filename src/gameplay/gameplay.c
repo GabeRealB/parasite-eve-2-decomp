@@ -1053,7 +1053,7 @@ void* Gp_AttachTmd(Task* task, TmdSource* src)
     return node;
 }
 
-void* Gp_AttachDisp2d(Task* task)
+GpDisp2d* gpAttachDisp2d(Task* task)
 {
     GpDisp2d*           node;
     TmdListHead*        last;

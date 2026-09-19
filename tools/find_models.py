@@ -6,7 +6,7 @@ model":
 
     type = desc->flags & 0xFF
     type == 1  ->  Gp_AttachTmdFlags(task, desc->arg.model, ...)
-    type == 2  ->  Gp_AttachDisp2d                     (2D sprite, no model)
+    type == 2  ->  gpAttachDisp2d                      (2D sprite, no model)
 
 So the strongest evidence a run of bytes is a model is that a type-1 `TaskDesc`
 points at it. This anchors on the *model* and looks back 8 bytes for that

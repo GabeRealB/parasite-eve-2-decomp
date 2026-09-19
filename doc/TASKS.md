@@ -78,7 +78,7 @@ Spawn type (low byte of `flags`, stored as `Task::spawnType`) is the body:
 |------|------------------------|---------------|
 | 0 | none | free the `Task` |
 | 1 | `Gp_AttachTmdFlags(task, arg.model, flags)` — 3D TMD | unlink + free TMD (often deferred 2 frames) |
-| 2 | `Gp_AttachDisp2d(task)` — 2D | unlink Disp2d (often deferred 1 frame) |
+| 2 | `gpAttachDisp2d(task)` — 2D | unlink Disp2d (often deferred 1 frame) |
 
 If attach fails, spawn returns NULL and frees the `Task`. `exitCallback`
 defaults to `taskKill`.

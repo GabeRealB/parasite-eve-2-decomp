@@ -27625,7 +27625,7 @@ if (node != NULL) {
 }
 ```
 
-`Gp_AttachDisp2d` is the example. The same body without the register pin
+`gpAttachDisp2d` is the example. The same body without the register pin
 stuck at 92.6% with only those registers (and the late `&gTmdDisp2dList`)
 different.
 

@@ -46,7 +46,7 @@ case1:
     goto merge;
 
 case2:
-    extra = Gp_AttachDisp2d(task);
+    extra = gpAttachDisp2d(task);
 
 merge:
     if (((u8)desc->flags == 0) || (extra != NULL)) {
