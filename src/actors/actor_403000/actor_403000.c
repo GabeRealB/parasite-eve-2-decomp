@@ -3310,7 +3310,180 @@ void func_actor_403000_8013B238(Actor403000* arg0)
     *(Actor403000AimScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013B74C);
+static __inline__ s32 Actor403000_Outside(SVECTOR* v, s32 r)
+{
+    Actor403000RadiusScratch* s;
+    Actor403000RadiusScratch* head;
+    head                                        = *(Actor403000RadiusScratch**)G_SCRATCH_HEAD;
+    s                                           = head - 1;
+    *(Actor403000RadiusScratch**)G_SCRATCH_HEAD = s;
+    s->x                                        = v->vx;
+    s->y                                        = v->vz;
+    s->z                                        = r;
+    s->x                                       *= s->x;
+    s->y                                       *= s->y;
+    s->z                                       *= s->z;
+    *(Actor403000RadiusScratch**)G_SCRATCH_HEAD = head;
+    return (s->x + s->y) >= s->z;
+}
+
+void func_actor_403000_8013B74C(Actor403000* arg0)
+{
+    Actor403000Work*        work;
+    Actor403000*            player;
+    GpEnemy*                enemy;
+    Actor403000DropScratch* scratch;
+    Actor403000DropScratch* head;
+    GsCOORDINATE2*          coord;
+    GsCOORDINATE2*          coord2;
+    SVECTOR*                t;
+    Task*                   task;
+    s32                     x;
+    s32                     z;
+    s8                      col;
+    s8                      row;
+    s32                     b;
+    GameActor*              pw;
+    s32                     frame;
+    s16                     angle;
+    s32                     mag;
+    work   = arg0->field_1C;
+    player = Game_GetPtrSlot(3);
+    enemy  = arg0->field_20;
+    if (work->field_4 != 0) {
+        work->field_F74                    = player->field_2C->coords->coord.t[0];
+        work->field_F76                    = player->field_2C->coords->coord.t[1];
+        work->field_F78                    = player->field_2C->coords->coord.t[2];
+        arg0->field_2C->coords->coord.t[0] = 0x2134;
+        arg0->field_2C->coords->coord.t[1] = player->field_2C->coords->coord.t[1] - 0x1518;
+        arg0->field_2C->coords->coord.t[2] = 0x1194;
+        work->field_AC6                    = 8;
+        work->field_AC0                    = 2;
+        work->field_6                      = 0;
+        work->field_ACA                    = 0;
+        work->field_FCA                    = 0;
+        scratch                            = (*(Actor403000DropScratch**)G_SCRATCH_HEAD -= 1);
+        x                                  = player->field_2C->coords->coord.t[0];
+        z                                  = player->field_2C->coords->coord.t[2];
+        if (x < 0xD48) {
+            col = 4;
+        } else if (x < 0x1A90) {
+            col = 3;
+        } else if (x < 0x2AF8) {
+            col = 2;
+        } else {
+            col = x < 0x3C8C;
+        }
+        row           = z >= 0x1068;
+        b             = (s8)D_actor_403000_80158D48[col + row * 5];
+        scratch->base = b;
+        TOUCH_REG(b);
+        switch ((s8)b) {
+            case 0:
+                Gfx_RotMatrixY(&arg0->field_2C->coords->coord, 0x800, 1);
+                break;
+
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+                Gfx_RotMatrixY(&arg0->field_2C->coords->coord, 0x400, 1);
+                break;
+
+            case 5:
+                Gfx_RotMatrixY(&arg0->field_2C->coords->coord, 0, 1);
+                break;
+
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+            default:
+                Gfx_RotMatrixY(&arg0->field_2C->coords->coord, -0x400, 1);
+                break;
+        }
+
+        *(Actor403000DropScratch**)G_SCRATCH_HEAD += 1;
+    }
+    if (work->field_FD9 != 0) {
+        work->field_FD9--;
+        return;
+    }
+    head    = *(Actor403000DropScratch**)G_SCRATCH_HEAD;
+    scratch = (*(Actor403000DropScratch**)G_SCRATCH_HEAD = head - 1);
+    frame   = (s16)work->field_6;
+    if (frame == 10) {
+        work->field_ACA    = 0x10;
+        scratch->target.vx = work->field_F74 - player->field_2C->coords->coord.t[0];
+        scratch->target.vy = work->field_F76 - player->field_2C->coords->coord.t[1];
+        scratch->target.vz = work->field_F78 - player->field_2C->coords->coord.t[2];
+        if (!Actor403000_Outside(&scratch->target, 1000) && enemy->field_40 > 0 &&
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&D_actor_403000_80158DD0, 0) == 0) {
+            task         = Game_GetPtrSlot(3);
+            scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 3), 0);
+            if (scratch->ret == 1) {
+                pw                              = (GameActor*)player->field_1C;
+                gGameSession->field_12E         = 0x28;
+                gGameSession->deathRestartDelay = 0x28;
+                pw->field_956                   = frame;
+            }
+            work->field_0   = 0xD;
+            work->field_F90 = &D_actor_403000_80158C08;
+            work->field_F94 = 5;
+            work->field_F98 = 0;
+            work->field_F9C = 0;
+            work->field_FA0 = 1;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
+            work->field_FC0 = 1;
+        }
+    }
+    if (arg0->field_2C->coords->coord.t[1] < player->field_2C->coords->coord.t[1]) {
+        arg0->field_2C->coords->coord.t[1] += 0x12C;
+    }
+    if ((s16)work->field_6 >= 4) {
+        arg0->field_2C->coords->coord.t[0] += (work->field_F74 - arg0->field_2C->coords->coord.t[0]) >> 2;
+        arg0->field_2C->coords->coord.t[2] += (work->field_F78 - arg0->field_2C->coords->coord.t[2]) >> 2;
+    }
+    arg0->field_2C->coords->flg = 0;
+    func_actor_403000_80133AF8(arg0);
+    if (work->field_60.half & 1) {
+        t      = &scratch->target;
+        coord2 = arg0->field_2C->coords;
+        t->vx  = Player_Status.coordMtx->t[0] - coord2->coord.t[0];
+        t->vy  = Player_Status.coordMtx->t[1] - coord2->coord.t[1];
+        t->vz  = Player_Status.coordMtx->t[2] - coord2->coord.t[2];
+        coord  = arg0->field_2C->coords;
+        angle  = ratan2(t->vx, t->vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+        if (angle < 0) {
+        loop_neg:
+            if (angle < (-0x800)) {
+                angle += 0x1000;
+                goto loop_neg;
+            }
+
+        } else {
+        loop_pos:
+            if (angle > 0x800) {
+                angle -= 0x1000;
+                goto loop_pos;
+            }
+        }
+        scratch->angle = (mag = angle);
+        if (ABS(mag) > 0x300) {
+            work->field_0   = 4;
+            work->field_FD3 = (work->field_FD2 = (work->field_FD5 = -func_actor_403000_80134204(arg0->field_2C->coords)));
+        } else {
+            work->field_0   = 2;
+            work->field_FD3 = -func_actor_403000_80134204(arg0->field_2C->coords);
+            work->field_FD2 = (work->field_FD5 = func_actor_403000_80134204(arg0->field_2C->coords));
+        }
+    }
+    if ((s16)work->field_6 >= 2) {
+        work->field_ACA = 0x10;
+    }
+    work->field_6++;
+    *(Actor403000DropScratch**)G_SCRATCH_HEAD += 1;
+}
 
 /// Ease the display object up toward the player and across to
 /// `field_F74`/`field_F78`, turn the player's third matrix column into the

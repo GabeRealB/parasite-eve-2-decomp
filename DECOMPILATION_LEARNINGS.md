@@ -132127,3 +132127,28 @@ individual barrier minimality remains untested. Input hashes are
 and `414830bd27e1f8c8cd284d6bd85090d5b34e4161b19f79a620791b573aca7eb8` (port),
 with the same compiler hash above. Evidence and unsuccessful router outputs are
 retained under `tools/permuter_findings/func_actor_401300_80136CE8/`.
+
+
+## A signed byte load followed by redundant switch sign extension (func_actor_403000_8013B74C, 2026-09-19)
+
+The target has `lb; sb; sll 24; sra 24`. Direct assignment to the scratch byte
+gives `lbu` and retains the shifts. Widening through s32 gives `lb`, but combine
+knows its sign bits and folds the subsequent shifts to a copy.
+
+The exact form loads `(s8)table[index]` into `s32 b`, stores b, then applies
+`TOUCH_REG(b)` before `switch ((s8)b)`. Its SI input keeps the signed load;
+the read/write output obscures sign-bit knowledge. The volatile boundary also
+keeps the store before the shifts. No pin or instruction-emitting asm is used.
+
+The single-change control base_3 removes the helper from exact base_2:
+combine retains signed load 209, deletes shift 300 and rewrites right shift
+301 to a copy, scoring 99.247031%. Exact base_2/5 retains asm 214 between
+load 209 and shifts 302/303; greg keeps load/left shift in v0, right shift in
+v1. Patched combine.c:8412-8427 has the known-sign-bit folding condition.
+This is a tested local remedy, not evidence for original source spelling.
+
+Exact input SHA256: `830feefeffdea9616a648459669823e7a77dc8cffa311dc6c7f4ef867bfdda7c`.
+Control SHA256: `b7f13548c335eee6bf58e48a888816bf131c92147ae715e8c1cf8d163b82bf78`.
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Evidence: tools/permuter_findings/func_actor_403000_8013B74C/,
+session `eab7eadfae0e48609c94162bc0c7d03d`, LEARNINGS.md and retained dumps.

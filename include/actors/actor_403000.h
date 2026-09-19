@@ -356,6 +356,28 @@ typedef struct Actor403000AimScratch {
 } Actor403000AimScratch;
 STATIC_ASSERT_SIZEOF(Actor403000AimScratch, 0x14);
 
+/// Scratch frame used by `func_actor_403000_8013B74C` for the drop target,
+/// heading error, player-message result and waypoint-grid cell.
+typedef struct Actor403000DropScratch {
+    /* 0x00 */ byte    pad_0[0x10];
+    /* 0x10 */ SVECTOR target;
+    /* 0x18 */ byte    pad_18[0x8];
+    /* 0x20 */ s16     angle;
+    /* 0x22 */ s16     ret;
+    /* 0x24 */ byte    pad_24;
+    /* 0x25 */ s8      base;
+    /* 0x26 */ byte    pad_26[0x2];
+} Actor403000DropScratch;
+STATIC_ASSERT_SIZEOF(Actor403000DropScratch, 0x28);
+
+/// Squared horizontal components and radius used by `Actor403000_Outside`.
+typedef struct Actor403000RadiusScratch {
+    /* 0x00 */ s32 x;
+    /* 0x04 */ s32 y;
+    /* 0x08 */ s32 z;
+} Actor403000RadiusScratch;
+STATIC_ASSERT_SIZEOF(Actor403000RadiusScratch, 0xC);
+
 /// 0x14-byte scratch from `G_SCRATCH_HEAD` used by
 /// `func_actor_403000_8013C2D4`: `facing` and `base` are the player's and the
 /// actor's waypoint-grid cells, `index` the waypoint picked from `base` plus
