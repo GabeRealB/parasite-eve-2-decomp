@@ -229,7 +229,15 @@ step.
   one.
 
 `find_references.py` reaches the same C references, and with `--asm` the
-generated assembly under `asm/`.
+generated assembly under `asm/`. One gap matters when the item is a type: a
+type no code spells by name is reached only through the member that declares
+it, and the listing a step is handed reports none of those uses - it can name
+only a mention in prose while the functions that touch that member use the type
+throughout. The `referrers` count above comes from the dependency graph, which
+does see them, so a listing far smaller than that count is the signal. Find the
+users through the owner (`find_references.py <header>/<Owner>`) before
+concluding anything from the listing; deleting or inlining an "unused" type is
+the wrong move when its uses are simply filed under its owner.
 
 Everything below is outside both, and is yours to do by hand and to name in the
 report:

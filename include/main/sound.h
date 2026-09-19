@@ -167,11 +167,12 @@ STATIC_ASSERT_SIZEOF(SndEvtVoiceArgs, 0x10);
 
 /// Arguments of a `SndEvt`, one arm per family of handlers.
 ///
-/// Which arm an event uses follows from its command: the sequence commands, the
-/// handlers that act on a `MidiSong`, read `midi`, and the voice commands,
-/// which act on a bank entry or the voices started from it, read `voice`. The
-/// enqueuer writes the arm its command reads and leaves the rest, so every
-/// event carries room for the larger one.
+/// An event owns a single argument slot, and the two arms are the layouts its
+/// commands read it under: the sequence commands, which address a `MidiSong`,
+/// read `midi`, and the voice commands, which address a bank entry and the
+/// voices started from it, read `voice`. The slot is as large as the larger of
+/// the two, and a command fills in only the fields its own handler reads, so
+/// the rest of the slot still holds what its previous occupant left there.
 typedef union {
     SndEvtMidiArgs  midi;
     SndEvtVoiceArgs voice;
