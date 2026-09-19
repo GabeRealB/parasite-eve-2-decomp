@@ -40,7 +40,8 @@ typedef struct Actor403600Work {
     /* 0x700 */ s16                  field_700;
     /* 0x702 */ byte                 pad_702[6];
     /* 0x708 */ s16                  field_708;
-    /* 0x70A */ byte                 pad_70A[6];
+    /* 0x70A */ s16                  field_70A;
+    /* 0x70C */ byte                 pad_70C[4];
     /* 0x710 */ Task*                field_710;
     /* 0x714 */ byte                 pad_714[0x1C];
     /* 0x730 */ s16                  field_730;
@@ -145,6 +146,11 @@ typedef struct Actor403600 {
     /* 0x2C */ TmdObject*       field_2C;
     /* 0x30 */ s32              field_30;
 } Actor403600;
+
+typedef struct Actor403600Pattern {
+    u8 values[9];
+} __attribute__((packed)) Actor403600Pattern;
+STATIC_ASSERT_SIZEOF(Actor403600Pattern, 9);
 
 typedef struct Actor403600Msg {
     /* 0x0 */ void* field_0;

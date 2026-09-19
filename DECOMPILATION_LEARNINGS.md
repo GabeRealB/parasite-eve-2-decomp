@@ -131979,3 +131979,19 @@ findings. Full evidence: tools/permuter_findings/func_actor_403600_8013EA04/,
 session 59f9959a577f4a1ab4e9e16ca359859d, TRACE_BASE, base_2 dumps and its plan.
 Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 Baseline input: bf7300060a1d07e0a79ddf00037665c9ddadf1cc374f0018bc59d8bf422a8a5a; controlled base_2 input: 852997d1104b4cd83c27869a996ff1212472455b56d1fc2c29523500b8fb1547.
+
+
+## Sharing a loop index removes sched1 birth promotion while preserving its register (func_actor_403600_801396F8)
+
+The unpinned base_5 was 99.859%, with only two reorder penalties: each effect loop emitted stack-base addiu before andi, where the target needs andi first. Its pointer read/write asm and call-argument staging were already needed for the remaining schedule.
+
+A planned base_6 assigned `patternIndex = counter & 0xFF` before pointer setup in each loop and reused that same s32 destination across the two loops. It reached 100.000%, preserving index v0, pointer s0, call setup and backedge delay slots. The typed port also remained exact; the unscoped build passed.
+
+Evidence distinguishes the scheduler mechanism from the allocation side effect. In base_5 sched1 block84 T-29, andi UID1626 has priority 0x7f000001 and is selected before pointer-touch UID1624 in backward scheduling. In base_6, andi UID1621 remains priority1; T-29 selects pointer touch1626, T-30 stack-base1624, T-31 andi1621. This produces the desired forward order. The bundled sched.c:birthing_insn_p tests REG_N_SETS == 1 before adjust_priority promotes the definition. The shared destination has two assignments, so fails that test. Its global lreg status (r108, two deaths, 8 refs/8 insns) is a separate consequence, not the scheduler predicate. greg still assigns v0. The dumps show the actual selection, not just comparator rank.
+
+Earlier in the same session, sharing one sound-ID destination across two blocks removed local load/shift/result tying, allowing the work pointer to return to s1 and making all three archived pins unnecessary. Promoting separate pan locals to s32 placed their sign extensions before the depth calls. These reproduce the existing sound-ID/pan findings.
+
+Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+Inputs: base_5.i 83efd51f53f42d97575cc31163b7c75c841c13bb865764229f6e89d1a214371d;
+base_6.i c1532b40ae6c55c22205f08010597772795886f8bbfd47b725472d1809df71a0.
+Retained source, plans/conclusions and compressed dumps: tools/permuter_findings/func_actor_403600_801396F8/, session 6bc02bb7568c41a5ac3cb6c4d2db9cf1, PERMUTER_EVIDENCE/0ffbdfd9ab0345f5/analysis/manual_match/. The router found no discovery; these gains came from independent manual experiments.

@@ -4,10 +4,13 @@
 
 #include "actors/actor_403600.h"
 #include "main/sound.h"
+#include "main/fs.h"
+#include "main/gameflow.h"
 #include "main/wipsys.h"
 #include "main/gfx.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "psyq/inline_c.h"
 
@@ -198,13 +201,23 @@
         : "r"(scale), "r"(p)                          \
         : "$2", "$7", "$8", "$9", "$10", "$11", "$12", "$13", "$14", "hi", "lo", "memory")
 
+extern TaskDesc                 D_800626EC[];
+extern s32                      D_80070F70;
+extern s8                       D_80073BAD;
+extern TaskDesc                 D_80162E98;
+extern u8                       D_80187B10;
+extern u8                       D_80187E14;
+extern u8                       D_80188264;
+extern u8                       D_8018864C;
+extern Task*                    D_actor_403600_801606B4;
+extern const Actor403600Pattern D_actor_403600_80131E38;
+
 extern u8               D_80071075;
 extern s8               D_8007216C;
 extern u8               D_801153F4;
 extern s8               D_801153F1;
 extern TaskDesc         D_8016E468;
 extern MATRIX*          D_80073B8C;
-extern s32              D_8005C374;
 extern s32              D_8007107C;
 extern s16              D_80073BA0;
 extern u32              Gp_LcgState;
@@ -240,6 +253,9 @@ void func_actor_403600_801353D0(Actor403600EffectState* arg0, GsCOORDINATE2* arg
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, TaskIdMap* arg2, TaskIdMap* arg3);
 void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Work* arg2);
+void func_80181940(Actor403600* arg0);
+void func_actor_403600_8013A444(Actor403600* arg0);
+void func_actor_403600_801419E8(Actor403600* arg0);
 void func_actor_403600_8013955C(Actor403600* arg0);
 void func_actor_403600_801396F8(Actor403600* arg0);
 void func_actor_403600_8013D15C(Actor403600* arg0);
@@ -573,7 +589,7 @@ void func_actor_403600_80134288(Task* arg0)
     }
 block_6:
     temp_a3                 = arg0->work;
-    D_actor_403600_8016069C = D_8005C374 + (D_8007107C * 0xC000);
+    D_actor_403600_8016069C = (s32)D_8005C374 + (D_8007107C * 0xC000);
     {
         register s32 field_742 asm("v1");
 
@@ -2534,7 +2550,527 @@ void func_actor_403600_8013955C(Actor403600* arg0)
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403600/actor_403600", D_actor_403600_80131E34);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801396F8);
+const Actor403600Pattern D_actor_403600_80131E38 = { { 1, 12, 13, 14, 15, 16, 17, 18, 19 } };
+
+void func_actor_403600_801396F8(Actor403600* arg0)
+{
+    SVECTOR            sp10;
+    SVECTOR            sp18;
+    Actor403600Pattern sp20;
+    u8                 sp30[4];
+    s32                temp_a0_4;
+    s32                temp_a0_6;
+    s32                temp_a2_2;
+    SVECTOR*           temp_a3_2;
+    s16                temp_v0_13;
+    s32                temp_v0_14;
+    s16                temp_v0_16;
+    s16                temp_v0_18;
+    s32                temp_v0_19;
+    s16                temp_v0_29;
+    s16                temp_v0_9;
+    s16                temp_v1;
+    s16                temp_v1_2;
+    s16                temp_v1_3;
+    s16                temp_v1_6;
+    s16                var_v0_3;
+    GpEffWork*         temp_v0_5;
+    GpEffWork*         temp_v0_6;
+    GpEffWork*         temp_v0_7;
+    GpEffWork*         temp_v0_8;
+    s32                temp_s2;
+    s32                temp_v0_17;
+    s32                var_a0;
+    s32                patternIndex;
+    s32                var_s2;
+    s32                var_s2_2;
+    s32                var_v0;
+    s32                temp_s0_2;
+    s32                temp_s0_4;
+    u16                temp_v0_22;
+    u16                temp_v0_23;
+    u16                temp_v0_27;
+    u16                temp_v0_28;
+    u16                temp_v0_2;
+    u16                temp_v0_4;
+    s32                temp_v1_4;
+    u16                var_v0_4;
+    u32                temp_v0_10;
+    u32                temp_v0_11;
+    u8*                temp_s0_5;
+    u8*                temp_s0_6;
+    u8                 temp_a0;
+    u8                 temp_a0_2;
+    u8                 temp_a0_3;
+    u8                 temp_a0_5;
+    GsCOORDINATE2*     temp_s0;
+    GsCOORDINATE2*     temp_s0_3;
+    Actor403600Work*   temp_s1;
+    Actor403600Work*   temp_v0;
+    Actor403600Work*   temp_v0_12;
+    Actor403600Work*   temp_v0_15;
+    Actor403600Work*   temp_v0_3;
+
+    temp_s1 = arg0->field_1C;
+    temp_v1 = temp_s1->field_730;
+    switch (temp_v1) {
+        case 0:
+            temp_s1->field_4B8.coord.t[0] = 0x196E;
+            temp_s1->field_4B8.coord.t[1] = 0x1AE;
+            temp_s1->field_4B8.coord.t[2] = 0x1630;
+            return;
+        case 1:
+            func_actor_403600_8013A444(arg0);
+            return;
+        case 2:
+            func_actor_403600_80141B24(arg0);
+            temp_s1->field_774 = 0;
+            temp_s1->field_784 = 1;
+            temp_s1->field_74A = 0;
+            temp_s1->field_736 = 0xB;
+            if (temp_s1->field_73A < 0xF) {
+                temp_s1->field_73C = -0xA;
+            }
+            if (temp_s1->field_73A >= 0x27) {
+                temp_v0            = arg0->field_1C;
+                temp_v0->field_756 = 8;
+                temp_v0->field_778 = 0x10;
+                temp_v0->field_776 = 0xA;
+                temp_v0->field_742 = 0;
+                temp_v0->field_746 = 0;
+                temp_v0->field_774 = 0;
+                temp_v0->field_77A = 0U;
+                temp_v0->field_784 = 0;
+                temp_v0->field_73C = 0;
+                temp_v0->field_73E = 0;
+                temp_v0->field_74A = 0;
+                temp_v0->field_73A = 0;
+                temp_v0->field_76E = 0x40;
+                temp_v0->field_75E = 0;
+                temp_v0->field_7A4 = 0;
+                temp_v0->field_7A6 = 0;
+                temp_v0->field_7AC = 0;
+                temp_s1->field_730 = 1;
+                return;
+            }
+        default:
+            return;
+        case 3:
+            func_actor_403600_80141B24(arg0);
+            temp_s1->field_73C = 0;
+            temp_s1->field_74A = 0;
+            if (temp_s1->field_736 == 0xE) {
+                temp_v0_2          = temp_s1->field_790 - 1;
+                temp_s1->field_790 = temp_v0_2;
+                if ((temp_v0_2 << 0x10) == 0) {
+                    temp_s1->field_736 = 0xF;
+                    return;
+                }
+            } else {
+                var_v0 = temp_s1->field_73A < 0x11;
+                goto block_30;
+            }
+            break;
+        case 4:
+            func_actor_403600_80141B24(arg0);
+            temp_s1->field_73C = 0;
+            temp_s1->field_74A = 0;
+            temp_v0_4          = temp_s1->field_790 - 1;
+            temp_s1->field_790 = temp_v0_4;
+            if ((temp_v0_4 << 0x10) != 0) {
+                *(volatile s16*)&temp_s1->field_778 = 0;
+                temp_s1->field_4B8.coord.t[1]       = (s32)(temp_s1->field_4B8.coord.t[1] + (rsin(*(volatile s32*)&D_80070F70 << 9) >> 8));
+                return;
+            }
+            goto block_31;
+        case 5:
+            func_actor_403600_80141B24(arg0);
+            temp_s1->field_78C = 1;
+            temp_s1->field_784 = 1;
+            temp_s1->field_736 = 0xB;
+            temp_s1->field_774 = 0;
+            temp_s1->field_74A = 0;
+            temp_s1->field_70A = 0;
+            if (temp_s1->field_73A == 1) {
+                memset(&sp10, 0, 8);
+                sp10.vy = 0x64;
+                Gp_SpawnEff(0x6009C, &arg0->field_2C->coords[1], 3, &sp10);
+                func_actor_403600_80141954(1);
+                D_800626EC[5].arg.model = &D_80187B10;
+                temp_v0_5               = Gp_SpawnEff(0x80005, &arg0->field_2C->coords[1], 0, NULL);
+                if (temp_v0_5 != NULL) {
+                    func_actor_403600_801419E8((Actor403600*)temp_v0_5->field_0);
+                }
+                D_800626EC[5].arg.model = &D_80187E14;
+                temp_v0_6               = Gp_SpawnEff(0x80005, &arg0->field_2C->coords[1], 0, NULL);
+                if (temp_v0_6 != NULL) {
+                    func_actor_403600_801419E8((Actor403600*)temp_v0_6->field_0);
+                }
+                D_800626EC[5].arg.model = &D_80188264;
+                temp_v0_7               = Gp_SpawnEff(0x80005, &arg0->field_2C->coords[1], 0, NULL);
+                if (temp_v0_7 != NULL) {
+                    func_actor_403600_801419E8((Actor403600*)temp_v0_7->field_0);
+                }
+                D_800626EC[5].arg.model = &D_8018864C;
+                temp_v0_8               = Gp_SpawnEff(0x80005, &arg0->field_2C->coords[1], 0, NULL);
+                if (temp_v0_8 != NULL) {
+                    func_actor_403600_801419E8((Actor403600*)temp_v0_8->field_0);
+                }
+                Gp_SpawnEff(0x60030, &arg0->field_2C->coords[1], 0x800, NULL);
+            }
+            temp_v1_2 = temp_s1->field_73A;
+            if ((temp_v1_2 == 4) || (temp_v1_2 == 6)) {
+                memset(&sp18, 0, 8);
+                sp18.vy = 0x64;
+                Gp_SpawnEff(0x6009C, &arg0->field_2C->coords[1], 3, &sp18);
+            }
+            if (temp_s1->field_73A < 0xF) {
+                temp_s1->field_73C = -0xA;
+            }
+            var_v0 = temp_s1->field_73A < 0x27;
+        block_30:
+            if (var_v0 != 0) {
+                return;
+            }
+        block_31:
+            temp_v0_3            = arg0->field_1C;
+            temp_v0_3->field_756 = 8;
+            temp_v0_3->field_778 = 0x10;
+            temp_v0_3->field_776 = 0xA;
+            temp_v0_3->field_742 = 0;
+            temp_v0_3->field_746 = 0;
+            temp_v0_3->field_774 = 0;
+            temp_v0_3->field_77A = 0U;
+            temp_v0_3->field_784 = 0;
+            temp_v0_3->field_73C = 0;
+            temp_v0_3->field_73E = 0;
+            temp_v0_3->field_74A = 0;
+            temp_v0_3->field_73A = 0;
+            temp_v0_3->field_76E = 0x40;
+            temp_v0_3->field_75E = 0;
+            temp_v0_3->field_7A4 = 0;
+            temp_v0_3->field_7A6 = 0;
+            temp_v0_3->field_7AC = 0;
+            temp_s1->field_730   = 1;
+            return;
+        case 6:
+            if (temp_s1->field_78C == 1) {
+                if (temp_s1->field_73A >= 0x32) {
+                    temp_a0 = temp_s1->field_7A2;
+                    Fade_DrawOverlay(temp_a0, temp_a0, temp_a0, 1);
+                    temp_v0_9          = (u16)temp_s1->field_7A2 + 0xF;
+                    temp_s1->field_7A2 = temp_v0_9;
+                    if (temp_v0_9 >= 0xFF) {
+                        temp_s1->field_7A2 = 0xFF;
+                    }
+                }
+                if (((u16)temp_s1->field_73A & 3) == 3) {
+                    Gp_SpawnEff(0x60055, &arg0->field_2C->coords[1], 0x12800, NULL);
+                }
+                temp_v1_3 = temp_s1->field_73A;
+                if (temp_v1_3 < 0x2F) {
+                    if (temp_v1_3 == 0x2E) {
+                        temp_s0    = &temp_s1->field_4B8;
+                        temp_s2    = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x54160013;
+                        temp_s0_2  = (s8)Gp_GetObjPan(temp_s0);
+                        temp_v0_10 = Gp_GetObjDepth(temp_s0);
+                        SndEvt_EnqueueType6(temp_s2, temp_s0_2, (s32)(((temp_v0_10 >> 0x1F) + temp_v0_10) << 0x17) >> 0x18);
+                    }
+                    if (((u16)temp_s1->field_73A & 0xF) == 0xF) {
+                        func_80181940(arg0);
+                    }
+                } else {
+                    func_80181940(arg0);
+                    if (temp_s1->field_73A == 0x32) {
+                        temp_s0_3  = &temp_s1->field_4B8;
+                        temp_s2    = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x54160014;
+                        temp_s0_4  = (s8)Gp_GetObjPan(temp_s0_3);
+                        temp_v0_11 = Gp_GetObjDepth(temp_s0_3);
+                        SndEvt_EnqueueType6(temp_s2, temp_s0_4, (s32)(((temp_v0_11 >> 0x1F) + temp_v0_11) << 0x17) >> 0x18);
+                        Gp_SpawnEff(0x601BC, &arg0->field_2C->coords[1], 0x1E, NULL);
+                    }
+                }
+                if (temp_s1->field_73A == 0x3C) {
+                    func_actor_403600_80141954(0);
+                }
+                temp_s1->field_73C = 0;
+                temp_s1->field_74A = 0;
+                temp_s1->field_736 = 4;
+                if (temp_s1->field_73A >= 0x46) {
+                    SndEvt_EnqueueType7(0x54160013, 0x14);
+                    temp_v0_12            = arg0->field_1C;
+                    temp_v0_12->field_756 = 8;
+                    temp_v0_12->field_778 = 0x10;
+                    temp_v0_12->field_776 = 0xA;
+                    temp_v0_12->field_742 = 0;
+                    temp_v0_12->field_746 = 0;
+                    temp_v0_12->field_774 = 0;
+                    temp_v0_12->field_77A = 0U;
+                    temp_v0_12->field_784 = 0;
+                    temp_v0_12->field_73C = 0;
+                    temp_v0_12->field_73E = 0;
+                    temp_v0_12->field_74A = 0;
+                    temp_v0_12->field_73A = 0;
+                    temp_v0_12->field_76E = 0x40;
+                    temp_v0_12->field_75E = 0;
+                    temp_v0_12->field_7A4 = 0;
+                    temp_v0_12->field_7A6 = 0;
+                    temp_v0_12->field_7AC = 0;
+                    temp_s1->field_736    = 5;
+                    temp_s1->field_78C    = 2;
+                    return;
+                }
+            } else {
+                temp_a0_2 = temp_s1->field_7A2;
+                Fade_DrawOverlay(temp_a0_2, temp_a0_2, temp_a0_2, 1);
+                temp_v0_13         = (u16)temp_s1->field_7A2 - 0x28;
+                temp_s1->field_7A2 = temp_v0_13;
+                if ((temp_v0_13 << 0x10) <= 0) {
+                    temp_s1->field_7A2 = 0;
+                }
+                temp_v0_14 = temp_s1->field_73A;
+                if (temp_v0_14 == 0xA) {
+                    SndEvt_EnqueueType7(0x54160013, 0x14);
+                    temp_v0_14 = temp_s1->field_73A;
+                }
+                if (temp_v0_14 >= 0x1E) {
+                    temp_v0_15            = arg0->field_1C;
+                    temp_v0_15->field_756 = 8;
+                    temp_v0_15->field_778 = 0x10;
+                    temp_v0_15->field_742 = 0;
+                    temp_v0_15->field_746 = 0;
+                    temp_v0_15->field_774 = 0;
+                    temp_v0_15->field_77A = 0U;
+                    temp_v0_15->field_784 = 0;
+                    temp_v0_15->field_73C = 0;
+                    temp_v0_15->field_73E = 0;
+                    temp_v0_15->field_74A = 0;
+                    temp_v0_15->field_73A = 0;
+                    temp_v0_15->field_776 = 0xA;
+                    temp_v0_15->field_76E = 0x40;
+                    temp_v0_15->field_75E = 0;
+                    temp_v0_15->field_7A4 = 0;
+                    temp_v0_15->field_7A6 = 0;
+                    temp_v0_15->field_7AC = 0;
+                    temp_s1->field_78C    = 0;
+                    temp_s1->field_730    = 1;
+                    return;
+                }
+            }
+            break;
+        case 10:
+            temp_a0_3 = temp_s1->field_7A2;
+            Fade_DrawOverlay(temp_a0_3, temp_a0_3, temp_a0_3, 1);
+            temp_v0_16         = (u16)temp_s1->field_7A2 - 0x1E;
+            temp_s1->field_7A2 = temp_v0_16;
+            if ((temp_v0_16 << 0x10) <= 0) {
+                temp_s1->field_7A2 = 0;
+            }
+            temp_s1->field_73C = 0;
+            temp_s1->field_74A = 0;
+            Gp_SetObjTrans(arg0->field_2C, 0x1F40, 0x1F40, 0x1F40);
+            return;
+        case 11:
+            temp_s1->field_73C = 0;
+            temp_s1->field_74A = 0;
+            temp_s1->field_77A = (u16)(temp_s1->field_77A + 0x64);
+            return;
+        case 12:
+            temp_a0_4 = temp_s1->field_732;
+            switch (temp_a0_4) {
+                case 0:
+                    temp_v0_17                    = temp_s1->field_4B8.coord.t[1] + temp_s1->field_73C;
+                    temp_s1->field_4B8.coord.t[1] = temp_v0_17;
+                    if (temp_v0_17 < -0x1B61) {
+                        *(volatile s16*)&temp_s1->field_776 = 0;
+                        temp_s1->field_776                  = -0x19;
+                        temp_s1->field_73C                  = 0;
+                        temp_s1->field_73A                  = 0;
+                        temp_s1->field_794                  = 3U;
+                        temp_s1->field_732                  = (s16)((u16)temp_s1->field_732 + 1);
+                    }
+                    if (!((u16)temp_s1->field_73A & 1)) {
+                        temp_v0_18         = (u16)temp_s1->field_73C + 2;
+                        temp_s1->field_73C = temp_v0_18;
+                        var_a0             = 0x601BF;
+                        if (temp_v0_18 >= -0x1E) {
+                            temp_s1->field_73C = -0x1E;
+                            goto block_71;
+                        }
+                    } else {
+                    block_71:
+                        var_a0 = 0x601BF;
+                    }
+                    Gp_SpawnEff(var_a0, &arg0->field_2C->coords[15], 0xC00, NULL);
+                    Gp_SpawnEff(0x601BF, &arg0->field_2C->coords[19], 0xC00, NULL);
+                    return;
+                case 1:
+                    if ((u16)temp_s1->field_73A & 1) {
+                        temp_v0_19                    = temp_s1->field_776;
+                        temp_v1_4                     = temp_s1->field_4B8.coord.t[1];
+                        temp_v1_4                    += temp_v0_19;
+                        temp_s1->field_4B8.coord.t[1] = temp_v1_4;
+                        temp_v1_4                     = (u16)temp_s1->field_776;
+                        if (temp_v0_19 < 0) {
+                            temp_v0_19         = temp_v1_4 + 1;
+                            temp_s1->field_776 = temp_v0_19;
+                            if ((temp_v0_19 << 0x10) == 0) {
+                                temp_s1->field_776 = temp_a0_4;
+                                temp_v0_22         = temp_s1->field_794 - 1;
+                                temp_s1->field_794 = temp_v0_22;
+                                if ((temp_v0_22 << 0x10) == 0) {
+                                    temp_s1->field_794 = 3U;
+                                    var_v0_3           = 0x19;
+                                    goto block_81;
+                                }
+                            }
+                        } else {
+                            temp_v0_19         = temp_v1_4 - 1;
+                            temp_s1->field_776 = temp_v0_19;
+                            if ((temp_v0_19 << 0x10) == 0) {
+                                temp_s1->field_776 = 0;
+                                temp_v0_23         = temp_s1->field_794 - 1;
+                                temp_s1->field_794 = temp_v0_23;
+                                if ((temp_v0_23 << 0x10) == 0) {
+                                    temp_s1->field_794 = 3U;
+                                    var_v0_3           = -0x19;
+                                block_81:
+                                    temp_s1->field_776 = var_v0_3;
+                                }
+                            }
+                        }
+                    }
+                    if (temp_s1->field_792 >= 0x14) {
+                        sp20   = D_actor_403600_80131E38;
+                        var_s2 = 0;
+                        do {
+                            temp_a0_6 = 0x60070;
+                            temp_a2_2 = 0x34C00;
+                            temp_a3_2 = NULL;
+                            SOFT_TOUCH_REG3(temp_a0_6, temp_a2_2, temp_a3_2);
+                            patternIndex = var_s2 & 0xFF;
+                            temp_s0_5    = sp20.values;
+                            SOFT_TOUCH_REG(temp_s0_5);
+                            temp_s0_5 += patternIndex;
+                            var_s2    += 1;
+                            Gp_SpawnEff(temp_a0_6, &arg0->field_2C->coords[*temp_s0_5], temp_a2_2, temp_a3_2);
+                            Gp_SpawnEff(0x601BF, &arg0->field_2C->coords[*temp_s0_5], 0xC00, NULL);
+                        } while ((u32)(var_s2 & 0xFF) < 9U);
+                        temp_s1->field_792 = 0;
+                    }
+                    temp_s1->field_792 = (s16)((u16)temp_s1->field_792 + 1);
+                    if (temp_s1->field_73A >= 0xC8) {
+                        var_v0_4           = temp_s1->field_732;
+                        temp_s1->field_73A = 0;
+                        goto block_116;
+                    }
+                    break;
+                case 2:
+                    temp_s1->field_736 = 0x14;
+                    if (temp_s1->field_792 >= 0x14) {
+                        sp20     = D_actor_403600_80131E38;
+                        var_s2_2 = 0;
+                        do {
+                            temp_a0_6 = 0x60070;
+                            temp_a2_2 = 0x34C00;
+                            temp_a3_2 = NULL;
+                            SOFT_TOUCH_REG3(temp_a0_6, temp_a2_2, temp_a3_2);
+                            patternIndex = var_s2_2 & 0xFF;
+                            temp_s0_6    = sp20.values;
+                            SOFT_TOUCH_REG(temp_s0_6);
+                            temp_s0_6 += patternIndex;
+                            var_s2_2  += 1;
+                            Gp_SpawnEff(temp_a0_6, &arg0->field_2C->coords[*temp_s0_6], temp_a2_2, temp_a3_2);
+                            Gp_SpawnEff(0x601BF, &arg0->field_2C->coords[*temp_s0_6], 0xC00, NULL);
+                        } while ((u32)(var_s2_2 & 0xFF) < 9U);
+                        temp_s1->field_792 = 0;
+                    }
+                    temp_s1->field_792 = (s16)((u16)temp_s1->field_792 + 1);
+                    if ((u16)temp_s1->field_73A & 1) {
+                        temp_v0_19                    = temp_s1->field_776;
+                        temp_v1_4                     = temp_s1->field_4B8.coord.t[1];
+                        temp_v1_4                    += temp_v0_19;
+                        temp_s1->field_4B8.coord.t[1] = temp_v1_4;
+                        temp_v1_4                     = (u16)temp_s1->field_776;
+                        if (temp_v0_19 < 0) {
+                            temp_v0_19         = temp_v1_4 + 1;
+                            temp_s1->field_776 = temp_v0_19;
+                            if ((temp_v0_19 << 0x10) == 0) {
+                                temp_s1->field_776 = 1;
+                                temp_v0_27         = temp_s1->field_794 - 1;
+                                temp_s1->field_794 = temp_v0_27;
+                                if ((temp_v0_27 << 0x10) == 0) {
+                                    temp_s1->field_794 = 3U;
+                                    temp_s1->field_776 = 0x19;
+                                    return;
+                                }
+                            }
+                        } else {
+                            temp_v0_19         = temp_v1_4 - 1;
+                            temp_s1->field_776 = temp_v0_19;
+                            if ((temp_v0_19 << 0x10) == 0) {
+                                temp_s1->field_776 = 0;
+                                temp_v0_28         = temp_s1->field_794 - 1;
+                                temp_s1->field_794 = temp_v0_28;
+                                if ((temp_v0_28 << 0x10) == 0) {
+                                    temp_s1->field_794 = 3U;
+                                    temp_s1->field_776 = -0x19;
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    break;
+            }
+            break;
+        case 20:
+            temp_a0_5 = temp_s1->field_7A2;
+            Fade_DrawOverlay(temp_a0_5, temp_a0_5, temp_a0_5, 1);
+            temp_v0_29         = (u16)temp_s1->field_7A2 + 2;
+            temp_s1->field_7A2 = temp_v0_29;
+            if (temp_v0_29 >= 0xFF) {
+                temp_s1->field_7A2 = 0xFF;
+            }
+            temp_v1_6 = temp_s1->field_732;
+            switch (temp_v1_6) {
+                case 0:
+                    func_800E9BDC(1, 0xF9FF);
+                    temp_s1->field_70A = 0;
+                    D_80073BAD         = 0;
+                    goto block_115;
+                case 1:
+                    if ((s16)temp_s1->field_7A2 == 0xFF) {
+                        sp20.values[2] = 0x1E;
+                        sp20.values[3] = 0;
+                        sp20.values[0] = 0;
+                        sp30[0]        = 0x24;
+                        sp30[3]        = 0;
+                        sp30[2]        = 0;
+                        sp30[1]        = 0;
+                        CdCmd_Enqueue(0x21, sp20.values, sp30);
+                        goto block_115;
+                    }
+                    break;
+                case 2:
+                    if (CdCmd_IsIdle() & 0xFFFF) {
+                        if (D_actor_403600_801606B4 != 0) {
+                            Task_CallExit(D_actor_403600_801606B4);
+                        }
+                        Task_SpawnFromTable(&D_80162E98, 0, 0, 0);
+                        func_800E9BDC(0, 0xF9FF);
+                        goto block_115;
+                    }
+                    break;
+            }
+            break;
+    }
+    return;
+
+block_115:
+    var_v0_4 = temp_s1->field_732;
+block_116:
+    temp_s1->field_732 = (s16)(var_v0_4 + 1);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013A444);
 
