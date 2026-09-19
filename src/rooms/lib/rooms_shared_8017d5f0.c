@@ -9,6 +9,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/gfx.h"
 
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d5f0.h"
@@ -61,7 +62,7 @@ void RoomsShared8017d5f0(Task* task)
     extra->colorMtx = &work->color;
     Task_Reparent(owner, task);
     task->state++;
-    work->viewFlg   = Gfx_ViewCoord.flg & 0x7FFFFFFF;
+    work->viewFlg   = gGfxViewCoord.flg & 0x7FFFFFFF;
     work->field_4   = 1;
     work->configRev = -1;
     extra->flags   |= 0x80;

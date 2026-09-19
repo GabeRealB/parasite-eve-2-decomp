@@ -4,6 +4,7 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/gfx.h"
 
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
@@ -34,7 +35,7 @@ void RoomsShared8017daa4(Task* task)
     task->work        = (TaskIdMap*)work;
     work->field_0     = 0;
     extra->flags      = 0;
-    coord->sub        = &Gfx_ViewCoord;
+    coord->sub        = &gGfxViewCoord;
     coord->coord.t[0] = -0x23F0;
     coord->coord.t[1] = 0x12C;
     coord->coord.t[2] = -0xAF0;

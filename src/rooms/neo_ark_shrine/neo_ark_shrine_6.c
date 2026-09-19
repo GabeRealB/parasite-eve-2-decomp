@@ -11,6 +11,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/gfx.h"
 #include "rooms/room_common.h"
 
 /// Scratch state of the shrine's cap script, stored at `Task::work`
@@ -322,7 +323,7 @@ void func_neo_ark_shrine_8017F4C8(Task* task)
     extra->lightMtx   = &st->light;
     extra->flags      = 0;
     extra->colorMtx   = &st->color;
-    coord->sub        = &Gfx_ViewCoord;
+    coord->sub        = &gGfxViewCoord;
     coord->coord.t[0] = 0x1B58;
     coord->coord.t[1] = -0xBB8;
     coord->coord.t[2] = -0x3E8;
@@ -387,7 +388,7 @@ void func_neo_ark_shrine_8017F688(Task* task)
     extra->lightMtx   = &st->light;
     extra->flags      = 0;
     extra->colorMtx   = &st->color;
-    coord->sub        = &Gfx_ViewCoord;
+    coord->sub        = &gGfxViewCoord;
     coord->coord.t[0] = 0x222E;
     coord->coord.t[1] = -0xBB8;
     coord->coord.t[2] = -0x11C6;

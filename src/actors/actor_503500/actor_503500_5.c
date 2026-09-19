@@ -11,6 +11,7 @@
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/tmd.h"
+#include "main/gfx.h"
 #include <psyq/abs.h>
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
@@ -1580,7 +1581,7 @@ void func_actor_503500_80135644(Actor503500* arg0)
 }
 
 /// Copies bits 0x80, 2 and 4 of the parent task's model `field_C` onto
-/// `arg0`'s model, unless that model is attached to `Gfx_ViewCoord`.
+/// `arg0`'s model, unless that model is attached to `gGfxViewCoord`.
 /// Clearing bit 4 reallocates the model's buffers; setting it writes 2 to
 /// `*arg1`.
 void func_actor_503500_80135828(Actor503500* arg0, s8* arg1)
@@ -1591,7 +1592,7 @@ void func_actor_503500_80135828(Actor503500* arg0, s8* arg1)
     u16        flags2;
 
     obj = arg0->extra;
-    if (obj->coords->sub != &Gfx_ViewCoord) {
+    if (obj->coords->sub != &gGfxViewCoord) {
         flags = obj->flags;
         pobj  = arg0->parent->extra;
         if (flags & 0x80) {

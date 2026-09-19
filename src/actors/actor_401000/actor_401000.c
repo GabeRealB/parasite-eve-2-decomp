@@ -275,7 +275,7 @@ void func_actor_401000_80133274(GpEnemy* enemy, Actor401000* actor)
     work->field_C[1].z = actor->field_2C->coords->coord.t[2] + dir.vz;
 
     ((Task*)actor)->msgTable = &D_actor_401000_80154F90;
-    root->sub                = &Gfx_ViewCoord;
+    root->sub                = &gGfxViewCoord;
     root->flg                = 0;
     Gp_UpdateCoord(root);
     pos.vx = root->workm.t[0];
@@ -2485,7 +2485,7 @@ void func_actor_401000_8013CEF0(Actor401000* arg0)
     }
 }
 
-/// Walks `p` up its parent chain to `Gfx_ViewCoord`, transforming `out` by each
+/// Walks `p` up its parent chain to `gGfxViewCoord`, transforming `out` by each
 /// coordinate; `out` is left unchanged if the chain ends before the view. Same
 /// body as `Actor401300_TransformToView` / `Actor01900_TransformToView`.
 static __inline__ void Actor401000_TransformToView(GsCOORDINATE2* p, SVECTOR* out)
@@ -2494,7 +2494,7 @@ static __inline__ void Actor401000_TransformToView(GsCOORDINATE2* p, SVECTOR* ou
     VECTOR         vec;
     s32            flag;
     SVECTOR*       svp   = &sv;
-    GsCOORDINATE2* view  = &Gfx_ViewCoord;
+    GsCOORDINATE2* view  = &gGfxViewCoord;
     VECTOR*        vecp  = &vec;
     s32*           flagp = &flag;
     sv.vx                = out->vx;
@@ -2682,7 +2682,7 @@ void func_actor_401000_8013D044(GpEnemy* enemy, Actor401000* actor)
         enemy->field_1C.vy = scratch->pos.vy;
         enemy->field_1C.vz = scratch->pos.vz;
     }
-    enemy->field_18 = &Gfx_ViewCoord;
+    enemy->field_18 = &gGfxViewCoord;
 }
 
 void func_actor_401000_8013D68C(void)

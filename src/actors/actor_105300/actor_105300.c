@@ -10,6 +10,7 @@
 #include "main/gameflag.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
+#include "main/gfx.h"
 
 extern GpPairSrcE         D_actor_105300_8013D3A0;
 extern Actor05300SpawnPos D_actor_105300_80133A20[2];
@@ -205,7 +206,7 @@ void func_actor_105300_80132BAC(GpEnemy* arg0, Task* arg1)
         return;
     }
     arg1->work        = (TaskIdMap*)part;
-    coord->sub        = &Gfx_ViewCoord;
+    coord->sub        = &gGfxViewCoord;
     coord->coord.t[0] = D_actor_105300_80133A20[work->field_334].x;
     coord->coord.t[1] = D_actor_105300_80133A20[work->field_334].y;
     coord->coord.t[2] = D_actor_105300_80133A20[work->field_334].z;

@@ -129,7 +129,7 @@ void func_dryfield_water_tank_8017ED30(Task* arg0)
 
 /// Per-frame model update for the tank: the callback word at 0x801868A8 in the
 /// room's task table `D_dryfield_water_tank_801868A4`. State 0 parents the
-/// model's coordinate to `Gfx_ViewCoord` and places it against the room's north
+/// model's coordinate to `gGfxViewCoord` and places it against the room's north
 /// wall, then advances to state 1. State 1 drives the tank's slow wobble about
 /// `y`:
 /// an occasional roll re-picks the target yaw, the step moves toward it 0x100
@@ -155,7 +155,7 @@ void func_dryfield_water_tank_8017EDF4(Task* arg0)
     switch (arg0->state) {
         case 0:
             obj->flags        = 0;
-            coord->sub        = &Gfx_ViewCoord;
+            coord->sub        = &gGfxViewCoord;
             coord->coord.t[0] = 0xBB8;
             coord->coord.t[1] = -0x34A8;
             coord->coord.t[2] = -0x4D8;

@@ -1237,7 +1237,7 @@ void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     Gp_LinkObj(3, link2);
     Gp_InitRec18Table(link2->ctx.recs, 1, 0);
     work->hit.key   = Gp_PackObjPair((GpObj50*)enemy, 0);
-    coord->sub      = &Gfx_ViewCoord;
+    coord->sub      = &gGfxViewCoord;
     work->yaw       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     work->field_100 = 2;
     work->field_104 = 2;

@@ -69,17 +69,17 @@ void func_tonfa_baton_8011D1EC(Task* task)
                 Gp_UpdateCoord(&local);
                 for (i = 0; i < 8; i++) {
                     dst        = &D_tonfa_baton_8012BBEC[i];
-                    dst->sub   = &Gfx_ViewCoord;
+                    dst->sub   = &gGfxViewCoord;
                     dst->workm = coord->workm;
                     gte_SetRotMatrix(&coord->workm);
                     gte_SetTransMatrix(&coord->workm);
-                    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                    Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                     dst        = &D_tonfa_baton_8012BE6C[i];
-                    dst->sub   = &Gfx_ViewCoord;
+                    dst->sub   = &gGfxViewCoord;
                     dst->workm = local.workm;
                     gte_SetRotMatrix(&local.workm);
                     gte_SetTransMatrix(&local.workm);
-                    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                    Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 }
                 flags = 0x13;
                 if (task->spawnArg1 == 0) {
@@ -97,17 +97,17 @@ void func_tonfa_baton_8011D1EC(Task* task)
                 local.flg        = 0;
                 Gp_UpdateCoord(&local);
                 dst        = &D_tonfa_baton_8012BBEC[work->field_22 & 7];
-                dst->sub   = &Gfx_ViewCoord;
+                dst->sub   = &gGfxViewCoord;
                 dst->workm = coord->workm;
                 gte_SetRotMatrix(&coord->workm);
                 gte_SetTransMatrix(&coord->workm);
-                Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 dst        = &D_tonfa_baton_8012BE6C[work->field_22 & 7];
-                dst->sub   = &Gfx_ViewCoord;
+                dst->sub   = &gGfxViewCoord;
                 dst->workm = local.workm;
                 gte_SetRotMatrix(&local.workm);
                 gte_SetTransMatrix(&local.workm);
-                Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
                     dst      = &D_tonfa_baton_8012BBEC[i];
                     dst->flg = 0;

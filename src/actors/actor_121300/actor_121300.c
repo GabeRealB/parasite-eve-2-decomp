@@ -132,7 +132,7 @@ void func_actor_121300_8013293C(Task* arg0)
             }
             work = alloc;
             Mem_Set(work, 0, 0x5C);
-            coord->sub        = &Gfx_ViewCoord;
+            coord->sub        = &gGfxViewCoord;
             coord->coord.t[0] = D_actor_121300_8013CC20[arg0->spawnArg1].x;
             coord->coord.t[1] = D_actor_121300_8013CC20[arg0->spawnArg1].y;
             coord->coord.t[2] = D_actor_121300_8013CC20[arg0->spawnArg1].z;

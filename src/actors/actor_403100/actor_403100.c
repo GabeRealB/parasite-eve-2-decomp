@@ -141,8 +141,8 @@ void func_actor_403100_80132528(Task* arg0)
     func_actor_403100_801327CC(arg0);
     func_actor_403100_801328DC(arg0);
     func_actor_403100_8013D770(arg0);
-    Gfx_ViewCoord.flg = 0;
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    gGfxViewCoord.flg = 0;
+    Gp_UpdateCoord(&gGfxViewCoord);
     joint         = &coords[7];
     coords[7].flg = 0;
     Gp_UpdateCoord(joint);
@@ -326,8 +326,8 @@ void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoint, s16
                 corner3.vz = 0x23F0;
             }
         }
-        Gfx_ViewCoord.flg = 0;
-        Gp_UpdateCoord(&Gfx_ViewCoord);
+        gGfxViewCoord.flg = 0;
+        Gp_UpdateCoord(&gGfxViewCoord);
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_SetTransMatrix(&Gfx_ViewWorldMtx);
         depth = RotTransPers4(&corner0, &corner1, &corner2, &corner3, &screen0, &screen1, &screen2, &screen3, &perspective, &flags);
@@ -715,8 +715,8 @@ void func_actor_403100_801342B4(Task* arg0)
     s32            i;
 
     coords            = ((TmdObject*)arg0->extra)->coords;
-    Gfx_ViewCoord.flg = 0;
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    gGfxViewCoord.flg = 0;
+    Gp_UpdateCoord(&gGfxViewCoord);
     coord1        = &coords[8];
     coords[8].flg = 0;
     Gp_UpdateCoord(coord1);
@@ -1483,7 +1483,7 @@ void func_actor_403100_80136610(Task* arg0)
     D_actor_403100_80155808->field_5DE = 1;
     D_actor_403100_80155808->field_5DA = 2;
     func_actor_403100_801327CC(arg0);
-    coord->sub = &Gfx_ViewCoord;
+    coord->sub = &gGfxViewCoord;
     func_actor_403100_80132320(arg0);
     for (i = 27; i >= 0; i--) {
         D_actor_403100_80155814[i].active = 0;

@@ -648,7 +648,7 @@ static __inline__ s32 Actor401300_InRange(Actor401300* arg0)
     p     = &arg0->field_2C->coords[1];
     svp   = &sv;
     outp  = &out;
-    view  = &Gfx_ViewCoord;
+    view  = &gGfxViewCoord;
     vecp  = &vec;
     flagp = &flag;
     sv.vx = outp->vx;
@@ -992,7 +992,7 @@ void func_actor_401300_80134454(GpEnemy* enemy, Actor401300* actor)
     }
     func_actor_401300_80133A3C(actor);
 
-    work->field_920.sub        = &Gfx_ViewCoord;
+    work->field_920.sub        = &gGfxViewCoord;
     mw                         = (Actor401300MatWords*)&work->field_920.coord;
     mw->m00_m01                = 0x1000;
     mw->m02_m10                = 0;
@@ -1021,7 +1021,7 @@ void func_actor_401300_80134454(GpEnemy* enemy, Actor401300* actor)
     body           = &work->field_970;
     body->ctx.recs = (GpRec18*)&work->field_990;
     body->key      = 0x30000;
-    body->coord    = &Gfx_ViewCoord;
+    body->coord    = &gGfxViewCoord;
     body->pos.vx   = 0;
     body->pos.vy   = 0;
     body->pos.vz   = 0;
@@ -1060,7 +1060,7 @@ void func_actor_401300_80134454(GpEnemy* enemy, Actor401300* actor)
     work->field_C[1].z = actor->field_2C->coords->coord.t[2] + dir.vz;
 
     ((Task*)actor)->msgTable = &D_actor_401300_80158988;
-    root->sub                = &Gfx_ViewCoord;
+    root->sub                = &gGfxViewCoord;
     root->flg                = 0;
     Gp_UpdateCoord(root);
     pos.vx = root->workm.t[0];
@@ -2334,7 +2334,7 @@ void func_actor_401300_80139134(Actor401300* arg0)
                 pos.vy     = 0;
                 pos.vz     = 0;
                 Actor401300_TransformToView(&arg0->field_2C->coords[2], &pos);
-                work->field_8C0.sub        = &Gfx_ViewCoord;
+                work->field_8C0.sub        = &gGfxViewCoord;
                 work->field_8C0.coord.t[0] = pos.vx;
                 work->field_8C0.coord.t[1] = arg0->field_2C->coords->coord.t[1];
                 work->field_8C0.coord.t[2] = pos.vz;
@@ -3051,7 +3051,7 @@ void func_actor_401300_8013BB30(Actor401300* arg0)
                     vec.vy = 0;
                     vec.vz = 0;
                     Actor401300_TransformToView(arg0->field_2C->coords + 2, &vec);
-                    work->field_8C0.sub        = &Gfx_ViewCoord;
+                    work->field_8C0.sub        = &gGfxViewCoord;
                     work->field_8C0.coord.t[0] = vec.vx;
                     work->field_8C0.coord.t[1] = arg0->field_2C->coords->coord.t[1];
                     work->field_8C0.coord.t[2] = vec.vz;
@@ -4099,7 +4099,7 @@ static __inline__ s32 Actor401300_InRangeFlag(Actor401300* arg0)
     p     = &arg0->field_2C->coords[1];
     svp   = &sv;
     outp  = &out;
-    view  = &Gfx_ViewCoord;
+    view  = &gGfxViewCoord;
     vecp  = &vec;
     flagp = &flag;
     sv.vx = outp->vx;
@@ -4463,7 +4463,7 @@ void func_actor_401300_801405DC(GpEnemy* enemy, Actor401300* actor)
         enemy->field_1C.vy = scratch->pos.vy;
         enemy->field_1C.vz = scratch->pos.vz;
     }
-    enemy->field_18 = &Gfx_ViewCoord;
+    enemy->field_18 = &gGfxViewCoord;
 }
 
 void func_actor_401300_8014148C(void)

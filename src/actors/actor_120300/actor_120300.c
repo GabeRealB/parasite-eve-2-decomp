@@ -8,6 +8,7 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/gfx.h"
 
 extern s8  D_8007218A;
 extern u8  D_80073BA9;
@@ -356,7 +357,7 @@ void func_actor_120300_801335D8(Task* arg0)
     Mem_Set(work, 0, 0x4E4);
     work->field_4B4         = Game_GetPtrSlot(3);
     D_actor_120300_80141BA8 = (Actor120300*)arg0;
-    coord->sub              = &Gfx_ViewCoord;
+    coord->sub              = &gGfxViewCoord;
     Tmd_AllocBuffers(tmd);
     tmd->lightMtx = &work->field_474;
     tmd->colorMtx = &work->field_494;

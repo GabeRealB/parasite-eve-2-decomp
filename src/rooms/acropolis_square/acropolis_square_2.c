@@ -13,6 +13,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/gfx.h"
 
 #include "rooms/acropolis_square.h"
 
@@ -158,7 +159,7 @@ void func_acropolis_square_80181AEC(Task* task)
             D_acropolis_square_801888CC.coord.t[0] = 0x19AA;
             D_acropolis_square_801888CC.coord.t[1] = -0xF96;
             D_acropolis_square_801888CC.coord.t[2] = 0x8DE;
-            D_acropolis_square_801888CC.sub        = &Gfx_ViewCoord;
+            D_acropolis_square_801888CC.sub        = &gGfxViewCoord;
             Gp_UpdateCoord(&D_acropolis_square_801888CC);
             pan = Gp_GetObjPan((GpObj38*)&D_acropolis_square_801888CC);
             SndEvt_EnqueueType6(
@@ -173,7 +174,7 @@ void func_acropolis_square_80181AEC(Task* task)
                 D_acropolis_square_801888CC.coord.t[1] = -0xF96;
                 D_acropolis_square_801888CC.coord.t[2] = 0x8DE;
                 D_acropolis_square_80188898            = 0;
-                D_acropolis_square_801888CC.sub        = &Gfx_ViewCoord;
+                D_acropolis_square_801888CC.sub        = &gGfxViewCoord;
                 Gp_UpdateCoord(&D_acropolis_square_801888CC);
                 pan2 = Gp_GetObjPan((GpObj38*)&D_acropolis_square_801888CC);
                 SndEvt_EnqueueType6(0x51010009, (s8)pan2,
@@ -218,7 +219,7 @@ void func_acropolis_square_80181AEC(Task* task)
                 D_acropolis_square_801888CC.coord.t[1] = -0xF96;
                 D_acropolis_square_801888CC.coord.t[2] = 0x8DE;
                 D_acropolis_square_80188898            = 0;
-                D_acropolis_square_801888CC.sub        = &Gfx_ViewCoord;
+                D_acropolis_square_801888CC.sub        = &gGfxViewCoord;
                 Gp_UpdateCoord(&D_acropolis_square_801888CC);
                 pan3 = Gp_GetObjPan((GpObj38*)&D_acropolis_square_801888CC);
                 SndEvt_EnqueueType6(0x51010009, (s8)pan3,

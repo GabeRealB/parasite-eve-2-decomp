@@ -46,7 +46,7 @@ void func_actor_341700_8016A2CC(Task* arg0)
         if (current->sub == NULL) {
             return;
         }
-        if (current == &Gfx_ViewCoord) {
+        if (current == &gGfxViewCoord) {
             pos->vx = local.vx;
             pos->vy = local.vy;
             pos->vz = local.vz;

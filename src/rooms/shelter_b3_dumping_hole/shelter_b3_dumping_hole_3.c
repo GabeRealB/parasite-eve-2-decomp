@@ -107,7 +107,7 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            coord->sub        = &Gfx_ViewCoord;
+            coord->sub        = &gGfxViewCoord;
             coord->coord.t[0] = W->field_0;
             coord->coord.t[1] = W->field_2;
             coord->coord.t[2] = W->field_4;
@@ -189,7 +189,7 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            coord->sub = &Gfx_ViewCoord;
+            coord->sub = &gGfxViewCoord;
             Gp_ComposeParentWorld((GsCOORDINATE2*)arg0->spawnArg2, &coord->coord, &vec);
             coord->coord.t[0] = vec.vx;
             coord->coord.t[1] = vec.vy;
@@ -307,7 +307,7 @@ void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
         return;
     }
     Mem_Set(work, 0, 0x5C);
-    coord->sub                       = &Gfx_ViewCoord;
+    coord->sub                       = &gGfxViewCoord;
     ((TmdObject*)arg0->extra)->flags = 0;
     Tmd_AllocBuffers(extra);
     extra->lightMtx   = &work->field_0;

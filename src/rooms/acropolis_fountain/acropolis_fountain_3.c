@@ -44,7 +44,7 @@ void func_acropolis_fountain_8017E15C(Task* task, s32 view);
 void func_acropolis_fountain_8017DA1C(void)
 {
     Gp_UnlinkObj4A(0, &D_acropolis_fountain_8017FB3C);
-    D_acropolis_fountain_8017E7A4.field_8 = &Gfx_ViewCoord;
+    D_acropolis_fountain_8017E7A4.field_8 = &gGfxViewCoord;
     Gp_LinkObj4A(0, &D_acropolis_fountain_8017E7A4);
     D_acropolis_fountain_8017E7A4.field_4A |= 0x40;
 }

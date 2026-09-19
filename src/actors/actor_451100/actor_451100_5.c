@@ -46,7 +46,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
         return;
     }
     task->exitCallback  = func_actor_451100_80132CAC;
-    coord->sub          = &Gfx_ViewCoord;
+    coord->sub          = &gGfxViewCoord;
     enemy->field_4      = &coord->coord;
     enemy->field_48     = 0;
     enemy->node.field_5 = 0;

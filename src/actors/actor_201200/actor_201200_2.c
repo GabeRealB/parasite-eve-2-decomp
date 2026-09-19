@@ -64,7 +64,7 @@ void func_actor_201200_8014A88C(GpEnemy* arg0, Actor201200* arg1)
         return;
     }
     arg1->field_24 = D_actor_201200_80150E78;
-    coord->sub     = &Gfx_ViewCoord;
+    coord->sub     = &gGfxViewCoord;
     obj->flags     = 0;
     func_800B3F84(&work->anim, D_actor_201200_80150DB8, (GpAnimObj*)obj, work->poses, work->slots);
 
@@ -103,7 +103,7 @@ void func_actor_201200_8014A88C(GpEnemy* arg0, Actor201200* arg1)
     sv.vx        = 0;
     sv.vy        = 0;
     sv.vz        = 0;
-    o3->coord    = &Gfx_ViewCoord;
+    o3->coord    = &gGfxViewCoord;
     o3->ctx.recs = &work->rec2E8;
     o3->pos.vx   = p->vx;
     o3->pos.vy   = p->vy;
@@ -114,7 +114,7 @@ void func_actor_201200_8014A88C(GpEnemy* arg0, Actor201200* arg1)
     Gp_InitRec18Table(o3->ctx.recs, 1, 0);
 
     o4           = &work->obj338;
-    o4->coord    = &Gfx_ViewCoord;
+    o4->coord    = &gGfxViewCoord;
     o4->ctx.recs = (GpRec18*)work->pad_320;
     o4->pos.vx   = p->vx;
     o4->pos.vy   = p->vy;
@@ -549,7 +549,7 @@ void func_actor_201200_8014BDFC(Actor201200Ctx* arg0, Actor201200* arg1)
             ofs.vx              = arg1->field_2C->coords->coord.t[0];
             ofs.vy              = arg1->field_2C->coords->coord.t[1];
             ofs.vz              = arg1->field_2C->coords->coord.t[2];
-            Gp_SpawnEff(0x6009E, &Gfx_ViewCoord, 0, &ofs);
+            Gp_SpawnEff(0x6009E, &gGfxViewCoord, 0, &ofs);
             work->eff1A8.field_0 = &arg1->field_2C->coords[1];
             work->eff1A8.field_4 = 0x200;
             work->eff1A8.field_6 = 2;

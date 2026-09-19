@@ -142,7 +142,7 @@ void func_actor_341900_80162200(Task* arg0)
             Mem_Set(mtx, 0, 0x44);
             mtx->field_40                          = (Task*)arg0->spawnArg2;
             extra->flags                           = 0;
-            ((TmdObject*)arg0->extra)->coords->sub = &Gfx_ViewCoord;
+            ((TmdObject*)arg0->extra)->coords->sub = &gGfxViewCoord;
             extra->lightMtx                        = &mtx->light;
             extra->colorMtx                        = &mtx->color;
             extra->otOffset                        = 0x1F;
@@ -280,7 +280,7 @@ void func_actor_341900_80162708(Task* arg0)
     switch (arg0->state) {
         case 0:
             func_actor_341900_80162330(arg0);
-            ((TmdObject*)arg0->extra)->coords->sub = &Gfx_ViewCoord;
+            ((TmdObject*)arg0->extra)->coords->sub = &gGfxViewCoord;
             arg0->state++;
             return;
         case 1:

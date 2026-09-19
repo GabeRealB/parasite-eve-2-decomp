@@ -12,6 +12,7 @@
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
+#include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
@@ -1669,11 +1670,11 @@ void Gp_LinkRoomObjectsSpawn(Task* task)
         list2 = recs->field_8;
         list3 = recs->field_C;
         if (grid != NULL) {
-            grid->field_0 = &Gfx_ViewCoord;
+            grid->field_0 = &gGfxViewCoord;
             Gp_GridParams = grid;
         }
         if (list1 != NULL) {
-            coord = &Gfx_ViewCoord;
+            coord = &gGfxViewCoord;
             obj   = list1;
             do {
                 obj->field_8 = coord;
@@ -1685,7 +1686,7 @@ void Gp_LinkRoomObjectsSpawn(Task* task)
             } while (!(flags & 0x80));
         }
         if (list2 != NULL) {
-            coord = &Gfx_ViewCoord;
+            coord = &gGfxViewCoord;
             obj   = list2;
             do {
                 obj->field_8 = coord;
@@ -1982,11 +1983,11 @@ void Gp_LinkRoomObjects(Task* task)
         list2 = recs->field_8;
         list3 = recs->field_C;
         if (grid != NULL) {
-            grid->field_0 = &Gfx_ViewCoord;
+            grid->field_0 = &gGfxViewCoord;
             Gp_GridParams = grid;
         }
         if (list1 != NULL) {
-            coord = &Gfx_ViewCoord;
+            coord = &gGfxViewCoord;
             obj   = list1;
             do {
                 obj->field_8 = coord;
@@ -1998,7 +1999,7 @@ void Gp_LinkRoomObjects(Task* task)
             } while (!(flags & 0x80));
         }
         if (list2 != NULL) {
-            coord = &Gfx_ViewCoord;
+            coord = &gGfxViewCoord;
             obj   = list2;
             do {
                 obj->field_8 = coord;
@@ -2020,8 +2021,8 @@ void Gp_LinkRoomObjects(Task* task)
             } while (!(flags & 0x80));
         }
     }
-    Gfx_ViewCoord.flg = 0;
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    gGfxViewCoord.flg = 0;
+    Gp_UpdateCoord(&gGfxViewCoord);
 }
 
 s8 Gp_FindViewIndex(s32 arg0)
@@ -2177,8 +2178,8 @@ void* Gp_GetViewSprtExtra(void)
 void Gp_RoomObjState1(Task* task)
 {
     if (task->spawnArg1 != (u8)gGameSession->at4.loc.view) {
-        Gfx_ViewCoord.flg = 0;
-        Gp_UpdateCoord(&Gfx_ViewCoord);
+        gGfxViewCoord.flg = 0;
+        Gp_UpdateCoord(&gGfxViewCoord);
         task->spawnArg1 = (u8)gGameSession->at4.loc.view;
     }
     if (gGameSession->roomObjsDirty != 0) {

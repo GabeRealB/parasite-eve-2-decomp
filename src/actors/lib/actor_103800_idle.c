@@ -4,6 +4,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/gfx.h"
 #include <psyq/inline_c.h>
 
 extern u8         D_801153F2;
@@ -194,7 +195,7 @@ void Actor03800_Fn021E4(Actor103800* arg0)
             coord->coord.t[0] = work->coord.coord.t[0];
             coord->coord.t[1] = work->coord.coord.t[1];
             coord->coord.t[2] = work->coord.coord.t[2];
-            coord->sub        = &Gfx_ViewCoord;
+            coord->sub        = &gGfxViewCoord;
             coord->flg        = 0;
             Gp_UpdateCoord(coord);
             work->field_354 = 4;

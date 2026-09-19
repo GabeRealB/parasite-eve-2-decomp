@@ -8,6 +8,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/gfx.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -120,12 +121,12 @@ void Actor05500_Fn03E34(GpEnemy* enemy, Task* task)
         return;
     }
     task->work        = (TaskIdMap*)work;
-    Gfx_ViewCoord.flg = 0;
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    gGfxViewCoord.flg = 0;
+    Gp_UpdateCoord(&gGfxViewCoord);
     parentCoord->flg = 0;
     Gp_UpdateCoord(parentCoord);
-    coord->sub = &Gfx_ViewCoord;
-    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &parentCoord->workm, &coord->coord);
+    coord->sub = &gGfxViewCoord;
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &parentCoord->workm, &coord->coord);
     coord->flg         = 0;
     work->field_3A     = 0xC0;
     pair               = parentWork->field_3AC;

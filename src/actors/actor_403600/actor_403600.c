@@ -3,6 +3,7 @@
 #include "actors/actor_403600.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
+#include "main/gfx.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
@@ -2103,7 +2104,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
         return;
     }
     task->work                                   = (TaskIdMap*)temp_v0;
-    ACTOR_FIELD(temp_v0, GsCOORDINATE2**, 0x504) = &Gfx_ViewCoord;
+    ACTOR_FIELD(temp_v0, GsCOORDINATE2**, 0x504) = &gGfxViewCoord;
     temp_v0_2                                    = temp_v0 + 0x4BC;
     ACTOR_FIELD(temp_v0, s32*, 0x4BC)            = 0x1000;
     ACTOR_FIELD(temp_v0_2, s32*, 4)              = 0;
@@ -3642,7 +3643,7 @@ inner1:
     globalWork->field_4B4       = NULL;
     enemy                       = arg1->field_20;
     cleanupWork                 = arg1->field_1C;
-    arg1->field_2C->coords->sub = &Gfx_ViewCoord;
+    arg1->field_2C->coords->sub = &gGfxViewCoord;
     enemy->field_54             = 0;
     Gp_UnlinkNode(&enemy->node);
     Gp_UnlinkObj(&cleanupWork->field_508);

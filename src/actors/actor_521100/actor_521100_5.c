@@ -95,7 +95,7 @@ void func_actor_521100_80135DDC(void* spawnArg2, Task* task)
         return;
     }
     task->exitCallback       = ActorsShared801366fc;
-    coord->sub               = &Gfx_ViewCoord;
+    coord->sub               = &gGfxViewCoord;
     enemy->field_4           = &coord->coord;
     enemy->field_48          = 0;
     enemy->node.field_5      = 0;

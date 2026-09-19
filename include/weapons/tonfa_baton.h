@@ -53,7 +53,7 @@ extern SVECTOR D_tonfa_baton_8011E0F0[1];
 extern SVECTOR D_tonfa_baton_8011E0F8;
 
 /// The eight-segment swing trails, one array per end of the baton. Every entry
-/// is parented to `Gfx_ViewCoord`.
+/// is parented to `gGfxViewCoord`.
 extern GsCOORDINATE2 D_tonfa_baton_8012BBEC[8];
 extern GsCOORDINATE2 D_tonfa_baton_8012BE6C[8];
 

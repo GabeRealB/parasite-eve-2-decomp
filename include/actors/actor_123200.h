@@ -135,7 +135,7 @@ void func_actor_123200_80133BA0(Actor123200Ctx* arg0, Task* arg1);
 s32 func_actor_123200_80133450(Actor123200Work* arg0);
 
 /// Spawn state: allocates the 0x22C work block, publishes it as `Task::work`,
-/// reparents the model to `Gfx_ViewCoord`, seeds its animation slots and hangs
+/// reparents the model to `gGfxViewCoord`, seeds its animation slots and hangs
 /// the enemy's display node off part 2 of the model's coordinate array. The
 /// context's top `field_8` nibble biases the three timers in `field_176`,
 /// `field_198` and `field_19A` -- up when its low bit is set, down by half of

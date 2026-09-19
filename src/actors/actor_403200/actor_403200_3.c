@@ -371,7 +371,7 @@ static __inline__ void Actor403200_LinkWorkObj(GsCOORDINATE2* coord, GpObj* obj,
 /// work block and stand the model up where the host's first escort's part 1 is,
 /// in view space.
 ///
-/// The model is reparented to `Gfx_ViewCoord`, so both halves of that escort's
+/// The model is reparented to `gGfxViewCoord`, so both halves of that escort's
 /// part 1 have to be resolved by hand: `Actor403200_AccumulateRotation` walks
 /// the part's coordinate chain up to the view coordinate for the rotation and
 /// `Actor403200_LocalToView` carries its origin along the same chain for the
@@ -401,7 +401,7 @@ void func_actor_403200_8013509C(GpEnemy* enemy, Task* task)
     }
 
     work->field_1AC                        = 0;
-    ((TmdObject*)task->extra)->coords->sub = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->coords->sub = &gGfxViewCoord;
     ((TmdObject*)task->extra)->flags       = 0;
 
     Actor403200_AccumulateRotation(&((TmdObject*)host->field_ECC[0]->task->extra)->coords[1],
@@ -441,7 +441,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200
 /// Spawn state of this enemy: allocate the work block, drop the model onto the
 /// floor of the view coordinate and hang the two display nodes off it.
 ///
-/// The model is reparented to `Gfx_ViewCoord` and its translation replaced by
+/// The model is reparented to `gGfxViewCoord` and its translation replaced by
 /// the world position of part 3 of the owning enemy's model, so the body starts
 /// where that part is. `field_1AA` is a ninth of that height and `vel` the
 /// horizontal gap to the player, which the later states spend a fifteenth at a
@@ -467,7 +467,7 @@ void func_actor_403200_8013669C(GpEnemy* enemy, Task* task)
         return;
     }
 
-    ((TmdObject*)task->extra)->coords->sub = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->coords->sub = &gGfxViewCoord;
     ((TmdObject*)task->extra)->flags       = 0;
 
     vec.vx = vec.vy = vec.vz = 0;

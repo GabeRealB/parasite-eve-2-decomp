@@ -24,7 +24,7 @@ void func_actor_210600_8014B2C0(Task* task);
 ///
 /// The animation context at the front of the block is started with
 /// `D_actor_210600_8015A4B4` and the pose buffer at 0x30C, and the model
-/// coordinate is parented to `Gfx_ViewCoord` and rebuilt once before the three
+/// coordinate is parented to `gGfxViewCoord` and rebuilt once before the three
 /// matrix translations are copied to `func_800D7A9C` (start 0, count 3).
 void func_actor_210600_8014B8C8(GpEnemy* enemy, Task* task)
 {
@@ -63,7 +63,7 @@ void func_actor_210600_8014B8C8(GpEnemy* enemy, Task* task)
     work->field_882 = 1;
     func_actor_210600_8014B2C0(task);
     task->msgTable = D_actor_210600_8015A4CC;
-    coord->sub     = &Gfx_ViewCoord;
+    coord->sub     = &gGfxViewCoord;
     coord->flg     = 0;
     Gp_UpdateCoord(coord);
     vec.vx = coord->workm.t[0];

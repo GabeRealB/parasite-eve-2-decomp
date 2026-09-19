@@ -15,7 +15,7 @@ void Actor00100_Fn001FC(GsCOORDINATE2* coord, s16 yaw)
 
     *(MATRIX**)G_SCRATCH_HEAD -= 1;
     rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
-    ActorsShared80132808_Accumulate(coord, rotation, &Gfx_ViewCoord);
+    ActorsShared80132808_Accumulate(coord, rotation, &gGfxViewCoord);
     func_8004BFF8(yaw, rotation);
     out = ActorsShared80132808_Localize(coord, rotation);
     __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
@@ -244,28 +244,28 @@ s32 Actor00100_Fn00BF8(Actor00100* arg0)
     s->local.vy           = ((Actor00100*)player)->field_2C->coords->coord.t[1] - 1000;
     *(u8**)G_SCRATCH_HEAD = (u8*)s;
     s->local.vz           = ((Actor00100*)player)->field_2C->coords->coord.t[2];
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    Gp_UpdateCoord(&gGfxViewCoord);
     v = local;
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(v);
     gte_rtv0_real();
     gte_stsv(&s->out);
-    s->out.vx += Gfx_ViewCoord.workm.t[0];
-    s->out.vy += Gfx_ViewCoord.workm.t[1];
-    s->out.vz += Gfx_ViewCoord.workm.t[2];
+    s->out.vx += gGfxViewCoord.workm.t[0];
+    s->out.vy += gGfxViewCoord.workm.t[1];
+    s->out.vz += gGfxViewCoord.workm.t[2];
 
     s->local.vx = arg0->field_2C->coords->coord.t[0];
     s->local.vy = arg0->field_2C->coords->coord.t[1] - 1000;
     s->local.vz = arg0->field_2C->coords->coord.t[2];
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    Gp_UpdateCoord(&gGfxViewCoord);
     out = (SVECTOR*)(head - 0x14);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(v);
     gte_rtv0_real();
     gte_stsv(out);
-    s->from.vx           += Gfx_ViewCoord.workm.t[0];
-    s->from.vy           += Gfx_ViewCoord.workm.t[1];
-    s->from.vz           += Gfx_ViewCoord.workm.t[2];
+    s->from.vx           += gGfxViewCoord.workm.t[0];
+    s->from.vy           += gGfxViewCoord.workm.t[1];
+    s->from.vz           += gGfxViewCoord.workm.t[2];
     s->hit                = func_800E0308(&s->out, out);
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x1C;
     return s->hit;

@@ -12,6 +12,7 @@
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/tmd.h"
+#include "main/gfx.h"
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
 #include <psyq/libgpu.h>
@@ -667,7 +668,7 @@ void func_actor_503500_8013BC54(Actor503500* arg0)
     GpEnemy* enemy;
 
     enemy                                      = arg0->field_20;
-    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &Gfx_ViewCoord;
+    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &gGfxViewCoord;
     Gp_UnlinkObj(&arg0->field_1C->obj);
     enemy->field_54 = 0;
     arg0->field_1C  = NULL;

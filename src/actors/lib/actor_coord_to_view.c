@@ -17,7 +17,7 @@ s32 ActorCoordToView(GsCOORDINATE2* coord, SVECTOR* pos)
         if (current->sub == NULL) {
             return 0;
         }
-        if (current == &Gfx_ViewCoord) {
+        if (current == &gGfxViewCoord) {
             pos->vx = local.vx;
             pos->vy = local.vy;
             pos->vz = local.vz;

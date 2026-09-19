@@ -25,6 +25,7 @@
 #include "main/stream.h"
 
 #include "main/task.h"
+#include "main/gfx.h"
 
 extern s8       D_8007106B;
 extern TaskDesc ActorsShared80136280Desc;
@@ -281,7 +282,7 @@ void func_actor_560800_801326C4(Task* arg0)
                 if (block == NULL) {
                     failed = 1;
                 } else {
-                    coord->sub = &Gfx_ViewCoord;
+                    coord->sub = &gGfxViewCoord;
                     Mem_Set(arg0->work, 0, 0x4CC);
                     tmd->lightMtx  = &block->light;
                     tmd->colorMtx  = &block->color;
@@ -458,7 +459,7 @@ void func_actor_560800_80132C60(Task* arg0)
             if (block == NULL) {
                 failed = 1;
             } else {
-                coord->sub = &Gfx_ViewCoord;
+                coord->sub = &gGfxViewCoord;
                 Mem_Set(arg0->work, 0, 0x4CC);
                 tmd->lightMtx  = &block->light;
                 tmd->colorMtx  = &block->color;
@@ -548,7 +549,7 @@ void func_actor_560800_80132F64(Task* arg0)
             if (block == NULL) {
                 failed = 1;
             } else {
-                coord->sub = &Gfx_ViewCoord;
+                coord->sub = &gGfxViewCoord;
                 Mem_Set(arg0->work, 0, 0x4CC);
                 tmd->lightMtx  = &block->light;
                 tmd->colorMtx  = &block->color;

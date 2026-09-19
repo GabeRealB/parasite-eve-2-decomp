@@ -308,7 +308,7 @@ void func_hypervelocity_8011D830(Task* task)
             dstm->w3           = srcm->w3;
             dstm->h4           = srcm->h4;
             coord->flg         = 0;
-            Gfx_ViewCoord.flg  = 0;
+            gGfxViewCoord.flg  = 0;
             Gp_UpdateCoord(coord);
             work->field_10 = 0;
             work->field_12 = 0;
@@ -366,7 +366,7 @@ void func_hypervelocity_8011D830(Task* task)
             coord->coord.t[1] += work->field_12;
             coord->coord.t[2] += work->field_14;
             coord->flg         = 0;
-            Gfx_ViewCoord.flg  = 0;
+            gGfxViewCoord.flg  = 0;
             Gp_UpdateCoord(coord);
             after.vx = coord->workm.t[0];
             after.vy = coord->workm.t[1];

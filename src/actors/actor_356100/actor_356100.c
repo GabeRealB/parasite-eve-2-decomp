@@ -258,7 +258,7 @@ void func_actor_356100_8016382C(GpEnemy* enemy, Actor356100* actor)
     work->field_C[1].x = actor->field_2C->coords->coord.t[0] + dir.vx;
     work->field_C[1].z = actor->field_2C->coords->coord.t[2] + dir.vz;
     actor->field_24    = &D_actor_356100_80173258;
-    root->sub          = &Gfx_ViewCoord;
+    root->sub          = &gGfxViewCoord;
     root->flg          = 0;
     Gp_UpdateCoord(root);
     pos.vx = root->workm.t[0];
@@ -1738,7 +1738,7 @@ void func_actor_356100_80169854(GpEnemy* arg0, Actor356100* arg1)
         *(s32*)&m->m[1][1]    = 0x1000;
         *(s32*)&m->m[2][0]    = 0;
         m->m[2][2]            = 0x1000;
-        blk->coord.sub        = &Gfx_ViewCoord;
+        blk->coord.sub        = &gGfxViewCoord;
         blk->coord.coord.t[0] = blk->v.vx;
         blk->coord.coord.t[1] = 0;
         blk->coord.coord.t[2] = blk->v.vz;
@@ -1780,7 +1780,7 @@ void func_actor_356100_80169854(GpEnemy* arg0, Actor356100* arg1)
         arg0->field_1C.vy = blk->v.vy;
         arg0->field_1C.vz = blk->v.vz;
     }
-    arg0->field_18 = &Gfx_ViewCoord;
+    arg0->field_18 = &gGfxViewCoord;
 }
 
 s32 func_actor_356100_80169E5C(void)

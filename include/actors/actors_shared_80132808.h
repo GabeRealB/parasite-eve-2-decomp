@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "main/gfx.h"
 #include "psyq/inline_c.h"
 
 /// Accumulate `arg0`'s parent chain into `arg1`: seed it with the node's own
@@ -51,8 +52,8 @@ static __inline__ GsCOORDINATE2* ActorsShared80132808_Localize(GsCOORDINATE2* ar
     GsCOORDINATE2* view;
 
     coord = arg0->sub;
-    if (coord != &Gfx_ViewCoord) {
-        view   = &Gfx_ViewCoord;
+    if (coord != &gGfxViewCoord) {
+        view   = &gGfxViewCoord;
         matrix = coord->coord;
         while (1) {
             coord = coord->sub;

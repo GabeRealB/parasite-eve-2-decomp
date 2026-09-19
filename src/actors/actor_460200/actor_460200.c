@@ -452,7 +452,7 @@ void func_actor_460200_80132808(GpEnemy* enemy, Task* task)
         return;
     }
     task->exitCallback  = func_actor_460200_80132950;
-    coord->sub          = &Gfx_ViewCoord;
+    coord->sub          = &gGfxViewCoord;
     enemy->field_4      = &coord->coord;
     enemy->field_48     = 0;
     enemy->node.field_5 = 0;

@@ -8,6 +8,7 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/gfx.h"
 
 extern void         D_actor_800300_80168880;
 extern GpActorWork* D_80115764;
@@ -39,7 +40,7 @@ void func_actor_800300_80161E80(GpActorWork* arg0)
     arg0->field_18   = &ActorsShared801625a8;
     actor->field_938 = 0x13;
     D_80115764       = arg0;
-    coord->sub       = &Gfx_ViewCoord;
+    coord->sub       = &gGfxViewCoord;
     coord->flg       = 0;
     extra->flags     = 0;
     RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);

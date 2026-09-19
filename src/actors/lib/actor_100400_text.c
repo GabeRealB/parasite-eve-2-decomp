@@ -115,7 +115,6 @@ void       Actor00400_Fn03570(GsCOORDINATE2* arg0, s16 arg1);
 void       Gp_MtxToEuler(MATRIX* arg0, SVECTOR* arg1);
 void       func_8004BFF8(s32 angle, MATRIX* matrix);
 
-extern GsCOORDINATE2         Gfx_ViewCoord;
 extern MATRIX                Gfx_ViewWorldMtx;
 extern TaskFuncTable11       Actor00400_D0007C;
 extern TaskFuncTable10       Actor00400_D000A8;
@@ -347,7 +346,7 @@ void Actor00400_Fn00B48(Actor100400* arg0)
     hp            = Actor00400_D0FDC8.field_4;
     obj->field_42 = hp;
     obj->field_40 = hp;
-    coord->sub    = &Gfx_ViewCoord;
+    coord->sub    = &gGfxViewCoord;
     func_800B3F84(work, Actor00400_D1604C, ctx, work->field_26C, work->field_14);
     Actor00400_Fn019B4(arg0);
     work->field_556 = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -1427,8 +1426,8 @@ void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SV
     POLY_FT4*                   poly;
 
     s                 = (Actor100400TextQuadScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor100400TextQuadScratch));
-    Gfx_ViewCoord.flg = 0;
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    gGfxViewCoord.flg = 0;
+    Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     s->depth = RotTransPers4(corner0, corner1, corner2, corner3, &s->screen0, &s->screen1, &s->screen2, &s->screen3,
@@ -1462,7 +1461,7 @@ void Actor00400_Fn03570(GsCOORDINATE2* coord, s16 yaw)
 
     *(MATRIX**)G_SCRATCH_HEAD -= 1;
     rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
-    Actor00400_AccumulateRotation(coord, rotation, &Gfx_ViewCoord);
+    Actor00400_AccumulateRotation(coord, rotation, &gGfxViewCoord);
     func_8004BFF8(yaw, rotation);
     out = Actor00400_LocalizeRotation(coord, rotation);
     __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));

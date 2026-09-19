@@ -208,9 +208,9 @@ void func_m4a1_grenade_8011D654(Task* arg0)
     gte_ldv0(vec);
     gte_rtv0tr_real();
     gte_stlvnl(coord->workm.t);
-    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coord->workm, &coord->coord);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
     mtx          = (MATRIX*)(head - 0x20);
-    coord->sub   = &Gfx_ViewCoord;
+    coord->sub   = &gGfxViewCoord;
     coord->flg   = 0;
     extra->flags = 0;
     *mtx         = coord->coord;

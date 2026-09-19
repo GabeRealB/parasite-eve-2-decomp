@@ -10,6 +10,7 @@
 #include "main/mem.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+#include "main/gfx.h"
 
 void Actor03800_Fn00974(Actor103800* arg0);
 void Actor03800_Fn00A98(Actor103800* arg0);
@@ -432,7 +433,7 @@ void Actor03800_Fn01C50(Actor103800* arg0)
             gte_ldclmv(&matrix.m[0][2]);
             gte_rtir_real();
             gte_stclmv(&work->field_2CC.m[0][2]);
-            coord->sub        = &Gfx_ViewCoord;
+            coord->sub        = &gGfxViewCoord;
             coord->coord      = work->field_2CC;
             coord->coord.t[0] = work->coord.coord.t[0];
             coord->coord.t[1] = work->coord.coord.t[1];

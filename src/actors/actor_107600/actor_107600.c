@@ -113,7 +113,7 @@ void func_actor_107600_80131F10(Task* arg0)
     obj->lightMtx      = &work->matrix_20;
     obj->colorMtx      = &work->matrix_0;
     enemy->field_50    = &D_actor_107600_80134F84;
-    coord->sub         = &Gfx_ViewCoord;
+    coord->sub         = &gGfxViewCoord;
     enemy->field_4     = &((TmdObject*)arg0->extra)->coords->coord;
     enemy->field_48    = 0;
     if (work->field_144 != 2) {
@@ -1002,7 +1002,7 @@ void func_actor_107600_801339A4(Task* arg0)
             obj->coord.t[0] += obj->sub->coord.t[0];
             obj->coord.t[1] += obj->sub->coord.t[1];
             obj->coord.t[2] += obj->sub->coord.t[2];
-            obj->sub         = &Gfx_ViewCoord;
+            obj->sub         = &gGfxViewCoord;
             pos              = (Actor107600HitPos*)&work->pitch;
             VectorNormal((VECTOR*)pos, (VECTOR*)pos);
             ApplyMatrixLV(&obj->coord, (VECTOR*)pos, (VECTOR*)pos);

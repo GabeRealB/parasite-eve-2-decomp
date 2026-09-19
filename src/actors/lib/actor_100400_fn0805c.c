@@ -2,6 +2,7 @@
 
 #include "actors/actor_100400.h"
 #include "main/gameflag.h"
+#include "main/gfx.h"
 #include "main/task.h"
 
 extern u32 Gp_LcgState;
@@ -70,7 +71,6 @@ void       Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void       Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void       Actor00400_Fn00E3C(Actor100400* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 
-extern GsCOORDINATE2        Gfx_ViewCoord;
 extern MATRIX               Gfx_ViewWorldMtx;
 extern const TaskFuncTable3 Actor00400_D0002C;
 extern TaskFuncTable3       Actor00400_D00144;
@@ -149,16 +149,16 @@ void Actor00400_Fn0824C(Actor100400* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
     GsCOORDINATE2* coords;
 
     coords            = arg0->field_2C->field_8;
-    Gfx_ViewCoord.flg = 0;
+    gGfxViewCoord.flg = 0;
     coordA            = &coords[arg1];
     coordB            = &coords[arg2];
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    Gp_UpdateCoord(&gGfxViewCoord);
     coordA->flg = 0;
     coordB->flg = 0;
     Gp_UpdateCoord(coordA);
     Gp_UpdateCoord(coordB);
-    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coordA->workm, &a);
-    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coordB->workm, &b);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coordA->workm, &a);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coordB->workm, &b);
     arg3->vx    = (a.t[0] + b.t[0]) / 2;
     arg3->vz    = (a.t[2] + b.t[2]) / 2;
     coordA->flg = 0;
@@ -219,17 +219,17 @@ void Actor00400_Fn08464(Actor100400* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
     GsCOORDINATE2* coords;
 
     coords            = arg0->field_2C->field_8;
-    Gfx_ViewCoord.flg = 0;
+    gGfxViewCoord.flg = 0;
     coordA            = &coords[arg1];
     coordB            = &coords[arg2];
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    Gp_UpdateCoord(&gGfxViewCoord);
     coordA->flg = 0;
     coordB->flg = 0;
     Gp_UpdateCoord(coordA);
     Gp_UpdateCoord(coordB);
-    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coords[0].workm, &root);
-    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coordA->workm, &a);
-    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coordB->workm, &b);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[0].workm, &root);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coordA->workm, &a);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coordB->workm, &b);
     coords[0].coord.t[0] = arg3->vx - ((a.t[0] + b.t[0]) / 2 - root.t[0]);
     coords[0].coord.t[2] = arg3->vz - ((a.t[2] + b.t[2]) / 2 - root.t[2]);
     coords[0].flg        = 0;

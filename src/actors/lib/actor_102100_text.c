@@ -466,9 +466,9 @@ void Actor02100_Fn011C4(Actor02100* arg0)
                         gte_ldv0(&scratch->from);
                         __asm__ volatile("nop; nop; .word 0x4A486012");
                         gte_stlvnl(&scratch->transformed);
-                        scratch->transformed.vx += Gfx_ViewCoord.workm.t[0];
-                        scratch->transformed.vy += Gfx_ViewCoord.workm.t[1];
-                        scratch->transformed.vz += Gfx_ViewCoord.workm.t[2];
+                        scratch->transformed.vx += gGfxViewCoord.workm.t[0];
+                        scratch->transformed.vy += gGfxViewCoord.workm.t[1];
+                        scratch->transformed.vz += gGfxViewCoord.workm.t[2];
                         scratch->from.vx         = (u16)scratch->transformed.vx;
                         scratch->from.vy         = (u16)scratch->transformed.vy;
                         scratch->from.vz         = (u16)scratch->transformed.vz;
@@ -550,9 +550,9 @@ case2:
     gte_ldv0(&scratch->shortVec);
     __asm__ volatile("nop; nop; .word 0x4A486012");
     gte_stlvnl(vec);
-    scratch->vec.vx += Gfx_ViewCoord.workm.t[0];
-    scratch->vec.vy += Gfx_ViewCoord.workm.t[1];
-    scratch->vec.vz += Gfx_ViewCoord.workm.t[2];
+    scratch->vec.vx += gGfxViewCoord.workm.t[0];
+    scratch->vec.vy += gGfxViewCoord.workm.t[1];
+    scratch->vec.vz += gGfxViewCoord.workm.t[2];
     ApplyTransposeMatrixLV(&coord->workm, &scratch->vec, &work->field_108);
     result = 1;
 

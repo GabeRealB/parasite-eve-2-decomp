@@ -5,6 +5,7 @@
 #include "main/mc.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/gfx.h"
 
 #include "gameplay/D4.h"
 #include "gameplay/1BC.h"
@@ -441,7 +442,7 @@ s32 func_actor_403100_8013E450(GsCOORDINATE2* arg0, MATRIX* arg1, GsCOORDINATE2*
     GsCOORDINATE2* coord;
 
     coord = arg0->sub;
-    if (coord == &Gfx_ViewCoord) {
+    if (coord == &gGfxViewCoord) {
         return 0;
     }
     matrix = coord->coord;
@@ -509,7 +510,7 @@ void func_actor_403100_8013E6A0(Task* arg0)
 
     coord               = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     arg0->killCountdown = 0x5A;
-    coord->sub          = &Gfx_ViewCoord;
+    coord->sub          = &gGfxViewCoord;
     coord->flg          = 0;
     arg0->state         = arg0->state + 1;
     func_actor_403100_8013E6F0(arg0);
@@ -555,7 +556,7 @@ void func_actor_403100_8013E7C8(Task* arg0)
 
     coord2              = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     arg0->killCountdown = 0x5A;
-    coord2->sub         = &Gfx_ViewCoord;
+    coord2->sub         = &gGfxViewCoord;
     coord2->flg         = 0;
     arg0->state        += 1;
     coord               = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;

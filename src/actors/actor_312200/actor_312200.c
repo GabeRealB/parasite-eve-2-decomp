@@ -228,7 +228,7 @@ void func_actor_312200_80162FB4(Task* task)
 /// root coordinate's matrix as `field_4` and the model's third part coordinate
 /// as `field_18`; the display node the body builds in place points its `field_C`
 /// at the block's three-entry `GpRec18` table and its `field_8` at the model's
-/// fourth part coordinate. The model coordinate is parented to `Gfx_ViewCoord`
+/// fourth part coordinate. The model coordinate is parented to `gGfxViewCoord`
 /// and rebuilt once before the three matrix translations are copied to
 /// `func_800D7A9C` (start 0, count 3).
 void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
@@ -284,7 +284,7 @@ void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
     task->msgTable  = D_actor_312200_80169F5C;
     work->field_8AC = 0;
     work->field_8AD = 1;
-    coord->sub      = &Gfx_ViewCoord;
+    coord->sub      = &gGfxViewCoord;
     coord->flg      = 0;
     Gp_UpdateCoord(coord);
     vec.vx = coord->workm.t[0];

@@ -4,6 +4,7 @@
 #include "actors/actors_shared_80135b58.h"
 #include "main/tmd.h"
 #include "main/session.h"
+#include "main/gfx.h"
 #include "main/wipsys.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
@@ -676,8 +677,6 @@ void Actor02500_Fn02574(Actor02500* arg0)
     sp.funcs[arg0->field_30](arg0->field_20, arg0);
 }
 
-extern GsCOORDINATE2 Gfx_ViewCoord;
-
 void Actor02500_Fn025D0(Actor02500Ctx* ctx, Actor02500* task)
 {
     Actor02500EffWork* work;
@@ -694,7 +693,7 @@ void Actor02500_Fn025D0(Actor02500Ctx* ctx, Actor02500* task)
         return;
     }
     task->field_1C     = (Actor02500Work*)work;
-    coord->sub         = &Gfx_ViewCoord;
+    coord->sub         = &gGfxViewCoord;
     coord->coord       = parentCoord->coord;
     coord->coord.t[0]  = parentCoord->coord.t[0];
     coord->coord.t[1]  = parentCoord->coord.t[1];

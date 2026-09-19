@@ -467,7 +467,7 @@ void func_actor_560800_80137BEC(Task* task)
 /// parts, chosen by `Actor560800PartsWork::field_46`: 0-2 place each part at
 /// its table position and, while `field_48` is set, rebuild its rotation from
 /// the table with the child joints reset; 3 resets each part's matrix, hangs
-/// it off `Gfx_ViewCoord` and offsets it from the message position; 4 kills
+/// it off `gGfxViewCoord` and offsets it from the message position; 4 kills
 /// parts 4-7, reparents the rest to `D_actor_560800_801757AC`'s model and
 /// raises the `D_actor_560800_801752E8` / `801752EC` flags.
 void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
@@ -506,7 +506,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
                     mat->ident.m11_m12 = 0x1000;
                     mat->ident.m20_m21 = 0;
                     mat->ident.m22     = 0x1000;
-                    coord->sub         = &Gfx_ViewCoord;
+                    coord->sub         = &gGfxViewCoord;
                     part               = (Actor560800ModelWork*)work->parts[i & 0xFFFF]->work;
                     part->field_254    = msg->vx + pose->pos.vx;
                     part->field_256    = msg->vy + pose->pos.vy;
@@ -684,7 +684,7 @@ extern void D_actor_560800_801756D4;
 extern u16  D_actor_560800_801756EC[];
 
 /// Handler of the parts task. State 0 allocates its `Actor560800PartsWork`,
-/// roots the model at `Gfx_ViewCoord`, reparents the spawner's task, spawns the
+/// roots the model at `gGfxViewCoord`, reparents the spawner's task, spawns the
 /// eight part tasks and swaps `Gp_LcgState` out for a zero seed; state 2 grows
 /// each part's `field_256` up to its `D_actor_560800_80175314` limit; state 3
 /// bursts effects on the first remaining part, puts it into state 4 and drops
@@ -716,7 +716,7 @@ void func_actor_560800_801386D4(Task* task)
             if (w == NULL) {
                 taskKill(task);
             } else {
-                root->sub = &Gfx_ViewCoord;
+                root->sub = &gGfxViewCoord;
                 Mem_Set(task->work, 0, 0x4C);
                 i                 = 0;
                 spawned           = w;
@@ -992,7 +992,7 @@ void func_actor_560800_80138D04(Task* task)
 }
 
 /// Per-frame handler of a model task: state 0 allocates its
-/// `Actor560800ModelWork`, parents the root coordinate to `Gfx_ViewCoord`,
+/// `Actor560800ModelWork`, parents the root coordinate to `gGfxViewCoord`,
 /// publishes the task as `D_actor_560800_801757AC` and resets the root matrix
 /// to identity. States 2/5 lift the root
 /// by 5 while pulsing the second coordinate's X/Z scale in steps of 0x32, state
@@ -1028,7 +1028,7 @@ void func_actor_560800_80138FC8(Task* task)
             } else {
                 Mem_Set(task->work, 0, 0x28C);
                 mem            = (Actor560800ModelWork*)task->work;
-                root->sub      = &Gfx_ViewCoord;
+                root->sub      = &gGfxViewCoord;
                 mem->field_26C = (Task*)task->spawnArg2;
                 obj->lightMtx  = &mem->light;
                 obj->colorMtx  = &mem->color;

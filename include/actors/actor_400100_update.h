@@ -35,7 +35,6 @@ extern Actor00100StateC08    Gp_StateC08;
 extern Actor00100AnimWord    Actor00100_D1B9BC, Actor00100_D1B9C0;
 extern s8                    D_8007218A;
 extern u8                    D_80073BA9, D_801153F4;
-extern GsCOORDINATE2         Gfx_ViewCoord;
 void                         Actor00100_Fn01900(Actor00100*, s16, s16, s16, s16, u8);
 void                         Actor00100_Fn0375C(Actor00100*);
 
@@ -67,7 +66,7 @@ static __inline__ void Actor00100_TransformToView(GsCOORDINATE2* p, SVECTOR* out
     VECTOR         vec;
     s32            flag;
     SVECTOR*       svp   = &sv;
-    GsCOORDINATE2* view  = &Gfx_ViewCoord;
+    GsCOORDINATE2* view  = &gGfxViewCoord;
     VECTOR*        vecp  = &vec;
     s32*           flagp = &flag;
     sv.vx                = out->vx;

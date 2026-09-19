@@ -9,6 +9,7 @@
 #include "main/mem.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+#include "main/gfx.h"
 #include <psyq/inline_c.h>
 
 void Actor03800_Fn00974(Actor103800* arg0);
@@ -140,7 +141,7 @@ void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
 /// work block: the tens digit picks the mode (`field_350`) and the units digit
 /// of mode 0 the idle pose, seeding the look-around countdown from the LCG.
 /// Modes 1 and 2 instead detach the model: the work block's own coordinate is
-/// seeded from the model's, parented to `Gfx_ViewCoord` and published on
+/// seeded from the model's, parented to `gGfxViewCoord` and published on
 /// `field_344`, while the model's coordinate is reset to an identity rotation
 /// at the origin and re-parented under it. `Gp_MulMatrix0`-style GTE column
 /// products then turn the detached coordinate by 0x400 / 0x800 about X.
@@ -201,7 +202,7 @@ void Actor03800_Fn003B8(Task* arg0)
             mtx->ident.m20_m21 = 0;
             mtx->ident.m22     = 0x1000;
 
-            work->coord.sub        = &Gfx_ViewCoord;
+            work->coord.sub        = &gGfxViewCoord;
             work->coord.coord      = src->coord;
             work->coord.coord.t[0] = src->coord.t[0];
             work->coord.coord.t[1] = src->coord.t[1];
@@ -251,7 +252,7 @@ void Actor03800_Fn003B8(Task* arg0)
             mtx2->ident.m20_m21 = 0;
             mtx2->ident.m22     = 0x1000;
 
-            work->coord.sub        = &Gfx_ViewCoord;
+            work->coord.sub        = &gGfxViewCoord;
             work->coord.coord      = src->coord;
             work->coord.coord.t[0] = src->coord.t[0];
             work->coord.coord.t[1] = src->coord.t[1];

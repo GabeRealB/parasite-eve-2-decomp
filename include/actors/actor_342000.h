@@ -58,7 +58,7 @@ STATIC_ASSERT_SIZEOF(Actor342000MatWords, 0x20);
 /// *not* a `TaskIdMap` here. Reach it with `(Actor342000Work*)task->work`.
 ///
 /// `field_2A4` is the coordinate node the actor's model is re-parented to:
-/// `func_actor_342000_80162158` seeds it with `&Gfx_ViewCoord`, and the exit
+/// `func_actor_342000_80162158` seeds it with `&gGfxViewCoord`, and the exit
 /// callback `func_actor_342000_80163F88` writes it back into
 /// `((GsCOORDINATE2*)((TmdObject*)task->extra)->field_8)->sub`.
 ///

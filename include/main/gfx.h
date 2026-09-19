@@ -73,10 +73,17 @@ extern GsCOORDINATE2 D_80070E40;
 extern MATRIX Gfx_ViewRotMtx;
 /// GsCOORDINATE2 whose `.coord` is `D_80070E94`.
 extern GsCOORDINATE2 Gfx_ViewOffsetCoord;
-extern GsCOORDINATE2 Gfx_ViewCoord;
+/// The view coordinate: every world-space object is parented to it, so a
+/// coordinate composed against it comes out in view space.
+///
+/// Its `coord` carries the view translation and its `workm` the view matrix the
+/// world is drawn and projected through. The view rotation and the view offset
+/// are the two coordinates above it in the chain, which is why its own matrix
+/// holds a translation alone.
+extern GsCOORDINATE2 gGfxViewCoord;
 extern MATRIX        D_80070E94;
 extern MATRIX        D_80070F14;
-/// Translation of `D_80070F14` / `Gfx_ViewCoord.coord.t`.
+/// Translation of `D_80070F14` / `gGfxViewCoord.coord.t`.
 extern VECTOR3 D_80070F28;
 extern MATRIX  Gfx_ViewWorldMtx;
 

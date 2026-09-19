@@ -588,7 +588,7 @@ static __inline__ void Actor444000_SquashRotation(GsCOORDINATE2* coord, s16 y)
 /// is under 0x191, four one-shot cues fire on frames 0x33, 0x3D, 0x4E and 0x71
 /// of the fourth slot, and sub-states 0x14, 0x82, 0x14A and 0x1DC each hand one
 /// body over: 0x14 switches the host and escort 3 to light mode 1, while the
-/// other three reparent escort 2, 4 and 3's model to `Gfx_ViewCoord`. That
+/// other three reparent escort 2, 4 and 3's model to `gGfxViewCoord`. That
 /// reparenting is why both halves of the part's placement have to be resolved
 /// by hand -- `Actor444000_AccumulateRotation` for the rotation it had up the
 /// chain and `Actor444000_LocalToView` for its origin -- the same pair
@@ -708,7 +708,7 @@ void func_actor_444000_80135448(Actor444000* task)
                 pos.vx = 0;
                 Actor444000_LocalToView(&((TmdObject*)task->extra)->coords[4], &pos);
 
-                ((TmdObject*)work->field_ECC[2]->task->extra)->coords->sub        = &Gfx_ViewCoord;
+                ((TmdObject*)work->field_ECC[2]->task->extra)->coords->sub        = &gGfxViewCoord;
                 ((TmdObject*)work->field_ECC[2]->task->extra)->coords->coord      = mat;
                 ((TmdObject*)work->field_ECC[2]->task->extra)->coords->coord.t[0] = pos.vx;
                 ((TmdObject*)work->field_ECC[2]->task->extra)->coords->coord.t[1] = pos.vy;
@@ -724,7 +724,7 @@ void func_actor_444000_80135448(Actor444000* task)
                 pos.vx = 0;
                 Actor444000_LocalToView(&((TmdObject*)task->extra)->coords[3], &pos);
 
-                ((TmdObject*)work->field_ECC[3]->task->extra)->coords->sub        = &Gfx_ViewCoord;
+                ((TmdObject*)work->field_ECC[3]->task->extra)->coords->sub        = &gGfxViewCoord;
                 ((TmdObject*)work->field_ECC[3]->task->extra)->coords->coord      = mat;
                 ((TmdObject*)work->field_ECC[3]->task->extra)->coords->coord.t[0] = pos.vx;
                 ((TmdObject*)work->field_ECC[3]->task->extra)->coords->coord.t[1] = pos.vy;
@@ -740,7 +740,7 @@ void func_actor_444000_80135448(Actor444000* task)
                 pos.vx = 0;
                 Actor444000_LocalToView(&((TmdObject*)task->extra)->coords[4], &pos);
 
-                ((TmdObject*)work->field_ECC[4]->task->extra)->coords->sub        = &Gfx_ViewCoord;
+                ((TmdObject*)work->field_ECC[4]->task->extra)->coords->sub        = &gGfxViewCoord;
                 ((TmdObject*)work->field_ECC[4]->task->extra)->coords->coord      = mat;
                 ((TmdObject*)work->field_ECC[4]->task->extra)->coords->coord.t[0] = pos.vx;
                 ((TmdObject*)work->field_ECC[4]->task->extra)->coords->coord.t[1] = pos.vy;
@@ -1023,7 +1023,7 @@ static __inline__ void Actor444000_LinkWorkObj(GsCOORDINATE2* coord, GpObj* obj,
 /// allocate its work block and stand the model up where the host's first
 /// escort is, in view space.
 ///
-/// The model is reparented to `Gfx_ViewCoord`, so both halves of that escort's
+/// The model is reparented to `gGfxViewCoord`, so both halves of that escort's
 /// part 1 have to be resolved by hand: `Actor444000_AccumulateRotation` walks
 /// the part's coordinate chain up to the view coordinate for the rotation and
 /// `Actor444000_LocalToView` carries its origin along the same chain for the
@@ -1052,7 +1052,7 @@ void func_actor_444000_80137594(GpEnemy* enemy, Actor444000Grab* task)
     }
 
     work->field_1AC          = 0;
-    task->extra->coords->sub = &Gfx_ViewCoord;
+    task->extra->coords->sub = &gGfxViewCoord;
     task->extra->flags       = 0;
 
     Actor444000_AccumulateRotation(&((TmdObject*)host->field_ECC[0]->task->extra)->coords[1],
@@ -1088,7 +1088,7 @@ void func_actor_444000_80137594(GpEnemy* enemy, Actor444000Grab* task)
 /// scaled by 0x89/0x1000 through the GTE's GPF, and that is the per-step
 /// translation added to the coordinate; past step 0x29 the height is pinned to
 /// -0x3E8 instead. The marker grows 0x60 a step and is drawn under the work
-/// block's own coordinate, which is parented to `Gfx_ViewCoord` and tracks the
+/// block's own coordinate, which is parented to `gGfxViewCoord` and tracks the
 /// model. After 0x35 steps the display node is handed back and the task steps
 /// on. Paused (`D_801153F4` set) only the coordinate is refreshed, and the
 /// marker is skipped while the host actor sits in state 6.
@@ -1153,7 +1153,7 @@ void func_actor_444000_8013799C(GpEnemy* enemy, Actor444000Grab* task)
         work->field_1B0 += 0x60;
         Gp_ClearRec18Occupied(&work->rec0);
 
-        work->coord.sub = &Gfx_ViewCoord;
+        work->coord.sub = &gGfxViewCoord;
         Gfx_RotMatrixY(&work->coord.coord, 0, 1);
         work->coord.coord.t[0] = task->extra->coords->coord.t[0];
         work->coord.coord.t[1] = 0;
@@ -1170,7 +1170,7 @@ void func_actor_444000_8013799C(GpEnemy* enemy, Actor444000Grab* task)
             work->field_1A8 = 1;
         }
     } else {
-        work->coord.sub = &Gfx_ViewCoord;
+        work->coord.sub = &gGfxViewCoord;
         Gfx_RotMatrixY(&work->coord.coord, 0, 1);
         work->coord.coord.t[0] = task->extra->coords->coord.t[0];
         work->coord.coord.t[1] = 0;
@@ -1228,7 +1228,7 @@ static __inline__ void Actor444000_ShrinkRotation(GsCOORDINATE2* coord)
 /// allocate its work block and drop the model onto the floor of the view
 /// coordinate, under escort 1 of the host actor.
 ///
-/// The model is reparented to `Gfx_ViewCoord`, its texture page cleared and its
+/// The model is reparented to `gGfxViewCoord`, its texture page cleared and its
 /// CLUT row set to 2, and -- once the stream buffers exist -- processed twice
 /// before the spawn cue is enqueued at the model's own pan and half its depth
 /// with the owner's id in its high half. The task's light and colour matrices
@@ -1266,7 +1266,7 @@ void func_actor_444000_80137D4C(GpEnemy* enemy, Actor444000Grab* task)
         return;
     }
 
-    task->extra->coords->sub = &Gfx_ViewCoord;
+    task->extra->coords->sub = &gGfxViewCoord;
     task->extra->flags       = 0;
     task->extra->tpage       = 0;
     task->extra->clut        = 2;
@@ -1556,7 +1556,7 @@ void func_actor_444000_801389EC(GpEnemy* enemy, Actor444000Grab* task)
 /// allocate its work block, drop the model onto the floor of the view
 /// coordinate and hang the two display nodes off it.
 ///
-/// The model is reparented to `Gfx_ViewCoord` and its translation replaced by
+/// The model is reparented to `gGfxViewCoord` and its translation replaced by
 /// the world position of part 3 of the owning enemy's model, so the body starts
 /// where that part is. `field_1AA` is a ninth of that height -- the bounce the
 /// descent state adds back -- and `vel` the horizontal gap to the player, which
@@ -1583,7 +1583,7 @@ void func_actor_444000_80138B94(GpEnemy* enemy, Actor444000Grab* task)
         return;
     }
 
-    task->extra->coords->sub = &Gfx_ViewCoord;
+    task->extra->coords->sub = &gGfxViewCoord;
     task->extra->flags       = 0;
 
     vec.vx = vec.vy = vec.vz = 0;
@@ -1803,7 +1803,7 @@ static __inline__ void Actor444000_GapToCamera(GsCOORDINATE2* coord, SVECTOR* ou
 /// `D_actor_444000_80161744`, with a 0..0x7F jitter on z. `spawnArg1` 4 drops
 /// on the player instead. The model itself is stood up beside the host at the
 /// `D_actor_444000_80161704` offset, its work coordinate is parented to
-/// `Gfx_ViewCoord` with an identity rotation and carries the single display
+/// `gGfxViewCoord` with an identity rotation and carries the single display
 /// node, and the spawn cue is enqueued at the model's own pan and depth with
 /// the owner's id in its high half. The trailing `Gp_SpawnEff` effect becomes
 /// this task's parent so it dies with it.
@@ -1838,7 +1838,7 @@ void func_actor_444000_80139594(GpEnemy* enemy, Actor444000Drop* task)
         return;
     }
 
-    task->extra->coords->sub = &Gfx_ViewCoord;
+    task->extra->coords->sub = &gGfxViewCoord;
     work->field_1AA          = 0;
 
     Actor444000_GapToCamera(task->extra->coords, &vec);
@@ -1913,7 +1913,7 @@ void func_actor_444000_80139594(GpEnemy* enemy, Actor444000Drop* task)
     vec.vy = 0;
     vec.vz = 0;
 
-    work->coord.sub    = &Gfx_ViewCoord;
+    work->coord.sub    = &gGfxViewCoord;
     mtx                = (Actor444000Matrix*)&work->coord.coord;
     mtx->ident.m00_m01 = 0x1000;
     mtx->ident.m02_m10 = 0;
@@ -1999,7 +1999,7 @@ void func_actor_444000_80139C80(GpEnemy* enemy, Actor444000Drop* task)
     }
 
     work->timer++;
-    coord.c.sub          = &Gfx_ViewCoord;
+    coord.c.sub          = &gGfxViewCoord;
     mtx                  = &coord.c.coord;
     coord.ident.m00_m01  = 0x1000;
     coord.ident.m02_m10  = 0;

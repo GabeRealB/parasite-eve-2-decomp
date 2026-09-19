@@ -189,7 +189,7 @@ void func_actor_120500_80132028(Task* arg0)
 /// on failure it kills the task and returns.  The allocation's `Game_GetPtrSlot(3)`
 /// task goes to `field_4B4`, the task itself is published in
 /// `D_actor_120500_80138454`, and the model in `Task::extra` gets its
-/// coordinate parented to `Gfx_ViewCoord` plus the light and colour matrices at
+/// coordinate parented to `gGfxViewCoord` plus the light and colour matrices at
 /// 0x474 / 0x494.  The area placement record is then walked to the one whose id
 /// is 0x65 -- as in the sibling actors, the search stops on either that id or
 /// the 0xFF terminator -- and its two texture bytes are handed to
@@ -219,7 +219,7 @@ void func_actor_120500_801322A0(Task* arg0)
     Mem_Set(work, 0, 0x4CC);
     work->field_4B4         = Game_GetPtrSlot(3);
     D_actor_120500_80138454 = (Actor120500*)arg0;
-    coord->sub              = &Gfx_ViewCoord;
+    coord->sub              = &gGfxViewCoord;
     tmd->lightMtx           = &work->field_474;
     tmd->flags              = 0;
     tmd->colorMtx           = &work->field_494;

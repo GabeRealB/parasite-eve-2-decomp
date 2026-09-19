@@ -5,6 +5,7 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/gfx.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
@@ -69,7 +70,7 @@ void func_actor_361100_80161E3C(Task* arg0)
                 func_80138C9C(state);
                 i += 1;
             } while (i < 0x1E);
-            coord->sub                   = &Gfx_ViewCoord;
+            coord->sub                   = &gGfxViewCoord;
             mtx                          = &coord->coord;
             *(s32*)&coord->coord.m[0][0] = 0x1000;
             *(s32*)&mtx->m[0][2]         = 0;

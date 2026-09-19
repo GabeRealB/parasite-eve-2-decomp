@@ -14,6 +14,7 @@
 #include "main/sound.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+#include "main/gfx.h"
 #include <psyq/inline_c.h>
 
 /// `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macro of that name assembles to a
@@ -440,7 +441,7 @@ void func_actor_503500_80145480(Task* arg0)
     func_actor_503500_801372AC(6);
     SndEvt_EnqueueType7(0x4023000B, 1);
     ext                                = arg0->extra;
-    ((GsCOORDINATE2*)ext->coords)->sub = &Gfx_ViewCoord;
+    ((GsCOORDINATE2*)ext->coords)->sub = &gGfxViewCoord;
     Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
     taskKill(arg0);
 }
@@ -587,7 +588,7 @@ void func_actor_503500_80145950(Task* arg0)
     SndEvt_EnqueueType7(0x4023000C, 1);
     func_actor_503500_801372AC(6);
     ext                                = arg0->extra;
-    ((GsCOORDINATE2*)ext->coords)->sub = &Gfx_ViewCoord;
+    ((GsCOORDINATE2*)ext->coords)->sub = &gGfxViewCoord;
     Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
     taskKill(arg0);
 }
@@ -751,7 +752,7 @@ void func_actor_503500_80145E98(Task* arg0)
     SndEvt_EnqueueType7(0x40230013, 1);
     SndEvt_EnqueueType7(0x4023000F, 1);
     ext                                = arg0->extra;
-    ((GsCOORDINATE2*)ext->coords)->sub = &Gfx_ViewCoord;
+    ((GsCOORDINATE2*)ext->coords)->sub = &gGfxViewCoord;
     Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
     taskKill(arg0);
 }

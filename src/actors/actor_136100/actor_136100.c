@@ -632,7 +632,7 @@ void func_actor_136100_80133A88(Task* arg0)
     Mem_Set(work, 0, 0x4F0);
     work->field_4B4         = Game_GetPtrSlot(3);
     D_actor_136100_8014078C = arg0;
-    coord->sub              = &Gfx_ViewCoord;
+    coord->sub              = &gGfxViewCoord;
     Tmd_AllocBuffers(tmd);
     tmd->lightMtx = &work->field_474;
     tmd->colorMtx = &work->field_494;
@@ -770,7 +770,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                                                   (s32)((TmdObject*)arg0->extra)->coords + 0x140);
             if (work->field_4E4 == 0) {
                 func_actor_136100_ResetSlots(arg0, 1);
-                work->field_4BC = Task_SpawnFromTable(&ActorsShared80134898Desc, 3, 0, (s32)&Gfx_ViewCoord);
+                work->field_4BC = Task_SpawnFromTable(&ActorsShared80134898Desc, 3, 0, (s32)&gGfxViewCoord);
             } else {
                 func_actor_136100_ResetSlots(arg0, 3);
                 work->field_4BC = Task_SpawnFromTable(&ActorsShared80134898Desc, 3, 1,

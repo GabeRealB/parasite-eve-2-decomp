@@ -2,6 +2,7 @@
 
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/gfx.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
@@ -40,7 +41,7 @@ void func_actor_342400_8016B5B0(Task* arg0)
         if (current->sub == NULL) {
             return;
         }
-        if (current == &Gfx_ViewCoord) {
+        if (current == &gGfxViewCoord) {
             pos->vx = local.vx;
             pos->vy = local.vy;
             pos->vz = local.vz;

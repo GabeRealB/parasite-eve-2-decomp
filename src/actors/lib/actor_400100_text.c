@@ -29,9 +29,8 @@ extern GpEnemyTaskFuncTable4 Actor00100_D001A0;
 
 #define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 
-extern GsCOORDINATE2 Gfx_ViewCoord;
-extern s8            D_80114C12;
-extern u8            D_80071075;
+extern s8 D_80114C12;
+extern u8 D_80071075;
 
 struct _GpObj20E;
 void Gp_ReleaseStateF0Add(struct _GpObj20E* arg0, s32 arg1);
@@ -107,7 +106,7 @@ void Actor00100_Fn04270(Actor00100* argx)
             work->field_8B0.vx = 0;
             work->field_8B0.vy = 0;
             work->field_8B0.vz = 0;
-            view0              = &Gfx_ViewCoord;
+            view0              = &gGfxViewCoord;
             svp                = &sv;
             vecp               = &vec;
             fp                 = &flag0;
@@ -140,7 +139,7 @@ void Actor00100_Fn04270(Actor00100* argx)
                 goto loop0;
             }
         done0:
-            view1 = &Gfx_ViewCoord;
+            view1 = &gGfxViewCoord;
             Gp_SpawnEff(0x600A5, view1, 2, &work->field_8A8);
             work->field_8A8.vy = *(u16*)&arg0->field_2C->coords[0].coord.t[1];
             svp                = &sv;
@@ -176,7 +175,7 @@ void Actor00100_Fn04270(Actor00100* argx)
             }
         done1:
             work->field_8B0.vy = *(u16*)&arg0->field_2C->coords[0].coord.t[1];
-            Gp_SpawnEff(0x600A5, &Gfx_ViewCoord, 2, &work->field_8B0);
+            Gp_SpawnEff(0x600A5, &gGfxViewCoord, 2, &work->field_8B0);
             break;
         case 0x3C:
             arg0->field_2C->flags = 0x80;

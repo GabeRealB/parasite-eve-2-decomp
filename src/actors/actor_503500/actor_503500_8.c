@@ -14,6 +14,7 @@
 #include "main/sound.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+#include "main/gfx.h"
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
 #include <psyq/libgpu.h>
@@ -574,7 +575,7 @@ void func_actor_503500_8013C900(Actor503500* arg0)
     GpEnemy* enemy;
 
     enemy                                      = arg0->field_20;
-    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &Gfx_ViewCoord;
+    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &gGfxViewCoord;
     Gp_UnlinkObj(&arg0->field_1C->obj);
     enemy->field_54 = 0;
     arg0->field_1C  = NULL;
@@ -990,7 +991,7 @@ void func_actor_503500_8013D85C(Actor503500* arg0)
     GpEnemy* enemy;
 
     enemy                                      = arg0->field_20;
-    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &Gfx_ViewCoord;
+    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &gGfxViewCoord;
     Gp_UnlinkObj(&arg0->field_1C->obj);
     enemy->field_54 = 0;
     arg0->field_1C  = NULL;
@@ -1489,7 +1490,7 @@ void func_actor_503500_8013EA2C(Actor503500* arg0)
     GpEnemy* enemy;
 
     enemy                                      = arg0->field_20;
-    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &Gfx_ViewCoord;
+    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &gGfxViewCoord;
     Gp_UnlinkObj(&arg0->field_1C->obj);
     enemy->field_54 = 0;
     arg0->field_1C  = NULL;
@@ -1877,7 +1878,7 @@ void func_actor_503500_8013F778(Actor503500* arg0)
     GpEnemy* enemy;
 
     enemy                                      = arg0->field_20;
-    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &Gfx_ViewCoord;
+    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &gGfxViewCoord;
     Gp_UnlinkObj(&arg0->field_1C->obj);
     enemy->field_54 = 0;
     arg0->field_1C  = NULL;
@@ -2361,7 +2362,7 @@ void func_actor_503500_80140654(Actor503500* arg0)
                 coord->coord.t[0] = rot.vx;
                 coord->coord.t[1] = rot.vy;
                 coord->coord.t[2] = rot.vz;
-                coord->sub        = &Gfx_ViewCoord;
+                coord->sub        = &gGfxViewCoord;
                 coord->flg        = 0;
                 work->field_3D6   = phase;
                 Gp_UpdateCoord(coord);
@@ -2857,7 +2858,7 @@ void func_actor_503500_80141D04(Actor503500* arg0)
 
     enemy = arg0->field_20;
     func_actor_503500_8013611C(arg0->spawnArg1);
-    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &Gfx_ViewCoord;
+    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &gGfxViewCoord;
     Gp_UnlinkObj(&arg0->field_1C->obj160);
     Gp_UnlinkObj(&arg0->field_1C->obj240);
     enemy->field_54 = 0;
@@ -3414,7 +3415,7 @@ void func_actor_503500_80142980(Actor503500* arg0)
                     work->vel.vz.w = 0;
                 }
                 ApplyMatrixLV(&coord->coord, (VECTOR*)&work->vel, (VECTOR*)&work->vel);
-                coord->sub = &Gfx_ViewCoord;
+                coord->sub = &gGfxViewCoord;
                 Gp_UpdateCoord(coord);
                 work->field_21A = 0;
                 work->field_222++;
@@ -3882,7 +3883,7 @@ void func_actor_503500_80143F78(Actor503500* arg0)
     enemy = arg0->field_20;
     work  = (Actor503500Work224*)arg0->field_1C;
     func_actor_503500_8013611C(arg0->spawnArg1);
-    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &Gfx_ViewCoord;
+    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &gGfxViewCoord;
     Gp_UnlinkObj(&work->obj0);
     Gp_UnlinkObj(&work->obj1);
     Gp_UnlinkObj(&work->obj2);

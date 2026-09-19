@@ -649,7 +649,7 @@ void func_actor_400600_80138224(Task* arg0, s16 arg1, u8 arg2)
     s32            i;
 
     root              = ((TmdObject*)arg0->extra)->coords;
-    Gfx_ViewCoord.flg = 0;
+    gGfxViewCoord.flg = 0;
     root->flg         = 0;
     for (i = 0; D_actor_400600_80151B88[i] != -1; i++) {
         coord      = &((TmdObject*)arg0->extra)->coords[D_actor_400600_80151B88[i]];
@@ -683,9 +683,9 @@ void func_actor_400600_801383E4(SVECTOR* arg0, SVECTOR* arg1, s16 width, u8 shad
     s32                     halfZ;
     POLY_FT4*               poly;
 
-    Gfx_ViewCoord.flg = 0;
+    gGfxViewCoord.flg = 0;
     s                 = (Actor400600QuadScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor400600QuadScratch));
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    Gp_UpdateCoord(&gGfxViewCoord);
     angle         = ratan2(arg1->vx - arg0->vx, arg1->vz - arg0->vz);
     halfX         = (arg0->vx - arg1->vx) / 2;
     halfZ         = (arg0->vz - arg1->vz) / 2;

@@ -76,8 +76,8 @@ void Actor04400_Fn00220(Task* task, s16 firstJoint, s16 secondJoint, s16 width, 
         s = (ActorsShared80163354Scratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(ActorsShared80163354Scratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
-        Gp_WorldToLocal(&Gfx_ViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
-        Gp_WorldToLocal(&Gfx_ViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
         s->first.vy       = (s16)height;
         s->second.vy      = (s16)height;
         s->first.vx       = s->firstMatrix.t[0];
@@ -103,10 +103,10 @@ void Actor04400_Fn00220(Task* task, s16 firstJoint, s16 secondJoint, s16 width, 
         s->corner3.vy     = (s16)height;
         s->corner3.vx     = (s->second.vx + (offset3 >> 0xC)) - s->halfX;
         s->corner3.vz     = (s->second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - s->halfZ;
-        Gfx_ViewCoord.flg = 0;
-        Gp_UpdateCoord(&Gfx_ViewCoord);
-        gte_SetRotMatrix(&Gfx_ViewCoord.workm);
-        gte_SetTransMatrix(&Gfx_ViewCoord.workm);
+        gGfxViewCoord.flg = 0;
+        Gp_UpdateCoord(&gGfxViewCoord);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
+        gte_SetTransMatrix(&gGfxViewCoord.workm);
         s->depth = RotTransPers4(&s->corner0, &s->corner1, &s->corner2, &s->corner3, &s->screen0, &s->screen1,
                                  &s->screen2, &s->screen3, &s->perspective, &s->flags);
         if (s->flags >= 0) {
@@ -302,7 +302,7 @@ void Actor04400_Fn00B24(Task* arg0)
     w2->field_418 = 7;
     w2->field_414 = 2;
     Actor04400_Fn02B8C(arg0);
-    coord->sub = &Gfx_ViewCoord;
+    coord->sub = &gGfxViewCoord;
     Actor04400_Fn02D18(arg0);
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     enemy       = arg0->spawnArg2;
@@ -399,7 +399,7 @@ void Actor04400_Fn00D3C(Task* arg0)
     w2->field_418 = 7;
     w2->field_414 = two;
     Actor04400_Fn02B8C(arg0);
-    coord->sub = &Gfx_ViewCoord;
+    coord->sub = &gGfxViewCoord;
     Actor04400_Fn02D18(arg0);
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
@@ -691,11 +691,11 @@ void Actor04400_Fn017B0(Task* arg0)
         GsCOORDINATE2* coords = ((TmdObject*)arg0->extra)->coords;
         SVECTOR*       v;
 
-        Gfx_ViewCoord.flg = 0;
-        Gp_UpdateCoord(&Gfx_ViewCoord);
+        gGfxViewCoord.flg = 0;
+        Gp_UpdateCoord(&gGfxViewCoord);
         coords[6].flg = 0;
         Gp_UpdateCoord(&coords[6]);
-        Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coords[6].workm, &local);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[6].workm, &local);
         v             = &work->field_98;
         v->vx         = local.t[0];
         v->vy         = local.t[1];

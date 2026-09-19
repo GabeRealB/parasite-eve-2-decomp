@@ -11,6 +11,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/gfx.h"
 #include "rooms/dryfield_water_tank.h"
 
 extern s8             D_8007216C;
@@ -68,7 +69,7 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
             } else {
                 Mem_Set(mtx, 0, 0x58);
                 mtx->owner   = (Task*)Game_GetPtrSlot(3);
-                coord->sub   = &Gfx_ViewCoord;
+                coord->sub   = &gGfxViewCoord;
                 extra->flags = 0x80;
                 Tmd_AllocBuffers(extra);
                 extra->lightMtx = &mtx->light;

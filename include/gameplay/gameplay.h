@@ -328,7 +328,7 @@ extern GpViewTbl* Gp_ViewTables[];
 /// `GsCOORDINATE2` overlay embedded in `GpDisp2d` at +0x10. Same 0x50 layout
 /// as libgs, but offset 0x44 (`param` / first half of `super`) is an `SVECTOR`
 /// of zeros written by `Gp_AttachDisp2d`. `sub` is still the parent coordinate
-/// (`&Gfx_ViewCoord`).
+/// (`&gGfxViewCoord`).
 typedef struct _GpDisp2dCoord {
     /* 0x00 */ u32            flg;
     /* 0x04 */ MATRIX         mtx;

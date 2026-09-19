@@ -56,7 +56,7 @@ void func_actor_204000_8014AED8(GpEnemy* arg0, Actor104000* arg1)
         Gp_DestroyEnemy(arg0, (Task*)arg1);
         return;
     }
-    coord->sub      = &Gfx_ViewCoord;
+    coord->sub      = &gGfxViewCoord;
     arg1->field_24  = D_actor_204000_801564D0;
     work->field_180 = 0;
     work->field_184 = 1;
@@ -101,7 +101,7 @@ void func_actor_204000_8014AED8(GpEnemy* arg0, Actor104000* arg1)
     sv.vy        = 0;
     sv.vz        = 0;
     o3           = &work->obj388;
-    o3->coord    = &Gfx_ViewCoord;
+    o3->coord    = &gGfxViewCoord;
     o3->ctx.recs = &work->rec370;
     o3->pos.vx   = p->vx;
     o3->pos.vy   = p->vy;
@@ -112,7 +112,7 @@ void func_actor_204000_8014AED8(GpEnemy* arg0, Actor104000* arg1)
     Gp_InitRec18Table(o3->ctx.recs, 1, 0);
 
     o4           = &work->obj3C0;
-    o4->coord    = &Gfx_ViewCoord;
+    o4->coord    = &gGfxViewCoord;
     o4->ctx.recs = &work->rec3A8;
     o4->pos.vx   = p->vx;
     o4->pos.vy   = p->vy;
@@ -1303,7 +1303,7 @@ void func_actor_204000_8014F04C(Actor104000Ctx* arg0, Actor104000* arg1)
         Gfx_RotMatrixX(&arg1->field_2C->field_8->coord, 0x400, 0);
         arg1->field_2C->field_8->flg = 0;
         work->field_479              = 1;
-        work->obj350.coord           = &Gfx_ViewCoord;
+        work->obj350.coord           = &gGfxViewCoord;
         work->obj350.pos.vx          = -0x3AC;
         work->obj350.pos.vy          = -0xF0;
         work->field_6                = 0;
@@ -1591,7 +1591,7 @@ void func_actor_204000_8014FD2C(GpEnemy* arg0, Actor104000* arg1)
                 coord.coord.t[0]                              = arg1->field_2C->field_8->coord.t[0];
                 coord.coord.t[1]                              = 0;
                 coord.coord.t[2]                              = arg1->field_2C->field_8->coord.t[2];
-                coord.sub                                     = &Gfx_ViewCoord;
+                coord.sub                                     = &gGfxViewCoord;
                 coord.flg                                     = 0;
                 Gp_UpdateCoord(&coord);
                 Gp_DrawEffGroundQuad((VECTOR3*)coord.workm.t, 0x60, Gp_State1C->field_8);

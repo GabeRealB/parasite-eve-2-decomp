@@ -25,7 +25,7 @@ void func_actor_341700_8016AC64(GsCOORDINATE2* coord, s16 yaw)
 
     *(MATRIX**)G_SCRATCH_HEAD -= 1;
     rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
-    ActorsShared80132808_Accumulate(coord, rotation, &Gfx_ViewCoord);
+    ActorsShared80132808_Accumulate(coord, rotation, &gGfxViewCoord);
     func_8004BFF8(yaw, rotation);
     out = ActorsShared80132808_Localize(coord, rotation);
     __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));

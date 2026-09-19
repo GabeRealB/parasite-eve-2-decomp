@@ -273,7 +273,7 @@ static __inline__ s16 Actor01900_PositionYaw(Actor01900* actor, SVECTOR* pos, Pl
     return Actor01900_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
 }
 
-/// Walk `p` up its parent chain to `Gfx_ViewCoord`, carrying `out` through
+/// Walk `p` up its parent chain to `gGfxViewCoord`, carrying `out` through
 /// each local matrix. Same body as `Actor00100_TransformToView`.
 static __inline__ void Actor01900_TransformToView(GsCOORDINATE2* p, SVECTOR* out)
 {
@@ -281,7 +281,7 @@ static __inline__ void Actor01900_TransformToView(GsCOORDINATE2* p, SVECTOR* out
     VECTOR         vec;
     s32            flag;
     SVECTOR*       svp   = &sv;
-    GsCOORDINATE2* view  = &Gfx_ViewCoord;
+    GsCOORDINATE2* view  = &gGfxViewCoord;
     VECTOR*        vecp  = &vec;
     s32*           flagp = &flag;
     sv.vx                = out->vx;

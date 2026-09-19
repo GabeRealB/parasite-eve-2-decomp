@@ -281,7 +281,7 @@ void Gp_InitRoomCoords(void)
 
     p = Gp_RoomCoords;
     for (i = 0; i < 8; i++) {
-        p->coord.sub = &Gfx_ViewCoord;
+        p->coord.sub = &gGfxViewCoord;
         p->field_0   = 0;
         p++;
     }
@@ -333,7 +333,7 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
         mem->field_18 = arg3->vx;
         mem->field_1A = arg3->vy;
         mem->field_1C = arg3->vz;
-        if (arg1->sub == &Gfx_ViewCoord) {
+        if (arg1->sub == &gGfxViewCoord) {
             coord->coord = arg1->coord;
             gte_SetRotMatrix(&arg1->coord);
             gte_SetTransMatrix(&arg1->coord);
@@ -348,9 +348,9 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
             gte_ldv0(arg3);
             gte_rtv0tr_real();
             gte_stlvnl(coord->workm.t);
-            Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coord->workm, &coord->coord);
+            Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
         }
-        coord->sub = &Gfx_ViewCoord;
+        coord->sub = &gGfxViewCoord;
         coord->flg = 0;
         Gp_UpdateCoord(coord);
         mem->field_8 = arg1;
@@ -372,10 +372,10 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
         gte_ldv0(arg3);
         gte_rtv0tr_real();
         gte_stlvnl(coord->coord.t);
-        coord->sub = &Gfx_ViewCoord;
+        coord->sub = &gGfxViewCoord;
         coord->flg = 0;
         Gp_UpdateCoord(coord);
-        mem->field_8 = &Gfx_ViewCoord;
+        mem->field_8 = &gGfxViewCoord;
     }
 
     task->spawnArg2    = mem;

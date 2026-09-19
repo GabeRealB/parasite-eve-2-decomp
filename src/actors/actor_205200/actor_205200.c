@@ -5,6 +5,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/gameplay.h"
 #include "main/gameflag.h"
+#include "main/gfx.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
@@ -18,7 +19,6 @@ extern Actor205200SpawnRec D_actor_205200_8015B458;
 extern GpPairSrcE          D_actor_205200_8014C9BC;
 extern SVECTOR*            D_actor_205200_8014CA24[];
 extern u16*                D_actor_205200_8014CA34[];
-extern GsCOORDINATE2       Gfx_ViewCoord;
 extern u16                 D_80071078;
 extern u32                 Gp_LcgState;
 
@@ -176,7 +176,7 @@ void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1)
     coord->coord.t[0] = pos[part->field_78].vx;
     coord->coord.t[1] = pos[part->field_78].vy;
     coord->coord.t[2] = pos[part->field_78].vz;
-    coord->sub        = &Gfx_ViewCoord;
+    coord->sub        = &gGfxViewCoord;
     coord->flg        = 0;
     arg0->field_4     = mat;
     arg0->field_48    = 0;

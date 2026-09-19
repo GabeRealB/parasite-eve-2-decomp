@@ -14,8 +14,6 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-extern GsCOORDINATE2 Gfx_ViewCoord;
-
 void func_acropolis_cafeteria_80181E3C(Task* arg0);
 
 extern SVECTOR RoomsShared8017d830Delta;

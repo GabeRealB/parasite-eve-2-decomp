@@ -254,7 +254,7 @@ void func_actor_403000_801330D4(GsCOORDINATE2* parent)
         while (1) {
             if (walker->sub == NULL)
                 break;
-            if (walker != &Gfx_ViewCoord) {
+            if (walker != &gGfxViewCoord) {
                 gte_SetTransMatrix(&walker->coord);
                 gte_SetRotMatrix(&walker->coord);
                 gte_ldv0(&local);
@@ -999,7 +999,7 @@ void func_actor_403000_801343B8(GpEnemy* arg0, Task* arg1)
     work->field_FA0 = 1;
     work->field_F8C = 0;
     arg1->msgTable  = &D_actor_403000_80158CA8;
-    coord->sub      = &Gfx_ViewCoord;
+    coord->sub      = &gGfxViewCoord;
     coord->flg      = 0;
     Gp_UpdateCoord(coord);
     pos.vx = coord->workm.t[0];

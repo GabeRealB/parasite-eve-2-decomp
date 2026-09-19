@@ -9,6 +9,7 @@
 #include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/sound.h"
+#include "main/gfx.h"
 #include "rooms/mine_cavern.h"
 
 extern void func_mine_cavern_80181864(void);
@@ -106,7 +107,7 @@ void func_mine_cavern_801825C8(s16 arg0)
     s32           view;
 
     view             = Gp_GetViewIndex() & 0xFF;
-    coord.sub        = &Gfx_ViewCoord;
+    coord.sub        = &gGfxViewCoord;
     coord.coord.t[0] = D_mine_cavern_8018E39C[arg0].vx;
     coord.coord.t[1] = D_mine_cavern_8018E39C[arg0].vy;
     coord.coord.t[2] = D_mine_cavern_8018E39C[arg0].vz;
@@ -373,7 +374,7 @@ void func_mine_cavern_801836D0(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    ((TmdObject*)arg1->extra)->coords->sub        = &Gfx_ViewCoord;
+    ((TmdObject*)arg1->extra)->coords->sub        = &gGfxViewCoord;
     ((TmdObject*)arg1->extra)->flags              = 0;
     ((TmdObject*)arg1->extra)->lightMtx           = &work->light;
     ((TmdObject*)arg1->extra)->colorMtx           = &work->color;

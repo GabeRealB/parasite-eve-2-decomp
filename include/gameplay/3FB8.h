@@ -188,7 +188,7 @@ typedef struct _GpActorSvec {
 } GpActorSvec;
 
 /// 8-byte argument record for `func_800FDB18`. `field_0` is a coordinate
-/// (fallback `Gfx_ViewCoord`); `field_4` / `field_6` are packed into the
+/// (fallback `gGfxViewCoord`); `field_4` / `field_6` are packed into the
 /// `Gp_SpawnEff` argument. The third `func_800FDB18` argument is an
 /// `SVECTOR*` (or NULL).
 typedef struct _GpEffArg {

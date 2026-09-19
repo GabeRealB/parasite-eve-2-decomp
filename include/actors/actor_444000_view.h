@@ -13,7 +13,7 @@
 /// used, which `psyq/inline_c.h` omits.
 #define gte_rt_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 
-/// World position of `coord` as seen from `Gfx_ViewCoord`: `out` starts as the
+/// World position of `coord` as seen from `gGfxViewCoord`: `out` starts as the
 /// point in `coord`'s own space and is walked up the coordinate hierarchy, one
 /// `gte_rt` per level, until the view coordinate is reached. A hierarchy that
 /// does not end at the view coordinate leaves `out` untouched.
@@ -31,7 +31,7 @@ static __inline__ void Actor444000_LocalToView(GsCOORDINATE2* coord, SVECTOR* ou
         if (coord->sub == NULL) {
             return;
         }
-        if (coord != &Gfx_ViewCoord) {
+        if (coord != &gGfxViewCoord) {
             gte_SetTransMatrix(&coord->coord);
             gte_SetRotMatrix(&coord->coord);
             gte_ldv0(&acc);
@@ -53,7 +53,7 @@ static __inline__ void Actor444000_LocalToView(GsCOORDINATE2* coord, SVECTOR* ou
 
 /// Accumulated world rotation of `coord`: `mat` starts as the coordinate's own
 /// rotation and is multiplied by each parent's in turn, renormalised at every
-/// level, until the chain reaches `Gfx_ViewCoord` (or runs out).
+/// level, until the chain reaches `gGfxViewCoord` (or runs out).
 static __inline__ void Actor444000_AccumulateRotation(GsCOORDINATE2* coord, MATRIX* mat)
 {
     MATRIX         m;
@@ -65,7 +65,7 @@ static __inline__ void Actor444000_AccumulateRotation(GsCOORDINATE2* coord, MATR
         if (cur == NULL) {
             return;
         }
-        if (cur == &Gfx_ViewCoord) {
+        if (cur == &gGfxViewCoord) {
             return;
         }
         gte_SetRotMatrix(&cur->coord);

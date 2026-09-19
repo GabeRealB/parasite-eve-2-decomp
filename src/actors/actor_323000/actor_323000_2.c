@@ -463,7 +463,7 @@ void func_actor_323000_80163EA0(GpEnemy* enemy, Task* task)
     work->field_832 = 0x10;
     func_actor_323000_80163A30(task);
     task->msgTable = &D_actor_323000_801739D0;
-    coord->sub     = &Gfx_ViewCoord;
+    coord->sub     = &gGfxViewCoord;
     coord->flg     = 0;
     Gp_UpdateCoord(coord);
     pos.vx = coord->workm.t[0];
@@ -616,7 +616,7 @@ void func_actor_323000_8016420C(GpEnemy* enemy, Task* task)
 /// to date, takes its world position as the actor colour, flags a state change
 /// in `field_4`, and runs the state handler `field_0` selects from a stack copy
 /// of `D_actor_323000_80161E24`. Afterwards it walks the origin of the model's
-/// third part coordinate up to `Gfx_ViewCoord` and stores it as the enemy's
+/// third part coordinate up to `gGfxViewCoord` and stores it as the enemy's
 /// local position, parented to the view.
 void func_actor_323000_801645A4(GpEnemy* enemy, Task* task)
 {
@@ -663,7 +663,7 @@ void func_actor_323000_801645A4(GpEnemy* enemy, Task* task)
         while (1) {
             if (walker->sub == NULL)
                 break;
-            if (walker != &Gfx_ViewCoord) {
+            if (walker != &gGfxViewCoord) {
                 gte_SetTransMatrix(&walker->coord);
                 gte_SetRotMatrix(&walker->coord);
                 gte_ldv0(localp);
@@ -685,7 +685,7 @@ void func_actor_323000_801645A4(GpEnemy* enemy, Task* task)
     enemy->field_1C.vx     = scratch->local.vx;
     enemy->field_1C.vy     = scratch->local.vy;
     enemy->field_1C.vz     = scratch->local.vz;
-    enemy->field_18        = &Gfx_ViewCoord;
+    enemy->field_18        = &gGfxViewCoord;
     *(u8**)G_SCRATCH_HEAD += 0x1C;
 }
 

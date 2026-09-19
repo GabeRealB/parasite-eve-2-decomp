@@ -205,10 +205,10 @@ STATIC_ASSERT_SIZEOF(RoomPeUsage, 0xC4);
 /// 0xAC work block the mirror-reflection task keeps at `Task::work`. Rooms
 /// with a reflective surface (the Acropolis elevator halls and square, motel
 /// room 6, the Neo Ark observatory) spawn a task that re-attaches the player's
-/// own TMD source and draws it through `coord`, which is `Gfx_ViewCoord` with
+/// own TMD source and draws it through `coord`, which is `gGfxViewCoord` with
 /// one GTE rotation column negated.
 ///
-/// `viewFlg` caches `Gfx_ViewCoord.flg & 0x7FFFFFFF` so the mirror only rebuilds
+/// `viewFlg` caches `gGfxViewCoord.flg & 0x7FFFFFFF` so the mirror only rebuilds
 /// its matrices when the view moves, and `field_4` marks the block as live;
 /// both are set to their "dirty" values (`-1` / `0`) as the task starts so the
 /// first frame always rebuilds. `light` and `color` are the matrices hung off

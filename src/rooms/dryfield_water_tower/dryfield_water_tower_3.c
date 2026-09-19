@@ -7,6 +7,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/gfx.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -285,7 +286,7 @@ s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
 ///
 /// State 0 is the spawn tick: it allocates the cap script's 0x7C-byte
 /// `DryfieldWaterTowerState` block into `Task::work`, parks the slot-3 game
-/// task at its `field_40`, parents the model's coordinate to `Gfx_ViewCoord`,
+/// task at its `field_40`, parents the model's coordinate to `gGfxViewCoord`,
 /// rebuilds the model's buffers and points its light and colour matrices
 /// (`field_1C` / `field_20`) at the block, so the cap is lit by the room's own
 /// state rather than by the default pair a `Tmd_Create` model starts with. It
@@ -347,7 +348,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
                 } else {
                     Mem_Set(mem, 0, 0x7C);
                     ((DryfieldWaterTowerState*)mem)->field_40 = Game_GetPtrSlot(3);
-                    modelCoord->sub                           = &Gfx_ViewCoord;
+                    modelCoord->sub                           = &gGfxViewCoord;
                     model->flags                              = 0;
                     Tmd_AllocBuffers(model);
                     model->colorMtx = mem;

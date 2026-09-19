@@ -26,9 +26,8 @@ extern GpEnemyTaskFuncTable4 Actor00100_D001A0;
 
 #define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 
-extern GsCOORDINATE2 Gfx_ViewCoord;
-extern s8            D_80114C12;
-extern u8            D_80071075;
+extern s8 D_80114C12;
+extern u8 D_80071075;
 
 struct _GpObj20E;
 void Gp_ReleaseStateF0Add(struct _GpObj20E* arg0, s32 arg1);
@@ -325,6 +324,6 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
     enemy->field_1C.vx     = (s32)(s16)scratch->vx;
     enemy->field_1C.vy     = (s32)scratch->vy;
     enemy->field_1C.vz     = (s32)scratch->vz;
-    enemy->field_18        = &Gfx_ViewCoord;
+    enemy->field_18        = &gGfxViewCoord;
     *(s32*)G_SCRATCH_HEAD += 8;
 }

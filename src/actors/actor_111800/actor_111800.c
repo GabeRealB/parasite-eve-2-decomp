@@ -41,7 +41,7 @@ void func_actor_111800_80132390(Task* task)
     }
     work = (Actor111800Work*)task->work;
     Mem_Set(work, 0U, 0x498U);
-    coord->sub = &Gfx_ViewCoord;
+    coord->sub = &gGfxViewCoord;
     Tmd_AllocBuffers(obj);
     obj->lightMtx = &work->field_43C;
     obj->colorMtx = &work->field_45C;

@@ -9,6 +9,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/gfx.h"
 #include "psyq/inline_c.h"
 
 #include "gameplay/1BC.h"
@@ -2507,7 +2508,7 @@ void Actor04400_Fn083CC(Task* arg0)
 ///
 /// Resets the actor's slide state, then re-derives `field_70` as the view-space
 /// position of slot 4 entry 0's `coords[3]`: zeroes it and walks up the `sub`
-/// chain from that joint towards `&Gfx_ViewCoord`, transforming the point
+/// chain from that joint towards `&gGfxViewCoord`, transforming the point
 /// through each coord's rotation and translation with the GTE and writing the
 /// result into `field_70` on arrival. Snapshots the root coord's translation
 /// into `field_90`..`field_94`, clears `field_412` and the `field_428` /
@@ -2543,7 +2544,7 @@ void Actor04400_Fn0847C(Task* arg0)
         if (current->sub == NULL) {
             return;
         }
-        if (current == &Gfx_ViewCoord) {
+        if (current == &gGfxViewCoord) {
             pos->vx = local.vx;
             pos->vy = local.vy;
             pos->vz = local.vz;

@@ -4,6 +4,7 @@
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/gfx.h"
 #include "gameplay/3CD8.h"
 #include "actors/actor_206100.h"
 #include "actors/actor_400500.h"
@@ -162,7 +163,7 @@ void func_actor_206100_8014AF74(Task* task)
     hp                  = D_actor_206100_80155198.field_4;
     enemy->field_42     = hp;
     enemy->field_40     = hp;
-    coord->sub          = &Gfx_ViewCoord;
+    coord->sub          = &gGfxViewCoord;
     func_800B3F84(&work->anim, D_actor_206100_80158B24, (GpAnimObj*)tmd, work->animAux, work->slots);
     func_actor_206100_8014F18C(task);
     work->field_43E = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -1941,7 +1942,7 @@ void func_actor_206100_8014EEC0(Task* task)
     task->killCountdown = 0;
     child->field_64     = 0x100;
     child->field_60     = 0;
-    coord->sub          = &Gfx_ViewCoord;
+    coord->sub          = &gGfxViewCoord;
     coord->flg          = 0;
     child->obj.key      = Gp_PackPair(&D_actor_206100_80155194, 0);
     child->obj.coord    = ((TmdObject*)task->extra)->coords;

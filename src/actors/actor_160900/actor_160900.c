@@ -193,7 +193,7 @@ void func_actor_160900_80132C08(Task* task)
         if (work == NULL) {
             failed = 1;
         } else {
-            coord->sub = &Gfx_ViewCoord;
+            coord->sub = &gGfxViewCoord;
             Mem_Set(task->work, 0, 0x4BC);
             obj->lightMtx  = &work->light;
             obj->colorMtx  = &work->color;
@@ -595,7 +595,7 @@ void func_actor_160900_80133880(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
     ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
     ((TmdObject*)task->extra)->coords->coord.t[1] = 0x3E8;
     ((TmdObject*)task->extra)->coords->coord.t[2] = 0xBB8;
@@ -624,7 +624,7 @@ void func_actor_160900_80133880(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
     ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
     ((TmdObject*)task->extra)->coords->coord.t[1] = 0x3E8;
     ((TmdObject*)task->extra)->coords->coord.t[2] = 0xBB8;
@@ -662,7 +662,7 @@ void func_actor_160900_80133A84(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
     ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
     ((TmdObject*)task->extra)->coords->coord.t[1] = 0x1F4;
     ((TmdObject*)task->extra)->coords->coord.t[2] = 0xA8C;
@@ -691,7 +691,7 @@ void func_actor_160900_80133A84(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
     ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
     ((TmdObject*)task->extra)->coords->coord.t[1] = 0x1F4;
     ((TmdObject*)task->extra)->coords->coord.t[2] = 0xA8C;
@@ -720,7 +720,7 @@ void func_actor_160900_80133A84(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
     ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
     ((TmdObject*)task->extra)->coords->coord.t[1] = 0x1F4;
     ((TmdObject*)task->extra)->coords->coord.t[2] = 0xA8C;
@@ -749,7 +749,7 @@ void func_actor_160900_80133A84(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
     ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
     ((TmdObject*)task->extra)->coords->coord.t[1] = -0x1F4;
     ((TmdObject*)task->extra)->coords->coord.t[2] = 0xA8C;
@@ -778,7 +778,7 @@ void func_actor_160900_80133A84(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
     ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
     ((TmdObject*)task->extra)->coords->coord.t[1] = -0x1F4;
     ((TmdObject*)task->extra)->coords->coord.t[2] = 0xA8C;
@@ -807,7 +807,7 @@ void func_actor_160900_80133A84(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
     ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
     ((TmdObject*)task->extra)->coords->coord.t[1] = -0x1F4;
     ((TmdObject*)task->extra)->coords->coord.t[2] = 0xA8C;
@@ -845,7 +845,7 @@ void func_actor_160900_80133F90(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
     ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
     ((TmdObject*)task->extra)->coords->coord.t[1] = 0;
     ((TmdObject*)task->extra)->coords->coord.t[2] = 0xBB8;
@@ -874,7 +874,7 @@ void func_actor_160900_80133F90(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
     ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
     ((TmdObject*)task->extra)->coords->coord.t[1] = 0;
     ((TmdObject*)task->extra)->coords->coord.t[2] = 0xBB8;

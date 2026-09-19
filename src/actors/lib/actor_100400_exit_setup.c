@@ -2,6 +2,7 @@
 
 #include "actors/actor_100400.h"
 #include "main/task.h"
+#include "main/gfx.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -19,7 +20,7 @@ extern GpU16Pair Actor00400_D0FDC0;
 /// `task->work` is the 0x64-byte `Actor100400MarkerWork` block
 /// `Actor00400_SpawnMarker` allocated, and `task->extra` the `Actor100400Ctx`
 /// whose `field_8` is the coordinate the marker is drawn at. That coordinate is
-/// re-parented to `Gfx_ViewCoord` here, and the object is linked to it with its
+/// re-parented to `gGfxViewCoord` here, and the object is linked to it with its
 /// two `GpRec18` slots zeroed, so the state `Actor00400_Fn02D48` runs can report
 /// what the marker collides with. `field_5A` is seeded with the negative span
 /// the spawner's tip overshot by, and the object's draw scale with 0x100.
@@ -45,7 +46,7 @@ void Actor00400_Fn0A190(Task* task)
     work                = (Actor100400MarkerWork*)task->work;
     task->killCountdown = 0;
     work->field_60      = 0;
-    coord->sub          = &Gfx_ViewCoord;
+    coord->sub          = &gGfxViewCoord;
     coord->flg          = 0;
     work->obj.key       = Gp_PackPair(&Actor00400_D0FDC0, 1);
     work->obj.coord     = ((Actor100400Ctx*)task->extra)->field_8;

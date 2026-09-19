@@ -128,7 +128,7 @@ static __inline__ s16 Actor223600_NormalizeYaw(s16 input)
 }
 
 /// Spawn state of this enemy: allocates the 0x214 work block, publishes it as
-/// `Task::work`, reparents the model to `Gfx_ViewCoord`, seeds its animation
+/// `Task::work`, reparents the model to `gGfxViewCoord`, seeds its animation
 /// slots from `D_actor_223600_801509C0` and hangs the enemy's display node off
 /// part 2 of the model's coordinate array. HP and max HP both come from
 /// `D_actor_223600_8014CFCC`, which also picks the opening motion through
@@ -156,7 +156,7 @@ void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    coord->sub     = &Gfx_ViewCoord;
+    coord->sub     = &gGfxViewCoord;
     task->msgTable = D_actor_223600_80150B28;
     obj->flags     = 0;
     func_800B3F84(&work->anim, D_actor_223600_801509C0, (GpAnimObj*)obj, work->poses, work->slots);

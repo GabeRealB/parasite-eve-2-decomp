@@ -2228,7 +2228,7 @@ of about fourteen use sites. Caching the head of that chain in a local:
 
 ```c
 TmdObject* extra = task->extra;
-extra->coords->sub = &Gfx_ViewCoord;
+extra->coords->sub = &gGfxViewCoord;
 ```
 
 scored 85.59% with `stack=0 branch=2 regs=60 reorder=6 insert=6 delete=26`,
@@ -2587,22 +2587,22 @@ Example: `func_actor_400500_80132438`. Inputs: `base_9.i`
 ## Name view/`&parent` before a `MATRIX` copy so sched1 emits `move`/`addiu` first
 
 A rotation walk that copies `coord->coord` into a stack `MATRIX`, then later
-takes `&parent` and keeps `&Gfx_ViewCoord` in a saved register, wants those
+takes `&parent` and keeps `&gGfxViewCoord` in a saved register, wants those
 two defs *before* the copy:
 
 ```
-move    s2, v0          /* view = &Gfx_ViewCoord (CSE of the early compare) */
+move    s2, v0          /* view = &gGfxViewCoord (CSE of the early compare) */
 addiu   s1, sp, 0x30    /* parentp = &parent */
 lw      a2, 4(s0)       /* matrix = coord->coord */
 ```
 
 `movstrsi` and the two pointer defs are independent, all priority 1. Sched1
 runs backward and picks the last original insn first, so C order
-`matrix = coord->coord;` then loop uses of `&parent` / `&Gfx_ViewCoord`
+`matrix = coord->coord;` then loop uses of `&parent` / `&gGfxViewCoord`
 hoists the copies *after* the block move (`reorder=2`). Write the names first:
 
 ```c
-view    = &Gfx_ViewCoord;
+view    = &gGfxViewCoord;
 parentp = &parent;
 matrix  = coord->coord;
 ```
@@ -11068,10 +11068,10 @@ command + `gte_stlvnl0`. Standard `gte_rtv0` is `mvmva 1,0,0,3,0`
 is the template: `gte_SetRotMatrix` + `gte_SetTransMatrix` + `gte_ldv0` +
 that command + `gte_stlvnl`.
 
-`Gfx_ViewWorldMtx` is `Gfx_ViewCoord.workm`. After `Gp_WorldToLocal(&Gfx_ViewWorldMtx, ...)`,
+`Gfx_ViewWorldMtx` is `gGfxViewCoord.workm`. After `Gp_WorldToLocal(&Gfx_ViewWorldMtx, ...)`,
 recover the parent as
 `(GsCOORDINATE2*)((u8*)world - OFFSET_OF(GsCOORDINATE2, workm))` so the
-compiler emits `addiu s0, s0, -0x24`. A second `&Gfx_ViewCoord` symbol load
+compiler emits `addiu s0, s0, -0x24`. A second `&gGfxViewCoord` symbol load
 does not match.
 
 `gte_MulMatrix0` from `gtemac.h` is fine if `gte_rtir` is swapped for
@@ -24685,7 +24685,7 @@ if (flags & 4) {
 
 A stack `GsCOORDINATE2` whose `coord` is an identity matrix (same shape as
 `Gfx_InitCoordinateTrees`) needs `li v0,0x1000` *before* `lui` of the parent
-(`Gfx_ViewCoord`) and a `MATRIX*` in `$v1` used for only two of the stores
+(`gGfxViewCoord`) and a `MATRIX*` in `$v1` used for only two of the stores
 (`sw one, 8(v1)` / `sh one, 0x10(v1)`). The rest stay SP-relative.
 
 `one = ONE` as the first statement is scheduled too late: the parent address
@@ -24699,7 +24699,7 @@ vec.vy = 0;
 vec.vz = ONE; /* first use of ONE — li v0, then the store waits */
 one    = ONE;
 m      = &coord.coord;
-coord.sub = &Gfx_ViewCoord;
+coord.sub = &gGfxViewCoord;
 *(s32*)&coord.coord         = one; /* sw one, 0x24(sp) */
 *(s32*)&coord.coord.m[0][2] = 0;   /* sw zero, 0x28(sp) */
 *(s32*)&m->m[1][1]          = one; /* sw one, 8(v1) */
@@ -27496,7 +27496,7 @@ coord = &node->coord;
 if (node != NULL) {
     node->field_C = 1;
     node->field_8 = coord;
-    coord->sub    = &Gfx_ViewCoord;
+    coord->sub    = &gGfxViewCoord;
     one           = ONE;
     ...
     list = &gTmdDisp2dList;
@@ -30252,7 +30252,7 @@ the field first so `lw` precedes `lui %hi(global)`:
 
 ```c
 coord = arg0->coord;
-world = &Gfx_ViewCoord;
+world = &gGfxViewCoord;
 ```
 
 Reversing those two lines swaps the `lw` / `lui`. Keeping `world` also
@@ -36534,8 +36534,8 @@ register choice and the prologue ordering without emitting an instruction:
 
 ## Force the compare's load ahead of a `%hi` with a `+r` pin on the loaded value
 
-`sub = arg0->sub; root = &Gfx_ViewCoord; if (sub == root)` schedules
-`lui v0, %hi(Gfx_ViewCoord)` into the load-delay slot *before* `lw v1, 0x4c(s2)`.
+`sub = arg0->sub; root = &gGfxViewCoord; if (sub == root)` schedules
+`lui v0, %hi(gGfxViewCoord)` into the load-delay slot *before* `lw v1, 0x4c(s2)`.
 The target wants the `lw` first and the `lui` filling its delay slot. An empty
 `asm volatile("" : "+r"(sub))` between the load and the address materialisation
 is a scheduling barrier the `lui` cannot cross, and pinning `sub` to `$v1`
@@ -37095,7 +37095,7 @@ falls through and is consumed as the function name.
 `__asm__ volatile("" ::"r"(arg0));` that a previous match (`Gp_SpawnViewCoordTask`)
 needed. When `Gp_SetViewFromCoord` was written against the same helper, the inlined
 copy of that barrier counted as one extra reference to *its* `arg0`, which
-pushed the parameter ahead of the `root = &Gfx_ViewCoord;` local in
+pushed the parameter ahead of the `root = &gGfxViewCoord;` local in
 `global_alloc`'s priority order. Every instruction matched, but `arg0` landed
 in `$s1` and `root` in `$s2` — exactly the reverse of the target. Deleting the
 barrier (still a 100% match for `Gp_SpawnViewCoordTask`) dropped `arg0` by one
@@ -38287,9 +38287,9 @@ two independent scratch-head store-address materializations.
 Adding a matrix translation into a scratch `SVECTOR` three components at a time:
 
 ```c
-block->self.vx += *(u16*)&Gfx_ViewCoord.workm.t[0];   /* wrong */
-block->self.vy += *(u16*)&Gfx_ViewCoord.workm.t[1];
-block->self.vz += *(u16*)&Gfx_ViewCoord.workm.t[2];
+block->self.vx += *(u16*)&gGfxViewCoord.workm.t[0];   /* wrong */
+block->self.vy += *(u16*)&gGfxViewCoord.workm.t[1];
+block->self.vz += *(u16*)&gGfxViewCoord.workm.t[2];
 ```
 
 emits the right eight instructions but in the wrong order: GCC 2.8.1 hoists the
@@ -38299,9 +38299,9 @@ too keeps each component self-contained, so the schedule degenerates back to
 `lhu`/`lhu`/`nop`/`addu`/`sh` per component exactly as in the target:
 
 ```c
-*(u16*)&block->self.vx = *(u16*)&block->self.vx + *(u16*)&Gfx_ViewCoord.workm.t[0];
-*(u16*)&block->self.vy = *(u16*)&block->self.vy + *(u16*)&Gfx_ViewCoord.workm.t[1];
-*(u16*)&block->self.vz = *(u16*)&block->self.vz + *(u16*)&Gfx_ViewCoord.workm.t[2];
+*(u16*)&block->self.vx = *(u16*)&block->self.vx + *(u16*)&gGfxViewCoord.workm.t[0];
+*(u16*)&block->self.vy = *(u16*)&block->self.vy + *(u16*)&gGfxViewCoord.workm.t[1];
+*(u16*)&block->self.vz = *(u16*)&block->self.vz + *(u16*)&gGfxViewCoord.workm.t[2];
 ```
 
 The `+=` form goes through the `s16` field's own mode, which gives the RMW a
@@ -41273,7 +41273,7 @@ Equivalence is exact disassembly *text*, so a twin that differs only in its data
 symbols is not a copy. `func_kyle_800102_80167A84` and `WeaponsShared8011d3a0`
 are both 215 instructions of the same routine on the same 0xA0 work block and
 hash differently, because one reaches `Gfx_ViewWorldMtx` where the other reaches
-`Gfx_ViewCoord+0x24`. `find` is right to separate them - promoting them together
+`gGfxViewCoord+0x24`. `find` is right to separate them - promoting them together
 would not reproduce the bytes - but they port to each other at 99.9% on the
 first attempt, which no hash can tell you.
 
@@ -43446,7 +43446,7 @@ rematerialised inside the loop instead of sitting in the preheader. Assign them
 to locals before the label:
 
 ```c
-svp = &sv; vecp = &vec; fp = &flag0; view0 = &Gfx_ViewCoord;
+svp = &sv; vecp = &vec; fp = &flag0; view0 = &gGfxViewCoord;
 out = &work->field_8A8;
 loop0:
     if (p->sub == NULL) { goto done0; }
@@ -45183,8 +45183,8 @@ that calls `Tmd_FreeBuffers(task->extra)` is not confused; cast and move on.
 
 And in `GsCOORDINATE2`, `flg` is 4 bytes followed by two 0x20-byte `MATRIX`es
 and `param`, so `super` lands at 0x48 and `sub` at 0x4C. The idiom
-`M2C_FIELD(ext->field_8, GsCOORDINATE2**, 0x4C) = &Gfx_ViewCoord` is
-`coord->sub = &Gfx_ViewCoord`, not `->super`.
+`M2C_FIELD(ext->field_8, GsCOORDINATE2**, 0x4C) = &gGfxViewCoord` is
+`coord->sub = &gGfxViewCoord`, not `->super`.
 
 That also fixes `sizeof(GsCOORDINATE2)` at **0x50**, which is what turns the
 other common m2c shape into an index. `TmdObject::coords` is an *array* of
@@ -45849,7 +45849,7 @@ The structure that *is* universal, and the better anchor:
 * `Task::extra` is a `GameActorExt` and `GameActorExt::field_8` is a
   `GsCOORDINATE2` (0x50 bytes). Parenting a child to the room is
   `child->extra->coords->sub = parent->extra->coords` (`sub` is +0x4C) and
-  unparenting is `... = &Gfx_ViewCoord`. 126/168 rooms do this.
+  unparenting is `... = &gGfxViewCoord`. 126/168 rooms do this.
 
 So read a room's `.rodata` state tables first: each `TaskFuncTable*` names one
 family, its state-0 entry is that family's allocator, and that allocator's
@@ -46725,14 +46725,14 @@ pushed to 0x14, and a `lw s0` in the epilogue, four instructions the target does
 not have. Spelling `*(u8**)G_SCRATCH_HEAD` at each use recovers it; adjacent
 uses in the entry block still share one `lui/ori` through CSE.
 
-## `Gfx_ViewWorldMtx` versus `Gfx_ViewCoord.workm` is a relocation-name diff only
+## `Gfx_ViewWorldMtx` versus `gGfxViewCoord.workm` is a relocation-name diff only
 
-`Gfx_ViewWorldMtx` (0x80070F34) *is* `Gfx_ViewCoord.workm` (0x80070F10 + 0x24).
+`Gfx_ViewWorldMtx` (0x80070F34) *is* `gGfxViewCoord.workm` (0x80070F10 + 0x24).
 When a function passes that matrix to `Gp_WorldToLocal` and then parents a
 coordinate to world, the target derives the second address from the first
 (`lui/addiu %hi/%lo(Gfx_ViewWorldMtx)`, then `addiu s0, s0, -0x24`). The clean
-C — `Gp_WorldToLocal(&Gfx_ViewCoord.workm, ...)` plus `coord->sub =
-&Gfx_ViewCoord` — emits `%hi(Gfx_ViewCoord)` / `%lo(Gfx_ViewCoord+0x24)` and
+C — `Gp_WorldToLocal(&gGfxViewCoord.workm, ...)` plus `coord->sub =
+&gGfxViewCoord` — emits `%hi(gGfxViewCoord)` / `%lo(gGfxViewCoord+0x24)` and
 the same `-0x24`, so the *linked words are identical* and only the scratch
 normalizer's symbol names differ (99.95%, `regs=2`). Prefer the struct-member
 form and confirm with `./tools/build-and-verify.sh`; do not introduce
@@ -52048,14 +52048,14 @@ appear:
 ```c
 work->field_4   = 1;                                /* 94.4%: regs=31 */
 work->configRev = -1;
-work->viewFlg   = Gfx_ViewCoord.flg & 0x7FFFFFFF;
+work->viewFlg   = gGfxViewCoord.flg & 0x7FFFFFFF;
 ```
 
 Moving the masked store to the front - and changing nothing else - was the whole
 match:
 
 ```c
-work->viewFlg   = Gfx_ViewCoord.flg & 0x7FFFFFFF;   /* 100% */
+work->viewFlg   = gGfxViewCoord.flg & 0x7FFFFFFF;   /* 100% */
 work->field_4   = 1;
 work->configRev = -1;
 ```
@@ -53908,7 +53908,7 @@ That shape (`regs` non-zero, every differing line a `%hi`/`%lo` symbol name, the
 addends adding up to the same address) is a match. Confirm with the real build
 rather than chasing the score: `./tools/build-and-verify.sh` printed
 `✅ BUILD SUCCEEDED` on the 99.81% object. This is the array-indexing case of
-the `Gfx_ViewWorldMtx` versus `Gfx_ViewCoord.workm` entry above.
+the `Gfx_ViewWorldMtx` versus `gGfxViewCoord.workm` entry above.
 
 ## Where the unrelated store goes decides the scratch-head reserve's copy
 
@@ -69815,22 +69815,22 @@ Example: `func_actor_400500_80132438`. Inputs: `base_9.i`
 ## Name view/`&parent` before a `MATRIX` copy so sched1 emits `move`/`addiu` first
 
 A rotation walk that copies `coord->coord` into a stack `MATRIX`, then later
-takes `&parent` and keeps `&Gfx_ViewCoord` in a saved register, wants those
+takes `&parent` and keeps `&gGfxViewCoord` in a saved register, wants those
 two defs *before* the copy:
 
 ```
-move    s2, v0          /* view = &Gfx_ViewCoord (CSE of the early compare) */
+move    s2, v0          /* view = &gGfxViewCoord (CSE of the early compare) */
 addiu   s1, sp, 0x30    /* parentp = &parent */
 lw      a2, 4(s0)       /* matrix = coord->coord */
 ```
 
 `movstrsi` and the two pointer defs are independent, all priority 1. Sched1
 runs backward and picks the last original insn first, so C order
-`matrix = coord->coord;` then loop uses of `&parent` / `&Gfx_ViewCoord`
+`matrix = coord->coord;` then loop uses of `&parent` / `&gGfxViewCoord`
 hoists the copies *after* the block move (`reorder=2`). Write the names first:
 
 ```c
-view    = &Gfx_ViewCoord;
+view    = &gGfxViewCoord;
 parentp = &parent;
 matrix  = coord->coord;
 ```
@@ -71034,7 +71034,7 @@ sees neither a `PLUS_EXPR` nor an `ADDR_EXPR` of an aggregate and leaves
 `MEM_IN_STRUCT_P` clear (`expr.c:5533`). A preceding `work->timer++` is
 `(mem/s:HI (plus <pseudo> 428))` — in a struct, and varying. So the clause above
 fires, no dependence is recorded, and those stores keep `INSN_PRIORITY` 1. A
-`mem/s` store to the *same* frame local (`coord.sub = &Gfx_ViewCoord;`) does get
+`mem/s` store to the *same* frame local (`coord.sub = &gGfxViewCoord;`) does get
 the dependence and priority 2, wins the tie, and the `li 0x1000` group is pushed
 ahead of the counter increment — where it lands in the `lhu` load-delay slot and
 takes `$v1` instead of `$v0`. Retail emits the block in source order with
@@ -71777,7 +71777,7 @@ argument is already a pseudo straight through, so the copy never exists.
 
 ## A loop sentinel compared against a literal needs its own local
 
-Where the target materialises `&Gfx_ViewCoord` twice - once into `$v0` for an
+Where the target materialises `&gGfxViewCoord` twice - once into `$v0` for an
 early-exit compare, then `move s2,v0` for the loop's compare - passing the same
 address as a helper parameter gives only one pseudo: the parameter is
 initialised at the top of the inlined body and cse folds the literal compare
@@ -71788,8 +71788,8 @@ basic block.
 
 ```c
 coord = arg0->sub;
-if (coord != &Gfx_ViewCoord) {
-    view = &Gfx_ViewCoord;      /* becomes `move s2,v0` */
+if (coord != &gGfxViewCoord) {
+    view = &gGfxViewCoord;      /* becomes `move s2,v0` */
     ...
     while (1) { ...; if (coord == view) break; }
 }
@@ -82170,7 +82170,7 @@ in agreement, 323 instructions on both sides. The whole `.diff` was one line:
 
 ```
 -lui    v1,0x8007                 /* target */
-+lui    v1,%hi(Gfx_ViewCoord)     /* ours   */
++lui    v1,%hi(gGfxViewCoord)     /* ours   */
 ```
 
 That is the same instruction. splat renders a `lui` as `%hi(sym)` only when it can
@@ -82185,7 +82185,7 @@ equal:
 ```
 target.o:  90: 3c038007  lui  v1,0x8007
 base_1.o:  90: 3c030000  lui  v1,0x0
-                            90: R_MIPS_HI16  Gfx_ViewCoord
+                            90: R_MIPS_HI16  gGfxViewCoord
 ```
 
 Both encode `0x3c038007` after linking, because `(0x80070f10 + 0x8000) >> 16` is
@@ -86641,7 +86641,7 @@ The match is to compute the value early and copy it at the old site:
 ```c
 local = (SVECTOR*)(head - 0xC);   /* next to head's load */
 ...
-Gp_UpdateCoord(&Gfx_ViewCoord);
+Gp_UpdateCoord(&gGfxViewCoord);
 v = local;                        /* where v used to be defined */
 ```
 
@@ -89412,7 +89412,7 @@ in a delay slot as a statement-placement fact about the source, not as an
 allocation tie to fight with pins.
 
 The residue after that was pure statement order: the three `coord.t[i]` stores
-followed by `coords->sub = &Gfx_ViewCoord;` matched, while putting the `sub`
+followed by `coords->sub = &gGfxViewCoord;` matched, while putting the `sub`
 store between `t[1]` and `t[2]` - where the *emitted* order suggests it belongs -
 did not. Sched1 is free to sink an independent store past the ones after it, so
 the emitted position of a store between two others is not evidence for its
@@ -91911,7 +91911,7 @@ appears only where the address is first needed - always later. So
     GsCOORDINATE2* view;
     ...
         mp     = &matrix;
-        view   = &Gfx_ViewCoord;
+        view   = &gGfxViewCoord;
         lp     = &local;
 ```
 
@@ -117929,8 +117929,8 @@ array base before the call, index it after.
     base = D_neo_ark_altar_8017F014;   /* before the call: base is live across it */
     y0   = -0x1086;
 
-    Gfx_ViewCoord.flg = 0;
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    gGfxViewCoord.flg = 0;
+    Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
 
@@ -130928,3 +130928,33 @@ The helper is a real function, called as one from dozens of overlays, so the
 call was available to the original author and the repetition is a choice their
 source made. Keep it: the shared half stays written out at the release site,
 and only the name says which body this releases.
+
+## `GsCOORDINATE2.sub` is the parent link in this game; `super` is never used
+
+`libgs.h` documents 0x48 (`super`) as the parent coordinate and 0x4C (`sub`) as
+the child list. The game uses neither that way: `super` appears in no
+decompiled source, and 0x4C is what an object, effect or room writes when it
+hangs itself off the world - `coord->sub = &gGfxViewCoord`.
+
+`Gp_UpdateCoordTree` fixes the direction, because it recurses before it
+composes: the parent's matrix multiplies the child's local one, so the chain
+climbs `sub` toward the root rather than away from it.
+
+```c
+parent = coord->sub;
+if (parent == (GsCOORDINATE2*)arg3) {
+    coord->workm = coord->coord;                   /* walk ends: local is it */
+} else {
+    Gp_UpdateCoordTree(parent, s2, s3, arg3);      /* recurse toward the root */
+    coord->workm = parent->workm * coord->coord;   /* then compose back down */
+}
+```
+
+`arg3` is where the walk stops: `Gp_UpdateCoord` passes `NULL`, `Gp_UpdateCoordEx`
+passes either `NULL` or an explicit root. Read the field as "the coordinate this
+one hangs off"; the transformation helpers' "walk up to world" means stopping
+once the walk reaches `gGfxViewCoord`. A leaf's chain passes through that
+coordinate and ends at the offset coordinate whose `sub` is `NULL`, so the view
+rig sits *above* the coordinate everything parents to - which is why that
+coordinate's own `coord` holds a translation alone, with the view rotation and
+offset in the two above it.

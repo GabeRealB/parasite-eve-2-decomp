@@ -519,7 +519,7 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags)
             if (bone->parent != i) {
                 coord->sub = &obj->coords[bone->parent];
             } else {
-                coord->sub = &Gfx_ViewCoord;
+                coord->sub = &gGfxViewCoord;
             }
             coord->flg = 0;
             coord++;

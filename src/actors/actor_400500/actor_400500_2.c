@@ -357,10 +357,10 @@ s32 func_actor_400500_8013B720(GsCOORDINATE2* arg0, MATRIX* arg1)
     MATRIX*        parentp;
 
     coord = arg0->sub;
-    if (coord == &Gfx_ViewCoord) {
+    if (coord == &gGfxViewCoord) {
         return 0;
     }
-    view    = &Gfx_ViewCoord;
+    view    = &gGfxViewCoord;
     parentp = &parent;
     matrix  = coord->coord;
     while (1) {

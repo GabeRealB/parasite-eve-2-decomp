@@ -17,8 +17,6 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-extern GsCOORDINATE2 Gfx_ViewCoord;
-
 void func_acropolis_cafeteria_80181E3C(Task* arg0);
 
 extern SVECTOR RoomsShared8017d830Delta;
@@ -48,7 +46,7 @@ void func_acropolis_cafeteria_801818DC(Task* task)
     task->exitCallback = func_acropolis_cafeteria_80181E3C;
     task->state        = task->state + 1;
     Mem_Set(work, 0, 0xD8);
-    coord->sub = &Gfx_ViewCoord;
+    coord->sub = &gGfxViewCoord;
     coord->flg = 0;
     obj->flags = 0;
     RotMatrix(&work->field_C4, &coord->coord);

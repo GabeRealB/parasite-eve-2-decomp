@@ -24,7 +24,7 @@ void Actor01900_Fn00260(GsCOORDINATE2* coord, s16 yaw)
 
     *(MATRIX**)G_SCRATCH_HEAD -= 1;
     rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
-    ActorsShared80132808_Accumulate(coord, rotation, &Gfx_ViewCoord);
+    ActorsShared80132808_Accumulate(coord, rotation, &gGfxViewCoord);
     func_8004BFF8(yaw, rotation);
     out = ActorsShared80132808_Localize(coord, rotation);
     __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
@@ -479,28 +479,28 @@ s32 Actor01900_Fn016F0(Actor01900* arg0)
     s->local.vy           = ((Actor01900*)player)->field_2C->coords->coord.t[1] - 1000;
     *(u8**)G_SCRATCH_HEAD = (u8*)s;
     s->local.vz           = ((Actor01900*)player)->field_2C->coords->coord.t[2];
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    Gp_UpdateCoord(&gGfxViewCoord);
     v = local;
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(v);
     gte_rtv0_real();
     gte_stsv(&s->out);
-    s->out.vx += Gfx_ViewCoord.workm.t[0];
-    s->out.vy += Gfx_ViewCoord.workm.t[1];
-    s->out.vz += Gfx_ViewCoord.workm.t[2];
+    s->out.vx += gGfxViewCoord.workm.t[0];
+    s->out.vy += gGfxViewCoord.workm.t[1];
+    s->out.vz += gGfxViewCoord.workm.t[2];
 
     s->local.vx = arg0->field_2C->coords->coord.t[0];
     s->local.vy = arg0->field_2C->coords->coord.t[1] - 1000;
     s->local.vz = arg0->field_2C->coords->coord.t[2];
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    Gp_UpdateCoord(&gGfxViewCoord);
     out = (SVECTOR*)(head - 0x14);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(v);
     gte_rtv0_real();
     gte_stsv(out);
-    s->from.vx           += Gfx_ViewCoord.workm.t[0];
-    s->from.vy           += Gfx_ViewCoord.workm.t[1];
-    s->from.vz           += Gfx_ViewCoord.workm.t[2];
+    s->from.vx           += gGfxViewCoord.workm.t[0];
+    s->from.vy           += gGfxViewCoord.workm.t[1];
+    s->from.vz           += gGfxViewCoord.workm.t[2];
     s->hit                = func_800E0308(&s->out, out);
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x1C;
     return s->hit;
@@ -882,7 +882,7 @@ void Actor01900_Fn02018(GpEnemy* enemy, Actor01900* actor)
     work->field_C[1].z = actor->field_2C->coords->coord.t[2] + dir.vz;
 
     actor->field_24 = &Actor01900_D1728C;
-    root->sub       = &Gfx_ViewCoord;
+    root->sub       = &gGfxViewCoord;
     root->flg       = 0;
     Gp_UpdateCoord(root);
     pos.vx = root->workm.t[0];
@@ -3181,7 +3181,7 @@ void Actor01900_Fn09D3C(GpEnemy* enemy, Actor01900* actor)
         enemy->field_1C.vy = scratch->pos.vy;
         enemy->field_1C.vz = scratch->pos.vz;
     }
-    enemy->field_18 = &Gfx_ViewCoord;
+    enemy->field_18 = &gGfxViewCoord;
 }
 
 void Actor01900_Fn0A314(void)

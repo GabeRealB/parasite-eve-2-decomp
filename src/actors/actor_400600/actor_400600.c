@@ -231,8 +231,8 @@ void func_actor_400600_80132294(Task* task, s16 firstJoint, s16 secondJoint, s16
         s = (Actor400600BeamScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor400600BeamScratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
-        Gp_WorldToLocal(&Gfx_ViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
-        Gp_WorldToLocal(&Gfx_ViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
         s->first.vx       = s->firstMatrix.t[0];
         s->first.vy       = s->firstMatrix.t[1];
         s->second.vx      = s->secondMatrix.t[0];
@@ -258,10 +258,10 @@ void func_actor_400600_80132294(Task* task, s16 firstJoint, s16 secondJoint, s16
         offset3           = rsin(angle) * width;
         s->corner3.vz     = height;
         s->corner3.vy     = (s->second.vy - (offset3 >> 0xC)) - halfY;
-        Gfx_ViewCoord.flg = 0;
-        Gp_UpdateCoord(&Gfx_ViewCoord);
-        gte_SetRotMatrix(&Gfx_ViewCoord.workm);
-        gte_SetTransMatrix(&Gfx_ViewCoord.workm);
+        gGfxViewCoord.flg = 0;
+        Gp_UpdateCoord(&gGfxViewCoord);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
+        gte_SetTransMatrix(&gGfxViewCoord.workm);
         s->depth = RotTransPers4(&s->corner0, &s->corner1, &s->corner2, &s->corner3, &s->screen0, &s->screen1,
                                  &s->screen2, &s->screen3, &s->perspective, &s->flags);
         if (s->flags >= 0) {
@@ -657,7 +657,7 @@ void func_actor_400600_80133434(Task* arg0)
 
     Actor400600_TickAnim(arg0);
 
-    coord->sub     = &Gfx_ViewCoord;
+    coord->sub     = &gGfxViewCoord;
     work->field_82 = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     func_actor_400600_8013203C(arg0);
     work->obj_4B4.flags |= 0x4000;

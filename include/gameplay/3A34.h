@@ -258,7 +258,7 @@ typedef struct _GpRoomCoordRec {
 STATIC_ASSERT_SIZEOF(GpRoomCoordRec, 8);
 
 /// 0x58-byte coordinate object in `GpRoomCoordSet.arr58`. `Gp_UpdateRoomCoords`
-/// parents `coord.sub` to `Gfx_ViewCoord` and clears `coord.flg`.
+/// parents `coord.sub` to `gGfxViewCoord` and clears `coord.flg`.
 typedef struct _GpCoord58 {
     /* 0x00 */ GsCOORDINATE2 coord;
     /* 0x50 */ byte          pad_50[8];
@@ -274,7 +274,7 @@ typedef struct _GpCoord60 {
 STATIC_ASSERT_SIZEOF(GpCoord60, 0x60);
 
 /// 0x6C-byte coordinate object in `GpRoomCoordSet.arr6C`. `Gp_UpdateRoomCoords`
-/// parents `coord.sub` to `Gfx_ViewCoord`, builds `coord.coord` as an
+/// parents `coord.sub` to `gGfxViewCoord`, builds `coord.coord` as an
 /// orthonormal basis from `dir` (and a perpendicular scratch vector),
 /// and clears `coord.flg`.
 typedef struct _GpCoord6C {
@@ -286,7 +286,7 @@ typedef struct _GpCoord6C {
 STATIC_ASSERT_SIZEOF(GpCoord6C, 0x6C);
 
 /// Room coordinate tables returned by `Gp_GetRoomCoordSet` (`GpRoomCoordRec.field_0`).
-/// `Gp_UpdateRoomCoords` parents each array to `Gfx_ViewCoord` on first run, then
+/// `Gp_UpdateRoomCoords` parents each array to `gGfxViewCoord` on first run, then
 /// updates them every frame via `Gp_UpdateCoord` / `Gp_UpdateCoordEx`.
 typedef struct _GpRoomCoordSet {
     /* 0x00 */ s32        n58;
@@ -315,7 +315,7 @@ STATIC_ASSERT_SIZEOF(Gp6CMatWalk, 0x6C);
 
 /// Overlay of `GpCoord6C` starting at `coord.sub`. `dir` is at +0xC, so a
 /// pointer to `Gp6CDirWalk.dir` minus `OFFSET_OF(Gp6CMid, dir)` is this
-/// object. `Gp_UpdateRoomCoords` writes `sub` as `Gfx_ViewCoord`.
+/// object. `Gp_UpdateRoomCoords` writes `sub` as `gGfxViewCoord`.
 typedef struct _Gp6CMid {
     /* 0x00 */ GsCOORDINATE2* sub;
     /* 0x04 */ byte           pad[8];
@@ -563,12 +563,12 @@ STATIC_ASSERT_SIZEOF(GpObj20E, 0x24);
 /// unlinked by `Gp_UnlinkObj4A`. `Gp_ClearObj4AList` empties the whole list.
 /// `field_4A` bit 0x20 means the node is on that list (cleared on unlink,
 /// keeping bits 0x87); bit 0x80 marks the last element of an array walked
-/// at +0x4C. Callers also store `Gfx_ViewCoord` at +0x8 and OR bit 0x40 into
+/// at +0x4C. Callers also store `gGfxViewCoord` at +0x8 and OR bit 0x40 into
 /// `field_4A`.
 typedef struct _GpObj4A {
     /* 0x00 */ struct _GpObj4A* next;
     /* 0x04 */ struct _GpObj4A* prev;
-    /* 0x08 */ void*            field_8; // GsCOORDINATE2*; callers store &Gfx_ViewCoord
+    /* 0x08 */ void*            field_8; // GsCOORDINATE2*; callers store &gGfxViewCoord
     /* 0x0C */ byte             pad_C[0x3E];
     /* 0x4A */ u8               field_4A;
     /* 0x4B */ byte             pad_4B;
@@ -1398,7 +1398,7 @@ GpItemRec* Gp_FindItemByKind(s32 arg0);
 GpItemRec* Gp_FindItemInScan(s32 arg0, GpItemScan* arg1);
 void       Gp_DrawWeaponLabel(Task* arg0);
 /// First-run init plus per-frame update of the current room's `GpRoomCoordSet`
-/// coordinate arrays (parented to `Gfx_ViewCoord`) and the `Gp_RoomCoords` slots.
+/// coordinate arrays (parented to `gGfxViewCoord`) and the `Gp_RoomCoords` slots.
 /// Kills `arg0` when `Gp_GetRoomCoordSet` returns 0.
 void Gp_UpdateRoomCoords(Task* arg0);
 s32  Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1);

@@ -51,7 +51,7 @@ extern SVECTOR D_gunblade_8011E704[1];
 extern SVECTOR D_gunblade_8011E70C;
 
 /// The eight-segment beam trails, one array per end of the blade. Every entry
-/// is parented to `Gfx_ViewCoord`.
+/// is parented to `gGfxViewCoord`.
 extern GsCOORDINATE2 D_gunblade_8012E254[8];
 extern GsCOORDINATE2 D_gunblade_8012E4D4[8];
 

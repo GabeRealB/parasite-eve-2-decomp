@@ -67,7 +67,7 @@ void func_actor_342400_80163C58(Task* task)
     w2->field_418 = 7;
     w2->field_414 = 2;
     ActorsShared80165cc0(task);
-    coord->sub = &Gfx_ViewCoord;
+    coord->sub = &gGfxViewCoord;
     ActorsShared80164b68(task);
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     enemy       = task->spawnArg2;
@@ -163,7 +163,7 @@ void func_actor_342400_80163E70(Task* task)
     w2->field_418 = 7;
     w2->field_414 = two;
     ActorsShared80165cc0(task);
-    coord->sub = &Gfx_ViewCoord;
+    coord->sub = &gGfxViewCoord;
     ActorsShared80164b68(task);
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);

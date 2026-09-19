@@ -7,6 +7,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "main/gfx.h"
 #include "main/task.h"
 
 /// Work block of the `actor_135600` enemy task, the `Mem_Calloc(0x50C, 0)`
@@ -91,9 +92,6 @@ typedef union Actor135600Matrix {
     Actor135600MatrixWords ident;
 } Actor135600Matrix;
 STATIC_ASSERT_SIZEOF(Actor135600Matrix, 0x20);
-
-/// The world coordinate every `GsCOORDINATE2` chain is rooted at.
-extern GsCOORDINATE2 Gfx_ViewCoord;
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);

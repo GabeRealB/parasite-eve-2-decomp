@@ -89,7 +89,7 @@ typedef struct Actor103800Work {
     /* 0x2F2 */ byte           pad_2F2[2];
     /// Coordinate node `Actor03800_Fn003B8` publishes on `field_344` for the
     /// detached modes (spawn kinds 1 and 2): it is seeded from the model's own
-    /// `Actor103800Obj2C::field_8`, parented to `Gfx_ViewCoord` and then turned
+    /// `Actor103800Obj2C::field_8`, parented to `gGfxViewCoord` and then turned
     /// by 0x400 / 0x800 about X. `coord.coord.t` is the saved world translation
     /// the idle and detach ticks restore after rebuilding the rotation.
     /* 0x2F4 */ GsCOORDINATE2  coord;

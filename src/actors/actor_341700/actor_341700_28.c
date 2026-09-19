@@ -33,7 +33,7 @@ void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    coord->sub                                    = &Gfx_ViewCoord;
+    coord->sub                                    = &gGfxViewCoord;
     ((TmdObject*)arg1->extra)->coords->coord.t[1] = 0;
     ((TmdObject*)arg1->extra)->coords->coord.t[0] = 0x1388;
     ((TmdObject*)arg1->extra)->coords->coord.t[2] = -0x1770;

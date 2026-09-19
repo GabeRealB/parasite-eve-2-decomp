@@ -101,7 +101,7 @@ void func_actor_342000_8016201C(Task* arg0)
             if (arg0->spawnArg1 != 0) {
                 extra->otOffset = 0x1F;
             }
-            ((TmdObject*)arg0->extra)->coords->sub = &Gfx_ViewCoord;
+            ((TmdObject*)arg0->extra)->coords->sub = &gGfxViewCoord;
             extra->colorMtx                        = &mtx->color;
             extra->lightMtx                        = &mtx->light;
             arg0->msgTable                         = D_actor_342000_801648A8;
@@ -192,7 +192,7 @@ void func_actor_342000_80162158(Task* arg0)
     Gp_SetTmdBytes(extra, (s8)rec->field_D, (s8)rec->field_E);
     switch (arg0->spawnArg1) {
         case 0:
-            w->field_2A4 = &Gfx_ViewCoord;
+            w->field_2A4 = &gGfxViewCoord;
             Actor342000_InitCoord(arg0, w);
             func_800B3F84(&w->ctx, D_actor_342000_801647F8, (GpAnimObj*)extra, &w->pad_154, w->slots);
             ctx = (Actor342000Work*)arg0->work;

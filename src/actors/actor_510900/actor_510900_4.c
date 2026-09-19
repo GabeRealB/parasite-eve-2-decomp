@@ -1699,7 +1699,7 @@ void func_actor_510900_801395AC(void* enemy, Task* task)
                     r                  = r - 0xF;
                     dy                 = ((r - 0xC) * (r - 0xC) * 3) - 0x1B0;
                     coord->coord       = work->field_544;
-                    coord->sub         = &Gfx_ViewCoord;
+                    coord->sub         = &gGfxViewCoord;
                     coord->coord.t[1] += dy;
                 }
                 coord->flg = 0;
@@ -1755,11 +1755,11 @@ void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
     tmd->lightMtx = &work->lightMtx;
     tmd->colorMtx = &work->colorMtx;
 
-    Gfx_ViewCoord.flg = 0;
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    gGfxViewCoord.flg = 0;
+    Gp_UpdateCoord(&gGfxViewCoord);
     parentCoord->flg = 0;
     Gp_UpdateCoord(parentCoord);
-    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &parentCoord->workm, &coord->coord);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &parentCoord->workm, &coord->coord);
 
     scratch->rot.vx = -0xA5;
     scratch->rot.vy = -0x235;
@@ -1768,7 +1768,7 @@ void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
     gte_ldv0(&scratch->rot);
     gte_rtv0_real();
     gte_stlvnl(&scratch->pos);
-    coord->sub         = &Gfx_ViewCoord;
+    coord->sub         = &gGfxViewCoord;
     coord->coord.t[0] += scratch->pos.vx;
     coord->coord.t[1] += scratch->pos.vy;
     coord->coord.t[2] += scratch->pos.vz;
@@ -2150,7 +2150,7 @@ void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task)
     coords->coord.t[0] = D_actor_510900_80167CB8[work->field_334].vx;
     coords->coord.t[1] = D_actor_510900_80167CB8[work->field_334].vy;
     coords->coord.t[2] = D_actor_510900_80167CB8[work->field_334].vz;
-    coords->sub        = &Gfx_ViewCoord;
+    coords->sub        = &gGfxViewCoord;
     func_800B3F84(&work->anim, D_actor_510900_80167CAC, (GpAnimObj*)tmd, work->poses, work->slots);
     do {
         Gp_AnimResetSlot(&work->anim, i, 1);
@@ -2428,7 +2428,7 @@ void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
     coord->coord.t[0] = -0x17D4;
     coord->coord.t[1] = -0x456;
     coord->coord.t[2] = 0x17C;
-    coord->sub        = &Gfx_ViewCoord;
+    coord->sub        = &gGfxViewCoord;
     coord->flg        = 0;
     enemy->field_4    = &coord->coord;
     enemy->field_48   = 0;

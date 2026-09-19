@@ -12,6 +12,7 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/gfx.h"
 #include "weapons/m4a1_bayonet.h"
 
 /// Muzzle vector for the bayonet's thrust.
@@ -79,18 +80,18 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
 
                 for (i = 0; i < 8; i++) {
                     slot        = &D_m4a1_bayonet_8012D398[i];
-                    slot->sub   = &Gfx_ViewCoord;
+                    slot->sub   = &gGfxViewCoord;
                     slot->workm = coord->workm;
                     gte_SetRotMatrix(&coord->workm);
                     gte_SetTransMatrix(&coord->workm);
-                    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &slot->workm, &slot->coord);
+                    Gp_WorldToLocal(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
 
                     slot        = &D_m4a1_bayonet_8012D618[i];
-                    slot->sub   = &Gfx_ViewCoord;
+                    slot->sub   = &gGfxViewCoord;
                     slot->workm = hilt.workm;
                     gte_SetRotMatrix(&hilt.workm);
                     gte_SetTransMatrix(&hilt.workm);
-                    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &slot->workm, &slot->coord);
+                    Gp_WorldToLocal(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
                 }
                 break;
             case 1:
@@ -105,18 +106,18 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
                 Gp_UpdateCoord(&hilt);
 
                 slot        = &D_m4a1_bayonet_8012D398[work->field_22 & 7];
-                slot->sub   = &Gfx_ViewCoord;
+                slot->sub   = &gGfxViewCoord;
                 slot->workm = coord->workm;
                 gte_SetRotMatrix(&coord->workm);
                 gte_SetTransMatrix(&coord->workm);
-                Gp_WorldToLocal(&Gfx_ViewCoord.workm, &slot->workm, &slot->coord);
+                Gp_WorldToLocal(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
 
                 slot        = &D_m4a1_bayonet_8012D618[work->field_22 & 7];
-                slot->sub   = &Gfx_ViewCoord;
+                slot->sub   = &gGfxViewCoord;
                 slot->workm = hilt.workm;
                 gte_SetRotMatrix(&hilt.workm);
                 gte_SetTransMatrix(&hilt.workm);
-                Gp_WorldToLocal(&Gfx_ViewCoord.workm, &slot->workm, &slot->coord);
+                Gp_WorldToLocal(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
 
                 for (i = 0; i < 8; i++) {
                     slot      = &D_m4a1_bayonet_8012D398[i];

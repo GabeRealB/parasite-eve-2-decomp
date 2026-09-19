@@ -7,6 +7,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/gfx.h"
 #include "rooms/rooms_shared_8017f470.h"
 
 typedef struct {
@@ -61,7 +62,7 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
             car->field_0      = 0;
             obj->otOffset     = 0x64;
             obj->flags        = 0;
-            coord->sub        = &Gfx_ViewCoord;
+            coord->sub        = &gGfxViewCoord;
             coord->coord.t[0] = 0x2A94;
             coord->coord.t[1] = 0;
             coord->coord.t[2] = -0x1F4;

@@ -173,7 +173,7 @@ void func_dryfield_dilapidated_house_8018142C(Task* arg0)
     GsCOORDINATE2* coord;
 
     coord      = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
-    coord->sub = &Gfx_ViewCoord;
+    coord->sub = &gGfxViewCoord;
     taskKill(arg0);
 }
 
@@ -221,7 +221,7 @@ void func_dryfield_dilapidated_house_801815B8(Task* arg0)
     GsCOORDINATE2* coord;
 
     coord      = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
-    coord->sub = &Gfx_ViewCoord;
+    coord->sub = &gGfxViewCoord;
     taskKill(arg0);
 }
 
@@ -235,7 +235,7 @@ extern SVECTOR D_dryfield_dilapidated_house_80186944[1];
 extern SVECTOR D_dryfield_dilapidated_house_8018694C;
 
 /// Eight-slot trail coordinates, one array per end of the pair. Every entry is
-/// parented to `Gfx_ViewCoord`.
+/// parented to `gGfxViewCoord`.
 extern GsCOORDINATE2 D_dryfield_dilapidated_house_80189DE0[8];
 extern GsCOORDINATE2 D_dryfield_dilapidated_house_8018A060[8];
 
@@ -279,17 +279,17 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
                 Gp_UpdateCoord(&coord);
                 for (i = 0; i < 8; i++) {
                     dst        = &D_dryfield_dilapidated_house_80189DE0[i];
-                    dst->sub   = &Gfx_ViewCoord;
+                    dst->sub   = &gGfxViewCoord;
                     dst->workm = objCoord->workm;
                     gte_SetRotMatrix(&objCoord->workm);
                     gte_SetTransMatrix(&objCoord->workm);
-                    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                    Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                     dst        = &D_dryfield_dilapidated_house_8018A060[i];
-                    dst->sub   = &Gfx_ViewCoord;
+                    dst->sub   = &gGfxViewCoord;
                     dst->workm = coord.workm;
                     gte_SetRotMatrix(&coord.workm);
                     gte_SetTransMatrix(&coord.workm);
-                    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                    Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 }
                 return;
 
@@ -303,17 +303,17 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
                 coord.flg        = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &D_dryfield_dilapidated_house_80189DE0[work->field_22 & 7];
-                dst->sub   = &Gfx_ViewCoord;
+                dst->sub   = &gGfxViewCoord;
                 dst->workm = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
-                Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 dst        = &D_dryfield_dilapidated_house_8018A060[work->field_22 & 7];
-                dst->sub   = &Gfx_ViewCoord;
+                dst->sub   = &gGfxViewCoord;
                 dst->workm = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
-                Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
                     dst      = &D_dryfield_dilapidated_house_80189DE0[i];
                     dst->flg = 0;

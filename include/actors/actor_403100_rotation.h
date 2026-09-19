@@ -2,6 +2,7 @@
 #define ACTOR_403100_ROTATION_H
 
 #include "actors/coord_to_view.h"
+#include "main/gfx.h"
 #include "psyq/inline_c.h"
 
 /* Inline forms of this actor's rotation traversal helpers. */
@@ -35,7 +36,7 @@ static __inline__ s32 Actor403100_LocalizeRotation(GsCOORDINATE2* arg0, MATRIX* 
     GsCOORDINATE2* coord;
 
     coord = arg0->sub;
-    if (coord == &Gfx_ViewCoord) {
+    if (coord == &gGfxViewCoord) {
         return 0;
     }
     matrix = coord->coord;

@@ -81,7 +81,7 @@ void func_actor_135600_80132C18(Task* task)
     }
 }
 
-/// Walks `coord->sub` up to world (`Gfx_ViewCoord`), composing each node's
+/// Walks `coord->sub` up to world (`gGfxViewCoord`), composing each node's
 /// `coord` rotation into `mtx` and accumulating the rotated translation into
 /// `vec`. The world parent initializes `mtx` to identity and `vec` to zero.
 /// The same algorithm as gameplay's `Gp_ComposeParentWorld`, but through the
@@ -91,7 +91,7 @@ void func_actor_135600_80132C80(GsCOORDINATE2* coord, MATRIX* mtx, SVECTOR* vec)
     SVECTOR tmp;
     MATRIX* m;
 
-    if (coord->sub != &Gfx_ViewCoord) {
+    if (coord->sub != &gGfxViewCoord) {
         func_actor_135600_80132C80(coord->sub, mtx, vec);
     } else {
         m                  = mtx;

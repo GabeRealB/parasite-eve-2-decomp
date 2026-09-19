@@ -5,6 +5,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -402,7 +403,7 @@ STATIC_ASSERT_SIZEOF(Actor356100DeltaFlag, 0x14);
 
 /// 0x68-byte `G_SCRATCH_HEAD` block `func_actor_356100_80169854` takes while it
 /// builds the ground coordinate it draws an effect quad on: the coordinate the
-/// function fills (`coord.sub` parented to `Gfx_ViewCoord`) plus the world
+/// function fills (`coord.sub` parented to `gGfxViewCoord`) plus the world
 /// position `v` its two parent walks leave there.
 typedef struct Actor356100GroundCoord {
     /* 0x00 */ GsCOORDINATE2 coord;
@@ -411,11 +412,7 @@ typedef struct Actor356100GroundCoord {
 } Actor356100GroundCoord;
 STATIC_ASSERT_SIZEOF(Actor356100GroundCoord, 0x68);
 
-/// The world root every coordinate chain in this overlay hangs off; same
-/// declaration `gameplay/3CD8.h` carries.
-extern GsCOORDINATE2 Gfx_ViewCoord;
-
-/// Walks `p` up its parent chain to `Gfx_ViewCoord`, transforming `out` by each
+/// Walks `p` up its parent chain to `gGfxViewCoord`, transforming `out` by each
 /// coordinate; `out` is left unchanged if the chain ends before the view.
 /// Same body as `Actor01900_TransformToView`.
 static __inline__ void Actor356100_TransformToView(GsCOORDINATE2* p, SVECTOR* out)
@@ -424,7 +421,7 @@ static __inline__ void Actor356100_TransformToView(GsCOORDINATE2* p, SVECTOR* ou
     VECTOR         vec;
     s32            flag;
     SVECTOR*       svp   = &sv;
-    GsCOORDINATE2* view  = &Gfx_ViewCoord;
+    GsCOORDINATE2* view  = &gGfxViewCoord;
     VECTOR*        vecp  = &vec;
     s32*           flagp = &flag;
     sv.vx                = out->vx;

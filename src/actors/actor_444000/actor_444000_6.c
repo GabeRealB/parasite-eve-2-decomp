@@ -155,7 +155,7 @@ void func_actor_444000_8013A1C4(GpEnemy* enemy, Actor444000Spinner* task)
         return;
     }
 
-    task->extra->coords->sub = &Gfx_ViewCoord;
+    task->extra->coords->sub = &gGfxViewCoord;
     task->extra->flags       = 0;
 
     switch ((u16)task->spawnArg1) {
@@ -744,7 +744,7 @@ void func_actor_444000_8013AFF8(GpEnemy* enemy, Actor444000* task)
     work->anim.field_10 = 1;
     work->field_F12     = 0;
     task->field_24      = &D_actor_444000_80161818;
-    coord->sub          = &Gfx_ViewCoord;
+    coord->sub          = &gGfxViewCoord;
     coord->flg          = 0;
     Gp_UpdateCoord(coord);
 
@@ -2775,7 +2775,7 @@ void func_actor_444000_801404C0(Actor444000* arg0)
 
             Actor444000_AccumulateRotation(&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1],
                                            &D_actor_444000_80161948[D_actor_444000_80161850].coord);
-            D_actor_444000_80161948[D_actor_444000_80161850].sub = &Gfx_ViewCoord;
+            D_actor_444000_80161948[D_actor_444000_80161850].sub = &gGfxViewCoord;
 
             pos.vz = 0;
             pos.vy = 0;

@@ -10,6 +10,7 @@
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/gfx.h"
 
 /// Message table `func_actor_450800_80132160` hangs off `Task::msgTable`, and
 /// the `TaskDesc` table its three helper tasks come from - the same two roles
@@ -193,7 +194,7 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
         return;
     }
     task->exitCallback  = func_actor_450800_80132868;
-    coord->sub          = &Gfx_ViewCoord;
+    coord->sub          = &gGfxViewCoord;
     enemy->field_4      = &coord->coord;
     enemy->field_48     = 0;
     enemy->node.field_5 = 0;

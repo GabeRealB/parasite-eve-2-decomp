@@ -36,7 +36,7 @@ void Actor01600_Fn001F4(Actor01600Ctx* ctx, Actor01600* actor)
     coord->flg                            = 0;
     obj->lightMtx                         = &work->field_22C;
     obj->colorMtx                         = &work->field_20C;
-    work->field_24C.sub                   = &Gfx_ViewCoord;
+    work->field_24C.sub                   = &gGfxViewCoord;
     matrix                                = &work->field_24C.coord;
     *(s32*)&work->field_24C.coord.m[0][0] = 0x1000;
     *(s32*)&matrix->m[0][2]               = 0;

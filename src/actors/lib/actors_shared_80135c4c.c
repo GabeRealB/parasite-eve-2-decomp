@@ -29,12 +29,12 @@ void ActorsShared80135c4c(GpEnemy* enemy, Task* task)
         return;
     }
     task->work        = (TaskIdMap*)work;
-    Gfx_ViewCoord.flg = 0;
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    gGfxViewCoord.flg = 0;
+    Gp_UpdateCoord(&gGfxViewCoord);
     parentCoord->flg = 0;
     Gp_UpdateCoord(parentCoord);
-    coord->sub = &Gfx_ViewCoord;
-    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &parentCoord->workm, &coord->coord);
+    coord->sub = &gGfxViewCoord;
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &parentCoord->workm, &coord->coord);
     coord->flg         = 0;
     work->field_3A     = 0xC0;
     pair               = parentWork->field_3AC;

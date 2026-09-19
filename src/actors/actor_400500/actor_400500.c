@@ -713,8 +713,8 @@ void func_actor_400500_801348D8(Task* arg0, s32 arg1)
             i++;
             stride++;
         } while (i < 0x12);
-        Gfx_ViewCoord.flg = 0;
-        Gp_UpdateCoord(&Gfx_ViewCoord);
+        gGfxViewCoord.flg = 0;
+        Gp_UpdateCoord(&gGfxViewCoord);
         joint->flg = 0;
         Gp_UpdateCoord(joint);
         pos.vx = 0x160;
@@ -1003,7 +1003,7 @@ void func_actor_400500_80135414(Task* arg0)
     enemy->field_40 = enemy->field_42 = D_actor_400500_80153C90.field_4;
     func_800B3F84(&work->anim, D_actor_400500_80153CC0, (GpAnimObj*)extra, work->pad_2E4,
                   work->slots);
-    coord->sub       = &Gfx_ViewCoord;
+    coord->sub       = &gGfxViewCoord;
     work2            = (Actor400500Work*)arg0->work;
     work2->field_9F8 = 0x18;
     work2->field_9FE = 2;

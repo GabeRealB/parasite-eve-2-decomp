@@ -130,7 +130,7 @@ extern GpSprtTbl* Gp_SprtTables[];
 
 /// 0x10-byte per-room record in tables pointed to by `Gp_RoomObjTables`.
 /// Indexed 1-based by `GameSession.at4.loc.room` / `GpAreaKey.room`.
-/// `Gp_LinkRoomObjects` / `Gp_LinkRoomObjectsSpawn` parent `field_0` to `&Gfx_ViewCoord` and
+/// `Gp_LinkRoomObjects` / `Gp_LinkRoomObjectsSpawn` parent `field_0` to `&gGfxViewCoord` and
 /// link the `field_4` / `field_8` (`GpObj4A`) and `field_C` (`GpObj3A`) arrays.
 typedef struct _GpRoomObjRec {
     /* 0x0 */ struct _GpGridParams* field_0;

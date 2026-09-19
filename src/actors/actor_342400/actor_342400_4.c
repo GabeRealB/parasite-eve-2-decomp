@@ -83,11 +83,11 @@ void func_actor_342400_801648E4(Task* arg0)
         GsCOORDINATE2* coords = ((TmdObject*)arg0->extra)->coords;
         SVECTOR*       v;
 
-        Gfx_ViewCoord.flg = 0;
-        Gp_UpdateCoord(&Gfx_ViewCoord);
+        gGfxViewCoord.flg = 0;
+        Gp_UpdateCoord(&gGfxViewCoord);
         coords[6].flg = 0;
         Gp_UpdateCoord(&coords[6]);
-        Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coords[6].workm, &local);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[6].workm, &local);
         v             = &work->field_98;
         v->vx         = local.t[0];
         v->vy         = local.t[1];

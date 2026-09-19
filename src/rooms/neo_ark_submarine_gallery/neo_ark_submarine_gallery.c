@@ -161,8 +161,8 @@ s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1)
     s16      i;
     s16      y;
 
-    Gfx_ViewCoord.flg = 0;
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    gGfxViewCoord.flg = 0;
+    Gp_UpdateCoord(&gGfxViewCoord);
     y = 0x14B4;
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);

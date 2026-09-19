@@ -5,6 +5,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/tmd.h"
 #include "weapons/gunblade.h"
@@ -66,17 +67,17 @@ void func_gunblade_8011D1E4(Task* task)
                 Gp_UpdateCoord(&local);
                 for (i = 0; i < 8; i++) {
                     dst        = &D_gunblade_8012E254[i];
-                    dst->sub   = &Gfx_ViewCoord;
+                    dst->sub   = &gGfxViewCoord;
                     dst->workm = coord->workm;
                     gte_SetRotMatrix(&coord->workm);
                     gte_SetTransMatrix(&coord->workm);
-                    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                    Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                     dst        = &D_gunblade_8012E4D4[i];
-                    dst->sub   = &Gfx_ViewCoord;
+                    dst->sub   = &gGfxViewCoord;
                     dst->workm = local.workm;
                     gte_SetRotMatrix(&local.workm);
                     gte_SetTransMatrix(&local.workm);
-                    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                    Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 }
                 return;
             case 1:
@@ -89,17 +90,17 @@ void func_gunblade_8011D1E4(Task* task)
                 local.flg        = 0;
                 Gp_UpdateCoord(&local);
                 dst        = &D_gunblade_8012E254[work->field_22 & 7];
-                dst->sub   = &Gfx_ViewCoord;
+                dst->sub   = &gGfxViewCoord;
                 dst->workm = coord->workm;
                 gte_SetRotMatrix(&coord->workm);
                 gte_SetTransMatrix(&coord->workm);
-                Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 dst        = &D_gunblade_8012E4D4[work->field_22 & 7];
-                dst->sub   = &Gfx_ViewCoord;
+                dst->sub   = &gGfxViewCoord;
                 dst->workm = local.workm;
                 gte_SetRotMatrix(&local.workm);
                 gte_SetTransMatrix(&local.workm);
-                Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
                     dst      = &D_gunblade_8012E254[i];
                     dst->flg = 0;

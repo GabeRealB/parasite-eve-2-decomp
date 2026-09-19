@@ -69,8 +69,8 @@ void func_kyle_800102_80167A84(Task* arg0)
     gte_rtv0tr_real();
     gte_stlvnl(coord->workm.t);
     mtx = &coord->coord;
-    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coord->workm, mtx);
-    coord->sub   = &Gfx_ViewCoord;
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, mtx);
+    coord->sub   = &gGfxViewCoord;
     coord->flg   = 0;
     extra->flags = 0;
     Gfx_RotMatrixX(mtx, -0x400, 0);

@@ -36,7 +36,7 @@ extern u8 D_80072729;
 ///
 /// The 0x4CC-byte block goes into `Task::work` -- that slot is not a
 /// `TaskIdMap` here. `GpEnemy::field_4` takes the model's root coordinate's
-/// matrix, the root's `sub` is re-parented to `Gfx_ViewCoord`, the animation
+/// matrix, the root's `sub` is re-parented to `gGfxViewCoord`, the animation
 /// context is built over the block's slot array and packed-pose run, and the
 /// two work halfwords 0x474 / 0x478 seed the tick's state. Note this handler,
 /// unlike `func_actor_311900_8016228C`, does not touch `field_4C4` / `field_4C6`
@@ -60,7 +60,7 @@ void func_actor_311900_801624F8(GpEnemy* enemy, Task* task)
     obj->flags      = 0;
     func_800B3F84((GpAnimCtx*)work, D_actor_311900_8016EBF4, (GpAnimObj*)obj, work->anim.poses,
                   work->anim.slots);
-    coord->sub      = &Gfx_ViewCoord;
+    coord->sub      = &gGfxViewCoord;
     work->field_474 = 2;
     work->field_478 = 1;
     func_actor_311900_80162100(task);

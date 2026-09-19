@@ -6,6 +6,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+#include "main/gfx.h"
 
 #include "gameplay/D4.h"
 #include "gameplay/1BC.h"
@@ -2257,8 +2258,8 @@ void func_actor_403100_8013C7B4(Task* arg0)
     Actor403100ResetStateInline(D_actor_403100_80155808->field_5DE, D_actor_403100_80155808->field_5E2, 0);
     func_actor_403100_801327CC();
     func_actor_403100_801328DC(arg0);
-    view              = &Gfx_ViewCoord;
-    Gfx_ViewCoord.flg = 0;
+    view              = &gGfxViewCoord;
+    gGfxViewCoord.flg = 0;
     Gp_UpdateCoord(view);
     SOFT_TOUCH_REG_USE(view, arg0);
     second        = coords + 7;
@@ -2292,7 +2293,7 @@ void func_actor_403100_8013C7B4(Task* arg0)
         while (1) {
             if (walker->sub == NULL)
                 break;
-            if (walker != &Gfx_ViewCoord) {
+            if (walker != &gGfxViewCoord) {
                 gte_SetTransMatrix(&walker->coord);
                 gte_SetRotMatrix(&walker->coord);
                 gte_ldv0(localp);
@@ -2591,7 +2592,7 @@ s32 func_actor_403100_8013D2F4(GsCOORDINATE2* coord, MATRIX* matrix)
         if (current == NULL) {
             return 0;
         }
-        if (current == &Gfx_ViewCoord) {
+        if (current == &gGfxViewCoord) {
             return 1;
         }
         parent = current->coord;

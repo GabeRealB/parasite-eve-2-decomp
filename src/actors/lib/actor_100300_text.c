@@ -9,6 +9,7 @@
 #include "gameplay/D4.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
+#include "main/gfx.h"
 
 #include <psyq/inline_c.h>
 
@@ -2032,7 +2033,7 @@ void Actor00300_Fn040A4(GpEnemy* arg0, Task* arg1)
     gte_ldv0(offset);
     __asm__ volatile("nop; nop; .word 0x4A486012");
     gte_stlvnl(&scratch->result);
-    coord->sub          = &Gfx_ViewCoord;
+    coord->sub          = &gGfxViewCoord;
     coord->coord        = parentCoord->coord;
     coord->coord.t[0]   = parentCoord->coord.t[0] + scratch->result.vx;
     coord->coord.t[1]   = parentCoord->coord.t[1] + scratch->result.vy;

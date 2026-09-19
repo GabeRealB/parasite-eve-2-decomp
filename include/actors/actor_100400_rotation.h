@@ -66,9 +66,9 @@ static __inline__ GsCOORDINATE2* Actor00400_LocalizeRotation(GsCOORDINATE2* arg0
     GsCOORDINATE2* view;
 
     coord = arg0->sub;
-    if (coord != &Gfx_ViewCoord) {
+    if (coord != &gGfxViewCoord) {
         mp     = &matrix;
-        view   = &Gfx_ViewCoord;
+        view   = &gGfxViewCoord;
         lp     = &local;
         matrix = coord->coord;
         while (1) {

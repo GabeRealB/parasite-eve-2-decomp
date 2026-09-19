@@ -12,6 +12,7 @@
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/tmd.h"
+#include "main/gfx.h"
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
 #include <psyq/libgpu.h>
@@ -1117,7 +1118,7 @@ void func_actor_503500_80137678(Actor503500* arg0)
                 coord->coord.t[0]    = rot.vx;
                 coord->coord.t[1]    = rot.vy;
                 coord->coord.t[2]    = rot.vz;
-                coord->sub           = &Gfx_ViewCoord;
+                coord->sub           = &gGfxViewCoord;
                 work->vel.vx.w       = 0;
                 work->vel.vy.w       = 0;
                 work->vel.vz.w       = 0x100000;
@@ -1360,7 +1361,7 @@ void func_actor_503500_80138288(Actor503500* arg0)
 
     enemy = arg0->field_20;
     func_actor_503500_8013611C(arg0->spawnArg1);
-    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &Gfx_ViewCoord;
+    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &gGfxViewCoord;
     Gp_UnlinkObj(&arg0->field_1C->slot40.obj);
     enemy->field_54 = 0;
     arg0->field_1C  = NULL;
@@ -1804,7 +1805,7 @@ void func_actor_503500_80139014(Actor503500* arg0)
                 coord->coord.t[0] = rot.vx;
                 coord->coord.t[1] = rot.vy;
                 coord->coord.t[2] = rot.vz;
-                coord->sub        = &Gfx_ViewCoord;
+                coord->sub        = &gGfxViewCoord;
                 coord->flg        = 0;
                 work->field_2EA   = phase;
                 Gp_UpdateCoord(coord);
@@ -2351,7 +2352,7 @@ void func_actor_503500_8013A900(Actor503500* arg0)
 
     enemy = arg0->field_20;
     func_actor_503500_8013611C(arg0->spawnArg1);
-    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &Gfx_ViewCoord;
+    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &gGfxViewCoord;
     Gp_UnlinkObj(&arg0->field_1C->obj160);
     enemy->field_54 = 0;
     arg0->field_1C  = NULL;

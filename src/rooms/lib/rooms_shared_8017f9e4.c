@@ -6,6 +6,7 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/gfx.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017f9e4.h"
 
@@ -52,17 +53,17 @@ void RoomsShared8017f9e4(Task* task)
                 Gp_UpdateCoord(&coord);
                 for (i = 0; i < 8; i++) {
                     dst        = &coords[i];
-                    dst->sub   = &Gfx_ViewCoord;
+                    dst->sub   = &gGfxViewCoord;
                     dst->workm = objCoord->workm;
                     gte_SetRotMatrix(&objCoord->workm);
                     gte_SetTransMatrix(&objCoord->workm);
-                    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                    Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                     dst        = &coords[i + 8];
-                    dst->sub   = &Gfx_ViewCoord;
+                    dst->sub   = &gGfxViewCoord;
                     dst->workm = coord.workm;
                     gte_SetRotMatrix(&coord.workm);
                     gte_SetTransMatrix(&coord.workm);
-                    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                    Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 }
                 break;
 
@@ -76,17 +77,17 @@ void RoomsShared8017f9e4(Task* task)
                 coord.flg        = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->field_22 & 7];
-                dst->sub   = &Gfx_ViewCoord;
+                dst->sub   = &gGfxViewCoord;
                 dst->workm = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
-                Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 dst        = &coords[(work->field_22 & 7) + 8];
-                dst->sub   = &Gfx_ViewCoord;
+                dst->sub   = &gGfxViewCoord;
                 dst->workm = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
-                Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
                     dst      = &coords[i];
                     dst->flg = 0;

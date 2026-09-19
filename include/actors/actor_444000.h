@@ -478,7 +478,7 @@ typedef struct Actor444000GrabWork {
     /// a fifteenth at a time; only x and z are read.
     /* 0x000 */ VECTOR3 vel;
     /* 0x00C */ byte    pad_C[0x54];
-    /// The work block's own coordinate, parented to `Gfx_ViewCoord` and kept
+    /// The work block's own coordinate, parented to `gGfxViewCoord` and kept
     /// tracking the model's world position so the ground marker below it can
     /// be drawn from `coord.workm.t`.
     /* 0x060 */ GsCOORDINATE2 coord;

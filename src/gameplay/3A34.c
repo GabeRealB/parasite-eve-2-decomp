@@ -711,7 +711,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
                 p = set->arr60;
                 if (set->n60 > 0) {
                     i      = 0;
-                    parent = &Gfx_ViewCoord;
+                    parent = &gGfxViewCoord;
                     do {
                         cur            = p;
                         i             += 1;
@@ -731,7 +731,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
                 obj = set->arr6C;
                 i   = 0;
                 if (set->n6C > 0) {
-                    parent6C = &Gfx_ViewCoord;
+                    parent6C = &gGfxViewCoord;
                     dirw     = (Gp6CDirWalk*)&obj->dir;
                     matw     = (Gp6CMatWalk*)&obj->coord.coord;
                     do {
@@ -774,7 +774,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
                 TOUCH_REG(j);
                 i = 0;
                 if (i < set->n58) {
-                    parent = &Gfx_ViewCoord;
+                    parent = &gGfxViewCoord;
                     do {
                         cur            = p;
                         i             += 1;
@@ -792,7 +792,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
                 GpCoord64*     slot;
                 register void* base asm("v0");
 
-                parent = &Gfx_ViewCoord;
+                parent = &gGfxViewCoord;
                 base   = Gp_RoomCoords;
                 view   = (GpCoord64View*)&((GpCoord64*)base)->coord;
                 slot   = (GpCoord64*)base;
@@ -810,7 +810,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
     }
 
     COMPILER_BARRIER();
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    Gp_UpdateCoord(&gGfxViewCoord);
 
     {
         s32                 hi;
@@ -824,7 +824,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
         k = 0;
         do {
             if (p->field_0 != 0) {
-                Gp_UpdateCoordEx(&p->coord, (s32)&Gfx_ViewCoord);
+                Gp_UpdateCoordEx(&p->coord, (s32)&gGfxViewCoord);
             }
             k += 1;
             p += 1;
@@ -841,7 +841,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
         if (set->n60 > 0) {
             do {
                 cur = p;
-                Gp_UpdateCoordEx(&cur->coord, (s32)&Gfx_ViewCoord);
+                Gp_UpdateCoordEx(&cur->coord, (s32)&gGfxViewCoord);
                 i += 1;
                 p  = cur + 1;
             } while (i < set->n60);
@@ -857,7 +857,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
         if (set->n6C > 0) {
             do {
                 cur = obj;
-                Gp_UpdateCoordEx(&cur->coord, (s32)&Gfx_ViewCoord);
+                Gp_UpdateCoordEx(&cur->coord, (s32)&gGfxViewCoord);
                 i  += 1;
                 obj = cur + 1;
             } while (i < set->n6C);
@@ -869,7 +869,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
 
         p = set->arr58;
         for (i = 0; i < set->n58;) {
-            Gp_UpdateCoordEx(&p->coord, (s32)&Gfx_ViewCoord);
+            Gp_UpdateCoordEx(&p->coord, (s32)&gGfxViewCoord);
             i += 1;
             p += 1;
         }
@@ -1567,7 +1567,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         GsCOORDINATE2*   world;
         register MATRIX* src;
 
-        world           = &Gfx_ViewCoord;
+        world           = &gGfxViewCoord;
         block->pos.vx   = pos->vx;
         block->pos.vy   = pos->vy;
         block->pos.vz   = pos->vz;
@@ -2813,15 +2813,15 @@ void* Gp_ScanLockNodes(GpActorWork* arg0, VECTOR3* out, s32 flag)
     block->src.vy = *(u16*)&coord->coord.t[1] - 1000;
     block->src.vz = *(u16*)&coord->coord.t[2];
     *scratch      = block;
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    Gp_UpdateCoord(&gGfxViewCoord);
     srcp = &((GpLockScanScratch*)(head - 0x38))->src;
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(srcp);
     gte_rtv0_real();
     gte_stsv(&block->self);
-    *(u16*)&block->self.vx = *(u16*)&block->self.vx + *(u16*)&Gfx_ViewCoord.workm.t[0];
-    *(u16*)&block->self.vy = *(u16*)&block->self.vy + *(u16*)&Gfx_ViewCoord.workm.t[1];
-    *(u16*)&block->self.vz = *(u16*)&block->self.vz + *(u16*)&Gfx_ViewCoord.workm.t[2];
+    *(u16*)&block->self.vx = *(u16*)&block->self.vx + *(u16*)&gGfxViewCoord.workm.t[0];
+    *(u16*)&block->self.vy = *(u16*)&block->self.vy + *(u16*)&gGfxViewCoord.workm.t[1];
+    *(u16*)&block->self.vz = *(u16*)&block->self.vz + *(u16*)&gGfxViewCoord.workm.t[2];
 
     if (actor->field_90C != NULL && flag != 0) {
         node      = (GpLinkXform*)actor->field_90C;
@@ -3349,7 +3349,7 @@ void Gp_GetLockPos(GpLockPos* arg0, VECTOR3* out)
     }
 
     coord = arg0->coord;
-    world = &Gfx_ViewCoord;
+    world = &gGfxViewCoord;
     if (coord == world) {
         out->vx = arg0->pos.vx;
         out->vy = arg0->pos.vy;
@@ -5538,9 +5538,9 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
     gte_ldv0(&arg0->origin);
     gte_rtv0_real();
     gte_stlvnl((VECTOR*)(head - 0x40));
-    block->origin.vx += Gfx_ViewCoord.workm.t[0];
-    block->origin.vy += Gfx_ViewCoord.workm.t[1];
-    block->origin.vz += Gfx_ViewCoord.workm.t[2];
+    block->origin.vx += gGfxViewCoord.workm.t[0];
+    block->origin.vy += gGfxViewCoord.workm.t[1];
+    block->origin.vz += gGfxViewCoord.workm.t[2];
 
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(&arg0->verts[0]);

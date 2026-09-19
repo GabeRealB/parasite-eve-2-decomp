@@ -72,7 +72,6 @@ extern u8             D_800938AC[];       // "????"
 extern u8             Gp_StrHP[];         // "HP"
 extern s32            Pad_MaskConfirm;
 extern s32            Pad_MaskCancel;
-extern GsCOORDINATE2  Gfx_ViewCoord;
 extern s16            D_80114C40;
 extern DR_STP         D_80114C50;
 extern s32            D_80115724;
@@ -1053,7 +1052,7 @@ void* Gp_AttachDisp2d(Task* task)
     if (node != NULL) {
         node->field_C           = 1;
         node->field_8           = coord;
-        coord->sub              = &Gfx_ViewCoord;
+        coord->sub              = &gGfxViewCoord;
         one                     = ONE;
         m                       = &node->coord.mtx;
         *(s32*)&node->coord.mtx = one;
@@ -7406,7 +7405,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         Gfx_RotMatrixX(&sc->mat, -0x400, 0);
         arg3 &= ~4;
     } else {
-        sc->mat = Gfx_ViewCoord.workm;
+        sc->mat = gGfxViewCoord.workm;
     }
     gte_SetRotMatrix(&sc->mat);
 
@@ -9061,7 +9060,7 @@ static __inline__ void coordToRoot(GsCOORDINATE2* arg0, GsCOORDINATE2* root, MAT
 }
 
 /// Points the active view at `arg0`: the transposed rotation goes to
-/// `Gfx_ViewRotMtx` and the negated translation to `Gfx_ViewCoord.coord.t`, with
+/// `Gfx_ViewRotMtx` and the negated translation to `gGfxViewCoord.coord.t`, with
 /// `arg1` (optional) stored as the world offset in `Gfx_ViewOffsetCoord.coord.t`.
 /// Coordinates that are not direct children of the root are first folded to
 /// root space with `coordToRoot`.
@@ -9089,7 +9088,7 @@ void Gp_SetViewFromCoord(GsCOORDINATE2* arg0, VECTOR* arg1)
 
     parent = arg0->sub;
     TOUCH_REG(parent);
-    root = &Gfx_ViewCoord;
+    root = &gGfxViewCoord;
     if (parent == root) {
         localMtx = &arg0->coord;
         rot      = &Gfx_ViewRotMtx;
@@ -9115,7 +9114,7 @@ void Gp_SetViewFromCoord(GsCOORDINATE2* arg0, VECTOR* arg1)
 
     Gfx_ViewOffsetCoord.flg = 0;
     D_80070E40.flg          = 0;
-    Gfx_ViewCoord.flg       = 0;
+    gGfxViewCoord.flg       = 0;
 }
 
 /// Spawns the type-0xE view task and points its coordinate at the inverse of
@@ -9159,7 +9158,7 @@ s32 Gp_SpawnViewCoordTask(GsCOORDINATE2* arg0, VECTOR* arg1)
 
     parent = arg0->sub;
     TOUCH_REG(parent);
-    root = &Gfx_ViewCoord;
+    root = &gGfxViewCoord;
     if (parent == root) {
         localMtx = &arg0->coord;
         dstMtx   = &coord->coord;
@@ -9213,14 +9212,14 @@ void func_800A8654(Task* task)
         }
     }
 
-    c3             = &Gfx_ViewCoord;
+    c3             = &gGfxViewCoord;
     c3->coord.t[0] = src->coord.t[0];
     c3->coord.t[1] = src->coord.t[1];
     c3->coord.t[2] = src->coord.t[2];
 
     Gfx_ViewOffsetCoord.flg = 0;
     D_80070E40.flg          = 0;
-    Gfx_ViewCoord.flg       = 0;
+    gGfxViewCoord.flg       = 0;
     taskKill(task);
 }
 
@@ -9366,7 +9365,7 @@ void Gp_ResetView(void)
     *(s32*)&m->m[1][1]              = one;
     m->m[2][2]                      = one;
 
-    c3                 = &Gfx_ViewCoord;
+    c3                 = &gGfxViewCoord;
     *(s32*)&m->m[0][2] = 0;
     *(s32*)&m->m[2][0] = 0;
     c3->coord.t[0]     = 0;
@@ -9447,7 +9446,7 @@ void func_800A8D5C(void)
     vec.vz                      = ONE;
     one                         = ONE;
     m                           = &coord.coord;
-    coord.sub                   = &Gfx_ViewCoord;
+    coord.sub                   = &gGfxViewCoord;
     *(s32*)&coord.coord         = one;
     *(s32*)&coord.coord.m[0][2] = 0;
     *(s32*)&m->m[1][1]          = one;

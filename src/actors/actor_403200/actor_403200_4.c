@@ -1739,7 +1739,7 @@ void func_actor_403200_8013DC3C(Task* arg0)
             Actor403200_LocalToView(&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1],
                                     &pos);
 
-            D_actor_403200_8015F920.sub        = &Gfx_ViewCoord;
+            D_actor_403200_8015F920.sub        = &gGfxViewCoord;
             D_actor_403200_8015F920.coord.t[0] = pos.vx;
             D_actor_403200_8015F920.coord.t[1] = pos.vy;
             D_actor_403200_8015F920.coord.t[2] = pos.vz;

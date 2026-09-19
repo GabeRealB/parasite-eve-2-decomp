@@ -26,9 +26,8 @@ extern GpEnemyTaskFuncTable4 Actor00100_D001A0;
 
 #define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 
-extern GsCOORDINATE2 Gfx_ViewCoord;
-extern s8            D_80114C12;
-extern u8            D_80071075;
+extern s8 D_80114C12;
+extern u8 D_80071075;
 
 struct _GpObj20E;
 void Gp_ReleaseStateF0Add(struct _GpObj20E* arg0, s32 arg1);

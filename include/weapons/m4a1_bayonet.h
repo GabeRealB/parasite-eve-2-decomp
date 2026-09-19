@@ -19,7 +19,7 @@ extern SVECTOR D_m4a1_bayonet_8011DEC8[1];
 extern SVECTOR D_m4a1_bayonet_8011DED0;
 
 /// The blade's motion trail: eight tip and eight hilt coordinate frames,
-/// parented to `Gfx_ViewCoord`. The sweep state overwrites slot
+/// parented to `gGfxViewCoord`. The sweep state overwrites slot
 /// `GpEffWork::field_22 & 7` each frame and the ribbon is drawn between the
 /// two rings.
 extern GsCOORDINATE2 D_m4a1_bayonet_8012D398[8];

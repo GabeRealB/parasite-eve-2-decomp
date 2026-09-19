@@ -8,6 +8,7 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/gfx.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -24,7 +25,7 @@ extern TaskFuncTable3 D_actor_135400_80131E30;
 /// `Task::spawnArg1`, the slot the part's state-0 handler read as the part
 /// index and sets to 2 for the second part. Phase 1 bakes the part's
 /// parent-relative coordinate into world space with `Gp_ComposeParentWorld` and
-/// reparents it to `Gfx_ViewCoord`. Phases 2 and 3 share a body -- 2 only
+/// reparents it to `gGfxViewCoord`. Phases 2 and 3 share a body -- 2 only
 /// reaches it while the session's `eventState` is clear -- which resets the
 /// coordinate to a `-0x38E` yaw (`func_8004BFF8`, `RotMatrixY`) at the fixed
 /// world position (0x12FE, -0x1B3, 0x157C) and drops the phase back to 0.
@@ -43,7 +44,7 @@ void func_actor_135400_80131EB4(Task* task)
             coord->coord.t[0] = sv.vx;
             coord->coord.t[1] = sv.vy;
             coord->coord.t[2] = sv.vz;
-            coord->sub        = &Gfx_ViewCoord;
+            coord->sub        = &gGfxViewCoord;
             coord->flg        = 0;
             task->spawnArg1  += 1;
             break;
@@ -64,7 +65,7 @@ void func_actor_135400_80131EB4(Task* task)
             coord->coord.t[0] = 0x12FE;
             coord->coord.t[1] = -0x1B3;
             coord->coord.t[2] = 0x157C;
-            coord->sub        = &Gfx_ViewCoord;
+            coord->sub        = &gGfxViewCoord;
             coord->flg        = 0;
             task->spawnArg1   = 0;
             break;

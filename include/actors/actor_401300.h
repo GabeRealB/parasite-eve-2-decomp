@@ -454,7 +454,7 @@ void func_actor_401300_80141C88(Actor401300* arg0);
 void func_actor_401300_80141D50(Actor401300* arg0);
 void func_actor_401300_80141DF4(Actor401300* arg0);
 
-/// Walks `p` up its parent chain to `Gfx_ViewCoord`, transforming `out` by each
+/// Walks `p` up its parent chain to `gGfxViewCoord`, transforming `out` by each
 /// coordinate; `out` is left unchanged if the chain ends before the view.
 static __inline__ void Actor401300_TransformToView(GsCOORDINATE2* p, SVECTOR* out)
 {
@@ -462,7 +462,7 @@ static __inline__ void Actor401300_TransformToView(GsCOORDINATE2* p, SVECTOR* ou
     VECTOR         vec;
     s32            flag;
     SVECTOR*       svp   = &sv;
-    GsCOORDINATE2* view  = &Gfx_ViewCoord;
+    GsCOORDINATE2* view  = &gGfxViewCoord;
     VECTOR*        vecp  = &vec;
     s32*           flagp = &flag;
     sv.vx                = out->vx;

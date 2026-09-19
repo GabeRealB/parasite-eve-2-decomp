@@ -201,7 +201,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_311900/actor_311900", ActorsShared8013
 /// Otherwise it splats the light / colour pair `func_actor_311900_8016278C`
 /// writes onto the model root's `field_1C` / `field_20` slots, points
 /// `GpEnemy::field_4` at the root coordinate's matrix, re-parents that root to
-/// `Gfx_ViewCoord`, builds the animation context `func_800B3F84` over the
+/// `gGfxViewCoord`, builds the animation context `func_800B3F84` over the
 /// block's slot array and packed-pose run, seeds the tick's two work halfwords
 /// 0x474 / 0x478 and zeroes the 0x4C4 / 0x4C6 pair it counts in, and publishes
 /// the view-dependent light level exactly as the tick does.
@@ -224,7 +224,7 @@ void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
     obj->flags      = 0;
     func_800B3F84((GpAnimCtx*)work, D_actor_311900_8016EBE8, (GpAnimObj*)obj, work->anim.poses,
                   work->anim.slots);
-    coord->sub      = &Gfx_ViewCoord;
+    coord->sub      = &gGfxViewCoord;
     work->field_474 = 2;
     work->field_478 = 1;
     work->field_4C4 = 0;

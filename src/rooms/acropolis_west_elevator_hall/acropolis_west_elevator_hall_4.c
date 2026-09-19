@@ -6,6 +6,7 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -14,13 +15,12 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-extern GsCOORDINATE2 Gfx_ViewCoord;
-extern SVECTOR       D_acropolis_west_elevator_hall_8017D5EC;
-extern SVECTOR       D_acropolis_west_elevator_hall_8017D5F4;
-extern GpMsgEntry    D_acropolis_west_elevator_hall_801849CC[];
-extern GpMsgEntry    D_acropolis_west_elevator_hall_801849F4[];
-extern TaskDesc      D_acropolis_west_elevator_hall_80184568[];
-extern Task*         RoomsShared8017f470Cars[];
+extern SVECTOR    D_acropolis_west_elevator_hall_8017D5EC;
+extern SVECTOR    D_acropolis_west_elevator_hall_8017D5F4;
+extern GpMsgEntry D_acropolis_west_elevator_hall_801849CC[];
+extern GpMsgEntry D_acropolis_west_elevator_hall_801849F4[];
+extern TaskDesc   D_acropolis_west_elevator_hall_80184568[];
+extern Task*      RoomsShared8017f470Cars[];
 /// The lift bay's two 256-entry RGB555 CLUTs and the blend destination:
 /// `...80184A04` is the unlit base palette, `...80184C04` the lit one and
 /// `...80184E04` the blended result that `...80185004` uploads to VRAM.
@@ -67,7 +67,7 @@ void func_acropolis_west_elevator_hall_8017F64C(Task* task)
     task->work        = (TaskIdMap*)work;
     work->field_0     = 0;
     extra->flags      = 0;
-    coord->sub        = &Gfx_ViewCoord;
+    coord->sub        = &gGfxViewCoord;
     coord->coord.t[0] = -1000;
     coord->coord.t[1] = -20;
     coord->coord.t[2] = 0x974;

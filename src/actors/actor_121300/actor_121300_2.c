@@ -277,7 +277,7 @@ void func_actor_121300_80133BFC(Task* arg0)
     Mem_Set(work, 0, 0x4B0);
     work->field_488         = Game_GetPtrSlot(3);
     D_actor_121300_8013D418 = arg0;
-    coord->sub              = &Gfx_ViewCoord;
+    coord->sub              = &gGfxViewCoord;
     tmd->lightMtx           = &work->field_43C;
     tmd->flags              = 0;
     tmd->colorMtx           = &work->field_45C;

@@ -2175,7 +2175,7 @@ void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3)
     } else {
         if (arg3->field_0 == NULL) {
             if (arg1 == NULL) {
-                arg3->field_0 = &Gfx_ViewCoord;
+                arg3->field_0 = &gGfxViewCoord;
                 arg1          = arg3->field_0;
             } else {
                 arg3->field_0 = arg1;
@@ -3219,7 +3219,7 @@ void Gp_InitPlayerWork(GpActorWork* arg0)
     actor->field_938       = 0x13;
     Gp_ActorSlots[0]       = arg0;
     Player_Status.coordMtx = &coord->coord;
-    coord->sub             = &Gfx_ViewCoord;
+    coord->sub             = &gGfxViewCoord;
     coord->flg             = 0;
     extra->flags           = 0;
     RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);

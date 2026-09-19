@@ -88,11 +88,11 @@ void func_actor_205600_8014CFD0(GpEnemy* arg0, Task* arg1)
     tmd->lightMtx = &work->lightMtx;
     tmd->colorMtx = &work->colorMtx;
 
-    Gfx_ViewCoord.flg = 0;
-    Gp_UpdateCoord(&Gfx_ViewCoord);
+    gGfxViewCoord.flg = 0;
+    Gp_UpdateCoord(&gGfxViewCoord);
     parentCoord->flg = 0;
     Gp_UpdateCoord(parentCoord);
-    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &parentCoord->workm, &coord->coord);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &parentCoord->workm, &coord->coord);
 
     scratch->rot.vx = 0;
     scratch->rot.vy = 0x1F4;
@@ -101,7 +101,7 @@ void func_actor_205600_8014CFD0(GpEnemy* arg0, Task* arg1)
     gte_ldv0(&scratch->rot);
     gte_rtv0_real();
     gte_stlvnl(&scratch->pos);
-    coord->sub         = &Gfx_ViewCoord;
+    coord->sub         = &gGfxViewCoord;
     coord->coord.t[0] += scratch->pos.vx;
     coord->coord.t[1] += scratch->pos.vy;
     coord->coord.t[2] += scratch->pos.vz;

@@ -94,7 +94,7 @@ static __inline__ void Actor123200_ScaleForward(SVECTOR* dir)
 }
 
 /// Spawn state of this enemy: allocates the work block, publishes it as
-/// `Task::work`, reparents the model to `Gfx_ViewCoord`, seeds its animation
+/// `Task::work`, reparents the model to `gGfxViewCoord`, seeds its animation
 /// slots from `D_actor_123200_80137154` and hangs the enemy's display node off
 /// part 2 of the model's coordinate array. The context's top `field_8` nibble
 /// biases the three timers in `field_176`, `field_198` and `field_19A` -- up by
@@ -117,7 +117,7 @@ void func_actor_123200_8013352C(GpEnemy* enemy, Task* task)
         return;
     }
     task->msgTable = D_actor_123200_80137214;
-    coord->sub     = &Gfx_ViewCoord;
+    coord->sub     = &gGfxViewCoord;
     obj->flags     = 0;
     func_800B3F84(&work->anim, D_actor_123200_80137154, (GpAnimObj*)obj, work->poses, work->slots);
 

@@ -203,7 +203,7 @@ void func_actor_341300_80162878(Task* arg0)
                 goto kill;
             }
             work       = (Actor341300Shard*)arg0->work;
-            coord->sub = &Gfx_ViewCoord;
+            coord->sub = &gGfxViewCoord;
             Mem_Set(arg0->work, 0, 0x30);
             Task_Reparent(arg0->spawnArg2, arg0);
             coord->coord.t[0] = D_actor_341300_80165A38[arg0->spawnArg1].vx;
@@ -361,7 +361,7 @@ void func_actor_341300_801631D4(Task* arg0)
                 goto kill;
             }
             work       = (Actor341300Shard*)arg0->work;
-            coord->sub = &Gfx_ViewCoord;
+            coord->sub = &gGfxViewCoord;
             Mem_Set(arg0->work, 0, 0x30);
             Task_Reparent(arg0->spawnArg2, arg0);
             coord->coord.t[0] = D_actor_341300_80165A58[arg0->spawnArg1].vx;
