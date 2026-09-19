@@ -153,6 +153,18 @@ alike - and never with a hand edit, a `sed`, or a script of your own:
 
     venv/bin/python3 tools/refactor/rename_item.py <file>/<oldName> <newName> --sidecars
 
+**`<file>` is where the item is *declared*, not where it is used.** For a
+function with a C body that is its own `.c`; for one whose body is assembly, or
+for anything else declared in a header, it is the header. Naming a file that
+merely references the item cannot resolve it, and the failure is slow and
+silent: resolution tries the named file, then every other translation unit in
+the compilation database, one at a time, with no progress output, before
+exiting `could not resolve`. On a loaded machine that is many minutes of what
+reads as a hang. So a run that has printed nothing for a while is a spec to
+re-check, not a run to wait out - and the first line of a healthy run names the
+declaration it resolved, which is also the check that you asked about the item
+you meant.
+
 Two reasons, and the second is the one that bites. It resolves references
 through the C parser, so it cannot miss a use or rewrite an unrelated one - a
 field name that several unrelated types also declare, or a mention that only
@@ -195,6 +207,53 @@ declare the same member. That is not limited to a parameter's `argN`: a dry run
 on one `field_XX` member reported 243 comment edits outside the code, nearly all
 of them other structs' fields. Rename with `--no-comments`, then update the
 mentions that really are this item's by hand.
+
+## What the tools reach, and what they do not
+
+The refactor tools understand C and nothing else. Knowing where their edge is
+saves both halves of the usual failure - trusting them with something they never
+touched, and re-doing by hand what they already did.
+
+`rename_item.py` reaches:
+
+- every declaration and reference the parser resolves to the item, across the
+  whole compilation database, matched by USR rather than by spelling;
+- mentions of the name in comments in `.c` and `.h`, and in the markdown at the
+  repository root and under `doc/` - unless `--no-comments`;
+- with `--sidecars`, whole-word hits in the version's `configs/` tree: symbol
+  maps, splat configs, the overlay manifest;
+- a ledger row in `local/renames.tsv`, for functions, globals and types. A field
+  or a parameter gets none by design, so say in your report that you renamed
+  one.
+
+`find_references.py` reaches the same C references, and with `--asm` the
+generated assembly under `asm/`.
+
+Everything below is outside both, and is yours to do by hand and to name in the
+report:
+
+- **Handwritten assembly.** A `.s` under a source tree is a source file, not an
+  artifact: its `glabel` and `alabel` lines, its header comment, and any branch
+  to a sibling symbol are hand edits. `--asm` does not scan these, so grep them
+  yourself. Generated assembly under `asm/` is the opposite case - never edit
+  it; its names come from the symbol map and the next split.
+- **A symbol that exists only in assembly.** With no C declaration there is
+  nothing to resolve; the rename is a symbol-map entry, the `INCLUDE_ASM`
+  argument, and a re-split. The tool says so when it recognises the case.
+- **A symbol map's prose.** `--sidecars` rewrites the symbol being renamed. A
+  neighbouring line whose note *names* it - an alabel described by the sibling
+  it enters - is prose, and stays stale until you fix it.
+- **Inline assembly in C**, which is a relocation the parser never reads.
+- **References reached through a macro**, which the tool lists rather than
+  edits: the macro body is where the name is spelled.
+- **Prose outside the scanned set** - the rules files, tool docstrings, anything
+  under a directory the comment pass does not walk.
+- **Generated linker scripts**, deliberately: they are rebuilt by the next
+  split, and writing to them only desynchronises a revert.
+
+After the tool and the hand edits, sweep for the old spelling as the section
+above describes; what the sweep turns up is the measure of how far the tools
+actually got.
 
 ## Documentation
 
@@ -250,6 +309,15 @@ GCC 2.8.1, `-O2`, no `-finline-functions`.
 
 `./tools/build-and-verify.sh` must end with `BUILD SUCCEEDED` and the
 matched-function count must not drop. Do not commit; the driver commits.
+
+**The step ends when your session ends, so nothing may still be running.** The
+driver builds the tree the moment you stop and reverts the step if that build
+fails - it has no way to know you were waiting on something. A rename left in a
+background job, a build you have not read the end of, or a half-applied change
+whose other half was going to land next turn all cost the whole step, including
+the analysis behind it. Run the last things in the foreground, and if a job is
+genuinely too slow to wait for, abandon it and report that rather than signing
+off over it.
 
 Report what the item turned out to be, what you changed beyond the name, and
 anything you could not make match.
