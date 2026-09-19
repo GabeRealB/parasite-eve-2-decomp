@@ -159,6 +159,24 @@ typedef struct Actor403600MsgPos {
 } Actor403600MsgPos;
 STATIC_ASSERT_SIZEOF(Actor403600MsgPos, 0x18);
 
+/// Payload sent to the view task with message 0x7DB.
+typedef struct Actor403600Msg7DB {
+    /* 0x0 */ s8  field_0;
+    /* 0x1 */ s8  field_1;
+    /* 0x2 */ s16 field_2;
+} Actor403600Msg7DB;
+STATIC_ASSERT_SIZEOF(Actor403600Msg7DB, 0x4);
+
+/// Coordinate frame with a word view of its rotation matrix.
+typedef union Actor403600ViewFrame {
+    GsCOORDINATE2 view;
+    struct {
+        /* 0x00 */ u32        flags;
+        /* 0x04 */ GpMtxWords words;
+    } matrix;
+} Actor403600ViewFrame;
+STATIC_ASSERT_SIZEOF(Actor403600ViewFrame, 0x50);
+
 /// 0x18-byte block temporarily taken from `G_SCRATCH_HEAD` while projecting
 /// an actor's origin and calculating its ordering-table depth.
 typedef struct Actor403600ProjectScratch {
@@ -240,6 +258,11 @@ extern s16               D_actor_403600_801606F2;
 extern TaskDesc          D_actor_403600_80160514;
 extern Task*             D_actor_403600_801606B0;
 extern Actor403600MsgPos D_actor_403600_801606E0;
+extern GpU16Pair         D_8016A408[];
+extern u16               D_8016AEF8[];
+extern u16               D_8016E450;
+extern SVECTOR           D_actor_403600_8016065C;
+extern s32               D_actor_403600_80160700[9];
 
 void ActorsShared80131e24Sub1(Actor403600Ctx* arg0, Actor403600* arg1);
 void func_actor_403600_80138C9C(Actor403600MotionState* arg0);
@@ -252,5 +275,9 @@ s32  func_actor_403600_8013DFE0(Actor403600* arg0);
 void func_actor_403600_8013E470(GsCOORDINATE2* arg0, s32* arg1, s32* arg2);
 s32  func_actor_403600_8013E7D4(s32 arg0, s32 arg1);
 s32  func_actor_403600_801406A4(Actor403600* arg0, s32 arg1, Actor403600MsgArg* arg2);
+void func_actor_403600_80140B4C(struct _GpEnemy* arg0, Actor403600* arg1);
+
+struct _GpAnimMtxRec;
+void func_actor_403600_80141F58(struct _GpAnimMtxRec* arg0, s32 arg1);
 
 #endif

@@ -35,6 +35,15 @@
 #define actor_403600_color_tail_in_place(work, a3, block, zero)                             \
     __asm__ volatile("lw %0, 1272(%0); addu %1, %3, $zero; lui $1, 0x1F80; sw %2, 1020($1)" \
                      : "+r"(work), "=r"(a3), "+r"(block) : "r"(zero) : "$1")
+#define actor_403600_cutscene_color_tail(work, a3, block, zero)                             \
+    __asm__ volatile("lw %0, 1272(%0); addu %1, %3, $zero; lui $1, 0x1F80; sw %2, 1020($1)" \
+                     : "=r"(work), "=r"(a3), "=r"(block) : "r"(zero), "0"(work), "2"(block) : "$1")
+#define actor_403600_rcos(angle)                                \
+    ({                                                          \
+        s32 result = rcos(angle);                               \
+        __asm__ volatile("sll $s0, $s0, 16; sra $s0, $s0, 16"); \
+        result;                                                 \
+    })
 #define actor_403600_rot_setup(object, rot, matrix, coord, actor, work, head)             \
     __asm__ volatile("lw %0, 44(%4); addiu %1, %5, 1792; addiu %2, %6, -32; lw %3, 8(%0)" \
                      : "=r"(object), "=r"(rot), "=r"(matrix), "=r"(coord)                 \
@@ -4255,6 +4264,236 @@ s32 func_actor_403600_801406A4(Actor403600* arg0, s32 arg1, Actor403600MsgArg* a
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80140B4C);
+void func_actor_403600_80140B4C(GpEnemy* enemy, Actor403600* actor)
+{
+    SVECTOR              effectOffset;
+    Actor403600ViewFrame viewFrame;
+    GpMtxWords*          matrixWords;
+    Actor403600Msg7DB    startMsg;
+    Actor403600Msg7DB    stopMsg;
+    s16                  viewIndex;
+    s32                  transparency;
+    s32                  upperRadius;
+    s32                  lowerRadius;
+    s32                  viewPosition;
+    s16                  nextViewIndex;
+    s16                  nextScale;
+    s16                  effectY;
+    s32                  upperX;
+    s32                  lowerX;
+    s32                  upperAngle;
+    s32                  lowerAngle;
+    s32                  screenDistance;
+    s32                  lightLevel;
+    s32                  rotationIndex;
+    s32                  positionIndex;
+    s32                  colorX;
+    s32                  colorArg3;
+    s32                  colorZero;
+    s16*                 rotationSource;
+    s32*                 positionDest;
+    u16*                 rotationDest;
+    s16*                 viewSource;
+    u16                  viewRotation;
+    u16                  frame;
+    u32                  sideState;
+    u32                  upperRadiusState;
+    u32                  lowerRadiusState;
+    u32                  upperAngleState;
+    u32                  positiveYState;
+    u32                  negativeYState;
+    u32                  lowerAngleState;
+    u32                  positiveXState;
+    u32                  negativeXState;
+    VECTOR*              scratchHead;
+    VECTOR*              colorPosition;
+    VECTOR*              restore;
+    TmdObject*           object;
+    GpEnemy*             colorActor;
+    Actor403600Work*     work;
+    Actor403600Work*     colorWork;
+
+    work                       = ((volatile Actor403600*)actor)->field_1C;
+    object                     = ((volatile Actor403600*)actor)->field_2C;
+    viewFrame.view.sub         = &gGfxViewCoord;
+    matrixWords                = (GpMtxWords*)&viewFrame.view.coord;
+    matrixWords->w0            = 0x1000;
+    viewFrame.matrix.words.w1  = 0;
+    matrixWords->w2            = 0x1000;
+    viewFrame.matrix.words.w3  = 0;
+    matrixWords->h4            = 0x1000;
+    viewFrame.view.coord.t[0]  = 0;
+    viewFrame.view.coord.t[1]  = 0;
+    viewFrame.view.coord.t[2]  = 0;
+    D_actor_403600_8016065C.vz = D_8016A408[work->field_77C].field_0;
+    D_actor_403600_8016065C.vy = D_8016A408[work->field_77C].field_2;
+    RotMatrix(&D_actor_403600_8016065C, &work->field_4B8.coord);
+    SOFT_TOUCH_REG(object);
+    object->otOffset = -0x1F;
+    viewIndex        = work->field_77C;
+    if (viewIndex >= 0x239) {
+        viewSource = (s16*)&D_8016E450;
+    } else {
+        viewSource = (s16*)&D_8016AEF8[viewIndex * 12];
+    }
+    rotationIndex  = 0;
+    rotationDest   = (u16*)D_actor_403600_80160700;
+    rotationSource = viewSource;
+    do {
+        SOFT_TOUCH_REG(rotationIndex);
+        viewRotation    = (u16)*rotationSource;
+        rotationSource += 1;
+        rotationIndex  += 1;
+        *rotationDest   = viewRotation;
+        rotationDest   += 1;
+    } while (rotationIndex < 9);
+    positionIndex = 0;
+    positionDest  = D_actor_403600_80160700;
+    do {
+        SOFT_TOUCH_REG(positionIndex);
+        viewPosition    = viewSource[9];
+        viewSource     += 1;
+        positionIndex  += 1;
+        positionDest[5] = viewPosition;
+        positionDest   += 1;
+    } while (positionIndex < 3);
+    screenDistance             = 0x149;
+    D_actor_403600_80160700[8] = screenDistance;
+    Gp_TrySpawnViewTask((s32)D_actor_403600_80160700);
+    func_actor_403600_80141F58((GpAnimMtxRec*)&work->field_4B8, (s16)work->field_744);
+    nextViewIndex   = (u16)work->field_77C + 1;
+    work->field_77C = nextViewIndex;
+    if (nextViewIndex >= 0x2BC) {
+        work->field_77C = 0x2BB;
+    }
+    if (work->field_730 != 0xD) {
+        if (work->field_77C == 1) {
+            DisplayState* display;
+
+            startMsg.field_0 = 4;
+            startMsg.field_1 = 0x16;
+            startMsg.field_2 = 0;
+            Gp_DispatchMsg(D_actor_403600_801606B0, 0x7DB, (s32)&startMsg, 0);
+            display = &gDisplayState;
+            SOFT_TOUCH_REG(display);
+            display->screenDistance = screenDistance;
+            gte_SetGeomScreen(screenDistance);
+            gte_SetGeomOffset(0, 0);
+        }
+        if (work->field_77C >= 0x100) {
+            nextScale       = (u16)work->field_744 + 0x20;
+            work->field_744 = nextScale;
+            if (nextScale >= 0x1200) {
+                work->field_744 = 0x1200;
+            }
+            work->field_77A = (u16)(work->field_77A - 0x2D);
+        }
+        if ((u32)((u16)work->field_73A - 0x32) < 0x15FU) {
+            upperAngleState  = (Gp_LcgState * 5) + 0x71357911;
+            upperAngle       = (upperAngleState >> 0x10) & 0xF80;
+            upperRadiusState = (upperAngleState * 5) + 0x71357911;
+            Gp_LcgState      = upperRadiusState;
+            upperRadius      = ((upperRadiusState >> 0x10) & 0xF00) + 0x200;
+            upperX           = (s16)upperRadius * actor_403600_rcos(upperAngle);
+            effectOffset.vy  = -0x1800;
+            effectOffset.vx  = (s16)(upperX >> 0xC);
+            effectOffset.vz  = (s16)((s32)((s16)upperRadius * rsin(upperAngle)) >> 0xC);
+            Gp_SpawnEff(0x601C0, &viewFrame.view, 0x300, &effectOffset);
+        }
+        if ((s16)work->field_73A == 0x15E) {
+            stopMsg.field_0 = 4;
+            stopMsg.field_1 = 0x16;
+            stopMsg.field_2 = 1;
+            Gp_DispatchMsg(D_actor_403600_801606B0, 0x7DB, (s32)&stopMsg, 0);
+        }
+    } else {
+        if ((s16)work->field_73A >= 0x258) {
+            lightLevel         = object->lightLevel + 3;
+            object->lightLevel = lightLevel;
+            if (lightLevel >= 0x259) {
+                object->lightLevel = 0x258;
+            }
+            if (((s16)work->field_73A < 0x2EF) && (work->field_73A & 2)) {
+                sideState   = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState = sideState;
+                if ((sideState >> 0x10) & 1) {
+                    positiveXState                   = (sideState * 5) + 0x71357911;
+                    *(volatile s16*)&effectOffset.vx = (positiveXState >> 0x10) & 0x7FF;
+                    TOUCH_REG_MEM(positiveXState);
+                    positiveYState               = (positiveXState * 5) + 0x71357911;
+                    *(volatile u32*)&Gp_LcgState = positiveXState;
+                    Gp_LcgState                  = positiveYState;
+                    SOFT_TOUCH_REG(positiveYState);
+                    effectY = (positiveYState >> 0x10) & 0x7FF;
+                } else {
+                    negativeXState                   = (sideState * 5) + 0x71357911;
+                    *(volatile s16*)&effectOffset.vx = -((negativeXState >> 0x10) & 0x7FF);
+                    TOUCH_REG_MEM(negativeXState);
+                    negativeYState               = (negativeXState * 5) + 0x71357911;
+                    *(volatile u32*)&Gp_LcgState = negativeXState;
+                    Gp_LcgState                  = negativeYState;
+                    SOFT_TOUCH_REG(negativeYState);
+                    effectY = -((negativeYState >> 0x10) & 0x7FF);
+                }
+                effectOffset.vy = effectY;
+                Gp_SpawnEff(0x601BF, &work->field_4B8, 0x10800, &effectOffset);
+            }
+        }
+        if ((s16)work->field_73A == 0x2A8) {
+            Gp_DispatchMsg((Task*)Gp_ActorSlots[0], 0x3F3, 1, 0);
+        }
+        frame = work->field_73A;
+        if ((u32)(frame - 0x2A8) < 0xDDU) {
+            if ((frame & 3) == 3) {
+                Gp_SpawnEff(0x601BF, &work->field_4B8, 0x10800, NULL);
+            }
+        }
+        D_actor_403600_801606E0.rot.vx = 0;
+        D_actor_403600_801606E0.rot.vz = 0;
+        D_actor_403600_801606E0.pos.vx = -0x1F4;
+        D_actor_403600_801606E0.pos.vy = 0x3E8;
+        D_actor_403600_801606E0.pos.vz = -0x1F4;
+        D_actor_403600_801606E0.rot.vy = (u16)(D_actor_403600_801606E0.rot.vy + 0x38);
+        Gp_DispatchMsg((Task*)Gp_ActorSlots[0], 0x3E9, (s32)&D_actor_403600_801606E0, 0);
+        if ((u32)((u16)work->field_73A - 0x2BC) < 0xC9U) {
+            lowerAngleState  = (Gp_LcgState * 5) + 0x71357911;
+            lowerAngle       = (lowerAngleState >> 0x10) & 0xF80;
+            lowerRadiusState = (lowerAngleState * 5) + 0x71357911;
+            Gp_LcgState      = lowerRadiusState;
+            lowerRadius      = ((lowerRadiusState >> 0x10) & 0xF00) + 0x200;
+            lowerX           = (s16)lowerRadius * actor_403600_rcos(lowerAngle);
+            effectOffset.vy  = 0x1800;
+            effectOffset.vx  = (s16)(lowerX >> 0xC);
+            effectOffset.vz  = (s16)((s32)((s16)lowerRadius * rsin(lowerAngle)) >> 0xC);
+            Gp_SpawnEff(0x601C0, &viewFrame.view, -0x300, &effectOffset);
+        }
+    }
+    work->field_4B8.flg = 0;
+    Gp_UpdateCoord(&work->field_4B8);
+    colorActor = enemy;
+    SOFT_TOUCH_REG(colorActor);
+    colorWork = actor->field_1C;
+    actor_403600_load_scratch_head(scratchHead);
+    colorX = colorWork->field_4B8.workm.t[0];
+    SCHED_BARRIER();
+    colorZero = 0;
+    SOFT_TOUCH_REG_USE(colorZero, scratchHead);
+    scratchHead[-1].vx = colorX;
+    SOFT_TOUCH_REG(scratchHead);
+    colorPosition     = scratchHead - 1;
+    colorPosition->vy = colorWork->field_4B8.workm.t[1];
+    actor_403600_cutscene_color_tail(colorWork, colorArg3, colorPosition, colorZero);
+    colorPosition->vz = (s32)colorWork;
+    Gp_UpdateActorColor(colorActor, colorPosition, colorZero, colorArg3);
+    actor_403600_load_scratch_head(restore);
+    transparency = work->field_77A;
+    SOFT_TOUCH_REG_USE(restore, transparency);
+    restore += 1;
+    actor_403600_store_scratch_head(restore);
+    if (transparency != 0) {
+        Gp_SetObjTrans((GpObj20*)actor->field_2C, transparency, transparency, transparency);
+    }
+    work->field_73A = (u16)(work->field_73A + 1);
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403600/actor_403600", D_actor_403600_801320EC);

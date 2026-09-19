@@ -131885,3 +131885,33 @@ independent controlled experiments. A pure-C solution remains unresolved.
 base_5.i SHA256: `550b4c76e730d9633b594557f552a137ec8731f441596fe75d59a6ffc7468bbd`.
 
 base_9.i SHA256: `37d28e8d8dcfe50410e668a433078c8dc0e5ed23be7d7f5a9cff5e628d0891a8`.
+
+## A reload-created zero needs both its call suggestion and a scheduling dependency (func_actor_403600_80140B4C, 2026-09-19)
+
+The 96.929% seed's tail zero was not a local quantity misallocated to t2:
+CSE removed the pseudo, and reload materialized CONST_INT 0 in t2 for an asm
+input. Direct observation confirmed post-reload CSE changing the later a2=0
+argument assignment (UID991) into a2=t2. Inspect .lreg before trying to rank
+or pin a value that no longer exists there.
+
+Retaining zero through a soft read/write asm lets it take the call's a2
+suggestion, but changes nearby scheduling. The scratch pointer must also die
+at its decrement to tie into the a1 destination quantity. A soft pointer touch
+after its first coordinate store keeps that decrement from hoisting above the
+store, preserving the tie. These changes reached 99.595%, with only zero's
+initialization before the coordinate load and an extra load-delay nop.
+
+A preplanned counterfactual factors the coordinate load, places SCHED_BARRIER
+immediately after it, then initializes/touches zero. In .sched2, UID970 loads
+the coordinate, UID972 is the basic asm boundary, and the reload-created a2=0
+UID1132 has REG_DEP_OUTPUT on 972. The initialization can no longer hoist above
+the load; it fills the load delay, while a1/a2 homes survive. The candidate and
+readable port both score 100%. This supports the observed dependency mechanism,
+not a general claim that any extra empty asm improves allocation.
+
+Evidence is retained in tools/permuter_findings/func_actor_403600_80140B4C/:
+baseline_trace/manifest.json, REPORT.txt and events.jsonl; base_3.i.lreg/.greg;
+base_4.i.sched2 and the pre-build base_4 plan. The router's best mutation was
+rejected for using an uninitialized pointer; this correction was independent.
+Compiler SHA-256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+Inputs: base.i `47a9427330645d88bce5960499245378ab4f16044bc04c42e9c30fdd53347ebd`, base_3.i `50e1616a3e04ffbd04e30c6a3d89e5bdb1712f1195c9ce1411d224dde5117c93`, base_4.i `4f9b4633f69b84a9ae52d4bbe5299ff9fac1812d1a2b339719ee734c4f16aca1`, final base_6.i `607de8ae80b63654574a471402240a7efe7d72881a1bacfe312f7fd89b617047`.
