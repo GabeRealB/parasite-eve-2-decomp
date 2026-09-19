@@ -5,6 +5,9 @@ Score with `./build.sh`. 100% is a match. Read the **Penalties:** line (`stack` 
 1. First `./build.sh base.c` is a **baseline**. Minimal edits so it compiles. Do not rewrite m2c or a give-up seed from the asm before that score.
 2. Prefer already-matched siblings in the same TU (BRIEF.md) over m2c gotos. Write each attempt as `base_N.c`.
 3. Plan the next edit from **structural diagnostics + a compiler hypothesis + dumps**, not from the object-dump / asm-differ alone.
+   `tools/divergence/` does this work for you - it names the decision behind each
+   difference, ranks what earlier sessions did about the same shape, and proposes
+   experiments. See **Diagnosis** below; every command there runs in under a second.
 4. Search the learnings corpus with `python3 tools/learn.py <terms>` — it ranks whole
    sections, where a raw grep returns hundreds of context-free lines ("delay slot"
    appears in 286 sections but only 16 titles). `--show N` prints the top N in full.
@@ -21,15 +24,48 @@ Score with `./build.sh`. 100% is a match. Read the **Penalties:** line (`stack` 
 
 ## Diagnosis
 
-At ≥90% `build.sh` prints `tools/divergence/toolset.py diagnose`, which names the
-compilation decision behind each remaining difference instead of only the dump
-to read. Run it yourself on any attempt:
+**These tools exist, they are cheap, and most of a stuck attempt is work they
+have already done.** Each runs in well under a second against a scratch you
+already have. Reach for them before reading dumps by hand - not instead of
+reading dumps, but to find out *which* dump and *which* decision to read for.
 
-```sh
-python3 tools/divergence/toolset.py diagnose <scratch> base_N        # --limit 0 for every site
-python3 tools/divergence/toolset.py propose  <scratch> base_N        # source experiments
-python3 tools/divergence/toolset.py compare  <scratch> base_1 base_2 # did the edit move the decision
-```
+| question you are stuck on | command |
+|---|---|
+| What decision produced each remaining difference? | `toolset.py diagnose <scratch> base_N` |
+| Has anyone matched a function that diverged like this, and what changed? | `toolset.py retrieve <scratch>` |
+| What source change might move this decision? | `toolset.py propose <scratch> base_N` |
+| My edit changed nothing - or did it? | `toolset.py compare <scratch> base_1 base_2` |
+| What is known *not* to move an allocation? | `CODEGEN_MODEL.md` §10.6, *Folklore, tested* |
+
+All of them live at `python3 tools/divergence/toolset.py <command>`, take
+`--help`, and accept `--json`. `diagnose` takes `--limit 0` to print every site
+instead of the first few; where a file holds several functions, pass
+`--function NAME`. `retrieve` takes the scratch alone - it reads the shape from
+the newest attempt - or `--family register --pass greg` to query a shape
+directly, with `--show-fixes` for the change each earlier session made.
+
+`build.sh` runs `diagnose` for you at ≥90% and prints it with the score. The
+other four you have to ask for, and they are the ones agents forget.
+
+**`retrieve` is the one most worth your time, and the one least used.** Every
+worktree is seeded with the project's record store: the archived give-ups and
+every session captured since, each carrying the shape of what it diverged by
+and, where the function was eventually matched, the source change that closed
+it. `retrieve` ranks those by how closely their divergence resembles yours. It
+is the only way to reach what earlier sessions learned on a function that is
+not the one in front of you, and it costs one command. A near neighbour is
+evidence about what to try; it is not a licence to copy a body.
+
+**`compare` answers a question the score cannot.** An edit that shortens a live
+range or frees a register but emits identical code scores exactly like an edit
+that did nothing. `compare` reads the deciding inputs instead, so real movement
+is visible. A score that did not move is not evidence that the edit did nothing.
+
+**Before spending an attempt, check what is documented not to work.**
+`CODEGEN_MODEL.md` §10.6 lists the changes that look like levers and are not:
+the register keyword, declaration order, an unused local and renaming all do
+nothing at this optimisation level. Reading that list is cheaper than
+rediscovering it.
 
 The report keeps three things apart, and so must you:
 
@@ -40,12 +76,6 @@ The report keeps three things apart, and so must you:
 * `propose [...]:` is an experiment with a precondition and a prediction, not an
   instruction. If its precondition does not hold, it is the wrong experiment.
 * `unresolved:` names what the dumps cannot settle. Do not fill that gap with a guess.
-
-`compare` is the one to reach for when an edit leaves the score unchanged. An
-edit that shortens a live range or frees a register but emits identical code
-scores exactly like an edit that did nothing; `compare` reads the deciding
-inputs instead, so real movement is visible. A score that did not move is not
-evidence that the edit did nothing.
 
 Algorithm citations need the patched compiler source; without it the assembly
 and dump parts still work and citations are marked unavailable rather than
