@@ -421,5 +421,13 @@ u32* gpStreamPrimFt3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// texture page and CLUT to the primitive's own, which are stored relative to
 /// the model.
 u32* gpStreamPrimFt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Handler of a stream's flat-quad records (`0x44`): each element contributes one
+/// untextured quad to the buffer half's second region, with the element's colour
+/// word written into it.
+///
+/// The record is not pre-transformed, so its quad belongs to the region the draw
+/// pass transforms: only the packet's fixed fields are written here — its length,
+/// its primitive code and the element's colour.
+u32* gpStreamPrimF4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 #endif // TMD_H

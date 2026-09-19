@@ -25807,7 +25807,7 @@ setcode(poly, 0x28);
 poly++;
 ```
 
-`func_8009F49C` is the example (opcode 0x44 POLY_F4 header init).
+`gpStreamPrimF4` is the example (opcode 0x44 POLY_F4 header init).
 
 ## NULL result before `Game_GetPtrSlot`, `s32` key, goto-if-not-head
 
