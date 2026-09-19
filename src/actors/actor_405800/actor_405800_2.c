@@ -38,7 +38,189 @@ void func_actor_405800_80139188(Task* arg0);
 void func_actor_405800_80139260(Task* arg0);
 void func_actor_405800_801392EC(Task* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_405800/actor_405800_2", func_actor_405800_80136388);
+static __inline__ s16 pick_step(s16 step, s16 push)
+{
+    if (step == 0) {
+        return push;
+    }
+    if ((step > 0 && push < 0) || (step < 0 && push > 0)) {
+        return step;
+    }
+    if (step > 0) {
+        if (push < step) {
+            return step;
+        }
+        return push;
+    }
+    if (push < step) {
+        return push;
+    }
+    return step;
+}
+
+void func_actor_405800_80136388(Task* arg0)
+{
+    GpDeltaScratch   delta;
+    s16              maxX;
+    s16              maxZ;
+    s16              stepX;
+    s16              stepZ;
+    GsCOORDINATE2*   coord;
+    u8               blocked;
+    Actor405800Work* work;
+    GpEnemy*         enemy;
+    s16              amount;
+    s32              dmg;
+    s32              tmp;
+    s16              tick;
+    s32              i;
+    s32              two;
+
+    maxX            = 0;
+    maxZ            = 0;
+    stepX           = 0;
+    stepZ           = 0;
+    two             = 2;
+    blocked         = 0;
+    coord           = ((TmdObject*)arg0->extra)->coords;
+    work            = (Actor405800Work*)arg0->work;
+    enemy           = (GpEnemy*)arg0->spawnArg2;
+    work->field_858 = 0;
+
+    for (i = 0; i < 8; i++) {
+        if ((work->rec_4D4[i].key & 0xFFFF0000) == 0x20000) {
+            if (work->field_876 == 0) {
+                work->field_858 = 1;
+                dmg             = Gp_ComputeDamage(work->rec_4D4[i].key, work->field_852, 0, 0);
+                amount          = dmg;
+                work->field_876 = Gp_GetIdParam2(work->rec_4D4[i].key);
+                if (Gp_RollEnemyChance(enemy, work->rec_4D4[i].key, 0) != 0) {
+                    amount = ((u32)dmg << 16) >> 14;
+                    Gp_SpawnEff(0x6009C, &((TmdObject*)arg0->extra)->coords[3], 0, NULL);
+                }
+                func_800E2C78((GpObj40*)enemy, work->rec_4D4[i].key, amount, 0);
+                func_800DA6E8(&enemy->node, amount, 0);
+                enemy->hp -= amount;
+                if (enemy->hp < 0) {
+                    enemy->hp = 0;
+                }
+                func_800FDB18(Gp_GetIdParam1(work->rec_4D4[i].key) & 0xFFFF,
+                              &((TmdObject*)arg0->extra)->coords[4], NULL, &work->eff_81C);
+                if (amount >= 0xB4) {
+                    work->field_85A = two;
+                } else if (amount >= 0x78) {
+                    work->field_85A = 1;
+                } else {
+                    work->field_85A = 0;
+                }
+                SOFT_USE_REG(two);
+                SOFT_USE_REG(two);
+                switch (Gp_GetIdParam0(work->rec_4D4[i].key) & 0xFFFF) {
+                    case 0:
+                        break;
+                    case 1:
+                        Gp_SetObjFlag1((GpObj4C*)enemy);
+                        break;
+                    case 2:
+                        Gp_SetObjFlag2((GpObj5D*)enemy, work->rec_4D4[i].key, 0);
+                        work->field_898 = two;
+                        break;
+                    case 3:
+                        Gp_SetObjFlag4((GpObj5C*)enemy, work->rec_4D4[i].key, 0);
+                        break;
+                    case 4:
+                    case 6:
+                        work->field_85A = 4;
+                        break;
+                    case 5:
+                    case 7:
+                        work->field_85A = two;
+                        break;
+                    case 8:
+                    case 9:
+                        if (work->field_898 != 2) {
+                            work->field_898 = 1;
+                            work->field_85A = 3;
+                        }
+                        break;
+                }
+            } else if ((Gp_GetIdParam1(work->rec_4D4[i].key) & 0xFFFF) == 0xD) {
+                func_800FDB18(0xD, &((TmdObject*)arg0->extra)->coords[1], NULL, &work->eff_81C);
+            }
+        }
+    }
+
+    if (enemy->reactionFlags & 1) {
+        enemy->reactionFlags &= 0xFE;
+        work->field_85A       = 5;
+    }
+    if (enemy->reactionFlags & 2) {
+        enemy->reactionFlags &= 0xFD;
+        work->field_85A       = 3;
+        work->field_898       = 2;
+    }
+    if (enemy->reactionFlags & 0xC) {
+        work->field_888 = 1;
+        tmp             = Gp_TickObjFlag4((GpObj5C*)enemy);
+        tick            = tmp;
+        if (tick != 0) {
+            enemy->hp -= tmp;
+            func_800DA6E8(&enemy->node, tick, 0);
+            if (enemy->hp < 0) {
+                enemy->hp = 0;
+            }
+            work->field_858 = 1;
+            work->field_85A = 2;
+            SOFT_USE_REG(two);
+        }
+        if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+            enemy->reactionFlags &= 0xF3;
+        }
+    }
+
+    switch (func_800E0C10(work->rec_5B4, &delta, 8, NULL)) {
+        case 0:
+            break;
+        case 1:
+            stepZ = delta.vz.h.hi;
+            stepX = delta.vx.w >> 16;
+            if (delta.vx.w & 0xFFFF) {
+                if (delta.vx.w > 0) {
+                    stepX++;
+                } else {
+                    stepX--;
+                }
+            }
+            if (delta.vz.w & 0xFFFF) {
+                if (delta.vz.w > 0) {
+                    stepZ++;
+                } else {
+                    stepZ--;
+                }
+            }
+            break;
+        case 2:
+            coord->coord.t[0] = work->field_70.vx;
+            blocked           = 1;
+            coord->coord.t[2] = work->field_70.vz;
+            break;
+    }
+
+    Gp_ClearRec18Occupied(work->rec_4D4);
+    Gp_ClearRec18Occupied(work->rec_5B4);
+    if (work->field_876 > 0) {
+        work->field_876--;
+    } else {
+        work->field_876 = 0;
+    }
+    if (blocked == 0) {
+        work->field_88.x  += pick_step(stepX, maxX >> 3);
+        work->field_88.z  += pick_step(stepZ, maxZ >> 3);
+        coord->coord.t[0] += pick_step(stepX, (u16)maxX >> 3);
+        coord->coord.t[2] += pick_step(stepZ, (u16)maxZ >> 3);
+        coord->flg         = 0;
+    }
+}
 
 s32 func_actor_405800_80136A1C(Task* arg0)
 {

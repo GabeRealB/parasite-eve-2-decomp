@@ -170,7 +170,7 @@ typedef struct Actor405800Work {
     /* 0x870 */ s16                 field_870; // animation id now playing
     /* 0x872 */ s16                 field_872; // animation id
     /* 0x874 */ s16                 field_874; // sound step index
-    /* 0x876 */ byte                pad_876[0x2];
+    /* 0x876 */ s16                 field_876; // damage cooldown
     /* 0x878 */ s16                 field_878;
     /* 0x87A */ s16                 field_87A;
     /* 0x87C */ u16                 field_87C; // down-counter
@@ -178,7 +178,9 @@ typedef struct Actor405800Work {
     /* 0x880 */ s16                 field_880;
     /* 0x882 */ s16                 field_882; // randomised hold, 0x5A .. 0x99 frames
     /* 0x884 */ s16                 field_884; // cleared on the state-entry path
-    /* 0x886 */ byte                pad_886[0x4];
+    /* 0x886 */ byte                pad_886[0x2];
+    /* 0x888 */ s8                  field_888; // damage-over-time reaction active
+    /* 0x889 */ byte                pad_889;
     /* 0x88A */ u8                  field_88A;
     /* 0x88B */ s8                  field_88B;
     /* 0x88C */ u8                  field_88C;

@@ -133820,3 +133820,48 @@ tools/permuter_findings/func_actor_403100_8013480C/.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 This is a bounded reference-count experiment; read/write modification of the
 parameter itself changes a different set of allocation inputs.
+
+## Orphan shift USEs, global priority thresholds, and spill order (func_actor_405800_80136388, 2026-09-20)
+
+Three separate decisions closed a 98.033% archived seed. Evidence, full candidate
+sources, input hashes, selected lreg statistics and greg dispositions are in
+`tools/compiler_evidence/2026-09-20-actor405800-6388.json`.
+
+The seed's final `(maxX >> 2) >> 1` helper argument becomes SI zero in combine,
+retaining the desired HI argument copy. However, recursive death-note relocation
+leaves a USE of a deleted shift intermediate. Four such USE-only allocnos across
+the helper calls occupy four stack slots. Changing only the final arguments to
+`(u16)maxX >> 3` and `(u16)maxZ >> 3` removes two orphan intermediates while
+preserving the first helpers' HI-source lifetime and final SI-zero/HI-copy code.
+Frame 0x60 becomes 0x58 (base -> base_3). This cast is equivalent here because
+maxX/maxZ are always zero; it is not valid for arbitrary negative signed inputs.
+`combine.c:11400` explains the USE insertion when a displaced REG_DEAD cannot
+find an earlier definition before a label. Distinguish these artificial slots
+from the real HI zero pseudos, which have constant equivalences and need no slot.
+
+With the extra key-address GIV removed, the main walker outranked damage amount:
+25 refs /124 versus8/30, weighted priorities .80645 versus .8. Two input uses of
+the constant `two` at the loop end add two RTL nodes to the walker's live length,
+changing it to25/126; amount now precedes it. The same edit raises `two` from
+8/348 to12/352, putting it after task but before stepZ/stepX. The preplanned
+base_6 -> base_8 experiment obtains amount=s3, walker=s4, task=s5, two=s6,
+stepZ=s7, stepX=fp, with one walker and no pins. These are global allocnos, so
+the printed per-pseudo statistics are relevant; no local-quantity inference is
+being made. Source/reference rank alone did not complete the match: input-only
+asm is implicitly volatile and those loop-end nodes blocked the increment's
+jump delay slots. Moving the two uses before the status switch after amount's
+last use restores delay filling. A literal status-tick store plus a keep-live
+use preserves the constant's lifetime and target local materialization.
+
+The final 99.905% candidate differed only by coord/blocked stack slots. This is
+a legitimate declaration-order effect on reload, not on local register priority:
+`reload1.c:779` scans pseudo numbers upward, and `alter_reg` allocates storage
+for an unallocated pseudo with no equivalence. Declaring coord before blocked
+changes coord89/blocked85 into coord85/blocked86 and swaps only sp+0x24/sp+0x20
+into the target sp+0x20/sp+0x24 (base_9 -> base_10, all-zero penalties).
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Controlled allocation inputs: base_6.i `24ac91cc0561d05f353058dd9722a747e9494b74df15aa35a8a9f5f969471a73`,
+base_8.i `54ce3898f15cec2e5b6701de354fc3272cb96c6bb6f1cd5fd5869e0724acc1f8`.
+Spill-order inputs: base_9.i `5e0e69c54d633bee3565252d3538dcecab0a34069af2653dd2fe009f919a13d9`,
+base_10.i `8fa550b70b830f485eccaa0c281ace92eb61ab100ed12070d2a0afae0e97b44b`.
