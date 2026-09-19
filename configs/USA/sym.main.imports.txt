@@ -82,5 +82,5 @@ gpStreamPrimGt3PreXformFixedLayer = 0x8009F8C8; // type:func absolute:True
 gpStreamPrimGt4PreXformLayer = 0x8009F970; // type:func absolute:True
 gpStreamPrimGt3PreXformOffsetLayer = 0x8009FA24; // type:func absolute:True
 gpStreamPrimGt4PreXformOffsetLayer = 0x8009FB28; // type:func absolute:True
-func_8009FC44 = 0x8009FC44; // type:func absolute:True
+gpStreamPrimG4 = 0x8009FC44; // type:func absolute:True
 func_8009FC90 = 0x8009FC90; // type:func absolute:True

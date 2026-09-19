@@ -447,17 +447,17 @@ different jobs:
 | `Tmd_ProcessStream` | the loaded overlay, `0x8009xxxx`, decompiled in `src/gameplay/gameplay.c` | walks the stream on each draw call. Reads the dims word, copies the cached pointer from the slot into `ws->opcode`, then calls the overlay handler, which fills the primitive's **static** fields — UV, CLUT, tpage. |
 
 That split is why the untextured families do nothing per pass:
-`func_8009FC90` and `func_8009FC44` only advance `prims` by `0x1C` and `0x24`
-and step `arg2` by the stride. An untextured `POLY_G3`/`POLY_G4` has no UV to
-refresh, so there is nothing for that handler to copy — and their prim advance
-is what confirms the primitive type for opcodes whose handler names no
+`func_8009FC90` and `gpStreamPrimG4` only advance `prims` by `0x1C` and `0x24`
+and step the stream cursor by the stride. An untextured `POLY_G3`/`POLY_G4` has
+no UV to refresh, so there is nothing for that handler to copy — and their prim
+advance is what confirms the primitive type for opcodes whose handler names no
 `POLY_*`.
 
 `Tmd_ProcessStream` also confirms the `dims` split independently of the
 empirical evidence in §2:
 
 ```c
-ws->elemStride = ((u16*)stream)[0];   // stride, added to arg2 per element
+ws->elemStride = ((u16*)stream)[0];   // stride, added to the handler's cursor per element
 ws->elemCount = ((u16*)stream)[1];   // count, the handler's loop counter
 ```
 

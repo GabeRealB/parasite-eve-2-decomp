@@ -45,7 +45,6 @@ u32* func_8009E274(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009E4A0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009E770(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009EAA4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009FC44(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009FC90(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_80136224(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_80136500(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -436,7 +435,7 @@ void Tmd_ProcessStream(TmdObject* obj)
             case 0x4040:
             case 0x4060:
             case 0x4160:
-                handler = func_8009FC44;
+                handler = gpStreamPrimG4;
                 break;
             default:
                 handler = tmdSkipStreamRecord;

@@ -458,6 +458,18 @@ u32* gpStreamPrimF4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// length, its primitive code and the element's colour.
 u32* gpStreamPrimF3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+/// Handler of a stream's untextured gouraud-quad records (`0x40`, `0x60`, `0x160`,
+/// `0x4040`, `0x4060`, `0x4160`): each element is one `POLY_G4` in the buffer half's
+/// second region.
+///
+/// Nothing of that quad is this command's to write: it is a gouraud primitive, so its
+/// colours are lit per corner rather than taken from the element as a flat family's
+/// are, and it is untextured, so there are no texture words either. The command's work
+/// is to move both cursors on, which it must still do — the half is written by both
+/// passes, so a record one of them skipped would put every primitive after it at the
+/// wrong address in the other.
+u32* gpStreamPrimG4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 /// Handler of a stream's layered textured-triangle records (`0x4038`) whose
 /// semi-transparent layer is textured from the object: each element contributes two
 /// triangles to the buffer half's second region, with the element's texture words
