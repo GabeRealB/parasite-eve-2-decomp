@@ -1082,7 +1082,7 @@ u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2)
         group   = &arg2->field_44[program];
         key     = arg1[1];
         note    = Snd_GetNote(arg2->field_40, program, 0);
-        for (layer = 0; layer < group->field_0; layer++, note++) {
+        for (layer = 0; layer < group->noteCount; layer++, note++) {
             priority = note->priority;
             if (key >= note->keyMin && note->keyMax >= key) {
                 if (priority == 0) {
@@ -1102,8 +1102,8 @@ u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2)
                     slot->field_1 = channel;
                     slot->field_3 = velocity;
                     slot->field_2 = key;
-                    slot->field_4 = (group->field_2 * note->volume) >> 7;
-                    pan           = group->field_3 + note->pan - 0x40;
+                    slot->field_4 = (group->volume * note->volume) >> 7;
+                    pan           = group->pan + note->pan - 0x40;
                     panByte       = pan;
                     TOUCH_REG(panByte);
                     panValue = pan;

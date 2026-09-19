@@ -284,7 +284,7 @@ void Snd_BuildGroupIndex(SndBank* arg0)
             i = count - 2;
             if (i != -1) {
                 do {
-                    *table = table[-1] + data->field_0;
+                    *table = table[-1] + data->noteCount;
                     data++;
                     i--;
                     table++;

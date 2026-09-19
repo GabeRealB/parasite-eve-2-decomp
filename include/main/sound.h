@@ -330,6 +330,19 @@ typedef struct _LinInterp {
 } LinInterp;
 STATIC_ASSERT_SIZEOF(LinInterp, 0x10);
 
+/// One MIDI program's group of note layers in a sound bank.
+///
+/// A bank holds an array of these indexed by program number; the groups tile the
+/// bank's `SndNote` table, so the running sum of their lengths is the index table
+/// that resolves a program to its first note.
+typedef struct {
+    u8 noteCount; // `SndNote` entries this program's group covers
+    u8 field_1;   // no reader in this tree, so the role is unproven
+    u8 volume;    // volume scale multiplied into the note's (0-127)
+    u8 pan;       // pan offset added to the note's (0x40 = centre)
+} SndBankGroup;
+STATIC_ASSERT_SIZEOF(SndBankGroup, 0x4);
+
 /// State block at Midi_Song (logical stride 0x5DC; BSS allocation 0x5E0).
 /// field_0 is status; field_3 is the number of track entries starting at 0x4C.
 /// field_4/field_5 are copied from field_6/field_7 by the per-frame driver.
@@ -340,9 +353,8 @@ STATIC_ASSERT_SIZEOF(LinInterp, 0x10);
 /// field_484 is a 16-entry opcode table (same layout as MidiOpcodeCtx::field_484);
 /// Midi_InitChannelTable seeds each entry with 0x407F4000 / 0.
 /// voiceSlots holds up to 18 active SPU voice indices (field_0 = -1 when free).
-typedef struct _SndBank      SndBank;
-typedef struct SndNote       SndNote;
-typedef struct _SndBankGroup SndBankGroup;
+typedef struct _SndBank SndBank;
+typedef struct SndNote  SndNote;
 typedef struct _MidiSong {
     /* 0x00 */ u8              field_0;
     /* 0x01 */ u8              field_1;
@@ -394,17 +406,6 @@ struct SndNote {
     u32 waveAddr; // Waveform address in SPU RAM
 };
 STATIC_ASSERT_SIZEOF(SndNote, 0x14);
-
-/// 4-byte group header at the start of a SndBank heap block.
-/// field_0 = group size (prefix-summed into SndBank::field_10);
-/// field_2 volume; field_3 pan.
-struct _SndBankGroup {
-    /* 0x0 */ u8 field_0; // size
-    /* 0x1 */ u8 pad_1;
-    /* 0x2 */ u8 field_2; // volume
-    /* 0x3 */ u8 field_3; // pan
-};
-STATIC_ASSERT_SIZEOF(SndBankGroup, 0x4);
 
 /// Sound bank header used by Snd_GetNote (and Snd_Banks entries, stride 0x20).
 /// field_0 = SndBankGroup*; field_4 = SndNote*; field_8 = bank id (0xFxxx free);
