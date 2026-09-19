@@ -425,14 +425,29 @@ typedef struct Actor403000ScaleScratch {
 } Actor403000ScaleScratch;
 STATIC_ASSERT_SIZEOF(Actor403000ScaleScratch, 0x34);
 
-/// 0xB4-byte `G_SCRATCH_HEAD` block `func_actor_403000_801330D4` takes (and
-/// never returns): a coordinate parented to the caller's, and `pos`, its
-/// origin walked up the parent chain into view space.
+typedef union Actor403000Sxy {
+    s32     w;
+    DVECTOR v;
+} Actor403000Sxy;
+STATIC_ASSERT_SIZEOF(Actor403000Sxy, 0x4);
+
+/// 0xB4-byte trail scratch block: a parented coordinate, its view-space origin,
+/// and the current/previous projected point used to draw the trail segments.
+/// `func_actor_403000_80132AE0` returns it to `G_SCRATCH_HEAD`;
+/// `func_actor_403000_801330D4` only updates the point history and keeps it.
 typedef struct Actor403000TrailScratch {
-    /* 0x00 */ GsCOORDINATE2 coord;
-    /* 0x50 */ byte          pad_50[0x18];
-    /* 0x68 */ SVECTOR       pos;
-    /* 0x70 */ byte          pad_70[0x44];
+    /* 0x00 */ GsCOORDINATE2  coord;
+    /* 0x50 */ byte           pad_50[0x18];
+    /* 0x68 */ SVECTOR        pos;
+    /* 0x70 */ Actor403000Sxy sxy;
+    /* 0x74 */ Actor403000Sxy prevSxy;
+    /* 0x78 */ s32            p;
+    /* 0x7C */ s32            flag;
+    /* 0x80 */ s32            otz;
+    /* 0x84 */ byte           pad_84[0x4];
+    /* 0x88 */ s32            prevFlag;
+    /* 0x8C */ SVECTOR        normal;
+    /* 0x94 */ byte           pad_94[0x20];
 } Actor403000TrailScratch;
 STATIC_ASSERT_SIZEOF(Actor403000TrailScratch, 0xB4);
 
