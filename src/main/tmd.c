@@ -150,7 +150,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                 case 0x31:
                 case 0x39:
                 case 0x131:
-                    handler = Tmd_StreamHandler_Op39;
+                    handler = tmdDrawStreamPrimGt3PreXform;
                     break;
                 case 0x8039:
                     handler = D_80136500;

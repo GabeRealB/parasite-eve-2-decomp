@@ -340,7 +340,29 @@ u32* tmdDrawStreamGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// drawn. The record has no variant for `flags` to select, so it goes unread.
 u32* tmdXformStreamVerts(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op3B(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_Op39(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Draw-pass handler of a stream's pre-transformed gouraud textured-triangle
+/// records (`0x31`, `0x39`, `0x131`): each element contributes one triangle to
+/// the buffer half's first region, where its corners are already in screen space,
+/// and links it into the ordering table at the model's own offset.
+///
+/// The record is the pre-transformed form of the `0x38` triangles
+/// (`tmdDrawStreamGt3`): the pass that projects the stream's vertices
+/// (`tmdXformStreamVerts`) has already written each corner's screen coordinates
+/// and lit colour into the packet this handler files, and its depth into the
+/// per-vertex screen-Z table, so an element names its three corners in that table
+/// rather than in the vertex array. What a frame adds is the triangle's filing:
+/// the three cached depths are averaged for the ordering-table link, the facing
+/// comes from the coordinates the packet already carries, and the packet's
+/// length and primitive code are written. An element whose cached depth is marked
+/// off screen, or whose triangle turns away, is stepped over rather than drawn,
+/// though its packet slot is passed over either way, so the primitives stay
+/// aligned with the elements that named them.
+///
+/// The record's `0x3B` form is the same body reached with the semi-transparent
+/// primitive code; this entry is the one that picks it from `flags`. Those flags
+/// also choose the sense of the facing test, so with `0x10` set the triangles the
+/// other sense culls are the ones linked.
+u32* tmdDrawStreamPrimGt3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op7B(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op79(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// Handler of a stream's untextured gouraud-triangle records (`0x0`): each

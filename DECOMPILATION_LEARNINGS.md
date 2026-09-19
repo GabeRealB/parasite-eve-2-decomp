@@ -132778,3 +132778,30 @@ packet's kind and nothing more; the opcode's bit is the modifier, and the
 lighting word is where the modifier shows (`0x0` against `0x20`: one normal for
 the face against one per corner). Read it in the draw body, which names its own
 lighting where the twin is a body that may not be decompiled at all.
+## An early-image handler's loop has a twin whose facing tests are reversed
+
+Four of the culling bodies in `src/main/hasm/Tmd_StreamHandlers_Ops.s` carry a
+second copy of their element loop, and it differs from the original in one thing:
+the sense of every test taken on a `NCLIP` result - `blez` against `bgez`, or
+`bltz` against `bgtz`, once in a triangle's loop and twice in a quad's. The `GTE
+FLAG` tests are the same in both, so the copy reverses the facing test alone and
+not the drop for a transform that failed. It reads the same element, writes the
+same packet and leaves the cursor in the same place, which is what makes it read
+as a duplicate of the loop it twins.
+
+Which copy a model's faces take is `flags & 0x10`, read in the entry before the
+branch that reaches one of them. Those flags are the drawing object's and not the
+record's: `Tmd_DispatchStream` passes on the `flags` argument it was given, which
+`Tmd_SetupGteMatrices` takes from `Tmd_SetupDraw` and that in turn from
+`TmdObject::flags`. Six entries read the bit, over four distinct loops: the
+gouraud textured triangle and quad entries of the transform-region family, and
+the opaque and ABR entries of each of the two pre-transformed ones, which share a
+body per pair. Nothing in the decompiled tree sets the bit yet, so only its
+effect is recorded here.
+
+Two things to watch when reading or converting one of these bodies. The copy is
+not beside the loop it twins: it lies inside the address range a later handler's
+`glabel` opens, reachable only by the branch from the entry, so a reader who has
+that range open as another handler's code will find this loop sitting in it. And
+both copies run, so neither is a disassembly artifact - a conversion has to
+account for the two, and write the cull against `flags` rather than a constant.

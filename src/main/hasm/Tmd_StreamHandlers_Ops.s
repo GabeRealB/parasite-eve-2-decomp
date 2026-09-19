@@ -20,7 +20,7 @@
  * Op60/Op40             untextured quad family
  * Op3A/tmdDrawStreamGt3  gouraud textured triangle (+ ABR)
  * Op7A/tmdDrawStreamGt4  gouraud textured quad (+ ABR)
- * Op39/Op3B, Op79/Op7B  textured gouraud (+ ABR) tri/quad
+ * tmdDrawStreamPrimGt3PreXform/Op3B, Op79/Op7B  pre-transformed textured gouraud (+ ABR) tri/quad
  * 0x18/0x1A, 0x58/0x5A  one-normal textured tri/quad (+ ABR), fixed colour
  * OpC0/tmdXformStreamVerts  stream transform helpers
  * Op130                 extended 0x30-family path
@@ -689,7 +689,7 @@ alabel Tmd_StreamHandler_Op3B
     /* 1BDC 800113DC */  lw          $a1, 0x84($a0)
     /* 1BE0 800113E0 */  j           .L80011430
     /* 1BE4 800113E4 */  nop
-glabel Tmd_StreamHandler_Op39
+glabel tmdDrawStreamPrimGt3PreXform
     /* 1BE8 800113E8 */  andi        $t0, $a1, 0x2
     /* 1BEC 800113EC */  bnez        $t0, Tmd_StreamHandler_Op3B
     /* 1BF0 800113F0 */  nop
