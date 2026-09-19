@@ -131223,3 +131223,39 @@ the name — `grep -rnw <address> .` matches every spelling the symbol has ever
 had — and read what each hit is: where it cites this symbol, rewrite it to the
 current name, and where the sentence is *about* the split itself, name both
 spellings so the narrative still reads true.
+
+## A retained unused output counts as a second death and changes allocation (Actor02100_Fn00048, 2026-09-19)
+
+The archived source was at 99.774%, with exact instruction order but 13 register
+penalties: local quantities took v1 before the global multiplier could claim it.
+Repeated source-order changes could not satisfy both the HImode reload needed
+for post-reload CSE and the SImode contact constant.
+
+A parallel empty asm after the first object-link call resolved this:
+
+```c
+__asm__("" : "=r"(key), "+r"(table));
+Gp_InitRec18Table(table, 1, 0);
+```
+
+The key output is discarded; table passes through unchanged. `flow.c:mark_set_1`
+counts the retained unused key definition as a death (`REG_UNUSED`), excluding
+key from local allocation. In the controlled base_9 experiment, key r89 has
+3 refs/16 instructions and two deaths; multiplier r90 has 5 refs/19 and allocates
+first. `.greg` gives multiplier v1 and key a2; both HImode mirror loads retain
+their required homes and late reload-CSE folding. All penalties become zero.
+
+The distinction matters: a read/write key output (base_8) adds an input use and
+zero materialization, outranks the multiplier, and scores 97.344%. Passing that
+output as the zero argument (base_4) gets the right registers but forces zero
+before its asm consumer, losing the call delay slot (99.512%). The output-only
+prediction removed both failures. A standalone unused output may simply die;
+the useful table output is what retains this instruction.
+
+Evidence: `tools/permuter_findings/Actor02100_Fn00048/` archives session notes,
+planned experiments, and `PERMUTER_EVIDENCE/manual-allocation/analysis/` dumps.
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Matched base_9 input SHA256:
+`870e41619a9bb279e47d9c3760320700a6ecbc542fcf3defe3e18695fd6d098f`.
+The normal-header port also matches. This is a manually isolated compiler
+mechanism after the router returned a miss, not a permuter-generated result.

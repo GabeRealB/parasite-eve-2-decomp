@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_102100.h"
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/gfx.h"
 #include "main/gameflag.h"
@@ -12,8 +13,151 @@
 #include <psyq/inline_c.h>
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn00048);
+void Actor02100_Fn00048(GpEnemy* arg0, Actor02100* arg1)
+{
+    GpRec18*                  table;
+    GpRec18*                  contacts;
+    SVECTOR*                  rotation;
+    Actor02100Fn00048Scratch* head;
+    s16                       variant;
+    s32                       scaled;
+    s32                       key;
+    s32                       scale;
+    Actor02100Obj2C*          extra;
+    GsCOORDINATE2*            coord;
+    Actor02100Work*           work;
+    s16*                      column1;
+    s16*                      column2;
+    MATRIX*                   matrix;
+
+    extra = arg1->field_2C;
+    coord = extra->field_8;
+    work  = memCalloc(sizeof(Actor02100Work), false);
+    if (work == NULL) {
+        Gp_DestroyEnemy(arg0, (Task*)arg1);
+        return;
+    }
+    arg1->field_1C  = work;
+    work->field_176 = (s16)((((Actor02100Params*)arg0->field_3C)->field_1 / 10) & 0xFF);
+    variant         = (((Actor02100Params*)arg0->field_3C)->field_1 % 10) & 0xFF;
+    work->field_178 = variant;
+    if ((work->field_176 >= 5) || (variant >= 5)) {
+        Gp_DestroyEnemy(arg0, (Task*)arg1);
+        return;
+    }
+    extra->field_C             = 0;
+    coord->flg                 = 0;
+    head                       = *(Actor02100Fn00048Scratch**)G_SCRATCH_HEAD;
+    extra->field_1C            = &work->field_20;
+    extra->field_20            = &work->field_0;
+    rotation                   = &head[-1].rotation;
+    rotation->vx               = 0;
+    rotation->vy               = 0;
+    *(SVECTOR**)G_SCRATCH_HEAD = rotation;
+    rotation->vz               = ((Actor02100Params*)arg0->field_3C)->field_2;
+    RotMatrix(rotation, &head[-1].matrix);
+    matrix = &coord->coord;
+    gte_SetRotMatrix(matrix);
+    gte_ldclmv(&head[-1].matrix);
+    gte_rtir_real();
+    gte_stclmv(matrix);
+    gte_ldclmv(&head[-1].matrix.m[0][1]);
+    gte_rtir_real();
+    column1 = &coord->coord.m[0][1];
+    gte_stclmv(column1);
+    gte_ldclmv(&head[-1].matrix.m[0][2]);
+    gte_rtir_real();
+    column2 = &coord->coord.m[0][2];
+    gte_stclmv(column2);
+    arg0->field_4  = matrix;
+    arg0->field_48 = 0;
+    Gp_LinkNode(&arg0->node);
+    arg0->field_1C.vz       = 0x96;
+    arg0->field_18          = coord;
+    arg0->field_1C.vx       = 0;
+    arg0->field_1C.vy       = 0;
+    arg0->field_50          = &Actor02100_D03D78;
+    arg0->field_54          = (s32)&work->field_60;
+    arg0->field_40          = (u16)Actor02100_D03D78.field_4;
+    work->field_100.field_0 = coord;
+    work->field_100.field_4 = 0x200;
+    work->field_100.field_6 = 1;
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    scale = 0x19;
+    if (work->field_176 == 0) {
+        work->field_172 = 0;
+        scale           = 0;
+    } else {
+        work->field_172 = 1;
+    }
+    scaled                  = (s32)((s16)coord->coord.m[0][0] * scale) >> 0xC;
+    work->field_118         = (s16)scaled;
+    scaled                  = (s32)(coord->coord.m[1][0] * scale) >> 0xC;
+    work->field_11A         = (s16)scaled;
+    scaled                  = (s32)(coord->coord.m[2][0] * scale) >> 0xC;
+    work->field_11C         = (s16)scaled;
+    table                   = &work->field_60;
+    work->field_40.coord    = coord;
+    work->field_40.ctx.recs = table;
+    work->field_40.pos.vx   = 0;
+    work->field_40.pos.vy   = 0;
+    work->field_40.pos.vz   = 0;
+    key                     = 0x30015;
+    work->field_40.key      = key;
+    work->field_138         = (u16)work->field_118;
+    work->field_40.radius   = 0x190;
+    work->field_13A         = (u16)work->field_11A;
+    work->field_40.flags    = 1U;
+    work->field_13C         = work->field_11C;
+    Gp_LinkObj(2, &work->field_40);
+    __asm__("" : "=r"(key), "+r"(table));
+    Gp_InitRec18Table(table, 1, 0);
+    contacts                 = &work->field_98;
+    work->field_B0.vx        = 0;
+    work->field_B0.vy        = 0;
+    work->field_B0.vz        = 0x2710;
+    work->field_B8.vx        = 0;
+    work->field_B8.vy        = 0;
+    work->field_B8.vz        = 0x12C;
+    work->field_C0           = 0x14;
+    work->field_C2           = 0x14;
+    work->field_C4           = contacts;
+    work->field_78.ctx.d4rec = (GpActorD4Rec*)&work->field_B0;
+    work->field_78.coord     = coord;
+    work->field_78.pos.vx    = 0;
+    work->field_78.pos.vy    = 0;
+    work->field_78.pos.vz    = 0;
+    work->field_78.key       = 0;
+    work->field_78.radius    = 0;
+    work->field_78.flags     = 3U;
+    work->field_40.flags     = (u16)(work->field_40.flags | 0x8000);
+    Gp_LinkObj(3, &work->field_78);
+    Gp_InitRec18Table(contacts, 1, 0);
+    work->field_E8.vx        = 0;
+    work->field_E8.vy        = 0;
+    work->field_E8.vz        = 0x2710;
+    work->field_F0.vx        = 0;
+    work->field_F0.vy        = 0;
+    work->field_F0.vz        = 0x12C;
+    work->field_F8           = 0x14;
+    work->field_FA           = 0x14;
+    work->field_FC           = contacts;
+    work->field_C8.coord     = coord;
+    work->field_C8.ctx.d4rec = (GpActorD4Rec*)&work->field_E8;
+    work->field_C8.pos.vx    = 0;
+    work->field_C8.pos.vy    = 0;
+    work->field_C8.pos.vz    = 0;
+    work->field_C8.key       = 0;
+    work->field_C8.radius    = 0;
+    work->field_C8.flags     = 3U;
+    work->field_78.flags     = (u16)((work->field_78.flags & 0x3FFF) | 0xC00);
+    Gp_LinkObj(1, &work->field_C8);
+    work->field_C8.flags                        = (u16)((work->field_C8.flags & 0x3FFF) | 0x400);
+    arg1->field_30                              = 1;
+    *(Actor02100Fn00048Scratch**)G_SCRATCH_HEAD = *(Actor02100Fn00048Scratch**)G_SCRATCH_HEAD + 1;
+}
 
 GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
 

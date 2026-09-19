@@ -343,7 +343,17 @@ flow → combine → sched1 → regclass → local_alloc → .lreg
 | `REG_LIVE_LENGTH` | `across L insns` | insns in which the pseudo is live, **recounted by sched1** after it reorders each block |
 | `REG_N_CALLS_CROSSED` | `crosses C calls` | `CALL_INSN`s the pseudo is live across |
 | `REG_BASIC_BLOCK` | `in block B` (absent = spans blocks) | |
-| `REG_N_DEATHS` | `dies in D places` (absent = exactly 1) | number of `REG_DEAD` notes |
+| `REG_N_DEATHS` | `dies in D places` (absent = exactly 1) | deaths counted by flow, including retained unused definitions marked `REG_UNUSED` |
+
+A dead definition that survives because another output of the same instruction
+is useful also increments `REG_N_DEATHS` (`flow.c:mark_set_1`). It can therefore
+exclude a single-block pseudo from local allocation without adding another live
+value. In `Actor02100_Fn00048`, a parallel empty asm discards a new definition of
+the contact key while passing its table pointer through. The key has two deaths
+and becomes global; its reduced reference count lets the multiplier allocate
+first. A standalone unused output is normally deleted, so it does not provide
+the same effect. See the corpus entry on retained unused outputs for the paired
+experiments and input hashes.
 
 `.flow` prints the same lines before sched1; diffing the two shows what
 scheduling did to a live range. Two adjustments happen after that, both inside

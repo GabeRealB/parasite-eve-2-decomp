@@ -15,13 +15,19 @@ typedef struct Actor02100Obj2C {
     /* 0x0 */ byte           pad_0[8];
     /* 0x8 */ GsCOORDINATE2* field_8;
     /* 0xC */ s16            field_C;
+    /* 0xE */ byte           pad_E[0xE];
+    /* 0x1C */ MATRIX*       field_1C;
+    /* 0x20 */ MATRIX*       field_20;
 } Actor02100Obj2C;
 
 /// Overlay-local view of the spawn parameter block (`Task::spawnArg2`).
 /// `field_3C` points at the per-enemy parameter record whose byte 0xF holds
 /// the sight-range index (low 3 bits) into `Actor02100_D03E00`.
 typedef struct Actor02100Params {
-    /* 0x0 */ byte pad_0[0xF];
+    /* 0x0 */ byte pad_0[1];
+    /* 0x1 */ u8   field_1;
+    /* 0x2 */ u16  field_2;
+    /* 0x4 */ byte pad_4[0xB];
     /* 0xF */ u8   field_F;
 } Actor02100Params;
 
@@ -33,6 +39,12 @@ typedef struct Actor02100Spawn {
     /* 0x3C */ Actor02100Params* field_3C;
     /* 0x40 */ s16               field_40;
 } Actor02100Spawn;
+
+typedef struct Actor02100Fn00048Scratch {
+    /* 0x00 */ SVECTOR rotation;
+    /* 0x08 */ MATRIX  matrix;
+} Actor02100Fn00048Scratch;
+STATIC_ASSERT_SIZEOF(Actor02100Fn00048Scratch, 0x28);
 
 typedef struct Actor02100Fn014E4Scratch {
     /* 0x00 */ VECTOR  vec;
@@ -157,16 +169,23 @@ typedef struct Actor02100Fn02924Corners {
 struct Actor02100;
 
 typedef struct Actor02100Work {
-    /* 0x000 */ byte               pad_0[0x40];
+    /* 0x000 */ MATRIX             field_0;
+    /* 0x020 */ MATRIX             field_20;
     /* 0x040 */ GpObj              field_40;
     /* 0x060 */ GpRec18            field_60;
     /* 0x078 */ GpObj              field_78;
     /* 0x098 */ GpRec18            field_98;
     /* 0x0B0 */ SVECTOR            field_B0;
-    /* 0x0B8 */ byte               pad_B8[0x10];
+    /* 0x0B8 */ SVECTOR            field_B8;
+    /* 0x0C0 */ s16                field_C0;
+    /* 0x0C2 */ s16                field_C2;
+    /* 0x0C4 */ GpRec18*           field_C4;
     /* 0x0C8 */ GpObj              field_C8;
     /* 0x0E8 */ SVECTOR            field_E8;
-    /* 0x0F0 */ byte               pad_F0[0x10];
+    /* 0x0F0 */ SVECTOR            field_F0;
+    /* 0x0F8 */ s16                field_F8;
+    /* 0x0FA */ s16                field_FA;
+    /* 0x0FC */ GpRec18*           field_FC;
     /* 0x100 */ GpEffArg           field_100;
     /* 0x108 */ VECTOR             field_108;
     /* 0x118 */ s16                field_118;
@@ -235,6 +254,7 @@ typedef struct {
 extern u32 Gp_LcgState;
 
 extern GpU16Pair                 Actor02100_D03D64;
+extern GpPairSrcE                Actor02100_D03D78;
 extern Actor02100Fn01FF0Timing   Actor02100_D03D88[];
 extern Actor02100Fn02924Widths   Actor02100_D03DD8[];
 extern s16                       Actor02100_D03E00[];
