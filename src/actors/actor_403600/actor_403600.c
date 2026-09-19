@@ -2647,7 +2647,74 @@ void func_actor_403600_8013DC7C(Actor403600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013DDF4);
+s32 func_actor_403600_8013DDF4(Actor403600* arg0, s16 arg1)
+{
+    Actor403600Work*          work;
+    Actor403600FacingScratch* scratch;
+    Actor403600FacingScratch* oldHead;
+    s16                       step;
+    s32                       distance;
+    u16                       angle;
+    s32                       rawDiff;
+    s32                       adiff;
+    s32                       turnDiff;
+    s32                       next;
+
+    step    = arg1;
+    oldHead = *(Actor403600FacingScratch**)0x1F8003FC;
+    scratch = (*(Actor403600FacingScratch**)0x1F8003FC =
+                   oldHead - 1);
+    work    = arg0->field_1C;
+    if ((arg1 << 0x10) == 0) {
+        step = 0x20;
+    }
+
+    switch (work->field_746) {
+        case 0:
+            oldHead[-1].delta.vx = Player_Status.coordMtx->t[0] - work->field_4B8.coord.t[0];
+            scratch->delta.vy    = 0;
+            scratch->delta.vz    = Player_Status.coordMtx->t[2] - work->field_4B8.coord.t[2];
+            break;
+        case 1:
+            oldHead[-1].delta.vx = work->field_6F0.vx - work->field_4B8.coord.t[0];
+            scratch->delta.vy    = 0;
+            scratch->delta.vz    = work->field_6F0.vz - work->field_4B8.coord.t[2];
+            break;
+    }
+
+    distance = SquareRoot0((scratch->delta.vx * scratch->delta.vx) +
+                           (scratch->delta.vy * scratch->delta.vy) +
+                           (scratch->delta.vz * scratch->delta.vz));
+    angle    = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & 0xFFF;
+    rawDiff  = angle - (work->field_748 & 0xFFF);
+    adiff    = __builtin_abs((s16)rawDiff);
+    turnDiff = rawDiff;
+    if (step >= adiff) {
+        work->field_748 = angle;
+    } else {
+        if (adiff >= 0x801) {
+            next = rawDiff - 0x1000;
+            if ((s16)rawDiff <= 0) {
+                next = 0x1000 - rawDiff;
+            }
+            turnDiff = next;
+        }
+        rawDiff = (s16)work->field_748;
+        if ((turnDiff << 0x10) > 0) {
+            next = rawDiff + step;
+        } else {
+            next = (s16)work->field_748 - step;
+        }
+        work->field_748 = next;
+    }
+
+    scratch->rot.vx = 0;
+    scratch->rot.vy = work->field_748;
+    scratch->rot.vz = 0;
+    RotMatrix(&scratch->rot, &work->field_4B8.coord);
+    *(Actor403600FacingScratch**)0x1F8003FC += 1;
+    return distance;
+}
 
 s32 func_actor_403600_8013DFE0(Actor403600* arg0)
 {

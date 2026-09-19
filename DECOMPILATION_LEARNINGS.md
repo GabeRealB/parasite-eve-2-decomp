@@ -131755,3 +131755,35 @@ Preprocessed SHA256s:
 - mutation: `a7bcdbbdd596bb9066a4fb288369d3a57f0d4d82c1e3d7d8f8de7c9d5d5ab46c`
 - controlled: `cba16348b8b75217e30f6ff9f20ec3e9cffb0fbee4e0d23b1c503ba99a2eab05`
 - match: `170858718cd2eb3e9cda52143c1691ab42785a90b04ad75fc8ee11f2218460f6`
+
+## Actor403600 facing: one-iteration loop weighting versus atomic absolute value (2026-09-19)
+
+`func_actor_403600_8013DDF4`'s archived unpinned seed rebuilt at 99.715%:
+angle/turnDiff were swapped and the handwritten absolute-value negation used
+its source instead of its destination. UID191 first changes from `neg r90`
+to `neg r147` in **cse2**, not combine.
+
+A verified permuter output reached 99.959% by wrapping the snap-to-angle store
+in `do/while(0)` and introducing a destination pointer. Its pointer folds away,
+but LOOP_BEG/END notes survive at flow. Angle has 4 weighted references / 14
+insns instead of 3/14, moving it ahead of turnDiff (3/10) in global allocation.
+A planned controlled removal of only the wrapper (`base_2.c`) preserved the
+pointer and instruction order, reduced angle to 3/14, and reproduced the
+baseline object. This isolates loop weighting from pointer spelling; it does
+not establish that every one-iteration loop retains these notes.
+
+The cleaner exact solution was the separately planned
+`adiff = __builtin_abs((s16)rawDiff)`. It creates RTL `abs:SI` UID184, whose
+MIPS abssi2 template emits bgez/move/self-negation atomically. It also shortens
+angle to 3/12 while turnDiff becomes 3/13, fixing their priority without a
+wrapper, pins, or empty asm. Typed/header ports retain 100%, and the full
+unscoped build-and-verify succeeds.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Inputs: baseline `81fe2979136c974dba9c921fe824a93a859739510ffdf9af2fe1863190fb74a0`;
+permuter `6807fb424240bb31de9ad7b65b9d6cd5119d465fcd65bf6f209c02cf2ce0879e`;
+wrapper removal `102447670bf4226ef349046655509878d2479fdfd1f9769c6a1dce595eb6b73f`;
+exact abs `6700c8de160c4c8d0cee8a847341445358de172f281f8cedfcb4c48098606156`.
+Evidence is retained under `tools/permuter_findings/func_actor_403600_8013DDF4/`
+(session `72d715c95a2b429297d0244fb646a310`), including PERMUTER_ANALYSIS.md,
+planned experiments, inputs, and relevant dumps.

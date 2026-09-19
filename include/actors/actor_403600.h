@@ -159,6 +159,12 @@ typedef struct Actor403600DistanceScratch {
 } Actor403600DistanceScratch;
 STATIC_ASSERT_SIZEOF(Actor403600DistanceScratch, 0x24);
 
+typedef struct Actor403600FacingScratch {
+    /* 0x00 */ VECTOR  delta;
+    /* 0x10 */ SVECTOR rot;
+} Actor403600FacingScratch;
+STATIC_ASSERT_SIZEOF(Actor403600FacingScratch, 0x18);
+
 typedef struct Actor403600TurnMatrix {
     /* 0x00 */ s32 field_0;
     /* 0x04 */ s32 field_4;
@@ -210,6 +216,7 @@ u8*  func_actor_403600_80138DCC(Actor403600* arg0);
 void func_actor_403600_8013CCEC(Actor403600* arg0, s32 arg1);
 s32  func_actor_403600_8013D9A8(Actor403600* arg0);
 void func_actor_403600_8013DAF4(Actor403600* arg0, s32 arg1);
+s32  func_actor_403600_8013DDF4(Actor403600* arg0, s16 arg1);
 s32  func_actor_403600_8013DFE0(Actor403600* arg0);
 void func_actor_403600_8013E470(GsCOORDINATE2* arg0, s32* arg1, s32* arg2);
 s32  func_actor_403600_8013E7D4(s32 arg0, s32 arg1);

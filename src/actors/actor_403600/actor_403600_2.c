@@ -54,7 +54,6 @@ void func_actor_403600_80141A34(Actor403600* arg0);
 void func_actor_403600_801400BC(Actor403600* arg0);
 void func_actor_403600_80141F28(Actor403600* arg0);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
-s32  func_actor_403600_8013DDF4(Actor403600* arg0, s32 arg1);
 
 void func_actor_403600_801411D4(Actor403600* arg0, s32 arg1)
 {
