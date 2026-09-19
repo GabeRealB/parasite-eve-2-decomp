@@ -188,7 +188,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     handler = Tmd_StreamHandler_Op40;
                     break;
                 case 0x18:
-                    handler = Tmd_StreamHandler_Op18;
+                    handler = tmdDrawPrimGt3OneNormal;
                     break;
                 case 0x1A:
                     handler = Tmd_StreamHandler_Op1A;

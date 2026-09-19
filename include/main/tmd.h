@@ -257,9 +257,11 @@ u32* Tmd_StreamHandler_Prim30(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Prim3A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Prim38(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
-// Early-image handlers in Tmd_StreamHandlers_Ops.s, one per stream opcode: a
-// handler whose record has been read is named for the command it serves, and one
-// still carrying the opcode it is keyed by is a record not yet read.
+// Early-image draw handlers in Tmd_StreamHandlers_Ops.s, one per record family:
+// `Tmd_InitSourceStream` patches each into a model's stream for the opcodes it
+// answers to, and the draw walk jalrs it. A handler whose record has been read is
+// named for the command it serves; one still carrying the opcode it is keyed by
+// is a record not yet read.
 u32* Tmd_StreamHandler_Op20(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op60(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_OpC0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -338,7 +340,23 @@ u32* Tmd_StreamHandler_Op79(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* tmdStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op40(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op1A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_Op18(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+/// Draw handler of a stream's one-normal textured-triangle records (`0x18`,
+/// `0x1A`): each element's triangle is transformed and culled, its screen
+/// coordinates and lit colour are written into the `POLY_GT3` the record's texture
+/// words were laid in, and that packet is linked into the ordering table.
+///
+/// `Tmd_ProcessStream` fills the polygon's texture words as it builds the record
+/// into the buffer half, so what is left here is the half that changes per frame.
+/// The element names one normal for the whole triangle rather than one per corner,
+/// so a single lighting step colours all three corners; the depth the packet is
+/// filed under is the three vertices' average, out of the same transform.
+///
+/// The `0x1A` entry shares this body and differs only in the primitive code the
+/// polygon is drawn with, which this family carries in a fixed material colour
+/// instead of reading one from the element: `0x34` opaque, `0x36` blended. Which
+/// of the two is drawn is settled by the opcode alone, so `flags` selects nothing.
+u32* tmdDrawPrimGt3OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op58(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op5A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// Handler of a stream's textured-triangle records that carry a colour per

@@ -9,10 +9,10 @@
  * Permanent handwritten assembly (splat type: hasm).
  * One body per stream opcode: Tmd_InitSourceStream resolves the body into the
  * stream beside the opcode, and Tmd_DispatchStream jalr's it. Each body is
- * labelled by the opcode it serves (OpXX) until its role is settled, or for the
- * command it serves where that has been read (documented in include/main/tmd.h).
- * Dual-entry alternates use alabel (e.g. alabel Tmd_StreamHandler_Op3A shares
- * the body of glabel tmdDrawStreamGt3).
+ * labelled by the opcode it serves (OpXX) until the record it draws is read, or
+ * for the command it serves once that has been (documented in
+ * include/main/tmd.h). Dual-entry alternates use alabel (e.g. alabel
+ * Tmd_StreamHandler_Op3A shares the body of glabel tmdDrawStreamGt3).
  * Early-image placement (linker_section_order: .rodata).
  *
  * Op20/Op60/Op40        flat / clipped triangle & quad families
@@ -20,7 +20,7 @@
  * Op3A/tmdDrawStreamGt3  gouraud textured triangle (+ ABR)
  * Op78/Op7A             gouraud textured quad (+ ABR)
  * Op39/Op3B, Op79/Op7B  textured gouraud (+ ABR) tri/quad
- * Op18/Op1A, Op58/Op5A  fixed-color packet variants
+ * 0x18/0x1A, 0x58/0x5A  one-normal textured tri/quad (+ ABR), fixed colour
  * OpC0/OpC8             stream transform helpers
  * Op130                 extended 0x30-family path
  * 0x170                 extended 0x70-family path
@@ -1091,7 +1091,7 @@ alabel Tmd_StreamHandler_Op1A
     /* 219C 8001199C */  mtc2        $t0, $6
     /* 21A0 800119A0 */  j           .L800119B4
     /* 21A4 800119A4 */  nop
-glabel Tmd_StreamHandler_Op18
+glabel tmdDrawPrimGt3OneNormal
     /* 21A8 800119A8 */  lui         $t0, 0x3480
     /* 21AC 800119AC */  ori         $t0, $t0, 0x8080
     /* 21B0 800119B0 */  mtc2        $t0, $6

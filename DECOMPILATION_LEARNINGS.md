@@ -131334,8 +131334,43 @@ and the same code with bit 1 set (`0x36`, `0x3E`) for the semi-transparent
 variant — which the table at the top of `include/psyq/libgpu.h` names. The C
 body's cast of its write cursor is the same primitive, so the twin and the body
 corroborate each other: a record whose twin sets `0x3C` is a gouraud textured
+A unit that defines several symbols is named for the group and not for any one of
+them, so the other half of the rename does not exist: only the label inside the
+`.s` changes and the config keeps its group name. `git mv` there would move a file
+the config still points at, which is the same trap from the other side. Read the
+config's `name:` before deciding which case a unit is in.
+
+## A model stream record's packet type is in its draw-path twin
+
+A model's packet stream is dispatched twice: `Tmd_ProcessStream` (main) switches
+on the opcode and calls the C bodies in the gameplay overlay that lay each
+record's packet into the buffer, while the draw path takes the handler out of the
+record's slot — the one `Tmd_InitSourceStream` patched — and `Tmd_DispatchStream`
+jalrs it as it walks, so the slot and not the opcode picks a draw handler. That is
+why the handwritten handlers in `src/main/hasm/Tmd_StreamHandlers_Ops.s` are the
+per-frame half even though the init pass is what names them. An unidentified
+handler of either set is read from its twin. The primitive code rides in the high
+byte of a colour word, never in a register of its own, and a lit family reaches it
+through the GTE: the constant the handler loads into register 6 is the material
+colour with the code on top, so `0x808080` of neutral grey whose top byte is `0x34`
+is a `POLY_GT3` and `0x3C` a `POLY_GT4`, and the handler stores the lit result into
+the packet's corner colours. A family whose element names its own colour carries
+the code in that element word instead. The same code with bit 1 set (`0x36`,
+`0x3E`) is the semi-transparent variant, and the table at the top of
+`include/psyq/libgpu.h` names the codes. The C body's cast of its write cursor is
+the same primitive, so the twin and the body
+corroborate each other: a record whose twin carries `0x3C` is a gouraud textured
 quad record, and the body's `POLY_GT4*` cast, its `u`/`v` writes and its
 `tpage`/`clut` handling are all read from that.
+
+Both passes write one packet: what the record fixes — its texture words, and
+usually its length and code — is laid down as the model is built, and the twin
+fills in what changes per frame, the screen coordinates, corner colours and
+ordering-table link. So the two agree on the packet's size, which gives a second
+read of the primitive beside its code word: the body's cursor steps by the
+`POLY_*` it casts to and the twin advances by the same count, and the twin's
+`lui $v0, <n>` is the packet's length byte, words minus one (`0x900` is the ten
+words of a `POLY_GT3`).
 
 The arms do not line up one for one, so read the one that selects the body being
 named rather than the twin's own label list. A draw handler can branch on its
