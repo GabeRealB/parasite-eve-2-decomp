@@ -156,8 +156,34 @@ migrate_giveups() {
     return 0
 }
 
-cleanup_worktree() {
+# Carry a generated tree to trunk, for the same reason as the give-up archives
+# above: the worktree is removed once its commits land, so anything produced
+# there and not committed dies with it. These trees are ignored by Git, so the
+# landing - which only carries tracked files - never sees them.
+#
+# cp -au adds and updates without deleting, so a tree trunk already holds is
+# merged rather than replaced, and a second sweep over the same overlay cannot
+# drop what the first one left.
+migrate_generated() {
+    local rel=$1 label=$2 n
+    [[ -d "$WT/$rel" ]] || return 0
+    n=$(find "$WT/$rel" -mindepth 1 -maxdepth 1 2>/dev/null | wc -l)
+    [[ $n -gt 0 ]] || return 0
+    mkdir -p "$ROOT/$rel"
+    cp -au "$WT/$rel/." "$ROOT/$rel/" 2>/dev/null && log "carried $n $label to trunk"
+    return 0
+}
+
+# Everything generated in the worktree that the landing does not carry. Add a
+# new artifact here when one is introduced, or it is silently lost.
+migrate_artifacts() {
     migrate_giveups
+    migrate_generated tools/permuter_findings "permuter finding(s)"
+    migrate_generated local/divergence/records "divergence record(s)"
+}
+
+cleanup_worktree() {
+    migrate_artifacts
     if [[ "$KEEP" == false ]]; then
         "$ROOT/tools/overlay_batch.sh" --cleanup --overlay "$OVERLAY" --session "$SESSION" \
             >>"$LOG_FILE" 2>&1 || log "worktree cleanup refused; see $LOG_FILE"
@@ -323,7 +349,7 @@ log "inner vacuum finished"
 # Before anything that can fail. The landing, the rebase and the cleanup are
 # all downstream of here, and a give-up archive is worth more than any of them:
 # it is the only copy of the best compiling C for a function that stalled.
-migrate_giveups
+migrate_artifacts
 
 # --- collect what it actually matched -----------------------------------------
 mapfile -t ALL_MATCHED < <(git -C "$WT" log --format=%s "$BASE"..HEAD \
