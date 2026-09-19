@@ -439,12 +439,12 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
         }
         entry = (SndVoiceParams*)((s32)header + offset);
         if (*(u16*)&D_800689EC != 0) {
-            if ((entry->field_E & 0x80) != 0) {
+            if ((entry->flags & 0x80) != 0) {
                 return -5;
             }
         }
         if (D_80082138[(u32)arg0 >> 28] == 0) {
-            if ((entry->field_E & 1) == 0) {
+            if ((entry->flags & 1) == 0) {
                 return -4;
             }
         }
@@ -1004,7 +1004,7 @@ void SndVoice_ScanCandidates(SndVoicePick* arg0, u16 arg1, s32 arg2, u16 arg3)
         if (p->field_16 == 0) {
             arg0->field_3 = i;
         } else if (p->field_16 != 4) {
-            temp = p->field_4C->field_C;
+            temp = p->field_4C->priority;
             if (temp < (u32)arg0->field_8) {
                 arg0->field_8 = temp;
                 arg0->field_4 = i;
@@ -1016,7 +1016,7 @@ void SndVoice_ScanCandidates(SndVoicePick* arg0, u16 arg1, s32 arg2, u16 arg3)
                 }
             }
             if (((p->field_0 & 0xFFFF00FF) == (arg2 & 0xFFFF00FF)) ||
-                (((temp = p->field_4C->field_E) & 0x10) && (arg3 == temp))) {
+                (((temp = p->field_4C->flags) & 0x10) && (arg3 == temp))) {
                 arg0->field_1 = i;
                 if ((arg0->field_2 == -1) || (arg0->field_C > p->field_4)) {
                     score         = p->field_4;
@@ -1192,7 +1192,7 @@ s32 SndScript_Exec(SndScript* script)
                 attr         = voiceRef.field_4;
                 masterVolume = D_80082748;
                 attr->addr   = note->waveAddr;
-                if ((D_80082749 != 0) && (script->field_4C->field_E & 2)) {
+                if ((D_80082749 != 0) && (script->field_4C->flags & 2)) {
                     masterVolume = D_80082749;
                 }
                 noteVolume = (u8)oneV->field_D;
@@ -1200,8 +1200,8 @@ s32 SndScript_Exec(SndScript* script)
                     noteVolume = note->volume;
                 }
                 voice->field_A = noteVolume;
-                voice->field_2 = (s8)((masterVolume * script->field_4C->field_5 * voice->field_A) / 16129);
-                pan            = script->field_4C->field_6;
+                voice->field_2 = (s8)((masterVolume * script->field_4C->volume * voice->field_A) / 16129);
+                pan            = script->field_4C->pan;
                 panSum         = oneV->field_C;
                 if (panSum < 0) {
                     panSum = note->pan;
@@ -1411,11 +1411,11 @@ s32 SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, SndBankSlot* arg3, SndVoicePa
 {
     SndVoicePick sp18;
 
-    SndVoice_ScanCandidates(&sp18, arg4->field_C, arg0, arg4->field_E);
-    if ((sp18.field_7 < arg4->field_7) && (sp18.field_3 != -1)) {
+    SndVoice_ScanCandidates(&sp18, arg4->priority, arg0, arg4->flags);
+    if ((sp18.field_7 < arg4->maxVoices) && (sp18.field_3 != -1)) {
         sp18.field_0 = sp18.field_3;
     } else {
-        sp18.field_0 = func_80055EF8(&sp18, arg4->field_8);
+        sp18.field_0 = func_80055EF8(&sp18, arg4->retriggerFrames);
     }
     if (sp18.field_0 >= 0) {
         SndScript_Play(sp18.field_0, arg1, arg2, arg0, arg3, arg4);
@@ -1634,7 +1634,7 @@ void SndVoice_ApplyMasterVolume(s8 arg0)
             if (temp != NULL) {
                 node = temp;
                 do {
-                    node->field_2 = (arg0 * p->field_4C->field_5 * node->field_A) / 16129;
+                    node->field_2 = (arg0 * p->field_4C->volume * node->field_A) / 16129;
                     node          = node->field_3C;
                 } while (node != NULL);
                 p->field_E = 0;
@@ -1720,7 +1720,7 @@ void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* arg4, Snd
     p->field_10 = arg1;
     p->field_13 = arg2;
     p->field_17 = 0;
-    flags       = desc->field_E;
+    flags       = desc->flags;
     p->field_48 = (SndScriptCmd*)arg5;
     p->field_F  = (flags >> 1) & 1;
 }

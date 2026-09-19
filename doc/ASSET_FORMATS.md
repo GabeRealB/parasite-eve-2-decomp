@@ -895,7 +895,7 @@ descending, because `SZ3` grows with distance and negating Y does not touch Z.
   | 0xE | `u16` prog_size (bytes of program / `hONE` stream) |
   | 0x10 | `s32` spu_size (SPU-ADPCM pool size) |
   | 0x14 | group table (`4 × group_count`) + note table (`0x14 × note_count`) |
-  | 0x800 | program (`hONE` / `oneV` / `oneC` / `endC` …) |
+  | 0x800 | program: the `hONE` header, its entry-offset table, then each entry's script (`oneC` + `oneV` … + `endC`) |
   | `align16(0x800+align4(prog_size))` | SPU-ADPCM sample pool |
 
 - Each `SndNote.waveAddr` is a byte offset into the sample pool (16-byte ADPCM
@@ -920,9 +920,9 @@ expects SMF; SPK playback goes through **`SndScript_Exec`** (`one*` opcodes).
 
 | Gap | Notes |
 |-----|--------|
-| **`hONE` header** | Counts/sizes after magic not fully pinned |
-| **Tagged script stream** | `oneC` / `oneV` / `oneE` / `oneA` / `endC` / `Loop` / `Wait` / `endL` — structs partially in `include/main/sound.h`; need a stream walker |
-| **`SndScript_Exec`** | Still `INCLUDE_ASM` in `src/main/sndscript.c` — authoritative interpreter for timing and opcodes |
+| **`hONE` header** | Layout known from the loader: 4-byte magic, `u16` bank id, `u16` entry count, then that many `u16` offsets of entry blocks relative to the header |
+| **Tagged script stream** | `oneC` / `oneV` / `oneE` / `oneA` / `endC` / `Loop` / `Wait` / `endL` — the command structs are typed in `include/main/sound.h`; still need a stream walker |
+| **`SndScript_Exec`** | Decompiled in `src/main/sndscript.c` — authoritative interpreter for timing and opcodes |
 | **Timed event list** | Needs Wait/Loop stack + timebase (script ticks vs frame rate) |
 | **Audio mix / “play the song”** | Needs timed events + pitch (root/fine/`oneV`) + vol/pan + ADSR/`oneE` + polyphony; samples alone are not enough |
 | **WAV → SPK encoder** | Not planned; matching packs use raw |

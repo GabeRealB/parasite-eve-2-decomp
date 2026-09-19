@@ -55,8 +55,37 @@ typedef struct _SpuLVoiceTable {
 } SpuLVoiceTable;
 STATIC_ASSERT_SIZEOF(SpuLVoiceTable, 0x67C);
 
-typedef struct _SndBank        SndBank;        // defined with the bank types below
-typedef struct _SndVoiceParams SndVoiceParams; // defined with the voice-param types below
+typedef struct _SndBank SndBank; // defined with the bank types below
+
+/// The voice parameters a sound-bank entry starts a sound with, carried as the
+/// `oneC` command that opens the entry's script program.
+///
+/// A bank publishes its entries through `SndBankHdr::entryOffsets`, and an entry
+/// is a small script whose first command is this block, followed by the `oneV`
+/// commands that start the voices. The allocator also reads the block when the
+/// sound is requested, so it settles which script slot the sound gets: a request
+/// plays while fewer than `maxVoices` copies of the sound are running and a slot
+/// is free, and otherwise either restarts the newest copy or takes over the
+/// playing sound with the lowest `priority` — and is dropped instead, when the
+/// newest copy is younger than `retriggerFrames` (a `-1` refuses every takeover,
+/// so the sound plays only while a slot is free).
+///
+/// `flags` carries the sound's playback switches: (bit 0 plays while its sound
+/// type is disabled, bit 1 follows the override level rather than the master
+/// volume, bit 4 groups the entries that share its value as copies of one sound,
+/// bit 7 is dropped while the sound is muted).
+typedef struct {
+    s32 magic;           // "oneC" (0x43656E6F) — the command this block carries
+    u8  unknown_4;
+    u8  volume;          // Volume scale applied over the note's (0-127)
+    u8  pan;             // Pan (0x40 = centre)
+    u8  maxVoices;       // Copies of this sound allowed to play at once
+    s16 retriggerFrames; // Age a playing copy must reach before another request takes a slot
+    u16 unknown_A;
+    u16 priority;        // Allocation priority: the lowest playing sound gives up its slot first
+    u16 flags;           // Playback switches (see above)
+} SndVoiceParams;
+STATIC_ASSERT_SIZEOF(SndVoiceParams, 0x10);
 
 /// Header of the sound-bank image held by a `SndBankSlot`.
 ///
@@ -112,7 +141,7 @@ typedef struct {
     u16             stopFrames; // How a matching stop acts on the voices
     s32             id;         // Bank-remapped id of the sound the event acts on
     SndBankSlot*    bank;       // Bank the id was resolved in, held for the deferred start
-    SndVoiceParams* params;     // Entry describing the voice to allocate
+    SndVoiceParams* params;     // Bank entry the voice is started from
 } SndEvtVoiceArgs;
 STATIC_ASSERT_SIZEOF(SndEvtVoiceArgs, 0x10);
 
@@ -488,25 +517,6 @@ typedef struct _AsyncCbQueue {
 } AsyncCbQueue;
 STATIC_ASSERT_SIZEOF(AsyncCbQueue, 0x54);
 
-/// Descriptor a bank entry holds for a sound; an alloc-voice event carries the
-/// one it resolved as `SndEvtVoiceArgs::params` and passes it to SndVoice_AllocSlot.
-/// field_5 is a volume scale (0-127) used by SndVoice_ApplyMasterVolume / SndScript_Exec;
-/// field_6 is a pitch bias; field_7 is a candidate-count threshold; field_8 is a
-/// preference key for func_80055EF8; field_C/field_E are halfword IDs matched by
-/// SndVoice_ScanCandidates. Also the type of SndScript::field_4C voice-param blocks
-/// (field_E bit1 gates the D_80082749 volume override).
-struct _SndVoiceParams {
-    /* 0x00 */ u8  pad_0[5];
-    /* 0x05 */ u8  field_5;
-    /* 0x06 */ u8  field_6;
-    /* 0x07 */ u8  field_7;
-    /* 0x08 */ s16 field_8;
-    /* 0x0A */ u8  pad_A[2];
-    /* 0x0C */ u16 field_C;
-    /* 0x0E */ u16 field_E;
-};
-STATIC_ASSERT_SIZEOF(SndVoiceParams, 0x10);
-
 /// "oneV" (0x56656E6F) voice-on script command consumed by SndScript_Exec.
 /// Also the 0x18-byte payload after a "oneC" (0x43656E6F) command.
 typedef struct _SndOneV {
@@ -554,8 +564,9 @@ STATIC_ASSERT_SIZEOF(SndWaitCmd, 0x8);
 /// field_44 is the `SndBankSlot` whose bank the script plays (its image holds the
 /// `oneC` entry offsets, its bank is the default for a `oneV` with bank id 0);
 /// field_48 is the current script cursor;
-/// field_F is bit1 of SndVoiceParams::field_E.
-/// field_4C is a voice-param block (volume scale at field_5) walked with field_40.
+/// field_F is bit1 of SndVoiceParams::flags.
+/// field_4C is the `SndVoiceParams` block of the sound being played, reloaded by
+/// its `oneC` command.
 /// field_50 is a volume interpolator driven by SndVoice_FadeMatching via LinInterp_Setup.
 typedef struct _SndScript {
     /* 0x00 */ s32             field_0;

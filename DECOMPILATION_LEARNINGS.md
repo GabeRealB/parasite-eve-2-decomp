@@ -16324,7 +16324,7 @@ p->field_17 = 0;
 ```
 
 `SndScript_Play` is the pure example. Pair with a second live copy of a later
-pointer arg (`desc = arg5; … p->field_48 = arg5; flags = desc->field_E`) when
+pointer arg (`desc = arg5; … p->field_48 = arg5; flags = desc->flags`) when
 the target holds the same pointer in two callee-saved regs for interleaved
 `lhu` / `sw`.
 
@@ -17498,13 +17498,13 @@ SPU voice volume scaling multiplies a master level (`s8`, often 0..0x7F) by two
 `mfhi` / `addu` / `sra 13` / sign correction — write the natural division:
 
 ```c
-node->field_2 = (master * params->field_5 * node->field_A) / 16129;
+node->field_2 = (master * params->volume * node->field_A) / 16129;
 ```
 
 Do not hand-write the magic constant. `SndVoice_ApplyMasterVolume` (and the same sequence in
 `SndScript_Exec`) is the reference. Related layout notes:
 
-- `SndScript::field_4C` is a `SndVoiceParams*` voice-param block (`field_5` scale).
+- `SndScript::field_4C` is a `SndVoiceParams*` voice-param block (`volume` scale).
 - `SndVoice::field_A` is the per-voice `u8` scale; `field_2` stores the result.
 - Null-check `field_40` via a temp then assign the walk pointer so the target
   keeps `lw v0,0x40; beqz v0; move a1,v0` (see earlier "temp then cur" entry).
@@ -22234,7 +22234,7 @@ Column targets use `head - 0x42` (col1) and `head - 0x40` (col2), same
 - Shared wait-tick path: when high-half of `field_8` is below the command's
   duration, add `gDisplayState.region == 1 ? 0x9999 : 0x10000` and return 0;
   on success subtract `duration << 16` and return 1 (caller loops while nonzero).
-- Volume: `(scale * field_4C->field_5 * voice->field_A) / 16129` (127²), same
+- Volume: `(scale * field_4C->volume * voice->field_A) / 16129` (127²), same
   as `SndVoice_ApplyMasterVolume`.
 
 ## `a3` prim pointer → `t0` copy frees `a3` for the `0xFFFFFF` mask
