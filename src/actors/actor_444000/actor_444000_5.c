@@ -1000,7 +1000,66 @@ void func_actor_444000_80135448(Actor444000* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_5", func_actor_444000_801371E8);
+void func_actor_444000_801371E8(Task* task, s32 scale, s16 face)
+{
+    SVECTOR     dir;
+    SVECTOR*    norms   = Gp_GridParams->field_4;
+    SVECTOR*    corners = Gp_GridParams->field_8;
+    GpGridFace* faces   = Gp_GridParams->field_C;
+    GpGridFace  quad0   = { { face * 4, face * 4 + 1, face * 4 + 2, face * 4 + 3 }, face, 2 };
+    GpGridFace  quad1   = {
+        { (face + 1) * 4, (face + 1) * 4 + 1, (face + 1) * 4 + 2, (face + 1) * 4 + 3 }, face + 1, 2
+    };
+    SVECTOR* d;
+
+    Gfx_MatrixCol2(&((TmdObject*)task->extra)->coords->coord, &dir);
+    d = &dir;
+    VectorNormalSS(d, d);
+    gte_lddp(scale);
+    gte_ldsv(d);
+    __asm__ volatile("nop");
+    __asm__ volatile("nop");
+    __asm__ volatile(".word 0x4B98003D");
+    gte_stsv(d);
+
+    corners[face * 4].vx = corners[face * 4 + 2].vx = 0x2CEC;
+    corners[face * 4].vy = corners[face * 4 + 2].vy = (u16)((TmdObject*)task->extra)->coords->coord.t[1];
+    corners[face * 4].vz = corners[face * 4 + 2].vz = -0x1B58;
+    corners[face * 4 + 1].vx                        = corners[face * 4 + 3].vx =
+        (u16)((TmdObject*)task->extra)->coords->coord.t[0] + (u16)dir.vx;
+    corners[face * 4 + 1].vy = corners[face * 4 + 3].vy =
+        (u16)((TmdObject*)task->extra)->coords->coord.t[1] + (u16)dir.vy;
+    corners[face * 4 + 1].vz = corners[face * 4 + 3].vz =
+        (u16)((TmdObject*)task->extra)->coords->coord.t[2] + (u16)dir.vz;
+    corners[face * 4].vy     = (u16)corners[face * 4].vy - 0x190;
+    corners[face * 4 + 1].vy = (u16)corners[face * 4 + 1].vy - 0x190;
+    faces[face]              = quad0;
+
+    norms[face].vz = (u16)corners[face * 4].vx - (u16)corners[face * 4 + 1].vx;
+    norms[face].vy = (u16)corners[face * 4 + 1].vy - (u16)corners[face * 4].vy;
+    norms[face].vx = (u16)corners[face * 4 + 1].vz - (u16)corners[face * 4].vz;
+    VectorNormalSS(&norms[face], &norms[face]);
+
+    corners[face * 4 + 4].vx = corners[face * 4 + 6].vx =
+        (u16)((TmdObject*)task->extra)->coords->coord.t[0] + (u16)dir.vx;
+    corners[face * 4 + 4].vy = corners[face * 4 + 6].vy =
+        (u16)((TmdObject*)task->extra)->coords->coord.t[1] + (u16)dir.vy;
+    corners[face * 4 + 4].vz = corners[face * 4 + 6].vz =
+        (u16)((TmdObject*)task->extra)->coords->coord.t[2] + (u16)dir.vz;
+    corners[face * 4 + 5].vx = corners[face * 4 + 7].vx =
+        (u16)((TmdObject*)task->extra)->coords->coord.t[0] + (u16)dir.vx + 0x1B58;
+    corners[face * 4 + 5].vy = corners[face * 4 + 7].vy =
+        (u16)((TmdObject*)task->extra)->coords->coord.t[1] + (u16)dir.vy;
+    corners[face * 4 + 5].vz = corners[face * 4 + 7].vz =
+        (u16)((TmdObject*)task->extra)->coords->coord.t[2] + (u16)dir.vz;
+    corners[face * 4 + 4].vy = (u16)corners[face * 4 + 4].vy - 0x190;
+    corners[face * 4 + 5].vy = (u16)corners[face * 4 + 5].vy - 0x190;
+    faces[face + 1]          = quad1;
+
+    norms[face + 1].vx = 0;
+    norms[face + 1].vy = 0;
+    norms[face + 1].vz = -0x1000;
+}
 
 /// Link one of the work block's display nodes: it hangs off the model's own
 /// coordinate, carries `rec` as its collision-record table and sits at `pos`

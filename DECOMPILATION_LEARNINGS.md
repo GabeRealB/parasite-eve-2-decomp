@@ -131672,3 +131672,48 @@ Session evidence is retained under
 `tools/permuter_findings/func_actor_405800_80131FC8/`; the separate permuter
 alternate's partial gain remains unresolved. The shared body passed the
 unscoped build for five overlays, with all prior C definitions preserved.
+
+## Aggregate initializers can keep adjacent stack records from interleaving in sched2 (func_actor_444000_801371E8, 2026-09-19)
+
+The retry seed reached 98.596% with three stores from the first local
+`GpGridFace` interleaved among the second face's index arithmetic. Both records
+were initialized through individual member assignments. The registers matched;
+`.greg` had the desired grouping but `.sched2` moved the stores. Contrary to
+the older retry notes, every relevant store and index operation had priority 2.
+The backward scheduler selected ready stores by potential hazard ahead of
+arithmetic, placing them too late in the final forward code.
+
+Use an aggregate initializer when constructing the complete local record:
+
+```c
+SVECTOR dir;
+SVECTOR* norms = Gp_GridParams->field_4;
+SVECTOR* corners = Gp_GridParams->field_8;
+GpGridFace* faces = Gp_GridParams->field_C;
+GpGridFace quad0 = { { face * 4, face * 4 + 1, face * 4 + 2, face * 4 + 3 }, face, 2 };
+GpGridFace quad1 = {
+    { (face + 1) * 4, (face + 1) * 4 + 1, (face + 1) * 4 + 2, (face + 1) * 4 + 3 }, face + 1, 2
+};
+```
+
+The constructor emits BLK memory clobbers that survive into scheduling and
+emit no machine instructions. In `base_2.i.greg`, quad1's clobbers UID86/87 have
+output dependencies on all six quad0 stores. In `.sched2`, quad1 arithmetic
+107/94/91 is selected at T-175/176/177, then the clobbers at T-178/179; only
+then do the remaining quad0 stores become ready at T-180. Baseline instead
+selects the three misplaced stores at T-170/172/178. This changes dependency
+release, not merely equal-priority ranking.
+
+Ordering the pointer initializers before the records matters independently:
+`base_1.c` put them afterward and fixed store grouping but changed the prologue,
+swapped scale/corners registers, and scored 93.665%. A recorded prediction to
+restore the pointer-load order while retaining constructor dependencies produced
+`base_2.c`, 100%, all penalties zero. The normal-style port `base_3.c` also
+matched and passed the unscoped build. No register pins or empty asm were added.
+
+Evidence is in `nonmatchings/func_actor_444000_801371E8-vacuum/LEARNINGS.md`,
+`experiments.jsonl`, and the paired RTL dumps. Preprocessed SHA256:
+base `9bc5d70565bb51e56e15d39b823683991fcebfbefdbf8d42ac8962bcd22b6e95`;
+base_2 `3d02165ab47d23c8d510b8547afa86d5979312e008bc96af77b61fc560a0e520`.
+The demonstrated dependency is specific to these aggregate layouts; inspect
+BLK dependencies before applying the same source transformation elsewhere.

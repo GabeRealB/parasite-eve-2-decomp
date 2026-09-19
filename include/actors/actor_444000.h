@@ -666,7 +666,7 @@ void func_actor_444000_80134688(GsCOORDINATE2* coord, s32 id);
 void func_actor_444000_8013441C(Actor444000* arg0);
 void func_actor_444000_8013482C(Actor444000* task);
 void func_actor_444000_80135448(Actor444000* arg0);
-void func_actor_444000_801371E8(Task* task, s16 arg1, s16 index);
+void func_actor_444000_801371E8(Task* task, s32 scale, s16 face);
 void func_actor_444000_8013AFF8(GpEnemy* enemy, Actor444000* task);
 void func_actor_444000_801423C4(GpEnemy* enemy, Actor444000* task);
 void func_actor_444000_801434C4(Actor444000* arg0);
