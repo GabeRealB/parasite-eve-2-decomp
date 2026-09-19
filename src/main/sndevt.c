@@ -25,6 +25,12 @@ extern SndEvt _gSndEvtPool[0x40];
 /// they were queued.
 extern SndEvt* _gSndEvtHead;
 
+/// Last event in the pending queue, or `NULL` when the queue is empty.
+///
+/// Kept alongside the head so an append reaches the end without walking the
+/// list; a pass that consumes the last event clears it with the head.
+extern SndEvt* _gSndEvtTail;
+
 void SndEvt_Process(void)
 {
     SndEvt* next;
@@ -50,7 +56,7 @@ void SndEvt_Process(void)
                 ptr++;
             } while (i < 0x1C0U);
             _gSndEvtHead           = NULL;
-            SndEvt_Tail            = NULL;
+            _gSndEvtTail           = NULL;
             _gSndEvtProcessEnabled = 1;
             return;
         }
@@ -59,7 +65,7 @@ void SndEvt_Process(void)
         next = cur->next;
         SndEvt_Free(cur);
         if (next == NULL) {
-            SndEvt_Tail  = NULL;
+            _gSndEvtTail = NULL;
             _gSndEvtHead = NULL;
             break;
         }
@@ -80,7 +86,7 @@ void SndEvt_Reset(void)
         ptr++;
     } while (i < 0x1C0U);
     _gSndEvtHead           = NULL;
-    SndEvt_Tail            = NULL;
+    _gSndEvtTail           = NULL;
     _gSndEvtProcessEnabled = 1;
 }
 
@@ -109,14 +115,14 @@ void SndEvt_Enqueue(SndEvt* arg0)
     if (arg0 != NULL) {
         _gSndEvtProcessEnabled = 0;
         if (_gSndEvtHead == NULL) {
-            SndEvt_Tail  = arg0;
+            _gSndEvtTail = arg0;
             _gSndEvtHead = arg0;
             arg0->prev   = NULL;
         } else {
-            temp        = SndEvt_Tail;
-            SndEvt_Tail = arg0;
-            arg0->prev  = temp;
-            temp->next  = arg0;
+            temp         = _gSndEvtTail;
+            _gSndEvtTail = arg0;
+            arg0->prev   = temp;
+            temp->next   = arg0;
         }
         arg0->next             = NULL;
         _gSndEvtProcessEnabled = 1;
