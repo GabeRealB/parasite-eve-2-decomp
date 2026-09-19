@@ -8065,8 +8065,8 @@ with a local:
 i = 0;
 flag = 1;
 for (ptr = SndEvt_Pool; i < 0x40; i++, ptr++) {
-    if (ptr->field_0 == 0) {
-        ptr->field_0 = flag;
+    if (ptr->allocated == 0) {
+        ptr->allocated = flag;
         ...
     }
 }
@@ -10588,21 +10588,21 @@ relative to that base (`lw a0, 4(s0)` / `lbu a1, 1(s0)` for fields at
 Symptom: only the base register and field offsets differ (e.g. `s0 = a0`
 vs `s0 = a0 + 4`, `lw 8(s0)` vs `lw 4(s0)`).
 
-Fix: take a local pointer to a typed overlay of the struct starting at offset
-`N`, and access fields through that pointer. `SndEvt_HandleVolumeRamp` does this with
-`SndEvtFrom4` overlaid at `&arg0->field_4`:
+Fix: take a local pointer to the sub-object at offset `N` — the owner's own
+nested member, where it has one — and access fields through that pointer.
+`SndEvt`'s payload is that case, its `args` member being the sub-object at `+4`:
 
 ```c
-SndEvtFrom4* mid = (SndEvtFrom4*)&arg0->field_4;
-temp = SndVoice_FindById(mid->field_4); /* was arg0->field_8 */
+SndEvtArgs* args = &arg0->args; /* +4 base; arg0->args.voice.id rebases the loads */
+temp = SndVoice_FindById(args->voice.id);
 if (temp >= 0) {
-    SndVoice_SetVolumeRamp(temp, mid->field_1); /* was arg0->field_5 */
+    SndVoice_SetVolumeRamp(temp, args->voice.volume);
 }
 ```
 
-Sibling helpers that only touch one field (`arg0->field_8`) do not need this;
-use it when the target rebased the pointer and multiple fields are relative to
-that new base.
+Sibling helpers that only touch one field (`arg0->args.voice.id`) do not need
+this; use it when the target rebased the pointer and multiple fields are
+relative to that new base.
 
 ## Early-exit for `beqz` with dual returns
 
@@ -14936,13 +14936,16 @@ Cast the field through `(s8)` at the call:
 
 ```c
 /* callee: void SndVoice_SetPanRamp(s32, s32, s32); — body keeps $a1 as-is */
-SndVoice_SetPanRamp(idx, (s8)p->field_4, (s8)mid->field_1); /* lb, not lbu */
+SndVoice_SetPanRamp(idx, args->voice.pan, (s8)args->voice.volume); /* lb, not lbu */
 ```
 
-Bare `p->field_4` with an `s8` formal also yields `lb`, but then the callee
-mismatches. Prefer `s32` formals + `(s8)` at the few call sites. `SndVoice_SetPanRamp`
-/ `SndEvt_HandlePanRamp` are the pure example (sibling `SndVoice_SetVolumeRamp` already takes
-`s32` and its caller correctly uses `lbu`).
+Bare `args->voice.volume` with an `s8` formal also yields `lb`, but then the
+callee mismatches. Prefer `s32` formals + `(s8)` at the few call sites, or
+declare the field itself `s8` where every reader takes it signed — the byte
+beside it in the same arm stays `u8` because `SndVoice_SetVolumeRamp` reads that
+one unsigned. `SndVoice_SetPanRamp` / `SndEvt_HandlePanRamp` are the pure example
+(sibling `SndVoice_SetVolumeRamp` already takes `s32` and its caller correctly
+uses `lbu`).
 
 ## Early load into a temp forces prior store before zero-fills
 

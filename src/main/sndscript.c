@@ -417,7 +417,7 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
     u16                  offset;
     u32                  index;
     SndEvt*              temp;
-    SndEvtFrom4*         mid;
+    SndEvtArgs*          args;
 
     orig = arg0;
     if ((arg0 != 0) && (arg0 != 8)) {
@@ -452,13 +452,13 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
         }
         temp = SndEvt_Alloc();
         if (temp != NULL) {
-            temp->handlerIdx = 6;
-            mid              = (SndEvtFrom4*)&temp->field_4;
-            mid->field_4     = arg0;
-            temp->field_4    = arg1;
-            mid->field_1     = arg2;
-            mid->field_8     = (s32)bank;
-            mid->field_C     = (s32)entry;
+            temp->handlerIdx     = 6;
+            args                 = &temp->args;
+            args->voice.id       = arg0;
+            temp->args.voice.pan = arg1;
+            args->voice.volume   = arg2;
+            args->voice.bank     = bank;
+            args->voice.params   = entry;
             SndEvt_Enqueue(temp);
             goto ret_orig;
         }
@@ -472,30 +472,30 @@ ret_neg1:
 
 void SndEvt_EnqueueType7(s32 arg0, s32 arg1)
 {
-    SndEvt*      temp;
-    SndEvtFrom4* mid;
+    SndEvt*     temp;
+    SndEvtArgs* args;
 
     temp = SndEvt_Alloc();
     if (temp != NULL) {
-        temp->handlerIdx = 7;
-        mid              = (SndEvtFrom4*)&temp->field_4;
-        mid->field_4     = SndBank_RemapId(arg0);
-        mid->field_2     = arg1;
+        temp->handlerIdx   = 7;
+        args               = &temp->args;
+        args->voice.id     = SndBank_RemapId(arg0);
+        args->voice.frames = arg1;
         SndEvt_Enqueue(temp);
     }
 }
 
 void SndEvt_EnqueueType8(s32 arg0)
 {
-    SndEvt*      temp;
-    SndEvtFrom4* mid;
+    SndEvt*     temp;
+    SndEvtArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
         temp = SndEvt_Alloc();
         if (temp != NULL) {
             temp->handlerIdx = 8;
-            mid              = (SndEvtFrom4*)&temp->field_4;
-            mid->field_4     = SndBank_RemapId(arg0);
+            args             = &temp->args;
+            args->voice.id   = SndBank_RemapId(arg0);
             SndEvt_Enqueue(temp);
         }
     }
@@ -503,15 +503,15 @@ void SndEvt_EnqueueType8(s32 arg0)
 
 void SndEvt_EnqueueType9(s32 arg0)
 {
-    SndEvt*      temp;
-    SndEvtFrom4* mid;
+    SndEvt*     temp;
+    SndEvtArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
         temp = SndEvt_Alloc();
         if (temp != NULL) {
             temp->handlerIdx = 9;
-            mid              = (SndEvtFrom4*)&temp->field_4;
-            mid->field_4     = SndBank_RemapId(arg0);
+            args             = &temp->args;
+            args->voice.id   = SndBank_RemapId(arg0);
             SndEvt_Enqueue(temp);
         }
     }
@@ -519,17 +519,17 @@ void SndEvt_EnqueueType9(s32 arg0)
 
 void SndEvt_EnqueueTypeA(s32 arg0, s32 arg1, s32 arg2)
 {
-    SndEvt*      temp;
-    SndEvtFrom4* mid;
+    SndEvt*     temp;
+    SndEvtArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
         temp = SndEvt_Alloc();
         if (temp != NULL) {
-            temp->handlerIdx = 0xA;
-            mid              = (SndEvtFrom4*)&temp->field_4;
-            mid->field_4     = SndBank_RemapId(arg0);
-            temp->field_4    = arg1;
-            mid->field_1     = arg2;
+            temp->handlerIdx     = 0xA;
+            args                 = &temp->args;
+            args->voice.id       = SndBank_RemapId(arg0);
+            temp->args.voice.pan = arg1;
+            args->voice.volume   = arg2;
             SndEvt_Enqueue(temp);
         }
     }
@@ -537,18 +537,18 @@ void SndEvt_EnqueueTypeA(s32 arg0, s32 arg1, s32 arg2)
 
 void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1)
 {
-    SndEvt*      temp;
-    SndEvtFrom4* mid;
+    SndEvt*     temp;
+    SndEvtArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
         temp = SndEvt_Alloc();
         if (temp != NULL) {
-            temp->handlerIdx = 0xB;
-            mid              = (SndEvtFrom4*)&temp->field_4;
-            mid->field_4     = SndBank_RemapId(arg0);
-            mid->field_1     = arg1;
+            temp->handlerIdx   = 0xB;
+            args               = &temp->args;
+            args->voice.id     = SndBank_RemapId(arg0);
+            args->voice.volume = arg1;
             if ((s8)arg1 < 0) {
-                mid->field_1 = 0x7F;
+                args->voice.volume = 0x7F;
             }
             SndEvt_Enqueue(temp);
         }
@@ -560,7 +560,7 @@ void SndBank_SetEnableFlags(s32 arg0, s32 arg1)
     u8*          ptr;
     register s32 flag asm("v1");
     SndEvt*      temp;
-    SndEvtFrom4* mid;
+    SndEvtArgs*  args;
 
     if (arg1 == 0x80000000) {
         arg1 = 0;
@@ -580,10 +580,10 @@ void SndBank_SetEnableFlags(s32 arg0, s32 arg1)
             if (arg1 == 0x40000000) {
                 temp = SndEvt_Alloc();
                 if (temp != NULL) {
-                    temp->handlerIdx = 7;
-                    mid              = (SndEvtFrom4*)&temp->field_4;
-                    mid->field_4     = SndBank_RemapId(0x40000000);
-                    mid->field_2     = 1;
+                    temp->handlerIdx   = 7;
+                    args               = &temp->args;
+                    args->voice.id     = SndBank_RemapId(0x40000000);
+                    args->voice.frames = 1;
                     SndEvt_Enqueue(temp);
                 }
             }

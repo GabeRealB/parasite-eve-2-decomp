@@ -55,32 +55,46 @@ typedef struct _SpuLVoiceTable {
 } SpuLVoiceTable;
 STATIC_ASSERT_SIZEOF(SpuLVoiceTable, 0x67C);
 
-/// 0x1C-byte slot allocated from SndEvt_Pool (see SndEvt_Alloc / SndEvt_Enqueue).
-/// Overlay of `SndEvt` starting at offset 0x4 (`field_4` / `field_8`).
-/// Used when the compiler keeps `arg + 4` in a callee-saved register.
-/// Overlay of SndEvt starting at field_4 (handler payload).
-typedef struct _SndEvtFrom4 {
-    /* 0x0 */ u8  field_0; // SndEvt.field_4
-    /* 0x1 */ u8  field_1; // SndEvt.field_5
-    /* 0x2 */ u16 field_2; // SndEvt.field_6
-    /* 0x4 */ s32 field_4; // payload
-    /* 0x8 */ s32 field_8; // payload
-    /* 0xC */ s32 field_C; // often SndVoiceParams*
-} SndEvtFrom4;
-STATIC_ASSERT_SIZEOF(SndEvtFrom4, 0x10);
+// Types the event payload points at; both are defined further down this file.
+typedef struct _SndBankSlot    SndBankSlot;
+typedef struct _SndVoiceParams SndVoiceParams;
 
-/// Deferred sound/MIDI event message (SndEvt_Pool, 0x40 slots).
-typedef struct _SndEvt {
-    /* 0x00 */ s16             allocated; // 0 free, 1 in use
-    /* 0x02 */ s16             handlerIdx;
-    /* 0x04 */ u8              field_4;   // handler payload
-    /* 0x05 */ u8              field_5;
-    /* 0x06 */ u16             field_6;
-    /* 0x08 */ s32             field_8;
-    /* 0x0C */ s32             field_C;
-    /* 0x10 */ s32             field_10;
-    /* 0x14 */ struct _SndEvt* prev;
-    /* 0x18 */ struct _SndEvt* next;
+/// Arguments of a deferred sound event, one arm per family of handlers.
+///
+/// Which arm an event uses follows from its handler: the sequence controls
+/// (`SndEvt_HandleInitSequence` and the other `Midi_*` handlers) read `midi`,
+/// the sound-effect voice controls (`SndEvt_HandleAllocVoice` and the other
+/// `SndVoice_*` handlers) read `voice`. Both arms cover the same slot, so every
+/// event carries room for the larger one.
+typedef union {
+    struct {
+        u8  channel; // Sequence the event acts on (0xFF = none, 0 = any)
+        u8  volume;  // Volume scale applied over the master volume (0-127)
+        u16 frames;  // Fade length in frames
+    } midi;
+    struct {
+        s8              pan;    // Stereo placement of the voice
+        u8              volume; // Volume the voice starts at (0-127)
+        u16             frames; // Length of the fade-out in frames (0 and 1 stop at once)
+        s32             id;     // Bank-remapped id of the sound the event acts on
+        SndBankSlot*    bank;   // Bank the id was resolved in, held for the deferred start
+        SndVoiceParams* params; // Parameter block the bank holds for the id
+    } voice;
+} SndEvtArgs;
+STATIC_ASSERT_SIZEOF(SndEvtArgs, 0x10);
+
+/// Deferred sound event: one queued audio command, in a slot of `SndEvt_Pool`.
+///
+/// `SndEvt_Enqueue*` fills in the arguments and appends the event to the list
+/// `SndEvt_Head` / `SndEvt_Tail` hold; `SndEvt_Process` passes it to the handler
+/// `handlerIdx` selects and returns the slot to the pool. A freed slot is only
+/// marked, never cleared, so an enqueue writes every argument its handler reads.
+typedef struct SndEvt {
+    s16            allocated;  // 0 free, 1 in use
+    s16            handlerIdx; // Which handler runs the event; indexes SndEvt_Handlers
+    SndEvtArgs     args;       // Arguments, read according to the handler
+    struct SndEvt* prev;       // List links, maintained by SndEvt_Enqueue and SndEvt_Free
+    struct SndEvt* next;
 } SndEvt;
 STATIC_ASSERT_SIZEOF(SndEvt, 0x1C);
 
@@ -134,12 +148,12 @@ STATIC_ASSERT_SIZEOF(SndBankHdrOff, 0xA);
 
 /// 16-byte slot in SndBank_Slots[16] (BSS size 0x100). Indexed by SndBankSlot_Get
 /// and related helpers in 43FFC.c / 410B0.c.
-typedef struct _SndBankSlot {
+struct _SndBankSlot {
     /* 0x0 */ SndBankHdr* field_0;
     /* 0x4 */ void*       field_4;
     /* 0x8 */ s32         field_8;
     /* 0xC */ void*       field_C;
-} SndBankSlot;
+};
 STATIC_ASSERT_SIZEOF(SndBankSlot, 0x10);
 
 /// Owner of a doubly-linked SndVoice voice list (head at field_40).
@@ -459,13 +473,14 @@ typedef struct _AsyncCbQueue {
 } AsyncCbQueue;
 STATIC_ASSERT_SIZEOF(AsyncCbQueue, 0x54);
 
-/// Descriptor pointed to by SndEvtFrom4::field_C and passed to SndVoice_AllocSlot.
+/// Descriptor a bank entry holds for a sound; an alloc-voice event carries the
+/// one it resolved as `SndEvtArgs.voice.params` and passes it to SndVoice_AllocSlot.
 /// field_5 is a volume scale (0-127) used by SndVoice_ApplyMasterVolume / SndScript_Exec;
 /// field_6 is a pitch bias; field_7 is a candidate-count threshold; field_8 is a
 /// preference key for func_80055EF8; field_C/field_E are halfword IDs matched by
 /// SndVoice_ScanCandidates. Also the type of SndScript::field_4C voice-param blocks
 /// (field_E bit1 gates the D_80082749 volume override).
-typedef struct _SndVoiceParams {
+struct _SndVoiceParams {
     /* 0x00 */ u8  pad_0[5];
     /* 0x05 */ u8  field_5;
     /* 0x06 */ u8  field_6;
@@ -474,7 +489,7 @@ typedef struct _SndVoiceParams {
     /* 0x0A */ u8  pad_A[2];
     /* 0x0C */ u16 field_C;
     /* 0x0E */ u16 field_E;
-} SndVoiceParams;
+};
 STATIC_ASSERT_SIZEOF(SndVoiceParams, 0x10);
 
 /// Context pointed to by SndScript::field_44 (set from SndScript_Play arg4).
