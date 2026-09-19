@@ -133,7 +133,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     handler = D_80138004;
                     break;
                 case 0x7A:
-                    handler = Tmd_StreamHandler_Op7A;
+                    handler = tmdDrawStreamGt4SemiTrans;
                     break;
                 case 0xC8:
                     handler = tmdXformStreamVerts;

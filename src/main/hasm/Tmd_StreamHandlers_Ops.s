@@ -20,7 +20,7 @@
  * tmdDrawStreamPrimG4CornerNormals  untextured quad, one normal per corner
  * tmdDrawStreamPrimG4   the same quad, one normal for the whole face
  * tmdDrawStreamGt3SemiTrans/tmdDrawStreamGt3  gouraud textured triangle (+ ABR)
- * Op7A/tmdDrawStreamGt4  gouraud textured quad (+ ABR)
+ * tmdDrawStreamGt4SemiTrans/tmdDrawStreamGt4  gouraud textured quad (+ ABR)
  * tmdDrawStreamPrimGt3PreXform/tmdDrawStreamPrimGt3PreXformSemiTrans,
  * Op79/Op7B              pre-transformed textured gouraud (+ ABR) tri/quad
  * tmdDrawStreamPrimGt3OneNormal/SemiTrans (0x18/0x1A)  one-normal textured tri, fixed colour
@@ -451,7 +451,7 @@ glabel tmdDrawStreamGt3
     /* 1880 80011080 */  addu        $v0, $zero, $a2
     /* 1884 80011084 */  jr          $ra
     /* 1888 80011088 */  nop
-alabel Tmd_StreamHandler_Op7A
+alabel tmdDrawStreamGt4SemiTrans
     /* 188C 8001108C */  lui         $t0, 0x3E80
   .L80011090:
     /* 1890 80011090 */  ori         $t0, $t0, 0x8080
@@ -460,7 +460,7 @@ alabel Tmd_StreamHandler_Op7A
     /* 189C 8001109C */  nop
 glabel tmdDrawStreamGt4
     /* 18A0 800110A0 */  andi        $t0, $a1, 0x2
-    /* 18A4 800110A4 */  bnez        $t0, Tmd_StreamHandler_Op7A
+    /* 18A4 800110A4 */  bnez        $t0, tmdDrawStreamGt4SemiTrans
     /* 18A8 800110A8 */  nop
     /* 18AC 800110AC */  lui         $t0, 0x3C80
     /* 18B0 800110B0 */  ori         $t0, $t0, 0x8080

@@ -132931,3 +132931,21 @@ whose base record already is the single-normal one.
 Two steps naming one body from the same twin can also collide, since each picks a
 defensible word without seeing the other's; where they do, reconcile against the
 family the record belongs to rather than against the step that named it.
+## A draw handler's cull test is one of two, chosen by an object flag
+
+A body in `Tmd_StreamHandlers_Ops.s` can carry a second copy of its own element
+loop, entered from its head on a bit of the `flags` it is dispatched with, and the
+two copies cull opposite ways - so a polarity read out of one arm is that arm's,
+not the record's rule. `tmdDrawStreamGt4`'s head tests `flags & 0x10` and jumps
+about 0x440 bytes ahead, past other bodies' code, into a copy of its loop; each
+copy runs `NCLIP` twice and branches on `MAC0`, and the copy's two tests (`bgtz`,
+`bgez`) are the exact inverses of the first's (`bltz`, `blez`), so every quad one
+arm draws the other steps over.
+
+That copy is not a function of its own even though it sits among others: it
+consumes `$v1`, the `0xFFF` ref guard the entry set before branching, and nothing
+else jumps to it, so reading bodies off their addresses in this file attributes it
+to the wrong symbol. No decompiled C writes that bit to a `TmdObject`, so which
+models take the arm is unproven; the settled part is that a `flags` test at an
+entry is where a second arm announces itself, and that neither arm's cull is the
+record's rule on its own.

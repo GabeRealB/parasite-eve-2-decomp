@@ -339,7 +339,21 @@ u32* tmdDrawStreamGt3SemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 /// result: a model drawn as a reflection asks for it, because a mirroring
 /// transform reverses the model's faces.
 u32* tmdDrawStreamGt3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_Op7A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// The draw pass's handler for a stream's gouraud textured-quad records that ask
+/// for the semi-transparent primitive (`0x7A`): each element contributes one quad,
+/// taken to screen space and lit corner by corner, and the packet the build pass
+/// laid out for it is completed and linked into the ordering table, unless the
+/// transform clipped a corner or the facing test turned the quad away.
+///
+/// The element is the opaque `0x78` quad's — a vertex and a normal per corner, and
+/// the same texture words — and the two entries share one body, so the primitive
+/// code the packet is built under is the whole of the difference between the two
+/// records: `0x3C` for the opaque quad and `0x3E` here, the semi-transparency bit
+/// being the difference. The element names no colour, so the quad is lit from a
+/// fixed mid-grey, and the same constant carries both, the code in its top byte.
+/// The opcode alone settles the variant: this entry does not test the `flags` bit
+/// the `0x78` one picks its code from.
+u32* tmdDrawStreamGt4SemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 /// Draw handler of a stream's gouraud textured-quad records (`0x78`): each
 /// element contributes one quad, projected and lit into the buffer slot the build
@@ -350,14 +364,18 @@ u32* Tmd_StreamHandler_Op7A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// own, each corner's colour being what its own normal gives under the model's
 /// light. A corner the GTE reports off screen, or a quad the facing tests reject,
 /// is not drawn — the packet is left out of the ordering table and the walk moves
-/// on to the next element.
+/// on to the next element. The body carries a second copy of that walk for the
+/// `0x10` bit of the object's flags, with the facing tests inverted, so a quad the
+/// copy culls is one this one draws; what the object sets that bit for is not
+/// established.
 ///
 /// The packet's texture words, page and CLUT are the build pass's
 /// (`gpStreamPrimGt4`); this pass writes the half a frame produces — the corner
 /// coordinates, the corner colours, and the packet's length and primitive code.
 /// That code is the semi-transparent one where the drawing object's flags ask for
-/// it, which is what this handler reads `flags` for: the `0x7A` record's handler
-/// shares this body and asks unconditionally.
+/// it, which is what this handler reads `flags` for: the `0x7A` record's handler,
+/// `tmdDrawStreamGt4SemiTrans`, shares this body and takes that code whatever the
+/// flags say.
 u32* tmdDrawStreamGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// Handler of a stream's transform pre-pass records (`0xC8`): each element
 /// contributes one transformed vertex to the buffer half, and the record builds
