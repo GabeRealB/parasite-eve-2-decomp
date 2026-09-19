@@ -10597,7 +10597,7 @@ and `SndEvt_HandleVolumeRamp` shows both spellings:
 SndEvtVoiceArgs* args = &arg0->args.voice; /* +4 base; the loads rebase to it */
 temp = SndVoice_FindById(args->id);        /* the field at arg0+0x8 */
 if (temp >= 0) {
-    SndVoice_SetVolumeRamp(temp, args->volume); /* the field at arg0+0x5 */
+    SndVoice_SetVolumeRamp(temp, args->level.loudness); /* the field at arg0+0x5 */
 }
 ```
 
@@ -10626,6 +10626,38 @@ as one member, callers take `&owner->member` instead of casting `&owner->field`,
 and each arm carries the names its own command uses. `SndEvtArgs`
 (`SndEvt::args`, arms `midi` and `voice`) is the worked example; replacing the
 overlay type with it left every checksum untouched.
+
+## One field read at two conventions is a union inside its own arm
+
+The arms are not the only place two readings of one storage show up. A field an
+arm's commands each hand to a different API can be read under a *different
+convention* by each of them, and then neither name alone is true of it. Which
+readings there are is decided by what each command's callee does with the value,
+not by the field's name — the conversion the callee applies is the scale the
+caller was writing in:
+
+- a callee that stores the value unchanged keeps the caller's scale;
+- a callee that inverts it — `~v & 0x7F`, or an `if` that adds 0x7F to a
+  negative and subtracts a positive from 0x7F — is handed the complement, so the
+  caller writes the opposite of the level that comes out;
+- a callee that takes the magnitude (`|v|`, or the same `if`) ignores the value's
+  sign, which is then whatever axis the caller's own coordinates are measured on.
+
+Where the readings differ, declare both as named views of one member rather than
+picking one and casting at the other's call sites:
+
+```c
+union {
+    s8 attenuation; // the view the callees that subtract it from a level read
+    u8 loudness;    // the view the callee that inverts it reads
+} level;
+```
+
+The views are worth naming even when they differ only in signedness, since a
+view is also where a reader's sign expectation is recorded: the `s8` view loads
+`lb` and the `u8` view `lbu` at their respective call sites, and neither needs a
+cast once each is spelled. Sizes, offsets and checksums are unaffected — a
+one-byte union member addresses exactly the byte the single field did.
 
 ## Early-exit for `beqz` with dual returns
 
@@ -14955,21 +14987,22 @@ incoming registers (a plain `s8` formal emits early `sll`/`sra` on `$a1` and
 breaks an otherwise perfect match), call sites that pass `u8` struct fields
 would emit `lbu`. The original often wants `lb`.
 
-Cast the field through `(s8)` at the call:
+Cast the field through `(s8)` at the call, or give the field an `s8` view of its
+own where a sign is all that reader wants (see "One field read at two conventions
+is a union inside its own arm" above) — then no call site casts:
 
 ```c
 /* callee: void SndVoice_SetPanRamp(s32, s32, s32); — body keeps $a1 as-is */
-SndVoice_SetPanRamp(idx, arg0->args.voice.pan, (s8)arg0->args.voice.volume); /* lb, not lbu */
-SndVoice_SetPanRamp(idx, (s8)args->pan, (s8)args->volume); /* lb, not lbu */
+SndVoice_SetPanRamp(idx, arg0->args.voice.pan, arg0->args.voice.level.attenuation); /* lb, not lbu */
+SndVoice_SetPanRamp(idx, args->pan, args->level.attenuation); /* lb, not lbu */
 ```
 
-Bare `args->voice.volume` with an `s8` formal also yields `lb`, but then the
-callee mismatches. Prefer `s32` formals + `(s8)` at the few call sites, or
-declare the field itself `s8` where every reader takes it signed — the byte
-beside it in the same arm stays `u8` because `SndVoice_SetVolumeRamp` reads that
-one unsigned. `SndVoice_SetPanRamp` / `SndEvt_HandlePanRamp` are the pure example
-(sibling `SndVoice_SetVolumeRamp` already takes `s32` and its caller correctly
-uses `lbu`).
+Bare `args->voice.level.attenuation` with an `s8` formal also yields `lb`, but
+then the callee mismatches. Prefer `s32` formals + `(s8)` at the few call sites,
+or type each view of the field for its reader — the pan ramp's view is `s8`,
+while `SndVoice_SetVolumeRamp` reads the same byte through a `u8` one.
+`SndVoice_SetPanRamp` / `SndEvt_HandlePanRamp` are the pure example (sibling
+`SndVoice_SetVolumeRamp` already takes `s32` and its caller reads it unsigned).
 
 ## Early load into a temp forces prior store before zero-fills
 

@@ -172,7 +172,7 @@ void SndEvt_HandleAllocVoice(SndEvt* arg0)
     SndEvtVoiceArgs* args;
 
     args = &arg0->args.voice;
-    SndVoice_AllocSlot(args->id, args->pan, args->volume, args->bank, args->params);
+    SndVoice_AllocSlot(args->id, args->pan, args->level.attenuation, args->bank, args->params);
 }
 
 void SndEvt_HandleType7(SndEvt* arg0)
@@ -201,7 +201,7 @@ void SndEvt_HandlePanRamp(SndEvt* arg0)
     args    = &arg0->args.voice;
     temp_v0 = SndVoice_FindById(args->id);
     if (temp_v0 >= 0) {
-        SndVoice_SetPanRamp(temp_v0, (s8)args->pan, (s8)args->volume);
+        SndVoice_SetPanRamp(temp_v0, args->pan, args->level.attenuation);
     }
 }
 
@@ -213,7 +213,7 @@ void SndEvt_HandleVolumeRamp(SndEvt* arg0)
     args    = &arg0->args.voice;
     temp_v0 = SndVoice_FindById(args->id);
     if (temp_v0 >= 0) {
-        SndVoice_SetVolumeRamp(temp_v0, args->volume);
+        SndVoice_SetVolumeRamp(temp_v0, args->level.loudness);
     }
 }
 

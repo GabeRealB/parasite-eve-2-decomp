@@ -450,13 +450,13 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
         }
         temp = SndEvt_Alloc();
         if (temp != NULL) {
-            temp->handlerIdx = 6;
-            args             = &temp->args.voice;
-            args->id         = arg0;
-            args->pan        = arg1;
-            args->volume     = arg2;
-            args->bank       = bank;
-            args->params     = entry;
+            temp->handlerIdx        = 6;
+            args                    = &temp->args.voice;
+            args->id                = arg0;
+            args->pan               = arg1;
+            args->level.attenuation = arg2;
+            args->bank              = bank;
+            args->params            = entry;
             SndEvt_Enqueue(temp);
             goto ret_orig;
         }
@@ -523,11 +523,11 @@ void SndEvt_EnqueueTypeA(s32 arg0, s32 arg1, s32 arg2)
     if (D_80082138[(u32)arg0 >> 28] != 0) {
         temp = SndEvt_Alloc();
         if (temp != NULL) {
-            temp->handlerIdx = 0xA;
-            args             = &temp->args.voice;
-            args->id         = SndBank_RemapId(arg0);
-            args->pan        = arg1;
-            args->volume     = arg2;
+            temp->handlerIdx        = 0xA;
+            args                    = &temp->args.voice;
+            args->id                = SndBank_RemapId(arg0);
+            args->pan               = arg1;
+            args->level.attenuation = arg2;
             SndEvt_Enqueue(temp);
         }
     }
@@ -541,12 +541,12 @@ void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1)
     if (D_80082138[(u32)arg0 >> 28] != 0) {
         temp = SndEvt_Alloc();
         if (temp != NULL) {
-            temp->handlerIdx = 0xB;
-            args             = &temp->args.voice;
-            args->id         = SndBank_RemapId(arg0);
-            args->volume     = arg1;
+            temp->handlerIdx     = 0xB;
+            args                 = &temp->args.voice;
+            args->id             = SndBank_RemapId(arg0);
+            args->level.loudness = arg1;
             if ((s8)arg1 < 0) {
-                args->volume = 0x7F;
+                args->level.loudness = 0x7F;
             }
             SndEvt_Enqueue(temp);
         }

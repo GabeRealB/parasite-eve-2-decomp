@@ -139,14 +139,25 @@ STATIC_ASSERT_SIZEOF(SndEvtMidiArgs, 0x4);
 /// voices playing from it: allocate a voice, ramp its pan or volume, and stop
 /// the voices a sound id matches.
 ///
-/// `volume` is on the same inverted scale as the ramps it feeds, so 0 is full
-/// and 0x7F is silent; a source placed in the world supplies its distance from
-/// the listener and the two coincide. `stopFrames` is not a length alone: 0
-/// stops the matched voices at once, 1 marks them for a later flush, and a
-/// larger value is the fade length in frames.
+/// Every command reads `id` and leaves the fields it does not read holding
+/// whatever the slot's previous occupant wrote: starting a voice reads `pan`,
+/// `level.attenuation`, `bank` and `params`, the pan ramp reads `pan` and
+/// `level.attenuation`, the volume ramp reads `level.loudness`, and the stop
+/// reads `stopFrames`.
+///
+/// `level` is one byte the commands read on two opposite scales. A command that
+/// places a source states how far it is from the listener, so 0 is the
+/// listener's own distance and the full level, and a source behind the listener
+/// is the negative of its distance. The volume ramp instead states the level to
+/// move to, on the scale where 0x7F is full. `stopFrames` is not a length alone
+/// either: 0 stops the matched voices at once, 1 does the same and raises a flag
+/// on the slot, and a larger value is the fade length in frames.
 typedef struct {
-    s8              pan;        // Stereo placement of the voice
-    u8              volume;     // Level the voice starts at (0 full, 0x7F silent)
+    s8 pan;                     // Stereo offset from the voice's own pan (0 centre)
+    union {
+        s8 attenuation;         // How far the source is from the listener, subtracted from its level
+        u8 loudness;            // Level the volume ramp moves to (0x7F full, 0 silent)
+    } level;
     u16             stopFrames; // How a matching stop acts on the voices
     s32             id;         // Bank-remapped id of the sound the event acts on
     SndBankSlot*    bank;       // Bank the id was resolved in, held for the deferred start
