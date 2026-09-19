@@ -239,8 +239,9 @@ s32 Tmd_SumBufferBytes(void);
 // the `gpStreamPrim*` handlers in the gameplay overlay. The two scratch frames
 // put their slots at the same offsets, so a handler reads either frame through
 // either type; these are declared with the model-side one, the type
-// `tmdProcessStream` passes the handlers it runs, because it is the type that
-// names the slots they touch.
+// Tmd_InitSourceStream resolves a record's handler into and `tmdProcessStream`
+// passes the handlers it runs, because it is the type that names the slots they
+// touch.
 
 /// Handler of a stream record nothing is built from: it steps over the record's
 /// elements and returns the cursor that follows them.
@@ -257,8 +258,8 @@ u32* Tmd_StreamHandler_Prim3A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Prim38(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 // Early-image handlers in Tmd_StreamHandlers_Ops.s, one per stream opcode: a
-// handler still named by the opcode it serves is one whose record has not been
-// read, and it takes a role name once the role is settled.
+// handler whose record has been read is named for the command it serves, and one
+// still carrying the opcode it is keyed by is a record not yet read.
 u32* Tmd_StreamHandler_Op20(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op60(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_OpC0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -355,7 +356,21 @@ u32* Tmd_StreamHandler_Op5A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// same stream copies them into the model's buffer when the model is created,
 /// and this one leaves them where they lie.
 u32* tmdDrawStreamPrimGt3CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_Op170(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+/// Handler of a stream's textured-quad records that name one colour per corner
+/// (`0x170`): each element contributes one quad to the buffer half's second
+/// region, projected, lit per corner and linked into the ordering table.
+///
+/// The element names a colour and a normal for each corner, so the four corners
+/// are lit independently and may differ. A quad whose projection overflows, or
+/// whose corners wind the wrong way, is dropped rather than drawn, and one that
+/// survives is left translucent where the object's flags call for it.
+///
+/// What it writes is what the transform decides: the projected corners, the
+/// corner colours, the primitive code and the ordering-table link. The primitive
+/// itself, texture words included, was written when the stream was compiled into
+/// the buffer, so this command completes it in place.
+u32* tmdStreamPrimGt4CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 // Overlay stream commands (src/gameplay/gameplay.c), selected by
 // tmdProcessStream.

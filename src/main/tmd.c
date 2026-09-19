@@ -245,7 +245,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     handler = func_8009D0DC;
                     break;
                 case 0x170:
-                    handler = Tmd_StreamHandler_Op170;
+                    handler = tmdStreamPrimGt4CornerColors;
                     break;
                 case 0x156:
                     handler = func_8009D718;

@@ -311,11 +311,11 @@ element's colour: a family clearing `0x08` carries its material colour in the
 element, and `0x100` makes that one word per corner instead of one for the
 element. The early-image handlers are where this shows —
 `tmdDrawStreamPrimGt3CornerColors` loads three such words into the GTE colour
-register, one ahead of each corner's lighting step, and `Op170` loads four, each
-result stored into the matching corner colour of the `POLY_GT3`/`POLY_GT4`
-packet they build. The families that gain nothing are the pre-transformed ones
-(bit `0x01`), whose colours the `0xC8` pass writes into the primitive buffer, so
-their elements carry none to shift.
+register, one ahead of each corner's lighting step, and
+`tmdStreamPrimGt4CornerColors` loads four, each result stored into the matching
+corner colour of the `POLY_GT3`/`POLY_GT4` packet they build. The families that
+gain nothing are the pre-transformed ones (bit `0x01`), whose colours the `0xC8`
+pass writes into the primitive buffer, so their elements carry none to shift.
 
 ### 3.3 How arity was established
 

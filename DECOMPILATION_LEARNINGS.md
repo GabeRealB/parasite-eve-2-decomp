@@ -131314,6 +131314,13 @@ declaration, and needs no re-split to be safe, because the region's output path
 never moved. `Tmd_StreamHandlers_Ops.s` is that shape - twenty stream handlers
 in one region - and `tmdDrawStreamPrimGt3CornerColors` (`Op130`) was converted
 in exactly that way.
+Where the unit holds several symbols, none of that applies, and reaching for
+`git mv` would take the whole file away from the handlers that keep their names.
+`Tmd_StreamHandlers_Ops.s` carries twenty of them, and the config's `name:` is
+the file rather than any symbol in it, so converting one member moves nothing:
+the `glabel`/`endlabel` pair in the `.s`, the declaration and the references the
+tool resolves, the symbol map row, and the two lists that key the file's labels
+— its own header comment and `src/main/hasm/README.md`.
 
 ## A model stream record's packet type is in its draw-path twin
 
@@ -131335,6 +131342,18 @@ named rather than the twin's own label list. A draw handler can branch on its
 `flags` argument instead of on the opcode (`Tmd_StreamHandler_Op79` jumps into
 `Tmd_StreamHandler_Op7B` when `flags & 2`, which is the semi-transparent
 variant), and the process path may merge into one arm what the draw path splits.
+
+The two arms write one packet between them, rather than one writing it and the
+other reading it. `Tmd_ProcessStream` lays the texture words down and the draw
+handler completes the same primitive in place with what only a transform can
+decide — its projected corners, its lit corner colours, its primitive code and
+its ordering-table link. That is why a draw handler looks truncated beside the
+body it completes, and why it steps over the packets one primitive at a time:
+the step is the primitive's size (`0x34` for the `POLY_GT4` that
+`tmdStreamPrimGt4CornerColors` completes, `0x1C` for the `POLY_G3` of `0x20`),
+and that arithmetic is what shows the two passes share the region.
+`Tmd_SetupDraw` sets its cursor to the half and the region the process pass
+wrote into, in the other half of the alternating pair.
 
 ## A symbol another binary imports is cited in prose under the importer's name
 
@@ -132438,7 +132457,7 @@ the element names none.
 
 Their offsets are what a draw handler's UV indices are measured against, since
 the colour words sit between the element's refs and its UV words. The
-`0x170` family is the worked example: `Tmd_StreamHandler_Op170` loads four
+`0x170` family is the worked example: `tmdStreamPrimGt4CornerColors` loads four
 element words (`0x10`, `0x14`, `0x18`, `0x1C`) into `RGB`, one ahead of each
 corner's lighting step, and its draw handler reads the UV words at `stream[8]`
 where the families whose elements name no colour read them at `stream[3]` or

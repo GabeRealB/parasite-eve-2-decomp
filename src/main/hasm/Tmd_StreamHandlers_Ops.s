@@ -8,12 +8,11 @@
  * ------------------------------------------------------------
  * Permanent handwritten assembly (splat type: hasm).
  * One body per stream opcode: Tmd_InitSourceStream resolves the body into the
- * stream beside the opcode, and Tmd_DispatchStream jalr's it. Each body is named
- * after the opcode it serves (OpXX) until the handler's role is settled, which
- * is when it takes a role name instead. Dual-entry alternates use alabel (e.g.
- * alabel Tmd_StreamHandler_Op3A shares the body of glabel tmdDrawStreamGt3). A
- * handler named for what it does rather than for its opcode is documented at its
- * declaration in include/main/tmd.h.
+ * stream beside the opcode, and Tmd_DispatchStream jalr's it. Each body is
+ * labelled by the opcode it serves (OpXX) until its role is settled, or for the
+ * command it serves where that has been read (documented in include/main/tmd.h).
+ * Dual-entry alternates use alabel (e.g. alabel Tmd_StreamHandler_Op3A shares
+ * the body of glabel tmdDrawStreamGt3).
  * Early-image placement (linker_section_order: .rodata).
  *
  * Op20/Op60/Op40        flat / clipped triangle & quad families
@@ -22,8 +21,9 @@
  * Op78/Op7A             gouraud textured quad (+ ABR)
  * Op39/Op3B, Op79/Op7B  textured gouraud (+ ABR) tri/quad
  * Op18/Op1A, Op58/Op5A  fixed-color packet variants
- * OpC0 / 0xC8           stream transform helpers
- * Op130/Op170           extended 0x30/0x70-family paths
+ * OpC0/OpC8             stream transform helpers
+ * Op130                 extended 0x30-family path
+ * 0x170                 extended 0x70-family path
  */
 
 .section .text, "ax"
@@ -1895,7 +1895,7 @@ glabel tmdDrawStreamPrimGt3CornerColors
   .L80012518:
     /* 2D18 80012518 */  j           .L80012530
     /* 2D1C 8001251C */  nop
-glabel Tmd_StreamHandler_Op170
+glabel tmdStreamPrimGt4CornerColors
     /* 2D20 80012520 */  andi        $t0, $a1, 0x2
     /* 2D24 80012524 */  bnez        $t0, .L80012514
     /* 2D28 80012528 */  nop
@@ -2048,5 +2048,5 @@ glabel Tmd_StreamHandler_Op170
     /* 2F44 80012744 */  addu        $v0, $zero, $a2
     /* 2F48 80012748 */  jr          $ra
     /* 2F4C 8001274C */  nop
-endlabel Tmd_StreamHandler_Op170
+endlabel tmdStreamPrimGt4CornerColors
 
