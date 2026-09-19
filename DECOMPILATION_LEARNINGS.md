@@ -131717,3 +131717,41 @@ base `9bc5d70565bb51e56e15d39b823683991fcebfbefdbf8d42ac8962bcd22b6e95`;
 base_2 `3d02165ab47d23c8d510b8547afa86d5979312e008bc96af77b61fc560a0e520`.
 The demonstrated dependency is specific to these aggregate layouts; inspect
 BLK dependencies before applying the same source transformation elsewhere.
+
+
+## A redundant coordinate alias splits two lifetimes; port it as two locals (func_actor_444000_80141DFC, 2026-09-19)
+
+A permuter mutation changed the first `coord = model->coords` into
+`new_var = model->coords; coord = new_var;`, leaving a later coordinate reload
+into `coord`. It improved an archived candidate from distance 77 to 50. Paired
+normalization produced identical seed assembly, so normalization was not the gain.
+
+In the parent, both coordinate loads define r89: lreg reports seven references,
+17 instructions, two deaths and one call crossing. It is global-allocated to s0.
+The mutation expands the first load into r88 and inserts r90 = r88 (UID510).
+At cse, UID522 changes its component-load base from r90 to r88; the later
+coordinate reload stays r90. lreg then has two single-death locals: r88 four
+references/13 instructions/no calls, and r90 three references/four instructions/
+one call. greg places them in a2/s0; the vector pointer uses a3.
+
+Controlled prediction `base_3.c`: remove the intermediate `coord = new_var` and
+read all three vector components directly through `new_var`. Result: identical
+normalized assembly, same distance 50 and same local allocation. Thus the
+useful transformation is the two live ranges, expressible as two ordinary
+pointer locals. This is an observed case, not a promise that every redundant
+alias splits a variable. The matching primary already used coord/headCoord.
+
+Its independent remaining stack-slot conflict was solved by the existing
+actor_401300/actor_421600 touched-key-pointer idiom, producing 100.000% with
+all-zero penalties and a successful unscoped build. A do/while(0) boundary
+failed: cse1 kept the two key addresses separate, but cse2 merged them again.
+
+Evidence: `tools/permuter_findings/func_actor_444000_80141DFC/` retains the
+`66df4d6d18494b42` paired inputs, analysis and controlled variation; scratch
+`base_3` is the controlled probe and `base_2` the integrated match.
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Preprocessed SHA256s:
+- paired parent: `66d298a27b5565753508595eb6ef313d4ad00017d4c7f171b2a48fae67bdb638`
+- mutation: `a7bcdbbdd596bb9066a4fb288369d3a57f0d4d82c1e3d7d8f8de7c9d5d5ab46c`
+- controlled: `cba16348b8b75217e30f6ff9f20ec3e9cffb0fbee4e0d23b1c503ba99a2eab05`
+- match: `170858718cd2eb3e9cda52143c1691ab42785a90b04ad75fc8ee11f2218460f6`

@@ -3372,7 +3372,149 @@ out:
     SCRATCH_SP += sizeof(Actor444000SpawnScratch);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_444000/actor_444000_6", func_actor_444000_80141DFC);
+/// Runs the arena attack sequence: restores the host and escort models, handles
+/// animation cues and spawns the additional escort, then keeps the host facing
+/// the camera-target matrix through the shared drive step.
+void func_actor_444000_80141DFC(Actor444000* arg0)
+{
+    Actor444000Work* work;
+    Actor444000Work* escorts;
+    Actor444000Work* buffers;
+    GpEnemy*         obj;
+    GpEnemy*         child;
+    GpAreaKey*       sessionKey;
+    GpAreaRec*       rec;
+    GpCdRec10*       entry;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   headCoord;
+    TmdObject*       tmd;
+    TmdObject*       escortTmd;
+    TmdObject*       model;
+    SVECTOR          vec;
+    SVECTOR*         v;
+    GpAreaKey        key;
+    GpAreaKey*       keyPtr;
+    u8               areaByte0;
+    s16              i;
+    s16              j;
+    s16              angle;
+    s32              id;
+    s32              pan;
+
+    work = arg0->field_1C;
+    obj  = arg0->field_20;
+    if (work->field_4 != 0) {
+        work->field_7B3                  = 0xE;
+        work->field_7B0                  = 1;
+        escorts                          = arg0->field_1C;
+        escorts->field_7F3               = 0;
+        ((TmdObject*)arg0->extra)->flags = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->flags = ((TmdObject*)arg0->extra)->flags;
+            }
+        }
+        tmd     = (TmdObject*)arg0->extra;
+        buffers = arg0->field_1C;
+        if (tmd->buffer == NULL) {
+            Tmd_AllocBuffers(tmd);
+        }
+        for (j = 0; j < 7; j++) {
+            if (buffers->field_ECC[j] != NULL) {
+                escortTmd = (TmdObject*)buffers->field_ECC[j]->task->extra;
+                if (escortTmd->buffer == NULL) {
+                    Tmd_AllocBuffers(escortTmd);
+                }
+            }
+        }
+        work->field_EF6 = 1;
+        work->field_EF4 = 0;
+        work->field_EFA = 0;
+        work->field_EFE = 0;
+    }
+    switch (work->field_6) {
+        case 0x64:
+        case 0x104:
+            if ((s8)work->field_F1A > 0) {
+                work->field_7B3 = 0x10;
+                work->field_7B0 = 1;
+                work->field_EF4 = 1;
+                work->field_F1A = work->field_F1A - 1;
+            } else {
+                work->field_0   = 0xA;
+                work->field_EFE = 0;
+            }
+            break;
+        case 0x74:
+            id  = (((u16)obj->field_8 >> 12) << 8) | 0x40200017;
+            pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
+            break;
+        case 0x1A4:
+            work->field_0   = 0xA;
+            work->field_EFE = 0;
+            work->field_F1A = 0;
+            break;
+        case 0x9B:
+        case 0x113:
+            work->field_EFE = 0x80;
+            break;
+        case 0xAF:
+        case 0x145:
+            child           = Gp_SpawnEnemyFromTable(&D_actor_444000_801617DC, 3, 0, arg0->field_20);
+            child->field_A  = 0x900;
+            work->field_EF0 = child;
+            if (child != NULL) {
+                model      = (TmdObject*)child->task->extra;
+                sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+                key.stage  = sessionKey->stage;
+                key.area   = sessionKey->area;
+                key.room   = sessionKey->room;
+                areaByte0  = sessionKey->view;
+                SOFT_BARRIER();
+                keyPtr = &key;
+                TOUCH_REG(keyPtr);
+                key.view = areaByte0;
+                Gp_SyncAreaKeyIndex(keyPtr);
+                rec          = Gp_GetNestedAreaRec(&key);
+                entry        = (GpCdRec10*)((s32)rec->field_0 + 0x20);
+                model->tpage = entry->field_D;
+                model->clut  = entry->field_E;
+                if (model->buffer != NULL) {
+                    Tmd_ProcessStream(model);
+                    Tmd_ProcessStream(model);
+                }
+                work->field_EFE = 0;
+            }
+            break;
+    }
+    coord     = ((TmdObject*)arg0->extra)->coords;
+    v         = &vec;
+    v->vx     = D_80073B8C->t[0] - coord->coord.t[0];
+    v->vy     = D_80073B8C->t[1] - coord->coord.t[1];
+    v->vz     = D_80073B8C->t[2] - coord->coord.t[2];
+    headCoord = ((TmdObject*)arg0->extra)->coords;
+    angle     = ratan2(v->vx, v->vz) - ratan2(-headCoord->coord.m[2][0], headCoord->coord.m[2][2]);
+    if (angle < 0) {
+    wrapUp:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto wrapUp;
+        }
+    } else {
+    wrapDown:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto wrapDown;
+        }
+    }
+    work->field_7C4 = angle;
+    func_actor_444000_8013441C(arg0);
+    if (work->field_7B3 == 0x10 && (work->slots0[1].flags & 1)) {
+        work->field_7B3 = 0xE;
+        work->field_7B0 = 1;
+    }
+}
 
 /// Keeps the player inside the arena: clamps the player model's root
 /// translation every tick. `t[1]` (height) is never allowed above 0, and `t[2]`
