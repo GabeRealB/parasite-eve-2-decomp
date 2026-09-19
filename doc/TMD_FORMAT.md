@@ -325,7 +325,7 @@ directions.
 
 | Handler | XY stores | Primitive | Arity |
 |---|---|---|---|
-| `Tmd_StreamHandler_Op20` | `0x8`, `0x10`, `0x18` | `POLY_G3` | triangle |
+| `tmdDrawStreamPrimG3CornerNormals` | `0x8`, `0x10`, `0x18` | `POLY_G3` | triangle |
 | `tmdDrawStreamGt3` | `0x8`, `0x14`, `0x20` | `POLY_GT3` | triangle |
 | `Tmd_StreamHandler_Op60` | `0x10`, `0x18`, `0x20` | `POLY_G4` | quad |
 | `tmdDrawStreamGt4` | `0x14`, `0x20`, `0x2C` | `POLY_GT4` | quad |
@@ -543,7 +543,7 @@ switch, so they run once at setup rather than every frame.
 | Opcode | Init handler | Stride | Elements | Role |
 |---|---|---:|---:|---|
 | `0x21` | `Tmd_StreamHandler_Prim30` | 2 | 2 | ? |
-| `0x22` | `Tmd_StreamHandler_Op20` | 4 | 8 | ? |
+| `0x22` | `tmdDrawStreamPrimG3CornerNormals` | 4 | 8 | the `0x20` triangle in its semi-transparent form; the two opcodes resolve to one body |
 | `0x61` | `Tmd_StreamHandler_Prim38` | — | — | ? |
 | `0x62` | `Tmd_StreamHandler_Op60` | 5 | 26 | ? |
 | `0xC0` | `Tmd_StreamHandler_OpC0` | 3 | 6 | "stream transform helper" per the hasm header; unsolved |

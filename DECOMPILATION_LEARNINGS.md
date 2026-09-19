@@ -132737,9 +132737,11 @@ static fields - `0x0`, `0x20`, `0x120`, `0x4000`, `0x4020` and `0x4120` are one
 all it does, and neither depends on the rest of the record. The draw pass splits
 them, because what the split arms differ in is exactly its work: `0x20` gives the
 triangle a normal per corner where `0x0` has one, so the two light it differently
-(`NCDT` against `NCDS`) and cannot share a body. The kind comes from the process
-arm, the modifier from the opcode's bit - which is how the process-pass names
-read too (`gpStreamPrimGt3OneNormal` beside `gpStreamPrimGt3CornerColors`).
+(`NCCT`, one step for three normals, against `NCCS`, one step for one) and cannot
+share a body. The kind comes from the process arm, the modifier from the opcode's
+bit - `tmdDrawStreamPrimG3CornerNormals` beside `tmdDrawStreamPrimG3` for `0x20`
+and `0x0` - which is how the process-pass names read too
+(`gpStreamPrimGt3OneNormal` beside `gpStreamPrimGt3CornerColors`).
 
 A draw body names its own packet without help from the twin: the primitive
 cursor's increment and the `lui` tag word give the packet's size and length, and
@@ -132760,3 +132762,19 @@ handlers "init", the gameplay bodies "draw" - naming each after the function tha
 selects it rather than the pass that runs it. A body that writes no screen
 coordinate is not the drawing one, so take the label from what runs the handler: the
 dispatcher that jalrs a set is what makes it the draw pass's, and the name follows.
+
+## A draw handler's lighting word says whether its record carries a normal per corner
+
+A lighting handler's GTE command is a cop2 word whose low six bits are the
+function code, and that code counts the normals the record names: `0x1B` `NCCS`
+lights one and yields one colour, `0x3F` `NCCT` lights three at once and yields
+one colour per corner. A record whose four corners are each lit from their own
+normal carries both - the triple for the first three, the single for the fourth -
+and a family that lights the whole face once has `NCCS` alone.
+
+That word settles the half of the handler's name its twin cannot. The process arm
+merges every opcode whose packet has the same size into one body, so it names the
+packet's kind and nothing more; the opcode's bit is the modifier, and the
+lighting word is where the modifier shows (`0x0` against `0x20`: one normal for
+the face against one per corner). Read it in the draw body, which names its own
+lighting where the twin is a body that may not be decompiled at all.

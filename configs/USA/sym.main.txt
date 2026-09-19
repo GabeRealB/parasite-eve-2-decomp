@@ -35,7 +35,7 @@ Tmd_DispatchStream          = 0x80010A20; // type:func
 //--------------------------------------------------------------------
 //--- PA: 0x01290   VA: 0x80010A90   subsegment: hasm, Tmd_StreamHandlers_Ops
 //--------------------------------------------------------------------
-Tmd_StreamHandler_Op20      = 0x80010A90; // type:func
+tmdDrawStreamPrimG3CornerNormals      = 0x80010A90; // type:func
 Tmd_StreamHandler_Op60      = 0x80010BF4; // type:func
 Tmd_StreamHandler_OpC0      = 0x80010E1C; // type:func
 Tmd_StreamHandler_Op3A      = 0x80010EF4; // type:func  (alabel, ABR entry into tmdDrawStreamGt3)

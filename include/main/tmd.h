@@ -261,7 +261,28 @@ u32* Tmd_StreamHandler_Prim38(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 // `Tmd_InitSourceStream` patches each into a model's stream for the opcodes it
 // answers to, and the draw walk jalrs it. Each is named for the opcode it serves
 // or for the command it serves where that has been read.
-u32* Tmd_StreamHandler_Op20(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Draw-pass handler of a stream's untextured triangle records that name a
+/// normal per corner (`0x20`, `0x22`): each element is one `POLY_G3` in the
+/// buffer half's second region, built whole here as the record is transformed.
+///
+/// The record is the `0x0` triangle's with one normal per corner in place of the
+/// one it lights the face from: the element names the triangle's three vertices,
+/// three normals and the colour word whose top byte is the packet's primitive
+/// code. The vertices are projected, and the triangle is dropped where that
+/// transform raises a GTE error or the triangle faces away; what survives is lit
+/// from its three normals in one step, each corner taking its colour from its
+/// own normal under the model's light, so the packet's three colour words carry
+/// a result each where `tmdDrawStreamPrimG3` writes the same lit colour to all of
+/// them. The packet is linked into the ordering table at the depth it came out
+/// at, and a dropped triangle still consumes its packet's room, because the room
+/// was reserved for every element by the process pass (`gpStreamPrimG3`), whose
+/// cursor this one stays in step with.
+///
+/// The record's `0x22` form resolves to this same body, and the handler reads no
+/// `flags`: a semi-transparent variant is not this one's to select, because the
+/// packet's code byte is the element's own — carried in its colour word and
+/// taken to the packet by the lighting step.
+u32* tmdDrawStreamPrimG3CornerNormals(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op60(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_OpC0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op3A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -753,7 +774,8 @@ u32* gpStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
 /// the ordering table — as it transforms the record. What is left here is the
 /// packet's room: stepping the primitive cursor past it is what keeps the records
 /// that follow building where the draw pass will look for them, and the `0x0`
-/// records are built there by `tmdDrawStreamPrimG3`.
+/// records are built there by `tmdDrawStreamPrimG3`, the `0x20` ones — the same
+/// packet, lit from a normal per corner — by `tmdDrawStreamPrimG3CornerNormals`.
 u32* gpStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 #endif // TMD_H

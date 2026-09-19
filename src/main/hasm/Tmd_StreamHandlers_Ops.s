@@ -15,8 +15,9 @@
  * tmdDrawStreamGt3).
  * Early-image placement (linker_section_order: .rodata).
  *
- * Op20/Op60/Op40        flat / clipped triangle & quad families
- * tmdDrawStreamPrimG3   the 0x0 record, one POLY_G3 built per element
+ * tmdDrawStreamPrimG3CornerNormals  untextured triangle, one normal per corner
+ * tmdDrawStreamPrimG3   the same triangle, one normal for the whole face
+ * Op60/Op40             untextured quad family
  * Op3A/tmdDrawStreamGt3  gouraud textured triangle (+ ABR)
  * Op7A/tmdDrawStreamGt4  gouraud textured quad (+ ABR)
  * Op39/Op3B, Op79/Op7B  textured gouraud (+ ABR) tri/quad
@@ -28,7 +29,7 @@
 
 .section .text, "ax"
 
-glabel Tmd_StreamHandler_Op20
+glabel tmdDrawStreamPrimG3CornerNormals
     /* 1290 80010A90 */  lw          $t9, 0x18($a0)
     /* 1294 80010A94 */  lw          $a3, 0x1C($a0)
     /* 1298 80010A98 */  lw          $t8, 0x0($a0)

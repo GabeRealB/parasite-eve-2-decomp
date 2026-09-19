@@ -76,7 +76,7 @@ void Tmd_InitSourceStream(TmdSource* src)
             switch (id) {
                 case 0x20:
                 case 0x22:
-                    handler = Tmd_StreamHandler_Op20;
+                    handler = tmdDrawStreamPrimG3CornerNormals;
                     break;
                 case 0x60:
                 case 0x62:
