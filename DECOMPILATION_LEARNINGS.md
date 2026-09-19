@@ -49815,6 +49815,42 @@ first. Check `.sched` for a plain priority sitting next to a `7f000001`
 column, then check whether the C local behind it is assigned in more than one
 arm.
 
+## Manufacturing a second set to kill the launch boost: what survives and what does not
+
+When the fix is the other direction - a reload or copy that must *lose* the
+`birthing_insn_p` boost so `sched1` places it by its own priority - the second
+set has to survive every pass between expansion and flow, and most candidate
+forms do not. `REG_N_SETS` is counted after those passes, so a set that is
+folded away leaves the pseudo single-set and the boost intact, with no sign in
+the object diff that the attempt did nothing.
+
+Four forms were tried on one reload and only the last worked:
+
+* **A dead set** (`m = 0;` before the real assignment, or a set whose value is
+  never read) is deleted as dead code.
+* **A constant second set** feeding a call argument is constant-propagated into
+  the call and deleted.
+* **A same-mode copy from a live source** (`m = v;` where `m` and `v` are both
+  `s32`, with `m` then used) is copy-propagated at the use and the copy becomes
+  dead. Liveness of the source does not save it; this is the form an earlier
+  note guessed would work, and it does not.
+* **A second set whose value is genuinely computed** - another load, another
+  arithmetic result - survives.
+
+Two further constraints decide whether the surviving form is any use. The
+merged quantity runs from the first birth to the last death, so both sets must
+be close together or the pseudo ends up spanning a call and `local_alloc` is
+forced onto a callee-saved register. And both sets must be in the *same basic
+block*: a pseudo referenced from two blocks is global, `local_alloc` skips it
+entirely, and it can no longer deny a hard register to the local quantities it
+overlaps - which is often the whole point of the exercise.
+
+A related trap: a mode-changing copy (`(set (reg:HI x) (subreg:HI (reg:SI y)))`,
+which is what a 16-bit field assigned from a 32-bit temp emits) is *not*
+coalesced, while the same-mode copy is. So a 32-bit constant and a narrowed
+value cannot be made to share one pseudo, however much the target's register
+assignment suggests they are one quantity.
+
 ## Which call-argument copy sits next to the `jal` is decided by hard-register set counts
 
 Two zero arguments after a run of stores looked like a register-colouring miss:
