@@ -295,7 +295,7 @@ void Actor04400_Fn00B24(Task* arg0)
     w->eff_3FC.coord      = &((TmdObject*)arg0->extra)->coords[1];
     w->eff_3FC.spawnArgLo = 0x140;
     w->eff_3FC.spawnArgHi = 2;
-    e->field_40 = e->field_42 = Actor04400_D0D318.field_4;
+    e->field_40 = e->field_42 = Actor04400_D0D318.hpMax;
     func_800B3F84(&w->anim, Actor04400_D10778, obj, w->field_21C, &w->slot_B4);
     w2            = (Actor104400Work*)arg0->work;
     w2->field_41C = 0x10;
@@ -392,7 +392,7 @@ void Actor04400_Fn00D3C(Task* arg0)
     w->eff_3FC.coord      = &((TmdObject*)arg0->extra)->coords[1];
     w->eff_3FC.spawnArgLo = 0x140;
     w->eff_3FC.spawnArgHi = two;
-    e->field_40 = e->field_42 = Actor04400_D0D318.field_4;
+    e->field_40 = e->field_42 = Actor04400_D0D318.hpMax;
     func_800B3F84(&w->anim, Actor04400_D10778, obj, w->field_21C, &w->slot_B4);
     w2            = (Actor104400Work*)arg0->work;
     w2->field_41C = 0x10;

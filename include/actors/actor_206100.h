@@ -94,7 +94,7 @@ extern GpAreaApplyRec D_8018590C;
 extern GpU16Pair D_actor_206100_80155194;
 
 /// Pair source `func_actor_206100_8014AF74` parks in `GpEnemy::field_50`, whose
-/// `field_0` is `D_actor_206100_80155194` above and whose `field_4` is the
+/// `pairTable` is `D_actor_206100_80155194` above and whose `hpMax` is the
 /// actor's max HP (2000), seeded into `field_40` / `field_42` at spawn.
 extern GpPairSrcE D_actor_206100_80155198;
 
@@ -526,7 +526,7 @@ extern TaskDesc D_actor_206100_80158AF0;
 /// which the effect argument at `eff_4C0` reuses for part 1 (`field_8[1]`),
 /// so `enemy->field_4` and the effect share one coordinate.
 ///
-/// `hp` is read once into a local because `D_actor_206100_80155198.field_4` is
+/// `hp` is read once into a local because `D_actor_206100_80155198.hpMax` is
 /// the pair's max HP and both `field_40` and `field_42` take it -- reading the
 /// global twice instead costs a register and shifts the whole function's
 /// allocation (see `DECOMPILATION_LEARNINGS.md`, "A repeated global load ...").

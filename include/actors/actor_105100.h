@@ -154,7 +154,7 @@ typedef struct Actor105100Ctx {
     /* 0x49 */ byte           pad_49[3];
     /* 0x4C */ u8             field_4C;
     /* 0x4D */ byte           pad_4D[3];
-    /* 0x50 */ void*          field_50;
+    /* 0x50 */ GpPairSrcE*    field_50;
     /* 0x54 */ s32            field_54;
 } Actor105100Ctx;
 STATIC_ASSERT_SIZEOF(Actor105100Ctx, 0x58);

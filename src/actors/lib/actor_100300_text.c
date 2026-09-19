@@ -339,7 +339,7 @@ void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
     enemy->field_50    = &Actor00300_D15FE8;
     enemy->field_54    = (s32)(work->rec4F0);
     enemy->field_18    = parts + 3;
-    enemy->field_40    = (s16)Actor00300_D15FE8.field_4;
+    enemy->field_40    = (s16)Actor00300_D15FE8.hpMax;
     work->field_5F0    = (void*)(((Actor100300Obj2C*)task->extra)->field_8 + 3);
     work->field_5F4    = 0x300;
     work->field_5F6    = 2;

@@ -172,7 +172,7 @@ void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
     enemy->field_42   = 1;
     enemy->field_40   = 1;
     enemy->field_4C   = 0;
-    hp                = D_actor_223600_8014CFCC.field_4;
+    hp                = D_actor_223600_8014CFCC.hpMax;
     enemy->field_50   = &D_actor_223600_8014CFCC;
     enemy->field_54   = 0;
     enemy->field_42   = hp;

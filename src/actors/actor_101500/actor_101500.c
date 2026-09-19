@@ -42,7 +42,7 @@ void func_actor_101500_80131EB4(GpEnemy* arg0, Actor101500* arg1)
     arg0->field_1C.vz          = 0;
     arg0->field_50             = &D_actor_101500_8013BDD8;
     arg0->field_54             = (s32)work->field_1FC;
-    arg0->field_40             = D_actor_101500_8013BDD8.field_4;
+    arg0->field_40             = D_actor_101500_8013BDD8.hpMax;
     work->field_314.coord      = coord;
     work->field_314.spawnArgLo = 0x300;
     work->field_314.spawnArgHi = 1;

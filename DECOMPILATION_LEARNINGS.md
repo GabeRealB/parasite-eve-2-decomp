@@ -67440,7 +67440,7 @@ sh    v0,0x40(s1)
 
 Writing the obvious `src = &tbl[i]; enemy->field_50 = src; enemy->field_40 =
 src->field_4;` produces `lhu v0,4(v1)` and no copy, and so does
-`enemy->field_40 = enemy->field_50->field_4;` on its own: RTL CSE knows the MEM
+`enemy->field_40 = enemy->field_50->hpMax;` on its own: RTL CSE knows the MEM
 at `0x50(enemy)` still holds the stored register, rewrites the load to a
 register copy, and combine then propagates that copy away.
 
@@ -67452,7 +67452,7 @@ register loaded from memory, even at different constant offsets. So
 ```c
 enemy->field_50 = &D_actor_503500_8016E7EC[arg0->spawnArg1];
 enemy->field_54 = (s32)rec;
-enemy->field_40 = enemy->field_50->field_4;
+enemy->field_40 = enemy->field_50->hpMax;
 ```
 
 leaves a real `lw` all the way through `.greg` (`(set (reg:SI 2 v0) (mem/s:SI
@@ -67516,7 +67516,7 @@ instruction on it:
 sw    v1,0x50(s1)      ; enemy->field_50 = &D_actor_503500_8016E7EC[i]
 sw    s2,0x54(s1)      ; (scheduled up from below)
 move  v0,v1
-lhu   v0,4(v0)         ; enemy->field_40 = enemy->field_50->field_4
+lhu   v0,4(v0)         ; enemy->field_40 = enemy->field_50->hpMax
 ```
 
 The `move` is not a hand-written temporary and not a scheduling artifact. It is
@@ -67533,7 +67533,7 @@ Written with the neighbouring field first,
 ```c
 enemy->field_54 = (s32)rec;
 enemy->field_50 = &D_actor_503500_8016E7EC[arg0->spawnArg1];
-enemy->field_40 = enemy->field_50->field_4;   /* adjacent to its store */
+enemy->field_40 = enemy->field_50->hpMax;   /* adjacent to its store */
 ```
 
 cse sees the store and the read-back with nothing in between, folds the MEM to
@@ -67545,7 +67545,7 @@ Swapping the two stores,
 ```c
 enemy->field_50 = &D_actor_503500_8016E7EC[arg0->spawnArg1];
 enemy->field_54 = (s32)rec;                   /* invalidates the MEM record */
-enemy->field_40 = enemy->field_50->field_4;
+enemy->field_40 = enemy->field_50->hpMax;
 ```
 
 puts a store to `0x54` off the same base between them. GCC 2.8.1's cse
@@ -67664,7 +67664,7 @@ read-back of the first of them:
 ```c
 enemy->field_50 = &D_actor_503500_8016E7EC[arg0->spawnArg1];
 enemy->field_54 = (s32)rec;
-enemy->field_40 = enemy->field_50->field_4;
+enemy->field_40 = enemy->field_50->hpMax;
 ```
 
 The target has an `addu $v0, $v1, $zero` between `sw $v1, 0x50($s1)` and
@@ -68308,7 +68308,7 @@ own local removes the anti-dependence: the address is computed right before
 its store, as in the target, and local-alloc still ties `part` into `coord`'s
 register because `coord` dies in that insn, so the allocation is unchanged
 (100%). Same function: the store order `field_50` then `field_54` then
-`field_40 = enemy->field_50->field_4` (copied from the matched sibling
+`field_40 = enemy->field_50->hpMax` (copied from the matched sibling
 `func_actor_503500_801372C8`) is what produces the target's
 `move v0,v1; lhu v0,4(v0)` copy; with `field_54` first the copy is gone. That
 edit landed together with moving the `vz` load ahead of the `7D8`/`7CA` stores,
@@ -128712,7 +128712,7 @@ for `abs` before modelling the allocator.
 ## A `u16` field divided by a power of two is shortened to an unsigned `srl`; route it through an `s32` local to get the signed bias (func_actor_102300_80131EA4, 2026-09-18)
 
 The low-HP threshold in the actor hit tick is
-`enemy->field_40 < enemy->field_50->field_4 / 4`, where `GpPairSrcE.field_4` is
+`enemy->field_40 < enemy->field_50->hpMax / 4`, where `GpPairSrcE.hpMax` is
 `u16`. The target divides it *signed*, keeping the bias even though the `lhu`
 makes the `bgez` unconditionally true:
 
@@ -128744,12 +128744,12 @@ first makes `orig_op0` a signed `int`, `get_narrower` finds nothing to narrow
 to, and the signed expansion returns:
 
 ```c
-} else if (max = enemy->field_50->field_4, enemy->field_40 < max / 4) {
+} else if (max = enemy->field_50->hpMax, enemy->field_40 < max / 4) {
 ```
 
 This is the same idiom already in `func_actor_402200_801324E8` (`max / 10`), and
 it is why the sibling body `func_actor_105700_80131ED0` needs no local for
-`field_4 * 15 / 100`: the multiply makes the dividend a full `int`, so there is
+`hpMax * 15 / 100`: the multiply makes the dividend a full `int`, so there is
 nothing for `shorten_binary_op` to narrow. Reach for the local whenever a `u16`
 or `u8` field is divided directly by a constant and the target keeps a sign
 correction.
@@ -132537,3 +132537,24 @@ stores applies to a member that changed its type.
 The reverse also holds: a seed written in address order stays in address order.
 Both forms occur, so read the original statement sequence rather than the field
 offsets.
+
+## A type the overlays share needs a header of its own, not one they can include
+
+An overlay-local header and the gameplay headers cannot both be included in one
+translation unit. The overlays redeclare the gameplay functions and the shared
+globals against their own view of the object - a sound helper taking the actor's
+coordinate type, a walk helper taking the actor's context, a shared global
+declared with the width that overlay's readers use. A second declaration of one
+name with a different type is a hard error even where the emitted code would be
+identical, so folding an overlay-local type into the type the gameplay code uses
+cannot be done by having those overlay headers include the gameplay header: it
+fails on unrelated names, in every TU of the overlay, and each of those
+redeclarations is load-bearing for its own match.
+
+Give the merged type a header that declares that type and nothing else, and let
+both sides include it. The gameplay header includes it as well, so no other file
+changes and no translation unit gains a declaration it did not already have.
+
+A forward declaration is not a substitute when a member has to be read: an
+overlay that reads `rec->hpMax` needs the complete type, and a header that
+forward-declares it compiles only where the field is never touched.

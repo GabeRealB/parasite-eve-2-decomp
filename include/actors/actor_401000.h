@@ -368,7 +368,7 @@ extern MATRIX* D_80073B8C;
 extern s32 D_actor_401000_80154E48;
 
 /// Parameter pair `func_actor_401000_80133274` installs as `GpEnemy::field_50`
-/// and reads `field_4` out of as the actor's initial `field_40`.
+/// and reads `hpMax` out of as the actor's initial `field_40`.
 extern GpPairSrcE D_actor_401000_8013E09C;
 
 /// Three combat-parameter records `func_actor_401000_80133274` picks between

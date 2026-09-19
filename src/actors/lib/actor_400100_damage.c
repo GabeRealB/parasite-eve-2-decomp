@@ -562,7 +562,7 @@ void Actor00100_Fn02C54(GpEnemy* arg0, Task* arg1)
     Gp_LinkNode(&arg0->node);
     arg0->node.flags = 1;
     arg0->field_4C   = 0;
-    arg0->field_40   = Actor00100_D0BDA4.field_4;
+    arg0->field_40   = Actor00100_D0BDA4.hpMax;
     arg0->field_50   = &Actor00100_D0BDA4;
     arg0->field_54   = (s32)&work->objs[0].field_20;
     func_800B3F84(&work->anim0, &Actor00100_D1B944, tmd, work->data0, &work->slot0);

@@ -65,7 +65,7 @@ extern s16 D_actor_105100_801414C8[];
 /// The spawn's pair tables. `Gp_PackPair` packs the `GpU16Pair` at 0x80141380
 /// into the work's third list node (`Actor105100Work::obj4E4.key`), and the
 /// `GpPairSrcE` at 0x80141398 is the pair source the context points at with
-/// `Actor105100Ctx::field_50` -- its `field_4` seeds the enemy's HP.
+/// `Actor105100Ctx::field_50` -- its `hpMax` seeds the enemy's HP.
 extern GpU16Pair  D_actor_105100_80141380;
 extern GpPairSrcE D_actor_105100_80141398;
 
@@ -86,7 +86,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_8
 /// Spawn/setup handler. It allocates the 0x5C4-byte work block and hangs it off
 /// the task, points the model object at the block's two `MATRIX`es (0x45C the
 /// light matrix, 0x43C the colour one) and fills the context's coordinate,
-/// pair source and HP (`field_40`, seeded from the pair source's `field_4`).
+/// pair source and HP (`field_40`, seeded from the record's `hpMax`).
 ///
 /// The block's 0x14-prefix then becomes the `GpAnimCtx`: `func_800B3F84` loads
 /// the animation data into it over the nineteen `GpAnimSlot`s, and slots 1..18
@@ -129,7 +129,7 @@ void func_actor_105100_801327B4(Actor105100Ctx* arg0, Actor105100* arg1)
     arg0->field_24             = 0;
     arg0->field_50             = &D_actor_105100_80141398;
     arg0->field_54             = (s32)work->field_49C;
-    arg0->field_40             = D_actor_105100_80141398.field_4;
+    arg0->field_40             = D_actor_105100_80141398.hpMax;
     work->field_554.coord      = &arg1->field_2C->field_8[3];
     work->field_554.spawnArgLo = 0x500;
     work->field_554.spawnArgHi = 3;

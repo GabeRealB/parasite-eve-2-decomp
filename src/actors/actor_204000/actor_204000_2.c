@@ -131,7 +131,7 @@ void func_actor_204000_8014AED8(GpEnemy* arg0, Actor104000* arg1)
     Gp_LinkNode(&arg0->node);
     arg0->node.flags = 1;
     arg0->field_4C   = 0;
-    arg0->field_40 = arg0->field_42 = D_actor_204000_80150EA4.field_4;
+    arg0->field_40 = arg0->field_42 = D_actor_204000_80150EA4.hpMax;
     arg0->field_50                  = &D_actor_204000_80150EA4;
     arg0->field_54                  = (s32)hits;
     work->field_170                 = 2;

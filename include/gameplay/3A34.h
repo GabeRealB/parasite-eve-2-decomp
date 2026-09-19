@@ -8,6 +8,7 @@
 #include <psyq/libgs.h>
 
 #include "gameplay/268.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/3FB8.h"
 #include "main/display.h"
 #include "main/session.h"
@@ -38,8 +39,8 @@ STATIC_ASSERT_SIZEOF(GpObjDirRec, 0xC);
 /// One 4-byte entry of the tables that name a collision body: the two halves
 /// `Gp_PackPair` / `Gp_PackObjPair` pack into that body's `GpObj.key`, taking
 /// the low 12 bits of `field_0` and the low 4 bits of `field_2`. An actor's
-/// spawn tables and the pair source a body points at through
-/// `GpPairSrc.field_0` / `GpPairSrcE.field_0` hold these.
+/// spawn tables and the one an enemy's `GpPairSrcE.pairTable` points at hold
+/// these.
 ///
 /// The halves stay unnamed because their meaning belongs to the table rather
 /// than to the type: `GpEdgePair` covers the same bytes as two corner indices,
@@ -169,40 +170,11 @@ typedef struct _GpDmgSlot {
 } GpDmgSlot;
 STATIC_ASSERT_SIZEOF(GpDmgSlot, 0xC);
 
-/// Table source pointed to by `GpObj50.field_50`. `field_0` is the
-/// `GpU16Pair` array packed by `Gp_PackObjPair`. Nearby helpers also
-/// load bytes at +0xB / +0xD / +0xE of this object (`GpPairSrcE`).
-typedef struct _GpPairSrc {
-    /* 0x00 */ GpU16Pair* field_0;
-} GpPairSrc;
-STATIC_ASSERT_SIZEOF(GpPairSrc, 0x4);
-
-/// Wider view of the object pointed to by `GpObj50.field_50`.
-/// `Gp_TickObjFlag4` loads `field_4`; `Gp_ReleaseStateF0Add` adds `field_6` /
-/// `field_8` / `field_A` into `Gp_StateF0.field_8` / `field_C` /
-/// `field_10`. Nearby helpers also load bytes at +0xB / +0xC / +0xD /
-/// +0xE (`Gp_TickObjFlag2` loads `field_C`; `Gp_SetObjFlag4` loads
-/// `field_D`; `Gp_ObjFlag4Expired` loads `field_E`). Trailing pad keeps
-/// 4-byte alignment.
-typedef struct _GpPairSrcE {
-    /* 0x00 */ GpU16Pair* field_0;
-    /* 0x04 */ u16        field_4;
-    /* 0x06 */ u16        field_6;
-    /* 0x08 */ u16        field_8;
-    /* 0x0A */ u8         field_A;
-    /* 0x0B */ u8         field_B;
-    /* 0x0C */ u8         field_C;
-    /* 0x0D */ u8         field_D;
-    /* 0x0E */ u8         field_E;
-    /* 0x0F */ byte       pad_F;
-} GpPairSrcE;
-STATIC_ASSERT_SIZEOF(GpPairSrcE, 0x10);
-
-/// Object whose pointer at 0x50 is a `GpPairSrc*` used by `Gp_PackObjPair`.
-/// Same object family as `GpObj4C` (flags at 0x4C).
+/// Object whose pointer at 0x50 is the enemy's `GpPairSrcE`, used by
+/// `Gp_PackObjPair`. Same object family as `GpObj4C` (flags at 0x4C).
 typedef struct _GpObj50 {
-    /* 0x00 */ byte       pad_0[0x50];
-    /* 0x50 */ GpPairSrc* field_50;
+    /* 0x00 */ byte        pad_0[0x50];
+    /* 0x50 */ GpPairSrcE* field_50;
 } GpObj50;
 STATIC_ASSERT_SIZEOF(GpObj50, 0x54);
 
@@ -504,7 +476,7 @@ STATIC_ASSERT_SIZEOF(GpObj4C, 0x50);
 /// into `field_4C`, clears `field_58` / `field_5B`, and writes `field_5D`
 /// from `Gp_StateC08.field_0 % 10` when the id has the 0x8000 bit and low
 /// 6 bits != 0x31. `Gp_TickObjFlag2` compares `field_58` against
-/// `field_50->field_C * D_80113D30[field_5D] / 100` and ticks `field_5B`.
+/// `field_50->flag2Ticks * D_80113D30[field_5D] / 100` and ticks `field_5B`.
 /// Trailing pad keeps pointer alignment; full object size is not known yet.
 typedef struct _GpObj5D {
     /* 0x00 */ byte        pad_0[0x40];
@@ -526,15 +498,15 @@ STATIC_ASSERT_SIZEOF(GpObj5D, 0x60);
 
 /// Sparse overlay of the same object family as `GpObj5D` / `GpObj50`.
 /// `Gp_SetObjFlag4` rolls `(Gp_LcgState * 5 + 0x71357911) >> 16 & 0xFFF`
-/// against `field_50->field_D << 12 / 100`. On a hit it clears
+/// against `field_50->flag4Chance << 12 / 100`. On a hit it clears
 /// `field_5A`, ORs bit 0x4 into `field_4C`, reseeds `field_59` from
 /// `Gp_LcgState`, and writes `field_5C` from `Gp_StateC08.field_0 % 10`
 /// when `arg1` has the 0x8000 bit (else 0).
 /// `Gp_ObjFlag4Expired` tests bit 0x4 of `field_4C` and compares `field_5A`
-/// against `field_50->field_E * D_80113D28[field_5C] / 100`.
+/// against `field_50->flag4Ticks * D_80113D28[field_5C] / 100`.
 /// `Gp_TickObjFlag4` decrements `field_59` and, on expiry, increments
 /// `field_5A`, reseeds `field_59` from `Gp_LcgState`, and returns
-/// `field_50->field_4 * D_80113D38[field_5C] / 100` (or 1 if that is 0).
+/// a percentage of the enemy's `field_50->hpMax` for that tick (at least 1).
 /// Trailing pad keeps pointer alignment; full object size is not known yet.
 typedef struct _GpObj5C {
     /* 0x00 */ byte        pad_0[0x4C];
@@ -552,8 +524,9 @@ STATIC_ASSERT_SIZEOF(GpObj5C, 0x60);
 
 /// Sparse overlay whose pointer at 0x20 is a `GpObj5C*` (same family as
 /// `GpObj50`). `Gp_ReleaseStateF0Add` reads `field_20->field_50` and adds that
-/// `GpPairSrcE`'s `field_6` / `field_8` / `field_A` into
-/// `Gp_StateF0.field_8` / `field_C` / `field_10`.
+/// `GpPairSrcE`'s `exp` / `bp` / `mp` into
+/// `Gp_StateF0.field_8` / `field_C` / `field_10`, the pending EXP / BP / MP
+/// totals the battle-result panel credits to the player.
 typedef struct _GpObj20E {
     /* 0x00 */ byte     pad_0[0x20];
     /* 0x20 */ GpObj5C* field_20;
@@ -651,8 +624,9 @@ STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 /// refcount incremented by `Gp_IncStateF0Ref` and decremented by
 /// `Gp_ReleaseStateF0Add` / `Gp_ReleaseStateF0Clear` / `Gp_ReleaseStateF0`. Last-ref
 /// release in `Gp_ReleaseStateF0Clear` also clears words at 0x8 / 0xC / 0x10.
-/// `Gp_ReleaseStateF0Add` then adds `arg0->field_20->field_50` `field_6` /
-/// `field_8` / `field_A` into those same words.
+/// `Gp_ReleaseStateF0Add` then adds the record's `exp` / `bp` / `mp` at
+/// `arg0->field_20->field_50` into those same words, which is how an enemy's
+/// rewards reach the battle result.
 /// `func_800E2C78` adds into
 /// `field_14` when `(arg1 & 0x7F)` is 0x19..0x1B.
 /// `field_18`..`field_2A` are unknown bytes cleared by `Gp_InitStateF0`.
@@ -1333,15 +1307,15 @@ extern GpRec10 Gp_IdParamLo[];
 extern GpRec16 Gp_IdParamHi[];
 
 /// u16 scale table indexed by `GpObj5C.field_5C`. `Gp_ObjFlag4Expired` multiplies
-/// `field_50->field_E` by the selected entry and divides by 100.
+/// `field_50->flag4Ticks` by the selected entry and divides by 100.
 extern u16 D_80113D28[];
 
 /// u16 scale table indexed by `GpObj5D.field_5D`. `Gp_TickObjFlag2` multiplies
-/// `field_50->field_C` by the selected entry and divides by 100.
+/// `field_50->flag2Ticks` by the selected entry and divides by 100.
 extern u16 D_80113D30[];
 
 /// u16 scale table indexed by `GpObj5C.field_5C`. `Gp_TickObjFlag4` multiplies
-/// `field_50->field_4` by the selected entry and divides by 100.
+/// the enemy's `field_50->hpMax` by the selected entry and divides by 100.
 extern u16 D_80113D38[];
 
 /// Damage-scale rows used by `Gp_ScaleDamage`. Indexed by `Gp_StateF0.field_2B`.
@@ -1576,11 +1550,11 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3);
 s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
 /// Rolls a status/effect chance for `arg0` against the player. Returns 0 for
 /// ids with bit 0x8000 set, when no slot 3 is active, or when
-/// `GpPairSrcE.field_B` scaled by 1/100 is zero. Otherwise the enemy's world
+/// `GpPairSrcE.critChance` scaled by 1/100 is zero. Otherwise the enemy's world
 /// distance to the player picks a `D_80113864` class, that class selects a
 /// percentage from `D_80113858` (when `GpRec10.field_4` is 6) or from the
 /// `D_80113568` row for `(arg1 >> 8) & 0x3F`, and column 6 (or 7 with bit
-/// 0x4000) of that same row scales `field_B`. `GpEnemy.field_4C` bit 1
+/// 0x4000) of that same row scales `critChance`. `GpEnemy.field_4C` bit 1
 /// doubles the chance, `Gp_StateC08.field_D` applies a `D_80113D0C` percent,
 /// and `arg2` multiplies it when non-zero. The result is compared against a
 /// 12-bit `Gp_LcgState` draw.

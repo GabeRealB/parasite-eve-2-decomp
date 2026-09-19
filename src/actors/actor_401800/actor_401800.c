@@ -738,7 +738,7 @@ void func_actor_401800_8013423C(GpEnemy* enemy, Actor401800* actor)
     Gp_LinkNode(&enemy->node);
     enemy->node.flags = 1;
     enemy->field_4C   = 0;
-    enemy->field_40   = (s16)D_actor_401800_8013E6F0.field_4;
+    enemy->field_40   = (s16)D_actor_401800_8013E6F0.hpMax;
     enemy->field_50   = &D_actor_401800_8013E6F0;
     enemy->field_54   = (s32)&work->field_8E8;
     func_800B3F84(&((Actor401800AnimWork*)work)->anim, &D_actor_401800_80155938, obj,

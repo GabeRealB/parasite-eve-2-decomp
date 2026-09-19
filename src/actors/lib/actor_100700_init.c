@@ -47,7 +47,7 @@ void Actor00700_Fn00060(Actor00700Ctx* ctx, Actor00700* actor)
     ctx->field_24   = 0;
     ctx->field_50   = &Actor00700_D06DE0;
     ctx->field_54   = (s32)&work->rec2;
-    ctx->field_40   = (u16)Actor00700_D06DE0.field_4;
+    ctx->field_40   = (u16)Actor00700_D06DE0.hpMax;
     work->field_338 = 0x100;
     work->field_33A = 1;
     work->field_334 = coord;

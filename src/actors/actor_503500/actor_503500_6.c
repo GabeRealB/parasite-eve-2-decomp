@@ -64,7 +64,7 @@ extern u16 D_actor_503500_80176D64[];
 extern u16 D_actor_503500_80176D24;
 /// Per-spawn enemy parameter table indexed by `Task::spawnArg1`;
 /// `func_actor_503500_8013BEE4` and `func_actor_503500_8013ECBC` park the row
-/// in `GpEnemy::field_50` and seed the enemy's HP from its `field_4`.
+/// in `GpEnemy::field_50` and seed the enemy's HP from its `hpMax`.
 extern GpPairSrcE D_actor_503500_8016E7EC[];
 /// Local offset the 0xF4 enemy applies to both its `GpEnemy::field_1C` and
 /// its display node's 0x10 vector.
@@ -978,7 +978,7 @@ void func_actor_503500_801372C8(Actor503500* arg0)
     rec                = D_actor_503500_80176D88.rec60;
     enemy->field_50    = &D_actor_503500_8016E7EC[arg0->spawnArg1];
     enemy->field_54    = (s32)rec;
-    enemy->field_40    = enemy->field_50->field_4;
+    enemy->field_40    = enemy->field_50->hpMax;
 
     D_actor_503500_80176D88.slot40.obj.coord    = coord;
     D_actor_503500_80176D88.slot40.obj.ctx.recs = rec;
@@ -1524,7 +1524,7 @@ void func_actor_503500_8013852C(Actor503500* arg0)
     rec                = work->rec;
     enemy->field_50    = &D_actor_503500_8016E7EC[arg0->spawnArg1];
     enemy->field_54    = (s32)rec;
-    enemy->field_40    = enemy->field_50->field_4;
+    enemy->field_40    = enemy->field_50->hpMax;
 
     work->obj.coord    = part;
     work->obj.ctx.recs = rec;
@@ -1635,7 +1635,7 @@ void func_actor_503500_80138A30(Actor503500* arg0)
         work->field_2E4++;
     }
     hp = arg0->field_20->field_40;
-    if (hp < (D_actor_503500_8016E7EC[arg0->spawnArg1].field_4 >> 1) && hp > 0) {
+    if (hp < (D_actor_503500_8016E7EC[arg0->spawnArg1].hpMax >> 1) && hp > 0) {
         func_actor_503500_8013ACC4(arg0, 6);
         return;
     }
@@ -2528,7 +2528,7 @@ void func_actor_503500_8013AD64(Actor503500* arg0)
     rec                = &work->rec;
     enemy->field_50    = &D_actor_503500_8016E7EC[arg0->spawnArg1];
     enemy->field_54    = (s32)rec;
-    enemy->field_40    = enemy->field_50->field_4;
+    enemy->field_40    = enemy->field_50->hpMax;
 
     work->obj.coord    = coord;
     work->obj.ctx.recs = rec;

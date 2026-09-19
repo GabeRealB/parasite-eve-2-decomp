@@ -76,8 +76,8 @@ void Actor02500_Fn00078(Actor02500Ctx* ctx, Actor02500* actor)
     ctx->node.flags = 0;
     ctx->field_1C   = 0;
     ctx->field_24   = 0;
-    ctx->field_50   = Actor02500_D05B38;
-    ctx->field_40   = Actor02500_D05B38->field_4;
+    ctx->field_50   = &Actor02500_D05B38;
+    ctx->field_40   = Actor02500_D05B38.hpMax;
     work->field_2E0 = 0x200;
     work->field_2DC = coord;
     work->field_2E2 = 1;

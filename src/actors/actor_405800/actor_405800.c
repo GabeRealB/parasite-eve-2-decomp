@@ -435,7 +435,7 @@ void func_actor_405800_801334B8(Task* arg0)
     work->eff_81C.coord      = &((TmdObject*)arg0->extra)->coords[3];
     work->eff_81C.spawnArgLo = 0x100;
     work->eff_81C.spawnArgHi = 2;
-    enemy->field_40 = enemy->field_42 = D_actor_405800_801418FC.field_4;
+    enemy->field_40 = enemy->field_42 = D_actor_405800_801418FC.hpMax;
     func_800B3F84(&work->anim, D_actor_405800_80151410, model, work->pad_394, work->slots);
 
     w2            = (Actor405800Work*)arg0->work;

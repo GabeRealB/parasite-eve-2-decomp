@@ -1203,7 +1203,7 @@ void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
     enemy->field_50 = &D_acropolis_bridge_80190C5C;
-    hp              = D_acropolis_bridge_80190C5C.field_4;
+    hp              = D_acropolis_bridge_80190C5C.hpMax;
     enemy->field_54 = (s32)work->recs;
     enemy->field_40 = hp;
     work->field_10C = 1;

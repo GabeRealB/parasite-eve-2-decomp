@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "main/session.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/3FB8.h"
 #include "main/tmd.h"
 #include <psyq/libgte.h>
@@ -127,13 +128,6 @@ typedef struct Actor02000Params {
     /* 0x2 */ u16  field_2;
 } Actor02000Params;
 
-/// Descriptor `Actor02000_Fn0251C` parks at `Actor02000Ctx.field_50`, taking
-/// `field_4` from it as the context's `field_40`.
-typedef struct Actor02000Desc {
-    /* 0x0 */ byte pad_0[4];
-    /* 0x4 */ u16  field_4;
-} Actor02000Desc;
-
 /// Task context (`Task::spawnArg2`). `field_4B` selects how
 /// `Actor02000_Fn0251C` starts the enemy: 0 builds the full object set, 1 and
 /// 2 only prime the animation state.
@@ -156,7 +150,7 @@ typedef struct Actor02000Ctx {
     /* 0x4B */ u8                field_4B;
     /* 0x4C */ u8                field_4C;
     /* 0x4D */ byte              pad_4D[3];
-    /* 0x50 */ Actor02000Desc*   field_50;
+    /* 0x50 */ GpPairSrcE*       field_50;
     /* 0x54 */ GpRec18*          field_54;
 } Actor02000Ctx;
 STATIC_ASSERT_SIZEOF(Actor02000Ctx, 0x58);

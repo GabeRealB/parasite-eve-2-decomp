@@ -49,7 +49,7 @@ extern s32 D_80115738;
 extern s32 D_8011574C;
 
 extern GpU16Pair  D_actor_400600_80144EA8;
-extern GpPairSrcE D_actor_400600_80144EB0; // enemy stat block (field_4 is max HP)
+extern GpPairSrcE D_actor_400600_80144EB0; // the enemy's parameter record
 
 extern u8 D_actor_400600_80151A54[];       // animation bank handed to func_800B3F84
 extern u8 D_actor_400600_80151AE0[];
@@ -647,7 +647,7 @@ void func_actor_400600_80133434(Task* arg0)
     work->eff_6FC.coord      = &((TmdObject*)arg0->extra)->coords[3];
     work->eff_6FC.spawnArgLo = 0x300;
     work->eff_6FC.spawnArgHi = 2;
-    enemy->field_40 = enemy->field_42 = D_actor_400600_80144EB0.field_4;
+    enemy->field_40 = enemy->field_42 = D_actor_400600_80144EB0.hpMax;
     func_800B3F84(&work->anim, D_actor_400600_80151A54, model, work->pad_394, work->slots);
 
     w2            = (Actor400600Work*)arg0->work;

@@ -495,7 +495,7 @@ extern SVECTOR D_actor_401800_80155A20[12];
 /// role `Actor01900_D17174` plays for actor 01900.
 extern s32 D_actor_401800_80155938;
 
-/// Enemy description record the init body copies `field_4` out of into
+/// Enemy description record the init body copies `hpMax` out of into
 /// `GpEnemy.field_40` and points `GpEnemy.field_50` at. Same role
 /// `D_actor_401300_80141FA0` plays for actor 401300.
 extern GpPairSrcE D_actor_401800_8013E6F0;

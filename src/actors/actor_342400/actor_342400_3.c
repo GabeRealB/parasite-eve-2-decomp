@@ -60,7 +60,7 @@ void func_actor_342400_80163C58(Task* task)
     w->eff_3FC.coord      = &((TmdObject*)task->extra)->coords[1];
     w->eff_3FC.spawnArgLo = 0x140;
     w->eff_3FC.spawnArgHi = 2;
-    e->field_40 = e->field_42 = D_actor_342400_80170588.field_4;
+    e->field_40 = e->field_42 = D_actor_342400_80170588.hpMax;
     func_800B3F84(&w->anim, D_actor_342400_801739E8, obj, w->field_21C, &w->slot_B4);
     w2            = (Actor342400Work*)task->work;
     w2->field_41C = 0x10;
@@ -156,7 +156,7 @@ void func_actor_342400_80163E70(Task* task)
     w->eff_3FC.coord      = &((TmdObject*)task->extra)->coords[1];
     w->eff_3FC.spawnArgLo = 0x140;
     w->eff_3FC.spawnArgHi = two;
-    e->field_40 = e->field_42 = D_actor_342400_80170588.field_4;
+    e->field_40 = e->field_42 = D_actor_342400_80170588.hpMax;
     func_800B3F84(&w->anim, D_actor_342400_801739E8, obj, w->field_21C, &w->slot_B4);
     w2            = (Actor342400Work*)task->work;
     w2->field_41C = 0x10;

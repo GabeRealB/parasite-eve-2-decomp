@@ -1269,7 +1269,7 @@ void Actor05500_Fn02FFC(GpEnemy* ctx, Task* actor)
     ctx->field_1C.vx           = 0;
     ctx->field_1C.vz           = 0;
     ctx->field_50              = &Actor05500_D08970;
-    ctx->field_40              = (s16)Actor05500_D08970.field_4;
+    ctx->field_40              = (s16)Actor05500_D08970.hpMax;
     work->field_354.coord      = coord;
     work->field_354.spawnArgLo = 0x100;
     work->field_354.spawnArgHi = 1;

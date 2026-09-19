@@ -6,6 +6,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/pairsrc.h"
 #include "main/tmd.h"
 #include "main/task.h"
 #include "main/session.h"
@@ -21,11 +22,6 @@ typedef struct Actor01600Params {
     /* 0x04 */ byte pad_4[6];
     /* 0x0A */ s16  field_A;
 } Actor01600Params;
-
-typedef struct Actor01600Desc {
-    /* 0x00 */ byte pad_0[4];
-    /* 0x04 */ u16  field_4;
-} Actor01600Desc;
 
 typedef struct Actor01600Ctx {
     /* 0x00 */ byte              pad_0[4];
@@ -45,7 +41,7 @@ typedef struct Actor01600Ctx {
     /* 0x49 */ byte              pad_49[3];
     /* 0x4C */ u8                field_4C;
     /* 0x4D */ byte              pad_4D[3];
-    /* 0x50 */ Actor01600Desc*   field_50;
+    /* 0x50 */ GpPairSrcE*       field_50;
     /* 0x54 */ s32               field_54;
 } Actor01600Ctx;
 STATIC_ASSERT_SIZEOF(Actor01600Ctx, 0x58);
@@ -515,13 +511,13 @@ s32  Actor01600_Fn06C1C(Actor01600* actor);
 s32  Actor01600_Fn06C94(Actor01600* actor, s32 angle, s32 distance);
 s32  Actor01600_Fn06D74(Actor01600* actor, s32 angle, s32 distance);
 
-extern Actor01600Desc Actor01600_D09F0C;
-extern u8             Actor01600_D127EC[], Actor01600_D127A4[];
-void                  Actor01600_Fn05400(Actor01600* actor);
-void                  Actor01600_Fn06EA4(Actor01600* actor);
-void                  func_800B3F84(Actor01600AnimCtx* anim, void* data, TmdObject* obj, void* poses, Actor01600AnimSlot* slots);
-void                  Gp_AnimResetSlot(Actor01600AnimCtx* anim, s32 slot, s32 active);
-void                  Gp_IncStateF0Ref(s32 arg0);
+extern GpPairSrcE Actor01600_D09F0C;
+extern u8         Actor01600_D127EC[], Actor01600_D127A4[];
+void              Actor01600_Fn05400(Actor01600* actor);
+void              Actor01600_Fn06EA4(Actor01600* actor);
+void              func_800B3F84(Actor01600AnimCtx* anim, void* data, TmdObject* obj, void* poses, Actor01600AnimSlot* slots);
+void              Gp_AnimResetSlot(Actor01600AnimCtx* anim, s32 slot, s32 active);
+void              Gp_IncStateF0Ref(s32 arg0);
 
 struct _GpObj;
 struct GpU16Pair;

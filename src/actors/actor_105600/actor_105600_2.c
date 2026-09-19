@@ -465,7 +465,7 @@ case0:
     ctx->field_50    = D_actor_105600_80147FF0;
     ctx->field_54    = (s32)work->field_4EC;
     ctx->field_18    = &parts[3];
-    ctx->field_40    = D_actor_105600_80147FF0->field_4;
+    ctx->field_40    = D_actor_105600_80147FF0->hpMax;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     work->field_6AC = ((GpAreaPlace*)ctx->field_3C)->field_2 & 1;
     if (work->field_6AC == 0) {

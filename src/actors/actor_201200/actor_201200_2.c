@@ -134,7 +134,7 @@ void func_actor_201200_8014A88C(GpEnemy* arg0, Actor201200* arg1)
     arg0->node.flags = 1;
     arg0->field_40 = arg0->field_42 = 1;
     arg0->field_4C                  = 0;
-    arg0->field_40 = arg0->field_42 = D_actor_201200_8014DE54.field_4;
+    arg0->field_40 = arg0->field_42 = D_actor_201200_8014DE54.hpMax;
     arg0->field_50                  = &D_actor_201200_8014DE54;
     arg0->field_54                  = (s32)hits;
     work->field_170                 = 2;

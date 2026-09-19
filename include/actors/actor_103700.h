@@ -135,7 +135,7 @@ extern Actor103700Rise D_actor_103700_80139E14[];
 extern Actor103700Rise D_actor_103700_80139E4C[];
 
 /// The enemy's pair source; the spawn stores it in `GpEnemy::field_50` and
-/// seeds HP from its `field_4`, which retail addresses as its own label.
+/// seeds HP from its `hpMax`, which retail addresses as its own label.
 extern GpPairSrcE D_actor_103700_80139D2C;
 extern u16        D_actor_103700_80139D30;
 

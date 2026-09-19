@@ -160,7 +160,7 @@ void func_actor_206100_8014AF74(Task* task)
     enemy->node.flags = 1;
     enemy->field_54   = (s32)work->rec_384;
     enemy->field_50   = &D_actor_206100_80155198;
-    hp                = D_actor_206100_80155198.field_4;
+    hp                = D_actor_206100_80155198.hpMax;
     enemy->field_42   = hp;
     enemy->field_40   = hp;
     coord->sub        = &gGfxViewCoord;

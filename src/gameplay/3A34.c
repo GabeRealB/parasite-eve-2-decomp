@@ -3647,9 +3647,9 @@ void Gp_ReleaseStateF0Add(GpObj20E* arg0, s32 arg1)
         rec = arg0->field_20->field_50;
         if (rec != NULL) {
             q            = &Gp_StateF0;
-            q->field_8  += rec->field_6;
-            q->field_C  += rec->field_8;
-            q->field_10 += rec->field_A;
+            q->field_8  += rec->exp;
+            q->field_C  += rec->bp;
+            q->field_10 += rec->mp;
         }
     }
 }
@@ -6839,7 +6839,7 @@ s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
         return 0;
     }
 
-    base = (arg0->field_50->field_B << 12) / 100;
+    base = (arg0->field_50->critChance << 12) / 100;
     if (base == 0) {
         return 0;
     }
@@ -6945,7 +6945,7 @@ void Gp_ApplyObjKind(GpObj5D* arg0, s32 arg1)
             arg0->field_5D = Gp_StateC08.field_0 % 10U;
             break;
         case 3:
-            val         = arg0->field_50->field_D;
+            val         = arg0->field_50->flag4Chance;
             limit       = (val << 12) / 100;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             rand        = (u32)Gp_LcgState >> 16 & 0xFFF;
@@ -6972,7 +6972,7 @@ s32 Gp_PackObjPair(GpObj50* arg0, s32 arg1)
     if (arg0->field_50 == NULL) {
         return 0;
     }
-    pairs = arg0->field_50->field_0;
+    pairs = arg0->field_50->pairTable;
     ret   = pairs[arg1].field_0 & 0xFFF;
     ret  |= (pairs[arg1].field_2 & 0xF) << 12;
     ret  |= 0x40000;
@@ -7052,7 +7052,7 @@ void Gp_SetObjFlag4(GpObj5C* arg0, s32 arg1, s32 arg2)
     s32 limit;
     s32 rand;
 
-    val         = arg0->field_50->field_D;
+    val         = arg0->field_50->flag4Chance;
     limit       = (val << 12) / 100;
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     rand        = (u32)Gp_LcgState >> 16 & 0xFFF;
@@ -7081,7 +7081,7 @@ s32 Gp_TickObjFlag4(GpObj5C* arg0)
         arg0->field_5A++;
         Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
         arg0->field_59 = ((u32)Gp_LcgState >> 16 & 0xF) + 0x53;
-        val            = arg0->field_50->field_4;
+        val            = arg0->field_50->hpMax;
         scale          = D_80113D38[arg0->field_5C];
         ret            = (val * scale) / 100;
         if (ret == 0) {
@@ -7098,7 +7098,7 @@ s32 Gp_ObjFlag4Expired(GpObj5C* arg0)
     register s32 scale asm("v1");
 
     ret = 0;
-    val = arg0->field_50->field_E;
+    val = arg0->field_50->flag4Ticks;
     if (!(arg0->field_4C & 4)) {
         return 1;
     }
@@ -7141,7 +7141,7 @@ s32 Gp_TickObjFlag2(GpObj5D* arg0)
     s32 scale;
 
     ret = 0;
-    val = arg0->field_50->field_C;
+    val = arg0->field_50->flag2Ticks;
     if (val == 0) {
         return ret;
     }

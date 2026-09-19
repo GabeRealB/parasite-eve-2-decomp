@@ -393,7 +393,7 @@ typedef struct Actor510900Ctx {
     /* 0x20 */ s32            field_20;
     /* 0x24 */ s32            field_24;
     /* 0x28 */ byte           pad_28[0x18];
-    /* 0x40 */ u16            field_40; ///< HP, seeded from the pair source's `field_4`
+    /* 0x40 */ u16            field_40; ///< HP, seeded from the pair source's `hpMax`
     /* 0x42 */ byte           pad_42[0x6];
     /* 0x48 */ u8             field_48;
     /* 0x49 */ byte           pad_49[0x3];

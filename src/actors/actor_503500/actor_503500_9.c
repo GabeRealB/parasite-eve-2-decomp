@@ -57,7 +57,7 @@ extern u16 D_actor_503500_80176D64[];
 extern u16 D_actor_503500_80176D24;
 /// Per-spawn enemy parameter table indexed by `Task::spawnArg1`;
 /// `func_actor_503500_8013BEE4` and `func_actor_503500_8013ECBC` park the row
-/// in `GpEnemy::field_50` and seed the enemy's HP from its `field_4`.
+/// in `GpEnemy::field_50` and seed the enemy's HP from its `hpMax`.
 extern GpPairSrcE D_actor_503500_8016E7EC[];
 /// Per-slot parent part index and local offset of the 0x224 enemy in
 /// `D_actor_503500_80178AC0`, indexed by `spawnArg1 - 0xA`, and the

@@ -200,7 +200,7 @@ void Actor03800_Fn021E4(Actor103800* arg0)
             Gp_UpdateCoord(coord);
             work->field_354 = 4;
             work->field_344 = coord;
-            work->field_37C = ((Actor03800_D05F44.field_4 - ctx->field_40) * 100 / Actor03800_D05F44.field_4) * 10 + 240;
+            work->field_37C = ((Actor03800_D05F44.hpMax - ctx->field_40) * 100 / Actor03800_D05F44.hpMax) * 10 + 240;
             break;
         case 4:
             work->field_350 = 0;

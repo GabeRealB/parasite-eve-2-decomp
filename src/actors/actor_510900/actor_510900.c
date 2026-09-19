@@ -46,7 +46,7 @@ extern s32 D_80070F70;
 /// The twelve muzzle-flash CLUTs `func_actor_510900_80134C90` indexes by frame.
 extern Actor510900SprClut D_actor_510900_8013C48C[];
 
-/// The pair source the context's `field_50` points at; its `field_4` seeds the
+/// The pair source the context's `field_50` points at; its `hpMax` seeds the
 /// enemy's HP.
 extern GpPairSrcE D_actor_510900_80167980;
 
@@ -1174,7 +1174,7 @@ void func_actor_510900_80134C90(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg
 /// Spawn/setup handler. It allocates the 0x5C8-byte work block and hangs it off
 /// the task, points the model object at the block's two `MATRIX`es (0x45C the
 /// light matrix, 0x43C the colour one) and fills the context's coordinate, pair
-/// source and HP (`field_40`, seeded from the pair source's `field_4`).
+/// source and HP (`field_40`, seeded from the record's `hpMax`).
 ///
 /// The block's 0x14-prefix then becomes the `GpAnimCtx`: `func_800B3F84` loads
 /// the animation data into it over the nineteen `GpAnimSlot`s, and slots 1..18
@@ -1235,7 +1235,7 @@ void func_actor_510900_801350F8(Actor510900Ctx* arg0, Actor510900* arg1)
     arg0->field_24             = 0;
     arg0->field_50             = &D_actor_510900_80167980;
     arg0->field_54             = (s32)work->rec49C;
-    arg0->field_40             = D_actor_510900_80167980.field_4;
+    arg0->field_40             = D_actor_510900_80167980.hpMax;
     work->field_53C.coord      = &((TmdObject*)arg1->field_2C)->coords[3];
     work->field_53C.spawnArgLo = 0x400;
     work->field_53C.spawnArgHi = 2;

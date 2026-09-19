@@ -836,12 +836,12 @@ void func_actor_403100_8013F0A8(Task* arg0)
 {
     TmdObject* obj;
 
-    obj                               = (TmdObject*)arg0->extra;
-    obj->flags                       |= 0x80;
-    D_actor_403100_8014762C.field_8   = 0;
-    D_actor_403100_8014762C.field_A   = 0;
-    D_actor_403100_8014762C.field_6 >>= 1;
-    gGameSession->at4.loc.place       = 4;
+    obj                           = (TmdObject*)arg0->extra;
+    obj->flags                   |= 0x80;
+    D_actor_403100_8014762C.bp    = 0;
+    D_actor_403100_8014762C.mp    = 0;
+    D_actor_403100_8014762C.exp >>= 1;
+    gGameSession->at4.loc.place   = 4;
     Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
     arg0->state                        = 5;
     D_actor_403100_80155808->field_5F8 = 0;

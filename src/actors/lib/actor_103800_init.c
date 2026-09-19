@@ -73,7 +73,7 @@ void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
     arg0->field_1C.vy          = 0;
     arg0->field_1C.vz          = 0;
     arg0->field_50             = &Actor03800_D05F44;
-    arg0->field_40             = (s16)Actor03800_D05F44.field_4;
+    arg0->field_40             = (s16)Actor03800_D05F44.hpMax;
     work->field_2C4.coord      = &((Actor103800Obj2C*)arg1->extra)->field_8[3];
     work->field_2C4.spawnArgLo = 0x200;
     work->field_2C4.spawnArgHi = 1;

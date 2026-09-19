@@ -58,7 +58,7 @@ void Actor01600_Fn001F4(Actor01600Ctx* ctx, Actor01600* actor)
     ctx->field_24   = 0;
     ctx->field_50   = &Actor01600_D09F0C;
     ctx->field_54   = (s32)&work->collision.named.pad_30C;
-    ctx->field_40   = (u16)Actor01600_D09F0C.field_4;
+    ctx->field_40   = (u16)Actor01600_D09F0C.hpMax;
     work->field_408 = 0x280;
     work->field_40A = 2;
     work->field_404 = next_coord;

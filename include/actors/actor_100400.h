@@ -7,14 +7,8 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/pairsrc.h"
 #include "gameplay/3FB8.h"
-
-/// Stat record `Actor00400_Fn00B48` hangs off `Actor100400Obj.field_50`;
-/// `field_4` seeds both HP fields.
-typedef struct Actor100400Stats {
-    /* 0x0 */ byte pad_0[4];
-    /* 0x4 */ u16  field_4;
-} Actor100400Stats;
 
 /// Overlay-local view of the spawn parameter block reached through
 /// `Actor100400Obj.field_3C`. Byte 0xF selects, in its low 3 bits, the marker
@@ -46,7 +40,7 @@ typedef struct Actor100400Obj {
     /* 0x49 */ byte               pad_49[3];
     /* 0x4C */ u8                 field_4C;
     /* 0x4D */ byte               pad_4D[3];
-    /* 0x50 */ Actor100400Stats*  field_50;
+    /* 0x50 */ GpPairSrcE*        field_50;
     /* 0x54 */ GpRec18*           field_54;
     /* 0x58 */ byte               pad_58[8];
 } Actor100400Obj;

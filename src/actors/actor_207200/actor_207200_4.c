@@ -70,7 +70,7 @@ void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
     arg0->field_1C.vz = 0;
     arg0->field_50    = &D_actor_207200_8014E7D4;
     arg0->field_54    = (s32)work->rec3;
-    arg0->field_40    = (u16)D_actor_207200_8014E7D4.field_4;
+    arg0->field_40    = (u16)D_actor_207200_8014E7D4.hpMax;
     work->field_44E   = ((GpCoordPose*)coord)->field_46;
     func_800B3F84((GpAnimCtx*)work, &D_actor_207200_80153ED4, obj,
                   work->field_12C, (GpAnimSlot*)work->field_14);

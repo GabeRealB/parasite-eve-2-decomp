@@ -26,7 +26,7 @@ extern s32 D_actor_402200_80138420[];
 
 /// The spawn's tables: the task's next handler record, the `GpU16Pair`
 /// `Gp_PackPair` packs into the third collision object, the `GpPairSrcE` whose
-/// `field_4` seeds the enemy's HP, the stage / room box-table index run, the
+/// `hpMax` seeds the enemy's HP, the stage / room box-table index run, the
 /// box tables it selects, the per-stage cue-bank arrays and the animation data.
 extern s32                D_actor_402200_8013839C[];
 extern GpU16Pair          D_actor_402200_80153BEC;

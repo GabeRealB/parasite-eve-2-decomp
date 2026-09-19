@@ -187,7 +187,7 @@ void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1)
     arg0->field_1C.vz = 0;
     arg0->field_50    = &D_actor_205200_8014C9BC;
     arg0->field_54    = (s32)part->recs;
-    arg0->field_40    = D_actor_205200_8014C9BC.field_4;
+    arg0->field_40    = D_actor_205200_8014C9BC.hpMax;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     part->field_68.spawnArgLo = 0x400;
     part->field_68.spawnArgHi = 3;

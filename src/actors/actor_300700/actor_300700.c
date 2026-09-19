@@ -54,8 +54,8 @@ extern MATRIX* D_80073B8C;
 /// Per-variant base speed, indexed by `Actor300700Params.field_F`.
 extern u16 D_actor_300700_80165B78[];
 
-/// Spawn pair record packed by `Gp_PackPair`, and the wider view of the same
-/// object whose `field_4` seeds the enemy's `field_40`.
+/// Spawn pair table packed by `Gp_PackPair`, and the enemy record whose
+/// `pairTable` points at it and whose `hpMax` seeds the enemy's `field_40`.
 extern GpU16Pair  D_actor_300700_80165B64;
 extern GpPairSrcE D_actor_300700_80165B68;
 /// Pose source handed to `func_800B3F84` as its animation data record.
@@ -107,7 +107,7 @@ void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
     arg0->field_1C.vz = 0;
     arg0->field_50    = &D_actor_300700_80165B68;
     arg0->field_54    = (s32)&work->rec154;
-    arg0->field_40    = (u16)D_actor_300700_80165B68.field_4;
+    arg0->field_40    = (u16)D_actor_300700_80165B68.hpMax;
     work->field_228   = 0x100;
     work->field_22A   = 1;
     work->field_224   = coord;
@@ -758,7 +758,7 @@ void func_actor_300700_80163510(GpEnemy* arg0, Task* arg1)
     arg0->field_1C.vz = 0;
     arg0->field_50    = &D_actor_300700_8016932C;
     arg0->field_54    = (s32)work->rec2;
-    arg0->field_40    = (u16)D_actor_300700_8016932C.field_4;
+    arg0->field_40    = (u16)D_actor_300700_8016932C.hpMax;
     work->field_338   = 0x100;
     work->field_33A   = 1;
     work->field_334   = coord;

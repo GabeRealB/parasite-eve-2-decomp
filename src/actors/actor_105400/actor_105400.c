@@ -8,7 +8,7 @@
 /// position and the second list node are both seeded from.
 extern Actor05400Pose D_actor_105400_80133A30;
 
-/// The pair source `GpEnemy::field_50` points at; its `field_4` is the HP the
+/// The pair source `GpEnemy::field_50` points at; its `hpMax` is the HP the
 /// context's `field_40` is seeded with.
 extern GpPairSrcE D_actor_105400_8013CE30;
 
@@ -96,7 +96,7 @@ void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
     arg0->field_1C.vz = pose->field_8.vz;
     arg0->field_50    = &D_actor_105400_8013CE30;
     arg0->field_54    = (s32)work->recs;
-    arg0->field_40    = D_actor_105400_8013CE30.field_4;
+    arg0->field_40    = D_actor_105400_8013CE30.hpMax;
     work->coord       = coord;
     work->field_2F8   = 0x500;
     work->field_2FA   = 3;

@@ -209,7 +209,7 @@ void func_actor_102300_80131EA4(Actor102300* arg0)
                     } else {
                         result = 6;
                     }
-                } else if (max = enemy->field_50->field_4, enemy->field_40 < max / 4) {
+                } else if (max = enemy->field_50->hpMax, enemy->field_40 < max / 4) {
                     if (work->field_6B8 == 0) {
                         result = 3;
                     } else {
@@ -750,7 +750,7 @@ case0:
     enemy->field_50    = &D_actor_102300_801477F8;
     enemy->field_54    = (s32)work->field_4EC;
     enemy->field_18    = &parts[3];
-    enemy->field_40    = D_actor_102300_801477F8.field_4;
+    enemy->field_40    = D_actor_102300_801477F8.hpMax;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     work->field_6AC = ((GpAreaPlace*)enemy->field_3C)->field_2 & 1;
     if (work->field_6AC == 0) {

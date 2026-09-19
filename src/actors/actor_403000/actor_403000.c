@@ -72,7 +72,7 @@ s32 func_actor_403000_801324EC(Actor403000* arg0, s32 arg1, Actor403000Event* ar
                 Gp_SetLightMode((GpObj4C*)enemy, 0);
                 enemy->field_4C = 0;
                 enemy->field_50 = &D_actor_403000_8013DA00;
-                enemy->field_40 = D_actor_403000_8013DA00.field_4;
+                enemy->field_40 = D_actor_403000_8013DA00.hpMax;
                 work->field_AC6 = 0x18;
                 work->field_0   = 1;
                 work->field_2   = -1;
@@ -81,7 +81,7 @@ s32 func_actor_403000_801324EC(Actor403000* arg0, s32 arg1, Actor403000Event* ar
                 Gp_SetLightMode((GpObj4C*)enemy, 0);
                 enemy->field_4C = 0;
                 enemy->field_50 = &D_actor_403000_8013DA00;
-                enemy->field_40 = D_actor_403000_8013DA00.field_4;
+                enemy->field_40 = D_actor_403000_8013DA00.hpMax;
                 work->field_AC6 = 0x19;
                 work->field_0   = 1;
                 work->field_2   = -1;
@@ -94,7 +94,7 @@ s32 func_actor_403000_801324EC(Actor403000* arg0, s32 arg1, Actor403000Event* ar
                 work->field_0   = 1;
                 work->field_2   = -1;
                 enemy->field_4C = 0;
-                enemy->field_40 = D_actor_403000_8013DA10.field_4;
+                enemy->field_40 = D_actor_403000_8013DA10.hpMax;
                 enemy->field_50 = &D_actor_403000_8013DA10;
                 return 1;
             case 4:
@@ -113,7 +113,7 @@ s32 func_actor_403000_801324EC(Actor403000* arg0, s32 arg1, Actor403000Event* ar
             case 6:
                 Gp_SetLightMode((GpObj4C*)enemy, 0);
                 enemy->field_4C = 0;
-                enemy->field_40 = D_actor_403000_8013DA10.field_4;
+                enemy->field_40 = D_actor_403000_8013DA10.hpMax;
                 enemy->field_50 = &D_actor_403000_8013DA10;
                 work->field_AC6 = 0x19;
                 work->field_0   = 1;
@@ -140,7 +140,7 @@ s32 func_actor_403000_801324EC(Actor403000* arg0, s32 arg1, Actor403000Event* ar
                 work->field_FD5 = 1;
                 if ((s8)arg0->field_2C->tpage == 2) {
                     enemy->field_4C = 0;
-                    enemy->field_40 = D_actor_403000_8013DA10.field_4;
+                    enemy->field_40 = D_actor_403000_8013DA10.hpMax;
                     enemy->field_50 = &D_actor_403000_8013DA10;
                 }
                 return 1;
@@ -1000,7 +1000,7 @@ void func_actor_403000_801343B8(GpEnemy* arg0, Task* arg1)
     animSrc         = &D_actor_403000_80158B50;
     work->field_FCA = 1;
     arg0->field_4C  = 0;
-    arg0->field_40  = D_actor_403000_8013DA00.field_4;
+    arg0->field_40  = D_actor_403000_8013DA00.hpMax;
     arg0->field_50  = &D_actor_403000_8013DA00;
     arg0->field_54  = (s32)(firstRec = work->objB50.rec);
     func_800B3F84(&((Actor403000AnimWork*)work)->anim, animSrc, obj,

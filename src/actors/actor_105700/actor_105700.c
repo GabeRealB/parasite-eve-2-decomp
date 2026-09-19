@@ -209,7 +209,7 @@ void func_actor_105700_80131ED0(Actor105700* arg0)
                     } else {
                         result = 6;
                     }
-                } else if (enemy->field_40 < enemy->field_50->field_4 * 15 / 100) {
+                } else if (enemy->field_40 < enemy->field_50->hpMax * 15 / 100) {
                     if (work->field_6B8 == 0) {
                         result = 3;
                     } else {

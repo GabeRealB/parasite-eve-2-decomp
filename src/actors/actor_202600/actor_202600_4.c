@@ -58,7 +58,7 @@ void func_actor_202600_8014CE1C(GpEnemy* ctx, Task* actor)
     ctx->field_1C.vx           = 0;
     ctx->field_1C.vz           = 0;
     ctx->field_50              = &D_actor_202600_80152788;
-    ctx->field_40              = (s16)D_actor_202600_80152788.field_4;
+    ctx->field_40              = (s16)D_actor_202600_80152788.hpMax;
     work->field_354.coord      = coord;
     work->field_354.spawnArgLo = 0x100;
     work->field_354.spawnArgHi = 1;

@@ -296,7 +296,7 @@ void func_actor_503500_80132F64(Actor503500* arg0)
     recs               = work->rec5F4;
     enemy->field_50    = &D_actor_503500_8016E7EC[arg0->spawnArg1];
     enemy->field_54    = (s32)recs;
-    enemy->field_40    = enemy->field_50->field_4;
+    enemy->field_40    = enemy->field_50->hpMax;
 
     work->field_5D4.coord    = part;
     work->field_5D4.ctx.recs = recs;

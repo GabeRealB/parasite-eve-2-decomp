@@ -188,7 +188,7 @@ void Actor02000_Fn00078(Actor02000* arg0)
                     } else {
                         result = 6;
                     }
-                } else if (max = enemy->field_50->field_4, enemy->field_40 < max * 15 / 100) {
+                } else if (max = enemy->field_50->hpMax, enemy->field_40 < max * 15 / 100) {
                     if (work->field_6B8 == 0) {
                         result = 3;
                     } else {
@@ -1242,10 +1242,10 @@ Actor02000Eff*       Gp_SpawnEnemyFromTable(void* table, s32 idx, s32 arg2, void
 void                 Gp_SyncAreaKeyIndex(GpAreaKey* arg0);
 Actor02000AreaTable* Gp_GetNestedAreaRec(GpAreaKey* arg0);
 
-extern void           Actor02000_D15FE8;
-extern s16            Actor02000_D15FD0[];
-extern u16*           Actor02000_D15FB8[];
-extern Actor02000Desc Actor02000_D15D10[];
+extern void       Actor02000_D15FE8;
+extern s16        Actor02000_D15FD0[];
+extern u16*       Actor02000_D15FB8[];
+extern GpPairSrcE Actor02000_D15D10;
 
 /// Enemy init. Allocates the 0x6E4-byte work block, points the model object at
 /// the light / color matrices inside it, runs the animation context over its
@@ -1358,10 +1358,10 @@ case0:
     ctx->field_1C = 0;
     ctx->field_20 = 0;
     ctx->field_24 = 0;
-    ctx->field_50 = Actor02000_D15D10;
+    ctx->field_50 = &Actor02000_D15D10;
     ctx->field_54 = work->field_4EC;
     ctx->field_18 = &parts[3];
-    ctx->field_40 = Actor02000_D15D10->field_4;
+    ctx->field_40 = Actor02000_D15D10.hpMax;
     Gp_IncStateF0Ref(0);
     work->field_6AC = ctx->field_3C->field_2 & 1;
     if (work->field_6AC == 0) {

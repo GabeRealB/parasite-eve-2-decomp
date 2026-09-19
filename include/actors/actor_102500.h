@@ -2,6 +2,7 @@
 #define ACTOR_102500_H
 
 #include "common.h"
+#include "gameplay/pairsrc.h"
 #include "gameplay/3FB8.h"
 #include "main/session.h"
 #include <psyq/libgte.h>
@@ -120,13 +121,6 @@ typedef struct Actor02500EffWork {
 } Actor02500EffWork;
 STATIC_ASSERT_SIZEOF(Actor02500EffWork, 0x40);
 
-/// Descriptor `Actor02500_Fn00078` parks at `Actor02500Ctx.field_50`, taking
-/// `field_4` from it as the context's `field_40`.
-typedef struct Actor02500Desc {
-    /* 0x0 */ byte pad_0[4];
-    /* 0x4 */ u16  field_4;
-} Actor02500Desc;
-
 /// Spawn record at `Actor02500Ctx.field_3C`; `field_2` selects the variant
 /// this enemy starts in (0 idle, 1 and 2 already awake).
 typedef struct Actor02500Kind {
@@ -154,7 +148,7 @@ typedef struct Actor02500Ctx {
     /* 0x49 */ byte            pad_49[3];
     /* 0x4C */ u8              field_4C;
     /* 0x4D */ byte            pad_4D[3];
-    /* 0x50 */ Actor02500Desc* field_50;
+    /* 0x50 */ GpPairSrcE*     field_50;
     /* 0x54 */ GpRec18*        field_54;
 } Actor02500Ctx;
 STATIC_ASSERT_SIZEOF(Actor02500Ctx, 0x58);
@@ -215,12 +209,12 @@ s32  Gp_GetObjDepth(GsCOORDINATE2* coord);
 s32  Gp_GetObjPan(GsCOORDINATE2* coord);
 s32  SndEvt_EnqueueType6(s32 sound, s32 pan, s32 depth);
 
-extern s16            Actor02500_D05B68[];
-extern s16            Actor02500_D05B78[];
-extern s16            Actor02500_D05B88[];
-extern Actor02500Desc Actor02500_D05B38[];
-extern void*          Actor02500_D05BA0;
-extern void*          Actor02500_D05B30;
+extern s16        Actor02500_D05B68[];
+extern s16        Actor02500_D05B78[];
+extern s16        Actor02500_D05B88[];
+extern GpPairSrcE Actor02500_D05B38;
+extern void*      Actor02500_D05BA0;
+extern void*      Actor02500_D05B30;
 
 void Actor02500_Fn00078(Actor02500Ctx* arg0, Actor02500* arg1);
 void Actor02500_Fn01AC8(Actor02500Ctx* arg0, Actor02500* arg1);

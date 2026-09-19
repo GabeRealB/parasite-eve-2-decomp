@@ -44,7 +44,7 @@ extern s16 D_actor_444000_80144A4C[];
 extern s16 D_actor_444000_80144A68;
 
 /// Pair descriptors the host and its escorts publish as `GpEnemy::field_50`;
-/// `field_4` is the hit-point pool each one starts with.
+/// `hpMax` is the hit-point pool each one starts with.
 extern GpPairSrcE D_actor_444000_80144A28;
 extern GpPairSrcE D_actor_444000_80144A38;
 extern GpPairSrcE D_actor_444000_80144A48;
@@ -703,7 +703,7 @@ void func_actor_444000_8013AFF8(GpEnemy* enemy, Actor444000* task)
     enemy->field_18    = &((TmdObject*)task->extra)->coords[4];
     Gp_LinkNode(&enemy->node);
     enemy->field_4C = 0;
-    enemy->field_40 = D_actor_444000_80144A28.field_4;
+    enemy->field_40 = D_actor_444000_80144A28.hpMax;
     enemy->field_50 = &D_actor_444000_80144A28;
     enemy->field_54 = (s32)work->hits[0].recs;
 
@@ -788,8 +788,8 @@ void func_actor_444000_8013AFF8(GpEnemy* enemy, Actor444000* task)
     work->field_ECC[0]->field_18    = &((TmdObject*)work->field_ECC[0]->task->extra)->coords[1];
     Gp_LinkNode(&work->field_ECC[0]->node);
     work->field_ECC[0]->field_4C = 0;
-    work->field_ECC[0]->field_40 = D_actor_444000_80144A28.field_4;
-    work->field_F0A              = D_actor_444000_80144A38.field_4;
+    work->field_ECC[0]->field_40 = D_actor_444000_80144A28.hpMax;
+    work->field_F0A              = D_actor_444000_80144A38.hpMax;
     work->field_ECC[0]->field_50 = &D_actor_444000_80144A38;
     work->field_ECC[0]->field_54 = (s32)work->hits[3].recs;
     func_8010C980(&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1], &work->hits[3].obj, work->hits[3].recs, 5,
@@ -818,8 +818,8 @@ void func_actor_444000_8013AFF8(GpEnemy* enemy, Actor444000* task)
     work->field_ECC[1]->field_18    = &((TmdObject*)work->field_ECC[1]->task->extra)->coords[1];
     Gp_LinkNode(&work->field_ECC[1]->node);
     work->field_ECC[1]->field_4C = 0;
-    work->field_ECC[1]->field_40 = D_actor_444000_80144A28.field_4;
-    work->field_F0C              = D_actor_444000_80144A48.field_4;
+    work->field_ECC[1]->field_40 = D_actor_444000_80144A28.hpMax;
+    work->field_F0C              = D_actor_444000_80144A48.hpMax;
     work->field_ECC[1]->field_50 = &D_actor_444000_80144A48;
     work->field_ECC[1]->field_54 = (s32)work->hits[6].recs;
     func_8010C980(&((TmdObject*)work->field_ECC[1]->task->extra)->coords[1], &work->hits[6].obj, work->hits[6].recs, 5,
@@ -852,8 +852,8 @@ void func_actor_444000_8013AFF8(GpEnemy* enemy, Actor444000* task)
     work->field_ECC[3]->field_18                                      = ((TmdObject*)work->field_ECC[3]->task->extra)->coords;
     Gp_LinkNode(&work->field_ECC[3]->node);
     work->field_ECC[3]->field_4C = 0;
-    work->field_ECC[3]->field_40 = D_actor_444000_80144A28.field_4;
-    work->field_F0E              = D_actor_444000_80144A58.field_4;
+    work->field_ECC[3]->field_40 = D_actor_444000_80144A28.hpMax;
+    work->field_F0E              = D_actor_444000_80144A58.hpMax;
     work->field_ECC[3]->field_50 = &D_actor_444000_80144A58;
     work->field_ECC[3]->field_54 = (s32)work->hits[1].recs;
 

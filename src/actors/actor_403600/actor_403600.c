@@ -2940,7 +2940,7 @@ u8* func_actor_403600_80138DCC(Actor403600* arg0)
 /// then linked on its 0x10 node and three `GpObj` nodes are linked with
 /// `Gp_LinkObj` (kinds 2 and 3) over the 0x508 / 0x588 / 0x5C0 records, each
 /// seeded through `Gp_InitRec18Table` from the 0x528 / 0x5A8 / 0x5F8 tables.
-/// `enemy->field_40` and `field_78A` take the HP from `D_actor_403600_80150EC8`
+/// `enemy->field_40` and `field_78A` take the `hpMax` of `D_actor_403600_80150EC8`
 /// scaled by the spawn multiplier in `gGameSession`, slots 1..0x13 are reset,
 /// the model is faced along the world coordinate through `Gfx_MatrixCol2` /
 /// `ratan2` / `RotMatrix`, and the display task is spawned from

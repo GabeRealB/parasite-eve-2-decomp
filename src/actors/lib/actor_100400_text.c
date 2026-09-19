@@ -125,7 +125,7 @@ extern TaskFuncTable3        Actor00400_D00144;
 extern TaskFuncTable3        Actor00400_D00150;
 extern TaskFuncTable3        Actor00400_D0015C;
 extern TaskFuncTable4        Actor00400_D00168;
-extern Actor100400Stats      Actor00400_D0FDC8;
+extern GpPairSrcE            Actor00400_D0FDC8;
 extern TaskDesc              Actor00400_D16028;
 extern Actor100400AreaConfig Actor00400_D15F20[];
 extern u32                   Actor00400_D16010;
@@ -343,7 +343,7 @@ void Actor00400_Fn00B48(Actor100400* arg0)
     obj->field_14 = 1;
     obj->field_54 = work->field_39C;
     obj->field_50 = &Actor00400_D0FDC8;
-    hp            = Actor00400_D0FDC8.field_4;
+    hp            = Actor00400_D0FDC8.hpMax;
     obj->field_42 = hp;
     obj->field_40 = hp;
     coord->sub    = &gGfxViewCoord;

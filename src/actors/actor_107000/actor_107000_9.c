@@ -7,9 +7,9 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Node 3's pair record, packed by `Gp_PackPair` into `obj3`; the wider view of
-/// the same object is `D_actor_107000_80139EA0`, whose `field_4` seeds the
-/// enemy's `field_40`.
+/// Node 3's pair table, packed by `Gp_PackPair` into `obj3`, and the enemy
+/// record whose `pairTable` points at it; its `hpMax` seeds the enemy's
+/// `field_40`.
 extern GpU16Pair  D_actor_107000_80139E98;
 extern GpPairSrcE D_actor_107000_80139EA0;
 
@@ -82,7 +82,7 @@ void func_actor_107000_80136E88(GpEnemy* arg0, Task* arg1)
     arg0->field_1C.vy = 0;
     arg0->field_1C.vz = 0;
     arg0->field_50    = &D_actor_107000_80139EA0;
-    arg0->field_40    = D_actor_107000_80139EA0.field_4;
+    arg0->field_40    = D_actor_107000_80139EA0.hpMax;
     arg0->field_54    = (s32)&work->field_24C[0];
     work->field_35C   = &((TmdObject*)arg1->extra)->coords[1];
     work->field_360   = 0x100;

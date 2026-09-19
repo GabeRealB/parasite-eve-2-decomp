@@ -221,7 +221,7 @@ void func_actor_105300_80132BAC(GpEnemy* arg0, Task* arg1)
     arg0->field_1C.vz         = 0;
     arg0->field_50            = &D_actor_105300_8013D3A0;
     arg0->field_54            = (s32)rec18;
-    arg0->field_40            = D_actor_105300_8013D3A0.field_4;
+    arg0->field_40            = D_actor_105300_8013D3A0.hpMax;
     part->field_38.spawnArgLo = 0x500;
     part->field_38.coord      = coord;
     part->field_38.spawnArgHi = 2;

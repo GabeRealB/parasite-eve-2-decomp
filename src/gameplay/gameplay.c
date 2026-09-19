@@ -8434,7 +8434,7 @@ void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
         block->field_16   = arg1->field_6 + block->field_1A;
     }
     if (arg0->field_50 != NULL) {
-        val = arg0->field_50->field_4;
+        val = arg0->field_50->hpMax;
         if (arg0->node.flags & 8) {
             val = -1;
         }

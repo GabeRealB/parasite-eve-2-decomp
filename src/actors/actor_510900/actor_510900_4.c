@@ -47,7 +47,7 @@ extern s16 D_80073BA0;
 /// The player's world matrix; its third column is the direction they face.
 extern MATRIX* D_80073B8C;
 
-/// The pair source the context's `field_50` points at; its `field_4` seeds the
+/// The pair source the context's `field_50` points at; its `hpMax` seeds the
 /// enemy's HP.
 extern GpPairSrcE D_actor_510900_80167980;
 
