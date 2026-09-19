@@ -130832,3 +130832,38 @@ in scope either, and needs `struct _Tag;` forward declarations above the
 definition, with its arms spelled `struct _Tag*`. A forward declaration of the
 tag is enough because the arms are pointers; only the tag spelling is load
 bearing.
+
+## A main-side prototype that names an overlay type moves the include, not the type
+
+An overlay function called from the main executable has its prototype in the
+bridge header for overlay symbols, which pulls in main headers only. That
+works while the signature is expressible in main types - the body types those
+prototypes take are declared in `main/tmd.h`, `main/task.h` and
+`main/session.h` - and stops working the moment the honest parameter type is
+one the overlay owns: `gpFreeDisp2d` releases the `GpDisp2d` body, and no main
+header declares that type.
+
+Three ways out, and only one of them is right:
+
+- **Keep the parameter `void*`.** Legal, and the honest declaration for a free
+  or release entry point whose callers pass many different types. It is wrong
+  when every caller passes the same body: the type is known, the placeholder
+  hides the one thing the declaration could have said, and a bridge declaration
+  left as `void*` while the definition names the type is one function with two
+  signatures.
+- **Move the type into a main header.** Right only when main genuinely owns the
+  bytes. A type main merely needs to *name* would become one type declared
+  twice, which is what the pass exists to remove, while the overlay header
+  already declares it correctly.
+- **Include the overlay header at the main call site.** One include line in the
+  `.c` that calls the function, and the bridge declaration goes. The direction
+  is new - no `src/main/*.c` had included an overlay header - but nothing
+  forbids it: the rule that a main *header* must not point at an overlay header
+  stays (it restates the type instead), and a translation unit including one
+  only borrows declarations.
+
+The typed parameter also settles how the pass should read that type's
+visibility. A type named by a prototype in a public header is part of that
+header's interface, so the "one translation unit uses it, so it belongs in that
+`.c`" guess - which the visibility column is - no longer holds for it, even
+though the reference scan sees only that one unit.

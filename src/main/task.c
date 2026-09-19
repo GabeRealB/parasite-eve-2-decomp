@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/gameplay.h"
 #include "main/unknown_syms.h"
 #include "main/text.h"
 
@@ -198,7 +199,7 @@ void Task_Kill(Task* arg0)
         goto cu_def;
 
     cu2:
-        Gp_FreeDisp2d(arg0->extra);
+        gpFreeDisp2d(arg0->extra);
 
     cu_def:
         arg0->spawnType = 0xFF;
@@ -221,7 +222,7 @@ imm1:
 
 imm2:
     Gp_UnlinkDisp2d(arg0->extra);
-    Gp_FreeDisp2d(arg0->extra);
+    gpFreeDisp2d(arg0->extra);
 
 imm_unlink:
     saved           = gTaskActiveList;
@@ -620,7 +621,7 @@ void Task_CountdownCallback(Task* arg0)
             arg0->spawnType = 0xFF;
             break;
         case 2:
-            Gp_FreeDisp2d(arg0->extra);
+            gpFreeDisp2d(arg0->extra);
             arg0->spawnType = 0xFF;
             break;
         default:

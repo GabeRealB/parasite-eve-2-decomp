@@ -377,16 +377,20 @@ extern u16 Gp_ReplayFramesLeft;
 extern s32          D_80114C34;
 extern GpPadReplay* Gp_ReplayCursor;
 
-void       Gp_UpdateCoordTree(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void       Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void       Gp_UpdateCoordEx(GsCOORDINATE2* arg0, s32 arg1);
-void*      Gp_AttachTmd(Task* task, TmdSource* src);
-void*      Gp_AttachDisp2d(Task* task);
-void*      Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags);
-void       Gp_UnlinkTmd(TmdListHead* node);
-void       Gp_FreeTmd(TmdObject* obj);
-void       Gp_UnlinkDisp2d(TmdListHead* node);
-void       Gp_FreeDisp2d(void* node);
+void  Gp_UpdateCoordTree(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+void  Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void  Gp_UpdateCoordEx(GsCOORDINATE2* arg0, s32 arg1);
+void* Gp_AttachTmd(Task* task, TmdSource* src);
+void* Gp_AttachDisp2d(Task* task);
+void* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags);
+void  Gp_UnlinkTmd(TmdListHead* node);
+void  Gp_FreeTmd(TmdObject* obj);
+void  Gp_UnlinkDisp2d(TmdListHead* node);
+/// Releases a 2D-display body, returning its memory to the heap.
+///
+/// The body has already left its list, so this is the second half of the
+/// release: `Gp_FreeTmd` is its counterpart on the model side.
+void       gpFreeDisp2d(GpDisp2d* node);
 void       Gp_StashTmdLists(void);
 void       Gp_RestoreTmdLists(void);
 Task*      Gp_FindTaskByCoord(GsCOORDINATE2* arg0);

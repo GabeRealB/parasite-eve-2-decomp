@@ -1145,7 +1145,7 @@ void Gp_UnlinkDisp2d(TmdListHead* node)
     prev->next = node->next;
 }
 
-void Gp_FreeDisp2d(void* node)
+void gpFreeDisp2d(GpDisp2d* node)
 {
     memFree(node);
 }
