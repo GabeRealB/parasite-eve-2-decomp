@@ -1405,9 +1405,9 @@ u32* func_80099994(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*                   szTable;
 
     ws   = arg0;
-    poly = (POLY_F4*)ws->field_4;
-    if (ws->field_1C-- > 0) {
-        opz      = &ws->field_28;
+    poly = (POLY_F4*)ws->preXformWrite;
+    if (ws->elemCount-- > 0) {
+        opz      = &ws->gteResult;
         clipMask = 0x80000000;
         ds       = &gDisplayState;
         mask     = 0xFFFFFF;
@@ -1418,15 +1418,15 @@ u32* func_80099994(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             gte_ldsxy3_fifo_f4(xy);
             gte_nclip_real();
             gte_stopz(opz);
-            if (ws->field_28 > 0) {
+            if (ws->gteResult > 0) {
                 goto draw;
             }
             gte_ldsxy_fifo0(xy);
             gte_nclip_real();
             gte_stopz(opz);
-            if (ws->field_28 < 0) {
+            if (ws->gteResult < 0) {
             draw:
-                szTable = (u8*)ws->field_10;
+                szTable = (u8*)ws->szTable;
                 idx     = rec[0] & 0xFFFC;
                 sz      = *(s32*)(idx + (s32)szTable);
                 if ((sz & clipMask) == 0) {
@@ -1447,9 +1447,9 @@ u32* func_80099994(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                                 gte_stotz(opz);
                                 gte_stotz(opz);
                                 poly->tag =
-                                    (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                                *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                                    (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                                    (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                                *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                                    (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                             }
                         }
                     }
@@ -1457,10 +1457,10 @@ u32* func_80099994(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             }
             xy++;
             poly++;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_4 = (u8*)poly;
+    ws->preXformWrite = (u8*)poly;
     return arg2;
 }
 
@@ -1480,9 +1480,9 @@ u32* func_80099B94(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*                   szTable;
 
     ws   = arg0;
-    poly = (POLY_F3*)ws->field_4;
-    if (ws->field_1C-- > 0) {
-        opz      = &ws->field_28;
+    poly = (POLY_F3*)ws->preXformWrite;
+    if (ws->elemCount-- > 0) {
+        opz      = &ws->gteResult;
         clipMask = 0x80000000;
         ds       = &gDisplayState;
         mask     = 0xFFFFFF;
@@ -1493,8 +1493,8 @@ u32* func_80099B94(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             gte_ldsxy3_fifo(xy);
             gte_nclip_real();
             gte_stopz(opz);
-            if (ws->field_28 < 0) {
-                szTable = (u8*)ws->field_10;
+            if (ws->gteResult < 0) {
+                szTable = (u8*)ws->szTable;
                 idx     = rec[0] & 0xFFFC;
                 sz      = *(s32*)(idx + (s32)szTable);
                 if ((sz & clipMask) == 0) {
@@ -1511,19 +1511,19 @@ u32* func_80099B94(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             gte_stotz(opz);
                             gte_stotz(opz);
                             poly->tag =
-                                (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                            *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                                (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                                (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                            *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                                (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                         }
                     }
                 }
             }
             xy++;
             poly++;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_4 = (u8*)poly;
+    ws->preXformWrite = (u8*)poly;
     return arg2;
 }
 
@@ -1549,9 +1549,9 @@ u32* func_80099D40(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     s32                   tpage;
 
     ws   = arg0;
-    poly = (POLY_GT3*)ws->field_4;
-    if (ws->field_1C-- > 0) {
-        opz      = &ws->field_28;
+    poly = (POLY_GT3*)ws->preXformWrite;
+    if (ws->elemCount-- > 0) {
+        opz      = &ws->gteResult;
         clipMask = 0x80000000;
         len      = 9;
         code     = 0x34;
@@ -1564,8 +1564,8 @@ u32* func_80099D40(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             gte_ldsxy3_fifo_gt3_s0(xy);
             gte_nclip_real();
             gte_stopz(opz);
-            if (ws->field_28 > 0) {
-                szTable = (u8*)ws->field_10;
+            if (ws->gteResult > 0) {
+                szTable = (u8*)ws->szTable;
                 idx     = rec[0] & 0xFFFC;
                 sz      = *(s32*)(idx + (s32)szTable);
                 if ((sz & clipMask) == 0) {
@@ -1616,23 +1616,23 @@ u32* func_80099D40(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             setcode(xy, code);
                             gte_stotz(opz);
                             poly->tag =
-                                (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                            *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                                (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                                (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                            *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                                (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                             xy->tag =
-                                (xy->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                            *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                                (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)xy & mask);
+                                (xy->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                            *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                                (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)xy & mask);
                         }
                     }
                 }
             }
             xy   += 2;
             poly += 2;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_4 = (u8*)poly;
+    ws->preXformWrite = (u8*)poly;
     return arg2;
 }
 
@@ -1658,9 +1658,9 @@ u32* func_80099FF4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     s32                   tpage;
 
     ws   = arg0;
-    poly = (POLY_GT4*)ws->field_4;
-    if (ws->field_1C-- > 0) {
-        opz      = &ws->field_28;
+    poly = (POLY_GT4*)ws->preXformWrite;
+    if (ws->elemCount-- > 0) {
+        opz      = &ws->gteResult;
         clipMask = 0x80000000;
         len      = 12;
         code     = 0x3C;
@@ -1675,21 +1675,21 @@ u32* func_80099FF4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             gte_stopz(opz);
             gte_ldsxy_fifo_gt4_x3_s0(xy);
             gte_nclip_real();
-            if (ws->field_28 <= 0) {
+            if (ws->gteResult <= 0) {
                 *(u32*)&xy[-1].x0 = *(u32*)&xy[-1].x1;
                 *(u32*)&xy->x0    = *(u32*)&xy->x1;
                 gte_stopz(opz);
-                if (ws->field_28 >= 0) {
+                if (ws->gteResult >= 0) {
                     goto next;
                 }
             } else {
                 gte_stopz(opz);
-                if (ws->field_28 >= 0) {
+                if (ws->gteResult >= 0) {
                     *(u32*)&xy[-1].x3 = *(u32*)&xy[-1].x2;
                     *(u32*)&xy->x3    = *(u32*)&xy->x2;
                 }
             }
-            szTable = (u8*)ws->field_10;
+            szTable = (u8*)ws->szTable;
             idx     = rec[0] & 0xFFFC;
             sz      = *(s32*)(idx + (s32)szTable);
             if ((sz & clipMask) == 0) {
@@ -1747,13 +1747,13 @@ u32* func_80099FF4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             setlen(xy, len);
                             setcode(xy, code);
                             poly->tag =
-                                (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                            *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                                (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                                (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                            *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                                (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                             xy->tag =
-                                (xy->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                            *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                                (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)xy & mask);
+                                (xy->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                            *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                                (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)xy & mask);
                         }
                     }
                 }
@@ -1761,10 +1761,10 @@ u32* func_80099FF4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         next:
             xy   += 2;
             poly += 2;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_4 = (u8*)poly;
+    ws->preXformWrite = (u8*)poly;
     return arg2;
 }
 
@@ -1786,9 +1786,9 @@ u32* func_8009A348(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*                   szTable;
 
     ws   = arg0;
-    poly = (POLY_GT3*)ws->field_4;
-    if (ws->field_1C-- > 0) {
-        opz      = &ws->field_28;
+    poly = (POLY_GT3*)ws->preXformWrite;
+    if (ws->elemCount-- > 0) {
+        opz      = &ws->gteResult;
         clipMask = 0x80000000;
         len      = 9;
         code     = 0x34;
@@ -1801,8 +1801,8 @@ u32* func_8009A348(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             gte_ldsxy3_fifo_gt3(xy);
             gte_nclip_real();
             gte_stopz(opz);
-            if (ws->field_28 > 0) {
-                szTable = (u8*)ws->field_10;
+            if (ws->gteResult > 0) {
+                szTable = (u8*)ws->szTable;
                 idx     = rec[0] & 0xFFFC;
                 sz      = *(s32*)(idx + (s32)szTable);
                 if ((sz & clipMask) == 0) {
@@ -1823,23 +1823,23 @@ u32* func_8009A348(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             setcode(xy, code);
                             gte_stotz(opz);
                             poly->tag =
-                                (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                            *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                                (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                                (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                            *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                                (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                             xy->tag =
-                                (xy->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                            *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                                (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)xy & mask);
+                                (xy->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                            *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                                (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)xy & mask);
                         }
                     }
                 }
             }
             xy   += 2;
             poly += 2;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_4 = (u8*)poly;
+    ws->preXformWrite = (u8*)poly;
     return arg2;
 }
 
@@ -1861,9 +1861,9 @@ u32* func_8009A57C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*                   szTable;
 
     ws   = arg0;
-    poly = (POLY_GT4*)ws->field_4;
-    if (ws->field_1C-- > 0) {
-        opz      = &ws->field_28;
+    poly = (POLY_GT4*)ws->preXformWrite;
+    if (ws->elemCount-- > 0) {
+        opz      = &ws->gteResult;
         clipMask = 0x80000000;
         len      = 12;
         code     = 0x3C;
@@ -1876,15 +1876,15 @@ u32* func_8009A57C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             gte_ldsxy3_fifo_gt4(xy);
             gte_nclip_real();
             gte_stopz(opz);
-            if (ws->field_28 > 0) {
+            if (ws->gteResult > 0) {
                 goto draw;
             }
             gte_ldsxy_fifo_gt4_x3(xy);
             gte_nclip_real();
             gte_stopz(opz);
-            if (ws->field_28 < 0) {
+            if (ws->gteResult < 0) {
             draw:
-                szTable = (u8*)ws->field_10;
+                szTable = (u8*)ws->szTable;
                 idx     = rec[0] & 0xFFFC;
                 sz      = *(s32*)(idx + (s32)szTable);
                 if ((sz & clipMask) == 0) {
@@ -1909,13 +1909,13 @@ u32* func_8009A57C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                                 setcode(xy, code);
                                 gte_stotz(opz);
                                 poly->tag =
-                                    (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                                *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                                    (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                                    (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                                *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                                    (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                                 xy->tag =
-                                    (xy->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                                *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                                    (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)xy & mask);
+                                    (xy->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                                *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                                    (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)xy & mask);
                             }
                         }
                     }
@@ -1923,10 +1923,10 @@ u32* func_8009A57C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             }
             xy   += 2;
             poly += 2;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_4 = (u8*)poly;
+    ws->preXformWrite = (u8*)poly;
     return arg2;
 }
 
@@ -1945,51 +1945,51 @@ u32* func_8009A804(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     TOUCH_REG(ws);
     col   = Gp_ColorGrey;
     col2  = Gp_ColorGrey;
-    count = ws->field_1C;
+    count = ws->elemCount;
     if (count == 0) {
         return arg2;
     }
-    prev         = -1;
-    ws->field_1C = count + prev;
+    prev          = -1;
+    ws->elemCount = count + prev;
     if (count > 0) {
         do {
             rec = (u16*)arg2;
             idx = rec[0];
             if (idx != prev) {
-                gte_ldv0((u8*)ws->field_8 + (idx & 0xFFF8));
+                gte_ldv0((u8*)ws->verts + (idx & 0xFFF8));
                 gte_rtps_real();
-                gte_stsz(&ws->field_28);
-                gte_stflg(&ws->field_24);
-                if (ws->field_24 & 0x80000000) {
-                    ws->field_28 |= 0x80000000;
+                gte_stsz(&ws->gteResult);
+                gte_stflg(&ws->gteFlag);
+                if (ws->gteFlag & 0x80000000) {
+                    ws->gteResult |= 0x80000000;
                 }
-                ws->field_10[*(u16*)arg2 >> 3] = ws->field_28;
+                ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;
             }
             prev = rec[0];
-            dest = ws->field_4 + rec[2] + 4;
+            dest = ws->preXformWrite + rec[2] + 4;
             gte_stsxy(dest);
-            dest = ws->field_4 + rec[3] + 4;
+            dest = ws->preXformWrite + rec[3] + 4;
             gte_stsxy(dest);
-            gte_stsxy(&ws->field_7C);
-            gte_ldv0((u8*)ws->field_C + (rec[1] & 0xFFF8));
+            gte_stsxy(&ws->texCoord);
+            gte_ldv0((u8*)ws->normals + (rec[1] & 0xFFF8));
             gte_ldrgb(&col2);
             gte_nccs_real();
-            gte_strgb(ws->field_4 + rec[2]);
+            gte_strgb(ws->preXformWrite + rec[2]);
             gte_ldrgb(&col);
             gte_nccs_real();
-            gte_strgb(ws->field_4 + rec[3]);
+            gte_strgb(ws->preXformWrite + rec[3]);
             gte_rtv0_real();
-            ws->field_7C = ((s16)ws->field_7C >> 4) + 0x20;
-            ws->field_7E = ((s16)ws->field_7E >> 4) + 0x20;
-            gte_stsv(&ws->field_74);
-            ws->field_7C += (s16)ws->field_74 >> 8;
-            ws->field_7E += (s16)ws->field_76 >> 8;
-            dest          = ws->field_4 + rec[2];
-            dest[8]       = *(u8*)&ws->field_7C;
-            dest          = ws->field_4 + rec[2];
-            dest[9]       = *(u8*)&ws->field_7E;
-            arg2         += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            ws->texCoord.vx = (ws->texCoord.vx >> 4) + 0x20;
+            ws->texCoord.vy = (ws->texCoord.vy >> 4) + 0x20;
+            gte_stsv(&ws->elemNormal);
+            ws->texCoord.vx += ws->elemNormal.vx >> 8;
+            ws->texCoord.vy += ws->elemNormal.vy >> 8;
+            dest             = ws->preXformWrite + rec[2];
+            dest[8]          = *(u8*)&ws->texCoord.vx;
+            dest             = ws->preXformWrite + rec[2];
+            dest[9]          = *(u8*)&ws->texCoord.vy;
+            arg2            += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
     return arg2;
 }
@@ -2008,45 +2008,45 @@ u32* func_8009AA5C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     TOUCH_REG(ws);
     col = Gp_ColorOrange;
     gte_ldrgb(&col);
-    count = ws->field_1C;
+    count = ws->elemCount;
     if (count == 0) {
         return arg2;
     }
-    prev         = -1;
-    ws->field_1C = count + prev;
+    prev          = -1;
+    ws->elemCount = count + prev;
     if (count > 0) {
         do {
             rec = (u16*)arg2;
             idx = rec[0];
             if (idx != prev) {
-                gte_ldv0((u8*)ws->field_8 + (idx & 0xFFF8));
+                gte_ldv0((u8*)ws->verts + (idx & 0xFFF8));
                 gte_rtps_real();
-                gte_stsz(&ws->field_28);
-                gte_stflg(&ws->field_24);
-                if (ws->field_24 & 0x80000000) {
-                    ws->field_28 |= 0x80000000;
+                gte_stsz(&ws->gteResult);
+                gte_stflg(&ws->gteFlag);
+                if (ws->gteFlag & 0x80000000) {
+                    ws->gteResult |= 0x80000000;
                 }
-                ws->field_10[*(u16*)arg2 >> 3] = ws->field_28;
+                ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;
             }
             prev = rec[0];
-            dest = ws->field_4 + rec[2];
+            dest = ws->preXformWrite + rec[2];
             gte_stsxy(dest);
-            gte_stsxy(&ws->field_7C);
-            gte_ldv0((u8*)ws->field_C + (rec[1] & 0xFFF8));
+            gte_stsxy(&ws->texCoord);
+            gte_ldv0((u8*)ws->normals + (rec[1] & 0xFFF8));
             gte_nccs_real();
             gte_rtv0_real();
-            ws->field_7C = ((s16)ws->field_7C >> 4) + 0x20;
-            ws->field_7E = ((s16)ws->field_7E >> 4) + 0x20;
-            gte_stsv(&ws->field_74);
-            ws->field_7C += (s16)ws->field_74 >> 8;
-            ws->field_7E += (s16)ws->field_76 >> 8;
-            dest          = ws->field_4 + rec[2];
-            dest[4]       = *(u8*)&ws->field_7C;
-            dest          = ws->field_4 + rec[2];
-            dest[5]       = *(u8*)&ws->field_7E;
-            arg2         += ws->field_18;
-            gte_strgb(ws->field_4 + rec[3]);
-        } while (ws->field_1C-- > 0);
+            ws->texCoord.vx = (ws->texCoord.vx >> 4) + 0x20;
+            ws->texCoord.vy = (ws->texCoord.vy >> 4) + 0x20;
+            gte_stsv(&ws->elemNormal);
+            ws->texCoord.vx += ws->elemNormal.vx >> 8;
+            ws->texCoord.vy += ws->elemNormal.vy >> 8;
+            dest             = ws->preXformWrite + rec[2];
+            dest[4]          = *(u8*)&ws->texCoord.vx;
+            dest             = ws->preXformWrite + rec[2];
+            dest[5]          = *(u8*)&ws->texCoord.vy;
+            arg2            += ws->elemStride;
+            gte_strgb(ws->preXformWrite + rec[3]);
+        } while (ws->elemCount-- > 0);
     }
     return arg2;
 }
@@ -2069,56 +2069,56 @@ u32* func_8009AC58(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     col  = Gp_ColorWhite;
     col2 = Gp_ColorGrey;
     gte_ldrgb(&col);
-    count = ws->field_1C;
+    count = ws->elemCount;
     if (count == 0) {
         return arg2;
     }
-    prev         = -1;
-    ws->field_1C = count + prev;
+    prev          = -1;
+    ws->elemCount = count + prev;
     if (count > 0) {
         do {
             rec = (u16*)arg2;
             idx = rec[0];
             if (idx != prev) {
-                gte_ldv0((u8*)ws->field_8 + (idx & 0xFFF8));
+                gte_ldv0((u8*)ws->verts + (idx & 0xFFF8));
                 gte_rtps_real();
-                gte_stsz(&ws->field_28);
-                gte_stflg(&ws->field_24);
-                if (ws->field_24 & 0x80000000) {
-                    ws->field_28 |= 0x80000000;
+                gte_stsz(&ws->gteResult);
+                gte_stflg(&ws->gteFlag);
+                if (ws->gteFlag & 0x80000000) {
+                    ws->gteResult |= 0x80000000;
                 }
-                ws->field_10[*(u16*)arg2 >> 3] = ws->field_28;
+                ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;
             }
             prev = rec[0];
-            gte_stsxy(ws->field_4 + rec[2]);
-            gte_stsxy(&ws->field_7C);
-            gte_ldv0((u8*)ws->field_C + (rec[1] & 0xFFF8));
+            gte_stsxy(ws->preXformWrite + rec[2]);
+            gte_stsxy(&ws->texCoord);
+            gte_ldv0((u8*)ws->normals + (rec[1] & 0xFFF8));
             gte_nccs_real();
             gte_rtv0_real();
-            gte_stsv(&ws->field_74);
-            arg2 += ws->field_18;
-            gte_strgb(ws->field_4 + rec[3]);
-            if (ws->field_80->lightLevel < 0x1000) {
-                gte_lddp(ws->field_80->lightLevel);
-                cptr = ws->field_4 + rec[3];
+            gte_stsv(&ws->elemNormal);
+            arg2 += ws->elemStride;
+            gte_strgb(ws->preXformWrite + rec[3]);
+            if (ws->obj->lightLevel < 0x1000) {
+                gte_lddp(ws->obj->lightLevel);
+                cptr = ws->preXformWrite + rec[3];
                 gte_ldcv(cptr);
                 gte_gpf12_real();
-                gte_lddp(0x1000 - ws->field_80->lightLevel);
+                gte_lddp(0x1000 - ws->obj->lightLevel);
                 gte_ldcv(&col2);
                 gte_gpl12_real();
                 gte_stcv(cptr);
             }
-            xy = (DVECTOR*)&ws->field_7C;
+            xy = &ws->texCoord;
             TOUCH_REG(xy);
             page = 0;
-            dest = ws->field_4 + rec[2] + 4;
-            sv   = (SVECTOR*)&ws->field_74;
-            gte_lddp(ws->field_80->lightLevel >> 9);
+            dest = ws->preXformWrite + rec[2] + 4;
+            sv   = &ws->elemNormal;
+            gte_lddp(ws->obj->lightLevel >> 9);
             gte_ldsv(sv);
             gte_gpf12_real();
             gte_stsv(sv);
-            uv  = (s16)ws->field_7C + 0xA0;
-            uv -= (s16)ws->field_74;
+            uv  = ws->texCoord.vx + 0xA0;
+            uv -= ws->elemNormal.vx;
             if (uv < 0) {
                 uv = page;
             } else if (uv >= 0x100) {
@@ -2139,7 +2139,7 @@ u32* func_8009AC58(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
             }
             *dest    = uv;
             dest[-6] = page;
-        } while (ws->field_1C-- > 0);
+        } while (ws->elemCount-- > 0);
     }
     return arg2;
 }
@@ -2160,46 +2160,46 @@ u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     s32      x;
 
     col   = Gp_ColorGrey;
-    count = ws->field_1C;
+    count = ws->elemCount;
     if (count == 0) {
         return arg2;
     }
-    prev         = -1;
-    ws->field_1C = count + prev;
+    prev          = -1;
+    ws->elemCount = count + prev;
     if (count > 0) {
         do {
             rec = (u16*)arg2;
             idx = rec[0];
             if (idx != prev) {
-                gte_ldv0((u8*)ws->field_8 + (idx & 0xFFF8));
+                gte_ldv0((u8*)ws->verts + (idx & 0xFFF8));
                 gte_rtps_real();
-                gte_stsz(&ws->field_28);
-                gte_stflg(&ws->field_24);
-                if (ws->field_24 & 0x80000000) {
-                    ws->field_28 |= 0x80000000;
+                gte_stsz(&ws->gteResult);
+                gte_stflg(&ws->gteFlag);
+                if (ws->gteFlag & 0x80000000) {
+                    ws->gteResult |= 0x80000000;
                 }
-                ws->field_10[*(u16*)arg2 >> 3] = ws->field_28;
+                ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;
             }
             prev = rec[0];
-            gte_stsxy(ws->field_4 + rec[2] + 4);
-            gte_stsxy(ws->field_4 + rec[3] + 4);
-            gte_stsxy(&ws->field_7C);
-            gte_ldv0((u8*)ws->field_C + (rec[1] & 0xFFF8));
+            gte_stsxy(ws->preXformWrite + rec[2] + 4);
+            gte_stsxy(ws->preXformWrite + rec[3] + 4);
+            gte_stsxy(&ws->texCoord);
+            gte_ldv0((u8*)ws->normals + (rec[1] & 0xFFF8));
             gte_ldrgb(&D_80114BA4);
             gte_nccs_real();
-            gte_strgb(ws->field_4 + rec[2]);
+            gte_strgb(ws->preXformWrite + rec[2]);
             gte_ldrgb(&D_80114BA8);
             gte_nccs_real();
-            gte_strgb(ws->field_4 + rec[3]);
+            gte_strgb(ws->preXformWrite + rec[3]);
             gte_rtv0_real();
-            gte_stsv(&ws->field_74);
-            arg2 += ws->field_18;
+            gte_stsv(&ws->elemNormal);
+            arg2 += ws->elemStride;
             // Blend the primitive colour towards the grey reference by the
             // object's light level when the level is below 1.0 (0x1000).
-            dp = ws->field_80->lightLevel;
+            dp = ws->obj->lightLevel;
             if (dp < 0x1000) {
                 gte_lddp(dp);
-                rgb = ws->field_4 + rec[2];
+                rgb = ws->preXformWrite + rec[2];
                 gte_ldcv(rgb);
                 gte_gpf12_real();
                 gte_lddp(0x1000 - dp);
@@ -2207,20 +2207,20 @@ u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                 gte_gpl12_real();
                 gte_stcv(rgb);
             }
-            sxy = (DVECTOR*)&ws->field_7C;
+            sxy = &ws->texCoord;
             TOUCH_REG(sxy);
             flag = 0;
-            dest = ws->field_4 + rec[2] + 8;
-            sv   = (SVECTOR*)&ws->field_74;
-            gte_lddp(ws->field_80->lightLevel >> 9);
+            dest = ws->preXformWrite + rec[2] + 8;
+            sv   = &ws->elemNormal;
+            gte_lddp(ws->obj->lightLevel >> 9);
             gte_ldsv(sv);
             gte_gpf12_real();
             gte_stsv(sv);
             // dest[8]/dest[9] are the U/V pair; dest[3] (dest[-6] once dest has
             // been advanced onto the V byte) is the primitive's code byte, set
             // when U had to be pulled back onto the second texture page.
-            x  = (s16)ws->field_7C + 0xA0;
-            x -= (s16)ws->field_74;
+            x  = ws->texCoord.vx + 0xA0;
+            x -= ws->elemNormal.vx;
             if (x < 0) {
                 x = 0;
             } else if (x >= 0x100) {
@@ -2241,7 +2241,7 @@ u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
             }
             *dest    = x;
             dest[-6] = flag;
-        } while (ws->field_1C-- > 0);
+        } while (ws->elemCount-- > 0);
     }
     return arg2;
 }
@@ -2263,7 +2263,7 @@ u32* func_8009B2F4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     TOUCH_REG(ws);
     col    = Gp_ColorWhite;
     col2   = Gp_ColorGrey;
-    val    = ws->field_80->lightLevel >> 5;
+    val    = ws->obj->lightLevel >> 5;
     inv    = 0x80 - val;
     col.b  = val;
     col.g  = val;
@@ -2271,43 +2271,43 @@ u32* func_8009B2F4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     col2.b = inv;
     col2.g = inv;
     col2.r = inv;
-    count  = ws->field_1C;
+    count  = ws->elemCount;
     if (count == 0) {
         return arg2;
     }
-    prev         = -1;
-    ws->field_1C = count + prev;
+    prev          = -1;
+    ws->elemCount = count + prev;
     if (count > 0) {
         do {
             rec = (u16*)arg2;
             idx = rec[0];
             if (idx != prev) {
-                gte_ldv0((u8*)ws->field_8 + (idx & 0xFFF8));
+                gte_ldv0((u8*)ws->verts + (idx & 0xFFF8));
                 gte_rtps_real();
-                gte_stsz(&ws->field_28);
-                gte_stflg(&ws->field_24);
-                if (ws->field_24 & 0x80000000) {
-                    ws->field_28 |= 0x80000000;
+                gte_stsz(&ws->gteResult);
+                gte_stflg(&ws->gteFlag);
+                if (ws->gteFlag & 0x80000000) {
+                    ws->gteResult |= 0x80000000;
                 }
-                ws->field_10[*(u16*)arg2 >> 3] = ws->field_28;
+                ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;
             }
             prev = rec[0];
-            dest = ws->field_4 + rec[2] + 4;
+            dest = ws->preXformWrite + rec[2] + 4;
             gte_stsxy(dest);
-            dest = ws->field_4 + rec[3] + 4;
+            dest = ws->preXformWrite + rec[3] + 4;
             gte_stsxy(dest);
-            gte_stsxy(&ws->field_7C);
-            gte_ldv0((u8*)ws->field_C + (rec[1] & 0xFFF8));
+            gte_stsxy(&ws->texCoord);
+            gte_ldv0((u8*)ws->normals + (rec[1] & 0xFFF8));
             gte_ldrgb(&col);
             gte_nccs_real();
-            gte_strgb(ws->field_4 + rec[2]);
+            gte_strgb(ws->preXformWrite + rec[2]);
             gte_ldrgb(&col2);
             gte_nccs_real();
-            gte_strgb(ws->field_4 + rec[3]);
+            gte_strgb(ws->preXformWrite + rec[3]);
             gte_rtv0_real();
-            gte_stsv(&ws->field_74);
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            gte_stsv(&ws->elemNormal);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
     return arg2;
 }
@@ -2341,28 +2341,28 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
     ws = arg0;
     TOUCH_REG(ws);
-    poly = (POLY_GT3*)ws->field_0;
+    poly = (POLY_GT3*)ws->primWrite;
     col  = Gp_ColorGrey;
-    if (ws->field_1C-- > 0) {
+    if (ws->elemCount-- > 0) {
         scale  = 0x1000;
-        svBase = (SVECTOR*)&ws->field_74;
+        svBase = &ws->elemNormal;
         ds     = &gDisplayState;
         mask   = 0xFFFFFF;
         maskHi = 0xFF000000;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)ws->field_8;
+            verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
-            gte_stflg(&ws->field_24);
-            if (ws->field_24 >= 0) {
+            gte_stflg(&ws->gteFlag);
+            if (ws->gteFlag >= 0) {
                 gte_nclip_real();
-                gte_stopz(&ws->field_28);
-                if (ws->field_28 > 0) {
+                gte_stopz(&ws->gteResult);
+                if (ws->gteResult > 0) {
                     gte_stsxy3_gt3(&poly[0]);
                     gte_stsxy3_gt3(&poly[1]);
                     gte_avsz3_real();
-                    norms = (u8*)ws->field_C;
+                    norms = (u8*)ws->normals;
                     gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8));
                     gte_ldrgb(&D_80114BA4);
                     gte_ncct_real();
@@ -2370,28 +2370,28 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     gte_ldrgb(&D_80114BA8);
                     gte_ncct_real();
                     gte_strgb3_gt3(&poly[1]);
-                    if (ws->field_80->lightLevel < 0x1000) {
-                        gte_lddp(ws->field_80->lightLevel);
+                    if (ws->obj->lightLevel < 0x1000) {
+                        gte_lddp(ws->obj->lightLevel);
                         rgb = (u8*)&poly[0].r0;
                         gte_ldcv(rgb);
                         gte_gpf12_real();
-                        gte_lddp(scale - ws->field_80->lightLevel);
+                        gte_lddp(scale - ws->obj->lightLevel);
                         gte_ldcv(&col);
                         gte_gpl12_real();
                         gte_stcv(rgb);
-                        gte_lddp(ws->field_80->lightLevel);
+                        gte_lddp(ws->obj->lightLevel);
                         rgb = (u8*)&poly[0].r1;
                         gte_ldcv(rgb);
                         gte_gpf12_real();
-                        gte_lddp(scale - ws->field_80->lightLevel);
+                        gte_lddp(scale - ws->obj->lightLevel);
                         gte_ldcv(&col);
                         gte_gpl12_real();
                         gte_stcv(rgb);
-                        gte_lddp(ws->field_80->lightLevel);
+                        gte_lddp(ws->obj->lightLevel);
                         rgb = (u8*)&poly[0].r2;
                         gte_ldcv(rgb);
                         gte_gpf12_real();
-                        gte_lddp(scale - ws->field_80->lightLevel);
+                        gte_lddp(scale - ws->obj->lightLevel);
                         gte_ldcv(&col);
                         gte_gpl12_real();
                         gte_stcv(rgb);
@@ -2404,12 +2404,12 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     dest = (u8*)&poly[0].u0;
                     flag = combined;
                     sv   = svBase;
-                    gte_lddp(ws->field_80->lightLevel >> 9);
+                    gte_lddp(ws->obj->lightLevel >> 9);
                     gte_ldsv(sv);
                     gte_gpf12_real();
                     gte_stsv(sv);
                     x  = poly[0].x0 + 0xA0;
-                    x -= (s16)ws->field_74;
+                    x -= ws->elemNormal.vx;
                     if (x < 0) {
                         x = combined;
                     } else if (x >= 0x100) {
@@ -2439,12 +2439,12 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     dest = (u8*)&poly[0].u1;
                     flag = 0;
                     sv   = svBase;
-                    gte_lddp(ws->field_80->lightLevel >> 9);
+                    gte_lddp(ws->obj->lightLevel >> 9);
                     gte_ldsv(sv);
                     gte_gpf12_real();
                     gte_stsv(sv);
                     x  = poly[0].x1 + 0xA0;
-                    x -= (s16)ws->field_74;
+                    x -= ws->elemNormal.vx;
                     if (x < 0) {
                         x = flag;
                     } else if (x >= 0x100) {
@@ -2474,12 +2474,12 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     dest = (u8*)&poly[0].u2;
                     flag = 0;
                     sv   = svBase;
-                    gte_lddp(ws->field_80->lightLevel >> 9);
+                    gte_lddp(ws->obj->lightLevel >> 9);
                     gte_ldsv(sv);
                     gte_gpf12_real();
                     gte_stsv(sv);
                     x  = poly[0].x2 + 0xA0;
-                    x -= (s16)ws->field_74;
+                    x -= ws->elemNormal.vx;
                     if (x < 0) {
                         x = flag;
                     } else if (x >= 0x100) {
@@ -2538,19 +2538,19 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         :
                         : "r"(&poly[1]), "r"(ws)
                         : "$2", "memory");
-                    poly[0].tag = (poly[0].tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                    *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                        (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)&poly[0] & mask);
-                    poly[1].tag = (poly[1].tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                    *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                        (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)&poly[1] & mask);
+                    poly[0].tag = (poly[0].tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                    *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                        (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)&poly[0] & mask);
+                    poly[1].tag = (poly[1].tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                    *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                        (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)&poly[1] & mask);
                 }
             }
             poly += 2;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_0 = (u8*)poly;
+    ws->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -2571,10 +2571,10 @@ u32* func_8009BD00(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     s32           val;
     s32           inv;
 
-    poly   = (POLY_GT3*)ws->field_0;
+    poly   = (POLY_GT3*)ws->primWrite;
     col    = Gp_ColorGrey;
     col2   = Gp_ColorGrey;
-    val    = ws->field_80->lightLevel >> 5;
+    val    = ws->obj->lightLevel >> 5;
     inv    = 0x80 - val;
     col.b  = val;
     col.g  = val;
@@ -2582,8 +2582,8 @@ u32* func_8009BD00(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     col2.b = inv;
     col2.g = inv;
     col2.r = inv;
-    if (ws->field_1C-- > 0) {
-        opz    = &ws->field_28;
+    if (ws->elemCount-- > 0) {
+        opz    = &ws->gteResult;
         len    = 9;
         code   = 0x34;
         ds     = &gDisplayState;
@@ -2591,18 +2591,18 @@ u32* func_8009BD00(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
         maskHi = 0xFF000000;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)ws->field_8;
+            verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
-            gte_stflg(&ws->field_24);
-            if (ws->field_24 >= 0) {
+            gte_stflg(&ws->gteFlag);
+            if (ws->gteFlag >= 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
-                if (ws->field_28 > 0) {
+                if (ws->gteResult > 0) {
                     gte_stsxy3_gt3(&poly[0]);
                     gte_stsxy3_gt3(&poly[1]);
                     gte_avsz3_real();
-                    norms = (u8*)ws->field_C;
+                    norms = (u8*)ws->normals;
                     gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8));
                     gte_ldrgb(&col);
                     gte_ncct_real();
@@ -2616,19 +2616,19 @@ u32* func_8009BD00(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     setcode(&poly[1], code);
                     poly[0].tpage |= 0x20;
                     gte_stotz(opz);
-                    poly[0].tag = (poly[0].tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                    *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                        (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)&poly[0] & mask);
-                    poly[1].tag = (poly[1].tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                    *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                        (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)&poly[1] & mask);
+                    poly[0].tag = (poly[0].tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                    *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                        (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)&poly[0] & mask);
+                    poly[1].tag = (poly[1].tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                    *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                        (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)&poly[1] & mask);
                 }
             }
             poly += 2;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_0 = (u8*)poly;
+    ws->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -2653,10 +2653,10 @@ u32* func_8009C024(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     s32                   inv;
 
     ws     = arg0;
-    poly   = (POLY_GT4*)ws->field_0;
+    poly   = (POLY_GT4*)ws->primWrite;
     col    = Gp_ColorGrey;
     col2   = Gp_ColorGrey;
-    val    = ws->field_80->lightLevel >> 5;
+    val    = ws->obj->lightLevel >> 5;
     inv    = 0x80 - val;
     col.b  = val;
     col.g  = val;
@@ -2664,36 +2664,36 @@ u32* func_8009C024(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     col2.b = inv;
     col2.g = inv;
     col2.r = inv;
-    if (ws->field_1C-- > 0) {
-        flg      = &ws->field_24;
+    if (ws->elemCount-- > 0) {
+        flg      = &ws->gteFlag;
         clipMask = 0x80000000;
-        opz      = &ws->field_28;
+        opz      = &ws->gteResult;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)ws->field_8;
+            verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
             gte_stflg(flg);
-            if ((ws->field_24 & clipMask) == 0) {
+            if ((ws->gteFlag & clipMask) == 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
                 gte_stsxy3_gt4(&poly[0]);
                 gte_stsxy3_gt4(&poly[1]);
-                gte_ldv0((u8*)ws->field_8 + (rec[3] & 0xFFF8));
+                gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
                 gte_rtps_real();
                 gte_stflg(flg);
-                if ((ws->field_24 & clipMask) == 0) {
-                    if (ws->field_28 > 0) {
+                if ((ws->gteFlag & clipMask) == 0) {
+                    if (ws->gteResult > 0) {
                         goto draw;
                     }
                     gte_nclip_real();
                     gte_stopz(opz);
-                    if (ws->field_28 < 0) {
+                    if (ws->gteResult < 0) {
                     draw:
                         gte_stsxy2(&poly[0].x3);
                         gte_stsxy2(&poly[1].x3);
                         gte_avsz4_real();
-                        norms = (u8*)ws->field_C;
+                        norms = (u8*)ws->normals;
                         gte_ldv3(norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8), norms + (rec[6] & 0xFFF8));
                         gte_ldrgb(&col);
                         gte_ncct_real();
@@ -2701,7 +2701,7 @@ u32* func_8009C024(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         gte_ldrgb(&col2);
                         gte_ncct_real();
                         gte_strgb3_gt4(&poly[1]);
-                        gte_ldv0((u8*)ws->field_C + (rec[7] & 0xFFF8));
+                        gte_ldv0((u8*)ws->normals + (rec[7] & 0xFFF8));
                         gte_ldrgb(&col);
                         gte_nccs_real();
                         gte_strgb(&poly[0].r3);
@@ -2718,20 +2718,20 @@ u32* func_8009C024(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         setlen(&poly[1], len);
                         setcode(&poly[1], code);
                         gte_stotz(opz);
-                        poly[0].tag = (poly[0].tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                        *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                            (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)&poly[0] & mask);
-                        poly[1].tag = (poly[1].tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                        *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                            (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)&poly[1] & mask);
+                        poly[0].tag = (poly[0].tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                        *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                            (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)&poly[0] & mask);
+                        poly[1].tag = (poly[1].tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                        *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                            (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)&poly[1] & mask);
                     }
                 }
             }
             poly += 2;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_0 = (u8*)poly;
+    ws->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -2758,46 +2758,46 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     s32       i;
     s32       len;
 
-    poly = (POLY_GT4*)ws->field_0;
+    poly = (POLY_GT4*)ws->primWrite;
     TOUCH_REG(poly);
     col = Gp_ColorGrey;
-    if (ws->field_1C-- > 0) {
-        flg = &ws->field_24;
-        opz = &ws->field_28;
+    if (ws->elemCount-- > 0) {
+        flg = &ws->gteFlag;
+        opz = &ws->gteResult;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)ws->field_8;
+            verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
             gte_stflg(flg);
-            if ((ws->field_24 & 0x80000000) == 0) {
+            if ((ws->gteFlag & 0x80000000) == 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
                 gte_stsxy3_gt4(&poly[0]);
                 gte_stsxy3_gt4(&poly[1]);
-                gte_ldv0((u8*)ws->field_8 + (rec[3] & 0xFFF8));
+                gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
                 gte_rtps_real();
                 gte_stflg(flg);
-                if ((ws->field_24 & 0x80000000) == 0) {
+                if ((ws->gteFlag & 0x80000000) == 0) {
                     gte_nclip_real();
                     gte_stsxy2(&poly[0].x3);
                     gte_stsxy2(&poly[1].x3);
-                    if (ws->field_28 <= 0) {
+                    if (ws->gteResult <= 0) {
                         *(u_long*)&poly[0].x0 = *(u_long*)&poly[0].x1;
                         *(u_long*)&poly[1].x0 = *(u_long*)&poly[1].x1;
                         gte_stopz(opz);
-                        if (ws->field_28 >= 0) {
+                        if (ws->gteResult >= 0) {
                             goto skip;
                         }
                     } else {
                         gte_stopz(opz);
-                        if (ws->field_28 >= 0) {
+                        if (ws->gteResult >= 0) {
                             *(u_long*)&poly[0].x3 = *(u_long*)&poly[0].x2;
                             *(u_long*)&poly[1].x3 = *(u_long*)&poly[1].x2;
                         }
                     }
                     gte_avsz4_real();
-                    norms = (u8*)ws->field_C;
+                    norms = (u8*)ws->normals;
                     gte_ldv3(norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8), norms + (rec[6] & 0xFFF8));
                     gte_ldrgb(&D_80114BA4);
                     gte_ncct_real();
@@ -2808,18 +2808,18 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
 
                     /* vertex 0 */
                     gte_rtv0_real();
-                    gte_stsv(&ws->field_74);
+                    gte_stsv(&ws->elemNormal);
                     anyflag = 0;
                     sxy     = (DVECTOR*)&poly[0].x0;
                     dest    = &poly[0].u0;
                     flag    = 0;
-                    sv      = (SVECTOR*)&ws->field_74;
-                    gte_lddp(ws->field_80->lightLevel >> 9);
+                    sv      = &ws->elemNormal;
+                    gte_lddp(ws->obj->lightLevel >> 9);
                     gte_ldsv(sv);
                     gte_gpf12_real();
                     gte_stsv(sv);
                     x  = poly[0].x0 + 0xA0;
-                    x -= (s16)ws->field_74;
+                    x -= ws->elemNormal.vx;
                     if (x < 0) {
                         x = 0;
                     } else if (x >= 0x100) {
@@ -2846,17 +2846,17 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
 
                     /* vertex 1 */
                     gte_rtv1_real();
-                    gte_stsv(&ws->field_74);
+                    gte_stsv(&ws->elemNormal);
                     sxy  = (DVECTOR*)&poly[0].x1;
                     dest = &poly[0].u1;
                     flag = 0;
-                    sv   = (SVECTOR*)&ws->field_74;
-                    gte_lddp(ws->field_80->lightLevel >> 9);
+                    sv   = &ws->elemNormal;
+                    gte_lddp(ws->obj->lightLevel >> 9);
                     gte_ldsv(sv);
                     gte_gpf12_real();
                     gte_stsv(sv);
                     x  = poly[0].x1 + 0xA0;
-                    x -= (s16)ws->field_74;
+                    x -= ws->elemNormal.vx;
                     if (x < 0) {
                         x = 0;
                     } else if (x >= 0x100) {
@@ -2883,17 +2883,17 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
 
                     /* vertex 2 */
                     gte_rtv2_real();
-                    gte_stsv(&ws->field_74);
+                    gte_stsv(&ws->elemNormal);
                     sxy  = (DVECTOR*)&poly[0].x2;
                     dest = &poly[0].u2;
                     flag = 0;
-                    sv   = (SVECTOR*)&ws->field_74;
-                    gte_lddp(ws->field_80->lightLevel >> 9);
+                    sv   = &ws->elemNormal;
+                    gte_lddp(ws->obj->lightLevel >> 9);
                     gte_ldsv(sv);
                     gte_gpf12_real();
                     gte_stsv(sv);
                     x  = poly[0].x2 + 0xA0;
-                    x -= (s16)ws->field_74;
+                    x -= ws->elemNormal.vx;
                     if (x < 0) {
                         x = 0;
                     } else if (x >= 0x100) {
@@ -2920,7 +2920,7 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
 
                     /* vertex 3 */
                     sxy3 = (DVECTOR*)&poly[0].x3;
-                    gte_ldv0((u8*)ws->field_C + (rec[7] & 0xFFF8));
+                    gte_ldv0((u8*)ws->normals + (rec[7] & 0xFFF8));
                     gte_ldrgb(&D_80114BA4);
                     gte_nccs_real();
                     gte_strgb(&poly[0].r3);
@@ -2928,17 +2928,17 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     gte_nccs_real();
                     gte_strgb(&poly[1].r3);
                     gte_rtv0_real();
-                    gte_stsv(&ws->field_74);
+                    gte_stsv(&ws->elemNormal);
                     sxy  = sxy3;
                     dest = &poly[0].u3;
                     flag = 0;
-                    sv   = (SVECTOR*)&ws->field_74;
-                    gte_lddp(ws->field_80->lightLevel >> 9);
+                    sv   = &ws->elemNormal;
+                    gte_lddp(ws->obj->lightLevel >> 9);
                     gte_ldsv(sv);
                     gte_gpf12_real();
                     gte_stsv(sv);
                     x  = poly[0].x3 + 0xA0;
-                    x -= (s16)ws->field_74;
+                    x -= ws->elemNormal.vx;
                     if (x < 0) {
                         x = 0;
                     } else if (x >= 0x100) {
@@ -2963,39 +2963,39 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     dest[-6] = flag;
 
                     anyflag |= flag;
-                    if (ws->field_80->lightLevel < 0x1000) {
-                        gte_lddp(ws->field_80->lightLevel);
+                    if (ws->obj->lightLevel < 0x1000) {
+                        gte_lddp(ws->obj->lightLevel);
                         rgb = &poly[0].r0;
                         gte_ldcv(rgb);
                         gte_gpf12_real();
-                        gte_lddp(0x1000 - ws->field_80->lightLevel);
+                        gte_lddp(0x1000 - ws->obj->lightLevel);
                         gte_ldcv(&col);
                         gte_gpl12_real();
                         gte_stcv(rgb);
 
-                        gte_lddp(ws->field_80->lightLevel);
+                        gte_lddp(ws->obj->lightLevel);
                         rgb = &poly[0].r1;
                         gte_ldcv(rgb);
                         gte_gpf12_real();
-                        gte_lddp(0x1000 - ws->field_80->lightLevel);
+                        gte_lddp(0x1000 - ws->obj->lightLevel);
                         gte_ldcv(&col);
                         gte_gpl12_real();
                         gte_stcv(rgb);
 
-                        gte_lddp(ws->field_80->lightLevel);
+                        gte_lddp(ws->obj->lightLevel);
                         rgb = &poly[0].r2;
                         gte_ldcv(rgb);
                         gte_gpf12_real();
-                        gte_lddp(0x1000 - ws->field_80->lightLevel);
+                        gte_lddp(0x1000 - ws->obj->lightLevel);
                         gte_ldcv(&col);
                         gte_gpl12_real();
                         gte_stcv(rgb);
 
-                        gte_lddp(ws->field_80->lightLevel);
+                        gte_lddp(ws->obj->lightLevel);
                         rgb3 = &poly[0].r3;
                         gte_ldcv(rgb3);
                         gte_gpf12_real();
-                        gte_lddp(0x1000 - ws->field_80->lightLevel);
+                        gte_lddp(0x1000 - ws->obj->lightLevel);
                         gte_ldcv(&col);
                         gte_gpl12_real();
                         gte_stcv(rgb3);
@@ -3028,16 +3028,16 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     setlen(&poly[1], len);
                     setcode(&poly[1], 0x3C);
                     gte_stotz(opz);
-                    addPrim((u_long*)(((((u32)ws->field_28 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14), &poly[0]);
-                    addPrim((u_long*)(((((u32)ws->field_28 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14), &poly[1]);
+                    addPrim((u_long*)(((((u32)ws->gteResult << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot), &poly[0]);
+                    addPrim((u_long*)(((((u32)ws->gteResult << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot), &poly[1]);
                 }
             }
         skip:
             poly += 2;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_0 = (u8*)poly;
+    ws->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3054,45 +3054,45 @@ u32* func_8009CED0(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*                   norms;
 
     ws   = arg0;
-    poly = (POLY_GT3*)ws->field_0;
-    if (ws->field_1C-- > 0) {
-        opz    = &ws->field_28;
+    poly = (POLY_GT3*)ws->primWrite;
+    if (ws->elemCount-- > 0) {
+        opz    = &ws->gteResult;
         ds     = &gDisplayState;
         mask   = 0xFFFFFF;
         maskHi = 0xFF000000;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)ws->field_8;
+            verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
-            gte_stflg(&ws->field_24);
-            if (ws->field_24 >= 0) {
+            gte_stflg(&ws->gteFlag);
+            if (ws->gteFlag >= 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
-                if (ws->field_28 > 0) {
+                if (ws->gteResult > 0) {
                     gte_ldrgb(arg2 + 3);
                     gte_stsxy3_gt3(poly);
                     gte_avsz3_real();
-                    norms = (u8*)ws->field_C;
+                    norms = (u8*)ws->normals;
                     gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8));
                     gte_ncct_real();
                     gte_strgb3_gt3(poly);
                     setlen(poly, 9);
                     setcode(poly, 0x34);
-                    if (ws->field_80->flags & 2) {
+                    if (ws->obj->flags & 2) {
                         setcode(poly, 0x36);
                     }
                     gte_stotz(opz);
-                    poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                    *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                        (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                    poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                    *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                        (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                 }
             }
             poly++;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_0 = (u8*)poly;
+    ws->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3111,62 +3111,62 @@ u32* func_8009D0DC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*                   norms;
 
     ws   = arg0;
-    poly = (POLY_GT4*)ws->field_0;
-    if (ws->field_1C-- > 0) {
-        flg      = &ws->field_24;
+    poly = (POLY_GT4*)ws->primWrite;
+    if (ws->elemCount-- > 0) {
+        flg      = &ws->gteFlag;
         clipMask = 0x80000000;
-        opz      = &ws->field_28;
+        opz      = &ws->gteResult;
         ds       = &gDisplayState;
         mask     = 0xFFFFFF;
         maskHi   = 0xFF000000;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)ws->field_8;
+            verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
             gte_stflg(flg);
-            if ((ws->field_24 & clipMask) == 0) {
+            if ((ws->gteFlag & clipMask) == 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
                 gte_ldrgb(arg2 + 4);
                 gte_stsxy3_gt4(poly);
-                gte_ldv0((u8*)ws->field_8 + (rec[3] & 0xFFF8));
+                gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
                 gte_rtps_real();
                 gte_stflg(flg);
-                if ((ws->field_24 & clipMask) == 0) {
-                    if (ws->field_28 > 0) {
+                if ((ws->gteFlag & clipMask) == 0) {
+                    if (ws->gteResult > 0) {
                         goto draw;
                     }
                     gte_nclip_real();
                     gte_stopz(opz);
-                    if (ws->field_28 < 0) {
+                    if (ws->gteResult < 0) {
                     draw:
                         gte_stsxy2(&poly->x3);
                         gte_avsz4_real();
-                        norms = (u8*)ws->field_C;
+                        norms = (u8*)ws->normals;
                         gte_ldv3(norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8), norms + (rec[6] & 0xFFF8));
                         gte_ncct_real();
                         gte_strgb3_gt4(poly);
-                        gte_ldv0((u8*)ws->field_C + (rec[7] & 0xFFF8));
+                        gte_ldv0((u8*)ws->normals + (rec[7] & 0xFFF8));
                         gte_nccs_real();
                         gte_strgb(&poly->r3);
                         setlen(poly, 0xC);
                         setcode(poly, 0x3C);
-                        if (ws->field_80->flags & 2) {
+                        if (ws->obj->flags & 2) {
                             setcode(poly, 0x3E);
                         }
                         gte_stotz(opz);
-                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                        *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                            (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                        *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                            (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                     }
                 }
             }
             poly++;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_0 = (u8*)poly;
+    ws->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3182,37 +3182,37 @@ u32* func_8009D388(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*                   verts;
 
     ws   = arg0;
-    poly = (POLY_FT3*)ws->field_0;
-    if (ws->field_1C-- > 0) {
-        opz    = &ws->field_28;
+    poly = (POLY_FT3*)ws->primWrite;
+    if (ws->elemCount-- > 0) {
+        opz    = &ws->gteResult;
         ds     = &gDisplayState;
         mask   = 0xFFFFFF;
         maskHi = 0xFF000000;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)ws->field_8;
+            verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
-            gte_stflg(&ws->field_24);
-            if (ws->field_24 >= 0) {
+            gte_stflg(&ws->gteFlag);
+            if (ws->gteFlag >= 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
-                if (ws->field_28 > 0) {
+                if (ws->gteResult > 0) {
                     gte_stsxy3_ft3(poly);
                     gte_avsz3_real();
                     setlen(poly, 7);
                     setcode(poly, 0x25);
                     gte_stotz(opz);
-                    poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                    *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                        (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                    poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                    *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                        (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                 }
             }
             poly++;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_0 = (u8*)poly;
+    ws->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3230,51 +3230,51 @@ u32* func_8009D518(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*                   verts;
 
     ws   = arg0;
-    poly = (POLY_FT4*)ws->field_0;
-    if (ws->field_1C-- > 0) {
-        flg      = &ws->field_24;
+    poly = (POLY_FT4*)ws->primWrite;
+    if (ws->elemCount-- > 0) {
+        flg      = &ws->gteFlag;
         clipMask = 0x80000000;
-        opz      = &ws->field_28;
+        opz      = &ws->gteResult;
         ds       = &gDisplayState;
         mask     = 0xFFFFFF;
         maskHi   = 0xFF000000;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)ws->field_8;
+            verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
             gte_stflg(flg);
-            if ((ws->field_24 & clipMask) == 0) {
+            if ((ws->gteFlag & clipMask) == 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
                 gte_stsxy3_ft4(poly);
-                gte_ldv0((u8*)ws->field_8 + (rec[3] & 0xFFF8));
+                gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
                 gte_rtps_real();
                 gte_stflg(flg);
-                if ((ws->field_24 & clipMask) == 0) {
-                    if (ws->field_28 > 0) {
+                if ((ws->gteFlag & clipMask) == 0) {
+                    if (ws->gteResult > 0) {
                         goto draw;
                     }
                     gte_nclip_real();
                     gte_stopz(opz);
-                    if (ws->field_28 < 0) {
+                    if (ws->gteResult < 0) {
                     draw:
                         gte_stsxy2(&poly->x3);
                         gte_avsz4_real();
                         setlen(poly, 9);
                         setcode(poly, 0x2D);
                         gte_stotz(opz);
-                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                        *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                            (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                        *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                            (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                     }
                 }
             }
             poly++;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_0 = (u8*)poly;
+    ws->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3292,49 +3292,49 @@ u32* func_8009D718(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*                   verts;
 
     ws   = arg0;
-    poly = (POLY_GT4*)ws->field_0;
-    if (ws->field_1C-- > 0) {
-        flg      = &ws->field_24;
+    poly = (POLY_GT4*)ws->primWrite;
+    if (ws->elemCount-- > 0) {
+        flg      = &ws->gteFlag;
         clipMask = 0x80000000;
-        opz      = &ws->field_28;
+        opz      = &ws->gteResult;
         ds       = &gDisplayState;
         mask     = 0xFFFFFF;
         maskHi   = 0xFF000000;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)ws->field_8;
+            verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
             gte_stflg(flg);
-            if ((ws->field_24 & clipMask) == 0) {
+            if ((ws->gteFlag & clipMask) == 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
                 gte_stsxy3_gt4(poly);
-                gte_ldv0((u8*)ws->field_8 + (rec[3] & 0xFFF8));
+                gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
                 gte_rtps_real();
                 gte_stflg(flg);
-                if ((ws->field_24 & clipMask) == 0) {
-                    if (ws->field_28 > 0) {
+                if ((ws->gteFlag & clipMask) == 0) {
+                    if (ws->gteResult > 0) {
                         goto draw;
                     }
                     gte_nclip_real();
                     gte_stopz(opz);
-                    if (ws->field_28 < 0) {
+                    if (ws->gteResult < 0) {
                     draw:
                         gte_stsxy2(&poly->x3);
                         gte_avsz4_real();
                         gte_stotz(opz);
-                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                        *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                            (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                        *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                            (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                     }
                 }
             }
             poly++;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_0 = (u8*)poly;
+    ws->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3352,51 +3352,51 @@ u32* func_8009D900(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*                   verts;
 
     ws   = arg0;
-    poly = (POLY_F4*)ws->field_0;
-    if (ws->field_1C-- > 0) {
-        flg      = &ws->field_24;
+    poly = (POLY_F4*)ws->primWrite;
+    if (ws->elemCount-- > 0) {
+        flg      = &ws->gteFlag;
         clipMask = 0x80000000;
-        opz      = &ws->field_28;
+        opz      = &ws->gteResult;
         ds       = &gDisplayState;
         mask     = 0xFFFFFF;
         maskHi   = 0xFF000000;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)ws->field_8;
+            verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
             gte_stflg(flg);
-            if ((ws->field_24 & clipMask) == 0) {
+            if ((ws->gteFlag & clipMask) == 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
                 gte_stsxy3_f4(poly);
-                gte_ldv0((u8*)ws->field_8 + (rec[3] & 0xFFF8));
+                gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
                 gte_rtps_real();
                 gte_stflg(flg);
-                if ((ws->field_24 & clipMask) == 0) {
-                    if (ws->field_28 > 0) {
+                if ((ws->gteFlag & clipMask) == 0) {
+                    if (ws->gteResult > 0) {
                         goto draw;
                     }
                     gte_nclip_real();
                     gte_stopz(opz);
-                    if (ws->field_28 < 0) {
+                    if (ws->gteResult < 0) {
                     draw:
                         gte_stsxy2(&poly->x3);
                         gte_avsz4_real();
                         setlen(poly, 5);
                         setcode(poly, 0x28);
                         gte_stotz(opz);
-                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                        *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                            (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                        *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                            (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                     }
                 }
             }
             poly++;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_0 = (u8*)poly;
+    ws->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3414,42 +3414,42 @@ u32* func_8009DB00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*                   verts;
 
     ws   = arg0;
-    poly = (POLY_F3*)ws->field_0;
-    if (ws->field_1C-- > 0) {
-        flg      = &ws->field_24;
+    poly = (POLY_F3*)ws->primWrite;
+    if (ws->elemCount-- > 0) {
+        flg      = &ws->gteFlag;
         clipMask = 0x80000000;
-        opz      = &ws->field_28;
+        opz      = &ws->gteResult;
         ds       = &gDisplayState;
         mask     = 0xFFFFFF;
         maskHi   = 0xFF000000;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)ws->field_8;
+            verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
             gte_stflg(flg);
-            if ((ws->field_24 & clipMask) == 0) {
+            if ((ws->gteFlag & clipMask) == 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
-                if (ws->field_28 > 0) {
+                if (ws->gteResult > 0) {
                     gte_stsxy3_f3(poly);
                     gte_stflg(flg);
-                    if ((ws->field_24 & clipMask) == 0) {
+                    if ((ws->gteFlag & clipMask) == 0) {
                         gte_avsz3_real();
                         setlen(poly, 4);
                         setcode(poly, 0x20);
                         gte_stotz(opz);
-                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                        *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                            (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                        *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                            (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                     }
                 }
             }
             poly++;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_0 = (u8*)poly;
+    ws->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3465,37 +3465,37 @@ u32* func_8009DCB8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*                   verts;
 
     ws   = arg0;
-    poly = (POLY_FT3*)ws->field_0;
-    if (ws->field_1C-- > 0) {
-        opz    = &ws->field_28;
+    poly = (POLY_FT3*)ws->primWrite;
+    if (ws->elemCount-- > 0) {
+        opz    = &ws->gteResult;
         ds     = &gDisplayState;
         mask   = 0xFFFFFF;
         maskHi = 0xFF000000;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)ws->field_8;
+            verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
-            gte_stflg(&ws->field_24);
-            if (ws->field_24 >= 0) {
+            gte_stflg(&ws->gteFlag);
+            if (ws->gteFlag >= 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
-                if (ws->field_28 > 0) {
+                if (ws->gteResult > 0) {
                     gte_stsxy3_ft3(poly);
                     gte_avsz3_real();
                     setlen(poly, 7);
                     setcode(poly, 0x27);
                     gte_stotz(opz);
-                    poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                    *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                        (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                    poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                    *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                        (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                 }
             }
             poly++;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_0 = (u8*)poly;
+    ws->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3513,51 +3513,51 @@ u32* func_8009DE48(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*                   verts;
 
     ws   = arg0;
-    poly = (POLY_FT4*)ws->field_0;
-    if (ws->field_1C-- > 0) {
-        flg      = &ws->field_24;
+    poly = (POLY_FT4*)ws->primWrite;
+    if (ws->elemCount-- > 0) {
+        flg      = &ws->gteFlag;
         clipMask = 0x80000000;
-        opz      = &ws->field_28;
+        opz      = &ws->gteResult;
         ds       = &gDisplayState;
         mask     = 0xFFFFFF;
         maskHi   = 0xFF000000;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)ws->field_8;
+            verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
             gte_stflg(flg);
-            if ((ws->field_24 & clipMask) == 0) {
+            if ((ws->gteFlag & clipMask) == 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
                 gte_stsxy3_ft4(poly);
-                gte_ldv0((u8*)ws->field_8 + (rec[3] & 0xFFF8));
+                gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
                 gte_rtps_real();
                 gte_stflg(flg);
-                if ((ws->field_24 & clipMask) == 0) {
-                    if (ws->field_28 > 0) {
+                if ((ws->gteFlag & clipMask) == 0) {
+                    if (ws->gteResult > 0) {
                         goto draw;
                     }
                     gte_nclip_real();
                     gte_stopz(opz);
-                    if (ws->field_28 < 0) {
+                    if (ws->gteResult < 0) {
                     draw:
                         gte_stsxy2(&poly->x3);
                         gte_avsz4_real();
                         setlen(poly, 9);
                         setcode(poly, 0x2F);
                         gte_stotz(opz);
-                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                        *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                            (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                        *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                            (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                     }
                 }
             }
             poly++;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_0 = (u8*)poly;
+    ws->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3573,49 +3573,49 @@ u32* func_8009E048(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*                   verts;
 
     ws   = arg0;
-    poly = (POLY_G3*)ws->field_0;
-    if (ws->field_1C-- > 0) {
-        opz    = &ws->field_28;
+    poly = (POLY_G3*)ws->primWrite;
+    if (ws->elemCount-- > 0) {
+        opz    = &ws->gteResult;
         ds     = &gDisplayState;
         mask   = 0xFFFFFF;
         maskHi = 0xFF000000;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)ws->field_8;
+            verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
-            gte_stflg(&ws->field_24);
-            if (ws->field_24 >= 0) {
+            gte_stflg(&ws->gteFlag);
+            if (ws->gteFlag >= 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
-                if (ws->field_28 > 0) {
+                if (ws->gteResult > 0) {
                     gte_stsxy3_g3(poly);
                     gte_avsz3_real();
                     gte_ldrgb(arg2 + 3);
-                    gte_ldv0((u8*)ws->field_C + (rec[3] & 0xFFF8));
+                    gte_ldv0((u8*)ws->normals + (rec[3] & 0xFFF8));
                     gte_nccs_real();
                     gte_strgb(&poly->r0);
                     gte_ldrgb(arg2 + 4);
-                    gte_ldv0((u8*)ws->field_C + (rec[4] & 0xFFF8));
+                    gte_ldv0((u8*)ws->normals + (rec[4] & 0xFFF8));
                     gte_nccs_real();
                     gte_strgb(&poly->r1);
                     gte_ldrgb(arg2 + 5);
-                    gte_ldv0((u8*)ws->field_C + (rec[5] & 0xFFF8));
+                    gte_ldv0((u8*)ws->normals + (rec[5] & 0xFFF8));
                     gte_nccs_real();
                     gte_strgb(&poly->r2);
                     setlen(poly, 6);
                     setcode(poly, 0x30);
                     gte_stotz(opz);
-                    poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                    *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                        (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                    poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                    *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                        (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                 }
             }
             poly++;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_0 = (u8*)poly;
+    ws->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3631,49 +3631,49 @@ u32* func_8009E274(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*                   verts;
 
     ws   = arg0;
-    poly = (POLY_G3*)ws->field_0;
-    if (ws->field_1C-- > 0) {
-        opz    = &ws->field_28;
+    poly = (POLY_G3*)ws->primWrite;
+    if (ws->elemCount-- > 0) {
+        opz    = &ws->gteResult;
         ds     = &gDisplayState;
         mask   = 0xFFFFFF;
         maskHi = 0xFF000000;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)ws->field_8;
+            verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
-            gte_stflg(&ws->field_24);
-            if (ws->field_24 >= 0) {
+            gte_stflg(&ws->gteFlag);
+            if (ws->gteFlag >= 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
-                if (ws->field_28 > 0) {
+                if (ws->gteResult > 0) {
                     gte_stsxy3_g3(poly);
                     gte_avsz3_real();
                     gte_ldrgb(arg2 + 3);
-                    gte_ldv0((u8*)ws->field_C + (rec[3] & 0xFFF8));
+                    gte_ldv0((u8*)ws->normals + (rec[3] & 0xFFF8));
                     gte_nccs_real();
                     gte_strgb(&poly->r0);
                     gte_ldrgb(arg2 + 4);
-                    gte_ldv0((u8*)ws->field_C + (rec[4] & 0xFFF8));
+                    gte_ldv0((u8*)ws->normals + (rec[4] & 0xFFF8));
                     gte_nccs_real();
                     gte_strgb(&poly->r1);
                     gte_ldrgb(arg2 + 5);
-                    gte_ldv0((u8*)ws->field_C + (rec[5] & 0xFFF8));
+                    gte_ldv0((u8*)ws->normals + (rec[5] & 0xFFF8));
                     gte_nccs_real();
                     gte_strgb(&poly->r2);
                     setlen(poly, 6);
                     setcode(poly, 0x32);
                     gte_stotz(opz);
-                    poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                    *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                        (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                    poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                    *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                        (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                 }
             }
             poly++;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_0 = (u8*)poly;
+    ws->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3691,67 +3691,67 @@ u32* func_8009E4A0(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*                   verts;
 
     ws   = arg0;
-    poly = (POLY_G4*)ws->field_0;
-    if (ws->field_1C-- > 0) {
-        flg      = &ws->field_24;
+    poly = (POLY_G4*)ws->primWrite;
+    if (ws->elemCount-- > 0) {
+        flg      = &ws->gteFlag;
         clipMask = 0x80000000;
-        opz      = &ws->field_28;
+        opz      = &ws->gteResult;
         ds       = &gDisplayState;
         mask     = 0xFFFFFF;
         maskHi   = 0xFF000000;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)ws->field_8;
+            verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
             gte_stflg(flg);
-            if ((ws->field_24 & clipMask) == 0) {
+            if ((ws->gteFlag & clipMask) == 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
                 gte_stsxy3_g4(poly);
-                gte_ldv0((u8*)ws->field_8 + (rec[3] & 0xFFF8));
+                gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
                 gte_rtps_real();
                 gte_stflg(flg);
-                if ((ws->field_24 & clipMask) == 0) {
-                    if (ws->field_28 > 0) {
+                if ((ws->gteFlag & clipMask) == 0) {
+                    if (ws->gteResult > 0) {
                         goto draw;
                     }
                     gte_nclip_real();
                     gte_stopz(opz);
-                    if (ws->field_28 < 0) {
+                    if (ws->gteResult < 0) {
                     draw:
                         gte_stsxy2(&poly->x3);
                         gte_avsz4_real();
                         gte_ldrgb(arg2 + 4);
-                        gte_ldv0((u8*)ws->field_C + (rec[4] & 0xFFF8));
+                        gte_ldv0((u8*)ws->normals + (rec[4] & 0xFFF8));
                         gte_nccs_real();
                         gte_strgb(&poly->r0);
                         gte_ldrgb(arg2 + 5);
-                        gte_ldv0((u8*)ws->field_C + (rec[5] & 0xFFF8));
+                        gte_ldv0((u8*)ws->normals + (rec[5] & 0xFFF8));
                         gte_nccs_real();
                         gte_strgb(&poly->r1);
                         gte_ldrgb(arg2 + 6);
-                        gte_ldv0((u8*)ws->field_C + (rec[6] & 0xFFF8));
+                        gte_ldv0((u8*)ws->normals + (rec[6] & 0xFFF8));
                         gte_nccs_real();
                         gte_strgb(&poly->r2);
                         gte_ldrgb(arg2 + 7);
-                        gte_ldv0((u8*)ws->field_C + (rec[7] & 0xFFF8));
+                        gte_ldv0((u8*)ws->normals + (rec[7] & 0xFFF8));
                         gte_nccs_real();
                         gte_strgb(&poly->r3);
                         setlen(poly, 8);
                         setcode(poly, 0x38);
                         gte_stotz(opz);
-                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                        *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                            (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                        *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                            (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                     }
                 }
             }
             poly++;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_0 = (u8*)poly;
+    ws->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3769,69 +3769,69 @@ u32* func_8009E770(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*                   verts;
 
     ws   = arg0;
-    poly = (POLY_G4*)ws->field_0;
-    if (ws->field_1C-- > 0) {
-        flg      = &ws->field_24;
+    poly = (POLY_G4*)ws->primWrite;
+    if (ws->elemCount-- > 0) {
+        flg      = &ws->gteFlag;
         clipMask = 0x80000000;
-        opz      = &ws->field_28;
+        opz      = &ws->gteResult;
         ds       = &gDisplayState;
         mask     = 0xFFFFFF;
         maskHi   = 0xFF000000;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)ws->field_8;
+            verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
             gte_stflg(flg);
-            if ((ws->field_24 & clipMask) == 0) {
+            if ((ws->gteFlag & clipMask) == 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
-                if (ws->field_28 > 0) {
+                if (ws->gteResult > 0) {
                     gte_stsxy3_g4(poly);
-                    gte_ldv0((u8*)ws->field_8 + (rec[3] & 0xFFF8));
+                    gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
                     gte_rtps_real();
                     gte_stflg(flg);
-                    if ((ws->field_24 & clipMask) == 0) {
-                        if (ws->field_28 > 0) {
+                    if ((ws->gteFlag & clipMask) == 0) {
+                        if (ws->gteResult > 0) {
                             goto draw;
                         }
                         gte_nclip_real();
                         gte_stopz(opz);
-                        if (ws->field_28 < 0) {
+                        if (ws->gteResult < 0) {
                         draw:
                             gte_stsxy2(&poly->x3);
                             gte_avsz4_real();
                             gte_ldrgb(arg2 + 4);
-                            gte_ldv0((u8*)ws->field_C + (rec[4] & 0xFFF8));
+                            gte_ldv0((u8*)ws->normals + (rec[4] & 0xFFF8));
                             gte_nccs_real();
                             gte_strgb(&poly->r0);
                             gte_ldrgb(arg2 + 5);
-                            gte_ldv0((u8*)ws->field_C + (rec[5] & 0xFFF8));
+                            gte_ldv0((u8*)ws->normals + (rec[5] & 0xFFF8));
                             gte_nccs_real();
                             gte_strgb(&poly->r1);
                             gte_ldrgb(arg2 + 6);
-                            gte_ldv0((u8*)ws->field_C + (rec[6] & 0xFFF8));
+                            gte_ldv0((u8*)ws->normals + (rec[6] & 0xFFF8));
                             gte_nccs_real();
                             gte_strgb(&poly->r2);
                             gte_ldrgb(arg2 + 7);
-                            gte_ldv0((u8*)ws->field_C + (rec[7] & 0xFFF8));
+                            gte_ldv0((u8*)ws->normals + (rec[7] & 0xFFF8));
                             gte_nccs_real();
                             gte_strgb(&poly->r3);
                             setlen(poly, 8);
                             setcode(poly, 0x3A);
                             gte_stotz(opz);
-                            poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
-                            *(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) =
-                                (*(u_long*)(((((u32)ws->field_28 << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                            poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
+                            *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
+                                (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
                         }
                     }
                 }
             }
             poly++;
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    ws->field_0 = (u8*)poly;
+    ws->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3863,29 +3863,29 @@ u32* func_8009EAA4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
     ws    = arg0;
     prev  = -1;
-    count = ws->field_1C;
+    count = ws->elemCount;
     if (count == 0) {
         return arg2;
     }
     TOUCH_REG(prev);
-    ws->field_1C = count + prev;
+    ws->elemCount = count + prev;
     if (count > 0) {
         do {
             rec = (u16*)arg2;
             idx = rec[0];
             if (idx != prev) {
-                gte_ldv0((u8*)ws->field_8 + (idx & 0xFFF8));
+                gte_ldv0((u8*)ws->verts + (idx & 0xFFF8));
                 gte_rtps_real();
-                gte_stsz(&ws->field_28);
-                if (ws->field_24 & 0x80000000) {
-                    ws->field_28 |= 0x80000000;
+                gte_stsz(&ws->gteResult);
+                if (ws->gteFlag & 0x80000000) {
+                    ws->gteResult |= 0x80000000;
                 }
-                ws->field_10[*(u16*)arg2 >> 3] = ws->field_28;
+                ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;
             }
             prev = rec[0];
-            gte_stsxy(ws->field_4 + rec[1]);
-            arg2 += ws->field_18;
-        } while (ws->field_1C-- > 0);
+            gte_stsxy(ws->preXformWrite + rec[1]);
+            arg2 += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
     return arg2;
 }
@@ -3894,19 +3894,19 @@ u32* func_8009EB84(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT3* poly;
 
-    poly = (POLY_GT3*)arg0->field_4;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT3*)arg0->preXformWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             *(s32*)&poly->u0 = arg2[2];
             *(s32*)&poly->u1 = arg2[3];
             *(u16*)&poly->u2 = *(u16*)&arg2[4];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_4 = (u8*)poly;
+    arg0->preXformWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3914,20 +3914,20 @@ u32* func_8009EC1C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT4* poly;
 
-    poly = (POLY_GT4*)arg0->field_4;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT4*)arg0->preXformWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             *(s32*)&poly->u0 = arg2[2];
             *(s32*)&poly->u1 = arg2[3];
             *(u16*)&poly->u2 = *(u16*)&arg2[4];
             *(u16*)&poly->u3 = ((u16*)&arg2[4])[1];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_4 = (u8*)poly;
+    arg0->preXformWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3936,18 +3936,18 @@ u32* func_8009ECC0(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     POLY_F4* poly;
     s32      color;
 
-    poly = (POLY_F4*)arg0->field_4;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_F4*)arg0->preXformWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             color = arg2[2];
             setlen(poly, 5);
             *(s32*)&poly->r0 = color;
             setcode(poly, 0x28);
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_4 = (u8*)poly;
+    arg0->preXformWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3956,18 +3956,18 @@ u32* func_8009ED28(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     POLY_F3* poly;
     s32      color;
 
-    poly = (POLY_F3*)arg0->field_4;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_F3*)arg0->preXformWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             color = arg2[2];
             setlen(poly, 4);
             *(s32*)&poly->r0 = color;
             setcode(poly, 0x20);
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_4 = (u8*)poly;
+    arg0->preXformWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3975,19 +3975,19 @@ u32* func_8009ED90(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT3* poly;
 
-    poly = (POLY_GT3*)arg0->field_0;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT3*)arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             *(s32*)&poly->u0 = arg2[3];
             *(s32*)&poly->u1 = arg2[4];
             *(u16*)&poly->u2 = *(u16*)&arg2[5];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -3995,20 +3995,20 @@ u32* func_8009EE28(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT4* poly;
 
-    poly = (POLY_GT4*)arg0->field_0;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT4*)arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             *(s32*)&poly->u0 = arg2[4];
             *(s32*)&poly->u1 = arg2[5];
             *(u16*)&poly->u2 = *(u16*)&arg2[6];
             *(u16*)&poly->u3 = ((u16*)&arg2[6])[1];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4016,19 +4016,19 @@ u32* func_8009EECC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT3* poly;
 
-    poly = (POLY_GT3*)arg0->field_0;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT3*)arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             *(s32*)&poly->u0 = arg2[4];
             *(s32*)&poly->u1 = arg2[5];
             *(u16*)&poly->u2 = *(u16*)&arg2[6];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4036,19 +4036,19 @@ u32* func_8009EF64(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT3* poly;
 
-    poly = (POLY_GT3*)arg0->field_0;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT3*)arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             *(s32*)&poly->u0 = arg2[6];
             *(s32*)&poly->u1 = arg2[7];
             *(u16*)&poly->u2 = *(u16*)&arg2[8];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4056,20 +4056,20 @@ u32* func_8009EFFC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT4* poly;
 
-    poly = (POLY_GT4*)arg0->field_0;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT4*)arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             *(s32*)&poly->u0 = arg2[5];
             *(s32*)&poly->u1 = arg2[6];
             *(u16*)&poly->u2 = *(u16*)&arg2[7];
             *(u16*)&poly->u3 = ((u16*)&arg2[7])[1];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4077,20 +4077,20 @@ u32* func_8009F0A0(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT4* poly;
 
-    poly = (POLY_GT4*)arg0->field_0;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT4*)arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             *(s32*)&poly->u0 = arg2[8];
             *(s32*)&poly->u1 = arg2[9];
             *(u16*)&poly->u2 = *(u16*)&arg2[10];
             *(u16*)&poly->u3 = ((u16*)&arg2[10])[1];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4098,19 +4098,19 @@ u32* func_8009F144(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT3* poly;
 
-    poly = (POLY_GT3*)arg0->field_0;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT3*)arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             *(s32*)&poly->u0 = arg2[2];
             *(s32*)&poly->u1 = arg2[3];
             *(u16*)&poly->u2 = *(u16*)&arg2[4];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4118,20 +4118,20 @@ u32* func_8009F1DC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT4* poly;
 
-    poly = (POLY_GT4*)arg0->field_0;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT4*)arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             *(s32*)&poly->u0 = arg2[3];
             *(s32*)&poly->u1 = arg2[4];
             *(u16*)&poly->u2 = *(u16*)&arg2[5];
             *(u16*)&poly->u3 = ((u16*)&arg2[5])[1];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4140,8 +4140,8 @@ u32* func_8009F280(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     POLY_GT4* poly;
     s32       color;
 
-    poly = (POLY_GT4*)arg0->field_0;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT4*)arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             *(s32*)&poly->r0 = arg2[2];
             *(s32*)&poly->r1 = arg2[3];
@@ -4154,13 +4154,13 @@ u32* func_8009F280(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             *(s32*)&poly->u1 = arg2[7];
             *(u16*)&poly->u2 = *(u16*)&arg2[8];
             *(u16*)&poly->u3 = ((u16*)&arg2[8])[1];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4168,19 +4168,19 @@ u32* func_8009F360(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     POLY_FT3* poly;
 
-    poly = (POLY_FT3*)arg0->field_0;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_FT3*)arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             *(s32*)&poly->u0 = arg2[2];
             *(s32*)&poly->u1 = arg2[3];
             *(u16*)&poly->u2 = *(u16*)&arg2[4];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4188,20 +4188,20 @@ u32* func_8009F3F8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     POLY_FT4* poly;
 
-    poly = (POLY_FT4*)arg0->field_0;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_FT4*)arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             *(s32*)&poly->u0 = arg2[2];
             *(s32*)&poly->u1 = arg2[3];
             *(u16*)&poly->u2 = *(u16*)&arg2[4];
             *(u16*)&poly->u3 = ((u16*)&arg2[4])[1];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4210,18 +4210,18 @@ u32* func_8009F49C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     POLY_F4* poly;
     s32      color;
 
-    poly = (POLY_F4*)arg0->field_0;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_F4*)arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             color = arg2[2];
             setlen(poly, 5);
             *(s32*)&poly->r0 = color;
             setcode(poly, 0x28);
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4230,18 +4230,18 @@ u32* func_8009F504(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     POLY_F3* poly;
     s32      color;
 
-    poly = (POLY_F3*)arg0->field_0;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_F3*)arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             color = arg2[2];
             setlen(poly, 4);
             *(s32*)&poly->r0 = color;
             setcode(poly, 0x20);
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4251,14 +4251,14 @@ u32* func_8009F56C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     s32       tpage;
     s32       tmp;
 
-    poly = (POLY_GT3*)arg0->field_0;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT3*)arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             *(s32*)&poly->u0 = arg2[3];
             *(s32*)&poly->u1 = arg2[4];
             *(u16*)&poly->u2 = *(u16*)&arg2[5];
-            poly->tpage     += (s8)arg0->field_80->tpageOffset;
-            tmp              = arg0->field_80->clutOffset;
+            poly->tpage     += (s8)arg0->obj->tpageOffset;
+            tmp              = arg0->obj->clutOffset;
             tpage            = poly->tpage;
             tpage           |= 0x20;
             poly->tpage      = tpage;
@@ -4267,13 +4267,13 @@ u32* func_8009F56C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             *(s32*)&poly->u0 = arg2[3];
             *(s32*)&poly->u1 = arg2[4];
             *(u16*)&poly->u2 = *(u16*)&arg2[5];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4281,20 +4281,20 @@ u32* func_8009F670(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT3* poly;
 
-    poly = (POLY_GT3*)arg0->field_0;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT3*)arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             poly++;
             *(s32*)&poly->u0 = arg2[3];
             *(s32*)&poly->u1 = arg2[4];
             *(u16*)&poly->u2 = *(u16*)&arg2[5];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4304,15 +4304,15 @@ u32* func_8009F708(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     s32       tpage;
     s32       tmp;
 
-    poly = (POLY_GT4*)arg0->field_0;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT4*)arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             *(s32*)&poly->u0 = arg2[4];
             *(s32*)&poly->u1 = arg2[5];
             *(u16*)&poly->u2 = *(u16*)&arg2[6];
             *(u16*)&poly->u3 = ((u16*)&arg2[6])[1];
-            poly->tpage     += (s8)arg0->field_80->tpageOffset;
-            tmp              = arg0->field_80->clutOffset;
+            poly->tpage     += (s8)arg0->obj->tpageOffset;
+            tmp              = arg0->obj->clutOffset;
             tpage            = poly->tpage;
             tpage           |= 0x20;
             poly->tpage      = tpage;
@@ -4322,13 +4322,13 @@ u32* func_8009F708(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             *(s32*)&poly->u1 = arg2[5];
             *(u16*)&poly->u2 = *(u16*)&arg2[6];
             *(u16*)&poly->u3 = ((u16*)&arg2[6])[1];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4336,21 +4336,21 @@ u32* func_8009F824(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT4* poly;
 
-    poly = (POLY_GT4*)arg0->field_0;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT4*)arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             poly++;
             *(s32*)&poly->u0 = arg2[4];
             *(s32*)&poly->u1 = arg2[5];
             *(u16*)&poly->u2 = *(u16*)&arg2[6];
             *(u16*)&poly->u3 = ((u16*)&arg2[6])[1];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4358,8 +4358,8 @@ u32* func_8009F8C8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT3* poly;
 
-    poly = (POLY_GT3*)arg0->field_4;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT3*)arg0->preXformWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             poly->tpage = 0x3F;
             poly->clut  = 0x3C10;
@@ -4367,13 +4367,13 @@ u32* func_8009F8C8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             *(s32*)&poly->u0 = arg2[2];
             *(s32*)&poly->u1 = arg2[3];
             *(u16*)&poly->u2 = *(u16*)&arg2[4];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_4 = (u8*)poly;
+    arg0->preXformWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4381,8 +4381,8 @@ u32* func_8009F970(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT4* poly;
 
-    poly = (POLY_GT4*)arg0->field_4;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT4*)arg0->preXformWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             poly->tpage = 0x3F;
             poly->clut  = 0x3C10;
@@ -4391,13 +4391,13 @@ u32* func_8009F970(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             *(s32*)&poly->u1 = arg2[3];
             *(u16*)&poly->u2 = *(u16*)&arg2[4];
             *(u16*)&poly->u3 = ((u16*)&arg2[4])[1];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_4 = (u8*)poly;
+    arg0->preXformWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4407,14 +4407,14 @@ u32* func_8009FA24(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     s32       tpage;
     s32       tmp;
 
-    poly = (POLY_GT3*)arg0->field_4;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT3*)arg0->preXformWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             *(s32*)&poly->u0 = arg2[2];
             *(s32*)&poly->u1 = arg2[3];
             *(u16*)&poly->u2 = *(u16*)&arg2[4];
-            poly->tpage     += (s8)arg0->field_80->tpageOffset;
-            tmp              = arg0->field_80->clutOffset;
+            poly->tpage     += (s8)arg0->obj->tpageOffset;
+            tmp              = arg0->obj->clutOffset;
             tpage            = poly->tpage;
             tpage           |= 0x20;
             poly->tpage      = tpage;
@@ -4423,13 +4423,13 @@ u32* func_8009FA24(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             *(s32*)&poly->u0 = arg2[2];
             *(s32*)&poly->u1 = arg2[3];
             *(u16*)&poly->u2 = *(u16*)&arg2[4];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_4 = (u8*)poly;
+    arg0->preXformWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4439,15 +4439,15 @@ u32* func_8009FB28(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     s32       tpage;
     s32       tmp;
 
-    poly = (POLY_GT4*)arg0->field_4;
-    if (arg0->field_1C-- > 0) {
+    poly = (POLY_GT4*)arg0->preXformWrite;
+    if (arg0->elemCount-- > 0) {
         do {
             *(s32*)&poly->u0 = arg2[2];
             *(s32*)&poly->u1 = arg2[3];
             *(u16*)&poly->u2 = *(u16*)&arg2[4];
             *(u16*)&poly->u3 = ((u16*)&arg2[4])[1];
-            poly->tpage     += (s8)arg0->field_80->tpageOffset;
-            tmp              = arg0->field_80->clutOffset;
+            poly->tpage     += (s8)arg0->obj->tpageOffset;
+            tmp              = arg0->obj->clutOffset;
             tpage            = poly->tpage;
             tpage           |= 0x20;
             poly->tpage      = tpage;
@@ -4457,13 +4457,13 @@ u32* func_8009FB28(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             *(s32*)&poly->u1 = arg2[3];
             *(u16*)&poly->u2 = *(u16*)&arg2[4];
             *(u16*)&poly->u3 = ((u16*)&arg2[4])[1];
-            poly->tpage     += arg0->field_70;
-            poly->clut      += arg0->field_72;
+            poly->tpage     += arg0->tpage;
+            poly->clut      += arg0->clut;
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_4 = (u8*)poly;
+    arg0->preXformWrite = (u8*)poly;
     return arg2;
 }
 
@@ -4472,15 +4472,15 @@ u32* func_8009FC44(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8* prims;
     s32 stride;
 
-    prims = arg0->field_0;
-    if (arg0->field_1C-- > 0) {
-        stride = arg0->field_18;
+    prims = arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
+        stride = arg0->elemStride;
         do {
             arg2  += stride;
             prims += 0x24;
-        } while (arg0->field_1C-- > 0);
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = prims;
+    arg0->primWrite = prims;
     return arg2;
 }
 
@@ -4489,15 +4489,15 @@ u32* func_8009FC90(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8* prims;
     s32 stride;
 
-    prims = arg0->field_0;
-    if (arg0->field_1C-- > 0) {
-        stride = arg0->field_18;
+    prims = arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
+        stride = arg0->elemStride;
         do {
             arg2  += stride;
             prims += 0x1C;
-        } while (arg0->field_1C-- > 0);
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = prims;
+    arg0->primWrite = prims;
     return arg2;
 }
 
@@ -4506,15 +4506,15 @@ u32* func_8009FCDC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8* prims;
     s32 stride;
 
-    prims = arg0->field_0;
-    if (arg0->field_1C-- > 0) {
-        stride = arg0->field_18;
+    prims = arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
+        stride = arg0->elemStride;
         do {
             arg2  += stride;
             prims += 0x14;
-        } while (arg0->field_1C-- > 0);
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = prims;
+    arg0->primWrite = prims;
     return arg2;
 }
 
@@ -4523,15 +4523,15 @@ u32* func_8009FD28(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8* prims;
     s32 stride;
 
-    prims = arg0->field_0;
-    if (arg0->field_1C-- > 0) {
-        stride = arg0->field_18;
+    prims = arg0->primWrite;
+    if (arg0->elemCount-- > 0) {
+        stride = arg0->elemStride;
         do {
             arg2  += stride;
             prims += 0x18;
-        } while (arg0->field_1C-- > 0);
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = prims;
+    arg0->primWrite = prims;
     return arg2;
 }
 

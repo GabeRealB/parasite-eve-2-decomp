@@ -45,8 +45,8 @@ TmdSource (0x24 bytes; handlersResolved is 0 on disc, set to 1 after first use)
   +0x20  u32  -> face stream
 ```
 
-`Tmd_ProcessStream` copies those into its scratch as `ws->field_8` (vertices)
-and `ws->field_C` (normals); the handlers index off them.
+`Tmd_ProcessStream` copies those into its scratch as `ws->verts` (vertices)
+and `ws->normals` (normals); the handlers index off them.
 
 A model is laid out contiguously with the record last, so the counts fall out
 of the gaps:
@@ -239,7 +239,7 @@ uses `$t6` for the vertex array; `Op39` uses `$t6` for the transform cache.
 | `0x10`+`0x08` | **textured** — net +2 words | XY stores 12 bytes apart (`POLY_*T*`) instead of 8; +2 on 7 of 8 pairs, the exception being `0x21`→`0x39` |
 | `0x04` | **no per-vertex colour** — `POLY_F*` instead of `POLY_G*`, and no lighting at all in the transform pass | `0x18`→`0x1C` is `GT3`→`FT3`, `0x58`→`0x5C` is `GT4`→`FT4`; `0xC0`→`0xC4` drops `NCCS` and keeps only `RTPS` |
 | `0x02` | ABR / semi-transparent variant | same handler and stride as the base opcode |
-| `0x01` | **pre-transformed** — refs index the `0xC8` cache | handler reads screen coords already in the primitive buffer and only culls; refs are word offsets into `ws->field_10`, so the index is `ref / 4` (100% valid across every model) |
+| `0x01` | **pre-transformed** — refs index the `0xC8` cache | handler reads screen coords already in the primitive buffer and only culls; refs are word offsets into `ws->szTable`, so the index is `ref / 4` (100% valid across every model) |
 | `0x4000` | **two primitives per element** — a layered draw | §3.2.1 |
 | `0x8000` `0x10000` `0x20000` | **alternate transform routine, supplied by the model's own package** — layout unchanged | §3.2.1 |
 | `0x100` | shifts the ref block by 0, 2 or 3 words depending on family | §3.2.1 |
@@ -370,12 +370,12 @@ previous result, which is why one vertex appears in several elements with
 different normals — in one 360-vertex model, 514 elements cover 180 distinct
 vertices.
 
-The pass also writes a **per-vertex depth cache** at `ws->field_10`, and that
+The pass also writes a **per-vertex depth cache** at `ws->szTable`, and that
 is what settles the `ref / 4` divisor of §3.4 from the source rather than by
 inference. `Tmd_StreamHandler_OpC8` stores the `RTPS` result with
-`t3 = ws->field_10 + (vertex_byte_offset >> 1)`, so the cache holds one word
+`t3 = ws->szTable + (vertex_byte_offset >> 1)`, so the cache holds one word
 per vertex; `Tmd_StreamHandler_Op39` then reads its refs as
-`ws->field_10 + ref` and feeds them to `SZ1`/`SZ2`/`SZ3`. Halving an 8-byte
+`ws->szTable + ref` and feeds them to `SZ1`/`SZ2`/`SZ3`. Halving an 8-byte
 stride gives 4, so a pre-transformed ref is `vertex_index * 4` and the cache
 slot maps to a vertex one-to-one. The negative-value check either side of it
 (`bltz` on the loaded word) is the off-screen flag `OpC8` sets from GTE
@@ -387,24 +387,24 @@ and spells out what the hasm versions do:
 ```c
 idx = rec[0];
 if (idx != prev) {                                  // the caching branch
-    gte_ldv0((u8*)ws->field_8 + (idx & 0xFFF8));    // vertex array, 8-byte aligned
+    gte_ldv0((u8*)ws->verts + (idx & 0xFFF8));    // vertex array, 8-byte aligned
     gte_rtps_real();
-    gte_stsz(&ws->field_28);                        // keep Z
-    if (ws->field_24 & 0x80000000)
-        ws->field_28 |= 0x80000000;                 // mark culled
-    ws->field_10[*(u16*)arg2 >> 3] = ws->field_28;  // cache[vertex index]
+    gte_stsz(&ws->gteResult);                        // keep Z
+    if (ws->gteFlag & 0x80000000)
+        ws->gteResult |= 0x80000000;                 // mark culled
+    ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;  // cache[vertex index]
 }
-gte_stsxy(ws->field_4 + rec[1]);                    // screen XY into the prim
+gte_stsxy(ws->preXformWrite + rec[1]);                    // screen XY into the prim
 ```
 
 Three things fall out of it:
 
-- **The cache is `ws->field_10` indexed by `offset >> 3`** — the vertex index —
+- **The cache is `ws->szTable` indexed by `offset >> 3`** — the vertex index —
   and holds one word each. That independently confirms the bit `0x01` reading
   in §3.2: those opcodes' refs are byte offsets into this word array, so the
   vertex index is `ref / 4`.
 - **A negative cache entry means culled.** The sign bit is forced from
-  `ws->field_24`, and the `0x01` handlers `bltz`-test the entry and skip the
+  `ws->gteFlag`, and the `0x01` handlers `bltz`-test the entry and skip the
   face.
 - **`idx & 0xFFF8`** masks the low three bits before use, so they carry flags
   rather than address.
@@ -423,7 +423,7 @@ different jobs:
 | Switch | Handlers | What it does |
 |---|---|---|
 | `Tmd_InitSourceStream` | main, `Tmd_StreamHandler_*` at `0x80010A90` | one-shot, guarded by `TmdSource.handlersResolved`. Resolves 61 opcodes to 53 handlers and **writes the pointer into the packet's slot word**. These are the transform/light/cull routines: they read vertices, run `RTPT`/`NCLIP`/`AVSZ`, and store screen XY and lit RGB. |
-| `Tmd_ProcessStream` | the loaded overlay, `0x8009xxxx`, decompiled in `src/gameplay/gameplay.c` | walks the stream on each draw call. Reads the dims word, copies the cached pointer from the slot into `ws->field_20`, then calls the overlay handler, which fills the primitive's **static** fields — UV, CLUT, tpage. |
+| `Tmd_ProcessStream` | the loaded overlay, `0x8009xxxx`, decompiled in `src/gameplay/gameplay.c` | walks the stream on each draw call. Reads the dims word, copies the cached pointer from the slot into `ws->opcode`, then calls the overlay handler, which fills the primitive's **static** fields — UV, CLUT, tpage. |
 
 That split is why the untextured families do nothing per pass:
 `func_8009FC90` and `func_8009FC44` only advance `prims` by `0x1C` and `0x24`
@@ -436,8 +436,8 @@ is what confirms the primitive type for opcodes whose handler names no
 empirical evidence in §2:
 
 ```c
-ws->field_18 = ((u16*)stream)[0];   // stride, added to arg2 per element
-ws->field_1C = ((u16*)stream)[1];   // count, the handler's loop counter
+ws->elemStride = ((u16*)stream)[0];   // stride, added to arg2 per element
+ws->elemCount = ((u16*)stream)[1];   // count, the handler's loop counter
 ```
 
 Little-endian, so `[0]` is the low halfword — stride low, count high.
@@ -495,8 +495,8 @@ Each handler copies the UV words straight into the primitive and then biases
 the page registers:
 
 ```c
-poly->tpage += ws->field_70;      // from TmdObject.field_24
-poly->clut  += ws->field_72;      // from TmdObject.field_25 << 6
+poly->tpage += ws->tpage;      // from TmdObject.field_24
+poly->clut  += ws->clut;      // from TmdObject.field_25 << 6
 ```
 
 So the stored `tpage`/`clut` are **relative** — the object's texture-page
@@ -573,7 +573,7 @@ plausible while being wrong.
 **The transform pre-pass is not geometry, and its consumers are.** Skipping
 `0xC0`/`0xC4`/`0xC8` is right (§3.5), but the opcodes with bit `0x01` must not
 be skipped with them: they index the shading cache, which §3.5 shows is
-`ws->field_10[offset >> 3]` — one word per *vertex*. So their refs are word
+`ws->szTable[offset >> 3]` — one word per *vertex*. So their refs are word
 offsets into a vertex-keyed array and the index is `ref / 4`, not `ref / 8`.
 Reading them as ordinary refs silently drops about a third of a character's
 faces (270 of 398 on the Kyle body).

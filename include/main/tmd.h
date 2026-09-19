@@ -121,30 +121,45 @@ extern TmdListHead gTmdDisp2dList;
 /// Cleared by Tmd_InitLists during system init.
 extern s32 D_80071210;
 
-/// 0x88-byte scratch from G_SCRATCH_HEAD for Tmd_ProcessStream (model path).
+/// One frame of the scratch a model's packet stream is walked in: what
+/// `Tmd_ProcessStream` pushes on `G_SCRATCH_HEAD` and passes to every stream
+/// command it runs.
+///
+/// The frame carries the walk itself — which record is being run, how long its
+/// elements are and how many of them there are, and where the next packet goes
+/// — and the model state a command reads: the vertex and normal arrays, the
+/// texture page and CLUT every textured primitive is offset by, and the object
+/// being compiled.
+///
+/// A buffer half is two regions and the primitive's own opcode picks one: the
+/// pre-transformed primitives, which are already in screen space, are built in
+/// the first region, and every other primitive in the second.
+///
+/// The draw pass walks the same stream under `TmdScratchDrawBlock`, a second
+/// frame over the same layout, and the commands are declared with one of the
+/// two types. The slots only the draw pass fills — the screen-Z table, the
+/// ordering table, the two GTE results, the vector scratches and the depth
+/// shift — are declared here for that reason, and the run of bytes it reads and
+/// this pass does not is left as a pad.
 typedef struct {
-    /* 0x00 */ u8*        field_0;
-    /* 0x04 */ u8*        field_4;
-    /* 0x08 */ s32        field_8;
-    /* 0x0C */ s32        field_C;
-    /* 0x10 */ s32*       field_10;
-    /* 0x14 */ u_long*    field_14; // OT base (draw path; same slot as TmdScratchDrawBlock)
-    /* 0x18 */ s32        field_18;
-    /* 0x1C */ s32        field_1C;
-    /* 0x20 */ u32        field_20;
-    /* 0x24 */ s32        field_24;
-    /* 0x28 */ s32        field_28;
-    /* 0x2C */ byte       pad_2C[0x44];
-    /* 0x70 */ s16        field_70;
-    /* 0x72 */ s16        field_72;
-    /* 0x74 */ u16        field_74;
-    /* 0x76 */ u16        field_76;
-    /* 0x78 */ u16        field_78;
-    /* 0x7A */ u16        pad_7A;
-    /* 0x7C */ u16        field_7C;
-    /* 0x7E */ u16        field_7E;
-    /* 0x80 */ TmdObject* field_80;
-    /* 0x84 */ byte       pad_84[0x4];
+    u8*        primWrite;     // Write cursor of the half's second region: the primitives the draw pass transforms
+    u8*        preXformWrite; // Write cursor of its first region: the pre-transformed primitives, already in screen space
+    SVECTOR*   verts;         // Vertex array the commands index
+    SVECTOR*   normals;       // Normal array, indexed independently of the vertices
+    s32*       szTable;       // Screen Z per vertex, written as the draw pass projects each one and read back by the primitives it does not project again
+    u_long*    ot;            // Ordering table the primitives are linked into, at the object's own offset
+    s32        elemStride;    // Stride of one element of the record, in words
+    s32        elemCount;     // Elements in the record, counted down as the commands build them
+    u32        opcode;        // Opcode word of the record, flags included
+    s32        gteFlag;       // GTE FLAG as the element's last transform left it
+    s32        gteResult;     // What the last GTE step left: a facing, a depth or a vertex's screen Z
+    byte       pad_2C[0x44];
+    s16        tpage;         // Texture page every textured primitive is offset by
+    s16        clut;          // CLUT every textured primitive is offset by, in 64-entry rows
+    SVECTOR    elemNormal;    // The element's normal, transformed and lit, held while its texture coordinate is computed
+    DVECTOR    texCoord;      // Texture coordinate being computed for the element
+    TmdObject* obj;           // The object whose stream is being walked
+    s32        otDepthShift;  // Ordering-table depth shift a primitive is linked under
 } TmdScratchModelBlock;
 STATIC_ASSERT_SIZEOF(TmdScratchModelBlock, 0x88);
 

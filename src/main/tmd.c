@@ -333,19 +333,19 @@ void Tmd_ProcessStream(TmdObject* obj)
     }
     ws = head;
 
-    ws->field_80 = obj;
-    buf          = obj->buffer;
-    ws->field_0  = buf;
+    ws->obj       = obj;
+    buf           = obj->buffer;
+    ws->primWrite = buf;
     if (obj->bufferIndex != 0) {
-        ws->field_0 = (u8*)buf + obj->halfSize;
+        ws->primWrite = (u8*)buf + obj->halfSize;
     }
-    ws->field_4       = ws->field_0;
-    ws->field_0       = (u8*)ws->field_0 + src->firstRegionSize;
+    ws->preXformWrite = ws->primWrite;
+    ws->primWrite     = (u8*)ws->primWrite + src->firstRegionSize;
     obj->bufferIndex ^= 1;
-    ws->field_8       = (s32)obj->source->verts;
-    ws->field_C       = (s32)obj->source->normals;
-    ws->field_70      = (s8)obj->tpage;
-    ws->field_72      = (s8)obj->clut << 6;
+    ws->verts         = obj->source->verts;
+    ws->normals       = obj->source->normals;
+    ws->tpage         = (s8)obj->tpage;
+    ws->clut          = (s8)obj->clut << 6;
     goto read_id;
 
     for (;;) {
@@ -467,13 +467,13 @@ void Tmd_ProcessStream(TmdObject* obj)
                 break;
         }
 
-        ws->field_20 = *stream;
-        stream      += 2;
-        ws->field_18 = ((u16*)stream)[0];
-        ws->field_1C = ((u16*)stream)[1];
-        stream       = (u32*)((u8*)stream + 4);
-        stream       = handler(ws, 0, stream);
-        id           = *stream;
+        ws->opcode     = *stream;
+        stream        += 2;
+        ws->elemStride = ((u16*)stream)[0];
+        ws->elemCount  = ((u16*)stream)[1];
+        stream         = (u32*)((u8*)stream + 4);
+        stream         = handler(ws, 0, stream);
+        id             = *stream;
 
         while (1) {
             if (id != -2U) {

@@ -748,24 +748,24 @@ u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*           norms;
     DisplayState* ds;
 
-    poly  = (POLY_GT3*)arg0->field_0;
+    poly  = (POLY_GT3*)arg0->primWrite;
     col   = D_actor_403600_80131E34;
-    light = arg0->field_80->lightLevel;
-    if (arg0->field_1C-- > 0) {
-        opz         = &arg0->field_28;
+    light = arg0->obj->lightLevel;
+    if (arg0->elemCount-- > 0) {
+        opz         = &arg0->gteResult;
         upper_limit = 0x168 - light;
         ds          = &gDisplayState;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)arg0->field_8;
+            verts = (u8*)arg0->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8),
                      verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
-            gte_stflg(&arg0->field_24);
-            if (arg0->field_24 >= 0) {
+            gte_stflg(&arg0->gteFlag);
+            if (arg0->gteFlag >= 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
-                if (arg0->field_28 > 0) {
+                if (arg0->gteResult > 0) {
                     gte_stsxy3_gt3(poly);
                     gte_avsz3_real();
                     upper_delta = 0;
@@ -786,7 +786,7 @@ u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         col.g = -0x80 - upper_delta;
                         col.b = -0x80 - upper_delta;
                         gte_ldrgb(&col);
-                        norms = (u8*)arg0->field_C;
+                        norms = (u8*)arg0->normals;
                         gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8),
                                  norms + (rec[5] & 0xFFF8));
                         gte_ncct_real();
@@ -809,23 +809,23 @@ u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     gte_stotz(opz);
                     mask      = 0xFFFFFF;
                     poly->tag = (poly->tag & 0xFF000000) |
-                                (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) &
+                                (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) &
                                              0xFFC) +
-                                            (s32)arg0->field_14) &
+                                            (s32)arg0->ot) &
                                  mask);
-                    *(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
-                               (s32)arg0->field_14) =
-                        (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
-                                    (s32)arg0->field_14) &
+                    *(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
+                               (s32)arg0->ot) =
+                        (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
+                                    (s32)arg0->ot) &
                          0xFF000000) |
                         ((u32)poly & mask);
                 }
             }
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -850,10 +850,10 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     s16           upper_y;
     s16           lower_y;
 
-    poly  = (POLY_GT3*)arg0->field_4;
-    light = arg0->field_80->lightLevel;
-    if (arg0->field_1C-- > 0) {
-        opz         = &arg0->field_28;
+    poly  = (POLY_GT3*)arg0->preXformWrite;
+    light = arg0->obj->lightLevel;
+    if (arg0->elemCount-- > 0) {
+        opz         = &arg0->gteResult;
         clip_mask   = 0x80000000;
         upper_limit = 0x168 - light;
         ds          = &gDisplayState;
@@ -864,8 +864,8 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             actor_403600_ldsxy3_fifo_gt3((u8*)poly + 7);
             gte_nclip_real();
             gte_stopz(opz);
-            if (arg0->field_28 > 0) {
-                sz_table = (u8*)arg0->field_10;
+            if (arg0->gteResult > 0) {
+                sz_table = (u8*)arg0->szTable;
                 idx      = rec[0] & 0xFFFC;
                 sz       = *(s32*)(idx + (s32)sz_table);
                 if (!(sz & clip_mask)) {
@@ -913,13 +913,13 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             setcode(poly, 0x36);
                             gte_stotz(opz);
                             poly->tag = (poly->tag & mask_hi) |
-                                        (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
-                                                    (s32)arg0->field_14) &
+                                        (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
+                                                    (s32)arg0->ot) &
                                          mask);
-                            *(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
-                                       (s32)arg0->field_14) =
-                                (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
-                                            (s32)arg0->field_14) &
+                            *(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
+                                       (s32)arg0->ot) =
+                                (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
+                                            (s32)arg0->ot) &
                                  mask_hi) |
                                 ((u32)poly & mask);
                         }
@@ -927,10 +927,10 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                 }
             }
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_4 = (u8*)poly;
+    arg0->preXformWrite = (u8*)poly;
     return arg2;
 }
 
@@ -954,39 +954,39 @@ u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*           norms;
     DisplayState* ds;
 
-    poly  = (POLY_GT4*)arg0->field_0;
+    poly  = (POLY_GT4*)arg0->primWrite;
     col   = D_actor_403600_80131E34;
-    light = arg0->field_80->lightLevel;
+    light = arg0->obj->lightLevel;
     gte_ldrgb(&col);
-    if (arg0->field_1C-- > 0) {
-        flg         = &arg0->field_24;
+    if (arg0->elemCount-- > 0) {
+        flg         = &arg0->gteFlag;
         clip_mask   = 0x80000000;
-        opz         = &arg0->field_28;
+        opz         = &arg0->gteResult;
         upper_limit = 0x168 - light;
         ds          = &gDisplayState;
         mask        = 0xFFFFFF;
         SOFT_TOUCH_REG(mask);
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)arg0->field_8;
+            verts = (u8*)arg0->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8),
                      verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
             gte_stflg(flg);
-            if (!(arg0->field_24 & clip_mask)) {
+            if (!(arg0->gteFlag & clip_mask)) {
                 gte_nclip_real();
                 gte_stopz(opz);
                 gte_stsxy3_gt4(poly);
-                gte_ldv0((u8*)arg0->field_8 + (rec[3] & 0xFFF8));
+                gte_ldv0((u8*)arg0->verts + (rec[3] & 0xFFF8));
                 gte_rtps_real();
                 gte_stflg(flg);
-                if (!(arg0->field_24 & clip_mask)) {
-                    if (arg0->field_28 > 0) {
+                if (!(arg0->gteFlag & clip_mask)) {
+                    if (arg0->gteResult > 0) {
                         goto draw;
                     }
                     gte_nclip_real();
                     gte_stopz(opz);
-                    if (arg0->field_28 < 0) {
+                    if (arg0->gteResult < 0) {
                     draw:
                         gte_stsxy2(&poly->x3);
                         gte_avsz4_real();
@@ -1008,12 +1008,12 @@ u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             col.g = -0x80 - upper_delta;
                             col.b = -0x80 - upper_delta;
                             gte_ldrgb(&col);
-                            norms = (u8*)arg0->field_C;
+                            norms = (u8*)arg0->normals;
                             gte_ldv3(norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8),
                                      norms + (rec[6] & 0xFFF8));
                             gte_ncct_real();
                             gte_strgb3_gt4(poly);
-                            gte_ldv0((u8*)arg0->field_C + (rec[7] & 0xFFF8));
+                            gte_ldv0((u8*)arg0->normals + (rec[7] & 0xFFF8));
                             gte_nccs_real();
                             gte_strgb(&poly->r3);
                         }
@@ -1034,24 +1034,24 @@ u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         setcode(poly, 0x3E);
                         gte_stotz(opz);
                         poly->tag = (poly->tag & 0xFF000000) |
-                                    (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) &
+                                    (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) &
                                                  0xFFC) +
-                                                (s32)arg0->field_14) &
+                                                (s32)arg0->ot) &
                                      mask);
-                        *(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
-                                   (s32)arg0->field_14) =
-                            (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
-                                        (s32)arg0->field_14) &
+                        *(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
+                                   (s32)arg0->ot) =
+                            (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
+                                        (s32)arg0->ot) &
                              0xFF000000) |
                             ((u32)poly & mask);
                     }
                 }
             }
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -1076,10 +1076,10 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     s16           upper_y;
     s16           lower_y;
 
-    poly  = (POLY_GT4*)arg0->field_4;
-    light = arg0->field_80->lightLevel;
-    if (arg0->field_1C-- > 0) {
-        opz         = &arg0->field_28;
+    poly  = (POLY_GT4*)arg0->preXformWrite;
+    light = arg0->obj->lightLevel;
+    if (arg0->elemCount-- > 0) {
+        opz         = &arg0->gteResult;
         clip_mask   = 0x80000000;
         upper_limit = 0x168 - light;
         ds          = &gDisplayState;
@@ -1091,15 +1091,15 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             actor_403600_ldsxy3_fifo_gt4((u8*)poly + 7);
             gte_nclip_real();
             gte_stopz(opz);
-            if (arg0->field_28 > 0) {
+            if (arg0->gteResult > 0) {
                 goto draw;
             }
             actor_403600_ldsxy1_fifo_gt4((u8*)poly + 7);
             gte_nclip_real();
             gte_stopz(opz);
-            if (arg0->field_28 < 0) {
+            if (arg0->gteResult < 0) {
             draw:
-                sz_table = (u8*)arg0->field_10;
+                sz_table = (u8*)arg0->szTable;
                 idx      = rec[0] & 0xFFFC;
                 sz       = *(s32*)(idx + (s32)sz_table);
                 if (!(sz & clip_mask)) {
@@ -1153,13 +1153,13 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                                 gte_stotz(opz);
                                 gte_stotz(opz);
                                 poly->tag = (poly->tag & mask_hi) |
-                                            (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
-                                                        (s32)arg0->field_14) &
+                                            (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
+                                                        (s32)arg0->ot) &
                                              mask);
-                                *(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
-                                           (s32)arg0->field_14) =
-                                    (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
-                                                (s32)arg0->field_14) &
+                                *(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
+                                           (s32)arg0->ot) =
+                                    (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
+                                                (s32)arg0->ot) &
                                      mask_hi) |
                                     ((u32)poly & mask);
                             }
@@ -1168,10 +1168,10 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                 }
             }
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_4 = (u8*)poly;
+    arg0->preXformWrite = (u8*)poly;
     return arg2;
 }
 
@@ -1193,24 +1193,24 @@ u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*           norms;
     DisplayState* ds;
 
-    poly  = (POLY_GT3*)arg0->field_0;
+    poly  = (POLY_GT3*)arg0->primWrite;
     col   = D_actor_403600_80131E34;
-    light = arg0->field_80->lightLevel;
-    if (arg0->field_1C-- > 0) {
-        opz         = &arg0->field_28;
+    light = arg0->obj->lightLevel;
+    if (arg0->elemCount-- > 0) {
+        opz         = &arg0->gteResult;
         upper_limit = 0x168 - light;
         ds          = &gDisplayState;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)arg0->field_8;
+            verts = (u8*)arg0->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8),
                      verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
-            gte_stflg(&arg0->field_24);
-            if (arg0->field_24 >= 0) {
+            gte_stflg(&arg0->gteFlag);
+            if (arg0->gteFlag >= 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
-                if (arg0->field_28 > 0) {
+                if (arg0->gteResult > 0) {
                     gte_stsxy3_gt3(poly);
                     gte_avsz3_real();
                     upper_delta = 0;
@@ -1231,7 +1231,7 @@ u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         col.g = -0x80 - upper_delta;
                         col.b = -0x80 - upper_delta;
                         gte_ldrgb(&col);
-                        norms = (u8*)arg0->field_C;
+                        norms = (u8*)arg0->normals;
                         gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8),
                                  norms + (rec[5] & 0xFFF8));
                         gte_ncct_real();
@@ -1256,23 +1256,23 @@ u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     gte_stotz(opz);
                     mask      = 0xFFFFFF;
                     poly->tag = (poly->tag & 0xFF000000) |
-                                (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) &
+                                (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) &
                                              0xFFC) +
-                                            (s32)arg0->field_14) &
+                                            (s32)arg0->ot) &
                                  mask);
-                    *(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
-                               (s32)arg0->field_14) =
-                        (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
-                                    (s32)arg0->field_14) &
+                    *(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
+                               (s32)arg0->ot) =
+                        (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
+                                    (s32)arg0->ot) &
                          0xFF000000) |
                         ((u32)poly & mask);
                 }
             }
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -1294,24 +1294,24 @@ u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*           norms;
     DisplayState* ds;
 
-    poly  = (POLY_GT3*)arg0->field_0;
+    poly  = (POLY_GT3*)arg0->primWrite;
     col   = D_actor_403600_80131E34;
-    light = arg0->field_80->lightLevel;
-    if (arg0->field_1C-- > 0) {
-        opz         = &arg0->field_28;
+    light = arg0->obj->lightLevel;
+    if (arg0->elemCount-- > 0) {
+        opz         = &arg0->gteResult;
         upper_limit = 0x168 - light;
         ds          = &gDisplayState;
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)arg0->field_8;
+            verts = (u8*)arg0->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8),
                      verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
-            gte_stflg(&arg0->field_24);
-            if (arg0->field_24 >= 0) {
+            gte_stflg(&arg0->gteFlag);
+            if (arg0->gteFlag >= 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
-                if (arg0->field_28 > 0) {
+                if (arg0->gteResult > 0) {
                     gte_stsxy3_gt3(poly);
                     gte_avsz3_real();
                     upper_delta = 0;
@@ -1332,7 +1332,7 @@ u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         col.g = -0x80 - upper_delta;
                         col.b = -0x80 - upper_delta;
                         gte_ldrgb(&col);
-                        norms = (u8*)arg0->field_C;
+                        norms = (u8*)arg0->normals;
                         gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8),
                                  norms + (rec[5] & 0xFFF8));
                         gte_ncct_real();
@@ -1357,23 +1357,23 @@ u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     gte_stotz(opz);
                     mask      = 0xFFFFFF;
                     poly->tag = (poly->tag & 0xFF000000) |
-                                (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) &
+                                (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) &
                                              0xFFC) +
-                                            (s32)arg0->field_14) &
+                                            (s32)arg0->ot) &
                                  mask);
-                    *(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
-                               (s32)arg0->field_14) =
-                        (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
-                                    (s32)arg0->field_14) &
+                    *(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
+                               (s32)arg0->ot) =
+                        (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
+                                    (s32)arg0->ot) &
                          0xFF000000) |
                         ((u32)poly & mask);
                 }
             }
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -1397,39 +1397,39 @@ u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     u8*           norms;
     DisplayState* ds;
 
-    poly  = (POLY_GT4*)arg0->field_0;
+    poly  = (POLY_GT4*)arg0->primWrite;
     col   = D_actor_403600_80131E34;
-    light = arg0->field_80->lightLevel;
+    light = arg0->obj->lightLevel;
     gte_ldrgb(&col);
-    if (arg0->field_1C-- > 0) {
-        flg         = &arg0->field_24;
+    if (arg0->elemCount-- > 0) {
+        flg         = &arg0->gteFlag;
         clip_mask   = 0x80000000;
-        opz         = &arg0->field_28;
+        opz         = &arg0->gteResult;
         upper_limit = 0x168 - light;
         ds          = &gDisplayState;
         mask        = 0xFFFFFF;
         SOFT_TOUCH_REG(mask);
         do {
             rec   = (u16*)arg2;
-            verts = (u8*)arg0->field_8;
+            verts = (u8*)arg0->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8),
                      verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
             gte_stflg(flg);
-            if (!(arg0->field_24 & clip_mask)) {
+            if (!(arg0->gteFlag & clip_mask)) {
                 gte_nclip_real();
                 gte_stopz(opz);
                 gte_stsxy3_gt4(poly);
-                gte_ldv0((u8*)arg0->field_8 + (rec[3] & 0xFFF8));
+                gte_ldv0((u8*)arg0->verts + (rec[3] & 0xFFF8));
                 gte_rtps_real();
                 gte_stflg(flg);
-                if (!(arg0->field_24 & clip_mask)) {
-                    if (arg0->field_28 > 0) {
+                if (!(arg0->gteFlag & clip_mask)) {
+                    if (arg0->gteResult > 0) {
                         goto draw;
                     }
                     gte_nclip_real();
                     gte_stopz(opz);
-                    if (arg0->field_28 < 0) {
+                    if (arg0->gteResult < 0) {
                     draw:
                         gte_stsxy2(&poly->x3);
                         gte_avsz4_real();
@@ -1451,12 +1451,12 @@ u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             col.g = -0x80 - upper_delta;
                             col.b = -0x80 - upper_delta;
                             gte_ldrgb(&col);
-                            norms = (u8*)arg0->field_C;
+                            norms = (u8*)arg0->normals;
                             gte_ldv3(norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8),
                                      norms + (rec[6] & 0xFFF8));
                             gte_ncct_real();
                             gte_strgb3_gt4(poly);
-                            gte_ldv0((u8*)arg0->field_C + (rec[7] & 0xFFF8));
+                            gte_ldv0((u8*)arg0->normals + (rec[7] & 0xFFF8));
                             gte_nccs_real();
                             gte_strgb(&poly->r3);
                         }
@@ -1479,24 +1479,24 @@ u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         poly->code &= 0xFE;
                         gte_stotz(opz);
                         poly->tag = (poly->tag & 0xFF000000) |
-                                    (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) &
+                                    (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) &
                                                  0xFFC) +
-                                                (s32)arg0->field_14) &
+                                                (s32)arg0->ot) &
                                      mask);
-                        *(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
-                                   (s32)arg0->field_14) =
-                            (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
-                                        (s32)arg0->field_14) &
+                        *(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
+                                   (s32)arg0->ot) =
+                            (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
+                                        (s32)arg0->ot) &
                              0xFF000000) |
                             ((u32)poly & mask);
                     }
                 }
             }
             poly++;
-            arg2 += arg0->field_18;
-        } while (arg0->field_1C-- > 0);
+            arg2 += arg0->elemStride;
+        } while (arg0->elemCount-- > 0);
     }
-    arg0->field_0 = (u8*)poly;
+    arg0->primWrite = (u8*)poly;
     return arg2;
 }
 
@@ -1530,7 +1530,7 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
     __asm__("move %0,%1" : "=r"(stream) : "r"(arg2), "r"(D_actor_403600_801606A0));
     if (D_actor_403600_801606A0 != NULL) {
-        poly    = (POLY_GT3*)arg0->field_0;
+        poly    = (POLY_GT3*)arg0->primWrite;
         color   = D_actor_403600_80131E34;
         head    = *(u8**)0x1F8003FC;
         scratch = (*(u8**)0x1F8003FC = head - 0x7C);
@@ -1570,11 +1570,11 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         *(s32*)(scratch + 0x74) = *(s16*)(scratch + 0x12);
         *(s32*)(scratch + 0x78) = *(s16*)(scratch + 0x14);
         gte_ldrgb(&color);
-        if (arg0->field_1C-- > 0) {
+        if (arg0->elemCount-- > 0) {
             __asm__("move %0,%1" : "=r"(active) : "r"(transposed));
             projected = (MATRIX*)(head - 0x64);
             SOFT_TOUCH_REG(projected);
-            opz = &arg0->field_28;
+            opz = &arg0->gteResult;
             __asm__("lui %0,%%hi(gDisplayState)" : "=r"(ds_high));
             __asm__("addiu %0,%1,%%lo(gDisplayState)" : "=&r"(ds) : "r"(ds_high));
             SOFT_TOUCH_REG(ds);
@@ -1592,7 +1592,7 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                 *(s32*)(scratch + 0x38) = record[2] >> 3;
                 __asm__("move %0,%1" : "=r"(index) : "r"(scratch));
                 do {
-                    verts = (u8*)arg0->field_8;
+                    verts = (u8*)arg0->verts;
                     gte_ldv0(verts + (*(s32*)(index + 0x30) << 3));
                     gte_mvmva_10000();
                     gte_stsv(scratch + offset);
@@ -1610,14 +1610,14 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                 gte_SetTransMatrix((u8*)D_actor_403600_801606A0 + 0x24);
                 gte_ldv3(projected, scratch + 0x20, scratch + 0x28);
                 gte_rtpt_real();
-                gte_stflg(&arg0->field_24);
-                if (arg0->field_24 >= 0) {
+                gte_stflg(&arg0->gteFlag);
+                if (arg0->gteFlag >= 0) {
                     gte_nclip_real();
                     gte_stopz(opz);
-                    if (arg0->field_28 > 0) {
+                    if (arg0->gteResult > 0) {
                         gte_stsxy3_gt3(poly);
                         gte_avsz3_real();
-                        norms = (u8*)arg0->field_C;
+                        norms = (u8*)arg0->normals;
                         gte_ldv3(norms + (record[3] & 0xFFF8),
                                  norms + (record[4] & 0xFFF8),
                                  norms + (record[5] & 0xFFF8));
@@ -1627,23 +1627,23 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         setcode(poly, 0x34);
                         gte_stotz(opz);
                         poly->tag = (poly->tag & mask_hi) |
-                                    (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) &
+                                    (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) &
                                                  0xFFC) +
-                                                (s32)arg0->field_14) &
+                                                (s32)arg0->ot) &
                                      mask);
-                        *(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
-                                   (s32)arg0->field_14) =
-                            (*(u_long*)(((((u32)arg0->field_28 << ds->otDepthShift) >> 2) & 0xFFC) +
-                                        (s32)arg0->field_14) &
+                        *(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
+                                   (s32)arg0->ot) =
+                            (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
+                                        (s32)arg0->ot) &
                              mask_hi) |
                             ((u32)poly & mask);
                     }
                 }
                 poly++;
-                stream += arg0->field_18;
-            } while (arg0->field_1C-- > 0);
+                stream += arg0->elemStride;
+            } while (arg0->elemCount-- > 0);
         }
-        arg0->field_0 = (u8*)poly;
+        arg0->primWrite = (u8*)poly;
         gte_SetTransVector(scratch);
         gte_SetRotMatrix(scratch + 0x3C);
         *(u8**)0x1F8003FC = *(u8**)0x1F8003FC + 0x7C;
@@ -1682,7 +1682,7 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
     __asm__("move %0,%1" : "=r"(stream) : "r"(arg2), "r"(D_actor_403600_801606A0));
     if (D_actor_403600_801606A0 != NULL) {
-        poly    = (POLY_GT4*)arg0->field_0;
+        poly    = (POLY_GT4*)arg0->primWrite;
         color   = D_actor_403600_80131E34;
         head    = *(u8**)0x1F8003FC;
         scratch = (*(u8**)0x1F8003FC = head - 0x88);
@@ -1723,12 +1723,12 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         *(s32*)(scratch + 0x84) = *(s16*)(scratch + 0x14);
         color_ds                = (u8*)&color;
         gte_ldrgb(color_ds);
-        if (arg0->field_1C-- > 0) {
+        if (arg0->elemCount-- > 0) {
             active = transposed;
             SOFT_USE_REG(head);
-            flg       = &arg0->field_24;
+            flg       = &arg0->gteFlag;
             clip_mask = 0x80000000;
-            opz       = &arg0->field_28;
+            opz       = &arg0->gteResult;
             __asm__("lui %0,%%hi(gDisplayState)" : "=r"(ds_high));
             __asm__("addiu %0,%1,%%lo(gDisplayState)" : "=&r"(color_ds) : "r"(ds_high));
             mask = 0xFFFFFF;
@@ -1747,7 +1747,7 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                 *(s32*)(scratch + 0x44) = record[3] >> 3;
                 __asm__("move %0,%1" : "=r"(index) : "r"(scratch));
                 do {
-                    verts = (u8*)arg0->field_8;
+                    verts = (u8*)arg0->verts;
                     gte_ldv0(verts + (*(s32*)(index + 0x38) << 3));
                     gte_mvmva_10000();
                     gte_stsv(scratch + offset);
@@ -1767,54 +1767,54 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                 gte_ldv3(index, scratch + 0x20, scratch + 0x28);
                 gte_rtpt_real();
                 gte_stflg(flg);
-                if (!(arg0->field_24 & clip_mask)) {
+                if (!(arg0->gteFlag & clip_mask)) {
                     gte_nclip_real();
                     gte_stopz(opz);
                     gte_stsxy3_gt4(poly);
                     gte_ldv0(scratch + 0x30);
                     gte_rtps_real();
                     gte_stflg(flg);
-                    if (!(arg0->field_24 & clip_mask)) {
-                        if (arg0->field_28 > 0) {
+                    if (!(arg0->gteFlag & clip_mask)) {
+                        if (arg0->gteResult > 0) {
                             goto draw;
                         }
                         gte_nclip_real();
                         gte_stopz(opz);
-                        if (arg0->field_28 < 0) {
+                        if (arg0->gteResult < 0) {
                         draw:
                             gte_stsxy2(&poly->x3);
                             gte_avsz4_real();
-                            norms = (u8*)arg0->field_C;
+                            norms = (u8*)arg0->normals;
                             gte_ldv3(norms + (record[4] & 0xFFF8),
                                      norms + (record[5] & 0xFFF8),
                                      norms + (record[6] & 0xFFF8));
                             gte_ncct_real();
                             gte_strgb3_gt4(poly);
-                            gte_ldv0((u8*)arg0->field_C + (record[7] & 0xFFF8));
+                            gte_ldv0((u8*)arg0->normals + (record[7] & 0xFFF8));
                             gte_nccs_real();
                             gte_strgb(&poly->r3);
                             setlen(poly, 12);
                             setcode(poly, 0x3C);
                             gte_stotz(opz);
                             poly->tag = (poly->tag & (u32)saved) |
-                                        (*(u_long*)(((((u32)arg0->field_28 << ((DisplayState*)color_ds)->otDepthShift) >> 2) &
+                                        (*(u_long*)(((((u32)arg0->gteResult << ((DisplayState*)color_ds)->otDepthShift) >> 2) &
                                                      0xFFC) +
-                                                    (s32)arg0->field_14) &
+                                                    (s32)arg0->ot) &
                                          mask);
-                            *(u_long*)(((((u32)arg0->field_28 << ((DisplayState*)color_ds)->otDepthShift) >> 2) & 0xFFC) +
-                                       (s32)arg0->field_14) =
-                                (*(u_long*)(((((u32)arg0->field_28 << ((DisplayState*)color_ds)->otDepthShift) >> 2) & 0xFFC) +
-                                            (s32)arg0->field_14) &
+                            *(u_long*)(((((u32)arg0->gteResult << ((DisplayState*)color_ds)->otDepthShift) >> 2) & 0xFFC) +
+                                       (s32)arg0->ot) =
+                                (*(u_long*)(((((u32)arg0->gteResult << ((DisplayState*)color_ds)->otDepthShift) >> 2) & 0xFFC) +
+                                            (s32)arg0->ot) &
                                  (u32)saved) |
                                 ((u32)poly & mask);
                         }
                     }
                 }
                 poly++;
-                stream += arg0->field_18;
-            } while (arg0->field_1C-- > 0);
+                stream += arg0->elemStride;
+            } while (arg0->elemCount-- > 0);
         }
-        arg0->field_0 = (u8*)poly;
+        arg0->primWrite = (u8*)poly;
         gte_SetTransVector(scratch);
         gte_SetRotMatrix(scratch + 0x48);
         *(u8**)0x1F8003FC = *(u8**)0x1F8003FC + 0x88;
@@ -1844,7 +1844,7 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     if (D_actor_403600_801606A0 != NULL) {
         previous = -1;
         color    = D_actor_403600_80131E34;
-        if (arg0->field_1C == 0) {
+        if (arg0->elemCount == 0) {
             return (u32*)stream;
         }
 
@@ -1893,7 +1893,7 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         *(s32*)(scratch + 0x78) = *(s16*)(scratch + 0x14);
         gte_ldrgb(&color);
 
-        if (arg0->field_1C-- > 0) {
+        if (arg0->elemCount-- > 0) {
             active = transposed;
             saved  = (MATRIX*)(head - 0x64);
             do {
@@ -1901,7 +1901,7 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                 if (*(u16*)(stream + 0) != previous) {
                     gte_SetTransMatrix(active);
                     gte_SetRotMatrix(active);
-                    gte_ldv0((u8*)arg0->field_8 + (*(u16*)(stream + 0) & 0xFFF8));
+                    gte_ldv0((u8*)arg0->verts + (*(u16*)(stream + 0) & 0xFFF8));
                     gte_mvmva_10000();
                     gte_stsv(saved);
                     if (*(s16*)(scratch + 0x1A) > 0) {
@@ -1911,24 +1911,24 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     gte_SetTransMatrix((u8*)D_actor_403600_801606A0 + 0x24);
                     gte_ldv0(saved);
                     gte_rtps_real();
-                    gte_stsz(&arg0->field_28);
-                    gte_stflg(&arg0->field_24);
-                    if (arg0->field_24 & 0x80000000) {
-                        arg0->field_28 |= 0x80000000;
+                    gte_stsz(&arg0->gteResult);
+                    gte_stflg(&arg0->gteFlag);
+                    if (arg0->gteFlag & 0x80000000) {
+                        arg0->gteResult |= 0x80000000;
                     }
-                    arg0->field_10[*(u16*)(stream + 0) >> 3] = arg0->field_28;
+                    arg0->szTable[*(u16*)(stream + 0) >> 3] = arg0->gteResult;
                 }
-                gte_stsxy(arg0->field_4 + *(u16*)(record + 4));
-                gte_ldv0((u8*)arg0->field_C + (*(u16*)(record + 2) & 0xFFF8));
+                gte_stsxy(arg0->preXformWrite + *(u16*)(record + 4));
+                gte_ldv0((u8*)arg0->normals + (*(u16*)(record + 2) & 0xFFF8));
                 gte_nccs_real();
                 colorOffset = *(u16*)(record + 6);
-                stream     += arg0->field_18 * 4;
-                gte_strgb(arg0->field_4 + colorOffset);
-                loadedCount = arg0->field_1C;
+                stream     += arg0->elemStride * 4;
+                gte_strgb(arg0->preXformWrite + colorOffset);
+                loadedCount = arg0->elemCount;
                 SOFT_USE_REG(loadedCount);
                 previous = *(u16*)(record + 0);
                 __asm__ volatile("move %0,%1" : "=r"(count) : "r"(loadedCount));
-                arg0->field_1C = loadedCount - 1;
+                arg0->elemCount = loadedCount - 1;
             } while (count > 0);
         }
 

@@ -11087,10 +11087,10 @@ NCLIP / AVSZ3 (splat still tags these as "Handwritten" because of COP2):
 #define gte_avsz3_real() __asm__ volatile("nop; nop; .word 0x4B58002D")
 ```
 
-Hoist `opz = &ws->field_28` *before* `ds` / `0xFFFFFF` / `0xFF000000` so
-`&field_28` lands in `$t3`. Name a `u_long* ot` temp and GCC CSEs the
+Hoist `opz = &ws->gteResult` *before* `ds` / `0xFFFFFF` / `0xFF000000` so
+`&ws->gteResult` lands in `$t3`. Name a `u_long* ot` temp and GCC CSEs the
 shifted OT slot (~85%); write both `addPrim` halves as the full
-`((((u32)otz << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14`
+`((((u32)otz << ds->field_128) >> 2) & 0xFFC) + (s32)ws->ot`
 expression, same as `Gp_LinkSprtCmd`.
 
 ## Decode the COP2 register file before reading an unmatched GTE body as C
@@ -29290,12 +29290,12 @@ then compare `u32` halfwords against that live `prev` (no extra
 
 ```c
 prev  = -1;
-count = ws->field_1C;
+count = ws->elemCount;
 if (count == 0) {
     return stream;
 }
 __asm__ volatile("" : "+r"(prev));
-ws->field_1C = count + prev;
+ws->elemCount = count + prev;
 ```
 
 Reload the halfword as `*(u16*)stream` for the depth-table store so it
@@ -33376,8 +33376,8 @@ The paired `lw 68(block)` is `block->mat.t[0]` (offset 0x44). Volatile
 
 ## Hoist `&field_24` and AND `0x80000000` for TMD FLAG clip (not `>= 0`)
 
-`func_8009D388` (POLY_FT3) tests FLAG with `if (ws->field_24 >= 0)` and
-computes `&ws->field_24` inside the loop (`addiu v0, a3, 0x24` after
+`func_8009D388` (POLY_FT3) tests FLAG with `if (ws->gteFlag >= 0)` and
+computes `&ws->gteFlag` inside the loop (`addiu v0, a3, 0x24` after
 RTPT). The POLY_F3 sibling wants:
 
 ```
@@ -33391,18 +33391,18 @@ emits `bltz` and leaves `&field_24` unhoisted. Name both the flag pointer
 and the mask, and store FLAG a second time after `gte_stsxy3_f3`:
 
 ```c
-flg      = &ws->field_24;
+flg      = &ws->gteFlag;
 clipMask = 0x80000000;
-opz      = &ws->field_28;
+opz      = &ws->gteResult;
 ...
 gte_stflg(flg);
-if ((ws->field_24 & clipMask) == 0) {
+if ((ws->gteFlag & clipMask) == 0) {
     gte_nclip_real();
     gte_stopz(opz);
-    if (ws->field_28 > 0) {
+    if (ws->gteResult > 0) {
         gte_stsxy3_f3(poly);
         gte_stflg(flg);
-        if ((ws->field_24 & clipMask) == 0) {
+        if ((ws->gteFlag & clipMask) == 0) {
 ```
 
 `setlen` 4 / `setcode` 0x20 / poly size 0x14. `func_8009DB00` is the
@@ -33415,7 +33415,7 @@ example. Same prologue is used by `func_8009D518` / `func_8009D718` /
 hoisted FLAG/clip/`opz` prologue it RTPT-clips the first three verts,
 `nclip`s, stores SXY into the GT4 (`gte_stsxy3_gt4`) unconditionally,
 then RTPS-clips vertex 3. The first `nclip` result is reused: if
-`field_28 > 0` draw, else `nclip` again on (v0,v1,v3) and draw only when
+`gteResult > 0` draw, else `nclip` again on (v0,v1,v3) and draw only when
 that MAC0 is `< 0`. Both paths share one `gte_stsxy2(&poly->x3)` /
 `gte_avsz4_real` / OT block; a `goto` into the `< 0` body emits
 `bgtz` / delay-slot `addiu v0, t0, 0x2C` like the target. No
@@ -33431,12 +33431,12 @@ into `$t2`:
 ```c
 register u32 mask asm("t1");
 ...
-if (ws->field_28 > 0) {
+if (ws->gteResult > 0) {
     goto draw;
 }
 gte_nclip_real();
 gte_stopz(opz);
-if (ws->field_28 < 0) {
+if (ws->gteResult < 0) {
 draw:
     gte_stsxy2(&poly->x3);
     gte_avsz4_real();
@@ -33463,7 +33463,7 @@ register u32 mask asm("t2");
 Opaque G4 (`func_8009E4A0`, `setcode` 0x38) always `gte_stsxy3_g4` /
 RTPS vertex 3 after the first FLAG clip. Semi-trans G4 (`func_8009E770`,
 `setcode` 0x3A) wraps that 4th-vertex transform in
-`if (ws->field_28 > 0)` after the first `nclip`/`stopz`. Both share the
+`if (ws->gteResult > 0)` after the first `nclip`/`stopz`. Both share the
 second-nclip `goto draw` (`bgtz` / `bgez`) and pin `mask` to `$t2`.
 
 ## Relative matrix: reuse `$a0` as 0x30 scratch, pin after the overwrite
@@ -34611,10 +34611,10 @@ and puts the third vertex in `$v0`. The target loads `rec[0]` into `$a1`,
 load its own base so the pointer dies at `gte_ldv3`:
 
 ```c
-verts = (u8*)ws->field_8;
+verts = (u8*)ws->verts;
 gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
 ...
-norms = (u8*)ws->field_C;
+norms = (u8*)ws->normals;
 gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8));
 ```
 
@@ -35008,13 +35008,13 @@ same `$t8` temp; `xy = poly + 1` so first-packet `x0`/`x1`/`x2` are
 `func_8009A348`'s dual-packet OT insert:
 
 ```c
-if (ws->field_28 > 0) {
+if (ws->gteResult > 0) {
     goto draw;
 }
 gte_ldsxy_fifo_gt4_x3(xy);
 gte_nclip_real();
 gte_stopz(opz);
-if (ws->field_28 < 0) {
+if (ws->gteResult < 0) {
 draw:
     /* gte_ldsz0..3s, avsz4, setlen/setcode 0x3E then 0x3C, link both */
 }
@@ -36997,7 +36997,7 @@ and turns `addiu`/`subu` into `addiu -C`/`subu`:
 
 ```c
 /* Wrong: lh a, 0x74; lh b, 0x7c; addiu a,a,-0xA0; subu b,b,a  */
-uv = (s16)ws->field_7C + 0xA0 - (s16)ws->field_74;
+uv = ws->texCoord.vx + 0xA0 - ws->elemNormal.vx;
 ```
 
 Writing it as two statements defeats the reassociation (GCC 2.8.1 has no SSA,
@@ -37006,8 +37006,8 @@ load order:
 
 ```c
 /* Matches: lh a, 0x7c; lh b, 0x74; addiu v0,a,0xA0; subu v0,v0,b */
-uv  = (s16)ws->field_7C + 0xA0;
-uv -= (s16)ws->field_74;
+uv  = ws->texCoord.vx + 0xA0;
+uv -= ws->elemNormal.vx;
 ```
 
 Seen while matching `func_8009AC58` (gameplay): 92.9% → 96.1% from this alone.
@@ -37034,23 +37034,23 @@ Seen while matching `func_acropolis_bridge_8018099C` (rooms): 99.58% → 100%.
 
 ## Caching `p->field` in a local vs. repeating it changes the caller-save temp
 
-An expression like `ws->field_80->field_2C` read three times inside one `if`
+An expression like `ws->obj->lightLevel` read three times inside one `if`
 generates the *same* code whether you assign it to a local first or repeat it —
 CSE collapses it either way — but the temporaries land in different hard
-registers. A user variable (`s32 val = ws->field_80->field_2C;`) makes the
+registers. A user variable (`s32 val = ws->obj->lightLevel;`) makes the
 pointer temp take `$v0`; repeating the expression and letting CSE create the
 temp makes it take `$v1`:
 
 ```c
-/* $v0 for the ws->field_80 temp */
-val = ws->field_80->field_2C;
+/* $v0 for the ws->obj temp */
+val = ws->obj->lightLevel;
 if (val < 0x1000) { gte_lddp(val); … gte_lddp(0x1000 - val); }
 
-/* $v1 for the ws->field_80 temp — matched the target */
-if (ws->field_80->field_2C < 0x1000) {
-    gte_lddp(ws->field_80->field_2C);
+/* $v1 for the ws->obj temp — matched the target */
+if (ws->obj->lightLevel < 0x1000) {
+    gte_lddp(ws->obj->lightLevel);
     …
-    gte_lddp(0x1000 - ws->field_80->field_2C);
+    gte_lddp(0x1000 - ws->obj->lightLevel);
 }
 ```
 
@@ -37076,7 +37076,7 @@ advancing the label past it:
 
 GCC only does this when nothing *before* the branch is eligible. So the source
 must have **no** plain assignment between the last volatile asm and the `if`;
-putting one there (e.g. `sv = &ws->field_74;` just above the condition) lets
+putting one there (e.g. `sv = &ws->elemNormal;` just above the condition) lets
 the simple filler grab it instead, and the object ends up exactly one
 instruction shorter than the target.
 
@@ -37130,7 +37130,7 @@ first, and the pair flips:
 ```c
 /* 98.98%: ws in $a3, giv in $t0 */
 ws = arg0;
-poly = (POLY_GT3*)ws->field_0;
+poly = (POLY_GT3*)ws->primWrite;
 
 /* 100%: parameter used directly, giv gets $a3 */
 poly = (POLY_GT3*)arg0->field_0;
@@ -37171,7 +37171,7 @@ setcode(&poly[1], code);
 ```
 
 Assign these locals in the order the target's preheader sets them (here after
-`opz = &ws->field_28` and before `ds = &gDisplayState`), since explicit
+`opz = &ws->gteResult` and before `ds = &gDisplayState`), since explicit
 assignments are emitted in source order while LICM appends its own hoists
 afterwards. `func_8009BD00` went 90.4% → 98.98% on this change alone.
 
@@ -37348,13 +37348,13 @@ to 96% on this change alone.
 
 ## Pin a loop-invariant pointer with `asm("" : "+r"(p))` to lock its schedule slot and its register
 
-`func_8009AF90` copies `&ws->field_7C` into a local pointer at the top of the
+`func_8009AF90` copies `&ws->texCoord` into a local pointer at the top of the
 block that follows an `if`, and only reads `p->vy` many instructions later:
 
 ```c
-sxy  = (DVECTOR*)&ws->field_7C;   /* loop.c hoists the address, leaves `move t1, t8` here */
+sxy  = &ws->texCoord;   /* loop.c hoists the address, leaves `move t1, t8` here */
 flag = 0;
-dest = ws->field_4 + rec[2] + 8;
+dest = ws->preXformWrite + rec[2] + 8;
 ```
 
 Two things went wrong with the plain version. The copy has no in-block
@@ -37368,7 +37368,7 @@ Adding the codebase's usual opaque-value barrier immediately after the
 assignment fixes both at once:
 
 ```c
-sxy = (DVECTOR*)&ws->field_7C;
+sxy = &ws->texCoord;
 __asm__ volatile("" : "+r"(sxy));
 ```
 
@@ -37384,7 +37384,7 @@ part that matters for allocation.
 The vendored `perm_pycparser` grammar has
 `asm_operand : ... LPAREN unary_expression RPAREN`, so any inline-asm operand
 containing a cast or a binary operator — which is most of the `gte_*` macro call
-sites, e.g. `gte_stsxy(ws->field_4 + rec[2] + 4)` — makes the permuter bail with
+sites, e.g. `gte_stsxy(ws->preXformWrite + rec[2] + 4)` — makes the permuter bail with
 `Syntax error in base.c ... before: +`. Hoisting those operands into temporaries
 to work around it changes codegen (it cost ~5% on `func_8009AF90`), so for
 GTE-heavy functions treat the permuter as unavailable and iterate on the C by
@@ -38978,8 +38978,8 @@ preheader and down into the loop body, immediately before their first use and
 *after* the operand you want hoisted first:
 
 ```c
-if (ws->field_1C-- > 0) {
-    flg = &ws->field_24; clipMask = 0x80000000; opz = &ws->field_28;
+if (ws->elemCount-- > 0) {
+    flg = &ws->gteFlag; clipMask = 0x80000000; opz = &ws->gteResult;
     do {
         ...
         gte_ldrgb(&col2);          /* discovered first -> hoisted first */
@@ -38988,7 +38988,7 @@ if (ws->field_1C-- > 0) {
         mask = 0xFFFFFF; maskHi = 0xFF000000;
         setlen(&poly[0], len);
         ...
-    } while (ws->field_1C-- > 0);
+    } while (ws->elemCount-- > 0);
 }
 ```
 
@@ -40199,7 +40199,7 @@ Two related details from the same function:
 ## Repeat `p->field` for GTE blend; pin the packet-header tail
 
 `func_8009B500` blends each GT3 vertex with `gte_gpf12` / `gte_gpl12`. Caching
-`ws->field_80->field_2C` in a local coalesces the second/third loads into `$v0`
+`ws->obj->lightLevel` in a local coalesces the second/third loads into `$v0`
 and drops the `move v0, s6` / `move v0, s7` the target keeps. Repeating the
 expression after `gte_stcv` (memory clobber) reloads into `$s6`/`$s7` and
 restores those copies.
@@ -40368,8 +40368,8 @@ rematerialised inside the loop. `func_8009C414` went from 91% to 98% on this
 change alone. `src/gameplay/3FB8_7E28.c` shows the idiomatic call:
 
 ```c
-addPrim((u_long*)(((((u32)ws->field_28 << gDisplayState.otDepthShift) >> 2) & 0xFFC)
-                  + (s32)ws->field_14), &poly[0]);
+addPrim((u_long*)(((((u32)ws->gteResult << gDisplayState.otDepthShift) >> 2) & 0xFFC)
+                  + (s32)ws->ot), &poly[0]);
 ```
 
 ## A lone `p = base + const` is never strength-reduced
@@ -40420,7 +40420,7 @@ the target. `func_8009AF90` / `func_8009AA5C` already use the same idiom.
 ## Re-read a field instead of caching it when a "memory" clobber sits between
 
 `gte_stcv` clobbers memory, so four consecutive
-`gte_lddp(ws->field_80->field_2C)` blocks each need their own load. Written
+`gte_lddp(ws->obj->lightLevel)` blocks each need their own load. Written
 inline the four loads become four *different* pseudos (`$a0`, `$s5`, `$s6`,
 `$s3` in the target); assigning them all to one `dp` local collapses them into
 a single register and loses the `move v0, s5` copies the target has.
@@ -131059,3 +131059,29 @@ So grep `tools/` for the retired spelling after a rename, and write such lists t
 cover the migration rather than one spelling: both `Mem_Verb` and `memVerb` are
 live in the tree at once, so an alternation, or a case-folded pattern, is right
 while either spelling alone is wrong on one side of the sweep.
+
+## A scratch type handed to two passes declares both passes' fields
+
+Where two passes walk the same data through different handler sets but their
+handlers share one declared parameter type, that type's reference listing is the
+union of both passes' state. Reading those fields as belonging to the pass you
+are in is how a scratch block grows members nothing in it ever writes, and the
+listing cannot warn you: a field only the other pass fills looks exactly like one
+this pass has not reached yet.
+
+Tell the passes apart from the table that dispatches each handler, not from the
+type its parameter is declared with. When the two tables resolve the same command
+to different functions, the handlers are two sets and the frames are two. The
+stack each pass reserves is the second witness: one whose frame is the smaller
+of the pair cannot have written the other's tail, so a field past the end of that
+frame belongs to the other pass.
+
+Both readings then have to live in the declaration, because the commands are
+declared with one type. Name the fields and say which pass fills the ones this
+pass leaves alone, even where the meaning looks obvious - a reader who finds a
+depth shift sitting in a compile pass's scratch has no way to tell it is dead
+where they are standing.
+
+The model stream scratch is the worked example: the two passes push frames of
+0x88 and 0x98 bytes over the same leading layout, resolve every opcode to a
+different handler, and their command sets do not intersect.
