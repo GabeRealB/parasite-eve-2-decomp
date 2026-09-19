@@ -38,21 +38,23 @@ void Mem_InitAux(void);
 
 /// Allocates a block of memory.
 ///
-/// Prior to allocating the data, it sets the active the heap.
-/// See `Mem_SetActiveHeap` for more details.
+/// Prior to allocating the data, it makes the heap it allocates from the
+/// active one. See `memSetActiveHeap` for more details.
 ///
 /// @param size Number of bytes to allocate.
-/// @param auxHeap Controlls in which heap to allocate the data block.
+/// @param auxHeap If `true`, the block is allocated from the auxiliary heap,
+///                otherwise from the primary one.
 /// @return Allocated block or `NULL`.
 void* Mem_Malloc(size_t size, bool auxHeap);
 
 /// Allocates a zeroed block of memory.
 ///
-/// Prior to allocating the data, it sets the active the heap.
-/// See `Mem_SetActiveHeap` for more details.
+/// Prior to allocating the data, it makes the heap it allocates from the
+/// active one. See `memSetActiveHeap` for more details.
 ///
 /// @param size Number of bytes to allocate.
-/// @param auxHeap Controlls in which heap to allocate the data block.
+/// @param auxHeap If `true`, the block is allocated from the auxiliary heap,
+///                otherwise from the primary one.
 /// @return Allocated block or `NULL`.
 void* Mem_Calloc(size_t size, bool auxHeap);
 
@@ -77,17 +79,17 @@ void memFree(void* ptr);
 ///                otherwise to the primary one.
 void memFreeFromHeap(void* ptr, bool auxHeap);
 
-/// Switches between the primary heap and the auxiliary heap.
+/// Selects the heap the allocation routines operate on.
 ///
-/// The primary heap is the fixed region at `gMemHeap`; the auxiliary heap is
-/// the region `gMemActiveAuxHeap` currently points at, with the extent
-/// `GActiveAuxHeapSize`. After calling this function, the memory management
-/// utilities, like `malloc3` and `free3`, will operate on one of the two
-/// heaps. Only version 3 utilities are affected.
+/// `malloc3` and `free3` work inside one heap at a time, and a block has to be
+/// released to the heap it came from, so the heap in play is set before each
+/// operation rather than once at start-up. The primary heap is the fixed
+/// region at `gMemHeap`; the auxiliary heap is the region `gMemActiveAuxHeap`
+/// currently points at.
 ///
-/// @param auxHeap If `true`, the auxiliary heap will be set as active.
-///                Otherwise the primary one.
-void Mem_SetActiveHeap(bool auxHeap);
+/// @param auxHeap If `true`, the auxiliary heap becomes the active one,
+///                otherwise the primary heap.
+void memSetActiveHeap(bool auxHeap);
 
 /// Selects which region serves as the auxiliary heap.
 ///

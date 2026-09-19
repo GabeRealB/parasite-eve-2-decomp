@@ -107581,19 +107581,19 @@ front of then slides up by its size, so the image differs from that point on and
 the checksum fails naming a whole executable or overlay rather than the function
 that moved.
 
-`src/main/mem.c` is the worked example. `Mem_SetActiveHeap` stands between
+`src/main/mem.c` is the worked example. `memSetActiveHeap` stands between
 `Mem_Calloc`, which `jal`s it, and `Mem_Malloc`, whose body carries the setter's
 code integrated; marking the setter's definition `inline` to integrate that call
 too reorders the object:
 
 ```
-000001fc 0000002c Mem_SetActiveHeap     as the source has it: the setter stands
+000001fc 0000002c memSetActiveHeap     as the source has it: the setter stands
 00000228 00000064 Mem_Malloc              between the two groups of callers
 
 000001fc 00000064 Mem_Malloc             with `inline` on the setter's definition:
 00000260 0000002c memFree                 the later callers slide up by its size
 0000028c 00000044 memFreeFromHeap          and the copy is emitted last
-000003a4 0000002c Mem_SetActiveHeap
+000003a4 0000002c memSetActiveHeap
 ```
 
 So a helper whose address stands between its callers was a plain function, and
@@ -130614,7 +130614,7 @@ objects are in `lib/libapi`, so this is readable rather than inferred, and it is
 the reason a wrapper takes the heap as a flag at all.
 
 The assignment appears in the wrappers in both shapes, and each wrapper's target
-decides which. `Mem_Calloc` calls `Mem_SetActiveHeap` and its target has the
+decides which. `Mem_Calloc` calls `memSetActiveHeap` and its target has the
 `jal`; `Mem_Malloc`, `memFree` and `memFreeFromHeap` write the assignment out,
 so theirs have the repeated `lui` / `lw` / `sw`, with `memFree` taking the
 primary branch alone. The three could not have called the setter and been
@@ -131024,3 +131024,22 @@ coordinate and ends at the offset coordinate whose `sub` is `NULL`, so the view
 rig sits *above* the coordinate everything parents to - which is why that
 coordinate's own `coord` holds a translation alone, with the view rotation and
 offset in the two above it.
+
+## The pass's `public (asm)` marker counts a `jal` in the caller's own file
+
+`dep_graph.py` marks an item `public (asm)` when its name appears on a line
+under `asm/<ver>` that is not a label directive (`glabel`, `dlabel`,
+`endlabel`, `nonmatching`, `jlabel`). Those directives are the whole of an
+item's own record - the instruction lines below them carry a name only where an
+operand is a symbol - so what the marker really sees is *other* bodies'
+records, where a call is written out as `jal <name>`. A helper whose only
+caller sits in its own translation unit therefore still comes out
+`public (asm)`: the marker says the assembly names the symbol somewhere, not
+that anything outside the defining file reaches it, and a single-caller helper
+is never reported `private` however little reaches it.
+
+So the column cannot settle visibility on its own, and a step that would
+privatise has to run the check the convention names: `find_references.py <spec>
+--asm` lists every assembly reference with the file it sits in, which tells the
+defining unit's own `jal` apart from another overlay's, and reports whether the
+address is unique or shared between images.

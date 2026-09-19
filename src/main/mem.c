@@ -81,7 +81,7 @@ void* Mem_Calloc(size_t size, bool auxHeap)
     u32 zero16;
     u32 zero32;
 
-    Mem_SetActiveHeap(auxHeap);
+    memSetActiveHeap(auxHeap);
     ptr = malloc3(size);
     if (ptr != NULL) {
         dest      = (u8*)ptr;
@@ -133,7 +133,7 @@ end:
     return ptr;
 }
 
-void Mem_SetActiveHeap(bool auxHeap)
+void memSetActiveHeap(bool auxHeap)
 {
     if (auxHeap == true) {
         _freep = gMemActiveAuxHeap;

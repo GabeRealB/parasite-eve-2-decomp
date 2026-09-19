@@ -814,7 +814,7 @@ Mem_CopyUnaligned               = 0x8002D7A8; // type:func
 //--------------------------------------------------------------------
 Mem_Set                     = 0x8002D894; // type:func
 Mem_Calloc                  = 0x8002D978; // type:func
-Mem_SetActiveHeap           = 0x8002DA90; // type:func
+memSetActiveHeap            = 0x8002DA90; // type:func
 Mem_Malloc                  = 0x8002DABC; // type:func
 memFree                    = 0x8002DB20; // type:func
 memFreeFromHeap             = 0x8002DB4C; // type:func
