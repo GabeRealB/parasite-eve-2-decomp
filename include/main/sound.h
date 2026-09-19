@@ -55,31 +55,47 @@ typedef struct _SpuLVoiceTable {
 } SpuLVoiceTable;
 STATIC_ASSERT_SIZEOF(SpuLVoiceTable, 0x67C);
 
-// Types the event payload points at; both are defined further down this file.
-typedef struct _SndBankSlot    SndBankSlot;
-typedef struct _SndVoiceParams SndVoiceParams;
+typedef struct _SndBankSlot    SndBankSlot;    // defined with the bank types below
+typedef struct _SndVoiceParams SndVoiceParams; // defined with the voice-param types below
 
-/// Arguments of a deferred sound event, one arm per family of handlers.
+/// Arguments of the sequence commands, which address a `MidiSong` rather than a
+/// sound-bank voice: initialize a sequence, start and stop its fades, and set
+/// its volume scale.
+typedef struct {
+    u8  song;   // Sequence the command acts on (0xFF none loaded, 0 every loaded one)
+    u8  volume; // Volume scale applied over the master volume (0-127)
+    u16 frames; // Fade length in frames
+} SndEvtMidiArgs;
+
+/// Arguments of the voice commands, which address a sound-bank entry and the
+/// voices playing from it: allocate a voice, ramp its pan or volume, and stop
+/// the voices a sound id matches.
 ///
-/// Which arm an event uses follows from its handler: the sequence controls
+/// `volume` is on the same inverted scale as the ramps it feeds, so 0 is full
+/// and 0x7F is silent; a source placed in the world supplies its distance from
+/// the listener and the two coincide. `stopFrames` is not a length alone: 0
+/// stops the matched voices at once, 1 marks them for a later flush, and a
+/// larger value is the fade length in frames.
+typedef struct {
+    s8              pan;        // Stereo placement of the voice
+    u8              volume;     // Level the voice starts at (0 full, 0x7F silent)
+    u16             stopFrames; // How a matching stop acts on the voices
+    s32             id;         // Bank-remapped id of the sound the event acts on
+    SndBankSlot*    bank;       // Bank the id was resolved in, held for the deferred start
+    SndVoiceParams* params;     // Entry describing the voice to allocate
+} SndEvtVoiceArgs;
+STATIC_ASSERT_SIZEOF(SndEvtVoiceArgs, 0x10);
+
+/// Arguments of a `SndEvt`, one arm per family of handlers.
+///
+/// Which arm an event uses follows from its command: the sequence commands
 /// (`SndEvt_HandleInitSequence` and the other `Midi_*` handlers) read `midi`,
-/// the sound-effect voice controls (`SndEvt_HandleAllocVoice` and the other
-/// `SndVoice_*` handlers) read `voice`. Both arms cover the same slot, so every
-/// event carries room for the larger one.
+/// the voice commands (`SndEvt_HandleAllocVoice` and the other `SndVoice_*`
+/// handlers) read `voice`. The enqueuer writes the arm its command reads and
+/// leaves the rest, so every event carries room for the larger one.
 typedef union {
-    struct {
-        u8  channel; // Sequence the event acts on (0xFF = none, 0 = any)
-        u8  volume;  // Volume scale applied over the master volume (0-127)
-        u16 frames;  // Fade length in frames
-    } midi;
-    struct {
-        s8              pan;    // Stereo placement of the voice
-        u8              volume; // Volume the voice starts at (0-127)
-        u16             frames; // Length of the fade-out in frames (0 and 1 stop at once)
-        s32             id;     // Bank-remapped id of the sound the event acts on
-        SndBankSlot*    bank;   // Bank the id was resolved in, held for the deferred start
-        SndVoiceParams* params; // Parameter block the bank holds for the id
-    } voice;
+    SndEvtMidiArgs  midi;
+    SndEvtVoiceArgs voice;
 } SndEvtArgs;
 STATIC_ASSERT_SIZEOF(SndEvtArgs, 0x10);
 
@@ -91,8 +107,8 @@ STATIC_ASSERT_SIZEOF(SndEvtArgs, 0x10);
 /// marked, never cleared, so an enqueue writes every argument its handler reads.
 typedef struct SndEvt {
     s16            allocated;  // 0 free, 1 in use
-    s16            handlerIdx; // Which handler runs the event; indexes SndEvt_Handlers
-    SndEvtArgs     args;       // Arguments, read according to the handler
+    s16            handlerIdx; // Which command the event carries; indexes SndEvt_Handlers
+    SndEvtArgs     args;       // Arguments, read according to the command
     struct SndEvt* prev;       // List links, maintained by SndEvt_Enqueue and SndEvt_Free
     struct SndEvt* next;
 } SndEvt;
@@ -469,7 +485,7 @@ typedef struct _AsyncCbQueue {
 STATIC_ASSERT_SIZEOF(AsyncCbQueue, 0x54);
 
 /// Descriptor a bank entry holds for a sound; an alloc-voice event carries the
-/// one it resolved as `SndEvtArgs.voice.params` and passes it to SndVoice_AllocSlot.
+/// one it resolved as `SndEvtVoiceArgs::params` and passes it to SndVoice_AllocSlot.
 /// field_5 is a volume scale (0-127) used by SndVoice_ApplyMasterVolume / SndScript_Exec;
 /// field_6 is a pitch bias; field_7 is a candidate-count threshold; field_8 is a
 /// preference key for func_80055EF8; field_C/field_E are halfword IDs matched by
@@ -727,10 +743,10 @@ void           SndVoice_StepMasterLevel(void);
 void           SndVoice_KeyOffMatching(void);
 s32            SndScript_Exec(SndScript* arg0);
 void           SndVoice_TickEnvelope(SndVoice* arg0);
-s32            SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndVoiceParams* arg4);
+s32            SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, SndBankSlot* arg3, SndVoiceParams* arg4);
 void           SndVoice_ScanCandidates(SndVoicePick* arg0, u16 arg1, s32 arg2, u16 arg3);
 s8             func_80055EF8(SndVoicePick* arg0, s32 arg1);
-void           SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, s32 arg4, SndVoiceParams* arg5);
+void           SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* arg4, SndVoiceParams* arg5);
 s32            SndVoice_Tick(SndVoice* arg0);
 s32            SndScript_StopMatching(s32 arg0, s32 arg1);
 void           SndVoice_FadeMatching(s32 arg0, s32 arg1);

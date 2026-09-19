@@ -10590,19 +10590,42 @@ vs `s0 = a0 + 4`, `lw 8(s0)` vs `lw 4(s0)`).
 
 Fix: take a local pointer to the sub-object at offset `N` — the owner's own
 nested member, where it has one — and access fields through that pointer.
-`SndEvt`'s payload is that case, its `args` member being the sub-object at `+4`:
+`SndEvt`'s payload is that case, its `args` member being the sub-object at `+4`,
+and `SndEvt_HandleVolumeRamp` shows both spellings:
 
 ```c
-SndEvtArgs* args = &arg0->args; /* +4 base; arg0->args.voice.id rebases the loads */
-temp = SndVoice_FindById(args->voice.id);
+SndEvtVoiceArgs* args = &arg0->args.voice; /* +4 base; the loads rebase to it */
+temp = SndVoice_FindById(args->id);        /* the field at arg0+0x8 */
 if (temp >= 0) {
-    SndVoice_SetVolumeRamp(temp, args->voice.volume);
+    SndVoice_SetVolumeRamp(temp, args->volume); /* the field at arg0+0x5 */
 }
 ```
 
 Sibling helpers that only touch one field (`arg0->args.voice.id`) do not need
 this; use it when the target rebased the pointer and multiple fields are
 relative to that new base.
+
+## Every field of a rebased member goes through the pointer
+
+Once a local pointer addresses a member of the owner (`T* args = &evt->args;`),
+spell *all* of that member's fields through it, including the field at the
+member's own offset zero. GCC folds that zero offset back to the owner's base,
+so the two spellings compile alike — the access at offset zero takes the owner
+form (`sb a1, 4(a0)`) while the rest use the pointer (`sw v0, 4(s0)`) — and the
+mixed spelling is only what a decompiler produced from this code, never what the
+source needed:
+
+```c
+args->pan = arg1;            /* sb a1, 4(a0)     — same as evt->args.voice.pan */
+args->id  = SndBank_RemapId(arg0); /* sw v0, 4(s0) */
+```
+
+The same reasoning makes a **union of named arms** the right declaration for a
+run that two commands fill with different meanings: the arms live in the owner
+as one member, callers take `&owner->member` instead of casting `&owner->field`,
+and each arm carries the names its own command uses. `SndEvtArgs`
+(`SndEvt::args`, arms `midi` and `voice`) is the worked example; replacing the
+overlay type with it left every checksum untouched.
 
 ## Early-exit for `beqz` with dual returns
 
@@ -14936,7 +14959,8 @@ Cast the field through `(s8)` at the call:
 
 ```c
 /* callee: void SndVoice_SetPanRamp(s32, s32, s32); — body keeps $a1 as-is */
-SndVoice_SetPanRamp(idx, args->voice.pan, (s8)args->voice.volume); /* lb, not lbu */
+SndVoice_SetPanRamp(idx, arg0->args.voice.pan, (s8)arg0->args.voice.volume); /* lb, not lbu */
+SndVoice_SetPanRamp(idx, (s8)args->pan, (s8)args->volume); /* lb, not lbu */
 ```
 
 Bare `args->voice.volume` with an `s8` formal also yields `lb`, but then the

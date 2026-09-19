@@ -417,7 +417,7 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
     u16                  offset;
     u32                  index;
     SndEvt*              temp;
-    SndEvtArgs*          args;
+    SndEvtVoiceArgs*     args;
 
     orig = arg0;
     if ((arg0 != 0) && (arg0 != 8)) {
@@ -453,13 +453,13 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
         }
         temp = SndEvt_Alloc();
         if (temp != NULL) {
-            temp->handlerIdx     = 6;
-            args                 = &temp->args;
-            args->voice.id       = arg0;
-            temp->args.voice.pan = arg1;
-            args->voice.volume   = arg2;
-            args->voice.bank     = bank;
-            args->voice.params   = entry;
+            temp->handlerIdx = 6;
+            args             = &temp->args.voice;
+            args->id         = arg0;
+            args->pan        = arg1;
+            args->volume     = arg2;
+            args->bank       = bank;
+            args->params     = entry;
             SndEvt_Enqueue(temp);
             goto ret_orig;
         }
@@ -473,30 +473,30 @@ ret_neg1:
 
 void SndEvt_EnqueueType7(s32 arg0, s32 arg1)
 {
-    SndEvt*     temp;
-    SndEvtArgs* args;
+    SndEvt*          temp;
+    SndEvtVoiceArgs* args;
 
     temp = SndEvt_Alloc();
     if (temp != NULL) {
-        temp->handlerIdx   = 7;
-        args               = &temp->args;
-        args->voice.id     = SndBank_RemapId(arg0);
-        args->voice.frames = arg1;
+        temp->handlerIdx = 7;
+        args             = &temp->args.voice;
+        args->id         = SndBank_RemapId(arg0);
+        args->stopFrames = arg1;
         SndEvt_Enqueue(temp);
     }
 }
 
 void SndEvt_EnqueueType8(s32 arg0)
 {
-    SndEvt*     temp;
-    SndEvtArgs* args;
+    SndEvt*          temp;
+    SndEvtVoiceArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
         temp = SndEvt_Alloc();
         if (temp != NULL) {
             temp->handlerIdx = 8;
-            args             = &temp->args;
-            args->voice.id   = SndBank_RemapId(arg0);
+            args             = &temp->args.voice;
+            args->id         = SndBank_RemapId(arg0);
             SndEvt_Enqueue(temp);
         }
     }
@@ -504,15 +504,15 @@ void SndEvt_EnqueueType8(s32 arg0)
 
 void SndEvt_EnqueueType9(s32 arg0)
 {
-    SndEvt*     temp;
-    SndEvtArgs* args;
+    SndEvt*          temp;
+    SndEvtVoiceArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
         temp = SndEvt_Alloc();
         if (temp != NULL) {
             temp->handlerIdx = 9;
-            args             = &temp->args;
-            args->voice.id   = SndBank_RemapId(arg0);
+            args             = &temp->args.voice;
+            args->id         = SndBank_RemapId(arg0);
             SndEvt_Enqueue(temp);
         }
     }
@@ -520,17 +520,17 @@ void SndEvt_EnqueueType9(s32 arg0)
 
 void SndEvt_EnqueueTypeA(s32 arg0, s32 arg1, s32 arg2)
 {
-    SndEvt*     temp;
-    SndEvtArgs* args;
+    SndEvt*          temp;
+    SndEvtVoiceArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
         temp = SndEvt_Alloc();
         if (temp != NULL) {
-            temp->handlerIdx     = 0xA;
-            args                 = &temp->args;
-            args->voice.id       = SndBank_RemapId(arg0);
-            temp->args.voice.pan = arg1;
-            args->voice.volume   = arg2;
+            temp->handlerIdx = 0xA;
+            args             = &temp->args.voice;
+            args->id         = SndBank_RemapId(arg0);
+            args->pan        = arg1;
+            args->volume     = arg2;
             SndEvt_Enqueue(temp);
         }
     }
@@ -538,18 +538,18 @@ void SndEvt_EnqueueTypeA(s32 arg0, s32 arg1, s32 arg2)
 
 void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1)
 {
-    SndEvt*     temp;
-    SndEvtArgs* args;
+    SndEvt*          temp;
+    SndEvtVoiceArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
         temp = SndEvt_Alloc();
         if (temp != NULL) {
-            temp->handlerIdx   = 0xB;
-            args               = &temp->args;
-            args->voice.id     = SndBank_RemapId(arg0);
-            args->voice.volume = arg1;
+            temp->handlerIdx = 0xB;
+            args             = &temp->args.voice;
+            args->id         = SndBank_RemapId(arg0);
+            args->volume     = arg1;
             if ((s8)arg1 < 0) {
-                args->voice.volume = 0x7F;
+                args->volume = 0x7F;
             }
             SndEvt_Enqueue(temp);
         }
@@ -558,10 +558,10 @@ void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1)
 
 void SndBank_SetEnableFlags(s32 arg0, s32 arg1)
 {
-    u8*          ptr;
-    register s32 flag asm("v1");
-    SndEvt*      temp;
-    SndEvtArgs*  args;
+    u8*              ptr;
+    register s32     flag asm("v1");
+    SndEvt*          temp;
+    SndEvtVoiceArgs* args;
 
     if (arg1 == 0x80000000) {
         arg1 = 0;
@@ -581,10 +581,10 @@ void SndBank_SetEnableFlags(s32 arg0, s32 arg1)
             if (arg1 == 0x40000000) {
                 temp = SndEvt_Alloc();
                 if (temp != NULL) {
-                    temp->handlerIdx   = 7;
-                    args               = &temp->args;
-                    args->voice.id     = SndBank_RemapId(0x40000000);
-                    args->voice.frames = 1;
+                    temp->handlerIdx = 7;
+                    args             = &temp->args.voice;
+                    args->id         = SndBank_RemapId(0x40000000);
+                    args->stopFrames = 1;
                     SndEvt_Enqueue(temp);
                 }
             }
@@ -1410,7 +1410,7 @@ apply:
     attr->mask |= SPU_VOICE_PITCH;
 }
 
-s32 SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndVoiceParams* arg4)
+s32 SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, SndBankSlot* arg3, SndVoiceParams* arg4)
 {
     SndVoicePick sp18;
 
@@ -1695,7 +1695,7 @@ ret_m6:
     return -6;
 }
 
-void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, s32 arg4, SndVoiceParams* arg5)
+void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* arg4, SndVoiceParams* arg5)
 {
     SndScript*      p;
     SndVoice*       node;
