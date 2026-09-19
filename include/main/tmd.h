@@ -410,5 +410,16 @@ u32* gpStreamPrimGt4Unlit(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// textured triangle, which takes one colour for the whole primitive rather than
 /// one per corner, where `gpStreamPrimGt3` builds the gouraud one.
 u32* gpStreamPrimFt3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Handler of a stream's flat-textured-quad records (`0x5C`, `0x5E`): each
+/// element contributes one quad to the buffer half's second region, with the
+/// element's texture words written into it.
+///
+/// The opcode selects the flat form of the packet, which carries one colour for
+/// the quad where the gouraud form carries one per vertex. The record is not
+/// pre-transformed, so its quad is built in the region the draw pass transforms;
+/// this command writes only the polygon's `u`/`v` fields, and adds the model's
+/// texture page and CLUT to the primitive's own, which are stored relative to
+/// the model.
+u32* gpStreamPrimFt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 #endif // TMD_H
