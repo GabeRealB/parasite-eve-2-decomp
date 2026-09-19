@@ -86,7 +86,7 @@ func_actor_403600_8013EA04 40 98.074
 func_actor_403600_8013F7B8 21 96.456
 func_actor_403600_801406A4 16 99.732
 func_actor_403600_80140B4C 42 96.929
-func_actor_405800_80136388 19 91.780
+func_actor_405800_80136388 24 98.033
 func_actor_420700_80132644 9 86.159
 func_actor_421600_80133334 26 99.412
 func_actor_421600_80134AD4 32 99.894
@@ -142,3 +142,4 @@ func_shelter_b1_golem_freezer_1_8017DA7C 6 ~85%
 func_shelter_b1_golem_freezer_1_8017E254 5 ~87%
 func_shelter_b3_dumping_hole_8017FF14 3 ~98%
 func_shelter_b3_dumping_hole_80181560 7 98%
+func_actor_405800_80136388 24 98.033
