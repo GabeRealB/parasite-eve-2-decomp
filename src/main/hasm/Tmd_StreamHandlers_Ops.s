@@ -11,14 +11,14 @@
  * stream beside the opcode, and Tmd_DispatchStream jalr's it. Each body is
  * labelled by the opcode it is keyed by (OpXX) or for the command it serves where
  * that has been read (documented in include/main/tmd.h). Dual-entry alternates
- * use alabel (e.g. alabel Tmd_StreamHandler_Op3A shares the body of glabel
- * tmdDrawStreamGt3).
+ * use alabel (e.g. alabel tmdDrawStreamPrimGt3OneNormalSemiTrans shares the body
+ * of glabel tmdDrawStreamPrimGt3OneNormal).
  * Early-image placement (linker_section_order: .rodata).
  *
  * tmdDrawStreamPrimG3CornerNormals  untextured triangle, one normal per corner
  * tmdDrawStreamPrimG3   the same triangle, one normal for the whole face
  * Op60/Op40             untextured quad family
- * Op3A/tmdDrawStreamGt3  gouraud textured triangle (+ ABR)
+ * tmdDrawStreamGt3SemiTrans/tmdDrawStreamGt3  gouraud textured triangle (+ ABR)
  * Op7A/tmdDrawStreamGt4  gouraud textured quad (+ ABR)
  * tmdDrawStreamPrimGt3PreXform/Op3B, Op79/Op7B  pre-transformed textured gouraud (+ ABR) tri/quad
  * 0x18/0x1A, 0x58/0x5A  one-normal textured tri/quad (+ ABR), fixed colour
@@ -337,7 +337,7 @@ glabel Tmd_StreamHandler_OpC0
   .L80010EEC:
     /* 16EC 80010EEC */  jr          $ra
     /* 16F0 80010EF0 */  nop
-alabel Tmd_StreamHandler_Op3A
+alabel tmdDrawStreamGt3SemiTrans
     /* 16F4 80010EF4 */  lui         $t0, 0x3680
   .L80010EF8:
     /* 16F8 80010EF8 */  ori         $t0, $t0, 0x8080
@@ -346,7 +346,7 @@ alabel Tmd_StreamHandler_Op3A
     /* 1704 80010F04 */  nop
 glabel tmdDrawStreamGt3
     /* 1708 80010F08 */  andi        $t0, $a1, 0x2
-    /* 170C 80010F0C */  bnez        $t0, Tmd_StreamHandler_Op3A
+    /* 170C 80010F0C */  bnez        $t0, tmdDrawStreamGt3SemiTrans
     /* 1710 80010F10 */  nop
     /* 1714 80010F14 */  lui         $t0, 0x3480
     /* 1718 80010F18 */  ori         $t0, $t0, 0x8080

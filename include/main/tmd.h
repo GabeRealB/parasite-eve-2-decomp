@@ -82,7 +82,7 @@ typedef struct {
     TmdListHead*   next;        // Following node of the list, or NULL past the last
     TmdListHead*   prev;        // Preceding node, or the head at the front
     GsCOORDINATE2* coords;      // Per-part coordinate array, part of this object's own block
-    u16            flags;       // State bits (0x2 drawn semi-transparent, 0x4 buffer allocated by whoever created it, 0x8 drawn by the flagged pass, 0x80 hidden)
+    u16            flags;       // State bits (0x2 drawn semi-transparent, 0x4 buffer allocated by whoever created it, 0x8 drawn by the flagged pass, 0x10 drawn as a reflection, 0x80 hidden)
     s8             otOffset;    // Ordering-table offset the model's primitives are linked at
     byte           unknown_F;
     TmdSource*     source;      // The model as its package shipped it
@@ -285,7 +285,20 @@ u32* Tmd_StreamHandler_Prim38(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* tmdDrawStreamPrimG3CornerNormals(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op60(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_OpC0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_Op3A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// The draw pass's handler for a stream's gouraud textured-triangle records that
+/// ask for the semi-transparent primitive (`0x3A`): each element's three corners
+/// are projected and lit from the three normals it names, and the packet the
+/// build pass laid out for it is completed with those coordinates and colours and
+/// linked into the ordering table where its depth puts it.
+///
+/// The element is the opaque `0x38` record's — three vertices and one normal per
+/// corner — and the two records share one body, so the constant the triangle is
+/// lit from is the whole of the difference between them: a fixed mid-grey whose
+/// top byte is the packet's primitive code, `0x34` for the opaque triangle and
+/// `0x36` here, the semi-transparency bit between the two. The opcode settles
+/// that choice on its own, so this entry draws the semi-transparent form
+/// unconditionally, where the `0x38` entry is the one that asks `flags` for it.
+u32* tmdDrawStreamGt3SemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 /// Draw-pass handler of a stream's gouraud-shaded textured-triangle records
 /// (`0x38`, `0x3A`): each element contributes one triangle to the buffer half's
@@ -300,8 +313,12 @@ u32* Tmd_StreamHandler_Op3A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// packet slot is passed over either way, so the primitives stay aligned with
 /// the elements that named them.
 ///
-/// The record's `0x3A` form is the same body reached with the semi-transparent
-/// shading constant; this entry is the one that picks the shading from `flags`.
+/// The record's `0x3A` form — `tmdDrawStreamGt3SemiTrans` — is the same body
+/// reached with the semi-transparent shading constant, and this entry is the one
+/// that picks the shading from `flags`. One further bit of `flags` picks between
+/// the body's two copies of the walk, which keep opposite signs of the facing
+/// result: a model drawn as a reflection asks for it, because a mirroring
+/// transform reverses the model's faces.
 u32* tmdDrawStreamGt3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op7A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 

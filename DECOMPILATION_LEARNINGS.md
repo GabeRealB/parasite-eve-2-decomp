@@ -132687,13 +132687,13 @@ inventing a translation unit the original did not have.
 
 The early-image handlers are named after the stream opcode that resolves to them
 (`Tmd_StreamHandler_Op<hex>`), and the symbol map, the notes and the handler's
-own file cite them that way too - `Op38`, "the ABR entry into `Op38`",
-`Op38/Op3A`. Renaming one leaves every abbreviated mention in place:
+own file cite them that way too - `Op20`, "the ABR entry into `Op39`",
+`Op39/Op3B`. Renaming one leaves every abbreviated mention in place:
 `rename_item.py` does not read assembly, so the label and the file's comments are
 hand work, and the step's completeness sweep is a word-boundary match for the
 full name, which an abbreviation is not.
 
-    grep -rnw 'Op38' . --exclude-dir=.git --exclude-dir=build --exclude-dir=asm \
+    grep -rnw 'Op39' . --exclude-dir=.git --exclude-dir=build --exclude-dir=asm \
         --exclude-dir=linkers --exclude-dir=assets --exclude-dir=rom --exclude-dir=venv
 
 Read each hit before rewriting it: one that names the *symbol* takes the new
@@ -132701,7 +132701,7 @@ name, while one that names the *opcode* as such - a column of the opcode table
 in the format doc, the summary of a whole family - stays as it is.
 
 The symbol map is where these hide, because its per-line notes name a sibling:
-renaming a glabel leaves the alabel's note ("ABR entry into `Op38`") pointing at
+renaming a glabel leaves the alabel's note ("ABR entry into `Op39`") pointing at
 a name that is no longer in the file. Those entries are aligned in columns, so a
 rewritten line has to be re-aligned by hand or the table stops being readable.
 ## A guard whose constant is wider than the field it tests cannot fire
@@ -132805,3 +132805,38 @@ not beside the loop it twins: it lies inside the address range a later handler's
 that range open as another handler's code will find this loop sitting in it. And
 both copies run, so neither is a disassembly artifact - a conversion has to
 account for the two, and write the cull against `flags` rather than a constant.
+## A draw walk's `flags`-selected twin differs by one branch, and that branch is the facing sign
+
+The early-image draw handlers lay their element walk out twice and choose between
+the two copies with a bit of the `flags` argument. `tmdDrawStreamGt3` does it on
+`flags & 0x10`, and the same shape repeats in the pre-transformed triangle and
+quad families (`Tmd_StreamHandler_Op39`, `Tmd_StreamHandler_Op79`), so it is the
+family's, not one handler's. The copies are the same instructions except for the
+branch that follows the facing result: one skips the element when `MAC0 <= 0`,
+the other when `MAC0 >= 0`. The bit therefore picks which winding the walk keeps,
+which is the only difference between the copies that changes what is drawn.
+
+That difference is invisible to the comparison one reaches for first. Each copy
+branches to its own labels, so masking `.L8001....` (a `difflib` over the
+mnemonic column of the `.s`, which is how the duplicates get read) makes the two
+compare equal, and the walk then looks like dead weight. Compare the instruction
+words out of the target binary instead: apart from the branch offsets, the two
+differ in exactly one word.
+
+    0x80010FF4  0x1900FFD7   blez  $t0, skip   # opcode 6 = BLEZ: keeps MAC0 > 0
+    0x800120FC  0x0501FFD7   bgez  $t0, skip   # opcode 1, rt 1 = BGEZ: keeps MAC0 < 0
+
+What sets the bit is the room mirror. `RoomsShared8017d5f0` attaches the player's
+own TMD source to a task of its own for the reflection and marks the object it
+gets back with `extra->flags = 0x10` (so does the held-object twin, and both also
+set `otOffset = 0x1F`), and a mirroring transform reverses a model's faces - a
+reflected triangle is wound the other way round - so the reflection has to cull
+on the other sign of the same facing result. That is the whole of the bit's
+effect on the draw pass: a walk that culls the right faces for a model drawn
+direct culls the wrong ones for its reflection.
+
+Note also where the alternate label sits. An opcode-keyed entry point
+(`tmdDrawStreamGt3SemiTrans`, `0x80010EF4`) starts at the shading constant and
+jumps past the `flags & 2` test, so the two ways into one body do not agree about
+what `flags` decides: the opcode-keyed entry asks it nothing about shading, and
+both entries still reach the `flags & 0x10` twin.

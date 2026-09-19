@@ -625,6 +625,11 @@ face normal, so culling on it removes real surface. That is what makes heads
 and legs vanish from an offline render while a single-part object like a hand
 or a weapon still looks right.
 
+The walk is laid out twice, and one bit of the drawing object's `flags` picks
+between the copies: the second drops on `MAC0 >= 0` instead. A model the room
+mirror draws as a reflection asks for it — the mirroring transform reverses the
+model's faces, so the sign that means "front" is the other one.
+
 So an offline renderer wants both: `MAC0 = x0(y1-y2) + x1(y2-y0) + x2(y0-y1)`
 on the *projected* points for visibility, and the stored normal for shading.
 
