@@ -411,7 +411,7 @@ void func_actor_323000_80163A30(Task* task)
     sound                                     = func_actor_323000_80163448(task, work);
     if (sound != 0) {
         pan = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
-        SndEvt_EnqueueType6(sound, pan, (s32)(s8)Gp_GetObjDepth(((TmdObject*)task->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s32)(s8)gpGetObjDepth(((TmdObject*)task->extra)->coords));
     }
 }
 
@@ -575,7 +575,7 @@ void func_actor_323000_8016420C(GpEnemy* enemy, Task* task)
             Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[9], 0x80006800, p);
             id  = ((enemy->placeKey >> 12) << 8) | 0x4001000D;
             pan = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(((TmdObject*)task->extra)->coords));
+            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(((TmdObject*)task->extra)->coords));
             ofs2.vy = -0x258;
             ofs2.vx = 0;
             ofs2.vz = -0x384;

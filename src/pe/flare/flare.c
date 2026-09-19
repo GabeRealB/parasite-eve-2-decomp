@@ -57,7 +57,7 @@ void flareEffectTask(Task* arg0)
     mem->age = (u16)mem->age + 1;
     if (arg0->state == 0) {
         pan = (s8)Gp_GetObjPan(coord);
-        SndEvt_EnqueueType6(0xE03E0001, pan, (s8)Gp_GetObjDepth(coord));
+        SndEvt_EnqueueType6(0xE03E0001, pan, (s8)gpGetObjDepth(coord));
         arg0->state = 1;
     }
     tick = mem->age;

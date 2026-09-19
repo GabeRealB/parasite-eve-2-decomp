@@ -34,5 +34,5 @@ void ActorsShared801324fc(Task* task)
     }
     id += 0x64;
     pan = (s8)Gp_GetObjPan(obj);
-    SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(obj));
+    SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(obj));
 }

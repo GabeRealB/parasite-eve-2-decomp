@@ -882,7 +882,7 @@ void func_actor_401300_80133A3C(Actor401300* arg0)
     if (snd != 0) {
         i = snd | ((enemy->placeKey >> 12) << 8);
         SndEvt_EnqueueType6(i, (s8)Gp_GetObjPan(arg0->field_2C->coords),
-                            (s8)Gp_GetObjDepth(arg0->field_2C->coords));
+                            (s8)gpGetObjDepth(arg0->field_2C->coords));
     }
 }
 
@@ -1345,11 +1345,11 @@ void func_actor_401300_80134F90(Actor401300* arg0)
             if (enemy->hp <= 0) {
                 deathSound = ((enemy->placeKey >> 0xC) << 8) | 0x400D0008;
                 deathPan   = (s8)Gp_GetObjPan(arg0->field_2C->coords);
-                SndEvt_EnqueueType6(deathSound, deathPan, (s8)Gp_GetObjDepth(arg0->field_2C->coords));
+                SndEvt_EnqueueType6(deathSound, deathPan, (s8)gpGetObjDepth(arg0->field_2C->coords));
             } else {
                 hitSound = ((enemy->placeKey >> 0xC) << 8) | 0x400D0007;
                 hitPan   = (s8)Gp_GetObjPan(arg0->field_2C->coords);
-                SndEvt_EnqueueType6(hitSound, hitPan, (s8)Gp_GetObjDepth(arg0->field_2C->coords));
+                SndEvt_EnqueueType6(hitSound, hitPan, (s8)gpGetObjDepth(arg0->field_2C->coords));
             }
             work->field_C88 = Gp_GetIdParam2(s->id);
             switch (Gp_GetIdParam0(s->id) & 0xFFFF) {
@@ -2764,7 +2764,7 @@ void func_actor_401300_801397F8(Actor401300* arg0)
     } else if (work->field_6 == 0) {
         sound = ((enemy->placeKey >> 0xC) << 8) | 0x51030008;
         pan   = (s8)Gp_GetObjPan(arg0->field_2C->coords);
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(arg0->field_2C->coords));
         work->field_6 = 1;
     }
     func_actor_401300_80133A3C(arg0);
@@ -4033,7 +4033,7 @@ void func_actor_401300_8013E930(Actor401300* arg0)
                 if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&work->field_CEC, 0) == 0) {
                     Gp_SpawnPadLerp(0x10, 8, 0xFF);
                     SndEvt_EnqueueType6(6, (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords),
-                                        (s8)Gp_GetObjDepth(((TmdObject*)task->extra)->coords));
+                                        (s8)gpGetObjDepth(((TmdObject*)task->extra)->coords));
                     work->field_D20         = 1;
                     work->field_CAC.field_0 = (s32)&D_actor_401300_801588F0;
                     blk->delta.vx           = work->field_D04 - ((TmdObject*)task->extra)->coords->coord.t[0];
@@ -4622,10 +4622,10 @@ void func_actor_401300_801405DC(GpEnemy* enemy, Actor401300* actor)
                 if ((s16)work->field_D22 == 0xF) {
                     if (Actor401300_InRangeFlag(player) == 1) {
                         SndEvt_EnqueueType6(0x551D0005, (s8)Gp_GetObjPan(player->field_2C->coords),
-                                            (s8)Gp_GetObjDepth(player->field_2C->coords));
+                                            (s8)gpGetObjDepth(player->field_2C->coords));
                     } else {
                         SndEvt_EnqueueType6(0x400D0013, (s8)Gp_GetObjPan(player->field_2C->coords),
-                                            (s8)Gp_GetObjDepth(player->field_2C->coords));
+                                            (s8)gpGetObjDepth(player->field_2C->coords));
                     }
                     if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &player->field_2C->coords[1], 0x80003A00, NULL);
@@ -4646,10 +4646,10 @@ void func_actor_401300_801405DC(GpEnemy* enemy, Actor401300* actor)
                 if ((s16)work->field_D22 == 0xD) {
                     if (Actor401300_InRangeFlag(player) == 1) {
                         SndEvt_EnqueueType6(0x551D0005, (s8)Gp_GetObjPan(player->field_2C->coords),
-                                            (s8)Gp_GetObjDepth(player->field_2C->coords));
+                                            (s8)gpGetObjDepth(player->field_2C->coords));
                     } else {
                         SndEvt_EnqueueType6(0x400D0013, (s8)Gp_GetObjPan(player->field_2C->coords),
-                                            (s8)Gp_GetObjDepth(player->field_2C->coords));
+                                            (s8)gpGetObjDepth(player->field_2C->coords));
                     }
                     if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &player->field_2C->coords[1], 0x80003A00, NULL);

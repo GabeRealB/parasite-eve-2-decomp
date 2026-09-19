@@ -28,7 +28,7 @@ Player_Status = 0x80073B88; // absolute:True
 
 // --- from gameplay (22 symbols)
 Gp_UpdateCoord = 0x80098F58; // absolute:True
-Gp_GetObjDepth = 0x800D9340; // absolute:True
+gpGetObjDepth = 0x800D9340; // absolute:True
 Gp_GetObjPan = 0x800D937C; // absolute:True
 Gp_LinkObj = 0x800E15AC; // absolute:True
 Gp_UnlinkObj = 0x800E1638; // absolute:True

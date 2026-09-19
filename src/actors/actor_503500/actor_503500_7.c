@@ -598,7 +598,7 @@ void func_actor_503500_8013B8D0(Actor503500* arg0)
             func_actor_503500_80136048((Actor503500*)arg0->parent);
             enemy->reactionFlags &= 0xF0;
             pan                   = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(0x40230010, pan, (s8)(Gp_GetObjDepth(coord) / 2));
+            SndEvt_EnqueueType6(0x40230010, pan, (s8)(gpGetObjDepth(coord) / 2));
             work->field_EE++;
             break;
         case 1:

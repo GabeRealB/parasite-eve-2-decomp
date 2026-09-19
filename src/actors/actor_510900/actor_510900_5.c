@@ -91,7 +91,7 @@ void func_actor_510900_8013B0D8(Task* arg0)
                     }
                     snd = (((u16)ctx->field_8 >> 0xC) << 8) | 0x51100002;
                     pan = (s8)Gp_GetObjPan((GsCOORDINATE2*)coord);
-                    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GsCOORDINATE2*)coord));
+                    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth((GsCOORDINATE2*)coord));
                 }
             }
             Gp_ClearRec18Occupied(&work->rec20);

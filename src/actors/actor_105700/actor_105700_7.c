@@ -48,7 +48,7 @@ void func_actor_105700_80137130(GpEnemy* arg0, Task* arg1)
             snd             = D_actor_105700_80149058 |
                   (((u16)((Actor105700Ctx*)arg1->spawnArg2)->field_8 >> 0xC) << 8);
             pan = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+            SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
             return;
         case 2:
             arg1->state = state;

@@ -472,7 +472,7 @@ void func_actor_204000_8014BC3C(Actor104000Ctx* arg0, Actor104000* arg1)
             break;
         case 1:
             Gp_SpawnScript18Ex((s32)&D_actor_204000_80150EB4, (s32)&D_actor_204000_80150EC0,
-                               (s16)Gp_GetObjDepth((GsCOORDINATE2*)arg1->field_2C->field_8));
+                               (s16)gpGetObjDepth((GsCOORDINATE2*)arg1->field_2C->field_8));
             work->obj388.radius = 0x3E8;
             work->obj3C0.radius = 0xFA;
             work->obj388.flags |= 0x8000;
@@ -497,7 +497,7 @@ void func_actor_204000_8014BC3C(Actor104000Ctx* arg0, Actor104000* arg1)
             obj->field_C = 0x80;
             id           = ((arg0->field_8 >> 12) << 8) | 0x40280004;
             pan          = (s8)Gp_GetObjPan((GsCOORDINATE2*)arg1->field_2C->field_8);
-            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GsCOORDINATE2*)arg1->field_2C->field_8));
+            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth((GsCOORDINATE2*)arg1->field_2C->field_8));
             break;
         case 28:
             work->field_0 = 0;
@@ -723,7 +723,7 @@ void func_actor_204000_8014CD68(Actor104000Ctx* arg0, Actor104000* arg1)
             break;
         case 2:
             Gp_SpawnScript18Ex((s32)&D_actor_204000_80150EB4, (s32)&D_actor_204000_80150EC0,
-                               (s16)Gp_GetObjDepth((GsCOORDINATE2*)arg1->field_2C->field_8));
+                               (s16)gpGetObjDepth((GsCOORDINATE2*)arg1->field_2C->field_8));
             work->obj388.radius = 0x3E8;
             work->obj3C0.radius = 0xFA;
             Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 0, 0x7DE);
@@ -747,7 +747,7 @@ void func_actor_204000_8014CD68(Actor104000Ctx* arg0, Actor104000* arg1)
             }
             id  = ((arg0->field_8 >> 12) << 8) | 0x40280004;
             pan = (s8)Gp_GetObjPan((GsCOORDINATE2*)arg1->field_2C->field_8);
-            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GsCOORDINATE2*)arg1->field_2C->field_8));
+            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth((GsCOORDINATE2*)arg1->field_2C->field_8));
             break;
         case 10:
             work->obj388.flags &= 0x7FFF;
@@ -843,7 +843,7 @@ void func_actor_204000_8014D5B8(Actor104000Ctx* arg0, Actor104000* arg1)
         case 0:
             id  = ((arg0->field_8 >> 12) << 8) | 0x40280004;
             pan = (s8)Gp_GetObjPan((GsCOORDINATE2*)arg1->field_2C->field_8);
-            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GsCOORDINATE2*)arg1->field_2C->field_8));
+            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth((GsCOORDINATE2*)arg1->field_2C->field_8));
             arg1->field_2C->field_C = 2;
             break;
         case 1:
@@ -1041,7 +1041,7 @@ found:
         func_actor_204000_8014DB50(arg1, sc->angle, sc->id);
         snd = ((arg0->placeKey >> 12) << 8) | 0x40280003;
         pan = (s8)Gp_GetObjPan((GsCOORDINATE2*)arg1->field_2C->field_8);
-        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GsCOORDINATE2*)arg1->field_2C->field_8));
+        SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth((GsCOORDINATE2*)arg1->field_2C->field_8));
         func_800E2C78((GpObj40*)arg0, sc->id, sc->dmg, 0);
         func_800DA6E8(&arg0->node, sc->dmg, 0);
         arg0->hp -= sc->dmg;
@@ -1254,7 +1254,7 @@ void func_actor_204000_8014EDC4(Actor104000Ctx* arg0, Actor104000* arg1)
         if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x03100000) {
             id  = ((arg0->field_8 >> 12) << 8) | 0x53100006;
             pan = (s8)Gp_GetObjPan((GsCOORDINATE2*)arg1->field_2C->field_8);
-            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GsCOORDINATE2*)arg1->field_2C->field_8));
+            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth((GsCOORDINATE2*)arg1->field_2C->field_8));
         }
         arg1->field_2C->field_8->coord.t[1] = 0;
         work->field_0                       = 3;
@@ -1642,7 +1642,7 @@ void func_actor_204000_8014FD2C(GpEnemy* arg0, Actor104000* arg1)
     if (id != 0) {
         snd = id | ((arg0->placeKey >> 12) << 8);
         pan = (s8)Gp_GetObjPan((GsCOORDINATE2*)arg1->field_2C->field_8);
-        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GsCOORDINATE2*)arg1->field_2C->field_8));
+        SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth((GsCOORDINATE2*)arg1->field_2C->field_8));
     }
     if (gGameSession->viewReady != 0) {
         arg1->field_2C->field_8->flg = 0;

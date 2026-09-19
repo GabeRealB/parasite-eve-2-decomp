@@ -759,7 +759,7 @@ void func_actor_107600_801332D4(Task* arg0)
                 s32            p;
                 work->field_15A++;
                 p = (s8)Gp_GetObjPan(o);
-                SndEvt_EnqueueType6(0x51140007, p, (s8)Gp_GetObjDepth(o));
+                SndEvt_EnqueueType6(0x51140007, p, (s8)gpGetObjDepth(o));
             }
         case 3: {
             u16 w = work->field_50;
@@ -801,7 +801,7 @@ void func_actor_107600_801332D4(Task* arg0)
                 s32            p;
                 Gp_SetLightMode((GpObj4C*)enemy, 1);
                 p = (s8)Gp_GetObjPan(o);
-                SndEvt_EnqueueType6(0x51140013, p, (s8)Gp_GetObjDepth(o));
+                SndEvt_EnqueueType6(0x51140013, p, (s8)gpGetObjDepth(o));
             } else if ((s16)work->field_166 == 210) {
                 GsCOORDINATE2* c;
                 s32            p;
@@ -812,7 +812,7 @@ void func_actor_107600_801332D4(Task* arg0)
                 Gp_SetLightMode((GpObj4C*)enemy, 0);
                 Gp_SpawnEff(0x601BD, (GsCOORDINATE2*)c, 0, NULL);
                 p = (s8)Gp_GetObjPan(c);
-                SndEvt_EnqueueType6(0x5114000E, p, (s8)Gp_GetObjDepth(c));
+                SndEvt_EnqueueType6(0x5114000E, p, (s8)gpGetObjDepth(c));
                 if (actor->field_954 != 1) {
                     if (D_80073BA0 < 11) {
                         ((MistShootingGalleryWork*)D_8018E0C4->work)->field_22 = 1;
@@ -824,7 +824,7 @@ void func_actor_107600_801332D4(Task* arg0)
                     actor->field_972 = 5;
                     func_8010A9D0(player);
                     pan = (s8)Gp_GetObjPan(c);
-                    SndEvt_EnqueueType6(6, pan, (s8)Gp_GetObjDepth(c));
+                    SndEvt_EnqueueType6(6, pan, (s8)gpGetObjDepth(c));
                 }
             }
             break;
@@ -908,7 +908,7 @@ void func_actor_107600_801337FC(Task* arg0)
                 work->field_15C = 0;
                 Gp_SetLightMode((GpObj4C*)enemy, 2);
                 pan = (s8)Gp_GetObjPan(obj);
-                SndEvt_EnqueueType6(0x51140009, pan, (s8)Gp_GetObjDepth(obj));
+                SndEvt_EnqueueType6(0x51140009, pan, (s8)gpGetObjDepth(obj));
             }
             break;
         case 2:
@@ -974,7 +974,7 @@ void func_actor_107600_801339A4(Task* arg0)
                 id = 0x51140012;
             }
             pan = (s8)Gp_GetObjPan(obj);
-            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(obj));
+            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(obj));
             work->field_52 = ((GpCoordExt*)obj->sub)->field_46;
             work->field_54 = ((GpCoordExt*)obj->sub)->field_48;
             Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
@@ -1093,7 +1093,7 @@ void func_actor_107600_80133DC4(Task* arg0)
                         obj = ((TmdObject*)arg0->extra)->coords;
                         work->field_16B++;
                         pan = (s8)Gp_GetObjPan(obj);
-                        SndEvt_EnqueueType6(0x51140008, pan, (s8)Gp_GetObjDepth(obj));
+                        SndEvt_EnqueueType6(0x51140008, pan, (s8)gpGetObjDepth(obj));
                     }
                     if (damage >= 0x14) {
                         work->field_15E = 2;

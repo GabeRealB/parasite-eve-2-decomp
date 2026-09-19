@@ -447,7 +447,7 @@ void Actor05500_Fn00A94(Actor105500* arg0)
                 if ((sessionFlags & 0xFFFF0000) == 0x05200000) {
                     value = (((u16)((Actor105500Ctx*)actor->field_20)->field_8 >> 0xC) << 8) | 0x55200006;
                     pan0  = (s8)Gp_GetObjPan(coord);
-                    SndEvt_EnqueueType6(value, (s32)pan0, (s8)Gp_GetObjDepth(coord));
+                    SndEvt_EnqueueType6(value, (s32)pan0, (s8)gpGetObjDepth(coord));
                 }
             } else if (work->field_3D0 != 0) {
                 if (work->field_3C6 == 0) {
@@ -466,7 +466,7 @@ void Actor05500_Fn00A94(Actor105500* arg0)
                 if ((sessionFlags & 0xFFFF0000) == 0x05200000) {
                     value = (((u16)((Actor105500Ctx*)actor->field_20)->field_8 >> 0xC) << 8) | 0x55200006;
                     pan1  = (s8)Gp_GetObjPan(coord);
-                    SndEvt_EnqueueType6(value, (s32)pan1, (s8)Gp_GetObjDepth(coord));
+                    SndEvt_EnqueueType6(value, (s32)pan1, (s8)gpGetObjDepth(coord));
                 }
             }
             coord->flg = 0;
@@ -493,7 +493,7 @@ void Actor05500_Fn00A94(Actor105500* arg0)
                 work->field_2E4.flags &= 0x7FFF;
                 value                  = (((u16)((Actor105500Ctx*)actor->field_20)->field_8 >> 0xC) << 8) | 0x401A0002;
                 pan2                   = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(value, (s32)pan2, (s8)Gp_GetObjDepth(coord));
+                SndEvt_EnqueueType6(value, (s32)pan2, (s8)gpGetObjDepth(coord));
             }
             break;
         case 3:
@@ -582,7 +582,7 @@ void Actor05500_Fn00FA0(Actor105500* arg0)
             if ((s16)work->field_396 == 0xC) {
                 sound = (((u16)((Actor105500Ctx*)arg0->field_20)->field_8 >> 0xC) << 8) | 0x401A0001;
                 pan   = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(sound, (s32)pan, (s8)Gp_GetObjDepth(coord));
+                SndEvt_EnqueueType6(sound, (s32)pan, (s8)gpGetObjDepth(coord));
             }
             if ((s16)work->field_396 >= 0x29) {
                 work->field_396 = 0xB;
@@ -624,7 +624,7 @@ void Actor05500_Fn012E8(Actor105500* arg0)
     if ((s16)work->field_396 == 0x28) {
         sound = (((u16)((Actor105500Ctx*)arg0->field_20)->field_8 >> 0xC) << 8) | 0x401A0003;
         pan   = (s8)Gp_GetObjPan(coord);
-        SndEvt_EnqueueType6(sound, (s32)pan, (s8)Gp_GetObjDepth(coord));
+        SndEvt_EnqueueType6(sound, (s32)pan, (s8)gpGetObjDepth(coord));
     }
     if ((u32)(work->field_396 - 0x2B) < 7U) {
         Gp_SpawnEnemyFromTable(work->field_36C, 1, 0, (GpEnemy*)arg0->field_20);
@@ -704,7 +704,7 @@ void Actor05500_Fn0143C(Actor105500* arg0)
             if ((s16)work->field_396 == 0x28) {
                 sound = (((u16)((Actor105500Ctx*)arg0->field_20)->field_8 >> 0xC) << 8) | 0x401A0002;
                 pan   = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(sound, (s32)pan, (s8)Gp_GetObjDepth(coord));
+                SndEvt_EnqueueType6(sound, (s32)pan, (s8)gpGetObjDepth(coord));
                 work->field_3C8 = 0;
                 if (((Actor105500Ctx*)arg0->field_20)->field_40 <= 0) {
                     work->field_39A = 9;
@@ -740,7 +740,7 @@ void Actor05500_Fn0143C(Actor105500* arg0)
             if ((s16)work->field_396 == 0x10) {
                 sound = (((u16)((Actor105500Ctx*)arg0->field_20)->field_8 >> 0xC) << 8) | 0x401A0002;
                 pan1  = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(sound, (s32)pan1, (s8)Gp_GetObjDepth(coord));
+                SndEvt_EnqueueType6(sound, (s32)pan1, (s8)gpGetObjDepth(coord));
                 work->field_3C8 = 2;
                 if (((Actor105500Ctx*)arg0->field_20)->field_40 <= 0) {
                     work->field_3A2 = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;
@@ -859,14 +859,14 @@ void Actor05500_Fn01B30(Actor105500* arg0)
                 } while (indexOrSound < 5);
                 indexOrSound = (((u16)((Actor105500Ctx*)arg0->field_20)->field_8 >> 0xC) << 8) | 0x510D0012;
                 pan1         = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(indexOrSound, (s32)pan1, (s8)Gp_GetObjDepth(coord));
+                SndEvt_EnqueueType6(indexOrSound, (s32)pan1, (s8)gpGetObjDepth(coord));
             }
             break;
         case 3:
             if ((s16)work->field_396 == 0x1E) {
                 indexOrSound = (((u16)((Actor105500Ctx*)arg0->field_20)->field_8 >> 0xC) << 8) | 0x51090007;
                 pan2         = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(indexOrSound, (s32)pan2, (s8)Gp_GetObjDepth(coord));
+                SndEvt_EnqueueType6(indexOrSound, (s32)pan2, (s8)gpGetObjDepth(coord));
             }
             indexOrSound = 0;
             if ((s16)work->field_396 == 0x27) {
@@ -898,7 +898,7 @@ void Actor05500_Fn01B30(Actor105500* arg0)
             if ((s16)work->field_396 == 0x28) {
                 indexOrSound = (((u16)((Actor105500Ctx*)arg0->field_20)->field_8 >> 0xC) << 8) | 0x401A0002;
                 pan3         = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(indexOrSound, (s32)pan3, (s8)Gp_GetObjDepth(coord));
+                SndEvt_EnqueueType6(indexOrSound, (s32)pan3, (s8)gpGetObjDepth(coord));
                 work->field_3A8        = 0x80;
                 work->field_294.flags |= 0x8000;
                 work->field_214.flags |= 0x4000;

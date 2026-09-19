@@ -34,7 +34,7 @@ u8             Actor01600_Fn06F78(Actor01600* arg0);
 void           Actor01600_Fn03D48(Actor01600* arg0);
 void           Actor01600_Fn03A60(Actor01600* arg0);
 s32            Gp_GetObjPan(void* arg0);
-s32            Gp_GetObjDepth(void* coord);
+s32            gpGetObjDepth(GsCOORDINATE2* coord);
 void           Gp_ArmStateF0(s32 arg0);
 extern SVECTOR Actor01600_D09F1C[];
 extern SVECTOR Actor01600_D09F3C[];
@@ -196,7 +196,7 @@ s32 Actor01600_Fn05558(Actor01600* arg0)
             if (scriptArg == 1) {
                 event = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4010000E;
                 pan   = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(event, pan, (s8)Gp_GetObjDepth(coord));
+                SndEvt_EnqueueType6(event, pan, (s8)gpGetObjDepth(coord));
                 countdown       = (u16)work->field_536 - 1;
                 work->field_536 = countdown;
                 if ((countdown << 0x10) != 0) {

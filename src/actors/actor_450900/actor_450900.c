@@ -86,7 +86,7 @@ void func_actor_450900_80131E38(Task* task)
                 if (t % 210 == 0) {
                     coord = ((TmdObject*)(gameGetPtrSlot(0xA))->extra)->coords;
                     pan   = (s8)Gp_GetObjPan(coord);
-                    depth = (s8)Gp_GetObjDepth(coord);
+                    depth = (s8)gpGetObjDepth(coord);
                     if (rand() & 1) {
                         SndEvt_EnqueueType6(0x55170005, pan, depth);
                     } else {
@@ -269,7 +269,7 @@ void func_actor_450900_80132684(s32 arg0)
 
     coord = ((TmdObject*)(gameGetPtrSlot(0xA))->extra)->coords;
     pan   = (s8)Gp_GetObjPan(coord);
-    depth = (s8)Gp_GetObjDepth(coord);
+    depth = (s8)gpGetObjDepth(coord);
     if (arg0 != 0) {
         SndEvt_EnqueueType6(0x55170007, pan, depth);
     } else if (rand() & 1) {

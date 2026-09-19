@@ -734,7 +734,7 @@ void Actor02500_Fn02750(Actor02500Ctx* ctx, Actor02500* task)
             done  = 1;
             sound = (((u16)ctx->field_8 >> 0xC) << 8) | 0x40190007;
             pan   = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(coord));
+            SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
         }
         Gp_ClearRec18Occupied(rec);
         timer          = work->field_3C + 1;

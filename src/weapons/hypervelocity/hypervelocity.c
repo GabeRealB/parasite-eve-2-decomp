@@ -182,7 +182,7 @@ void func_hypervelocity_8011D1E8(Task* task)
             if (work->scale >= 0x81) {
                 if (work->period == 0) {
                     pan = (s8)Gp_GetObjPan(coord);
-                    SndEvt_EnqueueType6(0x20160006, pan, (s8)Gp_GetObjDepth(coord));
+                    SndEvt_EnqueueType6(0x20160006, pan, (s8)gpGetObjDepth(coord));
                 }
                 work->period += (u16)work->step * 2;
                 if (work->period >= 0x100) {

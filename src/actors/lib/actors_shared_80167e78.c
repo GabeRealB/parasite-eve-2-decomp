@@ -24,7 +24,7 @@ void ActorsShared80167e78(Task* arg0)
     if ((s16)++work->field_412 == 1) {
         soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x402C0009;
         pan     = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
     }
     speed                                          = -0x14;
     angle                                          = work->field_7A;

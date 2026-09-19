@@ -21,7 +21,7 @@ void ActorsShared8013483c(ActorShared801342a4* arg0)
         if ((s16)(work->field_356 % 3) == 1) {
             soundId = objectSoundId | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
             pan     = (s8)Gp_GetObjPan(object);
-            SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(object));
+            SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(object));
         }
         if (work->field_380 > 0) {
             timer           = (u16)work->field_380 - 1;

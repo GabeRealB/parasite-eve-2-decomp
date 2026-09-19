@@ -82,7 +82,7 @@ void func_healing_8012EF34(Task* arg0)
             state->field_6 |= 8;
             pan             = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(D_healing_8012FC34[mem->index], pan,
-                                (s8)Gp_GetObjDepth(coord));
+                                (s8)gpGetObjDepth(coord));
             /* fallthrough */
         case 1:
             bright = mem->scale;

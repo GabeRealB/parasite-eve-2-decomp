@@ -26,7 +26,7 @@ void ActorsShared80168a28(Task* arg0)
     if (enemy->hp >= 0) {
         soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x402C0003;
         pan     = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
     }
     if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC)) {
         Gp_StateF0.field_1F = 0;

@@ -36,7 +36,7 @@ void       Actor00400_Fn0237C(Actor100400* arg0);
 void       Actor00400_Fn02FF8(Actor100400* arg0);
 void       Gp_IncStateF0Ref(s32 arg0);
 s32        Gp_GetObjPan(GsCOORDINATE2* coord);
-s32        Gp_GetObjDepth(GsCOORDINATE2* coord);
+s32        gpGetObjDepth(GsCOORDINATE2* coord);
 s32        SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
 void       Actor00400_Fn060CC(Actor100400* arg0);
 void       Actor00400_Fn09714(Actor100400* arg0);
@@ -472,7 +472,7 @@ void Actor00400_Fn08B94(Actor100400* arg0)
     work  = arg0->field_1C;
     sound = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040006;
     pan   = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
-    SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+    SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(arg0->field_2C->field_8));
     state            = arg0->field_1C;
     state->field_63C = 2;
     state->field_632 = 0x10;
@@ -824,7 +824,7 @@ void Actor00400_Fn094DC(Actor100400* arg0)
     if (!(work->field_630 & 0xF)) {
         sound = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040001;
         pan   = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(arg0->field_2C->field_8));
     }
 }
 
@@ -898,7 +898,7 @@ void Actor00400_Fn09714(Actor100400* arg0)
     work->field_624 = 1;
     sound           = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040006;
     pan             = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
-    SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+    SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(arg0->field_2C->field_8));
     work->field_63A++;
 }
 
@@ -914,7 +914,7 @@ void Actor00400_Fn097C8(Actor100400* arg0)
     if (work->field_642 != 0) {
         sound = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040006;
         pan   = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(arg0->field_2C->field_8));
     }
     state = arg0->field_1C;
     if ((state->flags_62C.half & 1) || (state->flags_62C.word & 0x102)) {
@@ -1149,7 +1149,7 @@ void Actor00400_Fn09D98(Actor100400* arg0)
         if (!(work->field_630 & 0xF)) {
             sound = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040001;
             pan   = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
-            SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+            SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(arg0->field_2C->field_8));
         }
     } else {
         work->field_63A += 1;
@@ -1203,7 +1203,7 @@ void Actor00400_Fn09F18(Actor100400* arg0)
     if ((s16)count == 0x26) {
         sound = ((arg0->field_20->field_8 >> 12) << 8) | 0x54220006;
         pan   = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(arg0->field_2C->field_8));
     }
     if ((s16)work->field_636 == 0x30) {
         work->field_63A += 1;

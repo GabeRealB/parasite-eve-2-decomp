@@ -216,7 +216,7 @@ default_body:
 
         id   = ((arg0->field_8 >> 12) << 8) | 0x40070008;
         temp = (s8)Gp_GetObjPan(arg1->field_2C->field_8);
-        SndEvt_EnqueueType6(id, temp, (s8)Gp_GetObjDepth(arg1->field_2C->field_8));
+        SndEvt_EnqueueType6(id, temp, (s8)gpGetObjDepth(arg1->field_2C->field_8));
     }
 }
 
@@ -554,7 +554,7 @@ void func_actor_300700_80162BC8(GpEnemy* arg0, Actor300700* arg1)
                     ((Actor300700SpawnWork*)work)->obj1EC.flags = ((Actor300700SpawnWork*)work)->obj1EC.flags | 0x8000;
                     id                                          = ((arg0->placeKey >> 12) << 8) | 0x40070006;
                     pan                                         = (s8)Gp_GetObjPan(coord);
-                    SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(coord));
+                    SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(coord));
                     Gp_UnlinkNode(&arg0->node);
                     Gp_ReleaseStateF0Add((GpObj20E*)arg1, 8);
                     work->field_2E0 = 1;
@@ -1144,7 +1144,7 @@ post:
         snd             = ((arg0->field_20->field_8 >> 12) << 8) | 0x40070003;
         Gp_LcgState     = rng6;
         pan             = (s8)Gp_GetObjPan(coord);
-        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+        SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     }
     func_actor_300700_80165000(arg0);
 }
@@ -1257,7 +1257,7 @@ case2:
     }
     snd = ((arg0->field_20->field_8 >> 12) << 8) | 0x40070004;
     pan = (s8)Gp_GetObjPan(coord);
-    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     if ((s32)(((u32)Gp_LcgState >> 16) & 0xF) < D_actor_300700_8016939C[arg0->field_20->field_3C->rowIndex]) {
         work->field_37C = 0;
@@ -1578,7 +1578,7 @@ death:
     Gp_UpdateActorColor((GpEnemy*)arg1->field_20, &vec, 0, 0);
     snd = ((arg1->field_20->field_8 >> 12) << 8) | 0x40070005;
     pan = (s8)Gp_GetObjPan(coord);
-    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     return;
 dying:
     func_actor_300700_8016539C(arg1);
@@ -1775,7 +1775,7 @@ void func_actor_300700_80165000(Actor300700* arg0)
         Gp_LcgState     = (s32)random;
         snd             = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40070001;
         pan             = (s8)Gp_GetObjPan(coord);
-        SndEvt_EnqueueType6(snd, (s32)pan, (s8)Gp_GetObjDepth(coord));
+        SndEvt_EnqueueType6(snd, (s32)pan, (s8)gpGetObjDepth(coord));
     }
 }
 
@@ -1810,7 +1810,7 @@ case0:
     work->field_37C = 1;
     snd             = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40070002;
     pan             = (s8)Gp_GetObjPan(coord);
-    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     return;
 case1:
     if ((s16)work->field_382 < 0x18) {

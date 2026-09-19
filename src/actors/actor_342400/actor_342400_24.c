@@ -74,7 +74,7 @@ void func_actor_342400_8016B744(Task* arg0)
         work->field_414 = 1;
         soundId         = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x402C0002;
         pan             = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
         work->field_422 = 4;
         return;
     }

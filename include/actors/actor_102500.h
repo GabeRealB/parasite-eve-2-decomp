@@ -201,7 +201,7 @@ void Actor02500_Fn012F0(Actor02500* actor);
 
 void Gp_ClearRec18Occupied(GpRec18* rec);
 s32  Gp_CountRec18Hi(GpRec18* rec, s32 mask);
-s32  Gp_GetObjDepth(GsCOORDINATE2* coord);
+s32  gpGetObjDepth(GsCOORDINATE2* coord);
 s32  Gp_GetObjPan(GsCOORDINATE2* coord);
 s32  SndEvt_EnqueueType6(s32 sound, s32 pan, s32 depth);
 

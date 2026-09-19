@@ -598,7 +598,7 @@ void func_actor_223600_8014CA00(GpEnemy* enemy, Task* task)
         pan = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
         SndEvt_EnqueueType6(
             cue, pan,
-            (s8)Gp_GetObjDepth(((TmdObject*)task->extra)->coords));
+            (s8)gpGetObjDepth(((TmdObject*)task->extra)->coords));
     }
     if (work->field_20C != 0) {
         func_800D7A9C((TmdObject*)task->extra,

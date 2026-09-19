@@ -94,7 +94,7 @@ void func_actor_102400_801339B0(Actor02400Scale* arg0)
             work->field_130 = NULL;
             sound           = ((arg0->field_20->placeKey >> 12) << 8) | 0x40180004;
             pan             = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(coord));
+            SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
             break;
         case 3:
             work->field_128 -= 0x80;

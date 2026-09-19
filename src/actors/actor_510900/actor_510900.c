@@ -1354,10 +1354,10 @@ void func_actor_510900_801355B4(Actor510900Ctx* arg0, Actor510900* arg1)
         work->field_598 = 0xFF;
         snd             = (((u16)arg0->field_8 >> 0xC) << 8) | 0x4078000E;
         pan             = (s8)Gp_GetObjPan(coord);
-        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+        SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
         work->field_580 = (((u16)arg0->field_8 >> 0xC) << 8) | 0x40780011;
         pan2            = (s8)Gp_GetObjPan(coord);
-        SndEvt_EnqueueType6(work->field_580, pan2, (s8)Gp_GetObjDepth(coord));
+        SndEvt_EnqueueType6(work->field_580, pan2, (s8)gpGetObjDepth(coord));
     }
     work->field_58A++;
     for (i = 1; i < 0x13; i++) {

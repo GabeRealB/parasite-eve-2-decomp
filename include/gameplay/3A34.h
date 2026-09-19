@@ -1380,17 +1380,19 @@ void Gp_RemapActorColor(struct GpEnemy* arg0, MATRIX* arg1, s32 arg2);
 void Gp_UpdateActorColor(struct GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void Gp_LightFalloff(GpObj44* arg0);
 void Gp_SetLightMode(GpObj4C* arg0, s32 arg1);
-/// How far the object's world position lies beyond the camera plane, in the
-/// form the sound events take it: the difference between `GsCOORDINATE2.workm`
-/// Z and the screen distance, clamped to ±0x7FFF and taken down by 8.
-s32 Gp_GetObjDepth(GsCOORDINATE2* coord);
+/// How far a coordinate's origin lies from the current view's projection plane,
+/// in the form the sound events take their depth argument: saturated to ±0x7FFF
+/// and scaled down by 256, which lands in the signed byte they read.
+///
+/// `Gp_GetObjPan` is the pan that goes with it.
+s32 gpGetObjDepth(GsCOORDINATE2* coord);
 /// Pan of the object's world origin, for the sound events that carry one: the
 /// origin is projected through the coordinate's world matrix, and the screen X
 /// it lands on is clamped to the screen's half width and scaled down by ten.
 /// 0 when the projection reports an error.
 s32 Gp_GetObjPan(GsCOORDINATE2* coord);
 /// Queues sound event `sfx` from the object's world position, panned and
-/// depth-attenuated by `Gp_GetObjPan` / `Gp_GetObjDepth`. A third argument of
+/// depth-attenuated by `Gp_GetObjPan` / `gpGetObjDepth`. A third argument of
 /// 1 raises the mid-action bit alongside it; the role of that argument at the
 /// call sites is not established.
 void            Gp_PlayObjSfx(GsCOORDINATE2* coord, s32 sfx, s32 arg2);

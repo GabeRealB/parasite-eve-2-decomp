@@ -4967,12 +4967,12 @@ void func_actor_403600_8013F0C0(Actor403600* arg0)
                 temp_s2                         = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 6;
                 temp_s0                         = (s8)Gp_GetObjPan(temp_s4);
                 SndEvt_EnqueueType6(temp_s2, temp_s0,
-                                    (s8)Gp_GetObjDepth(temp_s4));
+                                    (s8)gpGetObjDepth(temp_s4));
                 temp_s2 =
                     (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160011;
                 temp_s0_2 = (s8)Gp_GetObjPan(temp_s4);
                 SndEvt_EnqueueType6(temp_s2, temp_s0_2,
-                                    (s8)Gp_GetObjDepth(temp_s4));
+                                    (s8)gpGetObjDepth(temp_s4));
                 Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F9,
                                Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
             }
@@ -5001,7 +5001,7 @@ void func_actor_403600_8013F0C0(Actor403600* arg0)
                     (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160012;
                 temp_s0_3 = (s8)Gp_GetObjPan(temp_s4);
                 SndEvt_EnqueueType6(temp_s2, temp_s0_3,
-                                    (s8)Gp_GetObjDepth(temp_s4));
+                                    (s8)gpGetObjDepth(temp_s4));
             }
             if ((s16)temp_s3->field_760 >= 0x24) {
                 Gp_StateC08.field_6            |= 1;
@@ -5034,7 +5034,7 @@ void func_actor_403600_8013F0C0(Actor403600* arg0)
                     (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160012;
                 temp_s0_4 = (s8)Gp_GetObjPan(temp_s4);
                 SndEvt_EnqueueType6(temp_s2, temp_s0_4,
-                                    (s8)Gp_GetObjDepth(temp_s4));
+                                    (s8)gpGetObjDepth(temp_s4));
             }
             if ((s16)temp_s3->field_760 >= 0x24) {
                 Gp_StateC08.field_6            |= 1;
@@ -5538,7 +5538,7 @@ void func_actor_403600_801400BC(Actor403600* arg0)
                 temp_s0   = &temp_s1->field_4B8;
                 temp_s2   = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x5416000D;
                 temp_s0_2 = (s8)Gp_GetObjPan(temp_s0);
-                temp_v0_2 = Gp_GetObjDepth(temp_s0);
+                temp_v0_2 = gpGetObjDepth(temp_s0);
                 SndEvt_EnqueueType6(temp_s2, temp_s0_2,
                                     (s32)(((temp_v0_2 >> 0x1F) + temp_v0_2) << 0x17) >> 0x18);
             }
@@ -5574,7 +5574,7 @@ void func_actor_403600_801400BC(Actor403600* arg0)
                 temp_s0_3 = &temp_s1->field_4B8;
                 temp_s2   = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x5416000D;
                 temp_s0_4 = (s8)Gp_GetObjPan(temp_s0_3);
-                temp_v0_3 = Gp_GetObjDepth(temp_s0_3);
+                temp_v0_3 = gpGetObjDepth(temp_s0_3);
                 SndEvt_EnqueueType6(temp_s2, temp_s0_4,
                                     (s32)(((temp_v0_3 >> 0x1F) + temp_v0_3) << 0x17) >> 0x18);
             }

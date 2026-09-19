@@ -146,12 +146,12 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
                         if ((Gp_GetViewIndex() & 0xFF) == 8) {
                             sound = (((u16)enemy->placeKey >> 0xC) << 8) | 0x54010004;
                             pan   = (s8)Gp_GetObjPan(actor->field_2C->coords);
-                            depth = Gp_GetObjDepth(actor->field_2C->coords);
+                            depth = gpGetObjDepth(actor->field_2C->coords);
                             SndEvt_EnqueueType6(sound, (s8)pan, (s8)(depth + abs(Gp_GetObjPan(actor->field_2C->coords)) / 2));
                         } else {
                             sound2 = (((u16)enemy->placeKey >> 0xC) << 8) | 0x54010004;
                             pan2   = (s8)Gp_GetObjPan(actor->field_2C->coords);
-                            SndEvt_EnqueueType6(sound2, pan2, (s8)Gp_GetObjDepth(actor->field_2C->coords));
+                            SndEvt_EnqueueType6(sound2, pan2, (s8)gpGetObjDepth(actor->field_2C->coords));
                         }
                     }
                     if ((s16)work->field_C28 >= 0xF) {

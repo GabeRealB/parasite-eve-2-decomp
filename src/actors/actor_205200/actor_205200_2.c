@@ -368,7 +368,7 @@ void func_actor_205200_8014C0C0(Actor205200* arg0)
                 work->field_58C = 0;
                 Gp_SpawnPadLerp(0xF, 0xFF, 0x80);
                 sound = ((arg0->field_20->field_8 >> 12) << 8) | 7;
-                SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
+                SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 scratch->dir.vx = 0;
                 scratch->dir.vy = -1000;
                 scratch->dir.vz = 0;
@@ -402,10 +402,10 @@ void func_actor_205200_8014C0C0(Actor205200* arg0)
             if ((s16)work->field_58C == 0x10) {
                 if (work->field_596 == 0) {
                     sound = ((arg0->field_20->field_8 >> 12) << 8) | 0x55180002;
-                    SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
+                    SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 } else {
                     sound = ((arg0->field_20->field_8 >> 12) << 8) | 0x55190003;
-                    SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
+                    SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 }
             }
             count = (s16)++work->field_58C;

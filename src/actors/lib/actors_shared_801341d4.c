@@ -33,7 +33,7 @@ void ActorsShared801341d4(ActorShared801341d4* arg0)
             }
         }
         volume = (ramp * 0x32) / 5888 + 0x32;
-        depth  = 0x7F - (((0x7F - Gp_GetObjDepth(object)) * (s16)volume) / 100);
+        depth  = 0x7F - (((0x7F - gpGetObjDepth(object)) * (s16)volume) / 100);
         SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(object), depth);
     }
 }

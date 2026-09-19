@@ -2228,7 +2228,7 @@ void Gp_SetLightMode(GpObj4C* arg0, s32 arg1)
     }
 }
 
-s32 Gp_GetObjDepth(GsCOORDINATE2* coord)
+s32 gpGetObjDepth(GsCOORDINATE2* coord)
 {
     s32 val;
 

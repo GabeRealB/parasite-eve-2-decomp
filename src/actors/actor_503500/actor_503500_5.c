@@ -992,7 +992,7 @@ void func_actor_503500_80134408(Actor503500* arg0)
             func_actor_503500_80135FB4(arg0, 0xE, 0x20);
             pan = (s8)Gp_GetObjPan(&arg0->extra->coords[3]);
             SndEvt_EnqueueType6(0x40230010, pan,
-                                (s8)(Gp_GetObjDepth(&arg0->extra->coords[3]) / 2));
+                                (s8)(gpGetObjDepth(&arg0->extra->coords[3]) / 2));
             work->field_7DA = work->field_7DA + 1;
             break;
         case 1:
@@ -1042,7 +1042,7 @@ void func_actor_503500_801345F4(Actor503500* arg0)
             if (work->field_7BC == 2) {
                 coord = &arg0->extra->coords[3];
                 pan   = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(0x40230012, pan, (s8)(Gp_GetObjDepth(coord) / 2));
+                SndEvt_EnqueueType6(0x40230012, pan, (s8)(gpGetObjDepth(coord) / 2));
             }
             if (++work->field_7BC >= 0x97) {
                 task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 4, 0x64, (s32)arg0);

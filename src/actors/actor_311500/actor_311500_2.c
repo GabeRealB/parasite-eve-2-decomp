@@ -154,7 +154,7 @@ s32 func_actor_311500_801630A4(Actor311500* arg0)
     switch (state) {
         case 0:
             pan = (s8)Gp_GetObjPan(arg0->field_2C->coords);
-            SndEvt_EnqueueType6(0x400A0008, pan, (s8)Gp_GetObjDepth(arg0->field_2C->coords));
+            SndEvt_EnqueueType6(0x400A0008, pan, (s8)gpGetObjDepth(arg0->field_2C->coords));
             work->field_4C4 = 0;
             work->field_4C0 = ((u16)work->field_4C0) + 1;
             break;
@@ -286,7 +286,7 @@ case0:
             if ((func_actor_311500_80162DDC(actor) << 0x10) != 0) {
                 pan = (s8)Gp_GetObjPan(actor->field_2C->coords);
                 SndEvt_EnqueueType6(0x400A0007, pan,
-                                    (s8)Gp_GetObjDepth(actor->field_2C->coords));
+                                    (s8)gpGetObjDepth(actor->field_2C->coords));
                 work->field_4C0  = 0;
                 actor->field_30 += 1;
             }

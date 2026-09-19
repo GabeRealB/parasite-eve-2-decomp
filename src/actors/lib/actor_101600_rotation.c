@@ -24,7 +24,7 @@ void Actor01600_Fn06FDC(Actor01600* arg0, s32 arg1);
 s32  Gp_TickObjFlag4(Actor01600Ctx* arg0);
 s32  Gp_ObjFlag4Expired(Actor01600Ctx* arg0);
 s32  Gp_GetObjPan(void* arg0);
-s32  Gp_GetObjDepth(void* coord);
+s32  gpGetObjDepth(GsCOORDINATE2* coord);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// `Gp_ClearRec18Occupied` must stay undeclared here: an implicit declaration

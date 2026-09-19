@@ -163,11 +163,11 @@ void func_lifedrain_8012EF48(Task* arg0)
             if (arg0->spawnArg1 != 0) {
                 SndEvt_EnqueueType6(D_lifedrain_80130AD4[mem->index + 3],
                                     (s8)Gp_GetObjPan(coord),
-                                    (s8)Gp_GetObjDepth(coord));
+                                    (s8)gpGetObjDepth(coord));
             } else {
                 SndEvt_EnqueueType6(D_lifedrain_80130AD4[mem->index],
                                     (s8)Gp_GetObjPan(coord),
-                                    (s8)Gp_GetObjDepth(coord));
+                                    (s8)gpGetObjDepth(coord));
             }
             return;
         case 2: {

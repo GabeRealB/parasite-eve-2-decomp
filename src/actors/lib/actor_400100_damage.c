@@ -514,7 +514,7 @@ void Actor00100_Fn02788(Actor00100* arg0)
     if (sound != 0) {
         soundId = sound | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
         pan     = (s8)Gp_GetObjPan(arg0->field_2C->coords);
-        SndEvt_EnqueueType6(soundId, (s32)pan, (s32)(s8)Gp_GetObjDepth(arg0->field_2C->coords));
+        SndEvt_EnqueueType6(soundId, (s32)pan, (s32)(s8)gpGetObjDepth(arg0->field_2C->coords));
     }
 }
 
@@ -1020,7 +1020,7 @@ void Actor00100_Fn0375C(Actor00100* arg0)
                     }
                     deathSound = (((u16)ctx->field_8 >> 0xC) << 8) | 0x40010008;
                     deathPan   = (s8)Gp_GetObjPan(arg0->field_2C->coords);
-                    SndEvt_EnqueueType6(deathSound, (s32)deathPan, (s32)(s8)Gp_GetObjDepth(arg0->field_2C->coords));
+                    SndEvt_EnqueueType6(deathSound, (s32)deathPan, (s32)(s8)gpGetObjDepth(arg0->field_2C->coords));
                     work->field_0 = 0x14;
                 }
             } else if ((s16)totalDamage >= 0x47) {
@@ -1028,7 +1028,7 @@ void Actor00100_Fn0375C(Actor00100* arg0)
                 if ((hurtState != 4) && (hurtState != 0x14) && (hurtState != 7) && (hurtState != 0xB) && (hurtState != 0x11)) {
                     hurtSound = (((u16)ctx->field_8 >> 0xC) << 8) | 0x40010008;
                     hurtPan   = (s8)Gp_GetObjPan(arg0->field_2C->coords);
-                    SndEvt_EnqueueType6(hurtSound, (s32)hurtPan, (s32)(s8)Gp_GetObjDepth(arg0->field_2C->coords));
+                    SndEvt_EnqueueType6(hurtSound, (s32)hurtPan, (s32)(s8)gpGetObjDepth(arg0->field_2C->coords));
                     work->field_0 = 0x14;
                 } else {
                     goto normalHitSound;
@@ -1039,7 +1039,7 @@ void Actor00100_Fn0375C(Actor00100* arg0)
             playHitSound:
                 hitSound = (((u16)ctx->field_8 >> 0xC) << 8) | soundBase;
                 hitPan   = (s8)Gp_GetObjPan(arg0->field_2C->coords);
-                SndEvt_EnqueueType6(hitSound, (s32)hitPan, (s32)(s8)Gp_GetObjDepth(arg0->field_2C->coords));
+                SndEvt_EnqueueType6(hitSound, (s32)hitPan, (s32)(s8)gpGetObjDepth(arg0->field_2C->coords));
             }
         }
         if (ctx->field_4C & 0xC) {

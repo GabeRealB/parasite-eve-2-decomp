@@ -1012,7 +1012,7 @@ void func_800FAA14(Task* arg0)
         if (mem->scale < 0x20) {
             if (mem->scale == 0) {
                 pan = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(arg0->spawnArg1, pan, (s8)Gp_GetObjDepth(coord));
+                SndEvt_EnqueueType6(arg0->spawnArg1, pan, (s8)gpGetObjDepth(coord));
             }
             Gp_SpawnEff(0x60032, coord, 0, 0);
             mem->scale++;
@@ -1196,7 +1196,7 @@ void Gp_EffCtlTaskAE(Task* arg0)
                                          ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 +
                                          ((u16)(Gp_StateC08.field_0 % 10U) - 1U)];
             pan             = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(arg0->spawnArg1, pan, (s8)Gp_GetObjDepth(coord));
+            SndEvt_EnqueueType6(arg0->spawnArg1, pan, (s8)gpGetObjDepth(coord));
             return;
         case 1:
             Gp_UpdateCoord(coord);
@@ -1622,7 +1622,7 @@ continue_fx:
                 }
             }
             temp = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(0xE, temp, (s8)Gp_GetObjDepth(coord));
+            SndEvt_EnqueueType6(0xE, temp, (s8)gpGetObjDepth(coord));
         } else if (mem->angle < 0x80) {
             mem->angle = 0x80;
         }
@@ -1758,7 +1758,7 @@ void Gp_EffCtlTaskA5(Task* arg0)
         case 0:
             if (Gp_State1C->rumbleCount == 0) {
                 temp = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(0xD, temp, (s8)Gp_GetObjDepth(coord));
+                SndEvt_EnqueueType6(0xD, temp, (s8)gpGetObjDepth(coord));
             }
             Gp_State1C->rumbleCount++;
             arg0->state = 1;
@@ -2240,7 +2240,7 @@ void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3)
             Gp_SpawnEff(0x6007F, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), NULL);
             pan = (s8)Gp_GetObjPan(arg1);
             SndEvt_EnqueueType6(D_80112C7C[(u16)(Gp_StateC08.field_0 % 10U) - 1], pan,
-                                (s8)Gp_GetObjDepth(arg1));
+                                (s8)gpGetObjDepth(arg1));
             break;
         case 12:
             Gp_SpawnEff(0x600F7, arg1, 1, NULL);
@@ -6295,7 +6295,7 @@ s32 func_80105ED4(GpActorWork* arg0)
                             sound += 0x64;
                         }
                         pan = (s8)Gp_GetObjPan(obj);
-                        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(obj));
+                        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(obj));
                     }
                     if (Gp_State1C->roomEffectMode == 2) {
                         index = 0x12;
@@ -6504,7 +6504,7 @@ void Gp_PlayObjSfx(GsCOORDINATE2* coord, s32 sfx, s32 arg2)
     s32 temp;
 
     temp = (s8)Gp_GetObjPan(coord);
-    SndEvt_EnqueueType6(sfx, temp, (s8)Gp_GetObjDepth(coord));
+    SndEvt_EnqueueType6(sfx, temp, (s8)gpGetObjDepth(coord));
     if (arg2 == 1) {
         Gp_SetStateF0Bit(1);
     }
@@ -9316,7 +9316,7 @@ void Gp_PlayerStepSfx(GpActorWork* arg0)
     }
     Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 3);
     temp  = (s8)Gp_GetObjPan(obj);
-    temp2 = (s8)Gp_GetObjDepth(obj);
+    temp2 = (s8)gpGetObjDepth(obj);
     snd   = 7;
     if ((u16)inner->field_96C == 1) {
         snd = 6;

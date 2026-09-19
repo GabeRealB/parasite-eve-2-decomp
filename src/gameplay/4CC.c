@@ -1217,48 +1217,48 @@ void Gp_ItemPickupTilt(Task* arg0)
                         s32 temp;
                         temp = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
                         SndEvt_EnqueueType6(0x51060009, temp,
-                                            (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+                                            (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
                         break;
                     }
                     case 0x10C0000: {
                         s32 temp;
                         temp = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
                         SndEvt_EnqueueType6(0x510C0005, temp,
-                                            (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+                                            (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
                     }
                     case 0x21B0000: {
                         s32 temp;
                         temp = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
                         SndEvt_EnqueueType6(0x521B000B, temp,
-                                            (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+                                            (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
                         break;
                     }
                     case 0x31B0000: {
                         s32 temp;
                         temp = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
                         SndEvt_EnqueueType6(0x531B000B, temp,
-                                            (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+                                            (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
                         break;
                     }
                     case 0x4100000: {
                         s32 temp;
                         temp = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
                         SndEvt_EnqueueType6(0x54100012, temp,
-                                            (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+                                            (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
                         break;
                     }
                     case 0x41F0000: {
                         s32 temp;
                         temp = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
                         SndEvt_EnqueueType6(0x541F0015, temp,
-                                            (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+                                            (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
                         break;
                     }
                     case 0x4270000: {
                         s32 temp;
                         temp = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
                         SndEvt_EnqueueType6(0x54270008, temp,
-                                            (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+                                            (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
                         break;
                     }
                 }
@@ -1280,14 +1280,14 @@ void Gp_ItemPickupTilt(Task* arg0)
                     s32 temp;
                     temp = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
                     SndEvt_EnqueueType6(0x5106000A, temp,
-                                        (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+                                        (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
                     break;
                 }
                 case 0x10C0000: {
                     s32 temp;
                     temp = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
                     SndEvt_EnqueueType6(0x510C0006, temp,
-                                        (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+                                        (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
                     break;
                 }
                 case 0x21B0000:
@@ -1296,28 +1296,28 @@ void Gp_ItemPickupTilt(Task* arg0)
                     s32 temp;
                     temp = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
                     SndEvt_EnqueueType6(0x531B000C, temp,
-                                        (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+                                        (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
                     break;
                 }
                 case 0x4100000: {
                     s32 temp;
                     temp = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
                     SndEvt_EnqueueType6(0x54100013, temp,
-                                        (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+                                        (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
                     break;
                 }
                 case 0x41F0000: {
                     s32 temp;
                     temp = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
                     SndEvt_EnqueueType6(0x541F0016, temp,
-                                        (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+                                        (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
                     break;
                 }
                 case 0x4270000: {
                     s32 temp;
                     temp = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
                     SndEvt_EnqueueType6(0x54270009, temp,
-                                        (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+                                        (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
                     break;
                 }
             }

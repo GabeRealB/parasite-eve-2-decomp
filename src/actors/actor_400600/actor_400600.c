@@ -318,7 +318,7 @@ void func_actor_400600_801328A8(Task* arg0)
         Gp_SpawnPadLerp(0xA, 0xC0, 0x80);
         sound = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x531A0009;
         pan   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
         func_8017D9B8(1);
         func_actor_400600_80139D98(arg0, 0x19, 0x30);
         coords->coord.t[1] = -0x508;
@@ -342,7 +342,7 @@ void func_actor_400600_801329EC(Task* arg0)
         sound  |= 0x531A000A;
         pan     = Gp_GetObjPan(((TmdObject*)arg0->extra)->coords) << 24;
         pan   >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
     }
     work->field_718++;
     if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
@@ -352,7 +352,7 @@ void func_actor_400600_801329EC(Task* arg0)
         sound  |= 0x40060004;
         pan     = Gp_GetObjPan(((TmdObject*)arg0->extra)->coords) << 24;
         pan   >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
         work->obj_4B4.flags |= 0x8000;
         work->obj_594.flags &= 0x7FFF;
         work->obj_5CC.flags &= 0x7FFF;
@@ -384,7 +384,7 @@ void func_actor_400600_80132B3C(Task* arg0)
         Gp_SpawnPadLerp(0x10, 0x80, 0x40);
         sound = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x531A000A;
         pan   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
         func_actor_400600_80139D98(arg0, 0x19, 0x10);
         coords->coord.t[1] = 0;
         work->field_71C++;
@@ -479,7 +479,7 @@ void func_actor_400600_80132E10(Task* arg0)
         sound  |= 0x404A0004;
         pan     = Gp_GetObjPan(((TmdObject*)arg0->extra)->coords) << 24;
         pan   >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
         work->field_718 = 0;
         work->field_722 = -0xA;
         work->field_724 = 0;
@@ -516,7 +516,7 @@ void func_actor_400600_80132F3C(Task* arg0)
         if (coords->coord.t[1] >= 0) {
             sound = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x404A0003;
             pan   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
-            SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+            SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
             func_actor_400600_80139D98(arg0, 0x19, 0x10);
             coords->coord.t[1] = 0;
             work->field_71C++;
@@ -552,7 +552,7 @@ void func_actor_400600_80133118(Task* arg0)
         if (coords->coord.t[1] >= 0) {
             sound = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x404A0003;
             pan   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
-            SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+            SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
             func_actor_400600_80139D98(arg0, 0x19, 0x10);
             coords->coord.t[1] = 0;
             work->field_71C++;
@@ -771,7 +771,7 @@ void func_actor_400600_80133B88(Task* arg0)
     if (work->field_728 < 0xBB8 || D_80115417 != 0) {
         sound = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x40060004;
         pan   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
         func_actor_400600_80138B5C(arg0, 0);
         Gp_ArmStateF0(1);
         rnd              = ((u32)Gp_LcgState * 5) + 0x71357911;
@@ -806,7 +806,7 @@ void func_actor_400600_80133CB0(Task* arg0)
         sound = id | ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8);
         pan   = Gp_GetObjPan(((TmdObject*)arg0->extra)->coords) << 24;
         pan >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
         work->obj_5CC.flags |= 0x8000;
     }
     if ((s16)work->field_718 == 0x1C) {
@@ -846,7 +846,7 @@ void func_actor_400600_80133E38(Task* arg0)
         sound = id | ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8);
         pan   = Gp_GetObjPan(((TmdObject*)arg0->extra)->coords) << 24;
         pan >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
         work->obj_594.flags |= 0x8000;
     }
     if ((s16)work->field_718 == 0x1C) {
@@ -927,7 +927,7 @@ void func_actor_400600_80133FC0(Task* arg0)
     }
     sound = base | ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8);
     pan   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
-    SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+    SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
     work->field_75C.b.field_75C = 0;
     work->field_71E++;
 }
@@ -964,7 +964,7 @@ void func_actor_400600_80134218(Task* arg0)
     if (++work->field_71A == 8) {
         sound = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 6;
         pan   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
     }
     if (work->field_763 == 1 || work->field_764 == 1 || enemy->hp <= 0 || work->field_75C.b.field_75C >= 3) {
         work->field_763 = 0;
@@ -997,7 +997,7 @@ void func_actor_400600_80134218(Task* arg0)
         }
         sound2 = id | ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8);
         pan2   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
-        SndEvt_EnqueueType6(sound2, pan2, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound2, pan2, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
         if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 1), 0) != 0) {
             work->field_764 = 1;
         }
@@ -1059,7 +1059,7 @@ void func_actor_400600_80134570(Task* arg0)
             }
             sound = id | ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8);
             pan   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
-            SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+            SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
             work->obj_4B4.flags |= 0x4000;
             work2                = (Actor400600Work*)arg0->work;
             work2->field_720     = 2;
@@ -1156,7 +1156,7 @@ void func_actor_400600_80134970(Task* arg0)
         }
         sound = id | ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8);
         pan   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
         work2            = (Actor400600Work*)arg0->work;
         work2->field_720 = 2;
         work2->field_746 = 0x19;
@@ -1230,7 +1230,7 @@ void func_actor_400600_80134E28(Task* arg0)
         }
         sound = id | ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8);
         pan   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
         work->obj_4B4.flags |= 0x4000;
         coord->coord.t[1]    = (s16)work->field_9A;
         work->field_80       = 0;
@@ -1312,7 +1312,7 @@ void func_actor_400600_80135450(Task* arg0)
         sound = id | ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8);
         pan   = Gp_GetObjPan(((TmdObject*)arg0->extra)->coords) << 24;
         pan >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
         work->field_767 = 0;
         work->field_718++;
     }
@@ -1346,7 +1346,7 @@ void func_actor_400600_80135578(Task* arg0)
         sound = id | ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8);
         pan   = Gp_GetObjPan(((TmdObject*)arg0->extra)->coords) << 24;
         pan >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
         work->field_718++;
     }
     if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
@@ -1537,7 +1537,7 @@ void func_actor_400600_80135998(Task* arg0, s16 arg1)
         sound   = id | voice;
         pan     = Gp_GetObjPan(((TmdObject*)arg0->extra)->coords) << 24;
         pan   >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
         if (work->field_76C != 0) {
             vec.vx = 0;
             vec.vy = -0x1A4;
@@ -1558,7 +1558,7 @@ void func_actor_400600_80135998(Task* arg0, s16 arg1)
         sound   = id | voice;
         pan     = Gp_GetObjPan(((TmdObject*)arg0->extra)->coords) << 24;
         pan   >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
         if (work->field_76C != 0) {
             vec.vx = 0;
             vec.vy = -0x1A4;
@@ -1645,7 +1645,7 @@ void func_actor_400600_80135DDC(Task* arg0)
         sound   = id | voice;
         pan     = Gp_GetObjPan(((TmdObject*)arg0->extra)->coords) << 24;
         pan   >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
     }
     if (work->field_748 == start1) {
         ActorsShared80139dcc(arg0, 0xB, (ActorsShared80139dccPos*)&work->field_88);
@@ -1660,7 +1660,7 @@ void func_actor_400600_80135DDC(Task* arg0)
         sound   = id | voice;
         pan     = Gp_GetObjPan(((TmdObject*)arg0->extra)->coords) << 24;
         pan   >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
     }
     if (work->field_748 >= start0 && work->field_748 <= end0) {
         func_actor_400600_80139E68(arg0, 8, &work->field_88);
@@ -1730,7 +1730,7 @@ void func_actor_400600_801361AC(Task* arg0)
         sound  |= 0x404A000A;
         pan     = Gp_GetObjPan(((TmdObject*)arg0->extra)->coords) << 24;
         pan   >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
     }
     if (work->field_748 == start1) {
         func_actor_400600_80139F4C(arg0, 8, &work->field_88);
@@ -1740,7 +1740,7 @@ void func_actor_400600_801361AC(Task* arg0)
         sound  |= 0x404A000B;
         pan     = Gp_GetObjPan(((TmdObject*)arg0->extra)->coords) << 24;
         pan   >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
     }
     if (work->field_748 >= start0 && work->field_748 <= end0) {
         func_actor_400600_80139FE0(arg0, 0xB, &work->field_88);

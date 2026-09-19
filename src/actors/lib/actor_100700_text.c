@@ -19,7 +19,7 @@ void func_800DA6E8(void* arg0, s32 arg1, s32 arg2);
 s32            Gp_TickObjFlag2(Actor00700Ctx* arg0);
 void           Gp_ArmStateF0(s32 arg0);
 s32            Gp_GetObjPan(void* arg0);
-s32            Gp_GetObjDepth(void* coord);
+s32            gpGetObjDepth(GsCOORDINATE2* coord);
 void           Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void           Gp_UnlinkObj(void* node);
 void           Gp_SetLightMode(void* arg0, s32 arg1);
@@ -155,7 +155,7 @@ post:
         snd             = ((arg0->field_20->field_8 >> 12) << 8) | 0x40070003;
         Gp_LcgState     = rng6;
         pan             = (s8)Gp_GetObjPan(coord);
-        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+        SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     }
     Actor00700_Fn01B50(arg0);
 }
@@ -268,7 +268,7 @@ case2:
     }
     snd = ((arg0->field_20->field_8 >> 12) << 8) | 0x40070004;
     pan = (s8)Gp_GetObjPan(coord);
-    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     if ((s32)(((u32)Gp_LcgState >> 16) & 0xF) < Actor00700_D06E50[arg0->field_20->field_3C->rowIndex]) {
         work->field_37C = 0;
@@ -598,7 +598,7 @@ death:
     Gp_UpdateActorColor(arg1->field_20, &vec, 0, 0);
     snd = ((arg1->field_20->field_8 >> 12) << 8) | 0x40070005;
     pan = (s8)Gp_GetObjPan(coord);
-    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     return;
 dying:
     Actor00700_Fn01EEC(arg1);
@@ -805,7 +805,7 @@ void Actor00700_Fn01B50(Actor00700* arg0)
         Gp_LcgState     = (s32)random;
         snd             = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40070001;
         pan             = (s8)Gp_GetObjPan(coord);
-        SndEvt_EnqueueType6(snd, (s32)pan, (s8)Gp_GetObjDepth(coord));
+        SndEvt_EnqueueType6(snd, (s32)pan, (s8)gpGetObjDepth(coord));
     }
 }
 
@@ -837,7 +837,7 @@ case0:
     work->field_37C = 1;
     snd             = ((arg0->field_20->field_8 >> 12) << 8) | 0x40070002;
     pan             = (s8)Gp_GetObjPan(coord);
-    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     return;
 case1:
     if ((s16)work->field_382 < 0x18) {
@@ -1110,7 +1110,7 @@ default_body:
 
         id   = ((arg0->field_8 >> 12) << 8) | 0x40070008;
         temp = (s8)Gp_GetObjPan(arg1->field_2C->field_8);
-        SndEvt_EnqueueType6(id, temp, (s8)Gp_GetObjDepth(arg1->field_2C->field_8));
+        SndEvt_EnqueueType6(id, temp, (s8)gpGetObjDepth(arg1->field_2C->field_8));
     }
 }
 

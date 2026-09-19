@@ -38,6 +38,6 @@ void ActorsSharedFn020d4(Actor105500* arg0)
         work->field_3BE = 0x24U;
         sound           = (((u16)((Actor105500Ctx*)arg0->field_20)->field_8 >> 0xC) << 8) | 0x401A0005;
         pan             = (s8)Gp_GetObjPan(coord);
-        SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)Gp_GetObjDepth(coord));
+        SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)gpGetObjDepth(coord));
     }
 }

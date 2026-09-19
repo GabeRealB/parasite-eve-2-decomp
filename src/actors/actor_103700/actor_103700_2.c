@@ -199,7 +199,7 @@ void func_actor_103700_80132FD4(Task* task)
                 }
                 coord = ((TmdObject*)task->extra)->coords;
                 sound = ((((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) << 8) | 0x40250002;
-                SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
+                SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             }
             break;
         case 1:
@@ -251,7 +251,7 @@ void func_actor_103700_80133370(Task* task)
             func_800FDB18(1, (GsCOORDINATE2*)obj, NULL, &work->field_224);
             Gp_SpawnPadLerp(5, 0xC0, 8);
             sound = ((((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) << 8) | 0x40250004;
-            SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)Gp_GetObjDepth(obj));
+            SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
             if ((s16)++work->field_26C >= 6) {
                 work->field_26C      = 0;
                 work->field_250      = 3;
@@ -286,7 +286,7 @@ void func_actor_103700_80133370(Task* task)
             arg->field_10 = 1;
             Gp_DispatchMsg(player, 0x3F4, (s32)arg, 0);
             sound = ((((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) << 8) | 6;
-            SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)Gp_GetObjDepth(obj));
+            SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
             work->field_250 = 4;
             break;
         case 4:
@@ -365,7 +365,7 @@ void func_actor_103700_801336E8(Task* task)
             work->field_250 = 4;
             work->field_254 = 0;
             sound           = ((((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) << 8) | 0x40250003;
-            SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)Gp_GetObjDepth(obj));
+            SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
             break;
         case 4:
             if ((s16)--work->field_258 > 0) {
@@ -416,7 +416,7 @@ void func_actor_103700_80133AB4(Task* task)
             Gp_DispatchMsg(player, 0x3F4, (s32)arg, 0);
             sound = ((((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) << 8) | 6;
             pan   = (s8)Gp_GetObjPan(obj);
-            SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(obj));
+            SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(obj));
             work->field_250 = 1;
             break;
         case 1:

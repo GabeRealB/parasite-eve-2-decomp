@@ -25,7 +25,7 @@ void Actor05500_Fn01A0C(Actor105500* arg0)
             work->field_3A6 = 0;
             sound           = (((u16)((Actor105500Ctx*)arg0->field_20)->field_8 >> 0xC) << 8) | 0x401A0004;
             pan             = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(coord));
+            SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
             return;
         case 1:
             if ((s16)work->field_396 >= 0x15) {

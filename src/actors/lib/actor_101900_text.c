@@ -758,7 +758,7 @@ void Actor01900_Fn01C94(Actor01900* arg0)
     if (snd != 0) {
         id  = snd | (((u16)enemy->placeKey >> 0xC) << 8);
         pan = (s8)Gp_GetObjPan(arg0->field_2C->coords);
-        SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(arg0->field_2C->coords));
+        SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(arg0->field_2C->coords));
     }
 }
 
@@ -1177,11 +1177,11 @@ void Actor01900_Fn02A50(Actor01900* arg0)
             if (enemy->hp <= 0) {
                 deathSound = ((enemy->placeKey >> 0xC) << 8) | 0x400A0008;
                 deathPan   = (s8)Gp_GetObjPan(arg0->field_2C->coords);
-                SndEvt_EnqueueType6(deathSound, deathPan, (s8)Gp_GetObjDepth(arg0->field_2C->coords));
+                SndEvt_EnqueueType6(deathSound, deathPan, (s8)gpGetObjDepth(arg0->field_2C->coords));
             } else {
                 hitSound = ((enemy->placeKey >> 0xC) << 8) | 0x400A0007;
                 hitPan   = (s8)Gp_GetObjPan(arg0->field_2C->coords);
-                SndEvt_EnqueueType6(hitSound, hitPan, (s8)Gp_GetObjDepth(arg0->field_2C->coords));
+                SndEvt_EnqueueType6(hitSound, hitPan, (s8)gpGetObjDepth(arg0->field_2C->coords));
             }
             work->field_C10 = Gp_GetIdParam2(s->id);
             switch (Gp_GetIdParam0(s->id) & 0xFFFF) {

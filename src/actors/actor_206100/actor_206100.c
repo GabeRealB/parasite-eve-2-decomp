@@ -1025,7 +1025,7 @@ void func_actor_206100_8014CFF4(Task* task)
 /// counter `field_51E` and arms `field_52E` with 0x18 on the first frame, eases
 /// `field_35C` toward 0x4000 by a quarter of the remaining distance over frames
 /// 0x29..0x4D, fires the overlay's sound events -- 0x551E0002 panned through
-/// `Gp_GetObjPan` / `Gp_GetObjDepth` at 0x54 and plain at 0x77 -- flags the six
+/// `Gp_GetObjPan` / `gpGetObjDepth` at 0x54 and plain at 0x77 -- flags the six
 /// cue frames, hands state 2 to the actor at sub-state 0 when its `flags_514`
 /// say so, and folds the heading onto the vector from the root coordinate to
 /// the walk target `field_4D0` / `field_4D4`, exactly as
@@ -1077,7 +1077,7 @@ void func_actor_206100_8014D14C(Task* task)
     if ((s16)sub->field_51E == 0x54) {
         pan = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
         SndEvt_EnqueueType6(0x551E0002, pan,
-                            (s8)Gp_GetObjDepth(((TmdObject*)task->extra)->coords));
+                            (s8)gpGetObjDepth(((TmdObject*)task->extra)->coords));
     }
     if ((s16)sub->field_51E == 0x77) {
         SndEvt_EnqueueType7(0x551E0002, 1);
@@ -1248,7 +1248,7 @@ void func_actor_206100_8014D574(Task* task)
         } while (i < 0x20);
         sound = (((u16)((GpEnemy*)task->spawnArg2)->placeKey >> 12) << 8) | 0x551E0006;
         pan   = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)task->extra)->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)task->extra)->coords));
         work->field_51E = 0;
         work->field_526 = 0x1E78;
         work->field_522 = work->field_522 + 1;
@@ -1691,7 +1691,7 @@ void func_actor_206100_8014E0C0(Task* task)
         case 1:
             sound = (((u16)((GpEnemy*)task->spawnArg2)->placeKey >> 12) << 8) | 0x40040006;
             pan   = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
-            SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)task->extra)->coords));
+            SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)task->extra)->coords));
             work->field_554 = work->field_554 + 1;
             break;
         case 2:

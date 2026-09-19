@@ -87,14 +87,14 @@ void func_actor_202600_8014B950(Actor202600* arg0)
                 } while (indexOrSound < 5);
                 indexOrSound = (((u16)((Actor202600Ctx*)arg0->field_20)->field_8 >> 0xC) << 8) | 0x510D0012;
                 pan1         = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(indexOrSound, pan1, (s8)Gp_GetObjDepth(coord));
+                SndEvt_EnqueueType6(indexOrSound, pan1, (s8)gpGetObjDepth(coord));
             }
             break;
         case 3:
             if ((s16)work->field_396 == 0x1E) {
                 indexOrSound = (((u16)((Actor202600Ctx*)arg0->field_20)->field_8 >> 0xC) << 8) | 0x51090007;
                 pan2         = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(indexOrSound, pan2, (s8)Gp_GetObjDepth(coord));
+                SndEvt_EnqueueType6(indexOrSound, pan2, (s8)gpGetObjDepth(coord));
             }
             indexOrSound = 0;
             if ((s16)work->field_396 == 0x27) {
@@ -126,7 +126,7 @@ void func_actor_202600_8014B950(Actor202600* arg0)
             if ((s16)work->field_396 == 0x28) {
                 indexOrSound = (((u16)((Actor202600Ctx*)arg0->field_20)->field_8 >> 0xC) << 8) | 0x401A0002;
                 pan3         = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(indexOrSound, pan3, (s8)Gp_GetObjDepth(coord));
+                SndEvt_EnqueueType6(indexOrSound, pan3, (s8)gpGetObjDepth(coord));
                 work->field_3A8        = 0x80;
                 work->field_294.flags |= 0x8000;
                 work->field_214.flags |= 0x4000;

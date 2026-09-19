@@ -73,7 +73,7 @@ void func_actor_800300_80162658(GpActorWork* arg0)
         if ((u16)actor->field_96C != 0) {
             func_8010B9A4(arg0);
             pan   = (s8)Gp_GetObjPan(obj);
-            depth = (s8)Gp_GetObjDepth(obj);
+            depth = (s8)gpGetObjDepth(obj);
             sound = 7;
             if ((u16)actor->field_96C == 1) {
                 sound = 6;

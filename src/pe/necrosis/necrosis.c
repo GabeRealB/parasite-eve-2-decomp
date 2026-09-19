@@ -128,7 +128,7 @@ void func_necrosis_8012EF34(Task* arg0)
             work->obj2.flags = (work->obj2.flags & 0x7FFF) | 0x4400;
             pan              = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(D_necrosis_801306C8[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
-                                (s8)Gp_GetObjDepth(coord));
+                                (s8)gpGetObjDepth(coord));
             Gp_SpawnPadLerp((s16)((u16)D_necrosis_801306BC[mem->index].field_2 + 0xC), 0xFF, 8);
             arg0->state = 1;
             /* fallthrough */

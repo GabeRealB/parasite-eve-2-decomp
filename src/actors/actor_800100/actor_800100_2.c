@@ -153,7 +153,7 @@ void func_actor_800100_80163F04(GpActorWork* arg0)
         if ((u16)actor->field_96C != 0) {
             func_8010B9A4(arg0);
             pan = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(((D_8007272F - 1) << 16) + 0x4065000A, pan, (s8)Gp_GetObjDepth(coord));
+            SndEvt_EnqueueType6(((D_8007272F - 1) << 16) + 0x4065000A, pan, (s8)gpGetObjDepth(coord));
         }
     }
     Gp_TickActorAnimState(arg0);

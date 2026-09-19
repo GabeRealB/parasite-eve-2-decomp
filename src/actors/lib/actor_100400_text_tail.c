@@ -255,7 +255,7 @@ void Actor00400_Fn0A880(Actor100400* arg0)
     work  = arg0->field_1C;
     sound = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040006;
     pan   = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
-    SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+    SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(arg0->field_2C->field_8));
     state            = arg0->field_1C;
     state->field_63C = 6;
     state->field_632 = 0x10;
@@ -277,7 +277,7 @@ void Actor00400_Fn0A940(Actor100400* arg0)
     work->field_624 = 1;
     sound           = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040006;
     pan             = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
-    SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+    SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(arg0->field_2C->field_8));
     work->field_63A++;
 }
 

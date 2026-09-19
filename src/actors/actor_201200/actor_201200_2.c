@@ -390,7 +390,7 @@ void func_actor_201200_8014B5FC(Actor201200Ctx* arg0, Actor201200* arg1)
             work->eff1A8.spawnArgLo = 0x120;
             work->eff1A8.spawnArgHi = 2;
             func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->field_2C->coords[4], NULL, &work->eff1A8);
-            Gp_SpawnScript18Ex((s32)&D_actor_201200_8014DE64, (s32)&D_actor_201200_8014DE70, (s16)Gp_GetObjDepth(arg1->field_2C->coords));
+            Gp_SpawnScript18Ex((s32)&D_actor_201200_8014DE64, (s32)&D_actor_201200_8014DE70, (s16)gpGetObjDepth(arg1->field_2C->coords));
             work->obj300.radius = 0x320;
             work->obj338.radius = 0xC8;
             work->obj300.flags |= 0x8000;
@@ -419,7 +419,7 @@ void func_actor_201200_8014B5FC(Actor201200Ctx* arg0, Actor201200* arg1)
             Gp_SpawnEff(0x6009E, arg1->field_2C->coords, 0, &ofs);
             id  = ((arg0->field_8 >> 12) << 8) | 0x400C0004;
             pan = (s8)Gp_GetObjPan(arg1->field_2C->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(arg1->field_2C->coords));
+            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(arg1->field_2C->coords));
             break;
         case 9:
             obj->flags = 0x80;
@@ -516,7 +516,7 @@ void func_actor_201200_8014BDFC(Actor201200Ctx* arg0, Actor201200* arg1)
             Gp_SpawnEff(0x60030, arg1->field_2C->coords, 0x10030, &ofs);
             id  = ((arg0->field_8 >> 12) << 8) | 0x400C0004;
             pan = (s8)Gp_GetObjPan(arg1->field_2C->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(arg1->field_2C->coords));
+            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(arg1->field_2C->coords));
             arg1->field_2C->flags = 2;
             break;
         case 1:

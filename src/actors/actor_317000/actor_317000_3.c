@@ -131,7 +131,7 @@ void func_actor_317000_80162950(Task* arg0)
     preset.field_10 = 0;
     func_actor_317000_80162A10(arg0, 0x7D3, &preset, 0);
     pan = (s8)Gp_GetObjPan(coord);
-    SndEvt_EnqueueType6(0x400A000B, pan, (s8)Gp_GetObjDepth(coord));
+    SndEvt_EnqueueType6(0x400A000B, pan, (s8)gpGetObjDepth(coord));
 
     work->step.vx   = 0;
     work->step.vy   = 0;

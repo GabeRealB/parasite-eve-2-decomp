@@ -113,7 +113,7 @@ void func_antibody_8012EF34(Task* arg0)
 
                     pan = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(D_antibody_80130C00[mem->index], pan,
-                                        (s8)Gp_GetObjDepth(coord));
+                                        (s8)gpGetObjDepth(coord));
                 }
                 return;
             }

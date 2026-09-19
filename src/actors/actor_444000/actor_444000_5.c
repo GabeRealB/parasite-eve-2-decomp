@@ -370,7 +370,7 @@ void func_actor_444000_8013482C(Actor444000* task)
         Gp_SpawnScript18((s32)&D_actor_444000_80144A74, (s32)&D_actor_444000_80144A7C);
         id  = (((u16)enemy->placeKey >> 12) << 8) | 0x40200001;
         pan = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
-        SndEvt_EnqueueType6(id, pan, (s8)(Gp_GetObjDepth(((TmdObject*)task->extra)->coords) / 2));
+        SndEvt_EnqueueType6(id, pan, (s8)(gpGetObjDepth(((TmdObject*)task->extra)->coords) / 2));
     }
 
     frame = work->slots0[2].curRec & 0x3FF;
@@ -382,7 +382,7 @@ void func_actor_444000_8013482C(Actor444000* task)
         Gp_SpawnScript18((s32)&D_actor_444000_80144A74, (s32)&D_actor_444000_80144A7C);
         id  = (((u16)enemy->placeKey >> 12) << 8) | 0x40200001;
         pan = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
-        SndEvt_EnqueueType6(id, pan, (s8)(Gp_GetObjDepth(((TmdObject*)task->extra)->coords) / 2));
+        SndEvt_EnqueueType6(id, pan, (s8)(gpGetObjDepth(((TmdObject*)task->extra)->coords) / 2));
     }
 
     work->field_7D8 = work->slots0[2].curRec & 0x3FF;
@@ -636,7 +636,7 @@ void func_actor_444000_80135448(Actor444000* task)
         gGameSession->at4.loc.place = 3;
         id                          = (((u16)enemy->placeKey >> 12) << 8) | 0x54280007;
         pan                         = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
-        SndEvt_EnqueueType6(id, pan, (s8)(Gp_GetObjDepth(((TmdObject*)task->extra)->coords) / 2));
+        SndEvt_EnqueueType6(id, pan, (s8)(gpGetObjDepth(((TmdObject*)task->extra)->coords) / 2));
         return;
     }
 
@@ -659,7 +659,7 @@ void func_actor_444000_80135448(Actor444000* task)
 
             id  = (((u16)enemy->placeKey >> 12) << 8) | 0x40200013;
             pan = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(((TmdObject*)task->extra)->coords));
+            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(((TmdObject*)task->extra)->coords));
         }
 
         frame = work->slots0[3].curRec & 0x3FF;
@@ -669,7 +669,7 @@ void func_actor_444000_80135448(Actor444000* task)
 
             id  = (((u16)enemy->placeKey >> 12) << 8) | 0x40200003;
             pan = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(((TmdObject*)task->extra)->coords));
+            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(((TmdObject*)task->extra)->coords));
         }
 
         frame = work->slots0[3].curRec & 0x3FF;
@@ -679,7 +679,7 @@ void func_actor_444000_80135448(Actor444000* task)
 
             id  = (((u16)enemy->placeKey >> 12) << 8) | 0x40200014;
             pan = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(((TmdObject*)task->extra)->coords));
+            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(((TmdObject*)task->extra)->coords));
         }
 
         frame = work->slots0[3].curRec & 0x3FF;
@@ -689,7 +689,7 @@ void func_actor_444000_80135448(Actor444000* task)
 
             id  = (((u16)enemy->placeKey >> 12) << 8) | 0x40200015;
             pan = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(((TmdObject*)task->extra)->coords));
+            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(((TmdObject*)task->extra)->coords));
         }
 
         work->field_7A8 = work->slots0[3].curRec & 0x3FF;
@@ -1335,7 +1335,7 @@ void func_actor_444000_80137D4C(GpEnemy* enemy, Actor444000Grab* task)
         tmdProcessStream(task->extra);
         sfx = ((owner->placeKey >> 0xC) << 8) | 0x4020001C;
         pan = (s8)Gp_GetObjPan(task->extra->coords);
-        SndEvt_EnqueueType6(sfx, pan, (s8)(Gp_GetObjDepth(task->extra->coords) / 2));
+        SndEvt_EnqueueType6(sfx, pan, (s8)(gpGetObjDepth(task->extra->coords) / 2));
     }
 
     task->extra->lightMtx = &work->lightMtx;
@@ -1392,7 +1392,7 @@ void func_actor_444000_801381B0(GpEnemy* enemy, Actor444000Grab* task)
         work->field_1AC   = 0;
         sfx               = ((enemy->placeKey >> 0xC) << 8) | 0x4020000C;
         pan               = (s8)Gp_GetObjPan(task->extra->coords);
-        SndEvt_EnqueueType6(sfx, pan, (s8)(Gp_GetObjDepth(task->extra->coords) / 2));
+        SndEvt_EnqueueType6(sfx, pan, (s8)(gpGetObjDepth(task->extra->coords) / 2));
         task->state++;
         return;
     }
@@ -1664,7 +1664,7 @@ void func_actor_444000_80138B94(GpEnemy* enemy, Actor444000Grab* task)
 
     sfx = ((owner->placeKey >> 0xC) << 8) | 0x4020000B;
     pan = (s8)Gp_GetObjPan(task->extra->coords);
-    SndEvt_EnqueueType6(sfx, pan, (s8)Gp_GetObjDepth(task->extra->coords));
+    SndEvt_EnqueueType6(sfx, pan, (s8)gpGetObjDepth(task->extra->coords));
 
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     Gfx_RotMatrixY(&task->extra->coords->coord, ((u32)Gp_LcgState >> 0x10) & 0x1FF, 1);
@@ -1729,7 +1729,7 @@ void func_actor_444000_80138FC4(GpEnemy* enemy, Actor444000Grab* task)
         task->extra->coords->coord.t[1] = -0x32;
         work->field_1AC                 = 0;
         pan                             = (s8)Gp_GetObjPan(task->extra->coords);
-        SndEvt_EnqueueType6(0x4020000C, pan, (s8)Gp_GetObjDepth(task->extra->coords));
+        SndEvt_EnqueueType6(0x4020000C, pan, (s8)gpGetObjDepth(task->extra->coords));
         task->state++;
     }
 
@@ -1986,7 +1986,7 @@ void func_actor_444000_80139594(GpEnemy* enemy, Actor444000Drop* task)
 
     snd = ((owner->placeKey >> 12) << 8) | 0x4020000B;
     pan = (s8)Gp_GetObjPan(task->extra->coords);
-    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(task->extra->coords));
+    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(task->extra->coords));
 
     work->eff = Gp_SpawnEff(0x6019B, task->extra->coords, 0, NULL);
     if (work->eff != NULL) {
@@ -2089,7 +2089,7 @@ void func_actor_444000_80139C80(GpEnemy* enemy, Actor444000Drop* task)
             task->state++;
             snd = ((owner->placeKey >> 12) << 8) | 0x4020000C;
             pan = (s8)Gp_GetObjPan(task->extra->coords);
-            SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(task->extra->coords));
+            SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(task->extra->coords));
         }
     }
 

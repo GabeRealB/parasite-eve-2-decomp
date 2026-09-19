@@ -3,14 +3,18 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 typedef struct {
     /* 0x0 */ u8  pad0[8];
     /* 0x8 */ u16 field_8;
 } ActorShared801326f0Obj20;
 
 typedef struct {
-    /* 0x0 */ u8  pad0[8];
-    /* 0x8 */ s32 field_8;
+    /* 0x0 */ u8             pad0[8];
+    /* 0x8 */ GsCOORDINATE2* field_8;
 } ActorShared801326f0Obj2C;
 
 typedef struct {

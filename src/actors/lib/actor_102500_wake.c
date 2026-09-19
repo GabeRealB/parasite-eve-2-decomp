@@ -69,7 +69,7 @@ void Actor02500_Fn012F0(Actor02500* actor)
                 work->field_330 = 0x14;
                 sound           = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x40190003;
                 pan             = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(sound, (s32)pan, (s8)Gp_GetObjDepth(coord));
+                SndEvt_EnqueueType6(sound, (s32)pan, (s8)gpGetObjDepth(coord));
             }
             break;
         case 3:

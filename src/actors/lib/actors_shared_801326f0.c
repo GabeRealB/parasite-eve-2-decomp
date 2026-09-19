@@ -5,8 +5,8 @@
 #include "actors/actors_shared_801345fc.h"
 
 void Gp_ClearRec18Occupied(void*);
-s32  Gp_GetObjDepth(s32);
-s32  Gp_GetObjPan(s32);
+s32  gpGetObjDepth(GsCOORDINATE2* coord);
+s32  Gp_GetObjPan(GsCOORDINATE2* coord);
 void SndEvt_EnqueueType6(s32, s32, s32);
 void ActorsShared801326f0_Fn328DC(ActorShared801326f0*);
 void ActorsShared801326f0_Fn32B7C(ActorShared801326f0*);
@@ -21,7 +21,7 @@ void ActorsShared801326f0_Fn3537C(ActorShared801326f0*);
 s32 ActorsShared801326f0(ActorShared801326f0* arg0)
 {
     s16                      state;
-    s32                      object;
+    GsCOORDINATE2*           object;
     s32                      ret;
     u16                      timer;
     ActorShared801326f0Work* soundWork;
@@ -50,7 +50,7 @@ s32 ActorsShared801326f0(ActorShared801326f0* arg0)
                 soundId <<= 8;
                 soundId  |= 0x40250005;
                 pan       = (s8)Gp_GetObjPan(object);
-                SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(object));
+                SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(object));
             }
             return ret;
         case 1:
@@ -77,7 +77,7 @@ s32 ActorsShared801326f0(ActorShared801326f0* arg0)
                 soundId <<= 8;
                 soundId  |= 0x40250005;
                 pan       = (s8)Gp_GetObjPan(object);
-                SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(object));
+                SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(object));
             }
             return ret;
         case 4:
@@ -98,7 +98,7 @@ s32 ActorsShared801326f0(ActorShared801326f0* arg0)
                 soundId <<= 8;
                 soundId  |= 0x40250005;
                 pan       = (s8)Gp_GetObjPan(object);
-                SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(object));
+                SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(object));
             }
             return ret;
         case 5:
@@ -119,7 +119,7 @@ s32 ActorsShared801326f0(ActorShared801326f0* arg0)
                 soundId <<= 8;
                 soundId  |= 0x40250005;
                 pan       = (s8)Gp_GetObjPan(object);
-                SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(object));
+                SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(object));
             }
             return ret;
         case 6:
@@ -155,7 +155,7 @@ s32 ActorsShared801326f0(ActorShared801326f0* arg0)
                 soundId <<= 8;
                 soundId  |= 0x40250005;
                 pan       = (s8)Gp_GetObjPan(object);
-                SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(object));
+                SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(object));
             }
             return ret;
         case 9:
@@ -176,7 +176,7 @@ s32 ActorsShared801326f0(ActorShared801326f0* arg0)
                 soundId <<= 8;
                 soundId  |= 0x40250005;
                 pan       = (s8)Gp_GetObjPan(object);
-                SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(object));
+                SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(object));
             }
             return ret;
         case 10:
@@ -198,7 +198,7 @@ s32 ActorsShared801326f0(ActorShared801326f0* arg0)
                     soundId <<= 8;
                     soundId  |= 0x40250005;
                     pan       = (s8)Gp_GetObjPan(object);
-                    SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(object));
+                    SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(object));
                 }
             }
             return ret;

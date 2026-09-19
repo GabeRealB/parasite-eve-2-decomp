@@ -26,7 +26,7 @@ void ActorsShared801652a0(Task* arg0)
         soundId  |= 0x402C0004;
         pan       = Gp_GetObjPan(((TmdObject*)arg0->extra)->coords) << 24;
         pan     >>= 24;
-        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
     }
     if ((s16)work->field_412 == 2) {
         soundId   = (u16)((GpEnemy*)arg0->spawnArg2)->placeKey;
@@ -35,7 +35,7 @@ void ActorsShared801652a0(Task* arg0)
         soundId  |= 0x402C0003;
         pan       = Gp_GetObjPan(((TmdObject*)arg0->extra)->coords) << 24;
         pan     >>= 24;
-        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
+        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
     }
     if (ActorsShared8016974c(arg0)) {
         next             = (ActorsShared80168d3cWork*)arg0->work;

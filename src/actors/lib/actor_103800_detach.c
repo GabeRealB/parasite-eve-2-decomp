@@ -247,7 +247,7 @@ void Actor03800_Fn0166C(Actor103800* arg0)
             work->field_2AA &= 0x7FFF;
             snd              = ((arg0->field_20->field_8 >> 12) << 8) | 0x40260003;
             pan              = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+            SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
             break;
         case 1:
             if ((u32)(work->field_34C - 2) < 12) {
@@ -264,7 +264,7 @@ void Actor03800_Fn0166C(Actor103800* arg0)
             if ((s16)work->field_34C == 12) {
                 snd  = ((arg0->field_20->field_8 >> 12) << 8) | 0x40260002;
                 pan2 = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(snd, pan2, (s8)Gp_GetObjDepth(coord));
+                SndEvt_EnqueueType6(snd, pan2, (s8)gpGetObjDepth(coord));
             }
             if ((s16)work->field_34C >= 29) {
                 work->field_354 = 2;
@@ -315,7 +315,7 @@ void Actor03800_Fn01948(Actor103800* arg0)
             work->field_360 = 0;
             snd             = ((arg0->field_20->field_8 >> 12) << 8) | 0x40260003;
             pan             = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+            SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
             break;
         case 1:
             work->field_356 -= 1;

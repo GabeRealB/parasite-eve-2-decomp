@@ -81,7 +81,7 @@ default_body:
     work->field_2     = work->field_2 + 0xA;
     if (Gp_CountRec18Hi(recs, 0x10000) != 0) {
         SndEvt_EnqueueType6(0x40460007, (s8)Gp_GetObjPan(coord),
-                            (s8)Gp_GetObjDepth(coord));
+                            (s8)gpGetObjDepth(coord));
         if (child != NULL) {
             child->spawnArg1 = 3;
         }
@@ -89,7 +89,7 @@ default_body:
     }
     if (Gp_FindRec18(recs, 0) != 0) {
         SndEvt_EnqueueType6(0x40460007, (s8)Gp_GetObjPan(coord),
-                            (s8)Gp_GetObjDepth(coord));
+                            (s8)gpGetObjDepth(coord));
         if (child != NULL) {
             if (hit->at10.normal.vy >= -0xC00) {
                 child->spawnArg1 = 3;

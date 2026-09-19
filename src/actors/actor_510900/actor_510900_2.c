@@ -127,7 +127,7 @@ void func_actor_510900_80135744(Actor510900* arg0)
                         sound = ((enemy->placeKey >> 12) << 8) | 0x40780005;
                     }
                     pan = (s8)Gp_GetObjPan((GsCOORDINATE2*)coord);
-                    SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GsCOORDINATE2*)coord));
+                    SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth((GsCOORDINATE2*)coord));
                 }
                 if (work->field_578 != 0) {
                     SndEvt_EnqueueType7(work->field_578, 0);

@@ -325,7 +325,7 @@ void func_actor_101500_8013291C(Actor101500* actor, s32 damage)
         work->field_378 = 1;
     }
     id = ((actor->field_20->placeKey >> 12) << 8) | 0x400F0004;
-    SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
+    SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
     if (enemy->hp <= (D_actor_101500_8013BDDC * 60) / 100) {
         work->field_358 = 2;
         if (work->field_35A != 5) {
