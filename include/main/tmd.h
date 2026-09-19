@@ -528,4 +528,23 @@ u32* gpStreamPrimGt4Base(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// page and CLUT offsets.
 u32* gpStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+/// Handler of a stream's layered pre-transformed textured-quad records (`0x4079`):
+/// each element contributes two quads to the buffer half's first region — the base
+/// the model is drawn from, and the semi-transparent layer drawn over it.
+///
+/// The `0x4000` bit is the whole of the difference between these records and
+/// `gpStreamPrimGt4PreXform`'s, which contribute the base quad alone. The base is
+/// textured as it is there, from the element's texture words with the model's
+/// texture page and CLUT added. The layer is the draw pass's to texture: the
+/// record's vertex commands write its coordinates there and give it texture
+/// coordinates derived from the vertices' normals, and the page it draws from is
+/// chosen from what those commands leave behind. Of the layer's own words this
+/// command sets only its page and CLUT, at a fixed pair (`0x3F`, `0x3C10`).
+///
+/// The opcode says the quad's vertices are already in screen space, so there is no
+/// transform or cull for this command to do. Where the layer is textured from the
+/// object's page and CLUT offsets instead, the walk takes the record's other
+/// handler.
+u32* gpStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 #endif // TMD_H

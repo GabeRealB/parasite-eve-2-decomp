@@ -281,6 +281,11 @@ transform-region ones fill the base alone and leave the layer to the transform
 pass, while the pre-transformed ones write a fixed page and CLUT into it
 (`gpStreamPrimGt3PreXformFixedLayer`).
 
+The pre-transformed pair (`0x39`, `0x79`) is the exception to *only* the second:
+those handlers fill the first slot's page and CLUT as well, with the fixed pair
+`0x3F`/`0x3C10` (`gpStreamPrimGt4PreXformLayer` is the `0x79` one). The base slot
+takes the same element words there as its unlayered handler does.
+
 **`0x8000` / `0x10000` / `0x20000` — the model brings its own transform
 routine.** These resolve to init handlers at `0x8013xxxx`, which is inside the
 **actor package overlay**, not main or gameplay:
