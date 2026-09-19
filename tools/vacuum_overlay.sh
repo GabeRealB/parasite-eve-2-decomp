@@ -384,9 +384,20 @@ printf '  %s\n' "${MATCHED[@]}" | tee -a "$LOG_FILE"
 
 carry_bookkeeping() {
     local files=() f added subject hard
-    for f in tools/difficult_functions DECOMPILATION_LEARNINGS.md; do
+    # Every document a session may edit that the per-function landing does not
+    # carry. These are merged three-way, so two sweeps editing the same file
+    # both land.
+    for f in tools/difficult_functions DECOMPILATION_LEARNINGS.md \
+             CODEGEN_MODEL.md COMPILER_ANALYSIS.md NAMING.md; do
         git -C "$WT" diff --quiet "$BASE" HEAD -- "$f" || files+=("$f")
     done
+    # Retained observations are deposited by hand and are frequently left
+    # uncommitted, so the history does not show them. Compare the trees.
+    if [[ -d "$WT/tools/compiler_evidence" ]] \
+       && ! diff -rq "$WT/tools/compiler_evidence" "$ROOT/tools/compiler_evidence" \
+            >/dev/null 2>&1; then
+        files+=(tools/compiler_evidence)
+    fi
     [[ ${#files[@]} -gt 0 ]] || return 0
     if ! orch merge-acquire --session "$SESSION" --pid $$ --wait "${VACUUM_MERGE_WAIT:-3600}" \
          >>"$LOG_FILE" 2>&1; then
@@ -401,6 +412,19 @@ sys.path.insert(0, str(root / "tools"))
 from land_overlay import merge_difficult, merge_sections
 for f in sys.argv[4:]:
     src, dst = wt / f, root / f
+    if src.is_dir():
+        # Retained observations, named for what they record. Two sweeps never
+        # write the same name, so there is nothing to merge: copy what trunk
+        # does not already have and leave the rest alone.
+        for item in sorted(src.rglob("*")):
+            if item.is_file():
+                target = dst / item.relative_to(src)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                if not target.exists() or target.read_bytes() != item.read_bytes():
+                    target.write_bytes(item.read_bytes())
+        continue
+    if not src.exists():
+        continue
     if f.endswith("difficult_functions"):
         # The same three-way merge land_overlay.py applies: keyed by name,
         # latest line wins, and a line this branch removed stays removed.
@@ -419,7 +443,9 @@ PYEOF
                 | awk '/^\+[^+]/{sub(/^\+/,""); print}' | paste -sd, | sed 's/,/, /g')
         subject="${added:+difficult: $added}"
         subject="${subject:-learnings: carried from $OVERLAY}"
-        if git -C "$ROOT" diff --quiet -- "${files[@]}"; then
+        git -C "$ROOT" add -- "${files[@]}" >>"$LOG_FILE" 2>&1 || true
+        if git -C "$ROOT" diff --cached --quiet -- "${files[@]}" \
+           && git -C "$ROOT" diff --quiet -- "${files[@]}"; then
             log "give-up bookkeeping already on trunk"
         elif git -C "$ROOT" commit -q -m "$subject" \
                  -m "Carried from $OVERLAY's sweep, which matched nothing." \
