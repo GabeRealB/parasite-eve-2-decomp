@@ -1441,7 +1441,199 @@ void func_actor_400500_80135EBC(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_801361EC);
+void func_actor_400500_801361EC(Task* arg0)
+{
+    Actor400500Matrix      rot;
+    MATRIX                 local;
+    Actor400500Matrix*     src;
+    MATRIX*                dst;
+    Actor400500Work*       work;
+    Actor400500Work*       workA;
+    Actor400500Work*       work2;
+    Actor400500Work*       work3;
+    Actor400500Work*       work4;
+    GsCOORDINATE2*         coord;
+    GsCOORDINATE2*         coords;
+    GsCOORDINATE2*         coords2;
+    Actor400500AnimStride* stride;
+    Actor400500ViewPos*    pos;
+    Actor400500ViewPos*    pos2;
+    Actor400500ViewPos*    pos3;
+    Actor400500ViewPos*    pos4;
+    s32                    flag;
+    s32                    flag2;
+    s32                    heading;
+    s32                    i;
+    s32                    tx;
+    s32                    a1c;
+
+    work    = (Actor400500Work*)arg0->work;
+    heading = (u16)work->field_94A & 0xFFF;
+    coord   = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    if (work->field_A4A != 0) {
+        work->field_A4A = 0;
+        func_actor_400500_8013DB64(arg0, 5);
+        flag = 1;
+    } else {
+        flag = 0;
+    }
+    if (flag == 0) {
+        workA = (Actor400500Work*)arg0->work;
+        if (workA->field_A49 != 0) {
+            workA->field_A49 = 0;
+            if (workA->field_A1E & 1) {
+                flag2 = 0;
+            } else {
+                func_actor_400500_8013DB64(arg0, 4);
+                flag2 = 1;
+            }
+        } else {
+            flag2 = 0;
+        }
+        if ((flag2 == 0) && ((func_actor_400500_80132D74(arg0) << 0x10) == 0)) {
+            work3            = (Actor400500Work*)arg0->work;
+            work3->field_A38 = 0;
+            work3->field_A3A = 0;
+            work4            = (Actor400500Work*)arg0->work;
+            work4->field_9F8 = 0x18;
+            work4->field_9FE = 2;
+            work4->field_9FA = 2;
+            work2            = (Actor400500Work*)arg0->work;
+            if (work2->field_9FA == 1) {
+                if ((s16)work2->field_9FC != work2->field_9FE) {
+                    work2->field_A00 = 0;
+                } else {
+                    work2->field_A00 = func_actor_400500_8013DD8C(arg0, work2->field_A00);
+                }
+                func_actor_400500_8013DCD4(arg0);
+                work2->field_9FA = 3;
+            } else if (work2->field_9FA == 2) {
+                func_actor_400500_8013DC4C(arg0);
+                work2->field_9FA = 3;
+                work2->field_A00 = 0;
+            } else if (work2->field_9FA == 3) {
+                work2->field_A00 = (u16)work2->field_A00 + 1;
+            }
+            i      = 1;
+            stride = (Actor400500AnimStride*)work2 + 1;
+            do {
+                stride->field_1D = (u8)work2->field_9F8;
+                Gp_AnimTickIndex(&work2->anim, i);
+                i++;
+                stride++;
+            } while (i < 0x12);
+            switch ((s16)((u16)work->field_A1A - 1)) {
+                case 3:
+                    if (heading != 0x400) {
+                        goto case3_ne;
+                    }
+                    work->field_A08 = 1;
+                    break;
+                case3_ne:
+                    work->field_A08 = 4;
+                    break;
+                case 0:
+                    if (work->field_9E0 >= 0) {
+                        goto case0_ge;
+                    }
+                    work->field_A08 = 3;
+                    break;
+                case0_ge:
+                    work->field_A08 = 1;
+                    break;
+                case 1:
+                    a1c = (s16)work->field_A1C;
+                    if ((a1c == 1) || (a1c == 4) || (a1c == 5)) {
+                        SOFT_BARRIER();
+                        work->field_A08 = 3;
+                    } else if ((a1c == 3) && (heading == 0) && (coord->coord.t[0] >= 0x4074)) {
+                        work->field_A08 = 6;
+                    } else if ((s16)work->field_A1C == 2) {
+                        if (coord->coord.t[2] < -0x209D) {
+                            goto a1c2_lt;
+                        }
+                        work->field_A08 = 6;
+                        break;
+                    a1c2_lt:
+                        work->field_A08 = 1;
+                        break;
+                    } else {
+                        work->field_A08 = 1;
+                    }
+                    break;
+                case 2:
+                    if (work->field_9E4 >= 0) {
+                        goto case2_ge;
+                    }
+                    work->field_A08 = 8;
+                    break;
+                case2_ge:
+                    work->field_A08 = 6;
+                    break;
+                case 5:
+                    if (heading != 0x800) {
+                        goto case5_ne;
+                    }
+                    work->field_A08 = 8;
+                    break;
+                case5_ne:
+                    work->field_A08 = 7;
+                    break;
+                default:
+                    tx                 = -0x3E8;
+                    coord->coord.t[0]  = tx;
+                    tx                 = -0xFA0;
+                    coord->coord.t[1]  = tx;
+                    tx                 = -0x2116;
+                    coord->coord.t[2]  = tx;
+                    tx                 = 0x400;
+                    work->field_94A    = tx;
+                    tx                 = 0x800;
+                    work->field_94C    = tx;
+                    tx                 = 0x1000;
+                    src                = &rot;
+                    work->field_948    = 0;
+                    work->field_A1E    = 0;
+                    rot.ident.m00_m01  = tx;
+                    src->ident.m02_m10 = 0;
+                    src->ident.m11_m12 = tx;
+                    src->ident.m20_m21 = 0;
+                    src->ident.m22     = tx;
+                    RotMatrixZ(work->field_94C, &src->mat);
+                    func_8004BFF8(work->field_94A, &src->mat);
+                    dst          = &coord->coord;
+                    dst->m[0][0] = src->mat.m[0][0];
+                    dst->m[0][1] = src->mat.m[0][1];
+                    dst->m[0][2] = src->mat.m[0][2];
+                    dst->m[1][0] = src->mat.m[1][0];
+                    dst->m[1][1] = src->mat.m[1][1];
+                    dst->m[1][2] = src->mat.m[1][2];
+                    dst->m[2][0] = src->mat.m[2][0];
+                    dst->m[2][1] = src->mat.m[2][1];
+                    dst->m[2][2] = src->mat.m[2][2];
+                    pos2         = &work->field_9A0;
+                    coords       = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+                    Gp_UpdateCoord(&coords[11]);
+                    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords[11].workm, &local);
+                    pos    = pos2;
+                    pos->x = local.t[0];
+                    pos->z = local.t[2];
+                    SOFT_BARRIER();
+                    coords[11].flg  = 0;
+                    work->field_A08 = 1;
+                    break;
+            }
+            pos4    = &work->field_9A0;
+            coords2 = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+            Gp_UpdateCoord(&coords2[11]);
+            Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords2[11].workm, &local);
+            pos3            = pos4;
+            pos3->x         = local.t[0];
+            pos3->z         = local.t[2];
+            coords2[11].flg = 0;
+        }
+    }
+}
 
 void func_actor_400500_8013662C(Task* arg0)
 {

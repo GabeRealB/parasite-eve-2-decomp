@@ -131471,3 +131471,14 @@ compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 The for-loop port base_3 also matches. Integration required `rodata_head = "0x4"`
 to keep the overlay ID word ahead of the generated table; the unscoped build
 succeeded.
+
+
+### Literal stores need a common trailing store in the default arm too (func_actor_400500_801361EC, 2026-09-19)
+
+A switch result carried in `next` scored 99.007% (`regs=14 insert=1 delete=1`). The early jump pass hoisted result assignments into comparison blocks; local comparison temps occupied v0, so the global result hard-conflicted with v0 and received v1. Writing literal field stores in each arm avoids this overlap, but an earlier retry stopped at 91.227% because its default arm wrote the field **before** `coords[11].flg = 0`. The stores were not a common trailing operation.
+
+The successful planned edit uses literal `work->field_A08 = N` in every arm and places the default `work->field_A08 = 1` **after** `coords[11].flg = 0`. This reached 100% without pins. In `.lreg`, the comparison r148 and arm constants r149/r150 live in separate blocks; `.greg` assigns all three to v0. Fourteen A08 stores survive `.sched2`, then `.jump2` merges them into one (UID 708). `.dbr` places constant UID 327 after comparison branch UID 309 in its delay slot, allowing sequential v0 reuse. Removing the unused result declaration preserves 100%.
+
+When per-arm stores fix register allocation but fail to merge, inspect the final operation of **every** predecessor, including a long default arm. Do not conclude that literal stores are exhausted from the register improvement alone. The current result verifies both the v0 allocation and the late common-store merge; the old direct-store score is historical, not a current paired rebuild.
+
+Evidence: `nonmatchings/func_actor_400500_801361EC-vacuum/{LEARNINGS.md,experiments.jsonl,base_1.i.lreg,base_1.i.greg,base_1.i.jump2,base_1.i.dbr}`. Bundled compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; baseline input `1a9e00acf3c4f419befb0a0f60793afab3c01a3a862929e36db4c95ee250a2eb`; matching base_1 input `7562dc7dcad0f7246cb53606c7a330bf41b86931b255a6b815a6855b9c86d4ec`. The integrated base_2 passed the unscoped build-and-verify check.
