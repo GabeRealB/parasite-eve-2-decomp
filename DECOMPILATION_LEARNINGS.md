@@ -131325,3 +131325,46 @@ Allocation was a separate controlled prediction: global r83 (extra2) had 6 refer
 Full unscoped build verification passed. The ten-entry table also needed its normal `force_not_migration:True` symbol annotation for standalone INCLUDE_RODATA. No register pins or permuter discovery contributed.
 
 Evidence, source variants, plans, hashes and selected dump observations: `tools/compiler_evidence/2026-09-19-actor400500-a700.json`; complete session scratch `nonmatchings/func_actor_400500_8013A700-vacuum/LEARNINGS.md`. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; preprocessed base_2 `ffb2312bebfa504aaab5d193d15c6962f4d16af2b03a1a4d0ec3c6b203750f17`, base_3 `608d2b9cd82d808ad9bb79e810d400b3336dc5058949b596133c688279ea95e9`.
+
+
+## Constant lifetime and load-delay order need separate constraints (actor_400500 beam, 2026-09-19)
+
+`func_actor_400500_80132628` reached 100% without register pins after its
+99.052% retry seed. The permuter hoisted `0xCF` into an `s32` temporary before
+a memory barrier: a controlled normal-header replay reproduced distance
+275 → 120. This extended the constant's local interval and changed its home
+from v0 to v1. UV store grouping changed in sched2 through hard-register
+output/anti dependencies; attributing the entire grouping to sched1 missed
+that allocation step.
+
+Transferring the long interval to `0xF7`, with V0/V1 before V2/V3 in source,
+produced the desired homes: V0/CF in v0, F7 in v1, C0 in a0, screen3 in a1.
+Only adjacent `li F7; lw screen3` remained reversed. The trace explains why
+moving equal-priority statements alone would not fix that pair: both definitions
+became ready after the same barrier, with zero actual hazard, but the load had
+potential-hazard weight 6217728 against the constant's zero. Both schedulers
+selected the load first in their backward schedules.
+
+The controlled fix put `texU1 = 0xF7` between two named memory barriers, after
+the screen3 read and before all UV stores. The trace observes backward order
+second barrier → F7 definition → first barrier → screen3 load in both passes.
+The load is not ready when F7 is selected. Separately, actual local quantities
+retain the needed homes: V0 3 refs/12 half-insns → v0, F7 3/20 → v1,
+C0 3/26 → a0, screen3 2/26 → a1. This checks the scheduling intervention and
+the allocation property it must preserve independently. Barrier minimality
+was not investigated; the result does not imply the original source used them.
+
+The remaining distance 10 was a relocation spelling: `gGfxViewCoord + 0x24`
+versus `Gfx_ViewWorldMtx`, known aliases in actors.imports.txt. Using the already
+matched sibling's matrix/containing-coordinate spelling reached all-zero
+penalties. The normal source port passed unscoped `build-and-verify.sh`.
+
+Evidence: scratch `nonmatchings/func_actor_400500_80132628-vacuum`, controlled
+sources base_1 through base_5, PERMUTER_ANALYSIS.md, and retained run
+`a6a9cc859a5841b8` with `analysis/base_2` and `analysis/base_3`. Immutable local
+snapshots live under `tools/permuter_findings/func_actor_400500_80132628/`.
+Both traces verified identical ordinary/traced assembly. Compiler SHA256:
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Preprocessed input hashes: base_2
+`63c6e52cc614cebaa75fa9a61afcaf0778bdbec3d6d9b28cdd52d70b8c7eebc6`,
+base_3 `a6b966ea24de7ddd6175c1f9caecc27997897953b7a1b75042eef17f7044195e`.

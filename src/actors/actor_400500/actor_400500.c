@@ -1,6 +1,7 @@
 #include "common.h"
 #include "psyq/inline_c.h"
 
+#include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -45,7 +46,6 @@ extern u8         D_actor_400500_80153DD4[];
 extern s32        Gp_LcgState;
 
 void func_8009EA50(s32 arg0);
-void func_actor_400500_80132628(Task* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 s32  func_actor_400500_80132D74(Task* arg0);
 s32  func_actor_400500_80133160(Task* arg0);
 s32  func_actor_400500_80133358(Task* arg0);
@@ -273,7 +273,122 @@ void func_actor_400500_80132438(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_80132628);
+void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, s32 shade)
+{
+    MATRIX         firstMatrix;
+    MATRIX         secondMatrix;
+    SVECTOR        first;
+    SVECTOR        second;
+    SVECTOR        corner0;
+    SVECTOR        corner1;
+    SVECTOR        corner2;
+    SVECTOR        corner3;
+    s32            screen0;
+    s32            screen1;
+    s32            screen2;
+    s32            screen3;
+    s32            perspective;
+    s32            texU1;
+    s32            flags;
+    s16            angle;
+    GsCOORDINATE2* secondCoord;
+    GsCOORDINATE2* firstCoord;
+    s32            offset0;
+    s32            offset1;
+    s32            offset2;
+    s32            offset3;
+    s32            halfX;
+    s32            halfZ;
+    s32            depth;
+    GsCOORDINATE2* coords;
+    GsCOORDINATE2* viewCoord;
+    POLY_FT4*      poly;
+    u8             room;
+    u8             col;
+    u8             texU0;
+    u8             texV0;
+    s32            x3val;
+
+    col         = shade;
+    coords      = ((TmdObject*)task->extra)->coords;
+    firstCoord  = coords + firstJoint;
+    secondCoord = coords + secondJoint;
+    if (firstJoint != secondJoint) {
+        Gp_UpdateCoord(firstCoord);
+        Gp_UpdateCoord(secondCoord);
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &firstCoord->workm, &firstMatrix);
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &secondCoord->workm, &secondMatrix);
+        first.vy       = (s16)height;
+        second.vy      = (s16)height;
+        first.vx       = firstMatrix.t[0];
+        first.vz       = firstMatrix.t[2];
+        second.vx      = secondMatrix.t[0];
+        second.vz      = secondMatrix.t[2];
+        angle          = ratan2((s16)secondMatrix.t[0] - (s16)firstMatrix.t[0], (s16)secondMatrix.t[2] - (s16)firstMatrix.t[2]);
+        halfX          = (first.vx - second.vx) / 2;
+        halfZ          = (first.vz - second.vz) / 2;
+        offset0        = rcos(angle) * width;
+        corner0.vy     = (s16)height;
+        corner0.vx     = halfX + (first.vx - (offset0 >> 0xC));
+        corner0.vz     = halfZ + (first.vz + ((s32)(rsin(angle) * width) >> 0xC));
+        offset1        = rcos(angle) * width;
+        corner1.vy     = (s16)height;
+        corner1.vx     = halfX + (first.vx + (offset1 >> 0xC));
+        corner1.vz     = halfZ + (first.vz - ((s32)(rsin(angle) * width) >> 0xC));
+        offset2        = rcos(angle) * width;
+        corner2.vy     = (s16)height;
+        corner2.vx     = (second.vx - (offset2 >> 0xC)) - halfX;
+        corner2.vz     = (second.vz + ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
+        offset3        = rcos(angle) * width;
+        corner3.vy     = (s16)height;
+        corner3.vx     = (second.vx + (offset3 >> 0xC)) - halfX;
+        corner3.vz     = (second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
+        viewCoord      = (GsCOORDINATE2*)((u8*)&Gfx_ViewWorldMtx - OFFSET_OF(GsCOORDINATE2, workm));
+        viewCoord->flg = 0;
+        Gp_UpdateCoord(viewCoord);
+        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+        depth = RotTransPers4(&corner0, &corner1, &corner2, &corner3, &screen0, &screen1, &screen2, &screen3,
+                              &perspective, &flags);
+        if (flags >= 0) {
+            poly           = (POLY_FT4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)((u8*)poly + sizeof(POLY_FT4));
+            setlen(poly, 9);
+            poly->code       = 0x2E;
+            texU0            = 0xC0;
+            texV0            = 0x98;
+            *(s32*)&poly->x0 = screen0;
+            *(s32*)&poly->x1 = screen1;
+            poly->tpage      = 0x48;
+            *(s32*)&poly->x2 = screen2;
+            x3val            = screen3;
+            SOFT_COMPILER_BARRIER();
+            texU1 = 0xF7;
+            SOFT_COMPILER_BARRIER();
+            poly->v0         = texV0;
+            poly->v1         = texV0;
+            poly->v2         = 0xCF;
+            poly->v3         = 0xCF;
+            poly->u0         = texU0;
+            poly->u1         = texU1;
+            poly->u2         = texU0;
+            poly->u3         = texU1;
+            *(s32*)&poly->x3 = x3val;
+            poly->clut       = 0x4283;
+            room             = gGameSession->at4.loc.room;
+            if ((room == 1) || (room == 3) || (room == 5) || (room == 6)) {
+                poly->r0 = col;
+                poly->g0 = col;
+                poly->b0 = col;
+            } else {
+                poly->r0 = shade;
+                poly->g0 = col >> 1;
+                poly->b0 = shade;
+            }
+            addPrim((u32*)((((u32)(depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), poly);
+        }
+    }
+}
 
 void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2)
 {
