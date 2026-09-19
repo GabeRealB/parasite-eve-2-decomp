@@ -33227,7 +33227,7 @@ is `<= 0`; `if (opz > 0) goto draw;` then `if (opz < 0) { draw: ... }`
 emits `bgtz` to the SZ/OT body and `bgez` over it. Pin `opz` to `$t1`
 and `mask` to `$t2` (swapped vs the F3 handler). Do not name the SZ3
 load `gte_ldsz3` — PsyQ already uses that for the 3-arg SZ1/SZ2/SZ3
-macro. `func_80099994` is the example.
+macro. `gpDrawStreamPrimF4PreXform` is the example.
 
 ## Delay-slot copy plus in-`if` `asm("" : "+r"(n))` so `i = n` is not CSE'd
 
@@ -35080,7 +35080,7 @@ same `$t8` temp; `xy = poly + 1` so first-packet `x0`/`x1`/`x2` are
 
 ## Dual-packet GT4 = F4 nclip-goto + paired GT3 OT link
 
-`func_8009A57C` stacks `func_80099994`'s four-vertex nclip with
+`func_8009A57C` stacks `gpDrawStreamPrimF4PreXform`'s four-vertex nclip with
 `func_8009A348`'s dual-packet OT insert:
 
 ```c
@@ -133017,3 +133017,21 @@ lights three corners into it (`gte_stsxy3_g3`) stamps `0x30`; `setlen(poly, 5)`
 is a `POLY_F4`'s 24 bytes and the one that writes a single colour into it stamps
 `0x28`. The same reading puts `0x34` on the 40-byte textured gouraud triangle and
 `0x3C`/`0x3E` on the textured gouraud quads.
+## A handler's `move a1, a0` at entry is not evidence of a source-level local
+
+The overlay's stream handlers open with the frame pointer copied out of the
+argument register — `addu $a1, $a0, $zero`, which is what a body carrying the
+m2c `TmdScratchModelBlock* ws; ... ws = arg0;` pair compiles to. The instruction
+does not date from that local, and naming the parameter does not disturb it: it
+is where the allocator moves a parameter whose own register is reused inside the
+body. `gpDrawStreamPrimF4PreXform` is the case in point — `$a0` becomes the
+screen-Z table's base inside the loop (`lw $a0, 0x10($a1)`), so the frame has to
+live elsewhere whatever the source calls it, and deleting the local (which naming
+the parameter to `ws` forces, the two spellings would shadow) leaves the copy and
+every other instruction in place.
+
+So read the copy against the parameter's register before treating it as the
+source-level knob the entry above describes: a body that reloads `$a0` with a
+table base, a count or a pointer keeps its copy either way, and its parameter can
+be named. Bodies that leave `$a0` alone are the ones where adding or removing the
+local moves the allocation, and there the copy is load-bearing.

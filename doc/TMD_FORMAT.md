@@ -487,10 +487,11 @@ and `0x08` texturing, `0x04` flat vs gouraud primitive, `0x02` semi-transparent,
 ### 5.1 Draw families
 
 Every family the per-frame switch dispatches to, with the primitive it builds
-and where its texture coordinates come from. Read out of the **draw** handlers,
-which are decompiled in `src/gameplay/gameplay.c` — `tmdProcessStream` calls
-them by address, and main resolves those to gameplay through
-`configs/USA/sym.main.imports.txt`, which is why they are easy to miss.
+and where its texture coordinates come from. Read out of the handlers: some of
+the bodies are the early image's own, the rest are decompiled in
+`src/gameplay/gameplay.c`, and the early image resolves those by absolute
+address through `configs/USA/sym.main.imports.txt` — which is why they are easy
+to miss.
 
 "Refs" is what precedes the UV words: the ref block — `nv` vertex offsets then
 `nn` normal offsets, packed two per word — plus, in the families that light from

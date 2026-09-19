@@ -307,7 +307,8 @@ u32* Tmd_StreamHandler_Prim3A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// to.
 u32* tmdDrawStreamPrimG4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
-// Early-image draw handlers in Tmd_StreamHandlers_Ops.s, one per record family:
+// Draw-pass handlers, one per record family: the early image's in
+// Tmd_StreamHandlers_Ops.s, the gameplay overlay's in that overlay's own units.
 // `Tmd_InitSourceStream` patches each into a model's stream for the opcodes it
 // answers to, and the draw walk jalrs it. Each is named for the opcode it serves
 // or for the command it serves where that has been read.
@@ -544,6 +545,27 @@ u32* tmdDrawStreamPrimGt4PreXformSemiTrans(TmdScratchModelBlock* ws, s32 flags, 
 /// drawing object's flags ask for the blended form, and stamps the opaque `0x3C`
 /// where they do not.
 u32* tmdDrawStreamPrimGt4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Draw handler of a stream's pre-transformed flat-quad records (`0x45`): each
+/// element contributes one untextured quad whose corners are already in screen
+/// space, and links its packet into the ordering table at the depth those corners
+/// measured.
+///
+/// Nothing is projected or lit here. A transform record has already written the
+/// element's projected corners into the packet this command files, and their
+/// depths into the per-vertex screen-Z cache, which is why the element names its
+/// corners in that cache rather than in the vertex array. What is left is what a
+/// transform cannot settle: whether the quad survives its facing tests — one per
+/// half the diagonal cuts it into, both taken from the coordinates the packet
+/// already carries — which ordering-table slot the corners' average depth puts it
+/// in, and the packet's link word. An element whose cached depth carries the
+/// transform's error mark, or whose quad the facing tests reject, is passed over
+/// — its packet slot is stepped over either way, which is what keeps the packets
+/// in step with the elements that named them.
+///
+/// The record's other half is the build pass's command (`gpStreamPrimF4PreXform`),
+/// which laid the packet out and gave it its length, its primitive code and the
+/// element's colour; this command writes none of the three.
+u32* gpDrawStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// Handler of a stream's untextured gouraud-triangle records (`0x0`): each
 /// element is one `POLY_G3` in the buffer half's second region, built whole here
 /// as the record is transformed.
@@ -716,7 +738,8 @@ u32* gpStreamPrimGt4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// Only the packet's fixed fields are written here — its length, its primitive
 /// code and the element's colour. A pre-transformed quad's vertices come from the
 /// stream's vertex commands, and the draw pass culls the quad and links it into
-/// the order table, so neither is this command's work.
+/// the order table (`gpDrawStreamPrimF4PreXform`), so neither is this command's
+/// work.
 u32* gpStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's pre-transformed flat-triangle records (`0x5`): each

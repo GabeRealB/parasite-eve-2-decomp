@@ -1400,22 +1400,20 @@ void Gp_DrawDisp2dOt(void)
     Gp_DrawActorTmdActive(&Gpu_OtBuffers[gDisplayState.drawBuffer]);
 }
 
-u32* func_80099994(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* gpDrawStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
-    TmdScratchModelBlock* ws;
-    POLY_F4*              poly;
-    register POLY_F4*     xy asm("a3");
-    s32*                  opz;
-    DisplayState*         ds;
-    u32                   mask;
-    register u32          maskHi asm("t4");
-    register u32          clipMask asm("t3");
-    u16*                  rec;
-    s32                   sz;
-    s32                   idx;
-    u8*                   szTable;
+    POLY_F4*          poly;
+    register POLY_F4* xy asm("a3");
+    s32*              opz;
+    DisplayState*     ds;
+    u32               mask;
+    register u32      maskHi asm("t4");
+    register u32      clipMask asm("t3");
+    u16*              rec;
+    s32               sz;
+    s32               idx;
+    u8*               szTable;
 
-    ws   = arg0;
     poly = (POLY_F4*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
         opz      = &ws->gteResult;
@@ -1425,7 +1423,7 @@ u32* func_80099994(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         maskHi   = 0xFF000000;
         xy       = (POLY_F4*)&poly->x3;
         do {
-            rec = (u16*)arg2;
+            rec = (u16*)stream;
             gte_ldsxy3_fifo_f4(xy);
             gte_nclip_real();
             gte_stopz(opz);
@@ -1468,11 +1466,11 @@ u32* func_80099994(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             }
             xy++;
             poly++;
-            arg2 += ws->elemStride;
+            stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
     }
     ws->preXformWrite = (u8*)poly;
-    return arg2;
+    return stream;
 }
 
 u32* func_80099B94(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
