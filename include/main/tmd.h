@@ -297,4 +297,15 @@ u32* gpStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// links it into the order table, so neither is this command's work.
 u32* gpStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+/// Handler of a stream's textured-triangle records (`0x38`, `0x3A`, `0x8038`,
+/// `0x10038`, `0x1003A`, `0x20038`): each element contributes one triangle to
+/// the buffer half's second region, with the element's texture words written into
+/// it.
+///
+/// The record is not pre-transformed, so its triangle is built in the region the
+/// draw pass transforms; this command writes only the polygon's `u`/`v` fields,
+/// and adds the model's texture page and CLUT to the primitive's own, which are
+/// stored relative to the model.
+u32* gpStreamPrimGt3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 #endif // TMD_H

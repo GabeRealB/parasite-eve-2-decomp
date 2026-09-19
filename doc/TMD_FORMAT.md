@@ -265,7 +265,7 @@ They are not one thing. Comparing each pair's draw handler shows three
 different mechanisms:
 
 **`0x4000` — two primitives per element.** `func_8009F670` (`0x4038`) is
-`func_8009ED90` (`0x38`) with an extra `poly++` before the UV writes, so the
+`gpStreamPrimGt3` (`0x38`) with an extra `poly++` before the UV writes, so the
 handler consumes two primitive slots per element and fills only the second.
 That is a layered draw — the same face emitted twice, presumably opaque plus a
 blended pass. Verified on all four pairs (`0x38`, `0x78`, `0x39`, `0x79`):
@@ -277,10 +277,10 @@ routine.** These resolve to init handlers at `0x8013xxxx`, which is inside the
 
 | Opcode | Init handler | Lives in | Draw family |
 |---|---|---|---|
-| `0x38` | `Tmd_StreamHandler_Op38` | main (hasm) | `D_8009ED90` |
-| `0x8038` | `D_80136224` | actor package | `D_8009ED90` |
-| `0x10038` | `D_8013700C` | actor package | `D_8009ED90` |
-| `0x20038` | `D_801379B4` | actor package | `D_8009ED90` |
+| `0x38` | `Tmd_StreamHandler_Op38` | main (hasm) | `gpStreamPrimGt3` |
+| `0x8038` | `D_80136224` | actor package | `gpStreamPrimGt3` |
+| `0x10038` | `D_8013700C` | actor package | `gpStreamPrimGt3` |
+| `0x20038` | `D_801379B4` | actor package | `gpStreamPrimGt3` |
 
 The draw family — and therefore the element layout — is identical to the base
 opcode. Only the transform/light routine changes, and it is supplied by the
@@ -458,8 +458,8 @@ and `0x08` texturing, `0x04` flat vs gouraud primitive, `0x02` semi-transparent,
 Every family the per-frame switch dispatches to, with the primitive it builds
 and where its texture coordinates come from. Read out of the **draw** handlers,
 which are decompiled in `src/gameplay/gameplay.c` — `Tmd_ProcessStream` calls
-them by address, and `tmd.c` declares them as `D_8009xxxx` while the overlay
-defines them as `func_8009xxxx`, which is why they are easy to miss.
+them by address, and main resolves those to gameplay through
+`configs/USA/sym.main.imports.txt`, which is why they are easy to miss.
 
 "Refs" is the ref block that precedes the UV words: `nv` vertex offsets then
 `nn` normal offsets, packed two per word. It is derived — the first UV word

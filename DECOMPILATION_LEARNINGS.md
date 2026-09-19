@@ -41192,10 +41192,11 @@ The rule already documented for overlay code calling main (`func_800CFD78` /
 
 Nothing was broken: each binary has its own symbol map, and main's references
 resolved through the generated `linkers/USA/undefined_syms_auto.main.txt`. That
-is exactly why it went unnoticed — and why it cost real time. Searching for
-`D_8009ED90` finds only main, searching for `func_8009ED90` finds only the
-overlay, so the TMD draw handlers read as "unmatched overlay assembly" for a
-whole investigation while being decompiled C the entire time.
+is exactly why it went unnoticed — and why it cost real time. Main's map held
+one spelling of a handler (`D_8009ED90`) and gameplay's another
+(`gpStreamPrimGt3`), so a search for either found only one of the two, and the
+TMD draw handlers read as "unmatched overlay assembly" for a whole investigation
+while being decompiled C the entire time.
 
 Two practical points when fixing one:
 
@@ -131201,3 +131202,24 @@ named rather than the twin's own label list. A draw handler can branch on its
 `flags` argument instead of on the opcode (`Tmd_StreamHandler_Op79` jumps into
 `Tmd_StreamHandler_Op7B` when `flags & 2`, which is the semi-transparent
 variant), and the process path may merge into one arm what the draw path splits.
+
+## A symbol another binary imports is cited in prose under the importer's name
+
+A symbol defined in one binary and imported by another lives in two symbol maps,
+and before the imports file tied them together the importer's map gave it a name
+of its own. splat derives that name from how the *referencing* binary sees the
+symbol, so a function reached through a pointer comes out `D_<address>` rather
+than as a name the defining overlay ever used. Notes and format docs written in
+that era cite the symbol under the importer's spelling.
+
+A later rename of the defining side does not reach those cites. `rename_item.py`
+rewrites the token it was asked about, plus the symbol maps with `--sidecars`,
+and the step's completeness check greps only `src` and `include`; prose keeps the
+importer's spelling, and a reader who follows it finds an address no source
+answers to.
+
+So when renaming a symbol another binary imports, sweep the address rather than
+the name — `grep -rnw <address> .` matches every spelling the symbol has ever
+had — and read what each hit is: where it cites this symbol, rewrite it to the
+current name, and where the sentence is *about* the split itself, name both
+spellings so the narrative still reads true.
