@@ -20,7 +20,8 @@
  * Op60/Op40             untextured quad family
  * tmdDrawStreamGt3SemiTrans/tmdDrawStreamGt3  gouraud textured triangle (+ ABR)
  * Op7A/tmdDrawStreamGt4  gouraud textured quad (+ ABR)
- * tmdDrawStreamPrimGt3PreXform/Op3B, Op79/Op7B  pre-transformed textured gouraud (+ ABR) tri/quad
+ * tmdDrawStreamPrimGt3PreXform/tmdDrawStreamPrimGt3PreXformSemiTrans,
+ * Op79/Op7B              pre-transformed textured gouraud (+ ABR) tri/quad
  * 0x18/0x1A, 0x58/0x5A  one-normal textured tri/quad (+ ABR), fixed colour
  * OpC0/tmdXformStreamVerts  stream transform helpers
  * Op130                 extended 0x30-family path
@@ -674,7 +675,7 @@ glabel tmdXformStreamVerts
   .L800113AC:
     /* 1BAC 800113AC */  jr          $ra
     /* 1BB0 800113B0 */  nop
-alabel Tmd_StreamHandler_Op3B
+alabel tmdDrawStreamPrimGt3PreXformSemiTrans
     /* 1BB4 800113B4 */  lw          $t9, 0x18($a0)
   .L800113B8:
     /* 1BB8 800113B8 */  lw          $a3, 0x1C($a0)
@@ -691,7 +692,7 @@ alabel Tmd_StreamHandler_Op3B
     /* 1BE4 800113E4 */  nop
 glabel tmdDrawStreamPrimGt3PreXform
     /* 1BE8 800113E8 */  andi        $t0, $a1, 0x2
-    /* 1BEC 800113EC */  bnez        $t0, Tmd_StreamHandler_Op3B
+    /* 1BEC 800113EC */  bnez        $t0, tmdDrawStreamPrimGt3PreXformSemiTrans
     /* 1BF0 800113F0 */  nop
     /* 1BF4 800113F4 */  lw          $t9, 0x18($a0)
     /* 1BF8 800113F8 */  lw          $a3, 0x1C($a0)

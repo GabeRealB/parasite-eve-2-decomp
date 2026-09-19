@@ -356,7 +356,26 @@ u32* tmdDrawStreamGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// its sign bit set, which is how those commands know the primitive cannot be
 /// drawn. The record has no variant for `flags` to select, so it goes unread.
 u32* tmdXformStreamVerts(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_Op3B(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// The draw pass's handler for a stream's pre-transformed textured-triangle
+/// records that ask for the semi-transparent primitive (`0x3B`): each element's
+/// triangle is linked into the ordering table under the blended primitive code,
+/// at the depth its three corners average to.
+///
+/// The record is the opaque `0x39` one with the semi-transparency bit set, and
+/// its packet was built by the other pass over the same stream, so nothing here
+/// transforms or lights: the corners are in the packet already, put there by the
+/// model's transform records (`0xC8`) together with the colours they are lit
+/// from, and they go back into the GTE for the facing test alone. The element's
+/// refs are read as the depth cache those records fill, where a vertex whose
+/// projection failed is stored with its sign bit set, so a triangle that names
+/// one of those, or that faces away, is not linked.
+///
+/// This entry is the same body as `tmdDrawStreamPrimGt3PreXform`, reached
+/// directly: the record asks for the blended form by its opcode alone, where
+/// that entry picks it from the drawing object's flags. Both read `flags` for
+/// one thing besides — the bit a model drawn as a reflection sets, which sends
+/// the facing test the other way round.
+u32* tmdDrawStreamPrimGt3PreXformSemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// Draw-pass handler of a stream's pre-transformed gouraud textured-triangle
 /// records (`0x31`, `0x39`, `0x131`): each element contributes one triangle to
 /// the buffer half's first region, where its corners are already in screen space,
@@ -375,10 +394,9 @@ u32* Tmd_StreamHandler_Op3B(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// though its packet slot is passed over either way, so the primitives stay
 /// aligned with the elements that named them.
 ///
-/// The record's `0x3B` form is the same body reached with the semi-transparent
-/// primitive code; this entry is the one that picks it from `flags`. Those flags
-/// also choose the sense of the facing test, so with `0x10` set the triangles the
-/// other sense culls are the ones linked.
+/// This entry is the whole family's and is the one that chooses between the two
+/// primitive codes: it reaches `tmdDrawStreamPrimGt3PreXformSemiTrans` when the
+/// drawing object's flags ask for the blended form.
 u32* tmdDrawStreamPrimGt3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op7B(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op79(TmdScratchModelBlock* ws, s32 flags, u32* stream);

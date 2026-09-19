@@ -156,7 +156,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     handler = D_80136500;
                     break;
                 case 0x3B:
-                    handler = Tmd_StreamHandler_Op3B;
+                    handler = tmdDrawStreamPrimGt3PreXformSemiTrans;
                     break;
                 case 0x71:
                 case 0x79:
