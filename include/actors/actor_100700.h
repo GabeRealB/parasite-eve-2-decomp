@@ -74,10 +74,10 @@ typedef struct Actor00700Work {
     /* 0x2D8 */ s16                      field_2D8;
     /* 0x2DA */ s16                      field_2DA;
     /* 0x2DC */ s16                      field_2DC;
-    /* 0x2DE */ byte                     pad_2DE[2];
+    /* 0x2DE */ s16                      field_2DE;
     /* 0x2E0 */ s16                      field_2E0;
     /* 0x2E2 */ s16                      field_2E2;
-    /* 0x2E4 */ byte                     pad_2E4[2];
+    /* 0x2E4 */ s16                      field_2E4;
     /* 0x2E6 */ s16                      field_2E6;
     /* 0x2E8 */ byte                     pad_2E8[0x14];
     /* 0x2FC */ byte                     field_2FC[0x1E];
@@ -193,5 +193,8 @@ void Actor00700_Fn01830(Actor00700* arg0);
 void Actor00700_Fn0188C(Actor00700Ctx* arg0, Actor00700* arg1);
 void Actor00700_Fn01AB8(Actor00700* arg0);
 void Actor00700_Fn02290(Actor00700Ctx* arg0, Actor00700* arg1);
+void Actor00700_Fn02D28(Actor00700Ctx* arg0, Actor00700* arg1);
+void Actor00700_Fn0305C(Actor00700* arg0);
+void Actor00700_Fn03570(Actor00700* arg0);
 
 #endif

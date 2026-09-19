@@ -1393,7 +1393,90 @@ void Actor00700_Fn02A28(Actor00700* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100700_text", Actor00700_Fn02D28);
+void Actor00700_Fn02D28(Actor00700Ctx* arg0, Actor00700* arg1)
+{
+    Actor00700Work* work;
+    GsCOORDINATE2*  coord;
+    SVECTOR*        head;
+    SVECTOR*        rot;
+    s32             angle;
+    u32             rnd;
+    u32             seed;
+    s32             id;
+    s32             pan;
+
+    coord = arg1->field_2C->field_8;
+    work  = arg1->field_1C;
+    switch (D_801153F4) {
+        case 1:
+            break;
+        case 2:
+            arg1->field_2C->field_C = 0x80;
+            break;
+        case 0:
+        default:
+            head                   = *(SVECTOR**)0x1F8003FC;
+            rot                    = head - 1;
+            *(SVECTOR**)0x1F8003FC = rot;
+            switch (work->field_2DE) {
+                case 0:
+                    D_80115408              = 1;
+                    seed                    = Gp_LcgState * 5 + 0x71357911;
+                    rnd                     = seed >> 16;
+                    angle                   = rnd & 0xFF;
+                    arg1->field_2C->field_C = 2;
+                    Gp_LcgState             = seed;
+                    work->field_2E2         = 0x1000;
+                    work->field_22C.matrix  = coord->coord;
+                    if (!(rnd & 0x100)) {
+                        angle = -angle;
+                    }
+                    work->field_2E4                         = angle;
+                    arg0->field_54                          = 0;
+                    ((Actor00700SpawnWork*)work)->field_152 = ((Actor00700SpawnWork*)work)->field_152 & 0x7FFF;
+                    ((Actor00700SpawnWork*)work)->field_18A = ((Actor00700SpawnWork*)work)->field_18A & 0xBFFF;
+                    ((Actor00700SpawnWork*)work)->field_20A = ((Actor00700SpawnWork*)work)->field_20A | 0x8000;
+                    id                                      = ((arg0->field_8 >> 12) << 8) | 0x40070006;
+                    pan                                     = (s8)Gp_GetObjPan(coord);
+                    SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(coord));
+                    Gp_UnlinkNode(&arg0->node);
+                    Gp_ReleaseStateF0Add(arg1, 8);
+                    work->field_2E0 = 1;
+                    work->field_2DE = 1;
+                    break;
+                case 1:
+                    Actor00700_Fn03570(arg1);
+                    work->field_2DA = (work->field_2DA + work->field_2E4) & 0xFFF;
+                    work->field_2DC = (work->field_2DC + work->field_2E4) & 0xFFF;
+                    rot->vx         = work->field_2DA;
+                    rot->vy         = work->field_2DC;
+                    rot->vz         = 0;
+                    RotMatrix(rot, &coord->coord);
+                    work->field_22C.matrix.t[1] += 0x18;
+                    if ((s16)(work->field_2E0 / 3) < 8) {
+                        Actor00700_Fn0305C(arg1);
+                    } else {
+                        arg1->field_2C->field_C = 0x80;
+                    }
+                    work->field_2E0++;
+                    if (work->field_2E0 >= 0x1E) {
+                        Gp_UnlinkObj(&((Actor00700SpawnWork*)work)->field_134);
+                        Gp_UnlinkObj(&((Actor00700SpawnWork*)work)->field_16C);
+                        Gp_UnlinkObj(&((Actor00700SpawnWork*)work)->field_1EC);
+                        work->field_2DE = 2;
+                    }
+                    break;
+                case 2:
+                    work->field_2E0--;
+                    if (work->field_2E0 <= 0) {
+                        Gp_DestroyEnemy(arg0, arg1);
+                    }
+                    break;
+            }
+            *(SVECTOR**)0x1F8003FC += 1;
+            break;
+    }
+}
 
 void Actor00700_Fn0305C(Actor00700* arg0)
 {
