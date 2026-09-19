@@ -132369,3 +132369,39 @@ for `NCCT`, where `Tmd_StreamHandler_Op78` (`0x78`, the same primitive) loads
 ref block from the first texture word — so its `0x30` and `0x70` rows read as if a
 gouraud primitive had five or six normals. Locating the texture words is still
 right; what the words between refs and texture hold is what the twin settles.
+## A model stream record's element layout is in its init twin
+
+The init twin settles more than the packet's type. It is also where the
+element's *layout* is legible, in the loads that feed the element's colour into
+the GTE: a lighting step reads its material colour with `lwc2 $6,
+<offset>($a2)` — GTE `RGB` — from a word of the element, and then stores the
+result into a corner colour of the packet it builds. How many of those loads an
+arm makes says how the element carries colour: one, and the element names a
+colour for the whole element; one per lighting step, and it names one per
+corner; none, because the entry loaded a constant with `mtc2 $6` instead, and
+the element names none.
+
+Their offsets are what a draw handler's UV indices are measured against, since
+the colour words sit between the element's refs and its UV words. The
+`0x170` family is the worked example: `Tmd_StreamHandler_Op170` loads four
+element words (`0x10`, `0x14`, `0x18`, `0x1C`) into `RGB`, one ahead of each
+corner's lighting step, and its draw handler reads the UV words at `stream[8]`
+where the families whose elements name no colour read them at `stream[3]` or
+`stream[4]`. The two arms agree, and so does the arithmetic — four ref words,
+then four colour words, then three UV words, which is the stride the data
+carries.
+
+A colour word is easy to mistake for a ref, because both are element words; what
+separates them is that a ref is dereferenced (`addu $t, $t5, $ref`) and a colour
+word is loaded. The traps are the ones below, and the format's own account of
+the bit is in `doc/TMD_FORMAT.md` §3.2.1.
+
+**The handler file's labels do not delimit the bodies.** The opcode entries are
+packed contiguously and several share one body with a stub apiece at the front:
+`alabel Tmd_StreamHandler_Op58` loads a colour constant and then jumps *forward*
+into `Op5A`'s body. Reading from one label to the next therefore attributes the
+following opcode family's instructions to the one being read — and those
+instructions can look like the answer, since a neighbouring family's colour load
+is exactly what is being looked for. Read each body to its `jr $ra` exits
+instead, and check that a candidate load falls inside the block the opcode's own
+refs end at before recording it.

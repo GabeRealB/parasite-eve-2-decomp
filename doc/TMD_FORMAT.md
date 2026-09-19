@@ -242,7 +242,7 @@ uses `$t6` for the vertex array; `Op39` uses `$t6` for the transform cache.
 | `0x01` | **pre-transformed** — refs index the `0xC8` cache | handler reads screen coords already in the primitive buffer and only culls; refs are word offsets into `ws->szTable`, so the index is `ref / 4` (100% valid across every model) |
 | `0x4000` | **two primitives per element** — a layered draw | §3.2.1 |
 | `0x8000` `0x10000` `0x20000` | **alternate transform routine, supplied by the model's own package** — layout unchanged | §3.2.1 |
-| `0x100` | shifts the ref block by 0, 2 or 3 words depending on family | §3.2.1 |
+| `0x100` | **a colour per corner** — the element names one for each, not one for the element | one word more per corner: +2 on a triangle, +3 on a quad, nothing on a family already carrying no colour | §3.2.1 |
 
 Reading `0x38` with this: `0x20` gouraud + `0x10`+`0x08` textured, no `0x40`,
 so a textured gouraud triangle — a `POLY_GT3`, which is exactly what the
@@ -289,11 +289,17 @@ package being drawn. That is why these bits never move the stride. What those
 routines actually do is out of reach: they live in overlays this project does
 not split.
 
-**`0x100` — shifts the ref block.** The UV words move later by a
-family-dependent amount: +2 words for `0x30`→`0x130`, +3 for `0x70`→`0x170`,
-and +0 for `0x31`→`0x131` and `0x71`→`0x171`. So it adds refs in some families
-and nothing in others. None of the shifted opcodes appears in any extracted
-model, so what the extra refs hold is unverified.
+**`0x100` — the element names a colour per corner.** The UV words move later by
+a family-dependent amount: +2 words for `0x30`→`0x130`, +3 for `0x70`→`0x170`,
+and +0 for `0x31`→`0x131` and `0x71`→`0x171`. What they move behind is the
+element's colour: a family clearing `0x08` carries its material colour in the
+element, and `0x100` makes that one word per corner instead of one for the
+element. The init handlers are where this shows — `Tmd_StreamHandler_Op130`
+loads three such words into the GTE colour register, one ahead of each corner's
+lighting step, and `Op170` loads four, each result stored into the matching
+corner colour of the `POLY_GT3`/`POLY_GT4` packet they build. The families that
+gain nothing are the pre-transformed ones (bit `0x01`), whose colours the `0xC8`
+pass writes into the primitive buffer, so their elements carry none to shift.
 
 ### 3.3 How arity was established
 
@@ -463,11 +469,13 @@ them by address, and main resolves those to gameplay through
 `configs/USA/sym.main.imports.txt`, which is why they are easy to miss.
 
 "Refs" is what precedes the UV words: the ref block — `nv` vertex offsets then
-`nn` normal offsets, packed two per word — and, in the families that light from
+`nn` normal offsets, packed two per word — plus, in the families that light from
 the element's own colour rather than from a constant, a colour word after it.
-Bit `0x08` is what decides which: a family without it carries the colour, and
-one with it is lit from a constant (§3.2). It is derived — the first UV word
-marks the end of the block — and it agrees with the 100% range-check in §3.1.
+Bit `0x08` is what decides which: a family clearing it carries the colour, and
+one setting it is lit from a constant (§3.2). The column counts that word with
+the normals, since what the UV offsets measure is the block. The block is
+derived — the first UV word marks its end — and it agrees with the 100%
+range-check in §3.1.
 
 | Base | Primitive | Corners | Refs | UV words | Opcodes | Elements |
 |---|---|---|---|---|---|---:|
@@ -545,9 +553,11 @@ What remains is narrower.
   (§3.2.1). The element layout is unaffected, so geometry decodes either way,
   but the shading those routines apply cannot be read without splitting the
   actor overlays.
-- **`0x100`'s extra refs.** It shifts the UV words later by 0, 2 or 3 words
-  depending on family (§3.2.1), so it adds refs — but no opcode carrying it
-  appears in any extracted model, so what they hold is unverified.
+- **The shifted families' records.** `0x100` adds the element's per-corner
+  colours (§3.2.1), which settles what the extra words are, but only one opcode
+  carrying it (`0x156`) occurs in the extracted models, at 16 elements. The
+  `0x130` and `0x170` layouts are read from the handlers alone, so their corner
+  colours have not been seen in data.
 - **Import.** Writing a stream back needs the `handler_slot` written as it
   appears on disc rather than as the runtime pointer, and the tpage/clut bias
   (§5.1) undone.

@@ -347,6 +347,8 @@ u32* gpStreamPrimGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's textured-quad records whose elements carry a colour
 /// (`0x70`): each element contributes one quad to the buffer half's second
+/// Handler of a stream's textured-quad records that carry a colour per corner
+/// (`0x170`): each element contributes one quad to the buffer half's second
 /// region, with the element's texture words written into it.
 ///
 /// The record is not pre-transformed, so its quad is built in the region the
@@ -361,5 +363,10 @@ u32* gpStreamPrimGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// colour. That is why the texture words are one word further into the element
 /// here.
 u32* gpStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// stored relative to the model. Ahead of its texture words the element names a
+/// colour for each of the quad's corners — the material the record's transform
+/// pass lights into the primitive's own corner colours — so the texture words
+/// sit further into the record than `gpStreamPrimGt4`'s do.
+u32* gpStreamPrimGt4CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 #endif // TMD_H
