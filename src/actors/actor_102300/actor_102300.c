@@ -202,14 +202,14 @@ void func_actor_102300_80131EA4(Actor102300* arg0)
                 }
                 func_800DA6E8(&enemy->node, damage, 0);
                 func_800E2C78((GpObj40*)enemy, work->field_4EC[i].key, damage, 0);
-                enemy->field_40 -= damage;
-                if (enemy->field_40 <= 0) {
+                enemy->hp -= damage;
+                if (enemy->hp <= 0) {
                     if (work->field_6B8 == 0) {
                         result = 5;
                     } else {
                         result = 6;
                     }
-                } else if (max = enemy->field_50->hpMax, enemy->field_40 < max / 4) {
+                } else if (max = enemy->param->hpMax, enemy->hp < max / 4) {
                     if (work->field_6B8 == 0) {
                         result = 3;
                     } else {
@@ -498,7 +498,7 @@ void func_actor_102300_80133C10(Actor102300* arg0)
             if (work->field_698 == 0xD) {
                 work->field_5E4.flags = (u16)(work->field_5E4.flags | 0x8000);
                 work->field_5E4.key   = Gp_PackPair(&D_actor_102300_801477E4, 1);
-                sound                 = D_actor_102300_80147918 | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+                sound                 = D_actor_102300_80147918 | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
                 pan                   = (s8)Gp_GetObjPan((GpObj38*)self);
                 SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)Gp_GetObjDepth((GpObj38*)self));
             }
@@ -576,7 +576,7 @@ void func_actor_102300_801340B0(Actor102300* arg0)
                 work->field_5E4.key   = Gp_PackPair(&D_actor_102300_801477E4, 0);
             }
             if (work->field_698 == (D_actor_102300_80135D64[work->field_694] + 0x21)) {
-                sound = D_actor_102300_80147918 | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+                sound = D_actor_102300_80147918 | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
                 pan   = (s8)Gp_GetObjPan((GpObj38*)self);
                 SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)Gp_GetObjDepth((GpObj38*)self));
             }
@@ -608,7 +608,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_102300/actor_102300", func_actor_102300_8
 /// table (entries 2 and 1) and points each one's model at the texture page and
 /// CLUT row its room's `GpCdRec10` names.
 ///
-/// `GpEnemy::field_4B` then picks how the enemy starts: 0 builds the full
+/// `GpEnemy::spawnState` then picks how the enemy starts: 0 builds the full
 /// object set -- the four `GpObj` nodes with their `GpRec18` tables, the voice
 /// cue looked up per room in `D_actor_102300_80147AA0`, and the coin-flip in
 /// `field_6C4` drawn from `Gp_LcgState` -- while 1 and 2 only prime the
@@ -674,7 +674,7 @@ void func_actor_102300_801346CC(GpEnemy* enemy, Actor102300* actor)
     eff        = Gp_SpawnEnemyFromTable(&D_actor_102300_80147AB8, 2, 0, enemy);
     sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
     model      = eff->task->extra;
-    idx        = enemy->field_8 >> 12;
+    idx        = enemy->placeKey >> 12;
     key.stage  = sessionKey->stage;
     key.area   = sessionKey->area;
     key.room   = sessionKey->room;
@@ -702,7 +702,7 @@ void func_actor_102300_801346CC(GpEnemy* enemy, Actor102300* actor)
     eff2        = Gp_SpawnEnemyFromTable(&D_actor_102300_80147AB8, 1, 0, enemy);
     sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
     model2      = eff2->task->extra;
-    idx2        = enemy->field_8 >> 12;
+    idx2        = enemy->placeKey >> 12;
     key.stage   = sessionKey2->stage;
     key.area    = sessionKey2->area;
     key.room    = sessionKey2->room;
@@ -722,7 +722,7 @@ void func_actor_102300_801346CC(GpEnemy* enemy, Actor102300* actor)
     }
 
     one  = 1;
-    kind = enemy->field_4B;
+    kind = enemy->spawnState;
     if (kind == one) {
         goto case1;
     }
@@ -743,23 +743,23 @@ case0:
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
     Gp_LinkNode(&enemy->node);
-    parts              = actor->field_2C->coords;
-    enemy->field_1C.vx = 0;
-    enemy->field_1C.vy = 0;
-    enemy->field_1C.vz = 0;
-    enemy->field_50    = &D_actor_102300_801477F8;
-    enemy->field_54    = (s32)work->field_4EC;
-    enemy->field_18    = &parts[3];
-    enemy->field_40    = D_actor_102300_801477F8.hpMax;
+    parts             = actor->field_2C->coords;
+    enemy->bodyPos.vx = 0;
+    enemy->bodyPos.vy = 0;
+    enemy->bodyPos.vz = 0;
+    enemy->param      = &D_actor_102300_801477F8;
+    enemy->recs       = work->field_4EC;
+    enemy->coord      = &parts[3];
+    enemy->hp         = D_actor_102300_801477F8.hpMax;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    work->field_6AC = ((GpAreaPlace*)enemy->field_3C)->field_2 & 1;
+    work->field_6AC = enemy->place->field_2 & 1;
     if (work->field_6AC == 0) {
         work->field_694 = one;
         work->field_6A6 = 0;
     } else {
         work->field_694 = 2;
         work->field_6A6 = one;
-        param           = ((GpAreaPlace*)enemy->field_3C)->field_1;
+        param           = enemy->place->field_1;
         work->field_6DA = param * 1000;
     }
 

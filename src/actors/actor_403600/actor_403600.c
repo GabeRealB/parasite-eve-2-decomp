@@ -2940,7 +2940,7 @@ u8* func_actor_403600_80138DCC(Actor403600* arg0)
 /// then linked on its 0x10 node and three `GpObj` nodes are linked with
 /// `Gp_LinkObj` (kinds 2 and 3) over the 0x508 / 0x588 / 0x5C0 records, each
 /// seeded through `Gp_InitRec18Table` from the 0x528 / 0x5A8 / 0x5F8 tables.
-/// `enemy->field_40` and `field_78A` take the `hpMax` of `D_actor_403600_80150EC8`
+/// `enemy->hp` and `field_78A` take the `hpMax` of `D_actor_403600_80150EC8`
 /// scaled by the spawn multiplier in `gGameSession`, slots 1..0x13 are reset,
 /// the model is faced along the world coordinate through `Gfx_MatrixCol2` /
 /// `ratan2` / `RotMatrix`, and the display task is spawned from
@@ -3006,15 +3006,15 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     enemy->field_48                    = 0;
     Gp_LinkNode(&enemy->node);
     enemy->node.flags                 = 1;
-    enemy->field_1C.vy                = -0x1F4;
+    enemy->bodyPos.vy                 = -0x1F4;
     gpSess                            = gGameSession;
-    enemy->field_18                   = (GsCOORDINATE2*)temp_s5;
-    enemy->field_1C.vx                = 0;
-    enemy->field_1C.vz                = 0;
-    enemy->field_50                   = &D_actor_403600_80150EC8;
-    enemy->field_54                   = (s32)(temp_v0 + 0x528);
+    enemy->coord                      = (GsCOORDINATE2*)temp_s5;
+    enemy->bodyPos.vx                 = 0;
+    enemy->bodyPos.vz                 = 0;
+    enemy->param                      = &D_actor_403600_80150EC8;
+    enemy->recs                       = (GpRec18*)(temp_v0 + 0x528);
     temp_a0_2                         = ACTOR_FIELD(&D_actor_403600_80150EC8, u16*, 4) + ((ACTOR_FIELD(gpSess, u16*, 0x12A) * 0x4B) / 100);
-    enemy->field_40                   = temp_a0_2;
+    enemy->hp                         = temp_a0_2;
     ACTOR_FIELD(temp_v0, s16*, 0x78A) = temp_a0_2;
     var_s0                            = 1;
     ACTOR_FIELD(temp_v0, s16*, 0x798) = (s16)((temp_a0_2 * 0x3C) / 100);
@@ -3193,21 +3193,21 @@ void func_actor_403600_8013955C(Actor403600* arg0)
     u8               temp_v1;
 
     temp_s0 = arg0->field_20;
-    temp_v1 = temp_s0->field_4C;
+    temp_v1 = temp_s0->reactionFlags;
     temp_s1 = arg0->field_1C;
     if (temp_v1 != 0) {
         if (temp_v1 & 1) {
-            temp_s0->field_4C  = temp_v1 & 0xFE;
-            temp_s1->field_730 = 2;
+            temp_s0->reactionFlags = temp_v1 & 0xFE;
+            temp_s1->field_730     = 2;
         }
-        if (temp_s0->field_4C & 2) {
-            temp_s0->field_4C &= 0xFD;
-            temp_s1->field_730 = 3;
-            temp_s1->field_736 = 0xE;
+        if (temp_s0->reactionFlags & 2) {
+            temp_s0->reactionFlags &= 0xFD;
+            temp_s1->field_730      = 3;
+            temp_s1->field_736      = 0xE;
             SOFT_BARRIER();
             temp_s1->field_790 = D_actor_403600_80150ED4 * 0x1E;
         }
-        if (temp_s0->field_4C & 0xC) {
+        if (temp_s0->reactionFlags & 0xC) {
             if (temp_s1->field_73E != 0x28) {
                 temp_ret = Gp_TickObjFlag4((GpObj5C*)temp_s0);
                 if (temp_ret != 0) {
@@ -3225,8 +3225,8 @@ void func_actor_403600_8013955C(Actor403600* arg0)
                     func_actor_403600_8013DAF4(arg0, temp_ret / 5);
                 }
             }
-            if ((Gp_ObjFlag4Expired((GpObj5C*)temp_s0) != 0) || (temp_s0->field_40 < 0x1F4)) {
-                temp_s0->field_4C &= 0xF3;
+            if ((Gp_ObjFlag4Expired((GpObj5C*)temp_s0) != 0) || (temp_s0->hp < 0x1F4)) {
+                temp_s0->reactionFlags &= 0xF3;
             }
         }
     }
@@ -4120,13 +4120,13 @@ void func_actor_403600_8013DAF4(Actor403600* arg0, s32 arg1)
     Actor403600*     temp_v0_2;
     Actor403600Work* temp_v0_3;
 
-    temp_s0           = arg0->field_20;
-    temp_s1           = arg0->field_1C;
-    temp_s0->field_40 = (u16)temp_s0->field_40 - arg1;
+    temp_s0     = arg0->field_20;
+    temp_s1     = arg0->field_1C;
+    temp_s0->hp = (u16)temp_s0->hp - arg1;
     func_800DA6E8(&temp_s0->node, arg1, 0);
-    if (temp_s0->field_40 <= 0) {
+    if (temp_s0->hp <= 0) {
         if (D_80073BA0 <= 0) {
-            temp_s0->field_40 = 0xA;
+            temp_s0->hp = 0xA;
             return;
         }
         temp_v0 = temp_s1->field_4B4;
@@ -4964,12 +4964,12 @@ void func_actor_403600_8013F0C0(Actor403600* arg0)
                 Gp_SpawnPadLerp(0xA, 0xFF, 0xFF);
                 D_actor_403600_801606A4.field_0 = 0x14;
                 D_actor_403600_801606A4.field_2 = 0;
-                temp_s2                         = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 6;
+                temp_s2                         = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 6;
                 temp_s0                         = (s8)Gp_GetObjPan((GpObj38*)temp_s4);
                 SndEvt_EnqueueType6(temp_s2, temp_s0,
                                     (s8)Gp_GetObjDepth((GpObj38*)temp_s4));
                 temp_s2 =
-                    (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x54160011;
+                    (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160011;
                 temp_s0_2 = (s8)Gp_GetObjPan((GpObj38*)temp_s4);
                 SndEvt_EnqueueType6(temp_s2, temp_s0_2,
                                     (s8)Gp_GetObjDepth((GpObj38*)temp_s4));
@@ -4998,7 +4998,7 @@ void func_actor_403600_8013F0C0(Actor403600* arg0)
             if ((temp_v1_2 != 0x3C) && (temp_v1_2 != 0x28) &&
                 ((s16)temp_s3->field_760 == 0xC)) {
                 temp_s2 =
-                    (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x54160012;
+                    (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160012;
                 temp_s0_3 = (s8)Gp_GetObjPan((GpObj38*)temp_s4);
                 SndEvt_EnqueueType6(temp_s2, temp_s0_3,
                                     (s8)Gp_GetObjDepth((GpObj38*)temp_s4));
@@ -5031,7 +5031,7 @@ void func_actor_403600_8013F0C0(Actor403600* arg0)
             if ((temp_v1_4 != 0x3C) && (temp_v1_4 != 0x28) &&
                 ((s16)temp_s3->field_760 == 0xC)) {
                 temp_s2 =
-                    (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x54160012;
+                    (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160012;
                 temp_s0_4 = (s8)Gp_GetObjPan((GpObj38*)temp_s4);
                 SndEvt_EnqueueType6(temp_s2, temp_s0_4,
                                     (s8)Gp_GetObjDepth((GpObj38*)temp_s4));
@@ -5536,7 +5536,7 @@ void func_actor_403600_801400BC(Actor403600* arg0)
             temp_s1->field_74A     = 0;
             if (temp_s1->field_73A == 0xE) {
                 temp_s0   = &temp_s1->field_4B8;
-                temp_s2   = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x5416000D;
+                temp_s2   = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x5416000D;
                 temp_s0_2 = (s8)Gp_GetObjPan(temp_s0);
                 temp_v0_2 = Gp_GetObjDepth(temp_s0);
                 SndEvt_EnqueueType6(temp_s2, temp_s0_2,
@@ -5572,7 +5572,7 @@ void func_actor_403600_801400BC(Actor403600* arg0)
             temp_s1->field_74A     = 0;
             if (temp_s1->field_73A == 9) {
                 temp_s0_3 = &temp_s1->field_4B8;
-                temp_s2   = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x5416000D;
+                temp_s2   = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x5416000D;
                 temp_s0_4 = (s8)Gp_GetObjPan(temp_s0_3);
                 temp_v0_3 = Gp_GetObjDepth(temp_s0_3);
                 SndEvt_EnqueueType6(temp_s2, temp_s0_4,
@@ -5679,7 +5679,7 @@ inner1:
     enemy                       = arg1->field_20;
     cleanupWork                 = arg1->field_1C;
     arg1->field_2C->coords->sub = &gGfxViewCoord;
-    enemy->field_54             = 0;
+    enemy->recs                 = 0;
     Gp_UnlinkNode(&enemy->node);
     Gp_UnlinkObj(&cleanupWork->field_508);
     Gp_UnlinkObj(&cleanupWork->field_588);

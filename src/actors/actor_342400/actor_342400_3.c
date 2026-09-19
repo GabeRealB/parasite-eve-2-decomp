@@ -55,12 +55,12 @@ void func_actor_342400_80163C58(Task* task)
     task->msgTable        = D_actor_342400_80173A3C;
     obj->lightMtx         = &w->lightMtx;
     obj->colorMtx         = &w->colorMtx;
-    e->field_50           = &D_actor_342400_80170588;
-    e->field_54           = (s32)w->rec_2EC;
+    e->param              = &D_actor_342400_80170588;
+    e->recs               = w->rec_2EC;
     w->eff_3FC.coord      = &((TmdObject*)task->extra)->coords[1];
     w->eff_3FC.spawnArgLo = 0x140;
     w->eff_3FC.spawnArgHi = 2;
-    e->field_40 = e->field_42 = D_actor_342400_80170588.hpMax;
+    e->hp = e->hpMax = D_actor_342400_80170588.hpMax;
     func_800B3F84(&w->anim, D_actor_342400_801739E8, obj, w->field_21C, &w->slot_B4);
     w2            = (Actor342400Work*)task->work;
     w2->field_41C = 0x10;
@@ -72,14 +72,14 @@ void func_actor_342400_80163C58(Task* task)
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     enemy       = task->spawnArg2;
     Gp_LinkNode(&enemy->node);
-    enemy->field_4     = &((TmdObject*)task->extra)->coords->coord;
-    enemy->field_48    = 0;
-    enemy->field_1C.vx = 0;
-    enemy->field_1C.vy = 0;
-    enemy->field_1C.vz = 0;
-    enemy->field_18    = &((TmdObject*)task->extra)->coords[1];
-    enemy->node.flags  = 4;
-    one                = 1;
+    enemy->field_4    = &((TmdObject*)task->extra)->coords->coord;
+    enemy->field_48   = 0;
+    enemy->bodyPos.vx = 0;
+    enemy->bodyPos.vy = 0;
+    enemy->bodyPos.vz = 0;
+    enemy->coord      = &((TmdObject*)task->extra)->coords[1];
+    enemy->node.flags = 4;
+    one               = 1;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     if ((task->spawnArg1 & 0xF) == one) {
         w3            = (Actor342400Work*)task->work;
@@ -151,12 +151,12 @@ void func_actor_342400_80163E70(Task* task)
     task->msgTable        = D_actor_342400_80173A3C;
     obj->lightMtx         = &w->lightMtx;
     obj->colorMtx         = &w->colorMtx;
-    e->field_50           = &D_actor_342400_80170588;
-    e->field_54           = (s32)w->rec_2EC;
+    e->param              = &D_actor_342400_80170588;
+    e->recs               = w->rec_2EC;
     w->eff_3FC.coord      = &((TmdObject*)task->extra)->coords[1];
     w->eff_3FC.spawnArgLo = 0x140;
     w->eff_3FC.spawnArgHi = two;
-    e->field_40 = e->field_42 = D_actor_342400_80170588.hpMax;
+    e->hp = e->hpMax = D_actor_342400_80170588.hpMax;
     func_800B3F84(&w->anim, D_actor_342400_801739E8, obj, w->field_21C, &w->slot_B4);
     w2            = (Actor342400Work*)task->work;
     w2->field_41C = 0x10;
@@ -171,10 +171,10 @@ void func_actor_342400_80163E70(Task* task)
     Gp_LinkNode(&e2->node);
     e2->field_4          = &((TmdObject*)task->extra)->coords->coord;
     e2->field_48         = 0;
-    e2->field_1C.vx      = 0;
-    e2->field_1C.vy      = 0;
-    e2->field_1C.vz      = 0;
-    e2->field_18         = &((TmdObject*)task->extra)->coords[1];
+    e2->bodyPos.vx       = 0;
+    e2->bodyPos.vy       = 0;
+    e2->bodyPos.vz       = 0;
+    e2->coord            = &((TmdObject*)task->extra)->coords[1];
     e2->node.flags       = 1;
     work->field_80       = root->coord.t[0];
     root->coord.t[1]    -= 0x3C;
@@ -317,10 +317,10 @@ void func_actor_342400_801640B0(Task* arg0)
             if (work->field_44A != 0) {
                 work->field_44A--;
             }
-            if (work->field_41E != 0 && work->field_448 == 4 && enemy->field_40 <= 0) {
+            if (work->field_41E != 0 && work->field_448 == 4 && enemy->hp <= 0) {
                 set_state(arg0, work->field_448);
             }
-            if (work->field_438 == 0 && enemy->field_40 <= 0) {
+            if (work->field_438 == 0 && enemy->hp <= 0) {
                 set_state(arg0, 4);
             } else if (work->field_44C == 4 && work->field_438 == 0) {
                 set_state(arg0, 8);

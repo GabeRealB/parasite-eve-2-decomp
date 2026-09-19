@@ -352,7 +352,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_105600/actor_105600_2", func_actor_105600
 /// Spawn handler of the approach cycle: allocates the 0x6E4-byte work block,
 /// binds the animation set and reseeds the nineteen slots, then starts the
 /// companion enemy whose model takes its texture page and CLUT row from the
-/// current room's area record. `GpEnemy::field_4B` picks how much of that is
+/// current room's area record. `GpEnemy::spawnState` picks how much of that is
 /// kept: 0 also links the list node, the five `Gp_LinkObj` collision nodes with
 /// their `GpRec18` tables and the room's streaming cue, while 1 and 2 only
 /// prime the animation state. The same body as `Actor02000_Fn0251C` of
@@ -410,7 +410,7 @@ void func_actor_105600_80135744(GpEnemy* ctx, Task* actor)
     eff        = Gp_SpawnEnemyFromTable(D_actor_105600_801482C0, 1, 0, ctx);
     sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
     model      = eff->task->extra;
-    idx        = ctx->field_8 >> 12;
+    idx        = ctx->placeKey >> 12;
     key.stage  = sessionKey->stage;
     key.area   = sessionKey->area;
     key.room   = sessionKey->room;
@@ -437,7 +437,7 @@ void func_actor_105600_80135744(GpEnemy* ctx, Task* actor)
     }
 
     one  = 1;
-    kind = ctx->field_4B;
+    kind = ctx->spawnState;
     if (kind == one) {
         goto case1;
     }
@@ -458,23 +458,23 @@ case0:
     ctx->field_4  = &coord->coord;
     ctx->field_48 = 0;
     Gp_LinkNode(&ctx->node);
-    parts            = ((TmdObject*)actor->extra)->coords;
-    ctx->field_1C.vx = 0;
-    ctx->field_1C.vy = 0;
-    ctx->field_1C.vz = 0;
-    ctx->field_50    = D_actor_105600_80147FF0;
-    ctx->field_54    = (s32)work->field_4EC;
-    ctx->field_18    = &parts[3];
-    ctx->field_40    = D_actor_105600_80147FF0->hpMax;
+    parts           = ((TmdObject*)actor->extra)->coords;
+    ctx->bodyPos.vx = 0;
+    ctx->bodyPos.vy = 0;
+    ctx->bodyPos.vz = 0;
+    ctx->param      = D_actor_105600_80147FF0;
+    ctx->recs       = work->field_4EC;
+    ctx->coord      = &parts[3];
+    ctx->hp         = D_actor_105600_80147FF0->hpMax;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    work->field_6AC = ((GpAreaPlace*)ctx->field_3C)->field_2 & 1;
+    work->field_6AC = ctx->place->field_2 & 1;
     if (work->field_6AC == 0) {
         work->field_694 = one;
         work->field_6A6 = 0;
     } else {
         work->field_694 = 2;
         work->field_6A6 = one;
-        param           = ((GpAreaPlace*)ctx->field_3C)->field_1;
+        param           = ctx->place->field_1;
         work->field_6DA = param * 1000;
     }
 
@@ -629,7 +629,7 @@ void func_actor_105600_80135CDC(GpEnemy* ctx, Task* actor)
             return;
     }
 
-    if (ctx->field_4C != 0) {
+    if (ctx->reactionFlags != 0) {
         spawn    = (Actor105600Ctx*)actor->spawnArg2;
         flags    = spawn->field_4C;
         flagWork = (Actor105600Work*)actor->work;

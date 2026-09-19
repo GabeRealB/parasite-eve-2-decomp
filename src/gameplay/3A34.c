@@ -2002,7 +2002,7 @@ case1: {
     return;
 
 case3:
-    if ((arg0->field_4E & 0x80) && (arg0->field_4B == 0)) {
+    if ((arg0->colorMode & 0x80) && (arg0->spawnState == 0)) {
         goto flicker;
     }
     arg1->m[0][0] = arg1->m[0][1] = arg1->m[0][2] = 0x180;
@@ -2011,7 +2011,7 @@ case3:
     return;
 
 case2:
-    if ((arg0->field_4E & 0x80) && (arg0->field_4B == 0)) {
+    if ((arg0->colorMode & 0x80) && (arg0->spawnState == 0)) {
         goto flicker;
     }
     arg1->m[0][0] = 0;
@@ -2026,7 +2026,7 @@ case2:
     return;
 
 def:
-    if ((arg0->field_4E & 0x80) && (arg0->field_4B == 0)) {
+    if ((arg0->colorMode & 0x80) && (arg0->spawnState == 0)) {
     flicker:
         val = rsin(gDisplayState.loopCount << 6) + 0x1800;
         if ((gDisplayState.loopCount & 1) == 0) {
@@ -2035,8 +2035,8 @@ def:
         arg1->m[0][0] = arg1->m[0][1] = arg1->m[0][2] = 0x200;
         arg1->m[1][0] = arg1->m[1][1] = arg1->m[1][2] = val;
         arg1->m[2][0] = arg1->m[2][1] = arg1->m[2][2] = 0x200;
-        arg0->field_4E                               &= 0x7F;
-    } else if (arg0->field_4C & 0xC) {
+        arg0->colorMode                              &= 0x7F;
+    } else if (arg0->reactionFlags & 0xC) {
         s32 t;
         for (i = 0; i < 3; i++) {
             t             = (arg1->m[0][i] * 7 + arg1->m[1][i] * 6 + arg1->m[2][i] * 3) / 33;
@@ -2064,7 +2064,7 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
 
     extra    = (TmdObject*)arg0->task->extra;
     colorMtx = extra->colorMtx;
-    mode     = arg0->field_4E & 3;
+    mode     = arg0->colorMode & 3;
     if ((!(extra->flags & 0x80) && (extra->buffer != NULL)) || (gGameSession->field_65 != 1)) {
         {
             void**                   scratch;
@@ -2077,7 +2077,7 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
             *scratch = tmp;
         }
         func_800D7A9C(extra, arg1, 0, 3);
-        if ((s8)arg0->field_4F <= 0) {
+        if ((s8)arg0->colorBlend <= 0) {
             Gp_RemapActorColor(arg0, colorMtx, mode);
         } else {
             block->mtx.m[0][0] = colorMtx->m[0][0];
@@ -2090,12 +2090,12 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
             block->mtx.m[2][1] = colorMtx->m[2][1];
             block->mtx.m[2][2] = colorMtx->m[2][2];
             Gp_RemapActorColor(arg0, colorMtx, mode);
-            Gp_RemapActorColor(arg0, &block->mtx, (arg0->field_4E >> 2) & 3);
+            Gp_RemapActorColor(arg0, &block->mtx, (arg0->colorMode >> 2) & 3);
             i    = 0;
             col0 = (SVECTOR*)(head - 0x10);
             col1 = (SVECTOR*)(head - 8);
             src  = (GpMtxCol*)colorMtx;
-            w0   = (s8)arg0->field_4F << 8;
+            w0   = (s8)arg0->colorBlend << 8;
             dst  = (GpMtxCol*)block;
             w1   = 0x1000 - w0;
             do {
@@ -2124,7 +2124,7 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
                 src    = (GpMtxCol*)&src->_0;
             } while (i < 3);
             if (Gp_StateF0.field_4 == 0) {
-                arg0->field_4F--;
+                arg0->colorBlend--;
             }
         }
         *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;
@@ -6839,7 +6839,7 @@ s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
         return 0;
     }
 
-    base = (arg0->field_50->critChance << 12) / 100;
+    base = (arg0->param->critChance << 12) / 100;
     if (base == 0) {
         return 0;
     }
@@ -6848,20 +6848,20 @@ s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
     head     = *scratch;
     blk      = (GpDistScratch*)(head - 0x20);
     *scratch = blk;
-    Gp_UpdateCoord(arg0->field_18);
+    Gp_UpdateCoord(arg0->coord);
 
-    ((VECTOR3*)(head - 0x20))->vx = arg0->field_1C.vx;
-    blk->local.vy                 = arg0->field_1C.vy;
-    blk->local.vz                 = arg0->field_1C.vz;
+    ((VECTOR3*)(head - 0x20))->vx = arg0->bodyPos.vx;
+    blk->local.vy                 = arg0->bodyPos.vy;
+    blk->local.vz                 = arg0->bodyPos.vz;
 
-    gte_SetRotMatrix(&arg0->field_18->workm);
+    gte_SetRotMatrix(&arg0->coord->workm);
     gte_ldv0(&blk->local);
     gte_rtv0_real();
     gte_stlvnl(head - 0x10);
 
-    blk->world.vx = arg0->field_18->workm.t[0] + blk->world.vx;
-    blk->world.vy = arg0->field_18->workm.t[1] + blk->world.vy;
-    blk->world.vz = arg0->field_18->workm.t[2] + blk->world.vz;
+    blk->world.vx = arg0->coord->workm.t[0] + blk->world.vx;
+    blk->world.vy = arg0->coord->workm.t[1] + blk->world.vy;
+    blk->world.vz = arg0->coord->workm.t[2] + blk->world.vz;
 
     pcoord                        = (GsCOORDINATE2*)slot->extra->coords;
     ((VECTOR3*)(head - 0x20))->vx = blk->world.vx - pcoord->workm.t[0];
@@ -6888,7 +6888,7 @@ s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
     }
 
     chance = (((D_80113568[kind][col] << 12) / 100) * base >> 12) * val >> 12;
-    if ((arg0->field_4C & 2) != 0) {
+    if ((arg0->reactionFlags & 2) != 0) {
         chance <<= 1;
     }
 

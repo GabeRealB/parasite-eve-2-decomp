@@ -63,15 +63,15 @@ void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18    = coord;
-    arg0->node.flags  = 0;
-    arg0->field_1C.vx = 0;
-    arg0->field_1C.vy = 0;
-    arg0->field_1C.vz = 0;
-    arg0->field_50    = &D_actor_207200_8014E7D4;
-    arg0->field_54    = (s32)work->rec3;
-    arg0->field_40    = (u16)D_actor_207200_8014E7D4.hpMax;
-    work->field_44E   = ((GpCoordPose*)coord)->field_46;
+    arg0->coord      = coord;
+    arg0->node.flags = 0;
+    arg0->bodyPos.vx = 0;
+    arg0->bodyPos.vy = 0;
+    arg0->bodyPos.vz = 0;
+    arg0->param      = &D_actor_207200_8014E7D4;
+    arg0->recs       = work->rec3;
+    arg0->hp         = (u16)D_actor_207200_8014E7D4.hpMax;
+    work->field_44E  = ((GpCoordPose*)coord)->field_46;
     func_800B3F84((GpAnimCtx*)work, &D_actor_207200_80153ED4, obj,
                   work->field_12C, (GpAnimSlot*)work->field_14);
     for (i = 1; i < 7; i++) {
@@ -541,7 +541,7 @@ void func_actor_207200_8014BEF4(Task* arg0)
                     func_800DA6E8(&enemy->node, 0, 0);
                 }
                 if (work->field_486 == 0) {
-                    snd = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 12) << 8) | 0x40480006;
+                    snd = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x40480006;
                     SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
                     work->field_48C = 5;
                     work->field_490 = 0;
@@ -787,7 +787,7 @@ void func_actor_207200_8014CA84(GpEnemy* arg0, Actor207200* arg1)
                     work->field_48A = 0;
                     work->field_49C = 0x1000;
                     work->field_464 = coord->coord;
-                    arg0->field_54  = 0;
+                    arg0->recs      = 0;
                     Gp_UnlinkNode(&arg0->node);
                     Gp_UnlinkObj(&work->field_1DC.obj);
                     Gp_UnlinkObj(&work->field_214.obj);

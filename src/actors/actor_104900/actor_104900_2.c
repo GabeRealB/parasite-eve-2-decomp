@@ -12,7 +12,7 @@ s32  func_actor_104900_80132D78(GpEnemy*, Task*, ActorsShared80138efcWork*, void
 
 /// Points the enemy's link transform at the model's fourth part coordinate -
 /// the same `TmdObject::coords[3]` that `Gp_UpdateLinkXforms` reads back
-/// through `GpEnemy.field_18` - and arms the 0xC8-box local offset the actor
+/// through `GpEnemy.coord` - and arms the 0xC8-box local offset the actor
 /// spawns inside. `GpLinkXform::field_4` clears the node's slot byte.
 ///
 /// The restart path then needs three things at once: the state machine at

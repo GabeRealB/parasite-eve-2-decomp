@@ -96,6 +96,6 @@ void func_actor_403200_8014123C(Task* arg0)
     func_actor_403200_80133DD8(arg0);
     if (work->field_6 == 8) {
         Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, 0, 0);
-        SndEvt_EnqueueType7(((enemy->field_8 >> 12) << 8) | 0x4020000A, 1);
+        SndEvt_EnqueueType7(((enemy->placeKey >> 12) << 8) | 0x4020000A, 1);
     }
 }

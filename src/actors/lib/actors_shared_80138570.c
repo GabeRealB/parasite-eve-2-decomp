@@ -15,7 +15,7 @@ void ActorsShared80138570(Task* task)
     work  = (ActorShared80138570Work*)task->work;
 
     enemy->node.flags = 1;
-    enemy->field_54   = 0;
+    enemy->recs       = 0;
     Gp_UnlinkNode(&enemy->node);
     Gp_UnlinkObj(&work->field_1DC);
     Gp_UnlinkObj(&work->field_22C);

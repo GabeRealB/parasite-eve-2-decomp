@@ -45,7 +45,7 @@ s32 Actor01900_Fn0A44C(Task* task)
     s32 mask2;
     s32 mask80;
 
-    if (((GpEnemy*)task->spawnArg2)->field_40 > 0) {
+    if (((GpEnemy*)task->spawnArg2)->hp > 0) {
         return 1;
     }
 
@@ -155,7 +155,7 @@ void Actor01900_Fn0A6CC(Task* task)
         Gp_UnlinkObj(&work->field_B48);
         Gp_UnlinkObj(&work->field_8C8);
         Gp_UnlinkObj(&work->field_A08);
-        enemy->field_54 = 0;
+        enemy->recs = 0;
     }
     Gp_DestroyEnemy(enemy, task);
 }
@@ -316,7 +316,7 @@ void Actor01900_Fn0AB1C(Actor01900* arg0)
     if (timer < 0) {
         work->field_0 = 0xF;
     }
-    if (enemy->field_40 <= 0) {
+    if (enemy->hp <= 0) {
         work->field_0 = 0x15;
     }
 }

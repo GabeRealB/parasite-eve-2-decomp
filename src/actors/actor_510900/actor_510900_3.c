@@ -29,7 +29,7 @@ void func_actor_510900_80135E90(Actor510900* arg0)
     switch (work->field_590) {
         case 0:
             if (work->field_58A == 0xA) {
-                snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780006;
+                snd = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x40780006;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
                                     (s8)Gp_GetObjDepth((GpObj38*)coord));
             }
@@ -55,7 +55,7 @@ void func_actor_510900_80135E90(Actor510900* arg0)
                 work->field_5A2 = 0;
             }
             if (work->field_58A == 0xA) {
-                snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4078000B;
+                snd = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x4078000B;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
                                     (s8)Gp_GetObjDepth((GpObj38*)coord));
             }
@@ -80,7 +80,7 @@ void func_actor_510900_80135E90(Actor510900* arg0)
                 work->field_5A2 = 0;
             }
             if (work->field_58A == 6) {
-                snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4078000B;
+                snd = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x4078000B;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
                                     (s8)Gp_GetObjDepth((GpObj38*)coord));
             }

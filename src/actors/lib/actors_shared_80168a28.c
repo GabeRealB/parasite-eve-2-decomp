@@ -23,18 +23,18 @@ void ActorsShared80168a28(Task* arg0)
     enemy           = (GpEnemy*)arg0->spawnArg2;
     tmd             = (TmdObject*)arg0->extra;
     work->field_438 = 1;
-    if (enemy->field_40 >= 0) {
-        soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0003;
+    if (enemy->hp >= 0) {
+        soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x402C0003;
         pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
     }
-    if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC)) {
+    if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC)) {
         Gp_StateF0.field_1F = 0;
     }
     Gp_UnlinkNode(&enemy->node);
     Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
-    enemy->field_54 = 0;
-    objs            = (ActorsShared80168d3cWork*)arg0->work;
+    enemy->recs = 0;
+    objs        = (ActorsShared80168d3cWork*)arg0->work;
     Gp_UnlinkObj(&objs->obj_2AC);
     Gp_UnlinkObj(&objs->obj_2CC);
     Gp_UnlinkObj(&objs->obj_3AC);

@@ -15,7 +15,7 @@ void ActorsShared8016a98c(Task* task)
     GsCOORDINATE2*            coord = ((TmdObject*)task->extra)->coords;
     ActorsShared8016a98cWork* objWork;
 
-    enemy->field_54 = 0;
+    enemy->recs = 0;
 
     objWork = (ActorsShared8016a98cWork*)task->work;
     Gp_UnlinkObj(&objWork->obj_2AC);

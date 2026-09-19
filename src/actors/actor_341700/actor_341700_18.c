@@ -28,7 +28,7 @@ void func_actor_341700_80169380(Task* arg0)
     enemy = (GpEnemy*)arg0->spawnArg2;
     model = (TmdObject*)arg0->extra;
     work  = (Actor341700Work*)arg0->work;
-    SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x402C0002, 0xF);
+    SndEvt_EnqueueType7(((enemy->placeKey >> 0xC) << 8) | 0x402C0002, 0xF);
     func_actor_341700_801681C4(arg0, 0);
     Gp_UnlinkNode(&enemy->node);
     if (work->field_448 == 4) {

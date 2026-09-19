@@ -696,7 +696,7 @@ GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent)
     task->exitCallback = Gp_EnemyTaskExit;
     task->spawnArg2    = enemy;
     enemy->task        = task;
-    enemy->field_18    = &gGfxViewCoord;
+    enemy->coord       = &gGfxViewCoord;
     if (parent != NULL) {
         Task_Reparent(parent->task, task);
     } else {
@@ -707,14 +707,14 @@ GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent)
 
 void Gp_EnemyWaitStart(GpEnemy* enemy, Task* task)
 {
-    enemy->field_C = 0x78;
+    enemy->waitTicks = 0x78;
     task->state++;
 }
 
 void Gp_EnemyWaitTick(GpEnemy* enemy, Task* task)
 {
-    enemy->field_C--;
-    if (enemy->field_C == 0) {
+    enemy->waitTicks--;
+    if (enemy->waitTicks == 0) {
         task->state++;
     }
 }
@@ -2646,10 +2646,10 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
     loc   = (GpAreaKey*)&Mc_SaveData.at4.loc.view;
     extra = (TmdObject*)arg0->task->extra;
     coord = (GsCOORDINATE2*)extra->coords;
-    if (arg0->field_4B == 0) {
-        arg0->field_4B = 1;
+    if (arg0->spawnState == 0) {
+        arg0->spawnState = 1;
     }
-    id = arg0->field_8;
+    id = arg0->placeKey;
     for (i = 0; i < 0x20; i++, rec++) {
         if (rec->field_A == id) {
             return;
@@ -2692,8 +2692,8 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
             rec[0] = rec[1];
         }
     }
-    rec->field_3 = arg0->field_4B;
-    rec->field_A = arg0->field_8;
+    rec->field_3 = arg0->spawnState;
+    rec->field_A = arg0->placeKey;
     rec->field_4 = coord->coord.t[0];
     rec->field_6 = coord->coord.t[1];
     rec->field_8 = coord->coord.t[2];
@@ -2785,13 +2785,13 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                         v               = 0x900;
                         f3              = arg0->stage;
                         f2              = arg0->area;
-                        enemy->field_A  = v;
+                        enemy->workType = v;
                         v               = packed >> 12;
-                        enemy->field_3C = place;
+                        enemy->place    = place;
                         v               = v | (f3 << 8);
                         task            = enemy->task;
                         f2              = f2 | v;
-                        enemy->field_8  = f2;
+                        enemy->placeKey = f2;
                         if (task->spawnType != 0) {
                             extra = (TmdObject*)task->extra;
                             coord = (GpCoordPose*)extra->coords;
@@ -2815,7 +2815,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                                 rec = Mc_SaveData.field_28;
                                 i   = 0;
                                 do {
-                                    if (rec->field_A == enemy->field_8) {
+                                    if (rec->field_A == enemy->placeKey) {
                                         coord->coord.t[0] = rec->field_4;
                                         coord->coord.t[1] = rec->field_6;
                                         coord->coord.t[2] = rec->field_8;
@@ -2824,7 +2824,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                                         coord->field_48   = rec->field_2 << 8;
                                         RotMatrix_gte((SVECTOR*)&coord->field_44,
                                                       &coord->coord);
-                                        enemy->field_4B = rec->field_3;
+                                        enemy->spawnState = rec->field_3;
                                         break;
                                     }
                                     i++;
@@ -3879,8 +3879,8 @@ void Gp_SpawnPlaceById(u16 arg0)
                             if (task->spawnType != 0) {
                                 extra             = (TmdObject*)task->extra;
                                 coord             = (GpCoordPlace*)extra->coords;
-                                enemy->field_8    = place->field_0 | (place->field_4 << 8);
-                                enemy->field_A    = place->field_2;
+                                enemy->placeKey   = place->field_0 | (place->field_4 << 8);
+                                enemy->workType   = place->field_2;
                                 coord->coord.t[0] = place->field_8;
                                 coord->coord.t[1] = place->field_A;
                                 coord->coord.t[2] = place->field_C;
@@ -3940,8 +3940,8 @@ void Gp_SpawnPlaces(GpAreaKey* arg0)
                         if (task->spawnType != 0) {
                             extra             = (TmdObject*)task->extra;
                             coord             = (GpCoordPlace*)extra->coords;
-                            enemy->field_8    = place->field_0 | (place->field_4 << 8);
-                            enemy->field_A    = place->field_2;
+                            enemy->placeKey   = place->field_0 | (place->field_4 << 8);
+                            enemy->workType   = place->field_2;
                             coord->coord.t[0] = place->field_8;
                             coord->coord.t[1] = place->field_A;
                             coord->coord.t[2] = place->field_C;

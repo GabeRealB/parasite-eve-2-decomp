@@ -442,16 +442,16 @@ void func_actor_323000_80163EA0(GpEnemy* enemy, Task* task)
     tmd->colorMtx      = &work2->color;
     enemy->field_4     = &((TmdObject*)task->extra)->coords->coord;
     enemy->field_48    = 0;
-    enemy->field_1C.vx = 0;
-    enemy->field_1C.vy = 0;
-    enemy->field_1C.vz = 0;
-    enemy->field_18    = &((TmdObject*)task->extra)->coords[2];
+    enemy->bodyPos.vx  = 0;
+    enemy->bodyPos.vy  = 0;
+    enemy->bodyPos.vz  = 0;
+    enemy->coord       = &((TmdObject*)task->extra)->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags = 1;
-    enemy->field_50   = &D_actor_323000_80164D54;
-    enemy->field_4C   = 0;
-    enemy->field_40   = 0;
-    enemy->field_54   = 0;
+    enemy->node.flags    = 1;
+    enemy->param         = &D_actor_323000_80164D54;
+    enemy->reactionFlags = 0;
+    enemy->hp            = 0;
+    enemy->recs          = 0;
     func_800B3F84(&work->anim, D_actor_323000_8017387C, obj, work->poses, work->slots);
     func_800B3F84(&work->blendAnim, D_actor_323000_8017387C, obj, work->blendPoses, work->blendSlots);
     work->field_828 = 2;
@@ -573,7 +573,7 @@ void func_actor_323000_8016420C(GpEnemy* enemy, Task* task)
             p->vz = 0xC8;
             p->vy = 0x28A;
             Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[9], 0x80006800, p);
-            id  = ((enemy->field_8 >> 12) << 8) | 0x4001000D;
+            id  = ((enemy->placeKey >> 12) << 8) | 0x4001000D;
             pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->coords);
             SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->coords));
             ofs2.vy = -0x258;
@@ -682,10 +682,10 @@ void func_actor_323000_801645A4(GpEnemy* enemy, Task* task)
             break;
         }
     }
-    enemy->field_1C.vx     = scratch->local.vx;
-    enemy->field_1C.vy     = scratch->local.vy;
-    enemy->field_1C.vz     = scratch->local.vz;
-    enemy->field_18        = &gGfxViewCoord;
+    enemy->bodyPos.vx      = scratch->local.vx;
+    enemy->bodyPos.vy      = scratch->local.vy;
+    enemy->bodyPos.vz      = scratch->local.vz;
+    enemy->coord           = &gGfxViewCoord;
     *(u8**)G_SCRATCH_HEAD += 0x1C;
 }
 

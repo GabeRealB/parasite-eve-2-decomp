@@ -278,7 +278,7 @@ extern char D_actor_421600_80145604;
 extern void* D_80114B78[1];
 
 /// `Task::exitCallback` teardown: kill the two helper tasks, unlink the three
-/// display nodes, drop the enemy's `field_54` slot, then `Gp_DestroyEnemy`.
+/// display nodes, drop the enemy's `recs` slot, then `Gp_DestroyEnemy`.
 void func_actor_421600_8013E668(Task* task);
 
 /// Copy the `vx`/`vy`/`vz` of record `arg1` of the pose table into `arg0`.

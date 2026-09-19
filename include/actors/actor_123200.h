@@ -82,7 +82,7 @@ STATIC_ASSERT_SIZEOF(Actor123200CoordPos, 0x24);
 /// way keeps one, and they differ only in the coordinate and the argument.
 extern GpEffArg D_actor_123200_80137248;
 
-/// Pair source the spawn handler installs at `GpEnemy::field_50`.
+/// Pair source the spawn handler installs at `GpEnemy::param`.
 extern GpPairSrcE D_actor_123200_80134208;
 
 /// Animation source `func_800B3F84` seeds the work block's slots from.

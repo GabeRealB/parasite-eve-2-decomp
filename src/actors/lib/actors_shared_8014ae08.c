@@ -20,19 +20,19 @@ void ActorsShared8014ae08(Task* arg0)
 
     enemy = (GpEnemy*)arg0->spawnArg2;
     work  = arg0->work;
-    flags = enemy->field_4C;
+    flags = enemy->reactionFlags;
     if (flags != 0) {
         if (flags & 1) {
-            enemy->field_4C = flags & 0xFE;
+            enemy->reactionFlags = flags & 0xFE;
         }
-        if (enemy->field_4C & 2) {
-            enemy->field_4C = enemy->field_4C & 0xFD;
-            work->field_286 = 3;
-            work->field_28A = 0;
+        if (enemy->reactionFlags & 2) {
+            enemy->reactionFlags = enemy->reactionFlags & 0xFD;
+            work->field_286      = 3;
+            work->field_28A      = 0;
         }
-        flags = enemy->field_4C;
+        flags = enemy->reactionFlags;
         if (flags & 0xC) {
-            enemy->field_4C = flags & 0xF3;
+            enemy->reactionFlags = flags & 0xF3;
         }
     }
 }

@@ -22,7 +22,7 @@ void func_actor_401300_80141758(Task* task)
         Gp_UnlinkObj(&work->field_BF0);
         Gp_UnlinkObj(&work->field_970);
         Gp_UnlinkObj(&work->field_AB0);
-        enemy->field_54 = 0;
+        enemy->recs = 0;
     }
     Gp_DestroyEnemy(enemy, task);
 }
@@ -52,8 +52,8 @@ void func_actor_401300_8014192C(Actor401300* arg0)
         work->field_AB0.flags = (u16)(work->field_AB0.flags & 0xBFFF);
         return;
     }
-    if (enemy->field_40 != -0x3E7 && work->field_C8A == 0 && arg0->field_36 == 2) {
-        enemy->field_40 = -0x3E7;
+    if (enemy->hp != -0x3E7 && work->field_C8A == 0 && arg0->field_36 == 2) {
+        enemy->hp = -0x3E7;
     }
 }
 
@@ -241,7 +241,7 @@ void func_actor_401300_80141DF4(Actor401300* arg0)
                 break;
         }
     }
-    if (enemy->field_40 <= 0) {
+    if (enemy->hp <= 0) {
         work->field_0 = 0x15;
     }
 }
@@ -251,7 +251,7 @@ void func_actor_401300_80141EF8(Task* task)
     Actor401300Work* work  = (Actor401300Work*)task->work;
     GpEnemy*         enemy = task->spawnArg2;
 
-    if (enemy->field_40 != -0x3E7 && work->field_C8A == 0) {
-        enemy->field_40 = -0x3E7;
+    if (enemy->hp != -0x3E7 && work->field_C8A == 0) {
+        enemy->hp = -0x3E7;
     }
 }

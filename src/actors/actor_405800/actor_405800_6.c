@@ -112,7 +112,7 @@ void func_actor_405800_80138A70(Task* task)
     Actor405800Work* work  = (Actor405800Work*)task->work;
     GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->coords;
 
-    ((GpEnemy*)task->spawnArg2)->field_54 = 0;
+    ((GpEnemy*)task->spawnArg2)->recs = 0;
     Gp_UnlinkObj(&work->obj_594);
     Gp_UnlinkObj(&work->obj_4B4);
     Gp_UnlinkObj(&work->obj_6B4);
@@ -186,7 +186,7 @@ void func_actor_405800_80138C30(Task* task)
     func_actor_405800_80136E14(task);
     work->field_866 = 0;
     Gp_ReleaseStateF0Add((GpObj20E*)task, 0);
-    enemy->field_54 = 0;
+    enemy->recs = 0;
     Gp_UnlinkObj(&work->obj_594);
     Gp_UnlinkObj(&work->obj_4B4);
     Gp_UnlinkObj(&work->obj_6B4);
@@ -246,7 +246,7 @@ void func_actor_405800_80138E20(Task* task)
 
     work = (Actor405800Work*)task->work;
     if ((s16)work->field_842 == 0) {
-        sound   = ((GpEnemy*)task->spawnArg2)->field_8;
+        sound   = ((GpEnemy*)task->spawnArg2)->placeKey;
         sound >>= 0xC;
         sound <<= 8;
         sound  |= 0x40050006;
@@ -709,7 +709,7 @@ void func_actor_405800_801399C4(Task* arg0)
         if ((arg0->spawnArg1 & 0xF0) == 0x10) {
             id = 0x404A0003;
         }
-        sound = id | ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8);
+        sound = id | ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8);
         pan   = Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords) << 24;
         pan >>= 24;
         SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));

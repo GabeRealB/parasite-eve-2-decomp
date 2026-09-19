@@ -556,7 +556,7 @@ void func_actor_105700_80133878(GpEnemy* arg0, Actor105700* arg1)
     }
     switch (work->field_6A8) {
         case 0:
-            arg0->field_54 = 0;
+            arg0->recs = 0;
             Gp_UnlinkNode(&arg0->node);
             Gp_UnlinkObj(&work->field_47C);
             Gp_UnlinkObj(&work->field_564);
@@ -570,9 +570,9 @@ void func_actor_105700_80133878(GpEnemy* arg0, Actor105700* arg1)
             if (work->field_6B8 == 1) {
                 anim = 0x19;
             }
-            work->field_694 = anim;
-            work->field_6A8 = 1;
-            arg0->field_4B  = (u8)work->field_6B8;
+            work->field_694  = anim;
+            work->field_6A8  = 1;
+            arg0->spawnState = (u8)work->field_6B8;
             Gp_SaveEnemyPose(arg0);
             D_80115419 = 1;
             break;
@@ -1407,7 +1407,7 @@ void func_actor_105700_80136158(GpEnemy* ctx, Actor105700* actor)
             return;
     }
 
-    if (ctx->field_4C != 0) {
+    if (ctx->reactionFlags != 0) {
         spawn    = actor->field_20;
         flags    = spawn->field_4C;
         flagWork = actor->field_1C;

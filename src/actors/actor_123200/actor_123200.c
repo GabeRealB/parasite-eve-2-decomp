@@ -121,19 +121,19 @@ void func_actor_123200_8013352C(GpEnemy* enemy, Task* task)
     obj->flags     = 0;
     func_800B3F84(&work->anim, D_actor_123200_80137154, obj, work->poses, work->slots);
 
-    enemy->field_4     = &coord->coord;
-    enemy->field_48    = 0;
-    enemy->field_1C.vx = 0;
-    enemy->field_1C.vy = 0;
-    enemy->field_1C.vz = 0;
-    enemy->field_18    = &((TmdObject*)task->extra)->coords[2];
+    enemy->field_4    = &coord->coord;
+    enemy->field_48   = 0;
+    enemy->bodyPos.vx = 0;
+    enemy->bodyPos.vy = 0;
+    enemy->bodyPos.vz = 0;
+    enemy->coord      = &((TmdObject*)task->extra)->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags = 1;
-    enemy->field_50   = &D_actor_123200_80134208;
-    enemy->field_4C   = 0;
-    enemy->field_42   = 0;
-    enemy->field_40   = 0;
-    enemy->field_54   = 0;
+    enemy->node.flags    = 1;
+    enemy->param         = &D_actor_123200_80134208;
+    enemy->reactionFlags = 0;
+    enemy->hpMax         = 0;
+    enemy->hp            = 0;
+    enemy->recs          = 0;
 
     work->field_174 = 1;
     work->field_170 = 2;
@@ -148,16 +148,16 @@ void func_actor_123200_8013352C(GpEnemy* enemy, Task* task)
     work->field_198 = 5;
     work->field_19A = 0x14;
 
-    scale = (u16)(enemy->field_8 >> 12);
+    scale = (u16)(enemy->placeKey >> 12);
     flag  = scale & 1;
     if (flag == 1) {
-        work->field_176 += enemy->field_8 >> 12;
-        work->field_19A += enemy->field_8 >> 12;
-        work->field_198 += enemy->field_8 >> 12;
+        work->field_176 += enemy->placeKey >> 12;
+        work->field_19A += enemy->placeKey >> 12;
+        work->field_198 += enemy->placeKey >> 12;
     } else {
         work->field_176 -= scale >> 1;
-        work->field_19A -= enemy->field_8 >> 13;
-        work->field_198 -= enemy->field_8 >> 13;
+        work->field_19A -= enemy->placeKey >> 13;
+        work->field_198 -= enemy->placeKey >> 13;
     }
 
     work->field_1A8 = ((Actor123200CoordPos*)((TmdObject*)task->extra)->coords)->x;
@@ -272,7 +272,7 @@ void func_actor_123200_80133BA0(Actor123200Ctx* arg0, Task* arg1)
     pos.vx = ((TmdObject*)arg1->extra)->coords->workm.t[0];
     pos.vy = ((TmdObject*)arg1->extra)->coords->workm.t[1];
     pos.vz = ((TmdObject*)arg1->extra)->coords->workm.t[2];
-    Gp_UpdateActorColor((struct _GpEnemy*)arg0, &pos, 0, 0);
+    Gp_UpdateActorColor((struct GpEnemy*)arg0, &pos, 0, 0);
     if (work->field_21C != 0x1000) {
         pos.vx = pos.vy = pos.vz = work->field_21C;
         ScaleMatrix(&work->field_1BC, &pos);

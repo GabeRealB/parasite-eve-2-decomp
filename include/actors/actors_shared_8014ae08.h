@@ -5,7 +5,7 @@
 
 #include "main/task.h"
 
-/// Clears the pending bits of the enemy work's flag byte at `GpEnemy::field_4C`
+/// Clears the pending bits of the enemy work's flag byte at `GpEnemy::reactionFlags`
 /// and restarts the work's state machine when the "state changed" bit is set;
 /// the work block is the `Actor207200Work` layout, which the three enemy slots
 /// carrying this body share (`actor_104600`, `actor_204600`, `actor_207200`).

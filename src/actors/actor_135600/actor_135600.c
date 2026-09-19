@@ -202,7 +202,7 @@ void func_actor_135600_80132234(Task* task)
     if (spawned != NULL) {
         work->field_500 = spawned;
         model1          = (TmdObject*)spawned->extra;
-        raw1            = ((GpEnemy*)task->spawnArg2)->field_8;
+        raw1            = ((GpEnemy*)task->spawnArg2)->placeKey;
         sessionKey1     = (GpAreaKey*)&gGameSession->at4.loc;
         key.stage       = sessionKey1->stage;
         key.area        = sessionKey1->area;
@@ -236,7 +236,7 @@ void func_actor_135600_80132234(Task* task)
     if (spawned != NULL) {
         work->field_4FC = spawned;
         model2          = (TmdObject*)spawned->extra;
-        raw2            = ((GpEnemy*)task->spawnArg2)->field_8;
+        raw2            = ((GpEnemy*)task->spawnArg2)->placeKey;
         sessionKey2     = (GpAreaKey*)&gGameSession->at4.loc;
         key.stage       = sessionKey2->stage;
         key.area        = sessionKey2->area;

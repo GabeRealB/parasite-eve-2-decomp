@@ -37,7 +37,7 @@ STATIC_ASSERT_SIZEOF(ActorShared80137fb0Work, 0x6EC);
 typedef struct ActorShared80137fb0 {
     /* 0x00 */ byte                      pad_0[0x1C];
     /* 0x1C */ ActorShared80137fb0Work*  field_1C;
-    /* 0x20 */ struct _GpEnemy*          field_20;
+    /* 0x20 */ struct GpEnemy*           field_20;
     /* 0x24 */ byte                      pad_24[8];
     /* 0x2C */ ActorShared80137fb0Obj2C* field_2C;
 } ActorShared80137fb0;

@@ -72,7 +72,7 @@ void func_actor_342400_80168B74(Task* arg0)
         work->field_422++;
         return;
     }
-    if (enemy->field_40 <= 0) {
+    if (enemy->hp <= 0) {
         SndEvt_EnqueueType7(0x402C0002, 1);
         if (work->field_448 != 4) {
             work->field_438 = 1;

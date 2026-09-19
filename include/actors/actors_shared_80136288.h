@@ -43,7 +43,7 @@ extern u8 D_801153F4;
 /// `actor_107000` and `actor_207000`. Mode 1 skips to the tail, mode 2 ORs the
 /// hidden pose onto the model part's flag word and returns. The body dispatches
 /// the work's `field_36C`: mode 0 cues the death sound, puts the part in its
-/// 2-pose, clears the enemy's `field_54` slot, unlinks the enemy node and the
+/// 2-pose, clears the enemy's `recs` slot, unlinks the enemy node and the
 /// work's three display nodes, releases the state slot and steps to mode 1 with
 /// helper id 0xC; mode 1 counts `field_36E` out to 0x3D before dropping to 2,
 /// and hides the part once `field_394` says this frame has already spent its

@@ -720,7 +720,7 @@ extern GpEffArg D_actor_110600_80148698;
 
 /// `Task::exitCallback` installed by the spawn handler: bump the two helper
 /// tasks' `state` if present, unlink the three display nodes, drop the enemy's
-/// `field_54` slot, clear the screen shake, then `Gp_DestroyEnemy`.
+/// `recs` slot, clear the screen shake, then `Gp_DestroyEnemy`.
 void func_actor_110600_801387F4(Task* task);
 
 #endif

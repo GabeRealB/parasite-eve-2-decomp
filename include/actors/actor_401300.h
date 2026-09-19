@@ -250,7 +250,7 @@ typedef struct Actor401300Delta {
 STATIC_ASSERT_SIZEOF(Actor401300Delta, 0x20);
 
 /// Halfword table in the overlay's data; element 0 is the value the 0xB05/0xC
-/// event writes into `GpEnemy::field_40`. Declared as an array: a scalar lets
+/// event writes into `GpEnemy::hp`. Declared as an array: a scalar lets
 /// the scheduler hoist its load above the preceding store.
 extern u16 D_actor_401300_80141FA4[];
 
@@ -264,7 +264,7 @@ extern SVECTOR D_actor_401300_801589F8[2];
 extern SVECTOR D_actor_401300_80158A08[2];
 
 /// Data `func_actor_401300_80134454` wires up at init: the enemy parameter
-/// record (`GpEnemy::field_50`), the three per-variant `field_CA0..CA4`
+/// record (`GpEnemy::param`), the three per-variant `field_CA0..CA4`
 /// triples selected by `spawnArg1 & 0xF`, the animation bank passed to
 /// `Gp_AnimInitCtxSlots`, the 0x3FF message seed, and the task's `field_24`.
 extern GpPairSrcE D_actor_401300_80141FA0;

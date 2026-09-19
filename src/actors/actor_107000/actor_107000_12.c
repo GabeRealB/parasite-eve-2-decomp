@@ -19,18 +19,18 @@ void func_actor_107000_8013844C(Task* arg0)
     u8               flags;
 
     enemy = arg0->spawnArg2;
-    flags = enemy->field_4C;
+    flags = enemy->reactionFlags;
     work  = (Actor107000Work*)arg0->work;
     if (flags != 0) {
         if (flags & 1) {
-            enemy->field_4C = flags & 0xFE;
+            enemy->reactionFlags = flags & 0xFE;
         }
-        if (enemy->field_4C & 2) {
-            enemy->field_4C &= 0xFD;
-            work->field_36A  = 3;
-            work->field_36E  = 0;
+        if (enemy->reactionFlags & 2) {
+            enemy->reactionFlags &= 0xFD;
+            work->field_36A       = 3;
+            work->field_36E       = 0;
         }
-        if (enemy->field_4C & 0xC) {
+        if (enemy->reactionFlags & 0xC) {
             tick = Gp_TickObjFlag4((GpObj5C*)enemy);
             if (tick != 0) {
                 func_actor_107000_80136094(arg0, tick);
@@ -38,7 +38,7 @@ void func_actor_107000_8013844C(Task* arg0)
                 work->field_370 = 5;
             }
             if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
-                enemy->field_4C &= 0xF3;
+                enemy->reactionFlags &= 0xF3;
             }
         }
     }

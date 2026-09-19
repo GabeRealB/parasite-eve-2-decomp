@@ -122,22 +122,22 @@ void func_actor_204000_8014AED8(GpEnemy* arg0, Actor104000* arg1)
     Gp_LinkObj(8, o4);
     Gp_InitRec18Table(o4->ctx.recs, 1, 0);
 
-    arg0->field_4     = &coord->coord;
-    arg0->field_48    = 0;
-    arg0->field_1C.vx = 0;
-    arg0->field_1C.vy = 0;
-    arg0->field_1C.vz = 0;
-    arg0->field_18    = arg1->field_2C->field_8 + 2;
+    arg0->field_4    = &coord->coord;
+    arg0->field_48   = 0;
+    arg0->bodyPos.vx = 0;
+    arg0->bodyPos.vy = 0;
+    arg0->bodyPos.vz = 0;
+    arg0->coord      = arg1->field_2C->field_8 + 2;
     Gp_LinkNode(&arg0->node);
-    arg0->node.flags = 1;
-    arg0->field_4C   = 0;
-    arg0->field_40 = arg0->field_42 = D_actor_204000_80150EA4.hpMax;
-    arg0->field_50                  = &D_actor_204000_80150EA4;
-    arg0->field_54                  = (s32)hits;
-    work->field_170                 = 2;
-    work->field_174                 = 1;
-    work->field_176                 = 0x10;
-    work->field_178                 = 0;
+    arg0->node.flags    = 1;
+    arg0->reactionFlags = 0;
+    arg0->hp = arg0->hpMax = D_actor_204000_80150EA4.hpMax;
+    arg0->param            = &D_actor_204000_80150EA4;
+    arg0->recs             = hits;
+    work->field_170        = 2;
+    work->field_174        = 1;
+    work->field_176        = 0x10;
+    work->field_178        = 0;
     func_actor_204000_8014AC8C(arg1);
     work->field_17E = 0;
     work->field_A   = 0;
@@ -151,14 +151,14 @@ void func_actor_204000_8014AED8(GpEnemy* arg0, Actor104000* arg1)
     Gp_UpdateActorColor(arg0, &pos, 0, 0);
     work->field_1A0 = 5;
     work->field_1A2 = 0x14;
-    if ((u16)(arg0->field_8 >> 12) % 2 == 1) {
-        work->field_176 += arg0->field_8 >> 12;
-        work->field_1A2 += arg0->field_8 >> 12;
-        work->field_1A0 += arg0->field_8 >> 12;
+    if ((u16)(arg0->placeKey >> 12) % 2 == 1) {
+        work->field_176 += arg0->placeKey >> 12;
+        work->field_1A2 += arg0->placeKey >> 12;
+        work->field_1A0 += arg0->placeKey >> 12;
     } else {
-        work->field_176 -= (u16)(arg0->field_8 >> 12) / 2;
-        work->field_1A2 -= arg0->field_8 >> 13;
-        work->field_1A0 -= arg0->field_8 >> 13;
+        work->field_176 -= (u16)(arg0->placeKey >> 12) / 2;
+        work->field_1A2 -= arg0->placeKey >> 13;
+        work->field_1A0 -= arg0->placeKey >> 13;
     }
     work->origin.vx = arg1->field_2C->field_8->coord.t[0];
     work->origin.vy = arg1->field_2C->field_8->coord.t[1];
@@ -1039,13 +1039,13 @@ found:
         sc->angle = angle;
         sc->angle = Actor204000_WrapAngle(angle);
         func_actor_204000_8014DB50(arg1, sc->angle, sc->id);
-        snd = ((arg0->field_8 >> 12) << 8) | 0x40280003;
+        snd = ((arg0->placeKey >> 12) << 8) | 0x40280003;
         pan = (s8)Gp_GetObjPan((GpObj38*)arg1->field_2C->field_8);
         SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)arg1->field_2C->field_8));
         func_800E2C78((GpObj40*)arg0, sc->id, sc->dmg, 0);
         func_800DA6E8(&arg0->node, sc->dmg, 0);
-        arg0->field_40 -= sc->dmg;
-        if (arg0->field_40 <= 0) {
+        arg0->hp -= sc->dmg;
+        if (arg0->hp <= 0) {
             work->field_0 = 6;
         }
         if (work->field_496 == 1) {
@@ -1622,16 +1622,16 @@ void func_actor_204000_8014FD2C(GpEnemy* arg0, Actor104000* arg1)
     work->field_2 = work->field_0;
     table.fn[work->field_0]((Actor104000Ctx*)arg0, arg1);
     if (work->field_496 == 1) {
-        if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0 || arg0->field_40 < 0) {
+        if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0 || arg0->hp < 0) {
             if (((GpActorWork*)Game_GetPtrSlot(3))->actor->field_954 == 2) {
                 Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
             }
             work->field_496 = 0;
         }
     }
-    if (arg0->field_40 > 0) {
+    if (arg0->hp > 0) {
         func_actor_204000_8014DDD4(arg0, arg1);
-        if (arg0->field_40 <= 0) {
+        if (arg0->hp <= 0) {
             work->field_0 = 6;
         }
     }
@@ -1640,7 +1640,7 @@ void func_actor_204000_8014FD2C(GpEnemy* arg0, Actor104000* arg1)
     Gp_ClearRec18Occupied(&work->rec370);
     id = ActorsShared8014adfc(work);
     if (id != 0) {
-        snd = id | ((arg0->field_8 >> 12) << 8);
+        snd = id | ((arg0->placeKey >> 12) << 8);
         pan = (s8)Gp_GetObjPan((GpObj38*)arg1->field_2C->field_8);
         SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)arg1->field_2C->field_8));
     }

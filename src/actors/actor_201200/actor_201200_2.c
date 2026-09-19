@@ -124,23 +124,23 @@ void func_actor_201200_8014A88C(GpEnemy* arg0, Actor201200* arg1)
     Gp_LinkObj(8, o4);
     Gp_InitRec18Table(o4->ctx.recs, 1, 0);
 
-    arg0->field_4     = &coord->coord;
-    arg0->field_48    = 0;
-    arg0->field_1C.vx = 0;
-    arg0->field_1C.vy = 0;
-    arg0->field_1C.vz = 0;
-    arg0->field_18    = arg1->field_2C->coords + 2;
+    arg0->field_4    = &coord->coord;
+    arg0->field_48   = 0;
+    arg0->bodyPos.vx = 0;
+    arg0->bodyPos.vy = 0;
+    arg0->bodyPos.vz = 0;
+    arg0->coord      = arg1->field_2C->coords + 2;
     Gp_LinkNode(&arg0->node);
     arg0->node.flags = 1;
-    arg0->field_40 = arg0->field_42 = 1;
-    arg0->field_4C                  = 0;
-    arg0->field_40 = arg0->field_42 = D_actor_201200_8014DE54.hpMax;
-    arg0->field_50                  = &D_actor_201200_8014DE54;
-    arg0->field_54                  = (s32)hits;
-    work->field_170                 = 2;
-    work->field_174                 = 1;
-    work->field_176                 = 0x10;
-    work->field_178                 = 0;
+    arg0->hp = arg0->hpMax = 1;
+    arg0->reactionFlags    = 0;
+    arg0->hp = arg0->hpMax = D_actor_201200_8014DE54.hpMax;
+    arg0->param            = &D_actor_201200_8014DE54;
+    arg0->recs             = hits;
+    work->field_170        = 2;
+    work->field_174        = 1;
+    work->field_176        = 0x10;
+    work->field_178        = 0;
     func_actor_201200_8014A640(arg1);
     work->field_17E = 0;
     work->field_8   = 0;
@@ -154,14 +154,14 @@ void func_actor_201200_8014A88C(GpEnemy* arg0, Actor201200* arg1)
     Gp_UpdateActorColor(arg0, &pos, 0, 0);
     work->field_198 = 5;
     work->field_19A = 0x14;
-    if ((u16)(arg0->field_8 >> 12) % 2 == 1) {
-        work->field_176 += arg0->field_8 >> 12;
-        work->field_19A += arg0->field_8 >> 12;
-        work->field_198 += arg0->field_8 >> 12;
+    if ((u16)(arg0->placeKey >> 12) % 2 == 1) {
+        work->field_176 += arg0->placeKey >> 12;
+        work->field_19A += arg0->placeKey >> 12;
+        work->field_198 += arg0->placeKey >> 12;
     } else {
-        work->field_176 -= (u16)(arg0->field_8 >> 12) / 2;
-        work->field_19A -= arg0->field_8 >> 13;
-        work->field_198 -= arg0->field_8 >> 13;
+        work->field_176 -= (u16)(arg0->placeKey >> 12) / 2;
+        work->field_19A -= arg0->placeKey >> 13;
+        work->field_198 -= arg0->placeKey >> 13;
     }
     work->origin.vx = arg1->field_2C->coords->coord.t[0];
     work->origin.vy = arg1->field_2C->coords->coord.t[1];

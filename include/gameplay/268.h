@@ -9,7 +9,7 @@
 #include "main/session.h"
 #include "main/task.h"
 
-struct _GpEnemy;
+struct GpEnemy;
 struct _UiObject;
 
 /// Save-inventory slot (`Mc_SaveData.field_1C8`). field_0/field_2 are item ids;
@@ -111,8 +111,8 @@ typedef struct _GpBit2Bank {
 STATIC_ASSERT_SIZEOF(GpBit2Bank, 0x8);
 
 /// Placement record for `Gp_SpawnAtPlace` / `Gp_SpawnPlaces` / `Gp_SpawnPlaceById`. `field_0` / `field_4` pack into
-/// `GpEnemy.field_8` as `field_0 | (field_4 << 8)`; `field_2` is copied to
-/// `GpEnemy.field_A`. `field_8` / `field_A` / `field_C` are world X/Y/Z
+/// `GpEnemy.placeKey` as `field_0 | (field_4 << 8)`; `field_2` is copied to
+/// `GpEnemy.workType`. `field_8` / `field_A` / `field_C` are world X/Y/Z
 /// (`GsCOORDINATE2.coord.t`); `field_E` is the yaw stored at coord +0x46
 /// and passed to `Gfx_RotMatrixY` when non-zero.
 typedef struct _GpEnemyPlace {
@@ -347,25 +347,25 @@ s32         Gp_ScanIndexOf(GpItemScan* arg0, GpItemRec* arg1);
 GpItemRec* Gp_GetScanSlot(GpItemScan* arg0, s32 arg1, s32 arg2);
 s32        Gp_GetScanItemId(GpItemScan* arg0, s32 arg1);
 /// `arg1` is unused; some callers pass 0 so the `jal` delay slot is `move a1, zero`.
-s32              Gp_NthCollectedId(s32 arg0, s32 arg1);
-s32              Gp_SumScanQty(GpItemScan* arg0, s32 arg1);
-void             Gp_SetItemSeenBit(s32 arg0, s32 arg1);
-void             Gp_ApplyBit2List(GpBit2List* arg0, u32* arg1);
-void             Gp_SetBit2Flag(s32 arg0, u8 arg1, s32 arg2);
-s32              Gp_GetBit2Flag(GpAreaKey* arg0, s32 arg1);
-void             Gp_SavePlayerPos(void);
-struct _GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpEnemyPlace* arg1);
-void             func_800BBB54(Task* arg0);
-void             Gp_WaitItemFlag2(Task* arg0);
-s32              Gp_NextMappedSlot(s32 arg0);
-GpItemMap*       Gp_GetItemMap(s32 arg0);
-s32              Gp_HasMappedItem(void);
-void             Gp_ResetAuxSlots(void);
-s32              Gp_SumItemQty(s32 arg0);
-void             Gp_SyncHeldRelated(void);
-void             Gp_InitItemSeenBits(void);
-s32              Gp_HasItemSeenBit(s32 arg0);
-void             Gp_RecalcMaxHp(void);
+s32             Gp_NthCollectedId(s32 arg0, s32 arg1);
+s32             Gp_SumScanQty(GpItemScan* arg0, s32 arg1);
+void            Gp_SetItemSeenBit(s32 arg0, s32 arg1);
+void            Gp_ApplyBit2List(GpBit2List* arg0, u32* arg1);
+void            Gp_SetBit2Flag(s32 arg0, u8 arg1, s32 arg2);
+s32             Gp_GetBit2Flag(GpAreaKey* arg0, s32 arg1);
+void            Gp_SavePlayerPos(void);
+struct GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpEnemyPlace* arg1);
+void            func_800BBB54(Task* arg0);
+void            Gp_WaitItemFlag2(Task* arg0);
+s32             Gp_NextMappedSlot(s32 arg0);
+GpItemMap*      Gp_GetItemMap(s32 arg0);
+s32             Gp_HasMappedItem(void);
+void            Gp_ResetAuxSlots(void);
+s32             Gp_SumItemQty(s32 arg0);
+void            Gp_SyncHeldRelated(void);
+void            Gp_InitItemSeenBits(void);
+s32             Gp_HasItemSeenBit(s32 arg0);
+void            Gp_RecalcMaxHp(void);
 /// Returns `arg0[1]` (e.g. `McItemScan.field_1` capacity).
 s32  Gp_GetScanCount(u8* arg0);
 s32  Gp_ItemSortKey(s32 arg0);

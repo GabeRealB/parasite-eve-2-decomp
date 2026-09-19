@@ -41,7 +41,7 @@ s32 ActorsShared80133c1c(ActorShared80133c1c* arg0)
     if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x708) || (Gp_StateF0.field_2 & 0xF) || (Gp_StateF0.field_19 & 1)) {
         ret = 1;
         Gp_ArmStateF0(ret);
-        soundId   = arg0->field_20->field_8;
+        soundId   = arg0->field_20->placeKey;
         soundId >>= 0xC;
         soundId <<= 8;
         soundId  |= 0x40250000 | ret;

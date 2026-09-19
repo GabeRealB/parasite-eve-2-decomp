@@ -14,16 +14,16 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-struct _GpEnemy;
+struct GpEnemy;
 
 /// 8-byte follow state passed to `Gp_HudTrackEnemy` / `Gp_HudTrackSlot0`.
 /// `field_0` is the last `GpEnemy` drawn; `field_4` / `field_6` are the
 /// previous screen X/Y that `Gp_HudTrackEnemy` lerps toward 0x6A, -0x35
 /// (or -0x64 when `func_800B9D80(0x100000)` is 0).
 typedef struct _GpHudTrack {
-    /* 0x0 */ struct _GpEnemy* field_0;
-    /* 0x4 */ s16              field_4;
-    /* 0x6 */ s16              field_6;
+    /* 0x0 */ struct GpEnemy* field_0;
+    /* 0x4 */ s16             field_4;
+    /* 0x6 */ s16             field_6;
 } GpHudTrack;
 STATIC_ASSERT_SIZEOF(GpHudTrack, 8);
 
@@ -155,8 +155,8 @@ STATIC_ASSERT_SIZEOF(GpCircleScratch, 0x60);
 /// Overlay of a `Gp_LinkList` `GpLinkNode` and the fields that follow it,
 /// used by `Gp_UpdateLinkXforms`. `field_4` is the whole word that the node's
 /// `flags` byte heads, which is how the walk reads it. `coord` is
-/// `GpEnemy.field_18`. `src` / `dst` overlay `GpEnemy.field_1C` /
-/// `field_2C`: local XYZ in, player-relative XYZ out.
+/// `GpEnemy.coord`. `src` / `dst` overlay `GpEnemy.bodyPos` /
+/// `playerRelPos`: local XYZ in, player-relative XYZ out.
 typedef struct _GpLinkXform {
     /* 0x00 */ struct _GpLinkXform* next;
     /* 0x04 */ s32                  field_4;
@@ -419,7 +419,7 @@ s32        Gp_IsDebugAttachRoom(void);
 void       Gp_ResetHudFx(GpIdMapC* arg0);
 s32        Gp_GetAttachLevel(s32 arg0);
 s32        Gp_StepAttachSlot(s32 arg0, s32 arg1);
-void       Gp_HudTrackEnemy(struct _GpEnemy* arg0, GpHudTrack* arg1);
+void       Gp_HudTrackEnemy(struct GpEnemy* arg0, GpHudTrack* arg1);
 void       Gp_UpdateLinkXforms(void);
 void       Gp_HudTrackSlot0(GpHudTrack* arg0);
 void       Gp_EnqueueAttach7Cd(void);

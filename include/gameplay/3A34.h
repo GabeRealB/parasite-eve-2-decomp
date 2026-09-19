@@ -625,7 +625,7 @@ STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 /// `Gp_ReleaseStateF0Add` / `Gp_ReleaseStateF0Clear` / `Gp_ReleaseStateF0`. Last-ref
 /// release in `Gp_ReleaseStateF0Clear` also clears words at 0x8 / 0xC / 0x10.
 /// `Gp_ReleaseStateF0Add` then adds the record's `exp` / `bp` / `mp` at
-/// `arg0->field_20->field_50` into those same words, which is how an enemy's
+/// `arg0->field_20->param` into those same words, which is how an enemy's
 /// rewards reach the battle result.
 /// `func_800E2C78` adds into
 /// `field_14` when `(arg1 & 0x7F)` is 0x19..0x1B.
@@ -837,7 +837,7 @@ typedef struct _GpNearScratch {
 STATIC_ASSERT_SIZEOF(GpNearScratch, 0x28);
 
 /// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `Gp_RollEnemyChance`.
-/// `local` first holds `GpEnemy.field_1C`, which `field_18->workm` rotates
+/// `local` first holds `GpEnemy.bodyPos`, which `field_18->workm` rotates
 /// into `world`; `world` then gets `workm.t[]` added to become a world
 /// position, and `local` is reused for the delta against the player
 /// coordinate whose length feeds `SquareRoot0`.
@@ -1391,14 +1391,14 @@ void Gp_DebugPanTask(Task* arg0);
 /// fills 0x180/0x100/0x100. Default remaps to *3/*1/*3 when
 /// `field_4C & 0xC`. Bit 0x80 of `field_4E` with `field_4B == 0` applies
 /// a `rsin(gDisplayState.loopCount << 6)` flicker and clears the bit.
-void Gp_RemapActorColor(struct _GpEnemy* arg0, MATRIX* arg1, s32 arg2);
+void Gp_RemapActorColor(struct GpEnemy* arg0, MATRIX* arg1, s32 arg2);
 /// Rebuilds the actor color matrix via `func_800D7A9C`, then remaps it
 /// from `field_4E` lighting mode (`Gp_RemapActorColor`). While `field_4F` is
 /// a positive blend timer, GPF/GPL-interpolates the previous mode
 /// (`field_4E` bits 2-3) toward the current mode (bits 0-1). Skips work
 /// when `gGameSession->field_65 == 1` unless `TmdObject.flags` bit
 /// 0x80 is clear and `field_18` is set. `Gp_StateF0.field_4` freezes the timer.
-void            Gp_UpdateActorColor(struct _GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+void            Gp_UpdateActorColor(struct GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void            Gp_LightFalloff(GpObj44* arg0);
 void            Gp_SetLightMode(GpObj4C* arg0, s32 arg1);
 s32             Gp_GetObjDepth(GpObj38* arg0);
@@ -1554,11 +1554,11 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
 /// distance to the player picks a `D_80113864` class, that class selects a
 /// percentage from `D_80113858` (when `GpRec10.field_4` is 6) or from the
 /// `D_80113568` row for `(arg1 >> 8) & 0x3F`, and column 6 (or 7 with bit
-/// 0x4000) of that same row scales `critChance`. `GpEnemy.field_4C` bit 1
+/// 0x4000) of that same row scales `critChance`. `GpEnemy.reactionFlags` bit 1
 /// doubles the chance, `Gp_StateC08.field_D` applies a `D_80113D0C` percent,
 /// and `arg2` multiplies it when non-zero. The result is compared against a
 /// 12-bit `Gp_LcgState` draw.
-s32  Gp_RollEnemyChance(struct _GpEnemy* arg0, u32 arg1, s32 arg2);
+s32  Gp_RollEnemyChance(struct GpEnemy* arg0, u32 arg1, s32 arg2);
 void Gp_ApplyObjKind(GpObj5D* arg0, s32 arg1);
 s32  Gp_PackObjPair(GpObj50* arg0, s32 arg1);
 s32  Gp_PackPair(GpU16Pair* pairs, s32 index);

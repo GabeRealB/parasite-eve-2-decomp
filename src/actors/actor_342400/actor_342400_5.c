@@ -42,7 +42,7 @@ void func_actor_342400_80164F3C(Task* arg0)
             work->field_442++;
             sp[(s16)work->field_420](arg0);
             func_actor_342400_801653DC(arg0, 1);
-            if (work->field_41E != 0 && work->field_448 == 4 && enemy->field_40 <= 0) {
+            if (work->field_41E != 0 && work->field_448 == 4 && enemy->hp <= 0) {
                 Actor342400Work* w = (Actor342400Work*)arg0->work;
 
                 arg0->state  = work->field_448;

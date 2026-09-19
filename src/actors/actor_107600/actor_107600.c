@@ -52,11 +52,11 @@ extern Actor107600Pair D_actor_107600_80135730[];
  * is the trailing animation/data blob, not the leading rodata. */
 extern TaskDesc D_actor_107600_80134F94;
 
-/* The pair-source record the spawn state hangs off the enemy's `GpEnemy.field_50`
+/* The pair-source record the spawn state hangs off the enemy's `GpEnemy.param`
  * (a zeroed pointer to `D_actor_107600_8013571C`, 0x32 and 0xFF000000) and the
  * 16-entry HP table it indexes with the spawn variant. Both are trailing-blob
  * data, after the collision tables. */
-/* Pair-source record the spawn state hangs off `GpEnemy.field_50`. */
+/* Pair-source record the spawn state hangs off `GpEnemy.param`. */
 extern GpPairSrcE D_actor_107600_80134F84;
 extern GpPairSrcE D_actor_107600_80135720;
 extern u16        D_actor_107600_80135750[];
@@ -112,7 +112,7 @@ void func_actor_107600_80131F10(Task* arg0)
     work->field_144    = (s32)(arg0->spawnArg1 & 0xF000) >> 12;
     obj->lightMtx      = &work->matrix_20;
     obj->colorMtx      = &work->matrix_0;
-    enemy->field_50    = &D_actor_107600_80134F84;
+    enemy->param       = &D_actor_107600_80134F84;
     coord->sub         = &gGfxViewCoord;
     enemy->field_4     = &((TmdObject*)arg0->extra)->coords->coord;
     enemy->field_48    = 0;
@@ -595,7 +595,7 @@ void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2)
         }
         tmdProcessStream(obj);
         tmdProcessStream(obj);
-        enemy->field_A = 0x900;
+        enemy->workType = 0x900;
     }
 }
 
@@ -627,23 +627,23 @@ void func_actor_107600_80132ED0(Task* arg0)
     work->field_162       = ((u32)arg0->spawnArg1 >> 16) & 0xF;
     obj->lightMtx         = &work->matrix_20;
     obj->colorMtx         = &work->matrix_0;
-    enemy->field_50       = &D_actor_107600_80135720;
-    enemy->field_54       = (s32)work->rec18;
+    enemy->param          = &D_actor_107600_80135720;
+    enemy->recs           = work->rec18;
     work->field_140.coord = ((TmdObject*)arg0->extra)->coords;
     work->field_144       = 0x140;
     work->field_146       = 2;
     hp                    = D_actor_107600_80135750[arg0->spawnArg1 & 0xF];
-    enemy->field_42       = hp;
-    enemy->field_40       = hp;
+    enemy->hpMax          = hp;
+    enemy->hp             = hp;
     func_actor_107600_80134958(arg0);
     Gp_LinkNode(&enemy->node);
-    enemy->field_4     = &coord->workm;
-    enemy->field_1C.vy = -0x244;
-    enemy->field_48    = 0;
-    enemy->field_1C.vx = 0;
-    enemy->field_1C.vz = 0;
-    enemy->field_18    = coord;
-    enemy->node.flags  = 1;
+    enemy->field_4    = &coord->workm;
+    enemy->bodyPos.vy = -0x244;
+    enemy->field_48   = 0;
+    enemy->bodyPos.vx = 0;
+    enemy->bodyPos.vz = 0;
+    enemy->coord      = coord;
+    enemy->node.flags = 1;
     func_actor_107600_80134E5C(coord);
     coord->flg = 0;
     Gp_UpdateCoord(coord);
@@ -684,7 +684,7 @@ void func_actor_107600_80133024(Task* arg0)
                     work->field_150--;
                 }
                 Gp_ClearRec18Occupied(work->rec18);
-                if (enemy->field_40 <= 0) {
+                if (enemy->hp <= 0) {
                     func_actor_107600_80134B98((Actor107600*)arg0, 9);
                 }
             }
@@ -703,7 +703,7 @@ void func_actor_107600_80133024(Task* arg0)
     func_actor_107600_80134A50(arg0);
     func_actor_107600_80134EF4(arg0);
     for (i = 0; i < work->field_16B; i++) {
-        if (i == work->field_16B - 1 && enemy->field_40 <= 0) {
+        if (i == work->field_16B - 1 && enemy->hp <= 0) {
             v->vx = 0;
             v->vy = -0xE0;
             v->vz = 0;
@@ -897,7 +897,7 @@ void func_actor_107600_801337FC(Task* arg0)
             arg0->spawnArg1 |= 0x40;
             work->field_154  = 7;
             Gp_UnlinkNode(&enemy->node);
-            enemy->field_54  = 0;
+            enemy->recs      = 0;
             work->obj.flags &= 0x7FFF;
         case 1:
             work->field_154--;
@@ -1018,7 +1018,7 @@ void func_actor_107600_801339A4(Task* arg0)
                 ((Actor107600HitPos*)&work->pitch)->vy = -220;
             }
             Gp_UnlinkNode(&enemy->node);
-            enemy->field_54  = 0;
+            enemy->recs      = 0;
             work->obj.flags &= 0xBFFF;
         case 1:
             work->field_154++;
@@ -1084,9 +1084,9 @@ void func_actor_107600_80133DC4(Task* arg0)
                 work->field_150 = Gp_GetIdParam2(work->rec18[i].key);
                 work->field_160 = damage;
                 func_800DA6E8(&enemy->node, damage, 0);
-                enemy->field_40 -= damage;
-                if (enemy->field_40 <= 0) {
-                    enemy->field_40 = 0;
+                enemy->hp -= damage;
+                if (enemy->hp <= 0) {
+                    enemy->hp = 0;
                 }
                 if (damage > 0) {
                     if (work->field_16B < 8) {
@@ -1278,7 +1278,7 @@ void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
 
     extra    = (TmdObject*)arg0->task->extra;
     colorMtx = extra->colorMtx;
-    mode     = arg0->field_4E & 3;
+    mode     = arg0->colorMode & 3;
     if ((!(extra->flags & 0x80) && (extra->buffer != NULL)) || (gGameSession->field_65 != 1)) {
         {
             void**                   scratch;
@@ -1291,7 +1291,7 @@ void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
             *scratch = tmp;
         }
         func_800D7A9C(extra, arg1, 0, 3);
-        if ((s8)arg0->field_4F <= 0) {
+        if ((s8)arg0->colorBlend <= 0) {
             func_actor_107600_801344E8(arg0, colorMtx, mode);
         } else {
             block->mtx.m[0][0] = colorMtx->m[0][0];
@@ -1304,12 +1304,12 @@ void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
             block->mtx.m[2][1] = colorMtx->m[2][1];
             block->mtx.m[2][2] = colorMtx->m[2][2];
             func_actor_107600_801344E8(arg0, colorMtx, mode);
-            func_actor_107600_801344E8(arg0, &block->mtx, (arg0->field_4E >> 2) & 3);
+            func_actor_107600_801344E8(arg0, &block->mtx, (arg0->colorMode >> 2) & 3);
             i    = 0;
             col0 = (SVECTOR*)(head - 0x10);
             col1 = (SVECTOR*)(head - 8);
             src  = (GpMtxCol*)colorMtx;
-            w0   = (s8)arg0->field_4F << 8;
+            w0   = (s8)arg0->colorBlend << 8;
             dst  = (GpMtxCol*)block;
             w1   = 0x1000 - w0;
             do {
@@ -1338,7 +1338,7 @@ void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
                 src    = (GpMtxCol*)&src->_0;
             } while (i < 3);
             if (D_801153F4 == 0) {
-                arg0->field_4F--;
+                arg0->colorBlend--;
             }
         }
         *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;

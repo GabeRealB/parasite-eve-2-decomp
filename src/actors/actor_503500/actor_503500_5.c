@@ -288,15 +288,15 @@ void func_actor_503500_80132F64(Actor503500* arg0)
     enemy->field_4     = &coord->coord;
     part               = &coord[3];
     enemy->field_48    = 0;
-    enemy->field_18    = part;
+    enemy->coord       = part;
     enemy->node.flags |= 9;
-    enemy->field_1C.vx = D_actor_503500_8016EC50.vx;
-    enemy->field_1C.vy = D_actor_503500_8016EC50.vy;
-    enemy->field_1C.vz = D_actor_503500_8016EC50.vz;
+    enemy->bodyPos.vx  = D_actor_503500_8016EC50.vx;
+    enemy->bodyPos.vy  = D_actor_503500_8016EC50.vy;
+    enemy->bodyPos.vz  = D_actor_503500_8016EC50.vz;
     recs               = work->rec5F4;
-    enemy->field_50    = &D_actor_503500_8016E7EC[arg0->spawnArg1];
-    enemy->field_54    = (s32)recs;
-    enemy->field_40    = enemy->field_50->hpMax;
+    enemy->param       = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+    enemy->recs        = recs;
+    enemy->hp          = enemy->param->hpMax;
 
     work->field_5D4.coord    = part;
     work->field_5D4.ctx.recs = recs;
@@ -317,7 +317,7 @@ void func_actor_503500_80132F64(Actor503500* arg0)
         child = Gp_SpawnEnemyFromTable(&D_actor_503500_8016E924, i, i, enemy);
         if (child != NULL) {
             sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
-            raw        = arg0->field_20->field_8;
+            raw        = arg0->field_20->placeKey;
             model      = (TmdObject*)child->task->extra;
             key.stage  = sessionKey->stage;
             key.area   = sessionKey->area;
@@ -410,7 +410,7 @@ void func_actor_503500_80133270(Actor503500* arg0)
                 }
                 work->field_7D9--;
             }
-            if (enemy->field_4C != 0) {
+            if (enemy->reactionFlags != 0) {
                 func_actor_503500_80136280(arg0);
             }
             func_actor_503500_80136A88(arg0);
@@ -522,7 +522,7 @@ s32 func_actor_503500_80133684(Actor503500* arg0)
         ((((slot1 = slots[1], slot1 == NULL)) && (slots[12] == NULL)) ||
          (slots[7] == NULL) || (slots[8] == NULL) || (slots[10] == NULL) ||
          (slots[11] == NULL) || ((slots[9] == NULL) && (slot1 == NULL)) ||
-         ((slots[4]->field_40 == 0) && (slots[5]->field_40 == 0)))) {
+         ((slots[4]->hp == 0) && (slots[5]->hp == 0)))) {
         if ((((GameActor*)((Task*)Game_GetPtrSlot(3))->work)->field_954 != 2) &&
             (D_80073BA0 > 0) && (D_80114C12 != 1)) {
             ret = 1;
@@ -978,13 +978,13 @@ void func_actor_503500_80134408(Actor503500* arg0)
             work->field_5D4.flags &= 0x7FFF;
             func_actor_503500_8013611C(arg0->spawnArg1);
             Gp_UnlinkNode(&enemy->node);
-            enemy->field_54 = 0;
+            enemy->recs     = 0;
             work->field_7B4 = 0;
             Gp_PulseState1C();
             sum = 0;
             for (i = 1; i < 0x11; i++) {
                 if (work->enemies[i] != NULL) {
-                    sum += work->enemies[i]->field_40;
+                    sum += work->enemies[i]->hp;
                 }
             }
             gGameSession->bossPartsHpSum = sum;
@@ -1297,9 +1297,9 @@ void func_actor_503500_80134EAC(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
             Gp_SpawnEff(0x6009C, coord, 0, NULL);
         }
         func_800E2C78((GpObj40*)enemy, id, dmg, 0);
-        enemy->field_40 -= dmg;
+        enemy->hp -= dmg;
         func_800DA6E8(&enemy->node, dmg, 0);
-        if (enemy->field_40 <= 0) {
+        if (enemy->hp <= 0) {
             func_actor_503500_80136EFC(arg0, 4);
             work->field_7E6 = 1;
         } else {
@@ -1758,7 +1758,7 @@ GpEnemy* func_actor_503500_80135D00(Actor503500* arg0, s32 arg1)
     enemy = Gp_SpawnEnemyFromTable(&D_actor_503500_8016E924, arg1, arg1, arg0->field_20);
     if (enemy != NULL) {
         sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
-        raw        = arg0->field_20->field_8;
+        raw        = arg0->field_20->placeKey;
         model      = (TmdObject*)enemy->task->extra;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
@@ -1952,7 +1952,7 @@ s16 func_actor_503500_80136218(void)
 }
 
 /// Exit callback of the boss task: tears down the second body part's display
-/// node, clears the enemy's `field_54` back-pointer slot and destroys it.
+/// node, clears the enemy's `recs` back-pointer slot and destroys it.
 void func_actor_503500_80136228(Actor503500* arg0)
 {
     GpEnemy* enemy;
@@ -1960,8 +1960,8 @@ void func_actor_503500_80136228(Actor503500* arg0)
     enemy = arg0->field_20;
     func_actor_503500_80136B64(arg0, 0, 1);
     Gp_UnlinkObj(&arg0->field_1C->field_5D4);
-    enemy->field_54 = 0;
-    arg0->field_1C  = NULL;
+    enemy->recs    = 0;
+    arg0->field_1C = NULL;
     Gp_DestroyEnemy(enemy, (Task*)arg0);
 }
 
@@ -1972,18 +1972,18 @@ void func_actor_503500_80136280(Actor503500* arg0)
     u8               flags;
 
     enemy = arg0->field_20;
-    flags = enemy->field_4C;
+    flags = enemy->reactionFlags;
     work  = arg0->field_1C;
     if (flags & 1) {
-        enemy->field_4C = flags & 0xFE;
+        enemy->reactionFlags = flags & 0xFE;
     }
-    if (enemy->field_4C & 2) {
-        enemy->field_4C &= 0xFD;
+    if (enemy->reactionFlags & 2) {
+        enemy->reactionFlags &= 0xFD;
         func_actor_503500_80136EFC(arg0, 3);
         work->field_7B2 = 3;
     }
-    flags = enemy->field_4C;
+    flags = enemy->reactionFlags;
     if (flags & 0xC) {
-        enemy->field_4C = flags & 0xF3;
+        enemy->reactionFlags = flags & 0xF3;
     }
 }

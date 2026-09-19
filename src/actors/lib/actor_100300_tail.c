@@ -108,10 +108,10 @@ void Actor00300_Fn04D28(Actor100300* arg0)
                 SndEvt_EnqueueType7(work->field_658, 1);
             }
             if (Gp_TickObjFlag2((GpObj5D*)arg0->field_20) != 0) {
-                enemy            = arg0->field_20;
-                enemy->field_4C &= 0xFD;
-                work->field_66E  = 0x12;
-                work->field_686  = 1;
+                enemy                 = arg0->field_20;
+                enemy->reactionFlags &= 0xFD;
+                work->field_66E       = 0x12;
+                work->field_686       = 1;
             }
             break;
         case 1:
@@ -348,7 +348,7 @@ s32 Actor00300_Fn05434(Actor100300* arg0, s32 arg1, Actor100300DestroyArgs* args
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (args->field_2 != 0) {
-        enemy->field_54 = 0;
+        enemy->recs = 0;
         Gp_UnlinkNode(&enemy->node);
         Gp_UnlinkObj(&work->obj480);
         Gp_UnlinkObj(&work->obj538);

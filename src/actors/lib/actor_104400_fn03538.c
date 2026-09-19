@@ -187,7 +187,7 @@ void Actor04400_Fn03538(Task* arg0)
             Actor04400_Fn00874(arg0);
             Actor04400_UpdateRotation(arg0);
             Actor04400_Fn022A8(arg0, 0);
-            if (work->field_438 == 0 && enemy->field_40 <= 0) {
+            if (work->field_438 == 0 && enemy->hp <= 0) {
                 Actor04400_SetState(arg0, 4);
             } else if (work->field_44C == 4 && work->field_438 == 0) {
                 Actor04400_SetState(arg0, 8);

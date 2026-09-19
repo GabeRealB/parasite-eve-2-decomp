@@ -6,7 +6,7 @@
 
 s32 func_actor_421600_8013E4EC(Task* task)
 {
-    if (((GpEnemy*)task->spawnArg2)->field_40 > 0) {
+    if (((GpEnemy*)task->spawnArg2)->hp > 0) {
         goto return_one;
     }
 

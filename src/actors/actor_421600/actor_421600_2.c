@@ -29,7 +29,7 @@ void func_actor_421600_8013E668(Task* task)
         Gp_UnlinkObj(&work->field_8EC);
         Gp_UnlinkObj(&work->field_A2C);
         Gp_UnlinkObj(&work->field_B6C);
-        enemy->field_54 = 0;
+        enemy->recs = 0;
     }
     Gp_DestroyEnemy(enemy, task);
 }
@@ -114,7 +114,7 @@ void func_actor_421600_8013E858(Actor421600* arg0)
         enemy->node.flags      = 1;
         obj->flags            |= 0x80;
         work->field_B6C.flags &= 0xBFFF;
-        enemy->field_40        = 0;
+        enemy->hp              = 0;
     }
 }
 
@@ -155,8 +155,8 @@ void func_actor_421600_8013E8AC(Actor421600* arg0)
     }
     func_actor_421600_80134604(arg0);
     if (Gp_TickObjFlag2((GpObj5D*)enemy) == 1) {
-        enemy->field_4C &= 0xFD;
-        work->field_0    = 0x24;
+        enemy->reactionFlags &= 0xFD;
+        work->field_0         = 0x24;
     }
 }
 
@@ -263,15 +263,15 @@ void func_actor_421600_8013EC28(Actor421600* arg0)
         work->field_844        = 0;
         work->field_840        = 0;
         work->field_83E        = 0;
-        if (enemy->field_40 <= 0) {
+        if (enemy->hp <= 0) {
             Gp_SetStateF0Byte3(1);
         }
     }
     func_actor_421600_80134604(arg0);
     if (work->field_68 & 0x100) {
         if (work->field_82E == 0xA) {
-            if (enemy->field_40 > 0) {
-                if (enemy->field_4C & 2) {
+            if (enemy->hp > 0) {
+                if (enemy->reactionFlags & 2) {
                     work->field_0 = 4;
                 } else {
                     work->field_0 = 0x11;
@@ -300,14 +300,14 @@ void func_actor_421600_8013ED24(Actor421600* arg0)
         work->field_832        = 0x10;
         work->field_840        = 0;
         work->field_83E        = 0;
-        if (enemy->field_40 <= 0) {
+        if (enemy->hp <= 0) {
             Gp_SetStateF0Byte3(1);
         }
     }
     func_actor_421600_80134604(arg0);
     if (work->field_68 & 0x100) {
-        if (enemy->field_40 > 0) {
-            if (enemy->field_4C & 2) {
+        if (enemy->hp > 0) {
+            if (enemy->reactionFlags & 2) {
                 work->field_0 = 4;
             } else {
                 work->field_0 = 0x24;
@@ -337,7 +337,7 @@ void func_actor_421600_8013EE0C(Actor421600* arg0)
         work->field_832        = 0x10;
         work->field_840        = 0;
         work->field_83E        = 0;
-        if (enemy->field_40 <= 0) {
+        if (enemy->hp <= 0) {
             Gp_SetStateF0Byte3(1);
         }
     }

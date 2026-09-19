@@ -71,10 +71,10 @@ void func_actor_105300_80131E3C(Actor05300* arg0)
         }
         func_800DA6E8(&enemy->node, damage, 0);
         func_800E2C78((GpObj40*)enemy, work->rec18[i].key, damage, 0);
-        enemy->field_40 -= damage;
-        if (enemy->field_40 <= 0) {
+        enemy->hp -= damage;
+        if (enemy->hp <= 0) {
             if (work->field_336 == 0) {
-                enemy->field_40 = 1;
+                enemy->hp = 1;
             } else {
                 arg0->field_30  = 2;
                 work->field_32E = 3;
@@ -103,7 +103,7 @@ void func_actor_105300_80131E3C(Actor05300* arg0)
         if (val > 0) {
             work->field_332 = val;
         }
-        snd = D_actor_105300_8013D3B0[2] | ((arg0->field_20->field_8 >> 12) << 8);
+        snd = D_actor_105300_8013D3B0[2] | ((arg0->field_20->placeKey >> 12) << 8);
         SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
     }
 end:
@@ -117,7 +117,7 @@ end:
 /// once the countdown `field_32A` has run out, and on that table's terminator
 /// row resets the row index, reseeds the countdown from the gameplay LCG and
 /// plays the work block's sound id with the actor id in the high nibble of
-/// `GpEnemy::field_8`; state 1 walks `D_actor_105300_8013D3EC` and moves to
+/// `GpEnemy::placeKey`; state 1 walks `D_actor_105300_8013D3EC` and moves to
 /// state 2 on its terminator; state 2 hands the pose back to 0 once
 /// `ActorsShared80133610` has ticked `field_324` frames past the pose's own
 /// length. The row's `field_2` is the scale `ActorsShared80136574` applies to
@@ -144,7 +144,7 @@ void func_actor_105300_8013222C(Actor05300* arg0)
                     Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
                     work->field_32A = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
                     sndId           = D_actor_105300_8013D3BC |
-                            (((u16)arg0->field_20->field_8 >> 12) << 8);
+                            (((u16)arg0->field_20->placeKey >> 12) << 8);
                     pan = (s8)Gp_GetObjPan((GpObj38*)coord);
                     SndEvt_EnqueueType6(sndId, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
                 } else {
@@ -215,13 +215,13 @@ void func_actor_105300_80132BAC(GpEnemy* arg0, Task* arg1)
     arg0->field_48    = 0;
     Gp_LinkNode(&arg0->node);
     rec18                     = part->rec18;
-    arg0->field_18            = coord;
-    arg0->field_1C.vx         = 0;
-    arg0->field_1C.vy         = 0;
-    arg0->field_1C.vz         = 0;
-    arg0->field_50            = &D_actor_105300_8013D3A0;
-    arg0->field_54            = (s32)rec18;
-    arg0->field_40            = D_actor_105300_8013D3A0.hpMax;
+    arg0->coord               = coord;
+    arg0->bodyPos.vx          = 0;
+    arg0->bodyPos.vy          = 0;
+    arg0->bodyPos.vz          = 0;
+    arg0->param               = &D_actor_105300_8013D3A0;
+    arg0->recs                = rec18;
+    arg0->hp                  = D_actor_105300_8013D3A0.hpMax;
     part->field_38.spawnArgLo = 0x500;
     part->field_38.coord      = coord;
     part->field_38.spawnArgHi = 2;
@@ -293,15 +293,15 @@ void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
                 Gp_SpawnEff(0x6009C, coord, 0, NULL);
             }
             func_800DA6E8(&arg0->node, damage, 0);
-            arg0->field_40 -= damage;
-            if (arg0->field_40 <= 0) {
+            arg0->hp -= damage;
+            if (arg0->hp <= 0) {
                 arg1->state                                      = 2;
                 part->field_42                                   = 0;
                 ((Actor05300Work*)arg1->parent->work)->field_336 = 1;
                 Gp_SpawnEff(0x6005C, coord, 0x10002400, NULL);
                 Gp_SpawnEff(0x60070, coord, 0x32FF1400, NULL);
                 snd  = D_actor_105300_8013D3B4;
-                snd |= (arg0->field_8 >> 12) << 8;
+                snd |= (arg0->placeKey >> 12) << 8;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
             } else if (damage > 0) {
                 if (part->field_44 == 0) {
@@ -316,7 +316,7 @@ void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
                     part->field_40 = hitTime;
                 }
                 snd  = D_actor_105300_8013D3B0[0];
-                snd |= (arg0->field_8 >> 12) << 8;
+                snd |= (arg0->placeKey >> 12) << 8;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
             }
         }

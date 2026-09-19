@@ -173,7 +173,7 @@ STATIC_ASSERT_SIZEOF(Actor105600AreaRec, 0x10);
 /// Placement descriptor for this actor.
 extern Actor105600PlaceSrc D_actor_105600_80147FDC;
 
-/// Pair source the approach cycle parks at `GpEnemy::field_50`; its `hpMax`
+/// Pair source the approach cycle parks at `GpEnemy::param`; its `hpMax`
 /// becomes the enemy's `field_40`.
 extern GpPairSrcE D_actor_105600_80147FF0[];
 

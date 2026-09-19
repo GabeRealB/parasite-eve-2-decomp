@@ -1846,9 +1846,9 @@ default assigned before the tests:
 
 ```c
 next = 0x15;
-if (enemy->field_40 > 0) {
+if (enemy->hp > 0) {
     next = 4;
-    if (!(enemy->field_4C & 2)) {
+    if (!(enemy->reactionFlags & 2)) {
         next = 0x11;
     }
 }
@@ -1867,9 +1867,9 @@ Write the stores in the arms instead. jump2 still merges them to one
 compare is dead, so the constants reuse `$v0`:
 
 ```c
-if (enemy->field_40 <= 0) {
+if (enemy->hp <= 0) {
     work->field_0 = 0x15;
-} else if (enemy->field_4C & 2) {
+} else if (enemy->reactionFlags & 2) {
     work->field_0 = 4;
 } else {
     work->field_0 = 0x11;
@@ -2482,11 +2482,11 @@ Example: `func_actor_400500_801385D0` (`D_actor_400500_80131EF0` /
 ## Name `spawnArg2` before two stack table copies so `lw` of the enemy hoists
 
 A dispatcher that copies two `TaskFuncTable3`s then tests
-`enemy->field_40` needs `GpEnemy* enemy = arg0->spawnArg2` assigned *before*
+`enemy->hp` needs `GpEnemy* enemy = arg0->spawnArg2` assigned *before*
 the copies. Inlining the field after the copies keeps `lw 0x20(s2)` late and
 adds a load-delay nop (`lh v0, 0x40(v0)`). The named pointer lives across the
 copies in `$v1`, matching `lw v1, 0x20(s2)` in the delay of `lw s0, 0x1C(s2)`.
-Keep `if (enemy->field_40 <= 0)` so the branch is `bgtz` (the sibling
+Keep `if (enemy->hp <= 0)` so the branch is `bgtz` (the sibling
 `8013899C` uses `> 0` / `blez` because it only copies one table).
 
 The anim tail is the same sibling `if / else if` on `field_9FA` (with
@@ -3532,7 +3532,7 @@ comes out right when the decremented value is `s16`:
 /* timer is s16; work->field_6 is u16 */
 timer         = work->field_6 - 1;
 work->field_6 = timer;
-if (timer < 0 && enemy->field_40 > 0) { work->field_0 = 0x13; }
+if (timer < 0 && enemy->hp > 0) { work->field_0 = 0x13; }
 ```
 
 ```asm
@@ -6034,13 +6034,13 @@ register s32 v asm("v0");
 v              = 0x900;
 f3             = arg0->field_3;
 f2             = arg0->field_2;
-enemy->field_A = v;
+enemy->workType = v;
 v              = packed >> 12;
-enemy->field_3C = place;
+enemy->place = place;
 v              = v | (f3 << 8);
 task           = enemy->task;
 f2             = f2 | v;
-enemy->field_8 = f2;
+enemy->placeKey = f2;
 ```
 
 `Gp_SpawnArea` is the example. Two similar table walks in one function
@@ -30066,7 +30066,7 @@ so GCC emits the subtract into `$v1` and the copy into `$t0`:
 enemy = (GpEnemy*)((u8*)node - OFFSET_OF(GpEnemy, node));
 obj54 = (GpObj54*)enemy;
 if (arg0 == 0) {
-    enemy->field_4E |= 0x80;
+    enemy->colorMode |= 0x80;
 } else {
     Gp_ClaimSlot18(obj54, payload);
 }
@@ -35889,7 +35889,7 @@ gives `sound` enough refs to outrank the work pointer for `$s0`:
 
 ```c
 u32 sound;                     /* unsigned, or the >>= becomes sra */
-sound  = enemy->field_8;
+sound  = enemy->placeKey;
 sound >>= 0xC;
 sound <<= 8;
 sound |= 0x531A000A;
@@ -57142,7 +57142,7 @@ step               = 3;
 work->walker.state = step;
 ```
 
-Reading the same value back out of another field (`enemy->field_42 =
+Reading the same value back out of another field (`enemy->hpMax =
 work->field_10C;` after `work->field_10C = 1;`) is the mirror image: CSE
 substitutes the register it already knows holds the value but has to change
 mode, which is where a stray `move $v0, $s1` before two `sh`s comes from.
@@ -57435,7 +57435,7 @@ setter macro rather than reordering assignments by hand.
 instruction writes the same callee-saved register. The obvious C,
 
 ```c
-id = ((enemy->field_8 >> 12) << 8) | 0x40290003;
+id = ((enemy->placeKey >> 12) << 8) | 0x40290003;
 ```
 
 gives `lhu $v0; srl $v0; sll $v0; or $s1,$v0,$a1` instead: each intermediate is
@@ -57447,7 +57447,7 @@ the `lhu` on:
 
 ```c
 u32 id;
-id  = enemy->field_8;
+id  = enemy->placeKey;
 id >>= 12;
 id <<= 8;
 id |= 0x40290003;
@@ -57496,7 +57496,7 @@ register at different constant offsets are provably disjoint and do get
 reordered. That asymmetry lets the source order be read off the target:
 
 ```
-lhu   $v0, 8($s4)        # enemy->field_8, above the stores → its statement is first
+lhu   $v0, 8($s4)        # enemy->placeKey, above the stores → its statement is first
 li    $v1, 2
 sh    $v1, 0x100($s2)
 sh    $v1, 0x104($s2)
@@ -67471,9 +67471,9 @@ lhu   v0,4(v0)
 sh    v0,0x40(s1)
 ```
 
-Writing the obvious `src = &tbl[i]; enemy->field_50 = src; enemy->field_40 =
+Writing the obvious `src = &tbl[i]; enemy->param = src; enemy->hp =
 src->field_4;` produces `lhu v0,4(v1)` and no copy, and so does
-`enemy->field_40 = enemy->field_50->hpMax;` on its own: RTL CSE knows the MEM
+`enemy->hp = enemy->param->hpMax;` on its own: RTL CSE knows the MEM
 at `0x50(enemy)` still holds the stored register, rewrites the load to a
 register copy, and combine then propagates that copy away.
 
@@ -67483,9 +67483,9 @@ cannot disambiguate, and it does not disambiguate two MEMs whose base is a
 register loaded from memory, even at different constant offsets. So
 
 ```c
-enemy->field_50 = &D_actor_503500_8016E7EC[arg0->spawnArg1];
-enemy->field_54 = (s32)rec;
-enemy->field_40 = enemy->field_50->hpMax;
+enemy->param = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+enemy->recs = (s32)rec;
+enemy->hp = enemy->param->hpMax;
 ```
 
 leaves a real `lw` all the way through `.greg` (`(set (reg:SI 2 v0) (mem/s:SI
@@ -67541,15 +67541,15 @@ offsets are free to swap.
 
 ## A store between a struct write and its read-back is what leaves the redundant `move`
 
-`func_actor_503500_8013BEE4` writes a pointer into `GpEnemy::field_50` and then
+`func_actor_503500_8013BEE4` writes a pointer into `GpEnemy::param` and then
 reads it straight back to seed `field_40`. The target spends an extra
 instruction on it:
 
 ```
-sw    v1,0x50(s1)      ; enemy->field_50 = &D_actor_503500_8016E7EC[i]
+sw    v1,0x50(s1)      ; enemy->param = &D_actor_503500_8016E7EC[i]
 sw    s2,0x54(s1)      ; (scheduled up from below)
 move  v0,v1
-lhu   v0,4(v0)         ; enemy->field_40 = enemy->field_50->hpMax
+lhu   v0,4(v0)         ; enemy->hp = enemy->param->hpMax
 ```
 
 The `move` is not a hand-written temporary and not a scheduling artifact. It is
@@ -67564,9 +67564,9 @@ What decides whether the load survives that far is **source statement order**.
 Written with the neighbouring field first,
 
 ```c
-enemy->field_54 = (s32)rec;
-enemy->field_50 = &D_actor_503500_8016E7EC[arg0->spawnArg1];
-enemy->field_40 = enemy->field_50->hpMax;   /* adjacent to its store */
+enemy->recs = (s32)rec;
+enemy->param = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+enemy->hp = enemy->param->hpMax;   /* adjacent to its store */
 ```
 
 cse sees the store and the read-back with nothing in between, folds the MEM to
@@ -67576,9 +67576,9 @@ elsewhere in the function (94.44%, `regs=8 reorder=4 insert=1 delete=2`).
 Swapping the two stores,
 
 ```c
-enemy->field_50 = &D_actor_503500_8016E7EC[arg0->spawnArg1];
-enemy->field_54 = (s32)rec;                   /* invalidates the MEM record */
-enemy->field_40 = enemy->field_50->hpMax;
+enemy->param = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+enemy->recs = (s32)rec;                   /* invalidates the MEM record */
+enemy->hp = enemy->param->hpMax;
 ```
 
 puts a store to `0x54` off the same base between them. GCC 2.8.1's cse
@@ -67649,7 +67649,7 @@ global directly,
 switch (D_801153F4) {
     ...
     default:
-        if (enemy->field_4C != 0) {
+        if (enemy->reactionFlags != 0) {
             func_actor_503500_80144098(arg0, D_801153F4, enemy);
         }
 ```
@@ -67677,7 +67677,7 @@ mode = D_801153F4;
 switch (mode) {
     ...
     default:
-        if (enemy->field_4C != 0) {
+        if (enemy->reactionFlags != 0) {
             func_actor_503500_80144098(arg0, mode, enemy);
         }
 ```
@@ -67695,9 +67695,9 @@ call site. Note the local's declaration order also fixes the load order —
 read-back of the first of them:
 
 ```c
-enemy->field_50 = &D_actor_503500_8016E7EC[arg0->spawnArg1];
-enemy->field_54 = (s32)rec;
-enemy->field_40 = enemy->field_50->hpMax;
+enemy->param = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+enemy->recs = (s32)rec;
+enemy->hp = enemy->param->hpMax;
 ```
 
 The target has an `addu $v0, $v1, $zero` between `sw $v1, 0x50($s1)` and
@@ -68341,7 +68341,7 @@ own local removes the anti-dependence: the address is computed right before
 its store, as in the target, and local-alloc still ties `part` into `coord`'s
 register because `coord` dies in that insn, so the allocation is unchanged
 (100%). Same function: the store order `field_50` then `field_54` then
-`field_40 = enemy->field_50->hpMax` (copied from the matched sibling
+`field_40 = enemy->param->hpMax` (copied from the matched sibling
 `func_actor_503500_801372C8`) is what produces the target's
 `move v0,v1; lhu v0,4(v0)` copy; with `field_54` first the copy is gone. That
 edit landed together with moving the `vz` load ahead of the `7D8`/`7CA` stores,
@@ -68535,8 +68535,8 @@ linked bytes are identical and the full build checksums.
 Same function, two more order-only fixes: `func(arg0, N)` written in each
 `switch` case (cross-jumping merges the `jal`, leaving `move a0,fp` and the
 mode constant in each predecessor and a `nop` in the shared call's delay
-slot), and `enemy->field_50 = &tbl[arg0->spawnArg1]` before
-`enemy->field_54 = rec` (the `spawnArg1` reload may alias the enemy stores, so
+slot), and `enemy->param = &tbl[arg0->spawnArg1]` before
+`enemy->recs = rec` (the `spawnArg1` reload may alias the enemy stores, so
 source order fixes the `sw 0x54` position).
 
 ### A three-term `|` with a constant: the written order decides which term the constant joins
@@ -69905,11 +69905,11 @@ Example: `func_actor_400500_801385D0` (`D_actor_400500_80131EF0` /
 ## Name `spawnArg2` before two stack table copies so `lw` of the enemy hoists
 
 A dispatcher that copies two `TaskFuncTable3`s then tests
-`enemy->field_40` needs `GpEnemy* enemy = arg0->spawnArg2` assigned *before*
+`enemy->hp` needs `GpEnemy* enemy = arg0->spawnArg2` assigned *before*
 the copies. Inlining the field after the copies keeps `lw 0x20(s2)` late and
 adds a load-delay nop (`lh v0, 0x40(v0)`). The named pointer lives across the
 copies in `$v1`, matching `lw v1, 0x20(s2)` in the delay of `lw s0, 0x1C(s2)`.
-Keep `if (enemy->field_40 <= 0)` so the branch is `bgtz` (the sibling
+Keep `if (enemy->hp <= 0)` so the branch is `bgtz` (the sibling
 `8013899C` uses `> 0` / `blez` because it only copies one table).
 
 The anim tail is the same sibling `if / else if` on `field_9FA` (with
@@ -84068,8 +84068,8 @@ allocation falls out (`work`→`$v1`, `enemy`→`$a1`, sentinel→`$a2`) at 100.
     Actor401300Work* work  = (Actor401300Work*)task->work;
     GpEnemy*         enemy = task->spawnArg2;
 
-    if (enemy->field_40 != -0x3E7 && work->field_C8A == 0) {
-        enemy->field_40 = -0x3E7;
+    if (enemy->hp != -0x3E7 && work->field_C8A == 0) {
+        enemy->hp = -0x3E7;
     }
 ```
 
@@ -84627,11 +84627,11 @@ The fix is one edit and no restructuring — write the guard in the
 early-return direction:
 
 ```c
-if (enemy->field_40 > 0) {
+if (enemy->hp > 0) {
     return 1;
 }
 work->field_BE4 = 0;
-enemy->field_4C = 0;
+enemy->reactionFlags = 0;
 work->field_BE6 = 0;
 return 0;
 ```
@@ -86591,12 +86591,12 @@ function's long-lived pointers in `global.c`. Giving each arm its own locals
 already does) matched:
 
 ```c
-if (enemy->field_40 <= 0) {
-    deathSound = ((enemy->field_8 >> 0xC) << 8) | 0x400A0008;
+if (enemy->hp <= 0) {
+    deathSound = ((enemy->placeKey >> 0xC) << 8) | 0x400A0008;
     deathPan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
     SndEvt_EnqueueType6(deathSound, deathPan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
 } else {
-    hitSound = ((enemy->field_8 >> 0xC) << 8) | 0x400A0007;
+    hitSound = ((enemy->placeKey >> 0xC) << 8) | 0x400A0007;
     ...
 }
 ```
@@ -89594,12 +89594,12 @@ Worked example: `Actor00400_Fn05728`, evidence in the scratch archive
 ## An address expression used after several calls comes out re-materialized unless the source names it *before* the early-return branch (func_actor_510900_8013A5B8, 2026-09-16)
 
 `func_actor_510900_8013A5B8` hands the same `&coords[10]` to three sinks that are
-separated by calls: `enemy->field_18`, and the `field_8` of each of the two
+separated by calls: `enemy->coord`, and the `field_8` of each of the two
 `GpObj`s it links. Written inline at all three sites, GCC 2.8.1 emits the
 `addiu` three times, in three different call-clobbered registers:
 
 ```c
-enemy->field_18      = &coords[10];   /* addiu v0,s5,0x320 */
+enemy->coord      = &coords[10];   /* addiu v0,s5,0x320 */
 work->obj2BC.field_8 = &coords[10];   /* addiu s1,s5,0x320 */
 work->obj2F4.field_8 = &coords[10];   /* reuses s1          */
 ```
@@ -98318,7 +98318,7 @@ byte, `sb` for its two stores, `sh` for the two `s16` work fields, `lw` for the
 `Task::spawnArg2` / `Task::work` loads - and
 
 ```c
-    enemy->field_4C &= 0xFD;      /* was: M2C_FIELD(temp_s0, u8 *, 0x4C) &= 0xFD */
+    enemy->reactionFlags &= 0xFD;      /* was: M2C_FIELD(temp_s0, u8 *, 0x4C) &= 0xFD */
 ```
 
 re-scores 100.000% with the same penalties. `base_1.c` reproduced `base.c`
@@ -103109,8 +103109,8 @@ from `actor_403000_hdr.rodata.s`. The fix is `rodata_head = "0x4"` alone: the
 unit owns `0x4..` again, the compiled table starts its `.rodata`, splat keeps
 the still-asm table at `0x3C` in the unit's `.rodata.s`, and the later rodata
 stays 8-aligned relative to the new base. No `.c` needed re-splitting.
-Codegen note from the same function: `enemy->field_40 = D.field_4;
-enemy->field_50 = &D;` (read before storing the pointer) put the address in
+Codegen note from the same function: `enemy->hp = D.field_4;
+enemy->param = &D;` (read before storing the pointer) put the address in
 `$v1` and the value in `$a0`; the reverse order kept both in `$v0`.
 
 ## Threshold ladder: `if/else if` and nested `if` differ only in the first compare's register (func_actor_403000_8013B238, 2026-09-16)
@@ -107147,7 +107147,7 @@ The seed was m2c's shape, one variable written by every arm and stored once at t
 
 ```c
 var_v0 = 0x15;
-if (enemy->field_40 > 0) { var_v0 = 4; if (!(enemy->field_4C & 2)) var_v0 = 0x11; }
+if (enemy->hp > 0) { var_v0 = 4; if (!(enemy->reactionFlags & 2)) var_v0 = 0x11; }
 work->field_0 = var_v0;
 ```
 
@@ -107166,9 +107166,9 @@ The constants are then materialised *inside the join block* (`li v0,K` next to t
 local quantities and `local-alloc` hands them `$v0`, the first register it reaches for:
 
 ```c
-if (enemy->field_40 <= 0) {
+if (enemy->hp <= 0) {
     work->field_0 = 0x15;
-} else if (enemy->field_4C & 2) {
+} else if (enemy->reactionFlags & 2) {
     work->field_0 = 4;
 } else {
     work->field_0 = 0x11;
@@ -109269,8 +109269,8 @@ merge-block flag copy in `Actor00400_Fn09124`, one register over.
 
 ```c
     if (work->field_68 & 0x100) {
-        if (enemy->field_40 > 0) {
-            if (enemy->field_4C & 2) { work->field_0 = 4; }
+        if (enemy->hp > 0) {
+            if (enemy->reactionFlags & 2) { work->field_0 = 4; }
             else                     { work->field_0 = 0x24; }
         } else                       { work->field_0 = 0x15; }
     }
@@ -110310,7 +110310,7 @@ A death-state handler repeats the same cue four times, once per animation
 frame:
 
 ```c
-        sfx = (((u16)enemy->field_8 >> 12) << 8) | 0x40200013;
+        sfx = (((u16)enemy->placeKey >> 12) << 8) | 0x40200013;
         pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
         SndEvt_EnqueueType6(sfx, pan, (s8)Gp_GetObjDepth(...));
 ```
@@ -110355,7 +110355,7 @@ Scratch `nonmatchings/func_actor_403200_8013E5A8-vacuum`.
 The group-0 hit handler mirrors the host's remaining HP onto three escorts:
 
 ```c
-        hp = enemy->field_40;
+        hp = enemy->hp;
         work->field_ECC[3]->field_40 = hp;
         work->field_ECC[1]->field_40 = hp;
         work->field_ECC[0]->field_40 = hp;
@@ -110376,7 +110376,7 @@ pointers simultaneously live and forces three registers:
 
 ```c
         esc3           = work->field_ECC[3];
-        hp             = enemy->field_40;
+        hp             = enemy->hp;
         esc0           = work->field_ECC[0];
         esc1           = work->field_ECC[1];
         esc3->field_40 = hp;
@@ -110954,7 +110954,7 @@ where the target has the same four with `$v0`.
 
 ```c
     var_v0 = 0x15;                    /* the original stores in each arm instead */
-    if (enemy->field_40 > 0) {
+    if (enemy->hp > 0) {
         var_v0 = 4;
         if (work->field_B3A <= 0) {
             var_v0 = 0x11;
@@ -112248,10 +112248,10 @@ test's taken path and the second test's untaken path arrive at:
 
 ```c
     case 1:
-        if (enemy->field_4B == 0) {            /* first arm */
+        if (enemy->spawnState == 0) {            /* first arm */
             obj->field_C = 0;
             Tmd_AllocBuffers(obj);
-        } else if (enemy->field_4B == 4) {     /* second arm */
+        } else if (enemy->spawnState == 4) {     /* second arm */
             obj->field_C = 0x80;
             work->field_0 = 0;
         } else {                               /* same text as the first arm */
@@ -112321,7 +112321,7 @@ the way m2c writes it, with a temp the condition overwrites,
 ```c
     if (work->field_5C & 1) {
         var_v0 = 0xB;
-        if (enemy->field_40 <= 0) {
+        if (enemy->hp <= 0) {
             var_v0 = 0xC;
         }
         work->field_0 = var_v0;
@@ -112354,7 +112354,7 @@ that *follow* the branch, past the load's `REG_DEAD`:
 
 ```c
     if (work->field_5C & 1) {
-        if (enemy->field_40 > 0) {
+        if (enemy->hp > 0) {
             work->field_0 = 0xB;
         } else {
             work->field_0 = 0xC;
@@ -127499,7 +127499,7 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 loads it signed in one place and unsigned in the other:
 
 ```
-lh    v1,8(v0)     lh v1,0xa(v0)     lh t0,0xc(v0)     # -> GpEnemy::field_1C.vx/vy/vz (long)
+lh    v1,8(v0)     lh v1,0xa(v0)     lh t0,0xc(v0)     # -> GpEnemy::bodyPos.vx/vy/vz (long)
 lhu   v0,8(v1)     lhu v0,0xa(v1)    lhu v1,0xc(v1)    # -> GpObj::pos.vx/vy/vz     (s16)
 ```
 
@@ -128231,10 +128231,10 @@ that decides whether combine can see through it.
 So write the cast into the wider local, not through a narrow one:
 
 ```c
-scale = (u16)(enemy->field_8 >> 12);
+scale = (u16)(enemy->placeKey >> 12);
 flag  = scale & 1;
 if (flag == 1) {
-    work->field_176 += enemy->field_8 >> 12;   /* CSEs to the raw srl */
+    work->field_176 += enemy->placeKey >> 12;   /* CSEs to the raw srl */
 } else {
     work->field_176 -= scale >> 1;             /* reads the masked value */
 }
@@ -128479,11 +128479,11 @@ value across a bail-out branch, look for a second variable rather than for a pin
 `GpEnemy` halfwords and then passes it to a call:
 
 ```c
-enemy->field_4C = 0;
-enemy->field_50 = &D_actor_223600_8014CFCC;
-enemy->field_54 = 0;
-enemy->field_42 = D_actor_223600_8014CFCC.field_4;
-enemy->field_40 = D_actor_223600_8014CFCC.field_4;
+enemy->reactionFlags = 0;
+enemy->param = &D_actor_223600_8014CFCC;
+enemy->recs = 0;
+enemy->hpMax = D_actor_223600_8014CFCC.field_4;
+enemy->hp = D_actor_223600_8014CFCC.field_4;
 ...
 func_actor_223600_8014B2F4(task, D_actor_223600_8014CFCC.field_4);
 ```
@@ -128505,7 +128505,7 @@ instructions:
   hoisting the load, so the one `lhu` lands exactly where the read sits in the
   source, relative to the surrounding stores. Here the ROM's load is between
   `sb zero, 0x4C` and `sw v0, 0x50`, which means the assignment belongs
-  *between* `enemy->field_4C = 0;` and `enemy->field_50 = ...;` - one statement
+  *between* `enemy->reactionFlags = 0;` and `enemy->param = ...;` - one statement
   earlier than where the values are used. Put it where the target's load is,
   not where it reads naturally.
 
@@ -128579,11 +128579,11 @@ treating it as an allocation problem.
 ## A `switch` whose lowest case is 0 tests it with `<` when the index is unsigned and with `==` when it is signed (func_actor_223600_8014BBF4, 2026-09-17)
 
 `func_actor_223600_8014BBF4` opens with a three-case dispatch on the top nibble
-of `GpEnemy::field_8`. Written the way its already-matched sibling
+of `GpEnemy::placeKey`. Written the way its already-matched sibling
 `func_actor_223600_8014B840` writes the same expression,
 
 ```c
-u32 mode = enemy->field_8 >> 12;
+u32 mode = enemy->placeKey >> 12;
 switch (mode) { case 0: ... case 1: ... case 2: ... }
 ```
 
@@ -128609,7 +128609,7 @@ hiding the range test entirely. For a **signed** index neither leaf is bounded
 path, which emits the `index > node->high` split before descending. Declaring
 the index `s32` restored the target exactly.
 
-`enemy->field_8 >> 12` still assembles as `srl`, not `sra`, with a signed
+`enemy->placeKey >> 12` still assembles as `srl`, not `sra`, with a signed
 index: the field is `u16`, so combine sees `nonzero_bits` clear at the sign bit
 and rewrites the arithmetic shift. Signedness of the *switch index* is therefore
 free to choose on this kind of expression, and it is the thing to change when a
@@ -128745,7 +128745,7 @@ for `abs` before modelling the allocator.
 ## A `u16` field divided by a power of two is shortened to an unsigned `srl`; route it through an `s32` local to get the signed bias (func_actor_102300_80131EA4, 2026-09-18)
 
 The low-HP threshold in the actor hit tick is
-`enemy->field_40 < enemy->field_50->hpMax / 4`, where `GpPairSrcE.hpMax` is
+`enemy->hp < enemy->param->hpMax / 4`, where `GpPairSrcE.hpMax` is
 `u16`. The target divides it *signed*, keeping the bias even though the `lhu`
 makes the `bgez` unconditionally true:
 
@@ -128777,7 +128777,7 @@ first makes `orig_op0` a signed `int`, `get_narrower` finds nothing to narrow
 to, and the signed expansion returns:
 
 ```c
-} else if (max = enemy->field_50->hpMax, enemy->field_40 < max / 4) {
+} else if (max = enemy->param->hpMax, enemy->hp < max / 4) {
 ```
 
 This is the same idiom already in `func_actor_402200_801324E8` (`max / 10`), and
@@ -133200,3 +133200,23 @@ rather than backwards: a first half found facing away collapses `x0` onto `x1`
 and draws only where the second MAC0 is `< 0`, which under the reversal is the
 second half facing towards. Read such a pair as "a quad is drawn where either of
 its halves faces the viewer", not as an asymmetry to fix.
+
+## A member census resolves one declaration; a view of the object reaches the same bytes
+
+A reference census keyed on a member's USR — which is what the refactor tools
+return — sees only the sites whose static type is the owning type. Where a
+second type lays a *view* over the object (a prefix type, or one that starts at a
+known member such as the intrusive list link), the same bytes have their own
+declarations there, and every read and write through the view is invisible to the
+census.
+
+So a member can look write-only, or wholly unused, while a subsystem depends on
+its value every frame. `GpEnemy::playerRelPos` read that way: no decompiled code
+reached it by that name, yet the same word is `GpLinkXform.dst`, which the link
+walk rewrites each frame and which the aim and lock-on scans take their angle and
+distance from. It was named and documented from those readers, none of which
+resolve to its declaration.
+
+Test before writing a role off: grep the headers for a member at the same offset
+in a type the object is cast to, and read that type's users instead. The view's
+own member is the field's other name.

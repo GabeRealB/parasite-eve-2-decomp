@@ -146,10 +146,10 @@ void func_actor_341700_80162DCC(Task* arg0)
             if (work->field_44A != 0) {
                 work->field_44A--;
             }
-            if (work->field_41E != 0 && work->field_448 == 4 && enemy->field_40 <= 0) {
+            if (work->field_41E != 0 && work->field_448 == 4 && enemy->hp <= 0) {
                 set_state(arg0, work->field_448);
             }
-            if (work->field_438 == 0 && enemy->field_40 <= 0) {
+            if (work->field_438 == 0 && enemy->hp <= 0) {
                 set_state(arg0, 4);
             } else if (work->field_44C == 4 && work->field_438 == 0) {
                 set_state(arg0, 8);

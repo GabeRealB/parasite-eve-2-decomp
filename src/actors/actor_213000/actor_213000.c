@@ -31,7 +31,7 @@ void func_actor_213000_8014A6AC(Task* task);
 /// `TmdObject::tpage` / `field_25` loaded with the texture page and CLUT row
 /// of the `GpAreaPlace` that entry selects, reached through the area key
 /// `&gGameSession->at4.loc.view` and indexed by the model id the parent's
-/// `spawnArg2` carries at `GpEnemy::field_8 >> 12`, and has its texture stream
+/// `spawnArg2` carries at `GpEnemy::placeKey >> 12`, and has its texture stream
 /// processed twice when it has an aux buffer. The body ends by handing the
 /// parent to `func_actor_213000_8014A6AC`, pointing `msgTable` at the message
 /// table and installing `Gp_EnemyTaskExit` as its exit callback.
@@ -66,7 +66,7 @@ void func_actor_213000_80149E54(Task* task)
         GpAreaKey*   sessionKey;
         s32          idx;
 
-        idx        = ((GpEnemy*)task->spawnArg2)->field_8 >> 12;
+        idx        = ((GpEnemy*)task->spawnArg2)->placeKey >> 12;
         model      = (TmdObject*)spawned1->extra;
         sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
         key.stage  = sessionKey->stage;
@@ -91,7 +91,7 @@ void func_actor_213000_80149E54(Task* task)
         s32          idx;
 
         model      = (TmdObject*)spawned2->extra;
-        idx        = ((GpEnemy*)task->spawnArg2)->field_8 >> 12;
+        idx        = ((GpEnemy*)task->spawnArg2)->placeKey >> 12;
         sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;

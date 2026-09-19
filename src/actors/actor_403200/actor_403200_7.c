@@ -24,8 +24,8 @@ s32 func_actor_403200_80141A94(Task* arg0, s32 arg1, s32 arg2)
         case 0:
             work->field_F1A++;
             func_800DA6E8(&enemy->node, -0x64, 0);
-            if (enemy->field_40 > 0) {
-                enemy->field_40 += 0x64;
+            if (enemy->hp > 0) {
+                enemy->hp += 0x64;
             }
             break;
         case 1:

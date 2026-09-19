@@ -169,7 +169,7 @@ void func_actor_312200_80163778(Task* task);
 /// coordinate and the animation context from the `TmdObject` in `Task::extra` -
 /// its `field_1C` / `field_20` are pointed at the block's light and colour
 /// matrices, `GpEnemy::field_4` at the root coordinate's matrix, and
-/// `GpEnemy::field_18` at the model's third part coordinate. `enemy` is the
+/// `GpEnemy::coord` at the model's third part coordinate. `enemy` is the
 /// `GpEnemy` the spawner left in the task's 0x20 spawn-argument slot.
 void func_actor_312200_80163178(GpEnemy* enemy, Task* task);
 

@@ -145,7 +145,7 @@ static __inline__ void Actor401000_InitPose(GsCOORDINATE2* coord, Actor401000Wor
 /// Enemy init: allocates the 0xC80-byte work block, binds the model's light
 /// and colour matrices to its copies, seeds both animation contexts and the
 /// three `GpObj` nodes, then picks the opening clip from the low bits of
-/// `GpEnemy::field_8` and the `field_C10` parameter run from the spawn flags.
+/// `GpEnemy::placeKey` and the `field_C10` parameter run from the spawn flags.
 /// The tail rebuilds the root coordinate through `Actor401000_InitPose`.
 void func_actor_401000_80133274(GpEnemy* enemy, Actor401000* actor)
 {
@@ -172,18 +172,18 @@ void func_actor_401000_80133274(GpEnemy* enemy, Actor401000* actor)
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     ((Task*)actor)->exitCallback = func_actor_401000_8013DA78;
     Actor401000_BindMatrices(actor);
-    enemy->field_4     = &actor->field_2C->coords->coord;
-    enemy->field_48    = 0;
-    enemy->field_1C.vx = 0;
-    enemy->field_1C.vy = 0;
-    enemy->field_1C.vz = 0;
-    enemy->field_18    = &actor->field_2C->coords[2];
+    enemy->field_4    = &actor->field_2C->coords->coord;
+    enemy->field_48   = 0;
+    enemy->bodyPos.vx = 0;
+    enemy->bodyPos.vy = 0;
+    enemy->bodyPos.vz = 0;
+    enemy->coord      = &actor->field_2C->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags = 1;
-    enemy->field_4C   = 0;
-    enemy->field_40   = (s16)D_actor_401000_8013E09C.hpMax;
-    enemy->field_50   = &D_actor_401000_8013E09C;
-    enemy->field_54   = (s32)&work->field_8F0;
+    enemy->node.flags    = 1;
+    enemy->reactionFlags = 0;
+    enemy->hp            = (s16)D_actor_401000_8013E09C.hpMax;
+    enemy->param         = &D_actor_401000_8013E09C;
+    enemy->recs          = (GpRec18*)&work->field_8F0;
     func_800B3F84(&((Actor401000AnimWork*)work)->anim, &D_actor_401000_80154E48, obj,
                   ((Actor401000AnimWork*)work)->pad_328, ((Actor401000AnimWork*)work)->slots);
     func_800B3F84(&((Actor401000AnimWork*)work)->blendAnim, &D_actor_401000_80154E48,
@@ -196,7 +196,7 @@ void func_actor_401000_80133274(GpEnemy* enemy, Actor401000* actor)
     work->field_8AE = 0;
     work->field_8A4 = 0x10;
     work->field_8A2 = 0x10;
-    kind            = ((u16)enemy->field_8 >> 12) % 5;
+    kind            = ((u16)enemy->placeKey >> 12) % 5;
     switch (kind) {
         case 0:
             clip = 0x11;
@@ -459,10 +459,10 @@ void func_actor_401000_80134DB4(Actor401000* arg0)
     }
     func_actor_401000_80132EF0(arg0);
     if (Gp_TickObjFlag2((GpObj5D*)enemy) == 1) {
-        enemy->field_4C &= ~2;
-        work->field_0    = 0x11;
+        enemy->reactionFlags &= ~2;
+        work->field_0         = 0x11;
     }
-    if (enemy->field_40 <= 0) {
+    if (enemy->hp <= 0) {
         work->field_0 = 0x11;
     }
 }
@@ -1258,7 +1258,7 @@ void func_actor_401000_801385B0(Actor401000* arg0)
 /// live-actor flag, reset the two animation nodes, the root coordinate and the
 /// model's facing, then slide the root along both obstacle tables and take one
 /// forward step while the 0x12C probe is still in range. The tail keys the
-/// actor's next state (`field_0`) off `GpEnemy.field_40` / `.field_4C` whenever
+/// actor's next state (`field_0`) off `GpEnemy.hp` / `.reactionFlags` whenever
 /// the work block's pending-request bit is up.
 void func_actor_401000_801388F4(Actor401000* arg0)
 {
@@ -1279,7 +1279,7 @@ void func_actor_401000_801388F4(Actor401000* arg0)
         work->field_8A2        = 0x10;
         work->field_8B0        = 0;
         work->field_8AE        = 0;
-        if (enemy->field_40 < 0) {
+        if (enemy->hp < 0) {
             Gp_SetStateF0Byte3(1);
         }
         work->field_8D0.flags |= 0x4000;
@@ -1299,8 +1299,8 @@ void func_actor_401000_801388F4(Actor401000* arg0)
         }
         if ((work->flags_68.half & 1) && work->field_89E == 0xB) {
             work->field_8D0.flags |= 0x4000;
-            if (enemy->field_40 > 0) {
-                if (enemy->field_4C & 2) {
+            if (enemy->hp > 0) {
+                if (enemy->reactionFlags & 2) {
                     work->field_0 = 4;
                 } else {
                     work->field_0 = 0x11;
@@ -1316,7 +1316,7 @@ void func_actor_401000_801388F4(Actor401000* arg0)
 /// `Actor01900_Fn09BE8`: on the live-actor flag, reset the two animation nodes,
 /// the root coordinate and the model's facing, then hand the root to the
 /// obstacle helper once per record table. The tail keys the actor's next state
-/// (`field_0`) off `GpEnemy.field_40` / `.field_4C` whenever the work block's
+/// (`field_0`) off `GpEnemy.hp` / `.reactionFlags` whenever the work block's
 /// pending-request bit is up.
 void func_actor_401000_80138BB4(Actor401000* arg0)
 {
@@ -1336,7 +1336,7 @@ void func_actor_401000_80138BB4(Actor401000* arg0)
         work->field_8A2        = 0x10;
         work->field_8B0        = 0;
         work->field_8AE        = 0;
-        if (enemy->field_40 < 0) {
+        if (enemy->hp < 0) {
             Gp_SetStateF0Byte3(1);
         }
         work->field_8D0.flags |= 0x4000;
@@ -1347,9 +1347,9 @@ void func_actor_401000_80138BB4(Actor401000* arg0)
     arg0->field_2C->coords->flg = 0;
     if (work->flags_68.half & 1) {
         work->field_8D0.flags |= 0x4000;
-        if (enemy->field_40 <= 0) {
+        if (enemy->hp <= 0) {
             work->field_0 = 0x15;
-        } else if (enemy->field_4C & 2) {
+        } else if (enemy->reactionFlags & 2) {
             work->field_0 = 4;
         } else {
             work->field_0 = 0x11;
@@ -1554,7 +1554,7 @@ void func_actor_401000_8013922C(Actor401000* arg0)
         work->field_8AE        = 0;
         work->field_6          = 0;
     } else if (work->field_6 == 0) {
-        sound = ((enemy->field_8 >> 0xC) << 8) | 0x51030008;
+        sound = ((enemy->placeKey >> 0xC) << 8) | 0x51030008;
         pan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
         work->field_6 = 1;
@@ -2005,7 +2005,7 @@ static __inline__ void Actor401000_TintEffect(GpEffWork* eff, GpEnemy* enemy)
 
     if (eff != NULL) {
         sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
-        raw        = enemy->field_8;
+        raw        = enemy->placeKey;
         model      = (TmdObject*)eff->field_0->extra;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
@@ -2399,7 +2399,7 @@ void func_actor_401000_8013C46C(Actor401000* arg0)
 /// `func_actor_401000_8013CEF0`: on the live-actor flag it resets the two
 /// animation nodes and the root coordinate like the state 9 body, but keys the
 /// node pair off clip 0xB / slot 2 and tests the request bit `0x100` rather
-/// than bit 0. Same tail: `GpEnemy.field_40` / `.field_4C` pick the next
+/// than bit 0. Same tail: `GpEnemy.hp` / `.reactionFlags` pick the next
 /// `field_0` whenever the request bit is up.
 void func_actor_401000_8013CD9C(Actor401000* arg0)
 {
@@ -2419,7 +2419,7 @@ void func_actor_401000_8013CD9C(Actor401000* arg0)
         work->field_8A2        = 0x10;
         work->field_8B0        = 0;
         work->field_8AE        = 0;
-        if (enemy->field_40 < 0) {
+        if (enemy->hp < 0) {
             Gp_SetStateF0Byte3(1);
         }
         work->field_8D0.flags |= 0x4000;
@@ -2430,9 +2430,9 @@ void func_actor_401000_8013CD9C(Actor401000* arg0)
     arg0->field_2C->coords->flg = 0;
     if (work->flags_68.half & 0x100) {
         work->field_8D0.flags |= 0x4000;
-        if (enemy->field_40 <= 0) {
+        if (enemy->hp <= 0) {
             work->field_0 = 0x15;
-        } else if (enemy->field_4C & 2) {
+        } else if (enemy->reactionFlags & 2) {
             work->field_0 = 4;
         } else {
             work->field_0 = 0x11;
@@ -2444,7 +2444,7 @@ void func_actor_401000_8013CD9C(Actor401000* arg0)
 /// `func_actor_401300_8014046C`: on the live-actor flag it resets the two
 /// animation nodes and the root coordinate like the state 9 body, but keys the
 /// node pair off clip 0x19 / slot 2 and tests the request bit `0x100` rather
-/// than bit 0. Same tail: `GpEnemy.field_40` / `.field_4C` pick the next
+/// than bit 0. Same tail: `GpEnemy.hp` / `.reactionFlags` pick the next
 /// `field_0` whenever the request bit is up.
 void func_actor_401000_8013CEF0(Actor401000* arg0)
 {
@@ -2464,7 +2464,7 @@ void func_actor_401000_8013CEF0(Actor401000* arg0)
         work->field_8A2        = 0x10;
         work->field_8B0        = 0;
         work->field_8AE        = 0;
-        if (enemy->field_40 < 0) {
+        if (enemy->hp < 0) {
             Gp_SetStateF0Byte3(1);
         }
         work->field_8D0.flags |= 0x4000;
@@ -2475,9 +2475,9 @@ void func_actor_401000_8013CEF0(Actor401000* arg0)
     arg0->field_2C->coords->flg = 0;
     if (work->flags_68.half & 0x100) {
         work->field_8D0.flags |= 0x4000;
-        if (enemy->field_40 <= 0) {
+        if (enemy->hp <= 0) {
             work->field_0 = 0x15;
-        } else if (enemy->field_4C & 2) {
+        } else if (enemy->reactionFlags & 2) {
             work->field_0 = 4;
         } else {
             work->field_0 = 0x11;
@@ -2674,15 +2674,15 @@ void func_actor_401000_8013D044(GpEnemy* enemy, Actor401000* actor)
         work->field_C7C = 0;
     }
     if ((u32)((u16)work->field_89E - 0x14) < 2U) {
-        enemy->field_1C.vx = work->field_C2C[work->field_C7C].vx;
-        enemy->field_1C.vy = work->field_C2C[work->field_C7C].vy;
-        enemy->field_1C.vz = work->field_C2C[work->field_C7C].vz;
+        enemy->bodyPos.vx = work->field_C2C[work->field_C7C].vx;
+        enemy->bodyPos.vy = work->field_C2C[work->field_C7C].vy;
+        enemy->bodyPos.vz = work->field_C2C[work->field_C7C].vz;
     } else {
-        enemy->field_1C.vx = scratch->pos.vx;
-        enemy->field_1C.vy = scratch->pos.vy;
-        enemy->field_1C.vz = scratch->pos.vz;
+        enemy->bodyPos.vx = scratch->pos.vx;
+        enemy->bodyPos.vy = scratch->pos.vy;
+        enemy->bodyPos.vz = scratch->pos.vz;
     }
-    enemy->field_18 = &gGfxViewCoord;
+    enemy->coord = &gGfxViewCoord;
 }
 
 void func_actor_401000_8013D68C(void)

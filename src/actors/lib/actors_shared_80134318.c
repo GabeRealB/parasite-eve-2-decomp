@@ -41,7 +41,7 @@ void ActorsShared80134318(GpEnemy* arg0, Task* arg1)
                     work->field_140 = 0;
                     work->field_12A = 0x1000;
                     work->field_100 = coord->coord;
-                    arg0->field_54  = 0;
+                    arg0->recs      = 0;
                     Gp_UnlinkNode(&arg0->node);
                     Gp_UnlinkObj(&work->obj_40);
                     Gp_UnlinkObj(&work->obj_C0);

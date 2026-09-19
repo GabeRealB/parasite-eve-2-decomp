@@ -9,7 +9,7 @@ struct GpU16Pair;
 /// out, and how it reacts to being hit.
 ///
 /// A collision body reaches it through its pair source, the pointer the enemy
-/// object keeps at 0x50 (`GpObj50.field_50`, `GpEnemy.field_50`), which is where
+/// object keeps at 0x50 (`GpObj50.field_50`, `GpEnemy.param`), which is where
 /// the type's name comes from rather than from its content: `Gp_PackObjPair`
 /// takes this enemy's body keys from `pairTable`, and each attack's reaction
 /// parameters come from here once it has landed. The record itself carries no

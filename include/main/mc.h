@@ -97,7 +97,7 @@ STATIC_ASSERT_SIZEOF(McItemScan, 0x4);
 
 /// 0xC-byte saved object pose. 32 of these occupy `Mc_SaveData.field_28`
 /// (`Gp_SaveEnemyPose`). `field_3 == 0` is empty; a non-zero value is copied
-/// from `GpEnemy.field_4B`. `field_A` is the object id (`GpEnemy.field_8`).
+/// from `GpEnemy.spawnState`. `field_A` is the object id (`GpEnemy.placeKey`).
 /// `field_4` / `field_6` / `field_8` are signed world XYZ (low 16 bits of
 /// `GsCOORDINATE2.coord.t`). `field_0` / `field_1` / `field_2` are packed
 /// euler bytes (`Gfx_MatrixToEuler` result `>> 8`).

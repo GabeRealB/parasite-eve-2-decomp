@@ -93,7 +93,7 @@ extern GpAreaApplyRec D_8018590C;
 /// (`Gp_PackPair` kind 1). One word, `field_0` = 0x1A and `field_2` = 5.
 extern GpU16Pair D_actor_206100_80155194;
 
-/// Pair source `func_actor_206100_8014AF74` parks in `GpEnemy::field_50`, whose
+/// Pair source `func_actor_206100_8014AF74` parks in `GpEnemy::param`, whose
 /// `pairTable` is `D_actor_206100_80155194` above and whose `hpMax` is the
 /// actor's max HP (2000), seeded into `field_40` / `field_42` at spawn.
 extern GpPairSrcE D_actor_206100_80155198;
@@ -101,7 +101,7 @@ extern GpPairSrcE D_actor_206100_80155198;
 /// Animation bank handed to `func_800B3F84` by `func_actor_206100_8014AF74`.
 extern GpAnimSet* D_actor_206100_80158B24[];
 
-/// Placement records `func_actor_206100_8014EE2C` parks at `GpEnemy::field_3C`
+/// Placement records `func_actor_206100_8014EE2C` parks at `GpEnemy::place`
 /// -- the same slot `Gp_SpawnArea` fills from a room's own place list, so this
 /// is a local six-entry copy of one: `field_0` is 4 on the five live entries
 /// and 0xFF on the sixth, the value `Gp_SpawnArea` stops its walk on.  The

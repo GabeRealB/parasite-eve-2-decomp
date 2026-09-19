@@ -12,65 +12,74 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// 0x60-byte enemy work object allocated by `Gp_AllocEnemy`
-/// ("new_enemy ---> NULL"). Stored in `Task::spawnArg2`; `task` back-points
-/// at the owner. `node` is the `Gp_UnlinkNode` list entry at +0x10.
-/// `field_8` / `field_A` are the same work-id / type halfwords as
-/// `GpWorkObj` (`Gp_SpawnAtPlace` packs `GpEnemyPlace.field_0` /
-/// `field_4` into `field_8` and copies `field_2` into `field_A`).
-/// Same object family as `GpObj4C` / `GpObj54`: `func_800A4904` ORs bit
-/// 0x80 into `field_4E` or claims a `field_54` slot via `Gp_ClaimSlot18`.
-/// `field_40` is the signed value passed to `Gp_DrawHudNumbers`; `field_50`
-/// is the same `GpPairSrcE*` slot as `GpObj50` / `GpObj5C` / `GpObj5D`.
-/// `field_18` is a `GsCOORDINATE2*` (`&gGfxViewCoord` from `Gp_AllocEnemy`);
-/// `Gp_UpdateLinkXforms` reads it from the transform view of the node as
-/// `coord`.
-/// `field_1C` / `field_2C` are local / player-relative `VECTOR3`s filled
-/// by `Gp_UpdateLinkXforms`.
-/// `field_3C` is the `GpAreaPlace*` stored by `Gp_SpawnArea` (same slot as
-/// `GpWorkObj.field_3C`).
-/// `field_4B` is a non-zero occupancy tag written into `McPosRec.field_3`
-/// by `Gp_SaveEnemyPose` (defaulted to 1 when the caller left it 0).
-/// `Gp_RemapActorColor` remaps the actor color matrix from `field_4E` mode
-/// bits; bit 0x80 with `field_4B == 0` is a sine flicker, and
-/// `field_4C & 0xC` enables the default remap. `field_4F` is the 0x10
-/// blend timer started by `Gp_SetLightMode`; `Gp_UpdateActorColor` GPF/GPL-lerps
-/// the previous mode (bits 2-3) toward the current mode (bits 0-1)
-/// while it is positive.
-typedef struct _GpEnemy {
-    /* 0x00 */ Task*          task;
-    /* 0x04 */ MATRIX*        field_4;
-    /* 0x08 */ u16            field_8;
-    /* 0x0A */ u16            field_A;
-    /* 0x0C */ s32            field_C;
-    /* 0x10 */ GpLinkNode     node;
-    /* 0x18 */ GsCOORDINATE2* field_18;
-    /* 0x1C */ VECTOR3        field_1C;
-    /* 0x28 */ byte           pad_28[4];
-    /* 0x2C */ VECTOR3        field_2C;
-    /* 0x38 */ byte           pad_38[4];
-    /* 0x3C */ void*          field_3C;
-    /* 0x40 */ s16            field_40;
-    /// Max HP: `func_actor_405800_8013340C` compares `field_40` against
-    /// `field_42`/4, `field_42`*3/8, `field_42`/8 and `field_42`/16 to pick a
-    /// damage reaction, so this is the ceiling `field_40` is measured against.
-    /* 0x42 */ u16  field_42;
-    /* 0x44 */ byte pad_44[4];
-    /* 0x48 */ u8   field_48;
-    /* 0x49 */ byte pad_49[2];
-    /* 0x4B */ u8   field_4B;
-    /* 0x4C */ u8   field_4C;
-    /// Cleared next to `field_4C` by the spawn handler
-    /// `func_actor_312200_80163178` and again by the show handler
-    /// `func_actor_312200_80163778`, and alongside `field_4C` by
-    /// `func_actor_210600_8014B8C8`; no matched code reads it back yet, so its
-    /// role is still unknown.
-    /* 0x4D */ u8          field_4D;
-    /* 0x4E */ u8          field_4E;
-    /* 0x4F */ u8          field_4F;
-    /* 0x50 */ GpPairSrcE* field_50;
-    /* 0x54 */ s32         field_54;
-    /* 0x58 */ byte        pad_58[8];
+/// 0x10-byte placement record in the 0xFF-terminated table at nested
+/// `GpAreaRec.field_0` (`Gp_SpawnArea`). `field_0` is matched against
+/// `GpAreaTmdRec.field_0`. `field_1` / `field_2` pack into `Gp_SpawnEnemyFromTable`
+/// arg2. `field_4` / `field_6` / `field_8` are default world XYZ;
+/// `field_A` is yaw (`GpCoordPlace.field_46` / `Gfx_RotMatrixY`).
+/// `field_D` / `field_E` are copied to `TmdObject.tpage` / `field_25`
+/// when `Task::spawnType == 1`.
+typedef struct _GpAreaPlace {
+    /* 0x00 */ u8  field_0;
+    /* 0x01 */ u8  field_1;
+    /* 0x02 */ u16 field_2;
+    /* 0x04 */ s16 field_4;
+    /* 0x06 */ s16 field_6;
+    /* 0x08 */ s16 field_8;
+    /* 0x0A */ s16 field_A;
+    /* 0x0C */ u8  pad_C;
+    /* 0x0D */ u8  field_D;
+    /* 0x0E */ u8  field_E;
+    /* 0x0F */ u8  pad_F;
+} GpAreaPlace;
+STATIC_ASSERT_SIZEOF(GpAreaPlace, 0x10);
+
+/// One enemy: the work object `Gp_AllocEnemy` allocates and hangs off
+/// `Task::spawnArg2`, which the enemy's task frees again when it dies.
+///
+/// An actor keeps its own state in a work block of its own and publishes here
+/// only what the gameplay systems read back: the coordinate and body position
+/// it moves the enemy through, its hit points, the placement record its spawn
+/// parameters come from, and the parameter record its kind is defined by.
+/// Those systems find the enemy through `node` rather than through its task -
+/// the lock-on scan, the HP readout and the damage reactions all walk the list
+/// it is on - and by `placeKey`, which names the placement it was spawned from
+/// and is the enemy's identity for the walkers of its parent's children.
+///
+/// `Gp_SaveEnemyPose` files the enemy's pose under that key, and `spawnState`
+/// beside it says which state the spawn handler resumes the enemy in, so a
+/// room the player leaves and re-enters restores its enemies where they were
+/// rather than placing them again.
+///
+/// Several helpers reach this object through a narrower view of it - the
+/// reaction, pair and lock-on helpers take a prefix type and cast - so the
+/// fields those views name at the same offsets are this type's.
+typedef struct GpEnemy {
+    Task*          task;          // Owning task; the one whose `spawnArg2` is this object
+    MATRIX*        field_4;       // Role unproven: actors store a model part's matrix here, nothing reads it back
+    u16            placeKey;      // Key of the placement the enemy was spawned from: area, stage, and that placement's own number in the high nibble
+    u16            workType;      // Work type the enemy was spawned as, bank in the high byte and type in the low (0x900 is the plain enemy)
+    s32            waitTicks;     // Frames an enemy with no actor body waits before it is torn down
+    GpLinkNode     node;          // Lock-on link: the entry the aim scan, HP readout and damage reactions reach the enemy by
+    GsCOORDINATE2* coord;         // Coordinate the body sits at, usually one of the actor's model parts
+    VECTOR3        bodyPos;       // Body position in `coord`'s frame: the point distance and damage-chance rolls measure from
+    byte           pad_28[4];
+    VECTOR3        playerRelPos;  // `bodyPos` brought to world space and made relative to the player, refreshed each frame; the aim and lock-on scans take their angle and distance from it
+    byte           pad_38[4];
+    GpAreaPlace*   place;         // Placement record behind the enemy's spawn parameters (an actor may publish a table of its own here)
+    s16            hp;            // Hit points left; damage subtracts from it and the readout shows it against `hpMax`
+    u16            hpMax;         // Hit points the enemy is spawned with; a damage reaction is picked by fractions of it
+    byte           pad_44[4];
+    u8             field_48;      // Role unproven: every spawn handler clears it, nothing reads it back
+    byte           pad_49[2];
+    u8             spawnState;    // State the enemy is respawned in: saved with its pose and restored by the spawn handlers
+    u8             reactionFlags; // Reactions a landed hit asked for: bits 0-1 stagger the body, bits 2-3 the damage-over-time reaction, cleared as the body consumes them
+    u8             field_4D;      // Role unproven: cleared beside `reactionFlags` on spawn, nothing reads it back
+    u8             colorMode;     // Colour remap the body is drawn with: current mode in bits 0-1, previous in bits 2-3, bit 7 a pending hit flash
+    u8             colorBlend;    // Frames a colour remap change is blended over, in sixteenths; 0 switches at once
+    GpPairSrcE*    param;         // Parameter record the enemy's kind is defined by, shared with every enemy of that kind, `NULL` where the kind has none
+    GpRec18*       recs;          // The enemy's own contact records; its collision bodies point at the table and the Parasite Energy targeting claims entries in it
+    byte           pad_58[8];
 } GpEnemy;
 STATIC_ASSERT_SIZEOF(GpEnemy, 0x60);
 
@@ -300,28 +309,6 @@ typedef struct _GpAreaObj {
     /* 0x00 */ s8 field_0;
     /* 0x01 */ u8 field_1;
 } GpAreaObj;
-
-/// 0x10-byte placement record in the 0xFF-terminated table at nested
-/// `GpAreaRec.field_0` (`Gp_SpawnArea`). `field_0` is matched against
-/// `GpAreaTmdRec.field_0`. `field_1` / `field_2` pack into `Gp_SpawnEnemyFromTable`
-/// arg2. `field_4` / `field_6` / `field_8` are default world XYZ;
-/// `field_A` is yaw (`GpCoordPlace.field_46` / `Gfx_RotMatrixY`).
-/// `field_D` / `field_E` are copied to `TmdObject.tpage` / `field_25`
-/// when `Task::spawnType == 1`.
-typedef struct _GpAreaPlace {
-    /* 0x00 */ u8  field_0;
-    /* 0x01 */ u8  field_1;
-    /* 0x02 */ u16 field_2;
-    /* 0x04 */ s16 field_4;
-    /* 0x06 */ s16 field_6;
-    /* 0x08 */ s16 field_8;
-    /* 0x0A */ s16 field_A;
-    /* 0x0C */ u8  pad_C;
-    /* 0x0D */ u8  field_D;
-    /* 0x0E */ u8  field_E;
-    /* 0x0F */ u8  pad_F;
-} GpAreaPlace;
-STATIC_ASSERT_SIZEOF(GpAreaPlace, 0x10);
 
 /// Overlay of `GsCOORDINATE2` at `Task::extra->field_8` used by
 /// `Gp_SpawnArea`. `coord` is `GsCOORDINATE2.coord`; `field_44` /

@@ -23,7 +23,7 @@ void ActorsShared801341d4(ActorShared801341d4* arg0)
     if ((s16)counter >= 0x19) {
         work->field_14A = 0;
         scale           = work->field_12A;
-        soundId         = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40180001;
+        soundId         = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x40180001;
         if (scale >= 0x1D01) {
             ramp = 0x1700;
         } else {

@@ -36,7 +36,7 @@ void func_mine_mesa_801817BC(void)
 /// the room's remaining-enemy countdown ticks down. Always consumes the message.
 s32 func_mine_mesa_80181800(Task* task, s32 msgId, s32 slot, s32 arg3)
 {
-    if (D_mine_mesa_80189B74[slot] != NULL && D_mine_mesa_80189B74[slot]->field_40 <= 0) {
+    if (D_mine_mesa_80189B74[slot] != NULL && D_mine_mesa_80189B74[slot]->hp <= 0) {
         D_mine_mesa_80189B74[slot] = NULL;
         D_mine_mesa_80189B6C       = (u16)D_mine_mesa_80189B6C - 1;
     }

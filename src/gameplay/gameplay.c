@@ -7278,7 +7278,7 @@ void func_800A4904(s32 arg0)
             enemy = (GpEnemy*)((u8*)node - OFFSET_OF(GpEnemy, node));
             obj54 = (GpObj54*)enemy;
             if (arg0 == 0) {
-                enemy->field_4E |= 0x80;
+                enemy->colorMode |= 0x80;
             } else {
                 val  = Gp_StateC08.field_0;
                 idx  = (val / 100U - 1) * 9;
@@ -7548,7 +7548,7 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                 enemy = (GpEnemy*)((u8*)node - OFFSET_OF(GpEnemy, node));
                 obj54 = (GpObj54*)enemy;
                 if (arg0 == 0) {
-                    enemy->field_4E |= 0x80;
+                    enemy->colorMode |= 0x80;
                 } else {
                     val  = Gp_StateC08.field_0;
                     idx  = (val / 100U - 1) * 9;
@@ -7611,7 +7611,7 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                         enemy = (GpEnemy*)work;
                         obj54 = (GpObj54*)work;
                         if (arg0 == 0) {
-                            enemy->field_4E |= 0x80;
+                            enemy->colorMode |= 0x80;
                         } else {
                             val  = Gp_StateC08.field_0;
                             idx  = (val / 100U - 1) * 9;
@@ -8422,12 +8422,12 @@ void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
         block->field_14   = arg1->field_4 + block->field_18;
         block->field_16   = arg1->field_6 + block->field_1A;
     }
-    if (arg0->field_50 != NULL) {
-        val = arg0->field_50->hpMax;
+    if (arg0->param != NULL) {
+        val = arg0->param->hpMax;
         if (arg0->node.flags & 8) {
             val = -1;
         }
-        Gp_DrawHudNumbers(block->field_14 - 8, block->field_16, arg0->field_40, val, 1);
+        Gp_DrawHudNumbers(block->field_14 - 8, block->field_16, arg0->hp, val, 1);
     }
     arg1->field_4           = block->field_14;
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;

@@ -135,7 +135,7 @@ typedef struct Actor444000Work {
     /// One collision group per body part the boss can be struck on: the
     /// coordinate a landed hit spawns its effect at, followed by that part's
     /// own `GpRec18` table. `func_actor_444000_8013AFF8` publishes
-    /// `hits[0].recs` as `GpEnemy::field_54`, and the hit handlers
+    /// `hits[0].recs` as `GpEnemy::recs`, and the hit handlers
     /// (`func_actor_444000_8013C060` for group 0,
     /// `func_actor_444000_8013C4B0` for groups 1 and 2, ...) each scan five
     /// records of their own group. The count is what the used multiples of

@@ -156,7 +156,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_2", func_actor_350700
 /// models: each has `TmdObject::tpage` / `field_25` loaded with the texture
 /// page and CLUT row of the `GpAreaPlace` that entry selects, reached through
 /// the area key `&gGameSession->at4.loc.view` and indexed by the model id the child's
-/// own `spawnArg2` carries at `GpEnemy::field_8 >> 12`, and each then has its
+/// own `spawnArg2` carries at `GpEnemy::placeKey >> 12`, and each then has its
 /// texture stream processed twice when it has an aux buffer. The body ends by
 /// handing the parent to `ActorsShared80132f24`, pointing `msgTable` at the
 /// message table and installing `func_actor_350700_801633BC` as its exit
@@ -190,7 +190,7 @@ void func_actor_350700_80162B30(Task* arg0)
 
         work->field_4FC = spawned;
         model           = (TmdObject*)spawned->extra;
-        idx             = ((GpEnemy*)arg0->spawnArg2)->field_8 >> 12;
+        idx             = ((GpEnemy*)arg0->spawnArg2)->placeKey >> 12;
         sessionKey      = (GpAreaKey*)&gGameSession->at4.loc;
         key.stage       = sessionKey->stage;
         key.area        = sessionKey->area;
@@ -215,7 +215,7 @@ void func_actor_350700_80162B30(Task* arg0)
 
         work->field_500 = spawned;
         model           = (TmdObject*)spawned->extra;
-        idx             = ((GpEnemy*)arg0->spawnArg2)->field_8 >> 12;
+        idx             = ((GpEnemy*)arg0->spawnArg2)->placeKey >> 12;
         /* Re-derived address, not the block-1 form: with `sessionKey->field_0`
            for the last byte, global CSE merges this block's area key with the
            one above into a single cross-block pseudo, and the allocation of

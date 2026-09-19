@@ -70,7 +70,7 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
             }
             switch (work->field_250) {
                 case 0:
-                    enemy->field_54 = 0;
+                    enemy->recs = 0;
                     Gp_UnlinkObj(&work->obj);
                     Gp_UnlinkNode(&enemy->node);
                     Gp_ReleaseStateF0Add((GpObj20E*)task, 0x25);

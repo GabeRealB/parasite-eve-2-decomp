@@ -997,7 +997,7 @@ void func_actor_110600_80134728(Actor110600* arg0)
     }
     sound = func_actor_110600_80134564(work);
     if (sound != 0) {
-        soundId = sound | ((enemy->field_8 >> 12) << 8);
+        soundId = sound | ((enemy->placeKey >> 12) << 8);
         pan     = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
         SndEvt_EnqueueType6(soundId, pan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
     }
@@ -1421,7 +1421,7 @@ void func_actor_110600_801369D8(Actor110600* arg0)
         }
     }
     if ((work->field_892 == 0x1E) && (work->field_5C & 1)) {
-        if (enemy->field_40 > 0) {
+        if (enemy->hp > 0) {
             work->field_0 = 0xB;
         } else {
             work->field_0 = 0xC;
@@ -1488,7 +1488,7 @@ void func_actor_110600_80136ECC(Actor110600* arg0)
         effect1 = Gp_SpawnEff(0xA0005, &arg0->field_2C->coords[6], 0x200, NULL);
         if (effect1 != NULL) {
             sessionKey1 = (GpAreaKey*)&gGameSession->at4.loc;
-            raw1        = enemy->field_8;
+            raw1        = enemy->placeKey;
             model1      = (TmdObject*)effect1->field_0->extra;
             key.stage   = sessionKey1->stage;
             key.area    = sessionKey1->area;
@@ -1509,7 +1509,7 @@ void func_actor_110600_80136ECC(Actor110600* arg0)
         effect2 = Gp_SpawnEff(0xA0005, &arg0->field_2C->coords[8], 0x200, NULL);
         if (effect2 != NULL) {
             sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
-            raw2        = enemy->field_8;
+            raw2        = enemy->placeKey;
             model2      = (TmdObject*)effect2->field_0->extra;
             key.stage   = sessionKey2->stage;
             key.area    = sessionKey2->area;
@@ -1530,7 +1530,7 @@ void func_actor_110600_80136ECC(Actor110600* arg0)
         effect3 = Gp_SpawnEff(0xA0005, &arg0->field_2C->coords[10], 0x200, NULL);
         if (effect3 != NULL) {
             sessionKey3 = (GpAreaKey*)&gGameSession->at4.loc;
-            raw3        = enemy->field_8;
+            raw3        = enemy->placeKey;
             model3      = (TmdObject*)effect3->field_0->extra;
             key.stage   = sessionKey3->stage;
             key.area    = sessionKey3->area;
@@ -1551,7 +1551,7 @@ void func_actor_110600_80136ECC(Actor110600* arg0)
         effect4 = Gp_SpawnEff(0xA0005, &arg0->field_2C->coords[11], 0x300, NULL);
         if (effect4 != NULL) {
             sessionKey4 = (GpAreaKey*)&gGameSession->at4.loc;
-            raw4        = enemy->field_8;
+            raw4        = enemy->placeKey;
             model4      = (TmdObject*)effect4->field_0->extra;
             key.stage   = sessionKey4->stage;
             key.area    = sessionKey4->area;
@@ -1572,7 +1572,7 @@ void func_actor_110600_80136ECC(Actor110600* arg0)
         effect5 = Gp_SpawnEff(0xA0005, &arg0->field_2C->coords[15], 0x300, NULL);
         if (effect5 != NULL) {
             sessionKey5 = (GpAreaKey*)&gGameSession->at4.loc;
-            raw5        = enemy->field_8;
+            raw5        = enemy->placeKey;
             model5      = (TmdObject*)effect5->field_0->extra;
             key.stage   = sessionKey5->stage;
             key.area    = sessionKey5->area;
@@ -1968,18 +1968,18 @@ void func_actor_110600_80137F2C(GpEnemy* arg0, Actor110600* arg1)
     work->field_950.pos.vy = (u16)(*(u16*)&arg1->field_2C->coords->coord.t[1] - 0x124);
     work->field_950.pos.vz = *(u16*)&arg1->field_2C->coords->coord.t[2];
 
-    if (arg0->field_40 > 0) {
+    if (arg0->hp > 0) {
         if (work->field_8AA > 0) {
             work->field_8AA = (s16)((u16)work->field_8AA - 1);
         } else {
             func_actor_110600_80136210(arg1);
         }
-        if (arg0->field_40 > 0) {
+        if (arg0->hp > 0) {
             goto block_24;
         }
     }
     if (D_80073BA0 <= 0) {
-        arg0->field_40 = 1;
+        arg0->hp = 1;
     }
 block_24:
     Gp_ClearRec18Occupied(work->recs_970);
@@ -2033,8 +2033,8 @@ s32 func_actor_110600_8013839C(Actor110600* arg0, s32 arg1, Actor110600Msg7D3* a
     enemy = arg0->field_20;
     switch (state) {
         case 0:
-            work->field_892 = 0x22;
-            enemy->field_4B = 1;
+            work->field_892   = 0x22;
+            enemy->spawnState = 1;
             Gp_SaveEnemyPose(enemy);
             break;
         case 1:
@@ -2047,7 +2047,7 @@ s32 func_actor_110600_8013839C(Actor110600* arg0, s32 arg1, Actor110600Msg7D3* a
             work->field_892 = 0x25;
             break;
         case 4:
-            enemy->field_4B = 1;
+            enemy->spawnState = 1;
             Gp_SaveEnemyPose(enemy);
             work->field_892 = 0x28;
             break;
@@ -2058,7 +2058,7 @@ s32 func_actor_110600_8013839C(Actor110600* arg0, s32 arg1, Actor110600Msg7D3* a
 }
 
 /// Display-object handler, the same shape as `ActorsShared8013d268` one overlay
-/// over: `arg2` selects the mode and `GpEnemy.field_4B` -- the occupancy tag
+/// over: `arg2` selects the mode and `GpEnemy.spawnState` -- the occupancy tag
 /// `Gp_SaveEnemyPose` writes -- decides whether mode 1 shows the object again.
 /// Mode 0 hides it (bit 0x80 of `TmdObject.flags`) and reinstates its buffers;
 /// 1 hides it and restarts the work block's `field_0` while the tag reads 4, and
@@ -2081,10 +2081,10 @@ s32 func_actor_110600_80138448(Actor110600* arg0, s32 arg1, s32 arg2)
             work->field_0 = 0;
             break;
         case 1:
-            if (enemy->field_4B == 0) {
+            if (enemy->spawnState == 0) {
                 obj->flags = 0;
                 Tmd_AllocBuffers(obj);
-            } else if (enemy->field_4B == 4) {
+            } else if (enemy->spawnState == 4) {
                 obj->flags    = 0x80;
                 work->field_0 = 0;
             } else {
@@ -2097,7 +2097,7 @@ s32 func_actor_110600_80138448(Actor110600* arg0, s32 arg1, s32 arg2)
             work->field_0 = 0;
             break;
         case 3:
-            if (enemy->field_4B == 4) {
+            if (enemy->spawnState == 4) {
                 obj->flags = 0x80;
             } else {
                 obj->flags = 0;
@@ -2116,11 +2116,11 @@ s32 func_actor_110600_80138538(Task* arg0)
 
     enemy = (GpEnemy*)arg0->spawnArg2;
     work  = (Actor110600Work*)arg0->work;
-    if (enemy->field_40 > 0) {
+    if (enemy->hp > 0) {
         return 1;
     }
-    work->field_BE4 = 0;
-    enemy->field_4C = 0;
-    work->field_BE6 = 0;
+    work->field_BE4      = 0;
+    enemy->reactionFlags = 0;
+    work->field_BE6      = 0;
     return 0;
 }

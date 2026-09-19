@@ -124,7 +124,7 @@ void func_actor_402200_80131F54(Actor402200* arg0)
                 }
                 func_800DA6E8(&enemy->node, damage, 0);
                 func_800E2C78((GpObj40*)enemy, work->field_49C[i].key, damage, 0);
-                enemy->field_40 -= damage;
+                enemy->hp       -= damage;
                 work->field_70A += damage;
                 switch ((u16)kind) {
                     case 0:

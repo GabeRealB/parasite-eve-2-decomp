@@ -15,7 +15,7 @@ void ActorsShared801695a0(Task* task)
     ActorsShared801695a0Work* work  = (ActorsShared801695a0Work*)task->work;
     ActorsShared801695a0Work* objWork;
 
-    enemy->field_54 = 0;
+    enemy->recs = 0;
 
     objWork = (ActorsShared801695a0Work*)task->work;
     Gp_UnlinkObj(&objWork->obj_2AC);

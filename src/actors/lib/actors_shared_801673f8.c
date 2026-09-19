@@ -54,7 +54,7 @@ void ActorsShared801673f8(Task* arg0)
             coord->coord.t[0] = D_8018B74C[(work->field_44C >> 8) & 0xF].x;
             coord->coord.t[1] = D_8018B74C[(work->field_44C >> 8) & 0xF].y;
             coord->coord.t[2] = D_8018B74C[(work->field_44C >> 8) & 0xF].z;
-            id                = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 12) << 8) | 0x54270006;
+            id                = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x54270006;
             pan               = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
             SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
         } else if (map == 0x4280000) {

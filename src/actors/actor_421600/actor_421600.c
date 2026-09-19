@@ -63,15 +63,15 @@ s32 func_actor_421600_80132A00(Actor421600* arg0, s32 arg1, Actor421600Msg* arg2
 
     switch (arg2->field_2.word) {
         case 0:
-            enemy->field_40 = D_actor_421600_8013EF3C;
-            if ((enemy->field_8 >> 12) == 0) {
+            enemy->hp = D_actor_421600_8013EF3C;
+            if ((enemy->placeKey >> 12) == 0) {
                 work->field_0 = 2;
             }
             return 1;
 
         case 1:
-            mode            = enemy->field_8 >> 12;
-            enemy->field_40 = D_actor_421600_8013EF3C;
+            mode      = enemy->placeKey >> 12;
+            enemy->hp = D_actor_421600_8013EF3C;
             switch (mode) {
                 case 0:
                     if (D_actor_421600_80151268 < 4) {
@@ -110,12 +110,12 @@ s32 func_actor_421600_80132A00(Actor421600* arg0, s32 arg1, Actor421600Msg* arg2
             work->field_2 = -1;
         tail:
             Gp_SetLightMode(enemy, 0);
-            enemy->field_4C = 0;
-            enemy->field_40 = D_actor_421600_8013EF3C;
+            enemy->reactionFlags = 0;
+            enemy->hp            = D_actor_421600_8013EF3C;
             return 1;
 
         case 2:
-            switch (enemy->field_8 >> 12) {
+            switch (enemy->placeKey >> 12) {
                 case 0:
                     if (D_actor_421600_80151268 <= 0) {
                         goto blockDE0;
@@ -126,9 +126,9 @@ s32 func_actor_421600_80132A00(Actor421600* arg0, s32 arg1, Actor421600Msg* arg2
                     arg0->field_2C->coords->flg = 0;
                     Gp_UpdateCoord(arg0->field_2C->coords);
                     Gp_SetLightMode(enemy, 0);
-                    enemy->field_4C = 0;
-                    enemy->field_40 = D_actor_421600_8013EF3C;
-                    work->field_0   = 6;
+                    enemy->reactionFlags = 0;
+                    enemy->hp            = D_actor_421600_8013EF3C;
+                    work->field_0        = 6;
                     goto blockDE0;
                 case 1:
                     if (D_actor_421600_80151268 < 2) {
@@ -140,9 +140,9 @@ s32 func_actor_421600_80132A00(Actor421600* arg0, s32 arg1, Actor421600Msg* arg2
                     arg0->field_2C->coords->flg = 0;
                     Gp_UpdateCoord(arg0->field_2C->coords);
                     Gp_SetLightMode(enemy, 0);
-                    enemy->field_4C = 0;
-                    enemy->field_40 = D_actor_421600_8013EF3C;
-                    work->field_0   = 6;
+                    enemy->reactionFlags = 0;
+                    enemy->hp            = D_actor_421600_8013EF3C;
+                    work->field_0        = 6;
                     goto blockDE0;
                 default:
                     goto blockDE0;
@@ -523,7 +523,7 @@ void func_actor_421600_8013848C(Actor421600* arg0)
     tick          = work->field_6 + 1;
     work->field_6 = tick;
     if (((s16)tick == 0xF) && (work->field_8B4 == 7)) {
-        sound    = (((u16)ctx->field_8 >> 0xC) << 8) | 0x4001000A;
+        sound    = (((u16)ctx->placeKey >> 0xC) << 8) | 0x4001000A;
         eventPan = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
         SndEvt_EnqueueType6(sound, (s32)eventPan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
         if (Gp_State1C->field_A == 2) {
@@ -729,13 +729,13 @@ void func_actor_421600_8013903C(Actor421600* arg0)
     Gfx_RotMatrixY(&arg0->field_2C->coords->coord, (s16)ratan2(vec->vx, vec->vz), 1);
     arg0->field_2C->coords->flg = 0;
     func_actor_421600_80134604(arg0);
-    if (((u16)ctx->field_8 >> 0xC) == 0) {
+    if (((u16)ctx->placeKey >> 0xC) == 0) {
         view = Gp_GetViewIndex() & 0xFF;
         if (view == 3) {
             work->field_0 = view;
         }
     }
-    if ((((u16)ctx->field_8 >> 0xC) == 1) && ((Gp_GetViewIndex() & 0xFF) == 8)) {
+    if ((((u16)ctx->placeKey >> 0xC) == 1) && ((Gp_GetViewIndex() & 0xFF) == 8)) {
         work->field_0 = 3;
     }
     *(SVECTOR**)G_SCRATCH_HEAD += 2;
@@ -842,15 +842,15 @@ void func_actor_421600_8013947C(Actor421600* arg0)
         work->field_B6C.flags |= 0x4000;
         work->field_8EC.flags |= 0x4000;
         func_actor_421600_80134604(arg0);
-        sound = (((u16)ctx->field_8 >> 0xC) << 8) | 0x40010009;
+        sound = (((u16)ctx->placeKey >> 0xC) << 8) | 0x40010009;
         pan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
         SndEvt_EnqueueType6(sound, pan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
-        ctx->field_40 -= 0xF;
+        ctx->hp -= 0xF;
         func_800DA6E8(&ctx->node, 0xF, 0);
-        if (ctx->field_40 <= 0) {
-            ctx->field_40 = 1;
+        if (ctx->hp <= 0) {
+            ctx->hp = 1;
         }
-        eventSound = (((u16)ctx->field_8 >> 0xC) << 8) | 0x40010007;
+        eventSound = (((u16)ctx->placeKey >> 0xC) << 8) | 0x40010007;
         eventPan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
         SndEvt_EnqueueType6(eventSound, eventPan,
                             (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
@@ -885,8 +885,8 @@ void func_actor_421600_8013947C(Actor421600* arg0)
     arg0->field_2C->coords->flg = 0;
     func_actor_421600_80134604(arg0);
     if (work->field_68 & 0x100) {
-        if (ctx->field_40 > 0) {
-            if (ctx->field_4C & 2) {
+        if (ctx->hp > 0) {
+            if (ctx->reactionFlags & 2) {
                 work->field_0 = 4;
             } else {
                 work->field_0 = 0x11;
@@ -1204,7 +1204,7 @@ void func_actor_421600_8013C8E0(Actor421600* arg0)
         effect1       = Gp_SpawnEff(0xA0005, arg0->field_2C->coords + 9, 0x200, &vec);
         if (effect1 != NULL) {
             sessionKey1 = (GpAreaKey*)&gGameSession->at4.loc;
-            raw1        = ctx->field_8;
+            raw1        = ctx->placeKey;
             model1      = (TmdObject*)effect1->field_0->extra;
             key.stage   = sessionKey1->stage;
             key.area    = sessionKey1->area;
@@ -1233,7 +1233,7 @@ void func_actor_421600_8013C8E0(Actor421600* arg0)
         effect2       = Gp_SpawnEff(0xA0005, arg0->field_2C->coords + 12, 0x200, &vec);
         if (effect2 != NULL) {
             sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
-            raw2        = ctx->field_8;
+            raw2        = ctx->placeKey;
             model2      = (TmdObject*)effect2->field_0->extra;
             key.stage   = sessionKey2->stage;
             key.area    = sessionKey2->area;
@@ -1260,7 +1260,7 @@ void func_actor_421600_8013C8E0(Actor421600* arg0)
         effect3       = Gp_SpawnEff(0xA0005, arg0->field_2C->coords + 1, 0x200, NULL);
         if (effect3 != NULL) {
             sessionKey3 = (GpAreaKey*)&gGameSession->at4.loc;
-            raw3        = ctx->field_8;
+            raw3        = ctx->placeKey;
             model3      = (TmdObject*)effect3->field_0->extra;
             key.stage   = sessionKey3->stage;
             key.area    = sessionKey3->area;
@@ -1287,7 +1287,7 @@ void func_actor_421600_8013C8E0(Actor421600* arg0)
         effect4       = Gp_SpawnEff(0xA0005, arg0->field_2C->coords + 3, 0x200, NULL);
         if (effect4 != NULL) {
             sessionKey4 = (GpAreaKey*)&gGameSession->at4.loc;
-            raw4        = ctx->field_8;
+            raw4        = ctx->placeKey;
             model4      = (TmdObject*)effect4->field_0->extra;
             key.stage   = sessionKey4->stage;
             key.area    = sessionKey4->area;

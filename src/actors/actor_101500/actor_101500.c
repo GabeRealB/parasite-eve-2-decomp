@@ -35,22 +35,22 @@ void func_actor_101500_80131EB4(GpEnemy* arg0, Actor101500* arg1)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18             = &arg1->field_2C->coords[2];
+    arg0->coord                = &arg1->field_2C->coords[2];
     arg0->node.flags           = 0;
-    arg0->field_1C.vx          = 0;
-    arg0->field_1C.vy          = 0;
-    arg0->field_1C.vz          = 0;
-    arg0->field_50             = &D_actor_101500_8013BDD8;
-    arg0->field_54             = (s32)work->field_1FC;
-    arg0->field_40             = D_actor_101500_8013BDD8.hpMax;
+    arg0->bodyPos.vx           = 0;
+    arg0->bodyPos.vy           = 0;
+    arg0->bodyPos.vz           = 0;
+    arg0->param                = &D_actor_101500_8013BDD8;
+    arg0->recs                 = work->field_1FC;
+    arg0->hp                   = D_actor_101500_8013BDD8.hpMax;
     work->field_314.coord      = coord;
     work->field_314.spawnArgLo = 0x300;
     work->field_314.spawnArgHi = 1;
-    place                      = arg0->field_3C;
+    place                      = arg0->place;
     switch (work->field_382 = place->field_1) {
         case 0:
-            work->field_36E = ((GpAreaPlace*)arg0->field_3C)->field_2 & 1;
-            work->field_370 = (((GpAreaPlace*)arg0->field_3C)->field_2 >> 1) & 1;
+            work->field_36E = arg0->place->field_2 & 1;
+            work->field_370 = (arg0->place->field_2 >> 1) & 1;
             switch (work->field_36E) {
                 case 0:
                     work->field_352 = 1;
@@ -254,7 +254,7 @@ void func_actor_101500_8013230C(Actor101500* actor)
                             break;
                         case 4:
                         case 6:
-                            if (actor->field_20->field_40 <= 0) {
+                            if (actor->field_20->hp <= 0) {
                                 work->field_37E = 1;
                             }
                             break;
@@ -317,16 +317,16 @@ void func_actor_101500_8013291C(Actor101500* actor, s32 damage)
     GsCOORDINATE2*   coord;
     s32              id;
 
-    enemy            = actor->field_20;
-    work             = actor->field_1C;
-    coord            = actor->field_2C->coords;
-    enemy->field_40 -= damage;
-    if (enemy->field_40 <= 0) {
+    enemy      = actor->field_20;
+    work       = actor->field_1C;
+    coord      = actor->field_2C->coords;
+    enemy->hp -= damage;
+    if (enemy->hp <= 0) {
         work->field_378 = 1;
     }
-    id = ((actor->field_20->field_8 >> 12) << 8) | 0x400F0004;
+    id = ((actor->field_20->placeKey >> 12) << 8) | 0x400F0004;
     SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
-    if (enemy->field_40 <= (D_actor_101500_8013BDDC * 60) / 100) {
+    if (enemy->hp <= (D_actor_101500_8013BDDC * 60) / 100) {
         work->field_358 = 2;
         if (work->field_35A != 5) {
             work->field_35A        = 4;

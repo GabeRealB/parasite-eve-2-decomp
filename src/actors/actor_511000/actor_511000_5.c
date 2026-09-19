@@ -207,7 +207,7 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
        spawn result's v0 preference off the byte copied into a0. */
     spawned    = (GpEnemy*)spawned->task;
     sessionKey = (GpAreaKey*)&session->at4.loc;
-    idx        = enemy->field_8;
+    idx        = enemy->placeKey;
     areaByte3  = sessionKey->stage;
     model      = ((Task*)spawned)->extra;
     key.stage  = areaByte3;
@@ -230,7 +230,7 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     session    = gGameSession;
     spawned    = (GpEnemy*)spawned->task;
     sessionKey = (GpAreaKey*)&session->at4.loc;
-    idx        = enemy->field_8;
+    idx        = enemy->placeKey;
     areaByte3  = sessionKey->stage;
     model      = ((Task*)spawned)->extra;
     key.stage  = areaByte3;

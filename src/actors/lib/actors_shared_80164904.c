@@ -12,7 +12,7 @@ s32 ActorsShared80164904(Task* task)
     s32 mask2;
     s32 mask80;
 
-    if (((GpEnemy*)task->spawnArg2)->field_40 > 0) {
+    if (((GpEnemy*)task->spawnArg2)->hp > 0) {
         return 1;
     }
 

@@ -110,21 +110,21 @@ void func_actor_510900_80135744(Actor510900* arg0)
                         dmg = dmg * 75 / 100;
                         break;
                 }
-                enemy->field_40 -= dmg;
+                enemy->hp -= dmg;
                 func_800DA6E8(&enemy->node, dmg, 0);
-                if (enemy->field_40 <= 0) {
+                if (enemy->hp <= 0) {
                     if (work->field_5B4 < 2) {
                         work->field_5B4 = 0;
                     } else {
-                        enemy->field_40 = 1;
+                        enemy->hp = 1;
                     }
                 }
                 if (reaction != 0) {
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                     if (!((Gp_LcgState >> 16) & 1)) {
-                        sound = ((enemy->field_8 >> 12) << 8) | 0x40780004;
+                        sound = ((enemy->placeKey >> 12) << 8) | 0x40780004;
                     } else {
-                        sound = ((enemy->field_8 >> 12) << 8) | 0x40780005;
+                        sound = ((enemy->placeKey >> 12) << 8) | 0x40780005;
                     }
                     pan = (s8)Gp_GetObjPan((GpObj38*)coord);
                     SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
@@ -159,7 +159,7 @@ void func_actor_510900_80135744(Actor510900* arg0)
                         }
                         work->field_570.vy = v2;
                         work->field_584    = 1;
-                        if (enemy->field_40 <= 0) {
+                        if (enemy->hp <= 0) {
                             work->field_58E     = 0xC;
                             work->field_590     = 0;
                             work->field_586     = 0x18;
@@ -172,7 +172,7 @@ void func_actor_510900_80135744(Actor510900* arg0)
                         work->field_590     = 0;
                         work->obj4E4.flags &= 0x7FFF;
                         work->obj504.flags &= 0x7FFF;
-                        if (enemy->field_40 <= 0) {
+                        if (enemy->hp <= 0) {
                             work->obj47C.flags &= 0x7FFF;
                         }
                         break;
@@ -181,7 +181,7 @@ void func_actor_510900_80135744(Actor510900* arg0)
                         work->field_590     = 0;
                         work->obj4E4.flags &= 0x7FFF;
                         work->obj504.flags &= 0x7FFF;
-                        if (enemy->field_40 <= 0) {
+                        if (enemy->hp <= 0) {
                             work->obj47C.flags &= 0x7FFF;
                         }
                         break;
@@ -218,14 +218,14 @@ void func_actor_510900_80135744(Actor510900* arg0)
                     work->obj4E4.flags &= 0x7FFF;
                     work->obj504.flags &= 0x7FFF;
                     loss                = Gp_LookupIdField((u16)work->rec49C[i].key, 1);
-                    enemy->field_40    -= loss;
+                    enemy->hp          -= loss;
                     func_800DA6E8(&enemy->node, loss, 0);
-                    if (enemy->field_40 <= 0) {
+                    if (enemy->hp <= 0) {
                         if (work->field_5B4 < 2) {
                             work->field_5B4     = 0;
                             work->obj47C.flags &= 0x7FFF;
                         } else {
-                            enemy->field_40 = 1;
+                            enemy->hp = 1;
                         }
                     }
                 }

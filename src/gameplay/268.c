@@ -3354,8 +3354,8 @@ GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpEnemyPlace* arg1)
         if (task->spawnType != 0) {
             extra             = (TmdObject*)task->extra;
             coord             = (GpCoordPlace*)extra->coords;
-            enemy->field_8    = arg1->field_0 | (arg1->field_4 << 8);
-            enemy->field_A    = arg1->field_2;
+            enemy->placeKey   = arg1->field_0 | (arg1->field_4 << 8);
+            enemy->workType   = arg1->field_2;
             coord->coord.t[0] = arg1->field_8;
             coord->coord.t[1] = arg1->field_A;
             coord->coord.t[2] = arg1->field_C;

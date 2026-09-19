@@ -100,17 +100,17 @@ void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18    = coord;
-    arg0->node.flags  = 0;
-    arg0->field_1C.vx = 0;
-    arg0->field_1C.vy = 0;
-    arg0->field_1C.vz = 0;
-    arg0->field_50    = &D_actor_300700_80165B68;
-    arg0->field_54    = (s32)&work->rec154;
-    arg0->field_40    = (u16)D_actor_300700_80165B68.hpMax;
-    work->field_228   = 0x100;
-    work->field_22A   = 1;
-    work->field_224   = coord;
+    arg0->coord      = coord;
+    arg0->node.flags = 0;
+    arg0->bodyPos.vx = 0;
+    arg0->bodyPos.vy = 0;
+    arg0->bodyPos.vz = 0;
+    arg0->param      = &D_actor_300700_80165B68;
+    arg0->recs       = &work->rec154;
+    arg0->hp         = (u16)D_actor_300700_80165B68.hpMax;
+    work->field_228  = 0x100;
+    work->field_22A  = 1;
+    work->field_224  = coord;
     func_800B3F84((GpAnimCtx*)work, &D_actor_300700_80165B94, obj,
                   work->field_B4, (GpAnimSlot*)work->field_14);
     for (i = 1; i < 4; i++) {
@@ -548,11 +548,11 @@ void func_actor_300700_80162BC8(GpEnemy* arg0, Actor300700* arg1)
                         angle = -angle;
                     }
                     work->field_2E4                             = angle;
-                    arg0->field_54                              = 0;
+                    arg0->recs                                  = 0;
                     ((Actor300700SpawnWork*)work)->obj134.flags = ((Actor300700SpawnWork*)work)->obj134.flags & 0x7FFF;
                     ((Actor300700SpawnWork*)work)->obj16C.flags = ((Actor300700SpawnWork*)work)->obj16C.flags & 0xBFFF;
                     ((Actor300700SpawnWork*)work)->obj1EC.flags = ((Actor300700SpawnWork*)work)->obj1EC.flags | 0x8000;
-                    id                                          = ((arg0->field_8 >> 12) << 8) | 0x40070006;
+                    id                                          = ((arg0->placeKey >> 12) << 8) | 0x40070006;
                     pan                                         = (s8)Gp_GetObjPan((GpObj38*)coord);
                     SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
                     Gp_UnlinkNode(&arg0->node);
@@ -751,17 +751,17 @@ void func_actor_300700_80163510(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18    = &((TmdObject*)arg1->extra)->coords[4];
-    arg0->node.flags  = 0;
-    arg0->field_1C.vx = 0;
-    arg0->field_1C.vy = 0;
-    arg0->field_1C.vz = 0;
-    arg0->field_50    = &D_actor_300700_8016932C;
-    arg0->field_54    = (s32)work->rec2;
-    arg0->field_40    = (u16)D_actor_300700_8016932C.hpMax;
-    work->field_338   = 0x100;
-    work->field_33A   = 1;
-    work->field_334   = coord;
+    arg0->coord      = &((TmdObject*)arg1->extra)->coords[4];
+    arg0->node.flags = 0;
+    arg0->bodyPos.vx = 0;
+    arg0->bodyPos.vy = 0;
+    arg0->bodyPos.vz = 0;
+    arg0->param      = &D_actor_300700_8016932C;
+    arg0->recs       = work->rec2;
+    arg0->hp         = (u16)D_actor_300700_8016932C.hpMax;
+    work->field_338  = 0x100;
+    work->field_33A  = 1;
+    work->field_334  = coord;
     func_800B3F84((GpAnimCtx*)work, &D_actor_300700_801693B8, obj,
                   work->field_12C, (GpAnimSlot*)work->field_14);
     for (i = 1; i < 7; i++) {
@@ -1544,7 +1544,7 @@ death:
     work->field_38C = 0;
     work->field_390 = 0x1000;
     work->field_340 = coord->coord;
-    arg0->field_54  = 0;
+    arg0->recs      = 0;
     Gp_UnlinkNode(&arg0->node);
     Gp_UnlinkObj(&((Actor300700Spawn2Work*)work)->obj1);
     Gp_UnlinkObj(&((Actor300700Spawn2Work*)work)->obj2);

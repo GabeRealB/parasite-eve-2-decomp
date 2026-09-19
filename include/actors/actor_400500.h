@@ -117,7 +117,7 @@ STATIC_ASSERT_SIZEOF(Actor400500AnimStride, 0x28);
 /// a `TaskIdMap` here. Reach it with `(Actor400500Work*)task->work`. The
 /// same function hands `&work->lightMtx` / `&work->colorMtx` to the
 /// `TmdObject` at `Task::extra` (`field_1C` / `field_20`) and `work->rec0`
-/// to `GpEnemy::field_54`; the size below is the allocation, not a guess.
+/// to `GpEnemy::recs`; the size below is the allocation, not a guess.
 /// `obj1`/`obj2` share `rec1`; `obj3`/`obj4` share `rec2`.
 ///
 /// `field_A06` / `field_A08` are the state and sub-state indices the handler

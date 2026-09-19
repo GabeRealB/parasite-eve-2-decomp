@@ -533,7 +533,7 @@ s16 func_actor_403000_8013D48C(Task* task);
 
 /// `Task::exitCallback` installed by the spawn handler, for the teardown path
 /// where the enemy was created: hand the four display nodes back to
-/// `Gp_UnlinkObj`, drop the enemy's `field_54` slot, then let `Gp_DestroyEnemy`
+/// `Gp_UnlinkObj`, drop the enemy's `recs` slot, then let `Gp_DestroyEnemy`
 /// free the enemy and the task.
 void func_actor_403000_8013D4F4(Task* task);
 
@@ -552,7 +552,7 @@ void func_actor_403000_8013D850(Actor403000* arg0);
 /// Per-frame countdown: on the frame `field_4` is set, reload the `field_6`
 /// tick from a fresh `Gp_LcgState` draw masked to 0xA..0x19, then decrement
 /// it. When the tick underflows and the enemy still has HP left
-/// (`GpEnemy::field_40`), the animation state `field_0` is set to 0x13.
+/// (`GpEnemy::hp`), the animation state `field_0` is set to 0x13.
 void func_actor_403000_8013D910(Actor403000* arg0);
 
 #endif // ACTOR_403000_H

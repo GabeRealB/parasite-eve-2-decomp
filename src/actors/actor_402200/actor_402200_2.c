@@ -5,7 +5,7 @@
 void func_actor_402200_801324E8(Actor402200* arg0, s32 arg1)
 {
     GpEnemy*         enemy = arg0->field_20;
-    s16              hp    = enemy->field_40;
+    s16              hp    = enemy->hp;
     Actor402200Work* work  = arg0->field_1C;
     u32              state = 0;
     s32              max;
@@ -23,7 +23,7 @@ void func_actor_402200_801324E8(Actor402200* arg0, s32 arg1)
             SndEvt_EnqueueType7(work->field_6BC, 1);
             work->field_6BC = 0;
         }
-    } else if (max = enemy->field_50->hpMax, hp < max / 10) {
+    } else if (max = enemy->param->hpMax, hp < max / 10) {
         state = 4;
         if (work->field_6F0 == 0) {
             state = 3;

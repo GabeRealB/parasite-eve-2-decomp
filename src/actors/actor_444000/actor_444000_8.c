@@ -217,7 +217,7 @@ void func_actor_444000_80143C64(Actor444000Spinner* arg0)
 
 s32 func_actor_444000_80143D68(Actor444000* arg0)
 {
-    return arg0->field_20->field_40 > 0;
+    return arg0->field_20->hp > 0;
 }
 
 /// Seeds the enemy's `TmdObject` coordinate frame from `placement`: the three
@@ -254,8 +254,8 @@ s32 func_actor_444000_80143E68(Actor444000* arg0, s32 arg1, s32 arg2)
         case 0:
             work->field_F1A++;
             func_800DA6E8(&obj->node, -0x64, 0);
-            if (obj->field_40 > 0) {
-                obj->field_40 += 0x64;
+            if (obj->hp > 0) {
+                obj->hp += 0x64;
             }
             break;
         case 1:
@@ -263,10 +263,10 @@ s32 func_actor_444000_80143E68(Actor444000* arg0, s32 arg1, s32 arg2)
                 work->field_F1C--;
             }
             work->field_F16 = 2;
-            if (work->field_EE8[0] != NULL && work->field_EE8[0]->field_40 <= 0) {
+            if (work->field_EE8[0] != NULL && work->field_EE8[0]->hp <= 0) {
                 work->field_EE8[0] = NULL;
             }
-            if (work->field_EE8[1] != NULL && work->field_EE8[1]->field_40 <= 0) {
+            if (work->field_EE8[1] != NULL && work->field_EE8[1]->hp <= 0) {
                 work->field_EE8[1] = NULL;
             }
             break;

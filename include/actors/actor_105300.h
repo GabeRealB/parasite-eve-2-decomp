@@ -15,7 +15,7 @@
 /// The model object in `Task::extra`, seen through this overlay: `field_8` is
 /// the object's trailing `GsCOORDINATE2` array. The spawn seeds one of those
 /// coordinates from `D_actor_105300_80133A20` and hands it to the enemy as
-/// `GpEnemy::field_18`.
+/// `GpEnemy::coord`.
 typedef struct Actor05300Obj2C {
     /* 0x00 */ byte           pad_0[8];
     /* 0x08 */ GsCOORDINATE2* field_8;
@@ -80,7 +80,7 @@ STATIC_ASSERT_SIZEOF(Actor05300Part, 0x48);
 /// The task whose work block is `Actor05300Work`, reached as `task->field_1C`
 /// (the `Task::work` slot). `field_20` is the `Task::spawnArg2` slot holding
 /// the enemy: the sound events this enemy plays carry its actor id in the
-/// high nibble of `GpEnemy::field_8`. `field_2C` is the `Task::extra` model
+/// high nibble of `GpEnemy::placeKey`. `field_2C` is the `Task::extra` model
 /// object.
 typedef struct Actor05300 {
     /* 0x00 */ byte             pad_0[0x1C];

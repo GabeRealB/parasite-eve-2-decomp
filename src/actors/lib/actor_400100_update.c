@@ -144,12 +144,12 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
                     Gp_DispatchMsg(player, 0x3FE, (s32)(&work->field_8D8), 0);
                     if ((s16)work->field_C28 == 0xF) {
                         if ((Gp_GetViewIndex() & 0xFF) == 8) {
-                            sound = (((u16)enemy->field_8 >> 0xC) << 8) | 0x54010004;
+                            sound = (((u16)enemy->placeKey >> 0xC) << 8) | 0x54010004;
                             pan   = (s8)Gp_GetObjPan((GpObj38*)actor->field_2C->coords);
                             depth = Gp_GetObjDepth((GpObj38*)actor->field_2C->coords);
                             SndEvt_EnqueueType6(sound, (s8)pan, (s8)(depth + abs(Gp_GetObjPan((GpObj38*)actor->field_2C->coords)) / 2));
                         } else {
-                            sound2 = (((u16)enemy->field_8 >> 0xC) << 8) | 0x54010004;
+                            sound2 = (((u16)enemy->placeKey >> 0xC) << 8) | 0x54010004;
                             pan2   = (s8)Gp_GetObjPan((GpObj38*)actor->field_2C->coords);
                             SndEvt_EnqueueType6(sound2, pan2, (s8)Gp_GetObjDepth((GpObj38*)actor->field_2C->coords));
                         }
@@ -321,9 +321,9 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
     scratch->vy = 0;
     scratch->vz = 0;
     Actor00100_TransformToView(actor->field_2C->coords + 2, scratch);
-    enemy->field_1C.vx     = (s32)(s16)scratch->vx;
-    enemy->field_1C.vy     = (s32)scratch->vy;
-    enemy->field_1C.vz     = (s32)scratch->vz;
-    enemy->field_18        = &gGfxViewCoord;
+    enemy->bodyPos.vx      = (s32)(s16)scratch->vx;
+    enemy->bodyPos.vy      = (s32)scratch->vy;
+    enemy->bodyPos.vz      = (s32)scratch->vz;
+    enemy->coord           = &gGfxViewCoord;
     *(s32*)G_SCRATCH_HEAD += 8;
 }

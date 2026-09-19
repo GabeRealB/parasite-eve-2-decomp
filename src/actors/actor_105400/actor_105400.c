@@ -8,7 +8,7 @@
 /// position and the second list node are both seeded from.
 extern Actor05400Pose D_actor_105400_80133A30;
 
-/// The pair source `GpEnemy::field_50` points at; its `hpMax` is the HP the
+/// The pair source `GpEnemy::param` points at; its `hpMax` is the HP the
 /// context's `field_40` is seeded with.
 extern GpPairSrcE D_actor_105400_8013CE30;
 
@@ -89,17 +89,17 @@ void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18    = coord;
-    pose              = &D_actor_105400_80133A30;
-    arg0->field_1C.vx = pose->field_8.vx;
-    arg0->field_1C.vy = pose->field_8.vy;
-    arg0->field_1C.vz = pose->field_8.vz;
-    arg0->field_50    = &D_actor_105400_8013CE30;
-    arg0->field_54    = (s32)work->recs;
-    arg0->field_40    = D_actor_105400_8013CE30.hpMax;
-    work->coord       = coord;
-    work->field_2F8   = 0x500;
-    work->field_2FA   = 3;
+    arg0->coord      = coord;
+    pose             = &D_actor_105400_80133A30;
+    arg0->bodyPos.vx = pose->field_8.vx;
+    arg0->bodyPos.vy = pose->field_8.vy;
+    arg0->bodyPos.vz = pose->field_8.vz;
+    arg0->param      = &D_actor_105400_8013CE30;
+    arg0->recs       = work->recs;
+    arg0->hp         = D_actor_105400_8013CE30.hpMax;
+    work->coord      = coord;
+    work->field_2F8  = 0x500;
+    work->field_2FA  = 3;
     func_800B3F84((GpAnimCtx*)work, D_actor_105400_8013CEB8, obj, work->poses,
                   work->slots);
     for (i = 1; i < 0xA; i++) {
@@ -134,7 +134,7 @@ void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
     Gp_LinkObj(2, &work->node1);
     work->node1.flags = (u16)(work->node1.flags | 0x8000);
     model             = Gp_SpawnEnemyFromTable(&D_actor_105400_8013CEA0, 1, 0, arg0)->task->extra;
-    idx               = arg0->field_8 >> 12;
+    idx               = arg0->placeKey >> 12;
     sessionKey        = (GpAreaKey*)&gGameSession->at4.loc;
     key.stage         = sessionKey->stage;
     key.area          = sessionKey->area;
@@ -149,7 +149,7 @@ void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
         tmdProcessStream(model);
         tmdProcessStream(model);
     }
-    sound           = D_actor_105400_8013CE60 | ((((GpEnemy*)arg1->spawnArg2)->field_8 >> 12) << 8);
+    sound           = D_actor_105400_8013CE60 | ((((GpEnemy*)arg1->spawnArg2)->placeKey >> 12) << 8);
     work->field_31C = sound;
     SndEvt_EnqueueType6(sound, D_actor_105400_8013CE64[gGameSession->at4.loc.view].field_0,
                         D_actor_105400_8013CE64[gGameSession->at4.loc.view].field_2);

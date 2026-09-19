@@ -113,7 +113,7 @@ typedef struct Actor356100Work {
     /* 0x9BC */ s16  field_9BC;
     /* 0x9BE */ byte pad_9BE[2];
     /// First `GpRec18` of the body-part record table, the address
-    /// `func_actor_356100_8016382C` publishes in the enemy's `field_54` slot
+    /// `func_actor_356100_8016382C` publishes in the enemy's `recs` slot
     /// and the exit callback drops. Same slot as `Actor01900Work.field_8E8`.
     /* 0x9C0 */ GpRec18 field_9C0;
     /* 0x9D8 */ byte    pad_9D8[0x80];
@@ -654,7 +654,7 @@ void func_actor_356100_80167818(Actor356100* arg0);
 s32 func_actor_356100_8016A0B8(Actor356100* arg0, s32 arg1, Actor356100Event* arg2);
 
 /// `Task::exitCallback` teardown: kill the two helper tasks, drop the
-/// enemy's `field_54` slot, then `Gp_DestroyEnemy`. Same shape as
+/// enemy's `recs` slot, then `Gp_DestroyEnemy`. Same shape as
 /// `Actor01900_Fn0A6CC` without the three `Gp_UnlinkObj` calls.
 void func_actor_356100_8016A158(Task* task);
 

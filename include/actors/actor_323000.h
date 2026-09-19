@@ -127,7 +127,7 @@ extern GpEffArg D_actor_323000_80173A24;
 /// Message table published as `Task::msgTable` by the spawn handler.
 extern void* D_actor_323000_801739D0;
 
-/// Enemy pair source `GpEnemy::field_50` is pointed at by the spawn handler.
+/// Enemy pair source `GpEnemy::param` is pointed at by the spawn handler.
 extern GpPairSrcE D_actor_323000_80164D54;
 
 /// Spawn body (descriptor entry for this overlay): allocates the 0x934-byte

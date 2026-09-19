@@ -204,7 +204,7 @@ void func_actor_403600_80141598(Task* task)
     enemy                                  = task->spawnArg2;
     work                                   = (Actor403600Work*)task->work;
     ((TmdObject*)task->extra)->coords->sub = &gGfxViewCoord;
-    enemy->field_54                        = 0;
+    enemy->recs                            = 0;
     Gp_UnlinkNode(&enemy->node);
     Gp_UnlinkObj(&work->field_508);
     Gp_UnlinkObj(&work->field_588);
@@ -228,7 +228,7 @@ void func_actor_403600_8014161C(Actor403600* arg0)
         }
         *(u16*)((u8*)work + 0x79E)  = (u16)(*(u16*)((u8*)work + 0x79E) + 1);
         work->field_4B8.coord.t[1] += rsin(D_80070F70 << 8) >> 6;
-        if (((s16) * (u16*)((u8*)work + 0x78A) / 10 < enemy->field_40) &&
+        if (((s16) * (u16*)((u8*)work + 0x78A) / 10 < enemy->hp) &&
             (*(u16*)((u8*)work + 0x79E) >= 0x385) && (work->field_73E == 0)) {
             work->field_730 = 6;
         }
@@ -496,11 +496,11 @@ void func_actor_403600_80141C7C(Actor403600* arg0, s32 arg1)
     GpEnemy*         enemy;
     Actor403600Work* work;
 
-    enemy           = arg0->field_20;
-    work            = arg0->field_1C;
-    enemy->field_40 = *(u16*)&enemy->field_40 - arg1;
+    enemy     = arg0->field_20;
+    work      = arg0->field_1C;
+    enemy->hp = *(u16*)&enemy->hp - arg1;
     func_800DA6E8(&enemy->node, arg1, 0);
-    if (enemy->field_40 <= 0) {
+    if (enemy->hp <= 0) {
         work->field_742 = 1;
     }
 }

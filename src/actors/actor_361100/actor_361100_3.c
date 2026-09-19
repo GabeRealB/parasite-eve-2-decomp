@@ -118,7 +118,7 @@ void func_actor_361100_80162D28(Task* arg0)
 
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
-    enemy->field_54 = 0;
+    enemy->recs     = 0;
 
     func_actor_361100_80162E04(arg0);
     TOUCH_REG(enemy);

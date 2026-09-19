@@ -131,9 +131,9 @@ void func_actor_342400_801653DC(Task* arg0, s16 arg1)
                     }
                     func_800E2C78((GpObj40*)enemy, work->rec_2EC[i].key, amount, 0);
                     func_800DA6E8(&enemy->node, amount, 0);
-                    enemy->field_40 -= amount;
-                    if (enemy->field_40 < 0) {
-                        enemy->field_40 = 0;
+                    enemy->hp -= amount;
+                    if (enemy->hp < 0) {
+                        enemy->hp = 0;
                     }
                     func_800FDB18(Gp_GetIdParam1(work->rec_2EC[i].key) & 0xFFFF,
                                   &((TmdObject*)arg0->extra)->coords[1], NULL, &work->eff_3FC);
@@ -180,29 +180,29 @@ void func_actor_342400_801653DC(Task* arg0, s16 arg1)
         }
     }
 
-    if (enemy->field_4C & 1) {
-        enemy->field_4C &= 0xFE;
-        work->field_448  = 5;
+    if (enemy->reactionFlags & 1) {
+        enemy->reactionFlags &= 0xFE;
+        work->field_448       = 5;
     }
-    if (enemy->field_4C & 2) {
-        enemy->field_4C &= 0xFD;
-        work->field_448  = 3;
+    if (enemy->reactionFlags & 2) {
+        enemy->reactionFlags &= 0xFD;
+        work->field_448       = 3;
     }
-    if (enemy->field_4C & 0xC) {
+    if (enemy->reactionFlags & 0xC) {
         work->field_44E = 1;
         tmp             = Gp_TickObjFlag4((GpObj5C*)enemy);
         tick            = tmp;
         if (tick != 0) {
-            enemy->field_40 -= tmp;
+            enemy->hp -= tmp;
             func_800DA6E8(&enemy->node, tick, 0);
-            if (enemy->field_40 < 0) {
-                enemy->field_40 = 0;
+            if (enemy->hp < 0) {
+                enemy->hp = 0;
             }
             work->field_41E = 1;
             work->field_448 = 2;
         }
         if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
-            enemy->field_4C &= 0xF3;
+            enemy->reactionFlags &= 0xF3;
         }
     }
 

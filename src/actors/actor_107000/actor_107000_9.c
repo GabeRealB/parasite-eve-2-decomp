@@ -76,17 +76,17 @@ void func_actor_107000_80136E88(GpEnemy* arg0, Task* arg1)
     arg0->field_4   = &coord->coord;
     arg0->field_48  = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18    = coord;
-    arg0->node.flags  = one;
-    arg0->field_1C.vx = 0;
-    arg0->field_1C.vy = 0;
-    arg0->field_1C.vz = 0;
-    arg0->field_50    = &D_actor_107000_80139EA0;
-    arg0->field_40    = D_actor_107000_80139EA0.hpMax;
-    arg0->field_54    = (s32)&work->field_24C[0];
-    work->field_35C   = &((TmdObject*)arg1->extra)->coords[1];
-    work->field_360   = 0x100;
-    work->field_362   = one;
+    arg0->coord      = coord;
+    arg0->node.flags = one;
+    arg0->bodyPos.vx = 0;
+    arg0->bodyPos.vy = 0;
+    arg0->bodyPos.vz = 0;
+    arg0->param      = &D_actor_107000_80139EA0;
+    arg0->hp         = D_actor_107000_80139EA0.hpMax;
+    arg0->recs       = &work->field_24C[0];
+    work->field_35C  = &((TmdObject*)arg1->extra)->coords[1];
+    work->field_360  = 0x100;
+    work->field_362  = one;
     func_800B3F84((GpAnimCtx*)work, D_actor_107000_8013F59C, obj, work->field_12C,
                   (GpAnimSlot*)&work->slots[0]);
     i = 1;

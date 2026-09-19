@@ -301,7 +301,7 @@ void func_actor_403200_80134D40(Task* arg0)
 
         work->field_EAC = 3;
         Gp_SpawnScript18((s32)&D_actor_403200_80141C5C, (s32)&D_actor_403200_80141C64);
-        id  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200001;
+        id  = (((u16)enemy->placeKey >> 12) << 8) | 0x40200001;
         pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
         SndEvt_EnqueueType6(id, pan,
                             (s8)(Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords) / 2));
@@ -314,7 +314,7 @@ void func_actor_403200_80134D40(Task* arg0)
 
         work->field_EAC = 3;
         Gp_SpawnScript18((s32)&D_actor_403200_80141C5C, (s32)&D_actor_403200_80141C64);
-        id  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200001;
+        id  = (((u16)enemy->placeKey >> 12) << 8) | 0x40200001;
         pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
         SndEvt_EnqueueType6(id, pan,
                             (s8)(Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords) / 2));
@@ -487,7 +487,7 @@ void func_actor_403200_8013669C(GpEnemy* enemy, Task* task)
     work->field_1AC = 0;
     task->state++;
 
-    sfx = ((owner->field_8 >> 0xC) << 8) | 0x4020000B;
+    sfx = ((owner->placeKey >> 0xC) << 8) | 0x4020000B;
     pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->coords);
     SndEvt_EnqueueType6(sfx, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->coords));
 

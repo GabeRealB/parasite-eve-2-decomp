@@ -220,7 +220,7 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
         spawned->parent = task;
         model1          = spawned->extra;
         sessionKey1     = (GpAreaKey*)&gGameSession->at4.loc;
-        raw1            = ((GpEnemy*)task->spawnArg2)->field_8;
+        raw1            = ((GpEnemy*)task->spawnArg2)->placeKey;
         key.stage       = sessionKey1->stage;
         key.area        = sessionKey1->area;
         areaByte1       = sessionKey1->room;
@@ -249,7 +249,7 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
         spawned->parent = task;
         model2          = spawned->extra;
         sessionKey2     = (GpAreaKey*)&gGameSession->at4.loc;
-        raw2            = ((GpEnemy*)task->spawnArg2)->field_8;
+        raw2            = ((GpEnemy*)task->spawnArg2)->placeKey;
         key.stage       = sessionKey2->stage;
         key.area        = sessionKey2->area;
         areaByte1       = sessionKey2->room;

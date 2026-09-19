@@ -34,7 +34,7 @@ typedef struct ActorShared801341d4 {
 } ActorShared801341d4;
 
 /// Every 0x19 frames, cues `SndEvt_EnqueueType6`: the id takes the placement's
-/// sound index from `GpEnemy.field_8`, the pan and depth come from the part
+/// sound index from `GpEnemy.placeKey`, the pan and depth come from the part
 /// coordinate's first entry, and the depth is attenuated by the work block's
 /// `field_12A` scale, clamped to 0x600..0x1D01 and mapped onto 0x32..0x64
 /// percent.

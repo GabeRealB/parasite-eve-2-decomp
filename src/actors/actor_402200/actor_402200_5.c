@@ -85,7 +85,7 @@ void func_actor_402200_80135A24(Actor402200* arg0)
                 frames = 0x2C;
             }
             if (work->field_6C4 == frames) {
-                snd = D_actor_402200_80138420[work->field_712 + 8] | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+                snd = D_actor_402200_80138420[work->field_712 + 8] | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
                 pan = (s8)Gp_GetObjPan((GpObj38*)coord);
                 SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
             }
@@ -122,12 +122,12 @@ void func_actor_402200_80135BE0(Actor402200* arg0)
         rec = Gp_AnimGetRec((GpAnimCtx*)work, (GpAnimSlot*)&work->field_3C);
         if (rec != NULL) {
             if (!(rec->flags & 0x20) && (work->field_6CA & 0x20)) {
-                snd = D_actor_402200_80138420[work->field_712 * 2 - 1] | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+                snd = D_actor_402200_80138420[work->field_712 * 2 - 1] | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
                 pan = (s8)Gp_GetObjPan((GpObj38*)coord);
                 SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
             }
             if (!(rec->flags & 0x10) && (work->field_6CA & 0x10)) {
-                snd  = D_actor_402200_80138420[work->field_712 * 2] | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+                snd  = D_actor_402200_80138420[work->field_712 * 2] | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
                 pan2 = (s8)Gp_GetObjPan((GpObj38*)coord);
                 SndEvt_EnqueueType6(snd, pan2, (s8)Gp_GetObjDepth((GpObj38*)coord));
             }
@@ -360,7 +360,7 @@ void func_actor_402200_801368E0(GpEnemy* arg0, Actor402200* arg1)
     }
     switch (work->field_6CE) {
         case 0:
-            arg0->field_54 = 0;
+            arg0->recs = 0;
             Gp_UnlinkNode(&arg0->node);
             Gp_UnlinkObj((GpObj*)work->field_4E4);
             Gp_UnlinkObj((GpObj*)work->field_47C);
@@ -370,9 +370,9 @@ void func_actor_402200_801368E0(GpEnemy* arg0, Actor402200* arg1)
             if (work->field_6F0 == 1) {
                 anim = 0x10;
             }
-            work->field_6C0 = anim;
-            work->field_6CE = 1;
-            arg0->field_4B  = work->field_6F0;
+            work->field_6C0  = anim;
+            work->field_6CE  = 1;
+            arg0->spawnState = work->field_6F0;
             Gp_SaveEnemyPose(arg0);
             break;
         case 1:

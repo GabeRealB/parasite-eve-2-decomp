@@ -57,7 +57,7 @@ extern u16 D_actor_503500_80176D64[];
 extern u16 D_actor_503500_80176D24;
 /// Per-spawn enemy parameter table indexed by `Task::spawnArg1`;
 /// `func_actor_503500_8013BEE4` and `func_actor_503500_8013ECBC` park the row
-/// in `GpEnemy::field_50` and seed the enemy's HP from its `hpMax`.
+/// in `GpEnemy::param` and seed the enemy's HP from its `hpMax`.
 extern GpPairSrcE D_actor_503500_8016E7EC[];
 /// Per-slot parent part index and local offset of the 0x224 enemy in
 /// `D_actor_503500_80178AC0`, indexed by `spawnArg1 - 0xA`, and the
@@ -66,7 +66,7 @@ extern s32                D_actor_503500_80171464[];
 extern SVECTOR            D_actor_503500_80171480[];
 extern SVECTOR            D_actor_503500_80171478;
 extern Actor503500Work224 D_actor_503500_80178AC0[];
-/// Local offset the 0xF4 enemy applies to both its `GpEnemy::field_1C` and
+/// Local offset the 0xF4 enemy applies to both its `GpEnemy::bodyPos` and
 /// its display node's 0x10 vector.
 extern SVECTOR         D_actor_503500_8016F36C;
 extern Actor503500Work D_actor_503500_80177A6C;
@@ -92,7 +92,7 @@ extern Actor503500Work770E8 D_actor_503500_801770E8[];
 void                        func_actor_503500_8013D85C(Actor503500* arg0);
 /// The same pair for the 0x160 enemy at `D_actor_503500_80176D88`: a world
 /// translation seeded into the task's own coordinate and the local offset its
-/// `GpEnemy::field_1C` and display node share.
+/// `GpEnemy::bodyPos` and display node share.
 extern SVECTOR         D_actor_503500_8016F060;
 extern SVECTOR         D_actor_503500_8016F068;
 extern Actor503500Work D_actor_503500_80176D88;
@@ -938,7 +938,7 @@ void func_actor_503500_8014642C(Actor503500* arg0)
 
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
-    enemy->field_54 = 0;
+    enemy->recs     = 0;
 
     func_actor_503500_80146508((Task*)arg0);
     TOUCH_REG(enemy);

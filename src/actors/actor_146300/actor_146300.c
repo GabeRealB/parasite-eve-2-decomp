@@ -236,7 +236,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     D_actor_146300_8014282C = task;
     helper                  = Task_SpawnFromTable(D_actor_146300_801427C8, 1, 0, 0);
     sessionKey              = (GpAreaKey*)&gGameSession->at4.loc;
-    idx                     = enemy->field_8 >> 0xC;
+    idx                     = enemy->placeKey >> 0xC;
     model                   = helper->extra;
     D_actor_146300_80142830 = helper;
     key.stage               = sessionKey->stage;

@@ -19,7 +19,7 @@ void func_8017FD88(s32 arg0);
 ///
 /// The first tick releases the enemy: the list node at +0x10 of the enemy comes
 /// off, the work block itself comes off its own object list, the enemy's
-/// `field_54` slot is dropped, the parent's block supplies the sound id, and
+/// `recs` slot is dropped, the parent's block supplies the sound id, and
 /// one of the two per-enemy death flags is raised -- which of them depending on
 /// the block's `field_46`. From then on the same counter destroys the enemy
 /// once it reaches 0x3D.
@@ -40,7 +40,7 @@ void ActorsShared80133838(GpEnemy* arg0, Task* arg1)
         if ((s16)timer == 1) {
             Gp_UnlinkNode(&arg0->node);
             Gp_UnlinkObj((GpObj*)work);
-            arg0->field_54 = 0;
+            arg0->recs = 0;
             SndEvt_EnqueueType7(parentWork->field_31C, 1);
             if (work->field_46 == 0) {
                 func_8017FD88(0);

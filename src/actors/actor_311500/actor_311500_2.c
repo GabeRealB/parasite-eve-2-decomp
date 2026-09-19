@@ -54,7 +54,7 @@ done:
             damage *= 5;
             Gp_SpawnEff(0x6009C, arg0->field_2C->coords, 0, 0);
         }
-        enemy->field_40 -= damage;
+        enemy->hp -= damage;
         Gp_ClearRec18Occupied(work->rec18);
         func_800DA6E8(&enemy->node, damage, 0);
     }
@@ -97,7 +97,7 @@ s32 func_actor_311500_80162F28(Actor311500 *arg0)
       pos.vy = -0xC;
       pos.vz = 0x1E;
       func_800FDB18(Gp_GetIdParam1(anim2->field_4D0) & 0xFFFF, &arg0->field_2C->coords[2], &pos, &eff);
-      if (enemy->field_40 > 0)
+      if (enemy->hp > 0)
     {
       work->field_4C0 = ((u16) work->field_4C0) + 1;
       goto block_12;
@@ -163,7 +163,7 @@ s32 func_actor_311500_801630A4(Actor311500* arg0)
             switch (work->field_4C4) {
                 case 0:
                     Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0xA);
-                    enemy->field_54 = 0;
+                    enemy->recs = 0;
                     Gp_UnlinkObj(&work->field_43C);
                     enemy->node.flags = state;
                     break;

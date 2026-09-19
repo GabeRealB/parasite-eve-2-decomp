@@ -52,7 +52,7 @@ default_body:
                 obj->flags = 2;
                 ActorsShared80137e18((ActorShared80137e18*)arg1);
             }
-            arg0->field_54 = 0;
+            arg0->recs = 0;
             Gp_UnlinkNode(&arg0->node);
             Gp_UnlinkObj(&work->field_1DC);
             Gp_UnlinkObj(&work->field_22C);

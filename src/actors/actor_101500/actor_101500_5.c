@@ -12,10 +12,10 @@ void func_actor_101500_801343E8(Actor101500* actor)
     u8               flags;
 
     enemy = actor->field_20;
-    flags = enemy->field_4C;
+    flags = enemy->reactionFlags;
     work  = actor->field_1C;
     if (flags & 1) {
-        enemy->field_4C = flags & 0xFE;
+        enemy->reactionFlags = flags & 0xFE;
         if (work->field_358 != 2) {
             work->field_35A = 4;
         }
@@ -23,8 +23,8 @@ void func_actor_101500_801343E8(Actor101500* actor)
         work->field_352 = 13;
         work->field_34C = 0;
     }
-    if (enemy->field_4C & 2) {
-        enemy->field_4C &= 0xFD;
+    if (enemy->reactionFlags & 2) {
+        enemy->reactionFlags &= 0xFD;
         if (work->field_358 != 2) {
             work->field_35A = 4;
         }
@@ -32,14 +32,14 @@ void func_actor_101500_801343E8(Actor101500* actor)
         work->field_352 = 13;
         work->field_34C = 0;
     }
-    if (enemy->field_4C & 0xC) {
+    if (enemy->reactionFlags & 0xC) {
         damage = Gp_TickObjFlag4((GpObj5C*)enemy);
         if (damage != 0) {
             func_actor_101500_8013291C(actor, damage);
             func_800DA6E8(&enemy->node, damage, 0);
         }
         if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
-            enemy->field_4C &= 0xF3;
+            enemy->reactionFlags &= 0xF3;
         }
     }
 }

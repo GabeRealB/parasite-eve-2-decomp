@@ -213,7 +213,7 @@ void func_actor_201200_8014D4D0(Actor201200Ctx* arg0, Actor201200* arg1)
     pos.vx = arg1->field_2C->coords->workm.t[0];
     pos.vy = arg1->field_2C->coords->workm.t[1];
     pos.vz = arg1->field_2C->coords->workm.t[2];
-    Gp_UpdateActorColor((struct _GpEnemy*)arg0, &pos, 0, 0);
+    Gp_UpdateActorColor((struct GpEnemy*)arg0, &pos, 0, 0);
     switch (D_801153F4) {
         case 0:
             if (work->field_0 != 0 && work->field_0 != 6 && work->field_0 != 5) {

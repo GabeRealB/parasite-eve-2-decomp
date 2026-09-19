@@ -209,7 +209,7 @@ void Actor02100_Fn004C4(Actor02100* arg0)
                                                                scratch->vec.vy * scratch->vec.vy +
                                                                scratch->vec.vz * scratch->vec.vz),
                                                    0, 0);
-                if (Gp_RollEnemyChance((struct _GpEnemy*)arg0->field_20,
+                if (Gp_RollEnemyChance((struct GpEnemy*)arg0->field_20,
                                        work->field_60.key, 0) != 0) {
                     damage *= 4;
                     Gp_SpawnEff(0x6009C, coord, 0, 0);

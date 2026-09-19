@@ -1178,10 +1178,10 @@ void func_actor_403100_8013506C(Task* arg0)
         Gp_SpawnPadLerp(0x1E, 0xFF, 8);
         D_actor_403100_80155808->field_5FE = 0x1E;
         func_8017E128(0);
-        sound = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0001;
+        sound = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0001;
         pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->coords[1]);
         SndEvt_EnqueueType6(sound, pan, (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->coords[1]) / 2));
-        sound2 = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0002;
+        sound2 = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0002;
         pan2   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->coords[4]);
         SndEvt_EnqueueType6(sound2, pan2, (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->coords[4]) / 2));
         D_actor_403100_80155808->field_5FA += 1;
@@ -1201,10 +1201,10 @@ void func_actor_403100_801351F8(Task* arg0)
         func_8017E128(0);
         Gp_SpawnPadLerp(0x1E, 0xFF, 8);
         D_actor_403100_80155808->field_5FE = 0x1E;
-        sound                              = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0001;
+        sound                              = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0001;
         pan                                = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->coords[1]);
         SndEvt_EnqueueType6(sound, pan, (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->coords[1]) / 2));
-        sound2 = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0002;
+        sound2 = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0002;
         pan2   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->coords[4]);
         SndEvt_EnqueueType6(sound2, pan2, (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->coords[4]) / 2));
         D_actor_403100_80155808->field_5FA += 1;
@@ -1253,7 +1253,7 @@ void func_actor_403100_801354A0(Task* arg0)
     frame                              = D_actor_403100_80155808->field_5EC + 1;
     D_actor_403100_80155808->field_5EC = frame;
     if ((s16)frame == 0xC) {
-        sound = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0001;
+        sound = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0001;
         pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->coords[1]);
         SndEvt_EnqueueType6(sound, pan, (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->coords[1]) / 2));
         Gp_SpawnPadLerp(0x1E, 0xFFU, 8U);
@@ -1322,7 +1322,7 @@ void func_actor_403100_801356F4(Task* arg0)
     frame                               = (s16*)&D_actor_403100_80155808->field_5EC;
     COMPILER_BARRIER();
     if (*frame == 1) {
-        sound = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0004;
+        sound = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0004;
         pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->coords[4]);
         SndEvt_EnqueueType6(sound, pan, (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->coords[4]) / 2));
     }
@@ -1351,7 +1351,7 @@ void func_actor_403100_8013588C(Task* arg0)
     frame                              = D_actor_403100_80155808->field_5EC + 1;
     D_actor_403100_80155808->field_5EC = frame;
     if ((s16)frame == 0xE) {
-        sound = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0001;
+        sound = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0001;
         pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->coords[1]);
         SndEvt_EnqueueType6(sound, pan, (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->coords[1]) / 2));
         Gp_SpawnPadLerp(0x1E, 0xFFU, 8U);
@@ -1406,7 +1406,7 @@ void func_actor_403100_80135AE0(Task* arg0)
     angle                             = (u16)D_actor_403100_80155808->field_82;
     D_actor_403100_80155808->field_82 = angle + ((s16)(-0x4000 - angle * 0x10) >> 9);
     if ((s16)D_actor_403100_80155808->field_5EC == 0xBE) {
-        sound = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0001;
+        sound = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0001;
         pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->coords[1]);
         SndEvt_EnqueueType6(sound, (s32)pan, (s8)(Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->coords[1]) / 2));
         Gp_SpawnPadLerp(0x1E, 0xFFU, 8U);
@@ -1445,7 +1445,7 @@ void func_actor_403100_80135C00(Task* arg0)
     D_actor_403100_80155808->field_5EC = frame;
     if ((s16)frame == 0x1E) {
         func_8018257C();
-        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0004;
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0004;
         pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->coords[4]);
         depth = Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->coords[4]);
         SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
@@ -1455,7 +1455,7 @@ void func_actor_403100_80135C00(Task* arg0)
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x28) {
         func_8018257C();
-        sound_2 = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0004;
+        sound_2 = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0004;
         pan_2   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->coords[4]);
         depth_2 = Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->coords[4]);
         SndEvt_EnqueueType6(sound_2, (s32)pan_2, (s8)(depth_2 / 2));
@@ -1465,7 +1465,7 @@ void func_actor_403100_80135C00(Task* arg0)
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x3C) {
         func_8018257C();
-        sound_3 = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0004;
+        sound_3 = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0004;
         pan_3   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->coords[4]);
         depth_3 = Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->coords[4]);
         SndEvt_EnqueueType6(sound_3, (s32)pan_3, (s8)(depth_3 / 2));
@@ -1475,7 +1475,7 @@ void func_actor_403100_80135C00(Task* arg0)
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x5A) {
         func_8018257C();
-        sound_4 = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0004;
+        sound_4 = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0004;
         pan_4   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->coords[4]);
         depth_4 = Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->coords[4]);
         SndEvt_EnqueueType6(sound_4, (s32)pan_4, (s8)(depth_4 / 2));
@@ -1507,7 +1507,7 @@ void func_actor_403100_80135F30(Task* arg0)
     D_actor_403100_80155808->field_5EC = frame;
     if ((s16)frame == 0xA) {
         func_8018257C();
-        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0004;
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0004;
         pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->coords[4]);
         depth = Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->coords[4]);
         SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
@@ -1516,7 +1516,7 @@ void func_actor_403100_80135F30(Task* arg0)
         SndEvt_EnqueueType7(0x401F0004, 0xA);
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x26) {
-        sound2 = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0002;
+        sound2 = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0002;
         pan2   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->coords[4]);
         depth2 = Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->coords[4]);
         SndEvt_EnqueueType6(sound2, (s32)pan2, (s8)(depth2 / 2));
@@ -1550,7 +1550,7 @@ void func_actor_403100_80136100(Task* arg0)
     y                                   = -((s32)(rsin((s32)angle) << 0xD) >> 0x10);
     coord->coord.t[1]                   = y;
     if (y == 0) {
-        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0001;
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0001;
         pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->coords[1]);
         depth = Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->coords[1]);
         SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
@@ -1632,7 +1632,7 @@ void func_actor_403100_8013631C(Task* arg0)
     }
     step = (s16)D_actor_403100_80155808->field_5EE;
     if ((step == 0x2D) || (step == 0xE6) || (step == 0xB4) || (step == 0x57)) {
-        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x401F0001;
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0001;
         pan   = (s8)Gp_GetObjPan((GpObj38*)&((TmdObject*)arg0->extra)->coords[1]);
         depth = Gp_GetObjDepth((GpObj38*)&((TmdObject*)arg0->extra)->coords[1]);
         SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
@@ -1666,26 +1666,26 @@ void func_actor_403100_80136610(Task* arg0)
         Gp_DestroyEnemy(D_actor_403100_8015580C, arg0);
         return;
     }
-    enemy                                = ((volatile Task*)arg0)->spawnArg2;
-    work                                 = ((volatile Task*)arg0)->work;
-    obj->lightMtx                        = &work->field_0.matrices.light;
-    D_actor_403100_8015580C              = enemy;
-    D_actor_403100_80155808              = work;
-    obj->colorMtx                        = &work->field_0.matrices.color;
-    arg0->msgTable                       = &D_actor_403100_801556EC;
-    work->field_622                      = (s16)gGameSession->at4.loc.view;
-    enemy->field_48                      = 0;
-    enemy->field_4                       = &coord->coord;
-    D_actor_403100_8015580C->field_1C.vx = 0;
-    D_actor_403100_8015580C->field_1C.vy = 0;
-    D_actor_403100_8015580C->field_1C.vz = 0x300;
-    D_actor_403100_8015580C->field_18    = &((TmdObject*)arg0->extra)->coords[3];
+    enemy                               = ((volatile Task*)arg0)->spawnArg2;
+    work                                = ((volatile Task*)arg0)->work;
+    obj->lightMtx                       = &work->field_0.matrices.light;
+    D_actor_403100_8015580C             = enemy;
+    D_actor_403100_80155808             = work;
+    obj->colorMtx                       = &work->field_0.matrices.color;
+    arg0->msgTable                      = &D_actor_403100_801556EC;
+    work->field_622                     = (s16)gGameSession->at4.loc.view;
+    enemy->field_48                     = 0;
+    enemy->field_4                      = &coord->coord;
+    D_actor_403100_8015580C->bodyPos.vx = 0;
+    D_actor_403100_8015580C->bodyPos.vy = 0;
+    D_actor_403100_8015580C->bodyPos.vz = 0x300;
+    D_actor_403100_8015580C->coord      = &((TmdObject*)arg0->extra)->coords[3];
     Gp_LinkNode(&D_actor_403100_8015580C->node);
     kind = 9;
     TOUCH_REG(kind);
     D_actor_403100_8015580C->node.flags = kind;
-    D_actor_403100_8015580C->field_50   = &D_actor_403100_8014762C;
-    D_actor_403100_8015580C->field_54   = (s32)D_actor_403100_80155808->pad_49C;
+    D_actor_403100_8015580C->param      = &D_actor_403100_8014762C;
+    D_actor_403100_8015580C->recs       = (GpRec18*)D_actor_403100_80155808->pad_49C;
     D_actor_403100_80155630             = ((TmdObject*)arg0->extra)->coords;
     flags                               = &obj->flags;
     *flags                              = 0;
@@ -1703,8 +1703,8 @@ void func_actor_403100_80136610(Task* arg0)
     func_8017E4B8();
     func_8017E3C8();
     D_actor_403100_80155810            = 0;
-    D_actor_403100_8015580C->field_42  = D_actor_403100_80147630;
-    D_actor_403100_8015580C->field_40  = (s16)D_actor_403100_80147630;
+    D_actor_403100_8015580C->hpMax     = D_actor_403100_80147630;
+    D_actor_403100_8015580C->hp        = (s16)D_actor_403100_80147630;
     arg0->state                        = 1;
     D_actor_403100_80155808->field_5F8 = 0;
     D_actor_403100_80155808->field_5FA = 0;
@@ -1770,7 +1770,7 @@ void func_actor_403100_80136830(Task* arg0)
     stateHandlers = D_actor_403100_80131F34;
     armTimer      = D_actor_403100_80155808->field_5E6;
     if (armTimer != 0) {
-        if ((armTimer == 1) && (D_actor_403100_8015580C->field_40 > 0)) {
+        if ((armTimer == 1) && (D_actor_403100_8015580C->hp > 0)) {
             Gp_ArmStateF0(1);
         }
         D_actor_403100_80155808->field_5E6 = (s16)((u16)D_actor_403100_80155808->field_5E6 - 1);
@@ -1789,7 +1789,7 @@ void func_actor_403100_80136830(Task* arg0)
                 D_actor_403100_80155808->field_5D0 = (s32)(countdown - 1);
             }
             if ((config->hp > 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
-                if (D_actor_403100_8015580C->field_40 < (s16)(((s16)D_actor_403100_8015580C->field_42 * 0x23) / 100)) {
+                if (D_actor_403100_8015580C->hp < (s16)(((s16)D_actor_403100_8015580C->hpMax * 0x23) / 100)) {
                     D_actor_403100_80155808->field_65C = 1U;
                 } else {
                     D_actor_403100_80155808->field_65C = 0U;
@@ -1957,16 +1957,16 @@ void func_actor_403100_80136830(Task* arg0)
                     Gp_SetLightMode(arg0->spawnArg2, 0);
                 }
             }
-            if ((D_actor_403100_8015580C->field_40 <= 0) && (*(u8*)&D_actor_403100_80155808->pad_670[3] == 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
+            if ((D_actor_403100_8015580C->hp <= 0) && (*(u8*)&D_actor_403100_80155808->pad_670[3] == 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
                 if (config->hp <= 0) {
-                    D_actor_403100_8015580C->field_40 = 0x3E8;
+                    D_actor_403100_8015580C->hp = 0x3E8;
                 } else {
-                    D_actor_403100_80155808->field_658 = -1;
-                    D_actor_403100_80155808->field_618 = 0x1400;
-                    gGameSession->suppressDeathChecks  = 0;
-                    Gp_StateC08.field_6                = (u8)(Gp_StateC08.field_6 | 1);
-                    gGameSession->field_12C            = 0;
-                    D_actor_403100_8015580C->field_4C  = 0;
+                    D_actor_403100_80155808->field_658     = -1;
+                    D_actor_403100_80155808->field_618     = 0x1400;
+                    gGameSession->suppressDeathChecks      = 0;
+                    Gp_StateC08.field_6                    = (u8)(Gp_StateC08.field_6 | 1);
+                    gGameSession->field_12C                = 0;
+                    D_actor_403100_8015580C->reactionFlags = 0;
                     Gp_SetLightMode(arg0->spawnArg2, 0);
                     D_actor_403100_8015580C->node.flags = 9;
                     func_800E8614((s32)&D_80166098, 0);

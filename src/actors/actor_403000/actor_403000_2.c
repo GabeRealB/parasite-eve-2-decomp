@@ -69,7 +69,7 @@ void func_actor_403000_8013D4F4(Task* task)
         Gp_UnlinkObj(&work->objBE8.obj);
         Gp_UnlinkObj(&work->objC80.obj);
         Gp_UnlinkObj(&work->objD18.obj);
-        enemy->field_54 = 0;
+        enemy->recs = 0;
     }
     Gp_DestroyEnemy(enemy, task);
 }

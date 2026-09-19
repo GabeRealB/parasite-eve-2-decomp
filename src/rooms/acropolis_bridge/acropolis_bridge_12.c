@@ -1037,7 +1037,7 @@ s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, AcropolisBridgeMsg7DB*
     u16                       sub;
 
     if (msg->field_0 == 0xB01 && msg->field_2 == 1) {
-        variant = enemy->field_8 >> 12;
+        variant = enemy->placeKey >> 12;
         switch (variant) {
             case 0:
             case 1:
@@ -1049,7 +1049,7 @@ s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, AcropolisBridgeMsg7DB*
     if (msg->field_0 == 0xE01) {
         sub = msg->field_2;
         if (sub == 2) {
-            variant = enemy->field_8 >> 12;
+            variant = enemy->placeKey >> 12;
             switch (variant) {
                 case 0:
                     if (D_801153F6 != 0) {
@@ -1072,7 +1072,7 @@ s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, AcropolisBridgeMsg7DB*
                     work->field_0 = 0;
                     goto hide;
             }
-            enemy->field_40 = D_acropolis_bridge_80190C60;
+            enemy->hp       = D_acropolis_bridge_80190C60;
             work->field_10C = D_acropolis_bridge_80190C60;
             work->field_0   = 4;
             goto done;
@@ -1202,14 +1202,14 @@ void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     obj2->colorMtx  = &work->colorMtx;
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
-    enemy->field_50 = &D_acropolis_bridge_80190C5C;
+    enemy->param    = &D_acropolis_bridge_80190C5C;
     hp              = D_acropolis_bridge_80190C5C.hpMax;
-    enemy->field_54 = (s32)work->recs;
-    enemy->field_40 = hp;
+    enemy->recs     = work->recs;
+    enemy->hp       = hp;
     work->field_10C = 1;
     work->field_10E = 1;
-    enemy->field_42 = work->field_10C;
-    enemy->field_40 = enemy->field_42;
+    enemy->hpMax    = work->field_10C;
+    enemy->hp       = enemy->hpMax;
     func_800B3F84(&work->anim, &D_acropolis_bridge_801915C8, obj, work->pad_C0,
                   work->slots);
     work->field_108 = 0x10;
@@ -1242,10 +1242,10 @@ void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     work->field_100 = 2;
     work->field_104 = 2;
     func_acropolis_bridge_8018581C(task);
-    enemy->field_18    = &((TmdObject*)task->extra)->coords[3];
-    enemy->field_1C.vx = 0;
-    enemy->field_1C.vy = 0;
-    enemy->field_1C.vz = 0;
+    enemy->coord      = &((TmdObject*)task->extra)->coords[3];
+    enemy->bodyPos.vx = 0;
+    enemy->bodyPos.vy = 0;
+    enemy->bodyPos.vz = 0;
     Gp_LinkNode(&enemy->node);
     enemy->node.flags  = 1;
     task->msgTable     = &D_acropolis_bridge_80191744;
@@ -1259,7 +1259,7 @@ void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     work->walker.navData.count    = 0xA;
     work->walker.navData.field_4  = D_acropolis_bridge_801916CC;
     work->walker.navData.field_9  = 0xA;
-    work->walker.routeData.nodes  = D_acropolis_bridge_80191720[enemy->field_8 >> 12];
+    work->walker.routeData.nodes  = D_acropolis_bridge_80191720[enemy->placeKey >> 12];
     work->walker.nav              = &work->walker.navData;
     work->walker.routeData.cursor = 0;
     work->walker.route            = &work->walker.routeData;
@@ -1322,7 +1322,7 @@ void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
         ((void (*)(s32))Gp_IncStateF0Ref)(0);
     }
     if (gGameSession->at4.loc.room == 2) {
-        variant = enemy->field_8 >> 12;
+        variant = enemy->placeKey >> 12;
         switch (variant) {
             case 0:
                 work->field_0                                 = 8;
@@ -1677,7 +1677,7 @@ static __inline__ void bridge_play_snd(Task* task, GpEnemy* enemy, s32 base)
     s32 snd;
     s32 pan;
 
-    snd = ((enemy->field_8 >> 12) << 8) | base;
+    snd = ((enemy->placeKey >> 12) << 8) | base;
     pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->coords);
     SndEvt_EnqueueType6(snd, pan,
                         (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->coords));
@@ -1714,7 +1714,7 @@ void func_acropolis_bridge_80186618(Task* task)
         work->field_108   = 0x20;
         work->field_100   = 2;
         work->field_104   = 1;
-        switch (enemy->field_8 >> 12) {
+        switch (enemy->placeKey >> 12) {
             case 0:
                 ((TmdObject*)task->extra)->coords->coord.t[0] = -0x22C4;
                 ((TmdObject*)task->extra)->coords->coord.t[2] = -0x640;
@@ -1767,10 +1767,10 @@ void func_acropolis_bridge_80186618(Task* task)
     }
     if (work->field_104 == 4) {
         if (((TmdObject*)task->extra)->coords->coord.t[1] >= -0x3DD &&
-            (s32)((enemy->field_8 >> 12) + 8) < work->field_106) {
+            (s32)((enemy->placeKey >> 12) + 8) < work->field_106) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((((u32)Gp_LcgState >> 16) & 0xF) == 0) {
-                work->field_108 = ((enemy->field_8 >> 12) * 2) + 0x10;
+                work->field_108 = ((enemy->placeKey >> 12) * 2) + 0x10;
                 work->field_100 = 2;
                 work->field_104 = 4;
                 bridge_play_snd(task, enemy, 0x40290003);
@@ -1859,10 +1859,10 @@ void func_acropolis_bridge_80186BBC(Task* task)
     }
     if (work->field_104 == 4) {
         if (((TmdObject*)task->extra)->coords->coord.t[1] >= -0x3DD &&
-            (s32)((enemy->field_8 >> 12) + 8) < work->field_106) {
+            (s32)((enemy->placeKey >> 12) + 8) < work->field_106) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((((u32)Gp_LcgState >> 16) & 0xF) == 0) {
-                work->field_108 = ((enemy->field_8 >> 12) * 2) + 0x10;
+                work->field_108 = ((enemy->placeKey >> 12) * 2) + 0x10;
                 work->field_100 = 2;
                 work->field_104 = 4;
                 bridge_play_snd(task, enemy, 0x40290003);
@@ -2024,7 +2024,7 @@ void func_acropolis_bridge_801874DC(Task* task)
         if (Gp_StateF0.field_0 == 0 && Gp_StateF0.field_6 != 0) {
             Gp_ArmStateF0(1);
         }
-        if (enemy->field_40 > 0) {
+        if (enemy->hp > 0) {
             Gp_ReleaseStateF0Add((GpObj20E*)task, 0x29);
         }
         work->field_1F0.coord      = &((TmdObject*)task->extra)->coords[1];
@@ -2084,10 +2084,10 @@ void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
             Gp_SpawnEff(0x6009C, &((TmdObject*)task->extra)->coords[1], 0, NULL);
         }
         func_800E2C78((GpObj40*)enemy, attackId, damage, 0);
-        enemy->field_40 -= damage;
+        enemy->hp -= damage;
         func_800DA6E8(&enemy->node, damage, 0);
         work->field_10C -= damage;
-        enemy->field_40  = work->field_10C;
+        enemy->hp        = work->field_10C;
         if (work->field_10C > 0) {
             return;
         }

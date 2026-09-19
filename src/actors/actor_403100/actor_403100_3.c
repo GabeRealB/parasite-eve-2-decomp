@@ -229,11 +229,11 @@ void func_actor_403100_8013D88C(Task* arg0)
 
 void func_actor_403100_8013D8F4(Task* arg0)
 {
-    D_actor_403100_80155808->field_658 = -1;
-    D_actor_403100_80155808->field_618 = 0x1400;
-    Gp_StateC08.field_6                = Gp_StateC08.field_6 | 1;
-    gGameSession->field_12C            = 0;
-    D_actor_403100_8015580C->field_4C  = 0;
+    D_actor_403100_80155808->field_658     = -1;
+    D_actor_403100_80155808->field_618     = 0x1400;
+    Gp_StateC08.field_6                    = Gp_StateC08.field_6 | 1;
+    gGameSession->field_12C                = 0;
+    D_actor_403100_8015580C->reactionFlags = 0;
     Gp_SetLightMode(arg0->spawnArg2, 0);
     SndEvt_EnqueueType7(0x401F0004, 0xA);
     Gp_UnlinkNode(&D_actor_403100_8015580C->node);
@@ -485,7 +485,7 @@ s32 func_actor_403100_8013E450(GsCOORDINATE2* arg0, MATRIX* arg1, GsCOORDINATE2*
 }
 void func_actor_403100_8013E5FC(void)
 {
-    D_actor_403100_8015580C->field_54   = 0;
+    D_actor_403100_8015580C->recs       = 0;
     D_actor_403100_80155808->field_5EC  = 0;
     D_actor_403100_80155808->field_5F8 += 1;
 }

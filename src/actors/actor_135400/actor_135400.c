@@ -124,7 +124,7 @@ void func_actor_135400_80132064(Task* arg0)
         work->field_4B8 = spawned;
         model           = (TmdObject*)spawned->extra;
         sessionKey      = (GpAreaKey*)&gGameSession->at4.loc;
-        raw             = ((GpEnemy*)arg0->spawnArg2)->field_8;
+        raw             = ((GpEnemy*)arg0->spawnArg2)->placeKey;
         key.stage       = sessionKey->stage;
         key.area        = sessionKey->area;
         key.room        = sessionKey->room;

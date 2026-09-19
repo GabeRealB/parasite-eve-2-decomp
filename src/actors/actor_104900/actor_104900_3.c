@@ -26,7 +26,7 @@ void func_actor_104900_80138E34(GpEnemy* enemy, Task* task, ActorsShared80138efc
     if (motion->flags & 2) {
         work->field_B9C = 0;
         if (work->field_B92 > 0) {
-            if (!(enemy->field_4C & 2)) {
+            if (!(enemy->reactionFlags & 2)) {
                 work->field_BA6 = 1;
                 work->field_BAB = 0x10;
                 work->state     = 0x17;

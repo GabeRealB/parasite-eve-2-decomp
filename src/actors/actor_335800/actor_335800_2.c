@@ -285,7 +285,7 @@ void func_actor_335800_80162640(Task* arg0)
 
         work->field_4FC = spawned;
         model           = (TmdObject*)spawned->extra;
-        idx             = ((GpEnemy*)arg0->spawnArg2)->field_8 >> 12;
+        idx             = ((GpEnemy*)arg0->spawnArg2)->placeKey >> 12;
         sessionKey      = (GpAreaKey*)&gGameSession->at4.loc;
         key.stage       = sessionKey->stage;
         key.area        = sessionKey->area;
@@ -310,7 +310,7 @@ void func_actor_335800_80162640(Task* arg0)
 
         work->field_500 = spawned;
         model           = (TmdObject*)spawned->extra;
-        idx             = ((GpEnemy*)arg0->spawnArg2)->field_8 >> 12;
+        idx             = ((GpEnemy*)arg0->spawnArg2)->placeKey >> 12;
         sessionKey      = (GpAreaKey*)(keyAddr = (u8*)&gGameSession->at4.loc.view);
         key.stage       = sessionKey->stage;
         key.area        = sessionKey->area;

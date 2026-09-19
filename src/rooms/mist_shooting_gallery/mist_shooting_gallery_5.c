@@ -1362,7 +1362,7 @@ void func_mist_shooting_gallery_801848B4(void)
         coord->coord.t[0] = 0x1770;
         coord->coord.t[2] = 0xBB8;
         coord->coord.t[1] = 0;
-        enemy->field_A    = 0x900;
+        enemy->workType   = 0x900;
     }
 }
 
@@ -1498,7 +1498,7 @@ GpEnemy* func_mist_shooting_gallery_80184CD0(Task* arg0, MistShootingGallerySpaw
         coord->coord.t[0] = arg1->x;
         coord->coord.t[1] = arg1->y;
         coord->coord.t[2] = arg1->z;
-        enemy->field_A    = 0x900;
+        enemy->workType   = 0x900;
         work->field_0E++;
     }
     return enemy;

@@ -54,14 +54,14 @@ void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord[1].coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18    = part;
-    arg0->node.flags  = 0;
-    arg0->field_1C.vx = 0;
-    arg0->field_1C.vy = 0;
-    arg0->field_1C.vz = 0;
-    arg0->field_50    = &D_actor_207200_8014DBBC;
-    arg0->field_54    = (s32)work->field_1A4;
-    arg0->field_40    = D_actor_207200_8014DBBC.hpMax;
+    arg0->coord      = part;
+    arg0->node.flags = 0;
+    arg0->bodyPos.vx = 0;
+    arg0->bodyPos.vy = 0;
+    arg0->bodyPos.vz = 0;
+    arg0->param      = &D_actor_207200_8014DBBC;
+    arg0->recs       = work->field_1A4;
+    arg0->hp         = D_actor_207200_8014DBBC.hpMax;
     func_800B3F84(&work->context, D_actor_207200_8014E7B0, obj, work->field_8C, work->slots);
     i = 1;
     do {
@@ -119,7 +119,7 @@ void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
     Gp_LinkObj(2, &work->field_184);
     Gp_InitRec18Table(records3, 4, 0);
     work->field_184.flags = work->field_184.flags | 0xC200;
-    work->field_2AC       = ((GpAreaPlace*)arg0->field_3C)->field_2;
+    work->field_2AC       = arg0->place->field_2;
     if (work->field_2AC == 1 && arg1->spawnType == work->field_2AC) {
         obj->tpage++;
         obj->clut++;
@@ -186,10 +186,10 @@ void func_actor_207200_8014A588(Task* arg0)
         switch (work->field_1A4[i].key & 0xFFFF0000) {
             case 0x10000:
                 if (work->field_2AC != 0) {
-                    snd = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 12) << 8) | sndHit;
+                    snd = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | sndHit;
                     SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
                 } else {
-                    snd = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 12) << 8) | sndHit2;
+                    snd = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | sndHit2;
                     SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
                 }
                 Gp_SpawnEff(0x60030, ((TmdObject*)arg0->extra)->coords, 0x200, &D_actor_207200_8014E7BC);
@@ -199,7 +199,7 @@ void func_actor_207200_8014A588(Task* arg0)
                 obj->flags          = 0x80;
                 work->field_2A0     = 0x500;
                 work->field_28C     = 1;
-                enemy->field_40     = 0;
+                enemy->hp           = 0;
                 work->field_2A6     = 1;
                 arg0->killCountdown = 5;
                 arg0->state         = 2;
@@ -220,10 +220,10 @@ void func_actor_207200_8014A588(Task* arg0)
                 func_800DA6E8(&enemy->node, damage, 0);
                 if (damage != 0) {
                     if (work->field_2AC != 0) {
-                        snd = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 12) << 8) | sndHit;
+                        snd = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | sndHit;
                         SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
                     } else {
-                        snd = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 12) << 8) | sndHit2;
+                        snd = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | sndHit2;
                         SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
                     }
                     Gp_SpawnEff(0x60030, ((TmdObject*)arg0->extra)->coords, 0x200, &D_actor_207200_8014E7BC);
@@ -233,7 +233,7 @@ void func_actor_207200_8014A588(Task* arg0)
                     work->field_2A0     = 0x1000;
                     work->field_2A6     = 1;
                     work->field_28C     = 1;
-                    enemy->field_40     = 0;
+                    enemy->hp           = 0;
                     arg0->killCountdown = 5;
                     arg0->state         = 2;
                     break;
@@ -301,7 +301,7 @@ void func_actor_207200_8014AA74(GpEnemy* arg0, Task* arg1)
         Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0x2F);
         work->field_288 = 1;
         work->field_28A = 0;
-        arg0->field_54  = 0;
+        arg0->recs      = 0;
         Gp_UnlinkNode(&arg0->node);
         Gp_UnlinkObj(&work->field_14C.obj);
         Gp_UnlinkObj(&work->field_FC.obj);

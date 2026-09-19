@@ -161,22 +161,22 @@ void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
     obj->flags     = 0;
     func_800B3F84(&work->anim, D_actor_223600_801509C0, obj, work->poses, work->slots);
 
-    enemy->field_4     = &coord->coord;
-    enemy->field_48    = 0;
-    enemy->field_1C.vx = 0;
-    enemy->field_1C.vy = 0;
-    enemy->field_1C.vz = 0;
-    enemy->field_18    = &((TmdObject*)task->extra)->coords[2];
+    enemy->field_4    = &coord->coord;
+    enemy->field_48   = 0;
+    enemy->bodyPos.vx = 0;
+    enemy->bodyPos.vy = 0;
+    enemy->bodyPos.vz = 0;
+    enemy->coord      = &((TmdObject*)task->extra)->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags = 1;
-    enemy->field_42   = 1;
-    enemy->field_40   = 1;
-    enemy->field_4C   = 0;
-    hp                = D_actor_223600_8014CFCC.hpMax;
-    enemy->field_50   = &D_actor_223600_8014CFCC;
-    enemy->field_54   = 0;
-    enemy->field_42   = hp;
-    enemy->field_40   = hp;
+    enemy->node.flags    = 1;
+    enemy->hpMax         = 1;
+    enemy->hp            = 1;
+    enemy->reactionFlags = 0;
+    hp                   = D_actor_223600_8014CFCC.hpMax;
+    enemy->param         = &D_actor_223600_8014CFCC;
+    enemy->recs          = 0;
+    enemy->hpMax         = hp;
+    enemy->hp            = hp;
 
     work->field_170 = 2;
     work->field_174 = 1;
@@ -191,16 +191,16 @@ void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
     work->field_184 = 5;
     work->field_186 = 0x14;
 
-    scale = (u16)(enemy->field_8 >> 12);
+    scale = (u16)(enemy->placeKey >> 12);
     flag  = scale & 1;
     if (flag == 1) {
-        work->field_176 += enemy->field_8 >> 12;
-        work->field_186 += enemy->field_8 >> 12;
-        work->field_184 += enemy->field_8 >> 12;
+        work->field_176 += enemy->placeKey >> 12;
+        work->field_186 += enemy->placeKey >> 12;
+        work->field_184 += enemy->placeKey >> 12;
     } else {
         work->field_176 -= scale >> 1;
-        work->field_186 -= enemy->field_8 >> 13;
-        work->field_184 -= enemy->field_8 >> 13;
+        work->field_186 -= enemy->placeKey >> 13;
+        work->field_184 -= enemy->placeKey >> 13;
     }
 
     work->field_194 = ((Actor223600CoordPos*)((TmdObject*)task->extra)->coords)->x;
@@ -247,7 +247,7 @@ void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
         work->field_19E = 1;
         work->field_1A0 = 0x12D5;
 
-        mode = enemy->field_8 >> 12;
+        mode = enemy->placeKey >> 12;
         switch (mode) {
             case 0:
                 ((TmdObject*)task->extra)->coords->coord.t[0] = 0xA8C;
@@ -330,7 +330,7 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
         enemy->node.flags = 1;
         obj->flags        = 0;
         Tmd_AllocBuffers(obj);
-        mode = enemy->field_8 >> 12;
+        mode = enemy->placeKey >> 12;
         switch (mode) {
             case 0:
                 ((TmdObject*)task->extra)->coords->coord.t[0] = 0xA1E;
@@ -393,7 +393,7 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
     switch (work->field_174) {
         case 0xE:
             work->field_176 = 0x10;
-            if ((enemy->field_8 >> 12) != 2) {
+            if ((enemy->placeKey >> 12) != 2) {
                 if (work->field_6 < 0x32) {
                     if (work->field_6 >= 0x28) {
                         Actor223600_MoveForward(((TmdObject*)task->extra)->coords, 0x16);
@@ -447,7 +447,7 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
                 Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords[1].coord,
                                -((work->field_6 - 4) * 0xCC), 0);
             }
-            if ((enemy->field_8 >> 12) == 0) {
+            if ((enemy->placeKey >> 12) == 0) {
                 if ((u32)((u16)work->field_6 - 0xE) < 0x17) {
                     Gfx_MatrixCol1(&((TmdObject*)task->extra)->coords->coord, vec);
                     VectorNormalSS(vec, vec);
@@ -594,7 +594,7 @@ void func_actor_223600_8014CA00(GpEnemy* enemy, Task* task)
 
     reaction = func_actor_223600_8014B464(work);
     if (reaction != 0) {
-        cue = reaction | (((u16)enemy->field_8 >> 12) << 8);
+        cue = reaction | (((u16)enemy->placeKey >> 12) << 8);
         pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->coords);
         SndEvt_EnqueueType6(
             cue, pan,

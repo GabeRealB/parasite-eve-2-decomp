@@ -140,7 +140,7 @@ STATIC_ASSERT_SIZEOF(Actor403600EffectState, 0xE8);
 typedef struct Actor403600 {
     /* 0x00 */ byte             pad_0[0x1C];
     /* 0x1C */ Actor403600Work* field_1C;
-    /* 0x20 */ struct _GpEnemy* field_20;
+    /* 0x20 */ struct GpEnemy*  field_20;
     /* 0x24 */ byte             pad_24[6];
     /* 0x2A */ s16              field_2A;
     /* 0x2C */ TmdObject*       field_2C;

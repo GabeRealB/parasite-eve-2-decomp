@@ -27,7 +27,7 @@ void ActorsShared801433b8(Task* arg0)
         Gp_UnlinkObj(&work->nodes[6].obj);
         Gp_UnlinkObj(&work->nodes[7].obj);
         Gp_UnlinkObj(&work->nodes[8].obj);
-        enemy->field_54 = 0;
+        enemy->recs = 0;
     }
     Gp_DestroyEnemy(enemy, arg0);
 }

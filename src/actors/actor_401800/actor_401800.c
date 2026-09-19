@@ -729,18 +729,18 @@ void func_actor_401800_8013423C(GpEnemy* enemy, Actor401800* actor)
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     ((Task*)actor)->exitCallback = func_actor_401800_8013E0A0;
     Actor401800_BindMatrices(actor);
-    enemy->field_4     = &actor->field_2C->coords->coord;
-    enemy->field_48    = 0;
-    enemy->field_1C.vx = 0;
-    enemy->field_1C.vy = 0;
-    enemy->field_1C.vz = 0;
-    enemy->field_18    = &actor->field_2C->coords[2];
+    enemy->field_4    = &actor->field_2C->coords->coord;
+    enemy->field_48   = 0;
+    enemy->bodyPos.vx = 0;
+    enemy->bodyPos.vy = 0;
+    enemy->bodyPos.vz = 0;
+    enemy->coord      = &actor->field_2C->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags = 1;
-    enemy->field_4C   = 0;
-    enemy->field_40   = (s16)D_actor_401800_8013E6F0.hpMax;
-    enemy->field_50   = &D_actor_401800_8013E6F0;
-    enemy->field_54   = (s32)&work->field_8E8;
+    enemy->node.flags    = 1;
+    enemy->reactionFlags = 0;
+    enemy->hp            = (s16)D_actor_401800_8013E6F0.hpMax;
+    enemy->param         = &D_actor_401800_8013E6F0;
+    enemy->recs          = &work->field_8E8;
     func_800B3F84(&((Actor401800AnimWork*)work)->anim, &D_actor_401800_80155938, obj,
                   ((Actor401800AnimWork*)work)->pad_328, ((Actor401800AnimWork*)work)->slots);
     func_800B3F84(&((Actor401800AnimWork*)work)->blendAnim, &D_actor_401800_80155938, obj,
@@ -752,7 +752,7 @@ void func_actor_401800_8013423C(GpEnemy* enemy, Actor401800* actor)
     work->field_8AE = 0;
     work->field_8A4 = 0x10;
     work->field_8A2 = 0x10;
-    if ((s16)((enemy->field_8 >> 12) & 1) == 1) {
+    if ((s16)((enemy->placeKey >> 12) & 1) == 1) {
         work->field_8A4++;
     } else {
         work->field_8A4--;
@@ -987,8 +987,8 @@ void func_actor_401800_80135DAC(Actor401800* arg0)
     }
     func_actor_401800_80133EB8(arg0);
     if (Gp_TickObjFlag2((GpObj5D*)enemy) == 1) {
-        enemy->field_4C &= ~2;
-        work->field_0    = 0x11;
+        enemy->reactionFlags &= ~2;
+        work->field_0         = 0x11;
     }
 }
 
@@ -1765,7 +1765,7 @@ void func_actor_401800_8013945C(Actor401800* arg0)
         work->field_8A2        = 0x10;
         work->field_8B0        = 0;
         work->field_8AE        = 0;
-        if (enemy->field_40 < 0) {
+        if (enemy->hp < 0) {
             Gp_SetStateF0Byte3(1);
         }
         work->field_8C8.flags |= 0x4000;
@@ -1784,9 +1784,9 @@ void func_actor_401800_8013945C(Actor401800* arg0)
     arg0->field_2C->coords->flg = 0;
     if ((work->field_68 & 1) && (work->field_89E == 0xB)) {
         work->field_8C8.flags &= 0xBFFF;
-        if (enemy->field_40 <= 0) {
+        if (enemy->hp <= 0) {
             work->field_0 = 0x15;
-        } else if (enemy->field_4C & 2) {
+        } else if (enemy->reactionFlags & 2) {
             work->field_0 = 4;
         } else {
             work->field_0 = 0x11;
@@ -1816,7 +1816,7 @@ void func_actor_401800_8013971C(Actor401800* arg0)
         work->field_8A2        = 0x10;
         work->field_8B0        = 0;
         work->field_8AE        = 0;
-        if (enemy->field_40 < 0) {
+        if (enemy->hp < 0) {
             Gp_SetStateF0Byte3(1);
         }
         work->field_8C8.flags |= 0x4000;
@@ -1827,9 +1827,9 @@ void func_actor_401800_8013971C(Actor401800* arg0)
     arg0->field_2C->coords->flg = 0;
     if (work->field_68 & 0x100) {
         work->field_8C8.flags &= 0xBFFF;
-        if (enemy->field_40 <= 0) {
+        if (enemy->hp <= 0) {
             work->field_0 = 0x15;
-        } else if (enemy->field_4C & 2) {
+        } else if (enemy->reactionFlags & 2) {
             work->field_0 = 4;
         } else {
             work->field_0 = 0x11;
@@ -1858,7 +1858,7 @@ void func_actor_401800_80139870(Actor401800* arg0)
         work->field_8A2        = 0x10;
         work->field_8B0        = 0;
         work->field_8AE        = 0;
-        if (enemy->field_40 < 0) {
+        if (enemy->hp < 0) {
             Gp_SetStateF0Byte3(1);
         }
         work->field_8C8.flags |= 0x4000;
@@ -1869,9 +1869,9 @@ void func_actor_401800_80139870(Actor401800* arg0)
     arg0->field_2C->coords->flg = 0;
     if (work->field_68 & 0x100) {
         work->field_8C8.flags &= 0xBFFF;
-        if (enemy->field_40 <= 0) {
+        if (enemy->hp <= 0) {
             work->field_0 = 0x15;
-        } else if (enemy->field_4C & 2) {
+        } else if (enemy->reactionFlags & 2) {
             work->field_0 = 4;
         } else {
             work->field_0 = 0x11;
@@ -1901,7 +1901,7 @@ void func_actor_401800_801399C4(Actor401800* arg0)
         work->field_8A2        = 0x10;
         work->field_8B0        = 0;
         work->field_8AE        = 0;
-        if (enemy->field_40 < 0) {
+        if (enemy->hp < 0) {
             Gp_SetStateF0Byte3(1);
         }
         work->field_8C8.flags |= 0x4000;
@@ -1912,9 +1912,9 @@ void func_actor_401800_801399C4(Actor401800* arg0)
     arg0->field_2C->coords->flg = 0;
     if (work->field_68 & 1) {
         work->field_8C8.flags &= 0xBFFF;
-        if (enemy->field_40 <= 0) {
+        if (enemy->hp <= 0) {
             work->field_0 = 0x15;
-        } else if (enemy->field_4C & 2) {
+        } else if (enemy->reactionFlags & 2) {
             work->field_0 = 4;
         } else {
             work->field_0 = 0x11;
@@ -2131,7 +2131,7 @@ void func_actor_401800_8013A034(Actor401800* arg0)
         work->field_8AE        = 0;
         work->field_6          = 0;
     } else if (work->field_6 == 0) {
-        sound = ((enemy->field_8 >> 0xC) << 8) | 0x51030008;
+        sound = ((enemy->placeKey >> 0xC) << 8) | 0x51030008;
         pan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
         work->field_6 = 1;
@@ -2532,7 +2532,7 @@ static __inline__ void Actor401800_TintEffect(GpEffWork* eff, GpEnemy* enemy)
 
     if (eff != NULL) {
         sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
-        raw        = enemy->field_8;
+        raw        = enemy->placeKey;
         model      = (TmdObject*)eff->field_0->extra;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;

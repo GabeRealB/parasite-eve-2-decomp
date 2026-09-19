@@ -75,7 +75,7 @@ void func_actor_101500_801338D0(Actor101500* arg0)
     effect1       = Gp_SpawnEff(0x40007, &arg0->field_2C->coords[1], 0x100, NULL);
     if (effect1 != NULL) {
         sessionKey1 = (GpAreaKey*)&gGameSession->at4.loc;
-        raw1        = (u16)arg0->field_20->field_8;
+        raw1        = (u16)arg0->field_20->placeKey;
         model1      = (TmdObject*)effect1->field_0->extra;
         key.stage   = sessionKey1->stage;
         key.area    = sessionKey1->area;
@@ -97,7 +97,7 @@ void func_actor_101500_801338D0(Actor101500* arg0)
     effect2       = Gp_SpawnEff(0x40007, &arg0->field_2C->coords[1], 0x100, NULL);
     if (effect2 != NULL) {
         sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
-        raw2        = (u16)arg0->field_20->field_8;
+        raw2        = (u16)arg0->field_20->placeKey;
         model2      = (TmdObject*)effect2->field_0->extra;
         key.stage   = sessionKey2->stage;
         key.area    = sessionKey2->area;
@@ -119,7 +119,7 @@ void func_actor_101500_801338D0(Actor101500* arg0)
     effect3       = Gp_SpawnEff(0x40007, &arg0->field_2C->coords[1], 0x100, NULL);
     if (effect3 != NULL) {
         sessionKey3 = (GpAreaKey*)&gGameSession->at4.loc;
-        raw3        = (u16)arg0->field_20->field_8;
+        raw3        = (u16)arg0->field_20->placeKey;
         model3      = (TmdObject*)effect3->field_0->extra;
         key.stage   = sessionKey3->stage;
         key.area    = sessionKey3->area;
@@ -141,7 +141,7 @@ void func_actor_101500_801338D0(Actor101500* arg0)
     effect4       = Gp_SpawnEff(0x40007, &arg0->field_2C->coords[1], 0x100, NULL);
     if (effect4 != NULL) {
         sessionKey4 = (GpAreaKey*)&gGameSession->at4.loc;
-        raw4        = (u16)arg0->field_20->field_8;
+        raw4        = (u16)arg0->field_20->placeKey;
         model4      = (TmdObject*)effect4->field_0->extra;
         key.stage   = sessionKey4->stage;
         key.area    = sessionKey4->area;
@@ -192,7 +192,7 @@ void func_actor_101500_80133C10(GpEnemy* arg0, Actor101500* arg1)
         case 0:
             work->field_368 = 0x1000;
             work->field_32C = coord->coord;
-            arg0->field_54  = 0;
+            arg0->recs      = 0;
             Gp_UnlinkNode(&arg0->node);
             Gp_UnlinkObj(&work->field_1DC);
             Gp_UnlinkObj(&work->field_244);

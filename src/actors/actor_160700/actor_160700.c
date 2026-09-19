@@ -97,7 +97,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     work->enemy          = enemy;
     spawned              = Gp_SpawnEnemyFromTable(D_actor_160700_801416A8, 1, 0, enemy);
     model                = (TmdObject*)spawned->task->extra;
-    raw                  = enemy->field_8;
+    raw                  = enemy->placeKey;
     sessionKey           = (GpAreaKey*)&gGameSession->at4.loc;
     key.stage            = sessionKey->stage;
     key.area             = sessionKey->area;

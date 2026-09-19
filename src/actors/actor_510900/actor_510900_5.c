@@ -298,19 +298,19 @@ void func_actor_510900_8013B804(Actor510900* arg0)
     u8               flags;
 
     enemy = arg0->field_20;
-    flags = enemy->field_4C;
+    flags = enemy->reactionFlags;
     work  = arg0->field_1C;
     if (flags & 1) {
-        enemy->field_4C = flags & 0xFE;
+        enemy->reactionFlags = flags & 0xFE;
     }
-    if (enemy->field_4C & 2) {
-        enemy->field_4C &= 0xFD;
-        work->field_58E  = 7;
-        work->field_590  = 0;
-        work->field_5B8  = 1;
+    if (enemy->reactionFlags & 2) {
+        enemy->reactionFlags &= 0xFD;
+        work->field_58E       = 7;
+        work->field_590       = 0;
+        work->field_5B8       = 1;
     }
-    flags = enemy->field_4C;
+    flags = enemy->reactionFlags;
     if (flags & 0xC) {
-        enemy->field_4C = flags & 0xF3;
+        enemy->reactionFlags = flags & 0xF3;
     }
 }

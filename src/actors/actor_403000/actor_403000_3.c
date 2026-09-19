@@ -15,7 +15,7 @@ void func_actor_403000_8013D5F8(Actor403000* arg0)
         work->field_FCA         = 1;
         obj->flags             |= 0x80;
         work->objD18.obj.flags &= 0xBFFF;
-        enemy->field_40         = 0;
+        enemy->hp               = 0;
     }
 }
 
@@ -40,8 +40,8 @@ void func_actor_403000_8013D648(Actor403000* arg0)
     work->field_6++;
     func_actor_403000_80133AF8(arg0);
     if ((work->field_60.word & 0x102) || (s16)work->field_6 >= 5) {
-        if (enemy->field_40 > 0) {
-            if (enemy->field_4C & 2) {
+        if (enemy->hp > 0) {
+            if (enemy->reactionFlags & 2) {
                 work->field_0 = 0x10;
             } else {
                 work->field_0 = 0x12;
@@ -141,7 +141,7 @@ void func_actor_403000_8013D910(Actor403000* arg0)
     }
     timer         = work->field_6 - 1;
     work->field_6 = timer;
-    if (timer < 0 && enemy->field_40 > 0) {
+    if (timer < 0 && enemy->hp > 0) {
         work->field_0 = 0x13;
     }
 }

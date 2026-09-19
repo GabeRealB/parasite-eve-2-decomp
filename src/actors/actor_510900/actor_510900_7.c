@@ -58,7 +58,7 @@ void func_actor_510900_8013BA58(Actor510900* arg0)
             break;
         case 1:
             if (work->field_58A >= 0x50) {
-                if (enemy->field_40 <= 0) {
+                if (enemy->hp <= 0) {
                     work->field_58E = 0xC;
                     work->field_590 = 0;
                     work->field_586 = 0x18;

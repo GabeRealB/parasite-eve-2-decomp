@@ -34,18 +34,18 @@ void func_actor_103700_80131EC4(GpEnemy* arg0, Task* task)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_50             = &D_actor_103700_80139D2C;
-    arg0->field_18             = coord;
+    arg0->param                = &D_actor_103700_80139D2C;
+    arg0->coord                = coord;
     arg0->node.flags           = 0;
-    arg0->field_1C.vx          = 0;
-    arg0->field_1C.vy          = 0;
-    arg0->field_1C.vz          = 0;
-    arg0->field_54             = (s32)work->records;
+    arg0->bodyPos.vx           = 0;
+    arg0->bodyPos.vy           = 0;
+    arg0->bodyPos.vz           = 0;
+    arg0->recs                 = work->records;
     work->field_224.coord      = &((TmdObject*)task->extra)->coords[1];
     work->field_224.spawnArgLo = 0x100;
     work->field_224.spawnArgHi = 1;
-    work->field_246            = ((Actor103700Kind*)arg0->field_3C)->field_A;
-    kind                       = ((Actor103700Kind*)arg0->field_3C)->field_2;
+    work->field_246            = ((Actor103700Kind*)arg0->place)->field_A;
+    kind                       = ((Actor103700Kind*)arg0->place)->field_2;
     switch (kind / 10) {
         case 0:
             Tmd_AllocBuffers(obj);
@@ -84,7 +84,7 @@ void func_actor_103700_80131EC4(GpEnemy* arg0, Task* task)
             work->field_248 = 1;
             break;
     }
-    arg0->field_40  = D_actor_103700_80139D30;
+    arg0->hp        = D_actor_103700_80139D30;
     work->field_24A = work->field_248;
     task->msgTable  = &D_actor_103700_80139F28;
     func_800B3F84(&work->anim, D_actor_103700_80139F04, obj, work->poses, work->slots);
@@ -215,10 +215,10 @@ move_done:
                 func_800DA6E8(&((GpEnemy*)task->spawnArg2)->node, damage, 0);
                 func_800E2C78((GpObj40*)task->spawnArg2, work->records[i].key, damage, 0);
                 if ((s32)damage > 0) {
-                    ((GpEnemy*)task->spawnArg2)->field_40 = 0;
-                    work->field_24E                       = 6;
-                    work->field_250                       = 0;
-                    task->state                           = 2;
+                    ((GpEnemy*)task->spawnArg2)->hp = 0;
+                    work->field_24E                 = 6;
+                    work->field_250                 = 0;
+                    task->state                     = 2;
                 } else if (((Gp_GetIdParam0(work->records[i].key) & 0xFFFF) == 8 || broke == 1) &&
                            (u16)(work->field_24E - 1) >= 2) {
                     if (work->field_262 == 0) {

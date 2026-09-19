@@ -211,7 +211,7 @@ void func_actor_342400_8016666C(Task* arg0)
             ActorsShared801639a8(arg0);
             update_rotation(arg0);
             func_actor_342400_801653DC(arg0, 0);
-            if (work->field_438 == 0 && enemy->field_40 <= 0) {
+            if (work->field_438 == 0 && enemy->hp <= 0) {
                 enter_state(arg0, 4);
             } else if (work->field_44C == 4 && work->field_438 == 0) {
                 enter_state(arg0, 8);

@@ -157,7 +157,7 @@ void func_actor_450800_80132E9C(void* enemyArg, Task* task)
     mem->field_4BC       = enemy;
     spawned              = Gp_SpawnEnemyFromTable(D_actor_450800_801539DC, 1, 0, enemy);
     model                = (TmdObject*)spawned->task->extra;
-    raw                  = enemy->field_8;
+    raw                  = enemy->placeKey;
     sessionKey           = (GpAreaKey*)&gGameSession->at4.loc;
     key.stage            = sessionKey->stage;
     key.area             = sessionKey->area;

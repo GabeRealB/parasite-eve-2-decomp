@@ -115,7 +115,7 @@ default_body:
                 work->field_392 += 1;
                 if ((u32)work->field_392 >= 5U) {
                     SndEvt_EnqueueType7(0x40460003, 0);
-                    soundId = ((((GpEnemy*)arg1->spawnArg2)->field_8 >> 0xC) << 8) | 0x40460005;
+                    soundId = ((((GpEnemy*)arg1->spawnArg2)->placeKey >> 0xC) << 8) | 0x40460005;
                     SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
                     work->field_2CA &= 0x7FFF;
                     arg1->state      = 2;
@@ -179,15 +179,15 @@ void func_actor_107000_80136094(Task* arg0, s32 arg1)
     s32              soundId;
     s16              state;
 
-    enemy            = arg0->spawnArg2;
-    obj              = arg0->extra;
-    coord            = obj->coords;
-    work             = (Actor107000Work*)arg0->work;
-    enemy->field_40 -= arg1;
+    enemy      = arg0->spawnArg2;
+    obj        = arg0->extra;
+    coord      = obj->coords;
+    work       = (Actor107000Work*)arg0->work;
+    enemy->hp -= arg1;
     func_800DA6E8(&enemy->node, arg1, 0);
-    if (enemy->field_40 <= 0) {
+    if (enemy->hp <= 0) {
         SndEvt_EnqueueType7(0x40460003, 0);
-        soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40460005;
+        soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x40460005;
         SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
         work->field_2CA &= 0x7FFF;
         arg0->state      = 2;
@@ -195,7 +195,7 @@ void func_actor_107000_80136094(Task* arg0, s32 arg1)
         return;
     }
     SndEvt_EnqueueType7(0x40460003, 0);
-    soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40460004;
+    soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x40460004;
     SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
     state = work->field_36A;
     if (state < 2) {

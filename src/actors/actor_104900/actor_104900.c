@@ -117,12 +117,12 @@ void func_actor_104900_80132B10(GpEnemy* enemy, Task* task, ActorShared801384acW
             } while (0);
         } while (i < 2);
 
-        enemy->field_54                  = (s32)&work->field_A28[3][0];
+        enemy->recs                      = &work->field_A28[3][0];
         task->exitCallback               = ActorsShared801384ac;
         ((TmdObject*)task->extra)->flags = (u16)(((TmdObject*)task->extra)->flags & 0xFF7F);
         task->msgTable                   = &D_actor_104900_80147480;
         task->state++;
-        enemy->field_4C = 0;
+        enemy->reactionFlags = 0;
     }
 }
 
@@ -355,7 +355,7 @@ void func_actor_104900_80137B1C(GpEnemy* enemy, Task* task, ActorsShared80138efc
     if (work->field_BA9 != 0) {
         work->field_B9C = 0;
         if (work->field_B92 > 0) {
-            if (!(enemy->field_4C & 2)) {
+            if (!(enemy->reactionFlags & 2)) {
                 work->field_BAB = 0x10;
                 work->field_BAF = 2;
                 work->state     = 0x17;

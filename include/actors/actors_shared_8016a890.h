@@ -27,7 +27,7 @@ typedef struct ActorsShared8016a890Work {
 } ActorsShared8016a890Work;
 STATIC_ASSERT_SIZEOF(ActorsShared8016a890Work, 0x454);
 
-/// Clear the enemy's `field_54` slot, unlink the three display objects, reset
+/// Clear the enemy's `recs` slot, unlink the three display objects, reset
 /// the frame counter and advance `field_420`. `Actor04400_Fn08A40` is the
 /// same body inside the slot-1/slot-3 `actor_104400_text` object, which cannot
 /// join this unit: that overlay's whole `.text` is already one shared span.

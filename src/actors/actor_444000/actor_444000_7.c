@@ -88,7 +88,7 @@ void func_actor_444000_801435CC(Actor444000* arg0)
         work->field_6   = 0;
     }
     if (work->field_6 == 0xA) {
-        id  = ((obj->field_8 >> 12) << 8) | 0x40200017;
+        id  = ((obj->placeKey >> 12) << 8) | 0x40200017;
         pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
         SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
     }

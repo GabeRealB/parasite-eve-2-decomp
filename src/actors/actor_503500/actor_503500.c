@@ -125,7 +125,7 @@ void func_actor_503500_8013223C(Task* arg0)
             }
             coord->coord.t[0] = p->vx;
             coord->coord.t[2] = p->vz;
-            if (!(enemy->field_8 & 0xF)) {
+            if (!(enemy->placeKey & 0xF)) {
                 if (work->field_40 & 1) {
                     Gp_SpawnScript18((s32)D_actor_503500_801468A8, (s32)D_actor_503500_801468B0);
                     Display_ClampField126(-1);
@@ -137,12 +137,12 @@ void func_actor_503500_8013223C(Task* arg0)
         } else {
             work->field_40 = 0;
             work->field_45 = 0;
-            if (!(enemy->field_8 & 0xF)) {
+            if (!(enemy->placeKey & 0xF)) {
                 Display_ClampField126(0);
             }
         }
     } else if (work->field_40 > 0) {
-        if (!(enemy->field_8 & 0xF)) {
+        if (!(enemy->placeKey & 0xF)) {
             if (work->field_40 & 1) {
                 Gp_SpawnScript18((s32)D_actor_503500_801468A8, (s32)D_actor_503500_801468B0);
                 Display_ClampField126(-1);

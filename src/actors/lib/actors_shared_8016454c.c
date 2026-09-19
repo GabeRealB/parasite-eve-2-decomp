@@ -24,7 +24,7 @@ void ActorsShared8016454c(Task* arg0)
     work->field_41C = 0x10;
     work->field_414 = 1;
     work->field_422++;
-    soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0001;
+    soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x402C0001;
     pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
     SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
     Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;

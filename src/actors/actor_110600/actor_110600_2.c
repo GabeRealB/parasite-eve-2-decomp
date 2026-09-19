@@ -71,7 +71,7 @@ void func_actor_110600_801387F4(Task* task)
         Gp_UnlinkObj(&work->field_A90);
         Gp_UnlinkObj(&work->field_8B8);
         Gp_UnlinkObj(&work->field_950);
-        enemy->field_54 = 0;
+        enemy->recs = 0;
     }
     Display_ClampField126(0);
     Gp_DestroyEnemy(enemy, task);
@@ -147,7 +147,7 @@ void func_actor_110600_80138980(Actor110600* arg0)
     func_actor_110600_80133A94((Actor110600Walker*)((u8*)work + 0xB28));
     func_actor_110600_80134728(arg0);
     if (work->field_5C & 1) {
-        if (enemy->field_40 > 0) {
+        if (enemy->hp > 0) {
             work->field_0 = 0xB;
         } else {
             work->field_0 = 0xC;
@@ -315,7 +315,7 @@ void func_actor_110600_80138D7C(Actor110600* arg0)
     }
     func_actor_110600_80134728(arg0);
     if (Gp_TickObjFlag2((GpObj5D*)enemy) == 1) {
-        enemy->field_4C &= 0xFD;
-        work->field_0    = 3;
+        enemy->reactionFlags &= 0xFD;
+        work->field_0         = 3;
     }
 }

@@ -555,16 +555,16 @@ void Actor00100_Fn02C54(GpEnemy* arg0, Task* arg1)
     model->colorMtx    = &mapped->field_BA0;
     arg0->field_4      = &((TmdObject*)arg1->extra)->coords[0].coord;
     arg0->field_48     = 0;
-    arg0->field_1C.vx  = 0;
-    arg0->field_1C.vy  = 0;
-    arg0->field_1C.vz  = 0;
-    arg0->field_18     = &((TmdObject*)arg1->extra)->coords[2];
+    arg0->bodyPos.vx   = 0;
+    arg0->bodyPos.vy   = 0;
+    arg0->bodyPos.vz   = 0;
+    arg0->coord        = &((TmdObject*)arg1->extra)->coords[2];
     Gp_LinkNode(&arg0->node);
-    arg0->node.flags = 1;
-    arg0->field_4C   = 0;
-    arg0->field_40   = Actor00100_D0BDA4.hpMax;
-    arg0->field_50   = &Actor00100_D0BDA4;
-    arg0->field_54   = (s32)&work->objs[0].field_20;
+    arg0->node.flags    = 1;
+    arg0->reactionFlags = 0;
+    arg0->hp            = Actor00100_D0BDA4.hpMax;
+    arg0->param         = &Actor00100_D0BDA4;
+    arg0->recs          = &work->objs[0].field_20;
     func_800B3F84(&work->anim0, &Actor00100_D1B944, tmd, work->data0, &work->slot0);
     func_800B3F84(&work->anim1, &Actor00100_D1B944, tmd, work->data1, &work->slot1);
     work->field_828 = 2;
@@ -572,7 +572,7 @@ void Actor00100_Fn02C54(GpEnemy* arg0, Task* arg1)
     work->field_82E = 0;
     work->field_844 = 0;
     work->field_840 = 0;
-    if (((u16)arg0->field_8 >> 0xC) & 1) {
+    if (((u16)arg0->placeKey >> 0xC) & 1) {
         work->field_834 = 0xF;
         work->field_832 = 0xF;
     } else {

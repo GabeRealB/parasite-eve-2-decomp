@@ -48,7 +48,7 @@ void func_actor_356100_8016A158(Task* task)
         if (work->field_B60 != NULL) {
             taskKill(work->field_B60);
         }
-        enemy->field_54 = 0;
+        enemy->recs = 0;
     }
     Gp_DestroyEnemy(enemy, task);
 }
@@ -247,7 +247,7 @@ void func_actor_356100_8016A668(Actor356100* arg0)
                 break;
         }
     }
-    if (enemy->field_40 <= 0) {
+    if (enemy->hp <= 0) {
         work->field_0 = 0x15;
     }
 }
@@ -268,7 +268,7 @@ void func_actor_356100_8016A710(Actor356100* arg0)
         work->field_982       = 0x10;
         work->field_990       = 0;
         work->field_98E       = 0;
-        if (enemy->field_40 < 0) {
+        if (enemy->hp < 0) {
             Gp_SetStateF0Byte3(1);
         }
     }
@@ -280,7 +280,7 @@ void func_actor_356100_8016A710(Actor356100* arg0)
             func_actor_356100_80163508(arg0);
         }
         if ((work->field_68 & 1) && (work->field_97E == 0xB)) {
-            if (enemy->field_40 > 0) {
+            if (enemy->hp > 0) {
                 if (work->field_B3A <= 0) {
                     work->field_0 = 0x11;
                 } else {
@@ -309,13 +309,13 @@ void func_actor_356100_8016A834(Actor356100* arg0)
         work->field_982       = 0x10;
         work->field_990       = 0;
         work->field_98E       = 0;
-        if (enemy->field_40 < 0) {
+        if (enemy->hp < 0) {
             Gp_SetStateF0Byte3(1);
         }
     }
     func_actor_356100_80163508(arg0);
     if (work->field_68 & 1) {
-        if (enemy->field_40 > 0) {
+        if (enemy->hp > 0) {
             if (work->field_B3A <= 0) {
                 work->field_0 = 0x11;
             } else {

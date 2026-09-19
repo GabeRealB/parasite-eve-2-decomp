@@ -74,7 +74,7 @@ void func_actor_401800_8013E0A0(Task* task)
         Gp_UnlinkObj(&work->field_B48);
         Gp_UnlinkObj(&work->field_8C8);
         Gp_UnlinkObj(&work->field_A08);
-        enemy->field_54 = 0;
+        enemy->recs = 0;
     }
     Gp_DestroyEnemy(enemy, task);
 }
@@ -273,7 +273,7 @@ void func_actor_401800_8013E5A4(Actor401800* arg0)
                 break;
         }
     }
-    if (enemy->field_40 <= 0) {
+    if (enemy->hp <= 0) {
         work->field_0 = 0x15;
     }
     func_actor_401800_80133EB8(arg0);

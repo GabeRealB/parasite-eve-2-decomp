@@ -86,7 +86,7 @@ void func_actor_107000_801344DC(Task* arg0)
     u8               flags;
 
     enemy = arg0->spawnArg2;
-    flags = enemy->field_4C;
+    flags = enemy->reactionFlags;
     work  = (Actor107000Work*)arg0->work;
     if (flags != 0) {
         if (flags & 1) {
@@ -97,23 +97,23 @@ void func_actor_107000_801344DC(Task* arg0)
                 arg0->killCountdown = 5;
                 work->field_2B4     = 0;
                 arg0->state         = 2;
-                enemy->field_40     = 0;
+                enemy->hp           = 0;
             }
         }
-        if (enemy->field_4C & 2) {
-            enemy->field_4C &= 0xFD;
-            work->field_2B2  = 3;
-            work->field_2B6  = 0;
-            work->field_2BE  = 0;
-            work->field_2D2  = 1;
+        if (enemy->reactionFlags & 2) {
+            enemy->reactionFlags &= 0xFD;
+            work->field_2B2       = 3;
+            work->field_2B6       = 0;
+            work->field_2BE       = 0;
+            work->field_2D2       = 1;
         }
-        if (enemy->field_4C & 0xC) {
+        if (enemy->reactionFlags & 0xC) {
             tick = Gp_TickObjFlag4((GpObj5C*)enemy);
             if (tick != 0) {
                 func_actor_107000_80132D8C(arg0, tick);
             }
             if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
-                enemy->field_4C &= 0xF3;
+                enemy->reactionFlags &= 0xF3;
             }
         }
     }

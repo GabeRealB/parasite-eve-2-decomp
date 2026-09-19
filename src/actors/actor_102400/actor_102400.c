@@ -184,14 +184,14 @@ move_done:
                 dmg = damage;
                 func_800E2C78((GpObj40*)arg0->field_20, work->records[i].key, dmg, 0);
                 func_800DA6E8(&arg0->field_20->node, dmg, 0);
-                if ((enemy->field_40 -= damage) <= 0) {
+                if ((enemy->hp -= damage) <= 0) {
                     arg0->field_30 = 2;
                 }
                 stun = Gp_GetIdParam2(work->records[i].key);
                 if (stun > 0) {
                     work->field_136 = stun;
                 }
-                sndId = ((arg0->field_20->field_8 >> 12) << 8) | 0x40180003;
+                sndId = ((arg0->field_20->placeKey >> 12) << 8) | 0x40180003;
                 pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
                 SndEvt_EnqueueType6(sndId, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
                 break;

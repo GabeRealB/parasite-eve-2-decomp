@@ -220,18 +220,18 @@ void func_actor_356100_8016382C(GpEnemy* enemy, Actor356100* actor)
     }
     actor->field_18 = func_actor_356100_8016A158;
     Actor356100_BindMatrices(actor);
-    enemy->field_4     = &actor->field_2C->coords->coord;
-    enemy->field_48    = 0;
-    enemy->field_1C.vx = 0;
-    enemy->field_1C.vy = 0;
-    enemy->field_1C.vz = 0;
-    enemy->field_18    = &actor->field_2C->coords[2];
+    enemy->field_4    = &actor->field_2C->coords->coord;
+    enemy->field_48   = 0;
+    enemy->bodyPos.vx = 0;
+    enemy->bodyPos.vy = 0;
+    enemy->bodyPos.vz = 0;
+    enemy->coord      = &actor->field_2C->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags = 1;
-    enemy->field_4C   = 0;
-    enemy->field_40   = (s16)D_actor_356100_8016A984.hpMax;
-    enemy->field_50   = &D_actor_356100_8016A984;
-    enemy->field_54   = (s32)&work->field_9C0;
+    enemy->node.flags    = 1;
+    enemy->reactionFlags = 0;
+    enemy->hp            = (s16)D_actor_356100_8016A984.hpMax;
+    enemy->param         = &D_actor_356100_8016A984;
+    enemy->recs          = &work->field_9C0;
     func_800B3F84(&((Actor356100AnimWork*)work)->anim, D_actor_356100_801730B8, obj,
                   &((Actor356100AnimWork*)work)->slots[21], ((Actor356100AnimWork*)work)->slots);
     func_800B3F84(&((Actor356100AnimWork*)work)->blendAnim, D_actor_356100_801730B8, obj,
@@ -349,8 +349,8 @@ void func_actor_356100_80163CD4(Actor356100* arg0)
     }
     func_actor_356100_80163508(arg0);
     if (Gp_TickObjFlag2((GpObj5D*)ctx) == 1) {
-        ctx->field_4C &= 0xFD;
-        work->field_0  = 0x11;
+        ctx->reactionFlags &= 0xFD;
+        work->field_0       = 0x11;
     }
 }
 
@@ -1151,7 +1151,7 @@ void func_actor_356100_80167818(Actor356100* arg0)
         work->field_98E   = 0;
         work->field_6     = 0;
     } else if (work->field_6 == 0) {
-        sound = ((enemy->field_8 >> 0xC) << 8) | 0x51030008;
+        sound = ((enemy->placeKey >> 0xC) << 8) | 0x51030008;
         pan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
         work->field_6 = 1;
@@ -1772,15 +1772,15 @@ void func_actor_356100_80169854(GpEnemy* arg0, Actor356100* arg1)
         work->field_BBC = 0;
     }
     if ((u32)((u16)work->field_97E - 0x14) < 2U) {
-        arg0->field_1C.vx = work->field_B6C[work->field_BBC].vx;
-        arg0->field_1C.vy = work->field_B6C[work->field_BBC].vy;
-        arg0->field_1C.vz = work->field_B6C[work->field_BBC].vz;
+        arg0->bodyPos.vx = work->field_B6C[work->field_BBC].vx;
+        arg0->bodyPos.vy = work->field_B6C[work->field_BBC].vy;
+        arg0->bodyPos.vz = work->field_B6C[work->field_BBC].vz;
     } else {
-        arg0->field_1C.vx = blk->v.vx;
-        arg0->field_1C.vy = blk->v.vy;
-        arg0->field_1C.vz = blk->v.vz;
+        arg0->bodyPos.vx = blk->v.vx;
+        arg0->bodyPos.vy = blk->v.vy;
+        arg0->bodyPos.vz = blk->v.vz;
     }
-    arg0->field_18 = &gGfxViewCoord;
+    arg0->coord = &gGfxViewCoord;
 }
 
 s32 func_actor_356100_80169E5C(void)

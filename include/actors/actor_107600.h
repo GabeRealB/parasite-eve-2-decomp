@@ -156,7 +156,7 @@ void func_actor_107600_801337FC(Task* arg0);
 void func_actor_107600_801339A4(Task* arg0);
 void func_actor_107600_80133FA8(GsCOORDINATE2* arg0, SVECTOR* arg1);
 void func_actor_107600_80134248(GsCOORDINATE2* arg0, SVECTOR* arg1);
-void func_actor_107600_80134608(struct _GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+void func_actor_107600_80134608(struct GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void func_actor_107600_801348A0(Task* arg0);
 void func_actor_107600_80134904(Task* arg0);
 void func_actor_107600_80134920(Task* arg0);

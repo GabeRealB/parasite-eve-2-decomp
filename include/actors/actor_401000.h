@@ -367,7 +367,7 @@ extern MATRIX* D_80073B8C;
 /// calls; the same `s32` the 401300 sibling keeps in `D_actor_401300_80158838`.
 extern s32 D_actor_401000_80154E48;
 
-/// Parameter pair `func_actor_401000_80133274` installs as `GpEnemy::field_50`
+/// Parameter pair `func_actor_401000_80133274` installs as `GpEnemy::param`
 /// and reads `hpMax` out of as the actor's initial `field_40`.
 extern GpPairSrcE D_actor_401000_8013E09C;
 
@@ -499,7 +499,7 @@ s32 func_actor_401000_8013D694(Actor401000* arg0, s32 arg1, Actor401000Msg* arg2
 s32 func_actor_401000_8013D958(Actor401000* arg0, s32 arg1, u16* arg2);
 
 /// `Task::exitCallback` teardown: kill the two helper tasks, unlink the three
-/// display nodes, drop the enemy's `field_54` slot, then `Gp_DestroyEnemy`.
+/// display nodes, drop the enemy's `recs` slot, then `Gp_DestroyEnemy`.
 void func_actor_401000_8013DA78(Task* task);
 void func_actor_401000_8013DB10(Actor401000* arg0);
 void func_actor_401000_8013DB6C(Actor401000* arg0);

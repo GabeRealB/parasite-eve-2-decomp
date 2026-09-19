@@ -238,7 +238,7 @@ typedef struct Actor403200Work {
     /// seven-slot run as `Actor444000Work::field_ECC`.
     /* 0xECC */ GpEnemy* field_ECC[7];
     /// The two escorts the upkeep tick drops once their HP has run out, by
-    /// clearing the slot when `GpEnemy::field_40` is not positive. Same slots
+    /// clearing the slot when `GpEnemy::hp` is not positive. Same slots
     /// and role as `Actor444000Work::field_EE8`.
     /* 0xEE8 */ GpEnemy* field_EE8;
     /* 0xEEC */ GpEnemy* field_EEC;

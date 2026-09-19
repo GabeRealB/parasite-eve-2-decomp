@@ -250,7 +250,7 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
     if (spawned1 != NULL) {
         D_actor_461800_80143894->field_4F0 = spawned1;
         sessionKey1                        = (GpAreaKey*)&gGameSession->at4.loc;
-        raw1                               = ((GpEnemy*)task->spawnArg2)->field_8;
+        raw1                               = ((GpEnemy*)task->spawnArg2)->placeKey;
         model1                             = spawned1->extra;
         key.stage                          = sessionKey1->stage;
         key.area                           = sessionKey1->area;
@@ -276,7 +276,7 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
     if (spawned2 != NULL) {
         D_actor_461800_80143894->field_4F4 = spawned2;
         sessionKey2                        = (GpAreaKey*)&gGameSession->at4.loc;
-        raw2                               = ((GpEnemy*)task->spawnArg2)->field_8;
+        raw2                               = ((GpEnemy*)task->spawnArg2)->placeKey;
         model2                             = spawned2->extra;
         key.stage                          = sessionKey2->stage;
         key.area                           = sessionKey2->area;

@@ -79,12 +79,12 @@ void func_actor_341700_8016A568(Task* arg0)
     model           = (TmdObject*)arg0->extra;
     work->field_412 = 0;
     SndEvt_EnqueueType7(0x402C0002, 1);
-    if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC)) {
+    if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC)) {
         Gp_StateF0.field_1F = 0;
     }
     Gp_UnlinkNode(&enemy->node);
-    enemy->field_54 = 0;
-    work2           = (Actor341700Work*)arg0->work;
+    enemy->recs = 0;
+    work2       = (Actor341700Work*)arg0->work;
     Gp_UnlinkObj(&work2->obj_2AC);
     Gp_UnlinkObj(&work2->obj_2CC);
     Gp_UnlinkObj(&work2->obj_3AC);
@@ -118,8 +118,8 @@ void func_actor_341700_8016A6C0(Task* arg0)
 
     enemy = (GpEnemy*)arg0->spawnArg2;
     work  = (Actor341700Work*)arg0->work;
-    SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x402C0002, 0xF);
-    if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC)) {
+    SndEvt_EnqueueType7(((enemy->placeKey >> 0xC) << 8) | 0x402C0002, 0xF);
+    if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC)) {
         Gp_StateF0.field_1F = 0;
     }
     Gp_UnlinkNode(&enemy->node);
