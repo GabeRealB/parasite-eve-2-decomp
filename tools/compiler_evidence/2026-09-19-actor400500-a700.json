@@ -1,0 +1,135 @@
+{
+  "function": "func_actor_400500_8013A700",
+  "session": {
+    "id": "5ca3bfdb523245518cfa2e1aa44f5c1a",
+    "started_at": "2026-09-19T10:51:40.295965+00:00"
+  },
+  "scope": "Exact scratch and full unscoped integration match; controlled delay-slot and global-allocation experiments, no permuter discovery or register pins.",
+  "builds": {
+    "journaled": 9,
+    "invocations": 9,
+    "new_variants": 3,
+    "during_this_turn": 8,
+    "bootstrap": 1
+  },
+  "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+  "target_sha256": "2718538f55ad19a99ff46168022ce76daca145d7e7008981f63f8870dec9ab84",
+  "sources": {
+    "base.c": {
+      "source_sha256": "91414e9e2e73918c7ba75876488e2b0d4115b63eaa3cdbb2ff7250acfdc4ae61",
+      "preprocessed_sha256": "2358c508852191c44340ce2e2491ec0bc818c5111845fc22232f885f477ae96e",
+      "score": 99.00826446280992,
+      "distance": 120,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 2,
+        "stack": 0
+      },
+      "assembly_sha256": "d6fd27809cb608bd2048c15ecd84517e56e54a5f16dd8e35ea38df3037b87323",
+      "hypothesis": null,
+      "expected": null,
+      "parent": null,
+      "pass_name": null,
+      "source_text": "#include \"common.h\"\n#include \"psyq/inline_c.h\"\n#include \"main/gameflag.h\"\n#include \"main/gfx.h\"\n#include \"main/mem.h\"\n#include \"main/session.h\"\n#include \"main/sound.h\"\n#include \"main/task.h\"\n#include \"main/tmd.h\"\n#include \"gameplay/1BC.h\"\n#include \"gameplay/3A34.h\"\n#include \"gameplay/3CD8.h\"\n#include \"gameplay/3FB8.h\"\n#include \"gameplay/gameplay.h\"\n#include \"actors/actor_400500.h\"\n\nextern u8 D_801153F4;\nextern TaskFuncTable10 D_actor_400500_80131F7C;\n\nvoid func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2);\n\nvoid func_actor_400500_8013A700(Task* arg0)\n{\n    TmdObject* extra;\n    Actor400500Work* work;\n    TaskFuncTable10 sp;\n    TmdObject* extra2;\n    TmdObject* extraCopy;\n    u8* head;\n    u8* head2;\n    VECTOR* block;\n    GsCOORDINATE2* coord;\n    u8 session;\n    u16 a28;\n    u32 flags;\n\n    extra = (TmdObject*)arg0->extra;\n    work = (Actor400500Work*)arg0->work;\n    sp = D_actor_400500_80131F7C;\n    switch (D_801153F4) {\n        case 2:\n            extra->flags |= 0x80;\n            return;\n        case 0:\n            sp.funcs[(s16)work->field_A06](arg0);\n            /* fallthrough */\n        case 1:\n            extra2 = (TmdObject*)arg0->extra;\n            SOFT_USE_REG(extra2);\n            SOFT_USE_REG(extra2);\n            coord = extra2->coords;\n            __asm__ volatile(\"lui %0, 0x1F80\" : \"=r\"(head));\n            head = *(u8**)(head + 0x3FC);\n            coord = coord + 1;\n            ((VECTOR*)head)[-1].vx = coord->workm.t[0];\n            block = (VECTOR*)(head - 0x10);\n            block->vy = coord->workm.t[1];\n            block->vz = coord->workm.t[2];\n            *(VECTOR**)G_SCRATCH_HEAD = block;\n            Gp_UpdateActorColor(arg0->spawnArg2, block, 0, 0);\n            __asm__ volatile(\"addu %0, %1, $zero\" : \"=r\"(extraCopy) : \"r\"(extra2));\n            SOFT_USE_REG(extraCopy);\n            session = gGameSession->at4.loc.room;\n            if ((session == 1) || (session == 3) || (session == 5) || (session == 6)) {\n                Gp_SetObjTrans((GpObj20*)extraCopy, 0x200, 0x200, 0x200);\n            } else {\n                Gp_SetObjTrans((GpObj20*)extra2, 0x400, 0x1000, 0x400);\n            }\n            SOFT_USE_REG(extraCopy);\n            __asm__ volatile(\"lui %0, 0x1F80\" : \"=r\"(head2) : \"r\"(work));\n            head2 = *(u8**)(head2 + 0x3FC);\n            a28 = work->field_A28;\n            head2 += 0x10;\n            flags = (u32)a28 << 0x10;\n            *(u8**)G_SCRATCH_HEAD = head2;\n            if (flags != 0) {\n                func_actor_400500_80132AB0(arg0, -0xFA0, (flags >> 0x12) & 0xFF);\n                func_actor_400500_80132AB0(arg0, -0x3E8, (u8)work->field_A28);\n            }\n            return;\n    }\n}\n"
+    },
+    "base_1.c": {
+      "source_sha256": "d742dfedfe59cd701b9b50d7cc5406e109b613a3c4b217bec558822d08f36816",
+      "preprocessed_sha256": "fb722a0988d370081ab7116366d50635f5626dee71f5820c46052a61cdede4e5",
+      "score": 99.50413223140495,
+      "distance": 60,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 1,
+        "stack": 0
+      },
+      "assembly_sha256": "2375df27e43ee563367ec0dcb365b4dbc142175ec4059f2504fb0d877929bb0f",
+      "hypothesis": "A named shifted value with read/write touch keeps srl first in the guarded block, independently of the saved pointer copy",
+      "expected": "dbr puts srl a2,v1,18 in beqz delay; extra2=s0 and extraCopy=s1 survive; reorder falls to 1",
+      "parent": "base.c",
+      "pass_name": "dbr",
+      "source_text": "#include \"common.h\"\n#include \"psyq/inline_c.h\"\n#include \"main/gameflag.h\"\n#include \"main/gfx.h\"\n#include \"main/mem.h\"\n#include \"main/session.h\"\n#include \"main/sound.h\"\n#include \"main/task.h\"\n#include \"main/tmd.h\"\n#include \"gameplay/1BC.h\"\n#include \"gameplay/3A34.h\"\n#include \"gameplay/3CD8.h\"\n#include \"gameplay/3FB8.h\"\n#include \"gameplay/gameplay.h\"\n#include \"actors/actor_400500.h\"\n\nextern u8 D_801153F4;\nextern TaskFuncTable10 D_actor_400500_80131F7C;\n\nvoid func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2);\n\nvoid func_actor_400500_8013A700(Task* arg0)\n{\n    TmdObject* extra;\n    Actor400500Work* work;\n    TaskFuncTable10 sp;\n    TmdObject* extra2;\n    TmdObject* extraCopy;\n    u8* head;\n    u8* head2;\n    VECTOR* block;\n    GsCOORDINATE2* coord;\n    u8 session;\n    u16 a28;\n    u32 flags;\n    u32 shifted;\n\n    extra = (TmdObject*)arg0->extra;\n    work = (Actor400500Work*)arg0->work;\n    sp = D_actor_400500_80131F7C;\n    switch (D_801153F4) {\n        case 2:\n            extra->flags |= 0x80;\n            return;\n        case 0:\n            sp.funcs[(s16)work->field_A06](arg0);\n            /* fallthrough */\n        case 1:\n            extra2 = (TmdObject*)arg0->extra;\n            SOFT_USE_REG(extra2);\n            SOFT_USE_REG(extra2);\n            coord = extra2->coords;\n            __asm__ volatile(\"lui %0, 0x1F80\" : \"=r\"(head));\n            head = *(u8**)(head + 0x3FC);\n            coord = coord + 1;\n            ((VECTOR*)head)[-1].vx = coord->workm.t[0];\n            block = (VECTOR*)(head - 0x10);\n            block->vy = coord->workm.t[1];\n            block->vz = coord->workm.t[2];\n            *(VECTOR**)G_SCRATCH_HEAD = block;\n            Gp_UpdateActorColor(arg0->spawnArg2, block, 0, 0);\n            __asm__ volatile(\"addu %0, %1, $zero\" : \"=r\"(extraCopy) : \"r\"(extra2));\n            SOFT_USE_REG(extraCopy);\n            session = gGameSession->at4.loc.room;\n            if ((session == 1) || (session == 3) || (session == 5) || (session == 6)) {\n                Gp_SetObjTrans((GpObj20*)extraCopy, 0x200, 0x200, 0x200);\n            } else {\n                Gp_SetObjTrans((GpObj20*)extra2, 0x400, 0x1000, 0x400);\n            }\n            SOFT_USE_REG(extraCopy);\n            __asm__ volatile(\"lui %0, 0x1F80\" : \"=r\"(head2) : \"r\"(work));\n            head2 = *(u8**)(head2 + 0x3FC);\n            a28 = work->field_A28;\n            head2 += 0x10;\n            flags = (u32)a28 << 0x10;\n            *(u8**)G_SCRATCH_HEAD = head2;\n            if (flags != 0) {\n                shifted = flags >> 0x12;\n                SOFT_TOUCH_REG(shifted);\n                func_actor_400500_80132AB0(arg0, -0xFA0, shifted & 0xFF);\n                func_actor_400500_80132AB0(arg0, -0x3E8, (u8)work->field_A28);\n            }\n            return;\n    }\n}\n"
+    },
+    "base_2.c": {
+      "source_sha256": "e4206b64ad8d007ef43b0ff073885c94668847166b09706c0d60a0ce53cdb7a9",
+      "preprocessed_sha256": "ffb2312bebfa504aaab5d193d15c6962f4d16af2b03a1a4d0ec3c6b203750f17",
+      "score": 99.75206611570248,
+      "distance": 30,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 6,
+        "reorder": 0,
+        "stack": 0
+      },
+      "assembly_sha256": "e7a2aee07fef53468ac9ee29b5f325348441885869a47b96aa7037d8613c9489",
+      "hypothesis": "C copy plus read/write touch only on first-comparison fallthrough creates a live join value; unlike opaque addu, the C move can fill beq delay",
+      "expected": "jump threading removes duplicate session==1; C pointer copy survives before first beq; srl slot survives; inspect saved-register homes independently",
+      "parent": "base_1.c",
+      "pass_name": "dbr",
+      "source_text": "#include \"common.h\"\n#include \"psyq/inline_c.h\"\n#include \"main/gameflag.h\"\n#include \"main/gfx.h\"\n#include \"main/mem.h\"\n#include \"main/session.h\"\n#include \"main/sound.h\"\n#include \"main/task.h\"\n#include \"main/tmd.h\"\n#include \"gameplay/1BC.h\"\n#include \"gameplay/3A34.h\"\n#include \"gameplay/3CD8.h\"\n#include \"gameplay/3FB8.h\"\n#include \"gameplay/gameplay.h\"\n#include \"actors/actor_400500.h\"\n\nextern u8 D_801153F4;\nextern TaskFuncTable10 D_actor_400500_80131F7C;\n\nvoid func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2);\n\nvoid func_actor_400500_8013A700(Task* arg0)\n{\n    TmdObject* extra;\n    Actor400500Work* work;\n    TaskFuncTable10 sp;\n    TmdObject* extra2;\n    TmdObject* extraCopy;\n    u8* head;\n    u8* head2;\n    VECTOR* block;\n    GsCOORDINATE2* coord;\n    u8 session;\n    u16 a28;\n    u32 flags;\n    u32 shifted;\n\n    extra = (TmdObject*)arg0->extra;\n    work = (Actor400500Work*)arg0->work;\n    sp = D_actor_400500_80131F7C;\n    switch (D_801153F4) {\n        case 2:\n            extra->flags |= 0x80;\n            return;\n        case 0:\n            sp.funcs[(s16)work->field_A06](arg0);\n            /* fallthrough */\n        case 1:\n            extra2 = (TmdObject*)arg0->extra;\n            SOFT_USE_REG(extra2);\n            SOFT_USE_REG(extra2);\n            coord = extra2->coords;\n            __asm__ volatile(\"lui %0, 0x1F80\" : \"=r\"(head));\n            head = *(u8**)(head + 0x3FC);\n            coord = coord + 1;\n            ((VECTOR*)head)[-1].vx = coord->workm.t[0];\n            block = (VECTOR*)(head - 0x10);\n            block->vy = coord->workm.t[1];\n            block->vz = coord->workm.t[2];\n            *(VECTOR**)G_SCRATCH_HEAD = block;\n            Gp_UpdateActorColor(arg0->spawnArg2, block, 0, 0);\n            extraCopy = extra2;\n            session = gGameSession->at4.loc.room;\n            if (session != 1) {\n                SOFT_TOUCH_REG(extraCopy);\n            }\n            if ((session == 1) || (session == 3) || (session == 5) || (session == 6)) {\n                Gp_SetObjTrans((GpObj20*)extraCopy, 0x200, 0x200, 0x200);\n            } else {\n                Gp_SetObjTrans((GpObj20*)extra2, 0x400, 0x1000, 0x400);\n            }\n            SOFT_USE_REG(extraCopy);\n            __asm__ volatile(\"lui %0, 0x1F80\" : \"=r\"(head2) : \"r\"(work));\n            head2 = *(u8**)(head2 + 0x3FC);\n            a28 = work->field_A28;\n            head2 += 0x10;\n            flags = (u32)a28 << 0x10;\n            *(u8**)G_SCRATCH_HEAD = head2;\n            if (flags != 0) {\n                shifted = flags >> 0x12;\n                SOFT_TOUCH_REG(shifted);\n                func_actor_400500_80132AB0(arg0, -0xFA0, shifted & 0xFF);\n                func_actor_400500_80132AB0(arg0, -0x3E8, (u8)work->field_A28);\n            }\n            return;\n    }\n}\n"
+    },
+    "base_3.c": {
+      "source_sha256": "ba0ce84db7bbbade2e053976f93ca131e970b71675f6c4c2e83d2551d95f9cb4",
+      "preprocessed_sha256": "608d2b9cd82d808ad9bb79e810d400b3336dc5058949b596133c688279ea95e9",
+      "score": 100.0,
+      "distance": 0,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "assembly_sha256": "f9c2ae35150039519081852ad46f3304a9451d61393a1bbcc87efc056633beda",
+      "hypothesis": "r83 is global with 6 refs/34 versus r84 5/23; two extra input uses make r83 8/36 and cross floor_log2 threshold, ranking it ahead without touching the delay-fill region",
+      "expected": "greg orders r83 before r84 and assigns s0/s1; both dbr slots preserve base_2 order, yielding exact match",
+      "parent": "base_2.c",
+      "pass_name": "greg",
+      "source_text": "#include \"common.h\"\n#include \"psyq/inline_c.h\"\n#include \"main/gameflag.h\"\n#include \"main/gfx.h\"\n#include \"main/mem.h\"\n#include \"main/session.h\"\n#include \"main/sound.h\"\n#include \"main/task.h\"\n#include \"main/tmd.h\"\n#include \"gameplay/1BC.h\"\n#include \"gameplay/3A34.h\"\n#include \"gameplay/3CD8.h\"\n#include \"gameplay/3FB8.h\"\n#include \"gameplay/gameplay.h\"\n#include \"actors/actor_400500.h\"\n\nextern u8 D_801153F4;\nextern TaskFuncTable10 D_actor_400500_80131F7C;\n\nvoid func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2);\n\nvoid func_actor_400500_8013A700(Task* arg0)\n{\n    TmdObject* extra;\n    Actor400500Work* work;\n    TaskFuncTable10 sp;\n    TmdObject* extra2;\n    TmdObject* extraCopy;\n    u8* head;\n    u8* head2;\n    VECTOR* block;\n    GsCOORDINATE2* coord;\n    u8 session;\n    u16 a28;\n    u32 flags;\n    u32 shifted;\n\n    extra = (TmdObject*)arg0->extra;\n    work = (Actor400500Work*)arg0->work;\n    sp = D_actor_400500_80131F7C;\n    switch (D_801153F4) {\n        case 2:\n            extra->flags |= 0x80;\n            return;\n        case 0:\n            sp.funcs[(s16)work->field_A06](arg0);\n            /* fallthrough */\n        case 1:\n            extra2 = (TmdObject*)arg0->extra;\n            SOFT_USE_REG(extra2);\n            SOFT_USE_REG(extra2);\n            SOFT_USE_REG(extra2);\n            SOFT_USE_REG(extra2);\n            coord = extra2->coords;\n            __asm__ volatile(\"lui %0, 0x1F80\" : \"=r\"(head));\n            head = *(u8**)(head + 0x3FC);\n            coord = coord + 1;\n            ((VECTOR*)head)[-1].vx = coord->workm.t[0];\n            block = (VECTOR*)(head - 0x10);\n            block->vy = coord->workm.t[1];\n            block->vz = coord->workm.t[2];\n            *(VECTOR**)G_SCRATCH_HEAD = block;\n            Gp_UpdateActorColor(arg0->spawnArg2, block, 0, 0);\n            extraCopy = extra2;\n            session = gGameSession->at4.loc.room;\n            if (session != 1) {\n                SOFT_TOUCH_REG(extraCopy);\n            }\n            if ((session == 1) || (session == 3) || (session == 5) || (session == 6)) {\n                Gp_SetObjTrans((GpObj20*)extraCopy, 0x200, 0x200, 0x200);\n            } else {\n                Gp_SetObjTrans((GpObj20*)extra2, 0x400, 0x1000, 0x400);\n            }\n            SOFT_USE_REG(extraCopy);\n            __asm__ volatile(\"lui %0, 0x1F80\" : \"=r\"(head2) : \"r\"(work));\n            head2 = *(u8**)(head2 + 0x3FC);\n            a28 = work->field_A28;\n            head2 += 0x10;\n            flags = (u32)a28 << 0x10;\n            *(u8**)G_SCRATCH_HEAD = head2;\n            if (flags != 0) {\n                shifted = flags >> 0x12;\n                SOFT_TOUCH_REG(shifted);\n                func_actor_400500_80132AB0(arg0, -0xFA0, shifted & 0xFF);\n                func_actor_400500_80132AB0(arg0, -0x3E8, (u8)work->field_A28);\n            }\n            return;\n    }\n}\n"
+    }
+  },
+  "observations": {
+    "base_2": {
+      "lreg_stats": [
+        "Register 83 used 6 times across 34 insns; crosses 1 call; GR_REGS or none; pointer.",
+        "Register 84 used 5 times across 23 insns; crosses 2 calls; GR_REGS or none; pointer."
+      ],
+      "global_header": "\n;; Function func_actor_400500_8013A700\n\n;; 11 regs to allocate: 96 130 91 114 95 84 83 81 80 97 82\n;; 80 conflicts: 80 81 82 83 84 91 95 96 97 114 130 2 3 4 5 6 7 29\n;; 81 conflicts: 80 81 82 95 96 97 130 2 29\n;; 82 conflicts: 80 81 82 83 84 91 95 96 97 114 130 2 3 4 5 6 7 29\n;; 83 conflicts: 80 82 83 84 114 2 3 4 5 6 7 29\n;; 84 conflicts: 80 82 83 84 114 2 4 5 6 7 29\n;; 91 conflicts: 80 82 91 29\n;; 91 preferences: 3 6\n;; 95 conflicts: 80 81 82 95 96 97 2 29\n;; 96 conflicts: 80 81 82 95 96 97 29\n;; 96 preferences: 2\n;; 97 conflicts: 80 81 82 95 96 97 29\n;; 114 conflicts: 80 82 83 84 114 2 29\n;; 130 conflicts: 80 81 82 130 2 29\n\n;; Need 4 regs of class GR_REGS (for insn 25).\n;; Need 4 regs of class ALL_REGS (for insn 25).\nSpilling reg 8.\nSpilling reg 9.\nSpilling reg 10.\nSpilling reg 11.\n;; Need 4 regs of class GR_REGS (for insn 25).\n;; Need 4 regs of class ALL_REGS (for insn 25).\nSpilling reg 8.\nSpilling reg 9.\nSpilling reg 10.\nSpilling reg 11.\n;; Register dispositions:\n80 in 18  81 in 4  82 in 19  83 in 17  84 in 16  85 in 5  \n86 in 2  87 in 5  88 in 2  91 in 3  92 in 6  94 in 2  \n95 in 3  96 in 2  97 in 5  98 in 2  99 in 2  100 in 2  \n104 in 2  105 in 2  106 in 2  107 in 3  108 in 3  109 in 2  \n111 in 2  113 in 2  114 in 3  115 in 2  119 in 2  121 in 2  \n123 in 2  124 in 3  129 in 2  130 in 3  131 in 2  132 in 2  \n133 in 2  \n\n;; Hard regs used:  2 3 4 5 6 7 8 9 10 11 16 17 18 19 31\n\n",
+      "delay_sequences": [
+        ";; Insn is in multiple basic blocks\n(insn 327 129 131 (sequence[ \n            (jump_insn 130 129 118 (set (pc)\n                    (if_then_else (eq:SI (reg:SI 3 v1)\n                            (reg:SI 2 v0))\n                        (label_ref 155)\n                        (pc))) 245 {branch_equality} (insn_list:REG_DEP_ANTI 115 (insn_list:REG_DEP_ANTI 118 (insn_list 127 (insn_list 129 (nil)))))\n                (expr_list:REG_DEAD (reg:SI 2 v0)\n                    (nil)))\n            (insn 118 130 131 (set (reg/v:SI 16 s0)\n                    (reg/v:SI 17 s1)) 172 {movsi_internal2} (insn_list:REG_DEP_ANTI 115 (insn_list 75 (nil)))\n                (nil))\n        ] ) -1 (nil)\n    (nil))",
+        ";; Insn is in multiple basic blocks\n(insn 341 339 155 (sequence[ \n            (jump_insn 152 339 175 (set (pc)\n                    (if_then_else (ne:SI (reg:SI 3 v1)\n                            (reg:SI 2 v0))\n                        (label_ref 171)\n                        (pc))) 245 {branch_equality} (insn_list 151 (nil))\n                (expr_list:REG_DEAD (reg:SI 3 v1)\n                    (expr_list:REG_DEAD (reg:SI 2 v0)\n                        (nil))))\n            (insn/s 175 152 155 (set (reg:SI 4 a0)\n                    (reg/v:SI 17 s1)) 172 {movsi_internal2} (nil)\n                (expr_list:REG_DEAD (const_int 0)\n                    (nil)))\n        ] ) -1 (nil)\n    (nil))",
+        ";; Insn is in multiple basic blocks\n(insn 343 207 210 (sequence[ \n            (jump_insn 209 207 212 (set (pc)\n                    (if_then_else (eq:SI (reg/v:SI 3 v1)\n                            (const_int 0))\n                        (label_ref 266)\n                        (pc))) 243 {branch_zero} (insn_list:REG_DEP_ANTI 206 (insn_list 201 (nil)))\n                (nil))\n            (insn 212 209 210 (set (reg/v:SI 6 a2)\n                    (lshiftrt:SI (reg/v:SI 3 v1)\n                        (const_int 18))) 225 {lshrsi3} (nil)\n                (expr_list:REG_DEAD (const_int 0)\n                    (nil)))\n        ] ) -1 (nil)\n    (nil))"
+      ]
+    },
+    "base_3": {
+      "lreg_stats": [
+        "Register 83 used 8 times across 36 insns; crosses 1 call; GR_REGS or none; pointer.",
+        "Register 84 used 5 times across 23 insns; crosses 2 calls; GR_REGS or none; pointer."
+      ],
+      "global_header": "\n;; Function func_actor_400500_8013A700\n\n;; 11 regs to allocate: 96 130 91 114 95 83 84 81 97 80 82\n;; 80 conflicts: 80 81 82 83 84 91 95 96 97 114 130 2 3 4 5 6 7 29\n;; 81 conflicts: 80 81 82 95 96 97 130 2 29\n;; 82 conflicts: 80 81 82 83 84 91 95 96 97 114 130 2 3 4 5 6 7 29\n;; 83 conflicts: 80 82 83 84 114 2 3 4 5 6 7 29\n;; 84 conflicts: 80 82 83 84 114 2 4 5 6 7 29\n;; 91 conflicts: 80 82 91 29\n;; 91 preferences: 3 6\n;; 95 conflicts: 80 81 82 95 96 97 2 29\n;; 96 conflicts: 80 81 82 95 96 97 29\n;; 96 preferences: 2\n;; 97 conflicts: 80 81 82 95 96 97 29\n;; 114 conflicts: 80 82 83 84 114 2 29\n;; 130 conflicts: 80 81 82 130 2 29\n\n;; Need 4 regs of class GR_REGS (for insn 25).\n;; Need 4 regs of class ALL_REGS (for insn 25).\nSpilling reg 8.\nSpilling reg 9.\nSpilling reg 10.\nSpilling reg 11.\n;; Need 4 regs of class GR_REGS (for insn 25).\n;; Need 4 regs of class ALL_REGS (for insn 25).\nSpilling reg 8.\nSpilling reg 9.\nSpilling reg 10.\nSpilling reg 11.\n;; Register dispositions:\n80 in 18  81 in 4  82 in 19  83 in 16  84 in 17  85 in 5  \n86 in 2  87 in 5  88 in 2  91 in 3  92 in 6  94 in 2  \n95 in 3  96 in 2  97 in 5  98 in 2  99 in 2  100 in 2  \n104 in 2  105 in 2  106 in 2  107 in 3  108 in 3  109 in 2  \n111 in 2  113 in 2  114 in 3  115 in 2  119 in 2  121 in 2  \n123 in 2  124 in 3  129 in 2  130 in 3  131 in 2  132 in 2  \n133 in 2  \n\n;; Hard regs used:  2 3 4 5 6 7 8 9 10 11 16 17 18 19 31\n\n",
+      "delay_sequences": [
+        ";; Insn is in multiple basic blocks\n(insn 331 133 135 (sequence[ \n            (jump_insn 134 133 122 (set (pc)\n                    (if_then_else (eq:SI (reg:SI 3 v1)\n                            (reg:SI 2 v0))\n                        (label_ref 159)\n                        (pc))) 245 {branch_equality} (insn_list:REG_DEP_ANTI 119 (insn_list:REG_DEP_ANTI 122 (insn_list 131 (insn_list 133 (nil)))))\n                (expr_list:REG_DEAD (reg:SI 2 v0)\n                    (nil)))\n            (insn 122 134 135 (set (reg/v:SI 17 s1)\n                    (reg/v:SI 16 s0)) 172 {movsi_internal2} (insn_list:REG_DEP_ANTI 119 (insn_list 79 (nil)))\n                (nil))\n        ] ) -1 (nil)\n    (nil))",
+        ";; Insn is in multiple basic blocks\n(insn 345 343 159 (sequence[ \n            (jump_insn 156 343 179 (set (pc)\n                    (if_then_else (ne:SI (reg:SI 3 v1)\n                            (reg:SI 2 v0))\n                        (label_ref 175)\n                        (pc))) 245 {branch_equality} (insn_list 155 (nil))\n                (expr_list:REG_DEAD (reg:SI 3 v1)\n                    (expr_list:REG_DEAD (reg:SI 2 v0)\n                        (nil))))\n            (insn/s 179 156 159 (set (reg:SI 4 a0)\n                    (reg/v:SI 16 s0)) 172 {movsi_internal2} (nil)\n                (expr_list:REG_DEAD (const_int 0)\n                    (nil)))\n        ] ) -1 (nil)\n    (nil))",
+        ";; Insn is in multiple basic blocks\n(insn 347 211 214 (sequence[ \n            (jump_insn 213 211 216 (set (pc)\n                    (if_then_else (eq:SI (reg/v:SI 3 v1)\n                            (const_int 0))\n                        (label_ref 270)\n                        (pc))) 243 {branch_zero} (insn_list:REG_DEP_ANTI 210 (insn_list 205 (nil)))\n                (nil))\n            (insn 216 213 214 (set (reg/v:SI 6 a2)\n                    (lshiftrt:SI (reg/v:SI 3 v1)\n                        (const_int 18))) 225 {lshrsi3} (nil)\n                (expr_list:REG_DEAD (const_int 0)\n                    (nil)))\n        ] ) -1 (nil)\n    (nil))"
+      ]
+    },
+    "cse_copy": "(insn 118 116 119 (set (reg/v:SI 84)\n        (reg/v:SI 83)) 172 {movsi_internal2} (nil)\n    (nil))",
+    "compiler_source": {
+      "file": "local/gcc/gcc-2.8.1-psx/reorg.c",
+      "sha256": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+      "function": "stop_search_p",
+      "lines": "680-715",
+      "rule": "All ASM_INPUT and asm_noperands >= 0 stop delay-slot search; changing volatile alone does not make an asm copy eligible."
+    }
+  },
+  "integration": "./tools/build-and-verify.sh: BUILD SUCCEEDED; ten-entry state table retained with force_not_migration:True and INCLUDE_RODATA; no other overlay copies.",
+  "unresolved": "Original C spelling is unknown; the conditional touch preserves runtime pointer value but controls optimizer knowledge. No outstanding codegen mismatch."
+}

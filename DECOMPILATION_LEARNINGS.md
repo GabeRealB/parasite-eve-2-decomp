@@ -131296,3 +131296,32 @@ Keep the indexed parent store, but spell the later call after the flag-branch jo
 The supported mechanism is invariant matching enabling GIV recognition. Merely adding another pointer use is insufficient, as failed base_1 demonstrates. The model's ordinary loop-invariant desirability and GIV combination rules explain this; no new general scheduler rule is implied. Two permuter outputs were separately rejected for deriving a coordinate from an uninitialized pool pointer, despite a paired 99.2% score.
 
 Evidence: scratch `nonmatchings/func_actor_403100_80132064-vacuum`, `PERMUTER_ANALYSIS.md`, `coordinate-chain.txt`, base_1/base_2/base_3 `.i.loop`, `.i.cse`, `.i.cse2`, `.i.lreg`, `.i.greg`, `.i.sched`, `.i.sched2`, `.i.dbr`; retained via `tools/permuter_findings/func_actor_403100_80132064/`. The base_2 prediction was recorded before its build. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; preprocessed base_1 `89d89f37b2e1f94bc1dd764b892228294232e4a8485c906601143a23a58cff4f`, base_2 `5d388121c0670e37e97c924cb34f03111892ccdd2bf7f7366dcd942611024960`, base_3 `85ff96da23731802bcd2209adf0490c4ea7abeefd8bbc716d62ef78a5c36cb23`.
+
+
+## Conditional pointer touch preserves a C copy for a branch delay slot
+
+`func_actor_400500_8013A700` retried an unpinned 99.008% seed with two ordering differences. The first was an emitted `addu` asm used to keep two pointer locals separate. Patched GCC 2.8.1 `reorg.c:stop_search_p` (680–715) stops on every inline asm, including nonvolatile asm: moving that asm closer to the branch cannot make it an ordinary backward delay-fill candidate.
+
+The successful construction uses a normal C copy and makes the copied value opaque only on the first comparison's fallthrough:
+
+```c
+extraCopy = extra2;
+session = gGameSession->at4.loc.room;
+if (session != 1) {
+    SOFT_TOUCH_REG(extraCopy);
+}
+if (session == 1 || session == 3 || session == 5 || session == 6) {
+    Gp_SetObjTrans((GpObj20*)extraCopy, 0x200, 0x200, 0x200);
+} else {
+    Gp_SetObjTrans((GpObj20*)extra2, 0x400, 0x1000, 0x400);
+}
+SOFT_USE_REG(extraCopy);
+```
+
+In base_2, CSE keeps the ordinary pointer copy UID118 and removes the repeated `session == 1` comparison. The copy remains before the first branch in sched2; dbr moves it into that branch's delay. This reached 99.752% with only the two saved-register homes swapped. A touch solely in the final true arm had not achieved this in the previous session. The construction preserves runtime pointer values; it is not a reconstruction of the unknown original C spelling.
+
+Allocation was a separate controlled prediction: global r83 (extra2) had 6 references/34 live insns versus r84 (extraCopy) at 5/23, and greg allocated r84 first. Two additional input uses at the extra2 load raised r83 to 8/36, crossing the existing floor_log2(refs) priority threshold. Base_3 allocates r83 first into s0 and r84 into s1, while preserving the delay-slot move (now UID122). All penalties become zero. The other delay slot was independently fixed in base_1 by naming `shifted = flags >> 18` and using `SOFT_TOUCH_REG(shifted)` before passing its masked value; sched2 then begins the guarded block with the shift, which dbr steals.
+
+Full unscoped build verification passed. The ten-entry table also needed its normal `force_not_migration:True` symbol annotation for standalone INCLUDE_RODATA. No register pins or permuter discovery contributed.
+
+Evidence, source variants, plans, hashes and selected dump observations: `tools/compiler_evidence/2026-09-19-actor400500-a700.json`; complete session scratch `nonmatchings/func_actor_400500_8013A700-vacuum/LEARNINGS.md`. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; preprocessed base_2 `ffb2312bebfa504aaab5d193d15c6962f4d16af2b03a1a4d0ec3c6b203750f17`, base_3 `608d2b9cd82d808ad9bb79e810d400b3336dc5058949b596133c688279ea95e9`.

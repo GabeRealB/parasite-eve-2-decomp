@@ -180,6 +180,9 @@ typedef struct Actor400500Work {
 } Actor400500Work;
 STATIC_ASSERT_SIZEOF(Actor400500Work, 0xA50);
 
+extern u8              D_801153F4;
+extern TaskFuncTable10 D_actor_400500_80131F7C;
+
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 void ActorsShared80132c4c(MATRIX* src, MATRIX* dst);
 

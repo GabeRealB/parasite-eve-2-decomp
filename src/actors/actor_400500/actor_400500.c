@@ -4,6 +4,7 @@
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -2810,7 +2811,75 @@ void func_actor_400500_8013A5D8(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013A700);
+INCLUDE_RODATA("actors/nonmatchings/actor_400500/actor_400500", D_actor_400500_80131F7C);
+
+void func_actor_400500_8013A700(Task* arg0)
+{
+    TmdObject*       extra;
+    Actor400500Work* work;
+    TaskFuncTable10  sp;
+    TmdObject*       extra2;
+    TmdObject*       extraCopy;
+    u8*              head;
+    u8*              head2;
+    VECTOR*          block;
+    GsCOORDINATE2*   coord;
+    u8               session;
+    u16              a28;
+    u32              flags;
+    u32              shifted;
+
+    extra = (TmdObject*)arg0->extra;
+    work  = (Actor400500Work*)arg0->work;
+    sp    = D_actor_400500_80131F7C;
+    switch (D_801153F4) {
+        case 2:
+            extra->flags |= 0x80;
+            return;
+        case 0:
+            sp.funcs[(s16)work->field_A06](arg0);
+        case 1:
+            extra2 = (TmdObject*)arg0->extra;
+            SOFT_USE_REG(extra2);
+            SOFT_USE_REG(extra2);
+            SOFT_USE_REG(extra2);
+            SOFT_USE_REG(extra2);
+            coord = extra2->coords;
+            __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
+            head                      = *(u8**)(head + 0x3FC);
+            coord                     = coord + 1;
+            ((VECTOR*)head)[-1].vx    = coord->workm.t[0];
+            block                     = (VECTOR*)(head - 0x10);
+            block->vy                 = coord->workm.t[1];
+            block->vz                 = coord->workm.t[2];
+            *(VECTOR**)G_SCRATCH_HEAD = block;
+            Gp_UpdateActorColor(arg0->spawnArg2, block, 0, 0);
+            extraCopy = extra2;
+            session   = gGameSession->at4.loc.room;
+            if (session != 1) {
+                SOFT_TOUCH_REG(extraCopy);
+            }
+            if ((session == 1) || (session == 3) || (session == 5) || (session == 6)) {
+                Gp_SetObjTrans((GpObj20*)extraCopy, 0x200, 0x200, 0x200);
+            } else {
+                Gp_SetObjTrans((GpObj20*)extra2, 0x400, 0x1000, 0x400);
+            }
+            SOFT_USE_REG(extraCopy);
+            __asm__ volatile("lui %0, 0x1F80" : "=r"(head2) : "r"(work));
+            head2                 = *(u8**)(head2 + 0x3FC);
+            a28                   = work->field_A28;
+            head2                += 0x10;
+            flags                 = (u32)a28 << 0x10;
+            *(u8**)G_SCRATCH_HEAD = head2;
+            if (flags != 0) {
+                shifted = flags >> 0x12;
+                SOFT_TOUCH_REG(shifted);
+                func_actor_400500_80132AB0(arg0, -0xFA0, shifted & 0xFF);
+                func_actor_400500_80132AB0(arg0, -0x3E8, (u8)work->field_A28);
+            }
+            return;
+    }
+}
 
 void func_actor_400500_8013A8E4(Task* arg0)
 {
