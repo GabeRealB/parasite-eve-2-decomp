@@ -131,13 +131,13 @@ s32 func_replay_bonus_801173A8(void)
     } while (0);
 
     save = &Mc_SaveData;
-    idx += save->field_F;
+    idx += save->gameMode;
     i    = 0;
     if (idx >= 0xD) {
         idx = 0xC;
     }
     one  = 1;
-    mask = save->field_934;
+    mask = save->shopTiers;
     do {
         if ((mask & (one << idx)) == 0) {
             return idx;
@@ -183,13 +183,13 @@ s16 func_replay_bonus_80117484(s32 arg0, s32 arg1)
         } while (0);
 
         save = &Mc_SaveData;
-        idx += save->field_F;
+        idx += save->gameMode;
         i    = 0;
         if (idx >= 0xD) {
             idx = 0xC;
         }
         one  = 1;
-        mask = save->field_934;
+        mask = save->shopTiers;
         do {
         loop2:
             if ((mask & (one << idx)) == 0) {

@@ -283,7 +283,7 @@ extern GpItemRec8 D_80113E10[];
 extern GpItemRec8 D_80113E28[];
 
 /// 0x30-byte play-clock work `Gp_InitPlayClock` stores at `Task::work`.
-/// `field_0` / `field_4` are `Mc_SaveData.field_C` split into minutes and
+/// `field_0` / `field_4` are `Mc_SaveData.playTime` split into minutes and
 /// seconds. `field_8` snapshots `gDisplayState.gameTick`. `extra` is the
 /// +0xC overlay passed to `Gp_ResetHudFx`.
 typedef struct _GpIdMap30 {

@@ -410,7 +410,7 @@ void Gp_StepCdAudioCmd(void)
             if (cmd != 0x81) {
                 break;
             }
-            save23       = Mc_SaveData.field_23;
+            save23       = Mc_SaveData.demoScene;
             p->field_20E = one;
             if (save23 != 0) {
                 SndEvt_EnqueueType6(0, 0, 0);
@@ -435,7 +435,7 @@ void Gp_StepCdAudioCmd(void)
             if (CdAudio_Phase.field_1 != 4) {
                 break;
             }
-            if (Mc_SaveData.field_23 != 0) {
+            if (Mc_SaveData.demoScene != 0) {
                 SndEvt_EnqueueType6(0, 0, 0);
             }
             Mem_Set(&p->field_40, 0, 0x10);
@@ -2148,7 +2148,7 @@ void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
     u8          op;
     s32         setIdx;
 
-    if (Mc_SaveData.field_23 == 1) {
+    if (Mc_SaveData.demoScene == 1) {
         u8  idx;
         s32 off;
 
@@ -2642,7 +2642,7 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
     u16            id;
     s32            i;
 
-    rec   = Mc_SaveData.field_28;
+    rec   = Mc_SaveData.enemyPoses;
     loc   = (GpAreaKey*)&Mc_SaveData.at4.loc.view;
     extra = (TmdObject*)arg0->task->extra;
     coord = (GsCOORDINATE2*)extra->coords;
@@ -2661,7 +2661,7 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
         register void* tmp asm("v0");
 
         scratch  = (void**)G_SCRATCH_HEAD;
-        rec      = Mc_SaveData.field_28;
+        rec      = Mc_SaveData.enemyPoses;
         tmp      = *scratch;
         i        = 0;
         tmp      = (u8*)tmp - 8;
@@ -2677,7 +2677,7 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
         u32          hi;
         register u32 key asm("v1");
 
-        rec  = Mc_SaveData.field_28;
+        rec  = Mc_SaveData.enemyPoses;
         i    = 0;
         hi   = loc->stage;
         key  = loc->area;
@@ -2757,7 +2757,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                         s32          t;
                         s32          lo;
 
-                        rec   = Mc_SaveData.field_28;
+                        rec   = Mc_SaveData.enemyPoses;
                         found = 0;
                         j     = found;
                         key   = packed >> 12;
@@ -2812,7 +2812,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                             } else {
                                 McPosRec* rec;
 
-                                rec = Mc_SaveData.field_28;
+                                rec = Mc_SaveData.enemyPoses;
                                 i   = 0;
                                 do {
                                     if (rec->placeKey == enemy->placeKey) {
@@ -2979,7 +2979,7 @@ void func_800B51F4(Task* task)
     if (task->spawnArg1 == 0x10) {
         count = 2;
     }
-    if (Mc_SaveData.field_23 == 1) {
+    if (Mc_SaveData.demoScene == 1) {
         return;
     }
 
@@ -3257,7 +3257,7 @@ void func_800B5A48(GpAreaKey* arg0, GpAreaObj* arg1)
     if (arg1->field_1 & 1) {
         arg1->field_1 &= 0xFC;
         i              = 0x1F;
-        recs           = Mc_SaveData.field_28;
+        recs           = Mc_SaveData.enemyPoses;
         do {
             if ((recs[i].placeKey & 0xFFF) == ((arg0->stage << 8) | arg0->area)) {
                 if (i != 0x1F) {
@@ -3739,9 +3739,9 @@ void func_800B65B0(Task* task)
                 gDisplayState.gameMode = 0xFF;
                 cfg                    = &Player_Status;
                 save                   = &Mc_SaveData;
-                save->field_14         = cfg->exp;
-                save->field_18         = cfg->bp;
-                save->field_12         = Gp_PubItemLoc;
+                save->playerExp        = cfg->exp;
+                save->playerBp         = cfg->bp;
+                save->savePoint        = Gp_PubItemLoc;
                 Stage_InitPrimBufOnce();
                 desc = &D_8010D348;
                 break;
@@ -3976,7 +3976,7 @@ void Gp_ApplyItemMap(void)
     s32          mapped;
 
     i     = 0;
-    slots = Mc_SaveData.field_1C8;
+    slots = (GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400);
     qty0  = Gp_RelatedQty0;
     qty1  = Gp_RelatedQty1;
     for (i = 0; i < 8; i++) {
@@ -4015,12 +4015,12 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
     s32*        counts;
     s32*        counter;
     McSaveData* save;
+    s32         count;
     s32         off8;
     s32         off4;
-    s32         count;
 
     off8    = arg0 << 3;
-    slots   = Mc_SaveData.field_1C8;
+    slots   = (GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400);
     slot    = (GpItemSlot*)(off8 + (s32)slots);
     off4    = arg0 << 2;
     counts  = (s32*)((s32)slots + 0x4C0);
@@ -4030,9 +4030,9 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
         if (slot->ammoId != 0) {
             count = slot->ammoQty;
             if (count != 0) {
-                if (Mc_SaveData.field_5C2 == 0) {
+                if (Mc_SaveData.cheatMode == 0) {
                     slot->ammoQty = count - 1;
-                    Gp_ConsumeScanQty(&Mc_SaveData.field_5BC, slot->ammoId, 1);
+                    Gp_ConsumeScanQty(&Mc_SaveData.carriedItems, slot->ammoId, 1);
                     count = *counter;
                     if (count <= 0xF423E) {
                         *counter = count + 1;
@@ -4049,9 +4049,9 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
                 count = slot->attachQty;
                 if (count != 0) {
                     save = &Mc_SaveData;
-                    if (save->field_5C2 == 0) {
+                    if (save->cheatMode == 0) {
                         slot->attachQty = count - 1;
-                        Gp_ConsumeScanQty(&save->field_5BC, slot->attachId, 1);
+                        Gp_ConsumeScanQty(&save->carriedItems, slot->attachId, 1);
                         count = *counter;
                         if (count <= 0xF423E) {
                             *counter = count + 1;
@@ -4080,7 +4080,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     s32         have;
     s32         shifted;
 
-    scan  = &Mc_SaveData.field_5BC;
+    scan  = &Mc_SaveData.carriedItems;
     table = Gp_GetItemTable(scan);
     if ((u32)(arg1 - 0x80) < 0x20U) {
         found = 0;
@@ -4152,7 +4152,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                     arg3 = clamped;
                 }
                 index2 = scan->firstRow;
-                slot   = &Mc_SaveData.field_1C8[arg1];
+                slot   = &((GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg1];
                 have   = (s16)Gp_FindScanQty(table, scan, &index2, arg2);
                 have  -= Gp_CountEquippedRelated(scan, arg2);
                 if (arg0 == 0) {
@@ -4306,7 +4306,7 @@ s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
             arg3 = clamped;
         }
         index2 = arg0->firstRow;
-        slot   = &Mc_SaveData.field_1C8[arg1];
+        slot   = &((GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg1];
         have   = (s16)Gp_FindScanQty(table, arg0, &index2, arg2);
         have  -= Gp_CountEquippedRelated(arg0, arg2);
         if (slot->ammoId == arg2) {

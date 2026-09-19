@@ -3951,7 +3951,7 @@ void func_actor_403000_8013C864(GpEnemy* arg0, Actor403000* arg1)
     }
     if (work->field_FC0 == 1) {
         work->field_FCC++;
-        if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + D_80073BA9]) {
+        if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + D_80073BA9]) {
             switch (work->field_F94) {
                 case 1:
                     if (work->field_FCC == 42) {
@@ -4003,7 +4003,7 @@ void func_actor_403000_8013C864(GpEnemy* arg0, Actor403000* arg1)
         }
         if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
             work->field_FCC = 0;
-            if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + D_80073BA9]) {
+            if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + D_80073BA9]) {
                 switch (work->field_F94) {
                     case 1:
                         work->field_F94 = 2;
@@ -4029,7 +4029,7 @@ void func_actor_403000_8013C864(GpEnemy* arg0, Actor403000* arg1)
                     case 2:
                     case 4:
                     case 6:
-                        work->field_F90 = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + D_80073BA9];
+                        work->field_F90 = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + D_80073BA9];
                         work->field_F94 = 7;
                         work->field_F9C = 0x10;
                         work->field_F98 = 0;

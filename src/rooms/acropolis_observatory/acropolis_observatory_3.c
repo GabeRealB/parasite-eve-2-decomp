@@ -68,7 +68,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
             ((AobStreamWork*)task->work)->target = gameGetPtrSlot(3);
             ((AobStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             weaponId                             = Player_Status.weapon;
-            rec.field_0                          = (Mc_SaveData.field_22 == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.field_0                          = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.field_4                          = 1;
             rec.field_8                          = 0;
             rec.field_C                          = 0;
@@ -177,7 +177,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
             ((AobStreamWork*)task->work)->target = gameGetPtrSlot(3);
             ((AobStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             weaponId                             = Player_Status.weapon;
-            rec.field_0                          = (Mc_SaveData.field_22 == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.field_0                          = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.field_4                          = 1;
             rec.field_8                          = 0;
             rec.field_C                          = 0;

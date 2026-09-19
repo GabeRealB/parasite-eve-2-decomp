@@ -384,7 +384,7 @@ void Gp_EnqueueConfigCd(s32 arg0)
     GpTbl5 table;
 
     table = Gp_ConfigCdTable;
-    if (Mc_SaveData.field_22 != 0) {
+    if (Mc_SaveData.characterId != 0) {
         param1[3] = 0;
         param1[2] = 1;
         param1[0] = 0;
@@ -489,7 +489,7 @@ void Gp_EnqueueCompanionCd(s32 arg0, s32 arg1)
         CdCmd_Enqueue(0x21, param1, param2);
         if ((u8)flag == 5) {
             gGameSession->companionVariant = 3;
-            Mc_SaveData.field_5C7          = 3;
+            Mc_SaveData.companionVariant   = 3;
         }
     }
 
@@ -747,8 +747,8 @@ void func_800AA548(s32 arg0)
     if (Player_Status.hp <= 0) {
         Player_Status.hp = 1;
     }
-    if ((Mc_SaveData.field_13 != 0) && ((s16)Mc_SaveData.field_6C8 <= 0)) {
-        Mc_SaveData.field_6C8 = 1;
+    if ((Mc_SaveData.companionType != 0) && ((s16)Mc_SaveData.companionHp <= 0)) {
+        Mc_SaveData.companionHp = 1;
     }
     Gp_LoadRoomParams();
     gGameSession->cutsceneHold = 0;
@@ -775,18 +775,18 @@ void func_800AA548(s32 arg0)
     Gp_ActorSlots[0] = NULL;
     Gp_ActorSlots[1] = NULL;
     if (gDisplayState.at100.flags.pendingPlayerPos == 1) {
-        pos                = &D_80073B18[Mc_SaveData.field_22];
+        pos                = &D_80073B18[Mc_SaveData.characterId];
         D_80114CB0.field_0 = (s32)pos->field_6;
         D_80114CB0.field_4 = (s32)pos->field_0;
         D_80114CB0.field_8 = (s32)pos->field_2;
         D_80114CB0.field_C = (s32)pos->field_4;
         flags.field_0      = 0x23;
         flags.field_2      = 0;
-        Gp_SpawnPlayer((GpActorArg*)&D_80114CB0, Mc_SaveData.field_22 & 0xFFFF, 0, &flags);
+        Gp_SpawnPlayer((GpActorArg*)&D_80114CB0, Mc_SaveData.characterId & 0xFFFF, 0, &flags);
         Gp_SetupCompanionActor((GpActorArg*)&rec.field_14, &flags.field_0);
         gDisplayState.at100.flags.pendingPlayerPos = 0;
     } else {
-        playerId      = (u8)Mc_SaveData.field_22;
+        playerId      = (u8)Mc_SaveData.characterId;
         flags.field_0 = 1;
         flags.field_2 = rec.field_35 & 1;
         Gp_SpawnPlayer((GpActorArg*)&rec, (s8)playerId & 0xFFFF, 0, &flags);
@@ -803,8 +803,8 @@ void func_800AA548(s32 arg0)
     Game_SetPtrSlot(Task_Spawn(6, 4, 0, 0), 5);
     Task_Spawn(9, 6, 0, 0);
     Task_Spawn(9, 0x11, 0, 0);
-    if ((Mc_SaveData.field_23 != 0) && (Mc_SaveData.field_23 != 0xB)) {
-        Task_Spawn((s32)Mc_SaveData.field_23, 1, 0, 0);
+    if ((Mc_SaveData.demoScene != 0) && (Mc_SaveData.demoScene != 0xB)) {
+        Task_Spawn((s32)Mc_SaveData.demoScene, 1, 0, 0);
     }
     Gp_SpawnPlaces(sess);
     Gp_SpawnArea((GpAreaKey*)sess);
@@ -888,13 +888,13 @@ void Gp_LoadWaitBoot(Task* task)
         Mem_Set(Stream_Slots, 0, sizeof(Stream_Slots));
         session = gGameSession;
         save    = &Mc_SaveData;
-        if (session->loadedWeaponFamily != save->field_22 || session->loadedConfigSet != Player_Status.field_26) {
+        if (session->loadedWeaponFamily != save->characterId || session->loadedConfigSet != Player_Status.field_26) {
             GameSession* sess;
 
             Gp_EnqueueConfigCd(0);
             Gp_EnqueueHeldWeaponCd();
             sess                     = gGameSession;
-            sess->loadedWeaponFamily = save->field_22;
+            sess->loadedWeaponFamily = save->characterId;
             sess->loadedConfigSet    = Player_Status.field_26;
         }
         Gp_EnqueueAttach7Cd();
@@ -1093,7 +1093,7 @@ void Gp_LoadWaitCompanion(Task* task)
         if ((u8)flag) {
             gGameSession->companionType = flag;
             save                        = &Mc_SaveData;
-            Gp_EnqueueCompanionCd((u8)save->field_13, (u8)save->field_5C7);
+            Gp_EnqueueCompanionCd((u8)save->companionType, (u8)save->companionVariant);
         }
         task->state++;
     }
@@ -1245,7 +1245,7 @@ void Gp_LoadWaitAreaCd(Task* task)
             ds2 = &gDisplayState;
             Gp_DrawActorTmdActive(&Gpu_OtBuffers[ds2->drawBuffer]);
             task->state++;
-            if (Mc_SaveData.field_5C3 != 0) {
+            if (Mc_SaveData.interlace != 0) {
                 ds2->dispEnv[1].isinter = 1;
                 ds2->dispEnv[0].isinter = 1;
             }
@@ -1300,15 +1300,15 @@ void Gp_InitStageVisit(GpAreaKey* arg0)
 
     banks = Gp_FlagBanks;
     save  = &Mc_SaveData;
-    if ((save->field_10 & 1) == 0) {
-        save->field_10 = 1;
+    if ((save->visitFlags & 1) == 0) {
+        save->visitFlags = 1;
         Gp_ClearAllFlagNibbles();
         Gp_ApplyNewGameAreaFlags();
-        save->field_6CA = 0x64;
-        save->field_6C8 = 0x64;
+        save->companionHpMax = 0x64;
+        save->companionHp    = 0x64;
         func_800B8014();
     }
-    if ((((s8)save->field_10 >> arg0->stage) & 1) == 0) {
+    if ((((s8)save->visitFlags >> arg0->stage) & 1) == 0) {
         bank             = banks[arg0->stage];
         bank->field_4[0] = 0;
         bank->field_4[1] = 0;
@@ -1338,9 +1338,9 @@ s32 Gp_PickCompanion(void)
     if (bytes != NULL) {
         if (D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage) {
             if (bytes[save->at4.loc.area - 1] != 0) {
-                sess            = gGameSession;
-                save->field_13  = 2;
-                save->field_5C7 = 0;
+                sess                   = gGameSession;
+                save->companionType    = 2;
+                save->companionVariant = 0;
                 return (sess->companionType != 2) * 2;
             }
         }
@@ -1351,17 +1351,17 @@ s32 Gp_PickCompanion(void)
         if (D_801141F0[GameFlag_GetNibble(0x4C)].field_4 == stage) {
             p = &Mc_SaveData;
             if (bytes[p->at4.loc.area - 1] & 0xF) {
-                session     = gGameSession;
-                p->field_13 = 1;
+                session          = gGameSession;
+                p->companionType = 1;
                 if (session->companionType == 1) {
                     hi = bytes[p->at4.loc.area - 1] >> 4;
                     if (session->companionVariant == hi) {
-                        p->field_5C7 = hi;
+                        p->companionVariant = hi;
                         return 0;
                     }
                 }
                 q                              = &Mc_SaveData;
-                q->field_5C7                   = bytes[q->at4.loc.area - 1] >> 4;
+                q->companionVariant            = bytes[q->at4.loc.area - 1] >> 4;
                 gGameSession->companionVariant = bytes[q->at4.loc.area - 1] >> 4;
                 return 1;
             }
@@ -1373,9 +1373,9 @@ s32 Gp_PickCompanion(void)
         if (D_80114248[GameFlag_GetNibble(0x4D)].field_4 == stage) {
             p = &Mc_SaveData;
             if (bytes[p->at4.loc.area - 1] != 0) {
-                session      = gGameSession;
-                p->field_13  = 3;
-                p->field_5C7 = 0;
+                session             = gGameSession;
+                p->companionType    = 3;
+                p->companionVariant = 0;
                 if (session->companionType == 3) {
                     return 0;
                 }
@@ -1384,8 +1384,8 @@ s32 Gp_PickCompanion(void)
         }
     }
 
-    Mc_SaveData.field_13           = 0;
-    Mc_SaveData.field_5C7          = 0;
+    Mc_SaveData.companionType      = 0;
+    Mc_SaveData.companionVariant   = 0;
     gGameSession->companionType    = 0;
     gGameSession->companionVariant = 0;
     return 0;
@@ -1440,10 +1440,10 @@ void Gp_SetupCompanionActor(GpActorArg* arg0, u16* arg1)
     s32         field;
 
     save  = &Mc_SaveData;
-    field = save->field_13;
+    field = save->companionType;
     if (field != 0) {
         if (field == 2) {
-            Gp_SpawnAlly(arg0, save->field_13, GameFlag_GetNibble(0x4B), arg1);
+            Gp_SpawnAlly(arg0, save->companionType, GameFlag_GetNibble(0x4B), arg1);
         } else {
             Gp_SpawnAlly(arg0, field, 0, arg1);
         }
@@ -1470,8 +1470,8 @@ void Gp_MarkAreaVisited(GpAreaKey* arg0)
 
     bank = Gp_FlagBanks[arg0->stage];
     save = &Mc_SaveData;
-    if ((((s8)save->field_10 >> arg0->stage) & 1) == 0) {
-        save->field_10 |= 1 << arg0->stage;
+    if ((((s8)save->visitFlags >> arg0->stage) & 1) == 0) {
+        save->visitFlags |= 1 << arg0->stage;
         if (gDisplayState.field_112 != 0) {
             func_80724E2C();
         }
@@ -2742,7 +2742,7 @@ void Gp_ApplyAreaRecs(GpAreaApplyRec* arg0)
             if (mask == 0) {
                 goto set_apply;
             }
-            mode = save->field_F;
+            mode = save->gameMode;
             if (mode == 0 || mode == 2) {
                 expected = 0x10;
                 goto cmp;

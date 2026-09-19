@@ -390,7 +390,7 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
             return;
         case 2:
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData.field_5C5     = 1;
+            Mc_SaveData.sceneEvent    = 1;
             Mc_SaveData.at4.loc.stage = 1;
             Mc_SaveData.at4.loc.area  = 0x12;
             Mc_SaveData.at4.loc.warp  = 1;

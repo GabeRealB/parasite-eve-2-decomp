@@ -40,7 +40,7 @@ void func_actor_142900_80131E24(Task* arg0)
 
 void func_actor_142900_80131F5C(void)
 {
-    if (Mc_SaveData.field_23 != 9) {
+    if (Mc_SaveData.demoScene != 9) {
         Gp_ApplyAreaRecs(&D_8017E9F8);
         GameFlag_SetNibble(0x4C, 0);
         Mc_SaveData.at4.loc.area = 0x1B;

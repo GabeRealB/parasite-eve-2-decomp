@@ -76,7 +76,7 @@ typedef struct MistShootingGalleryRating {
 } MistShootingGalleryRating;
 STATIC_ASSERT_SIZEOF(MistShootingGalleryRating, 0x8);
 
-/// The four ratings one DATA row can show, indexed by `Mc_SaveData::field_F`
+/// The four ratings one DATA row can show, indexed by `Mc_SaveData::gameMode`
 /// (the difficulty the save runs at). `func_mist_shooting_gallery_8017F128`
 /// copies a whole table onto its stack before indexing it, like the round and
 /// mode tables above.

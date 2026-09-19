@@ -68,7 +68,7 @@ typedef struct _McWork {
 
 /// One row of an item table: the item it holds, the attachment slot that item
 /// occupies and its stack count. The tables a `McItemScan` chooses between
-/// (`Mc_SaveData.field_1AC`, `Gp_ItemTable1`, `Gp_ItemTable2`) are arrays of
+/// (`Mc_SaveData.itemRows`, `Gp_ItemTable1`, `Gp_ItemTable2`) are arrays of
 /// these rows. A non-zero `attachSlot` marks the row as in use: 1..n is the
 /// slot the item occupies in the equipped weapon's or armour's attachment list,
 /// and -1 marks the row whose item is the equipped armour itself.
@@ -94,20 +94,20 @@ STATIC_ASSERT_SIZEOF(McItemSlot, 0x8);
 /// Window on the rows of an item table an inventory operation works on: which
 /// table, the first row and how many rows. The tables it selects between hold
 /// `McItemRec` rows, and each place the game stores items keeps its own window.
-/// `Mc_SaveData.field_5BC` holds the window on the items the player carries, so
+/// `Mc_SaveData.carriedItems` holds the window on the items the player carries, so
 /// the menus act on that window instead of on a whole table; a scan can also be
 /// built locally to search a wider run of rows.
 typedef struct {
     u8 firstRow; // First row of the window
     u8 rowCount; // Number of rows the window covers
-    u8 table;    // Table the window lies in (0 `Mc_SaveData.field_1AC`, 1 `Gp_ItemTable1`, 2 `Gp_ItemTable2`)
+    u8 table;    // Table the window lies in (0 `Mc_SaveData.itemRows`, 1 `Gp_ItemTable1`, 2 `Gp_ItemTable2`)
     u8 field_3;  // Nothing reads or writes it; role unproven
 } McItemScan;
 STATIC_ASSERT_SIZEOF(McItemScan, 0x4);
 
 /// One saved pose of a placed enemy: the position and rotation it had when it
 /// was taken out of the world, and the state it is to be resumed in.
-/// `Mc_SaveData.field_28` holds a fixed run of these, filed by
+/// `Mc_SaveData.enemyPoses` holds a fixed run of these, filed by
 /// `Gp_SaveEnemyPose` and read back by `Gp_SpawnArea`, so an area the player
 /// returns to puts the enemy back where they left it - and an enemy the table
 /// holds no record for is not put back at all.
@@ -128,81 +128,78 @@ typedef struct {
 } McPosRec;
 STATIC_ASSERT_SIZEOF(McPosRec, 0xC);
 
-/// BSS object Mc_SaveData. Large; only fields used so far are named.
-/// field_12 is a slot/index validated by Mc_VerifySaveHdrChecksum (must be 1..16).
-/// field_1C / field_1E are a sum / ones-complement pair over the 0x38 bytes
-/// starting at `at4` (written by Mc_WriteSaveHdrChecksum, verified by
-/// Mc_VerifySaveHdrChecksum). field_93C is a save-data checksum halfword
-/// compared by Mc_CompareSaveChecksum. field_940 / field_942 are a sum /
-/// ones-complement pair over the first byte of Mc_BufferSlots[1..8] buffers
-/// (written by Mc_WriteFirstByteChecksum).
-typedef struct _McSaveData {
-    /* 0x000 */ byte       unknown_0[0x4];
-    /* 0x004 */ GameLoc    at4;      // saved copy of the session place key
-    /* 0x00C */ u16        field_C;
-    /* 0x00E */ s8         field_E;  // *2/5 scale for Gp_IdParamHi[i].field[0] (func_800D50D4)
-    /* 0x00F */ s8         field_F;  // *4/5 scale for Gp_IdParamHi[i].field[0] (func_800D50D4)
-    /* 0x010 */ u8         field_10; // init bitmask; bit 0 = global init (Gp_InitStageVisit)
-    /* 0x011 */ byte       unknown_11;
-    /* 0x012 */ u8         field_12;
-    /* 0x013 */ s8         field_13; // 1-based index into Gp_AllyIdBase
-    /* 0x014 */ s32        field_14; // Player_Status.exp (`Gp_SavePlayerPos`)
-    /* 0x018 */ s32        field_18; // Player_Status.bp (`Gp_SavePlayerPos`)
-    /* 0x01C */ u16        field_1C;
-    /* 0x01E */ u16        field_1E;
-    /* 0x020 */ byte       unknown_20[0x1];
-    /* 0x021 */ s8         field_21; // lb in title restore / gameflow
-    /* 0x022 */ s8         field_22; // 1-based row for D_80112E2C
-    /* 0x023 */ s8         field_23;
-    /* 0x024 */ byte       unknown_24[0x1];
-    /* 0x025 */ u8         field_25;
-    /* 0x026 */ u8         field_26; // unsigned addend for Player_Status.hpMax (Gp_RecalcMaxHp); +5 in Gp_UiBoostHp
-    /* 0x027 */ u8         field_27; // unsigned addend for Player_Status.mpMax (Gp_RecalcMaxMp); +1 in Gp_UiBoostMp
-    /* 0x028 */ McPosRec   field_28[0x20];
-    /* 0x1A8 */ s8         field_1a8;
-    /* 0x1A9 */ s8         field_1a9;
-    /* 0x1AA */ u8         field_1aa;
-    /* 0x1AB */ s8         field_1ab;
-    /* 0x1AC */ McItemRec  field_1AC[7];
-    /* 0x1C8 */ McItemSlot field_1C8[0x7C];
-    /* 0x5A8 */ byte       unknown_5A8[4];
-    /* 0x5AC */ s32        field_5AC[4];
-    /* 0x5BC */ McItemScan field_5BC;
-    /* 0x5C0 */ byte       unknown_5C0[2];
-    /* 0x5C2 */ s8         field_5C2;
-    /* 0x5C3 */ s8         field_5C3;
-    /* 0x5C4 */ byte       unknown_5C4;
-    /* 0x5C5 */ s8         field_5C5;
-    /* 0x5C6 */ byte       unknown_5C6[0x1];
-    /* 0x5C7 */ s8         field_5C7;       // addend for Gp_AllyIdBase lookup
-    /* 0x5C8 */ McItemSlot field_5C8[0x20]; // inited by Gp_ResetAuxSlots; index 0x1A gets attachId=0
-    /* 0x6C8 */ u16        field_6C8;
-    /* 0x6CA */ u16        field_6CA;
-    /* 0x6CC */ u16        field_6CC;         // capped at 9999; incremented by Gp_AreaEnterTask on spawnArg1 == 0
-    /* 0x6CE */ u16        field_6CE;         // capped at 9999; incremented by Gp_AreaEnterTask on spawnArg1 != 0
-    /* 0x6D0 */ s32        field_6D0[0x60];   // bit flags; Gp_SetItemSeenBit sets/clears bit id for id < 0x180; Gp_HasItemSeenBit tests; Gp_InitItemSeenBits clears all 96 words
-    /* 0x850 */ u8         unknown_850[0x12]; // 3-byte rows; Gp_DrawPeSlotRow indexes [spawnArg1*3 + slot]
-    /* 0x862 */ s16        field_862[7];      // per-category use counters capped at 9999; Gp_UseItemTask indexes by Gp_StateC08.field_5, which can run past the 7 entries into field_870 and unknown_872
-    /* 0x870 */ u16        field_870;         // capped at 9999; incremented by Gp_UseHealItemPanel
-    /* 0x872 */ byte       unknown_872[0x16];
-    /* 0x888 */ s32        field_888[0x20];   // 1-based counters; cap 0x1869E (func_80106518)
-    /* 0x908 */ s8         field_908[0x20];   // signed addend for item ids 0x60–0x7F (Gp_GetModLevel)
-    /* 0x928 */ byte       unknown_928[0x1];
-    /* 0x929 */ s8         field_929;
-    /* 0x92A */ s8         field_92A; // replay rank; 2 if field_F >= 2, else 1 if ReplayBonusTotals.unk0 > 0x10D88
-    /* 0x92B */ u8         field_92B; // set to 0xFF by replay-bonus carry-over
-    /* 0x92C */ s32        field_92C; // max'd against ReplayBonusTotals.unk0
-    /* 0x930 */ s32        field_930; // max'd against ReplayBonusTotals.field_4
-    /* 0x934 */ s32        field_934; // parking-lot shop: bitmask of the 13 price tiers whose stock is offered
-    /* 0x938 */ u32        field_938; // parking-lot shop: 12 two-bit per-slot stock levels
-    /* 0x93C */ u16        field_93C;
-    /* 0x93E */ byte       unknown_93E[0x2];
-    /* 0x940 */ u16        field_940;
-    /* 0x942 */ s16        field_942;
+/// The save data: everything a memory card save holds, resident in main's BSS
+/// and copied out as one image.
+///
+/// It carries the run's progress - where the player was, the time played, the
+/// player's statistics and the whole inventory with its per-weapon equipment -
+/// and the record of what the game has already done: which stages and areas
+/// were visited, which placed enemies were taken out of the world and where
+/// they were left, which items have been seen, and what the shops still hold in
+/// stock. The header block and the data block each carry a checksum pair.
+typedef struct {
+    byte       unknown_0[0x4];
+    GameLoc    at4;               // Place the save was made at, as `GameSession.at4`
+    u16        playTime;          // Played time in minutes (capped at 0xEA5F)
+    s8         clearCount;        // Times the game has been completed (0 never, capped at 99)
+    s8         gameMode;          // Mode the run is played in (0..2); the stat, cost and item-grant tables have one variant per mode
+    u8         visitFlags;        // One bit per stage marking it as visited; bit 0 marks the new-game setup as done
+    s8         saveNumber;        // Number of this save among those made at the same save point (1..99)
+    u8         savePoint;         // Save point the save was made at, indexing the tables of place names the slot and the save header print (1..16)
+    s8         companionType;     // Companion the save carries (0 none, otherwise 1..3 index `Gp_AllyIdBase`)
+    s32        playerExp;         // Player experience as of the save, as `Player_Status.exp`
+    s32        playerBp;          // Player BP as of the save, as `Player_Status.bp`
+    u16        hdrChecksum;       // Sum over the header's 0x38 bytes, which start at `at4`
+    u16        hdrChecksumInv;    // Complement of `hdrChecksum`, written with it
+    byte       unknown_20[0x1];
+    s8         vibration;         // Vibration setting (0 on, 1 off)
+    s8         characterId;       // Character the save plays as (1-based); the weapon, animation and placement tables are indexed by it
+    s8         demoScene;         // Attract demo being played back (0 during normal play)
+    byte       unknown_24[0x1];
+    u8         moveMode;          // Default movement (0 walk, 1 run)
+    u8         hpBonus;           // Addend to the player's maximum HP
+    u8         mpBonus;           // Addend to the player's maximum MP
+    McPosRec   enemyPoses[0x20];  // The placed enemies taken out of the world, filed by their placement key
+    s8         buttonLayout;      // Button layout the pad is remapped through (0..2)
+    s8         soundMode;         // Sound output (0 stereo, 1 mono)
+    u8         musicVolume;       // Music volume (0..3, 3 is off)
+    s8         cursorMode;        // Cursor behaviour in the menus (0 remembers the row, 1 resets it)
+    McItemRec  itemRows[0x100];   // The save's own item table, indexed by row; the rows the player carries are `carriedItems`
+    s32        collectedBits[4];  // 128 bits, one per collectible the player has picked up
+    McItemScan carriedItems;      // Window on the player's rows of `itemRows`
+    byte       unknown_5C0[0x2];
+    s8         cheatMode;         // While set nothing is spent - no MP for the abilities, no ammunition and no attachments - and the save is left out of the save-slot comparison
+    s8         interlace;         // Non-zero runs the display interlaced
+    byte       unknown_5C4;
+    s8         sceneEvent;        // Scene event a script arms for the music and sound task
+    byte       unknown_5C6[0x1];
+    s8         companionVariant;  // Which variant of `companionType` is spawned
+    McItemSlot weaponItems[0x20]; // Per-weapon equipment, indexed by item id - 0x80: the ammunition loaded and the attachment fitted
+    u16        companionHp;       // Companion's current HP
+    u16        companionHpMax;    // Companion's maximum HP
+    u16        field_6CC;
+    u16        field_6CE;
+    s32        itemSeenBits[0x60];    // One bit per item id (ids at or above 0x180 count as seen), set once the item was looked at
+    u8         attachLevels[0x12];    // Level bought for each Parasite Energy slot (0..3), addressed as page * 3 + column
+    s16        attachUseCounts[19];   // Times each Parasite Energy slot was used; the Play Data panel reports the first twelve
+    s32        weaponUseCounts[0x20]; // Times each weapon was used, indexed by item id - 0x80
+    s8         itemLevelBonus[0x20];  // Addend to the level of items 0x60-0x7F
+    byte       unknown_928[0x1];
+    s8         field_929;
+    s8         replayRank; // Rank the replay earns (0 none, 1, 2)
+    u8         saveCount;  // How many times the game has been saved (capped at 99)
+    s32        field_92C;
+    s32        field_930;
+    s32        shopTiers;         // Bitmask of the 13 price tiers the parking-lot shop offers
+    u32        shopStock;         // 12 two-bit stock levels for that shop
+    u16        dataChecksum;      // Sum over the save's data block
+    u16        dataChecksumInv;   // Complement of `dataChecksum`, written with it
+    u16        bufferChecksum;    // Sum over the first byte of each memcard buffer slot
+    s16        bufferChecksumInv; // Complement of `bufferChecksum`, written with it
 } McSaveData;
 STATIC_ASSERT_SIZEOF(McSaveData, 0x944);
 STATIC_ASSERT(OFFSET_OF(McSaveData, at4) == 4, McSaveData_at4);
-STATIC_ASSERT(OFFSET_OF(McSaveData, field_C) == 0xC, McSaveData_field_C);
+STATIC_ASSERT(OFFSET_OF(McSaveData, playTime) == 0xC, McSaveData_playTime);
 
 /// Checksummed buffer header (sum / ones-complement at 0x0 / 0x2, payload at 0x4).
 typedef struct _McChecksumBlock {

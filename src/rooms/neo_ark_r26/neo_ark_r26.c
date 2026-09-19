@@ -8,7 +8,7 @@ extern s16 D_80071076;
 
 void func_neo_ark_r26_8017D5D0(void)
 {
-    if (Mc_SaveData.field_23 != 9) {
+    if (Mc_SaveData.demoScene != 9) {
         Mc_SaveData.at4.loc.stage = 5;
         Mc_SaveData.at4.loc.area  = 0x1C;
         Mc_SaveData.at4.loc.warp  = 1;

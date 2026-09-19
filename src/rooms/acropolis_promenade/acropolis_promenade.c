@@ -33,8 +33,8 @@ void func_acropolis_promenade_8017D5E4(void)
             Task_SpawnFromTable(&D_acropolis_promenade_80181148, 2, 0, 0);
         }
     }
-    if (Mc_SaveData.field_5C5 == 6) {
-        Mc_SaveData.field_5C5 = 5;
+    if (Mc_SaveData.sceneEvent == 6) {
+        Mc_SaveData.sceneEvent = 5;
     }
     temp = gGameSession->at4.loc.place;
     if (temp == 1) {

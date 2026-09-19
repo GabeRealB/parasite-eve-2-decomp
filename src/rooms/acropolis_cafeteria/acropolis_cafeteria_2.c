@@ -71,7 +71,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             GameFlag_SetNibble(0x155, 4);
             GameFlag_SetNibble(0xE, 1);
             Gp_ApplyAreaRecs(D_acropolis_cafeteria_8018C9D4);
-            Mc_SaveData.field_5C5 = 4;
+            Mc_SaveData.sceneEvent = 4;
             func_800E3FAC(0xA2, 4);
             func_800ABFF8();
             func_800AC000();

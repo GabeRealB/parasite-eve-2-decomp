@@ -21,14 +21,14 @@
 /// from a table at this same address (`D_shelter_r49_8017DA00`).
 extern TaskDesc D_8017DA00;
 
-/// Arms the `field_5C5` scene event and starts the table's task, unless
+/// Arms `sceneEvent` and starts the table's task, unless
 /// `field_23` is 9 - the `Task_Spawn` bank the attract-demo prompts
 /// (`Gp_StrDemoWait` / `Gp_StrDemoPause`) key off, so this story trigger is
 /// skipped while the demo plays. Same shape as `func_actor_450800_80132080`.
 void func_actor_143900_80131E24(void)
 {
-    if (Mc_SaveData.field_23 != 9) {
-        Mc_SaveData.field_5C5 = 0x14;
+    if (Mc_SaveData.demoScene != 9) {
+        Mc_SaveData.sceneEvent = 0x14;
         Task_SpawnFromTable(&D_8017DA00, 0, 0, 0);
     }
 }

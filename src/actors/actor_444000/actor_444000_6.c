@@ -2656,7 +2656,7 @@ scanned:
                     if (work->field_ECA != 1 && (s16)work->field_7CA >= 0x17) {
                         work->anim.field_0         = D_actor_444000_80161670;
                         D_actor_444000_80161670[4] = ((Actor444000AnimTable*)Gp_PlayerAnimBlkTbl
-                                                          [Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.weapon])
+                                                          [Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon])
                                                          ->sets[7];
                         work->anim.field_4 = 4;
                         work->anim.field_8 = 1;

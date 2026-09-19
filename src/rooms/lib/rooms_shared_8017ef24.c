@@ -59,7 +59,7 @@ void RoomsShared8017ef24(Task* task)
     func_8002E53C(&req1, (char*)RoomsShared8017ef24Total);
 
     p        = total;
-    scan     = &Mc_SaveData.field_5BC;
+    scan     = &Mc_SaveData.carriedItems;
     count    = Gp_CountScanItems(scan);
     capacity = scan->rowCount;
     Text_ItoaUnsigned((u8*)p, count);

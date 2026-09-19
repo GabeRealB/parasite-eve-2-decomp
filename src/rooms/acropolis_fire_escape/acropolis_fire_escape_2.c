@@ -91,11 +91,11 @@ void func_acropolis_fire_escape_8017FB40(Task* task)
     switch ((u8)gGameSession->at4.loc.view) {
         case 8:
             vol = 0x64;
-            if (Mc_SaveData.field_5C5 == 5) {
-                Mc_SaveData.field_5C5 = 7;
-                pair                  = (GpSndParam*)&D_8007A39C;
-                pair->field_0         = 1;
-                pair->field_2         = 1;
+            if (Mc_SaveData.sceneEvent == 5) {
+                Mc_SaveData.sceneEvent = 7;
+                pair                   = (GpSndParam*)&D_8007A39C;
+                pair->field_0          = 1;
+                pair->field_2          = 1;
                 Task_SpawnFromTable(&D_80062774, 0, 0, 0);
                 gGameSession->flowFlags = 0;
             }

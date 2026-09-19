@@ -147,7 +147,7 @@ void Gp_MsgPlayerWeapon(s32 arg0)
 
     if (arg0 == 0) {
         sp         = Gp_WeaponMsgRec;
-        sp.field_0 = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.weapon;
+        sp.field_0 = Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon;
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&sp, 0);
     } else {
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
@@ -167,12 +167,12 @@ void Gp_MsgSlot4Chain(s32 arg0, s32 arg1)
 
 void Gp_PlayerWeaponId(s32* arg0)
 {
-    *arg0 = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.weapon;
+    *arg0 = Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon;
 }
 
 void Gp_AllyAnimId(s32* arg0)
 {
-    *arg0 = Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
+    *arg0 = Gp_AllyIdBase[Mc_SaveData.companionType - 1] + Mc_SaveData.companionVariant;
 }
 
 void Gp_FillPlayerHpMp(void)
@@ -186,7 +186,7 @@ void Gp_FillPlayerHpMp(void)
 
 void Gp_FillAllyHp(void)
 {
-    Mc_SaveData.field_6C8 = Mc_SaveData.field_6CA;
+    Mc_SaveData.companionHp = Mc_SaveData.companionHpMax;
 }
 
 void Gp_SpawnIfCapIdle(s32 arg0, s32 arg1)
@@ -242,7 +242,7 @@ void Gp_MsgAllyWeapon(s32 arg0)
     if (slot != NULL) {
         if (arg0 == 0) {
             sp         = Gp_WeaponMsgRec;
-            sp.field_0 = Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
+            sp.field_0 = Gp_AllyIdBase[Mc_SaveData.companionType - 1] + Mc_SaveData.companionVariant;
             Gp_DispatchMsg(slot, 0x3E8, (s32)&sp, 0);
         } else {
             Gp_DispatchMsg(slot, 0x3F1, 0, 0);
@@ -524,7 +524,7 @@ void func_800E44A0(Task* task)
     return;
 resumeView:
     if (D_801156A4 & 0x20) {
-        if (Mc_SaveData.field_23 == 5) {
+        if (Mc_SaveData.demoScene == 5) {
             SndEvt_EnqueueType6(0, 0, 0);
         }
         D_801155BB  = 0;
@@ -1920,7 +1920,7 @@ s32 func_800E7358(void)
 
 s32 func_800E7378(void)
 {
-    if (Mc_SaveData.field_23 == 9) {
+    if (Mc_SaveData.demoScene == 9) {
         if (D_801156B8 != NULL) {
             return 0;
         }
@@ -1935,7 +1935,7 @@ s32 func_800E73E8(void)
 {
     Task* task;
 
-    if (Mc_SaveData.field_23 == 9) {
+    if (Mc_SaveData.demoScene == 9) {
         task = D_801156B8;
         if (task != NULL) {
             task->spawnArg1 = 1;
@@ -1950,7 +1950,7 @@ s32 func_800E73E8(void)
 
 s32 func_800E7434(void)
 {
-    if (Mc_SaveData.field_23 == 9) {
+    if (Mc_SaveData.demoScene == 9) {
         if (D_801156B8 == NULL) {
             return 0;
         }

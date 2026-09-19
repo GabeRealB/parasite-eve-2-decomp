@@ -131,7 +131,7 @@ void Gp_ScriptTaskState1(Task* arg0)
 
     if (st->wait != 0) {
         st->wait--;
-        if (Mc_SaveData.field_23 == 9) {
+        if (Mc_SaveData.demoScene == 9) {
             req.x          = -0x8C;
             req.y          = 0x50;
             req.otIndex    = 4;
@@ -145,7 +145,7 @@ void Gp_ScriptTaskState1(Task* arg0)
     }
 
     if (D_801156A4 & 0x40) {
-        if (Mc_SaveData.field_23 == 9) {
+        if (Mc_SaveData.demoScene == 9) {
             req.x          = -0x8C;
             req.y          = 0x50;
             req.otIndex    = 4;
@@ -314,12 +314,12 @@ void Gp_ScriptTaskState1(Task* arg0)
                 if (D_801156C9 != 0) {
                     break;
                 }
-                pair                  = (GpSndParam*)&D_8007A39C;
-                Mc_SaveData.field_5C5 = (u8)st->pc->arg0;
-                D_801156C9            = 1;
-                pair->field_0         = (u16)st->pc->arg1;
-                D_80062734            = 0;
-                pair->field_2         = (u16)st->pc->arg2;
+                pair                   = (GpSndParam*)&D_8007A39C;
+                Mc_SaveData.sceneEvent = (u8)st->pc->arg0;
+                D_801156C9             = 1;
+                pair->field_0          = (u16)st->pc->arg1;
+                D_80062734             = 0;
+                pair->field_2          = (u16)st->pc->arg2;
                 Task_SpawnFromTable(&D_80062774, 0, 0, 0);
                 break;
 
@@ -1141,8 +1141,8 @@ void Gp_UpdatePadInput(void)
             mask = tmp;
             if (actor->field_954 != 0 || actor->field_956 < 2) {
                 if (pad->field_56 < -0xE80) {
-                    if (Mc_SaveData.field_25 == 0) {
-                        if (Mc_SaveData.field_1a8 == 1) {
+                    if (Mc_SaveData.moveMode == 0) {
+                        if (Mc_SaveData.buttonLayout == 1) {
                             // barrier: without it GCC cross-jumps this arm into
                             // the identical `field_25 == 1` arm below
                             SCHED_BARRIER();
@@ -1151,14 +1151,14 @@ void Gp_UpdatePadInput(void)
                             mask = tmp | 0x20;
                         }
                     } else {
-                        if (Mc_SaveData.field_1a8 == 1) {
+                        if (Mc_SaveData.buttonLayout == 1) {
                             mask = tmp & 0xFF7F;
                         } else {
                             mask = tmp & 0xFFDF;
                         }
                     }
-                } else if (Mc_SaveData.field_25 == 1) {
-                    if (Mc_SaveData.field_1a8 == 1) {
+                } else if (Mc_SaveData.moveMode == 1) {
+                    if (Mc_SaveData.buttonLayout == 1) {
                         mask = tmp | 0x80;
                     } else {
                         mask = tmp | 0x20;
@@ -1207,7 +1207,7 @@ u16 Gp_RemapButtons(GameActor* actor, u16 mask)
     s32 i;
 
     result = 0;
-    switch (Mc_SaveData.field_1a8) {
+    switch (Mc_SaveData.buttonLayout) {
         case 0:
             for (i = 0; i < 0x10; i++) {
                 if ((mask >> i) & 1) {

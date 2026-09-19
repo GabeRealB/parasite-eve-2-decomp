@@ -53,7 +53,7 @@ STATIC_ASSERT_SIZEOF(ReplayBonusStream, 0x10);
 /// `func_replay_bonus_80115CA4` has to reach for the row to be the starting
 /// index — the last row's is `S32_MAX`, so it never does on its own — and
 /// `items` are the three ids `func_replay_bonus_80117484` then offers.
-/// `Mc_SaveData.field_934` (also imported as `D_80072A9C`) holds one bit per
+/// `Mc_SaveData.shopTiers` (also imported as `D_80072A9C`) holds one bit per
 /// row; all 13 bits set (`0x1FFF`) means every tier is taken.
 typedef struct ReplayBonusShopTier {
     /* 0x0 */ u32  spendThreshold;

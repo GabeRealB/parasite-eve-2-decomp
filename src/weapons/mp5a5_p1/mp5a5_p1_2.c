@@ -121,7 +121,7 @@ void func_mp5a5_p1_8011DDA4(GpActorWork* arg0)
             if ((s8)func_801060E0(arg0) == 1 && func_80106264(1) > 0 && actor->field_940 == 0) {
                 goto fire;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData.field_22][1], 0, 0) == 0) {
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData.characterId][1], 0, 0) == 0) {
                 func_80106550(arg0);
             }
             break;

@@ -1140,7 +1140,7 @@ void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
     *(volatile s16*)&arg0->field_14 = 0;
     arg0->field_16                  = 0;
     *(volatile s32*)&arg0->field_C  = 0;
-    if (Mc_SaveData.field_1ab != 0) {
+    if (Mc_SaveData.cursorMode != 0) {
         arg0->field_10 = 0;
         arg0->field_9  = 0;
     }
@@ -2264,7 +2264,7 @@ void Ui_InitList(UiList* arg0, UiMiniObj* arg1)
     *(volatile s16*)&arg0->field_14 = 0;
     arg0->field_16                  = 0;
     *(volatile s32*)&arg0->field_C  = 0;
-    if (Mc_SaveData.field_1ab != 0) {
+    if (Mc_SaveData.cursorMode != 0) {
         arg0->field_10 = 0;
         arg0->field_9  = 0;
     }

@@ -89,7 +89,7 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
         if ((u32)(id - 0x80) < 0x20U) {
             if (actor->field_954 != 2) {
                 rec       = NULL;
-                scanEquip = &Mc_SaveData.field_5BC;
+                scanEquip = &Mc_SaveData.carriedItems;
                 prevId    = cfg->weapon + 0x7F;
 
                 cfg->weapon = id - 0x7F;
@@ -139,12 +139,12 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
             }
 
             if (relId != 0 && relId != 0xFF) {
-                scanQty = &Mc_SaveData.field_5BC;
+                scanQty = &Mc_SaveData.carriedItems;
                 qty     = Gp_ScanStackQty(scanQty, relId);
                 qty    -= Gp_CountEquippedRelated(scanQty, relId);
             }
             if (qty > 0) {
-                scanRel = &Mc_SaveData.field_5BC;
+                scanRel = &Mc_SaveData.carriedItems;
                 hit     = NULL;
                 table   = Gp_GetItemTable(scanRel);
                 i       = 0;
@@ -159,7 +159,7 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                 found = hit;
                 if (found != NULL && found->attachSlot == 0) {
                     slotNum  = -1;
-                    scanFree = &Mc_SaveData.field_5BC;
+                    scanFree = &Mc_SaveData.carriedItems;
                     Gp_GetItemTable(scanFree);
                     for (k = 0; k < 3; k++) {
                         avail = 1;
@@ -181,7 +181,7 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                     }
 
                     if (slotNum == -1) {
-                        scanId = &Mc_SaveData.field_5BC;
+                        scanId = &Mc_SaveData.carriedItems;
                         hit    = NULL;
                         table  = Gp_GetItemTable(scanId);
                         i      = 0;
@@ -227,8 +227,8 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                         }
                         break;
                     case 0x3C:
-                        if ((u32)Mc_SaveData.field_26 < 0xFAU) {
-                            Mc_SaveData.field_26 += 5;
+                        if ((u32)Mc_SaveData.hpBonus < 0xFAU) {
+                            Mc_SaveData.hpBonus += 5;
                         }
                         Gp_RecalcMaxHp();
                         Gp_HealPending = 1;
@@ -327,7 +327,7 @@ s32 Gp_ItemIsUnusable(s32 arg0, GpItemRec* arg1)
         if ((u32)(arg0 - 0x80) < 0x20U) {
             ret = 0;
         } else if ((u32)(arg0 - 0xA0) < 0x20U) {
-            scan = &Mc_SaveData.field_5BC;
+            scan = &Mc_SaveData.carriedItems;
             val  = arg1->qty - Gp_CountEquippedRelated(scan, arg0);
             if (val > 0) {
                 if (Gp_EquipRelatedItem(scan, cfg->weapon + 0x7F, arg0, 0) == 0) {
@@ -448,7 +448,7 @@ void func_800D6334(Task* task)
         selectedSlot = D_8010F884;
         selectedX    = x + selectedSlot * 13;
         firstRec     = NULL;
-        firstScan    = &Mc_SaveData.field_5BC;
+        firstScan    = &Mc_SaveData.carriedItems;
         firstTable   = Gp_GetItemTable(firstScan);
         firstI       = 0;
         firstTable   = &firstTable[firstScan->firstRow];
@@ -486,7 +486,7 @@ void func_800D6334(Task* task)
         for (slot = 0; slot < Gp_GetModLevel(armor); slot++, selectedX += 13) {
             if (slot != D_8010F884) {
                 selected = NULL;
-                scan     = &Mc_SaveData.field_5BC;
+                scan     = &Mc_SaveData.carriedItems;
                 table    = Gp_GetItemTable(scan);
                 i        = 0;
                 table    = &table[scan->firstRow];
@@ -523,7 +523,7 @@ void func_800D6334(Task* task)
             if (usable == 1) {
                 useSlot  = D_8010F884;
                 useRec   = NULL;
-                useScan  = &Mc_SaveData.field_5BC;
+                useScan  = &Mc_SaveData.carriedItems;
                 useTable = Gp_GetItemTable(useScan);
                 useI     = 0;
                 useTable = &useTable[useScan->firstRow];
@@ -585,7 +585,7 @@ s32 Gp_FlushPendingRelated(s32 arg0, s32 arg1)
         val = -val;
     }
     Gp_PendingRelatedId = 0;
-    return Gp_EquipRelatedItem(&Mc_SaveData.field_5BC, arg0, val, -1);
+    return Gp_EquipRelatedItem(&Mc_SaveData.carriedItems, arg0, val, -1);
 }
 
 GpItemRec* Gp_FindItemById(s32 arg0)
@@ -597,7 +597,7 @@ GpItemRec* Gp_FindItemById(s32 arg0)
     GpItemRec*  rec;
 
     rec   = NULL;
-    scan  = &Mc_SaveData.field_5BC;
+    scan  = &Mc_SaveData.carriedItems;
     table = Gp_GetItemTable(scan);
     i     = 0;
     table = &table[scan->firstRow];
@@ -620,7 +620,7 @@ GpItemRec* Gp_FindItemByKind(s32 arg0)
     GpItemRec*  rec;
 
     rec   = NULL;
-    scan  = &Mc_SaveData.field_5BC;
+    scan  = &Mc_SaveData.carriedItems;
     table = Gp_GetItemTable(scan);
     i     = 0;
     table = &table[scan->firstRow];
@@ -3464,7 +3464,7 @@ s32 Gp_GrantLocationItems(GpItemScan* arg0)
     area  = loc->area;
     sub   = loc->place;
     key   = (stage << 24) | (area << 16) | (sub << 8);
-    mode  = Mc_SaveData.field_F;
+    mode  = Mc_SaveData.gameMode;
     if ((mode == 0) || (mode == 2)) {
         rec = D_8010F9F4[stage];
     } else {
@@ -3590,10 +3590,10 @@ void Gp_InitStateF0(void)
         p->field_2B = 0;
     } else {
         save        = &Mc_SaveData;
-        val         = (u8)save->field_F;
+        val         = (u8)save->gameMode;
         p->field_2B = val;
         if (val == 0) {
-            if (save->field_E != 0) {
+            if (save->clearCount != 0) {
                 p->field_2B = 4;
             }
         }
@@ -6782,7 +6782,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
         s32 col;
         s32 row;
 
-        hp    = (s16)Mc_SaveData.field_6C8;
+        hp    = (s16)Mc_SaveData.companionHp;
         table = Gp_DmgRows;
         cols  = D_80113F54;
         addr  = (s32)&cols[hp / 10];

@@ -164,7 +164,7 @@ s32 func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y)
     if (p->field_8 != -1) {
         do {
             if (x >= p->x && x < p->x + p->w && y >= p->y && y < p->y + p->h) {
-                if (Mc_SaveData.field_23 == 9) {
+                if (Mc_SaveData.demoScene == 9) {
                     func_actor_143000_80133334(p, 0, 0, 0);
                 }
                 p->field_B = 1;
@@ -172,7 +172,7 @@ s32 func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y)
                     result = p->field_8;
                 }
             } else {
-                if (Mc_SaveData.field_23 == 9) {
+                if (Mc_SaveData.demoScene == 9) {
                     func_actor_143000_80133334(p, 0xFF, 0, 0);
                 }
                 p->field_B = 0;

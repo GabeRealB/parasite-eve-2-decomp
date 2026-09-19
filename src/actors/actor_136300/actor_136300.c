@@ -81,7 +81,7 @@ void func_actor_136300_8013267C(Task* arg0)
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 0xF);
             GameFlag_SetNibble(0x4C, 4);
-            Mc_SaveData.field_5C5     = 9;
+            Mc_SaveData.sceneEvent    = 9;
             Mc_SaveData.at4.loc.stage = 4;
             Mc_SaveData.at4.loc.area  = 1;
             Mc_SaveData.at4.loc.warp  = 1;

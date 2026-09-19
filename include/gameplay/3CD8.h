@@ -112,10 +112,10 @@ STATIC_ASSERT_SIZEOF(GpOverlayIds, 6);
 
 /// 0x14-byte payload copied from `Gp_WeaponMsgRec` by `Gp_MsgPlayerWeapon` (arg 0)
 /// and sent as slot-3 msg `0x3E8`. `field_0` is overwritten with
-/// `Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.weapon`
+/// `Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon`
 /// (same value `Gp_PlayerWeaponId` writes). `Gp_MsgAllyWeapon` copies the same
 /// record to slot 0xA and overwrites `field_0` with
-/// `Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7`
+/// `Gp_AllyIdBase[Mc_SaveData.companionType - 1] + Mc_SaveData.companionVariant`
 /// (same value `Gp_AllyAnimId` writes). Nearby `D_8010FB10` /
 /// `D_8010FB24` are the same size (`Gp_EvtCapWeaponTask` copies them for msg `0x3FA`).
 typedef struct _GpRec14 {

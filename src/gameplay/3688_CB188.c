@@ -412,8 +412,8 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
             be8->field_4 = cfg->mp;
             cfg->hp      = cfg->hp + func_800D50D4(arg2, 4);
             save         = &Mc_SaveData;
-            if ((s16)save->field_870 < 0x270F) {
-                save->field_870 = save->field_870 + 1;
+            if ((s16)save->attachUseCounts[7] < 0x270F) {
+                save->attachUseCounts[7] = save->attachUseCounts[7] + 1;
             }
         }
         if (cfg->hp > cfg->hpMax) {
@@ -486,7 +486,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         extra        = src;
         switch (item) {
             case 9:
-                scan = &Mc_SaveData.field_5BC;
+                scan = &Mc_SaveData.carriedItems;
                 if (Gp_SumScanQty(scan, 0x9F) != 0) {
                     arg1->status = 0x1A;
                 } else if (Gp_SumScanQty(scan, 0x9E) != 0) {
@@ -500,7 +500,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 }
                 break;
             case 0xC:
-                scan = &Mc_SaveData.field_5BC;
+                scan = &Mc_SaveData.carriedItems;
                 if (Gp_SumScanQty(scan, 0x80) != 0) {
                     arg1->status = 0x1A;
                 } else if (Gp_SumScanQty(scan, 0x83) != 0) {
@@ -516,7 +516,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             case 0x44:
             case 0x45:
             case 0x46:
-                scan = &Mc_SaveData.field_5BC;
+                scan = &Mc_SaveData.carriedItems;
                 if (Gp_SumScanQty(scan, 0x94) != 0) {
                     if (item == 0xA) {
                         arg1->status = 0x1A;
@@ -533,7 +533,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                     p              = start;
                     arg1->status   = 0x17;
                     do {
-                        if (Gp_SumScanQty(&Mc_SaveData.field_5BC, p->src) != 0) {
+                        if (Gp_SumScanQty(&Mc_SaveData.carriedItems, p->src) != 0) {
                             extra = p->dst;
                             if (item == ten && p->src == 0x93) {
                                 extra = 0;
@@ -563,7 +563,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             slotDst    = Gp_GetItemSlot(result);
             rec        = Gp_FindItemById(src);
             newWork    = (GpUseCreateWork*)memCalloc(0x14, 0);
-            scanInit   = &Mc_SaveData.field_5BC;
+            scanInit   = &Mc_SaveData.carriedItems;
             arg1->work = (TaskIdMap*)newWork;
             Gp_RemoveItem(scanInit, (GpItemRec*)Gp_SelItemRec, 1);
             rec->itemId = (u8)result;
@@ -579,10 +579,10 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 cfg->weapon = temp - 0x7F;
             }
             if (extra != 0) {
-                Gp_GiveItem(&Mc_SaveData.field_5BC, extra, -1);
+                Gp_GiveItem(&Mc_SaveData.carriedItems, extra, -1);
             }
             if (bonus != 0) {
-                Gp_GiveItem(&Mc_SaveData.field_5BC, bonus, -1);
+                Gp_GiveItem(&Mc_SaveData.carriedItems, bonus, -1);
             }
             temp              = result;
             newWork->field_8  = temp;
@@ -754,7 +754,7 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         Ui_UpdateLayoutSize((UiPanel*)arg0, width + 5, Ui_Scale15(2) + 1);
         ((UiPanel*)arg0)->field_C.x = (-((UiPanel*)arg0)->field_C.w) >> 1;
         ((UiPanel*)arg0)->field_C.y = ((-((UiPanel*)arg0)->field_C.h) >> 1) - 0x14;
-        Gp_RemoveItem(&Mc_SaveData.field_5BC, (GpItemRec*)Gp_SelItemRec, 1);
+        Gp_RemoveItem(&Mc_SaveData.carriedItems, (GpItemRec*)Gp_SelItemRec, 1);
 
         i    = (arg2 - 0xF) / 3;
         n    = arg2 - 0xF;
@@ -765,8 +765,8 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         TOUCH_REG4(row, col, i, n);
         n   = n - i * 3 + 1;
         cfg = &Player_Status;
-        if (save->unknown_850[col + row * 3] < n) {
-            save->unknown_850[col + row * 3] = n;
+        if (save->attachLevels[col + row * 3] < n) {
+            save->attachLevels[col + row * 3] = n;
         }
         Gp_RecalcMaxMp();
         cfg->mp             = cfg->mpMax;
@@ -805,17 +805,17 @@ void func_800CC41C(UiObject* arg0, Task* arg1)
     if (arg1->state == 0) {
         save = &Mc_SaveData;
         p    = (McSaveData*)&save->unknown_0[idx * 3];
-        slot = p->unknown_850[0] > p->unknown_850[1];
-        if (save->unknown_850[slot + idx * 3] >= 3) {
+        slot = p->attachLevels[0] > p->attachLevels[1];
+        if (save->attachLevels[slot + idx * 3] >= 3) {
             slot = 2;
-            if (save->unknown_850[idx * 3 + 2] >= 3) {
+            if (save->attachLevels[idx * 3 + 2] >= 3) {
                 slot = (idx * 3 + 2) * 3 + 0x11;
                 goto store;
             }
         }
         save2 = &Mc_SaveData;
         temp  = slot + idx * 3;
-        slot  = save2->unknown_850[temp] + temp * 3 + 0xF;
+        slot  = save2->attachLevels[temp] + temp * 3 + 0xF;
     store:
         arg1->extraState = slot;
     }
@@ -1012,7 +1012,7 @@ void Gp_ItemCountHeaderTask(Task* arg0)
     buf[0] = D_800971A4;
     memset(&buf[1], 0, 0x1F);
     color = 0x606060;
-    scan  = &Mc_SaveData.field_5BC;
+    scan  = &Mc_SaveData.carriedItems;
     cur   = Gp_CountScanItems(scan);
     cap   = Gp_GetScanCount(scan);
     Text_ItoaUnsigned(buf, cur);
@@ -1065,7 +1065,7 @@ void Gp_PickupTask(Task* arg0)
             if (spawned != NULL) {
                 spawned->field_2C = 0x33;
             }
-        } else if (Gp_CanAddItem(&Mc_SaveData.field_5BC, Gp_PubItemLoc) != 0) {
+        } else if (Gp_CanAddItem(&Mc_SaveData.carriedItems, Gp_PubItemLoc) != 0) {
             one = 1;
             Ui_SpawnFromDesc(desc + 1, 0, one, one, obj);
         } else {
@@ -1256,7 +1256,7 @@ void Gp_PickupAskTask(Task* arg0)
                 if (arg0->state == one) {
                     if (childObj->field_2C == 0x33) {
                         if (Gp_PubItemLoc < 0xC0U) {
-                            scan = &Mc_SaveData.field_5BC;
+                            scan = &Mc_SaveData.carriedItems;
                             if (Gp_CanAddItem(scan, Gp_PubItemLoc) != 0) {
                                 Gp_GiveItem(scan, Gp_PubItemLoc, Gp_PubItemQty);
                             } else {
@@ -1502,7 +1502,7 @@ void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, GpItemRec* arg3, s32 a
 
     if (arg3 != NULL) {
         if ((u32)(arg3->itemId - 0xA0) < 0x20U) {
-            count          = arg3->qty - Gp_CountEquippedRelated(&Mc_SaveData.field_5BC, arg3->itemId);
+            count          = arg3->qty - Gp_CountEquippedRelated(&Mc_SaveData.carriedItems, arg3->itemId);
             req.x          = arg0->baseX + 0x84 + arg1;
             y              = arg0->baseY - 3;
             req.y          = y + arg2;
@@ -1633,8 +1633,8 @@ void Gp_SpawnPickupUiTask(Task* arg0)
                 break;
             case 8:
                 Gp_SavePlayerPos();
-                desc                 = &D_8010D348;
-                Mc_SaveData.field_12 = Gp_PubItemLoc;
+                desc                  = &D_8010D348;
+                Mc_SaveData.savePoint = Gp_PubItemLoc;
                 break;
             default:
                 Stage_InitPrimBufOnce();
@@ -2166,7 +2166,7 @@ void Gp_DrawSortCmd(DialogPrompt* arg0, UiObject* arg1)
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
-            Gp_SortItems(&Mc_SaveData.field_5BC, 1);
+            Gp_SortItems(&Mc_SaveData.carriedItems, 1);
         }
     }
 }
@@ -2181,7 +2181,7 @@ void func_800CF090(UiList* arg0, UiObject* arg1)
 
     count = 0;
     p     = &Player_Status;
-    scan  = &Mc_SaveData.field_5BC;
+    scan  = &Mc_SaveData.carriedItems;
     table = Gp_GetItemTable(scan);
     i     = 0;
     table = &table[scan->firstRow];
@@ -3777,7 +3777,7 @@ void Gp_DiscardWarnTask(Task* arg0)
         mode          = 0x10;
         if (Gp_ItemDescs[id].field_3 & 1) {
             mode = 1;
-        } else if (((u32)(id - 0xA0) < 0x20U) && (Gp_CountEquippedRelated(&Mc_SaveData.field_5BC, id) > 0)) {
+        } else if (((u32)(id - 0xA0) < 0x20U) && (Gp_CountEquippedRelated(&Mc_SaveData.carriedItems, id) > 0)) {
             mode = 3;
         } else if (Gp_IsEquippedItem(id) != 0) {
             mode = 2;
@@ -3841,14 +3841,14 @@ void Gp_DiscardWarnTask(Task* arg0)
                 } else if ((u32)(id - 0x60) < 0x20U) {
                     PlayerStatus* cfg;
 
-                    Mc_SaveData.field_908[id - 0x60] = 0;
+                    Mc_SaveData.itemLevelBonus[id - 0x60] = 0;
                     SCHED_BARRIER();
                     cfg = &Player_Status;
                     if (cfg->armor == (id - 0x5F)) {
                         cfg->armor = 0;
                     }
                 }
-                Gp_RemoveItem(&Mc_SaveData.field_5BC, (GpItemRec*)rec, -1);
+                Gp_RemoveItem(&Mc_SaveData.carriedItems, (GpItemRec*)rec, -1);
                 USE_REG(id);
             }
             parentObj->field_2E = 6;
@@ -3870,7 +3870,7 @@ void Gp_DrawPeSlotRow(DialogPrompt* arg0, UiObject* arg1)
 
     idx   = arg1->owner->spawnArg1;
     slot  = arg0->field_8;
-    count = Mc_SaveData.unknown_850[slot + idx * 3];
+    count = Mc_SaveData.attachLevels[slot + idx * 3];
     off   = idx * 16;
     base  = slot * 4 + 0x300;
     item  = off + base + count;
@@ -3932,7 +3932,7 @@ void func_800D29B0(Task* arg0)
         menu->unknown_8 = 0;
         menu->field_9   = 0;
         Ui_LayoutListPanel(menu, (UiPanel*)obj);
-        levels = &Mc_SaveData.unknown_850[arg0->spawnArg1 * 3];
+        levels = &Mc_SaveData.attachLevels[arg0->spawnArg1 * 3];
         if (levels[2] != 0 || (levels[0] == 3 && levels[1] == levels[0])) {
             menu->field_4 = menu->field_5 = 3;
         } else {
@@ -3946,7 +3946,7 @@ void func_800D29B0(Task* arg0)
         }
         arg0->state++;
     }
-    levels = &Mc_SaveData.unknown_850[arg0->spawnArg1 * 3];
+    levels = &Mc_SaveData.attachLevels[arg0->spawnArg1 * 3];
     if (levels[2] != 0 || (levels[0] == 3 && levels[1] == levels[0])) {
         menu->field_4 = menu->field_5 = 3;
     } else {
@@ -4107,7 +4107,7 @@ void Gp_NoticePanelTask(Task* arg0)
 /// Level-up / strengthen dialog. Draws the "EXP / COST" and "MP / BONUS" rows
 /// for the slot selected by `Task::spawnArg1`, then watches the child prompts:
 /// choosing 0x33 pays the cost out of `Player_Status.exp` and bumps the
-/// stored level in `Mc_SaveData.unknown_850`.
+/// stored level in `Mc_SaveData.attachLevels`.
 void Gp_PeUpgradePanelTask(Task* arg0)
 {
     u8            str[0x20];
@@ -4177,9 +4177,9 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     col  = ((id + 1) & 0xC) >> 2;
     lvl  = (id + 1) & 3;
     cost = Gp_IdParamHi[(row * 3 + col) * 3 + lvl].field[0];
-    if (Mc_SaveData.field_F > 0) {
+    if (Mc_SaveData.gameMode > 0) {
         cost = (cost * 4) / 5;
-    } else if (Mc_SaveData.field_E > 0) {
+    } else if (Mc_SaveData.clearCount > 0) {
         cost = (cost * 2) / 5;
     }
     Text_DrawPrompt(obj, x + 0x30, y, Text_ItoaSigned(str, cost & 0xFFFF), 0x606060, 3, 2);
@@ -4223,9 +4223,9 @@ void Gp_PeUpgradePanelTask(Task* arg0)
                 if (childObj->field_2C == 0x33) {
                     cfg   = &Player_Status;
                     price = Gp_IdParamHi[(row3 * 3 + col3) * 3 + lvl3].field[0];
-                    if (Mc_SaveData.field_F > 0) {
+                    if (Mc_SaveData.gameMode > 0) {
                         price = (price * 4) / 5;
-                    } else if (Mc_SaveData.field_E > 0) {
+                    } else if (Mc_SaveData.clearCount > 0) {
                         price = (price * 2) / 5;
                     }
                     if (cfg->exp < (price & 0xFFFF)) {
@@ -4233,13 +4233,13 @@ void Gp_PeUpgradePanelTask(Task* arg0)
                         Ui_TeardownTree(childObj, childObj->owner);
                     } else {
                         price = Gp_IdParamHi[(row3 * 3 + col3) * 3 + lvl3].field[0];
-                        if (Mc_SaveData.field_F > 0) {
+                        if (Mc_SaveData.gameMode > 0) {
                             price = (price * 4) / 5;
-                        } else if (Mc_SaveData.field_E > 0) {
+                        } else if (Mc_SaveData.clearCount > 0) {
                             price = (price * 2) / 5;
                         }
-                        cfg->exp                                                           -= price & 0xFFFF;
-                        Mc_SaveData.unknown_850[((id & 0xC) >> 2) + ((id & 0x30) >> 4) * 3] = (id & 3) + 1;
+                        cfg->exp                                                            -= price & 0xFFFF;
+                        Mc_SaveData.attachLevels[((id & 0xC) >> 2) + ((id & 0x30) >> 4) * 3] = (id & 3) + 1;
                         Gp_RecalcMaxMp();
                         cfg->mp             = cfg->mpMax;
                         Gp_HpMpWork.field_4 = cfg->mp;
@@ -4294,9 +4294,9 @@ void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 a
         raw = Gp_IdParamHi[(((a * 3) + b) * 3) + c].field[arg5];
     }
     if (arg5 == 0) {
-        if (Mc_SaveData.field_F > 0) {
+        if (Mc_SaveData.gameMode > 0) {
             raw = (raw * 4) / 5;
-        } else if (Mc_SaveData.field_E > 0) {
+        } else if (Mc_SaveData.clearCount > 0) {
             raw = (raw * 2) / 5;
         }
     }
@@ -4333,9 +4333,9 @@ void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 a
             rawPrev = Gp_IdParamHi[(((aPrev * 3) + bPrev) * 3) + cPrev].field[arg5];
         }
         if (arg5 == 0) {
-            if (Mc_SaveData.field_F > 0) {
+            if (Mc_SaveData.gameMode > 0) {
                 rawPrev = (rawPrev * 4) / 5;
-            } else if (Mc_SaveData.field_E > 0) {
+            } else if (Mc_SaveData.clearCount > 0) {
                 rawPrev = (rawPrev * 2) / 5;
             }
         }
@@ -4964,9 +4964,9 @@ s32 func_800D50D4(s32 arg0, s32 arg1)
     c   = arg0 & 3;
     val = Gp_IdParamHi[(a * 3 + b) * 3 + c].field[arg1];
     if (arg1 == 0) {
-        if (Mc_SaveData.field_F > 0) {
+        if (Mc_SaveData.gameMode > 0) {
             val = (val * 4) / 5;
-        } else if (Mc_SaveData.field_E > 0) {
+        } else if (Mc_SaveData.clearCount > 0) {
             val = (val * 2) / 5;
         }
     }

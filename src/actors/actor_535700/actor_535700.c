@@ -38,13 +38,13 @@ INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_8
 
 void func_actor_535700_80131F2C(void)
 {
-    if (Mc_SaveData.field_23 != 9) {
+    if (Mc_SaveData.demoScene != 9) {
         Mc_SaveData.at4.loc.area = 0x1D;
         Mc_SaveData.at4.loc.warp = 5;
         Mc_SaveData.at4.loc.room = 2;
         D_80071076               = 1;
         Task_Spawn(0, 0x11, 0, 0);
-        Mc_SaveData.field_5C5 = 6;
+        Mc_SaveData.sceneEvent = 6;
         Gp_RestoreStreamRng();
     }
 }

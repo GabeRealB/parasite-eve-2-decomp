@@ -162,7 +162,7 @@ s32 func_replay_bonus_80115CA4(void)
     s32 val;
     s32 flag;
 
-    levels = Mc_SaveData.unknown_850;
+    levels = Mc_SaveData.attachLevels;
     spend  = Player_Status.exp;
     SOFT_USE_REG(spend);
     i = 0;
@@ -173,10 +173,10 @@ s32 func_replay_bonus_80115CA4(void)
                 base = idx;
                 SOFT_TOUCH_REG(base);
                 val  = Gp_IdParamHi[base + j + 1].field[0];
-                flag = Mc_SaveData.field_F;
+                flag = Mc_SaveData.gameMode;
                 if (flag > 0) {
                     val = (val * 4) / 5;
-                } else if (Mc_SaveData.field_E > 0) {
+                } else if (Mc_SaveData.clearCount > 0) {
                     val = (val * 2) / 5;
                 }
                 spend += val;
@@ -459,13 +459,13 @@ void func_replay_bonus_80115ED0(Task* arg0)
                 }
             } while (0);
             save   = &Mc_SaveData;
-            idx   += save->field_F;
+            idx   += save->gameMode;
             shop_i = 0;
             if (idx >= 0xD) {
                 idx = 0xC;
             }
             one  = 1;
-            mask = save->field_934;
+            mask = save->shopTiers;
             do {
             loop2:
                 if ((mask & (one << idx)) == 0) {
@@ -840,13 +840,13 @@ void func_replay_bonus_80116AC0(Task* arg0)
             } while (0);
 
             save = &Mc_SaveData;
-            idx += save->field_F;
+            idx += save->gameMode;
             i    = 0;
             if (idx >= 0xD) {
                 idx = 0xC;
             }
             one  = 1;
-            mask = save->field_934;
+            mask = save->shopTiers;
             do {
             loop2:
                 if ((mask & (one << idx)) == 0) {
@@ -893,13 +893,13 @@ void func_replay_bonus_80116AC0(Task* arg0)
             } while (0);
 
             save = &Mc_SaveData;
-            idx += save->field_F;
+            idx += save->gameMode;
             i    = 0;
             if (idx >= 0xD) {
                 idx = 0xC;
             }
             one  = 1;
-            mask = save->field_934;
+            mask = save->shopTiers;
             do {
             loop4:
                 if ((mask & (one << idx)) == 0) {
@@ -997,49 +997,49 @@ void func_replay_bonus_80116EC0(void)
     cfg  = &Player_Status;
     copy = Mc_SaveData;
     Mc_InitBufferSlots();
-    dst            = &Mc_SaveData;
-    dst->field_E   = (u8)copy.field_E;
-    dst->field_21  = (u8)copy.field_21;
-    dst->field_23  = (u8)copy.field_23;
-    dst->field_25  = copy.field_25;
-    dst->field_1a8 = (u8)copy.field_1a8;
-    dst->field_1aa = copy.field_1aa;
-    dst->field_1ab = (u8)copy.field_1ab;
-    dst->field_1a9 = (u8)copy.field_1a9;
-    i              = 0;
+    dst               = &Mc_SaveData;
+    dst->clearCount   = (u8)copy.clearCount;
+    dst->vibration    = (u8)copy.vibration;
+    dst->demoScene    = (u8)copy.demoScene;
+    dst->moveMode     = copy.moveMode;
+    dst->buttonLayout = (u8)copy.buttonLayout;
+    dst->musicVolume  = copy.musicVolume;
+    dst->cursorMode   = (u8)copy.cursorMode;
+    dst->soundMode    = (u8)copy.soundMode;
+    i                 = 0;
     do {
-        dst->field_6D0[i] = copy.field_6D0[i];
-        i                += 1;
+        dst->itemSeenBits[i] = copy.itemSeenBits[i];
+        i                   += 1;
     } while (i < 0x60);
     i = 0;
     do {
-        Mc_SaveData.field_862[i] = (u16)copy.field_862[i];
-        i                       += 1;
+        Mc_SaveData.attachUseCounts[i] = (u16)copy.attachUseCounts[i];
+        i                             += 1;
     } while (i < 0x12);
     i = 0;
     do {
-        Mc_SaveData.field_888[i] = copy.field_888[i];
-        i                       += 1;
+        Mc_SaveData.weaponUseCounts[i] = copy.weaponUseCounts[i];
+        i                             += 1;
     } while (i < 0x20);
 
     save   = &Mc_SaveData;
     val92c = copy.field_92C;
     val930 = copy.field_930;
-    val934 = copy.field_934;
-    val938 = copy.field_938;
-    val92a = (u8)copy.field_92A;
+    val934 = copy.shopTiers;
+    val938 = copy.shopStock;
+    val92a = (u8)copy.replayRank;
     SOFT_BARRIER();
-    tmp             = (u8)save->field_E;
-    save->field_92B = 0xFF;
-    tmp             = tmp + 1;
-    save->field_E   = tmp;
-    save->field_92C = val92c;
-    save->field_930 = val930;
-    save->field_934 = val934;
-    save->field_938 = val938;
-    save->field_92A = val92a;
+    tmp              = (u8)save->clearCount;
+    save->saveCount  = 0xFF;
+    tmp              = tmp + 1;
+    save->clearCount = tmp;
+    save->field_92C  = val92c;
+    save->field_930  = val930;
+    save->shopTiers  = val934;
+    save->shopStock  = val938;
+    save->replayRank = val92a;
     if (tmp >= 0x64) {
-        save->field_E = 0x63;
+        save->clearCount = 0x63;
     }
     if (val92c < D_replay_bonus_80119274.unk0) {
         save->field_92C = D_replay_bonus_80119274.unk0;
@@ -1051,34 +1051,34 @@ void func_replay_bonus_80116EC0(void)
     if (sum > 0x98967F) {
         sum = 0x98967F;
     }
-    cfg->bp        = sum;
-    save->field_12 = 0xF;
-    exp            = D_replay_bonus_80119274.field_8;
-    cfg->exp       = exp;
-    save->field_14 = exp;
-    save->field_18 = cfg->bp;
-    if (copy.field_F >= 2) {
-        save->field_92A = 2;
-    } else if (save->field_92A <= 0) {
+    cfg->bp         = sum;
+    save->savePoint = 0xF;
+    exp             = D_replay_bonus_80119274.field_8;
+    cfg->exp        = exp;
+    save->playerExp = exp;
+    save->playerBp  = cfg->bp;
+    if (copy.gameMode >= 2) {
+        save->replayRank = 2;
+    } else if (save->replayRank <= 0) {
         if (D_replay_bonus_80119274.unk0 > 0x10D88) {
-            save->field_92A = 1;
+            save->replayRank = 1;
         }
     }
-    p = copy.unknown_850;
+    p = copy.attachLevels;
     j = 0;
     do {
         shift = j * 2;
-        bits  = Mc_SaveData.field_938;
+        bits  = Mc_SaveData.shopStock;
         n     = *p;
         if ((s32)((bits >> shift) & 3) < n) {
             masked                = bits & ~(3 << shift);
-            Mc_SaveData.field_938 = masked;
-            Mc_SaveData.field_938 = masked | (*p << shift);
+            Mc_SaveData.shopStock = masked;
+            Mc_SaveData.shopStock = masked | (*p << shift);
         }
         j += 1;
         p += 1;
     } while (j < 0xC);
     if (D_replay_bonus_80119284 >= 0) {
-        Mc_SaveData.field_934 |= 1 << D_replay_bonus_80119284;
+        Mc_SaveData.shopTiers |= 1 << D_replay_bonus_80119284;
     }
 }

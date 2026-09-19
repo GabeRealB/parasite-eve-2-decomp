@@ -56,7 +56,7 @@ void func_shelter_r36_8017D5E8(Task* task)
 
 void func_shelter_r36_8017D738(void)
 {
-    if (Mc_SaveData.field_23 != 9) {
+    if (Mc_SaveData.demoScene != 9) {
         Mc_SaveData.at4.loc.stage = 4;
         Mc_SaveData.at4.loc.area  = 0x24;
         Mc_SaveData.at4.loc.warp  = 2;

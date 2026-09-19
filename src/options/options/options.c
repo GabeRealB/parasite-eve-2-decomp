@@ -601,8 +601,8 @@ void func_options_801D4D0C(Task* task)
     runWalk  = D_options_801D5C10;
     x        = (s16)obj->field_18;
     one      = 1;
-    walkMode = Mc_SaveData.field_25;
-    type     = Mc_SaveData.field_1a8;
+    walkMode = Mc_SaveData.moveMode;
+    type     = Mc_SaveData.buttonLayout;
     y        = x + 0xF;
     if (walkMode == one) {
         runWalk = D_options_801D5C14;
@@ -611,7 +611,7 @@ void func_options_801D4D0C(Task* task)
     Ui_DrawText((UiPanel*)obj, "Key Configuration");
     if (task->state == 0) {
         Ui_UpdateLayoutSize((UiPanel*)obj, 0, Ui_Scale15(9) + 6);
-        task->spawnArg1 = Mc_SaveData.field_1a8;
+        task->spawnArg1 = Mc_SaveData.buttonLayout;
         task->state    += 1;
     }
     y1     = x + 1;
@@ -933,10 +933,10 @@ void func_options_801D4D0C(Task* task)
     if (obj->status == 1) {
         if (Pad_CheckButtons(0, 1, 0x6000) != 0) {
             SndEvt_EnqueueType6(2, 0, 0);
-            Mc_SaveData.field_1a8 = ((s8)(Mc_SaveData.field_1a8 + 1)) % 3;
+            Mc_SaveData.buttonLayout = ((s8)(Mc_SaveData.buttonLayout + 1)) % 3;
         } else if (Pad_CheckButtons(0, 1, 0x9000) != 0) {
             SndEvt_EnqueueType6(2, 0, 0);
-            Mc_SaveData.field_1a8 = ((s8)(Mc_SaveData.field_1a8 + 2)) % 3;
+            Mc_SaveData.buttonLayout = ((s8)(Mc_SaveData.buttonLayout + 2)) % 3;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
             obj->field_2E = 6;

@@ -333,7 +333,7 @@ end:
 
 /// Restore demo card / save banks from D_8005C374 (or 0x80600100 when
 /// gDisplayState.demoScene == 0x10).
-/// Preserves Mc_SaveData.field_21 / field_23 across the bulk copy.
+/// Preserves Mc_SaveData.vibration / field_23 across the bulk copy.
 void Title_RestoreDemoCard(void)
 {
     u8* src;
@@ -345,8 +345,8 @@ void Title_RestoreDemoCard(void)
 
     src         = (u8*)D_8005C374;
     bank        = 0;
-    saveField23 = Mc_SaveData.field_23;
-    saveField21 = Mc_SaveData.field_21;
+    saveField23 = Mc_SaveData.demoScene;
+    saveField21 = Mc_SaveData.vibration;
     if (gDisplayState.demoScene == 0x10) {
         src = (u8*)0x80600100;
     }
@@ -378,8 +378,8 @@ void Title_RestoreDemoCard(void)
 
     memcpy(&D_80073980[bank * 0x100], src, 0x100);
 
-    Mc_SaveData.field_23 = saveField23;
-    Mc_SaveData.field_21 = saveField21;
+    Mc_SaveData.demoScene = saveField23;
+    Mc_SaveData.vibration = saveField21;
     if (Fs_StageCdfIsAvailable(Mc_SaveData.at4.loc.stage) != 1) {
         gDisplayState.gameMode = 1;
     }

@@ -76,7 +76,7 @@ void func_shelter_b2_laboratory_8017F4D8(Task* task)
         case 0:
             D_shelter_b2_laboratory_801864A4 = NULL;
             Gp_MsgPlayerWeapon(0);
-            if (Mc_SaveData.field_13 == 1) {
+            if (Mc_SaveData.companionType == 1) {
                 Gp_MsgAllyWeapon(0);
             }
             if (p->field_0 > 0) {
@@ -201,7 +201,7 @@ void func_shelter_b2_laboratory_8017F4D8(Task* task)
         case 14:
             SndEvt_EnqueueType6(p->field_8, 0, 0);
             Gp_MsgPlayerWeapon(1);
-            if (Mc_SaveData.field_13 == 1) {
+            if (Mc_SaveData.companionType == 1) {
                 Gp_MsgAllyWeapon(1);
             }
             gGameSession->hideHud    = 0;

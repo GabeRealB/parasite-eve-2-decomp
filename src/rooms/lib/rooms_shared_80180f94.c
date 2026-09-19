@@ -9,10 +9,10 @@
 /// `RoomPeUsage` block from the save's per-slot use counters.
 ///
 /// Each of the twelve Parasite Energy slots owns three consecutive ids starting
-/// at 0xF, one per level, so slot `i` at level `Mc_SaveData.unknown_850[i]`
+/// at 0xF, one per level, so slot `i` at level `Mc_SaveData.attachLevels[i]`
 /// prints as `i * 3 + 0xF + level - 1` (a slot the player has never levelled
 /// keeps the base id). Every slot with a non-zero counter in
-/// `Mc_SaveData.field_862` - which really runs twelve entries wide, past the
+/// `Mc_SaveData.attachUseCounts` - which really runs twelve entries wide, past the
 /// seven the struct names - is appended and its counter summed. The ids are
 /// then insertion-sorted by use count, most-used first, and each row gets
 /// `percents`, its share of all recorded uses in hundredths of a percent, and
@@ -50,15 +50,15 @@ void RoomsShared80180f94(UiList* list, UiObject* obj)
     magic = 0x55555556;
 
     for (; i < 12; i++) {
-        if (Mc_SaveData.field_862[i] > 0) {
+        if (Mc_SaveData.attachUseCounts[i] > 0) {
             id = i * 3 + 0xF;
             *p = id;
-            if (Mc_SaveData.unknown_850[i] != 0) {
-                *p = id + (Mc_SaveData.unknown_850[i] - 1u);
+            if (Mc_SaveData.attachLevels[i] != 0) {
+                *p = id + (Mc_SaveData.attachLevels[i] - 1u);
             }
             p++;
             count++;
-            total += Mc_SaveData.field_862[i];
+            total += Mc_SaveData.attachUseCounts[i];
         }
     }
     SOFT_USE_REG(magic);
@@ -66,10 +66,10 @@ void RoomsShared80180f94(UiList* list, UiObject* obj)
     if (count >= 2) {
         for (i = 1; i < count; i++) {
             slot = (work->peIds[i] - 0xF) / 3;
-            uses = Mc_SaveData.field_862[slot];
+            uses = Mc_SaveData.attachUseCounts[slot];
             for (j = 0; j < i; j++) {
                 slot = (work->peIds[j] - 0xF) / 3;
-                if (Mc_SaveData.field_862[slot] < uses) {
+                if (Mc_SaveData.attachUseCounts[slot] < uses) {
                     tmp = work->peIds[i];
                     for (k = i - 1; k >= j; k--) {
                         work->peIds[k + 1] = work->peIds[k];
@@ -84,7 +84,7 @@ void RoomsShared80180f94(UiList* list, UiObject* obj)
     if (count > 0) {
         scale = 0x4E20;
         slot  = (work->peIds[0] - 0xF) / 3;
-        top   = Mc_SaveData.field_862[slot];
+        top   = Mc_SaveData.attachUseCounts[slot];
         shift = 0xC;
         while (top > 0x1869F) {
             top   >>= 1;
@@ -94,9 +94,9 @@ void RoomsShared80180f94(UiList* list, UiObject* obj)
         }
         for (i = 0; i < count; i++) {
             slot               = (work->peIds[i] - 0xF) / 3;
-            work->percents[i]  = (u32)((Mc_SaveData.field_862[slot] * scale) / total + 1) >> 1;
+            work->percents[i]  = (u32)((Mc_SaveData.attachUseCounts[slot] * scale) / total + 1) >> 1;
             slot               = (work->peIds[i] - 0xF) / 3;
-            work->barWidths[i] = (Mc_SaveData.field_862[slot] << shift) / top;
+            work->barWidths[i] = (Mc_SaveData.attachUseCounts[slot] << shift) / top;
         }
     }
 

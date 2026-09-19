@@ -67,7 +67,7 @@ void GameFlow_StateByField34(Task* arg0)
         gDisplayState.demoScene = 0;
         Pad_SetCooldown(0);
         if (arg0->spawnArg1 == 0) {
-            saved = Mc_SaveData.field_21;
+            saved = Mc_SaveData.vibration;
             ptr   = (u8*)gGameSession;
             for (i = 0; i < sizeof(GameSession); i++) {
                 *ptr++ = 0;
@@ -79,7 +79,7 @@ void GameFlow_StateByField34(Task* arg0)
             Wip_SysFlags.field_4                       = 1;
             Mc_InitBufferSlots();
             do {
-                Mc_SaveData.field_21 = saved;
+                Mc_SaveData.vibration = saved;
             } while (0);
             arg0->state = arg0->state + 1;
         } else {
@@ -162,7 +162,7 @@ void Game_ResetSessionAndBuffers(Task* arg0)
     CdCmdQueue* p;
 
     p     = &CdCmd_Queue;
-    saved = Mc_SaveData.field_21;
+    saved = Mc_SaveData.vibration;
     ptr   = (u8*)gGameSession;
     for (i = 0; i < sizeof(GameSession); i++) {
         *ptr++ = 0;
@@ -174,7 +174,7 @@ void Game_ResetSessionAndBuffers(Task* arg0)
     Wip_SysFlags.field_4                       = 1;
     Mc_InitBufferSlots();
     do {
-        Mc_SaveData.field_21 = saved;
+        Mc_SaveData.vibration = saved;
     } while (0);
     arg0->state = arg0->state + 1;
 }
@@ -203,7 +203,7 @@ void GameFlow_WaitMenuDone(Task* arg0)
         Ui_TeardownTree(obj, obj->owner);
         gDisplayState.gameMode = 0;
         gGameSession->uiOpen   = 0;
-        if (Mc_SaveData.field_1a9 == 1) {
+        if (Mc_SaveData.soundMode == 1) {
             CdVol_SetMixMode(0);
         } else {
             CdVol_SetMixMode(1);
@@ -363,7 +363,7 @@ void Pad_TickEventBanks(PadState* arg0)
         p0  += 4;
     } while (i < 8);
 
-    if (Mc_SaveData.field_21 == 0) {
+    if (Mc_SaveData.vibration == 0) {
         pad->field_5A = temp[0];
         pad->field_5B = temp[1];
     } else {

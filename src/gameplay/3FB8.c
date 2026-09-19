@@ -3241,7 +3241,7 @@ void Gp_InitPlayerWork(GpActorWork* arg0)
     obj->pos.vz     = 0;
     {
         s32 temp;
-        temp        = save->field_22;
+        temp        = save->characterId;
         obj->radius = 0x12C;
         obj->flags  = 4;
         packed      = 0x10000;
@@ -3267,7 +3267,7 @@ void Gp_InitPlayerWork(GpActorWork* arg0)
         obj->pos.vy     = 0x64;
         obj->pos.vx     = 0;
         obj->pos.vz     = 0x28;
-        temp            = save->field_22;
+        temp            = save->characterId;
         obj->radius     = size;
         obj->flags      = 0x14;
         obj->key        = temp | packed;
@@ -3286,7 +3286,7 @@ void Gp_InitPlayerWork(GpActorWork* arg0)
     obj->pos.vx     = 0;
     obj->pos.vy     = 0x52;
     obj->pos.vz     = 0;
-    temp            = save->field_22;
+    temp            = save->characterId;
     obj->radius     = size;
     obj->flags      = 0x24;
     obj->key        = temp | packed;
@@ -4688,7 +4688,7 @@ s32 Gp_SpawnWeaponEff(void)
         goto join_4C;
     }
 
-    task             = spawn_attach(parent, Mc_SaveData.field_22, Player_Status.weapon);
+    task             = spawn_attach(parent, Mc_SaveData.characterId, Player_Status.weapon);
     actor->field_91C = task;
     if (task == NULL) {
         goto join_4C;
@@ -4742,7 +4742,7 @@ join_50:
     actor->field_98F = 0;
     inner            = work->actor;
     anim             = work->extra;
-    inner->field_93A = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.weapon;
+    inner->field_93A = Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon;
     inner->field_928 = Gp_PlayerAnimBlkTbl[inner->field_93A];
     func_800B3F84((GpAnimCtx*)inner->field_424, inner->field_928, anim, &inner->field_7A8,
                   inner->field_438);
@@ -4816,7 +4816,7 @@ void Gp_BindActorAnim(GpActorWork* arg0)
 
     actor            = arg0->actor;
     extra            = arg0->extra;
-    actor->field_93A = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.weapon;
+    actor->field_93A = Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon;
     actor->field_928 = Gp_PlayerAnimBlkTbl[actor->field_93A];
     func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
                   actor->field_438);
@@ -5093,7 +5093,7 @@ GsCOORDINATE2* func_8010403C(s32 arg0)
     u8    idx;
 
     slot = gameGetPtrSlot(3);
-    idx  = D_80112E2C[Mc_SaveData.field_22 - 1][arg0];
+    idx  = D_80112E2C[Mc_SaveData.characterId - 1][arg0];
     return &((GsCOORDINATE2*)((TmdObject*)slot->extra)->coords)[idx];
 }
 
@@ -5425,7 +5425,7 @@ s32 Gp_EnterActorMode2(GpActorWork* arg0, s32 arg1, s32 arg2)
     actor->field_10                   = coord->coord.t[0];
     actor->field_14                   = coord->coord.t[1];
     actor->field_18                   = coord->coord.t[2];
-    actor->field_93A                  = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.weapon;
+    actor->field_93A                  = Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon;
     actor->field_928                  = Gp_PlayerAnimBlkTbl[actor->field_93A];
     actor->field_985                  = 0x10;
     actor->field_983                  = 7;
@@ -6046,7 +6046,7 @@ s32 Gp_CopyPlayerAnim(GpActorWork* arg0, s32 arg1, GpCopyArg* arg2)
     s32  i;
     s32  count;
 
-    dest  = (s32*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.weapon];
+    dest  = (s32*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon];
     src   = arg2->field_0;
     count = arg2->field_4;
     if (count >= 0x21) {
@@ -6067,7 +6067,7 @@ s32 Gp_ApplyPlayerDamage(GpActorWork* arg0, s32 arg1, s32 arg2)
 
     actor = arg0->actor;
     ret   = 0;
-    if (Mc_SaveData.field_5C2 == 0) {
+    if (Mc_SaveData.cheatMode == 0) {
         ret = Gp_ApplyHpDamage((s16)Gp_ScaleDamage(arg2, 0, &out, 0));
         if (ret != 0) {
             Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 0, 0x7DE);
@@ -6330,7 +6330,7 @@ s32 func_801060E0(GpActorWork* arg0)
         mask2 = 2;
     } else {
         flags = ((PadState*)&Pad_States)->buttons;
-        if (Mc_SaveData.field_1a8 == mode) {
+        if (Mc_SaveData.buttonLayout == mode) {
             mask1 = 0x80;
             mask2 = 0x10;
         } else {
@@ -6517,8 +6517,8 @@ void func_80106518(s32 arg0)
 
     cap = 0x1869E;
     idx = arg0 - 1;
-    if (Mc_SaveData.field_888[idx] <= cap) {
-        Mc_SaveData.field_888[idx]++;
+    if (Mc_SaveData.weaponUseCounts[idx] <= cap) {
+        Mc_SaveData.weaponUseCounts[idx]++;
     }
 }
 
@@ -6584,7 +6584,7 @@ void func_801066DC(GpActorWork* arg0, s16 arg1)
     } else if ((inner->field_962 & 0x40) && (temp != -1)) {
         temp             = 1;
         inner->field_95A = temp;
-        if (Mc_SaveData.field_25 == 0 && inner->field_991 == 0) {
+        if (Mc_SaveData.moveMode == 0 && inner->field_991 == 0) {
             inner->field_958 = 3;
             mode             = 4;
         } else {
@@ -6597,7 +6597,7 @@ void func_801066DC(GpActorWork* arg0, s16 arg1)
     } else {
         inner->field_95A = 1;
         if (inner->field_973 == 1) {
-            if (Mc_SaveData.field_25 != 0 && inner->field_991 == 0) {
+            if (Mc_SaveData.moveMode != 0 && inner->field_991 == 0) {
                 inner->field_958 = 3;
                 mode             = 4;
             } else {
@@ -7507,7 +7507,7 @@ void Gp_PlayerMode2StateB(GpActorWork* arg0)
         case 1:
             if (Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1) !=
                 NULL) {
-                if (func_80105894(arg0, D_80112E04[Mc_SaveData.field_22][1], 0, 0) == 0) {
+                if (func_80105894(arg0, D_80112E04[Mc_SaveData.characterId][1], 0, 0) == 0) {
                     inner            = arg0->actor;
                     inner->field_954 = 0;
                     inner->field_956 = 2;
@@ -7778,7 +7778,7 @@ void func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2)
         }
         inner->field_95C = 0xA;
         mode             = 0x14;
-        if (Mc_SaveData.field_13 == 1) {
+        if (Mc_SaveData.companionType == 1) {
             func_80166E94(gameGetPtrSlot(0xA), 0);
         }
     } else {
@@ -9298,7 +9298,7 @@ void Gp_PlayerStepSfx(GpActorWork* arg0)
 
     inner = arg0->actor;
     obj   = arg0->extra->coords;
-    if (Mc_SaveData.field_5C2 != 0) {
+    if (Mc_SaveData.cheatMode != 0) {
         return;
     }
     if ((s8)inner->field_97A != 0) {
@@ -9543,7 +9543,7 @@ void Gp_EndPlayerActorTask(GpActorWork* arg0)
         actor->field_91C = NULL;
         extra            = arg0->extra;
         inner            = arg0->actor;
-        inner->field_93A = Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
+        inner->field_93A = Gp_AllyIdBase[Mc_SaveData.companionType - 1] + Mc_SaveData.companionVariant;
         inner->field_928 = Gp_AnimBlkTbl[inner->field_93A];
         func_800B3F84((GpAnimCtx*)inner->field_424, inner->field_928, extra, &inner->field_7A8,
                       inner->field_438);
@@ -9591,16 +9591,16 @@ s32 Gp_SetupAllyWeapon(void)
 
     if (actor->field_924 != NULL) {
         save             = &Mc_SaveData;
-        task             = func_80104364((GpActorWork*)actor->field_924, save->field_13 + 1, save->field_5C7, 0);
+        task             = func_80104364((GpActorWork*)actor->field_924, save->companionType + 1, save->companionVariant, 0);
         actor->field_91C = task;
         if (task != NULL) {
             block = actor->field_910;
-            val1  = D_80167218[save->field_5C7];
-            val2  = D_80167224[save->field_5C7];
+            val1  = D_80167218[save->companionVariant];
+            val2  = D_80167224[save->companionVariant];
             Gp_AttachActorObj(work, val1, val2);
             actor->field_124  |= 0x80;
-            block->actionCount = D_80167230[save->field_5C7];
-            if ((u8)save->field_5C7 == 4 && actor->field_914 == NULL) {
+            block->actionCount = D_80167230[save->companionVariant];
+            if ((u8)save->companionVariant == 4 && actor->field_914 == NULL) {
                 eff = Gp_SpawnEff(
                     0x80060180, (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, val1, 0);
                 if (eff != NULL) {
@@ -9613,7 +9613,7 @@ s32 Gp_SetupAllyWeapon(void)
 
     inner            = work->actor;
     extra            = work->extra;
-    inner->field_93A = Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
+    inner->field_93A = Gp_AllyIdBase[Mc_SaveData.companionType - 1] + Mc_SaveData.companionVariant;
     inner->field_928 = Gp_AnimBlkTbl[inner->field_93A];
     func_800B3F84((GpAnimCtx*)inner->field_424, inner->field_928, extra, &inner->field_7A8,
                   inner->field_438);
@@ -9652,18 +9652,18 @@ void func_8010B9A4(GpActorWork* arg0)
     actor->field_960 = 0;
     actor->field_973 = 0;
     actor->field_975 = 0;
-    if (save->field_5C2 == 0 && (field13 = save->field_13) == 1) {
-        temp            = save->field_6C8 - actor->field_96E;
-        save->field_6C8 = temp;
+    if (save->cheatMode == 0 && (field13 = save->companionType) == 1) {
+        temp              = save->companionHp - actor->field_96E;
+        save->companionHp = temp;
         if ((s16)temp <= 0 && gGameSession->eventState != 0) {
-            save->field_6C8 = field13;
+            save->companionHp = field13;
         }
     }
     actor->field_12A &= 0x3FFF;
     if ((s8)actor->field_97E == 2) {
         actor->field_97E = 1;
     }
-    func_80106350(arg0, D_80167218[Mc_SaveData.field_5C7], 0);
+    func_80106350(arg0, D_80167218[Mc_SaveData.companionVariant], 0);
     anim = 0x11;
     if ((u16)actor->field_96C == 1) {
         anim = 0x10;
@@ -9680,7 +9680,7 @@ Task* Gp_SpawnAlly(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3)
     s32            type;
 
     if (arg1 == 1) {
-        type = Mc_SaveData.field_5C7 + 0x7F;
+        type = Mc_SaveData.companionVariant + 0x7F;
     } else {
         type = arg1 + 0x82;
     }
@@ -9858,7 +9858,7 @@ void func_8010BFCC(GpActorWork* arg0)
 
     actor            = arg0->actor;
     extra            = arg0->extra;
-    actor->field_93A = Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
+    actor->field_93A = Gp_AllyIdBase[Mc_SaveData.companionType - 1] + Mc_SaveData.companionVariant;
     actor->field_928 = Gp_AnimBlkTbl[actor->field_93A];
     func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
                   actor->field_438);
@@ -9868,9 +9868,9 @@ s32 func_8010C058(void)
 {
     s32 ret;
 
-    if (((s16)Mc_SaveData.field_6CA >> 1) < (s16)Mc_SaveData.field_6C8) {
+    if (((s16)Mc_SaveData.companionHpMax >> 1) < (s16)Mc_SaveData.companionHp) {
         ret = 0;
-    } else if (((s16)Mc_SaveData.field_6CA >> 2) >= (s16)Mc_SaveData.field_6C8) {
+    } else if (((s16)Mc_SaveData.companionHpMax >> 2) >= (s16)Mc_SaveData.companionHp) {
         ret = 2;
     } else {
         ret = 1;
@@ -9898,10 +9898,10 @@ void Gp_TrackAllyLockTarget(GpActorWork* arg0, s32 arg1)
             Gp_AimYawToLock(arg0, val);
         }
         if (arg1 & 2) {
-            if (D_80113388[Mc_SaveData.field_5C7] != 0) {
+            if (D_80113388[Mc_SaveData.companionVariant] != 0) {
                 Gp_AimPitchToLock(arg0);
             } else {
-                Gp_AimPitchRec(arg0, D_80167218[Mc_SaveData.field_5C7], 0x380);
+                Gp_AimPitchRec(arg0, D_80167218[Mc_SaveData.companionVariant], 0x380);
             }
         }
     }
@@ -9991,7 +9991,7 @@ s32 func_8010C30C(GpActorWork* arg0)
     actor->field_14    = coord->coord.t[1];
     actor->field_18    = coord->coord.t[2];
     prev               = actor->field_928;
-    actor->field_93A   = Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
+    actor->field_93A   = Gp_AllyIdBase[Mc_SaveData.companionType - 1] + Mc_SaveData.companionVariant;
     anim               = Gp_AnimBlkTbl[actor->field_93A];
     changed            = prev != anim;
     actor->field_928   = anim;
@@ -10023,7 +10023,7 @@ void func_8010C46C(GpActorWork* arg0)
     actor->field_70   = 0;
     actor->field_96C  = 0;
     actor->field_12A &= 0x3FFF;
-    func_80106350(arg0, D_80167218[Mc_SaveData.field_5C7], 0);
+    func_80106350(arg0, D_80167218[Mc_SaveData.companionVariant], 0);
 }
 
 s32 func_8010C4F0(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
@@ -10046,7 +10046,7 @@ s32 func_8010C4F0(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
     actor->field_70   = 0;
     actor->field_96C  = 0;
     actor->field_12A &= 0x3FFF;
-    func_80106350(arg0, D_80167218[Mc_SaveData.field_5C7], 0);
+    func_80106350(arg0, D_80167218[Mc_SaveData.companionVariant], 0);
     actor->field_956 = 1;
     if (actor->field_928 != Gp_AnimBlkTbl[(s32)arg2->field_0]) {
         actor->field_928 = Gp_AnimBlkTbl[(s32)arg2->field_0];
@@ -10140,7 +10140,7 @@ s32 func_8010C75C(GpActorWork* arg0, s32 arg1, GpDelayArg* arg2)
     actor->field_70   = 0;
     actor->field_96C  = 0;
     actor->field_12A &= 0x3FFF;
-    func_80106350(arg0, D_80167218[Mc_SaveData.field_5C7], 0);
+    func_80106350(arg0, D_80167218[Mc_SaveData.companionVariant], 0);
     actor->field_956 = 6;
     actor->field_934 = arg2->field_14;
     actor->field_93E = 0;
@@ -10165,7 +10165,7 @@ s32 Gp_CopyAllyAnim(GpActorWork* arg0, s32 arg1, GpCopyArg* arg2)
     s32  i;
     s32  count;
 
-    dest  = (s32*)Gp_AnimBlkTbl[Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7];
+    dest  = (s32*)Gp_AnimBlkTbl[Gp_AllyIdBase[Mc_SaveData.companionType - 1] + Mc_SaveData.companionVariant];
     src   = arg2->field_0;
     count = arg2->field_4;
     if (count >= 0x21) {
@@ -10183,9 +10183,9 @@ s32 Gp_HurtAlly(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
     s32 ret;
 
     ret = 0;
-    if (Mc_SaveData.field_5C2 == 0) {
-        Mc_SaveData.field_6C8 -= Gp_ScaleDamage(arg2, 0, 0, 1);
-        if ((s16)Mc_SaveData.field_6C8 <= 0) {
+    if (Mc_SaveData.cheatMode == 0) {
+        Mc_SaveData.companionHp -= Gp_ScaleDamage(arg2, 0, 0, 1);
+        if ((s16)Mc_SaveData.companionHp <= 0) {
             Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 0, 0x7DE);
             ret = 1;
         }

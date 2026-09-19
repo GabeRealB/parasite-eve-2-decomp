@@ -216,7 +216,7 @@ void func_dryfield_dilapidated_house_8017E144(Task* task)
 /// state 1 fires when the session is back in play (`gGameSession->eventState`
 /// is 2) and hands slot 0 the release event 0x1B, state 6 waits for the room
 /// message (`gGameSession->field_126`), and state 7 -- reached once the save
-/// has not already banked this clear (`Mc_SaveData.field_23`) -- applies the
+/// has not already banked this clear (`Mc_SaveData.demoScene`) -- applies the
 /// room's two area records, raises the progression flags, refills the party
 /// and hands off to the results screen with `Task_Spawn(0, 0x11, 0, 0)`.
 /// States 0..6 share the `advance` tail that walks the task one state on;
@@ -254,7 +254,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
             } while (0);
             return;
         case 7:
-            if (Mc_SaveData.field_23 != 9) {
+            if (Mc_SaveData.demoScene != 9) {
                 Gp_ApplyAreaRecs(&D_dryfield_dilapidated_house_80189AA0);
                 if (GameFlag_GetNibble(0xCE) != 0) {
                     Gp_ApplyAreaRecs(&D_dryfield_dilapidated_house_80189B24);
@@ -269,7 +269,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
                 GameFlag_SetNibble(0x155, 0);
                 Gp_FillPlayerHpMp();
                 Gp_FillAllyHp();
-                Mc_SaveData.field_5C5     = 1;
+                Mc_SaveData.sceneEvent    = 1;
                 Mc_SaveData.at4.loc.stage = 2;
                 Mc_SaveData.at4.loc.warp  = 1;
                 Mc_SaveData.at4.loc.room  = 1;

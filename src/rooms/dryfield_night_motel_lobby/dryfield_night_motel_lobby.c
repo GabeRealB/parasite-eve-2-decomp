@@ -19,7 +19,7 @@ extern s32 D_80115694;
 /// word: bits 16..31 are `field_6` / `field_7`.
 extern s32 D_8007216C;
 
-/// `Mc_SaveData.field_13` (ally present). A distinct symbol so the restore
+/// `Mc_SaveData.companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `Mc_SaveData` address with case 0.
 extern s8 D_8007217B;
 
@@ -66,7 +66,7 @@ void func_dryfield_night_motel_lobby_8017F504(Task* task)
             D_dryfield_night_motel_lobby_801844D0 = NULL;
             Gp_MsgPlayerWeapon(0);
             save = &Mc_SaveData;
-            if (save->field_13 == 1) {
+            if (save->companionType == 1) {
                 Gp_MsgAllyWeapon(0);
             }
             if (script->field_0 > 0) {

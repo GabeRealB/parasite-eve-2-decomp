@@ -23,7 +23,7 @@ void Task_AllocIdMap(Task* arg0)
             D_80062737 = 0;
         }
         temp_a0    = gGameSession->at4.loc.stage;
-        ret        = TaskIdMap_RemapIndex(temp_a0, Mc_SaveData.field_5C5, D_8006276C[temp_a0 - 1]);
+        ret        = TaskIdMap_RemapIndex(temp_a0, Mc_SaveData.sceneEvent, D_8006276C[temp_a0 - 1]);
         field34    = arg0->spawnArg1;
         D_80062738 = ret;
         D_8007A398 = 0;

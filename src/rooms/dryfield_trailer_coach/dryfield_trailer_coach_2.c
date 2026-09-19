@@ -20,7 +20,7 @@ extern s32 D_80115694;
 /// word: bits 16..31 are `field_6` / `field_7`.
 extern s32 D_8007216C;
 
-/// `Mc_SaveData.field_13` (ally present). A distinct symbol so the restore
+/// `Mc_SaveData.companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `Mc_SaveData` address with case 0.
 extern s8 D_8007217B;
 

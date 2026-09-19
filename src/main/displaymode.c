@@ -25,7 +25,7 @@ void Display_SetMode(s32 arg0)
     temp_s4    = Display_HeightTable[arg0 & 0xF];
     ds->width  = temp_s5;
     ds->height = temp_s4;
-    if (Mc_SaveData.field_5C3 != 0) {
+    if (Mc_SaveData.interlace != 0) {
         var_s7 = 1;
     }
     temp_s3       = temp_s4 & 0xFFFF;

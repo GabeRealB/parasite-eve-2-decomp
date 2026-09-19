@@ -29,7 +29,7 @@ void RoomsShared80181228(Task* task)
         case 0:
             RoomsShared80181228Task = NULL;
             Gp_MsgPlayerWeapon(0);
-            if (Mc_SaveData.field_13 == 1) {
+            if (Mc_SaveData.companionType == 1) {
                 Gp_MsgAllyWeapon(0);
             }
             if (rec->field_0 > 0) {
@@ -156,7 +156,7 @@ void RoomsShared80181228(Task* task)
         case 14:
             SndEvt_EnqueueType6(rec->field_8, 0, 0);
             Gp_MsgPlayerWeapon(1);
-            if (Mc_SaveData.field_13 == 1) {
+            if (Mc_SaveData.companionType == 1) {
                 Gp_MsgAllyWeapon(1);
             }
             gGameSession->hideHud    = 0;

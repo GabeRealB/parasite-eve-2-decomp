@@ -4610,8 +4610,8 @@ void Gp_InitPlayClock(Task* task)
     Gp_ResetHudFx(&rec->extra);
     GameMain_SetFrameTiming(1);
     task->work   = (TaskIdMap*)rec;
-    rec->field_0 = Mc_SaveData.field_C / 60;
-    rec->field_4 = Mc_SaveData.field_C % 60;
+    rec->field_0 = Mc_SaveData.playTime / 60;
+    rec->field_4 = Mc_SaveData.playTime % 60;
     ds           = &gDisplayState;
     rec->field_8 = ds->gameTick;
     func_800B25B0();
@@ -4661,15 +4661,15 @@ void Gp_TickPlayClock(Task* task)
         McSaveData* p;
         D_8005ED68 -= 0xE10;
         p           = &Mc_SaveData;
-        if (p->field_C <= 0xEA5E) {
-            p->field_C++;
+        if (p->playTime <= 0xEA5E) {
+            p->playTime++;
             rec->field_4++;
             if (rec->field_4 >= 0x3C) {
                 rec->field_4 -= 0x3C;
                 rec->field_0++;
             }
         } else {
-            p->field_C   = 0xEA5F;
+            p->playTime  = 0xEA5F;
             rec->field_0 = 0x3E7;
             rec->field_4 = 0x3B;
         }
@@ -4677,7 +4677,7 @@ void Gp_TickPlayClock(Task* task)
 
     save = &Mc_SaveData;
     one  = 1;
-    if (save->field_23 == one) {
+    if (save->demoScene == one) {
         req.x          = -0x96;
         req.y          = 0x64;
         req.otIndex    = 4;
@@ -4695,16 +4695,16 @@ void Gp_TickPlayClock(Task* task)
 
     if (gGameSession->suppressDeathChecks == 0) {
         if (cfg->hp > 0) {
-            companion = save->field_13;
+            companion = save->companionType;
             if (companion == one) {
-                if ((s16)save->field_6C8 <= 0) {
+                if ((s16)save->companionHp <= 0) {
                     goto block_hp;
                 }
             }
             if (companion != 3) {
                 goto block_normal;
             }
-            if ((s16)save->field_6C8 > 0) {
+            if ((s16)save->companionHp > 0) {
                 goto block_normal;
             }
         block_hp:
@@ -4732,15 +4732,15 @@ void Gp_TickPlayClock(Task* task)
     block_companion: {
         McSaveData* p;
         p = &Mc_SaveData;
-        if ((s16)p->field_6C8 <= 0) {
+        if ((s16)p->companionHp <= 0) {
             if (gGameSession->eventState != 0) {
-                p->field_6C8 = 1;
+                p->companionHp = 1;
                 return;
             }
             Gp_StateC08.field_3 = 0;
             func_800A7DE0();
             Gp_PulseState1C80();
-            companion = p->field_13;
+            companion = p->companionType;
             if (companion == 1) {
                 gGameSession->restartMode  = companion;
                 Gp_LcgState                = Gp_LcgState * 5 + 0x71357911;
@@ -4748,7 +4748,7 @@ void Gp_TickPlayClock(Task* task)
                 SndEvt_EnqueueType7(0x20000000, 8);
                 SndBank_SetEnableFlags(0, 0x20000000);
                 CdCmd_EnqueueLoadFile(9, ((u8)gGameSession->deathVariant + 0x20) & 0xFF, 3);
-                companion = p->field_13;
+                companion = p->companionType;
             }
             if (companion == 3) {
                 gGameSession->restartMode = 4;
@@ -5306,7 +5306,7 @@ u16 Gp_GetAttachParam(s32 arg0)
             cond = p->field_26 == 4;
         }
         if (cond == 0) {
-            table = Mc_SaveData.unknown_850;
+            table = Mc_SaveData.attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }
@@ -5358,7 +5358,7 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
             cond = p->field_26 == 4;
         }
         if (cond == 0) {
-            table = Mc_SaveData.unknown_850;
+            table = Mc_SaveData.attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }
@@ -5500,7 +5500,7 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
         TextDrawReq* p;
         s32          x;
 
-        if (Mc_SaveData.field_1a8 != 2) {
+        if (Mc_SaveData.buttonLayout != 2) {
             if (item != 0x96) {
                 color = 0x606060;
                 p     = &req;
@@ -5561,7 +5561,7 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
 
         flag = 0;
         y   += 0xA;
-        if (Mc_SaveData.field_1a8 != 2) {
+        if (Mc_SaveData.buttonLayout != 2) {
             v = 0x606060;
             p = &req2;
             asm("lui %0, %%hi(D_80093890)" : "=r"(str));
@@ -5657,7 +5657,7 @@ s32 Gp_CheckAttachThreshold(s32 arg0)
             cond = cfg->field_26 == 4;
         }
         if (cond == 0) {
-            table = Mc_SaveData.unknown_850;
+            table = Mc_SaveData.attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }
@@ -5708,7 +5708,7 @@ s32 Gp_CheckAttachThreshold(s32 arg0)
                 off += (s32)recs;
                 val  = *(u16*)off;
                 if (cfg->mp < val) {
-                    if (Mc_SaveData.field_5C2 == 0) {
+                    if (Mc_SaveData.cheatMode == 0) {
                         result = 1;
                         goto done;
                     }
@@ -5725,7 +5725,7 @@ s32 Gp_CheckAttachThreshold(s32 arg0)
             }
             if (arg0 == 7) {
                 if (cfg->hpMax == cfg->hp) {
-                    if (Mc_SaveData.field_5C2 == 0) {
+                    if (Mc_SaveData.cheatMode == 0) {
                         result = 1;
                         goto done;
                     }
@@ -5798,7 +5798,7 @@ void Gp_SetAttachState(s32 arg0)
             cond = cfg->field_26 == 4;
         }
         if (cond == 0) {
-            table = Mc_SaveData.unknown_850;
+            table = Mc_SaveData.attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }
@@ -5847,7 +5847,7 @@ static __inline__ s32 stepAttachWheelSaved(s32 arg0, s32 arg1, McSaveData* save)
         cond = p->field_26 == 4;
     }
     if (cond == 0) {
-        table = Mc_SaveData.unknown_850;
+        table = Mc_SaveData.attachLevels;
     } else {
         table = Gp_DebugAttachLevels;
     }
@@ -5859,7 +5859,7 @@ static __inline__ s32 stepAttachWheelSaved(s32 arg0, s32 arg1, McSaveData* save)
                     if (arg0 >= 0xC) {
                         arg0 = 0;
                     }
-                } while (table[arg0] == 0 && save->field_5C2 == 0);
+                } while (table[arg0] == 0 && save->cheatMode == 0);
                 arg1--;
             } else {
                 do {
@@ -5867,7 +5867,7 @@ static __inline__ s32 stepAttachWheelSaved(s32 arg0, s32 arg1, McSaveData* save)
                     if (arg0 < 0) {
                         arg0 += 0xC;
                     }
-                } while (table[arg0] == 0 && save->field_5C2 == 0);
+                } while (table[arg0] == 0 && save->cheatMode == 0);
                 arg1++;
             }
         } while (arg1 != 0);
@@ -5889,7 +5889,7 @@ static __inline__ s32 stepAttachWheel(s32 arg0, s32 arg1)
         cond = p->field_26 == 4;
     }
     if (cond == 0) {
-        table = Mc_SaveData.unknown_850;
+        table = Mc_SaveData.attachLevels;
     } else {
         table = Gp_DebugAttachLevels;
     }
@@ -5902,7 +5902,7 @@ static __inline__ s32 stepAttachWheel(s32 arg0, s32 arg1)
                     if (arg0 >= 0xC) {
                         arg0 = 0;
                     }
-                } while (table[arg0] == 0 && save->field_5C2 == 0);
+                } while (table[arg0] == 0 && save->cheatMode == 0);
                 arg1--;
             } else {
                 do {
@@ -5910,7 +5910,7 @@ static __inline__ s32 stepAttachWheel(s32 arg0, s32 arg1)
                     if (arg0 < 0) {
                         arg0 += 0xC;
                     }
-                } while (table[arg0] == 0 && save->field_5C2 == 0);
+                } while (table[arg0] == 0 && save->cheatMode == 0);
                 arg1++;
             }
         } while (arg1 != 0);
@@ -5935,7 +5935,7 @@ static __inline__ s32 getAttachWheelLevel(s32 idx)
             cond = p->field_26 == 4;
         }
         if (cond == 0) {
-            table = Mc_SaveData.unknown_850;
+            table = Mc_SaveData.attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }
@@ -6034,7 +6034,7 @@ s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
         cond = cfg->field_26 == 4;
     }
     if (cond == 0) {
-        table = Mc_SaveData.unknown_850;
+        table = Mc_SaveData.attachLevels;
     } else {
         table = Gp_DebugAttachLevels;
     }
@@ -6314,7 +6314,7 @@ static __inline__ u8* getAttachLevels(void)
         cond = p->field_26 == 4;
     }
     if (cond == 0) {
-        return Mc_SaveData.unknown_850;
+        return Mc_SaveData.attachLevels;
     }
     return Gp_DebugAttachLevels;
 }
@@ -6337,7 +6337,7 @@ static __inline__ s32 getAttachLevel(s32 idx)
             cond = p->field_26 == 4;
         }
         if (cond == 0) {
-            table = Mc_SaveData.unknown_850;
+            table = Mc_SaveData.attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }
@@ -6583,8 +6583,8 @@ void Gp_UseItemTask(GpIdMapC* arg0)
                     Gp_SetItemSeenBit(Gp_SelItemRec->itemId, 1);
                     Gp_RemoveItem(NULL, Gp_SelItemRec, 0);
                 }
-                if (Mc_SaveData.field_862[Gp_StateC08.field_5] < 0x270F) {
-                    Mc_SaveData.field_862[Gp_StateC08.field_5]++;
+                if (Mc_SaveData.attachUseCounts[Gp_StateC08.field_5] < 0x270F) {
+                    Mc_SaveData.attachUseCounts[Gp_StateC08.field_5]++;
                 }
                 Gp_StateC08.field_8 = 0;
             } else {
@@ -8020,8 +8020,8 @@ void func_800A57B0(GpIdMapC* arg0)
     }
 
     if (Gp_ActorSlots[1] != NULL) {
-        if (Mc_SaveData.field_13 != 2) {
-            Gp_DrawHudNumbers(0x2D, -0x64, (s16)Mc_SaveData.field_6C8, (s16)Mc_SaveData.field_6CA, 0);
+        if (Mc_SaveData.companionType != 2) {
+            Gp_DrawHudNumbers(0x2D, -0x64, (s16)Mc_SaveData.companionHp, (s16)Mc_SaveData.companionHpMax, 0);
         }
     }
 }
@@ -8563,7 +8563,7 @@ void Gp_StartAreaBgm(s16* arg0)
         if (cfg->hp <= 0) {
             SndEvt_EnqueueType6((next->deathVariant << 16) | 0x70000001, 0, 0);
         } else {
-            type = Mc_SaveData.field_13;
+            type = Mc_SaveData.companionType;
             if (type == 1) {
                 SndEvt_EnqueueType6(((next->deathVariant + 0x31) << 16) | 0x70000001, 0, 0);
             } else if (type == three) {
@@ -8587,7 +8587,7 @@ u8* Gp_GetAttachLevels(void)
         cond = p->field_26 == 4;
     }
     if (cond == 0) {
-        return Mc_SaveData.unknown_850;
+        return Mc_SaveData.attachLevels;
     }
     return Gp_DebugAttachLevels;
 }
@@ -8830,7 +8830,7 @@ s32 Gp_GetAttachLevel(s32 arg0)
             cond = p->field_26 == 4;
         }
         if (cond == 0) {
-            table = Mc_SaveData.unknown_850;
+            table = Mc_SaveData.attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }
@@ -8861,7 +8861,7 @@ s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
         cond = p->field_26 == 4;
     }
     if (cond == 0) {
-        table = Mc_SaveData.unknown_850;
+        table = Mc_SaveData.attachLevels;
     } else {
         table = Gp_DebugAttachLevels;
     }
@@ -8874,7 +8874,7 @@ s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
                     if (arg0 >= 0xC) {
                         arg0 = 0;
                     }
-                } while (table[arg0] == 0 && save->field_5C2 == 0);
+                } while (table[arg0] == 0 && save->cheatMode == 0);
                 arg1--;
             } else {
                 do {
@@ -8882,7 +8882,7 @@ s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
                     if (arg0 < 0) {
                         arg0 += 0xC;
                     }
-                } while (table[arg0] == 0 && save->field_5C2 == 0);
+                } while (table[arg0] == 0 && save->cheatMode == 0);
                 arg1++;
             }
         } while (arg1 != 0);

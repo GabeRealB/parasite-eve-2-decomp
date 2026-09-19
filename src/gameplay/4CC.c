@@ -228,7 +228,7 @@ void Gp_ItemMoveTask(Task* arg0)
                 src            = scans[item & 0xFF];
                 Gp_MoveItemKey = item;
             } else {
-                src = &Mc_SaveData.field_5BC;
+                src = &Mc_SaveData.carriedItems;
             }
             (&Gp_MoveScanSrc)[i] = *src;
             i++;
@@ -1083,7 +1083,7 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
                     break;
                 case 2:
                     SndEvt_EnqueueType6(4, 0, 0);
-                    scan = &Mc_SaveData.field_5BC;
+                    scan = &Mc_SaveData.carriedItems;
                     rec  = Gp_GetItemTable(scan);
                     i    = 0;
                     rec  = &rec[scan->firstRow];
@@ -1115,7 +1115,7 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
             if (arg0->field_10 == 2) {
-                scan = &Mc_SaveData.field_5BC;
+                scan = &Mc_SaveData.carriedItems;
                 rec  = Gp_GetItemTable(scan);
                 i    = 0;
                 rec  = &rec[scan->firstRow];

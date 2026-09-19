@@ -222,8 +222,8 @@ void func_actor_215100_8014A5C0(Task* arg0)
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                D_80073BAE            = 3;
-                Mc_SaveData.field_5C5 = 1;
+                D_80073BAE             = 3;
+                Mc_SaveData.sceneEvent = 1;
                 Gp_ClearInventory();
                 gGameSession->hideHud = 1;
                 SndEvt_EnqueueType6(0x51140005, 0, 0);

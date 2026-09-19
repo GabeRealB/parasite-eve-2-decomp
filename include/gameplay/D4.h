@@ -326,7 +326,7 @@ extern GpDirPair D_801149FC[];
 /// list, 1-based by `Mc_SaveData.at4.loc.area`; `field_4` is the stage id
 /// (`Mc_SaveData.at4.loc.stage`). `Gp_ApplyNpcRoomSnd` tests the room byte (second
 /// table with `& 0xF`) to choose the `Snd_SetModeFlag` argument.
-/// `Gp_PickCompanion` uses the same tables to pick `Mc_SaveData.field_13`.
+/// `Gp_PickCompanion` uses the same tables to pick `Mc_SaveData.companionType`.
 typedef struct _GpNpcRoomRec {
     /* 0x0 */ u8*  field_0;
     /* 0x4 */ u8   field_4;
@@ -342,7 +342,7 @@ extern GpNpcRoomRec D_80114248[];
 /// `field_0` indexes `Gp_AreaTables` (same role as `GpAreaKey.stage`);
 /// `field_1` indexes that table (same role as `GpAreaKey.area`);
 /// `field_2` is the id written by `Gp_SetAreaObjId`. High nibble of `field_3`
-/// is a `Mc_SaveData.field_F` filter (0 = always, 0x10 if 0 or 2, 0x20 if
+/// is a `Mc_SaveData.gameMode` filter (0 = always, 0x10 if 0 or 2, 0x20 if
 /// 1 or 3); low nibble nonzero sets `GpAreaObj.field_1` bit 2, else clears.
 typedef struct _GpAreaApplyRec {
     /* 0x0 */ u8 field_0;
@@ -392,7 +392,7 @@ void Gp_LoadState2(Task* task);
 /// session location (`at4.loc.room` / `at4.loc.area` / `at4.loc.stage`), then
 /// `Gp_PickCompanion`. If that returns a companion type, stores it in
 /// `GameSession.companionType` and calls `Gp_EnqueueCompanionCd` with
-/// `Mc_SaveData.field_13` / `field_5C7`. Then advances `task->state`.
+/// `Mc_SaveData.companionType` / `companionVariant`. Then advances `task->state`.
 void Gp_LoadWaitCompanion(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
 /// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
@@ -409,7 +409,7 @@ void Gp_LoadWaitSave(Task* task);
 /// Then walks `D_80114C74`: phase 0 resets `D_80114C70` and falls into
 /// phase 1 (`func_800AA120`); when that finishes, phase 2 runs
 /// `Gp_PollAreaCdLoads`. On success, resets TMD lists / the current OT,
-/// advances `task->state`, and if `Mc_SaveData.field_5C3` is set enables
+/// advances `task->state`, and if `Mc_SaveData.interlace` is set enables
 /// interlace on both `DISPENV` slots.
 void Gp_LoadWaitAreaCd(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (gray 0x64), indexed by
@@ -417,7 +417,7 @@ void Gp_LoadWaitAreaCd(Task* task);
 /// then after 7 frames clears `CdCmd_Queue.field_22E` and advances state.
 void Gp_FadeGrayHold(Task* task);
 void Gp_InitStageVisit(struct GpAreaKey* arg0);
-/// Pick companion type into `Mc_SaveData.field_13` from the NPC room tables.
+/// Pick companion type into `Mc_SaveData.companionType` from the NPC room tables.
 /// Returns 0 if already current or none; else 1/2/3 for the caller to store
 /// in `GameSession.companionType`.
 s32  Gp_PickCompanion(void);

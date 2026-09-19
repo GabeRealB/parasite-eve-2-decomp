@@ -449,8 +449,8 @@ void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
                         next = sum + *(u8*)temp;
                         sum  = next;
                     } while (i < 9U);
-                    Mc_SaveData.field_940 = next;
-                    Mc_SaveData.field_942 = ~next;
+                    Mc_SaveData.bufferChecksum    = next;
+                    Mc_SaveData.bufferChecksumInv = ~next;
                 }
                 memcpy(mem, bufPtr, bufSize);
                 memcpy((u8*)mem + bufSize, bufPtr, bufSize);
@@ -903,7 +903,7 @@ void Mc_StateVerifyFinish(Task* arg0, McWork* arg1)
             {
                 u32          chk;
                 register u32 masked asm("v0");
-                chk    = Mc_SaveData.field_940;
+                chk    = Mc_SaveData.bufferChecksum;
                 masked = slotSum & 0xFFFF;
                 if (chk != masked) {
                     goto fail;
@@ -1069,7 +1069,7 @@ void Mc_StateSaveSlotUi(DialogPrompt* arg0, UiObject* arg1)
     s2      = s0->owner->spawnArg1;
     temp_a2 = (McSaveData*)(s2 + off);
     sum     = 0;
-    if ((u32)(temp_a2->field_12 - 1) >= 0x10U) {
+    if ((u32)(temp_a2->savePoint - 1) >= 0x10U) {
         ok = 0;
     } else {
         ptr   = &temp_a2->at4.loc.view;
@@ -1081,7 +1081,7 @@ void Mc_StateSaveSlotUi(DialogPrompt* arg0, UiObject* arg1)
             sum  = sum + tmp;
             ptr += 1;
         } while (i < limit);
-        ok = ((u16)temp_a2->field_1C ^ (sum & 0xFFFF)) == 0;
+        ok = ((u16)temp_a2->hdrChecksum ^ (sum & 0xFFFF)) == 0;
     }
     if (ok == 0) {
         var_s3 = 0;
@@ -1137,7 +1137,7 @@ void func_800330D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     if (arg2 < ((McWork*)arg1)->field_288) {
         off  = (arg2 << 7) + 0x294;
         save = (McSaveData*)(arg1 + off);
-        if ((u32)(save->field_12 - 1) >= 0x10U) {
+        if ((u32)(save->savePoint - 1) >= 0x10U) {
             valid = 0;
         } else {
             sum = 0;
@@ -1153,7 +1153,7 @@ void func_800330D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
                 ptr += 1;
             } while (i < limit);
             sum  &= 0xFFFF;
-            valid = (save->field_1C ^ sum) == 0;
+            valid = (save->hdrChecksum ^ sum) == 0;
         }
         if (valid == 0) {
             x = arg3 + arg0->field_1C + 8;
@@ -1182,8 +1182,8 @@ void func_800330D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         sp50.glyphTable = 0;
         sp50.centerMode = 0;
         sp50.field_E    = 3;
-        func_8002E53C(&sp50, Text_FormatTime(sp20.buf, (s32)save->field_C));
-        if (save->field_E > 0) {
+        func_8002E53C(&sp50, Text_FormatTime(sp20.buf, (s32)save->playTime));
+        if (save->clearCount > 0) {
             x                   = (arg3 + (s16)arg0->field_1E) - 4;
             y                   = (arg4 + (s16)arg0->field_1A) - 0xB;
             sp60.req.x          = arg0->baseX + (x - 0x1E);
@@ -1201,8 +1201,8 @@ void func_800330D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
             sp70.glyphTable = 0;
             sp70.centerMode = 2;
             sp70.field_E    = 3;
-            func_8002E53C(&sp70, Text_ItoaUnsigned(sp20.buf, (u32)save->field_E));
-            if ((s8)save->field_12 != 0xF) {
+            func_8002E53C(&sp70, Text_ItoaUnsigned(sp20.buf, (u32)save->clearCount));
+            if ((s8)save->savePoint != 0xF) {
                 sp80.x          = arg0->baseX + x;
                 sp80.y          = arg0->baseY + 8 + y;
                 sp80.otIndex    = (s16)arg0->drawOrder + 1;
@@ -1210,17 +1210,17 @@ void func_800330D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
                 sp80.glyphTable = 5;
                 sp80.centerMode = 2;
                 sp80.field_E    = 1;
-                func_8002E53C(&sp80, D_800611B8[save->field_F]);
+                func_8002E53C(&sp80, D_800611B8[save->gameMode]);
             }
         }
         x = arg3 + arg0->field_1C + 4;
         y = arg4 + (s16)arg0->field_18 + 0x11;
-        Text_DrawPrompt(arg0, x, y, D_80067418[(s8)save->field_12], color, 1, 0);
+        Text_DrawPrompt(arg0, x, y, D_80067418[(s8)save->savePoint], color, 1, 0);
         sp60.buf[0] = 0;
         Text_Strcat(sp60.buf, D_80013BA4);
-        Text_Strcat(sp60.buf, Text_ItoaSigned(sp20.buf, (s32)save->unknown_11));
+        Text_Strcat(sp60.buf, Text_ItoaSigned(sp20.buf, (s32)save->saveNumber));
         Text_Strcat(sp60.buf, D_800139A8);
-        sp70.x          = arg0->baseX + (x + Text_MeasureWidth(D_80067418[(s8)save->field_12]));
+        sp70.x          = arg0->baseX + (x + Text_MeasureWidth(D_80067418[(s8)save->savePoint]));
         sp70.y          = arg0->baseY + (y - 3);
         sp70.otIndex    = (s16)arg0->drawOrder + 1;
         sp70.field_8    = color;
@@ -1240,7 +1240,7 @@ void func_800330D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         sp70.centerMode = 0;
         sp70.field_E    = 1;
         func_8002E53C(&sp70, D_80013BA8);
-        if ((s8)save->field_12 != 0xF) {
+        if ((s8)save->savePoint != 0xF) {
             sp80.x          = arg0->baseX + x;
             sp80.y          = arg0->baseY + y;
             sp80.otIndex    = (s16)arg0->drawOrder + 1;
@@ -1248,7 +1248,7 @@ void func_800330D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
             sp80.glyphTable = 0;
             sp80.centerMode = 0;
             sp80.field_E    = 3;
-            func_8002E53C(&sp80, Text_ItoaSigned(sp20.buf, save->field_14));
+            func_8002E53C(&sp80, Text_ItoaSigned(sp20.buf, save->playerExp));
         } else {
             sp80.x          = arg0->baseX + x;
             sp80.y          = arg0->baseY + y;
@@ -1268,7 +1268,7 @@ void func_800330D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         sp80.centerMode = 0;
         sp80.field_E    = 1;
         func_8002E53C(&sp80, D_80013BB0);
-        if ((s8)save->field_12 != 0xF) {
+        if ((s8)save->savePoint != 0xF) {
             sp90.x          = arg0->baseX + 0x1E + x;
             sp90.y          = arg0->baseY + y;
             sp90.otIndex    = (s16)arg0->drawOrder + 1;
@@ -1276,7 +1276,7 @@ void func_800330D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
             sp90.glyphTable = 0;
             sp90.centerMode = 0;
             sp90.field_E    = 3;
-            func_8002E53C(&sp90, Text_ItoaSigned(sp20.buf, save->field_18));
+            func_8002E53C(&sp90, Text_ItoaSigned(sp20.buf, save->playerBp));
         } else {
             sp90.x          = arg0->baseX + 0x1E + x;
             sp90.y          = arg0->baseY + y;
@@ -1392,21 +1392,21 @@ void Mc_WriteSaveHdrChecksum(void)
     s32 i;
     s16 tmp;
 
-    sum                  = 0;
-    ptr                  = (u8*)&Mc_SaveData;
-    ptr                 += 4;
-    limit                = 0x38;
-    i                    = 0;
-    Mc_SaveData.field_1C = 0;
-    Mc_SaveData.field_1E = 0xFFFF;
+    sum                        = 0;
+    ptr                        = (u8*)&Mc_SaveData;
+    ptr                       += 4;
+    limit                      = 0x38;
+    i                          = 0;
+    Mc_SaveData.hdrChecksum    = 0;
+    Mc_SaveData.hdrChecksumInv = 0xFFFF;
     do {
         i   += 1;
         tmp  = (s8)*ptr;
         sum  = sum + tmp;
         ptr += 1;
     } while (i < limit);
-    Mc_SaveData.field_1C = sum;
-    Mc_SaveData.field_1E = ~sum;
+    Mc_SaveData.hdrChecksum    = sum;
+    Mc_SaveData.hdrChecksumInv = ~sum;
     Mc_VerifySaveHdrChecksum(&Mc_SaveData);
 }
 
@@ -1418,7 +1418,7 @@ s32 Mc_VerifySaveHdrChecksum(McSaveData* arg0)
     s32          i;
     s32          tmp;
 
-    if ((u32)(arg0->field_12 - 1) >= 0x10U) {
+    if ((u32)(arg0->savePoint - 1) >= 0x10U) {
         return 0;
     }
     sum   = 0;
@@ -1431,7 +1431,7 @@ s32 Mc_VerifySaveHdrChecksum(McSaveData* arg0)
         sum  = sum + tmp;
         ptr += 1;
     } while (i < limit);
-    return ((u16)arg0->field_1C ^ (sum & 0xFFFF)) == 0;
+    return ((u16)arg0->hdrChecksum ^ (sum & 0xFFFF)) == 0;
 }
 
 void Mc_WriteBlockChecksum(McChecksumBlock* arg0, s32 arg1)
@@ -1460,13 +1460,13 @@ void Mc_ResetSaveFlags(void)
 {
     McSaveData* p;
 
-    p            = &Mc_SaveData;
-    p->field_21  = 0;
-    p->field_1a8 = 0;
-    p->field_1aa = 0;
-    p->field_1ab = 0;
-    p->field_1a9 = 0;
-    p->field_25  = 0;
+    p               = &Mc_SaveData;
+    p->vibration    = 0;
+    p->buttonLayout = 0;
+    p->musicVolume  = 0;
+    p->cursorMode   = 0;
+    p->soundMode    = 0;
+    p->moveMode     = 0;
     CdVol_SetMixMode(1);
     Snd_ApplyVolumeTable(0);
 }
@@ -1622,8 +1622,8 @@ void Mc_WriteFirstByteChecksum(void)
         next = sum + *(u8*)temp;
         sum  = next;
     } while (i < 9U);
-    Mc_SaveData.field_940 = next;
-    Mc_SaveData.field_942 = ~next;
+    Mc_SaveData.bufferChecksum    = next;
+    Mc_SaveData.bufferChecksumInv = ~next;
 }
 
 s32 Mc_VerifyFirstByteChecksum(void)
@@ -1642,7 +1642,7 @@ s32 Mc_VerifyFirstByteChecksum(void)
         p   += 1;
         i   += 1;
     } while (i < 9);
-    return ((u16)Mc_SaveData.field_940 ^ (sum & 0xFFFF)) == 0;
+    return ((u16)Mc_SaveData.bufferChecksum ^ (sum & 0xFFFF)) == 0;
 }
 
 s32 Mc_VerifySlotChecksums(void)
@@ -1758,7 +1758,7 @@ void Mc_WriteDataChecksum(s32 arg0, McWork* arg1)
     count = 0x200;
     if (arg0 == 0) {
         src = Mc_DefaultChecksumSrc;
-        dst = (s16*)&Mc_SaveData.field_93C;
+        dst = (s16*)&Mc_SaveData.dataChecksum;
     } else {
         src = (u8*)arg1->field_18;
         dst = (s16*)&arg1->field_A1C;
@@ -1780,13 +1780,13 @@ void Mc_WriteDataChecksum(s32 arg0, McWork* arg1)
 
 s32 Mc_CompareSaveChecksum(McSaveData* arg0, McWork* arg1)
 {
-    if (arg0->field_5C2 != 0) {
+    if (arg0->cheatMode != 0) {
         return 0;
     }
-    if (arg0->field_23 != 0) {
+    if (arg0->demoScene != 0) {
         return 0;
     }
-    return arg0->field_93C == arg1->field_A1C;
+    return arg0->dataChecksum == arg1->field_A1C;
 }
 
 void Mc_ResetWork(Task* arg0, McWork* arg1)

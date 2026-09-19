@@ -118,7 +118,7 @@ void func_actor_450800_80132028(void)
 
 void func_actor_450800_80132080(void)
 {
-    if (Mc_SaveData.field_23 != 9) {
+    if (Mc_SaveData.demoScene != 9) {
         Mc_SaveData.at4.loc.stage = 5;
         Mc_SaveData.at4.loc.area  = 0x17;
         Mc_SaveData.at4.loc.warp  = 1;

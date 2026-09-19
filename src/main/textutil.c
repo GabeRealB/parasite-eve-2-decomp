@@ -400,10 +400,10 @@ void Mc_InitDualBankBuffers(void)
     p->at4.loc.room  = one;
     p->at4.loc.warp  = 7;
     p->at4.loc.place = one;
-    p->field_5C5     = two;
-    p->field_22      = one;
+    p->sceneEvent    = two;
+    p->characterId   = one;
     Player_InitNewGameStats();
-    idx                          = p->field_22 - 1;
+    idx                          = p->characterId - 1;
     (&Player_Status)[idx].weapon = two;
 }
 
@@ -471,12 +471,12 @@ void Mc_InitBufferSlots(void)
     gDisplayState.roomVariant = 1;
     Mc_InitDualBankBuffers();
 
-    Mc_SaveData.field_21  = 0;
-    Mc_SaveData.field_1a8 = 0;
-    Mc_SaveData.field_1aa = 0;
-    Mc_SaveData.field_1ab = 0;
-    Mc_SaveData.field_1a9 = 0;
-    Mc_SaveData.field_25  = 0;
+    Mc_SaveData.vibration    = 0;
+    Mc_SaveData.buttonLayout = 0;
+    Mc_SaveData.musicVolume  = 0;
+    Mc_SaveData.cursorMode   = 0;
+    Mc_SaveData.soundMode    = 0;
+    Mc_SaveData.moveMode     = 0;
     CdVol_SetMixMode(1);
     Snd_ApplyVolumeTable(0);
 }

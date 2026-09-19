@@ -155,7 +155,7 @@ STATIC_ASSERT_SIZEOF(GpRec16, 0x10);
 /// 20-byte damage-scale row at `Gp_DmgRows`. Indexed by `Gp_StateF0.field_2B`.
 /// `Gp_ScaleDamage` adds `D_80113F54[hp / 10] * 2` onto the row base and
 /// then loads `field_A` (arg3 == 0, player HP) or `field_0` (arg3 != 0,
-/// `Mc_SaveData.field_6C8`).
+/// `Mc_SaveData.companionHp`).
 typedef struct _GpDmgRow {
     /* 0x00 */ u16 field_0[5];
     /* 0x0A */ u16 field_A[5];
@@ -602,8 +602,8 @@ typedef struct _GpGridParams {
 STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 
 /// Global at `Gp_StateF0`. `Gp_InitStateF0` zeros the object, then writes
-/// `field_2B` from `Mc_SaveData.field_F` (as `u8`), or 4 when that byte is
-/// 0 and `Mc_SaveData.field_E != 0`. `Gp_IsDebugAttachRoom() == 1` forces
+/// `field_2B` from `Mc_SaveData.gameMode` (as `u8`), or 4 when that byte is
+/// 0 and `Mc_SaveData.clearCount != 0`. `Gp_IsDebugAttachRoom() == 1` forces
 /// `field_2B = 0` instead. `field_0` is a state byte (1 if first set by
 /// `Gp_ArmStateF0`; 2 when the last `field_6` ref is released). `field_1`
 /// is an alternate-active flag (`Gp_IsStateF0Active` / `func_800A7CB0` /
@@ -1217,11 +1217,11 @@ extern struct _GpLinkXform* D_80115260;
 extern s32 D_80115264;
 
 /// Per-stage `GpGiveRec` lists selected by `Gp_GrantLocationItems` when
-/// `Mc_SaveData.field_F` is 0 or 2. Indexed by `GameSession.at4.loc.stage`.
+/// `Mc_SaveData.gameMode` is 0 or 2. Indexed by `GameSession.at4.loc.stage`.
 extern GpGiveRec* D_8010F9F4[];
 
 /// Per-stage `GpGiveRec` lists selected by `Gp_GrantLocationItems` when
-/// `Mc_SaveData.field_F` is not 0 or 2. Indexed by `GameSession.at4.loc.stage`.
+/// `Mc_SaveData.gameMode` is not 0 or 2. Indexed by `GameSession.at4.loc.stage`.
 extern GpGiveRec* D_8010FA0C[];
 
 /// Face edge endpoint pairs walked by the grid collision helpers
@@ -1550,7 +1550,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3);
 /// Packed-id damage scale. `arg0` must have high bits `0x40000`; low 12 bits
 /// are the power and bits 12-15 are written to `*arg2` when it is non-NULL.
 /// `arg3 == 0` uses `Player_Status.hp` and `GpDmgRow.field_A`;
-/// otherwise `Mc_SaveData.field_6C8` and `GpDmgRow.field_0`.
+/// otherwise `Mc_SaveData.companionHp` and `GpDmgRow.field_0`.
 s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
 /// Rolls a status/effect chance for `arg0` against the player. Returns 0 for
 /// ids with bit 0x8000 set, when no slot 3 is active, or when

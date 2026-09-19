@@ -24,8 +24,8 @@ void RoomsShared8018055c(DialogPrompt* prompt, UiObject* obj)
     menu = RoomsShared8018055cCourses;
 
     list = 4;
-    if (Mc_SaveData.field_E != 0) {
-        list = Mc_SaveData.field_F;
+    if (Mc_SaveData.clearCount != 0) {
+        list = Mc_SaveData.gameMode;
     }
     if (Gp_IsDebugAttachRoom() == 0) {
         list += 5;

@@ -16,7 +16,7 @@ typedef struct RoomsShared8018055cCourse {
 STATIC_ASSERT_SIZEOF(RoomsShared8018055cCourse, 0x8);
 
 /// The ten course lists the SELECT menu can offer, indexed by
-/// `Mc_SaveData::field_F` (the difficulty the save runs at) plus 5 outside a
+/// `Mc_SaveData::gameMode` (the difficulty the save runs at) plus 5 outside a
 /// debug attach. The row handler stack-copies the whole table like the other
 /// gallery tables, but draws its row through the same 0x28-byte block: the
 /// text request overlays the first four list pointers, which is safe because

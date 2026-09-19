@@ -62,7 +62,7 @@ void func_actor_800300_80161E80(GpActorWork* arg0)
     {
         s32 temp;
 
-        temp        = save->field_22;
+        temp        = save->characterId;
         obj->radius = 0x12C;
         obj->flags  = 4;
         packed      = 0x10000;
@@ -82,7 +82,7 @@ void func_actor_800300_80161E80(GpActorWork* arg0)
     {
         s32 temp;
 
-        temp        = save->field_22;
+        temp        = save->characterId;
         obj->radius = 0xC8;
         obj->flags  = 4;
         obj->key    = temp | packed;

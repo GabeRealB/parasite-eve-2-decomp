@@ -55,7 +55,7 @@ u16* RoomsShared8017eb5cIdList(s32 arg0);
 /// thirteen rows). `spendThreshold` is the running total the player has to have
 /// spent for the row to unlock — the last row's is `S32_MAX`, so it never does
 /// on its own — and `items` are the three ids the row then offers.
-/// `Mc_SaveData.field_934` holds one bit per row and is what this builder reads.
+/// `Mc_SaveData.shopTiers` holds one bit per row and is what this builder reads.
 typedef struct {
     /* 0x0 */ s32  spendThreshold;
     /* 0x4 */ s16  items[3];
@@ -77,7 +77,7 @@ extern s32                 RoomsShared8017df68Selected;
 /// (0x80-0x9F) plus a handful of key items, mode 1 armour (0xA0-0xBF), mode 2
 /// weapon parts (0x60-0x7F) and mode 3 everything up to 0x5F that the other
 /// three modes do not carry. Mode 3 additionally offers the twelve two-bit
-/// stock levels the save keeps in `Mc_SaveData.field_938`, whose first slot
+/// stock levels the save keeps in `Mc_SaveData.shopStock`, whose first slot
 /// needs a level of 2 rather than 1.
 
 void RoomsShared8017e90cFillList(RoomShopList* shop, UiObject* obj)
@@ -108,15 +108,15 @@ void RoomsShared8017e90cFillList(RoomShopList* shop, UiObject* obj)
         ids++;
     }
 
-    if (Mc_SaveData.field_23 == 1) {
-        Mc_SaveData.field_934 = 0x1FFF;
-        Mc_SaveData.field_938 = -1;
+    if (Mc_SaveData.demoScene == 1) {
+        Mc_SaveData.shopTiers = 0x1FFF;
+        Mc_SaveData.shopStock = -1;
     }
 
-    if (Mc_SaveData.field_F == 0) {
-        if (Mc_SaveData.field_934 != 0) {
+    if (Mc_SaveData.gameMode == 0) {
+        if (Mc_SaveData.shopTiers != 0) {
             for (tier = 0; tier < 13; tier++) {
-                unlocked = Mc_SaveData.field_934 & (1 << tier);
+                unlocked = Mc_SaveData.shopTiers & (1 << tier);
                 if (unlocked != 0) {
                     for (j = 0; j < 3; j++) {
                         item = D_mist_parking_801863B0[tier].items[j];
@@ -154,7 +154,7 @@ void RoomsShared8017e90cFillList(RoomShopList* shop, UiObject* obj)
 
         if ((mode >> 16) == 3) {
             for (slot = 0; slot < 0xC; slot++) {
-                level = (Mc_SaveData.field_938 >> (slot * 2)) & 3;
+                level = (Mc_SaveData.shopStock >> (slot * 2)) & 3;
                 if (slot == 0 ? level >= 2 : level > 0) {
                     /* The assignment keeps `+ 0xE` on the level instead of
                        letting GCC reassociate it onto the row base. */

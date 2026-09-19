@@ -29,7 +29,7 @@ extern GpAreaApplyRec D_80183BE0;
 
 void func_actor_150400_80131ECC(void)
 {
-    if (Mc_SaveData.field_23 != 9) {
+    if (Mc_SaveData.demoScene != 9) {
         SetDispMask(1);
         GameFlag_SetNibble(0xE5, 1);
         Gp_EnqueueConfigCd(1);

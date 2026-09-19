@@ -246,21 +246,21 @@ static inline void Mc_UpdateTitleHeaderChecksum(void)
     s32 i;
     s16 tmp;
 
-    sum                  = 0;
-    ptr                  = (u8*)&Mc_SaveData;
-    ptr                 += 4;
-    limit                = 0x38;
-    i                    = 0;
-    Mc_SaveData.field_1C = 0;
-    Mc_SaveData.field_1E = 0xFFFF;
+    sum                        = 0;
+    ptr                        = (u8*)&Mc_SaveData;
+    ptr                       += 4;
+    limit                      = 0x38;
+    i                          = 0;
+    Mc_SaveData.hdrChecksum    = 0;
+    Mc_SaveData.hdrChecksumInv = 0xFFFF;
     do {
         i   += 1;
         tmp  = (s8)*ptr;
         sum  = sum + tmp;
         ptr += 1;
     } while (i < limit);
-    Mc_SaveData.field_1C = sum;
-    Mc_SaveData.field_1E = 0xFFFF - (u32)sum;
+    Mc_SaveData.hdrChecksum    = sum;
+    Mc_SaveData.hdrChecksumInv = 0xFFFF - (u32)sum;
     Mc_VerifySaveHdrChecksum(&Mc_SaveData);
 }
 
@@ -284,7 +284,7 @@ static inline void Mc_UpdateTitleDataChecksum(void)
     sum          = 0;
     count        = 0x200;
     src          = Mc_DefaultChecksumSrc;
-    dst          = (McChecksumBlock*)&Mc_SaveData.field_93C;
+    dst          = (McChecksumBlock*)&Mc_SaveData.dataChecksum;
     i            = 0;
     dst->field_0 = sum;
     dst->field_2 = 0xFFFF - (u32)sum;
@@ -312,9 +312,9 @@ void func_80030AB0(McWork* work)
     if (work->field_288 > 0) {
         for (i = 0; i < work->field_288; i++) {
             slot = (McSaveData*)((s32)work + 0x294 + i * 0x80);
-            if ((s8)slot->field_12 == (s8)Mc_SaveData.field_12) {
-                if (slot->unknown_11 >= number) {
-                    number = slot->unknown_11 + 1;
+            if ((s8)slot->savePoint == (s8)Mc_SaveData.savePoint) {
+                if (slot->saveNumber >= number) {
+                    number = slot->saveNumber + 1;
                 }
             }
         }
@@ -323,7 +323,7 @@ void func_80030AB0(McWork* work)
                 available = 1;
                 for (i = 0; i < work->field_288; i++) {
                     slot = (McSaveData*)((s32)work + 0x294 + i * 0x80);
-                    if ((s8)slot->field_12 == (s8)Mc_SaveData.field_12 && slot->unknown_11 == candidate) {
+                    if ((s8)slot->savePoint == (s8)Mc_SaveData.savePoint && slot->saveNumber == candidate) {
                         available = 0;
                         break;
                     }
@@ -335,26 +335,26 @@ void func_80030AB0(McWork* work)
             }
         }
     }
-    Mc_SaveData.unknown_11      = number;
+    Mc_SaveData.saveNumber      = number;
     title                       = Mc_EncodeTitleLiteral(D_80013998, title);
-    title                       = Mc_EncodeTitleText((s8*)Text_FormatTime(buffer, Mc_SaveData.field_C), title);
+    title                       = Mc_EncodeTitleText((s8*)Text_FormatTime(buffer, Mc_SaveData.playTime), title);
     title                       = Mc_EncodeTitleLiteral(D_800139A0, title);
     Mc_DefaultChecksumSrc[0x43] = 0;
     Mc_DefaultChecksumSrc[0x42] = 0;
-    title                       = (u16*)Mc_CopyTitleBytes(D_800675F0[(s8)Mc_SaveData.field_12], (u8*)title);
+    title                       = (u16*)Mc_CopyTitleBytes(D_800675F0[(s8)Mc_SaveData.savePoint], (u8*)title);
     title                       = Mc_EncodeTitleLiteral(D_800139A4, title);
-    title                       = Mc_EncodeTitleText((s8*)Text_ItoaSigned(buffer, Mc_SaveData.unknown_11), title);
+    title                       = Mc_EncodeTitleText((s8*)Text_ItoaSigned(buffer, Mc_SaveData.saveNumber), title);
     title                       = Mc_EncodeTitleLiteral((s8*)D_800139A8, title);
     *title                      = 0;
-    if (Mc_SaveData.field_92B == 0xFF) {
-        Mc_SaveData.field_92B = 0;
-    } else if (Mc_SaveData.field_92B < 99) {
-        Mc_SaveData.field_92B++;
+    if (Mc_SaveData.saveCount == 0xFF) {
+        Mc_SaveData.saveCount = 0;
+    } else if (Mc_SaveData.saveCount < 99) {
+        Mc_SaveData.saveCount++;
     }
     Mc_UpdateTitleHeaderChecksum();
     Mc_UpdateTitleDataChecksum();
-    Mc_SaveData.field_940         = 0;
-    *(u16*)&Mc_SaveData.field_942 = 0xFFFF;
+    Mc_SaveData.bufferChecksum            = 0;
+    *(u16*)&Mc_SaveData.bufferChecksumInv = 0xFFFF;
 }
 
 /* Overlay: DIRENTRY.size/head at McWork+0x48/0x50 when walk starts at McWork. */

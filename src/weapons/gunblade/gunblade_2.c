@@ -18,7 +18,7 @@
 /// run of accesses to the config block.
 extern u8 D_80073BAA;
 
-/// `Mc_SaveData.field_22`, the 1-based difficulty/mode row of `D_80112E04`.
+/// `Mc_SaveData.characterId`, the 1-based difficulty/mode row of `D_80112E04`.
 extern s8 D_8007218A;
 
 /// Per-frame firing state machine for the gunblade. State 0 arms the shot and

@@ -3,8 +3,8 @@
 
 void func_mine_tunnel_entrance_8017D690(void)
 {
-    if (Mc_SaveData.field_5C5 == 9) {
-        Mc_SaveData.field_5C5 = 0xA;
+    if (Mc_SaveData.sceneEvent == 9) {
+        Mc_SaveData.sceneEvent = 0xA;
     }
 }
 

@@ -17,7 +17,7 @@ struct _UiObject;
 typedef McItemSlot GpItemSlot;
 
 /// 4-byte table entry in `Gp_ItemMaps` (8 entries). field_1 is an item id
-/// used to index `Mc_SaveData.field_1C8`; field_0 selects which (id, count) pair;
+/// used to index `Mc_SaveData.weaponItems`; field_0 selects which (id, count) pair;
 /// field_2 is the mapped item id (`Gp_ApplyItemMap`).
 typedef struct _GpItemMap {
     /* 0x00 */ u8 field_0;
@@ -150,7 +150,7 @@ STATIC_ASSERT_SIZEOF(GpCoordYaw, 0x22);
 /// field_4 is the unsigned bonus added to `Player_Status.hpMax` by
 /// `Gp_RecalcMaxHp` when `Player_Status.armor` (item id − 0x5F) is
 /// non-zero. field_5 is the unsigned base added to
-/// `Mc_SaveData.field_908[id-0x60]` and clamped to 10. field_6 is the
+/// `Mc_SaveData.itemLevelBonus[id-0x60]` and clamped to 10. field_6 is the
 /// unsigned bonus added to `Player_Status.mpMax` by `Gp_RecalcMaxMp`
 /// when `field_23` is non-zero.
 typedef struct _GpItemAttr {
@@ -185,7 +185,7 @@ typedef union _GpStatBase {
 } GpStatBase;
 STATIC_ASSERT_SIZEOF(GpStatBase, 0x4);
 
-/// 8-byte row in `Gp_StatRows` (4 entries), indexed by `Mc_SaveData.field_F`.
+/// 8-byte row in `Gp_StatRows` (4 entries), indexed by `Mc_SaveData.gameMode`.
 /// base is the starting max HP (see `GpStatBase`). field_4 is the word added
 /// into `Player_Status.mpMax` (`Gp_RecalcMaxMp`).
 typedef struct _GpStatRow {
@@ -228,7 +228,7 @@ extern u8 Gp_ItemSortKey60[];
 extern u8 Gp_ItemSortKey80[];
 extern u8 Gp_ItemSortKeyA0[];
 /// 0xFFFF-terminated item-id list walked by `Gp_NthCollectedId`. Each id's
-/// low 7 bits index a collected-item bit in `Mc_SaveData.field_5AC`.
+/// low 7 bits index a collected-item bit in `Mc_SaveData.collectedBits`.
 extern u16        Gp_CollectedIds[];
 extern GpItemRec  Gp_ItemTable2[];
 extern GpItemRec* Gp_ItemTable1;
@@ -242,20 +242,20 @@ void Gp_RecalcMaxMp(void);
 /// (item id − 0x5F). Marks the new row's `field_1` as −1 and clears the
 /// previous selection, then recomputes max HP/MP (same bodies as
 /// `Gp_RecalcMaxHp` / `Gp_RecalcMaxMp`), refreshes every inventory row with
-/// `Gp_RefreshItemRow`, and sets the collected bit in `Mc_SaveData.field_6D0`.
+/// `Gp_RefreshItemRow`, and sets the collected bit in `Mc_SaveData.itemSeenBits`.
 /// `arg0 == 0` only recomputes HP/MP. Both of those paths copy current
 /// HP/MP into `Gp_HpMpWork`; any other id returns without that copy.
 void       Gp_EquipMod(s32 arg0);
 void       Gp_InitStarterInv(void);
 GpItemRec* Gp_GiveItem(GpItemScan* arg0, s32 arg1, s32 arg2);
 s32        Gp_RemoveItem(GpItemScan* arg0, GpItemRec* arg1, s32 arg2);
-/// Confirmation UI for raising `Mc_SaveData.field_908` of the equipped
+/// Confirmation UI for raising `Mc_SaveData.itemLevelBonus` of the equipped
 /// 0x60–0x7F item (`Player_Status.armor`). If the clamped level is
 /// already 10, `Gp_NoticePanelTask` is shown with spawnArg1 0x1A. Otherwise
 /// consumes `Gp_SelItemRec` and draws "More <item> attachments available."
 void Gp_UiBoostAttach(struct _UiObject* arg0, Task* arg1);
 void Gp_UiBoostMp(struct _UiObject* arg0, Task* arg1);
-/// HP counterpart of `Gp_UiBoostMp`: adds 5 to `Mc_SaveData.field_26`
+/// HP counterpart of `Gp_UiBoostMp`: adds 5 to `Mc_SaveData.hpBonus`
 /// (clamped below 250), recomputes max HP (same body as `Gp_RecalcMaxHp`),
 /// heals current HP to that max, then consumes `Gp_SelItemRec` and spawns
 /// `Gp_BoostPanelDesc`. `Gp_NoticePanelTask` is called with `spawnArg1` forced to 0x1C.
@@ -263,13 +263,13 @@ void Gp_UiBoostHp(struct _UiObject* arg0, Task* arg1);
 s32  func_800B9D80(s32 arg0);
 /// Unequips `Player_Status.weapon` (ids 1..32 use the same slot clear as
 /// `Gp_ClearEquipSlot`), resets the `Gp_DefaultScan` item table, copies that scan
-/// into `Mc_SaveData.field_5BC`, adds one of item 0x6C, heals current HP/MP
+/// into `Mc_SaveData.carriedItems`, adds one of item 0x6C, heals current HP/MP
 /// to max, zeros the 4x3 `Gp_DebugAttachLevels` table, and clears `Gp_StateC08.field_5`
 /// / `field_B`.
 void Gp_ResetInventory(void);
 /// Unequips `Player_Status.weapon` (same slot clear as `Gp_ResetInventory`),
 /// zeros the `Gp_DefaultScan` item table, writes `{0, 0x14, 0}` into
-/// `Mc_SaveData.field_5BC`, and if that table has an equipped 0x60–0x7F
+/// `Mc_SaveData.carriedItems`, and if that table has an equipped 0x60–0x7F
 /// item (`field_1 == -1`) sets `field_23` and recomputes max HP/MP
 /// (`Gp_RecalcMaxHp` / `Gp_RecalcMaxMp`). Heals current HP/MP to max, then
 /// clears `Gp_StateC08.field_5` / `field_B`.
@@ -309,7 +309,7 @@ GpItemRec* Gp_SetScanItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// written row, or NULL if none was free.
 GpItemRec* Gp_AddItem(GpItemScan* arg0, s32 arg1, s32 arg2);
 /// Returns the `arg1`-th text field of item `arg0` (NUL / `\\n` / `\\N`
-/// delimiters). `arg2 == 0` reads `Mc_SaveData.field_6D0` and adds 3 to
+/// delimiters). `arg2 == 0` reads `Mc_SaveData.itemSeenBits` and adds 3 to
 /// `arg1` when the bit is clear. Ids `>= 0x500` index `Gp_ItemTextHi`;
 /// `0x300..0x4FF` unpack and recurse.
 char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2);

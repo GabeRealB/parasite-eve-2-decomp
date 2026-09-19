@@ -3822,7 +3822,7 @@ void func_actor_503500_80143AC0(Task* arg0)
         case 3:
             if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
                 D_actor_503500_801714DC =
-                    Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Player_Status.weapon]
+                    Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon]
                         ->field_1C;
                 Gp_DispatchMsg(player, 0x3FF, (s32)&D_actor_503500_80171530, 0);
                 arg0->state++;

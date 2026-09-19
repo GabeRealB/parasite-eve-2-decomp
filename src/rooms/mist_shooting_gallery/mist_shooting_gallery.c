@@ -607,7 +607,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     color = 0x606060;
     top   = (s16)obj->field_18;
     y     = top + 0xF;
-    val   = Gp_StatRows[Mc_SaveData.field_F].base.word;
+    val   = Gp_StatRows[Mc_SaveData.gameMode].base.word;
     xOff  = (s16)obj->field_1C + 6;
     if (val < 100) {
         color = 0xD287F;
@@ -624,7 +624,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), color, 3, 2);
 
     y     = top + 0x1E;
-    val   = Gp_StatRows[Mc_SaveData.field_F].field_4;
+    val   = Gp_StatRows[Mc_SaveData.gameMode].field_4;
     color = 0x606060;
     if (val < 30) {
         color = 0xD287F;
@@ -642,7 +642,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
 
     y      = top + 0x2D;
     rawExp = D_mist_shooting_gallery_8018E0BC;
-    switch (Mc_SaveData.field_F) {
+    switch (Mc_SaveData.gameMode) {
         case 3:
             val = 0;
             break;
@@ -755,7 +755,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     y                 = row + 0xB;
     label0.y          = (s16)(obj->baseY - 6) + y;
     label0.otIndex    = (s16)obj->drawOrder + 1;
-    rating            = &missionLevels.entries[Mc_SaveData.field_F];
+    rating            = &missionLevels.entries[Mc_SaveData.gameMode];
     label0.field_8    = 0x606060;
     label0.glyphTable = 5;
     label0.centerMode = 0;
@@ -777,7 +777,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label1.x          = obj->baseX + x;
     label1.y          = (s16)(obj->baseY - 6) + y;
     label1.otIndex    = (s16)obj->drawOrder + 1;
-    rating            = &conditions.entries[Mc_SaveData.field_F];
+    rating            = &conditions.entries[Mc_SaveData.gameMode];
     label1.field_8    = 0x606060;
     label1.glyphTable = 5;
     label1.centerMode = 0;
@@ -798,7 +798,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label2.x          = obj->baseX + x;
     label2.y          = (s16)(obj->baseY - 6) + y;
     label2.otIndex    = (s16)obj->drawOrder + 1;
-    rating            = &enemyLevels.entries[Mc_SaveData.field_F];
+    rating            = &enemyLevels.entries[Mc_SaveData.gameMode];
     label2.field_8    = 0x606060;
     label2.glyphTable = 5;
     label2.centerMode = 0;
@@ -819,7 +819,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label3.x          = obj->baseX + x;
     label3.y          = (s16)(obj->baseY - 6) + y;
     label3.otIndex    = (s16)obj->drawOrder + 1;
-    rating            = &supplyLevels.entries[Mc_SaveData.field_F];
+    rating            = &supplyLevels.entries[Mc_SaveData.gameMode];
     label3.field_8    = 0x606060;
     label3.glyphTable = 5;
     label3.centerMode = 0;

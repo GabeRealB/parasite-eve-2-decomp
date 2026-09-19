@@ -30,10 +30,10 @@ void RoomsShared8017ea68(Task* task)
 
     obj           = task->spawnArg2;
     obj->field_2E = 0;
-    ready         = Mc_SaveData.field_23 == 1;
+    ready         = Mc_SaveData.demoScene == 1;
     list          = &RoomsShared8017ea68List;
     one           = 1;
-    if (Mc_SaveData.field_E > 0) {
+    if (Mc_SaveData.clearCount > 0) {
         ready = one;
     }
     if (ready == 0) {
