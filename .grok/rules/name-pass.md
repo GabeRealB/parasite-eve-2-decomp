@@ -190,7 +190,7 @@ mechanism is the usual mistake, and it dates the comment. A field comment
 naming a generated symbol - `func_800AD5B8`, `D_8010EB94` - is that mistake in
 its sharpest form: it explains the field by pointing at something the reader has
 to decode as well. "Frames left before
-the body is released" is the field; "counted down by `Task_CountdownCallback`"
+the body is released" is the field; "counted down by `taskCountdownCallback`"
 adds a function name the reader can find and that will not survive a
 reorganisation. The test: would the sentence still be true and useful if a
 neighbouring function were renamed?

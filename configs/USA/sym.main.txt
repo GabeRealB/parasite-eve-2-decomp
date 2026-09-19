@@ -805,7 +805,7 @@ Task_Free                   = 0x8002D474; // type:func
 Task_ExecDefaultList        = 0x8002D494; // type:func
 Task_ExecListFiltered       = 0x8002D544; // type:func
 Task_CallExitFiltered       = 0x8002D61C; // type:func
-Task_CountdownCallback               = 0x8002D6EC; // type:func
+taskCountdownCallback       = 0x8002D6EC; // type:func
 Game_ClearPtrSlots               = 0x8002D780; // type:func
 Mem_CopyUnaligned               = 0x8002D7A8; // type:func
 

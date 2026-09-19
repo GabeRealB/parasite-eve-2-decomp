@@ -279,7 +279,12 @@ reading `(s32 arg0, s32 arg1, s32 arg2)` tells a caller nothing, and a
 declaration that names its parameters while the definition still says `arg0` is
 two descriptions of one function. `rename_item.py` takes
 `<file>/<function>::<param>` and matches the parameter by position, so it
-rewrites every declaration and the definition together.
+rewrites every declaration and the definition together. That rewrite covers
+comment mentions too, which is what a real symbol name wants and a placeholder
+does not: `argN` is the spelling examples use everywhere, so renaming a
+parameter still carrying it edits unrelated functions' notes and the prose in
+this tree. Pass `--no-comments` for those and the rename stays in the code that
+declares it.
 
 **A field you can describe is a field you can name.** Writing a comment that
 states a field's role and leaving it called `field_14` is self-contradictory:
@@ -443,7 +448,7 @@ understandable.
 
 Naming the mechanism is the usual way this goes wrong. "Frames left before the
 body is released" says what the field is; "counted down by
-`Task_CountdownCallback`" adds the name of the function that happens to do it,
+`taskCountdownCallback`" adds the name of the function that happens to do it,
 which the reader can find and which changes if the code is reorganised. The same
 comment is better without it.
 

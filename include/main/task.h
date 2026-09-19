@@ -121,10 +121,10 @@ STATIC_ASSERT_SIZEOF(TaskIdMap, 0x8);
 /// request hands back, and `killCountdown` the delay before the body goes.
 ///
 /// Killing a task that owns a body is spread over two steps, so nothing frees it
-/// while its callback is still running: `Task_Kill` releases the body (for a TMD
-/// model, from `Task_CountdownCallback` once `killCountdown` runs out) and marks
-/// the task with `spawnType` 0xFF, and the exec pass that sees the mark unlinks
-/// and frees the task once the callback has returned.
+/// while its callback is still running: the kill releases the body — a TMD model
+/// only once its `killCountdown` has run out, a 2D display straight away — and
+/// marks the task with `spawnType` 0xFF, and the exec pass that sees the mark
+/// unlinks and frees the task once the callback has returned.
 typedef struct Task {
     TaskNode     node;          // Intrusive list links; a task is its own list node
     struct Task* parent;        // Owning task; NULL when the task sits at the top level
@@ -187,8 +187,13 @@ void      Task_SetActiveList(TaskNode* node);
 void      Task_ResetDefaultList(void);
 void      Task_Unlink(Task* task);
 void      Task_Free(Task* task);
-void      Task_CountdownCallback(Task* task);
-s32       TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2);
+/// Task callback that counts a task's `killCountdown` down and releases the body
+/// it owns when the count reaches zero: a TMD model comes off the model list and
+/// has its buffer and object freed, a 2D display is freed, and a task owning
+/// neither is only marked. The mark is `spawnType` 0xFF, which the next exec pass
+/// collects the task on.
+void taskCountdownCallback(Task* task);
+s32  TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2);
 
 // =============================================================================
 // Globals

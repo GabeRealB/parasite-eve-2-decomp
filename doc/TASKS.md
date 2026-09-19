@@ -112,7 +112,7 @@ Each node’s `callback` runs. Two early-outs:
    `gDisplayState.skipTeardown` is set).
 5. Sets `spawnType = 0xFF` so the **next** exec pass frees the node.
 
-Type 1 often swaps `callback` to `Task_CountdownCallback` with
+Type 1 often swaps `callback` to `taskCountdownCallback` with
 `killCountdown = 2` instead of freeing immediately. Type 0/2 typically park
 `callback` on the empty stub `textNoopCallback` for one frame.
 
@@ -177,7 +177,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | Type | Pri | Callback | Notes |
 |------|-----|----------|-------|
 | `00` | `C0` | `textNoopCallback` | Empty stub; also the deferred-kill callback |
-| `01` | `C0` | `Task_CountdownCallback` | Decrement `killCountdown`, then kill |
+| `01` | `C0` | `taskCountdownCallback` | Decrement `killCountdown`, then kill |
 | `02` | `C0` | `Title_Dispatch` | Title phase machine. `Text_BootTask` / gameflow / title spawn this; `spawnArg1` `0x80000000` skips the fade TILE |
 | `03` | `C0` | `GameFlow_StateByField34` | Title new-game / demo path. Also a `Title_MenuSpawnIds` entry |
 | `04` | `C0` | `GameFlow_DispatchTable5` | Title load-style gameflow. Also a `Title_MenuSpawnIds` entry |

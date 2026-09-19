@@ -154,7 +154,7 @@ void Task_Kill(Task* arg0)
     case1:
         ((TmdObject*)arg0->extra)->flags |= 0x80;
         arg0->killCountdown               = 2;
-        arg0->callback                    = Task_CountdownCallback;
+        arg0->callback                    = taskCountdownCallback;
         arg0->state                       = 0;
         arg0->exitCallback                = textNoopCallback;
         return;
@@ -604,28 +604,28 @@ end:
     gTaskActiveList = saved;
 }
 
-void Task_CountdownCallback(Task* arg0)
+void taskCountdownCallback(Task* task)
 {
     void* temp_s0;
 
-    arg0->killCountdown--;
-    if (arg0->killCountdown != 0) {
+    task->killCountdown--;
+    if (task->killCountdown != 0) {
         return;
     }
 
-    switch (arg0->spawnType) {
+    switch (task->spawnType) {
         case 1:
-            temp_s0 = arg0->extra;
+            temp_s0 = task->extra;
             gpUnlinkTmd(temp_s0);
             gpFreeTmd(temp_s0);
-            arg0->spawnType = 0xFF;
+            task->spawnType = 0xFF;
             break;
         case 2:
-            gpFreeDisp2d(arg0->extra);
-            arg0->spawnType = 0xFF;
+            gpFreeDisp2d(task->extra);
+            task->spawnType = 0xFF;
             break;
         default:
-            arg0->spawnType = 0xFF;
+            task->spawnType = 0xFF;
             break;
     }
 }
