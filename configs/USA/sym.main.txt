@@ -2802,7 +2802,7 @@ LinInterp_CdStream          = 0x800827B4; // type:LinInterp size:0x10
 
 // SndEvt / UiPanel / Tmd / TaskIdMap / GameSession renames
 SndEvt_Pool                 = 0x8007EBF0; // type:SndEvt
-SndEvt_Head                 = 0x8007EBE4;
+_gSndEvtHead                = 0x8007EBE4;
 SndEvt_Tail                 = 0x8007EBE8;
 _gSndEvtProcessEnabled                 = 0x8007EBE0;
 SndEvt_Handlers             = 0x80068984;

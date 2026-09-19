@@ -10,6 +10,13 @@
 /// pass cannot walk a half-linked list; a reset leaves the queue processable.
 extern s32 _gSndEvtProcessEnabled;
 
+/// Oldest event still waiting to be processed, or `NULL` while the queue is
+/// empty.
+///
+/// Events are appended at the other end, so processing takes them in the order
+/// they were queued.
+extern SndEvt* _gSndEvtHead;
+
 void SndEvt_Process(void)
 {
     SndEvt* next;
@@ -20,12 +27,12 @@ void SndEvt_Process(void)
     if (_gSndEvtProcessEnabled == 0) {
         return;
     }
-    if (SndEvt_Head == NULL) {
+    if (_gSndEvtHead == NULL) {
         return;
     }
 
     do {
-        cur = SndEvt_Head;
+        cur = _gSndEvtHead;
         if ((u16)cur->handlerIdx >= 0x10U) {
             ptr = (s32*)SndEvt_Pool;
             i   = 0;
@@ -34,21 +41,21 @@ void SndEvt_Process(void)
                 i++;
                 ptr++;
             } while (i < 0x1C0U);
-            SndEvt_Head            = NULL;
+            _gSndEvtHead           = NULL;
             SndEvt_Tail            = NULL;
             _gSndEvtProcessEnabled = 1;
             return;
         }
         SndEvt_Handlers[cur->handlerIdx](cur);
-        cur  = SndEvt_Head;
+        cur  = _gSndEvtHead;
         next = cur->next;
         SndEvt_Free(cur);
         if (next == NULL) {
-            SndEvt_Tail = NULL;
-            SndEvt_Head = NULL;
+            SndEvt_Tail  = NULL;
+            _gSndEvtHead = NULL;
             break;
         }
-        SndEvt_Head = next;
+        _gSndEvtHead = next;
     } while (next != NULL);
 }
 
@@ -64,7 +71,7 @@ void SndEvt_Reset(void)
         i++;
         ptr++;
     } while (i < 0x1C0U);
-    SndEvt_Head            = NULL;
+    _gSndEvtHead           = NULL;
     SndEvt_Tail            = NULL;
     _gSndEvtProcessEnabled = 1;
 }
@@ -93,10 +100,10 @@ void SndEvt_Enqueue(SndEvt* arg0)
 
     if (arg0 != NULL) {
         _gSndEvtProcessEnabled = 0;
-        if (SndEvt_Head == NULL) {
-            SndEvt_Tail = arg0;
-            SndEvt_Head = arg0;
-            arg0->prev  = NULL;
+        if (_gSndEvtHead == NULL) {
+            SndEvt_Tail  = arg0;
+            _gSndEvtHead = arg0;
+            arg0->prev   = NULL;
         } else {
             temp        = SndEvt_Tail;
             SndEvt_Tail = arg0;

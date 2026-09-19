@@ -169,10 +169,10 @@ STATIC_ASSERT_SIZEOF(SndEvtArgs, 0x10);
 
 /// Deferred sound event: one queued audio command, in a slot of `SndEvt_Pool`.
 ///
-/// `SndEvt_Enqueue*` fills in the arguments and appends the event to the list
-/// `SndEvt_Head` / `SndEvt_Tail` hold; `SndEvt_Process` passes it to the handler
-/// `handlerIdx` selects and returns the slot to the pool. A freed slot is only
-/// marked, never cleared, so an enqueue writes every argument its handler reads.
+/// `SndEvt_Enqueue*` fills in the arguments and appends the event to the pending
+/// queue; `SndEvt_Process` passes it to the handler `handlerIdx` selects and
+/// returns the slot to the pool. A freed slot is only marked, never cleared, so
+/// an enqueue writes every argument its handler reads.
 typedef struct SndEvt {
     s16            allocated;  // 0 free, 1 in use
     s16            handlerIdx; // Which command the event carries; indexes SndEvt_Handlers
@@ -839,7 +839,6 @@ extern u32              Spu_KeyOnMask;
 extern u32              Spu_KeyOnMaskExtra;
 extern u32              Spu_KeyOffMask;
 extern SpuReverbConfig  Spu_ReverbCfg;
-extern SndEvt*          SndEvt_Head;
 extern SndEvt*          SndEvt_Tail;
 extern SndEvt           SndEvt_Pool[0x40];
 extern MidiSong         Midi_Song;
