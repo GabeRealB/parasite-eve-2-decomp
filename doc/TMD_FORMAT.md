@@ -265,7 +265,7 @@ carries one colour or one per corner (`POLY_F*` vs `POLY_G*`, the output).
 They are not one thing. Comparing each pair's draw handler shows three
 different mechanisms:
 
-**`0x4000` — two primitives per element.** `func_8009F670` (`0x4038`) is
+**`0x4000` — two primitives per element.** `gpStreamPrimGt3Base` (`0x4038`) is
 `gpStreamPrimGt3` (`0x38`) with an extra `poly++` before the UV writes, so the
 handler consumes two primitive slots per element and fills only the second.
 That is a layered draw — the same face emitted twice, as an opaque base and a

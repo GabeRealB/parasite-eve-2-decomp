@@ -473,4 +473,19 @@ u32* gpStreamPrimF3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// along with the semi-transparency rate it blends at.
 u32* gpStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+/// Handler of a stream's layered textured-triangle records (`0x4038`) whose layer
+/// is the transform pass's to texture: each element contributes two triangles to
+/// the buffer half's second region, with the element's texture words written into
+/// the base.
+///
+/// The record is not pre-transformed, so its triangles are built in the region the
+/// draw pass transforms. `0x4000` asks for two primitives per element — the base the
+/// model is drawn from, and the semi-transparent layer drawn over it — and this
+/// command writes the base alone: it takes the element's texture words and adds the
+/// model's own texture page and CLUT, which are stored relative to the model. The
+/// layer's texture words are the transform pass's, worked out from the triangle it
+/// draws. `gpStreamPrimGt3OffsetLayer` is the walk's other choice, taken where the
+/// layer is textured from the element as well.
+u32* gpStreamPrimGt3Base(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 #endif // TMD_H
