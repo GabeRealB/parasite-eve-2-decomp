@@ -82,7 +82,7 @@ typedef struct {
     TmdListHead*   next;        // Following node of the list, or NULL past the last
     TmdListHead*   prev;        // Preceding node, or the head at the front
     GsCOORDINATE2* coords;      // Per-part coordinate array, part of this object's own block
-    u16            flags;       // State bits (0x2 drawn semi-transparent, 0x4 buffer allocated by whoever created it, 0x8 drawn by the flagged pass, 0x10 drawn as a reflection, 0x80 hidden)
+    u16            flags;       // State bits (0x2 drawn semi-transparent, 0x4 buffer allocated by whoever created it, 0x8 drawn by the flagged pass, 0x10 drawn as a reflection, its faces winding the other way, 0x80 hidden)
     s8             otOffset;    // Ordering-table offset the model's primitives are linked at
     byte           unknown_F;
     TmdSource*     source;      // The model as its package shipped it
@@ -435,7 +435,28 @@ u32* tmdDrawStreamPrimGt3PreXformSemiTrans(TmdScratchModelBlock* ws, s32 flags, 
 /// primitive codes: it reaches `tmdDrawStreamPrimGt3PreXformSemiTrans` when the
 /// drawing object's flags ask for the blended form.
 u32* tmdDrawStreamPrimGt3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_Op7B(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Draw handler of a stream's pre-transformed textured-quad records (`0x79`,
+/// `0x7B`): each element contributes one quad whose corners are already in screen
+/// space, and its packet is linked into the ordering table at the depth those
+/// corners measured.
+///
+/// Nothing is projected or lit here. A transform record has already written the
+/// element's projected corners and lit colours into the packet, and their depths
+/// into the per-vertex cache, so what is left is what a transform cannot settle:
+/// whether the quad survives its facing tests, which ordering-table slot the
+/// corners' average depth puts it in, and the length and primitive code the
+/// packet is drawn under. An element whose cached depth carries the transform's
+/// error mark, or whose quad fails the facing test, is passed over — its packet
+/// slot is stepped over either way, which is what keeps the packets in step with
+/// the elements that named them.
+///
+/// The `0x7B` records ask for the semi-transparent primitive outright, and this
+/// is their entry, so the code it stamps is `0x3E` unconditionally. The `0x79`
+/// records' entry shares this body and is the one that reads the object's
+/// semi-transparency bit, stamping the opaque `0x3C` where that bit is clear. The
+/// body also reads the bit a model drawn as a reflection sets, whose faces wind
+/// the other way, so the facing tests are taken the other way round.
+u32* tmdDrawStreamGt4PreXformSemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op79(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// Handler of a stream's untextured gouraud-triangle records (`0x0`): each
 /// element is one `POLY_G3` in the buffer half's second region, built whole here

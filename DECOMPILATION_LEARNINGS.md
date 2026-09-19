@@ -131375,7 +131375,7 @@ words of a `POLY_GT3`).
 The arms do not line up one for one, so read the one that selects the body being
 named rather than the twin's own label list. A draw handler can branch on its
 `flags` argument instead of on the opcode (`Tmd_StreamHandler_Op79` jumps into
-`Tmd_StreamHandler_Op7B` when `flags & 2`, which is the semi-transparent
+`tmdDrawStreamGt4PreXformSemiTrans` when `flags & 2`, which is the semi-transparent
 variant), and the process path may merge into one arm what the draw path splits.
 
 The two arms write one packet between them, rather than one writing it and the

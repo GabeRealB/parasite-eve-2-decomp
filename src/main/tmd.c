@@ -167,7 +167,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     handler = D_80136C00;
                     break;
                 case 0x7B:
-                    handler = Tmd_StreamHandler_Op7B;
+                    handler = tmdDrawStreamGt4PreXformSemiTrans;
                     break;
                 case 0x4039:
                     handler = func_80099D40;
