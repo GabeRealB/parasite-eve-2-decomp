@@ -45,7 +45,7 @@ void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1)
     arg0->field_1C.vy                             = 0;
     arg0->field_1C.vz                             = 0;
     arg0->field_18                                = &((TmdObject*)arg1->extra)->coords[2];
-    arg0->node.field_4                            = 1;
+    arg0->node.flags                              = 1;
     arg0->field_4C                                = 0;
     arg0->field_42                                = 0;
     arg0->field_40                                = 0;
@@ -67,9 +67,9 @@ void func_actor_341700_8016D2B8(GpEnemy* arg0, Task* arg1)
     TmdObject* model;
 
     if (((Actor341700SubWork*)arg1->work)->field_4 != 0) {
-        model              = (TmdObject*)arg1->extra;
-        arg0->node.field_4 = 1;
-        model->flags       = 0x84;
+        model            = (TmdObject*)arg1->extra;
+        arg0->node.flags = 1;
+        model->flags     = 0x84;
     }
 }
 
@@ -78,9 +78,9 @@ void func_actor_341700_8016D2E8(GpEnemy* arg0, Task* arg1)
     TmdObject* model;
 
     if (((Actor341700SubWork*)arg1->work)->field_4 != 0) {
-        model              = (TmdObject*)arg1->extra;
-        arg0->node.field_4 = 1;
-        model->flags       = 0;
+        model            = (TmdObject*)arg1->extra;
+        arg0->node.flags = 1;
+        model->flags     = 0;
         Tmd_AllocBuffers(model);
     }
 }

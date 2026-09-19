@@ -45,15 +45,15 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback  = func_actor_451100_80132CAC;
-    coord->sub          = &gGfxViewCoord;
-    enemy->field_4      = &coord->coord;
-    enemy->field_48     = 0;
-    enemy->node.field_5 = 0;
-    enemy->node.field_4 = 1;
-    obj->otOffset       = 1;
-    work->enemy         = enemy;
-    spawned             = Gp_SpawnEnemyFromTable(D_actor_451100_8014E6E4, 1, 0, enemy);
+    task->exitCallback   = func_actor_451100_80132CAC;
+    coord->sub           = &gGfxViewCoord;
+    enemy->field_4       = &coord->coord;
+    enemy->field_48      = 0;
+    enemy->node.targeted = 0;
+    enemy->node.flags    = 1;
+    obj->otOffset        = 1;
+    work->enemy          = enemy;
+    spawned              = Gp_SpawnEnemyFromTable(D_actor_451100_8014E6E4, 1, 0, enemy);
     Task_Reparent(task, spawned->task);
     work->pairTask = spawned->task;
     obj->lightMtx  = &work->light;

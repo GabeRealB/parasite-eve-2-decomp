@@ -301,9 +301,9 @@ void func_actor_405800_8013315C(Task* arg0)
                     work->field_834 = (u16)work->field_834 + ((s16)(-(u16)work->field_834) >> 2);
                     work->field_866 = (u16)work->field_866 + (-work->field_866 >> 2);
                     if (work->field_834 == 0) {
-                        enemy->node.field_4 = 1;
+                        enemy->node.flags = 1;
                         if (work->field_897 == 0) {
-                            enemy->node.field_4 = 5;
+                            enemy->node.flags = 5;
                         }
                         work->field_866 = 0;
                         work->field_895 = 0;
@@ -313,9 +313,9 @@ void func_actor_405800_8013315C(Task* arg0)
         } else {
             switch ((s8)work->field_896) {
                 case 0:
-                    enemy->node.field_4 = 0;
+                    enemy->node.flags = 0;
                     if (work->field_897 == 0) {
-                        enemy->node.field_4 = 4;
+                        enemy->node.flags = 4;
                     }
                     work->field_834 = (u16)work->field_834 + ((s16)(0x1000 - (u16)work->field_834) >> 2);
                     work->field_866 = (u16)work->field_866 + ((0xFF - work->field_866) >> 2);
@@ -430,7 +430,7 @@ void func_actor_405800_801334B8(Task* arg0)
     enemy->field_1C.vz = 0;
     enemy->field_18    = &((TmdObject*)arg0->extra)->coords[3];
     Gp_LinkNode(&enemy->node);
-    enemy->node.field_4   = 5;
+    enemy->node.flags     = 5;
     enemy->field_50       = &D_actor_405800_801418FC;
     enemy->field_54       = (s32)work->rec_4D4;
     work->eff_81C.field_0 = &((TmdObject*)arg0->extra)->coords[3];

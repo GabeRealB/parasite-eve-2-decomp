@@ -35,14 +35,14 @@ void func_actor_460200_80132D74(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback  = func_actor_460200_8013322C;
-    coord->sub          = &gGfxViewCoord;
-    enemy->field_4      = &coord->coord;
-    enemy->field_48     = 0;
-    enemy->node.field_5 = 0;
-    enemy->node.field_4 = 1;
-    obj->otOffset       = 1;
-    work->enemy         = enemy;
+    task->exitCallback   = func_actor_460200_8013322C;
+    coord->sub           = &gGfxViewCoord;
+    enemy->field_4       = &coord->coord;
+    enemy->field_48      = 0;
+    enemy->node.targeted = 0;
+    enemy->node.flags    = 1;
+    obj->otOffset        = 1;
+    work->enemy          = enemy;
     if (task->spawnArg1 != 0) {
         spawned = Gp_SpawnEnemyFromTable(D_actor_460200_80148118, 1, 0, enemy);
         Task_Reparent(task, spawned->task);

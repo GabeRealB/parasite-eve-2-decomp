@@ -646,7 +646,7 @@ void func_actor_800200_80164180(GpActorWork* arg0)
     vec               = (VECTOR3*)tmp;
     node              = actor->field_90C;
     if (node != NULL) {
-        if (!(node->field_4 & 1)) {
+        if (!(node->flags & 1)) {
             Gp_GetLockPos((GpLockPos*)node, vec);
         } else {
             actor->field_95E = 2;
@@ -727,7 +727,7 @@ void func_actor_800200_8016436C(GpActorWork* arg0)
     if (actor->field_90C != NULL) {
         node             = Gp_FindLockNode(arg0);
         actor->field_90C = node;
-        if ((node != NULL) && !(node->field_4 & 1)) {
+        if ((node != NULL) && !(node->flags & 1)) {
             Gp_GetLockPos((GpLockPos*)node, vec);
         } else {
             d4->field_CC = 1;

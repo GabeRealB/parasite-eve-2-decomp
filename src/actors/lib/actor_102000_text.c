@@ -898,7 +898,6 @@ void      Gp_AnimTickIndex(Actor02000Work*, s32);
 void      Gp_DrawEffGroundQuad(VECTOR3*, s32, s32);
 void      Gp_ReleaseStateF0Add(Actor02000*, s32);
 void      Gp_SaveEnemyPose(Actor02000Ctx*);
-void      Gp_UnlinkNode(Actor02000Node*);
 void      Gp_UnlinkObj(GpObj*);
 void      Gp_UpdateActorColor(Actor02000Ctx*, VECTOR3*, s32, s32);
 void      Gp_UpdateCoord(GsCOORDINATE2*);
@@ -930,7 +929,7 @@ void Actor02000_Fn01A20(Actor02000Ctx* ctx, Actor02000* actor)
     switch (D_801153F4) {
         case 0:
             actor->field_2C->flags = 0;
-            ctx->node.field_4      = 0;
+            ctx->node.flags        = 0;
             break;
         case 1:
             coord->flg                     = 0;
@@ -950,7 +949,7 @@ void Actor02000_Fn01A20(Actor02000Ctx* ctx, Actor02000* actor)
             return;
         case 2:
             actor->field_2C->flags = 0x80;
-            ctx->node.field_4      = 1;
+            ctx->node.flags        = 1;
             return;
     }
     state = work->field_6A8;
@@ -1233,7 +1232,6 @@ void Actor02000_Fn02294(Actor02000* arg0)
 }
 
 void                 Gp_DestroyEnemy(Actor02000Ctx* ctx, Actor02000* actor);
-void                 Gp_LinkNode(Actor02000Node* node);
 void                 func_800B3F84(Actor02000Work* arg0, void* arg1, TmdObject* arg2, void* arg3,
                                    Actor02000AnimSlots* arg4);
 void                 Gp_AnimResetSlot(Actor02000Work* arg0, s32 arg1, s32 arg2);
@@ -1492,14 +1490,14 @@ void Actor02000_Fn02A34(Actor02000Ctx* ctx, Actor02000* actor)
     coord = model->coords;
     switch (D_801153F4) {
         case 0:
-            model->flags      = 0;
-            ctx->node.field_4 = 0;
+            model->flags    = 0;
+            ctx->node.flags = 0;
             break;
         case 1:
             goto draw;
         case 2:
-            model->flags      = 0x80;
-            ctx->node.field_4 = 1;
+            model->flags    = 0x80;
+            ctx->node.flags = 1;
             return;
     }
 

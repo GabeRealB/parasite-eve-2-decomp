@@ -76,14 +76,14 @@ void func_actor_107000_80131F0C(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord[1].coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18     = part;
-    arg0->node.field_4 = 0;
-    arg0->field_1C.vx  = 0;
-    arg0->field_1C.vy  = 0;
-    arg0->field_1C.vz  = 0;
-    arg0->field_50     = &D_actor_107000_80138748;
-    arg0->field_54     = (s32)&work->rec154[0];
-    arg0->field_40     = D_actor_107000_80138748.field_4;
+    arg0->field_18    = part;
+    arg0->node.flags  = 0;
+    arg0->field_1C.vx = 0;
+    arg0->field_1C.vy = 0;
+    arg0->field_1C.vz = 0;
+    arg0->field_50    = &D_actor_107000_80138748;
+    arg0->field_54    = (s32)&work->rec154[0];
+    arg0->field_40    = D_actor_107000_80138748.field_4;
     func_800B3F84((GpAnimCtx*)work, D_actor_107000_80139E78, (GpAnimObj*)obj, work->field_8C,
                   (GpAnimSlot*)work->slots);
     i = 1;
@@ -588,14 +588,14 @@ void func_actor_107000_80133690(GpEnemy* arg0, Task* arg1)
     arg0->field_4   = &coord[1].coord;
     arg0->field_48  = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18     = part;
-    arg0->node.field_4 = one;
-    arg0->field_1C.vx  = 0;
-    arg0->field_1C.vy  = 0;
-    arg0->field_1C.vz  = 0;
-    arg0->field_50     = &D_actor_107000_80138748;
-    arg0->field_54     = (s32)&work->rec154[0];
-    arg0->field_40     = D_actor_107000_80138748.field_4;
+    arg0->field_18    = part;
+    arg0->node.flags  = one;
+    arg0->field_1C.vx = 0;
+    arg0->field_1C.vy = 0;
+    arg0->field_1C.vz = 0;
+    arg0->field_50    = &D_actor_107000_80138748;
+    arg0->field_54    = (s32)&work->rec154[0];
+    arg0->field_40    = D_actor_107000_80138748.field_4;
     func_800B3F84((GpAnimCtx*)work, D_actor_107000_80139E78, (GpAnimObj*)obj, work->field_8C,
                   (GpAnimSlot*)work->slots);
     i = 1;

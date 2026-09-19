@@ -1658,8 +1658,8 @@ void func_actor_403100_8013B128(Task* arg0)
     model->otOffset                   = 0;
     D_actor_403100_8015580C->field_4C = 0;
     Gp_SetLightMode(arg0->spawnArg2, 0);
-    D_actor_403100_8015580C->node.field_4 = 9;
-    i                                     = 0;
+    D_actor_403100_8015580C->node.flags = 9;
+    i                                   = 0;
     if (D_actor_403100_80155808->field_5D0 < 0) {
         arg0->state                        = 4;
         D_actor_403100_80155808->field_5F8 = 0;
@@ -1739,8 +1739,8 @@ void func_actor_403100_8013B3C4(Task* arg0)
     if (Actor403100_TestFlags()) {
         D_actor_403100_80155808->pad_670[3] = 0;
         Gp_LinkNode(&D_actor_403100_8015580C->node);
-        D_actor_403100_8015580C->node.field_4 = 8;
-        gGameSession->hideHud                 = 0;
+        D_actor_403100_8015580C->node.flags = 8;
+        gGameSession->hideHud               = 0;
         Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
         coords->coord                                 = D_actor_403100_80155808->field_0.matrices.coord;
         *(SVECTOR*)&D_actor_403100_80155808->field_80 = D_actor_403100_80155808->savedRotation;

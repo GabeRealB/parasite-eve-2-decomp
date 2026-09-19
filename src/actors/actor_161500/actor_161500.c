@@ -228,14 +228,14 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback  = ActorsShared801366fc;
-    coord->sub          = &gGfxViewCoord;
-    enemy->field_4      = &coord->coord;
-    enemy->field_48     = 0;
-    enemy->node.field_5 = 0;
-    enemy->node.field_4 = 1;
-    obj->otOffset       = 1;
-    work->enemy         = enemy;
+    task->exitCallback   = ActorsShared801366fc;
+    coord->sub           = &gGfxViewCoord;
+    enemy->field_4       = &coord->coord;
+    enemy->field_48      = 0;
+    enemy->node.targeted = 0;
+    enemy->node.flags    = 1;
+    obj->otOffset        = 1;
+    work->enemy          = enemy;
     if (task->spawnArg1 != 0) {
         spawned = Gp_SpawnEnemyFromTable(D_actor_161500_801401B0, 1, 0, enemy);
         Task_Reparent(task, spawned->task);

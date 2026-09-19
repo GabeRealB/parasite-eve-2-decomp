@@ -480,7 +480,7 @@ void func_actor_401000_80133D50(Actor401000* arg0);
 s32 func_actor_401000_80132590(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
 
 /// Returns the actor's current animation/clip kind, matched against
-/// `GpEnemy.node.field_5` by `func_actor_401000_801385B0`.
+/// `GpEnemy.node.targeted` by `func_actor_401000_801385B0`.
 s32 func_actor_401000_80132824(Actor401000* arg0);
 
 /// Walk a `GpRec18` table and push `coord` back out of the obstacles it

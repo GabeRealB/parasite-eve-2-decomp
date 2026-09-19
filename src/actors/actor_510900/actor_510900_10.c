@@ -48,7 +48,7 @@ s32 func_actor_510900_8013C240(Task* task)
     obj->field_C        = 0x80;
     work->obj2BC.flags &= 0x7FFF;
     work->obj2F4.flags &= 0x7FFF;
-    ctx->node.field_4   = 1;
+    ctx->node.flags     = 1;
     if (work->field_32C != NULL) {
         work->field_32C->state = 2;
         work->field_32C        = NULL;

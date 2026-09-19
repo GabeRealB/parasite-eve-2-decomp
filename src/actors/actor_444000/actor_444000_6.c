@@ -2987,14 +2987,14 @@ void func_actor_444000_8014105C(Actor444000* arg0)
 
     work = arg0->field_1C;
     if (work->field_4 != 0) {
-        tmd               = (TmdObject*)arg0->extra;
-        obj               = arg0->field_20;
-        obj->node.field_4 = 8;
-        tmd->flags        = 0;
-        state             = work->field_7B3;
-        work->field_EF4   = 0;
-        work->field_EF6   = 0;
-        work->field_EFA   = 1;
+        tmd             = (TmdObject*)arg0->extra;
+        obj             = arg0->field_20;
+        obj->node.flags = 8;
+        tmd->flags      = 0;
+        state           = work->field_7B3;
+        work->field_EF4 = 0;
+        work->field_EF6 = 0;
+        work->field_EFA = 1;
         if (state != 0xD) {
             work->field_7B0 = 1;
             work->field_7B3 = 0xD;
@@ -3714,26 +3714,26 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Actor444000* task)
 
     if (work->field_0 < 2 || (s16)work->field_0 == 5 || (s16)work->field_0 == 0x12 ||
         (s16)work->field_0 == 0x13 || (s16)work->field_0 == 0xC) {
-        enemy->node.field_4              = 1;
-        work->field_ECC[3]->node.field_4 = 1;
-        work->field_ECC[0]->node.field_4 = 1;
-        work->field_ECC[1]->node.field_4 = 1;
+        enemy->node.flags              = 1;
+        work->field_ECC[3]->node.flags = 1;
+        work->field_ECC[0]->node.flags = 1;
+        work->field_ECC[1]->node.flags = 1;
     } else if (work->field_EFA != 0) {
         if (Gp_NodeSlotMask(&work->field_ECC[3]->node) != 0) {
             Gp_AssignNodeSlot0(&enemy->node);
         }
-        enemy->node.field_4              = 8;
-        work->field_ECC[3]->node.field_4 = 5;
-        work->field_ECC[0]->node.field_4 = 5;
-        work->field_ECC[1]->node.field_4 = 5;
+        enemy->node.flags              = 8;
+        work->field_ECC[3]->node.flags = 5;
+        work->field_ECC[0]->node.flags = 5;
+        work->field_ECC[1]->node.flags = 5;
     } else {
         if (Gp_NodeSlotMask(&enemy->node) != 0) {
             Gp_AssignNodeSlot0(&work->field_ECC[3]->node);
         }
-        enemy->node.field_4              = 1;
-        work->field_ECC[3]->node.field_4 = 8;
-        work->field_ECC[0]->node.field_4 = 8;
-        work->field_ECC[1]->node.field_4 = 8;
+        enemy->node.flags              = 1;
+        work->field_ECC[3]->node.flags = 8;
+        work->field_ECC[0]->node.flags = 8;
+        work->field_ECC[1]->node.flags = 8;
     }
 
     if ((s16)work->field_0 != 0 && (s16)work->field_0 != 0x12 && (s16)work->field_0 != 0x13 &&

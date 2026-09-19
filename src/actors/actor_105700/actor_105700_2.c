@@ -531,7 +531,7 @@ void func_actor_105700_80133878(GpEnemy* arg0, Actor105700* arg1)
     switch (D_801153F4) {
         case 0:
             arg1->field_2C->field_C = 0;
-            arg0->node.field_4      = 0;
+            arg0->node.flags        = 0;
             break;
         case 1:
             coord->flg                     = 0;
@@ -551,7 +551,7 @@ void func_actor_105700_80133878(GpEnemy* arg0, Actor105700* arg1)
             return;
         case 2:
             arg1->field_2C->field_C = 0x80;
-            arg0->node.field_4      = 1;
+            arg0->node.flags        = 1;
             return;
     }
     switch (work->field_6A8) {
@@ -1396,14 +1396,14 @@ void func_actor_105700_80136158(GpEnemy* ctx, Actor105700* actor)
     coord = model->field_8;
     switch (D_801153F4) {
         case 0:
-            model->field_C    = 0;
-            ctx->node.field_4 = 0;
+            model->field_C  = 0;
+            ctx->node.flags = 0;
             break;
         case 1:
             goto draw;
         case 2:
-            model->field_C    = 0x80;
-            ctx->node.field_4 = 1;
+            model->field_C  = 0x80;
+            ctx->node.flags = 1;
             return;
     }
 

@@ -131,7 +131,7 @@ void func_actor_201200_8014A88C(GpEnemy* arg0, Actor201200* arg1)
     arg0->field_1C.vz = 0;
     arg0->field_18    = arg1->field_2C->coords + 2;
     Gp_LinkNode(&arg0->node);
-    arg0->node.field_4 = 1;
+    arg0->node.flags = 1;
     arg0->field_40 = arg0->field_42 = 1;
     arg0->field_4C                  = 0;
     arg0->field_40 = arg0->field_42 = D_actor_201200_8014DE54.field_4;

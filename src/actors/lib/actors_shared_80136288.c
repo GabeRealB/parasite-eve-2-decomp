@@ -41,8 +41,8 @@ ge2:
     }
     goto default_body;
 case2:
-    obj->flags         = obj->flags | 0x80;
-    arg0->node.field_4 = one;
+    obj->flags       = obj->flags | 0x80;
+    arg0->node.flags = one;
     return;
 default_body:
     switch (work->field_36C) {

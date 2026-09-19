@@ -1247,13 +1247,13 @@ void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     enemy->field_1C.vy = 0;
     enemy->field_1C.vz = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->node.field_4 = 1;
-    task->msgTable      = &D_acropolis_bridge_80191744;
-    work->field_2       = -1;
-    work->field_0       = 1;
-    work->field_1F8     = 0x5DC;
-    work->field_1FA     = coord->coord.t[1];
-    coord->coord.t[1]  += work->field_1F8;
+    enemy->node.flags  = 1;
+    task->msgTable     = &D_acropolis_bridge_80191744;
+    work->field_2      = -1;
+    work->field_0      = 1;
+    work->field_1F8    = 0x5DC;
+    work->field_1FA    = coord->coord.t[1];
+    coord->coord.t[1] += work->field_1F8;
 
     work->walker.navData.nodes    = D_acropolis_bridge_8019162C;
     work->walker.navData.count    = 0xA;
@@ -1480,7 +1480,7 @@ void func_acropolis_bridge_80185F28(Task* task)
         work->walker.scale -= 0x33;
         bridge_reset_scale_mtx_shrink(work);
     } else {
-        enemy->node.field_4 = 1;
+        enemy->node.flags = 1;
     }
     func_acropolis_bridge_8018532C(&work->walker);
     func_acropolis_bridge_8018581C(task);
@@ -1551,7 +1551,7 @@ void func_acropolis_bridge_801861A0(Task* task)
     if (work->field_4 != 0) {
         enemy = (GpEnemy*)task->spawnArg2;
         Gp_ArmStateF0(1);
-        enemy->node.field_4   = 1;
+        enemy->node.flags     = 1;
         height                = work->walker.field_5E;
         walker                = &work->walker;
         work->walker.field_5A = 0x100;
@@ -1562,7 +1562,7 @@ void func_acropolis_bridge_801861A0(Task* task)
         work->hit.flags      |= 0x8000;
         work->body.flags     |= 0x8000;
         work->hit.key         = Gp_PackObjPair((GpObj50*)enemy, 0);
-        enemy->node.field_4   = 0;
+        enemy->node.flags     = 0;
         work->field_100       = 2;
         work->field_104       = 2;
         work->field_108       = 0x50;
@@ -1635,8 +1635,8 @@ void func_acropolis_bridge_801863A8(Task* task)
     if (work->walker.scale >= 0x500) {
         work->walker.scale -= 0x46;
         bridge_reset_scale_mtx_shrink(work);
-    } else if (enemy->node.field_4 == 0) {
-        enemy->node.field_4 = 1;
+    } else if (enemy->node.flags == 0) {
+        enemy->node.flags = 1;
     }
     func_acropolis_bridge_8018532C(&work->walker);
     func_acropolis_bridge_8018581C(task);
@@ -1709,11 +1709,11 @@ void func_acropolis_bridge_80186618(Task* task)
     work  = (AcropolisBridgeEnemyWork*)task->work;
     enemy = (GpEnemy*)task->spawnArg2;
     if (work->field_4 != 0) {
-        work->hit.flags    &= 0x7FFF;
-        enemy->node.field_4 = 0;
-        work->field_108     = 0x20;
-        work->field_100     = 2;
-        work->field_104     = 1;
+        work->hit.flags  &= 0x7FFF;
+        enemy->node.flags = 0;
+        work->field_108   = 0x20;
+        work->field_100   = 2;
+        work->field_104   = 1;
         switch (enemy->field_8 >> 12) {
             case 0:
                 ((TmdObject*)task->extra)->coords->coord.t[0] = -0x22C4;
@@ -1818,7 +1818,7 @@ void func_acropolis_bridge_80186BBC(Task* task)
     enemy = (GpEnemy*)task->spawnArg2;
     if (work->field_4 != 0) {
         work->hit.flags       &= 0x7FFF;
-        enemy->node.field_4    = 0;
+        enemy->node.flags      = 0;
         work->field_108        = 0x20;
         work->field_100        = 2;
         work->field_104        = 1;
@@ -1914,13 +1914,13 @@ void func_acropolis_bridge_80187078(Task* task)
     work  = (AcropolisBridgeEnemyWork*)task->work;
     enemy = (GpEnemy*)task->spawnArg2;
     if (work->field_4 != 0) {
-        work->hit.flags    &= 0x7FFF;
-        work->body.flags   |= 0x8000;
-        enemy->node.field_4 = 1;
-        work->field_100     = 1;
-        work->field_104     = 3;
-        work->field_108     = 0x10;
-        Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+        work->hit.flags  &= 0x7FFF;
+        work->body.flags |= 0x8000;
+        enemy->node.flags = 1;
+        work->field_100   = 1;
+        work->field_104   = 3;
+        work->field_108   = 0x10;
+        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
         Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, (u32)Gp_LcgState >> 16, 1);
         ((TmdObject*)task->extra)->coords->flg = 0;
     }
@@ -1965,13 +1965,13 @@ void func_acropolis_bridge_80187310(Task* task)
 
     if (work->field_4 != 0) {
         Tmd_AllocBuffers((TmdObject*)task->extra);
-        work->hit.flags    &= 0x7FFF;
-        work->body.flags   &= 0x7FFF;
-        enemy->node.field_4 = 1;
-        work->field_100     = 1;
-        work->field_104     = 5;
-        work->field_108     = 0x10;
-        Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+        work->hit.flags  &= 0x7FFF;
+        work->body.flags &= 0x7FFF;
+        enemy->node.flags = 1;
+        work->field_100   = 1;
+        work->field_104   = 5;
+        work->field_108   = 0x10;
+        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
         Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, (u32)Gp_LcgState >> 16, 1);
         ((TmdObject*)task->extra)->coords->flg = 0;
         Gp_ClearNodeSlots(&enemy->node);
@@ -2017,9 +2017,9 @@ void func_acropolis_bridge_801874DC(Task* task)
     s32                       step;
 
     if (work->field_4 != 0) {
-        work->hit.flags    &= 0x7FFF;
-        work->body.flags   &= 0x7FFF;
-        enemy->node.field_4 = 1;
+        work->hit.flags  &= 0x7FFF;
+        work->body.flags &= 0x7FFF;
+        enemy->node.flags = 1;
         Gp_ClearNodeSlots(&enemy->node);
         if (Gp_StateF0.field_0 == 0 && Gp_StateF0.field_6 != 0) {
             Gp_ArmStateF0(1);
@@ -2319,10 +2319,10 @@ void func_acropolis_bridge_80187D04(Task* task)
     if (work->field_4 != 0) {
         GpEnemy* enemy = (GpEnemy*)task->spawnArg2;
 
-        extra->flags        = 0x80;
-        enemy->node.field_4 = 1;
-        work->body.flags   &= 0x7FFF;
-        work->hit.flags    &= 0x7FFF;
+        extra->flags      = 0x80;
+        enemy->node.flags = 1;
+        work->body.flags &= 0x7FFF;
+        work->hit.flags  &= 0x7FFF;
         return;
     }
     extra->flags |= 4;

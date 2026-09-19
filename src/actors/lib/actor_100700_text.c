@@ -21,7 +21,6 @@ void           Gp_ArmStateF0(s32 arg0);
 s32            Gp_GetObjPan(void* arg0);
 s32            Gp_GetObjDepth(void* arg0);
 void           Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void           Gp_UnlinkNode(void* node);
 void           Gp_UnlinkObj(void* node);
 void           Gp_SetLightMode(void* arg0, s32 arg1);
 void           Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
@@ -692,12 +691,12 @@ ge2:
     }
     goto default_body;
 case0:
-    obj->field_C       = 0;
-    arg0->node.field_4 = 0;
+    obj->field_C     = 0;
+    arg0->node.flags = 0;
     goto default_body;
 case2:
-    obj->field_C       = 0x80;
-    arg0->node.field_4 = one;
+    obj->field_C     = 0x80;
+    arg0->node.flags = one;
     return;
 default_body:
     if (arg0->field_4C != 0) {
@@ -949,7 +948,6 @@ void Actor00700_Fn01EEC(Actor00700* arg0)
 void Gp_AnimResetSlot(void*, s32, s32);
 void Gp_IncStateF0Ref(s32);
 void Gp_InitRec18Table(void*, s32, s32);
-void Gp_LinkNode(void*);
 void Gp_LinkObj(s32, void*);
 s32  Gp_PackPair(void*, s32);
 void func_800B3F84(void*, void*, TmdObject*, void*, void*);
@@ -983,17 +981,17 @@ void Actor00700_Fn01FE0(Actor00700Ctx* ctx, Actor00700* actor)
     ctx->field_4  = (void*)(&coord->coord);
     ctx->field_48 = 0;
     Gp_LinkNode(&ctx->node);
-    ctx->field_18     = coord;
-    ctx->node.field_4 = 0;
-    ctx->field_1C     = 0;
-    ctx->field_20     = 0;
-    ctx->field_24     = 0;
-    ctx->field_50     = &Actor00700_D07588;
-    ctx->field_54     = (s32)&work->field_154;
-    ctx->field_40     = (u16)Actor00700_D07588.field_4;
-    work->field_228   = 0x100;
-    work->field_22A   = 1;
-    work->field_224   = coord;
+    ctx->field_18   = coord;
+    ctx->node.flags = 0;
+    ctx->field_1C   = 0;
+    ctx->field_20   = 0;
+    ctx->field_24   = 0;
+    ctx->field_50   = &Actor00700_D07588;
+    ctx->field_54   = (s32)&work->field_154;
+    ctx->field_40   = (u16)Actor00700_D07588.field_4;
+    work->field_228 = 0x100;
+    work->field_22A = 1;
+    work->field_224 = coord;
     func_800B3F84(work, &Actor00700_D075B4, obj, &work->field_B4, &work->field_14);
     for (i = 1; i < 4; i++) {
         Gp_AnimResetSlot(work, i, 1);
@@ -1083,15 +1081,15 @@ ge2:
     }
     goto default_body;
 case0:
-    obj->field_C       = 0;
-    arg0->node.field_4 = 0;
+    obj->field_C     = 0;
+    arg0->node.flags = 0;
     goto default_body;
 case1:
     Actor00700_Fn03518(arg1);
     return;
 case2:
-    obj->field_C       = 0x80;
-    arg0->node.field_4 = one;
+    obj->field_C     = 0x80;
+    arg0->node.flags = one;
     return;
 default_body:
     Actor00700_Fn02414(arg1);

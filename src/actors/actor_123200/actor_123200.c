@@ -128,12 +128,12 @@ void func_actor_123200_8013352C(GpEnemy* enemy, Task* task)
     enemy->field_1C.vz = 0;
     enemy->field_18    = &((TmdObject*)task->extra)->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.field_4 = 1;
-    enemy->field_50     = &D_actor_123200_80134208;
-    enemy->field_4C     = 0;
-    enemy->field_42     = 0;
-    enemy->field_40     = 0;
-    enemy->field_54     = 0;
+    enemy->node.flags = 1;
+    enemy->field_50   = &D_actor_123200_80134208;
+    enemy->field_4C   = 0;
+    enemy->field_42   = 0;
+    enemy->field_40   = 0;
+    enemy->field_54   = 0;
 
     work->field_174 = 1;
     work->field_170 = 2;

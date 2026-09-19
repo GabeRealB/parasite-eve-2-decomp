@@ -190,7 +190,7 @@ typedef struct Actor405800Work {
     /* 0x894 */ byte                pad_894;
     /* 0x895 */ u8                  field_895;
     /* 0x896 */ u8                  field_896;
-    /* 0x897 */ u8                  field_897; // 0: node.field_4 uses 4/5 instead of 0/1
+    /* 0x897 */ u8                  field_897; // 0: node.flags uses 4/5 instead of 0/1
     /* 0x898 */ u8                  field_898;
     /* 0x899 */ byte                pad_899[0x3];
 } Actor405800Work;

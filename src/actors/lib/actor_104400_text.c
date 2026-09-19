@@ -307,14 +307,14 @@ void Actor04400_Fn00B24(Task* arg0)
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     enemy       = arg0->spawnArg2;
     Gp_LinkNode(&enemy->node);
-    enemy->field_4      = &((TmdObject*)arg0->extra)->coords->coord;
-    enemy->field_48     = 0;
-    enemy->field_1C.vx  = 0;
-    enemy->field_1C.vy  = 0;
-    enemy->field_1C.vz  = 0;
-    enemy->field_18     = &((TmdObject*)arg0->extra)->coords[1];
-    enemy->node.field_4 = 4;
-    one                 = 1;
+    enemy->field_4     = &((TmdObject*)arg0->extra)->coords->coord;
+    enemy->field_48    = 0;
+    enemy->field_1C.vx = 0;
+    enemy->field_1C.vy = 0;
+    enemy->field_1C.vz = 0;
+    enemy->field_18    = &((TmdObject*)arg0->extra)->coords[1];
+    enemy->node.flags  = 4;
+    one                = 1;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     if ((arg0->spawnArg1 & 0xF) == one) {
         w3            = (Actor104400Work*)arg0->work;
@@ -411,7 +411,7 @@ void Actor04400_Fn00D3C(Task* arg0)
     e2->field_1C.vy      = 0;
     e2->field_1C.vz      = 0;
     e2->field_18         = &((TmdObject*)arg0->extra)->coords[1];
-    e2->node.field_4     = 1;
+    e2->node.flags       = 1;
     work->field_80       = root->coord.t[0];
     root->coord.t[1]    -= 0x3C;
     work->field_82       = root->coord.t[1];

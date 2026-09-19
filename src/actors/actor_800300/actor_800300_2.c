@@ -186,7 +186,7 @@ void func_actor_800300_80162A98(GpActorWork* arg0)
     node              = actor->field_90C;
     src               = extra->coords;
     if (node != NULL) {
-        if (!(node->field_4 & 1)) {
+        if (!(node->flags & 1)) {
             Gp_GetLockPos((GpLockPos*)node, vec);
         } else {
             actor->field_95E = 2;
@@ -293,7 +293,7 @@ void func_actor_800300_80162D74(GpActorWork* arg0)
     actor             = arg0->actor;
     lock              = (GpLockPos*)actor->field_90C;
     if (lock != NULL) {
-        if (!(((GpLinkNode*)lock)->field_4 & 1)) {
+        if (!(((GpLinkNode*)lock)->flags & 1)) {
             Gp_GetLockPos(lock, vec);
         } else {
             actor->field_95E = 2;

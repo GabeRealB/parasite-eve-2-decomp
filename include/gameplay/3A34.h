@@ -26,23 +26,6 @@ STATIC_ASSERT_SIZEOF(GpTaskDesc, 0xC);
 extern GpTaskDesc* D_8010FABC[];
 extern u8          D_80062735;
 
-/// Singly-linked node unlinked by `Gp_UnlinkNode` / linked by `Gp_LinkNode`.
-/// `field_6 == 1` means the node is on the `Gp_LinkList` list.
-/// `Gp_NodeSlotMask` returns a 2-bit mask of `Gp_ActorSlots[]` slots whose
-/// `actor->field_90C` is this node.
-/// `Gp_AssignNodeSlot0` assigns the node to `Gp_ActorSlots[0]->actor->field_90C`,
-/// clears the previous node's `field_5`, sets this node's `field_5 = 1`,
-/// and clears `field_4` bit 0.
-/// `Gp_ClearNodeSlots` is the inverse: it nulls any `Gp_ActorSlots[]` slot whose
-/// `field_90C` is this node, clears `field_5`, and sets `field_4` bit 0.
-typedef struct _GpLinkNode {
-    /* 0x00 */ struct _GpLinkNode* next;
-    /* 0x04 */ u8                  field_4;
-    /* 0x05 */ u8                  field_5;
-    /* 0x06 */ u8                  field_6;
-} GpLinkNode;
-STATIC_ASSERT_SIZEOF(GpLinkNode, 0x8);
-
 /// What a kind-4 `GpObj` holds in `ctx.dir` (`GameActor.field_88`, followed by
 /// `GameActor.field_90`). `dir` is the facing vector written there each frame;
 /// `field_8` is the `GpRec18` table the object's contacts are recorded in.
@@ -1176,8 +1159,8 @@ extern s32 Gp_RelatedPending;
 /// Pending id consumed by `Gp_MenuExitCallback`; `0x3E` also calls `Gp_TriggerPeState`.
 extern s32 Gp_UsedItemId;
 
-/// Head of the `GpLinkNode` list walked by `Gp_UnlinkNode` / `Gp_LinkNode`
-/// / `Gp_HudTrackSlot0`.
+/// Head of the list of enemies the lock-on system tracks; `Gp_ResetLinkState`
+/// empties it.
 extern GpLinkNode* Gp_LinkList;
 
 /// 32-entry marker/slot table cleared by `Gp_ClearLockSlots`.
@@ -1451,62 +1434,78 @@ void            Gp_CopyDefaultBound(GpRoomBoundVec* bound);
 void            Gp_DrawTargetCursor(void);
 void            func_800DA6E8(void* arg0, s32 arg1, s32 arg2);
 void            Gp_UpdateLockSlots(void);
-void            Gp_UnlinkNode(GpLinkNode* node);
-void            Gp_LinkNode(GpLinkNode* node);
-s32             Gp_NodeSlotMask(GpLinkNode* arg0);
-void            Gp_AssignNodeSlot0(GpLinkNode* node);
-void            Gp_ClearNodeSlots(GpLinkNode* node);
-void*           Gp_ScanLockNodes(GpActorWork* arg0, VECTOR3* out, s32 flag);
-void*           Gp_FindLockNode(GpActorWork* arg0);
-void*           Gp_FindLockNodePad(GpActorWork* arg0);
-void*           Gp_FindLockNodeAt(GpActorWork* arg0, VECTOR3* pos);
-void            Gp_GetLockPos(GpLockPos* arg0, VECTOR3* out);
-void            Gp_ClearLockSlots(void);
-void            Gp_ResetLinkState(void);
-s32             Gp_ProjectToSxy(GpPerspSrc* arg0, s32* sxy);
-void            Gp_ClearSlotNodeFlags(void);
-s32             Gp_GrantLocationItems(GpItemScan* arg0);
-s32             Gp_LoadActorImage(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2);
-void            Gp_LoadImages(GpImgRec* arg0);
-void            Gp_InitStateF0(void);
-void            Gp_ArmStateF0(s32 arg0);
-void            Gp_SetStateF0Bit(s32 arg0);
-void            Gp_SetStateF0Byte3(s32 arg0);
-void            Gp_IncStateF0Ref(void);
-void            Gp_ReleaseStateF0Add(GpObj20E* arg0, s32 arg1);
-void            Gp_ReleaseStateF0Clear(void);
-void            Gp_ReleaseStateF0(GpObj20E* arg0, s32 arg1);
-void            Gp_TickWorldCollision(void);
-void            Gp_RunPairHandler(GpObj* node);
-void            func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2);
-s32             Gp_PairHandler1(GpObj* arg0, GpObj* arg1);
-s32             Gp_PairHandler3(GpObj* arg0, GpObj* arg1);
-void            Gp_CollideObjGrid(GpObj* node);
-void            Gp_CollideObjGridDir(GpObj* node);
-s32             func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, s32 arg3);
-void            func_800DD940(GpObj* node);
-void            func_800DDC2C(GpObj* arg0);
-void            func_800DE150(GpObj* arg0);
-void            func_800DDDF8(GpObj* node);
-void            func_800DE2C0(VECTOR* arg0, s32 arg1);
-s32             func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3);
-void            func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1);
-void            func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3);
-void            func_800DEF80(GpObj* node, GpObj4C* other);
-void            func_800DF6AC(GpObj* node, GpObj4C* other, VECTOR3* pos);
-s32             func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3);
-void            Gp_ClearObjHeads(void);
-s32             func_800E0308(SVECTOR* arg0, SVECTOR* arg1);
-void            Gp_CollideLists(GpObj* a, GpObj* b);
-void            Gp_CollideListGrid(GpObj* node);
-void            func_800E0608(GpObj* node, s32 mask, s32 match);
-void            func_800E06AC(GpObj* node, s32 mask, s32 match);
-s32             Gp_PairNop(void);
-void            Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1);
-void            Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1);
-void            func_800E0994(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2);
-void            Gp_ClearPendingObj4C(void);
-void            Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1);
+/// Detaches `node` from every actor slot locked onto it and takes it off the
+/// tracked list.
+void Gp_UnlinkNode(GpLinkNode* node);
+
+/// Appends `node` to the tracked list when it is not already on it, and marks
+/// it lockable.
+void Gp_LinkNode(GpLinkNode* node);
+
+/// Two-bit mask of `Gp_ActorSlots[]`: the slots whose actor is locked onto
+/// `node`.
+s32 Gp_NodeSlotMask(GpLinkNode* node);
+
+/// Locks actor slot 0 onto `node`, releasing whichever node held it, and marks
+/// `node` lockable.
+void Gp_AssignNodeSlot0(GpLinkNode* node);
+
+/// Detaches `node` from every actor slot and marks it un-lockable, leaving it
+/// on the tracked list.
+void  Gp_ClearNodeSlots(GpLinkNode* node);
+void* Gp_ScanLockNodes(GpActorWork* arg0, VECTOR3* out, s32 flag);
+void* Gp_FindLockNode(GpActorWork* arg0);
+void* Gp_FindLockNodePad(GpActorWork* arg0);
+void* Gp_FindLockNodeAt(GpActorWork* arg0, VECTOR3* pos);
+void  Gp_GetLockPos(GpLockPos* arg0, VECTOR3* out);
+void  Gp_ClearLockSlots(void);
+void  Gp_ResetLinkState(void);
+s32   Gp_ProjectToSxy(GpPerspSrc* arg0, s32* sxy);
+/// Drops the `targeted` mark from every actor slot's current node, without
+/// releasing the slot itself.
+void Gp_ClearSlotNodeFlags(void);
+s32  Gp_GrantLocationItems(GpItemScan* arg0);
+s32  Gp_LoadActorImage(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2);
+void Gp_LoadImages(GpImgRec* arg0);
+void Gp_InitStateF0(void);
+void Gp_ArmStateF0(s32 arg0);
+void Gp_SetStateF0Bit(s32 arg0);
+void Gp_SetStateF0Byte3(s32 arg0);
+void Gp_IncStateF0Ref(void);
+void Gp_ReleaseStateF0Add(GpObj20E* arg0, s32 arg1);
+void Gp_ReleaseStateF0Clear(void);
+void Gp_ReleaseStateF0(GpObj20E* arg0, s32 arg1);
+void Gp_TickWorldCollision(void);
+void Gp_RunPairHandler(GpObj* node);
+void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2);
+s32  Gp_PairHandler1(GpObj* arg0, GpObj* arg1);
+s32  Gp_PairHandler3(GpObj* arg0, GpObj* arg1);
+void Gp_CollideObjGrid(GpObj* node);
+void Gp_CollideObjGridDir(GpObj* node);
+s32  func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, s32 arg3);
+void func_800DD940(GpObj* node);
+void func_800DDC2C(GpObj* arg0);
+void func_800DE150(GpObj* arg0);
+void func_800DDDF8(GpObj* node);
+void func_800DE2C0(VECTOR* arg0, s32 arg1);
+s32  func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3);
+void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1);
+void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3);
+void func_800DEF80(GpObj* node, GpObj4C* other);
+void func_800DF6AC(GpObj* node, GpObj4C* other, VECTOR3* pos);
+s32  func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3);
+void Gp_ClearObjHeads(void);
+s32  func_800E0308(SVECTOR* arg0, SVECTOR* arg1);
+void Gp_CollideLists(GpObj* a, GpObj* b);
+void Gp_CollideListGrid(GpObj* node);
+void func_800E0608(GpObj* node, s32 mask, s32 match);
+void func_800E06AC(GpObj* node, s32 mask, s32 match);
+s32  Gp_PairNop(void);
+void Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1);
+void Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1);
+void func_800E0994(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2);
+void Gp_ClearPendingObj4C(void);
+void Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1);
 /// Averages the first `arg2` `GpRec18` records of `arg0` into `arg1`
 /// (a 16.16 delta scaled by 16) and, when `arg3` is non-NULL, stores the
 /// `1 << key` bitmask of the contributing records there. Records

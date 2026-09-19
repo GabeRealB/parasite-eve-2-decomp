@@ -75,17 +75,17 @@ void func_actor_444000_801435CC(Actor444000* arg0)
     work = arg0->field_1C;
     obj  = arg0->field_20;
     if (work->field_4 != 0) {
-        tmd               = (TmdObject*)arg0->extra;
-        obj->node.field_4 = 0;
-        tmd->flags        = 0;
-        work->field_7B3   = 0xC;
-        work->field_7B0   = 2;
-        work->field_EF4   = 0;
-        work->field_EF6   = 0;
-        work->field_EFA   = 0;
-        work->field_7B6   = 0x10;
-        work->field_EFE   = 0;
-        work->field_6     = 0;
+        tmd             = (TmdObject*)arg0->extra;
+        obj->node.flags = 0;
+        tmd->flags      = 0;
+        work->field_7B3 = 0xC;
+        work->field_7B0 = 2;
+        work->field_EF4 = 0;
+        work->field_EF6 = 0;
+        work->field_EFA = 0;
+        work->field_7B6 = 0x10;
+        work->field_EFE = 0;
+        work->field_6   = 0;
     }
     if (work->field_6 == 0xA) {
         id  = ((obj->field_8 >> 12) << 8) | 0x40200017;

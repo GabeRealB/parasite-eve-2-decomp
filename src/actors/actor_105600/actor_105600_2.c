@@ -618,14 +618,14 @@ void func_actor_105600_80135CDC(GpEnemy* ctx, Task* actor)
     coord = model->coords;
     switch (D_801153F4) {
         case 0:
-            model->flags      = 0;
-            ctx->node.field_4 = 0;
+            model->flags    = 0;
+            ctx->node.flags = 0;
             break;
         case 1:
             goto draw;
         case 2:
-            model->flags      = 0x80;
-            ctx->node.field_4 = 1;
+            model->flags    = 0x80;
+            ctx->node.flags = 1;
             return;
     }
 

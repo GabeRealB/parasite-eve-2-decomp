@@ -20,7 +20,6 @@ void func_800B4114(Actor02500Work* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 
 void* Mem_Calloc(s32 size, s32 arg1);
 void  Gp_DestroyEnemy(Actor02500Ctx* ctx, Actor02500* actor);
-void  Gp_LinkNode(Actor02500Node* node);
 void  func_800B3F84(Actor02500Work* arg0, void* arg1, Actor02500Obj2C* arg2, void* arg3,
                     Actor02500AnimSlots* arg4);
 void  Gp_AnimResetSlot(Actor02500Work* arg0, s32 arg1, s32 arg2);
@@ -195,7 +194,6 @@ void Actor02500_Fn0184C(Actor02500* arg0)
     }
 }
 
-void  Gp_UnlinkNode(void* node);
 void  Gp_UnlinkObj(void* node);
 void  Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
 void  Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
@@ -380,8 +378,8 @@ ge2:
     }
     goto default_body;
 case0:
-    temp_a1->field_C   = 0;
-    arg0->node.field_4 = 0;
+    temp_a1->field_C = 0;
+    arg0->node.flags = 0;
     goto default_body;
 case1:
     if (work->field_322 == 5) {
@@ -390,8 +388,8 @@ case1:
     Actor02500_Fn023D8(arg1);
     goto tail;
 case2:
-    temp_a1->field_C   = 0x80;
-    arg0->node.field_4 = one;
+    temp_a1->field_C = 0x80;
+    arg0->node.flags = one;
     return;
 default_body:
     if (arg0->field_4C != 0) {

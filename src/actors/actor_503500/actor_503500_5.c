@@ -285,18 +285,18 @@ void func_actor_503500_80132F64(Actor503500* arg0)
     tmd->otOffset      = 0x14;
     coord->flg         = 0;
 
-    enemy->field_4       = &coord->coord;
-    part                 = &coord[3];
-    enemy->field_48      = 0;
-    enemy->field_18      = part;
-    enemy->node.field_4 |= 9;
-    enemy->field_1C.vx   = D_actor_503500_8016EC50.vx;
-    enemy->field_1C.vy   = D_actor_503500_8016EC50.vy;
-    enemy->field_1C.vz   = D_actor_503500_8016EC50.vz;
-    recs                 = work->rec5F4;
-    enemy->field_50      = &D_actor_503500_8016E7EC[arg0->spawnArg1];
-    enemy->field_54      = (s32)recs;
-    enemy->field_40      = enemy->field_50->field_4;
+    enemy->field_4     = &coord->coord;
+    part               = &coord[3];
+    enemy->field_48    = 0;
+    enemy->field_18    = part;
+    enemy->node.flags |= 9;
+    enemy->field_1C.vx = D_actor_503500_8016EC50.vx;
+    enemy->field_1C.vy = D_actor_503500_8016EC50.vy;
+    enemy->field_1C.vz = D_actor_503500_8016EC50.vz;
+    recs               = work->rec5F4;
+    enemy->field_50    = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+    enemy->field_54    = (s32)recs;
+    enemy->field_40    = enemy->field_50->field_4;
 
     work->field_5D4.coord    = part;
     work->field_5D4.ctx.recs = recs;
@@ -1520,7 +1520,7 @@ void func_actor_503500_801353F0(Actor503500* arg0)
 /// boss, bits 1/2/4 camera height bands (see `func_actor_503500_80135644`).
 extern u8 D_actor_503500_8016E910[];
 
-/// Clears each slot enemy's `node.field_4` bit 1 only when its
+/// Clears each slot enemy's `node.flags` bit 1 only when its
 /// `D_actor_503500_8016E910` entry covers both the camera's yaw sector
 /// (relative to `field_7B6`) and its height band and `gGameSession->eventState`
 /// is 0; otherwise sets it. Bit 4 is set on a height-only miss and cleared on
@@ -1568,13 +1568,13 @@ void func_actor_503500_80135644(Actor503500* arg0)
         if (enemy != NULL) {
             bits = D_actor_503500_8016E910[i];
             if ((bits & dirMask) != dirMask || gGameSession->eventState != 0) {
-                enemy->node.field_4            |= 1;
-                work->enemies[i]->node.field_4 &= ~4;
+                enemy->node.flags            |= 1;
+                work->enemies[i]->node.flags &= ~4;
             } else if ((bits & heightMask) != heightMask) {
-                enemy->node.field_4            |= 1;
-                work->enemies[i]->node.field_4 |= 4;
+                enemy->node.flags            |= 1;
+                work->enemies[i]->node.flags |= 4;
             } else {
-                enemy->node.field_4 &= ~1;
+                enemy->node.flags &= ~1;
             }
         }
     }

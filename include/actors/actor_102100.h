@@ -219,16 +219,16 @@ STATIC_ASSERT_SIZEOF(Actor02100, 0x34);
 
 /// `Gp_UnlinkNode` list entry at +0x10 of `Actor02100Ctx`. `field_4` is the
 /// flag byte the per-state handlers write (`Actor02100_Fn031C4`).
-typedef struct Actor02100Node {
+typedef struct GpLinkNode {
     /* 0x0 */ byte pad_0[4];
     /* 0x4 */ u8   field_4;
     /* 0x5 */ byte pad_5[3];
-} Actor02100Node;
-STATIC_ASSERT_SIZEOF(Actor02100Node, 0x8);
+} GpLinkNode;
+STATIC_ASSERT_SIZEOF(GpLinkNode, 0x8);
 
 typedef struct Actor02100Ctx {
     /* 0x00 */ byte           pad_0[0x10];
-    /* 0x10 */ Actor02100Node node;
+    /* 0x10 */ GpLinkNode node;
     /* 0x18 */ byte           pad_18[0x3C];
     /* 0x54 */ s32            field_54;
 } Actor02100Ctx;

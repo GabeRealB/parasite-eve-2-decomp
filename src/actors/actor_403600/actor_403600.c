@@ -2136,7 +2136,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     enemy->field_4                     = (MATRIX*)(temp_s0 + 0x54);
     enemy->field_48                    = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->node.field_4               = 1;
+    enemy->node.flags                 = 1;
     enemy->field_1C.vy                = -0x1F4;
     gpSess                            = gGameSession;
     enemy->field_18                   = (GsCOORDINATE2*)temp_s5;

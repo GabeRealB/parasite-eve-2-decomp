@@ -12448,7 +12448,7 @@ the object comes out with `li`/`sb` above the multi-load and scores 96% with
 
 ```c
     sp                  = D_actor_206100_80149E94;  /* the 5-word copy stays here */
-    enemy->node.field_4 = 1;                        /* …so this must follow it */
+    enemy->node.flags = 1;                          /* …so this must follow it */
     sp.funcs[(s16)work->field_522](task);
 ```
 
@@ -25334,14 +25334,14 @@ A bare `s32 val` does not flip it. Pin the load:
 ```c
 register s32 val asm("v0");
 
-if (node->field_6 == 0) {
+if (node->onList == 0) {
     /* append … */
-    val = node->field_4;
-    node->field_6 = 1;
+    val = node->flags;
+    node->onList = 1;
 } else {
-    val = node->field_4;
+    val = node->flags;
 }
-node->field_4 = val & 0xFE;
+node->flags = val & 0xFE;
 ```
 
 `u8 val` with the same pin does not stick (QImode). `Gp_LinkNode` is the
@@ -26399,7 +26399,7 @@ arg1 = next;
 flag = 1;
 if (node != arg1) {
     if (node != NULL) {
-        node->field_5 = 0;
+        node->targeted = 0;
     }
     actor->field_90C = arg1; /* sw a1 — v0 already holds 1 */
 }
@@ -41116,6 +41116,72 @@ A parameter rename is the mirror image and needs `--no-comments`: the markdown
 branch has no per-symbol filter, so a parameter named `arg0` matches every
 backticked `arg0` in this file and the generic ones in `NAMING.md`. Same
 over-reach as the `field_XX` entry above, same escape.
+
+## A parameter rename can shadow a local of the same name, and `-w` hides it
+
+`rename_item.py` renames a parameter by rewriting its identifier at the
+declaration and at every use the parser resolves to it. It does not check that
+the new name is free, and a body that already declares a local of that name
+keeps both:
+
+```c
+void func(GpLinkNode* node)  /* was arg0 */
+{
+    GpLinkNode* node;        /* the local the body already had */
+
+    node = actor->field_90C; /* the local */
+    actor->field_90C = node; /* meant the parameter; now the local */
+}
+```
+
+C calls that a redeclaration, but the build compiles with `-w`, so nothing
+prints: the parameter is silently shadowed and the rest of the function reads
+the local instead. The only sign is the checksum, on the one overlay that owns
+the function, with every function still reporting a match individually.
+
+Pick a parameter name the body does not already use - renaming the *local*
+usually reads better, since it is usually the more specific quantity - and check
+before running the pass:
+
+    grep -n "\b<newName>\b" <file>
+
+The tools cannot catch this for you. A parameter rename already needs
+`--no-comments`, so the prose sweep that would have shown the name in context is
+the very pass being skipped.
+
+## What a shared record's header has to clear is the overlay's own view of gameplay
+
+Folding an overlay-local copy of a struct into the gameplay type it copies makes
+that overlay's header reach the gameplay declaration, so the question is which
+gameplay header it can include. The answer is not the unit header the type
+currently lives in.
+
+An actor overlay declares its own views of the gameplay globals it reads - a
+`Gp_StateC08`, a `Gp_StateF0`, a pair of named field widths - and its own
+prototypes for gameplay entry points whose signature it spells its own way. Any
+header that carries those declarations and is pulled into the overlay collides
+with the views the overlay wrote deliberately, and the collisions are type
+errors, not warnings. Measured on one shared record that had to move:
+
+| Include added to six overlay headers | Conflicting-type errors | Files |
+|---|---|---|
+| the unit header that owned the type | 99, over 32 symbols | 13 |
+| the gameplay module's shared header | 3, over 3 symbols | 31 |
+| `main/session.h` | 0 | 0 |
+
+So a record shared between gameplay, main and the overlays belongs in
+`main/session.h`, which every overlay header already reaches and which declares
+no gameplay prototypes. That is where the earlier merges of the same kind put
+theirs, and its own comments say why: the record is restated main-side so
+`session.h` does not depend on a gameplay header.
+
+Two corollaries. The unit header must not include the module's shared header -
+that is how the middle row's three symbols reach every overlay that already
+includes the unit header, and it broke 31 files that had been building. And once
+the type has moved, the accesses that were unresolvable while it was duplicated
+become visible to the parser for the first time, so a field renamed before the
+merge misses them; rename the field after the merge, or round-trip the rename so
+the accesses resolve again.
 
 ## Name a cross-overlay import after the overlay that defines it
 
@@ -56178,7 +56244,7 @@ if (work->field_4 != 0) {
     GpEnemy* enemy = (GpEnemy*)task->spawnArg2;
 
     extra->flags      = 0x80;
-    enemy->node.field_4 = 1;
+    enemy->node.flags = 1;
 ```
 
 Same family as "Shape a live range by *where* a local is introduced", but for
@@ -56736,7 +56802,7 @@ not evidence against the local.
 
 Which of the two competing caller-saved registers a constant lands in follows
 from *when the other value is born*: reading the halfword into a temp before
-`enemy->node.field_4 = 1` (rather than inline at its store) flipped `1` from
+`enemy->node.flags = 1` (rather than inline at its store) flipped `1` from
 `$a2` to `$a3` and took `func_acropolis_bridge_801861A0` from 94.0% to 97.7%.
 
 ## `addiu s0, sp, 0x10` mid-block means the address of the local was taken *there*
@@ -66164,7 +66230,7 @@ lw   v0, 0x2C(s1)     ; coord = ((TmdObject*)task->extra)->coords
 lw   v1, 0x20(s1)     ; the GpEnemy* the sb below stores through
 lw   a0, 0x8(v0)
 li   v0, 1
-sb   v0, 0x14(v1)     ; enemy->node.field_4 = 1
+sb   v0, 0x14(v1)     ; enemy->node.flags = 1
 ```
 
 Writing that third load as the fused dereference-store it looks like in the
@@ -66173,7 +66239,7 @@ target —
 ```c
 work                                      = (Actor206100Work*)task->work;
 coord                                     = ((TmdObject*)task->extra)->coords;
-((GpEnemy*)task->spawnArg2)->node.field_4 = 1;
+((GpEnemy*)task->spawnArg2)->node.flags = 1;
 ```
 
 — scores 99.688% (distance 20, `regs=4`): the object comes out with `lw 0x2C`
@@ -66188,7 +66254,7 @@ restores the target order and scores 100.000% with every penalty zero:
 work                = (Actor206100Work*)task->work;
 enemy               = (GpEnemy*)task->spawnArg2;   /* lw 0x20, ranked alone */
 coord               = ((TmdObject*)task->extra)->coords;
-enemy->node.field_4 = 1;
+enemy->node.flags = 1;
 ```
 
 Moving the fused statement up does **not** substitute for the local: that emits
@@ -68742,7 +68808,7 @@ dependency for callee-saved ones, so it sinks the `li` next to its use below
 the `jal`:
 
 ```c
-enemy->node.field_4 = 4;
+enemy->node.flags = 4;
 one                 = 1;
 Gp_IncStateF0Ref(0);
 if ((task->spawnArg1 & 0xF) == one) { ... task->state = 2; ... }
@@ -82988,7 +83054,7 @@ Declaring the pointer as a local - exactly as the matched sibling
 
 ```c
 TmdObject* model = (TmdObject*)arg1->extra;
-arg0->node.field_4 = 1;
+arg0->node.flags = 1;
 model->field_C     = 0x84;
 ```
 
@@ -84293,7 +84359,7 @@ decompiled example - so the pair is `(GpEnemy*, Task*)` and the two loads become
 
 The byte store then settles the first argument on its own: `Task::callback` is
 at `0x14`, so `sb …, 0x14($a0)` rules out a `Task*`, and
-`enemy->node.field_4 = 1` (`GpEnemy + 0x14`; an idiom in `actor_206100`,
+`enemy->node.flags = 1` (`GpEnemy + 0x14`; an idiom in `actor_206100`,
 `actor_150400` and `actor_460200`) fits with no invented type.
 
 So when a body's arguments have no caller to fix them, look for its address in
@@ -84332,7 +84398,7 @@ match in one build:
 
     if (((ActorShared80134178Work*)arg1->idMap)->field_4 != 0) {
         model              = (TmdObject*)arg1->extra;
-        arg0->node.field_4 = 1;
+        arg0->node.flags = 1;
         model->field_C     = 0x80;
     }
 ```
@@ -94647,7 +94713,7 @@ unrelated jobs on paths that never overlap. Here the same `SVECTOR*` is the
 scratch rotation vector one `switch` arm builds a matrix from and the grid
 normal pointer another arm clears, which is what pins both to `$a0`.
 
-Two knock-on effects are worth knowing. `enemy->node.field_4 = 8;` carries a
+Two knock-on effects are worth knowing. `enemy->node.flags = 8;` carries a
 `REG_EQUIV` note on the QImode constant load, and that note counts in
 `REG_N_REFS`; `allocno_compare` weights by `floor_log2(n_refs) * n_refs /
 live_length`, so going from 3 to 4 references more than doubles an allocno's
@@ -95292,10 +95358,10 @@ nop
 sh     zero,0xC(v0)
 li     v0,0x180
 sh     v0,0x9BC(s0)
-sb     zero,0x14(v1)       # enemy->node.field_4
+sb     zero,0x14(v1)       # enemy->node.flags
 ```
 
-The m2c shape — `arg0->field_20->node.field_4 = 0;` written inside the `if` —
+The m2c shape — `arg0->field_20->node.flags = 0;` written inside the `if` —
 puts the load immediately before its `sb` and costs a load-delay `nop`, two
 instructions over the reference. The `.sched` dump says which of the two
 explanations applies without trying a single scheduler knob: `;; End of basic
@@ -95315,7 +95381,7 @@ storing through the local:
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
         ...
-        enemy->node.field_4 = 0;
+        enemy->node.flags = 0;
     }
 ```
 
@@ -95352,7 +95418,7 @@ the C put it there. Writing the argument expression inline in the arm is the m2c
 shape and is what costs the instruction.
 
 The rule runs the other way too, and it is the target that decides. In
-`func_actor_421600_801392A8` the same `ctx->node.field_4 = 0` sits in a live-arm
+`func_actor_421600_801392A8` the same `ctx->node.flags = 0` sits in a live-arm
 edge, but there the reference loads `arg0->field_20` *after* the `beqz`, so the
 hoisted-local form is wrong: `ctx = arg0->field_20` has to move inside the `if`,
 which also hands the load `$v0` (freed once the branch is taken) instead of
@@ -95445,7 +95511,7 @@ work  = arg0->field_1C;
 enemy = arg0->field_20;      /* read unconditionally, so the load is in block 0 */
 if (work->field_4 != 0) {
     ...
-    enemy->node.field_4 = 0; /* used here */
+    enemy->node.flags = 0; /* used here */
 }
 ```
 
@@ -95960,7 +96026,7 @@ beqz  $v0,.Lactor_401000_8013DF3C
 sb    $zero,0x14($a1)   # the store stays down here, 4th in the body
 ```
 
-m2c writes the whole thing as one guarded statement, `arg0->field_20->node.field_4 = 0;`
+m2c writes the whole thing as one guarded statement, `arg0->field_20->node.flags = 0;`
 inside the body — which scores **90.535%** (`branch=2 regs=1 insert=3 delete=1`),
 because the load can only be born next to its store, late and in `$v0`.
 
@@ -95971,7 +96037,7 @@ because the load can only be born next to its store, late and in `$v0`.
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
         ...
-        enemy->node.field_4 = 0;
+        enemy->node.flags = 0;
 ```
 
 100.000%, 41 instructions. Both symptoms have the one cause: with the load in
@@ -96062,7 +96128,7 @@ whole function is three calls to `func_actor_110600_80134728(arg0)`, a `beqz`
 guard and a 20-iteration loop.
 
 **Cause: what the first call passes.** m2c had seeded the first call with the
-`field_20` pointer it had just loaded for the `node.field_4 = 1` store. The ROM
+`field_20` pointer it had just loaded for the `node.flags = 1` store. The ROM
 passes `arg0` itself: `$a0` is written exactly three times in the whole function
 -- the entry copy `addu $s1,$a0,$zero` and the two later argument setups
 `addu $a0,$s1,$zero` -- so the *first* call consumes `$a0` still holding the
@@ -96522,7 +96588,7 @@ seed shows a `move` from `$zero`, or a shortcut value, in place of a compare.
 ## A dispatch constant that is also stored *and* passed as a call argument must be one C variable: `s32 one; one = 1;` (func_actor_205200_8014B9D4, 2026-09-16)
 
 The tick handler dispatches on `D_801153F4`, and on two of its paths writes the
-constant `1` - `arg0->node.field_4 = 1` and `func_actor_205200_8014B048(arg1, 1)`.
+constant `1` - `arg0->node.flags = 1` and `func_actor_205200_8014B048(arg1, 1)`.
 The target materialises that `1` once, in the prologue, and uses `$a1` for all
 three purposes: the dispatch compare (`beq $v1,$a1`), the store (`sb $a1,0x14($a0)`)
 and the call's second argument.
@@ -96555,7 +96621,7 @@ jumps' slots as `nop`s - 100%:
     if (state == one) { goto case1; }
     ...
 case2:
-    arg0->node.field_4 = one;
+    arg0->node.flags = one;
     return;
 default_body:
     func_actor_205200_8014B048(arg1, one);
@@ -99789,7 +99855,7 @@ size and offset unchanged). `Gp_AllocEnemy` confirms it from the other side:
 
 The instruction stream is also the check on the idiom: `func_actor_421600_8013E858`
 is the same body in another overlay, identical for its first 13 instructions,
-and its C (`enemy->node.field_4 = 1;` then `work->field_B6C.flags &= 0xBFFF;`)
+and its C (`enemy->node.flags = 1;` then `work->field_B6C.flags &= 0xBFFF;`)
 is what the typed port follows. Only the mask constant, its offset and one extra
 store differ, so a sibling from the family is a better template than the seed.
 
@@ -101461,7 +101527,7 @@ made `$a3` free at the birth, and the loads then hoisted above the stores.
 The two matched siblings that share this function shape both put `field_18`
 first in that group — `func_actor_105100_801327B4` and this overlay's own
 `Actor00700_Fn01FE0` (`field_18` immediately after `Gp_LinkNode`, before
-`node.field_4`). Neither sibling's *object* shows that order: the store sinks to
+`node.flags`). Neither sibling's *object* shows that order: the store sinks to
 the end of the run anyway. Read the sibling's source for statement order, never
 its disassembly.
 
@@ -110967,7 +111033,7 @@ callee-saved home:
         animA             = 0xB;
         animB             = 0xC;
         obj               = arg0->field_2C;
-        ctx->node.field_4 = 0;
+        ctx->node.flags = 0;
         obj->field_C      = 0;
         Tmd_AllocBuffers(obj);
         work->field_978 = 2;
@@ -112488,7 +112554,7 @@ if (work->field_4 != 0) {
     arg0->field_2C->field_C = 0;
     work->field_A90.flags   = (u16)(work->field_A90.flags & 0x7FFF);
     ...
-    enemy->node.field_4     = 1;                /* store still late */
+    enemy->node.flags       = 1;              /* store still late */
 ```
 
 makes the load's interval cover the flag halfwords, where the object load marks
@@ -113639,7 +113705,7 @@ that holds a constant and has exactly one use into its value
 register is free there. Nothing keeps one register across the two blocks.
 
 **Fix:** declare the local and assign it before the guard - `one = 1;` then
-`if (... == one)` and, later, `arg0->node.field_4 = one;` (91.9% → 94.0%, with
+`if (... == one)` and, later, `arg0->node.flags = one;` (91.9% → 94.0%, with
 the branch penalties going to zero). The same test in the other direction:
 `part = &coord[1];` before the guard is what puts `addiu $s6,$s4,0x50` in the
 guard's delay slot, where the one-use CSE'd expression form puts the `addiu` at
@@ -122452,7 +122518,7 @@ pins, no empty asm, no permuter run. Scratch
 `addiu v1,v1,0xa0`, `sw v1,0x18(s1)` — that the target interleaves starting
 immediately after the three `sw zero,0x2c/0x30/0x34` vector stores. m2c emits
 statements in the order the final asm shows them, which there is *after*
-`node.field_4`, `field_4C`, `field_42` and `field_40`, and the result was 94.4%
+`node.flags`, `field_4C`, `field_42` and `field_40`, and the result was 94.4%
 with `insert=2 delete=1` and one extra instruction (`.diagnosis.json` reports
 `instructions=99/98` and an `0:0` opcode delta of 1 — a load-delay `nop`):
 
@@ -122467,7 +122533,7 @@ sw    v0,0x18(s1)
 
 sched1 cannot hoist it: it tracks memory conservatively, so a load that follows
 a store in the RTL has a dependence edge on it and stays below. Moving the
-single statement above `arg0->node.field_4 = 1;` — i.e. directly after the
+single statement above `arg0->node.flags = 1;` — i.e. directly after the
 vector stores, giving the chain lower instruction uids than the four stores it
 must precede — reproduces the target's interleaving, absorbs the load delay
 into `move a0,s0`, and reaches 100.000%:
@@ -122477,7 +122543,7 @@ lw    v0,0x2c(s2)      # target: chain launches here
 move  a0,s0            # fills the lw delay
 lw    v1,8(v0)
 li    v0,1
-sb    v0,0x14(s1)      # node.field_4, scheduled inside the chain
+sb    v0,0x14(s1)      # node.flags, scheduled inside the chain
 ```
 
 The general rule: when the target launches a load *before* stores that the

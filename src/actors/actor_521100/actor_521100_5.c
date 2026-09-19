@@ -98,8 +98,8 @@ void func_actor_521100_80135DDC(void* spawnArg2, Task* task)
     coord->sub               = &gGfxViewCoord;
     enemy->field_4           = &coord->coord;
     enemy->field_48          = 0;
-    enemy->node.field_5      = 0;
-    enemy->node.field_4      = 1;
+    enemy->node.targeted     = 0;
+    enemy->node.flags        = 1;
     obj->otOffset            = 1;
     obj->lightMtx            = (MATRIX*)D_actor_521100_8016A3D8;
     obj->colorMtx            = (MATRIX*)D_actor_521100_8016A3D8 + 1;

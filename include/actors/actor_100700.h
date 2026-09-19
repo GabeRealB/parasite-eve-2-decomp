@@ -2,6 +2,7 @@
 #define ACTOR_100700_H
 
 #include "common.h"
+#include "main/session.h"
 #include "gameplay/3FB8.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -108,20 +109,12 @@ typedef struct Actor00700Work {
     /* 0x398 */ s16                      field_398;
 } Actor00700Work;
 
-/// `Gp_UnlinkNode` list entry at +0x10 of `Actor00700Ctx`. `field_4` is the
-/// flag byte previously named `field_14` (`sb` at 0x14).
-typedef struct Actor00700Node {
-    /* 0x0 */ struct Actor00700Node* next;
-    /* 0x4 */ u8                     field_4;
-    /* 0x5 */ byte                   pad_5[3];
-} Actor00700Node;
-
 typedef struct Actor00700Ctx {
     /* 0x00 */ byte              pad_0[4];
     /* 0x04 */ MATRIX*           field_4;
     /* 0x08 */ u16               field_8;
     /* 0x0A */ byte              pad_A[6];
-    /* 0x10 */ Actor00700Node    node;
+    /* 0x10 */ GpLinkNode        node;
     /* 0x18 */ GsCOORDINATE2*    field_18;
     /* 0x1C */ s32               field_1C;
     /* 0x20 */ s32               field_20;

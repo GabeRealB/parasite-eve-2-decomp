@@ -106,7 +106,7 @@ void func_actor_510900_80136184(Actor510900* arg0)
                         work->field_590 = 1;
                         work->field_586 = 2;
                         work->field_59C = 0;
-                    } else if (arg0->field_20->node.field_5 == 1 && (u32)(D_80073BAA - 0xA) < 3U) {
+                    } else if (arg0->field_20->node.targeted == 1 && (u32)(D_80073BAA - 0xA) < 3U) {
                         work->field_590 = 5;
                         work->field_586 = 0x15;
                         snd             = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780003;
@@ -162,7 +162,7 @@ void func_actor_510900_80136184(Actor510900* arg0)
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
                                     (s8)Gp_GetObjDepth((GpObj38*)coord));
             }
-            if (arg0->field_20->node.field_5 == 1 && (u32)(D_80073BAA - 0xA) < 3U) {
+            if (arg0->field_20->node.targeted == 1 && (u32)(D_80073BAA - 0xA) < 3U) {
                 work->field_590 = 6;
                 work->field_586 = 0x15;
                 snd             = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780003;
@@ -1135,7 +1135,7 @@ void func_actor_510900_801384C4(Actor510900* arg0)
         SndEvt_EnqueueType7(work->field_580, 0);
         work->field_580 = 0;
     }
-    arg0->field_20->node.field_4 = 1;
+    arg0->field_20->node.flags = 1;
     if (work->field_58A == 0x70) {
         snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780007;
         pan = (s8)Gp_GetObjPan((GpObj38*)coord);
@@ -1566,7 +1566,7 @@ s32 func_actor_510900_801391B8(Actor510900* arg0, s32 arg1, s32 arg2)
             work->field_5A2                             = 0;
             work->field_58A                             = 0;
             work->obj47C.flags                         |= 0x8000;
-            enemy->node.field_4                         = 8;
+            enemy->node.flags                           = 8;
             vec->vx                                     = 0;
             vec->vy                                     = work->field_5A0;
             vec->vz                                     = 0;
@@ -1605,7 +1605,7 @@ s32 func_actor_510900_801391B8(Actor510900* arg0, s32 arg1, s32 arg2)
             work->obj47C.flags &= 0x7FFF;
             work->obj4E4.flags &= 0x7FFF;
             work->obj504.flags &= 0x7FFF;
-            enemy->node.field_4 = 1;
+            enemy->node.flags   = 1;
 
             normals = Gp_GridParams->field_4;
             verts   = Gp_GridParams->field_8;
@@ -2136,7 +2136,7 @@ void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task)
     *(void**)0x1F8003FC = head - 8;
     enemy->field_48     = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->node.field_4        = 1;
+    enemy->node.flags          = 1;
     enemy->field_18            = coord;
     enemy->field_1C.vx         = -0xC8;
     enemy->field_1C.vy         = 0;
@@ -2232,11 +2232,11 @@ case0:
         return;
     }
     ((Actor510900Obj2C*)arg1->extra)->field_C = 0;
-    arg0->node.field_4                        = one;
+    arg0->node.flags                          = one;
     goto body;
 case2:
-    obj->field_C       = 0x80;
-    arg0->node.field_4 = one;
+    obj->field_C     = 0x80;
+    arg0->node.flags = one;
     return;
 body:
     func_actor_510900_8013A9BC(arg1);
@@ -2315,10 +2315,10 @@ case0:
         work->field_330 = 2;
         goto end;
     }
-    ctx->node.field_4   = Gp_StateF0.field_0 != 1;
+    ctx->node.flags     = Gp_StateF0.field_0 != 1;
     dmg                 = work->rec2DC.key;
     work->obj2BC.flags |= 0x8000;
-    if ((dmg & 0xFFFF8000) == 0x20000 && ctx->node.field_5 == one &&
+    if ((dmg & 0xFFFF8000) == 0x20000 && ctx->node.targeted == one &&
         Gp_ComputeDamage(dmg, 0x3E8, 0, 0) != 0) {
         grabbed = 1;
     }
@@ -2434,7 +2434,7 @@ void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
     enemy->field_48   = 0;
     Gp_LinkNode(&enemy->node);
     enemy->field_18     = coord;
-    enemy->node.field_4 = 1;
+    enemy->node.flags   = 1;
     enemy->field_1C.vx  = 0;
     enemy->field_1C.vy  = 0;
     enemy->field_1C.vz  = 0;
@@ -2503,7 +2503,7 @@ ge2:
     goto body;
 case0:
     if ((Gp_GetViewIndex() & 0xFF) != D_actor_510900_80167CE4) {
-        arg0->node.field_4 = one;
+        arg0->node.flags   = one;
         work->obj0.flags  &= 0x7FFF;
         work->obj38.flags &= 0x7FFF;
         if (work->field_76 != 0) {
@@ -2516,10 +2516,10 @@ case0:
         }
         return;
     }
-    arg0->node.field_4 = one;
+    arg0->node.flags = one;
     goto body;
 case2:
-    arg0->node.field_4 = one;
+    arg0->node.flags = one;
     return;
 body:
     func_actor_510900_8013B0D8(arg1);

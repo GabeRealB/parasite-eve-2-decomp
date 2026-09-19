@@ -205,12 +205,12 @@ void func_actor_104900_801339B0(GpEnemy* enemy, Task* task, ActorsShared80138efc
         }
     }
 
-    xform               = (GpLinkXform*)&enemy->node;
-    enemy->node.field_4 = 0;
-    xform->coord        = &((TmdObject*)task->extra)->coords[3];
-    xform->src.vx       = 0;
-    xform->src.vy       = -0xC8;
-    xform->src.vz       = 0xC8;
+    xform             = (GpLinkXform*)&enemy->node;
+    enemy->node.flags = 0;
+    xform->coord      = &((TmdObject*)task->extra)->coords[3];
+    xform->src.vx     = 0;
+    xform->src.vy     = -0xC8;
+    xform->src.vz     = 0xC8;
     if (func_actor_104900_80132D78(enemy, task, work, arg) != 0) {
         flag = 1;
     }

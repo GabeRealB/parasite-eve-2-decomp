@@ -10,15 +10,6 @@
 #include "main/task.h"
 #include "main/session.h"
 
-/// Singly-linked node embedded in `Actor01600Ctx` at 0x10 and unlinked by
-/// `Gp_UnlinkNode`. Same layout as the gameplay `GpLinkNode`.
-typedef struct Actor01600Node {
-    /* 0x0 */ struct Actor01600Node* next;
-    /* 0x4 */ u8                     field_4;
-    /* 0x5 */ byte                   pad_5[3];
-} Actor01600Node;
-STATIC_ASSERT_SIZEOF(Actor01600Node, 0x8);
-
 /// Fields read from this actor's spawn parameter record. Byte 1 selects the
 /// variant `Actor01600_Fn05F80` runs: 1 is the main state machine, 2 and 4 run
 /// their own countdown on `Actor01600Work.field_524` (byte 2 is the kind
@@ -41,7 +32,7 @@ typedef struct Actor01600Ctx {
     /* 0x04 */ MATRIX*           field_4;
     /* 0x08 */ u16               field_8;
     /* 0x0A */ byte              pad_A[0x6];
-    /* 0x10 */ Actor01600Node    node;
+    /* 0x10 */ GpLinkNode        node;
     /* 0x18 */ GsCOORDINATE2*    field_18;
     /* 0x1C */ s32               field_1C;
     /* 0x20 */ s32               field_20;
@@ -527,7 +518,6 @@ extern Actor01600Desc Actor01600_D09F0C;
 extern u8             Actor01600_D127EC[], Actor01600_D127A4[];
 void                  Actor01600_Fn05400(Actor01600* actor);
 void                  Actor01600_Fn06EA4(Actor01600* actor);
-void                  Gp_LinkNode(Actor01600Node* node);
 void                  func_800B3F84(Actor01600AnimCtx* anim, void* data, TmdObject* obj, void* poses, Actor01600AnimSlot* slots);
 void                  Gp_AnimResetSlot(Actor01600AnimCtx* anim, s32 slot, s32 active);
 void                  Gp_IncStateF0Ref(s32 arg0);

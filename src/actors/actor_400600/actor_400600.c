@@ -641,7 +641,7 @@ void func_actor_400600_80133434(Task* arg0)
     enemy->field_1C.vz = 0;
     enemy->field_18    = &((TmdObject*)arg0->extra)->coords[3];
     Gp_LinkNode(&enemy->node);
-    enemy->node.field_4   = 5;
+    enemy->node.flags     = 5;
     enemy->field_50       = &D_actor_400600_80144EB0;
     enemy->field_54       = (s32)work->rec_4D4;
     work->eff_6FC.field_0 = &((TmdObject*)arg0->extra)->coords[3];
@@ -1776,9 +1776,9 @@ void func_actor_400600_80136558(Task* arg0)
         work->field_740 = count;
         if (count >= 0x12) {
             if (work->field_75A != 0) {
-                enemy->node.field_4 = 4;
+                enemy->node.flags = 4;
             } else {
-                enemy->node.field_4 = 5;
+                enemy->node.flags = 5;
             }
             model->flags |= 0x80;
             func_actor_400600_801387DC(arg0, -1);

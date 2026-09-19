@@ -54,14 +54,14 @@ void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord[1].coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18     = part;
-    arg0->node.field_4 = 0;
-    arg0->field_1C.vx  = 0;
-    arg0->field_1C.vy  = 0;
-    arg0->field_1C.vz  = 0;
-    arg0->field_50     = &D_actor_207200_8014DBBC;
-    arg0->field_54     = (s32)work->field_1A4;
-    arg0->field_40     = D_actor_207200_8014DBBC.field_4;
+    arg0->field_18    = part;
+    arg0->node.flags  = 0;
+    arg0->field_1C.vx = 0;
+    arg0->field_1C.vy = 0;
+    arg0->field_1C.vz = 0;
+    arg0->field_50    = &D_actor_207200_8014DBBC;
+    arg0->field_54    = (s32)work->field_1A4;
+    arg0->field_40    = D_actor_207200_8014DBBC.field_4;
     func_800B3F84(&work->context, D_actor_207200_8014E7B0, (GpAnimObj*)obj, work->field_8C, work->slots);
     i = 1;
     do {
@@ -69,15 +69,15 @@ void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
         i += 1;
     } while (i < 3);
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    work->field_28C    = 1;
-    work->field_28E    = 1;
-    work->field_2A6    = 1;
-    work->field_2A4    = 0x12;
-    arg0->node.field_4 = 1;
-    obj->flags         = 0x80;
-    seed               = Gp_LcgState * 5 + 0x71357911;
-    work->field_2A8    = ((seed >> 16) & 0x3F) + 0x64;
-    Gp_LcgState        = seed;
+    work->field_28C  = 1;
+    work->field_28E  = 1;
+    work->field_2A6  = 1;
+    work->field_2A4  = 0x12;
+    arg0->node.flags = 1;
+    obj->flags       = 0x80;
+    seed             = Gp_LcgState * 5 + 0x71357911;
+    work->field_2A8  = ((seed >> 16) & 0x3F) + 0x64;
+    Gp_LcgState      = seed;
     Gp_SetLightMode((GpObj4C*)arg1->spawnArg2, 2);
     work->field_11C.field_4  = 0x1388;
     work->field_11C.field_10 = 0xFA0;
@@ -281,8 +281,8 @@ void func_actor_207200_8014AA74(GpEnemy* arg0, Task* arg1)
         case 1:
             return;
         case 2:
-            obj->flags        |= 0x80;
-            arg0->node.field_4 = 1;
+            obj->flags      |= 0x80;
+            arg0->node.flags = 1;
             return;
     }
     if (work->field_288 != 0) {
@@ -375,11 +375,11 @@ ge2:
     }
     goto default_body;
 case0:
-    arg0->node.field_4 = 0;
+    arg0->node.flags = 0;
     goto default_body;
 case2:
     ((TmdObject*)arg1->extra)->flags = 0x80;
-    arg0->node.field_4               = one;
+    arg0->node.flags                 = one;
     return;
 default_body:
     ((TmdObject*)arg1->extra)->coords[0].coord.t[1] += 0x80;

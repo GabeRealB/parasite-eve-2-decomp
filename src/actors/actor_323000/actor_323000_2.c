@@ -447,11 +447,11 @@ void func_actor_323000_80163EA0(GpEnemy* enemy, Task* task)
     enemy->field_1C.vz = 0;
     enemy->field_18    = &((TmdObject*)task->extra)->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.field_4 = 1;
-    enemy->field_50     = &D_actor_323000_80164D54;
-    enemy->field_4C     = 0;
-    enemy->field_40     = 0;
-    enemy->field_54     = 0;
+    enemy->node.flags = 1;
+    enemy->field_50   = &D_actor_323000_80164D54;
+    enemy->field_4C   = 0;
+    enemy->field_40   = 0;
+    enemy->field_54   = 0;
     func_800B3F84(&work->anim, D_actor_323000_8017387C, (GpAnimObj*)obj, work->poses, work->slots);
     func_800B3F84(&work->blendAnim, D_actor_323000_8017387C, (GpAnimObj*)obj, work->blendPoses, work->blendSlots);
     work->field_828 = 2;
@@ -491,9 +491,9 @@ void func_actor_323000_8016409C(GpEnemy* enemy, Task* task)
 
     work = (Actor323000Work*)task->work;
     if (work->field_4 != 0) {
-        obj                 = (TmdObject*)task->extra;
-        enemy->node.field_4 = 0;
-        obj->flags          = 0;
+        obj               = (TmdObject*)task->extra;
+        enemy->node.flags = 0;
+        obj->flags        = 0;
         Tmd_AllocBuffers(obj);
         work->field_832 = 0x10;
         work->field_828 = 2;
@@ -537,9 +537,9 @@ void func_actor_323000_8016420C(GpEnemy* enemy, Task* task)
 
     work = (Actor323000Work*)task->work;
     if (work->field_4 != 0) {
-        obj                 = (TmdObject*)task->extra;
-        enemy->node.field_4 = 1;
-        obj->flags          = 0;
+        obj               = (TmdObject*)task->extra;
+        enemy->node.flags = 1;
+        obj->flags        = 0;
         Tmd_AllocBuffers(obj);
         work->field_832 = 0x10;
         work->field_82E = 0xE;

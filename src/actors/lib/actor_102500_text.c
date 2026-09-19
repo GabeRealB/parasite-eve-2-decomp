@@ -19,7 +19,6 @@ void func_800B4114(Actor02500Work* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 
 void* Mem_Calloc(s32 size, s32 arg1);
 void  Gp_DestroyEnemy(Actor02500Ctx* ctx, Actor02500* actor);
-void  Gp_LinkNode(Actor02500Node* node);
 void  func_800B3F84(Actor02500Work* arg0, void* arg1, Actor02500Obj2C* arg2, void* arg3,
                     Actor02500AnimSlots* arg4);
 void  Gp_AnimResetSlot(Actor02500Work* arg0, s32 arg1, s32 arg2);
@@ -41,7 +40,7 @@ s32   Gp_RollEnemyChance(Actor02500Ctx* arg0, u32 arg1, s32 arg2);
 void  Gp_SetObjFlag1(Actor02500Ctx* arg0);
 void  Gp_SetObjFlag2(Actor02500Ctx* arg0, u32 arg1, s32 arg2);
 void  func_800E2C78(Actor02500Ctx* arg0, u32 arg1, s32 arg2, s32 arg3);
-void  func_800DA6E8(Actor02500Node* arg0, s32 arg1, s32 arg2);
+void  func_800DA6E8(GpLinkNode* arg0, s32 arg1, s32 arg2);
 void* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
 s32   Gp_GetObjPan(GsCOORDINATE2* arg0);
 s32   Gp_GetObjDepth(GsCOORDINATE2* arg0);
@@ -72,16 +71,16 @@ void Actor02500_Fn00078(Actor02500Ctx* ctx, Actor02500* actor)
     ctx->field_4    = &coord->coord;
     ctx->field_48   = 0;
     Gp_LinkNode(&ctx->node);
-    ctx->field_20     = -0x96;
-    ctx->field_18     = coord;
-    ctx->node.field_4 = 0;
-    ctx->field_1C     = 0;
-    ctx->field_24     = 0;
-    ctx->field_50     = Actor02500_D05B38;
-    ctx->field_40     = Actor02500_D05B38->field_4;
-    work->field_2E0   = 0x200;
-    work->field_2DC   = coord;
-    work->field_2E2   = 1;
+    ctx->field_20   = -0x96;
+    ctx->field_18   = coord;
+    ctx->node.flags = 0;
+    ctx->field_1C   = 0;
+    ctx->field_24   = 0;
+    ctx->field_50   = Actor02500_D05B38;
+    ctx->field_40   = Actor02500_D05B38->field_4;
+    work->field_2E0 = 0x200;
+    work->field_2DC = coord;
+    work->field_2E2 = 1;
     func_800B3F84(work, &Actor02500_D05BA0, obj, work->field_DC, &work->field_14);
     work->field_31C = 1;
     work->field_31E = 1;

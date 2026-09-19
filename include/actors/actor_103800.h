@@ -7,15 +7,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
-/// `Gp_UnlinkNode` list entry at +0x10 of `Actor103800Ctx`. `field_4` is the
-/// flag byte `Actor03800_Fn031B8` writes (`sb` at 0x14).
-typedef struct Actor103800Node {
-    /* 0x0 */ struct Actor103800Node* next;
-    /* 0x4 */ u8                      field_4;
-    /* 0x5 */ byte                    pad_5[3];
-} Actor103800Node;
-STATIC_ASSERT_SIZEOF(Actor103800Node, 0x8);
-
 typedef struct Actor103800Obj2C {
     /* 0x00 */ byte           pad_0[0x8];
     /* 0x08 */ GsCOORDINATE2* field_8;
@@ -126,11 +117,11 @@ typedef struct Actor103800Work {
 STATIC_ASSERT_SIZEOF(Actor103800Work, 0x380);
 
 typedef struct Actor103800Ctx {
-    /* 0x00 */ byte            pad_0[8];
-    /* 0x08 */ u16             field_8;
-    /* 0x0A */ byte            pad_A[6];
-    /* 0x10 */ Actor103800Node node;
-    /* 0x18 */ byte            pad_18[0x24];
+    /* 0x00 */ byte       pad_0[8];
+    /* 0x08 */ u16        field_8;
+    /* 0x0A */ byte       pad_A[6];
+    /* 0x10 */ GpLinkNode node;
+    /* 0x18 */ byte       pad_18[0x24];
     /// `GpAreaPlace*` placement record (`GpEnemy::field_3C`); `field_2` is the
     /// spawn variant `Actor03800_Fn003B8` splits into `field_350` / `field_352`.
     /* 0x3C */ GpAreaPlace* field_3C;

@@ -252,7 +252,6 @@ void Actor01600_Fn03EEC(Actor01600* arg0)
     }
 }
 
-void Gp_UnlinkNode(void* node);
 void Gp_UnlinkObj(void* node);
 void Gp_EnemyTaskExit(Actor01600* arg0);
 void Gp_SetLightMode(void* arg0, s32 arg1);
@@ -321,8 +320,8 @@ void Actor01600_Fn04054(Actor01600Ctx* arg0, Actor01600* arg1)
     }
     if (mode > 1) {
         if (mode == 2) {
-            obj->flags        |= 0x80;
-            arg0->node.field_4 = 1;
+            obj->flags      |= 0x80;
+            arg0->node.flags = 1;
             return;
         }
     }
@@ -345,8 +344,8 @@ void Actor01600_Fn04054(Actor01600Ctx* arg0, Actor01600* arg1)
                 work->field_49C = coords[0].coord;
                 Gp_SetLightMode(arg0, 1);
             }
-            arg0->node.field_4 = 1;
-            arg0->field_54     = 0;
+            arg0->node.flags = 1;
+            arg0->field_54   = 0;
             Gp_UnlinkNode(&arg0->node);
             Gp_UnlinkObj(work->field_40C);
             Gp_UnlinkObj(work->field_29C);

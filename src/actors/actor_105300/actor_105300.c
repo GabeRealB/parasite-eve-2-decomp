@@ -264,10 +264,10 @@ void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
         case 1:
             return;
         case 0:
-            arg0->node.field_4 = 8;
+            arg0->node.flags = 8;
             break;
         case 2:
-            arg0->node.field_4 = 1;
+            arg0->node.flags = 1;
             return;
     }
     vec = --*(VECTOR**)0x1F8003FC;

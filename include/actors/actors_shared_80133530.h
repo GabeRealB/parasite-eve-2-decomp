@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "main/session.h"
+
 /// Work block reached as `task->field_1C`, shared by the two enemy overlays
 /// that carry this body. `field_336` gates the whole tick, `field_33C` is the
 /// ceiling the context's `field_40` has to stay below, and `field_33E` is the
@@ -16,21 +18,13 @@ typedef struct ActorShared80133530Work {
     /* 0x33E */ s16  field_33E;
 } ActorShared80133530Work;
 
-/// List entry at +0x10 of the context block below; taking its address is what
-/// lets `func_800DA6E8` bind this task into the lock-slot table.
-typedef struct ActorShared80133530Node {
-    /* 0x0 */ struct ActorShared80133530Node* next;
-    /* 0x4 */ u8                              field_4;
-    /* 0x5 */ byte                            pad_5[3];
-} ActorShared80133530Node;
-
 /// Second work block, reached as `task->field_20`: the hit counter `field_40`
 /// that `ActorsShared80133530` steps, and the node that hit is bound through.
 typedef struct ActorShared80133530Ctx {
-    /* 0x00 */ byte                    pad_0[0x10];
-    /* 0x10 */ ActorShared80133530Node node;
-    /* 0x18 */ byte                    pad_18[0x28];
-    /* 0x40 */ s16                     field_40;
+    /* 0x00 */ byte       pad_0[0x10];
+    /* 0x10 */ GpLinkNode node;
+    /* 0x18 */ byte       pad_18[0x28];
+    /* 0x40 */ s16        field_40;
 } ActorShared80133530Ctx;
 
 /// The task this body is handed.

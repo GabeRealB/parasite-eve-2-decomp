@@ -84,11 +84,11 @@ void func_actor_110600_801388A4(Actor110600* arg0)
 
     work = arg0->field_1C;
     if (work->field_4 != 0) {
-        obj                          = arg0->field_2C;
-        arg0->field_20->node.field_4 = 1;
-        obj->flags                   = (u16)(obj->flags | 0x80);
-        work->field_A90.flags        = (u16)(work->field_A90.flags & 0x7FFF);
-        work->field_950.flags        = (u16)(work->field_950.flags & 0xBFFF);
+        obj                        = arg0->field_2C;
+        arg0->field_20->node.flags = 1;
+        obj->flags                 = (u16)(obj->flags | 0x80);
+        work->field_A90.flags      = (u16)(work->field_A90.flags & 0x7FFF);
+        work->field_950.flags      = (u16)(work->field_950.flags & 0xBFFF);
     }
 }
 
@@ -130,7 +130,7 @@ void func_actor_110600_80138980(Actor110600* arg0)
         arg0->field_2C->flags = 0;
         work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
         work->field_950.flags = (u16)(work->field_950.flags | 0x4000);
-        enemy->node.field_4   = 8;
+        enemy->node.flags     = 8;
         work->field_88C       = 2;
         work->field_892       = 0xC;
         work->field_896       = 0x10;
@@ -194,7 +194,7 @@ void func_actor_110600_80138AFC(Actor110600* arg0)
         arg0->field_2C->flags = 0;
         work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
         work->field_950.flags = (u16)(work->field_950.flags | 0x4000);
-        enemy->node.field_4   = 8;
+        enemy->node.flags     = 8;
         work->field_88C       = 2;
         work->field_892       = 0xF;
         work->field_896       = work->field_898;
@@ -228,7 +228,7 @@ void func_actor_110600_80138BD0(Actor110600* arg0)
         arg0->field_2C->flags = 0;
         work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
         work->field_950.flags = (u16)(work->field_950.flags | 0x4000);
-        enemy->node.field_4   = 8;
+        enemy->node.flags     = 8;
         work->field_88C       = 2;
         work->field_892       = 0x10;
         work->field_896       = work->field_898;
@@ -264,7 +264,7 @@ void func_actor_110600_80138CA4(Actor110600* arg0)
         obj->flags            = 0;
         work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
         work->field_950.flags = (u16)(work->field_950.flags | 0x4000);
-        enemy->node.field_4   = 1;
+        enemy->node.flags     = 1;
         work->field_892       = 0x15;
         work->field_88C       = 2;
         work->field_B82       = 0;
@@ -291,9 +291,9 @@ void func_actor_110600_80138D7C(Actor110600* arg0)
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
-        obj                 = arg0->field_2C;
-        enemy->node.field_4 = 8;
-        obj->flags          = 0;
+        obj               = arg0->field_2C;
+        enemy->node.flags = 8;
+        obj->flags        = 0;
         Tmd_AllocBuffers(obj);
         work->field_88C        = 2;
         work->field_892        = 5;

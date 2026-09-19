@@ -229,8 +229,8 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     coord->sub              = &gGfxViewCoord;
     enemy->field_4          = &coord->coord;
     enemy->field_48         = 0;
-    enemy->node.field_5     = 0;
-    enemy->node.field_4     = 1;
+    enemy->node.targeted    = 0;
+    enemy->node.flags       = 1;
     obj->otOffset           = 1;
     obj->flags              = 0;
     D_actor_146300_8014282C = task;

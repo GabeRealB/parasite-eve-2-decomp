@@ -122,7 +122,7 @@ void func_actor_105100_801327B4(Actor105100Ctx* arg0, Actor105100* arg1)
     obj->field_20  = &work->field_43C;
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
-    Gp_LinkNode((GpLinkNode*)&arg0->node);
+    Gp_LinkNode(&arg0->node);
     arg0->field_18  = &arg1->field_2C->field_8[3];
     arg0->field_1C  = 0;
     arg0->field_20  = 0x64;
@@ -212,8 +212,8 @@ ge2:
     }
     goto default_body;
 case0:
-    obj->field_C       = 0;
-    arg0->node.field_4 = 8;
+    obj->field_C     = 0;
+    arg0->node.flags = 8;
     if (work->field_5BC != 0) {
         SndEvt_EnqueueType9(0x40000000);
         work->field_5BC = 0;
@@ -224,8 +224,8 @@ case1:
     func_actor_105100_80136524(arg1);
     goto join_12;
 case2:
-    obj->field_C       = 0x80;
-    arg0->node.field_4 = one;
+    obj->field_C     = 0x80;
+    arg0->node.flags = one;
 join_12:
     SOFT_USE_REG(work);
     if (work->field_5BC == 0) {

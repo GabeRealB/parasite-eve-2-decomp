@@ -37,13 +37,13 @@ void Actor02500_Fn012F0(Actor02500* actor)
     coord = obj->field_8;
     switch (state) {
         case 0:
-            obj->field_C                  = 0x80;
-            actor->field_20->node.field_4 = 1;
-            dx                            = Player_Status.coordMtx->t[0] - work->field_314;
-            scratch->delta.vy             = 0;
-            scratch->delta.vx             = dx;
-            dz                            = Player_Status.coordMtx->t[2] - work->field_318;
-            scratch->delta.vz             = dz;
+            obj->field_C                = 0x80;
+            actor->field_20->node.flags = 1;
+            dx                          = Player_Status.coordMtx->t[0] - work->field_314;
+            scratch->delta.vy           = 0;
+            scratch->delta.vx           = dx;
+            dz                          = Player_Status.coordMtx->t[2] - work->field_318;
+            scratch->delta.vz           = dz;
             if (SquareRoot0((dx * dx) + (dz * dz)) < 0x7D0 || Gp_StateF0.field_21 != 0 || Gp_StateF0.field_8 != 0) {
                 D_80115410[1]   = 1;
                 work->field_324 = 2;
@@ -51,18 +51,18 @@ void Actor02500_Fn012F0(Actor02500* actor)
             }
             break;
         case 1:
-            obj->field_C                  = 0x80;
-            actor->field_20->node.field_4 = 1;
+            obj->field_C                = 0x80;
+            actor->field_20->node.flags = 1;
             if (Gp_StateF0.field_21 != 0 || Gp_StateF0.field_8 != 0) {
                 work->field_324 = 2;
                 work->field_32E = ((u16)actor->field_20->field_8 >> 0xC) * 0xA;
             }
             break;
         case 2:
-            obj->field_C                  = 0x80;
-            actor->field_20->node.field_4 = 1;
-            timer2                        = (u16)work->field_32E - 1;
-            work->field_32E               = timer2;
+            obj->field_C                = 0x80;
+            actor->field_20->node.flags = 1;
+            timer2                      = (u16)work->field_32E - 1;
+            work->field_32E             = timer2;
             if (timer2 <= 0) {
                 work->field_324 = 3;
                 work->field_32E = 0xA;

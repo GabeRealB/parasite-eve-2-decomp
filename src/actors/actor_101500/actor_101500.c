@@ -35,18 +35,18 @@ void func_actor_101500_80131EB4(GpEnemy* arg0, Actor101500* arg1)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18     = &arg1->field_2C->coords[2];
-    arg0->node.field_4 = 0;
-    arg0->field_1C.vx  = 0;
-    arg0->field_1C.vy  = 0;
-    arg0->field_1C.vz  = 0;
-    arg0->field_50     = &D_actor_101500_8013BDD8;
-    arg0->field_54     = (s32)work->field_1FC;
-    arg0->field_40     = D_actor_101500_8013BDD8.field_4;
-    work->field_314    = coord;
-    work->field_318    = 0x300;
-    work->field_31A    = 1;
-    place              = arg0->field_3C;
+    arg0->field_18    = &arg1->field_2C->coords[2];
+    arg0->node.flags  = 0;
+    arg0->field_1C.vx = 0;
+    arg0->field_1C.vy = 0;
+    arg0->field_1C.vz = 0;
+    arg0->field_50    = &D_actor_101500_8013BDD8;
+    arg0->field_54    = (s32)work->field_1FC;
+    arg0->field_40    = D_actor_101500_8013BDD8.field_4;
+    work->field_314   = coord;
+    work->field_318   = 0x300;
+    work->field_31A   = 1;
+    place             = arg0->field_3C;
     switch (work->field_382 = place->field_1) {
         case 0:
             work->field_36E = ((GpAreaPlace*)arg0->field_3C)->field_2 & 1;

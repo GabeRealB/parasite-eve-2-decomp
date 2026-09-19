@@ -134,7 +134,25 @@ STATIC_ASSERT_SIZEOF(GameSession, 0x13C);
 STATIC_ASSERT(OFFSET_OF(GameSession, at4) == 4, GameSession_at4);
 STATIC_ASSERT(OFFSET_OF(GameSession, at4.loc) == 4, GameSession_at4_loc);
 STATIC_ASSERT(OFFSET_OF(GameSession, ptrSlots) == 0xC, GameSession_ptrSlots);
-struct _GpLinkNode;
+
+/// Link record of an enemy work object: the entry the lock-on system keeps for
+/// an actor it is allowed to track. Every object that carries one embeds it at
+/// +0x10, so the owner is a fixed subtraction away from any node and the actor
+/// behind a node reached from the list can be recovered.
+///
+/// Two walks run over the list each frame: the transform pass reprojects every
+/// tracked actor's position, and the lock-on scan picks which of them an actor
+/// slot aims at. `flags` is the node's own state, written by whoever owns the
+/// object; `targeted` and `onList` are the positions the tracking helpers
+/// maintain, and what the reticle and the on-screen markers read.
+typedef struct GpLinkNode {
+    struct GpLinkNode* next;     // Next node in the list; NULL at the tail
+    u8                 flags;    // Object state: 0x01 not lockable, 0x04 reproject while not lockable, 0x08 no HP readout
+    u8                 targeted; // Non-zero while an actor slot is locked onto this node
+    u8                 onList;   // Non-zero while the node hangs on the list
+} GpLinkNode;
+STATIC_ASSERT_SIZEOF(GpLinkNode, 0x8);
+
 struct _GpActorD4;
 struct GpAnimRec;
 
@@ -186,145 +204,145 @@ STATIC_ASSERT_SIZEOF(GameActorSlot, 0x28);
 /// Large object pointed to by Task::work for the slot-3 game object
 /// (Game_GetPtrSlot(3)). Sparse fields used by Display_SpawnFromMode.
 typedef struct _GameActor {
-    /* 0x000 */ s32                 field_0;  // per-frame X velocity (Gp_PlayerMode2State3)
-    /* 0x004 */ s32                 field_4;  // per-frame Y velocity
-    /* 0x008 */ s32                 field_8;  // per-frame Z velocity
-    /* 0x00C */ byte                pad_C[4];
-    /* 0x010 */ s32                 field_10; // copy of GsCOORDINATE2.coord.t[0]
-    /* 0x014 */ s32                 field_14; // copy of GsCOORDINATE2.coord.t[1]
-    /* 0x018 */ s32                 field_18; // copy of GsCOORDINATE2.coord.t[2]
-    /* 0x01C */ byte                pad_1C[4];
-    /* 0x020 */ s32                 field_20; // copied from Gp_SetActorDest arg2
-    /* 0x024 */ s32                 field_24;
-    /* 0x028 */ s32                 field_28;
-    /* 0x02C */ byte                pad_2C[4];
-    /* 0x030 */ VECTOR              field_30; // push-back dir (func_80109BB4); low halves go to a scratch SVECTOR
-    /* 0x040 */ s32                 field_40;
-    /* 0x044 */ s32                 field_44;
-    /* 0x048 */ s32                 field_48;
-    /* 0x04C */ byte                pad_4C[4];
-    /* 0x050 */ s16                 field_50; // SVECTOR.vx; func_80104D68 / RotMatrix
-    /* 0x052 */ s16                 field_52; // facing angle (lh); func_8010BCF4 / func_80103E7C
-    /* 0x054 */ s16                 field_54; // SVECTOR.vz; func_80104D68 / RotMatrix
-    /* 0x056 */ byte                pad_56[2];
-    /* 0x058 */ s16                 field_58;
-    /* 0x05A */ byte                pad_5A[2];
-    /* 0x05C */ s16                 field_5C; // pitch; Gp_AimPitchToLockAlt
-    /* 0x05E */ byte                pad_5E[2];
-    /* 0x060 */ s16                 field_60;
-    /* 0x062 */ byte                pad_62[2];
-    /* 0x064 */ s16                 field_64; // pitch; Gp_AimPitchToLockAlt
-    /* 0x066 */ byte                pad_66[2];
-    /* 0x068 */ s16                 field_68;
-    /* 0x06A */ s16                 field_6A;        // aim/look yaw offset; func_8010BE5C
-    /* 0x06C */ byte                pad_6C[4];
-    /* 0x070 */ s16                 field_70;        // pitch-like angle; Gp_AimPitchRec
-    /* 0x072 */ byte                pad_72[6];
-    /* 0x078 */ s16                 field_78;        // pitch; Gp_AimPitchDirect
-    /* 0x07A */ byte                pad_7A[6];
-    /* 0x080 */ s16                 field_80;        // copied from func_80104F5C arg2
-    /* 0x082 */ s16                 field_82;        // target facing angle; func_80104E00 / Gp_PlayerMode2State2
-    /* 0x084 */ byte                pad_84[4];
-    /* 0x088 */ byte                field_88[8];     // address taken as `GpObj.ctx.dir`
-    /* 0x090 */ s32                 field_90;
-    /* 0x094 */ byte                field_94[8];     // address taken as `GpObj.ctx.dir`
-    /* 0x09C */ s32                 field_9C;
-    /* 0x0A0 */ byte                field_A0[8];     // address taken as `GpObj.ctx.dir`
-    /* 0x0A8 */ s32                 field_A8;
-    /* 0x0AC */ byte                field_AC[0x20];  // first of the five `GpObj` nodes at 0xAC..0x14C
-    /* 0x0CC */ byte                field_CC[0x20];  // `GpObj` node
-    /* 0x0EC */ byte                field_EC[0x20];  // `GpObj` node
-    /* 0x10C */ byte                field_10C[0x18]; // `GpObj` node; `field_124` is its key
-    /* 0x124 */ u32                 field_124;
-    /* 0x128 */ byte                pad_128[2];
-    /* 0x12A */ u16                 field_12A;       // that node's flags
-    /* 0x12C */ byte                field_12C[0x20];
-    /* 0x14C */ byte                field_14C[0x18]; // GpActorD4Rec; Gp_AttachActorObj
-    /* 0x164 */ byte                pad_164[0x18];
-    /* 0x17C */ GpRec18             field_17C[18];   // Gp_ClearRec18Occupied / func_801041B4
-    /* 0x32C */ GpRec18             field_32C[6];    // Gp_AttachActorObj / Gp_InitRec18Table
-    /* 0x3BC */ byte                pad_3BC[0x18];
-    /* 0x3D4 */ byte                field_3D4[0x50]; // GsCOORDINATE2; Gp_AttachActorObj
-    /* 0x424 */ byte                field_424[0x14]; // GpAnimCtx overlay; Gp_AnimTickIndex
-    /* 0x438 */ GameActorSlot       field_438[19];   // GpAnimSlot array; func_80105B0C
-    /* 0x730 */ byte                pad_730[0x10];
-    /* 0x740 */ byte                pad_740[0x68];
-    /* 0x7A8 */ byte                field_7A8; // addr taken as func_800B3F84 arg3
-    /* 0x7A9 */ byte                pad_7A9[0x163];
-    /* 0x90C */ struct _GpLinkNode* field_90C;
-    /* 0x910 */ struct _GpActorD4*  field_910;
-    /* 0x914 */ struct Task*        field_914;
-    /* 0x918 */ struct Task*        field_918;
-    /* 0x91C */ struct Task*        field_91C;
-    /* 0x920 */ struct Task*        field_920;
-    /* 0x924 */ struct Task*        field_924;
-    /* 0x928 */ void*               field_928; // Gp_PlayerAnimBlkTbl[field_93A]; func_800B3F84 arg1
-    /* 0x92C */ struct GpAnimRec*   field_92C; // last Gp_AnimGetRec result (Gp_PlayerNormalState5)
-    /* 0x930 */ s32                 field_930; // sw from Gp_MsgPlayerDirFacing; addr taken by func_801011D0
-    /* 0x934 */ s32                 field_934;
-    /* 0x938 */ s16                 field_938; // GameActorSlot count (init 0x13)
-    /* 0x93A */ u16                 field_93A; // Gp_WeaponIdBase[field_22-1] + field_21
-    /* 0x93C */ u16                 field_93C;
-    /* 0x93E */ s16                 field_93E;
-    /* 0x940 */ s16                 field_940;
-    /* 0x942 */ s16                 field_942;
-    /* 0x944 */ s16                 field_944;
-    /* 0x946 */ s16                 field_946;
-    /* 0x948 */ s16                 field_948;
-    /* 0x94A */ s16                 field_94A;
-    /* 0x94C */ s16                 field_94C;
-    /* 0x94E */ s16                 field_94E;
-    /* 0x950 */ s16                 field_950;
-    /* 0x952 */ s16                 field_952;
-    /* 0x954 */ u16                 field_954;
-    /* 0x956 */ u16                 field_956;
-    /* 0x958 */ s16                 field_958;
-    /* 0x95A */ u16                 field_95A;
-    /* 0x95C */ u16                 field_95C;
-    /* 0x95E */ u16                 field_95E;
-    /* 0x960 */ u16                 field_960;
-    /* 0x962 */ u16                 field_962;
-    /* 0x964 */ u16                 field_964; // previous field_962
-    /* 0x966 */ u16                 field_966;
-    /* 0x968 */ u16                 field_968; // released buttons: field_964 & ~field_962
-    /* 0x96A */ u16                 field_96A; // set to 0xF89A by func_8010615C
-    /* 0x96C */ s16                 field_96C;
-    /* 0x96E */ s16                 field_96E;
-    /* 0x970 */ s16                 field_970;
-    /* 0x972 */ u8                  field_972;
-    /* 0x973 */ s8                  field_973;
-    /* 0x974 */ s8                  field_974;
-    /* 0x975 */ s8                  field_975;
-    /* 0x976 */ s8                  field_976;
-    /* 0x977 */ s8                  field_977;
-    /* 0x978 */ s8                  field_978;
-    /* 0x979 */ s8                  field_979; // countdown; `func_mongoose_8011D1D8` loads 0xB
-    /* 0x97A */ u8                  field_97A;
-    /* 0x97B */ s8                  field_97B;
-    /* 0x97C */ s8                  field_97C;
-    /* 0x97D */ u8                  field_97D;
-    /* 0x97E */ u8                  field_97E;
-    /* 0x97F */ s8                  field_97F;
-    /* 0x980 */ byte                pad_980;
-    /* 0x981 */ u8                  field_981;
-    /* 0x982 */ s8                  field_982;
-    /* 0x983 */ u8                  field_983;
-    /* 0x984 */ u8                  field_984;
-    /* 0x985 */ u8                  field_985;
-    /* 0x986 */ u8                  field_986;
-    /* 0x987 */ u8                  field_987; // texture upload seq A (func_801030CC / D_80112E74)
-    /* 0x988 */ u8                  field_988; // field_987 delay; reload 4 after each upload
-    /* 0x989 */ u8                  field_989; // field_987 frame index
-    /* 0x98A */ u8                  field_98A; // texture upload seq B (func_801030CC / D_80112EB4)
-    /* 0x98B */ u8                  field_98B; // field_98A delay; reload 8 after each upload
-    /* 0x98C */ u8                  field_98C; // field_98A frame index
-    /* 0x98D */ u8                  field_98D;
-    /* 0x98E */ u8                  field_98E;
-    /* 0x98F */ s8                  field_98F; // cleared by Gp_SpawnWeaponEff
-    /* 0x990 */ u8                  field_990;
-    /* 0x991 */ s8                  field_991; // func_80109374 requires 0 to write field_97D = 1
-    /* 0x992 */ u8                  field_992; // Gp_PlayerWorkState1: func_801011D0 result when field_984 & 1
-    /* 0x993 */ u8                  field_993;
+    /* 0x000 */ s32                field_0;  // per-frame X velocity (Gp_PlayerMode2State3)
+    /* 0x004 */ s32                field_4;  // per-frame Y velocity
+    /* 0x008 */ s32                field_8;  // per-frame Z velocity
+    /* 0x00C */ byte               pad_C[4];
+    /* 0x010 */ s32                field_10; // copy of GsCOORDINATE2.coord.t[0]
+    /* 0x014 */ s32                field_14; // copy of GsCOORDINATE2.coord.t[1]
+    /* 0x018 */ s32                field_18; // copy of GsCOORDINATE2.coord.t[2]
+    /* 0x01C */ byte               pad_1C[4];
+    /* 0x020 */ s32                field_20; // copied from Gp_SetActorDest arg2
+    /* 0x024 */ s32                field_24;
+    /* 0x028 */ s32                field_28;
+    /* 0x02C */ byte               pad_2C[4];
+    /* 0x030 */ VECTOR             field_30; // push-back dir (func_80109BB4); low halves go to a scratch SVECTOR
+    /* 0x040 */ s32                field_40;
+    /* 0x044 */ s32                field_44;
+    /* 0x048 */ s32                field_48;
+    /* 0x04C */ byte               pad_4C[4];
+    /* 0x050 */ s16                field_50; // SVECTOR.vx; func_80104D68 / RotMatrix
+    /* 0x052 */ s16                field_52; // facing angle (lh); func_8010BCF4 / func_80103E7C
+    /* 0x054 */ s16                field_54; // SVECTOR.vz; func_80104D68 / RotMatrix
+    /* 0x056 */ byte               pad_56[2];
+    /* 0x058 */ s16                field_58;
+    /* 0x05A */ byte               pad_5A[2];
+    /* 0x05C */ s16                field_5C; // pitch; Gp_AimPitchToLockAlt
+    /* 0x05E */ byte               pad_5E[2];
+    /* 0x060 */ s16                field_60;
+    /* 0x062 */ byte               pad_62[2];
+    /* 0x064 */ s16                field_64; // pitch; Gp_AimPitchToLockAlt
+    /* 0x066 */ byte               pad_66[2];
+    /* 0x068 */ s16                field_68;
+    /* 0x06A */ s16                field_6A;        // aim/look yaw offset; func_8010BE5C
+    /* 0x06C */ byte               pad_6C[4];
+    /* 0x070 */ s16                field_70;        // pitch-like angle; Gp_AimPitchRec
+    /* 0x072 */ byte               pad_72[6];
+    /* 0x078 */ s16                field_78;        // pitch; Gp_AimPitchDirect
+    /* 0x07A */ byte               pad_7A[6];
+    /* 0x080 */ s16                field_80;        // copied from func_80104F5C arg2
+    /* 0x082 */ s16                field_82;        // target facing angle; func_80104E00 / Gp_PlayerMode2State2
+    /* 0x084 */ byte               pad_84[4];
+    /* 0x088 */ byte               field_88[8];     // address taken as `GpObj.ctx.dir`
+    /* 0x090 */ s32                field_90;
+    /* 0x094 */ byte               field_94[8];     // address taken as `GpObj.ctx.dir`
+    /* 0x09C */ s32                field_9C;
+    /* 0x0A0 */ byte               field_A0[8];     // address taken as `GpObj.ctx.dir`
+    /* 0x0A8 */ s32                field_A8;
+    /* 0x0AC */ byte               field_AC[0x20];  // first of the five `GpObj` nodes at 0xAC..0x14C
+    /* 0x0CC */ byte               field_CC[0x20];  // `GpObj` node
+    /* 0x0EC */ byte               field_EC[0x20];  // `GpObj` node
+    /* 0x10C */ byte               field_10C[0x18]; // `GpObj` node; `field_124` is its key
+    /* 0x124 */ u32                field_124;
+    /* 0x128 */ byte               pad_128[2];
+    /* 0x12A */ u16                field_12A;       // that node's flags
+    /* 0x12C */ byte               field_12C[0x20];
+    /* 0x14C */ byte               field_14C[0x18]; // GpActorD4Rec; Gp_AttachActorObj
+    /* 0x164 */ byte               pad_164[0x18];
+    /* 0x17C */ GpRec18            field_17C[18];   // Gp_ClearRec18Occupied / func_801041B4
+    /* 0x32C */ GpRec18            field_32C[6];    // Gp_AttachActorObj / Gp_InitRec18Table
+    /* 0x3BC */ byte               pad_3BC[0x18];
+    /* 0x3D4 */ byte               field_3D4[0x50]; // GsCOORDINATE2; Gp_AttachActorObj
+    /* 0x424 */ byte               field_424[0x14]; // GpAnimCtx overlay; Gp_AnimTickIndex
+    /* 0x438 */ GameActorSlot      field_438[19];   // GpAnimSlot array; func_80105B0C
+    /* 0x730 */ byte               pad_730[0x10];
+    /* 0x740 */ byte               pad_740[0x68];
+    /* 0x7A8 */ byte               field_7A8; // addr taken as func_800B3F84 arg3
+    /* 0x7A9 */ byte               pad_7A9[0x163];
+    /* 0x90C */ struct GpLinkNode* field_90C;
+    /* 0x910 */ struct _GpActorD4* field_910;
+    /* 0x914 */ struct Task*       field_914;
+    /* 0x918 */ struct Task*       field_918;
+    /* 0x91C */ struct Task*       field_91C;
+    /* 0x920 */ struct Task*       field_920;
+    /* 0x924 */ struct Task*       field_924;
+    /* 0x928 */ void*              field_928; // Gp_PlayerAnimBlkTbl[field_93A]; func_800B3F84 arg1
+    /* 0x92C */ struct GpAnimRec*  field_92C; // last Gp_AnimGetRec result (Gp_PlayerNormalState5)
+    /* 0x930 */ s32                field_930; // sw from Gp_MsgPlayerDirFacing; addr taken by func_801011D0
+    /* 0x934 */ s32                field_934;
+    /* 0x938 */ s16                field_938; // GameActorSlot count (init 0x13)
+    /* 0x93A */ u16                field_93A; // Gp_WeaponIdBase[field_22-1] + field_21
+    /* 0x93C */ u16                field_93C;
+    /* 0x93E */ s16                field_93E;
+    /* 0x940 */ s16                field_940;
+    /* 0x942 */ s16                field_942;
+    /* 0x944 */ s16                field_944;
+    /* 0x946 */ s16                field_946;
+    /* 0x948 */ s16                field_948;
+    /* 0x94A */ s16                field_94A;
+    /* 0x94C */ s16                field_94C;
+    /* 0x94E */ s16                field_94E;
+    /* 0x950 */ s16                field_950;
+    /* 0x952 */ s16                field_952;
+    /* 0x954 */ u16                field_954;
+    /* 0x956 */ u16                field_956;
+    /* 0x958 */ s16                field_958;
+    /* 0x95A */ u16                field_95A;
+    /* 0x95C */ u16                field_95C;
+    /* 0x95E */ u16                field_95E;
+    /* 0x960 */ u16                field_960;
+    /* 0x962 */ u16                field_962;
+    /* 0x964 */ u16                field_964; // previous field_962
+    /* 0x966 */ u16                field_966;
+    /* 0x968 */ u16                field_968; // released buttons: field_964 & ~field_962
+    /* 0x96A */ u16                field_96A; // set to 0xF89A by func_8010615C
+    /* 0x96C */ s16                field_96C;
+    /* 0x96E */ s16                field_96E;
+    /* 0x970 */ s16                field_970;
+    /* 0x972 */ u8                 field_972;
+    /* 0x973 */ s8                 field_973;
+    /* 0x974 */ s8                 field_974;
+    /* 0x975 */ s8                 field_975;
+    /* 0x976 */ s8                 field_976;
+    /* 0x977 */ s8                 field_977;
+    /* 0x978 */ s8                 field_978;
+    /* 0x979 */ s8                 field_979; // countdown; `func_mongoose_8011D1D8` loads 0xB
+    /* 0x97A */ u8                 field_97A;
+    /* 0x97B */ s8                 field_97B;
+    /* 0x97C */ s8                 field_97C;
+    /* 0x97D */ u8                 field_97D;
+    /* 0x97E */ u8                 field_97E;
+    /* 0x97F */ s8                 field_97F;
+    /* 0x980 */ byte               pad_980;
+    /* 0x981 */ u8                 field_981;
+    /* 0x982 */ s8                 field_982;
+    /* 0x983 */ u8                 field_983;
+    /* 0x984 */ u8                 field_984;
+    /* 0x985 */ u8                 field_985;
+    /* 0x986 */ u8                 field_986;
+    /* 0x987 */ u8                 field_987; // texture upload seq A (func_801030CC / D_80112E74)
+    /* 0x988 */ u8                 field_988; // field_987 delay; reload 4 after each upload
+    /* 0x989 */ u8                 field_989; // field_987 frame index
+    /* 0x98A */ u8                 field_98A; // texture upload seq B (func_801030CC / D_80112EB4)
+    /* 0x98B */ u8                 field_98B; // field_98A delay; reload 8 after each upload
+    /* 0x98C */ u8                 field_98C; // field_98A frame index
+    /* 0x98D */ u8                 field_98D;
+    /* 0x98E */ u8                 field_98E;
+    /* 0x98F */ s8                 field_98F; // cleared by Gp_SpawnWeaponEff
+    /* 0x990 */ u8                 field_990;
+    /* 0x991 */ s8                 field_991; // func_80109374 requires 0 to write field_97D = 1
+    /* 0x992 */ u8                 field_992; // Gp_PlayerWorkState1: func_801011D0 result when field_984 & 1
+    /* 0x993 */ u8                 field_993;
 } GameActor;
 STATIC_ASSERT_SIZEOF(GameActor, 0x994);
 

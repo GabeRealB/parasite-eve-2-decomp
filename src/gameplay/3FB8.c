@@ -4912,7 +4912,7 @@ void Gp_DetachLinkNode(GpActorWork* arg0)
     inner = arg0->actor;
     node  = inner->field_90C;
     if (node != NULL) {
-        node->field_5    = 0;
+        node->targeted   = 0;
         inner->field_90C = NULL;
     }
     inner->field_97E = 1;
@@ -5065,8 +5065,8 @@ void Gp_TrackLockTarget(GpActorWork* arg0)
         actor->field_97E = 1;
         return;
     }
-    if (node->field_4 & 1) {
-        node->field_5    = 0;
+    if (node->flags & 1) {
+        node->targeted   = 0;
         actor->field_90C = NULL;
         actor->field_97E = 1;
         return;
@@ -7960,11 +7960,11 @@ void func_80108E0C(GpActorWork* arg0, GpLinkNode* arg1)
     node  = inner->field_90C;
     if (node != arg1) {
         if (node != NULL) {
-            node->field_5 = 0;
+            node->targeted = 0;
         }
         inner->field_90C = arg1;
     }
-    arg1->field_5 = 1;
+    arg1->targeted = 1;
 }
 
 #if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
@@ -8250,11 +8250,11 @@ install: {
     flag  = 1;
     if (node != arg1) {
         if (node != NULL) {
-            node->field_5 = 0;
+            node->targeted = 0;
         }
         actor->field_90C = arg1;
     }
-    arg1->field_5 = flag;
+    arg1->targeted = flag;
 }
 }
 
@@ -9886,7 +9886,7 @@ void Gp_TrackAllyLockTarget(GpActorWork* arg0, s32 arg1)
 
     actor = arg0->actor;
     node  = actor->field_90C;
-    if (node == NULL || (node->field_4 & 1)) {
+    if (node == NULL || (node->flags & 1)) {
         actor->field_90C = NULL;
         actor->field_97E = 1;
     } else if ((s8)actor->field_97E == 2) {

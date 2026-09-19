@@ -193,12 +193,12 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback  = func_actor_450800_80132868;
-    coord->sub          = &gGfxViewCoord;
-    enemy->field_4      = &coord->coord;
-    enemy->field_48     = 0;
-    enemy->node.field_5 = 0;
-    enemy->node.field_4 = 1;
+    task->exitCallback   = func_actor_450800_80132868;
+    coord->sub           = &gGfxViewCoord;
+    enemy->field_4       = &coord->coord;
+    enemy->field_48      = 0;
+    enemy->node.targeted = 0;
+    enemy->node.flags    = 1;
     if ((s16)(task->spawnArg1 >> 16) == 1) {
         obj->flags = 0;
     }

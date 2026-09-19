@@ -44,10 +44,10 @@ void ActorsShared801390d8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* 
     }
     arg->field_64 = 3;
     if (work->field_BA9 != 0) {
-        enemy->node.field_4 = 0;
-        work->field_BA6     = 1;
-        work->field_BAB     = 0;
-        work->state         = 0xF;
-        work->field_BA8     = 0;
+        enemy->node.flags = 0;
+        work->field_BA6   = 1;
+        work->field_BAB   = 0;
+        work->state       = 0xF;
+        work->field_BA8   = 0;
     }
 }

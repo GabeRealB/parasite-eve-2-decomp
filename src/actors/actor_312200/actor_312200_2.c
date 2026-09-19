@@ -86,7 +86,7 @@ void func_actor_312200_80163778(Task* task)
     if (work->field_4 != 0) {
         obj                    = (TmdObject*)task->extra;
         enemy                  = (GpEnemy*)task->spawnArg2;
-        enemy->node.field_4    = 1;
+        enemy->node.flags      = 1;
         obj->flags            |= 0x80;
         enemy->field_4D        = 0;
         work->field_8BC.flags &= 0x7FFF;

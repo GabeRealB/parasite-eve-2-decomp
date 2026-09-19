@@ -10,9 +10,9 @@ void func_actor_323000_80164C58(GpEnemy* enemy, Task* task)
 
     work = (Actor323000Work*)task->work;
     if (work->field_4 != 0) {
-        obj                 = (TmdObject*)task->extra;
-        enemy->node.field_4 = 1;
-        obj->flags          = 0;
+        obj               = (TmdObject*)task->extra;
+        enemy->node.flags = 1;
+        obj->flags        = 0;
         Tmd_AllocBuffers(obj);
         work->field_832 = 0x10;
         work->field_82E = 0xD;

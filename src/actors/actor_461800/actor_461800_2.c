@@ -232,8 +232,8 @@ void func_actor_461800_8013307C(GpEnemy* enemy, Task* task)
     coord->sub               = &gGfxViewCoord;
     enemy->field_4           = &coord->coord;
     enemy->field_48          = 0;
-    enemy->node.field_5      = 0;
-    enemy->node.field_4      = 1;
+    enemy->node.targeted     = 0;
+    enemy->node.flags        = 1;
     obj->otOffset            = 1;
     obj->lightMtx            = &D_actor_461800_801438A0->light;
     obj->colorMtx            = &D_actor_461800_801438A0->color;

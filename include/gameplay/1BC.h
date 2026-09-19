@@ -23,7 +23,8 @@
 /// `field_40` is the signed value passed to `Gp_DrawHudNumbers`; `field_50`
 /// is the same `GpPairSrcE*` slot as `GpObj50` / `GpObj5C` / `GpObj5D`.
 /// `field_18` is a `GsCOORDINATE2*` (`&gGfxViewCoord` from `Gp_AllocEnemy`);
-/// `Gp_UpdateLinkXforms` reads it from the `GpLinkNode` overlay as `coord`.
+/// `Gp_UpdateLinkXforms` reads it from the transform view of the node as
+/// `coord`.
 /// `field_1C` / `field_2C` are local / player-relative `VECTOR3`s filled
 /// by `Gp_UpdateLinkXforms`.
 /// `field_3C` is the `GpAreaPlace*` stored by `Gp_SpawnArea` (same slot as

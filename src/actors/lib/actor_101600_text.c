@@ -51,17 +51,17 @@ void Actor01600_Fn001F4(Actor01600Ctx* ctx, Actor01600* actor)
     ctx->field_4                          = &coord->coord;
     ctx->field_48                         = 0;
     Gp_LinkNode(&ctx->node);
-    ctx->field_20     = -0x190;
-    ctx->node.field_4 = 0;
-    ctx->field_18     = coord;
-    ctx->field_1C     = 0;
-    ctx->field_24     = 0;
-    ctx->field_50     = &Actor01600_D09F0C;
-    ctx->field_54     = (s32)&work->collision.named.pad_30C;
-    ctx->field_40     = (u16)Actor01600_D09F0C.field_4;
-    work->field_408   = 0x280;
-    work->field_40A   = 2;
-    work->field_404   = next_coord;
+    ctx->field_20   = -0x190;
+    ctx->node.flags = 0;
+    ctx->field_18   = coord;
+    ctx->field_1C   = 0;
+    ctx->field_24   = 0;
+    ctx->field_50   = &Actor01600_D09F0C;
+    ctx->field_54   = (s32)&work->collision.named.pad_30C;
+    ctx->field_40   = (u16)Actor01600_D09F0C.field_4;
+    work->field_408 = 0x280;
+    work->field_40A = 2;
+    work->field_404 = next_coord;
     func_800B3F84(&work->anim, Actor01600_D127EC, obj, work->pad_17C, work->slots);
     for (i = 1; i < 9; i++) {
         Gp_AnimResetSlot(&work->anim, i, 1);
@@ -206,15 +206,15 @@ void Actor01600_Fn00674(Actor01600Ctx* arg0, Actor01600* arg1)
         switch (D_801153F4) {
             case 0:
                 arg1->field_2C->flags = 0;
-                arg0->node.field_4    = 0;
+                arg0->node.flags      = 0;
                 break;
             case 1:
                 Actor01600_Fn06810(arg0, arg1);
                 goto update;
             case 2:
-                obj                = arg1->field_2C;
-                obj->flags        |= 0x80;
-                arg0->node.field_4 = 1;
+                obj              = arg1->field_2C;
+                obj->flags      |= 0x80;
+                arg0->node.flags = 1;
                 return;
             default:
                 break;

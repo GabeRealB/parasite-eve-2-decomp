@@ -43,8 +43,8 @@ void ActorsShared801673f8(Task* arg0)
             Tmd_AllocBuffers(obj);
             obj->flags &= 0xFFFB;
         }
-        enemy->node.field_4 = 0;
-        map                 = *(u32*)&gGameSession->at4.loc & 0xFFFF0000;
+        enemy->node.flags = 0;
+        map               = *(u32*)&gGameSession->at4.loc & 0xFFFF0000;
         if (map == 0x4270000) {
             // The 7C store follows 7A here; written first, it schedules
             // ahead of the heading load.

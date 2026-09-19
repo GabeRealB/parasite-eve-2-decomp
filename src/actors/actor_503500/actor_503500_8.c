@@ -560,7 +560,7 @@ void func_actor_503500_8013C878(Actor503500* arg0)
         return;
     }
     if (D_801153F4 == 2) {
-        enemy->node.field_4 |= 1;
+        enemy->node.flags |= 1;
         return;
     }
     coord->flg = 0;
@@ -679,7 +679,7 @@ void func_actor_503500_8013CAE4(Actor503500* arg0)
     enemy->field_4               = mtx;
     enemy->field_48              = 0;
     enemy->field_18              = coord;
-    enemy->node.field_4          = (enemy->node.field_4 | 8) & 0xFE;
+    enemy->node.flags            = (enemy->node.flags | 8) & 0xFE;
     enemy->field_1C.vx           = pos->vx;
     enemy->field_1C.vy           = pos->vy;
     enemy->field_1C.vz           = pos->vz;
@@ -976,7 +976,7 @@ void func_actor_503500_8013D7D4(Actor503500* arg0)
         return;
     }
     if (D_801153F4 == 2) {
-        enemy->node.field_4 |= 1;
+        enemy->node.flags |= 1;
         return;
     }
     coord->flg = 0;
@@ -1188,15 +1188,15 @@ void func_actor_503500_8013DD10(Actor503500* arg0)
     enemy->field_4               = mtx;
     enemy->field_48              = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->field_18     = coord;
-    enemy->node.field_4 = (enemy->node.field_4 | 8) & 0xFE;
-    enemy->field_1C.vx  = D_actor_503500_8016F2D8.vx;
-    enemy->field_1C.vy  = D_actor_503500_8016F2D8.vy;
-    enemy->field_1C.vz  = D_actor_503500_8016F2D8.vz;
-    rec                 = &D_actor_503500_8017797C.rec;
-    enemy->field_50     = &D_actor_503500_8016E7EC[arg0->spawnArg1];
-    enemy->field_54     = (s32)rec;
-    enemy->field_40     = enemy->field_50->field_4;
+    enemy->field_18    = coord;
+    enemy->node.flags  = (enemy->node.flags | 8) & 0xFE;
+    enemy->field_1C.vx = D_actor_503500_8016F2D8.vx;
+    enemy->field_1C.vy = D_actor_503500_8016F2D8.vy;
+    enemy->field_1C.vz = D_actor_503500_8016F2D8.vz;
+    rec                = &D_actor_503500_8017797C.rec;
+    enemy->field_50    = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+    enemy->field_54    = (s32)rec;
+    enemy->field_40    = enemy->field_50->field_4;
 
     D_actor_503500_8017797C.obj.coord    = coord;
     D_actor_503500_8017797C.obj.ctx.recs = rec;
@@ -1475,7 +1475,7 @@ void func_actor_503500_8013E9A4(Actor503500* arg0)
         return;
     }
     if (D_801153F4 == 2) {
-        enemy->node.field_4 |= 1;
+        enemy->node.flags |= 1;
         return;
     }
     coord->flg = 0;
@@ -1608,15 +1608,15 @@ void func_actor_503500_8013ECBC(Actor503500* arg0)
     enemy->field_4               = mtx;
     enemy->field_48              = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->field_18      = coord;
-    enemy->node.field_4 |= 9;
-    enemy->field_1C.vx   = D_actor_503500_8016F36C.vx;
-    enemy->field_1C.vy   = D_actor_503500_8016F36C.vy;
-    enemy->field_1C.vz   = D_actor_503500_8016F36C.vz;
-    rec                  = &D_actor_503500_80177A6C.rec;
-    enemy->field_50      = &D_actor_503500_8016E7EC[arg0->spawnArg1];
-    enemy->field_54      = (s32)rec;
-    enemy->field_40      = enemy->field_50->field_4;
+    enemy->field_18    = coord;
+    enemy->node.flags |= 9;
+    enemy->field_1C.vx = D_actor_503500_8016F36C.vx;
+    enemy->field_1C.vy = D_actor_503500_8016F36C.vy;
+    enemy->field_1C.vz = D_actor_503500_8016F36C.vz;
+    rec                = &D_actor_503500_80177A6C.rec;
+    enemy->field_50    = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+    enemy->field_54    = (s32)rec;
+    enemy->field_40    = enemy->field_50->field_4;
 
     D_actor_503500_80177A6C.obj.coord    = coord;
     D_actor_503500_80177A6C.obj.ctx.recs = rec;
@@ -1863,7 +1863,7 @@ void func_actor_503500_8013F6F0(Actor503500* arg0)
         return;
     }
     if (D_801153F4 == 2) {
-        enemy->node.field_4 |= 1;
+        enemy->node.flags |= 1;
         return;
     }
     coord->flg = 0;
@@ -2037,17 +2037,17 @@ void func_actor_503500_8013FA74(Actor503500* arg0)
     tmd->colorMtx   = &work->color;
     tmd->otOffset   = 0x12;
 
-    enemy->field_4      = &coord->coord;
-    part                = &coord[8];
-    enemy->field_48     = 0;
-    enemy->field_18     = part;
-    enemy->node.field_4 = (enemy->node.field_4 | 8) & 0xFE;
-    enemy->field_1C.vx  = D_actor_503500_8016F3EC.vx;
-    enemy->field_1C.vy  = D_actor_503500_8016F3EC.vy;
-    enemy->field_1C.vz  = D_actor_503500_8016F3EC.vz;
-    rec                 = work->rec180;
-    enemy->field_50     = &D_actor_503500_8016E7EC[arg0->spawnArg1];
-    enemy->field_54     = (s32)rec;
+    enemy->field_4     = &coord->coord;
+    part               = &coord[8];
+    enemy->field_48    = 0;
+    enemy->field_18    = part;
+    enemy->node.flags  = (enemy->node.flags | 8) & 0xFE;
+    enemy->field_1C.vx = D_actor_503500_8016F3EC.vx;
+    enemy->field_1C.vy = D_actor_503500_8016F3EC.vy;
+    enemy->field_1C.vz = D_actor_503500_8016F3EC.vz;
+    rec                = work->rec180;
+    enemy->field_50    = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+    enemy->field_54    = (s32)rec;
 
     work->obj160.coord    = part;
     work->obj160.ctx.recs = rec;
@@ -2148,8 +2148,8 @@ void func_actor_503500_8013FF0C(Actor503500* arg0)
             }
             break;
         case 2:
-            tmd->flags          |= 0x80;
-            enemy->node.field_4 |= 1;
+            tmd->flags        |= 0x80;
+            enemy->node.flags |= 1;
             break;
         default:
             if (enemy->field_4C != 0) {
@@ -3128,18 +3128,18 @@ void func_actor_503500_801423C8(Actor503500* arg0)
     tmd->flags       |= 0x84;
     coord->flg        = 0;
 
-    enemy->field_4      = &coord->coord;
-    ofs                 = &D_actor_503500_80171480[slot];
-    enemy->field_48     = 0;
-    enemy->field_18     = coord;
-    enemy->node.field_4 = (enemy->node.field_4 | 8) & 0xFE;
-    enemy->field_1C.vx  = ofs->vx;
-    enemy->field_1C.vy  = ofs->vy;
-    enemy->field_1C.vz  = ofs->vz;
-    rec                 = work->rec0;
-    enemy->field_50     = &D_actor_503500_8016E7EC[arg0->spawnArg1];
-    enemy->field_54     = (s32)rec;
-    enemy->field_40     = enemy->field_50->field_4;
+    enemy->field_4     = &coord->coord;
+    ofs                = &D_actor_503500_80171480[slot];
+    enemy->field_48    = 0;
+    enemy->field_18    = coord;
+    enemy->node.flags  = (enemy->node.flags | 8) & 0xFE;
+    enemy->field_1C.vx = ofs->vx;
+    enemy->field_1C.vy = ofs->vy;
+    enemy->field_1C.vz = ofs->vz;
+    rec                = work->rec0;
+    enemy->field_50    = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+    enemy->field_54    = (s32)rec;
+    enemy->field_40    = enemy->field_50->field_4;
 
     work->obj0.coord    = coord;
     work->obj0.ctx.recs = rec;
@@ -3862,8 +3862,8 @@ void func_actor_503500_80143EB4(Actor503500* arg0)
             }
             break;
         case 2:
-            tmd->flags          |= 0x80;
-            enemy->node.field_4 |= 1;
+            tmd->flags        |= 0x80;
+            enemy->node.flags |= 1;
             break;
         default:
             if (enemy->field_4C != 0) {

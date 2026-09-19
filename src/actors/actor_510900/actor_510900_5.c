@@ -65,11 +65,11 @@ void func_actor_510900_8013B0D8(Task* arg0)
             }
             break;
         case 1:
-            ctx->node.field_4 = Gp_StateF0.field_0 != 1;
+            ctx->node.flags   = Gp_StateF0.field_0 != 1;
             hit               = work->rec20.key;
             work->obj0.flags |= 0x8000;
             if ((hit & ~0x7FFF) == 0x20000) {
-                tag = ctx->node.field_5;
+                tag = ctx->node.targeted;
                 if (tag == 1 && Gp_ComputeDamage(hit, 0x3E8, 0, 0) != 0) {
                     work->field_74 = 2;
                     work->field_76 = 0x3C;
@@ -255,16 +255,16 @@ void func_actor_510900_8013B6A0(Actor510900Ctx* arg0, Actor510900* arg1)
         }
         goto default_body;
     case0:
-        temp_a1->field_C   = 0;
-        arg0->node.field_4 = 8;
+        temp_a1->field_C = 0;
+        arg0->node.flags = 8;
         goto default_body;
     case1:
         ActorsShared8013bbe4((ActorShared8013bbe4*)arg1);
         func_actor_510900_8013BC38(arg1, temp_s1);
         return;
     case2:
-        temp_a1->field_C   = 0x80;
-        arg0->node.field_4 = one;
+        temp_a1->field_C = 0x80;
+        arg0->node.flags = one;
         return;
     default_body:
         if (arg0->field_4C != 0) {

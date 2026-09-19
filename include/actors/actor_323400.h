@@ -81,7 +81,7 @@ s32 func_actor_323400_80164974(Task* task, s32 arg1, Actor323400Msg* msg, s32 ar
 /// Re-init handler (table `D_actor_323400_80161E24`, index 3): the same shape
 /// as the handler above, but its animation-state slots hold a different state
 /// (`field_82E` is 2 and `field_828` is 1, where the sibling writes none and
-/// 2). The flag-set path clears `enemy->node.field_4`, drops the model's root
+/// 2). The flag-set path clears `enemy->node.flags`, drops the model's root
 /// `field_C`, rebuilds its buffers and writes those slots; the flag-clear path
 /// instead clears the `flg` word of the model's trailing coord block, so the
 /// coordinate matrix is rebuilt from the actor transform on the next draw.

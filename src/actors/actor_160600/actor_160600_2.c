@@ -32,21 +32,21 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback  = ActorsShared801366fc;
-    coord->sub          = &gGfxViewCoord;
-    enemy->field_4      = &coord->coord;
-    enemy->field_48     = 0;
-    enemy->node.field_5 = 0;
-    enemy->node.field_4 = 1;
-    obj->otOffset       = 1;
-    obj->flags          = 0;
-    work->animId        = 10;
-    work->enemy         = enemy;
-    obj->lightMtx       = &work->light;
-    obj->colorMtx       = &work->color;
-    vec.vx              = coord->workm.t[0];
-    vec.vy              = coord->workm.t[1] - 0x320;
-    vec.vz              = coord->workm.t[2];
+    task->exitCallback   = ActorsShared801366fc;
+    coord->sub           = &gGfxViewCoord;
+    enemy->field_4       = &coord->coord;
+    enemy->field_48      = 0;
+    enemy->node.targeted = 0;
+    enemy->node.flags    = 1;
+    obj->otOffset        = 1;
+    obj->flags           = 0;
+    work->animId         = 10;
+    work->enemy          = enemy;
+    obj->lightMtx        = &work->light;
+    obj->colorMtx        = &work->color;
+    vec.vx               = coord->workm.t[0];
+    vec.vy               = coord->workm.t[1] - 0x320;
+    vec.vz               = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     func_800B3F84(&work->anim, D_actor_160600_8013DFAC, (GpAnimObj*)obj,
                   &work->field_374, work->slots);

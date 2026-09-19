@@ -342,21 +342,21 @@ void func_actor_444000_8013482C(Actor444000* task)
     enemy = task->field_20;
 
     if (work->field_4 != 0) {
-        tmd                 = (TmdObject*)task->extra;
-        enemy->node.field_4 = 0;
-        tmd->flags          = 0;
-        work->field_EF4     = 1;
-        work->field_7B3     = 2;
-        work->field_EF6     = 1;
-        work->field_7B0     = 1;
-        work->field_EFA     = 0;
-        work->field_EFE     = 0;
-        mat                 = &((Actor444000RunScratch*)(head - sizeof(Actor444000RunScratch)))->m;
-        mat->ident.m00_m01  = 0x1000;
-        mat->ident.m02_m10  = 0;
-        mat->ident.m11_m12  = 0x1000;
-        mat->ident.m20_m21  = 0;
-        mat->ident.m22      = 0x1000;
+        tmd                = (TmdObject*)task->extra;
+        enemy->node.flags  = 0;
+        tmd->flags         = 0;
+        work->field_EF4    = 1;
+        work->field_7B3    = 2;
+        work->field_EF6    = 1;
+        work->field_7B0    = 1;
+        work->field_EFA    = 0;
+        work->field_EFE    = 0;
+        mat                = &((Actor444000RunScratch*)(head - sizeof(Actor444000RunScratch)))->m;
+        mat->ident.m00_m01 = 0x1000;
+        mat->ident.m02_m10 = 0;
+        mat->ident.m11_m12 = 0x1000;
+        mat->ident.m20_m21 = 0;
+        mat->ident.m22     = 0x1000;
     }
 
     func_actor_444000_8013441C(task);
@@ -621,15 +621,15 @@ void func_actor_444000_80135448(Actor444000* task)
         s32 id;
         s32 pan;
 
-        tmd                 = (TmdObject*)task->extra;
-        enemy->node.field_4 = 0;
-        tmd->flags          = 0;
-        work->field_7B3     = 0x12;
-        work->field_EF4     = 0;
-        work->field_EF6     = 0;
-        work->field_EFA     = 0;
-        work->field_7B0     = 1;
-        work->field_EFE     = 0;
+        tmd               = (TmdObject*)task->extra;
+        enemy->node.flags = 0;
+        tmd->flags        = 0;
+        work->field_7B3   = 0x12;
+        work->field_EF4   = 0;
+        work->field_EF6   = 0;
+        work->field_EFA   = 0;
+        work->field_7B0   = 1;
+        work->field_EFE   = 0;
 
         func_actor_444000_8013441C(task);
 

@@ -1225,9 +1225,9 @@ void func_actor_510900_801355B4(Actor510900Ctx* arg0, Actor510900* arg1)
     s32               pan2;
     s32               i;
 
-    work               = arg1->field_1C;
-    coord              = arg1->field_2C->field_8;
-    arg0->node.field_4 = 1;
+    work             = arg1->field_1C;
+    coord            = arg1->field_2C->field_8;
+    arg0->node.flags = 1;
     if (work->field_586 == 0x20 && work->field_58A == 0xD2) {
         work->field_594 = 1;
         work->field_598 = 0xFF;

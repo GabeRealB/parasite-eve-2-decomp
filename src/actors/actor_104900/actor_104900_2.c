@@ -29,12 +29,12 @@ void func_actor_104900_80138A2C(GpEnemy* enemy, Task* task, ActorsShared80138efc
     s32          i;
     u8           trigger;
 
-    xform               = (GpLinkXform*)&enemy->node;
-    enemy->node.field_4 = 0;
-    xform->coord        = &((TmdObject*)task->extra)->coords[3];
-    xform->src.vx       = 0;
-    xform->src.vy       = -0xC8;
-    xform->src.vz       = 0xC8;
+    xform             = (GpLinkXform*)&enemy->node;
+    enemy->node.flags = 0;
+    xform->coord      = &((TmdObject*)task->extra)->coords[3];
+    xform->src.vx     = 0;
+    xform->src.vy     = -0xC8;
+    xform->src.vz     = 0xC8;
     if ((func_actor_104900_80132D78(enemy, task, work, scratch) == 0) && (task->spawnArg1 == 0)) {
         trigger = work->field_BC9;
         if ((trigger == 1) && (work->field_BA9 == trigger)) {

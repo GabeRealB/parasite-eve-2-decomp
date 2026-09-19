@@ -65,9 +65,9 @@ void func_actor_143900_801328D4(GpEnemy* enemy, Task* task)
     task->exitCallback      = ActorsShared80132ecc;
     coord->sub              = &gGfxViewCoord;
     enemy->field_4          = &coord->coord;
-    enemy->node.field_4     = 1;
+    enemy->node.flags       = 1;
     enemy->field_48         = 0;
-    enemy->node.field_5     = 0;
+    enemy->node.targeted    = 0;
     obj->otOffset           = 0x10;
     obj->lightMtx           = &D_actor_143900_801496C4->light;
     obj->colorMtx           = &D_actor_143900_801496C4->color;

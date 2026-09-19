@@ -168,15 +168,15 @@ void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
     enemy->field_1C.vz = 0;
     enemy->field_18    = &((TmdObject*)task->extra)->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.field_4 = 1;
-    enemy->field_42     = 1;
-    enemy->field_40     = 1;
-    enemy->field_4C     = 0;
-    hp                  = D_actor_223600_8014CFCC.field_4;
-    enemy->field_50     = &D_actor_223600_8014CFCC;
-    enemy->field_54     = 0;
-    enemy->field_42     = hp;
-    enemy->field_40     = hp;
+    enemy->node.flags = 1;
+    enemy->field_42   = 1;
+    enemy->field_40   = 1;
+    enemy->field_4C   = 0;
+    hp                = D_actor_223600_8014CFCC.field_4;
+    enemy->field_50   = &D_actor_223600_8014CFCC;
+    enemy->field_54   = 0;
+    enemy->field_42   = hp;
+    enemy->field_40   = hp;
 
     work->field_170 = 2;
     work->field_174 = 1;
@@ -239,9 +239,9 @@ void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
 
     work = (Actor223600Work*)task->work;
     if (work->field_4 != 0) {
-        obj                 = (TmdObject*)task->extra;
-        enemy->node.field_4 = 1;
-        obj->flags          = 0;
+        obj               = (TmdObject*)task->extra;
+        enemy->node.flags = 1;
+        obj->flags        = 0;
         Tmd_AllocBuffers(obj);
         work->field_19C = 0x115D;
         work->field_19E = 1;
@@ -326,9 +326,9 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
 
     work = (Actor223600Work*)task->work;
     if (work->field_4 != 0) {
-        obj                 = (TmdObject*)task->extra;
-        enemy->node.field_4 = 1;
-        obj->flags          = 0;
+        obj               = (TmdObject*)task->extra;
+        enemy->node.flags = 1;
+        obj->flags        = 0;
         Tmd_AllocBuffers(obj);
         mode = enemy->field_8 >> 12;
         switch (mode) {

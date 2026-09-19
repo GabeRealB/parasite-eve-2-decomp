@@ -112,11 +112,11 @@ ge2:
     goto default_body;
 case0:
     ((TmdObject*)arg1->extra)->flags = 0;
-    arg0->node.field_4               = 0;
+    arg0->node.flags                 = 0;
     goto default_body;
 case2:
     ((TmdObject*)arg1->extra)->flags = 0x80;
-    arg0->node.field_4               = one;
+    arg0->node.flags                 = one;
     return;
 default_body:
     func_actor_207200_8014D41C(arg1);

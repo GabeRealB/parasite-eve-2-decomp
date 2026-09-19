@@ -54,10 +54,10 @@ void func_actor_210600_8014B8C8(GpEnemy* enemy, Task* task)
     enemy->field_1C.vz = 0;
     enemy->field_18    = &((TmdObject*)task->extra)->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.field_4 = 1;
-    enemy->field_4D     = 0;
-    enemy->field_4C     = 0;
-    enemy->field_4D     = 0;
+    enemy->node.flags = 1;
+    enemy->field_4D   = 0;
+    enemy->field_4C   = 0;
+    enemy->field_4D   = 0;
     func_800B3F84(&work->anim, D_actor_210600_8015A4B4, (GpAnimObj*)obj, work->field_30C, work->slots);
     work->field_87C = 2;
     work->field_882 = 1;

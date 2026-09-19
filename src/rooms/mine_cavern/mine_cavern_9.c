@@ -404,9 +404,9 @@ void func_mine_cavern_80183890(GpEnemy* enemy, Task* task)
 {
     MineCavernWork* work;
 
-    work                = (MineCavernWork*)task->work;
-    work->obj40.flags  &= 0x7FFF;
-    enemy->node.field_4 = 1;
+    work               = (MineCavernWork*)task->work;
+    work->obj40.flags &= 0x7FFF;
+    enemy->node.flags  = 1;
     Gp_UnlinkObj(&work->obj40);
     work->field_148 = 0;
     task->state++;

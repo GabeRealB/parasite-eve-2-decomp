@@ -120,15 +120,6 @@ typedef struct Actor02500EffWork {
 } Actor02500EffWork;
 STATIC_ASSERT_SIZEOF(Actor02500EffWork, 0x40);
 
-/// `Gp_UnlinkNode` list entry at +0x10 of `Actor02500Ctx`. `field_4` is the
-/// flag byte `Actor02500_Fn01E60` writes (`sb` at 0x14).
-typedef struct Actor02500Node {
-    /* 0x0 */ struct Actor02500Node* next;
-    /* 0x4 */ u8                     field_4;
-    /* 0x5 */ byte                   pad_5[3];
-} Actor02500Node;
-STATIC_ASSERT_SIZEOF(Actor02500Node, 0x8);
-
 /// Descriptor `Actor02500_Fn00078` parks at `Actor02500Ctx.field_50`, taking
 /// `field_4` from it as the context's `field_40`.
 typedef struct Actor02500Desc {
@@ -150,7 +141,7 @@ typedef struct Actor02500Ctx {
     /* 0x04 */ MATRIX*         field_4;
     /* 0x08 */ u16             field_8;
     /* 0x0A */ byte            pad_A[6];
-    /* 0x10 */ Actor02500Node  node;
+    /* 0x10 */ GpLinkNode      node;
     /* 0x18 */ GsCOORDINATE2*  field_18;
     /* 0x1C */ s32             field_1C;
     /* 0x20 */ s32             field_20;

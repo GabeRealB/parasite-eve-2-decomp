@@ -21,7 +21,7 @@ typedef struct ActorShared8013852cWork {
     /// Last `flags ^ 1` this handler acted on; the body reacts only on the
     /// frame the requested mode changes.
     /* 0xBA0 */ s8 field_BA0;
-    /// The enemy's `GpLinkNode::field_4` saved while the model is hidden, and
+    /// The enemy's `GpLinkNode::flags` saved while the model is hidden, and
     /// put back when the mode returns to 0.
     /* 0xBA1 */ u8 field_BA1;
 } ActorShared8013852cWork;

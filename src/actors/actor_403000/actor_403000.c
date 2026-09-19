@@ -1614,12 +1614,12 @@ void func_actor_403000_80136B14(Actor403000* arg0)
         Tmd_AllocBuffers(tmd);
         work->objD18.obj.flags |= 0x4000;
         Gp_SetLightMode((GpObj4C*)enemy, 1);
-        enemy->field_4C     = 0;
-        work->field_ACA     = 0x10;
-        work->field_AC6     = 0x1C;
-        work->field_AC0     = 2;
-        enemy->node.field_4 = 1;
-        work->field_FCA     = 1;
+        enemy->field_4C   = 0;
+        work->field_ACA   = 0x10;
+        work->field_AC6   = 0x1C;
+        work->field_AC0   = 2;
+        enemy->node.flags = 1;
+        work->field_FCA   = 1;
         Gp_ClearNodeSlots(&enemy->node);
         arg0->field_2C->otOffset = 8;
         work->field_6            = 0;
@@ -1667,12 +1667,12 @@ void func_actor_403000_80136D68(Actor403000* arg0)
         Tmd_AllocBuffers(tmd);
         work->objD18.obj.flags |= 0x4000;
         Gp_SetLightMode((GpObj4C*)enemy, 1);
-        enemy->field_4C     = 0;
-        work->field_ACA     = 0x10;
-        work->field_AC6     = 0x1C;
-        work->field_AC0     = 2;
-        enemy->node.field_4 = 1;
-        work->field_FCA     = 1;
+        enemy->field_4C   = 0;
+        work->field_ACA   = 0x10;
+        work->field_AC6   = 0x1C;
+        work->field_AC0   = 2;
+        enemy->node.flags = 1;
+        work->field_FCA   = 1;
         Gp_ClearNodeSlots(&enemy->node);
         arg0->field_2C->otOffset = 8;
         work->field_6            = 0;
@@ -3620,9 +3620,9 @@ void func_actor_403000_8013C864(GpEnemy* arg0, Actor403000* arg1)
     }
     if (work->field_FCA == 0) {
         if (work->field_FD8 == 1 && work->field_FD7 == 1) {
-            arg0->node.field_4 = 0xC;
+            arg0->node.flags = 0xC;
         } else {
-            arg0->node.field_4 = 0xD;
+            arg0->node.flags = 0xD;
             Gp_ClearNodeSlots(&arg0->node);
         }
     }

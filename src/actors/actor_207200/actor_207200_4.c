@@ -63,15 +63,15 @@ void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18     = coord;
-    arg0->node.field_4 = 0;
-    arg0->field_1C.vx  = 0;
-    arg0->field_1C.vy  = 0;
-    arg0->field_1C.vz  = 0;
-    arg0->field_50     = &D_actor_207200_8014E7D4;
-    arg0->field_54     = (s32)work->rec3;
-    arg0->field_40     = (u16)D_actor_207200_8014E7D4.field_4;
-    work->field_44E    = ((GpCoordPose*)coord)->field_46;
+    arg0->field_18    = coord;
+    arg0->node.flags  = 0;
+    arg0->field_1C.vx = 0;
+    arg0->field_1C.vy = 0;
+    arg0->field_1C.vz = 0;
+    arg0->field_50    = &D_actor_207200_8014E7D4;
+    arg0->field_54    = (s32)work->rec3;
+    arg0->field_40    = (u16)D_actor_207200_8014E7D4.field_4;
+    work->field_44E   = ((GpCoordPose*)coord)->field_46;
     func_800B3F84((GpAnimCtx*)work, &D_actor_207200_80153ED4, (GpAnimObj*)obj,
                   work->field_12C, (GpAnimSlot*)work->field_14);
     for (i = 1; i < 7; i++) {
@@ -774,8 +774,8 @@ void func_actor_207200_8014CA84(GpEnemy* arg0, Actor207200* arg1)
         case 1:
             break;
         case 2:
-            obj->flags        |= 0x80;
-            arg0->node.field_4 = 1;
+            obj->flags      |= 0x80;
+            arg0->node.flags = 1;
             break;
         case 0:
         default:

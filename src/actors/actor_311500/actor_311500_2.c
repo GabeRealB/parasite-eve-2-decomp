@@ -165,7 +165,7 @@ s32 func_actor_311500_801630A4(Actor311500* arg0)
                     Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0xA);
                     enemy->field_54 = 0;
                     Gp_UnlinkObj(&work->field_43C);
-                    enemy->node.field_4 = state;
+                    enemy->node.flags = state;
                     break;
 
                 case 0xA:

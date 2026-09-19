@@ -100,17 +100,17 @@ void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18     = coord;
-    arg0->node.field_4 = 0;
-    arg0->field_1C.vx  = 0;
-    arg0->field_1C.vy  = 0;
-    arg0->field_1C.vz  = 0;
-    arg0->field_50     = &D_actor_300700_80165B68;
-    arg0->field_54     = (s32)&work->rec154;
-    arg0->field_40     = (u16)D_actor_300700_80165B68.field_4;
-    work->field_228    = 0x100;
-    work->field_22A    = 1;
-    work->field_224    = coord;
+    arg0->field_18    = coord;
+    arg0->node.flags  = 0;
+    arg0->field_1C.vx = 0;
+    arg0->field_1C.vy = 0;
+    arg0->field_1C.vz = 0;
+    arg0->field_50    = &D_actor_300700_80165B68;
+    arg0->field_54    = (s32)&work->rec154;
+    arg0->field_40    = (u16)D_actor_300700_80165B68.field_4;
+    work->field_228   = 0x100;
+    work->field_22A   = 1;
+    work->field_224   = coord;
     func_800B3F84((GpAnimCtx*)work, &D_actor_300700_80165B94, (GpAnimObj*)obj,
                   work->field_B4, (GpAnimSlot*)work->field_14);
     for (i = 1; i < 4; i++) {
@@ -751,17 +751,17 @@ void func_actor_300700_80163510(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18     = &((TmdObject*)arg1->extra)->coords[4];
-    arg0->node.field_4 = 0;
-    arg0->field_1C.vx  = 0;
-    arg0->field_1C.vy  = 0;
-    arg0->field_1C.vz  = 0;
-    arg0->field_50     = &D_actor_300700_8016932C;
-    arg0->field_54     = (s32)work->rec2;
-    arg0->field_40     = (u16)D_actor_300700_8016932C.field_4;
-    work->field_338    = 0x100;
-    work->field_33A    = 1;
-    work->field_334    = coord;
+    arg0->field_18    = &((TmdObject*)arg1->extra)->coords[4];
+    arg0->node.flags  = 0;
+    arg0->field_1C.vx = 0;
+    arg0->field_1C.vy = 0;
+    arg0->field_1C.vz = 0;
+    arg0->field_50    = &D_actor_300700_8016932C;
+    arg0->field_54    = (s32)work->rec2;
+    arg0->field_40    = (u16)D_actor_300700_8016932C.field_4;
+    work->field_338   = 0x100;
+    work->field_33A   = 1;
+    work->field_334   = coord;
     func_800B3F84((GpAnimCtx*)work, &D_actor_300700_801693B8, (GpAnimObj*)obj,
                   work->field_12C, (GpAnimSlot*)work->field_14);
     for (i = 1; i < 7; i++) {

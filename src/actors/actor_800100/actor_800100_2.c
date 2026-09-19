@@ -288,7 +288,7 @@ void func_actor_800100_801643F4(GpActorWork* arg0)
     node     = actor->field_90C;
     src      = extra->coords;
     if (node != NULL) {
-        if (!(node->field_4 & 1)) {
+        if (!(node->flags & 1)) {
             Gp_GetLockPos((GpLockPos*)node, pos);
         } else {
             actor->field_95E = 2;
@@ -356,7 +356,7 @@ void func_actor_800100_80164580(GpActorWork* arg0)
     switch (actor->field_95E) {
         case 0:
             if (actor->field_90C != NULL) {
-                if (actor->field_90C->field_4 & 1) {
+                if (actor->field_90C->flags & 1) {
                     actor->field_90C = Gp_FindLockNodePad(arg0);
                 }
                 Gp_GetLockPos((GpLockPos*)actor->field_90C, pos);
@@ -445,7 +445,7 @@ void func_actor_800100_80164710(GpActorWork* arg0)
             if (dist < 0x181) {
                 actor->field_95E += 1;
             block_10:
-                if (((s8)d4->field_CC <= 0) || (node = actor->field_90C, node == NULL) || (node->field_4 & 1)) {
+                if (((s8)d4->field_CC <= 0) || (node = actor->field_90C, node == NULL) || (node->flags & 1)) {
                     *(volatile GpLockPos**)&actor->field_90C = NULL;
                     actor->field_97E                         = 1;
                     actor->field_12A                        &= 0x3FFF;
@@ -638,7 +638,7 @@ void func_actor_800100_80164B9C(GpActorWork* arg0)
     block    = (Actor800100LockScratch*)(head - 0x20);
     node     = actor->field_90C;
     if (node != NULL) {
-        if ((node->field_4 & 1) == 0) {
+        if ((node->flags & 1) == 0) {
             Gp_GetLockPos((GpLockPos*)node, &block->lock);
         } else {
             actor->field_95E = 2;

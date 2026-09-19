@@ -90,7 +90,7 @@ void Actor01600_Fn05400(Actor01600* arg0)
             return;
         case 3:
             work->field_53C    = 1;
-            ctx->node.field_4  = 1;
+            ctx->node.flags  = 1;
             work->field_52E    = 0;
             work->field_530    = 1;
             work->field_4D8    = 0;
@@ -107,7 +107,7 @@ void Actor01600_Fn05400(Actor01600* arg0)
             obj4               = arg0->field_2C;
             obj4->flags       |= 4;
             work->field_53C    = 1;
-            ctx->node.field_4  = 1;
+            ctx->node.flags  = 1;
             work->field_532    = 1;
             work->field_52E    = 0;
             work->field_530    = 1;
@@ -227,7 +227,7 @@ s32 Actor01600_Fn05558(Actor01600* arg0)
                 }
                 Gp_ArmStateF0(1);
             }
-            ctx->node.field_4 = 0;
+            ctx->node.flags = 0;
             work->field_52E   = 1;
             Actor01600_Fn00480(arg0);
             if (D_8011540C == 1) {
@@ -254,7 +254,7 @@ s32 Actor01600_Fn05558(Actor01600* arg0)
                 countdown2      = (u16)work->field_536 - 1;
                 work->field_536 = countdown2;
                 if ((countdown2 << 0x10) == 0) {
-                    ctx->node.field_4 = 0;
+                    ctx->node.flags = 0;
                     Actor01600_Fn00480(arg0);
                     work->field_516 = 6;
                     work->field_52E = 1;
@@ -288,7 +288,7 @@ s32 Actor01600_Fn05558(Actor01600* arg0)
             if ((countdown3 << 0x10) != 0) {
                 goto running;
             }
-            ctx->node.field_4 = 0;
+            ctx->node.flags = 0;
             work->field_52E   = 1;
             Actor01600_Fn00480(arg0);
             Tmd_AllocBuffers(arg0->field_2C);
@@ -960,7 +960,7 @@ void Actor01600_Fn06EA4(Actor01600* arg0)
     ctx  = arg0->field_20;
     work = arg0->field_1C;
 
-    ctx->node.field_4 = 1;
+    ctx->node.flags = 1;
     ctx->field_54     = 0;
     Gp_UnlinkNode(&ctx->node);
     Gp_UnlinkObj(work->field_40C);

@@ -277,7 +277,7 @@ death:
     work->field_35A = 0x1000;
     work->field_2CC = coord->coord;
     arg0->field_54  = 0;
-    Gp_UnlinkNode((GpLinkNode*)&arg0->node);
+    Gp_UnlinkNode(&arg0->node);
     Gp_UnlinkObj((GpObj*)work->field_1A4);
     Gp_UnlinkObj((GpObj*)work->field_20C);
     Gp_UnlinkObj((GpObj*)work->field_28C);
@@ -529,11 +529,11 @@ ge2:
     goto default_body;
 case0:
     arg1->field_2C->field_C = 0;
-    arg0->node.field_4      = 0;
+    arg0->node.flags        = 0;
     goto default_body;
 case2:
     arg1->field_2C->field_C = 0x80;
-    arg0->node.field_4      = one;
+    arg0->node.flags        = one;
     return;
 default_body:
     if (arg0->field_4C != 0) {
@@ -662,8 +662,8 @@ void Actor03800_Fn034B0(Actor103800* arg0)
     ctx  = arg0->field_20;
     switch (D_80115410) {
         case 0:
-            obj->field_C      = 0x84;
-            ctx->node.field_4 = 1;
+            obj->field_C    = 0x84;
+            ctx->node.flags = 1;
             return;
         case 1:
             obj->field_C     = 0;

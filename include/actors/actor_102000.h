@@ -118,14 +118,6 @@ typedef struct Actor02000Params {
     /* 0x2 */ u16  field_2;
 } Actor02000Params;
 
-/// `Gp_LinkNode` list entry at +0x10 of `Actor02000Ctx`.
-typedef struct Actor02000Node {
-    /* 0x0 */ struct Actor02000Node* next;
-    /* 0x4 */ u8                     field_4;
-    /* 0x5 */ byte                   pad_5[3];
-} Actor02000Node;
-STATIC_ASSERT_SIZEOF(Actor02000Node, 0x8);
-
 /// Descriptor `Actor02000_Fn0251C` parks at `Actor02000Ctx.field_50`, taking
 /// `field_4` from it as the context's `field_40`.
 typedef struct Actor02000Desc {
@@ -141,7 +133,7 @@ typedef struct Actor02000Ctx {
     /* 0x04 */ MATRIX*           field_4;
     /* 0x08 */ u16               field_8;
     /* 0x0A */ byte              pad_A[6];
-    /* 0x10 */ Actor02000Node    node;
+    /* 0x10 */ GpLinkNode        node;
     /* 0x18 */ GsCOORDINATE2*    field_18;
     /* 0x1C */ s32               field_1C;
     /* 0x20 */ s32               field_20;

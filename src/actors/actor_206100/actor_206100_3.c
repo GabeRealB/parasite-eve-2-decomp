@@ -28,10 +28,10 @@ void func_actor_206100_8014F524(Task* task)
     GpEnemy*         enemy;
     TaskFuncTable5   sp;
 
-    work                = (Actor206100Work*)task->work;
-    enemy               = (GpEnemy*)task->spawnArg2;
-    sp                  = D_actor_206100_80149E94;
-    enemy->node.field_4 = 1;
+    work              = (Actor206100Work*)task->work;
+    enemy             = (GpEnemy*)task->spawnArg2;
+    sp                = D_actor_206100_80149E94;
+    enemy->node.flags = 1;
     sp.funcs[(s16)work->field_522](task);
 }
 
@@ -263,7 +263,7 @@ void func_actor_206100_8014FA08(Task* task)
 /// `eff_4C0` shares, so moving it moves the actor.
 ///
 /// `enemy` is a local rather than the inline
-/// `((GpEnemy*)task->spawnArg2)->node.field_4 = 1;` because the fused form
+/// `((GpEnemy*)task->spawnArg2)->node.flags = 1;` because the fused form
 /// transposes the `spawnArg2` and `task->extra` loads; see
 /// `DECOMPILATION_LEARNINGS.md`, "A dereference-store's address load is ranked
 /// with its store, so give the pointer its own local".
@@ -275,22 +275,22 @@ void func_actor_206100_8014FAE4(Task* task)
     Actor206100Work* last;
     GpEnemy*         enemy;
 
-    work                = (Actor206100Work*)task->work;
-    enemy               = (GpEnemy*)task->spawnArg2;
-    coord               = ((TmdObject*)task->extra)->coords;
-    enemy->node.field_4 = 1;
-    work->field_54D     = 1;
-    work->field_548     = 0;
-    work->field_4F4     = D_actor_206100_80158B68;
-    next                = (Actor206100Work*)task->work;
-    next->field_51A     = 0x10;
-    next->field_510     = 3;
-    next->field_50C     = 2;
-    work->field_43E     = 0x400;
-    coord->coord.t[0]   = work->field_4F4[work->field_548].field_0;
-    coord->coord.t[1]   = work->field_4F4[work->field_548].field_2;
-    coord->coord.t[2]   = work->field_4F4[work->field_548].field_4;
-    work->field_548     = (work->field_548 + 1) & 7;
+    work              = (Actor206100Work*)task->work;
+    enemy             = (GpEnemy*)task->spawnArg2;
+    coord             = ((TmdObject*)task->extra)->coords;
+    enemy->node.flags = 1;
+    work->field_54D   = 1;
+    work->field_548   = 0;
+    work->field_4F4   = D_actor_206100_80158B68;
+    next              = (Actor206100Work*)task->work;
+    next->field_51A   = 0x10;
+    next->field_510   = 3;
+    next->field_50C   = 2;
+    work->field_43E   = 0x400;
+    coord->coord.t[0] = work->field_4F4[work->field_548].field_0;
+    coord->coord.t[1] = work->field_4F4[work->field_548].field_2;
+    coord->coord.t[2] = work->field_4F4[work->field_548].field_4;
+    work->field_548   = (work->field_548 + 1) & 7;
     Gp_SetLightMode((GpObj4C*)task->spawnArg2, 2);
     work->field_51E = 0;
     last            = (Actor206100Work*)task->work;

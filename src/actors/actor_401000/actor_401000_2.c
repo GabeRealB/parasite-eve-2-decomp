@@ -74,11 +74,11 @@ void func_actor_401000_8013DB10(Actor401000* arg0)
 
     work = arg0->field_1C;
     if (work->field_4 != 0) {
-        obj                          = arg0->field_2C;
-        arg0->field_20->node.field_4 = 1;
-        obj->flags                   = (u16)(obj->flags | 0x80);
-        work->field_B50.flags        = (u16)(work->field_B50.flags & 0x7FFF);
-        work->field_A10.flags        = (u16)(work->field_A10.flags | 0x4000);
+        obj                        = arg0->field_2C;
+        arg0->field_20->node.flags = 1;
+        obj->flags                 = (u16)(obj->flags | 0x80);
+        work->field_B50.flags      = (u16)(work->field_B50.flags & 0x7FFF);
+        work->field_A10.flags      = (u16)(work->field_A10.flags | 0x4000);
     }
 }
 
@@ -89,9 +89,9 @@ void func_actor_401000_8013DB6C(Actor401000* arg0)
 
     work = arg0->field_1C;
     if (work->field_4 != 0) {
-        obj                          = arg0->field_2C;
-        arg0->field_20->node.field_4 = 0;
-        obj->flags                   = 0;
+        obj                        = arg0->field_2C;
+        arg0->field_20->node.flags = 0;
+        obj->flags                 = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 2;
         work->field_8A2       = 0x10;
@@ -113,9 +113,9 @@ void func_actor_401000_8013DC14(Actor401000* arg0)
 
     work = arg0->field_1C;
     if (work->field_4 != 0) {
-        obj                          = arg0->field_2C;
-        arg0->field_20->node.field_4 = 0;
-        obj->flags                   = 0;
+        obj                        = arg0->field_2C;
+        arg0->field_20->node.flags = 0;
+        obj->flags                 = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 2;
         work->field_8A2       = 0x10;
@@ -137,9 +137,9 @@ void func_actor_401000_8013DCC0(Actor401000* arg0)
 
     work = arg0->field_1C;
     if (work->field_4 != 0) {
-        obj                          = arg0->field_2C;
-        arg0->field_20->node.field_4 = 0;
-        obj->flags                   = 0;
+        obj                        = arg0->field_2C;
+        arg0->field_20->node.flags = 0;
+        obj->flags                 = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 2;
         work->field_8A2       = 0x10;
@@ -161,9 +161,9 @@ void func_actor_401000_8013DD6C(Actor401000* arg0)
 
     work = arg0->field_1C;
     if (work->field_4 != 0) {
-        obj                          = arg0->field_2C;
-        arg0->field_20->node.field_4 = 0;
-        obj->flags                   = 0;
+        obj                        = arg0->field_2C;
+        arg0->field_20->node.flags = 0;
+        obj->flags                 = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 2;
         work->field_8A2       = 0x12;
@@ -191,7 +191,7 @@ void func_actor_401000_8013DE24(Actor401000* arg0)
         work->field_8D0.radius = 0x1AE;
         work->field_B50.flags &= 0x7FFF;
         work->field_A10.flags |= 0x4000;
-        enemy->node.field_4    = 0;
+        enemy->node.flags      = 0;
         work->field_898        = 2;
         work->field_89E        = 8;
         work->field_8B0        = 0;
@@ -216,7 +216,7 @@ void func_actor_401000_8013DEC8(Actor401000* arg0)
         work->field_8D0.radius = 0x1AE;
         work->field_B50.flags &= 0x7FFF;
         work->field_A10.flags |= 0x4000;
-        enemy->node.field_4    = 0;
+        enemy->node.flags      = 0;
         work->field_898        = 2;
         work->field_89E        = 0x16;
         work->field_8B0        = 0;

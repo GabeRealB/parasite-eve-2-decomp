@@ -104,10 +104,10 @@ ge2:
     }
     goto default_body;
 case0:
-    arg0->node.field_4 = 8;
+    arg0->node.flags = 8;
     goto default_body;
 case2:
-    arg0->node.field_4 = one;
+    arg0->node.flags = one;
     return;
 default_body:
     func_actor_205200_8014B048(arg1, one);
@@ -165,17 +165,17 @@ void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
     enemy->field_4  = &coords->coord;
     enemy->field_48 = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->field_18     = &((TmdObject*)task->extra)->coords[3];
-    enemy->node.field_4 = 5;
-    enemy->field_1C.vx  = 0;
-    enemy->field_1C.vy  = 0;
-    enemy->field_1C.vz  = 0;
-    enemy->field_54     = (s32)work->field_49C;
-    enemy->field_50     = NULL;
-    enemy->field_40     = 0;
-    work->field_554     = &((TmdObject*)task->extra)->coords[3];
-    work->field_558     = 0x200;
-    work->field_55A     = 1;
+    enemy->field_18    = &((TmdObject*)task->extra)->coords[3];
+    enemy->node.flags  = 5;
+    enemy->field_1C.vx = 0;
+    enemy->field_1C.vy = 0;
+    enemy->field_1C.vz = 0;
+    enemy->field_54    = (s32)work->field_49C;
+    enemy->field_50    = NULL;
+    enemy->field_40    = 0;
+    work->field_554    = &((TmdObject*)task->extra)->coords[3];
+    work->field_558    = 0x200;
+    work->field_55A    = 1;
     func_800B3F84((GpAnimCtx*)work, &D_actor_205200_801567E8, (GpAnimObj*)tmd, work->field_30C,
                   (GpAnimSlot*)&work->pad_14);
     i = 1;

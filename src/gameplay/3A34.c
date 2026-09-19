@@ -2656,10 +2656,10 @@ void Gp_DrawTargetCursor(void)
     if (node != NULL) {
         scratch = (void**)G_SCRATCH_HEAD;
         do {
-            if (((GpLinkNode*)node)->field_5 == 0) {
+            if (((GpLinkNode*)node)->targeted == 0) {
                 goto next;
             }
-            if (((GpLinkNode*)node)->field_4 & 1) {
+            if (((GpLinkNode*)node)->flags & 1) {
                 goto next;
             }
             head                                   = *scratch;
@@ -2833,7 +2833,7 @@ void* Gp_ScanLockNodes(GpActorWork* arg0, VECTOR3* out, s32 flag)
     bestDist  = 0x7FFFFFFF;
     dist      = 0;
     for (node = (GpLinkXform*)Gp_LinkList; node != NULL; node = node->next) {
-        if (((GpLinkNode*)node)->field_4 & 1) {
+        if (((GpLinkNode*)node)->flags & 1) {
             continue;
         }
         angle = ratan2(node->dst.vx, node->dst.vz);
@@ -3140,7 +3140,7 @@ void Gp_UnlinkNode(GpLinkNode* node)
         p++;
     } while (i < 2);
 
-    if (node->field_6 == 1) {
+    if (node->onList == 1) {
         list = &Gp_LinkList;
         if (Gp_LinkList != node) {
             do {
@@ -3154,8 +3154,8 @@ void Gp_UnlinkNode(GpLinkNode* node)
             *list = node->next;
         }
     done:
-        node->field_6 = 0;
-        node->field_5 = 0;
+        node->onList   = 0;
+        node->targeted = 0;
     }
 }
 
@@ -3164,25 +3164,25 @@ void Gp_LinkNode(GpLinkNode* node)
     GpLinkNode** p;
     register s32 val asm("v0");
 
-    if (node->field_6 == 0) {
+    if (node->onList == 0) {
         p = &Gp_LinkList;
         if (Gp_LinkList != NULL) {
             do {
                 p = &(*p)->next;
             } while (*p != NULL);
         }
-        *p            = node;
-        val           = node->field_4;
-        node->next    = NULL;
-        node->field_5 = 0;
-        node->field_6 = 1;
+        *p             = node;
+        val            = node->flags;
+        node->next     = NULL;
+        node->targeted = 0;
+        node->onList   = 1;
     } else {
-        val = node->field_4;
+        val = node->flags;
     }
-    node->field_4 = val & 0xFE;
+    node->flags = val & 0xFE;
 }
 
-s32 Gp_NodeSlotMask(GpLinkNode* arg0)
+s32 Gp_NodeSlotMask(GpLinkNode* node)
 {
     s32                    mask;
     s32                    i;
@@ -3197,7 +3197,7 @@ s32 Gp_NodeSlotMask(GpLinkNode* arg0)
     do {
         work = *p;
         if (work != NULL) {
-            if (work->actor->field_90C == arg0) {
+            if (work->actor->field_90C == node) {
                 mask |= one << i;
             }
         }
@@ -3207,28 +3207,28 @@ s32 Gp_NodeSlotMask(GpLinkNode* arg0)
     return mask;
 }
 
-void Gp_AssignNodeSlot0(GpLinkNode* arg0)
+void Gp_AssignNodeSlot0(GpLinkNode* node)
 {
     GpActorWork* work;
     GameActor*   actor;
-    GpLinkNode*  node;
+    GpLinkNode*  previous;
     u8           val;
 
     work = Gp_ActorSlots[0];
     if (work != NULL) {
-        actor = work->actor;
-        node  = actor->field_90C;
-        if (node != NULL) {
-            node->field_5 = 0;
+        actor    = work->actor;
+        previous = actor->field_90C;
+        if (previous != NULL) {
+            previous->targeted = 0;
         }
-        actor->field_90C = arg0;
+        actor->field_90C = node;
     }
-    val           = arg0->field_4;
-    arg0->field_5 = 1;
-    arg0->field_4 = val & 0xFE;
+    val            = node->flags;
+    node->targeted = 1;
+    node->flags    = val & 0xFE;
 }
 
-void Gp_ClearNodeSlots(GpLinkNode* arg0)
+void Gp_ClearNodeSlots(GpLinkNode* node)
 {
     s32                    i;
     GpActorWork* volatile* p;
@@ -3242,16 +3242,16 @@ void Gp_ClearNodeSlots(GpLinkNode* arg0)
         work = *p;
         if (work != NULL) {
             actor = work->actor;
-            if (actor->field_90C == arg0) {
+            if (actor->field_90C == node) {
                 actor->field_90C = NULL;
             }
         }
         i++;
         p++;
     } while (i < 2);
-    val           = arg0->field_4;
-    arg0->field_5 = 0;
-    arg0->field_4 = val | 1;
+    val            = node->flags;
+    node->targeted = 0;
+    node->flags    = val | 1;
 }
 
 void* Gp_FindLockNode(GpActorWork* arg0)
@@ -3437,7 +3437,7 @@ void Gp_ClearSlotNodeFlags(void)
         if (work != NULL) {
             node = work->actor->field_90C;
             if (node != NULL) {
-                node->field_5 = 0;
+                node->targeted = 0;
             }
         }
         i++;

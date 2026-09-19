@@ -16,7 +16,7 @@
 /// with `TmdObject::flags = 0x80` for the hidden pose.
 ///
 /// This is the same object the spawn handler takes as `GpEnemy*`, seen from the
-/// side that needs only that one flag: `field_14` is `GpEnemy::node.field_4`,
+/// side that needs only that one flag: `field_14` is `GpEnemy::node.flags`,
 /// and the handlers that also tear the enemy down (`ActorsShared80136288`
 /// spends `field_54` and unlinks `node`) spell it as the `GpEnemy` it is.
 typedef struct Actor107000Ctx {

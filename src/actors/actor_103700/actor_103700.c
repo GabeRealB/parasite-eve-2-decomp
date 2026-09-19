@@ -36,7 +36,7 @@ void func_actor_103700_80131EC4(GpEnemy* arg0, Task* task)
     Gp_LinkNode(&arg0->node);
     arg0->field_50          = &D_actor_103700_80139D2C;
     arg0->field_18          = coord;
-    arg0->node.field_4      = 0;
+    arg0->node.flags        = 0;
     arg0->field_1C.vx       = 0;
     arg0->field_1C.vy       = 0;
     arg0->field_1C.vz       = 0;

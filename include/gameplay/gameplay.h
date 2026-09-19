@@ -151,9 +151,9 @@ typedef struct _GpCircleScratch {
 } GpCircleScratch;
 STATIC_ASSERT_SIZEOF(GpCircleScratch, 0x60);
 
-/// Overlay of a `Gp_LinkList` `GpLinkNode` (embedded at `GpEnemy.node`)
-/// used by `Gp_UpdateLinkXforms`. `field_4` is the word at node+4 (same
-/// `(flags & 5) == 1` skip as `func_800A4904`). `coord` is
+/// Overlay of a `Gp_LinkList` `GpLinkNode` and the fields that follow it,
+/// used by `Gp_UpdateLinkXforms`. `field_4` is the whole word that the node's
+/// `flags` byte heads, which is how the walk reads it. `coord` is
 /// `GpEnemy.field_18`. `src` / `dst` overlay `GpEnemy.field_1C` /
 /// `field_2C`: local XYZ in, player-relative XYZ out.
 typedef struct _GpLinkXform {

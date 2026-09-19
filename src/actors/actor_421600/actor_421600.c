@@ -414,7 +414,7 @@ void func_actor_421600_801366F4(Actor421600* arg0)
     if (work->field_4 != 0) {
         obj->flags             = 0;
         work->field_B6C.flags &= 0xBFFF;
-        ctx->node.field_4      = 1;
+        ctx->node.flags        = 1;
         work->field_6          = 0;
         work->field_8A0        = 0;
     }
@@ -488,9 +488,9 @@ void func_actor_421600_8013848C(Actor421600* arg0)
     gteVec                     = vec;
     if (work->field_4 != 0) {
         TOUCH_REG(gteVec);
-        obj               = arg0->field_2C;
-        ctx->node.field_4 = 0;
-        obj->flags        = 0;
+        obj             = arg0->field_2C;
+        ctx->node.flags = 0;
+        obj->flags      = 0;
         Tmd_AllocBuffers(obj);
         work->field_8EC.radius = 0x19C;
         work->field_82E        = 5;
@@ -620,10 +620,10 @@ void func_actor_421600_80138D24(Actor421600* arg0)
 
     work = arg0->field_1C;
     if (work->field_4 != 0) {
-        obj               = arg0->field_2C;
-        ctx               = arg0->field_20;
-        ctx->node.field_4 = 0;
-        obj->flags        = 0;
+        obj             = arg0->field_2C;
+        ctx             = arg0->field_20;
+        ctx->node.flags = 0;
+        obj->flags      = 0;
         Tmd_AllocBuffers(obj);
         work->field_8EC.radius = 0x19C;
         work->field_828        = 1;
@@ -690,9 +690,9 @@ void func_actor_421600_8013903C(Actor421600* arg0)
     work                        = arg0->field_1C;
     ctx                         = arg0->field_20;
     if (work->field_4 != 0) {
-        obj               = arg0->field_2C;
-        ctx->node.field_4 = 0;
-        obj->flags        = 0;
+        obj             = arg0->field_2C;
+        ctx->node.flags = 0;
+        obj->flags      = 0;
         Tmd_AllocBuffers(obj);
         work->field_8EC.radius = 0x19C;
         work->field_828        = 1;
@@ -765,10 +765,10 @@ void func_actor_421600_801392A8(Actor421600* arg0)
 
     work = arg0->field_1C;
     if (work->field_4 != 0) {
-        ctx               = arg0->field_20;
-        obj               = arg0->field_2C;
-        ctx->node.field_4 = 0;
-        obj->flags        = 0;
+        ctx             = arg0->field_20;
+        obj             = arg0->field_2C;
+        ctx->node.flags = 0;
+        obj->flags      = 0;
         Tmd_AllocBuffers(obj);
         work->field_8EC.radius = 0x19C;
         work->field_828        = 2;
@@ -830,9 +830,9 @@ void func_actor_421600_8013947C(Actor421600* arg0)
     work = arg0->field_1C;
     ctx  = arg0->field_20;
     if (work->field_4 != 0) {
-        obj               = arg0->field_2C;
-        ctx->node.field_4 = 0;
-        obj->flags        = 0;
+        obj             = arg0->field_2C;
+        ctx->node.flags = 0;
+        obj->flags      = 0;
         Tmd_AllocBuffers(obj);
         work->field_8EC.radius = 0x19C;
         work->field_832        = 0x10;
@@ -1000,10 +1000,10 @@ void func_actor_421600_8013B4C4(Actor421600* arg0)
 
     work = arg0->field_1C;
     if (work->field_4 != 0) {
-        obj               = arg0->field_2C;
-        ctx               = arg0->field_20;
-        ctx->node.field_4 = 1;
-        obj->flags        = 0;
+        obj             = arg0->field_2C;
+        ctx             = arg0->field_20;
+        ctx->node.flags = 1;
+        obj->flags      = 0;
         Tmd_AllocBuffers(obj);
         work->field_832        = 0x10;
         work->field_82E        = 3;
@@ -1097,9 +1097,9 @@ void func_actor_421600_8013B8E0(Actor421600* arg0)
 
     temp_s1 = arg0->field_1C;
     if (temp_s1->field_4 != 0) {
-        temp_a0                      = arg0->field_2C;
-        arg0->field_20->node.field_4 = 0;
-        temp_a0->flags               = 0;
+        temp_a0                    = arg0->field_2C;
+        arg0->field_20->node.flags = 0;
+        temp_a0->flags             = 0;
         Tmd_AllocBuffers(temp_a0);
         temp_s1->field_832                 = 0x10;
         temp_s1->field_82E                 = 0x11;
@@ -1182,7 +1182,7 @@ void func_actor_421600_8013C8E0(Actor421600* arg0)
         obj->flags             = 0x80;
         work->field_8EC.radius = 0x19C;
         work->field_B6C.flags  = (u16)(work->field_B6C.flags & 0xBFFF);
-        ctx->node.field_4      = 1;
+        ctx->node.flags        = 1;
         work->field_844        = 0;
         work->field_840        = 0;
         work->field_83E        = 0;

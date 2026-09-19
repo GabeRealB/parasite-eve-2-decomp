@@ -7278,14 +7278,14 @@ add_hp:
 
 void func_800A4904(s32 arg0)
 {
-    GpLinkNode* node;
-    GpEnemy*    enemy;
-    GpObj54*    obj54;
-    u16         val;
-    s32         idx;
+    GpLinkXform* node;
+    GpEnemy*     enemy;
+    GpObj54*     obj54;
+    u16          val;
+    s32          idx;
 
-    for (node = Gp_LinkList; node != NULL; node = node->next) {
-        if ((*(s32*)&node->field_4 & 5) != 1) {
+    for (node = (GpLinkXform*)Gp_LinkList; node != NULL; node = node->next) {
+        if ((node->field_4 & 5) != 1) {
             enemy = (GpEnemy*)((u8*)node - OFFSET_OF(GpEnemy, node));
             obj54 = (GpObj54*)enemy;
             if (arg0 == 0) {
@@ -8110,7 +8110,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
                     gte_gpf12_real();
                     gte_stsv(vec);
                 }
-                if (((GpLinkNode*)node)->field_4 & 1) {
+                if (((GpLinkNode*)node)->flags & 1) {
                     goto next;
                 }
                 vx = block->vec.vx;
@@ -8130,7 +8130,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
                 block->vec.vx = (s16)(vx + 0x80) >> 8;
                 vz            = (s16)(block->vec.vz + 0x80) >> 8;
                 block->vec.vz = vz;
-                if (((GpLinkNode*)node)->field_5 != 0) {
+                if (((GpLinkNode*)node)->targeted != 0) {
                     func_800A63B4(cx + block->vec.vx, cy - vz, 2);
                 } else {
                     func_800A63B4(cx + block->vec.vx, cy - vz, 1);
@@ -8435,7 +8435,7 @@ void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
     }
     if (arg0->field_50 != NULL) {
         val = arg0->field_50->field_4;
-        if (arg0->node.field_4 & 8) {
+        if (arg0->node.flags & 8) {
             val = -1;
         }
         Gp_DrawHudNumbers(block->field_14 - 8, block->field_16, arg0->field_40, val, 1);
@@ -8730,7 +8730,7 @@ void Gp_HudTrackSlot0(GpHudTrack* arg0)
         if (node != NULL) {
             do {
                 if (node == target) {
-                    if (!(node->field_4 & 1)) {
+                    if (!(node->flags & 1)) {
                         Gp_HudTrackEnemy((GpEnemy*)((u8*)node - OFFSET_OF(GpEnemy, node)), arg0);
                         return;
                     }

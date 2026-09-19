@@ -184,8 +184,8 @@ void func_actor_101500_80133C10(GpEnemy* arg0, Actor101500* arg1)
             sub = &coord[1];
             goto update;
         case 2:
-            model->flags       = 0x80;
-            arg0->node.field_4 = 1;
+            model->flags     = 0x80;
+            arg0->node.flags = 1;
             return;
     }
     switch (work->field_35C) {

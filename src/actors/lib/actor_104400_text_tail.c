@@ -383,8 +383,8 @@ void Actor04400_Fn042C4(Task* arg0)
             Tmd_AllocBuffers(obj);
             obj->flags &= 0xFFFB;
         }
-        enemy->node.field_4 = 0;
-        map                 = *(u32*)&gGameSession->at4.loc & 0xFFFF0000;
+        enemy->node.flags = 0;
+        map               = *(u32*)&gGameSession->at4.loc & 0xFFFF0000;
         if (map == 0x4270000) {
             work->field_78    = 0;
             work->field_7A    = (D_8018B74C[(work->field_44C >> 8) & 0xF].heading + 0x800) & 0xFFF;

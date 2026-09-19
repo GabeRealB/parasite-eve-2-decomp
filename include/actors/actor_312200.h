@@ -159,7 +159,7 @@ void func_actor_312200_80163370(GpEnemy* enemy, Task* task);
 /// task's flag bit 0 set, it drops the state to 1 and shorts the timer to 4.
 void func_actor_312200_801637CC(Task* task);
 
-/// Show handler: on a live actor it sets the enemy's `node.field_4`, raises the
+/// Show handler: on a live actor it sets the enemy's `node.flags`, raises the
 /// 0x80 draw bit of the model's `TmdObject::flags`, clears
 /// `GpEnemy::field_4D` and drops bit 0x8000 of the display node's `flags`.
 void func_actor_312200_80163778(Task* task);
