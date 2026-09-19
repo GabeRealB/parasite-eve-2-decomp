@@ -739,7 +739,7 @@ s32     Midi_IsChannelFree(u8 arg0);
 ///
 /// The queue takes the event as it stands, so the caller writes the arguments
 /// first; a `NULL` event is ignored.
-void    sndEvtEnqueue(SndEvt* event);
+void         sndEvtEnqueue(SndEvt* event);
 void         SndEvt_Free(SndEvt* arg0);
 void         SndEvt_HandleInitSequence(SndEvt* arg0);
 void         SndEvt_HandleStartFadeOut(SndEvt* arg0);

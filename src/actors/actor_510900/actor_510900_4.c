@@ -757,14 +757,14 @@ void func_actor_510900_801375D8(Actor510900* arg0)
 /// window test of each chain.
 void func_actor_510900_80137868(Actor510900* arg0)
 {
-    Actor510900Work*  work;
-    Actor510900Coord* coord;
-    s32               snd;
-    s32               pair;
-    s32               blend;
-    u32               rng;
+    Actor510900Work* work;
+    GsCOORDINATE2*   coord;
+    s32              snd;
+    s32              pair;
+    s32              blend;
+    u32              rng;
 
-    coord = arg0->field_2C->field_8;
+    coord = (GsCOORDINATE2*)arg0->field_2C->field_8;
     work  = arg0->field_1C;
 
     *(u8**)G_SCRATCH_HEAD -= 0x10;
@@ -892,9 +892,9 @@ void func_actor_510900_80137868(Actor510900* arg0)
                     break;
                 case 2:
                     if (CdCmd_IsIdle() == 1) {
-                        coord = (Actor510900Coord*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
-                        SndEvt_EnqueueType6(0x70010001, (s8)Gp_GetObjPan((GsCOORDINATE2*)coord),
-                                            (s8)Gp_GetObjDepth((GsCOORDINATE2*)coord));
+                        coord = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+                        SndEvt_EnqueueType6(0x70010001, (s8)Gp_GetObjPan(coord),
+                                            (s8)Gp_GetObjDepth(coord));
                         work->field_5B6 = 0;
                     }
                     break;

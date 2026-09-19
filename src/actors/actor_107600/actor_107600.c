@@ -805,8 +805,8 @@ void func_actor_107600_801332D4(Task* arg0)
             } else if ((s16)work->field_166 == 210) {
                 GsCOORDINATE2* c;
                 s32            p;
-                player         = (GpActorWork*)gameGetPtrSlot(3);
-                c              = &player->extra->coords[4];
+                player          = (GpActorWork*)gameGetPtrSlot(3);
+                c               = &player->extra->coords[4];
                 actor           = player->actor;
                 work->field_166 = 0;
                 Gp_SetLightMode((GpObj4C*)enemy, 0);
