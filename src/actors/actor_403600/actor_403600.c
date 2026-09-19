@@ -1054,7 +1054,552 @@ block_6:
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403600/actor_403600", D_actor_403600_80131E20);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80134398);
+const SVECTOR D_actor_403600_80131E24 = { -100, 700, -280, 0 };
+
+void func_actor_403600_80134398(Task* arg0)
+{
+    void*    gteValue1;
+    void*    gteValue2;
+    void*    gteValue3;
+    void*    gteValue4;
+    void*    gteValue5;
+    void*    gteValue6;
+    s32      gteValue7;
+    SVECTOR  sp10;
+    SVECTOR  sp18;
+    SVECTOR* firstVector;
+    SVECTOR* cameraVector;
+    void*    sp20;
+    s32      sp24;
+    s32      sp28;
+    s32*     sp30;
+    s32*     ot;
+    u32      otOffset;
+    s32      sp34;
+    s32*     var_a1_3;
+    s16      temp_a2;
+    s16      temp_s0_6;
+    s16      temp_v1_10;
+    s16      temp_v1_11;
+    s16      temp_v1_8;
+    s16      temp_v1_9;
+    s16      var_v0_2;
+    s32*     temp_v0_6;
+    s32      temp_a0_4;
+    s32      temp_v1_13;
+    s32      temp_v1_6;
+    s32      var_a0;
+    s32      var_a1;
+    s32      var_a1_2;
+    s32      var_a2;
+    s32      var_fp;
+    s32      var_s4;
+    s32      var_v1_2;
+    s32      temp_s0_3;
+    s32      temp_s0_5;
+    s8       temp_v1_12;
+    s8       temp_v1_14;
+    u16      temp_v1_3;
+    s32      var_v0;
+    s32      flag;
+    s32      historyDst, historySrc;
+    SVECTOR* historyOut;
+    s32      weightedX, weightedY, weightedZ;
+    s32      scratchX, scratchY, scratchZ;
+    s32      velocityX, velocityY, velocityZ;
+    u8       temp_v0_5;
+    u8       temp_v1_4;
+    u8       temp_v1_5;
+    u8       temp_v1_7;
+    void*    temp_a0;
+    void*    temp_a0_2;
+    void*    temp_a0_3;
+    void*    motionParent;
+    void*    temp_s0;
+    void*    temp_s0_2;
+    void*    temp_s0_4;
+    void*    temp_s1;
+    void*    temp_s1_2;
+    void*    temp_s1_3;
+    void*    temp_s1_4;
+    s32      temp_s2;
+    void*    temp_s4;
+    void*    temp_s5;
+    void*    temp_s6;
+    /* Keep the raw scratch head separate until the branch-delay copy. */
+    register void* temp_v0 asm("v0");
+    void*          temp_v0_2;
+    void*          temp_v0_3;
+    void*          temp_v0_4;
+    void*          temp_v1;
+    void*          temp_v1_2;
+    void*          var_s1;
+    void*          var_v1;
+    void*          var_v1_3;
+
+    temp_s6 = ACTOR_FIELD(ACTOR_FIELD(arg0, s32*, 0x2C), s32*, 0x8);
+    var_fp  = (s32)&sp10;
+    sp10    = D_actor_403600_80131E24;
+    /* Order the vector copy and actor load without fencing the stack address. */
+    __asm__("" : "+m"(sp10) : : "memory");
+    sp20 = Gp_ActorSlots[0];
+    if (sp20 == NULL) {
+        Task_CallExit(arg0);
+        return;
+    }
+    if (ACTOR_FIELD(ACTOR_FIELD(ACTOR_FIELD(arg0, s32*, 0x20), s32*, 0x1C), s16*, 0x742) == 1) {
+        Task_CallExit(arg0);
+        return;
+    }
+    temp_v0             = *(void**)0x1F8003FC;
+    temp_v0            -= 0x54;
+    *(void**)0x1F8003FC = temp_v0;
+    temp_v0_2           = temp_v0;
+    if (ACTOR_FIELD(arg0, s32*, 0x30) == 0) {
+        temp_v0_3 = memCalloc(0x15C, 0);
+        if (temp_v0_3 == NULL) {
+            Task_CallExit(arg0);
+            *(void**)0x1F8003FC += 0x54;
+            return;
+        }
+        ACTOR_FIELD(arg0, s32*, 0x1C)    = temp_v0_3;
+        ACTOR_FIELD(temp_s6, s32*, 0x4C) = &gGfxViewCoord;
+        ACTOR_FIELD(temp_s6, s32*, 0x20) = 0;
+        ACTOR_FIELD(temp_s6, s32*, 0x1C) = 0;
+        ACTOR_FIELD(temp_s6, s32*, 0x18) = 0;
+        ACTOR_FIELD(temp_s6, s32*, 0x0)  = 0;
+        temp_s4                          = ACTOR_FIELD(arg0, s32*, 0x20);
+        SOFT_USE_REG(temp_s4);
+        SOFT_USE_REG(temp_s4);
+        SOFT_USE_REG(temp_s4);
+        SOFT_USE_REG(temp_s4);
+        SOFT_USE_REG(temp_s4);
+        SOFT_USE_REG(temp_s4);
+        SOFT_USE_REG(temp_s4);
+        SOFT_USE_REG(temp_s4);
+        SOFT_USE_REG(temp_s4);
+        SOFT_USE_REG(temp_s4);
+        SOFT_USE_REG(temp_s4);
+        SOFT_USE_REG(temp_s4);
+        SOFT_USE_REG(temp_s4);
+        SOFT_USE_REG(temp_s4);
+        SOFT_USE_REG(temp_s4);
+        ACTOR_FIELD(arg0, u16*, 0x2A) = 1U;
+        ACTOR_FIELD(arg0, u8*, 0x38)  = 1U;
+        ACTOR_FIELD(arg0, s32*, 0x3C) = 0;
+        if (temp_s4 == NULL) {
+            ACTOR_FIELD(temp_v0_3, s16*, 0x100) = 0;
+            ACTOR_FIELD(temp_v0_3, s16*, 0x102) = -0x1000;
+            ACTOR_FIELD(temp_v0_3, s16*, 0x104) = 0;
+        } else {
+            temp_s2                             = (void*)ACTOR_FIELD(temp_s4, s32*, 0x1C);
+            ACTOR_FIELD(temp_v0_3, s16*, 0x102) = -0x1B8;
+            firstVector                         = &sp18;
+            temp_s1                             = temp_v0_3 + 0x100;
+
+            ACTOR_FIELD(temp_v0_3, s16*, 0x100) = 0;
+            ACTOR_FIELD(temp_v0_3, s16*, 0x104) = 0x4B0;
+            sp18                                = *(SVECTOR*)(temp_v0_3 + 0x100);
+            temp_a0                             = temp_s2 + 0x4B8;
+            temp_s2                            += 0x4BC;
+            gte_SetRotMatrix(temp_s2);
+            gte_ldv0(firstVector);
+            gte_mvmva_10030();
+            gte_stsv(temp_s1);
+            ACTOR_FIELD(temp_s6, s32*, 0x18)    = (s32)(ACTOR_FIELD(temp_a0, s32*, 0x18) + ACTOR_FIELD(temp_v0_3, s16*, 0x100));
+            ACTOR_FIELD(temp_s6, s32*, 0x1C)    = (s32)(ACTOR_FIELD(temp_a0, s32*, 0x1C) + ACTOR_FIELD(temp_v0_3, s16*, 0x102));
+            ACTOR_FIELD(temp_s6, s32*, 0x20)    = (s32)(ACTOR_FIELD(temp_a0, s32*, 0x20) + ACTOR_FIELD(temp_v0_3, s16*, 0x104));
+            ACTOR_FIELD(temp_v0_3, s16*, 0x100) = (s16)((rand() & 0x1FF) - 0x100);
+            ACTOR_FIELD(temp_v0_3, s16*, 0x102) = (s16)((rand() & 0x1FF) - 0x100);
+            ACTOR_FIELD(temp_v0_3, s16*, 0x104) = 0x1000;
+            sp18                                = *(SVECTOR*)(temp_v0_3 + 0x100);
+            gte_SetRotMatrix(temp_s2);
+            gte_ldv0(firstVector);
+            gte_mvmva_10030();
+            gte_stsv(temp_s1);
+            SOFT_USE_REG2(firstVector, temp_s1);
+            SOFT_USE_REG2(firstVector, temp_s1);
+            SOFT_USE_REG2(firstVector, temp_s1);
+            SOFT_USE_REG(firstVector);
+
+            if (ACTOR_FIELD(arg0, s32*, 0x34) == 0x1100) {
+                Gp_CopyCoordOffset(arg0, ACTOR_FIELD(ACTOR_FIELD(temp_s4, s32*, 0x2C), s32*, 0x8) + 0x460, (void*)var_fp);
+            } else {
+                Gp_CopyCoordOffset(arg0, ACTOR_FIELD(ACTOR_FIELD(temp_s4, s32*, 0x2C), s32*, 0x8) + 0x5A0, (void*)var_fp);
+            }
+            if (ACTOR_FIELD(arg0, s32*, 0x34) < 0x1000) {
+                Gp_SpawnEff(0x601BB, temp_s6, 0x20, 0);
+            }
+            ACTOR_FIELD(arg0, u8*, 0x38)  = 3U;
+            ACTOR_FIELD(arg0, u16*, 0x2A) = 0x20U;
+        }
+        var_s4 = 0;
+        if (ACTOR_FIELD(arg0, s32*, 0x34) >= 0x1000) {
+            ACTOR_FIELD(arg0, u8*, 0x38) = 4U;
+        }
+        do {
+            ((SVECTOR*)temp_v0_3)[var_s4].vx = (u16)ACTOR_FIELD(temp_s6, s32*, 0x18);
+            ((SVECTOR*)temp_v0_3)[var_s4].vy = (u16)ACTOR_FIELD(temp_s6, s32*, 0x1C);
+            ((SVECTOR*)temp_v0_3)[var_s4].vz = (u16)ACTOR_FIELD(temp_s6, s32*, 0x20);
+            var_s4                          += 1;
+        } while (var_s4 < 0x20);
+        temp_s1_2 = temp_v0_3 + 0x128;
+        if (ACTOR_FIELD(arg0, s32*, 0x34) < 0x1000) {
+            temp_s0                             = temp_v0_3 + 0x108;
+            ACTOR_FIELD(temp_s0, s32*, 0x8)     = temp_s6;
+            ACTOR_FIELD(temp_s0, s32*, 0xC)     = temp_s1_2;
+            ACTOR_FIELD(temp_s0, s16*, 0x10)    = 0;
+            ACTOR_FIELD(temp_s0, s16*, 0x12)    = 0;
+            ACTOR_FIELD(temp_s0, s16*, 0x14)    = 0;
+            ACTOR_FIELD(temp_s0, s16*, 0x1C)    = 0;
+            temp_a0_2                           = temp_v0_3 + 0x140;
+            ACTOR_FIELD(temp_s0, s32*, 0x18)    = Gp_PackPair(&D_actor_403600_801420F0, ACTOR_FIELD(arg0, s32*, 0x34) & 0xF);
+            ACTOR_FIELD(temp_s0, u16*, 0x1E)    = 3U;
+            ACTOR_FIELD(temp_s1_2, s32*, 0x14)  = temp_a0_2;
+            ACTOR_FIELD(temp_s1_2, s16*, 0x8)   = 0;
+            ACTOR_FIELD(temp_s1_2, s16*, 0xA)   = 0;
+            ACTOR_FIELD(temp_s1_2, s16*, 0xC)   = 0;
+            ACTOR_FIELD(temp_v0_3, s16*, 0x128) = 0;
+            ACTOR_FIELD(temp_s1_2, s16*, 0x2)   = 0;
+            ACTOR_FIELD(temp_s1_2, s16*, 0x4)   = 0;
+            ACTOR_FIELD(temp_s1_2, s16*, 0x10)  = 0xC8;
+            ACTOR_FIELD(temp_s1_2, s16*, 0x12)  = 0xC8;
+            Gp_InitRec18Table(temp_a0_2, 1, 0);
+            Gp_LinkObj(3, temp_s0);
+            ACTOR_FIELD(temp_s0, u16*, 0x1E) = (u16)(ACTOR_FIELD(temp_s0, u16*, 0x1E) | 0xC000);
+            ACTOR_FIELD(arg0, s32*, 0x18)    = &func_actor_403600_80138C68;
+        }
+        ACTOR_FIELD(temp_v0_3, s32*, 0x158) = 0x12C;
+        ACTOR_FIELD(arg0, s32*, 0x30)       = (s32)(ACTOR_FIELD(arg0, s32*, 0x30) + 1);
+        goto block_22;
+    }
+block_22:
+    temp_s5   = ACTOR_FIELD(arg0, s32*, 0x1C);
+    temp_s1_3 = ACTOR_FIELD(ACTOR_FIELD(sp20, s32*, 0x2C), s32*, 0x8) + 0x50;
+    Gp_UpdateCoord(temp_s1_3);
+    TransposeMatrix(&Gfx_ViewWorldMtx, temp_v0_2 + 0x34);
+    temp_s0_2                          = (u8*)&Gfx_ViewWorldMtx - 0x24;
+    var_s4                             = ACTOR_FIELD(temp_s1_3, s32*, 0x38) - ACTOR_FIELD(temp_s0_2, s32*, 0x38);
+    ACTOR_FIELD(temp_v0_2, s16*, 0x10) = (s16)var_s4;
+    var_s4                             = ACTOR_FIELD(temp_s1_3, s32*, 0x3C) - ACTOR_FIELD(temp_s0_2, s32*, 0x3C);
+    ACTOR_FIELD(temp_v0_2, s16*, 0x12) = (s16)var_s4;
+    temp_s1_4                          = temp_s5 + 0x128;
+    cameraVector                       = &sp18;
+    temp_v1                            = temp_v0_2 + 0x10;
+    var_s4                             = ACTOR_FIELD(temp_s1_3, s32*, 0x40) - ACTOR_FIELD(temp_s0_2, s32*, 0x40);
+    ACTOR_FIELD(temp_v0_2, s16*, 0x14) = (s16)var_s4;
+    *cameraVector                      = *(SVECTOR*)(temp_v0_2 + 0x10);
+    gteValue1                          = temp_v0_2 + 0x34;
+    gte_SetRotMatrix(gteValue1);
+    gte_ldv0(cameraVector);
+    gte_mvmva_10030();
+    gte_stsv(temp_v1);
+    ACTOR_FIELD(temp_v0_2, s32*, 0x0) = (s32)ACTOR_FIELD(temp_v0_2, s16*, 0x10);
+    ACTOR_FIELD(temp_v0_2, s32*, 0x4) = (s32)ACTOR_FIELD(temp_v0_2, s16*, 0x12);
+    ACTOR_FIELD(temp_v0_2, s32*, 0x8) = (s32)ACTOR_FIELD(temp_v0_2, s16*, 0x14);
+    if (D_801153F4 == 0) {
+        if (ACTOR_FIELD(arg0, s32*, 0x34) < 0x1000) {
+            ACTOR_FIELD(temp_s5, s32*, 0x158) = (s32)(ACTOR_FIELD(temp_s5, s32*, 0x158) - 1);
+        } else {
+            ACTOR_FIELD(arg0, u16*, 0x2A) = (u16)(ACTOR_FIELD(arg0, u16*, 0x2A) + 1);
+        }
+        var_s4 = 0;
+        do {
+            historyDst  = (31 - var_s4) * 8;
+            historyOut  = (SVECTOR*)((s32)temp_s5 + historyDst);
+            historySrc  = (30 - var_s4) * 8;
+            *historyOut = *(SVECTOR*)((s32)temp_s5 + historySrc);
+            var_s4     += 1;
+        } while (var_s4 < 0x1F);
+        ACTOR_FIELD(arg0, s32*, 0x3C) ^= 1;
+        temp_v1_3                      = ACTOR_FIELD(arg0, u16*, 0x2A) - 1;
+        ACTOR_FIELD(arg0, u16*, 0x2A)  = temp_v1_3;
+        if ((temp_v1_3 << 0x10) <= 0) {
+            temp_v1_4 = ACTOR_FIELD(arg0, u8*, 0x38);
+            if (temp_v1_4 == 2) {
+                Task_CallExit(arg0);
+            } else {
+                if (temp_v1_4 == 3) {
+                    temp_s0_3 = (s8)Gp_GetObjPan(temp_s6);
+                    SndEvt_EnqueueType6(0x54160009, temp_s0_3, (s8)gpGetObjDepth(temp_s6));
+                    var_v0 = (rand() & 0xF) + 0x10;
+                    goto block_34;
+                }
+                var_v0 = 0x7FFF;
+                if (temp_v1_4 == 0) {
+                block_34:
+                    ACTOR_FIELD(arg0, u16*, 0x2A) = var_v0;
+                    ACTOR_FIELD(arg0, u8*, 0x38)  = 1U;
+                } else {
+                    ACTOR_FIELD(arg0, u16*, 0x2A) = (u16)((rand() & 0xF) + 0x10);
+                    ACTOR_FIELD(arg0, u8*, 0x38)  = (u8)(ACTOR_FIELD(arg0, u8*, 0x38) ^ 1);
+                }
+                goto block_36;
+            }
+        } else {
+        block_36:
+            if (ACTOR_FIELD(arg0, u8*, 0x38) != 2) {
+                temp_s2   = 0;
+                temp_s0_4 = temp_v0_2 + 0x10;
+                do {
+                    if (ACTOR_FIELD(arg0, u8*, 0x38) == 0) {
+                        ACTOR_FIELD(temp_v0_2, s16*, 0x10) = (s16)((ACTOR_FIELD(temp_v0_2, s32*, 0x0) - ACTOR_FIELD(temp_s6, s32*, 0x18)) >> 2);
+                        ACTOR_FIELD(temp_v0_2, s16*, 0x12) = (s16)((s32)(ACTOR_FIELD(temp_v0_2, s32*, 0x4) - ACTOR_FIELD(temp_s6, s32*, 0x1C)) >> 2);
+                        ACTOR_FIELD(temp_v0_2, s16*, 0x14) = (s16)((s32)(ACTOR_FIELD(temp_v0_2, s32*, 0x8) - ACTOR_FIELD(temp_s6, s32*, 0x20)) >> 2);
+                        VectorNormalSS(temp_s0_4, temp_s0_4);
+                        /* Keep scratch loads live across the weighted shifts. */
+                        velocityX = ACTOR_FIELD(temp_s5, s16*, 0x100);
+                        weightedX = velocityX * 8;
+                        scratchX  = ACTOR_FIELD(temp_v0_2, s16*, 0x10);
+                        SOFT_TOUCH_REG_USE(weightedX, scratchX);
+                        weightedX                         -= velocityX;
+                        ACTOR_FIELD(temp_v0_2, s16*, 0x10) = (scratchX + weightedX) >> 4;
+                        velocityY                          = ACTOR_FIELD(temp_s5, s16*, 0x102);
+                        weightedY                          = velocityY * 8;
+                        scratchY                           = ACTOR_FIELD(temp_v0_2, s16*, 0x12);
+                        SOFT_TOUCH_REG_USE(weightedY, scratchY);
+                        weightedY                         -= velocityY;
+                        ACTOR_FIELD(temp_v0_2, s16*, 0x12) = (scratchY + weightedY) >> 4;
+                        velocityZ                          = ACTOR_FIELD(temp_s5, s16*, 0x104);
+                        weightedZ                          = velocityZ * 8;
+                        scratchZ                           = ACTOR_FIELD(temp_v0_2, s16*, 0x14);
+                        SOFT_TOUCH_REG_USE(weightedZ, scratchZ);
+                        weightedZ                         -= velocityZ;
+                        ACTOR_FIELD(temp_v0_2, s16*, 0x14) = (scratchZ + weightedZ) >> 4;
+                        VectorNormalSS(temp_s0_4, temp_s0_4);
+                        ACTOR_FIELD(temp_s5, s16*, 0x100) = (s16)(u16)ACTOR_FIELD(temp_v0_2, s16*, 0x10);
+                        ACTOR_FIELD(temp_s5, s16*, 0x102) = (s16)(u16)ACTOR_FIELD(temp_v0_2, s16*, 0x12);
+                        ACTOR_FIELD(temp_s5, s16*, 0x104) = (s16)(u16)ACTOR_FIELD(temp_v0_2, s16*, 0x14);
+                    }
+                    temp_v1_5 = ACTOR_FIELD(arg0, u8*, 0x38);
+                    if (temp_v1_5 < 3U) {
+                        gte_lddp(100);
+                        gteValue2 = temp_s5 + 0x100;
+                        gte_ldsv(gteValue2);
+                        gte_gpf12_real();
+                        gte_stsv(temp_s0_4);
+                        ACTOR_FIELD(temp_s1_4, s16*, 0x8) = (s16) - (s16)(u16)ACTOR_FIELD(temp_v0_2, s16*, 0x10);
+                        ACTOR_FIELD(temp_s1_4, s16*, 0xA) = (s16) - (s16)(u16)ACTOR_FIELD(temp_v0_2, s16*, 0x12);
+                        ACTOR_FIELD(temp_s1_4, s16*, 0xC) = (s16) - (s16)(u16)ACTOR_FIELD(temp_v0_2, s16*, 0x14);
+                        ACTOR_FIELD(temp_s6, s32*, 0x18)  = (s32)(ACTOR_FIELD(temp_s6, s32*, 0x18) + ACTOR_FIELD(temp_v0_2, s16*, 0x10));
+                        ACTOR_FIELD(temp_s6, s32*, 0x1C)  = (s32)(ACTOR_FIELD(temp_s6, s32*, 0x1C) + ACTOR_FIELD(temp_v0_2, s16*, 0x12));
+                        ACTOR_FIELD(temp_s6, s32*, 0x20)  = (s32)(ACTOR_FIELD(temp_s6, s32*, 0x20) + ACTOR_FIELD(temp_v0_2, s16*, 0x14));
+                        goto block_51;
+                    }
+                    if (temp_v1_5 == 3) {
+                        motionParent = ACTOR_FIELD(arg0, s32*, 0x20);
+                        if ((s16)ACTOR_FIELD(arg0, u16*, 0x2A) >= 7) {
+                            var_a1_2 = ACTOR_FIELD(ACTOR_FIELD(motionParent, s32*, 0x2C), s32*, 0x8) + 0x5A0;
+                            Gp_CopyCoordOffset(arg0, var_a1_2, &sp10);
+                            var_s4 = 0;
+                            do {
+                                ((SVECTOR*)temp_s5)[var_s4].vx = (u16)ACTOR_FIELD(temp_s6, s32*, 0x18);
+                                ((SVECTOR*)temp_s5)[var_s4].vy = (u16)ACTOR_FIELD(temp_s6, s32*, 0x1C);
+                                ((SVECTOR*)temp_s5)[var_s4].vz = (u16)ACTOR_FIELD(temp_s6, s32*, 0x20);
+                                var_s4                        += 1;
+                            } while (var_s4 < 0x20);
+                            temp_s2 += 1;
+                        } else {
+                            goto block_51;
+                        }
+                    } else {
+                        temp_a0_3 = ACTOR_FIELD(arg0, s32*, 0x20);
+                        if (ACTOR_FIELD(arg0, s32*, 0x34) == 0x1000) {
+                            Gp_CopyCoordOffset(arg0, ACTOR_FIELD(ACTOR_FIELD(temp_a0_3, s32*, 0x2C), s32*, 0x8) + 0x5A0, &sp10);
+                        } else {
+                            Gp_CopyCoordOffset(arg0, ACTOR_FIELD(ACTOR_FIELD(temp_a0_3, s32*, 0x2C), s32*, 0x8) + 0x460, &sp10);
+                        }
+                    block_51:
+                        temp_s2 += 1;
+                    }
+                } while (temp_s2 < 2);
+            }
+            ACTOR_FIELD(temp_s6, s32*, 0x0) = 0;
+            Gp_UpdateCoord(temp_s6);
+            ACTOR_FIELD(temp_s5, u16*, 0x0) = (u16)ACTOR_FIELD(temp_s6, s32*, 0x18);
+            ACTOR_FIELD(temp_s5, u16*, 0x2) = (u16)ACTOR_FIELD(temp_s6, s32*, 0x1C);
+            ACTOR_FIELD(temp_s5, u16*, 0x4) = (u16)ACTOR_FIELD(temp_s6, s32*, 0x20);
+            ACTOR_FIELD(temp_s5, u16*, 0x6) = rand();
+            goto block_54;
+        }
+    } else {
+    block_54:
+        if ((ACTOR_FIELD(arg0, s32*, 0x34) < 0x1000) && (Gp_FindRec18(temp_s5 + 0x140, 0) != 0)) {
+            temp_s0_5 = (s8)Gp_GetObjPan(temp_s6);
+            SndEvt_EnqueueType6(0x5416000A, temp_s0_5, (s8)gpGetObjDepth(temp_s6));
+            ACTOR_FIELD(temp_s5, s32*, 0x158) = -1;
+        }
+        if (ACTOR_FIELD(temp_s5, s32*, 0x158) < 0) {
+            if (ACTOR_FIELD(arg0, s32*, 0x34) < 0x1000) {
+                Gp_ClearRec18Occupied(temp_s5 + 0x140);
+                ACTOR_FIELD(temp_s5, u16*, 0x126) = (u16)(ACTOR_FIELD(temp_s5, u16*, 0x126) & 0x3FFF);
+            }
+            ACTOR_FIELD(temp_s5, s32*, 0x158) = 0x7FFFFFFF;
+            ACTOR_FIELD(arg0, u8*, 0x38)      = 2U;
+            ACTOR_FIELD(arg0, u16*, 0x2A)     = 0x20U;
+        }
+        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+        temp_v1_6 = ACTOR_FIELD(arg0, s32*, 0x34) & 0xF;
+        switch (temp_v1_6) {
+            case 0:
+                sp24 = 0x808000;
+                break;
+            case 1:
+                sp24 = 0x808080;
+                break;
+            case 2:
+                sp24 = 0x80;
+                break;
+            default:
+                sp24 = 0x8080;
+                break;
+        }
+        sp28      = 1;
+        temp_v1_7 = ACTOR_FIELD(arg0, u8*, 0x38);
+        var_fp    = 0;
+        if (temp_v1_7 == 2) {
+            var_fp = 0x20 - (s16)ACTOR_FIELD(arg0, u16*, 0x2A);
+        } else if (temp_v1_7 == 3) {
+            sp28 = 4;
+        }
+        var_s4 = var_fp;
+        if (var_s4 < 0x20) {
+            var_a1_3 = (s32*)&gDisplayState;
+            SOFT_USE_REG(var_a1_3);
+            temp_s6 = (void*)0xFFFFFF;
+            var_a2  = 0xFF000000;
+            SOFT_USE_REG(var_a2);
+            SOFT_USE_REG(var_a2);
+            SOFT_USE_REG(var_a2);
+            SOFT_USE_REG(var_a2);
+
+            var_s1 = (void*)((var_s4 * 8) + (s32)temp_s5);
+            do {
+                temp_s2                 = D_actor_403600_8016069C;
+                D_actor_403600_8016069C = temp_s2 + 0x28;
+                gte_ldv0(var_s1);
+                gte_rtps_real();
+                gteValue3 = temp_v0_2 + 0x18;
+                gte_stsxy(gteValue3);
+                gteValue4 = temp_v0_2 + 0x1C;
+                gte_stdp(gteValue4);
+                gteValue5 = temp_v0_2 + 0x20;
+                gte_stflg(gteValue5);
+                gteValue6 = temp_v0_2 + 0x24;
+                gte_stszotz(gteValue6);
+                if (ACTOR_FIELD(temp_v0_2, s32*, 0x20) >= 0) {
+                    if (var_s4 == 0) {
+                        if (ACTOR_FIELD(arg0, u8*, 0x38) != 2) {
+                            temp_a0_4 = ACTOR_FIELD(temp_v0_2, s32*, 0x24);
+                            if (temp_a0_4 >= 0) {
+                                ACTOR_FIELD(temp_v0_2, u16*, 0x2C) = (u16)((s32)(ACTOR_FIELD(var_a1_3, u16*, 0x110) * 0x96) / temp_a0_4);
+                            } else {
+                                ACTOR_FIELD(temp_v0_2, u16*, 0x2C) = 0x1000U;
+                            }
+                            temp_v1_8                        = ACTOR_FIELD(temp_v0_2, u16*, 0x18) - ACTOR_FIELD(temp_v0_2, u16*, 0x2C);
+                            ACTOR_FIELD(temp_s2, s16*, 0x18) = temp_v1_8;
+                            ACTOR_FIELD(temp_s2, s16*, 0x8)  = temp_v1_8;
+                            temp_v1_9                        = ACTOR_FIELD(temp_v0_2, u16*, 0x18) + ACTOR_FIELD(temp_v0_2, u16*, 0x2C);
+                            ACTOR_FIELD(temp_s2, s16*, 0x20) = temp_v1_9;
+                            ACTOR_FIELD(temp_s2, s16*, 0x10) = temp_v1_9;
+                            temp_v1_10                       = ACTOR_FIELD(temp_v0_2, u16*, 0x1A) - ACTOR_FIELD(temp_v0_2, u16*, 0x2C);
+                            ACTOR_FIELD(temp_s2, s16*, 0x12) = temp_v1_10;
+                            ACTOR_FIELD(temp_s2, s16*, 0xA)  = temp_v1_10;
+                            temp_v1_11                       = ACTOR_FIELD(temp_v0_2, u16*, 0x1A) + ACTOR_FIELD(temp_v0_2, u16*, 0x2C);
+                            ACTOR_FIELD(temp_s2, s16*, 0x16) = 0x29;
+                            ACTOR_FIELD(temp_s2, s16*, 0x22) = temp_v1_11;
+                            ACTOR_FIELD(temp_s2, s16*, 0x1A) = temp_v1_11;
+                            if (ACTOR_FIELD(arg0, s32*, 0x3C) != 0) {
+                                ACTOR_FIELD(temp_s2, u8*, 0x1C) = 0x70U;
+                                ACTOR_FIELD(temp_s2, u8*, 0xC)  = 0x70U;
+                                ACTOR_FIELD(temp_s2, s16*, 0xE) = 0x428B;
+                            } else {
+                                ACTOR_FIELD(temp_s2, u8*, 0x1C) = 0xA8U;
+                                ACTOR_FIELD(temp_s2, u8*, 0xC)  = 0xA8U;
+                                ACTOR_FIELD(temp_s2, s16*, 0xE) = 0x428C;
+                            }
+                            ACTOR_FIELD(temp_s2, u8*, 0x15) = 0xC9;
+                            ACTOR_FIELD(temp_s2, u8*, 0xD)  = 0xC9;
+                            ACTOR_FIELD(temp_s2, u8*, 0x25) = 0xFF;
+                            ACTOR_FIELD(temp_s2, u8*, 0x1D) = 0xFF;
+                            ACTOR_FIELD(temp_s2, s32*, 0x4) = sp24;
+                            temp_v1_12                      = ACTOR_FIELD(temp_s2, u8*, 0xC) + 0x37;
+                            ACTOR_FIELD(temp_s2, u8*, 0x3)  = 9;
+                            ACTOR_FIELD(temp_s2, u8*, 0x7)  = 0x2E;
+                            ACTOR_FIELD(temp_s2, u8*, 0x24) = temp_v1_12;
+                            ACTOR_FIELD(temp_s2, u8*, 0x14) = temp_v1_12;
+                            goto block_100;
+                        }
+                    } else if (var_s4 >= (var_fp - 4)) {
+                        temp_s0_6                          = ACTOR_FIELD(var_s1, u16*, 0x6);
+                        sp30                               = var_a1_3;
+                        sp34                               = var_a2;
+                        ACTOR_FIELD(temp_v0_2, u16*, 0x2C) = rsin(temp_s0_6);
+                        ACTOR_FIELD(temp_v0_2, u16*, 0x2E) = rcos(temp_s0_6);
+                        ACTOR_FIELD(temp_v0_2, u16*, 0x30) = 0;
+                        if (ACTOR_FIELD(temp_v0_2, s32*, 0x24) >= 0) {
+                            var_a0 = (var_s4 * 2) + 0x78;
+                            if ((var_fp >= var_s4) && (ACTOR_FIELD(arg0, u8*, 0x38) == 2)) {
+                                var_a0 = (var_s4 * 20) + 0x78;
+                            } else if (ACTOR_FIELD(arg0, u8*, 0x38) == 4) {
+                                var_a0 *= 2;
+                            }
+                            gteValue7 = (var_a0 * ACTOR_FIELD(var_a1_3, u16*, 0x110)) / ACTOR_FIELD(temp_v0_2, s32*, 0x24);
+                            gte_lddp(gteValue7);
+                            temp_v0_4 = temp_v0_2 + 0x2C;
+                            gte_ldsv(temp_v0_4);
+                            gte_gpf12_real();
+                            gte_stsv(temp_v0_4);
+                        }
+                        ACTOR_FIELD(temp_s2, s16*, 0x8)  = (s16)(ACTOR_FIELD(temp_v0_2, u16*, 0x18) + ACTOR_FIELD(temp_v0_2, u16*, 0x2C));
+                        ACTOR_FIELD(temp_s2, s16*, 0xA)  = (s16)(ACTOR_FIELD(temp_v0_2, u16*, 0x1A) + ACTOR_FIELD(temp_v0_2, u16*, 0x2E));
+                        ACTOR_FIELD(temp_s2, s16*, 0x10) = (s16)(ACTOR_FIELD(temp_v0_2, u16*, 0x18) + ACTOR_FIELD(temp_v0_2, u16*, 0x2E));
+                        ACTOR_FIELD(temp_s2, s16*, 0x12) = (s16)(ACTOR_FIELD(temp_v0_2, u16*, 0x1A) - ACTOR_FIELD(temp_v0_2, u16*, 0x2C));
+                        ACTOR_FIELD(temp_s2, s16*, 0x18) = (s16)(ACTOR_FIELD(temp_v0_2, u16*, 0x18) - ACTOR_FIELD(temp_v0_2, u16*, 0x2E));
+                        ACTOR_FIELD(temp_s2, s16*, 0x1A) = (s16)(ACTOR_FIELD(temp_v0_2, u16*, 0x1A) + ACTOR_FIELD(temp_v0_2, u16*, 0x2C));
+                        ACTOR_FIELD(temp_s2, s16*, 0x20) = (s16)(ACTOR_FIELD(temp_v0_2, u16*, 0x18) - ACTOR_FIELD(temp_v0_2, u16*, 0x2C));
+                        ACTOR_FIELD(temp_s2, s16*, 0x22) = (s16)(ACTOR_FIELD(temp_v0_2, u16*, 0x1A) - ACTOR_FIELD(temp_v0_2, u16*, 0x2E));
+                        temp_v1_13                       = (u8)ACTOR_FIELD(var_s1, u16*, 0x6) & 0x20;
+                        ACTOR_FIELD(temp_s2, u8*, 0x15)  = 0x18;
+                        ACTOR_FIELD(temp_s2, u8*, 0xD)   = 0x18;
+                        ACTOR_FIELD(temp_s2, u8*, 0x25)  = 0x37;
+                        ACTOR_FIELD(temp_s2, u8*, 0x1D)  = 0x37;
+                        temp_v0_5                        = temp_v1_13 + 0x60;
+                        temp_v1_13                      += 0x7F;
+                        ACTOR_FIELD(temp_s2, u8*, 0x1C)  = temp_v0_5;
+                        ACTOR_FIELD(temp_s2, u8*, 0xC)   = temp_v0_5;
+                        ACTOR_FIELD(temp_s2, u8*, 0x24)  = temp_v1_13;
+                        ACTOR_FIELD(temp_s2, u8*, 0x14)  = temp_v1_13;
+                        ACTOR_FIELD(temp_s2, s16*, 0x16) = 0x2A;
+                        ACTOR_FIELD(temp_s2, s16*, 0xE)  = 0x42CC;
+                        var_a0                           = var_s4;
+                        if (ACTOR_FIELD(arg0, u8*, 0x38) == 2) {
+                            if (var_fp >= var_s4) {
+                                var_a0 = var_fp;
+                            }
+                        }
+                        temp_v1_13                      = D_actor_403600_80142120[var_a0];
+                        ACTOR_FIELD(temp_s2, u8*, 0x3)  = 9;
+                        ACTOR_FIELD(temp_s2, s32*, 0x4) = temp_v1_13;
+                        ACTOR_FIELD(temp_s2, u8*, 0x7)  = 0x2E;
+                    block_100:
+                        otOffset                        = (((u32)(ACTOR_FIELD(temp_v0_2, s32*, 0x24) << ACTOR_FIELD(var_a1_3, u8*, 0x128)) >> 2) & 0xFFC);
+                        ot                              = (s32*)gGpuCurrentOt;
+                        ACTOR_FIELD(temp_s2, s32*, 0x0) = (ACTOR_FIELD(temp_s2, s32*, 0x0) & var_a2) |
+                                                          (*(s32*)(otOffset + (s32)ot) & (s32)temp_s6);
+                        temp_v0_6  = (s32*)((((u32)(ACTOR_FIELD(temp_v0_2, s32*, 0x24) << ACTOR_FIELD(var_a1_3, u8*, 0x128)) >> 2) & 0xFFC) + (s32)ot);
+                        *temp_v0_6 = (*temp_v0_6 & var_a2) | ((s32)temp_s2 & (s32)temp_s6);
+                    }
+                }
+                SOFT_USE_REG(temp_s5);
+                var_s1 += sp28 * 8;
+                var_s4 += sp28;
+            } while (var_s4 < 0x20);
+        }
+    }
+    *(void**)0x1F8003FC = *(void**)0x1F8003FC + 0x54;
+}
 
 void func_actor_403600_801353D0(Actor403600EffectState* arg0, GsCOORDINATE2* arg1)
 {

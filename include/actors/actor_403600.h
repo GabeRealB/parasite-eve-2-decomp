@@ -345,8 +345,13 @@ extern u16               D_8016AEF8[];
 extern u16               D_8016E450;
 extern SVECTOR           D_actor_403600_8016065C;
 extern s32               D_actor_403600_80160700[9];
+extern const SVECTOR     D_actor_403600_80131E24;
+extern GpU16Pair         D_actor_403600_801420F0;
+extern s32               D_actor_403600_80142120[];
 
 void ActorsShared80131e24Sub1(Actor403600Ctx* arg0, Actor403600* arg1);
+void func_actor_403600_80134398(Task* arg0);
+void func_actor_403600_80138C68(Task* arg0);
 void func_8004BFF8(s32 angle, MATRIX* matrix);
 void func_actor_403600_8013C864(Actor403600* arg0);
 void func_actor_403600_80138C9C(Actor403600MotionState* arg0);
