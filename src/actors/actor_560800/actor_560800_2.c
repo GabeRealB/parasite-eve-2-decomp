@@ -156,7 +156,27 @@ void func_actor_560800_801365B0(s16 arg0)
     work->field_42 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_801365D0);
+void func_actor_560800_801365D0(u16 arg0)
+{
+    Actor560800Work*     work;
+    Actor560800AnimWork* anim;
+    u16                  i;
+
+    work = (Actor560800Work*)D_actor_560800_8017578C->work;
+    anim = (Actor560800AnimWork*)work->field_8->work;
+
+    anim->field_4B8 = arg0;
+    anim->field_4C8 = 0x10;
+    anim->field_4BE = 0;
+    SOFT_BARRIER();
+    i = 1;
+    if (i < anim->field_4BA) {
+        do {
+            func_800B4114(&anim->anim, i, arg0, 0, 10);
+            i++;
+        } while (i < anim->field_4BA);
+    }
+}
 
 void func_actor_560800_80136678(s32 arg0)
 {
