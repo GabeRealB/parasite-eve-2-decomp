@@ -30210,8 +30210,8 @@ load puts `obj` in `$v0` and keeps the prior `tpage` in `$v1`.
 Assign the clut addend first, then reload `tpage` into its own `s32`:
 
 ```c
-poly->tpage += (s8)arg0->obj->tpageOffset;
-tmp          = arg0->obj->clutOffset;
+poly->tpage += (s8)ws->obj->tpageOffset;
+tmp          = ws->obj->clutOffset;
 tpage        = poly->tpage;
 tpage       |= 0x20;
 poly->tpage  = tpage;
@@ -30221,6 +30221,9 @@ poly->clut  += (s8)tmp << 6;
 `func_8009FA24` is the example. Same split is needed for the
 `primWrite` / `POLY_GT4` siblings (`gpStreamPrimGt3OffsetLayer`,
 `gpStreamPrimGt4OffsetLayer`, `func_8009FB28`).
+`gpStreamPrimGt3PreXformOffsetLayer` is the example. Same split is needed for the
+`field_0` / `POLY_GT4` siblings (`gpStreamPrimGt3OffsetLayer`, `func_8009F708`,
+`func_8009FB28`).
 
 ## Finish the 2D byte offset before adding the table base
 
