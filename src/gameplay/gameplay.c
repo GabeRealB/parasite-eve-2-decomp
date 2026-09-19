@@ -3951,24 +3951,24 @@ u32* gpStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* func_8009ED28(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* gpStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
     POLY_F3* poly;
     s32      color;
 
-    poly = (POLY_F3*)arg0->preXformWrite;
-    if (arg0->elemCount-- > 0) {
+    poly = (POLY_F3*)ws->preXformWrite;
+    if (ws->elemCount-- > 0) {
         do {
-            color = arg2[2];
+            color = stream[2];
             setlen(poly, 4);
             *(s32*)&poly->r0 = color;
             setcode(poly, 0x20);
             poly++;
-            arg2 += arg0->elemStride;
-        } while (arg0->elemCount-- > 0);
+            stream += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    arg0->preXformWrite = (u8*)poly;
-    return arg2;
+    ws->preXformWrite = (u8*)poly;
+    return stream;
 }
 
 u32* func_8009ED90(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)

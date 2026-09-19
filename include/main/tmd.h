@@ -287,4 +287,14 @@ u32* gpStreamPrimGt4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// the order table, so neither is this command's work.
 u32* gpStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+/// Handler of a stream's pre-transformed flat-triangle records (`0x5`): each
+/// element contributes one untextured triangle to the buffer half's first
+/// region, with the element's colour word written into it.
+///
+/// Only the packet's fixed fields are written here — its length, its primitive
+/// code and the element's colour. A pre-transformed triangle's vertices come
+/// from the stream's vertex commands, and the draw pass culls the triangle and
+/// links it into the order table, so neither is this command's work.
+u32* gpStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 #endif // TMD_H
