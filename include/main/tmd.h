@@ -387,5 +387,17 @@ u32* gpStreamPrimGt4CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* strea
 /// that one normal and the element is a word shorter than the one
 /// `gpStreamPrimGt4` reads.
 u32* gpStreamPrimGt4SingleNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Handler of a stream's unlit textured-quad records (`0x156`): each element
+/// contributes one quad to the buffer half's second region, with the element's
+/// own four colours and its texture words written into it.
+///
+/// The record holds the quad's colours in place of the normals a lit quad's
+/// record carries, so nothing lights this quad and the packet is complete once
+/// this command has written it: its length and its primitive code, `0x3E` — the
+/// semi-transparent gouraud textured quad — are set here rather than at draw
+/// time from the model's flags. The element's texture words are written as they
+/// are for a lit quad, with the model's texture page and CLUT added to the
+/// primitive's own, which are stored relative to the model.
+u32* gpStreamPrimGt4Unlit(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 #endif // TMD_H

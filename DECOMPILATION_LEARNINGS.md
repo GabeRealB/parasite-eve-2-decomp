@@ -29437,14 +29437,14 @@ The target finishes the `r2` store first (`lw`/`nop`/`sw`) and uses
 into a temp before the byte stores:
 
 ```c
-*(s32*)&poly->r2 = arg2[4];
-color = arg2[5];
+*(s32*)&poly->r2 = stream[4];
+color = stream[5];
 setlen(poly, 12);
 setcode(poly, 0x3E);
 *(s32*)&poly->r3 = color;
 ```
 
-`func_8009F280` is the example. Writing `r3` from `arg2[5]` directly
+`gpStreamPrimGt4Unlit` is the example. Writing `r3` from `stream[5]` directly
 stuck at 96.8%.
 
 ## Assign-in-`&&` so a later store keeps the compared byte

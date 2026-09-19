@@ -4135,33 +4135,33 @@ u32* gpStreamPrimGt4SingleNormal(TmdScratchModelBlock* ws, s32 flags, u32* strea
     return stream;
 }
 
-u32* func_8009F280(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* gpStreamPrimGt4Unlit(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
     POLY_GT4* poly;
     s32       color;
 
-    poly = (POLY_GT4*)arg0->primWrite;
-    if (arg0->elemCount-- > 0) {
+    poly = (POLY_GT4*)ws->primWrite;
+    if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->r0 = arg2[2];
-            *(s32*)&poly->r1 = arg2[3];
-            *(s32*)&poly->r2 = arg2[4];
-            color            = arg2[5];
+            *(s32*)&poly->r0 = stream[2];
+            *(s32*)&poly->r1 = stream[3];
+            *(s32*)&poly->r2 = stream[4];
+            color            = stream[5];
             setlen(poly, 12);
             setcode(poly, 0x3E);
             *(s32*)&poly->r3 = color;
-            *(s32*)&poly->u0 = arg2[6];
-            *(s32*)&poly->u1 = arg2[7];
-            *(u16*)&poly->u2 = *(u16*)&arg2[8];
-            *(u16*)&poly->u3 = ((u16*)&arg2[8])[1];
-            poly->tpage     += arg0->tpage;
-            poly->clut      += arg0->clut;
+            *(s32*)&poly->u0 = stream[6];
+            *(s32*)&poly->u1 = stream[7];
+            *(u16*)&poly->u2 = *(u16*)&stream[8];
+            *(u16*)&poly->u3 = ((u16*)&stream[8])[1];
+            poly->tpage     += ws->tpage;
+            poly->clut      += ws->clut;
             poly++;
-            arg2 += arg0->elemStride;
-        } while (arg0->elemCount-- > 0);
+            stream += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    arg0->primWrite = (u8*)poly;
-    return arg2;
+    ws->primWrite = (u8*)poly;
+    return stream;
 }
 
 u32* func_8009F360(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
