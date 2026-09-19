@@ -22,7 +22,6 @@ typedef u32* (*_TmdModelStreamHandler)(TmdScratchModelBlock* ws, s32 flags, u32*
 u32* func_8009AF90(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009B500(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009C414(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* func_8009D0DC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009D388(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009D518(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* func_8009D718(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -232,7 +231,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     handler = tmdDrawStreamPrimGt3CornerColors;
                     break;
                 case 0x70:
-                    handler = func_8009D0DC;
+                    handler = gpDrawStreamPrimGt4ElemColor;
                     break;
                 case 0x170:
                     handler = tmdDrawStreamPrimGt4CornerColors;

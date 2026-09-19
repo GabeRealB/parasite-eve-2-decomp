@@ -130987,8 +130987,8 @@ comment mentions to the files that really reference it, but not the markdown:
 type's field or another one's. Rename a field with `--no-comments` and update
 the notes by hand, grepping for the spellings the declaration retired.
 
-Three things a rename cannot reach, all because they are macro arguments rather
-than references:
+Three things a rename cannot reach, each because a macro is involved rather
+than a reference:
 
 - `STATIC_ASSERT_SIZEOF(type, size)` pastes the name into an identifier
   (`static_assertion_sizeof_##type`), so the line keeps the old name. It fails
@@ -130996,13 +130996,14 @@ than references:
 - A reference inside a macro body is reported at the *invocation*, where the
   identifier does not appear; the tool lists those sites rather than editing
   them, and the macro definition is where the edit belongs.
-- A parameter *passed* to a function-like macro - `gte_ldrgb(ptr + 3)` and the
-  rest of the GTE loads - is reported at the invocation's own token too, and
-  since every position is validated before anything is written, that one site
-  aborts the whole rename with `expected 'arg2', found 'gte_'`. Nothing is
-  written: not the C, not the ledger row, not the notes, so the only sign the
-  run did nothing is the stderr line. Replace that argument with a placeholder,
-  run the rename, then write the argument back with the new name.
+- A reference that is a macro **argument** (`gte_ldrgb(arg2 + 4)`, and the rest
+  of the GTE loads) has its location computed at the invocation's first token
+  rather than at the identifier, so the tool stops with `expected 'arg2', found
+  'gte_'` — a token the edit was never about. Nothing is written: not the C, not
+  the ledger row, not the notes, so the only sign the run did nothing is that
+  stderr line. Edit that one site by hand first — or replace the argument with a
+  placeholder, run the rename, then write the argument back under the new name —
+  and re-run; the remaining sites are placed correctly and the rename completes.
 
 Renaming a *duplicate* type to merge it is a rename like any other - the tool
 rewrites the duplicate's declaration too, so the merged type arrives as a second
@@ -132503,10 +132504,10 @@ none, its draw twin loading the fixed `0x808080` instead.
 
 The build handler never reads that word — it only starts its texture copy one
 word later — so an unidentified handler of the family is settled by its draw
-twin's `ldrgb`: `func_8009D0DC` (`0x70`, a `POLY_GT4`) loads the element's word
-for `NCCT`, where `tmdDrawStreamGt4` (`0x78`, the same primitive) loads
-`0x3C808080` before its loop. That is what makes the twins' words come out at
-`5,6,7` and `4,5,6` respectively (`gpStreamPrimGt4ElemColor` against
+twin's `ldrgb`: `gpDrawStreamPrimGt4ElemColor` (`0x70`, a `POLY_GT4`) loads the
+element's word for `NCCT`, where `tmdDrawStreamGt4` (`0x78`, the same primitive)
+loads `0x3C808080` before its loop. That is what makes the twins' words come out
+at `5,6,7` and `4,5,6` respectively (`gpStreamPrimGt4ElemColor` against
 `gpStreamPrimGt4`), and the same read separates `0x30` from `0x38`.
 
 §5.1's "Refs" column counts the colour word as normal refs, since it derives the

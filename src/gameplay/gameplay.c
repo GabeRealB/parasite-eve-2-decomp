@@ -3089,21 +3089,19 @@ u32* gpDrawStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stre
     return stream;
 }
 
-u32* func_8009D0DC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* gpDrawStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
-    TmdScratchModelBlock* ws;
-    POLY_GT4*             poly;
-    s32*                  opz;
-    DisplayState*         ds;
-    register u32          mask asm("t2");
-    u32                   maskHi;
-    u32                   clipMask;
-    s32*                  flg;
-    u16*                  rec;
-    u8*                   verts;
-    u8*                   norms;
+    POLY_GT4*     poly;
+    s32*          opz;
+    DisplayState* ds;
+    register u32  mask asm("t2");
+    u32           maskHi;
+    u32           clipMask;
+    s32*          flg;
+    u16*          rec;
+    u8*           verts;
+    u8*           norms;
 
-    ws   = arg0;
     poly = (POLY_GT4*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         flg      = &ws->gteFlag;
@@ -3113,7 +3111,7 @@ u32* func_8009D0DC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         mask     = 0xFFFFFF;
         maskHi   = 0xFF000000;
         do {
-            rec   = (u16*)arg2;
+            rec   = (u16*)stream;
             verts = (u8*)ws->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt_real();
@@ -3121,7 +3119,7 @@ u32* func_8009D0DC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             if ((ws->gteFlag & clipMask) == 0) {
                 gte_nclip_real();
                 gte_stopz(opz);
-                gte_ldrgb(arg2 + 4);
+                gte_ldrgb(stream + 4);
                 gte_stsxy3_gt4(poly);
                 gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
                 gte_rtps_real();
@@ -3156,11 +3154,11 @@ u32* func_8009D0DC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                 }
             }
             poly++;
-            arg2 += ws->elemStride;
+            stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
     }
     ws->primWrite = (u8*)poly;
-    return arg2;
+    return stream;
 }
 
 u32* func_8009D388(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)

@@ -1332,4 +1332,32 @@ u32* gpDrawStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* st
 /// primitives stay in step with the elements that named them.
 u32* gpDrawStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+/// The draw pass's handler for a stream's colour-carrying textured-quad records
+/// (`0x70`): each element contributes one `POLY_GT4` to the buffer half's second
+/// region, projected, lit and linked into the ordering table at the depth its
+/// corners average to.
+///
+/// The record is the one whose element carries a colour of its own — the material
+/// its quad is lit from — and a normal per corner, so the corners are lit against
+/// normals of their own, three of them in one step and the fourth in a step of
+/// its own, all from that one colour. Its twin is `tmdDrawStreamGt4`, which
+/// completes the same primitive from a record that carries no colour and is lit
+/// from a fixed one.
+///
+/// The GTE projects three vertices at a time, so the element's fourth corner is
+/// projected in a step of its own, after the other three; the quad's facing is
+/// tested on the first three corners and again on the last three. A corner the
+/// GTE reports off screen, or a quad the facing tests reject, is not drawn,
+/// though the packet's room is passed over either way, so the primitives stay in
+/// step with the elements that named them.
+///
+/// What it writes is what the transform decides: the projected corners, the four
+/// corner colours, the packet's length and primitive code — `0x3C`, or `0x3E`
+/// where the object's flags call for the blended form — and the ordering-table
+/// link. The primitive itself, texture words included, was written when the
+/// stream was compiled into the buffer, so this command completes it in place.
+/// `flags` selects nothing: the blended form is the object's to ask for rather
+/// than the record's, so the parameter goes unread.
+u32* gpDrawStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 #endif // TMD_H
