@@ -79,7 +79,9 @@ typedef struct Actor403600Work {
     /* 0x778 */ s16                  field_778;
     /* 0x77A */ s16                  field_77A;
     /* 0x77C */ s16                  field_77C;
-    /* 0x77E */ byte                 pad_77E[6];
+    /* 0x77E */ byte                 pad_77E[2];
+    /* 0x780 */ s16                  field_780;
+    /* 0x782 */ s16                  field_782;
     /* 0x784 */ s16                  field_784;
     /* 0x786 */ s16                  field_786;
     /* 0x788 */ byte                 pad_788[2];
@@ -223,6 +225,19 @@ typedef struct Actor403600TurnScratch {
 } Actor403600TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor403600TurnScratch, 0x30);
 
+/// Scratch vector, rotation matrix and yaw used by func_actor_403600_8013C864.
+typedef struct Actor403600TargetScratch {
+    /* 0x00 */ SVECTOR               vector;
+    /* 0x08 */ Actor403600TurnMatrix matrix;
+    /* 0x28 */ s32                   angle;
+} Actor403600TargetScratch;
+STATIC_ASSERT_SIZEOF(Actor403600TargetScratch, 0x2C);
+
+typedef struct Actor403600MatrixRef {
+    /* 0x00 */ MATRIX* matrix;
+} Actor403600MatrixRef;
+STATIC_ASSERT_SIZEOF(Actor403600MatrixRef, 0x4);
+
 /// 0x1C-byte scratch block used while building the screen transition grid.
 typedef struct Actor403600ScreenScratch {
     /* 0x00 */ u8      pad_0[0x10];
@@ -252,6 +267,7 @@ typedef struct Actor403600Ctx {
     /* 0x14 */ u8   field_14;
 } Actor403600Ctx;
 
+extern SVECTOR           D_actor_403600_801605D4;
 extern SVECTOR           D_actor_403600_801605E4;
 extern SVECTOR           D_actor_403600_801605EC;
 extern s16               D_actor_403600_801606F2;
@@ -265,6 +281,8 @@ extern SVECTOR           D_actor_403600_8016065C;
 extern s32               D_actor_403600_80160700[9];
 
 void ActorsShared80131e24Sub1(Actor403600Ctx* arg0, Actor403600* arg1);
+void func_8004BFF8(s32 angle, MATRIX* matrix);
+void func_actor_403600_8013C864(Actor403600* arg0);
 void func_actor_403600_80138C9C(Actor403600MotionState* arg0);
 u8*  func_actor_403600_80138DCC(Actor403600* arg0);
 void func_actor_403600_8013CCEC(Actor403600* arg0, s32 arg1);

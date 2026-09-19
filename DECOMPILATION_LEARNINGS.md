@@ -131915,3 +131915,43 @@ base_4.i.sched2 and the pre-build base_4 plan. The router's best mutation was
 rejected for using an uninitialized pointer; this correction was independent.
 Compiler SHA-256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 Inputs: base.i `47a9427330645d88bce5960499245378ab4f16044bc04c42e9c30fdd53347ebd`, base_3.i `50e1616a3e04ffbd04e30c6a3d89e5bdb1712f1195c9ce1411d224dde5117c93`, base_4.i `4f9b4633f69b84a9ae52d4bbe5299ff9fac1812d1a2b339719ee734c4f16aca1`, final base_6.i `607de8ae80b63654574a471402240a7efe7d72881a1bacfe312f7fd89b617047`.
+
+## Replace a fallback scheduling boundary with the specific memory dependence (func_actor_403600_8013C864, 2026-09-19)
+
+An archived 98.808% seed had the correct registers but computed a global's
+low address immediately after its X load, filling a load-delay slot that should
+be a nop. The target instead used that address computation to fill a later
+matrix Y load delay. `SOFT_BARRIER()` after the X store trapped the independent
+low-half instruction before the boundary. More boundaries cannot free it.
+
+The successful change removed that boundary and read the matrix pointer as
+a struct member: `((Actor403600MatrixRef *)&D_80073B8C)->matrix`. The pointer
+load becomes MEM/s rather than fixed-scalar MEM, gaining a dependence on
+the preceding varying-struct X store. In base_2.i.sched2, pointer-load UID 372
+now depends on store 367; the independent low-half UID 361 can move after
+Y-load 374. The fallback matches exactly, with the same v1 address and v0 values,
+and overall score rises to 99.2199%. The remaining boundary after Y is retained.
+This is a specific observed dependence change, not a universal effect of casts.
+
+The archived bounds helper then matched without its five register pins after
+two measured allocation adjustments. A high-half keep-live at an existing GTE
+boundary fixes the local high/full pair. A read/write touch of the scratch head
+overshoots the desired global priority, moving it ahead of the work pointer; an
+input-only keep-live adds one reference instead of two and puts it between work
+and scratch alias. Preplanned base_5 reaches 100%; typed-header port base_6
+remains exact, and the unscoped integration build succeeds.
+
+A focused trace confirms singleton local quantities: high [r101], 3 refs over
+46 half-insns, priority 652 -> s1; full [r81], 3/66, priority 454 -> s2, both
+without suggestions. Global work r97 is 27/179, priority 6033 -> s3; head r98
+is 9/46, 5869 -> s4; alias r99 is 17/124, 5483 -> s5. Observation leaves
+assembly unchanged. Input SHA256 is
+`472adbc14239d6541e474669136667f6630f567365b3971289694904f0ef473d`; compiler
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+Selected events and paired build hashes:
+[2026-09-19-actor-403600-c864.json](tools/compiler_evidence/2026-09-19-actor-403600-c864.json).
+Full dumps and traces are retained in the function's `tools/permuter_findings/`
+session archive, under `PERMUTER_EVIDENCE/441f64dcd757472f/analysis/`.
+The router produced no improvement in this retry; these were manual experiments.
+The original C-only spelling of the retained bounds/early-return asm is unresolved.

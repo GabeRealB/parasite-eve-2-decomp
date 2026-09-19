@@ -21,6 +21,8 @@
 #define gte_mvmva_10030() __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_mvmva_10000() __asm__ volatile("nop; nop; .word 0x4A480012")
 #define gte_nccs_real()   __asm__ volatile("nop; nop; .word 0x4B08041B")
+#define actor_403600_d_x(out, hi) \
+    __asm__("lh %0, %%lo(D_actor_403600_801605D4)(%1)" : "=r"(out) : "r"(hi))
 #define actor_403600_load_scratch_head(out) \
     __asm__ volatile("lui %0, 0x1F80; lw %0, 0x3FC(%0)" : "=r"(out))
 #define actor_403600_load_scratch_head_nop(out) \
@@ -2536,7 +2538,186 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013A444);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013C864);
+void func_actor_403600_8013C864(Actor403600* arg0)
+{
+    SVECTOR*                  var_s2;
+    s16                       temp_a1;
+    s16                       temp_v1;
+    s32                       var_v0_3;
+    u16                       var_v0_4;
+    s32                       temp_a0;
+    s32                       temp_d_x;
+    s32                       temp_early_z;
+    s32                       temp_z0;
+    s32                       temp_z1;
+    s32                       temp_v0;
+    s32                       var_v0;
+    s32                       var_v0_2;
+    u16                       temp_s0_2;
+    Actor403600TurnMatrix*    temp_s0;
+    Actor403600TurnMatrix*    temp_s0_3;
+    Actor403600Work*          temp_s3;
+    Actor403600TargetScratch* temp_s4;
+    Actor403600TargetScratch* temp_s5;
+    Actor403600TargetScratch* temp_s6;
+    u8*                       temp_s1;
+
+    temp_s3 = arg0->field_1C;
+    if (temp_s3->field_734 == temp_s3->field_782) {
+        __asm__ volatile(
+            "lui %0, %%hi(D_actor_403600_801605D4);"
+            "lh $4, %%lo(D_actor_403600_801605D4)(%0);"
+            "li $2, -0x960;"
+            "sw $2, 0x4D4(%1);"
+            "sw $4, 0x4D0(%1);"
+            "addiu $4, %0, %%lo(D_actor_403600_801605D4);"
+            "lh $2, 4($4);"
+            "nop;"
+            "sw $2, 0x4D8(%1);"
+            "lh %0, %%lo(D_actor_403600_801605D4)(%0);"
+            "li $2, -0x1F40;"
+            "sw $2, 0x6F4(%1);"
+            "sw %0, 0x6F0(%1);"
+            "lh %0, 4($4);"
+            "li $2, 0xFF;"
+            "sh $2, 0x734(%1)"
+            : "=&r"(temp_early_z)
+            : "r"(temp_s3)
+            : "$2", "$4", "memory");
+        temp_s3->field_6F0.vz = temp_early_z;
+        return;
+    }
+    temp_s4 = *(Actor403600TargetScratch**)0x1F8003FC;
+    SOFT_USE_REG(temp_s4);
+    temp_s6                                 = (temp_s4 - 1);
+    *(Actor403600TargetScratch**)0x1F8003FC = temp_s6;
+    temp_s5                                 = temp_s6;
+    if (!((u16)temp_s3->field_734 & 1)) {
+        (temp_s4 - 1)->vector.vx = (s16)(Player_Status.coordMtx->t[0] - (u16)D_actor_403600_801605D4.vx);
+        temp_a1                  = Player_Status.coordMtx->t[2] - (u16)D_actor_403600_801605D4.vz;
+        temp_s6->vector.vz       = temp_a1;
+        temp_v0                  = ratan2((temp_s4 - 1)->vector.vx, temp_a1);
+        SOFT_TOUCH_REG(temp_v0);
+        SOFT_TOUCH_REG(temp_v0);
+        var_v0 = temp_v0;
+        if (temp_v0 < 0) {
+            SOFT_TOUCH_REG(var_v0);
+            var_v0 = -var_v0;
+        }
+        temp_s6->angle = temp_v0;
+        if (var_v0 >= 0x801) {
+            var_v0_2 = temp_v0 - 0x1000;
+            if (temp_v0 <= 0) {
+                var_v0_2 = 0x1000 - temp_v0;
+            }
+            __asm__ volatile("sw %0, 40(%1)" : : "r"(var_v0_2), "r"(temp_s5) : "memory");
+        }
+        __asm__ volatile(
+            "lui $2, %%hi(D_80073B8C)\n\t"
+            "lw $3, %%lo(D_80073B8C)($2)\n\t"
+            "nop\n\t"
+            "lw $2, 20($3)\n\t"
+            "nop\n\t"
+            "addiu $2, $2, -3500\n\t"
+            "sltiu $2, $2, 8501\n\t"
+            ".word 0x1040000C\n\t"
+            "lui %0, %%hi(D_actor_403600_801605D4)\n\t"
+            "lw $2, 28($3)\n\t"
+            "nop\n\t"
+            "addiu $2, $2, -2000\n\t"
+            "sltiu $2, $2, 10001\n\t"
+            ".word 0x10400007\n\t"
+            "addiu %1, %0, %%lo(D_actor_403600_801605D4)\n\t"
+            "lw $2, 40(%2)\n\t"
+            "nop\n\t"
+            "subu $2, $0, $2\n\t"
+            "sw $2, 40(%2)\n\t"
+            "lui %0, %%hi(D_actor_403600_801605D4)\n\t"
+            "addiu %1, %0, %%lo(D_actor_403600_801605D4)"
+            : "=&r"(temp_s1), "=&r"(var_s2)
+            : "r"(temp_s5)
+            : "$2", "$3", "memory");
+        temp_s5->vector.vx      = 0;
+        temp_s5->vector.vy      = 0;
+        temp_s0                 = &temp_s5->matrix;
+        temp_s5->vector.vz      = (s16)(0x3A98 - var_s2->vz);
+        temp_s5->matrix.field_0 = 0x1000;
+        temp_s0->field_4        = 0;
+        temp_s0->field_8        = 0x1000;
+        temp_s0->field_C        = 0;
+        temp_s0->field_10       = 0x1000;
+        func_8004BFF8(temp_s5->angle, (MATRIX*)temp_s0);
+        gte_SetRotMatrix(temp_s0);
+        gte_ldv0(temp_s5);
+        SOFT_USE_REG(temp_s1);
+        gte_mvmva_10030();
+        gte_stsv(temp_s5);
+        actor_403600_d_x(temp_d_x, temp_s1);
+        temp_s3->field_4B8.coord.t[0] = (s32)(temp_s5->vector.vx + temp_d_x);
+        temp_s3->field_4B8.coord.t[1] = (s32)(Player_Status.coordMtx->t[1] - 0x3E8);
+        temp_s3->field_4B8.coord.t[2] = (s32)(temp_s5->vector.vz + (s16)var_s2->vz);
+        temp_a0                       = (s32)Player_Status.coordMtx->t[0];
+        if ((u32)(temp_a0 - 0xDAC) < 0x2135U) {
+            if ((u32)((s32)Player_Status.coordMtx->t[2] - 0x7D0) < 0x2711U) {
+                temp_s3->field_6F0.vx = temp_a0;
+                temp_s3->field_6F0.vy = (s32)(Player_Status.coordMtx->t[1] - 0x3E8);
+                temp_s3->field_6F0.vz = (s32)Player_Status.coordMtx->t[2];
+            } else {
+                goto block_17;
+            }
+        } else {
+        block_17:
+            temp_s3->field_6F0.vx = (s32)D_actor_403600_801605D4.vx;
+            temp_s3->field_6F0.vy = (s32)(((Actor403600MatrixRef*)&D_80073B8C)->matrix->t[1] - 0x3E8);
+            SOFT_BARRIER();
+            temp_s3->field_6F0.vz = (s32)D_actor_403600_801605D4.vz;
+        }
+        temp_s0_2 = (u16)temp_s5->angle;
+        temp_v1   = temp_s0_2 + 0x800;
+        SOFT_TOUCH_REG(temp_v1);
+        SOFT_TOUCH_REG(temp_v1);
+        var_v0_3 = temp_v1;
+        if (temp_v1 < 0) {
+            SOFT_TOUCH_REG(var_v0_3);
+            var_v0_3 = -var_v0_3;
+        }
+        temp_s3->field_780 = temp_v1;
+        if (var_v0_3 >= 0x801) {
+            var_v0_4 = temp_s0_2 - 0x800;
+            if (temp_v1 <= 0) {
+                var_v0_4 = 0x1000 - temp_v1;
+            }
+            temp_s3->field_780 = var_v0_4;
+        }
+        temp_s3->field_792 = 0xA;
+        temp_s3->field_734 = (s16)((u16)temp_s3->field_734 + 1);
+    } else {
+        (temp_s4 - 1)->vector.vx = 0;
+        temp_s6->vector.vy       = 0;
+        temp_s0_3                = &(temp_s4 - 1)->matrix;
+        temp_s6->vector.vz       = (s16)(0x3A98 - (u16)D_actor_403600_801605D4.vz);
+        temp_s0_3->field_0       = 0x1000;
+        temp_s0_3->field_4       = 0;
+        temp_s0_3->field_8       = 0x1000;
+        temp_s0_3->field_C       = 0;
+        temp_s0_3->field_10      = 0x1000;
+        func_8004BFF8((s32)temp_s3->field_780, (MATRIX*)temp_s0_3);
+        gte_SetRotMatrix(temp_s0_3);
+        gte_ldv0(temp_s5);
+        gte_mvmva_10030();
+        gte_stsv(temp_s5);
+        temp_s3->field_4B8.coord.t[0] = (s32)((temp_s4 - 1)->vector.vx + D_actor_403600_801605D4.vx);
+        SOFT_BARRIER();
+        temp_s3->field_4B8.coord.t[1] = (s32)(D_80073B8C->t[1] - 0x3E8);
+        temp_z0                       = (s32)temp_s6->vector.vz;
+        temp_z1                       = (s32)D_actor_403600_801605D4.vz;
+        SOFT_BARRIER();
+        temp_s3->field_792            = 0x96;
+        temp_s3->field_734            = (s16)((u16)temp_s3->field_734 + 1);
+        temp_s3->field_4B8.coord.t[2] = temp_z0 + temp_z1;
+    }
+    *(void**)0x1F8003FC = (u8*)*(void**)0x1F8003FC + 0x2C;
+}
 
 void func_actor_403600_8013CCEC(Actor403600* arg0, s32 arg1)
 {
