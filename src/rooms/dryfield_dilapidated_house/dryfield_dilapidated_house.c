@@ -158,7 +158,7 @@ void func_dryfield_dilapidated_house_8017E014(void)
 /// which starts the room's captured-image scene, then raises the flag again once
 /// the count is 15 frames past that hand-off, keeping the screen black over it.
 /// The flag paints the whole frame with a zeroed `TILE` carved out of
-/// `Gpu_PrimCursor` and links it into `gGpuCurrentOt`. When `D_801156F9` is set
+/// `gGpuPrimCursor` and links it into `gGpuCurrentOt`. When `D_801156F9` is set
 /// the task does nothing at all.
 void func_dryfield_dilapidated_house_8017E144(Task* task)
 {
@@ -196,8 +196,8 @@ void func_dryfield_dilapidated_house_8017E144(Task* task)
                 break;
         }
         if (var_s1 != 0) {
-            tile           = (TILE*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+            tile           = (TILE*)gGpuPrimCursor;
+            gGpuPrimCursor = tile + 1;
             SetTile(tile);
             tile->x0 = -0xA0;
             tile->y0 = -0x80;

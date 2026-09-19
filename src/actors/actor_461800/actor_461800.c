@@ -120,8 +120,8 @@ void func_actor_461800_80132048(Task* task)
             task->killCountdown = 90;
             break;
     }
-    tile           = (TILE*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+    tile           = (TILE*)gGpuPrimCursor;
+    gGpuPrimCursor = tile + 1;
     c              = (task->killCountdown * 0xFF) / 90;
     setlen(tile, 3);
     setcode(tile, 0x62);
@@ -134,8 +134,8 @@ void func_actor_461800_80132048(Task* task)
     tile->b0 = c;
     addPrim(gGpuCurrentOt + 5, tile);
 
-    dr             = Gpu_PrimCursor;
-    Gpu_PrimCursor = dr + 1;
+    dr             = gGpuPrimCursor;
+    gGpuPrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE1000240;
     addPrim(gGpuCurrentOt + 5, dr);

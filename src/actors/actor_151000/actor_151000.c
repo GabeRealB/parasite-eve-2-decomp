@@ -12,8 +12,8 @@ void func_actor_151000_80131E2C(Task* task)
     s32   count;
 
     if (count != 0) {
-        tile           = (TILE*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+        tile           = (TILE*)gGpuPrimCursor;
+        gGpuPrimCursor = tile + 1;
         SetTile(tile);
         tile->r0 = 0;
         tile->g0 = 0;

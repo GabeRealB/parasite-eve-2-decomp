@@ -343,8 +343,8 @@ void func_metabolism_8012F840(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
-        prim           = (POLY_G3*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_G3*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setPolyG3(prim);
         setRGB0(prim, (s16)arg3 >> 1, color, (s16)arg3 >> (gDisplayState.animFrame & 1));
         setRGB1(prim, 0, 0, 0);

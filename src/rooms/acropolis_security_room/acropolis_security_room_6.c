@@ -361,8 +361,8 @@ void func_acropolis_security_room_80180A78(Task* task)
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->a);
         gte_rtps_real();
-        prim           = (LINE_F2*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (LINE_F2*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setLineF2(prim);
         gte_stsxy(&prim->x0);
         gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->b);
@@ -403,8 +403,8 @@ void func_acropolis_security_room_80180E34(Task* arg0)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
 
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
     mem->field_24 = *(u16*)&arg0->spawnArg1 & 3;
     prim->tpage   = 0xAB;
@@ -488,8 +488,8 @@ void func_acropolis_security_room_80181108(Task* arg0)
     gte_ldv0(&blk->v[0]);
     gte_rtps_real();
 
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
     gte_stsxy(&prim->x0);
     gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
@@ -641,8 +641,8 @@ void func_acropolis_security_room_801817A4(Task* taskArg)
         __asm__("move %0,%1" : "=r"(savedLum) : "r"(rawLum));
         scratch->step = 0xC00 / ((AsrFlashScratch*)(head - 0x14))->otz;
         do {
-            quad           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(quad + 1);
+            quad           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
             setPolyG4(quad);
             setRGB0(quad, 0, 0, 0);
             setRGB1(quad, 0, 0, 0);
@@ -676,8 +676,8 @@ void func_acropolis_security_room_801817A4(Task* taskArg)
         i       = 0;
         lineLum = savedLum;
         do {
-            line           = (LINE_G3*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+            line           = (LINE_G3*)gGpuPrimCursor;
+            gGpuPrimCursor = line + 1;
             setLineG3(line);
             setRGB0(line, 0, 0, 0);
             product   = redHalf * lineLum;

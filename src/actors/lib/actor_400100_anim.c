@@ -605,8 +605,8 @@ void Actor00100_Fn01900(Actor00100* actor, s16 firstJoint, s16 secondJoint, s16 
         s->depth = RotTransPers4(&s->corner0, &s->corner1, &s->corner2, &s->corner3, &s->screen0, &s->screen1,
                                  &s->screen2, &s->screen3, &s->perspective, &s->flags);
         if (s->flags >= 0) {
-            poly           = Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)((u8*)poly + 0x28);
+            poly           = gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)poly + 0x28;
             setlen(poly, 9);
             poly->code       = 0x2E;
             *(s32*)&poly->x0 = s->screen0;

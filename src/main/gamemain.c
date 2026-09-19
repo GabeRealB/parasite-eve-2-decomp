@@ -417,8 +417,8 @@ void GameMain_Loop(void)
                 s32 idx;
                 idx               = nv->otBuffer;
                 Gpu_SysPrimCursor = Gpu_PrimBufStatic + (u32)idx * 0x3000;
-                Gpu_PrimCursor =
-                    (DR_TPAGE*)((u8*)Gpu_PrimHeapBase + (u32)idx * ((u32)Gpu_PrimHeapSize >> 1));
+                gGpuPrimCursor =
+                    (u8*)Gpu_PrimHeapBase + (u32)idx * ((u32)Gpu_PrimHeapSize >> 1);
                 /* Callee reloads gTaskDefaultList itself; keep idx in $a0. */
                 Task_ExecDefaultList((TaskNode*)idx);
             }

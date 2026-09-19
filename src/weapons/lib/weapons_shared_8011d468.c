@@ -42,8 +42,8 @@ void WeaponsShared8011d468(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((WeaponFlashCoreScratch*)(head - 0x18))->vec);
     gte_rtps_real();
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&((WeaponFlashCoreScratch*)(head - 0x18))->sxy);

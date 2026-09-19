@@ -61,8 +61,8 @@ void Gp_DrawEffSprite81(Task* arg0)
         gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
         USE_REG(head);
         block->otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         COMPILER_BARRIER();
         len  = 9;
         code = 0x2D;
@@ -154,8 +154,8 @@ void Gp_DrawEffSprite46(GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg3)
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         block->otz    += 0x20;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
         prim->tpage = 0x29;

@@ -990,8 +990,8 @@ void func_actor_105700_8013477C(Actor105700* arg0, SVECTOR* arg1, SVECTOR* arg2)
         s->ys[5]  = s->ys[1] + ((s->pt.vx * 9) >> 4) / depth;
         s->xs[5]  = s->xs[1] + ((s->pt.vy * 9) >> 4) / depth;
         for (j = 0; j < 2; j++) {
-            poly           = Gpu_PrimCursor;
-            Gpu_PrimCursor = (u8*)poly + sizeof(POLY_G4);
+            poly           = gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)poly + sizeof(POLY_G4);
             setPolyG4(poly);
             setSemiTrans(poly, 1);
             poly->x0 = s->xs[D_actor_105700_801491E8[j][0]];
@@ -1016,8 +1016,8 @@ void func_actor_105700_8013477C(Actor105700* arg0, SVECTOR* arg1, SVECTOR* arg2)
             poly->b3 = 0;
             addPrim((u32*)((((u32)(depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
         }
-        line           = Gpu_PrimCursor;
-        Gpu_PrimCursor = (u8*)line + sizeof(LINE_F2);
+        line           = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)line + sizeof(LINE_F2);
         setLineF2(line);
         setSemiTrans(line, 1);
         line->x0 = s->prev;
@@ -1028,8 +1028,8 @@ void func_actor_105700_8013477C(Actor105700* arg0, SVECTOR* arg1, SVECTOR* arg2)
         line->g0 = 0;
         line->b0 = 0;
         addPrim((u32*)((((u32)(depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), line);
-        page           = Gpu_PrimCursor;
-        Gpu_PrimCursor = (u8*)page + sizeof(DR_TPAGE);
+        page           = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)page + sizeof(DR_TPAGE);
         setlen(page, 1);
         page->code[0] = 0xE1000620;
         addPrim((u32*)((((u32)(depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), page);

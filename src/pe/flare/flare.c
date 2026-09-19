@@ -188,8 +188,8 @@ void flareDrawSparkQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
     if (block->flag >= 0) {
         gte_stszotz(&((FlareQuadScratch*)(head - 0x1C))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
         setSemiTrans(prim, 1);
         setShadeTex(prim, 1);

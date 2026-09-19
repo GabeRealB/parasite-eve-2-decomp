@@ -50,9 +50,9 @@ void Room_Draw40(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
     gte_stflg(&((RoomDraw40Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((RoomDraw40Scratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        prim           = (POLY_FT4*)gGpuPrimCursor;
         ang            = arg3;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
         prim->tpage = 0x2C;

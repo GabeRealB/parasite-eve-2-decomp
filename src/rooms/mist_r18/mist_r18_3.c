@@ -53,8 +53,8 @@ void func_mist_r18_8017E448(MistR18Sprite* sprite)
 {
     TILE* tile;
 
-    tile           = (TILE*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+    tile           = (TILE*)gGpuPrimCursor;
+    gGpuPrimCursor = tile + 1;
     setTile(tile);
     if (sprite->semiTrans == 0) {
         SetShadeTex(tile, 1);
@@ -80,8 +80,8 @@ void func_mist_r18_8017E534(MistR18Sprite* sprite, u32 clutX, s32 clutY)
     SPRT* p;
     u8    v;
 
-    p              = (SPRT*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p              = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     SetSprt(p);
     if (sprite->semiTrans == 0) {
         SetShadeTex(p, 1);
@@ -109,8 +109,8 @@ void func_mist_r18_8017E654(s16 abr, s16 x, s16 y, s32 otIdx)
 {
     DR_TPAGE* dr;
 
-    dr             = Gpu_PrimCursor;
-    Gpu_PrimCursor = dr + 1;
+    dr             = gGpuPrimCursor;
+    gGpuPrimCursor = dr + 1;
     SetDrawTPage(dr, 1, 0, GetTPage(0, abr, x, y));
     AddPrim(gGpuCurrentOt + otIdx, dr);
 }

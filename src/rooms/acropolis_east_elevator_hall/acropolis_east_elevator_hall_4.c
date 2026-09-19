@@ -42,8 +42,8 @@ void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((AeehMoteScratch*)(head - 0xC))->vec);
     gte_rtps_real();
-    prim           = (TILE_1*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (TILE_1*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setTile1(prim);
     gte_stsxy(&prim->x0);
     gte_stszotz(&block->otz);

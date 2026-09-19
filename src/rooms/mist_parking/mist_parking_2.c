@@ -156,12 +156,12 @@ void func_mist_parking_8018089C(DialogPrompt* prompt, UiObject* obj)
     barW += 2;
     barX  = right - barW;
     if (barW >= 2) {
-        prim     = (POLY_G4*)Gpu_PrimCursor;
+        prim     = (POLY_G4*)gGpuPrimCursor;
         x0       = obj->baseX + barX + 1;
         prim->x2 = x0;
         prim->x0 = x0;
 
-        Gpu_PrimCursor   = (DR_TPAGE*)(prim + 1);
+        gGpuPrimCursor   = prim + 1;
         y0               = obj->baseY;
         y0               = y0 + barY;
         y0              += 1;

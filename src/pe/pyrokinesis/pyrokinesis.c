@@ -519,8 +519,8 @@ void func_pyrokinesis_8012FC34(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, red, grn, blu);
             setRGB1(prim, red, grn, blu);
@@ -591,8 +591,8 @@ void func_pyrokinesis_80130130(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
         block->step = ((s16)arg1 * 64) / block->otz;
         ang         = 0;
         do {
-            prim           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);
@@ -672,8 +672,8 @@ void func_pyrokinesis_801304C4(GsCOORDINATE2* arg0, s32 arg1)
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         block->otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
         setRGB0(prim, 0x30, 0x20, 0x20);
@@ -743,8 +743,8 @@ void func_pyrokinesis_80130848(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3
         gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
         ang = (s16)arg3;
         block->otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
         prim->tpage = 0x29;

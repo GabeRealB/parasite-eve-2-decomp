@@ -409,8 +409,8 @@ void Gp_DrawFadeQuad(u8* arg0, s32 arg1)
     yTop  = -0x78;
     yBot  = 0x78;
 
-    p              = (POLY_F4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p              = (POLY_F4*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     setPolyF4(p);
     setRGB0(p, arg0[0], arg0[1], arg0[2]);
     p->x0 = x0;
@@ -424,8 +424,8 @@ void Gp_DrawFadeQuad(u8* arg0, s32 arg1)
     addPrim((u_long*)(((((u32)0x10 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), p);
 
     setSemiTrans(p, 1);
-    dr             = Gpu_PrimCursor;
-    Gpu_PrimCursor = dr + 1;
+    dr             = gGpuPrimCursor;
+    gGpuPrimCursor = dr + 1;
     setDrawTPage(dr, 0, 1, 0xA | (arg1 << 5));
     addPrim((u_long*)(((((u32)0x10 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), dr);
 }
@@ -473,8 +473,8 @@ void Gp_DrawArc(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
         block->inner = ((s16)arg1 * 64) / block->otz;
         block->outer = (((s16)arg1 + (s16)arg2) * 64) / block->otz;
         do {
-            prim           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);
@@ -494,8 +494,8 @@ void Gp_DrawArc(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
                     prim);
             otz = block->otz;
             setSemiTrans(prim, 1);
-            dr             = Gpu_PrimCursor;
-            Gpu_PrimCursor = dr + 1;
+            dr             = gGpuPrimCursor;
+            gGpuPrimCursor = dr + 1;
             setDrawTPage(dr, 0, 1, 0x2A);
             addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
@@ -548,8 +548,8 @@ void Gp_DrawRing(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
         block->step = ((s16)arg1 * 64) / block->otz;
         ang         = 0;
         do {
-            prim           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);
@@ -570,8 +570,8 @@ void Gp_DrawRing(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
                     prim);
             otz = block->otz;
             setSemiTrans(prim, 1);
-            dr             = Gpu_PrimCursor;
-            Gpu_PrimCursor = dr + 1;
+            dr             = gGpuPrimCursor;
+            gGpuPrimCursor = dr + 1;
             setDrawTPage(dr, 0, 1, 0x2A);
             addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
@@ -616,8 +616,8 @@ void Gp_DrawFxQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3)
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
         setSemiTrans(prim, 1);
         setShadeTex(prim, 1);
@@ -683,8 +683,8 @@ void func_800EB6E8(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3)
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
         setSemiTrans(prim, 1);
         prim->tpage = 0x2A;
@@ -764,8 +764,8 @@ void Gp_DrawBand(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, rgb[0], rgb[1], rgb[2]);
             setRGB1(prim, rgb[0], rgb[1], rgb[2]);
@@ -784,8 +784,8 @@ void Gp_DrawBand(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
                     prim);
             otz = block->otz;
             setSemiTrans(prim, 1);
-            dr             = Gpu_PrimCursor;
-            Gpu_PrimCursor = dr + 1;
+            dr             = gGpuPrimCursor;
+            gGpuPrimCursor = dr + 1;
             setDrawTPage(dr, 0, 1, 0x2A);
             addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
@@ -854,8 +854,8 @@ void Gp_DrawBandEx(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* rgb)
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, rgb[0], rgb[1], rgb[2]);
             setRGB1(prim, rgb[0], rgb[1], rgb[2]);
@@ -874,8 +874,8 @@ void Gp_DrawBandEx(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* rgb)
                     prim);
             otz = block->otz;
             setSemiTrans(prim, 1);
-            dr             = Gpu_PrimCursor;
-            Gpu_PrimCursor = dr + 1;
+            dr             = gGpuPrimCursor;
+            gGpuPrimCursor = dr + 1;
             setDrawTPage(dr, 0, 1, 0x2A);
             addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
@@ -1012,8 +1012,8 @@ void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2)
     DR_TPAGE* p;
 
     setSemiTrans(arg0, 1);
-    p              = Gpu_PrimCursor;
-    Gpu_PrimCursor = p + 1;
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     setlen(p, 1);
     p->code[0] = 0xE100020A | ((arg1 & 3) << 5);
     addPrim(gGpuCurrentOt + (arg2 >> 4), p);
@@ -1024,8 +1024,8 @@ void Gp_AddTpageShift(P_TAG* arg0, s32 arg1, s32 arg2)
     DR_TPAGE* p;
 
     setSemiTrans(arg0, 1);
-    p              = Gpu_PrimCursor;
-    Gpu_PrimCursor = p + 1;
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     p->code[0]     = 0xE100020A | ((arg1 & 3) << 5);
     setlen(p, 1);
     addPrim((u_long*)(((((u32)arg2 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), p);

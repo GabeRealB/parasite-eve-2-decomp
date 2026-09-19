@@ -6199,8 +6199,8 @@ s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
         }
     }
 
-    dr                                = Gpu_PrimCursor;
-    Gpu_PrimCursor                    = dr + 1;
+    dr                                = gGpuPrimCursor;
+    gGpuPrimCursor                    = dr + 1;
     ((volatile P_TAG*)dr)->len        = 1;
     ((volatile DR_TPAGE*)dr)->code[0] = _get_mode(0, 1, 0x3E);
     {
@@ -6226,8 +6226,8 @@ void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
     n = Gp_GetAttachParam(3);
     if (Gp_StateC08.field_5 < 0xD) {
         if (Gp_StateC08.field_2 > 0) {
-            tile           = (TILE*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+            tile           = (TILE*)gGpuPrimCursor;
+            gGpuPrimCursor = tile + 1;
             tile->x0       = arg1 + 0x18;
             tile->y0       = arg2 + 0x21;
             tile->w        = Gp_StateC08.field_2;
@@ -6242,8 +6242,8 @@ void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
             n = 0xB;
         }
 
-        sp             = (SPRT_16*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(sp + 1);
+        sp             = (SPRT_16*)gGpuPrimCursor;
+        gGpuPrimCursor = sp + 1;
         sp->x0         = arg1 + 0x15;
         sp->y0         = arg2 + 0x1D;
         sp->u0         = 0x98;
@@ -6253,8 +6253,8 @@ void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
         setcode(sp, 0x77);
         addPrim(gGpuCurrentOt - 2, sp);
 
-        sp2            = (SPRT_16*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(sp2 + 1);
+        sp2            = (SPRT_16*)gGpuPrimCursor;
+        gGpuPrimCursor = sp2 + 1;
         sp2->x0        = n + arg1 + 0x13;
         sp2->y0        = arg2 + 0x1D;
         sp2->u0        = 0xA8;
@@ -6264,8 +6264,8 @@ void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
         setcode(sp2, 0x77);
         addPrim(gGpuCurrentOt - 2, sp2);
 
-        poly           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        poly           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = poly + 1;
         poly->x0       = arg1 + 0x1D;
         poly->y0       = arg2 + 0x1D;
         poly->u0       = 0xA0;
@@ -6294,8 +6294,8 @@ void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
         obj.mode      = 0;
         Gp_DrawItemIcon(&obj, arg1 + 4, arg2 + 0x28, ((cat / 3) << 4) + ((cat % 3) << 2) + 0x301, 0);
 
-        dr             = Gpu_PrimCursor;
-        Gpu_PrimCursor = dr + 1;
+        dr             = gGpuPrimCursor;
+        gGpuPrimCursor = dr + 1;
         setDrawTPage(dr, 0, 1, 0x1E);
         addPrim(gGpuCurrentOt - 2, dr);
     }
@@ -6676,8 +6676,8 @@ void Gp_HudTask(GpIdMapC* arg0)
     cfg   = &Player_Status;
     ds    = &gDisplayState;
     if (ds->demoScene != 0) {
-        poly           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        poly           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = poly + 1;
         poly->x2       = 0x16;
         poly->x0       = 0x16;
         poly->x3       = 0x96;
@@ -6700,8 +6700,8 @@ void Gp_HudTask(GpIdMapC* arg0)
         setcode(poly, 0x2D);
         addPrim(gGpuCurrentOt - 5, poly);
 
-        poly           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        poly           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = poly + 1;
         poly->x2       = 0x16;
         poly->x0       = 0x16;
         poly->x3       = 0x96;
@@ -7342,8 +7342,8 @@ static __inline__ void Gp_LinkRingSeg(GpCircleScratch* sc)
 {
     LINE_F2* prim;
 
-    prim             = (LINE_F2*)Gpu_PrimCursor;
-    Gpu_PrimCursor   = (DR_TPAGE*)(prim + 1);
+    prim             = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor   = prim + 1;
     *(u32*)&prim->r0 = 0x40C000;
     *(u32*)&prim->x0 = *(u32*)&sc->sxyPrev;
     *(u32*)&prim->x1 = *(u32*)&sc->sxy;
@@ -7800,8 +7800,8 @@ void func_800A57B0(GpIdMapC* arg0)
                 w2 = 0x25;
             }
             if (w1 > 0) {
-                tile           = (TILE*)Gpu_PrimCursor;
-                Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+                tile           = (TILE*)gGpuPrimCursor;
+                gGpuPrimCursor = tile + 1;
                 tile->x0       = x + 5;
                 tile->y0       = y + 0xE;
                 tile->h        = 2;
@@ -7812,8 +7812,8 @@ void func_800A57B0(GpIdMapC* arg0)
                 addPrim(gGpuCurrentOt - 2, tile);
             }
             if (w2 - w1 > 0) {
-                tile           = (TILE*)Gpu_PrimCursor;
-                Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+                tile           = (TILE*)gGpuPrimCursor;
+                gGpuPrimCursor = tile + 1;
                 {
                     s32 tileX = w1 + 5;
                     tile->x0  = x + tileX;
@@ -7849,8 +7849,8 @@ void func_800A57B0(GpIdMapC* arg0)
         }
     }
     if (w1 > 0) {
-        tile           = (TILE*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+        tile           = (TILE*)gGpuPrimCursor;
+        gGpuPrimCursor = tile + 1;
         tile->x0       = x + 0x30;
         tile->y0       = y + 0xE;
         tile->h        = 2;
@@ -7861,8 +7861,8 @@ void func_800A57B0(GpIdMapC* arg0)
         addPrim(gGpuCurrentOt - 2, tile);
     }
     if (w2 - w1 > 0) {
-        tile           = (TILE*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+        tile           = (TILE*)gGpuPrimCursor;
+        gGpuPrimCursor = tile + 1;
         {
             s32 tileX = w1 + 0x30;
             tile->x0  = x + tileX;
@@ -7883,8 +7883,8 @@ void func_800A57B0(GpIdMapC* arg0)
         s32 right = x + 0x23;
         s32 y3    = y + 0x13;
 
-        sp1            = (SPRT*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(sp1 + 1);
+        sp1            = (SPRT*)gGpuPrimCursor;
+        gGpuPrimCursor = sp1 + 1;
         sp1->x0        = left;
         sp1->y0        = yb;
         sp1->u0        = 0x98;
@@ -7894,8 +7894,8 @@ void func_800A57B0(GpIdMapC* arg0)
         setcode(sp1, 0x75);
         addPrim(gGpuCurrentOt - 2, sp1);
 
-        sp1            = (SPRT*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(sp1 + 1);
+        sp1            = (SPRT*)gGpuPrimCursor;
+        gGpuPrimCursor = sp1 + 1;
         sp1->x0        = right;
         sp1->y0        = yb;
         sp1->u0        = 0xA8;
@@ -7905,8 +7905,8 @@ void func_800A57B0(GpIdMapC* arg0)
         setcode(sp1, 0x75);
         addPrim(gGpuCurrentOt - 2, sp1);
 
-        poly1          = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(poly1 + 1);
+        poly1          = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = poly1 + 1;
         poly1->x2      = x + 0xC;
         poly1->x0      = x + 0xC;
         poly1->x3      = right;
@@ -7929,9 +7929,9 @@ void func_800A57B0(GpIdMapC* arg0)
         setcode(poly1, 0x2D);
         addPrim(gGpuCurrentOt - 2, poly1);
 
-        sp3            = (SPRT*)Gpu_PrimCursor;
+        sp3            = (SPRT*)gGpuPrimCursor;
         sp3->x0        = left;
-        Gpu_PrimCursor = (DR_TPAGE*)(sp3 + 1);
+        gGpuPrimCursor = sp3 + 1;
         sp3->y0        = yb;
         sp3->u0        = 0x98;
         sp3->v0        = 0x68;
@@ -7941,9 +7941,9 @@ void func_800A57B0(GpIdMapC* arg0)
         setcode(sp3, 0x75);
         addPrim(gGpuCurrentOt - 2, sp3);
 
-        sp3            = (SPRT*)Gpu_PrimCursor;
+        sp3            = (SPRT*)gGpuPrimCursor;
         sp3->x0        = right;
-        Gpu_PrimCursor = (DR_TPAGE*)(sp3 + 1);
+        gGpuPrimCursor = sp3 + 1;
         sp3->u0        = 0xA8;
         sp3->v0        = 0x68;
         setlen(sp3, 3);
@@ -7953,8 +7953,8 @@ void func_800A57B0(GpIdMapC* arg0)
         sp3->clut = clut;
         addPrim(gGpuCurrentOt - 2, sp3);
 
-        poly2          = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(poly2 + 1);
+        poly2          = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = poly2 + 1;
         poly2->x2      = x + 0x37;
         poly2->x0      = x + 0x37;
         poly2->x3      = x + 0x4E;
@@ -7978,8 +7978,8 @@ void func_800A57B0(GpIdMapC* arg0)
         addPrim(gGpuCurrentOt - 2, poly2);
     }
 
-    tp             = Gpu_PrimCursor;
-    Gpu_PrimCursor = tp + 1;
+    tp             = gGpuPrimCursor;
+    gGpuPrimCursor = tp + 1;
     setlen(tp, 1);
     tp->code[0] = 0xE100023E;
     addPrim(gGpuCurrentOt - 2, tp);
@@ -8001,8 +8001,8 @@ void func_800A57B0(GpIdMapC* arg0)
         for (i = 0; i < 7; i++) {
             flags = loc.icons.flags.bits;
             if (cfg->peStateFlags & flags[i]) {
-                sp5            = (SPRT*)Gpu_PrimCursor;
-                Gpu_PrimCursor = (DR_TPAGE*)(sp5 + 1);
+                sp5            = (SPRT*)gGpuPrimCursor;
+                gGpuPrimCursor = sp5 + 1;
                 sp5->x0        = iconX;
                 iconX         += 0xD;
                 sp5->y0        = iconY;
@@ -8034,9 +8034,9 @@ void func_800A63B4(s32 arg0, s32 arg1, s32 arg2)
 
     otIdx          = 0;
     arg0          -= 6;
-    p              = (SPRT_8*)Gpu_PrimCursor;
+    p              = (SPRT_8*)gGpuPrimCursor;
     arg1          -= 8;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    gGpuPrimCursor = p + 1;
     p->x0          = arg0;
     p->y0          = arg1;
     if (arg2 == 1) {
@@ -8155,19 +8155,19 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     if (mode == 0) {
         sy *= 2;
     }
-    tp             = Gpu_PrimCursor;
-    Gpu_PrimCursor = tp + 1;
+    tp             = gGpuPrimCursor;
+    gGpuPrimCursor = tp + 1;
     setlen(tp, 1);
     tp->code[0] = 0xE100023E;
     addPrim(gGpuCurrentOt - 2, tp);
-    tp             = Gpu_PrimCursor;
-    Gpu_PrimCursor = tp + 1;
+    tp             = gGpuPrimCursor;
+    gGpuPrimCursor = tp + 1;
     setlen(tp, 1);
     tp->code[0] = 0xE100023E;
     addPrim(gGpuCurrentOt - 3, tp);
     if (mode == 1) {
-        sp             = (SPRT*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(sp + 1);
+        sp             = (SPRT*)gGpuPrimCursor;
+        gGpuPrimCursor = sp + 1;
         sp->x0         = x + 0xD;
         sp->y0         = y + 0xC;
         sp->h          = 0x28;
@@ -8179,8 +8179,8 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
         setcode(sp, 0x65);
         addPrim(gGpuCurrentOt - 2, sp);
     }
-    poly             = (POLY_GT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor   = (DR_TPAGE*)(poly + 1);
+    poly             = (POLY_GT4*)gGpuPrimCursor;
+    gGpuPrimCursor   = poly + 1;
     *(u32*)&poly->r2 = 0xC0C0C0;
     *(u32*)&poly->r3 = 0x808080;
     *(u32*)&poly->r0 = 0x404040;
@@ -8195,8 +8195,8 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     poly->y0 = poly->y1 = y;
     addPrim(gGpuCurrentOt - 2, poly);
     if (arg0->field_16 != -1) {
-        sp2            = (SPRT*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(sp2 + 1);
+        sp2            = (SPRT*)gGpuPrimCursor;
+        gGpuPrimCursor = sp2 + 1;
         sp2->x0        = x + 0xD;
         sp2->y0        = y + 0xC;
         sp2->h         = 0x28;
@@ -8326,8 +8326,8 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         }
 
         if (w > 0) {
-            tile           = (TILE*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+            tile           = (TILE*)gGpuPrimCursor;
+            gGpuPrimCursor = tile + 1;
             if (span < w) {
                 w = span;
             }
@@ -8348,8 +8348,8 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         yb   = y + 0xB;
         clut = 0x3C0B;
 
-        sp             = (SPRT*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(sp + 1);
+        sp             = (SPRT*)gGpuPrimCursor;
+        gGpuPrimCursor = sp + 1;
         sp->x0         = x + 4;
         sp->y0         = yb;
         sp->u0         = 0x98;
@@ -8359,8 +8359,8 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         setcode(sp, 0x75);
         addPrim(gGpuCurrentOt - 2, sp);
 
-        sp             = (SPRT*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(sp + 1);
+        sp             = (SPRT*)gGpuPrimCursor;
+        gGpuPrimCursor = sp + 1;
         right          = (span + x) - 2;
         sp->x0         = right;
         sp->y0         = yb;
@@ -8371,8 +8371,8 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         setcode(sp, 0x75);
         addPrim(gGpuCurrentOt - 2, sp);
 
-        poly           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        poly           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = poly + 1;
         poly->x2       = x + 0xC;
         poly->x0       = x + 0xC;
         poly->x3       = right;

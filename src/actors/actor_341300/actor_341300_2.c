@@ -278,8 +278,8 @@ void func_actor_341300_80162878(Task* arg0)
                 x[i] = sxy;
                 y[i] = sxy >> 16;
             }
-            prim           = (POLY_G3*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G3*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG3(prim);
             prim->r0 = prim->g0 = prim->b0 = 0x10;
             prim->r1 = prim->g1 = prim->b1 = 0x40;
@@ -440,8 +440,8 @@ void func_actor_341300_801631D4(Task* arg0)
                 x[i] = sxy;
                 y[i] = sxy >> 16;
             }
-            prim           = (POLY_G3*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G3*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG3(prim);
             prim->r0 = prim->g0 = prim->b0 = 0x10;
             prim->r1 = prim->g1 = prim->b1 = 0x40;

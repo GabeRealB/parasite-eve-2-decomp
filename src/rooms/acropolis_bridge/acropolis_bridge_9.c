@@ -695,8 +695,8 @@ void func_acropolis_bridge_801812F4(Task* task)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->pos);
     gte_rtps_real();
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&blk->sxy);
@@ -721,8 +721,8 @@ void func_acropolis_bridge_801812F4(Task* task)
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
 
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
         prim->clut  = 0x4381;
@@ -816,8 +816,8 @@ void func_acropolis_bridge_801819C8(Task* task)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
     gte_rtps_real();
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&prim->x0);

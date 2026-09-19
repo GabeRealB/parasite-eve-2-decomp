@@ -1457,9 +1457,9 @@ void func_800B1EFC(Task* arg0)
         }
     }
 
-    p              = (TILE*)Gpu_PrimCursor;
+    p              = (TILE*)gGpuPrimCursor;
     y              = -0x78;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    gGpuPrimCursor = p + 1;
     setlen(p, 3);
     setcode(p, 0x62);
     p->x0          = -0xA0;
@@ -1468,11 +1468,11 @@ void func_800B1EFC(Task* arg0)
     p->b0          = color;
     p->g0          = color;
     p->r0          = color;
-    dr             = (DR_TPAGE*)Gpu_PrimCursor;
+    dr             = (DR_TPAGE*)gGpuPrimCursor;
     p->w           = 0x140;
     p->h           = 0xF0;
     p->y0          = y - yoff;
-    Gpu_PrimCursor = dr + 1;
+    gGpuPrimCursor = dr + 1;
     if (t->spawnArg2 == 0) {
         setlen(dr, 1);
         dr->code[0] = 0xE1000240;
@@ -1557,10 +1557,10 @@ void Gp_FadeWorkTask(Task* arg0)
     }
 
     color          = (t->killCountdown * 0xFF0) / work->field_2;
-    tile           = (TILE*)Gpu_PrimCursor;
+    tile           = (TILE*)gGpuPrimCursor;
     y              = -0x78;
     tile->y0       = y;
-    Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+    gGpuPrimCursor = tile + 1;
     setlen(tile, 3);
     setcode(tile, 0x62);
     tile->x0 = -0xA0;
@@ -1571,10 +1571,10 @@ void Gp_FadeWorkTask(Task* arg0)
     tile->b0 = color;
     tile->g0 = color;
     tile->r0 = color;
-    dr       = (DR_TPAGE*)Gpu_PrimCursor;
+    dr       = (DR_TPAGE*)gGpuPrimCursor;
     tile->y0 = y - yoff;
 
-    Gpu_PrimCursor = dr + 1;
+    gGpuPrimCursor = dr + 1;
     if (work->field_0 == 0) {
         setlen(dr, 1);
         dr->code[0] = 0xE1000240;
@@ -2926,8 +2926,8 @@ void Gp_DrawFloorQuad(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2)
     if (block->flag >= 0) {
         c0             = 0xC0;
         f7             = 0xF7;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
         *(u32*)&prim->x0 = *(u32*)&block->sxy0;
@@ -2988,8 +2988,8 @@ void func_800B51F4(Task* task)
         if (task->killCountdown >= 0x3D) {
             color          = task->killCountdown - 0x3C;
             color         *= 8;
-            tile           = (TILE*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+            tile           = (TILE*)gGpuPrimCursor;
+            gGpuPrimCursor = tile + 1;
             setlen(tile, 3);
             setcode(tile, 0x62);
             if (color >= 0x100) {
@@ -3004,29 +3004,29 @@ void func_800B51F4(Task* task)
             tile->r0 = color;
             addPrim(&gGpuCurrentOt[1], tile);
 
-            fadeDr         = (DR_TPAGE*)Gpu_PrimCursor;
-            Gpu_PrimCursor = fadeDr + 1;
+            fadeDr         = (DR_TPAGE*)gGpuPrimCursor;
+            gGpuPrimCursor = fadeDr + 1;
             setlen(fadeDr, 1);
             fadeDr->code[0] = 0xE1000240;
             addPrim(&gGpuCurrentOt[1], fadeDr);
         }
     }
 
-    stp            = (DR_STP*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(stp + 1);
+    stp            = (DR_STP*)gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[0], stp);
 
-    dr             = (DR_TPAGE*)Gpu_PrimCursor;
-    Gpu_PrimCursor = dr + 1;
+    dr             = (DR_TPAGE*)gGpuPrimCursor;
+    gGpuPrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE1000600;
     addPrim(&gGpuCurrentOt[0], dr);
 
     for (i = 0; i < count; i++) {
-        p0             = (POLY_FT4*)Gpu_PrimCursor;
+        p0             = (POLY_FT4*)gGpuPrimCursor;
         p1             = p0 + 1;
-        Gpu_PrimCursor = (DR_TPAGE*)(p0 + 2);
+        gGpuPrimCursor = p0 + 2;
         setlen(p0, 9);
         setcode(p0, 0x2F);
         setlen(p1, 9);
@@ -3069,14 +3069,14 @@ void func_800B51F4(Task* task)
         addPrim(&gGpuCurrentOt[0], p1);
     }
 
-    dr             = (DR_TPAGE*)Gpu_PrimCursor;
-    Gpu_PrimCursor = dr + 1;
+    dr             = (DR_TPAGE*)gGpuPrimCursor;
+    gGpuPrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE1000400;
     addPrim(&gGpuCurrentOt[0], dr);
 
-    stp            = (DR_STP*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(stp + 1);
+    stp            = (DR_STP*)gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 1);
     addPrim(&gGpuCurrentOt[0x3FF], stp);
 }

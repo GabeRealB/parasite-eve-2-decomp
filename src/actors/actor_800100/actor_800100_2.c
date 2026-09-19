@@ -1445,8 +1445,8 @@ void func_actor_800100_8016666C(GsCOORDINATE2* arg0, s16 arg1)
     gte_stszotz(&blk->otz);
 
     if (((Actor800100LineScratch*)newhead)->otz >= 0x20) {
-        prim           = (LINE_G2*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (LINE_G2*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setLineG2(prim);
         prim->x0 = ((Actor800100LineScratch*)(head - sizeof(Actor800100LineScratch)))->sxy0.vx;
         /* Both `vy` loads sign-extend, which needs the `s32` locals: a direct
@@ -1518,8 +1518,8 @@ void func_actor_800100_801668C0(GsCOORDINATE2* arg0)
     gte_ldv0(&blk->v[0]);
     gte_rtps_real();
 
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
 
     gte_stsxy2(&blk->sxy[0]);

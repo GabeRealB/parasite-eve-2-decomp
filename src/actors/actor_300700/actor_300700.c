@@ -652,8 +652,8 @@ void func_actor_300700_80162EFC(Actor300700* arg0)
         v->vx += x;
         v->vy += y;
     }
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2E);
     setRGB0(prim, 0x80, 0x80, 0x80);

@@ -257,8 +257,8 @@ void Actor00400_Fn005DC(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, s32 arg3)
     if (blk->flag >= 0) {
         gte_stszotz(copy);
         ((Actor100400SparkScratch*)(head - 0x1C))->otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         prim->code  = 0x2F;
         prim->tpage = 0x2A;
@@ -1433,8 +1433,8 @@ void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SV
     s->depth = RotTransPers4(corner0, corner1, corner2, corner3, &s->screen0, &s->screen1, &s->screen2, &s->screen3,
                              &s->perspective, &s->flags);
     if (s->flags >= 0) {
-        poly           = Gpu_PrimCursor;
-        Gpu_PrimCursor = (u8*)poly + 0x28;
+        poly           = gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)poly + 0x28;
         setlen(poly, 9);
         poly->code       = 0x2E;
         *(s32*)&poly->x0 = s->screen0;

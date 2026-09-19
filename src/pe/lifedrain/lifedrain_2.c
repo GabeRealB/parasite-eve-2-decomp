@@ -196,8 +196,8 @@ void func_lifedrain_801301AC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     if (block->flag >= 0) {
         gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         prim->tpage    = 0x2A;
         prim->clut     = 0x42C5;
         setlen(prim, 9);
@@ -228,8 +228,8 @@ void func_lifedrain_801301AC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         prim->tpage    = 0x29;
         prim->clut     = ((u32)(((arg1 & 1) * 0x10) + 0x100) >> 4) | 0x4300;
         setlen(prim, 9);

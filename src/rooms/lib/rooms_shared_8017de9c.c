@@ -104,12 +104,12 @@ void RoomsShared8017de9c(DialogPrompt* arg0, UiObject* arg1)
     barW  = barW + 2;
     barX  = avail - barW;
     if (barW >= 2) {
-        prim             = (POLY_G4*)Gpu_PrimCursor;
+        prim             = (POLY_G4*)gGpuPrimCursor;
         tx               = arg1->baseX + barX + 1;
         prim->x2         = tx;
         prim->x0         = tx;
         ty               = arg1->baseY;
-        Gpu_PrimCursor   = (DR_TPAGE*)(prim + 1);
+        gGpuPrimCursor   = prim + 1;
         ty               = ty + rowY;
         ty              += 1;
         *(s32*)&prim->r3 = 0x10000;

@@ -88,8 +88,8 @@ void func_energyshot_8012FA50(GsCOORDINATE2* arg0, s16 arg1, u16 arg2, u8* arg3)
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim           = (POLY_FT4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
             setRGB0(prim, arg3[0], arg3[1], arg3[2]);
             setSemiTrans(prim, 1);

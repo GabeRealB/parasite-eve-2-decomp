@@ -403,8 +403,8 @@ void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoint, s16
         gte_SetTransMatrix(&Gfx_ViewWorldMtx);
         depth = RotTransPers4(&corner0, &corner1, &corner2, &corner3, &screen0, &screen1, &screen2, &screen3, &perspective, &flags);
         if (flags >= 0) {
-            poly           = Gpu_PrimCursor;
-            Gpu_PrimCursor = (u8*)poly + 0x28;
+            poly           = gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)poly + 0x28;
             setlen(poly, 9);
             poly->code       = 0x2E;
             *(s32*)&poly->x0 = screen0;

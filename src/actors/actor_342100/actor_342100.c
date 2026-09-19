@@ -97,7 +97,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_8
 /// `field_4` passes 0xFF the display mode is switched, `Fs_ImgBuffers` is
 /// filled white, the parent work block's `field_24` is raised, and state 5
 /// draws the full-screen white `TILE` + `DR_TPAGE` packed into
-/// `Gpu_PrimCursor` before returning without the fade call. Every other state
+/// `gGpuPrimCursor` before returning without the fade call. Every other state
 /// -- 1, 6 and up -- only draws the fade.
 void func_actor_342100_80162748(Task* arg0)
 {
@@ -151,8 +151,8 @@ void func_actor_342100_80162748(Task* arg0)
             }
             break;
         case 5:
-            tile           = (TILE*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+            tile           = (TILE*)gGpuPrimCursor;
+            gGpuPrimCursor = tile + 1;
             setlen(tile, 3);
             setcode(tile, 0x60);
             tile->r0 = 0xFF;
@@ -164,8 +164,8 @@ void func_actor_342100_80162748(Task* arg0)
             tile->h  = 0xF0;
             addPrim(gGpuCurrentOt - 16, tile);
 
-            dr             = Gpu_PrimCursor;
-            Gpu_PrimCursor = dr + 1;
+            dr             = gGpuPrimCursor;
+            gGpuPrimCursor = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE1000200;
             addPrim(gGpuCurrentOt - 16, dr);

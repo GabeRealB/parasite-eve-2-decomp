@@ -31,7 +31,7 @@ s32 Display_FrameFlipDraw(s32 arg0, s32 arg1, s32 arg2)
     size          /= 2;
     saved          = gGpuCurrentOt;
     gGpuCurrentOt  = ot[temp->frameBuffer].org;
-    Gpu_PrimCursor = (DR_TPAGE*)((s32)Gpu_PrimBufBase + temp->frameBuffer * size);
+    gGpuPrimCursor = (u8*)((s32)Gpu_PrimBufBase + temp->frameBuffer * size);
     Task_ExecList(&gTaskDisplayList);
     Boot_DispatchCdCmd();
     if (temp->mdecActive == 0) {

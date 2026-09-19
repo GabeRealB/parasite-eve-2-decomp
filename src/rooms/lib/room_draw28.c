@@ -57,8 +57,8 @@ void Room_Draw28(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     gte_stflg(&((RoomDraw23Scratch*)(head - 0x18))->flag);
     if (p->flag >= 0) {
         gte_stszotz(&((RoomDraw23Scratch*)(head - 0x18))->otz);
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
         prim->tpage = 0x2B;

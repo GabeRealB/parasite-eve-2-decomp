@@ -511,8 +511,8 @@ void func_hypervelocity_8011DF34(GsCOORDINATE2* coord, s16 age, s16 spin, s32 si
         if (sc->flag >= 0) {
             gte_stszotz(&sc->otz);
             sc->otz++;
-            prim           = (POLY_FT4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
             prim->tpage = 0x2A;
             prim->clut  = 0x42C1;
@@ -567,8 +567,8 @@ void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 an
     if (block->flag >= 0) {
         gte_stszotz(&((HyperQuadScratch*)(head - sizeof(HyperQuadScratch)))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
         setSemiTrans(prim, 1);
         setShadeTex(prim, 1);
@@ -658,8 +658,8 @@ void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin)
     if (flag >= 0) {
         gte_stszotz(&otz);
         otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
         prim->r0    = 0x30;
@@ -773,8 +773,8 @@ void func_hypervelocity_8011EC1C(GsCOORDINATE2* coord, s16 age, s32 radius, u8* 
         if (sc->flag >= 0) {
             gte_stszotz(&sc->otz);
             sc->otz++;
-            prim           = (POLY_FT4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
             setRGB0(prim, rgb[0], rgb[1], rgb[2]);
             setSemiTrans(prim, 1);

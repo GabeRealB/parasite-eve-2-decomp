@@ -128,8 +128,8 @@ void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2)
                 angStart = ang;
                 limit    = ang + 0x800;
                 do {
-                    prim           = (POLY_G4*)Gpu_PrimCursor;
-                    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
                     setRGB1(prim, 0, 0, 0);
@@ -149,13 +149,13 @@ void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2)
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-                    prim = (POLY_G4*)Gpu_PrimCursor;
+                    prim = (POLY_G4*)gGpuPrimCursor;
                     USE_REG(prim);
                     t    = ang - angStart;
                     t  <<= 1;
                     conn = angStart + t;
                     TOUCH_REG(conn);
-                    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                    gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
                     setRGB1(prim, 0, 0, 0);
@@ -174,9 +174,9 @@ void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2)
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
                     t3             = ang + 0x800;
-                    prim           = (POLY_G4*)Gpu_PrimCursor;
+                    prim           = (POLY_G4*)gGpuPrimCursor;
                     t              = t3;
-                    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                    gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
                     setRGB1(prim, 0, 0, 0);

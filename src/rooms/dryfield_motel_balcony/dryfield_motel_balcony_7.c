@@ -67,8 +67,8 @@ void RoomsShared8017e4f8Fade(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
 
         ang = 0;
         do {
-            prim           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);
@@ -88,8 +88,8 @@ void RoomsShared8017e4f8Fade(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);
@@ -111,8 +111,8 @@ void RoomsShared8017e4f8Fade(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
 
         ang = 0x200;
         do {
-            prim           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);
@@ -132,8 +132,8 @@ void RoomsShared8017e4f8Fade(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
 
-            prim           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);

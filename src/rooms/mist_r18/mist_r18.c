@@ -210,8 +210,8 @@ void func_mist_r18_8017DBB8(s32 shade, s32 arg1)
 
     x              = -0x96;
     y              = -0x5A;
-    sprt           = (SPRT*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+    sprt           = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = sprt + 1;
     setSprt(sprt);
     if (shade == 0) {
         sprt->code = 0x65;
@@ -227,8 +227,8 @@ void func_mist_r18_8017DBB8(s32 shade, s32 arg1)
 
     x              = -0x22;
     y              = 0x36;
-    sprt           = (SPRT*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+    sprt           = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = sprt + 1;
     setSprt(sprt);
     if (shade == 0) {
         sprt->code = 0x65;
@@ -242,8 +242,8 @@ void func_mist_r18_8017DBB8(s32 shade, s32 arg1)
     setWH(sprt, 0xB7, 0x23);
     addPrim(gGpuCurrentOt + 4, sprt);
 
-    tp             = Gpu_PrimCursor;
-    Gpu_PrimCursor = tp + 1;
+    tp             = gGpuPrimCursor;
+    gGpuPrimCursor = tp + 1;
     setDrawTPage(tp, 1, 0, 0x2B);
     addPrim(gGpuCurrentOt + 4, tp);
 }
@@ -268,13 +268,13 @@ void func_mist_r18_8017DD7C(Task* task)
         y = 0x110;
     }
 
-    stp            = (DR_STP*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(stp + 1);
+    stp            = (DR_STP*)gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 0);
     addPrim(gGpuCurrentOt + 8, stp);
 
-    mv             = (DR_MOVE*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(mv + 1);
+    mv             = (DR_MOVE*)gGpuPrimCursor;
+    gGpuPrimCursor = mv + 1;
     rect.x         = x;
     rect.y         = y;
     rect.w         = 0xC0;
@@ -282,8 +282,8 @@ void func_mist_r18_8017DD7C(Task* task)
     SetDrawMove(mv, &rect, 0x340, 0);
     addPrim(gGpuCurrentOt + 8, mv);
 
-    mv             = (DR_MOVE*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(mv + 1);
+    mv             = (DR_MOVE*)gGpuPrimCursor;
+    gGpuPrimCursor = mv + 1;
     rect.x         = x + 0xC0;
     rect.y         = y;
     rect.w         = 0x80;
@@ -291,8 +291,8 @@ void func_mist_r18_8017DD7C(Task* task)
     SetDrawMove(mv, &rect, 0x280, 0x100);
     addPrim(gGpuCurrentOt + 8, mv);
 
-    stp            = (DR_STP*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(stp + 1);
+    stp            = (DR_STP*)gGpuPrimCursor;
+    gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 1);
     addPrim(gGpuCurrentOt + 8, stp);
 

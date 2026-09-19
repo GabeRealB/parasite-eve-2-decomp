@@ -62,8 +62,8 @@ void func_actor_141000_80131E94(Actor141000* arg0, Actor141000Point* arg1, s32 a
         b              = quad[1];
         c              = quad[2];
         d              = quad[3];
-        poly           = (POLY_G4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        poly           = (POLY_G4*)gGpuPrimCursor;
+        gGpuPrimCursor = poly + 1;
         setlen(poly, 8);
         poly->code = 0x3A;
         poly->r0   = col[a].r;
@@ -87,8 +87,8 @@ void func_actor_141000_80131E94(Actor141000* arg0, Actor141000Point* arg1, s32 a
         poly->x3   = arg1[d].field_0;
         poly->y3   = arg1[d].field_2;
         addPrim((u32*)((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt) - 20, poly);
-        tpage          = Gpu_PrimCursor;
-        Gpu_PrimCursor = tpage + 1;
+        tpage          = gGpuPrimCursor;
+        gGpuPrimCursor = tpage + 1;
         setlen(tpage, 1);
         tpage->code[0] = 0xE1000425;
         addPrim((u32*)((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt) - 20, tpage);
@@ -99,8 +99,8 @@ void func_actor_141000_80131E94(Actor141000* arg0, Actor141000Point* arg1, s32 a
         b              = quad[1];
         c              = quad[2];
         d              = quad[3];
-        poly           = (POLY_G4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        poly           = (POLY_G4*)gGpuPrimCursor;
+        gGpuPrimCursor = poly + 1;
         setlen(poly, 8);
         poly->code = 0x3A;
         poly->r0   = col[a].r;
@@ -124,8 +124,8 @@ void func_actor_141000_80131E94(Actor141000* arg0, Actor141000Point* arg1, s32 a
         poly->x3   = arg1[d].field_0;
         poly->y3   = arg1[d].field_2;
         addPrim((u32*)((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt) - 20, poly);
-        tpage          = Gpu_PrimCursor;
-        Gpu_PrimCursor = tpage + 1;
+        tpage          = gGpuPrimCursor;
+        gGpuPrimCursor = tpage + 1;
         setlen(tpage, 1);
         tpage->code[0] = 0xE1000425;
         addPrim((u32*)((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt) - 20, tpage);

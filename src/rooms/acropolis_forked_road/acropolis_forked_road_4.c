@@ -116,8 +116,8 @@ void func_acropolis_forked_road_8017E410(Task* task)
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec);
         gte_rtps_real();
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
         gte_stsxy(&block->sx);

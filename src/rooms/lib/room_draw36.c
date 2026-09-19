@@ -19,8 +19,8 @@ void Room_Draw36(s32 x, s32 y, s32 variant)
         return;
     }
 
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
 
     px       = x - 2;
     prim->x2 = px;

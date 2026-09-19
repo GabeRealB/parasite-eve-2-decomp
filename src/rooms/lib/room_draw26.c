@@ -14,8 +14,8 @@ void Room_Draw26(RoomRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 
-    line           = (LINE_F2*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    line           = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
     line->y0 = rect->y;
@@ -26,8 +26,8 @@ void Room_Draw26(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    line           = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
     line->y0 = rect->y;
@@ -38,8 +38,8 @@ void Room_Draw26(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    line           = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
     line->y0 = rect->y + rect->h;
@@ -50,8 +50,8 @@ void Room_Draw26(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    line           = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
     line->y0 = rect->y + rect->h;

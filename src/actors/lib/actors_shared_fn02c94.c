@@ -47,8 +47,8 @@ void ActorsSharedFn02c94(Actor105500* actor)
         *(u8**)PSX_SCRATCH_ADDR(0x3FC) += sizeof(Actor105500LineScratch);
         return;
     }
-    line           = Gpu_PrimCursor;
-    Gpu_PrimCursor = (u8*)line + sizeof(LINE_G2);
+    line           = gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)line + sizeof(LINE_G2);
     screen1        = s->screen;
     setLineG2(line);
     setSemiTrans(line, 1);
@@ -79,8 +79,8 @@ void ActorsSharedFn02c94(Actor105500* actor)
         line->b1 = blue;
     }
     addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), line);
-    page           = Gpu_PrimCursor;
-    Gpu_PrimCursor = (u8*)page + sizeof(DR_TPAGE);
+    page           = gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)page + sizeof(DR_TPAGE);
     setlen(page, 1);
     page->code[0] = 0xE1000620;
     addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), page);

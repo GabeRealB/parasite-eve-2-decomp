@@ -127,8 +127,8 @@ void func_healing_8012F7FC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     if (block->flag >= 0) {
         gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
         prim->tpage = 0x2A;
@@ -161,8 +161,8 @@ void func_healing_8012F7FC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
                           (s32)gGpuCurrentOt),
                 prim);
 
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         prim->tpage    = 0x29;
         prim->clut     = ((u32)(((arg1 & 1) * 0x10) + 0x100) >> 4) | 0x4300;
         setlen(prim, 9);

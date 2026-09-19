@@ -163,8 +163,8 @@ void func_acropolis_bridge_80182394(Task* task)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((AcropolisBridgeMoteScratch*)(head - 0xC))->vec);
     gte_rtps_real();
-    prim           = (TILE_1*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (TILE_1*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setTile1(prim);
     gte_stsxy(&prim->x0);
     gte_stszotz(&depth->otz);
@@ -267,8 +267,8 @@ void func_acropolis_bridge_801827EC(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->v[0]);
     gte_rtps_real();
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&prim->x0);

@@ -120,10 +120,18 @@ extern GsOT     Gpu_OrderingTables[2];
 /// this base, which is not always the table's own start.
 extern u_long* gGpuCurrentOt;
 
+/// The primitive buffer allocation cursor.
+///
+/// Drawing code writes its packets straight into the primitive buffer and
+/// advances this pointer past what it took, so the cursor is the whole
+/// allocation state of the buffer. Nothing is freed within a frame, and the
+/// buffer comes back whole when the next frame resets the cursor to the start
+/// of the half it draws from.
+extern u8* gGpuPrimCursor;
+
 extern u8*          Gpu_SysPrimCursor;         // primitive buffer cursor
-extern DR_TPAGE*    Gpu_PrimCursor;            // primitive buffer cursor
 extern u8           Gpu_PrimBufStatic[0x6000]; // 2 x 0x3000, base of Gpu_SysPrimCursor
-extern void*        Gpu_PrimBufBase;           // base Gpu_PrimCursor is reset from
+extern void*        Gpu_PrimBufBase;           // base gGpuPrimCursor is reset from
 extern volatile u8  D_8006EC30;                // the flip's copy of at100.flags.imageSource, read from the VSync callback
 extern volatile u8  D_80070E38;                // the flip's copy of at100.flags.flipMode, read from the VSync callback
 extern volatile s32 D_80070F64;                // VSync countdown

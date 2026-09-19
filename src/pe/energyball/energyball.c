@@ -456,8 +456,8 @@ void func_energyball_8012FFD0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
         half        = arg2 >> 1;
         ang         = 0;
         do {
-            prim           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);
@@ -521,8 +521,8 @@ void func_energyball_8013035C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     if (block->flag >= 0) {
         gte_stszotz(&((EnergyQuadScratch*)(head - 0x1C))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
         if (arg1 & 1) {
             setSemiTrans(prim, 1);
@@ -621,8 +621,8 @@ void func_energyball_801307D4(GsCOORDINATE2* arg0, s32 arg1)
     if (flag >= 0) {
         gte_stszotz(&otz);
         otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
         /* Assign and store r0 first so 0x20 is loaded next to `setcode` and
@@ -724,8 +724,8 @@ void func_energyball_80130B54(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim           = (POLY_FT4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
             prim->tpage = 0x2A;
             prim->clut  = 0x42C1;

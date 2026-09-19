@@ -287,8 +287,8 @@ void func_actor_503500_80132990(Task* task)
                 break;
         }
     }
-    tile           = (TILE*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+    tile           = (TILE*)gGpuPrimCursor;
+    gGpuPrimCursor = tile + 1;
     setTile(tile);
     SetSemiTrans(tile, 1);
     tile->x0 = -160;
@@ -297,8 +297,8 @@ void func_actor_503500_80132990(Task* task)
     tile->h  = 240;
     setRGB0(tile, r, g, b);
     addPrim(gGpuCurrentOt + 3, tile);
-    dr             = Gpu_PrimCursor;
-    Gpu_PrimCursor = dr + 1;
+    dr             = gGpuPrimCursor;
+    gGpuPrimCursor = dr + 1;
     setDrawTPage(dr, 1, 0, getTPage(0, 2, 320, 0));
     addPrim(gGpuCurrentOt + 3, dr);
 }

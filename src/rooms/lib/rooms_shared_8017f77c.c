@@ -74,8 +74,8 @@ void RoomsShared8017f77c(Task* arg0)
         red              = level;
         block->halfWidth = (((RoomShaftArg*)&arg0->spawnArg1)->height << 9) / block->otz;
         for (i = 0; i < 2; i++) {
-            prim           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);

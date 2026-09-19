@@ -137,8 +137,8 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
             gte_SetRotMatrix(&GsWSMATRIX);
             gte_ldv0(&blk->vec);
             gte_rtps_real();
-            prim           = (POLY_FT4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2C);
             gte_stsxy(&blk->sx);
@@ -241,8 +241,8 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
             blk->radius = (h << 10) / blk->otz;
             blk->inner  = (h << 7) / blk->otz;
             for (i = 0; i < 0x10; i += 2) {
-                prim           = (POLY_G4*)Gpu_PrimCursor;
-                Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                prim           = (POLY_G4*)gGpuPrimCursor;
+                gGpuPrimCursor = prim + 1;
                 setPolyG4(prim);
                 setRGB0(prim, 0, 0, 0);
                 setRGB1(prim, 0, 0, 0);
@@ -260,8 +260,8 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
 
-                prim           = (POLY_G4*)Gpu_PrimCursor;
-                Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                prim           = (POLY_G4*)gGpuPrimCursor;
+                gGpuPrimCursor = prim + 1;
                 setPolyG4(prim);
                 setRGB0(prim, 0, 0, 0);
                 setRGB1(prim, 0, 0, 0);
@@ -283,8 +283,8 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
                 s32 half = lvl >> 1;
                 for (i = 2; i < 0x10; i += 8) {
                     do {
-                        prim           = (POLY_G4*)Gpu_PrimCursor;
-                        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                        prim           = (POLY_G4*)gGpuPrimCursor;
+                        gGpuPrimCursor = prim + 1;
                         setPolyG4(prim);
                         setRGB0(prim, 0, 0, 0);
                         setRGB1(prim, 0, 0, 0);
@@ -314,8 +314,8 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
                         SOFT_TOUCH_REG_USE(prim, z);
                         Gp_AddTpageShift((P_TAG*)prim, 1, z);
 
-                        prim           = (POLY_G4*)Gpu_PrimCursor;
-                        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                        prim           = (POLY_G4*)gGpuPrimCursor;
+                        gGpuPrimCursor = prim + 1;
                         setPolyG4(prim);
                         setRGB0(prim, 0, 0, 0);
                         setRGB1(prim, 0, 0, 0);
@@ -341,8 +341,8 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
         } else {
             blk->radius = (((level >> 8) & 0xFF) << 9) / blk->otz;
             for (i = 0; i < 2; i++) {
-                prim           = (POLY_G4*)Gpu_PrimCursor;
-                Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                prim           = (POLY_G4*)gGpuPrimCursor;
+                gGpuPrimCursor = prim + 1;
                 setPolyG4(prim);
                 setRGB0(prim, 0, 0, 0);
                 setRGB1(prim, 0, 0, 0);
@@ -359,8 +359,8 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
             }
             if (arg0->spawnArg1 & 0x10000000) {
                 for (i = 0; i < 2; i++) {
-                    line           = (LINE_G3*)Gpu_PrimCursor;
-                    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+                    line           = (LINE_G3*)gGpuPrimCursor;
+                    gGpuPrimCursor = line + 1;
                     setLineG3(line);
                     setRGB0(line, 0, 0, 0);
                     setRGB1(line, lvl * (flip ^ 1), flip * lvl, 0);

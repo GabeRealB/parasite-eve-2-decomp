@@ -695,8 +695,8 @@ void func_actor_215100_8014BEE8(void)
         D_actor_215100_8015E66C -= 1;
         return;
     }
-    prim           = (POLY_G3*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_G3*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setPolyG3(prim);
     c1 = (D_actor_215100_801545E4 << 7) / 15;
     setRGB0(prim, c1, c1, c1);

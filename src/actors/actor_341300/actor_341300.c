@@ -54,8 +54,8 @@ void func_actor_341300_80161E84(void)
                 x[j] = sxy[j];
                 y[j] = sxy[j] >> 16;
             }
-            prim           = (POLY_FT4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2D);
             prim->x0 = x[k];

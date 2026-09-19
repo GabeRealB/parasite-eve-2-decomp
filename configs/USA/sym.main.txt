@@ -2843,7 +2843,7 @@ Gp_PlayTimeMark              = 0x800739B8; // size:0x2
 Gp_LcgState                  = 0x80070F60;
 
 // Globals naming pass 1
-Gpu_PrimCursor              = 0x80071190;
+gGpuPrimCursor              = 0x80071190;
 Gpu_SysPrimCursor           = 0x80070EE0;
 Gpu_PrimBufStatic           = 0x800740E0;
 Gpu_PrimBufBase             = 0x8007A0E0;

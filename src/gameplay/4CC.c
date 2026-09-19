@@ -997,8 +997,8 @@ void func_800BDF6C(Task* task)
     half      = halfWidth;
     Ui_DrawFlatCaret((UiPanel*)obj, caretX, caretY, 0x606060, 1);
     Ui_DrawFlatCaret((UiPanel*)obj, caretX, panelY + 0x1E, 0x606060, 0);
-    line             = (LINE_F2*)Gpu_PrimCursor;
-    Gpu_PrimCursor   = (DR_TPAGE*)(line + 1);
+    line             = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor   = line + 1;
     *(s32*)&line->r0 = 0x606060;
     coord            = obj->baseX + caretX;
     line->x1         = coord;
@@ -1558,8 +1558,8 @@ void Gp_FadeTileTask(Task* arg0)
         otIdx = 0x3F;
     }
 
-    tile           = (TILE*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+    tile           = (TILE*)gGpuPrimCursor;
+    gGpuPrimCursor = tile + 1;
     setlen(tile, 3);
     setcode(tile, 0x62);
     tile->x0 = -0xA0;
@@ -1579,8 +1579,8 @@ void Gp_FadeTileTask(Task* arg0)
     }
 
     addPrim((u_long*)((otIdx << 2) + (s32)gGpuCurrentOt), tile);
-    dr             = (DR_TPAGE*)Gpu_PrimCursor;
-    Gpu_PrimCursor = dr + 1;
+    dr             = (DR_TPAGE*)gGpuPrimCursor;
+    gGpuPrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE1000640;
     addPrim((u_long*)((otIdx << 2) + (s32)gGpuCurrentOt), dr);

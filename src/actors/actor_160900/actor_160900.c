@@ -260,8 +260,8 @@ void func_actor_160900_80132E80(Task* task)
         ys[i] = sxy >> 16;
     }
 
-    poly           = (POLY_G4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+    poly           = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = poly + 1;
     setlen(poly, 8);
     setcode(poly, 0x3A);
     poly->r0 = 0;
@@ -365,8 +365,8 @@ void func_actor_160900_80132E80(Task* task)
     poly->x3 = xs[3];
     poly->y3 = ys[3];
     addPrim(&gGpuCurrentOt[otz >> 4], poly);
-    tp             = Gpu_PrimCursor;
-    Gpu_PrimCursor = tp + 1;
+    tp             = gGpuPrimCursor;
+    gGpuPrimCursor = tp + 1;
     setlen(tp, 1);
     tp->code[0] = 0xE1000220;
     addPrim(&gGpuCurrentOt[otz >> 4], tp);

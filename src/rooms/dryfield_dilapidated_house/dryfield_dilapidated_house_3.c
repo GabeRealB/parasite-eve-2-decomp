@@ -90,10 +90,10 @@ void func_dryfield_dilapidated_house_8017EBB8(Task* task)
         gte_stdp(&sc.dp);
         gte_stflg(&sc.flag);
         gte_stszotz(&sc.otz);
-        line           = (LINE_F2*)Gpu_PrimCursor;
+        line           = (LINE_F2*)gGpuPrimCursor;
         sx             = sc.sxy;
         sy             = sc.sxy >> 16;
-        Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+        gGpuPrimCursor = line + 1;
         x0             = sx - 5;
         y0             = sy - 5;
         x1             = sx + 5;
@@ -106,8 +106,8 @@ void func_dryfield_dilapidated_house_8017EBB8(Task* task)
         line->y1 = y1;
         addPrim(gGpuCurrentOt + 10, line);
 
-        line           = (LINE_F2*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+        line           = (LINE_F2*)gGpuPrimCursor;
+        gGpuPrimCursor = line + 1;
         setLineF2(line);
         setRGB0(line, 0xFF, 0, 0);
         i++;

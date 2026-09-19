@@ -9,8 +9,8 @@ void RoomsShared8017e144(s16 shade)
 {
     SPRT* p;
 
-    p              = (SPRT*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p              = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     setSprt(p);
     setSemiTrans(p, 1);
     p->r0   = shade;
@@ -26,8 +26,8 @@ void RoomsShared8017e144(s16 shade)
     addPrim(gGpuCurrentOt + 8, p);
     Room_Draw42(0x340, 0);
 
-    p              = (SPRT*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p              = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     setSprt(p);
     setSemiTrans(p, 1);
     p->r0   = shade;

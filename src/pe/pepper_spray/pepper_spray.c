@@ -135,8 +135,8 @@ void func_pepper_spray_8012F21C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((PepperSprayNozzleScratch*)(head - 0x1C))->vec);
     gte_rtps_real();
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
     gte_stsxy(&((PepperSprayNozzleScratch*)(head - 0x1C))->sx);
     gte_stflg(&((PepperSprayNozzleScratch*)(head - 0x1C))->flag);
@@ -244,8 +244,8 @@ void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((PepperSprayScratch*)(head - 0x28))->v[0]);
     gte_rtps_real();
-    prim           = (POLY_G4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setPolyG4(prim);
     gte_stsxy(&prim->x0);
     gte_stflg(&((PepperSprayScratch*)(head - 0x28))->flag);

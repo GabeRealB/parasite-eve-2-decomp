@@ -82,7 +82,7 @@ STATIC_ASSERT_SIZEOF(GpSprtCmd, 8);
 /// 0x14-byte SPRT source record. `GpSprtRec.field_0` is an array of these.
 /// `Gp_LinkSprtCmd` / `Gp_EmitSprts` index from `GpSprtCmd.field_0` for
 /// `field_2` entries. `otz` is the OT depth. `Gp_EmitSprts` copies the
-/// remaining fields into a merged `DR_TPAGE`+`SPRT` in `Gpu_PrimCursor`.
+/// remaining fields into a merged `DR_TPAGE`+`SPRT` in `gGpuPrimCursor`.
 /// `flags` bit 0 skips the RGB copy (shade-tex); the byte is OR'd into
 /// the SPRT code.
 typedef struct _GpSprtElem {
@@ -212,7 +212,7 @@ typedef struct _GpSprtPrim {
 } GpSprtPrim;
 STATIC_ASSERT_SIZEOF(GpSprtPrim, 0x1C);
 
-/// Merged `DR_TPAGE` + `SPRT` (0x1C) written into `Gpu_PrimCursor` by
+/// Merged `DR_TPAGE` + `SPRT` (0x1C) written into `gGpuPrimCursor` by
 /// `Gp_EmitSprts`. `MargePrim` concatenates the tpage packet onto the
 /// sprite so they share one OT entry.
 typedef struct _GpTpageSprt {
@@ -430,7 +430,7 @@ s32  Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// child, clear `GameSession.roomObjsDirty`, and increment `task->state`.
 void Gp_LinkRoomObjectsSpawn(Task* task);
 void Gp_LinkViewSprts(void);
-/// Build merged `DR_TPAGE`+`SPRT` packets into `Gpu_PrimCursor` from
+/// Build merged `DR_TPAGE`+`SPRT` packets into `gGpuPrimCursor` from
 /// `arg0[arg1->field_0]` for `arg1->field_2` entries, and OT-link each.
 void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1);
 void Gp_SetSprtShadeBits(s32 arg0);

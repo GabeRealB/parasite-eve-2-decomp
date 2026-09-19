@@ -170,8 +170,8 @@ void func_inferno_8012F3EC(s16 arg0)
     yBot = 0x78;
     z    = 0x30;
 
-    p              = (POLY_F4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p              = (POLY_F4*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     setPolyF4(p);
     setRGB0(p, arg0, arg0 >> 1, arg0 >> 2);
     p->x0 = x0;
@@ -400,8 +400,8 @@ void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
         if (flag >= 0) {
             gte_stszotz(&otz);
             otz++;
-            prim           = (POLY_FT4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2E);
             setRGB0(prim, mem->field_24, mem->field_24, mem->field_24);
@@ -501,8 +501,8 @@ void func_inferno_8012FF34(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
         if (flag >= 0) {
             gte_stszotz(&otz);
             otz++;
-            prim           = (POLY_FT4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2E);
             setRGB0(prim, mem->field_24, mem->field_24, mem->field_24);

@@ -2366,10 +2366,10 @@ Inputs: `base_1.i`
 
 ## Local-alloc 3/12 tie: `USE_REG` at the end of the range so the addiu dest wins `$a0`
 
-A scratch-head push (`lw` / `addiu r, -N` / `sw`) next to a `Gpu_PrimCursor`
+A scratch-head push (`lw` / `addiu r, -N` / `sw`) next to a `gGpuPrimCursor`
 load/store gives two block-0 local quantities with the same
 `refs=3 span=12 priority=2500` and no suggestions. The tracer reports
-`q1[%hi(Gpu_PrimCursor)] -> $a0` and `q2[allocated] -> $a1` because the
+`q1[%hi(gGpuPrimCursor)] -> $a0` and `q2[allocated] -> $a1` because the
 tie goes to the quantity born first (the `lui` that fills the `ori` of
 `G_SCRATCH_HEAD`). Extra then takes `$a0` globally (`move a0, v0` /
 `slt ..., s0`). The target wants `addiu a0, a2, -N` / `move s8, a0` /
@@ -2387,7 +2387,7 @@ allocated onto the scratch pointer.
 ```c
 allocated = head - 0x14;
 *(void**)G_SCRATCH_HEAD = allocated;
-Gpu_PrimCursor = (DR_TPAGE*)(area + 1);
+gGpuPrimCursor = area + 1;
 USE_REG(allocated);
 scratch = (Scratch*)allocated;
 ```
@@ -5015,7 +5015,7 @@ When `r0` and `b0` share a value the target loads into `$v1` immediately after
 `li v0, 0x2E`, assigning `rb = 0x20` next to the later stores lets GCC sink the
 `li` to the use (`li v0, 0x20` / `sb 4` / `sb 6`). An empty `USE_REG(rb)` /
 `SOFT_USE_REG(rb)` after `setcode` does pin the load, but the asm is a
-scheduling fence: `&gDisplayState` stops hoisting next to `Gpu_PrimCursor`,
+scheduling fence: `&gDisplayState` stops hoisting next to `gGpuPrimCursor`,
 and `gGpuCurrentOt` fills the last UV delay instead of `lhu 0x2A`.
 
 The store itself is the early use. Write `prim->r0 = rb` right after `setcode`;
@@ -5545,21 +5545,21 @@ and `-fschedule-insns2` can then drop the matrix `lui` between that copy and
 the other saves. `Room_Draw39` is the worked example (99.79% `reorder=1` ->
 100%).
 
-## Load `Gpu_PrimCursor` before the angle extend so `lui` precedes `sll`/`sra`
+## Load `gGpuPrimCursor` before the angle extend so `lui` precedes `sll`/`sra`
 
-`Room_Draw27` sign-extends `arg3` into `$s2` and loads `Gpu_PrimCursor` into
+`Room_Draw27` sign-extends `arg3` into `$s2` and loads `gGpuPrimCursor` into
 `$s1` in the same block, then a later `rsin(ang)` hoists `move a0, s2`. Written
 
 ```c
 ang  = (s16)arg3;
-prim = (POLY_FT4*)Gpu_PrimCursor;
+prim = (POLY_FT4*)gGpuPrimCursor;
 ```
 
 the shifts win the ready list and `lui` lands two insns late (`sll`/`sra`/`lui`/
 `lw`/`move a0`). Swap them:
 
 ```c
-prim = (POLY_FT4*)Gpu_PrimCursor;
+prim = (POLY_FT4*)gGpuPrimCursor;
 ang  = (s16)arg3;
 ```
 
@@ -5750,8 +5750,8 @@ details decide whether the tpage word matches:
 
 ```c
 y              = arg1;
-p              = Gpu_PrimCursor;
-Gpu_PrimCursor = p + 1;
+p              = gGpuPrimCursor;
+gGpuPrimCursor = p + 1;
 setDrawTPage(p, 1, 0, getTPage(2, 1, tpage & 0x3C0, y));
 addPrim(gGpuCurrentOt + 8, p);
 ```
@@ -6826,7 +6826,7 @@ if (t->spawnArg2 == 0) {
 ```
 
 `func_800B1EFC` is the example; `Display_StepFadeOverlay` uses the same
-shape (its branch delay is a shared `lui 0xE100` because `Gpu_PrimCursor`
+shape (its branch delay is a shared `lui 0xE100` because `gGpuPrimCursor`
 was already incremented).
 
 ## Independent `= 0` store last so it fills a stack-arg load delay
@@ -7966,7 +7966,7 @@ size = D_8007A0E4;           /* load fills the org-load delay; claims $a0 */
 size /= 2;                   /* signed /2 after the store */
 saved          = gGpuCurrentOt;
 gGpuCurrentOt  = ot[i].org;     /* second load of org — do not reuse `org` */
-Gpu_PrimCursor = base + i * size;
+gGpuPrimCursor = base + i * size;
 ```
 
 Putting `saved = gGpuCurrentOt` immediately after `*org = …` steals the delay
@@ -14173,8 +14173,8 @@ codegen:
 ```c
 DR_TPAGE* p;
 
-p          = Gpu_PrimCursor;
-Gpu_PrimCursor = p + 1;
+p          = gGpuPrimCursor;
+gGpuPrimCursor = p + 1;
 setDrawTPage(p, 0, 1, 0x1E | ((abr & 3) << 5));
 addPrim(gGpuCurrentOt + otz, p);
 ```
@@ -18134,8 +18134,8 @@ written (e.g. POLY_F3 is `0x14` but the target does `addiu …, 0x1C`), cast
 through a same-header type of the right size for the `+ 1` step:
 
 ```c
-p          = (POLY_F3*)Gpu_PrimCursor;
-Gpu_PrimCursor = (DR_TPAGE*)((POLY_G3*)p + 1); /* +0x1C */
+p          = (POLY_F3*)gGpuPrimCursor;
+gGpuPrimCursor = (POLY_G3*)p + 1; /* +0x1C */
 ```
 
 Avoid raw `(u8*)p + 0x1C`.
@@ -18570,7 +18570,7 @@ entry->field_0 = (entry->field_0 & flags) | ((ret & 1) * 8);
 ## Reuse arg regs for fixed UV constants; pin f20/next for prim cursor order
 
 When a POLY_FT4 setup reuses `$a1`/`$a2` for fixed U coordinates after their last
-use as real arguments (target: `li a1,0x6F` right after the `Gpu_PrimCursor` update,
+use as real arguments (target: `li a1,0x6F` right after the `gGpuPrimCursor` update,
 `li a2,0x68` right after `field_20 + arg2`), separate locals for those constants
 usually rematerialize as late `li v0,K`. Two tricks together match:
 
@@ -18590,7 +18590,7 @@ p->x0 = temp;
 
     f20  = arg0->field_20;          /* lhu into $v0 before cursor update */
     next = (s32)(p + 1);
-    Gpu_PrimCursor = (DR_TPAGE*)next; /* addiu/sw via $v1; frees $a1 */
+    gGpuPrimCursor = (u8*)next; /* addiu/sw via $v1; frees $a1 */
     ur   = 0x6F;                    /* li a1,0x6F */
     temp = f20 + arg2;
     arg2 = 0x68;                    /* li a2,0x68 — reuses arg reg */
@@ -18612,7 +18612,7 @@ hoists `li v0,0x50`, losing the `lhu`/`addiu` interleave. Without `arg2 = 0x68`,
 `field_20+arg3±offsets`) and cannot reassign `arg2` — both arg1 and arg2 are
 still live for the Y edges, so the compiler saves them to `$t1`/`$t2` and the
 U constant must land in the now-free `$a2` via an explicit pin. Also pin the
-X offset through `$v1` so `$a1` stays free for the `Gpu_PrimCursor` hi/lo pair
+X offset through `$v1` so `$a1` stays free for the `gGpuPrimCursor` hi/lo pair
 (natural allocation otherwise puts arg3 in `$a1` and the cursor hi in `$a2`,
 pushing `0x70` to a late `li v0`):
 
@@ -18623,7 +18623,7 @@ if (arg1 < arg2) {
     s32          base;   /* s32 avoids sll/sra sign-extend on left = base-3 */
 
     xoff = arg3;         /* delay-slot move v1,a3 */
-    p    = (POLY_FT4*)Gpu_PrimCursor;
+    p    = (POLY_FT4*)gGpuPrimCursor;
     base = arg0->field_20 + xoff;
     left = base - 3;
     temp = base + 5;
@@ -18636,7 +18636,7 @@ if (arg1 < arg2) {
 
         f22 = arg0->field_22;
         next = (s32)(p + 1);
-        Gpu_PrimCursor = (DR_TPAGE*)next;
+        gGpuPrimCursor = (u8*)next;
         ur = 0x77;
         ul = 0x70;       /* early li a2,0x70 (reg free after t2 save) */
         /* … p->u0 = ul; p->u2 = ul; … */
@@ -19015,7 +19015,7 @@ sw   a3, 4(p)                   /* *(s32*)&p->r0 = 0x21002 */
 ```
 
 Writing `*(s32*)&p->r0 = 0x21002` *after* `p->y3 = y + 7` puts the constant
-in `$a1` and forces `%hi(Gpu_PrimCursor)` into `$v1`, which then reorders the
+in `$a1` and forces `%hi(gGpuPrimCursor)` into `$v1`, which then reorders the
 cursor advance and the final call's field loads. Store color first:
 
 ```c
@@ -21559,15 +21559,15 @@ and reassign it for each block rather than `dr` / `dr2`:
 
 ```c
 addPrim(ot, p);
-dr         = Gpu_PrimCursor;
-Gpu_PrimCursor = dr + 1;
+dr         = gGpuPrimCursor;
+gGpuPrimCursor = dr + 1;
 setlen(dr, 1);
 dr->code[0] = 0xE100023F;
 addPrim(ot, dr);
 
 addPrim(ot, p2);
-dr         = Gpu_PrimCursor;
-Gpu_PrimCursor = dr + 1;
+dr         = gGpuPrimCursor;
+gGpuPrimCursor = dr + 1;
 setlen(dr, 1);
 dr->code[0] = 0xE100025F;
 addPrim(ot, dr);
@@ -21831,13 +21831,13 @@ When a block starts with a screen-size constant then a prim-buffer load:
 ```
 beqz  s3, skip
  li    v0, 0x140          /* delay — must be the constant */
-lui   a2, %hi(Gpu_PrimCursor)
+lui   a2, %hi(gGpuPrimCursor)
 sh    v0, …               /* store the constant */
 …
-lw    s0, %lo(Gpu_PrimCursor)(a2)
+lw    s0, %lo(gGpuPrimCursor)(a2)
 ```
 
-plain statement order (`tw = 0x140; p = Gpu_PrimCursor; sp.w = tw`) often lets the
+plain statement order (`tw = 0x140; p = gGpuPrimCursor; sp.w = tw`) often lets the
 scheduler put `lui` in the delay slot instead. Pre-branch assigns sink; nested
 blocks that finish the store before mentioning the global put `li` in the delay
 but then emit `sh` before `lui`.
@@ -21850,7 +21850,7 @@ tw = 0x140;
 asm volatile("" : "+r"(tw));
 sp.w = tw;
 sp.h = 0xF0;
-p = (DR_AREA*)Gpu_PrimCursor;
+p = (DR_AREA*)gGpuPrimCursor;
 ```
 
 The `+r` barrier forces `li` to complete before any following `lui`, so delay-slot
@@ -22282,7 +22282,7 @@ does:
 
 ```
 addiu  a3, s0, 0x68      /* allocate prim */
-sw     a3, Gpu_PrimCursor    /* delay of first validity check */
+sw     a3, gGpuPrimCursor    /* delay of first validity check */
 ...
 move   t0, a3            /* delay of second check */
 lui    a3, 0xff          /* reuse a3 as 0x00FFFFFF mask */
@@ -22302,7 +22302,7 @@ DR_MODE* dr;
 {
     register DR_MODE* r asm("a3");
     r = (DR_MODE*)(p + 2);
-    Gpu_PrimCursor = (DR_TPAGE*)r;
+    gGpuPrimCursor = r;
     if (valid) {
         dr = r;
         goto body;
@@ -31932,7 +31932,7 @@ req.y          = textY + arg2;
 req.field_8    = color;
 ```
 
-The early `y` load also frees `$v1` after `Gpu_PrimCursor = p + 1`, which is
+The early `y` load also frees `$v1` after `gGpuPrimCursor = p + 1`, which is
 what stores the cursor bump before `p->x0`. `func_800C2538` is the example.
 The `textY = baseY - 3` half is the same pattern as `Gp_DrawQty`.
 
@@ -33879,7 +33879,7 @@ reloading the pointer from `$s1`. `Gp_AnimBlendPacked` is the example.
 
 ## Full-screen POLY_F4 + `setDrawTPage`: extents first, `setSemiTrans` after `addPrim`
 
-A leaf overlay that allocates a `POLY_F4` then a `DR_TPAGE` from `Gpu_PrimCursor`
+A leaf overlay that allocates a `POLY_F4` then a `DR_TPAGE` from `gGpuPrimCursor`
 wants the screen extents and ABR mask live before the prim cursor load:
 
 ```c
@@ -33889,8 +33889,8 @@ x1   = 0xA0;
 yTop = -0x78;
 yBot = 0x78;
 
-p          = (POLY_F4*)Gpu_PrimCursor;
-Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+p          = (POLY_F4*)gGpuPrimCursor;
+gGpuPrimCursor = p + 1;
 setPolyF4(p);
 setRGB0(p, arg0[0], arg0[1], arg0[2]);
 p->x0 = x0;
@@ -35624,7 +35624,7 @@ right = x - 1;
 x     = x - 0x32;
 poly->x2 = x;
 poly->x0 = x;
-Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+gGpuPrimCursor = poly + 1;
 asm volatile("" ::: "memory");
 vl = 0x80;
 asm volatile("" : "+r"(vl));
@@ -35638,10 +35638,10 @@ asm volatile("" : "+r"(ur));
 
 Reuse `x` as the left edge so GCC emits `addiu v1, v0, -1` then
 `addiu v0, v0, -0x32` before either store. `vl = 0x80` after the cursor
-update puts `li v0, 0x80` between `sw Gpu_PrimCursor` and the `x3` stores.
+update puts `li v0, 0x80` between `sw gGpuPrimCursor` and the `x3` stores.
 `y0 = fy + 2; fy = fy + 0x40` is `addiu v0, a1, 2` / `addiu a1, a1, 0x40`.
 A block-scope SPRT `y = obj->field_E` right after `p->x0` hoists that
-`lhu` so `Gpu_PrimCursor = p + 1` stores before `x0`. `Gp_HpMpBarTask` is the
+`lhu` so `gGpuPrimCursor = p + 1` stores before `x0`. `Gp_HpMpBarTask` is the
 example.
 
 ## Keep a later literal `1` dead so `>> 1` stays `sra`, not `srav`
@@ -36419,7 +36419,7 @@ draw:
 ## Keep `setlen`/`setcode` constants both live after the prim cursor
 
 A POLY_FT4 that does `setlen(p, 9); setcode(p, 0x2D)` after advancing
-`Gpu_PrimCursor` wants:
+`gGpuPrimCursor` wants:
 
 ```
 li    v0,9
@@ -36434,8 +36434,8 @@ steals `$v0` from `otz++`. Barrier after the cursor, then keep both
 values live with `+r`:
 
 ```c
-prim       = (POLY_FT4*)Gpu_PrimCursor;
-Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+prim       = (POLY_FT4*)gGpuPrimCursor;
+gGpuPrimCursor = prim + 1;
 __asm__ volatile("" ::: "memory");
 len  = 9;
 code = 0x2D;
@@ -38067,7 +38067,7 @@ In `Gp_DrawEffQuadT29` this alone moved 95% → 98.6%; no register pin was neede
 
 A literal that feeds several prim fields (`0xB8` into `v0`/`v1`) is normally
 materialised right before its first store. When the target instead shows the `li`
-hoisted several instructions earlier — into the `lui %hi(Gpu_PrimCursor)` / `lw otz`
+hoisted several instructions earlier — into the `lui %hi(gGpuPrimCursor)` / `lw otz`
 group that belongs to a *later* statement — one assignment is not enough, because
 the constant's live range is too short for `local_alloc` to give it an argument
 register and for the scheduler to lift it.
@@ -38078,8 +38078,8 @@ variable actually stored:
 ```c
 vTop = 0xB8;                 /* early: crosses the gte_stszotz "memory" asm */
 block->otz++;
-prim       = (POLY_FT4*)Gpu_PrimCursor;
-Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+prim       = (POLY_FT4*)gGpuPrimCursor;
+gGpuPrimCursor = prim + 1;
 __asm__ volatile("" ::: "memory");
 ...
 texV     = vTop;
@@ -38088,9 +38088,9 @@ prim->v1 = texV;
 ```
 
 Collapsing the two into a single `texV = 0xB8;` at either position loses ~1.4%.
-The extra `"memory"` fence after the `Gpu_PrimCursor` bump is what decides *where* in
+The extra `"memory"` fence after the `gGpuPrimCursor` bump is what decides *where* in
 the following group the `li` lands: without it the `li` fell into the `bltz` delay
-slot, and with the fence placed after `prim = Gpu_PrimCursor` (rather than after the
+slot, and with the fence placed after `prim = gGpuPrimCursor` (rather than after the
 pointer bump) it landed one instruction early. `Gp_DrawEffQuadT29` needed the exact
 combination above for 100%.
 
@@ -38164,11 +38164,11 @@ the calls, and the taken branch also loads a global prim pointer:
 
 ```
 sw     t4, 0(v0)               /* gte_stszotz */
-lui    v1, %hi(Gpu_PrimCursor)
+lui    v1, %hi(gGpuPrimCursor)
 sll    s2, a2, 0x10
 sra    s2, s2, 0x10
 move   a0, s2
-lw     s1, %lo(Gpu_PrimCursor)(v1)
+lw     s1, %lo(gGpuPrimCursor)(v1)
 ```
 
 Writing `ang = (s16)arg2;` as its own statement gives the `sll`/`sra` chain a
@@ -38253,7 +38253,7 @@ for (col = 0; col < 4; col++) {
 ```
 
 instead of an `x += step` accumulator to move `move s6, s4` after
-`lui t0, %hi(Gpu_PrimCursor)`. The same rule explained the outer loop: because the
+`lui t0, %hi(gGpuPrimCursor)`. The same rule explained the outer loop: because the
 constant `3` and the `lh` of the panel height were emitted *after* the counter
 init, the counter init had to be a bare statement (`row = 0; three = 3;
 rowOff = 2; … for (; row < 3; row++)`) rather than a `for (row = 0, …)` header.
@@ -38400,12 +38400,12 @@ struct* reference, so the prim-cursor reload
 
 ```c
 addPrim(&gGpuCurrentOt[(s16)obj->drawOrder - 0x1C], p);
-dr         = Gpu_PrimCursor;
-Gpu_PrimCursor = dr + 1;
+dr         = gGpuPrimCursor;
+gGpuPrimCursor = dr + 1;
 ```
 
 has no dependency on `setaddr(p, ...)`'s `sw v1,0(s0)` and `-fschedule-insns`
-lifts `lw Gpu_PrimCursor` above it. The load then overlaps the `gGpuCurrentOt`
+lifts `lw gGpuPrimCursor` above it. The load then overlaps the `gGpuCurrentOt`
 base's live range, so `dr` is coloured `$a3` instead of reusing the dying `$a1`,
 and the whole tail reschedules. Verified with micro-tests: only a *scalar*
 store (`*(u32*)p = ...`) conflicts with such a global — `p->field`,
@@ -38721,19 +38721,19 @@ tmp = (kind + 1) * 16;
 setUV4(p, -tmp, 0xF0, 0xE - tmp, 0xF0, -tmp, 0xFE, 0xE - tmp, 0xFE);
 ```
 
-## Permute the `Gpu_PrimCursor` cursor bump against the prim's own stores
+## Permute the `gGpuPrimCursor` cursor bump against the prim's own stores
 
-Where `Gpu_PrimCursor = (DR_TPAGE*)(q + 1);` sits relative to the field writes is a
+Where `gGpuPrimCursor = q + 1;` sits relative to the field writes is a
 real degree of freedom, not cosmetic: sched1 runs before the pseudos are
 coloured, so a different position changes both the hard registers and the final
 order. For the `TILE` in `Gp_DrawItemIcon` the eight placements scored 94.5% to
-100%; the house style (bump immediately after `q = Gpu_PrimCursor;`) was 96.6% and
+100%; the house style (bump immediately after `q = gGpuPrimCursor;`) was 96.6% and
 the winner was after all four geometry fields and before the header writes:
 
 ```c
 q->w = p->x1 - p->x0 + 2;
 q->h = p->y2 - p->y0 + 2;
-Gpu_PrimCursor    = (DR_TPAGE*)(q + 1);
+gGpuPrimCursor    = q + 1;
 *(u32*)&q->r0 = 0xC0C0C0;
 setlen(q, 3);
 setcode(q, 0x60);
@@ -38798,7 +38798,7 @@ prototype changed nothing on its side.
 `Gp_DrawFxQuad` builds one `POLY_FT4`: `setPolyFT4` / `setSemiTrans` /
 `setShadeTex`, `prim->tpage = 0x2A`, a CLUT read out of a `u16` table, then
 `setUV4`. Computing the two U coordinates where they are conceptually
-introduced (right after the prim is bumped off `Gpu_PrimCursor`) stalls at 98.6%
+introduced (right after the prim is bumped off `gGpuPrimCursor`) stalls at 98.6%
 with the table address in the wrong register:
 
 ```c
@@ -45696,14 +45696,14 @@ So follow the `(id, handler)` table to the function that installs it whenever th
 handler is not adjacent to the allocator; the offsets are then read against that
 task's block alone.
 
-## `Gpu_PrimCursor` is a `DR_TPAGE*` (8 bytes) while the packet carved out of it is a 0x10 `TILE`, so m2c's cursor bump comes out 8x
+## A packet-typed cursor the seed inherited from its declaration sends the cursor bump out by 8x
 
 `func_dryfield_dilapidated_house_8017E144`'s seed reached 90.87% with exactly one
 structural line in the diff: `addiu v0,s0,0x80` where the target has
 `addiu v0,s0,0x10`. m2c had typed the packet `DR_TPAGE *temp_s0` and written
-`Gpu_PrimCursor = temp_s0 + 0x10;`, scaling by `sizeof(DR_TPAGE)`. The cursor
-global really is `DR_TPAGE*` (`main/display.h`), but that is a decoy: the packets
-carved out of it are not `DR_TPAGE`s, the 0x10 is a `TILE`, and the rest of the
+`gGpuPrimCursor = temp_s0 + 0x10;`, scaling by `sizeof(DR_TPAGE)`. Whatever the
+cursor is declared as is a decoy for this: the packets carved out of it need not
+be that type, the 0x10 here is a `TILE`, and the rest of the
 diff - `regs=15` over the two tag-mask constants, a load-delay `nop` in the
 switch - was allocation and scheduling noise that followed from the wrong element
 size, not separate defects.
@@ -45711,8 +45711,8 @@ size, not separate defects.
 The fix is the form every matched drawing body in the tree already uses:
 
 ```c
-tile           = (TILE *)Gpu_PrimCursor;
-Gpu_PrimCursor = (DR_TPAGE *)(tile + 1);
+tile           = (TILE *)gGpuPrimCursor;
+gGpuPrimCursor = tile + 1;
 SetTile(tile);
 /* ...field writes... */
 addPrim(gGpuCurrentOt, tile);
@@ -45724,7 +45724,7 @@ the macro's two `setaddr`s compile to exactly that `and`/`and`/`or` pair, in the
 target's operand order. 100.00% on the first rebuild (`base_1.c`, 1 attempt), and
 the same body shape is in `acropolis_plaza_4.c`, `actor_151000` and `font.c`, so
 read one of those before planning a prim-building body rather than reasoning from
-the seed. A wrong `addiu` on `Gpu_PrimCursor` is a *type* question: read the
+the seed. A wrong `addiu` on `gGpuPrimCursor` is a *type* question: read the
 target immediate as the packet's size, never as the cursor pointee's.
 
 ## Prove a struct-typing pass with `bulk_m2c`'s own scorer, before taking the lock
@@ -49833,7 +49833,7 @@ A neighbouring symbol (`D_8007106B` here) is the usual hint that the address is
 inside a small flag block rather than a standalone scalar, so the array form is
 an honest declaration and not just a codegen trick. Reach for it whenever a
 global scalar store and a following struct load are in the wrong order, and try
-it on the `Gpu_PrimCursor` hoist in `func_800D15D0` — there the fixed-address
+it on the `gGpuPrimCursor` hoist in `func_800D15D0` — there the fixed-address
 scalar is on the *load* side, but the same exemption is what moves it.
 
 ## The same array trick stops `dbr` stealing a store into a branch delay slot
@@ -51080,7 +51080,7 @@ just `while`, and writing it back as `while` is free.
 
 ### The prim-cursor advance names the psyq primitive, not the code word
 
-A "set drawing mode" packet built into `Gpu_PrimCursor` looks like a `DR_TPAGE`
+A "set drawing mode" packet built into `gGpuPrimCursor` looks like a `DR_TPAGE`
 in the assembly — one `sb 1, 0x3` for the length and one `sw` of an `0xE1……`
 GPU word into `0x4` — so m2c and the surrounding decompiled code both suggest
 `DR_TPAGE`. The only instruction that distinguishes the psyq special primitives
@@ -51097,7 +51097,7 @@ addiu $v1, $a0, 0x8     ; DR_TPAGE           (tag + u_long code[1])
 second `code` word is simply left uninitialised, which is why nothing else in
 the body changes.
 
-Read a lone off-by-N on the `Gpu_PrimCursor` store as "wrong primitive struct"
+Read a lone off-by-N on the `gGpuPrimCursor` store as "wrong primitive struct"
 and check the sizes (`TILE` 0x10, `TILE_16` 0xC, `DR_TPAGE` 0x8, `DR_MODE` /
 `DR_TWIN` / `DR_AREA` / `DR_OFFSET` 0xC) before touching the code that fills it.
 
@@ -51243,7 +51243,7 @@ grouped — `sh` to `x0`, `x2`, then `x1`, `x3` — so the obvious source is
 grouped too. That version stalls at 84% with the whole penalty in `regs` and in
 `insert`/`delete` pairs for six moved `li`s: the target materialises `-0x66`
 and `0x6C` in their own long-lived registers (`$a0`, `$v1`) at the *top* of the
-block, before the `lw` of `Gpu_PrimCursor`, while the grouped source funnels
+block, before the `lw` of `gGpuPrimCursor`, while the grouped source funnels
 every constant through `$v0` right before its pair of stores.
 
 **Cause.** Two `sh`s at different constant offsets from the same base do not
@@ -52086,8 +52086,8 @@ decide most "why is this `lui` inside the loop" questions:
   same constant, so two `0xFF000000` loads that CSE did not merge still hoist
   as one (2 × 2 × 29 = 116).
 
-The one that bites: `lui vN, %hi(Gpu_PrimCursor)` for a global that the loop
-reads and writes back (`Gpu_PrimCursor = prim + 1`) is a move-insn with life 3
+The one that bites: `lui vN, %hi(gGpuPrimCursor)` for a global that the loop
+reads and writes back (`gGpuPrimCursor = prim + 1`) is a move-insn with life 3
 (`high`, `lw`, `addiu`, `sw`): 29 × 3 = 87. It hoists into a callee-saved
 register when the loop has ≤ 87 RTL insns and stays inside — reloaded in the
 delay slot of the back edge — at 88 or more. Two otherwise identical loops can
@@ -52399,7 +52399,7 @@ order before reshaping the ranges.
 `GsWSMATRIX` into a 0xC-byte `G_SCRATCH_HEAD` block and links a `TILE_1` into
 the OT. The unpinned C scored 99.6% with `regs=9`, and the whole diff was two
 block-local pointers trading registers: the scratch pointer wanted `$v1` and got
-`$a0`, while the `lui %hi(Gpu_PrimCursor)` base wanted `$a0` and got `$v1`.
+`$a0`, while the `lui %hi(gGpuPrimCursor)` base wanted `$a0` and got `$v1`.
 
 `base_N.i.lreg` names both quantities and its `;; Register N in M.` lines give
 the answer:
@@ -54453,7 +54453,7 @@ overlay whenever the promoted body is not the last one in the file.
 
 ## Two incoming-arg copies: pin both, later one fills the `beqz` delay
 
-A leaf that reuses `$a1` (e.g. `%hi(Gpu_PrimCursor)`) and `$a3` (`0xFFFFFF`
+A leaf that reuses `$a1` (e.g. `%hi(gGpuPrimCursor)`) and `$a3` (`0xFFFFFF`
 from `addPrim`) needs prologue copies of those parameters. The target wants
 argument order, with the `$a3` copy in the first `beqz` delay:
 
@@ -58614,15 +58614,15 @@ keeps `u1 = u0 + K` as `addiu v1, v0, K` rather than `addiu v0, v0, K`.
 `Room_Draw01` sat at 99.887% with `reorder=1` on a single pair:
 
 ```
-lui   t0, %hi(Gpu_PrimCursor)      lui   t0, %hi(Gpu_PrimCursor)
-addiu s0, s4, 0x800        /* target */   lw    s2, %lo(Gpu_PrimCursor)(t0)
-lw    s2, %lo(Gpu_PrimCursor)(t0)  addiu s0, s4, 0x800
+lui   t0, %hi(gGpuPrimCursor)      lui   t0, %hi(gGpuPrimCursor)
+addiu s0, s4, 0x800        /* target */   lw    s2, %lo(gGpuPrimCursor)(t0)
+lw    s2, %lo(gGpuPrimCursor)(t0)  addiu s0, s4, 0x800
 ```
 
 The `lui` is a separate `high` insn (`# 1161 high` in the kept `.s`), so the
 scheduler *can* put something between it and the `%lo` load — but nothing you
 write at statement level will. Moving `t = ang + 0x800;` above or below
-`prim = Gpu_PrimCursor;`, with or without `SCHED_BARRIER()` / `SOFT_BARRIER()`
+`prim = gGpuPrimCursor;`, with or without `SCHED_BARRIER()` / `SOFT_BARRIER()`
 between them, only ever produced two outcomes: `addiu, lui, lw` (no barrier —
 the addu wins the slot outright) or `lui, lw, addiu` (any barrier — a barrier
 splits the block and cannot split the `high`/`%lo` pair). The in-between order
@@ -58636,10 +58636,10 @@ Giving that one value its own local restored the tie-break and matched:
 ```c
 SCHED_BARRIER();
 t3   = ang + 0x800;          /* not `t = ang + 0x800;` */
-prim = (POLY_G4*)Gpu_PrimCursor;
+prim = (POLY_G4*)gGpuPrimCursor;
 SOFT_BARRIER();
 t              = t3;
-Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+gGpuPrimCursor = prim + 1;
 ```
 
 Same root cause as "A pseudo set twice loses the scheduler's live-range boost",
@@ -58687,7 +58687,7 @@ four-wedge body, so the seed carried `Room_Draw05`'s reused `u`:
 ```c
 do {
     u              = ang - 0x400;
-    prim           = (POLY_G4*)Gpu_PrimCursor;
+    prim           = (POLY_G4*)gGpuPrimCursor;
     ...
     u        = ang + 0x400;   /* second use  */
     ...
@@ -58702,10 +58702,10 @@ extra instruction:
 ```
 /* target */                       /* ours */
 addiu s0, s4, -0x400        <loop  addiu s0, s4, -0x400   (leftover, preheader)
-lw    s2, %lo(Gpu_PrimCursor)(t1)  lui   t1, %hi(Gpu_PrimCursor)   <loop
-...                                lw    s2, %lo(Gpu_PrimCursor)(t1)
+lw    s2, %lo(gGpuPrimCursor)(t1)  lui   t1, %hi(gGpuPrimCursor)   <loop
+...                                lw    s2, %lo(gGpuPrimCursor)(t1)
 bnez  v0, <loop>                   bnez  v0, <loop>
-lui   t1, %hi(Gpu_PrimCursor)      addiu s0, s4, -0x400
+lui   t1, %hi(gGpuPrimCursor)      addiu s0, s4, -0x400
 ```
 
 Both are `dbr` stealing the loop body's *first* insn into the back-edge delay
@@ -58761,7 +58761,7 @@ trying early on a `regs`-heavy prologue:
 That got the eight `sb`s right but cost `reorder=2`: `move a0, s2`, the
 argument setup for the following `jal rsin`, could no longer hoist above the
 barrier, and in the target it sits fifteen instructions earlier, right after
-the `lw` of `Gpu_PrimCursor`.
+the `lw` of `gGpuPrimCursor`.
 
 Removing the barrier freed the `move` (that region matched) but let sched1
 sink `u1 = u0 + 0x1F` past the first two stores, so the allocator reused one
@@ -58912,14 +58912,14 @@ map_akropolis = { text = [0x38, 0x6F8], rodata_head = "0x4", note = "..." }
 The give-up seed for `Room_Draw21` had already been round the loop described in
 "At a loop head the same reused local costs `dbr` the delay slot": the same
 `Room_Draw05`-family second loop, the same `u` assigned three times, the same
-`lui $t0, %hi(Gpu_PrimCursor)` fighting `addiu $s0, $s4, -0x400` for the loop's
+`lui $t0, %hi(gGpuPrimCursor)` fighting `addiu $s0, $s4, -0x400` for the loop's
 first slot. What it did about it was pin the loop variable:
 
 ```c
-prim           = (POLY_G4*)Gpu_PrimCursor;
+prim           = (POLY_G4*)gGpuPrimCursor;
 TOUCH_REG(ang);
 u              = ang - 0x400;
-Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+gGpuPrimCursor = prim + 1;
 ```
 
 That reached 99.904% with `reorder=1` and nothing else -- the `lui` was sunk to
@@ -61928,7 +61928,7 @@ sb      v1, 0x15(a1)       # v1
 Writing those stores in ROM order CSEs `u1` into `addiu v0, v0, 0x17` *after*
 the `u0`/`u2` stores (u0 is then dead, so the add reuses `$v0`) and hoists the
 `0xA0` stores above them. `TOUCH_REG(u1)` is the wrong lever: it is volatile and
-does not mention `prim`, so the UV math hoists above `Gpu_PrimCursor` and
+does not mention `prim`, so the UV math hoists above `gGpuPrimCursor` and
 `$a1`/`$a2` swap. Keeping `u1` live across the later `div` spills.
 
 Two empty barriers, with the `0xA0` temp assigned *before* the first, split the
@@ -65202,8 +65202,8 @@ and the sibling's existing four-argument call without extra `$a3` setup.
 
 ## Increment scratch depth before loading the primitive cursor to avoid LICM of its high address
 
-In `func_800FCD00`, loading `Gpu_PrimCursor`, incrementing `block->otz`,
-then storing the advanced cursor gave `%hi(Gpu_PrimCursor)` a life of six
+In `func_800FCD00`, loading `gGpuPrimCursor`, incrementing `block->otz`,
+then storing the advanced cursor gave `%hi(gGpuPrimCursor)` a life of six
 RTL insns. `.loop` hoisted it into a saved register in both drawing loops.
 Incrementing depth first shortened that life to three; `.loop` reported
 `not desirable` and left the `lui` inside each loop. Scheduling still put
@@ -65797,7 +65797,7 @@ A pristine worktree maspsx submodule may lack the existing
 `tools/maspsx-lo-load-nop.patch` until ninja configuration applies it. Check
 that patch before compensating in C for a missing `nop` between a reload and
 `lw ..., %lo(symbol)(reloaded_base)`. Two literal `0x1190` operands in this
-target still score as register differences against `%lo(Gpu_PrimCursor)`;
+target still score as register differences against `%lo(gGpuPrimCursor)`;
 linking at the original addresses verifies all 3716 original instruction bytes.
 
 ## `func_800A57B0`: statement order picks local-quantity spans, resident constants and store placement
@@ -65820,7 +65820,7 @@ after the other prologue statements (or behind a `SCHED_BARRIER`), the
 high/low pair is adjacent, ranks first, and steals `v0`.
 
 **A field re-read across a global store is post-reload CSE, and it is not a
-reference.** `sp->x0 = left; Gpu_PrimCursor = sp + 1; ...; sp->x0 += 0x2B;`
+reference.** `sp->x0 = left; gGpuPrimCursor = sp + 1; ...; sp->x0 += 0x2B;`
 gives `sh s6,8(t9) … move v1,s6; addiu v1,v1,0x2b; sh v1,8(t9)`. Ordinary CSE
 cannot forward the store because the intervening symbol-addressed store
 invalidates every varying-address memory entry; `reload_cse_regs` forwards it
@@ -69893,10 +69893,10 @@ compare constant), matching retail. `func_shelter_b3_dumping_hole_80183198`.
 
 ## Local-alloc 3/12 tie: `USE_REG` at the end of the range so the addiu dest wins `$a0`
 
-A scratch-head push (`lw` / `addiu r, -N` / `sw`) next to a `Gpu_PrimCursor`
+A scratch-head push (`lw` / `addiu r, -N` / `sw`) next to a `gGpuPrimCursor`
 load/store gives two block-0 local quantities with the same
 `refs=3 span=12 priority=2500` and no suggestions. The tracer reports
-`q1[%hi(Gpu_PrimCursor)] -> $a0` and `q2[allocated] -> $a1` because the
+`q1[%hi(gGpuPrimCursor)] -> $a0` and `q2[allocated] -> $a1` because the
 tie goes to the quantity born first (the `lui` that fills the `ori` of
 `G_SCRATCH_HEAD`). Extra then takes `$a0` globally (`move a0, v0` /
 `slt ..., s0`). The target wants `addiu a0, a2, -N` / `move s8, a0` /
@@ -69914,7 +69914,7 @@ allocated onto the scratch pointer.
 ```c
 allocated = head - 0x14;
 *(void**)G_SCRATCH_HEAD = allocated;
-Gpu_PrimCursor = (DR_TPAGE*)(area + 1);
+gGpuPrimCursor = area + 1;
 USE_REG(allocated);
 scratch = (Scratch*)allocated;
 ```
@@ -109218,7 +109218,7 @@ family-scoped, and so is the manifest. A `shared` span's `unit` resolves to
 `src/<family>/lib/<unit>.c` and links only into that family's overlays - no
 `unit` in `configs/USA/overlays.toml` appears under two `[family]` sections.
 The refusal here is not the `localref` one either: the copies reference only
-shared globals (`D_80111E48`, `GsWSMATRIX`, `gDisplayState`, `Gpu_PrimCursor`,
+shared globals (`D_80111E48`, `GsWSMATRIX`, `gDisplayState`, `gGpuPrimCursor`,
 `gGpuCurrentOt`, `rsin`, `rcos`), so they would share cleanly if there were
 anywhere to put them. There is not, and the two overlays keep their own
 copies.
@@ -117921,20 +117921,21 @@ and the single rewrite that fixed the copy and the returns scored 100.000% with 
 penalties zero - so check `tools/overlay_dup_index.py find <fn>` too, since these
 handlers repeat across rooms.
 
-## m2c types a GPU packet as `DR_TPAGE*`, so the cursor bump scales by 8 - retype it to the psyq packet (func_mine_cavern_80182454, 2026-09-17)
+## m2c types the carved packet off the pointer it was loaded from, so the cursor bump scales by that type's size - retype it to the psyq packet (func_mine_cavern_80182454, 2026-09-17)
 
-A function that carves a primitive out of `Gpu_PrimCursor` comes back from m2c
-with the seed's pointer typed `DR_TPAGE*` (8 bytes, the project's
-`Gpu_PrimCursor` declaration) and every field written as a raw byte offset:
+A function that carves a primitive out of `gGpuPrimCursor` comes back from m2c
+with the seed's pointer typed `DR_TPAGE*` - the 8-byte psyq drawing-TPage
+packet, taken from what the local was loaded from rather than from what the
+function writes into it - and every field written as a raw byte offset:
 `M2C_FIELD(temp_t3, s8 *, 3) = 5`, `M2C_FIELD(temp_t3, s16 *, 0xC) = 0xA0`.
 The packet is then advanced by the *element count* the asm shows -
-`Gpu_PrimCursor = temp_t3 + 0x18` - which the DR_TPAGE base type multiplies by
+`gGpuPrimCursor = temp_t3 + 0x18` - which the DR_TPAGE base type multiplies by
 8, so the cursor lands 0xC0 on where the target's lands 0x18:
 
 ```
 target                              seed, DR_TPAGE* base (62.684%)
     addiu v0, t3, 0x18                  addiu v0, t3, 0xc0
-    sw    v0, %lo(Gpu_PrimCursor)(v1)   sw    v0, %lo(Gpu_PrimCursor)(v1)
+    sw    v0, %lo(gGpuPrimCursor)(v1)   sw    v0, %lo(gGpuPrimCursor)(v1)
     li    v0, 5                         move  a2, zero       # M2C_FIELD(...,s8*,3)
     sb    v0, 3(t3)                     move  a1, a2
     li    v0, 0x2A                      move  a3, v0
@@ -119244,7 +119245,7 @@ Two further orderings in the same function, both already covered above but
 worth pairing: the `li reg, 0x14B4` sits *above* the `gte_SetRotMatrix` asm
 blocks, which no hoist can produce (see "A hoisted invariant lands last in the
 preheader"), so the height is a live `s16` local assigned right after
-`Gp_UpdateCoord`; and the drawing-mode packet advances `Gpu_PrimCursor` by
+`Gp_UpdateCoord`; and the drawing-mode packet advances `gGpuPrimCursor` by
 `0xC`, i.e. `DR_MODE`, not `DR_TPAGE` (see "The prim-cursor advance names the
 psyq primitive").
 

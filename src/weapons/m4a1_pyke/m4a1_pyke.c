@@ -200,8 +200,8 @@ void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
     if (block->flag >= 0) {
         gte_stszotz(&((M4a1PykeBeamScratch*)(head - 0x18))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
         prim->tpage = 0x29;
@@ -424,8 +424,8 @@ void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang)
     if (block->flag >= 0) {
         gte_stszotz(&((M4a1PykeQuadScratch*)(head - 0x1C))->otz);
         block->otz     = block->otz + 1;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
         prim->tpage = 0x29;
@@ -515,8 +515,8 @@ void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
            into the asm below. */
         otz++;
         gte_stszotz(&otz);
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
         setRGB0(prim, 0x40, 0x40, 0x40);

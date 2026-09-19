@@ -48,7 +48,7 @@ extern s32         D_acropolis_bridge_801917A8;
 
 /// Cursor into the packet buffer the bridge's screen-smear effects draw from.
 /// Every `DR_MOVE` task in `acropolis_bridge_8` takes the packet it points at
-/// and bumps it by one, the same way `Gpu_PrimCursor` works for the main
+/// and bumps it by one, the same way `gGpuPrimCursor` works for the main
 /// primitive heap.
 extern DR_MOVE* D_acropolis_bridge_801917AC;
 

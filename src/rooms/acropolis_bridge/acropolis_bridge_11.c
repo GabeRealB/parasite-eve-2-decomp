@@ -242,8 +242,8 @@ void func_acropolis_bridge_80182F8C(GsCOORDINATE2* coord, u16 frame, s16 size, s
     gte_ldv0(&((AcropolisBridgeSpriteScratch*)(head - 0x1C))->vec);
     gte_rtps_real();
 
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&((AcropolisBridgeSpriteScratch*)(head - 0x1C))->sx);
@@ -320,8 +320,8 @@ void func_acropolis_bridge_801833A0(GsCOORDINATE2* coord, u16 frame, s16 size)
     gte_ldv0(&((AcropolisBridgeDebrisScratch*)(head - 0x18))->vec);
     gte_rtps_real();
 
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&((AcropolisBridgeDebrisScratch*)(head - 0x18))->sx);

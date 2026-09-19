@@ -54,8 +54,8 @@ void func_combustion_8012FF0C(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
     if (block->flag >= 0) {
         gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
         prim->tpage = 0x28;
@@ -145,8 +145,8 @@ void func_combustion_80130184(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
         gte_stszotz(&((CombustionQuadScratch*)(head - 0x1C))->otz);
         USE_REG(head);
         block->otz     = block->otz + 1;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
         if (saved & 1) {
             setRGB0(prim, 0xC0, 0x70, 0x40);
@@ -228,8 +228,8 @@ void func_combustion_801305F8(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     if (block->flag >= 0) {
         gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
         prim->tpage = 0x2A;

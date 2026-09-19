@@ -175,8 +175,8 @@ void func_mist_shooting_gallery_80182294(GsCOORDINATE2* coord, s16 arg1, s16 arg
     gte_stflg(&((MistShootingGalleryFlashScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((MistShootingGalleryFlashScratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
         prim->tpage = 0x2A;
@@ -248,8 +248,8 @@ void func_mist_shooting_gallery_801826C4(GsCOORDINATE2* coord, SVECTOR* arg1, s3
         gte_stsxy(&((MistShootingGalleryBeamScratch*)(head - 0x20))->sxy1);
         gte_stflg(&((MistShootingGalleryBeamScratch*)(head - 0x20))->flag);
         if (block->flag >= 0) {
-            prim           = (POLY_FT4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2F);
             prim->tpage = 0x28;
@@ -1300,8 +1300,8 @@ void func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2)
     SPRT*     p;
     DR_TPAGE* dr;
 
-    p              = (SPRT*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p              = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     p->w           = 0xF;
     p->h           = 0x13;
     p->clut        = 0x4140;
@@ -1313,8 +1313,8 @@ void func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2)
     p->x0 = arg0;
     addPrim(gGpuCurrentOt, p);
 
-    dr             = Gpu_PrimCursor;
-    Gpu_PrimCursor = dr + 1;
+    dr             = gGpuPrimCursor;
+    gGpuPrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE1000215;
     addPrim(gGpuCurrentOt, dr);
@@ -1325,8 +1325,8 @@ void func_mist_shooting_gallery_801847D4(u8 arg0)
     TILE*     p;
     DR_TPAGE* dr;
 
-    p              = (TILE*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p              = (TILE*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     p->x0          = -0xA8;
     p->y0          = -0x7C;
     p->w           = 0x180;
@@ -1338,8 +1338,8 @@ void func_mist_shooting_gallery_801847D4(u8 arg0)
     setcode(p, 0x62);
     addPrim(gGpuCurrentOt, p);
 
-    dr             = Gpu_PrimCursor;
-    Gpu_PrimCursor = dr + 1;
+    dr             = gGpuPrimCursor;
+    gGpuPrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE1000235;
     addPrim(gGpuCurrentOt, dr);

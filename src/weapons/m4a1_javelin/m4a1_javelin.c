@@ -322,8 +322,8 @@ void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
             g   = rgb & 0xF0;
             b   = (color & 0xF) * 0x10;
             sc->otz1++;
-            line           = (LINE_F2*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+            line           = (LINE_F2*)gGpuPrimCursor;
+            gGpuPrimCursor = line + 1;
             setLineF2(line);
             tint = ((u8)gDisplayState.animFrame & 1) * 0x10;
             r    = r + tint;
@@ -346,8 +346,8 @@ void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
                 D_m4a1_javelin_8012EB60 = angle;
                 D_m4a1_javelin_8012EB64 = 0;
                 for (i = (s16)angle; i < (s16)angle + 0x800; i += 0x400) {
-                    prim           = (POLY_G4*)Gpu_PrimCursor;
-                    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
                     setRGB1(prim, 0, 0, 0);
@@ -373,8 +373,8 @@ void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
             }
             if (flags & 1) {
                 for (i = (s16)angle; i < (s16)angle + 0x800; i += 0x400) {
-                    prim           = (POLY_G4*)Gpu_PrimCursor;
-                    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
                     setRGB1(prim, 0, 0, 0);
@@ -396,8 +396,8 @@ void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
                 }
             }
             for (i = (s16)angle; i < (s16)angle + 0x800; i += 0x400) {
-                prim           = (POLY_G4*)Gpu_PrimCursor;
-                Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                prim           = (POLY_G4*)gGpuPrimCursor;
+                gGpuPrimCursor = prim + 1;
                 bodyAng        = (s16)angle + ((i - (s16)angle) * 2);
                 setPolyG4(prim);
                 setRGB0(prim, 0, 0, 0);
@@ -475,8 +475,8 @@ void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
     gte_stszotz(&((M4a1JavelinRingScratch*)head)[-1].otz1);
 
     sc->otz1++;
-    line           = (LINE_F2*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    line           = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor = line + 1;
     setLineF2(line);
     dither = (gDisplayState.animFrame & 1) * 8;
     c      = color & 0xFFFF;
@@ -500,8 +500,8 @@ void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
         D_m4a1_javelin_8012EB62 = ang;
         D_m4a1_javelin_8012EB66 = 0;
         for (i = (s16)ang; i < (s16)ang + 0x800; i += 0x400) {
-            poly           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+            poly           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = poly + 1;
             setPolyG4(poly);
             setRGB0(poly, 0, 0, 0);
             setRGB1(poly, 0, 0, 0);
@@ -524,8 +524,8 @@ void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
 
     if (flags & 1) {
         for (i = (s16)ang; i < (s16)ang + 0x800; i += 0x400) {
-            poly           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+            poly           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = poly + 1;
             setPolyG4(poly);
             setRGB0(poly, 0, 0, 0);
             setRGB1(poly, 0, 0, 0);
@@ -545,8 +545,8 @@ void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
     }
 
     for (i = (s16)ang; i < (s16)ang + 0x800; i += 0x400) {
-        poly           = (POLY_G4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        poly           = (POLY_G4*)gGpuPrimCursor;
+        gGpuPrimCursor = poly + 1;
         setPolyG4(poly);
         setRGB0(poly, 0, 0, 0);
         setRGB1(poly, 0, 0, 0);
@@ -602,8 +602,8 @@ void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
         if (sc->flag >= 0) {
             gte_stszotz(&sc->otz1);
             sc->otz1++;
-            line           = (LINE_G2*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+            line           = (LINE_G2*)gGpuPrimCursor;
+            gGpuPrimCursor = line + 1;
             setLineG2(line);
             setRGB0(line, brightness >> 2, brightness >> 1, brightness);
             setRGB1(line, 0, 0, 0);
@@ -654,8 +654,8 @@ void func_m4a1_javelin_8011F0AC(M4a1JavelinVecLo* arg0, s16 arg1, s16 arg2, s16 
     if (block->flag >= 0) {
         gte_stszotz(&((M4a1JavelinQuadScratch*)(head - sizeof(M4a1JavelinQuadScratch)))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
         setSemiTrans(prim, 1);
         setShadeTex(prim, 1);

@@ -63,8 +63,8 @@ void RoomsShared80181d28(Task* task)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->pos);
     gte_rtps_real();
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&blk->sxy);

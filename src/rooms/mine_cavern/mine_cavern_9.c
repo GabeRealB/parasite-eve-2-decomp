@@ -64,8 +64,8 @@ void func_mine_cavern_80182454(void)
     flags = GameFlag_GetNibble(0xE2);
     count = 0;
 
-    poly           = (POLY_F4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+    poly           = (POLY_F4*)gGpuPrimCursor;
+    gGpuPrimCursor = poly + 1;
     setlen(poly, 5);
     setcode(poly, 0x2A);
 
@@ -89,8 +89,8 @@ void func_mine_cavern_80182454(void)
     poly->y3 = 0x78;
     addPrim(gGpuCurrentOt, poly);
 
-    dr             = (DR_MODE*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
+    dr             = (DR_MODE*)gGpuPrimCursor;
+    gGpuPrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE100004A;
     addPrim(gGpuCurrentOt, dr);

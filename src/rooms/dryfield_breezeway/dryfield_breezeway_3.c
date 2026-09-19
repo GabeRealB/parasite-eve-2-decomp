@@ -12,7 +12,7 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_3", func_d
 /// down the rotated frame from its near one. All five probe points go through
 /// `RotTransSV` (so `arg0` has to be a real rotation: the identity matrix the
 /// two `Set` calls start from is splatted word-wise and then handed to
-/// `RotMatrixZ`), and the quad is carved from `Gpu_PrimCursor` and linked into
+/// `RotMatrixZ`), and the quad is carved from `gGpuPrimCursor` and linked into
 /// `gGpuCurrentOt[0x64]` with the room's tpage 0x8E / clut 0x4000 texture.
 ///
 /// `arg2` is the scan's own position, added to every projected point; the
@@ -83,8 +83,8 @@ void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, DbwVec* arg2, DbwVec* 
     far1.vz = 0;
     RotTransSV(&far1, (SVECTOR*)&corner3, &flag);
 
-    p              = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p              = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     setPolyFT4(p);
     p->tpage = 0x8E;
     p->clut  = 0x4000;

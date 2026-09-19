@@ -262,8 +262,8 @@ void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
     ot = (u32*)((u32)gGpuCurrentOt + (((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) - 30;
     pt = pts;
     for (i = 0; i < 15; i++, pt++) {
-        prim           = (POLY_G3*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_G3*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setPolyG3(prim);
         setSemiTrans(prim, 1);
         prim->x0 = x;
@@ -283,8 +283,8 @@ void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
         prim->b2 = rgb[2];
         addPrim(ot, prim);
     }
-    prim           = (POLY_G3*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_G3*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setPolyG3(prim);
     setSemiTrans(prim, 1);
     prim->x0 = x;
@@ -303,8 +303,8 @@ void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
     prim->g2 = rgb[1];
     prim->b2 = rgb[2];
     addPrim(ot, prim);
-    dr             = Gpu_PrimCursor;
-    Gpu_PrimCursor = dr + 1;
+    dr             = gGpuPrimCursor;
+    gGpuPrimCursor = dr + 1;
     setDrawTPage(dr, 1, 0, 0x2A);
     addPrim(ot, dr);
 }

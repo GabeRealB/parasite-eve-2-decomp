@@ -49,9 +49,9 @@ void Room_Draw19(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
     gte_stflg(&((RoomDraw19Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((RoomDraw19Scratch*)(head - 0x1C))->otz);
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        prim           = (POLY_FT4*)gGpuPrimCursor;
         ang            = (s16)arg3;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
         prim->tpage = 0x2B;

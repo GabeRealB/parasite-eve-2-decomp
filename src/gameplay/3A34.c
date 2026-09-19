@@ -2717,8 +2717,8 @@ void Gp_DrawTargetCursor(void)
             n                 = ds->animFrame;
             n                 = (u32)n % 24U;
             frame             = (u32)n / 3U;
-            prim              = (POLY_FT4*)Gpu_PrimCursor;
-            Gpu_PrimCursor    = (DR_TPAGE*)(prim + 1);
+            prim              = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor    = prim + 1;
             if (small == 1) {
                 prim->x0 = prim->x2 = *(u16*)&block->sx - 8;
                 prim->x1 = prim->x3 = *(u16*)&block->sx + 8;

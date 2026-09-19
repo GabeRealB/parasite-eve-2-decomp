@@ -227,8 +227,8 @@ void func_m4a1_hammer_8011D904(s32* arg0, u16 arg1, u16 arg2, s16 arg3)
     if (block->flag >= 0) {
         gte_stszotz(&((M4a1HammerFlareScratch*)(head - 0x1C))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
         prim->tpage = 0x28;
@@ -334,8 +334,8 @@ void func_m4a1_hammer_8011DE60(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3
     if (block->flag >= 0) {
         gte_stszotz(&((M4a1HammerFlareScratch*)(head - 0x1C))->otz);
         block->otz++;
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
         prim->tpage = 0x2A;
@@ -400,8 +400,8 @@ void func_m4a1_hammer_8011E29C(GsCOORDINATE2* coord, SVECTOR* arg1, s32 arg2, s1
         gte_stflg(&((M4a1HammerTrailScratch*)(head - 0x20))->flag);
         if (block->flag >= 0) {
             block->otz++;
-            prim           = (POLY_FT4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2F);
             prim->tpage = 0x28;

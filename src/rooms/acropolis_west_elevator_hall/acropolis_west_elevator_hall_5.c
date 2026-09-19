@@ -68,8 +68,8 @@ void func_acropolis_west_elevator_hall_8017FE18(Task* task)
         rect.w         = 0x78;
         rect.h         = 1;
         tagMask        = 0xFF000000;
-        mv             = (DR_MOVE*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(mv + 1);
+        mv             = (DR_MOVE*)gGpuPrimCursor;
+        gGpuPrimCursor = mv + 1;
         SetDrawMove(mv, &rect, 0x50, i + base);
         {
             u_long* ot;
@@ -92,7 +92,7 @@ void func_acropolis_west_elevator_hall_8017FE18(Task* task)
 /// with a single `RTPS`, and the resulting screen point becomes the centre of
 /// a semi-transparent `POLY_FT4` whose half-extent shrinks with distance
 /// (`0x6700 / otz`). Sprites closer than `otz == 0x11` are skipped entirely,
-/// which is why the primitive is claimed from `Gpu_PrimCursor` before the
+/// which is why the primitive is claimed from `gGpuPrimCursor` before the
 /// depth test but only filled in and linked afterwards.
 void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
 {
@@ -121,8 +121,8 @@ void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((AwehSpriteScratch*)(head - 0x14))->pos);
     gte_rtps_real();
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&((AwehSpriteScratch*)(head - 0x14))->sx);

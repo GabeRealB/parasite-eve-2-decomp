@@ -65,8 +65,8 @@ void Room_Draw37(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
         block->halfWidth = ((s16)arg3 << 5) / ((RoomShaftScratch*)(head - 0x14))->otz;
         color            = pulse / 34 + 0x78;
         do {
-            prim           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);
@@ -87,8 +87,8 @@ void Room_Draw37(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
 
         i = 0;
         do {
-            line           = (LINE_G3*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+            line           = (LINE_G3*)gGpuPrimCursor;
+            gGpuPrimCursor = line + 1;
             setLineG3(line);
             setRGB0(line, 0, 0, 0);
             setRGB1(line, 0, color, color);

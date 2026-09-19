@@ -19,7 +19,6 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-extern DR_TPAGE*    Gpu_PrimCursor;
 extern WipUiHolder* Wip_UiHolder;
 extern u16*         D_8005C374;
 extern u8           D_800733F0[2][0x6C];
@@ -83,8 +82,8 @@ void Title_DrawSpriteRow(s32 y, s32 v, s32 color)
     u8        c;
 
     c              = color;
-    p              = (SPRT*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p              = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     p->x0          = -0x80;
     p->w           = 0x100;
     p->h           = 0x10;
@@ -97,8 +96,8 @@ void Title_DrawSpriteRow(s32 y, s32 v, s32 color)
     p->y0 = y;
     addPrim(gGpuCurrentOt, p);
 
-    dr             = Gpu_PrimCursor;
-    Gpu_PrimCursor = dr + 1;
+    dr             = gGpuPrimCursor;
+    gGpuPrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE10002BC;
     addPrim(gGpuCurrentOt, dr);
@@ -137,8 +136,8 @@ void Title_MenuTask(Task* arg0)
         a1 = prev; /* pin after prologue so color uses $a1 */
         h  = 0xF0;
 
-        a0             = (TILE*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(a0 + 1);
+        a0             = (TILE*)gGpuPrimCursor;
+        gGpuPrimCursor = a0 + 1;
         setlen(a0, 3);
         setcode(a0, 0x60);
         c      = a1 * 16;
@@ -154,8 +153,8 @@ void Title_MenuTask(Task* arg0)
         setSemiTrans(a0, 1);
         addPrim(gGpuCurrentOt, a0);
 
-        dr             = Gpu_PrimCursor;
-        Gpu_PrimCursor = dr + 1;
+        dr             = gGpuPrimCursor;
+        gGpuPrimCursor = dr + 1;
         setlen(dr, 1);
         /* Split like Title_DrawSpriteRow: lui 0xE100 / ori 0x240, after 0xFFFFFF */
         dr->code[0] = 0xE1000000 | 0x240;
@@ -199,8 +198,8 @@ normal:
             DR_TPAGE* dr;
             s32       tmp;
 
-            p              = (TILE*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+            p              = (TILE*)gGpuPrimCursor;
+            gGpuPrimCursor = p + 1;
             setlen(p, 3);
             setcode(p, 0x62);
             tmp   = s3->timer;
@@ -214,8 +213,8 @@ normal:
             p->r0 = color;
             addPrim(gGpuCurrentOt, p);
 
-            dr             = Gpu_PrimCursor;
-            Gpu_PrimCursor = dr + 1;
+            dr             = gGpuPrimCursor;
+            gGpuPrimCursor = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE1000000 | 0x240;
             addPrim(gGpuCurrentOt, dr);

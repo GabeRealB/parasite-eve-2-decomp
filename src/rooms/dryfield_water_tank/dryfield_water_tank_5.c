@@ -68,8 +68,8 @@ void func_dryfield_water_tank_8017E3C4(Task* arg0)
         case 1:
             r              = fade->r;
             g              = fade->g;
-            tile           = (TILE*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+            tile           = (TILE*)gGpuPrimCursor;
+            gGpuPrimCursor = tile + 1;
             setlen(tile, 3);
             setcode(tile, 0x62);
             tile->r0 = r;
@@ -81,8 +81,8 @@ void func_dryfield_water_tank_8017E3C4(Task* arg0)
             tile->h  = 0xF0;
             addPrim(gGpuCurrentOt - 16, tile);
 
-            dr             = Gpu_PrimCursor;
-            Gpu_PrimCursor = dr + 1;
+            dr             = gGpuPrimCursor;
+            gGpuPrimCursor = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE1000240;
             addPrim(gGpuCurrentOt - 16, dr);

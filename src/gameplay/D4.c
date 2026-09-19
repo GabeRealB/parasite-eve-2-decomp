@@ -1764,9 +1764,9 @@ void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
     u32           tpage;
 
     i              = 0;
-    dest           = (GpTpageSprt*)Gpu_PrimCursor;
+    dest           = (GpTpageSprt*)gGpuPrimCursor;
     elem           = arg0 + arg1->field_0;
-    Gpu_PrimCursor = (DR_TPAGE*)(dest + arg1->field_2);
+    gGpuPrimCursor = dest + arg1->field_2;
     if (arg1->field_2 != 0) {
         ds     = &gDisplayState;
         mask   = 0xFFFFFF;
@@ -2111,8 +2111,8 @@ void func_800AD024(void)
             if (gDisplayState.drawBuffer != 0) {
                 rect.y += 0x110;
             }
-            prim           = (DR_AREA*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (DR_AREA*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             SetDrawArea(prim, &rect);
             addPrim(&gGpuCurrentOt[0x3FF], prim);
             if (gDisplayState.drawBuffer != 0) {
@@ -2123,8 +2123,8 @@ void func_800AD024(void)
             rect.x         = 0;
             rect.w         = 0x140;
             rect.h         = 0xF0;
-            prim           = (DR_AREA*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (DR_AREA*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             SetDrawArea(prim, &rect);
             addPrim((u_long*)((((u32)area->depth << gDisplayState.otDepthShift) >> 2 & 0xFFC) + (u32)gGpuCurrentOt), prim);
         }

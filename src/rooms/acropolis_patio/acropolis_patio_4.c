@@ -212,8 +212,8 @@ void func_acropolis_patio_8017E730(Task* task)
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&sc->pos);
         gte_rtps_real();
-        prim           = (TILE_1*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (TILE_1*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setTile1(prim);
         gte_stsxy(&prim->x0);
         gte_stszotz(&sc->otz);

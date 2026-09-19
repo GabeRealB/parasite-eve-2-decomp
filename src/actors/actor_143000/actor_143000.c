@@ -140,8 +140,8 @@ void func_actor_143000_801325F0(Actor143000* arg0)
             if (p->field_B != 0) {
                 if (p->field_8 != 3) {
                     if (p->field_8 == 5) {
-                        prim           = (POLY_FT4*)Gpu_PrimCursor;
-                        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                        prim           = (POLY_FT4*)gGpuPrimCursor;
+                        gGpuPrimCursor = prim + 1;
                         SetPolyFT4(prim);
                         setShadeTex(prim, 1);
                         x  = (s16)(prompt->screen.xy.x - p->x) / 16 * 16;
@@ -159,8 +159,8 @@ void func_actor_143000_801325F0(Actor143000* arg0)
                         addPrim(&gGpuCurrentOt[0x3FE], prim);
                     }
                 } else {
-                    prim           = (POLY_FT4*)Gpu_PrimCursor;
-                    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                    prim           = (POLY_FT4*)gGpuPrimCursor;
+                    gGpuPrimCursor = prim + 1;
                     SetPolyFT4(prim);
                     setShadeTex(prim, 1);
                     u  = 0x30;

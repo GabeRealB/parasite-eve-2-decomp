@@ -49,8 +49,8 @@ void PeShared801305c0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
-        prim           = (POLY_G3*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_G3*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setPolyG3(prim);
         setRGB0(prim, rgb[0], rgb[1], rgb[2]);
         setRGB1(prim, 0, 0, 0);

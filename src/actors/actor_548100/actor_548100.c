@@ -59,8 +59,8 @@ void func_actor_548100_80132338(s32 x, s32 y, s32 variant)
         return;
     }
 
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
 
     px       = x - 2;
     prim->x2 = px;
@@ -266,8 +266,8 @@ void func_actor_548100_80132A14(Task* task)
         }
     }
 
-    prim           = (DR_MODE*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (DR_MODE*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setlen(prim, 1);
     prim->code[0] = 0xE100022A;
     addPrim(&gGpuCurrentOt[0x3FD], prim);
@@ -371,8 +371,8 @@ void func_actor_548100_80132EA8(RoomRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 
-    line           = (LINE_F2*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    line           = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
     line->y0 = rect->y;
@@ -383,8 +383,8 @@ void func_actor_548100_80132EA8(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    line           = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
     line->y0 = rect->y;
@@ -395,8 +395,8 @@ void func_actor_548100_80132EA8(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    line           = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x + rect->w;
     line->y0 = rect->y + rect->h;
@@ -407,8 +407,8 @@ void func_actor_548100_80132EA8(RoomRect* rect, u8 r, u8 g, u8 b)
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
 
-    line           = (LINE_F2*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    line           = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor = line + 1;
     setLineF2(line);
     line->x0 = rect->x;
     line->y0 = rect->y + rect->h;
@@ -478,8 +478,8 @@ void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
     s32      x3;
     s32      y3;
 
-    quad           = (POLY_F4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(quad + 1);
+    quad           = (POLY_F4*)gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
     setPolyF4(quad);
     setSemiTrans(quad, 1);
     quad->r0 = r;
@@ -538,8 +538,8 @@ void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
     quad->y3 = y3;
     addPrim(&gGpuCurrentOt[0x3FC], quad);
 
-    top            = (POLY_G4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(top + 1);
+    top            = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = top + 1;
     setPolyG4(top);
     setSemiTrans(top, 1);
     top->r0 = 0;
@@ -564,8 +564,8 @@ void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
     top->y3 = y1;
     addPrim(&gGpuCurrentOt[0x3FC], top);
 
-    left           = (POLY_G4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(left + 1);
+    left           = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = left + 1;
     setPolyG4(left);
     setSemiTrans(left, 1);
     left->r0 = 0;
@@ -590,8 +590,8 @@ void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
     left->y3 = y2;
     addPrim(&gGpuCurrentOt[0x3FC], left);
 
-    right          = (POLY_G4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(right + 1);
+    right          = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = right + 1;
     setPolyG4(right);
     setSemiTrans(right, 1);
     right->r0 = 0;
@@ -616,8 +616,8 @@ void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
     right->y3 = y3;
     addPrim(&gGpuCurrentOt[0x3FC], right);
 
-    bottom         = (POLY_G4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(bottom + 1);
+    bottom         = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = bottom + 1;
     setPolyG4(bottom);
     setSemiTrans(bottom, 1);
     bottom->r0 = 0;
@@ -676,8 +676,8 @@ void func_actor_548100_80133684(Actor548100Edge* edge)
             a = edge->nodeB;
             b = edge->nodeA;
         case 4:
-            area           = (DR_AREA*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(area + 1);
+            area           = (DR_AREA*)gGpuPrimCursor;
+            gGpuPrimCursor = area + 1;
             ax             = D_actor_548100_801358E4[a].vx - 0x9E;
             ay             = D_actor_548100_801358E4[a].vy - 0x76;
             bx             = D_actor_548100_801358E4[b].vx - 0x9E;
@@ -693,8 +693,8 @@ void func_actor_548100_80133684(Actor548100Edge* edge)
                 }
                 pos = ax + sign * edge->field_C;
                 func_actor_548100_80133200(a, b, D_actor_548100_80135B53, D_actor_548100_80135B54, D_actor_548100_80135B55);
-                area           = (DR_AREA*)Gpu_PrimCursor;
-                Gpu_PrimCursor = (DR_TPAGE*)(area + 1);
+                area           = (DR_AREA*)gGpuPrimCursor;
+                gGpuPrimCursor = area + 1;
                 if (ax < bx) {
                     setRECT(&rect, 0, 0, pos + 0xA0, 0xF0);
                 } else {
@@ -704,8 +704,8 @@ void func_actor_548100_80133684(Actor548100Edge* edge)
                 SetDrawArea(area, &rect);
                 addPrim(&gGpuCurrentOt[0x3FC], area);
                 func_actor_548100_80133200(a, b, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
-                area           = (DR_AREA*)Gpu_PrimCursor;
-                Gpu_PrimCursor = (DR_TPAGE*)(area + 1);
+                area           = (DR_AREA*)gGpuPrimCursor;
+                gGpuPrimCursor = area + 1;
                 if (ax < bx) {
                     setRECT(&rect, pos + 0xA0, 0, 0xA0 - pos, 0xF0);
                 } else {
@@ -718,8 +718,8 @@ void func_actor_548100_80133684(Actor548100Edge* edge)
                 }
                 pos = ay + sign * edge->field_C;
                 func_actor_548100_80133200(a, b, D_actor_548100_80135B53, D_actor_548100_80135B54, D_actor_548100_80135B55);
-                area           = (DR_AREA*)Gpu_PrimCursor;
-                Gpu_PrimCursor = (DR_TPAGE*)(area + 1);
+                area           = (DR_AREA*)gGpuPrimCursor;
+                gGpuPrimCursor = area + 1;
                 if (ay < by) {
                     setRECT(&rect, 0, 0, 0x140, pos + 0x78);
                 } else {
@@ -729,8 +729,8 @@ void func_actor_548100_80133684(Actor548100Edge* edge)
                 SetDrawArea(area, &rect);
                 addPrim(&gGpuCurrentOt[0x3FC], area);
                 func_actor_548100_80133200(a, b, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
-                area           = (DR_AREA*)Gpu_PrimCursor;
-                Gpu_PrimCursor = (DR_TPAGE*)(area + 1);
+                area           = (DR_AREA*)gGpuPrimCursor;
+                gGpuPrimCursor = area + 1;
                 if (ay < by) {
                     setRECT(&rect, 0, pos + 0x78, 0x140, 0x78 - pos);
                 } else {
@@ -772,8 +772,8 @@ void func_actor_548100_80133BBC(s32 arg0)
     u8       g4;
     u8       b4;
 
-    quad           = (POLY_F4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(quad + 1);
+    quad           = (POLY_F4*)gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
     setPolyF4(quad);
     setSemiTrans(quad, 1);
     quad->r0 = D_actor_548100_80135B53;
@@ -802,8 +802,8 @@ void func_actor_548100_80133BBC(s32 arg0)
     r1             = D_actor_548100_80135B53;
     g1             = D_actor_548100_80135B54;
     b1             = D_actor_548100_80135B55;
-    top            = (POLY_G4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(top + 1);
+    top            = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = top + 1;
     setPolyG4(top);
     setSemiTrans(top, 1);
     top->r0 = 0;
@@ -831,8 +831,8 @@ void func_actor_548100_80133BBC(s32 arg0)
     r2             = D_actor_548100_80135B53;
     g2             = D_actor_548100_80135B54;
     b2             = D_actor_548100_80135B55;
-    left           = (POLY_G4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(left + 1);
+    left           = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = left + 1;
     setPolyG4(left);
     setSemiTrans(left, 1);
     left->r0 = 0;
@@ -860,8 +860,8 @@ void func_actor_548100_80133BBC(s32 arg0)
     r3             = D_actor_548100_80135B53;
     g3             = D_actor_548100_80135B54;
     b3             = D_actor_548100_80135B55;
-    right          = (POLY_G4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(right + 1);
+    right          = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = right + 1;
     setPolyG4(right);
     setSemiTrans(right, 1);
     right->r0 = 0;
@@ -889,8 +889,8 @@ void func_actor_548100_80133BBC(s32 arg0)
     r4             = D_actor_548100_80135B53;
     g4             = D_actor_548100_80135B54;
     b4             = D_actor_548100_80135B55;
-    bottom         = (POLY_G4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(bottom + 1);
+    bottom         = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = bottom + 1;
     setPolyG4(bottom);
     setSemiTrans(bottom, 1);
     bottom->r0 = 0;
@@ -935,8 +935,8 @@ void func_actor_548100_80133F88(void)
     g = D_actor_548100_80135B54;
     b = D_actor_548100_80135B55;
 
-    quad           = (POLY_F4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(quad + 1);
+    quad           = (POLY_F4*)gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
     setPolyF4(quad);
     setSemiTrans(quad, 1);
     quad->r0 = r >> 1;
@@ -951,8 +951,8 @@ void func_actor_548100_80133F88(void)
     quad->x3 = -0x5B;
     quad->y3 = 0x65;
 
-    top            = (POLY_G4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(top + 1);
+    top            = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = top + 1;
     setPolyG4(top);
     setSemiTrans(top, 1);
     top->r0 = 0;
@@ -977,8 +977,8 @@ void func_actor_548100_80133F88(void)
     top->y3 = -0x62;
     addPrim(&gGpuCurrentOt[0x3FC], top);
 
-    left           = (POLY_G4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(left + 1);
+    left           = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = left + 1;
     setPolyG4(left);
     setSemiTrans(left, 1);
     left->r0 = 0;
@@ -1003,8 +1003,8 @@ void func_actor_548100_80133F88(void)
     left->y3 = 0x65;
     addPrim(&gGpuCurrentOt[0x3FC], left);
 
-    right          = (POLY_G4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(right + 1);
+    right          = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = right + 1;
     setPolyG4(right);
     setSemiTrans(right, 1);
     right->r0 = 0;
@@ -1029,8 +1029,8 @@ void func_actor_548100_80133F88(void)
     right->y3 = 0x65;
     addPrim(&gGpuCurrentOt[0x3FC], right);
 
-    bottom         = (POLY_G4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(bottom + 1);
+    bottom         = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = bottom + 1;
     setPolyG4(bottom);
     setSemiTrans(bottom, 1);
     bottom->r0 = 0;
@@ -1165,7 +1165,7 @@ void func_actor_548100_80134400(void)
 }
 
 /// Link `rect` into the ordering table as a textured quad, taking the
-/// primitive off the `Gpu_PrimCursor` bump allocator. The same four numbers are
+/// primitive off the `gGpuPrimCursor` bump allocator. The same four numbers are
 /// the texture window and, shifted by the screen centre, the quad's screen
 /// rectangle -- `u`/`v` are the table's own values and `x`/`y` those values
 /// minus 160 and 120, so a record drawn from the origin-centred screen space
@@ -1188,8 +1188,8 @@ void func_actor_548100_8013461C(Actor548100TexRect* rect)
     u1             = rect->u1;
     v0             = rect->v0;
     v1             = rect->v1;
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     SetPolyFT4(prim);
     prim->x0    = u0 - 0xA0;
     prim->y0    = v0 - 0x78;

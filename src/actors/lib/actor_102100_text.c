@@ -1395,8 +1395,8 @@ void Actor02100_Fn02924(Actor02100* arg0, s32 arg1)
             scratch->y[5] = (s16)(scratch->y[1] + offsetY1);
 
             do {
-                quad           = (POLY_G4*)Gpu_PrimCursor;
-                Gpu_PrimCursor = (DR_TPAGE*)((u8*)quad + 0x24);
+                quad           = (POLY_G4*)gGpuPrimCursor;
+                gGpuPrimCursor = (u8*)quad + 0x24;
                 setlen(quad, 8);
                 setcode(quad, 0x3A);
                 corners  = &Actor02100_D03E1C[corner];
@@ -1430,8 +1430,8 @@ void Actor02100_Fn02924(Actor02100* arg0, s32 arg1)
                 setaddr(quadSlot, quad);
             } while (corner < 2);
 
-            line           = (LINE_F2*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)((u8*)line + 0x10);
+            line           = (LINE_F2*)gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)line + 0x10;
             setlen(line, 3);
             setcode(line, 0x42);
             line->x0 = (u16)scratch->x[0];
@@ -1449,9 +1449,9 @@ void Actor02100_Fn02924(Actor02100* arg0, s32 arg1)
             }
             setaddr(line,
                     getaddr((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt));
-            mode           = Gpu_PrimCursor;
+            mode           = gGpuPrimCursor;
             lineSlot       = (s32*)((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt);
-            Gpu_PrimCursor = (DR_TPAGE*)((u8*)mode + 8);
+            gGpuPrimCursor = (u8*)mode + 8;
             setaddr(lineSlot, line);
             setlen(mode, 1);
             mode->code[0] = 0xE1000620;

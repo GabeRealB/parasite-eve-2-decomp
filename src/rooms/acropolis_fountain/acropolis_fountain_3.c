@@ -173,8 +173,8 @@ void func_acropolis_fountain_8017DD44(Task* task)
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&((AcropolisFountainSprayScratch*)(head - 0x14))->pos);
         gte_rtps_real();
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
         gte_stsxy(&((AcropolisFountainSprayScratch*)(head - 0x14))->sx);
@@ -386,8 +386,8 @@ void func_acropolis_fountain_8017E3D4(Task* task)
                     key.loc.view           = view;
                     slot                   = Stream_GetSlot(Stream_FindSlotByKey(key.raw.data) & 0xFFFF);
 
-                    p              = (SPRT*)Gpu_PrimCursor;
-                    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+                    p              = (SPRT*)gGpuPrimCursor;
+                    gGpuPrimCursor = p + 1;
                     setlen(p, 4);
                     setcode(p, 0x65);
                     p->u0 = 0;
@@ -401,12 +401,12 @@ void func_acropolis_fountain_8017E3D4(Task* task)
                         p->x0 = -0xA0;
                         p->y0 = 0x2A;
                     }
-                    dr   = Gpu_PrimCursor;
+                    dr   = gGpuPrimCursor;
                     p->w = slot->field_12;
                     p->h = slot->field_14;
                     addPrim(&gGpuCurrentOt[ot], p);
 
-                    Gpu_PrimCursor = dr + 1;
+                    gGpuPrimCursor = dr + 1;
                     setlen(dr, 1);
                     tpage       = (u32)(slot->field_18 & 0x100) >> 4;
                     dr->code[0] = tpage | (((u32)(slot->field_16 & 0x3FF) >> 6) | 0x100) |

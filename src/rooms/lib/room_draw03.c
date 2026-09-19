@@ -88,9 +88,9 @@ void Room_Draw03(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
             lo             = (fade - 9) & 0xFF;
             r2             = lo * (arg3 >> 8);
             g2             = lo * ((arg3 >> 4) & 3);
-            prim           = (POLY_G4*)Gpu_PrimCursor;
+            prim           = (POLY_G4*)gGpuPrimCursor;
             blk->otz       = blk->otz + 1;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            gGpuPrimCursor = prim + 1;
             setlen(prim, 8);
             b2 = lo * (arg3 & 3);
             setcode(prim, 0x38);

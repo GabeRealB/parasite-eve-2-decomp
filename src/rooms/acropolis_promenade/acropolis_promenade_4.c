@@ -146,8 +146,8 @@ void func_acropolis_promenade_8017E394(Task* task)
             rect.y         = y + bufferY;
             rect.w         = work->field_26;
             rect.h         = 1;
-            mv             = (DR_MOVE*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(mv + 1);
+            mv             = (DR_MOVE*)gGpuPrimCursor;
+            gGpuPrimCursor = mv + 1;
             SetDrawMove(mv, &rect, x, y + bufferY + 1);
             addPrim(gGpuCurrentOt + (depth >> 4), mv);
         }
@@ -204,8 +204,8 @@ void func_acropolis_promenade_8017E634(Task* task)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->pos);
     gte_rtps_real();
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&blk->sxy);
@@ -231,8 +231,8 @@ void func_acropolis_promenade_8017E634(Task* task)
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
 
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
         prim->clut  = 0x4381;
@@ -329,8 +329,8 @@ void func_acropolis_promenade_8017ED44(Task* task)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->v[0]);
     gte_rtps_real();
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&prim->x0);

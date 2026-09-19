@@ -377,8 +377,8 @@ void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
         blk->v[3].vz = *(u16*)&b->workm.t[2];
         gte_ldv0(&blk->v[0]);
         gte_rtps_real();
-        prim           = (POLY_G4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_G4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setPolyG4(prim);
         gte_stsxy(&prim->x0);
         gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
@@ -578,8 +578,8 @@ void func_dryfield_dilapidated_house_80182A18(GsCOORDINATE2* arg0, s16 arg1, s16
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, red, grn, blu);
             setRGB1(prim, red, grn, blu);
@@ -651,8 +651,8 @@ void func_dryfield_dilapidated_house_80182F14(GsCOORDINATE2* arg0, s32 arg1, s16
         block->step = ((s16)arg1 * 64) / block->otz;
         ang         = 0;
         do {
-            prim           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);
@@ -744,8 +744,8 @@ void func_dryfield_dilapidated_house_80183728(GsCOORDINATE2* arg0, s16 arg1, s32
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, *(u8*)&arg3, arg3 >> 1, arg3 >> 2);
             setRGB1(prim, *(u8*)&arg3, arg3 >> 1, arg3 >> 2);

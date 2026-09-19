@@ -106,9 +106,9 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
             DR_TPAGE* dr;
             u8        color;
 
-            p              = (TILE*)Gpu_PrimCursor;
+            p              = (TILE*)gGpuPrimCursor;
             color          = ~(u8)arg0->killCountdown;
-            Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+            gGpuPrimCursor = p + 1;
             setlen(p, 3);
             setcode(p, 0x62);
             p->r0 = color;
@@ -120,8 +120,8 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
             p->h  = 0xF0;
 
             addPrim(gGpuCurrentOt, p);
-            dr             = Gpu_PrimCursor;
-            Gpu_PrimCursor = dr + 1;
+            dr             = gGpuPrimCursor;
+            gGpuPrimCursor = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE1000240;
             addPrim(gGpuCurrentOt, dr);
@@ -152,9 +152,9 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
             DR_TPAGE* dr;
             u8        color;
 
-            p              = (TILE*)Gpu_PrimCursor;
+            p              = (TILE*)gGpuPrimCursor;
             color          = (u8)arg0->killCountdown;
-            Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+            gGpuPrimCursor = p + 1;
             setlen(p, 3);
             setcode(p, 0x62);
             p->r0 = color;
@@ -166,8 +166,8 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
             p->h  = 0xF0;
 
             addPrim(gGpuCurrentOt, p);
-            dr             = Gpu_PrimCursor;
-            Gpu_PrimCursor = dr + 1;
+            dr             = gGpuPrimCursor;
+            gGpuPrimCursor = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE1000240;
             addPrim(gGpuCurrentOt, dr);

@@ -296,9 +296,9 @@ void func_actor_202600_8014C774(Actor202600* actor, s32 frame)
     depth = s->depth;
     if (depth >= 0x14) {
         radius                 = (s32)(D_actor_202600_801528B8[frame] * 0x300) / depth;
-        poly                   = Gpu_PrimCursor;
+        poly                   = gGpuPrimCursor;
         screen                 = s->screen;
-        Gpu_PrimCursor         = (u8*)poly + 0x28;
+        gGpuPrimCursor         = (u8*)poly + 0x28;
         x                      = screen & 0xFFFF;
         y                      = screen >> 0x10;
         left                   = x - radius;

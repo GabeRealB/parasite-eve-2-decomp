@@ -139,8 +139,8 @@ s32 func_actor_135600_80131E68(GsCOORDINATE2* coord, s32 arg1)
     }
 
     if (p >= 0) {
-        poly           = (POLY_F4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        poly           = (POLY_F4*)gGpuPrimCursor;
+        gGpuPrimCursor = poly + 1;
         setlen(poly, 5);
         setcode(poly, 0x2A);
         setRGB0(poly, 0xFF, 0x40, 0);
@@ -154,8 +154,8 @@ s32 func_actor_135600_80131E68(GsCOORDINATE2* coord, s32 arg1)
         poly->y3 = quad[3].vy;
         addPrim((u_long*)(((((u32)depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt) - 2, poly);
 
-        tpage          = Gpu_PrimCursor;
-        Gpu_PrimCursor = tpage + 1;
+        tpage          = gGpuPrimCursor;
+        gGpuPrimCursor = tpage + 1;
         setlen(tpage, 1);
         tpage->code[0] = 0xE1000465;
         addPrim((u_long*)(((((u32)depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt) - 2, tpage);

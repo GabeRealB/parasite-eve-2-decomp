@@ -1174,9 +1174,9 @@ void Actor05500_Fn02954(Actor105500* actor, s32 frame)
     depth = s->depth;
     if (depth >= 0x14) {
         radius                 = (s32)(Actor05500_D08AA0[frame] * 0x300) / depth;
-        poly                   = Gpu_PrimCursor;
+        poly                   = gGpuPrimCursor;
         screen                 = s->screen;
-        Gpu_PrimCursor         = (u8*)poly + 0x28;
+        gGpuPrimCursor         = (u8*)poly + 0x28;
         x                      = screen & 0xFFFF;
         y                      = screen >> 0x10;
         left                   = x - radius;

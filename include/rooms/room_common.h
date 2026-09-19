@@ -495,7 +495,7 @@ void Room_Draw19(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// grid: u = `(arg1 % 5) * 48`, v = `(arg1 / 5) * 48 - 0x80`. `arg2` is a
 /// signed half-extent; the on-screen radius is `(s16)arg2 * 47 / otz`.
 /// `arg3` is the spin angle, applied at `arg3` and `arg3 + 0x400` through
-/// `rsin`/`rcos`. The primitive is carved from `Gpu_PrimCursor` before the
+/// `rsin`/`rcos`. The primitive is carved from `gGpuPrimCursor` before the
 /// flag test.
 void Room_Draw39(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when

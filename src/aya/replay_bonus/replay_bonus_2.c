@@ -596,14 +596,14 @@ void func_replay_bonus_80117E04(void)
         func_replay_bonus_801183B8(y, D_replay_bonus_80119298[i].cmds);
     }
 
-    tpage          = Gpu_PrimCursor;
-    Gpu_PrimCursor = tpage + 1;
+    tpage          = gGpuPrimCursor;
+    gGpuPrimCursor = tpage + 1;
     setDrawTPage(tpage, 0, 1, 0);
     addPrim(gGpuCurrentOt + 10, tpage);
 
     if (D_replay_bonus_80119225 != 2) {
-        sprt           = (SPRT*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+        sprt           = (SPRT*)gGpuPrimCursor;
+        gGpuPrimCursor = sprt + 1;
         setSprt(sprt);
         sprt->x0 = D_replay_bonus_801192B8 - 0x140;
         sprt->y0 = -0x8C;
@@ -616,16 +616,16 @@ void func_replay_bonus_80117E04(void)
         sprt->v0 = 0;
         addPrim(gGpuCurrentOt + 11, sprt);
 
-        tpage          = Gpu_PrimCursor;
-        Gpu_PrimCursor = tpage + 1;
+        tpage          = gGpuPrimCursor;
+        gGpuPrimCursor = tpage + 1;
         setDrawTPage(tpage, 0, 1, getTPage(2, 0, 0x280, D_replay_bonus_80119226 << 8));
         addPrim(gGpuCurrentOt + 11, tpage);
         return;
     }
 
     code           = 0x64;
-    sprt           = (SPRT*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+    sprt           = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = sprt + 1;
     setlen(sprt, 4);
     setcode(sprt, code);
     rgb      = (D_replay_bonus_801192AC * (0x78 - D_replay_bonus_80119227)) / 120;
@@ -641,13 +641,13 @@ void func_replay_bonus_80117E04(void)
     sprt->b0 = rgb;
     addPrim(gGpuCurrentOt + 11, sprt);
 
-    tpage          = Gpu_PrimCursor;
-    Gpu_PrimCursor = tpage + 1;
+    tpage          = gGpuPrimCursor;
+    gGpuPrimCursor = tpage + 1;
     setDrawTPage(tpage, 0, 1, getTPage(2, 1, 0x280, D_replay_bonus_80119226 << 8));
     addPrim(gGpuCurrentOt + 11, tpage);
 
-    sprt           = (SPRT*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+    sprt           = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = sprt + 1;
     setlen(sprt, 4);
     setcode(sprt, code);
     rgb      = (D_replay_bonus_801192AC * D_replay_bonus_80119227) / 120;
@@ -662,8 +662,8 @@ void func_replay_bonus_80117E04(void)
     sprt->b0 = rgb;
     addPrim(gGpuCurrentOt + 11, sprt);
 
-    tpage          = Gpu_PrimCursor;
-    Gpu_PrimCursor = tpage + 1;
+    tpage          = gGpuPrimCursor;
+    gGpuPrimCursor = tpage + 1;
     setDrawTPage(tpage, 0, 1, getTPage(2, 0, 0x280, (D_replay_bonus_80119226 ^ 1) << 8));
     addPrim(gGpuCurrentOt + 11, tpage);
 
@@ -860,8 +860,8 @@ void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
                         } else {
                             width = 0;
                         }
-                        sprt           = (SPRT*)Gpu_PrimCursor;
-                        Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+                        sprt           = (SPRT*)gGpuPrimCursor;
+                        gGpuPrimCursor = sprt + 1;
                         setlen(sprt, 4);
                         setcode(sprt, 0x64);
                         sprt->r0   = D_replay_bonus_801192AC;
@@ -875,8 +875,8 @@ void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
                         sprt->u0   = gu;
                         sprt->v0   = gv;
                         setaddr(sprt, getaddr(gGpuCurrentOt + 10));
-                        dr             = (DR_TPAGE*)Gpu_PrimCursor;
-                        Gpu_PrimCursor = dr + 1;
+                        dr             = (DR_TPAGE*)gGpuPrimCursor;
+                        gGpuPrimCursor = dr + 1;
                         setaddr(gGpuCurrentOt + 10, sprt);
                         setlen(dr, 1);
                         pageFlags   = D_replay_bonus_8011929C[idx].flags;

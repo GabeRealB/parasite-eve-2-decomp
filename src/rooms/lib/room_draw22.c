@@ -20,12 +20,12 @@ void Room_Draw22(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5
     dx = arg1;
     w  = arg3;
     if ((arg5 != 0) && (w >= 2)) {
-        prim           = (POLY_G4*)Gpu_PrimCursor;
+        prim           = (POLY_G4*)gGpuPrimCursor;
         x              = arg0->field_20 + dx + 1;
         prim->x2       = x;
         prim->x0       = x;
         y              = arg0->field_22;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 8);
         *(u32*)&prim->r0 = arg5;
         setcode(prim, 0x38);

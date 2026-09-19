@@ -2031,8 +2031,8 @@ void func_actor_403100_8013C008(s16 arg0, s16 arg1)
 
     for (i = 0; i < 2; i++) {
         entry          = &D_actor_403100_801557E0[i];
-        poly           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        poly           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = poly + 1;
         setPolyFT4(poly);
         poly->tpage = entry->tpage;
         SOFT_TOUCH_REG(poly);

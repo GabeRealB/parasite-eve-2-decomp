@@ -75,8 +75,8 @@ void Room_Draw33(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
         block->r0 = r0;
         block->r1 = r1;
         do {
-            prim           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);
@@ -102,8 +102,8 @@ void Room_Draw33(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            prim           = (POLY_G4*)Gpu_PrimCursor;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);
@@ -124,9 +124,9 @@ void Room_Draw33(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
 
             SCHED_BARRIER();
             t3             = ang - 0x1000;
-            prim           = (POLY_G4*)Gpu_PrimCursor;
+            prim           = (POLY_G4*)gGpuPrimCursor;
             t              = ang - 0x1000;
-            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);

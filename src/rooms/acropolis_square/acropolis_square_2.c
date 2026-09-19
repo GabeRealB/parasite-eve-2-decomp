@@ -284,8 +284,8 @@ void func_acropolis_square_80181DD0(Task* task)
     x = D_acropolis_square_801888A0;
     for (i = 0; i < 3; i++) {
         tpageX         = 0x1C0 + i * 0x80;
-        p              = (SPRT*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+        p              = (SPRT*)gGpuPrimCursor;
+        gGpuPrimCursor = p + 1;
         setlen(p, 4);
         setcode(p, 0x65);
         p->x0 = x - 0xA0;
@@ -302,8 +302,8 @@ void func_acropolis_square_80181DD0(Task* task)
         p->clut = GetClut(0, 0xFF);
         addPrim(&gGpuCurrentOt[4], p);
 
-        dr             = Gpu_PrimCursor;
-        Gpu_PrimCursor = dr + 1;
+        dr             = gGpuPrimCursor;
+        gGpuPrimCursor = dr + 1;
         setDrawTPage(dr, 0, 1, GetTPage(1, 0, tpageX, 0x100));
         addPrim(&gGpuCurrentOt[4], dr);
 

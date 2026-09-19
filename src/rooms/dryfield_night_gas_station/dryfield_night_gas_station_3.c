@@ -86,8 +86,8 @@ void func_dryfield_night_gas_station_801802EC(void)
     x1 = sxy;
     y1 = sxy >> 16;
     if (flag0 >= 0 && flag1 >= 0) {
-        line           = (LINE_G2*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)((u8*)line + 0x14);
+        line           = (LINE_G2*)gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)line + 0x14;
         setLineG2(line);
         setSemiTrans(line, 1);
         line->x0 = x0;
@@ -97,8 +97,8 @@ void func_dryfield_night_gas_station_801802EC(void)
         setRGB0(line, rand() % 100 - 0x7E, 0, 0);
         setRGB1(line, 0, 0, 0);
         addPrim((u_long*)(((((u32)0xA << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), line);
-        dr             = Gpu_PrimCursor;
-        Gpu_PrimCursor = dr + 1;
+        dr             = gGpuPrimCursor;
+        gGpuPrimCursor = dr + 1;
         setDrawTPage(dr, 1, 0, 0x25);
         addPrim((u_long*)(((((u32)0xA << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), dr);
     }

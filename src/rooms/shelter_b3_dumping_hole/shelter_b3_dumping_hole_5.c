@@ -237,8 +237,8 @@ void func_shelter_b3_dumping_hole_80182AA0(void)
         D_shelter_b3_dumping_hole_8018F4D0 -= 1;
         return;
     }
-    prim           = (Prim82AA0*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (Prim82AA0*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setlen(prim, 6);
     prim->code     = 0x30;
     c1             = (D_shelter_b3_dumping_hole_8018B670 << 7) / 15;

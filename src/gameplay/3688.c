@@ -853,8 +853,8 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         kind = 7;
     }
 
-    p              = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p              = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     p->x2 = p->x0 = arg0->baseX + arg1;
     p->x1 = p->x3 = p->x0 + 0xE;
     p->y1 = p->y0 = arg0->baseY + arg2 - 0xE;
@@ -887,12 +887,12 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     }
     addPrim(gGpuCurrentOt + (s16)arg0->drawOrder + 1, p);
     if (flag3 != 0) {
-        q              = (TILE*)Gpu_PrimCursor;
+        q              = (TILE*)gGpuPrimCursor;
         q->x0          = p->x0 - 1;
         q->y0          = p->y0 - 1;
         q->w           = p->x1 - p->x0 + 2;
         q->h           = p->y2 - p->y0 + 2;
-        Gpu_PrimCursor = (DR_TPAGE*)(q + 1);
+        gGpuPrimCursor = q + 1;
         *(u32*)&q->r0  = 0xC0C0C0;
         setlen(q, 3);
         setcode(q, 0x60);
@@ -904,8 +904,8 @@ void func_800C0B98(DialogPrompt* arg0, UiObject* arg1, u32 arg2)
 {
     SPRT* p;
 
-    p              = (SPRT*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p              = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     p->x0          = (u16)arg0->field_18 + arg1->baseX;
     p->y0          = (u16)arg0->field_1A + arg1->baseY - 0xF;
     if (arg0->field_C == 1) {
@@ -998,8 +998,8 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
             bar = max;
         }
         if (bar > 0) {
-            tile             = (TILE*)Gpu_PrimCursor;
-            Gpu_PrimCursor   = (DR_TPAGE*)(tile + 1);
+            tile             = (TILE*)gGpuPrimCursor;
+            gGpuPrimCursor   = tile + 1;
             tile->x0         = arg1 + 1;
             tile->y0         = arg3 - 1;
             tile->w          = bar;
@@ -1012,8 +1012,8 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
         arg3 = arg3 - 4;
         clut = 0x3C0B;
 
-        sp             = (SPRT*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(sp + 1);
+        sp             = (SPRT*)gGpuPrimCursor;
+        gGpuPrimCursor = sp + 1;
         sp->x0         = arg1;
         sp->y0         = arg3;
         sp->u0         = 0x98;
@@ -1023,8 +1023,8 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
         setcode(sp, 0x75);
         addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, sp);
 
-        sp             = (SPRT*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(sp + 1);
+        sp             = (SPRT*)gGpuPrimCursor;
+        gGpuPrimCursor = sp + 1;
         right          = (arg1 + span) - 8;
         sp->x0         = right;
         sp->y0         = arg3;
@@ -1035,8 +1035,8 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
         setcode(sp, 0x75);
         addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, sp);
 
-        poly           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        poly           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = poly + 1;
         poly->x2       = arg1 + 8;
         poly->x0       = arg1 + 8;
         poly->y3       = arg3 + 8;
@@ -1234,8 +1234,8 @@ void Gp_HpMpBarTask(Task* arg0)
         arg0->state         = arg0->state + 1;
     }
     color          = 0x606060;
-    p              = (SPRT*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p              = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     p->x0          = obj->baseX + obj->field_1E - 0x72;
     {
         s32 y;
@@ -1253,13 +1253,13 @@ void Gp_HpMpBarTask(Task* arg0)
     }
     Ui_InsertDrawTPage((s16)obj->drawOrder + 1, 0);
 
-    poly           = (POLY_FT4*)Gpu_PrimCursor;
+    poly           = (POLY_FT4*)gGpuPrimCursor;
     x              = obj->field_C + obj->field_10;
     right          = x - 1;
     x              = x - 0x32;
     poly->x2       = x;
     poly->x0       = x;
-    Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+    gGpuPrimCursor = poly + 1;
     COMPILER_BARRIER();
     {
         s32 vl;
@@ -1533,8 +1533,8 @@ void Gp_PeGridPanelTask(Task* arg0)
     }
 
     for (iconCol = 0; iconCol < 4; iconCol++) {
-        p              = (SPRT*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+        p              = (SPRT*)gGpuPrimCursor;
+        gGpuPrimCursor = p + 1;
         setlen(p, 4);
         *(u32*)&p->r0 = 0x606060;
         setcode(p, 0x64);
@@ -1559,8 +1559,8 @@ void Gp_PeGridPanelTask(Task* arg0)
                 }
             }
             if ((row != 0) || (show != 0)) {
-                p              = (SPRT*)Gpu_PrimCursor;
-                Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+                p              = (SPRT*)gGpuPrimCursor;
+                gGpuPrimCursor = p + 1;
                 p->x0          = obj->baseX + startX + iconCol * colStep;
                 capY           = obj->baseY + panelY - markOff;
                 p->w           = 8;
@@ -1702,8 +1702,8 @@ void func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     s32         textY;
     s32         color;
 
-    p              = (SPRT*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p              = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     p->x0          = arg0->baseX + arg1 + 0x6C;
     y              = arg0->baseY;
     color          = arg4;
@@ -4078,8 +4078,8 @@ void func_800C5F70(Task* arg0)
                 x       = obj->field_1C + 2;
                 if (spriteCount != 0) {
                     do {
-                        sprt           = (SPRT*)Gpu_PrimCursor;
-                        Gpu_PrimCursor = (DR_TPAGE*)(sprt + 1);
+                        sprt           = (SPRT*)gGpuPrimCursor;
+                        gGpuPrimCursor = sprt + 1;
                         sprt->x0       = x;
                         sprt->y0       = y - 8;
                         spriteMode     = Mc_SaveData.buttonLayout;
@@ -4722,8 +4722,8 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
         gte_stsv(&vec);
     }
     if (!(arg3 & 0x100)) {
-        p              = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+        p              = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = p + 1;
         setlen(p, 9);
         setcode(p, 0x2D);
         x     = arg0->baseX + arg1;
@@ -4953,7 +4953,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 if (i == two2) {
                     swap = list == &D_8010E9A4;
                 }
-                p              = (SPRT*)Gpu_PrimCursor;
+                p              = (SPRT*)gGpuPrimCursor;
                 p->x0          = arg0->baseX + xCopy;
                 p->y0          = arg0->baseY + y + 5;
                 val            = 8;
@@ -4961,7 +4961,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 p->h           = val;
                 selVal         = eqRow[i];
                 itemVal        = itemRow[i];
-                Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+                gGpuPrimCursor = p + 1;
                 if (selVal < itemVal) {
                     p->u0         = 0x30;
                     *(u32*)&p->r0 = 0x1741F;

@@ -403,8 +403,8 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->v[0]);
     gte_rtps_real();
-    prim           = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&prim->x0);
@@ -626,8 +626,8 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv3(&blk->v[0], &blk->v[1], &blk->v[2]);
     gte_rtpt_real();
-    prim           = (POLY_FT3*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)((LINE_G3*)prim + 1);
+    prim           = (POLY_FT3*)gGpuPrimCursor;
+    gGpuPrimCursor = (LINE_G3*)prim + 1;
     setlen(prim, 7);
     setcode(prim, 0x24);
     gte_stsxy3(&prim->x0, &prim->x1, &prim->x2);
@@ -739,8 +739,8 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&blk->pos);
         gte_rtps_real();
-        prim           = (POLY_FT4*)Gpu_PrimCursor;
-        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
         gte_stsxy(&blk->sx);

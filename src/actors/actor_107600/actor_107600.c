@@ -1137,8 +1137,8 @@ void func_actor_107600_80133FA8(GsCOORDINATE2* coord, SVECTOR* pos)
     gte_SetTransMatrix(&coord->workm);
     gte_ldv0(&s->v[0]);
     gte_rtps_real();
-    p              = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p              = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     setPolyFT4(p);
     gte_stsxy(&s->sxy[0]);
     gte_ldv3(&s->v[1], &s->v[2], &s->v[3]);
@@ -1196,8 +1196,8 @@ void func_actor_107600_80134248(GsCOORDINATE2* coord, SVECTOR* pos)
     gte_SetTransMatrix(&coord->workm);
     gte_ldv0(&s->v[0]);
     gte_rtps_real();
-    p              = (POLY_FT4*)Gpu_PrimCursor;
-    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p              = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
     setPolyFT4(p);
     gte_stsxy(&s->sxy[0]);
     gte_ldv3(&s->v[1], &s->v[2], &s->v[3]);
