@@ -132152,3 +132152,43 @@ Control SHA256: `b7f13548c335eee6bf58e48a888816bf131c92147ae715e8c1cf8d163b82bf7
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Evidence: tools/permuter_findings/func_actor_403000_8013B74C/,
 session `eab7eadfae0e48609c94162bc0c7d03d`, LEARNINGS.md and retained dumps.
+
+
+### A real loop's terminal return can prevent CSE following the next switch case (func_actor_560800_80134384, 2026-09-19)
+
+The archived seed reproduced 99.248%. Reusing the matched sibling
+`Actor560800_ReseedAnim` (u16 index, literal blend duration, existing
+`SOFT_BARRIER` before the loop) reached 99.556%: index initialization moved into
+the guard delay slot, with index=s0 and anim=s1. The remaining guard reused
+the inner switch index, proven equal to 1, instead of materializing a fresh 1.
+`base_2.i.cse` substitutes r382 into the guard; `.lreg` keeps it live through
+the timer test. Basic empty asm does not invalidate this pseudo equivalence.
+
+The preceding case resets animation slots and then advances its state. Writing
+that as an entry guard followed by a genuine `for (;;)`, with `continue` for
+more slots and the state transition plus `return` on its terminal path, leaves
+`NOTE_INSN_LOOP_END` immediately before the following case label. Repeat the
+transition on the empty-loop entry path. Both paths retain their side effects,
+and the generated code merges them back into the target exit.
+
+This was predicted before `base_6.c` and produced 100.000%, all-zero penalties,
+then passed the full unscoped build. In `.cse`, LOOP_END UID 960 precedes
+case-1 label 962, and the new CSE block starts at 963. Patched GCC
+`cse.c:cse_end_of_basic_block` (around lines 8290–8299) stops its backwards
+predecessor scan at LOOP_END and therefore does not find the BARRIER needed
+to follow the case-1 branch. The guard retains its separate constant:
+final UID 1254 loads v0=1, and UID 1005 initializes s0 in the guard delay slot.
+The sibling helper's scheduling boundary remains necessary.
+
+A top-tested infinite loop with the transition in its early exit also blocked
+the equivalence, but changed loop layout (96.506%). Keeping the explicit entry
+guard and bottom-tested continue edge was essential. This is evidence for
+that predecessor test, not a claim that loop notes stop every CSE path. No
+register pins, dummy loops, or permuter discoveries contributed.
+
+Inputs in the retained scratch session: base_2.i SHA256
+`af19d095c3fc7640c7d310946b3ed5bbff8fc6d052091d79ba7c1dda44b0a189`;
+base_6.i SHA256
+`5f1465bc54ea64b3597a0cf61e5c17ffa81d38019543909935c300ab60ac4e8d`.
+Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

@@ -1080,7 +1080,115 @@ void func_actor_560800_80134258(Task* task)
     work->field_38 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80134384);
+static inline void Actor560800_ResetAnimSlots(Actor560800AnimWork* anim, s16 clip)
+{
+    u16 i;
+    u16 rate;
+
+    anim->field_4B8 = clip;
+    i               = 1;
+    rate            = 0x10;
+    anim->field_4C8 = rate;
+    anim->field_4BE = 0;
+    if (i < anim->field_4BA) {
+        do {
+            anim->slots[i].rate = rate;
+            Gp_AnimResetSlot(&anim->anim, i, clip);
+            i++;
+        } while (i < anim->field_4BA);
+    }
+}
+
+void func_actor_560800_80134384(Task* task)
+{
+    Actor560800Work*     work;
+    Actor560800AnimWork* anim;
+    u16                  i;
+    u16                  rate;
+
+    work = (Actor560800Work*)task->work;
+    switch ((u16)work->field_30) {
+        case 0:
+        case 38:
+            break;
+        case 2:
+            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->field_C->work, 1);
+            break;
+        case 4:
+            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->field_C->work, 5);
+            break;
+        case 6:
+            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->field_C->work, 0xc);
+            break;
+        case 8:
+            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->field_C->work, 0x28);
+            break;
+        case 10:
+            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->field_C->work, 0x17);
+            break;
+        case 11:
+            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->field_C->work, 0x18);
+            break;
+        case 13:
+            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->field_C->work, 0x19);
+            break;
+        case 15:
+            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->field_C->work, 0xc);
+            break;
+        case 17:
+            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->field_C->work, 0x29);
+            break;
+        case 22:
+            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->field_C->work, 0x1f);
+            break;
+        case 23:
+            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->field_C->work, 0x1d);
+            break;
+        case 24:
+            switch ((u16)work->field_32) {
+                case 0:
+                    anim            = (Actor560800AnimWork*)work->field_C->work;
+                    anim->field_4B8 = 0x2D;
+                    i               = 1;
+                    rate            = 0x10;
+                    anim->field_4C8 = rate;
+                    anim->field_4BE = 0;
+                    if (i >= anim->field_4BA) {
+                        work->field_34 = 0;
+                        work->field_32++;
+                        return;
+                    }
+                    for (;;) {
+                        anim->slots[i].rate = rate;
+                        Gp_AnimResetSlot(&anim->anim, i, 0x2D);
+                        i++;
+                        if (i < anim->field_4BA) {
+                            continue;
+                        }
+                        work->field_34 = 0;
+                        work->field_32++;
+                        return;
+                    }
+                case 1:
+                    if (++work->field_34 < 0xB5) {
+                        return;
+                    }
+                    Actor560800_ReseedAnim(work->field_C, 0x1D, 0x10);
+                    break;
+                default:
+                    return;
+            }
+            break;
+        case 26:
+            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->field_C->work, 0x21);
+            ((Actor560800AnimWork*)work->field_C->work)->field_4C2 = 1;
+            break;
+        case 27:
+            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->field_C->work, 0x24);
+            break;
+    }
+    work->field_30 = 0;
+}
 
 /// Reseeds the sub-task's animation slots from clip 0x20 -- writing the slot
 /// count with the 0x10 restart rate and every slot's `rate` -- then spawns
