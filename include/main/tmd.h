@@ -361,6 +361,9 @@ u32* gpStreamPrimGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// Handler of a stream's textured-quad records that carry a colour per corner
 /// (`0x170`): each element contributes one quad to the buffer half's second
 /// region, with the element's texture words written into it.
+/// Handler of a stream's textured-quad records whose element carries a single
+/// normal (`0x58`, `0x5A`): each element contributes one quad to the buffer
+/// half's second region, with the element's texture words written into it.
 ///
 /// The record is not pre-transformed, so its quad is built in the region the
 /// draw pass transforms; this command writes only the polygon's `u`/`v` fields,
@@ -379,5 +382,10 @@ u32* gpStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// pass lights into the primitive's own corner colours — so the texture words
 /// sit further into the record than `gpStreamPrimGt4`'s do.
 u32* gpStreamPrimGt4CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// stored relative to the model. The element carries one normal where the
+/// per-corner-normal records carry one per corner, so the whole quad is lit from
+/// that one normal and the element is a word shorter than the one
+/// `gpStreamPrimGt4` reads.
+u32* gpStreamPrimGt4SingleNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 #endif // TMD_H
