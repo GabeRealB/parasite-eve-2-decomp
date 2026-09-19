@@ -161,9 +161,9 @@ void func_acropolis_square_80181AEC(Task* task)
             D_acropolis_square_801888CC.coord.t[2] = 0x8DE;
             D_acropolis_square_801888CC.sub        = &gGfxViewCoord;
             Gp_UpdateCoord(&D_acropolis_square_801888CC);
-            pan = Gp_GetObjPan((GpObj38*)&D_acropolis_square_801888CC);
+            pan = Gp_GetObjPan(&D_acropolis_square_801888CC);
             SndEvt_EnqueueType6(
-                0x51010009, (s8)pan, (s8)Gp_GetObjDepth((GpObj38*)&D_acropolis_square_801888CC));
+                0x51010009, (s8)pan, (s8)Gp_GetObjDepth(&D_acropolis_square_801888CC));
             goto advance;
 
         case 4:
@@ -176,9 +176,9 @@ void func_acropolis_square_80181AEC(Task* task)
                 D_acropolis_square_80188898            = 0;
                 D_acropolis_square_801888CC.sub        = &gGfxViewCoord;
                 Gp_UpdateCoord(&D_acropolis_square_801888CC);
-                pan2 = Gp_GetObjPan((GpObj38*)&D_acropolis_square_801888CC);
+                pan2 = Gp_GetObjPan(&D_acropolis_square_801888CC);
                 SndEvt_EnqueueType6(0x51010009, (s8)pan2,
-                                    (s8)Gp_GetObjDepth((GpObj38*)&D_acropolis_square_801888CC));
+                                    (s8)Gp_GetObjDepth(&D_acropolis_square_801888CC));
             }
             if (gGameSession->eventState != 0) {
                 return;
@@ -221,9 +221,9 @@ void func_acropolis_square_80181AEC(Task* task)
                 D_acropolis_square_80188898            = 0;
                 D_acropolis_square_801888CC.sub        = &gGfxViewCoord;
                 Gp_UpdateCoord(&D_acropolis_square_801888CC);
-                pan3 = Gp_GetObjPan((GpObj38*)&D_acropolis_square_801888CC);
+                pan3 = Gp_GetObjPan(&D_acropolis_square_801888CC);
                 SndEvt_EnqueueType6(0x51010009, (s8)pan3,
-                                    (s8)Gp_GetObjDepth((GpObj38*)&D_acropolis_square_801888CC));
+                                    (s8)Gp_GetObjDepth(&D_acropolis_square_801888CC));
             }
             break;
     }

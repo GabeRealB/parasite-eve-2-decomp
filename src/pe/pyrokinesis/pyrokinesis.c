@@ -135,9 +135,9 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
             mem->field_28 = ((u32)Gp_LcgState >> 16) & 0xFFF;
             mem->field_20 = (Gp_StateC08.field_0 % 10) - 1;
-            pan           = (s8)Gp_GetObjPan((GpObj38*)coord);
+            pan           = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(D_pyrokinesis_80131DD8[mem->field_20 * 3 + arg0->spawnArg1], pan,
-                                (s8)Gp_GetObjDepth((GpObj38*)coord));
+                                (s8)Gp_GetObjDepth(coord));
             Gp_SpawnPadLerp((s16)(mem->field_20 * 2 + 8), 0xFF, 8);
             if (mem->field_20 == 1) {
                 arg0->spawnArg1 = 1;

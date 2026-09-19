@@ -134,62 +134,62 @@ void func_mine_cavern_801825C8(s16 arg0)
                     SndEvt_EnqueueType7(0x5402000F, 1);
                     break;
                 case 3:
-                    SndEvt_EnqueueType6(0x5402000F, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x59);
-                    SndEvt_EnqueueTypeA(0x5402000F, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x59);
+                    SndEvt_EnqueueType6(0x5402000F, (s8)Gp_GetObjPan(&coord), 0x59);
+                    SndEvt_EnqueueTypeA(0x5402000F, (s8)Gp_GetObjPan(&coord), 0x59);
                     break;
                 case 4:
-                    SndEvt_EnqueueType6(0x5402000F, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x59);
-                    SndEvt_EnqueueTypeA(0x5402000F, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x59);
+                    SndEvt_EnqueueType6(0x5402000F, (s8)Gp_GetObjPan(&coord), 0x59);
+                    SndEvt_EnqueueTypeA(0x5402000F, (s8)Gp_GetObjPan(&coord), 0x59);
                     break;
                 case 5:
                 case 25:
-                    SndEvt_EnqueueType6(0x5402000F, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x59);
-                    SndEvt_EnqueueTypeA(0x5402000F, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x59);
+                    SndEvt_EnqueueType6(0x5402000F, (s8)Gp_GetObjPan(&coord), 0x59);
+                    SndEvt_EnqueueTypeA(0x5402000F, (s8)Gp_GetObjPan(&coord), 0x59);
                     break;
                 case 18:
-                    SndEvt_EnqueueType6(0x5402000F, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x20);
-                    SndEvt_EnqueueTypeA(0x5402000F, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x20);
+                    SndEvt_EnqueueType6(0x5402000F, (s8)Gp_GetObjPan(&coord), 0x20);
+                    SndEvt_EnqueueTypeA(0x5402000F, (s8)Gp_GetObjPan(&coord), 0x20);
                     break;
                 case 19:
-                    SndEvt_EnqueueType6(0x5402000F, (s8)Gp_GetObjPan((GpObj38*)&coord), 0xD);
-                    SndEvt_EnqueueTypeA(0x5402000F, (s8)Gp_GetObjPan((GpObj38*)&coord), 0xD);
+                    SndEvt_EnqueueType6(0x5402000F, (s8)Gp_GetObjPan(&coord), 0xD);
+                    SndEvt_EnqueueTypeA(0x5402000F, (s8)Gp_GetObjPan(&coord), 0xD);
                     break;
                 case 21:
-                    SndEvt_EnqueueType6(0x5402000F, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x33);
-                    SndEvt_EnqueueTypeA(0x5402000F, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x33);
+                    SndEvt_EnqueueType6(0x5402000F, (s8)Gp_GetObjPan(&coord), 0x33);
+                    SndEvt_EnqueueTypeA(0x5402000F, (s8)Gp_GetObjPan(&coord), 0x33);
                     break;
                 case 22:
-                    SndEvt_EnqueueType6(0x5402000F, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x33);
-                    SndEvt_EnqueueTypeA(0x5402000F, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x33);
+                    SndEvt_EnqueueType6(0x5402000F, (s8)Gp_GetObjPan(&coord), 0x33);
+                    SndEvt_EnqueueTypeA(0x5402000F, (s8)Gp_GetObjPan(&coord), 0x33);
                     break;
                 case 23:
                 case 24:
-                    SndEvt_EnqueueType6(0x5402000F, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x40);
-                    SndEvt_EnqueueTypeA(0x5402000F, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x40);
+                    SndEvt_EnqueueType6(0x5402000F, (s8)Gp_GetObjPan(&coord), 0x40);
+                    SndEvt_EnqueueTypeA(0x5402000F, (s8)Gp_GetObjPan(&coord), 0x40);
                     break;
             }
             break;
         case 1:
             switch (view) {
                 case 2:
-                    SndEvt_EnqueueType6(0x5402000E, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x40);
-                    SndEvt_EnqueueTypeA(0x5402000E, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x40);
+                    SndEvt_EnqueueType6(0x5402000E, (s8)Gp_GetObjPan(&coord), 0x40);
+                    SndEvt_EnqueueTypeA(0x5402000E, (s8)Gp_GetObjPan(&coord), 0x40);
                     break;
                 case 3:
-                    SndEvt_EnqueueType6(0x5402000E, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x33);
-                    SndEvt_EnqueueTypeA(0x5402000E, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x33);
+                    SndEvt_EnqueueType6(0x5402000E, (s8)Gp_GetObjPan(&coord), 0x33);
+                    SndEvt_EnqueueTypeA(0x5402000E, (s8)Gp_GetObjPan(&coord), 0x33);
                     break;
                 case 4:
-                    SndEvt_EnqueueType6(0x5402000E, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x20);
-                    SndEvt_EnqueueTypeA(0x5402000E, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x20);
+                    SndEvt_EnqueueType6(0x5402000E, (s8)Gp_GetObjPan(&coord), 0x20);
+                    SndEvt_EnqueueTypeA(0x5402000E, (s8)Gp_GetObjPan(&coord), 0x20);
                     break;
                 case 20:
-                    SndEvt_EnqueueType6(0x5402000E, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x33);
-                    SndEvt_EnqueueTypeA(0x5402000E, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x33);
+                    SndEvt_EnqueueType6(0x5402000E, (s8)Gp_GetObjPan(&coord), 0x33);
+                    SndEvt_EnqueueTypeA(0x5402000E, (s8)Gp_GetObjPan(&coord), 0x33);
                     break;
                 case 22:
-                    SndEvt_EnqueueType6(0x5402000E, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x59);
-                    SndEvt_EnqueueTypeA(0x5402000E, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x59);
+                    SndEvt_EnqueueType6(0x5402000E, (s8)Gp_GetObjPan(&coord), 0x59);
+                    SndEvt_EnqueueTypeA(0x5402000E, (s8)Gp_GetObjPan(&coord), 0x59);
                     break;
                 case 5:
                 case 6:
@@ -218,39 +218,39 @@ void func_mine_cavern_801825C8(s16 arg0)
             switch (view) {
                 case 5:
                 case 25:
-                    SndEvt_EnqueueType6(0x54020010, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x33);
-                    SndEvt_EnqueueTypeA(0x54020010, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x33);
+                    SndEvt_EnqueueType6(0x54020010, (s8)Gp_GetObjPan(&coord), 0x33);
+                    SndEvt_EnqueueTypeA(0x54020010, (s8)Gp_GetObjPan(&coord), 0x33);
                     break;
                 case 6:
-                    SndEvt_EnqueueType6(0x54020010, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x33);
-                    SndEvt_EnqueueTypeA(0x54020010, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x33);
+                    SndEvt_EnqueueType6(0x54020010, (s8)Gp_GetObjPan(&coord), 0x33);
+                    SndEvt_EnqueueTypeA(0x54020010, (s8)Gp_GetObjPan(&coord), 0x33);
                     break;
                 case 7:
-                    SndEvt_EnqueueType6(0x54020010, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x46);
-                    SndEvt_EnqueueTypeA(0x54020010, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x46);
+                    SndEvt_EnqueueType6(0x54020010, (s8)Gp_GetObjPan(&coord), 0x46);
+                    SndEvt_EnqueueTypeA(0x54020010, (s8)Gp_GetObjPan(&coord), 0x46);
                     break;
                 case 14:
                 case 15:
-                    SndEvt_EnqueueType6(0x54020010, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x20);
-                    SndEvt_EnqueueTypeA(0x54020010, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x20);
+                    SndEvt_EnqueueType6(0x54020010, (s8)Gp_GetObjPan(&coord), 0x20);
+                    SndEvt_EnqueueTypeA(0x54020010, (s8)Gp_GetObjPan(&coord), 0x20);
                     break;
                 case 16:
-                    SndEvt_EnqueueType6(0x54020010, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x46);
-                    SndEvt_EnqueueTypeA(0x54020010, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x46);
+                    SndEvt_EnqueueType6(0x54020010, (s8)Gp_GetObjPan(&coord), 0x46);
+                    SndEvt_EnqueueTypeA(0x54020010, (s8)Gp_GetObjPan(&coord), 0x46);
                     break;
                 case 17:
-                    SndEvt_EnqueueType6(0x54020010, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x20);
-                    SndEvt_EnqueueTypeA(0x54020010, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x20);
+                    SndEvt_EnqueueType6(0x54020010, (s8)Gp_GetObjPan(&coord), 0x20);
+                    SndEvt_EnqueueTypeA(0x54020010, (s8)Gp_GetObjPan(&coord), 0x20);
                     break;
                 case 8:
                 case 21:
-                    SndEvt_EnqueueType6(0x54020010, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x59);
-                    SndEvt_EnqueueTypeA(0x54020010, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x59);
+                    SndEvt_EnqueueType6(0x54020010, (s8)Gp_GetObjPan(&coord), 0x59);
+                    SndEvt_EnqueueTypeA(0x54020010, (s8)Gp_GetObjPan(&coord), 0x59);
                     break;
                 case 23:
                 case 24:
-                    SndEvt_EnqueueType6(0x54020010, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x40);
-                    SndEvt_EnqueueTypeA(0x54020010, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x40);
+                    SndEvt_EnqueueType6(0x54020010, (s8)Gp_GetObjPan(&coord), 0x40);
+                    SndEvt_EnqueueTypeA(0x54020010, (s8)Gp_GetObjPan(&coord), 0x40);
                     break;
                 case 2:
                 case 3:
@@ -272,21 +272,21 @@ void func_mine_cavern_801825C8(s16 arg0)
         case 3:
             switch (view) {
                 case 2:
-                    SndEvt_EnqueueType6(0x54020011, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x40);
-                    SndEvt_EnqueueTypeA(0x54020011, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x40);
+                    SndEvt_EnqueueType6(0x54020011, (s8)Gp_GetObjPan(&coord), 0x40);
+                    SndEvt_EnqueueTypeA(0x54020011, (s8)Gp_GetObjPan(&coord), 0x40);
                     break;
                 case 7:
-                    SndEvt_EnqueueType6(0x54020011, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x33);
-                    SndEvt_EnqueueTypeA(0x54020011, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x33);
+                    SndEvt_EnqueueType6(0x54020011, (s8)Gp_GetObjPan(&coord), 0x33);
+                    SndEvt_EnqueueTypeA(0x54020011, (s8)Gp_GetObjPan(&coord), 0x33);
                     break;
                 case 8:
-                    SndEvt_EnqueueType6(0x54020011, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x20);
-                    SndEvt_EnqueueTypeA(0x54020011, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x20);
+                    SndEvt_EnqueueType6(0x54020011, (s8)Gp_GetObjPan(&coord), 0x20);
+                    SndEvt_EnqueueTypeA(0x54020011, (s8)Gp_GetObjPan(&coord), 0x20);
                     break;
                 case 6:
                 case 20:
-                    SndEvt_EnqueueType6(0x54020011, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x46);
-                    SndEvt_EnqueueTypeA(0x54020011, (s8)Gp_GetObjPan((GpObj38*)&coord), 0x46);
+                    SndEvt_EnqueueType6(0x54020011, (s8)Gp_GetObjPan(&coord), 0x46);
+                    SndEvt_EnqueueTypeA(0x54020011, (s8)Gp_GetObjPan(&coord), 0x46);
                     break;
                 case 3:
                 case 4:

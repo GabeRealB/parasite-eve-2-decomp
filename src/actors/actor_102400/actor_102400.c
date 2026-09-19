@@ -192,8 +192,8 @@ move_done:
                     work->field_136 = stun;
                 }
                 sndId = ((arg0->field_20->placeKey >> 12) << 8) | 0x40180003;
-                pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
-                SndEvt_EnqueueType6(sndId, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                pan   = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(sndId, pan, (s8)Gp_GetObjDepth(coord));
                 break;
             case 0:
             case 1:

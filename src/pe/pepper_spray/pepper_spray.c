@@ -92,8 +92,8 @@ void func_pepper_spray_8012EF34(Task* arg0)
                 D_pepper_spray_8012FB9C[i] = ((i & 3) << 10) + (((u32)Gp_LcgState >> 16) & 0x3FF);
             }
             Gp_StateC08.field_6 |= 8;
-            pan                  = (s8)Gp_GetObjPan((GpObj38*)coord);
-            SndEvt_EnqueueType6(0xE03F0001, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            pan                  = (s8)Gp_GetObjPan(coord);
+            SndEvt_EnqueueType6(0xE03F0001, pan, (s8)Gp_GetObjDepth(coord));
             break;
         case 1:
             mem->field_24 = (u16)mem->field_24 - age * ((s16)mem->field_24 >> 4);

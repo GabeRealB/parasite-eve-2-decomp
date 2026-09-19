@@ -62,7 +62,7 @@ void func_m950_8011D1DC(GpActorWork* arg0)
                 actor->field_95E++;
                 actor->field_12A |= 0xC000;
                 Gp_ConsumeSlotQty(0x82, 1);
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20030004, 1);
+                Gp_PlayObjSfx(arg0->extra->coords, 0x20030004, 1);
                 Gp_SpawnEff(0x6002B, coord, 3, NULL);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
             }
@@ -72,7 +72,7 @@ void func_m950_8011D1DC(GpActorWork* arg0)
             actor->field_95E++;
             actor->field_12A &= 0x3FFF;
             if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
-                Gp_PlayObjSfx((GpObj38*)spot, 0x17, 1);
+                Gp_PlayObjSfx(spot, 0x17, 1);
             }
             /* fallthrough */
         case 5:

@@ -101,7 +101,7 @@ void func_m4a1_bayonet_8011DA34(GpActorWork* arg0)
                     if (func_80106264(1) == 0) {
                         actor->field_93E = 0;
                     }
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x201A0004, 1);
+                    Gp_PlayObjSfx(arg0->extra->coords, 0x201A0004, 1);
                     Gp_SpawnEff(0x6006B,
                                 (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                 0x1A, NULL);
@@ -112,7 +112,7 @@ void func_m4a1_bayonet_8011DA34(GpActorWork* arg0)
                 if (delay - 1 == 2) {
                     actor->field_12A &= 0x3FFF;
                     if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
-                        Gp_PlayObjSfx((GpObj38*)spot, 0x17, 1);
+                        Gp_PlayObjSfx(spot, 0x17, 1);
                     }
                 }
                 break;
@@ -122,7 +122,7 @@ void func_m4a1_bayonet_8011DA34(GpActorWork* arg0)
             actor->field_95E  = 7;
             actor->field_12A &= 0x3FFF;
             if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
-                Gp_PlayObjSfx((GpObj38*)spot, 0x17, 1);
+                Gp_PlayObjSfx(spot, 0x17, 1);
             }
             break;
         case 5:
@@ -134,7 +134,7 @@ void func_m4a1_bayonet_8011DA34(GpActorWork* arg0)
                     actor->field_95E++;
                     actor->field_93E  = 0xA;
                     actor->field_12A |= 0xC000;
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x201A0006, 0);
+                    Gp_PlayObjSfx(arg0->extra->coords, 0x201A0006, 0);
                     eff = Gp_SpawnEff(0x6003E,
                                       (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                       0x1A, NULL);
@@ -147,7 +147,7 @@ void func_m4a1_bayonet_8011DA34(GpActorWork* arg0)
                 }
             }
             if (Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x201A0005, 0);
+                Gp_PlayObjSfx(arg0->extra->coords, 0x201A0005, 0);
             }
             break;
         case 7:

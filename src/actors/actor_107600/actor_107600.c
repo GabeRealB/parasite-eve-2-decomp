@@ -755,8 +755,8 @@ void func_actor_107600_801332D4(Task* arg0)
                 return;
             }
             {
-                GpObj38* o = (GpObj38*)((TmdObject*)arg0->extra)->coords;
-                s32      p;
+                GsCOORDINATE2* o = ((TmdObject*)arg0->extra)->coords;
+                s32            p;
                 work->field_15A++;
                 p = (s8)Gp_GetObjPan(o);
                 SndEvt_EnqueueType6(0x51140007, p, (s8)Gp_GetObjDepth(o));
@@ -797,16 +797,16 @@ void func_actor_107600_801332D4(Task* arg0)
             }
             work->field_166++;
             if ((s16)work->field_166 == 120) {
-                GpObj38* o = (GpObj38*)((TmdObject*)arg0->extra)->coords;
-                s32      p;
+                GsCOORDINATE2* o = ((TmdObject*)arg0->extra)->coords;
+                s32            p;
                 Gp_SetLightMode((GpObj4C*)enemy, 1);
                 p = (s8)Gp_GetObjPan(o);
                 SndEvt_EnqueueType6(0x51140013, p, (s8)Gp_GetObjDepth(o));
             } else if ((s16)work->field_166 == 210) {
-                GpObj38* c;
-                s32      p;
+                GsCOORDINATE2* c;
+                s32            p;
                 player          = Game_GetPtrSlot(3);
-                c               = (GpObj38*)&player->extra->coords[4];
+                c               = &player->extra->coords[4];
                 actor           = player->actor;
                 work->field_166 = 0;
                 Gp_SetLightMode((GpObj4C*)enemy, 0);
@@ -888,7 +888,7 @@ void func_actor_107600_801337FC(Task* arg0)
 {
     Actor107600Work* work  = (Actor107600Work*)arg0->work;
     GpEnemy*         enemy = arg0->spawnArg2;
-    GpObj38*         obj;
+    GsCOORDINATE2*   obj;
     s32              pan;
 
     switch (work->field_15A) {
@@ -902,7 +902,7 @@ void func_actor_107600_801337FC(Task* arg0)
         case 1:
             work->field_154--;
             if ((s16)work->field_154 <= 0) {
-                obj = (GpObj38*)((TmdObject*)arg0->extra)->coords;
+                obj = ((TmdObject*)arg0->extra)->coords;
                 work->field_15A++;
                 work->field_16B = 0;
                 work->field_15C = 0;
@@ -973,8 +973,8 @@ void func_actor_107600_801339A4(Task* arg0)
             } else {
                 id = 0x51140012;
             }
-            pan = (s8)Gp_GetObjPan((GpObj38*)obj);
-            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)obj));
+            pan = (s8)Gp_GetObjPan(obj);
+            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(obj));
             work->field_52 = ((GpCoordExt*)obj->sub)->field_46;
             work->field_54 = ((GpCoordExt*)obj->sub)->field_48;
             Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
@@ -1063,7 +1063,7 @@ void func_actor_107600_80133DC4(Task* arg0)
 {
     Actor107600Work* work;
     GpEnemy*         enemy;
-    GpObj38*         obj;
+    GsCOORDINATE2*   obj;
     s32              i;
     s16              damage;
     s32              pan;
@@ -1090,7 +1090,7 @@ void func_actor_107600_80133DC4(Task* arg0)
                 }
                 if (damage > 0) {
                     if (work->field_16B < 8) {
-                        obj = (GpObj38*)((TmdObject*)arg0->extra)->coords;
+                        obj = ((TmdObject*)arg0->extra)->coords;
                         work->field_16B++;
                         pan = (s8)Gp_GetObjPan(obj);
                         SndEvt_EnqueueType6(0x51140008, pan, (s8)Gp_GetObjDepth(obj));

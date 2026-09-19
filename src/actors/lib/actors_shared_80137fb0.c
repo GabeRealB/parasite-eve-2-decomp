@@ -5,17 +5,17 @@
 void ActorsShared80137fb0(ActorShared80137fb0* arg0)
 {
     ActorShared80137fb0Work* work;
-    GpObj38*                 obj;
+    GsCOORDINATE2*           obj;
     VECTOR                   vec;
     s16                      r;
     s16                      g;
     s16                      b;
 
-    obj    = (GpObj38*)arg0->field_2C->field_8;
+    obj    = (GsCOORDINATE2*)arg0->field_2C->field_8;
     work   = arg0->field_1C;
-    vec.vx = obj->field_24.t[0];
-    vec.vy = obj->field_24.t[1];
-    vec.vz = obj->field_24.t[2];
+    vec.vx = obj->workm.t[0];
+    vec.vy = obj->workm.t[1];
+    vec.vz = obj->workm.t[2];
     Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
     switch (work->field_6EA) {
         case 1:

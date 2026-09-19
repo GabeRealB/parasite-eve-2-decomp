@@ -304,8 +304,8 @@ void func_actor_123200_80133BA0(Actor123200Ctx* arg0, Task* arg1)
     id = func_actor_123200_80133450(work);
     if (id != 0) {
         snd = id | ((arg0->field_8 >> 12) << 8);
-        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg1->extra)->coords);
-        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg1->extra)->coords));
+        pan = (s8)Gp_GetObjPan(((TmdObject*)arg1->extra)->coords);
+        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg1->extra)->coords));
     }
     if (gGameSession->viewReady != 0) {
         ((TmdObject*)arg1->extra)->coords->flg = 0;

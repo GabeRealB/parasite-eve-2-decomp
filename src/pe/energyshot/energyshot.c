@@ -122,9 +122,9 @@ void func_energyshot_8012EF34(Task* arg0)
                 {
                     s32 pan;
 
-                    pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+                    pan = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(D_energyshot_801300FC[mem->field_20], pan,
-                                        (s8)Gp_GetObjDepth((GpObj38*)coord));
+                                        (s8)Gp_GetObjDepth(coord));
                 }
                 SOFT_USE_REG(arg0);
                 return;

@@ -42,8 +42,8 @@ void  Gp_SetObjFlag2(Actor02500Ctx* arg0, u32 arg1, s32 arg2);
 void  func_800E2C78(Actor02500Ctx* arg0, u32 arg1, s32 arg2, s32 arg3);
 void  func_800DA6E8(GpLinkNode* arg0, s32 arg1, s32 arg2);
 void* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
-s32   Gp_GetObjPan(GsCOORDINATE2* arg0);
-s32   Gp_GetObjDepth(GsCOORDINATE2* arg0);
+s32   Gp_GetObjPan(GsCOORDINATE2* coord);
+s32   Gp_GetObjDepth(GsCOORDINATE2* coord);
 s32   SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
 void  Gp_ArmStateF0(s32 arg0);
 

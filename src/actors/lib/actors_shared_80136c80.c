@@ -80,16 +80,16 @@ default_body:
     coord->flg        = 0;
     work->field_2     = work->field_2 + 0xA;
     if (Gp_CountRec18Hi(recs, 0x10000) != 0) {
-        SndEvt_EnqueueType6(0x40460007, (s8)Gp_GetObjPan((GpObj38*)coord),
-                            (s8)Gp_GetObjDepth((GpObj38*)coord));
+        SndEvt_EnqueueType6(0x40460007, (s8)Gp_GetObjPan(coord),
+                            (s8)Gp_GetObjDepth(coord));
         if (child != NULL) {
             child->spawnArg1 = 3;
         }
         goto block_16;
     }
     if (Gp_FindRec18(recs, 0) != 0) {
-        SndEvt_EnqueueType6(0x40460007, (s8)Gp_GetObjPan((GpObj38*)coord),
-                            (s8)Gp_GetObjDepth((GpObj38*)coord));
+        SndEvt_EnqueueType6(0x40460007, (s8)Gp_GetObjPan(coord),
+                            (s8)Gp_GetObjDepth(coord));
         if (child != NULL) {
             if (hit->at10.normal.vy >= -0xC00) {
                 child->spawnArg1 = 3;

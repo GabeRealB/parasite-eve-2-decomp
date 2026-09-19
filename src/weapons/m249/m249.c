@@ -64,7 +64,7 @@ void func_m249_8011D1DC(GpActorWork* arg0)
                 actor->field_95E++;
                 actor->field_12A |= 0xC000;
                 Gp_ConsumeSlotQty(0x90, 1);
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20110004, 1);
+                Gp_PlayObjSfx(arg0->extra->coords, 0x20110004, 1);
                 Gp_SpawnEff(0x6006B,
                             (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 0x11,
                             NULL);
@@ -77,7 +77,7 @@ void func_m249_8011D1DC(GpActorWork* arg0)
             actor->field_95E++;
             actor->field_12A &= 0x3FFF;
             if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
-                Gp_PlayObjSfx((GpObj38*)spot, 0x17, 1);
+                Gp_PlayObjSfx(spot, 0x17, 1);
             }
             /* fallthrough */
         case 5:

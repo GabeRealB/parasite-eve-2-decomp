@@ -10,8 +10,8 @@
 #include "gameplay/3A34.h"
 
 /// Display object hung off the context's 0x2C slot; `field_8` is the model's
-/// per-part `GsCOORDINATE2` array, whose root part this body reads as the
-/// `GpObj38` over the same address.
+/// per-part `GsCOORDINATE2` array, whose root part's world matrix this body
+/// reads.
 typedef struct ActorShared80137fb0Obj2C {
     /* 0x00 */ byte           pad_0[8];
     /* 0x08 */ GsCOORDINATE2* field_8;

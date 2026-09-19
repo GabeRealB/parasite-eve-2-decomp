@@ -83,9 +83,9 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 coord->coord.t[2]    = 0;
                 coord->flg           = 0;
                 Gp_UpdateCoord(coord);
-                pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+                pan = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(D_apobiosis_80130B74[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
-                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+                                    (s8)Gp_GetObjDepth(coord));
                 arg0->state   = 1;
                 mem->field_20 = Gp_StateC08.field_0 % 10 - 1;
                 mem->field_24 = 0x200;

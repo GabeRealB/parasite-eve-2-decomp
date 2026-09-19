@@ -262,7 +262,7 @@ void func_actor_205200_8014B048(Actor205200* arg0, s32 arg1)
                 Gp_SpawnEff(0x6005C, coord, 0x02002600, NULL);
                 Gp_SpawnEff(0x6005C, coord, 0x02002600, NULL);
                 snd = ((enemy->placeKey >> 12) << 8) | 0x40340004;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
                 Gp_SpawnPadLerp(10, 0xFF, 0x80);
             } else if (damage > 0) {
                 if (part->field_76 == 0) {
@@ -283,7 +283,7 @@ void func_actor_205200_8014B048(Actor205200* arg0, s32 arg1)
                     part->field_70 = hitTime;
                 }
                 snd = ((enemy->placeKey >> 12) << 8) | 0x40340003;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
             }
         }
     }
@@ -354,7 +354,7 @@ void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
                 d.vz = view->mtx.t[2] + coord->coord.t[2];
                 dist = SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz);
                 snd  = ((arg0->placeKey >> 12) << 8) | 0x40340005;
-                pan  = (s8)Gp_GetObjPan((GpObj38*)coord);
+                pan  = (s8)Gp_GetObjPan(coord);
                 vol  = dist - D_80071078;
                 if (vol >= 0x7FFF) {
                     vol = 0x7FFF;

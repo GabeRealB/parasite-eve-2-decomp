@@ -1200,8 +1200,8 @@ void func_actor_403200_8013C84C(Task* arg0)
             s32 depth;
 
             sfx   = (((u16)enemy->placeKey >> 12) << 8) | 0x40200011;
-            pan   = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
-            depth = (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords);
+            pan   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
+            depth = (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords);
             SndEvt_EnqueueType6(sfx, pan, depth);
         }
         work->field_7A8 = work->field_9A & 0x3FF;
@@ -1215,9 +1215,9 @@ void func_actor_403200_8013C84C(Task* arg0)
             s32 pan;
 
             sfx = (((u16)enemy->placeKey >> 12) << 8) | 0x40200012;
-            pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+            pan = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
             SndEvt_EnqueueType6(sfx, pan,
-                                (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
+                                (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
             Gp_SpawnPadLerp(4, 0xFF, 8);
         }
         if (((work->field_9A & 0x3FF) == 0x27) && (work->field_7A8 != (work->field_9A & 0x3FF))) {
@@ -1225,9 +1225,9 @@ void func_actor_403200_8013C84C(Task* arg0)
             s32 pan;
 
             sfx = (((u16)enemy->placeKey >> 12) << 8) | 0x40200012;
-            pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+            pan = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
             SndEvt_EnqueueType6(sfx, pan,
-                                (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
+                                (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
             Gp_SpawnPadLerp(4, 0xFF, 8);
         }
         work->field_7A8 = work->field_9A & 0x3FF;
@@ -1341,9 +1341,9 @@ void func_actor_403200_8013D028(Task* arg0)
         Gp_UpdateCoord(&work->field_E3C);
         work->field_E96 = 0xC80;
         resetId         = (((u16)enemy->placeKey >> 12) << 8) | 0x40200017;
-        resetPan        = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        resetPan        = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
         SndEvt_EnqueueType6(resetId, resetPan,
-                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
+                            (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
     }
 
     work->field_E3C.flg = 0;
@@ -1356,19 +1356,19 @@ void func_actor_403200_8013D028(Task* arg0)
         Gp_SpawnPadLerp(0x30, 0xFF, 8);
         swipeId  = (((u16)enemy->placeKey >> 12) << 8) | 0x40200019;
         swipePan = (s8)Gp_GetObjPan(
-            (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]);
+            &((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]);
         SndEvt_EnqueueType6(
             swipeId, swipePan,
             (s8)(Gp_GetObjDepth(
-                     (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]) /
+                     &((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]) /
                  2));
         swipe2Id  = (((u16)enemy->placeKey >> 12) << 8) | 0x4020001A;
         swipe2Pan = (s8)Gp_GetObjPan(
-            (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]);
+            &((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]);
         SndEvt_EnqueueType6(
             swipe2Id, swipe2Pan,
             (s8)(Gp_GetObjDepth(
-                     (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]) /
+                     &((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]) /
                  2));
     } else {
         work->obj.flags &= 0x7FFF;
@@ -1381,11 +1381,11 @@ void func_actor_403200_8013D028(Task* arg0)
         Gp_SpawnPadLerp(0x20, 0x7F, 8);
         hitId  = (((u16)enemy->placeKey >> 12) << 8) | 0x4020001B;
         hitPan = (s8)Gp_GetObjPan(
-            (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]);
+            &((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]);
         SndEvt_EnqueueType6(
             hitId, hitPan,
             (s8)(Gp_GetObjDepth(
-                     (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]) /
+                     &((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]) /
                  2));
     }
 
@@ -1407,11 +1407,11 @@ void func_actor_403200_8013D028(Task* arg0)
             work->field_7A4 = 5;
             cueId           = (((u16)enemy->placeKey >> 12) << 8) | 0x40200018;
             cuePan          = (s8)Gp_GetObjPan(
-                (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]);
+                &((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]);
             SndEvt_EnqueueType6(
                 cueId, cuePan,
                 (s8)(Gp_GetObjDepth(
-                         (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]) /
+                         &((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]) /
                      2));
             break;
         case 0x2D:
@@ -1608,9 +1608,9 @@ void func_actor_403200_8013D9EC(Task* arg0)
         work->field_EFA = 0;
         work->field_E96 = 0xC80;
         sfx             = (((u16)enemy->placeKey >> 12) << 8) | 0x40200017;
-        pan             = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        pan             = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
         SndEvt_EnqueueType6(sfx, pan,
-                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
+                            (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
     }
     state = work->field_6 - 0x39;
     switch (state) {
@@ -1702,29 +1702,29 @@ void func_actor_403200_8013DC3C(Task* arg0)
         work->field_EFA = 0;
         work->field_E96 = 0xC80;
         resetId         = (((u16)enemy->placeKey >> 12) << 8) | 0x40200017;
-        resetPan        = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        resetPan        = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
         SndEvt_EnqueueType6(resetId, resetPan,
-                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
+                            (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
     }
 
     if (work->field_6 == 0x3B) {
         cueId  = (((u16)enemy->placeKey >> 12) << 8) | 0x40200016;
         cuePan = (s8)Gp_GetObjPan(
-            (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]);
+            &((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]);
         SndEvt_EnqueueType6(
             cueId, cuePan,
             (s8)Gp_GetObjDepth(
-                (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]));
+                &((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]));
     }
 
     if (work->field_6 == 0x3C) {
         hitId  = (((u16)enemy->placeKey >> 12) << 8) | 0x4020000D;
         hitPan = (s8)Gp_GetObjPan(
-            (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]);
+            &((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]);
         SndEvt_EnqueueType6(
             hitId, hitPan,
             (s8)Gp_GetObjDepth(
-                (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]));
+                &((TmdObject*)work->field_ECC[0]->task->extra)->coords[1]));
     }
 
     if ((s16)(u16)work->field_6 >= 0x3D) {
@@ -1867,9 +1867,9 @@ void func_actor_403200_8013E5A8(Task* arg0)
             s32 pan;
 
             id  = (((u16)enemy->placeKey >> 12) << 8) | 0x40200013;
-            pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+            pan = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
             SndEvt_EnqueueType6(id, pan,
-                                (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
+                                (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
         }
         frame = work->field_9A & 0x3FF;
         if (frame == 0x3D && work->field_7A8 != frame) {
@@ -1877,9 +1877,9 @@ void func_actor_403200_8013E5A8(Task* arg0)
             s32 pan;
 
             id  = (((u16)enemy->placeKey >> 12) << 8) | 0x40200003;
-            pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+            pan = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
             SndEvt_EnqueueType6(id, pan,
-                                (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
+                                (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
         }
         frame = work->field_9A & 0x3FF;
         if (frame == 0x4E && work->field_7A8 != frame) {
@@ -1887,9 +1887,9 @@ void func_actor_403200_8013E5A8(Task* arg0)
             s32 pan;
 
             id  = (((u16)enemy->placeKey >> 12) << 8) | 0x40200014;
-            pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+            pan = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
             SndEvt_EnqueueType6(id, pan,
-                                (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
+                                (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
         }
         frame = work->field_9A & 0x3FF;
         if (frame == 0x71 && work->field_7A8 != frame) {
@@ -1897,9 +1897,9 @@ void func_actor_403200_8013E5A8(Task* arg0)
             s32 pan;
 
             id  = (((u16)enemy->placeKey >> 12) << 8) | 0x40200015;
-            pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+            pan = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
             SndEvt_EnqueueType6(id, pan,
-                                (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
+                                (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
         }
         work->field_7A8 = work->field_9A & 0x3FF;
     }
@@ -1934,9 +1934,9 @@ void func_actor_403200_8013E9C0(Task* arg0)
             work->field_7B3 = state;
         }
         id  = (((u16)obj->placeKey >> 12) << 8) | 0x40200004;
-        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        pan = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
         SndEvt_EnqueueType6(id, pan,
-                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
+                            (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
         work->field_7A4 = 3;
         work->field_E96 = 0xC80;
         SndEvt_EnqueueType7((((u16)obj->placeKey >> 12) << 8) | 0x4020000D, 1);

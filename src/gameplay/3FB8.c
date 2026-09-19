@@ -1011,8 +1011,8 @@ void func_800FAA14(Task* arg0)
     if (Gp_StateC08.field_2 >= 9) {
         if (mem->field_24 < 0x20) {
             if (mem->field_24 == 0) {
-                pan = (s8)Gp_GetObjPan((GpObj38*)coord);
-                SndEvt_EnqueueType6(arg0->spawnArg1, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                pan = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(arg0->spawnArg1, pan, (s8)Gp_GetObjDepth(coord));
             }
             Gp_SpawnEff(0x60032, coord, 0, 0);
             mem->field_24++;
@@ -1195,8 +1195,8 @@ void Gp_EffCtlTaskAE(Task* arg0)
             arg0->spawnArg1 = D_80112B94[((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
                                          ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 +
                                          ((u16)(Gp_StateC08.field_0 % 10U) - 1U)];
-            pan             = (s8)Gp_GetObjPan((GpObj38*)coord);
-            SndEvt_EnqueueType6(arg0->spawnArg1, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            pan             = (s8)Gp_GetObjPan(coord);
+            SndEvt_EnqueueType6(arg0->spawnArg1, pan, (s8)Gp_GetObjDepth(coord));
             return;
         case 1:
             Gp_UpdateCoord(coord);
@@ -1621,8 +1621,8 @@ continue_fx:
                     Task_Reparent(arg0, spawned->field_0);
                 }
             }
-            temp = (s8)Gp_GetObjPan((GpObj38*)coord);
-            SndEvt_EnqueueType6(0xE, temp, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            temp = (s8)Gp_GetObjPan(coord);
+            SndEvt_EnqueueType6(0xE, temp, (s8)Gp_GetObjDepth(coord));
         } else if (mem->field_26 < 0x80) {
             mem->field_26 = 0x80;
         }
@@ -1757,8 +1757,8 @@ void Gp_EffCtlTaskA5(Task* arg0)
     switch (arg0->state) {
         case 0:
             if (Gp_State1C->field_2 == 0) {
-                temp = (s8)Gp_GetObjPan((GpObj38*)coord);
-                SndEvt_EnqueueType6(0xD, temp, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                temp = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(0xD, temp, (s8)Gp_GetObjDepth(coord));
             }
             Gp_State1C->field_2++;
             arg0->state = 1;
@@ -2238,9 +2238,9 @@ void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3)
             break;
         case 11:
             Gp_SpawnEff(0x6007F, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), NULL);
-            pan = (s8)Gp_GetObjPan((GpObj38*)arg1);
+            pan = (s8)Gp_GetObjPan(arg1);
             SndEvt_EnqueueType6(D_80112C7C[(u16)(Gp_StateC08.field_0 % 10U) - 1], pan,
-                                (s8)Gp_GetObjDepth((GpObj38*)arg1));
+                                (s8)Gp_GetObjDepth(arg1));
             break;
         case 12:
             Gp_SpawnEff(0x600F7, arg1, 1, NULL);
@@ -6259,18 +6259,18 @@ s32 Gp_PickNearestRec18(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
 
 s32 func_80105ED4(GpActorWork* arg0)
 {
-    GameActor* actor;
-    GpAnimRec* rec;
-    GpObj38*   obj;
-    s32        sound;
-    s8         flags;
-    s32        pan;
-    s32        index;
-    s32*       sounds;
+    GameActor*     actor;
+    GpAnimRec*     rec;
+    GsCOORDINATE2* obj;
+    s32            sound;
+    s8             flags;
+    s32            pan;
+    s32            index;
+    s32*           sounds;
 
     sound = 0;
     actor = arg0->actor;
-    obj   = (GpObj38*)(arg0->extra->coords + 1);
+    obj   = arg0->extra->coords + 1;
     rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
     if (rec != NULL && rec != actor->field_92C) {
         actor->field_92C = rec;
@@ -6499,12 +6499,12 @@ void func_80106350(GpActorWork* arg0, s32 arg1, s32 arg2)
     actor->field_12A &= 0x3FFF;
 }
 
-void Gp_PlayObjSfx(GpObj38* arg0, s32 arg1, s32 arg2)
+void Gp_PlayObjSfx(GsCOORDINATE2* coord, s32 sfx, s32 arg2)
 {
     s32 temp;
 
-    temp = (s8)Gp_GetObjPan(arg0);
-    SndEvt_EnqueueType6(arg1, temp, (s8)Gp_GetObjDepth(arg0));
+    temp = (s8)Gp_GetObjPan(coord);
+    SndEvt_EnqueueType6(sfx, temp, (s8)Gp_GetObjDepth(coord));
     if (arg2 == 1) {
         Gp_SetStateF0Bit(1);
     }
@@ -6744,7 +6744,7 @@ void Gp_PlayerNormalState2(GpActorWork* arg0)
                         func_801095BC(&variant);
                         base = Player_Status.weapon << 16;
                         val  = variant | 0x20000001;
-                        Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | val, 0);
+                        Gp_PlayObjSfx(arg0->extra->coords, base | val, 0);
                     }
                 }
             }
@@ -6824,9 +6824,9 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
                 if ((rec->flags & 0x30) == 0x30) {
                     if (actor->field_95E == 0) {
                         actor->field_95E = 1;
-                        Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | 0x20000002, 0);
+                        Gp_PlayObjSfx(arg0->extra->coords, base | 0x20000002, 0);
                     } else {
-                        Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | 0x20000003, 0);
+                        Gp_PlayObjSfx(arg0->extra->coords, base | 0x20000003, 0);
                         done             = 1;
                         actor->field_95E = 0x64;
                     }
@@ -6844,7 +6844,7 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
                     actor->field_934 = tick;
                     if (tick == -1) {
                         actor->field_95E += 1;
-                        Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | 0x20000002, 0);
+                        Gp_PlayObjSfx(arg0->extra->coords, base | 0x20000002, 0);
                         if (actor->field_98F == 0) {
                             Gp_SpawnEff(0x6006D, coord, 0, NULL);
                         }
@@ -6857,7 +6857,7 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
                     if (rec != NULL && rec != actor->field_92C) {
                         actor->field_92C = rec;
                         if ((rec->flags & 0x30) == 0x30) {
-                            Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | 0x20000003, 0);
+                            Gp_PlayObjSfx(arg0->extra->coords, base | 0x20000003, 0);
                             done             = 1;
                             actor->field_98F = 0;
                             actor->field_95E = 0x64;
@@ -6870,7 +6870,7 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
             if (actor->field_95E == 0) {
                 actor->field_95E = 1;
                 flags            = 0x20000002;
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | (variant | flags), 0);
+                Gp_PlayObjSfx(arg0->extra->coords, base | (variant | flags), 0);
             } else {
                 rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
                                     actor->field_438 + 1);
@@ -6878,7 +6878,7 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
                     actor->field_92C = rec;
                     if ((rec->flags & 0x30) == 0x30) {
                         flags = 0x20000003;
-                        Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | (variant | flags), 0);
+                        Gp_PlayObjSfx(arg0->extra->coords, base | (variant | flags), 0);
                         done             = 1;
                         actor->field_95E = 0x64;
                     }
@@ -6898,7 +6898,7 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
                 actor->field_92C = rec;
                 if ((rec->flags & 0x30) == 0x30) {
                     flags = 0x20000003;
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | (variant | flags), 0);
+                    Gp_PlayObjSfx(arg0->extra->coords, base | (variant | flags), 0);
                     done             = 1;
                     actor->field_98F = 0;
                     actor->field_95E = 0x64;
@@ -6914,12 +6914,12 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
                 if ((rec->flags & 0x30) == 0x30) {
                     if (actor->field_95E == 0) {
                         flags = 0x20000003;
-                        Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | (variant | flags), 0);
+                        Gp_PlayObjSfx(arg0->extra->coords, base | (variant | flags), 0);
                         done             = 1;
                         actor->field_95E = 0x64;
                     } else {
                         flags = 0x20000002;
-                        Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | (variant | flags), 0);
+                        Gp_PlayObjSfx(arg0->extra->coords, base | (variant | flags), 0);
                     }
                 }
             }
@@ -6933,17 +6933,17 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
                         case 0:
                             actor->field_95E = 1;
                             flags            = 0x20000003;
-                            Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | (variant | flags), 0);
+                            Gp_PlayObjSfx(arg0->extra->coords, base | (variant | flags), 0);
                             break;
                         case 1:
                             flags = 0x20000003;
-                            Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | (variant | flags), 0);
+                            Gp_PlayObjSfx(arg0->extra->coords, base | (variant | flags), 0);
                             done             = 1;
                             actor->field_95E = 0x64;
                             break;
                         case 0x64:
                             flags = 0x20000002;
-                            Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | (variant | flags), 0);
+                            Gp_PlayObjSfx(arg0->extra->coords, base | (variant | flags), 0);
                             break;
                     }
                 }
@@ -6962,9 +6962,9 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
                 if ((rec->flags & 0x30) == 0x30) {
                     if (actor->field_95E == 0) {
                         actor->field_95E = 1;
-                        Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | 0x20000003, 0);
+                        Gp_PlayObjSfx(arg0->extra->coords, base | 0x20000003, 0);
                     } else {
-                        Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | 0x20000003, 0);
+                        Gp_PlayObjSfx(arg0->extra->coords, base | 0x20000003, 0);
                         done             = 1;
                         actor->field_95E = 0x64;
                     }
@@ -6992,9 +6992,9 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
                         } else if (step == 0x64) {
                             variant |= 0x20000009;
                         }
-                        Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, variant, 0);
+                        Gp_PlayObjSfx(arg0->extra->coords, variant, 0);
                     } else {
-                        Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, variant | 0x20000003, 0);
+                        Gp_PlayObjSfx(arg0->extra->coords, variant | 0x20000003, 0);
                     }
                     next             = actor->field_95E + 1;
                     actor->field_95E = next;
@@ -7008,14 +7008,14 @@ void Gp_PlayerNormalState5(GpActorWork* arg0)
         default:
             if (actor->field_95E == 0) {
                 actor->field_95E = 1;
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | 0x20000002, 0);
+                Gp_PlayObjSfx(arg0->extra->coords, base | 0x20000002, 0);
             } else {
                 rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
                                     actor->field_438 + 1);
                 if (rec != NULL && rec != actor->field_92C) {
                     actor->field_92C = rec;
                     if ((rec->flags & 0x30) == 0x30) {
-                        Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | 0x20000003, 0);
+                        Gp_PlayObjSfx(arg0->extra->coords, base | 0x20000003, 0);
                         done             = 1;
                         actor->field_95E = 0x64;
                     }
@@ -7482,7 +7482,7 @@ void Gp_PlayerMode2StateA(GpActorWork* arg0)
                 actor->field_940 = 0x14;
                 base             = Player_Status.weapon << 16;
                 val              = variant | 0x20000001;
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | val, 0);
+                Gp_PlayObjSfx(arg0->extra->coords, base | val, 0);
             }
         }
     }
@@ -9288,16 +9288,16 @@ void func_8010B0C8(GpActorWork* arg0)
 
 void Gp_PlayerStepSfx(GpActorWork* arg0)
 {
-    GameActor* inner;
-    GameActor* inner2;
-    GpObj38*   obj;
-    s32        mode;
-    s32        snd;
-    s32        temp;
-    s32        temp2;
+    GameActor*     inner;
+    GameActor*     inner2;
+    GsCOORDINATE2* obj;
+    s32            mode;
+    s32            snd;
+    s32            temp;
+    s32            temp2;
 
     inner = arg0->actor;
-    obj   = (GpObj38*)arg0->extra->coords;
+    obj   = arg0->extra->coords;
     if (Mc_SaveData.field_5C2 != 0) {
         return;
     }

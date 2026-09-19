@@ -340,30 +340,22 @@ typedef struct _GpObj20 {
 } GpObj20;
 STATIC_ASSERT_SIZEOF(GpObj20, 0x24);
 
-/// Object with a `MATRIX` at 0x24 (`GsCOORDINATE2.workm` when this overlays
-/// an actor coordinate). `Gp_GetObjPan` loads that matrix for RTPS.
-/// `Gp_GetObjTransX` returns `field_24.t[0]`. Light helpers take
-/// `field_24.t` as a `VECTOR*` (`t[0]/t[1]/t[2]`).
-typedef struct _GpObj38 {
-    /* 0x00 */ byte   pad_0[0x24];
-    /* 0x24 */ MATRIX field_24;
-} GpObj38;
-STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
-
-/// Sparse overlay of the same light object as `GpObj38`. `Gp_GetObjLuma`
+/// Sparse overlay of a light source: an object whose head is a
+/// `GsCOORDINATE2`, so its `workm` is the light's world matrix and its light
+/// fields follow at 0x50. `Gp_GetObjLuma`
 /// treats `field_44` as a room-id filter against `gGameSession->at4.loc.view`
 /// (0 = any room), writes `0x1000` (GTE ONE) to `field_4A`, and returns a
 /// weighted `field_50/52/54` luminance. `func_800D9794` casts to
-/// `GpObj38` for `field_24.t` as a `VECTOR*`, loads `field_4A` into GTE
+/// `GsCOORDINATE2` for `workm.t` as a `VECTOR*`, loads `field_4A` into GTE
 /// IR0, and `gte_ldsv`s the three halfwords at 0x50. `func_800D98C4` /
-/// `func_800D9A30` subtract `field_24.t` from a world `VECTOR` and write
+/// `func_800D9A30` subtract `workm.t` from a world `VECTOR` and write
 /// the negated normalized direction.
 /// `Gp_LightFalloff` halves `field_18` as XYZ, compares distance² against
 /// inner `field_58` and outer `field_5C` (each squared then `>> 2`), and
 /// writes the attenuated luminance to `field_38.vx` (same word as
-/// `GpObj38.field_24.t[0]`) plus the 12.4 scale to `field_4A`.
+/// `GsCOORDINATE2.workm.t[0]`) plus the 12.4 scale to `field_4A`.
 /// `Gp_LightPoint` instead subtracts a world `VECTOR3` from `field_38`
-/// (same words as `GsCOORDINATE2.workm.t` / `GpObj38.field_24.t`),
+/// (same words as `GsCOORDINATE2.workm.t`),
 /// writes the scale to `field_4A`, and returns the luminance.
 /// `Gp_LightPointRoom` is that same subtract, plus the `field_44` room-id
 /// filter and an `|dx|` / `|dz|` reject against `field_5C / 2` before
@@ -395,7 +387,7 @@ typedef struct _GpObj44 {
 } GpObj44;
 STATIC_ASSERT_SIZEOF(GpObj44, 0x60);
 
-/// Cone-light overlay of the same object as `GpObj44` / `GpObj38`.
+/// Cone-light overlay of the same object as `GpObj44`.
 /// `field_24` is the light matrix (Z column is the cone axis; `t` is the
 /// world position, same words as `GpObj44.field_38`). `field_60` /
 /// `field_64` are inner/outer radii (squared then `>> 2`, like
@@ -1398,12 +1390,23 @@ void Gp_RemapActorColor(struct GpEnemy* arg0, MATRIX* arg1, s32 arg2);
 /// (`field_4E` bits 2-3) toward the current mode (bits 0-1). Skips work
 /// when `gGameSession->field_65 == 1` unless `TmdObject.flags` bit
 /// 0x80 is clear and `field_18` is set. `Gp_StateF0.field_4` freezes the timer.
-void            Gp_UpdateActorColor(struct GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
-void            Gp_LightFalloff(GpObj44* arg0);
-void            Gp_SetLightMode(GpObj4C* arg0, s32 arg1);
-s32             Gp_GetObjDepth(GpObj38* arg0);
-s32             Gp_GetObjPan(GpObj38* arg0);
-void            Gp_PlayObjSfx(GpObj38* arg0, s32 arg1, s32 arg2);
+void Gp_UpdateActorColor(struct GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+void Gp_LightFalloff(GpObj44* arg0);
+void Gp_SetLightMode(GpObj4C* arg0, s32 arg1);
+/// How far the object's world position lies beyond the camera plane, in the
+/// form the sound events take it: the difference between `GsCOORDINATE2.workm`
+/// Z and the screen distance, clamped to ±0x7FFF and taken down by 8.
+s32 Gp_GetObjDepth(GsCOORDINATE2* coord);
+/// Pan of the object's world origin, for the sound events that carry one: the
+/// origin is projected through the coordinate's world matrix, and the screen X
+/// it lands on is clamped to the screen's half width and scaled down by ten.
+/// 0 when the projection reports an error.
+s32 Gp_GetObjPan(GsCOORDINATE2* coord);
+/// Queues sound event `sfx` from the object's world position, panned and
+/// depth-attenuated by `Gp_GetObjPan` / `Gp_GetObjDepth`. A third argument of
+/// 1 raises the mid-action bit alongside it; the role of that argument at the
+/// call sites is not established.
+void            Gp_PlayObjSfx(GsCOORDINATE2* coord, s32 sfx, s32 arg2);
 void            Gp_SetOverrideVec(SVECTOR* arg0);
 void            Gp_SetOverrideVec2(SVECTOR* arg0);
 void            Gp_SetObjTrans(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3);
@@ -1412,7 +1415,8 @@ s32             Gp_CountRoomCoords(void);
 s32             Gp_GetRoomCoordSet(GpAreaKey* arg0);
 void            func_800D96C8(Task* arg0);
 s32             Gp_GetObjLuma(GpObj44* arg0);
-s32             Gp_GetObjTransX(GpObj38* arg0);
+/// World X of the object's position.
+s32             Gp_GetObjTransX(GsCOORDINATE2* coord);
 void            func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
 void            func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
 void            func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);

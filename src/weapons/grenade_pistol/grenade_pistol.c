@@ -45,7 +45,7 @@ void func_grenade_pistol_8011D1D4(GpActorWork* arg0)
             actor->field_95E = 3;
             actor->field_981 = 0;
             actor->field_940 = 0x28;
-            Gp_PlayObjSfx((GpObj38*)arg0->extra->coords,
+            Gp_PlayObjSfx(arg0->extra->coords,
                           ((Player_Status.weaponSlotItem - 0xA) << 24) | 0x200B0004, 1);
             Gp_SpawnEff(0x6006C,
                         (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 0xB,

@@ -1125,8 +1125,8 @@ void func_actor_503500_80137678(Actor503500* arg0)
                 ApplyMatrixLV(&m.mat, (VECTOR*)&work->vel, (VECTOR*)&work->vel);
                 func_actor_503500_80135D00((Actor503500*)arg0->parent, 0xC);
                 Gp_UpdateCoord(coord);
-                SndEvt_EnqueueType6(0x40230004, (s8)Gp_GetObjPan((GpObj38*)coord),
-                                    (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+                SndEvt_EnqueueType6(0x40230004, (s8)Gp_GetObjPan(coord),
+                                    (s8)(Gp_GetObjDepth(coord) / 2));
                 work->field_15A = 0;
                 work->field_15D++;
             }
@@ -1144,8 +1144,8 @@ void func_actor_503500_80137678(Actor503500* arg0)
                 case 10:
                     arg0->extra->flags |= 2;
                     Gp_SetLightMode((GpObj4C*)enemy, 1);
-                    SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan((GpObj38*)coord),
-                                        (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+                    SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan(coord),
+                                        (s8)(Gp_GetObjDepth(coord) / 2));
                     break;
                 case 30:
                     Gp_SetLightMode((GpObj4C*)enemy, 2);
@@ -1809,8 +1809,8 @@ void func_actor_503500_80139014(Actor503500* arg0)
                 coord->flg        = 0;
                 work->field_2EA   = phase;
                 Gp_UpdateCoord(coord);
-                SndEvt_EnqueueType6(0x40230004, (s8)Gp_GetObjPan((GpObj38*)coord),
-                                    (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+                SndEvt_EnqueueType6(0x40230004, (s8)Gp_GetObjPan(coord),
+                                    (s8)(Gp_GetObjDepth(coord) / 2));
                 work->field_2E4++;
             }
             break;
@@ -1860,8 +1860,8 @@ void func_actor_503500_80139014(Actor503500* arg0)
                 case 10:
                     arg0->extra->flags |= 2;
                     Gp_SetLightMode((GpObj4C*)enemy, 1);
-                    SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan((GpObj38*)coord),
-                                        (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+                    SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan(coord),
+                                        (s8)(Gp_GetObjDepth(coord) / 2));
                     break;
                 case 15:
                     Gp_SpawnEff(0x600A5, coord, 1, NULL);

@@ -388,9 +388,9 @@ s32 Actor00100_Fn00E58(Actor00100* arg0, s32 arg1, Actor00100Msg* arg2)
                     break;
                 case 2:
                     sound = (((u16)ctx->field_8 >> 0xC) << 8) | 0x52160009;
-                    pan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
+                    pan   = (s8)Gp_GetObjPan(arg0->field_2C->coords);
                     SndEvt_EnqueueType6(sound, pan,
-                                        (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
+                                        (s8)Gp_GetObjDepth(arg0->field_2C->coords));
                     work->field_82E = sub;
                     work->field_828 = sub;
                     Actor00100_Fn02788(arg0);

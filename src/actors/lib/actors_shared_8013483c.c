@@ -11,7 +11,7 @@ void ActorsShared8013483c(ActorShared801342a4* arg0)
     s32                      soundId;
     s32                      objectSoundId;
     s32                      pan;
-    GpObj38*                 object;
+    GsCOORDINATE2*           object;
     ActorShared801342a4Work* work;
 
     work          = arg0->field_1C;

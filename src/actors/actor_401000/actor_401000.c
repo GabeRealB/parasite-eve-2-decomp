@@ -1555,8 +1555,8 @@ void func_actor_401000_8013922C(Actor401000* arg0)
         work->field_6          = 0;
     } else if (work->field_6 == 0) {
         sound = ((enemy->placeKey >> 0xC) << 8) | 0x51030008;
-        pan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
+        pan   = (s8)Gp_GetObjPan(arg0->field_2C->coords);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->coords));
         work->field_6 = 1;
     }
     func_actor_401000_80132EF0(arg0);

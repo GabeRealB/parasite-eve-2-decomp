@@ -73,8 +73,8 @@ s32 func_actor_107000_801378D8(Task* arg0, s32 arg1, Actor107000Msg* arg2)
                 coord->coord.t[1] = D_8018B74C[arg2->field_2 >> 8].y;
                 coord->coord.t[2] = D_8018B74C[arg2->field_2 >> 8].z;
                 sound             = (((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x54270006);
-                pan               = (s8)Gp_GetObjPan((GpObj38*)coord);
-                SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                pan               = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(coord));
             } else if (gGameSession->at4.loc.area == 0x28) {
                 rot.vx            = 0;
                 rot.vy            = D_801874C4[arg2->field_2 >> 8].heading;

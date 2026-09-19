@@ -19,7 +19,7 @@ s32  func_8010BCF4(Task* arg0, VECTOR3* arg1);
 void func_8010BD88(GpActorWork* arg0, VECTOR3* arg1);
 void func_8010BE5C(GpActorWork* arg0, VECTOR3* arg1);
 s32  func_80105ED4(GpActorWork* arg0);
-void Gp_PlayObjSfx(GpObj38* arg0, s32 arg1, s32 arg2);
+void Gp_PlayObjSfx(GsCOORDINATE2* coord, s32 sfx, s32 arg2);
 s32  rand();
 
 extern u32 Gp_LcgState;
@@ -152,8 +152,8 @@ void func_actor_800100_80163F04(GpActorWork* arg0)
         func_80109BB4(arg0, actor->field_17C);
         if ((u16)actor->field_96C != 0) {
             func_8010B9A4(arg0);
-            pan = (s8)Gp_GetObjPan((GpObj38*)coord);
-            SndEvt_EnqueueType6(((D_8007272F - 1) << 16) + 0x4065000A, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            pan = (s8)Gp_GetObjPan(coord);
+            SndEvt_EnqueueType6(((D_8007272F - 1) << 16) + 0x4065000A, pan, (s8)Gp_GetObjDepth(coord));
         }
     }
     Gp_TickActorAnimState(arg0);
@@ -1102,7 +1102,7 @@ void func_actor_800100_80165C38(GpActorWork* arg0)
             Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 3);
             func_80106238(arg0, 0, 0);
             actor->field_12A |= 0xC800;
-            Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x40650001, 1);
+            Gp_PlayObjSfx(arg0->extra->coords, 0x40650001, 1);
             Gp_SpawnEff(0x6002B, coord, 0x21, NULL);
             break;
 
@@ -1110,7 +1110,7 @@ void func_actor_800100_80165C38(GpActorWork* arg0)
             actor->field_960  = 2;
             actor->field_12A &= 0x3FFF;
             if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0) {
-                Gp_PlayObjSfx((GpObj38*)place, 0x17, 1);
+                Gp_PlayObjSfx(place, 0x17, 1);
             }
             /* fallthrough */
 
@@ -1148,7 +1148,7 @@ void func_actor_800100_80165DE8(GpActorWork* arg0)
             actor->field_960 = 2;
             d4->actionCount -= 1;
             Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 3);
-            Gp_PlayObjSfx((GpObj38*)coord, 0x40660001, 1);
+            Gp_PlayObjSfx(coord, 0x40660001, 1);
             if (coord != NULL) {
                 actor->field_940 = 0x28;
                 Gp_SpawnEff(0x6006C, coord, D_actor_800100_80167218[D_8007272F] | 0x10000, NULL);
@@ -1212,7 +1212,7 @@ void func_actor_800100_80165F50(GpActorWork* arg0)
                 actor->field_960 += 1;
                 d4->actionCount  -= 1;
                 actor->field_12A |= 0xC000;
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x40670001, 1);
+                Gp_PlayObjSfx(arg0->extra->coords, 0x40670001, 1);
                 Gp_SpawnEff(0x6002B, coord, D_actor_800100_80167218[D_8007272F] | 0x10000, NULL);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 2);
             }
@@ -1222,7 +1222,7 @@ void func_actor_800100_80165F50(GpActorWork* arg0)
             actor->field_960 += 1;
             actor->field_12A &= 0x3FFF;
             if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0) {
-                Gp_PlayObjSfx((GpObj38*)place, 0x17, 1);
+                Gp_PlayObjSfx(place, 0x17, 1);
             }
             /* fallthrough */
 
@@ -1285,7 +1285,7 @@ void func_actor_800100_80166190(GpActorWork* arg0)
                 actor->field_940 = 0x28;
                 actor->field_979 = 0x1C;
                 actor->field_93E = 0x14;
-                Gp_PlayObjSfx((GpObj38*)coord, 0x40680002, 1);
+                Gp_PlayObjSfx(coord, 0x40680002, 1);
                 if (actor->field_914 != NULL) {
                     actor->field_914->spawnArg1 = 2;
                 }
@@ -1310,7 +1310,7 @@ void func_actor_800100_80166190(GpActorWork* arg0)
                     if ((s8)d4->actionCount == 0) {
                         actor->field_93E = 0;
                     }
-                    Gp_PlayObjSfx((GpObj38*)coord, 0x40680001, 1);
+                    Gp_PlayObjSfx(coord, 0x40680001, 1);
                     Gp_SpawnEff(0x6006B, coord, D_actor_800100_80167218[D_8007272F] | 0x10000, NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
                     break;
@@ -1322,7 +1322,7 @@ void func_actor_800100_80166190(GpActorWork* arg0)
                 }
                 actor->field_12A &= 0x3FFF;
                 if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0) {
-                    Gp_PlayObjSfx((GpObj38*)place, 0x17, 1);
+                    Gp_PlayObjSfx(place, 0x17, 1);
                 }
                 break;
             }
@@ -1332,7 +1332,7 @@ void func_actor_800100_80166190(GpActorWork* arg0)
             actor->field_960  = 6;
             actor->field_12A &= 0x3FFF;
             if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0) {
-                Gp_PlayObjSfx((GpObj38*)place, 0x17, 1);
+                Gp_PlayObjSfx(place, 0x17, 1);
             }
             break;
 

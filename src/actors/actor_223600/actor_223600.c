@@ -595,10 +595,10 @@ void func_actor_223600_8014CA00(GpEnemy* enemy, Task* task)
     reaction = func_actor_223600_8014B464(work);
     if (reaction != 0) {
         cue = reaction | (((u16)enemy->placeKey >> 12) << 8);
-        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->coords);
+        pan = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
         SndEvt_EnqueueType6(
             cue, pan,
-            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->coords));
+            (s8)Gp_GetObjDepth(((TmdObject*)task->extra)->coords));
     }
     if (work->field_20C != 0) {
         func_800D7A9C((TmdObject*)task->extra,

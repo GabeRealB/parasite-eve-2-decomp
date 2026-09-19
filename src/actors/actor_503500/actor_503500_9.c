@@ -320,8 +320,8 @@ void func_actor_503500_801450A0(Actor503500* arg0)
                     work->head.obj.flags |= 0x8000;
                 }
                 coord = arg0->extra->coords;
-                pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
-                SndEvt_EnqueueType6(0x4023000B, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+                pan   = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(0x4023000B, pan, (s8)(Gp_GetObjDepth(coord) / 2));
                 work->field_C6 = 0;
                 work->field_CC++;
             }
@@ -514,8 +514,8 @@ void func_actor_503500_801455A4(Task* arg0)
     child          = eff->field_0;
     work->field_38 = child;
     Task_Reparent(arg0, child);
-    pan = (s8)Gp_GetObjPan((GpObj38*)coord);
-    SndEvt_EnqueueType6(0x4023000C, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+    pan = (s8)Gp_GetObjPan(coord);
+    SndEvt_EnqueueType6(0x4023000C, pan, (s8)(Gp_GetObjDepth(coord) / 2));
     func_actor_503500_80137290(6);
     arg0->exitCallback = func_actor_503500_80145950;
     arg0->state       += 1;
@@ -544,12 +544,12 @@ void func_actor_503500_80145754(Actor503500* arg0)
                     work->field_40++;
                 } else if (work->field_3C == 0x3E) {
                     coord = arg0->extra->coords;
-                    pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
-                    SndEvt_EnqueueType6(0x40230014, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+                    pan   = (s8)Gp_GetObjPan(coord);
+                    SndEvt_EnqueueType6(0x40230014, pan, (s8)(Gp_GetObjDepth(coord) / 2));
                 } else if (work->field_3C == 0x5A) {
                     coord2 = arg0->extra->coords;
-                    pan2   = (s8)Gp_GetObjPan((GpObj38*)coord2);
-                    SndEvt_EnqueueType6(0x4023000D, pan2, (s8)(Gp_GetObjDepth((GpObj38*)coord2) / 2));
+                    pan2   = (s8)Gp_GetObjPan(coord2);
+                    SndEvt_EnqueueType6(0x4023000D, pan2, (s8)(Gp_GetObjDepth(coord2) / 2));
                 }
                 return;
             case 1:
@@ -668,11 +668,11 @@ void func_actor_503500_80145A2C(Task* arg0)
     work->field_98 = child;
     Task_Reparent(arg0, child);
     if (gGameSession->eventState != 0) {
-        pan = (s8)Gp_GetObjPan((GpObj38*)coord);
-        SndEvt_EnqueueType6(0x40230013, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+        pan = (s8)Gp_GetObjPan(coord);
+        SndEvt_EnqueueType6(0x40230013, pan, (s8)(Gp_GetObjDepth(coord) / 2));
     } else {
-        pan2 = (s8)Gp_GetObjPan((GpObj38*)coord);
-        SndEvt_EnqueueType6(0x4023000E, pan2, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+        pan2 = (s8)Gp_GetObjPan(coord);
+        SndEvt_EnqueueType6(0x4023000E, pan2, (s8)(Gp_GetObjDepth(coord) / 2));
     }
     func_actor_503500_80137290(8);
     arg0->exitCallback = func_actor_503500_80145E98;
@@ -697,8 +697,8 @@ void func_actor_503500_80145C50(Actor503500* arg0)
             if (gGameSession->eventState == 0) {
                 work->head.obj.flags |= 0x8000;
                 coord                 = arg0->extra->coords;
-                pan                   = (s8)Gp_GetObjPan((GpObj38*)coord);
-                SndEvt_EnqueueType6(0x4023000F, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
+                pan                   = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(0x4023000F, pan, (s8)(Gp_GetObjDepth(coord) / 2));
             }
             goto next;
         case 1:

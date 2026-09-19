@@ -103,9 +103,9 @@ void func_metabolism_8012EF34(Task* arg0)
                 }
             }
             Gp_StateC08.field_6 |= 8;
-            pan                  = (s8)Gp_GetObjPan((GpObj38*)coord);
+            pan                  = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(D_metabolism_8012FB6C[mem->field_20], pan,
-                                (s8)Gp_GetObjDepth((GpObj38*)coord));
+                                (s8)Gp_GetObjDepth(coord));
             /* fallthrough */
         case 1:
             Gp_UpdateCoord(coord);

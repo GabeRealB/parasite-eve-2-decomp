@@ -26,12 +26,12 @@ s32 func_actor_310100_80161E24(Task* task)
 {
     Actor310100Work* work;
     GpAnimRec*       rec;
-    GpObj38*         obj;
+    GsCOORDINATE2*   obj;
     s32              i;
     u16              step;
 
     work = (Actor310100Work*)task->work;
-    obj  = (GpObj38*)((TmdObject*)task->extra)->coords;
+    obj  = ((TmdObject*)task->extra)->coords;
     rec  = Gp_AnimGetRec(&work->anim, &work->slots[1]);
     if (rec != work->field_4EC) {
         if (rec != NULL) {

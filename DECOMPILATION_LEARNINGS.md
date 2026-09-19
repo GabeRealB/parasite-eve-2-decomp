@@ -41202,7 +41202,7 @@ Both halves need their own local, and the shift must be assigned *first*:
 ```c
 base = Wip_SysConfig.field_21 << 16;
 val  = variant | 0x20000001;
-Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | val, 0);
+Gp_PlayObjSfx(arg0->extra->coords, base | val, 0);
 ```
 
 `val`-then-`base` scores 98.2% with the two `or` sources swapped; `val |=
@@ -50154,8 +50154,8 @@ two of the three cases, each written the way the matched sibling
 `func_actor_510900_801384C4` is:
 
 ```c
-pan = (s8)Gp_GetObjPan((GpObj38*)coord);
-SndEvt_EnqueueType6(work->field_578, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+pan = (s8)Gp_GetObjPan(coord);
+SndEvt_EnqueueType6(work->field_578, pan, (s8)Gp_GetObjDepth(coord));
 ```
 
 That stalled at 94.97% saving `ra/s2/s1/s0` where the target saves `ra/s1/s0`,
@@ -71025,8 +71025,8 @@ assignment, which is what the target shows:
 ```c
 s32 pan;
 
-pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
-SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
+pan = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
+SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(((TmdObject*)arg0->extra)->coords));
 ```
 
 The third argument stays an inline `(s8)` cast, and *there* the extension does
@@ -75556,8 +75556,8 @@ sibling `ActorsShared80168a28` already writes:
 
 ```c
 s32 pan;
-pan = (s8)Gp_GetObjPan((GpObj38*)coord);
-SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+pan = (s8)Gp_GetObjPan(coord);
+SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(coord));
 ```
 
 A QImode object only has to be converted where it is *used*, so GCC delays the
@@ -80206,7 +80206,7 @@ Input SHA256 (`base_1.i`, the matching candidate):
 ## A `(s8)` cast inlined as a call argument is a birthing insn, and sched1 launches it into the call's delay slot
 
 `func_actor_207200_8014C870` enqueues a sound effect in three arms, each as
-`SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord))` with `pan`
+`SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord))` with `pan`
 computed by a preceding `Gp_GetObjPan` call. Written the obvious way — a `s8 pan`
 local assigned `(s8)Gp_GetObjPan(coord)` on its own line — the result is 90.5%:
 the coord-to-`$a0` copy lands in `Gp_GetObjDepth`'s delay slot and the pan
@@ -80225,7 +80225,7 @@ where the target has the extension *before* the call and its `sra` in the slot:
 Only the source form changes. Inlining the casts as arguments,
 
 ```c
-    SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+    SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
 ```
 
 scores 100% (0 differences, `blocks=7/7 instructions=133/133`). The `sll`/`sra`
@@ -86697,8 +86697,8 @@ already does) matched:
 ```c
 if (enemy->hp <= 0) {
     deathSound = ((enemy->placeKey >> 0xC) << 8) | 0x400A0008;
-    deathPan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
-    SndEvt_EnqueueType6(deathSound, deathPan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+    deathPan   = (s8)Gp_GetObjPan((GsCOORDINATE2*)arg0->field_2C->field_8);
+    SndEvt_EnqueueType6(deathSound, deathPan, (s8)Gp_GetObjDepth((GsCOORDINATE2*)arg0->field_2C->field_8));
 } else {
     hitSound = ((enemy->placeKey >> 0xC) << 8) | 0x400A0007;
     ...
@@ -94246,8 +94246,8 @@ The overlay's sound idiom is three calls, the first two sharing one pointer
 argument:
 
 ```c
-pan = (s8)Gp_GetObjPan((GpObj38*)coord);
-SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+pan = (s8)Gp_GetObjPan(coord);
+SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
 ```
 
 That form matches elsewhere in the same TU, but here it scored 85.5% with one
@@ -94274,8 +94274,8 @@ and `expand_call` precomputes an argument containing a call as a unit — the
 `a0 = coord` setup for `Gp_GetObjDepth` is emitted first:
 
 ```c
-SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
-                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                    (s8)Gp_GetObjDepth(coord));
 ```
 
 ```
@@ -102797,7 +102797,7 @@ right that a byte is sign-extended, but the local is not a byte: the *store*
 matched sibling in the same TU does
 
 ```c
-s32 pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+s32 pan = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
 SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(...));
 ```
 
@@ -104460,7 +104460,7 @@ Four `pan = (s8)Gp_GetObjPan(o); SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth
 sites sharing one `obj`/`pan` pair of function-scope locals cost an extra
 callee-saved register (`$s4`, 93%). Target reuses `$s0` for each site's object
 and pan because each is a separate short-lived pseudo. Giving every site its
-own block-scoped `GpObj38* o; s32 p;` fixed it; two sites in the same block
+own block-scoped `GsCOORDINATE2* o; s32 p;` fixed it; two sites in the same block
 still need *different* pan locals (`p`, then `pan`), otherwise the second site
 emits `sll $v0 / sra $s0,$v0` instead of `sll $s0,$v0 / sra $s0,$s0` and moves
 the `move $a0` after them.
@@ -105764,7 +105764,7 @@ Two related readings from the same function:
   block to lengthen a live range is legitimate - the block is straight-line code.
 - **m2c's typed pointer arithmetic inflates every constant that is not a plain
   array index**: `temp_t0 - 8` on an `SVECTOR*` is `-0x40`, `temp_s1 + 0x280` on
-  a `GpObj38*` is `+0xAA00`, and `tbl[(rng >> 15) & 0x1E]` on a `u16*` doubles
+  a 0x44-byte struct pointer is `+0xAA00`, and `tbl[(rng >> 15) & 0x1E]` on a `u16*` doubles
   the offset to `(rng >> 14) & 0x3C`. Each is a semantic error worth 5-7 points;
   the entry and call blocks cannot be judged until they are fixed.
 
@@ -109267,7 +109267,7 @@ repeating its own copy.
                 }
                 actor->field_12A &= 0x3FFF;
                 if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0) {
-                    Gp_PlayObjSfx((GpObj38*)place, 0x17, 1);
+                    Gp_PlayObjSfx(place, 0x17, 1);
                 }
                 break;
             }
@@ -109277,7 +109277,7 @@ repeating its own copy.
             actor->field_960 = 6;
             actor->field_12A &= 0x3FFF;
             if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0) {
-                Gp_PlayObjSfx((GpObj38*)place, 0x17, 1);
+                Gp_PlayObjSfx(place, 0x17, 1);
             }
             break;
 ```
@@ -110415,7 +110415,7 @@ frame:
 
 ```c
         sfx = (((u16)enemy->placeKey >> 12) << 8) | 0x40200013;
-        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        pan = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
         SndEvt_EnqueueType6(sfx, pan, (s8)Gp_GetObjDepth(...));
 ```
 
@@ -115327,8 +115327,8 @@ style (`func_actor_105100_80135F50` writes `state = work->field_598` and uses
 paths. Written through a named local --
 
 ```c
-    pan = (s8)Gp_GetObjPan((GpObj38*)self);
-    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)self));
+    pan = (s8)Gp_GetObjPan(self);
+    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(self));
 ```
 
 -- the build stops at 96.7%: the function's long-lived `work` pointer sits in
@@ -115337,7 +115337,7 @@ register off (`regs=46`, the only structural diagnostic left). Inlining the
 cast instead --
 
 ```c
-    SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)self), (s8)Gp_GetObjDepth((GpObj38*)self));
+    SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(self), (s8)Gp_GetObjDepth(self));
 ```
 
 -- is 100%. The two forms allocate the same expression differently: in the
@@ -127430,7 +127430,7 @@ scale field, switch on the render mode `D_801153F4`, then re-record the display
 mode and dispatch a stack-copied state table by it. Copying that sibling's
 statement order — the table copy in the declaration list, the chained
 `pos.vx = pos.vy = pos.vz = work->field_21C;`, the `id | ((arg0->field_8 >> 12) << 8)`
-sound tag and the `(GpObj38*)` pan/depth pair — produced 100.000% on the first
+sound tag and the `Gp_GetObjPan` / `Gp_GetObjDepth` pair — produced 100.000% on the first
 attempt, where the m2c seed scored 65.189% with a structurally different 164-vs-148
 instructions.
 
@@ -133597,3 +133597,46 @@ run exiting zero and printing `done; rebuild to verify`.
 Renaming the member *and* retyping it is the reason this comes up: the tool can
 express the name but not the type, so the two edits are split, and it is
 tempting to make the type edit early rather than after the last run.
+## A window type every use casts into is an existing type read at one member
+
+A sparse overlay - a byte pad to an offset and one member - whose every use
+arrives through a cast is usually not a type of its own. Take the count off the
+reference listing first: if all the casts take the same pointer type, and the
+member the window reaches for is that type's member at that same offset, the
+window is that type, and the declaration is the wrong thing to keep.
+
+```c
+/* declared */
+typedef struct _Window {
+    /* 0x00 */ byte   pad_0[0x24];
+    /* 0x24 */ MATRIX field_24;
+} Window;
+
+/* every one of 1308 uses */
+Gp_PlayObjSfx((Window*)arg0->extra->coords, id, 1);
+```
+
+Here the operand is a `GsCOORDINATE2*` at every site, and a `MATRIX` at 0x24 is
+exactly that type's `workm`. Deleting the window and spelling the access from
+the real type takes the functions' parameters to `GsCOORDINATE2*` and the
+access to `coord->workm`; the casts then fall away by themselves, because the
+operand already has the parameter's type. 1211 of the 1308 were redundant that
+way and only 94 kept a cast - those where the operand is a different struct
+whose *head* is the type, which is an honest cast to keep.
+
+Two things make the swap safe, and one makes it unsafe. Safe: the member stands
+where the window's member stood, so the change is code for code and the
+checksum does not move; and casting is what the C compiler checks, so a cast
+removed where the operand really needed one is an incompatible-pointer warning,
+which this build counts as a failure - the compiler, not the grader, names the
+sites that were wrong. Unsafe: **a window pointer in pointer arithmetic carries
+its size.** `(Window*)x + 4` steps 4 * sizeof(Window) while the real type steps
+4 * sizeof(real type); here the arithmetic was always on the operand
+(`coords + 1`, not `(Window*)coords + 1`), which is why the stride did not
+change - check that before swapping, because a changed stride does not fail to
+compile, it fails to match.
+
+What the swap does not cover is the window that reads *past* the end of the
+type it names (a light object with fields after the coordinate's own tail), or
+one whose member is a byte run no type declares. Those are still types, and the
+member the real type does declare is the one place to stop.

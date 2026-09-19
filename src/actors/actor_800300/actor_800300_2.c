@@ -24,7 +24,7 @@ void func_actor_800300_80162658(GpActorWork* arg0)
     GpActorFuncTable9 sp;
     GameActor*        actor;
     GpActorD4*        d4;
-    GpObj38*          obj;
+    GsCOORDINATE2*    obj;
     s8                cc;
     s32               pan;
     s32               depth;
@@ -34,7 +34,7 @@ void func_actor_800300_80162658(GpActorWork* arg0)
     sp    = D_actor_800300_80161E40;
     actor = arg0->actor;
     d4    = actor->field_910;
-    obj   = (GpObj38*)arg0->extra->coords;
+    obj   = arg0->extra->coords;
     if (d4->decisionTimer > 0) {
         d4->decisionTimer = (u16)d4->decisionTimer - 1;
     }

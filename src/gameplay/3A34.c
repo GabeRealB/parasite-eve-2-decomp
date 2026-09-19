@@ -1309,7 +1309,7 @@ static __inline__ void solve_func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2
     *scratch = block;
     dirMtx   = arg3->lightMtx;
     colorMtx = arg3->colorMtx;
-    Gfx_NormalizeLightDir((VECTOR*)((GpObj38*)arg1)->field_24.t, dir);
+    Gfx_NormalizeLightDir((VECTOR*)((GsCOORDINATE2*)arg1)->workm.t, dir);
     SOFT_USE_REG(block);
     SOFT_USE_REG(block);
 
@@ -1347,10 +1347,10 @@ static __inline__ void solve_func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2
     dir          = (SVECTOR*)(head - 0xC);
     dirMtx       = arg3->lightMtx;
     colorMtx     = arg3->colorMtx;
-    block->in.vx = arg2->vx - ((GpObj38*)arg1)->field_24.t[0];
-    block->in.vy = arg2->vy - ((GpObj38*)arg1)->field_24.t[1];
+    block->in.vx = arg2->vx - ((GsCOORDINATE2*)arg1)->workm.t[0];
+    block->in.vy = arg2->vy - ((GsCOORDINATE2*)arg1)->workm.t[1];
     *scratch     = block;
-    block->in.vz = arg2->vz - ((GpObj38*)arg1)->field_24.t[2];
+    block->in.vz = arg2->vz - ((GsCOORDINATE2*)arg1)->workm.t[2];
     Gfx_NormalizeLightDir(&block->in, dir);
 
     dirMtx->m[arg0][0] = -block->dir.vx;
@@ -1394,10 +1394,10 @@ static __inline__ void solve_func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2
     dir          = (SVECTOR*)(head - 0xC);
     dirMtx       = arg3->lightMtx;
     colorMtx     = arg3->colorMtx;
-    block->in.vx = arg2->vx - ((GpObj38*)arg1)->field_24.t[0];
-    block->in.vy = arg2->vy - ((GpObj38*)arg1)->field_24.t[1];
+    block->in.vx = arg2->vx - ((GsCOORDINATE2*)arg1)->workm.t[0];
+    block->in.vy = arg2->vy - ((GsCOORDINATE2*)arg1)->workm.t[1];
     *scratch     = block;
-    block->in.vz = arg2->vz - ((GpObj38*)arg1)->field_24.t[2];
+    block->in.vz = arg2->vz - ((GsCOORDINATE2*)arg1)->workm.t[2];
     Gfx_NormalizeLightDir(&block->in, dir);
 
     dirMtx->m[arg0][0] = -block->dir.vx;
@@ -2213,11 +2213,11 @@ void Gp_SetLightMode(GpObj4C* arg0, s32 arg1)
     }
 }
 
-s32 Gp_GetObjDepth(GpObj38* arg0)
+s32 Gp_GetObjDepth(GsCOORDINATE2* coord)
 {
     s32 val;
 
-    val = arg0->field_24.t[2] - gDisplayState.screenDistance;
+    val = coord->workm.t[2] - gDisplayState.screenDistance;
     if (val >= 0x7FFF) {
         val = 0x7FFF;
     }
@@ -2227,7 +2227,7 @@ s32 Gp_GetObjDepth(GpObj38* arg0)
     return val >> 8;
 }
 
-s32 Gp_GetObjPan(GpObj38* arg0)
+s32 Gp_GetObjPan(GsCOORDINATE2* coord)
 {
     void**        scratch;
     u8*           head;
@@ -2240,8 +2240,8 @@ s32 Gp_GetObjPan(GpObj38* arg0)
     block    = (GpPanScratch*)(head - 0x18);
     *scratch = block;
     vec      = &block->vec;
-    gte_SetRotMatrix(&arg0->field_24);
-    gte_SetTransMatrix(&arg0->field_24);
+    gte_SetRotMatrix(&coord->workm);
+    gte_SetTransMatrix(&coord->workm);
     block->vec.vz = 0;
     block->vec.vy = 0;
     block->vec.vx = 0;
@@ -2377,9 +2377,9 @@ s32 Gp_GetObjLuma(GpObj44* arg0)
     return ((arg0->field_50 * 8 + arg0->field_52 * 6 + arg0->field_54 * 2) >> 8) + 0xF00;
 }
 
-s32 Gp_GetObjTransX(GpObj38* arg0)
+s32 Gp_GetObjTransX(GsCOORDINATE2* coord)
 {
-    return arg0->field_24.t[0];
+    return coord->workm.t[0];
 }
 
 void func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
@@ -2400,7 +2400,7 @@ void func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     *scratch = block;
     dirMtx   = arg3->field_1C;
     colorMtx = arg3->field_20;
-    Gfx_NormalizeLightDir((VECTOR*)((GpObj38*)arg1)->field_24.t, dir);
+    Gfx_NormalizeLightDir((VECTOR*)((GsCOORDINATE2*)arg1)->workm.t, dir);
 
     dirMtx->m[arg0][0] = block->dir.vx;
     dirMtx->m[arg0][1] = block->dir.vy;
@@ -2438,10 +2438,10 @@ void func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     dir          = (SVECTOR*)(head - 0xC);
     dirMtx       = arg3->field_1C;
     colorMtx     = arg3->field_20;
-    block->in.vx = arg2->vx - ((GpObj38*)arg1)->field_24.t[0];
-    block->in.vy = arg2->vy - ((GpObj38*)arg1)->field_24.t[1];
+    block->in.vx = arg2->vx - ((GsCOORDINATE2*)arg1)->workm.t[0];
+    block->in.vy = arg2->vy - ((GsCOORDINATE2*)arg1)->workm.t[1];
     *scratch     = block;
-    block->in.vz = arg2->vz - ((GpObj38*)arg1)->field_24.t[2];
+    block->in.vz = arg2->vz - ((GsCOORDINATE2*)arg1)->workm.t[2];
     Gfx_NormalizeLightDir(&block->in, dir);
 
     dirMtx->m[arg0][0] = -block->dir.vx;
@@ -2480,10 +2480,10 @@ void func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     dir          = (SVECTOR*)(head - 0xC);
     dirMtx       = arg3->field_1C;
     colorMtx     = arg3->field_20;
-    block->in.vx = arg2->vx - ((GpObj38*)arg1)->field_24.t[0];
-    block->in.vy = arg2->vy - ((GpObj38*)arg1)->field_24.t[1];
+    block->in.vx = arg2->vx - ((GsCOORDINATE2*)arg1)->workm.t[0];
+    block->in.vy = arg2->vy - ((GsCOORDINATE2*)arg1)->workm.t[1];
     *scratch     = block;
-    block->in.vz = arg2->vz - ((GpObj38*)arg1)->field_24.t[2];
+    block->in.vz = arg2->vz - ((GsCOORDINATE2*)arg1)->workm.t[2];
     Gfx_NormalizeLightDir(&block->in, dir);
 
     dirMtx->m[arg0][0] = -block->dir.vx;

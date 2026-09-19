@@ -80,7 +80,7 @@ void func_p229_8011DDA0(GpActorWork* arg0)
                 actor->field_12A |= 0x800;
                 func_80106238(arg0, 0, 0);
                 Gp_ConsumeSlotQty(0x84, 1);
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20050004, 0);
+                Gp_PlayObjSfx(arg0->extra->coords, 0x20050004, 0);
                 Gp_SpawnEff(0x6002B,
                             (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 5,
                             NULL);
@@ -93,7 +93,7 @@ void func_p229_8011DDA0(GpActorWork* arg0)
                 actor->field_12A &= 0xF7FF;
                 func_80106238(arg0, 0, 1);
                 Gp_ConsumeSlotQty(0x84, 0x101);
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20050005, 0);
+                Gp_PlayObjSfx(arg0->extra->coords, 0x20050005, 0);
                 eff = Gp_SpawnEff(0x60040,
                                   (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 5,
                                   NULL);
@@ -106,7 +106,7 @@ void func_p229_8011DDA0(GpActorWork* arg0)
         case 3:
         case 4:
             if (actor->field_95E == 3 && Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
-                Gp_PlayObjSfx((GpObj38*)spot, 0x17, 0);
+                Gp_PlayObjSfx(spot, 0x17, 0);
             }
             actor->field_95E  = 5;
             actor->field_12A &= 0x3FFF;

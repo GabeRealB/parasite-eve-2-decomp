@@ -517,15 +517,15 @@ void func_actor_421600_8013848C(Actor421600* arg0)
         work->field_8B4 = 7;
         work->field_8B6 = 1;
         work->field_8AC = z;
-        pan             = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
-        SndEvt_EnqueueType6(7, (s32)pan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
+        pan             = (s8)Gp_GetObjPan(arg0->field_2C->coords);
+        SndEvt_EnqueueType6(7, (s32)pan, (s32)(s8)Gp_GetObjDepth(arg0->field_2C->coords));
     }
     tick          = work->field_6 + 1;
     work->field_6 = tick;
     if (((s16)tick == 0xF) && (work->field_8B4 == 7)) {
         sound    = (((u16)ctx->placeKey >> 0xC) << 8) | 0x4001000A;
-        eventPan = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
-        SndEvt_EnqueueType6(sound, (s32)eventPan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
+        eventPan = (s8)Gp_GetObjPan(arg0->field_2C->coords);
+        SndEvt_EnqueueType6(sound, (s32)eventPan, (s32)(s8)Gp_GetObjDepth(arg0->field_2C->coords));
         if (Gp_State1C->field_A == 2) {
             Gp_SpawnEff(0x60054, ((TmdObject*)player->extra)->coords + 1, 0x80003A00, NULL);
         }
@@ -843,17 +843,17 @@ void func_actor_421600_8013947C(Actor421600* arg0)
         work->field_8EC.flags |= 0x4000;
         func_actor_421600_80134604(arg0);
         sound = (((u16)ctx->placeKey >> 0xC) << 8) | 0x40010009;
-        pan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
-        SndEvt_EnqueueType6(sound, pan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
+        pan   = (s8)Gp_GetObjPan(arg0->field_2C->coords);
+        SndEvt_EnqueueType6(sound, pan, (s32)(s8)Gp_GetObjDepth(arg0->field_2C->coords));
         ctx->hp -= 0xF;
         func_800DA6E8(&ctx->node, 0xF, 0);
         if (ctx->hp <= 0) {
             ctx->hp = 1;
         }
         eventSound = (((u16)ctx->placeKey >> 0xC) << 8) | 0x40010007;
-        eventPan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
+        eventPan   = (s8)Gp_GetObjPan(arg0->field_2C->coords);
         SndEvt_EnqueueType6(eventSound, eventPan,
-                            (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
+                            (s32)(s8)Gp_GetObjDepth(arg0->field_2C->coords));
     }
     func_actor_421600_8013285C(arg0->field_2C->coords, &work->field_B8C, 0xC);
     func_actor_421600_8013285C(arg0->field_2C->coords, &work->field_90C, 0xC);

@@ -187,10 +187,10 @@ void func_actor_207200_8014A588(Task* arg0)
             case 0x10000:
                 if (work->field_2AC != 0) {
                     snd = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | sndHit;
-                    SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+                    SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
                 } else {
                     snd = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | sndHit2;
-                    SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+                    SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
                 }
                 Gp_SpawnEff(0x60030, ((TmdObject*)arg0->extra)->coords, 0x200, &D_actor_207200_8014E7BC);
                 Gp_SpawnEff(0x60030, ((TmdObject*)arg0->extra)->coords, 0x200, &D_actor_207200_8014E7BC);
@@ -221,10 +221,10 @@ void func_actor_207200_8014A588(Task* arg0)
                 if (damage != 0) {
                     if (work->field_2AC != 0) {
                         snd = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | sndHit;
-                        SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+                        SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
                     } else {
                         snd = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | sndHit2;
-                        SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+                        SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
                     }
                     Gp_SpawnEff(0x60030, ((TmdObject*)arg0->extra)->coords, 0x200, &D_actor_207200_8014E7BC);
                     Gp_SpawnEff(0x60030, ((TmdObject*)arg0->extra)->coords, 0x200, &D_actor_207200_8014E7BC);

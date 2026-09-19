@@ -15,7 +15,7 @@
 /// display object's 0x08 slot (`TmdObject::coords`, the trailing per-part
 /// `GsCOORDINATE2` array). This overlay's code reaches the root and the fourth
 /// part: `func_actor_403900_80137444` parks `&field_F0` in the work block's
-/// 0x65C slot, and the sound helpers take the root as the `GpObj38*` they
+/// 0x65C slot, and the sound helpers take the root as the `GsCOORDINATE2*` they
 /// project.
 typedef struct Actor403900Coord {
     /* 0x000 */ GsCOORDINATE2 field_0;
@@ -281,8 +281,8 @@ typedef struct Actor403900Work {
 STATIC_ASSERT_SIZEOF(Actor403900Work, 0x71C);
 
 /// Display object hung off `Actor403900::field_2C`; `field_8` is the actor's
-/// per-part attach coordinate array, which the sound helpers take as the
-/// `GpObj38*` light object they project.
+/// per-part attach coordinate array, whose entries the sound helpers take as
+/// the positions they pan and depth the actor's sounds from.
 typedef struct Actor403900Obj2C {
     /* 0x00 */ byte              pad_0[8];
     /* 0x08 */ Actor403900Coord* field_8;

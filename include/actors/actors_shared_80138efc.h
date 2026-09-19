@@ -126,8 +126,9 @@ STATIC_ASSERT_SIZEOF(ActorsShared80138efcWork, 0xBCC);
 
 /// Block `func_actor_104900_80134780` hands every state handler in `$a3`, one
 /// frame of the actor's own stack. The dispatcher fills `pan` and `depth` from
-/// the model's `GpObj38` (0x50 into `Task::field_2C->field_8`) right before the
-/// indirect call, storing each as a halfword; the handlers read the low byte,
+/// the model's second per-part `GsCOORDINATE2` (0x50 into
+/// `Task::field_2C->field_8`) right before the indirect call, storing each as a
+/// halfword; the handlers read the low byte,
 /// so the pair is laid out as bytes here. Which of them writes what is per
 /// handler - the 0x80138D58 body writes only 0x64.
 typedef struct ActorsShared80138efcArg {

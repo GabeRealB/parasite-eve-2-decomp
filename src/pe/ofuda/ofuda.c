@@ -51,8 +51,8 @@ void ofudaEffectTask(Task* arg0)
             mem->field_26   = 0x100;
             mem->field_2A   = 0x100 / arg0->spawnArg1;
             arg0->state     = 1;
-            pan             = (s8)Gp_GetObjPan((GpObj38*)coord);
-            SndEvt_EnqueueType6(0xE03D0001, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            pan             = (s8)Gp_GetObjPan(coord);
+            SndEvt_EnqueueType6(0xE03D0001, pan, (s8)Gp_GetObjDepth(coord));
             return;
         case 1: {
             s32 cur;

@@ -106,11 +106,11 @@ s32 func_dryfield_night_factory_8017F00C(Task* task)
         case 0:
             work->field_0 = 0;
             if (gGameSession->at4.loc.stage == 2) {
-                Gp_EnqueueStageSnd6(0x5217000D, (s8)Gp_GetObjPan((GpObj38*)coord),
-                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+                Gp_EnqueueStageSnd6(0x5217000D, (s8)Gp_GetObjPan(coord),
+                                    (s8)Gp_GetObjDepth(coord));
             } else {
-                Gp_EnqueueStageSnd6(0x5317000D, (s8)Gp_GetObjPan((GpObj38*)coord),
-                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+                Gp_EnqueueStageSnd6(0x5317000D, (s8)Gp_GetObjPan(coord),
+                                    (s8)Gp_GetObjDepth(coord));
             }
             work->step++;
             break;

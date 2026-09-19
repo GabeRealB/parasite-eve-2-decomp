@@ -4965,14 +4965,14 @@ void func_actor_403600_8013F0C0(Actor403600* arg0)
                 D_actor_403600_801606A4.field_0 = 0x14;
                 D_actor_403600_801606A4.field_2 = 0;
                 temp_s2                         = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 6;
-                temp_s0                         = (s8)Gp_GetObjPan((GpObj38*)temp_s4);
+                temp_s0                         = (s8)Gp_GetObjPan(temp_s4);
                 SndEvt_EnqueueType6(temp_s2, temp_s0,
-                                    (s8)Gp_GetObjDepth((GpObj38*)temp_s4));
+                                    (s8)Gp_GetObjDepth(temp_s4));
                 temp_s2 =
                     (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160011;
-                temp_s0_2 = (s8)Gp_GetObjPan((GpObj38*)temp_s4);
+                temp_s0_2 = (s8)Gp_GetObjPan(temp_s4);
                 SndEvt_EnqueueType6(temp_s2, temp_s0_2,
-                                    (s8)Gp_GetObjDepth((GpObj38*)temp_s4));
+                                    (s8)Gp_GetObjDepth(temp_s4));
                 Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F9,
                                Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
             }
@@ -4999,9 +4999,9 @@ void func_actor_403600_8013F0C0(Actor403600* arg0)
                 ((s16)temp_s3->field_760 == 0xC)) {
                 temp_s2 =
                     (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160012;
-                temp_s0_3 = (s8)Gp_GetObjPan((GpObj38*)temp_s4);
+                temp_s0_3 = (s8)Gp_GetObjPan(temp_s4);
                 SndEvt_EnqueueType6(temp_s2, temp_s0_3,
-                                    (s8)Gp_GetObjDepth((GpObj38*)temp_s4));
+                                    (s8)Gp_GetObjDepth(temp_s4));
             }
             if ((s16)temp_s3->field_760 >= 0x24) {
                 Gp_StateC08.field_6            |= 1;
@@ -5032,9 +5032,9 @@ void func_actor_403600_8013F0C0(Actor403600* arg0)
                 ((s16)temp_s3->field_760 == 0xC)) {
                 temp_s2 =
                     (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x54160012;
-                temp_s0_4 = (s8)Gp_GetObjPan((GpObj38*)temp_s4);
+                temp_s0_4 = (s8)Gp_GetObjPan(temp_s4);
                 SndEvt_EnqueueType6(temp_s2, temp_s0_4,
-                                    (s8)Gp_GetObjDepth((GpObj38*)temp_s4));
+                                    (s8)Gp_GetObjDepth(temp_s4));
             }
             if ((s16)temp_s3->field_760 >= 0x24) {
                 Gp_StateC08.field_6            |= 1;

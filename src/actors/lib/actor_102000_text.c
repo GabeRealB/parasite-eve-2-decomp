@@ -15,7 +15,7 @@ void               Gp_ArmStateF0(s32 arg0);
 void               Actor02000_Fn00CD0(Actor02000* arg0);
 s32                Gp_TickObjFlag2(void* arg0);
 s32                Gp_GetObjPan(void* arg0);
-s32                Gp_GetObjDepth(void* arg0);
+s32                Gp_GetObjDepth(void* coord);
 Actor02000AnimRec* Gp_AnimGetRec(Actor02000Work*, void*);
 s32                SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
 

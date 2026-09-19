@@ -55,7 +55,7 @@ void func_p08_snail_8011D1D8(GpActorWork* arg0)
             func_80106238(arg0, 0, 0);
             actor->field_12A |= 0xCC00;
             Gp_ConsumeSlotQty(0x80, 1);
-            Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20010004, 1);
+            Gp_PlayObjSfx(arg0->extra->coords, 0x20010004, 1);
             Gp_SpawnEff(0x6002B,
                         (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 1, NULL);
             Gp_AnimResetChildSlots(arg0, 0xA);
@@ -64,7 +64,7 @@ void func_p08_snail_8011D1D8(GpActorWork* arg0)
             actor->field_95E++;
             actor->field_12A &= 0x3FFF;
             if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
-                Gp_PlayObjSfx((GpObj38*)spot, 0x17, 1);
+                Gp_PlayObjSfx(spot, 0x17, 1);
             }
             /* fallthrough */
         case 4:

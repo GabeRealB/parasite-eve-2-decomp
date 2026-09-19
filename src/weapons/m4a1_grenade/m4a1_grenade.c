@@ -93,7 +93,7 @@ void func_m4a1_grenade_8011D1EC(GpActorWork* arg0)
                 actor->field_940 = 0x28;
                 actor->field_979 = 0x22;
                 Gp_ConsumeSlotQty(0x9A, 0x101);
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords,
+                Gp_PlayObjSfx(arg0->extra->coords,
                               ((sfx - 0xA) << 24) | 0x201B0006, 1);
                 Gp_SpawnEff(0x6006C,
                             (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 0x1B,
@@ -115,7 +115,7 @@ void func_m4a1_grenade_8011D1EC(GpActorWork* arg0)
                     if (func_80106264(1) == 0) {
                         actor->field_93E = 0;
                     }
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords,
+                    Gp_PlayObjSfx(arg0->extra->coords,
                                   ((sfx - 0xA) << 24) | 0x201B0004, 1);
                     Gp_SpawnEff(0x6006B,
                                 (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
@@ -126,7 +126,7 @@ void func_m4a1_grenade_8011D1EC(GpActorWork* arg0)
                     if (delay - 1 == 2) {
                         actor->field_12A &= 0x3FFF;
                         if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
-                            Gp_PlayObjSfx((GpObj38*)spot, 0x17, 1);
+                            Gp_PlayObjSfx(spot, 0x17, 1);
                         }
                     }
                 }
@@ -138,7 +138,7 @@ void func_m4a1_grenade_8011D1EC(GpActorWork* arg0)
             actor->field_93E  = 0;
             actor->field_12A &= 0x3FFF;
             if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
-                Gp_PlayObjSfx((GpObj38*)spot, 0x17, 1);
+                Gp_PlayObjSfx(spot, 0x17, 1);
             }
             /* fallthrough */
         case 5:
@@ -146,7 +146,7 @@ void func_m4a1_grenade_8011D1EC(GpActorWork* arg0)
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
                 if ((rec->flags & 0x30) == 0x30) {
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords,
+                    Gp_PlayObjSfx(arg0->extra->coords,
                                   (actor->field_93E + 0x201B0008) | ((sfx - 0xA) << 24), 0);
                     actor->field_93E++;
                 }
@@ -298,7 +298,7 @@ void func_m4a1_grenade_8011D994(Task* arg0)
         Gp_SpawnEff(0x60071, coord, blk->sfx, NULL);
         sfxbase = D_80073BA9 << 16;
         sfxarg  = ((blk->sfx - 0xA) << 24) | 0x20000007;
-        Gp_PlayObjSfx((GpObj38*)coord, sfxbase | sfxarg, 1);
+        Gp_PlayObjSfx(coord, sfxbase | sfxarg, 1);
         clip = 8;
         if (blk->sfx == 0xB) {
             clip = 1;

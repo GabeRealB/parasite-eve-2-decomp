@@ -747,8 +747,8 @@ void func_actor_800200_8016436C(GpActorWork* arg0)
     } else {
         actor->field_95E = next;
         Gp_AnimPlayChildSlotsEx(arg0, actor->field_940 + 0xA, 0, 4);
-        pan = (s8)Gp_GetObjPan((GpObj38*)coord);
-        SndEvt_EnqueueType6(actor->field_940 + 0x40720009, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+        pan = (s8)Gp_GetObjPan(coord);
+        SndEvt_EnqueueType6(actor->field_940 + 0x40720009, pan, (s8)Gp_GetObjDepth(coord));
     tick:
         if (func_80105894(arg0, 1, 0, 0) == 0) {
             dist = func_8010BCF4((Task*)arg0, vec);
@@ -1055,7 +1055,7 @@ s32 func_actor_800200_80165104(GpActorWork* arg0)
 {
     GameActor*      actor;
     GpAnimRec*      rec;
-    GpObj38*        obj;
+    GsCOORDINATE2*  obj;
     GpRoomParamRec* param;
     s32*            sounds;
     s32             ret;
@@ -1066,7 +1066,7 @@ s32 func_actor_800200_80165104(GpActorWork* arg0)
     ret   = 0;
     sound = 0;
     actor = arg0->actor;
-    obj   = (GpObj38*)arg0->extra->coords;
+    obj   = arg0->extra->coords;
     rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
     if (rec != NULL && rec != actor->field_92C) {
         actor->field_92C = rec;
@@ -1460,8 +1460,8 @@ void func_actor_800200_80165B84(GpActorWork* arg0)
         func_80109BB4(arg0, actor->field_17C);
         if ((u16)actor->field_96C != 0) {
             func_8010B9A4(arg0);
-            pan = (s8)Gp_GetObjPan((GpObj38*)coord);
-            SndEvt_EnqueueType6(0x4072000A, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            pan = (s8)Gp_GetObjPan(coord);
+            SndEvt_EnqueueType6(0x4072000A, pan, (s8)Gp_GetObjDepth(coord));
         }
     }
     Gp_TickActorAnimState(arg0);

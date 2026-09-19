@@ -162,12 +162,12 @@ void func_lifedrain_8012EF48(Task* arg0)
             Gp_UpdateCoord(coord);
             if (arg0->spawnArg1 != 0) {
                 SndEvt_EnqueueType6(D_lifedrain_80130AD4[mem->field_20 + 3],
-                                    (s8)Gp_GetObjPan((GpObj38*)coord),
-                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+                                    (s8)Gp_GetObjPan(coord),
+                                    (s8)Gp_GetObjDepth(coord));
             } else {
                 SndEvt_EnqueueType6(D_lifedrain_80130AD4[mem->field_20],
-                                    (s8)Gp_GetObjPan((GpObj38*)coord),
-                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+                                    (s8)Gp_GetObjPan(coord),
+                                    (s8)Gp_GetObjDepth(coord));
             }
             return;
         case 2: {

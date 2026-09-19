@@ -76,7 +76,7 @@ void func_pa3_8011D1DC(GpActorWork* arg0)
             actor->field_95E++;
             actor->field_12A |= 0xC000;
             Gp_ConsumeSlotQty(0x8C, 1);
-            Gp_PlayObjSfx((GpObj38*)arg0->extra->coords,
+            Gp_PlayObjSfx(arg0->extra->coords,
                           ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x200D0005, 1);
             Gp_SpawnEff(0x600A1,
                         (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
@@ -93,18 +93,18 @@ void func_pa3_8011D1DC(GpActorWork* arg0)
                         spot->workm.t[0] = actor->field_32C[0].point.vx;
                         spot->workm.t[1] = actor->field_32C[0].point.vy;
                         spot->workm.t[2] = actor->field_32C[0].point.vz;
-                        Gp_PlayObjSfx((GpObj38*)spot,
+                        Gp_PlayObjSfx(spot,
                                       ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x200D0004, 1);
                     }
                 } else if (hit != 0) {
-                    Gp_PlayObjSfx((GpObj38*)spot, 0x17, 1);
+                    Gp_PlayObjSfx(spot, 0x17, 1);
                 }
             }
             /* fallthrough */
         case 4:
             if (--actor->field_934 == 0) {
                 actor->field_95E++;
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords,
+                Gp_PlayObjSfx(arg0->extra->coords,
                               ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x200D0002, 0);
             }
             /* fallthrough */

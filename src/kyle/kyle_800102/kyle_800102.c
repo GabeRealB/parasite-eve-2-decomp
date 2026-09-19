@@ -157,11 +157,11 @@ void func_kyle_800102_80167DE0(Task* arg0)
         arg0->state   = 2;
         Gp_SpawnEff(0x60071, coord, blk->sfx, NULL);
         if (arg0->spawnArg1 & 0x100000) {
-            Gp_PlayObjSfx((GpObj38*)coord, 0x40660002, 1);
+            Gp_PlayObjSfx(coord, 0x40660002, 1);
         } else {
             sfxbase = blk->field_30 << 8;
             sfxarg  = ((blk->sfx - 0xA) << 24) | 0x20000005;
-            Gp_PlayObjSfx((GpObj38*)coord, sfxbase | sfxarg, 1);
+            Gp_PlayObjSfx(coord, sfxbase | sfxarg, 1);
         }
         clip = 8;
         if (blk->sfx == 0xB) {

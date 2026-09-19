@@ -92,7 +92,7 @@ void func_tonfa_baton_8011DBFC(GpActorWork* arg0)
                     actor->field_91C->spawnArg1 = 1;
                     actor->field_12A           |= 0x8000;
                     func_80106238(arg0, 0, 0);
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20130001, 0);
+                    Gp_PlayObjSfx(arg0->extra->coords, 0x20130001, 0);
                     eff = Gp_SpawnEff(0x6003A,
                                       (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                       0, NULL);
@@ -103,7 +103,7 @@ void func_tonfa_baton_8011DBFC(GpActorWork* arg0)
             }
             if (actor->field_93E != 1 && Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
                 actor->field_93E = 1;
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20130003, 0);
+                Gp_PlayObjSfx(arg0->extra->coords, 0x20130003, 0);
             }
             if (func_80105894(arg0, 1, 0, 0) == 0) {
                 actor->field_12A &= 0x7FFF;
@@ -136,7 +136,7 @@ void func_tonfa_baton_8011DBFC(GpActorWork* arg0)
                 if (step == 3) {
                     actor->field_12A |= 0x8000;
                     func_80106238(arg0, 0, 1);
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20130002, 0);
+                    Gp_PlayObjSfx(arg0->extra->coords, 0x20130002, 0);
                 } else if (step == 0) {
                     actor->field_95E            = 4;
                     actor->field_934            = 9;
@@ -155,7 +155,7 @@ void func_tonfa_baton_8011DBFC(GpActorWork* arg0)
             }
             if (actor->field_93E != 2 && Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
                 actor->field_93E = 2;
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20130004, 0);
+                Gp_PlayObjSfx(arg0->extra->coords, 0x20130004, 0);
             }
             if (func_80105894(arg0, 1, 0, 0) == 0) {
                 func_80106550(arg0);

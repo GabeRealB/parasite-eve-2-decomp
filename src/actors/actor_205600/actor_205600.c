@@ -175,8 +175,8 @@ void func_actor_205600_8014CFD0(GpEnemy* arg0, Task* arg1)
 
     ctx   = arg1->spawnArg2;
     sound = D_actor_205600_80160110 | (((u16)ctx->field_8 >> 0xC) << 8);
-    pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
-    SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+    pan   = (s8)Gp_GetObjPan(coord);
+    SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(coord));
 
     *(u8**)G_SCRATCH_HEAD += 0x38;
 }

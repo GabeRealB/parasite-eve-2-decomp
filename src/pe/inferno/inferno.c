@@ -66,9 +66,9 @@ void func_inferno_8012EF88(Task* arg0)
         case 0:
             mem->field_24 = 0x200;
             mem->field_26 = 0xFF;
-            pan           = (s8)Gp_GetObjPan((GpObj38*)coord);
+            pan           = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(D_inferno_801304F0[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
-                                (s8)Gp_GetObjDepth((GpObj38*)coord));
+                                (s8)Gp_GetObjDepth(coord));
             arg0->state = ((u16)(Gp_StateC08.field_0 % 10) - 1) * 4 + 1;
             return;
         case 1:

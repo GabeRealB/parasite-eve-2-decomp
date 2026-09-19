@@ -19,7 +19,7 @@ void func_800DA6E8(void* arg0, s32 arg1, s32 arg2);
 s32            Gp_TickObjFlag2(Actor00700Ctx* arg0);
 void           Gp_ArmStateF0(s32 arg0);
 s32            Gp_GetObjPan(void* arg0);
-s32            Gp_GetObjDepth(void* arg0);
+s32            Gp_GetObjDepth(void* coord);
 void           Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void           Gp_UnlinkObj(void* node);
 void           Gp_SetLightMode(void* arg0, s32 arg1);

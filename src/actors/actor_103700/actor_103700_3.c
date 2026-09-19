@@ -76,7 +76,7 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
                     Gp_ReleaseStateF0Add((GpObj20E*)task, 0x25);
                     model->flags = 0x80;
                     sound        = ((((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) << 8) | 0x40250003;
-                    SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan((GpObj38*)obj), (s8)Gp_GetObjDepth((GpObj38*)obj));
+                    SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)Gp_GetObjDepth(obj));
                     if (work->field_262 != 0) {
                         arg.field_0  = D_actor_103700_80139F1C;
                         arg.field_4  = 2;
@@ -85,7 +85,7 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
                         arg.field_10 = 1;
                         Gp_DispatchMsg(player, 0x3F4, (s32)&arg, 0);
                         sound2 = ((((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) << 8) | 6;
-                        SndEvt_EnqueueType6(sound2, (s8)Gp_GetObjPan((GpObj38*)obj), (s8)Gp_GetObjDepth((GpObj38*)obj));
+                        SndEvt_EnqueueType6(sound2, (s8)Gp_GetObjPan(obj), (s8)Gp_GetObjDepth(obj));
                     }
                     work->field_250 = 1;
                     work->field_258 = (((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) % 6 + 2;

@@ -7,7 +7,7 @@
 
 void ActorsShared801341d4(ActorShared801341d4* arg0)
 {
-    GpObj38*                 object;
+    GsCOORDINATE2*           object;
     s16                      scale;
     s16                      ramp;
     s32                      soundId;
@@ -17,7 +17,7 @@ void ActorsShared801341d4(ActorShared801341d4* arg0)
     ActorShared801341d4Work* work;
 
     work            = arg0->field_1C;
-    object          = (GpObj38*)arg0->field_2C->field_8;
+    object          = (GsCOORDINATE2*)arg0->field_2C->field_8;
     counter         = work->field_14A + 1;
     work->field_14A = counter;
     if ((s16)counter >= 0x19) {

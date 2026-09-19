@@ -998,8 +998,8 @@ void func_actor_110600_80134728(Actor110600* arg0)
     sound = func_actor_110600_80134564(work);
     if (sound != 0) {
         soundId = sound | ((enemy->placeKey >> 12) << 8);
-        pan     = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
+        pan     = (s8)Gp_GetObjPan(arg0->field_2C->coords);
+        SndEvt_EnqueueType6(soundId, pan, (s32)(s8)Gp_GetObjDepth(arg0->field_2C->coords));
     }
 }
 
@@ -1236,8 +1236,8 @@ void func_actor_110600_80135B84(Actor110600* arg0)
         work->field_0 = 3;
     }
     if (Actor110600_HasRec10000(work->recs)) {
-        SndEvt_EnqueueType6(0x401D000D, (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords),
-                            (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
+        SndEvt_EnqueueType6(0x401D000D, (s8)Gp_GetObjPan(arg0->field_2C->coords),
+                            (s8)Gp_GetObjDepth(arg0->field_2C->coords));
         work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
     }
 }

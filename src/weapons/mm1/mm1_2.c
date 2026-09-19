@@ -59,11 +59,11 @@ void func_mm1_8011D704(Task* arg0)
            are what cross-jumping merges into a single `jal` with an unfilled
            delay slot. */
         if (arg0->spawnArg1 & 0x100000) {
-            Gp_PlayObjSfx((GpObj38*)coord, 0x40660002, 1);
+            Gp_PlayObjSfx(coord, 0x40660002, 1);
         } else {
             sfxbase = blk->field_30 << 8;
             sfxarg  = ((blk->sfx - 0xA) << 24) | 0x20000005;
-            Gp_PlayObjSfx((GpObj38*)coord, sfxbase | sfxarg, 1);
+            Gp_PlayObjSfx(coord, sfxbase | sfxarg, 1);
         }
         clip = 8;
         if (blk->sfx == 0xB) {

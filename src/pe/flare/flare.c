@@ -56,8 +56,8 @@ void flareEffectTask(Task* arg0)
     }
     mem->field_22 = (u16)mem->field_22 + 1;
     if (arg0->state == 0) {
-        pan = (s8)Gp_GetObjPan((GpObj38*)coord);
-        SndEvt_EnqueueType6(0xE03E0001, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+        pan = (s8)Gp_GetObjPan(coord);
+        SndEvt_EnqueueType6(0xE03E0001, pan, (s8)Gp_GetObjDepth(coord));
         arg0->state = 1;
     }
     tick = mem->field_22;

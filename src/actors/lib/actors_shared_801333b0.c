@@ -128,8 +128,8 @@ void ActorsShared801333b0(Actor02400Scale* arg0)
         scratch->rot.vx = ((Gp_LcgState >> 16) & 0xFF) + 0x100;
         RotMatrix(&scratch->rot, &arg0->field_2C->field_8[2].coord);
         sound = ((arg0->field_20->placeKey >> 12) << 8) | 0x40180002;
-        pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
-        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+        pan   = (s8)Gp_GetObjPan(coord);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(coord));
         eff             = (Task**)Gp_SpawnEff(D_80115734, coord, work->field_14E, NULL);
         work->field_130 = eff;
         if (eff != NULL) {

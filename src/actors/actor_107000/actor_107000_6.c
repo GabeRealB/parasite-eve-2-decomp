@@ -116,7 +116,7 @@ default_body:
                 if ((u32)work->field_392 >= 5U) {
                     SndEvt_EnqueueType7(0x40460003, 0);
                     soundId = ((((GpEnemy*)arg1->spawnArg2)->placeKey >> 0xC) << 8) | 0x40460005;
-                    SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+                    SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
                     work->field_2CA &= 0x7FFF;
                     arg1->state      = 2;
                     work->field_36C  = 0;
@@ -188,7 +188,7 @@ void func_actor_107000_80136094(Task* arg0, s32 arg1)
     if (enemy->hp <= 0) {
         SndEvt_EnqueueType7(0x40460003, 0);
         soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x40460005;
-        SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+        SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
         work->field_2CA &= 0x7FFF;
         arg0->state      = 2;
         work->field_36C  = 0;
@@ -196,7 +196,7 @@ void func_actor_107000_80136094(Task* arg0, s32 arg1)
     }
     SndEvt_EnqueueType7(0x40460003, 0);
     soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x40460004;
-    SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+    SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
     state = work->field_36A;
     if (state < 2) {
         if ((u32)arg1 >= 0x33) {

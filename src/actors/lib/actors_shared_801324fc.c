@@ -11,14 +11,14 @@
 void ActorsShared801324fc(Task* task)
 {
     ActorsShared801324fcWork* work;
-    GpObj38*                  obj;
+    GsCOORDINATE2*            obj;
     GpAnimRec*                rec;
     s32                       kind;
     s32                       id;
     s32                       pan;
 
     work = (ActorsShared801324fcWork*)task->work;
-    obj  = (GpObj38*)(((TmdObject*)task->extra)->coords + 1);
+    obj  = ((TmdObject*)task->extra)->coords + 1;
     rec  = Gp_AnimGetRec(&work->anim, &work->slots[1]);
     if (rec == NULL || rec == work->field_4B8) {
         return;

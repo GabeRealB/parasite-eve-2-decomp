@@ -256,8 +256,8 @@ void func_actor_201200_8014D4D0(Actor201200Ctx* arg0, Actor201200* arg1)
     id = ActorsShared8014a7b0((ActorsShared8014a7b0Work*)work);
     if (id != 0) {
         snd = id | ((arg0->field_8 >> 12) << 8);
-        pan = (s8)Gp_GetObjPan((GpObj38*)arg1->field_2C->coords);
-        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)arg1->field_2C->coords));
+        pan = (s8)Gp_GetObjPan(arg1->field_2C->coords);
+        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(arg1->field_2C->coords));
     }
     if (work->field_3D8 != 0) {
         func_800D7A9C(arg1->field_2C, (VECTOR*)arg1->field_2C->coords->workm.t, 0, 3);

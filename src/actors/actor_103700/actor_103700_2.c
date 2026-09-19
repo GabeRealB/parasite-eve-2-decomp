@@ -199,7 +199,7 @@ void func_actor_103700_80132FD4(Task* task)
                 }
                 coord = ((TmdObject*)task->extra)->coords;
                 sound = ((((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) << 8) | 0x40250002;
-                SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+                SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(coord), (s8)Gp_GetObjDepth(coord));
             }
             break;
         case 1:
@@ -232,14 +232,14 @@ void func_actor_103700_80132FD4(Task* task)
 void func_actor_103700_80133370(Task* task)
 {
     Actor103700Work* work;
-    GpObj38*         obj;
+    GsCOORDINATE2*   obj;
     Task*            player;
     void*            head;
     GpAnimArg*       arg;
     s32              sound;
 
     work                    = (Actor103700Work*)task->work;
-    obj                     = (GpObj38*)((TmdObject*)task->extra)->coords;
+    obj                     = ((TmdObject*)task->extra)->coords;
     player                  = Game_GetPtrSlot(3);
     head                    = *(void**)G_SCRATCH_HEAD;
     *(void**)G_SCRATCH_HEAD = (u8*)head - 0x1C;
@@ -306,14 +306,14 @@ void func_actor_103700_80133370(Task* task)
 void func_actor_103700_801336E8(Task* task)
 {
     Actor103700Work* work;
-    GpObj38*         obj;
+    GsCOORDINATE2*   obj;
     s32              period;
     s32              i;
     s32              slot;
     s32              sound;
 
     work   = (Actor103700Work*)task->work;
-    obj    = (GpObj38*)((TmdObject*)task->extra)->coords;
+    obj    = ((TmdObject*)task->extra)->coords;
     period = 14;
 
     switch (work->field_250) {
@@ -392,7 +392,7 @@ const u32 D_actor_103700_80131E90 = 0;
 void func_actor_103700_80133AB4(Task* task)
 {
     Actor103700Work* work;
-    GpObj38*         obj;
+    GsCOORDINATE2*   obj;
     Task*            player;
     void*            head;
     GpAnimArg*       arg;
@@ -400,7 +400,7 @@ void func_actor_103700_80133AB4(Task* task)
     s32              pan;
 
     work                    = (Actor103700Work*)task->work;
-    obj                     = (GpObj38*)((TmdObject*)task->extra)->coords;
+    obj                     = ((TmdObject*)task->extra)->coords;
     player                  = Game_GetPtrSlot(3);
     head                    = *(void**)G_SCRATCH_HEAD;
     *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(GpAnimArg);

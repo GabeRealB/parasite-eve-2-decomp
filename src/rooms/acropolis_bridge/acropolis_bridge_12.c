@@ -1678,9 +1678,9 @@ static __inline__ void bridge_play_snd(Task* task, GpEnemy* enemy, s32 base)
     s32 pan;
 
     snd = ((enemy->placeKey >> 12) << 8) | base;
-    pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->coords);
+    pan = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
     SndEvt_EnqueueType6(snd, pan,
-                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->coords));
+                        (s8)Gp_GetObjDepth(((TmdObject*)task->extra)->coords));
 }
 
 /// Runs the bridge enemy's plunge into the gorge. On the first frame (work

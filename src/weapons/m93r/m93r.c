@@ -89,7 +89,7 @@ void func_m93r_8011D1C4(GpActorWork* arg0)
                     if (func_80106264(1) == 0) {
                         actor->field_93E = 0;
                     }
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20020004, 1);
+                    Gp_PlayObjSfx(arg0->extra->coords, 0x20020004, 1);
                     Gp_SpawnEff(0x6002B,
                                 (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 2,
                                 NULL);
@@ -105,7 +105,7 @@ void func_m93r_8011D1C4(GpActorWork* arg0)
                 if (delay == 0) {
                     actor->field_12A &= 0x3FFF;
                     if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
-                        Gp_PlayObjSfx((GpObj38*)spot, 0x17, 1);
+                        Gp_PlayObjSfx(spot, 0x17, 1);
                     }
                 }
             } else {
@@ -115,7 +115,7 @@ void func_m93r_8011D1C4(GpActorWork* arg0)
                 actor->field_95E  = 3;
                 actor->field_12A &= 0x3FFF;
                 if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
-                    Gp_PlayObjSfx((GpObj38*)spot, 0x17, 1);
+                    Gp_PlayObjSfx(spot, 0x17, 1);
                 }
             }
             break;

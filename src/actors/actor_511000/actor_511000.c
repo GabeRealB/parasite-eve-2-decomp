@@ -59,8 +59,8 @@ void func_actor_511000_80131E78(GpActorWork* arg0)
         if (work->field_478 == 1) {
             if (++work->field_4D2 == 0x10) {
                 obj = ((TmdObject*)work->field_4C4->extra)->coords;
-                pan = (s8)Gp_GetObjPan((GpObj38*)obj);
-                SndEvt_EnqueueType6(0x313A0003, pan, (s8)Gp_GetObjDepth((GpObj38*)obj));
+                pan = (s8)Gp_GetObjPan(obj);
+                SndEvt_EnqueueType6(0x313A0003, pan, (s8)Gp_GetObjDepth(obj));
                 Gp_SpawnEff(0x6006A, obj, 0, &D_actor_511000_8014733C);
             }
         }

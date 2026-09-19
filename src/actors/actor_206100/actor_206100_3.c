@@ -145,9 +145,9 @@ void func_actor_206100_8014F7B4(Task* task)
 
     work    = (Actor206100Work*)task->work;
     soundId = ((((GpEnemy*)task->spawnArg2)->placeKey >> 0xC) << 8) | 0x551E0005;
-    pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->coords);
+    pan     = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
     SndEvt_EnqueueType6(soundId, pan,
-                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->coords));
+                        (s8)Gp_GetObjDepth(((TmdObject*)task->extra)->coords));
     next            = (Actor206100Work*)task->work;
     next->field_524 = 0xA;
     next->field_51A = 0x10;
@@ -186,9 +186,9 @@ void func_actor_206100_8014F8BC(Task* task)
     work->field_510 = 0xA;
     work->field_50C = 1;
     soundId         = ((((GpEnemy*)task->spawnArg2)->placeKey >> 0xC) << 8) | 0x40040006;
-    pan             = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->coords);
+    pan             = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
     SndEvt_EnqueueType6(soundId, pan,
-                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->coords));
+                        (s8)Gp_GetObjDepth(((TmdObject*)task->extra)->coords));
     work->field_522 = work->field_522 + 1;
 }
 
@@ -319,9 +319,9 @@ void func_actor_206100_8014FBE4(Task* task)
     work->field_51E = 0;
     work->field_520 = work->field_520 + 1;
     soundId         = ((((GpEnemy*)task->spawnArg2)->placeKey >> 0xC) << 8) | 0x40040006;
-    pan             = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->coords);
+    pan             = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
     SndEvt_EnqueueType6(soundId, pan,
-                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->coords));
+                        (s8)Gp_GetObjDepth(((TmdObject*)task->extra)->coords));
 }
 
 /// Idle-state tick: re-arms the animation request, then advances the clip

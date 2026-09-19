@@ -86,8 +86,8 @@ void func_actor_402200_80135A24(Actor402200* arg0)
             }
             if (work->field_6C4 == frames) {
                 snd = D_actor_402200_80138420[work->field_712 + 8] | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
-                pan = (s8)Gp_GetObjPan((GpObj38*)coord);
-                SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                pan = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
             }
             timer           = work->field_6D4 - 1;
             work->field_6D4 = timer;
@@ -123,13 +123,13 @@ void func_actor_402200_80135BE0(Actor402200* arg0)
         if (rec != NULL) {
             if (!(rec->flags & 0x20) && (work->field_6CA & 0x20)) {
                 snd = D_actor_402200_80138420[work->field_712 * 2 - 1] | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
-                pan = (s8)Gp_GetObjPan((GpObj38*)coord);
-                SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                pan = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
             }
             if (!(rec->flags & 0x10) && (work->field_6CA & 0x10)) {
                 snd  = D_actor_402200_80138420[work->field_712 * 2] | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
-                pan2 = (s8)Gp_GetObjPan((GpObj38*)coord);
-                SndEvt_EnqueueType6(snd, pan2, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                pan2 = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(snd, pan2, (s8)Gp_GetObjDepth(coord));
             }
             work->field_6CA = (u16)(rec->flags & 0x30);
         }
@@ -268,17 +268,17 @@ static inline void Actor402200_ReseedAnim(Actor402200* arg0)
 static inline void Actor402200_UpdateTint(Actor402200* arg0)
 {
     Actor402200Work* work;
-    GpObj38*         obj;
+    GsCOORDINATE2*   obj;
     VECTOR           vec;
     s16              r;
     s16              g;
     s16              b;
 
-    obj    = (GpObj38*)arg0->field_2C->field_8;
+    obj    = (GsCOORDINATE2*)arg0->field_2C->field_8;
     work   = arg0->field_1C;
-    vec.vx = obj->field_24.t[0];
-    vec.vy = obj->field_24.t[1];
-    vec.vz = obj->field_24.t[2];
+    vec.vx = obj->workm.t[0];
+    vec.vy = obj->workm.t[1];
+    vec.vz = obj->workm.t[2];
     Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
     switch (work->field_6EA) {
         case 1:

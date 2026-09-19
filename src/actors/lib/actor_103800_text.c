@@ -312,8 +312,8 @@ death:
     vec.vz = c->workm.t[2];
     Gp_UpdateActorColor((GpEnemy*)arg1->field_20, &vec, 0, 0);
     snd = ((arg0->field_8 >> 12) << 8) | 0x40260004;
-    pan = (s8)Gp_GetObjPan((GpObj38*)coord);
-    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+    pan = (s8)Gp_GetObjPan(coord);
+    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
     return;
 dying:
     Actor03800_Fn037E0(arg1);
@@ -697,8 +697,8 @@ void Actor03800_Fn03594(Actor103800* arg0)
     if (--work->field_36A <= 0) {
         work->field_36A = 0xC;
         soundId         = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40260001;
-        pan             = (s8)Gp_GetObjPan((GpObj38*)coord);
-        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+        pan             = (s8)Gp_GetObjPan(coord);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(coord));
     }
 }
 

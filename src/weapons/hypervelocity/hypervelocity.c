@@ -181,8 +181,8 @@ void func_hypervelocity_8011D1E8(Task* task)
             Gp_DrawRing(coord, (s16)((u16)work->field_26 * 2), rgb);
             if (work->field_24 >= 0x81) {
                 if (work->field_28 == 0) {
-                    pan = (s8)Gp_GetObjPan((GpObj38*)coord);
-                    SndEvt_EnqueueType6(0x20160006, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                    pan = (s8)Gp_GetObjPan(coord);
+                    SndEvt_EnqueueType6(0x20160006, pan, (s8)Gp_GetObjDepth(coord));
                 }
                 work->field_28 += (u16)work->field_2A * 2;
                 if (work->field_28 >= 0x100) {

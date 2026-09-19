@@ -186,7 +186,7 @@ void Actor01600_Fn06FDC(Actor01600* arg0, s32 arg1);
 s32  Gp_TickObjFlag4(Actor01600Ctx* arg0);
 s32  Gp_ObjFlag4Expired(Actor01600Ctx* arg0);
 s32  Gp_GetObjPan(void* arg0);
-s32  Gp_GetObjDepth(void* arg0);
+s32  Gp_GetObjDepth(void* coord);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 extern u8 D_801153F4;
@@ -606,7 +606,7 @@ void Actor01600_Fn06744(Actor01600* arg0);
 void Actor01600_Fn06F10(Actor01600* arg0);
 s32  Gp_TickObjFlag2(void* arg0);
 s32  Gp_GetObjPan(void* arg0);
-s32  Gp_GetObjDepth(void* arg0);
+s32  Gp_GetObjDepth(void* coord);
 
 /// Per-frame tick for the actor's cornered/pursuit cycle, dispatched on
 /// `field_4FE`. States 0 and 1 hand the frame to `Actor01600_Fn017BC` /

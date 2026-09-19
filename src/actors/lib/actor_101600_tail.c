@@ -34,7 +34,7 @@ u8             Actor01600_Fn06F78(Actor01600* arg0);
 void           Actor01600_Fn03D48(Actor01600* arg0);
 void           Actor01600_Fn03A60(Actor01600* arg0);
 s32            Gp_GetObjPan(void* arg0);
-s32            Gp_GetObjDepth(void* arg0);
+s32            Gp_GetObjDepth(void* coord);
 void           Gp_ArmStateF0(s32 arg0);
 extern SVECTOR Actor01600_D09F1C[];
 extern SVECTOR Actor01600_D09F3C[];

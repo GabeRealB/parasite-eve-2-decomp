@@ -45,8 +45,8 @@ s32 ActorsShared80133c1c(ActorShared80133c1c* arg0)
         soundId >>= 0xC;
         soundId <<= 8;
         soundId  |= 0x40250000 | ret;
-        pan       = (s8)Gp_GetObjPan((GpObj38*)coord);
-        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+        pan       = (s8)Gp_GetObjPan(coord);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(coord));
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
     return ret;

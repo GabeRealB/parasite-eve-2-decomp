@@ -138,8 +138,8 @@ typedef struct Actor105700Ctx {
 } Actor105700Ctx;
 
 /// Model object behind `Actor105700.field_2C`; `field_8` is the root
-/// `GsCOORDINATE2` the pan/depth helpers read (as `GpObj38`, whose `field_24`
-/// is that coordinate's `workm`). `field_C` is the halfword
+/// `GsCOORDINATE2` whose world matrix the pan/depth helpers read. `field_C` is
+/// the halfword
 /// `func_actor_105700_80137130` mirrors from the owner's object.
 typedef struct Actor105700Obj {
     /* 0x00 */ byte           pad_0[8];
