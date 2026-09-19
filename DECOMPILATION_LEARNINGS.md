@@ -30223,7 +30223,7 @@ poly->clut  += (s8)tmp << 6;
 `gpStreamPrimGt4OffsetLayer`, `func_8009FB28`).
 `gpStreamPrimGt3PreXformOffsetLayer` is the example. Same split is needed for the
 `field_0` / `POLY_GT4` siblings (`gpStreamPrimGt3OffsetLayer`, `func_8009F708`,
-`func_8009FB28`).
+`gpStreamPrimGt4PreXformOffsetLayer`).
 
 ## Finish the 2D byte offset before adding the table base
 
