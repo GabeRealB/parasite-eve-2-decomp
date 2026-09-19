@@ -170,7 +170,7 @@ void Actor00300_Fn00078(GsCOORDINATE2* coord, s16 size)
             (u_long*)((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
                       (s32)gGpuCurrentOt),
             prim);
-        if (Gp_State1C->field_6 != 0) {
+        if (Gp_State1C->groundTrace != 0) {
             if (Gp_TraceGroundCoord(coord, &ground) == 1) {
                 Actor00300_Fn005D0(&ground, (s32)(s16)(outerSize * 2));
             }
@@ -1026,7 +1026,7 @@ void Actor00300_Fn01F9C(Actor100300* arg0)
             work->field_680 =
                 ratan2((s32)(s16)scratchEnd[-1].vec.vx, (s32)(s16)scratch->vec.vz) &
                 0xFFF;
-            if (Gp_State1C->field_4 == 0) {
+            if (Gp_State1C->eventState == 0) {
                 effectRandom1 = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState   = (s32)effectRandom1;
                 if (!((effectRandom1 >> 0x10) & 3)) {
@@ -1083,7 +1083,7 @@ void Actor00300_Fn01F9C(Actor100300* arg0)
                     work->field_654 = NULL;
                 }
             }
-            if (((s16)work->field_672 < 0xE) && (Gp_State1C->field_4 == 0)) {
+            if (((s16)work->field_672 < 0xE) && (Gp_State1C->eventState == 0)) {
                 effectRandom2 = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState   = (s32)effectRandom2;
                 if (!((effectRandom2 >> 0x10) & 3)) {
@@ -1229,7 +1229,7 @@ void Actor00300_Fn028D0(Actor100300* arg0)
     coord = obj->field_8;
     switch (state) {
         case 0:
-            if (Gp_State1C->field_4 == 0) {
+            if (Gp_State1C->eventState == 0) {
                 effectRandom0 = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState   = (s32)effectRandom0;
                 if (!((effectRandom0 >> 0x10) & 3)) {
@@ -1271,7 +1271,7 @@ void Actor00300_Fn028D0(Actor100300* arg0)
                     work->field_654 = NULL;
                 }
             }
-            if (Gp_State1C->field_4 == 0) {
+            if (Gp_State1C->eventState == 0) {
                 effectRandom1 = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState   = (s32)effectRandom1;
                 if (!((effectRandom1 >> 0x10) & 3)) {
@@ -1495,7 +1495,7 @@ void Actor00300_Fn030B8(Actor100300* arg0)
             work->field_66E = 3;
             return;
         case 1:
-            if (Gp_State1C->field_4 == 0) {
+            if (Gp_State1C->eventState == 0) {
                 effectRandom = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState  = (s32)effectRandom;
                 if (!((effectRandom >> 0x10) & 3)) {
@@ -2173,7 +2173,7 @@ void Actor00300_Fn04664(GsCOORDINATE2* arg0, s32 arg1)
     SVECTOR sp18;
     s32     ang;
 
-    if (Gp_State1C->field_4 == 0) {
+    if (Gp_State1C->eventState == 0) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;

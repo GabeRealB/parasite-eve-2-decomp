@@ -32,7 +32,7 @@ void PeShared801305c0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 /// Energy shot PE. `Task::spawnArg2` is the `GpEffWork` block; `Task::extra`
 /// reaches the coordinate. Cancel (`Gp_StateC08.field_3 == -2` or
-/// `Gp_State1C->field_E >= 4`) releases the work block.
+/// `Gp_State1C->fadeState >= 4`) releases the work block.
 ///
 /// State 0 parents the coordinate, seeds 16 texture-frame offsets and 16 wedge
 /// yaws from `Gp_LcgState`, and plays the combo-indexed cue. State 1 grows
@@ -55,7 +55,7 @@ void func_energyshot_8012EF34(Task* arg0)
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if ((state->field_3 != -2) && (Gp_State1C->field_E < 4)) {
+    if ((state->field_3 != -2) && (Gp_State1C->fadeState < 4)) {
         mem->field_22 = (u16)mem->field_22 + 1;
         switch (arg0->state) {
             case 0: {
@@ -76,13 +76,13 @@ void func_energyshot_8012EF34(Task* arg0)
                 coord->coord.t[0] = 0;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                state->field_6 |= 8;
-                st1c            = Gp_State1C;
-                st1c->field_14  = 0;
-                st1c->field_12 &= 0xFBFF;
-                arg0->state     = 1;
-                mem->field_20   = (Gp_StateC08.field_0 % 10) - 1;
-                i               = 0;
+                state->field_6    |= 8;
+                st1c               = Gp_State1C;
+                st1c->burstRequest = 0;
+                st1c->peFxFlags   &= 0xFBFF;
+                arg0->state        = 1;
+                mem->field_20      = (Gp_StateC08.field_0 % 10) - 1;
+                i                  = 0;
                 {
                     s16* frames;
 

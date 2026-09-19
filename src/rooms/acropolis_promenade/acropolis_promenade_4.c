@@ -49,7 +49,7 @@ void func_acropolis_promenade_8017E03C(Task* task)
     coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
     view  = Gp_GetViewIndex();
-    if (Gp_State1C->field_4 >= 4) {
+    if (Gp_State1C->eventState >= 4) {
         return;
     }
     work->field_22++;

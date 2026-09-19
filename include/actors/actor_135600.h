@@ -101,7 +101,7 @@ void func_8004BFF8(s16 angle, MATRIX* matrix);
 extern u8 D_801153F4;
 
 /// Draws the ground-effect quad `func_800EA1A8` filled in, at the splash id
-/// the caller selects and the current ground-shade row `Gp_State1C->field_8`.
+/// the caller selects and the current ground-shade row `Gp_State1C->groundShade`.
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// The empty handler that fills entry 0 of the parent's per-frame handler pair

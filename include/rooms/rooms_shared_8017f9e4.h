@@ -22,7 +22,7 @@ extern SVECTOR RoomsShared8017f9e4Pos2;
 /// trail per frame (`field_22 & 7`, so the ring wraps every eight frames),
 /// re-derives all sixteen against the view matrix and hands both halves to
 /// `Room_Draw03`. The task frees itself once `field_22` reaches the spawn
-/// argument. It idles whole while `Gp_State1C->field_4` says the room is
+/// argument. It idles whole while `Gp_State1C->eventState` says the room is
 /// paused.
 void RoomsShared8017f9e4(Task* task);
 

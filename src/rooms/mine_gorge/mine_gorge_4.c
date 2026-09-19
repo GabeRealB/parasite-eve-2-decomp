@@ -25,7 +25,7 @@ extern SVECTOR D_mine_gorge_8017E798[];
 /// compiler merges into one shared tail.
 void func_mine_gorge_8017D9F8(void)
 {
-    Gp_State1C->field_A = D_mine_gorge_8017E760[(Gp_GetViewIndex() & 0xFF) - 1];
+    Gp_State1C->roomEffectMode = D_mine_gorge_8017E760[(Gp_GetViewIndex() & 0xFF) - 1];
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_gorge_8017E798;

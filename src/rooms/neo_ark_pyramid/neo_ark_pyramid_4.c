@@ -13,10 +13,10 @@ extern s32 D_80115758;
 void func_neo_ark_pyramid_8017DBF0(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115758          = 0x601E2;
-        D_8011572C          = 0x601FE;
-        D_80115750          = 0x6021A;
-        Gp_State1C->field_A = 2;
-        arg0->state         = 1;
+        D_80115758                 = 0x601E2;
+        D_8011572C                 = 0x601FE;
+        D_80115750                 = 0x6021A;
+        Gp_State1C->roomEffectMode = 2;
+        arg0->state                = 1;
     }
 }

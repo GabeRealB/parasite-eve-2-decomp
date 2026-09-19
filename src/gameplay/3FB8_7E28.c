@@ -198,7 +198,7 @@ void Gp_EffSprTask81(Task* arg0)
 
     extra  = arg0->extra;
     mem    = arg0->spawnArg2;
-    flag   = Gp_State1C->field_4;
+    flag   = Gp_State1C->eventState;
     coord  = (GsCOORDINATE2*)extra->coords;
     parent = mem->field_8;
     if (flag >= 2) {
@@ -221,14 +221,14 @@ void Gp_EffSprTask81(Task* arg0)
             mem->field_2A   = 1;
             mem->field_26   = 0;
             arg0->spawnArg1 = 1;
-            if (Gp_State1C->field_4 != 0) {
+            if (Gp_State1C->eventState != 0) {
                 break;
             }
             Gp_SpawnEff(0x60042, coord, mem->field_24 + 0x22200 + mem->field_24, 0);
             break;
         case 1:
             Gp_DrawEffSprite81(arg0);
-            if (Gp_State1C->field_4 != 0) {
+            if (Gp_State1C->eventState != 0) {
                 break;
             }
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -238,7 +238,7 @@ void Gp_EffSprTask81(Task* arg0)
             mem->field_22++;
             break;
         case 2:
-            if (Gp_State1C->field_4 == 0) {
+            if (Gp_State1C->eventState == 0) {
                 if (mem->field_20 == 0) {
                     Gp_SpawnEff(0x60042, coord, mem->field_24 + 0x22200, 0);
                     mem->field_20        = 1;
@@ -262,7 +262,7 @@ void Gp_EffSprTask81(Task* arg0)
             }
             goto lcg;
         case 3:
-            if (Gp_State1C->field_4 == 0 && mem->field_20 == 0) {
+            if (Gp_State1C->eventState == 0 && mem->field_20 == 0) {
                 Gp_SpawnEff(0x60042, coord, mem->field_24 + 0x22200, 0);
                 mem->field_20   = 1;
                 mem->field_22   = 0;
@@ -274,7 +274,7 @@ void Gp_EffSprTask81(Task* arg0)
                 break;
             }
         lcg:
-            if (Gp_State1C->field_4 != 0) {
+            if (Gp_State1C->eventState != 0) {
                 break;
             }
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;

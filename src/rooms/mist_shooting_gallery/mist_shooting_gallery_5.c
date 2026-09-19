@@ -93,7 +93,7 @@ void func_mist_shooting_gallery_80182064(Task* task)
     work  = (GpEffWork*)task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
 
-    if (Gp_State1C->field_4 != 0) {
+    if (Gp_State1C->eventState != 0) {
         func_mist_shooting_gallery_80182294(coord, work->field_20, 0x600, work->field_26);
         func_mist_shooting_gallery_801826C4(coord, (SVECTOR*)&work->field_18, work->field_20, 0x600);
         rgb[0] = (u16)work->field_24 >> 1;

@@ -36,7 +36,7 @@ void func_pyrokinesis_801311B8(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
     if (Gp_StateC08.field_3 != -2) {
-        flag = Gp_State1C->field_E;
+        flag = Gp_State1C->fadeState;
         if (flag < 4) {
             if (flag != 0) {
                 return;
@@ -268,7 +268,7 @@ void func_pyrokinesis_80131CE4(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
     if (Gp_StateC08.field_3 != -2) {
-        flag = Gp_State1C->field_E;
+        flag = Gp_State1C->fadeState;
         if (flag < 4) {
             if (flag != 0) {
                 return;

@@ -48,7 +48,7 @@ void PeShared801305c0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 /// Runs one frame of the life-drain cast: a five-state machine driven by
 /// `Task::state`, published in `D_lifedrain_80130B0C` so every mote can find
-/// it. Cancelling (`D_80114C0B == -2` or `Gp_State1C->field_E >= 4`) releases
+/// it. Cancelling (`D_80114C0B == -2` or `Gp_State1C->fadeState >= 4`) releases
 /// the work block, and states 0 and 1 first cash the banked `D_80115404` into
 /// `Player_Status.hp`, clamped to the max in `field_1a`.
 ///
@@ -81,7 +81,7 @@ void func_lifedrain_8012EF48(Task* arg0)
 
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if ((D_80114C0B == -2) || (Gp_State1C->field_E >= 4)) {
+    if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4)) {
         if ((arg0->state < 2) && (arg0->spawnArg1 != 0)) {
             Player_Status.hp = (u16)Player_Status.hp + D_80115404;
             if (Player_Status.hp > Player_Status.hpMax) {

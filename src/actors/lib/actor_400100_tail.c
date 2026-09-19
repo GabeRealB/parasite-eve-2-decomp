@@ -176,7 +176,7 @@ void Actor00100_Fn0B3DC(Actor00100* arg0, s16 arg1, s16 arg2)
             break;
     }
 
-    if (Gp_State1C->field_A == 2 && spawn == 1) {
+    if (Gp_State1C->roomEffectMode == 2 && spawn == 1) {
         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[arg1], arg2 | 0x80000000, &work->field_898);
     }
 }

@@ -30,9 +30,9 @@ void RoomsShared8017f4a0(Task* task)
 
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
-    if (Gp_State1C->field_4 != 0) {
+    if (Gp_State1C->eventState != 0) {
         Room_Draw16(coord, (s16)work->field_26, (s16)work->field_24);
-        if (Gp_State1C->field_4 >= 4) {
+        if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {

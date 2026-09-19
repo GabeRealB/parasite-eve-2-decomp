@@ -56,35 +56,35 @@ void Gp_InitState1C(Task* arg0)
     Gp_State1CTask = arg0;
     Gp_State1C     = p;
     arg0->work     = (TaskIdMap*)p;
-    p->field_0     = 0;
-    p->field_2     = 0;
-    p->field_4     = 0;
-    p->field_6     = 1;
-    p->field_8     = 0;
+    p->effectCount = 0;
+    p->rumbleCount = 0;
+    p->eventState  = 0;
+    p->groundTrace = 1;
+    p->groundShade = 0;
     Gp_SpawnEff(0x60053, 0, 0, 0);
 
-    D_80115758  = 0;
-    D_8011572C  = 0;
-    D_80115750  = 0;
-    D_80115730  = 0;
-    D_80115734  = 0;
-    D_80115754  = 0;
-    D_80115728  = 0;
-    D_80115744  = 0;
-    D_8011573C  = 0;
-    D_80115720  = 0;
-    D_8011574C  = 0;
-    p->field_A  = 0;
-    p->field_C  = 0;
-    p->field_E  = 0;
-    p->field_10 = 0;
-    p->field_12 = 0;
-    p->field_14 = 0;
-    p->field_16 = 0;
-    p->field_18 = 0;
-    p->field_1A = 0;
-    D_80115738  = 0;
-    D_80115724  = 0;
+    D_80115758        = 0;
+    D_8011572C        = 0;
+    D_80115750        = 0;
+    D_80115730        = 0;
+    D_80115734        = 0;
+    D_80115754        = 0;
+    D_80115728        = 0;
+    D_80115744        = 0;
+    D_8011573C        = 0;
+    D_80115720        = 0;
+    D_8011574C        = 0;
+    p->roomEffectMode = 0;
+    p->field_C        = 0;
+    p->fadeState      = 0;
+    p->screenFxFlags  = 0;
+    p->peFxFlags      = 0;
+    p->burstRequest   = 0;
+    p->battleState    = 0;
+    p->peFadeId       = 0;
+    p->pendingPulses  = 0;
+    D_80115738        = 0;
+    D_80115724        = 0;
     arg0->state++;
     Gp_InitRoomCoords();
 
@@ -119,27 +119,27 @@ void Gp_TickState1C(void)
     GpStateC08* r;
     s16         temp;
 
-    if (Gp_State1C->field_0 <= 0) {
-        Gp_State1C->field_0 = 0;
+    if (Gp_State1C->effectCount <= 0) {
+        Gp_State1C->effectCount = 0;
     }
-    if (Gp_State1C->field_2 <= 0) {
-        Gp_State1C->field_2 = 0;
+    if (Gp_State1C->rumbleCount <= 0) {
+        Gp_State1C->rumbleCount = 0;
     }
-    temp = Gp_State1C->field_16;
+    temp = Gp_State1C->battleState;
     if ((temp == 1) && (Gp_StateF0.field_0 != temp)) {
         SndEvt_EnqueueType7(0xFF0D, 1);
-        Gp_State1C->field_2 = 0;
+        Gp_State1C->rumbleCount = 0;
     }
-    p           = Gp_State1C;
-    q           = &Gp_StateF0;
-    p->field_16 = q->field_0;
-    p->field_4  = q->field_4 | (p->field_1A & 0x100);
-    p->field_E  = q->field_4 | (p->field_1A & 0x180);
-    p->field_1A = 0;
-    if (!(p->field_4 & 1)) {
+    p                = Gp_State1C;
+    q                = &Gp_StateF0;
+    p->battleState   = q->field_0;
+    p->eventState    = q->field_4 | (p->pendingPulses & 0x100);
+    p->fadeState     = q->field_4 | (p->pendingPulses & 0x180);
+    p->pendingPulses = 0;
+    if (!(p->eventState & 1)) {
         Gp_DecRoomCoordRefs();
     }
-    if (Gp_State1C->field_E >= 4) {
+    if (Gp_State1C->fadeState >= 4) {
         r           = &Gp_StateC08;
         r->field_10 = 0;
         r->field_C  = 0;
@@ -302,7 +302,7 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
     s32        bank;
 
     bank = (arg0 >> 16) & 0x7FFF;
-    if ((arg0 >= 0) && (Gp_State1C->field_0 >= 0x81)) {
+    if ((arg0 >= 0) && (Gp_State1C->effectCount >= 0x81)) {
         return NULL;
     }
     arg0 &= 0xFFFF;
@@ -318,7 +318,7 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
         taskKill(task);
         return NULL;
     }
-    Gp_State1C->field_0++;
+    Gp_State1C->effectCount++;
 
     if (arg1 != NULL) {
         GsCOORDINATE2* coord;
@@ -897,9 +897,9 @@ void func_800EC47C(Task* arg0)
     mem = arg0->spawnArg2;
     switch (arg0->state) {
         case 0:
-            Gp_State1C->field_10 |= 1;
-            arg0->state           = 1;
-            mem->field_26         = 0x10;
+            Gp_State1C->screenFxFlags |= 1;
+            arg0->state                = 1;
+            mem->field_26              = 0x10;
         case 1:
             if (mem->field_24 < mem->field_26) {
                 mem->field_24 += 8;
@@ -944,8 +944,8 @@ void func_800EC47C(Task* arg0)
                 rgb[0] = rgb[1] = rgb[2] = mem->field_24;
                 Gp_DrawFadeQuad(rgb, 2);
             } else {
-                Gp_State1C->field_10 &= 0xFFFE;
-                Gp_State1C->field_0--;
+                Gp_State1C->screenFxFlags &= 0xFFFE;
+                Gp_State1C->effectCount--;
                 memFree(mem);
                 taskKill(arg0);
             }
@@ -962,8 +962,8 @@ void Gp_FadeWaveTask(Task* arg0)
 
     p   = Gp_State1C;
     mem = arg0->spawnArg2;
-    if (p->field_18 != arg0->spawnArg1) {
-        p->field_0--;
+    if (p->peFadeId != arg0->spawnArg1) {
+        p->effectCount--;
         memFree(mem);
         taskKill(arg0);
         return;
@@ -979,7 +979,7 @@ void Gp_FadeWaveTask(Task* arg0)
         Gp_DrawFadeQuad(rgb, color >> 12);
     }
     if (mem->field_24 >= 0x700) {
-        Gp_State1C->field_0--;
+        Gp_State1C->effectCount--;
         memFree(mem);
         taskKill(arg0);
     }
@@ -987,7 +987,7 @@ void Gp_FadeWaveTask(Task* arg0)
 
 void Gp_ReleaseState1CMem(void* arg0, Task* arg1)
 {
-    Gp_State1C->field_0--;
+    Gp_State1C->effectCount--;
     memFree(arg0);
     taskKill(arg1);
 }
@@ -997,14 +997,14 @@ void Gp_KillState1CTask(Task* arg0)
     void* mem;
 
     mem = arg0->spawnArg2;
-    Gp_State1C->field_0--;
+    Gp_State1C->effectCount--;
     memFree(mem);
     taskKill(arg0);
 }
 
 void Gp_PulseState1C(void)
 {
-    Gp_State1C->field_1A |= 0x100;
+    Gp_State1C->pendingPulses |= 0x100;
 }
 
 void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2)
@@ -1033,14 +1033,14 @@ void Gp_AddTpageShift(P_TAG* arg0, s32 arg1, s32 arg2)
 
 void func_800EC9C8(void)
 {
-    if (!(Gp_State1C->field_10 & 1)) {
+    if (!(Gp_State1C->screenFxFlags & 1)) {
         Gp_SpawnEff(0x800600E8, 0, 0, 0);
     }
 }
 
 void Gp_SetState1CPe(s32 arg0)
 {
-    Gp_State1C->field_18 = (u8)arg0;
+    Gp_State1C->peFadeId = (u8)arg0;
     Gp_SpawnEff(0x8006000F, 0, (u8)arg0, 0);
 }
 
@@ -1049,8 +1049,8 @@ void func_800ECA54(void)
     GpState1C* p;
 
     p = Gp_State1C;
-    if (!(p->field_10 & 0x80)) {
-        p->field_12 &= 0xF7FF;
+    if (!(p->screenFxFlags & 0x80)) {
+        p->peFxFlags &= 0xF7FF;
         Gp_SpawnEff(0x8006000E, 0, 0, 0);
     }
 }

@@ -23,7 +23,7 @@ extern SVECTOR D_dryfield_night_breezeway_8017E6C4;
 /// cross-jumps into one tail block after the last case.
 void func_dryfield_night_breezeway_8017E5BC(void)
 {
-    Gp_State1C->field_A = 2;
+    Gp_State1C->roomEffectMode = 2;
     switch (gGameSession->at4.loc.view) {
         case 2:
             Room_Draw17(&D_dryfield_night_breezeway_8017E6AC[0], 2, 0x400);

@@ -152,7 +152,7 @@ void func_actor_135400_801329B0(Task* task)
         }
     }
     if (!(ext->flags & 0x80) && (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[0].workm.t, &pos) != 0)) {
-        Gp_DrawEffGroundQuad(&pos, 0x180, Gp_State1C->field_8);
+        Gp_DrawEffGroundQuad(&pos, 0x180, Gp_State1C->groundShade);
     }
     count               = task->killCountdown + 1;
     task->killCountdown = count;

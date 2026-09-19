@@ -1221,7 +1221,7 @@ void func_actor_444000_8013799C(GpEnemy* enemy, Actor444000Grab* task)
         Gp_UpdateCoord(&work->coord);
 
         Gp_DrawEffGroundQuad((VECTOR3*)work->coord.workm.t, ((s16)work->field_1B0 >> 3) + 0x100,
-                             Gp_State1C->field_8);
+                             Gp_State1C->groundShade);
 
         if (work->field_1AC >= 0x35) {
             Gp_UnlinkObj(&work->obj0);
@@ -1239,7 +1239,7 @@ void func_actor_444000_8013799C(GpEnemy* enemy, Actor444000Grab* task)
 
         if (host->field_F08 != 6) {
             Gp_DrawEffGroundQuad((VECTOR3*)work->coord.workm.t, ((s16)work->field_1B0 >> 3) + 0x100,
-                                 Gp_State1C->field_8);
+                                 Gp_State1C->groundShade);
         }
     }
 
@@ -2074,7 +2074,7 @@ void func_actor_444000_80139C80(GpEnemy* enemy, Actor444000Drop* task)
     Gp_UpdateCoord(&coord.c);
 
     Gp_DrawEffGroundQuad((VECTOR3*)coord.c.workm.t, (s16)((s16)work->timer * 8 + 0x80),
-                         Gp_State1C->field_8);
+                         Gp_State1C->groundShade);
 
     if ((s16)work->timer >= 0x14) {
         task->extra->coords->coord.t[1] =

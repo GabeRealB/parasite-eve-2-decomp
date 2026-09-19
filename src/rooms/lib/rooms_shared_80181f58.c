@@ -19,7 +19,7 @@ void RoomsShared80181f58(Task* arg0)
     s16            ang;
 
     mem   = arg0->spawnArg2;
-    flag  = Gp_State1C->field_4;
+    flag  = Gp_State1C->eventState;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag != 0) {
         if (flag < 4) {

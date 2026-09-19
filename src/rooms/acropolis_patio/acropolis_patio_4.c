@@ -149,7 +149,7 @@ void func_acropolis_patio_8017E730(Task* task)
 
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
-    if (Gp_State1C->field_4 < 4 &&
+    if (Gp_State1C->eventState < 4 &&
         ((D_acropolis_patio_80182E4C[task->spawnArg1] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
         sc = (ApMistScratch*)(SCRATCH_SP -= 0xC);
         Gp_UpdateCoord(coord);

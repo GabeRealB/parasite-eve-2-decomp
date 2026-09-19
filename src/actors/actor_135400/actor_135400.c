@@ -201,7 +201,7 @@ void func_actor_135400_801322A8(Task* task)
     }
     if (!(ext->flags & 0x80)) {
         if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
+            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
         }
         Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
         func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->coords[1].workm.t, 0, 3);

@@ -44,7 +44,7 @@ extern s32 Gp_LcgState;
 /// Plasma PE ring. `Task::spawnArg2` is the `GpEffWork` block (`field_24`
 /// brightness, `field_20` combo index, `field_22` tick / inner radius);
 /// `Task::extra` reaches the coordinate. Cancel (`Gp_StateC08.field_3 == -2`
-/// or `Gp_State1C->field_E >= 4`) releases the pool block.
+/// or `Gp_State1C->fadeState >= 4`) releases the pool block.
 ///
 /// State 0 seeds brightness, the combo index, and three 16-entry LCG columns
 /// in `D_plasma_8012FF54`, plays the combo-indexed cue, and starts a pad
@@ -71,7 +71,7 @@ void func_plasma_8012EF34(Task* arg0)
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if ((state->field_3 == -2) || (Gp_State1C->field_E >= 4)) {
+    if ((state->field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
         goto release;
     }
 
@@ -111,7 +111,7 @@ void func_plasma_8012EF34(Task* arg0)
             if (mem->field_24 < 9) {
                 goto release;
             }
-            if (Gp_State1C->field_E == 0) {
+            if (Gp_State1C->fadeState == 0) {
                 if ((s16)next == 8) {
                     state->field_6 |= 8;
                 }
@@ -193,7 +193,7 @@ void func_plasma_8012EF34(Task* arg0)
             if (mem->field_24 < 9) {
                 goto release;
             }
-            if (Gp_State1C->field_E == 0) {
+            if (Gp_State1C->fadeState == 0) {
                 if ((s16)next == 8) {
                     state->field_6 |= 8;
                 }

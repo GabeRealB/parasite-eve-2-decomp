@@ -27,7 +27,7 @@ void func_hypervelocity_8011F168(Task* arg0)
     u8             rgb[3];
 
     mem   = arg0->spawnArg2;
-    flag  = Gp_State1C->field_4;
+    flag  = Gp_State1C->eventState;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag != 0) {
         if (flag < 4) {
@@ -65,7 +65,7 @@ void func_hypervelocity_8011F270(Task* arg0)
     u8             rgb[3];
 
     mem   = arg0->spawnArg2;
-    flag  = Gp_State1C->field_4;
+    flag  = Gp_State1C->eventState;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag != 0) {
         if (flag < 4) {

@@ -85,8 +85,8 @@ void func_actor_510900_80131F24(Task* arg0)
     coord = &((Actor510900Obj2C*)arg0->extra)->field_8->field_0;
     base  = &D_80114FF8;
     slot  = (GpCoordTail*)&base->coord;
-    if (Gp_State1C->field_4 != 0) {
-        if (Gp_State1C->field_4 >= 4) {
+    if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->eventState >= 4) {
             base->field_0 = 0;
         }
         if (arg0->spawnArg1 == 4) {
@@ -500,7 +500,7 @@ void func_actor_510900_801332EC(Task* arg0)
     u16               vz;
 
     mem   = arg0->spawnArg2;
-    flag  = Gp_State1C->field_4;
+    flag  = Gp_State1C->eventState;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
@@ -575,7 +575,7 @@ void func_actor_510900_801332EC(Task* arg0)
                     prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
-        if (Gp_State1C->field_4 != 0) {
+        if (Gp_State1C->eventState != 0) {
             return;
         }
         x = mem->field_28;
@@ -607,7 +607,7 @@ void func_actor_510900_8013371C(Task* arg0)
     u16               vz;
 
     mem   = arg0->spawnArg2;
-    flag  = Gp_State1C->field_4;
+    flag  = Gp_State1C->eventState;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
@@ -687,7 +687,7 @@ void func_actor_510900_8013371C(Task* arg0)
                     prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
-        if (Gp_State1C->field_4 != 0) {
+        if (Gp_State1C->eventState != 0) {
             return;
         }
         if (mem->field_28 != 0) {
@@ -718,7 +718,7 @@ void func_actor_510900_80133C84(Task* arg0)
     u16               vz;
 
     mem   = arg0->spawnArg2;
-    flag  = Gp_State1C->field_4;
+    flag  = Gp_State1C->eventState;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
@@ -790,7 +790,7 @@ void func_actor_510900_80133C84(Task* arg0)
                     prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
-        if (Gp_State1C->field_4 != 0) {
+        if (Gp_State1C->eventState != 0) {
             return;
         }
         x = mem->field_28;
@@ -823,7 +823,7 @@ void func_actor_510900_801340E8(Task* arg0)
     eff   = arg0->spawnArg2;
     coord = ((Actor510900Obj2C*)arg0->extra)->field_8;
     ext   = (Actor510900CamCoord*)cam;
-    if (Gp_State1C->field_4 != 0) {
+    if (Gp_State1C->eventState != 0) {
         Gp_ReleaseState1CMem(eff, arg0);
         return;
     }
@@ -876,7 +876,7 @@ void func_actor_510900_80134284(Task* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(Actor510900TrailScratch);
     block                   = (Actor510900TrailScratch*)*(void**)G_SCRATCH_HEAD;
     eff                     = arg0->spawnArg2;
-    mode                    = Gp_State1C->field_4;
+    mode                    = Gp_State1C->eventState;
     coord                   = &((Actor510900Obj2C*)arg0->extra)->field_8->field_0;
     if (mode != 0) {
         if (mode >= 4) {
@@ -962,7 +962,7 @@ void func_actor_510900_801346D4(Task* arg0)
     s16            mode;
 
     eff   = arg0->spawnArg2;
-    mode  = Gp_State1C->field_4;
+    mode  = Gp_State1C->eventState;
     coord = &((Actor510900Obj2C*)arg0->extra)->field_8->field_0;
     if (mode != 0) {
         if (mode >= 4 || arg0->state == 4) {
@@ -1015,7 +1015,7 @@ void func_actor_510900_8013482C(Task* arg0)
     s32            n;
 
     eff   = arg0->spawnArg2;
-    mode  = Gp_State1C->field_4;
+    mode  = Gp_State1C->eventState;
     coord = &((Actor510900Obj2C*)arg0->extra)->field_8->field_0;
     if (mode != 0) {
         if (mode >= 4) {

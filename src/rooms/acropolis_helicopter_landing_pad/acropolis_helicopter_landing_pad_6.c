@@ -155,8 +155,8 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
     lvl   = level;
     light = &D_80115188[index & 1];
     work  = &light->work;
-    if (Gp_State1C->field_4 != 0) {
-        if (Gp_State1C->field_4 >= 4) {
+    if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->eventState >= 4) {
             light->state = 0;
         }
     } else {
@@ -312,8 +312,8 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
-    if (Gp_State1C->field_4 >= 2) {
-        if (Gp_State1C->field_4 >= 4) {
+    if (Gp_State1C->eventState >= 2) {
+        if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
         return;
@@ -380,7 +380,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
                 }
                 if (mem->field_22 < mem->field_2A * 6 - 2) {
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && Gp_State1C->field_4 == 0) {
+                    if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && Gp_State1C->eventState == 0) {
                         Gp_SpawnEff(0x600E0, coord, 0x100, NULL);
                     }
                 }
@@ -413,7 +413,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
             addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
-        if (Gp_State1C->field_4 == 0) {
+        if (Gp_State1C->eventState == 0) {
             coord->coord.t[0] += mem->field_10;
             coord->coord.t[1] += mem->field_12;
             coord->coord.t[2] += mem->field_14;
@@ -452,7 +452,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
 
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
-    if (Gp_State1C->field_4 != 0) {
+    if (Gp_State1C->eventState != 0) {
         if (arg0->state == 2) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
@@ -478,7 +478,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
             }
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-                if (Gp_State1C->field_4 == 0) {
+                if (Gp_State1C->eventState == 0) {
                     func_acropolis_helicopter_landing_pad_80180A64(coord);
                 }
             }
@@ -706,7 +706,7 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
         Gp_ReleaseState1CMem(mem, arg0);
         return;
     }
-    if (Gp_State1C->field_4 != 0 && arg0->state < 3) {
+    if (Gp_State1C->eventState != 0 && arg0->state < 3) {
         return;
     }
     Gp_UpdateCoord(coord);
@@ -774,8 +774,8 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
 
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
-    if (Gp_State1C->field_4 >= 2) {
-        if (Gp_State1C->field_4 >= 4) {
+    if (Gp_State1C->eventState >= 2) {
+        if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
         return;
@@ -831,14 +831,14 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
                         prim->code |= 1;
                     }
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && Gp_State1C->field_4 == 0) {
+                    if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && Gp_State1C->eventState == 0) {
                         Gp_SpawnEff(0x600E0, coord, 0x100, NULL);
                     }
                 } else {
                     prim->code = 0x2D;
                 }
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && Gp_State1C->field_4 == 0) {
+                if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && Gp_State1C->eventState == 0) {
                     Gp_SpawnEff(0x6005A, coord, 2 - arg0->spawnArg1, NULL);
                 }
             }
@@ -868,7 +868,7 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
             addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
-        if (Gp_State1C->field_4 == 0) {
+        if (Gp_State1C->eventState == 0) {
             coord->coord.t[0] += mem->field_10;
             coord->coord.t[1] += mem->field_12;
             coord->coord.t[2] += mem->field_14;
@@ -895,9 +895,9 @@ void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
     s32        level;
 
     if ((Gp_GetViewIndex() & 0xFF) == 0x12) {
-        Gp_State1C->field_8 = -1;
+        Gp_State1C->groundShade = -1;
     } else {
-        Gp_State1C->field_8 = 0;
+        Gp_State1C->groundShade = 0;
     }
 
     v              = D_80070F70 << 2;

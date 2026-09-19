@@ -41,7 +41,7 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
             task->state = task->state + 1;
             break;
         case 1:
-            if (Gp_State1C->field_4 < 4) {
+            if (Gp_State1C->eventState < 4) {
                 if ((u8)gGameSession->at4.loc.view == 3) {
                     work->field_10.vx = 0x48F;
                     work->field_10.vy = -0x391;

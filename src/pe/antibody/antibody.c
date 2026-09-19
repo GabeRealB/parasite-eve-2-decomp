@@ -44,7 +44,7 @@ void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 
 /// Runs one frame of an antibody cast. `Task::spawnArg2` is the `GpEffWork`
 /// block and `Task::extra` reaches the effect coordinate. Cancel
-/// (`Gp_StateC08.field_3 == -2` or `Gp_State1C->field_E >= 4`) releases the
+/// (`Gp_StateC08.field_3 == -2` or `Gp_State1C->fadeState >= 4`) releases the
 /// work block.
 ///
 /// State 0 parents the coordinate with an identity rotation at the origin,
@@ -72,7 +72,7 @@ void func_antibody_8012EF34(Task* arg0)
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if ((state->field_3 != -2) && (Gp_State1C->field_E < 4)) {
+    if ((state->field_3 != -2) && (Gp_State1C->fadeState < 4)) {
         mem->field_22 = (u16)mem->field_22 + 1;
         switch (arg0->state) {
             case 0: {
@@ -90,11 +90,11 @@ void func_antibody_8012EF34(Task* arg0)
                 coord->coord.t[0] = 0;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                Gp_State1C->field_12 &= 0xFDFF;
-                state->field_6       |= 8;
-                arg0->state           = 1;
-                mem->field_20         = (Gp_StateC08.field_0 % 10) - 1;
-                i                     = 0;
+                Gp_State1C->peFxFlags &= 0xFDFF;
+                state->field_6        |= 8;
+                arg0->state            = 1;
+                mem->field_20          = (Gp_StateC08.field_0 % 10) - 1;
+                i                      = 0;
                 if (D_antibody_80130BD4[mem->field_20].field_0 > 0) {
                     do {
                         s16* dst;

@@ -245,7 +245,7 @@ extern GsCOORDINATE2 D_dryfield_dilapidated_house_8018A060[8];
 /// frames every frame, writes them into slot `field_22 & 7`, re-runs the whole
 /// ring so the older slots follow their parents, and hands the ribbon to
 /// `func_dryfield_dilapidated_house_801823B8`. The task frees itself once
-/// `field_22` reaches spawn arg 1. It idles whole while `Gp_State1C->field_4`
+/// `field_22` reaches spawn arg 1. It idles whole while `Gp_State1C->eventState`
 /// is 2 or more.
 void func_dryfield_dilapidated_house_80181F08(Task* task)
 {
@@ -259,7 +259,7 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = ((TmdObject*)task->extra)->coords;
 
-    if (Gp_State1C->field_4 < 2) {
+    if (Gp_State1C->eventState < 2) {
         work->field_22++;
         switch (task->state) {
             case 0:
@@ -437,11 +437,11 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
 
     switch (task->state) {
         case 0:
-            if (Gp_State1C->field_4 != 0) {
+            if (Gp_State1C->eventState != 0) {
                 s32 fade;
 
                 work->field_22 = tick;
-                fade           = Gp_State1C->field_4;
+                fade           = Gp_State1C->eventState;
                 SOFT_USE_REG(fade);
                 keep = fade < 4;
                 break;
@@ -482,9 +482,9 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             task->state = 1;
             return;
         case 1:
-            if (Gp_State1C->field_4 != 0) {
+            if (Gp_State1C->eventState != 0) {
                 work->field_22 = tick;
-                keep           = Gp_State1C->field_4 < 4;
+                keep           = Gp_State1C->eventState < 4;
                 break;
             }
             func_dryfield_dilapidated_house_801832A8(coord, (s16)tick1, work->field_26, work->field_28);
@@ -800,7 +800,7 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
     s32         angle;
 
     mem  = arg0->spawnArg2;
-    flag = Gp_State1C->field_4;
+    flag = Gp_State1C->eventState;
     if (flag != 0) {
         if (flag >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
@@ -843,7 +843,7 @@ void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
     s32            angle;
 
     mem   = arg0->spawnArg2;
-    flag  = Gp_State1C->field_4;
+    flag  = Gp_State1C->eventState;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag != 0) {
         if (flag >= 4) {

@@ -23319,7 +23319,7 @@ treats that load as ready to interleave:
 void* mem;
 
 mem = arg0->spawnArg2;
-Gp_State1C->field_0--;
+Gp_State1C->effectCount--;
 memFree(mem);
 taskKill(arg0);
 ```
@@ -35073,7 +35073,7 @@ entry `beqz` delay:
 base = Gp_RoomCoords;
 slot = (GpCoordTail*)&base->coord;
 st   = Gp_State1C;
-if (st->field_4 < 2) {
+if (st->eventState < 2) {
     slot->field_50 = 0xC00;
     ...
     if (slot->field_58 >= 0x191) {
@@ -44821,7 +44821,7 @@ re-split so splat drops the now-moved `INCLUDE_RODATA` line itself.
 ## Duplicate the tail call instead of an `else` when statement order can only fix one of scheduling and allocation
 
 `func_hypervelocity_8011F270` reads three things at the top — `mem =
-arg0->spawnArg2`, `flag = Gp_State1C->field_4`, `coord =
+arg0->spawnArg2`, `flag = Gp_State1C->eventState`, `coord =
 ((GameActorExt*)arg0->extra)->field_8` — and ends with one shared
 `Gp_ReleaseState1CMem(mem, arg0)` reached both from the early
 `flag`-dispatch arm and from the fall-through of the body. Written with the
@@ -54879,7 +54879,7 @@ slot  = (GpCoordTail*)light;
 if ((((GpActorWork*)gameGetPtrSlot(3))->extra->flags & 0x80) != 0) {
     return;
 }
-if (Gp_State1C->field_4 >= 2) {
+if (Gp_State1C->eventState >= 2) {
     return;
 }
 ```
@@ -56640,7 +56640,7 @@ that `j` — and therefore the branch polarity — follows the source: the *then
 arm falls through, the *else* arm is the one merged into the shared tail.
 
 `func_acropolis_bridge_80182694` ends its state-1 case with a decrement or a
-`Gp_ReleaseState1CMem` that the early `Gp_State1C->field_4 >= 4` path also
+`Gp_ReleaseState1CMem` that the early `Gp_State1C->eventState >= 4` path also
 reaches. Writing the release as the *then* arm inlines the `jal` in the middle
 of the function (`branch=1 insert=6 delete=5`, 84%):
 
@@ -87948,7 +87948,7 @@ once:
 
 ```c
 extern u16 D_dryfield_water_tank_801868CC[];
-    Gp_State1C->field_A = D_dryfield_water_tank_801868CC[(Gp_GetViewIndex() & 0xFF) - 1];
+    Gp_State1C->roomEffectMode = D_dryfield_water_tank_801868CC[(Gp_GetViewIndex() & 0xFF) - 1];
 ```
 
 `lhu` at the read says 2 bytes, so `u16` — and 100.000% followed on the first
@@ -88421,7 +88421,7 @@ Inputs: `base.c` (listing order, 77.778%)
 
 ## An array subscript keeps its `- 1` on the index; pointer arithmetic folds it into the symbol (func_dryfield_water_tower_80180348, 2026-09-15)
 
-`Gp_State1C->field_A = D_..._801827A0[(Gp_GetViewIndex() & 0xFF) - 1]` - one
+`Gp_State1C->roomEffectMode = D_..._801827A0[(Gp_GetViewIndex() & 0xFF) - 1]` - one
 call, one table read, one halfword store. The target keeps the subtraction on
 the *index*:
 
@@ -88453,7 +88453,7 @@ ARRAY_REF's base expands before its index, so the address insns are born with
 
 ```c
 view = (Gp_GetViewIndex() & 0xFF) - 1;
-Gp_State1C->field_A = D_...[view];
+Gp_State1C->roomEffectMode = D_...[view];
 ```
 
 - emits the identical instruction *set*, in the wrong order (`andi`,`addiu`
@@ -90500,7 +90500,7 @@ allowed to happen, and a seed that hand-writes the shared block prevents it
 landing where the ROM puts it.
 
 The same seed also carried m2c's `M2C_UNK` element-size bug (see the
-`func_dryfield_water_tank_8017F084` entry above - same `Gp_State1C->field_A`
+`func_dryfield_water_tank_8017F084` entry above - same `Gp_State1C->roomEffectMode`
 view-table shape). Retyping the view table `u16` and the drawn arrays `SVECTOR`
 together with duplicating the calls took 71.8% to 100.000%, all penalties zero,
 on the first build. The per-arm pointer reset (`SVECTOR* p = D_x;` inside each
@@ -117984,7 +117984,7 @@ All three in one rewrite: 62.684% with `regs=57 insert=17 delete=15` to
 
 ## A nested `if`'s comparison lands in the outer branch's delay slot: read the branch as testing the *earlier* value
 
-`func_mine_cavern_80180320` gates on `Gp_State1C`'s `field_4` the way the whole
+`func_mine_cavern_80180320` gates on `Gp_State1C`'s `eventState` the way the whole
 room-effect family does - 1-3 parks the effect, 4 or more tears the work block
 down - and the target tests it twice off one load:
 
@@ -118008,8 +118008,8 @@ Nothing special is needed in the C to get this - write the nesting plainly and
 let CSE merge the two reads into one load and one pseudo:
 
 ```c
-if (Gp_State1C->field_4 != 0) {
-    if (Gp_State1C->field_4 >= 4) {
+if (Gp_State1C->eventState != 0) {
+    if (Gp_State1C->eventState >= 4) {
         Gp_ReleaseState1CMem(work, task);
     }
 } else {
@@ -118949,7 +118949,7 @@ promotion and are already matched in their own overlay.
 ## Identical early-exit blocks the target *keeps*: jump2's chain loop only runs when the first comparison fails (func_dryfield_dilapidated_house_80182744, 2026-09-17)
 
 The mirror image of the entry above. Two switch cases each open with
-`if (Gp_State1C->field_4 != 0) { work->field_22 = tick; keep = Gp_State1C->field_4 < 4;
+`if (Gp_State1C->eventState != 0) { work->field_22 = tick; keep = Gp_State1C->eventState < 4;
 break; }` and both `break` to one shared `if (!keep) Gp_ReleaseState1CMem(...)`.
 Written that way the two then-blocks are byte-identical and the target keeps
 *both*: the case-0 test is `beqz $v0, <main body>` with the early block as its
@@ -118985,7 +118985,7 @@ the cheapest RTL-only difference:
 ```c
         s32 fade;
         work->field_22 = tick;
-        fade           = Gp_State1C->field_4;   /* the reload the target has anyway */
+        fade           = Gp_State1C->eventState; /* the reload the target has anyway */
         SOFT_USE_REG(fade);                     /* between the `lh` and the `slti` */
         keep = fade < 4;
 ```
@@ -133671,3 +133671,23 @@ store into a fresh block addresses it off the *head* in the target
 `*(s16*)(head - N) = value`: naming the field reaches it from the block pointer
 and the base register changes with it. A typed access is the better spelling
 only where the target already addresses the block.
+## A placeholder field rename parses the whole tree, so the runs go one at a time
+
+`rename_item.py` narrows its candidate translation units by grepping for the
+name it is renaming, and that prefilter collapses for a placeholder member: a
+`field_4` or `field_12` is spelled by dozens of unrelated headers, so the
+"headers that mention it" set reaches nearly every translation unit and the run
+parses the whole compilation database - around 1400 entries, ten minutes on a
+loaded machine, with nothing printed until it starts on the files.
+
+Two consequences when one struct's fields are all being named:
+
+- Run them sequentially. Each run stages whole files from positions it computed
+  at the start, so two runs over the same header interleave their writes and
+  corrupt it; the cost cannot be paid down with parallelism.
+- `--no-comments` is mandatory for a placeholder name, since the markdown branch
+  would otherwise rewrite every other type's mention of it. That branch is also
+  what rewrites the comments naming the field, so the declaration's own field
+  comments and every `Type::field_XX`-style mention left in the tree and in
+  these notes are hand edits afterwards; grepping `src` and `include` for the
+  retired path is what shows they are all done.

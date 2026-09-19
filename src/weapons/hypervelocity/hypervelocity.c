@@ -53,7 +53,7 @@ void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin);
 /// (`field_28`) and the per-frame brightness step (`field_2A`);
 /// `Task::extra` reaches the coordinate it hangs on and `Task::spawnArg1` is
 /// the charge counter the firing code drives. Any room fade
-/// (`Gp_State1C->field_4`) freezes the task, and a fade of 4 or more restarts
+/// (`Gp_State1C->eventState`) freezes the task, and a fade of 4 or more restarts
 /// it at state 1.
 ///
 /// - State 0 hangs the coordinate off `GpEffWork::field_8` at the fixed muzzle
@@ -93,8 +93,8 @@ void func_hypervelocity_8011D1E8(Task* task)
     slot  = (GpCoordTail*)light;
     coord = ((TmdObject*)task->extra)->coords;
 
-    if (Gp_State1C->field_4 != 0) {
-        if (Gp_State1C->field_4 >= 4) {
+    if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->eventState >= 4) {
             task->state = 1;
         }
         return;
@@ -238,7 +238,7 @@ void func_hypervelocity_8011D1E8(Task* task)
 /// `field_12` / `field_14`), its age (`field_22`), the trail brightness
 /// (`field_24`), the ring spin (`field_26`) and the ring's start angle
 /// (`field_28`); `Task::extra` reaches the coordinate it flies on. A room fade
-/// (`Gp_State1C->field_4`) winds the age back down instead of advancing, and
+/// (`Gp_State1C->eventState`) winds the age back down instead of advancing, and
 /// tears the round down once the fade reaches 4.
 ///
 /// - State 0 allocates the `HyperBeam` list node, copies the player's rotation
@@ -279,9 +279,9 @@ void func_hypervelocity_8011D830(Task* task)
     light = &base->coord;
     slot  = (GpCoordTail*)light;
 
-    if (Gp_State1C->field_4 != 0) {
+    if (Gp_State1C->eventState != 0) {
         work->field_22 = (u16)work->field_22 - 1;
-        if (Gp_State1C->field_4 >= 4) {
+        if (Gp_State1C->eventState >= 4) {
             if (task->state != 0) {
                 Gp_UnlinkObj(&beam->obj);
             }
@@ -378,7 +378,7 @@ void func_hypervelocity_8011D830(Task* task)
             Gp_DrawRing(coord, work->field_26, rgb);
             func_hypervelocity_8011DF34(coord, work->field_22, work->field_26, 0);
             func_hypervelocity_8011DF34(coord, work->field_22, work->field_26, 1);
-            if (Gp_State1C->field_6 != 0 && Gp_TraceGroundCoord(coord, &ground) == 1) {
+            if (Gp_State1C->groundTrace != 0 && Gp_TraceGroundCoord(coord, &ground) == 1) {
                 func_hypervelocity_8011E8A0(&ground, work->field_26);
             }
             if (work->field_22 < 0x15) {

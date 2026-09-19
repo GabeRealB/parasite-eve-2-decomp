@@ -63,7 +63,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
     light = &base->coord;
     slot  = (GpCoordTail*)light;
 
-    if ((((TmdObject*)(gameGetPtrSlot(3))->extra)->flags & 0x80) == 0 && Gp_State1C->field_4 < 2) {
+    if ((((TmdObject*)(gameGetPtrSlot(3))->extra)->flags & 0x80) == 0 && Gp_State1C->eventState < 2) {
         work->field_22 = (u16)work->field_22 + 1;
         switch (task->state) {
             case 0:
@@ -91,7 +91,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                     case 0:
                         break;
                     case 1:
-                        if (Gp_State1C->field_4 != 0) {
+                        if (Gp_State1C->eventState != 0) {
                             work->field_22 = (u16)work->field_22 - 1;
                             if ((work->field_22 & 1) == 0) {
                                 func_m4a1_hammer_8011D904(coord->workm.t, work->field_22 >> 1, work->field_28,
@@ -122,7 +122,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         work->field_20 = 0;
                         return;
                     case 2:
-                        if (Gp_State1C->field_4 != 0) {
+                        if (Gp_State1C->eventState != 0) {
                             work->field_22 = (u16)work->field_22 - 1;
                             if ((work->field_22 & 1) == 0) {
                                 func_m4a1_hammer_8011DE60(coord, work->field_22 >> 1, work->field_28,

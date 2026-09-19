@@ -22,8 +22,8 @@ void func_mine_forked_tunnel_8017E78C(void)
 {
     s32 idx;
 
-    Gp_State1C->field_A = 2;
-    idx                 = Gp_GetViewIndex() & 0xFF;
+    Gp_State1C->roomEffectMode = 2;
+    idx                        = Gp_GetViewIndex() & 0xFF;
 
     switch (idx) {
         case 2:

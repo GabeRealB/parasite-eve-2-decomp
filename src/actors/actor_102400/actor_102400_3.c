@@ -188,7 +188,7 @@ void func_actor_102400_80134AC4(GsCOORDINATE2* arg0, s32 arg1)
     SVECTOR sp18;
     s32     ang;
 
-    if (Gp_State1C->field_4 == 0) {
+    if (Gp_State1C->eventState == 0) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;

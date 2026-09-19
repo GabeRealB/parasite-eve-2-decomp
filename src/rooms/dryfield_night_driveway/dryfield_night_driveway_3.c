@@ -24,7 +24,7 @@ extern SVECTOR D_dryfield_night_driveway_801805D0;
 /// other phases share.
 void func_dryfield_night_driveway_8017E5CC(void)
 {
-    Gp_State1C->field_A = 2;
+    Gp_State1C->roomEffectMode = 2;
     switch (gGameSession->at4.loc.view) {
         case 2:
         case 9:

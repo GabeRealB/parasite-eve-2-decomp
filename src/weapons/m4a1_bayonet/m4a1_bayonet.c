@@ -30,7 +30,7 @@ SVECTOR D_m4a1_bayonet_8011DED0 = { 0, 0x0180, 0x0040, 0 };
 #define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
 /// Per-frame task for the M4A1 bayonet's blade trail. Nothing runs once the
-/// room is fading (`Gp_State1C->field_4` non-zero); the task is then released
+/// room is fading (`Gp_State1C->eventState` non-zero); the task is then released
 /// as soon as that phase reaches 4. State 0 places the tip frame at
 /// `D_m4a1_bayonet_8011DEC8[0]` under the muzzle and the hilt frame at
 /// `[1]` under it, then seeds all sixteen trail slots with that pose. State 1
@@ -54,7 +54,7 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
 
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
-    phase = Gp_State1C->field_4;
+    phase = Gp_State1C->eventState;
     if (phase == 0) {
         work->field_22++;
         switch (task->state) {

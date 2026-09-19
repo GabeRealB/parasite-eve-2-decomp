@@ -143,7 +143,7 @@ void func_actor_310600_80161FA0(Task* task)
     }
     if (!(ext->flags & 0x80)) {
         if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
+            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
         }
         Gp_ClearRec18Occupied(&work->rec);
     }

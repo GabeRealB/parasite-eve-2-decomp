@@ -526,7 +526,7 @@ void func_actor_421600_8013848C(Actor421600* arg0)
         sound    = (((u16)ctx->placeKey >> 0xC) << 8) | 0x4001000A;
         eventPan = (s8)Gp_GetObjPan(arg0->field_2C->coords);
         SndEvt_EnqueueType6(sound, (s32)eventPan, (s32)(s8)Gp_GetObjDepth(arg0->field_2C->coords));
-        if (Gp_State1C->field_A == 2) {
+        if (Gp_State1C->roomEffectMode == 2) {
             Gp_SpawnEff(0x60054, ((TmdObject*)player->extra)->coords + 1, 0x80003A00, NULL);
         }
     }

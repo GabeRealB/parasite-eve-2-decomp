@@ -92,8 +92,8 @@ void func_m4a1_javelin_8011D1E4(Task* task)
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
 
-    if (Gp_State1C->field_4 != 0) {
-        if (Gp_State1C->field_4 >= 4) {
+    if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;
@@ -202,7 +202,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             pa.vx          = (u16)pb.vx;
             pa.vy          = (u16)pb.vy;
             pa.vz          = (u16)pb.vz;
-            if (Gp_State1C->field_6 != 0) {
+            if (Gp_State1C->groundTrace != 0) {
                 gte_SetRotMatrix(&Gfx_ViewWorldMtx);
                 gte_ldv0(&D_m4a1_javelin_8011FA98);
                 gte_rtv0_real();
@@ -701,7 +701,7 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
     s16            flag;
 
     mem   = arg0->spawnArg2;
-    flag  = Gp_State1C->field_4;
+    flag  = Gp_State1C->eventState;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag != 0) {
         if (flag < 4) {

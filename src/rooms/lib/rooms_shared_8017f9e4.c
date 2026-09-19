@@ -27,7 +27,7 @@ void RoomsShared8017f9e4(Task* task)
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = ((TmdObject*)task->extra)->coords;
 
-    if (Gp_State1C->field_4 < 2) {
+    if (Gp_State1C->eventState < 2) {
         work->field_22++;
         switch (task->state) {
             case 0:

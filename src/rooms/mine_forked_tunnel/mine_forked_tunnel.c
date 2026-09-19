@@ -72,7 +72,7 @@ void func_mine_forked_tunnel_8017D724(Task* arg0)
 
     if (!(ext->flags & 0x80)) {
         if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->coords->workm.t, &vec) != 0) {
-            Gp_DrawEffGroundQuad(&vec, 0x200, Gp_State1C->field_8);
+            Gp_DrawEffGroundQuad(&vec, 0x200, Gp_State1C->groundShade);
         }
         Gp_UpdateCoord(((TmdObject*)arg0->extra)->coords);
         func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->coords->workm.t, 0, 3);

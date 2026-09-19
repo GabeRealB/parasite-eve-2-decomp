@@ -44,11 +44,11 @@ INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_9", func_mine_mesa_8017EB54)
 void func_mine_mesa_8017ED08(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115758          = 0x600E9;
-        D_8011572C          = 0x600EB;
-        D_80115750          = 0x600EC;
-        Gp_State1C->field_A = 2;
-        arg0->state         = 1;
+        D_80115758                 = 0x600E9;
+        D_8011572C                 = 0x600EB;
+        D_80115750                 = 0x600EC;
+        Gp_State1C->roomEffectMode = 2;
+        arg0->state                = 1;
     }
 
     switch (Gp_GetViewIndex() & 0xFF) {

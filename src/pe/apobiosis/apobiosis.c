@@ -66,7 +66,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
 
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if ((D_80114C0B != -2) && (Gp_State1C->field_E < 4)) {
+    if ((D_80114C0B != -2) && (Gp_State1C->fadeState < 4)) {
         mem->field_22 = (u16)mem->field_22 + 1;
         switch (arg0->state) {
             case 0:
@@ -371,7 +371,7 @@ void func_apobiosis_8012FE10(Task* arg0)
 
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if ((D_80114C0B != -2) && (Gp_State1C->field_E < 4)) {
+    if ((D_80114C0B != -2) && (Gp_State1C->fadeState < 4)) {
         mem->field_22 = (u16)mem->field_22 + 1;
         switch (arg0->state) {
             case 0:

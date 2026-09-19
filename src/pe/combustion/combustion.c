@@ -91,7 +91,7 @@ void func_combustion_8012EF34(Task* arg0)
             /* fallthrough */
         case 1:
             Gp_UpdateCoord(coord);
-            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->field_E >= 4)) {
+            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
                 goto release;
             }
             mem->field_12 = (u16)mem->field_12 + D_combustion_80130980[mem->field_20].field_0;
@@ -108,7 +108,7 @@ void func_combustion_8012EF34(Task* arg0)
             return;
         case 2:
             Gp_UpdateCoord(coord);
-            if ((D_80114C0B == -2) || (Gp_State1C->field_E >= 4) ||
+            if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4) ||
                 (mem->field_22 > D_combustion_80130980[mem->field_20].field_6)) {
             release:
                 Gp_ReleaseState1CMem(mem, arg0);
@@ -183,7 +183,7 @@ void func_combustion_8012F2BC(Task* arg0)
             } else {
                 func_combustion_801305F8(coord, mem->field_22, mem->field_24);
             }
-            if ((D_80114C0B == -2) || (Gp_State1C->field_E >= 4) || (mem->field_22 >= 0x21)) {
+            if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4) || (mem->field_22 >= 0x21)) {
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
@@ -205,7 +205,7 @@ void func_combustion_8012F2BC(Task* arg0)
             } else {
                 func_combustion_80130184(coord, mem->field_22, mem->field_24 * 4, 0);
             }
-            if ((D_80114C0B == -2) || (Gp_State1C->field_E >= 4) || (mem->field_22 >= 0x21)) {
+            if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4) || (mem->field_22 >= 0x21)) {
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }

@@ -8,7 +8,7 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_3", Room
 
 void func_neo_ark_forest_zone_8017E3C0(Task* arg0)
 {
-    Gp_State1C->field_A = 2;
+    Gp_State1C->roomEffectMode = 2;
     if (arg0->state == 0) {
         D_80115758  = 0x601D9;
         D_8011572C  = 0x601F5;

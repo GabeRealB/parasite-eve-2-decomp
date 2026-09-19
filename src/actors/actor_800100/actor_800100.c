@@ -13,7 +13,7 @@
 
 /// Per-frame flare task of the actor: while the player model is visible
 /// (`field_C & 0x80` clear) and the room is not fading out
-/// (`Gp_State1C->field_4 < 2`) it claims room-light slot 3 as the flare's
+/// (`Gp_State1C->eventState < 2`) it claims room-light slot 3 as the flare's
 /// coordinate. State 0 hangs that coordinate off the actor's own at the fixed
 /// offset and zeroes its `field_22`; state 1 then dispatches on `spawnArg1`:
 ///
@@ -25,7 +25,7 @@
 ///   (`0x400` / `0x4000`) falloff and a `0x800..0xF00` angle.
 /// - 3 and 4 switch back to sub-state 1 and 0, and 5 releases the pool block.
 ///
-/// While `Gp_State1C->field_4` is non-zero the two drawing sub-states wind
+/// While `Gp_State1C->eventState` is non-zero the two drawing sub-states wind
 /// `field_22` back down instead of advancing.
 void func_actor_800100_80161F20(Task* task)
 {
@@ -46,7 +46,7 @@ void func_actor_800100_80161F20(Task* task)
     if ((((GpActorWork*)gameGetPtrSlot(10))->extra->flags & 0x80) != 0) {
         return;
     }
-    if (Gp_State1C->field_4 >= 2) {
+    if (Gp_State1C->eventState >= 2) {
         return;
     }
     work->field_22++;
@@ -72,7 +72,7 @@ void func_actor_800100_80161F20(Task* task)
                 case 0:
                     break;
                 case 1:
-                    if (Gp_State1C->field_4 != 0) {
+                    if (Gp_State1C->eventState != 0) {
                         work->field_22--;
                         func_actor_800100_80162264(
                             (VECTOR3*)&coord->workm.t, work->field_22, 0x80);
@@ -93,7 +93,7 @@ void func_actor_800100_80161F20(Task* task)
                     work->field_24 = 0x40;
                     break;
                 case 2:
-                    if (Gp_State1C->field_4 != 0) {
+                    if (Gp_State1C->eventState != 0) {
                         work->field_22--;
                         break;
                     }
@@ -208,7 +208,7 @@ void func_actor_800100_80162264(VECTOR3* pos, u16 frame, s32 brightness)
 
 /// Projectile task of the actor: while the state block says a fade-out is not
 /// running it winds `work->field_22` (the animation frame, halved for the
-/// draw) forward, and while one is (`Gp_State1C->field_4` non-zero) it just
+/// draw) forward, and while one is (`Gp_State1C->eventState` non-zero) it just
 /// redraws at the coordinate. `field_4 >= 4` tears the task down.
 ///
 /// - State 0 allocates the projectile's `Actor800100Beam`, claims the exit
@@ -238,7 +238,7 @@ void func_actor_800100_801624F0(Task* task)
 
     beam  = (Actor800100Beam*)task->work;
     work  = task->spawnArg2;
-    fade  = Gp_State1C->field_4;
+    fade  = Gp_State1C->eventState;
     coord = ((TmdObject*)task->extra)->coords;
     if (fade >= 4) {
         if (task->state != 0) {
@@ -306,7 +306,7 @@ void func_actor_800100_801624F0(Task* task)
                                        work->field_26);
             ang2        = Gp_LcgState * 5 + 0x71357911;
             Gp_LcgState = ang2;
-            if ((u16)((ang2 >> 16) % 3) == 0 && Gp_State1C->field_6 != 0 &&
+            if ((u16)((ang2 >> 16) % 3) == 0 && Gp_State1C->groundTrace != 0 &&
                 Gp_TraceGroundCoord(coord, &ground) == 1) {
                 func_actor_800100_80162E90((VECTOR3*)ground.workm.t,
                                            (s16)((work->field_24 * 2) / 3));

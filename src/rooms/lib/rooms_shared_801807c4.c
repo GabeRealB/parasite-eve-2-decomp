@@ -19,7 +19,7 @@ void RoomsShared801807c4(Task* task)
     work   = task->spawnArg2;
     coord  = ((TmdObject*)task->extra)->coords;
     target = (GsCOORDINATE2*)task->spawnArg1;
-    if (Gp_State1C->field_4 == 0) {
+    if (Gp_State1C->eventState == 0) {
         work->field_22++;
         switch (task->state) {
             case 0:
@@ -54,7 +54,7 @@ void RoomsShared801807c4(Task* task)
                 }
                 break;
         }
-    } else if (Gp_State1C->field_4 >= 4) {
+    } else if (Gp_State1C->eventState >= 4) {
         Gp_ReleaseState1CMem(work, task);
     }
 }

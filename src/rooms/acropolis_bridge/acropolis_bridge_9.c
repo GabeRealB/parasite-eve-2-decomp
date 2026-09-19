@@ -66,8 +66,9 @@ extern void func_acropolis_bridge_801833A0(GsCOORDINATE2* arg0, u16 arg1, s16 ar
 ///
 /// `D_acropolis_bridge_801899FC` finally maps the view onto one of five
 /// looping ambience effects (0x600B4..0x600B8): entering the view bursts 30
-/// copies at once, staying in it emits one per frame, or one in two / one in
-/// three while `Gp_State1C->field_16` says the scene is quiet.
+/// copies at once, and staying in it emits one per frame - one in two while
+/// `Gp_State1C->battleState` says no battle is engaged, one in three while one
+/// is, so that the ambience thins out during a fight.
 void func_acropolis_bridge_8017F868(Task* task)
 {
     RoomEffWork*   work;
@@ -90,7 +91,7 @@ void func_acropolis_bridge_8017F868(Task* task)
     owner = gameGetPtrSlot(3);
     part  = ((TmdObject*)owner->extra)->coords;
     view  = Gp_GetViewIndex();
-    if (Gp_State1C->field_4 >= 4) {
+    if (Gp_State1C->eventState >= 4) {
         return;
     }
 
@@ -163,7 +164,7 @@ void func_acropolis_bridge_8017F868(Task* task)
         Gp_SpawnEff(0x600B3, coord, 1, &D_acropolis_bridge_801899E4);
     }
 
-    if ((bit & 0x62) && Gp_State1C->field_4 == 0 && part->coord.t[1] >= 0x201) {
+    if ((bit & 0x62) && Gp_State1C->eventState == 0 && part->coord.t[1] >= 0x201) {
         for (i = 0; i < 2; i++) {
             part  = &((TmdObject*)owner->extra)->coords[14 + i * 3];
             delta = D_acropolis_bridge_80189A34[i].vx - part->workm.t[0];
@@ -213,7 +214,7 @@ void func_acropolis_bridge_8017F868(Task* task)
                 for (i = 0; i < 0x1E; i++) {
                     Gp_SpawnEff(0x600B4, coord, view, NULL);
                 }
-            } else if (Gp_State1C->field_16 != 1) {
+            } else if (Gp_State1C->battleState != 1) {
                 if (work->field_22 & 0x200) {
                     Gp_SpawnEff(0x600B4, coord, lastView, NULL);
                     Gp_SpawnEff(0x600B4, coord, lastView, NULL);
@@ -236,7 +237,7 @@ void func_acropolis_bridge_8017F868(Task* task)
                 for (i = 0; i < 0x1E; i++) {
                     Gp_SpawnEff(0x600B5, coord, view, NULL);
                 }
-            } else if (Gp_State1C->field_16 != 1) {
+            } else if (Gp_State1C->battleState != 1) {
                 Gp_SpawnEff(0x600B5, coord, lastView, NULL);
                 Gp_SpawnEff(0x600B5, coord, lastView, NULL);
             } else {
@@ -252,7 +253,7 @@ void func_acropolis_bridge_8017F868(Task* task)
                 for (i = 0; i < 0x1E; i++) {
                     Gp_SpawnEff(0x600B6, coord, view, NULL);
                 }
-            } else if (Gp_State1C->field_16 != 1) {
+            } else if (Gp_State1C->battleState != 1) {
                 Gp_SpawnEff(0x600B6, coord, lastView, NULL);
                 Gp_SpawnEff(0x600B6, coord, lastView, NULL);
             } else {
@@ -268,7 +269,7 @@ void func_acropolis_bridge_8017F868(Task* task)
                 for (i = 0; i < 0x1E; i++) {
                     Gp_SpawnEff(0x600B7, coord, view, NULL);
                 }
-            } else if (Gp_State1C->field_16 != 1) {
+            } else if (Gp_State1C->battleState != 1) {
                 Gp_SpawnEff(0x600B7, coord, lastView, NULL);
                 Gp_SpawnEff(0x600B7, coord, lastView, NULL);
             } else {
@@ -284,7 +285,7 @@ void func_acropolis_bridge_8017F868(Task* task)
                 for (i = 0; i < 0x1E; i++) {
                     Gp_SpawnEff(0x600B8, coord, view, NULL);
                 }
-            } else if (Gp_State1C->field_16 != 1) {
+            } else if (Gp_State1C->battleState != 1) {
                 Gp_SpawnEff(0x600B8, coord, lastView, NULL);
                 Gp_SpawnEff(0x600B8, coord, lastView, NULL);
             } else {

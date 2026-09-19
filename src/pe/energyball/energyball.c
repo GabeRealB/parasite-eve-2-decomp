@@ -97,7 +97,7 @@ void func_energyball_8012EF48(Task* arg0)
 
 /// One ball of the energy ball cast; `spawnArg1` picks the `Gp_RoomCoords`
 /// slot it owns and `spawnArg2` the `GpEffWork` block. While the room is
-/// fading (`Gp_State1C->field_E`) it only redraws, and drops the ball once the
+/// fading (`Gp_State1C->fadeState`) it only redraws, and drops the ball once the
 /// fade passes 4. Otherwise it walks `Task::state`: 0 allocates the
 /// `EnergyBallWork` collision block, picks the charge row of
 /// `D_energyball_80131194` from the combo counter and seeds a random spin
@@ -132,7 +132,7 @@ void func_energyball_8012F180(Task* arg0)
     sc    = &slot->coord;
     tail  = (GpCoordTail*)sc;
     coord = ((TmdObject*)arg0->extra)->coords;
-    fade  = Gp_State1C->field_E;
+    fade  = Gp_State1C->fadeState;
     work  = (EnergyBallWork*)arg0->work;
     mem   = arg0->spawnArg2;
     if (fade != 0) {
@@ -152,7 +152,7 @@ void func_energyball_8012F180(Task* arg0)
         Gp_UpdateCoord(coord);
         func_energyball_8013035C(coord, mem->field_22, mem->field_26, mem->field_28);
         func_energyball_8012FFD0(coord, mem->field_26, (s16)(u16)mem->field_24 >> 2);
-        if ((arg0->state < 3) && (Gp_State1C->field_6 != 0) &&
+        if ((arg0->state < 3) && (Gp_State1C->groundTrace != 0) &&
             (Gp_TraceGroundCoord(coord, &ground) == 1)) {
             func_energyball_801307D4(&ground, mem->field_26);
         }
@@ -232,7 +232,7 @@ void func_energyball_8012F180(Task* arg0)
             sc->flg        = 0;
             func_energyball_8013035C(coord, mem->field_22, mem->field_26, mem->field_28);
             func_energyball_8012FFD0(coord, mem->field_26, (s16)(u16)mem->field_24 >> 2);
-            if ((Gp_State1C->field_6 != 0) && (Gp_TraceGroundCoord(coord, &ground) == 1)) {
+            if ((Gp_State1C->groundTrace != 0) && (Gp_TraceGroundCoord(coord, &ground) == 1)) {
                 func_energyball_801307D4(&ground, mem->field_26);
             }
             coord->workm.t[1] += D_energyball_80131194[mem->field_20].field_2 * mem->field_22;
@@ -240,7 +240,7 @@ void func_energyball_8012F180(Task* arg0)
                                      (D_energyball_80131194[mem->field_20].field_0 - mem->field_26) / 5);
             coord->workm.t[1] -= D_energyball_80131194[mem->field_20].field_2 * mem->field_22;
             if ((u16)(Gp_StateC08.field_0 / 10) != 0x2B) {
-                if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->field_E >= 4)) {
+                if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
                     if (D_80115724 > 0) {
                         D_80115724 -= 1;
                         if (D_80115724 == 0) {
@@ -297,13 +297,13 @@ void func_energyball_8012F180(Task* arg0)
             sc->flg        = 0;
             func_energyball_8013035C(coord, mem->field_22, mem->field_26, mem->field_28);
             func_energyball_8012FFD0(coord, mem->field_26, (s16)(u16)mem->field_24 >> 2);
-            if (Gp_State1C->field_6 != 0) {
+            if (Gp_State1C->groundTrace != 0) {
                 if (Gp_TraceGroundCoord(coord, &ground) == 1) {
                     func_energyball_801307D4(&ground, mem->field_26);
                 }
             }
             if ((u16)(Gp_StateC08.field_0 / 10) != 0x2B) {
-                if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->field_E >= 4)) {
+                if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
                     if (D_80115724 > 0) {
                         D_80115724 -= 1;
                         if (D_80115724 == 0) {
@@ -334,7 +334,7 @@ void func_energyball_8012F180(Task* arg0)
                 arg0->state   = 3;
                 return;
             }
-            if (Gp_State1C->field_16 != 1) {
+            if (Gp_State1C->battleState != 1) {
                 Gp_UnlinkObj(&work->obj);
                 arg0->state = 4;
                 return;
@@ -348,7 +348,7 @@ void func_energyball_8012F180(Task* arg0)
             func_energyball_8012FFD0(coord, (u16)mem->field_26 * 2, (s16)(u16)mem->field_24 >> 2);
             mem->field_26 = (u16)mem->field_26 + (u16)D_energyball_80131194[mem->field_20].field_2;
             if (((u16)(Gp_StateC08.field_0 / 10) != 0x2B) &&
-                ((Gp_StateC08.field_3 == -2) || (Gp_State1C->field_E >= 4))) {
+                ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4))) {
                 if (D_80115724 > 0) {
                     D_80115724 -= 1;
                     if (D_80115724 == 0) {
@@ -376,7 +376,7 @@ void func_energyball_8012F180(Task* arg0)
             func_energyball_8012FFD0(coord, (u16)mem->field_26 * 2, (s16)(u16)mem->field_24 >> 2);
             mem->field_26 = (u16)mem->field_26 - (u16)D_energyball_80131194[mem->field_20].field_2;
             if (((u16)(Gp_StateC08.field_0 / 10) != 0x2B) &&
-                ((Gp_StateC08.field_3 == -2) || (Gp_State1C->field_E >= 4))) {
+                ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4))) {
                 if (D_80115724 > 0) {
                     D_80115724 -= 1;
                     if (D_80115724 == 0) {
@@ -759,7 +759,7 @@ void func_energyball_8013107C(Task* arg0)
     s32            angle;
 
     mem   = arg0->spawnArg2;
-    flag  = Gp_State1C->field_E;
+    flag  = Gp_State1C->fadeState;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag != 0) {
         return;

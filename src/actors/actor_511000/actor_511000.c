@@ -67,7 +67,7 @@ void func_actor_511000_80131E78(GpActorWork* arg0)
     }
     if (!(extra->flags & 0x80)) {
         if (func_800EA1A8((VECTOR3*)arg0->extra->coords[1].workm.t, (VECTOR3*)&pos) != 0) {
-            Gp_DrawEffGroundQuad((VECTOR3*)&pos, 0x300, Gp_State1C->field_8);
+            Gp_DrawEffGroundQuad((VECTOR3*)&pos, 0x300, Gp_State1C->groundShade);
         }
     }
     if (gGameSession->viewReady != 0) {

@@ -158,7 +158,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
     s32                                     level;
 
     coord = ((TmdObject*)task->extra)->coords;
-    if (Gp_State1C->field_4 < 4 && ((0x1040C0 >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
+    if (Gp_State1C->eventState < 4 && ((0x1040C0 >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch     = (void**)G_SCRATCH_HEAD;
         head        = *scratch;

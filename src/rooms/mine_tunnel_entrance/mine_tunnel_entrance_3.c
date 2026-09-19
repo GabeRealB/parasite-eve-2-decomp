@@ -23,7 +23,7 @@ extern SVECTOR D_mine_tunnel_entrance_8017DB48[];
 /// the only one whose second quad uses half-extent 0x200.
 void func_mine_tunnel_entrance_8017D720(void)
 {
-    Gp_State1C->field_A = 2;
+    Gp_State1C->roomEffectMode = 2;
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_tunnel_entrance_8017DB18;

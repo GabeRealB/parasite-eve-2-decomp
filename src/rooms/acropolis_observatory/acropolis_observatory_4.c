@@ -250,7 +250,7 @@ void func_acropolis_observatory_8017E6F8(Task* task)
 
     coord = ((TmdObject*)task->extra)->coords;
     mask  = 1 << Gp_GetViewIndex();
-    if (Gp_State1C->field_4 < 4) {
+    if (Gp_State1C->eventState < 4) {
         i     = 0;
         vec   = D_acropolis_observatory_8017FE78;
         flags = D_acropolis_observatory_8017FEB8;

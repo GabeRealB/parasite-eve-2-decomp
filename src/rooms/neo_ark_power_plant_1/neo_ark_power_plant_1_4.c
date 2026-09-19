@@ -90,7 +90,7 @@ void func_neo_ark_power_plant_1_8017DA18(void)
             break;
         case 6:
             if (GameFlag_GetNibble(0x148) != 0) {
-                if (Gp_State1C->field_4 == 0 && GameFlag_GetNibble(0xDE) == 0) {
+                if (Gp_State1C->eventState == 0 && GameFlag_GetNibble(0xDE) == 0) {
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                     if ((((u32)Gp_LcgState >> 16) & 7) == 0) {
                         Gp_SpawnEff(0x600E0, NULL, 0x400, &D_neo_ark_power_plant_1_8017F1C0);
@@ -120,7 +120,7 @@ void func_neo_ark_power_plant_1_8017DA18(void)
             break;
         case 7:
             if (GameFlag_GetNibble(0x148) != 0) {
-                if (Gp_State1C->field_4 == 0 && GameFlag_GetNibble(0xDE) == 0) {
+                if (Gp_State1C->eventState == 0 && GameFlag_GetNibble(0xDE) == 0) {
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                     if ((((u32)Gp_LcgState >> 16) & 7) == 0) {
                         Gp_SpawnEff(0x600E0, NULL, 0x400, &D_neo_ark_power_plant_1_8017F1C0);

@@ -47,7 +47,7 @@ void func_actor_213100_80149E3C(Task* task)
     }
     if (!(extra->flags & 0x80)) {
         if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
+            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
         }
     }
     if (gGameSession->viewReady != 0) {

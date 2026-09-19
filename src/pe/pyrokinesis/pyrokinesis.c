@@ -95,7 +95,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
-            fade = Gp_State1C->field_E;
+            fade = Gp_State1C->fadeState;
             if (fade >= 4) {
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
@@ -195,7 +195,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             Gp_ClearRec18Occupied(&work->rec);
             return;
         case 1:
-            if ((D_80114C0B == -2) || ((fade = Gp_State1C->field_E), fade >= 4)) {
+            if ((D_80114C0B == -2) || ((fade = Gp_State1C->fadeState), fade >= 4)) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_UnlinkObj(&work->obj2);
                 Gp_ReleaseState1CMem(mem, arg0);
@@ -226,7 +226,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                     Task_Reparent(arg0, spawned->field_0);
                 }
             }
-            if (Gp_State1C->field_6 != 0) {
+            if (Gp_State1C->groundTrace != 0) {
                 if (Gp_TraceGroundCoord(coord, &ground) == 1) {
                     func_pyrokinesis_801304C4(&ground, mem->field_26);
                 }
@@ -280,7 +280,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             Gp_ReleaseState1CMem(mem, arg0);
             return;
         case 2:
-            if ((D_80114C0B == -2) || ((fade = Gp_State1C->field_E), fade >= 4)) {
+            if ((D_80114C0B == -2) || ((fade = Gp_State1C->fadeState), fade >= 4)) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
@@ -329,7 +329,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
-            fade = Gp_State1C->field_E;
+            fade = Gp_State1C->fadeState;
             if (fade >= 4) {
                 Gp_UnlinkObj(&work->obj2);
                 Gp_ReleaseState1CMem(mem, arg0);
@@ -357,7 +357,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
-            fade = Gp_State1C->field_E;
+            fade = Gp_State1C->fadeState;
             if (fade >= 4) {
                 Gp_UnlinkObj(&work->obj2);
                 Gp_ReleaseState1CMem(mem, arg0);
@@ -396,9 +396,9 @@ void func_pyrokinesis_8012FAC8(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
     if (Gp_StateC08.field_3 != -2) {
-        scene = Gp_State1C->field_16;
+        scene = Gp_State1C->battleState;
         if (scene == 1) {
-            flag = Gp_State1C->field_E;
+            flag = Gp_State1C->fadeState;
             if (flag < 4) {
                 if (flag != 0) {
                     return;
@@ -789,7 +789,7 @@ void func_pyrokinesis_80130C54(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
     if (Gp_StateC08.field_3 != -2) {
-        flag = Gp_State1C->field_E;
+        flag = Gp_State1C->fadeState;
         if (flag < 4) {
             if (flag != 0) {
                 return;

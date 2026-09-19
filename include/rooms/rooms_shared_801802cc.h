@@ -12,7 +12,7 @@
 /// grows by 0x30 and whose brightness falls by 0x20 each frame (state 2).
 /// Either way the task reaches state 3 after seven frames and hands its
 /// `GpEffWork` block back. It also bails out early - releasing the block once
-/// the fade has run far enough - whenever `Gp_State1C->field_4` says the room
+/// the fade has run far enough - whenever `Gp_State1C->eventState` says the room
 /// is leaving.
 void RoomsShared801802cc(Task* task);
 

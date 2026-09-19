@@ -42,7 +42,7 @@ void WeaponsShared8011e4ac(Task* task);
 
 /// Per-frame beam task for the M4A1 Pyke. Nothing runs while the player model
 /// is hidden (`field_C & 0x80`) or the room is fading out
-/// (`Gp_State1C->field_4 >= 2`). State 0 hangs the task's own coordinate off
+/// (`Gp_State1C->eventState >= 2`). State 0 hangs the task's own coordinate off
 /// `field_8` at the fixed muzzle offset with an identity rotation; state 1 then
 /// dispatches on `spawnArg1`:
 ///
@@ -54,7 +54,7 @@ void WeaponsShared8011e4ac(Task* task);
 ///   (`0x400` / `0x4000`) falloff and a `0x800..0xF00` angle.
 /// - 3 and 4 switch back to sub-state 1 and 0, and 5 releases the pool block.
 ///
-/// While `Gp_State1C->field_4` is non-zero the two drawing sub-states wind
+/// While `Gp_State1C->eventState` is non-zero the two drawing sub-states wind
 /// `field_22` back down instead of advancing.
 void func_m4a1_pyke_8011D1F8(Task* task)
 {
@@ -75,7 +75,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
     if ((((GpActorWork*)gameGetPtrSlot(3))->extra->flags & 0x80) != 0) {
         return;
     }
-    if (Gp_State1C->field_4 >= 2) {
+    if (Gp_State1C->eventState >= 2) {
         return;
     }
     work->field_22++;
@@ -100,7 +100,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                 case 0:
                     break;
                 case 1:
-                    if (Gp_State1C->field_4 != 0) {
+                    if (Gp_State1C->eventState != 0) {
                         work->field_22--;
                         func_m4a1_pyke_8011D548(
                             (VECTOR3*)&coord->workm.t, work->field_22, 0x80);
@@ -125,7 +125,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     work->field_24 = 0x40;
                     break;
                 case 2:
-                    if (Gp_State1C->field_4 != 0) {
+                    if (Gp_State1C->eventState != 0) {
                         work->field_22--;
                         break;
                     }
@@ -245,7 +245,7 @@ void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
 /// `Gp_State1C` work block holding the dart's velocity (`field_10` / `field_12`
 /// / `field_14`), its age (`field_22`), its flare width (`field_24`) and its
 /// spin angle (`field_26`); `Task::extra` reaches the coordinate the dart flies
-/// on. Everything stops once the room is fading out (`Gp_State1C->field_4 >=
+/// on. Everything stops once the room is fading out (`Gp_State1C->eventState >=
 /// 4`); while the fade is merely under way the dart is only redrawn.
 ///
 /// - State 0 allocates the `M4a1PykeBeam` list node, aims the dart by rotating
@@ -273,7 +273,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
 
     beam  = (M4a1PykeBeam*)task->work;
     work  = task->spawnArg2;
-    fade  = Gp_State1C->field_4;
+    fade  = Gp_State1C->eventState;
     coord = ((TmdObject*)task->extra)->coords;
     if (fade >= 4) {
         if (task->state != 0) {
@@ -342,7 +342,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
                                     work->field_26);
             ang2        = Gp_LcgState * 5 + 0x71357911;
             Gp_LcgState = ang2;
-            if ((u16)((ang2 >> 16) % 3) == 0 && Gp_State1C->field_6 != 0 &&
+            if ((u16)((ang2 >> 16) % 3) == 0 && Gp_State1C->groundTrace != 0 &&
                 Gp_TraceGroundCoord(coord, &ground) == 1) {
                 func_m4a1_pyke_8011E168((VECTOR3*)ground.workm.t,
                                         (s16)((work->field_24 * 2) / 3));

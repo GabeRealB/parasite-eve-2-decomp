@@ -66,8 +66,9 @@ extern void func_acropolis_bridge_801833A0(GsCOORDINATE2* arg0, u16 arg1, s16 ar
 ///
 /// `D_acropolis_bridge_801899FC` finally maps the view onto one of five
 /// looping ambience effects (0x600B4..0x600B8): entering the view bursts 30
-/// copies at once, staying in it emits one per frame, or one in two / one in
-/// three while `Gp_State1C->field_16` says the scene is quiet.
+/// copies at once, and staying in it emits one per frame - one in two while
+/// `Gp_State1C->battleState` says no battle is engaged, one in three while one
+/// is, so that the ambience thins out during a fight.
 
 /// Controller for one piece of the bridge's blown debris: it drifts the task's
 /// coordinate frame by a velocity it rolls once, and hands the frame to
@@ -105,9 +106,9 @@ void func_acropolis_bridge_80182AF8(Task* task)
 
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
-    if (Gp_State1C->field_4 != 0) {
+    if (Gp_State1C->eventState != 0) {
         func_acropolis_bridge_80182F8C(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
-        if (Gp_State1C->field_4 >= 4) {
+        if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;

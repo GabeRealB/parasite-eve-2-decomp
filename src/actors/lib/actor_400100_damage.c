@@ -34,14 +34,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[17], 0x80002280, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[9], 0x80002120, &work->field_898);
                     }
                     return 0x40010002;
@@ -57,14 +57,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[14], 0x80002220, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[7], 0x80002120, &work->field_898);
                     }
                     return 0x40010001;
@@ -82,7 +82,7 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[0], 0x80004A00, &work->field_898);
                     }
                     return 0x40010005;
@@ -120,14 +120,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[9], 0x80003200, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[7], 0x80003200, &work->field_898);
                     }
                     return 0x40010004;
@@ -143,14 +143,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[17], 0x80004480, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[14], 0x80004480, &work->field_898);
                     }
                     return 0x40010011;
@@ -168,14 +168,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[9], 0x80003200, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[7], 0x80003200, &work->field_898);
                     }
                     return 0x40010001;
@@ -191,14 +191,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[9], 0x80003200, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[17], 0x80003200, &work->field_898);
                     }
                     return 0x40010001;
@@ -214,14 +214,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[14], 0x80003200, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[17], 0x80003200, &work->field_898);
                     }
                     return 0x40010002;
@@ -239,14 +239,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[9], 0x80003200, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[7], 0x80003200, &work->field_898);
                     }
                     return 0x40010001;
@@ -262,14 +262,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[7], 0x80003200, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[14], 0x80003200, &work->field_898);
                     }
                     return 0x40010001;
@@ -285,14 +285,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[14], 0x80003200, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
-                    if (Gp_State1C->field_A == 2) {
+                    if (Gp_State1C->roomEffectMode == 2) {
                         Gp_SpawnEff(0x60054, &arg0->field_2C->coords[17], 0x80003200, &work->field_898);
                     }
                     return 0x40010002;

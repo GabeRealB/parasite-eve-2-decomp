@@ -64,7 +64,7 @@ void func_acropolis_roof_garden_8017DCDC(Task* task)
         }
         task->state = task->state + 1;
     }
-    if (Gp_State1C->field_4 < 4) {
+    if (Gp_State1C->eventState < 4) {
         if ((0x30 >> ((u8)gGameSession->at4.loc.view - 1)) & 1) {
             work->field_10.vx = -0x12A2;
             work->field_10.vy = -0xDC;
@@ -81,7 +81,7 @@ void func_acropolis_roof_garden_8017DCDC(Task* task)
 }
 
 /// One of the roof garden's ambient sprites. It is only drawn while the scene
-/// is still on `Gp_State1C->field_4` 0 or 1 and the current camera view is one
+/// is still on `Gp_State1C->eventState` 0 or 1 and the current camera view is one
 /// the variant's mask in `D_acropolis_roof_garden_80184C48` allows; otherwise
 /// the frame is skipped entirely.
 ///
@@ -114,7 +114,7 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
 
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if (Gp_State1C->field_4 < 2) {
+    if (Gp_State1C->eventState < 2) {
         if ((D_acropolis_roof_garden_80184C48[arg0->spawnArg1 & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1) {
             Gp_UpdateCoord(coord);
             scratch  = (void**)G_SCRATCH_HEAD;

@@ -1712,13 +1712,13 @@ void func_actor_356100_80169854(GpEnemy* arg0, Actor356100* arg1)
         case 0:
             if (work->field_0 != 0 && work->field_0 != 0x15 && work->field_0 != 0x1E) {
                 arg1->field_2C->flags = 0;
-                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->coords->workm.t, 0x180, Gp_State1C->field_8);
+                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->coords->workm.t, 0x180, Gp_State1C->groundShade);
             }
             break;
         case 1:
             if (work->field_0 != 0 && work->field_0 != 0x15 && work->field_0 != 0x1E) {
                 arg1->field_2C->flags = 0;
-                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->coords->workm.t, 0x180, Gp_State1C->field_8);
+                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->coords->workm.t, 0x180, Gp_State1C->groundShade);
             }
             return;
         case 2:
@@ -1744,7 +1744,7 @@ void func_actor_356100_80169854(GpEnemy* arg0, Actor356100* arg1)
         blk->coord.coord.t[2] = blk->v.vz;
         blk->coord.flg        = 0;
         Gp_UpdateCoord(&blk->coord);
-        Gp_DrawEffGroundQuad((VECTOR3*)blk->coord.workm.t, 0x280, Gp_State1C->field_8);
+        Gp_DrawEffGroundQuad((VECTOR3*)blk->coord.workm.t, 0x280, Gp_State1C->groundShade);
     }
     if (work->field_2 != work->field_0) {
         work->field_4 = 1;

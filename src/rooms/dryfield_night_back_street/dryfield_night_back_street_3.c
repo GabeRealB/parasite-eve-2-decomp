@@ -26,7 +26,7 @@ extern SVECTOR D_dryfield_night_back_street_8018038C[];
 ///
 /// Per-frame effect tick. The first time it runs it latches the room's three
 /// effect ids, which the text actor's script events spawn (`Actor02000_Fn03690`
-/// uses `D_8011572C`), then marks the effect state `Gp_State1C->field_A` and
+/// uses `D_8011572C`), then marks the effect state `Gp_State1C->roomEffectMode` and
 /// lights the room for the camera view the stage-visit byte
 /// `gGameSession->at4.loc.view` selects. Views other than 2, 3, 4 and 5 draw
 /// nothing, and view 3's glows are additional to view 2's shafts.
@@ -37,7 +37,7 @@ void func_dryfield_night_back_street_8017D7E0(Task* arg0)
         D_8011572C = 0x60097;
         D_80115750 = 0x600E4;
     }
-    Gp_State1C->field_A = 2;
+    Gp_State1C->roomEffectMode = 2;
     switch (gGameSession->at4.loc.view) {
         case 3:
             Room_Draw17(&D_dryfield_night_back_street_8018037C[0], 1, 0x300);

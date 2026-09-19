@@ -65,7 +65,7 @@ void func_actor_335800_80161E88(Task* task)
             break;
     }
     if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords->workm.t, &pos) != 0) {
-        Gp_DrawEffGroundQuad(&pos, 0x800, Gp_State1C->field_8);
+        Gp_DrawEffGroundQuad(&pos, 0x800, Gp_State1C->groundShade);
     }
 }
 

@@ -3871,13 +3871,13 @@ void func_actor_403000_8013C864(GpEnemy* arg0, Actor403000* arg1)
         case 0:
             if (work->field_0 != 0x16 && work->field_0 != 0x14 && work->field_0 != 0) {
                 arg1->field_2C->flags = 0;
-                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->coords->workm.t, 0x180, Gp_State1C->field_8);
+                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->coords->workm.t, 0x180, Gp_State1C->groundShade);
             }
             break;
         case 1:
             if (work->field_0 != 0x16 && work->field_0 != 0x14 && work->field_0 != 0) {
                 arg1->field_2C->flags = 0;
-                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->coords->workm.t, 0x180, Gp_State1C->field_8);
+                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->coords->workm.t, 0x180, Gp_State1C->groundShade);
             }
             Gp_ClearRec18Occupied(work->objD18.rec);
             Gp_ClearRec18Occupied(work->objB50.rec);

@@ -90,7 +90,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
 
     work  = (AfrLampWork*)task->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
-    if (Gp_State1C->field_4 < 4 &&
+    if (Gp_State1C->eventState < 4 &&
         ((D_acropolis_forked_road_801821E8[task->spawnArg1 & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch  = (void**)G_SCRATCH_HEAD;

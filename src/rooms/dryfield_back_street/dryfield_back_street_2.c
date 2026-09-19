@@ -20,5 +20,5 @@ void func_dryfield_back_street_8017D970(Task* arg0)
         D_80115750  = 0x60298;
         arg0->state = 1;
     }
-    Gp_State1C->field_A = 2;
+    Gp_State1C->roomEffectMode = 2;
 }

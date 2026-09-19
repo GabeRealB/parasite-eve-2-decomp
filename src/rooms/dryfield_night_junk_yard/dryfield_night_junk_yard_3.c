@@ -44,7 +44,7 @@ void func_dryfield_night_junk_yard_8017DA14(Task* task)
         D_8011572C = 0x600E6;
         D_80115750 = 0x600E7;
     }
-    Gp_State1C->field_A = 2;
+    Gp_State1C->roomEffectMode = 2;
     switch (gGameSession->at4.loc.view) {
         case 2:
         case 8: {

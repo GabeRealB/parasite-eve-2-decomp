@@ -23,7 +23,7 @@ extern s32 Gp_LcgState;
 
 /// Runs one frame of a life-drain mote. Any state releases the work block once
 /// the player is dying (`Gp_StateC08.field_3 == -2`) or the room is fading
-/// (`Gp_State1C->field_E >= 4`).
+/// (`Gp_State1C->fadeState >= 4`).
 ///
 /// State 0 reparents the mote onto the cast's collector task
 /// `D_lifedrain_80130B0C`, hands it this task's `spawnArg1`, and draws a random
@@ -52,7 +52,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
 
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if ((Gp_StateC08.field_3 != -2) && (Gp_State1C->field_E < 4)) {
+    if ((Gp_StateC08.field_3 != -2) && (Gp_State1C->fadeState < 4)) {
         mem->field_22 = (u16)mem->field_22 + 1;
         switch (arg0->state) {
             case 0:

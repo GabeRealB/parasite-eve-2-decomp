@@ -19,7 +19,7 @@ void func_lifedrain_801308C0(Task* arg0)
     s32            scale;
 
     mem   = arg0->spawnArg2;
-    flag  = Gp_State1C->field_E;
+    flag  = Gp_State1C->fadeState;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag != 0) {
         if (flag >= 4) {

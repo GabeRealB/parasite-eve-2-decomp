@@ -101,7 +101,7 @@ STATIC_ASSERT_SIZEOF(Actor120400SpawnAnim, 0x8);
 void func_actor_120400_801327F0(Task* arg0);
 
 /// Draws the ground-effect quad `func_800EA1A8` filled in, at the splash id
-/// the caller selects and the current ground-shade row `Gp_State1C->field_8`.
+/// the caller selects and the current ground-shade row `Gp_State1C->groundShade`.
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// Placement handler for the parent block: stores the spawn position and

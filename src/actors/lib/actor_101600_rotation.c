@@ -248,7 +248,7 @@ void Actor01600_Fn03EEC(Actor01600* arg0)
         return;
     }
     if (func_800EA1A8((VECTOR3*)coord[1].workm.t, &pos) != 0) {
-        Gp_DrawEffGroundQuad(&pos, 0x1C0, Gp_State1C->field_8);
+        Gp_DrawEffGroundQuad(&pos, 0x1C0, Gp_State1C->groundShade);
     }
 }
 

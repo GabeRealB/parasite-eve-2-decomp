@@ -57,7 +57,7 @@ void func_actor_511000_80132480(Task* task)
     extra->flags         = flags;
     if (!(flags & 0x80)) {
         if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->field_8);
+            Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
         }
     }
     work->field_4C4 = Task_SpawnFromTable(&D_actor_511000_801472E8, 1, 8, (s32)task);

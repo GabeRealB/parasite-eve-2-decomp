@@ -45,7 +45,7 @@ void func_mp5a5_p1_8011D1E0(Task* task)
     base  = &Gp_RoomCoords[0];
     slot  = (GpCoordTail*)&base->coord;
 
-    if (Gp_State1C->field_4 >= 2) {
+    if (Gp_State1C->eventState >= 2) {
         return;
     }
 

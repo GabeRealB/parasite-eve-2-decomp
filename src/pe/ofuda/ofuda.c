@@ -38,7 +38,7 @@ void ofudaEffectTask(Task* arg0)
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if ((state->field_3 == -2) || (Gp_State1C->field_E != 0)) {
+    if ((state->field_3 == -2) || (Gp_State1C->fadeState != 0)) {
         SndEvt_EnqueueType7(0xE03D0001, 1);
         goto kill;
     }

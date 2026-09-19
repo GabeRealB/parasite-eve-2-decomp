@@ -33,9 +33,9 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
     u32                     mode;
     u8                      view;
 
-    ctx                 = task->spawnArg2;
-    Gp_State1C->field_A = 2;
-    mode                = gGameSession->field_132;
+    ctx                        = task->spawnArg2;
+    Gp_State1C->roomEffectMode = 2;
+    mode                       = gGameSession->field_132;
 
     if (mode != 0) {
         if (mode < 2 && (gDisplayState.animFrame & 2) == 0) {

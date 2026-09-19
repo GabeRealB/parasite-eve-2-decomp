@@ -77,7 +77,7 @@ void func_necrosis_8012EF34(Task* arg0)
             if (Gp_StateC08.field_3 == -2) {
                 goto release;
             }
-            fade = Gp_State1C->field_E;
+            fade = Gp_State1C->fadeState;
             if (fade >= 4) {
                 goto release;
             }
@@ -133,7 +133,7 @@ void func_necrosis_8012EF34(Task* arg0)
             arg0->state = 1;
             /* fallthrough */
         case 1:
-            if (Gp_State1C->field_E == 0) {
+            if (Gp_State1C->fadeState == 0) {
                 gte_lddp(0x1100);
                 gte_ldsv(&mem->field_10);
                 gte_gpf12_real();
@@ -153,7 +153,7 @@ void func_necrosis_8012EF34(Task* arg0)
             } else {
                 mem->field_22 = (u16)mem->field_22 - 1;
             }
-            if ((D_80114C0B == -2) || (Gp_State1C->field_E >= 4)) {
+            if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4)) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_UnlinkObj(&work->obj2);
                 goto release;
@@ -176,7 +176,7 @@ void func_necrosis_8012EF34(Task* arg0)
             if (D_80114C0B == -2) {
                 goto release;
             }
-            if (Gp_State1C->field_E >= 4) {
+            if (Gp_State1C->fadeState >= 4) {
                 goto release;
             }
             tick = (s16)tick;
@@ -199,7 +199,7 @@ void func_necrosis_8012F52C(Task* arg0)
 
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if (Gp_State1C->field_E != 0) {
+    if (Gp_State1C->fadeState != 0) {
         return;
     }
 
@@ -313,7 +313,7 @@ void func_necrosis_8012FAF8(Task* arg0)
 
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if (Gp_State1C->field_E != 0) {
+    if (Gp_State1C->fadeState != 0) {
         return;
     }
 

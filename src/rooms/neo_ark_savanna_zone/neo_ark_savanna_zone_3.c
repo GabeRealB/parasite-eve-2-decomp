@@ -9,10 +9,10 @@ extern s32 D_80115758;
 void func_neo_ark_savanna_zone_8017D9AC(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80115758          = 0x601DD;
-        D_8011572C          = 0x601F9;
-        D_80115750          = 0x60215;
-        Gp_State1C->field_A = 2;
-        arg0->state         = 1;
+        D_80115758                 = 0x601DD;
+        D_8011572C                 = 0x601F9;
+        D_80115750                 = 0x60215;
+        Gp_State1C->roomEffectMode = 2;
+        arg0->state                = 1;
     }
 }

@@ -3,5 +3,5 @@
 
 void Room_Effect01(void)
 {
-    Gp_State1C->field_A = 2;
+    Gp_State1C->roomEffectMode = 2;
 }

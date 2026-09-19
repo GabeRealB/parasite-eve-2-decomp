@@ -281,13 +281,13 @@ void func_actor_123200_80133BA0(Actor123200Ctx* arg0, Task* arg1)
         case 0:
             if (work->field_0 != 0) {
                 ((TmdObject*)arg1->extra)->flags = 0;
-                Gp_DrawEffGroundQuad((VECTOR3*)((TmdObject*)arg1->extra)->coords->workm.t, 0x180, Gp_State1C->field_8);
+                Gp_DrawEffGroundQuad((VECTOR3*)((TmdObject*)arg1->extra)->coords->workm.t, 0x180, Gp_State1C->groundShade);
             }
             break;
         case 1:
             if (work->field_0 != 0) {
                 ((TmdObject*)arg1->extra)->flags = 0;
-                Gp_DrawEffGroundQuad((VECTOR3*)((TmdObject*)arg1->extra)->coords->workm.t, 0x180, Gp_State1C->field_8);
+                Gp_DrawEffGroundQuad((VECTOR3*)((TmdObject*)arg1->extra)->coords->workm.t, 0x180, Gp_State1C->groundShade);
             }
             return;
         case 2:

@@ -26,7 +26,7 @@ extern SVECTOR D_dryfield_night_water_tower_8017E744;
 /// phase 4 the one above as well.
 void func_dryfield_night_water_tower_8017DB80(void)
 {
-    Gp_State1C->field_A = 2;
+    Gp_State1C->roomEffectMode = 2;
     switch (gGameSession->at4.loc.view) {
         case 2:
             Room_Draw17(&D_dryfield_night_water_tower_8017E73C, 2, 0x400);

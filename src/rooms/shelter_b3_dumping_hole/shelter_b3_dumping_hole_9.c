@@ -22,9 +22,9 @@ void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
 
     mem   = (ClumpMem*)arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
-    if (Gp_State1C->field_4 != 0) {
+    if (Gp_State1C->eventState != 0) {
         Room_Draw41(coord, ((s16)mem->field_22 / 2) & 0xFFFF, 0x380);
-        if (Gp_State1C->field_4 >= 4) {
+        if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
         return;

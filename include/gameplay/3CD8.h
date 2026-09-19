@@ -280,24 +280,34 @@ typedef struct _GpState18 {
 } GpState18;
 STATIC_ASSERT_SIZEOF(GpState18, 0x18);
 
-/// 0x1C-byte halfword state allocated by `Gp_InitState1C` (`memCalloc(0x1C, 0)`)
-/// and stored in `Gp_State1C` (also written to the owner task at +0x1C).
-/// `Gp_InitState1C` sets `field_6` to 1 and the rest to 0.
-typedef struct _GpState1C {
-    /* 0x00 */ s16 field_0;
-    /* 0x02 */ s16 field_2;
-    /* 0x04 */ s16 field_4;
-    /* 0x06 */ s16 field_6;
-    /* 0x08 */ s16 field_8;
-    /* 0x0A */ s16 field_A;
-    /* 0x0C */ s16 field_C;
-    /* 0x0E */ s16 field_E;
-    /* 0x10 */ s16 field_10; // flags (bit 0 checked by func_800EC9C8, bit 0x80 by func_800ECA54)
-    /* 0x12 */ s16 field_12; // flags (bit 0x200 by Gp_EffCtlTaskAC, bit 0x400 by Gp_EffCtlTaskF3, bit 0x800 by Gp_EffCtlTask0E / func_800ECA54)
-    /* 0x14 */ s16 field_14;
-    /* 0x16 */ s16 field_16;
-    /* 0x18 */ s16 field_18; // PE bit written by Gp_SetState1CPe
-    /* 0x1A */ u16 field_1A; // flags (0x80 by Gp_PulseState1C80, 0x100 by Gp_PulseState1C)
+/// State the effect system shares with everything that draws effects.
+///
+/// `Gp_InitState1C` allocates it at room load and publishes it as `Gp_State1C`
+/// together with the task that owns it. The effect, weapon and parasite-energy
+/// overlays reach it through that pointer, so it carries what they cannot work
+/// out for themselves: how much of the effect budget is left, and what the
+/// player is doing.
+///
+/// `Gp_TickState1C` refreshes the player-state and pulse fields once a frame,
+/// the current room publishes the ground and room-effect fields from its own
+/// draw callback, and the effect tasks claim and release bits of
+/// `screenFxFlags` and `peFxFlags` among themselves - which is how a later
+/// cast cancels an earlier one.
+typedef struct {
+    s16 effectCount;    // Live effects; `Gp_SpawnEff` refuses to spawn once this reaches 0x81, and every release decrements it
+    s16 rumbleCount;    // Live collapse rumbles; their sound plays while this is non-zero
+    s16 eventState;     // Player's event state (0 free, 1-3 in an event, 4 or more aborts), with this frame's abort pulse folded in
+    s16 groundTrace;    // (0 suppressed, 1 default) whether effects may raycast to the floor to mark it or to stop at it
+    s16 groundShade;    // Ground-shadow shade row for the current view (-1 draws none)
+    s16 roomEffectMode; // (0 nothing, 2 the room's effect set is live) which of the room's effects the current view draws
+    s16 field_C;        // Written by the player's hit-sound path and read by nothing; role unproven
+    s16 fadeState;      // `eventState` with the room fade and PE pulses folded in, as the parasite-energy overlays read it
+    s16 screenFxFlags;  // (1 the full-screen fade quad is up, 0x80 the burst effect is up)
+    s16 peFxFlags;      // (0x200 ring burst, 0x400 burst rings, 0x800 green burst) claimed by the PE attack effects
+    s16 burstRequest;   // Set for one frame when a burst starts, so the running burst draws its opening flourish
+    s16 battleState;    // Mirror of `Gp_StateF0`'s battle state (1 while a battle is engaged)
+    s16 peFadeId;       // The PE whose fade wave is running; a wave for another PE drops its task
+    u16 pendingPulses;  // (0x80 room fade, 0x100 event script) abort pulses raised since the last refresh
 } GpState1C;
 STATIC_ASSERT_SIZEOF(GpState1C, 0x1C);
 
@@ -501,7 +511,7 @@ void Gp_InitRoomCoords(void);
 /// Spawns a `GpState1C` effect task and its `GpEffWork` (`memCalloc(0x2C)`).
 /// `arg0` packs the `Task_Spawn` bank in bits 16..30 and the type in the low
 /// 16 bits; a negative `arg0` bypasses the 0x80 live-effect cap in
-/// `GpState1C::field_0`. `arg1` is the parent coordinate (`NULL` = world):
+/// `GpState1C::effectCount`. `arg1` is the parent coordinate (`NULL` = world):
 /// the task's own `TmdObject::coords` coordinate is seeded from it and
 /// re-parented to `gGfxViewCoord`. `arg2` becomes `Task::spawnArg1`; `arg3` is an
 /// optional offset vector (`NULL` = zero) rotated into the parent's space and

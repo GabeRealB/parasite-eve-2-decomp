@@ -187,7 +187,7 @@ void func_actor_800200_801622B0(GpActorWork* arg0)
     ((SVECTOR*)actor->field_A0)->vy = sc->vec.vy;
     ((SVECTOR*)actor->field_A0)->vz = sc->vec.vz;
     if (!(extra->flags & 0x80)) {
-        Gp_DrawEffGroundQuad((VECTOR3*)coord->workm.t, 0x200, Gp_State1C->field_8);
+        Gp_DrawEffGroundQuad((VECTOR3*)coord->workm.t, 0x200, Gp_State1C->groundShade);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
 }

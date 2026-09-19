@@ -16,7 +16,7 @@
 /// afterglow at three times the radius while fading by 0x10 a frame; below 0x11
 /// it falls through to state 3 and hands the `GpEffWork` block back. Like the
 /// other room burst tasks it also bails out early - releasing the block once
-/// the fade has run far enough - whenever `Gp_State1C->field_4` says the room
+/// the fade has run far enough - whenever `Gp_State1C->eventState` says the room
 /// is leaving.
 void RoomsShared8017ef80(Task* task);
 

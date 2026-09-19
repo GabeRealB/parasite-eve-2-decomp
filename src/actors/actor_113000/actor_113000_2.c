@@ -43,7 +43,7 @@ void func_actor_113000_80131F90(Task* task)
     extra->flags    = flags;
     if (!(flags & 0x80)) {
         if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->field_8);
+            Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
         }
     }
     func_actor_113000_801321A8(task);
@@ -74,7 +74,7 @@ void func_actor_113000_80132070(Task* task)
     }
     if (!(extra->flags & 0x80)) {
         if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
-            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
+            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
         }
     }
     if (gGameSession->viewReady != 0) {

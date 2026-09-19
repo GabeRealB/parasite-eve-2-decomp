@@ -89,5 +89,5 @@ void func_dryfield_water_tower_801802D8(u8 arg0)
 
 void func_dryfield_water_tower_80180348(void)
 {
-    Gp_State1C->field_A = D_dryfield_water_tower_801827A0[(Gp_GetViewIndex() & 0xFF) - 1];
+    Gp_State1C->roomEffectMode = D_dryfield_water_tower_801827A0[(Gp_GetViewIndex() & 0xFF) - 1];
 }

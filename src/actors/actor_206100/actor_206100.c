@@ -63,9 +63,9 @@ void func_actor_206100_8014A70C(GsCOORDINATE2* coord, u16 arg1, u16 arg2, u32 ar
     u16     variant;
     u16     param;
 
-    if (Gp_State1C->field_4 != 0) {
+    if (Gp_State1C->eventState != 0) {
         func_actor_206100_8014AB3C(coord, ((u32)arg1 >> 1) % 6, 0x400, 0);
-        if (Gp_State1C->field_4 >= 4) {
+        if (Gp_State1C->eventState >= 4) {
             return;
         }
     }

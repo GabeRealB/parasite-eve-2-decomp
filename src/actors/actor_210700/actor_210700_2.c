@@ -55,7 +55,7 @@ void func_actor_210700_80149F90(Task* task)
     anim.field_8 = 0;
     func_actor_210700_8014A224(task, 0x7D3, &anim, 0);
     if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
-        Gp_DrawEffGroundQuad(&pos, 0x400, Gp_State1C->field_8);
+        Gp_DrawEffGroundQuad(&pos, 0x400, Gp_State1C->groundShade);
     }
     func_actor_210700_8014A208(task);
     task->msgTable     = D_actor_210700_801585D8;
@@ -88,7 +88,7 @@ void func_actor_210700_8014A0AC(Task* task)
         }
     }
     if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
-        Gp_DrawEffGroundQuad(&pos, 0x400, Gp_State1C->field_8);
+        Gp_DrawEffGroundQuad(&pos, 0x400, Gp_State1C->groundShade);
     }
     if (gGameSession->viewReady != 0) {
         ((TmdObject*)task->extra)->coords[1].flg = 0;
