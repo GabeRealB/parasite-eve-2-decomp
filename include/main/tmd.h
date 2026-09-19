@@ -429,5 +429,13 @@ u32* gpStreamPrimFt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// pass transforms: only the packet's fixed fields are written here — its length,
 /// its primitive code and the element's colour.
 u32* gpStreamPrimF4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Handler of a stream's flat-triangle records (`0x4`): each element contributes
+/// one untextured triangle to the buffer half's second region, with the
+/// element's colour word written into it.
+///
+/// The record is not pre-transformed, so its triangle is built in the region the
+/// draw pass transforms; this command writes only the packet's fixed fields — its
+/// length, its primitive code and the element's colour.
+u32* gpStreamPrimF3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 #endif // TMD_H

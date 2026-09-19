@@ -4225,24 +4225,24 @@ u32* gpStreamPrimF4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* func_8009F504(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* gpStreamPrimF3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
     POLY_F3* poly;
     s32      color;
 
-    poly = (POLY_F3*)arg0->primWrite;
-    if (arg0->elemCount-- > 0) {
+    poly = (POLY_F3*)ws->primWrite;
+    if (ws->elemCount-- > 0) {
         do {
-            color = arg2[2];
+            color = stream[2];
             setlen(poly, 4);
             *(s32*)&poly->r0 = color;
             setcode(poly, 0x20);
             poly++;
-            arg2 += arg0->elemStride;
-        } while (arg0->elemCount-- > 0);
+            stream += ws->elemStride;
+        } while (ws->elemCount-- > 0);
     }
-    arg0->primWrite = (u8*)poly;
-    return arg2;
+    ws->primWrite = (u8*)poly;
+    return stream;
 }
 
 u32* func_8009F56C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
