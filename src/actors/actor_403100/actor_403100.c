@@ -1033,7 +1033,141 @@ void func_actor_403100_801345E0(Task* arg0, Task* arg1)
         }
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100", func_actor_403100_8013480C);
+void func_actor_403100_8013480C(Task* arg0, s32 arg1)
+{
+    Actor403100Entry* entries;
+    SVECTOR           pos;
+    GpDeltaScratch    delta;
+    s32               screen;
+    s32               flag;
+    s32               depth;
+    Actor403100Entry* entry;
+    s16               size;
+    s32               collision;
+    s32               j;
+    s32               offset;
+    s32               i;
+    s16               growth;
+    s32               region;
+    s32               count;
+    s32               recordSize;
+    u32               workHigh;
+    Actor403100Work*  work;
+    GpObj*            objects;
+    Actor403100Entry* current;
+    GpObj*            object;
+    GpObj*            walker;
+
+    gGfxViewCoord.flg = 0;
+    Gp_UpdateCoord(&gGfxViewCoord);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    __asm__ volatile("lui %0,%%hi(D_actor_403100_80155808)" : "=r"(workHigh));
+    __asm__ volatile("lw %0,%%lo(D_actor_403100_80155808)(%1)" : "=r"(work) : "r"(workHigh) : "memory");
+    count = work->flags_634.h.high;
+    i     = 0;
+    if (count > 0) {
+        entries = (Actor403100Entry*)D_actor_403100_80155814;
+        walker  = &entries[0].obj;
+        objects = walker;
+        offset  = 0;
+        entry   = entries;
+    next_entry: {
+        if (entry->active != 0) {
+            __asm__ volatile("lw %0,%%lo(D_actor_403100_80155808)(%1)" : "=r"(work) : "r"(workHigh) : "memory");
+            if (work->regions.regionFlags[2] == 0) {
+                region = Actor403100_FindEffectRegion(entry->position.vx, entry->position.vz);
+                if (region == 2) {
+                    func_8017E250(2, 1);
+                    D_actor_403100_80155808->regions.regionFlags[2] = 1;
+                }
+            }
+            pos.vx = entry->position.vx;
+            pos.vy = entry->position.vy;
+            pos.vz = entry->position.vz;
+            gte_ldv0(&pos);
+            __asm__ volatile("nop; nop; .word 0x4A180001" : : : "memory");
+            gte_stsxy(&screen);
+            gte_stflg(&flag);
+            gte_stszotz(&depth);
+            if ((s16)D_actor_403100_80155808->field_5F8 == 5) {
+                growth = entry->age * 0xF0;
+            } else {
+                growth = entry->age * 0x3C;
+            }
+            growth += 0x90;
+            size    = arg1;
+            size   += growth;
+            TOUCH_REG_USE2(size, arg1, arg1);
+            if (flag >= 0) {
+                func_8017F6C8(screen, (s32)(depth << 0xC) >> 0x10, (s16)((s32)((s32)(size << 0x10) >> 1) / (s32)(depth * 4)), entry->frame);
+            } else {
+                walker->flags = (u16)((walker->flags & 0x7FFF) | 0x4000);
+            }
+            if (D_801153F4 == 0) {
+                if (Gp_FindRec18(entry->obj.ctx.recs, 0) != 0) {
+                    j = 0;
+                    do {
+                        if (((((Actor403100Entry*)((j * 0x18 + offset) + (u32)entries))->records[0].key & 0xFFFF0000) == 0x10000) && (D_actor_403100_80155810 == 0)) {
+                            D_actor_403100_80155810 = 0xA;
+                        }
+                        j += 1;
+                    } while (j < 4);
+                }
+                collision = func_800E0C10((GpRec18*)((u8*)D_actor_403100_801558A4 + offset), &delta, 4, 0);
+                if (collision == 0) {
+                    entry->position.vx = (u16)(entry->position.vx + entry->delta.vx);
+                    entry->position.vy = (u16)(entry->position.vy + entry->delta.vy);
+                    entry->position.vz = (u16)(entry->position.vz + entry->delta.vz);
+                } else if (collision >= 0) {
+                    if (collision < 3) {
+                        current              = ((Actor403100Entry*)(offset + (u32)entries));
+                        current->position.vy = (u16)((current->position.vy - 0x100) - current->delta.vy);
+                    }
+                }
+                Gp_UpdateCoord((GsCOORDINATE2*)((u8*)&D_actor_403100_80155834 + offset));
+                entry->coord.coord.t[0] = (s32)(s16)entry->position.vx;
+                entry->coord.flg        = 0;
+                entry->coord.coord.t[1] = (s32)(s16)entry->position.vy;
+                entry->coord.coord.t[2] = (s32)entry->position.vz;
+                entry->obj.radius       = (s16)((s16)size / 3);
+                if (D_actor_403100_80155810 == 0) {
+                    walker->flags = (u16)(walker->flags | 0x8000);
+                } else {
+                    object        = (GpObj*)(offset + (u32)objects);
+                    object->flags = (u16)(object->flags & 0x7FFF);
+                }
+                walker->flags = (u16)(walker->flags | 0x4000);
+                recordSize    = 0x20;
+                Gp_ClearRec18Occupied((GpRec18*)(offset + ((u32)objects + recordSize)));
+                entry->age   = (s16)((u16)entry->age + 1);
+                entry->frame = (s16)((u16)entry->frame + 1);
+                if (entry->age == D_actor_403100_80155808->flags_634.h.high) {
+                    entry->active = 0;
+                    Gp_UnlinkObj(walker);
+                }
+            } else {
+                walker->flags &= 0x3FFF;
+            }
+        }
+        walker  = (GpObj*)((u8*)walker + 0xF0);
+        offset += 0xF0;
+        do {
+        } while (0);
+    }
+        __asm__ volatile("lui %0,%%hi(D_actor_403100_80155808)" : "=r"(workHigh));
+        __asm__ volatile("lw %0,%%lo(D_actor_403100_80155808)(%1)" : "=r"(work) : "r"(workHigh) : "memory");
+        count = work->flags_634.h.high;
+        TOUCH_REG_USE(i, count);
+        i += 1;
+        entry++;
+        if (i < count)
+            goto next_entry;
+    }
+    if (D_actor_403100_80155810 != 0) {
+        D_actor_403100_80155810 = (u16)D_actor_403100_80155810 - 1;
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131E70);
 

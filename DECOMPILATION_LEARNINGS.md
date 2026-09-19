@@ -133768,3 +133768,55 @@ printed list by hand and treats the count as a floor, and the word-boundary swee
 of `src` and `include` is what proves the rename finished. That sweep does see
 these sites - the argument is ordinary source text, and the tool's refusal is
 about its own rewriting, not about the parser's reach.
+
+
+## A separately assigned constant preserves base-plus-displacement until RTL (func_actor_403100_8013480C, 2026-09-20)
+
+The target clears records using `addiu a0,s7,32; addu a0,s2,a0`.
+The literal C expression `offset + ((u32)objects + 32)` instead expands
+as `(offset + 32) + objects`: the constant has moved before RTL exists.
+A permuter discovery put 32 into a local and used that local in the inner
+sum. Both offsets remain; this is a valid value-preserving transformation.
+
+The paired scratch build improved distance 362 to 352. A controlled prediction
+moved that local's initialization from before Gp_UpdateCoord to immediately
+before Gp_ClearRec18Occupied, preserving the same assembly. In base_1.i.rtl,
+UID584 adds objects and the local; UID586 adds offset to that temporary.
+In base_1.i.cse, UID584 becomes objects + CONST_INT 32 while UID586 retains its
+original operands. Thus the constant need not cross the earlier call: its
+absence from the original expression tree is the useful property. This
+corrects the previous retry's claim that the desired association was
+unreachable from C. A separate assignment reaches it without another helper.
+
+Input base_1.i SHA256:
+`7d56b05e44104b24acd53b8cf2fa5c31a73caa57522183167895435d115d5a2e`.
+Retained evidence: tools/permuter_findings/func_actor_403100_8013480C/,
+run d9d7904202b04e77 and the session's PERMUTER_ANALYSIS.md.
+The final normal-style port is base_6.c, exact scratch match and unscoped
+BUILD SUCCEEDED. This observation concerns this two-add shape and compiler;
+it does not claim arbitrary local constants prevent all reassociation.
+
+## Preserve the parameter equivalence while adding references to adjust only the last saved-register pair (func_actor_403100_8013480C, 2026-09-20)
+
+The last two saved values were reversed: arg1=s7 and objects=s6, whereas the
+target wants arg1=s6 and objects=s7. The observed global inputs were arg1
+2 refs / 470 insns, objects 3/442, table 6/446. The parameter's arrival equivalence
+doubles its span. An earlier narrowing attempt removed that equivalence,
+overshot the table's priority and emitted unwanted shifts.
+
+The controlled base_2 edit adds two input mentions of arg1 to the existing
+size touch: TOUCH_REG_USE2(size,arg1,arg1). .lreg observes exactly 4 refs / 470
+for arg1, with its value definitions and span unchanged. .greg allocation
+order changes only the last pair from table,objects,arg1 to table,arg1,objects;
+final homes are arg1=s6, objects=s7 while table=s5 and size=s3 remain. The object
+changes only that register pair's uses and saves, distance 352 to 307. No pin,
+new emitted instruction, or speculative per-pseudo local-quantity ranking is
+involved. One additional reference would not cross objects' observed rank.
+
+Input base_2.i SHA256:
+`f9da75fae95ccf74c8f499b3edd882b55808546946a10b0fa31f7443a23541dd`.
+See the retained base_1/base_2 .lreg/.greg files and PERMUTER_ANALYSIS.md under
+tools/permuter_findings/func_actor_403100_8013480C/.
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+This is a bounded reference-count experiment; read/write modification of the
+parameter itself changes a different set of allocation inputs.

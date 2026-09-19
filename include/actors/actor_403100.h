@@ -87,6 +87,10 @@ STATIC_ASSERT_SIZEOF(Actor403100Entry, 0xF0);
 extern GpAreaApplyRec   D_8018F2CC;
 extern s16              D_actor_403100_80155810;
 extern Actor403100Entry D_actor_403100_80155814[28];
+extern GsCOORDINATE2    D_actor_403100_80155834;
+extern GpRec18          D_actor_403100_801558A4[];
+
+void func_8017F6C8(s32 screen, s32 depth, s32 size, s32 frame);
 
 /// Eight animation-set pointers passed to slot 3 in message 0x3FF.
 /// Entry 4 is replaced by entry 7 of the selected player animation block.
