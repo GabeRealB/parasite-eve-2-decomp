@@ -1215,7 +1215,7 @@ func_8010C980 = 0x8010C980; // type:func
 // Gameplay naming pass 1 (TMD/disp2d, enemy, view, replay, strings)
 Gp_Header                   = 0x80093800; // size:0x4
 Gp_StrNewDisp2dNull         = 0x80093804;
-Gp_ColorGrey                = 0x8009381C; // size:0x4
+gGpColorGrey                = 0x8009381C; // size:0x4
 Gp_ColorOrange              = 0x80093820; // size:0x4
 Gp_ColorWhite               = 0x80093824; // size:0x4
 Gp_StrColon                 = 0x80093828;

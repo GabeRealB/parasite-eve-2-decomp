@@ -58,23 +58,29 @@ extern u8             Gp_DebugAttachLevels[];
 extern TaskFuncTable6 Gp_PlayClockStates;
 extern s32            Gp_LcgState;
 extern char           Gp_StrNewDisp2dNull[]; // "new_disp_2d ----> NULL\n"
-extern CVECTOR        Gp_ColorGrey;
-extern CVECTOR        Gp_ColorOrange;
-extern CVECTOR        Gp_ColorWhite;
-extern u8             Gp_StrColon[];      // ":"
-extern u8             Gp_StrApostrophe[]; // "'"
-extern char           Gp_StrItem[];       // "Item"
-extern u8             D_8009388C[];       // "R1"
-extern u8             D_80093890[];       // "R2"
-extern u8             D_80093894[];       // "%"
-extern u8             D_80093898[];       // "&"
-extern u8             D_800938AC[];       // "????"
-extern u8             Gp_StrHP[];         // "HP"
-extern s32            Pad_MaskConfirm;
-extern s32            Pad_MaskCancel;
-extern s16            D_80114C40;
-extern DR_STP         D_80114C50;
-extern s32            D_80115724;
+/// Neutral grey (128,128,128) material colour.
+///
+/// The pre-transformed primitives that carry no colour of their own are shaded
+/// with it, and one whose object is dimmed by `lightLevel` decays toward it as
+/// the level falls, so it is both the flat material colour and the unlit end
+/// of the shading range.
+extern CVECTOR gGpColorGrey;
+extern CVECTOR Gp_ColorOrange;
+extern CVECTOR Gp_ColorWhite;
+extern u8      Gp_StrColon[];      // ":"
+extern u8      Gp_StrApostrophe[]; // "'"
+extern char    Gp_StrItem[];       // "Item"
+extern u8      D_8009388C[];       // "R1"
+extern u8      D_80093890[];       // "R2"
+extern u8      D_80093894[];       // "%"
+extern u8      D_80093898[];       // "&"
+extern u8      D_800938AC[];       // "????"
+extern u8      Gp_StrHP[];         // "HP"
+extern s32     Pad_MaskConfirm;
+extern s32     Pad_MaskCancel;
+extern s16     D_80114C40;
+extern DR_STP  D_80114C50;
+extern s32     D_80115724;
 
 extern GpItemRec* Gp_SelItemRec;
 
@@ -1943,8 +1949,8 @@ u32* func_8009A804(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
     ws = arg0;
     TOUCH_REG(ws);
-    col   = Gp_ColorGrey;
-    col2  = Gp_ColorGrey;
+    col   = gGpColorGrey;
+    col2  = gGpColorGrey;
     count = ws->elemCount;
     if (count == 0) {
         return arg2;
@@ -2067,7 +2073,7 @@ u32* func_8009AC58(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     s32      uv;
 
     col  = Gp_ColorWhite;
-    col2 = Gp_ColorGrey;
+    col2 = gGpColorGrey;
     gte_ldrgb(&col);
     count = ws->elemCount;
     if (count == 0) {
@@ -2159,7 +2165,7 @@ u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     s32      flag;
     s32      x;
 
-    col   = Gp_ColorGrey;
+    col   = gGpColorGrey;
     count = ws->elemCount;
     if (count == 0) {
         return arg2;
@@ -2262,7 +2268,7 @@ u32* func_8009B2F4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     ws = arg0;
     TOUCH_REG(ws);
     col    = Gp_ColorWhite;
-    col2   = Gp_ColorGrey;
+    col2   = gGpColorGrey;
     val    = ws->obj->lightLevel >> 5;
     inv    = 0x80 - val;
     col.b  = val;
@@ -2342,7 +2348,7 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     ws = arg0;
     TOUCH_REG(ws);
     poly = (POLY_GT3*)ws->primWrite;
-    col  = Gp_ColorGrey;
+    col  = gGpColorGrey;
     if (ws->elemCount-- > 0) {
         scale  = 0x1000;
         svBase = &ws->elemNormal;
@@ -2572,8 +2578,8 @@ u32* func_8009BD00(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     s32           inv;
 
     poly   = (POLY_GT3*)ws->primWrite;
-    col    = Gp_ColorGrey;
-    col2   = Gp_ColorGrey;
+    col    = gGpColorGrey;
+    col2   = gGpColorGrey;
     val    = ws->obj->lightLevel >> 5;
     inv    = 0x80 - val;
     col.b  = val;
@@ -2654,8 +2660,8 @@ u32* func_8009C024(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
     ws     = arg0;
     poly   = (POLY_GT4*)ws->primWrite;
-    col    = Gp_ColorGrey;
-    col2   = Gp_ColorGrey;
+    col    = gGpColorGrey;
+    col2   = gGpColorGrey;
     val    = ws->obj->lightLevel >> 5;
     inv    = 0x80 - val;
     col.b  = val;
@@ -2760,7 +2766,7 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
 
     poly = (POLY_GT4*)ws->primWrite;
     TOUCH_REG(poly);
-    col = Gp_ColorGrey;
+    col = gGpColorGrey;
     if (ws->elemCount-- > 0) {
         flg = &ws->gteFlag;
         opz = &ws->gteResult;

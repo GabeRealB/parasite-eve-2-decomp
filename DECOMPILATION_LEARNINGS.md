@@ -132558,3 +132558,31 @@ changes and no translation unit gains a declaration it did not already have.
 A forward declaration is not a substitute when a member has to be read: an
 overlay that reads `rec->hpMax` needs the complete type, and a header that
 forward-declares it compiles only where the field is never touched.
+## A data constant's section is decided by the build's own `-G0`, so probe with it
+
+**Problem.** What a constant's position in the ROM says about how the original
+declared it is a recurring question - a lone 4-byte colour sitting among a unit's
+strings reads like a compiler constant pool, while three adjacent ones read like
+one table. The probe that answers it is a compile of a few lines, and the
+tempting one passes the flag list but leaves `$DLFLAG` out.
+
+**Symptom.** Compiled without `-G0`, a 4-byte `const` object, or the pool the
+compiler builds for a literal, is emitted into `.sdata`, and only an object
+larger than eight bytes reaches `.rodata`. Reading a ROM with that rule in hand
+makes the leading `.rodata` of an overlay look as though it could only have held
+large objects, so separately named neighbours look like one table and the shape
+of the original declaration looks recoverable. With `-G0` every file-scope
+`const`, of whatever size, is emitted into the object's `.rodata`; the section
+then says nothing about the original's shape at all, and three separate 4-byte
+declarations are as consistent with the bytes as one twelve-byte table.
+
+**Fix.** Pass `-G0` - the `cc` and `cpp` rules take it from `$DLFLAG`, which
+`ninja_config.py` writes as `-G0` for every unit, and the scratch environment's
+`build.sh` passes it too - whenever a probe's conclusion is about where data
+lands, and read a section as evidence about the original only when it was.
+`__attribute__((section(".rodata")))` is not what puts such an object at its
+address under those flags; a plain `const` declaration is emitted into the same
+section, and the address comes from the linker script mapping that unit's
+`.rodata` to its own subsegment. A symbol in the *leading* rodata run therefore
+still has to be declared in the assembly that owns that run, whatever shape the
+original had.
