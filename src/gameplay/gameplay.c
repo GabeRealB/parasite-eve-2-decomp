@@ -57,7 +57,9 @@ extern CVECTOR        D_80114BA8;
 extern u8             Gp_DebugAttachLevels[];
 extern TaskFuncTable6 Gp_PlayClockStates;
 extern s32            Gp_LcgState;
-extern char           Gp_StrNewDisp2dNull[]; // "new_disp_2d ----> NULL\n"
+/// "new_disp_2d ----> NULL\n" printed when the 2D display body a task spawns
+/// with cannot be allocated.
+extern const char gGpStrNewDisp2dNull[];
 /// Neutral grey (128,128,128) material colour.
 ///
 /// The pre-transformed primitives that carry no colour of their own are shaded
@@ -1087,7 +1089,7 @@ void* Gp_AttachDisp2d(Task* task)
         task->extra               = node;
         task->spawnType           = 2;
     } else {
-        printf(Gp_StrNewDisp2dNull);
+        printf(gGpStrNewDisp2dNull);
     }
     return node;
 }
