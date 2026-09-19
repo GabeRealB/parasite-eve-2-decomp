@@ -3,6 +3,16 @@
 #include "main/unknown_syms.h"
 #include "main/cdaudio.h"
 
+/// The loaded sound banks: one record per bank, at the slot its bank type maps
+/// to.
+///
+/// A record is filled in by whichever load path brought the bank in — a
+/// resident bank from the bank-init table when the sound system starts, a
+/// streamed one as its load completes — and released through
+/// `SndBankSlot_Free`, which returns the image to the sound heap and marks the
+/// record free.
+extern SndBankSlot _gSndBankSlots[16];
+
 void Snd_InitFromStage(s32 arg0, s32 arg1)
 {
     u8* var_s0;
@@ -1568,7 +1578,7 @@ void SndVoice_Init(void)
         ptr++;
     } while (i < 0xC0U);
 
-    ptr = (s32*)SndBank_Slots;
+    ptr = (s32*)_gSndBankSlots;
     i   = 0;
     do {
         *ptr = 0;
@@ -1776,7 +1786,7 @@ SndBankSlot* SndBankSlot_Find(u16 arg0, s32 arg1)
         case 0:
             i    = 0;
             key  = arg0;
-            slot = SndBank_Slots;
+            slot = _gSndBankSlots;
             do {
                 bank = slot->bank;
                 if (bank != NULL) {
@@ -1791,7 +1801,7 @@ SndBankSlot* SndBankSlot_Find(u16 arg0, s32 arg1)
         case 1:
             i    = 0;
             key  = arg0 & 0xF000;
-            slot = SndBank_Slots;
+            slot = _gSndBankSlots;
             do {
                 bank = slot->bank;
                 if (bank != NULL) {
@@ -1810,7 +1820,7 @@ SndBankSlot* SndBankSlot_Find(u16 arg0, s32 arg1)
 SndBankSlot* SndBankSlot_Get(s32 arg0)
 {
     if ((u8)arg0 < 0x10) {
-        return &SndBank_Slots[(s8)arg0];
+        return &_gSndBankSlots[(s8)arg0];
     }
     return NULL;
 }
@@ -1821,7 +1831,7 @@ void SndBankSlot_Free(s32 arg0)
     SndBankSlot* base;
 
     if ((u8)arg0 < 0x10) {
-        base    = SndBank_Slots;
+        base    = _gSndBankSlots;
         temp_s0 = &base[(s8)arg0];
         SndHeap_Free(temp_s0->image);
         temp_s0->bankId = -1;
@@ -1838,7 +1848,7 @@ SndVoice* SndVoice_Alloc(s32 arg0)
     if (voiceIdx < 0) {
         return NULL;
     }
-    ptr          = (SndVoice*)SndBank_Slots + voiceIdx;
+    ptr          = (SndVoice*)_gSndBankSlots + voiceIdx;
     ptr->field_0 = voiceIdx;
     Spu_SetVoiceCallbacks(voiceIdx, (s32)SndVoice_Detach, (s32)ptr);
     ptr->field_8 = 1;

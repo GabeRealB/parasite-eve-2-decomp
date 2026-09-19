@@ -102,17 +102,17 @@ typedef struct {
 } SndBankHdr;
 STATIC_ASSERT_SIZEOF(SndBankHdr, 0x8);
 
-/// One of the 16 records in `SndBank_Slots`, each holding one of the sound banks
-/// the game has loaded.
+/// One record of `_gSndBankSlots`, holding the sound bank a slot has loaded.
 ///
-/// A bank is held twice over: the image, which the scripts read their entry
-/// offsets and `oneA` chunks from, and the descriptor, which voice allocation
-/// reads notes from. Lookup matches on the descriptor's own id; the record's
-/// copy of that id only marks the record free when the bank is released.
+/// The bank is held twice over: the image, which a script reads its entry
+/// offsets and `oneA` chunks from, and the descriptor, which holds the notes a
+/// voice plays. Lookup matches the descriptor's own id, exactly or by its
+/// 0xF000 group; releasing the record hands the image back to the sound heap
+/// and sets `bankId` to -1.
 typedef struct {
     SndBankHdr* image;   // Bank image in the sound heap, whose head holds the entry offsets
     SndBank*    bank;    // Descriptor of the loaded bank, in `Snd_Banks`
-    s32         bankId;  // Id the bank answers to (-1 once the record is free)
+    s32         bankId;  // Id of the bank held here (-1 once the record is free)
     u32         spuAddr; // SPU RAM address the bank's wave data was transferred to
 } SndBankSlot;
 STATIC_ASSERT_SIZEOF(SndBankSlot, 0x10);
@@ -272,7 +272,12 @@ typedef struct _SndVoiceFx {
 } SndVoiceFx;
 STATIC_ASSERT_SIZEOF(SndVoiceFx, 0x24);
 
-/// Voice/FX object carved from SndBank_Slots with stride 0x40 (SndVoice_Alloc).
+/// Voice/FX object for one SPU voice, allocated by `SndVoice_Alloc`.
+///
+/// The objects are laid out one per SPU voice index starting at the bank
+/// table's address, and the sequencer's voices come first: their indices hold
+/// the bank and script tables rather than objects, so no object is allocated
+/// below voice 0x10.
 /// field_0 is the SPU voice index; field_4 is a countdown/timer (SndVoice_Tick).
 /// field_10/field_12 gate FX processing (aliases of fx.field_0 / fx.field_2).
 /// field_34/field_38/field_3C are parent/prev/next list links (SndVoice_Detach free).
@@ -866,7 +871,6 @@ extern u32              Spu_KeyOffMask;
 extern SpuReverbConfig  Spu_ReverbCfg;
 extern MidiSong         Midi_Song;
 extern SndBank          Snd_Banks[];
-extern SndBankSlot      SndBank_Slots[16];
 extern SndScript        SndScript_Slots[8];
 extern SndLoadState     SndLoad_State;
 extern SndBankInitEntry Snd_BankInitTable[];

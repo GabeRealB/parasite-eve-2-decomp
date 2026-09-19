@@ -8119,11 +8119,11 @@ the array to a local pointer, then index through that:
 
 ```c
 /* Wrong schedule: sll/sra index, then lui/addiu base */
-p = &SndBank_Slots[(s8)arg0];
+p = &_gSndBankSlots[(s8)arg0];
 
 /* Right schedule: lui/addiu base, then sll/sra index */
 SndBankSlot* base;
-base = SndBank_Slots;
+base = _gSndBankSlots;
 p = &base[(s8)arg0];
 ```
 
@@ -11399,10 +11399,15 @@ and stores/`sb`s that copy instead of the sign-extended register, adding an
 instruction and shifting every later label. `SndVoice_Alloc` only matches with
 the `s32` + `(s8)` form.
 
-Note also that `SndBank_Slots` is walked two ways: as `SndBankSlot[16]` (stride
+Note also that `_gSndBankSlots` is walked two ways: as `SndBankSlot[16]` (stride
 `0x10`, via `SndBankSlot_Get` / `SndBankSlot_Free`) and as `SndVoice` slots
 (stride `0x40`, via `SndVoice_Alloc`). Cast the base rather than changing
-`SndBankSlot`.
+`SndBankSlot`. What makes the two readings coexist is a shared index space, not
+one array overlaid on another: a voice slot is indexed by SPU voice number and
+the sequencer's voices come first, so the low slots hold the bank and script
+tables instead of voice objects and nothing below voice `0x10` is allocated one.
+Document that layout where the voice type is declared; describing the objects as
+carved from the table invites a reader to restructure the cast away.
 
 ## Two-step table index for early `lw` into `$a0`
 

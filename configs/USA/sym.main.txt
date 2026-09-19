@@ -2794,7 +2794,7 @@ Font_Glyphs2                = 0x800604B0; // type:u8
 
 // SndScript / MIDI / LinInterp renames
 SndScript_Slots             = 0x80082248; // type:SndScript
-SndBank_Slots               = 0x80082148; // type:SndBankSlot
+_gSndBankSlots              = 0x80082148; // type:SndBankSlot
 SndLoad_State               = 0x800820F0; // type:SndLoadState size:0x30
 Midi_Song                   = 0x8007F300; // type:MidiSong
 Gpu_OtBuffers               = 0x80070EE8; // type:GpuOtBuf size:0x28
