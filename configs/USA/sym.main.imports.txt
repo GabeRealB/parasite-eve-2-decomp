@@ -28,7 +28,7 @@ func_800B0118 = 0x800B0118; // type:func absolute:True
 Gp_ClearRec18Occupied = 0x800E1A6C; // type:func absolute:True
 func_801011D0 = 0x801011D0; // type:func absolute:True
 
-// TMD model stream handlers: main's Tmd_InitSourceStream / Tmd_ProcessStream
+// TMD model stream handlers: main's Tmd_InitSourceStream / tmdProcessStream
 // dispatch into the loaded overlay. Named after the overlay that defines them
 // (src/gameplay/gameplay.c), not by splat's auto-undef D_ convention.
 func_80099994 = 0x80099994; // type:func absolute:True

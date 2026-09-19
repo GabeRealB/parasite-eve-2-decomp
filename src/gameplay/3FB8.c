@@ -4614,8 +4614,8 @@ inline static Task* spawn_tmd_attach(GpActorWork* arg0, s32 arg1, s32 arg2, s32 
         obj->tpage = 6;
         obj->clut  = 0;
     }
-    Tmd_ProcessStream(obj);
-    Tmd_ProcessStream(obj);
+    tmdProcessStream(obj);
+    tmdProcessStream(obj);
     return task;
 }
 
@@ -5180,8 +5180,8 @@ Task* func_80104258(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
         obj->tpage = 6;
         obj->clut  = 0;
     }
-    Tmd_ProcessStream(obj);
-    Tmd_ProcessStream(obj);
+    tmdProcessStream(obj);
+    tmdProcessStream(obj);
     return task;
 }
 

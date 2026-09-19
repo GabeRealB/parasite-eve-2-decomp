@@ -1951,8 +1951,8 @@ void Actor00100_Fn09310(Actor00100* arg0)
             ((TmdObject*)task->extra)->clut  = (u8)arg0->field_2C->clut;
             effectObj                        = task->extra;
             if (effectObj->buffer != 0) {
-                Tmd_ProcessStream((TmdObject*)effectObj);
-                Tmd_ProcessStream((TmdObject*)task->extra);
+                tmdProcessStream((TmdObject*)effectObj);
+                tmdProcessStream((TmdObject*)task->extra);
             }
         }
         if ((s16)work->field_6 == 2) {
@@ -1966,8 +1966,8 @@ void Actor00100_Fn09310(Actor00100* arg0)
                 ((TmdObject*)task2->extra)->clut  = (u8)arg0->field_2C->clut;
                 effectObj2                        = task2->extra;
                 if (effectObj2->buffer != 0) {
-                    Tmd_ProcessStream((TmdObject*)effectObj2);
-                    Tmd_ProcessStream((TmdObject*)task2->extra);
+                    tmdProcessStream((TmdObject*)effectObj2);
+                    tmdProcessStream((TmdObject*)task2->extra);
                 }
             }
         }
@@ -1981,8 +1981,8 @@ void Actor00100_Fn09310(Actor00100* arg0)
             ((TmdObject*)task3->extra)->clut  = (u8)arg0->field_2C->clut;
             effectObj3                        = task3->extra;
             if (effectObj3->buffer != 0) {
-                Tmd_ProcessStream((TmdObject*)effectObj3);
-                Tmd_ProcessStream((TmdObject*)task3->extra);
+                tmdProcessStream((TmdObject*)effectObj3);
+                tmdProcessStream((TmdObject*)task3->extra);
             }
         }
     }
@@ -1995,8 +1995,8 @@ void Actor00100_Fn09310(Actor00100* arg0)
             ((TmdObject*)task4->extra)->clut  = (u8)arg0->field_2C->clut;
             effectObj4                        = task4->extra;
             if (effectObj4->buffer != 0) {
-                Tmd_ProcessStream((TmdObject*)effectObj4);
-                Tmd_ProcessStream((TmdObject*)task4->extra);
+                tmdProcessStream((TmdObject*)effectObj4);
+                tmdProcessStream((TmdObject*)task4->extra);
             }
         }
     }

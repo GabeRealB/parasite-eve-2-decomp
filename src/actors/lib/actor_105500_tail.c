@@ -55,8 +55,8 @@ void Actor05500_Fn03C54(Actor105500* actor)
     model->tpage = entry->field_D;
     model->clut  = entry->field_E;
     if (model->buffer != NULL) {
-        Tmd_ProcessStream(model);
-        Tmd_ProcessStream(model);
+        tmdProcessStream(model);
+        tmdProcessStream(model);
     }
 }
 

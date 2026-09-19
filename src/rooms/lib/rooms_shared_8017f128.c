@@ -45,8 +45,8 @@ void RoomsShared8017f128(Task* task)
         extra        = task->extra;
         parts        = extra->coords;
         extra->tpage = src->tpage;
-        Tmd_ProcessStream(extra);
-        Tmd_ProcessStream(extra);
+        tmdProcessStream(extra);
+        tmdProcessStream(extra);
         extra->flags    = 0x10;
         extra->otOffset = 0x1F;
         parts->sub      = mirrorPart;

@@ -10,7 +10,7 @@
 /// parent's work block raises `field_6BA` it spawns one companion effect from
 /// `field_66C` and hands it this actor's texture page and CLUT row. That last
 /// step is `ActorsShared8013851c` inlined - the stream is processed twice
-/// because `Tmd_ProcessStream` advances one of the two half-buffers per call.
+/// because `tmdProcessStream` advances one of the two half-buffers per call.
 void ActorsShared80136930(GpEnemy* enemy, Task* task)
 {
     ActorsShared80136930Work* work;
@@ -28,8 +28,8 @@ void ActorsShared80136930(GpEnemy* enemy, Task* task)
         dst->tpage      = src->tpage;
         dst->clut       = src->clut;
         if (dst->buffer != NULL) {
-            Tmd_ProcessStream(dst);
-            Tmd_ProcessStream(dst);
+            tmdProcessStream(dst);
+            tmdProcessStream(dst);
         }
     }
 }

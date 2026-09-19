@@ -1924,8 +1924,8 @@ GpEnemy* func_actor_206100_8014EE2C(s32 arg0)
         obj             = (TmdObject*)enemy->task->extra;
         obj->tpage      = 0;
         obj->clut       = 2;
-        Tmd_ProcessStream(obj);
-        Tmd_ProcessStream(obj);
+        tmdProcessStream(obj);
+        tmdProcessStream(obj);
         return enemy;
     }
     return NULL;

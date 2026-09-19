@@ -1261,8 +1261,8 @@ void func_actor_510900_801350F8(Actor510900Ctx* arg0, Actor510900* arg1)
     model1->tpage = entry1->field_D;
     model1->clut  = entry1->field_E;
     if (model1->buffer != NULL) {
-        Tmd_ProcessStream(model1);
-        Tmd_ProcessStream(model1);
+        tmdProcessStream(model1);
+        tmdProcessStream(model1);
     }
     work->field_568 = spawned->task;
     eff             = Gp_SpawnEff(0x80060043, ((TmdObject*)spawned->task->extra)->coords, 0, NULL);
@@ -1288,8 +1288,8 @@ void func_actor_510900_801350F8(Actor510900Ctx* arg0, Actor510900* arg1)
     model2->tpage = entry2->field_D;
     model2->clut  = entry2->field_E;
     if (model2->buffer != NULL) {
-        Tmd_ProcessStream(model2);
-        Tmd_ProcessStream(model2);
+        tmdProcessStream(model2);
+        tmdProcessStream(model2);
     }
     work->field_56C = spawned->task;
     Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 5, 0, (GpEnemy*)arg0);

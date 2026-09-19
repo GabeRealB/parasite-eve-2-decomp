@@ -287,7 +287,7 @@ void Tmd_InitSourceStream(TmdSource* src)
     }
 }
 
-void Tmd_ProcessStream(TmdObject* obj)
+void tmdProcessStream(TmdObject* obj)
 {
     TmdScratchModelBlock*  ws;
     TmdSource*             src;
@@ -512,8 +512,8 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags)
             mem = memCalloc(src->halfSize * 2, 1);
             if (mem != NULL) {
                 obj->buffer = mem;
-                Tmd_ProcessStream(obj);
-                Tmd_ProcessStream(obj);
+                tmdProcessStream(obj);
+                tmdProcessStream(obj);
             }
         } else if (flags & 1) {
             obj->flags |= 4;
@@ -664,8 +664,8 @@ s32 Tmd_AllocBuffers(TmdObject* obj)
         obj->buffer = mem;
         if (mem != NULL) {
             obj->bufferIndex = 0;
-            Tmd_ProcessStream(obj);
-            Tmd_ProcessStream(obj);
+            tmdProcessStream(obj);
+            tmdProcessStream(obj);
             result = 1;
         }
     }
@@ -811,8 +811,8 @@ void Tmd_AllocMissingBuffers(void)
                 if (mem != NULL) {
                     node->buffer      = mem;
                     node->bufferIndex = 0;
-                    Tmd_ProcessStream(node);
-                    Tmd_ProcessStream(node);
+                    tmdProcessStream(node);
+                    tmdProcessStream(node);
                 }
             }
         }
@@ -833,8 +833,8 @@ void Tmd_AllocNodeBuffers(Task* task)
                 node->buffer      = mem;
                 node->bufferIndex = 0;
                 node->flags      &= ~0x80;
-                Tmd_ProcessStream(node);
-                Tmd_ProcessStream(node);
+                tmdProcessStream(node);
+                tmdProcessStream(node);
             }
         }
         node = (TmdObject*)node->next;

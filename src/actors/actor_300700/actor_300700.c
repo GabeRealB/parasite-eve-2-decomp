@@ -93,8 +93,8 @@ void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
     coord->flg  = 0;
     obj->tpage += 1;
     obj->clut  += 1;
-    Tmd_ProcessStream(obj);
-    Tmd_ProcessStream(obj);
+    tmdProcessStream(obj);
+    tmdProcessStream(obj);
     obj->lightMtx  = &work->field_114;
     obj->colorMtx  = &work->field_F4;
     arg0->field_4  = &coord->coord;

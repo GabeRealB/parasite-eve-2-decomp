@@ -694,8 +694,8 @@ void func_actor_102300_801346CC(GpEnemy* enemy, Actor102300* actor)
     model->tpage = entry->field_D;
     model->clut  = entry->field_E;
     if (model->buffer != NULL) {
-        Tmd_ProcessStream(model);
-        Tmd_ProcessStream(model);
+        tmdProcessStream(model);
+        tmdProcessStream(model);
     }
     SOFT_DEF_REG(keyPtr);
 
@@ -717,8 +717,8 @@ void func_actor_102300_801346CC(GpEnemy* enemy, Actor102300* actor)
     model2->tpage = entry2->field_D;
     model2->clut  = entry2->field_E;
     if (model2->buffer != NULL) {
-        Tmd_ProcessStream(model2);
-        Tmd_ProcessStream(model2);
+        tmdProcessStream(model2);
+        tmdProcessStream(model2);
     }
 
     one  = 1;

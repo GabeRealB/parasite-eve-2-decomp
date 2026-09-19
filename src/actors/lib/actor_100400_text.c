@@ -932,8 +932,8 @@ void Actor00400_Fn0237C(Actor100400* arg0)
         dst1->tpage = src1->tpage;
         dst1->clut  = src1->clut;
         if (dst1->buffer != NULL) {
-            Tmd_ProcessStream(dst1);
-            Tmd_ProcessStream(dst1);
+            tmdProcessStream(dst1);
+            tmdProcessStream(dst1);
         }
     }
     D_800678F0[0] = Actor00400_D0E970;
@@ -944,8 +944,8 @@ void Actor00400_Fn0237C(Actor100400* arg0)
         dst2->tpage = src2->tpage;
         dst2->clut  = src2->clut;
         if (dst2->buffer != NULL) {
-            Tmd_ProcessStream(dst2);
-            Tmd_ProcessStream(dst2);
+            tmdProcessStream(dst2);
+            tmdProcessStream(dst2);
         }
     }
     D_800678F0[0] = Actor00400_D0ED28;
@@ -956,8 +956,8 @@ void Actor00400_Fn0237C(Actor100400* arg0)
         dst3->tpage = src3->tpage;
         dst3->clut  = src3->clut;
         if (dst3->buffer != NULL) {
-            Tmd_ProcessStream(dst3);
-            Tmd_ProcessStream(dst3);
+            tmdProcessStream(dst3);
+            tmdProcessStream(dst3);
         }
     }
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -974,8 +974,8 @@ void Actor00400_Fn0237C(Actor100400* arg0)
         dst4->tpage = src4->tpage;
         dst4->clut  = src4->clut;
         if (dst4->buffer != NULL) {
-            Tmd_ProcessStream(dst4);
-            Tmd_ProcessStream(dst4);
+            tmdProcessStream(dst4);
+            tmdProcessStream(dst4);
         }
     }
     D_800678F0[0] = Actor00400_D0FD9C;
@@ -986,8 +986,8 @@ void Actor00400_Fn0237C(Actor100400* arg0)
         dst5->tpage = src5->tpage;
         dst5->clut  = src5->clut;
         if (dst5->buffer != NULL) {
-            Tmd_ProcessStream(dst5);
-            Tmd_ProcessStream(dst5);
+            tmdProcessStream(dst5);
+            tmdProcessStream(dst5);
         }
     }
     Gp_SpawnEff(0x60030, &((TmdObject*)arg0->field_2C)->coords[1], 0x200, NULL);

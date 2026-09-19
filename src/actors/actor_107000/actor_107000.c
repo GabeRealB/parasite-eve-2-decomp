@@ -155,8 +155,8 @@ void func_actor_107000_80131F0C(GpEnemy* arg0, Task* arg1)
         obj->tpage = obj->tpage + 1;
         obj->clut  = obj->clut + 1;
         if (obj->buffer != 0) {
-            Tmd_ProcessStream(obj);
-            Tmd_ProcessStream(obj);
+            tmdProcessStream(obj);
+            tmdProcessStream(obj);
         }
     }
     work->field_2B4    = 0;

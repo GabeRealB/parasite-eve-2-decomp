@@ -974,8 +974,8 @@ void Actor00700_Fn01FE0(Actor00700Ctx* ctx, Actor00700* actor)
     coord->flg      = 0;
     obj->tpage     += 1;
     obj->clut      += 1;
-    Tmd_ProcessStream(obj);
-    Tmd_ProcessStream(obj);
+    tmdProcessStream(obj);
+    tmdProcessStream(obj);
     obj->lightMtx = &work->field_114;
     obj->colorMtx = &work->field_F4;
     ctx->field_4  = (void*)(&coord->coord);

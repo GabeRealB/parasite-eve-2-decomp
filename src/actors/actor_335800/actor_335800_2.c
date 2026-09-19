@@ -297,8 +297,8 @@ void func_actor_335800_80162640(Task* arg0)
         model->tpage = place->field_D;
         model->clut  = place->field_E;
         if (model->buffer != NULL) {
-            Tmd_ProcessStream(model);
-            Tmd_ProcessStream(model);
+            tmdProcessStream(model);
+            tmdProcessStream(model);
         }
     }
     spawned = Task_SpawnFromTable(&D_actor_335800_8016EADC, 2, 8, (s32)arg0);
@@ -322,8 +322,8 @@ void func_actor_335800_80162640(Task* arg0)
         model->tpage = place->field_D;
         model->clut  = place->field_E;
         if (model->buffer != NULL) {
-            Tmd_ProcessStream(model);
-            Tmd_ProcessStream(model);
+            tmdProcessStream(model);
+            tmdProcessStream(model);
         }
     }
     func_actor_335800_80162F9C(arg0);

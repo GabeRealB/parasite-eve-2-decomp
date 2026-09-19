@@ -14,7 +14,7 @@ void ActorsShared8013851c(Task* dst, Task* src)
     to->tpage = from->tpage;
     to->clut  = from->clut;
     if (to->buffer != NULL) {
-        Tmd_ProcessStream(to);
-        Tmd_ProcessStream(to);
+        tmdProcessStream(to);
+        tmdProcessStream(to);
     }
 }

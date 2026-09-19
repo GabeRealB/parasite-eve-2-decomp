@@ -35,8 +35,8 @@ void func_actor_342400_801637DC(Task* arg0)
         dst->tpage = src->tpage;
         dst->clut  = src->clut;
         if (dst->buffer != NULL) {
-            Tmd_ProcessStream(dst);
-            Tmd_ProcessStream(dst);
+            tmdProcessStream(dst);
+            tmdProcessStream(dst);
         }
     }
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -53,8 +53,8 @@ void func_actor_342400_801637DC(Task* arg0)
         dst2->tpage = src2->tpage;
         dst2->clut  = src2->clut;
         if (dst2->buffer != NULL) {
-            Tmd_ProcessStream(dst2);
-            Tmd_ProcessStream(dst2);
+            tmdProcessStream(dst2);
+            tmdProcessStream(dst2);
         }
     }
     Gp_SpawnEff(0x60030, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[1], 0x200, NULL);

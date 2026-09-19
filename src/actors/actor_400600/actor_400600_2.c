@@ -301,8 +301,8 @@ void func_actor_400600_80137240(Task* arg0)
         dst->tpage = src->tpage;
         dst->clut  = src->clut;
         if (dst->buffer != NULL) {
-            Tmd_ProcessStream(dst);
-            Tmd_ProcessStream(dst);
+            tmdProcessStream(dst);
+            tmdProcessStream(dst);
         }
     }
     D_800678F0[0] = D_actor_400600_80143604;
@@ -313,8 +313,8 @@ void func_actor_400600_80137240(Task* arg0)
         dst2->tpage = src2->tpage;
         dst2->clut  = src2->clut;
         if (dst2->buffer != NULL) {
-            Tmd_ProcessStream(dst2);
-            Tmd_ProcessStream(dst2);
+            tmdProcessStream(dst2);
+            tmdProcessStream(dst2);
         }
     }
     D_800678F0[0] = D_actor_400600_80143B24;
@@ -325,8 +325,8 @@ void func_actor_400600_80137240(Task* arg0)
         dst3->tpage = src3->tpage;
         dst3->clut  = src3->clut;
         if (dst3->buffer != NULL) {
-            Tmd_ProcessStream(dst3);
-            Tmd_ProcessStream(dst3);
+            tmdProcessStream(dst3);
+            tmdProcessStream(dst3);
         }
     }
     D_800678F0[0] = D_actor_400600_80144994;
@@ -337,8 +337,8 @@ void func_actor_400600_80137240(Task* arg0)
         dst4->tpage = src4->tpage;
         dst4->clut  = src4->clut;
         if (dst4->buffer != NULL) {
-            Tmd_ProcessStream(dst4);
-            Tmd_ProcessStream(dst4);
+            tmdProcessStream(dst4);
+            tmdProcessStream(dst4);
         }
     }
     Gp_SpawnEff(0x60030, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[1], 0x200, NULL);

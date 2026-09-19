@@ -223,8 +223,8 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     model->tpage = ((GpCdRec10*)idx)->field_D;
     model->clut  = ((GpCdRec10*)idx)->field_E;
     if (model->buffer != NULL) {
-        Tmd_ProcessStream(model);
-        Tmd_ProcessStream(model);
+        tmdProcessStream(model);
+        tmdProcessStream(model);
     }
     spawned    = Gp_SpawnEnemyFromTable(table, 2, 0, enemy);
     session    = gGameSession;
@@ -246,8 +246,8 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     model->tpage = ((GpCdRec10*)idx)->field_D;
     model->clut  = ((GpCdRec10*)idx)->field_E;
     if (model->buffer != NULL) {
-        Tmd_ProcessStream(model);
-        Tmd_ProcessStream(model);
+        tmdProcessStream(model);
+        tmdProcessStream(model);
     }
     Gp_SpawnEnemyFromTable(table, 3, 0, enemy);
     task->state = 1;

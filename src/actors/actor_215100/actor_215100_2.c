@@ -1154,8 +1154,8 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     model->tpage = place->field_D;
     model->clut  = place->field_E;
     if (model->buffer != NULL) {
-        Tmd_ProcessStream(model);
-        Tmd_ProcessStream(model);
+        tmdProcessStream(model);
+        tmdProcessStream(model);
     }
     Task_Reparent(task, spawned->task);
     work->field_4F0 = spawned->task;

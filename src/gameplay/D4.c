@@ -505,8 +505,8 @@ void Gp_PumpTmdStream(Task* task)
         obj->tpage = 4;
         obj->clut  = 6;
         if (obj->buffer != NULL) {
-            Tmd_ProcessStream(obj);
-            Tmd_ProcessStream(obj);
+            tmdProcessStream(obj);
+            tmdProcessStream(obj);
         }
     }
 }
@@ -796,8 +796,8 @@ void func_800AA548(s32 arg0)
     model        = ((Task*)Game_GetPtrSlot(3))->extra;
     model->tpage = 6;
     model->clut  = 0;
-    Tmd_ProcessStream(model);
-    Tmd_ProcessStream(model);
+    tmdProcessStream(model);
+    tmdProcessStream(model);
     Gp_LoadStageView();
     Game_SetPtrSlot(Task_Spawn(1, 0x23, 0, 0), 4);
     Game_SetPtrSlot(Task_Spawn(6, 4, 0, 0), 5);

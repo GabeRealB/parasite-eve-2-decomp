@@ -267,8 +267,8 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
         model1->tpage = entry1->field_D;
         model1->clut  = entry1->field_E;
         if (model1->buffer != NULL) {
-            Tmd_ProcessStream(model1);
-            Tmd_ProcessStream(model1);
+            tmdProcessStream(model1);
+            tmdProcessStream(model1);
         }
     }
 
@@ -293,8 +293,8 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
         model2->tpage = entry2->field_D;
         model2->clut  = entry2->field_E;
         if (model2->buffer != NULL) {
-            Tmd_ProcessStream(model2);
-            Tmd_ProcessStream(model2);
+            tmdProcessStream(model2);
+            tmdProcessStream(model2);
         }
     }
 

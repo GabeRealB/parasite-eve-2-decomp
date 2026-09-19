@@ -386,8 +386,8 @@ void func_actor_403600_801419E8(Actor403600* arg0)
     *(s8*)&obj->tpage = -0xF;
     obj->clut         = 2;
     if (obj->buffer != NULL) {
-        Tmd_ProcessStream(obj);
-        Tmd_ProcessStream(obj);
+        tmdProcessStream(obj);
+        tmdProcessStream(obj);
     }
 }
 

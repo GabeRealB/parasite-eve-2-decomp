@@ -29,8 +29,8 @@ void func_actor_510900_8013BEEC(void* enemy, Task* task)
     work       = (Actor510900Work*)task->parent->work;
     coord      = obj->coords;
     obj->clut += 2;
-    Tmd_ProcessStream(obj);
-    Tmd_ProcessStream(obj);
+    tmdProcessStream(obj);
+    tmdProcessStream(obj);
     coord->sub    = &((TmdObject*)task->parent->extra)->coords[12];
     coord->flg    = 0;
     obj->flags    = 0x80;

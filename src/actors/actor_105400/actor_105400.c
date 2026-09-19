@@ -146,8 +146,8 @@ void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
     model->tpage = place->field_D;
     model->clut  = place->field_E;
     if (model->buffer != NULL) {
-        Tmd_ProcessStream(model);
-        Tmd_ProcessStream(model);
+        tmdProcessStream(model);
+        tmdProcessStream(model);
     }
     sound           = D_actor_105400_8013CE60 | ((((GpEnemy*)arg1->spawnArg2)->field_8 >> 12) << 8);
     work->field_31C = sound;

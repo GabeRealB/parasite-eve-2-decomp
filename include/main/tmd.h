@@ -122,7 +122,7 @@ extern TmdListHead gTmdDisp2dList;
 extern s32 D_80071210;
 
 /// One frame of the scratch a model's packet stream is walked in: what
-/// `Tmd_ProcessStream` pushes on `G_SCRATCH_HEAD` and passes to every stream
+/// `tmdProcessStream` pushes on `G_SCRATCH_HEAD` and passes to every stream
 /// command it runs.
 ///
 /// The frame carries the walk itself — which record is being run, how long its
@@ -186,11 +186,30 @@ typedef u32* (*TmdDrawStreamHandler)(TmdScratchDrawBlock* ws, s32 flags, u32* st
 // --- APIs ---
 void       Tmd_InitLists(void);
 TmdObject* Tmd_Create(TmdSource* src, s32 flags);
-void       Tmd_ProcessStream(TmdObject* obj);
-void       Tmd_SetupDraw(TmdObject* obj);
-void       Tmd_AllocMissingBuffers(void);
-s32        Tmd_AllocBuffers(TmdObject* obj);
-void       Tmd_FreeBuffers(TmdObject* obj);
+
+/// Builds a model's primitives into one half of its buffer: it walks the model's
+/// packet stream and runs the handler the record's opcode selects, and the
+/// handler lays the record's packets out and fills in what the record carries.
+///
+/// A packet is not all per-frame. Its screen coordinates, its lit colours and its
+/// link into the ordering table are the draw pass's to write as it transforms the
+/// record, and what is left — a textured primitive's texture coordinates, and the
+/// model's texture page and CLUT row added to the primitive's own — is settled
+/// here, once. So the walk runs wherever a model's buffer is filled, and again
+/// wherever the page or CLUT the model draws with changes.
+///
+/// It works on the half the model is not drawing from and flips
+/// `TmdObject.bufferIndex` onto it, so a caller that needs both halves to carry
+/// the change calls it twice in a row. Its scratch frame is pushed on
+/// `G_SCRATCH_HEAD` for the length of the walk, and the place the session is in
+/// picks between the two handlers a record asking for a semi-transparent layer
+/// has.
+void tmdProcessStream(TmdObject* obj);
+
+void Tmd_SetupDraw(TmdObject* obj);
+void Tmd_AllocMissingBuffers(void);
+s32  Tmd_AllocBuffers(TmdObject* obj);
+void Tmd_FreeBuffers(TmdObject* obj);
 
 /// Early-image handwritten GTE matrix load (src/main/hasm/Tmd_SetupGteMatrices.s).
 void Tmd_SetupGteMatrices(TmdScratchDrawBlock* ws, u32 flags, void* stream, TmdObject* node);
@@ -215,7 +234,7 @@ s32 Tmd_SumBufferBytes(void);
 
 // Early-image handlers (src/main/hasm/).
 // Same ABI for model and draw scratch (shared offsets 0x18/0x1C/…); declared
-// as model-side type for Tmd_ProcessStream. Draw path is jalr from hasm only.
+// as model-side type for tmdProcessStream. Draw path is jalr from hasm only.
 
 /// Handler of a stream record nothing is built from: it steps over the record's
 /// elements and returns the cursor that follows them.
@@ -254,7 +273,7 @@ u32* Tmd_StreamHandler_Op130(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* Tmd_StreamHandler_Op170(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 // Overlay stream commands (src/gameplay/gameplay.c), selected by
-// Tmd_ProcessStream.
+// tmdProcessStream.
 
 /// Handler of a stream's pre-transformed textured-triangle records (`0x31`,
 /// `0x39`, `0x3B`, `0x131`, `0x8039`): each element contributes one triangle to

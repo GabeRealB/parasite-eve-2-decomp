@@ -3231,8 +3231,8 @@ void func_actor_444000_80141618(Actor444000* task)
                     model->tpage = entry->field_D;
                     model->clut  = entry->field_E;
                     if (model->buffer != NULL) {
-                        Tmd_ProcessStream(model);
-                        Tmd_ProcessStream(model);
+                        tmdProcessStream(model);
+                        tmdProcessStream(model);
                     }
                     work->field_EE8[sc->i]->field_A = 0x900;
                     escort                          = work->field_EE8[sc->i];

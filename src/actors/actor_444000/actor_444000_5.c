@@ -1331,8 +1331,8 @@ void func_actor_444000_80137D4C(GpEnemy* enemy, Actor444000Grab* task)
     task->extra->clut        = 2;
 
     if (task->extra->buffer != NULL) {
-        Tmd_ProcessStream(task->extra);
-        Tmd_ProcessStream(task->extra);
+        tmdProcessStream(task->extra);
+        tmdProcessStream(task->extra);
         sfx = ((owner->field_8 >> 0xC) << 8) | 0x4020001C;
         pan = (s8)Gp_GetObjPan((GpObj38*)task->extra->coords);
         SndEvt_EnqueueType6(sfx, pan, (s8)(Gp_GetObjDepth((GpObj38*)task->extra->coords) / 2));

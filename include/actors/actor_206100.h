@@ -519,9 +519,10 @@ extern TaskDesc D_actor_206100_80158AF0;
 /// `task->spawnArg2` is the `GpEnemy` `func_actor_206100_8014EC14` spawned, so
 /// this is the writer of nearly every field that spawn leaves unset.  The
 /// `TmdObject` at `task->extra` gets the two `MATRIX` slots the overlay's
-/// light / colour hand-off uses (`field_1C` the 0x480 `lightMtx`, `field_20`
-/// the 0x460 `colorMtx`) and `field_E` 0xA -- the same "render state" byte
-/// `Tmd_ProcessStream` reads back.  `coord` is the model's root coordinate,
+/// light / colour hand-off uses (`lightMtx` the 0x480 `work->lightMtx`,
+/// `colorMtx` the 0x460 `work->colorMtx`) and `otOffset` 0xA -- the
+/// ordering-table offset the draw pass links the model's primitives at.
+/// `coord` is the model's root coordinate,
 /// which the effect argument at `eff_4C0` reuses for part 1 (`field_8[1]`),
 /// so `enemy->field_4` and the effect share one coordinate.
 ///

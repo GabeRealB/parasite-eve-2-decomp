@@ -130,7 +130,7 @@ extern s32 D_dryfield_water_tower_80187678;
 /// alone" gate -- the cap stops moving the moment it goes non-zero.
 extern s8 D_80114C11;
 
-/// The room's script table, the `Task::msgTable` block `Tmd_ProcessStream`
+/// The room's script table, the `Task::msgTable` block `Gp_DispatchMsg`
 /// reads: the raise prop `func_dryfield_water_tower_8017E1DC` hangs it off its
 /// own task in state 0, the same slot the cap script publishes a table into.
 extern u32 D_dryfield_water_tower_80181B00;

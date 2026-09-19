@@ -593,8 +593,8 @@ void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2)
         } else {
             obj->clut = 0;
         }
-        Tmd_ProcessStream(obj);
-        Tmd_ProcessStream(obj);
+        tmdProcessStream(obj);
+        tmdProcessStream(obj);
         enemy->field_A = 0x900;
     }
 }

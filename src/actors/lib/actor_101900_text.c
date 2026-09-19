@@ -2792,8 +2792,8 @@ void Actor01900_Fn08724(Actor01900* arg0)
                 model->tpage = entry->field_D;
                 model->clut  = entry->field_E;
                 if (model->buffer != NULL) {
-                    Tmd_ProcessStream(model);
-                    Tmd_ProcessStream(model);
+                    tmdProcessStream(model);
+                    tmdProcessStream(model);
                 }
             }
             break;
@@ -2835,8 +2835,8 @@ static __inline__ void Actor01900_TintEffect(GpEffWork* eff, GpEnemy* enemy)
         model->tpage = entry->field_D;
         model->clut  = entry->field_E;
         if (model->buffer != NULL) {
-            Tmd_ProcessStream(model);
-            Tmd_ProcessStream(model);
+            tmdProcessStream(model);
+            tmdProcessStream(model);
         }
     }
 }

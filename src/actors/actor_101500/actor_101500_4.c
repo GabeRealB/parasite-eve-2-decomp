@@ -88,8 +88,8 @@ void func_actor_101500_801338D0(Actor101500* arg0)
         model1->tpage = entry1->field_D;
         model1->clut  = entry1->field_E;
         if (model1->buffer != NULL) {
-            Tmd_ProcessStream(model1);
-            Tmd_ProcessStream(model1);
+            tmdProcessStream(model1);
+            tmdProcessStream(model1);
         }
     }
 
@@ -110,8 +110,8 @@ void func_actor_101500_801338D0(Actor101500* arg0)
         model2->tpage = entry2->field_D;
         model2->clut  = entry2->field_E;
         if (model2->buffer != NULL) {
-            Tmd_ProcessStream(model2);
-            Tmd_ProcessStream(model2);
+            tmdProcessStream(model2);
+            tmdProcessStream(model2);
         }
     }
 
@@ -132,8 +132,8 @@ void func_actor_101500_801338D0(Actor101500* arg0)
         model3->tpage = entry3->field_D;
         model3->clut  = entry3->field_E;
         if (model3->buffer != NULL) {
-            Tmd_ProcessStream(model3);
-            Tmd_ProcessStream(model3);
+            tmdProcessStream(model3);
+            tmdProcessStream(model3);
         }
     }
 
@@ -154,8 +154,8 @@ void func_actor_101500_801338D0(Actor101500* arg0)
         model4->tpage = entry4->field_D;
         model4->clut  = entry4->field_E;
         if (model4->buffer != NULL) {
-            Tmd_ProcessStream(model4);
-            Tmd_ProcessStream(model4);
+            tmdProcessStream(model4);
+            tmdProcessStream(model4);
         }
     }
 }

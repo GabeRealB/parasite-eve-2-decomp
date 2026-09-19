@@ -88,8 +88,8 @@ void func_actor_113100_80131E58(Task* task)
         model2->tpage = entry2->field_D;
         model2->clut  = entry2->field_E;
         if (model2->buffer != NULL) {
-            Tmd_ProcessStream(model2);
-            Tmd_ProcessStream(model2);
+            tmdProcessStream(model2);
+            tmdProcessStream(model2);
         }
     }
 
@@ -109,8 +109,8 @@ void func_actor_113100_80131E58(Task* task)
         model3->tpage = entry3->field_D;
         model3->clut  = entry3->field_E;
         if (model3->buffer != NULL) {
-            Tmd_ProcessStream(model3);
-            Tmd_ProcessStream(model3);
+            tmdProcessStream(model3);
+            tmdProcessStream(model3);
         }
     }
 

@@ -56,7 +56,7 @@ void func_actor_102600_80135A6C(Actor102600* actor)
     model->tpage = entry->field_D;
     model->clut  = entry->field_E;
     if (model->buffer != NULL) {
-        Tmd_ProcessStream(model);
-        Tmd_ProcessStream(model);
+        tmdProcessStream(model);
+        tmdProcessStream(model);
     }
 }

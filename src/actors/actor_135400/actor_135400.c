@@ -139,8 +139,8 @@ void func_actor_135400_80132064(Task* arg0)
         model->tpage = place->field_D;
         model->clut  = place->field_E;
         if (model->buffer != NULL) {
-            Tmd_ProcessStream(model);
-            Tmd_ProcessStream(model);
+            tmdProcessStream(model);
+            tmdProcessStream(model);
         }
     }
     spawned = Task_SpawnFromTable(&D_actor_135400_8013A4AC, 2, 8, (s32)arg0);

@@ -1217,8 +1217,8 @@ void func_actor_405800_80135780(Task* arg0)
     dst->tpage    = src->tpage;
     dst->clut     = src->clut;
     if (dst->buffer != NULL) {
-        Tmd_ProcessStream(dst);
-        Tmd_ProcessStream(dst);
+        tmdProcessStream(dst);
+        tmdProcessStream(dst);
     }
     obj->lightMtx = &work->matrix_40;
     obj->colorMtx = &work->matrix_20;
@@ -1235,8 +1235,8 @@ void func_actor_405800_80135780(Task* arg0)
     dst->tpage             = src->tpage;
     dst->clut              = src->clut;
     if (dst->buffer != NULL) {
-        Tmd_ProcessStream(dst);
-        Tmd_ProcessStream(dst);
+        tmdProcessStream(dst);
+        tmdProcessStream(dst);
     }
     pm2                = &m;
     pm2->ident.m00_m01 = 0x1000;

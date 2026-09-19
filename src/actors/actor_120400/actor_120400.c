@@ -70,8 +70,8 @@ void func_actor_120400_80131E5C(Task* arg0)
         model->tpage = place->field_D;
         model->clut  = place->field_E;
         if (model->buffer != NULL) {
-            Tmd_ProcessStream(model);
-            Tmd_ProcessStream(model);
+            tmdProcessStream(model);
+            tmdProcessStream(model);
         }
     }
     spawned = Task_SpawnFromTable(&D_actor_120400_8013E748, 2, 0xC, (s32)arg0);
@@ -98,8 +98,8 @@ void func_actor_120400_80131E5C(Task* arg0)
         model->tpage = place->field_D;
         model->clut  = place->field_E;
         if (model->buffer != NULL) {
-            Tmd_ProcessStream(model);
-            Tmd_ProcessStream(model);
+            tmdProcessStream(model);
+            tmdProcessStream(model);
         }
     }
     ActorsShared80132f24(arg0);

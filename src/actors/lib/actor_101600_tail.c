@@ -1052,8 +1052,8 @@ void Actor01600_Fn070AC(Actor01600* arg0, Actor01600* arg1)
     dst->tpage = src->tpage;
     dst->clut  = src->clut;
     if (dst->buffer != NULL) {
-        Tmd_ProcessStream(dst);
-        Tmd_ProcessStream(dst);
+        tmdProcessStream(dst);
+        tmdProcessStream(dst);
     }
 }
 

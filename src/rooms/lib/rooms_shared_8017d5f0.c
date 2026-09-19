@@ -50,8 +50,8 @@ void RoomsShared8017d5f0(Task* task)
     }
     task->work   = (TaskIdMap*)work;
     extra->tpage = 6;
-    Tmd_ProcessStream(extra);
-    Tmd_ProcessStream(extra);
+    tmdProcessStream(extra);
+    tmdProcessStream(extra);
     extra->flags    = 0x10;
     extra->otOffset = 0x1F;
     if (task->spawnArg1 == 0) {

@@ -154,7 +154,7 @@ void func_actor_450800_80132108(void)
 /// the actor's own model parts, and each is placed by the area key its
 /// `Task::spawnArg2` carries. Task 4 is spawned but not placed.
 ///
-/// The `do { } while (0)` around the second `Tmd_ProcessStream` is
+/// The `do { } while (0)` around the second `tmdProcessStream` is
 /// load-bearing: the loop body is a statement of its own, so the model pointer
 /// gains a reference that the bare second call does not. That reference is
 /// what lifts the pointer's global-alloc priority (refs 7, not 6) past
@@ -236,9 +236,9 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
         model1->tpage = entry1->field_D;
         model1->clut  = entry1->field_E;
         if (model1->buffer != NULL) {
-            Tmd_ProcessStream(model1);
+            tmdProcessStream(model1);
             do {
-                Tmd_ProcessStream(model1);
+                tmdProcessStream(model1);
             } while (0);
         }
     }
@@ -265,9 +265,9 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
         model2->tpage = entry2->field_D;
         model2->clut  = entry2->field_E;
         if (model2->buffer != NULL) {
-            Tmd_ProcessStream(model2);
+            tmdProcessStream(model2);
             do {
-                Tmd_ProcessStream(model2);
+                tmdProcessStream(model2);
             } while (0);
         }
     }

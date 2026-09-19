@@ -636,8 +636,8 @@ void func_actor_510900_801373B8(Actor510900* arg0)
         model->tpage = entry->field_D;
         model->clut  = entry->field_E;
         if (model->buffer != NULL) {
-            Tmd_ProcessStream(model);
-            Tmd_ProcessStream(model);
+            tmdProcessStream(model);
+            tmdProcessStream(model);
         }
         snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780012;
         pan = (s8)Gp_GetObjPan((GpObj38*)coord);

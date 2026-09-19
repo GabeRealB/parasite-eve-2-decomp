@@ -1356,8 +1356,8 @@ void func_mist_shooting_gallery_801848B4(void)
         obj        = (TmdObject*)enemy->task->extra;
         obj->tpage = 0;
         obj->clut  = 2;
-        Tmd_ProcessStream(obj);
-        Tmd_ProcessStream(obj);
+        tmdProcessStream(obj);
+        tmdProcessStream(obj);
         coord             = (GpCoordPose*)((TmdObject*)enemy->task->extra)->coords;
         coord->coord.t[0] = 0x1770;
         coord->coord.t[2] = 0xBB8;
@@ -1492,8 +1492,8 @@ GpEnemy* func_mist_shooting_gallery_80184CD0(Task* arg0, MistShootingGallerySpaw
         obj        = (TmdObject*)enemy->task->extra;
         obj->tpage = 0;
         obj->clut  = 2;
-        Tmd_ProcessStream(obj);
-        Tmd_ProcessStream(obj);
+        tmdProcessStream(obj);
+        tmdProcessStream(obj);
         coord             = (GpCoordPose*)((TmdObject*)enemy->task->extra)->coords;
         coord->coord.t[0] = arg1->x;
         coord->coord.t[1] = arg1->y;

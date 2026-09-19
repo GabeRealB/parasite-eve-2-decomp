@@ -124,8 +124,8 @@ void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
         obj->tpage++;
         obj->clut++;
         if (obj->buffer != NULL) {
-            Tmd_ProcessStream(obj);
-            Tmd_ProcessStream(obj);
+            tmdProcessStream(obj);
+            tmdProcessStream(obj);
         }
     }
     arg1->exitCallback = ActorsShared8014df20;

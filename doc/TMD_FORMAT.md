@@ -15,7 +15,7 @@ and animation sit together.
 
 | Area | Code / tools |
 |------|----------------|
-| Stream walk + opcode switches | `src/main/tmd.c` (`Tmd_InitSourceStream`, `Tmd_ProcessStream`) |
+| Stream walk + opcode switches | `src/main/tmd.c` (`Tmd_InitSourceStream`, `tmdProcessStream`) |
 | Early-image handlers | `src/main/hasm/Tmd_StreamHandlers_Ops.s` |
 | Container types | `include/main/tmd.h` (`TmdSource`, `TmdObject`) |
 | Attach path | `src/gameplay/gameplay.c` (`Gp_AttachTmd`), `src/main/task.c` |
@@ -45,7 +45,7 @@ TmdSource (0x24 bytes; handlersResolved is 0 on disc, set to 1 after first use)
   +0x20  u32  -> face stream
 ```
 
-`Tmd_ProcessStream` copies those into its scratch as `ws->verts` (vertices)
+`tmdProcessStream` copies those into its scratch as `ws->verts` (vertices)
 and `ws->normals` (normals); the handlers index off them.
 
 A model is laid out contiguously with the record last, so the counts fall out
@@ -444,7 +444,7 @@ different jobs:
 | Switch | Handlers | What it does |
 |---|---|---|
 | `Tmd_InitSourceStream` | main, `Tmd_StreamHandler_*` at `0x80010A90` | one-shot, guarded by `TmdSource.handlersResolved`. Resolves 61 opcodes to 53 handlers and **writes the pointer into the packet's slot word**. These are the transform/light/cull routines: they read vertices, run `RTPT`/`NCLIP`/`AVSZ`, and store screen XY and lit RGB. |
-| `Tmd_ProcessStream` | the loaded overlay, `0x8009xxxx`, decompiled in `src/gameplay/gameplay.c` | walks the stream when a model's primitives are built, and again when the model's texture page or CLUT changes: it lays the primitives out and fills their **static** fields — UV, CLUT, tpage. It picks the handler from the record's own opcode and steps over the slot word, which is the draw pass's to read. |
+| `tmdProcessStream` | the loaded overlay, `0x8009xxxx`, decompiled in `src/gameplay/gameplay.c` | walks the stream when a model's primitives are built, and again when the model's texture page or CLUT changes: it lays the primitives out and fills their **static** fields — UV, CLUT, tpage. It picks the handler from the record's own opcode and steps over the slot word, which is the draw pass's to read. |
 
 That split is why the untextured families do nothing per pass:
 `gpStreamPrimG3` and `gpStreamPrimG4` only advance `prims` by `0x1C` and `0x24`
@@ -453,7 +453,7 @@ no UV to refresh, so there is nothing for that handler to copy — and their pri
 advance is what confirms the primitive type for opcodes whose handler names no
 `POLY_*`.
 
-`Tmd_ProcessStream` also confirms the `dims` split independently of the
+`tmdProcessStream` also confirms the `dims` split independently of the
 empirical evidence in §2:
 
 ```c
@@ -478,7 +478,7 @@ and `0x08` texturing, `0x04` flat vs gouraud primitive, `0x02` semi-transparent,
 
 Every family the per-frame switch dispatches to, with the primitive it builds
 and where its texture coordinates come from. Read out of the **draw** handlers,
-which are decompiled in `src/gameplay/gameplay.c` — `Tmd_ProcessStream` calls
+which are decompiled in `src/gameplay/gameplay.c` — `tmdProcessStream` calls
 them by address, and main resolves those to gameplay through
 `configs/USA/sym.main.imports.txt`, which is why they are easy to miss.
 

@@ -79,8 +79,8 @@ void func_actor_213000_80149E54(Task* task)
         model->tpage = place->field_D;
         model->clut  = place->field_E;
         if (model->buffer != NULL) {
-            Tmd_ProcessStream(model);
-            Tmd_ProcessStream(model);
+            tmdProcessStream(model);
+            tmdProcessStream(model);
         }
     }
     if (spawned2 != NULL) {
@@ -103,8 +103,8 @@ void func_actor_213000_80149E54(Task* task)
         model->tpage = place->field_D;
         model->clut  = place->field_E;
         if (model->buffer != NULL) {
-            Tmd_ProcessStream(model);
-            Tmd_ProcessStream(model);
+            tmdProcessStream(model);
+            tmdProcessStream(model);
         }
     }
     func_actor_213000_8014A6AC(task);

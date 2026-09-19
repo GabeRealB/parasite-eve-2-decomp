@@ -123,8 +123,8 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
                                 effModel->tpage = entry->field_D;
                                 effModel->clut  = entry->field_E;
                                 if (effModel->buffer != NULL) {
-                                    Tmd_ProcessStream(effModel);
-                                    Tmd_ProcessStream(effModel);
+                                    tmdProcessStream(effModel);
+                                    tmdProcessStream(effModel);
                                 }
                             }
                             break;

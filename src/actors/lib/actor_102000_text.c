@@ -1328,8 +1328,8 @@ void Actor02000_Fn0251C(Actor02000Ctx* ctx, Actor02000* actor)
     model->tpage = entry->field_D;
     model->clut  = entry->field_E;
     if (model->buffer != NULL) {
-        Tmd_ProcessStream(model);
-        Tmd_ProcessStream(model);
+        tmdProcessStream(model);
+        tmdProcessStream(model);
     }
 
     one  = 1;

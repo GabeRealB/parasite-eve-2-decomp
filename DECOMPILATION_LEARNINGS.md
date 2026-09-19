@@ -20071,7 +20071,7 @@ rather than preloading the mask into `$a1`. Free the scratch pointer after the
 block and rematerialize the restore with a bare
 `*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x88`.
 
-`Tmd_ProcessStream` is the pure example.
+`tmdProcessStream` is the pure example.
 
 ## Dual `lw` + dual `andi 0xFF` for store + switch of the same expression
 
@@ -63465,8 +63465,8 @@ mid-unit ones cost a rename and a re-check of the `rodata` cuts.
 
 ## An already-promoted shared body can turn up inlined inside a larger one
 
-The tail of `func_actor_105600_80136930` - copy `field_24` / `field_25` from one
-`TmdObject` to another, then call `Tmd_ProcessStream` twice if `field_18` is
+The tail of `func_actor_105600_80136930` - copy `tpage` / `clut` from one
+`TmdObject` to another, then call `tmdProcessStream` twice if `buffer` is
 non-NULL - is `ActorsShared8013851c` verbatim, a body promoted to
 `src/actors/lib/` days earlier. It is not a call here; the original inlined it,
 so the C has to write it out again.
@@ -63475,7 +63475,7 @@ That is still worth spotting, because a promoted body comes with its header
 comment and its field types already worked out. Reading
 `include/actors/actors_shared_8013851c.h` settled what the two pointers were and
 why the stream is processed twice, which was most of the function. `grep -rn
-Tmd_ProcessStream include/actors/` found it in one step - grepping the *callee
+tmdProcessStream include/actors/` found it in one step - grepping the *callee
 list* from the brief against the family's existing shared headers is a cheap
 first move on any actor function, and it finds inlined copies that
 `overlay_dup_index.py find` cannot, since that compares whole functions.
@@ -123383,14 +123383,14 @@ past `work`'s 4473. `model` is then allocated first, takes `$s1` (its conflicts
 already contain `$s0` through `obj`), and `work` falls to `$s2` — the ROM's
 layout.
 
-**Where the seventh reference comes from.** The block calls `Tmd_ProcessStream`
+**Where the seventh reference comes from.** The block calls `tmdProcessStream`
 twice on the same pointer:
 
 ```c
         if (model1->field_18 != NULL) {
-            Tmd_ProcessStream(model1);
+            tmdProcessStream(model1);
             do {                        /* <- this wrapper is load-bearing */
-                Tmd_ProcessStream(model1);
+                tmdProcessStream(model1);
             } while (0);
         }
 ```
@@ -131297,7 +131297,7 @@ example, `tmdSkipStreamRecord` the first one converted.
 
 ## A model stream record's packet type is in its draw-path twin
 
-A model's packet stream is dispatched by opcode twice: `Tmd_ProcessStream` (main)
+A model's packet stream is dispatched by opcode twice: `tmdProcessStream` (main)
 selects the C bodies in the gameplay overlay that lay each record's packet into
 the buffer, and the draw path selects the handwritten handlers in
 `src/main/hasm/Tmd_StreamHandlers_Ops.s`. Only the second set is named, so an
@@ -132360,6 +132360,29 @@ base_2 (integer adds, 97.804 → 98.635 with the recursion above), base_3
 (`&objects[1] + offset` for the one remaining site, same shape as base_2).
 `.lreg` insns 362/475/561 and the `.rtl` dump of insn 500 show the two orders;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## A prose mention is a claim, not a citation, and a rename hands it forward as though it had been checked
+
+The rename pass rewrites every mention it can reach, so a sentence that names a
+function to explain a field comes back with the function's new name and all of
+its old authority. But a mention is the earlier reader's *claim* about the
+symbol, and it can simply be false — written about a neighbouring symbol, or
+filled in with whichever name a search happened to return, and never read back
+against the code.
+
+Two such claims were found on one function during a single rename step: a table
+documented as the block "this function reads", when the walker is another
+module's dispatcher and the function never touches that table, and a field
+documented as the byte "this function reads back", when the reader is the draw
+pass rather than this pass. Both had stood since the comment was first written
+and had survived every rename in between, each pointing the next reader at a
+function that does not do what the sentence says.
+
+So read each mention as a claim before letting the pass rewrite it, and fix the
+ones the code contradicts. The rename is the moment the sentence is touched, and
+the only moment it is read end to end. Reading the named function's body settles
+it, and costs less than the trap: a mention naming `fn` that no call from that
+file's code could produce is a claim to check, not a citation to keep.
+
 ## The model stream's colour bit puts a word between the refs and the texture words
 
 Opcode bit `0x08` is documented as "use a constant instead of a per-element

@@ -18,7 +18,7 @@ TMD playback in `src/main/tmd.c` / `include/main/tmd.h`; animation player in
 | CD file lookup | `src/main/fs.c` (`Fs_LoadFile`, `Fs_InitStage0TablesCb`) |
 | Room enter | `src/main/stage.c` (`Display_TaskLoadStep`), `src/main/loadui.c` (`CdCmd_EnqueueLoadFile`) |
 | Inflated bodies | `assets/USA/pe2pkg/` (LZSS-decoded); on-disc in `raw/pe2pkg/` |
-| Model stream | `Tmd_InitSourceStream` / `Tmd_ProcessStream` |
+| Model stream | `Tmd_InitSourceStream` / `tmdProcessStream` |
 | Anim player | `GpAnimCtx` / `GpAnimSlot` / `GpAnimSet` (`1BC.c`) |
 
 The formats themselves are documented in

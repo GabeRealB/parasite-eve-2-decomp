@@ -2799,8 +2799,8 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                                 extra->tpage = place->field_D;
                                 extra->clut  = place->field_E;
                                 if (extra->buffer != NULL) {
-                                    Tmd_ProcessStream(extra);
-                                    Tmd_ProcessStream(extra);
+                                    tmdProcessStream(extra);
+                                    tmdProcessStream(extra);
                                 }
                             }
                             if (!(obj->field_1 & 2)) {
@@ -3186,8 +3186,8 @@ void Gp_SetTmdBytes(TmdObject* arg0, s32 arg1, s32 arg2)
     arg0->tpage = arg1;
     arg0->clut  = arg2;
     if (arg0->buffer != NULL) {
-        Tmd_ProcessStream(arg0);
-        Tmd_ProcessStream(arg0);
+        tmdProcessStream(arg0);
+        tmdProcessStream(arg0);
     }
 }
 
