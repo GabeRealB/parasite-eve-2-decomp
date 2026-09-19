@@ -131368,3 +131368,33 @@ Both traces verified identical ordinary/traced assembly. Compiler SHA256:
 Preprocessed input hashes: base_2
 `63c6e52cc614cebaa75fa9a61afcaf0778bdbec3d6d9b28cdd52d70b8c7eebc6`,
 base_3 `a6b966ea24de7ddd6175c1f9caecc27997897953b7a1b75042eef17f7044195e`.
+
+## Widen a captured halfword at definition to preserve its load position (func_actor_400500_8013973C, 2026-09-19)
+
+The 98.960% seed computed dz from two stack MATRIX translations before loading
+posMain->z. Earlier retry attempts put that read in an s16 temporary ahead of
+dz, but widening at its arithmetic use allowed combine to put the signed load
+back after the stack reads. An s32 viewZ assigned before dz widens at definition:
+combine UID195 is sign_extend:SI of mem:HI ahead of stack loads UID198/200.
+
+The recorded prediction succeeded: sched1 blocks all three loads for one cycle
+at T-25, launches them together at T-26, then selects 200,198,195 backward,
+producing z before the stack reads forward. Final homes are viewZ/result v1,
+dz v0, address v0, and stack operands v0/a1. Saved-register homes stay unchanged.
+Scratch base_2 scores 100.000% with all-zero penalties and the host body passes
+unscoped build-and-verify.sh. No new barrier or register pin was needed; the
+seed's existing SCHED_BARRIER after the preceding x store remains. Actual local
+quantity priorities were not traced; this observation does not establish them.
+
+Four s16 casts at widening reads of current u16 field_950/field_954 also fold
+to the target lh instructions, avoiding the earlier retry's shared-header edits.
+Scope: this signed halfword capture and adjacent independent stack reads. A
+statement shuffle that leaves widening at the later use is a different RTL
+experiment. Current router skipped stale archived candidates, so this gain was
+manual, on the seed containing the prior session's mask-store permutation.
+
+Evidence: scratch base_1/base_2 dumps and plans, LEARNINGS.md, and immutable local
+archive tools/permuter_findings/func_actor_400500_8013973C/ with
+PERMUTER_EVIDENCE/retry_resolution/manifest.json. Input SHA256:
+base_1.i `faa1032d42587bb19cf9ca05f8584cab1048635d893d0c0bcfba3a397fcc0042`;
+base_2.i `4f1d00ee43514c8f43ea709cc11821d1536f55ddf346b8b911925c255b136d3b`.

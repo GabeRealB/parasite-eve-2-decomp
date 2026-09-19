@@ -2638,7 +2638,147 @@ void func_actor_400500_801395D0(Task* arg0)
     work3->field_A49 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_400500/actor_400500", func_actor_400500_8013973C);
+void func_actor_400500_8013973C(Task* arg0)
+{
+    Actor400500Matrix      rot;
+    MATRIX                 local0;
+    MATRIX                 local3;
+    Actor400500Matrix*     src;
+    MATRIX*                view;
+    Actor400500Work*       work;
+    Actor400500Work*       workRot;
+    Actor400500Work*       workAnim;
+    Actor400500Work*       work3;
+    GsCOORDINATE2*         coordsEarly;
+    GsCOORDINATE2*         coordsMain;
+    GsCOORDINATE2*         coordsRot;
+    GsCOORDINATE2*         part3;
+    GsCOORDINATE2*         root;
+    Actor400500ViewPos*    pos;
+    Actor400500ViewPos*    pos2;
+    Actor400500ViewPos*    posMain;
+    Actor400500ViewPos*    posMain2;
+    Actor400500AnimStride* stride;
+    s32                    i;
+    s32                    three;
+    s32                    curX;
+    s32                    curZ;
+    s32                    tgtX;
+    s32                    tgtZ;
+    s32                    dx;
+    s32                    dz;
+    u16                    step;
+    u16                    accum;
+    u16                    pitch;
+    s32                    y;
+    s32                    viewZ;
+
+    work = (Actor400500Work*)arg0->work;
+    root = ((TmdObject*)arg0->extra)->coords;
+    if ((s16)++work->field_A04 < 8) {
+        pos2        = &work->field_9A0;
+        coordsEarly = ((TmdObject*)arg0->extra)->coords;
+        Gp_UpdateCoord(&coordsEarly[3]);
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coordsEarly[3].workm, &rot.mat);
+        pos                = pos2;
+        pos->x             = rot.mat.t[0];
+        pos->z             = rot.mat.t[2];
+        coordsEarly[3].flg = 0;
+        return;
+    }
+    tgtX              = (s16)work->field_950;
+    curX              = work->field_9A0.x;
+    tgtZ              = (s16)work->field_954;
+    curZ              = work->field_9A0.z;
+    work->field_9A0.x = (u16)work->field_9A0.x + ((tgtX - curX) >> 2);
+    work->field_9A0.z = (u16)work->field_9A0.z + ((tgtZ - curZ) >> 2);
+    posMain2          = &work->field_9A0;
+    coordsMain        = ((TmdObject*)arg0->extra)->coords;
+    part3             = &coordsMain[3];
+    Gp_UpdateCoord(part3);
+    view = &Gfx_ViewWorldMtx;
+    Gp_WorldToLocal(view, &coordsMain->workm, &local0);
+    Gp_WorldToLocal(view, &coordsMain[3].workm, &local3);
+    posMain                = posMain2;
+    dx                     = local3.t[0] - local0.t[0];
+    coordsMain->coord.t[0] = posMain->x - dx;
+    SCHED_BARRIER();
+    viewZ                  = posMain->z;
+    dz                     = local3.t[2] - local0.t[2];
+    coordsMain->coord.t[2] = viewZ - dz;
+    coordsMain->flg        = 0;
+    coordsMain[3].flg      = 0;
+    Gp_UpdateCoord(part3);
+    Gp_UpdateCoord(coordsMain);
+    step             = (u16)work->field_A10 + 2;
+    accum            = (u16)work->field_A12 + step;
+    work->field_A12  = accum;
+    work->field_A10  = step;
+    y                = root->coord.t[1] + (s16)accum;
+    root->coord.t[1] = y;
+    pitch            = work->field_948;
+    three            = 3;
+    if ((pitch & 0xFFF) != 0x800) {
+        work->field_948 = pitch - 0x80;
+    }
+    if (root->coord.t[1] >= -0x3E7) {
+        y                   = -0x3E8;
+        root->coord.t[0]    = (s16)work->field_950;
+        root->coord.t[2]    = (s16)work->field_954;
+        root->coord.t[1]    = y;
+        work->field_A08     = work->field_A08 + 1;
+        root->coord.t[1]    = y;
+        src                 = &rot;
+        work->field_948     = 0;
+        work->field_94C     = 0;
+        work->field_94A     = (u16)work->field_94A + 0x800;
+        workRot             = (Actor400500Work*)arg0->work;
+        coordsRot           = ((TmdObject*)arg0->extra)->coords;
+        workRot->field_948 &= 0xFFF;
+        workRot->field_94A &= 0xFFF;
+        workRot->field_94C &= 0xFFF;
+        rot.ident.m00_m01   = 0x1000;
+        rot.ident.m02_m10   = 0;
+        src->ident.m11_m12  = 0x1000;
+        rot.ident.m20_m21   = 0;
+        src->ident.m22      = 0x1000;
+        RotMatrixZ(workRot->field_94C, &src->mat);
+        RotMatrixX(workRot->field_948, &src->mat);
+        func_8004BFF8(workRot->field_94A, &src->mat);
+        ActorsShared80132c4c(&src->mat, &coordsRot->coord);
+        work3            = (Actor400500Work*)arg0->work;
+        work3->field_9F8 = 0x10;
+        work3->field_9FE = 0x19;
+        work3->field_9FA = 2;
+        workAnim         = (Actor400500Work*)arg0->work;
+        if (workAnim->field_9FA == 1) {
+            if ((s16)workAnim->field_9FC != workAnim->field_9FE) {
+                workAnim->field_A00 = 0;
+            } else {
+                workAnim->field_A00 = func_actor_400500_8013DD8C(arg0, workAnim->field_A00);
+            }
+            func_actor_400500_8013DCD4(arg0);
+            workAnim->field_9FA = 3;
+        } else if (workAnim->field_9FA == 2) {
+            func_actor_400500_8013DC4C(arg0);
+            workAnim->field_9FA = three;
+            workAnim->field_A00 = 0;
+        } else if (workAnim->field_9FA == three) {
+            workAnim->field_A00 = (u16)workAnim->field_A00 + 1;
+        }
+        i      = 1;
+        stride = (Actor400500AnimStride*)workAnim + 1;
+        do {
+            stride->field_1D = (u8)workAnim->field_9F8;
+            Gp_AnimTickIndex(&workAnim->anim, i);
+            i++;
+            stride++;
+        } while (i < 0x12);
+        root->flg = 0;
+        Gp_UpdateCoord(root);
+        work->field_A04 = 0;
+    }
+}
 
 void func_actor_400500_80139AC4(Task* arg0)
 {
