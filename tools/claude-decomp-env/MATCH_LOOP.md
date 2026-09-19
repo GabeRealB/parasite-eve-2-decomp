@@ -29,20 +29,24 @@ have already done.** Each runs in well under a second against a scratch you
 already have. Reach for them before reading dumps by hand - not instead of
 reading dumps, but to find out *which* dump and *which* decision to read for.
 
+**Run these from inside the scratch, where you already are.** `divergence/` is
+linked into it, the same way `build.sh` is; `.` is this scratch.
+
 | question you are stuck on | command |
 |---|---|
-| What decision produced each remaining difference? | `toolset.py diagnose <scratch> base_N` |
-| Has anyone matched a function that diverged like this, and what changed? | `toolset.py retrieve <scratch>` |
-| What source change might move this decision? | `toolset.py propose <scratch> base_N` |
-| My edit changed nothing - or did it? | `toolset.py compare <scratch> base_1 base_2` |
+| What decision produced each remaining difference? | `python3 divergence/toolset.py diagnose . base_N` |
+| Has anyone matched a function that diverged like this, and what changed? | `python3 divergence/toolset.py retrieve .` |
+| What source change might move this decision? | `python3 divergence/toolset.py propose . base_N` |
+| My edit changed nothing - or did it? | `python3 divergence/toolset.py compare . base_1 base_2` |
 | What is known *not* to move an allocation? | `CODEGEN_MODEL.md` §10.6, *Folklore, tested* |
 
-All of them live at `python3 tools/divergence/toolset.py <command>`, take
-`--help`, and accept `--json`. `diagnose` takes `--limit 0` to print every site
-instead of the first few; where a file holds several functions, pass
-`--function NAME`. `retrieve` takes the scratch alone - it reads the shape from
-the newest attempt - or `--family register --pass greg` to query a shape
-directly, with `--show-fixes` for the change each earlier session made.
+Every command takes `--help` and accepts `--json`. `diagnose` takes `--limit 0`
+to print every site instead of the first few; where a file holds several
+functions, pass `--function NAME`. `retrieve` takes the scratch alone - it reads
+the shape from the newest attempt - or `--family register --pass greg` to query
+a shape directly, with `--show-fixes` for the change each earlier session made.
+From the repository root instead of the scratch, the same commands are
+`python3 tools/divergence/toolset.py <command> <scratch> …`.
 
 `build.sh` runs `diagnose` for you at ≥90% and prints it with the score. The
 other four you have to ask for, and they are the ones agents forget.

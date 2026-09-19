@@ -504,6 +504,13 @@ if [[ ! -d "$ROOT/local/gcc/gcc-2.8.1-psx" && -x "$ROOT/tools/fetch_gcc_source.s
 fi
 [[ -d "$ROOT/local/gcc/gcc-2.8.1-psx" ]] && ln -sfn "$ROOT/local/gcc/gcc-2.8.1-psx" "$created_dir/gcc"
 
+# The divergence tools are invoked from inside the scratch, where a path
+# relative to the repository root does not resolve - an agent's first attempt
+# at them fails otherwise. The whole directory is linked, not the entry point
+# alone, because it imports its siblings by name and Python takes the import
+# path from the directory the script was found in.
+ln -sfn "$ROOT/tools/divergence" "$created_dir/divergence"
+
 # Carrying the host includes across makes the seed's types resolve, but it also
 # puts m2c's guessed prototypes next to the real ones. Let the compiler say
 # which pairs conflict and drop m2c's side. This has to run after build.sh is
