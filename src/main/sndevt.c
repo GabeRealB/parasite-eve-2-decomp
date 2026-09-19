@@ -1673,10 +1673,10 @@ success:
         goto fail;
     }
     id           = bank->field_8;
-    obj->field_4 = bank;
-    obj->field_8 = id;
-    obj->field_0 = (SndBankHdr*)arg0->field_14;
-    obj->field_C = (void*)bank->field_18;
+    obj->bank    = bank;
+    obj->bankId  = id;
+    obj->image   = (SndBankHdr*)arg0->field_14;
+    obj->spuAddr = bank->field_18;
     i            = arg0->field_24;
     base         = ((volatile SndBank*)bank)->field_18;
     raw          = ((volatile SndBank*)bank)->field_4;
@@ -1690,7 +1690,7 @@ success:
             entry++;
         } while (i != end);
     }
-    Snd_BuildGroupIndex((SndBank*)obj->field_4);
+    Snd_BuildGroupIndex(obj->bank);
     D_800689E4     = 0xFF;
     arg0->field_18 = 0;
     arg0->field_14 = 0;

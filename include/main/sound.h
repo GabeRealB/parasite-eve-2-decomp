@@ -55,8 +55,38 @@ typedef struct _SpuLVoiceTable {
 } SpuLVoiceTable;
 STATIC_ASSERT_SIZEOF(SpuLVoiceTable, 0x67C);
 
-typedef struct _SndBankSlot    SndBankSlot;    // defined with the bank types below
+typedef struct _SndBank        SndBank;        // defined with the bank types below
 typedef struct _SndVoiceParams SndVoiceParams; // defined with the voice-param types below
+
+/// Header of the sound-bank image held by a `SndBankSlot`.
+///
+/// The image is one allocation: this header, then the table of entry offsets
+/// declared below, then each entry's `SndVoiceParams` block and the `oneA` /
+/// `oneE` chunks, all addressed by byte offset from the header. An entry is
+/// selected by the low byte of a sound request id and its offset is where that
+/// entry's block begins.
+typedef struct {
+    u8  unknown_0[4];
+    u16 bankId;          // Supplies the high half of a 0x1xxx request id
+    u16 entryCount;      // Entries in the offset table below
+    u16 entryOffsets[0]; // Byte offsets to each entry's `SndVoiceParams`, relative to this header
+} SndBankHdr;
+STATIC_ASSERT_SIZEOF(SndBankHdr, 0x8);
+
+/// One of the 16 records in `SndBank_Slots`, each holding one of the sound banks
+/// the game has loaded.
+///
+/// A bank is held twice over: the image, which the scripts read their entry
+/// offsets and `oneA` chunks from, and the descriptor, which voice allocation
+/// reads notes from. Lookup matches on the descriptor's own id; the record's
+/// copy of that id only marks the record free when the bank is released.
+typedef struct {
+    SndBankHdr* image;   // Bank image in the sound heap, whose head holds the entry offsets
+    SndBank*    bank;    // Descriptor of the loaded bank, in `Snd_Banks`
+    s32         bankId;  // Id the bank answers to (-1 once the record is free)
+    u32         spuAddr; // SPU RAM address the bank's wave data was transferred to
+} SndBankSlot;
+STATIC_ASSERT_SIZEOF(SndBankSlot, 0x10);
 
 /// Arguments of the sequence commands, which address a `MidiSong` rather than a
 /// sound-bank voice: initialize a sequence, start and stop its fades, and set
@@ -141,31 +171,6 @@ typedef struct _SpuVoiceRange {
     /* 0x2 */ s16 count;
 } SpuVoiceRange;
 STATIC_ASSERT_SIZEOF(SpuVoiceRange, 0x4);
-
-/// Header of the sound-bank image held by a `SndBankSlot`.
-///
-/// The image is one allocation: this header, then the table of entry offsets
-/// declared below, then each entry's `SndVoiceParams` block and the `oneA` /
-/// `oneE` chunks, all addressed by byte offset from the header. An entry is
-/// selected by the low byte of a sound request id and its offset is where that
-/// entry's block begins.
-typedef struct {
-    u8  unknown_0[4];
-    u16 bankId;          // Supplies the high half of a 0x1xxx request id
-    u16 entryCount;      // Entries in the offset table below
-    u16 entryOffsets[0]; // Byte offsets to each entry's `SndVoiceParams`, relative to this header
-} SndBankHdr;
-STATIC_ASSERT_SIZEOF(SndBankHdr, 0x8);
-
-/// 16-byte slot in SndBank_Slots[16] (BSS size 0x100). Indexed by SndBankSlot_Get
-/// and related helpers in 43FFC.c / 410B0.c.
-struct _SndBankSlot {
-    /* 0x0 */ SndBankHdr* field_0;
-    /* 0x4 */ void*       field_4;
-    /* 0x8 */ s32         field_8;
-    /* 0xC */ void*       field_C;
-};
-STATIC_ASSERT_SIZEOF(SndBankSlot, 0x10);
 
 /// Owner of a doubly-linked SndVoice voice list (head at field_40).
 /// Insert: SndVoice_Attach; unlink: SndVoice_Detach; walk: SndScript_TickVoices.
@@ -378,8 +383,7 @@ STATIC_ASSERT_SIZEOF(SndBankGroup, 0x4);
 /// field_484 is a 16-entry opcode table (same layout as MidiOpcodeCtx::field_484);
 /// Midi_InitChannelTable seeds each entry with 0x407F4000 / 0.
 /// voiceSlots holds up to 18 active SPU voice indices (field_0 = -1 when free).
-typedef struct _SndBank SndBank;
-typedef struct SndNote  SndNote;
+typedef struct SndNote SndNote;
 typedef struct _MidiSong {
     /* 0x00 */ u8              field_0;
     /* 0x01 */ u8              field_1;
@@ -617,9 +621,9 @@ typedef struct _SndVoicePick {
 STATIC_ASSERT_SIZEOF(SndVoicePick, 0x18);
 
 /// 0xC-byte init-table entry at Snd_BankInitTable (two entries used by Snd_InitBanks).
-/// field_0 indexes D_800680AC for a slot id; field_2 is written to SndBankSlot.field_8
+/// field_0 indexes D_800680AC for a slot id; field_2 is written to SndBankSlot.bankId
 /// and SndBank.field_8; field_4/field_6 are SndHeap_Malloc sizes; field_8 is stored
-/// to SndBankSlot.field_C.
+/// to SndBankSlot.spuAddr.
 typedef struct _SndBankInitEntry {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u16 field_2;

@@ -8127,7 +8127,7 @@ base = SndBank_Slots;
 p = &base[(s8)arg0];
 ```
 
-`SndBankSlot_Free` needs this form so `SndHeap_Free` can take `p->field_0` with the
+`SndBankSlot_Free` needs this form so `SndHeap_Free` can take `p->image` with the
 base already in `$v0` before the stride multiply lands in `$s0`.
 
 **Matrix cluster on an embedded MATRIX — first element on the struct base, rest
@@ -22223,8 +22223,8 @@ Column targets use `head - 0x42` (col1) and `head - 0x40` (col2), same
 
 - `field_17` / `field_18[8]` / `field_20[8]` are a loop stack (depth, remaining
   counts, restart cursors) for `"Loop"`/`"endL"`. They fill the old `pad_18[0x28]`.
-- `field_44` is a `SndBankSlot*` (its `field_0` is the bank image, its `field_4`
-  the `SndBank`), not a bare `s32`.
+- `field_44` is a `SndBankSlot*` (its `image` holds the bank's entry offsets, its
+  `bank` the `SndBank`), not a bare `s32`.
 - `field_48` is a script cursor (`SndScriptCmd*`); `"oneV"` payloads are
   0x18-byte `SndOneV` records (bank id, note, duration, pan/vol,
   reverb gate, pitch, oneA/oneE offsets).

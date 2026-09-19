@@ -325,7 +325,7 @@ s32 arg0;
     if ((var_s0 & 0xF0000000) == 0x10000000) {
         temp_v0 = SndBankSlot_Find(0x1000, 1);
         if (temp_v0 != NULL) {
-            var_s0 = (temp_v0->field_0->bankId << 0x10) + (var_s0 & 0xFFFF);
+            var_s0 = (temp_v0->image->bankId << 0x10) + (var_s0 & 0xFFFF);
         }
     }
     return var_s0;
@@ -386,19 +386,16 @@ loop:
     obj           = SndBankSlot_Get(slot);
     id            = entry->field_2;
     bank          = (SndBank*)(((s32)slot << 5) + (s32)banks);
-    obj->field_4  = bank;
-    obj->field_8  = id;
+    obj->bank     = bank;
+    obj->bankId   = id;
     bank->field_8 = entry->field_2;
     i++;
-    ((SndBank*)obj->field_4)->field_1C = SndHeap_Malloc(entry->field_4);
-    ((SndBank*)obj->field_4)->field_0 =
-        ((SndBank*)obj->field_4)->field_1C;
-    ((SndBank*)obj->field_4)->field_4 =
-        ((SndBank*)obj->field_4)->field_1C;
-    ((SndBank*)obj->field_4)->field_10 =
-        ((SndBank*)obj->field_4)->field_1C;
-    obj->field_0 = SndHeap_Malloc(entry->field_6);
-    obj->field_C = (void*)entry->field_8;
+    obj->bank->field_1C = SndHeap_Malloc(entry->field_4);
+    obj->bank->field_0  = obj->bank->field_1C;
+    obj->bank->field_4  = obj->bank->field_1C;
+    obj->bank->field_10 = obj->bank->field_1C;
+    obj->image          = SndHeap_Malloc(entry->field_6);
+    obj->spuAddr        = entry->field_8;
     entry++;
     if (i < 2) {
         goto loop;
@@ -431,7 +428,7 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
         bank  = SndBankSlot_Find((u32)arg0 >> 16, 0);
         index = (u32)arg0 & 0xFF;
         if ((bank == NULL) ||
-            (header = bank->field_0, (index >= header->entryCount))) {
+            (header = bank->image, (index >= header->entryCount))) {
             return -2;
         }
         // Pointer form: a subscript would emit the addition base-first, and the
@@ -1086,7 +1083,7 @@ s32 SndScript_Exec(SndScript* script)
     SndVoice*     voice;
     SndNote*      note;
     SpuVoiceAttr* attr;
-    SndBankSlot*  ctx;
+    SndBankSlot*  bankSlot;
     SndBank*      bank;
     SndBankHdr*   header;
     s32           result;
@@ -1156,7 +1153,7 @@ s32 SndScript_Exec(SndScript* script)
             result = 1;
             goto done;
         case 0x43656E6F:
-            header = script->field_44->field_0;
+            header = script->field_44->image;
             // Pointer form: a subscript would emit the addition base-first, and
             // the target adds the index first.
             script->field_4C = (SndVoiceParams*)((u8*)header + *(header->entryOffsets + (u8)script->field_0));
@@ -1176,7 +1173,7 @@ s32 SndScript_Exec(SndScript* script)
             voice  = SndVoice_Alloc(oneV->field_10);
             result = 1;
             if (voice != NULL) {
-                ctx = script->field_44;
+                bankSlot = script->field_44;
                 if (oneV->field_4 != 0) {
                     bank = Snd_FindBank(oneV->field_4);
                     if (bank == 0) {
@@ -1188,7 +1185,7 @@ s32 SndScript_Exec(SndScript* script)
                     }
                     goto setup_voice;
                 }
-                bank = ctx->field_4;
+                bank = bankSlot->bank;
             setup_voice:
                 Spu_GetVoiceRef(voice->field_0, &voiceRef);
                 note         = Snd_GetNote(bank, (u8)oneV->field_6, oneV->field_7);
@@ -1220,7 +1217,7 @@ s32 SndScript_Exec(SndScript* script)
                 } else {
                     voice->field_3 = 0x7F;
                 }
-                if (SndScript_FindOneA((u8*)script->field_44->field_0, oneV->field_12, (SndOneAOut*)attr) == -1) {
+                if (SndScript_FindOneA((u8*)script->field_44->image, oneV->field_12, (SndOneAOut*)attr) == -1) {
                     attr->adsr1 = note->adsr1;
                     attr->adsr2 = note->adsr2;
                 }
@@ -1717,7 +1714,7 @@ void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* arg4, Snd
     }
     p->field_16 = 1;
     p->field_40 = NULL;
-    p->field_44 = (SndBankSlot*)arg4;
+    p->field_44 = arg4;
     p->field_0  = arg3;
     p->field_4  = 0;
     p->field_10 = arg1;
@@ -1781,7 +1778,7 @@ SndBankSlot* SndBankSlot_Find(u16 arg0, s32 arg1)
             key  = arg0;
             slot = SndBank_Slots;
             do {
-                bank = (SndBank*)slot->field_4;
+                bank = slot->bank;
                 if (bank != NULL) {
                     if (bank->field_8 == key) {
                         return slot;
@@ -1796,7 +1793,7 @@ SndBankSlot* SndBankSlot_Find(u16 arg0, s32 arg1)
             key  = arg0 & 0xF000;
             slot = SndBank_Slots;
             do {
-                bank = (SndBank*)slot->field_4;
+                bank = slot->bank;
                 if (bank != NULL) {
                     if ((bank->field_8 & 0xF000) == key) {
                         return slot;
@@ -1826,9 +1823,9 @@ void SndBankSlot_Free(s32 arg0)
     if ((u8)arg0 < 0x10) {
         base    = SndBank_Slots;
         temp_s0 = &base[(s8)arg0];
-        SndHeap_Free(temp_s0->field_0);
-        temp_s0->field_8 = -1;
-        temp_s0->field_0 = NULL;
+        SndHeap_Free(temp_s0->image);
+        temp_s0->bankId = -1;
+        temp_s0->image  = NULL;
     }
 }
 
