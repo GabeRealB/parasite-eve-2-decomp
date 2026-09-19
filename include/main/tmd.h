@@ -1306,4 +1306,30 @@ u32* gpDrawStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* st
 /// The record has no variant for `flags` to select, so it goes unread.
 u32* gpDrawStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+/// The draw pass's handler for a stream's colour-carrying textured-triangle
+/// records (`0x30`): each element's triangle is projected and lit from the three
+/// normals it names, and the packet the process pass laid out for it is completed
+/// and linked into the ordering table at the depth it came out at.
+///
+/// The element is the plain textured triangle's (`tmdDrawStreamGt3`) with a colour
+/// word of its own between its refs and its texture words — that one word is the
+/// whole of the difference between the two records, and it is the colour the
+/// triangle's corners are lit from, where the plain record's are lit from a fixed
+/// grey. Its extended form is the record that carries a colour and a normal per
+/// corner (`tmdDrawStreamPrimGt3CornerColors`). Nothing of the packet's texture is
+/// settled here: the process pass copies the element's texture words into it and
+/// biases its page and CLUT (`gpStreamPrimGt3ElemColor` steps over the colour word
+/// to reach them), so what this handler writes is the half a frame produces — the
+/// projected corner coordinates, the corner colours and the packet's length and
+/// primitive code.
+///
+/// The record has no blended partner opcode, so the primitive code is not the
+/// opcode's to settle: the packet is stamped opaque (`0x34`), and blended (`0x36`)
+/// where the drawing object's own flags ask for it. That choice is the object's
+/// rather than the handler's, so the `flags` argument goes unread. An element whose
+/// projection the GTE reports off screen, or whose triangle turns away, is stepped
+/// over rather than drawn, though its packet slot is passed over either way, so the
+/// primitives stay in step with the elements that named them.
+u32* gpDrawStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
 #endif // TMD_H

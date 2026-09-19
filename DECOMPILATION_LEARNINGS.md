@@ -34711,8 +34711,8 @@ norms = (u8*)ws->normals;
 gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8));
 ```
 
-`func_8009CED0` is the example. Same `$a1`/`$a0`/`$v1`/`$v0` pattern as a
-single-`gte_ldv3` handler (`func_8009D388`).
+`gpDrawStreamPrimGt3ElemColor` is the example. Same `$a1`/`$a0`/`$v1`/`$v0`
+pattern as a single-`gte_ldv3` handler (`func_8009D388`).
 
 ## Volatile `move` after a chained load so it does not fill the first delay
 
@@ -130987,7 +130987,7 @@ comment mentions to the files that really reference it, but not the markdown:
 type's field or another one's. Rename a field with `--no-comments` and update
 the notes by hand, grepping for the spellings the declaration retired.
 
-Two things a rename cannot reach, both because they are macro arguments rather
+Three things a rename cannot reach, all because they are macro arguments rather
 than references:
 
 - `STATIC_ASSERT_SIZEOF(type, size)` pastes the name into an identifier
@@ -130996,6 +130996,13 @@ than references:
 - A reference inside a macro body is reported at the *invocation*, where the
   identifier does not appear; the tool lists those sites rather than editing
   them, and the macro definition is where the edit belongs.
+- A parameter *passed* to a function-like macro - `gte_ldrgb(ptr + 3)` and the
+  rest of the GTE loads - is reported at the invocation's own token too, and
+  since every position is validated before anything is written, that one site
+  aborts the whole rename with `expected 'arg2', found 'gte_'`. Nothing is
+  written: not the C, not the ledger row, not the notes, so the only sign the
+  run did nothing is the stderr line. Replace that argument with a placeholder,
+  run the rename, then write the argument back with the new name.
 
 Renaming a *duplicate* type to merge it is a rename like any other - the tool
 rewrites the duplicate's declaration too, so the merged type arrives as a second
