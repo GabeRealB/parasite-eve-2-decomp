@@ -132824,7 +132824,7 @@ account for the two, and write the cull against `flags` rather than a constant.
 The early-image draw handlers lay their element walk out twice and choose between
 the two copies with a bit of the `flags` argument. `tmdDrawStreamGt3` does it on
 `flags & 0x10`, and the same shape repeats in the pre-transformed triangle and
-quad families (`Tmd_StreamHandler_Op39`, `Tmd_StreamHandler_Op79`), so it is the
+quad families (`tmdDrawStreamPrimGt3PreXform`, `Tmd_StreamHandler_Op79`), so it is the
 family's, not one handler's. The copies are the same instructions except for the
 branch that follows the facing result: one skips the element when `MAC0 <= 0`,
 the other when `MAC0 >= 0`. The bit therefore picks which winding the walk keeps,

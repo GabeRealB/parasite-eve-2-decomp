@@ -559,10 +559,9 @@ u32* tmdDrawStreamPrimGt3OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* str
 /// a quad the facing tests reject, is not drawn, though the packet's room is
 /// passed over either way, so the primitives stay in step with the elements.
 ///
-/// This entry is the opaque one and the `0x5A` record asks for the blended form
-/// by its opcode alone; the two differ in nothing but the primitive code the quad
-/// is drawn under, which this family carries in a fixed material colour rather
-/// than in the element: `0x3C` here, `0x3E` there.
+/// This entry is the opaque one; the `0x5A` record's entry shares this body and
+/// asks for the blended form by its opcode alone, so `flags` selects nothing
+/// here either.
 u32* tmdDrawStreamPrimGt4OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 /// The draw pass's handler for a stream's one-normal textured-quad records that
