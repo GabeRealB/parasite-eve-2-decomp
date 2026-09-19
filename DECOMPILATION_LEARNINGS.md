@@ -16767,11 +16767,11 @@ matter how the C assignments are written, cast the base to `volatile` for those
 reads only:
 
 ```c
-base = ((volatile SndBank*)bank)->field_18;
-ptr  = (s32*)((volatile SndBank*)bank)->field_4;
+base = ((volatile SndBank*)bank)->spuAddr;
+ptr  = (s32*)((volatile SndBank*)bank)->notes;
 ```
 
-Plain `base = bank->field_18; ptr = bank->field_4;` is free to swap the loads
+Plain `base = bank->spuAddr; ptr = bank->notes;` is free to swap the loads
 by schedule/urgency (the pointer used sooner after a following branch often
 loads first). The `volatile` cast forces source order without changing the rest
 of the function. `SndBank_FinalizeLoad` is the pure example (relocate loop setup).
@@ -16865,12 +16865,12 @@ constant stays with the call:
 ```c
 state->field_10 = buf;
 do {
-    bank            = &Snd_Banks[D_800680BB];
-    state->field_40 = bank;
-    bank->field_8   = 0xF0FF;
-    state->field_40->field_1C = SndHeap_Malloc(0x582);
+    bank                       = &Snd_Banks[D_800680BB];
+    state->field_40            = bank;
+    bank->bankId               = 0xF0FF;
+    state->field_40->heapBlock = SndHeap_Malloc(0x582);
 } while (0);
-state->field_40->field_0 = state->field_40->field_1C;
+state->field_40->groups = state->field_40->heapBlock;
 /* … */
 ```
 
@@ -18636,7 +18636,7 @@ register u32 index asm("a1");
 register u32 temp asm("v1");
 s32 mask;
 
-index = bank->field_8;
+index = bank->bankId;
 mask  = 0xFFFF;
 asm("" : "+r"(index), "+r"(mask));
 temp = index & 0xFFFF;

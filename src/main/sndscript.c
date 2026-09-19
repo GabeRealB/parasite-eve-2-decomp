@@ -382,20 +382,20 @@ s32 Snd_InitBanks(u32 arg0)
     banks = Snd_Banks;
     entry = Snd_BankInitTable;
 loop:
-    slot          = *(s8*)(entry->field_0 + (s32)map);
-    obj           = SndBankSlot_Get(slot);
-    id            = entry->field_2;
-    bank          = (SndBank*)(((s32)slot << 5) + (s32)banks);
-    obj->bank     = bank;
-    obj->bankId   = id;
-    bank->field_8 = entry->field_2;
+    slot         = *(s8*)(entry->field_0 + (s32)map);
+    obj          = SndBankSlot_Get(slot);
+    id           = entry->field_2;
+    bank         = (SndBank*)(((s32)slot << 5) + (s32)banks);
+    obj->bank    = bank;
+    obj->bankId  = id;
+    bank->bankId = entry->field_2;
     i++;
-    obj->bank->field_1C = SndHeap_Malloc(entry->field_4);
-    obj->bank->field_0  = obj->bank->field_1C;
-    obj->bank->field_4  = obj->bank->field_1C;
-    obj->bank->field_10 = obj->bank->field_1C;
-    obj->image          = SndHeap_Malloc(entry->field_6);
-    obj->spuAddr        = entry->field_8;
+    obj->bank->heapBlock  = SndHeap_Malloc(entry->field_4);
+    obj->bank->groups     = obj->bank->heapBlock;
+    obj->bank->notes      = obj->bank->heapBlock;
+    obj->bank->groupIndex = obj->bank->heapBlock;
+    obj->image            = SndHeap_Malloc(entry->field_6);
+    obj->spuAddr          = entry->field_8;
     entry++;
     if (i < 2) {
         goto loop;
@@ -1780,7 +1780,7 @@ SndBankSlot* SndBankSlot_Find(u16 arg0, s32 arg1)
             do {
                 bank = slot->bank;
                 if (bank != NULL) {
-                    if (bank->field_8 == key) {
+                    if (bank->bankId == key) {
                         return slot;
                     }
                 }
@@ -1795,7 +1795,7 @@ SndBankSlot* SndBankSlot_Find(u16 arg0, s32 arg1)
             do {
                 bank = slot->bank;
                 if (bank != NULL) {
-                    if ((bank->field_8 & 0xF000) == key) {
+                    if ((bank->bankId & 0xF000) == key) {
                         return slot;
                     }
                 }

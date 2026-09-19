@@ -230,16 +230,16 @@ s32 Midi_InitSystem(u32 arg0)
     state->field_A  = 0x10;
     state->field_10 = D_8007F8E0;
     do {
-        bank                      = &Snd_Banks[D_800680BB];
-        state->field_40           = bank;
-        bank->field_8             = 0xF0FF;
-        state->field_40->field_1C = SndHeap_Malloc(0x582);
+        bank                       = &Snd_Banks[D_800680BB];
+        state->field_40            = bank;
+        bank->bankId               = 0xF0FF;
+        state->field_40->heapBlock = SndHeap_Malloc(0x582);
     } while (0);
-    state->field_40->field_0  = state->field_40->field_1C;
-    state->field_40->field_4  = state->field_40->field_1C;
-    state->field_40->field_10 = state->field_40->field_1C;
-    D_8007E0D4                = (s32)state->field_40->field_1C;
-    state->field_3C           = 0x10;
+    state->field_40->groups     = state->field_40->heapBlock;
+    state->field_40->notes      = state->field_40->heapBlock;
+    state->field_40->groupIndex = state->field_40->heapBlock;
+    D_8007E0D4                  = (s32)state->field_40->heapBlock;
+    state->field_3C             = 0x10;
     return -1;
 }
 
@@ -311,8 +311,8 @@ s32 Midi_InitSequence(u8 arg0, u16 arg1)
                     }
 
                     interp        = &obj->field_14;
-                    obj->field_44 = obj->field_40->field_0;
-                    obj->field_48 = obj->field_40->field_4;
+                    obj->field_44 = obj->field_40->groups;
+                    obj->field_48 = obj->field_40->notes;
                     d0            = data[0xC];
                     d1            = data[0xD];
                     obj->field_6  = 0xFF;
@@ -1497,7 +1497,7 @@ s32 SndLoad_ProcessSector(s32* arg0)
                     break;
                 }
                 src = arg0 + 5;
-                dst = ((SndBank*)tmp)->field_1C;
+                dst = ((SndBank*)tmp)->heapBlock;
             }
             count = (state->field_24 * 5) + state->field_23;
             i     = 0;
@@ -1509,11 +1509,11 @@ s32 SndLoad_ProcessSector(s32* arg0)
                     dst++;
                 } while ((s32)i < count);
             }
-            ((SndBank*)state->field_18)->field_B  = state->field_23;
-            ((SndBank*)state->field_18)->field_C  = state->field_24;
-            ((SndBank*)state->field_18)->field_8  = state->field_20;
-            ((SndBank*)state->field_18)->field_14 = (void*)state->field_2C;
-            state->field_2                        = 1;
+            ((SndBank*)state->field_18)->groupCount = state->field_23;
+            ((SndBank*)state->field_18)->noteCount  = state->field_24;
+            ((SndBank*)state->field_18)->bankId     = state->field_20;
+            ((SndBank*)state->field_18)->imageSize  = state->field_2C;
+            state->field_2                          = 1;
             break;
 
         case 1:
@@ -1554,11 +1554,11 @@ s32 SndLoad_ProcessSector(s32* arg0)
 
         case 3: {
             s32 size;
-            size                                  = state->field_2C;
-            state->field_C                        = size;
-            ((SndBank*)state->field_18)->field_18 = SndLoad_LookupMode(
-                state->field_22, ((SndBank*)state->field_18)->field_8, size);
-            spuAddr = ((SndBank*)state->field_18)->field_18;
+            size                                 = state->field_2C;
+            state->field_C                       = size;
+            ((SndBank*)state->field_18)->spuAddr = SndLoad_LookupMode(
+                state->field_22, ((SndBank*)state->field_18)->bankId, size);
+            spuAddr = ((SndBank*)state->field_18)->spuAddr;
         }
             if (spuAddr == 0) {
                 D_800689E8     = 4;
@@ -1644,7 +1644,7 @@ s32 SndBank_SetupFromLoad(SndLoadState* arg0)
 
     bank = (SndBank*)arg0->field_18;
     if (D_800689E8 == 0) {
-        index = bank->field_8;
+        index = bank->bankId;
         mask  = 0xFFFF;
         SOFT_TOUCH_REG2(index, mask);
         temp = index & 0xFFFF;
@@ -1672,14 +1672,14 @@ success:
     if (obj == NULL) {
         goto fail;
     }
-    id           = bank->field_8;
+    id           = bank->bankId;
     obj->bank    = bank;
     obj->bankId  = id;
     obj->image   = (SndBankHdr*)arg0->field_14;
-    obj->spuAddr = bank->field_18;
+    obj->spuAddr = bank->spuAddr;
     i            = arg0->field_24;
-    base         = ((volatile SndBank*)bank)->field_18;
-    raw          = ((volatile SndBank*)bank)->field_4;
+    base         = ((volatile SndBank*)bank)->spuAddr;
+    raw          = ((volatile SndBank*)bank)->notes;
     i            = i - 1;
     if (i != neg) {
         end   = -1;
@@ -1730,7 +1730,7 @@ s32 SndLoad_Complete(SndLoadState* arg0)
     }
     s2 = (SndBank*)arg0->field_18;
     if (D_800689E8 == 0) {
-        s0 = s2->field_8;
+        s0 = s2->bankId;
         if (s0 != 0xFFFF) {
             goto block_success;
         }
@@ -1750,8 +1750,8 @@ block_success:
     state->field_10 = (void*)temp;
     state->field_3C = arg0->field_2C;
     i               = arg0->field_24;
-    base            = ((volatile SndBank*)s2)->field_18;
-    temp            = (s32)((volatile SndBank*)s2)->field_4;
+    base            = ((volatile SndBank*)s2)->spuAddr;
+    temp            = (s32)((volatile SndBank*)s2)->notes;
     i               = i - 1;
     if (i != s1) {
         end = -1;
@@ -1884,7 +1884,7 @@ s32 SndBank_FinalizeLoad(SndLoadState* arg0)
 
     bank = (SndBank*)arg0->field_18;
     if (D_800689E8 == 0) {
-        index = bank->field_8;
+        index = bank->bankId;
         if (index != 0xFFFF) {
             goto success;
         }
@@ -1902,8 +1902,8 @@ success:
     state->field_10 = (void*)temp;
     state->field_3C = arg0->field_2C;
     i               = arg0->field_24;
-    base            = ((volatile SndBank*)bank)->field_18;
-    ptr             = (s32*)((volatile SndBank*)bank)->field_4;
+    base            = ((volatile SndBank*)bank)->spuAddr;
+    ptr             = (s32*)((volatile SndBank*)bank)->notes;
     i               = i - 1;
     if (i != -1) {
         end = -1;
@@ -2010,7 +2010,7 @@ s32 SndBank_FreeById(s16 arg0, s32 arg1)
             base = Snd_Banks;
             ptr  = base + 4;
             do {
-                if (ptr->field_8 == x) {
+                if (ptr->bankId == x) {
                     return -1;
                 }
                 i++;
@@ -2021,7 +2021,7 @@ s32 SndBank_FreeById(s16 arg0, s32 arg1)
         case 0xF:
             break;
         default:
-            if (Snd_Banks[(s8)slot].field_8 == (arg0 & 0xFFFF)) {
+            if (Snd_Banks[(s8)slot].bankId == (arg0 & 0xFFFF)) {
                 return -1;
             }
             break;

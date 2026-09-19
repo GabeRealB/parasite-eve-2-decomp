@@ -104,7 +104,7 @@ end:
     D_800680C0 = 1;
 }
 
-SndBank* Snd_AllocBank(SndBankPayload* arg0)
+SndBank* Snd_AllocBank(SndBankPayload* payload)
 {
     u16      type;
     s8       temp;
@@ -116,7 +116,7 @@ SndBank* Snd_AllocBank(SndBankPayload* arg0)
     s32      temp_a0_2;
     s32      shared;
 
-    type = arg0->field_4 & 0xF000;
+    type = payload->field_4 & 0xF000;
     temp = D_800680AC[type >> 12];
     {
         register s32 p asm("a0");
@@ -134,8 +134,8 @@ SndBank* Snd_AllocBank(SndBankPayload* arg0)
     if (type == 0xF000) {
         shared = D_8007E0D4;
         if (shared != 0) {
-            bank           = &Snd_Banks[(s8)slot];
-            bank->field_1C = (void*)shared;
+            bank            = &Snd_Banks[(s8)slot];
+            bank->heapBlock = (void*)shared;
             goto setup_ptrs;
         }
     }
@@ -143,9 +143,9 @@ SndBank* Snd_AllocBank(SndBankPayload* arg0)
     bank = &Snd_Banks[(s8)slot];
     Snd_FreeBank(bank);
 
-    size = ((arg0->field_8 * 5) + arg0->field_7) * 4 + (arg0->field_7 * 2);
+    size = ((payload->field_8 * 5) + payload->field_7) * 4 + (payload->field_7 * 2);
 
-    switch (arg0->field_4 & 0xF000) {
+    switch (payload->field_4 & 0xF000) {
         case 0x2000:
             if (size < 0xCF) {
                 size = 0xCE;
@@ -163,18 +163,18 @@ SndBank* Snd_AllocBank(SndBankPayload* arg0)
             break;
     }
 
-    temp_v0        = (s32)SndHeap_Malloc(size);
-    bank->field_1C = (void*)temp_v0;
+    temp_v0         = (s32)SndHeap_Malloc(size);
+    bank->heapBlock = (void*)temp_v0;
     if (temp_v0 == 0) {
         return NULL;
     }
 
 setup_ptrs:
-    temp_a0        = (s32)bank->field_1C;
-    bank->field_0  = (SndBankGroup*)temp_a0;
-    temp_a0_2      = temp_a0 + (arg0->field_7 * 4);
-    bank->field_4  = (SndNote*)temp_a0_2;
-    bank->field_10 = (u16*)(temp_a0_2 + (arg0->field_8 * 0x14));
+    temp_a0          = (s32)bank->heapBlock;
+    bank->groups     = (SndBankGroup*)temp_a0;
+    temp_a0_2        = temp_a0 + (payload->field_7 * 4);
+    bank->notes      = (SndNote*)temp_a0_2;
+    bank->groupIndex = (u16*)(temp_a0_2 + (payload->field_8 * 0x14));
     return bank;
 }
 
@@ -226,7 +226,7 @@ void Snd_ClearBanks(void)
     ptr  = Snd_Banks;
     ptr += 0xF;
     do {
-        ptr->field_8 = flag;
+        ptr->bankId = flag;
         i--;
         ptr--;
     } while (i >= 0);
@@ -234,50 +234,50 @@ void Snd_ClearBanks(void)
     D_8007E0D4 = 0;
 }
 
-void Snd_FreeBank(SndBank* arg0)
+void Snd_FreeBank(SndBank* bank)
 {
-    if ((arg0 != NULL) && ((arg0->field_8 & 0xF000) != 0xF000)) {
-        SndHeap_Free(arg0->field_1C);
-        arg0->field_1C = NULL;
-        arg0->field_0  = NULL;
-        arg0->field_4  = NULL;
-        arg0->field_10 = NULL;
-        arg0->field_8  = 0xFFFF;
-        arg0->field_14 = NULL;
+    if ((bank != NULL) && ((bank->bankId & 0xF000) != 0xF000)) {
+        SndHeap_Free(bank->heapBlock);
+        bank->heapBlock  = NULL;
+        bank->groups     = NULL;
+        bank->notes      = NULL;
+        bank->groupIndex = NULL;
+        bank->bankId     = 0xFFFF;
+        bank->imageSize  = 0;
     }
 }
 
-SndBank* Snd_FindBank(u16 arg0)
+SndBank* Snd_FindBank(u16 bankId)
 {
     s32      i;
     SndBank* ptr;
     s32      id;
 
-    if (arg0 == 0xFFFF) {
-        arg0 = 0;
+    if (bankId == 0xFFFF) {
+        bankId = 0;
     }
-    id = arg0;
+    id = bankId;
 
     for (i = 0, ptr = Snd_Banks; i < 0x10; i++, ptr++) {
-        if (ptr->field_8 == id) {
+        if (ptr->bankId == id) {
             return ptr;
         }
     }
     return NULL;
 }
 
-void Snd_BuildGroupIndex(SndBank* arg0)
+void Snd_BuildGroupIndex(SndBank* bank)
 {
     u16*          table;
     SndBankGroup* data;
     s32           i;
     u8            count;
 
-    table = arg0->field_10;
+    table = bank->groupIndex;
     if (table != NULL) {
-        data   = arg0->field_0;
+        data   = bank->groups;
         *table = 0;
-        count  = arg0->field_B;
+        count  = bank->groupCount;
         table++;
         i = count - 1;
         if (i > 0) {

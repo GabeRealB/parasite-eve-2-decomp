@@ -55,7 +55,7 @@ typedef struct _SpuLVoiceTable {
 } SpuLVoiceTable;
 STATIC_ASSERT_SIZEOF(SpuLVoiceTable, 0x67C);
 
-typedef struct _SndBank SndBank; // defined with the bank types below
+typedef struct SndBank SndBank; // defined with the bank types below
 
 /// The voice parameters a sound-bank entry starts a sound with, carried as the
 /// `oneC` command that opens the entry's script program.
@@ -297,7 +297,7 @@ STATIC_ASSERT_SIZEOF(SndVoice, 0x40);
 /// Passed to Snd_AllocBank; filled from a CD sector by SndLoad_ProcessSector.
 /// field_4 high nibble indexes D_800680AC / selects bank type; field_7 is the
 /// SndBankGroup count and field_8 is the SndNote entry count used to size
-/// the SndBank heap block (groups*4 + entries*0x14 + groups*2).
+/// the bank's heap block (groups*4 + entries*0x14 + groups*2).
 typedef struct _SndBankPayload {
     /* 0x0 */ u8  pad_0[4];
     /* 0x4 */ u16 field_4;
@@ -474,21 +474,28 @@ struct SndNote {
 };
 STATIC_ASSERT_SIZEOF(SndNote, 0x14);
 
-/// Sound bank header used by Snd_GetNote (and Snd_Banks entries, stride 0x20).
-/// field_0 = SndBankGroup*; field_4 = SndNote*; field_8 = bank id (0xFxxx free);
-/// field_B = group count; field_10 = u16* group index table; field_1C = heap.
-struct _SndBank {
-    /* 0x00 */ SndBankGroup* field_0; // groups
-    /* 0x04 */ SndNote*      field_4; // notes
-    /* 0x08 */ u16           field_8; // bankId
-    /* 0x0A */ u8            field_A;
-    /* 0x0B */ u8            field_B; // groupCount
-    /* 0x0C */ u8            field_C;
-    /* 0x0D */ byte          unknown_D[0x3];
-    /* 0x10 */ u16*          field_10; // groupIndex
-    /* 0x14 */ void*         field_14;
-    /* 0x18 */ s32           field_18;
-    /* 0x1C */ void*         field_1C; // heap
+/// One entry of `Snd_Banks`: the tables a bank image's programs play their notes
+/// from, plus what the loader recorded about the image they came out of.
+///
+/// A bank is filled either from an image the loader reads out of a CD sector and
+/// streams into SPU RAM, or from `Snd_BankInitTable` for the banks that are
+/// resident from boot; a slot whose `bankId` is 0xFFFF is free. The group, note
+/// and index tables live in one `SndHeap` block, laid out in that order as the
+/// image is loaded, so its own counts decide where each table starts. A note's
+/// waveform address is relative to the image's SPU address and the loader
+/// rebases it once the image has been placed.
+struct SndBank {
+    SndBankGroup* groups;     // Group table, one group per program
+    SndNote*      notes;      // Note layers of every group, one group after another
+    u16           bankId;     // Bank id; 0xFFFF marks a free slot
+    u8            field_A;    // Role unproven
+    u8            groupCount; // Groups in `groups`, and the length of the index table
+    u8            noteCount;  // Notes in `notes`, the groups' counts summed
+    byte          unknown_D[0x3];
+    u16*          groupIndex; // First note of each group, indexed by program
+    u32           imageSize;  // Byte length of the image the bank was loaded from
+    u32           spuAddr;    // SPU RAM address the image's waveform data was loaded to
+    void*         heapBlock;  // `SndHeap` block the three tables are carved from
 };
 STATIC_ASSERT_SIZEOF(SndBank, 0x20);
 
@@ -642,7 +649,7 @@ STATIC_ASSERT_SIZEOF(SndVoicePick, 0x18);
 
 /// 0xC-byte init-table entry at Snd_BankInitTable (two entries used by Snd_InitBanks).
 /// field_0 indexes D_800680AC for a slot id; field_2 is written to SndBankSlot.bankId
-/// and SndBank.field_8; field_4/field_6 are SndHeap_Malloc sizes; field_8 is stored
+/// and `SndBank::bankId`; field_4/field_6 are SndHeap_Malloc sizes; field_8 is stored
 /// to SndBankSlot.spuAddr.
 typedef struct _SndBankInitEntry {
     /* 0x0 */ u16 field_0;
@@ -657,13 +664,13 @@ STATIC_ASSERT_SIZEOF(SndBankInitEntry, 0xC);
 void           Snd_ApplyVolumeTable(s32 arg0);
 void           Spu_WaitDma(void);
 void           Audio_IrqFrameWork(void);
-SndBank*       Snd_AllocBank(SndBankPayload* arg0);
+SndBank*       Snd_AllocBank(SndBankPayload* payload);
 void           SndHeap_Reset(void);
 void*          SndHeap_Malloc(size_t);
 void           SndHeap_Free(void* ptr);
-void           Snd_FreeBank(SndBank* arg0);
-SndBank*       Snd_FindBank(u16 arg0);
-void           Snd_BuildGroupIndex(SndBank* arg0);
+void           Snd_FreeBank(SndBank* bank);
+SndBank*       Snd_FindBank(u16 bankId);
+void           Snd_BuildGroupIndex(SndBank* bank);
 void           LinInterp_Setup(LinInterp* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32            LinInterp_Apply(LinInterp* arg0, s32 arg1);
 void           LinInterp_Step(LinInterp* arg0);
