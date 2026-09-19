@@ -303,7 +303,22 @@ u32* tmdDrawStreamPrimG3CornerNormals(TmdScratchModelBlock* ws, s32 flags, u32* 
 /// all the record's `0x62` form — the semi-transparent one — differs in. The two
 /// share this body, so `flags` has no variant to select and goes unread.
 u32* tmdDrawStreamPrimG4CornerNormals(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_OpC0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Draw handler of a stream's transform pre-pass records that carry a colour of
+/// their own (`0xC0`): `tmdXformStreamVerts`'s pass with the element's colour
+/// word in place of that one's fixed colour.
+///
+/// An element names a vertex, a normal, a colour word and the two places in the
+/// buffer half its results go. The vertex is projected into screen coordinates,
+/// the normal is lit into a colour from the element's own word, and both results
+/// are written where the element names — the projection into the slot a packet
+/// carries a corner's coordinates in, the colour into the packet colour word
+/// beside it.
+///
+/// The rest is the fixed-colour pass's: the projection reused where consecutive
+/// elements name the same vertex, the depth each transform leaves in the
+/// per-vertex cache, and the flag a rejected projection sets there. The record
+/// has no variant for `flags` to select, so it goes unread.
+u32* tmdXformStreamVertsElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// The draw pass's handler for a stream's gouraud textured-triangle records that
 /// ask for the semi-transparent primitive (`0x3A`): each element's three corners
 /// are projected and lit from the three normals it names, and the packet the
@@ -318,7 +333,6 @@ u32* Tmd_StreamHandler_OpC0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// that choice on its own, so this entry draws the semi-transparent form
 /// unconditionally, where the `0x38` entry is the one that asks `flags` for it.
 u32* tmdDrawStreamGt3SemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-
 /// Draw-pass handler of a stream's gouraud-shaded textured-triangle records
 /// (`0x38`, `0x3A`): each element contributes one triangle to the buffer half's
 /// second region, with its corners projected and lit and the primitive linked
@@ -384,7 +398,8 @@ u32* tmdDrawStreamGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// An element names a vertex, a normal, and the two places in the buffer half
 /// its results go: the vertex is projected into screen coordinates, the normal
 /// is lit into a colour, and both are written where the element names. The
-/// elements carry no colour word, so the lighting uses a fixed colour instead.
+/// elements carry no colour word, so the lighting uses a fixed colour instead;
+/// the record whose elements name one is `tmdXformStreamVertsElemColor`.
 ///
 /// The projection is reused where consecutive elements name the same vertex, and
 /// each vertex's depth goes to the per-vertex cache: the commands that build a

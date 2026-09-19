@@ -26,7 +26,7 @@
  *                        pre-transformed textured gouraud (+ ABR) tri/quad
  * tmdDrawStreamPrimGt3OneNormal/SemiTrans (0x18/0x1A)  one-normal textured tri, fixed colour
  * tmdDrawStreamPrimGt4OneNormal/SemiTrans (0x58/0x5A)  one-normal textured quad, fixed colour
- * OpC0/tmdXformStreamVerts  stream transform helpers
+ * tmdXformStreamVertsElemColor/tmdXformStreamVerts  transform pre-pass, element colour/fixed
  * tmdDrawStreamPrimGt3CornerColors  extended 0x30-family path
  * tmdDrawStreamPrimGt4CornerColors  extended 0x70-family path
  */
@@ -278,7 +278,7 @@ glabel tmdDrawStreamPrimG4CornerNormals
     /* 1610 80010E10 */  addu        $v0, $zero, $a2
     /* 1614 80010E14 */  jr          $ra
     /* 1618 80010E18 */  nop
-glabel Tmd_StreamHandler_OpC0
+glabel tmdXformStreamVertsElemColor
     /* 161C 80010E1C */  lw          $t9, 0x18($a0)
     /* 1620 80010E20 */  lw          $a3, 0x1C($a0)
     /* 1624 80010E24 */  lw          $t8, 0x4($a0)

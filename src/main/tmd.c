@@ -83,7 +83,7 @@ void Tmd_InitSourceStream(TmdSource* src)
                     handler = tmdDrawStreamPrimG4CornerNormals;
                     break;
                 case 0xC0:
-                    handler = Tmd_StreamHandler_OpC0;
+                    handler = tmdXformStreamVertsElemColor;
                     break;
                 case 0xC4:
                     handler = func_8009EAA4;

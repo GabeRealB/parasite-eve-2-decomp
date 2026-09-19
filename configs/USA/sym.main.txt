@@ -37,7 +37,7 @@ Tmd_DispatchStream          = 0x80010A20; // type:func
 //--------------------------------------------------------------------
 tmdDrawStreamPrimG3CornerNormals      = 0x80010A90; // type:func
 tmdDrawStreamPrimG4CornerNormals      = 0x80010BF4; // type:func
-Tmd_StreamHandler_OpC0      = 0x80010E1C; // type:func
+tmdXformStreamVertsElemColor          = 0x80010E1C; // type:func
 tmdDrawStreamGt3SemiTrans      = 0x80010EF4; // type:func  (alabel, ABR entry into tmdDrawStreamGt3)
 tmdDrawStreamGt3            = 0x80010F08; // type:func
 tmdDrawStreamGt4SemiTrans   = 0x8001108C; // type:func  (alabel, ABR entry into tmdDrawStreamGt4)

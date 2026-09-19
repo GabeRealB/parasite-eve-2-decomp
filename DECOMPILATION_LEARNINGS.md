@@ -132949,3 +132949,21 @@ to the wrong symbol. No decompiled C writes that bit to a `TmdObject`, so which
 models take the arm is unproven; the settled part is that a `flags` test at an
 entry is where a second arm announces itself, and that neither arm's cull is the
 record's rule on its own.
+## A constant in a register the loop reloads every iteration is a sentinel, not a dead guard
+
+The transform pre-pass handlers guard their caching arm with a compare whose
+constant looks far too wide for the field it tests: `lui $v0, 0xFFE` (so
+`0x0FFE0000`) against a ref just extracted from an element word, which is 16
+bits. By the rule that a guard wider than its field cannot fire, the arm looks
+unreachable - and it is the arm most elements take. The register is not the
+constant's: the delay slot reloads it with the current element's ref
+(`addu $v0, $zero, $t1`), so from the second element on the compare tests this
+element against the previous one and the wide value is only what the first
+element is compared against, standing in for "no previous element". The C body
+of the same family's other member spells that state out (`prev = -1` before the
+loop, `prev = rec[0]` after each step).
+
+Read a guard's constant against the register's live range at that point, not
+against the field it is compared with. A register the loop reloads every
+iteration - and a delay slot is where the reload hides - makes a wide constant a
+sentinel, and the arm it opens the common case rather than the unreachable one.

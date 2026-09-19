@@ -405,6 +405,13 @@ slot maps to a vertex one-to-one. The negative-value check either side of it
 (`bltz` on the loaded word) is the off-screen flag `tmdXformStreamVerts` sets
 from GTE `FLAG`.
 
+What either handler leaves at a destination is the GTE's colour register, and
+that is a whole primitive colour word: the R, G and B the lighting produced,
+with the top byte the colour source carried — the element's word on `0xC0`, the
+constant on `0xC8`. The byte a packet draws with is not either of those: the
+handler that completes a pre-transformed record (`0x39`, `0x79`) runs after the
+pre-pass and writes its own code over the first corner's.
+
 `0xC4`'s handler is decompiled C (`func_8009EAA4` in `src/gameplay/gameplay.c`)
 and spells out what the hasm versions do:
 
@@ -547,9 +554,9 @@ switch, so they run once at setup rather than every frame.
 | `0x22` | `tmdDrawStreamPrimG3CornerNormals` | 4 | 8 | the `0x20` triangle in its semi-transparent form; the two opcodes resolve to one body |
 | `0x61` | `Tmd_StreamHandler_Prim38` | — | — | ? |
 | `0x62` | `tmdDrawStreamPrimG4CornerNormals` | 5 | 26 | ? |
-| `0xC0` | `Tmd_StreamHandler_OpC0` | 3 | 6 | "stream transform helper" per the hasm header; unsolved |
+| `0xC0` | `tmdXformStreamVertsElemColor` | 3 | 6 | vertex transform + lighting pre-pass, colour per element — **solved**, §3.5 |
 | `0xC4` | `D_8009EAA4` | — | — | "stream transform helper"; unsolved, never seen in data |
-| `0xC8` | `tmdXformStreamVerts` | 2 | 30262 | vertex transform + lighting pre-pass — **solved**, §3.0 |
+| `0xC8` | `tmdXformStreamVerts` | 2 | 30262 | vertex transform + lighting pre-pass — **solved**, §3.5 |
 | `0x121` | `Tmd_StreamHandler_Prim30` | — | — | ? |
 | `0x122` | `D_8009E274` | — | — | ? |
 | `0x161` | `Tmd_StreamHandler_Prim38` | — | — | ? |
