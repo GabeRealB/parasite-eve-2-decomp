@@ -5911,8 +5911,8 @@ f2 |= f0 | f1;
 if (f2 == 0) {
 ```
 
-Parenthesizing `c | (a | b)` without pins reshuffles the loads. `func_80099D40`
-is the example.
+Parenthesizing `c | (a | b)` without pins reshuffles the loads.
+`gpDrawStreamPrimGt3PreXformFixedLayer` is the example.
 
 ## Subtract a constant from a saved coord via `base + (saved - K)`
 
@@ -6089,6 +6089,22 @@ gte_ldrgb(&col);
 ```
 
 `func_8009AA5C` is the example. Same `+r` pin as `func_8009EAA4`'s `prev = -1`.
+
+## An m2c `ws = arg0` needs no pin when another variable wants `$a0`
+
+Some handlers reach their scratch block through a local the m2c output copies
+the parameter into (`ws = arg0;`, then `ws` everywhere), and their target opens
+with `addu $t1, $a0, $zero`. Where the body also pins a variable to the
+parameter's own register (`register s32 sz asm("a0")`), that copy is the
+parameter being moved out of the pinned register's way and GCC emits it with or
+without the source-level copy: naming the parameter and deleting both the local
+declaration and the assignment left the body byte-identical in
+`gpDrawStreamPrimGt3PreXformFixedLayer`, whose m2c form had `ws = arg0` and
+whose `sz` is pinned to `$a0`.
+
+So the shape is load-bearing only where something pins *it* — `TOUCH_REG(ws)` or
+`asm volatile("" : "+r"(ws))`, as `func_8009AA5C` and `func_8009EAA4` above — and
+m2c residue where the pinned register belongs to another variable.
 
 ## Pin a scratch block so a later dest copy uses `$s0`, not the alloc temp
 
@@ -36875,8 +36891,8 @@ every fifo load.
 
 `func_80099FF4` is the pure example: it is the POLY_GT4 (0x34 stride, `avsz4`,
 len 12 / code 0x3C-0x3E, 4-iteration u-fixup loop) sibling of the POLY_GT3
-`func_80099D40`, and porting that function with the type, stride, loop bound
-and `_s0` macros swapped matched on the first attempt. When a TU holds a family
+`gpDrawStreamPrimGt3PreXformFixedLayer`, and porting that function with the
+type, stride, loop bound and `_s0` macros swapped matched on the first attempt. When a TU holds a family
 of these clippers, diff the target against the nearest already-matched sibling
 before writing anything from scratch.
 

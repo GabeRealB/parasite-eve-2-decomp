@@ -1017,7 +1017,9 @@ u32* gpStreamPrimGt4Base(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// primitives per element: the element's texture words go into the base, with the
 /// model's texture page and CLUT added to the primitive's own, and the layer's page
 /// and CLUT are written here as fixed values rather than from the object's extra
-/// page and CLUT offsets.
+/// page and CLUT offsets. The pair is drawn by
+/// `gpDrawStreamPrimGt3PreXformFixedLayer`, which settles the page the layer is
+/// finally drawn from.
 u32* gpStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's layered pre-transformed textured-quad records (`0x4079`):
@@ -1085,5 +1087,45 @@ u32* gpStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
 /// records are built there by `tmdDrawStreamPrimG3`, the `0x20` ones — the same
 /// packet, lit from a normal per corner — by `tmdDrawStreamPrimG3CornerNormals`.
 u32* gpStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+
+// Draw handlers in src/gameplay/gameplay.c: the overlay's half of the draw pass,
+// one per record family whose drawing needs it. `Tmd_InitSourceStream` resolves a
+// record's draw handler into the model's stream and the draw walk
+// (`Tmd_DispatchStream`, reached from `Tmd_SetupDraw`) jalrs it, so the entries
+// here sit beside the `gpStreamPrim*` commands of the same family above: the
+// command lays the record's packets out, the handler draws them.
+
+/// The draw pass's handler for a stream's layered pre-transformed textured-triangle
+/// records whose semi-transparent layer is textured from a page of its own
+/// (`0x4039`): each element's two triangles are filed and linked into the ordering
+/// table.
+///
+/// The record is the pre-transformed `0x39` triangle's with `0x4000` set, so its
+/// corners are already in screen space — the vertex commands have written each
+/// corner's coordinates and lit colour into the packets and its depth into the
+/// per-vertex screen-Z table — and each element contributes the two packets built
+/// for it: the semi-transparent layer, and the base the model is drawn from. The
+/// element names its three corners in that table, so both packets are culled and
+/// filed from the one triangle it names. Nothing is projected or lit here; what a
+/// frame adds is the pair's filing: the three cached depths are averaged for the
+/// ordering-table links, the facing comes from the coordinates the packets already
+/// carry, and each packet's length and primitive code are written — the layer's
+/// the blended `0x36`, the base's the opaque `0x34`. An element whose cached depth
+/// carries the transform's error mark, or whose triangle turns away, is passed
+/// over, though both packets' room is stepped over either way, so the primitives
+/// stay in step with the elements that named them.
+///
+/// The layer's page is settled here as well, because the record's layer is
+/// textured from a page of its own rather than from the model's. The command that
+/// lays the packets out (`gpStreamPrimGt3PreXformFixedLayer`) fixes the layer's
+/// page and leaves its texture coordinates to the vertex commands, which derive
+/// them from the vertices' normals; this handler picks between the two pages the
+/// layer may be drawn from, and takes with it the corners whose texture
+/// coordinates are not already on the page it picks. Where the layer takes the
+/// object's own page and CLUT offsets instead, the command has written them and
+/// the walk takes the record's other entry, which leaves the page alone. The entry
+/// is picked when the model's stream is resolved, by the area the session is in, so
+/// `flags` selects nothing here and goes unread.
+u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 #endif // TMD_H

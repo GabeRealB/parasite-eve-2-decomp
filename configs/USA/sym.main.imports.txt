@@ -33,7 +33,7 @@ func_801011D0 = 0x801011D0; // type:func absolute:True
 // (src/gameplay/gameplay.c), not by splat's auto-undef D_ convention.
 gpDrawStreamPrimF4PreXform = 0x80099994; // type:func absolute:True
 gpDrawStreamPrimF3PreXform = 0x80099B94; // type:func absolute:True
-func_80099D40 = 0x80099D40; // type:func absolute:True
+gpDrawStreamPrimGt3PreXformFixedLayer = 0x80099D40; // type:func absolute:True
 func_80099FF4 = 0x80099FF4; // type:func absolute:True
 func_8009A348 = 0x8009A348; // type:func absolute:True
 func_8009A57C = 0x8009A57C; // type:func absolute:True

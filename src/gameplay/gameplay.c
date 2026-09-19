@@ -1534,28 +1534,26 @@ u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
     return stream;
 }
 
-u32* func_80099D40(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
-    TmdScratchModelBlock* ws;
-    POLY_GT3*             poly;
-    register POLY_GT3*    xy asm("t0");
-    s32*                  opz;
-    u32                   clipMask;
-    s32                   len;
-    s32                   code;
-    DisplayState*         ds;
-    u32                   mask;
-    register u32          maskHi asm("t4");
-    u16*                  rec;
-    register s32          sz asm("a0");
-    s32                   idx;
-    u8*                   szTable;
-    u8*                   flagp;
-    u8*                   up;
-    s32                   i;
-    s32                   tpage;
+    POLY_GT3*          poly;
+    register POLY_GT3* xy asm("t0");
+    s32*               opz;
+    u32                clipMask;
+    s32                len;
+    s32                code;
+    DisplayState*      ds;
+    u32                mask;
+    register u32       maskHi asm("t4");
+    u16*               rec;
+    register s32       sz asm("a0");
+    s32                idx;
+    u8*                szTable;
+    u8*                flagp;
+    u8*                up;
+    s32                i;
+    s32                tpage;
 
-    ws   = arg0;
     poly = (POLY_GT3*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
         opz      = &ws->gteResult;
@@ -1567,7 +1565,7 @@ u32* func_80099D40(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         maskHi   = 0xFF000000;
         xy       = poly + 1;
         do {
-            rec = (u16*)arg2;
+            rec = (u16*)stream;
             gte_ldsxy3_fifo_gt3_s0(xy);
             gte_nclip_real();
             gte_stopz(opz);
@@ -1634,13 +1632,13 @@ u32* func_80099D40(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     }
                 }
             }
-            xy   += 2;
-            poly += 2;
-            arg2 += ws->elemStride;
+            xy     += 2;
+            poly   += 2;
+            stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
     }
     ws->preXformWrite = (u8*)poly;
-    return arg2;
+    return stream;
 }
 
 u32* func_80099FF4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
