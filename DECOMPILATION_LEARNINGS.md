@@ -131787,3 +131787,13 @@ exact abs `6700c8de160c4c8d0cee8a847341445358de172f281f8cedfcb4c48098606156`.
 Evidence is retained under `tools/permuter_findings/func_actor_403600_8013DDF4/`
 (session `72d715c95a2b429297d0244fb646a310`), including PERMUTER_ANALYSIS.md,
 planned experiments, inputs, and relevant dumps.
+
+## Early call arguments can be a consequence of fixing load/store order (func_actor_403600_8013F7B8, 2026-09-19)
+
+The archived initializer was stuck at 96.456% with `regs=18 reorder=2 insert=4 delete=4`, despite matching blocks, predicates, calls and all 285 instruction counts. The prior hypothesis sought early a0/a1 call-argument lifetimes to force a packed key into a2 and a coordinate chain into v1. Named locals disappeared; asm touches disturbed scheduling.
+
+The actual obstruction was visible in `.sched`: the two reads for `task->extra->coords` were written after the initialization stores, so UID343/345 depended on every store from 0x736 through the GpObj flags at 0x526. The target reads after 0x744 but before 0x6C4. Moving the complete coordinate assignment to that source position reached 100% on the next controlled build, without adding locals, helpers or pins.
+
+The matching `.sched` reads UID291/293 depend only on the first three stores and the previous call. Following stores instead carry anti-dependencies on the reads. `.lreg/.greg` give the coordinate load/add r131/r132 v1 and the packed key r135 a2; all saved-register homes remain unchanged. `.sched` now sets a0 earlier and a1 between the reads, and `.sched2/.dbr` reproduce the target store order and final call delay store. Early call arguments were downstream of the memory dependency graph, not an independent lifetime requirement. Actual allocator priority/hazard tie decisions were not traced.
+
+Prediction and both schedule/allocation outcomes are retained in scratch `nonmatchings/func_actor_403600_8013F7B8-vacuum/LEARNINGS.md`, `experiments.jsonl`, `base_1.insn.txt`, `base_2.insn.txt` and the corresponding RTL dumps. Input SHA-256: base_1.i `c037aa537b38e344c75545f8cb1cf2d871f6a4774853c48953edf702e1d53349`, base_2.i `4c7327de57967e3e801adae9140e3bcfa6607811cfccf50da365a54298a7a678`; compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Final typed base_4 also scored 100%, and the integrated host passed unscoped build verification. The required router produced no discovery.

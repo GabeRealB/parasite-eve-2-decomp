@@ -210,6 +210,7 @@ extern GpU16Pair        D_actor_403600_80150EB0;
 extern const SVECTOR    D_actor_403600_80131E2C;
 extern CVECTOR          D_actor_403600_80131E34;
 extern GpPairSrcE       D_actor_403600_80150EC8;
+extern GpPairSrcE       D_actor_403600_80150ED8;
 extern GpU16Pair        D_actor_403600_80150E9C;
 extern s32              D_actor_403600_80160504[4];
 extern Actor403600Pair  D_actor_403600_801606B8;
@@ -3321,7 +3322,173 @@ void func_actor_403600_8013F608(Actor403600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013F7B8);
+void func_actor_403600_8013F7B8(GpEnemy* enemy, Task* task)
+{
+    SVECTOR                rot;
+    TmdObject*             model;
+    GsCOORDINATE2*         worldCoord;
+    GsCOORDINATE2*         modelCoord;
+    GsCOORDINATE2*         bodyCoord;
+    GpRec18*               bodyRecs;
+    GpRec18*               attackRecs;
+    Actor403600Work*       animWork;
+    Actor403600Work*       ownerWork;
+    Actor403600Work*       work;
+    u8*                    anim;
+    s16                    animId;
+    u32                    randomProduct;
+    s32                    angle;
+    s32                    i;
+    s32                    animIndex;
+    u32                    randomState;
+    Actor403600TurnMatrix* worldMatrix;
+    Actor403600TurnMatrix* modelMatrix;
+
+    model      = task->extra;
+    modelCoord = model->coords;
+    ownerWork  = D_actor_403600_801606A8->work;
+    work       = memCalloc(sizeof(Actor403600Work), false);
+    bodyCoord  = &modelCoord[1];
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    worldCoord                 = &work->field_4B8;
+    task->work                 = work;
+    model->flags               = 2;
+    model->lightLevel          = 0;
+    work->field_4B8.sub        = &gGfxViewCoord;
+    worldMatrix                = (Actor403600TurnMatrix*)&work->field_4B8.coord;
+    worldMatrix->field_0       = 0x1000;
+    worldMatrix->field_4       = 0;
+    worldMatrix->field_8       = 0x1000;
+    worldMatrix->field_C       = 0;
+    worldMatrix->field_10      = 0x1000;
+    modelMatrix                = (Actor403600TurnMatrix*)&modelCoord->coord;
+    work->field_4B8.coord.t[0] = 0;
+    work->field_4B8.coord.t[1] = 0;
+    work->field_4B8.coord.t[2] = 0;
+    modelCoord->sub            = worldCoord;
+    modelMatrix->field_0       = 0x1000;
+    modelMatrix->field_4       = 0;
+    modelMatrix->field_8       = 0x1000;
+    modelMatrix->field_C       = 0;
+    modelMatrix->field_10      = 0x1000;
+    modelCoord->coord.t[0]     = 0;
+    modelCoord->coord.t[1]     = 0x744;
+    modelCoord->coord.t[2]     = 0;
+    work->field_4B8.flg        = 0;
+    Gp_UpdateCoord(worldCoord);
+    modelCoord->flg = 0;
+    Gp_UpdateCoord(modelCoord);
+    model->lightMtx = &work->field_494;
+    model->colorMtx = &work->field_474;
+    enemy->field_4  = &modelCoord[1].coord;
+    enemy->field_48 = 0;
+    Gp_LinkNode(&enemy->node);
+    enemy->node.flags  = 8;
+    enemy->field_18    = bodyCoord;
+    enemy->field_1C.vx = 0;
+    enemy->field_1C.vy = 0;
+    enemy->field_1C.vz = 0;
+    enemy->field_50    = &D_actor_403600_80150ED8;
+    enemy->field_54    = (s32)work->field_528;
+    enemy->field_40    = (s16)D_actor_403600_80150ED8.field_4;
+    func_800B3F84((GpAnimCtx*)work, D_actor_403600_8016057C, (GpAnimObj*)model,
+                  (u8*)work + 0x334, (GpAnimSlot*)((u8*)work + 0x14));
+    i = 1;
+    do {
+        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+        i += 1;
+    } while (i < 0x14);
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    bodyRecs        = work->field_528;
+    work->field_736 = 9;
+    work->field_738 = 0;
+    work->field_744 = 0;
+    work->field_6C0 =
+        &((TmdObject*)task->extra)->coords[1];
+    work->field_6C4          = 0x100;
+    work->field_6C6          = 1;
+    work->field_6E8.vx       = 0;
+    work->field_6E8.vy       = 0;
+    work->field_6E8.vz       = 0;
+    work->field_73E          = 0;
+    work->field_508.coord    = bodyCoord;
+    work->field_508.ctx.recs = bodyRecs;
+    work->field_508.pos.vx   = 0;
+    work->field_508.pos.vy   = 0;
+    work->field_508.pos.vz   = 0;
+    work->field_508.key      = 0x30024;
+    work->field_508.radius   = 0x3E8;
+    work->field_508.flags    = 1;
+    Gp_LinkObj(2, &work->field_508);
+    Gp_InitRec18Table(bodyRecs, 4, 0);
+    attackRecs               = work->field_5A8;
+    work->field_588.coord    = bodyCoord;
+    work->field_588.ctx.recs = attackRecs;
+    work->field_588.pos.vx   = 0;
+    work->field_588.pos.vy   = 0;
+    work->field_588.pos.vz   = 0x3E8;
+    work->field_508.flags   |= 0xC200;
+    work->field_588.key      = Gp_PackPair(&D_actor_403600_80150EB0, 0);
+    work->field_588.radius   = 0x5DC;
+    work->field_588.flags    = 1;
+    Gp_LinkObj(3, &work->field_588);
+    Gp_InitRec18Table(attackRecs, 1, 0);
+    work->field_588.flags     &= 0x7FFF;
+    work->field_4B8.coord.t[0] = (s32)ownerWork->field_4B8.coord.t[0];
+    work->field_4B8.coord.t[1] = (s32)ownerWork->field_4B8.coord.t[1];
+    work->field_4B8.coord.t[2] = (s32)ownerWork->field_4B8.coord.t[2];
+    Gfx_MatrixCol2(&ownerWork->field_4B8.coord, &rot);
+    angle  = ratan2((s32)rot.vx, (s32)rot.vz);
+    rot.vx = 0;
+    rot.vy = (s16)angle;
+    rot.vz = 0;
+    RotMatrix(&rot, &work->field_4B8.coord);
+    randomProduct   = Gp_LcgState * 5;
+    randomState     = randomProduct + 0x71357911;
+    work->field_748 = (s16)angle;
+    work->field_756 = 0;
+    work->field_742 = 0;
+    work->field_74E = 0;
+    work->field_73E = 5;
+    work->field_74C = 0xA;
+    work->field_750 = 0x14;
+    work->field_754 = (s16)(((randomState >> 0x10) % 0x32) + 0xBB8);
+    Gp_LcgState     = randomState;
+    if (task->spawnArg1 != 0) {
+        Gp_AssignNodeSlot0(&enemy->node);
+    }
+    animWork = task->work;
+    animId   = animWork->field_736;
+    if (D_actor_403600_8016057C[animId] != 0) {
+        animIndex = 1;
+        if (animId != animWork->field_738) {
+            animWork->field_738 = (s16)(u16)animWork->field_736;
+            animWork->field_73A = 0U;
+            do {
+                func_800B4114((GpAnimCtx*)animWork, animIndex,
+                              (s32)animWork->field_736, 0,
+                              (s32)animWork->field_756);
+                animIndex += 1;
+            } while (animIndex < 0x14);
+        } else {
+            TOUCH_REG(animIndex);
+            animWork->field_73A += animIndex;
+            anim                 = (u8*)animWork + 0x28;
+            do {
+                anim[0x1D] = (u8)animWork->field_778;
+                Gp_AnimTickIndex((GpAnimCtx*)animWork, animIndex);
+                animIndex += 1;
+                anim      += sizeof(GpAnimSlot);
+            } while (animIndex < 0x14);
+        }
+    }
+    work->field_778    = 0x10;
+    task->exitCallback = func_actor_403600_80141598;
+    task->state       += 1;
+}
 
 void func_actor_403600_8013FC2C(Actor403600Ctx* arg0, Actor403600* arg1)
 {
