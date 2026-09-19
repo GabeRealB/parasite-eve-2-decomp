@@ -132192,3 +132192,19 @@ base_6.i SHA256
 `5f1465bc54ea64b3597a0cf61e5c17ffa81d38019543909935c300ab60ac4e8d`.
 Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+
+### A loop-end boundary stops cse1 path equivalence, but cse2 can restore it (func_actor_560800_80134BFC, 2026-09-19)
+
+Three blend-loop entry guards reused a sub-switch index known to equal 1. Two indices then crossed calls and took s3, whereas retail materializes a fresh `li v0,1` after `lhu v1,count`. The archived candidate rebuilt at 99.189%; guard UIDs 2390/2406/1975 show the substitution in `.cse`.
+
+A do-once initialization block is insufficient: `base_4.i.cse` guard UID2464 uses fresh r659, but `.cse2` replaces it with the old switch index r179. This agrees with `cse_end_of_basic_block` ignoring `NOTE_INSN_LOOP_END` when `after_loop` is true. Check both CSE passes before concluding that an early boundary solved constant sharing.
+
+The matched workaround uses a literal HI input tied to an SI output:
+`__asm__("" : "=r"(first) : "0"((u16)1));`. Its `.cse` input remains `const_int 1` with `asm_input:HI`, so the SI switch equivalence does not replace it. This identity is justified for the immediate 1, whose MIPS materialization has zero upper bits; it is not a general zero-extension idiom for variable halfwords.
+
+Two further constraints mattered. Initialize the separate u16 loop counter inside the successful guard: initializing it earlier lets reload reuse its s0=1 and adds a move. Read the count, then use `SOFT_BARRIER()` before the identity asm: merely reading count earlier (`base_8`) or adding it as an asm input (`base_9`) leaves the same li-before-load order and three extra nops. The explicit boundary (`base_10`) places reload's HI immediate after the count load, filling its delay slot. All 956 instructions then match. Existing `SOFT_TOUCH_REG(anim)` separately fixes case38 by preserving the sub0 pointer copy while sub1 retains the original pointer.
+
+Evidence: scratch `nonmatchings/func_actor_560800_80134BFC-vacuum/LEARNINGS.md`, dumps and experiment journal. `base_10.i` SHA256 `4600b357087d9360be29cb8d200baa10aff99a852e9364e638892d55984396cd`; normal-style port `base_11.i` SHA256 `f17afb7496261a9677c4d8e36332ee0cc5a57821ba674c7732963af82298e247`. Both score 100%, and the unscoped integration build passed. Original source spelling remains unresolved; no claim about scheduler hazard selection follows from the failed ordering variants.
+
+The search router skipped this function because target.o's interior `alabel func_801353D0` is typed FUNC at offset2004. Removing that symbol from a separate diagnostic copy (never from the scored target) confirms matching blocks/predicates/calls. This is metadata ambiguity, not evidence of a second callable body.

@@ -1199,7 +1199,7 @@ void func_actor_560800_80134384(Task* task)
 /// have to reach the same register, and 0x10 is live across the loop's
 /// `Gp_AnimResetSlot` call. `unused` is declared and never referenced - the
 /// ROM's frame is 0x30 and the local is what reserves its 8 bytes.
-void func_actor_560800_80134B14(void)
+void func_actor_560800_80134B14(s32 arg0)
 {
     Actor560800Work*     work;
     Actor560800AnimWork* anim;
@@ -1226,7 +1226,315 @@ void func_actor_560800_80134B14(void)
     Pad_PostEvent(0, 1, 0xFF, 2);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80134BFC);
+static inline void Actor560800_BlendSlotsFirst(Task* task, u16 id, s16 rate)
+{
+    Actor560800AnimWork* w;
+    u16                  i;
+    u32                  first;
+    u32                  count;
+
+    w            = (Actor560800AnimWork*)task->work;
+    w->field_4B8 = id;
+    w->field_4C8 = rate;
+    w->field_4BE = 0;
+    SOFT_BARRIER();
+    count = w->field_4BA;
+    SOFT_BARRIER();
+    __asm__("" : "=r"(first) : "0"((u16)1));
+    if (first < count) {
+        i = 1;
+        do {
+            func_800B4114(&w->anim, i, id, 0, 10);
+            i++;
+        } while (i < w->field_4BA);
+    }
+}
+
+static inline void Actor560800_ResetSlots(Task* task, u16 id, u16 rate)
+{
+    Actor560800AnimWork* anim;
+    u16                  i;
+
+    anim            = (Actor560800AnimWork*)task->work;
+    i               = 1;
+    anim->field_4B8 = id;
+    anim->field_4C8 = rate;
+    anim->field_4BE = 0;
+    if (i < anim->field_4BA) {
+        do {
+            anim->slots[i].rate = rate;
+            Gp_AnimResetSlot(&anim->anim, i, id);
+            i++;
+        } while (i < anim->field_4BA);
+    }
+}
+
+void func_actor_560800_80134BFC(Task* arg0)
+{
+    Actor560800Work*     work;
+    Actor560800AnimWork* ctx;
+    Actor560800AnimWork* ctx2;
+    Actor560800AnimWork* ctx3;
+    Actor560800AnimWork* ctx4;
+    Actor560800AnimWork* ctx5;
+    Actor560800AnimWork* ctx6;
+    Actor560800AnimWork* ctx7;
+    Actor560800AnimWork* blend;
+    Actor560800AnimWork* anim;
+    GsCOORDINATE2*       coord;
+    u32                  first;
+    u32                  count;
+    u16                  step;
+    u16                  i;
+
+    work = (Actor560800Work*)arg0->work;
+    switch ((u16)work->field_40) {
+        case 0:
+            break;
+        case 1:
+            ((Actor560800AnimWork*)work->field_8->work)->field_4CA = 1;
+            break;
+        case 2:
+            ((Actor560800AnimWork*)work->field_8->work)->field_4C0 = 0x155;
+            break;
+        case 4:
+            switch (step = work->field_42) {
+                case 0:
+                    ctx            = (Actor560800AnimWork*)work->field_8->work;
+                    ctx->field_4C0 = 0;
+                    ctx->field_4CA = 0;
+                    Actor560800_ReseedAnim(work->field_8, 1, 0x10);
+                    work->field_42++;
+                    return;
+                case 1:
+                    ((Actor560800AnimWork*)work->field_8->work)->field_4CA = 1;
+                    break;
+                default:
+                    return;
+            }
+            break;
+        case 14:
+            switch (step = work->field_42) {
+                case 0:
+                    Actor560800_ResetSlots(work->field_8, 0x19, 0x10);
+                    work->field_42++;
+                    return;
+                case 1:
+                    coord              = ((TmdObject*)work->field_8->extra)->coords;
+                    coord->coord.t[0] -= 0x1E;
+                    if (((TmdObject*)work->field_8->extra)->coords->coord.t[0] < D_actor_560800_8016F1CC[30]) {
+                        Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_actor_560800_8016F1CC[30], 0);
+                        Actor560800_BlendSlotsFirst(work->field_8, 0x1A, 0x10);
+                        work->field_40 = 0;
+                    }
+                    ((TmdObject*)work->field_8->extra)->coords->flg = 0;
+                    return;
+                default:
+                    return;
+            }
+            break;
+        case 15:
+            Actor560800_ResetSlots(work->field_8, 5, 0x10);
+            break;
+        case 18:
+            Actor560800_ResetSlots(work->field_8, 0x1F, 0x10);
+            break;
+        case 20:
+            switch (step = work->field_42) {
+                case 0:
+                    ((Actor560800AnimWork*)work->field_8->work)->field_4BC = 1;
+                    Actor560800_PlaySeB(3);
+                    Gp_DispatchMsg(work->field_0, 0x3FD, 8, 0);
+                    work->field_44 = 0;
+                    work->field_42++;
+                    return;
+                case 1:
+                    if (work->field_44 < 300) {
+                        work->field_44      += 5;
+                        D_80073B8C[0]->t[0] -= 5;
+                        return;
+                    }
+                    Actor560800_PlayAnimB(arg0, 2, 0xA);
+                    work->field_44 = 0;
+                    work->field_42++;
+                    return;
+                case 2:
+                    if (++work->field_44 < 11) {
+                        return;
+                    }
+                    func_actor_560800_80134B14(0);
+                    work->field_44 = 0;
+                    work->field_42++;
+                    return;
+                case 3:
+                    if (++work->field_44 < 3) {
+                        return;
+                    }
+                    Gp_SpawnEff(0x60055, &((TmdObject*)work->field_0->extra)->coords[6], 0, NULL);
+                    Pad_PostEvent(0, 1, 0xFF, 2);
+                    break;
+                default:
+                    return;
+            }
+            break;
+        case 21:
+            ((Actor560800AnimWork*)work->field_8->work)->field_4BC = 0;
+            Actor560800_ResetSlots(work->field_8, 0xA, 0x10);
+            break;
+        case 22:
+            Actor560800_ResetSlots(work->field_8, 0xB, 0x10);
+            break;
+        case 23:
+            Gp_DispatchMsg(work->field_8, 0x7D5, 2, 0);
+            Gp_DispatchMsg(work->field_10, 0x7D5, 2, 0);
+            Gp_DispatchMsg(work->field_14, 0x7D5, 2, 0);
+            if (work->field_18 != NULL) {
+                Gp_DispatchMsg(work->field_18, 0x7D5, 2, 0);
+            }
+            break;
+        case 24:
+            Gp_DispatchMsg(work->field_8, 0x7D5, 1, 0);
+            Gp_DispatchMsg(work->field_10, 0x7D5, 1, 0);
+            Gp_DispatchMsg(work->field_14, 0x7D5, 1, 0);
+            if (work->field_18 != NULL) {
+                Gp_DispatchMsg(work->field_18, 0x7D5, 1, 0);
+            }
+            ctx2            = (Actor560800AnimWork*)work->field_8->work;
+            ctx2->field_4C0 = 0x155;
+            ctx2->field_4BC = 1;
+            break;
+        case 25:
+            ctx3            = (Actor560800AnimWork*)work->field_8->work;
+            ctx3->field_4C0 = 0;
+            ctx3->field_4C4 = -0x71;
+            Actor560800_ResetSlots(work->field_8, 0x1F, 0x10);
+            break;
+        case 26:
+            ctx4            = (Actor560800AnimWork*)work->field_8->work;
+            ctx4->field_4C4 = 0;
+            ctx4->field_4BC = 0;
+            Actor560800_ResetSlots(work->field_8, 0xD, 0x10);
+            break;
+        case 28:
+            Actor560800_ResetSlots(work->field_8, 0x1A, 0x10);
+            break;
+        case 30:
+            ctx5             = (Actor560800AnimWork*)work->field_8->work;
+            ctx5->field_4C6 -= 0x1E;
+            if (ctx5->field_4C6 >= -0x155) {
+                return;
+            }
+            break;
+        case 32:
+            ((Actor560800AnimWork*)work->field_8->work)->field_4C6 = 0;
+            Actor560800_ResetSlots(work->field_8, 0xF, 0x10);
+            break;
+        case 33:
+            if ((u32)D_actor_560800_801757A4 > (u32)gDisplayState.frameCount) {
+                D_actor_560800_80175798 = gDisplayState.frameCount - (D_actor_560800_801757A4 + 1);
+            } else {
+                D_actor_560800_80175798 = gDisplayState.frameCount - D_actor_560800_801757A4;
+            }
+            Actor560800_ResetSlots(work->field_8, 0x10, 0x10);
+            break;
+        case 35:
+            switch (step = work->field_42) {
+                case 0:
+                    Actor560800_ReseedAnim(work->field_8, 7, 0x10);
+                    work->field_44 = 0;
+                    work->field_42++;
+                    return;
+                case 1:
+                    if (++work->field_44 < 0x5B) {
+                        return;
+                    }
+                    Actor560800_BlendSlotsFirst(work->field_8, 0x14, 0x10);
+                    break;
+                default:
+                    return;
+            }
+            break;
+        case 36:
+            switch (step = work->field_42) {
+                case 0:
+                    Actor560800_ResetSlots(work->field_8, 0xE, 0x10);
+                    work->field_44 = 0;
+                    work->field_42++;
+                    return;
+                case 1:
+                    if (++work->field_44 < 0x1F) {
+                        return;
+                    }
+                    Pad_PostEvent(0, 1, 0xFF, 2);
+                    Gp_SpawnEff(0x6002B, &((TmdObject*)work->field_8->extra)->coords[8], 0x21, NULL);
+                    blend            = (Actor560800AnimWork*)work->field_C->work;
+                    blend->field_4B8 = 0x20;
+                    blend->field_4C8 = 8;
+                    blend->field_4BE = 0;
+                    SOFT_BARRIER();
+                    count = blend->field_4BA;
+                    SOFT_BARRIER();
+                    __asm__("" : "=r"(first) : "0"((u16)1));
+                    if (first < count) {
+                        i = 1;
+                        do {
+                            func_800B4114(&blend->anim, i, 0x20, 0, 5);
+                            i++;
+                        } while (i < blend->field_4BA);
+                    }
+                    work->field_44 = 0;
+                    work->field_42++;
+                    return;
+                case 2:
+                    if (++work->field_44 < 3) {
+                        return;
+                    }
+                    Gp_SpawnEff(0x60055, &((TmdObject*)work->field_C->extra)->coords[4], 0, NULL);
+                    break;
+                default:
+                    return;
+            }
+            break;
+        case 37:
+            ((Actor560800AnimWork*)work->field_8->work)->field_4CA = 0;
+            ctx6                                                   = (Actor560800AnimWork*)work->field_8->work;
+            ctx6->field_4C0                                       -= 0x3C;
+            if (ctx6->field_4C0 >= -0x200) {
+                return;
+            }
+            break;
+        case 38:
+            ctx7 = (Actor560800AnimWork*)work->field_8->work;
+            switch (step = work->field_42) {
+                case 0:
+                    anim = (Actor560800AnimWork*)work->field_8->work;
+                    SOFT_TOUCH_REG(anim);
+                    anim->field_4B8 = 3;
+                    anim->field_4C8 = 0x10;
+                    anim->field_4BE = 0;
+                    SOFT_BARRIER();
+                    for (i = 1; i < anim->field_4BA; i++) {
+                        func_800B4114(&anim->anim, i, 3, 0, 10);
+                    }
+                    work->field_42++;
+                    return;
+                case 1:
+                    ctx7->field_4C0 += 0x3C;
+                    if (ctx7->field_4C0 < 0) {
+                        return;
+                    }
+                    ctx7->field_4C0 = 0;
+                    break;
+                default:
+                    return;
+            }
+            break;
+        case 39:
+            Actor560800_ResetSlots(work->field_8, 0x22, 8);
+            break;
+    }
+    work->field_40 = 0;
+}
 
 void func_actor_560800_80135AEC(s32 arg0)
 {

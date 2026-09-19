@@ -50,7 +50,8 @@ typedef struct Actor560800Work {
     /* 0x3C */ byte  pad_3C[4];
     /* 0x40 */ s16   field_40;
     /* 0x42 */ s16   field_42;
-    /* 0x44 */ byte  pad_44[0x14];
+    /* 0x44 */ s16   field_44;
+    /* 0x46 */ byte  pad_46[0x12];
     /* 0x58 */ s16   field_58;
     /* 0x5A */ s16   field_5A;
     /* 0x5C */ byte  pad_5C[4];
@@ -287,6 +288,7 @@ extern Task* D_actor_560800_8017578C;
 extern u8 D_actor_560800_8016EA40[];
 
 extern Actor560800AnimStep D_actor_560800_8016EBE8[];
+extern s32                 D_actor_560800_8016F1CC[];
 
 /// Animation bank `func_actor_560800_801376E0` hands `func_800B3F84` as its
 /// second argument: a null entry then one animation set per slot of
