@@ -653,7 +653,7 @@ Pose bank formats, dispatched by `func_800B3448` on `GpAnimSlot.field_B`:
 | `flags & 0xF` | Bank type | Layout |
 |---|---|---|
 | 1 | `GpPackedPose` | packed translation + rotation |
-| 4 | `GpPackedSvec` | `s32 vx:11, vy:10, vz:11` |
+| 4 | `GpPackedSvec` | `s32 rx:11, ry:10, rz:11` |
 
 **Clip walk.** Entry *n* of the index table gives the first record of clip *n*;
 records run on until one has `flags >= 0xC0`. The index table has no explicit

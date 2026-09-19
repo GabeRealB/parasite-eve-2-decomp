@@ -120,13 +120,16 @@ typedef struct _GpAnimPose {
 } GpAnimPose;
 STATIC_ASSERT_SIZEOF(GpAnimPose, 0x10);
 
-/// Packed 11-10-11 signed vector (one word). `Gp_AnimBlendPacked` unpacks each
-/// component `<< 3` into an `SVECTOR` and packs the interpolated result
-/// back. `func_800B3448` dispatches here when `GpAnimSlot.field_B == 4`.
-typedef struct _GpPackedSvec {
-    s32 vx : 11;
-    s32 vy : 10;
-    s32 vz : 11;
+/// One bone pose of a track that only rotates: the three Euler angles of the
+/// pose's `SVECTOR`, packed into a single 11/10/11-bit word at a resolution of
+/// 8 angle units.
+///
+/// The rotation-only companion of `GpPackedPose`, which carries a translation
+/// beside the same angles and so takes three words per pose to this type's one.
+typedef struct {
+    s32 rx : 11;
+    s32 ry : 10;
+    s32 rz : 11;
 } GpPackedSvec;
 STATIC_ASSERT_SIZEOF(GpPackedSvec, 4);
 

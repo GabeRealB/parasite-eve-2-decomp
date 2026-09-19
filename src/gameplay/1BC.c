@@ -1868,19 +1868,19 @@ void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* ar
         }
         s->invBlend = inv;
         p           = arg0->field_0;
-        s->vec0.vx  = p->vx << 3;
-        s->vec0.vy  = p->vy << 3;
-        s->vec0.vz  = p->vz << 3;
+        s->vec0.vx  = p->rx << 3;
+        s->vec0.vy  = p->ry << 3;
+        s->vec0.vz  = p->rz << 3;
         p           = arg0->field_4;
-        s->vec1.vx  = p->vx << 3;
-        s->vec1.vy  = p->vy << 3;
-        s->vec1.vz  = p->vz << 3;
+        s->vec1.vx  = p->rx << 3;
+        s->vec1.vy  = p->ry << 3;
+        s->vec1.vz  = p->rz << 3;
         Gp_BlendAnimRot(arg0, arg1, arg2, s);
         dest = arg0->field_8;
         if (dest != NULL) {
-            dest->vx = s->vec1.vx >> 3;
-            dest->vy = s->vec1.vy >> 3;
-            dest->vz = s->vec1.vz >> 3;
+            dest->rx = s->vec1.vx >> 3;
+            dest->ry = s->vec1.vy >> 3;
+            dest->rz = s->vec1.vz >> 3;
         }
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x80;
     }

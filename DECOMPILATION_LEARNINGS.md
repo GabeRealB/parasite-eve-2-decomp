@@ -131085,3 +131085,31 @@ where they are standing.
 The model stream scratch is the worked example: the two passes push frames of
 0x88 and 0x98 bytes over the same leading layout, resolve every opcode to a
 different handler, and their command sets do not intersect.
+
+## A bitfield struct packs from the low end, so the shifts give both order and width
+
+A packed word recovered as a bitfield struct has no field order to guess from,
+and the answer is the opposite of what a big-endian target suggests: GCC 2.8.1
+here allocates the *first declared* field at the least significant end. Declare
+them in the order the extraction reads them out -
+
+```c
+typedef struct {
+    s32 rx : 11;   /* bits 0-10  */
+    s32 ry : 10;   /* bits 11-20 */
+    s32 rz : 11;   /* bits 21-31 */
+} GpPackedSvec;
+```
+
+The access shapes then say the same thing the declaration does, which is what
+makes a wrong split visible instead of silent. Extracting a field of width `w`
+at bit `p` is `sll (32-p-w)` then `sra (32-w)`, so the two immediates give the
+position and the width together, and an unpacking `<< s` that follows may fold
+into the right shift instead of getting an instruction of its own: `rx << 3` is
+`sll 21` / `sra 18`, which on its own reads as a 14-bit field at `p = -3`. Put
+the shift back before decoding - `w = 32 - sra - s`, `p = 32 - sll - w` - and
+the same pair says 11 bits at the bottom of the word.
+
+The write side corroborates the split: one `lw`, then `and 0xFFFFF800` / `srl 3`
+/ `andi 0x7FF` per field, and a single `sw`, which is one word carrying one field
+set rather than three halfwords.
