@@ -448,7 +448,12 @@ if [[ "$DRY_RUN" == true || "$NO_LAND" == true || ${#ALL_MATCHED[@]} -eq 0 ]]; t
     fi
     trap - EXIT
     release_all
-    exit 0
+    # 4, not 0: the sweep completed but matched nothing. Marking the function
+    # difficult is what stops the list driver re-claiming the overlay, and in
+    # --difficult mode that cannot work - being listed is what makes it a
+    # candidate, so re-marking it leaves the same function the best pick and the
+    # walk repeats it forever. The driver needs to see "no progress" directly.
+    exit 4
 fi
 
 # --- land the batch -----------------------------------------------------------

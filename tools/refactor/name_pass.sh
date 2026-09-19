@@ -45,6 +45,7 @@ FROM=0
 ONLY=""
 LIST_PROFILES=0
 KEEP_GOING=0
+REFRESH=1
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -61,6 +62,7 @@ while [[ $# -gt 0 ]]; do
     --dry-run) DRY=1; shift ;;
     --all) TIMES=0; KEEP_GOING=1; shift ;;
     --keep-going) KEEP_GOING=1; shift ;;
+    --no-refresh) REFRESH=0; shift ;;
     --stop-on-fail) KEEP_GOING=0; shift ;;
     -h|--help) sed -n '2,28p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
@@ -194,9 +196,27 @@ EOF
 # split a dependency cycle across two steps once; the items have to come from
 # the same list the order did.
 SNAPSHOT="$(mktemp -t name_pass_worklist.XXXXXX)"
+SOURCE_WORKLIST="$WORKLIST"
 cp "$WORKLIST" "$SNAPSHOT"
 trap 'rm -f "$SNAPSHOT"' EXIT
 WORKLIST="$SNAPSHOT"
+
+# A step is an analysis, not just a rename of its own item: it merges a
+# duplicate type away, retypes a caller, renames a neighbouring field. That
+# changes which items remain and what depends on what, so the plan the next
+# step reads has to be rebuilt rather than carried forward. Roughly 20s against
+# a step of several minutes. --no-refresh keeps the original snapshot for the
+# whole run.
+refresh_worklist() {
+  (( REFRESH )) || return 0
+  echo "--- rebuilding the graph and worklist" | tee -a "$LOG"
+  if venv/bin/python3 tools/refactor/dep_graph.py --build >/dev/null 2>&1 \
+     && venv/bin/python3 tools/refactor/dep_graph.py worklist >/dev/null 2>&1; then
+    cp "$SOURCE_WORKLIST" "$SNAPSHOT"
+  else
+    echo "    regeneration failed; continuing on the previous worklist" | tee -a "$LOG"
+  fi
+}
 
 LOG="$(vacuum_log_dir)/name_pass-$$.log"
 echo "logging to $LOG"
@@ -210,7 +230,20 @@ while (( TIMES == 0 || i < TIMES )); do
   i=$((i + 1))
   order="$(next_step)" || { echo "worklist exhausted"; break; }
   mapfile -t items < <(awk -F'\t' -v o="$order" '$1==o{print $3}' "$WORKLIST")
-  echo "=== step $order: ${items[*]}  ($(date +%H:%M:%S))"
+  # Into the log as well as the terminal, with blank lines around it: the log
+  # is otherwise one unbroken stream in which nothing says where a step began
+  # or which item it was for.
+  {
+    echo
+    echo "================================================================"
+    echo "=== step $order: ${items[*]}  ($(date '+%Y-%m-%d %H:%M:%S'))"
+    for _it in "${items[@]}"; do
+      awk -F'\t' -v n="$_it" 'NR>1 && $3==n {
+        printf "===   %s  (%s, %s, %s referrer(s))\n", $3, $4, $6, $8 }' "$WORKLIST"
+    done
+    echo "================================================================"
+    echo
+  } | tee -a "$LOG"
 
   # A placeholder whose body is still assembly is a barrier, not a step. There
   # is nothing to read, so any name given to it would be a guess - and because
@@ -317,7 +350,8 @@ BARRIER
   record "$order" "${items[*]}" "$(git rev-parse --short HEAD)" ok
   noop=0
   done_count=$((done_count + 1))
-  echo "=== step $order committed"
+  { echo "=== step $order committed: $(git rev-parse --short HEAD)"; echo; } | tee -a "$LOG"
+  refresh_worklist
 done
 
 echo "completed $done_count step(s), $fail_count failed${barrier:+, stopped at a barrier}"

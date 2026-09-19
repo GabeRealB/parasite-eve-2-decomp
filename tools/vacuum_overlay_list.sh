@@ -230,6 +230,14 @@ worker() {
         if [[ $rc -eq 0 ]]; then
             done=$((done + 1))
             note_swept
+        elif [[ $rc -eq 4 ]]; then
+            # Completed, matched nothing. It is done - the lease is released and
+            # the give-up bookkeeping carried - but it is not progress, so it
+            # must not justify another walk. Counting it did: a --difficult pass
+            # re-picked the same function every walk, since re-marking it
+            # difficult leaves it exactly as claimable as before.
+            done=$((done + 1))
+            log "worker $id: $name swept, nothing matched"
         elif [[ $rc -eq 3 ]]; then
             # Exit 3 means the sweep matched functions it could not land: the
             # work is verified and committed on an overlay/* branch, and the
