@@ -130288,3 +130288,51 @@ whenever the floor is the priority of the store it reloads), so source order
 only chooses between the two objects the fork already produces. The edges have
 to change: look for a shape where one of the re-read values has a second source
 and is not a reload of the field just written.
+
+## Inside one priority group the scheduler picks the memory insn, so a register copy is never emitted after a store it ties with
+
+**Problem.** A value that the original loads into a second register right after
+storing it is naturally written in C as a copy of the source variable. The copy
+and the store are independent, both read the same pseudo, and both sit at the
+same `INSN_PRIORITY`, so it looks like source order should decide which comes
+first. It does not: the copy is always emitted *before* the store, whatever
+order the statements are written in.
+
+**Symptom.** `insert=1 delete=1` with every register correct. The object has
+`move <dst>,<src>` ahead of the store, and post-reload CSE then rewrites the
+store's operand to the copy's register because they now hold the same value, so
+the store differs from the target as well as being in the wrong place.
+
+**Mechanism.** After `SCHED_SORT` has ordered the ready list, `schedule_select`
+(`sched.c`) walks it in groups of equal `INSN_PRIORITY`, and when more than one
+insn in the top group is unblocked it takes the one with the largest
+`potential_hazard`, moving it to `ready[0]`:
+
+```
+;; ready list at T-78: ... 313 (25) 355 (25), now 355 313 ...
+;; insn 313 has a greater potential hazard, now 313 355 ...
+```
+
+`potential_hazard` is computed from the insn's function unit, and on MIPS only
+`load`, `store` and `xfer` have one (`mips.md`'s `define_function_unit
+"memory"`). Anything else — arithmetic, a register move — scores 0 and loses.
+Because `sched.c` schedules backwards, winning this contest places the insn
+*later* in the emitted block, so the store ends up after the copy. The
+`rank_for_schedule` tie-break on `INSN_LUID` is discarded entirely, which is why
+swapping the two statements in the source reproduces the object byte for byte.
+
+**What to do.** Do not try to reorder them, and do not reach for priorities: the
+two insns share a predecessor, and `insn_cost` depends only on that predecessor,
+so they tie by construction. Either give the second value a real dependence on
+the store — which means reading it back from memory, and a same-width reload is
+folded to the `move` you wanted anyway (see the reload_cse entry) — or accept
+that the value cannot be a register copy in this position.
+
+A recomputation is not an escape either. Recomputing the expression instead of
+copying it does dodge the anti-dependence that ties the two insns together, and
+the arithmetic is then correctly emitted after the store — but for the
+recomputation to survive `cse` the register holding the first result must be
+redefined in between, and that same redefinition destroys the value `reload_cse`
+would have folded the recomputation into. The two requirements exclude each
+other, and the recomputed insn's priority is strictly above the redefinition's,
+so it cannot be scheduled ahead of it.
