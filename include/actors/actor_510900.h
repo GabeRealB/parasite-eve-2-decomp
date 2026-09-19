@@ -503,6 +503,7 @@ extern SVECTOR D_actor_510900_80167C68[4];
 /// `Gp_GridParams->field_C[3]`.
 extern GpGridFace D_actor_510900_80167C88;
 
+void Gp_DrawEffSprite7C(GsCOORDINATE2* arg0, s32 arg1, u32 arg2);
 void func_actor_510900_801355B4(Actor510900Ctx* arg0, Actor510900* arg1);
 void func_actor_510900_8013B608(Actor510900* arg0);
 void func_actor_510900_8013B6A0(Actor510900Ctx* arg0, Actor510900* arg1);
