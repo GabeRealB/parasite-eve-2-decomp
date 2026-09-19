@@ -2651,7 +2651,7 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
     }
     id = arg0->placeKey;
     for (i = 0; i < 0x20; i++, rec++) {
-        if (rec->field_A == id) {
+        if (rec->placeKey == id) {
             return;
         }
     }
@@ -2669,7 +2669,7 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
         *scratch = euler;
     }
     for (; i < 0x20; i++, rec++) {
-        if (rec->field_3 == 0) {
+        if (rec->spawnState == 0) {
             break;
         }
     }
@@ -2684,7 +2684,7 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
         hi <<= 8;
         key  = hi | key;
         for (; i < 0x1F; i++, rec++) {
-            if ((rec->field_A & 0xFFF) != key) {
+            if ((rec->placeKey & 0xFFF) != key) {
                 break;
             }
         }
@@ -2692,18 +2692,18 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
             rec[0] = rec[1];
         }
     }
-    rec->field_3 = arg0->spawnState;
-    rec->field_A = arg0->placeKey;
-    rec->field_4 = coord->coord.t[0];
-    rec->field_6 = coord->coord.t[1];
-    rec->field_8 = coord->coord.t[2];
+    rec->spawnState = arg0->spawnState;
+    rec->placeKey   = arg0->placeKey;
+    rec->x          = coord->coord.t[0];
+    rec->y          = coord->coord.t[1];
+    rec->z          = coord->coord.t[2];
     Gfx_MatrixToEuler(&coord->coord, euler);
     euler->vx               = (s16)euler->vx >> 8;
-    rec->field_0            = euler->vx;
+    rec->pitch              = euler->vx;
     euler->vy               = (s16)euler->vy >> 8;
-    rec->field_1            = euler->vy;
+    rec->yaw                = euler->vy;
     euler->vz               = (s16)euler->vz >> 8;
-    rec->field_2            = euler->vz;
+    rec->roll               = euler->vz;
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
 }
 
@@ -2766,7 +2766,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                         key   = key | (t << 8);
                         key   = key | lo;
                         for (; j < 0x20; j++, rec++) {
-                            if (rec->field_A == key) {
+                            if (rec->placeKey == key) {
                                 found = 1;
                                 break;
                             }
@@ -2815,16 +2815,16 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                                 rec = Mc_SaveData.field_28;
                                 i   = 0;
                                 do {
-                                    if (rec->field_A == enemy->placeKey) {
-                                        coord->coord.t[0] = rec->field_4;
-                                        coord->coord.t[1] = rec->field_6;
-                                        coord->coord.t[2] = rec->field_8;
-                                        coord->field_44   = rec->field_0 << 8;
-                                        coord->field_46   = rec->field_1 << 8;
-                                        coord->field_48   = rec->field_2 << 8;
+                                    if (rec->placeKey == enemy->placeKey) {
+                                        coord->coord.t[0] = rec->x;
+                                        coord->coord.t[1] = rec->y;
+                                        coord->coord.t[2] = rec->z;
+                                        coord->field_44   = rec->pitch << 8;
+                                        coord->field_46   = rec->yaw << 8;
+                                        coord->field_48   = rec->roll << 8;
                                         RotMatrix_gte((SVECTOR*)&coord->field_44,
                                                       &coord->coord);
-                                        enemy->spawnState = rec->field_3;
+                                        enemy->spawnState = rec->spawnState;
                                         break;
                                     }
                                     i++;
@@ -3259,14 +3259,14 @@ void func_800B5A48(GpAreaKey* arg0, GpAreaObj* arg1)
         i              = 0x1F;
         recs           = Mc_SaveData.field_28;
         do {
-            if ((recs[i].field_A & 0xFFF) == ((arg0->stage << 8) | arg0->area)) {
+            if ((recs[i].placeKey & 0xFFF) == ((arg0->stage << 8) | arg0->area)) {
                 if (i != 0x1F) {
                     for (j = i; j < 0x1F; j++) {
                         recs[j] = recs[j + 1];
                     }
                 }
-                recs[0x1F].field_3 = 0;
-                recs[0x1F].field_A = 0;
+                recs[0x1F].spawnState = 0;
+                recs[0x1F].placeKey   = 0;
             }
             i--;
         } while (i >= 0);

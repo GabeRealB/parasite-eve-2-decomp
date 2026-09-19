@@ -105,21 +105,26 @@ typedef struct {
 } McItemScan;
 STATIC_ASSERT_SIZEOF(McItemScan, 0x4);
 
-/// 0xC-byte saved object pose. 32 of these occupy `Mc_SaveData.field_28`
-/// (`Gp_SaveEnemyPose`). `field_3 == 0` is empty; a non-zero value is copied
-/// from `GpEnemy.spawnState`. `field_A` is the object id (`GpEnemy.placeKey`).
-/// `field_4` / `field_6` / `field_8` are signed world XYZ (low 16 bits of
-/// `GsCOORDINATE2.coord.t`). `field_0` / `field_1` / `field_2` are packed
-/// euler bytes (`Gfx_MatrixToEuler` result `>> 8`).
-typedef struct _McPosRec {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ u8  field_2;
-    /* 0x3 */ s8  field_3;
-    /* 0x4 */ s16 field_4;
-    /* 0x6 */ s16 field_6;
-    /* 0x8 */ s16 field_8;
-    /* 0xA */ u16 field_A;
+/// One saved pose of a placed enemy: the position and rotation it had when it
+/// was taken out of the world, and the state it is to be resumed in.
+/// `Mc_SaveData.field_28` holds a fixed run of these, filed by
+/// `Gp_SaveEnemyPose` and read back by `Gp_SpawnArea`, so an area the player
+/// returns to puts the enemy back where they left it - and an enemy the table
+/// holds no record for is not put back at all.
+///
+/// A record is keyed by `placeKey`, the same key the enemy itself carries, and
+/// `spawnState` doubles as the slot's occupancy marker, 0 meaning free. The
+/// rotation shares the record with the position, so each angle is kept as the
+/// high byte of the angle it was taken from, and shifted back up on restore.
+typedef struct {
+    u8  pitch;      // Rotation about X, kept as the angle's high byte
+    u8  yaw;        // Rotation about Y, likewise
+    u8  roll;       // Rotation about Z, likewise
+    s8  spawnState; // State the enemy is resumed in; 0 marks the slot free
+    s16 x;          // X of the enemy's coordinate, narrowed to 16 bits
+    s16 y;          // Y of the enemy's coordinate, likewise
+    s16 z;          // Z of the enemy's coordinate, likewise
+    u16 placeKey;   // Placement the enemy was spawned from, as `GpEnemy.placeKey`
 } McPosRec;
 STATIC_ASSERT_SIZEOF(McPosRec, 0xC);
 
