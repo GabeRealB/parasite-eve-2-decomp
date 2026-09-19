@@ -415,7 +415,27 @@ u32* Tmd_StreamHandler_Op79(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// process pass (`gpStreamPrimG3`), whose cursor this one stays in step with.
 /// The record has no variant for `flags` to select, so it goes unread.
 u32* tmdDrawStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* Tmd_StreamHandler_Op40(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Draw handler of a stream's untextured gouraud-quad records (`0x40`): each
+/// element is one `POLY_G4` in the buffer half's second region, built whole here
+/// as the record is transformed.
+///
+/// The element names the quad's four vertices, the one normal it is lit from and
+/// the colour word whose top byte is the packet's primitive code. The fourth
+/// corner is projected on its own, because it has to be taken out of the GTE's
+/// coordinate stack before the shared transform of the other three overwrites
+/// it; an element either transform raises an error on is dropped, its packet's
+/// room passed over all the same, since the process pass (`gpStreamPrimG4`)
+/// reserved that room for every element and this handler stays in step with its
+/// cursor.
+///
+/// A quad is drawn where either of its halves faces the viewer: the triangle of
+/// the first three corners is tested, and where that one turns away the fourth
+/// corner is put in the last one's place and tested again. What survives is
+/// ordered at the four corners' average depth, and the element's single normal
+/// and colour word are lit in one step whose result, the code byte included,
+/// colours all four corners alike. The record has no variant for `flags` to
+/// select, so it goes unread.
+u32* tmdDrawStreamPrimG4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// The draw pass's handler for a stream's one-normal textured-triangle records
 /// that ask for the semi-transparent primitive (`0x1A`): each element's triangle
 /// is taken to screen space and lit from the element's one normal, and its packet

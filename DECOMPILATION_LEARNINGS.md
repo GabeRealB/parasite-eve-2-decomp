@@ -132840,3 +132840,22 @@ Note also where the alternate label sits. An opcode-keyed entry point
 jumps past the `flags & 2` test, so the two ways into one body do not agree about
 what `flags` decides: the opcode-keyed entry asks it nothing about shading, and
 both entries still reach the `flags & 0x10` twin.
+## A facing test's polarity follows the corner order the body loads
+
+A record's draw body in the hasm file and the C twin that answers the same record
+in the gameplay overlay need not consume the element's refs in the same sequence,
+and a facing test's sign is the winding of the triangle it is handed: `NCLIP`
+reads its corners from SXY0/1/2, so a body that loads a triangle's three refs in
+one order draws the primitive where a body that loads them reversed skips it.
+
+`tmdDrawStreamPrimG4` (`0x40`, one untextured `POLY_G4` per element) is the worked
+example. Its `RTPT` loads the three shared corners in the reverse of the order it
+stores them, which leaves the packet holding the corners in element order all the
+same (`SXY0` lands in the third corner's slot), while its first facing test
+branches `bltz` where the twin of the same record (`func_8009E4A0`) branches on
+`> 0`, and its second branches `blez` where that twin branches on `< 0`. Neither
+is a different rule: both draw the quad when either half faces the viewer.
+
+So compare a hasm body with its C twin by the cyclic order each gives the corners,
+not by the branch each takes - and read the converse too, since two bodies
+branching alike may still be testing different triangles.
