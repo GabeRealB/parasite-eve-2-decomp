@@ -1756,7 +1756,155 @@ void func_actor_401300_80136238(Actor401300* arg0)
     *(Actor401300AimScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_801365F8);
+/// `Actor401300_MoveForward` with a zero-amount guard, the X component read
+/// back through `head`. Same body as `Actor01900_MoveForward`.
+static __inline__ void Actor401300_MoveForwardNonzero(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+    SVECTOR* gteVec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        gteVec                     = vec;
+        if (amount != 0) {
+            SOFT_TOUCH_REG(vec);
+            Gfx_MatrixCol2(&coord->coord, vec);
+            VectorNormalSS(vec, vec);
+            gte_lddp(amount);
+            gte_ldsv(gteVec);
+            gte_gpf12_real();
+            gte_stsv(gteVec);
+            coord->coord.t[0] += head[-1].vx;
+            coord->coord.t[1] += vec->vy;
+            coord->coord.t[2] += vec->vz;
+            coord->flg         = 0;
+        }
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+void func_actor_401300_801365F8(Actor401300* arg0)
+{
+    Actor401300Work*           work;
+    GameActor*                 player;
+    PlayerStatus*              config;
+    TmdObject*                 obj;
+    GsCOORDINATE2*             coord;
+    GsCOORDINATE2*             c1;
+    GsCOORDINATE2*             c2;
+    Actor401300PursuitScratch* head;
+    Actor401300PursuitScratch* sc;
+    SVECTOR*                   delta;
+    s32                        angle;
+    s32                        dist;
+    s32                        dx;
+    s32                        dy;
+    s32                        dz;
+    s32                        mask;
+    u16                        speed;
+
+    config = &Player_Status;
+    work   = arg0->field_1C;
+    player = (GameActor*)((Task*)Game_GetPtrSlot(3))->work;
+    mask   = 0xF0;
+    if ((arg0->field_36 & mask) == 0x10) {
+        work->field_0 = 0x1E;
+        return;
+    }
+    if (work->field_4 != 0) {
+        obj                        = arg0->field_2C;
+        arg0->field_20->node.flags = 0;
+        obj->flags                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_970.radius = 0x280;
+        work->field_89C        = 1;
+        SOFT_BARRIER();
+        work->field_8A2        = 3;
+        speed                  = work->field_8A8;
+        work->field_BF0.flags &= 0x7FFF;
+        SOFT_BARRIER();
+        work->field_89E        = 0;
+        work->field_8A6        = speed;
+        work->field_AB0.flags |= 0x4000;
+        func_actor_401300_80133A3C(arg0);
+        work->field_D1C = 0;
+        work->field_6   = 0;
+        work->field_8   = 0;
+        work->field_8B6 = 0x40;
+        work->field_8BA = 0x10;
+        return;
+    }
+    if (work->field_8B6 == work->field_8B8) {
+        if (work->field_8B6 == 0x40) {
+            work->field_8B6 = 0x80;
+            work->field_8BA = 0x10;
+        } else {
+            work->field_8B6 = 0x40;
+        }
+    }
+    work->field_6++;
+    head                                         = *(Actor401300PursuitScratch**)G_SCRATCH_HEAD;
+    delta                                        = &head[-1].delta;
+    c1                                           = arg0->field_2C->coords;
+    head[-1].delta.vx                            = Player_Status.coordMtx->t[0] - c1->coord.t[0];
+    delta->vy                                    = Player_Status.coordMtx->t[1] - c1->coord.t[1];
+    delta->vz                                    = Player_Status.coordMtx->t[2] - c1->coord.t[2];
+    *(Actor401300PursuitScratch**)G_SCRATCH_HEAD = head - 1;
+    sc                                           = head - 1;
+    arg0->field_2C->coords->flg                  = 0;
+    func_actor_401300_80133A3C(arg0);
+    if (func_actor_401300_80132C78(arg0->field_2C->coords, (GpRec18*)work->field_AD0, 0xC, 0x57) == 0) {
+        func_actor_401300_80132910(arg0, (GpRec18*)work->field_990, 0xC);
+    }
+    c2              = arg0->field_2C->coords;
+    angle           = ratan2(head[-1].delta.vx, delta->vz);
+    sc->angle       = Actor401300_NormalizeYaw(angle - ratan2(-c2->coord.m[2][0], c2->coord.m[2][2]));
+    work->field_8B2 = sc->angle;
+    if ((s16)func_actor_401300_8013267C(arg0->field_2C->coords, 0x15E, (work->field_8A8 + 2) * 30 * 1.5f / 18.0f)) {
+        Actor401300_MoveForwardNonzero(arg0->field_2C->coords, (work->field_8A8 + 2) * 30 * 1.5f / 18.0f);
+    }
+    if (sc->angle > 0x30) {
+        sc->angle = 0x30;
+    } else if (sc->angle < -0x30) {
+        sc->angle = -0x30;
+    } else {
+        sc->dx = dx = config->coordMtx->t[0] - arg0->field_2C->coords->coord.t[0];
+        sc->dy = dy = config->coordMtx->t[1] - arg0->field_2C->coords->coord.t[1];
+        sc->dz = dz = config->coordMtx->t[2] - arg0->field_2C->coords->coord.t[2];
+        dist        = SquareRoot0(dx * dx + dy * dy + dz * dz);
+        sc->dist    = dist;
+        if (player->field_954 != 2 && work->field_6 >= 0x28) {
+            if (dist > 4000) {
+                work->field_0 = 0x21;
+            } else if (dist > 2000) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                if (((Gp_LcgState >> 16) & 0xF) < 5) {
+                    work->field_0 = 0x21;
+                } else {
+                    work->field_0 = 0x22;
+                }
+            } else if (dist < 1000) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                if (((Gp_LcgState >> 16) & 0xF) < 7) {
+                    work->field_0 = 0x1F;
+                } else {
+                    work->field_0 = 0x20;
+                }
+            }
+        }
+    }
+    coord      = arg0->field_2C->coords;
+    sc->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->coords->coord, sc->angle, 1);
+
+    Actor401300_RescaleYaw(arg0->field_2C->coords, 0x1964);
+    arg0->field_2C->coords->flg = 0;
+    Gp_UpdateCoord(arg0->field_2C->coords);
+    *(Actor401300PursuitScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80136CE8);
 
@@ -2564,36 +2712,6 @@ void func_actor_401300_80139AB0(Actor401300* arg0)
         work->field_0 = 6;
     }
     *(Actor401300TurnScratch**)G_SCRATCH_HEAD += 1;
-}
-
-/// `Actor401300_MoveForward` with a zero-amount guard, the X component read
-/// back through `head`. Same body as `Actor01900_MoveForward`.
-static __inline__ void Actor401300_MoveForwardNonzero(GsCOORDINATE2* coord, s16 amount)
-{
-    SVECTOR* head;
-    SVECTOR* vec;
-    SVECTOR* gteVec;
-
-    if (D_80072729 != 1) {
-        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-        vec                        = head - 1;
-        *(SVECTOR**)G_SCRATCH_HEAD = vec;
-        gteVec                     = vec;
-        if (amount != 0) {
-            SOFT_TOUCH_REG(vec);
-            Gfx_MatrixCol2(&coord->coord, vec);
-            VectorNormalSS(vec, vec);
-            gte_lddp(amount);
-            gte_ldsv(gteVec);
-            gte_gpf12_real();
-            gte_stsv(gteVec);
-            coord->coord.t[0] += head[-1].vx;
-            coord->coord.t[1] += vec->vy;
-            coord->coord.t[2] += vec->vz;
-            coord->flg         = 0;
-        }
-        *(SVECTOR**)G_SCRATCH_HEAD += 1;
-    }
 }
 
 void func_actor_401300_8013A208(Actor401300* arg0)

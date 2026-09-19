@@ -132070,3 +132070,47 @@ Evidence: `tools/permuter_findings/func_actor_510900_80132D4C/` snapshots retain
 base_9 is the exact readable port. This supports the quantity threshold and
 its scheduling consequence for this function; it does not identify retail's
 original source or imply duplicate inputs are generally needed for a push.
+
+## Separate scheduling regions can preserve flag-register reuse without pins (func_actor_401300_801365F8, 2026-09-19)
+
+The archived seed reproduced distance 560 (98.739%): only initialization differed.
+Two halfword flag read/modify/write chains and a copied speed all overlapped
+in sched1. The observed local quantities were BF0 flags refs 4/span 8 ->v0,
+AB0 flags refs 4/span 10 ->v1, and speed refs 2/span 8 ->a1. Both flag quantities
+include their load and mask pseudos; per-pseudo ratios omit this grouping.
+The target needs each flag chain in v0, with constant 3 and speed reusing v1.
+
+A controlled base_4 inserted `SOFT_BARRIER()` after radius/state setup and
+after the BF0 flag update, preloading `u16 speed = work->field_8A8` before the
+second boundary and storing it afterward. It reached 100%, all penalties zero;
+base_5 preserved 100% after porting to the real headers. Basic empty asm creates
+scheduler dependencies even without a memory clobber (sched.c:sched_analyze_2).
+The second boundary makes the two flag lifetimes disjoint. The trace shows
+BF0 quantity ->v0, constant 3 ->v1, AB0 quantity ->v0, speed ->v1. No pins.
+
+The schedule still needs both passes: speed load 90 follows BF0 store 96 in
+sched1, then sched2 places it before AND 94. At sched1 cycle 20 BF0 load 93 wins
+the comparator against constant 85, but actual hazard 1 queues the load and
+selects the constant. At sched2 cycle 19 store 87 beats load 93 on potential
+weight 4939776 vs 4866048; cycle 20 queues load 93 and selects constant 85.
+Backward emission yields the required load/constant/store interleave.
+The final flag store stays nonvolatile and fills the jal delay slot.
+
+Counterexamples: one reused HI flags local leaves separate mask results and
+allocates its twice-dying load pseudo globally to a2 (distance 565). Separate
+in-place SI accumulators suppress set-once launch promotion but lengthen the
+lives and worsen distance to 1440. Volatile flag accesses force the transaction
+order but forbid the final delay-slot store and leave wrong homes (1009).
+Thus neither launch suppression nor memory ordering alone solves both constraints.
+The successful combined intervention is supported; minimality of either
+boundary individually was not tested. No claim about the original source.
+
+Two observer runs produced unchanged assembly. Compiler hash
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd;
+baseline input 8c811d20875af1b392b792fcc67590e2c8858ef9a82dc4bf58e98c9bd3b51d90;
+matched input d9a53296885d11620e80946436c8f504e0168f89e2e18050f1a61e6314108195.
+Evidence: scratch `base_4.compare.txt`, `INIT_BASELINE_TRACE`, `INIT_MATCH_TRACE`,
+`PERMUTER_ANALYSIS.md` and retained snapshots under
+`tools/permuter_findings/func_actor_401300_801365F8/`. The router itself had no
+verified gain (595->600 and 560->599); this match came from the controlled
+follow-up. A retained char-mask output drops 0x4000 and was rejected by hash.

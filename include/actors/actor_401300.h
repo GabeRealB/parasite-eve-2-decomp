@@ -312,6 +312,20 @@ typedef struct Actor401300ChaseScratch {
     /* 0xE */ s16     angle;
 } Actor401300ChaseScratch;
 
+/// Offset to the player, distance and turn for the pursuit state.
+typedef struct Actor401300PursuitScratch {
+    /* 0x00 */ s32     dx;
+    /* 0x04 */ s32     dy;
+    /* 0x08 */ s32     dz;
+    /* 0x0C */ s32     pad_C;
+    /* 0x10 */ s32     dist;
+    /* 0x14 */ SVECTOR delta;
+    /* 0x1C */ s32     pad_1C;
+    /* 0x20 */ s16     angle;
+    /* 0x22 */ s16     pad_22;
+} Actor401300PursuitScratch;
+STATIC_ASSERT_SIZEOF(Actor401300PursuitScratch, 0x24);
+
 /// 0x54-byte `G_SCRATCH_HEAD` block `func_actor_401300_80134F90` takes while
 /// applying a hit: the model matrix rotated to the hit yaw, the offset to the
 /// player, the knockback direction and hit position, the hit record id and the
