@@ -69,7 +69,7 @@ void Actor02000_Fn00078(Actor02000* arg0)
     lastId                                   = 0;
     work                                     = arg0->field_1C;
     head                                     = *(GpDeltaScratch**)G_SCRATCH_HEAD;
-    self                                     = arg0->field_2C->field_8;
+    self                                     = arg0->field_2C->coords;
     *(Actor02000HitScratch**)G_SCRATCH_HEAD -= 1;
     scratch                                  = *(Actor02000HitScratch**)G_SCRATCH_HEAD;
     enemy                                    = arg0->field_20;
@@ -112,7 +112,7 @@ void Actor02000_Fn00078(Actor02000* arg0)
     }
 
     for (i = 0; i < 5; i++) {
-        switch ((u32)work->field_4EC[i].id >> 16) {
+        switch ((u32)work->field_4EC[i].key >> 16) {
             case 0:
             case 1:
                 break;
@@ -120,24 +120,24 @@ void Actor02000_Fn00078(Actor02000* arg0)
                 if (work->field_69A != 0) {
                     break;
                 }
-                other               = Gp_ActorSlots[((u32)work->field_4EC[i].id >> 7) & 1]->extra->field_8;
+                other               = Gp_ActorSlots[((u32)work->field_4EC[i].key >> 7) & 1]->extra->coords;
                 scratch->delta.vx.w = other->coord.t[0] - self->coord.t[0];
                 scratch->delta.vy.w = other->coord.t[1] - self->coord.t[1];
                 dz                  = other->coord.t[2] - self->coord.t[2];
                 scratch->delta.vz.w = dz;
                 val                 = (scratch->delta.vx.w * self->coord.m[0][2]) + (scratch->delta.vy.w * self->coord.m[1][2]) + (dz * self->coord.m[2][2]);
                 work->field_6AA     = val >= 0;
-                damage              = Gp_ComputeDamage(work->field_4EC[i].id,
+                damage              = Gp_ComputeDamage(work->field_4EC[i].key,
                                                        SquareRoot0((scratch->delta.vx.w * scratch->delta.vx.w) + (scratch->delta.vy.w * scratch->delta.vy.w) + (scratch->delta.vz.w * scratch->delta.vz.w)),
                                                        0, 0);
-                kind                = Gp_GetIdParam0(work->field_4EC[i].id);
+                kind                = Gp_GetIdParam0(work->field_4EC[i].key);
                 if (work->field_6CE != 0 && work->field_6AA == 1 && work->field_6B8 == 0) {
-                    if (work->field_4EC[i].id & 0x8000) {
-                        if (Actor02000_D15D7C[work->field_4EC[i].id & 0x7F] != 0) {
+                    if (work->field_4EC[i].key & 0x8000) {
+                        if (Actor02000_D15D7C[work->field_4EC[i].key & 0x7F] != 0) {
                             hit              = 1;
                             work->field_6D0 -= damage;
                         }
-                    } else if (Actor02000_D15D20[work->field_4EC[i].id & 0x7F] != 0) {
+                    } else if (Actor02000_D15D20[work->field_4EC[i].key & 0x7F] != 0) {
                         hit              = 1;
                         work->field_6D0 -= damage;
                     }
@@ -154,7 +154,7 @@ void Actor02000_Fn00078(Actor02000* arg0)
                             }
                         }
                         func_800DA6E8(&enemy->node, 0, 0);
-                        cooldown = Gp_GetIdParam2(work->field_4EC[i].id);
+                        cooldown = Gp_GetIdParam2(work->field_4EC[i].key);
                         if (cooldown > 0) {
                             work->field_69A = cooldown;
                         }
@@ -164,23 +164,23 @@ void Actor02000_Fn00078(Actor02000* arg0)
                     work->field_6CE = 0;
                     if ((kind & 0xFFFF) == 5) {
                         damage *= 2;
-                        Gp_SpawnEff(0x6009C, &arg0->field_2C->field_8[3], 2, NULL);
+                        Gp_SpawnEff(0x6009C, &arg0->field_2C->coords[3], 2, NULL);
                     }
                 }
-                if (Gp_RollEnemyChance(enemy, work->field_4EC[i].id, 0) != 0) {
+                if (Gp_RollEnemyChance(enemy, work->field_4EC[i].key, 0) != 0) {
                     damage *= 4;
                     if ((kind & 0xFFFF) != 5) {
-                        Gp_SpawnEff(0x6009C, &arg0->field_2C->field_8[3], 0, NULL);
+                        Gp_SpawnEff(0x6009C, &arg0->field_2C->coords[3], 0, NULL);
                     }
                     if (work->field_6E0 == 0) {
                         result = 1;
                     }
                 }
-                if (work->field_6C4 != 0 && (work->field_4EC[i].id & 0x8000)) {
+                if (work->field_6C4 != 0 && (work->field_4EC[i].key & 0x8000)) {
                     damage >>= 2;
                 }
                 func_800DA6E8(&enemy->node, damage, 0);
-                func_800E2C78(enemy, work->field_4EC[i].id, damage, 0);
+                func_800E2C78(enemy, work->field_4EC[i].key, damage, 0);
                 enemy->field_40 -= damage;
                 if (enemy->field_40 <= 0) {
                     if (work->field_6B8 == 0) {
@@ -206,7 +206,7 @@ void Actor02000_Fn00078(Actor02000* arg0)
                         break;
                     case 2:
                         if (work->field_6C4 == 0 && work->field_6B8 == 0 && result < 3) {
-                            Gp_SetObjFlag2(enemy, work->field_4EC[i].id, 0);
+                            Gp_SetObjFlag2(enemy, work->field_4EC[i].key, 0);
                             result = 1;
                         }
                         break;
@@ -220,15 +220,15 @@ void Actor02000_Fn00078(Actor02000* arg0)
                     case 9:
                         break;
                 }
-                if (lastId != work->field_4EC[i].id) {
-                    lastId             = work->field_4EC[i].id;
+                if (lastId != work->field_4EC[i].key) {
+                    lastId             = work->field_4EC[i].key;
                     scratch->effOfs.vx = 0;
                     scratch->effOfs.vy = 0;
                     scratch->effOfs.vz = (work->field_6AA == 1) ? 0x12C : -0x96;
-                    func_800FDB18(Gp_GetIdParam1(work->field_4EC[i].id) & 0xFFFF, &arg0->field_2C->field_8[3],
+                    func_800FDB18(Gp_GetIdParam1(work->field_4EC[i].key) & 0xFFFF, &arg0->field_2C->coords[3],
                                   &scratch->effOfs, (GpEffArg*)&work->field_670);
                 }
-                cooldown = Gp_GetIdParam2(work->field_4EC[i].id);
+                cooldown = Gp_GetIdParam2(work->field_4EC[i].key);
                 if (cooldown > 0) {
                     work->field_69A = cooldown;
                 }
@@ -293,14 +293,14 @@ void Actor02000_Fn00078(Actor02000* arg0)
                 }
                 break;
             case 3:
-                part                = &arg0->field_2C->field_8[3];
-                x                   = part->workm.t[0] - work->field_4EC[i].x;
+                part                = &arg0->field_2C->coords[3];
+                x                   = part->workm.t[0] - work->field_4EC[i].point.vx;
                 scratch->delta.vx.w = x;
-                y                   = part->workm.t[1] - work->field_4EC[i].y;
+                y                   = part->workm.t[1] - work->field_4EC[i].point.vy;
                 scratch->delta.vy.w = y;
-                z                   = part->workm.t[2] - work->field_4EC[i].z;
+                z                   = part->workm.t[2] - work->field_4EC[i].point.vz;
                 scratch->delta.vz.w = z;
-                push                = work->field_4EC[i].radius - SquareRoot0((x * x) + (y * y) + (z * z));
+                push                = work->field_4EC[i].depth - SquareRoot0((x * x) + (y * y) + (z * z));
                 clamped             = push;
                 if (push <= 0) {
                     clamped = 0;
@@ -326,7 +326,7 @@ void Actor02000_Fn00078(Actor02000* arg0)
     }
     work->field_6B2 = 0;
     if (Gp_CountRec18Hi(work->field_4B4, 0x10000) != 0) {
-        part               = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[4];
+        part               = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[4];
         scratch->effOfs.vx = part->workm.t[0];
         scratch->effOfs.vy = part->workm.t[1];
         scratch->effOfs.vz = part->workm.t[2];
@@ -1050,10 +1050,10 @@ void Actor02000_Fn01DF0(Actor02000* arg0)
     delta               = (VECTOR*)(head - 0x10);
     work                = arg0->field_1C;
     state               = work->field_6A8;
-    self                = arg0->field_2C->field_8;
+    self                = arg0->field_2C->coords;
     switch (state) {
         case 0:
-            if ((work->field_698 >= 0x47) && (work->field_6CE = (s16)(work->field_6D0 > 0), ((VECTOR*)(head - 0x10))->vx = (s32)(Wip_SysConfig.field_4->t[0] - self->coord.t[0]), dz0 = Wip_SysConfig.field_4->t[2] - self->coord.t[2], delta->vz = dz0, dx0 = ((VECTOR*)(head - 0x10))->vx, ((SquareRoot0((dx0 * dx0) + (dz0 * dz0)) < 0x3E8) == 0))) {
+            if ((work->field_698 >= 0x47) && (work->field_6CE = (s16)(work->field_6D0 > 0), ((VECTOR*)(head - 0x10))->vx = (s32)(Player_Status.coordMtx->t[0] - self->coord.t[0]), dz0 = Player_Status.coordMtx->t[2] - self->coord.t[2], delta->vz = dz0, dx0 = ((VECTOR*)(head - 0x10))->vx, ((SquareRoot0((dx0 * dx0) + (dz0 * dz0)) < 0x3E8) == 0))) {
                 work->field_69C = 0x84;
             } else {
                 work->field_69C = 0;
@@ -1080,8 +1080,8 @@ void Actor02000_Fn01DF0(Actor02000* arg0)
         case 1:
             work->field_69C              = 0x84;
             work->field_69E              = 0xF;
-            ((VECTOR*)(head - 0x10))->vx = (s32)(Wip_SysConfig.field_4->t[0] - self->coord.t[0]);
-            delta->vz                    = (s32)(Wip_SysConfig.field_4->t[2] - self->coord.t[2]);
+            ((VECTOR*)(head - 0x10))->vx = (s32)(Player_Status.coordMtx->t[0] - self->coord.t[0]);
+            delta->vz                    = (s32)(Player_Status.coordMtx->t[2] - self->coord.t[2]);
             work->field_6A4              = (s16)(ratan2((s32)(s16)((VECTOR*)(head - 0x10))->vx, (s32)(s16)delta->vz) & 0xFFF);
             dx1                          = ((VECTOR*)(head - 0x10))->vx;
             dz1                          = delta->vz;
@@ -1136,10 +1136,10 @@ void Actor02000_Fn01DF0(Actor02000* arg0)
                 break;
             }
             if (work->field_698 == 0xD) {
-                work->field_5E4.flags    = (u16)(work->field_5E4.flags | 0x8000);
-                work->field_5E4.field_18 = Gp_PackPair(Actor02000_D15CFC, 1);
-                sound                    = Actor02000_D15E30 | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
-                pan                      = (s8)Gp_GetObjPan(self);
+                work->field_5E4.flags = (u16)(work->field_5E4.flags | 0x8000);
+                work->field_5E4.key   = Gp_PackPair(Actor02000_D15CFC, 1);
+                sound                 = Actor02000_D15E30 | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+                pan                   = (s8)Gp_GetObjPan(self);
                 SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)Gp_GetObjDepth(self));
             }
             if (work->field_698 == 0x1E) {
@@ -1147,9 +1147,9 @@ void Actor02000_Fn01DF0(Actor02000* arg0)
             }
             if (work->field_698 >= 0x3B) {
                 work->field_6CE = 0;
-                dx2             = Wip_SysConfig.field_4->t[0] - self->coord.t[0];
+                dx2             = Player_Status.coordMtx->t[0] - self->coord.t[0];
                 delta->vx       = dx2;
-                dz2             = Wip_SysConfig.field_4->t[2] - self->coord.t[2];
+                dz2             = Player_Status.coordMtx->t[2] - self->coord.t[2];
                 delta->vz       = dz2;
                 if (SquareRoot0((dx2 * dx2) + (dz2 * dz2)) < 0xBB8) {
                     work->field_6A6 = 4;

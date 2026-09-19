@@ -133,7 +133,7 @@ void Actor05500_Fn0006C(Actor105500* arg0)
     work->field_3D0 = 0;
     work->field_3BA = 0;
     for (i = 0; i < 2; i++) {
-        id   = work->field_2B4[i].field_4;
+        id   = work->field_2B4[i].key;
         kind = (u32)id >> 0x10;
         if (kind == one)
             goto physical;
@@ -161,20 +161,20 @@ void Actor05500_Fn0006C(Actor105500* arg0)
                 hit->delta.vz.w = dz;
                 value           = SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
                 TOUCH_REG(value);
-                amount = Gp_ComputeDamage((u32)work->field_2B4[i].field_4, value, 0, 0);
+                amount = Gp_ComputeDamage((u32)work->field_2B4[i].key, value, 0, 0);
                 damage = amount;
                 if (result == 0) {
                     if (work->field_3CA != 0) {
                         damage = (u32)(amount << 0x10) >> 0xF;
                         Gp_SpawnEff(0x6009C, arg0->field_2C->field_8 + 1, 3, NULL);
                     }
-                    if (Gp_RollEnemyChance((GpEnemy*)ctx, (u32)work->field_2B4[i].field_4, 0) != 0) {
+                    if (Gp_RollEnemyChance((GpEnemy*)ctx, (u32)work->field_2B4[i].key, 0) != 0) {
                         damage = (u32)(damage << 0x10) >> 0xE;
                         if (work->field_3CA == 0) {
                             Gp_SpawnEff(0x6009C, arg0->field_2C->field_8 + 1, 0, NULL);
                         }
                     }
-                    func_800E2C78((GpObj40*)ctx, work->field_2B4[i].field_4, (s32)(s16)damage, 0);
+                    func_800E2C78((GpObj40*)ctx, work->field_2B4[i].key, (s32)(s16)damage, 0);
                 }
                 func_800DA6E8(&ctx->field_10, (s32)(s16)damage, 0);
                 value         = (u16)ctx->field_40 - damage;
@@ -206,7 +206,7 @@ void Actor05500_Fn0006C(Actor105500* arg0)
                         work->field_2E4.flags &= 0x3FFF;
                     }
                 }
-                effect = Gp_GetIdParam0(work->field_2B4[i].field_4) & 0xFFFF;
+                effect = Gp_GetIdParam0(work->field_2B4[i].key) & 0xFFFF;
                 switch (effect) {
                     case 0:
                     case 1:
@@ -215,10 +215,10 @@ void Actor05500_Fn0006C(Actor105500* arg0)
                     case 9:
                         break;
                     case 2:
-                        Gp_SetObjFlag2((GpObj5D*)ctx, work->field_2B4[i].field_4, 0);
+                        Gp_SetObjFlag2((GpObj5D*)ctx, work->field_2B4[i].key, 0);
                         break;
                     case 3:
-                        Gp_SetObjFlag4((GpObj5C*)ctx, work->field_2B4[i].field_4, 0);
+                        Gp_SetObjFlag4((GpObj5C*)ctx, work->field_2B4[i].key, 0);
                         break;
                     case 4:
                     case 6:
@@ -236,15 +236,15 @@ void Actor05500_Fn0006C(Actor105500* arg0)
                         }
                         break;
                 }
-                hitId = work->field_2B4[i].field_4;
+                hitId = work->field_2B4[i].key;
                 if (lastId != hitId) {
                     hit->rot.vx = 0;
                     hit->rot.vy = -0xC8;
                     hit->rot.vz = 0;
                     lastId      = hitId;
-                    func_800FDB18(Gp_GetIdParam1(work->field_2B4[i].field_4) & 0xFFFF, arg0->field_2C->field_8 + 1, &hit->rot, &work->field_354);
+                    func_800FDB18(Gp_GetIdParam1(work->field_2B4[i].key) & 0xFFFF, arg0->field_2C->field_8 + 1, &hit->rot, &work->field_354);
                 }
-                result = Gp_GetIdParam2(work->field_2B4[i].field_4);
+                result = Gp_GetIdParam2(work->field_2B4[i].key);
                 if (result > 0) {
                     work->field_390 = (s16)result;
                 }
@@ -253,13 +253,13 @@ void Actor05500_Fn0006C(Actor105500* arg0)
     }
         goto block_59;
     physical: {
-        wallDx          = coord->workm.t[0] - work->field_2B4[i].field_8;
+        wallDx          = coord->workm.t[0] - work->field_2B4[i].point.vx;
         hit->delta.vx.w = wallDx;
-        wallDy          = coord->workm.t[1] - work->field_2B4[i].field_A;
+        wallDy          = coord->workm.t[1] - work->field_2B4[i].point.vy;
         hit->delta.vy.w = wallDy;
-        wallDz          = coord->workm.t[2] - work->field_2B4[i].field_C;
+        wallDz          = coord->workm.t[2] - work->field_2B4[i].point.vz;
         hit->delta.vz.w = wallDz;
-        amount          = work->field_2B4[i].field_2 - SquareRoot0((wallDx * wallDx) + (wallDy * wallDy) + (wallDz * wallDz));
+        amount          = work->field_2B4[i].depth - SquareRoot0((wallDx * wallDx) + (wallDy * wallDy) + (wallDz * wallDz));
         boundedDepth    = amount;
         if (amount <= 0) {
             boundedDepth = 0;
@@ -283,9 +283,9 @@ void Actor05500_Fn0006C(Actor105500* arg0)
     }
     Gp_ClearRec18Occupied(work->field_2B4);
     work->field_3CE = 0;
-    if (work->field_304[0].field_0 & 1) {
-        mask = work->field_304[0].field_4 & 0xFFFF0000;
-        if ((mask == 0x10000) || ((mask == 0x100000) && (work->field_304[0].field_12 == 0))) {
+    if (work->field_304[0].flags & 1) {
+        mask = work->field_304[0].key & 0xFFFF0000;
+        if ((mask == 0x10000) || ((mask == 0x100000) && (work->field_304[0].at10.normal.vy == 0))) {
             work->field_3CE = flag;
         }
         work->field_2E4.flags &= 0x3FFF;

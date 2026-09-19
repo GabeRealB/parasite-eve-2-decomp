@@ -13,20 +13,31 @@ extern u8 D_801153F2;
 
 typedef struct Actor02000Eff Actor02000Eff;
 
-/// Indirection record a `GpObj.field_C` ca point at (same shape as
+typedef struct {
+    u32 sp;
+} Actor02000ScratchStack;
+
+typedef struct Actor02000AnimRec {
+    /* 0x00 */ u16 field_0;
+    /* 0x02 */ u8  field_2;
+    /* 0x03 */ u8  field_3;
+} Actor02000AnimRec;
+STATIC_ASSERT_SIZEOF(Actor02000AnimRec, 4);
+
+/// Indirection record a `GpObj.ctx` can point at (same shape as
 /// the gameplay `GpActorD4Rec`): a bounding box plus the `GpRec18`
 /// table proper at `field_14`.
 typedef struct Actor02000ObjRec {
-    /* 0x00 */ s16              field_0;
-    /* 0x02 */ s16              field_2;
-    /* 0x04 */ s16              field_4;
-    /* 0x06 */ byte             pad_6[2];
-    /* 0x08 */ s16              field_8;
-    /* 0x0A */ s16              field_A;
-    /* 0x0C */ s16              field_C;
-    /* 0x0E */ byte             pad_E[2];
-    /* 0x10 */ s16              field_10;
-    /* 0x12 */ s16              field_12;
+    /* 0x00 */ s16      field_0;
+    /* 0x02 */ s16      field_2;
+    /* 0x04 */ s16      field_4;
+    /* 0x06 */ byte     pad_6[2];
+    /* 0x08 */ s16      field_8;
+    /* 0x0A */ s16      field_A;
+    /* 0x0C */ s16      field_C;
+    /* 0x0E */ byte     pad_E[2];
+    /* 0x10 */ s16      field_10;
+    /* 0x12 */ s16      field_12;
     /* 0x14 */ GpRec18* field_14;
 } Actor02000ObjRec;
 STATIC_ASSERT_SIZEOF(Actor02000ObjRec, 0x18);
@@ -49,16 +60,16 @@ typedef struct Actor02000Work {
     /* 0x30C */ byte                field_30C[0x130];
     /* 0x43C */ MATRIX              field_43C;
     /* 0x45C */ MATRIX              field_45C;
-    /* 0x47C */ GpObj       field_47C;
+    /* 0x47C */ GpObj               field_47C;
     /* 0x49C */ Actor02000ObjRec    field_49C;
-    /* 0x4B4 */ GpRec18     field_4B4[1];
-    /* 0x4CC */ GpObj       field_4CC;
-    /* 0x4EC */ GpRec18     field_4EC[5];
-    /* 0x564 */ GpObj       field_564;
-    /* 0x584 */ GpRec18     field_584[4];
-    /* 0x5E4 */ GpObj       field_5E4;
-    /* 0x604 */ GpRec18     field_604[1];
-    /* 0x61C */ GpObj       field_61C;
+    /* 0x4B4 */ GpRec18             field_4B4[1];
+    /* 0x4CC */ GpObj               field_4CC;
+    /* 0x4EC */ GpRec18             field_4EC[5];
+    /* 0x564 */ GpObj               field_564;
+    /* 0x584 */ GpRec18             field_584[4];
+    /* 0x5E4 */ GpObj               field_5E4;
+    /* 0x604 */ GpRec18             field_604[1];
+    /* 0x61C */ GpObj               field_61C;
     /* 0x63C */ byte                pad_63C[0x30];
     /* 0x66C */ s16*                field_66C;
     /* 0x670 */ GsCOORDINATE2*      field_670;
@@ -148,7 +159,7 @@ typedef struct Actor02000Ctx {
     /* 0x4C */ u8                field_4C;
     /* 0x4D */ byte              pad_4D[3];
     /* 0x50 */ Actor02000Desc*   field_50;
-    /* 0x54 */ GpRec18*  field_54;
+    /* 0x54 */ GpRec18*          field_54;
 } Actor02000Ctx;
 STATIC_ASSERT_SIZEOF(Actor02000Ctx, 0x58);
 

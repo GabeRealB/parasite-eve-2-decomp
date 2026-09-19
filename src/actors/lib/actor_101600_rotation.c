@@ -483,8 +483,8 @@ s32 Actor01600_Fn045A8(Actor01600* arg0, s32* distance)
     slots                     = Gp_ActorSlots;
     slot                      = &slots[Actor01600_Fn052C4(arg0) & 0xFF];
     head                      = *(void**)0x1F8003FC;
-    coord                     = arg0->field_2C->field_8;
-    other                     = (*slot)->field_2C->field_8;
+    coord                     = arg0->field_2C->coords;
+    other                     = (*slot)->field_2C->coords;
     dx                        = *(u16*)&other->workm.t[0] - *(u16*)&coord->workm.t[0];
     allocated                 = (*(void**)0x1F8003FC = head - 0x7C);
     *(s16*)((s8*)head - 0x40) = (s16)dx;
@@ -590,8 +590,8 @@ s32 Actor01600_Fn04974(Actor01600* actor, s32 angle, s32 distance, s32 flags)
     s32             tmp;
 
     work  = actor->field_1C;
-    coord = actor->field_2C->field_8;
-    other = (*Gp_ActorSlots)->field_2C->field_8;
+    coord = actor->field_2C->coords;
+    other = (*Gp_ActorSlots)->field_2C->coords;
     if (Gp_ActorSlots[flags]->actor->field_954 != 2) {
         if (Actor01600_D12870 == 0) {
             otherY     = other->coord.t[1];

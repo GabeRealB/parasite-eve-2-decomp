@@ -68,7 +68,7 @@ void Actor00100_Fn04270(Actor00100* argx)
     obj  = arg0->field_2C;
     ctx  = arg0->field_20;
     if (work->field_4 != 0) {
-        obj->flags         = 0;
+        obj->flags           = 0;
         work->objs[2].flags &= 0xBFFF;
         ctx->field_14        = 1;
         work->field_6        = 0;
@@ -277,7 +277,7 @@ void Actor00100_Fn04864(Actor00100* arg0)
     if (work->field_4 != 0) {
         obj           = arg0->field_2C;
         ctx->field_14 = 0;
-        obj->flags  = 0;
+        obj->flags    = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
         work->field_828        = 1;
@@ -288,7 +288,7 @@ void Actor00100_Fn04864(Actor00100* arg0)
         work->field_832        = work->field_834;
         Actor00100_Fn02788(arg0);
         Actor00100_Fn02788(arg0);
-        work->field_6                  = 0;
+        work->field_6                   = 0;
         work->objs[3].field_20.point.vz = 0x26C;
         return;
     }
@@ -470,7 +470,7 @@ void Actor00100_Fn0503C(Actor00100* arg0)
             work->field_0 = 9;
         }
         ctx->field_14 = 0;
-        obj->flags  = 0;
+        obj->flags    = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
         work->field_82E        = 2;
@@ -480,7 +480,7 @@ void Actor00100_Fn0503C(Actor00100* arg0)
         work->objs[2].flags   |= 0x4000;
         work->field_832        = work->field_834;
         Actor00100_Fn02788(arg0);
-        work->objs[3].field_20.point.vz           = 0x320;
+        work->objs[3].field_20.point.vz          = 0x320;
         work->field_6                            = 0;
         work->field_8                            = 0;
         work->field_C1A                          = 0;
@@ -564,7 +564,7 @@ void Actor00100_Fn0503C(Actor00100* arg0)
                     scratch->vy      = 0;
                     scratch->vx      = (s16) - (s16)(u16)scratch->vx;
                     scratch->vz      = -(s16)(u16)scratch->vz;
-                    temp_s0_11       = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+                    temp_s0_11       = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
                     temp_s0_12       = ratan2((s32)scratch->vx, (s32)scratch->vz);
                     temp_s0_13       = temp_s0_12 - ratan2((s32)-temp_s0_11->coord.m[2][0], (s32)temp_s0_11->coord.m[2][2]);
                     var_v1_5         = Actor00100_NormalizeYaw(temp_s0_13);
@@ -582,9 +582,9 @@ void Actor00100_Fn0503C(Actor00100* arg0)
                     ((Actor00100FacingWork*)work)->field_8D0 = 0;
                     ((Actor00100FacingWork*)work)->field_8D2 = (u16)scratch->contactYaw;
                     ((Actor00100FacingWork*)work)->field_8D4 = 0;
-                    ((Actor00100FacingWork*)work)->field_8C0 = (s32)((TmdObject*)player->extra)->field_8->coord.t[0];
-                    ((Actor00100FacingWork*)work)->field_8C4 = (s32)((TmdObject*)player->extra)->field_8->coord.t[1];
-                    ((Actor00100FacingWork*)work)->field_8C8 = (s32)((TmdObject*)player->extra)->field_8->coord.t[2];
+                    ((Actor00100FacingWork*)work)->field_8C0 = (s32)((TmdObject*)player->extra)->coords->coord.t[0];
+                    ((Actor00100FacingWork*)work)->field_8C4 = (s32)((TmdObject*)player->extra)->coords->coord.t[1];
+                    ((Actor00100FacingWork*)work)->field_8C8 = (s32)((TmdObject*)player->extra)->coords->coord.t[2];
                     Gp_DispatchMsg(player, 0x3E9, (s32)(&work->pad_8B8[8]), 0);
                     if (work->field_C1A < 0x3E8) {
                         var_v0_19 = scratch->playerYaw;
@@ -672,10 +672,10 @@ void Actor00100_Fn0503C(Actor00100* arg0)
         }
     }
     arg0->field_2C->coords->flg = 0;
-    temp_s0_20                   = arg0->field_2C->coords;
-    temp_s0_21                   = ratan2((s32)((Actor00100FacingWork*)work)->field_BF0, (s32)((Actor00100FacingWork*)work)->field_BF4);
-    temp_s0_22                   = temp_s0_21 - ratan2((s32)-temp_s0_20->coord.m[2][0], (s32)temp_s0_20->coord.m[2][2]);
-    var_v1_8                     = Actor00100_NormalizeYaw(temp_s0_22);
+    temp_s0_20                  = arg0->field_2C->coords;
+    temp_s0_21                  = ratan2((s32)((Actor00100FacingWork*)work)->field_BF0, (s32)((Actor00100FacingWork*)work)->field_BF4);
+    temp_s0_22                  = temp_s0_21 - ratan2((s32)-temp_s0_20->coord.m[2][0], (s32)temp_s0_20->coord.m[2][2]);
+    var_v1_8                    = Actor00100_NormalizeYaw(temp_s0_22);
 
     scratch->turnYaw = var_v1_8;
     Actor00100_Fn02788(arg0);
@@ -807,7 +807,7 @@ void Actor00100_Fn061FC(Actor00100* arg0)
     if (work->field_4 != 0) {
         obj                      = arg0->field_2C;
         arg0->field_20->field_14 = 0;
-        obj->flags             = 0;
+        obj->flags               = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
         work->field_828        = 1;
@@ -856,7 +856,7 @@ void Actor00100_Fn06398(Actor00100* arg0)
         obj             = arg0->field_2C;
         ctx->field_14   = 0;
         work->field_BE4 = 0;
-        obj->flags    = 0;
+        obj->flags      = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
         work->field_82E        = 5;
@@ -895,7 +895,7 @@ void Actor00100_Fn06398(Actor00100* arg0)
         eventPan = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
         SndEvt_EnqueueType6(sound, (s32)eventPan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
         if (Gp_State1C->field_A == 2) {
-            Gp_SpawnEff(0x60054, ((TmdObject*)player->extra)->field_8 + 1, 0x80003A00, NULL);
+            Gp_SpawnEff(0x60054, ((TmdObject*)player->extra)->coords + 1, 0x80003A00, NULL);
         }
     }
     Actor00100_Fn02788(arg0);
@@ -924,7 +924,7 @@ void Actor00100_Fn06654(Actor00100* arg0)
     if (work->field_4 != 0) {
         obj           = arg0->field_2C;
         ctx->field_14 = 0;
-        obj->flags  = 0;
+        obj->flags    = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
         work->field_828        = 1;
@@ -941,14 +941,14 @@ void Actor00100_Fn06654(Actor00100* arg0)
         gte_ldsv(vec);
         __asm__ volatile("nop; nop; .word 0x4B98003D");
         gte_stsv(vec);
-        x                              = head[-2].vx;
-        work->field_8DC                = 0;
-        work->field_8D8                = x;
-        z                              = vec->vz;
-        work->field_8E8                = 7;
-        work->field_8EA                = 1;
+        x                               = head[-2].vx;
+        work->field_8DC                 = 0;
+        work->field_8D8                 = x;
+        z                               = vec->vz;
+        work->field_8E8                 = 7;
+        work->field_8EA                 = 1;
         work->objs[3].field_20.point.vz = 0x320;
-        work->field_8E0                = z;
+        work->field_8E0                 = z;
         Gp_SpawnPadLerp(3, 0xFFU, 8U);
     }
     work->field_6 += 1;
@@ -996,7 +996,7 @@ void Actor00100_Fn06C10(Actor00100* arg0)
     if (work->field_4 != 0) {
         obj                      = arg0->field_2C;
         arg0->field_20->field_14 = 0;
-        obj->flags             = 0;
+        obj->flags               = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
         work->field_828        = 1;
@@ -1005,8 +1005,8 @@ void Actor00100_Fn06C10(Actor00100* arg0)
         work->objs[2].flags   |= 0x4000;
         work->field_832        = work->field_834;
         Actor00100_Fn02788(arg0);
-        work->field_6                  = 0;
-        work->field_8                  = 0;
+        work->field_6                   = 0;
+        work->field_8                   = 0;
         work->objs[3].field_20.point.vz = -0x2D0;
     }
     work->field_6 += 1;
@@ -1072,7 +1072,7 @@ void Actor00100_Fn070DC(Actor00100* arg0)
     if (work->field_4 != 0) {
         obj                      = arg0->field_2C;
         arg0->field_20->field_14 = 0;
-        obj->flags             = 0;
+        obj->flags               = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
         work->field_828        = 1;
@@ -1086,10 +1086,10 @@ void Actor00100_Fn070DC(Actor00100* arg0)
     }
     Actor00100_Fn00A54(arg0->field_2C->coords, &work->objs[2].field_20, 5);
     arg0->field_2C->coords->flg = 0;
-    coord                        = arg0->field_2C->coords;
-    head[-1].x                   = (s16)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
-    scratch->y                   = (s16)(Player_Status.coordMtx->t[1] - coord->coord.t[1]);
-    scratch->z                   = (s16)(Player_Status.coordMtx->t[2] - coord->coord.t[2]);
+    coord                       = arg0->field_2C->coords;
+    head[-1].x                  = (s16)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
+    scratch->y                  = (s16)(Player_Status.coordMtx->t[1] - coord->coord.t[1]);
+    scratch->z                  = (s16)(Player_Status.coordMtx->t[2] - coord->coord.t[2]);
     arg0->field_2C->coords->flg = 0;
     Actor00100_Fn02788(arg0);
     facing  = arg0->field_2C->coords;
@@ -1113,8 +1113,8 @@ void Actor00100_Fn070DC(Actor00100* arg0)
     firstDelta         = wrapped;
     scratch->delta     = firstDelta;
     work->field_840    = firstDelta;
-    playerX            = -((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][0];
-    scratch->yaw       = ratan2((s32)playerX, (s32)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][2]);
+    playerX            = -((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][0];
+    scratch->yaw       = ratan2((s32)playerX, (s32)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][2]);
     coord2             = arg0->field_2C->coords;
     scratch->x         = (s16)(Player_Status.coordMtx->t[0] - coord2->coord.t[0]);
     scratch->y         = (s16)(Player_Status.coordMtx->t[1] - coord2->coord.t[1]);
@@ -1178,7 +1178,7 @@ void Actor00100_Fn0747C(Actor00100* arg0)
     if (work->field_4 != 0) {
         obj                      = arg0->field_2C;
         arg0->field_20->field_14 = 0;
-        obj->flags             = 0;
+        obj->flags               = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
         work->field_828        = 2;
@@ -1215,7 +1215,7 @@ void Actor00100_Fn07650(Actor00100* arg0)
     if (work->field_4 != 0) {
         obj           = arg0->field_2C;
         ctx->field_14 = 0;
-        obj->flags  = 0;
+        obj->flags    = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
         work->field_82E        = 0xA;
@@ -1312,7 +1312,7 @@ void Actor00100_Fn0782C(Actor00100* arg0)
         obj           = arg0->field_2C;
         scratch       = (*(Actor00100MoveScratch**)G_SCRATCH_HEAD = head - 1);
         ctx->field_14 = 0;
-        obj->flags  = 0;
+        obj->flags    = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
         work->field_828        = 1;
@@ -1359,7 +1359,7 @@ void Actor00100_Fn0782C(Actor00100* arg0)
         ((Actor00100MoveWork*)work)->pos[0][0]    = (s16)((u16)scratch->vec.vx + arg0->field_2C->coords->coord.t[0]);
         *(Actor00100MoveScratch**)G_SCRATCH_HEAD += 1;
         ((Actor00100MoveWork*)work)->pos[0][1]    = (s16)((u16)scratch->vec.vz + arg0->field_2C->coords->coord.t[2]);
-        work->objs[3].field_20.point.vz            = 0x26C;
+        work->objs[3].field_20.point.vz           = 0x26C;
         return;
     }
     work->field_8      += 1;
@@ -1523,8 +1523,8 @@ void Actor00100_Fn0782C(Actor00100* arg0)
                 changeState:
                     work->field_0 = 0x1C;
                 }
-                playerX            = -((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][0];
-                scratch->playerYaw = ratan2((s32)playerX, (s32)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][2]);
+                playerX            = -((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][0];
+                scratch->playerYaw = ratan2((s32)playerX, (s32)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][2]);
                 targetYaw          = ratan2((s32)scratch->target.vx, (s32)scratch->target.vz) + 0x800;
                 wrappedYaw         = targetYaw;
                 scratch->yaw       = targetYaw;
@@ -1589,7 +1589,7 @@ void Actor00100_Fn08588(Actor00100* arg0)
     if (work->field_4 != 0) {
         obj                    = arg0->field_2C;
         work->field_BE4        = 0;
-        obj->flags           = 0;
+        obj->flags             = 0;
         work->objs[0].field_1C = 0x19C;
         work->objs[2].flags   |= 0x4000;
         ctx->field_14          = 0;
@@ -1691,7 +1691,7 @@ void Actor00100_Fn08A14(Actor00100* arg0)
     if (work->field_4 != 0) {
         obj                    = arg0->field_2C;
         work->field_BE4        = 0;
-        obj->flags           = 0;
+        obj->flags             = 0;
         work->objs[0].field_1C = 0x19C;
         work->objs[2].flags   |= 0x4000;
         ctx->field_14          = 0;
@@ -1792,7 +1792,7 @@ void Actor00100_Fn08E7C(Actor00100* arg0)
     if (work->field_4 != 0) {
         obj                      = arg0->field_2C;
         arg0->field_20->field_14 = 0;
-        obj->flags             = 0;
+        obj->flags               = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
         work->field_828        = 1;
@@ -1818,10 +1818,10 @@ void Actor00100_Fn08E7C(Actor00100* arg0)
     gte_stszotz(&head[-1].depth);
     Actor00100_Fn00A54(arg0->field_2C->coords, &work->objs[2].field_20, 5);
     arg0->field_2C->coords->flg = 0;
-    coord                        = arg0->field_2C->coords;
-    head[-1].x                   = (s16)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
-    scratch->y                   = (s16)(Player_Status.coordMtx->t[1] - coord->coord.t[1]);
-    scratch->z                   = (s16)(Player_Status.coordMtx->t[2] - coord->coord.t[2]);
+    coord                       = arg0->field_2C->coords;
+    head[-1].x                  = (s16)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
+    scratch->y                  = (s16)(Player_Status.coordMtx->t[1] - coord->coord.t[1]);
+    scratch->z                  = (s16)(Player_Status.coordMtx->t[2] - coord->coord.t[2]);
     arg0->field_2C->coords->flg = 0;
     Actor00100_Fn02788(arg0);
     facing  = arg0->field_2C->coords;
@@ -1845,8 +1845,8 @@ void Actor00100_Fn08E7C(Actor00100* arg0)
     firstDelta         = wrapped;
     scratch->delta     = firstDelta;
     work->field_840    = firstDelta;
-    playerX            = -((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][0];
-    scratch->yaw       = ratan2((s32)playerX, (s32)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][2]);
+    playerX            = -((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][0];
+    scratch->yaw       = ratan2((s32)playerX, (s32)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords->coord.m[2][2]);
     coord2             = arg0->field_2C->coords;
     scratch->x         = (s16)(Player_Status.coordMtx->t[0] - coord2->coord.t[0]);
     scratch->y         = (s16)(Player_Status.coordMtx->t[1] - coord2->coord.t[1]);
@@ -1923,7 +1923,7 @@ void Actor00100_Fn09310(Actor00100* arg0)
     obj  = arg0->field_2C;
     if (work->field_4 != 0) {
         work->field_BE4        = 0;
-        obj->flags           = 0x80;
+        obj->flags             = 0x80;
         work->objs[0].field_1C = 0x19C;
         work->objs[2].flags    = (u16)(work->objs[2].flags & 0xBFFF);
         ctx->field_14          = 1;
@@ -1946,10 +1946,10 @@ void Actor00100_Fn09310(Actor00100* arg0)
         vector.vx     = 0;
         effect        = Gp_SpawnEff(0xA0005, &arg0->field_2C->coords[9], 0x200, &vector);
         if (effect != NULL) {
-            task                                = effect->field_0;
-            ((TmdObject*)task->extra)->field_24 = (u8)arg0->field_2C->tpage;
-            ((TmdObject*)task->extra)->field_25 = (u8)arg0->field_2C->clut;
-            effectObj                           = task->extra;
+            task                             = effect->field_0;
+            ((TmdObject*)task->extra)->tpage = (u8)arg0->field_2C->tpage;
+            ((TmdObject*)task->extra)->clut  = (u8)arg0->field_2C->clut;
+            effectObj                        = task->extra;
             if (effectObj->buffer != 0) {
                 Tmd_ProcessStream((TmdObject*)effectObj);
                 Tmd_ProcessStream((TmdObject*)task->extra);
@@ -1961,10 +1961,10 @@ void Actor00100_Fn09310(Actor00100* arg0)
             vector.vx     = 0;
             effect2       = Gp_SpawnEff(0xA0005, &arg0->field_2C->coords[12], 0x200, &vector);
             if (effect2 != NULL) {
-                task2                                = effect2->field_0;
-                ((TmdObject*)task2->extra)->field_24 = (u8)arg0->field_2C->tpage;
-                ((TmdObject*)task2->extra)->field_25 = (u8)arg0->field_2C->clut;
-                effectObj2                           = task2->extra;
+                task2                             = effect2->field_0;
+                ((TmdObject*)task2->extra)->tpage = (u8)arg0->field_2C->tpage;
+                ((TmdObject*)task2->extra)->clut  = (u8)arg0->field_2C->clut;
+                effectObj2                        = task2->extra;
                 if (effectObj2->buffer != 0) {
                     Tmd_ProcessStream((TmdObject*)effectObj2);
                     Tmd_ProcessStream((TmdObject*)task2->extra);
@@ -1976,10 +1976,10 @@ void Actor00100_Fn09310(Actor00100* arg0)
         D_80114B78[0] = &Actor00100_D12470;
         effect3       = Gp_SpawnEff(0xA0005, &arg0->field_2C->coords[1], 0x200, NULL);
         if (effect3 != NULL) {
-            task3                                = effect3->field_0;
-            ((TmdObject*)task3->extra)->field_24 = (u8)arg0->field_2C->tpage;
-            ((TmdObject*)task3->extra)->field_25 = (u8)arg0->field_2C->clut;
-            effectObj3                           = task3->extra;
+            task3                             = effect3->field_0;
+            ((TmdObject*)task3->extra)->tpage = (u8)arg0->field_2C->tpage;
+            ((TmdObject*)task3->extra)->clut  = (u8)arg0->field_2C->clut;
+            effectObj3                        = task3->extra;
             if (effectObj3->buffer != 0) {
                 Tmd_ProcessStream((TmdObject*)effectObj3);
                 Tmd_ProcessStream((TmdObject*)task3->extra);
@@ -1990,10 +1990,10 @@ void Actor00100_Fn09310(Actor00100* arg0)
         D_80114B78[0] = &Actor00100_D11F90;
         effect4       = Gp_SpawnEff(0xA0000 | 5, &arg0->field_2C->coords[3], 0x200, NULL);
         if (effect4 != NULL) {
-            task4                                = effect4->field_0;
-            ((TmdObject*)task4->extra)->field_24 = (u8)arg0->field_2C->tpage;
-            ((TmdObject*)task4->extra)->field_25 = (u8)arg0->field_2C->clut;
-            effectObj4                           = task4->extra;
+            task4                             = effect4->field_0;
+            ((TmdObject*)task4->extra)->tpage = (u8)arg0->field_2C->tpage;
+            ((TmdObject*)task4->extra)->clut  = (u8)arg0->field_2C->clut;
+            effectObj4                        = task4->extra;
             if (effectObj4->buffer != 0) {
                 Tmd_ProcessStream((TmdObject*)effectObj4);
                 Tmd_ProcessStream((TmdObject*)task4->extra);
@@ -2032,7 +2032,7 @@ void Actor00100_Fn09724(Actor00100* arg0)
     if (work->field_4 != 0) {
         obj           = arg0->field_2C;
         ctx->field_14 = 0;
-        obj->flags  = 0;
+        obj->flags    = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
         work->field_828        = 1;
@@ -2076,7 +2076,7 @@ void Actor00100_Fn09724(Actor00100* arg0)
             }
             break;
     }
-    *(s32*)G_SCRATCH_HEAD       += 0x10;
+    *(s32*)G_SCRATCH_HEAD      += 0x10;
     arg0->field_2C->coords->flg = 0;
 }
 
@@ -2102,7 +2102,7 @@ void Actor00100_Fn09CCC(Actor00100* arg0)
     if (work->field_4 != 0) {
         obj           = arg0->field_2C;
         ctx->field_14 = 1;
-        obj->flags  = 0;
+        obj->flags    = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].field_1C = 0x19C;
         work->field_828        = 1;
@@ -2156,13 +2156,13 @@ void Actor00100_Fn09CCC(Actor00100* arg0)
                 Gp_UnlinkObj(&work->objs[1]);
                 Gp_UnlinkObj(&work->objs[3]);
                 Gp_UnlinkObj(&work->objs[2]);
-                ctx->field_54       = 0;
-                ctx->field_40       = 0;
-                hiddenObj           = arg0->field_2C;
+                ctx->field_54     = 0;
+                ctx->field_40     = 0;
+                hiddenObj         = arg0->field_2C;
                 hiddenObj->flags |= 0x80;
             }
             if ((s16)work->field_6 == 0x65) {
-                finishedObj           = arg0->field_2C;
+                finishedObj         = arg0->field_2C;
                 finishedObj->flags |= 4;
             }
             if (((s16)work->field_6 >= 0x79) && (work->field_C18 != 1) && (D_80114C12 != 1) && D_80071075 == 0) {

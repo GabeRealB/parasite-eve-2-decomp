@@ -533,7 +533,7 @@ void Actor00300_Fn00E54(Actor100300* arg0)
     rec = work;
     do {
         SOFT_TOUCH_REG_USE(one, scratch);
-        recId = rec->rec4F0[0].field_4;
+        recId = rec->rec4F0[0].key;
         tmp   = recId >> 0x10;
         switch (tmp) {
             case 0:
@@ -549,10 +549,10 @@ void Actor00300_Fn00E54(Actor100300* arg0)
                             }
                             break;
                         case 2:
-                            Gp_SetObjFlag2((GpObj5D*)enemy, (s32)rec->rec4F0[0].field_4, 0);
+                            Gp_SetObjFlag2((GpObj5D*)enemy, (s32)rec->rec4F0[0].key, 0);
                             break;
                         case 3:
-                            Gp_SetObjFlag4((GpObj5C*)enemy, (s32)rec->rec4F0[0].field_4, 0);
+                            Gp_SetObjFlag4((GpObj5C*)enemy, (s32)rec->rec4F0[0].key, 0);
                             break;
                         case 4:
                         case 6:
@@ -567,7 +567,7 @@ void Actor00300_Fn00E54(Actor100300* arg0)
                             critical = 1;
                             break;
                     }
-                    srcCoord        = Gp_ActorSlots[(u8)rec->rec4F0[0].field_4 >> 7]->extra->field_8;
+                    srcCoord        = Gp_ActorSlots[(u8)rec->rec4F0[0].key >> 7]->extra->coords;
                     scratch->vx.w   = (s32)(srcCoord->coord.t[0] - coord->coord.t[0]);
                     scratch->vy.w   = srcCoord->coord.t[1] - coord->coord.t[1];
                     relZ            = srcCoord->coord.t[2] - coord->coord.t[2];
@@ -577,15 +577,15 @@ void Actor00300_Fn00E54(Actor100300* arg0)
                     relX            = scratch->vx.w;
                     relY            = scratch->vy.w;
                     relZ2           = scratch->vz.w;
-                    damage          = Gp_ComputeDamage(rec->rec4F0[0].field_4, SquareRoot0((relX * relX) + (relY * relY) + (relZ2 * relZ2)), 0, 0);
+                    damage          = Gp_ComputeDamage(rec->rec4F0[0].key, SquareRoot0((relX * relX) + (relY * relY) + (relZ2 * relZ2)), 0, 0);
                     work->field_690 = damage;
                     if (critical != 0) {
                         work->field_690 = (s16)((s32)(damage << 0x10) >> 0x11);
-                    } else if (Gp_RollEnemyChance(enemy, rec->rec4F0[0].field_4, 0) != 0) {
+                    } else if (Gp_RollEnemyChance(enemy, rec->rec4F0[0].key, 0) != 0) {
                         work->field_690 *= 4;
                         Gp_SpawnEff(0x6009C, arg0->field_2C->field_8 + 3, 0, NULL);
                     }
-                    func_800E2C78((GpObj40*)enemy, (s32)rec->rec4F0[0].field_4, (s32)work->field_690, 0);
+                    func_800E2C78((GpObj40*)enemy, (s32)rec->rec4F0[0].key, (s32)work->field_690, 0);
                     func_800DA6E8(&enemy->node, (s32)work->field_690, 0);
                     hpLeft          = (u16)enemy->field_40 - (u16)work->field_690;
                     enemy->field_40 = hpLeft;
@@ -629,13 +629,13 @@ void Actor00300_Fn00E54(Actor100300* arg0)
                             work->field_664    = one;
                         }
                     }
-                    curId = rec->rec4F0[0].field_4;
+                    curId = rec->rec4F0[0].key;
                     if (lastId != curId) {
                         lastId = curId;
                         SCHED_BARRIER();
                         func_800FDB18(Gp_GetIdParam1((s32)curId) & 0xFFFF, arg0->field_2C->field_8 + 3, NULL, &work->effArg5F0);
                     }
-                    idParam2 = Gp_GetIdParam2((s32)rec->rec4F0[0].field_4);
+                    idParam2 = Gp_GetIdParam2((s32)rec->rec4F0[0].key);
                     if ((idParam2 << 0x10) > 0) {
                         work->field_66C = (s16)idParam2;
                     }
@@ -643,13 +643,13 @@ void Actor00300_Fn00E54(Actor100300* arg0)
                 break;
             case 3:
                 srcCoord      = arg0->field_2C->field_8 + 3;
-                toX           = srcCoord->workm.t[0] - rec->rec4F0[0].field_8;
+                toX           = srcCoord->workm.t[0] - rec->rec4F0[0].point.vx;
                 scratch->vx.w = toX;
-                toY           = srcCoord->workm.t[1] - rec->rec4F0[0].field_A;
+                toY           = srcCoord->workm.t[1] - rec->rec4F0[0].point.vy;
                 scratch->vy.w = toY;
-                toZ           = srcCoord->workm.t[2] - rec->rec4F0[0].field_C;
+                toZ           = srcCoord->workm.t[2] - rec->rec4F0[0].point.vz;
                 scratch->vz.w = toZ;
-                dist          = rec->rec4F0[0].field_2 - SquareRoot0((toX * toX) + (toY * toY) + (toZ * toZ));
+                dist          = rec->rec4F0[0].depth - SquareRoot0((toX * toX) + (toY * toY) + (toZ * toZ));
                 clamped       = dist;
                 if (dist <= 0)
                     clamped = 0;
@@ -665,13 +665,13 @@ void Actor00300_Fn00E54(Actor100300* arg0)
         }
         rec = (Actor100300Work*)((u8*)rec + 0x18);
         SOFT_TOUCH_REG3(rec, bestDist, scratch);
-    } while ((s32)rec < (s32)&work->obj38.field_10);
+    } while ((s32)rec < (s32)&work->obj38.pos);
     if (bestDist > 0) {
         coord->coord.t[0] += (s32)(bestDist * scratch[3].vx.w) >> 0xC;
         coord->coord.t[2] += (s32)(bestDist * scratch[3].vz.w) >> 0xC;
     }
     Gp_ClearRec18Occupied(work->rec4F0);
-    if (work->rec5D8.field_0 & 1) {
+    if (work->rec5D8.flags & 1) {
         work->obj5B8.flags &= 0x7FFF;
         Gp_ClearRec18Occupied(&work->rec5D8);
         Gp_SpendMp(0x14);
@@ -682,7 +682,7 @@ void Actor00300_Fn00E54(Actor100300* arg0)
         Gp_SpawnEff(D_80115744, work->field_43C->field_2C->field_8, 0x20001, (SVECTOR*)(scratch + 2));
     }
     work->field_6A2 = 0;
-    if ((work->rec4A0[1].field_4 & 0xFFFF0000) == 0x10000) {
+    if ((work->rec4A0[1].key & 0xFFFF0000) == 0x10000) {
         srcCoord                        = ((Actor100300*)Game_GetPtrSlot(3))->field_2C->field_8 + 3;
         ((SVECTOR*)(scratch + 2))[0].vx = (u16)srcCoord->workm.t[0];
         ((SVECTOR*)(scratch + 2))[0].vy = (u16)srcCoord->workm.t[1];

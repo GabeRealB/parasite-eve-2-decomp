@@ -800,10 +800,10 @@ void Actor02100_Fn016EC(Actor02100* arg0)
             Actor02100_Fn02924(arg0, 1);
             frame = work->field_17A;
             if (frame == 1) {
-                work->field_78.field_18 = Gp_PackPair(&Actor02100_D03D64, work->field_178);
-                packed                  = work->field_178 + 0x26;
-                work->field_C8.field_18 = flagBit;
-                work->field_C8.field_18 = (packed << 8) | (packed | work->field_C8.field_18);
+                work->field_78.key = Gp_PackPair(&Actor02100_D03D64, work->field_178);
+                packed             = work->field_178 + 0x26;
+                work->field_C8.key = flagBit;
+                work->field_C8.key = (packed << 8) | (packed | work->field_C8.key);
                 switch (work->field_178) {
                     case 0:
                         sound = 0x40150003;
@@ -822,8 +822,8 @@ void Actor02100_Fn016EC(Actor02100* arg0)
                 SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan((GpObj38*)coord),
                                     (s8)Gp_GetObjDepth((GpObj38*)coord));
             } else if (frame == state) {
-                work->field_78.field_18 = 0;
-                work->field_C8.field_18 = 0;
+                work->field_78.key = 0;
+                work->field_C8.key = 0;
             }
             frame           = (u16)work->field_17A + 1;
             work->field_17A = frame;
@@ -1093,19 +1093,19 @@ void Actor02100_Fn01FF0(Actor02100* arg0)
             result3 = Gp_PackPair(&Actor02100_D03D64, work->field_178);
             packed3 = work->field_178;
             SOFT_TOUCH_REG_USE(result3, packed3);
-            work->field_78.field_18 = result3;
-            work->field_174         = 4;
-            packed3                += 0x26;
-            shifted                 = packed3 << 8;
-            orTmp                   = packed3 | 0x20000;
-            work->field_C8.field_18 = shifted | orTmp;
-            work->field_17C         = (u16)work->field_17C + 1;
+            work->field_78.key = result3;
+            work->field_174    = 4;
+            packed3           += 0x26;
+            shifted            = packed3 << 8;
+            orTmp              = packed3 | 0x20000;
+            work->field_C8.key = shifted | orTmp;
+            work->field_17C    = (u16)work->field_17C + 1;
             break;
 
         case 4:
-            work->field_78.field_18 = 0;
-            work->field_C8.field_18 = 0;
-            work->field_174         = 5;
+            work->field_78.key = 0;
+            work->field_C8.key = 0;
+            work->field_174    = 5;
             break;
 
         case 5:
@@ -1279,9 +1279,9 @@ void Actor02100_Fn02924(Actor02100* arg0, s32 arg1)
                 quad->b1 = blue;
                 corner  += 1;
                 setaddr(quad,
-                        getaddr((((u32)(scratch->depth << Display_State.field_128) >> 2) & 0xFFC) +
+                        getaddr((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                                 (u32)Gpu_CurrentOt));
-                quadSlot = (s32*)((((u32)(scratch->depth << Display_State.field_128) >> 2) & 0xFFC) +
+                quadSlot = (s32*)((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                                   (u32)Gpu_CurrentOt);
                 setaddr(quadSlot, quad);
             } while (corner < 2);
@@ -1304,16 +1304,16 @@ void Actor02100_Fn02924(Actor02100* arg0, s32 arg1)
                 line->b0 = (u8)Actor02100_D03D88[work->field_178].shorts[(arg1 * 3) + 4];
             }
             setaddr(line,
-                    getaddr((((u32)(scratch->depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt));
+                    getaddr((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt));
             mode           = Gpu_PrimCursor;
-            lineSlot       = (s32*)((((u32)(scratch->depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt);
+            lineSlot       = (s32*)((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt);
             Gpu_PrimCursor = (DR_TPAGE*)((u8*)mode + 8);
             setaddr(lineSlot, line);
             setlen(mode, 1);
             mode->code[0] = 0xE1000620;
             setaddr(mode,
-                    getaddr((((u32)(scratch->depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt));
-            modeSlot = (s32*)((((u32)(scratch->depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt);
+                    getaddr((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt));
+            modeSlot = (s32*)((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt);
             setaddr(modeSlot, mode);
         }
         segment += 1;

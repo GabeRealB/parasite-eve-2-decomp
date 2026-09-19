@@ -90,7 +90,7 @@ void Actor01600_Fn05400(Actor01600* arg0)
             return;
         case 3:
             work->field_53C    = 1;
-            ctx->node.flags  = 1;
+            ctx->node.flags    = 1;
             work->field_52E    = 0;
             work->field_530    = 1;
             work->field_4D8    = 0;
@@ -107,7 +107,7 @@ void Actor01600_Fn05400(Actor01600* arg0)
             obj4               = arg0->field_2C;
             obj4->flags       |= 4;
             work->field_53C    = 1;
-            ctx->node.flags  = 1;
+            ctx->node.flags    = 1;
             work->field_532    = 1;
             work->field_52E    = 0;
             work->field_530    = 1;
@@ -162,17 +162,17 @@ s32 Actor01600_Fn05558(Actor01600* arg0)
     u16               kind;
     u8                mode;
 
-    coord = arg0->field_2C->field_8;
+    coord = arg0->field_2C->coords;
     ctx   = arg0->field_20;
     work  = arg0->field_1C;
-    if ((u32)(Game_Session->field_7 - 2) < 2U) {
-        if ((*(u32*)&Game_Session->field_4 & 0xFFFF00) == 0x220100) {
+    if ((u32)(gGameSession->at4.loc.stage - 2) < 2U) {
+        if ((*(u32*)&gGameSession->at4 & 0xFFFF00) == 0x220100) {
             if ((u16)work->field_4FE < 2U) {
                 work->field_4FE = 4;
             }
         }
-        if (((u32)(Game_Session->field_7 - 2) < 2U) && (Game_Session->field_6 == 0x26) &&
-            ((mode = Game_Session->field_5, (mode == 1)) || (mode == 3)) && ((u16)work->field_4FE < 2U)) {
+        if (((u32)(gGameSession->at4.loc.stage - 2) < 2U) && (gGameSession->at4.loc.area == 0x26) &&
+            ((mode = gGameSession->at4.loc.room, (mode == 1)) || (mode == 3)) && ((u16)work->field_4FE < 2U)) {
             work->field_4FE = 4;
         }
     }
@@ -211,14 +211,14 @@ s32 Actor01600_Fn05558(Actor01600* arg0)
                 }
                 work->field_532 = 1;
             } else if (scriptArg == 2) {
-                if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x030F0000) {
+                if ((*(u32*)&gGameSession->at4 & 0xFFFF0000) == 0x030F0000) {
                     tableA            = Actor01600_D09F1C;
                     pos               = &Actor01600_D09F1C[(u16)ctx->field_8 >> 0xC];
                     coord->coord.t[0] = pos->vx;
                     coord->coord.t[1] = pos->vy;
                     coord->coord.t[2] = pos->vz;
                 }
-                if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x04040000) {
+                if ((*(u32*)&gGameSession->at4 & 0xFFFF0000) == 0x04040000) {
                     tableB            = Actor01600_D09F3C;
                     pos2              = &Actor01600_D09F3C[(u16)ctx->field_8 >> 0xC];
                     coord->coord.t[0] = pos2->vx;
@@ -228,16 +228,16 @@ s32 Actor01600_Fn05558(Actor01600* arg0)
                 Gp_ArmStateF0(1);
             }
             ctx->node.flags = 0;
-            work->field_52E   = 1;
+            work->field_52E = 1;
             Actor01600_Fn00480(arg0);
             if (D_8011540C == 1) {
                 work->collision.named.field_30A &= 0xBFFF;
             }
             Tmd_AllocBuffers(arg0->field_2C);
             obj             = arg0->field_2C;
-            obj->field_C   &= 0xFFFB;
+            obj->flags     &= 0xFFFB;
             obj2            = arg0->field_2C;
-            obj2->field_C  &= 0xFF7F;
+            obj2->flags    &= 0xFF7F;
             work->field_4FE = 1;
             work->field_4FA = 0;
             work->field_508 = 0;
@@ -268,13 +268,13 @@ s32 Actor01600_Fn05558(Actor01600* arg0)
                 }
                 goto running;
             }
-            if (arg0->field_2C->field_C & 0x80) {
+            if (arg0->field_2C->flags & 0x80) {
                 goto running;
             }
             Actor01600_Fn03D48(arg0);
             Actor01600_Fn05F80(arg0);
             if (work->field_54A != 0) {
-                update_actor_color(ctx, arg0->field_2C->field_8 + 1);
+                update_actor_color(ctx, arg0->field_2C->coords + 1);
                 work->field_54A = 0;
             }
             coord->flg = 0;
@@ -289,13 +289,13 @@ s32 Actor01600_Fn05558(Actor01600* arg0)
                 goto running;
             }
             ctx->node.flags = 0;
-            work->field_52E   = 1;
+            work->field_52E = 1;
             Actor01600_Fn00480(arg0);
             Tmd_AllocBuffers(arg0->field_2C);
             obj3            = arg0->field_2C;
-            obj3->field_C  &= 0xFFFB;
+            obj3->flags    &= 0xFFFB;
             obj4            = arg0->field_2C;
-            obj4->field_C  &= 0xFF7F;
+            obj4->flags    &= 0xFF7F;
             work->field_516 = 6;
             work->field_4FE = 1;
             work->field_4FA = 0;
@@ -304,7 +304,7 @@ s32 Actor01600_Fn05558(Actor01600* arg0)
             work->field_52A = 0;
             work->field_544 = 1;
             work->field_506 = 0x1A;
-            rootCoord       = arg0->field_2C->field_8;
+            rootCoord       = arg0->field_2C->coords;
             memset(&rot, 0, 8);
             rot.vy = -0x400;
             RotMatrix(&rot, &rootCoord->coord);
@@ -323,7 +323,7 @@ s32 Actor01600_Fn05B08(Actor01600* arg0, s32 arg1, Actor01600Msg7DB* arg2)
     u32             variant;
 
     ctx     = arg0->field_20;
-    coord   = arg0->field_2C->field_8;
+    coord   = arg0->field_2C->coords;
     work    = arg0->field_1C;
     variant = ctx->field_3C->field_1;
 
@@ -372,19 +372,19 @@ s32 Actor01600_Fn05B08(Actor01600* arg0, s32 arg1, Actor01600Msg7DB* arg2)
             if (variant == 3) {
                 obj = arg0->field_2C;
                 do {
-                    obj->field_C &= 0xFFFB;
-                    obj           = arg0->field_2C;
+                    obj->flags &= 0xFFFB;
+                    obj         = arg0->field_2C;
                 } while (0);
-                obj->field_C &= 0xFF7F;
+                obj->flags &= 0xFF7F;
             }
             break;
         case 3:
             work->field_54A = 1;
             if ((u32)(variant - 1) < 4) {
-                obj           = arg0->field_2C;
-                obj->field_C &= 0xFFFB;
-                obj           = arg0->field_2C;
-                obj->field_C &= 0xFF7F;
+                obj         = arg0->field_2C;
+                obj->flags &= 0xFFFB;
+                obj         = arg0->field_2C;
+                obj->flags &= 0xFF7F;
             }
             if (variant == 1) {
                 work->field_506 = 9;
@@ -428,10 +428,10 @@ s32 Actor01600_Fn05B08(Actor01600* arg0, s32 arg1, Actor01600Msg7DB* arg2)
                 Actor01600_Fn06FDC(arg0, 0);
             }
             if (variant == 2 || variant == 4) {
-                obj           = arg0->field_2C;
-                obj->field_C &= 0xFFFB;
-                obj           = arg0->field_2C;
-                obj->field_C &= 0xFF7F;
+                obj         = arg0->field_2C;
+                obj->flags &= 0xFFFB;
+                obj         = arg0->field_2C;
+                obj->flags &= 0xFF7F;
             }
             D_8011540C = 3;
             break;
@@ -439,10 +439,10 @@ s32 Actor01600_Fn05B08(Actor01600* arg0, s32 arg1, Actor01600Msg7DB* arg2)
             work->field_54A = 1;
             if ((u32)(variant - 1) < 4) {
             setFlags:
-                obj           = arg0->field_2C;
-                obj->field_C |= 0x80;
-                obj           = arg0->field_2C;
-                obj->field_C |= 4;
+                obj         = arg0->field_2C;
+                obj->flags |= 0x80;
+                obj         = arg0->field_2C;
+                obj->flags |= 4;
             }
             break;
         case 8:
@@ -961,7 +961,7 @@ void Actor01600_Fn06EA4(Actor01600* arg0)
     work = arg0->field_1C;
 
     ctx->node.flags = 1;
-    ctx->field_54     = 0;
+    ctx->field_54   = 0;
     Gp_UnlinkNode(&ctx->node);
     Gp_UnlinkObj(work->field_40C);
     Gp_UnlinkObj(work->field_29C);
