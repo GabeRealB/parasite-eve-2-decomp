@@ -468,19 +468,19 @@ s32 func_actor_400600_801376EC(Task* arg0)
 
 void func_actor_400600_80137840(Task* arg0)
 {
-    Actor400600Work* work;
-    Actor400600Work* work2;
-    Actor400600Work* work3;
-    Actor400600Work* work4;
-    Actor400600Work* work5;
-    Task*            child;
-    Task*            child2;
-    Task*            child3;
-    Task*            child4;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   coord2;
-    GsCOORDINATE2*   coord3;
-    GsCOORDINATE2*   coord4;
+    Actor400600Work*         work;
+    Actor400600Work*         work2;
+    Actor400600Work*         work3;
+    Actor400600Work*         work4;
+    Actor400600Work*         work5;
+    Task*                    child;
+    Task*                    child2;
+    Task*                    child3;
+    Task*                    child4;
+    GsCOORDINATE2*           coord;
+    GsCOORDINATE2*           coord2;
+    GsCOORDINATE2*           coord3;
+    GsCOORDINATE2*           coord4;
     ActorsShared8016a538Mat  rot;
     ActorsShared8016a538Mat* m1;
     ActorsShared8016a538Mat* m2;
