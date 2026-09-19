@@ -619,7 +619,7 @@ they hold point into *other* RAM slots — the packages that get loaded on top:
 | `Gp_AnimBlkTbl` | `0x80113368` | 8 | `0x8016CB98`–`0x801772E8` | Kyle, `0x80167A70` |
 
 `Gp_PlayerAnimBlkTbl` is indexed by `GameActor.field_93A`
-(`Gp_WeaponIdBase[...] + Wip_SysConfig.field_21`), so an entry is only
+(`Gp_WeaponIdBase[...] + Player_Status.field_21`), so an entry is only
 meaningful while *that weapon's* package is loaded. Two consequences:
 
 - The same VA means different things depending on which package is resident.

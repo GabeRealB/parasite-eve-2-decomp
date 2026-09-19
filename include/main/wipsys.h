@@ -21,12 +21,17 @@ typedef struct _WipSysFlags {
 } WipSysFlags;
 STATIC_ASSERT_SIZEOF(WipSysFlags, 0x20);
 
-/// Where the player is standing and which way they face, as stored in the save.
-typedef struct _PlayerPos {
-    s16 x;
-    s16 y;
-    s16 z;
-    s16 yaw; // Facing, wrapped into [-0x800, 0x800)
+/// Where the player is standing and which way they face: the player actor's
+/// root coordinate, kept so a room entry can put them back where they were
+/// rather than at the room's own start.
+///
+/// `PlayerStatus` carries it into a memory-card save, so a game resumed from a
+/// card re-enters its room at the spot the player saved at.
+typedef struct {
+    s16 x;   // World X of the player actor's root coordinate
+    s16 y;   // World Y, likewise
+    s16 z;   // World Z, likewise
+    s16 yaw; // Facing about Y, a 16-bit angle wrapped into [-0x800, 0x800)
 } PlayerPos;
 STATIC_ASSERT_SIZEOF(PlayerPos, 0x8);
 

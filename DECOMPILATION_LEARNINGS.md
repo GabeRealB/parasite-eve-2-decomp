@@ -7208,7 +7208,7 @@ Assign the table to a local, then the subtract, then index:
 
 ```c
 table = D_80112DFC;
-type  = Wip_SysConfig.field_26 - 2;
+type  = Player_Status.field_26 - 2;
 task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
 ```
 
@@ -26495,12 +26495,12 @@ an `s32` temp, then take the nested address and store through it:
 
 ```c
 temp = coord->field_18;          /* lhu v0; lui cannot sneak in first */
-p = &Wip_SysConfig.field_10;     /* nested WipSysPos */
-p->field_0 = temp;               /* sh %lo(Wip_SysConfig+0x10) */
-p->field_2 = coord->field_1C;
+p = &Player_Status.pos;          /* nested PlayerPos */
+p->x = temp;                     /* sh %lo(Player_Status+0x10) */
+p->y = coord->field_1C;
 ...
-cfg = &Wip_SysConfig;            /* later, separate lui/addiu of the base */
-save->field_14 = cfg->field_8;
+cfg = &Player_Status;            /* later, separate lui/addiu of the base */
+save->field_14 = cfg->exp;
 ```
 
 `Gp_SavePlayerPos` is the example. The same stores as four bare `s16` fields
@@ -26933,7 +26933,7 @@ A named temp (`equipped = p->field; func(equipped + K)`) is born in
 
 ```c
 ret = 0;
-p   = &Wip_SysConfig;
+p   = &Player_Status;
 if ((range_a && p->sel_a == id - Ka) ||
     (range_b && p->sel_b == id - Kb) ||
     (range_c && p->sel_a != 0 &&
@@ -26972,7 +26972,7 @@ if (arg0 == 0) {
         ...
     }
 } else {
-    Wip_SysConfig.field_25 &= ~arg1; /* nor a0, zero, s0 */
+    Player_Status.peStateFlags &= ~arg1; /* nor a0, zero, s0 */
 }
 ```
 
@@ -27541,7 +27541,7 @@ while `$a0` is free for `id`:
 
 ```c
 if (count != 0) {
-    p   = &Wip_SysConfig;
+    p   = &Player_Status;
     one = 1;   /* li t3, 1 */
     n   = count; /* move t2, a0 */
     do {
@@ -29006,10 +29006,10 @@ local is not read until after the first branch, GCC still delays
 ```c
 s16*         dest;
 register s32 three asm("s2");
-WipSysConfig* cfg;
+PlayerStatus* cfg;
 
 dest  = arg0;
-cfg   = &Wip_SysConfig;
+cfg   = &Player_Status;
 mode  = gGameSession->field_128;
 three = 3;
 if (mode == three) {
@@ -29122,17 +29122,17 @@ Pin the object, not the list. A `register UiObject* obj asm("s1")` is a
 load (`lw s1, 0x20(s3)`), so it does not change the `lui` temp. Pinning
 the list address instead emits `lui s0, %hi(list)` instead of the
 target's `lui v0; addiu s0, v0, %lo(list)`. A second pin
-`register s32 val asm("s2")` then leaves `&Wip_SysConfig` in `$s4`:
+`register s32 val asm("s2")` then leaves `&Player_Status` in `$s4`:
 
 ```c
 UiList*            menu;
 register UiObject* obj asm("s1");
 register s32       val asm("s2");
-WipSysConfig*      cfg;
+PlayerStatus*      cfg;
 
 menu = &D_8010E9A4;
 obj  = arg0->spawnArg2;
-cfg  = &Wip_SysConfig;
+cfg  = &Player_Status;
 ```
 
 `Gp_SelectWeaponMenuTask` is the example. Unconstrained allocation stuck at 93%
@@ -31483,7 +31483,7 @@ register (`move s1, v0`). Give the compare its own short-lived temp.
 
 The same function also calls `Gp_GetItemText` once to measure and again
 to draw. Assigning both results to one `text` local makes that variable
-interfere with `rec` (`$s1`) and `&Wip_SysConfig` (`$s2`), so the later
+interfere with `rec` (`$s1`) and `&Player_Status` (`$s2`), so the later
 `color = 0x606060` / `text = Gp_GetItemText(...)` pair swaps (`color` in
 `$s1`, `text` in `$s2`). Nest the first call so `text` is only assigned
 on the draw path:
@@ -31707,26 +31707,28 @@ is the example.
 
 Two prologue address-of-globals (`Mc_SaveData.itemRows` then
 `Wip_SysConfig`) both want `$v0` as the `lui` temp once the first
+Two prologue address-of-globals (`Mc_SaveData.field_1AC` then
+`Player_Status`) both want `$v0` as the `lui` temp once the first
 `addiu` has freed it. The target instead uses `$v1` for the second:
 
 ```
 lui   v0, %hi(Mc_SaveData)
 addiu a2, v0, %lo(Mc_SaveData+0x1ac)
-lui   v1, %hi(Wip_SysConfig)
-addiu t4, v1, %lo(Wip_SysConfig)
+lui   v1, %hi(Player_Status)
+addiu t4, v1, %lo(Player_Status)
 ```
 
-`cfg = &Wip_SysConfig` emits `lui v0` / `addiu t4, v0`. Occupying `$v0`
+`cfg = &Player_Status` emits `lui v0` / `addiu t4, v0`. Occupying `$v0`
 with the upcoming `lbu` of a scan field spills other incoming args.
 Pin `cfg` to the dest register and emit the split pair (same form as
 `Text_ItoaHex` / `Fs_CopyWorkEntries`):
 
 ```c
-register WipSysConfig* cfg asm("t4");
+register PlayerStatus* cfg asm("t4");
 {
     register s32 hi asm("v1");
-    asm volatile("lui %1, %%hi(Wip_SysConfig)\n\t"
-                 "addiu %0, %1, %%lo(Wip_SysConfig)"
+    asm volatile("lui %1, %%hi(Player_Status)\n\t"
+                 "addiu %0, %1, %%lo(Player_Status)"
                  : "=r"(cfg), "=r"(hi));
 }
 ```
@@ -32149,17 +32151,17 @@ puts `lui gDisplayState` in the `beqz` slot instead.
 
 ## Don't pin `$s2` for `p = &global` if `la` must split around `jal` via `$v0`
 
-`p = &Wip_SysConfig` allocated to a callee-saved register normally
+`p = &Player_Status` allocated to a callee-saved register normally
 expands as the two-register form, which `-fschedule-insns` can split
 around a call:
 
 ```
-lui   v0, %hi(Wip_SysConfig)
+lui   v0, %hi(Player_Status)
 jal   func
- addiu s2, v0, %lo(Wip_SysConfig)
+ addiu s2, v0, %lo(Player_Status)
 ```
 
-`register WipSysConfig* cfg asm("s2")` instead emits a same-register
+`register PlayerStatus* cfg asm("s2")` instead emits a same-register
 `la $s2` (`lui s2` / `addiu s2, s2`). Split around the same `jal` that
 becomes `lui s2` in the delay slot and `addiu s2, s2` after the return —
 `$v0` is never the hi temp. Leave the pointer unpinned so GCC still
@@ -32172,12 +32174,12 @@ the return in a `$v0`-pinned temp and copy it after reloading `$a0`:
 register GpItemSlot* ret asm("v0");
 register GpItemSlot* slot asm("s0");
 register s32         a0id asm("a0");
-WipSysConfig*        cfg;
+PlayerStatus*        cfg;
 
 ret  = Gp_GetItemSlot(id);
 a0id = id;
 slot = ret;
-cfg  = &Wip_SysConfig;
+cfg  = &Player_Status;
 Gp_ClearEquipSlot(a0id);
 ```
 
@@ -32856,7 +32858,7 @@ Load `x` and `y` first, then split the math so `-5` cannot move onto `y`:
 
 ```c
 idx  = (s8)actor->field_987;
-temp = Wip_SysConfig.field_26;
+temp = Player_Status.field_26;
 idx  = idx * 4 - 5;
 idx  = idx + temp;
 img  = table[idx][(s8)actor->field_989];
@@ -32865,7 +32867,7 @@ img  = table[idx][(s8)actor->field_989];
 Also reuse the scratch-allocation temp (`register s32 temp asm("v1")`)
 as `y`. Leaving that register bound to the allocated `RECT*` lets copy
 prop pass `$v1` as the call's third arg (`move a2, v1`) and steals `$v1`
-from the `Wip_SysConfig` / frame-index loads. Overwriting it with `y`
+from the `Player_Status` / frame-index loads. Overwriting it with `y`
 kills the RECT copy and frees `$v1` for `lb` / `lbu`. Pin the table `la`
 to `$a0` so it is not colored as the eventual `img` in `$a1`.
 `func_801030CC` is the example.
@@ -35230,14 +35232,14 @@ Packet length is `12` (not GT3's `9`). First GPU code is `0x3E`, second
 ## Non-volatile `+r` so `move s5, a0` precedes `lui` without saving `$ra` early
 
 Volatile `asm ("" : "+r"(prompt))` right after `prompt = arg0` is treated
-like a call: GCC saves `$ra` before the independent `lui %hi(Wip_SysConfig)`
+like a call: GCC saves `$ra` before the independent `lui %hi(Player_Status)`
 /`sw s6`/`addiu s6, %lo`. The target interleaves that `lui`/`sw s6`/`addiu`
 *before* `sw ra`. A non-volatile empty asm still pins the copy:
 
 ```c
 prompt = arg0;
 asm("" : "+r"(prompt));
-cfg = &Wip_SysConfig;
+cfg = &Player_Status;
 ```
 
 `Gp_DrawWeaponSlotRow` is the example.
@@ -35837,7 +35839,7 @@ it is assigned raises its priority just enough to take `$t1` and leaves
 the second base unpinned in `$t2`:
 
 ```c
-cfg = &Wip_SysConfig;
+cfg = &Player_Status;
 asm volatile("" ::"r"(cfg));
 ```
 
@@ -36067,7 +36069,7 @@ dst = q;
 
 `&table[i]` is `addu dst, table, i<<3`. `i = (i << 3) + (s32)table`
 keeps the add in `$v1`: `addu v1, v1, v0`. Split
-`Wip_SysConfig.field_21` / table / `field_91C` with `+r` barriers so
+`Player_Status.field_21` / table / `field_91C` with `+r` barriers so
 the `lbu` fills the preceding `beqz` delay and `lw 0x91C` sits between
 `addiu table` and `sll`. A `u16` temp for the first `rot.vx` load lets
 `field_8` sit between `lhu` and `sh`. `Gp_AimPitchToLockAlt` is the example.
@@ -36828,7 +36830,7 @@ it follows source order even though the final listing is reordered:
 
 ```c
 pad  = (PadState*)&Pad_States[0];   /* lui v0 ; addiu s1,v0 */
-cfg  = &Wip_SysConfig;              /* lui v1 ; addiu s0,v1  <- needs v0 live */
+cfg  = &Player_Status;              /* lui v1 ; addiu s0,v1  <- needs v0 live */
 work = Gp_ActorSlots[0];            /* lui v0 ; lw a0,%lo(...)(v0) */
 ```
 
@@ -39546,14 +39548,14 @@ if (arg0->firstChild != NULL) {
 
 ## Assign a global's address to a local *inside* the conditional to stop loop.c hoisting it
 
-`Wip_SysConfig.field_8` accessed directly from inside a loop body gets its
+`Player_Status.field_8` accessed directly from inside a loop body gets its
 `lui`/`addiu` hoisted to the preheader, costing a callee-saved register there
 and shifting every other allocation. The target computes it inside the
 `if (childObj->field_2C == 0x33)` arm instead. Writing
 
 ```c
 if (childObj->field_2C == 0x33) {
-    cfg = &Wip_SysConfig;
+    cfg = &Player_Status;
     ... cfg->field_8 ...
 ```
 
@@ -40546,7 +40548,7 @@ subu  s1, s1, v1
 
 This is not cosmetic: the extra reference changes the pseudo's priority in
 `local-alloc`, which in this function swapped `$s1`/`$s2` between the
-`&Wip_SysConfig` pointer and the coordinate and moved a dozen instructions.
+`&Player_Status` pointer and the coordinate and moved a dozen instructions.
 
 ## `addPrim` beats hand-rolled OT tag masking
 
@@ -41158,20 +41160,20 @@ symbol plus a displacement, and combine folds it back to the two-instruction
 a **single** use. CSE merges the per-reference pseudos along its extended
 basic block, so a function that touches two different offsets of the same
 global tends to collapse into one shared base register (`addiu s3, v0,
-%lo(Wip_SysConfig)` then `0x21(s3)` / `0x25(s3)` / `0x18(s3)`). That costs an
+%lo(Player_Status)` then `0x21(s3)` / `0x25(s3)` / `0x18(s3)`). That costs an
 extra callee-saved register and a bigger frame, which shifts every branch
 offset in the diff.
 
-`Gp_PlayerNormalState2` wants three independent folded `%lo(Wip_SysConfig+0x21)`
-reads plus one shared `&Wip_SysConfig` base for the `field_25`/`field_18`
+`Gp_PlayerNormalState2` wants three independent folded `%lo(Player_Status+0x21)`
+reads plus one shared `&Player_Status` base for the `field_25`/`field_18`
 pair. The lever is the *shape of the statement that guards the first read*,
-not any pointer local (`cfg = &Wip_SysConfig` inside the block, `volatile`
+not any pointer local (`cfg = &Player_Status` inside the block, `volatile`
 casts, `SOFT_BARRIER()`, and `TOUCH_REG` all made no difference or were
 worse). Writing the guarded initialisation as a plain assignment
 
 ```c
 dir = 1;
-if (D_80112EF8[Wip_SysConfig.field_21] != 0) {
+if (D_80112EF8[Player_Status.field_21] != 0) {
     dir = actor->field_97F;
 }
 ```
@@ -41182,7 +41184,7 @@ all four references (89.7%, `regs=21`). The ternary — or the equivalent
 reference folds on its own (98.2%):
 
 ```c
-dir = D_80112EF8[Wip_SysConfig.field_21] != 0 ? actor->field_97F : 1;
+dir = D_80112EF8[Player_Status.field_21] != 0 ? actor->field_97F : 1;
 ```
 
 Both forms emit the identical `li s1, 1` in the branch delay slot followed by
@@ -41191,7 +41193,7 @@ except through the addressing mode.
 
 ## Split a `(a << N) | (b | K)` argument into two named locals
 
-`Gp_PlayObjSfx(obj, (Wip_SysConfig.field_21 << 16) | (variant | 0x20000001), 0)`
+`Gp_PlayObjSfx(obj, (Player_Status.field_21 << 16) | (variant | 0x20000001), 0)`
 is reassociated by `fold` into `((x << 16) | K) | variant` and emits the
 constant `or` first. Hoisting only the constant part (`val = variant | K;`)
 stops the reassociation but still evaluates the shift into the argument
@@ -41200,7 +41202,7 @@ register, giving `or a1, a1, v0` where the target has `or a1, v0, a1`.
 Both halves need their own local, and the shift must be assigned *first*:
 
 ```c
-base = Wip_SysConfig.field_21 << 16;
+base = Player_Status.field_21 << 16;
 val  = variant | 0x20000001;
 Gp_PlayObjSfx(arg0->extra->coords, base | val, 0);
 ```
@@ -51820,14 +51822,14 @@ scratch diff shows only symbol spelling once the order is right. When a
 `D_8007216x`/`D_800721xx` import sits in a room's callee list, check whether
 it is a `Mc_SaveData` offset before reaching for `SOFT_BARRIER()`.
 
-## `D_80073Bxx` in a weapon overlay is `Wip_SysConfig`; a bare extern floats its `lbu` above the struct stores
+## `D_80073Bxx` in a weapon overlay is `Player_Status`; a bare extern floats its `lbu` above the struct stores
 
 The same fixed-scalar-vs-struct aliasing hole as the `Mc_SaveData` entry above,
 seen from the other end: not a store that sinks, but a *load* that rises past a
 run of struct stores.
 
 `func_m4a1_javelin_8011F5D4` state 2 writes five `actor->` fields and then packs
-a byte of `Wip_SysConfig` into `field_124`. The target keeps every store ahead
+a byte of `Player_Status` into `field_124`. The target keeps every store ahead
 of the load:
 
 ```asm
@@ -51847,17 +51849,17 @@ close: all 120 permutations of the five stores, every position for the
 `field_124` and `field_12A` statements, `register s32 asm("v1")` pins, and a
 6-minute permuter run all topped out at 98.6%.
 
-`0x80073BAA` is `Wip_SysConfig + 0x22`, already declared as
-`WipSysConfig::field_22` in `include/main/wipsys.h` with the comment "packed
+`0x80073BAA` is `Player_Status + 0x22`, already declared as
+`PlayerStatus::field_22` in `include/main/wipsys.h` with the comment "packed
 into GameActor.field_124 (`func_801061F0`)" — the very use being decompiled.
-Writing `Wip_SysConfig.field_22` restores the dependence and the block matched
+Writing `Player_Status.field_22` restores the dependence and the block matched
 with no other change.
 
 The tell is a `reorder` leftover that survives *both* every statement
 permutation and every register pin, in a block that mixes `struct->field`
 stores with a bare-extern global. Before either, look the address up in
 `configs/USA/sym.main.txt`: for weapon and actor overlays the two bases worth
-checking are `Wip_SysConfig = 0x80073B88` (`D_80073Bxx`) and
+checking are `Player_Status = 0x80073B88` (`D_80073Bxx`) and
 `Mc_SaveData = 0x80072168` (`D_800721xx`). Both spell the same `%hi`/`%lo`
 bytes, so the scratch diff shows only the symbol name once the order is right.
 
@@ -54745,12 +54747,12 @@ exact — yet `./build.sh` reported 99.911% with `regs=4`.
 
 ```
 -lbu    v0,%lo(D_80073BAA)(v0)          <- target (raw splat symbol)
-+lbu    v0,%lo(Wip_SysConfig+0x22)(v0)  <- ours (named struct + field)
++lbu    v0,%lo(Player_Status+0x22)(v0)  <- ours (named struct + field)
 -lb     v0,%lo(D_8007218A)(v0)
 +lb     v0,%lo(Mc_SaveData+0x22)(v0)
 ```
 
-`Wip_SysConfig+0x22` *is* `0x80073BAA` and `Mc_SaveData+0x22` *is*
+`Player_Status+0x22` *is* `0x80073BAA` and `Mc_SaveData+0x22` *is*
 `0x8007218A`. The scratch harness links the target against splat's unnamed
 `D_` symbols, so any field access through a named struct in a *different* TU
 shows as a difference even though the linked bytes are identical.
@@ -54780,7 +54782,7 @@ byte global into the fourth:
 actor->field_95E = 4;
 actor->field_934 = 3;
 actor->field_940 = 0;
-actor->field_124 = Wip_SysConfig.field_22 | 0x21E00;
+actor->field_124 = Player_Status.field_22 | 0x21E00;
 ```
 
 The target keeps that order — `sh 0x95E`, `sw 0x934`, `lui %hi`, `sh 0x940`,
@@ -54802,7 +54804,7 @@ the block schedules and colours like the target.
 Read it as evidence about the original declaration rather than as a hack: if a
 byte global will not stay put behind neighbouring struct stores, it was a
 struct member or an array in the original source. Here `D_80073BAA` is
-`Wip_SysConfig + 0x22`, and naming it that way is both the correct symbol and
+`Player_Status + 0x22`, and naming it that way is both the correct symbol and
 the thing that makes the block match.
 
 ## The same alias rule run backwards: a pointer-reached load reorders a scalar store
@@ -55030,6 +55032,7 @@ switch (actor->field_95E) {
 
 `func_p229_8011DDA0` went 97.3% → 100% on that move alone (the residue was
 `%hi`/`%lo` symbol names for `Wip_SysConfig.field_22` and `Mc_SaveData.characterId`,
+`%hi`/`%lo` symbol names for `Player_Status.field_22` and `Mc_SaveData.field_22`,
 which link identically). Only the relative position of the pinned block matters:
 permuting `actor` / `coord` / `rec` among themselves changed nothing, because
 the pin, not source order, is what reprioritises the ready list.
@@ -55391,14 +55394,17 @@ spelling of the same tail.
 zero. The whole diff was three `lui`/`lbu` pairs:
 
 ```
--lui    v0,%hi(D_80073BAA)          +lui    v0,%hi(Wip_SysConfig)
--lbu    v1,%lo(D_80073BAA)(v0)      +lbu    v1,%lo(Wip_SysConfig+0x22)(v0)
+-lui    v0,%hi(D_80073BAA)          +lui    v0,%hi(Player_Status)
+-lbu    v1,%lo(D_80073BAA)(v0)      +lbu    v1,%lo(Player_Status+0x22)(v0)
 -lb     v0,%lo(D_8007218A)(v0)      +lb     v0,%lo(Mc_SaveData+0x22)(v0)
 ```
 
 `Wip_SysConfig` is at `0x80073B88` and `Mc_SaveData` at `0x80072168`, so
 `D_80073BAA` *is* `Wip_SysConfig.field_22` and `D_8007218A` *is*
 `Mc_SaveData.characterId`. When a function reads a byte from the middle of a
+`Player_Status` is at `0x80073B88` and `Mc_SaveData` at `0x80072168`, so
+`D_80073BAA` *is* `Player_Status.field_22` and `D_8007218A` *is*
+`Mc_SaveData.field_22`. When a function reads a byte from the middle of a
 global struct, splat has no symbol at that address and invents a `D_ADDR` name;
 the C references the struct symbol plus an offset. Both encode to the same
 `%hi`/`%lo` relocation pair against the same address, but the scratch
@@ -55468,7 +55474,7 @@ no statement permutation and 8500 permuter iterations could shift. The block
 was one straight run of stores plus one global load:
 
 ```c
-actor->field_124 = Wip_SysConfig.field_22 | 0x21900;
+actor->field_124 = Player_Status.field_22 | 0x21900;
 rec->field_10    = 0x100;
 rec->field_12    = 0x100;
 rec->field_4     = rec->field_C + D_80112F92;   /* extern u16 D_80112F92; */
@@ -55490,7 +55496,7 @@ with the last 0.1% being the cosmetic `%lo(D_80112F60+0x32)` vs `%lo(D_80112F92)
 spelling of the same relocation.
 
 `D_XXXXXXXX` for an interior address is splat inventing a name because it has no
-symbol there, exactly as for `Wip_SysConfig.field_22`. Writing the interior
+symbol there, exactly as for `Player_Status.field_22`. Writing the interior
 symbol back as a scalar `extern` is not neutral: it silently changes alias
 behaviour. When a load of some `D_` global will not stay below a nearby struct
 store, find the array or struct that address is *inside* and index it.
@@ -64061,14 +64067,14 @@ shared `addiu` base and you want them folded apart. The opposite shows up when
 there is only **one** reference and the target still materialises the base.
 
 `ActorsShared8016a074` (matched as `func_actor_356100_8016A074`) reads
-`Wip_SysConfig.field_18` once, guarded by a state check, and the target computes
+`Player_Status.field_18` once, guarded by a state check, and the target computes
 the address unconditionally in the entry block — ahead of the `bne` that can
 skip the read entirely:
 
 ```asm
-lui   v0, %hi(Wip_SysConfig)
+lui   v0, %hi(Player_Status)
 lw    a0, 0x1c(a0)
-addiu a1, v0, %lo(Wip_SysConfig)
+addiu a1, v0, %lo(Player_Status)
 lh    v1, 0x0(a0)
 li    v0, 0xd
 bne   v1, v0, .Lret
@@ -64076,20 +64082,20 @@ bne   v1, v0, .Lret
 lh    v0, 0x18(a1)
 ```
 
-Written as `Wip_SysConfig.field_18` the single reference folds to a
-`lui`/`lh %lo(Wip_SysConfig+0x18)` pair *inside* the guarded block, which is one
+Written as `Player_Status.field_18` the single reference folds to a
+`lui`/`lh %lo(Player_Status+0x18)` pair *inside* the guarded block, which is one
 instruction shorter and cost `delete=3`. GCC 2.8.1 does not sink an explicit
 address-of assignment, so hoisting is exactly what a pointer local buys:
 
 ```c
-WipSysConfig* cfg = &Wip_SysConfig;
+PlayerStatus* cfg = &Player_Status;
 ...
 if (cfg->field_18 > 0) { ... }
 ```
 
 The tell is a `delete` penalty (not `reorder`) with the missing instructions
 being an `addiu` of `%lo(sym)` in the entry block. Note this is the case where
-the earlier entry found `cfg = &Wip_SysConfig` useless — there the local was
+the earlier entry found `cfg = &Player_Status` useless — there the local was
 written *inside* the guarded block, where it has nothing to hoist past. Put it
 at function scope, before the guard.
 
@@ -64202,7 +64208,7 @@ miss, not a permuter candidate.
 
 `Gp_PlayerMode2StateA` reached 98.010% with `dir = 1; if (flag) dir =
 (s8)actor->field_97F;`. The only missing instructions were a second
-`lui`/`addiu` for `Wip_SysConfig`; the branch penalties were displaced targets.
+`lui`/`addiu` for `Player_Status`; the branch penalties were displaced targets.
 The `.cse` dump reused the initial address pseudo throughout the function.
 
 Changing that selection to `dir = flag ? (s8)actor->field_97F : 1;` matched
@@ -64772,7 +64778,7 @@ The tables land through `[0x3cdc, .rodata, gameflow]`, leaving the preceding two
 GameFlow function-pointer tables in plain `gameflow_1` rodata.
 
 
-## `D_80073B8C` is `Wip_SysConfig.field_4`: correct aliasing also removes an extra saved register
+## `D_80073B8C` is `Player_Status.field_4`: correct aliasing also removes an extra saved register
 
 `func_acropolis_cafeteria_80181A3C` reached 96.138% with a typed debris work
 block, four-case switch, `MATRIX` assignment and `ABS()` checks. A bare
@@ -64781,11 +64787,11 @@ move before the matrix copy. The overlapping pointer lifetimes then required
 `$s3` and a 0x28 frame instead of sharing `$s0` in a 0x20 frame. A scheduling
 barrier after the copy reached 99.763%, but kept the `lui` too late.
 
-The address is already typed: `Wip_SysConfig` is 0x80073B88, and its
-`field_4` is the player's matrix pointer. Using `Wip_SysConfig.field_4`
+The address is already typed: `Player_Status` is 0x80073B88, and its
+`field_4` is the player's matrix pointer. Using `Player_Status.field_4`
 restores the aggregate-memory dependence and matches with no barrier or pin.
 The raw scratch score is 99.960% solely because `%hi(D_80073B8C)` /
-`%lo(D_80073B8C)` become `%hi(Wip_SysConfig)` / `%lo(Wip_SysConfig+4)`.
+`%lo(D_80073B8C)` become `%hi(Player_Status)` / `%lo(Player_Status+4)`.
 Linking both objects at the same address with the project's symbol values
 produces identical 0x3F4 function bytes and a 100.000% score. Check the
 function extent when comparing: the scratch target object has 12 trailing
@@ -65134,8 +65140,8 @@ the final control-flow graph is already correct.
 
 ## Place a rematerialized config pointer inside the call block to avoid a dead high half
 
-`func_800CB6FC` needs `Wip_SysConfig` materialized into a reload register
-(`lui t1; addiu t1`) after eight calls. Assigning `cfg = &Wip_SysConfig`
+`func_800CB6FC` needs `Player_Status` materialized into a reload register
+(`lui t1; addiu t1`) after eight calls. Assigning `cfg = &Player_Status`
 immediately before its field access kept it in `$a0`. Moving the assignment
 before the slot-lookup calls made `.lreg` report 3 references across 92 insns
 and 8 calls; the pointer spilled and reload rematerialized the full address
@@ -65815,7 +65821,7 @@ scheduler that breaks priority ties by original insn order, so the `lui`
 lands at the block top and the `lo_sum` at the bottom only when the
 assignment has the lowest LUID in the block; the span then covers everything,
 the quantity ranks last, and the `Pad_RemapState` load / `lb` chain keeps
-`v0` with `lui v1,%hi(Wip_SysConfig)` in the delay slot. With the assignment
+`v0` with `lui v1,%hi(Player_Status)` in the delay slot. With the assignment
 after the other prologue statements (or behind a `SCHED_BARRIER`), the
 high/low pair is adjacent, ranks first, and steals `v0`.
 
@@ -66946,7 +66952,7 @@ So a target that shows `lui $v1, %hi(sym)` feeding an `addiu` into some *third*
 register can only come from an allocation where `$v0` was busy across the pair,
 which means the two `high` temps did overlap in the sched1 output. Statement
 reordering does not produce that overlap: in `Gp_CountAmmoRows` five positions
-for `cfg = &Wip_SysConfig;` (first, after `count = 0`, between the two
+for `cfg = &Player_Status;` (first, after `count = 0`, between the two
 `Mc_SaveData` statements, after them, inside the guarded block) all kept the
 `high`/`lo_sum` pairs adjacent and all put the second `high` in `$v0`, leaving a
 `regs=2` residue at 99.894%. The existing recipes for this shape - the split
@@ -68905,7 +68911,7 @@ compiler tables that moved (`_8` offsets `0x0` and `0x70`) stay aligned because
 `_7`'s `.rodata` was exactly `0x120` long, a multiple of 8. Read that size from
 the `.elf.map` before sliding. Copy over only the header declarations the moved
 bodies use. `cc1` runs with `-w`, so a missing prototype does not show up as a
-warning; only an undeclared *variable* (`Wip_SysConfig`) stops the build.
+warning; only an undeclared *variable* (`Player_Status`) stops the build.
 
 ### Scratch `base.c` drops the host file's `<psyq/...>` includes and local `#define`s
 **Symptom.** A port of a matched sibling scores ~91% and the only diff is
@@ -72414,7 +72420,7 @@ a wrapping `CONST` is *not* `CONSTANT_P`, so the substituted address fails
 the original had:
 
 ```c
-WipSysConfig* cfg = &Wip_SysConfig;
+PlayerStatus* cfg = &Player_Status;
 ...
 if (cfg->field_18 > 0) { ... }
 ```
@@ -72918,6 +72924,8 @@ on it.
 
 The two addresses are `Mc_SaveData.characterId` (`Mc_SaveData = 0x80072168`) and
 `Wip_SysConfig.field_21` (`Wip_SysConfig = 0x80073B88`) - the spelling
+The two addresses are `Mc_SaveData.field_22` (`Mc_SaveData = 0x80072168`) and
+`Player_Status.field_21` (`Player_Status = 0x80073B88`) - the spelling
 `include/gameplay/3CD8.h` already documents for this index. Writing them that
 way makes both loads `mem/s`, the exemption no longer applies, the store keeps
 those dependents, becomes ready two cycles later and lands where the ROM has it.
@@ -73471,8 +73479,8 @@ how early the target wants them. In `func_actor_444000_801423C4` the target's
 pre-loop block is
 
 ```
-lui   v0, %hi(Wip_SysConfig)
-addiu s6, v0, %lo(Wip_SysConfig)
+lui   v0, %hi(Player_Status)
+addiu s6, v0, %lo(Player_Status)
 addiu v1, sp, 0x20              /* copy destination */
 lui   v0, %hi(D_actor_444000_80131FF4)
 ...
@@ -73480,12 +73488,12 @@ lw    s1, 0x1c(s3)              /* work = task->field_1C */
 ```
 
 Writing `cfg` and `work` as assignments after the declarations put both *after*
-the copy loop (98.9%, one extra insn because `&Wip_SysConfig` then had to be
+the copy loop (98.9%, one extra insn because `&Player_Status` then had to be
 re-materialised in `Gp_GetViewIndex`'s delay slot). Declaring them as C89
 initialisers ahead of the array is what produces the target block (99.8%):
 
 ```c
-WipSysConfig*    cfg  = &Wip_SysConfig;
+PlayerStatus*    cfg  = &Player_Status;
 Actor444000Work* work = task->field_1C;
 VECTOR           pos;
 void (*handlers[0x15])(Actor444000*) = { ... };
@@ -74469,7 +74477,7 @@ case, applied to the payload of a message send.
 
 **Symptom.** `func_actor_560800_80136818` matched all 24 instructions with the
 same topology, predicates and order but `regs=10` (97.92%): retail puts the
-`&Wip_SysConfig` address in `$s0` and the `idMap` work pointer in `$s1`, and
+`&Player_Status` address in `$s0` and the `idMap` work pointer in `$s1`, and
 the build had them the other way round (`.diff` shows only the two register
 names plus the prologue save order that follows them). `.lreg`/`.greg` name the
 two competitors and their rank:
@@ -74566,22 +74574,22 @@ if-ladder and rewrite before reshaping the switch any further.
 
 **Problem.** `func_actor_560800_80136878` is the sibling of the function above —
 same overlay, same `$s0`/`$s1` pair, and the `do { } while (0)` wrapper already
-in the seed. Declaring the `WipSysConfig* cfg` local at the top of the function
+in the seed. Declaring the `PlayerStatus* cfg` local at the top of the function
 (as its four neighbours in the unit all do) scored 75.36% with `regs=0`: the
 register choice was already right and *every* remaining difference was schedule.
 
 ```
 target                        base_1 (cfg declared at the top)
 lw    v0,0x1c(a0)             lw    v0,0x1c(a0)          # entry block
-nop                           lui   v1,%hi(Wip_SysConfig) # <-- declaration
+nop                           lui   v1,%hi(Player_Status) # <-- declaration
 lhu   v1,0x64(v0)             sh    zero,0x28(v0)
 sh    zero,0x28(v0)           sh    zero,0x40(v0)
 sh    zero,0x40(v0)           sh    zero,0x30(v0)
 sh    zero,0x30(v0)           sh    zero,0x38(v0)
 bnez  v1,.L                   lhu   v0,0x64(v0)
 sh    zero,0x38(v0)           nop
-lui   v0,%hi(Wip_SysConfig)   bnez  v0,.L
-lw    s1,0x1c(a0)             addiu s0,v1,%lo(Wip_SysConfig)  # bnez delay
+lui   v0,%hi(Player_Status)   bnez  v0,.L
+lw    s1,0x1c(a0)             addiu s0,v1,%lo(Player_Status)  # bnez delay
 jal   Gp_KillPlayerEffs       lw    s1,0x1c(a0)
 addiu s0,v0,%lo(...)          jal   Gp_KillPlayerEffs
                               nop
@@ -74599,7 +74607,7 @@ took the address `addiu`.
 
 ```c
     if ((u16)work->field_64 == 0) {
-        WipSysConfig* cfg = &Wip_SysConfig;
+        PlayerStatus* cfg = &Player_Status;
 ```
 
 100% on the next build with `regs=0` unchanged. Same lever as "Nested scopes so a
@@ -79316,9 +79324,9 @@ extra reference is to *read the value back out of the object it was just
 stored into*, instead of reusing the local that was stored:
 
 ```c
-dx        = Wip_SysConfig.field_4->t[0] - self->coord.t[0];
+dx        = Player_Status.field_4->t[0] - self->coord.t[0];
 delta->vx = dx;                                   /* stored ... */
-dz        = Wip_SysConfig.field_4->t[2] - self->coord.t[2];
+dz        = Player_Status.field_4->t[2] - self->coord.t[2];
 delta->vz = dz;
 distance  = SquareRoot0((delta->vx * delta->vx)   /* ... and read back */
                       + (delta->vz * delta->vz)); /* instead of dx*dx+dz*dz */
@@ -89772,7 +89780,7 @@ operand the source wrote it on:
 
 ```c
 offsetY           = scratch->view.t[1] + 0x600;
-scratch->delta.vy = Wip_SysConfig.field_4->t[1] - offsetY;
+scratch->delta.vy = Player_Status.field_4->t[1] - offsetY;
 ```
 
 Inputs: `base_1.i` (90.4%, `regs=36 branch=4 insert=2 delete=4`), `base_2.i` (100%).
@@ -94479,16 +94487,16 @@ it, far from its use:
 
 ```
 .Ljoin:
-    lui   a0, %hi(Wip_SysConfig)
+    lui   a0, %hi(Player_Status)
     lh    v1, 0x5A8(s0)          /* load delay filled by the %lo */
-    addiu a0, a0, %lo(Wip_SysConfig)
+    addiu a0, a0, %lo(Player_Status)
     ...                          /* both abs, then */
     lw    v0, 0x4(a0)
 ```
 
 With the `if` form that address landed two blocks later, leaving a `nop` in the
 join block — the whole visible diff was one `nop` and some reordering, which
-reads like a scheduling problem and is not one. Binding `&Wip_SysConfig` to a
+reads like a scheduling problem and is not one. Binding `&Player_Status` to a
 local right after the loop *does* move the `high`/`lo_sum` into the join block,
 but sched then parks them at its end, splits the pair across the `bgez`, and
 the coalescing that makes `lui a0` / `addiu a0,a0` share a register is lost:
@@ -100991,7 +100999,7 @@ pseudo into the `mem`. The same byte is `D_80072729` elsewhere in the function,
 loaded the normal split way.
 
 **Cause.** The pointer is a function-wide local set once at the top
-(`save = &Mc_SaveData;` next to `config = &Wip_SysConfig;`) and used once deep
+(`save = &Mc_SaveData;` next to `config = &Player_Status;`) and used once deep
 in a switch case. It gets a `REG_EQUIV` constant, and with every callee-saved
 register already taken it gets no hard register; reload rematerialises the
 constant into a reload register (`$t0`) immediately before the use, after the
@@ -106858,7 +106866,7 @@ pos->vx = config->field_4->t[0] - coord->coord.t[0];   /* MATRIX.t is `long` */
 ```
 
 ```asm
-lhu  $v0, 0x14($v1)      /* Wip_SysConfig.field_4->t[0] */
+lhu  $v0, 0x14($v1)      /* Player_Status.field_4->t[0] */
 lhu  $v1, 0x18($a1)      /* coord->coord.t[0] */
 subu $v0, $v0, $v1
 sh   $v0, -0x10($s0)     /* into pos->vx, an s16 member */
@@ -107545,25 +107553,25 @@ Inputs: `base_9.i` SHA256
 `0d17afd01ddd9ca2f2e0d3b05f1ff1642bf6ba27e7d82eaa1212943d7d057cc8`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A repeated `Wip_SysConfig.field_18` read needs a `WipSysConfig*` local, and a signed halfword widened through `(u16)` gives `lhu` for free (func_actor_401000_801385B0, 2026-09-16)
+## A repeated `Player_Status.field_18` read needs a `PlayerStatus*` local, and a signed halfword widened through `(u16)` gives `lhu` for free (func_actor_401000_801385B0, 2026-09-16)
 
 Two independent source forms, both worth about 20 points on this function.
 
-**The config pointer.** Three `Wip_SysConfig.field_18` reads written as direct member accesses gave
-`lui v0,%hi(Wip_SysConfig)` + `lh v1,%lo(Wip_SysConfig+0x18)(v0)` at each site, three times over, and
+**The config pointer.** Three `Player_Status.field_18` reads written as direct member accesses gave
+`lui v0,%hi(Player_Status)` + `lh v1,%lo(Player_Status+0x18)(v0)` at each site, three times over, and
 `arg0->field_20` (the `GpEnemy*`) sitting in `$s7`. The target materialises the address once in the
 prologue and reads `lh v1,0x18(s7)`:
 
 ```
-target:  lui v0,%hi(Wip_SysConfig) / addiu s7,v0,%lo(Wip_SysConfig) / ... / lh v1,0x18(s7)
-seed:    lui v0,%hi(Wip_SysConfig) / lh v1,%lo(Wip_SysConfig+0x18)(v0)
+target:  lui v0,%hi(Player_Status) / addiu s7,v0,%lo(Player_Status) / ... / lh v1,0x18(s7)
+seed:    lui v0,%hi(Player_Status) / lh v1,%lo(Player_Status+0x18)(v0)
 ```
 
-The idiom is the one `src/gameplay/268.c` and `src/gameplay/4CC.c` already use — a `WipSysConfig*`
-local assigned from `&Wip_SysConfig` at the top of the function:
+The idiom is the one `src/gameplay/268.c` and `src/gameplay/4CC.c` already use — a `PlayerStatus*`
+local assigned from `&Player_Status` at the top of the function:
 
 ```c
-WipSysConfig* cfg = &Wip_SysConfig;
+PlayerStatus* cfg = &Player_Status;
 ...
 if (cfg->field_18 > 0) { ... }
 ```
@@ -109109,7 +109117,7 @@ across the `jal` and the copy disappears with it.
 
 ## A hard-register pin on the walking pointer suppresses loop.c's address givs
 
-`func_actor_800100_80166B40` is `Gp_PickNearestRec18` minus its `Wip_SysConfig`
+`func_actor_800100_80166B40` is `Gp_PickNearestRec18` minus its `Player_Status`
 tail: `do { ... rec->key / rec->point ... rec++; } while (i < 6)`. Written
 unpinned the score stops at 83.7% with `regs=54 insert=14 delete=10`, and the
 `.loop` dump shows why:
@@ -111373,7 +111381,7 @@ out of `MATRIX::t[]` — a `long t[3]`, `0x14` in a bare `MATRIX` and `0x18` in 
 `GsCOORDINATE2`, whose `coord` starts at +4:
 
 ```
-    lhu   v0,0x14($v1)         ; Wip_SysConfig.field_4->t[0]
+    lhu   v0,0x14($v1)         ; Player_Status.field_4->t[0]
     lhu   v1,0x18($a2)         ; coord->coord.t[0]
     subu  v0,v0,v1
     sh    v0,-0x10($a3)
@@ -113203,9 +113211,9 @@ Two things the port has to carry that a `sed` of the type names does not:
   `dist`, `node`, `nearest`) alongside the 0x14-byte `Actor110600NearScratch`
   the same scan uses without a config. Same layout, different name; the twin's
   type is not reachable from here.
-- That struct names `WipSysConfig`, so this overlay's header must
+- That struct names `PlayerStatus`, so this overlay's header must
   `#include "main/wipsys.h"`. Without it the failure is a `parse error before
-  'WipSysConfig'` inside the preprocessed input, reported against *this*
+  'PlayerStatus'` inside the preprocessed input, reported against *this*
   overlay's TU while the twin's overlay builds fine — the include belongs in
   the header that declares the struct, not in the one `.c` being edited.
 
