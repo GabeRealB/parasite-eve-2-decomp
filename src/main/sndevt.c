@@ -13,7 +13,7 @@ extern s32 _gSndEvtProcessEnabled;
 /// The slots the deferred sound events live in: 0x40 of them, one per queued
 /// command.
 ///
-/// `SndEvt_Alloc` takes a free slot and `SndEvt_Free` marks it free again, so
+/// `sndEvtAlloc` takes a free slot and `SndEvt_Free` marks it free again, so
 /// this array's length is how many events can be pending at once; an enqueue
 /// that finds no free slot reports the failure rather than allocating.
 extern SndEvt _gSndEvtPool[0x40];
@@ -90,7 +90,7 @@ void SndEvt_Reset(void)
     _gSndEvtProcessEnabled = 1;
 }
 
-SndEvt* SndEvt_Alloc(void)
+SndEvt* sndEvtAlloc(void)
 {
     s32     i;
     s32     flag;
@@ -499,7 +499,7 @@ s32 SndEvt_EnqueueType1(s32 arg0, s32 arg1)
     if ((arg0 & 0xFF) == 0xFF) {
         return -3;
     }
-    temp = SndEvt_Alloc();
+    temp = sndEvtAlloc();
     if (temp == NULL) {
         return -2;
     }
@@ -517,7 +517,7 @@ s32 SndEvt_EnqueueType2(s32 arg0, s32 arg1)
     if ((arg0 & 0xFF) == 0xFF) {
         return -3;
     }
-    temp = SndEvt_Alloc();
+    temp = sndEvtAlloc();
     if (temp == NULL) {
         return -2;
     }
@@ -535,7 +535,7 @@ s32 SndEvt_EnqueueType3(s32 arg0)
     if ((arg0 & 0xFF) == 0xFF) {
         return -3;
     }
-    temp = SndEvt_Alloc();
+    temp = sndEvtAlloc();
     if (temp == NULL) {
         return -2;
     }
@@ -552,7 +552,7 @@ s32 SndEvt_EnqueueType4(s32 arg0)
     if ((arg0 & 0xFF) == 0xFF) {
         return -3;
     }
-    temp = SndEvt_Alloc();
+    temp = sndEvtAlloc();
     if (temp == NULL) {
         return -2;
     }
@@ -570,7 +570,7 @@ s32 SndEvt_EnqueueType5(s32 arg0, s32 arg1)
     if ((arg0 & 0xFF) == 0xFF) {
         return -3;
     }
-    temp = SndEvt_Alloc();
+    temp = sndEvtAlloc();
     if (temp == NULL) {
         return -2;
     }
@@ -744,7 +744,7 @@ void SndEvt_EnqueueType5Pending(void)
     SndEvtMidiArgs* args;
 
     D_800820E9 = 1;
-    temp       = SndEvt_Alloc();
+    temp       = sndEvtAlloc();
     if (temp != NULL) {
         args              = &temp->args.midi;
         temp->handlerIdx  = 5;
@@ -764,7 +764,7 @@ void SndEvt_FlushType5Pending(void)
     if (D_800820E9 != 0) {
         saved      = D_800820E8;
         D_800820E9 = 0;
-        temp       = SndEvt_Alloc();
+        temp       = sndEvtAlloc();
         if (temp != NULL) {
             args             = &temp->args.midi;
             temp->handlerIdx = 5;

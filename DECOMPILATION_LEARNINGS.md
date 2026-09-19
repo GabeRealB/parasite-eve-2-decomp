@@ -8072,7 +8072,7 @@ for (ptr = _gSndEvtPool; i < 0x40; i++, ptr++) {
 }
 ```
 
-`SndEvt_Alloc` is the example.
+`sndEvtAlloc` is the example.
 
 **Hybrid — pointer for early accesses, global name after a call.** When the
 target keeps the address in `$s0` for pre-call loads/stores but reloads with a
@@ -17379,7 +17379,7 @@ Fix: two trailing labels, with success and the early-exit fallthrough sharing
 the orig path, and the null path an explicit goto to the -1 path:
 
 ```c
-temp = SndEvt_Alloc();
+temp = sndEvtAlloc();
 if (temp != NULL) {
     /* setup … */
     goto ret_orig;
@@ -123547,6 +123547,27 @@ struct's leading `///` block, or leave a field between them.
 file is already in the build's shape; run it after editing an overlay header
 rather than waiting for a build to disagree with you. Re-running the build twice
 and diffing `md5sum` is the slower equivalent.
+
+## A `///` block inside a column-aligned declaration run re-aligns everything below it (2026-09-19)
+
+**Symptom.** Documenting one prototype in a header whose declarations are
+column-aligned turns a one-line change into a hundred-line `git diff`: every
+declaration after the new comment comes back with different padding, and none of
+them was edited.
+
+**Why.** The style enables `AlignConsecutiveDeclarations` with
+`AcrossComments: false`, so a comment ends the run it sits in. The declarations
+above the new block align to their own group's widest type and the ones below to
+theirs, which is what moved the column.
+
+The reshuffle is the formatter's own output rather than a partial edit or a
+merge artifact — `build-and-verify.sh` formats before it compiles — and what it
+leaves is stable, so the churn belongs in the commit. Reverting the padding only
+makes the next build reintroduce it.
+
+**Check.** Format a copy of the pre-change file with the new block added and
+diff it against the working tree: an empty diff says the churn is the comment's
+doing and that nothing else moved.
 
 ## Sibling `p->child->field` chains emit in the *reverse* of their statement order
 

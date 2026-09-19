@@ -2053,7 +2053,7 @@ WaitEvent                   = 0x800508A0;
 //--------------------------------------------------------------------
 SndEvt_Process               = 0x800508B0; // type:func
 SndEvt_Reset               = 0x800509B4; // type:func
-SndEvt_Alloc               = 0x800509F4; // type:func
+sndEvtAlloc               = 0x800509F4; // type:func
 SndEvt_Enqueue               = 0x80050A38; // type:func
 SndEvt_Free               = 0x80050A90; // type:func
 func_80050AAC               = 0x80050AAC; // type:func

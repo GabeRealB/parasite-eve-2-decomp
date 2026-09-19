@@ -448,7 +448,7 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
                 return -4;
             }
         }
-        temp = SndEvt_Alloc();
+        temp = sndEvtAlloc();
         if (temp != NULL) {
             temp->handlerIdx        = 6;
             args                    = &temp->args.voice;
@@ -473,7 +473,7 @@ void SndEvt_EnqueueType7(s32 arg0, s32 arg1)
     SndEvt*          temp;
     SndEvtVoiceArgs* args;
 
-    temp = SndEvt_Alloc();
+    temp = sndEvtAlloc();
     if (temp != NULL) {
         temp->handlerIdx = 7;
         args             = &temp->args.voice;
@@ -489,7 +489,7 @@ void SndEvt_EnqueueType8(s32 arg0)
     SndEvtVoiceArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
-        temp = SndEvt_Alloc();
+        temp = sndEvtAlloc();
         if (temp != NULL) {
             temp->handlerIdx = 8;
             args             = &temp->args.voice;
@@ -505,7 +505,7 @@ void SndEvt_EnqueueType9(s32 arg0)
     SndEvtVoiceArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
-        temp = SndEvt_Alloc();
+        temp = sndEvtAlloc();
         if (temp != NULL) {
             temp->handlerIdx = 9;
             args             = &temp->args.voice;
@@ -521,7 +521,7 @@ void SndEvt_EnqueueTypeA(s32 arg0, s32 arg1, s32 arg2)
     SndEvtVoiceArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
-        temp = SndEvt_Alloc();
+        temp = sndEvtAlloc();
         if (temp != NULL) {
             temp->handlerIdx        = 0xA;
             args                    = &temp->args.voice;
@@ -539,7 +539,7 @@ void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1)
     SndEvtVoiceArgs* args;
 
     if (D_80082138[(u32)arg0 >> 28] != 0) {
-        temp = SndEvt_Alloc();
+        temp = sndEvtAlloc();
         if (temp != NULL) {
             temp->handlerIdx     = 0xB;
             args                 = &temp->args.voice;
@@ -576,7 +576,7 @@ void SndBank_SetEnableFlags(s32 arg0, s32 arg1)
         ((volatile u8*)flag)[(u32)arg1 >> 28] = arg0 & 1;
         if (arg0 == 0) {
             if (arg1 == 0x40000000) {
-                temp = SndEvt_Alloc();
+                temp = sndEvtAlloc();
                 if (temp != NULL) {
                     temp->handlerIdx = 7;
                     args             = &temp->args.voice;
@@ -603,7 +603,7 @@ void SndEvt_EnqueueTypeD(void)
 {
     SndEvt* temp;
 
-    temp = SndEvt_Alloc();
+    temp = sndEvtAlloc();
     if (temp != NULL) {
         temp->handlerIdx = 0xD;
         SndEvt_Enqueue(temp);
@@ -614,7 +614,7 @@ void SndEvt_EnqueueTypeE(void)
 {
     SndEvt* temp;
 
-    temp = SndEvt_Alloc();
+    temp = sndEvtAlloc();
     if (temp != NULL) {
         temp->handlerIdx = 0xE;
         SndEvt_Enqueue(temp);
@@ -625,7 +625,7 @@ void SndEvt_EnqueueTypeF(void)
 {
     SndEvt* temp;
 
-    temp = SndEvt_Alloc();
+    temp = sndEvtAlloc();
     if (temp != NULL) {
         temp->handlerIdx = 0xF;
         SndEvt_Enqueue(temp);
