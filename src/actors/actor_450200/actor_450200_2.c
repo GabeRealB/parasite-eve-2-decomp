@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actor_450200.h"
 #include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/gameflag.h"
@@ -96,7 +97,115 @@ void func_actor_450200_80132368(s32 x, s32 tpageX, s32 clutY, s32 semiTrans, s32
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450200/actor_450200_2", func_actor_450200_80132538);
+void func_actor_450200_80132538(Task* task)
+{
+    RECT    rect0;
+    RECT    rect1;
+    RECT*   rp;
+    RECT*   ap;
+    s32     i;
+    s32     j;
+    u16*    src;
+    u16*    dst;
+    u_long* buf;
+    s32     scale;
+    s32     state;
+    s32     level;
+    u32     r;
+    u32     g;
+    u32     b;
+    u32     col;
+
+    if (gGameSession->at4.loc.view == 8) {
+        taskKill(task);
+        return;
+    }
+
+    state = task->state;
+    switch (state) {
+        case 0:
+            task->killCountdown = 0x80;
+            task->state        += 1;
+            setRECT(&rect0, 0, 0xF7, 0x100, 1);
+            StoreImage(&rect0, (u_long*)D_actor_450200_801401E8);
+            rect0.y = 0xF8;
+            StoreImage(&rect0, (u_long*)D_actor_450200_801403E8);
+            break;
+
+        case 1:
+            if (task->killCountdown >= 0) {
+                func_actor_450200_80132368(-0x40, 0x1C0, 0xFA, 1, 0x80, state);
+                func_actor_450200_80132368(0, 0x140, 0xF9, 0, 0x80, state);
+
+                rp    = &rect1;
+                src   = D_actor_450200_801401E8;
+                dst   = D_actor_450200_801405E8;
+                scale = task->killCountdown;
+                for (i = 0; i < 0x100; i++) {
+                    r      = ((src[i] >> 10) & 0x1F) * scale;
+                    g      = ((src[i] >> 5) & 0x1F) * scale;
+                    b      = (*(u8*)&src[i] & 0x1F) * scale;
+                    col    = r >> 7;
+                    g    >>= 7;
+                    col   &= 0xFF;
+                    col  <<= 10;
+                    col   |= ~0x7FFF;
+                    g     &= 0xFF;
+                    g    <<= 5;
+                    col   |= g;
+                    r      = b >> 7;
+                    r     &= 0xFF;
+                    r     |= col;
+                    dst[i] = r;
+                }
+                rect1.x = 0;
+                rect1.y = 0xF9;
+                rp->w   = 0x100;
+                rp->h   = 1;
+                ap      = &rect1;
+                LoadImage(ap, (u_long*)dst);
+                SOFT_DEF_REG(ap);
+                rp = &rect1;
+
+                src   = D_actor_450200_801403E8;
+                dst   = D_actor_450200_801407E8;
+                scale = 0x80 - task->killCountdown;
+                buf   = (u_long*)dst;
+                for (j = 0; j < 0x100; j++) {
+                    r      = ((src[j] >> 10) & 0x1F) * scale;
+                    g      = ((src[j] >> 5) & 0x1F) * scale;
+                    b      = (*(u8*)&src[j] & 0x1F) * scale;
+                    col    = r >> 7;
+                    g    >>= 7;
+                    col   &= 0xFF;
+                    col  <<= 10;
+                    col   |= ~0x7FFF;
+                    g     &= 0xFF;
+                    g    <<= 5;
+                    col   |= g;
+                    r      = b >> 7;
+                    r     &= 0xFF;
+                    r     |= col;
+                    dst[j] = r;
+                }
+                rect1.x = 0;
+                rect1.y = 0xFA;
+                rp->w   = 0x100;
+                rp->h   = 1;
+                LoadImage(&rect1, buf);
+            } else {
+                func_actor_450200_80132368(-0x40, 0x1C0, 0xFA, 0, 0x80, state);
+            }
+
+            level = 0xA0 - (u16)task->killCountdown;
+            if ((u32)(level & 0xFFFF) >= 0xA0U) {
+                level = 0xA0;
+            }
+            func_80180DAC(level & 0xFFFF);
+            task->killCountdown = (u16)task->killCountdown - 4;
+            break;
+    }
+}
 
 void func_actor_450200_80132848(s32 arg0)
 {

@@ -136282,3 +136282,43 @@ preplanned match base_1:
 `14c964b005737988a067c64c6d7fc22aed6752ab1646043812dba6f35a0fae83`.
 Bundled cc1 SHA256:
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## Reuse a dead channel temporary to remove a local scratch conflict with a global accumulator (func_actor_450200_80132538, 2026-09-20)
+
+The two CLUT loops reused `u32 r, g, b, col`. In `base_1`, the final
+`col |= (b >> 7) & 255; dst[i] = col;` generated a block-local shift/mask
+scratch in v0 while global col was live, so col could not take v0. Its
+`.greg` conflict list includes hard register 2; col ended in a0. The red
+product preferred LO_REG and reload moved it to t6.
+
+The preplanned `base_3` experiment reused r after col had consumed the red
+product:
+
+```c
+r = b >> 7;
+r &= 255;
+dst[i] = r | col;
+```
+
+This preserved the computed pixels and confirmed the prediction: r changed
+from 8 refs/22 insns with LO_REG preference to 24/28 with GR_REGS; col's
+hard-v0 conflict disappeared and its v0 preference survived. Final homes
+were r=a0, col=v0, g=v1, blue product=t5. Distance fell from 294 to 140
+(98.500% -> 99.286%) without changing the 196-instruction count. This is
+observed conflict and class movement, not a claim that declarations or
+variable names dictate registers.
+
+The exact `base_4` also stores through `r |= col; dst[i] = r`, splits the
+two loop counters, and spells the red shift/mask chain in separate assignments
+with the green shift after the red shift. Those three edits were tested
+together; their separate numerical effects were not isolated. The rectangle
+pointer independently needed the existing post-call `SOFT_DEF_REG` recipe.
+No pins or tracer were needed.
+
+Evidence is retained under
+`tools/permuter_findings/func_actor_450200_80132538/`: session LEARNINGS.md,
+experiments.jsonl, and base_1/base_3/base_4 lreg/greg dumps. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Input hashes: base_1.i `06e372d135cc2a46481166e82ad44154772404a9f87106f4e1349d4838759432`;
+base_3.i `925619814e0d0f53cfd01c4b627a58069c5c9d367d61c1dafc80b7b29f8b98dd`;
+base_4.i `0a61a063f2ec2e4f4a2d96b888c4d74fcf965d9f47ae146bf7fb0159d9edd05b`.
