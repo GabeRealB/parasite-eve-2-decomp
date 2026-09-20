@@ -135013,3 +135013,40 @@ Reproducible prediction, source delta, selected dumps and hashes are retained
 in `tools/compiler_evidence/2026-09-20-actor403200-38748.json`. Unpeeled input:
 `c556a2194c22ecec70a371db7b5116cea7151f90f8a1cbd44f8131d657c8364d`;
 peeled input: `de97bea767cc751b0d923307ec4554ba6e748f8faebf6ac7d9a69e44e30ae1e2`.
+
+### A phony loop can expose the scheduling boundary a named helper must preserve (func_actor_548100_80132420, 2026-09-20)
+
+The archived unpinned seed reproduced 98.158%: the state load interleaved with
+`D_8007216C = 4`, making the constant live alongside state and pushing its
+address into a1. The bounded permuter reached 100% by wrapping initialization
+through that global store in `do { ... } while (0)`.
+
+The loop pass calls the loop phony but retains LOOP_END. In sched1 the following
+state load (UID72) acquires dependencies on all initial task stores and address/
+constant definitions; the argument setup79 has an OUTPUT edge from72.
+`sched_analyze_insn` handles interior loop notes this way to prevent movement
+that would invalidate loop-weighted reference counts. The notes also increase
+some counts, so the score alone cannot distinguish scheduling from allocation
+weighting.
+
+A preplanned controlled replacement adds only `SOFT_BARRIER()` after the global
+store in the normal-header baseline. It gives 100% with baseline reference
+counts: asm_input66 depends on initial operations, state load69 depends on66,
+and argument setup76 has an OUTPUT edge from66. Address r90 shortens from
+span8 to6 and moves a1->v1; constant r91 moves v1->v0 and state r92 stays v0.
+The named helper uses `sched_analyze_2`'s broad ASM_INPUT boundary. Thus the
+boundary, not doubled loop weights, suffices here. The final port has the
+single named helper and no synthetic loop or register pins; full unscoped
+verification passes.
+
+A narrower scalar-pointer load experiment restored the global-store/load edge
+but scored 93.882%: unrelated task stores still interleaved and state took v1.
+Restoring one alias edge is not equivalent to restoring the whole boundary.
+The earlier hypothesis about unfolding lo_sum was unnecessary; matching code
+still folds it into the byte store. Original C syntax remains unknown.
+
+Predictions, selected RTL, compiler/input hashes and archive location:
+`tools/compiler_evidence/2026-09-20-actor548100-32420.json`. Baseline input:
+`b0b568f094d5d56115b645905373f09ef1a31de8d2e8f7fe1ab18a993fe4c701`;
+controlled matching input:
+`5a90d677218685bec8d548f711079525bb226f502a96f09454cb657bed222c7c`.

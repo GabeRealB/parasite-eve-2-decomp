@@ -183,6 +183,15 @@ typedef struct Actor548100Hotspot {
 } Actor548100Hotspot;
 STATIC_ASSERT_SIZEOF(Actor548100Hotspot, 0xC);
 
+/// Allocates the actor's work, spawns its child and initializes the map UI.
+/// The barrier after the global mode store keeps initialization ahead of the
+/// state increment in GCC 2.8.1; moving that load changes register allocation.
+void func_actor_548100_80132420(Task* task);
+
+/// Rebuilds the route edge lookup and distances. The initializer passes the
+/// cleared hotspot table, which this routine does not read.
+void func_actor_548100_80134400(Actor548100Hotspot* unused);
+
 /// Hit-tests (`x`, `y`) against `table`, raising `hit` on every containing entry
 /// and clearing it on the rest. Returns the `id` of the first entry hit, or 0.
 s32 func_actor_548100_801348A4(Actor548100Hotspot* table, s16 x, s16 y);

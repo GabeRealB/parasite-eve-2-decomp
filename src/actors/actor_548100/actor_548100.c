@@ -5,8 +5,11 @@
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/gameflag.h"
+#include "main/mem.h"
+#include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "psyq/abs.h"
@@ -26,6 +29,9 @@ void func_actor_548100_80134BA8(void);
 void func_actor_548100_80134BF0(void);
 
 extern u8                 D_80070F87;
+extern s8                 D_8007216C;
+extern TaskDesc           D_actor_548100_801351B4;
+extern GpMsgEntry         D_actor_548100_801351C0[];
 extern Actor548100Hotspot D_actor_548100_801357E8[];
 extern Actor548100Route   D_actor_548100_801356D8;
 extern Actor548100Route   D_actor_548100_80135750;
@@ -89,7 +95,41 @@ void func_actor_548100_80132338(s32 x, s32 y, s32 variant)
     addPrim(gGpuCurrentOt, prim);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80132420);
+void func_actor_548100_80132420(Task* task)
+{
+    Actor548100Work*    work;
+    Actor548100Hotspot* rec;
+    Actor548100Hotspot* start;
+
+    work = memCalloc(0x18, 0);
+    if (work == NULL) {
+        taskKill(task);
+        return;
+    }
+    task->spawnArg2 = Task_SpawnFromTable(&D_actor_548100_801351B4, 0, 1, 0);
+    task->msgTable  = D_actor_548100_801351C0;
+    task->work      = work;
+    D_8007216C      = 4;
+    SOFT_BARRIER();
+    task->state += 1;
+    if (GameFlag_GetNibble(0xBE) == 0) {
+        GameFlag_SetNibble(0xBE, 1);
+        GameFlag_SetNibble(0xC2, 1);
+    }
+    work->collectBitId = 0;
+    Display_AcquireRef();
+    start = D_actor_548100_801357E8;
+    for (rec = start; rec->id != -1; rec++) {
+        rec->hit = 0;
+    }
+    D_actor_548100_80135B50 = 0x10;
+    D_actor_548100_80135B52 = 0;
+    func_actor_548100_80134400(start);
+    gGameSession->cutsceneHold = 1;
+    gGameSession->hideHud      = 1;
+    Gp_MsgPlayerWeapon(0);
+    Gp_MsgPlayer3F3(0);
+}
 
 void func_actor_548100_80132550(Task* task)
 {
@@ -1106,7 +1146,7 @@ void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos)
 /// coordinates in `field_4` / `field_6` and their span less 2 in `dist`.
 /// Finally reset each edge's `state` for the current stage, as
 /// `func_actor_548100_80134BF0` does.
-void func_actor_548100_80134400(void)
+void func_actor_548100_80134400(Actor548100Hotspot* unused)
 {
     Actor548100Edge* edge;
     Actor548100Edge* cell;

@@ -1,0 +1,284 @@
+{
+  "function": "func_actor_548100_80132420",
+  "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+  "source_hashes": {
+    "base.c": "8f4cb4a977809dc6d885b786a627d1407f7de442a4ee05051ffad0236aafd111",
+    "base.i": "b0b568f094d5d56115b645905373f09ef1a31de8d2e8f7fe1ab18a993fe4c701",
+    "base_1.c": "2f8322b87d835b431c251939b00657321de08321a225c0362df9c435d4ba21aa",
+    "base_1.i": "21b9e165a509d68b14b026a03b11a5a6df8f3ed85c89930e4af0cad338b73b1f",
+    "base_2.c": "48b20d3e278d110e4432a05f1d4f2eb63da24b4a782ed1faaa063ffd860aebfd",
+    "base_2.i": "5a90d677218685bec8d548f711079525bb226f502a96f09454cb657bed222c7c",
+    "base_3.c": "2030b898d8f0c72f10cf7efed765495fae7c9a37f50e8603684d729206027e04",
+    "base_3.i": "26ff4d0d37cd7d92b5535de72ff335ee06ffac8985ecb351d84b3bf8f3b54d35",
+    "base_perm_c0f592d5756846a5.c": "9f8e6175d11881ba639dae87ae508d87b74aef27a219c345234d86ce1993fdc2",
+    "base_perm_c0f592d5756846a5.i": "ef31422fbd06e553d7924d6fae7f1722d359acf6f08745e3eb6732abab860920",
+    "base_perm_c0f592d5756846a5_parent.c": "b0b568f094d5d56115b645905373f09ef1a31de8d2e8f7fe1ab18a993fe4c701",
+    "base_perm_c0f592d5756846a5_parent.i": "b0b568f094d5d56115b645905373f09ef1a31de8d2e8f7fe1ab18a993fe4c701"
+  },
+  "permuter_run": "c0f592d5756846a5",
+  "archive": "tools/permuter_findings/func_actor_548100_80132420/sessions/157eaf7bb84f4819ac7cbe6d0c96f27c/ac9c7f55a6d551718681",
+  "status": "supported",
+  "mechanism": "Interior LOOP_END gives the following instruction broad register/memory dependencies. Replacing the one-iteration loop with SOFT_BARRIER retains the required schedule and register homes without loop reference weighting.",
+  "prediction": "base_2: add only SOFT_BARRIER after D_8007216C = 4; state load follows initial stores, global address uses v1, constant and state share v0; exact object.",
+  "result": "base_2 100%, base_3 normal-style port identical; unscoped build-and-verify succeeded.",
+  "counterevidence": "base_1 scalar Task.state access restores only the global-store/load edge; unrelated task stores remain independent and state allocates v1, giving 93.882%.",
+  "scope": "This compilation only; original C syntax unknown. No scheduler trace was needed.",
+  "compiler_locations": [
+    "local/gcc/gcc-2.8.1-psx/sched.c:sched_analyze_insn (loop_notes)",
+    "local/gcc/gcc-2.8.1-psx/sched.c:sched_analyze_2 (ASM_INPUT)"
+  ],
+  "observations": {
+    "baseline_state_load": "(insn 67 65 208 (set (reg:SI 92)\n        (mem/s:SI (plus:SI (reg/v:SI 80)\n                (const_int 48)))) 172 {movsi_internal2} (insn_list 44 (nil))\n    (nil))",
+    "loop_boundary_state_load": "(insn 72 70 77 (set (reg:SI 92)\n        (mem/s:SI (plus:SI (reg/v:SI 80)\n                (const_int 48)))) 172 {movsi_internal2} (insn_list 58 (insn_list 55 (insn_list:REG_DEP_ANTI 60 (insn_list 48 (insn_list 50 (insn_list 32 (insn_list:REG_DEP_ANTI 35 (insn_list:REG_DEP_ANTI 47 (insn_list:REG_DEP_ANTI 52 (insn_list:REG_DEP_ANTI 54 (insn_list 43 (nil))))))))))))\n    (nil))",
+    "loop_boundary_argument": "(insn 79 77 214 (set (reg:SI 4 a0)\n        (const_int 190)) 172 {movsi_internal2} (insn_list:REG_DEP_ANTI 43 (insn_list:REG_DEP_OUTPUT 72 (nil)))\n    (expr_list:REG_EQUAL (const_int 190)\n        (nil)))",
+    "scalar_load": "(insn 70 68 211 (set (reg:SI 93)\n        (mem:SI (plus:SI (reg/v:SI 80)\n                (const_int 48)))) 172 {movsi_internal2} (insn_list 64 (insn_list 44 (nil)))\n    (nil))",
+    "named_barrier": "(insn 66 65 67 (asm_input (\"\")) -1 (insn_list 62 (insn_list 59 (insn_list:REG_DEP_ANTI 64 (insn_list 50 (insn_list 52 (insn_list 33 (insn_list:REG_DEP_ANTI 36 (insn_list 44 (insn_list:REG_DEP_ANTI 48 (insn_list:REG_DEP_ANTI 54 (insn_list:REG_DEP_ANTI 57 (nil))))))))))))\n    (nil))",
+    "named_barrier_state_load": "(insn 69 67 74 (set (reg:SI 92)\n        (mem/s:SI (plus:SI (reg/v:SI 80)\n                (const_int 48)))) 172 {movsi_internal2} (insn_list:REG_DEP_ANTI 44 (insn_list 66 (nil)))\n    (nil))",
+    "named_barrier_argument": "(insn 76 74 209 (set (reg:SI 4 a0)\n        (const_int 190)) 172 {movsi_internal2} (insn_list:REG_DEP_ANTI 44 (insn_list:REG_DEP_OUTPUT 66 (nil)))\n    (expr_list:REG_EQUAL (const_int 190)\n        (nil)))"
+  },
+  "builds": [
+    {
+      "assembly_sha256": "3c5928a28f99113aaca0991cc70ddab6b395bbdbc78103be8ee39f257e6ff15b",
+      "at": "2026-09-20T07:16:56.116907+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 465,
+      "duplicate_of": null,
+      "expected": "sched1 state load follows D_8007216C store; constant 4 and state share v0 while global address uses v1; other instruction order stays matched",
+      "failure": 0,
+      "first_changed_pass": "rtl",
+      "flags": "-I /home/gabriel/pe2-ov-actor_548100/include -I /home/gabriel/pe2-ov-actor_548100/build -I /home/gabriel/pe2-ov-actor_548100/include/psyq -I /home/gabriel/pe2-ov-actor_548100/include/decomp -I /home/gabriel/pe2-ov-actor_548100/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_548100/include -I /home/gabriel/pe2-ov-actor_548100/build -I /home/gabriel/pe2-ov-actor_548100/include/psyq -I /home/gabriel/pe2-ov-actor_548100/include/decomp -I /home/gabriel/pe2-ov-actor_548100/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "A scalar pointer to Task.state removes MEM_IN_STRUCT from the load and restores its dependency on the global byte store, matching the ordering achieved by the permuter loop boundary",
+      "parent": "base.c",
+      "pass_name": "sched",
+      "penalties": {
+        "branch": 0,
+        "delete": 1,
+        "insert": 1,
+        "regs": 5,
+        "reorder": 4,
+        "stack": 0
+      },
+      "preprocessed_sha256": "21b9e165a509d68b14b026a03b11a5a6df8f3ed85c89930e4af0cad338b73b1f",
+      "project": "/home/gabriel/pe2-ov-actor_548100",
+      "score": 93.88157894736842,
+      "source": "base_1.c",
+      "source_sha256": "2f8322b87d835b431c251939b00657321de08321a225c0362df9c435d4ba21aa",
+      "target_sha256": "5caa21c72032260ed225cedf5a3e3bc0dc34863342d270b396bac068db3f8d4d"
+    },
+    {
+      "assembly_sha256": "b29e941f985006a4378b7b46d232ac8bca242104a54e37b75d797e10ca3d9a20",
+      "at": "2026-09-20T07:17:24.128750+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 0,
+      "duplicate_of": "base_perm_c0f592d5756846a5.c",
+      "expected": "state load scheduled after all initial stores, argument setup after state load; local constant/state both v0, global address v1; exact target object",
+      "failure": 0,
+      "first_changed_pass": null,
+      "flags": "-I /home/gabriel/pe2-ov-actor_548100/include -I /home/gabriel/pe2-ov-actor_548100/build -I /home/gabriel/pe2-ov-actor_548100/include/psyq -I /home/gabriel/pe2-ov-actor_548100/include/decomp -I /home/gabriel/pe2-ov-actor_548100/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_548100/include -I /home/gabriel/pe2-ov-actor_548100/build -I /home/gabriel/pe2-ov-actor_548100/include/psyq -I /home/gabriel/pe2-ov-actor_548100/include/decomp -I /home/gabriel/pe2-ov-actor_548100/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "The permuter LOOP_END sets sched_analyze loop_notes and makes the next instruction an all-register boundary; SOFT_BARRIER should preserve the same initial-stores-before-state and argument-after-state ordering without a phony loop",
+      "parent": "base.c",
+      "pass_name": "sched",
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "5a90d677218685bec8d548f711079525bb226f502a96f09454cb657bed222c7c",
+      "project": "/home/gabriel/pe2-ov-actor_548100",
+      "score": 100.0,
+      "source": "base_2.c",
+      "source_sha256": "48b20d3e278d110e4432a05f1d4f2eb63da24b4a782ed1faaa063ffd860aebfd",
+      "target_sha256": "5caa21c72032260ed225cedf5a3e3bc0dc34863342d270b396bac068db3f8d4d"
+    },
+    {
+      "assembly_sha256": "b29e941f985006a4378b7b46d232ac8bca242104a54e37b75d797e10ca3d9a20",
+      "at": "2026-09-20T07:18:13.657907+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 0,
+      "duplicate_of": "base_perm_c0f592d5756846a5.c",
+      "expected": "100 percent with identical object and allocation after stylistic port",
+      "failure": 0,
+      "first_changed_pass": null,
+      "flags": "-I /home/gabriel/pe2-ov-actor_548100/include -I /home/gabriel/pe2-ov-actor_548100/build -I /home/gabriel/pe2-ov-actor_548100/include/psyq -I /home/gabriel/pe2-ov-actor_548100/include/decomp -I /home/gabriel/pe2-ov-actor_548100/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_548100/include -I /home/gabriel/pe2-ov-actor_548100/build -I /home/gabriel/pe2-ov-actor_548100/include/psyq -I /home/gabriel/pe2-ov-actor_548100/include/decomp -I /home/gabriel/pe2-ov-actor_548100/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "Normal header types and naming plus removal of the obsolete TaskIdMap cast preserve the verified barrier dependencies and machine code",
+      "parent": "base_2.c",
+      "pass_name": "sched",
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "26ff4d0d37cd7d92b5535de72ff335ee06ffac8985ecb351d84b3bf8f3b54d35",
+      "project": "/home/gabriel/pe2-ov-actor_548100",
+      "score": 100.0,
+      "source": "base_3.c",
+      "source_sha256": "2030b898d8f0c72f10cf7efed765495fae7c9a37f50e8603684d729206027e04",
+      "target_sha256": "5caa21c72032260ed225cedf5a3e3bc0dc34863342d270b396bac068db3f8d4d"
+    }
+  ],
+  "plans_and_conclusions": [
+    {
+      "at": "2026-09-20T07:16:55.394589+00:00",
+      "event": "plan",
+      "expected": "sched1 state load follows D_8007216C store; constant 4 and state share v0 while global address uses v1; other instruction order stays matched",
+      "hypothesis": "A scalar pointer to Task.state removes MEM_IN_STRUCT from the load and restores its dependency on the global byte store, matching the ordering achieved by the permuter loop boundary",
+      "parent": "base.c",
+      "pass_name": "sched",
+      "source": "base_1.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T07:17:23.580429+00:00",
+      "event": "conclude",
+      "next": "Replace the phony loop boundary with the project SOFT_BARRIER helper and predict the same broad dependency boundary",
+      "result": "Restored store64 to scalar load70 dependency, but only that edge: unrelated task stores stayed schedulable after the load, state took v1 and score fell to 93.882. The permuter loop boundary orders every pre-boundary operation before the state load and also orders a0 after it.",
+      "source": "base_1.c",
+      "source_sha256": "2f8322b87d835b431c251939b00657321de08321a225c0362df9c435d4ba21aa"
+    },
+    {
+      "at": "2026-09-20T07:17:23.625963+00:00",
+      "event": "plan",
+      "expected": "state load scheduled after all initial stores, argument setup after state load; local constant/state both v0, global address v1; exact target object",
+      "hypothesis": "The permuter LOOP_END sets sched_analyze loop_notes and makes the next instruction an all-register boundary; SOFT_BARRIER should preserve the same initial-stores-before-state and argument-after-state ordering without a phony loop",
+      "parent": "base.c",
+      "pass_name": "sched",
+      "source": "base_2.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T07:18:13.151276+00:00",
+      "event": "conclude",
+      "next": "Port the single named barrier and normal Task/work/Hotspot declarations, then verify whole project",
+      "result": "100.000 with all-zero penalties. sched1 UID66 asm_input depends on initial stores; state load69 depends on66 and a0 setup76 has OUTPUT dependency on66. r90 address v1, r91 constant v0, r92 state v0. Unlike the phony loop, refs remain baseline counts, proving loop ref weighting is unnecessary.",
+      "source": "base_2.c",
+      "source_sha256": "48b20d3e278d110e4432a05f1d4f2eb63da24b4a782ed1faaa063ffd860aebfd"
+    },
+    {
+      "at": "2026-09-20T07:18:13.197182+00:00",
+      "event": "plan",
+      "expected": "100 percent with identical object and allocation after stylistic port",
+      "hypothesis": "Normal header types and naming plus removal of the obsolete TaskIdMap cast preserve the verified barrier dependencies and machine code",
+      "parent": "base_2.c",
+      "pass_name": "sched",
+      "source": "base_3.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T07:19:17.852250+00:00",
+      "event": "conclude",
+      "next": "Unscoped integration verification and archive findings",
+      "result": "Normal C/header-style port is 100.000 with zero penalties; compare reports assembly identical and no changed expression sequence versus base_2.",
+      "source": "base_3.c",
+      "source_sha256": "2030b898d8f0c72f10cf7efed765495fae7c9a37f50e8603684d729206027e04"
+    },
+    {
+      "at": "2026-09-20T07:20:45.618673+00:00",
+      "event": "conclude-permuter",
+      "evidence": [
+        {
+          "path": "PERMUTER_ANALYSIS.md",
+          "retained": "PERMUTER_EVIDENCE/conclusions/363a7dd571574c9c902f40aa04ddedf3/0-PERMUTER_ANALYSIS.md",
+          "sha256": "a7ab20799ba180a3fefdb4eca819456d1032082ac46f0c388fe52840d46f0959"
+        },
+        {
+          "path": "LEARNINGS.md",
+          "retained": "PERMUTER_EVIDENCE/conclusions/363a7dd571574c9c902f40aa04ddedf3/1-LEARNINGS.md",
+          "sha256": "a643ad255f0ff2af544cbbe8ce0169f4d334222d9042f0e4279c9d7256d883b3"
+        },
+        {
+          "path": "analysis_hashes.json",
+          "retained": "PERMUTER_EVIDENCE/conclusions/363a7dd571574c9c902f40aa04ddedf3/2-analysis_hashes.json",
+          "sha256": "7fb6105f5b3e206aadcf33bd8e0f68a0c636a6802206741a17c4df39bb6f9da8"
+        },
+        {
+          "path": "base_1.c",
+          "retained": "PERMUTER_EVIDENCE/conclusions/363a7dd571574c9c902f40aa04ddedf3/3-base_1.c",
+          "sha256": "2f8322b87d835b431c251939b00657321de08321a225c0362df9c435d4ba21aa"
+        },
+        {
+          "path": "base_1.i.sched",
+          "retained": "PERMUTER_EVIDENCE/conclusions/363a7dd571574c9c902f40aa04ddedf3/4-base_1.i.sched",
+          "sha256": "714c7248f7cd2fe02fea5ba23903777f04353e744a8d017844a54601d7fac5f4"
+        },
+        {
+          "path": "base_1.i.lreg",
+          "retained": "PERMUTER_EVIDENCE/conclusions/363a7dd571574c9c902f40aa04ddedf3/5-base_1.i.lreg",
+          "sha256": "e6adf5e151a72c973d00dc791f396bba386ee639bf273dfb1a3edc6dc78fec17"
+        },
+        {
+          "path": "base_perm_c0f592d5756846a5.i.sched",
+          "retained": "PERMUTER_EVIDENCE/conclusions/363a7dd571574c9c902f40aa04ddedf3/6-base_perm_c0f592d5756846a5.i.sched",
+          "sha256": "433c4c46fa9a2e504b885e5ad04237be39965ed1d589f439d7bc2efebc438917"
+        },
+        {
+          "path": "base_perm_c0f592d5756846a5.i.lreg",
+          "retained": "PERMUTER_EVIDENCE/conclusions/363a7dd571574c9c902f40aa04ddedf3/7-base_perm_c0f592d5756846a5.i.lreg",
+          "sha256": "4b756a95d0d6129d9e1ad33d354db12568d118cd1023158a32c027cafa05d077"
+        },
+        {
+          "path": "integration.log",
+          "retained": "PERMUTER_EVIDENCE/conclusions/363a7dd571574c9c902f40aa04ddedf3/8-integration.log",
+          "sha256": "609d4bd9afef75bcf2ad2329caee649e4d38d7302a74858d36383a3384690d48"
+        },
+        {
+          "path": "PERMUTER_EVIDENCE/c0f592d5756846a5/manifest.json",
+          "retained": "PERMUTER_EVIDENCE/conclusions/363a7dd571574c9c902f40aa04ddedf3/9-manifest.json",
+          "sha256": "63b772151565e21ace21afb57cc5b67b5db75df3b4b649318ee37dfa378c0592"
+        }
+      ],
+      "next": "No further matching work; preserve the named boundary and retained evidence",
+      "prediction": {
+        "at": "2026-09-20T07:17:23.625963+00:00",
+        "event": "plan",
+        "expected": "state load scheduled after all initial stores, argument setup after state load; local constant/state both v0, global address v1; exact target object",
+        "hypothesis": "The permuter LOOP_END sets sched_analyze loop_notes and makes the next instruction an all-register boundary; SOFT_BARRIER should preserve the same initial-stores-before-state and argument-after-state ordering without a phony loop",
+        "parent": "base.c",
+        "pass_name": "sched",
+        "source": "base_2.c",
+        "source_sha256": null
+      },
+      "prediction_build": {
+        "assembly_sha256": "b29e941f985006a4378b7b46d232ac8bca242104a54e37b75d797e10ca3d9a20",
+        "at": "2026-09-20T07:17:24.128750+00:00",
+        "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "distance": 0,
+        "duplicate_of": "base_perm_c0f592d5756846a5.c",
+        "expected": "state load scheduled after all initial stores, argument setup after state load; local constant/state both v0, global address v1; exact target object",
+        "failure": 0,
+        "first_changed_pass": null,
+        "flags": "-I /home/gabriel/pe2-ov-actor_548100/include -I /home/gabriel/pe2-ov-actor_548100/build -I /home/gabriel/pe2-ov-actor_548100/include/psyq -I /home/gabriel/pe2-ov-actor_548100/include/decomp -I /home/gabriel/pe2-ov-actor_548100/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_548100/include -I /home/gabriel/pe2-ov-actor_548100/build -I /home/gabriel/pe2-ov-actor_548100/include/psyq -I /home/gabriel/pe2-ov-actor_548100/include/decomp -I /home/gabriel/pe2-ov-actor_548100/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+        "hypothesis": "The permuter LOOP_END sets sched_analyze loop_notes and makes the next instruction an all-register boundary; SOFT_BARRIER should preserve the same initial-stores-before-state and argument-after-state ordering without a phony loop",
+        "parent": "base.c",
+        "pass_name": "sched",
+        "penalties": {
+          "branch": 0,
+          "delete": 0,
+          "insert": 0,
+          "regs": 0,
+          "reorder": 0,
+          "stack": 0
+        },
+        "preprocessed_sha256": "5a90d677218685bec8d548f711079525bb226f502a96f09454cb657bed222c7c",
+        "project": "/home/gabriel/pe2-ov-actor_548100",
+        "score": 100.0,
+        "source": "base_2.c",
+        "source_sha256": "48b20d3e278d110e4432a05f1d4f2eb63da24b4a782ed1faaa063ffd860aebfd",
+        "target_sha256": "5caa21c72032260ed225cedf5a3e3bc0dc34863342d270b396bac068db3f8d4d"
+      },
+      "result": "Phony LOOP_END creates broad scheduling dependencies; the planned replacement with a single SOFT_BARRIER reproduces them and the exact object without doubled loop reference counts. Normal-style port and full unscoped build pass.",
+      "source": "base_3.c",
+      "source_sha256": "2030b898d8f0c72f10cf7efed765495fae7c9a37f50e8603684d729206027e04",
+      "status": "supported"
+    }
+  ]
+}
