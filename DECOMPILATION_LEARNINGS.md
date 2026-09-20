@@ -135785,3 +135785,36 @@ Plans, sources, dumps and conclusions are retained under
 `tools/permuter_findings/func_actor_136100_80133238/sessions/bff8656f768f41de98e19538cd32468a/d52a1df6ac613701ee21/`.
 The router's own candidate did not reproduce an improvement (distance 340 to
 545); the supported result above came from independent dump-driven experiments.
+
+## Empty-loop notes constrain the next real instruction; place a named boundary at the required store (func_actor_136100_80132748, 2026-09-20)
+
+The retry reproduced 96.091% with matching topology. In six animation-loop
+preheaders, sched1 placed index=1 and invariant=10 before the animation-state
+store. The store had priority 2 while the independent initializers had priority
+1; backward scheduling therefore put the initializers first in forward order.
+Source-level statement reordering from the prior session had not changed this.
+
+The router found 96.493% by inserting an empty `do {} while (0)` before the
+request-5 animation helper. Planned base_2 reproduced that sole mutation in
+normal header-based C and emitted the router's exact object. Its loop notes
+survive combine. `sched_analyze_insn` (patched sched.c:2086-2113) attaches
+middle-of-block loop notes to the next real instruction, adding dependencies
+so loop-depth reference accounting stays valid. In base_2.sched, anim=10
+UID 519 depends on zero-store 503; index 527, work-load 523 and invariant 757
+depend on 519. The empty loop emits nothing but constrains this instruction.
+It corrects one constant reuse without ordering the following store correctly.
+
+Independently planned base_1 instead places `SCHED_BARRIER()` immediately after
+the animation-state store. Its ASM_INPUT depends on that store, and both loop
+initializers depend on the boundary. All six preheaders match, with index s0,
+work s1, outer work s2 and invariant s3 preserved. The request-5 animation
+constant also becomes the preceding branch's delay-slot instruction, restoring
+the target load-delay nop. Base_3 ports the loops to `for` and stays exact;
+unscoped integration verification passes. The original C idiom remains unknown.
+
+Compiler hash: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Controlled input hash: `fcabffc0146038bae3982e4b3582099f3255b90483b88b732f4fc29cbd7c33bc`.
+Matching input hash: `36328c12d489ce6a559888719b524547bd9c9d6b8f51a1c28ace2a75a95bfadc`.
+Selected dump evidence, other input hashes and validation:
+[2026-09-20-actor136100-32748.json](tools/compiler_evidence/2026-09-20-actor136100-32748.json).
+Full sources and dumps are retained in the function's `tools/permuter_findings/` archive.

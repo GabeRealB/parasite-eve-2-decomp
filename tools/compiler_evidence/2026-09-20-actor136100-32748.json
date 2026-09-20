@@ -1,0 +1,83 @@
+{
+  "base": {
+    ".c": "1518a8f0d71e915ef61d7ab482b3aebcfb6d19c94755e05e7538f208433dd334",
+    ".i": "b1185a6d51d68da9b9d0d25be1d1b4a90808457b004d72bc171f5bacebc14bc0",
+    "_object_dump_normalized.s": "48026455646c005bf38bc227bef8cdcf9358f80928e6754126f02908f0d37f16",
+    "score": {
+      "score": 96.0909090909091,
+      "distance": 1118,
+      "penalties": {
+        "stack": 0,
+        "branch": 8,
+        "regs": 6,
+        "reorder": 13,
+        "insert": 1,
+        "delete": 2
+      }
+    }
+  },
+  "base_1": {
+    ".c": "db73dec51eac6dd6d82fb624ee2719c8e777a8f9602f10eabb7690b30fc0a734",
+    ".i": "aa9ddf070896cdec09ffa5bb6f77e3aa0677733a0646b1207d902cec45938dbd",
+    "_object_dump_normalized.s": "37b2270e483f0ea82c21d5d8e743e2bbf9a323826cd5ab8ba3c4adebc92b3162",
+    "score": {
+      "score": 100.0,
+      "distance": 0,
+      "penalties": {
+        "stack": 0,
+        "branch": 0,
+        "regs": 0,
+        "reorder": 0,
+        "insert": 0,
+        "delete": 0
+      }
+    }
+  },
+  "base_2": {
+    ".c": "d5c9063007f891108a5c8c1330183cd35b4d6ddff44bd5a3b7045ced7006322e",
+    ".i": "fcabffc0146038bae3982e4b3582099f3255b90483b88b732f4fc29cbd7c33bc",
+    "_object_dump_normalized.s": "df122282f9cbccc3b0212005bb18613567292593e70c9f4c30aa2423d3008bba",
+    "score": {
+      "score": 96.49300699300699,
+      "distance": 1003,
+      "penalties": {
+        "stack": 0,
+        "branch": 8,
+        "regs": 7,
+        "reorder": 11,
+        "insert": 1,
+        "delete": 2
+      }
+    }
+  },
+  "base_3": {
+    ".c": "093a59551966297bfebe6b78322a776b2f403746030e0851cd51950590f25537",
+    ".i": "36328c12d489ce6a559888719b524547bd9c9d6b8f51a1c28ace2a75a95bfadc",
+    "_object_dump_normalized.s": "37b2270e483f0ea82c21d5d8e743e2bbf9a323826cd5ab8ba3c4adebc92b3162",
+    "score": {
+      "score": 100.0,
+      "distance": 0,
+      "penalties": {
+        "stack": 0,
+        "branch": 0,
+        "regs": 0,
+        "reorder": 0,
+        "insert": 0,
+        "delete": 0
+      }
+    }
+  },
+  "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+  "observations": {
+    "base_2.greg.homes.txt": ";; Register dispositions:\n80 in 17  81 in 18  82 in 2  83 in 17  84 in 16  88 in 19  \n89 in 2  90 in 2  91 in 2  92 in 2  93 in 2  94 in 2  \n96 in 2  97 in 2  98 in 2  99 in 4  100 in 2  101 in 2  \n102 in 2  103 in 2  104 in 2  106 in 2  107 in 3  108 in 2  \n109 in 2  110 in 17  111 in 16  115 in 19  116 in 2  117 in 2  \n118 in 2  119 in 2  120 in 2  121 in 2  123 in 2  124 in 2  \n125 in 3  127 in 2  129 in 2  130 in 4  131 in 2  132 in 2  \n134 in 2  136 in 3  138 in 3  141 in 2  142 in 2  143 in 19  \n144 in 16  145 in 4  146 in 2  147 in 2  148 in 2  149 in 2  \n150 in 2  153 in 16  154 in 2  155 in 2  156 in 17  157 in 16  \n161 in 19  162 in 2  163 in 2  164 in 2  165 in 17  166 in 16  \n170 in 19  171 in 2  172 in 2  173 in 2  174 in 17  175 in 16  \n178 in 19  180 in 2  181 in 2  182 in 2  183 in 2  184 in 2  \n185 in 2  187 in 2  188 in 2  189 in 2  190 in 2  191 in 17  \n192 in 16  196 in 19  197 in 2  198 in 2  199 in 3  200 in 2  \n201 in 17  202 in 16  203 in 2  204 in 5  206 in 2  207 in 2  \n208 in 2  209 in 2  210 in 19  212 in 2  213 in 2  214 in 3  \n215 in 2  216 in 2  217 in 2  219 in 3  220 in 3  221 in 2  \n\n\n;; Hard regs used:  2 3 4 5 6 7 16 17 18 19 29 31\n",
+    "base_1.sched.decisions.txt": ";;\t -- basic block number 6 from 27 to 765 --\n;; ready list initially:\n;; 765 44 \n\n;; insn[  30]: priority =    1, ref_count =    3\n;; insn[  34]: priority =    1, ref_count =    2\n;; insn[  38]: priority =    1, ref_count =    2\n;; insn[  40]: priority =    2, ref_count =    1\n;; insn[  42]: priority =    2, ref_count =    2\n;; insn[  44]: priority =    2, ref_count =    0\n;; insn[ 765]: priority =    2, ref_count =    0\n;; ready list at T-1: 765 (2) 44 (2), now 765 44\n;; ready list at T-2: 44 (2), now 44\n;; ready list at T-3: 42 (2), now 42\n;; ready list at T-4: 40 (2), now 40\n;; ready list at T-5: 34 (7f000001), now 34\n;; launching 38 before 34 with no stalls at T-6\n;; ready list at T-6: 38 (7f000001), now 38\n;; ready list at T-7: 30 (1), now 30\n;; total time = 7\n;; new basic block head = 27\n;; new basic block end = 765\n\n",
+    "base_2.combine.preheader.txt": "\n(note 499 498 500 \"\" NOTE_INSN_DELETED)\n\n;; Start of basic block 35.\n;; Registers live: 29 [$sp] 30 [$fp] 80 81\n\n(code_label 500 499 501 52 \"\")\n\n(note 501 500 503 (\"/home/gabriel/pe2-ov-actor_136100/nonmatchings/func_actor_136100_80132748-vacuum/base_2.i\") 7274)\n\n(insn 503 501 504 (set (mem/s:HI (plus:SI (reg/v:SI 81)\n                (const_int 1232)))\n        (const_int 0)) 187 {movhi_internal2} (nil)\n    (nil))\n\n(note 504 503 505 (\"/home/gabriel/pe2-ov-actor_136100/nonmatchings/func_actor_136100_80132748-vacuum/base_2.i\") 7275)\n\n(note 505 504 507 \"\" NOTE_INSN_LOOP_BEG)\n\n(note 507 505 514 \"\" NOTE_INSN_LOOP_CONT)\n\n(note 514 507 516 \"\" NOTE_INSN_LOOP_END)\n\n(note 516 514 517 (\"/home/gabriel/pe2-ov-actor_136100/nonmatchings/func_actor_136100_80132748-vacuum/base_2.i\") 7276)\n\n(note/i 517 516 519 (\"/home/gabriel/pe2-ov-actor_136100/nonmatchings/func_actor_136100_80132748-vacuum/base_2.i\") 7209)\n\n(insn 519 517 520 (set (reg/v:HI 173)\n        (const_int 10)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUAL (const_int 10)\n        (nil)))\n\n(note 520 519 521 \"\" NOTE_INSN_BLOCK_BEG)\n\n(note/i 521 520 522 (\"/home/gabriel/pe2-ov-actor_136100/nonmatchings/func_actor_136100_80132748-vacuum/base_2.i\") 7210)\n\n(note/i 522 521 523 \"\" NOTE_INSN_BLOCK_BEG)\n\n(insn/i 523 522 524 (set (reg/v:SI 174)\n        (mem/s:SI (plus:SI (reg/v:SI 80)\n                (const_int 28)))) 172 {movsi_internal2} (nil)\n    (expr_list:REG_DEAD (reg/v:SI 80)\n        (nil)))\n\n(note/i 524 523 525 (\"/home/gabriel/pe2-ov-actor_136100/nonmatchings/func_actor_136100_80132748-vacuum/base_2.i\") 7212)\n\n(insn/i 525 524 526 (set (mem/s:HI (plus:SI (reg/v:SI 174)\n                (const_int 1248)))\n        (reg/v:HI 173)) 187 {movhi_internal2} (insn_list 519 (insn_list 523 (nil)))\n    (expr_list:REG_DEAD (reg/v:HI 173)\n        (nil)))\n\n(note/i 526 525 527 (\"/home/gabriel/pe2-ov-actor_136100/nonmatchings/func_actor_136100_80132748-vacuum/base_2.i\") 7213)\n\n(insn/i 527 526 528 (set (reg/v:SI 175)\n        (const_int 1)) 172 {movsi_internal2} (nil)\n    (expr_list:REG_EQUAL (const_int 1)\n        (nil)))\n\n(note/i 528 527 757 (\"/home/gabriel/pe2-ov-actor_136100/nonmatchings/func_actor_136100_80132748-vacuum/base_2.i\") 7214)\n\n(insn 757 528 529 (set (reg:SI 178)\n        (const_int 10)) 172 {movsi_internal2} (nil)\n    (expr_list:REG_EQUAL (const_int 10)\n        (nil)))\n\n\n;; End of basic block 35.\n(note/i 529 757 530 \"\" NOTE_INSN_LOOP_BEG)\n",
+    "base.greg.homes.txt": ";; Register dispositions:\n80 in 17  81 in 18  82 in 2  83 in 17  84 in 16  88 in 19  \n89 in 2  90 in 2  91 in 2  92 in 2  93 in 2  94 in 2  \n96 in 2  97 in 2  98 in 2  99 in 4  100 in 2  101 in 2  \n102 in 2  103 in 2  104 in 2  106 in 2  107 in 3  108 in 2  \n109 in 2  110 in 17  111 in 16  115 in 19  116 in 2  117 in 2  \n118 in 2  119 in 2  120 in 2  121 in 2  123 in 2  124 in 2  \n125 in 3  127 in 2  129 in 2  130 in 4  131 in 2  132 in 2  \n134 in 2  136 in 3  138 in 3  141 in 2  142 in 2  143 in 19  \n144 in 16  145 in 4  146 in 2  147 in 2  148 in 2  149 in 2  \n150 in 2  153 in 16  154 in 2  155 in 2  156 in 17  157 in 16  \n161 in 19  162 in 2  163 in 2  164 in 2  165 in 17  166 in 16  \n170 in 19  171 in 2  172 in 2  173 in 2  174 in 17  175 in 16  \n178 in 19  180 in 2  181 in 2  182 in 2  183 in 2  184 in 2  \n185 in 2  187 in 2  188 in 2  189 in 2  190 in 2  191 in 17  \n192 in 16  196 in 19  197 in 2  198 in 2  199 in 3  200 in 2  \n201 in 17  202 in 16  203 in 2  204 in 5  206 in 2  207 in 2  \n208 in 2  209 in 2  210 in 19  212 in 2  213 in 2  214 in 3  \n215 in 2  216 in 2  217 in 2  219 in 3  220 in 3  221 in 2  \n\n\n;; Hard regs used:  2 3 4 5 6 7 16 17 18 19 29 31\n",
+    "base.sched.decisions.txt": ";;\t -- basic block number 6 from 27 to 753 --\n;; ready list initially:\n;; 40 753 42 \n\n;; insn[  30]: priority =    1, ref_count =    2\n;; insn[  34]: priority =    1, ref_count =    1\n;; insn[  38]: priority =    1, ref_count =    1\n;; insn[  40]: priority =    2, ref_count =    0\n;; insn[  42]: priority =    1, ref_count =    0\n;; insn[ 753]: priority =    1, ref_count =    0\n;; ready list at T-1: 40 (2) 753 (1) 42 (1), now 40 753 42\n;; ready list at T-2: 753 (1) 42 (1) 34 (7f000001), now 34 753 42\n;; launching 38 before 34 with no stalls at T-3\n;; ready list at T-3: 753 (1) 42 (1) 38 (7f000001), now 38 753 42\n;; ready list at T-4: 753 (1) 42 (1) 30 (1), now 753 42 30\n;; insn 30 has a greater potential hazard, now 30 753 42\n;; ready list at T-5: 753 (1) 42 (1), now 753 42\n;; ready list at T-6: 42 (1), now 42\n;; added 1 line-number notes\n;; total time = 6\n;; new basic block head = 27\n;; new basic block end = 40\n\n",
+    "base_2.sched.preheader.txt": "(code_label 500 499 501 52 \"\")\n\n(note 501 500 507 (\"/home/gabriel/pe2-ov-actor_136100/nonmatchings/func_actor_136100_80132748-vacuum/base_2.i\") 7274)\n\n(note 507 501 520 \"\" NOTE_INSN_LOOP_CONT)\n\n(note 520 507 522 \"\" NOTE_INSN_BLOCK_BEG)\n\n(note/i 522 520 503 \"\" NOTE_INSN_BLOCK_BEG)\n\n(insn 503 522 780 (set (mem/s:HI (plus:SI (reg/v:SI 81)\n                (const_int 1232)))\n        (const_int 0)) 187 {movhi_internal2} (nil)\n    (nil))\n\n(note 780 503 779 \"\" NOTE_INSN_LOOP_BEG)\n\n(note 779 780 517 \"\" NOTE_INSN_LOOP_END)\n\n(note/i 517 779 519 (\"/home/gabriel/pe2-ov-actor_136100/nonmatchings/func_actor_136100_80132748-vacuum/base_2.i\") 7209)\n\n(insn 519 517 526 (set (reg/v:HI 173)\n        (const_int 10)) 187 {movhi_internal2} (insn_list:REG_DEP_ANTI 503 (nil))\n    (expr_list:REG_EQUAL (const_int 10)\n        (nil)))\n\n(note/i 526 519 527 (\"/home/gabriel/pe2-ov-actor_136100/nonmatchings/func_actor_136100_80132748-vacuum/base_2.i\") 7213)\n\n(insn/i 527 526 521 (set (reg/v:SI 175)\n        (const_int 1)) 172 {movsi_internal2} (insn_list:REG_DEP_OUTPUT 519 (nil))\n    (expr_list:REG_EQUAL (const_int 1)\n        (nil)))\n\n(note/i 521 527 523 (\"/home/gabriel/pe2-ov-actor_136100/nonmatchings/func_actor_136100_80132748-vacuum/base_2.i\") 7210)\n\n(insn/i 523 521 528 (set (reg/v:SI 174)\n        (mem/s:SI (plus:SI (reg/v:SI 80)\n                (const_int 28)))) 172 {movsi_internal2} (insn_list 519 (nil))\n    (expr_list:REG_DEAD (reg/v:SI 80)\n        (nil)))\n\n(note/i 528 523 757 (\"/home/gabriel/pe2-ov-actor_136100/nonmatchings/func_actor_136100_80132748-vacuum/base_2.i\") 7214)\n\n(insn 757 528 524 (set (reg:SI 178)\n        (const_int 10)) 172 {movsi_internal2} (insn_list:REG_DEP_OUTPUT 519 (nil))\n    (expr_list:REG_EQUAL (const_int 10)\n        (nil)))\n\n(note/i 524 757 525 (\"/home/gabriel/pe2-ov-actor_136100/nonmatchings/func_actor_136100_80132748-vacuum/base_2.i\") 7212)\n\n(insn/i 525 524 529 (set (mem/s:HI (plus:SI (reg/v:SI 174)\n                (const_int 1248)))\n        (reg/v:HI 173)) 187 {movhi_internal2} (insn_list 519 (insn_list 523 (nil)))\n    (expr_list:REG_DEAD (reg/v:HI 173)\n        (nil)))\n\n\n;; End of basic block 35.\n(note/i 529 525 781 \"\" NOTE_INSN_LOOP_BEG)\n",
+    "base_1.greg.homes.txt": ";; Register dispositions:\n80 in 17  81 in 18  82 in 2  83 in 17  84 in 16  88 in 19  \n89 in 2  90 in 2  91 in 2  92 in 2  93 in 2  94 in 2  \n96 in 2  97 in 2  98 in 2  99 in 4  100 in 2  101 in 2  \n102 in 2  103 in 2  104 in 2  106 in 2  107 in 3  108 in 2  \n109 in 2  110 in 17  111 in 16  115 in 19  116 in 2  117 in 2  \n118 in 2  119 in 2  120 in 2  121 in 2  123 in 2  124 in 2  \n125 in 3  127 in 2  129 in 2  130 in 4  131 in 2  132 in 2  \n134 in 2  136 in 3  138 in 3  141 in 2  142 in 2  143 in 19  \n144 in 16  145 in 4  146 in 2  147 in 2  148 in 2  149 in 2  \n150 in 2  153 in 16  154 in 2  155 in 2  156 in 17  157 in 16  \n161 in 19  162 in 2  163 in 2  164 in 2  165 in 17  166 in 16  \n170 in 19  171 in 2  172 in 2  173 in 2  174 in 17  175 in 16  \n178 in 19  180 in 2  181 in 2  182 in 2  183 in 2  184 in 2  \n185 in 2  187 in 2  188 in 2  189 in 2  190 in 2  191 in 17  \n192 in 16  196 in 19  197 in 2  198 in 2  199 in 3  200 in 2  \n201 in 17  202 in 16  203 in 2  204 in 5  206 in 2  207 in 2  \n208 in 2  209 in 2  210 in 19  212 in 2  213 in 2  214 in 3  \n215 in 2  216 in 2  217 in 2  219 in 3  220 in 3  221 in 2  \n\n\n;; Hard regs used:  2 3 4 5 6 7 16 17 18 19 29 31\n",
+    "base_3.greg.homes.txt": ";; Register dispositions:\n80 in 17  81 in 18  82 in 2  83 in 17  84 in 16  88 in 19  \n89 in 2  90 in 2  91 in 2  92 in 2  93 in 2  94 in 2  \n96 in 2  97 in 2  98 in 2  99 in 4  100 in 2  101 in 2  \n102 in 2  103 in 2  104 in 2  106 in 2  107 in 3  108 in 2  \n109 in 2  110 in 17  111 in 16  115 in 19  116 in 2  117 in 2  \n118 in 2  119 in 2  120 in 2  121 in 2  123 in 2  124 in 2  \n125 in 3  127 in 2  129 in 2  130 in 4  131 in 2  132 in 2  \n134 in 2  136 in 3  138 in 3  141 in 2  142 in 2  143 in 19  \n144 in 16  145 in 4  146 in 2  147 in 2  148 in 2  149 in 2  \n150 in 2  153 in 16  154 in 2  155 in 2  156 in 17  157 in 16  \n161 in 19  162 in 2  163 in 2  164 in 2  165 in 17  166 in 16  \n170 in 19  171 in 2  172 in 2  173 in 2  174 in 17  175 in 16  \n178 in 19  180 in 2  181 in 2  182 in 2  183 in 2  184 in 2  \n185 in 2  187 in 2  188 in 2  189 in 2  190 in 2  191 in 17  \n192 in 16  196 in 19  197 in 2  198 in 2  199 in 3  200 in 2  \n201 in 17  202 in 16  203 in 2  204 in 2  205 in 2  206 in 5  \n208 in 2  209 in 2  210 in 2  211 in 2  212 in 19  214 in 3  \n215 in 2  216 in 2  217 in 2  219 in 3  220 in 3  221 in 2  \n\n\n;; Hard regs used:  2 3 4 5 6 7 16 17 18 19 29 31\n"
+  },
+  "scope": "GCC 2.8.1 PSX; func_actor_136100_80132748; controlled base_2 reproduces empty-loop mutation, independent base_1 scheduling boundary matches exactly; base_3 ports to for loops.",
+  "integration": "OK: all 7416 matched functions are still C (or legitimately shared)\n\u2705 BUILD SUCCEEDED. Everything matched and there were no compiler or linter errors\n"
+}

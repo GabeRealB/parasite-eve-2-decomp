@@ -332,7 +332,116 @@ void func_actor_136100_801323F8(Task* arg0)
     work->field_4C4 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80132748);
+#define func_actor_136100_PlayAnimRec(task, anim, blend, speed)         \
+    {                                                                   \
+        Actor136100Work* animWork = (Actor136100Work*)(task)->work;     \
+                                                                        \
+        if (animWork->field_4C0 != NULL) {                              \
+            rec.field_0         = (s32) & D_actor_136100_8013F1D4;      \
+            animWork->field_4E2 = anim;                                 \
+            rec.field_4         = anim;                                 \
+            rec.field_8         = blend;                                \
+            rec.field_C         = speed;                                \
+            rec.field_10        = 0;                                    \
+            Gp_DispatchMsg(animWork->field_4C0, 0x3F4, (s32) & rec, 0); \
+        }                                                               \
+    }
+
+static inline void func_actor_136100_SetAnim(Task* task, s16 anim)
+{
+    Actor136100Work* work = (Actor136100Work*)task->work;
+    s32              i;
+
+    work->field_4E0 = anim;
+    SCHED_BARRIER();
+    for (i = 1; (u16)i < 0x14U; i++) {
+        func_800B4114(&work->anim, i & 0xFFFF, anim, 0, 0xA);
+    }
+}
+
+void func_actor_136100_80132748(Task* arg0)
+{
+    Actor136100Work* work = (Actor136100Work*)arg0->work;
+    GpRec14          rec;
+
+    func_actor_136100_80131FBC(arg0);
+    switch ((u16)work->field_4CC) {
+        case 0:
+            break;
+        case 1:
+            switch ((u16)work->field_4CE) {
+                case 0:
+                    work->field_4D0 = 0;
+                    func_actor_136100_SetAnim(arg0, 2);
+                    work->field_4CE++;
+                    return;
+                case 1:
+                    if (++work->field_4D0 < 0x3D) {
+                        return;
+                    }
+                    func_actor_136100_PlayAnimRec(arg0, 3, 1, 0xA);
+                    break;
+                default:
+                    return;
+            }
+            break;
+        case 2:
+            switch ((u16)work->field_4CE) {
+                case 0:
+                    work->field_4D0 = 0;
+                    func_actor_136100_SetAnim(arg0, 5);
+                    work->field_4CE++;
+                    return;
+                case 1:
+                    if (++work->field_4D0 == 0x11) {
+                        SndEvt_EnqueueType6(0x5302000E, 0, 0);
+                    }
+                    if (work->field_4D0 < 0x15) {
+                        return;
+                    }
+                    func_actor_136100_SendWeaponRec(arg0, 0x30, 1, 0xA);
+                    func_actor_136100_PlayAnimRec(arg0, 4, 1, 0xA);
+                    break;
+                default:
+                    return;
+            }
+            break;
+        case 3:
+            func_actor_136100_SetAnim(arg0, 7);
+            break;
+        case 4:
+            func_actor_136100_SetAnim(arg0, 9);
+            break;
+        case 5:
+            switch ((u16)work->field_4CE) {
+                case 0:
+                    work->field_4D0 = 0;
+                    func_actor_136100_SetAnim(arg0, 0xA);
+                    work->field_4CE++;
+                    return;
+                case 1:
+                    if (++work->field_4D0 < 0x50) {
+                        return;
+                    }
+                    func_actor_136100_SetAnim(arg0, 0xB);
+                    break;
+                default:
+                    return;
+            }
+            break;
+        case 6: {
+            Actor136100Work* animWork = (Actor136100Work*)arg0->work;
+            s32              i;
+
+            animWork->field_4E0 = 1;
+            for (i = 1; (u16)i < 0x14U; i++) {
+                animWork->slots[(u16)i].rate = 0x10;
+                Gp_AnimResetSlot(&animWork->anim, (u16)i, 1);
+            }
+        } break;
+    }
+    work->field_4CC = 0;
+}
 
 /// Play `anim` on the `field_4C0` task (message 0x3F4) and record it as the
 /// current `field_4E2` chain entry; does nothing while that task is unset.
