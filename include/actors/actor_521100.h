@@ -206,8 +206,10 @@ typedef struct Actor521100Work {
     /// The animation record's flag nibble (`rec->field_3 & 0x30`) latched for
     /// the next frame by the footstep cue body `func_actor_521100_80134D88`, so
     /// each foot fires on the frame its bit has just dropped.
-    /* 0x6B4 */ u16  field_6B4;
-    /* 0x6B6 */ byte pad_6B6[4];
+    /* 0x6B4 */ u16 field_6B4;
+    /// Current and previous burn-out choices, used to avoid a third repeat.
+    /* 0x6B6 */ s16 field_6B6;
+    /* 0x6B8 */ s16 field_6B8;
     /// Non-zero asks the burn-out bodies to hand the actor on to state 6
     /// (`field_69E = 6`) instead of back to the idle state 0; `field_6BC` is
     /// the sub-state they then start at.
@@ -312,6 +314,21 @@ extern u16 D_actor_521100_8015F5D4[];
 /// `D_actor_510900_80167968` and `D_actor_400100_*`.
 extern GpU16Pair D_actor_521100_8015F550;
 
+/// One signed halfword choice in a three-row, two-choice transition table.
+/// The selector combines the row and random-column byte offsets before
+/// accessing this member. The member access also keeps GCC's structure-memory
+/// annotation, allowing the independent RNG write to retain its schedule.
+typedef struct Actor521100StateChoice {
+    s16 state;
+} Actor521100StateChoice;
+STATIC_ASSERT_SIZEOF(Actor521100StateChoice, 2);
+
+extern s8                     D_80114C12;
+extern s16                    D_actor_521100_8015F57C[16];
+extern Actor521100StateChoice D_actor_521100_8015F59C[6];
+extern s16                    D_actor_521100_8015F5A8[16];
+extern Actor521100StateChoice D_actor_521100_8015F5C8[6];
+
 /// Frames between the burn-out effects `func_actor_521100_80135230` drops on
 /// the attach coordinate, indexed by the sequence state `field_68C`: every
 /// frame in state 0, then 7 / 0xE / 0x1C as the body burns out.
@@ -390,6 +407,10 @@ extern u16 D_actor_521100_8015F614[];
 
 void func_actor_521100_80132958(Actor521100* arg0);
 s32  func_actor_521100_80132C70(Actor521100* arg0);
+void func_actor_521100_80132DE8(Actor521100* arg0);
+void func_actor_521100_80133104(Actor521100* arg0);
+void func_actor_521100_8013334C(Actor521100* arg0);
+void func_actor_521100_801335B4(Actor521100* arg0);
 void func_actor_521100_80135680(Actor521100* arg0);
 void func_actor_521100_80135414(Actor521100Ctx* arg0, Actor521100* arg1);
 void func_actor_521100_80135478(Actor521100Ctx* arg0, Actor521100* arg1);

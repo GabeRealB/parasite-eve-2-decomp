@@ -30,7 +30,6 @@ void func_actor_521100_80134C38(Actor521100* arg0);
 void func_actor_521100_80134D88(Actor521100* arg0);
 void func_actor_521100_80134EDC(Actor521100* arg0);
 void func_actor_521100_80135024(Actor521100* arg0);
-void func_actor_521100_80132DE8(void);
 void func_actor_521100_801339B0(void);
 void func_actor_521100_80134658(Actor521100* arg0);
 /* Reads the caller's `Actor521100*` from $a0; the call passes no argument. */
@@ -195,7 +194,110 @@ s32 func_actor_521100_80132C70(Actor521100* arg0)
     SCRATCH_SP += 0x18;
     return ret;
 }
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_80132DE8);
+void func_actor_521100_80132DE8(Actor521100* arg0)
+{
+    Actor521100Work*        work;
+    GsCOORDINATE2*          coord;
+    VECTOR*                 head;
+    VECTOR*                 vec;
+    Actor521100StateChoice* pairNear;
+    Actor521100StateChoice* pairFar;
+    s16*                    flatNear;
+    s16*                    flatFar;
+    u16                     prev;
+    u32                     rngPN;
+    u32                     rngPF;
+    u32                     rngFN;
+    u32                     rngFF;
+    s32                     packed;
+    s32                     next;
+
+    coord = arg0->field_2C->field_8;
+    work  = arg0->field_1C;
+    head  = *(VECTOR**)G_SCRATCH_HEAD;
+    vec   = head - 1;
+
+    *(VECTOR**)G_SCRATCH_HEAD = vec;
+    head[-1].vx               = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    vec->vy                   = 0;
+    vec->vz                   = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+
+    work->field_6AA = SquareRoot0(head[-1].vx * head[-1].vx + vec->vz * vec->vz);
+    work->field_698 = ratan2((s16)head[-1].vx, (s16)vec->vz) & 0xFFF;
+
+    switch (work->field_6A0) {
+        case 0:
+            if (((u32)((u8)D_80114C12 - 2) >= 2U) && (gGameSession->at4.loc.view != 2)) {
+                if (work->field_6AA < 0x8FC) {
+                    if (work->field_6B8 == work->field_6B6) {
+                        pairNear    = D_actor_521100_8015F59C;
+                        rngPN       = Gp_LcgState * 5 + 0x71357911;
+                        Gp_LcgState = rngPN;
+                        next        = ((Actor521100StateChoice*)((u8*)pairNear + (work->field_6B6 * 4 + ((rngPN >> 16) & 1) * 2)))->state;
+                    } else {
+                        flatNear    = D_actor_521100_8015F57C;
+                        rngFN       = Gp_LcgState * 5 + 0x71357911;
+                        next        = flatNear[(rngFN >> 16) & 0xF];
+                        Gp_LcgState = rngFN;
+                    }
+                } else {
+                    if (work->field_6B8 == work->field_6B6) {
+                        pairFar     = D_actor_521100_8015F5C8;
+                        rngPF       = Gp_LcgState * 5 + 0x71357911;
+                        Gp_LcgState = rngPF;
+                        next        = ((Actor521100StateChoice*)((u8*)pairFar + (work->field_6B6 * 4 + ((rngPF >> 16) & 1) * 2)))->state;
+                    } else {
+                        flatFar     = D_actor_521100_8015F5A8;
+                        rngFF       = Gp_LcgState * 5 + 0x71357911;
+                        next        = flatFar[(rngFF >> 16) & 0xF];
+                        Gp_LcgState = rngFF;
+                    }
+                }
+            } else {
+                next = 2;
+            }
+
+            prev            = (u16)work->field_6B6;
+            work->field_6B6 = next;
+            work->field_6B8 = prev;
+
+            switch (next) {
+                case 0:
+                    work->field_6A0  = 1;
+                    work->field_686  = 5;
+                    packed           = Gp_PackPair(&D_actor_521100_8015F550, 0);
+                    work->obj57C.key = packed;
+                    work->obj59C.key = packed;
+                    break;
+                case 1:
+                    work->field_6A0  = 2;
+                    work->field_686  = 6;
+                    packed           = Gp_PackPair(&D_actor_521100_8015F550, 1);
+                    work->obj57C.key = packed;
+                    work->obj59C.key = packed;
+                    break;
+                case 2:
+                    work->field_6A0  = 3;
+                    work->field_6A2  = 0;
+                    work->field_686  = 3;
+                    packed           = Gp_PackPair(&D_actor_521100_8015F550, 2);
+                    work->obj57C.key = packed;
+                    work->obj59C.key = packed;
+                    break;
+            }
+            break;
+        case 1:
+            func_actor_521100_80133104(arg0);
+            break;
+        case 2:
+            func_actor_521100_8013334C(arg0);
+            break;
+        case 3:
+            func_actor_521100_801335B4(arg0);
+            break;
+    }
+    SCRATCH_SP += 0x10;
+}
 
 void func_actor_521100_80133104(Actor521100* arg0)
 {

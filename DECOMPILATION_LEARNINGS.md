@@ -134474,3 +134474,33 @@ Evidence: scratch `nonmatchings/func_actor_521100_80132958-vacuum/`,
 - base_1.i: `e678b317ca40dba63d790632a3e6fdcf257d9702154613d1afa13353a8757585`
 - base_2.i: `79999f48b790475605eef9e9ba39b711336dd24f7d13b4e510925e70b39ae1cb`
 - base_3.i: `60031f15360e96a5f06ce29c0ba51006bec2bf0e1d788567c4fd056565b11d53`
+
+
+## Separate draw locals before late cross-jumping; preserve member-memory annotation in byte-indexed tables (func_actor_521100_80132DE8, 2026-09-20)
+
+The archived source shared two RNG tails with gotos and reused the RNG local.
+It scored 87.829%; the target kept four LCG materializations before two shared
+arithmetic tails. Repeating the four draws with independent table and RNG
+locals reached 99.724%. In `.lreg`, all eight locals now belong to individual
+blocks; `.sched2` still contains four draws, and `.jump2` merges the matching
+hard-register suffixes. The target's differing table addresses are the merge
+boundary, not evidence of source-level sharing. Table and RNG splitting were
+changed together, so their separate necessity was not established.
+
+The paired index also required `(row * 4 + column * 2) + table`, with each
+scaled term formed before adding the base. A scalar byte-pointer dereference
+lost `MEM_IN_STRUCT_P`: `.sched` added the fixed RNG store as a dependence of
+the table load and moved the draw's register homes. A two-byte record member
+restored `mem/s:HI`, removed that dependence, and reached 99.849%. Constant
+`[0]` did not help because it folded back to scalar dereference. Converting a
+byte offset back to a normal array index produced an OR during combine.
+
+Reversing the independent scaled addends changed the first dying operand of
+the RTL sum from row to random offset. `.greg` then assigned random offset to
+v0 and row to v1, consistent with the local operand-tying rule, reaching 100%.
+The real-header port and full unscoped build passed; no pins or asm helpers.
+Quantity internals were not traced. See the function scratch LEARNINGS.md,
+base_1/base_5/base_6/base_8 dumps and journal for observations and limits.
+Inputs: base_5 `bbc49ba32c98767971d14d2cb9da3b378025422af8307984f0b3ecbca0eee0c2`,
+base_6 `2e82ef32ae7ddccee32373ccb699d9f01cc2dea9dbfe16e3e2c50c46d9a9975a`,
+ported base_8 `129bbd54e24c5722fd229c0a86a2e7bcfc44ea51d464b439f6b7ab2da56ab52a`.
