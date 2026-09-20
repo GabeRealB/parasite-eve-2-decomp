@@ -135894,3 +135894,39 @@ The production port subsequently passed the unscoped
 `./tools/build-and-verify.sh` with `✅ BUILD SUCCEEDED`; the lost-match check
 also passed. Final scratch and integration evidence are preserved in
 `tools/permuter_findings/func_actor_141000_801323F0/sessions/5c4f47d0e4554bffabe46aeeb773071a/cdf68c94da0eb0773bb9`.
+
+
+### A post-store tied asm preserves both the original store register and the saved loop copy (func_actor_160900_80132844, 2026-09-20)
+
+The target reseed preheader copies `a2` to `s2` but still stores `a2`. A plain
+`u16` copy lets CSE substitute the longer-lived loop ID into the store. Keeping
+the source canonical with a dead reset fixes CSE, but is insufficient:
+`base_5` store UID181 reads r85 in `.sched` and r129 in `.lreg`.
+`local-alloc.c:update_equiv_regs` invokes `optimize_reg_copy_1`, which replaces
+a copy source that dies later in the same block with its live destination.
+
+The successful source stores the incoming animation first, then copies it into
+the loop ID and applies `TOUCH_REG_USE2(id, work, work)` before the loop. In
+`base_12`, combine incorporates the copy into volatile asm UID193: its input
+r125 dies there, its output r135 is the saved ID, and the earlier store UID187
+still reads r125. There is no ordinary register copy for local allocation to
+propagate into that store. A nonvolatile touch (`base_9`) fails: sched1 moves
+it before the stores, leaving the input live past it and losing the `a2`
+preference. The volatile post-store form retains that preference. The loop
+counter must be initialized before the boundary to retain its branch delay
+slot placement.
+
+The duplicate work operand is deliberate. The controlled `base_11` ->
+`base_12` edit adds only that second input: work r134 goes from 6 refs/16 insns
+to 7/16, while ID r135 stays 5/12. Both are global, crossing a call and dying
+in zero places. Their printed global order reverses; work takes s1 and ID s2,
+closing 99.483% to 100%. Reload introduces the actual a2-to-s2 copy as UID419
+after the stores; sched2 moves it before them, after the work load. The store
+continues to read a2. These transitions are observed in the dumps; the exact
+scheduler hazard choice was not traced.
+
+Both `base_12` and the explicitly prototyped `base_13` score 100%, all penalties
+zero, without pins. Full unscoped build verification passed. Compiler/input
+hashes and selected observations are retained in
+`tools/compiler_evidence/2026-09-20-actor160900-32844.json`; full retry notes
+remain in the scratch and its archived findings.

@@ -1,0 +1,25 @@
+{
+  "function": "func_actor_160900_80132844",
+  "date": "2026-09-20",
+  "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+  "inputs": {
+    "base_5.i": "e72b5b9fa12146f33f822e3ad2f353c6b3a3c8dd44a0f6c14645f471ba34df7b",
+    "base_9.i": "5082ec610f325e1bee7e7e44460973107da88af1912d4c1f3d3412740c052a39",
+    "base_11.i": "f9f50a778f4d20b9ceea9c721d532e2d4e9ff5d46cde373c5f67f685aabf67e4",
+    "base_12.i": "6f712ffa80b808d52a475dcc63da9394a79b42b4a62ace138d0c697493a99cf6",
+    "base_13.i": "48ba2d6759a902f8a3060b4049443115e9e16f8179966b3a3eaec5c66ac46bb9"
+  },
+  "controlled_prediction": "base_12 plan preceded build; second work keep-live input raises work global priority past saved ID without changing output scheduling",
+  "observed": [
+    "base_5 UID181: store source r85 in sched, r129 in lreg; local-alloc.c optimize_reg_copy_1 matches this substitution",
+    "base_12 UID193 combine: volatile asm output r135; inputs r134,r134,r125; REG_DEAD r125. UID187 store uses r125 through lreg",
+    "base_11 work r134 refs=6 span=16; ID r135 refs=5 span=12; global order ID before work; work=s2 ID=s1",
+    "base_12 work r134 refs=7 span=16; ID r135 refs=5 span=12; global order work before ID; work=s1 ID=s2",
+    "base_12 greg introduces UID419 a2-to-s2 copy after stores; sched2 moves it before stores and after work load",
+    "base_11 score=99.48275862068965; base_12 and base_13 score=100.0 with all penalties zero",
+    "Unscoped build-and-verify.sh: all 7420 matched functions retained; BUILD SUCCEEDED"
+  ],
+  "limits": "No GDB trace captured; precise scheduler ready-list/hazard selection remains untraced. No claim that empty asm or added references improve codegen generally.",
+  "scratch": "nonmatchings/func_actor_160900_80132844-vacuum",
+  "search": "Router ran once, no discovery; successful candidates are manual experiments."
+}

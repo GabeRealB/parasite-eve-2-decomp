@@ -22,7 +22,6 @@
 
 extern TaskDesc ActorsShared80136280Desc;
 
-void      func_800B4114(Actor160900Child3Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 extern u8 D_actor_160900_8013F240[];
 
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80131EB0);
@@ -83,9 +82,65 @@ s32 func_actor_160900_801326EC(Task* arg0)
     }
     return 0;
 }
-INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80132844);
+static inline void func_actor_160900_Reseed(Task* arg0, u16 anim)
+{
+    Actor160900Child3Work* work;
+    u16                    i;
+    u16                    id;
 
-void func_actor_160900_80132844(Task* arg0);
+    i               = 1;
+    work            = (Actor160900Child3Work*)arg0->work;
+    work->field_4B8 = anim;
+    work->field_4BA = 0;
+    id              = anim;
+    TOUCH_REG_USE2(id, work, work);
+    for (; i < 0x14; i++) {
+        func_800B4114(work, i, id, 0, 0xA);
+    }
+}
+
+s32 func_actor_160900_80132844(Task* arg0)
+{
+    Actor160900Child3Work* work;
+    Actor160900AnimStep*   table;
+    u16                    i;
+    u16                    done;
+
+    work = (Actor160900Child3Work*)arg0->work;
+    if (((TmdObject*)arg0->extra)->flags & 0x80) {
+        return 0;
+    }
+    for (i = 1; i < 0x14; i++) {
+        Gp_AnimTickIndex(&work->anim, i);
+    }
+    i    = 1;
+    done = 1;
+    for (; i < 0x14; i++) {
+        if (!(work->slots[i].flags & 0x100)) {
+            done = 0;
+            break;
+        }
+    }
+    table = (Actor160900AnimStep*)work->field_4B4;
+    if (table[(u16)work->field_4B8].field_0 != 0) {
+        if (work->field_4BA >= table[(u16)work->field_4B8].field_0) {
+            if (table[(u16)work->field_4B8].field_2 >= 0) {
+                func_actor_160900_Reseed(arg0, table[(u16)work->field_4B8].field_2);
+            } else {
+                return 1;
+            }
+        } else {
+            work->field_4BA++;
+        }
+    } else if (done) {
+        if (table[(u16)work->field_4B8].field_2 >= 0) {
+            func_actor_160900_Reseed(arg0, table[(u16)work->field_4B8].field_2);
+        } else {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 /// Animation source `func_800B3F84` seeds the child's slots from, the table
 /// published as `Actor160900Child3Work::field_4B4`, and the message table

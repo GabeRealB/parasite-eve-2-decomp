@@ -81,6 +81,8 @@ typedef struct Actor160900Child3Work {
 } Actor160900Child3Work;
 STATIC_ASSERT_SIZEOF(Actor160900Child3Work, 0x4BC);
 
+void func_800B4114(Actor160900Child3Work* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 /// One step of the animation script `D_actor_160900_8013F1CC`
 /// `func_actor_160900_801326EC` walks: `field_0` is how many frames to hold the
 /// step (`field_66` counts them up) and `field_2` the index of the next step,
