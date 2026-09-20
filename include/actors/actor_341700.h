@@ -103,7 +103,8 @@ typedef struct Actor341700SubWork {
     /* 0x00 */ s16    field_0;
     /* 0x02 */ s16    field_2;
     /* 0x04 */ s16    field_4;
-    /* 0x06 */ byte   pad_6[0x12];
+    /* 0x06 */ s16    field_6;
+    /* 0x08 */ byte   pad_8[0x10];
     /* 0x18 */ u8     field_18;
     /* 0x19 */ u8     field_19;
     /* 0x1A */ u8     field_1A;
@@ -136,6 +137,12 @@ STATIC_ASSERT_SIZEOF(Actor341700Cmd, 0x4);
 /// Global render mode: 2 hides the model, 0 runs the state handler then
 /// colours it, 1 only colours it.
 extern u8 D_801153F4;
+
+extern u32     Gp_LcgState;
+extern SVECTOR D_actor_341700_80175F7C[];
+extern u8      D_actor_341700_801760FC[];
+
+void func_8017FCF4(GsCOORDINATE2* coord, SVECTOR* vec);
 
 /// Nine state handlers, indexed by `Actor341700Work::field_420`; copied onto the
 /// stack before dispatch, as the sibling `D_actor_342400_80161F50` is.

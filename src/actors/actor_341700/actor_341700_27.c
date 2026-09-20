@@ -42,7 +42,201 @@ INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_27", func_actor_34170
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_27", func_actor_341700_8016B9A8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_27", func_actor_341700_8016C0F4);
+void func_actor_341700_8016C0F4(GpEnemy* arg0, Task* arg1)
+{
+    SVECTOR             vec;
+    Actor341700SubWork* work = (Actor341700SubWork*)arg1->work;
+    s16                 i;
+    s16                 r;
+    u32                 t;
+    SVECTOR*            table;
+    u8*                 p;
+    u32                 rnd;
+    u32                 index;
+    SVECTOR*            vecPtr;
+    u8*                 indices;
+
+    if (work->field_4 != 0) {
+        work->field_6                                 = 0;
+        ((TmdObject*)arg1->extra)->coords->coord.t[1] = 0x708;
+    }
+    work->field_6++;
+    if (((TmdObject*)arg1->extra)->coords->coord.t[1] > 200) {
+        if (work->field_6 >= 0xA6) {
+            if (work->field_6 % 4 < 2) {
+                ((TmdObject*)arg1->extra)->coords->coord.t[1] += 90;
+            } else {
+                ((TmdObject*)arg1->extra)->coords->coord.t[1] -= 100;
+            }
+            if (work->field_6 % 6 < 3) {
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[1].coord, 12, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[2].coord, 24, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[3].coord, -24, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[4].coord, 12, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[5].coord, -6, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[6].coord, 18, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[8].coord, -6, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[9].coord, -3, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[10].coord, -27, 0);
+            } else {
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[1].coord, -12, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[2].coord, -24, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[3].coord, 24, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[4].coord, -12, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[5].coord, 6, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[6].coord, -18, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[8].coord, 6, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[9].coord, 3, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[10].coord, 27, 0);
+            }
+        } else if (work->field_6 >= 0x79) {
+            if (work->field_6 % 4 < 2) {
+                ((TmdObject*)arg1->extra)->coords->coord.t[1] += 50;
+            } else {
+                ((TmdObject*)arg1->extra)->coords->coord.t[1] -= 58;
+            }
+            if (work->field_6 % 6 < 3) {
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[1].coord, 8, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[2].coord, 16, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[3].coord, -16, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[4].coord, 8, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[5].coord, -4, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[6].coord, 12, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[8].coord, -4, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[9].coord, -2, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[10].coord, -18, 0);
+            } else {
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[1].coord, -8, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[2].coord, -16, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[3].coord, 16, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[4].coord, -8, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[5].coord, 4, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[6].coord, -12, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[8].coord, 4, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[9].coord, 2, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[10].coord, 18, 0);
+            }
+        } else if (work->field_6 >= 11 && work->field_6 < 18) {
+            if (work->field_6 % 4 < 2) {
+                ((TmdObject*)arg1->extra)->coords->coord.t[1] += 30;
+            } else {
+                ((TmdObject*)arg1->extra)->coords->coord.t[1] -= 33;
+            }
+            if (work->field_6 % 6 < 3) {
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[1].coord, 4, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[2].coord, 8, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[3].coord, -8, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[4].coord, 4, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[5].coord, -2, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[6].coord, 6, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[8].coord, -2, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[9].coord, -1, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[10].coord, -9, 0);
+            } else {
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[1].coord, -4, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[2].coord, -8, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[3].coord, 8, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[4].coord, -4, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[5].coord, 2, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[6].coord, -6, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[8].coord, 2, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[9].coord, 1, 0);
+                Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[10].coord, 9, 0);
+            }
+            switch ((work->field_6 - 11) % 8) {
+                case 0:
+                    vec = D_actor_341700_80175F7C[35];
+                    func_8017FCF4(((TmdObject*)arg1->extra)->coords, &vec);
+                    break;
+                case 1:
+                    vec = D_actor_341700_80175F7C[8];
+                    func_8017FCF4(((TmdObject*)arg1->extra)->coords, &vec);
+                    break;
+                case 2:
+                    vec = D_actor_341700_80175F7C[25];
+                    func_8017FCF4(((TmdObject*)arg1->extra)->coords, &vec);
+                    break;
+                case 4:
+                    vec = D_actor_341700_80175F7C[24];
+                    func_8017FCF4(((TmdObject*)arg1->extra)->coords, &vec);
+                    break;
+                case 5:
+                    vec = D_actor_341700_80175F7C[26];
+                    func_8017FCF4(((TmdObject*)arg1->extra)->coords, &vec);
+                    break;
+            }
+        }
+    } else {
+        if (work->field_6 % 4 < 2) {
+            ((TmdObject*)arg1->extra)->coords->coord.t[1] += 100;
+        } else {
+            ((TmdObject*)arg1->extra)->coords->coord.t[1] -= 100;
+        }
+        if (work->field_6 % 6 < 3) {
+            Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[1].coord, 12, 0);
+            Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[2].coord, 24, 0);
+            Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[3].coord, -24, 0);
+            Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[4].coord, 12, 0);
+            Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[5].coord, -6, 0);
+            Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[6].coord, 18, 0);
+            Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[8].coord, -6, 0);
+            Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[9].coord, -3, 0);
+            Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[10].coord, -27, 0);
+        } else {
+            Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[1].coord, -12, 0);
+            Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[2].coord, -24, 0);
+            Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[3].coord, 24, 0);
+            Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[4].coord, -12, 0);
+            Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[5].coord, 6, 0);
+            Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[6].coord, -18, 0);
+            Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[8].coord, 6, 0);
+            Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[9].coord, 3, 0);
+            Gfx_RotMatrixX(&((TmdObject*)arg1->extra)->coords[10].coord, 27, 0);
+        }
+    }
+    ((TmdObject*)arg1->extra)->coords[0].flg  = 0;
+    ((TmdObject*)arg1->extra)->coords[1].flg  = 0;
+    ((TmdObject*)arg1->extra)->coords[2].flg  = 0;
+    ((TmdObject*)arg1->extra)->coords[3].flg  = 0;
+    ((TmdObject*)arg1->extra)->coords[4].flg  = 0;
+    ((TmdObject*)arg1->extra)->coords[5].flg  = 0;
+    ((TmdObject*)arg1->extra)->coords[6].flg  = 0;
+    ((TmdObject*)arg1->extra)->coords[7].flg  = 0;
+    ((TmdObject*)arg1->extra)->coords[8].flg  = 0;
+    ((TmdObject*)arg1->extra)->coords[9].flg  = 0;
+    ((TmdObject*)arg1->extra)->coords[10].flg = 0;
+    i                                         = 0;
+    indices                                   = D_actor_341700_801760FC;
+    table                                     = D_actor_341700_80175F7C;
+    vecPtr                                    = &vec;
+    for (; i < 4; i++) {
+        if (work->field_6 > 240) {
+            return;
+        }
+        if (work->field_6 < 120) {
+            return;
+        }
+        p = (u8*)((i + (work->field_6 - 120) * 4) + (u32)indices);
+        if (*p == 0) {
+            return;
+        }
+        rnd   = Gp_LcgState * 5 + 0x71357911;
+        t     = (rnd >> 16) & 0xFF;
+        index = *p;
+        SOFT_TOUCH_REG_USE(t, index);
+        r           = t;
+        Gp_LcgState = rnd;
+        TOUCH_REG(r);
+        vec = table[index];
+        if (r & 1) {
+            r = -t;
+        }
+        vec.vx += r / 2;
+        vec.vy -= r;
+        vec.vz += r;
+        func_8017FCF4(((TmdObject*)arg1->extra)->coords, vecPtr);
+    }
+}
 
 extern void func_actor_341700_8016D2B8(GpEnemy* arg0, Task* arg1);
 extern void func_actor_341700_8016D2E8(GpEnemy* arg0, Task* arg1);

@@ -136367,3 +136367,59 @@ normal-header base_4:
 `9454e60b3b630255fb9bf073385644cd297f473099f7df88e753d78ae86777ef`.
 Bundled cc1 SHA256:
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## Order the entire invariant prefix when a pointer-only hoist loses its register (func_actor_341700_8016C0F4, 2026-09-20)
+
+The 99.839% seed had only two reorders: its loop preheader emitted RNG `%hi`,
+coords load, stack-vector address, while the target needed stack-vector address,
+coords load, RNG `%hi`. The loop pass created the RNG hoist before the anonymous
+stack-address hoist. Both scheduling dumps selected those independent addresses
+in reverse order around the load hazard. Earlier accepted tracing corroborated
+that selection. Previous attempts to name only the vector pointer either failed
+conditional-loop hoist eligibility or placed it before the table setups,
+lengthening its lifetime enough to lose s3 to the work pointer.
+
+A preplanned trial initialized the complete prefix explicitly:
+
+```c
+i = 0;
+indices = D_actor_341700_801760FC;
+table = D_actor_341700_80175F7C;
+vecPtr = &vec;
+for (; i < 4; i++) {
+    /* Existing guards, draw and vector update. */
+}
+```
+
+Observed in base_3: loop retains vector UID1787 before RNG hoist UID1980;
+sched1 and sched2 pick RNG at backward cycle 2, coords load at 3, vector at 4.
+The allocation check is separate: vector r90 remains 3 refs/59 instructions,
+above work r82 (12/742), and stays in s3 while work stays in s4. This fixes all
+reorders without pins or additional asm helpers. It is evidence for explicitly
+ordering the whole interacting prefix, not a rule that any manual hoist helps.
+
+The only resulting mismatch was `addu a2,s6,v0` instead of `addu a2,v0,s6`.
+GCC's c-typeck.c:2021 normalizes both `pointer + integer` spellings to
+pointer-first. The controlled base_4 port used unsigned 32-bit integer address
+addition with the offset first. RTL UID1843 reverses its plus operands and keeps
+that order through greg, with every allocation unchanged. Scratch distance 0,
+then the formatted normal-header base_5 also scored 0 and full unscoped
+build-and-verify passed. This address cast depends on this target’s 32-bit
+pointer representation; ordinary typed array indexing remains preferable when
+its operand order matches.
+
+Counterexamples retained: pointer-formal inline helper base_1 fails hoisting
+because its address remains reg/v; aggregate-return base_2 adds a stack vector
+and copy. The bounded permuter's unrelated alternate mutation did not improve
+paired scratch distance (516 -> 519); it was not used for this match.
+
+Evidence: `tools/permuter_findings/func_actor_341700_8016C0F4/sessions/f9c1cfd006b44fc9b84b62cca40632b9/426d28fd0740b41b992f/` retains notes, predictions,
+insn walks, scheduling/allocation dumps and integration verification.
+Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+Input fingerprints:
+
+- `base.i`: `fc0d47fca6e78f34af98e43ca036eb7b114ac823c1047c13272519315816446e`
+- `base_3.i`: `4eaf992febca55f89e9535288ec576c3855a27628419455d030dc59e3ff60b72`
+- `base_4.i`: `d66c4ee8d87d4f31aa872a58d61af6686a7523279877bd12fd101a1579de5f85`
+- `base_5.i`: `6bf8d1ab9b5bf7f99374e59c34bd62cf94ed6e652b39198422f32d738c98b504`
