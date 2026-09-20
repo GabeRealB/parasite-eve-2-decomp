@@ -83,8 +83,6 @@ extern s32 D_80070F70;
 /// product's high halfword picks the model part.
 extern u32 Gp_LcgState;
 
-INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80161E70);
-
 /// Fade-to-white driver of the encounter, six states over the eight-byte
 /// channel block it allocates into its own `Task::work` and hands the parent
 /// work block through `Task::spawnArg2`.

@@ -136423,3 +136423,61 @@ Input fingerprints:
 - `base_3.i`: `4eaf992febca55f89e9535288ec576c3855a27628419455d030dc59e3ff60b72`
 - `base_4.i`: `d66c4ee8d87d4f31aa872a58d61af6686a7523279877bd12fd101a1579de5f85`
 - `base_5.i`: `6bf8d1ab9b5bf7f99374e59c34bd62cf94ed6e652b39198422f32d738c98b504`
+## Split BIV updates can preserve initializer order and combine into a later increment (func_actor_205200_80149E54, 2026-09-20)
+
+A 99.929% seed had correct homes and preheader, but row+=8 preceded the two
+coordinate updates instead of occupying the outer backedge slot. Reversing
+rowIndex++,j++ fixed the tail and broke the preheader: record_biv prepends a
+class at its first update, and strength_reduce emits initializers in that
+reverse order while inserting each update beside its originating BIV.
+
+The supported intervention is a split net increment:
+
+```c
+for (j = -1; j < 29; rowIndex += 2, j++, rowIndex--) {
+    rowBack = -rowIndex;
+    row = scratch->rows - rowBack;
+    /* unchanged body */
+    SOFT_USE_REG(p);
+}
+```
+
+The first row update preserves the class order. The .loop dump emits +16 before
+j's updates and -8 after them. Combine deletes the former and changes the
+latter to +8, so both initialization and final update order can match. In the
+typed exact port these are UIDs 1713 and 1710; row initializer 1716 follows the
+two coordinate initializers. Both schedulers retain this order, and dbr selects
+the row update for the outer delay slot. The focused trace confirms zero actual
+and potential hazards at the selected ready-list decisions.
+
+Profitability and allocation are separate constraints. Plain rows[rowIndex]
+with two updates is rejected: benefit 4 minus two add costs leaves zero.
+Negate/scale/subtract gives the same affine mult8+scratch expression with
+benefit 6; the preplanned base_9 experiment confirms strength reduction and the
+late merge. A discarded extra phase read did not help: combine_givs replaces
+its accumulated benefit with the single-definition DEST_REG's benefit.
+
+Flow counts both updates before combine. Row's weighted refs remain 29 rather
+than 25 afterwards, reversing row/polygon allocation. One outer-loop use of p
+adds two refs without changing its inner address GIV, restoring the homes.
+The preplanned base_11 experiment reaches 100%; typed base_12 remains exact.
+Actual global choices: polygon 27 refs/span 169, priority 6390 -> s4; row 29/187,
+priority 6203 -> s5; nextPhase 11/188 -> s7; nextY 11/189 -> fp. Splitting the polygon
+increment instead overcorrected its refs to 31 and its address GIV 44->50,
+displacing other saved registers. This counterexample matters: matching the
+source's net arithmetic is not enough to preserve pre-combine reference counts.
+
+SOFT_USE_REG has no outputs and is implicitly volatile in this compiler; it
+also introduces a boundary. Its observed placement here preserves both loop
+delay slots. Do not generalize this to every keep-live helper or loop shape.
+
+Retained inputs: base_6 7d2fd67d61ea0be643f7052e515386eeaf74601a4650aa3fc90bfd46c0c1f767;
+base_9 d7508de2bc15fcd54c3a88818504156de702e28359398b1922125daec9ac0d6d;
+base_11 15102add5045eebc40a2d02da667930a3b8b2465fa8945fcc19683aa310ec675;
+base_12 0b91f20363328bf0df6b6f0c4ba65e28a3f3d2aa5a971076f2f91a62b8f3928b.
+Compiler SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+Selected actual events and pre-build plans are in
+`tools/compiler_evidence/2026-09-20-actor205200-49e54-match.json`; complete inputs,
+dumps and assembly-identical trace are retained in this function's permuter
+findings archive. The router found no new outputs in this retry; this gain was
+manual. Full unscoped verification passed for the shared body in four overlays.

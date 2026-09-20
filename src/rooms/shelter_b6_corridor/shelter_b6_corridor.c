@@ -10,8 +10,6 @@ extern s16 D_800691CA;
 extern s32 D_shelter_b6_corridor_8017F354;
 extern s32 D_shelter_b6_corridor_8017F684;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_corridor/shelter_b6_corridor", func_shelter_b6_corridor_8017D5D0);
-
 s32 func_shelter_b6_corridor_8017DEA8(void)
 {
     return 0;

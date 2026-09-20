@@ -26,8 +26,6 @@ void func_8017E090(s32, s32);
 void func_8017EE08(s32, s32);
 void func_80182A14(s32, s32);
 
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200", func_actor_205200_80149E54);
-
 void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
 {
     Actor205200Work* work;
