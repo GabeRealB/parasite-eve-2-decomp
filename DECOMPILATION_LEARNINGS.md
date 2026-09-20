@@ -136481,3 +136481,79 @@ Selected actual events and pre-build plans are in
 dumps and assembly-identical trace are retained in this function's permuter
 findings archive. The router found no new outputs in this retry; this gain was
 manual. Full unscoped verification passed for the shared body in four overlays.
+
+## A lone `move` with no copy in the C is a reread that post-reload CSE rewrote (func_actor_402200_80133AEC, 2026-09-20)
+
+A block stored a value to a struct field, computed a quotient from it and
+subtracted, and the target held one extra instruction we could not produce: a
+register-to-register copy of the stored value, right after the store.
+
+```
+sh    a0,0x6d4(s2)      /* field = timer */
+move  v1,a0            <- only in the target
+...
+subu  v1,v1,v0          /* field2 = timer - part */
+```
+
+Chasing it as a copy in the RTL is a dead end. A C copy (`b = a; b - part`)
+is propagated by CSE and then deleted by flow, because the variable is not
+live out of the block; making the variable live elsewhere is not available when
+nothing reads it afterwards. What produces it is a **reread of the field that
+was just stored**:
+
+```c
+work->field_6D4 = timer;
+part            = timer * 2 / 3;
+work->field_6DC = part;
+work->field_6DE = work->field_6D4 - part;   /* reread, not `timer - part` */
+```
+
+CSE does not remove that load — it survives local-alloc and global-alloc as a
+real `lhu` (visible in `.lreg`). `reload_cse_regs`, which runs between `.greg`
+and `.sched2`, then sees the loaded value already sitting in another hard
+register and rewrites the load as a `move`. So the instruction only exists when
+the reread pseudo and the stored pseudo get **different** homes: give them the
+same home and post-reload CSE deletes the load outright and the score is
+identical to the no-reread form. A reread that "does nothing" is therefore not
+evidence against this shape — it is the same experiment with the allocation
+still wrong.
+
+Which homes they get is decided by local-alloc's priority, and that formula is
+worth computing by hand before spending builds on spellings:
+
+* `QTY_CMP_PRI = floor_log2(refs) * refs * size / (death - birth) * 10000`,
+  evaluated in `double`, so near-misses are not ties.
+* `birth`/`death` are `2 * insn_number`, where `insn_number` counts non-note
+  insns in the block **in the `.lreg` order** (sched1's order, not the final
+  one). `lregwalk.py` prints exactly that numbering.
+* `refs` is the sum over every pseudo combined into the quantity, and
+  `combine_regs` merges a destination with any source operand that dies in the
+  insn — arithmetic, not only copies. A three-insn `srl`/`andi`/`addiu` chain
+  is one quantity with the refs of all three.
+* Quantities with suggestions are allocated first; the rest in priority order,
+  ties by quantity number (earlier birth wins). `find_free_reg` then takes the
+  lowest-numbered hard register free across the whole interval, since MIPS
+  defines no `REG_ALLOC_ORDER`.
+
+Reconstructing those numbers from the `.lreg` walk reproduced every register in
+the block, which made the lever findable: a quantity that is allocated too late
+because it lives too long. Here the global's high half (`lui a2,%hi(Gp_LcgState)`)
+died at the `sw`, and the `sw` was scheduled late because the store was a
+separate statement in the middle of the block. Hoisting it into the expression
+that reads it,
+
+```c
+timer = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) + 0x1E;
+```
+
+moved the `sw` early, shortened that quantity's interval enough to raise its
+priority above the multiply constant's, and the whole block's allocation fell
+into the target's: the timer moved out of the reread's register, the `move`
+appeared, and the match closed.
+
+One further consequence worth knowing: reload's scratch order for
+`smulsi3_highpart` starts at `$a3`, so whether `mfhi` lands in `$a3` or `$t0`
+depends only on whether anything else in the *function* uses `$a3`. Two
+`mfhi $a3`/`mfhi $t0` mismatches in unrelated blocks were not two problems but
+a symptom of this one: once the multiply constant took `$a3` here, both `mfhi`s
+became `$t0` on their own. Do not chase a reload scratch register directly.
