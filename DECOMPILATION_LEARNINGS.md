@@ -135524,6 +135524,7 @@ SHA256 is `c3bee8b331b653204cb0be6cf1810db198be28be047aaa709ae47864083e4e40`.
 Full paired inputs, dumps and trace are in this function's immutable permuter
 findings. The function is shared by actor_402200 and actor_403900; their
 identical index rows use one symbol bound to each overlay's own table address.
+
 ## A typed task-work store resolves two incompatible scheduler orders (ActorsShared8013845cSub0, 2026-09-20)
 
 The archived 99.474% retry alternated between an early `sw` and an early `lui`
