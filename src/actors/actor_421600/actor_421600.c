@@ -4,6 +4,7 @@
 #include <psyq/inline_c.h>
 
 #include "actors/actor_421600.h"
+#include "actors/actor_421600_update.h"
 #include "actors/actors_shared_80132808.h"
 #include "gameplay/1A8.h"
 #include "gameplay/3A34.h"
@@ -3649,7 +3650,346 @@ void func_actor_421600_8013D1DC(Actor421600* arg0)
     *(Actor421600TurnScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013D658);
+const Actor421600StateTable D_actor_421600_80131EFC = { { func_actor_421600_8013E858,
+                                                          func_actor_421600_80135F6C,
+                                                          func_actor_421600_80136138,
+                                                          func_actor_421600_8013A554,
+                                                          func_actor_421600_8013E8AC,
+                                                          func_actor_421600_8013B00C,
+                                                          func_actor_421600_8013B4C4,
+                                                          func_actor_421600_8013B8E0,
+                                                          func_actor_421600_8013C8E0,
+                                                          func_actor_421600_8013CD3C,
+                                                          func_actor_421600_8013D1DC,
+                                                          func_actor_421600_8013ED24,
+                                                          func_actor_421600_8013EE0C,
+                                                          NULL,
+                                                          NULL,
+                                                          NULL,
+                                                          NULL,
+                                                          func_actor_421600_8013A404,
+                                                          NULL,
+                                                          NULL,
+                                                          func_actor_421600_8013EC28,
+                                                          func_actor_421600_801366F4,
+                                                          func_actor_421600_801369A0,
+                                                          NULL,
+                                                          func_actor_421600_80136C88,
+                                                          NULL,
+                                                          NULL,
+                                                          NULL,
+                                                          func_actor_421600_801373D4,
+                                                          func_actor_421600_8013E9D8,
+                                                          func_actor_421600_8013848C,
+                                                          func_actor_421600_80138D24,
+                                                          func_actor_421600_8013903C,
+                                                          func_actor_421600_801392A8,
+                                                          func_actor_421600_8013EAAC,
+                                                          func_actor_421600_8013947C,
+                                                          func_actor_421600_8013EB7C,
+                                                          func_actor_421600_80138750,
+                                                          func_actor_421600_80139718,
+                                                          func_actor_421600_8013BA70 } };
+void                        func_actor_421600_8013D658(GpEnemy* enemy, Actor421600* actor)
+{
+    PlayerStatus*         config;
+    VECTOR                pos;
+    Actor421600StateTable states;
+
+    s16                       view;
+    s16                       height;
+    s16                       state;
+    s16                       activeState;
+    s16                       finalState;
+    GsCOORDINATE2*            playerCoord;
+    GsCOORDINATE2*            actorCoord;
+    GsCOORDINATE2*            actorCoord2;
+    GsCOORDINATE2*            playerCoord2;
+    s32                       action;
+    s32                       x;
+    s32                       z;
+    s32                       nextAction;
+    s32                       result;
+    u8                        kind;
+    s32                       contactKind;
+    void**                    scratchHead;
+    Actor421600AnimCommand*   nextCommand;
+    Actor421600Work*          actorWork;
+    Actor421600Work*          actorWork2;
+    Actor421600Work*          work;
+    Actor421600*              player;
+    Actor421600AnimCommand*   command;
+    Actor421600*              slot;
+    Actor421600*              slot2;
+    Actor421600UpdateScratch* scratch;
+    GsCOORDINATE2*            clampCoord;
+    void*                     message;
+    void*                     nextMessage;
+
+    work                         = actor->field_1C;
+    player                       = (Actor421600*)gameGetPtrSlot(3);
+    config                       = &Player_Status;
+    view                         = Gp_GetViewIndex() & 0xFF;
+    states                       = D_actor_421600_80131EFC;
+    actor->field_2C->coords->flg = 0;
+    Gp_UpdateCoord(actor->field_2C->coords);
+    pos.vx = actor->field_2C->coords->workm.t[0];
+    pos.vy = actor->field_2C->coords->workm.t[1];
+    pos.vz = actor->field_2C->coords->workm.t[2];
+    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    switch (D_801153F4.mode) {
+        case 0:
+            if (work->field_0 != 0x15 && work->field_0 != 0 && work->field_0 != 0x16 && work->field_0 != 7 && work->field_0 != 8) {
+                height = actor->field_2C->coords->coord.t[1];
+                func_actor_421600_80132EC0(actor, 1, 3, 0x12C, (s32)height, 0xFF);
+                func_actor_421600_80132EC0(actor, 3, 4, 0xC8, (s32)height, 0xFF);
+                func_actor_421600_80132EC0(actor, 1, 0xB, 0xFA, (s32)height, 0xFF);
+                if ((Gp_GetViewIndex() & 0xFF) == 0x13) {
+                    actor->field_2C->flags = 0x80;
+                } else {
+                    actor->field_2C->flags = 0;
+                }
+            }
+            break;
+        case 1:
+            if (work->field_0 != 0x15 && work->field_0 != 0 && work->field_0 != 0x16 && work->field_0 != 7 && work->field_0 != 8) {
+                height = actor->field_2C->coords->coord.t[1];
+                func_actor_421600_80132EC0(actor, 1, 3, 0x12C, (s32)height, 0xFF);
+                func_actor_421600_80132EC0(actor, 3, 4, 0xC8, (s32)height, 0xFF);
+                func_actor_421600_80132EC0(actor, 1, 0xB, 0xFA, (s32)height, 0xFF);
+                if ((Gp_GetViewIndex() & 0xFF) == 0x13) {
+                    actor->field_2C->flags = 0x80;
+                } else {
+                    actor->field_2C->flags = 0;
+                }
+            }
+            Gp_ClearRec18Occupied(&work->field_B8C);
+            Gp_ClearRec18Occupied(&work->field_90C);
+            Gp_ClearRec18Occupied(&work->field_A4C);
+            Gp_ClearRec18Occupied(work->field_CE4);
+            return;
+        case 2:
+            actor->field_2C->flags = 0x80;
+            Gp_ClearRec18Occupied(&work->field_B8C);
+            Gp_ClearRec18Occupied(&work->field_90C);
+            Gp_ClearRec18Occupied(&work->field_A4C);
+            Gp_ClearRec18Occupied(work->field_CE4);
+            return;
+    }
+    scratchHead = (void**)G_SCRATCH_HEAD;
+    scratch     = Actor421600_AllocUpdateScratch((Actor421600UpdateScratch**)scratchHead);
+    if (work->field_E64 > 0) {
+        work->field_E64 = (s16)((u16)work->field_E64 - 1);
+    } else if (config->hp > 0) {
+        func_actor_421600_801354D8(actor);
+    }
+    kind = work->field_E90.bytes[2];
+    if ((kind == 2) && ((state = work->field_0, (state == 0x26)) || (state == kind))) {
+        work->field_0 = 0x27;
+    }
+    if (work->field_2 != work->field_0) {
+        work->field_4 = 1;
+    } else {
+        work->field_4 = 0;
+    }
+    work->field_2 = (s16)(u16)work->field_0;
+    scratch->zone = Actor421600_Zone(actor->field_2C->coords);
+    if (work->field_E9C == 1) {
+        activeState = work->field_0;
+        if ((activeState != 0x15) && (activeState != 0) && (activeState != 8)) {
+            actorWork = actor->field_1C;
+            slot      = (Actor421600*)gameGetPtrSlot(3);
+            if ((slot != NULL) && (actorWork->field_8B4 == 7)) {
+                playerCoord = slot->field_2C->coords;
+                actorCoord  = actor->field_2C->coords;
+                if (abs(playerCoord->coord.t[1] - actorCoord->coord.t[1]) >= 0x12D) {
+                    playerCoord->coord.t[1]     = actorCoord->coord.t[1];
+                    slot->field_2C->coords->flg = 0;
+                }
+            }
+        }
+        actorWork2 = actor->field_1C;
+        slot2      = (Actor421600*)gameGetPtrSlot(3);
+        if ((slot2 != NULL) && (actorWork2->field_8B4 == 7)) {
+            playerCoord2 = slot2->field_2C->coords;
+            actorCoord2  = actor->field_2C->coords;
+            if (abs(playerCoord2->coord.t[1] - actorCoord2->coord.t[1]) >= 0x12D) {
+                playerCoord2->coord.t[1]     = actorCoord2->coord.t[1];
+                slot2->field_2C->coords->flg = 0;
+            }
+        }
+        contactKind              = work->field_E90.bytes[2];
+        work->field_E90.bytes[3] = (u8)(work->field_E90.bytes[3] + 1);
+        if (contactKind == 1) {
+            if (D_801876AA == (D_801876A8 + 1)) {
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, NULL, 0);
+                work->field_E9C = 0;
+            }
+            if ((work->field_E90.bytes[2] == contactKind) && ((s32)D_801876AA < (D_801876A8 + 3))) {
+                work->field_8A4 = 0;
+                work->field_8A8 = 0;
+                work->field_8AC = 0;
+            }
+        }
+        action = work->field_E80;
+        switch (action) {
+            case 4:
+                break;
+            case 1:
+                if (Gp_DispatchMsg(player, 0x3FE, &work->field_8A4, 0) == 1) {
+                    work->field_8A4 = 0;
+                    work->field_8A8 = 0;
+                    work->field_8AC = 0;
+                }
+                if (((u8)work->field_E90.bytes[3] >= 0xFU) && (work->field_8B4 == 7)) {
+                    work->field_8A4 = (s32)((s32)work->field_8A4 >> 1);
+                    work->field_8A8 = (s32)((s32)work->field_8A8 >> 1);
+                    work->field_8AC = (s32)((s32)work->field_8AC >> 1);
+                }
+                break;
+            case 2:
+                command = (Actor421600AnimCommand*)work->field_E7C;
+                if (command == &D_actor_421600_801510A4) {
+                    if ((config->hp > 0) && ((u8)work->field_E90.bytes[3] >= 0x17U)) {
+                        message           = &work->field_E7C;
+                        command->field_10 = (s32)(Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9])->field_1C;
+                        work->field_E80   = 4;
+                        work->field_E84   = 1;
+                        work->field_E88   = 3;
+                        Gp_DispatchMsg(player, 0x3FF, message, 0);
+                        work->field_E90.bytes[3] = 0U;
+                    }
+                } else if ((config->hp > 0) && ((u8)work->field_E90.bytes[3] >= 0x22U)) {
+                    message                       = &work->field_E7C;
+                    D_actor_421600_801510A0.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9])->field_1C;
+
+                    work->field_E80 = 4;
+                    work->field_E84 = 1;
+                    work->field_E88 = 3;
+                    Gp_DispatchMsg(player, 0x3FF, message, 0);
+                    work->field_E90.bytes[3] = 0U;
+                }
+                break;
+            case 3:
+                if (((u8)work->field_E90.bytes[3] < 6U) && (config->hp > 0)) {
+                    result = Gp_DispatchMsg(player, 0x3FE, &work->field_8A4, 0);
+                    if (result == 1) {
+                        work->field_8A4 = 0;
+                        work->field_8A8 = 0;
+                        work->field_8AC = 0;
+                        work->field_8B6 = result;
+                    }
+                }
+                break;
+            case 5:
+                if ((config->hp > 0) && ((u8)work->field_E90.bytes[3] >= 7U)) {
+                    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, (void*)2, 0);
+                    work->field_E9C = 0;
+                }
+                break;
+        }
+        if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, NULL, 0) == 0) {
+            nextAction = work->field_E80;
+            switch (nextAction) {
+                case 1:
+                    if (((((*(u32*)&gGameSession->at4.loc) & 0xFFFF0000) != 0x04010000) || (work->field_8B4 != 0x38)) && (config->hp > 0)) {
+                        nextMessage     = &work->field_E7C;
+                        work->field_E84 = 0;
+                        work->field_E88 = 0;
+                        work->field_E80 = 2;
+
+                        Gp_DispatchMsg(player, 0x3FF, nextMessage, 0);
+                        work->field_E90.bytes[3] = 0U;
+                    }
+                    break;
+                case 3:
+                    if (config->hp > 0) {
+                        work->field_E84 = 1;
+                        work->field_E88 = 6;
+                        work->field_E80 = 5;
+                        nextCommand     = (Actor421600AnimCommand*)work->field_E7C;
+                        if (nextCommand == &D_actor_421600_801510A4) {
+                            nextCommand->field_14 = (s32)(Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9])->field_24;
+                        } else {
+                            Actor421600FallbackEnd.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9])->field_24;
+                        }
+                        nextMessage = &work->field_E7C;
+                        Gp_DispatchMsg(player, 0x3FF, nextMessage, 0);
+                        work->field_E90.bytes[3] = 0U;
+                    }
+                    break;
+                case 4:
+                case 7:
+                    if (config->hp > 0) {
+                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, (void*)2, 0);
+                        work->field_E9C = 0;
+                    }
+                    break;
+            }
+        }
+    }
+    states.fn[work->field_0](actor);
+    if (work->field_0 == 1 && work->field_E90.bytes[2] == 0) {
+        if ((Gp_GetViewIndex() & 0xFF) == 5)
+            work->field_0 = 2;
+    }
+    if (Actor421600_HasPlayerContact(&work->field_90C)) {
+        switch (view) {
+            case 9:
+            case 0x12:
+                clampCoord = player->field_2C->coords;
+                x          = clampCoord->coord.t[0];
+                if (x > 0) {
+                    if (x >= 0xBEB) {
+                        clampCoord->coord.t[0] = 0xB54;
+                    } else {
+                        goto clampZ;
+                    }
+                } else if (x < -0xB22) {
+                    clampCoord->coord.t[0] = -0xA8C;
+                } else {
+                clampZ:
+                    z = clampCoord->coord.t[2];
+                    if (z > 0) {
+                        if (z >= 0xB23) {
+                            clampCoord->coord.t[2] = 0xA8C;
+                        }
+                    } else if (z < -0xB22) {
+                        clampCoord->coord.t[2] = -0xA8C;
+                    }
+                }
+
+                break;
+            case 0xE:
+                break;
+            default:
+                func_actor_421600_80133334(player->field_2C->coords);
+                break;
+        }
+    }
+    finalState = work->field_0;
+    if ((finalState != 0x15) && (finalState != 0) && (finalState != 5) && (finalState != 0x16) && (finalState != 8)) {
+        work->field_8EC.flags |= 0x8000;
+        work->field_A2C.flags |= 0x8000;
+    } else {
+        work->field_8EC.flags &= 0x7FFF;
+        work->field_A2C.flags &= 0x7FFF;
+    }
+    Gp_ClearRec18Occupied(&work->field_B8C);
+    Gp_ClearRec18Occupied(&work->field_90C);
+    Gp_ClearRec18Occupied(&work->field_A4C);
+    Gp_ClearRec18Occupied(work->field_CE4);
+    scratch->pos.vx = 0U;
+    scratch->pos.vy = 0;
+    scratch->pos.vz = 0;
+    Actor421600_TransformToView(actor->field_2C->coords + 2, &scratch->pos);
+    enemy->bodyPos.vx      = (s32)(s16)scratch->pos.vx;
+    enemy->bodyPos.vy      = (s32)scratch->pos.vy;
+    enemy->bodyPos.vz      = (s32)scratch->pos.vz;
+    enemy->coord           = &gGfxViewCoord;
+    *(s32*)G_SCRATCH_HEAD += 0x1C;
+    func_actor_421600_80133444(actor->field_2C->coords);
+}
 
 void func_actor_421600_8013E424(void)
 {
