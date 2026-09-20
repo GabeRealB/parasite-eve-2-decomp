@@ -136089,3 +136089,38 @@ Compiler/input hashes, measured inputs and selected observations:
 [2026-09-20-actor143000-32d10.json](tools/compiler_evidence/2026-09-20-actor143000-32d10.json).
 Full controlled sources, dumps, predictions and rejected return-type mutations
 are retained under tools/permuter_findings/func_actor_143000_80132D10/.
+
+
+### A narrow ra dependency preserves entry scheduling without fencing a branch delay slot (func_actor_121300_80133064, 2026-09-20)
+
+The 98.947% seed needed an incoming task alias in a0 for its disabled-path
+kill and a saved task pointer in s1 for its switch. A redundant a0=s1 copy
+survived into sched2, delaying the flag load chain until after the frame setup;
+jump2 removed the copy too late to repair that order. Reversing the pointer
+roles and using a read/write empty asm separated the homes, but its extra
+scheduler node caused the same hazard conflict.
+
+A volatile touch placed after the flag read fixed entry order, but blocked
+reorg from moving sw s0 into the branch delay slot. The preplanned replacement
+`__asm__("" : "+r"(dispatch) : : "$31")` gave 100% without register pins.
+It emits no MIPS. Its conservative ra clobber makes the already-required ra
+save precede it, while leaving the s0 store independent. No standard helper
+expresses this specific nonvolatile constraint.
+
+The matched trace selects the asm at sched2 reverse cycle 3, releasing the
+ra save and pointer copy. At cycle 4 the ra save wins on potential hazard
+823296 versus the flag load's 811008; the load is blocked at cycles 5 and 7,
+allowing the pointer/frame chain to be scheduled. Thus the flag load/high at
+reverse cycles 8/9 appear first. The dbr sequence then places sw s0 across
+the asm into the branch delay slot. Allocation separately preserves a0/s1.
+A normal-style port remains exact. Both focused traces leave assembly unchanged.
+
+This demonstrates why narrowing a scheduling constraint must also preserve
+delay-slot eligibility; a full volatile boundary was too strong in this case.
+The older retry's claim that REG_DEAD vetoed reload-CSE deletion is unsupported:
+patched reload1.c does not invalidate known values on death notes.
+
+Evidence, pre-build predictions, source/input hashes and selected raw events:
+`tools/compiler_evidence/2026-09-20-actor121300-33064.json`.
+Matched input SHA256:
+`15dc0cb26721f30253eba484d4683ff91222eeb436e4d9382756fec74c9f6a14`.

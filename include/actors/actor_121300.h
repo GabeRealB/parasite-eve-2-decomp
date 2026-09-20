@@ -6,6 +6,9 @@
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
+/// Task descriptors used by this overlay's effect spawners.
+extern TaskDesc ActorsShared80136280Desc;
+
 /// Work block for the `actor_121300` overlay's cutscene actor.
 ///
 /// `func_actor_121300_80133BFC` allocates it with `Mem_Malloc(0x4B0, 0)`,

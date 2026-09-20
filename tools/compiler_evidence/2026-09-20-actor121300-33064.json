@@ -1,0 +1,3294 @@
+{
+  "function": "func_actor_121300_80133064",
+  "date": "2026-09-20",
+  "status": "supported",
+  "scope": "Entry scheduling and argument homes under the bundled GCC 2.8.1; exact scratch match and successful unscoped integration build.",
+  "prediction": "Replacing the volatile pointer touch with nonvolatile asm and a ra clobber keeps the flag load ahead of the prologue while permitting the s0 save to enter the branch delay slot.",
+  "result": "base_11 and normal-style base_12 match all 114 instructions with every penalty zero.",
+  "candidates": [
+    {
+      "source": "base_1.c",
+      "source_sha256": "60248a5468ecc1bc777bcac36376557dd750a3ebd3e3cd8a8e91148348a5fe18",
+      "input_sha256": "512c89ec427abb41b771244bf03c56117761a49858845d74305f3e718a8cf42f",
+      "source_text": "#include \"common.h\"\n#include \"actors/actor_121300.h\"\n#include \"main/fs.h\"\n#include \"main/gameflow.h\"\n#include \"main/mem.h\"\n#include \"main/task.h\"\n\nextern TaskDesc ActorsShared80136280Desc;\nextern u16 D_actor_121300_8013D41C;\n\nvoid func_actor_121300_80133064(Task *arg0) {\n    Task *t = arg0;\n    TaskIdMap *temp;\n\n    if (D_actor_121300_8013D41C != 0) {\n        switch (arg0->state) {\n        case 0:\n            temp = (TaskIdMap *)Mem_Malloc(8U, false);\n            arg0->work = temp;\n            if (temp != NULL) {\n                Mem_Set(temp, 0U, 8U);\n                arg0->state += 1;\n                return;\n            }\n            break;\n        case 1:\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 4, arg0->spawnArg1, 0);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 5, arg0->spawnArg1, 1);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 6, arg0->spawnArg1, 2);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 7, arg0->spawnArg1, 3);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 8, arg0->spawnArg1, 4);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 4, arg0->spawnArg1, 5);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 5, arg0->spawnArg1, 6);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 6, arg0->spawnArg1, 7);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 7, arg0->spawnArg1, 8);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 8, arg0->spawnArg1, 9);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 4, arg0->spawnArg1, 0xA);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 5, arg0->spawnArg1, 0xB);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 6, arg0->spawnArg1, 0xC);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 7, arg0->spawnArg1, 0xD);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 8, arg0->spawnArg1, 0xE);\n            break;\n        default:\n            return;\n        }\n        taskKill(arg0);\n    } else {\n        taskKill(t);\n    }\n}\n",
+      "score": {
+        "score": 98.94736842105263,
+        "distance": 120,
+        "penalties": {
+          "stack": 0,
+          "branch": 0,
+          "regs": 0,
+          "reorder": 2,
+          "insert": 0,
+          "delete": 0
+        }
+      }
+    },
+    {
+      "source": "base_2.c",
+      "source_sha256": "88e1cbe8e83c8c7ae323224ddaefa8428e401b5904be193946a91379cff95d4e",
+      "input_sha256": "43245994d35a9115fabb51b64b6a7b7c1c086584aa5051041872b48c75132dd1",
+      "source_text": "#include \"common.h\"\n#include \"actors/actor_121300.h\"\n#include \"main/fs.h\"\n#include \"main/gameflow.h\"\n#include \"main/mem.h\"\n#include \"main/task.h\"\n\nextern TaskDesc ActorsShared80136280Desc;\nextern u16 D_actor_121300_8013D41C;\n\nvoid func_actor_121300_80133064(Task *arg0) {\n    Task *t = arg0;\n    TaskIdMap *temp;\n\n    SOFT_TOUCH_REG(t);\n\n    if (D_actor_121300_8013D41C != 0) {\n        switch (t->state) {\n        case 0:\n            temp = (TaskIdMap *)Mem_Malloc(8U, false);\n            t->work = temp;\n            if (temp != NULL) {\n                Mem_Set(temp, 0U, 8U);\n                t->state += 1;\n                return;\n            }\n            break;\n        case 1:\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 4, t->spawnArg1, 0);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 5, t->spawnArg1, 1);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 6, t->spawnArg1, 2);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 7, t->spawnArg1, 3);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 8, t->spawnArg1, 4);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 4, t->spawnArg1, 5);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 5, t->spawnArg1, 6);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 6, t->spawnArg1, 7);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 7, t->spawnArg1, 8);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 8, t->spawnArg1, 9);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 4, t->spawnArg1, 0xA);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 5, t->spawnArg1, 0xB);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 6, t->spawnArg1, 0xC);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 7, t->spawnArg1, 0xD);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 8, t->spawnArg1, 0xE);\n            break;\n        default:\n            return;\n        }\n        taskKill(t);\n    } else {\n        taskKill(arg0);\n    }\n}\n",
+      "score": {
+        "score": 98.94736842105263,
+        "distance": 120,
+        "penalties": {
+          "stack": 0,
+          "branch": 0,
+          "regs": 0,
+          "reorder": 2,
+          "insert": 0,
+          "delete": 0
+        }
+      }
+    },
+    {
+      "source": "base_3.c",
+      "source_sha256": "62b4ebc98d881a9baba5ef3a7c53c4ceacbb5fbd9a94fd4458223b2f11f1aebe",
+      "input_sha256": "0ba1dff5ae09f302b1cf6bb2d2355593936205214a3527db2f5a81a57fe4b6b4",
+      "source_text": "#include \"common.h\"\n#include \"actors/actor_121300.h\"\n#include \"main/fs.h\"\n#include \"main/gameflow.h\"\n#include \"main/mem.h\"\n#include \"main/task.h\"\n\nextern TaskDesc ActorsShared80136280Desc;\nextern u16 D_actor_121300_8013D41C;\n\nvoid func_actor_121300_80133064(Task *arg0) {\n    Task *t = arg0;\n    TaskIdMap *temp;\n\n    if (D_actor_121300_8013D41C != 0) {\n        SOFT_TOUCH_REG(t);\n        switch (t->state) {\n        case 0:\n            temp = (TaskIdMap *)Mem_Malloc(8U, false);\n            t->work = temp;\n            if (temp != NULL) {\n                Mem_Set(temp, 0U, 8U);\n                t->state += 1;\n                return;\n            }\n            break;\n        case 1:\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 4, t->spawnArg1, 0);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 5, t->spawnArg1, 1);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 6, t->spawnArg1, 2);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 7, t->spawnArg1, 3);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 8, t->spawnArg1, 4);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 4, t->spawnArg1, 5);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 5, t->spawnArg1, 6);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 6, t->spawnArg1, 7);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 7, t->spawnArg1, 8);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 8, t->spawnArg1, 9);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 4, t->spawnArg1, 0xA);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 5, t->spawnArg1, 0xB);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 6, t->spawnArg1, 0xC);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 7, t->spawnArg1, 0xD);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 8, t->spawnArg1, 0xE);\n            break;\n        default:\n            return;\n        }\n        taskKill(t);\n    } else {\n        taskKill(arg0);\n    }\n}\n",
+      "score": {
+        "score": 99.29824561403508,
+        "distance": 80,
+        "penalties": {
+          "stack": 0,
+          "branch": 0,
+          "regs": 4,
+          "reorder": 1,
+          "insert": 0,
+          "delete": 0
+        }
+      }
+    },
+    {
+      "source": "base_10.c",
+      "source_sha256": "ef9e8cdc08cc89e3b4e81cc77607581a1b62e5c76e970183db4472a88ff80407",
+      "input_sha256": "9b78604fed7d6b35f9984279749e765f4a74a7584a47f48ad595abe61e832ecf",
+      "source_text": "#include \"common.h\"\n#include \"actors/actor_121300.h\"\n#include \"main/fs.h\"\n#include \"main/gameflow.h\"\n#include \"main/mem.h\"\n#include \"main/task.h\"\n\nextern TaskDesc ActorsShared80136280Desc;\nextern u16 D_actor_121300_8013D41C;\n\nvoid func_actor_121300_80133064(Task *arg0) {\n    Task *t = arg0;\n    TaskIdMap *temp;\n\n    u32 active = D_actor_121300_8013D41C;\n\n    TOUCH_REG(t);\n    if (active != 0) {\n        switch (t->state) {\n        case 0:\n            temp = (TaskIdMap *)Mem_Malloc(8U, false);\n            t->work = temp;\n            if (temp != NULL) {\n                Mem_Set(temp, 0U, 8U);\n                t->state += 1;\n                return;\n            }\n            break;\n        case 1:\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 4, t->spawnArg1, 0);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 5, t->spawnArg1, 1);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 6, t->spawnArg1, 2);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 7, t->spawnArg1, 3);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 8, t->spawnArg1, 4);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 4, t->spawnArg1, 5);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 5, t->spawnArg1, 6);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 6, t->spawnArg1, 7);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 7, t->spawnArg1, 8);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 8, t->spawnArg1, 9);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 4, t->spawnArg1, 0xA);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 5, t->spawnArg1, 0xB);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 6, t->spawnArg1, 0xC);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 7, t->spawnArg1, 0xD);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 8, t->spawnArg1, 0xE);\n            break;\n        default:\n            return;\n        }\n        taskKill(t);\n    } else {\n        taskKill(arg0);\n    }\n}\n",
+      "score": {
+        "score": 97.36521739130434,
+        "distance": 303,
+        "penalties": {
+          "stack": 0,
+          "branch": 3,
+          "regs": 0,
+          "reorder": 0,
+          "insert": 2,
+          "delete": 1
+        }
+      }
+    },
+    {
+      "source": "base_11.c",
+      "source_sha256": "62f3b587f200fef42924c16f2e14f134ebdb53eb77784dba2dbea3cdfd47b62d",
+      "input_sha256": "15dc0cb26721f30253eba484d4683ff91222eeb436e4d9382756fec74c9f6a14",
+      "source_text": "#include \"common.h\"\n#include \"actors/actor_121300.h\"\n#include \"main/fs.h\"\n#include \"main/gameflow.h\"\n#include \"main/mem.h\"\n#include \"main/task.h\"\n\nextern TaskDesc ActorsShared80136280Desc;\nextern u16 D_actor_121300_8013D41C;\n\nvoid func_actor_121300_80133064(Task *arg0) {\n    Task *t = arg0;\n    TaskIdMap *temp;\n\n    u32 active = D_actor_121300_8013D41C;\n\n    __asm__(\"\" : \"+r\"(t) : : \"$31\");\n    if (active != 0) {\n        switch (t->state) {\n        case 0:\n            temp = (TaskIdMap *)Mem_Malloc(8U, false);\n            t->work = temp;\n            if (temp != NULL) {\n                Mem_Set(temp, 0U, 8U);\n                t->state += 1;\n                return;\n            }\n            break;\n        case 1:\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 4, t->spawnArg1, 0);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 5, t->spawnArg1, 1);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 6, t->spawnArg1, 2);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 7, t->spawnArg1, 3);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 8, t->spawnArg1, 4);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 4, t->spawnArg1, 5);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 5, t->spawnArg1, 6);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 6, t->spawnArg1, 7);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 7, t->spawnArg1, 8);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 8, t->spawnArg1, 9);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 4, t->spawnArg1, 0xA);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 5, t->spawnArg1, 0xB);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 6, t->spawnArg1, 0xC);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 7, t->spawnArg1, 0xD);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 8, t->spawnArg1, 0xE);\n            break;\n        default:\n            return;\n        }\n        taskKill(t);\n    } else {\n        taskKill(arg0);\n    }\n}\n",
+      "score": {
+        "score": 100.0,
+        "distance": 0,
+        "penalties": {
+          "stack": 0,
+          "branch": 0,
+          "regs": 0,
+          "reorder": 0,
+          "insert": 0,
+          "delete": 0
+        }
+      }
+    },
+    {
+      "source": "base_12.c",
+      "source_sha256": "e52e382d849f381a87499bb496ba2293eb28cacbf5d4d7fc95f79c7eb4ef52dc",
+      "input_sha256": "5d02b45510c1a75e4a01e7afe75d11b58cf035dc2de21a8c4f4c518e151e4169",
+      "source_text": "#include \"common.h\"\n#include \"actors/actor_121300.h\"\n#include \"main/mem.h\"\n#include \"main/task.h\"\n\nextern TaskDesc ActorsShared80136280Desc;\nextern u16 D_actor_121300_8013D41C;\n\nvoid func_actor_121300_80133064(Task* task)\n{\n    Task* dispatch = task;\n    void* alloc;\n\n    u32 active = D_actor_121300_8013D41C;\n\n    /* Keep the disabled path in a0. The ra dependency orders the entry\n     * copy without fencing the s0 save out of the branch delay slot. */\n    __asm__(\"\" : \"+r\"(dispatch) : : \"$31\");\n    if (active != 0) {\n        switch (dispatch->state) {\n        case 0:\n            alloc = Mem_Malloc(8, 0);\n            dispatch->work = alloc;\n            if (alloc != NULL) {\n                Mem_Set(alloc, 0, 8);\n                dispatch->state += 1;\n                return;\n            }\n            break;\n        case 1:\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 4, dispatch->spawnArg1, 0);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 5, dispatch->spawnArg1, 1);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 6, dispatch->spawnArg1, 2);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 7, dispatch->spawnArg1, 3);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 8, dispatch->spawnArg1, 4);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 4, dispatch->spawnArg1, 5);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 5, dispatch->spawnArg1, 6);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 6, dispatch->spawnArg1, 7);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 7, dispatch->spawnArg1, 8);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 8, dispatch->spawnArg1, 9);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 4, dispatch->spawnArg1, 0xA);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 5, dispatch->spawnArg1, 0xB);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 6, dispatch->spawnArg1, 0xC);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 7, dispatch->spawnArg1, 0xD);\n            Task_SpawnFromTable(&ActorsShared80136280Desc, 8, dispatch->spawnArg1, 0xE);\n            break;\n        default:\n            return;\n        }\n        taskKill(dispatch);\n    } else {\n        taskKill(task);\n    }\n}\n",
+      "score": {
+        "score": 100.0,
+        "distance": 0,
+        "penalties": {
+          "stack": 0,
+          "branch": 0,
+          "regs": 0,
+          "reorder": 0,
+          "insert": 0,
+          "delete": 0
+        }
+      }
+    }
+  ],
+  "plans_and_conclusions": [
+    {
+      "at": "2026-09-20T08:49:48.715749+00:00",
+      "event": "plan",
+      "expected": "r80=a0 and r81=s1 preserved; once asm is scheduled, entry ready set matches target one-copy shape and lui/lhu lead prologue",
+      "hypothesis": "A volatile pointer touch after reading the flag makes all entry stores/load precede the empty asm, forcing that virtual sink to schedule before stores in backward order; this removes its one-cycle interference with the real pointer copy",
+      "parent": "base_2.c",
+      "pass_name": "sched2",
+      "source": "base_10.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T08:50:43.652217+00:00",
+      "event": "conclude",
+      "next": "Replace full volatile boundary with only a return-address clobber: constrain asm after ra save in sched2, while allowing s0 save to cross it into the branch delay slot",
+      "result": "Entry scheduling prediction holds exactly: lui/lhu then frame/save/copy/save. Volatile asm prevents dbr from moving s0 save through it, leaving a branch-delay nop and 115 insns. Homes and all block/call connections still agree.",
+      "source": "base_10.c",
+      "source_sha256": "ef9e8cdc08cc89e3b4e81cc77607581a1b62e5c76e970183db4472a88ff80407"
+    },
+    {
+      "at": "2026-09-20T08:50:43.702770+00:00",
+      "event": "plan",
+      "expected": "entry flag-before-frame order retained; r80=a0/r81=s1 and frame unchanged; dbr fills branch slot with sw s0",
+      "hypothesis": "A nonvolatile pointer touch clobbering ra depends on the prologue ra save, but leaves s0 untouched; this should schedule the virtual sink early enough without blocking dbr from using the s0 store",
+      "parent": "base_10.c",
+      "pass_name": "sched2",
+      "source": "base_11.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T08:51:43.560944+00:00",
+      "event": "conclude",
+      "next": "Port normal C/header style and verify the complete repository build",
+      "result": "100.000%, all penalties zero. Traces confirm a0 incoming/s1 dispatch, asm UID16 releases ra-save UID310 at sched2 T3, store hazard blocks flag at T5 and T7, and dbr puts sw s0 across the nonvolatile asm into the branch delay slot.",
+      "source": "base_11.c",
+      "source_sha256": "62f3b587f200fef42924c16f2e14f134ebdb53eb77784dba2dbea3cdfd47b62d"
+    },
+    {
+      "at": "2026-09-20T08:51:43.645063+00:00",
+      "event": "plan",
+      "expected": "100% with the same pointer homes, frame, and scheduling constraints",
+      "hypothesis": "Formatting, descriptive variable names, and an untyped allocation pointer preserve the matched RTL and source semantics",
+      "parent": "base_11.c",
+      "pass_name": "rtl",
+      "source": "base_12.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T08:52:30.281199+00:00",
+      "event": "conclude",
+      "next": "Full unscoped build verification and commit",
+      "result": "Normal C/header port remains 100%, all-zero penalties; pointer declarations and descriptive names preserve the matched entry scheduling and call layout.",
+      "source": "base_12.c",
+      "source_sha256": "e52e382d849f381a87499bb496ba2293eb28cacbf5d4d7fc95f79c7eb4ef52dc"
+    }
+  ],
+  "traces": {
+    "BASE_1": {
+      "manifest": {
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "input_sha256": "512c89ec427abb41b771244bf03c56117761a49858845d74305f3e718a8cf42f",
+        "input_origin": "/home/gabriel/pe2-ov-actor_121300/nonmatchings/func_actor_121300_80133064-vacuum/base_1.i",
+        "flags": [
+          "-O2",
+          "-mips1",
+          "-mcpu=3000",
+          "-w",
+          "-funsigned-char",
+          "-fpeephole",
+          "-ffunction-cse",
+          "-fpcc-struct-return",
+          "-fcommon",
+          "-fverbose-asm",
+          "-msoft-float",
+          "-mgas",
+          "-fgnu-linker",
+          "-quiet",
+          "-gcoff",
+          "-dp",
+          "-G0",
+          "-da"
+        ],
+        "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+        "source_sha256": {
+          "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+          "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+          "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+          "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+          "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+          "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+          "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+          "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+          "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+          "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+          "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+          "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+          "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+          "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+          "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+          "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+          "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+          "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+          "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+        },
+        "assembly_identical": true,
+        "trace_complete": true,
+        "baseline_assembly_sha256": "7f8a93689c1800f7c6bd3822f1ecec07ab78a6eba5813c28e38236c3fe6a577d",
+        "traced_assembly_sha256": "7f8a93689c1800f7c6bd3822f1ecec07ab78a6eba5813c28e38236c3fe6a577d"
+      },
+      "report": "Observed compiler decisions (quantity IDs are local to each block; priorities calculated from observed inputs).\nScheduler cycles run backward within each block. Actual hazard costs are delays; potential hazard costs are ranking weights, not cycles.\nsched1 cycle 1 scheduled 18: uid 10 refs 1->0, priority 1->2130706433, tick=0\nsched1 cycle 1 scheduled 18: uid 16 refs 1->0, priority 1->2130706433, tick=0\nsched1 cycle 2: ready [10] -> selects 10; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 10, 'unit': -1}]\nsched1 cycle 2 scheduled 10: uid 4 refs 2->1, priority 1->1, tick=0\nsched1 cycle 3: ready [16] -> selects 16; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 16, 'unit': 0}]\nsched1 cycle 3 scheduled 16: uid 12 refs 1->0, priority 1->2130706433, tick=0\nsched1 cycle 4: ready [12] -> selects 12; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 12, 'unit': -1}]\nglobal a0 [80]: refs=22 span=99 priority=8888 calls=17 retry=0 caller_save=0 -> $s1\nglobal a1 [81]: refs=2 span=3 priority=6666 calls=0 retry=0 caller_save=0 -> $a0\nreload preference: $t0 $t1 $t2 $t3 $t4 $t5 $t6 $t7 $t8 $t9 64 65 66 $s2 $s3 $s4 $s5 $s6 $s7 $v1\nsched2 cycle 1 scheduled 18: uid 10 refs 1->0, priority 1->1, tick=0\nsched2 cycle 1 scheduled 18: uid 16 refs 1->0, priority 1->1, tick=0\nsched2 comparator uid 312 / 10: original RTL order; prefers uid 10\nsched2 comparator uid 308 / 10: original RTL order; prefers uid 10\nsched2 cycle 2: ready [10, 312, 308] -> selects 312; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 10, 'unit': -1}, {'cost': 0, 'kind': 'actual', 'uid': 312, 'unit': 0}, {'cost': 0, 'kind': 'actual', 'uid': 308, 'unit': 0}, {'cost': 0, 'kind': 'potential', 'uid': 10, 'unit': -1}, {'cost': 823296, 'kind': 'potential', 'uid': 312, 'unit': 0}, {'cost': 823296, 'kind': 'potential', 'uid': 308, 'unit': 0}]\nsched2 comparator uid 308 / 16: original RTL order; prefers uid 16\nsched2 comparator uid 10 / 16: original RTL order; prefers uid 10\nsched2 cycle 3: ready [10, 16, 308] -> selects 308; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 10, 'unit': -1}, {'cost': 1, 'kind': 'actual', 'uid': 16, 'unit': 0}, {'cost': 0, 'kind': 'actual', 'uid': 308, 'unit': 0}, {'cost': 0, 'kind': 'potential', 'uid': 10, 'unit': -1}, {'cost': 823296, 'kind': 'potential', 'uid': 308, 'unit': 0}]\nsched2 comparator uid 10 / 16: original RTL order; prefers uid 10\nsched2 cycle 4: ready [10, 16] -> selects 10; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 10, 'unit': -1}, {'cost': 1, 'kind': 'actual', 'uid': 16, 'unit': 0}]\nsched2 cycle 4 scheduled 10: uid 4 refs 1->0, priority 1->1, tick=0\nsched2 comparator uid 4 / 16: original RTL order; prefers uid 16\nsched2 cycle 5: ready [16, 4] -> selects 16; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 16, 'unit': 0}, {'cost': 0, 'kind': 'actual', 'uid': 4, 'unit': -1}, {'cost': 811008, 'kind': 'potential', 'uid': 16, 'unit': 0}, {'cost': 0, 'kind': 'potential', 'uid': 4, 'unit': -1}]\nsched2 cycle 5 scheduled 16: uid 12 refs 1->0, priority 1->1, tick=0\nsched2 comparator uid 4 / 12: original RTL order; prefers uid 12\nsched2 cycle 6: ready [12, 4] -> selects 12; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 12, 'unit': -1}, {'cost': 0, 'kind': 'actual', 'uid': 4, 'unit': -1}, {'cost': 0, 'kind': 'potential', 'uid': 12, 'unit': -1}, {'cost': 0, 'kind': 'potential', 'uid': 4, 'unit': -1}]\nsched2 cycle 7: ready [4] -> selects 4; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 4, 'unit': -1}]\nA -1 disposition means no hard-register home at that stage; reload may use memory equivalence or rematerialize a constant.\n",
+      "events": [
+        {
+          "event": "function",
+          "name": "func_actor_121300_80133064"
+        },
+        {
+          "clock": 1,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 0,
+                "priority": 2130706433,
+                "refs": 0,
+                "tick": 0,
+                "uid": 10
+              },
+              "before": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 10
+              },
+              "kind": 14
+            },
+            {
+              "after": {
+                "luid": 4,
+                "priority": 2130706433,
+                "refs": 0,
+                "tick": 0,
+                "uid": 16
+              },
+              "before": {
+                "luid": 4,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 16
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched1",
+          "scheduled": 18
+        },
+        {
+          "after": [
+            {
+              "luid": 0,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 10
+            }
+          ],
+          "before": [
+            {
+              "luid": 0,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 10
+            }
+          ],
+          "clock": 2,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 10,
+              "unit": -1
+            }
+          ],
+          "pass": "sched1",
+          "selected": 10
+        },
+        {
+          "clock": 2,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 4
+              },
+              "before": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 2,
+                "tick": 0,
+                "uid": 4
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched1",
+          "scheduled": 10
+        },
+        {
+          "after": [
+            {
+              "luid": 4,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 16
+            }
+          ],
+          "before": [
+            {
+              "luid": 4,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 16
+            }
+          ],
+          "clock": 3,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 16,
+              "unit": 0
+            }
+          ],
+          "pass": "sched1",
+          "selected": 16
+        },
+        {
+          "clock": 3,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 2,
+                "priority": 2130706433,
+                "refs": 0,
+                "tick": 0,
+                "uid": 12
+              },
+              "before": {
+                "luid": 2,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 12
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched1",
+          "scheduled": 16
+        },
+        {
+          "after": [
+            {
+              "luid": 2,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 12
+            }
+          ],
+          "before": [
+            {
+              "luid": 2,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 12
+            }
+          ],
+          "clock": 4,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 12,
+              "unit": -1
+            }
+          ],
+          "pass": "sched1",
+          "selected": 12
+        },
+        {
+          "event": "function",
+          "name": "func_actor_121300_80133064"
+        },
+        {
+          "birth": 4,
+          "block": 0,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 6,
+          "event": "local_choice",
+          "members": [
+            84
+          ],
+          "priority": 10000,
+          "qty": 0,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 2,
+          "searched_birth": 4,
+          "searched_death": 6,
+          "size": 1,
+          "span": 2,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 6,
+          "block": 0,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 10,
+          "event": "local_choice",
+          "members": [
+            86
+          ],
+          "priority": 5000,
+          "qty": 1,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 2,
+          "searched_birth": 6,
+          "searched_death": 10,
+          "size": 1,
+          "span": 4,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 2,
+          "block": 2,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 4,
+          "event": "local_choice",
+          "members": [
+            120
+          ],
+          "priority": 10000,
+          "qty": 0,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 2,
+          "searched_birth": 2,
+          "searched_death": 4,
+          "size": 1,
+          "span": 2,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 10,
+          "block": 5,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 14,
+          "event": "local_choice",
+          "members": [
+            88,
+            87
+          ],
+          "priority": 20000,
+          "qty": 0,
+          "refs": 4,
+          "reg_class": 1,
+          "result": 2,
+          "searched_birth": 10,
+          "searched_death": 14,
+          "size": 1,
+          "span": 4,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 4,
+          "block": 6,
+          "caller_save": 0,
+          "copy_suggestions": [
+            4
+          ],
+          "death": 148,
+          "event": "local_choice",
+          "members": [
+            89,
+            90
+          ],
+          "priority": 5000,
+          "qty": 0,
+          "refs": 18,
+          "reg_class": 1,
+          "result": -1,
+          "searched_birth": 4,
+          "searched_death": 148,
+          "size": 1,
+          "span": 144,
+          "suggested_only": 1,
+          "suggestions": [
+            4
+          ]
+        },
+        {
+          "birth": 4,
+          "block": 6,
+          "caller_save": 0,
+          "copy_suggestions": [
+            4
+          ],
+          "death": 148,
+          "event": "local_choice",
+          "members": [
+            89,
+            90
+          ],
+          "priority": 5000,
+          "qty": 0,
+          "refs": 18,
+          "reg_class": 1,
+          "result": -1,
+          "searched_birth": 4,
+          "searched_death": 148,
+          "size": 1,
+          "span": 144,
+          "suggested_only": 1,
+          "suggestions": [
+            4
+          ]
+        },
+        {
+          "birth": 4,
+          "block": 6,
+          "caller_save": 0,
+          "copy_suggestions": [
+            4
+          ],
+          "death": 148,
+          "event": "local_choice",
+          "members": [
+            89,
+            90
+          ],
+          "priority": 5000,
+          "qty": 0,
+          "refs": 18,
+          "reg_class": 1,
+          "result": 16,
+          "searched_birth": 4,
+          "searched_death": 148,
+          "size": 1,
+          "span": 144,
+          "suggested_only": 0,
+          "suggestions": [
+            4
+          ]
+        },
+        {
+          "allocnos": [
+            2,
+            0,
+            3,
+            1
+          ],
+          "event": "global_order"
+        },
+        {
+          "allocno": 2,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [
+            2,
+            4
+          ],
+          "event": "global_choice",
+          "hard_conflicts": [
+            29
+          ],
+          "members": [
+            82
+          ],
+          "preferences": [
+            2,
+            4
+          ],
+          "priority": 20000,
+          "refs": 4,
+          "reg": 82,
+          "result": 2,
+          "retry": 0,
+          "size": 1,
+          "span": 4
+        },
+        {
+          "allocno": 0,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 17,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            16,
+            29
+          ],
+          "members": [
+            80
+          ],
+          "preferences": [],
+          "priority": 8888,
+          "refs": 22,
+          "reg": 80,
+          "result": 17,
+          "retry": 0,
+          "size": 1,
+          "span": 99
+        },
+        {
+          "allocno": 3,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            2,
+            17,
+            29
+          ],
+          "members": [
+            119
+          ],
+          "preferences": [],
+          "priority": 7500,
+          "refs": 3,
+          "reg": 119,
+          "result": 3,
+          "retry": 0,
+          "size": 1,
+          "span": 4
+        },
+        {
+          "allocno": 1,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [
+            4
+          ],
+          "event": "global_choice",
+          "hard_conflicts": [
+            2,
+            17,
+            29
+          ],
+          "members": [
+            81
+          ],
+          "preferences": [
+            4
+          ],
+          "priority": 6666,
+          "refs": 2,
+          "reg": 81,
+          "result": 4,
+          "retry": 0,
+          "size": 1,
+          "span": 3
+        },
+        {
+          "dispositions": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            17,
+            4,
+            2,
+            -1,
+            2,
+            -1,
+            2,
+            2,
+            2,
+            16,
+            16,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            3,
+            2
+          ],
+          "event": "before_reload"
+        },
+        {
+          "event": "reload_order",
+          "order": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            24,
+            25,
+            64,
+            65,
+            66,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            3,
+            17,
+            16,
+            5,
+            6,
+            7,
+            4,
+            2,
+            1,
+            26,
+            27,
+            28,
+            29,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73,
+            74,
+            30,
+            0,
+            75
+          ]
+        },
+        {
+          "dispositions": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            17,
+            4,
+            2,
+            -1,
+            2,
+            -1,
+            2,
+            2,
+            2,
+            16,
+            16,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            3,
+            2
+          ],
+          "event": "after_reload"
+        },
+        {
+          "event": "function",
+          "name": "func_actor_121300_80133064"
+        },
+        {
+          "clock": 1,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 16,
+                "priority": 1,
+                "refs": 0,
+                "tick": 0,
+                "uid": 10
+              },
+              "before": {
+                "luid": 16,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 10
+              },
+              "kind": 14
+            },
+            {
+              "after": {
+                "luid": 14,
+                "priority": 1,
+                "refs": 0,
+                "tick": 0,
+                "uid": 16
+              },
+              "before": {
+                "luid": 14,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 16
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 18
+        },
+        {
+          "costs": {
+            "10": 1,
+            "312": 1
+          },
+          "dependency_classes": {
+            "10": 3,
+            "312": 3
+          },
+          "dependency_kinds": {
+            "10": 14,
+            "16": 0,
+            "308": 14,
+            "312": 14
+          },
+          "event": "schedule_compare",
+          "last": 18,
+          "pass": "sched2",
+          "reason": "original RTL order",
+          "result": 13,
+          "winner": 10,
+          "x": {
+            "luid": 3,
+            "priority": 1,
+            "uid": 312
+          },
+          "y": {
+            "luid": 16,
+            "priority": 1,
+            "uid": 10
+          }
+        },
+        {
+          "costs": {
+            "10": 1,
+            "308": 1
+          },
+          "dependency_classes": {
+            "10": 3,
+            "308": 3
+          },
+          "dependency_kinds": {
+            "10": 14,
+            "16": 0,
+            "308": 14,
+            "312": 14
+          },
+          "event": "schedule_compare",
+          "last": 18,
+          "pass": "sched2",
+          "reason": "original RTL order",
+          "result": 15,
+          "winner": 10,
+          "x": {
+            "luid": 1,
+            "priority": 1,
+            "uid": 308
+          },
+          "y": {
+            "luid": 16,
+            "priority": 1,
+            "uid": 10
+          }
+        },
+        {
+          "after": [
+            {
+              "luid": 3,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 312
+            },
+            {
+              "luid": 16,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 10
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 308
+            }
+          ],
+          "before": [
+            {
+              "luid": 16,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 10
+            },
+            {
+              "luid": 3,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 312
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 308
+            }
+          ],
+          "clock": 2,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 10,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 312,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 308,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 10,
+              "unit": -1
+            },
+            {
+              "cost": 823296,
+              "kind": "potential",
+              "uid": 312,
+              "unit": 0
+            },
+            {
+              "cost": 823296,
+              "kind": "potential",
+              "uid": 308,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 312
+        },
+        {
+          "costs": {},
+          "dependency_classes": {
+            "16": 3,
+            "308": 3
+          },
+          "dependency_kinds": {
+            "306": 0
+          },
+          "event": "schedule_compare",
+          "last": 312,
+          "pass": "sched2",
+          "reason": "original RTL order",
+          "result": 13,
+          "winner": 16,
+          "x": {
+            "luid": 1,
+            "priority": 1,
+            "uid": 308
+          },
+          "y": {
+            "luid": 14,
+            "priority": 1,
+            "uid": 16
+          }
+        },
+        {
+          "costs": {},
+          "dependency_classes": {
+            "10": 3,
+            "16": 3
+          },
+          "dependency_kinds": {
+            "306": 0
+          },
+          "event": "schedule_compare",
+          "last": 312,
+          "pass": "sched2",
+          "reason": "original RTL order",
+          "result": -2,
+          "winner": 10,
+          "x": {
+            "luid": 16,
+            "priority": 1,
+            "uid": 10
+          },
+          "y": {
+            "luid": 14,
+            "priority": 1,
+            "uid": 16
+          }
+        },
+        {
+          "after": [
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 308
+            },
+            {
+              "luid": 16,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 10
+            }
+          ],
+          "before": [
+            {
+              "luid": 16,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 10
+            },
+            {
+              "luid": 14,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 16
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 308
+            }
+          ],
+          "clock": 3,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 10,
+              "unit": -1
+            },
+            {
+              "cost": 1,
+              "kind": "actual",
+              "uid": 16,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 308,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 10,
+              "unit": -1
+            },
+            {
+              "cost": 823296,
+              "kind": "potential",
+              "uid": 308,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 308
+        },
+        {
+          "costs": {},
+          "dependency_classes": {
+            "10": 3,
+            "16": 3
+          },
+          "dependency_kinds": {
+            "306": 0
+          },
+          "event": "schedule_compare",
+          "last": 308,
+          "pass": "sched2",
+          "reason": "original RTL order",
+          "result": -2,
+          "winner": 10,
+          "x": {
+            "luid": 16,
+            "priority": 1,
+            "uid": 10
+          },
+          "y": {
+            "luid": 14,
+            "priority": 1,
+            "uid": 16
+          }
+        },
+        {
+          "after": [
+            {
+              "luid": 16,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 10
+            }
+          ],
+          "before": [
+            {
+              "luid": 16,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 10
+            },
+            {
+              "luid": 14,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 16
+            }
+          ],
+          "clock": 4,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 10,
+              "unit": -1
+            },
+            {
+              "cost": 1,
+              "kind": "actual",
+              "uid": 16,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 10
+        },
+        {
+          "clock": 4,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 6,
+                "priority": 1,
+                "refs": 0,
+                "tick": 0,
+                "uid": 4
+              },
+              "before": {
+                "luid": 6,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 4
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 10
+        },
+        {
+          "costs": {
+            "4": 1
+          },
+          "dependency_classes": {
+            "4": 3,
+            "16": 3
+          },
+          "dependency_kinds": {
+            "4": 0
+          },
+          "event": "schedule_compare",
+          "last": 10,
+          "pass": "sched2",
+          "reason": "original RTL order",
+          "result": 8,
+          "winner": 16,
+          "x": {
+            "luid": 6,
+            "priority": 1,
+            "uid": 4
+          },
+          "y": {
+            "luid": 14,
+            "priority": 1,
+            "uid": 16
+          }
+        },
+        {
+          "after": [
+            {
+              "luid": 14,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 16
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 4
+            }
+          ],
+          "before": [
+            {
+              "luid": 14,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 16
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 4
+            }
+          ],
+          "clock": 5,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 16,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 4,
+              "unit": -1
+            },
+            {
+              "cost": 811008,
+              "kind": "potential",
+              "uid": 16,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 4,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 16
+        },
+        {
+          "clock": 5,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 13,
+                "priority": 1,
+                "refs": 0,
+                "tick": 0,
+                "uid": 12
+              },
+              "before": {
+                "luid": 13,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 12
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 16
+        },
+        {
+          "costs": {
+            "12": 1
+          },
+          "dependency_classes": {
+            "4": 3,
+            "12": 3
+          },
+          "dependency_kinds": {
+            "12": 0
+          },
+          "event": "schedule_compare",
+          "last": 16,
+          "pass": "sched2",
+          "reason": "original RTL order",
+          "result": 7,
+          "winner": 12,
+          "x": {
+            "luid": 6,
+            "priority": 1,
+            "uid": 4
+          },
+          "y": {
+            "luid": 13,
+            "priority": 1,
+            "uid": 12
+          }
+        },
+        {
+          "after": [
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 12
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 4
+            }
+          ],
+          "before": [
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 12
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 4
+            }
+          ],
+          "clock": 6,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 12,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 4,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 12,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 4,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 12
+        },
+        {
+          "after": [
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 4
+            }
+          ],
+          "before": [
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 4
+            }
+          ],
+          "clock": 7,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 4,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 4
+        },
+        {
+          "code": 0,
+          "event": "exit"
+        }
+      ]
+    },
+    "BASE_11": {
+      "manifest": {
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "input_sha256": "15dc0cb26721f30253eba484d4683ff91222eeb436e4d9382756fec74c9f6a14",
+        "input_origin": "/home/gabriel/pe2-ov-actor_121300/nonmatchings/func_actor_121300_80133064-vacuum/base_11.i",
+        "flags": [
+          "-O2",
+          "-mips1",
+          "-mcpu=3000",
+          "-w",
+          "-funsigned-char",
+          "-fpeephole",
+          "-ffunction-cse",
+          "-fpcc-struct-return",
+          "-fcommon",
+          "-fverbose-asm",
+          "-msoft-float",
+          "-mgas",
+          "-fgnu-linker",
+          "-quiet",
+          "-gcoff",
+          "-dp",
+          "-G0",
+          "-da"
+        ],
+        "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+        "source_sha256": {
+          "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+          "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+          "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+          "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+          "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+          "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+          "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+          "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+          "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+          "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+          "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+          "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+          "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+          "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+          "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+          "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+          "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+          "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+          "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+        },
+        "assembly_identical": true,
+        "trace_complete": true,
+        "baseline_assembly_sha256": "e7cfa87c970400ed470e83c22629e71c9c4971e460072c4123b54e296dd56e42",
+        "traced_assembly_sha256": "e7cfa87c970400ed470e83c22629e71c9c4971e460072c4123b54e296dd56e42"
+      },
+      "report": "Observed compiler decisions (quantity IDs are local to each block; priorities calculated from observed inputs).\nScheduler cycles run backward within each block. Actual hazard costs are delays; potential hazard costs are ranking weights, not cycles.\nsched1 cycle 1 scheduled 19: uid 16 refs 1->0, priority 1->2130706433, tick=0\nsched1 cycle 1 scheduled 19: uid 14 refs 1->0, priority 1->2130706433, tick=0\nsched1 cycle 2: ready [16] -> selects 16; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 16, 'unit': -1}]\nsched1 cycle 3: ready [14] -> selects 14; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 14, 'unit': 0}]\nsched1 cycle 3 scheduled 14: uid 12 refs 1->0, priority 1->2130706433, tick=0\nsched1 cycle 4: ready [12] -> selects 12; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 12, 'unit': -1}]\nglobal a1 [81]: refs=21 span=97 priority=8659 calls=17 retry=0 caller_save=0 -> $s1\nglobal a0 [80]: refs=3 span=10 priority=3000 calls=0 retry=0 caller_save=0 -> $a0\nreload preference: $t0 $t1 $t2 $t3 $t4 $t5 $t6 $t7 $t8 $t9 64 65 66 $s2 $s3 $s4 $s5 $s6 $s7 $v1\nsched2 cycle 1 scheduled 19: uid 314 refs 1->0, priority 1->1, tick=0\nsched2 cycle 1 scheduled 19: uid 16 refs 1->0, priority 1->1, tick=0\nsched2 cycle 1 scheduled 19: uid 14 refs 1->0, priority 1->1, tick=0\nsched2 comparator uid 314 / 16: original RTL order; prefers uid 16\nsched2 cycle 2: ready [16, 314] -> selects 314; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 16, 'unit': -1}, {'cost': 0, 'kind': 'actual', 'uid': 314, 'unit': 0}, {'cost': 0, 'kind': 'potential', 'uid': 16, 'unit': -1}, {'cost': 823296, 'kind': 'potential', 'uid': 314, 'unit': 0}]\nsched2 comparator uid 16 / 14: original RTL order; prefers uid 16\nsched2 cycle 3: ready [16, 14] -> selects 16; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 16, 'unit': -1}, {'cost': 1, 'kind': 'actual', 'uid': 14, 'unit': 0}]\nsched2 cycle 3 scheduled 16: uid 305 refs 1->0, priority 1->1, tick=0\nsched2 cycle 3 scheduled 16: uid 310 refs 1->0, priority 1->1, tick=0\nsched2 comparator uid 310 / 14: original RTL order; prefers uid 14\nsched2 comparator uid 305 / 14: original RTL order; prefers uid 305\nsched2 cycle 4: ready [305, 14, 310] -> selects 310; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 305, 'unit': -1}, {'cost': 0, 'kind': 'actual', 'uid': 14, 'unit': 0}, {'cost': 0, 'kind': 'actual', 'uid': 310, 'unit': 0}, {'cost': 0, 'kind': 'potential', 'uid': 305, 'unit': -1}, {'cost': 811008, 'kind': 'potential', 'uid': 14, 'unit': 0}, {'cost': 823296, 'kind': 'potential', 'uid': 310, 'unit': 0}]\nsched2 cycle 5: ready [305, 14] -> selects 305; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 305, 'unit': -1}, {'cost': 1, 'kind': 'actual', 'uid': 14, 'unit': 0}]\nsched2 comparator uid 312 / 14: original RTL order; prefers uid 14\nsched2 cycle 6: ready [14, 312] -> selects 312; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 14, 'unit': 0}, {'cost': 0, 'kind': 'actual', 'uid': 312, 'unit': 0}, {'cost': 811008, 'kind': 'potential', 'uid': 14, 'unit': 0}, {'cost': 823296, 'kind': 'potential', 'uid': 312, 'unit': 0}]\nsched2 comparator uid 14 / 308: original RTL order; prefers uid 14\nsched2 cycle 7: ready [14, 308] -> selects 308; hazards=[{'cost': 1, 'kind': 'actual', 'uid': 14, 'unit': 0}, {'cost': 0, 'kind': 'actual', 'uid': 308, 'unit': -1}]\nsched2 cycle 8: ready [14] -> selects 14; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 14, 'unit': 0}]\nsched2 cycle 8 scheduled 14: uid 12 refs 1->0, priority 1->1, tick=0\nsched2 cycle 9: ready [12] -> selects 12; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 12, 'unit': -1}]\nA -1 disposition means no hard-register home at that stage; reload may use memory equivalence or rematerialize a constant.\n",
+      "events": [
+        {
+          "event": "function",
+          "name": "func_actor_121300_80133064"
+        },
+        {
+          "clock": 1,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 3,
+                "priority": 2130706433,
+                "refs": 0,
+                "tick": 0,
+                "uid": 16
+              },
+              "before": {
+                "luid": 3,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 16
+              },
+              "kind": 14
+            },
+            {
+              "after": {
+                "luid": 1,
+                "priority": 2130706433,
+                "refs": 0,
+                "tick": 0,
+                "uid": 14
+              },
+              "before": {
+                "luid": 1,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 14
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched1",
+          "scheduled": 19
+        },
+        {
+          "after": [
+            {
+              "luid": 3,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 16
+            }
+          ],
+          "before": [
+            {
+              "luid": 3,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 16
+            }
+          ],
+          "clock": 2,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 16,
+              "unit": -1
+            }
+          ],
+          "pass": "sched1",
+          "selected": 16
+        },
+        {
+          "after": [
+            {
+              "luid": 1,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 14
+            }
+          ],
+          "before": [
+            {
+              "luid": 1,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 14
+            }
+          ],
+          "clock": 3,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 14,
+              "unit": 0
+            }
+          ],
+          "pass": "sched1",
+          "selected": 14
+        },
+        {
+          "clock": 3,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 0,
+                "priority": 2130706433,
+                "refs": 0,
+                "tick": 0,
+                "uid": 12
+              },
+              "before": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 12
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched1",
+          "scheduled": 14
+        },
+        {
+          "after": [
+            {
+              "luid": 0,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 12
+            }
+          ],
+          "before": [
+            {
+              "luid": 0,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 12
+            }
+          ],
+          "clock": 4,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 12,
+              "unit": -1
+            }
+          ],
+          "pass": "sched1",
+          "selected": 12
+        },
+        {
+          "event": "function",
+          "name": "func_actor_121300_80133064"
+        },
+        {
+          "birth": 4,
+          "block": 0,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 6,
+          "event": "local_choice",
+          "members": [
+            85
+          ],
+          "priority": 10000,
+          "qty": 0,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 2,
+          "searched_birth": 4,
+          "searched_death": 6,
+          "size": 1,
+          "span": 2,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 6,
+          "block": 0,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 10,
+          "event": "local_choice",
+          "members": [
+            83
+          ],
+          "priority": 5000,
+          "qty": 1,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 2,
+          "searched_birth": 6,
+          "searched_death": 10,
+          "size": 1,
+          "span": 4,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 2,
+          "block": 2,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 4,
+          "event": "local_choice",
+          "members": [
+            119
+          ],
+          "priority": 10000,
+          "qty": 0,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 2,
+          "searched_birth": 2,
+          "searched_death": 4,
+          "size": 1,
+          "span": 2,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 10,
+          "block": 5,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 14,
+          "event": "local_choice",
+          "members": [
+            87,
+            86
+          ],
+          "priority": 20000,
+          "qty": 0,
+          "refs": 4,
+          "reg_class": 1,
+          "result": 2,
+          "searched_birth": 10,
+          "searched_death": 14,
+          "size": 1,
+          "span": 4,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 4,
+          "block": 6,
+          "caller_save": 0,
+          "copy_suggestions": [
+            4
+          ],
+          "death": 148,
+          "event": "local_choice",
+          "members": [
+            88,
+            89
+          ],
+          "priority": 5000,
+          "qty": 0,
+          "refs": 18,
+          "reg_class": 1,
+          "result": -1,
+          "searched_birth": 4,
+          "searched_death": 148,
+          "size": 1,
+          "span": 144,
+          "suggested_only": 1,
+          "suggestions": [
+            4
+          ]
+        },
+        {
+          "birth": 4,
+          "block": 6,
+          "caller_save": 0,
+          "copy_suggestions": [
+            4
+          ],
+          "death": 148,
+          "event": "local_choice",
+          "members": [
+            88,
+            89
+          ],
+          "priority": 5000,
+          "qty": 0,
+          "refs": 18,
+          "reg_class": 1,
+          "result": -1,
+          "searched_birth": 4,
+          "searched_death": 148,
+          "size": 1,
+          "span": 144,
+          "suggested_only": 1,
+          "suggestions": [
+            4
+          ]
+        },
+        {
+          "birth": 4,
+          "block": 6,
+          "caller_save": 0,
+          "copy_suggestions": [
+            4
+          ],
+          "death": 148,
+          "event": "local_choice",
+          "members": [
+            88,
+            89
+          ],
+          "priority": 5000,
+          "qty": 0,
+          "refs": 18,
+          "reg_class": 1,
+          "result": 16,
+          "searched_birth": 4,
+          "searched_death": 148,
+          "size": 1,
+          "span": 144,
+          "suggested_only": 0,
+          "suggestions": [
+            4
+          ]
+        },
+        {
+          "allocnos": [
+            2,
+            1,
+            3,
+            0
+          ],
+          "event": "global_order"
+        },
+        {
+          "allocno": 2,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [
+            2,
+            4
+          ],
+          "event": "global_choice",
+          "hard_conflicts": [
+            29
+          ],
+          "members": [
+            82
+          ],
+          "preferences": [
+            2,
+            4
+          ],
+          "priority": 20000,
+          "refs": 4,
+          "reg": 82,
+          "result": 2,
+          "retry": 0,
+          "size": 1,
+          "span": 4
+        },
+        {
+          "allocno": 1,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 17,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            16,
+            29
+          ],
+          "members": [
+            81
+          ],
+          "preferences": [],
+          "priority": 8659,
+          "refs": 21,
+          "reg": 81,
+          "result": 17,
+          "retry": 0,
+          "size": 1,
+          "span": 97
+        },
+        {
+          "allocno": 3,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            2,
+            17,
+            29
+          ],
+          "members": [
+            118
+          ],
+          "preferences": [],
+          "priority": 7500,
+          "refs": 3,
+          "reg": 118,
+          "result": 3,
+          "retry": 0,
+          "size": 1,
+          "span": 4
+        },
+        {
+          "allocno": 0,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [
+            4
+          ],
+          "event": "global_choice",
+          "hard_conflicts": [
+            2,
+            17,
+            29
+          ],
+          "members": [
+            80
+          ],
+          "preferences": [
+            4
+          ],
+          "priority": 3000,
+          "refs": 3,
+          "reg": 80,
+          "result": 4,
+          "retry": 0,
+          "size": 1,
+          "span": 10
+        },
+        {
+          "dispositions": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            4,
+            17,
+            2,
+            2,
+            -1,
+            2,
+            2,
+            2,
+            16,
+            16,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            3,
+            2
+          ],
+          "event": "before_reload"
+        },
+        {
+          "event": "reload_order",
+          "order": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            24,
+            25,
+            64,
+            65,
+            66,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            3,
+            17,
+            16,
+            5,
+            6,
+            7,
+            4,
+            2,
+            1,
+            26,
+            27,
+            28,
+            29,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73,
+            74,
+            30,
+            0,
+            75
+          ]
+        },
+        {
+          "dispositions": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            4,
+            17,
+            2,
+            2,
+            -1,
+            2,
+            2,
+            2,
+            16,
+            16,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            3,
+            2
+          ],
+          "event": "after_reload"
+        },
+        {
+          "event": "function",
+          "name": "func_actor_121300_80133064"
+        },
+        {
+          "clock": 1,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 3,
+                "priority": 1,
+                "refs": 0,
+                "tick": 0,
+                "uid": 314
+              },
+              "before": {
+                "luid": 3,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 314
+              },
+              "kind": 14
+            },
+            {
+              "after": {
+                "luid": 17,
+                "priority": 1,
+                "refs": 0,
+                "tick": 0,
+                "uid": 16
+              },
+              "before": {
+                "luid": 17,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 16
+              },
+              "kind": 14
+            },
+            {
+              "after": {
+                "luid": 14,
+                "priority": 1,
+                "refs": 0,
+                "tick": 0,
+                "uid": 14
+              },
+              "before": {
+                "luid": 14,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 14
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 19
+        },
+        {
+          "costs": {
+            "16": 1,
+            "314": 1
+          },
+          "dependency_classes": {
+            "16": 3,
+            "314": 3
+          },
+          "dependency_kinds": {
+            "14": 0,
+            "16": 14,
+            "314": 14
+          },
+          "event": "schedule_compare",
+          "last": 19,
+          "pass": "sched2",
+          "reason": "original RTL order",
+          "result": 14,
+          "winner": 16,
+          "x": {
+            "luid": 3,
+            "priority": 1,
+            "uid": 314
+          },
+          "y": {
+            "luid": 17,
+            "priority": 1,
+            "uid": 16
+          }
+        },
+        {
+          "after": [
+            {
+              "luid": 3,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 314
+            },
+            {
+              "luid": 17,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 16
+            }
+          ],
+          "before": [
+            {
+              "luid": 17,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 16
+            },
+            {
+              "luid": 3,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 314
+            }
+          ],
+          "clock": 2,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 16,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 314,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 16,
+              "unit": -1
+            },
+            {
+              "cost": 823296,
+              "kind": "potential",
+              "uid": 314,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 314
+        },
+        {
+          "costs": {},
+          "dependency_classes": {
+            "14": 3,
+            "16": 3
+          },
+          "dependency_kinds": {
+            "308": 0
+          },
+          "event": "schedule_compare",
+          "last": 314,
+          "pass": "sched2",
+          "reason": "original RTL order",
+          "result": -3,
+          "winner": 16,
+          "x": {
+            "luid": 17,
+            "priority": 1,
+            "uid": 16
+          },
+          "y": {
+            "luid": 14,
+            "priority": 1,
+            "uid": 14
+          }
+        },
+        {
+          "after": [
+            {
+              "luid": 17,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 16
+            }
+          ],
+          "before": [
+            {
+              "luid": 17,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 16
+            },
+            {
+              "luid": 14,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 14
+            }
+          ],
+          "clock": 3,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 16,
+              "unit": -1
+            },
+            {
+              "cost": 1,
+              "kind": "actual",
+              "uid": 14,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 16
+        },
+        {
+          "clock": 3,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 16,
+                "priority": 1,
+                "refs": 0,
+                "tick": 0,
+                "uid": 305
+              },
+              "before": {
+                "luid": 16,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 305
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 1,
+                "priority": 1,
+                "refs": 0,
+                "tick": 0,
+                "uid": 310
+              },
+              "before": {
+                "luid": 1,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 310
+              },
+              "kind": 14
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 16
+        },
+        {
+          "costs": {
+            "310": 1
+          },
+          "dependency_classes": {
+            "14": 3,
+            "310": 3
+          },
+          "dependency_kinds": {
+            "305": 0,
+            "310": 14
+          },
+          "event": "schedule_compare",
+          "last": 16,
+          "pass": "sched2",
+          "reason": "original RTL order",
+          "result": 13,
+          "winner": 14,
+          "x": {
+            "luid": 1,
+            "priority": 1,
+            "uid": 310
+          },
+          "y": {
+            "luid": 14,
+            "priority": 1,
+            "uid": 14
+          }
+        },
+        {
+          "costs": {
+            "305": 1
+          },
+          "dependency_classes": {
+            "14": 3,
+            "305": 3
+          },
+          "dependency_kinds": {
+            "305": 0,
+            "310": 14
+          },
+          "event": "schedule_compare",
+          "last": 16,
+          "pass": "sched2",
+          "reason": "original RTL order",
+          "result": -2,
+          "winner": 305,
+          "x": {
+            "luid": 16,
+            "priority": 1,
+            "uid": 305
+          },
+          "y": {
+            "luid": 14,
+            "priority": 1,
+            "uid": 14
+          }
+        },
+        {
+          "after": [
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 310
+            },
+            {
+              "luid": 16,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 305
+            },
+            {
+              "luid": 14,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 14
+            }
+          ],
+          "before": [
+            {
+              "luid": 16,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 305
+            },
+            {
+              "luid": 14,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 14
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 310
+            }
+          ],
+          "clock": 4,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 305,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 14,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 310,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 305,
+              "unit": -1
+            },
+            {
+              "cost": 811008,
+              "kind": "potential",
+              "uid": 14,
+              "unit": 0
+            },
+            {
+              "cost": 823296,
+              "kind": "potential",
+              "uid": 310,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 310
+        },
+        {
+          "after": [
+            {
+              "luid": 16,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 305
+            }
+          ],
+          "before": [
+            {
+              "luid": 16,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 305
+            },
+            {
+              "luid": 14,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 14
+            }
+          ],
+          "clock": 5,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 305,
+              "unit": -1
+            },
+            {
+              "cost": 1,
+              "kind": "actual",
+              "uid": 14,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 305
+        },
+        {
+          "costs": {
+            "312": 1
+          },
+          "dependency_classes": {
+            "14": 3,
+            "312": 3
+          },
+          "dependency_kinds": {
+            "312": 14
+          },
+          "event": "schedule_compare",
+          "last": 305,
+          "pass": "sched2",
+          "reason": "original RTL order",
+          "result": 12,
+          "winner": 14,
+          "x": {
+            "luid": 2,
+            "priority": 1,
+            "uid": 312
+          },
+          "y": {
+            "luid": 14,
+            "priority": 1,
+            "uid": 14
+          }
+        },
+        {
+          "after": [
+            {
+              "luid": 2,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 312
+            },
+            {
+              "luid": 14,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 14
+            }
+          ],
+          "before": [
+            {
+              "luid": 14,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 14
+            },
+            {
+              "luid": 2,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 312
+            }
+          ],
+          "clock": 6,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 14,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 312,
+              "unit": 0
+            },
+            {
+              "cost": 811008,
+              "kind": "potential",
+              "uid": 14,
+              "unit": 0
+            },
+            {
+              "cost": 823296,
+              "kind": "potential",
+              "uid": 312,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 312
+        },
+        {
+          "costs": {
+            "308": 1
+          },
+          "dependency_classes": {
+            "14": 3,
+            "308": 3
+          },
+          "dependency_kinds": {
+            "308": 0
+          },
+          "event": "schedule_compare",
+          "last": 312,
+          "pass": "sched2",
+          "reason": "original RTL order",
+          "result": -14,
+          "winner": 14,
+          "x": {
+            "luid": 14,
+            "priority": 1,
+            "uid": 14
+          },
+          "y": {
+            "luid": 0,
+            "priority": 1,
+            "uid": 308
+          }
+        },
+        {
+          "after": [
+            {
+              "luid": 0,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 308
+            }
+          ],
+          "before": [
+            {
+              "luid": 14,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 14
+            },
+            {
+              "luid": 0,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 308
+            }
+          ],
+          "clock": 7,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 1,
+              "kind": "actual",
+              "uid": 14,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 308,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 308
+        },
+        {
+          "after": [
+            {
+              "luid": 14,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 14
+            }
+          ],
+          "before": [
+            {
+              "luid": 14,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 14
+            }
+          ],
+          "clock": 8,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 14,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 14
+        },
+        {
+          "clock": 8,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 13,
+                "priority": 1,
+                "refs": 0,
+                "tick": 0,
+                "uid": 12
+              },
+              "before": {
+                "luid": 13,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 12
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 14
+        },
+        {
+          "after": [
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 12
+            }
+          ],
+          "before": [
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 12
+            }
+          ],
+          "clock": 9,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 12,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 12
+        },
+        {
+          "code": 0,
+          "event": "exit"
+        }
+      ]
+    }
+  },
+  "matched_entry_dbr": ";; Reorg pass #1:\n;; Reorg function #0\n;; 25 insns needing delay slots\n;; 4 got 0 delays, 21 got 1 delays\n;; Reorg function #1\n;; 3 insns needing delay slots\n;; 1 got 0 delays, 2 got 1 delays\n;; Reorg pass #2:\n;; Reorg function #0\n;; 2 insns needing delay slots\n;; 2 got 0 delays\n;; Reorg function #1\n;; 1 insns needing delay slots\n;; 1 got 0 delays\n\n;; Function func_actor_121300_80133064\n\n(note 1 0 2 (\"/home/gabriel/pe2-ov-actor_121300/nonmatchings/func_actor_121300_80133064-vacuum/base_11.i\") 5651)\n\n(note 2 1 4 \"\" NOTE_INSN_DELETED)\n\n(note 4 2 5 \"\" NOTE_INSN_DELETED)\n\n(note 5 4 6 \"\" NOTE_INSN_FUNCTION_BEG)\n\n(note 6 5 8 \"\" NOTE_INSN_DELETED)\n\n(note 8 6 10 \"\" NOTE_INSN_BLOCK_BEG)\n\n(note 10 8 11 \"\" NOTE_INSN_DELETED)\n\n(note 11 10 12 (\"/home/gabriel/pe2-ov-actor_121300/nonmatchings/func_actor_121300_80133064-vacuum/base_11.i\") 5654)\n\n;; Insn is not within a basic block\n(insn 12 11 14 (set (reg:SI 2 v0)\n        (high:SI (symbol_ref:SI (\"D_actor_121300_8013D41C\")))) 161 {high} (nil)\n    (expr_list:REG_EQUIV (high:SI (symbol_ref:SI (\"D_actor_121300_8013D41C\")))\n        (nil)))\n\n;; Insn is not within a basic block\n(insn 14 12 327 (set (reg/v:SI 2 v0)\n        (zero_extend:SI (mem:HI (lo_sum:SI (reg:SI 2 v0)\n                    (symbol_ref:SI (\"D_actor_121300_8013D41C\")))))) 125 {zero_extendhisi2} (insn_list 12 (nil))\n    (expr_list:REG_DEAD (reg:SI 2 v0)\n        (nil)))\n\n(note 327 14 308 (\"/home/gabriel/pe2-ov-actor_121300/nonmatchings/func_actor_121300_80133064-vacuum/base_11.i\") 5651)\n\n;; Insn is not within a basic block\n(insn 308 327 312 (set (reg:SI 29 sp)\n        (minus:SI (reg:SI 29 sp)\n            (const_int 32))) 16 {subsi3_internal} (nil)\n    (nil))\n\n;; Insn is not within a basic block\n(insn 312 308 15 (set (mem:SI (plus:SI (reg:SI 29 sp)\n                (const_int 20)))\n        (reg:SI 17 s1)) 172 {movsi_internal2} (insn_list 308 (nil))\n    (nil))\n\n(note 15 312 305 (\"/home/gabriel/pe2-ov-actor_121300/nonmatchings/func_actor_121300_80133064-vacuum/base_11.i\") 5655)\n\n;; Insn is not within a basic block\n(insn 305 15 328 (set (reg/v:SI 17 s1)\n        (reg/v:SI 4 a0)) 172 {movsi_internal2} (insn_list:REG_DEP_ANTI 312 (nil))\n    (nil))\n\n(note 328 305 310 (\"/home/gabriel/pe2-ov-actor_121300/nonmatchings/func_actor_121300_80133064-vacuum/base_11.i\") 5651)\n\n;; Insn is not within a basic block\n(insn 310 328 329 (set (mem:SI (plus:SI (reg:SI 29 sp)\n                (const_int 24)))\n        (reg:SI 31 ra)) 172 {movsi_internal2} (insn_list 308 (nil))\n    (nil))\n\n(note 329 310 16 (\"/home/gabriel/pe2-ov-actor_121300/nonmatchings/func_actor_121300_80133064-vacuum/base_11.i\") 5655)\n\n;; Insn is not within a basic block\n(insn:HI 16 329 330 (parallel[ \n            (set (reg/v:SI 17 s1)\n                (asm_operands (\"\") (\"=r\") 0[ \n                        (reg/v:SI 17 s1)\n                    ] \n                    [ \n                        (asm_input:SI (\"0\"))\n                    ]  (\"/home/gabriel/pe2-ov-actor_121300/nonmatchings/func_actor_121300_80133064-vacuum/base_11.i\") 5655))\n            (clobber (reg:QI 31 ra))\n        ] ) -1 (insn_list 305 (insn_list:REG_DEP_ANTI 310 (nil)))\n    (expr_list:REG_UNUSED (reg:QI 31 ra)\n        (nil)))\n\n(note 330 16 17 (\"/home/gabriel/pe2-ov-actor_121300/nonmatchings/func_actor_121300_80133064-vacuum/base_11.i\") 5651)\n\n(note 17 330 366 (\"/home/gabriel/pe2-ov-actor_121300/nonmatchings/func_actor_121300_80133064-vacuum/base_11.i\") 5656)\n\n;; Insn is not within a basic block\n(insn 366 17 306 (sequence[ \n            (jump_insn 19 17 314 (set (pc)\n                    (if_then_else (eq:SI (reg/v:SI 2 v0)\n                            (const_int 0))\n                        (label_ref 287)\n                        (pc))) 243 {branch_zero} (insn_list:REG_DEP_ANTI 314 (insn_list:REG_DEP_ANTI 16 (insn_list 14 (nil))))\n                (expr_list:REG_DEAD (reg/v:SI 2 v0)\n                    (nil)))\n            (insn 314 19 306 (set (mem:SI (plus:SI (reg:SI 29 sp)\n                            (const_int 16)))\n                    (reg:SI 16 s0)) 172 {movsi_internal2} (insn_list 308 (nil))\n                (nil))\n        ] ) -1 (nil)\n    (nil))\n\n",
+  "matched_entry_sched2": "\n;; Function func_actor_121300_80133064\n\n;;\t -- basic block number 0 from 308 to 19 --\n;; ready list initially:\n;; 19 \n\n;; insn[ 308]: priority =    1, ref_count =    3\n;; insn[ 310]: priority =    1, ref_count =    1\n;; insn[ 312]: priority =    1, ref_count =    1\n;; insn[ 314]: priority =    1, ref_count =    1\n;; insn[  12]: priority =    1, ref_count =    1\n;; insn[  14]: priority =    1, ref_count =    1\n;; insn[ 305]: priority =    1, ref_count =    1\n;; insn[  16]: priority =    1, ref_count =    1\n;; insn[  19]: priority = 2147483526, ref_count =    0\n;; ready list at T-1: 19 (7fffff86), now 19\n;; ready list at T-2: 314 (1) 16 (1), now 16 314\n;; insn 314 has a greater potential hazard, now 314 16\n;; launching 14 before 314 with no stalls at T-3\n;; ready list at T-3: 16 (1) 14 (1)\n;; blocking insn 14 for 1 cycles, now 16\n;; launching 14 before 16 with no stalls at T-4\n;; ready list at T-4: 305 (1) 310 (1) 14 (1), now 305 14 310\n;; insn 310 has a greater potential hazard, now 310 305 14\n;; ready list at T-5: 305 (1) 14 (1)\n;; blocking insn 14 for 1 cycles, now 305\n;; launching 14 before 305 with no stalls at T-6\n;; ready list at T-6: 312 (1) 14 (1), now 14 312\n;; insn 312 has a greater potential hazard, now 312 14\n;; ready list at T-7: 14 (1) 308 (1)\n;; blocking insn 14 for 1 cycles, now 308\n;; launching 14 before 308 with no stalls at T-8\n;; ready list at T-8: 14 (1), now 14\n;; ready list at T-9: 12 (1), now 12\n;; added 4 line-number notes\n;; total time = 9\n;; new basic block head = 306\n;; new basic block end = 19\n\n",
+  "verification": {
+    "command": "./tools/build-and-verify.sh",
+    "output": "OK: all 7427 matched functions are still C (or legitimately shared)\n\u2705 BUILD SUCCEEDED. Everything matched and there were no compiler or linter errors\n",
+    "host_source_sha256": "4be29907fd2ec558177aa1ef8218d49b24626f6a84f0538110c188f02403df6e",
+    "scratch_builds_recorded": 18,
+    "duplicates": "Only the original carrier; no shared promotion needed."
+  }
+}

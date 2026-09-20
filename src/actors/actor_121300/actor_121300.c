@@ -281,4 +281,50 @@ void func_actor_121300_8013293C(Task* arg0)
 /// The `.align 3` pad after `func_actor_121300_8013293C`'s 15-entry jump table.
 const s32 D_actor_121300_80131E60 = 0;
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80133064);
+/// Spawns the fifteen debris variants for one waypoint, then releases this task.
+void func_actor_121300_80133064(Task* task)
+{
+    Task* dispatch = task;
+    void* alloc;
+
+    u32 active = D_actor_121300_8013D41C;
+
+    /* Keep the disabled path in a0. The ra dependency orders the entry
+     * copy without fencing the s0 save out of the branch delay slot. */
+    __asm__("" : "+r"(dispatch) : : "$31");
+    if (active != 0) {
+        switch (dispatch->state) {
+            case 0:
+                alloc          = Mem_Malloc(8, 0);
+                dispatch->work = alloc;
+                if (alloc != NULL) {
+                    Mem_Set(alloc, 0, 8);
+                    dispatch->state += 1;
+                    return;
+                }
+                break;
+            case 1:
+                Task_SpawnFromTable(&ActorsShared80136280Desc, 4, dispatch->spawnArg1, 0);
+                Task_SpawnFromTable(&ActorsShared80136280Desc, 5, dispatch->spawnArg1, 1);
+                Task_SpawnFromTable(&ActorsShared80136280Desc, 6, dispatch->spawnArg1, 2);
+                Task_SpawnFromTable(&ActorsShared80136280Desc, 7, dispatch->spawnArg1, 3);
+                Task_SpawnFromTable(&ActorsShared80136280Desc, 8, dispatch->spawnArg1, 4);
+                Task_SpawnFromTable(&ActorsShared80136280Desc, 4, dispatch->spawnArg1, 5);
+                Task_SpawnFromTable(&ActorsShared80136280Desc, 5, dispatch->spawnArg1, 6);
+                Task_SpawnFromTable(&ActorsShared80136280Desc, 6, dispatch->spawnArg1, 7);
+                Task_SpawnFromTable(&ActorsShared80136280Desc, 7, dispatch->spawnArg1, 8);
+                Task_SpawnFromTable(&ActorsShared80136280Desc, 8, dispatch->spawnArg1, 9);
+                Task_SpawnFromTable(&ActorsShared80136280Desc, 4, dispatch->spawnArg1, 0xA);
+                Task_SpawnFromTable(&ActorsShared80136280Desc, 5, dispatch->spawnArg1, 0xB);
+                Task_SpawnFromTable(&ActorsShared80136280Desc, 6, dispatch->spawnArg1, 0xC);
+                Task_SpawnFromTable(&ActorsShared80136280Desc, 7, dispatch->spawnArg1, 0xD);
+                Task_SpawnFromTable(&ActorsShared80136280Desc, 8, dispatch->spawnArg1, 0xE);
+                break;
+            default:
+                return;
+        }
+        taskKill(dispatch);
+    } else {
+        taskKill(task);
+    }
+}
