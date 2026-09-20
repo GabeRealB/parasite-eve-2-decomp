@@ -49,6 +49,10 @@ extern s32 D_actor_403200_80141C64;
 /// draw from.
 extern TaskDesc D_actor_403200_8015E858;
 
+/// Three formations of nine positions, and each member's model/spawn argument.
+extern SVECTOR             D_actor_403200_8015F7B0[3][9];
+extern Actor403200SpawnRec D_actor_403200_8015F888[9];
+
 /// The scratch coordinate the debris effect of `func_actor_403200_8013DC3C` is
 /// built on: `F920` is the whole `GsCOORDINATE2` and `F924` its `coord` matrix,
 /// which splat names separately because the code takes that address directly.
@@ -1049,7 +1053,55 @@ void func_actor_403200_8013B3C8(Task* arg0)
     SCRATCH_SP     += sizeof(Actor403200TurnScratch);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013B740);
+/// Spawns up to nine enemies in a randomly selected formation, stopping when
+/// a spawn fails. Each member's index becomes the high nibble of its place key.
+void func_actor_403200_8013B740(Task* arg0)
+{
+    Actor403200Work*     work;
+    TaskDesc*            desc;
+    Actor403200SpawnRec* entries;
+    SVECTOR(*positions)
+    [9];
+    SVECTOR* row;
+    s32      offset;
+    s32      rowOffset;
+    GpEnemy* enemy;
+    s16      i;
+    s16      formation;
+
+    work = (Actor403200Work*)arg0->work;
+
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    formation   = ((u32)Gp_LcgState >> 16) & 3;
+    if (formation == 3) {
+        formation = 0;
+    }
+
+    i         = 0;
+    desc      = &D_actor_403200_8015E858;
+    entries   = D_actor_403200_8015F888;
+    positions = D_actor_403200_8015F7B0;
+
+spawnNext:
+    offset = i * 8;
+    SOFT_USE_REG(offset);
+    desc[4].arg.model = ((Actor403200SpawnRec*)(offset + (u32)entries))->model;
+    enemy             = Gp_SpawnEnemyFromTable(desc, 4, ((Actor403200SpawnRec*)(offset + (u32)entries))->spawnArg, NULL);
+    work->field_EF0   = enemy;
+    if (enemy != NULL) {
+        rowOffset                                                      = ((formation * 8) | formation) * 8;
+        row                                                            = (SVECTOR*)((offset + rowOffset) + (u32)positions);
+        ((TmdObject*)enemy->task->extra)->coords->coord.t[0]           = row->vx;
+        ((TmdObject*)work->field_EF0->task->extra)->coords->coord.t[1] = row->vy;
+        ((TmdObject*)work->field_EF0->task->extra)->coords->coord.t[2] = row->vz;
+        work->field_EF0->workType                                      = 0x900;
+        work->field_EF0->placeKey                                     |= i << 12;
+        i++;
+        if (i < 9) {
+            goto spawnNext;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013B8C4);
 

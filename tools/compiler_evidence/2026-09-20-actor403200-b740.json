@@ -1,0 +1,472 @@
+{
+  "function": "func_actor_403200_8013B740",
+  "date": "2026-09-20",
+  "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+  "finding": "HImode clamp copy lengthens a neighboring local quantity and changes an allocation tie",
+  "scope": "Observed and counterfactually reproduced for this function; no claim that every narrowed clamp preserves a copy.",
+  "traces": {
+    "s32": {
+      "manifest": {
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "input_sha256": "752c79e0aede7ef1e990e7ba703bcc03e8ce81bb860357b302b4820b2e3db1ce",
+        "input_origin": "/home/gabriel/pe2-ov-actor_403200/nonmatchings/func_actor_403200_8013B740-vacuum/base_1.i",
+        "flags": [
+          "-O2",
+          "-mips1",
+          "-mcpu=3000",
+          "-w",
+          "-funsigned-char",
+          "-fpeephole",
+          "-ffunction-cse",
+          "-fpcc-struct-return",
+          "-fcommon",
+          "-fverbose-asm",
+          "-msoft-float",
+          "-mgas",
+          "-fgnu-linker",
+          "-quiet",
+          "-gcoff",
+          "-dp",
+          "-G0",
+          "-da"
+        ],
+        "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+        "source_sha256": {
+          "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+          "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+          "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+          "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+          "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+          "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+          "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+          "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+          "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+          "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+          "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+          "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+          "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+          "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+          "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+          "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+          "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+          "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+          "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+        },
+        "assembly_identical": true,
+        "trace_complete": true,
+        "baseline_assembly_sha256": "b4014f369971d99ff4d7a1bde9172da2f62f7df8f546bfea1e3021e88a0bb9f8",
+        "traced_assembly_sha256": "b4014f369971d99ff4d7a1bde9172da2f62f7df8f546bfea1e3021e88a0bb9f8"
+      },
+      "selected_events": [
+        {
+          "birth": 4,
+          "block": 0,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 20,
+          "event": "local_choice",
+          "members": [
+            91
+          ],
+          "priority": 1875,
+          "qty": 1,
+          "refs": 3,
+          "reg_class": 1,
+          "result": 5,
+          "searched_birth": 4,
+          "searched_death": 20,
+          "size": 1,
+          "span": 16,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 2,
+          "block": 0,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 14,
+          "event": "local_choice",
+          "members": [
+            99
+          ],
+          "priority": 1666,
+          "qty": 0,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 6,
+          "searched_birth": 2,
+          "searched_death": 14,
+          "size": 1,
+          "span": 12,
+          "suggested_only": 0,
+          "suggestions": []
+        }
+      ],
+      "report": "Observed compiler decisions (quantity IDs are local to each block; priorities calculated from observed inputs).\nScheduler cycles run backward within each block. Actual hazard costs are delays; potential hazard costs are ranking weights, not cycles.\nsched1 cycle 1: ready [40] -> selects 40; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 40, 'unit': -1}]\nsched1 cycle 1 scheduled 40: uid 36 refs 1->0, priority 2->2, tick=0\nsched1 comparator uid 36 / 39: priority; prefers uid 39\nsched1 comparator uid 11 / 36: priority; prefers uid 11\nsched1 comparator uid 29 / 36: original RTL order; prefers uid 36\nsched1 cycle 2: ready [39, 11, 36, 29] -> selects 11; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 39, 'unit': -1}, {'cost': 0, 'kind': 'actual', 'uid': 11, 'unit': 0}, {'cost': 0, 'kind': 'potential', 'uid': 39, 'unit': -1}, {'cost': 540672, 'kind': 'potential', 'uid': 11, 'unit': 0}]\nsched1 cycle 3: ready [39, 36, 29] -> selects 39; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 39, 'unit': -1}]\nsched1 cycle 4: ready [36, 29] -> selects 29; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 36, 'unit': -1}, {'cost': 0, 'kind': 'actual', 'uid': 29, 'unit': 0}, {'cost': 0, 'kind': 'potential', 'uid': 36, 'unit': -1}, {'cost': 548864, 'kind': 'potential', 'uid': 29, 'unit': 0}]\nsched1 cycle 5: ready [36] -> selects 36; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 36, 'unit': -1}]\nlocal b0 q1 [91]: refs=3 span=16 priority=1875 copy=[] arithmetic=[] suggested_only=0 -> $a1\nlocal b0 q0 [99]: refs=2 span=12 priority=1666 copy=[] arithmetic=[] suggested_only=0 -> $a2\nglobal a0 [81]: refs=6 span=59 priority=2033 calls=1 retry=0 caller_save=0 -> $s0\nglobal a5 [88]: refs=5 span=55 priority=1818 calls=1 retry=0 caller_save=0 -> $s1\nglobal a7 [111]: refs=3 span=17 priority=1764 calls=1 retry=0 caller_save=0 -> $s2\nglobal a6 [89]: refs=5 span=62 priority=1612 calls=1 retry=0 caller_save=0 -> $s3\nreload preference: $t0 $t1 $t2 $t3 $t4 $t5 $t6 $t7 $t8 $t9 64 65 66 $s7 $s5 $s6 $s2 $s4 $s1 $s3\nsched2 cycle 1: ready [40] -> selects 40; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 40, 'unit': -1}]\nsched2 cycle 1 scheduled 40: uid 36 refs 1->0, priority 2->2, tick=0\nsched2 comparator uid 36 / 39: original RTL order; prefers uid 39\nsched2 comparator uid 11 / 36: priority; prefers uid 36\nsched2 cycle 2: ready [39, 36, 11] -> selects 39; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 39, 'unit': -1}, {'cost': 0, 'kind': 'actual', 'uid': 36, 'unit': -1}, {'cost': 0, 'kind': 'potential', 'uid': 39, 'unit': -1}, {'cost': 0, 'kind': 'potential', 'uid': 36, 'unit': -1}]\nsched2 comparator uid 36 / 29: original RTL order; prefers uid 29\nsched2 cycle 3: ready [29, 36, 11] -> selects 29; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 29, 'unit': 0}, {'cost': 0, 'kind': 'actual', 'uid': 36, 'unit': -1}, {'cost': 2744320, 'kind': 'potential', 'uid': 29, 'unit': 0}, {'cost': 0, 'kind': 'potential', 'uid': 36, 'unit': -1}]\nsched2 cycle 4: ready [36, 11] -> selects 36; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 36, 'unit': -1}]\nA -1 disposition means no hard-register home at that stage; reload may use memory equivalence or rematerialize a constant.\n"
+    },
+    "s16": {
+      "manifest": {
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "input_sha256": "543db2b837461ecc10b0a59906f137f6a39a41b19210da389a88037f8fda9610",
+        "input_origin": "/home/gabriel/pe2-ov-actor_403200/nonmatchings/func_actor_403200_8013B740-vacuum/base_2.i",
+        "flags": [
+          "-O2",
+          "-mips1",
+          "-mcpu=3000",
+          "-w",
+          "-funsigned-char",
+          "-fpeephole",
+          "-ffunction-cse",
+          "-fpcc-struct-return",
+          "-fcommon",
+          "-fverbose-asm",
+          "-msoft-float",
+          "-mgas",
+          "-fgnu-linker",
+          "-quiet",
+          "-gcoff",
+          "-dp",
+          "-G0",
+          "-da"
+        ],
+        "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+        "source_sha256": {
+          "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+          "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+          "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+          "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+          "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+          "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+          "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+          "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+          "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+          "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+          "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+          "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+          "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+          "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+          "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+          "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+          "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+          "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+          "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+        },
+        "assembly_identical": true,
+        "trace_complete": true,
+        "baseline_assembly_sha256": "49d736c61ac70453b63eb8fdb8247f1fa19ce59db12b2986c8ad2511ab6ef024",
+        "traced_assembly_sha256": "49d736c61ac70453b63eb8fdb8247f1fa19ce59db12b2986c8ad2511ab6ef024"
+      },
+      "selected_events": [
+        {
+          "birth": 16,
+          "block": 0,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 28,
+          "event": "local_choice",
+          "members": [
+            105,
+            103
+          ],
+          "priority": 8333,
+          "qty": 4,
+          "refs": 5,
+          "reg_class": 1,
+          "result": 3,
+          "searched_birth": 16,
+          "searched_death": 28,
+          "size": 1,
+          "span": 12,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 2,
+          "block": 0,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 14,
+          "event": "local_choice",
+          "members": [
+            99
+          ],
+          "priority": 1666,
+          "qty": 0,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 5,
+          "searched_birth": 2,
+          "searched_death": 14,
+          "size": 1,
+          "span": 12,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 4,
+          "block": 0,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 22,
+          "event": "local_choice",
+          "members": [
+            91
+          ],
+          "priority": 1666,
+          "qty": 1,
+          "refs": 3,
+          "reg_class": 1,
+          "result": 6,
+          "searched_birth": 4,
+          "searched_death": 22,
+          "size": 1,
+          "span": 18,
+          "suggested_only": 0,
+          "suggestions": []
+        }
+      ],
+      "report": "Observed compiler decisions (quantity IDs are local to each block; priorities calculated from observed inputs).\nScheduler cycles run backward within each block. Actual hazard costs are delays; potential hazard costs are ranking weights, not cycles.\nsched1 cycle 1 scheduled 46: uid 40 refs 1->0, priority 2->2, tick=0\nsched1 cycle 1 scheduled 46: uid 38 refs 2->1, priority 2->2, tick=0\nsched1 comparator uid 40 / 45: priority; prefers uid 45\nsched1 comparator uid 11 / 40: priority; prefers uid 11\nsched1 comparator uid 29 / 40: original RTL order; prefers uid 40\nsched1 cycle 2: ready [45, 11, 40, 29] -> selects 11; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 45, 'unit': -1}, {'cost': 0, 'kind': 'actual', 'uid': 11, 'unit': 0}, {'cost': 0, 'kind': 'potential', 'uid': 45, 'unit': -1}, {'cost': 540672, 'kind': 'potential', 'uid': 11, 'unit': 0}]\nsched1 cycle 3: ready [45, 40, 29] -> selects 45; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 45, 'unit': -1}]\nsched1 cycle 4: ready [40, 29] -> selects 29; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 40, 'unit': -1}, {'cost': 0, 'kind': 'actual', 'uid': 29, 'unit': 0}, {'cost': 0, 'kind': 'potential', 'uid': 40, 'unit': -1}, {'cost': 548864, 'kind': 'potential', 'uid': 29, 'unit': 0}]\nsched1 cycle 5: ready [40] -> selects 40; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 40, 'unit': -1}]\nsched1 cycle 5 scheduled 40: uid 38 refs 1->0, priority 2->2130706433, tick=0\nsched1 cycle 6: ready [38] -> selects 38; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 38, 'unit': -1}]\nlocal b0 q4 [105, 103]: refs=5 span=12 priority=8333 copy=[] arithmetic=[] suggested_only=0 -> $v1\nlocal b0 q0 [99]: refs=2 span=12 priority=1666 copy=[] arithmetic=[] suggested_only=0 -> $a1\nlocal b0 q1 [91]: refs=3 span=18 priority=1666 copy=[] arithmetic=[] suggested_only=0 -> $a2\nglobal a0 [81]: refs=6 span=59 priority=2033 calls=1 retry=0 caller_save=0 -> $s0\nglobal a5 [88]: refs=5 span=55 priority=1818 calls=1 retry=0 caller_save=0 -> $s1\nglobal a7 [115]: refs=3 span=17 priority=1764 calls=1 retry=0 caller_save=0 -> $s2\nglobal a6 [89]: refs=3 span=62 priority=483 calls=1 retry=0 caller_save=0 -> $s3\nreload preference: $t0 $t1 $t2 $t3 $t4 $t5 $t6 $t7 $t8 $t9 64 65 66 $s7 $s5 $s6 $s2 $s3 $s4 $s1\nsched2 cycle 1 scheduled 46: uid 40 refs 1->0, priority 2->2, tick=0\nsched2 cycle 1 scheduled 46: uid 38 refs 2->1, priority 2->2, tick=0\nsched2 comparator uid 40 / 45: original RTL order; prefers uid 45\nsched2 comparator uid 11 / 40: priority; prefers uid 40\nsched2 cycle 2: ready [45, 40, 11] -> selects 45; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 45, 'unit': -1}, {'cost': 0, 'kind': 'actual', 'uid': 40, 'unit': -1}, {'cost': 0, 'kind': 'potential', 'uid': 45, 'unit': -1}, {'cost': 0, 'kind': 'potential', 'uid': 40, 'unit': -1}]\nsched2 comparator uid 40 / 29: original RTL order; prefers uid 29\nsched2 cycle 3: ready [29, 40, 11] -> selects 29; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 29, 'unit': 0}, {'cost': 0, 'kind': 'actual', 'uid': 40, 'unit': -1}, {'cost': 2744320, 'kind': 'potential', 'uid': 29, 'unit': 0}, {'cost': 0, 'kind': 'potential', 'uid': 40, 'unit': -1}]\nsched2 cycle 4: ready [40, 11] -> selects 40; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 40, 'unit': -1}]\nsched2 cycle 4 scheduled 40: uid 38 refs 1->0, priority 2->2, tick=0\nsched2 comparator uid 11 / 38: priority; prefers uid 38\nsched2 cycle 5: ready [38, 11] -> selects 38; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 38, 'unit': -1}]\nA -1 disposition means no hard-register home at that stage; reload may use memory equivalence or rematerialize a constant.\n"
+    }
+  },
+  "builds": {
+    "base_1.c": {
+      "source_sha256": "69c7f1ce11132a59a509de0dde026053cb94f4a436c18ffbe585f5cd5b0e0553",
+      "preprocessed_sha256": "752c79e0aede7ef1e990e7ba703bcc03e8ce81bb860357b302b4820b2e3db1ce",
+      "assembly_sha256": "28116a442e198d561dbc4a296182715e7f16ce57393e37b4ca32b6b6580a1161",
+      "score": 97.6082474226804,
+      "distance": 232,
+      "penalties": {
+        "branch": 2,
+        "delete": 1,
+        "insert": 0,
+        "regs": 26,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": "Table definitions are in block 0; target places them after clamp, changing local allocation intervals and block topology",
+      "expected": "Table materializations move to preheader after clamp; spawn result and coordinate chain remain v0",
+      "first_changed_pass": "rtl"
+    },
+    "base_2.c": {
+      "source_sha256": "e1805669852078d80c314b3c876e59a86f007e2b6df6a31fe1f2e8ca8efd403a",
+      "preprocessed_sha256": "543db2b837461ecc10b0a59906f137f6a39a41b19210da389a88037f8fda9610",
+      "assembly_sha256": "3999dc6b14dd54d7d6e390e909ad510e8ada87557de30373a41ba6f8556169cb",
+      "score": 99.17525773195877,
+      "distance": 80,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 16,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": "HImode formation preserves a SI masked value and HI copy; repeated row expressions in permuter output are unnecessary",
+      "expected": "One type change reproduces distance80, target clamp copy, LCG a1/a2, unchanged loop saved-register rotation",
+      "first_changed_pass": "rtl"
+    },
+    "base_3.c": {
+      "source_sha256": "f21530f01069472ee291fbdb88aedd468a8d232fadbb0756d2c36bba055395ba",
+      "preprocessed_sha256": "758916fa5b70e85d049a64bd20e11b7a8374e9bdbeda407650f10c6c66c52d08",
+      "assembly_sha256": "d6da8ee486bb2b0a60bd234f39575ce428b52d08794cc990b674eed1166c3075",
+      "score": 98.10204081632654,
+      "distance": 186,
+      "penalties": {
+        "branch": 1,
+        "delete": 0,
+        "insert": 1,
+        "regs": 17,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": "Scaled offset ranks behind work and index; read/write empty asm adds weighted references without also promoting either table base",
+      "expected": "Scaled offset takes s0, work s1 and index s2; desc/positions/entries remain s4/s5/s6 and v0 coordinate chain survives",
+      "first_changed_pass": "rtl"
+    },
+    "base_4.c": {
+      "source_sha256": "7153e085418f8e3456dc4a1b073ab0ab7d517995beef46bd84930862bd15df86",
+      "preprocessed_sha256": "3be0f5d83711810cba7b34f24f0ab5db0022760cece4fe2c2b37ec4702d02326",
+      "assembly_sha256": "53655c0c2489943dfb051d68024ab7ccece058b0af6424a25a11b6489c875e22",
+      "score": 99.79381443298969,
+      "distance": 20,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 4,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": "Read/write helper split offset into separate input and output; input-only helper should keep one live pseudo with4 refs and no extra machine copy",
+      "expected": "Scaled offset gets s0 before work and index, saved tables unchanged; asm boundary emits no instructions and preserves body scheduling",
+      "first_changed_pass": "rtl"
+    },
+    "base_5.c": {
+      "source_sha256": "8dbc4acd6d0c2237de18982c0ea75b4242f4ded66d72c8c1b170748c378c09f0",
+      "preprocessed_sha256": "731307d3fb663618b5a38c2453864fe9d8d3e95573735f260a32db1760a92aef",
+      "assembly_sha256": "278d3b4593915ec19b55b60ac107cd1aabe8786641a48ec3e1d4c284e6271396",
+      "score": 100.0,
+      "distance": 0,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": "C pointer addition canonicalizes base first at expansion, while target has offset first in both additions",
+      "expected": "Integer address sums expand offset-first; same computed PSX addresses, same global/local homes and schedule, distance zero",
+      "first_changed_pass": null
+    },
+    "base_6.c": {
+      "source_sha256": "7c351dd658d1f9ee6bf34e4eb6846783ab0913431ddbfea3d1ba005c2c74a9f7",
+      "preprocessed_sha256": "13c426118c775fd4eb0a3fd2faf6af22b2f7f246b22f1bcea066049e65fc8fba",
+      "assembly_sha256": "278d3b4593915ec19b55b60ac107cd1aabe8786641a48ec3e1d4c284e6271396",
+      "score": 100.0,
+      "distance": 0,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": "Port overlay spawn-record type, existing Actor403200Work and SVECTOR; pointer model field and existing signed LCG declaration preserve RTL",
+      "expected": "Distance zero with normal headers, no local work-block duplicate or formation wrapper",
+      "first_changed_pass": null
+    }
+  },
+  "predictions_and_conclusions": [
+    {
+      "at": "2026-09-20T06:07:39.767100+00:00",
+      "event": "plan",
+      "expected": "Table materializations move to preheader after clamp; spawn result and coordinate chain remain v0",
+      "hypothesis": "Table definitions are in block 0; target places them after clamp, changing local allocation intervals and block topology",
+      "parent": "base.c",
+      "pass_name": "sched",
+      "source": "base_1.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T06:07:51.596493+00:00",
+      "event": "conclude",
+      "next": "Run bounded router as required at 95%",
+      "result": "97.608%; topology matches. Table definitions now block 2; LCG a1/a2 also fixed; global work/index/scaled-index rotation and missing formation copy remain, v0 coordinate chain preserved",
+      "source": "base_1.c",
+      "source_sha256": "69c7f1ce11132a59a509de0dde026053cb94f4a436c18ffbe585f5cd5b0e0553"
+    },
+    {
+      "at": "2026-09-20T06:08:12.007624+00:00",
+      "event": "conclude",
+      "next": "Bounded router running; investigate mode of formation and scaled index lifetime from dump evidence",
+      "result": "97.608%; topology matches and table definitions now block 2. Correction: LCG constant/address remain a2/a1 (not fixed). Saved-register rotation, missing formation copy, and reversed final address-add operands remain; v0 chain preserved",
+      "source": "base_1.c",
+      "source_sha256": "69c7f1ce11132a59a509de0dde026053cb94f4a436c18ffbe585f5cd5b0e0553"
+    },
+    {
+      "at": "2026-09-20T06:11:29.821907+00:00",
+      "event": "plan",
+      "expected": "One type change reproduces distance80, target clamp copy, LCG a1/a2, unchanged loop saved-register rotation",
+      "hypothesis": "HImode formation preserves a SI masked value and HI copy; repeated row expressions in permuter output are unnecessary",
+      "parent": "base_1.c",
+      "pass_name": "lreg",
+      "source": "base_2.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T06:11:31.035975+00:00",
+      "event": "conclude",
+      "next": "Promote scaled offset with a read/write lifetime helper without reweighting entries or positions",
+      "result": "16-bit formation alone reproduces verified 99.175% distance80; all saved-register and operand leftovers unchanged. Repeated y/z address expressions are unnecessary",
+      "source": "base_2.c",
+      "source_sha256": "e1805669852078d80c314b3c876e59a86f007e2b6df6a31fe1f2e8ca8efd403a"
+    },
+    {
+      "at": "2026-09-20T06:11:58.322878+00:00",
+      "event": "plan",
+      "expected": "Scaled offset takes s0, work s1 and index s2; desc/positions/entries remain s4/s5/s6 and v0 coordinate chain survives",
+      "hypothesis": "Scaled offset ranks behind work and index; read/write empty asm adds weighted references without also promoting either table base",
+      "parent": "base_2.c",
+      "pass_name": "greg",
+      "source": "base_3.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T06:12:45.164605+00:00",
+      "event": "conclude",
+      "next": "Input-only use avoids redefining offset; check scheduling boundary independently",
+      "result": "Prediction failed: read/write asm input is r116 and output r86, so r86 still has3 refs/17, remains s2; extra move from v0 added. Entries operand order reverses as pointer addition; v0 coordinate chain survives",
+      "source": "base_3.c",
+      "source_sha256": "f21530f01069472ee291fbdb88aedd468a8d232fadbb0756d2c36bba055395ba"
+    },
+    {
+      "at": "2026-09-20T06:12:45.205460+00:00",
+      "event": "plan",
+      "expected": "Scaled offset gets s0 before work and index, saved tables unchanged; asm boundary emits no instructions and preserves body scheduling",
+      "hypothesis": "Read/write helper split offset into separate input and output; input-only helper should keep one live pseudo with4 refs and no extra machine copy",
+      "parent": "base_3.c",
+      "pass_name": "greg",
+      "source": "base_4.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T06:13:12.424545+00:00",
+      "event": "conclude",
+      "next": "Use byte-offset integer address sums to preserve target operand order",
+      "result": "Prediction supported: input-only use keeps r116 at4 refs/18, allocates s0 before work s1 and counter s2, tables and coordinate schedule preserved. 99.794%, only two reversed address additions remain",
+      "source": "base_4.c",
+      "source_sha256": "7153e085418f8e3456dc4a1b073ab0ab7d517995beef46bd84930862bd15df86"
+    },
+    {
+      "at": "2026-09-20T06:13:12.466145+00:00",
+      "event": "plan",
+      "expected": "Integer address sums expand offset-first; same computed PSX addresses, same global/local homes and schedule, distance zero",
+      "hypothesis": "C pointer addition canonicalizes base first at expansion, while target has offset first in both additions",
+      "parent": "base_4.c",
+      "pass_name": "rtl",
+      "source": "base_5.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T06:13:13.133037+00:00",
+      "event": "conclude",
+      "next": "Port matching body into overlay types and verify full build",
+      "result": "100% scratch match; both offset-first additions now agree, all register homes and instruction schedule preserved",
+      "source": "base_5.c",
+      "source_sha256": "8dbc4acd6d0c2237de18982c0ea75b4242f4ded66d72c8c1b170748c378c09f0"
+    },
+    {
+      "at": "2026-09-20T06:14:27.115748+00:00",
+      "event": "plan",
+      "expected": "Distance zero with normal headers, no local work-block duplicate or formation wrapper",
+      "hypothesis": "Port overlay spawn-record type, existing Actor403200Work and SVECTOR; pointer model field and existing signed LCG declaration preserve RTL",
+      "parent": "base_5.c",
+      "pass_name": "rtl",
+      "source": "base_6.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T06:14:43.330240+00:00",
+      "event": "conclude",
+      "next": "Integrate only the matched function and table externs; run unscoped verifier",
+      "result": "Port to overlay header and SVECTOR reproduces exact 100% object, including pointer-valued descriptor model and signed LCG declaration with unsigned shift",
+      "source": "base_6.c",
+      "source_sha256": "7c351dd658d1f9ee6bf34e4eb6846783ab0913431ddbfea3d1ba005c2c74a9f7"
+    }
+  ],
+  "sources": {
+    "base_1.c": "#include \"common.h\"\n#include \"gameplay/1BC.h\"\n#include \"main/task.h\"\n#include \"main/tmd.h\"\n\n/// Local view of this overlay's work block: `include/actors/actor_403200.h`\n/// still pads 0xEF0, so a seed that reproduces the ROM has to name the slot\n/// itself. Landing this function means adding `GpEnemy* field_EF0;` there\n/// (the same slot `Actor444000Work::field_EF0` names).\ntypedef struct {\n    /* 0x000 */ byte     pad_0[0xEF0];\n    /* 0xEF0 */ GpEnemy* field_EF0;\n} Actor403200Work;\n\ntypedef struct {\n    /* 0x00 */ s32 field_0;\n    /* 0x04 */ s16 field_4;\n    /* 0x06 */ s16 field_6;\n} Actor403200SpawnRec;\nSTATIC_ASSERT_SIZEOF(Actor403200SpawnRec, 0x8);\n\ntypedef struct {\n    /* 0x00 */ SVECTOR pos;\n} Actor403200FormationPos;\nSTATIC_ASSERT_SIZEOF(Actor403200FormationPos, 0x8);\n\nextern TaskDesc                D_actor_403200_8015E858[];\nextern Actor403200FormationPos D_actor_403200_8015F7B0[3][9];\nextern Actor403200SpawnRec     D_actor_403200_8015F888[];\nextern u32                     Gp_LcgState;\n\nvoid func_actor_403200_8013B740(Task* arg0)\n{\n    Actor403200Work*          work;\n    TaskDesc*                 desc;\n    Actor403200SpawnRec*      entries;\n    Actor403200FormationPos (*positions)[9];\n    Actor403200FormationPos*  row;\n    s32                       rowOffset;\n    GpEnemy*                  enemy;\n    s16                       i;\n    s32                       formation;\n\n    work      = (Actor403200Work*)arg0->work;\n\n    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;\n    formation   = (Gp_LcgState >> 16) & 3;\n    if (formation == 3) {\n        formation = 0;\n    }\n\n    i = 0;\n    desc      = D_actor_403200_8015E858;\n    entries   = D_actor_403200_8015F888;\n    positions = D_actor_403200_8015F7B0;\n\nloop_3:\n    desc[4].arg.value = entries[i].field_0;\n    enemy            = Gp_SpawnEnemyFromTable(desc, 4, entries[i].field_4, NULL);\n    work->field_EF0  = enemy;\n    if (enemy != NULL) {\n        rowOffset = ((formation * 8) | formation) * 8;\n        row       = (Actor403200FormationPos*)((u8*)positions + (i * 8 + rowOffset));\n        ((TmdObject*)enemy->task->extra)->coords->coord.t[0]           = row->pos.vx;\n        ((TmdObject*)work->field_EF0->task->extra)->coords->coord.t[1] = row->pos.vy;\n        ((TmdObject*)work->field_EF0->task->extra)->coords->coord.t[2] = row->pos.vz;\n        work->field_EF0->workType = 0x900;\n        work->field_EF0->placeKey |= i << 12;\n        i++;\n        if (i < 9) {\n            goto loop_3;\n        }\n    }\n}\n",
+    "base_2.c": "#include \"common.h\"\n#include \"gameplay/1BC.h\"\n#include \"main/task.h\"\n#include \"main/tmd.h\"\n\n/// Local view of this overlay's work block: `include/actors/actor_403200.h`\n/// still pads 0xEF0, so a seed that reproduces the ROM has to name the slot\n/// itself. Landing this function means adding `GpEnemy* field_EF0;` there\n/// (the same slot `Actor444000Work::field_EF0` names).\ntypedef struct {\n    /* 0x000 */ byte     pad_0[0xEF0];\n    /* 0xEF0 */ GpEnemy* field_EF0;\n} Actor403200Work;\n\ntypedef struct {\n    /* 0x00 */ s32 field_0;\n    /* 0x04 */ s16 field_4;\n    /* 0x06 */ s16 field_6;\n} Actor403200SpawnRec;\nSTATIC_ASSERT_SIZEOF(Actor403200SpawnRec, 0x8);\n\ntypedef struct {\n    /* 0x00 */ SVECTOR pos;\n} Actor403200FormationPos;\nSTATIC_ASSERT_SIZEOF(Actor403200FormationPos, 0x8);\n\nextern TaskDesc                D_actor_403200_8015E858[];\nextern Actor403200FormationPos D_actor_403200_8015F7B0[3][9];\nextern Actor403200SpawnRec     D_actor_403200_8015F888[];\nextern u32                     Gp_LcgState;\n\nvoid func_actor_403200_8013B740(Task* arg0)\n{\n    Actor403200Work*          work;\n    TaskDesc*                 desc;\n    Actor403200SpawnRec*      entries;\n    Actor403200FormationPos (*positions)[9];\n    Actor403200FormationPos*  row;\n    s32                       rowOffset;\n    GpEnemy*                  enemy;\n    s16                       i;\n    s16                       formation;\n\n    work      = (Actor403200Work*)arg0->work;\n\n    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;\n    formation   = (Gp_LcgState >> 16) & 3;\n    if (formation == 3) {\n        formation = 0;\n    }\n\n    i = 0;\n    desc      = D_actor_403200_8015E858;\n    entries   = D_actor_403200_8015F888;\n    positions = D_actor_403200_8015F7B0;\n\nloop_3:\n    desc[4].arg.value = entries[i].field_0;\n    enemy            = Gp_SpawnEnemyFromTable(desc, 4, entries[i].field_4, NULL);\n    work->field_EF0  = enemy;\n    if (enemy != NULL) {\n        rowOffset = ((formation * 8) | formation) * 8;\n        row       = (Actor403200FormationPos*)((u8*)positions + (i * 8 + rowOffset));\n        ((TmdObject*)enemy->task->extra)->coords->coord.t[0]           = row->pos.vx;\n        ((TmdObject*)work->field_EF0->task->extra)->coords->coord.t[1] = row->pos.vy;\n        ((TmdObject*)work->field_EF0->task->extra)->coords->coord.t[2] = row->pos.vz;\n        work->field_EF0->workType = 0x900;\n        work->field_EF0->placeKey |= i << 12;\n        i++;\n        if (i < 9) {\n            goto loop_3;\n        }\n    }\n}\n",
+    "base_3.c": "#include \"common.h\"\n#include \"gameplay/1BC.h\"\n#include \"main/task.h\"\n#include \"main/tmd.h\"\n\n/// Local view of this overlay's work block: `include/actors/actor_403200.h`\n/// still pads 0xEF0, so a seed that reproduces the ROM has to name the slot\n/// itself. Landing this function means adding `GpEnemy* field_EF0;` there\n/// (the same slot `Actor444000Work::field_EF0` names).\ntypedef struct {\n    /* 0x000 */ byte     pad_0[0xEF0];\n    /* 0xEF0 */ GpEnemy* field_EF0;\n} Actor403200Work;\n\ntypedef struct {\n    /* 0x00 */ s32 field_0;\n    /* 0x04 */ s16 field_4;\n    /* 0x06 */ s16 field_6;\n} Actor403200SpawnRec;\nSTATIC_ASSERT_SIZEOF(Actor403200SpawnRec, 0x8);\n\ntypedef struct {\n    /* 0x00 */ SVECTOR pos;\n} Actor403200FormationPos;\nSTATIC_ASSERT_SIZEOF(Actor403200FormationPos, 0x8);\n\nextern TaskDesc                D_actor_403200_8015E858[];\nextern Actor403200FormationPos D_actor_403200_8015F7B0[3][9];\nextern Actor403200SpawnRec     D_actor_403200_8015F888[];\nextern u32                     Gp_LcgState;\n\nvoid func_actor_403200_8013B740(Task* arg0)\n{\n    Actor403200Work*          work;\n    TaskDesc*                 desc;\n    Actor403200SpawnRec*      entries;\n    Actor403200FormationPos (*positions)[9];\n    Actor403200FormationPos*  row;\n    s32                       offset;\n    s32                       rowOffset;\n    GpEnemy*                  enemy;\n    s16                       i;\n    s16                       formation;\n\n    work      = (Actor403200Work*)arg0->work;\n\n    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;\n    formation   = (Gp_LcgState >> 16) & 3;\n    if (formation == 3) {\n        formation = 0;\n    }\n\n    i = 0;\n    desc      = D_actor_403200_8015E858;\n    entries   = D_actor_403200_8015F888;\n    positions = D_actor_403200_8015F7B0;\n\nloop_3:\n    offset = i * 8;\n    SOFT_TOUCH_REG(offset);\n    desc[4].arg.value = ((Actor403200SpawnRec*)((u8*)entries + offset))->field_0;\n    enemy            = Gp_SpawnEnemyFromTable(desc, 4, ((Actor403200SpawnRec*)((u8*)entries + offset))->field_4, NULL);\n    work->field_EF0  = enemy;\n    if (enemy != NULL) {\n        rowOffset = ((formation * 8) | formation) * 8;\n        row       = (Actor403200FormationPos*)((u8*)positions + (offset + rowOffset));\n        ((TmdObject*)enemy->task->extra)->coords->coord.t[0]           = row->pos.vx;\n        ((TmdObject*)work->field_EF0->task->extra)->coords->coord.t[1] = row->pos.vy;\n        ((TmdObject*)work->field_EF0->task->extra)->coords->coord.t[2] = row->pos.vz;\n        work->field_EF0->workType = 0x900;\n        work->field_EF0->placeKey |= i << 12;\n        i++;\n        if (i < 9) {\n            goto loop_3;\n        }\n    }\n}\n",
+    "base_4.c": "#include \"common.h\"\n#include \"gameplay/1BC.h\"\n#include \"main/task.h\"\n#include \"main/tmd.h\"\n\n/// Local view of this overlay's work block: `include/actors/actor_403200.h`\n/// still pads 0xEF0, so a seed that reproduces the ROM has to name the slot\n/// itself. Landing this function means adding `GpEnemy* field_EF0;` there\n/// (the same slot `Actor444000Work::field_EF0` names).\ntypedef struct {\n    /* 0x000 */ byte     pad_0[0xEF0];\n    /* 0xEF0 */ GpEnemy* field_EF0;\n} Actor403200Work;\n\ntypedef struct {\n    /* 0x00 */ s32 field_0;\n    /* 0x04 */ s16 field_4;\n    /* 0x06 */ s16 field_6;\n} Actor403200SpawnRec;\nSTATIC_ASSERT_SIZEOF(Actor403200SpawnRec, 0x8);\n\ntypedef struct {\n    /* 0x00 */ SVECTOR pos;\n} Actor403200FormationPos;\nSTATIC_ASSERT_SIZEOF(Actor403200FormationPos, 0x8);\n\nextern TaskDesc                D_actor_403200_8015E858[];\nextern Actor403200FormationPos D_actor_403200_8015F7B0[3][9];\nextern Actor403200SpawnRec     D_actor_403200_8015F888[];\nextern u32                     Gp_LcgState;\n\nvoid func_actor_403200_8013B740(Task* arg0)\n{\n    Actor403200Work*          work;\n    TaskDesc*                 desc;\n    Actor403200SpawnRec*      entries;\n    Actor403200FormationPos (*positions)[9];\n    Actor403200FormationPos*  row;\n    s32                       offset;\n    s32                       rowOffset;\n    GpEnemy*                  enemy;\n    s16                       i;\n    s16                       formation;\n\n    work      = (Actor403200Work*)arg0->work;\n\n    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;\n    formation   = (Gp_LcgState >> 16) & 3;\n    if (formation == 3) {\n        formation = 0;\n    }\n\n    i = 0;\n    desc      = D_actor_403200_8015E858;\n    entries   = D_actor_403200_8015F888;\n    positions = D_actor_403200_8015F7B0;\n\nloop_3:\n    offset = i * 8;\n    SOFT_USE_REG(offset);\n    desc[4].arg.value = ((Actor403200SpawnRec*)((u8*)entries + offset))->field_0;\n    enemy            = Gp_SpawnEnemyFromTable(desc, 4, ((Actor403200SpawnRec*)((u8*)entries + offset))->field_4, NULL);\n    work->field_EF0  = enemy;\n    if (enemy != NULL) {\n        rowOffset = ((formation * 8) | formation) * 8;\n        row       = (Actor403200FormationPos*)((u8*)positions + (offset + rowOffset));\n        ((TmdObject*)enemy->task->extra)->coords->coord.t[0]           = row->pos.vx;\n        ((TmdObject*)work->field_EF0->task->extra)->coords->coord.t[1] = row->pos.vy;\n        ((TmdObject*)work->field_EF0->task->extra)->coords->coord.t[2] = row->pos.vz;\n        work->field_EF0->workType = 0x900;\n        work->field_EF0->placeKey |= i << 12;\n        i++;\n        if (i < 9) {\n            goto loop_3;\n        }\n    }\n}\n",
+    "base_5.c": "#include \"common.h\"\n#include \"gameplay/1BC.h\"\n#include \"main/task.h\"\n#include \"main/tmd.h\"\n\n/// Local view of this overlay's work block: `include/actors/actor_403200.h`\n/// still pads 0xEF0, so a seed that reproduces the ROM has to name the slot\n/// itself. Landing this function means adding `GpEnemy* field_EF0;` there\n/// (the same slot `Actor444000Work::field_EF0` names).\ntypedef struct {\n    /* 0x000 */ byte     pad_0[0xEF0];\n    /* 0xEF0 */ GpEnemy* field_EF0;\n} Actor403200Work;\n\ntypedef struct {\n    /* 0x00 */ s32 field_0;\n    /* 0x04 */ s16 field_4;\n    /* 0x06 */ s16 field_6;\n} Actor403200SpawnRec;\nSTATIC_ASSERT_SIZEOF(Actor403200SpawnRec, 0x8);\n\ntypedef struct {\n    /* 0x00 */ SVECTOR pos;\n} Actor403200FormationPos;\nSTATIC_ASSERT_SIZEOF(Actor403200FormationPos, 0x8);\n\nextern TaskDesc                D_actor_403200_8015E858[];\nextern Actor403200FormationPos D_actor_403200_8015F7B0[3][9];\nextern Actor403200SpawnRec     D_actor_403200_8015F888[];\nextern u32                     Gp_LcgState;\n\nvoid func_actor_403200_8013B740(Task* arg0)\n{\n    Actor403200Work*          work;\n    TaskDesc*                 desc;\n    Actor403200SpawnRec*      entries;\n    Actor403200FormationPos (*positions)[9];\n    Actor403200FormationPos*  row;\n    s32                       offset;\n    s32                       rowOffset;\n    GpEnemy*                  enemy;\n    s16                       i;\n    s16                       formation;\n\n    work      = (Actor403200Work*)arg0->work;\n\n    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;\n    formation   = (Gp_LcgState >> 16) & 3;\n    if (formation == 3) {\n        formation = 0;\n    }\n\n    i = 0;\n    desc      = D_actor_403200_8015E858;\n    entries   = D_actor_403200_8015F888;\n    positions = D_actor_403200_8015F7B0;\n\nloop_3:\n    offset = i * 8;\n    SOFT_USE_REG(offset);\n    desc[4].arg.value = ((Actor403200SpawnRec*)(offset + (u32)entries))->field_0;\n    enemy            = Gp_SpawnEnemyFromTable(desc, 4, ((Actor403200SpawnRec*)(offset + (u32)entries))->field_4, NULL);\n    work->field_EF0  = enemy;\n    if (enemy != NULL) {\n        rowOffset = ((formation * 8) | formation) * 8;\n        row       = (Actor403200FormationPos*)((offset + rowOffset) + (u32)positions);\n        ((TmdObject*)enemy->task->extra)->coords->coord.t[0]           = row->pos.vx;\n        ((TmdObject*)work->field_EF0->task->extra)->coords->coord.t[1] = row->pos.vy;\n        ((TmdObject*)work->field_EF0->task->extra)->coords->coord.t[2] = row->pos.vz;\n        work->field_EF0->workType = 0x900;\n        work->field_EF0->placeKey |= i << 12;\n        i++;\n        if (i < 9) {\n            goto loop_3;\n        }\n    }\n}\n",
+    "base_6.c": "#include \"common.h\"\n#include \"actors/actor_403200.h\"\n#include \"main/tmd.h\"\n\nextern TaskDesc D_actor_403200_8015E858;\nextern SVECTOR D_actor_403200_8015F7B0[3][9];\nextern Actor403200SpawnRec D_actor_403200_8015F888[9];\nextern s32 Gp_LcgState;\n\nvoid func_actor_403200_8013B740(Task* arg0)\n{\n    Actor403200Work*          work;\n    TaskDesc*                 desc;\n    Actor403200SpawnRec*      entries;\n    SVECTOR (*positions)[9];\n    SVECTOR*  row;\n    s32                       offset;\n    s32                       rowOffset;\n    GpEnemy*                  enemy;\n    s16                       i;\n    s16                       formation;\n\n    work      = (Actor403200Work*)arg0->work;\n\n    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;\n    formation   = ((u32)Gp_LcgState >> 16) & 3;\n    if (formation == 3) {\n        formation = 0;\n    }\n\n    i = 0;\n    desc      = &D_actor_403200_8015E858;\n    entries   = D_actor_403200_8015F888;\n    positions = D_actor_403200_8015F7B0;\n\nspawnNext:\n    offset = i * 8;\n    SOFT_USE_REG(offset);\n    desc[4].arg.model = ((Actor403200SpawnRec*)(offset + (u32)entries))->model;\n    enemy            = Gp_SpawnEnemyFromTable(desc, 4, ((Actor403200SpawnRec*)(offset + (u32)entries))->spawnArg, NULL);\n    work->field_EF0  = enemy;\n    if (enemy != NULL) {\n        rowOffset = ((formation * 8) | formation) * 8;\n        row       = (SVECTOR*)((offset + rowOffset) + (u32)positions);\n        ((TmdObject*)enemy->task->extra)->coords->coord.t[0]           = row->vx;\n        ((TmdObject*)work->field_EF0->task->extra)->coords->coord.t[1] = row->vy;\n        ((TmdObject*)work->field_EF0->task->extra)->coords->coord.t[2] = row->vz;\n        work->field_EF0->workType = 0x900;\n        work->field_EF0->placeKey |= i << 12;\n        i++;\n        if (i < 9) {\n            goto spawnNext;\n        }\n    }\n}\n"
+  },
+  "integration": {
+    "result": "OK: all 7392 matched functions are still C (or legitimately shared)\n\u2705 BUILD SUCCEEDED. Everything matched and there were no compiler or linter errors\n",
+    "duplicates": "Only this function itself; no shared body promotion needed."
+  }
+}

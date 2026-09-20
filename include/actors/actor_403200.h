@@ -11,6 +11,14 @@
 
 typedef struct Actor403200Obj Actor403200Obj;
 
+/// One of the nine models and spawn arguments used by the formation spawner.
+typedef struct Actor403200SpawnRec {
+    /* 0x0 */ void* model;
+    /* 0x4 */ s16   spawnArg;
+    /* 0x6 */ s16   field_6;
+} Actor403200SpawnRec;
+STATIC_ASSERT_SIZEOF(Actor403200SpawnRec, 0x8);
+
 /// Payload `func_actor_403200_8013C84C` passes as `Gp_DispatchMsg`'s `arg2`
 /// for message 0x7DA, which the slot-4 task forwards to the 0x7DB handlers.
 /// The same four bytes as `Actor444000Msg7DA`: two id bytes followed by a

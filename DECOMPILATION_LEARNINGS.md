@@ -134832,3 +134832,52 @@ base_3 `1dfc43d8528317c99ea0569dadc3fcf6196159ee4f7d0a9f225a50f7a76a814b`;
 base_4 `ceba5e1c543128c271c24605cce2915d2ba3fd8ea16d3a929f0fc325e2dd6b02`.
 The independent partial permuter discovery and its remaining jump-hoist
 question stay in the retained permuter findings and scratch session notes.
+
+## A halfword clamp copy changes a neighboring local-allocation tie (func_actor_403200_8013B740, 2026-09-20)
+
+A masked formation choice (`(random >> 16) & 3`, clamped 3 to 0) declared
+`s32` compiled its `andi` directly into the saved formation register. The ROM
+instead used `andi v1,v1,3` and copied v1 to s3 in the clamp branch delay slot.
+Changing only the local to `s16` reproduced that copy and improved distance
+232 to 80. A planned type-only build proved that the permuter's two repeated
+coordinate address expressions were unnecessary; its normalized baseline
+had the original distance and object. The narrowing preserves all possible
+values (0..3 before the clamp).
+
+The effect on the LCG's unrelated a1/a2 pair was a **local quantity tie**.
+RTL now defines an SI masked value and copies its low halfword into the global
+HI formation value. The SI value and its shift input form local quantity
+b0/q4, refs5/span12, and receive v1. The copy survives through allocation and
+is moved into the branch delay slot by dbr. Its presence lengthens the LCG
+address quantity's local interval from16 to18 half-instruction positions:
+
+| Quantity | s32 formation | s16 formation |
+|---|---|---|
+| address r91, b0/q1 | refs3/span16, priority1875, a1 | refs3/span18, priority1666, a2 |
+| constant r99, b0/q0 | refs2/span12, priority1666, a2 | unchanged priority1666, a1 |
+
+Both unmodified compiler traces observe these choices and verify identical
+assembly with and without observation. At the resulting tie, the constant's
+lower quantity number wins. Per-pseudo doubled lengths in .lreg do not give
+these local intervals.
+
+The remaining saved-register rotation was closed independently. A
+read/write empty helper on a named scaled index failed: CSE used separate
+input/output pseudos, the call-crossing output retained3 refs, and reload
+needed a move. An input-only `SOFT_USE_REG(offset)` retained the existing
+scaled-index pseudo with4 refs/18 insns; .greg allocated it in s0 ahead of work
+and counter in s1/s2. The table bases and v0 dereference chain survived. The
+input-only asm is implicitly volatile in this compiler; the dump shows `/v`.
+Offset-first 32-bit integer address sums then fixed the last two operand
+orders. The normal-header port reached100%, and the unscoped verifier passed.
+
+Evidence, source variants, preplanned predictions, selected actual quantity
+events and input/compiler hashes:
+`tools/compiler_evidence/2026-09-20-actor403200-b740.json`. Trace inputs:
+s32 `752c79e0aede7ef1e990e7ba703bcc03e8ce81bb860357b302b4820b2e3db1ce`;
+s16 `543db2b837461ecc10b0a59906f137f6a39a41b19210da389a88037f8fda9610`.
+The complete router evidence and conclusions are retained under
+`tools/permuter_findings/func_actor_403200_8013B740/`.
+This is evidence for inspecting a neighbor's interval after a mode change,
+not a rule that every halfword clamp retains a copy or every input-only asm
+preserves the schedule. No helper-free original spelling was established.
