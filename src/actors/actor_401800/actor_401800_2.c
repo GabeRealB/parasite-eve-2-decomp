@@ -4,6 +4,7 @@
 #include "psyq/abs.h"
 
 #include "actors/actor_401800.h"
+#include "actors/actors_shared_80133eb8.h"
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -627,7 +628,25 @@ static __inline__ s32 Actor401800_OutOfRange(SVECTOR* d, s16 r)
     return ret;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800_2", func_actor_401800_80136560);
+static __inline__ s32 Actor401800_ChaseOutOfRange(SVECTOR* d, s16 r)
+{
+    u8*                      head;
+    Actor401800RangeScratch* blk;
+    s32                      ret;
+
+    head                                          = *(u8**)G_SCRATCH_HEAD;
+    ((Actor401800RangeScratch*)(head - 0xC))->dx  = d->vx;
+    blk                                           = (Actor401800RangeScratch*)(head - 0xC);
+    blk->dz                                       = d->vz;
+    blk->r                                        = r;
+    ((Actor401800RangeScratch*)(head - 0xC))->dx *= ((Actor401800RangeScratch*)(head - 0xC))->dx;
+    *(Actor401800RangeScratch**)G_SCRATCH_HEAD    = blk;
+    blk->dz                                      *= blk->dz;
+    blk->r                                       *= blk->r;
+    *(u8**)G_SCRATCH_HEAD                         = head;
+    ret                                           = ((Actor401800RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    return ret;
+}
 
 /// Step `coord` `amount` units along its local Z axis unless movement is
 /// frozen. Same body as `Actor01900_MoveForward`.
@@ -657,6 +676,115 @@ static __inline__ void Actor401800_MoveForwardNonzero(GsCOORDINATE2* coord, s16 
         }
         *(SVECTOR**)G_SCRATCH_HEAD += 1;
     }
+}
+
+void func_actor_401800_80136560(Actor401800* arg0)
+{
+    Actor401800Work*         work;
+    TmdObject*               obj;
+    GsCOORDINATE2*           coord;
+    GsCOORDINATE2*           turnCoord;
+    GsCOORDINATE2*           facing;
+    void**                   scratch;
+    u8*                      head;
+    u8*                      block;
+    s16                      animRate;
+    Actor401800ChaseScratch* s;
+    s32                      kind;
+
+    kind = arg0->field_36;
+    work = arg0->field_1C;
+    if ((kind & 0xF0) == 0x10) {
+        work->field_0 = 0x1E;
+        return;
+    }
+    if (work->field_4 != 0) {
+        obj                        = arg0->field_2C;
+        arg0->field_20->node.flags = 0;
+        obj->flags                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.radius = 0x12C;
+        work->field_898        = 1;
+        work->field_89E        = 3;
+        work->field_B48.flags &= 0x7FFF;
+        animRate               = work->field_8A4;
+        TOUCH_REG(work);
+        work->field_89A        = 0;
+        work->field_8A2        = animRate;
+        work->field_A08.flags |= 0x4000;
+        ActorsShared80133eb8((ActorsShared80133eb8Actor*)arg0);
+        work->field_C1C = 0;
+        work->field_6   = 0;
+        work->field_8   = 0;
+        return;
+    }
+    work->field_6++;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    block    = head - 0x10;
+    *scratch = block;
+    s        = (Actor401800ChaseScratch*)block;
+    if (func_actor_401800_80132C68(arg0->field_2C->coords, &work->field_A28, 0xC) != 1) {
+        func_actor_401800_8013629C(arg0, &work->field_8E8, 0xC);
+    }
+    coord                                               = arg0->field_2C->coords;
+    ((Actor401800ChaseScratch*)(head - 0x10))->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    s->delta.vy                                         = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    s->delta.vz                                         = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    arg0->field_2C->coords->flg                         = 0;
+    ActorsShared80133eb8((ActorsShared80133eb8Actor*)arg0);
+    s->playerYaw                                        = ratan2(-((TmdObject*)((Task*)gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
+                                                                 ((TmdObject*)((Task*)gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
+    coord                                               = arg0->field_2C->coords;
+    ((Actor401800ChaseScratch*)(head - 0x10))->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    s->delta.vy                                         = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    s->delta.vz                                         = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    s->yaw                                              = ratan2(s->delta.vx, s->delta.vz) + 0x800;
+    s->yaw                                              = Actor401800_NormalizeYaw(s->yaw);
+    turnCoord                                           = arg0->field_2C->coords;
+    s->turn                                             = Actor401800_NormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-turnCoord->coord.m[2][0], turnCoord->coord.m[2][2]));
+    work->field_8AE                                     = s->turn;
+    if (abs(s->yaw - s->playerYaw) < 0x44) {
+        if (((s16)work->field_C0C + work->field_C1E / 2) < work->field_6) {
+            if (abs(s->turn) < 0x80) {
+                if (Actor401800_ChaseOutOfRange(&s->delta, 0x708) && func_actor_401800_80133918(arg0) != 1) {
+                    work->field_0 = 0xA;
+                }
+            }
+        }
+    }
+    if (s->turn < 0x200) {
+        if (!Actor401800_ChaseOutOfRange(&s->delta, 0x44C) && func_actor_401800_80133918(arg0) != 1 && work->field_8C2 == 0) {
+            work->field_0 = 0xB;
+        }
+    }
+    if (s->turn > 0x30) {
+        s->turn = 0x30;
+    }
+    if (s->turn < -0x30) {
+        s->turn = -0x30;
+    }
+    facing   = arg0->field_2C->coords;
+    s->turn += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->coords->coord, s->turn, 1);
+    Actor401800_RescaleYaw(arg0->field_2C->coords, 0x1194);
+    arg0->field_2C->coords->flg = 0;
+    if (work->field_89E == 3) {
+        if (work->field_89A == 0) {
+            if ((s16)func_actor_401800_80133558(arg0->field_2C->coords, 0x12C, ((work->field_8A4 + 2) * 0x42) / 18) != 0) {
+                Actor401800_MoveForwardNonzero(arg0->field_2C->coords, ((work->field_8A4 + 2) * 0x42) / 18);
+            }
+        } else if ((s16)func_actor_401800_80133558(arg0->field_2C->coords, 0x12C, (((work->field_8A4 + 2) * 0x42) / 18) >> 2) != 0) {
+            Actor401800_MoveForwardNonzero(arg0->field_2C->coords, (((work->field_8A4 + 2) * 0x42) / 18) >> 2);
+        }
+    } else if (work->field_68 & 1) {
+        work->field_89E = 3;
+        work->field_898 = 1;
+    }
+    if (work->field_8C2 != 0) {
+        work->field_8C2--;
+    }
+    *(u8**)G_SCRATCH_HEAD += 0x10;
 }
 
 /// Chase body that steers the actor along its own local Z while the step

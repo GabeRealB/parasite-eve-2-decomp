@@ -133963,3 +133963,39 @@ base_1.i `d092698a6314027aa36dc529597549cf807c598c2d453a780c1c8d1acb82c74d`;
 base_12.i `db3430a4ad341c19efb8f0edc092e649425ab34a7083263019a9afaff81ec436`;
 base_13.i `43ae34aec5adf4dab8531c8017aaf61adb1cb088333aac8be718c1a439c8baf4`.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+
+## A shared pointer allocno can join four disjoint ranges; a scratch-store temporary supplies the missing copy (`func_actor_401800_80136560`, 2026-09-20)
+
+The archived 98.866% seed used one `coord` for two call-free position-delta
+blocks, a two-ratan2 turn expression, and the final facing read. `.lreg` observed
+14 references, four deaths and one crossed call; `.greg` put the entire pseudo
+in s0. Splitting **both** the turn expression and final facing read into separate
+locals (base_4) left the delta pseudo call-free (8 references, two deaths) in a0,
+the turn pointer across one call in s0, and the local facing pointer in v0.
+This preserved the required call-crossing range while resolving all eleven
+coordinate sites. Splitting only the tail would leave the delta pointer sharing
+the call-crossing turn range.
+
+The push also needed an intermediate value: `block = head - 0x10; *scratch =
+block; s = (Actor401800ChaseScratch*)block;`. Base_5 `.cse` retains the temporary,
+its store, then the copy into the long-lived `s`. The temporary gets v0 and `s`
+gets s2, supplying the target's copy and allowing removal of the seed's redundant
+saved actor alias. This resolved every remaining register site, distance 300→240.
+
+The permuter's one-trip reset loop had improved distance 675→355. Reusing a flags
+temporary failed (global two-death pseudo in a2); swapping independent statements
+was re-scheduled to identical code. The successful normal-source port (base_6)
+loads `animRate` before `TOUCH_REG(work)`, then writes the reset tail. Its sched
+UID 82 is read/write volatile asm on the work pointer, with dependencies on the
+preceding flags/rate accesses. This supplied the required boundary and preserved
+all matched allocation, giving distance zero. The final source has no dummy loop
+or register pins and reuses the matched MoveForwardNonzero helper. This supports
+the explicit dependency boundary here, not a universal hazard-priority rule;
+individual ready-list choices were not traced.
+
+Evidence is retained under `tools/permuter_findings/func_actor_401800_80136560/`.
+Base_6 preprocessed SHA256: `9709ec03263638af90548da2f8b0c0f915a4001159eb8fa75b54320ce16ed5cc`.
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+See PERMUTER_ANALYSIS.md, base_4.i.lreg/.greg, base_5.i.cse, base_6.i.sched/.sched2
+and the plans preceding those builds. Final unscoped build verification passed.
