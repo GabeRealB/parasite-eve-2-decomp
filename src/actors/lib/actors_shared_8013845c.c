@@ -2,9 +2,10 @@
 
 #include "main/task.h"
 
-/// Two-state dispatcher whose handler table is built on the stack. Each
-/// overlay aliases its own state-0 / state-1 callbacks as
-/// ActorsShared8013845cSub0 / ActorsShared8013845cSub1.
+/// Two-state dispatcher whose handler table is built on the stack.
+/// `ActorsShared8013845cSub0` is overlay-local. `ActorsShared8013845cSub1` is
+/// shared among the 101100-family slots; actor_143000 and actor_548100 keep
+/// their own state-1 bodies under the same name.
 void ActorsShared8013845cSub0(Task* task);
 void ActorsShared8013845cSub1(Task* task);
 
