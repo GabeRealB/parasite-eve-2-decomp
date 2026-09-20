@@ -133999,3 +133999,16 @@ Base_6 preprocessed SHA256: `9709ec03263638af90548da2f8b0c0f915a4001159eb8fa75b5
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 See PERMUTER_ANALYSIS.md, base_4.i.lreg/.greg, base_5.i.cse, base_6.i.sched/.sched2
 and the plans preceding those builds. Final unscoped build verification passed.
+
+
+## Fence a reload-generated constant separately from its empty-asm consumer (actor 401800 tick, 2026-09-20)
+
+`func_actor_401800_8013D64C`'s archived 99.707% seed already had every register right. Its lone mismatch was `li s3,21` filling the first load delay in `lhu; sh; lh; sll`, whereas the target fills the second. Earlier attempts changed dependencies on `TOUCH_REG_MEM(stop)` and called the residue unreachable from C.
+
+The dumps narrow that claim. Combine puts literal 21 directly into the tied register input of the empty asm (UID 486). Reload then creates a separate constant load (UID 909), which sched2 can move before store UID 481. Dependencies on the consuming asm do not by themselves prevent its new input load from moving. Meanwhile the volatile asm keeps the signed state load after itself.
+
+The matching source fences the previous-state store, preloads a separate local dispatch index, fences that load, then initializes/touches the constant and dispatches. It retains the seed's final `TOUCH_REG(stop)` for the saved-register lifetime. Reusing the global `state` variable for the preloaded index instead puts it in v1; a separate index is local and takes v0.
+
+The successful prediction is visible in `base_3.i.sched2`: store 481 -> basic asm 483 -> signed load 488 -> basic asm 490 -> reload constant 914 -> stop touch 495 -> shift 499. `base_3.i.greg` keeps the index in v0 and stop in s3. The output is `lhu v0; nop; sh v0; lh v0; li s3,21; sll v0`, and the integrated function/table pass the unscoped build. There are no register pins.
+
+This supports the dependency intervention for this function, not a universal need for two fences. The exact unfenced hazard-selection decision and individual necessity of each fence remain untested. Candidate hashes, penalties, observed UIDs and scope are retained in `tools/compiler_evidence/2026-09-20-actor401800-d64c.json`; matching preprocessed SHA256 is `6f5046c79ed0a885a498c0fc0cf1ca13164d97e1e8ff4fa34d63f50f2a61d8a6` (bundled compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`). Full dumps and conclusions remain in the session scratch.

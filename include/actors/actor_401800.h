@@ -7,6 +7,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
 #include "main/mem.h"
+#include "main/gfx.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -122,7 +123,10 @@ typedef struct Actor401800Work {
     /// then GPF-scales by `field_C02` into the offset added to the root
     /// coordinate. Same slot `Actor01900Work.field_C18` keeps.
     /* 0xBE8 */ SVECTOR field_BE8;
-    /* 0xBF0 */ byte    pad_BF0[8];
+    /* 0xBF0 */ s16     field_BF0;
+    /* 0xBF2 */ s16     field_BF2;
+    /* 0xBF4 */ s16     field_BF4;
+    /* 0xBF6 */ byte    pad_BF6[2];
     /// Bearing the chase body of `func_actor_401800_80137714` steers 0x89 a
     /// frame toward `field_BFA` and hands to `Gfx_RotMatrixY`. Same slot
     /// `Actor401300Work.field_C94` / `Actor01900Work.field_C20` keep.
@@ -188,8 +192,10 @@ typedef struct Actor401800Work {
     /// Set to 1 by the actors that own the `0x3F1` message and cleared once
     /// `func_actor_401800_80139118` has sent it. Same slot `Actor01900Work`
     /// keeps at 0xC20.
-    /* 0xC20 */ s16  field_C20;
-    /* 0xC22 */ byte pad_C22[0x52];
+    /* 0xC20 */ s16     field_C20;
+    /* 0xC22 */ byte    pad_C22[2];
+    /* 0xC24 */ SVECTOR field_C24[7];
+    /* 0xC5C */ byte    pad_C5C[0x18];
     /// Cleared by the init body once the root coordinate has been rescaled;
     /// same slot `Actor01900Work.field_C98` / `Actor401300Work.field_C98`
     /// clears at the same point.
@@ -483,6 +489,23 @@ typedef struct Actor401800 {
     /* 0x36 */ s16 field_36;
 } Actor401800;
 
+/// The 34 state handlers copied to the frame before the per-frame dispatch.
+typedef struct Actor401800StateTable {
+    void (*fn[34])(Actor401800*);
+} Actor401800StateTable;
+STATIC_ASSERT_SIZEOF(Actor401800StateTable, 0x88);
+
+extern const Actor401800StateTable D_actor_401800_80131FDC;
+extern u8                          D_801153F2[2];
+extern u8                          D_801153F4;
+
+/// Scratch for the view-space position published by the per-frame update.
+typedef struct Actor401800ViewScratch {
+    /* 0x00 */ byte    pad_0[0x10];
+    /* 0x10 */ SVECTOR pos;
+} Actor401800ViewScratch;
+STATIC_ASSERT_SIZEOF(Actor401800ViewScratch, 0x18);
+
 /// Payload of the `0x3FF` message `func_actor_401800_80138F5C` sends: the same
 /// 0x14-byte animation record other actors keep as `GpAnimArg` data
 /// (`D_actor_356100_80173244` and friends); `field_4` is the animation id.
@@ -613,5 +636,40 @@ void func_actor_401800_8013E2E8(Actor401800* arg0);
 void func_actor_401800_8013E394(Actor401800* arg0);
 void func_actor_401800_8013E44C(Actor401800* arg0);
 void func_actor_401800_8013E4F0(Actor401800* arg0);
+void func_actor_401800_8013E5A4(Actor401800* arg0);
+void func_actor_401800_801381E4(Actor401800* arg0);
+
+static __inline__ void Actor401800_TransformToView(GsCOORDINATE2* p, SVECTOR* out)
+{
+    SVECTOR        sv;
+    VECTOR         vec;
+    s32            flag;
+    SVECTOR*       svp   = &sv;
+    GsCOORDINATE2* view  = &gGfxViewCoord;
+    VECTOR*        vecp  = &vec;
+    s32*           flagp = &flag;
+    sv.vx                = out->vx;
+    sv.vy                = out->vy;
+    sv.vz                = out->vz;
+loop:
+    if (p->sub != NULL) {
+        if (p != view) {
+            gte_SetTransMatrix(&p->coord);
+            gte_SetRotMatrix(&p->coord);
+            gte_ldv0(svp);
+            __asm__ volatile("nop; nop; .word 0x4A480012");
+            gte_stlvnl(vecp);
+            gte_stflg(flagp);
+            sv.vx = vec.vx;
+            sv.vy = vec.vy;
+            sv.vz = vec.vz;
+            p     = p->sub;
+            goto loop;
+        }
+        out->vx = sv.vx;
+        out->vy = sv.vy;
+        out->vz = sv.vz;
+    }
+}
 
 #endif // ACTOR_401800_H

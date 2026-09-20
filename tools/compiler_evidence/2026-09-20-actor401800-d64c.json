@@ -1,0 +1,85 @@
+{
+  "function": "func_actor_401800_8013D64C",
+  "date": "2026-09-20",
+  "status": "supported for this function",
+  "candidates": {
+    "base.c": {
+      "source_sha256": "ceb4042448f508826f47756127c8dd01419f888b7bf68fda714311bf0c3aea6f",
+      "preprocessed_sha256": "cdaa8176e933c9ad1da84b1f1e00d9775969eefff1f3c246003b685e4e1e84d0",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "score": 99.70731707317073,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 2,
+        "stack": 0
+      },
+      "hypothesis": null,
+      "expected": null
+    },
+    "base_1.c": {
+      "source_sha256": "b2c93fa7e35ffa6b75199ad6dac97dd7aec5f36293569efe97a3bb85d72629d9",
+      "preprocessed_sha256": "59b972fdb8ef27ca2a0ddc4ae1228ef29506be73543c0a3747950c4b746d76ff",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "score": 99.58394160583941,
+      "penalties": {
+        "branch": 11,
+        "delete": 0,
+        "insert": 1,
+        "regs": 0,
+        "reorder": 1,
+        "stack": 0
+      },
+      "hypothesis": "Move the memory scheduling boundary from stop touch to the previous-state store, allowing the signed index load ahead of stop but keeping stop after the store",
+      "expected": "lhu nop sh lh li s3,21 sll, with unchanged saved-register homes"
+    },
+    "base_2.c": {
+      "source_sha256": "251a90cc4d0fb4732a94a69fa4ee6cc270246f36d15d1f8a9dc058904f200c17",
+      "preprocessed_sha256": "3b0487e5333073d4a25b147735a09aa61898ee67ae59039ceeeb027bc4c7265d",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "score": 99.23114355231144,
+      "penalties": {
+        "branch": 11,
+        "delete": 1,
+        "insert": 2,
+        "regs": 1,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": "Preload dispatch index before volatile stop touch to permit lh and li to share a scheduler region after the store fence",
+      "expected": "lh precedes li in sched2 while stop remains s3 and index remains v0"
+    },
+    "base_3.c": {
+      "source_sha256": "723c297c012b59780ea4b517ce65cf327db7c19cf55ead99dfb19d766905643a",
+      "preprocessed_sha256": "6f5046c79ed0a885a498c0fc0cf1ca13164d97e1e8ff4fa34d63f50f2a61d8a6",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "score": 100.0,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": "Separate index from global state and fence its load so li cannot pass it; store fence keeps both load lifetimes disjoint",
+      "expected": "Local index in v0; sched2 lhu sh lh li with maspsx nop only after lhu; stop remains s3"
+    }
+  },
+  "observations": [
+    "base UID 486 input changes from r86 to const_int 21 in combine; greg materializes the required register input as UID 909 in s3.",
+    "base sched2 places UID 909 before field_2 store UID 481. Signed index load UID 491 remains after volatile asm UID 486.",
+    "base_1 store fence prevents li crossing the store but signed load remains after stop touch. Registers unchanged.",
+    "base_2 preloading the index into reused global state r85 keeps it in v1 and li still precedes lh.",
+    "base_3 separate index r87 is local to block 35 and maps to v0. Stop r86 stays s3.",
+    "base_3 sched2 dependency chain: store 481 -> basic asm 483 -> signed load 488 -> basic asm 490 -> reload constant 914 -> stop touch 495 -> shift 499.",
+    "base_3 scratch score 100%; integrated const state table and function pass unscoped build-and-verify."
+  ],
+  "scope": "Shows how explicit scheduling boundaries constrain a reload-generated constant while splitting an index preserves local allocation. Does not establish both boundaries are individually necessary for all source spellings or the precise hazard selection in unfenced variants.",
+  "retained_scratch": "nonmatchings/func_actor_401800_8013D64C-vacuum",
+  "integration": "unscoped build-and-verify.sh: BUILD SUCCEEDED; lost-match check 7363 retained",
+  "build_count": 11,
+  "permuter": "all candidates skipped; no discoveries"
+}

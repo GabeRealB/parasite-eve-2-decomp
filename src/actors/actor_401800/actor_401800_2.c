@@ -2400,7 +2400,164 @@ void func_actor_401800_8013CD98(Actor401800* arg0)
     *(Actor401800ChaseScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800_2", func_actor_401800_8013D64C);
+const Actor401800StateTable D_actor_401800_80131FDC = { {
+    func_actor_401800_8013E138,
+    func_actor_401800_8013E194,
+    func_actor_401800_8013E23C,
+    func_actor_401800_8013E2E8,
+    func_actor_401800_80135DAC,
+    func_actor_401800_8013E394,
+    func_actor_401800_80135F58,
+    func_actor_401800_80136560,
+    func_actor_401800_80136EAC,
+    func_actor_401800_80137714,
+    func_actor_401800_80137DDC,
+    func_actor_401800_801381E4,
+    func_actor_401800_80138C28,
+    func_actor_401800_80138F5C,
+    func_actor_401800_80139118,
+    func_actor_401800_8013E44C,
+    func_actor_401800_8013E4F0,
+    func_actor_401800_8013E5A4,
+    NULL,
+    func_actor_401800_8013945C,
+    func_actor_401800_801399C4,
+    func_actor_401800_80139B18,
+    func_actor_401800_80139D60,
+    func_actor_401800_8013A034,
+    func_actor_401800_8013A2E8,
+    func_actor_401800_8013AF1C,
+    func_actor_401800_8013AB64,
+    func_actor_401800_8013B444,
+    func_actor_401800_8013B784,
+    func_actor_401800_8013BB10,
+    func_actor_401800_8013CD98,
+    func_actor_401800_8013971C,
+    func_actor_401800_80139870,
+    func_actor_401800_8013BF48,
+} };
+
+void func_actor_401800_8013D64C(GpEnemy* arg0, Actor401800* arg1)
+{
+    VECTOR                  pos;
+    Actor401800StateTable   states;
+    Actor401800Work*        work;
+    Actor401800ViewScratch* scratch;
+    Actor401800ViewScratch* head;
+    s32                     state;
+    s32                     stop;
+    s32                     index;
+
+    work   = arg1->field_1C;
+    states = D_actor_401800_80131FDC;
+
+    arg1->field_2C->coords->flg = 0;
+    Gp_UpdateCoord(arg1->field_2C->coords);
+    pos.vx = arg1->field_2C->coords->workm.t[0];
+    pos.vy = arg1->field_2C->coords->workm.t[1];
+    pos.vz = arg1->field_2C->coords->workm.t[2];
+    Gp_UpdateActorColor(arg0, &pos, 0, 0);
+
+    switch (D_801153F4) {
+        case 0:
+            state = work->field_0;
+            if ((state != 0) && (state != 0x15) && (state != 0x1D) && (state != 0x21)) {
+                arg1->field_2C->flags = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->coords->workm.t, 0x180, Gp_State1C->groundShade);
+                state = work->field_0;
+            }
+            if ((state == 0x21) && (work->field_89E == 2)) {
+                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->coords->workm.t, 0x180, Gp_State1C->groundShade);
+            }
+            break;
+        case 1:
+            state = work->field_0;
+            if ((state != 0) && (state != 0x15) && (state != 0x1D) && (state != 0x21)) {
+                arg1->field_2C->flags = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->coords->workm.t, 0x180, Gp_State1C->groundShade);
+                state = work->field_0;
+            }
+            if ((state == 0x21) && (work->field_89E == 2)) {
+                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->coords->workm.t, 0x180, Gp_State1C->groundShade);
+            }
+            Gp_ClearRec18Occupied(&work->field_A28);
+            Gp_ClearRec18Occupied(&work->field_8E8);
+            return;
+        case 2:
+            arg1->field_2C->flags = 0x80;
+            Gp_ClearRec18Occupied(&work->field_A28);
+            Gp_ClearRec18Occupied(&work->field_8E8);
+            return;
+    }
+
+    head                                      = *(Actor401800ViewScratch**)G_SCRATCH_HEAD;
+    *(Actor401800ViewScratch**)G_SCRATCH_HEAD = head - 1;
+    scratch                                   = head - 1;
+
+    if (work->field_BE0 > 0) {
+        work->field_BE0 = (s16)((u16)work->field_BE0 - 1);
+    } else {
+        func_actor_401800_80134C94(arg1);
+    }
+    if (work->field_2 != work->field_0) {
+        if ((work->field_2 == 0xB) || (work->field_2 == 0xD)) {
+            arg1->field_2C->coords->coord.t[0] = work->field_BF0;
+            arg1->field_2C->coords->coord.t[1] = work->field_BF2;
+            arg1->field_2C->coords->coord.t[2] = work->field_BF4;
+            arg1->field_2C->coords->flg        = 0;
+            Gp_UpdateCoord(arg1->field_2C->coords);
+        }
+        work->field_4 = 1;
+    } else {
+        work->field_4 = 0;
+    }
+    work->field_2 = (u16)work->field_0;
+    SCHED_BARRIER();
+    index = work->field_0;
+    SCHED_BARRIER();
+    stop = 0x15;
+    TOUCH_REG(stop);
+    states.fn[index](arg1);
+    state = work->field_0;
+    if ((state == 0x1C) || (state == stop) || (state == 0) || (state == 0x1D) || (state == 0x21)) {
+        work->field_8C8.flags &= 0x7FFF;
+        work->field_A08.flags &= 0x7FFF;
+    } else {
+        work->field_8C8.flags |= 0x8000;
+        work->field_A08.flags |= 0x8000;
+    }
+    Gp_ClearRec18Occupied(&work->field_A28);
+    Gp_ClearRec18Occupied(&work->field_8E8);
+    if ((D_801153F2[1] == 1) && (work->field_0 == 0x18)) {
+        work->field_0 = 6;
+    }
+
+    scratch->pos.vx = 0;
+    scratch->pos.vy = 0;
+    scratch->pos.vz = 0;
+    Actor401800_TransformToView(arg1->field_2C->coords + 2, &scratch->pos);
+
+    work->field_C24[work->field_C74].vx = scratch->pos.vx;
+    work->field_C24[work->field_C74].vy = scratch->pos.vy;
+    work->field_C24[work->field_C74].vz = scratch->pos.vz;
+
+    *(u8**)G_SCRATCH_HEAD += 0x18;
+    work->field_C74        = (u16)work->field_C74 + 1;
+    if (work->field_C74 == 7) {
+        work->field_C74 = 0;
+    }
+    if ((u32)((u16)work->field_89E - 0x14) < 2U) {
+        arg0->bodyPos.vx = work->field_C24[work->field_C74].vx;
+        arg0->bodyPos.vy = work->field_C24[work->field_C74].vy;
+        arg0->bodyPos.vz = work->field_C24[work->field_C74].vz;
+    } else {
+        arg0->bodyPos.vx = scratch->pos.vx;
+        arg0->bodyPos.vy = scratch->pos.vy;
+        arg0->bodyPos.vz = scratch->pos.vz;
+    }
+    arg0->coord = &gGfxViewCoord;
+    TOUCH_REG(stop);
+}
 
 void func_actor_401800_8013DCB4(void)
 {
