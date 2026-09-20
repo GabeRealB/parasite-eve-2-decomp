@@ -41,6 +41,8 @@ extern GpActorPathStep D_actor_800200_8016A018[];
 
 extern GpActorPathStep D_actor_800200_8016A108[];
 
+extern GpActorPathStep D_actor_800200_8016A0C8[];
+
 extern GpActorPathStep D_actor_800200_8016A128[];
 
 extern GpActorPathStep D_actor_800200_8016A040[];
@@ -393,7 +395,47 @@ void func_actor_800200_8016390C(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_3", func_actor_800200_80163A54);
+void func_actor_800200_80163A54(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GpActorD4*     d4;
+    GsCOORDINATE2* coord;
+    s32            flag;
+
+    actor = arg0->actor;
+    coord = arg0->extra->coords;
+    d4    = actor->field_910;
+    switch (actor->field_960) {
+        case 0:
+            flag             = 1;
+            actor->field_960 = flag;
+            actor->field_20  = D_actor_800200_8016A0C8[2].field_0;
+            actor->field_24  = coord->coord.t[1];
+            actor->field_28  = D_actor_800200_8016A0C8[2].field_4;
+            if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x401) {
+                goto arrived;
+            }
+            func_actor_800200_80165534(arg0);
+            break;
+        case 1:
+            actor->field_20 = D_actor_800200_8016A0C8[d4->pathStep].field_0;
+            actor->field_24 = coord->coord.t[1];
+            actor->field_28 = D_actor_800200_8016A0C8[d4->pathStep].field_4;
+            if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x201) {
+                if (d4->pathStep == 2) {
+                arrived:
+                    d4->pathDone = 1;
+                    func_actor_800200_801654EC(arg0, 0);
+                    break;
+                }
+                d4->pathStep = d4->pathStep + 1;
+                func_actor_800200_80165534(arg0);
+                break;
+            }
+            func_actor_800200_80165408(arg0, 6);
+            break;
+    }
+}
 
 void func_actor_800200_80163B90(GpActorWork* arg0)
 {
@@ -1302,7 +1344,7 @@ void func_actor_800200_80165708(GpActorWork* arg0)
     temp_v0 = gGameSession->at4.loc.area;
     switch (temp_v0) {
         case 1:
-            func_actor_800200_80163A54();
+            func_actor_800200_80163A54(arg0);
             return;
         case 2:
             func_actor_800200_801637B4(arg0);

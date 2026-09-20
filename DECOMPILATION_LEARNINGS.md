@@ -104501,7 +104501,7 @@ program structure, so this is allowed; a global `const TaskFuncTableN` is
 `.align 2`, so it needs no cut of its own. Add prototypes for any handler it
 names that is defined later in the file.
 
-## `switch` + `field = 1` reuses the comparison's constant only when the arm is in the same cse EBB
+## CSE sharing of a switch comparison's constant depends on the arm's EBB
 
 The `record_jump_equiv` sharing described in the `if (f() == K) { x = K; }`
 section above also applies to a `switch`: `case 0: actor->field_960 = 1;` after
@@ -104586,6 +104586,39 @@ the arm stores makes the store `(set (mem:HI ...) (subreg:HI (reg:SI ...) 0))`, 
 and the store one SImode register, and the scheduler parks its `li` in the `beqz` delay slot - 100%.
 Using `next` in the comparison as well (`state != next`) is *not* the same thing: the two uses then need
 different types of comparison and it drops to 94.2%.
+
+## An explicit arrival join breaks CSE's constant lifetime; an SI local then permits delay-slot redundancy removal (func_actor_800200_80163A54, 2026-09-20)
+
+The 86.370% archived seed duplicated `pathDone = 1; 654EC(arg0, 0)` in
+both switch arms. First CSE reused the case-0 HI constant and case-1 state
+respectively, carrying both across the distance call. The immediate matched
+sibling's `goto arrived` fixes this before allocation: place `arrived:` inside
+case 1's success branch and jump there from case 0. The existing join makes
+CSE materialize a fresh QI constant there. In controlled `base_1`, the state
+became 3 refs/5 insns and the HI constant 2 refs/4 insns, neither crossing calls;
+the work pointer returned from s2 to s1. Score: 98.700%, only one extra `li`.
+
+For that last instruction, `s32 flag; flag = 1; actor->field_960 = flag;`
+changed case-0 UID26 from a HI set to an SI set. **CSE did not merge the
+constants in this experiment.** Both case-0 UID26 and dispatch UID195 remained
+separate through `.jump2`, allocated to v0. In `.dbr`, UID26 disappeared and
+UID195 occupied the first `beqz` delay slot. This fulfilled the recorded
+prediction and reached 100.000%, preserving the other register homes.
+
+The relevant later mechanism is `reorg.c:redundant_insn` (line 1990): its
+initial scan requires identical RTL patterns, so HI and SI sets do not match
+despite emitting the same `li`. Filled-branch relaxation also checks the first
+target instruction and can redirect past a redundant set (line 4122). The
+dump boundary and controlled mode change support delay-slot redundancy removal;
+the exact internal call path was not traced. This qualifies earlier CSE-only
+explanations of the sibling idiom. Preconditions here include the same hard
+register, a suitable target-head instruction, and no intervening conflicts.
+
+Evidence: scratch `func_actor_800200_80163A54-vacuum`, `base_1`/`base_2`
+`.cse`, `.lreg`, `.greg`, `.jump2`, `.dbr`, plans/conclusions and LEARNINGS.md.
+Input SHA256s: base_1 `d63072cdee474cf9c5bedcf695a18411ebc3a2b8b33df364ed799873348c51cf`;
+base_2 `4b5a3f4b5971dc3b8b431742f242e4eaffd7a7953a66a9eaa5e0889ae2b4d012`.
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
 ## A switch's shared tail is emitted where its label sits - an earlier case `goto`s into the later case's branch (func_actor_800200_80163B90, 2026-09-16)
 
