@@ -330,8 +330,12 @@ typedef struct Actor403200Work {
     /// (`func_actor_403200_8013A4A0`) draws down alongside the host's HP, and
     /// refills to 0x32 when it runs out. Same slot and role as
     /// `Actor444000Work::field_F0A`.
-    /* 0xF0A */ u16  field_F0A;
-    /* 0xF0C */ byte pad_F0C[0x2];
+    /* 0xF0A */ u16 field_F0A;
+    /// Damage pool the hit handler for collision groups 6, 7 and 8
+    /// (`func_actor_403200_8013AB70`) draws down alongside the host's HP, and
+    /// refills to 0x3C when it runs out. Same slot and role as
+    /// `Actor444000Work::field_F0C`.
+    /* 0xF0C */ u16 field_F0C;
     /// Damage pool the hit handler for collision groups 1 and 2
     /// (`func_actor_403200_80139E94`) draws down alongside the host's HP. Same
     /// slot and role as `Actor444000Work::field_F0E`.
