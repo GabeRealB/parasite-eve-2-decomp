@@ -53,7 +53,40 @@ void func_actor_207200_8014CFEC(Actor207200* arg0)
     arg0->field_2A = 0x14;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_5", func_actor_207200_8014D128);
+void func_actor_207200_8014D128(Actor207200* arg0)
+{
+    GpEffWork* effect;
+    s32        r;
+
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    r           = (Gp_LcgState >> 16) & 3;
+    switch (r) {
+        case 0:
+        case 1:
+            D_80062730 = (s32)&D_actor_207200_801517F8;
+            effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->field_2C)->coords + 3, 0, NULL);
+            if (effect != NULL) {
+                ActorsShared8013851c(effect->task, (Task*)arg0);
+            }
+            break;
+        case 2:
+            D_80062730 = (s32)&D_actor_207200_80151074;
+            effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->field_2C)->coords + 5, 0, NULL);
+            if (effect != NULL) {
+                ActorsShared8013851c(effect->task, (Task*)arg0);
+            }
+            break;
+        case 3:
+            D_80062730 = (s32)&D_actor_207200_80150BCC;
+            effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->field_2C)->coords + 2, 0, NULL);
+            if (effect != NULL) {
+                ActorsShared8013851c(effect->task, (Task*)arg0);
+            }
+            break;
+    }
+    Gp_SpawnEff(0x60030, (*(TmdObject**)&arg0->field_2C)->coords + 3, 0x300, NULL);
+    Gp_SpawnEff(0x60030, (*(TmdObject**)&arg0->field_2C)->coords + 2, 0x300, NULL);
+}
 
 void func_actor_207200_8014D280(Task* arg0)
 {
