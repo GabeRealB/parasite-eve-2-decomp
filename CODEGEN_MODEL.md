@@ -477,6 +477,17 @@ the opposite; only the tied quantities explain it. Note the general point:
 **an insn inserted anywhere inside another value's range lengthens that range
 by one**, whether or not it mentions the value.
 
+**Three-quantity exception.** `block_alloc` special-cases three quantities
+instead of using `qsort` (`local-alloc.c:1638-1661`). Its comparisons use fixed
+quantity IDs `(0,1), (1,2), (0,1)`, while swapping entries of `qty_order`.
+They do not compare the IDs currently in those entries. With priorities
+`[3750,10000,10000]`, the first and last swaps cancel, leaving allocation order
+`[0,1,2]`: the lowest-priority quantity allocates first. This exact order is
+traced in `func_actor_800200_801647A8` after splitting a reused constant into
+two locals. The suggestion sort has the same fixed-ID form. For three
+quantities, inspect that path rather than assuming the general priority sort.
+Evidence: `tools/compiler_evidence/2026-09-20-actor800200-647a8.json`.
+
 **Register choice.** Call-free: lowest free of 2..25. Call-crossing: lowest
 free of `$s0`-`$s7`; two disjoint call-crossing quantities in different blocks
 both get `$s0` (probe 3: `t` in one arm and `r = f2()` after the join share

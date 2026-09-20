@@ -134631,3 +134631,41 @@ base_6: `6cf39601eb4bd60e0dbb0dbebfdec6c665201a435a3d6287805a9663e2e715f2`.
 Evidence: base_4/base_6 `.rtl`, `.loop`, `.cse2`, `.greg` and experiment plans.
 This is an observed result for this table and compiler; it is not a universal
 rule that removing pointer locals improves loop code.
+
+## A split constant exposes GCC's three-quantity local-sort exception, then dbr removes the redundant load (func_actor_800200_801647A8, 2026-09-20)
+
+The 99.014% retry seed reused `s32 next` for case 0's state store and a later
+reset block's repeat-count store. Its case-0 constant occupied v1, while the
+Gp_StateF0 address and byte occupied v0. The dispatch already placed 1 in v0,
+but the arm's extra `li v1,1` could not be removed. Hoisting the constant had
+previously shared it at the cost of a changed entry schedule and register.
+
+The successful controlled edit only split case 0's assignment/store to a new
+`s32 initialState`, leaving reset's `next` alone. The former global r94
+(6 refs, two deaths) became two local quantities. In base_2 block 3, traced
+allocation order was q0/r95 constant (3 refs, [4,12), priority 3750) -> v0;
+q1/r102 address (2 refs, [8,10), priority 10000) -> v1; q2/r104 byte (2 refs,
+[10,12), priority 10000) -> v1. There were no register suggestions, and the
+address and byte were separate quantities. Tracing preserved assembly exactly.
+
+Why did the *lower*-priority quantity go first? Patched GCC's local-alloc.c
+1638-1661 special-cases exactly three quantities. It swaps qty_order entries,
+but compares fixed quantity IDs (0,1), (1,2), (0,1), not the IDs now in those
+entries. For [3750,10000,10000], the first swap gives [1,0,2], the middle
+comparison ties, and the last comparison swaps back to [0,1,2]. Thus the
+constant gets v0 first. The general qsort rule does not describe this path.
+
+The case-0 constant UID53 and dispatch constant UID296 still exist separately
+through jump2. In dbr, UID296 moves into the first beqz delay slot and UID53
+is deleted. Same-mode, same-register delay-slot redundancy, not CSE sharing,
+closes the match. The entry schedule, saved registers and reset's v1 constant
+remain correct. The exact internal reorg deletion call was not traced.
+
+Result: 100.000%, every penalty zero, unscoped BUILD SUCCEEDED. No pins,
+barriers, header changes or permuter discovery. A bounded router search had
+missed before this manual experiment. Evidence and selected trace events:
+`tools/compiler_evidence/2026-09-20-actor800200-647a8.json`; full sources,
+dumps, journal and trace retained under `tools/permuter_findings/func_actor_800200_801647A8/`.
+Inputs: base_1 `f2385cf9a9bf81c5e61818f5c2375e5ce05d14ea58ce8f4832017baf56cd914b`,
+base_2 `e199d5967294a882733d9bc2e15f2eb59f1d1a4fdd5f2a5238f4d235cb29c43a`;
+compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

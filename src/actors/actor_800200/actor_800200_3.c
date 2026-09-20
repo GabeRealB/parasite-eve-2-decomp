@@ -891,7 +891,89 @@ void func_actor_800200_80164598(GpActorWork* arg0)
     *(u32*)G_SCRATCH_HEAD += 0x14;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_3", func_actor_800200_801647A8);
+void func_actor_800200_801647A8(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GameActor*     actor2;
+    GameActor*     actor3;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* target;
+    GpLinkNode*    node;
+    VECTOR3*       vec;
+    u8*            head;
+    u8*            tmp;
+    s32            dist;
+    s32            value;
+    u16            flag;
+    u16            state;
+    s32            next;
+    s32            initialState;
+
+    target            = ((TmdObject*)((Task*)gameGetPtrSlot(3))->extra)->coords;
+    head              = *(u8**)0x1F8003FC;
+    tmp               = head - 0x10;
+    *(u8**)0x1F8003FC = tmp;
+    vec               = (VECTOR3*)tmp;
+    actor             = arg0->actor;
+    coord             = arg0->extra->coords;
+    state             = actor->field_95E;
+    switch (state) {
+        case 0:
+            initialState     = 1;
+            actor->field_95E = initialState;
+            if (Gp_StateF0.field_0 == 1) {
+                node             = Gp_FindLockNode(arg0);
+                actor->field_90C = node;
+                if ((node != NULL) && !(node->flags & 1)) {
+                    Gp_GetLockPos((GpLockPos*)node, vec);
+                    dist = func_80103DD4((VECTOR3*)coord->coord.t, vec);
+                    dist = dist / 640;
+                    if (dist >= 8) {
+                        dist = 7;
+                    }
+                    value = (rand() & 0x7F) + (dist << 5);
+                    goto store;
+                }
+            }
+            dist = func_8010BC70(coord);
+            dist = dist / 640;
+            if (dist >= 8) {
+                dist = 7;
+            }
+            value            = (rand() & 0x1FF) - (dist * 0x30);
+            actor->field_934 = value;
+            if (value < 0x60) {
+                value = 0x60;
+            store:
+                actor->field_934 = value;
+            }
+        case 1:
+            value            = actor->field_934 - 1;
+            actor->field_934 = value;
+            if (value <= 0) {
+                actor2                         = arg0->actor;
+                next                           = 1;
+                actor2->field_910->repeatCount = next;
+                if (Gp_StateF0.field_0 == next) {
+                    actor2->field_90C = Gp_FindLockNode(arg0);
+                } else {
+                    actor2->field_90C = NULL;
+                }
+                flag              = actor2->field_90C != 0;
+                actor3            = arg0->actor;
+                actor3->field_954 = 0;
+                actor3->field_956 = 4;
+                actor3->field_958 = 0;
+                actor3->field_95A = 0;
+                actor3->field_95C = 0;
+                actor3->field_95E = 0;
+                actor3->field_940 = flag;
+            }
+            break;
+    }
+    func_8010BE5C(arg0, (VECTOR3*)&target->coord.t[0]);
+    *(u32*)0x1F8003FC += 0x10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_3", func_actor_800200_801649D8);
 
