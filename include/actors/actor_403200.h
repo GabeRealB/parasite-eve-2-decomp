@@ -143,6 +143,18 @@ typedef struct Actor403200TurnScratch {
 } Actor403200TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor403200TurnScratch, 0xC);
 
+/// Scratchpad frame the spawn state carves off `G_SCRATCH_HEAD` to flatten the
+/// host's root coordinate: `Gfx_RotMatrixY` writes `m`, `scale` is the uniform
+/// 1.0 vector `ScaleMatrix` applies to it, and `angle` is the `ratan2` yaw the
+/// rotation was built from. Same shape as `Actor444000RotScratch`.
+typedef struct Actor403200RotScratch {
+    /* 0x00 */ MATRIX m;
+    /* 0x20 */ VECTOR scale;
+    /* 0x30 */ s16    angle;
+    /* 0x32 */ byte   pad_32[2];
+} Actor403200RotScratch;
+STATIC_ASSERT_SIZEOF(Actor403200RotScratch, 0x34);
+
 /// Per-actor state block for the `actor_403200` overlay.
 ///
 /// `func_actor_403200_80138AFC` allocates it with `memCalloc(0xF24, 0)` and

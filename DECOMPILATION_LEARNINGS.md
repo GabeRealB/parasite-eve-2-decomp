@@ -3,6 +3,32 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## An independent address addiu takes the latest unique-constant li/sh gap before its use (func_actor_403200_80138AFC, 2026-09-20)
+
+A pointer computed as `work + 0xD84` and stored only after a run of field
+stores is independent of those stores (same-base constant offsets, so
+`memrefs_conflict_p` finds them disjoint). sched2 therefore parks the
+`addiu` in a `li`/`sh` pair that needs a filler, not next to the C
+assignment.
+
+The filler it picks is the **latest unique-constant `li`/`sh` gap before
+the pointer's first use**. Writing `obj.pos.vy` / `obj.pos.vz` before
+`d4rec.recs = recs2` makes `0x25F` that gap (99.939%, reorder=1). Writing
+the zeros and the `recs` store first, then the pos fields — the sibling
+spawn's source order — leaves `0x258` (the shared radius immediate) as
+the latest gap, which is the target, and still emits pos.vy/vz *before*
+the zeros. `TOUCH_REG(recs2)` after the radii forced the addiu earlier
+but moved seven other insns (99.574%).
+
+Moving the C assignment across a few neighbouring stores without changing
+the first use did not move sched2 (`base_2` and `base_3` were identical).
+
+Preprocessed inputs: `base_2.c`
+`5bb76f8377cbd43d3095debe528e03ce6047bbcf0dfd638fc338c83bf27d9968`
+(99.939%); `base_5.c`
+`7719a8fcb2a04d93c7ba9145683b32fc4d97f8d95f0d8cfbff7c490ba88be0c9`
+(100.000%). Compiler `60d886cd...`.
+
 ## Separate conditional stores preserve a global reload; declaration order breaks a global priority tie (func_actor_420700_80132644, 2026-09-20)
 
 The retry seed used a ternary store and a volatile first read of the actor
