@@ -132,9 +132,16 @@ typedef struct Actor421600Work {
     /* 0x8B0 */ byte pad_8B0[4];
     /// Pose id / blend flag pair `func_actor_421600_8013848C` sets to 7 and 1;
     /// actor 00100 has the same pair at 0x8E8 / 0x8EA.
-    /* 0x8B4 */ s16   field_8B4;
-    /* 0x8B6 */ s8    field_8B6;
-    /* 0x8B7 */ byte  pad_8B7[0x35];
+    /* 0x8B4 */ s16  field_8B4;
+    /* 0x8B6 */ s8   field_8B6;
+    /* 0x8B7 */ byte pad_8B7;
+    /// Player position and rotation sent together as message 0x3E9.
+    /* 0x8B8 */ VECTOR  field_8B8;
+    /* 0x8C8 */ SVECTOR field_8C8;
+    /// Reply buffer for message 0x3F8; field_8E4 selects query mode 8.
+    /* 0x8D0 */ byte  field_8D0[0x14];
+    /* 0x8E4 */ s32   field_8E4;
+    /* 0x8E8 */ byte  pad_8E8[4];
     /* 0x8EC */ GpObj field_8EC;
     /// `GpRec18` table paired with `field_8EC`, the same 0x20-byte stride
     /// `field_B8C` keeps after `field_B6C`.
@@ -159,7 +166,11 @@ typedef struct Actor421600Work {
     /* 0xCE4 */ GpRec18           field_CE4[12];
     /* 0xE04 */ MATRIX            field_E04;
     /* 0xE24 */ MATRIX            field_E24;
-    /* 0xE44 */ byte              pad_E44[0x34];
+    /* 0xE44 */ byte              pad_E44[0x2C];
+    /* 0xE70 */ s16               field_E70;
+    /* 0xE72 */ byte              pad_E72[2];
+    /* 0xE74 */ s16               field_E74;
+    /* 0xE76 */ byte              pad_E76[2];
     /* 0xE78 */ s16               field_E78;
     /* 0xE7A */ byte              pad_E7A[2];
     /* 0xE7C */ s32               field_E7C;
@@ -278,6 +289,19 @@ typedef struct Actor421600AvoidDelta {
     /* 0xC */ byte pad_C[0x4];
 } Actor421600AvoidDelta;
 STATIC_ASSERT_SIZEOF(Actor421600AvoidDelta, 0x10);
+
+/// The attack tick takes 0x14 bytes from G_SCRATCH_HEAD for its direction,
+/// wrapped angles, arena zone and player contact reply.
+typedef struct Actor421600AttackScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s16     playerYaw;
+    /* 0x0A */ s16     yaw;
+    /* 0x0C */ s16     delta;
+    /* 0x0E */ s16     zone;
+    /* 0x10 */ s16     aim;
+    /* 0x12 */ s16     reply;
+} Actor421600AttackScratch;
+STATIC_ASSERT_SIZEOF(Actor421600AttackScratch, 0x14);
 
 typedef struct Actor421600TurnScratch {
     /* 0x00 */ SVECTOR vec;
@@ -432,6 +456,10 @@ extern u32 Gp_LcgState;
 /// buckets of the actor's position, cell `x | z * 4`; the sample is compared
 /// against 0xB to pick between the 6 and 0x24 states.
 extern s8 D_actor_421600_801511C0[16];
+
+/// Animation tables selected by the attack tick for front and rear contact.
+extern s32 D_actor_421600_80151090[];
+extern s32 D_actor_421600_801510A4[];
 
 void func_actor_421600_8013EAAC(Actor421600* arg0);
 void func_actor_421600_8013EB7C(Actor421600* arg0);

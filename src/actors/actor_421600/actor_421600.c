@@ -2084,7 +2084,246 @@ void func_actor_421600_8013A404(Actor421600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013A554);
+void func_actor_421600_8013A554(Actor421600* arg0)
+{
+    SVECTOR                   effect;
+    s16                       aimZ;
+    s16                       fallbackZ;
+    s32                       fallbackAngle;
+    s16                       fallbackDelta;
+    s32                       moveAngle;
+    s16                       moveDelta;
+    s32                       playerX;
+    s32                       facingAngle;
+    s16                       facingDelta;
+    s32                       aimAngle;
+    s16                       aimDelta;
+    s16                       targetZ;
+    s16                       yaw;
+    s16                       nextState;
+    GsCOORDINATE2*            targetCoord;
+    GsCOORDINATE2*            aimCoord;
+    GsCOORDINATE2*            fallbackCoord;
+    GsCOORDINATE2*            fallbackFacing;
+    GsCOORDINATE2*            moveCoord;
+    GsCOORDINATE2*            facingCoord;
+    GsCOORDINATE2*            aimFacing;
+    GsCOORDINATE2*            stepCoord;
+    GsCOORDINATE2*            coord;
+    s32                       sound;
+    s32                       spawnEffect;
+    s32                       effectFlags;
+    s32                       part;
+    s32                       fallbackYaw;
+    s32                       distance;
+    s32                       closeDistance;
+    s32                       farDistance;
+    s32                       pan;
+    TmdObject*                obj;
+    GpEnemy*                  ctx;
+    Task*                     player;
+    Actor421600Work*          work;
+    GpEnemy*                  enemy;
+    Actor421600AttackScratch* head;
+    Actor421600AttackScratch* scratch;
+
+    work   = arg0->field_1C;
+    enemy  = arg0->field_20;
+    player = gameGetPtrSlot(3);
+    if (work->field_4 != 0) {
+        obj             = arg0->field_2C;
+        ctx             = arg0->field_20;
+        ctx->node.flags = 0;
+        Gp_ArmStateF0(1);
+        obj->flags = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8EC.radius = 0x19C;
+        work->field_828        = 1;
+        work->field_832        = 0x10;
+        work->field_82A        = 0;
+        work->field_82E        = 3;
+        work->field_83E        = 0;
+        work->field_B6C.flags  = (u16)(work->field_B6C.flags | 0x4000);
+        func_actor_421600_80134604(arg0);
+        work->field_6   = 0;
+        work->field_8   = 0;
+        work->field_E9E = 0;
+        sound           = (((u16)ctx->placeKey >> 0xC) << 8) | 0x40010006;
+        pan             = (s8)Gp_GetObjPan(arg0->field_2C->coords);
+        SndEvt_EnqueueType6(sound, pan, (s32)(s8)gpGetObjDepth(arg0->field_2C->coords));
+        return;
+    }
+    head          = *(Actor421600AttackScratch**)G_SCRATCH_HEAD;
+    scratch       = (*(Actor421600AttackScratch**)G_SCRATCH_HEAD = head - 1);
+    coord         = arg0->field_2C->coords;
+    scratch->zone = Actor421600_Zone(coord);
+    if ((func_actor_421600_8013285C(arg0->field_2C->coords, &work->field_B8C, 0xC) != 0) && ((s16)work->field_6 >= 0xB)) {
+        work->field_0 = 5;
+    }
+    if ((func_actor_421600_80132310(arg0->field_2C->coords, &work->field_90C, 0xC, &scratch->vec) << 0x10) != 0 && work->field_82E == 3) {
+        work->field_8E4 = 8;
+        if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&work->field_8D0, 0) == 0) {
+            playerX            = -((TmdObject*)gameGetPtrSlot(3)->extra)->coords->coord.m[2][0];
+            scratch->playerYaw = ratan2(playerX, ((TmdObject*)gameGetPtrSlot(3)->extra)->coords->coord.m[2][2]);
+            targetCoord        = arg0->field_2C->coords;
+            scratch->vec.vx    = (s16)(Player_Status.coordMtx->t[0] - targetCoord->coord.t[0]);
+            scratch->vec.vy    = (s16)(Player_Status.coordMtx->t[1] - targetCoord->coord.t[1]);
+            targetZ            = Player_Status.coordMtx->t[2] - targetCoord->coord.t[2];
+            scratch->vec.vz    = targetZ;
+            yaw                = ratan2(scratch->vec.vx, targetZ) + 0x800;
+            scratch->yaw       = yaw;
+            scratch->yaw       = Actor421600_NormalizeYaw(yaw);
+            facingCoord        = arg0->field_2C->coords;
+            facingAngle        = ratan2(scratch->vec.vx, scratch->vec.vz);
+            facingDelta        = facingAngle - ratan2(-facingCoord->coord.m[2][0], facingCoord->coord.m[2][2]);
+            scratch->delta     = Actor421600_NormalizeYaw(facingDelta);
+            distance           = scratch->yaw - scratch->playerYaw;
+            distance           = abs(distance);
+            if (distance < 0x400) {
+                work->field_E7C = (s32)&D_actor_421600_80151090;
+            } else {
+                work->field_E7C = (s32)&D_actor_421600_801510A4;
+                scratch->yaw    = (s16)((u16)scratch->yaw + 0x800);
+            }
+            work->field_8C8.vx = 0;
+            work->field_8C8.vy = (u16)scratch->yaw;
+            work->field_8C8.vz = 0;
+            work->field_8B8.vx = (s32)((TmdObject*)player->extra)->coords->coord.t[0];
+            work->field_8B8.vy = (s32)((TmdObject*)player->extra)->coords->coord.t[1];
+            work->field_8B8.vz = (s32)((TmdObject*)player->extra)->coords->coord.t[2];
+            Gp_DispatchMsg(player, 0x3E9, (s32)&work->field_8B8, 0);
+            if (work->field_E9E < 0x3E8) {
+                if (enemy->hp > 0) {
+                    closeDistance = scratch->yaw - scratch->playerYaw;
+                    closeDistance = abs(closeDistance);
+                    if (closeDistance < 0x400) {
+                        scratch->reply = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 2), 0);
+                    } else {
+                        scratch->reply = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 3), 0);
+                    }
+                }
+                if (scratch->reply != 1) {
+                    work->field_E80          = 3;
+                    work->field_E84          = 0;
+                    work->field_E88          = 0;
+                    work->field_8A4          = 0;
+                    work->field_8A8          = 0;
+                    work->field_8AC          = 0;
+                    work->field_8B4          = 7;
+                    work->field_8B6          = 1;
+                    work->field_E9C          = 1;
+                    work->field_E90.bytes[3] = 0;
+                    Gp_DispatchMsg(player, 0x3FF, (s32)&work->field_E7C, 0);
+                }
+                nextState = 0x25;
+            } else {
+                if (enemy->hp > 0) {
+                    farDistance = scratch->yaw - scratch->playerYaw;
+                    farDistance = abs(farDistance);
+                    if (farDistance < 0x400) {
+                        scratch->reply = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 0), 0);
+                    } else {
+                        scratch->reply = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 1), 0);
+                    }
+                }
+                if (scratch->reply == 1) {
+                    ((GameActor*)player->work)->field_956 = 0xA;
+                }
+                work->field_E80          = 1;
+                work->field_E84          = 0;
+                work->field_E88          = 0;
+                work->field_8A4          = 0;
+                work->field_8A8          = 0;
+                work->field_8AC          = 0;
+                work->field_8B4          = 7;
+                work->field_8B6          = 1;
+                work->field_E9C          = 1;
+                work->field_E90.bytes[3] = 0;
+                Gp_DispatchMsg(player, 0x3FF, (s32)&work->field_E7C, 0);
+                nextState = 0x1E;
+            }
+            work->field_0 = nextState;
+        }
+        aimCoord        = arg0->field_2C->coords;
+        scratch->vec.vx = (s16)(Player_Status.coordMtx->t[0] - aimCoord->coord.t[0]);
+        scratch->vec.vy = (s16)(Player_Status.coordMtx->t[1] - aimCoord->coord.t[1]);
+        aimZ            = Player_Status.coordMtx->t[2] - aimCoord->coord.t[2];
+        scratch->vec.vz = aimZ;
+        aimFacing       = arg0->field_2C->coords;
+        aimAngle        = ratan2(scratch->vec.vx, aimZ);
+        aimDelta        = aimAngle - ratan2(-aimFacing->coord.m[2][0], aimFacing->coord.m[2][2]);
+        scratch->aim    = Actor421600_NormalizeYaw(aimDelta);
+    } else {
+        fallbackCoord   = arg0->field_2C->coords;
+        scratch->vec.vx = (s16)(Player_Status.coordMtx->t[0] - fallbackCoord->coord.t[0]);
+        scratch->vec.vy = (s16)(Player_Status.coordMtx->t[1] - fallbackCoord->coord.t[1]);
+        fallbackZ       = Player_Status.coordMtx->t[2] - fallbackCoord->coord.t[2];
+        scratch->vec.vz = fallbackZ;
+        fallbackFacing  = arg0->field_2C->coords;
+        fallbackAngle   = ratan2(scratch->vec.vx, fallbackZ);
+        fallbackDelta   = fallbackAngle - ratan2(-fallbackFacing->coord.m[2][0], fallbackFacing->coord.m[2][2]);
+        fallbackYaw     = Actor421600_NormalizeYaw(fallbackDelta);
+        scratch->aim    = (s16)fallbackYaw;
+        fallbackYaw     = abs(fallbackYaw);
+        if (fallbackYaw >= 0x601) {
+            work->field_0 = 0x1D;
+        }
+    }
+    arg0->field_2C->coords->flg = 0;
+    moveCoord                   = arg0->field_2C->coords;
+    moveAngle                   = ratan2(work->field_E70, work->field_E74);
+    moveDelta                   = moveAngle - ratan2(-moveCoord->coord.m[2][0], moveCoord->coord.m[2][2]);
+    scratch->delta              = Actor421600_NormalizeYaw(moveDelta);
+    func_actor_421600_80134604(arg0);
+    stepCoord = arg0->field_2C->coords;
+    Actor421600_MoveForward(stepCoord, 200);
+    work->field_E9E = (s16)((u16)work->field_E9E + 0xC8);
+    if (work->field_82E == 3) {
+        switch (work->field_5A & 0x3FF) {
+            case 5:
+                spawnEffect = 1;
+                part        = 7;
+                effectFlags = 0x4300;
+                effect.vz   = 0;
+                effect.vx   = 0;
+                effect.vy   = 700;
+                break;
+            case 8:
+                spawnEffect = 1;
+                part        = 9;
+                effectFlags = 0x3500;
+                effect.vz   = 0;
+                effect.vx   = 0;
+                effect.vy   = 700;
+                break;
+            case 10:
+                spawnEffect = 1;
+                part        = 14;
+                effectFlags = 0x5A00;
+                effect.vz   = 0;
+                effect.vx   = 0;
+                effect.vy   = 600;
+                break;
+            case 13:
+                spawnEffect = 1;
+                part        = 17;
+                effectFlags = 0x4800;
+                effect.vz   = 0;
+                effect.vx   = 0;
+                effect.vy   = 600;
+                break;
+            default:
+                effectFlags = 0;
+                spawnEffect = 0;
+                part        = 0;
+                break;
+        }
+        if ((Gp_State1C->roomEffectMode == 2) && (spawnEffect == 1)) {
+            Gp_SpawnEff(0x60054, arg0->field_2C->coords + part, effectFlags | 0x80000000, &effect);
+        }
+    }
+    *(Actor421600AttackScratch**)G_SCRATCH_HEAD += 1;
+}
 
 void func_actor_421600_8013B00C(Actor421600* arg0)
 {
