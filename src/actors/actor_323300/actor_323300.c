@@ -7,6 +7,7 @@
 #include "gameplay/3CD8.h"
 
 #include "gameplay/gameplay.h"
+#include "main/mem.h"
 
 /// Allocates the 0x504 `Actor323300Work` this actor's whole lifetime runs on,
 /// seeds the `GpRec18` collision table and the display node at +0x480, then
@@ -297,7 +298,79 @@ INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80162A6C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80162BE4);
+void func_actor_323300_80162BE4(Task* arg0)
+{
+    Actor323300MtxWork* work;
+    TmdObject*          extra;
+    TmdObject*          model;
+    TmdSource*          src;
+    GsCOORDINATE2*      coords;
+    SVECTOR*            dst;
+    SVECTOR*            from;
+    GpMimeSrc*          ctl;
+    SVECTOR*            nrm;
+    long*               translation;
+    s32                 i;
+    s32                 part;
+
+    extra              = arg0->extra;
+    arg0->exitCallback = func_actor_323300_801634B0;
+    work               = (Actor323300MtxWork*)memCalloc(0x6B0, 0);
+    if (work == NULL) {
+        taskKill(arg0);
+        return;
+    }
+    arg0->work         = work;
+    work->field_444    = -1;
+    work->field_440    = -1;
+    work->field_44C    = 0x3000;
+    extra->clut        = 2;
+    extra->tpageOffset = 2;
+    extra->clutOffset  = 4;
+    extra->tpage       = 0;
+    extra->lightLevel  = 0xFFF;
+    extra->flags      &= 0xFF7F;
+    tmdProcessStream(extra);
+    tmdProcessStream(extra);
+    func_actor_323300_80163718(arg0, 0x7D3, &D_actor_323300_80174A74, 0);
+    func_actor_323300_8016369C(arg0, 0x7D3, &D_actor_323300_80174AB0, 0);
+    model = arg0->extra;
+    ctl   = &D_801865D0;
+    SCHED_BARRIER();
+    dst = ctl->field_8;
+    nrm = ctl->field_C;
+    SCHED_BARRIER();
+    src  = model->source;
+    from = (SVECTOR*)src->verts;
+    for (i = 0; i < ctl->field_10; i++) {
+        dst[i].vx = (u16)from[i].vx;
+        dst[i].vy = (u16)from[i].vy;
+        dst[i].vz = (u16)from[i].vz;
+    }
+    if (ctl->field_4 != 0) {
+        from = (SVECTOR*)src->normals;
+        i    = 0;
+        if (ctl->field_12 > 0) {
+            dst = nrm;
+            do {
+                dst[i].vx = (u16)from[i].vx;
+                dst[i].vy = (u16)from[i].vy;
+                dst[i].vz = (u16)from[i].vz;
+                i++;
+            } while (i < ctl->field_12);
+        }
+    }
+    func_actor_323300_80163510(arg0);
+    for (part = 1; part < 0x13; part++) {
+        coords                     = ((TmdObject*)arg0->extra)->coords;
+        translation                = coords[part].coord.t;
+        work->partPos[part].vx     = translation[0];
+        (work->partPos + part)->vy = coords[part].coord.t[1];
+        (work->partPos + part)->vz = coords[part].coord.t[2];
+    }
+    DEF_REG(model);
+    arg0->state += 1;
+}
 
 /// Per-frame squash driver for the 0x6B0 `Actor323300MtxWork` block, and the
 /// runner the model-display path calls once the block's animation has been
@@ -366,7 +439,7 @@ void func_actor_323300_80162DF0(Task* arg0)
     vec.vy          = 0x333;
     vec.vz          = 0x1000;
     ScaleMatrix(&coord->coord, &vec);
-    coord->coord.t[1] = work->field_584 - work->field_584 * 0.8 * blend / 4096.0;
+    coord->coord.t[1] = work->partPos[4].vy - work->partPos[4].vy * 0.8 * blend / 4096.0;
 
     coord           = &((TmdObject*)arg0->extra)->coords[5];
     work->shadow[2] = *coord;
@@ -375,7 +448,7 @@ void func_actor_323300_80162DF0(Task* arg0)
     vec.vy          = 0x1000;
     vec.vz          = 0x1000;
     ScaleMatrix(&coord->coord, &vec);
-    coord->coord.t[1] = work->field_594 - work->field_594 * 0.8 * blend / 4096.0;
+    coord->coord.t[1] = work->partPos[5].vy - work->partPos[5].vy * 0.8 * blend / 4096.0;
 
     coord      = &((TmdObject*)arg0->extra)->coords[6];
     coord->sub = &work->shadow[2];

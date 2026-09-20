@@ -147,12 +147,8 @@ typedef struct Actor323300MtxWork {
     /* 0x444 */ s32               field_444; // animation id the slots were seeded with
     /* 0x448 */ byte              pad_448[0x4];
     /* 0x44C */ s32               field_44C;
-    /* 0x450 */ GsCOORDINATE2     shadow[3]; // unsquashed copies of parts 3..5, re-parented onto 4..6
-    /* 0x540 */ byte              pad_540[0x44];
-    /* 0x584 */ s32               field_584; // part 4's Y translation, shrunk by the squash
-    /* 0x588 */ byte              pad_588[0xC];
-    /* 0x594 */ s32               field_594; // part 5's
-    /* 0x598 */ byte              pad_598[0xD8];
+    /* 0x450 */ GsCOORDINATE2     shadow[3];   // unsquashed copies of parts 3..5, re-parented onto 4..6
+    /* 0x540 */ VECTOR            partPos[19]; // original part translations, before the squash
     /* 0x670 */ Actor323300Matrix light;
     /* 0x690 */ Actor323300Matrix color;
 } Actor323300MtxWork;
@@ -178,7 +174,9 @@ extern Actor323300AnimPreset D_actor_323300_801725DC;
 /// block's bank index: one `void*` per bank, exactly as `func_actor_335800_80162C80`
 /// indexes `D_actor_335800_8016EAD8`. `func_actor_323300_80162BE4` applies the
 /// preset `D_actor_323300_80174A74` through it on the block's first anim start.
-extern void* D_actor_323300_80174A70[];
+extern void*                 D_actor_323300_80174A70[];
+extern Actor323300AnimPreset D_actor_323300_80174A74;
+extern Actor323300AnimPreset D_actor_323300_80174AB0;
 
 /// Vertex-morph source `func_actor_323300_80162DF0` re-blends every frame off
 /// the 0x6B0 block's squash ramp. Absolute, so it lives outside the overlay.
@@ -200,6 +198,10 @@ void func_actor_323300_801626F4(Task* arg0);
 void func_actor_323300_80163188(GsCOORDINATE2* coord, s16 angle);
 void func_actor_323300_80162748(Task* arg0);
 void func_actor_323300_801627B4(Task* arg0);
+void func_actor_323300_80162BE4(Task* arg0);
+void func_actor_323300_801634B0(Task* arg0);
+void func_actor_323300_80163510(Task* arg0);
+s32  func_actor_323300_8016369C(Task* arg0, s32 arg1, void* arg2, s32 arg3);
 void func_actor_323300_801628B8(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2, s32 arg3);
 s32  func_actor_323300_80163718(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2, s32 arg3);
 /// Message-0x7D5 handler; `mode` is the four-way visibility switch

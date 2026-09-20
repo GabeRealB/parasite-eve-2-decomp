@@ -136322,3 +136322,48 @@ experiments.jsonl, and base_1/base_3/base_4 lreg/greg dumps. Compiler SHA256
 Input hashes: base_1.i `06e372d135cc2a46481166e82ad44154772404a9f87106f4e1349d4838759432`;
 base_3.i `925619814e0d0f53cfd01c4b627a58069c5c9d367d61c1dafc80b7b29f8b98dd`;
 base_4.i `0a61a063f2ec2e4f4a2d96b888c4d74fcf965d9f47ae146bf7fb0159d9edd05b`.
+
+## A retained second definition can fix allocation but expose a sched2 dependency (func_actor_323300_80162BE4, 2026-09-20)
+
+The retry baseline was 99.924%, with only a model pointer in v0 instead of v1.
+High-address, model and count local quantities occupied disjoint intervals and
+all reused v0. Earlier SOFT_TOUCH_REG(model) folded its load into an asm and
+changed the memory hazard, but gave the wrong model/high priority tie.
+
+The controlled base_1 adds DEF_REG(model) after the model's last use, immediately
+before the final task-state increment. Its output is never read. The volatile
+output survives as REG_UNUSED; flow gives model two definitions and two deaths.
+The trace observes model UID126 remaining at priority 2 while address low 129 and
+high 128 reach 2130706433. Backward cycles 9/10/11 select low/high/model, making
+model overlap high in forward sched1. Local high remains v0; global model has
+hard conflict 2 and takes v1 without crossing a call. This is a set-count and
+eligibility intervention, not a register pin or a folded-load effect.
+
+The new home removes the model/count v0 anti-dependence in sched2. The same
+trace shows from 143 chosen at cycle 2, nrm 140 at 3, src 134 at 4, count 426 at 5.
+At cycle 3 the memory weights tie at 4325376 and original order selects nrm.
+Final count/src/nrm ordering therefore regresses despite the correct homes.
+
+The preplanned base_2 moves the independent src read after dst/nrm and adds
+SCHED_BARRIER before src. Its sched2 barrier 139 depends on dst 134 and nrm 137;
+src 142/count 428 stay after it. All homes remain correct and the exact order is
+restored: 100%. The normal-header base_4 and unscoped integration build match.
+The discarded DEF_REG output never affects program behavior. This supports
+the coupled set-count, allocation and scheduling mechanism for this function;
+it does not reconstruct the original source spelling.
+
+Evidence: tools/permuter_findings/func_actor_323300_80162BE4/, including
+LEARNINGS.md, planned experiments, primary dumps and
+PERMUTER_EVIDENCE/manual-primary/analysis/base1/ (traced assembly unchanged).
+The router separately improved an alternate 188->181 with a once-only dst=nrm
+wrapper; controlled base_3 reproduces the nrm weighted-ref increase 2->3 and
+global nrm/src rank swap. That wrapper is absent from the exact primary.
+
+Input SHA256 base_1:
+`5f6ec3e887d7607b4ad58df75edb657ab4a64de2c813142096a18e375fd97e66`;
+preplanned exact base_2:
+`1155cee6cdd2556f2f86440a58d36e274bf01e9b8340a0f1c57f2c6a8f189bb6`;
+normal-header base_4:
+`9454e60b3b630255fb9bf073385644cd297f473099f7df88e753d78ae86777ef`.
+Bundled cc1 SHA256:
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
