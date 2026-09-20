@@ -136795,3 +136795,94 @@ Evidence: `tools/permuter_findings/func_actor_421600_801373D4/` and retained
 base_4 `81099b7ad17a61b3e7747e2b8adab7635c172a6e982dc4f4a22b81315f4c6a76`.
 Scope: this call chain and bundled compiler; wider locals do not generally
 improve scheduling or allocation.
+
+## A constant materialised once per block is CSE's extended-block extent, and an asm carrier cannot stand in for it
+
+A run of `if (global->field == K) { call(...); }` statements compiles to one
+basic block per test, each branching *around* its call. `cse_end_of_basic_block`
+treats exactly that shape as an extension of the current block (the `skip_blocks`
+/ `AROUND` arm, cse.c, enabled at `-O2`), so a single CSE run can cover every
+test in the run. Inside it the second and later `(set (reg) (const_int K))` are
+redundant, their uses are canonicalised onto the first pseudo, and the dead sets
+disappear in `delete_trivially_dead_insns` after `cse_main` — one `li K` for the
+whole group.
+
+When the target instead materialises `K` several times, **staggered** — the `li`
+sitting in the delay slot of the *previous* block's branch and feeding the *next*
+block's compare — that is the signature of CSE having processed the blocks
+pairwise rather than as one run: `{b1,b2}` folds b2's compare onto b1's constant,
+`{b2,b3}` folds b3's compare onto b2's constant, which then survives because it
+still has a use. The register pattern follows from it: several short constant
+allocnos rank differently from one long one, so a neighbouring constant can take
+the lower register and the function can save one more callee-saved register.
+
+The `;; Processing block from A to B, N sets.` lines in the `.cse` dump say which
+it is — compare the run's span against the insn numbers of the compares.
+
+Two levers that look like they should split the group and do not:
+
+* **`do { … } while (0)` around each test.** The `NOTE_INSN_LOOP_END` notes do
+  survive to `cse1` and the block list does end on them, but the long run still
+  covers every prologue and the constants still merge. Allocation degrades.
+* **A narrower carrier type.** CSE keys the equivalence class on the set's
+  destination mode, so an `HI` set starts in a different class - but `fold_rtx`
+  folds `sign_extend` of a register whose `qty_const` is known, the value re-enters
+  the `SI` class, and the output is unchanged.
+* **A longer run of tests.** The extension is not bounded by the run's size, so
+  a group cannot be made to split by growing it. Doubling
+  `func_actor_421600_80133CAC`'s four-call group to eight guarded calls
+  (`base_10.c` in its scratch) still emits one `li 2` for the whole group, while
+  the two differing `vy` constants in the same group keep a register each - CSE
+  merges by value over the whole extended block however long it is.
+
+An empty-asm carrier (`__asm__("" : "=r"(c) : "0"(K))`) does reproduce the
+staggering, and it cannot finish the match. `update_equiv_regs` (local-alloc.c)
+**doubles `REG_LIVE_LENGTH` for a pseudo that is set once and carries a constant
+`REG_EQUIV`**, which halves its `allocno_compare` priority. A pseudo defined by
+`asm_operands` is not a constant, gets no such note, and keeps the undoubled
+length; with two references over a short span its priority beats a long-lived
+pointer parameter's and it takes that parameter's register, swapping a pair of
+saved registers across the whole function. Source position does not rescue it —
+`sched1` fixes the insn's place from the dependency graph, so moving the statement
+within its group produces byte-identical assembly.
+
+So a genuine constant is ranked correctly and always merged; an asm carrier is
+shaped correctly and permanently misranked. Reach for the dump evidence before
+spending attempts on either: `func_actor_421600_80133CAC` is parked at 99.07%
+(clean) / 99.21% (with an address-shifting alias) on exactly this, with the
+measured priorities in its give-up archive.
+
+## A permuter gain can be a spent register and nothing else: read the prologue before porting one
+
+The router kept a candidate for `func_actor_421600_80133CAC` that moved the
+paired distance 556 -> 297 (99.07% -> 99.50%). Reduced to its smallest form it
+is one declaration and one read: `int new_var;` and `offset.vx = new_var;` at a
+single store site, the unreachable `new_var = 0;` the permuter also inserted
+being inert.
+
+`new_var` has no reaching definition, so flow marks the pseudo live from
+function entry - it appears in the entry block's live set beside the incoming
+argument registers (`;; Registers live: 4 [$4] 5 [$5] 29 [$sp] 30 [$fp] 82` in
+the `.flow` dump). `lreg` then reports `used 1 times across 39 insns; crosses 1
+call`, so it cannot take a call-clobbered register, and `greg` gives it `$s4`.
+That single allocation is the whole gain: the prologue grows `sw $s4,0x28($sp)`
+and `ra` moves to `0x2C`, which is the target's frame exactly. It is paid for
+with a wrong store - `sh $s4,0x10($sp)` where the target has `sh $zero` - and it
+supplies no instruction the body was missing.
+
+**Reading it.** When a candidate's only structural change against the target is
+the prologue, epilogue and branch displacements, the permuter has bought the
+target's frame by spending a register on a value that does not exist. Confirm it
+by reverting just the read while keeping the declaration: here that returned the
+seed's object byte for byte, at 556. Such a candidate is not a semantic hint and
+cannot be ported - `base.c` for the same function invents a different carrier, a
+pointer alias, and reaches the same frame at the cost of an extra `addiu` and a
+reorder.
+
+**The corollary matters more.** A target that saves one more callee-saved
+register than you do need not hold one more long-lived value. Here the target's
+`$s4` appears only as `addiu $s4,$zero,0x2` and the `bne` that consumes it, one
+short range inside a single block: the fifth saved register is a *consequence* of
+that block materialising its constant three times rather than once (see the
+CSE extended-block section above), not evidence of a missing local. Count the
+target's uses of the register before concluding a variable is missing.
