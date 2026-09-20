@@ -3,7 +3,7 @@
 #include "actors/actors_shared_801344f8.h"
 #include "actors/actors_shared_801346ac.h"
 
-void ActorsShared801344f8_Fn32AC4(void);
+void ActorsShared80132ac4(void);
 void ActorsShared80132de4(void);
 void ActorsShared801344f8_Fn32FD0(void);
 void ActorsShared801333fc(ActorShared801344f8* arg0);
@@ -16,7 +16,7 @@ void ActorsShared801344f8(ActorShared801344f8* arg0)
 {
     switch (arg0->field_1C->field_35A) {
         case 0:
-            ActorsShared801344f8_Fn32AC4();
+            ActorsShared80132ac4();
             break;
         case 1:
             ActorsShared801344f8_Fn345D0();

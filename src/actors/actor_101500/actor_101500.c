@@ -359,5 +359,3 @@ void func_actor_101500_8013291C(Actor101500* actor, s32 damage)
     }
     Gp_SetStateF0Byte3(2);
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_101500/actor_101500", func_actor_101500_80132AC4);

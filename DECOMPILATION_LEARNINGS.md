@@ -135961,3 +135961,40 @@ Full trace evidence is retained in the session
 under `tools/permuter_findings/func_actor_202600_80149E8C/`. Both traces verified
 byte-identical assembly with and without observation. Scope: this prologue;
 no general promise that moving any load changes the needed interval.
+
+
+## A retained unused output can change scheduling through its live anchor (func_actor_101500_80132AC4, 2026-09-20)
+
+The 99.950% seed shared two table results in one global HI pseudo, assigning
+both to a2 where the first needed a0. Reusing the later pose local for the
+first lookup fixed that sharing, but made the final lookup local and changed
+its allocation and schedule. A retained unused definition restores global
+eligibility without a second real load. Its live output matters beyond the
+conflicts at the asm.
+
+`__asm__("" : "+r"(work), "=r"(val));` before the final pose store made val
+global a2, but added a second definition of work. The entry work load UID27
+lost LAUNCH_PRIORITY in sched1 (priority 1 instead of 0x7f000001), moved earlier,
+and removed a load-delay nop. `sched.c:birthing_insn_p` checks REG_N_SETS==1
+for the block-live destination, so an anchor in a later block can change
+scheduling at function entry.
+
+A preplanned experiment changed only the live anchor to the already
+multiply-defined pose local:
+
+```c
+__asm__("" : "+r"(pose2), "=r"(val));
+work->field_352 = pose2;
+```
+
+The entry load regained launch priority, val retained two deaths and global
+a2, and the candidate matched exactly. Removing the asm as a negative control
+made val a single-death local in v1 and dropped the score to 95.025%. The
+header-based port also matched. No register pins or emitted asm were used.
+The original C spelling remains unknown.
+
+Paired plans, input hashes, selected sched1 decisions and allocation dump
+headers are in `tools/compiler_evidence/2026-09-20-actor101500-32ac4.json`;
+full session evidence is retained under
+`tools/permuter_findings/func_actor_101500_80132AC4/`. This is a manually
+predicted follow-up, distinct from the router's retained alternate improvement.

@@ -98,6 +98,7 @@ typedef struct Actor101500RotScratch {
 STATIC_ASSERT_SIZEOF(Actor101500RotScratch, 0x18);
 
 extern u32 Gp_LcgState;
+extern u8  D_801153F2[2];
 
 void func_800B4114(Actor101500Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
@@ -112,5 +113,10 @@ void func_actor_101500_8013291C(Actor101500* actor, s32 damage);
 
 /// Maximum hit points; `func_actor_101500_8013291C` staggers below 60%.
 extern u16 D_actor_101500_8013BDDC;
+
+extern u16 ActorsShared80132ac4Durations[];
+extern u16 ActorsShared80132ac4MaxHp;
+
+void ActorsShared80132ac4(Actor101500* actor);
 
 #endif

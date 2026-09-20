@@ -1,0 +1,234 @@
+{
+  "function": "func_actor_101500_80132AC4",
+  "date": "2026-09-20",
+  "kind": "controlled RTL dump observations, no compiler tracer",
+  "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+  "scope": "Retained unused output eligibility plus anchor definition-count scheduling in this function",
+  "sources": {
+    "base": {
+      ".c": "d68b0f44191b802dc64c94f65766476deb9bd16c0f6e60c02a15f1858e0b8b86",
+      ".i": "c0bd1bc090c925545eccee27b1e568f8f91c46d1c03382017e877b2873ed4773",
+      ".i.lreg": "475b76927b430b1152cd152384aa196fddbdb871e54abb81a6672554471df8e8",
+      ".i.greg": "3d96ba36b8aaf9984f02862e87f558eac7377ad46173990b85b1b41422ecc5ef",
+      ".i.sched": "1f1053dcb1a9bec493bcf3236fdb44d217d0274c7c063772a696dae7e081b37f",
+      "score": {
+        "score": 99.95,
+        "distance": 10,
+        "penalties": {
+          "stack": 0,
+          "branch": 0,
+          "regs": 2,
+          "reorder": 0,
+          "insert": 0,
+          "delete": 0
+        }
+      }
+    },
+    "base_1": {
+      ".c": "3522a8774cdcb3489e58c21551e4f72cb7882514785aeadb0110c14169f7e344",
+      ".i": "4eb6106b757e8839a69a5be32e21bfdd7df11b4b2db148b6105c00419e56e5da",
+      ".i.lreg": "7ae14719db880a57f640a671c3846149857a768603c669a601d633738a918566",
+      ".i.greg": "177a7ee6f7694129632ce4b8f07729b60d38ae935395730d7dffd53cde33b940",
+      ".i.sched": "8cd0437cfe3dc5fc3080c21125ba9508622bebffb6fc524be453ad9b5308e6d3",
+      "score": {
+        "score": 99.14,
+        "distance": 172,
+        "penalties": {
+          "stack": 0,
+          "branch": 12,
+          "regs": 0,
+          "reorder": 1,
+          "insert": 0,
+          "delete": 1
+        }
+      }
+    },
+    "base_2": {
+      ".c": "6d0edf015191611359b5e0de53f16a6c5b1f4998588acc94aa674da65a2afe66",
+      ".i": "5aa2e2e50aad8b04240765645231d814785bd286e7fd320c7d2c6411b1fb3096",
+      ".i.lreg": "21000e90f27ab5dffed47175b641e0f9954b4a38735a563b67dc470dc0ba1b37",
+      ".i.greg": "cc25241ea2b739b262c9fd62b29df44c17e3e4cbf7e5017848f29a3f12abfc43",
+      ".i.sched": "0e539f96029c046aac610d375a731b003743a5c33049dd1f9cc8350e5acd6cf2",
+      "score": {
+        "score": 99.04,
+        "distance": 192,
+        "penalties": {
+          "stack": 0,
+          "branch": 12,
+          "regs": 4,
+          "reorder": 1,
+          "insert": 0,
+          "delete": 1
+        }
+      }
+    },
+    "base_3": {
+      ".c": "a3abaedde9bc8a5ccacd6f4b6b98e3f3c93793ba7cd5cec3edeea8eecb0ac0f3",
+      ".i": "834a1393d3363159f8b39ce9aadf6427ebaf52a9c797be59827b472fb808eb08",
+      ".i.lreg": "959e5ed881767a7f5ad2fe11f97278b12518bce46766ee712be69fec20707f3b",
+      ".i.greg": "b077c9c993e5336d5a1cde4ee1aac22daa4683ad99a03d0ca433a4293fb07c97",
+      ".i.sched": "e86ca2bee42973e789e18342a0e82a28831aa4d56a165d46c88e8d6b31a5b199",
+      "score": {
+        "score": 100.0,
+        "distance": 0,
+        "penalties": {
+          "stack": 0,
+          "branch": 0,
+          "regs": 0,
+          "reorder": 0,
+          "insert": 0,
+          "delete": 0
+        }
+      }
+    },
+    "base_4": {
+      ".c": "ed0949095204f8b0cd9bc313a587703d023b71aacd6c17b8f4555029adadaf51",
+      ".i": "f7a2243e65dcf4272ce8339f9b064c9a0e4cc64479fb0a62e64820420a597ff0",
+      ".i.lreg": "a86bb576e39150586aad840bb9791e52a3998a05c27505249b45133d8dc9f3eb",
+      ".i.greg": "9602326594742c1fd4f41ed29b63abcde2119a54d94df7101c3369158641a580",
+      ".i.sched": "852c8338dc00fedf07b4fadd851bad59aac8380b8cc2c65f9363003001c9ad9c",
+      "score": {
+        "score": 95.025,
+        "distance": 995,
+        "penalties": {
+          "stack": 0,
+          "branch": 0,
+          "regs": 27,
+          "reorder": 1,
+          "insert": 4,
+          "delete": 4
+        }
+      }
+    },
+    "base_5": {
+      ".c": "ab990a5bfb8f4ec5947e3147d372cb0450e988485dd97e805d560b4eaba8de08",
+      ".i": "42f2ed52ab853c2e9f759a1d810b8d23ccbd0b80ba53f10090a00bf2e6dc69ea",
+      ".i.lreg": "39ab5ffeea56a01cccabb6574fdcdd7a6d9a8abf6c1d98d974ac144abe1d4c12",
+      ".i.greg": "7d1bb4fd77d5569c6e4246b2e35ee27fd5aca61b27e2d6893f642acc214a293f",
+      ".i.sched": "438a369d1d733617aad511884b0ed13ecc3d130220bb9afb9894c56f9f95b748",
+      "score": {
+        "score": 100.0,
+        "distance": 0,
+        "penalties": {
+          "stack": 0,
+          "branch": 0,
+          "regs": 0,
+          "reorder": 0,
+          "insert": 0,
+          "delete": 0
+        }
+      }
+    }
+  },
+  "predictions": [
+    {
+      "at": "2026-09-20T08:17:04.760046+00:00",
+      "event": "plan",
+      "expected": "r87 remains global a2, r86 a0, and entry instruction schedule returns to target with no emitted asm slot",
+      "hypothesis": "The empty asm at entry affects delay filling; place its retained val output in the final lookup block where val still has two deaths",
+      "parent": "base_1.c",
+      "pass_name": "dbr",
+      "source": "base_2.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T08:17:48.149749+00:00",
+      "event": "conclude",
+      "next": "Anchor the unused definition on pose2, preserving work set count and entry schedule",
+      "result": "Lookup homes remain a0/a2, but work anchor adds a second definition and its entry load moves earlier already in sched1; final empty asm remains outside delay slot. Address shifts remain from one removed entry nop.",
+      "source": "base_2.c",
+      "source_sha256": "6d0edf015191611359b5e0de53f16a6c5b1f4998588acc94aa674da65a2afe66"
+    },
+    {
+      "at": "2026-09-20T08:17:48.257119+00:00",
+      "event": "plan",
+      "expected": "val still has two deaths and global a2; work entry load returns after scratch-head store; all target instructions match",
+      "hypothesis": "Use already-multiply-defined pose2 as the live asm anchor so work retains its single-definition sched1 behavior",
+      "parent": "base_2.c",
+      "pass_name": "sched",
+      "source": "base_3.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T08:18:11.103974+00:00",
+      "event": "conclude",
+      "next": "Controlled removal of discarded output, then clean port and integration",
+      "result": "100.000% all-zero penalties. val r87 retains two deaths and global a2; pose2 r86 is a0. Entry UID27 regains LAUNCH_PRIORITY and initial schedule matches.",
+      "source": "base_3.c",
+      "source_sha256": "a3abaedde9bc8a5ccacd6f4b6b98e3f3c93793ba7cd5cec3edeea8eecb0ac0f3"
+    },
+    {
+      "at": "2026-09-20T08:18:11.151197+00:00",
+      "event": "plan",
+      "expected": "val has one death, local home and final-block schedule diverge, while entry block remains matched",
+      "hypothesis": "Discarded val output is necessary for global eligibility; removing only the empty asm returns final val to local allocation",
+      "parent": "base_3.c",
+      "pass_name": "lreg",
+      "source": "base_4.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T08:18:30.433028+00:00",
+      "event": "conclude",
+      "next": "Preserve base_3 mechanism in clean header-based port",
+      "result": "95.025% distance995: val r87 becomes block21 local, one death, final home v1 and final schedule changes. Entry block remains exact. The discarded output is needed to retain global eligibility.",
+      "source": "base_4.c",
+      "source_sha256": "ed0949095204f8b0cd9bc313a587703d023b71aacd6c17b8f4555029adadaf51"
+    },
+    {
+      "at": "2026-09-20T08:19:03.442476+00:00",
+      "event": "plan",
+      "expected": "Header-based port remains exactly matched with r86 a0 and r87 a2",
+      "hypothesis": "Move the flag declaration to the overlay header and retain the matching function in normal host include style",
+      "parent": "base_3.c",
+      "pass_name": "greg",
+      "source": "base_5.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T08:19:04.167586+00:00",
+      "event": "conclude",
+      "next": "Integrate and run unscoped verification, then share the three copies",
+      "result": "Clean header-based port reproduces 100.000%, zero penalties",
+      "source": "base_5.c",
+      "source_sha256": "ab990a5bfb8f4ec5947e3147d372cb0450e988485dd97e805d560b4eaba8de08"
+    }
+  ],
+  "observations": {
+    "base_2": {
+      "pseudo_statistics": [
+        "Register 81 used 37 times across 156 insns; dies in 2 places; crosses 1 call; GR_REGS or none; pointer.",
+        "Register 86 used 5 times across 22 insns; dies in 2 places; 2 bytes; GR_REGS or none.",
+        "Register 87 used 3 times across 11 insns in block 21; dies in 2 places; 2 bytes; GR_REGS or none."
+      ],
+      "global_header": "\n;; Function func_actor_101500_80132AC4\n\n;; 11 regs to allocate: 81 137 134 86 85 87 91 90 84 82 80\n;; 80 conflicts: 80 81 82 84 86 90 91 134 137 2 3 4 5 6 7 29\n;; 81 conflicts: 80 81 82 84 85 86 87 90 91 134 137 2 3 4 5 6 7 29\n;; 82 conflicts: 80 81 82 84 86 90 91 2 3 4 5 6 7 29\n;; 84 conflicts: 80 81 82 84 86 90 91 134 137 2 3 4 5 6 7 29\n;; 85 conflicts: 81 85 2 3 4 29\n;; 86 conflicts: 80 81 82 84 86 87 90 91 2 3 5 6 7 29\n;; 87 conflicts: 81 86 87 2 3 4 5 7 29\n;; 90 conflicts: 80 81 82 84 86 90 91 2 3 4 5 6 7 29\n;; 91 conflicts: 80 81 82 84 86 90 91 2 3 4 5 6 7 29\n;; 134 conflicts: 80 81 84 134 137 3 29\n;; 137 conflicts: 80 81 84 134 137 29\n\n",
+      "dispositions": "\n80 in 18  81 in 16  82 in 10  84 in 17  85 in 5  86 in 4  \n87 in 6  88 in 2  90 in 9  91 in 8  93 in 2  95 in 3  \n97 in 2  98 in 2  99 in 4  100 in 4  102 in 5  105 in 2  \n107 in 3  108 in 3  109 in 3  110 in 6  113 in 2  115 in 2  \n116 in 2  117 in 2  118 in 7  119 in 2  120 in 4  121 in 4  \n122 in 2  123 in 2  124 in 3  125 in 2  128 in 2  129 in 3  \n130 in 2  131 in 3  132 in 2  134 in 2  137 in 3  140 in 2  \n141 in 2  143 in 3  145 in 2  147 in 2  148 in 2  150 in 2  \n152 in 2  155 in 4  158 in 3  160 in 2  161 in 2  162 in 2  \n163 in 5  167 in 2  169 in 2  171 in 2  173 in 2  175 in 2  \n176 in 2  179 in 2  180 in 2  181 in 2  184 in 2  185 in 2  \n188 in 2  190 in 4  193 in 3  195 in 2  196 in 2  197 in 2  \n198 in 5  202 in 2  204 in 2  206 in 2  207 in 2  208 in 4  \n212 in 3  213 in 2  214 in 2  216 in 3  218 in 4  219 in 4  \n221 in 5  224 in 2  226 in 3  227 in 3  228 in 3  229 in 6  \n232 in 2  234 in 2  235 in 2  236 in 2  238 in 7  239 in 2  \n240 in 3  242 in 2  243 in 2  \n\n",
+      "entry_schedule": "\n;; Function func_actor_101500_80132AC4\n\n;;\t -- basic block number 0 from 4 to 42 --\n;; ready list initially:\n;; 42 \n\n;; insn[ 494]: priority =    1, ref_count =    1\n;; insn[ 495]: priority =    1, ref_count =    2\n;; insn[  15]: priority =    1, ref_count =    2\n;; insn[  17]: priority =    2, ref_count =    1\n;; insn[  19]: priority =    2, ref_count =    1\n;; insn[  27]: priority =    1, ref_count =    1\n;; insn[  30]: priority =    1, ref_count =    1\n;; insn[  32]: priority =    2, ref_count =    1\n;; insn[  35]: priority =    1, ref_count =    1\n;; insn[  40]: priority =    2, ref_count =    1\n;; insn[  42]: priority = 2147483384, ref_count =    0\n;; ready list at T-1: 42 (7ffffef8), now 42\n;; ready list at T-2: 19 (2) 32 (7f000001) 35 (1), now 32 19 35\n;; launching 40 before 32 with no stalls at T-3\n;; ready list at T-3: 19 (2) 35 (1) 40 (7f000001), now 40 19 35\n;; launching 30 before 40 with no stalls at T-4\n;; ready list at T-4: 19 (2) 35 (1) 30 (7f000001), now 30 19 35\n;; launching 27 before 30 with no stalls at T-5\n;; ready list at T-5: 19 (2) 35 (1) 27 (1), now 19 35 27\n;; ready list at T-6: 35 (1) 27 (1) 17 (7f000001), now 17 35 27\n;; ready list at T-7: 35 (1) 27 (1), now 35 27\n;; insn 27 has a greater potential hazard, now 27 35\n;; launching 15 before 27 with no stalls at T-8\n;; ready list at T-8: 35 (1) 15 (7f000001), now 15 35\n;; ready list at T-9: 35 (1) 495 (1), now 35 495\n;; ready list at T-10: 495 (1), now 495\n;; ready list at T-11: 494 (1), now 494\n;; added 4 line-number notes\n;; total time = 11\n;; new basic block head = 4\n;; new basic block end = 42\n\n"
+    },
+    "base_3": {
+      "pseudo_statistics": [
+        "Register 81 used 34 times across 153 insns; dies in 2 places; crosses 1 call; GR_REGS or none; pointer.",
+        "Register 86 used 8 times across 17 insns; dies in 2 places; 2 bytes; GR_REGS or none.",
+        "Register 87 used 3 times across 11 insns in block 21; dies in 2 places; 2 bytes; GR_REGS or none."
+      ],
+      "global_header": "\n;; Function func_actor_101500_80132AC4\n\n;; 11 regs to allocate: 86 81 137 134 85 87 91 90 84 82 80\n;; 80 conflicts: 80 81 82 84 86 90 91 134 137 2 3 4 5 6 7 29\n;; 81 conflicts: 80 81 82 84 85 86 87 90 91 134 137 2 3 4 5 6 7 29\n;; 82 conflicts: 80 81 82 84 86 90 91 2 3 4 5 6 7 29\n;; 84 conflicts: 80 81 82 84 86 90 91 134 137 2 3 4 5 6 7 29\n;; 85 conflicts: 81 85 2 3 4 29\n;; 86 conflicts: 80 81 82 84 86 90 91 2 3 5 7 29\n;; 87 conflicts: 81 87 2 3 4 5 7 29\n;; 90 conflicts: 80 81 82 84 86 90 91 2 3 4 5 6 7 29\n;; 91 conflicts: 80 81 82 84 86 90 91 2 3 4 5 6 7 29\n;; 134 conflicts: 80 81 84 134 137 3 29\n;; 137 conflicts: 80 81 84 134 137 29\n\n",
+      "dispositions": "\n80 in 18  81 in 16  82 in 10  84 in 17  85 in 5  86 in 4  \n87 in 6  88 in 2  90 in 9  91 in 8  93 in 2  95 in 3  \n97 in 2  98 in 2  99 in 4  100 in 4  102 in 5  105 in 2  \n107 in 3  108 in 3  109 in 3  110 in 6  113 in 2  115 in 2  \n116 in 2  117 in 2  118 in 7  119 in 2  120 in 4  121 in 4  \n122 in 2  123 in 2  124 in 3  125 in 2  128 in 2  129 in 3  \n130 in 2  131 in 3  132 in 2  134 in 2  137 in 3  140 in 2  \n141 in 2  143 in 3  145 in 2  147 in 2  148 in 2  150 in 2  \n152 in 2  155 in 4  158 in 3  160 in 2  161 in 2  162 in 2  \n163 in 5  167 in 2  169 in 2  171 in 2  173 in 2  175 in 2  \n176 in 2  179 in 2  180 in 2  181 in 2  184 in 2  185 in 2  \n188 in 2  190 in 4  193 in 3  195 in 2  196 in 2  197 in 2  \n198 in 5  202 in 2  204 in 2  206 in 2  207 in 2  208 in 4  \n212 in 3  213 in 2  214 in 2  216 in 3  218 in 4  219 in 4  \n221 in 5  224 in 2  226 in 3  227 in 3  228 in 3  229 in 6  \n232 in 2  234 in 2  235 in 2  236 in 2  238 in 7  239 in 2  \n240 in 3  242 in 2  243 in 2  \n\n",
+      "entry_schedule": "\n;; Function func_actor_101500_80132AC4\n\n;;\t -- basic block number 0 from 4 to 42 --\n;; ready list initially:\n;; 42 \n\n;; insn[ 494]: priority =    1, ref_count =    1\n;; insn[ 495]: priority =    1, ref_count =    2\n;; insn[  15]: priority =    1, ref_count =    2\n;; insn[  17]: priority =    2, ref_count =    1\n;; insn[  19]: priority =    2, ref_count =    1\n;; insn[  27]: priority =    1, ref_count =    1\n;; insn[  30]: priority =    1, ref_count =    1\n;; insn[  32]: priority =    2, ref_count =    1\n;; insn[  35]: priority =    1, ref_count =    1\n;; insn[  40]: priority =    2, ref_count =    1\n;; insn[  42]: priority = 2147483384, ref_count =    0\n;; ready list at T-1: 42 (7ffffef8), now 42\n;; ready list at T-2: 19 (2) 32 (7f000001) 35 (1), now 32 19 35\n;; launching 40 before 32 with no stalls at T-3\n;; ready list at T-3: 19 (2) 35 (1) 40 (7f000001), now 40 19 35\n;; launching 30 before 40 with no stalls at T-4\n;; ready list at T-4: 19 (2) 35 (1) 30 (7f000001), now 30 19 35\n;; launching 27 before 30 with no stalls at T-5\n;; ready list at T-5: 19 (2) 35 (1) 27 (7f000001), now 27 19 35\n;; ready list at T-6: 19 (2) 35 (1), now 19 35\n;; ready list at T-7: 35 (1) 17 (7f000001), now 17 35\n;; ready list at T-8: 35 (1), now 35\n;; launching 15 before 35 with no stalls at T-9\n;; ready list at T-9: 15 (7f000001), now 15\n;; ready list at T-10: 495 (1), now 495\n;; ready list at T-11: 494 (1), now 494\n;; added 3 line-number notes\n;; total time = 11\n;; new basic block head = 4\n;; new basic block end = 42\n\n"
+    },
+    "base_4": {
+      "pseudo_statistics": [
+        "Register 81 used 34 times across 153 insns; dies in 2 places; crosses 1 call; GR_REGS or none; pointer.",
+        "Register 86 used 5 times across 24 insns; dies in 2 places; 2 bytes; GR_REGS or none.",
+        "Register 87 used 2 times across 9 insns in block 21; 2 bytes; GR_REGS or none."
+      ],
+      "global_header": "\n;; Function func_actor_101500_80132AC4\n\n;; 10 regs to allocate: 81 137 134 86 85 91 90 84 82 80\n;; 80 conflicts: 80 81 82 84 86 90 91 134 137 2 3 4 5 6 7 29\n;; 81 conflicts: 80 81 82 84 85 86 90 91 134 137 2 3 4 5 6 7 29\n;; 82 conflicts: 80 81 82 84 86 90 91 2 3 4 5 6 7 29\n;; 84 conflicts: 80 81 82 84 86 90 91 134 137 2 3 4 5 6 7 29\n;; 85 conflicts: 81 85 2 3 4 29\n;; 86 conflicts: 80 81 82 84 86 90 91 2 3 4 5 6 7 29\n;; 90 conflicts: 80 81 82 84 86 90 91 2 3 4 5 6 7 29\n;; 91 conflicts: 80 81 82 84 86 90 91 2 3 4 5 6 7 29\n;; 134 conflicts: 80 81 84 134 137 3 29\n;; 137 conflicts: 80 81 84 134 137 29\n\n",
+      "dispositions": "\n80 in 18  81 in 16  82 in 11  84 in 17  85 in 5  86 in 8  \n87 in 3  88 in 2  90 in 10  91 in 9  93 in 2  95 in 3  \n97 in 2  98 in 2  99 in 4  100 in 4  102 in 5  105 in 2  \n107 in 3  108 in 3  109 in 3  110 in 6  113 in 2  115 in 2  \n116 in 2  117 in 2  118 in 7  119 in 2  120 in 4  121 in 4  \n122 in 2  123 in 2  124 in 3  125 in 2  128 in 2  129 in 3  \n130 in 2  131 in 3  132 in 2  134 in 2  137 in 3  140 in 2  \n141 in 2  143 in 3  145 in 2  147 in 2  148 in 2  150 in 2  \n152 in 2  155 in 4  158 in 3  160 in 2  161 in 2  162 in 2  \n163 in 5  167 in 2  169 in 2  171 in 2  173 in 2  175 in 2  \n176 in 2  179 in 2  180 in 2  181 in 2  184 in 2  185 in 2  \n188 in 2  190 in 4  193 in 3  195 in 2  196 in 2  197 in 2  \n198 in 5  202 in 2  204 in 2  206 in 2  207 in 2  208 in 4  \n212 in 3  213 in 2  214 in 2  216 in 3  218 in 3  219 in 3  \n221 in 5  224 in 3  226 in 2  227 in 2  228 in 2  229 in 6  \n232 in 2  234 in 2  235 in 2  236 in 2  238 in 7  239 in 2  \n240 in 3  242 in 2  243 in 2  \n\n",
+      "entry_schedule": "\n;; Function func_actor_101500_80132AC4\n\n;;\t -- basic block number 0 from 4 to 42 --\n;; ready list initially:\n;; 42 \n\n;; insn[ 492]: priority =    1, ref_count =    1\n;; insn[ 493]: priority =    1, ref_count =    2\n;; insn[  15]: priority =    1, ref_count =    2\n;; insn[  17]: priority =    2, ref_count =    1\n;; insn[  19]: priority =    2, ref_count =    1\n;; insn[  27]: priority =    1, ref_count =    1\n;; insn[  30]: priority =    1, ref_count =    1\n;; insn[  32]: priority =    2, ref_count =    1\n;; insn[  35]: priority =    1, ref_count =    1\n;; insn[  40]: priority =    2, ref_count =    1\n;; insn[  42]: priority = 2147483384, ref_count =    0\n;; ready list at T-1: 42 (7ffffef8), now 42\n;; ready list at T-2: 19 (2) 32 (7f000001) 35 (1), now 32 19 35\n;; launching 40 before 32 with no stalls at T-3\n;; ready list at T-3: 19 (2) 35 (1) 40 (7f000001), now 40 19 35\n;; launching 30 before 40 with no stalls at T-4\n;; ready list at T-4: 19 (2) 35 (1) 30 (7f000001), now 30 19 35\n;; launching 27 before 30 with no stalls at T-5\n;; ready list at T-5: 19 (2) 35 (1) 27 (7f000001), now 27 19 35\n;; ready list at T-6: 19 (2) 35 (1), now 19 35\n;; ready list at T-7: 35 (1) 17 (7f000001), now 17 35\n;; ready list at T-8: 35 (1), now 35\n;; launching 15 before 35 with no stalls at T-9\n;; ready list at T-9: 15 (7f000001), now 15\n;; ready list at T-10: 493 (1), now 493\n;; ready list at T-11: 492 (1), now 492\n;; added 3 line-number notes\n;; total time = 11\n;; new basic block head = 4\n;; new basic block end = 42\n\n"
+    }
+  },
+  "limits": [
+    "The original natural C spelling is unknown.",
+    "The permuter alternate did not supply the matching change; its canonicalization was not isolated by a new controlled build."
+  ],
+  "interpretation": "base_2 adds a work definition; entry UID27 loses LAUNCH_PRIORITY, consistent with sched.c birthing_insn_p REG_N_SETS==1. base_3 changes the live anchor to already-multiply-defined pose2; UID27 regains LAUNCH_PRIORITY while val keeps two deaths and global a2, matching exactly. Removing the asm in base_4 makes val local v1 and perturbs other homes. base_5 preserves the exact object after header port."
+}
