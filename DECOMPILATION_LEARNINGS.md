@@ -135709,3 +135709,42 @@ in `tools/compiler_evidence/2026-09-20-actor207200-a1c4.json`. Hazard weights an
 the origin of the alternate arithmetic preference were not traced; the dump
 swap, conflict and homes are observed. This does not prove a unique original
 source or a general preference for loads over constants.
+## Globalizing a comparison sidesteps the three-quantity sort without a register pin (func_actor_136100_80131EC4, 2026-09-20)
+
+After the matched actor_342100 sibling's labelled COMPILER_BARRIER return fixed
+cross-jumping, base_1 reached 98.629%, with only regs=17. The bounded permuter
+found `id = *sel; if (id < 0)` in place of `if (*sel < 0)`, reusing the local
+later assigned the message id. The minimal header-based port base_2 matched
+100%; all loads, masks, stores and calls are preserved.
+
+Paired compiler traces explain the swap. Block 6 has three local quantities:
+q0 index/address {83,98,84,96}, refs=9, interval [4,20), priority=16875;
+q1 table base {99,100}, refs=4, [12,16), priority=20000; and q2 signed table
+entry {102}, refs=2, [18,22), priority=5000. None has suggestions. Their actual
+allocation order is q0/v0, q1/v1, q2/v1 despite q1's higher priority.
+
+`local-alloc.c:1640-1651` compares original quantity IDs after exchanging
+positions. With q1 > q0 and q2 < q1, the fall-through exchange undoes the first
+one. The reused id has two disjoint lifetimes and is global (5 refs, 9 insns,
+two deaths), so q2 disappears. The remaining q0/q1 memberships, intervals and
+priorities are unchanged, but the two-quantity path exchanges them only once:
+q1 gets v0 and q0 gets v1. Global id gets v0 and the unsigned entry gets v1.
+This is a quantity-count/eligibility lever, not a local-priority change.
+
+The preplanned base_3 counterfactual used a separate s32 step for the signed
+comparison. Its dumps restore the third local quantity, original homes and
+98.629%/regs=17, with assembly identical to base_1. Both traces emitted the
+same assembly with and without observation. This provides an unpinned
+alternative to the older three-quantity example's hard-register workaround;
+it is not a claim that all three-quantity permutations are identity sorts.
+
+Evidence is retained under tools/permuter_findings/func_actor_136100_80131EC4/
+sessions/094ec7357f8141f48f79b1c33f533d65/ (PERMUTER_EVIDENCE run
+2d927ce9384743d8, analysis/trace_base_1, analysis/trace_base_2, controlled
+base_2/base_3 and the plan/conclusion journal). Compiler SHA256:
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+Input hashes: base_1 8700774fe94fcd7436a5a193f1b213177ea4088c3ca4e2b1a2091a94fbd80aea;
+base_2 f558afe8c680edc0bee2ac855cd329d206b7515d1dadf0c89fd76d4f9d5f5f35.
+
+Compact committed sources, plans, scores and selected trace observations:
+[2026-09-20-actor136100-31ec4.json](tools/compiler_evidence/2026-09-20-actor136100-31ec4.json).

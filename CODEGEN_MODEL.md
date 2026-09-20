@@ -465,6 +465,20 @@ quantity's refs are the **sum** and its span is the **union**. This is what
    first**. Each quantity takes the lowest numeric free register (§10.2) over
    its span.
 
+**Three-quantity exception.** `block_alloc` uses a small hand-written sort for
+two or three quantities (`local-alloc.c:1589–1661`). With three, it compares
+the original quantity IDs after swapping positions. If q1 outranks q0 and
+q2 does not outrank q1, the first swap is undone by the fall-through comparison:
+allocation proceeds q0, q1, q2 despite their priorities. This also affects the
+suggestion sort. Inspect the actual quantity count and allocation order.
+In `func_actor_136100_80131EC4`, reusing the later message-id local for the
+earlier signed table test makes that test global, reducing three local
+quantities to two. Traces show the unchanged table/index priorities 20000/16875
+then allocate in priority order, swapping v0/v1 and matching without pins.
+A preplanned separate-local counterfactual restores the old homes and 98.629%.
+See the corpus entry "Globalizing a comparison sidesteps the three-quantity
+sort" and its retained permuter evidence.
+
 The corpus entries that state this as `live_length / n_refs` ascending, or as
 "the inverse of global_alloc", are wrong on both counts: the `floor_log2`
 factor is there, and shorter-per-weighted-reference wins in both allocators. Both keys are

@@ -86,4 +86,10 @@ STATIC_ASSERT_SIZEOF(Actor136100FadeWork, 0x8);
 /// back on; while it is non-zero the fade task kills itself instead of fading.
 extern u16 D_actor_136100_8013F17C;
 
+/// Next-animation table indexed by field_4DE - 0x2F; negative entries end
+/// the chain, and live entries are sent as animation ids with 0x2F added.
+extern s16 D_actor_136100_8013F1EC[];
+
+s32 func_actor_136100_80131EC4(Task* task);
+
 #endif // ACTOR_136100_H

@@ -56,12 +56,54 @@ extern Task*    D_actor_136100_8014078C;
 extern TaskDesc ActorsShared80134898Desc;
 extern s8       D_80114C12;
 
-void func_actor_136100_80131EC4(void);
 void func_actor_136100_80132748(Task* arg0);
 void func_actor_136100_80133238(Task* arg0);
 void func_actor_136100_80134A18(Task* task);
 
-INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80131EC4);
+s32 func_actor_136100_80131EC4(Task* arg0)
+{
+    Actor136100Work* work;
+    Actor136100Work* msgWork;
+    GpRec14          rec;
+    s16*             sel;
+    s32              i;
+    u16              idx;
+    s32              weaponId;
+    s32              id;
+
+    work = (Actor136100Work*)arg0->work;
+    if (work->field_4B4 == NULL) {
+    ret1:
+        COMPILER_BARRIER();
+        return 1;
+    }
+    if (Gp_DispatchMsg(work->field_4B4, 0x3ED, 0, 0) != 0) {
+        return 0;
+    }
+    if ((u16)work->field_4DE < 0x2FU) {
+        return 1;
+    }
+
+    i   = (u16)work->field_4DE - 0x2FU;
+    sel = &D_actor_136100_8013F1EC[i];
+    id  = *sel;
+    if (id < 0) {
+        goto ret1;
+    }
+    idx = (u16)*sel + 0x2FU;
+
+    msgWork            = (Actor136100Work*)arg0->work;
+    weaponId           = D_80073BA9;
+    id                 = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    rec.field_0        = id;
+    msgWork->field_4DE = idx;
+    rec.field_4        = idx;
+    rec.field_8        = 1;
+    rec.field_C        = 0xA;
+    rec.field_10       = 0;
+    Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32)&rec, 0);
+    return 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80131FBC);
 
@@ -204,7 +246,7 @@ void func_actor_136100_801323F8(Task* arg0)
     GpRec14          rec;
 
     if (gGameSession->eventState != 0) {
-        func_actor_136100_80131EC4();
+        func_actor_136100_80131EC4(arg0);
     }
     switch ((u16)work->field_4C4) {
         case 0:
@@ -338,7 +380,7 @@ void func_actor_136100_80132E78(Task* arg0)
     GpRec14          rec;
 
     if (gGameSession->eventState != 0) {
-        func_actor_136100_80131EC4();
+        func_actor_136100_80131EC4(arg0);
     }
     switch ((u16)work->field_4C4) {
         case 0:
