@@ -1,0 +1,655 @@
+{
+  "function": "func_actor_205200_80149E54",
+  "date": "2026-09-20",
+  "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+  "scope": "UV store-group permuter gain and product allocation observations; function remains partial",
+  "sources": {
+    "base_1": {
+      "source_sha256": "51ee56fabf67de8818e9168080674587d8f6cf789b5b757a8a398cc542929d6d",
+      "preprocessed_sha256": "40c7307195f49ab0bc64b1d10827b575c3e96b2c26b00887dae82d452c47b8d2",
+      "assembly_sha256": "a18997fe2d975c62f78347d4533242e4668d3636e74d31efe59a6756f12ea68d",
+      "score": 96.91872791519435,
+      "distance": 1744,
+      "penalties": {
+        "branch": 4,
+        "delete": 5,
+        "insert": 5,
+        "regs": 64,
+        "reorder": 7,
+        "stack": 0
+      },
+      "hypothesis": "obsolete Task_Kill symbol creates the only call mismatch; unused m2c include prevents permuter setup",
+      "expected": "call targets match and router preprocessing succeeds, remaining allocation shape preserved"
+    },
+    "base_2": {
+      "source_sha256": "86a34306f1417e696f045f72d37b6d0f6d968563479cfe4f06a4b6f0894c9263",
+      "preprocessed_sha256": "38e6ea9c963feb4785e18ce10c4f2e465774ec4967b15e198a9b28c559fd6383",
+      "assembly_sha256": "f9972a6aab425563080ec4d492e8f45f6b483eaf679397b9b2f0ed1a6050e5a6",
+      "score": 97.53710247349824,
+      "distance": 1394,
+      "penalties": {
+        "branch": 4,
+        "delete": 4,
+        "insert": 4,
+        "regs": 58,
+        "reorder": 5,
+        "stack": 0
+      },
+      "hypothesis": "the one-iteration store group changes weighted references and shortens live spans; chained context-zero stores only cause the new reorder",
+      "expected": "port just the store group: u1=a2 v1=a1 and init zero-store order restored; drawing loop unchanged"
+    },
+    "base_3": {
+      "source_sha256": "9f60c787d7f3c334145cf2fe1d4985803c981cd0b8b5f75254d44ff65b62d51b",
+      "preprocessed_sha256": "c8c8a80ce866d2d559a6e5c9a68e88d58d0bd377487016ec40e888765ed82523",
+      "assembly_sha256": "8812196160bd1b79cc53e8aaad6a9aec5f57ee3e600a5aeaae9ba2195162b293",
+      "score": 97.92226148409894,
+      "distance": 1176,
+      "penalties": {
+        "branch": 6,
+        "delete": 4,
+        "insert": 4,
+        "regs": 38,
+        "reorder": 3,
+        "stack": 0
+      },
+      "hypothesis": "reused product pseudos have four deaths and are global; distinct single-use products can allocate locally to lo and cannot retry global allocation after lo eviction",
+      "expected": "eight product pseudos become local lo allocations and reload leaves them on stack, producing mflo t8; UV homes and loop structure survive"
+    },
+    "base_4": {
+      "source_sha256": "03badf357ee954713537baef474d0de9feb4a6380588cc1429753ae816f19d2f",
+      "preprocessed_sha256": "6d06e17530b088fb94d93a9b602d93818b4629e3ee3b68e97e0a312c8d2e77e0",
+      "assembly_sha256": "0bbe364896f187e16b195f93b7c3676f22fc24bf103727f2130b4f9f7702c4d9",
+      "score": 98.51590106007068,
+      "distance": 840,
+      "penalties": {
+        "branch": 0,
+        "delete": 3,
+        "insert": 3,
+        "regs": 24,
+        "reorder": 2,
+        "stack": 0
+      },
+      "hypothesis": "address next-row phase through row[1] to expose the target base+8 access and lower next pointer use count without changing row recurrence",
+      "expected": "cse retains row+8 for phase; next drops six weighted refs and may spill, preserving local lo products"
+    },
+    "base_8": {
+      "source_sha256": "d6ce3bec2afd17ce8290d5730ba91c8cde5b1a7006d32e992ad360374b96f490",
+      "preprocessed_sha256": "2f902ce0224ac65321508c563532e51516f867690975e51401c5f071d46de0e7",
+      "assembly_sha256": "0bbe364896f187e16b195f93b7c3676f22fc24bf103727f2130b4f9f7702c4d9",
+      "score": 98.51590106007068,
+      "distance": 840,
+      "penalties": {
+        "branch": 0,
+        "delete": 3,
+        "insert": 3,
+        "regs": 24,
+        "reorder": 2,
+        "stack": 0
+      },
+      "hypothesis": "main/mem.h is the missing direct dependency in the simplified header set",
+      "expected": "compile and reproduce the base_4 840-distance object"
+    }
+  },
+  "traces": {
+    "base_2": {
+      "manifest": {
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "input_sha256": "38e6ea9c963feb4785e18ce10c4f2e465774ec4967b15e198a9b28c559fd6383",
+        "input_origin": "/home/gabriel/pe2-ov-actor_205200/nonmatchings/func_actor_205200_80149E54-vacuum/base_2.i",
+        "flags": [
+          "-O2",
+          "-mips1",
+          "-mcpu=3000",
+          "-w",
+          "-funsigned-char",
+          "-fpeephole",
+          "-ffunction-cse",
+          "-fpcc-struct-return",
+          "-fcommon",
+          "-fverbose-asm",
+          "-msoft-float",
+          "-mgas",
+          "-fgnu-linker",
+          "-quiet",
+          "-gcoff",
+          "-dp",
+          "-G0",
+          "-da"
+        ],
+        "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+        "source_sha256": {
+          "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+          "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+          "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+          "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+          "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+          "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+          "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+          "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+          "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+          "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+          "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+          "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+          "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+          "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+          "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+          "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+          "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+          "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+          "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+        },
+        "assembly_identical": true,
+        "trace_complete": true,
+        "baseline_assembly_sha256": "1d8e4cdaa80a63ec4fbc5a8f5b5f44da4f4fa1180cbaab72519450288f1371f3",
+        "traced_assembly_sha256": "1d8e4cdaa80a63ec4fbc5a8f5b5f44da4f4fa1180cbaab72519450288f1371f3"
+      },
+      "selected_events": [
+        {
+          "allocno": 13,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            4,
+            16,
+            29
+          ],
+          "members": [
+            94
+          ],
+          "preferences": [],
+          "priority": 87272,
+          "refs": 24,
+          "reg": 94,
+          "result": 65,
+          "retry": 0,
+          "size": 1,
+          "span": 11
+        },
+        {
+          "allocno": 12,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            2,
+            3,
+            29
+          ],
+          "members": [
+            93
+          ],
+          "preferences": [],
+          "priority": 45333,
+          "refs": 17,
+          "reg": 93,
+          "result": 5,
+          "retry": 0,
+          "size": 1,
+          "span": 15
+        },
+        {
+          "allocno": 10,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            2,
+            3,
+            5,
+            29
+          ],
+          "members": [
+            91
+          ],
+          "preferences": [],
+          "priority": 44615,
+          "refs": 29,
+          "reg": 91,
+          "result": 6,
+          "retry": 0,
+          "size": 1,
+          "span": 26
+        },
+        {
+          "allocno": 14,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            3,
+            4,
+            16,
+            29
+          ],
+          "members": [
+            95
+          ],
+          "preferences": [],
+          "priority": 43636,
+          "refs": 24,
+          "reg": 95,
+          "result": 65,
+          "retry": 0,
+          "size": 1,
+          "span": 22
+        },
+        {
+          "allocno": 13,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            4,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            29,
+            30,
+            65
+          ],
+          "members": [
+            94
+          ],
+          "preferences": [],
+          "priority": 87272,
+          "refs": 24,
+          "reg": 94,
+          "result": -1,
+          "retry": 1,
+          "size": 1,
+          "span": 11
+        },
+        {
+          "allocno": 13,
+          "alternate": 1,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            4,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            29,
+            30,
+            65
+          ],
+          "members": [
+            94
+          ],
+          "preferences": [],
+          "priority": 87272,
+          "refs": 24,
+          "reg": 94,
+          "result": 3,
+          "retry": 1,
+          "size": 1,
+          "span": 11
+        },
+        {
+          "allocno": 14,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            3,
+            4,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            29,
+            30,
+            65
+          ],
+          "members": [
+            95
+          ],
+          "preferences": [],
+          "priority": 43636,
+          "refs": 24,
+          "reg": 95,
+          "result": -1,
+          "retry": 1,
+          "size": 1,
+          "span": 22
+        },
+        {
+          "allocno": 14,
+          "alternate": 1,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            3,
+            4,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            29,
+            30,
+            65
+          ],
+          "members": [
+            95
+          ],
+          "preferences": [],
+          "priority": 43636,
+          "refs": 24,
+          "reg": 95,
+          "result": 6,
+          "retry": 1,
+          "size": 1,
+          "span": 22
+        },
+        {
+          "changes": [
+            [
+              94,
+              65,
+              3
+            ],
+            [
+              95,
+              65,
+              6
+            ],
+            [
+              294,
+              65,
+              6
+            ]
+          ],
+          "event": "spill",
+          "forced": 0,
+          "reg": 65
+        }
+      ]
+    },
+    "base_3": {
+      "manifest": {
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "input_sha256": "c8c8a80ce866d2d559a6e5c9a68e88d58d0bd377487016ec40e888765ed82523",
+        "input_origin": "/home/gabriel/pe2-ov-actor_205200/nonmatchings/func_actor_205200_80149E54-vacuum/base_3.i",
+        "flags": [
+          "-O2",
+          "-mips1",
+          "-mcpu=3000",
+          "-w",
+          "-funsigned-char",
+          "-fpeephole",
+          "-ffunction-cse",
+          "-fpcc-struct-return",
+          "-fcommon",
+          "-fverbose-asm",
+          "-msoft-float",
+          "-mgas",
+          "-fgnu-linker",
+          "-quiet",
+          "-gcoff",
+          "-dp",
+          "-G0",
+          "-da"
+        ],
+        "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+        "source_sha256": {
+          "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+          "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+          "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+          "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+          "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+          "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+          "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+          "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+          "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+          "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+          "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+          "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+          "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+          "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+          "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+          "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+          "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+          "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+          "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+        },
+        "assembly_identical": true,
+        "trace_complete": true,
+        "baseline_assembly_sha256": "e36ad86e063a001019c7ad19086e5fb6c0c45f04809cb42dc3e23a97fff97872",
+        "traced_assembly_sha256": "e36ad86e063a001019c7ad19086e5fb6c0c45f04809cb42dc3e23a97fff97872"
+      },
+      "selected_events": [
+        {
+          "allocno": 14,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            16,
+            29
+          ],
+          "members": [
+            95
+          ],
+          "preferences": [],
+          "priority": 60000,
+          "refs": 6,
+          "reg": 95,
+          "result": 65,
+          "retry": 0,
+          "size": 1,
+          "span": 2
+        },
+        {
+          "allocno": 16,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            29
+          ],
+          "members": [
+            97
+          ],
+          "preferences": [],
+          "priority": 60000,
+          "refs": 6,
+          "reg": 97,
+          "result": 65,
+          "retry": 0,
+          "size": 1,
+          "span": 2
+        },
+        {
+          "allocno": 18,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            16,
+            29
+          ],
+          "members": [
+            99
+          ],
+          "preferences": [],
+          "priority": 60000,
+          "refs": 6,
+          "reg": 99,
+          "result": 65,
+          "retry": 0,
+          "size": 1,
+          "span": 2
+        },
+        {
+          "allocno": 13,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            3,
+            16,
+            29
+          ],
+          "members": [
+            94
+          ],
+          "preferences": [],
+          "priority": 24000,
+          "refs": 6,
+          "reg": 94,
+          "result": 65,
+          "retry": 0,
+          "size": 1,
+          "span": 5
+        },
+        {
+          "allocno": 17,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            3,
+            16,
+            29
+          ],
+          "members": [
+            98
+          ],
+          "preferences": [],
+          "priority": 24000,
+          "refs": 6,
+          "reg": 98,
+          "result": 65,
+          "retry": 0,
+          "size": 1,
+          "span": 5
+        },
+        {
+          "allocno": 20,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            4,
+            16,
+            29
+          ],
+          "members": [
+            101
+          ],
+          "preferences": [],
+          "priority": 24000,
+          "refs": 6,
+          "reg": 101,
+          "result": 65,
+          "retry": 0,
+          "size": 1,
+          "span": 5
+        },
+        {
+          "allocno": 15,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            3,
+            4,
+            29
+          ],
+          "members": [
+            96
+          ],
+          "preferences": [],
+          "priority": 20000,
+          "refs": 6,
+          "reg": 96,
+          "result": 65,
+          "retry": 0,
+          "size": 1,
+          "span": 6
+        },
+        {
+          "allocno": 19,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            3,
+            16,
+            29
+          ],
+          "members": [
+            100
+          ],
+          "preferences": [],
+          "priority": 20000,
+          "refs": 6,
+          "reg": 100,
+          "result": 65,
+          "retry": 0,
+          "size": 1,
+          "span": 6
+        }
+      ]
+    }
+  },
+  "observations": [
+    "The do/while(0) around u2/v2/u3 stores retains loop notes through flow. u1 refs/span change28/29 to29/26, v1 changes16/18 to17/15; global order reverses and UV homes match.",
+    "Trace base_2 observes v1 r93 priority45333 taking a1 before u1 r91 priority44615 takes a2.",
+    "The independent-product experiment does NOT change the allocating pass to local-alloc. Traces observe global allocations into lo in both variants.",
+    "Reused products spanning blocks are evicted from lo and retry into v1/a2. Distinct products have a single REG_BASIC_BLOCK and remain lo after reload; reload inserts mflo t8 for GR consumers.",
+    "reload1.c spill_hard_reg has an explicit exemption for a block requiring no spilling in the reserved register class or its superclasses. This is consistent with the observed product survivors; basic_block_needs arrays were not directly traced.",
+    "base_4/8 remain98.516%; row=next forces a final stack reload and allocates next before j-offset spill slots; plain row++ causes undesired strength reduction."
+  ]
+}
