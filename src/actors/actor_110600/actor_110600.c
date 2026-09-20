@@ -1429,7 +1429,111 @@ void func_actor_110600_801369D8(Actor110600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80136B20);
+static __inline__ void Actor110600_ApplyShrink(Actor110600* arg0, Actor110600Work* work, s16 y)
+{
+    TmdObject*                  obj;
+    GsCOORDINATE2*              coord;
+    ActorShared80135a60Scratch* blk;
+    u8*                         head;
+    s16                         page;
+    s16                         ang;
+    u16                         m22;
+    u8*                         restoredHead;
+
+    head                                          = *(u8**)G_SCRATCH_HEAD;
+    obj                                           = arg0->field_2C;
+    coord                                         = obj->coords;
+    page                                          = work->field_B7C;
+    blk                                           = (ActorShared80135a60Scratch*)((u8*)head - 0x34);
+    *(ActorShared80135a60Scratch**)G_SCRATCH_HEAD = blk;
+    y                                            -= (work->field_BE0 - 0x12C) * 2;
+    ang                                           = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle                                    = ang;
+    Gfx_RotMatrixY(&blk->m, ang, 1);
+    blk->scale.vx = page;
+    blk->scale.vy = y;
+    blk->scale.vz = page;
+    ScaleMatrix(&blk->m, &blk->scale);
+    coord->coord.m[0][0]  = *(u16*)&((ActorShared80135a60Scratch*)((u8*)head - 0x34))->m.m[0][0];
+    coord->coord.m[0][1]  = *(u16*)&blk->m.m[0][1];
+    coord->coord.m[0][2]  = *(u16*)&blk->m.m[0][2];
+    coord->coord.m[1][0]  = *(u16*)&blk->m.m[1][0];
+    coord->coord.m[1][1]  = *(u16*)&blk->m.m[1][1];
+    coord->coord.m[1][2]  = *(u16*)&blk->m.m[1][2];
+    coord->coord.m[2][0]  = *(u16*)&blk->m.m[2][0];
+    coord->coord.m[2][1]  = *(u16*)&blk->m.m[2][1];
+    restoredHead          = *(u8**)G_SCRATCH_HEAD;
+    m22                   = *(u16*)&blk->m.m[2][2];
+    coord->flg            = 0;
+    *(u8**)G_SCRATCH_HEAD = restoredHead + 0x34;
+    coord->coord.m[2][2]  = m22;
+}
+
+void func_actor_110600_80136B20(Actor110600* arg0)
+{
+    Actor110600Work* work;
+    GpEnemy*         enemy;
+    SVECTOR          pos;
+    VECTOR           scale;
+    s16              y;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        enemy                 = arg0->field_20;
+        enemy->node.flags     = 1;
+        work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
+        work->field_950.flags = (u16)(work->field_950.flags & 0xBFFF);
+        work->field_8A4       = 0;
+        work->field_8A2       = 0;
+        work->field_BE0       = 0;
+        work->field_8A6       = work->field_B7C;
+    }
+    if (work->field_BE0 < 0x3E8) {
+        work->field_BE0 = (u16)work->field_BE0 + 1;
+    }
+    switch (work->field_BE0) {
+        case 0xE6:
+            arg0->field_2C->flags = 2;
+            work->field_B08       = work->field_AE8;
+            break;
+        case 0xC8:
+        case 0x190:
+            pos.vx = 0x12C;
+            pos.vy = 0;
+            pos.vz = 0;
+            Gp_SpawnEff(0x600A5, &arg0->field_2C->coords[3], 3, &pos);
+            break;
+        case 0xFA:
+        case 0x1A4:
+            pos.vx = 0x190;
+            pos.vy = 0;
+            pos.vz = 0;
+            break;
+        case 0x258:
+            arg0->field_2C->flags = 0x80;
+            break;
+    }
+    if (work->field_BE0 >= 0xE6) {
+        scale.vx = scale.vy = scale.vz = 0xBB8 + work->field_BE0 * -4;
+        work->field_AE8                = work->field_B08;
+        ScaleMatrix(&work->field_AE8, &scale);
+        gte_lddp(scale.vz);
+        gte_ldlvl(&work->field_AE8.t[0]);
+        gte_gpf12_real();
+        gte_stlvl(&work->field_AE8.t[0]);
+    }
+    if (work->field_BE0 == 0xFD) {
+        arg0->field_2C->flags = 2;
+    }
+    if (work->field_BE0 >= 0xC9) {
+        y = work->field_8A6;
+        if ((s16)work->field_8A6 >= 0x801) {
+            y              -= 8;
+            work->field_8A6 = y;
+            Actor110600_ApplyShrink(arg0, work, y);
+        }
+    }
+}
 
 /// Re-dresses a live actor: take the model object out of draw, drop bit 0x8000
 /// of `field_A90.flags` and bit 0x4000 of `field_950.flags`, tag the enemy's

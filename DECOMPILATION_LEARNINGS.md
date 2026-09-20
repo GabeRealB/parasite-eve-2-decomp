@@ -134146,3 +134146,37 @@ these are manual controlled experiments. Preprocessed input SHA256:
 - base_4: `1a3f2ffe28228cd734d18d825f85f12f6bf34a9165545d8f7981bf3b6a7793d2`
 - base_7: `57bb671c9c0c39dd9d37fcf40699889469a74fd60b9fddeca545cd8d0cbdfa5b`
 - base_8: `6efff152d378446216e4a23466116f341786e3dff9e9bf7b43006f840f446e0c`
+
+
+## A single-use scratch address can fold in combine before allocation (actor_110600 retry, 2026-09-20)
+
+This corrects the earlier entry "A constant address in a MEM is a pseudo that
+only allocation can remove" for `func_actor_110600_80136B20`. In the rebuilt
+95.111% seed, UID305 changes from `MEM(reg164)` to `MEM(const528483324)` in
+**combine**, before local allocation. Do not infer reload from absolute
+addressing in final assembly.
+
+A controlled permuter follow-up, base_4, introduces a `void** release` computed
+from `pad + 0x3FC` before Gfx_RotMatrixY and uses it for the final scratch bump.
+CSE removes that assignment and substitutes the equivalent full-address pseudo
+for the bump. This leaves pad r86 with one use, the initial store UID323. Flow
+marks it dead there; combine deletes its definition UID320 and folds the store
+MEM to the absolute constant. The separate bump address still receives s5.
+This predicted sequence reproduces the valid search output exactly: distance
+1149 -> 1002. The observation is about this address split and combine; it does
+not claim the score explains every changed scheduling decision.
+
+The exact solution uses the matched sibling's inline-helper pattern instead.
+Its scratch accesses are already absolute in integrated RTL, eliminating the
+shared address register (99.745%). Naming the final scratch read before the
+last matrix halfword read fixes the remaining order without changing stores
+(100%). The two loads stay v0/v1 through greg. The scheduler comparator/hazard
+choice was not traced. Normal Actor110600Work typing and unscoped verification
+preserve the match.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Baseline input: `4cb6675c0b81b1e8c094dc3ded42f8b8521404e2c557b4090c9b02d6fb75d0ca`.
+Controlled base_4 input: `8d36dde129753e85d16cf83c0a4c56efb93025b4d991f3a2304145f9534ef72a`.
+Evidence: `tools/permuter_findings/func_actor_110600_80136B20/`, session
+`5e2b5a66e8554ac78246385599fff569`; retained `base_4.address-trace.txt`,
+`base_4.compare.txt`, `baseline-address-trace.txt`, and the conclusion bundle.

@@ -390,7 +390,8 @@ typedef struct Actor110600Work {
     /* 0x89A */ byte pad_89A[8];
     /* 0x8A2 */ s16  field_8A2;
     /* 0x8A4 */ s16  field_8A4;
-    /* 0x8A6 */ byte pad_8A6[4];
+    /* 0x8A6 */ u16  field_8A6;
+    /* 0x8A8 */ byte pad_8A8[2];
     /// Timer `func_actor_110600_80137F2C` counts down once the actor is live,
     /// handing off to `func_actor_110600_80136210` on the frame it reaches
     /// zero; the same slot the `Actor01900Work` dispatcher keeps at 0xC10.
