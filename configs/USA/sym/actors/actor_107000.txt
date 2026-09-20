@@ -32,3 +32,4 @@ ActorSpecimenInitParams = 0x80139EA0; // parameter record for shared specimen in
 ActorSpecimenInitAnimBank = 0x8013F59C; // animation bank for shared specimen initialization
 ActorSpecimenInit = 0x80134C2C; // shared body, see src/actors/lib/
 ActorsShared801381b0 = 0x801381B0; // shared body, see src/actors/lib/
+ActorsShared801339c0 = 0x801339C0; // shared body, see src/actors/lib/

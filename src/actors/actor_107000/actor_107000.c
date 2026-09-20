@@ -708,7 +708,5 @@ void func_actor_107000_80133690(GpEnemy* arg0, Task* arg1)
     arg1->state        = 3;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000", func_actor_107000_801339C0);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_107000/actor_107000", D_actor_107000_80131E5C);
 INCLUDE_RODATA("actors/nonmatchings/actor_107000/actor_107000", ActorsShared801385d4Table);
