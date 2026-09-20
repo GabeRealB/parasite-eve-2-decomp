@@ -159,7 +159,9 @@ typedef struct Actor421600Work {
     /* 0xCE4 */ GpRec18           field_CE4[12];
     /* 0xE04 */ MATRIX            field_E04;
     /* 0xE24 */ MATRIX            field_E24;
-    /* 0xE44 */ byte              pad_E44[0x38];
+    /* 0xE44 */ byte              pad_E44[0x34];
+    /* 0xE78 */ s16               field_E78;
+    /* 0xE7A */ byte              pad_E7A[2];
     /* 0xE7C */ s32               field_E7C;
     /* 0xE80 */ s32               field_E80;
     /* 0xE84 */ s32               field_E84;

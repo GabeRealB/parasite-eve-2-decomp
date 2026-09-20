@@ -1347,7 +1347,148 @@ void func_actor_421600_8013A404(Actor421600* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013A554);
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013B00C);
+void func_actor_421600_8013B00C(Actor421600* arg0)
+{
+    Actor421600Work*        work;
+    Actor421600SeekScratch* head;
+    Actor421600SeekScratch* blk;
+    GpEnemy*                ctx;
+    TmdObject*              obj;
+    GsCOORDINATE2*          coord;
+    GsCOORDINATE2*          coord2;
+    GsCOORDINATE2*          coord3;
+    GsCOORDINATE2*          coord4;
+    s32                     zone;
+    s32                     x_entry;
+    s32                     z_entry;
+    s32                     var_a0_entry;
+    s32                     var_v1_entry;
+    Task*                   task;
+    GsCOORDINATE2*          playerCoord;
+    s32                     x;
+    s32                     z;
+    s16                     angle;
+    s32                     wrapped;
+    s32                     var_a0;
+    s32                     var_v1;
+
+    work = arg0->field_1C;
+    task = gameGetPtrSlot(3);
+    if (work->field_4 != 0) {
+        obj             = arg0->field_2C;
+        ctx             = arg0->field_20;
+        ctx->node.flags = 0;
+        obj->flags      = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_832        = 0x10;
+        work->field_82E        = 3;
+        work->field_828        = 1;
+        work->field_B6C.flags |= 0x4000;
+        func_actor_421600_80134604(arg0);
+        playerCoord = ((TmdObject*)task->extra)->coords;
+        x_entry     = playerCoord->coord.t[0];
+        z_entry     = playerCoord->coord.t[2];
+        if (x_entry >= 0xD49) {
+            var_a0_entry = 3;
+        } else if (x_entry > 0) {
+            var_a0_entry = 2;
+        } else {
+            var_a0_entry = x_entry >= -0xC7F;
+        }
+        var_v1_entry = 0;
+        if (z_entry < 0xBB9) {
+            var_v1_entry = 1;
+            if (z_entry <= 0) {
+                var_v1_entry = 3;
+                if (z_entry >= -0xBB7) {
+                    var_v1_entry = 2;
+                }
+            }
+        }
+        if (D_actor_421600_801511C0[var_a0_entry | (var_v1_entry * 4)] >= 7) {
+            work->field_E78 = 1;
+            return;
+        }
+        work->field_E78 = 0xB;
+        return;
+    }
+    coord = arg0->field_2C->coords;
+    x     = coord->coord.t[0];
+    z     = coord->coord.t[2];
+    if (x >= 0xD49) {
+        var_a0 = 3;
+    } else if (x > 0) {
+        var_a0 = 2;
+    } else {
+        var_a0 = x >= -0xC7F;
+    }
+    var_v1 = 0;
+    if (z < 0xBB9) {
+        var_v1 = 1;
+        if (z <= 0) {
+            var_v1 = 3;
+            if (z >= -0xBB7) {
+                var_v1 = 2;
+            }
+        }
+    }
+    zone = D_actor_421600_801511C0[var_a0 | (var_v1 * 4)];
+    if ((s16)zone == work->field_E78) {
+        work->field_0 = 0;
+        return;
+    }
+    head                                       = *(Actor421600SeekScratch**)G_SCRATCH_HEAD;
+    *(Actor421600SeekScratch**)G_SCRATCH_HEAD -= 1;
+    blk                                        = head - 1;
+    if ((s16)zone > work->field_E78) {
+        head[-1].vec.vx = D_actor_421600_80151158[zone - 1].vx;
+        blk->vec.vy     = D_actor_421600_80151158[zone - 1].vy;
+        blk->vec.vz     = D_actor_421600_80151158[zone - 1].vz;
+    } else {
+        head[-1].vec.vx = D_actor_421600_80151158[zone + 1].vx;
+        blk->vec.vy     = D_actor_421600_80151158[zone + 1].vy;
+        blk->vec.vz     = D_actor_421600_80151158[zone + 1].vz;
+    }
+    blk->vec.vx = blk->vec.vx - (u16)arg0->field_2C->coords->coord.t[0];
+    blk->vec.vy = 0;
+    blk->vec.vz = blk->vec.vz - (u16)arg0->field_2C->coords->coord.t[2];
+    func_actor_421600_80134604(arg0);
+    coord2 = arg0->field_2C->coords;
+    angle  = ratan2(blk->vec.vx, blk->vec.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
+    if (angle < 0) {
+    loop_neg:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto loop_neg;
+        }
+    } else {
+    loop_pos:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto loop_pos;
+        }
+    }
+    wrapped         = angle;
+    blk->angle      = wrapped;
+    work->field_840 = wrapped;
+    if (blk->angle >= 0x81) {
+        blk->angle = 0x80;
+    }
+    if (blk->angle < -0x80) {
+        blk->angle = -0x80;
+    }
+    work->field_83E = blk->angle;
+    coord3          = arg0->field_2C->coords;
+    blk->angle      = blk->angle + ratan2(-coord3->coord.m[2][0], coord3->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->coords->coord, blk->angle, 1);
+    if (work->field_82A == 0) {
+        coord4 = arg0->field_2C->coords;
+        Actor421600_MoveForward(coord4, 0xC8);
+    }
+    func_actor_421600_80132310(arg0->field_2C->coords, &work->field_90C, 0xC, &blk->vec);
+    *(Actor421600SeekScratch**)G_SCRATCH_HEAD += 1;
+    arg0->field_2C->coords->flg                = 0;
+}
 
 /// Zone-aim tick: the live-actor edge re-arms the model the way
 /// `func_actor_421600_80138D24` does -- buffers reallocated, clip 0x10, pose 3,
