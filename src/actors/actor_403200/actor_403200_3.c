@@ -258,7 +258,48 @@ s32 func_actor_403200_80134748(Task* arg0, s16 arg1)
     return 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_80134900);
+s32 func_actor_403200_80134900(Task* arg0, s16 arg1)
+{
+    SVECTOR        pos;
+    SVECTOR*       p;
+    GsCOORDINATE2* coords;
+    s32            dist;
+    s32            flag;
+    s32            value;
+    s32            view;
+
+    view   = Gp_GetViewIndex() & 0xFF;
+    p      = &pos;
+    coords = ((TmdObject*)arg0->extra)->coords;
+    p->vx  = D_80073B8C->t[0] - coords->coord.t[0];
+    p->vy  = D_80073B8C->t[1] - coords->coord.t[1];
+    dist   = pos.vx * pos.vx;
+    p->vz  = D_80073B8C->t[2] - coords->coord.t[2];
+    dist  += pos.vy * pos.vy;
+    dist   = SquareRoot0(dist + (pos.vz * pos.vz));
+    switch (arg1) {
+        case 0:
+        case 1:
+        case 2:
+            flag = view;
+            if ((flag != 0x25) && (flag != 0x19)) {
+                value = 0x25;
+                SOFT_BARRIER();
+                flag = dist < 0x1E5A;
+            } else if (flag == 0x25) {
+                value = 0x25;
+                flag  = dist < 0x1E5A;
+            } else {
+                value = 0x25;
+                flag  = dist < 0x1B58;
+            }
+            if (!flag) {
+                value = 0x19;
+            }
+            return value;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_80134A14);
 
