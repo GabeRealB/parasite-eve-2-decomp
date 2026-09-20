@@ -8,7 +8,7 @@ import sys
 
 def main():
     commands = {"diagnose": "localize", "explain": "localize", "propose": "propose", "compare": "compare",
-                "probe": "probe", "search": "search", "minimize": "minimize", "intervene": "intervene", "replay": "replay",
+                "probe": "probe", "search": "search", "smart": "smart", "minimize": "minimize", "intervene": "intervene", "replay": "replay",
                 "capture": "capture", "retrieve": "retrieve", "validate": "validate"}
     parser = argparse.ArgumentParser(description=__doc__, epilog="Run COMMAND --help for command-specific options.")
     parser.add_argument("command", choices=[*commands, "coverage"])
