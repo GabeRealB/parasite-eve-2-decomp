@@ -7,10 +7,12 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
 #include "main/gfx.h"
+#include "main/mem.h"
 
 extern GpPairSrcE         D_actor_105300_8013D3A0;
 extern Actor05300SpawnPos D_actor_105300_80133A20[2];
@@ -22,6 +24,13 @@ extern u8                 D_801153F4;
 extern s32                D_actor_105300_8013D3B0[];
 extern SVECTOR            D_actor_105300_80133A40[];
 extern s32                D_actor_105300_8013D3B4;
+extern GpMsgEntry         D_actor_105300_80133A00[];
+extern SVECTOR            D_actor_105300_80133A30[2];
+extern GpPairSrcE         D_actor_105300_8013D390;
+extern u16                D_actor_105300_8013D394[];
+extern u32                D_actor_105300_8013D3C0;
+extern GpAnimSet*         D_actor_105300_8013D414[];
+extern TaskDesc           D_actor_105300_8013D3FC[2];
 
 void func_8017E524(s32 arg0);
 void func_8017FD88(s32 arg0);
@@ -230,7 +239,7 @@ void func_actor_105300_80132BAC(GpEnemy* arg0, Task* arg1)
     part->obj.pos.vx          = 0;
     part->obj.pos.vy          = 0;
     part->obj.pos.vz          = 0;
-    part->obj.key             = ((Actor05300Work*)arg1->parent->work)->field_29C;
+    part->obj.key             = ((Actor05300Work*)arg1->parent->work)->node0.key;
     part->obj.radius          = 0xC8;
     part->obj.flags           = 1;
     Gp_LinkObj(2, &part->obj);
@@ -325,7 +334,102 @@ void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
     *(VECTOR**)0x1F8003FC += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105300/actor_105300", func_actor_105300_8013310C);
+void func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1)
+{
+    Actor05300Work* work;
+    TmdObject*      obj;
+    GsCOORDINATE2*  coord;
+    GpAreaKey*      sessionKey;
+    GpAreaRec*      rec;
+    GpAreaPlace*    place;
+    TmdObject*      model;
+    GpEnemy*        spawned;
+    GpAreaKey       key;
+    u16             idx;
+    s32             sound;
+    s32             i;
+
+    obj   = arg1->extra;
+    coord = obj->coords;
+    work  = memCalloc(0x340, 0);
+    if (work == NULL) {
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+    arg1->work     = work;
+    obj->flags     = 0;
+    coord->flg     = 0;
+    obj->lightMtx  = &work->field_264;
+    obj->colorMtx  = &work->field_244;
+    arg0->field_4  = &coord->coord;
+    arg0->field_48 = 0;
+    Gp_LinkNode(&arg0->node);
+    arg0->coord                = coord;
+    arg0->bodyPos.vx           = D_actor_105300_80133A30[0].vx;
+    arg0->bodyPos.vy           = D_actor_105300_80133A30[0].vy;
+    arg0->bodyPos.vz           = D_actor_105300_80133A30[0].vz;
+    arg0->param                = &D_actor_105300_8013D390;
+    arg0->recs                 = work->rec18;
+    arg0->hp                   = D_actor_105300_8013D390.hpMax;
+    work->field_2F4.coord      = coord;
+    work->field_2F4.spawnArgLo = 0x500;
+    work->field_2F4.spawnArgHi = 3;
+    func_800B3F84(&work->anim, D_actor_105300_8013D414, obj,
+                  work->poses, work->slots);
+    for (i = 1; i < 0xA; i++) {
+        Gp_AnimResetSlot(&work->anim, i, 1);
+    }
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    work->field_326      = 0x1000;
+    work->field_334      = 0;
+    work->field_2FC      = coord->coord;
+    work->field_338      = 1;
+    work->field_33C      = D_actor_105300_8013D394[0];
+    work->node0.coord    = coord;
+    work->node0.ctx.recs = work->rec18;
+    work->node0.pos.vx   = 0;
+    work->node0.pos.vy   = 0;
+    work->node0.pos.vz   = 0;
+    work->node0.key      = 0x30035;
+    work->node0.radius   = 0x5DC;
+    work->node0.flags    = 1;
+    Gp_LinkObj(2, &work->node0);
+    Gp_InitRec18Table(work->rec18, 2, 0);
+    work->node0.flags   |= 0x8000;
+    work->node1.coord    = coord;
+    work->node1.ctx.recs = work->rec18;
+    work->node1.pos.vx   = D_actor_105300_80133A30[0].vx;
+    work->node1.pos.vy   = D_actor_105300_80133A30[0].vy;
+    work->node1.pos.vz   = D_actor_105300_80133A30[0].vz;
+    work->node1.key      = 0x30035;
+    work->node1.radius   = 0x12C;
+    work->node1.flags    = 1;
+    Gp_LinkObj(2, &work->node1);
+    work->node1.flags |= 0x8000;
+    spawned            = Gp_SpawnEnemyFromTable(D_actor_105300_8013D3FC, 1, 0, arg0);
+    model              = spawned->task->extra;
+    idx                = arg0->placeKey >> 12;
+    sessionKey         = &gGameSession->at4.loc;
+    key.stage          = sessionKey->stage;
+    key.area           = sessionKey->area;
+    key.room           = sessionKey->room;
+    key.view           = sessionKey->view;
+    Gp_SyncAreaKeyIndex(&key);
+    rec          = Gp_GetNestedAreaRec(&key);
+    place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    model->tpage = place->tpage;
+    model->clut  = place->clut;
+    if (model->buffer != NULL) {
+        tmdProcessStream(model);
+        tmdProcessStream(model);
+    }
+    sound           = D_actor_105300_8013D3C0 | ((((GpEnemy*)arg1->spawnArg2)->placeKey >> 12) << 8);
+    work->field_31C = sound;
+    SndEvt_EnqueueType6(sound, D_actor_105300_8013D3C4[gGameSession->at4.loc.view].field_0,
+                        D_actor_105300_8013D3C4[gGameSession->at4.loc.view].field_2);
+    arg1->msgTable = D_actor_105300_80133A00;
+    arg1->state    = 1;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_105300/actor_105300", D_actor_105300_80131E20);
 

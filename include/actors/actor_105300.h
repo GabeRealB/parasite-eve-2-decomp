@@ -37,27 +37,35 @@ typedef struct Actor05300Obj2C {
 /// model's own coordinate each frame. `field_320` / `field_324` are unsigned
 /// here: every signed read of them casts at the use.
 typedef struct Actor05300Work {
-    /* 0x000 */ byte     pad_0[0x29C];
-    /* 0x29C */ s32      field_29C;
-    /* 0x2A0 */ byte     pad_2A0[0x24];
-    /* 0x2C4 */ GpRec18  rec18[2];
-    /* 0x2F4 */ GpEffArg field_2F4;
-    /* 0x2FC */ MATRIX   field_2FC;
-    /* 0x31C */ s32      field_31C;
-    /* 0x320 */ u16      field_320;
-    /* 0x322 */ s16      field_322;
-    /* 0x324 */ u16      field_324;
-    /* 0x326 */ u16      field_326;
-    /* 0x328 */ u16      field_328;
-    /* 0x32A */ u16      field_32A;
-    /* 0x32C */ u16      field_32C;
-    /* 0x32E */ u16      field_32E;
-    /* 0x330 */ u16      field_330;
-    /* 0x332 */ s16      field_332;
-    /* 0x334 */ s16      field_334;
-    /* 0x336 */ s16      field_336;
-    /* 0x338 */ s16      field_338;
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[10];
+    /* 0x1A4 */ GpAnimPose poses[10];
+    /* 0x244 */ MATRIX     field_244;
+    /* 0x264 */ MATRIX     field_264;
+    /* 0x284 */ GpObj      node0;
+    /* 0x2A4 */ GpObj      node1;
+    /* 0x2C4 */ GpRec18    rec18[2];
+    /* 0x2F4 */ GpEffArg   field_2F4;
+    /* 0x2FC */ MATRIX     field_2FC;
+    /* 0x31C */ s32        field_31C;
+    /* 0x320 */ u16        field_320;
+    /* 0x322 */ s16        field_322;
+    /* 0x324 */ u16        field_324;
+    /* 0x326 */ u16        field_326;
+    /* 0x328 */ u16        field_328;
+    /* 0x32A */ u16        field_32A;
+    /* 0x32C */ u16        field_32C;
+    /* 0x32E */ u16        field_32E;
+    /* 0x330 */ u16        field_330;
+    /* 0x332 */ s16        field_332;
+    /* 0x334 */ s16        field_334;
+    /* 0x336 */ s16        field_336;
+    /* 0x338 */ s16        field_338;
+    /* 0x33A */ s16        field_33A;
+    /* 0x33C */ u16        field_33C;
+    /* 0x33E */ byte       pad_33E[2];
 } Actor05300Work;
+STATIC_ASSERT_SIZEOF(Actor05300Work, 0x340);
 
 /// 0x48-byte part object the spawn allocates with `memCalloc` and parks in
 /// `Task::work`. It leads with the `GpObj` list node linked into

@@ -136150,3 +136150,47 @@ A preplanned `SCHED_BARRIER()` immediately after the field_4A0 store matched exa
 The allocation prediction also held: global order stayed unchanged, task remained s3, the case-2 r80/r107 conflict disappeared and r107 took s3; case-7 r153 retained s4. The constants' spans fell 28 -> 22. A normal-style port with for loops remained exact. This supports the local dependency/conflict mechanism, not a claim about the original source spelling. The bounded router improved a lower-scoring alternate but contributed no transformation to this match.
 
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Selected .sched/.sched2 nodes, allocation headers and complete input/source/object hashes: [2026-09-20-actor121300-33854.json](tools/compiler_evidence/2026-09-20-actor121300-33854.json). Full inputs and dumps are retained with the scratch/permuter findings.
+
+### An array read restores scheduler memory edges that a scalar symbol loses (func_actor_105300_8013310C, 2026-09-20)
+
+The archived seed reproduced 98.884% with only `reorder=4`: the halfword read
+from `D_actor_105300_8013D394` and three address/constant materializations were
+early. The matched `actor_105400` sibling used `extern u16 symbol[]; symbol[0]`
+and put that read after the coordinate matrix copy and before node initialization.
+The seed instead used a scalar and read it after the node stores.
+
+Two preplanned experiments separated the causes:
+
+- `base_1`: change only the scalar declaration/access to `u16[]`/`[0]`.
+  UID250 changes from `mem:HI` to `mem/s:HI` in initial RTL. In `.sched` it gains
+  true dependencies on all twelve preceding stores, where the scalar load had
+  only the prior call and address producer. The predicted dependency change
+  occurs, but the read now stays too late, moves from v1 to v0, and scores 96.209%.
+- `base_2`: move that array read/store immediately after `field_338`, before
+  node initialization. The corresponding load UID218 retains true dependencies
+  on UIDs199/202/208/213 (field326, field334, matrix, field338), and the later
+  node stores acquire anti-dependencies on it. The value returns to v1 with the
+  address in v0; the node and record addresses remain a1/s0. Score: 100.000%.
+- `base_3`: replace the scratch's flat work layout with the overlay's normal
+  `GpObj`, `GpEffArg` and animation members. Assembly remains identical at 100%.
+
+This is `sched.c:true_dependence`/`anti_dependence`'s fixed-scalar versus
+varying-structure exception. An array access carries `MEM_IN_STRUCT_P`, so the
+exception no longer discards the edges. Source placement of the load becomes
+significant. Rearranging independent stores under the old scalar declaration
+had produced identical assembly in the previous session.
+
+Scope: the memory-edge mechanism and final schedule are observed in dumps and
+confirmed by controlled predictions. The downstream hazard selections for the
+unrelated address instructions were not traced separately. The prior session's
+claim that all priorities were 1 was incomplete: its current reproduction shows
+LAUNCH_PRIORITY for several definitions and two hazard blocks for UID250.
+Do not explain this plateau solely by LUID ordering.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Preprocessed inputs: base_1 `f33cf4dd69be9317dbc703c8ae1f10998280d37b141fc6f07ae83cb90784fe07`,
+base_2 `15a633637a4f05fee2410102cedfa5bf7b918432e66f2c2a4b5318343f15d0f9`.
+Notes, predictions, sources, inputs and compressed RTL evidence are retained in
+`tools/permuter_findings/func_actor_105300_8013310C/`, session
+`d0a2a182dc504f54a08d1def7002adfe`. The required router found no output; these
+were subsequent manual experiments informed by the sibling and archived hypothesis.
