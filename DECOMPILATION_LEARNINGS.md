@@ -133929,3 +133929,37 @@ The last difference was an unsigned pitch read inside the conditional update. Ho
 The router independently found the same unsigned-read transformation on an alternate seed. Controlled base_4 strips its if(1) wrapper and declaration reorder, reproducing the full verified 992 -> 692 distance gain. CSE deletes the repeated addend load UID249 and rewrites add UID253 to the hoisted r98. `.lreg` reports r98 across blocks, 4 refs/6 instructions; `.greg` assigns v1. `.sched` places load UID231 before branch UID239. No unobserved comparator or quantity tie is claimed.
 
 Inputs (SHA256): baseline `f3325cde03dec34452d8cebb7dfc78bf0d04088d8460bdfc6a056a72aa91ccb8`; base_1 `5f587c95c26384881722d43b34012808373f82790159e9cfd24457c0b98f12db`; base_2 `9ae83bbf6405dd2eaf2219f4a6337967ebf162aef07f583b452dd27216d09aa3`; base_4 `9d61e0472d78120b0ecbe2b05a8bd046823a2e04a32a7687a85a8cc4216023d2`. Compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; target object `bfc46784f243eff70364272c30290f56ea077403ab747bc687b69c00b8e1da11`. Full paired sources, plans, conclusions and dumps are retained under `tools/permuter_findings/func_actor_206100_8014E228/`; scratch base_5 is the structured exact port.
+
+## Match the parent-walk exit before tuning its hoisted addresses (func_actor_206100_8014C458, 2026-09-20)
+
+An archived 93.071% seed used `while (p->sub != NULL && p != view)` followed
+by `if (p == view) copy_output();`. Its .loop dump rotated the parent check
+and hoisted address constants only past the initial null guard. The target
+instead exits immediately on a null parent and copies output only from the
+non-null view arm. Matched `Actor356100_TransformToView` and
+`Actor01900_TransformToView` supplied that nested-if/goto shape. Using it with
+explicit output/vector address locals reached 98.878%; structural diagnostics
+changed from different to matching, the unconditional back edge reappeared,
+and the tail addresses became eligible for the switch delay slots. Equal block
+and instruction counts in the old seed had not established matching control
+flow.
+
+A separate controlled edit split the work pointer reused for the 0x534 timer
+and death-state stores. In base_12 .lreg it had six references over twelve
+instructions; base_13 had three over seven. The halfword temporary then ranked
+before the pointer in .greg, swapping their homes to the required v1/a0 and
+removing six register penalties (99.690% to 99.757%). These are global allocnos,
+so the reference sum across disjoint uses matters.
+
+The final unpinned source reached 99.779%; the landed exact body uses scoped
+tail register constraints and explicit high/low address construction. Those
+workarounds do not establish a general unpinned allocation rule. Full unscoped
+build verification passed, and the scratch preserves the unresolved allocation
+question in LEARNINGS.md.
+
+Evidence: `nonmatchings/func_actor_206100_8014C458-vacuum/`:
+base.i SHA256 `76afa13bd863aa66221ce2e09d28f6961f8582431a45b5706d6d96d1acf301b4`;
+base_1.i `d092698a6314027aa36dc529597549cf807c598c2d453a780c1c8d1acb82c74d`;
+base_12.i `db3430a4ad341c19efb8f0edc092e649425ab34a7083263019a9afaff81ec436`;
+base_13.i `43ae34aec5adf4dab8531c8017aaf61adb1cb088333aac8be718c1a439c8baf4`.
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

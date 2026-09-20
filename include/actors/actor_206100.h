@@ -25,6 +25,27 @@ typedef union Actor206100Matrix {
 } Actor206100Matrix;
 STATIC_ASSERT_SIZEOF(Actor206100Matrix, 0x20);
 
+/// Shared stack storage for posing the actor, spawning its beam, and walking
+/// the parent coordinates to determine whether the actor can be locked onto.
+typedef struct Actor206100GteView {
+    SVECTOR out;
+    SVECTOR vec;
+    union {
+        VECTOR  mac;
+        SVECTOR alt;
+    } m;
+} Actor206100GteView;
+
+typedef union Actor206100VecScratch {
+    Actor206100Matrix  matrix;
+    Actor206100GteView gte;
+} Actor206100VecScratch;
+
+STATIC_ASSERT_SIZEOF(Actor206100VecScratch, 0x20);
+
+extern const TaskFuncTable9 D_actor_206100_80149E70;
+extern TaskDesc             D_actor_206100_80158B0C;
+
 /// Status flags `func_actor_206100_8014F970` reads through two widths: bit 0
 /// as a halfword, then bits 0x102 as a word.  The same union
 /// `ActorsShared8013a0b0Flags` is -- two widths on one address means two views
@@ -340,7 +361,9 @@ typedef struct Actor206100Work {
     /// 0x18 on the first frame of its sub-state.  Nothing in this overlay reads
     /// it back -- the field appears as a bare `sh` -- so its type is free.
     /* 0x52E */ s16  field_52E;
-    /* 0x530 */ byte pad_530[0x6];
+    /* 0x530 */ byte pad_530[0x4];
+    /// Countdown decremented by the running state each frame while nonzero.
+    /* 0x534 */ s16  field_534;
     /* 0x536 */ u16  field_536; // seeded from D_80181A48 when the block is built
     /* 0x538 */ byte pad_538[0x2];
     /// Retract ramp `func_actor_206100_8014B0AC` runs while the effect is

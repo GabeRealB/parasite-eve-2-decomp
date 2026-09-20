@@ -7,8 +7,11 @@
 #include "main/gfx.h"
 #include "gameplay/3CD8.h"
 #include "actors/actor_206100.h"
+#include "actors/coord_to_view.h"
 #include "actors/actor_400500.h"
 #include "psyq/inline_c.h"
+
+#define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
@@ -31,6 +34,9 @@ extern u8 D_801153F4;
 
 void func_actor_206100_8014B0AC(Task* task, u8 arg1);
 void func_actor_206100_8014DD3C(Task* task);
+void func_actor_206100_8014E0C0(Task* task);
+void func_actor_206100_8014EB60(Task* task);
+void func_actor_206100_8014EC54(Task* task);
 void func_actor_206100_8014DEAC(Task* task);
 void func_actor_206100_8014FAE4(Task* task);
 void func_8004BFF8(s16 angle, MATRIX* matrix);
@@ -780,7 +786,282 @@ void func_actor_206100_8014C274(Task* task)
 }
 INCLUDE_RODATA("actors/nonmatchings/actor_206100/actor_206100", D_actor_206100_80149E5C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014C458);
+void func_actor_206100_8014F524(Task* task);
+void func_actor_206100_8014CFF4(Task* task);
+void func_actor_206100_8014D380(Task* task);
+void func_actor_206100_8014D6F4(Task* task);
+void func_actor_206100_8014F59C(void);
+void func_actor_206100_8014F5A4(void);
+void func_actor_206100_8014F5AC(void);
+void func_actor_206100_8014F5B4(Task* task);
+void func_actor_206100_8014F608(Task* task);
+
+const TaskFuncTable9 D_actor_206100_80149E70 = {
+    {
+        func_actor_206100_8014F524,
+        func_actor_206100_8014CFF4,
+        func_actor_206100_8014D380,
+        func_actor_206100_8014D6F4,
+        (TaskFunc)func_actor_206100_8014F59C,
+        (TaskFunc)func_actor_206100_8014F5A4,
+        (TaskFunc)func_actor_206100_8014F5AC,
+        func_actor_206100_8014F5B4,
+        func_actor_206100_8014F608,
+    },
+};
+
+/// Push the model's second coordinate's world position onto `G_SCRATCH_HEAD`
+/// and hand it to `Gp_UpdateActorColor`.  The body is `ActorsShared8013a2c0`'s,
+/// inlined the way `Actor405800_UpdateColor` and `Actor400600_UpdateColor`
+/// inline it -- and it has to stay an inlined copy.  Only while expanding an
+/// inline body does cc1 keep the scratch head's absolute address folded into
+/// the memory operand (`lw $a1,0x1F8003FC` / `sw $a1,0x1F8003FC`, which the
+/// assembler expands to the `lui` + `%lo` pair); written out at the call site
+/// the same statements materialise the address in a register instead, and the
+/// three instructions that costs are the whole difference.
+static __inline__ void Actor206100_UpdateColor(Task* task)
+{
+    GsCOORDINATE2* coord;
+    void**         scratch;
+    u8*            head;
+    VECTOR*        block;
+
+    coord     = &((TmdObject*)task->extra)->coords[1];
+    scratch   = (void**)G_SCRATCH_HEAD;
+    head      = *scratch;
+    block     = (VECTOR*)(head - 0x10);
+    block->vx = coord->workm.t[0];
+    block->vy = coord->workm.t[1];
+    block->vz = coord->workm.t[2];
+    *scratch  = block;
+    Gp_UpdateActorColor(task->spawnArg2, block, 0, 0);
+    *scratch = (u8*)*scratch + 0x10;
+}
+
+/// Keep the model load and its long-lived saved copy as separate values.
+static __inline__ TmdObject* Actor206100_ModelCopy(TmdObject* input)
+{
+    TmdObject* result;
+    result = input;
+    SOFT_TOUCH_REG_USE(result, input);
+    return result;
+}
+
+/// Updates the active enemy, emits its beam, and gates lock-on by its height
+/// after transforming the selected model part through the parent chain.
+void func_actor_206100_8014C458(Task* task)
+{
+    Actor206100Work*          work   = (Actor206100Work*)task->work;
+    TmdObject*                obj    = Actor206100_ModelCopy(*(TmdObject* volatile*)&task->extra);
+    GpEnemy*                  enemy  = (GpEnemy*)task->spawnArg2;
+    GsCOORDINATE2*            coord  = obj->coords;
+    TaskFuncTable9            states = D_actor_206100_80149E70;
+    Actor206100VecScratch     scratch;
+    VECTOR                    scale;
+    Actor206100Matrix         scaling;
+    Actor206100Work*          next;
+    Actor206100Work*          dying;
+    Actor206100Work*          sub;
+    Actor206100Work*          pose;
+    register Actor206100Work* last asm("s0");
+    Actor206100Work*          anim;
+    MATRIX*                   dest;
+    GsCOORDINATE2*            scaled;
+    GsCOORDINATE2*            destcoord;
+    GsCOORDINATE2*            child;
+    GsCOORDINATE2*            walk;
+    GsCOORDINATE2*            root;
+    register GpEnemy*         end asm("t2");
+    Task*                     spawn;
+    Actor206100ChildWork*     beam;
+    Actor206100VecScratch*    mtx;
+    MATRIX*                   mtx2;
+    s32                       i;
+    s32                       sound;
+    s32                       pan;
+    s32                       flag;
+    s16                       state;
+    SVECTOR*                  launch;
+    register SVECTOR*         svp asm("t1");
+    SVECTOR*                  out;
+    VECTOR*                   vecp;
+    register GsCOORDINATE2*   view asm("t7");
+    s32*                      flagp;
+    u32                       viewhi;
+
+    switch (D_801153F4) {
+        case 2:
+            obj->flags |= 0x80;
+            break;
+        case 0:
+            work->flags_514.parts.field_516 = work->flags_514.parts.field_516 + 1;
+            work->field_518                 = work->field_518 + 1;
+            func_actor_206100_8014B698(task);
+            states.funcs[(s16)work->field_520](task);
+            sub = (Actor206100Work*)task->work;
+            if ((s16)sub->field_52E != 0) {
+                if (((u16)sub->field_52E & 7) == 0) {
+                    sound = ((((GpEnemy*)task->spawnArg2)->placeKey >> 0xC) << 8) | 0x4004000B;
+                    pan   = (s8)Gp_GetObjPan((GsCOORDINATE2*)((TmdObject*)task->extra)->coords);
+                    SndEvt_EnqueueType6(
+                        sound, pan,
+                        (s8)gpGetObjDepth((GsCOORDINATE2*)((TmdObject*)task->extra)->coords));
+                }
+                if ((s16)sub->field_52E == 0x18 || (s16)sub->field_52E == 0x30) {
+                    func_800FDB18(7, ((TmdObject*)task->extra)->coords + 1, NULL, &sub->eff_4C0);
+                }
+                sub->field_52E = (s16)((u16)sub->field_52E - 1);
+            }
+            next = (Actor206100Work*)task->work;
+            if ((s16)next->field_534 != 0) {
+                next->field_534 = (s16)((u16)next->field_534 - 1);
+            }
+            anim  = (Actor206100Work*)task->work;
+            state = anim->field_50C;
+            if (state == 1) {
+                if (anim->field_50E != anim->field_510) {
+                    anim->field_512 = 0;
+                } else {
+                    anim->field_512 = func_actor_206100_8014F3C8(task, anim->field_512);
+                }
+                func_actor_206100_8014F2F0(task);
+                anim->field_50C = 3;
+            } else if (state == 2) {
+                func_actor_206100_8014F284(task);
+                anim->field_50C = 3;
+                anim->field_512 = 0;
+            } else if (state == 3) {
+                anim->field_512 = anim->field_512 + 1;
+            }
+            for (i = 1; i < 0xF; i++) {
+                Gp_AnimTickIndex((GpAnimCtx*)anim, i);
+            }
+            work->flags_514.parts.half = work->slots[1].flags;
+            func_actor_206100_8014B0AC(task, work->field_54D);
+            func_actor_206100_8014E0C0(task);
+            func_actor_206100_8014EC54(task);
+            func_actor_206100_8014EB60(task);
+            destcoord                       = ((TmdObject*)task->extra)->coords;
+            pose                            = (Actor206100Work*)task->work;
+            mtx                             = &scratch;
+            scratch.matrix.ident.m00_m01    = 0x1000;
+            scratch.matrix.ident.m02_m10    = 0;
+            *(s32*)&mtx->matrix.mat.m[1][1] = 0x1000;
+            scratch.matrix.ident.m20_m21    = 0;
+            mtx->matrix.mat.m[2][2]         = 0x1000;
+            RotMatrixZ(pose->field_440, &mtx->matrix.mat);
+            func_8004BFF8(pose->field_43E, &mtx->matrix.mat);
+            dest                  = &destcoord->coord;
+            dest->m[0][0]         = scratch.matrix.mat.m[0][0];
+            dest->m[0][1]         = scratch.matrix.mat.m[0][1];
+            dest->m[0][2]         = scratch.matrix.mat.m[0][2];
+            dest->m[1][0]         = scratch.matrix.mat.m[1][0];
+            dest->m[1][1]         = scratch.matrix.mat.m[1][1];
+            dest->m[1][2]         = scratch.matrix.mat.m[1][2];
+            dest->m[2][0]         = scratch.matrix.mat.m[2][0];
+            dest->m[2][1]         = scratch.matrix.mat.m[2][1];
+            dest->m[2][2]         = scratch.matrix.mat.m[2][2];
+            destcoord->flg        = 0;
+            scaled                = ((TmdObject*)task->extra)->coords;
+            scale.vx              = work->field_53E;
+            scale.vy              = scale.vx;
+            scale.vz              = scale.vx;
+            mtx2                  = &scaling.mat;
+            scaling.ident.m00_m01 = 0x1000;
+            scaling.ident.m02_m10 = 0;
+            *(s32*)&mtx2->m[1][1] = 0x1000;
+            scaling.ident.m20_m21 = 0;
+            mtx2->m[2][2]         = 0x1000;
+            ScaleMatrix(&scaling.mat, &scale);
+            MulMatrix(&scaled->coord, &scaling.mat);
+            func_actor_206100_8014BAA8(task);
+            if (work->field_555 != 0) {
+                root  = &((TmdObject*)task->extra)->coords[4];
+                spawn = Task_SpawnFromTable(&D_actor_206100_80158B0C, 1, 0, 0);
+                if (spawn != NULL) {
+                    beam = memCalloc(0x68, 0);
+                    if (beam == NULL) {
+                        taskKill(spawn);
+                    } else {
+                        scratch.gte.vec.vx   = 0;
+                        scratch.gte.vec.vy   = 0;
+                        scratch.gte.vec.vz   = 0;
+                        scratch.gte.m.alt.vx = 0;
+                        scratch.gte.m.alt.vy = 0;
+                        mtx->gte.m.alt.vz    = 0x5A;
+                        ActorCoordToView(root, &scratch.gte.vec);
+                        ActorCoordToView(root, &scratch.gte.m.alt);
+                        spawn->work        = beam;
+                        child              = ((TmdObject*)spawn->extra)->coords;
+                        launch             = &scratch.gte.out;
+                        scratch.gte.out.vx = 0;
+                        scratch.gte.out.vy = 0;
+                        launch->vz         = 0x15E;
+                        ActorCoordToView(root, launch);
+                        child->coord.t[0] = scratch.gte.out.vx;
+                        child->coord.t[1] = scratch.gte.out.vy;
+                        child->coord.t[2] = scratch.gte.out.vz;
+                        beam->field_58    = scratch.gte.m.alt.vx - scratch.gte.vec.vx;
+                        beam->field_5A    = scratch.gte.m.alt.vy - scratch.gte.vec.vy;
+                        beam->field_5C    = scratch.gte.m.alt.vz - scratch.gte.vec.vz;
+                    }
+                }
+                work->field_555 = 0;
+            }
+            if (enemy->hp <= 0) {
+                dying            = (Actor206100Work*)task->work;
+                task->state      = 3;
+                dying->field_520 = 0;
+                dying->field_522 = 0;
+            }
+            coord->coord.t[1] =
+                coord->coord.t[1] + (((s16)work->field_526 - coord->coord.t[1]) >> 4);
+            enemy->coord = &((TmdObject*)task->extra)->coords[work->field_557];
+        case 1:
+            Actor206100_UpdateColor(task);
+            obj->flags &= 0xFF7F;
+            break;
+    }
+    svp = &scratch.gte.vec;
+    out = &scratch.gte.out;
+    __asm__("lui %0, %%hi(gGfxViewCoord); addiu %1, %0, %%lo(gGfxViewCoord)"
+            : "=&r"(viewhi), "=r"(view));
+    vecp               = &scratch.gte.m.mac;
+    flagp              = &flag;
+    last               = (Actor206100Work*)task->work;
+    walk               = &((TmdObject*)task->extra)->coords[work->field_557];
+    end                = (GpEnemy*)task->spawnArg2;
+    scratch.gte.out.vx = 0;
+    scratch.gte.out.vy = 0;
+    scratch.gte.out.vz = 0;
+    scratch.gte.vec.vx = 0;
+    scratch.gte.vec.vy = 0;
+    scratch.gte.vec.vz = 0;
+loop:
+    if (walk->sub != NULL) {
+        if (walk != view) {
+            gte_SetTransMatrix(&walk->coord);
+            gte_SetRotMatrix(&walk->coord);
+            gte_ldv0(svp);
+            gte_rtv0tr_real();
+            gte_stlvnl(vecp);
+            gte_stflg(flagp);
+            scratch.gte.vec.vx = (u16)scratch.gte.m.mac.vx;
+            scratch.gte.vec.vy = (u16)scratch.gte.m.mac.vy;
+            scratch.gte.vec.vz = (u16)scratch.gte.m.mac.vz;
+            walk               = walk->sub;
+            goto loop;
+        }
+        out->vx = scratch.gte.vec.vx;
+        out->vy = scratch.gte.vec.vy;
+        out->vz = scratch.gte.vec.vz;
+    }
+    if ((s16)last->field_536 + 0x190 < scratch.gte.out.vy) {
+        end->node.flags = 1;
+    } else {
+        end->node.flags = 0;
+    }
+}
 
 /// Teleport: ramps the white-out `func_actor_206100_8014DEAC` fades with, and
 /// once it is fully up, hands slot 3 the actor's new position and re-arms the
@@ -1351,34 +1632,6 @@ void func_actor_206100_8014D8E8(Task* task)
         work->field_522 = work->field_522 + 1;
     }
 }
-/// Push the model's second coordinate's world position onto `G_SCRATCH_HEAD`
-/// and hand it to `Gp_UpdateActorColor`.  The body is `ActorsShared8013a2c0`'s,
-/// inlined the way `Actor405800_UpdateColor` and `Actor400600_UpdateColor`
-/// inline it -- and it has to stay an inlined copy.  Only while expanding an
-/// inline body does cc1 keep the scratch head's absolute address folded into
-/// the memory operand (`lw $a1,0x1F8003FC` / `sw $a1,0x1F8003FC`, which the
-/// assembler expands to the `lui` + `%lo` pair); written out at the call site
-/// the same statements materialise the address in a register instead, and the
-/// three instructions that costs are the whole difference.
-static __inline__ void Actor206100_UpdateColor(Task* task)
-{
-    GsCOORDINATE2* coord;
-    void**         scratch;
-    u8*            head;
-    VECTOR*        block;
-
-    coord     = &((TmdObject*)task->extra)->coords[1];
-    scratch   = (void**)G_SCRATCH_HEAD;
-    head      = *scratch;
-    block     = (VECTOR*)(head - 0x10);
-    block->vx = coord->workm.t[0];
-    block->vy = coord->workm.t[1];
-    block->vz = coord->workm.t[2];
-    *scratch  = block;
-    Gp_UpdateActorColor(task->spawnArg2, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
-}
-
 /// State-2 tick: the `D_801153F4` effect mode 0 arm bumps the actor's two frame
 /// counters and runs the handler `funcs[(s16)field_520]` picks out of a
 /// two-entry local table, then drives the animation request and re-poses the
