@@ -349,7 +349,72 @@ void func_actor_421600_801350BC(Actor421600* arg0, s16 arg1, s32 arg2)
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_801354D8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80135F6C);
+void func_actor_421600_80135F6C(Actor421600* arg0)
+{
+    SVECTOR          offset;
+    Actor421600Work* work;
+    TmdObject*       obj;
+    s32              nextState;
+    s32              state;
+    u16              flags;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                        = arg0->field_2C;
+        arg0->field_20->node.flags = 0;
+        obj->flags                 = 0;
+        Tmd_AllocBuffers(obj);
+        flags = work->field_B6C.flags;
+        TOUCH_REG(flags);
+        work->field_832       = 0x10;
+        work->field_B6C.flags = flags | 0x4000;
+        state                 = work->field_82E;
+        do {
+            nextState = 0xD;
+        } while (0);
+        if (state == nextState) {
+            nextState = 1;
+        } else {
+            nextState = 2;
+        }
+        work->field_828 = nextState;
+        SOFT_BARRIER();
+        work->field_83E = 0;
+        work->field_840 = 0;
+        func_actor_421600_80134604(arg0);
+        return;
+    }
+    func_actor_421600_80134604(arg0);
+    if ((work->field_68 & 2) && (work->field_82E == 0xD)) {
+        work->field_82E = 1;
+        work->field_828 = 1;
+    }
+    if (work->field_68 & 0x100) {
+        if (work->field_82E == 0xF) {
+            work->field_828 = 2;
+            work->field_82E = 0x10;
+        }
+        func_actor_421600_80134604(arg0);
+    }
+    if (work->field_82E == 0xE) {
+        if ((u32)((work->field_5A & 0x3FF) - 8) < 2U) {
+            offset.vz = 0;
+            offset.vx = 0;
+            offset.vy = 0x2BC;
+            if (Gp_State1C->roomEffectMode == 2) {
+                Gp_SpawnEff(0x60054, arg0->field_2C->coords + 7, 0x80002300, &offset);
+            }
+        }
+        if ((work->field_5A & 0x3FF) == 8) {
+            offset.vz = 0;
+            offset.vx = 0;
+            offset.vy = 0x2BC;
+            if (Gp_State1C->roomEffectMode == 2) {
+                Gp_SpawnEff(0x60054, arg0->field_2C->coords + 7, 0x80003400, &offset);
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80136138);
 
