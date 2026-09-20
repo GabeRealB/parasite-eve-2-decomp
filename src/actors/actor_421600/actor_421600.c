@@ -2041,7 +2041,107 @@ void func_actor_421600_8013C8E0(Actor421600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013CD3C);
+void func_actor_421600_8013CD3C(Actor421600* arg0)
+{
+    TmdObject*              obj;
+    GpEnemy*                ctx;
+    Actor421600Work*        work;
+    GsCOORDINATE2*          coord;
+    GsCOORDINATE2*          coord2;
+    GsCOORDINATE2*          targetCoord;
+    GsCOORDINATE2*          facing;
+    GsCOORDINATE2*          facing2;
+    Actor421600TurnScratch* head;
+    Actor421600TurnScratch* scratch;
+    s16                     yaw;
+    s16                     delta;
+    s16                     z;
+    s16                     steps;
+    s16                     wrapped;
+    s32                     angle;
+    s32                     firstDelta;
+
+    head    = *(Actor421600TurnScratch**)G_SCRATCH_HEAD;
+    scratch = (*(Actor421600TurnScratch**)G_SCRATCH_HEAD = head - 1);
+    work    = arg0->field_1C;
+    ctx     = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj                    = arg0->field_2C;
+        obj->flags             = 0;
+        work->field_8EC.radius = 0x19C;
+        work->field_B6C.flags |= 0x4000;
+        ctx->node.flags        = 0;
+        work->field_828        = 1;
+        work->field_82E        = 0x14;
+        work->field_832        = 0x10;
+        work->field_6          = 0;
+    }
+    work->field_6 += 1;
+    func_actor_421600_80134604(arg0);
+    targetCoord     = arg0->field_2C->coords;
+    head[-1].vec.vx = (s16)(Player_Status.coordMtx->t[0] - targetCoord->coord.t[0]);
+    scratch->vec.vy = Player_Status.coordMtx->t[1] - targetCoord->coord.t[1];
+    z               = Player_Status.coordMtx->t[2] - targetCoord->coord.t[2];
+    scratch->vec.vz = z;
+    facing          = arg0->field_2C->coords;
+    angle           = ratan2((s32)head[-1].vec.vx, (s32)z);
+    delta           = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
+    wrapped         = delta;
+    if (delta < 0) {
+    wrapNegative:
+        if (wrapped < -0x800) {
+            wrapped += 0x1000;
+            goto wrapNegative;
+        }
+    } else {
+    wrapPositive:
+        if (wrapped >= 0x801) {
+            wrapped -= 0x1000;
+            goto wrapPositive;
+        }
+    }
+    firstDelta      = wrapped;
+    scratch->delta  = (s16)firstDelta;
+    work->field_840 = (u16)firstDelta;
+    if (scratch->delta < 0) {
+        if (abs(scratch->delta) >= 0x401) {
+            work->field_840 = firstDelta + 0x800;
+            scratch->delta += 0x800;
+        }
+    }
+    if (abs(scratch->delta) < 0x80) {
+        work->field_0 = 0x1C;
+    }
+    steps          = 0x1E - work->field_6;
+    scratch->steps = steps;
+    if (steps == 0) {
+        scratch->steps = 1;
+    }
+    facing2      = arg0->field_2C->coords;
+    yaw          = ((s16)scratch->delta / (s16)scratch->steps) + ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
+    scratch->yaw = yaw;
+    Gfx_RotMatrixY(&arg0->field_2C->coords->coord, (s32)yaw, 1);
+    Gfx_MatrixCol2(&arg0->field_2C->coords->coord, &scratch->vec);
+    VectorNormalSS(&scratch->vec, &scratch->vec);
+    gte_lddp(-0x1A);
+    gte_ldsv(&scratch->vec);
+    gte_gpf12_real();
+    gte_stsv(&scratch->vec);
+    coord               = arg0->field_2C->coords;
+    coord->coord.t[0]  += scratch->vec.vx;
+    coord2              = arg0->field_2C->coords;
+    coord2->coord.t[2] += scratch->vec.vz;
+    Actor421600_MoveForward(arg0->field_2C->coords, -8);
+    func_actor_421600_8013285C(arg0->field_2C->coords, &work->field_B8C, 0xC);
+    arg0->field_2C->coords->flg = 0;
+    if (abs(scratch->delta) < 0x20) {
+        work->field_0 = 0x1C;
+    }
+    if (work->field_68 & 0x100) {
+        work->field_0 = 0x1C;
+    }
+    *(Actor421600TurnScratch**)G_SCRATCH_HEAD += 1;
+}
 
 void func_actor_421600_8013D1DC(Actor421600* arg0)
 {
