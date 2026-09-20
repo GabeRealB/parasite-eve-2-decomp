@@ -621,32 +621,17 @@ void func_actor_342000_80162BBC(Task* arg0)
     work->field_68 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80162F28);
-
-/// Spawn table of the event task's children: entry 2 is the script parent,
-/// 3..7 its five script tasks and 8/9 the two effect actors.
-extern TaskDesc D_actor_342000_80164FF8;
-
-/// The two placements the event task seeds its work block with in state 4.
 extern Actor342000Move D_actor_342000_80164818[2];
-extern u8              D_actor_342000_80164968;
-extern u8              D_actor_342000_80164E30;
+extern Actor342000Move D_actor_342000_80164848[2];
+extern Actor342000Move D_actor_342000_80164878[2];
+extern Actor342000Move D_actor_342000_801648D0;
 extern u8              D_8007216C;
-extern s8              D_8007216D;
-extern s8              D_80114C11;
-extern u8              D_801153F4;
-extern u16             D_801855DE;
-extern TaskDesc        D_80187150;
-extern GpAreaApplyRec  D_8018FB6C[];
-extern u16             D_8018FBC8;
+extern s32             D_80070F70;
+extern s32             D_80144A74;
+extern s32             D_80144A7C;
 
-void func_80180FE4(s32 arg0, s32 arg1, s32 arg2);
-void func_8018507C(void);
-void func_actor_342000_80162F28(Task* arg0);
+void func_80143490(s32 arg0);
 
-/// The event task's leaf steps, inlined here; `actor_342000_3.c` carries the
-/// same bodies as out-of-line functions (`func_actor_342000_801641FC`,
-/// `801642B4`, `801642D4`, `80164154`).
 static inline void Actor342000_CopyMove(Actor342000Move* dst, Actor342000Move* src)
 {
     dst->field_0  = src->field_0;
@@ -657,6 +642,214 @@ static inline void Actor342000_CopyMove(Actor342000Move* dst, Actor342000Move* s
     dst->field_14 = src->field_14;
 }
 
+static inline void Actor342000_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
+{
+    Actor342000Work* ctx;
+    u16              i;
+    u16              first;
+
+    first = n == 8;
+    ctx   = (Actor342000Work*)task->work;
+    if (blend == 0) {
+        for (i = first; i < n; i++) {
+            ctx->slots[i].rate = 0x10;
+            Gp_AnimResetSlot(&ctx->ctx, i, anim);
+        }
+    } else {
+        for (i = first; i < n; i++) {
+            func_800B4114(&ctx->ctx, i, anim, 0, blend);
+        }
+    }
+}
+
+static inline s32 Actor342000_Sway(s32 x, s32 d)
+{
+    if (D_80070F70 & 1) {
+        return x + d;
+    }
+    return x - d;
+}
+
+static inline void Actor342000_Add(s32* value, s32 delta)
+{
+    *value += delta;
+}
+
+static inline void Actor342000_Store(s32* dst, s32 value)
+{
+    *dst = value;
+}
+
+void func_actor_342000_80162F28(Task* arg0)
+{
+    Actor342000EventWork* work;
+    Actor342000Work*      actor;
+    Actor342000Move*      src;
+    s32                   v;
+
+    work  = (Actor342000EventWork*)arg0->work;
+    actor = (Actor342000Work*)work->field_50->work;
+    switch ((u16)work->field_70) {
+        case 1:
+            switch ((u16)work->field_72) {
+                case 0:
+                    Gp_DispatchMsg(work->field_50, 0x7D5, 1, 0);
+                    Gp_DispatchMsg(work->field_5C, 0x7D5, 1, 0);
+                    Gp_DispatchMsg(work->field_60, 0x7D5, 1, 0);
+                    Actor342000_CopyMove(&work->field_0[0], &D_actor_342000_80164818[0]);
+                    Actor342000_CopyMove(&work->field_0[1], &D_actor_342000_80164818[1]);
+                    actor->field_264.vx     = 0x1000;
+                    actor->field_264.vy     = 0x1000;
+                    actor->field_264.vz     = 0x1000;
+                    src                     = &D_actor_342000_801648B8;
+                    work->field_30.field_0  = src->field_0;
+                    work->field_30.field_4  = src->field_4;
+                    work->field_30.field_8  = src->field_8;
+                    work->field_30.field_10 = src->field_10;
+                    work->field_30.field_12 = src->field_12;
+                    work->field_30.field_14 = src->field_14;
+                    work->field_74          = 0;
+                    work->field_72++;
+                case 1:
+                    if (++work->field_74 == 60) {
+                        Actor342000_SetAnim(work->field_50, 1, 10, 8);
+                        Actor342000_SetAnim(work->field_54, 1, 10, 4);
+                        Actor342000_SetAnim(work->field_58, 1, 10, 4);
+                    }
+                    actor->field_264.vx      -= 4;
+                    work->field_0[0].field_0 += 5;
+                    work->field_0[1].field_0 -= 5;
+                    Gp_DispatchMsg(work->field_5C, 0x7D4, (s32)&work->field_0[0], 0);
+                    Gp_DispatchMsg(work->field_60, 0x7D4, (s32)&work->field_0[1], 0);
+                    work->field_30.field_4 += 3;
+                    Gp_DispatchMsg(work->field_50, 0x7D4, (s32)&work->field_30, 0);
+                    break;
+            }
+            return;
+        case 2:
+            switch ((u16)work->field_72) {
+                case 0:
+                    Gp_DispatchMsg(work->field_5C, 0x7D5, 0, 0);
+                    Gp_DispatchMsg(work->field_60, 0x7D5, 0, 0);
+                    Gp_DispatchMsg(work->field_50, 0x7D4, (s32)&D_actor_342000_801648D0, 0);
+                    Actor342000_SetAnim(work->field_50, 0, 0, 8);
+                    Actor342000_SetAnim(work->field_54, 0, 0, 4);
+                    Actor342000_SetAnim(work->field_58, 0, 0, 4);
+                    work->field_72++;
+                case 1:
+                    actor->field_264.vx -= 4;
+                    break;
+            }
+            return;
+        case 3:
+            switch ((u16)work->field_72) {
+                case 0:
+                    Gp_DispatchMsg(work->field_5C, 0x7D5, 1, 0);
+                    Gp_DispatchMsg(work->field_60, 0x7D5, 1, 0);
+                    Gp_DispatchMsg(work->field_50, 0x7D4, (s32)&D_actor_342000_801648B8, 0);
+                    Actor342000_CopyMove(&work->field_0[0], &D_actor_342000_80164848[0]);
+                    Actor342000_CopyMove(&work->field_0[1], &D_actor_342000_80164848[1]);
+                    work->field_72++;
+                case 1:
+                    actor->field_264.vx -= 4;
+                    Actor342000_Add(&work->field_0[0].field_0, 5);
+                    Actor342000_Add(&work->field_0[1].field_0, -5);
+                    v = Actor342000_Sway(work->field_0[0].field_8, -20);
+                    Actor342000_Store(&work->field_0[0].field_8, v);
+                    v = Actor342000_Sway(work->field_0[1].field_8, 20);
+                    Actor342000_Store(&work->field_0[1].field_8, v);
+                    Gp_DispatchMsg(work->field_5C, 0x7D4, (s32)&work->field_0[0], 0);
+                    Gp_DispatchMsg(work->field_60, 0x7D4, (s32)&work->field_0[1], 0);
+                    break;
+            }
+            return;
+        case 0:
+            break;
+        case 4:
+            D_8007216C     = 8;
+            work->field_64 = Task_Spawn(1, 0x2D, 0x10, 0);
+            break;
+        case 5:
+            if (work->field_64 != NULL) {
+                taskKill(work->field_64);
+            }
+            break;
+        case 6:
+            if ((u16)work->field_72 == 0) {
+                SndEvt_EnqueueType6(0x5428000B, 0, 0);
+                work->field_7E = 1;
+                work->field_72++;
+            }
+            if (gGameSession->at4.loc.view == 0xF) {
+                Gp_DispatchMsg(work->field_5C, 0x7D5, 0, 0);
+                Gp_DispatchMsg(work->field_60, 0x7D5, 0, 0);
+            } else {
+                Gp_DispatchMsg(work->field_5C, 0x7D5, 1, 0);
+                Gp_DispatchMsg(work->field_60, 0x7D5, 1, 0);
+            }
+            work->field_0[0].field_0 += 5;
+            work->field_0[1].field_0 -= 5;
+            Gp_DispatchMsg(work->field_5C, 0x7D4, (s32)&work->field_0[0], 0);
+            Gp_DispatchMsg(work->field_60, 0x7D4, (s32)&work->field_0[1], 0);
+            return;
+        case 7:
+            D_8007216C = work->field_78;
+            break;
+        case 8:
+            switch ((u16)work->field_72) {
+                case 0:
+                    Gp_DispatchMsg(work->field_5C, 0x7D5, 1, 0);
+                    Gp_DispatchMsg(work->field_60, 0x7D5, 1, 0);
+                    Actor342000_CopyMove(&work->field_0[0], &D_actor_342000_80164878[0]);
+                    Actor342000_CopyMove(&work->field_0[1], &D_actor_342000_80164878[1]);
+                    work->field_72++;
+                case 1:
+                    work->field_0[0].field_0 += 5;
+                    work->field_0[1].field_0 -= 5;
+                    if (work->field_0[0].field_0 >= 0x36B0) {
+                        work->field_0[0].field_0 = 0x36B0;
+                        work->field_0[1].field_0 = 0x36B0;
+                        Task_Reparent(arg0, Gp_SpawnScript18((s32)&D_80144A74, (s32)&D_80144A7C));
+                        func_80143490(3);
+                        work->field_70 = 0;
+                    }
+                    Gp_DispatchMsg(work->field_5C, 0x7D4, (s32)&work->field_0[0], 0);
+                    Gp_DispatchMsg(work->field_60, 0x7D4, (s32)&work->field_0[1], 0);
+                    break;
+            }
+            return;
+        case 9:
+            SndEvt_EnqueueType7(0x5428000B, 1);
+            SndEvt_EnqueueType6(0x5428000C, 0, 0);
+            Task_Reparent(arg0, Gp_SpawnScript18((s32)&D_80144A74, (s32)&D_80144A7C));
+            func_80143490(3);
+            break;
+        default:
+            break;
+    }
+    work->field_70 = 0;
+}
+
+/// Spawn table of the event task's children: entry 2 is the script parent,
+/// 3..7 its five script tasks and 8/9 the two effect actors.
+extern TaskDesc D_actor_342000_80164FF8;
+
+extern u8             D_actor_342000_80164968;
+extern u8             D_actor_342000_80164E30;
+extern s8             D_8007216D;
+extern s8             D_80114C11;
+extern u8             D_801153F4;
+extern u16            D_801855DE;
+extern TaskDesc       D_80187150;
+extern GpAreaApplyRec D_8018FB6C[];
+extern u16            D_8018FBC8;
+
+void func_80180FE4(s32 arg0, s32 arg1, s32 arg2);
+void func_8018507C(void);
+
+/// The event task's leaf steps, inlined here; `actor_342000_3.c` carries the
+/// same bodies as out-of-line functions (`func_actor_342000_801641FC`,
+/// `801642B4`, `801642D4`, `80164154`).
 static inline void Actor342000_KillFx(void)
 {
     Actor342000EventWork* work;

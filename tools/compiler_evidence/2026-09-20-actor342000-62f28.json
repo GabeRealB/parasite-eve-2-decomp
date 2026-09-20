@@ -1,0 +1,125 @@
+{
+  "function": "func_actor_342000_80162F28",
+  "date": "2026-09-20",
+  "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+  "target_sha256": "40408272741b9cdd48368f9b781e42b1b5c24f3785b67009139faae1ddf018cc",
+  "sources": {
+    "base_1": {
+      "c_sha256": "71a5f467eb0bb5f69cb23c4ecd7939e500f7a1a565f8efd2942036d6ee427657",
+      "i_sha256": "b5503e478b66078f284c0ee758e12cc44864ea1795a6a885f906e5568db4aece",
+      "build": {
+        "assembly_sha256": "b38cb7483c757a2105aa147dc0065482da3e425c269a3c8133d969fbdd44001b",
+        "at": "2026-09-20T08:45:03.399327+00:00",
+        "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "distance": 1174,
+        "duplicate_of": "base_1.c",
+        "expected": "Calls match and lhu restored; remaining case-3 scheduling unchanged",
+        "failure": 0,
+        "first_changed_pass": "rtl",
+        "flags": "-I /home/gabriel/pe2-ov-actor_342000/include -I /home/gabriel/pe2-ov-actor_342000/build -I /home/gabriel/pe2-ov-actor_342000/include/psyq -I /home/gabriel/pe2-ov-actor_342000/include/decomp -I /home/gabriel/pe2-ov-actor_342000/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_342000/include -I /home/gabriel/pe2-ov-actor_342000/build -I /home/gabriel/pe2-ov-actor_342000/include/psyq -I /home/gabriel/pe2-ov-actor_342000/include/decomp -I /home/gabriel/pe2-ov-actor_342000/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+        "hypothesis": "Archived API and field signedness names are stale: target calls taskKill and loads field_72 unsigned in case 6",
+        "parent": "base.c",
+        "pass_name": "rtl",
+        "penalties": {
+          "branch": 9,
+          "delete": 6,
+          "insert": 5,
+          "regs": 13,
+          "reorder": 0,
+          "stack": 0
+        },
+        "preprocessed_sha256": "b5503e478b66078f284c0ee758e12cc44864ea1795a6a885f906e5568db4aece",
+        "project": "/home/gabriel/pe2-ov-actor_342000",
+        "score": 97.96533795493934,
+        "source": "base_1.c",
+        "source_sha256": "71a5f467eb0bb5f69cb23c4ecd7939e500f7a1a565f8efd2942036d6ee427657",
+        "target_sha256": "40408272741b9cdd48368f9b781e42b1b5c24f3785b67009139faae1ddf018cc"
+      }
+    },
+    "base_3": {
+      "c_sha256": "08c19880cbae991a3159123532160e3d2680f74bf609aba1d60f78778842928d",
+      "i_sha256": "fb7ba71d67cdd2d11e35a1155f95025e77d52ad1d8c38e5da390551ef01b0dba",
+      "build": {
+        "assembly_sha256": "5b3c75041054f2d238f3207c09652dba528b4e7db3ce8a372f8644838cbf1aa7",
+        "at": "2026-09-20T08:48:43.487719+00:00",
+        "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "distance": 1037,
+        "duplicate_of": null,
+        "expected": "D load follows both X stores and first sway store; early-return sway shape and v0/v1 paired X loads survive",
+        "failure": 0,
+        "first_changed_pass": "rtl",
+        "flags": "-I /home/gabriel/pe2-ov-actor_342000/include -I /home/gabriel/pe2-ov-actor_342000/build -I /home/gabriel/pe2-ov-actor_342000/include/psyq -I /home/gabriel/pe2-ov-actor_342000/include/decomp -I /home/gabriel/pe2-ov-actor_342000/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_342000/include -I /home/gabriel/pe2-ov-actor_342000/build -I /home/gabriel/pe2-ov-actor_342000/include/psyq -I /home/gabriel/pe2-ov-actor_342000/include/decomp -I /home/gabriel/pe2-ov-actor_342000/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+        "hypothesis": "Plain scalar dereferences in inline coordinate-update helpers retain true dependencies from coordinate stores to subsequent D loads; current member stores lose those edges",
+        "parent": "base_1.c",
+        "pass_name": "sched",
+        "penalties": {
+          "branch": 7,
+          "delete": 4,
+          "insert": 6,
+          "regs": 6,
+          "reorder": 0,
+          "stack": 0
+        },
+        "preprocessed_sha256": "fb7ba71d67cdd2d11e35a1155f95025e77d52ad1d8c38e5da390551ef01b0dba",
+        "project": "/home/gabriel/pe2-ov-actor_342000",
+        "score": 98.20898100172711,
+        "source": "base_3.c",
+        "source_sha256": "08c19880cbae991a3159123532160e3d2680f74bf609aba1d60f78778842928d",
+        "target_sha256": "40408272741b9cdd48368f9b781e42b1b5c24f3785b67009139faae1ddf018cc"
+      }
+    },
+    "base_4": {
+      "c_sha256": "0ef307dadf0c2c7d2850cc93ff74cc9b20b4c7f6c6ded5577d5f18689c1e797c",
+      "i_sha256": "ed20edd6e8f45480080b80452665c86143277bea32865713d65d90ea464d49a1",
+      "build": {
+        "assembly_sha256": "be555e264f6af03ac2122f184e570d3595d0ee1581a1b91fd0da95f0d33bd4c2",
+        "at": "2026-09-20T08:49:19.939756+00:00",
+        "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "distance": 0,
+        "duplicate_of": null,
+        "expected": "Keep base_3 exact X prefix and D dependencies; eliminate destination pointer live across branches and restore bnez plus arithmetic delay slots",
+        "failure": 0,
+        "first_changed_pass": null,
+        "flags": "-I /home/gabriel/pe2-ov-actor_342000/include -I /home/gabriel/pe2-ov-actor_342000/build -I /home/gabriel/pe2-ov-actor_342000/include/psyq -I /home/gabriel/pe2-ov-actor_342000/include/decomp -I /home/gabriel/pe2-ov-actor_342000/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_342000/include -I /home/gabriel/pe2-ov-actor_342000/build -I /home/gabriel/pe2-ov-actor_342000/include/psyq -I /home/gabriel/pe2-ov-actor_342000/include/decomp -I /home/gabriel/pe2-ov-actor_342000/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+        "hypothesis": "Sway destination pointer spanning both arms blocks branch conversion; materialize destination only after Sway returns while retaining plain scalar store dependency",
+        "parent": "base_3.c",
+        "pass_name": "jump2",
+        "penalties": {
+          "branch": 0,
+          "delete": 0,
+          "insert": 0,
+          "regs": 0,
+          "reorder": 0,
+          "stack": 0
+        },
+        "preprocessed_sha256": "ed20edd6e8f45480080b80452665c86143277bea32865713d65d90ea464d49a1",
+        "project": "/home/gabriel/pe2-ov-actor_342000",
+        "score": 100.0,
+        "source": "base_4.c",
+        "source_sha256": "0ef307dadf0c2c7d2850cc93ff74cc9b20b4c7f6c6ded5577d5f18689c1e797c",
+        "target_sha256": "40408272741b9cdd48368f9b781e42b1b5c24f3785b67009139faae1ddf018cc"
+      }
+    }
+  },
+  "observations": {
+    "base_1.i.sched:1129": "(insn/i 1129 1780 1781 (set (reg:SI 359)\n        (mem:SI (lo_sum:SI (reg:SI 357)\n                (symbol_ref:SI (\"D_80070F70\"))))) 172 {movsi_internal2} (insn_list 1127 (nil))\n    (expr_list:REG_DEAD (reg:SI 357)\n        (nil)))",
+    "base_1.i.sched:1118": "(insn 1118 1116 1782 (set (mem/s:SI (plus:SI (reg/v:SI 81)\n                (const_int 24)))\n        (reg:SI 353)) 172 {movsi_internal2} (insn_list:REG_DEP_OUTPUT 1104 (insn_list:REG_DEP_ANTI 1100 (insn_list:REG_DEP_ANTI 1114 (insn_list 1116 (nil)))))\n    (expr_list:REG_DEAD (reg:SI 353)\n        (nil)))",
+    "base_3.i.sched:1113": "(insn/i 1113 1112 1127 (set (mem:SI (reg/v:SI 81))\n        (reg:SI 352)) 172 {movsi_internal2} (insn_list:REG_DEP_OUTPUT 1104 (insn_list:REG_DEP_ANTI 1100 (insn_list:REG_DEP_ANTI 1111 (insn_list 1112 (nil)))))\n    (expr_list:REG_DEAD (reg:SI 352)\n        (nil)))",
+    "base_3.i.sched:1128": "(insn/i 1128 1127 1145 (set (mem:SI (plus:SI (reg/v:SI 81)\n                (const_int 24)))\n        (reg:SI 356)) 172 {movsi_internal2} (insn_list:REG_DEP_OUTPUT 1104 (insn_list:REG_DEP_ANTI 1100 (insn_list:REG_DEP_ANTI 1126 (insn_list 1127 (nil)))))\n    (expr_list:REG_DEAD (reg:SI 356)\n        (nil)))",
+    "base_3.i.sched:1148": "(insn/i 1148 1146 1134 (set (reg:SI 362)\n        (mem:SI (lo_sum:SI (reg:SI 360)\n                (symbol_ref:SI (\"D_80070F70\"))))) 172 {movsi_internal2} (insn_list 1113 (insn_list 1128 (insn_list 1146 (nil))))\n    (expr_list:REG_DEAD (reg:SI 360)\n        (nil)))",
+    "base_3.i.dbr:1964": "(insn 1964 1149 1151 (sequence[ \n            (jump_insn/i 1150 1149 1136 (set (pc)\n                    (if_then_else (eq:SI (reg:SI 2 v0)\n                            (const_int 0))\n                        (label_ref 1157)\n                        (pc))) 243 {branch_zero} (insn_list:REG_DEP_ANTI 1136 (insn_list:REG_DEP_ANTI 1143 (insn_list 1149 (nil))))\n                (expr_list:REG_DEAD (reg:SI 2 v0)\n                    (nil)))\n            (insn 1136 1150 1151 (set (reg/v:SI 4 a0)\n                    (plus:SI (reg/v:SI 17 s1)\n                        (const_int 8))) 3 {addsi3_internal} (nil)\n                (nil))\n        ] ) -1 (nil)\n    (nil))",
+    "base_3.i.dbr:1966": "(insn 1966 1151 1967 (sequence[ \n            (jump_insn/i 1154 1151 1152 (set (pc)\n                    (label_ref 1164)) 317 {jump} (insn_list:REG_DEP_ANTI 1152 (nil))\n                (nil))\n            (insn/i 1152 1154 1967 (set (reg:SI 2 v0)\n                    (plus:SI (reg/v:SI 3 v1)\n                        (const_int -20))) 3 {addsi3_internal} (nil)\n                (expr_list:REG_DEAD (const_int 0)\n                    (nil)))\n        ] ) -1 (nil)\n    (nil))",
+    "base_4.i.sched:1143": "(insn/i 1143 1141 1144 (set (reg:SI 361)\n        (mem:SI (lo_sum:SI (reg:SI 359)\n                (symbol_ref:SI (\"D_80070F70\"))))) 172 {movsi_internal2} (insn_list 1113 (insn_list 1128 (insn_list 1141 (nil))))\n    (expr_list:REG_DEAD (reg:SI 359)\n        (nil)))",
+    "base_4.i.sched:1168": "(insn/i 1168 1179 1180 (set (mem:SI (plus:SI (reg/v:SI 81)\n                (const_int 8)))\n        (reg/v:SI 85)) 172 {movsi_internal2} (nil)\n    (expr_list:REG_DEAD (reg/v:SI 85)\n        (nil)))",
+    "base_4.i.sched:1183": "(insn/i 1183 1181 1184 (set (reg:SI 370)\n        (mem:SI (lo_sum:SI (reg:SI 368)\n                (symbol_ref:SI (\"D_80070F70\"))))) 172 {movsi_internal2} (insn_list 1168 (insn_list 1181 (nil)))\n    (expr_list:REG_DEAD (reg:SI 368)\n        (nil)))",
+    "base_4.i.jump2:1145": "(jump_insn/i 1145 1144 1146 (set (pc)\n        (if_then_else (eq:SI (reg:SI 2 v0)\n                (const_int 0))\n            (label_ref 1152)\n            (pc))) 243 {branch_zero} (insn_list:REG_DEP_ANTI 1136 (insn_list 1144 (nil)))\n    (expr_list:REG_DEAD (reg:SI 2 v0)\n        (nil)))",
+    "base_4.i.jump2:1149": "(jump_insn/i 1149 1147 1150 (set (pc)\n        (label_ref 1159)) 317 {jump} (insn_list:REG_DEP_ANTI 1147 (nil))\n    (nil))",
+    "base_4.i.dbr:2009": "(insn 2009 1144 1146 (sequence[ \n            (jump_insn/i 1145 1144 1147 (set (pc)\n                    (if_then_else (ne:SI (reg:SI 2 v0)\n                            (const_int 0))\n                        (label_ref 1159)\n                        (pc))) 243 {branch_zero} (insn_list:REG_DEP_ANTI 1136 (insn_list 1144 (nil)))\n                (expr_list:REG_DEAD (reg:SI 2 v0)\n                    (nil)))\n            (insn/s/i 1147 1145 1146 (set (reg/v:SI 2 v0)\n                    (plus:SI (reg/v:SI 3 v1)\n                        (const_int -20))) 3 {addsi3_internal} (nil)\n                (expr_list:REG_DEAD (const_int 0)\n                    (nil)))\n        ] ) -1 (nil)\n    (nil))"
+  },
+  "scope": "Preplanned manual experiments; no accepted permuter source transformation. Dumps show scalar store/load dependencies and destination lifetime/dbr differences. Internal reorg path was not traced.",
+  "verification": "OK: all 7430 matched functions are still C (or legitimately shared)\n\u2705 BUILD SUCCEEDED. Everything matched and there were no compiler or linter errors\n",
+  "archive": "tools/permuter_findings/func_actor_342000_80162F28/sessions/e7cdd65976fe44af8cdd228eb95cf554/a2b2173105bc8f8c2c1a"
+}

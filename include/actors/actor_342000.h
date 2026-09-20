@@ -129,7 +129,7 @@ STATIC_ASSERT_SIZEOF(Actor342000Work, 0x2AC);
 /// are once-only latches guarding a sound cue and the fade-out setup.
 typedef struct Actor342000EventWork {
     /* 0x00 */ Actor342000Move field_0[2];
-    /* 0x30 */ byte            pad_30[0x18];
+    /* 0x30 */ Actor342000Move field_30;
     /* 0x48 */ Task*           field_48;
     /* 0x4C */ s32             field_4C;
     /* 0x50 */ Task*           field_50;
@@ -144,7 +144,8 @@ typedef struct Actor342000EventWork {
     /* 0x6E */ byte            pad_6E[0x2];
     /* 0x70 */ s16             field_70;
     /* 0x72 */ s16             field_72;
-    /* 0x74 */ byte            pad_74[0x4];
+    /* 0x74 */ u16             field_74;
+    /* 0x76 */ byte            pad_76[0x2];
     /* 0x78 */ s16             field_78;
     /* 0x7A */ u16             field_7A;
     /* 0x7C */ u16             field_7C;
