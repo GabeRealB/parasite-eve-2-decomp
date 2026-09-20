@@ -1,18 +1,152 @@
 #include "common.h"
 
 #include "actors/actor_105400.h"
+#include "main/mem.h"
+#include "main/sound.h"
 
-#include "gameplay/1BC.h"
-#include "main/task.h"
+/// The spawn's offset pair; `field_8` is the vector the enemy's local
+/// position and the second list node are both seeded from.
+extern Actor05400Pose D_actor_105400_80133A30;
 
-/// Each enemy task's three state handlers - spawn/setup, per-frame tick
-/// and teardown - dispatched through by state.
-extern GpEnemyTaskFuncTable3 D_actor_105400_80131E24;
+/// The pair source `GpEnemy::param` points at; its `hpMax` is the HP the
+/// context's `field_40` is seeded with.
+extern GpPairSrcE D_actor_105400_8013CE30;
 
-void func_actor_105400_801337DC(Task* arg0)
+/// HP/pose words read straight out of the overlay data: `[0]` is the value
+/// stored in `Actor05400Work::field_33C`, which the per-frame handler reads as
+/// `Actor05400Work::field_338`.
+extern u16 D_actor_105400_8013CE34[];
+
+/// Sound-event base the spawn ORs `(enemy id >> 12) << 8` into.
+extern s32 D_actor_105400_8013CE60;
+
+/// One pan/volume row per `gGameSession::at4.loc.view`, played at spawn.
+extern Actor05400SndRow D_actor_105400_8013CE64[];
+
+/// Task descriptors the spawn hands `Gp_SpawnEnemyFromTable` (entry 1 is the
+/// per-frame dispatcher `func_actor_105400_801337DC`).
+extern TaskDesc D_actor_105400_8013CEA0[];
+
+/// Animation bank `func_800B3F84` builds the work block's clip context from.
+extern u8 D_actor_105400_8013CEB8[];
+
+/// The message table the task is put on (`Task::msgTable`).
+extern u8 D_actor_105400_80133A00[];
+
+INCLUDE_ASM("actors/nonmatchings/actor_105400/actor_105400_2", func_actor_105400_80132BAC);
+
+INCLUDE_ASM("actors/nonmatchings/actor_105400/actor_105400_2", func_actor_105400_80132DAC);
+
+/// Spawn/setup handler. It allocates the 0x340-byte work block and hangs it on
+/// the task, points the model's coordinate and its two matrices (0x244 colour,
+/// 0x264 light) at the block, and seeds the enemy's local position and the
+/// second `GpObj` from the spawn offsets.
+///
+/// The block's 0x14 prefix becomes the `GpAnimCtx`: `func_800B3F84` loads the
+/// animation bank into it over the ten `GpAnimSlot`s and slots 1..9 are reset.
+/// The two `GpObj` nodes at 0x284 / 0x2A4 are linked onto list 2 with their two
+/// `GpRec18` records (`Gp_InitRec18Table`), each carrying the "last element"
+/// flag 0x8000. A child enemy is spawned from `D_actor_105400_8013CEA0` and its
+/// model pointed at the placement record's texture page and CLUT row, then the
+/// task moves to the tick handler (`state` 1).
+///
+/// A failed allocation tears the enemy down instead and leaves the task on this
+/// handler.
+void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
 {
-    GpEnemyTaskFuncTable3 sp;
+    TmdObject*      obj;
+    TmdObject*      model;
+    GsCOORDINATE2*  coord;
+    Actor05400Work* work;
+    GpAreaKey       key;
+    GpAreaRec*      rec;
+    GpAreaPlace*    place;
+    GpAreaKey*      sessionKey;
+    Actor05400Pose* pose;
+    Actor05400Pose* pose2;
+    s32             idx;
+    s32             sound;
+    s32             i;
 
-    sp = D_actor_105400_80131E24;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+    obj   = arg1->extra;
+    coord = obj->coords;
+    work  = memCalloc(0x340, 0);
+    if (work == NULL) {
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+    arg1->work     = (TaskIdMap*)work;
+    obj->flags     = 0;
+    coord->flg     = 0;
+    obj->lightMtx  = &work->field_264;
+    obj->colorMtx  = &work->field_244;
+    arg0->field_4  = &coord->coord;
+    arg0->field_48 = 0;
+    Gp_LinkNode(&arg0->node);
+    arg0->coord      = coord;
+    pose             = &D_actor_105400_80133A30;
+    arg0->bodyPos.vx = pose->field_8.vx;
+    arg0->bodyPos.vy = pose->field_8.vy;
+    arg0->bodyPos.vz = pose->field_8.vz;
+    arg0->param      = &D_actor_105400_8013CE30;
+    arg0->recs       = work->recs;
+    arg0->hp         = D_actor_105400_8013CE30.hpMax;
+    work->coord      = coord;
+    work->field_2F8  = 0x500;
+    work->field_2FA  = 3;
+    func_800B3F84((GpAnimCtx*)work, D_actor_105400_8013CEB8, obj, work->poses,
+                  work->slots);
+    for (i = 1; i < 0xA; i++) {
+        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+    }
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    work->field_334      = 1;
+    work->field_326      = 0x1000;
+    work->field_2FC      = coord->coord;
+    work->field_338      = 1;
+    work->field_33C      = D_actor_105400_8013CE34[0];
+    work->node0.coord    = coord;
+    work->node0.ctx.recs = work->recs;
+    work->node0.pos.vx   = 0;
+    work->node0.pos.vy   = 0;
+    work->node0.pos.vz   = 0;
+    work->node0.key      = 0x30036;
+    work->node0.radius   = 0x5DC;
+    work->node0.flags    = 1;
+    Gp_LinkObj(2, &work->node0);
+    Gp_InitRec18Table(work->recs, 2, 0);
+    work->node1.coord    = coord;
+    work->node1.ctx.recs = work->recs;
+    work->node0.flags    = (u16)(work->node0.flags | 0x8000);
+    pose2                = &D_actor_105400_80133A30;
+    work->node1.pos.vx   = pose2->field_8.vx;
+    work->node1.pos.vy   = pose2->field_8.vy;
+    work->node1.pos.vz   = pose2->field_8.vz;
+    work->node1.key      = 0x30036;
+    work->node1.radius   = 0x12C;
+    work->node1.flags    = 1;
+    Gp_LinkObj(2, &work->node1);
+    work->node1.flags = (u16)(work->node1.flags | 0x8000);
+    model             = Gp_SpawnEnemyFromTable(&D_actor_105400_8013CEA0, 1, 0, arg0)->task->extra;
+    idx               = arg0->placeKey >> 12;
+    sessionKey        = (GpAreaKey*)&gGameSession->at4.loc;
+    key.stage         = sessionKey->stage;
+    key.area          = sessionKey->area;
+    key.room          = sessionKey->room;
+    key.view          = sessionKey->view;
+    Gp_SyncAreaKeyIndex(&key);
+    rec          = Gp_GetNestedAreaRec(&key);
+    place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    model->tpage = place->tpage;
+    model->clut  = place->clut;
+    if (model->buffer != NULL) {
+        tmdProcessStream(model);
+        tmdProcessStream(model);
+    }
+    sound           = D_actor_105400_8013CE60 | ((((GpEnemy*)arg1->spawnArg2)->placeKey >> 12) << 8);
+    work->field_31C = sound;
+    SndEvt_EnqueueType6(sound, D_actor_105400_8013CE64[gGameSession->at4.loc.view].field_0,
+                        D_actor_105400_8013CE64[gGameSession->at4.loc.view].field_2);
+    arg1->msgTable = D_actor_105400_80133A00;
+    arg1->state    = 1;
 }

@@ -1,0 +1,78 @@
+{
+  "function": "func_actor_105300_8013246C",
+  "session": "09617f0e1cbe4d388230fa94e385d364",
+  "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+  "scope": "Controlled duplicate-arm CSE join and subsequent named-byte-constant scheduling change; no tracer used",
+  "inputs": {
+    "base_4.i": "a977d46566c4a2b48e00c464250ac0c1369657251002c2c111fb61cce51fce7c",
+    "base_6.i": "82585439e70917880110cf45c9cf398350c351169605e4dbe3ac60669b0839ae",
+    "base_7.i": "6ea2dde63923a677b7f24786141f029c31d2816677ff439b0b72ddc5a8a649ec",
+    "base_8.i": "4a2326a745f01550eb43a73cb4bf14efce8a07a46c2a0a4af69195dada77e581"
+  },
+  "results": {
+    "base_4": {
+      "score": 99.14870689655173,
+      "distance": 395,
+      "penalties": {
+        "stack": 0,
+        "branch": 0,
+        "regs": 3,
+        "reorder": 3,
+        "insert": 1,
+        "delete": 1
+      }
+    },
+    "base_6": {
+      "score": 99.40732758620689,
+      "distance": 275,
+      "penalties": {
+        "stack": 0,
+        "branch": 0,
+        "regs": 3,
+        "reorder": 1,
+        "insert": 1,
+        "delete": 1
+      }
+    },
+    "base_7": {
+      "score": 100.0,
+      "distance": 0,
+      "penalties": {
+        "stack": 0,
+        "branch": 0,
+        "regs": 0,
+        "reorder": 0,
+        "insert": 0,
+        "delete": 0
+      }
+    },
+    "base_8": {
+      "score": 100.0,
+      "distance": 0,
+      "penalties": {
+        "stack": 0,
+        "branch": 0,
+        "regs": 0,
+        "reorder": 0,
+        "insert": 0,
+        "delete": 0
+      }
+    }
+  },
+  "observations": [
+    "base_7 UID187 conditional survives sched2 and is deleted by jump2; UID258 QI const1 survives cse2.",
+    "base_6 sched1 block22 T-3 selects const271 before high268 backward. base_7 selects high271 before const258, both launch priority.",
+    "base_7 QI pseudo90 occupies v1; high pseudo159 occupies v0. compare_6_7 confirms high span6->4 and local/final home3->2.",
+    "base_7 and final-style base_8 match exactly. Unscoped shared build verifies actor105300 and actor105400.",
+    "Router gain 768->623 inherited wrong-case D_80115416 store; parent, seed and seven outputs rejected. No permutation integrated."
+  ],
+  "retained_evidence": "tools/permuter_findings/func_actor_105300_8013246C/",
+  "scratch_evidence": [
+    "LEARNINGS.md",
+    "PERMUTER_ANALYSIS.md",
+    "compare_6_7.txt",
+    "insn_match_evidence.txt",
+    "experiments.jsonl",
+    "verify-shared-3.log"
+  ]
+}

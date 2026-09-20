@@ -19,6 +19,7 @@
 typedef struct Actor05300Obj2C {
     /* 0x00 */ byte           pad_0[8];
     /* 0x08 */ GsCOORDINATE2* field_8;
+    /* 0x0C */ u16            field_C;
 } Actor05300Obj2C;
 
 /// Work block of the task this enemy hangs off -- the spawn reaches it as

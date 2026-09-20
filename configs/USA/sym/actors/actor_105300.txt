@@ -11,3 +11,6 @@ ActorsShared8013391c = 0x8013391C; // shared body, see src/actors/lib/
 ActorsShared80133838 = 0x80133838; // shared body, see src/actors/lib/
 ActorsShared80133610 = 0x80133610; // shared body, see src/actors/lib/
 ActorsShared80133610Table = 0x80133A18; // shared body data, see src/actors/lib/
+ActorsShared8013246cClips = 0x8013D3EC; // shared death animation clip table
+ActorsShared8013246cReleaseArgs = 0x80133A2C; // shared death handler release-argument table
+ActorsShared8013246c = 0x8013246C; // shared body, see src/actors/lib/

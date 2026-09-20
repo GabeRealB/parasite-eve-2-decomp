@@ -136194,3 +136194,41 @@ Notes, predictions, sources, inputs and compressed RTL evidence are retained in
 `tools/permuter_findings/func_actor_105300_8013310C/`, session
 `d0a2a182dc504f54a08d1def7002adfe`. The required router found no output; these
 were subsequent manual experiments informed by the sibling and archived hypothesis.
+
+
+## A CSE join can preserve a fresh narrow constant until late branch merging (actor105300 3246C, 2026-09-20)
+
+A case-0 byte store reused the switch comparison's SI constant-1 register in
+cse2, deleting the separate QI literal. Giving it a writable soft-asm range
+only emitted a copy from s0; forcing allocator rematerialization produced li
+too late to affect sched1. The archived loop wrapper constrained scheduling
+without preventing the second CSE pass from reusing the wider constant.
+
+Equivalent duplicate arms around the three state halfword stores and random
+update retained a common join through cse2. The byte literal after that join
+survived, and jump2 subsequently removed the redundant conditional. Carrying
+the random state across the join, rather than the countdown result, preserved
+the target's arithmetic and random-state store order (base_6, 99.407%).
+
+The remaining constant/address swap was resolved by explicitly assigning a
+named s8 flag before the countdown store and using it in the final byte store.
+The preplanned base_7 experiment changed the original RTL order: sched1
+block22's actual T-3 backward selection switched from constant then address to
+address then constant, both at LAUNCH_PRIORITY. The address's local/final home
+changed v1->v0 and the byte flag occupied v1. sched2 placed the countdown store
+between li and lui, producing 100%. This is dump-observed selection, not a
+general claim that comparator rank overrides hazards.
+
+The duplicated source arms are equivalent but must survive CSE; no register
+pins or new asm helpers were needed. All existing animation helper constraints
+were preserved. Original source shape is unknown; arbitrary duplicate arms
+are not guaranteed to merge or preserve homes. The router's apparent gain
+was excluded: its archived seed and every output put the flag store in the
+wrong switch case. Structural agreement alone did not detect that mistake.
+
+Inputs: base_6.i `82585439e70917880110cf45c9cf398350c351169605e4dbe3ac60669b0839ae`,
+base_7.i `6ea2dde63923a677b7f24786141f029c31d2816677ff439b0b72ddc5a8a649ec`.
+Compiler and selected observations: `tools/compiler_evidence/2026-09-20-actor105300-3246c.json`.
+Sources, plans, dumps and notes: `tools/permuter_findings/func_actor_105300_8013246C/`,
+session `09617f0e1cbe4d388230fa94e385d364`. Final shared body serves actor105300
+and actor105400 and passed the unscoped build.
