@@ -22,16 +22,10 @@ used by the project build. It does not need the downloaded GCC sources.
 
 ## Automated checks
 
-* Regression suite: 73 tests covering instruction/RTL parsing, ambiguous
+* Regression suite: 60 tests covering instruction/RTL parsing, ambiguous
   correspondence, false allocation/scheduling inferences, source citations,
   trace provenance, edit boundaries, constraints, intervention guardrails,
   retention, failures, timeouts and portable report paths.
-  Structured-search tests additionally cover side-effect evaluation,
-  dangling-else binding, scope/type restrictions, fresh names, source-context
-  preservation, dynamically exposed edits, neutral multi-step exploration,
-  deterministic priorities, failure accounting and stale-baseline rejection.
-  Native C execution checks run when `cc` is installed; they compare return
-  values and memory side effects over bounded inputs, not all C executions.
 * Missing and incomplete source trees are reported explicitly. Missing files or
   definitions never produce a citation path or line number.
 * Two bundled replay cases check assembly hashes, register-allocation and
@@ -70,60 +64,6 @@ Choose any new output directory when rerunning:
 python3 -B tools/divergence/tests/smoke.py --output /tmp/new-divergence-smoke
 ```
 
-## Structured source search
-
-The `smart` command was exercised with the pinned bundled compiler above,
-the ordinary assembler, and the independent scorer with stack differences
-enabled. No mutation plans or target source text are supplied to the search.
-The fixture driver compiles the target sources into objects first.
-
-```sh
-python3 -B tools/divergence/tests/smart_smoke.py --output /tmp/new-smart-checks
-```
-
-`tests/smart_checks.json` contains all four synthetic baseline/target pairs.
-These cases were selected after surveying the compiler's response to the
-implemented transformations. With seed 0, beam 4, fanout 16, depth 3 and a
-64-build maximum, the measured results were:
-
-| Case | Initial distance | Final distance | Search builds | Winning transformations |
-|---|---:|---:|---:|---|
-| Branch inversion | 470 | 0 | 7 | `invert_if` |
-| Barrier placement | 161 | 0 | 3 | `sched_barrier` |
-| Temporary materialization | 501 | 0 | 4 | `dead_store` |
-| Combined branch and temporary | 890 | 0 | 32 | `dead_store`, then `invert_if` |
-
-Counts include baseline reproduction and the printing control, but exclude
-fixture setup and final independent verification. All four printing controls
-preserved the normalized assembly. All exported winners were independently
-rebuilt and their `.text` bytes agreed exactly with the fixture targets.
-The temporary fixture can be reached through a dead-store temporary because
-the overwritten initialization disappears during compilation.
-
-Two additional trials used preprocessed sources and target objects from local
-archived game-function attempts, copied into isolated test directories:
-
-| Function | Initial distance | Best distance | Search builds |
-|---|---:|---:|---:|
-| `func_actor_403200_8013B740` | 232 | 232 | 32 |
-| `func_actor_104900_80137FB8` | 35 | 35 | 64 |
-
-Both exhausted their budgets without improving. Their printing controls also
-preserved assembly. These archive inputs are local evidence, not bundled
-fixtures or new project matches. The driver can test another archived permuter
-directory containing preprocessed `base.c` and `target.o`:
-
-```sh
-python3 -B tools/divergence/tests/smart_smoke.py \
-  --archive ARCHIVE --function FUNCTION --budget 64 --output /tmp/new-smart-trial
-```
-
-The driver copies inputs, uses the current bundled compiler rather than an
-archived shell script, retains generated sources/reports/hashes, and recompiles
-the exported best candidate independently. The synthetic successes establish
-that automatic structured generation and composition work. These trials do
-not establish a search-speed advantage or success on arbitrary near-matches.
-
 ## Historical compiler interventions
 
 During implementation, two interventions were measured on one nontrivial
@@ -157,10 +97,6 @@ successful source fixes. The tool does not reconstruct every rejected combine
 pattern, loop decision or delay-slot candidate. Those claims need additional
 instrumentation and durable known-answer cases.
 
-`propose --plan` still materializes only simple operand-order edits and adjacent
-constant field-store ordering. `smart` additionally generates the restricted
-AST rewrites described above. It does not yet implement general alias analysis,
-arbitrary statement/loop restructuring, compiler-intervention-driven synthesis,
-cross-run learning or automatic semantic equivalence checking. Volatile
-temporary generation is available explicitly, but it adds accesses and is not
-part of the default search operators.
+Automated concrete source generation covers simple operand-order edits and
+adjacent constant field-store ordering. Other edits remain explicit proposals
+for an agent or human to formulate before probing.
