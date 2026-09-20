@@ -135201,3 +135201,36 @@ for this compiler's RTL, not a claim about portable signed-shift semantics.
 No register pins, empty asm or tracer were needed. Selected sources, input
 hashes, compiler hash, predictions and relevant dump blocks are retained in
 `tools/compiler_evidence/2026-09-20-actor105100-35e54.json`.
+
+
+## A range-redundant short cast can preserve a copy until combine (func_actor_105100_80135B40, 2026-09-20)
+
+With `s32 cur` already masked to `0xfff`, `s32 next = cur` disappears during
+CSE. Writing `next = (s16)cur` instead preserves the conversion through CSE,
+then combine simplifies it to a register copy using the known range. That copy
+arrives after CSE and survives. This controlled one-line change took base_3
+from 95.738% to base_7 at 100%, without pins or empty asm.
+
+Observed in base_7: CSE UID 127 shifts cur (r84) left by 16; UID 128 shifts
+right into next (r89). Combine deletes UID 127 and changes UID 128 to
+`set r89 r84`. Cur's references/span fall from 5/16 to 4/14; the global order
+now places adiff before cur and their homes change from a1/a0 to a0/a1.
+Next gets v0. Dbr sequence 399 puts UID 128 in the unchanged blez UID 133
+slot; both following arithmetic arms retain their jumps. The direct-copy
+variant instead fills the branch with arithmetic and inverts it.
+
+The surrounding types matter: target is s16, which keeps its separate entry
+copy, while the wrap step is an s32 initialized from target before the sign
+branch. Making the step s16 promotes it separately in both arms. Making cur
+s16 introduces a shared left shift that remains across blocks; merely naming
+an SI intermediate does not remove it. A cast is only value-preserving here
+because cur is in 0..4095. These are dump observations and a successful
+preplanned prediction, not a claim about all narrowing casts or reorg paths.
+
+Evidence: scratch `nonmatchings/func_actor_105100_80135B40-vacuum`, base_3/base_7
+CSE/combine/greg/dbr dumps and compare_3_7.txt. Input SHA256 base_3.i
+`c29b4ee40231a0ebc2185e8107529fef18022e95ae9578ffe330f1a5319f4291`, base_7.i
+`d8c6687fa29572302e1a6db5075ede4b1cc2fc2b1d4782e24a82264dd10caff8`; compiler
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Full unscoped build and lost-match check passed. The router skipped the earlier
+95.832% candidate for differing block connections; no permuter gain contributed.

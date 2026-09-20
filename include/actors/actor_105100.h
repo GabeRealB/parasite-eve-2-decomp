@@ -8,6 +8,12 @@
 
 #include "gameplay/3A34.h"
 
+typedef struct Actor105100TurnScratch {
+    /* 0x00 */ VECTOR  vec;
+    /* 0x10 */ SVECTOR rot;
+} Actor105100TurnScratch;
+STATIC_ASSERT_SIZEOF(Actor105100TurnScratch, 0x18);
+
 /// The model object in `Actor105100::field_2C` (`Task::extra`), seen through
 /// this overlay: `field_8` is the object's trailing `GsCOORDINATE2` array and
 /// `field_1C` / `field_20` the light and colour matrices the spawn hands the

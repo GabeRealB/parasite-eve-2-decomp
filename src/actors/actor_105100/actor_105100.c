@@ -8,6 +8,7 @@
 #include "main/sound.h"
 
 #include "main/task.h"
+#include "main/wipsys.h"
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
@@ -765,7 +766,72 @@ void func_actor_105100_801359B4(Actor105100* arg0)
     *(VECTOR**)0x1F8003FC += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80135B40);
+void func_actor_105100_80135B40(Actor105100* arg0)
+{
+    Actor105100TurnScratch* sc;
+    GsCOORDINATE2*          coord;
+    s32                     ang;
+    s32                     cur;
+    s16                     target;
+    s16                     diff;
+    s32                     adiff;
+    s16                     snap;
+    s32                     next;
+    s32                     step;
+
+    sc         = (Actor105100TurnScratch*)(*(u32*)0x1F8003FC -= 0x18);
+    coord      = arg0->field_2C->field_8;
+    sc->vec.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    sc->vec.vy = 0;
+    sc->vec.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    ang        = ratan2((s32)(s16)sc->vec.vx, (s32)(s16)sc->vec.vz) & 0xFFF;
+    snap       = ang;
+    cur        = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
+    target     = cur;
+    diff       = ang - cur;
+    adiff      = diff >= 0 ? diff : -diff;
+    if (adiff < 0x800) {
+        target = ang;
+        if (adiff >= 0x51) {
+            next = (s16)cur;
+            if (diff > 0) {
+                target = next + 0x50;
+            } else {
+                target = next - 0x50;
+            }
+        }
+    } else {
+        if (diff > 0) {
+            if (0x1000 - diff < 0x51) {
+                goto snapTurn;
+            } else {
+                goto turn;
+            }
+        } else if (0x1000 + diff < 0x51) {
+            goto snapTurn;
+        } else {
+            goto turn;
+        }
+    snapTurn:
+        target = snap;
+        goto done;
+    turn:
+        step = (s16)target;
+        if (diff > 0) {
+            target = step - 0x50;
+        } else {
+            target = step + 0x50;
+        }
+    }
+done:
+    sc->rot.vx = 0;
+    sc->rot.vy = target;
+    sc->rot.vz = 0;
+    RotMatrix(&sc->rot, &coord->coord);
+    coord->coord.t[0] += (coord->coord.m[0][2] * 0xF) >> 0xA;
+    coord->coord.t[2] += (coord->coord.m[2][2] * 0xF) >> 0xA;
+    *(u32*)0x1F8003FC += 0x18;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80135CEC);
 
