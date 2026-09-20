@@ -3,6 +3,39 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Separate conditional stores preserve a global reload; declaration order breaks a global priority tie (func_actor_420700_80132644, 2026-09-20)
+
+The retry seed used a ternary store and a volatile first read of the actor
+work pointer. It scored 86.159%. Earlier notes inferred that the target's
+second pointer load, with a fresh HIGH address, must be reload rematerialization.
+That inference missed the source control-flow shape.
+
+Remove the volatile cast and write the mode assignment as separate stores in
+the two `if`/`else` arms. This reaches 99.386% with matching block connections,
+predicates and calls. The `.cse` dump already contains both HIGH/load pairs:
+UID57/60 with address r91 before the conditional, UID94/97 with address r100
+after its join. Stores UID80/90 remain separate through `.sched2`; `.jump2`
+cross-jumps the first to the second. A common store in the final assembly can
+therefore have been separate stores when CSE ran. No forced memory invalidation
+or reload-pressure trick is needed. Exact CSE path traversal was not traced.
+
+The remaining swap is a demonstrated **global** allocation tie. In base_1,
+work r83 and offset r84 each have four references over nine instructions,
+mutual conflicts, hard conflicts with v0/v1, and no copy preferences.
+`global.c:allocno_compare` breaks equal priorities by allocno number; work
+takes a0 before offset takes a1. The preplanned base_2 changes only declaration
+order: offset becomes r83 and work r84. `.lreg` preserves the statistics and
+`.greg` assigns offset=a0, work=a1, matching exactly. This is a narrow exception
+to treating declaration reordering as ineffective, not a rule for local quantities.
+
+The normal-header port also matches and passes the unscoped build. Router setup
+failed on an unused inherited `m2c_macros.h` include; no permutation contributed.
+Sources, plans, hashes and selected dumps are retained in
+`tools/compiler_evidence/2026-09-20-actor420700-32644.json`.
+Preprocessed inputs: base_1
+`b37b97a0bda1dc08773e1c40470781f2347bbd44442a0531f3996ff4934aa304`;
+base_2 `dfcbb674a0edc28c2b9d035b17f3a79602e034b5260ed8d5e020dd7fdbec8f46`.
+
 ## Delay the scratch-position copy through a flag load, with scalar accesses separating memory dependencies (func_actor_511000_80133B80, 2026-09-20)
 
 The archived 99.652% body had the right instruction order but assigned the

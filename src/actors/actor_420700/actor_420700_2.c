@@ -42,7 +42,7 @@ void func_actor_420700_801323D8(Task* task)
 /// running state. Steps 1 and 2 each return through their own copy of the
 /// advance; the two are identical, so jump.c cross-jumps them and only the
 /// second survives.
-void func_actor_420700_80132478(void)
+void func_actor_420700_80132478(Task* task)
 {
     if (ActorsShared80131f9cWork->field_4B4 == 1) {
         func_actor_420700_801325C8();

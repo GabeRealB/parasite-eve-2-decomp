@@ -21,7 +21,36 @@ void func_actor_420700_801325C8(void)
     ActorsShared80131f9cWork->field_4B6 = ActorsShared80131f9cWork->field_4B8;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_420700/actor_420700_3", func_actor_420700_80132644);
+s32 func_actor_420700_80132644(Task* task, s32 arg1, Actor420700Msg7D3* args)
+{
+    s32              offset;
+    Actor420700Work* work;
+
+    if (args->field_4 < 0x15) {
+        switch (args->field_0) {
+            case 1:
+                offset = 0xA;
+                break;
+            case 2:
+                offset = 0x11;
+                break;
+            default:
+                offset = 0;
+                break;
+        }
+        work            = ActorsShared80131f9cWork;
+        work->field_4B8 = (u16)args->field_4 + offset;
+        if (args->field_8 != 0) {
+            work->field_4B4 = 1;
+        } else {
+            work->field_4B4 = 2;
+        }
+        ActorsShared80131f9cWork->field_4BE = 0;
+        func_actor_420700_80132478(D_actor_420700_8013EFE4);
+        return 0;
+    }
+    return -1;
+}
 
 /// Message 0x7D5 handler: rewrites `field_C` of every model object the state-0
 /// handler owns -- the actor's own task, its model task and the frame-8 twin.

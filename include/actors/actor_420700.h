@@ -24,7 +24,8 @@ typedef struct Actor420700Work {
     /* 0x4B8 */ s16        field_4B8; // animation id the slots are seeded with
     /* 0x4BA */ s16        field_4BA; // ramp mode message 0x7DB selected: 1 and 3 rise, 2 falls, 0 leaves it alone
     /* 0x4BC */ s16        field_4BC; // ramp value `ActorsShared80131f9cSub1` walks by 0x80, clamped to 0..0x1000
-    /* 0x4BE */ byte       pad_4BE[0xE2];
+    /* 0x4BE */ s16        field_4BE;
+    /* 0x4C0 */ byte       pad_4C0[0xE0];
 } Actor420700Work;
 STATIC_ASSERT_SIZEOF(Actor420700Work, 0x5A0);
 
@@ -44,6 +45,7 @@ extern Task* D_actor_420700_8013EFE8;
 /// `func_actor_420700_801327EC`.
 extern Task* D_actor_420700_8013EFEC;
 
+void func_actor_420700_80132478(Task* task);
 void func_actor_420700_801324EC(void);
 void func_actor_420700_801325C8(void);
 
@@ -56,6 +58,14 @@ typedef struct Actor420700ModeArgs {
     /* 0x2 */ u16 mode;
 } Actor420700ModeArgs;
 
+/// Message 0x7D3 selects an animation bank, index and transition mode.
+typedef struct Actor420700Msg7D3 {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ s32 field_4;
+    /* 0x8 */ s32 field_8;
+} Actor420700Msg7D3;
+
+s32 func_actor_420700_80132644(Task* task, s32 arg1, Actor420700Msg7D3* args);
 s32 func_actor_420700_80132784(Task* task, s32 arg1, Actor420700ModeArgs* args);
 
 /// The shared reset body `src/actors/lib/actors_shared_80132538.c`. Declared

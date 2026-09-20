@@ -1,0 +1,279 @@
+{
+  "function": "func_actor_420700_80132644",
+  "date": "2026-09-20",
+  "scope": "Manual controlled experiments; no pins, inline asm or compiler trace. Router setup failed on obsolete unused m2c_macros.h include; no permutation output contributed.",
+  "prediction_source": "base_2.c",
+  "observations": [
+    "Separate stores in the two mode arms preserve distinct global loads (UID60 and UID97) and HIGH pseudos (r91 and r100) through CSE. Late cross-jumping merges the stores after allocation.",
+    "Base_1 global r83 work and r84 offset each have refs=4 and span=9. They conflict with one another and v0/v1, with no copy preferences. Work allocates first into a0.",
+    "Base_2 changes only local declaration order. Offset becomes r83, work r84; global allocno tie-break now assigns offset=a0, work=a1. Object distance goes 27 to 0.",
+    "Ported base_3 also scores exactly with normal headers and typed callee parameter."
+  ],
+  "limits": [
+    "No runtime CSE path tracing was performed. The observed preservation precedes allocation, disproving the previous assertion that reload must create the second load.",
+    "Declaration ordering is relevant to this demonstrated GLOBAL priority tie; it does not specify local quantity order."
+  ],
+  "compiler_source": {
+    "global.c:594-619": "allocno_compare returns allocno difference when priority ties.",
+    "cse.c:8189": "cse_end_of_basic_block bounds expression knowledge by labels and eligible followed paths."
+  },
+  "events": [
+    {
+      "at": "2026-09-20T09:02:55.870269+00:00",
+      "event": "plan",
+      "expected": "Two mode arms and distinct pointer address pseudos survive CSE; the first pointer and mode value retain a1/v0 allocation without volatility",
+      "hypothesis": "Separate stores in both mode arms retain a branch boundary during CSE, allowing the common-tail global load to remain separate until late cross-jumping",
+      "parent": "base.c",
+      "pass_name": "cse",
+      "source": "base_1.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T09:03:09.610989+00:00",
+      "event": "conclude",
+      "next": "Run required router; investigate the tied global order while preserving separate mode stores",
+      "result": "99.386%; explicit stores retain distinct HIGH/load nodes in CSE and late cross-jump gives exact topology. Global work r83 and offset r84 tie at 4 refs/9 insns, allocating in pseudo order to a0/a1 instead of a1/a0.",
+      "source": "base_1.c",
+      "source_sha256": "74eee492f681b90fd3fb5173d6f97ff8ce942c1a78cba9dbd7fd48a9958d98b7"
+    },
+    {
+      "at": "2026-09-20T09:03:41.672946+00:00",
+      "event": "plan",
+      "expected": "Offset becomes r83 and takes a0; pointer becomes r84 and takes a1; CSE retains both loads and all instruction order remains equal",
+      "hypothesis": "Work pointer and animation offset are globally allocated with equal priority and conflicts; declaring offset first reverses their allocno tie-break",
+      "parent": "base_1.c",
+      "pass_name": "greg",
+      "source": "base_2.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T09:04:03.617989+00:00",
+      "event": "conclude",
+      "next": "Port normal header style and verify the complete build",
+      "result": "100.000%, all penalties zero. .lreg preserves equal 4/9 global ranks; .greg now assigns r83 offset to a0 before r84 pointer to a1, exactly as predicted; both load sequences and schedule survive.",
+      "source": "base_2.c",
+      "source_sha256": "168d709b747810d7de61c922375f90491b46e22246921a4abddac83d5c510575"
+    },
+    {
+      "at": "2026-09-20T09:04:44.172129+00:00",
+      "event": "plan",
+      "expected": "Exact 100 percent remains with all penalties zero",
+      "hypothesis": "Port to normal overlay headers, with a typed callee parameter and descriptive local name, preserves the proven body and declaration order",
+      "parent": "base_2.c",
+      "pass_name": "greg",
+      "source": "base_3.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T09:04:44.812812+00:00",
+      "event": "conclude",
+      "next": "Unscoped integration build and duplicate check",
+      "result": "Normal headers, typed callee and renamed offset preserve 100.000%, all-zero penalties and the expected .greg homes.",
+      "source": "base_3.c",
+      "source_sha256": "5172a0dc400865865b34e5c73adc5693c7a0c5ab7619b4d12c9bc88db2a994e9"
+    }
+  ],
+  "attempts": {
+    "base": {
+      "build": {
+        "assembly_sha256": "c4fe41972eddf4d15620cd4df21ccf1ea319c89ddb1aa0bfee18c9fdb30b1619",
+        "at": "2026-09-20T09:01:52.304319+00:00",
+        "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "distance": 609,
+        "duplicate_of": "base_6.c",
+        "expected": null,
+        "failure": 0,
+        "first_changed_pass": null,
+        "flags": "-I /home/gabriel/pe2-ov-actor_420700/include -I /home/gabriel/pe2-ov-actor_420700/build -I /home/gabriel/pe2-ov-actor_420700/include/psyq -I /home/gabriel/pe2-ov-actor_420700/include/decomp -I /home/gabriel/pe2-ov-actor_420700/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_420700/include -I /home/gabriel/pe2-ov-actor_420700/build -I /home/gabriel/pe2-ov-actor_420700/include/psyq -I /home/gabriel/pe2-ov-actor_420700/include/decomp -I /home/gabriel/pe2-ov-actor_420700/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+        "hypothesis": null,
+        "parent": null,
+        "pass_name": null,
+        "penalties": {
+          "branch": 2,
+          "delete": 4,
+          "insert": 1,
+          "regs": 21,
+          "reorder": 0,
+          "stack": 2
+        },
+        "preprocessed_sha256": "cb909e0a6a6d0ddf3a9102321e08a32e7896043154911749fe42aa929270783f",
+        "project": "/home/gabriel/pe2-ov-actor_420700",
+        "score": 86.1590909090909,
+        "source": "base.c",
+        "source_sha256": "e91bef693d5580d7e85756bbf488747f9b8c0cf46f46b3f0919e599a7ab66f06",
+        "target_sha256": "382beaca7c2fedc4e6b68ff6669aee386abdc873cc063ce9a407151003954290"
+      },
+      "source": "#include \"common.h\"\n#include \"main/task.h\"\n#include \"actors/actor_420700.h\"\n#include \"gameplay/1BC.h\"\n#include \"m2c_macros.h\"\n\nvoid func_actor_420700_80132478();\n\ns32 func_actor_420700_80132644(Task* task, s32 arg1, Actor420700Msg7D3* args)\n{\n    Actor420700Work* work;\n    s32 a;\n\n    if (args->field_4 < 0x15) {\n        switch (args->field_0) {\n            case 1:\n                a = 0xA;\n                break;\n            case 2:\n                a = 0x11;\n                break;\n            default:\n                a = 0;\n                break;\n        }\n        work = *(Actor420700Work* volatile*)&ActorsShared80131f9cWork;\n        work->field_4B8 = (u16)args->field_4 + a;\n        work->field_4B4 = (args->field_8 != 0) ? 1 : 2;\n        ActorsShared80131f9cWork->field_4BE = 0;\n        func_actor_420700_80132478(D_actor_420700_8013EFE4);\n        return 0;\n    }\n    return -1;\n}\n",
+      "input_sha256": "cb909e0a6a6d0ddf3a9102321e08a32e7896043154911749fe42aa929270783f",
+      "lreg_header": "\n;; Function func_actor_420700_80132644\n\n108 registers.\n\nRegister 82 used 5 times across 40 insns; GR_REGS or none; pointer.\n\nRegister 83 used 3 times across 11 insns; GR_REGS or none; pointer.\n\nRegister 84 used 4 times across 9 insns; GR_REGS or none.\n\nRegister 85 used 2 times across 4 insns in block 0; GR_REGS or none.\n\nRegister 86 used 2 times across 2 insns in block 0; GR_REGS or none.\n\nRegister 87 used 3 times across 5 insns; GR_REGS or none.\n\nRegister 88 used 2 times across 4 insns in block 1; GR_REGS or none.\n\nRegister 89 used 2 times across 4 insns in block 2; GR_REGS or none.\n\nRegister 91 used 3 times across 22 insns; GR_REGS or none; pointer.\n\nRegister 92 used 2 times across 6 insns in block 7; 2 bytes; GR_REGS or none.\n\nRegister 94 used 2 times across 2 insns in block 7; GR_REGS or none.\n\nRegister 95 used 3 times across 7 insns; 2 bytes; GR_REGS or none.\n\nRegister 96 used 2 times across 3 insns in block 7; GR_REGS or none.\n\nRegister 97 used 2 times across 4 insns in block 9; GR_REGS or none; pointer.\n\nRegister 101 used 2 times across 6 insns in block 9; GR_REGS or none; pointer.\n\n12 ",
+      "greg_header": "\n;; Function func_actor_420700_80132644\n\n;; 6 regs to allocate: 84 87 95 83 82 91\n;; 82 conflicts: 82 83 84 87 91 2 29\n;; 82 preferences: 6\n;; 83 conflicts: 82 83 84 91 95 2 3 4 29\n;; 84 conflicts: 82 83 84 91 2 29\n;; 87 conflicts: 82 87 2 29\n;; 91 conflicts: 82 83 84 91 95 2 29\n;; 95 conflicts: 83 91 95 2 3 4 29\n\n;; Register dispositions:\n82 in 6  83 in 7  84 in 3  85 in 2  86 in 2  87 in 3  \n88 in 2  89 in 2  91 in 4  92 in 2  94 in 2  95 in 5  \n96 in 2  97 in 3  101 in 2  \n\n;; Hard regs used:  2 3 4 5 6 7 31\n\n"
+    },
+    "base_1": {
+      "build": {
+        "assembly_sha256": "b35a9c94dbd138dd80d91e043f95afd9142ed73a2531181e1d18fec6cb64afd6",
+        "at": "2026-09-20T09:03:10.732546+00:00",
+        "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "distance": 27,
+        "duplicate_of": "base_1.c",
+        "expected": "Two mode arms and distinct pointer address pseudos survive CSE; the first pointer and mode value retain a1/v0 allocation without volatility",
+        "failure": 0,
+        "first_changed_pass": "rtl",
+        "flags": "-I /home/gabriel/pe2-ov-actor_420700/include -I /home/gabriel/pe2-ov-actor_420700/build -I /home/gabriel/pe2-ov-actor_420700/include/psyq -I /home/gabriel/pe2-ov-actor_420700/include/decomp -I /home/gabriel/pe2-ov-actor_420700/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_420700/include -I /home/gabriel/pe2-ov-actor_420700/build -I /home/gabriel/pe2-ov-actor_420700/include/psyq -I /home/gabriel/pe2-ov-actor_420700/include/decomp -I /home/gabriel/pe2-ov-actor_420700/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+        "hypothesis": "Separate stores in both mode arms retain a branch boundary during CSE, allowing the common-tail global load to remain separate until late cross-jumping",
+        "parent": "base.c",
+        "pass_name": "cse",
+        "penalties": {
+          "branch": 0,
+          "delete": 0,
+          "insert": 0,
+          "regs": 5,
+          "reorder": 0,
+          "stack": 2
+        },
+        "preprocessed_sha256": "b37b97a0bda1dc08773e1c40470781f2347bbd44442a0531f3996ff4934aa304",
+        "project": "/home/gabriel/pe2-ov-actor_420700",
+        "score": 99.38636363636364,
+        "source": "base_1.c",
+        "source_sha256": "74eee492f681b90fd3fb5173d6f97ff8ce942c1a78cba9dbd7fd48a9958d98b7",
+        "target_sha256": "382beaca7c2fedc4e6b68ff6669aee386abdc873cc063ce9a407151003954290"
+      },
+      "source": "#include \"common.h\"\n#include \"main/task.h\"\n#include \"actors/actor_420700.h\"\n#include \"gameplay/1BC.h\"\n#include \"m2c_macros.h\"\n\nvoid func_actor_420700_80132478();\n\ns32 func_actor_420700_80132644(Task* task, s32 arg1, Actor420700Msg7D3* args)\n{\n    Actor420700Work* work;\n    s32 a;\n\n    if (args->field_4 < 0x15) {\n        switch (args->field_0) {\n            case 1:\n                a = 0xA;\n                break;\n            case 2:\n                a = 0x11;\n                break;\n            default:\n                a = 0;\n                break;\n        }\n        work = ActorsShared80131f9cWork;\n        work->field_4B8 = (u16)args->field_4 + a;\n        if (args->field_8 != 0) {\n            work->field_4B4 = 1;\n        } else {\n            work->field_4B4 = 2;\n        }\n        ActorsShared80131f9cWork->field_4BE = 0;\n        func_actor_420700_80132478(D_actor_420700_8013EFE4);\n        return 0;\n    }\n    return -1;\n}\n",
+      "input_sha256": "b37b97a0bda1dc08773e1c40470781f2347bbd44442a0531f3996ff4934aa304",
+      "lreg_header": "\n;; Function func_actor_420700_80132644\n\n105 registers.\n\nRegister 82 used 5 times across 40 insns; GR_REGS or none; pointer.\n\nRegister 83 used 4 times across 9 insns; dies in 2 places; GR_REGS or none; pointer.\n\nRegister 84 used 4 times across 9 insns; GR_REGS or none.\n\nRegister 85 used 2 times across 4 insns in block 0; GR_REGS or none.\n\nRegister 86 used 2 times across 2 insns in block 0; GR_REGS or none.\n\nRegister 87 used 3 times across 5 insns; GR_REGS or none.\n\nRegister 88 used 2 times across 4 insns in block 1; GR_REGS or none.\n\nRegister 89 used 2 times across 4 insns in block 2; GR_REGS or none.\n\nRegister 91 used 2 times across 6 insns in block 7; GR_REGS or none; pointer.\n\nRegister 92 used 2 times across 6 insns in block 7; 2 bytes; GR_REGS or none.\n\nRegister 94 used 2 times across 2 insns in block 7; GR_REGS or none.\n\nRegister 95 used 2 times across 2 insns in block 7; GR_REGS or none.\n\nRegister 96 used 2 times across 4 insns in block 8; 2 bytes; GR_REGS or none.\n\nRegister 97 used 2 times across 4 insns in block 9; 2 bytes; GR_REGS or none.\n\nRegister 98 used 2 times across 3 insns in block 10; GR_REGS or none; pointer.\n\nRegister 100 used 2 times across 6 insns in block 10; GR_REGS or none; pointer.\n\nRegister 102 used 2 times across 6 insns in block 10; GR_REGS or none; pointer.\n\n13 ",
+      "greg_header": "\n;; Function func_actor_420700_80132644\n\n;; 4 regs to allocate: 83 84 87 82\n;; 82 conflicts: 82 83 84 87 2 3 29\n;; 82 preferences: 6\n;; 83 conflicts: 82 83 84 2 3 29\n;; 84 conflicts: 82 83 84 2 3 29\n;; 87 conflicts: 82 87 2 29\n\n;; Register dispositions:\n82 in 6  83 in 4  84 in 5  85 in 2  86 in 2  87 in 3  \n88 in 2  89 in 2  91 in 2  92 in 3  94 in 3  95 in 2  \n96 in 2  97 in 2  98 in 2  100 in 2  102 in 3  \n\n;; Hard regs used:  2 3 4 5 6 31\n\n",
+      "cse_nodes": [
+        "(insn 57 56 60 (set (reg:SI 91)\n        (high:SI (symbol_ref:SI (\"ActorsShared80131f9cWork\")))) 161 {high} (nil)\n    (expr_list:REG_EQUAL (high:SI (symbol_ref:SI (\"ActorsShared80131f9cWork\")))\n        (nil)))",
+        "(insn 60 57 61 (set (reg/v:SI 83)\n        (mem:SI (lo_sum:SI (reg:SI 91)\n                (symbol_ref:SI (\"ActorsShared80131f9cWork\"))))) 172 {movsi_internal2} (nil)\n    (nil))",
+        "(jump_insn 74 72 75 (set (pc)\n        (if_then_else (eq:SI (reg:SI 95)\n                (const_int 0))\n            (label_ref 84)\n            (pc))) 243 {branch_zero} (nil)\n    (nil))",
+        "(insn 78 76 80 (set (reg:HI 96)\n        (const_int 1)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUAL (const_int 1)\n        (nil)))",
+        "(insn 80 78 81 (set (mem/s:HI (plus:SI (reg/v:SI 83)\n                (const_int 1204)))\n        (reg:HI 96)) 187 {movhi_internal2} (nil)\n    (nil))",
+        "(jump_insn 82 81 83 (set (pc)\n        (label_ref 92)) -1 (nil)\n    (nil))",
+        "(code_label 84 83 85 8 \"\")",
+        "(insn 88 86 90 (set (reg:HI 97)\n        (const_int 2)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUAL (const_int 2)\n        (nil)))",
+        "(insn 90 88 91 (set (mem/s:HI (plus:SI (reg/v:SI 83)\n                (const_int 1204)))\n        (reg:HI 97)) 187 {movhi_internal2} (nil)\n    (nil))",
+        "(code_label 92 91 93 9 \"\")",
+        "(insn 94 93 97 (set (reg:SI 100)\n        (high:SI (symbol_ref:SI (\"ActorsShared80131f9cWork\")))) 161 {high} (nil)\n    (expr_list:REG_EQUAL (high:SI (symbol_ref:SI (\"ActorsShared80131f9cWork\")))\n        (nil)))",
+        "(insn 97 94 99 (set (reg:SI 98)\n        (mem:SI (lo_sum:SI (reg:SI 100)\n                (symbol_ref:SI (\"ActorsShared80131f9cWork\"))))) 172 {movsi_internal2} (nil)\n    (nil))"
+      ],
+      "sched2_stores": [
+        "(insn 78 76 80 (set (reg:HI 2 v0)\n        (const_int 1)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUIV (mem/s:HI (plus:SI (reg/v:SI 4 a0)\n                (const_int 1204)))\n        (expr_list:REG_EQUIV (const_int 1)\n            (nil))))",
+        "(insn 80 78 81 (set (mem/s:HI (plus:SI (reg/v:SI 4 a0)\n                (const_int 1204)))\n        (reg:HI 2 v0)) 187 {movhi_internal2} (insn_list 78 (nil))\n    (expr_list:REG_DEAD (reg/v:SI 4 a0)\n        (expr_list:REG_DEAD (reg:HI 2 v0)\n            (nil))))",
+        "(jump_insn 82 81 83 (set (pc)\n        (label_ref 92)) 317 {jump} (insn_list:REG_DEP_ANTI 80 (nil))\n    (nil))\n\n\n;; End of basic block 8.",
+        "(insn 88 86 90 (set (reg:HI 2 v0)\n        (const_int 2)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUIV (mem/s:HI (plus:SI (reg/v:SI 4 a0)\n                (const_int 1204)))\n        (expr_list:REG_EQUIV (const_int 2)\n            (nil))))",
+        "(insn 90 88 91 (set (mem/s:HI (plus:SI (reg/v:SI 4 a0)\n                (const_int 1204)))\n        (reg:HI 2 v0)) 187 {movhi_internal2} (insn_list 88 (nil))\n    (expr_list:REG_DEAD (reg/v:SI 4 a0)\n        (expr_list:REG_DEAD (reg:HI 2 v0)\n            (nil))))\n\n\n;; End of basic block 9."
+      ],
+      "jump2_stores": [
+        "(insn 78 76 81 (set (reg:HI 2 v0)\n        (const_int 1)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUIV (mem/s:HI (plus:SI (reg/v:SI 4 a0)\n                (const_int 1204)))\n        (expr_list:REG_EQUIV (const_int 1)\n            (nil))))",
+        "(jump_insn 82 81 83 (set (pc)\n        (label_ref 149)) 317 {jump} (insn_list:REG_DEP_ANTI 80 (nil))\n    (nil))\n\n\n;; End of basic block 8.",
+        "(insn 88 86 149 (set (reg:HI 2 v0)\n        (const_int 2)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUIV (mem/s:HI (plus:SI (reg/v:SI 4 a0)\n                (const_int 1204)))\n        (expr_list:REG_EQUIV (const_int 2)\n            (nil))))",
+        "(insn 90 149 91 (set (mem/s:HI (plus:SI (reg/v:SI 4 a0)\n                (const_int 1204)))\n        (reg:HI 2 v0)) 187 {movhi_internal2} (insn_list 88 (nil))\n    (expr_list:REG_DEAD (reg/v:SI 4 a0)\n        (expr_list:REG_DEAD (reg:HI 2 v0)\n            (nil))))\n\n\n;; End of basic block 9."
+      ]
+    },
+    "base_2": {
+      "build": {
+        "assembly_sha256": "d87a5396e7e8616ac3cf23e55914bac276af2b61d6504eb7cbc4865cd8ea8775",
+        "at": "2026-09-20T09:03:42.339524+00:00",
+        "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "distance": 0,
+        "duplicate_of": null,
+        "expected": "Offset becomes r83 and takes a0; pointer becomes r84 and takes a1; CSE retains both loads and all instruction order remains equal",
+        "failure": 0,
+        "first_changed_pass": null,
+        "flags": "-I /home/gabriel/pe2-ov-actor_420700/include -I /home/gabriel/pe2-ov-actor_420700/build -I /home/gabriel/pe2-ov-actor_420700/include/psyq -I /home/gabriel/pe2-ov-actor_420700/include/decomp -I /home/gabriel/pe2-ov-actor_420700/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_420700/include -I /home/gabriel/pe2-ov-actor_420700/build -I /home/gabriel/pe2-ov-actor_420700/include/psyq -I /home/gabriel/pe2-ov-actor_420700/include/decomp -I /home/gabriel/pe2-ov-actor_420700/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+        "hypothesis": "Work pointer and animation offset are globally allocated with equal priority and conflicts; declaring offset first reverses their allocno tie-break",
+        "parent": "base_1.c",
+        "pass_name": "greg",
+        "penalties": {
+          "branch": 0,
+          "delete": 0,
+          "insert": 0,
+          "regs": 0,
+          "reorder": 0,
+          "stack": 0
+        },
+        "preprocessed_sha256": "dfcbb674a0edc28c2b9d035b17f3a79602e034b5260ed8d5e020dd7fdbec8f46",
+        "project": "/home/gabriel/pe2-ov-actor_420700",
+        "score": 100.0,
+        "source": "base_2.c",
+        "source_sha256": "168d709b747810d7de61c922375f90491b46e22246921a4abddac83d5c510575",
+        "target_sha256": "382beaca7c2fedc4e6b68ff6669aee386abdc873cc063ce9a407151003954290"
+      },
+      "source": "#include \"common.h\"\n#include \"main/task.h\"\n#include \"actors/actor_420700.h\"\n#include \"gameplay/1BC.h\"\n#include \"m2c_macros.h\"\n\nvoid func_actor_420700_80132478();\n\ns32 func_actor_420700_80132644(Task* task, s32 arg1, Actor420700Msg7D3* args)\n{\n    s32 a;\n    Actor420700Work* work;\n\n    if (args->field_4 < 0x15) {\n        switch (args->field_0) {\n            case 1:\n                a = 0xA;\n                break;\n            case 2:\n                a = 0x11;\n                break;\n            default:\n                a = 0;\n                break;\n        }\n        work = ActorsShared80131f9cWork;\n        work->field_4B8 = (u16)args->field_4 + a;\n        if (args->field_8 != 0) {\n            work->field_4B4 = 1;\n        } else {\n            work->field_4B4 = 2;\n        }\n        ActorsShared80131f9cWork->field_4BE = 0;\n        func_actor_420700_80132478(D_actor_420700_8013EFE4);\n        return 0;\n    }\n    return -1;\n}\n",
+      "input_sha256": "dfcbb674a0edc28c2b9d035b17f3a79602e034b5260ed8d5e020dd7fdbec8f46",
+      "lreg_header": "\n;; Function func_actor_420700_80132644\n\n105 registers.\n\nRegister 82 used 5 times across 40 insns; GR_REGS or none; pointer.\n\nRegister 83 used 4 times across 9 insns; GR_REGS or none.\n\nRegister 84 used 4 times across 9 insns; dies in 2 places; GR_REGS or none; pointer.\n\nRegister 85 used 2 times across 4 insns in block 0; GR_REGS or none.\n\nRegister 86 used 2 times across 2 insns in block 0; GR_REGS or none.\n\nRegister 87 used 3 times across 5 insns; GR_REGS or none.\n\nRegister 88 used 2 times across 4 insns in block 1; GR_REGS or none.\n\nRegister 89 used 2 times across 4 insns in block 2; GR_REGS or none.\n\nRegister 91 used 2 times across 6 insns in block 7; GR_REGS or none; pointer.\n\nRegister 92 used 2 times across 6 insns in block 7; 2 bytes; GR_REGS or none.\n\nRegister 94 used 2 times across 2 insns in block 7; GR_REGS or none.\n\nRegister 95 used 2 times across 2 insns in block 7; GR_REGS or none.\n\nRegister 96 used 2 times across 4 insns in block 8; 2 bytes; GR_REGS or none.\n\nRegister 97 used 2 times across 4 insns in block 9; 2 bytes; GR_REGS or none.\n\nRegister 98 used 2 times across 3 insns in block 10; GR_REGS or none; pointer.\n\nRegister 100 used 2 times across 6 insns in block 10; GR_REGS or none; pointer.\n\nRegister 102 used 2 times across 6 insns in block 10; GR_REGS or none; pointer.\n\n13 ",
+      "greg_header": "\n;; Function func_actor_420700_80132644\n\n;; 4 regs to allocate: 83 84 87 82\n;; 82 conflicts: 82 83 84 87 2 3 29\n;; 82 preferences: 6\n;; 83 conflicts: 82 83 84 2 3 29\n;; 84 conflicts: 82 83 84 2 3 29\n;; 87 conflicts: 82 87 2 29\n\n;; Register dispositions:\n82 in 6  83 in 4  84 in 5  85 in 2  86 in 2  87 in 3  \n88 in 2  89 in 2  91 in 2  92 in 3  94 in 3  95 in 2  \n96 in 2  97 in 2  98 in 2  100 in 2  102 in 3  \n\n;; Hard regs used:  2 3 4 5 6 31\n\n",
+      "cse_nodes": [
+        "(insn 57 56 60 (set (reg:SI 91)\n        (high:SI (symbol_ref:SI (\"ActorsShared80131f9cWork\")))) 161 {high} (nil)\n    (expr_list:REG_EQUAL (high:SI (symbol_ref:SI (\"ActorsShared80131f9cWork\")))\n        (nil)))",
+        "(insn 60 57 61 (set (reg/v:SI 84)\n        (mem:SI (lo_sum:SI (reg:SI 91)\n                (symbol_ref:SI (\"ActorsShared80131f9cWork\"))))) 172 {movsi_internal2} (nil)\n    (nil))",
+        "(jump_insn 74 72 75 (set (pc)\n        (if_then_else (eq:SI (reg:SI 95)\n                (const_int 0))\n            (label_ref 84)\n            (pc))) 243 {branch_zero} (nil)\n    (nil))",
+        "(insn 78 76 80 (set (reg:HI 96)\n        (const_int 1)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUAL (const_int 1)\n        (nil)))",
+        "(insn 80 78 81 (set (mem/s:HI (plus:SI (reg/v:SI 84)\n                (const_int 1204)))\n        (reg:HI 96)) 187 {movhi_internal2} (nil)\n    (nil))",
+        "(jump_insn 82 81 83 (set (pc)\n        (label_ref 92)) -1 (nil)\n    (nil))",
+        "(code_label 84 83 85 8 \"\")",
+        "(insn 88 86 90 (set (reg:HI 97)\n        (const_int 2)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUAL (const_int 2)\n        (nil)))",
+        "(insn 90 88 91 (set (mem/s:HI (plus:SI (reg/v:SI 84)\n                (const_int 1204)))\n        (reg:HI 97)) 187 {movhi_internal2} (nil)\n    (nil))",
+        "(code_label 92 91 93 9 \"\")",
+        "(insn 94 93 97 (set (reg:SI 100)\n        (high:SI (symbol_ref:SI (\"ActorsShared80131f9cWork\")))) 161 {high} (nil)\n    (expr_list:REG_EQUAL (high:SI (symbol_ref:SI (\"ActorsShared80131f9cWork\")))\n        (nil)))",
+        "(insn 97 94 99 (set (reg:SI 98)\n        (mem:SI (lo_sum:SI (reg:SI 100)\n                (symbol_ref:SI (\"ActorsShared80131f9cWork\"))))) 172 {movsi_internal2} (nil)\n    (nil))"
+      ],
+      "sched2_stores": [
+        "(insn 78 76 80 (set (reg:HI 2 v0)\n        (const_int 1)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUIV (mem/s:HI (plus:SI (reg/v:SI 5 a1)\n                (const_int 1204)))\n        (expr_list:REG_EQUIV (const_int 1)\n            (nil))))",
+        "(insn 80 78 81 (set (mem/s:HI (plus:SI (reg/v:SI 5 a1)\n                (const_int 1204)))\n        (reg:HI 2 v0)) 187 {movhi_internal2} (insn_list 78 (nil))\n    (expr_list:REG_DEAD (reg/v:SI 5 a1)\n        (expr_list:REG_DEAD (reg:HI 2 v0)\n            (nil))))",
+        "(jump_insn 82 81 83 (set (pc)\n        (label_ref 92)) 317 {jump} (insn_list:REG_DEP_ANTI 80 (nil))\n    (nil))\n\n\n;; End of basic block 8.",
+        "(insn 88 86 90 (set (reg:HI 2 v0)\n        (const_int 2)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUIV (mem/s:HI (plus:SI (reg/v:SI 5 a1)\n                (const_int 1204)))\n        (expr_list:REG_EQUIV (const_int 2)\n            (nil))))",
+        "(insn 90 88 91 (set (mem/s:HI (plus:SI (reg/v:SI 5 a1)\n                (const_int 1204)))\n        (reg:HI 2 v0)) 187 {movhi_internal2} (insn_list 88 (nil))\n    (expr_list:REG_DEAD (reg/v:SI 5 a1)\n        (expr_list:REG_DEAD (reg:HI 2 v0)\n            (nil))))\n\n\n;; End of basic block 9."
+      ],
+      "jump2_stores": [
+        "(insn 78 76 81 (set (reg:HI 2 v0)\n        (const_int 1)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUIV (mem/s:HI (plus:SI (reg/v:SI 5 a1)\n                (const_int 1204)))\n        (expr_list:REG_EQUIV (const_int 1)\n            (nil))))",
+        "(jump_insn 82 81 83 (set (pc)\n        (label_ref 149)) 317 {jump} (insn_list:REG_DEP_ANTI 80 (nil))\n    (nil))\n\n\n;; End of basic block 8.",
+        "(insn 88 86 149 (set (reg:HI 2 v0)\n        (const_int 2)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUIV (mem/s:HI (plus:SI (reg/v:SI 5 a1)\n                (const_int 1204)))\n        (expr_list:REG_EQUIV (const_int 2)\n            (nil))))",
+        "(insn 90 149 91 (set (mem/s:HI (plus:SI (reg/v:SI 5 a1)\n                (const_int 1204)))\n        (reg:HI 2 v0)) 187 {movhi_internal2} (insn_list 88 (nil))\n    (expr_list:REG_DEAD (reg/v:SI 5 a1)\n        (expr_list:REG_DEAD (reg:HI 2 v0)\n            (nil))))\n\n\n;; End of basic block 9."
+      ]
+    },
+    "base_3": {
+      "build": {
+        "assembly_sha256": "d87a5396e7e8616ac3cf23e55914bac276af2b61d6504eb7cbc4865cd8ea8775",
+        "at": "2026-09-20T09:04:44.665125+00:00",
+        "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "distance": 0,
+        "duplicate_of": "base_2.c",
+        "expected": "Exact 100 percent remains with all penalties zero",
+        "failure": 0,
+        "first_changed_pass": null,
+        "flags": "-I /home/gabriel/pe2-ov-actor_420700/include -I /home/gabriel/pe2-ov-actor_420700/build -I /home/gabriel/pe2-ov-actor_420700/include/psyq -I /home/gabriel/pe2-ov-actor_420700/include/decomp -I /home/gabriel/pe2-ov-actor_420700/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_420700/include -I /home/gabriel/pe2-ov-actor_420700/build -I /home/gabriel/pe2-ov-actor_420700/include/psyq -I /home/gabriel/pe2-ov-actor_420700/include/decomp -I /home/gabriel/pe2-ov-actor_420700/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+        "hypothesis": "Port to normal overlay headers, with a typed callee parameter and descriptive local name, preserves the proven body and declaration order",
+        "parent": "base_2.c",
+        "pass_name": "greg",
+        "penalties": {
+          "branch": 0,
+          "delete": 0,
+          "insert": 0,
+          "regs": 0,
+          "reorder": 0,
+          "stack": 0
+        },
+        "preprocessed_sha256": "cc1dcc33ecf4b0a2bfd1b9747d78a44c01ffb69f4d5824104fd3bbec9fe6d2be",
+        "project": "/home/gabriel/pe2-ov-actor_420700",
+        "score": 100.0,
+        "source": "base_3.c",
+        "source_sha256": "5172a0dc400865865b34e5c73adc5693c7a0c5ab7619b4d12c9bc88db2a994e9",
+        "target_sha256": "382beaca7c2fedc4e6b68ff6669aee386abdc873cc063ce9a407151003954290"
+      },
+      "source": "#include \"common.h\"\n#include \"main/task.h\"\n#include \"actors/actor_420700.h\"\n#include \"gameplay/1BC.h\"\n\ns32 func_actor_420700_80132644(Task* task, s32 arg1, Actor420700Msg7D3* args)\n{\n    s32 offset;\n    Actor420700Work* work;\n\n    if (args->field_4 < 0x15) {\n        switch (args->field_0) {\n            case 1:\n                offset = 0xA;\n                break;\n            case 2:\n                offset = 0x11;\n                break;\n            default:\n                offset = 0;\n                break;\n        }\n        work = ActorsShared80131f9cWork;\n        work->field_4B8 = (u16)args->field_4 + offset;\n        if (args->field_8 != 0) {\n            work->field_4B4 = 1;\n        } else {\n            work->field_4B4 = 2;\n        }\n        ActorsShared80131f9cWork->field_4BE = 0;\n        func_actor_420700_80132478(D_actor_420700_8013EFE4);\n        return 0;\n    }\n    return -1;\n}\n",
+      "input_sha256": "cc1dcc33ecf4b0a2bfd1b9747d78a44c01ffb69f4d5824104fd3bbec9fe6d2be",
+      "lreg_header": "\n;; Function func_actor_420700_80132644\n\n105 registers.\n\nRegister 82 used 5 times across 40 insns; GR_REGS or none; pointer.\n\nRegister 83 used 4 times across 9 insns; GR_REGS or none.\n\nRegister 84 used 4 times across 9 insns; dies in 2 places; GR_REGS or none; pointer.\n\nRegister 85 used 2 times across 4 insns in block 0; GR_REGS or none.\n\nRegister 86 used 2 times across 2 insns in block 0; GR_REGS or none.\n\nRegister 87 used 3 times across 5 insns; GR_REGS or none.\n\nRegister 88 used 2 times across 4 insns in block 1; GR_REGS or none.\n\nRegister 89 used 2 times across 4 insns in block 2; GR_REGS or none.\n\nRegister 91 used 2 times across 6 insns in block 7; GR_REGS or none; pointer.\n\nRegister 92 used 2 times across 6 insns in block 7; 2 bytes; GR_REGS or none.\n\nRegister 94 used 2 times across 2 insns in block 7; GR_REGS or none.\n\nRegister 95 used 2 times across 2 insns in block 7; GR_REGS or none.\n\nRegister 96 used 2 times across 4 insns in block 8; 2 bytes; GR_REGS or none.\n\nRegister 97 used 2 times across 4 insns in block 9; 2 bytes; GR_REGS or none.\n\nRegister 98 used 2 times across 3 insns in block 10; GR_REGS or none; pointer.\n\nRegister 100 used 2 times across 6 insns in block 10; GR_REGS or none; pointer.\n\nRegister 102 used 2 times across 6 insns in block 10; GR_REGS or none; pointer.\n\n13 ",
+      "greg_header": "\n;; Function func_actor_420700_80132644\n\n;; 4 regs to allocate: 83 84 87 82\n;; 82 conflicts: 82 83 84 87 2 3 29\n;; 82 preferences: 6\n;; 83 conflicts: 82 83 84 2 3 29\n;; 84 conflicts: 82 83 84 2 3 29\n;; 87 conflicts: 82 87 2 29\n\n;; Register dispositions:\n82 in 6  83 in 4  84 in 5  85 in 2  86 in 2  87 in 3  \n88 in 2  89 in 2  91 in 2  92 in 3  94 in 3  95 in 2  \n96 in 2  97 in 2  98 in 2  100 in 2  102 in 3  \n\n;; Hard regs used:  2 3 4 5 6 31\n\n"
+    }
+  },
+  "verification": {
+    "command": "./tools/build-and-verify.sh",
+    "exit_code": 0,
+    "output": "OK: all 7433 matched functions are still C (or legitimately shared)\n\u2705 BUILD SUCCEEDED. Everything matched and there were no compiler or linter errors\n",
+    "duplicates": "overlay_dup_index find: only this overlay; no promotion needed",
+    "build_entries": 7
+  }
+}
