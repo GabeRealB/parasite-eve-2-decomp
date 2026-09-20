@@ -276,6 +276,13 @@ typedef struct {
 } Actor421600ArenaScratch;
 STATIC_ASSERT_SIZEOF(Actor421600ArenaScratch, 0xC);
 
+typedef struct Actor421600RadiusScratch {
+    /* 0x0 */ s32 x;
+    /* 0x4 */ s32 z;
+    /* 0x8 */ s32 radius;
+} Actor421600RadiusScratch;
+STATIC_ASSERT_SIZEOF(Actor421600RadiusScratch, 0xC);
+
 /// Per-task actor context: `field_1C` is the work block above (the same
 /// pointer `Task::work` holds), `field_20` the `GpEnemy` in
 /// `Task::spawnArg2`, and `field_2C` the actor's `TmdObject`. Same shape as

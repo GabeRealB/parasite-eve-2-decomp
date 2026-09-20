@@ -1331,8 +1331,6 @@ void func_actor_421600_8013848C(Actor421600* arg0)
     *(SVECTOR**)G_SCRATCH_HEAD += 2;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80138750);
-
 /// Scans the 12 0x18-byte records at 0xCE4 for one whose `field_4` carries the
 /// 0x100000 kind, stopping at the first empty record. The 5-record twin of
 /// this body is `Actor00100_HasRecord10`, which reads the same halves of
@@ -1352,6 +1350,143 @@ static __inline__ s16 Actor421600_HasRecord10(Actor421600* arg0)
         }
     }
     return found;
+}
+
+static __inline__ s16 Actor421600_NormalizeYaw(s16 input)
+{
+    s16 value = input;
+    if (input < 0) {
+        while (1) {
+            if (value >= -0x800)
+                break;
+            value += 0x1000;
+        }
+    } else {
+        while (1) {
+            if (value <= 0x800)
+                break;
+            value -= 0x1000;
+        }
+    }
+    return value;
+}
+
+static __inline__ void Actor421600_ConfigPositionDelta(PlayerStatus* config, GsCOORDINATE2* coord, SVECTOR* pos)
+{
+    pos->vx = config->coordMtx->t[0] - coord->coord.t[0];
+    pos->vy = config->coordMtx->t[1] - coord->coord.t[1];
+    pos->vz = config->coordMtx->t[2] - coord->coord.t[2];
+}
+
+static __inline__ s16 Actor421600_PositionYaw(Actor421600* actor, SVECTOR* pos, PlayerStatus* config)
+{
+    GsCOORDINATE2* coord;
+    s32            angle;
+    Actor421600_ConfigPositionDelta(config, actor->field_2C->coords, pos);
+    coord = actor->field_2C->coords;
+    angle = ratan2(pos->vx, pos->vz);
+    return Actor421600_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+}
+
+static __inline__ s32 Actor421600_OutsideRadius(SVECTOR* pos, s16 radius)
+{
+    Actor421600RadiusScratch* head;
+    Actor421600RadiusScratch* scratch;
+    head                                         = *(Actor421600RadiusScratch**)G_SCRATCH_HEAD;
+    scratch                                      = head - 1;
+    *(Actor421600RadiusScratch**)G_SCRATCH_HEAD  = scratch;
+    scratch->x                                   = pos->vx;
+    scratch->z                                   = pos->vz;
+    scratch->radius                              = radius;
+    scratch->x                                  *= scratch->x;
+    scratch->z                                  *= scratch->z;
+    scratch->radius                             *= scratch->radius;
+    *(Actor421600RadiusScratch**)G_SCRATCH_HEAD += 1;
+    return scratch->x + scratch->z >= scratch->radius;
+}
+
+void func_actor_421600_80138750(Actor421600* arg0)
+{
+    Actor421600Work* work;
+    GpEnemy*         ctx;
+    TmdObject*       obj;
+    SVECTOR*         head;
+    SVECTOR*         vec;
+    s32              x, z;
+    s16              yaw;
+    s32              outside;
+    s32              state;
+
+    head = *(SVECTOR**)G_SCRATCH_HEAD;
+    vec  = (*(SVECTOR**)G_SCRATCH_HEAD = head - 2);
+    work = arg0->field_1C;
+    ctx  = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj             = arg0->field_2C;
+        ctx->node.flags = 0;
+        obj->flags      = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8EC.radius = 0x19C;
+        work->field_828        = 1;
+        work->field_82A        = 0;
+        work->field_82E        = 5;
+        work->field_83E        = 0;
+        work->field_6          = 0;
+        work->field_B6C.flags |= 0x4000;
+        work->field_832        = work->field_834;
+        Actor421600_ConfigPositionDelta(&Player_Status, arg0->field_2C->coords, vec);
+        VectorNormalSS(vec, vec);
+        gte_lddp(0x20);
+        gte_ldsv(vec);
+        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_stsv(vec);
+        x                       = head[-2].vx;
+        work->field_8A8         = 0;
+        work->field_8A4         = x;
+        z                       = vec->vz;
+        work->field_8B4         = 7;
+        work->field_8B6         = 1;
+        work->field_CCC.end1.vz = 0x320;
+        work->field_8AC         = z;
+        if ((work->field_E90.word & 0xFFFFFF) == 0x11402) {
+            work->field_0 = 5;
+        }
+    }
+    work->field_6 += 1;
+    func_actor_421600_80134604(arg0);
+    state = (s16)work->field_82E;
+    switch (state) {
+        case 5:
+            if (work->field_68 & 0x100) {
+                Actor421600_ConfigPositionDelta(&Player_Status, arg0->field_2C->coords, vec);
+                outside = Actor421600_OutsideRadius(vec, 2000);
+                if (outside) {
+                    work->field_0 = 0x26;
+                } else {
+                    work->field_0 = 0x1F;
+                }
+            }
+            break;
+        case 3:
+            yaw       = Actor421600_PositionYaw(arg0, vec, &Player_Status);
+            vec[1].vz = yaw;
+            if (Actor421600_HasRecord10(arg0)) {
+                Actor421600_MoveForward(arg0->field_2C->coords, 85);
+            } else {
+                Actor421600_MoveForward(arg0->field_2C->coords, 200);
+            }
+            if (func_actor_421600_8013285C(arg0->field_2C->coords, &work->field_B8C, 0xC)) {
+                work->field_0 = 0x23;
+            }
+            if ((s16)work->field_6 >= 0x15) {
+                work->field_828 = 1;
+                work->field_82A = 0;
+                work->field_82E = 5;
+                work->field_832 = work->field_834;
+            }
+            break;
+    }
+    *(SVECTOR**)G_SCRATCH_HEAD += 2;
 }
 
 /// Aim tick: on the live-actor edge it re-arms the model the way
