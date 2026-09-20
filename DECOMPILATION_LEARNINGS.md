@@ -135672,3 +135672,40 @@ __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(vec) : "memory");
 This creates observed load-to-address dependencies in `base_6.i.sched2`, restores both scheduling requirements without pins, and scores 100% with all-zero penalties. Zero-extending the low halves before subtraction preserves the stored halfword modulo 65536. This is a supported solution for this scheduling graph, not evidence of the original C spelling or a universal need for more asm. A nonvolatile read/write publish also freed the subtraction but changed pointer lifetimes, argument conflicts and delay filling, so it was not sufficient.
 
 Both baseline and split-load traces preserve their ordinary assembly. Compiler hash: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Input hashes: baseline `d0640b6a22eaa857a96e4886f1f0df93e3aa6f8821f366753099692055ae97d7`; split `75a323173e356be40d7ce0fb50e1d9e2f518f2685aab9051bb91366f91c92218`. Plans, scores, selected raw events and fingerprints are in `tools/compiler_evidence/2026-09-20-actor104900-357f0.json`; full evidence is retained under this function's `tools/permuter_findings/` snapshots.
+
+## Keep the sound call in each branch until late tail merging (func_actor_207200_8014A1C4, 2026-09-20)
+
+The 99.004% seed had four `lw / lui / ori` groups where the target wanted
+`lui / lw / ori`. Each source arm loaded `ctx` and assigned `id`; the shared
+tail loaded `ctx->placeKey`, shifted it, ORed in `id`, then called the sound
+helpers. The final graph matched, but it hid the scheduling region needed.
+
+Duplicating the complete calculation **and sound call** into both arms gives
+100% without pins or asm. In base_6 sched block6, argument move162 fills the
+lhu155-to-shift157 latency, ori769 fills the ctx146-to-lhu155 latency, and ctx146
+then beats lui768 by greater potential hazard. sched2 preserves the order;
+jump2 merges the common tail starting at lhu155. Thus a small final assembly
+block can originate from a much larger scheduling block.
+
+Both requirements matter. Duplicating only the calculation scores 85.703%:
+without argument setup there, ori fills the later load latency, leaving lhu
+before ori and preventing the same merge. Duplicating only lhu gets the desired
+local interleave, but the shared arithmetic block then schedules argument setup
+later, and id receives a0 instead of v1 (94.617% with an unsigned key).
+The complete-call shape restores id's a0 conflict and its v1 allocation while
+keeping snd=s1 and work=s2. This is evidence for inspecting dependencies and
+allocation together, not for adding arbitrary duplicate loads.
+
+The archived dead `snd = (work->field_2AC != 0)` assignment is unnecessary in the final
+shape: duplication raises snd's references to 16 over span 56 versus work's
+37/span260. The Task/GpEnemy port removes it and still matches exactly.
+Unscoped verification passed before and after sharing the body across
+actor_104600, actor_204600 and actor_207200.
+
+Input hashes: base6 `ce624b8b9211439c6b4cd63b075e811c56240b56cb8c962d7443dcb5d941b30d`;
+normal-type base7 `f0572dda8be3c985770e00acad43e157a631c2ffc665ec2a9953bf97352df102`.
+Predictions, failed alternatives, compiler/input hashes and selected dumps are
+in `tools/compiler_evidence/2026-09-20-actor207200-a1c4.json`. Hazard weights and
+the origin of the alternate arithmetic preference were not traced; the dump
+swap, conflict and homes are observed. This does not prove a unique original
+source or a general preference for loads over constants.

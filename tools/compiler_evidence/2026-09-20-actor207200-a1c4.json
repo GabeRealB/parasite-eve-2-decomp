@@ -1,0 +1,136 @@
+{
+  "function": "func_actor_207200_8014A1C4",
+  "status": "supported",
+  "prediction_source": "base_6.c",
+  "result": "Duplicating sound calculation and calls retains load latency and argument setup until jump2 tail merging. 100% scratch and unscoped shared integration passed.",
+  "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+  "inputs": {
+    "base": {
+      ".c": "c75ee8e648bd44e694bd991d0760951ea459e89a2c95cffd95671b231936a960",
+      ".i": "6fc8e0cb44237f33c374c46f5c55a38e9c03eec19b6f12154051c686ce1d0c40"
+    },
+    "base_1": {
+      ".c": "608a23e88835e88d25d7ce50bc53c7a12ebf2d6140b21fd44f8794ed47d2dbd5",
+      ".i": "93bbbede141acc3ee9bbbc84461f3b06cd3894be492d94407b452034de9cb37f"
+    },
+    "base_4": {
+      ".c": "72b629b77cfcc9a84f25d3cfef6743764a0125bde1b4768acdfde4956a9b94ed",
+      ".i": "325ecf31e6ce93fc6c058dfe5953c88d423b6675722c6bb9cdcdda430f9f39b6"
+    },
+    "base_5": {
+      ".c": "a59cef5611f7be1c65a7251f69e8635e8dd7f25098f538d3a3d3e6d9cd76cc30",
+      ".i": "c8e5114d9856268088a192f58f8c345e1938504823d9910ff38634a21bc0e6e6"
+    },
+    "base_6": {
+      ".c": "4501925376e25f1987e9123d416dac9bf154318b50ab2cf563c93aadf1e69cf2",
+      ".i": "ce624b8b9211439c6b4cd63b075e811c56240b56cb8c962d7443dcb5d941b30d"
+    },
+    "base_7": {
+      ".c": "21a046a67e12cd1de9f63632b1189240962678de4f8cfca01ba7d82621c974cc",
+      ".i": "f0572dda8be3c985770e00acad43e157a631c2ffc665ec2a9953bf97352df102"
+    }
+  },
+  "observations": {
+    "base": {
+      "sched_block6": ";;\t -- basic block number 6 from 106 to 621 --\n;; ready list initially:\n;; 621 110 \n\n;; insn[ 110]: priority =    1, ref_count =    0\n;; insn[ 620]: priority =    1, ref_count =    1\n;; insn[ 621]: priority =    1, ref_count =    0\n;; ready list at T-1: 621 (1) 110 (1), now 621 110\n;; ready list at T-2: 110 (1) 620 (1), now 620 110\n;; ready list at T-3: 110 (1), now 110\n;; total time = 3\n;; new basic block head = 106\n;; new basic block end = 621",
+      "sched2_block6": ";;\t -- basic block number 6 from 106 to 621 --\n;; ready list initially:\n;; 621 110 \n\n;; insn[ 110]: priority =    1, ref_count =    0\n;; insn[ 620]: priority =    1, ref_count =    1\n;; insn[ 621]: priority =    1, ref_count =    0\n;; ready list at T-1: 621 (1) 110 (1), now 621 110\n;; ready list at T-2: 110 (1) 620 (1), now 620 110\n;; ready list at T-3: 110 (1), now 110\n;; total time = 3\n;; new basic block head = 106\n;; new basic block end = 621",
+      "greg_allocation": ";; Function func_actor_207200_8014A1C4\n\n;; 7 regs to allocate: 86 83 164 81 85 82 80\n;; 80 conflicts: 80 81 82 83 85 86 164 2 3 4 5 6 16 29\n;; 81 conflicts: 80 81 82 83 85 86 164 2 3 4 5 6 16 29\n;; 82 conflicts: 80 81 82 83 85 86 164 2 3 4 5 6 16 29\n;; 83 conflicts: 80 81 82 83 2 4 16 29\n;; 85 conflicts: 80 81 82 85 86 2 4 29\n;; 86 conflicts: 80 81 82 85 86 29\n;; 164 conflicts: 80 81 82 164 2 3 29\n\n;; Register dispositions:\n80 in 20  81 in 18  82 in 19  83 in 17  85 in 3  86 in 2  \n87 in 2  89 in 3  90 in 3  91 in 6  96 in 3  98 in 2  \n99 in 2  100 in 2  102 in 3  105 in 3  107 in 2  109 in 2  \n113 in 2  115 in 2  116 in 2  118 in 16  119 in 16  122 in 2  \n124 in 4  127 in 3  129 in 2  130 in 2  131 in 2  132 in 5  \n136 in 2  138 in 2  140 in 2  142 in 2  145 in 2  149 in 2  \n151 in 2  152 in 2  154 in 16  155 in 16  158 in 2  159 in 2  \n160 in 2  161 in 3  162 in 3  164 in 4  166 in 2  170 in 3  \n172 in 2  174 in 2  176 in 2  179 in 3  181 in 2  183 in 2  \n187 in 2  189 in 2  190 in 2  192 in 16  193 in 16  196 in 2  \n198 in 4  201 in 3  203 in 2  204 in 2  205 in 2  206 in 5  \n210 in 2  212 in 2  214 in 2  215 in 2  216 in 2  218 in 4  \n221 in 3  223 in 2  224 in 2  225 in 2  226 in 5  230 in 2  \n232 in 2  234 in 2  237 in 2  239 in 2  241 in 2  243 in 2  \n248 in 2  250 in 2  251 in 2  253 in 16  254 in 16  257 in 2  \n258 in 3  260 in 2  261 in 2"
+    },
+    "base_4": {
+      "sched_block6": ";;\t -- basic block number 6 from 108 to 117 --\n;; ready list initially:\n;; 117 615 \n\n;; insn[ 112]: priority =    1, ref_count =    1\n;; insn[ 614]: priority =    1, ref_count =    1\n;; insn[ 615]: priority =    1, ref_count =    0\n;; insn[ 117]: priority =    2, ref_count =    0\n;; ready list at T-1: 117 (2) 615 (1), now 117 615\n;; ready list at T-2: 615 (1), now 615\n;; launching 112 before 615 with no stalls at T-3\n;; ready list at T-3: 614 (1) 112 (1), now 614 112\n;; insn 112 has a greater potential hazard, now 112 614\n;; ready list at T-4: 614 (1), now 614\n;; added 2 line-number notes\n;; total time = 4\n;; new basic block head = 108\n;; new basic block end = 117",
+      "sched2_block6": ";;\t -- basic block number 6 from 108 to 117 --\n;; ready list initially:\n;; 117 615 \n\n;; insn[ 614]: priority =    1, ref_count =    1\n;; insn[ 112]: priority =    1, ref_count =    1\n;; insn[ 615]: priority =    1, ref_count =    0\n;; insn[ 117]: priority =    2, ref_count =    0\n;; ready list at T-1: 117 (2) 615 (1), now 117 615\n;; ready list at T-2: 615 (1), now 615\n;; launching 112 before 615 with no stalls at T-3\n;; ready list at T-3: 614 (1) 112 (1), now 112 614\n;; ready list at T-4: 614 (1), now 614\n;; total time = 4\n;; new basic block head = 108\n;; new basic block end = 117",
+      "greg_allocation": ";; Function func_actor_207200_8014A1C4\n\n;; 8 regs to allocate: 87 86 157 83 81 85 82 80\n;; 80 conflicts: 80 81 82 83 85 86 87 157 2 3 4 5 6 16 29\n;; 81 conflicts: 80 81 82 83 85 86 87 157 2 3 4 5 6 16 29\n;; 82 conflicts: 80 81 82 83 85 86 87 157 2 3 4 5 6 16 29\n;; 83 conflicts: 80 81 82 83 2 4 16 29\n;; 85 conflicts: 80 81 82 85 86 87 2 29\n;; 85 preferences: 4\n;; 86 conflicts: 80 81 82 85 86 29\n;; 86 preferences: 2\n;; 87 conflicts: 80 81 82 85 87 29\n;; 87 preferences: 2\n;; 157 conflicts: 80 81 82 157 2 3 29\n\n;; Register dispositions:\n80 in 20  81 in 18  82 in 19  83 in 17  85 in 4  86 in 2  \n87 in 2  88 in 2  90 in 3  91 in 3  92 in 6  97 in 3  \n99 in 2  100 in 2  101 in 2  103 in 3  106 in 3  108 in 2  \n110 in 2  112 in 2  113 in 2  115 in 16  116 in 16  119 in 2  \n121 in 4  124 in 3  126 in 2  127 in 2  128 in 2  129 in 5  \n133 in 2  135 in 2  137 in 2  139 in 2  142 in 2  144 in 2  \n145 in 2  147 in 16  148 in 16  151 in 2  152 in 2  153 in 2  \n154 in 3  155 in 3  157 in 4  159 in 2  163 in 3  165 in 2  \n167 in 2  169 in 2  172 in 3  174 in 2  176 in 2  178 in 2  \n179 in 2  181 in 16  182 in 16  185 in 2  187 in 4  190 in 3  \n192 in 2  193 in 2  194 in 2  195 in 5  199 in 2  201 in 2  \n203 in 2  204 in 2  205 in 2  207 in 4  210 in 3  212 in 2  \n213 in 2  214 in 2  215 in 5  219 in 2  221 in 2  223 in 2  \n226 in 2  228 in 2  230 in 2  232 in 2  235 in 2  236 in 2  \n238 in 16  239 in 16  242 in 2  243 in 3  245 in 2  246 in 2"
+    },
+    "base_5": {
+      "sched_block6": ";;\t -- basic block number 6 from 107 to 115 --\n;; ready list initially:\n;; 115 607 \n\n;; insn[ 606]: priority =    1, ref_count =    1\n;; insn[ 607]: priority =    1, ref_count =    0\n;; insn[ 114]: priority =    1, ref_count =    1\n;; insn[ 115]: priority =    2, ref_count =    0\n;; ready list at T-1: 115 (2) 607 (1), now 115 607\n;; ready list at T-2: 607 (1), now 607\n;; launching 114 before 607 with no stalls at T-3\n;; ready list at T-3: 606 (1) 114 (7f000001), now 114 606\n;; ready list at T-4: 606 (1), now 606\n;; added 2 line-number notes\n;; total time = 4\n;; new basic block head = 107\n;; new basic block end = 115",
+      "sched2_block6": ";;\t -- basic block number 6 from 107 to 115 --\n;; ready list initially:\n;; 115 607 \n\n;; insn[ 606]: priority =    1, ref_count =    1\n;; insn[ 114]: priority =    1, ref_count =    1\n;; insn[ 607]: priority =    1, ref_count =    0\n;; insn[ 115]: priority =    2, ref_count =    0\n;; ready list at T-1: 115 (2) 607 (1), now 115 607\n;; ready list at T-2: 607 (1), now 607\n;; launching 114 before 607 with no stalls at T-3\n;; ready list at T-3: 606 (1) 114 (1), now 114 606\n;; ready list at T-4: 606 (1), now 606\n;; total time = 4\n;; new basic block head = 107\n;; new basic block end = 115",
+      "greg_allocation": ";; Function func_actor_207200_8014A1C4\n\n;; 7 regs to allocate: 86 160 83 81 85 82 80\n;; 80 conflicts: 80 81 82 83 85 86 160 2 3 4 5 6 16 29\n;; 81 conflicts: 80 81 82 83 85 86 160 2 3 4 5 6 16 29\n;; 82 conflicts: 80 81 82 83 85 86 160 2 3 4 5 6 16 29\n;; 83 conflicts: 80 81 82 83 2 4 16 29\n;; 85 conflicts: 80 81 82 85 86 2 29\n;; 85 preferences: 4\n;; 86 conflicts: 80 81 82 85 86 29\n;; 86 preferences: 2\n;; 160 conflicts: 80 81 82 160 2 3 29\n\n;; Register dispositions:\n80 in 20  81 in 18  82 in 19  83 in 17  85 in 4  86 in 2  \n87 in 2  89 in 3  90 in 3  91 in 6  96 in 3  98 in 2  \n99 in 2  100 in 2  102 in 3  105 in 3  107 in 2  109 in 2  \n111 in 2  112 in 2  113 in 2  114 in 2  116 in 16  117 in 16  \n120 in 2  122 in 4  125 in 3  127 in 2  128 in 2  129 in 2  \n130 in 5  134 in 2  136 in 2  138 in 2  140 in 2  143 in 2  \n145 in 2  146 in 2  147 in 2  148 in 2  150 in 16  151 in 16  \n154 in 2  155 in 2  156 in 2  157 in 3  158 in 3  160 in 4  \n162 in 2  166 in 3  168 in 2  170 in 2  172 in 2  175 in 3  \n177 in 2  179 in 2  181 in 2  182 in 2  183 in 2  184 in 2  \n186 in 16  187 in 16  190 in 2  192 in 4  195 in 3  197 in 2  \n198 in 2  199 in 2  200 in 5  204 in 2  206 in 2  208 in 2  \n209 in 2  210 in 2  212 in 4  215 in 3  217 in 2  218 in 2  \n219 in 2  220 in 5  224 in 2  226 in 2  228 in 2  231 in 2  \n233 in 2  235 in 2  237 in 2  240 in 2  241 in 2  242 in 2  \n243 in 2  245 in 16  246 in 16  249 in 2  250 in 3  252 in 2  \n253 in 2"
+    },
+    "base_6": {
+      "sched_block6": ";;\t -- basic block number 6 from 142 to 184 --\n;; ready list initially:\n;; 184 \n\n;; insn[ 146]: priority =    1, ref_count =    2\n;; insn[ 768]: priority =    1, ref_count =    1\n;; insn[ 769]: priority =    1, ref_count =    2\n;; insn[ 155]: priority =    2, ref_count =    2\n;; insn[ 157]: priority =    3, ref_count =    2\n;; insn[ 158]: priority =    3, ref_count =    2\n;; insn[ 159]: priority =    3, ref_count =    2\n;; insn[ 162]: priority =    1, ref_count =    1\n;; insn[ 164]: priority =    3, ref_count =    3\n;; insn[ 167]: priority =    3, ref_count =    2\n;; insn[ 168]: priority =    3, ref_count =    2\n;; insn[ 170]: priority =    3, ref_count =    1\n;; insn[ 172]: priority =    3, ref_count =    5\n;; insn[ 175]: priority =    3, ref_count =    2\n;; insn[ 178]: priority =    3, ref_count =    1\n;; insn[ 180]: priority =    3, ref_count =    1\n;; insn[ 182]: priority =    3, ref_count =    1\n;; insn[ 184]: priority = 2147483336, ref_count =    0\n;; ready list at T-1: 184 (7ffffec8), now 184\n;; ready list at T-2: 178 (3) 180 (3) 182 (3), now 182 180 178\n;; ready list at T-3: 180 (3) 178 (3) 175 (7f000001), now 175 180 178\n;; ready list at T-4: 180 (3) 178 (3), now 180 178\n;; ready list at T-5: 178 (3), now 178\n;; ready list at T-6: 172 (3), now 172\n;; ready list at T-7: 168 (7f000001) 170 (3), now 168 170\n;; ready list at T-8: 170 (3) 167 (7f000001), now 167 170\n;; ready list at T-9: 170 (3), now 170\n;; ready list at T-10: 164 (3), now 164\n;; ready list at T-11: 159 (3) 162 (1), now 159 162\n;; ready list at T-12: 162 (1) 769 (1) 158 (7f000001), now 158 162 769\n;; ready list at T-13: 162 (1) 769 (1) 157 (7f000001), now 157 162 769\n;; ready list at T-14: 162 (1) 769 (1), now 162 769\n;; launching 155 before 162 with no stalls at T-15\n;; ready list at T-15: 769 (1) 155 (7f000001), now 155 769\n;; ready list at T-16: 769 (1), now 769\n;; launching 146 before 769 with no stalls at T-17\n;; ready list at T-17: 768 (1) 146 (1), now 768 146\n;; insn 146 has a greater potential hazard, now 146 768\n;; ready list at T-18: 768 (1), now 768\n;; added 4 line-number notes\n;; total time = 18\n;; new basic block head = 142\n;; new basic block end = 184",
+      "sched2_block6": ";;\t -- basic block number 6 from 142 to 184 --\n;; ready list initially:\n;; 184 \n\n;; insn[ 768]: priority =    1, ref_count =    1\n;; insn[ 146]: priority =    1, ref_count =    2\n;; insn[ 769]: priority =    1, ref_count =    2\n;; insn[ 155]: priority =    2, ref_count =    2\n;; insn[ 162]: priority =    1, ref_count =    1\n;; insn[ 157]: priority =    3, ref_count =    2\n;; insn[ 158]: priority =    3, ref_count =    2\n;; insn[ 159]: priority =    3, ref_count =    2\n;; insn[ 164]: priority =    3, ref_count =    4\n;; insn[ 170]: priority =    3, ref_count =    1\n;; insn[ 167]: priority =    3, ref_count =    2\n;; insn[ 168]: priority =    3, ref_count =    2\n;; insn[ 172]: priority =    3, ref_count =    5\n;; insn[ 178]: priority =    3, ref_count =    1\n;; insn[ 180]: priority =    3, ref_count =    1\n;; insn[ 175]: priority =    3, ref_count =    2\n;; insn[ 182]: priority =    3, ref_count =    1\n;; insn[ 184]: priority = 2147483336, ref_count =    0\n;; ready list at T-1: 184 (7ffffec8), now 184\n;; ready list at T-2: 178 (3) 180 (3) 182 (3), now 182 180 178\n;; ready list at T-3: 180 (3) 178 (3) 175 (3), now 175 180 178\n;; ready list at T-4: 180 (3) 178 (3), now 180 178\n;; ready list at T-5: 178 (3), now 178\n;; ready list at T-6: 172 (3), now 172\n;; ready list at T-7: 168 (3) 170 (3), now 168 170\n;; ready list at T-8: 170 (3) 167 (3), now 167 170\n;; ready list at T-9: 170 (3), now 170\n;; ready list at T-10: 164 (3), now 164\n;; ready list at T-11: 159 (3) 162 (1), now 159 162\n;; ready list at T-12: 162 (1) 769 (1) 158 (3), now 158 162 769\n;; ready list at T-13: 162 (1) 769 (1) 157 (3), now 157 162 769\n;; ready list at T-14: 162 (1) 769 (1), now 162 769\n;; launching 155 before 162 with no stalls at T-15\n;; ready list at T-15: 769 (1) 155 (2), now 155 769\n;; ready list at T-16: 769 (1), now 769\n;; launching 146 before 769 with no stalls at T-17\n;; ready list at T-17: 768 (1) 146 (1), now 146 768\n;; ready list at T-18: 768 (1), now 768\n;; total time = 18\n;; new basic block head = 142\n;; new basic block end = 184",
+      "greg_allocation": ";; Function func_actor_207200_8014A1C4\n\n;; 7 regs to allocate: 86 83 85 188 81 82 80\n;; 80 conflicts: 80 81 82 83 85 86 188 2 3 4 5 6 16 29\n;; 81 conflicts: 80 81 82 83 85 86 188 2 3 4 5 6 16 29\n;; 82 conflicts: 80 81 82 83 85 86 188 2 3 4 5 6 16 29\n;; 83 conflicts: 80 81 82 83 2 4 16 29\n;; 85 conflicts: 80 81 82 85 86 2 4 29\n;; 86 conflicts: 80 81 82 85 86 29\n;; 188 conflicts: 80 81 82 188 2 3 29\n\n;; Register dispositions:\n80 in 20  81 in 18  82 in 19  83 in 17  85 in 3  86 in 2  \n87 in 2  89 in 3  90 in 3  91 in 6  96 in 3  98 in 2  \n99 in 2  100 in 2  102 in 3  105 in 3  107 in 2  109 in 2  \n113 in 2  115 in 2  116 in 2  118 in 16  119 in 16  122 in 2  \n125 in 2  127 in 2  128 in 2  130 in 16  131 in 16  134 in 2  \n136 in 4  139 in 3  141 in 2  142 in 2  143 in 2  144 in 5  \n148 in 2  150 in 2  152 in 2  154 in 2  157 in 2  161 in 2  \n163 in 2  164 in 2  166 in 16  167 in 16  170 in 2  173 in 2  \n175 in 2  176 in 2  178 in 16  179 in 16  182 in 2  183 in 2  \n184 in 2  185 in 3  186 in 3  188 in 4  190 in 2  194 in 3  \n196 in 2  198 in 2  200 in 2  203 in 3  205 in 2  207 in 2  \n211 in 2  213 in 2  214 in 2  216 in 16  217 in 16  220 in 2  \n223 in 2  225 in 2  226 in 2  228 in 16  229 in 16  232 in 2  \n234 in 4  237 in 3  239 in 2  240 in 2  241 in 2  242 in 5  \n246 in 2  248 in 2  250 in 2  251 in 2  252 in 2  254 in 4  \n257 in 3  259 in 2  260 in 2  261 in 2  262 in 5  266 in 2  \n268 in 2  270 in 2  273 in 2  275 in 2  277 in 2  279 in 2  \n284 in 2  286 in 2  287 in 2  289 in 16  290 in 16  293 in 2  \n296 in 2  298 in 2  299 in 2  301 in 16  302 in 16  305 in 2  \n306 in 3  308 in 2  309 in 2",
+      "jump2_common_tail": "(code_label 872 150 155 22 \"\")\n\n(insn 155 872 160 (set (reg:SI 2 v0)\n        (zero_extend:SI (mem/s:HI (plus:SI (reg/v:SI 2 v0)\n                    (const_int 8))))) 125 {zero_extendhisi2} (insn_list 146 (nil))\n    (expr_list:REG_DEAD (reg/v:SI 2 v0)\n        (nil)))\n\n(note 160 155 162 (\"/home/gabriel/pe2-ov-actor_207200/nonmatchings/func_actor_207200_8014A1C4-vacuum/base_6.i\") 5088)\n\n(insn 162 160 772 (set (reg:SI 4 a0)\n        (reg/v:SI 19 s3)) 172 {movsi_internal2} (nil)\n    (nil))\n\n(note 772 162 157 (\"/home/gabriel/pe2-ov-actor_207200/nonmatchings/func_actor_207200_8014A1C4-vacuum/base_6.i\") 5087)\n\n(insn 157 772 158 (set (reg:SI 2 v0)\n        (lshiftrt:SI (reg:SI 2 v0)\n            (const_int 12))) 225 {lshrsi3} (insn_list 155 (nil))\n    (expr_list:REG_DEAD (reg:SI 2 v0)\n        (nil)))\n\n(insn 158 157 159 (set (reg:SI 2 v0)\n        (ashift:SI (reg:SI 2 v0)\n            (const_int 8))) 205 {ashlsi3} (insn_list 157 (nil))\n    (expr_list:REG_DEAD (reg:SI 2 v0)\n        (nil)))\n\n(insn 159 158 773 (set (reg/v:SI 17 s1)\n        (ior:SI (reg:SI 2 v0)\n            (reg/v:SI 3 v1))) 103 {iorsi3} (insn_list 769 (insn_list 158 (nil)))\n    (expr_list:REG_DEAD (reg:SI 2 v0)\n        (expr_list:REG_DEAD (reg/v:SI 3 v1)\n            (nil))))\n\n(note 773 159 164 (\"/home/gabriel/pe2-ov-actor_207200/nonmatchings/func_actor_207200_8014A1C4-vacuum/base_6.i\") 5088)\n\n(call_insn 164 773 170 (parallel[ \n            (set (reg:SI 2 v0)\n                (call (mem:SI (symbol_ref:SI (\"Gp_GetObjPan\")))\n                    (const_int 16)))\n            (clobber (reg:SI 31 ra))\n        ] ) 348 {call_value_internal1} (insn_list:REG_DEP_ANTI 769 (insn_list:REG_DEP_ANTI 155 (insn_list:REG_DEP_ANTI 157 (insn_list:REG_DEP_ANTI 158 (insn_list:REG_DEP_ANTI 159 (insn_list:REG_DEP_ANTI 146 (insn_list 162 (nil))))))))\n    (expr_list:REG_DEAD (reg:SI 4 a0)\n        (expr_list:REG_UNUSED (reg:SI 31 ra)\n            (nil)))\n    (expr_list (use (reg:SI 4 a0))\n        (nil)))\n\n(insn 170 164 167 (set (reg:SI 4 a0)\n        (reg/v:SI 19 s3)) 172 {movsi_internal2} (insn_list:REG_DEP_ANTI 164 (nil))\n    (nil))\n\n(insn 167 170 168 (set (reg:SI 16 s0)\n        (ashift:SI (reg:SI 2 v0)\n            (const_int 24))) 205 {ashls"
+    }
+  },
+  "limits": [
+    "Dumps identify the hazard swap but no runtime hazard weight was traced.",
+    "The source spelling is not a unique reconstruction.",
+    "The precise origin of the alternate id a0 preference was not traced."
+  ],
+  "experiments": [
+    {
+      "at": "2026-09-20T07:55:11.345132+00:00",
+      "event": "plan",
+      "expected": "sched else order lui,lw,ori,lhu; jump2 shares lhu; sound/work registers remain s1/s2; exact match",
+      "hypothesis": "Duplicating only the place-key lhu gives each arm two memory instructions and a load latency between ctx and key; the constant ori can fill that latency, then jump2 can merge the terminal lhu",
+      "parent": "base.c",
+      "pass_name": "sched2",
+      "source": "base_4.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T07:55:50.032503+00:00",
+      "event": "conclude",
+      "next": "Make key unsigned for srl and eliminate reused ctx from the arms so pointer temporaries are local and can share v0 with the key, freeing v1 for id",
+      "result": "Scheduling prediction confirmed: sched block6 selects lhu117, ori615, ctx112, lui614; jump2 merges the terminal lhu. Remaining regression: key declared signed produces sra; global ctx/key overlap occupies v0/v1 so id takes a0, preventing argument-move delay fill. Score91.391%.",
+      "source": "base_4.c",
+      "source_sha256": "72b629b77cfcc9a84f25d3cfef6743764a0125bde1b4768acdfde4956a9b94ed"
+    },
+    {
+      "at": "2026-09-20T07:55:50.080077+00:00",
+      "event": "plan",
+      "expected": "two-load scheduling blocks keep lui,lw,ori,lhu; ctx/key share v0, id takes v1; target argument scheduling restored",
+      "hypothesis": "Unsigned place key restores srl, and reading arg0->field_20->field_8 directly makes each intermediate ctx pointer local instead of a multi-block global competing with key and id",
+      "parent": "base_4.c",
+      "pass_name": "lreg",
+      "source": "base_5.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T07:56:42.558732+00:00",
+      "event": "conclude",
+      "next": "Duplicate the complete sound call along with the calculation, retaining the lhu-to-shift dependency within the scheduling block",
+      "result": "94.617%; unsigned key fixes srl. ctx/key already share v0 in base_4, so the proposed ctx conflict was refuted. id has a0 preference and no a0 conflict because shared-block shifts have priority1 and run before argument setup; that causes the remaining a0 allocation and delay-fill regressions.",
+      "source": "base_5.c",
+      "source_sha256": "a59cef5611f7be1c65a7251f69e8635e8dd7f25098f538d3a3d3e6d9cd76cc30"
+    },
+    {
+      "at": "2026-09-20T07:56:42.672086+00:00",
+      "event": "plan",
+      "expected": "sched1 argument a0 before OR; id=v1 and snd=s1/work=s2; jump2 merges lhu through sound call with target branches and instruction order",
+      "hypothesis": "Duplicating the complete sound call retains lhu-to-shift latency and argument setup in each arm until jump2 tail merging, restoring id versus a0 conflict while permitting the two-load hazard interleaving",
+      "parent": "base_1.c",
+      "pass_name": "sched2",
+      "source": "base_6.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T07:57:30.309211+00:00",
+      "event": "conclude",
+      "next": "Port to Task/GpEnemy and remove obsolete dead snd assignment; duplicated uses now give snd sufficient references",
+      "result": "100% all-zero penalties. sched block6 keeps load146, lhu155, shifts157/158, OR159 and calls164/172/184 together. Argument162 fills lhu latency; ori769 fills ctx latency; at T17 load146 beats lui768 by greater potential hazard. greg restores id85 conflict with a0 and allocation v1; jump2 merges lhu through calls. snd=s1 and work=s2 retained.",
+      "source": "base_6.c",
+      "source_sha256": "4501925376e25f1987e9123d416dac9bf154318b50ab2cf563c93aadf1e69cf2"
+    },
+    {
+      "at": "2026-09-20T07:57:30.353710+00:00",
+      "event": "plan",
+      "expected": "Exact assembly preserved after normal-type port and dead assignment removal; all penalties zero",
+      "hypothesis": "Task work/extra/spawnArg2 and GpEnemy placeKey describe the existing offsets; duplicated sound arms now supply enough snd references without the archived dead assignment",
+      "parent": "base_6.c",
+      "pass_name": "greg",
+      "source": "base_7.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T07:57:51.322328+00:00",
+      "event": "conclude",
+      "next": "Full integration verification, then promote the shared body for actor_104600/actor_204600/actor_207200",
+      "result": "100%, identical assembly to base_6. Task/GpEnemy port and removal of dead snd assignment preserve all machine instructions; duplicated arms alone supply the needed allocation references.",
+      "source": "base_7.c",
+      "source_sha256": "21a046a67e12cd1de9f63632b1189240962678de4f8cfca01ba7d82621c974cc"
+    }
+  ],
+  "verification": "OK: all 7407 matched functions are still C (or legitimately shared)\n\u2705 BUILD SUCCEEDED. Everything matched and there were no compiler or linter errors"
+}

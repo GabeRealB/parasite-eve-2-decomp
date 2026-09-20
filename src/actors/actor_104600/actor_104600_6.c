@@ -14,19 +14,3 @@
 extern GpEnemyTaskFuncTable3 D_actor_104600_80131E5C;
 
 INCLUDE_ASM("actors/nonmatchings/actor_104600/actor_104600_6", func_actor_104600_80134B88);
-
-INCLUDE_ASM("actors/nonmatchings/actor_104600/actor_104600_6", func_actor_104600_80134EC8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_104600/actor_104600_6", func_actor_104600_8013528C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_104600/actor_104600_6", func_actor_104600_80135778);
-
-void func_actor_104600_801359A0(Task* arg0)
-{
-    GpEnemyTaskFuncTable3 sp;
-
-    sp = D_actor_104600_80131E5C;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_104600/actor_104600_6", func_actor_104600_801359FC);

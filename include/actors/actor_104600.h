@@ -34,7 +34,6 @@ typedef struct Actor104600Work {
     /* 0x2A6 */ s16  field_2A6;
 } Actor104600Work;
 
-void func_actor_104600_80134EC8(Task* task);
 void func_actor_104600_80135B74(Task* task);
 
 #endif
