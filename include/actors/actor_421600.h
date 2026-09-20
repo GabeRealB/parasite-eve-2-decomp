@@ -37,6 +37,12 @@ typedef struct Actor421600Msg {
 } Actor421600Msg;
 STATIC_ASSERT_SIZEOF(Actor421600Msg, 0x4);
 
+typedef struct Actor421600Waypoint {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 z;
+} Actor421600Waypoint;
+STATIC_ASSERT_SIZEOF(Actor421600Waypoint, 0x4);
+
 /// Per-actor state block for the `actor_421600` overlay's enemy.
 ///
 /// `func_actor_421600_80134AD4` allocates it with `memCalloc(0xEB0, 0)` and
@@ -72,8 +78,11 @@ typedef struct Actor421600Work {
     /// Retry counter `func_actor_421600_80138D24` bumps while the 0xB8C walk
     /// reports a hit and reads with `(s16)` in its 9..0x18 frame window; the
     /// live-actor edge clears it.
-    /* 0x008 */ u16  field_8;
-    /* 0x00A */ byte pad_A[0x50];
+    /* 0x008 */ u16                 field_8;
+    /* 0x00A */ byte                pad_A[2];
+    /* 0x00C */ Actor421600Waypoint field_C[2];
+    /* 0x014 */ s16                 field_14;
+    /* 0x016 */ byte                pad_16[0x44];
     /// Animation step counter masked to 0x3FF by the state handlers; the
     /// model-shrink tails wait for it to read 0xC.
     /* 0x05A */ u16  field_5A;
@@ -138,18 +147,24 @@ typedef struct Actor421600Work {
     /* 0xA64 */ byte    pad_A64[0x108];
     /* 0xB6C */ GpObj   field_B6C;
     /* 0xB8C */ GpRec18 field_B8C;
-    /* 0xBA4 */ byte    pad_BA4[0x134];
-    /// Y offset `func_actor_421600_80138D24` seeds to -0x320 (0x320 the other
-    /// way in `func_actor_421600_80138750`, 0x2BC at spawn); `func_actor_421600_8013848C`
-    /// clamps the distance it relates to at 0xFA0.
-    /* 0xCD8 */ s16  field_CD8;
-    /* 0xCDA */ byte pad_CDA[0xA];
+    /* 0xBA4 */ byte    pad_BA4[0x108];
+    /* 0xCAC */ GpObj   field_CAC;
+    /// Capsule carried by the fourth collision node. Its second endpoint's
+    /// Z offset at 0xCD8 is 0x2BC at spawn and -0x320 in the movement tick.
+    /* 0xCCC */ GpActorD4Rec field_CCC;
     /// The 12 0x18-byte slots `func_actor_421600_80138D24` scans for one whose
     /// `key` reads 0x100000, stopping at the first empty one. A cursor into
     /// the same run sits at 0xCE0, which `func_actor_421600_80134AD4` points at
     /// `field_CE4` itself.
     /* 0xCE4 */ GpRec18           field_CE4[12];
-    /* 0xE04 */ byte              pad_E04[0x8C];
+    /* 0xE04 */ MATRIX            field_E04;
+    /* 0xE24 */ MATRIX            field_E24;
+    /* 0xE44 */ byte              pad_E44[0x38];
+    /* 0xE7C */ s32               field_E7C;
+    /* 0xE80 */ s32               field_E80;
+    /* 0xE84 */ s32               field_E84;
+    /* 0xE88 */ s32               field_E88;
+    /* 0xE8C */ s32               field_E8C;
     /* 0xE90 */ Actor421600IdWord field_E90;
     /* 0xE94 */ Task*             field_E94;
     /* 0xE98 */ Task*             field_E98;
@@ -160,12 +175,13 @@ typedef struct Actor421600Work {
     /// Distance `func_actor_421600_8013848C` clamps to 0xFA0 after the gte
     /// rotation.
     /* 0xE9E */ s16  field_E9E;
-    /* 0xEA0 */ byte pad_EA0[0x4];
+    /* 0xEA0 */ byte pad_EA0[2];
+    /* 0xEA2 */ u16  field_EA2;
     /// Halfword the idle tick `func_actor_421600_8013A404` reseeds `field_6`
     /// from, adding the low nibble of an `Gp_LcgState` draw while `field_4` is
     /// set.
-    /* 0xEA4 */ u16  field_EA4;
-    /* 0xEA6 */ byte pad_EA6[2];
+    /* 0xEA4 */ u16 field_EA4;
+    /* 0xEA6 */ u16 field_EA6;
     /// Halfword pair `func_actor_421600_80132A00` forwards under the 0x109
     /// message, the same one-step lag its sibling actor 00100 keeps at
     /// 0xC24 / 0xC26.
@@ -238,12 +254,30 @@ STATIC_ASSERT_SIZEOF(Actor421600ArenaScratch, 0xC);
 /// `Task::spawnArg2`, and `field_2C` the actor's `TmdObject`. Same shape as
 /// `Actor403000` / `Actor401800`.
 typedef struct Actor421600 {
-    /* 0x00 */ byte             pad_0[0x1C];
+    /* 0x00 */ byte             pad_0[0x18];
+    /* 0x18 */ TaskFunc         exitCallback;
     /* 0x1C */ Actor421600Work* field_1C;
     /* 0x20 */ GpEnemy*         field_20;
-    /* 0x24 */ byte             pad_24[8];
+    /* 0x24 */ void*            field_24;
+    /* 0x28 */ byte             pad_28[4];
     /* 0x2C */ TmdObject*       field_2C;
+    /* 0x30 */ s32              state;
+    /* 0x34 */ s16              spawnArg1Lo;
+    /* 0x36 */ s16              field_36;
 } Actor421600;
+
+typedef struct Actor421600ParamRow {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+    /* 0x4 */ u16 field_4;
+    /* 0x6 */ u16 field_6;
+} Actor421600ParamRow;
+STATIC_ASSERT_SIZEOF(Actor421600ParamRow, 0x8);
+
+extern Actor421600ParamRow D_actor_421600_8013EF48[];
+extern GpPairSrcE          D_actor_421600_8013EF38;
+extern u8                  D_actor_421600_80151028[];
+extern void*               D_actor_421600_80151118;
 
 /// Shared gameplay mode record. This overlay reads the unsigned halfword at
 /// +2 before releasing the actor's state; the leading byte is the mode other
@@ -306,6 +340,8 @@ void func_actor_421600_8013E858(Actor421600* arg0);
 void func_actor_421600_8013E9D8(Actor421600* arg0);
 
 void func_actor_421600_80134604(Actor421600* arg0);
+
+void func_actor_421600_80134AD4(GpEnemy* enemy, Actor421600* actor);
 
 /// Moves an interior coordinate to the nearest padded X or Z edge; returns
 /// 1 when moved, or 0 when already outside. `func_actor_421600_8013947C`

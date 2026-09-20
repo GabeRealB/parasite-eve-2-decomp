@@ -134379,3 +134379,39 @@ base_2 e18042f9fff079e9f474e256e43853f5cce6206c9f369f22983d62ddb05f8cfe;
 base_3 f641f2088848525d7ab9985fd35d7cd4a895241ee4f8420291dccdd997abe3ce.
 Scope: observed expression ordering and allocation eligibility for these cases;
 exact allocator suggestion calls were not traced.
+
+
+## Separate a scalar asm output from a parallel marker when combine changes its lifetime (func_actor_421600_80134AD4, 2026-09-20)
+
+The retry seed was distance 40 from matching: two store/address pairs were
+reversed by sched2. A compiler trace disproved the archived missing-WAR theory.
+Both adds were ready at priority 7 with zero hazards; UID 304 won the original
+RTL-order tie against 290 at reverse cycle 155. Its predecessor store 282 then
+won on potential hazard (34304000), placing that pair later in forward output.
+The register dependency existed throughout.
+
+Precise empty asm dependencies fixed the pair order, but grouping the 700
+extent with two call arguments in one parallel read/write asm introduced an
+allocation conflict with the preceding -384 constant. In `base_13`, 700 has a
+real definition before sched1, its lifetime overlaps the final -384 store,
+and -384 gets v1 instead of the required v0 (distance 225).
+
+The controlled `base_14` prediction separated the extent into its own
+single-output asm, retaining the same two endpoint-memory inputs. The argument
+outputs remained together. The extent input is still pseudo 90 through `.flow`;
+**combine** substitutes literal 700 into UID 282's tied input. Reload then
+materializes 700 in v0 at UID 947 after the final -384 store. Extent live length
+shrinks 15 -> 9, -384's local home changes v1 -> v0, and the result is exact.
+The initial hypothesis called this CSE; the pass walk corrects that attribution.
+The current-header port also matches and passes unscoped build verification.
+
+This is evidence for this SET/PARALLEL transformation, not a blanket rule that
+parallel asm blocks folding. Keep the memory dependencies and allocation
+requirements separate from the asm spelling. The original marker-free source
+form remains unknown; no register pins were used.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Preprocessed base_13 SHA256: `fb1043d76cfc697cb4f856617e7d4b1da2412fa1fa2562da7c497d296bcdc221`.
+Preprocessed base_14 SHA256: `b469a76c3e891929b14493d74cc331dff17b019f132a8b2c596f5baeda82c06d`.
+Evidence: `tools/permuter_findings/func_actor_421600_80134AD4/sessions/da0e948689f04cd6ba5fd9394bea3708/ad30c8995a19a7c5e02b/PERMUTER_EVIDENCE/retry-20260920/`
+contains the paired dumps, extent pass walk, baseline trace and verification log.

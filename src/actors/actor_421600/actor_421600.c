@@ -319,7 +319,205 @@ INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80134604);
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80134AD4);
+static __inline__ void Actor421600_BindMatrices(Actor421600* actor)
+{
+    Actor421600Work* work;
+    TmdObject*       obj;
+    work          = actor->field_1C;
+    obj           = actor->field_2C;
+    obj->lightMtx = &work->field_E04;
+    obj->colorMtx = &work->field_E24;
+}
+
+void func_actor_421600_80134AD4(GpEnemy* enemy, Actor421600* actor)
+{
+    SVECTOR          dir;
+    s32              kind;
+    SVECTOR*         v;
+    VECTOR           pos;
+    TmdObject*       obj;
+    GsCOORDINATE2*   root;
+    Actor421600Work* mapped;
+    Actor421600Work* work;
+    GpObj*           body;
+    GpObj*           head;
+    s16              extent;
+    s32              linkKind;
+    GpObj*           linkObj;
+    root            = actor->field_2C->coords;
+    obj             = actor->field_2C;
+    work            = memCalloc(0xEB0, 0);
+    actor->field_1C = work;
+    if (work == 0) {
+        Gp_DestroyEnemy(enemy, (Task*)actor);
+        return;
+    }
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    actor->exitCallback = func_actor_421600_8013E668;
+    Actor421600_BindMatrices(actor);
+    enemy->field_4    = &actor->field_2C->coords[0].coord;
+    enemy->field_48   = 0;
+    enemy->bodyPos.vx = 0;
+    enemy->bodyPos.vy = 0;
+    enemy->bodyPos.vz = 0;
+    enemy->coord      = &actor->field_2C->coords[2];
+    Gp_LinkNode(&enemy->node);
+    enemy->node.flags    = 1;
+    enemy->reactionFlags = 0;
+    enemy->hp            = (s16)D_actor_421600_8013EF38.hpMax;
+    enemy->param         = &D_actor_421600_8013EF38;
+    enemy->recs          = &work->field_90C;
+    func_800B3F84(&((Actor421600AnimWork*)work)->anim, D_actor_421600_80151028, obj, &((Actor421600AnimWork*)work)->slots[18], ((Actor421600AnimWork*)work)->slots);
+    func_800B3F84(&((Actor421600AnimWork*)work)->blendAnim, D_actor_421600_80151028, obj, &((Actor421600AnimWork*)work)->blendSlots[18], ((Actor421600AnimWork*)work)->blendSlots);
+    work->field_828 = 2;
+    work->field_82A = 0;
+    work->field_82E = 1;
+    work->field_844 = 0;
+    work->field_840 = 0;
+    work->field_834 = 0x10;
+    work->field_832 = 0x10;
+    func_actor_421600_80134604(actor);
+    work->field_B6C.ctx.recs = &work->field_B8C;
+    work->field_B6C.coord    = root;
+    work->field_B6C.pos.vx   = 0;
+    work->field_B6C.pos.vy   = -0x11C;
+    work->field_B6C.pos.vz   = 0;
+    work->field_B6C.key      = 0x30001;
+    work->field_B6C.radius   = 0x12C;
+    work->field_B6C.flags    = 1;
+    Gp_LinkObj(2, &work->field_B6C);
+    work->field_CCC.end0.vy = -0x180;
+    work->field_CCC.end1.vy = -0x180;
+    extent                  = 0x2BC;
+    linkKind                = 2;
+    linkObj                 = &work->field_CAC;
+    __asm__("" : "+r"(linkKind), "+r"(linkObj) : "m"(work->field_CCC.end0.vy), "m"(work->field_CCC.end1.vy));
+    __asm__("" : "+r"(extent) : "m"(work->field_CCC.end0.vy), "m"(work->field_CCC.end1.vy));
+    work->field_CCC.end0Radius   = 0x12C;
+    mapped                       = work;
+    mapped->field_CCC.end1Radius = 0x12C;
+    __asm__("" : "+r"(extent), "+m"(mapped->field_CCC.end1Radius) : "r"(work->field_CE4));
+    mapped->field_CCC.end1.vz   = extent;
+    mapped->field_CAC.ctx.d4rec = &mapped->field_CCC;
+    mapped->field_CCC.end0.vx   = 0;
+    mapped->field_CCC.end0.vz   = 0;
+    mapped->field_CCC.end1.vx   = 0;
+    mapped->field_CCC.recs      = work->field_CE4;
+    (&mapped->field_CAC)->coord = root;
+    mapped->field_CAC.pos.vx    = 0;
+    mapped->field_CAC.pos.vy    = 0;
+    mapped->field_CAC.pos.vz    = 0;
+    mapped->field_CAC.key       = 0x30001;
+    mapped->field_CAC.radius    = 0;
+    mapped->field_CAC.flags     = 3;
+    mapped->field_B6C.flags     = mapped->field_B6C.flags | 0x4000;
+    Gp_LinkObj(linkKind, linkObj);
+    mapped->field_CAC.flags = mapped->field_CAC.flags | 0x4000;
+    Gp_InitRec18Table(mapped->field_CE4, 0xC, 0);
+    Gp_InitRec18Table(mapped->field_B6C.ctx.recs, 0xC, 0);
+    body           = &mapped->field_8EC;
+    body->coord    = &actor->field_2C->coords[2];
+    body->ctx.recs = &mapped->field_90C;
+    body->pos.vx   = 0;
+    body->pos.vy   = 0;
+    body->pos.vz   = 0;
+    body->key      = 0x30001;
+    body->radius   = 0x19C;
+    body->flags    = 1;
+    Gp_LinkObj(2, body);
+    body->flags |= 0x8000;
+    Gp_InitRec18Table(body->ctx.recs, 0xC, 0);
+    head           = &mapped->field_A2C;
+    head->coord    = &actor->field_2C->coords[10];
+    head->ctx.recs = &mapped->field_A4C;
+    head->pos.vx   = 0;
+    head->pos.vy   = 0;
+    head->pos.vz   = 0;
+    head->key      = 0x30001;
+    head->radius   = 0x100;
+    head->flags    = 1;
+    Gp_LinkObj(2, head);
+    head->flags |= 0x8000;
+    Gp_InitRec18Table(head->ctx.recs, 0xC, 0);
+    mapped->field_A2C.pos.vx = 0;
+    mapped->field_A2C.pos.vy = 0;
+    mapped->field_A2C.pos.vz = -0x100;
+    mapped->field_14         = 0;
+    mapped->field_C[0].x     = actor->field_2C->coords->coord.t[0];
+    mapped->field_C[0].z     = actor->field_2C->coords->coord.t[2];
+    Gfx_MatrixCol2(&actor->field_2C->coords->coord, &dir);
+    dir.vy = 0;
+    v      = &dir;
+    VectorNormalSS(v, v);
+    gte_lddp(5000);
+    gte_ldsv(v);
+    gte_gpf12_real();
+    gte_stsv(v);
+    mapped->field_C[1].x = actor->field_2C->coords->coord.t[0] + dir.vx;
+    mapped->field_C[1].z = actor->field_2C->coords->coord.t[2] + dir.vz;
+    mapped->field_E88    = 3;
+    mapped->field_E7C    = 0;
+    mapped->field_E80    = 1;
+    mapped->field_E84    = 0;
+    mapped->field_E8C    = 1;
+    actor->field_24      = &D_actor_421600_80151118;
+    root->sub            = &gGfxViewCoord;
+    root->flg            = 0;
+    Gp_UpdateCoord(root);
+    pos.vx = root->workm.t[0];
+    pos.vy = root->workm.t[1];
+    pos.vz = root->workm.t[2];
+    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    kind = actor->field_36;
+    switch (kind & 0xF) {
+        case 1:
+            mapped->field_2 = -1;
+            mapped->field_0 = 0;
+            break;
+
+        case 2:
+            mapped->field_2 = -1;
+            mapped->field_0 = 0x21;
+            break;
+
+        case 0:
+
+        default:
+            mapped->field_2 = -1;
+            mapped->field_0 = 0x18;
+            Tmd_AllocBuffers(obj);
+            break;
+    }
+
+    switch (((Task*)actor)->spawnArg1 & 0xF) {
+        case 2:
+            mapped->field_EA2 = D_actor_421600_8013EF48[0].field_2;
+            mapped->field_EA4 = D_actor_421600_8013EF48[0].field_0;
+            mapped->field_EA6 = D_actor_421600_8013EF48[0].field_4;
+            mapped->field_EA8 = D_actor_421600_8013EF48[0].field_6;
+            break;
+
+        case 1:
+            mapped->field_EA2 = D_actor_421600_8013EF48[2].field_2;
+            mapped->field_EA4 = D_actor_421600_8013EF48[2].field_0;
+            mapped->field_EA6 = D_actor_421600_8013EF48[2].field_4;
+            mapped->field_EA8 = D_actor_421600_8013EF48[2].field_6;
+            break;
+
+        case 0:
+
+        default:
+            mapped->field_EA2 = D_actor_421600_8013EF48[1].field_2;
+            mapped->field_EA4 = D_actor_421600_8013EF48[1].field_0;
+            mapped->field_EA6 = D_actor_421600_8013EF48[1].field_4;
+            mapped->field_EA8 = D_actor_421600_8013EF48[1].field_6;
+            break;
+    }
+
+    D_801153F4.field_2      = 8;
+    D_actor_421600_80151268 = 8;
+    actor->state++;
+}
 
 /// Picks one of twelve hit positions out of `D_actor_421600_801510B8` by
 /// damage magnitude `arg1`, then spawns effect `Gp_GetIdParam1(arg2)` on the
@@ -825,9 +1023,9 @@ void func_actor_421600_80138D24(Actor421600* arg0)
         work->field_82E        = 6;
         work->field_B6C.flags |= 0x4000;
         func_actor_421600_80134604(arg0);
-        work->field_6   = 0;
-        work->field_8   = 0;
-        work->field_CD8 = -0x320;
+        work->field_6           = 0;
+        work->field_8           = 0;
+        work->field_CCC.end1.vz = -0x320;
     }
     work->field_6++;
     func_actor_421600_80134604(arg0);
