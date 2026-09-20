@@ -143,6 +143,17 @@ typedef struct Actor403200TurnScratch {
 } Actor403200TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor403200TurnScratch, 0xC);
 
+/// 0xC-byte scratchpad frame `func_actor_403200_8013EF6C` carves off
+/// `SCRATCH_SP` for the escort-spawn tick: `delta` is the player-relative
+/// offset the tick yaws the host by, and `i` is the escort slot the loop and
+/// the 0x7DB message both index `Actor403200Work::field_EE8` with.
+typedef struct Actor403200SpawnScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ byte    pad_8[0x2];
+    /* 0xA */ s16     i; // escort slot, 0 or 1
+} Actor403200SpawnScratch;
+STATIC_ASSERT_SIZEOF(Actor403200SpawnScratch, 0xC);
+
 /// Scratchpad frame the spawn state carves off `G_SCRATCH_HEAD` to flatten the
 /// host's root coordinate: `Gfx_RotMatrixY` writes `m`, `scale` is the uniform
 /// 1.0 vector `ScaleMatrix` applies to it, and `angle` is the `ratan2` yaw the
@@ -307,11 +318,10 @@ typedef struct Actor403200Work {
     /// `TmdObject::flags` onto each escort's own model object; the same
     /// seven-slot run as `Actor444000Work::field_ECC`.
     /* 0xECC */ GpEnemy* field_ECC[7];
-    /// The two escorts the upkeep tick drops once their HP has run out, by
-    /// clearing the slot when `GpEnemy::hp` is not positive. Same slots
-    /// and role as `Actor444000Work::field_EE8`.
-    /* 0xEE8 */ GpEnemy* field_EE8;
-    /* 0xEEC */ GpEnemy* field_EEC;
+    /// Two nearby-enemy slots, each dropped once its HP runs out; the spawn
+    /// tick fills them in a loop, which is what makes them an array. Same
+    /// slots and role as `Actor444000Work::field_EE8`.
+    /* 0xEE8 */ GpEnemy* field_EE8[2];
     /// The enemy the state-change reset spawns from `D_actor_403200_8015E858`
     /// for the three states that launch it.
     /* 0xEF0 */ GpEnemy* field_EF0;
@@ -368,10 +378,14 @@ typedef struct Actor403200Work {
     /* 0xF18 */ byte pad_F18[0x2];
     /// Free-running counter bumped on every heal tick by
     /// `func_actor_403200_80141A94`.
-    /* 0xF1A */ u8   field_F1A;
-    /* 0xF1B */ byte pad_F1B[0x1];
+    /* 0xF1A */ u8 field_F1A;
+    /// Count of escorts this overlay has spawned; the spawn tick refuses a
+    /// new one once it has reached 8. Same slot and role as
+    /// `Actor444000Work::field_F1B`.
+    /* 0xF1B */ s8 field_F1B;
     /// Countdown, decremented while positive; when it reaches zero the handler
-    /// re-arms `field_F16`.
+    /// re-arms `field_F16`. The spawn tick also uses it as a live-escort cap
+    /// of 2.
     /* 0xF1C */ s8 field_F1C;
     /// Armed to 6 by the state-change reset, the pair shown while the enemy
     /// stands up.

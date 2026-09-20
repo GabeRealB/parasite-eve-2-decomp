@@ -34,6 +34,11 @@ extern s8 D_actor_403200_8015F8E0;
 /// Shared 0x7DA payload buffer, also used by the other states of this overlay.
 extern Actor403200Msg7DA D_actor_403200_8015F8F4;
 
+/// The halfword at `D_actor_403200_8015F8F4 + 2` under its own label: the
+/// escort-spawn tick reaches the action selector both ways, so both names are
+/// declared (see DECOMPILATION_LEARNINGS.md, "A second label on the same run").
+extern s16 D_actor_403200_8015F8F6;
+
 /// Pair descriptors the host and its escorts publish as `GpEnemy::param`;
 /// `hpMax` is the hit-point pool each one starts with.
 extern GpPairSrcE D_actor_403200_80141C00;
@@ -96,6 +101,9 @@ extern GpAnimSet* D_actor_403200_8015E6AC[];
 /// halfword at +2 is the "player hold is armed" gate the group 3-5 and 6-8 hit
 /// handlers test before they let a landed hit spawn its effect.
 extern u16 D_801153F4[];
+
+/// Gameplay's escort `TaskDesc` table; entry 3 is the pair this boss spawns.
+extern TaskDesc D_80174D58;
 
 /// Reply buffer the stand-up tick passes with its message 0x3F8 before it asks
 /// the player for the hold. Same shape as `D_actor_444000_80161928`.
@@ -3014,7 +3022,210 @@ void func_actor_403200_8013EB64(Task* arg0)
     SCRATCH_SP += sizeof(Actor403200ApproachScratch);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013EF6C);
+/// Escort-spawn tick of the arena fight. While `D_actor_403200_80141C50` is 1
+/// the whole body is skipped; otherwise it carves an
+/// `Actor403200SpawnScratch` off `SCRATCH_SP`.
+///
+/// On the dispatcher's re-arm tick it tops the two `field_EE8` slots back up
+/// to two live escorts (`field_F1C` < 2 and `field_F1B` < 8), dresses each
+/// model from the current area record's fourth placement, stamps the slot
+/// index into `GpEnemy::placeKey`, and plays the two type-7 launch cues.
+/// Every later tick yaws the host at the player, and at `field_6` 0x46 / 0x78
+/// it sends escort 0 or 1 a 0x7DB order whose action is picked from
+/// `field_F08` and a coin flip of `Gp_LcgState`.
+void func_actor_403200_8013EF6C(Task* arg0)
+{
+    Actor403200SpawnScratch* sc;
+    Actor403200Work*         work;
+    GpEnemy*                 host;
+    GpEnemy*                 escort;
+    PlayerStatus*            cfg;
+    GsCOORDINATE2*           coord;
+    GsCOORDINATE2*           facing;
+    TmdObject*               model;
+    GpAreaPlace*             entry;
+    GpAreaKey                key;
+    GpAreaKey*               sessionKey;
+    s32                      cueId;
+    s32                      cuePan;
+    s32                      blastId;
+    s32                      blastPan;
+    s32                      rnd;
+    s32                      state;
+    s16                      angle;
+    s16                      sel;
+    u32                      frame;
+
+    work = (Actor403200Work*)arg0->work;
+    host = arg0->spawnArg2;
+    if (D_actor_403200_80141C50 != 1) {
+        sc = (Actor403200SpawnScratch*)(SCRATCH_SP -= sizeof(Actor403200SpawnScratch));
+        if (work->field_4 != 0) {
+            state           = work->field_7B3;
+            work->field_EF4 = 0;
+            work->field_EF6 = 1;
+            work->field_EFA = 0;
+            if (state != 0x13) {
+                work->field_7B3 = 0x13;
+                work->field_7B0 = 1;
+            } else {
+                work->field_7B0 = 2;
+                work->field_7B3 = state;
+            }
+            work->field_7B6 = 0x10;
+            for (sc->i = 0; sc->i < 2; sc->i++) {
+                if (work->field_EE8[sc->i] == NULL && work->field_F1C < 2 && (u8)work->field_F1B < 8) {
+                    work->field_EE8[sc->i] = Gp_SpawnEnemyFromTable(&D_80174D58, 3, 2, NULL);
+                    if (work->field_EE8[sc->i] != NULL) {
+                        work->field_F1B++;
+                        model      = (TmdObject*)work->field_EE8[sc->i]->task->extra;
+                        sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+                        key.stage  = sessionKey->stage;
+                        key.area   = sessionKey->area;
+                        key.room   = sessionKey->room;
+                        key.view   = sessionKey->view;
+                        Gp_SyncAreaKeyIndex(&key);
+                        entry        = (GpAreaPlace*)((s32)Gp_GetNestedAreaRec(&key)->field_0 + 0x30);
+                        model->tpage = entry->tpage;
+                        model->clut  = entry->clut;
+                        if (model->buffer != NULL) {
+                            tmdProcessStream(model);
+                            tmdProcessStream(model);
+                        }
+                        work->field_EE8[sc->i]->workType = 0x900;
+                        escort                           = work->field_EE8[sc->i];
+                        escort->placeKey                |= sc->i << 12;
+                        work->field_F1C++;
+                    }
+                }
+            }
+            work->field_E96 = 0xC80;
+            SndEvt_EnqueueType7((((u16)host->placeKey >> 12) << 8) | 0x4020000D, 1);
+            SndEvt_EnqueueType7((((u16)host->placeKey >> 12) << 8) | 0x40200009, 1);
+        }
+        if (D_actor_403200_80141C58 >= 0x191) {
+            D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;
+        }
+        func_actor_403200_80133DD8(arg0);
+        if (work->field_7B3 == 0x13 && (frame = work->field_4A & 0x3FF) >= 4 && frame < 0xD) {
+            work->field_EFA = 1;
+        } else {
+            work->field_EFA = 0;
+        }
+        cfg          = &Player_Status;
+        coord        = ((TmdObject*)arg0->extra)->coords;
+        sc->delta.vx = cfg->coordMtx->t[0] - coord->coord.t[0];
+        sc->delta.vy = cfg->coordMtx->t[1] - coord->coord.t[1];
+        sc->delta.vz = cfg->coordMtx->t[2] - coord->coord.t[2];
+        facing       = ((TmdObject*)arg0->extra)->coords;
+        angle        = ratan2(sc->delta.vx, sc->delta.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+        if (angle < 0) {
+        wrapUp:
+            if (angle < -0x800) {
+                angle += 0x1000;
+                goto wrapUp;
+            }
+        } else {
+        wrapDown:
+            if (angle > 0x800) {
+                angle -= 0x1000;
+                goto wrapDown;
+            }
+        }
+        work->field_7C4 = angle;
+        if ((work->field_58 & 1) && work->field_7B3 == 0x13) {
+            work->field_7B3 = 1;
+            work->field_7B0 = 1;
+        }
+        if (work->field_6 >= 0x14B || (work->field_7B3 == 1 && D_801153F4[1] == 1)) {
+            work->field_0 = 3;
+        }
+        if (work->field_6 == 6) {
+            cueId  = (((u16)host->placeKey >> 12) << 8) | 0x40200004;
+            cuePan = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
+            SndEvt_EnqueueType6(cueId, cuePan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
+        }
+        if (work->field_6 == 0x3B) {
+            blastId  = (((u16)host->placeKey >> 12) << 8) | 0x40200010;
+            blastPan = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
+            SndEvt_EnqueueType6(blastId, blastPan, (s8)(gpGetObjDepth(((TmdObject*)arg0->extra)->coords) / 2));
+            work->field_EAC = 3;
+            Gp_SpawnScript18((s32)&D_actor_403200_80141C5C, (s32)&D_actor_403200_80141C64);
+        }
+        if (work->field_6 == 0x23) {
+            work->field_F06 = 0;
+        }
+        if (work->field_6 == 0x46) {
+            sc->i = 0;
+            goto dispatch;
+        }
+        if (work->field_6 == 0x78) {
+            sc->i = 1;
+        dispatch:
+            if (work->field_EE8[sc->i] != NULL) {
+                D_actor_403200_8015F8F4.field_0 = 0;
+                D_actor_403200_8015F8F4.field_1 = 0x2C;
+                sel                             = work->field_F08;
+                if (sel == 1) {
+                    goto L_case1;
+                }
+                if (sel >= 2) {
+                    goto L_default;
+                }
+                if (sel != 0) {
+                    goto L_default;
+                }
+                if (sc->i == 0) {
+                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
+                    if (!(((u32)Gp_LcgState >> 16) & 1)) {
+                        D_actor_403200_8015F8F4.field_2 = 3;
+                    } else {
+                        D_actor_403200_8015F8F4.field_2 = 4;
+                    }
+                } else {
+                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
+                    if (!(((u32)Gp_LcgState >> 16) & 1)) {
+                        D_actor_403200_8015F8F4.field_2 = 9;
+                    } else {
+                        D_actor_403200_8015F8F4.field_2 = 0xA;
+                    }
+                }
+                goto L_join;
+            L_case1:
+                if (sc->i == 0) {
+                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
+                    if (!(((u32)Gp_LcgState >> 16) & 1)) {
+                        D_actor_403200_8015F8F4.field_2 = 0xA;
+                    } else {
+                        D_actor_403200_8015F8F4.field_2 = 0xB;
+                    }
+                } else {
+                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
+                    if (!(((u32)Gp_LcgState >> 16) & 1)) {
+                        D_actor_403200_8015F8F4.field_2 = 4;
+                    } else {
+                        D_actor_403200_8015F8F4.field_2 = 5;
+                    }
+                }
+                goto L_join;
+            L_default:
+                if (sc->i == 0) {
+                    D_actor_403200_8015F8F6 = 5;
+                } else {
+                    D_actor_403200_8015F8F6 = 0xB;
+                }
+            L_join:
+                D_actor_403200_8015F8F4.field_2  = (u16)D_actor_403200_8015F8F4.field_2 << 8;
+                rnd                              = (Gp_LcgState * 5) + 0x71357911;
+                D_actor_403200_8015F8F4.field_2 |= ((((u32)rnd >> 16) % 3) * 0x10) | 1;
+                Gp_LcgState                      = rnd;
+                Gp_DispatchMsg(work->field_EE8[sc->i]->task, 0x7DB, (s32)&D_actor_403200_8015F8F4, 0);
+            }
+        }
+    out:
+        SCRATCH_SP += sizeof(Actor403200SpawnScratch);
+    }
+}
 
 void func_actor_403200_8013F700(Task* arg0)
 {
@@ -3269,11 +3480,11 @@ void func_actor_403200_80140E6C(Task* arg0)
     work   = (Actor403200Work*)arg0->work;
     enemy  = arg0->spawnArg2;
     if (work != NULL) {
-        if (work->field_EE8 != NULL && work->field_EE8->hp <= 0) {
-            work->field_EE8 = NULL;
+        if (work->field_EE8[0] != NULL && work->field_EE8[0]->hp <= 0) {
+            work->field_EE8[0] = NULL;
         }
-        if (work->field_EEC != NULL && work->field_EEC->hp <= 0) {
-            work->field_EEC = NULL;
+        if (work->field_EE8[1] != NULL && work->field_EE8[1]->hp <= 0) {
+            work->field_EE8[1] = NULL;
         }
         diff = work->field_E96 - work->field_E94;
         if (diff < 0) {
