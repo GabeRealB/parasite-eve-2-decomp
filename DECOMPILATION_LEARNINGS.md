@@ -135158,3 +135158,46 @@ base_2.i `1b06462b1305e46352e8ec5892ccc9fd8e9f34e68e5abfab567fa4bdfb07ba27`;
 base_3.i `f4a2793c5db0aa7b105e60f2d0d82020e762b467f937265b18e64f9e42f1ca53`;
 base_4.i `67f0a048b780c1daf57a64b8c7f46d013a4be5269b5da3c7dd0ed50f9520d685`.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## Reuse a conditional state variable through its preceding store, not only the comparison (func_actor_105100_80135E54, 2026-09-20)
+
+The 99.762% seed differed only in the register holding constants 6/7 and their
+state store (`regs=3`). Sched1 hoisted the default constant into the health
+load/subtraction interval, so global allocation could not use v0. Writing
+separate if/else arms alone reproduced the same object.
+
+Reusing the shifted predicate for the state constants was insufficient:
+`state = remaining << 16` could schedule before `enemy->field_40 = remaining`.
+The store kept the subtraction result live in local v0 while the shifted
+state became global v1. This variant scored 96.906%, with an extra jump.
+Reusing a u16 health temporary also failed: CSE/combination removed its
+intermediate assignment and left the original conflict, even though its
+global priority increased.
+
+The controlled fix carries the subtraction, store, shift and chosen constant
+through one **s32** variable:
+
+```c
+state = enemy->field_40 - damage;
+enemy->field_40 = state;
+state <<= 16;
+if (state <= 0) {
+    state = 7;
+} else {
+    state = 6;
+}
+work->field_596 = state;
+```
+
+In base_3, sched/lreg UID 101 (in-place shift of r83) has REG_DEP_ANTI on
+UID 99 (health store from r83), forcing the store before the shift. The greg
+header changes r83's hard conflicts from v0/sp to sp alone, records a v0
+preference, and assigns v0. The dbr dump places the default 6 in the bgtz
+delay slot and removes the extra arm jump. Both preplanned predictions
+(allocation and schedule) hold; base_3 and the formatted base_4 score 100%.
+
+This extends the conditional-state reuse example for actor_421600: preserve
+the dependency through any preceding store as well. It is specific evidence
+for this compiler's RTL, not a claim about portable signed-shift semantics.
+No register pins, empty asm or tracer were needed. Selected sources, input
+hashes, compiler hash, predictions and relevant dump blocks are retained in
+`tools/compiler_evidence/2026-09-20-actor105100-35e54.json`.

@@ -777,7 +777,47 @@ void func_actor_105100_80135DF8(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80135E54);
+void func_actor_105100_80135E54(Actor105100* arg0)
+{
+    Actor105100Ctx*  enemy;
+    Actor105100Work* work;
+    s32              state;
+    s32              damage;
+    s32              tick;
+    u8               flags;
+
+    enemy = arg0->field_20;
+    flags = enemy->field_4C;
+    work  = arg0->field_1C;
+    if (flags & 1) {
+        enemy->field_4C = flags & 0xFE;
+    }
+    if ((enemy->field_4C & 2) && (work->field_596 != 5)) {
+        work->field_596 = 5;
+        work->field_598 = 0;
+        work->field_5C2 = 1;
+    }
+    if (enemy->field_4C & 0xC) {
+        tick = Gp_TickObjFlag4((GpObj5C*)enemy) << 0x10;
+        if (tick != 0) {
+            damage = tick >> 0x12;
+            func_800DA6E8(&enemy->node, damage, 0);
+            state           = enemy->field_40 - damage;
+            enemy->field_40 = state;
+            state         <<= 0x10;
+            if (state <= 0) {
+                state = 7;
+            } else {
+                state = 6;
+            }
+            work->field_596 = state;
+            work->field_598 = 0;
+        }
+        if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+            enemy->field_4C &= 0xF3;
+        }
+    }
+}
 
 /// Second step of the `field_598` schedule: arms pose 2 with the `field_59A`
 /// timer at 0x3C frames, then, when the timer runs out, hands the pose back to
