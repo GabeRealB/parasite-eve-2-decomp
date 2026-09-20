@@ -117,7 +117,9 @@ typedef struct Actor401800Work {
     /// Cleared by the init body right after `field_A08` is linked; same slot
     /// `Actor01900Work.field_C10` / `Actor401300Work.field_C88` clears.
     /* 0xBE0 */ s16  field_BE0;
-    /* 0xBE2 */ byte pad_BE2[6];
+    /* 0xBE2 */ u16  field_BE2;
+    /* 0xBE4 */ u16  field_BE4;
+    /* 0xBE6 */ byte pad_BE6[2];
     /// Direction the swing body of `func_actor_401800_80137DDC` rebuilds from
     /// the yaw in the scratch angle with `Gfx_MatrixCol2` / `VectorNormalSS`,
     /// then GPF-scales by `field_C02` into the offset added to the root
@@ -201,6 +203,24 @@ typedef struct Actor401800Work {
     /// clears at the same point.
     /* 0xC74 */ s16 field_C74;
 } Actor401800Work;
+
+typedef struct Actor401800HitScratch {
+    /* 0x00 */ MATRIX  m;
+    /* 0x20 */ s32     dx;
+    /* 0x24 */ s32     dy;
+    /* 0x28 */ s32     dz;
+    /* 0x2C */ s32     pad_2C;
+    /* 0x30 */ SVECTOR dir;
+    /* 0x38 */ SVECTOR hitPos;
+    /* 0x40 */ s32     id;
+    /* 0x44 */ s32     damage;
+    /* 0x48 */ s32     dist;
+    /* 0x4C */ s16     yaw;
+    /* 0x4E */ s16     crit;
+    /* 0x50 */ s16     effect;
+    /* 0x52 */ s16     pad_52;
+} Actor401800HitScratch;
+STATIC_ASSERT_SIZEOF(Actor401800HitScratch, 0x54);
 
 /// 0x34-byte scratch `func_actor_401800_8013629C` takes from `G_SCRATCH_HEAD`
 /// to push the root coordinate away from the kind 0x10000 / 0x30000 records of
