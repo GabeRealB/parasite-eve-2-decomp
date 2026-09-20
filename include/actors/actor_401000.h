@@ -451,6 +451,10 @@ extern void* D_80114B78[1];
 extern u8 D_801153F2[2];
 extern u8 D_801153F4;
 
+/// Returns the animation event for the current state/index transition and
+/// latches the index in field_8B4; returns zero when no event is queued.
+s32 func_actor_401000_80132BB0(Actor401000Work* work);
+
 /// State handler table `func_actor_401000_8013D044` copies to its frame; the
 /// entries are declared here so the table itself can be written out in
 /// `actor_401000.c`.
