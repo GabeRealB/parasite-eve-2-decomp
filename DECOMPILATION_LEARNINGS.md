@@ -127219,6 +127219,22 @@ Read the two dumps rather than the source when checking this: the address is a
 pseudo at sched1 and the hard register `$s2` only after reload, where it *does*
 vary. The decision belongs to the first scheduling pass, and `.sched` carries the
 load's `LOG_LINKS` -- the missing `insn_list 107` on insn 112 is the whole bug.
+
+The actor_311500 retry (2026-09-20, `func_actor_311500_801629D8`) confirms this
+with a preplanned two-line experiment, 99.470% -> 100.000%. UID119 changes
+`mem:SI` to `mem/s:SI` in initial RTL and gains `insn_list 114` (the preceding
+return store) in sched1. Its LAUNCH_PRIORITY boost remains: the missing memory
+edge, not removal of the boost, was decisive. Pseudos 101/102 move from v1 to
+v0 while loop homes i=s0, work=s1, rate=s6 survive. The overlay-header port
+also matches exactly. Inputs: scalar baseline
+`7245aa77b66b4b9f01bbad4641bb7f4811a8c8ab9578b1cef7ed865403fa8648`,
+array variant `b84cbccc00d434a22c126e6605b560fb1ee268fcfc3805a28e0d6fe15800bba8`;
+compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Selected dumps and the preprocessed inputs are archived under
+`tools/permuter_findings/func_actor_311500_801629D8/`; the current bounded
+permuter search found no output, so this is a manual controlled result.
+
+
 ## m2c's phi-merged `var_vN` countdown keeps the loaded value in `$v1`; the compound statement puts it in `$v0` (func_actor_213100_80149E3C, 2026-09-17)
 
 `m2c` lowers a "count down, free at zero" tail into an explicit phi variable so

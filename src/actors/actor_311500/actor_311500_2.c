@@ -3,8 +3,80 @@
 #include "actors/actor_311500.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_311500/actor_311500_2", func_actor_311500_801629D8);
+void func_actor_311500_801629D8(Actor311500* arg0)
+{
+    Actor311500Work* work;
+    Actor311500Work* work2;
+    Actor311500Work* work3;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coords;
+    TmdObject*       tmd;
+    GpAreaPlace*     place;
+    s32              i;
+    u8               rate;
+
+    coords         = arg0->field_2C->coords;
+    enemy          = arg0->field_20;
+    tmd            = arg0->field_2C;
+    work           = (Actor311500Work*)memCalloc(0x4D8, 0);
+    arg0->field_1C = work;
+    if (work == NULL) {
+        taskKill((Task*)arg0);
+        return;
+    }
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    work2 = (Actor311500Work*)arg0->field_1C;
+    Mem_Set(work2, 0, 0x4D8);
+    coords->sub = &gGfxViewCoord;
+    Tmd_AllocBuffers(tmd);
+    tmd->lightMtx = &work2->light;
+    tmd->colorMtx = &work2->color;
+    tmd->flags    = 0;
+    func_800B3F84(&work2->anim, D_actor_311500_801692F4, tmd, work2->pad_30C,
+                  &work2->slots[0]);
+    work2->field_4B4 = gameGetPtrSlot(3);
+    work2->field_4B8 = D_80073B8C[0];
+    rate             = 0x10;
+    i                = 1;
+    work3            = (Actor311500Work*)arg0->field_1C;
+    do {
+        work3->slots[i & 0xFFFF].rate = rate;
+        Gp_AnimResetSlot(&work3->anim, i & 0xFFFF, 0);
+        i += 1;
+    } while ((u32)(i & 0xFFFF) < 0x13U);
+    enemy->field_48   = 0;
+    enemy->bodyPos.vx = 0;
+    enemy->bodyPos.vy = 0;
+    enemy->bodyPos.vz = 0;
+    enemy->coord      = &arg0->field_2C->coords[2];
+    Gp_LinkNode(&enemy->node);
+    enemy->hp                 = 0x32;
+    enemy->node.flags         = 0;
+    enemy->reactionFlags      = 0;
+    enemy->param              = &D_actor_311500_801692C0;
+    work2->field_43C.coord    = &arg0->field_2C->coords[2];
+    work2->field_43C.ctx.recs = &work2->rec18[0];
+    work2->field_43C.pos.vx   = 0;
+    work2->field_43C.pos.vy   = 0;
+    work2->field_43C.pos.vz   = 0;
+    work2->field_43C.key      = 0x3000A;
+    work2->field_43C.radius   = 0x190;
+    work2->field_43C.flags    = 1;
+    Gp_LinkObj(2, &work2->field_43C);
+    work2->field_43C.flags |= 0x8000;
+    Gp_InitRec18Table(&work2->rec18[0], 1, 0);
+    enemy->recs      = &work2->rec18[0];
+    arg0->field_24   = &D_actor_311500_80169330;
+    work2->field_4D4 = 1;
+    place            = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
+    while (place->entryId != 0xFF && place->entryId != 0xA) {
+        place++;
+    }
+    Gp_SetTmdBytes(tmd, (s8)place->tpage, (s8)place->clut);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_311500/actor_311500_2", func_actor_311500_80162C34);
 
@@ -111,7 +183,7 @@ s32 func_actor_311500_80162F28(Actor311500 *arg0)
       i += 1;
       } while (((u32) (i & 0xFFFF)) < 0x13U);
       var_v1 = 1;
-      if (!(work->field_4C & 1)) {
+      if (!(work->slots[1].flags & 1)) {
       asm("");
       var_v1 = 0;
       }
