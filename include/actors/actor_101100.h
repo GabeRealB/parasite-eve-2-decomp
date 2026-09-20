@@ -21,8 +21,17 @@ typedef struct Actor101100Work {
 } Actor101100Work;
 STATIC_ASSERT_SIZEOF(Actor101100Work, 0x58);
 
+/// Pair table the spawn state packs into the display node's `GpObj.key`.
+extern GpU16Pair D_actor_101100_80139318;
+
 /// Absolute; nonzero skips the per-frame state handler entirely.
 extern u8 D_801153F4;
+
+/// Overlay-local spawn/setup state of `ActorsShared8013845c`: allocates the
+/// 0x58-byte work block, plays the spawn cue, seeds the display node and
+/// hands off to `ActorsShared8013845cSub1`.
+void ActorsShared8013845cSub0(Task* task);
+void ActorsShared8013845cSub1(Task* task);
 
 /// One of the actor's three state handlers - spawn/setup, per-frame tick and
 /// teardown. Wider than the usual two-argument `GpEnemyTaskFunc` shape: the
