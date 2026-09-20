@@ -136765,3 +136765,33 @@ base_6.i SHA256
 Retained source/dump evidence and prediction are under
 `tools/permuter_findings/func_actor_421600_801354D8/` for session
 `7b75fcd945f94404a4824f94cc9c63e6`, run `3b900e5d101845f6`.
+
+## func_actor_421600_801373D4: widen a signed-byte pan before a second call
+
+GCC 2.8.1 expands `s8 pan = (s8)Gp_GetObjPan(coord)` into a QI local;
+when passed to `SndEvt_EnqueueType6` after `gpGetObjDepth`, its SI sign
+extension appears after the depth call. Keeping the cast but declaring `s32 pan`
+places the extension at assignment. In this function the shifts occupy the load
+and call delay slots before/at `gpGetObjDepth`, removing a copy and a nop while
+retaining s0 as the pan register. This is an expansion/type mechanism, not evidence
+for declaration-order or register-priority folklore.
+
+The preplanned pan-only base_4 experiment reduced distance 725 to 10 and preserved
+block, predicate, call topology and saved homes. RTL UID 2747 changes from QI
+subreg assignment to SI arithmetic shift; UID 2746 is the preceding left shift.
+`insn.py` confirms these survive combine and remain before the depth call through
+allocation/sched2. Typed record-array indexing fixes the remaining base/index
+operand order; base_3 and cleaned base_5 are exact and integration verified.
+
+The concurrent permuter independently widened pan to unsigned int and added a
+u16 identity helper. Its normalized baseline retained distance 725; its discovery
+scored 210 because the non-static inline helper also emitted a separate two-insn
+body. The controlled signed-SI variation needs no identity helper. Preserve the
+explicit signed-byte cast: merely making the local wider changes its value.
+
+Evidence: `tools/permuter_findings/func_actor_421600_801373D4/` and retained
+`PERMUTER_EVIDENCE/f2d409ab6c714683`; base_2 input SHA256
+`166d91c7b072d58dfdcf2a11b6fb89117ef335a15f671776300b77759dd58e26`,
+base_4 `81099b7ad17a61b3e7747e2b8adab7635c172a6e982dc4f4a22b81315f4c6a76`.
+Scope: this call chain and bundled compiler; wider locals do not generally
+improve scheduling or allocation.

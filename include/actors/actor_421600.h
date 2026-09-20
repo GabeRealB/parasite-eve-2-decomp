@@ -174,7 +174,7 @@ typedef struct Actor421600Work {
     /* 0xE66 */ u16               field_E66;
     /* 0xE68 */ byte              pad_E68[8];
     /* 0xE70 */ s16               field_E70;
-    /* 0xE72 */ byte              pad_E72[2];
+    /* 0xE72 */ s16               field_E72;
     /* 0xE74 */ s16               field_E74;
     /* 0xE76 */ byte              pad_E76[2];
     /* 0xE78 */ s16               field_E78;
@@ -316,6 +316,20 @@ typedef struct Actor421600AvoidDelta {
     /* 0xC */ byte pad_C[0x4];
 } Actor421600AvoidDelta;
 STATIC_ASSERT_SIZEOF(Actor421600AvoidDelta, 0x10);
+
+/// Facing tick workspace: player displacement, squared distance and contact reply.
+typedef struct Actor421600FacingScratch {
+    /* 0x00 */ s16 vx, vy, vz, pad;
+    /* 0x08 */ u32 distanceSquared;
+    /* 0x0C */ s16 playerYaw;
+    /* 0x0E */ u16 contactYaw;
+    /* 0x10 */ s16 turnYaw, targetYaw;
+    /* 0x14 */ s16 messageResult;
+    /* 0x16 */ s16 pad16;
+} Actor421600FacingScratch;
+STATIC_ASSERT_SIZEOF(Actor421600FacingScratch, 0x18);
+
+extern SVECTOR D_actor_421600_80151260;
 
 /// The attack tick takes 0x14 bytes from G_SCRATCH_HEAD for its direction,
 /// wrapped angles, arena zone and player contact reply.

@@ -1851,7 +1851,438 @@ void func_actor_421600_80136C88(Actor421600* arg0)
     *(Actor421600SeekScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_801373D4);
+static __inline__ void Actor421600_ConfigPositionDelta(PlayerStatus* config, GsCOORDINATE2* coord, SVECTOR* pos)
+{
+    pos->vx = config->coordMtx->t[0] - coord->coord.t[0];
+    pos->vy = config->coordMtx->t[1] - coord->coord.t[1];
+    pos->vz = config->coordMtx->t[2] - coord->coord.t[2];
+}
+
+static __inline__ s16 Actor421600_PositionYaw(Actor421600* actor, SVECTOR* pos, PlayerStatus* config)
+{
+    GsCOORDINATE2* coord;
+    s32            angle;
+    Actor421600_ConfigPositionDelta(config, actor->field_2C->coords, pos);
+    coord = actor->field_2C->coords;
+    angle = ratan2(pos->vx, pos->vz);
+    return Actor421600_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+}
+
+static __inline__ s32 Actor421600_PlayerContactMessage(GpEnemy* ctx, s32 mode)
+{
+    Task* player = gameGetPtrSlot(3);
+    return Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair((GpObj50*)ctx, mode), 0);
+}
+
+void func_actor_421600_801373D4(Actor421600* arg0)
+{
+    PlayerStatus* config = &Player_Status;
+    SVECTOR       initialDelta;
+
+    SVECTOR                   effect;
+    s16                       temp_a1_3;
+    s16                       temp_a1_4;
+    s16                       temp_a1_5;
+    s16                       temp_s0_12;
+    s16                       temp_s0_15;
+    s16                       temp_s0_18;
+    s16                       temp_s0_21;
+    s16                       temp_s0_6;
+    s16                       temp_s0_9;
+    s16                       temp_v0_4;
+    s32                       temp_v1_2;
+    s32                       var_v0_15;
+    s32                       var_v0_17;
+    s16                       var_v0_24;
+    s32                       var_v0_25;
+    s32                       var_v0_26;
+    s16                       var_v1_2;
+    s16                       var_v1_4;
+    s16                       var_v1_5;
+    s16                       var_v1_6;
+    s16                       var_v1_7;
+    s16                       var_v1_8;
+    GsCOORDINATE2*            temp_a1_2;
+    GsCOORDINATE2*            temp_a2_2;
+    GsCOORDINATE2*            temp_a2_3;
+    GsCOORDINATE2*            temp_s0_13;
+    GsCOORDINATE2*            temp_s0_16;
+    GsCOORDINATE2*            temp_s0_19;
+    GsCOORDINATE2*            temp_s0_4;
+    GsCOORDINATE2*            temp_s0_7;
+    GsCOORDINATE2*            temp_v0_5;
+    GsCOORDINATE2*            temp_v0_7;
+    s32*                      scratchHead;
+    s32                       temp_v0;
+    s32                       spawnEffect;
+    s32                       var_a1_4;
+    s32                       effectFlags;
+    s32                       effectJoint;
+    s32                       var_v0_13;
+    s32                       var_v0_14;
+    s32                       var_v0_21;
+    s32                       var_v0_22;
+    s32                       var_v0_5;
+    s32                       var_v0_6;
+    s32                       var_v0_8;
+    s32                       var_v0_9;
+    s32                       pan;
+    s32                       temp_s0_11;
+    s32                       temp_s0_14;
+    s32                       temp_s0_17;
+    s32                       temp_s0_20;
+    s32                       temp_s0_5;
+    s32                       temp_s0_8;
+    u16                       temp_v0_6;
+    u16                       temp_v1;
+    u16                       var_a0;
+    u16                       var_v1_3;
+    u32                       temp_lo;
+    GsCOORDINATE2*            temp_s0_10;
+    Task*                     player;
+    TmdObject*                obj;
+    GpEnemy*                  ctx;
+    Actor421600Work*          work;
+    GameActor*                playerWork;
+    Actor421600FacingScratch* scratch;
+
+    work       = arg0->field_1C;
+    player     = gameGetPtrSlot(3);
+    playerWork = (GameActor*)player->work;
+    ctx        = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj              = arg0->field_2C;
+        initialDelta.pad = Actor421600_PositionYaw(arg0, &initialDelta, config);
+        temp_v0          = initialDelta.pad;
+        if (temp_v0 > 0x300) {
+            work->field_0 = 9;
+        } else if (temp_v0 < -0x300) {
+            work->field_0 = 10;
+        }
+        ctx->node.flags = 0;
+        obj->flags      = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8EC.radius = 0x19C;
+        work->field_82E        = 2;
+        work->field_828        = 1;
+        work->field_82A        = 0;
+        work->field_83E        = 0;
+        work->field_B6C.flags  = (u16)(work->field_B6C.flags | 0x4000);
+        work->field_832        = (u16)work->field_834;
+        func_actor_421600_80134604(arg0);
+        work->field_CCC.end1.vz = 0x320;
+        work->field_6           = 0U;
+        work->field_8           = 0U;
+        work->field_E9E         = 0;
+        work->field_840         = 0;
+        work->field_8E8         = 9;
+        work->field_8E9         = 1;
+        work->field_8EA         = 1;
+        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, &work->field_8E8, 0x7DB);
+        return;
+    }
+    scratch = (*(Actor421600FacingScratch**)G_SCRATCH_HEAD -= 1);
+    if (work->field_82E == 3) {
+        work->field_6 = (u16)(work->field_6 + 1);
+    }
+    if ((func_actor_421600_8013285C(arg0->field_2C->coords, &work->field_B8C, 0xC) != 0) && ((s16)work->field_6 >= 0xB)) {
+        temp_lo                  = D_actor_421600_80151260.vx * D_actor_421600_80151260.vx;
+        scratch->distanceSquared = temp_lo;
+        scratch->distanceSquared = (u32)(temp_lo + (D_actor_421600_80151260.vz * D_actor_421600_80151260.vz));
+        temp_s0_4                = arg0->field_2C->coords;
+        temp_s0_5                = ratan2(D_actor_421600_80151260.vx, D_actor_421600_80151260.vz);
+        temp_s0_6                = temp_s0_5 - ratan2(-temp_s0_4->coord.m[2][0], temp_s0_4->coord.m[2][2]);
+
+        var_v1_2 = Actor421600_NormalizeYaw(temp_s0_6);
+        var_v0_5 = var_v1_2 << 0x10;
+
+        var_v0_6 = var_v0_5 >> 0x10;
+        if (var_v0_6 < 0) {
+            var_v0_6 = -var_v0_6;
+        }
+        if ((var_v0_6 >= 0x601) && ((u32)scratch->distanceSquared >= 0xE11U)) {
+            work->field_0 = 0x23;
+        }
+    }
+    if ((func_actor_421600_801335BC(arg0->field_2C->coords, &work->field_90C, 0xC, (SVECTOR*)scratch) << 0x10) != 0) {
+        if ((work->field_82E == 3) && (playerWork->field_954 != 2)) {
+            work->field_8E4     = 0x80;
+            temp_a1_2           = arg0->field_2C->coords;
+            scratch->vx         = (s16)(Player_Status.coordMtx->t[0] - temp_a1_2->coord.t[0]);
+            scratch->vy         = (s16)(Player_Status.coordMtx->t[1] - temp_a1_2->coord.t[1]);
+            temp_v0_4           = Player_Status.coordMtx->t[2] - temp_a1_2->coord.t[2];
+            scratch->vz         = temp_v0_4;
+            scratch->contactYaw = ratan2(scratch->vx, temp_v0_4);
+            temp_v0_5           = arg0->field_2C->coords;
+            temp_v1             = scratch->contactYaw - ratan2(-temp_v0_5->coord.m[2][0], temp_v0_5->coord.m[2][2]);
+            var_a0              = temp_v1;
+            scratch->contactYaw = temp_v1;
+
+            var_a0   = Actor421600_NormalizeYaw(temp_v1);
+            var_v0_8 = var_a0 << 0x10;
+
+            var_v0_9            = var_v0_8 >> 0x10;
+            scratch->contactYaw = (u16)var_v0_9;
+            var_v0_9            = abs(var_v0_9);
+            if (var_v0_9 < 0x180) {
+                if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, &work->field_8D0, 0) == 0) {
+                    Gfx_MatrixCol2(&arg0->field_2C->coords->coord, (SVECTOR*)scratch);
+                    temp_v0_6           = ratan2(scratch->vx, scratch->vz) + 0x800;
+                    var_v1_3            = temp_v0_6;
+                    scratch->contactYaw = temp_v0_6;
+
+                    var_v1_3 = Actor421600_NormalizeYaw(temp_v0_6);
+
+                    scratch->contactYaw = var_v1_3;
+                    temp_s0_7           = arg0->field_2C->coords;
+                    temp_s0_8           = ratan2(scratch->vx, scratch->vz);
+                    temp_s0_9           = temp_s0_8 - ratan2(-temp_s0_7->coord.m[2][0], temp_s0_7->coord.m[2][2]);
+
+                    var_v1_4 = Actor421600_NormalizeYaw(temp_s0_9);
+
+                    scratch->turnYaw = var_v1_4;
+                    scratch->vy      = 0;
+                    scratch->vx      = (s16) - (s16)(u16)scratch->vx;
+                    scratch->vz      = (s16) - (s16)(u16)scratch->vz;
+                    temp_s0_10       = ((TmdObject*)gameGetPtrSlot(3)->extra)->coords;
+                    temp_s0_11       = ratan2(scratch->vx, scratch->vz);
+                    temp_s0_12       = temp_s0_11 - ratan2(-temp_s0_10->coord.m[2][0], temp_s0_10->coord.m[2][2]);
+
+                    var_v1_5  = Actor421600_NormalizeYaw(temp_s0_12);
+                    var_v0_13 = var_v1_5 << 0x10;
+
+                    var_v0_14          = var_v0_13 >> 0x10;
+                    scratch->playerYaw = (s16)var_v0_14;
+                    var_v0_14          = abs(var_v0_14);
+                    if (var_v0_14 < 0x400) {
+                        work->field_E7C = (s32)&D_actor_421600_80151090;
+                    } else {
+                        work->field_E7C     = (s32)&D_actor_421600_801510A4;
+                        scratch->contactYaw = (u16)(scratch->contactYaw + 0x800);
+                    }
+                    work->field_8C8.vx = 0;
+                    work->field_8C8.vy = (u16)scratch->contactYaw;
+                    work->field_8C8.vz = 0;
+                    work->field_8B8.vx = (s32)((TmdObject*)player->extra)->coords->coord.t[0];
+                    work->field_8B8.vy = (s32)((TmdObject*)player->extra)->coords->coord.t[1];
+                    work->field_8B8.vz = (s32)((TmdObject*)player->extra)->coords->coord.t[2];
+                    Gp_DispatchMsg(player, 0x3E9, &work->field_8B8, 0);
+                    if (work->field_E9E < 0x3E8) {
+                        if (ctx->hp > 0) {
+                            var_v0_15 = scratch->playerYaw;
+                            if (var_v0_15 < 0) {
+                                var_v0_15 = -var_v0_15;
+                            }
+                            if (var_v0_15 < 0x400) {
+                                scratch->messageResult = Actor421600_PlayerContactMessage(ctx, 2);
+                            } else {
+                                scratch->messageResult = Actor421600_PlayerContactMessage(ctx, 3);
+                            }
+                        }
+                        if (scratch->messageResult != 1) {
+                            work->field_E80          = 3;
+                            work->field_E84          = 0;
+                            work->field_E88          = 0;
+                            work->field_8A4          = 0;
+                            work->field_8A8          = 0;
+                            work->field_8AC          = 0;
+                            work->field_8B4          = 7;
+                            work->field_8B6          = 1;
+                            work->field_E9C          = 1;
+                            work->field_E90.bytes[3] = 0;
+                            Gp_DispatchMsg(player, 0x3FF, &work->field_E7C, 0);
+                        }
+                        work->field_0 = 0x25;
+                        Gp_SpawnPadLerp(3, 0xFF, 8);
+                    } else {
+                        if (ctx->hp > 0) {
+                            var_v0_17 = scratch->playerYaw;
+                            if (var_v0_17 < 0) {
+                                var_v0_17 = -var_v0_17;
+                            }
+                            if (var_v0_17 < 0x400) {
+                                scratch->messageResult = Actor421600_PlayerContactMessage(ctx, 0);
+                            } else {
+                                scratch->messageResult = Actor421600_PlayerContactMessage(ctx, 1);
+                            }
+                        }
+                        if (scratch->messageResult == 1) {
+                            ((GameActor*)player->work)->field_956 = 0xA;
+                        }
+                        work->field_E80          = 1;
+                        work->field_E84          = 0;
+                        work->field_E88          = 0;
+                        work->field_8A4          = 0;
+                        work->field_8A8          = 0;
+                        work->field_8AC          = 0;
+                        work->field_8B4          = 7;
+                        work->field_8B6          = 1;
+                        work->field_E9C          = 1;
+                        work->field_E90.bytes[3] = 0;
+                        Gp_DispatchMsg(player, 0x3FF, &work->field_E7C, 0);
+                        work->field_0 = 0x1E;
+                        Gp_SpawnPadLerp(8, 0xFF, 8);
+                    }
+                }
+            }
+            temp_a2_2   = arg0->field_2C->coords;
+            scratch->vx = (s16)(Player_Status.coordMtx->t[0] - temp_a2_2->coord.t[0]);
+            scratch->vy = (s16)(Player_Status.coordMtx->t[1] - temp_a2_2->coord.t[1]);
+            temp_a1_3   = Player_Status.coordMtx->t[2] - temp_a2_2->coord.t[2];
+            scratch->vz = temp_a1_3;
+            temp_s0_13  = arg0->field_2C->coords;
+            temp_s0_14  = ratan2(scratch->vx, temp_a1_3);
+            temp_s0_15  = temp_s0_14 - ratan2(-temp_s0_13->coord.m[2][0], temp_s0_13->coord.m[2][2]);
+
+            var_v1_6 = Actor421600_NormalizeYaw(temp_s0_15);
+
+            scratch->targetYaw = var_v1_6;
+        } else {
+            goto updatePlayerYaw;
+        }
+    } else {
+    updatePlayerYaw:
+        temp_a2_3   = arg0->field_2C->coords;
+        scratch->vx = (s16)(Player_Status.coordMtx->t[0] - temp_a2_3->coord.t[0]);
+        scratch->vy = (s16)(Player_Status.coordMtx->t[1] - temp_a2_3->coord.t[1]);
+        temp_a1_4   = Player_Status.coordMtx->t[2] - temp_a2_3->coord.t[2];
+        scratch->vz = temp_a1_4;
+        temp_s0_16  = arg0->field_2C->coords;
+        temp_s0_17  = ratan2(scratch->vx, temp_a1_4);
+        temp_s0_18  = temp_s0_17 - ratan2(-temp_s0_16->coord.m[2][0], temp_s0_16->coord.m[2][2]);
+
+        var_v1_7  = Actor421600_NormalizeYaw(temp_s0_18);
+        var_v0_21 = var_v1_7 << 0x10;
+
+        var_v0_22          = var_v0_21 >> 0x10;
+        scratch->targetYaw = (s16)var_v0_22;
+        var_v0_22          = abs(var_v0_22);
+        if ((var_v0_22 >= 0x601) && (work->field_82E == 3)) {
+            work->field_0 = 0x1D;
+        }
+    }
+    arg0->field_2C->coords->flg = 0;
+    temp_s0_19                  = arg0->field_2C->coords;
+    temp_s0_20                  = ratan2(work->field_E70, work->field_E74);
+    temp_s0_21                  = temp_s0_20 - ratan2(-temp_s0_19->coord.m[2][0], temp_s0_19->coord.m[2][2]);
+
+    var_v1_8 = Actor421600_NormalizeYaw(temp_s0_21);
+
+    scratch->turnYaw = var_v1_8;
+    func_actor_421600_80134604(arg0);
+    var_a1_4 = 0;
+    if (work->field_82E == 2) {
+        if (scratch->turnYaw >= 0x41) {
+            scratch->turnYaw = 0x40;
+        }
+        if (scratch->turnYaw < -0x40) {
+            scratch->turnYaw = -0x40;
+        }
+        temp_v0_7        = arg0->field_2C->coords;
+        temp_a1_5        = (u16)scratch->turnYaw + ratan2(-temp_v0_7->coord.m[2][0], temp_v0_7->coord.m[2][2]);
+        scratch->turnYaw = temp_a1_5;
+        Gfx_RotMatrixY(&arg0->field_2C->coords->coord, temp_a1_5, 1);
+        arg0->field_2C->coords->flg = 0;
+    } else {
+        var_a1_4 = Actor421600_HasRecord10(arg0);
+        if (var_a1_4 != 0) {
+            Actor421600_MoveForward(arg0->field_2C->coords, 0x55);
+            var_v0_24 = (u16)work->field_E9E + 0x55;
+        } else {
+            Actor421600_MoveForward(arg0->field_2C->coords, 0xC8);
+            var_v0_24 = (u16)work->field_E9E + 0xC8;
+        }
+        work->field_E9E = var_v0_24;
+    }
+    if (work->field_82E == 2) {
+        work->field_8 = (u16)(work->field_8 + 1);
+    }
+    if ((s16)work->field_8 > (s16)work->field_EA2) {
+        temp_v1_2 = work->field_82E;
+        if (temp_v1_2 == 2) {
+            var_v0_25 = scratch->targetYaw;
+            if (var_v0_25 < 0) {
+                var_v0_25 = -var_v0_25;
+            }
+            if ((var_v0_25 < 0x80) || (work->field_68 & 0x100)) {
+                work->field_82E = 3;
+                work->field_828 = temp_v1_2;
+                pan             = (s8)Gp_GetObjPan(arg0->field_2C->coords);
+                SndEvt_EnqueueType6(0x40010006, pan, (s8)gpGetObjDepth(arg0->field_2C->coords));
+            }
+        }
+    }
+    if ((s16)work->field_8 >= 0xF) {
+        var_v0_26 = scratch->targetYaw;
+        if (var_v0_26 < 0) {
+            var_v0_26 = -var_v0_26;
+        }
+        if (var_v0_26 >= 0x81) {
+            goto updatePlayerDelta;
+        }
+    } else {
+    updatePlayerDelta:
+        if (work->field_82E == 2) {
+            work->field_E70 = (s16)(config->coordMtx->t[0] - arg0->field_2C->coords->coord.t[0]);
+            work->field_E72 = (s16)(config->coordMtx->t[1] - arg0->field_2C->coords->coord.t[1]);
+            work->field_E74 = (s16)(config->coordMtx->t[2] - arg0->field_2C->coords->coord.t[2]);
+        }
+    }
+    if (work->field_82E == 3) {
+        switch (work->field_5A & 0x3FF) {
+            case 5:
+                spawnEffect = 1;
+                effectJoint = 7;
+                effectFlags = 17152;
+                effect.vz   = 0;
+                effect.vx   = 0;
+                effect.vy   = 700;
+                break;
+            case 8:
+                spawnEffect = 1;
+                effectJoint = 9;
+                effectFlags = 13568;
+                effect.vz   = 0;
+                effect.vx   = 0;
+                effect.vy   = 700;
+                break;
+            case 10:
+                spawnEffect = 1;
+                effectJoint = 14;
+                effectFlags = 23040;
+                effect.vz   = 0;
+                effect.vx   = 0;
+                effect.vy   = 600;
+                break;
+            case 13:
+                spawnEffect = 1;
+                effectJoint = 17;
+                effectFlags = 18432;
+                effect.vz   = 0;
+                effect.vx   = 0;
+                effect.vy   = 600;
+                break;
+            default:
+                spawnEffect = 0;
+                effectJoint = 0;
+                effectFlags = 1;
+                break;
+        }
+        if (Gp_State1C->roomEffectMode == 2) {
+            scratchHead = (s32*)G_SCRATCH_HEAD;
+            if (spawnEffect == 1) {
+                Gp_SpawnEff(0x60054, &arg0->field_2C->coords[effectJoint], effectFlags | 0x80000000, &effect);
+                goto releaseScratch;
+            }
+        } else {
+            goto releaseScratch;
+        }
+    } else {
+    releaseScratch:
+        scratchHead = (s32*)G_SCRATCH_HEAD;
+    }
+    *scratchHead += 0x18;
+}
 
 /// Spawn/aim tick: on the live-actor edge it resets the display objects, runs
 /// the arena vector through the gte rotation, stores the world X (`field_8A4`)
@@ -1940,23 +2371,6 @@ void func_actor_421600_8013848C(Actor421600* arg0)
         work->field_0 = state;
     }
     *(SVECTOR**)G_SCRATCH_HEAD += 2;
-}
-
-static __inline__ void Actor421600_ConfigPositionDelta(PlayerStatus* config, GsCOORDINATE2* coord, SVECTOR* pos)
-{
-    pos->vx = config->coordMtx->t[0] - coord->coord.t[0];
-    pos->vy = config->coordMtx->t[1] - coord->coord.t[1];
-    pos->vz = config->coordMtx->t[2] - coord->coord.t[2];
-}
-
-static __inline__ s16 Actor421600_PositionYaw(Actor421600* actor, SVECTOR* pos, PlayerStatus* config)
-{
-    GsCOORDINATE2* coord;
-    s32            angle;
-    Actor421600_ConfigPositionDelta(config, actor->field_2C->coords, pos);
-    coord = actor->field_2C->coords;
-    angle = ratan2(pos->vx, pos->vz);
-    return Actor421600_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
 }
 
 void func_actor_421600_80138750(Actor421600* arg0)
