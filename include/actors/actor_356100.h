@@ -151,8 +151,10 @@ typedef struct Actor356100Work {
     /// Push distance `func_actor_356100_8016804C` normalises the root's own
     /// colour-matrix column by and walks down by 0xA per frame until the
     /// state moves on; same role as `Actor401300Work.field_C98`.
-    /* 0xB4C */ s16  field_B4C;
-    /* 0xB4E */ byte pad_B4E[2];
+    /* 0xB4C */ s16 field_B4C;
+    /// Clip-phase `func_actor_356100_80164ACC` walks 8 -> -1 -> 0 against
+    /// `field_982` (at 0x18 and 0x12); same slot as `Actor01900Work.field_C26`.
+    /* 0xB4E */ s16 field_B4E;
     /// Side `func_actor_356100_80165B30`'s turn settles on: the zero it draws
     /// once from `Gp_LcgState` at entry, then -1 / 1 for the two clip directions
     /// it alternates each time it re-enters with the same clip.
@@ -606,6 +608,11 @@ extern s8 D_8007218A;
 /// work area rather than a table.
 extern s32 D_actor_356100_801731B0;
 
+/// Free-running scroll `func_actor_356100_80164ACC` accumulates `field_B4C`
+/// into each frame, and zeroes on the live-actor entry. Same role as
+/// `Actor01900_D172FC`.
+extern u16 D_actor_356100_80173290;
+
 /// Effect record `func_actor_356100_80167818` fills for `func_800FDB18`:
 /// coordinate index 5 of the model, scale 0x100 and count 2. Same shape and
 /// roles as `Actor401300Work.field_910`.
@@ -709,7 +716,8 @@ void func_actor_356100_80163E2C(Actor356100* arg0);
 /// Per-frame tick of the state-7 clip run.
 void func_actor_356100_80164158(Actor356100* arg0);
 
-/// Per-frame tick of the state-8 clip run.
+/// Turn-aim tick of the state-8 clip run, the 356100 twin of
+/// `Actor01900_Fn04D14`.
 void func_actor_356100_80164ACC(Actor356100* arg0);
 
 /// Turn tick that slews the root yaw 0x89 at a time onto `field_B4A`.
