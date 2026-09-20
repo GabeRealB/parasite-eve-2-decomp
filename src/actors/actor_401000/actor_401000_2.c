@@ -4,6 +4,7 @@
 #include <psyq/abs.h>
 
 #include "actors/actor_401000.h"
+#include "actors/actors_shared_80133eb8.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -1159,7 +1160,124 @@ void func_actor_401000_801374D4(Actor401000* arg0)
     *(Actor401000AimScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000_2", func_actor_401000_801378DC);
+/// Offset from `coord` to the translation of `m`; `Actor401000_ConfigPositionDelta`
+/// for a bare matrix. Same body as `Actor401300_MatrixPositionDelta`.
+static __inline__ void Actor401000_MatrixPositionDelta(MATRIX* m, GsCOORDINATE2* coord, SVECTOR* pos)
+{
+    pos->vx = m->t[0] - coord->coord.t[0];
+    pos->vy = m->t[1] - coord->coord.t[1];
+    pos->vz = m->t[2] - coord->coord.t[2];
+}
+
+/// `Actor401000_PositionYaw` towards the translation of `m`. Same body as
+/// `Actor401300_MatrixPositionYaw`.
+static __inline__ s16 Actor401000_MatrixPositionYaw(Actor401000* actor, SVECTOR* pos, MATRIX* m)
+{
+    GsCOORDINATE2* coord;
+    s32            angle;
+
+    Actor401000_MatrixPositionDelta(m, actor->field_2C->coords, pos);
+    coord = actor->field_2C->coords;
+    angle = ratan2(pos->vx, pos->vz);
+    return Actor401000_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+}
+
+void func_actor_401000_801378DC(Actor401000* arg0)
+{
+    SVECTOR          delta;
+    Actor401000Work* work;
+    GpEnemy*         enemy;
+    GameActor*       player;
+    PlayerStatus*    config;
+    GsCOORDINATE2*   coord;
+    SVECTOR*         p;
+    s16              angle;
+
+    enemy  = arg0->field_20;
+    work   = arg0->field_1C;
+    player = (GameActor*)gameGetPtrSlot(3)->work;
+    config = &Player_Status;
+    if (work->field_4 != 0) {
+        work->field_B50.flags &= 0x7FFF;
+        work->field_A10.flags |= 0x4000;
+        enemy->node.flags      = 0;
+        work->field_898        = 1;
+        work->field_8A2        = 0x10;
+        work->field_89E        = 4;
+        ActorsShared80133eb8((ActorsShared80133eb8Actor*)arg0);
+        work->field_8AE             = 0;
+        work->field_8B0             = 0;
+        arg0->field_2C->coords->flg = 0;
+        Gp_UpdateCoord(arg0->field_2C->coords);
+        work->field_C26 = 0;
+        work->field_C28 = 0;
+        work->field_C1B = 0xA;
+        func_actor_401000_801323EC(arg0->field_2C->coords, (GpRec18*)work->field_A30, 0xC);
+        work->field_6 = 0;
+        return;
+    }
+    if (++work->field_6 == 1) {
+        func_actor_401000_801323EC(arg0->field_2C->coords, (GpRec18*)work->field_A30, 0xC);
+        work->field_BF8.vx          = arg0->field_2C->coords->coord.t[0];
+        work->field_BF8.vy          = arg0->field_2C->coords->coord.t[1];
+        work->field_BF8.vz          = arg0->field_2C->coords->coord.t[2];
+        work->field_8D0.radius      = 0x1AE;
+        arg0->field_2C->coords->flg = 0;
+        Gfx_RotMatrixY(&arg0->field_2C->coords->coord, Actor401000_PositionYaw(arg0, &delta, config), 0);
+        Actor401000_RescaleYaw(arg0->field_2C->coords, 0x1194);
+        delta.vx                    = arg0->field_2C->coords->coord.t[0] - config->coordMtx->t[0];
+        delta.vy                    = 0;
+        delta.vz                    = arg0->field_2C->coords->coord.t[2] - config->coordMtx->t[2];
+        work->field_8AE             = 0;
+        work->field_8B0             = 0;
+        arg0->field_2C->coords->flg = 0;
+        work->field_C26             = 0;
+        work->field_C28             = 0;
+        work->field_C1B             = 0xA;
+    }
+    ActorsShared80133eb8((ActorsShared80133eb8Actor*)arg0);
+    if ((work->field_5A & 0x3FF) == 0x10 && player->field_954 != 2) {
+        angle = Actor401000_MatrixPositionYaw(arg0, &delta, D_80073B8C);
+        if (abs(angle) < 0x10 && !Actor401000_OutOfRange(&delta, 0x44C)) {
+            if (D_8007218A == 1) {
+                D_actor_401000_80154F1C.field_0 = &D_actor_401000_80154F08;
+            } else {
+                D_actor_401000_80154F1C.field_0 = &D_actor_401000_80154F00;
+            }
+            D_actor_401000_80155038.field_14 = 8;
+            if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_401000_80155038, 0) == 0) {
+                work->field_0                   = 0xC;
+                work->field_C28                 = 1;
+                D_actor_401000_80154F1C.field_4 = 1;
+                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&D_actor_401000_80154F1C, 0);
+            }
+        }
+    }
+    if (work->field_89E == 4 && (work->flags_68.half & 1)) {
+        work->field_0 = 7;
+    }
+    if ((u32)(work->field_5A & 0x3FF) >= 0x11) {
+        p        = &delta;
+        delta.vx = arg0->field_2C->coords->coord.t[0] - config->coordMtx->t[0];
+        delta.vy = 0;
+        delta.vz = arg0->field_2C->coords->coord.t[2] - config->coordMtx->t[2];
+        if (!Actor401000_OutOfRange(p, 0x578)) {
+            VectorNormalSS(p, p);
+            gte_lddp(10);
+            gte_ldsv(p);
+            gte_gpf12_real();
+            gte_stsv(p);
+            coord                       = arg0->field_2C->coords;
+            coord->coord.t[0]          += delta.vx;
+            coord                       = arg0->field_2C->coords;
+            coord->coord.t[2]          += delta.vz;
+            arg0->field_2C->coords->flg = 0;
+        }
+        if (func_actor_401000_801323EC(arg0->field_2C->coords, (GpRec18*)work->field_A30, 0xC) != 1) {
+            func_actor_401000_80135704(arg0, (GpRec18*)work->field_8F0, 0xC);
+        }
+    }
+}
 
 void func_actor_401000_801380B8(Actor401000* arg0)
 {

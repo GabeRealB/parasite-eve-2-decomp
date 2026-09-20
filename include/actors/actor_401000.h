@@ -403,6 +403,21 @@ extern s32* D_actor_401000_80154E88;
 /// when the actor's live-actor flag goes up.
 extern GpAnimArg D_actor_401000_80154F1C;
 
+/// Query buffer for message 0x3F8 in the grab state; only the last word is
+/// seeded before dispatch. Same layout as `Actor356100Msg3F8`.
+typedef struct Actor401000Msg3F8 {
+    /* 0x00 */ byte pad_0[0x14];
+    /* 0x14 */ s32  field_14;
+} Actor401000Msg3F8;
+STATIC_ASSERT_SIZEOF(Actor401000Msg3F8, 0x18);
+
+extern Actor401000Msg3F8 D_actor_401000_80155038;
+
+/// Animation blocks selected for the grab by the player-character flag.
+extern s32 D_actor_401000_80154F00;
+extern s32 D_actor_401000_80154F08;
+extern s8  D_8007218A;
+
 /// Free-running scroll the actor's forward draw accumulates into:
 /// `func_actor_401000_801365C8` adds `field_C04` to it every frame, and the
 /// walk state zeroes it on entry. The same slot `Actor01900` keeps in
