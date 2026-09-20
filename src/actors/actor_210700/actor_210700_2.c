@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_210700.h"
+#include "actors/actors_shared_80132604.h"
 #include "actors/actors_shared_801327b4.h"
 #include "actors/actors_shared_801334c4.h"
 
@@ -53,7 +54,7 @@ void func_actor_210700_80149F90(Task* task)
     anim.field_0 = 0;
     anim.field_4 = 1;
     anim.field_8 = 0;
-    func_actor_210700_8014A224(task, 0x7D3, &anim, 0);
+    ActorsShared80132604(task, 0x7D3, (ActorsShared80132604Args*)&anim, 0);
     if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
         Gp_DrawEffGroundQuad(&pos, 0x400, Gp_State1C->groundShade);
     }

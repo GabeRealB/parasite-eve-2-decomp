@@ -86,5 +86,3 @@ void func_actor_511000_801325A4(Task* task)
     Gp_UpdateCoord(&coords[1]);
     func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_80132604);

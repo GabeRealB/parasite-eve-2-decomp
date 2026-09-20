@@ -41,7 +41,7 @@ typedef struct Actor210700Work {
 STATIC_ASSERT_SIZEOF(Actor210700Work, 0x540);
 
 /// Script-command payload of the overlay's id 0x7D3 handler
-/// `func_actor_210700_8014A224`. `field_0` indexes the overlay's
+/// `ActorsShared80132604`. `field_0` indexes the overlay's
 /// `D_actor_210700_801585C8` animation table and is latched into
 /// `Actor210700Work::field_47C`; `field_4` is latched into `field_478` as the
 /// bank every animation slot 1..0x13 is then published with; a non-zero
@@ -62,12 +62,11 @@ typedef struct _Actor210700Anim {
 STATIC_ASSERT_SIZEOF(Actor210700Anim, 0x18);
 
 /// The overlay's script-command table, parked in `Task::msgTable`: 0x7D3
-/// `func_actor_210700_8014A224`, 0x7D4 `ActorsShared801334c4`, 0x7D5
+/// `ActorsShared80132604`, 0x7D4 `ActorsShared801334c4`, 0x7D5
 /// `func_actor_210700_8014A3D4`, 0x7E0 `func_actor_210700_8014A4B0`.
 extern GpMsgEntry D_actor_210700_801585D8[];
 
 void func_actor_210700_80149E30(GpActorWork* arg0);
 void func_actor_210700_8014A208(Task* arg0);
-s32  func_actor_210700_8014A224(Task* task, s32 arg1, Actor210700Anim* args, s32 arg3);
 
 #endif

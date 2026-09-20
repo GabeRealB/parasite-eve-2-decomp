@@ -70,13 +70,15 @@ STATIC_ASSERT_SIZEOF(Actor511000ParentWork, 0x488);
 /// The spawn handler seeds the three -1 words at 0x478 / 0x47C / 0x480 and
 /// parks the two spawned tasks at 0x4C4 / 0x4C8; `field_4D2` is cleared.
 typedef struct Actor511000Work2 {
-    /* 0x000 */ byte pad_0[0x474];
-    /* 0x474 */ s32  field_474; ///< nonzero while the tick state steps animation slots 1..19
-    /* 0x478 */ s32  field_478; ///< -1 out of the spawn handler
-    /* 0x47C */ s32  field_47C; ///< animation id handed to `Gp_AnimResetSlot`
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x14];
+    /* 0x334 */ byte       field_334[0x140];
+    /* 0x474 */ s32        field_474; ///< nonzero while the tick state steps animation slots 1..19
+    /* 0x478 */ s32        field_478; ///< -1 out of the spawn handler
+    /* 0x47C */ s32        field_47C; ///< animation id handed to `Gp_AnimResetSlot`
     /* 0x480 */ union {
-        s32 word;               ///< seeded to -1 whole by the spawn handler
-        s16 half;               ///< the halfword `func_actor_511000_80133DEC` clears after the slot reseed
+        s32 word;                     ///< seeded to -1 whole by the spawn handler
+        s16 half;                     ///< the halfword `func_actor_511000_80133DEC` clears after the slot reseed
     } field_480;
     /* 0x484 */ MATRIX light;
     /* 0x4A4 */ MATRIX color;
