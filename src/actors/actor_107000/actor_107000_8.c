@@ -68,5 +68,3 @@ void func_actor_107000_801367E0(Task* arg0)
     Gp_SpawnEff(0x60030, (*(TmdObject**)&arg0->extra)->coords + 1, 0x300, NULL);
     Gp_SpawnEff(0x60030, (*(TmdObject**)&arg0->extra)->coords + 4, 0x300, NULL);
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_8", func_actor_107000_80136938);

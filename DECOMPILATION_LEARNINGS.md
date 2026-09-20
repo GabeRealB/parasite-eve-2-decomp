@@ -134220,3 +134220,36 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 Inputs: base_1.i `69baf9e616b6158aacb5cbc349cda4575a359a229488a41876c1e16ede5eaa26`;
 base_2.i `e9e4b55f778158a01fd6d8e956046f9af939ff64b6a9176a82c336d0382d00fe`;
 base_3.i `f8eaf843c5117de3289a0fba9c2d6cd751d20d76af51b831d16f03e153aac5d8`.
+
+
+## A second death needs the original scheduling interval too (func_actor_107000_80136938, 2026-09-20)
+
+The archived seed reproduced 99.071%, with rec locally allocated to s1 and
+vec to s2, opposite the target. A retained unused rec output, anchored on the
+coordinate pointer before the pan call, gave rec two deaths and moved it to
+global allocation as predicted. However, base_3 then scheduled rec's definition
+before rcos: its useful range overlapped head in s2, rec took s5, and the frame
+grew (96.599%). Changing eligibility alone did not solve the register conflict.
+
+The controlled base_5 probe defined rec after the stack-vector copy and put
+SOFT_BARRIER before that definition, with the matrix address computed before
+the copy. It preserved rec's two deaths while restoring a 69-insn range across
+one call. The s2 conflict disappears from `.greg`; global rec takes s2, local
+vec/head take s1/s2, and every other saved home remains correct. Score 99.714%,
+with only one stack-address reorder. This supports the range/conflict mechanism;
+the exact earlier sched1 hazard choice was not traced.
+
+The final base_6 uses the matched actor_104900 sibling's GTE stack-load spelling
+so address generation stays inside the load asm after SetRotMatrix. It adds a
+memory input for the local SVECTOR and declares v0 clobbered; `.sched2` confirms
+the referenced local at sp+16. All penalties become zero. The fixed stack offset
+depends on the verified frame layout. The shared normal-header port passes the
+unscoped build for actor_107000 and actor_207000.
+
+Evidence: `tools/permuter_findings/func_actor_107000_80136938/`, including
+`PERMUTER_EVIDENCE/manual-allocation/analysis/` and recorded predictions.
+The bounded router found no discovery; these were manual experiments.
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+base_3 input: `4c3c01494a6becc6c218727107dd3bfda45978c6948dabd17dce7a5ff7dda99d`.
+base_5 input: `8b54a3f1353ba76bb14b494db328e0a48ddd8f5540af65ba8c92f3d7bec49c75`.
+base_6 input: `b42a57dddc1e262582acdb93d6e627efd1584108d4c35ed594c6a5752d1ee37f`.

@@ -26,3 +26,5 @@ ActorsShared8013777c = 0x8014F77C; // shared body, see src/actors/lib/
 ActorsShared80136c80 = 0x8014EC80; // shared body, see src/actors/lib/
 ActorsShared80133cd0 = 0x8014BCD0; // shared body, see src/actors/lib/
 ActorsShared80136288 = 0x8014E288; // shared body, see src/actors/lib/
+ActorsShared80136938Pair = 0x80151E98; // contact identity for shared burst setup
+ActorsShared80136938 = 0x8014E938; // shared body, see src/actors/lib/

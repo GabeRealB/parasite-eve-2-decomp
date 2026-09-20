@@ -10,7 +10,7 @@
 /// Node 3's pair table, packed by `Gp_PackPair` into `obj3`, and the enemy
 /// record whose `pairTable` points at it; its `hpMax` seeds the enemy's
 /// `field_40`.
-extern GpU16Pair  D_actor_107000_80139E98;
+extern GpU16Pair  ActorsShared80136938Pair;
 extern GpPairSrcE D_actor_107000_80139EA0;
 
 /// Animation bank `func_800B3F84` seeds the work block's seven slots from.
@@ -21,11 +21,11 @@ extern u8 D_actor_107000_8013F5E0[];
 
 // actor_207000 (func_actor_207000_8014EE88) carries the same body, refused
 // promotion for the reason the sibling above is: the pair table, the animation
-// bank and the node-3 record it names - D_actor_107000_80139E98,
-// D_actor_107000_80139EA0, D_actor_107000_8013F59C and D_actor_107000_8013F5E0
-// - are this overlay's own data (the twin's are D_actor_207000_80151E98,
-// D_actor_207000_80151EA0, D_actor_207000_8015759C and D_actor_207000_801575E0),
-// so one shared object could not link into both.
+// bank and message table still name this overlay's own data:
+// D_actor_107000_80139EA0, D_actor_107000_8013F59C and D_actor_107000_8013F5E0.
+// Their twins are D_actor_207000_80151EA0, D_actor_207000_8015759C and
+// D_actor_207000_801575E0. The node-3 contact identity now uses the shared
+// ActorsShared80136938Pair symbol, resolved separately by each carrier.
 
 /// The variant's spawn handler: allocate the `Actor107000Spawn2Work` block,
 /// rebind the model's light and colour matrices into it, link its three `GpObj`
@@ -133,7 +133,7 @@ void func_actor_107000_80136E88(GpEnemy* arg0, Task* arg1)
     work->obj3.pos.vy   = 0;
     work->obj3.pos.vz   = 0;
     work->obj2.flags    = (u16)(work->obj2.flags & 0x3DFF);
-    work->obj3.key      = Gp_PackPair(&D_actor_107000_80139E98, 0);
+    work->obj3.key      = Gp_PackPair(&ActorsShared80136938Pair, 0);
     work->obj3.radius   = 0x12C;
     work->obj3.flags    = 1U;
     Gp_LinkObj(3, &work->obj3);
