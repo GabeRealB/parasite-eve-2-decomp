@@ -22,6 +22,7 @@ void           func_actor_107000_80136094(Task* arg0, s32 arg1);
 void           func_actor_107000_801367E0(Task* arg0);
 extern SVECTOR D_actor_107000_8013F5D0;
 void           func_actor_107000_8013844C(Task* arg0);
+void           func_actor_107000_801380C8(Task* arg0);
 
 /// The enemy's four main-body handlers, dispatched through by state. Two
 /// separate state machines in this overlay run the same dispatch shape over
@@ -235,7 +236,164 @@ void func_actor_107000_80135280(Task* arg0, TmdObject* arg1, s32 arg2)
     Gp_ClearRec18Occupied(work->field_214);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_5", func_actor_107000_8013560C);
+void func_actor_107000_8013560C(Task* arg0, TmdObject* arg1, s32 arg2)
+{
+    u32                    distance;
+    Actor107000Spawn2Work* work;
+    GsCOORDINATE2*         coord;
+    GpEnemy*               enemy;
+    s32                    soundId;
+    s16                    amount;
+
+    work  = arg0->work;
+    enemy = arg0->spawnArg2;
+    coord = ((TmdObject*)arg0->extra)->coords;
+    switch (work->field_382) {
+        case 0:
+            work->field_370 = 9;
+            if ((s16)work->field_374 >= 18) {
+                Gp_SetStateF0Byte3(1);
+                Gp_ArmStateF0(1);
+            }
+            ActorsShared80136614(((TmdObject*)arg0->extra)->coords, &distance);
+            if (Gp_CountRec18Hi(work->field_214, 0x10000) == 0 || distance >= 5000U) {
+                work->field_36E++;
+                if ((s16)work->field_36E > work->field_390) {
+                    work->field_36E = 0;
+                    work->field_36A = 0;
+                    work->field_370 = 2;
+                    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                    work->field_390 = (Gp_LcgState >> 16) % 20 + 80;
+                }
+            } else {
+                work->field_382 = 1;
+            }
+            Gp_ClearRec18Occupied(work->field_214);
+            break;
+        case 1:
+            Gp_ArmStateF0(1);
+            work->field_370 = 4;
+            work->field_378 = 0;
+            ActorsShared80136614(((TmdObject*)arg0->extra)->coords, &distance);
+            if (distance < 900U) {
+                work->field_386 = 0;
+            } else if (distance > 2700U) {
+                work->field_386 = 0x2000;
+            } else {
+                work->field_386 = ((distance - 900) << 9) / 100;
+            }
+            if ((s16)work->field_374 == 40) {
+                soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x40460001;
+                SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+            }
+            if ((u32)(work->field_374 - 32) < 10U) {
+                amount = work->field_386;
+                if (work->field_384 < amount) {
+                    work->field_384 += amount >> 3;
+                }
+            } else if ((s16)work->field_374 >= 42) {
+                if (work->field_384 >= 0x200) {
+                    work->field_384 -= 0x250;
+                } else {
+                    work->field_384 = 0;
+                }
+            }
+            if ((u32)(work->field_374 - 32) < 11U) {
+                work->obj3.flags |= 0x8000;
+            } else {
+                work->obj3.flags &= 0x7FFF;
+            }
+            if ((s16)work->field_374 >= 64) {
+                func_actor_107000_801364D8(arg0, 1);
+            }
+            break;
+        case 2:
+            Gp_ArmStateF0(1);
+            work->field_370 = 3;
+            if ((s16)work->field_374 == 48) {
+                func_actor_107000_801380C8(arg0);
+                if (enemy->hp <= 0) {
+                    work->obj3.flags &= 0x7FFF;
+                    arg0->state       = 2;
+                    work->field_36C   = 0;
+                    return;
+                }
+            }
+            if (work->field_388 != 0 && (s16)work->field_374 == 50) {
+                func_actor_107000_801364D8(arg0, 0);
+            }
+            if ((s16)work->field_374 >= 83) {
+                func_actor_107000_801364D8(arg0, 0);
+            }
+            if (work->field_384 >= 0x200) {
+                work->field_384 -= 0x250;
+            } else {
+                work->field_384 = 0;
+            }
+            work->obj3.flags &= 0x7FFF;
+            break;
+        case 3:
+            work->field_370 = 2;
+            if ((s16)work->field_374 == 105) {
+                soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x40460006;
+                SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+            }
+            if ((s16)work->field_374 >= 110) {
+                func_actor_107000_801364D8(arg0, 0);
+            }
+            break;
+        case 4:
+            work->field_370 = 7;
+            ActorsShared80136614(((TmdObject*)arg0->extra)->coords, &distance);
+            if (distance < 900U) {
+                work->field_386 = 0;
+            } else if (distance > 2700U) {
+                work->field_386 = 0x2000;
+            } else {
+                work->field_386 = ((distance - 900) << 9) / 100;
+            }
+            if ((s16)work->field_374 == 30) {
+                soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x40460001;
+                SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+            }
+            if ((u32)(work->field_374 - 25) < 10U) {
+                amount = work->field_386;
+                if (work->field_384 < amount) {
+                    work->field_384 += amount >> 3;
+                }
+            } else if ((s16)work->field_374 >= 35) {
+                if (work->field_384 >= 0x200) {
+                    work->field_384 -= 0x250;
+                } else {
+                    work->field_384 = 0;
+                }
+            } else {
+                if (work->field_384 >= 0x200) {
+                    work->field_384 -= 0x250;
+                } else {
+                    work->field_384 = 0;
+                }
+            }
+            if ((u32)(work->field_374 - 25) < 11U) {
+                work->obj3.flags |= 0x8000;
+            } else {
+                work->obj3.flags &= 0x7FFF;
+            }
+            if ((s16)work->field_374 == 2) {
+                func_actor_107000_801380C8(arg0);
+                if (enemy->hp <= 0) {
+                    work->obj3.flags &= 0x7FFF;
+                    arg0->state       = 2;
+                    work->field_36C   = 0;
+                    return;
+                }
+            }
+            if ((s16)work->field_374 >= 47) {
+                func_actor_107000_801364D8(arg0, 0);
+            }
+            break;
+    }
+}
 
 void func_actor_107000_80135C28(Task* arg0)
 {

@@ -261,6 +261,6 @@ extern u32 Gp_LcgState;
 /// 2500 units or further. Closer than that, a second draw is taken: it lands on
 /// 1 when that draw folds to 11 or more, and the branch stays 2 when it does
 /// not. Either way `field_374`/`field_372` are reset, and the record is released.
-void func_actor_107000_801364D8(Task* arg0);
+void func_actor_107000_801364D8(Task* arg0, s32 arg1);
 
 #endif

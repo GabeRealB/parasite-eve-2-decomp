@@ -19,7 +19,7 @@
 /// the far side of it. The two barriers are load-bearing, not decoration —
 /// dropping either one re-schedules the `branch` write to before the chain and
 /// the whole block's allocation follows it.
-void func_actor_107000_801364D8(Task* arg0)
+void func_actor_107000_801364D8(Task* arg0, s32 arg1)
 {
     u32              sp10;
     Actor107000Work* work;
