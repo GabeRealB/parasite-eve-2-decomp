@@ -11,6 +11,7 @@
 #include "gameplay/3FB8.h"
 
 #include "actors/actor_403900.h"
+#include "actors/actors_shared_80136184.h"
 
 #include "psyq/inline_c.h"
 
@@ -36,8 +37,6 @@ INCLUDE_RODATA("actors/nonmatchings/actor_403900/actor_403900_5", ActorsShared80
 INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_5", func_actor_403900_80135A24);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_5", func_actor_403900_80135BE0);
-
-void func_actor_403900_80136184(Actor403900* arg0);
 
 /// Aims the actor: brings the root coordinate local to the fourth part to park
 /// the aim point in the work block, then resolves the ground record under the
@@ -121,11 +120,7 @@ void func_actor_403900_80135D5C(Actor403900* arg0)
             work->field_700[i] = sc->sxy >> 16;
             work->field_704[i] = sc->otz;
         }
-        func_actor_403900_80136184(arg0);
+        ActorsShared80136184((ActorShared80136184*)arg0);
     }
     *(u8**)G_SCRATCH_HEAD += sizeof(Actor403900AimScratch);
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_5", func_actor_403900_80136184);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_5", func_actor_403900_801368E0);

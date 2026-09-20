@@ -11,6 +11,7 @@
 #include "gameplay/3FB8.h"
 
 #include "actors/actor_402200.h"
+#include "actors/actors_shared_80136184.h"
 
 #include "psyq/inline_c.h"
 
@@ -26,7 +27,7 @@ extern s32 D_actor_402200_80138420[];
 
 /// The spawn's tables: the task's next handler record, the `GpU16Pair`
 /// `Gp_PackPair` packs into the third collision object, the `GpPairSrcE` whose
-/// `field_4` seeds the enemy's HP, the stage / room box-table index run, the
+/// `hpMax` seeds the enemy's HP, the stage / room box-table index run, the
 /// box tables it selects, the per-stage cue-bank arrays and the animation data.
 extern s32                D_actor_402200_8013839C[];
 extern GpU16Pair          D_actor_402200_80153BEC;
@@ -36,199 +37,174 @@ extern Actor402200Region* D_actor_402200_80153FA8[];
 extern s16*               D_actor_402200_80154144[];
 extern u8                 D_actor_402200_80154194[];
 
-/// Spawn handler. Allocates the 0x71C-byte work block, points the model at its
-/// light / colour matrices and loads the animation context, then branches on
-/// the enemy's `field_4B` variant. Variant 0 is the full setup: it links the
-/// enemy node, picks the box table and count for the current stage / room out
-/// of `D_actor_402200_80153C78`, requests the room's cue bank, and links the
-/// work block's five collision objects with their `GpRec18` tables before
-/// moving the task on (`field_30` 1). Variants 1 and 2 only seed the animation
-/// and sequence state.
-void func_actor_402200_80137444(GpEnemy* arg0, Actor402200* arg1)
-{
-    u8                param1[4];
-    u8                param2[4];
-    Actor402200Work*  work;
-    Actor402200Obj2C* obj;
-    Actor402200Coord* coord;
-    s16*              cues;
-    GpRec18*          records1;
-    GpRec18*          records2;
-    GpRec18*          records3;
-    GpRec18*          records4;
-    GpRec18*          records5;
-    s32               i;
-    s32               kind;
+void      func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void      Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+void      func_actor_402200_80138208(GsCOORDINATE2* arg0, s32 arg1);
+void      func_actor_402200_80134968(Actor402200* arg0);
+extern u8 D_801153F4;
 
-    obj   = arg1->field_2C;
-    coord = obj->field_8;
-    work  = memCalloc(0x71C, 0);
-    if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
-        return;
+/// Inlined copy of `func_actor_402200_80137EEC`: reseeds animation slots
+/// 1..0x12 when the animation id changes, otherwise ticks them a frame.
+static inline void Actor402200_ReseedAnim(Actor402200* arg0)
+{
+    Actor402200Work* work;
+    s32              i;
+    s32              value;
+
+    work = arg0->field_1C;
+    i    = 1;
+    if (work->field_6C0 != work->field_6C2) {
+        work->field_6C2 = work->field_6C0;
+        work->field_6C4 = 0;
+        value           = D_actor_402200_801383AC[work->field_6C0];
+        for (; i < 0x13; i++) {
+            func_800B4114(work, i, work->field_6C0, 0, value);
+        }
+    } else {
+        TOUCH_REG(i);
+        work->field_6C4 += i;
+        do {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            i++;
+        } while (i < 0x13);
     }
-    arg1->field_1C             = work;
-    obj->field_C               = 0;
-    coord->field_0.flg         = 0;
-    obj->field_1C              = &work->field_45C;
-    obj->field_20              = &work->field_43C;
-    work->field_65C.coord      = &arg1->field_2C->field_8->field_F0;
-    work->field_65C.spawnArgLo = 0x500;
-    work->field_65C.spawnArgHi = 2;
-    func_800B3F84((GpAnimCtx*)work, D_actor_402200_80154194, (GsCOORDINATE2*)obj, work->field_30C, &work->field_14);
-    work->field_6C0 = 0xB;
-    work->field_6C2 = 0xB;
-    for (i = 1; i < 0x13; i++) {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, work->field_6C0);
-    }
-    kind = arg0->spawnState;
-    switch (kind) {
-        case 0:
-            work->field_6D8 = 0xFF;
-            obj->field_2C   = 0;
-            func_8009EA50(work->field_6D8);
-            work->field_6E2 = -1;
-            arg0->field_4   = &coord->field_0.coord;
-            arg0->field_48  = 0;
-            Gp_LinkNode(&arg0->node);
-            arg0->coord      = &arg1->field_2C->field_8->field_F0;
-            arg0->bodyPos.vx = 0;
-            arg0->bodyPos.vy = 0;
-            arg0->bodyPos.vz = 0;
-            arg0->param      = &D_actor_402200_80153BFC;
-            arg0->recs       = (s32)work->field_49C;
-            arg0->hp         = D_actor_402200_80153BFC.hpMax;
-            for (i = 0; D_actor_402200_80153C78[i].field_0 != 0; i++) {
-                if (gGameSession->at4.loc.stage == D_actor_402200_80153C78[i].field_2 && gGameSession->at4.loc.area == D_actor_402200_80153C78[i].field_4) {
-                    work->field_6B4 = D_actor_402200_80153FA8[D_actor_402200_80153C78[i].field_0];
-                    work->field_6FA = D_actor_402200_80153C78[i].field_6;
-                }
-            }
-            work->field_6CC = 0xB;
-            ((void (*)(s32))Gp_IncStateF0Ref)(0);
-            work->field_716 = 0x16;
-            cues            = D_actor_402200_80154144[gGameSession->at4.loc.stage];
-            if (cues != NULL) {
-                work->field_712 = cues[gGameSession->at4.loc.area];
-            }
-            if (work->field_712 != 0) {
-                param1[3] = 0;
-                param1[2] = 0x28;
-                param1[0] = work->field_712;
-                param2[0] = 0x16;
-                param2[3] = 0;
-                param2[2] = 0;
-                param2[1] = 0;
-                CdCmd_Enqueue(0x21, param1, param2);
-            }
-            work->field_484 = &arg1->field_2C->field_8->field_F0;
-            records1        = work->field_49C;
-            work->field_488 = records1;
-            work->field_48C = 0;
-            work->field_48E = 0;
-            work->field_490 = 0;
-            work->field_494 = 0x30016;
-            work->field_498 = 0x15E;
-            work->field_49A = 1;
-            Gp_LinkObj(2, (GpObj*)work->field_47C);
-            Gp_InitRec18Table(records1, 3, 0);
-            work->field_49A |= 0x8000;
-            work->field_4EC  = arg1->field_2C->field_8;
-            records2         = work->field_504;
-            work->field_4F0  = records2;
-            work->field_4F4  = 0;
-            work->field_4F6  = -0x1F4;
-            work->field_4F8  = 0;
-            work->field_4FC  = 0x30016;
-            work->field_500  = 0x1F4;
-            work->field_502  = 1;
-            Gp_LinkObj(2, (GpObj*)work->field_4E4);
-            Gp_InitRec18Table(records2, 4, 0);
-            work->field_502 |= 0x4200;
-            work->field_56C  = &((GsCOORDINATE2*)arg1->field_2C->field_8)[8];
-            records3         = &work->field_584;
-            work->field_570  = records3;
-            work->field_574  = 0;
-            work->field_576  = 0;
-            work->field_578  = 0;
-            work->field_57C  = Gp_PackPair(&D_actor_402200_80153BEC, 1);
-            work->field_580  = 0x12C;
-            work->field_582  = 1;
-            Gp_LinkObj(3, (GpObj*)work->field_564);
-            Gp_InitRec18Table(records3, 1, 0);
-            work->field_582 &= 0x7FFF;
-            work->field_5DC  = 0;
-            work->field_5DE  = -0x3E8;
-            work->field_5E0  = -0x7D0;
-            work->field_5E4  = 0;
-            work->field_5E6  = -0x3E8;
-            work->field_5E8  = 0;
-            work->field_5EC  = 0x1F4;
-            work->field_5EE  = 0x1F4;
-            records4         = &work->field_5F4;
-            work->field_5F0  = records4;
-            work->field_5A4  = ((TmdObject*)((Task*)gameGetPtrSlot(3))->extra)->coords;
-            work->field_5A8  = &work->field_5DC;
-            work->field_5AC  = 0;
-            work->field_5AE  = 0;
-            work->field_5B0  = 0;
-            work->field_5B4  = 0;
-            work->field_5B8  = 0;
-            work->field_5BA  = 3;
-            Gp_LinkObj(3, (GpObj*)work->field_59C);
-            Gp_InitRec18Table(records4, 1, 0);
-            work->field_5BA &= 0xBFFF;
-            work->field_5C4  = ((TmdObject*)((Task*)gameGetPtrSlot(3))->extra)->coords;
-            work->field_5C8  = records4;
-            work->field_5CC  = 0;
-            work->field_5CE  = -0x320;
-            work->field_5D0  = -0x5AA;
-            work->field_5D4  = 0;
-            work->field_5D8  = 0x1F4;
-            work->field_5DA  = 1;
-            Gp_LinkObj(3, (GpObj*)work->field_5BC);
-            work->field_62C  = 0;
-            work->field_62E  = -0x514;
-            work->field_630  = 0x2710;
-            work->field_634  = 0;
-            work->field_636  = 0;
-            work->field_638  = 0;
-            work->field_63C  = 1;
-            work->field_63E  = 1;
-            records5         = &work->field_644;
-            work->field_640  = records5;
-            work->field_614  = coord;
-            work->field_618  = &work->field_62C;
-            work->field_61C  = 0;
-            work->field_61E  = 0;
-            work->field_620  = 0;
-            work->field_624  = 0;
-            work->field_628  = 0;
-            work->field_62A  = 3;
-            work->field_5DA &= 0xBFFF;
-            Gp_LinkObj(3, (GpObj*)work->field_60C);
-            Gp_InitRec18Table(records5, 1, 0);
-            work->field_62A = (work->field_62A & 0x3FFF) | 0xC00;
-            arg1->field_24  = D_actor_402200_8013839C;
-            arg1->field_30  = 1;
-            break;
+}
+
+/// Inlined copy of `ActorsShared80137fb0`: relights the actor from its root
+/// coordinate and consumes a pending `field_6EA` tint request.
+static inline void Actor402200_UpdateTint(Actor402200* arg0)
+{
+    Actor402200Work* work;
+    GsCOORDINATE2*   obj;
+    VECTOR           vec;
+    s16              r;
+    s16              g;
+    s16              b;
+
+    obj    = (GsCOORDINATE2*)arg0->field_2C->field_8;
+    work   = arg0->field_1C;
+    vec.vx = obj->workm.t[0];
+    vec.vy = obj->workm.t[1];
+    vec.vz = obj->workm.t[2];
+    Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
+    switch (work->field_6EA) {
         case 1:
-            work->field_6C0 = 0x10;
-            work->field_6CE = 2;
-            arg1->field_30  = 2;
-            work->field_6D8 = 0;
-            obj->field_2C   = 0x1000;
-            func_8009EA50(work->field_6D8);
-            work->field_6E2 = 0x80;
+            r = 0;
+            g = 0;
+            b = 0x400;
+            Gp_SetObjTrans((GpObj20*)arg0->field_2C, r, g, b);
+            work->field_6EA = 0;
             break;
         case 2:
-            work->field_6C0 = 0x14;
-            work->field_6CE = kind;
-            arg1->field_30  = kind;
-            work->field_6D8 = 0;
-            obj->field_2C   = 0x1000;
+            r = 0xFFF;
+            g = 0xFFF;
+            b = 0xFFF;
+            Gp_SetObjTrans((GpObj20*)arg0->field_2C, r, g, b);
+            work->field_6EA = 0;
+            break;
+        case 0:
+        default:
+            return;
+    }
+}
+
+/// Inlined copy of `ActorsShared8013806c`: draws the ground shadow quad.
+static inline void Actor402200_DrawShadow(Actor402200* arg0)
+{
+    Actor402200Work* work;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   sub;
+    VECTOR3          vec;
+
+    work  = arg0->field_1C;
+    coord = &arg0->field_2C->field_8->field_0;
+    sub   = &arg0->field_2C->field_8->field_F0;
+    if (work->field_6E2 == 0) {
+        work->field_6E2 = -1;
+    }
+    vec.vx = sub->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = sub->workm.t[2];
+    Gp_DrawEffGroundQuad(&vec, 0x300, work->field_6E2);
+}
+
+/// Frame handler for the scene's `D_801153F4` mode. Mode 1 only refreshes the
+/// coordinates, tint and shadow and mode 2 hides the model, both returning
+/// without giving back the 8-byte `G_SCRATCH_HEAD` block. Otherwise the
+/// `field_6CE` sequence runs: state 0 unlinks the actor and saves its pose,
+/// state 1 sprays a randomly angled effect every fourth frame, and state 2
+/// projects the actor before moving on to 3.
+void func_actor_402200_801368E0(GpEnemy* arg0, Actor402200* arg1)
+{
+    u8*              head;
+    SVECTOR*         sc;
+    Actor402200Work* work;
+    GsCOORDINATE2*   coord;
+    s32              mode;
+    u32              random;
+    s16              anim;
+
+    work                  = arg1->field_1C;
+    coord                 = &arg1->field_2C->field_8->field_0;
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(SVECTOR);
+    sc                    = (SVECTOR*)(head - sizeof(SVECTOR));
+    mode                  = D_801153F4;
+    switch (mode) {
+        case 0:
+            arg1->field_2C->field_C = 0;
+            break;
+        case 1:
+            coord->flg                            = 0;
+            arg1->field_2C->field_8->field_F0.flg = 0;
+            Gp_UpdateCoord(coord);
+            Actor402200_UpdateTint(arg1);
+            Actor402200_DrawShadow(arg1);
+            return;
+        case 2:
+            arg1->field_2C->field_C = 0x80;
+            return;
+    }
+    switch (work->field_6CE) {
+        case 0:
+            arg0->recs = 0;
+            Gp_UnlinkNode(&arg0->node);
+            Gp_UnlinkObj((GpObj*)work->field_4E4);
+            Gp_UnlinkObj((GpObj*)work->field_47C);
+            Gp_UnlinkObj((GpObj*)work->field_564);
+            Gp_ReleaseStateF0Add((GpObj20E*)arg1, work->field_716);
+            anim = 0x14;
+            if (work->field_6F0 == 1) {
+                anim = 0x10;
+            }
+            work->field_6C0  = anim;
+            work->field_6CE  = 1;
+            arg0->spawnState = work->field_6F0;
+            Gp_SaveEnemyPose(arg0);
+            break;
+        case 1:
+            if (!(work->field_6C4 & 3)) {
+                sc->vx      = 0;
+                sc->vz      = 0;
+                random      = Gp_LcgState * 5 + 0x71357911;
+                sc->vy      = -((random >> 16) & 0x1FF);
+                Gp_LcgState = random;
+                Gp_SpawnEff(0x600E0, &arg1->field_2C->field_8->field_F0, 0x400, sc);
+            }
+            break;
+        case 2:
+            func_actor_402200_80138208(&arg1->field_2C->field_8->field_F0, 0xC);
+            func_actor_402200_80134968(arg1);
             func_8009EA50(work->field_6D8);
-            work->field_6E2 = 0x80;
+            work->field_6CE = 3;
             break;
     }
+    func_actor_402200_801380D8(arg1);
+    Actor402200_ReseedAnim(arg1);
+    coord->flg                            = 0;
+    arg1->field_2C->field_8->field_F0.flg = 0;
+    Gp_UpdateCoord(coord);
+    Actor402200_UpdateTint(arg1);
+    Actor402200_DrawShadow(arg1);
+    *(u8**)G_SCRATCH_HEAD += sizeof(SVECTOR);
 }

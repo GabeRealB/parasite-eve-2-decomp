@@ -135487,3 +135487,40 @@ Preprocessed input SHA-256: baseline
 `8f849cbb0af7288e598bc7dae359ad72d3cea0b92f8c32afc3a30df05c0eb028`;
 matched controlled variant
 `72244245abeb83887c882427bb09b6743a0c2f6287b091e10f4ec4be300279cb`.
+
+## A reload copy needs both load dependencies to stay after a pair of loads (func_actor_402200_80136184, 2026-09-20)
+
+The scratch entry needs `addiu a0,head,-60`, two halfword loads, then
+`move s0,a0`. A read/write touch separates the long-lived scratch base from the
+short-lived call argument, but its reload copy alone moves before the loads.
+The base_4 trace shows why: at sched2 cycles 21 and 22, the loads win on
+potential hazard 4595712 versus the copy's 0, despite the comparator preferring
+the copy. Backward scheduling therefore leaves the copy earlier in forward code.
+
+The readable port makes the carve redefinition depend on the already-loaded
+x operands, then derives the persistent scratch pointer from that definition:
+
+```c
+SOFT_TOUCH_REG_USE2(carve, x0, x1);
+sc = (ActorShared80136184Scratch*)carve;
+SOFT_TOUCH_REG(sc);
+```
+
+With only x0 as an input (base_6), x1 still schedules after the copy. The
+preplanned base_7 change adds x1: `.sched2` has loads UID27/32 feeding UID34,
+then the reload copy UID1073 feeding UID39. Both loads now precede the copy,
+all register homes survive, and the scratch reaches 100.000%. This is a
+specific dependency experiment, not evidence that ready-list ranking alone
+selects instructions or that a soft helper is a scheduler barrier.
+
+The final dead definitions of carve also matter here. Removing both in
+base_8 changes UID34's destination from carve/r87 to sc/r81 during first CSE,
+leading to an extra move; retain them. Their individual necessity was not
+isolated. The original source spelling remains unknown.
+
+Compiler/input hashes and selected raw trace events are retained in
+`tools/compiler_evidence/2026-09-20-actor402200-36184.json`; the matching input
+SHA256 is `c3bee8b331b653204cb0be6cf1810db198be28be047aaa709ae47864083e4e40`.
+Full paired inputs, dumps and trace are in this function's immutable permuter
+findings. The function is shared by actor_402200 and actor_403900; their
+identical index rows use one symbol bound to each overlay's own table address.

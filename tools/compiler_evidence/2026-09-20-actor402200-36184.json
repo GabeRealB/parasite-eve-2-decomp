@@ -1,0 +1,327 @@
+{
+  "function": "func_actor_402200_80136184",
+  "date": "2026-09-20",
+  "trace_manifest": {
+    "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+    "input_sha256": "1e00634c33ad846c2279865357abd5b5afa643e71d829e2cdd4285fe386bc3ce",
+    "input_origin": "/home/gabriel/pe2-ov-actor_402200/nonmatchings/func_actor_402200_80136184-vacuum/base_4.i",
+    "flags": [
+      "-O2",
+      "-mips1",
+      "-mcpu=3000",
+      "-w",
+      "-funsigned-char",
+      "-fpeephole",
+      "-ffunction-cse",
+      "-fpcc-struct-return",
+      "-fcommon",
+      "-fverbose-asm",
+      "-msoft-float",
+      "-mgas",
+      "-fgnu-linker",
+      "-quiet",
+      "-gcoff",
+      "-dp",
+      "-G0",
+      "-da"
+    ],
+    "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+    "source_sha256": {
+      "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+      "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+      "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+      "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+      "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+      "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+      "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+      "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+      "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+      "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+      "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+      "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+      "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+      "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+      "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+      "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+      "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+      "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+      "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+    },
+    "assembly_identical": true,
+    "trace_complete": true,
+    "baseline_assembly_sha256": "8f27f0259479a19499e70413aa77eda9a6dcda3a516b97915edfefb17cdf6c9e",
+    "traced_assembly_sha256": "8f27f0259479a19499e70413aa77eda9a6dcda3a516b97915edfefb17cdf6c9e"
+  },
+  "inputs": {
+    "base_4": {
+      "input_sha256": "1e00634c33ad846c2279865357abd5b5afa643e71d829e2cdd4285fe386bc3ce",
+      "source_sha256": "bb35c0cca3e16322a6ddaf1547b14fecc01ca5cbbd78065f210fb7cb62922626",
+      "score": {
+        "score": 99.71337579617834,
+        "distance": 135,
+        "penalties": {
+          "stack": 0,
+          "branch": 0,
+          "regs": 15,
+          "reorder": 1,
+          "insert": 0,
+          "delete": 0
+        }
+      }
+    },
+    "base_6": {
+      "input_sha256": "a8b236bf69422599ac2a4bb4505dca07b80dc8e8098248aed60a6854af629241",
+      "source_sha256": "b8fd092288ae7e6e2c1c9c33c4429988ab9171490f0034474ca5af1998de549c",
+      "score": {
+        "score": 99.55414012738854,
+        "distance": 210,
+        "penalties": {
+          "stack": 0,
+          "branch": 0,
+          "regs": 2,
+          "reorder": 0,
+          "insert": 1,
+          "delete": 1
+        }
+      }
+    },
+    "base_7": {
+      "input_sha256": "c3bee8b331b653204cb0be6cf1810db198be28be047aaa709ae47864083e4e40",
+      "source_sha256": "bf59ff1f2f324a58c4e920816e1c27479ec785040c30126416a01ffc395c1307",
+      "score": {
+        "score": 100.0,
+        "distance": 0,
+        "penalties": {
+          "stack": 0,
+          "branch": 0,
+          "regs": 0,
+          "reorder": 0,
+          "insert": 0,
+          "delete": 0
+        }
+      }
+    },
+    "base_8": {
+      "input_sha256": "5fedd4da8ef462530892676082fa45d9823b44c8de972e3cebf63f7723185d89",
+      "source_sha256": "91a4bfb28649a611deb28530319f75c12c990963e7f45c9780a6d2236e56fa87",
+      "score": {
+        "score": 99.70338983050847,
+        "distance": 140,
+        "penalties": {
+          "stack": 0,
+          "branch": 30,
+          "regs": 2,
+          "reorder": 0,
+          "insert": 1,
+          "delete": 0
+        }
+      }
+    }
+  },
+  "selected_trace_events": [
+    {
+      "after": [
+        {
+          "luid": 39,
+          "priority": 2,
+          "refs": 0,
+          "tick": 20,
+          "uid": 41
+        },
+        {
+          "luid": 51,
+          "priority": 2,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1073
+        },
+        {
+          "luid": 38,
+          "priority": 2,
+          "refs": 0,
+          "tick": 20,
+          "uid": 37
+        }
+      ],
+      "before": [
+        {
+          "luid": 51,
+          "priority": 2,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1073
+        },
+        {
+          "luid": 39,
+          "priority": 2,
+          "refs": 0,
+          "tick": 20,
+          "uid": 41
+        },
+        {
+          "luid": 38,
+          "priority": 2,
+          "refs": 0,
+          "tick": 20,
+          "uid": 37
+        }
+      ],
+      "clock": 21,
+      "event": "schedule_select",
+      "hazards": [
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 1073,
+          "unit": -1
+        },
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 41,
+          "unit": 0
+        },
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 37,
+          "unit": 0
+        },
+        {
+          "cost": 0,
+          "kind": "potential",
+          "uid": 1073,
+          "unit": -1
+        },
+        {
+          "cost": 4595712,
+          "kind": "potential",
+          "uid": 41,
+          "unit": 0
+        },
+        {
+          "cost": 4595712,
+          "kind": "potential",
+          "uid": 37,
+          "unit": 0
+        }
+      ],
+      "pass": "sched2",
+      "selected": 41
+    },
+    {
+      "after": [
+        {
+          "luid": 38,
+          "priority": 2,
+          "refs": 0,
+          "tick": 20,
+          "uid": 37
+        },
+        {
+          "luid": 51,
+          "priority": 2,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1073
+        }
+      ],
+      "before": [
+        {
+          "luid": 51,
+          "priority": 2,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1073
+        },
+        {
+          "luid": 38,
+          "priority": 2,
+          "refs": 0,
+          "tick": 20,
+          "uid": 37
+        }
+      ],
+      "clock": 22,
+      "event": "schedule_select",
+      "hazards": [
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 1073,
+          "unit": -1
+        },
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 37,
+          "unit": 0
+        },
+        {
+          "cost": 0,
+          "kind": "potential",
+          "uid": 1073,
+          "unit": -1
+        },
+        {
+          "cost": 4595712,
+          "kind": "potential",
+          "uid": 37,
+          "unit": 0
+        }
+      ],
+      "pass": "sched2",
+      "selected": 37
+    },
+    {
+      "after": [
+        {
+          "luid": 51,
+          "priority": 2,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1073
+        }
+      ],
+      "before": [
+        {
+          "luid": 51,
+          "priority": 2,
+          "refs": 0,
+          "tick": 0,
+          "uid": 1073
+        }
+      ],
+      "clock": 23,
+      "event": "schedule_select",
+      "hazards": [
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 1073,
+          "unit": -1
+        }
+      ],
+      "pass": "sched2",
+      "selected": 1073
+    }
+  ],
+  "supported_observation": "Both vx operands must feed the carve redefinition; its output is the source of the reload sc copy, so the copy follows both loads. One operand constrains only one load. base_7 predicts and achieves zero distance.",
+  "matching_rtl_chain": {
+    "vx_loads": [
+      27,
+      32
+    ],
+    "carve_asm": 34,
+    "sc_copy": 1073,
+    "sc_asm": 39,
+    "file": "base_7.i.sched2"
+  },
+  "failed_cleanup": "base_8 removes both dead carve definitions; first CSE rewrites the output of asm UID34 from carve/r87 to sc/r81, then an additional copy is emitted. Definitions retained.",
+  "retained_evidence": "tools/permuter_findings/func_actor_402200_80136184/ (immutable session snapshots; scratch PERMUTER_EVIDENCE/21599ce9aa26498d)",
+  "limits": [
+    "No claim that the helper spelling reconstructs the original C.",
+    "The individual necessity of the two dead definitions was not isolated.",
+    "The permuter array-pointer gain is observed; it was not separately traced."
+  ]
+}

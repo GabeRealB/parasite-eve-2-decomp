@@ -28,3 +28,5 @@ ActorsShared80137d78 = 0x80137D78; // shared body, see src/actors/lib/
 ActorsShared8013592c = 0x8013592C; // shared body, see src/actors/lib/
 ActorsShared80132688 = 0x80132688; // shared body, see src/actors/lib/
 ActorsShared80131fc8 = 0x80136D9C; // shared body, see src/actors/lib/
+ActorsShared80136184Indices = 0x80154178; // shared trail vertex indices
+ActorsShared80136184 = 0x80136184; // shared body, see src/actors/lib/
