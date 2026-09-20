@@ -13,21 +13,23 @@
 extern u8 D_801153F2;
 
 /// 0x6E4-byte work block hung off `Actor105700.field_1C`, allocated by
-/// `func_actor_105700_80135AE4`. It opens with the animation context and its
+/// `ActorsShared80135ae4` in both actor_105700 and actor_205700. It opens with the animation context and its
 /// nineteen 0x28-byte slots, exactly like the `Actor02000Work` block of
 /// `actor_102000`; the animation/state halfwords around 0x694-0x6E0 keep that
 /// block's offsets and meaning.
 typedef struct Actor105700Work {
-    /* 0x000 */ GpAnimCtx ctx;
-    /* 0x014 */ byte      slots[19][0x28];
-    /* 0x30C */ byte      pad_30C[0x170];
+    /* 0x000 */ GpAnimCtx  ctx;
+    /* 0x014 */ GpAnimSlot slots[19];
+    /* 0x30C */ byte       field_30C[0x130];
+    /* 0x43C */ MATRIX     field_43C;
+    /* 0x45C */ MATRIX     field_45C;
     /// First body object, handed to `Gp_UnlinkObj` by the teardown of
     /// `func_actor_105700_80133878`; its `pos.vz` is the pose the state-0
     /// branch of `func_actor_105700_80133138` parks (-0xA7 or 0x109) and its
     /// `radius` the frame count parked alongside it.
-    /* 0x47C */ GpObj   field_47C;
-    /* 0x49C */ byte    pad_49C[0x18];
-    /* 0x4B4 */ GpRec18 field_4B4[1];
+    /* 0x47C */ GpObj        field_47C;
+    /* 0x49C */ GpActorD4Rec field_49C;
+    /* 0x4B4 */ GpRec18      field_4B4[1];
     /// Second body object; `pos.vz` is the pose the state-0 branch parks
     /// (0x15E) and `flags` the bits whose 0x4000 it raises.
     /* 0x4CC */ GpObj   field_4CC;
@@ -43,22 +45,15 @@ typedef struct Actor105700Work {
     /* 0x5E4 */ GpObj   field_5E4;
     /* 0x604 */ GpRec18 field_604[1];
     /// Fifth body object, unlinked with the others by `func_actor_105700_80133878`.
-    /* 0x61C */ GpObj    field_61C;
-    /* 0x63C */ s16      field_63C;
-    /* 0x63E */ s16      field_63E;
-    /* 0x640 */ s16      field_640;
-    /* 0x642 */ byte     pad_642[2];
-    /* 0x644 */ s16      field_644;
-    /* 0x646 */ s16      field_646;
-    /* 0x648 */ s16      field_648;
-    /* 0x64A */ byte     pad_64A[0xA];
-    /* 0x654 */ GpRec18  field_654[1];
-    /* 0x66C */ byte     pad_66C[4];
-    /* 0x670 */ GpEffArg field_670;
-    /* 0x678 */ s32      field_678;
-    /* 0x67C */ s32      field_67C;
-    /* 0x680 */ s32      field_680;
-    /* 0x684 */ byte     pad_684[4];
+    /* 0x61C */ GpObj        field_61C;
+    /* 0x63C */ GpActorD4Rec field_63C;
+    /* 0x654 */ GpRec18      field_654[1];
+    /* 0x66C */ TaskDesc*    field_66C;
+    /* 0x670 */ GpEffArg     field_670;
+    /* 0x678 */ s32          field_678;
+    /* 0x67C */ s32          field_67C;
+    /* 0x680 */ s32          field_680;
+    /* 0x684 */ byte         pad_684[4];
     /// Tilt angles decayed toward zero by `func_actor_105700_801334F0`.
     /* 0x688 */ SVECTOR           field_688;
     /* 0x690 */ struct GpEffWork* field_690;
@@ -68,24 +63,24 @@ typedef struct Actor105700Work {
     /// Animation the playing clip was started from; when it differs from
     /// `field_694` the frame counter is reset and the slots reseeded.
     /* 0x696 */ s16 field_696;
-    /* 0x698 */ s16 field_698;  ///< current frame of the playing clip
+    /* 0x698 */ s16 field_698; ///< current frame of the playing clip
     /* 0x69A */ s16 field_69A;
-    /* 0x69C */ s16 field_69C;  ///< dwell counter, cleared on state 0 entry
-    /* 0x69E */ s16 field_69E;  ///< dwell counter, cleared on state 0 entry
-    /* 0x6A0 */ u16 field_6A0;  ///< sound flags; bit 5/4 gate the two cues
-                                /// Current yaw, walked toward `field_6A4` by
-                                /// `func_actor_105700_80133364`, using `field_69E` as the per-frame step.
-    /* 0x6A2 */ s16  field_6A2;
-    /* 0x6A4 */ s16  field_6A4; ///< yaw the actor wants to face
-    /* 0x6A6 */ s16  field_6A6; ///< parked animation for the state-F0 path
-    /* 0x6A8 */ s16  field_6A8; ///< state-machine step
-    /* 0x6AA */ s16  field_6AA; ///< animation the state-0 branch picks
-    /* 0x6AC */ byte pad_6AC[2];
-    /* 0x6AE */ s16  field_6AE; ///< state-0 frame budget
-    /* 0x6B0 */ s16  field_6B0;
-    /* 0x6B2 */ s16  field_6B2; ///< non-zero forces the state-F0 path
-    /* 0x6B4 */ s16  field_6B4; ///< cleared once the tilt has settled
-    /* 0x6B6 */ s16  field_6B6;
+    /* 0x69C */ s16 field_69C; ///< dwell counter, cleared on state 0 entry
+    /* 0x69E */ s16 field_69E; ///< dwell counter, cleared on state 0 entry
+    /* 0x6A0 */ u16 field_6A0; ///< sound flags; bit 5/4 gate the two cues
+                               /// Current yaw, walked toward `field_6A4` by
+                               /// `func_actor_105700_80133364`, using `field_69E` as the per-frame step.
+    /* 0x6A2 */ s16 field_6A2;
+    /* 0x6A4 */ s16 field_6A4; ///< yaw the actor wants to face
+    /* 0x6A6 */ s16 field_6A6; ///< parked animation for the state-F0 path
+    /* 0x6A8 */ s16 field_6A8; ///< state-machine step
+    /* 0x6AA */ s16 field_6AA; ///< animation the state-0 branch picks
+    /* 0x6AC */ s16 field_6AC;
+    /* 0x6AE */ s16 field_6AE; ///< state-0 frame budget
+    /* 0x6B0 */ s16 field_6B0;
+    /* 0x6B2 */ s16 field_6B2; ///< non-zero forces the state-F0 path
+    /* 0x6B4 */ s16 field_6B4; ///< cleared once the tilt has settled
+    /* 0x6B6 */ s16 field_6B6;
     /// State-0 branch selector: 1 picks the short dwell and animation 1,
     /// 2 the long dwell and animation 2.
     /* 0x6B8 */ s16  field_6B8;

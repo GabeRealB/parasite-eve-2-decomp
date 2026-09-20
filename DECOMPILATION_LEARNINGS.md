@@ -135269,3 +135269,14 @@ Compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Sel
 conflict/disposition excerpts: `tools/compiler_evidence/2026-09-20-actor105100-35278.json`.
 Retained paired sources/dumps: `PERMUTER_EVIDENCE/5c9f8231875b41c9` in the scratch
 and the immutable `tools/permuter_findings/func_actor_105100_80135278` archive.
+
+
+## Sharing a task temporary removes sched1 birth promotion but can propagate a global register preference (func_actor_105700_80135AE4, 2026-09-20)
+
+The retry seed had only two load-order differences: task loads followed the context-index loads in both spawn blocks. Merely moving independent source reads had not fixed it. A trace showed the single-set task load UID166 promoted from priority1 to LAUNCH_PRIORITY2130706433 when its model load released it. The reused index remained priority1. GCC schedules backward, so the promoted load appeared later forward.
+
+Reusing one task temporary across both blocks was predicted before base_1 and confirmed by paired traces: the task load stayed priority1, lost the original-order comparison to the later index, and both loads had equal potential-hazard weight4595712. Both reorder penalties disappeared. This is the REG_N_SETS==1 condition in sched.c:birthing_insn_p, not an unconditional rule that shared temporaries schedule earlier.
+
+The task then became global and gained preferences v0/a0: its death at the model load allowed global.c:expand_preferences to merge the model argument preference. The stage byte allocated first (13333 versus task12000), skipped the lower-priority task preferences, and received a1; session consequently received a0. Keeping the task live with SOFT_USE_REG immediately after the model load both introduced a task/model conflict (removing a0 preference) and raised task rank (8refs/12 versus6refs/10). That controlled base_3 matched, as did the current-header base_4 port. The two allocation effects are coupled; this experiment does not establish which alone is sufficient. SOFT_USE_REG is implicitly volatile here and its scheduling effects must also be checked.
+
+Evidence and compiler/preprocessed-input hashes: tools/compiler_evidence/2026-09-20-actor105700-35ae4.json. Scratch keeps TRACE_BASE, TRACE_SHARED, planned base_1/base_3, and all dumps. The bounded router retained no discovery; the match came from manual experiments.
