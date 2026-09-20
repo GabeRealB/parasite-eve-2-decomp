@@ -471,7 +471,105 @@ void func_actor_136100_80132E78(Task* arg0)
     work->field_4C4 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80133238);
+void func_actor_136100_80133238(Task* arg0)
+{
+    Actor136100Work* work;
+    Actor136100Work* animWork;
+    s32              i;
+    GsCOORDINATE2*   coords;
+
+    work = (Actor136100Work*)arg0->work;
+    func_actor_136100_80131FBC(arg0);
+    switch ((u16)work->field_4CC) {
+        case 0:
+            break;
+        case 1:
+            Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_136100_8013F3C4, 0);
+            break;
+        case 2:
+            Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_136100_8013F3DC, 0);
+            break;
+        case 3:
+            animWork            = (Actor136100Work*)arg0->work;
+            animWork->field_4E0 = 4;
+            SCHED_BARRIER();
+            i = 1;
+
+            do {
+                func_800B4114(&animWork->anim, (u16)i, 4, 0, 0xA);
+                i++;
+            } while ((u16)i < 0x14U);
+            break;
+        case 4:
+            animWork            = (Actor136100Work*)arg0->work;
+            animWork->field_4E0 = 3;
+            i                   = 1;
+            do {
+                animWork->slots[(u16)i].rate = 0x10;
+                Gp_AnimResetSlot(&animWork->anim, (u16)i, 3);
+                i++;
+            } while ((u16)i < 0x14U);
+            Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_136100_8013F3AC, 0);
+            break;
+        case 5:
+            switch ((u16)work->field_4CE) {
+                case 0:
+                    animWork            = (Actor136100Work*)arg0->work;
+                    animWork->field_4E0 = 6;
+                    SCHED_BARRIER();
+                    i = 1;
+
+                    do {
+                        func_800B4114(&animWork->anim, (u16)i, 6, 0, 0xA);
+                        i++;
+                    } while ((u16)i < 0x14U);
+                    work->field_4D0 = 0;
+                    work->field_4CE++;
+                    return;
+                case 1:
+                    if (++work->field_4D0 == 0xF) {
+                        SndEvt_EnqueueType6(0x5302000F, 0, 0);
+                        work->field_4CC = 0;
+                    }
+                    return;
+            }
+            return;
+        case 6:
+            switch ((u16)work->field_4C6) {
+                case 0:
+                    Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_136100_8013F3DC, 0);
+                    work->field_4EA = 0x1000;
+                    work->field_4C6++;
+                    return;
+                case 1:
+                    Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords[4].coord, work->field_4EA, 1);
+                    if (work->field_4EA >= 0xD56) {
+                        work->field_4EA -= 0x40;
+                    }
+                    return;
+            }
+            return;
+        case 7:
+            coords = ((TmdObject*)arg0->extra)->coords;
+            if ((work->field_4EA += 0x40) > 0x1000) {
+                work->field_4EA = 0;
+                work->field_4CC = 0;
+            }
+            Gfx_RotMatrixY(&coords[4].coord, work->field_4EA, 1);
+            return;
+        case 8:
+            animWork            = (Actor136100Work*)arg0->work;
+            animWork->field_4E0 = 3;
+            i                   = 1;
+            do {
+                animWork->slots[(u16)i].rate = 0x10;
+                Gp_AnimResetSlot(&animWork->anim, (u16)i, 3);
+                i++;
+            } while ((u16)i < 0x14U);
+            break;
+    }
+    work->field_4CC = 0;
+}
 
 /// Advance the cutscene actor's animation chain and send its pending placement.
 ///

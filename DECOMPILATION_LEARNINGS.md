@@ -135748,3 +135748,40 @@ base_2 f558afe8c680edc0bee2ac855cd329d206b7515d1dadf0c89fd76d4f9d5f5f35.
 
 Compact committed sources, plans, scores and selected trace observations:
 [2026-09-20-actor136100-31ec4.json](tools/compiler_evidence/2026-09-20-actor136100-31ec4.json).
+
+## A scheduling fix can promote a shared loop constant above the long-lived work pointer
+
+`func_actor_136100_80133238` started at 98.300% with matching control flow.
+In two play-animation loop preheaders, sched1 put index/speed initialization
+before the final task-pointer load. The resulting speed/task conflict assigned
+speed to s3 and task to s4. The target needs the load and state store before
+both constants, allowing task and speed to share s3 while work stays s2.
+
+A preplanned `SCHED_BARRIER()` after each state store fixed the ordering and
+removed the conflict, as `.sched` and `.greg` confirmed. It also shortened the
+shared speed pseudo from 6 refs / 28 insns to 6 / 22. That changed its global
+priority from below the work pointer to above it: speed's `2*6/22` exceeds
+work's `4*22/167`. Speed and task now shared s2, with work in s3. This scored
+98.875%, with only register penalties. Fixing the conflict did not preserve
+the allocation order.
+
+The next controlled prediction replaced the shared speed local with literal
+`0xA` arguments in each loop. `loop.c` hoisted separate constants, each with
+3 refs / 22 insns. They allocated after work and task, reused s3, and preserved
+the barrier-enforced setup order. The candidate reached 100% and passed the
+unscoped build. No register pins or keep-live references were needed.
+
+When shortening a lifetime fixes a conflict, inspect global rank separately:
+a reused pseudo's references can now make it outrank an unrelated long-lived
+value. Splitting equivalent constants can correct that rank without undoing
+the scheduling fix. The helpers here are a compiler workaround; the original
+source idiom remains unknown.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Input hashes: baseline `fb06a7cd796c559ece9744f1c1f381466868ad6707eafda9d15c909711cca294`,
+barriers `e897dec6ab1886e3d537b1fee7fbcc7a159d97d239a3aea23b5833c172650307`,
+match `425623df0a6c9831335f4fdb484349adbaeeebc6d269669d3938865accd47121`.
+Plans, sources, dumps and conclusions are retained under
+`tools/permuter_findings/func_actor_136100_80133238/sessions/bff8656f768f41de98e19538cd32468a/d52a1df6ac613701ee21/`.
+The router's own candidate did not reproduce an improvement (distance 340 to
+545); the supported result above came from independent dump-driven experiments.
