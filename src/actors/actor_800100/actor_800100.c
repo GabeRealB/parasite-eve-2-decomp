@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -643,7 +644,121 @@ void func_actor_800100_80163214(GpActorWork* arg0)
     *(u32*)G_SCRATCH_HEAD += 8;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_801635F4);
+void func_actor_800100_801635F4(GpActorWork* arg0)
+{
+    Actor800100ShadowScratch* scratch;
+    void**                    scratchHead;
+    u8*                       head;
+    GameActor*                actor;
+    TmdObject*                work;
+    TmdObject*                extra;
+    GsCOORDINATE2*            coord;
+    GsCOORDINATE2*            ground;
+    GpActorD4*                d4;
+    Task*                     task;
+    GpObj*                    objs[2];
+    s32                       dy;
+    s32                       i;
+    s8                        bits;
+
+    scratchHead  = (void**)G_SCRATCH_HEAD;
+    head         = *scratchHead;
+    extra        = arg0->extra;
+    *scratchHead = head - 0x18;
+    work         = extra;
+    scratch      = (Actor800100ShadowScratch*)(head - 0x18);
+    coord        = work->coords;
+    actor        = arg0->actor;
+    d4           = actor->field_910;
+
+    if (actor->field_954 != 2 &&
+        (dy = coord->coord.t[1], dy = dy - actor->field_14, dy = ABS(dy), dy >= 0x200)) {
+        coord->coord.t[0] = actor->field_10;
+        coord->coord.t[1] = actor->field_14;
+        coord->coord.t[2] = actor->field_18;
+    } else {
+        actor->field_10 = coord->coord.t[0];
+        actor->field_14 = coord->coord.t[1];
+        actor->field_18 = coord->coord.t[2];
+        if (actor->field_984 & 1) {
+            actor->field_992 = func_801011D0(coord, actor->field_90, 0x12, &actor->field_930);
+        } else {
+            actor->field_992 = 0;
+        }
+    }
+
+    task = actor->field_91C;
+    if (task != NULL) {
+        *(GsCOORDINATE2*)actor->field_3D4 =
+            *(GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
+        Gfx_RotMatrixX(&((GsCOORDINATE2*)actor->field_3D4)->workm, -0x400, 0);
+    }
+
+    d4->coord = *(GsCOORDINATE2*)arg0->extra->coords;
+    Gfx_RotMatrixY(&d4->coord.workm, d4->scanAngle, 0);
+
+    objs[0] = (GpObj*)actor->field_AC;
+    objs[1] = (GpObj*)actor->field_EC;
+    for (i = 0; i < 2; i++) {
+        bits = actor->field_983;
+        if ((bits >> i) & 1) {
+            actor->field_984 |= 1 << i;
+            objs[i]->flags   |= 0x4000;
+        } else if (bits & (8 << i)) {
+            actor->field_984 &= ~(1 << i);
+            objs[i]->flags   &= ~0x4000;
+        }
+    }
+    actor->field_983 = 0;
+
+    if (D_80115768 == 0 && D_801153F4 == 0) {
+        func_actor_800100_80165528(arg0);
+    }
+    func_actor_800100_80163A58(arg0);
+
+    Gp_ClearRec18Occupied(actor->field_17C);
+    Gp_ClearRec18Occupied(&actor->field_910->contact);
+    if (actor->field_91C != NULL) {
+        Gp_ClearRec18Occupied(actor->field_32C);
+    }
+    if (actor->field_984 & 1) {
+        coord->coord.t[1] += 8;
+    }
+    coord->flg = 0;
+    Gp_UpdateCoord(coord);
+
+    if ((s8)actor->field_986 != 0) {
+        scratch->vx = (u16)actor->field_30.vx;
+        scratch->vy = (u16)actor->field_30.vy;
+        scratch->vz = (u16)actor->field_30.vz;
+    } else {
+        scratch->vx = (u16)coord->workm.m[0][2] *
+                      (s8)((volatile Actor800100DirByte*)actor)->field_973;
+        scratch->vy = (u16)coord->workm.m[1][2] *
+                      (s8)((volatile Actor800100DirByte*)actor)->field_973;
+        scratch->vz = (u16)coord->workm.m[2][2] *
+                      (s8)((volatile Actor800100DirByte*)actor)->field_973;
+    }
+    ((SVECTOR*)actor->field_88)->vx = scratch->vx;
+    ((SVECTOR*)actor->field_88)->vy = scratch->vy;
+    ((SVECTOR*)actor->field_88)->vz = scratch->vz;
+    ((SVECTOR*)actor->field_94)->vx = scratch->vx;
+    ((SVECTOR*)actor->field_94)->vy = scratch->vy;
+    ((SVECTOR*)actor->field_94)->vz = scratch->vz;
+    ((SVECTOR*)actor->field_A0)->vx = scratch->vx;
+    ((SVECTOR*)actor->field_A0)->vy = scratch->vy;
+    ((SVECTOR*)actor->field_A0)->vz = scratch->vz;
+
+    if (!(work->flags & 0x80)) {
+        ground      = ((TmdObject*)arg0->extra)->coords + 1;
+        ground->flg = 0;
+        Gp_UpdateCoord(ground);
+        if (func_800EA1A8((VECTOR3*)ground->workm.t, (VECTOR3*)scratch) != 0) {
+            Gp_DrawEffGroundQuad((VECTOR3*)scratch, 0x200, Gp_State1C->groundShade);
+        }
+    }
+    *(u8**)G_SCRATCH_HEAD += 0x18;
+}
 
 /// Texture-upload state of the actor: runs two independent sequences, each a
 /// countdown (`field_988` / `field_98B`, reloaded with 4 / 8) that advances a

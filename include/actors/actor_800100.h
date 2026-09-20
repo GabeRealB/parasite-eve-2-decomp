@@ -7,6 +7,31 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 
+/// Ground position and collision offset borrowed from G_SCRATCH_HEAD by
+/// func_actor_800100_801635F4.
+typedef struct {
+    /* 0x00 */ VECTOR3 pos;
+    /* 0x0C */ s32     pad_C;
+    /* 0x10 */ u16     vx;
+    /* 0x12 */ u16     vy;
+    /* 0x14 */ u16     vz;
+    /* 0x16 */ u16     pad_16;
+} Actor800100ShadowScratch;
+STATIC_ASSERT_SIZEOF(Actor800100ShadowScratch, 0x18);
+
+/// Unsigned-byte view used before sign-extending the heading multiplier.
+typedef struct {
+    byte pad[0x973];
+    u8   field_973;
+} Actor800100DirByte;
+
+extern u8 D_801153F4;
+
+void func_actor_800100_801635F4(GpActorWork* arg0);
+void func_actor_800100_80163A58(GpActorWork* arg0);
+void func_actor_800100_80165528(GpActorWork* arg0);
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
 /// `gte_rtv0` as the retail build emits it: the full `mvmva 1,0,0,3,0` word.
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
