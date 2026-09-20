@@ -134438,3 +134438,39 @@ The controlled base_4 prediction required both earlier copy placement and unchan
 The port reuses `Actor521100ScratchStack.sp`. Its fixed member access also matters: base_1's scalar scratch store was absent from the work load's scheduler dependencies; base_2's member store UID21 became a dependency of work-load UID24 and restored the prologue. This confirms the existing MEM_IN_STRUCT rule, without changing it.
 
 Evidence: `tools/permuter_findings/func_actor_521100_80133104/` retains session sources and compressed inputs; selected dumps are under `PERMUTER_EVIDENCE/4e43c88700eb4b09/analysis/manual/`. The router missed; these gains are manual experiments. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; base_3 input `d1a901aab076a90787ad2591cbcb3be5f88c62177db371c99ce14d4fb76731b5`; controlled base_4 input `cbc7dc155ee9d2865608905f5f88a033a26bae75b8ccbcf8b8920c4ab42aee9f`. The readable base_5 port remained exact and passed the full unscoped build.
+
+
+## Independent branch-local LCG draws need separate locals before table hoisting can match
+
+`func_actor_521100_80132958` (GCC 2.8.1, 2026-09-20) improved from 92.894%
+to 99.687% by combining two changes: separate table/RNG locals for each of
+three independent branches, and each table assignment before its RNG draw.
+The archived seed reused one `tbl` and `rng`; `.lreg` recorded three deaths
+for each, so they went to global allocation. The table high could not tie
+locally into its global destination, and the multiply chain's local home
+could differ from the global result.
+
+Controlled split alone (`base_1`) made all six values locally eligible and
+restored the ties, but scored 92.869%: late table materialization got v1 and
+the RNG chain got a0. Moving each split table before its draw (`base_2`)
+changed sched1 order, put tables in a0 and entire RNG chains in v1, and matched
+all three blocks. Both changes were necessary in these tested candidates;
+sibling source order alone had failed in the prior session. This is an
+eligibility/scheduling interaction, not evidence that renaming changes homes.
+
+The last 62 distance points were a separate prologue lifetime issue. Swapping
+`coord = arg0->field_2C->field_8` before `work = arg0->field_1C` ended object
+pointer r97 before player matrix pointer r102 was born in sched1. In lregwalk,
+old intervals overlapped (r97 at positions 7..9, r102 born 8); the new r97
+interval was 5..7, r102 still born 8. r102 changed from local v1 to v0 in
+`.lreg` and retained it through `.greg`. `base_3` reached 100%, with all-zero
+penalties, and passed the unscoped build-and-verify. No pins or asm helpers.
+Exact scheduler hazard decisions and quantity priorities were not traced.
+
+Evidence: scratch `nonmatchings/func_actor_521100_80132958-vacuum/`,
+`LEARNINGS.md`, planned/concluded `experiments.jsonl`, and the candidates'
+`.sched`, `.lreg`, `.greg` dumps. Preprocessed input SHA-256:
+- base.i: `4f729a97ed69a0b649cff4961ee63434e3f79460ee6f9e209d022f16c6f71e8e`
+- base_1.i: `e678b317ca40dba63d790632a3e6fdcf257d9702154613d1afa13353a8757585`
+- base_2.i: `79999f48b790475605eef9e9ba39b711336dd24f7d13b4e510925e70b39ae1cb`
+- base_3.i: `60031f15360e96a5f06ce29c0ba51006bec2bf0e1d788567c4fd056565b11d53`

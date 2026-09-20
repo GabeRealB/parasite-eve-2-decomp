@@ -386,6 +386,11 @@ static __inline__ void Actor521100_MoveForward(GsCOORDINATE2* coord, s16 amount)
     }
 }
 
+extern u16 D_actor_521100_8015F614[];
+
+void func_actor_521100_80132958(Actor521100* arg0);
+s32  func_actor_521100_80132C70(Actor521100* arg0);
+void func_actor_521100_80135680(Actor521100* arg0);
 void func_actor_521100_80135414(Actor521100Ctx* arg0, Actor521100* arg1);
 void func_actor_521100_80135478(Actor521100Ctx* arg0, Actor521100* arg1);
 void func_actor_521100_801355C8(Actor521100* arg0);

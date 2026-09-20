@@ -14,6 +14,7 @@
 #include "actors/actor_521100.h"
 #include "actors/actors_shared_80134934.h"
 
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
 
 /* `gte_MulMatrix0` from `psyq/gtemac.h`, except with the real `rtir` encoding
@@ -29,7 +30,6 @@ void func_actor_521100_80134C38(Actor521100* arg0);
 void func_actor_521100_80134D88(Actor521100* arg0);
 void func_actor_521100_80134EDC(Actor521100* arg0);
 void func_actor_521100_80135024(Actor521100* arg0);
-void func_actor_521100_80132958(void);
 void func_actor_521100_80132DE8(void);
 void func_actor_521100_801339B0(void);
 void func_actor_521100_80134658(Actor521100* arg0);
@@ -40,7 +40,108 @@ INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", ActorsShared80131e2
 
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_801322F8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_80132958);
+void func_actor_521100_80132958(Actor521100* arg0)
+{
+    Actor521100Work* work;
+    GsCOORDINATE2*   coord;
+    VECTOR*          scratchEnd;
+    VECTOR*          vec;
+    u16*             tbl;
+    u16*             tbl1;
+    u16*             tbl2;
+    u32              rng;
+    u32              rng1;
+    u32              rng2;
+    s16              state;
+    s16              delta;
+    s16              angle;
+    s16              timer;
+    s16              wrapped;
+    s32              magnitude;
+
+    coord                     = arg0->field_2C->field_8;
+    work                      = arg0->field_1C;
+    scratchEnd                = *(VECTOR**)G_SCRATCH_HEAD;
+    vec                       = scratchEnd - 1;
+    *(VECTOR**)G_SCRATCH_HEAD = vec;
+    scratchEnd[-1].vx         = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    vec->vy                   = 0;
+    vec->vz                   = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    work->field_6AA           = SquareRoot0(scratchEnd[-1].vx * scratchEnd[-1].vx + vec->vz * vec->vz);
+    angle                     = ratan2((s16)scratchEnd[-1].vx, (s16)vec->vz) & 0xFFF;
+    work->field_698           = angle;
+    if (gGameSession->at4.loc.view == 2) {
+        work->field_69E = 6;
+        work->field_6A0 = 0;
+    } else {
+        state = work->field_6A0;
+        switch (state) {
+            case 0:
+                work->field_69A = 0;
+                work->field_69C = 0;
+                timer           = (u16)work->field_68E - 1;
+                work->field_68E = timer;
+                if (timer < 0) {
+                    work->field_6A0 = 1;
+                    work->field_686 = 0x12;
+                    tbl             = D_actor_521100_8015F614;
+                    rng             = Gp_LcgState * 5 + 0x71357911;
+                    Gp_LcgState     = rng;
+                    work->field_68E = tbl[(rng >> 16) & 0xF];
+                } else if (func_actor_521100_80132C70(arg0) == 0) {
+                    func_actor_521100_80135680(arg0);
+                }
+                break;
+            case 1:
+                if ((work->field_6BE == state) && (work->field_6AA < 0x7D0)) {
+                    delta     = (u16)angle - (u16)work->field_696;
+                    magnitude = abs(delta);
+                    if (magnitude < 0x800) {
+                        wrapped = magnitude;
+                    } else {
+                        if (delta > 0) {
+                            wrapped = 0x1000 - delta;
+                        } else {
+                            wrapped = delta + 0x1000;
+                        }
+                    }
+                    if (wrapped < 0x100) {
+                        work->field_68E = 0;
+                    }
+                }
+                timer           = (u16)work->field_68E - 1;
+                work->field_68E = timer;
+                if (timer <= 0) {
+                    work->field_69C = 0x78;
+                    work->field_69A = 0;
+                    tbl1            = D_actor_521100_8015F5F4;
+                    rng1            = Gp_LcgState * 5 + 0x71357911;
+                    Gp_LcgState     = rng1;
+                    timer           = tbl1[(rng1 >> 16) & 0xF];
+                    work->field_68E = timer;
+                    if (timer == 0) {
+                        func_actor_521100_80135680(arg0);
+                        if (work->field_69E == 0) {
+                            tbl2            = D_actor_521100_8015F614;
+                            rng2            = Gp_LcgState * 5 + 0x71357911;
+                            Gp_LcgState     = rng2;
+                            work->field_68E = tbl2[(rng2 >> 16) & 0xF];
+                        }
+                    } else {
+                        work->field_6A0 = 0;
+                        work->field_686 = 1;
+                    }
+                } else {
+                    work->field_69A = 0x14;
+                    work->field_69C = 0x78;
+                    func_actor_521100_80132C70(arg0);
+                }
+                break;
+        }
+    }
+    work->field_6AE         = 0;
+    *(void**)G_SCRATCH_HEAD = (void*)(*(void**)G_SCRATCH_HEAD + 0x10);
+}
 
 /// Asks the player for the hold (message 0x3F8, range 0x19) once the actor has
 /// swung its heading to within 0x20 of the slot-3 task's own and is lined up
