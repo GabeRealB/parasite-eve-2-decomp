@@ -136248,3 +136248,37 @@ Compiler and selected observations: `tools/compiler_evidence/2026-09-20-actor105
 Sources, plans, dumps and notes: `tools/permuter_findings/func_actor_105300_8013246C/`,
 session `09617f0e1cbe4d388230fa94e385d364`. Final shared body serves actor105300
 and actor105400 and passed the unscoped build.
+
+## An explicit constant before the loop preheader can fix a taken-branch delay slot (actor_311500, 2026-09-20)
+
+`func_actor_311500_80162C34` retried at 99.811%, with only `li s0,1` and
+`li s3,32` exchanged. The register homes were already right. Baseline `.loop`
+created constant UID 282 immediately before `NOTE_INSN_LOOP_BEG`, after the
+animation-context reload and counter initialization UID 81. `.sched2` retained
+that order; `.dbr` selected UID 81 for the preceding conditional branch's slot.
+
+A preplanned change following the nearby matched initializer's idiom fixed it:
+assign `u8 rate = 0x20` before the context reload and counter initialization,
+and use `rate` in the byte store. In base_1, the explicit QI assignment is UID 78
+already in `.rtl`; `.loop` retains it before reload UID 81 and i-init UID 84.
+`.greg` keeps rate in s3 and i in s0; `.dbr` embeds UID 78 in branch UID 62's
+sequence. Score becomes 100%, all penalties zero. It did not require moving
+loop_start: patched `loop.c:2259` records the LOOP_BEG note directly.
+The candidate is outside the branch's block, so this extends the earlier
+actor_206100 constant-in-branch-block example to selection from the taken path.
+
+The final two-argument port with `SOFT_BARRIER()` also matches and passed the
+unscoped build. Replacing the established stride view with `GpAnimSlot*` was
+separately rejected for matching: `.combine` folded the member-base offset but
+reversed the `addu` operands, scoring 99.906%. That was operand canonicalization,
+not a changed allocation. No new general allocator rule is implied.
+
+Evidence remains in `nonmatchings/func_actor_311500_80162C34-vacuum/`:
+`experiments.jsonl`, `LEARNINGS.md`, `base.i.loop`, `base_1.i.loop`,
+`base_1.i.greg`, `base_1.i.sched2`, `base_1.i.dbr`, and `base_2.i.combine`.
+Preprocessed SHA256 baseline:
+`ead62e186d703eb6718533b755c0eede47ed2e31736bb6e967e57e9d5d9f4ad9`;
+preplanned match base_1:
+`14c964b005737988a067c64c6d7fc22aed6752ab1646043812dba6f35a0fae83`.
+Bundled cc1 SHA256:
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

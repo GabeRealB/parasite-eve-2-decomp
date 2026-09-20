@@ -85,6 +85,8 @@ typedef struct Actor311500 {
 /// and records the value it saw in the work block's `field_4D6`.
 extern u8 D_801153F4;
 
+extern s32 Gp_LcgState;
+
 extern GpPairSrcE D_actor_311500_801692C0;
 extern u8         D_actor_311500_801692F4[];
 extern u32        D_actor_311500_80169330;

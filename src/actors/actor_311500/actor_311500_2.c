@@ -78,7 +78,76 @@ void func_actor_311500_801629D8(Actor311500* arg0)
     Gp_SetTmdBytes(tmd, (s8)place->tpage, (s8)place->clut);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_311500/actor_311500_2", func_actor_311500_80162C34);
+void func_actor_311500_80162C34(Actor311500* arg0, TmdObject* arg1)
+{
+    Actor311500Work*       work;
+    Actor311500Work*       anim;
+    Actor311500AnimStride* stride;
+    Actor311500Work*       anim2;
+    SVECTOR                probe;
+    s32                    i;
+    u32                    rng;
+    u16                    v;
+    u16                    count;
+    u8                     rate;
+
+    work = arg0->field_1C;
+
+    switch (work->field_4C0) {
+        case 0:
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            rng         = (u32)Gp_LcgState >> 16;
+            if (work->field_4C8 >= 2) {
+                work->field_4C0 = (u16)work->field_4C0 + 1;
+            } else if (rng & 1) {
+                work->field_4C0 = (u16)work->field_4C0 + 1;
+            } else {
+                rate = 0x20;
+                anim = arg0->field_1C;
+                i    = 1;
+                do {
+                    stride           = (Actor311500AnimStride*)anim + (i & 0xFFFF);
+                    stride->field_1D = rate;
+                    Gp_AnimResetSlot(&anim->anim, i & 0xFFFF, 0);
+                    i += 1;
+                } while (((u32)(i & 0xFFFF)) < 0x13U);
+                work->field_4C0 = (u16)work->field_4C0 + 2;
+            }
+            work->field_4C4 = 0;
+            break;
+
+        case 1:
+            count           = (u16)work->field_4C4;
+            work->field_4C4 = count + 1;
+            if ((s16)count >= 0x1F) {
+                work->field_4C8 = 0;
+                work->field_4C0 = 0;
+            }
+            break;
+
+        case 2:
+            anim2 = work;
+            i     = 1;
+            do {
+                Gp_AnimTickIndex(&anim2->anim, i & 0xFFFF);
+                i += 1;
+            } while (((u32)(i & 0xFFFF)) < 0x13U);
+            if (!(anim2->slots[1].flags & 1)) {
+                SOFT_BARRIER();
+                v = 0;
+            } else {
+                v = 1;
+            }
+            if (v) {
+                work->field_4C0 = 0;
+                work->field_4C8 = (u16)work->field_4C8 + 1;
+            }
+            break;
+
+        default:
+            break;
+    }
+}
 
 extern s32 D_80181E74;
 extern s32 D_80181EC4;
