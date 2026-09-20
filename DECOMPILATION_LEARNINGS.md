@@ -135348,3 +135348,32 @@ Sources, plans, selected dumps, compiler/input hashes and verification are in
 `43161df3820239e05881ee7a4ccf334e0623d5f0cccfd63eb5f2e027626f6fee`;
 array-access input:
 `eba63f09f1c7e8b8e0f20c74225ed64ff37ee9ac8cde746b20b86426ef9bf0db`.
+
+
+## Reusing a byte-store value supplies the anti-dependency needed by a later angle load (func_actor_800100_801652B0, 2026-09-20)
+
+The target needs `lbu v0; nop; sb v0; lh v0,actorAngle; lh v1,heading`.
+Separate local operands allocate the shorter-lived heading in v0, leaving the
+actor angle in v1; sched2 then hoists that actor load into the byte-load delay.
+Loading heading first gets the right registers but keeps the two halfword
+loads reversed (99.810%). Reusing completed switch state for heading makes it
+global in v1, but also making the actor angle global is insufficient: sched1
+hoists it before the byte load, so the local byte in v0 becomes a hard conflict
+and the global angle/timer value takes v1 (base_11, 94.688%).
+
+The successful controlled experiment reuses that angle/timer variable for the
+byte too: `val = (u8)d4->turnDir; actor->field_975 = val; val = actor->field_52;
+state = d4->targetHeading; dist = val - state;`. In base_12.lreg the actor-angle
+load UID128 has REG_DEP_OUTPUT on byte load UID120 and REG_DEP_ANTI on byte
+store UID123. It stays after the store. Global r87 loses hard conflict 2 and
+allocates v0, while state r91 remains v1. The rest of r87's timer/LCG ranges
+also return to v0 and their duplicate call/store suffix merges again: 100%.
+This is an observed dependency/allocation interaction, not a claim that merely
+naming or merging any temporary improves scheduling. base_11 disproves that.
+
+Preprocessed input SHA256: base_11
+`2d891e5745db63f2f9a4d48418f65d80a4c6bb86bb1babc85dd00e59c1daf260`;
+base_12 `a31a7db8e6d531f37fe83c9f78debc117c6cbaee8b1bd2dc5abf8cf8ad92b26e`.
+Compiler SHA256:
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+No pins, empty asm or permuter discovery; unscoped build verification passed.

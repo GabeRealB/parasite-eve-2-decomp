@@ -754,7 +754,106 @@ void func_actor_800100_80164E60(GpActorWork* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165010);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_801652B0);
+void func_actor_800100_801652B0(GpActorWork* arg0)
+{
+    GameActor* actor;
+    GpActorD4* d4;
+    GameActor* target;
+    GpActorD4* targetD4;
+    s32        flag;
+    s32        arg;
+    s32        val;
+    s32        dist;
+    s32        targetDist;
+    s32        turn;
+    s32        state;
+    s16        ang;
+    s16        anim;
+    u16        old;
+
+    actor      = arg0->actor;
+    d4         = actor->field_910;
+    targetDist = func_actor_800100_8016709C(arg0->extra->coords, &d4->contact, NULL);
+    state      = actor->field_95E;
+    flag       = 1;
+    switch (state) {
+        case 0:
+            actor->field_95E  = flag;
+            ang               = (actor->field_52 + (rand() & 0xFFF)) & 0xFFF;
+            d4->targetHeading = ang;
+            turn              = func_80103E7C(actor->field_52, ang);
+            arg               = 5;
+            if (turn << 16 > 0) {
+                arg         = 6;
+                d4->turnDir = flag;
+            } else {
+                d4->turnDir = -1;
+            }
+            Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 3);
+        case 1:
+            val              = (u8)d4->turnDir;
+            actor->field_975 = val;
+            val              = actor->field_52;
+            state            = d4->targetHeading;
+            dist             = val - state;
+            if (dist < 0) {
+                dist = -dist;
+            }
+            if (dist < 0x40) {
+                actor->field_95E += 1;
+                actor->field_52   = (u16)d4->targetHeading;
+                actor->field_975  = 0;
+                actor->field_958  = 1;
+                val               = Gp_LcgState * 5 + 0x71357911;
+                Gp_LcgState       = val;
+                val               = (((u32)val >> 16) & 0x7F) + 0x1E;
+                actor->field_934  = val;
+                Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 3);
+                break;
+            }
+            break;
+        case 2:
+            val              = actor->field_934 - 1;
+            actor->field_934 = val;
+            if (val != 0) {
+                break;
+            }
+            if (targetDist < 0x401 && targetDist != 0) {
+                anim                = 1;
+                target              = arg0->actor;
+                old                 = target->field_956;
+                target->field_956   = 0xA;
+                target->field_97E   = anim;
+                targetD4            = target->field_910;
+                target->field_954   = 0;
+                target->field_95A   = flag;
+                target->field_95C   = 0;
+                target->field_95E   = 0;
+                target->field_960   = old;
+                targetD4->scanDist  = -1;
+                targetD4->scanAngle = 0;
+                Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 6);
+                break;
+            }
+            actor->field_95E += 1;
+            actor->field_934  = (rand() & 0x3F) + 0x3C;
+            Gp_AnimPlayChildSlotsEx(arg0, 2, 0, 3);
+            break;
+        case 3:
+            if (targetDist < 0x301 && targetDist != 0) {
+                Gp_ResetActorMove(arg0, 0);
+                break;
+            }
+            val              = actor->field_934 - 1;
+            actor->field_934 = val;
+            if (val <= 0) {
+                Gp_ResetActorMove(arg0, 0);
+                break;
+            }
+            actor->field_973 = flag;
+            break;
+    }
+}
 
 extern GpActorFuncTable3 D_actor_800100_80161E4C;
 
