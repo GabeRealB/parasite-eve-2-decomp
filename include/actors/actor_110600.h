@@ -422,13 +422,14 @@ typedef struct Actor110600Work {
     /// Timer `func_actor_110600_80137F2C` counts down once the actor is live,
     /// handing off to `func_actor_110600_80136210` on the frame it reaches
     /// zero; the same slot the `Actor01900Work` dispatcher keeps at 0xC10.
-    /* 0x8AA */ s16  field_8AA;
-    /* 0x8AC */ s32  field_8AC;
-    /* 0x8B0 */ byte pad_8B0[1];
+    /* 0x8AA */ s16 field_8AA;
+    /* 0x8AC */ s32 field_8AC;
+    /* 0x8B0 */ s8  field_8B0;
     /// Live flag `func_actor_110600_80137F2C` raises once the model root's
     /// coordinate has been cleared at the end of the tick.
     /* 0x8B1 */ s8   field_8B1;
-    /* 0x8B2 */ byte pad_8B2[4];
+    /* 0x8B2 */ byte pad_8B2[2];
+    /* 0x8B4 */ s16  field_8B4;
     /// Per-state walk speed the spawn handler seeds (0xA / 8 / 0xE); the aiming
     /// stage hands it to the walker as its `field_5E` ramp target.
     /* 0x8B6 */ u16   field_8B6;
@@ -460,21 +461,38 @@ typedef struct Actor110600Work {
     /* 0xAE8 */ MATRIX field_AE8;
     /// Saved copy of `field_AE8` the state-12 handler `func_actor_110600_80136B20`
     /// swaps in and out around each `ScaleMatrix` call.
-    /* 0xB08 */ MATRIX field_B08;
-    /* 0xB28 */ byte   pad_B28[0x54];
+    /* 0xB08 */ MATRIX                  field_B08;
+    /* 0xB28 */ Actor110600WalkerNav*   field_B28;
+    /* 0xB2C */ Actor110600WalkerRoute* field_B2C;
+    /* 0xB30 */ GsCOORDINATE2*          field_B30;
+    /* 0xB34 */ GpRec18*                field_B34;
+    /* 0xB38 */ GpRec18*                field_B38;
+    /* 0xB3C */ byte                    pad_B3C[0x20];
+    /* 0xB5C */ MATRIX                  field_B5C;
     /// The walker's own names for these four halfwords are `scale`,
     /// `field_5A`, `field_5E` and `state`; the work side reads them back
     /// through its own pointer, so both spellings are live in the code.
-    /* 0xB7C */ u16   field_B7C;
-    /* 0xB7E */ byte  pad_B7E[4];
-    /* 0xB82 */ s16   field_B82;
-    /* 0xB84 */ byte  pad_B84[2];
-    /* 0xB86 */ u16   field_B86;
-    /* 0xB88 */ byte  pad_B88[8];
-    /* 0xB90 */ u8    field_B90;
-    /* 0xB91 */ byte  pad_B91[0x43];
-    /* 0xBD4 */ Task* field_BD4;
-    /* 0xBD8 */ Task* field_BD8;
+    /* 0xB7C */ u16                      field_B7C;
+    /* 0xB7E */ s16                      field_B7E;
+    /* 0xB80 */ s16                      field_B80;
+    /* 0xB82 */ s16                      field_B82;
+    /* 0xB84 */ byte                     pad_B84[2];
+    /* 0xB86 */ u16                      field_B86;
+    /* 0xB88 */ byte                     pad_B88[8];
+    /* 0xB90 */ u8                       field_B90;
+    /* 0xB91 */ byte                     pad_B91[2];
+    /* 0xB93 */ u8                       field_B93;
+    /* 0xB94 */ u8                       field_B94;
+    /* 0xB95 */ u8                       field_B95;
+    /* 0xB96 */ u8                       field_B96;
+    /* 0xB97 */ byte                     pad_B97[0x11];
+    /* 0xBA8 */ Actor110600WalkerNav     field_BA8;
+    /* 0xBB4 */ Actor110600WalkerRoute   field_BB4;
+    /* 0xBBC */ Actor110600WalkerNavNode field_BBC[2];
+    /* 0xBCC */ u8                       field_BCC[4];
+    /* 0xBD0 */ u8                       field_BD0[4];
+    /* 0xBD4 */ Task*                    field_BD4;
+    /* 0xBD8 */ Task*                    field_BD8;
     /// Copy of the first three bytes of the last event
     /// `func_actor_110600_80134040` handled.
     /* 0xBDC */ Actor110600Event field_BDC;

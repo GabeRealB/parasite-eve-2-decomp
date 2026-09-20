@@ -7,6 +7,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/sound.h"
@@ -1143,7 +1144,263 @@ void func_actor_110600_80134728(Actor110600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80134AB4);
+extern GpPairSrcE D_actor_110600_80138F14;
+extern GpAnimSet* D_actor_110600_8014850C[];
+extern GpMsgEntry D_actor_110600_80148624[];
+
+static __inline__ void Actor110600_InitBodyObj(GpObj* obj, GsCOORDINATE2* coord, GpRec18* recs, SVECTOR* pos, s16 enabled)
+{
+    obj->ctx.recs = recs;
+    obj->coord    = coord;
+    obj->pos.vx   = (u16)pos->vx;
+    obj->pos.vy   = (u16)pos->vy;
+    obj->pos.vz   = (u16)pos->vz;
+    obj->radius   = 0x200;
+    obj->flags    = enabled;
+    Gp_LinkObj(3, obj);
+}
+
+static __inline__ void Actor110600_InitScale(Actor110600Walker* walker)
+{
+    VECTOR *head, *scale;
+    s32     amount;
+    head                      = *(VECTOR**)G_SCRATCH_HEAD;
+    scale                     = head - 1;
+    *(VECTOR**)G_SCRATCH_HEAD = scale;
+    walker->scaleMtx.m[0][0] = walker->scaleMtx.m[1][1] = walker->scaleMtx.m[2][2] = 0x1000;
+    walker->scaleMtx.m[0][1] = walker->scaleMtx.m[0][2] = walker->scaleMtx.m[1][0] = walker->scaleMtx.m[1][2] = walker->scaleMtx.m[2][0] = walker->scaleMtx.m[2][1] = 0;
+    walker->scaleMtx.t[0] = walker->scaleMtx.t[1] = walker->scaleMtx.t[2] = 0;
+    amount                                                                = walker->scale;
+    if (amount != 0 && amount != 0x1000) {
+        scale->vx = scale->vy = scale->vz = amount;
+        ScaleMatrix(&walker->scaleMtx, scale);
+    }
+    *(VECTOR**)G_SCRATCH_HEAD += 1;
+}
+
+void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)
+{
+    SVECTOR          pos;
+    VECTOR           world;
+    GpRec18*         savedRecs;
+    GpObj*           obj;
+    GpObj*           bodyObj;
+    GpRec18*         contactRecs;
+    GpRec18*         walkRecs;
+    GsCOORDINATE2*   coord;
+    TmdObject*       model;
+    s16              enabled;
+    u32              placement;
+    TmdObject*       boundModel;
+    Actor110600Work* work;
+    Actor110600Work* boundWork;
+
+    model = task->extra;
+    coord = model->coords;
+    if (((task->spawnArg1 >> 16) & 0xF) != 2) {
+        model->flags = 0;
+        Tmd_AllocBuffers(model);
+    }
+    work       = memCalloc(0xBECU, false);
+    task->work = work;
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->exitCallback   = func_actor_110600_801387F4;
+    boundWork            = task->work;
+    boundModel           = task->extra;
+    boundModel->lightMtx = &boundWork->field_AC8;
+    boundModel->colorMtx = &boundWork->field_AE8;
+    enemy->field_4       = &coord->coord;
+    enemy->field_48      = 0;
+    enemy->bodyPos.vx    = 0;
+    enemy->bodyPos.vy    = 0;
+    enemy->bodyPos.vz    = 0;
+    enemy->coord         = ((TmdObject*)task->extra)->coords + 3;
+    Gp_LinkNode(&enemy->node);
+    enemy->node.flags    = 1;
+    enemy->reactionFlags = 0;
+    enemy->param         = &D_actor_110600_80138F14;
+    enemy->hpMax = enemy->hp = D_actor_110600_80138F14.hpMax;
+    contactRecs              = work->recs_8D8;
+    enemy->recs              = contactRecs;
+    func_800B3F84(&((Actor110600AnimWork*)work)->anim, &D_actor_110600_8014850C, model, &((Actor110600AnimWork*)work)->slots[19], ((Actor110600AnimWork*)work)->slots);
+    func_800B3F84(&((Actor110600AnimWork*)work)->blendAnim, &D_actor_110600_8014850C, model, &((Actor110600AnimWork*)work)->blendSlots[19], ((Actor110600AnimWork*)work)->blendSlots);
+    work->field_88C = 2;
+    work->field_88E = 0;
+    work->field_892 = 2;
+    work->field_8A4 = 0;
+    work->field_8A2 = 0;
+    func_actor_110600_80134728((Actor110600*)task);
+    walkRecs                 = work->recs_970;
+    work->field_BE4          = 0;
+    work->field_BE6          = 0;
+    work->field_950.coord    = &gGfxViewCoord;
+    savedRecs                = walkRecs;
+    work->field_950.ctx.recs = walkRecs;
+    work->field_950.pos.vx   = (u16)((TmdObject*)task->extra)->coords->coord.t[0];
+    work->field_950.pos.vy   = (s16)((u16)((TmdObject*)task->extra)->coords->coord.t[1] - 0x124);
+    work->field_950.pos.vz   = (u16)((TmdObject*)task->extra)->coords->coord.t[2];
+    work->field_950.key      = 0x3000D;
+    work->field_950.radius   = 0x1A4;
+    work->field_950.flags = enabled = 1;
+    Gp_LinkObj(2, &work->field_950);
+    work->field_950.flags = (u16)(work->field_950.flags | 0xC000);
+    Gp_InitRec18Table(work->field_950.ctx.recs, 0xC, 0);
+    obj           = &work->field_8B8;
+    obj->coord    = ((TmdObject*)task->extra)->coords;
+    obj->ctx.recs = contactRecs;
+    obj->pos.vx   = 0;
+    obj->pos.vy   = 0;
+    obj->pos.vz   = 0;
+    obj->key      = 0x30000;
+    obj->radius   = 0x14A;
+    obj->flags    = enabled;
+    Gp_LinkObj(2, obj);
+    obj->flags |= 0x8000;
+    Gp_InitRec18Table(obj->ctx.recs, 5, 0);
+    work->field_8B8.pos.vy = -0x2BC;
+    bodyObj                = &work->field_A90;
+    work->field_8B8.key    = 0x30000;
+    work->field_8B8.pos.vx = 0;
+    work->field_8B8.pos.vz = 0x190;
+    pos.vx                 = 0;
+    pos.vy                 = 0;
+    pos.vz                 = 0;
+    Actor110600_InitBodyObj(bodyObj, ((TmdObject*)task->extra)->coords + 3, work->recs, &pos, enabled);
+    Gp_InitRec18Table(bodyObj->ctx.recs, 1, 0);
+    task->msgTable  = &D_actor_110600_80148624;
+    work->field_BD4 = 0;
+    work->field_BD8 = 0;
+    work->field_8B0 = 0;
+    work->field_8B1 = enabled;
+    coord->sub      = &gGfxViewCoord;
+    coord->flg      = 0;
+    Gp_UpdateCoord(coord);
+    world.vx = coord->workm.t[0];
+    world.vy = coord->workm.t[1];
+    world.vz = coord->workm.t[2];
+    func_800D7A9C((TmdObject*)task->extra, &world, 0, 3);
+    work->field_B30 = coord;
+    work->field_B34 = savedRecs;
+    work->field_B7E = 0xC;
+    work->field_B80 = 5;
+    work->field_B90 = 0;
+    work->field_B38 = contactRecs;
+    work->field_B7C = 0;
+    work->field_B82 = 0x20;
+    if ((*(u32*)&gGameSession->at4 & 0xFFFF0000) == 0x01030000) {
+        work->field_B93 = 0;
+    } else {
+        work->field_B93 = enabled;
+    }
+    work->field_B94         = 0;
+    work->field_B95         = 1;
+    work->field_B96         = (u8)Mc_SaveData.characterId;
+    work->field_B28         = &work->field_BA8;
+    work->field_B2C         = &work->field_BB4;
+    work->field_BA8.count   = 2;
+    work->field_BA8.field_9 = 2;
+    work->field_BB4.field_4 = 2;
+    work->field_BA8.nodes   = work->field_BBC;
+    work->field_BA8.field_4 = work->field_BCC;
+    work->field_BB4.nodes   = work->field_BD0;
+    work->field_B96         = (u8)Mc_SaveData.characterId;
+    switch (task->spawnArg1 & 0xF0) {
+        case 0:
+            work->field_896 = 20;
+            work->field_898 = 20;
+            work->field_B7C = 0x1000;
+            work->field_8B6 = 10;
+            work->field_8B4 = 75;
+            break;
+        case 0x10:
+            work->field_896 = 16;
+            work->field_898 = 16;
+            work->field_B7C = 4500;
+            work->field_8B6 = 8;
+            work->field_8B4 = 66;
+            break;
+        case 0x20:
+            work->field_896 = 16;
+            work->field_898 = 16;
+            work->field_B7C = 6500;
+            work->field_8B6 = 14;
+            work->field_8B4 = 63;
+            break;
+        default:
+            work->field_896 = 20;
+            work->field_B7C = 0x1000;
+            break;
+    }
+    placement = (u16)enemy->placeKey >> 0xC;
+    if ((s16)(placement & 1) == 1) {
+        work->field_896 += placement >> 1;
+    } else {
+        work->field_896 -= placement >> 1;
+    }
+    switch (task->spawnArg1 & 0xF00) {
+        case 0:
+            work->field_C = 3000;
+            work->field_E = 500;
+            break;
+        case 0x100:
+            work->field_C = 4000;
+            work->field_E = 1000;
+            break;
+        case 0x200:
+            work->field_C = 6000;
+            work->field_E = 2000;
+            break;
+        default:
+            work->field_C = 8000;
+            work->field_E = 2000;
+            break;
+    }
+    switch (task->spawnArg1 & 0xF000) {
+        case 0:
+            func_actor_110600_80133778((Actor110600Walker*)&work->field_B28, 1500, 0x764);
+            break;
+        case 0x1000:
+            func_actor_110600_80133778((Actor110600Walker*)&work->field_B28, 3000, 0x764);
+            break;
+        case 0x2000:
+            func_actor_110600_80133778((Actor110600Walker*)&work->field_B28, 4000, 0x764);
+            break;
+        default:
+            func_actor_110600_80133778((Actor110600Walker*)&work->field_B28, 5000, 0x764);
+            break;
+    }
+    switch ((task->spawnArg1 >> 16) & 0xF) {
+        case 1:
+            if (enemy->spawnState == 0) {
+                work->field_0 = 0;
+            } else {
+                work->field_0 = 1;
+            }
+            break;
+        case 2:
+            work->field_0 = 0;
+            break;
+        case 3:
+            break;
+        case 4:
+            work->field_0 = 6;
+            break;
+        case 0:
+        default:
+            if (enemy->spawnState == 0) {
+                work->field_0 = 2;
+            } else {
+                work->field_0 = 1;
+            }
+            break;
+    }
+    Actor110600_InitScale((Actor110600Walker*)&work->field_B28);
+    work->field_2 = -1;
+    task->state  += 1;
+}
 
 /// `D_80073B8C` is the camera-target matrix the delta below is measured from.
 extern MATRIX* D_80073B8C;
