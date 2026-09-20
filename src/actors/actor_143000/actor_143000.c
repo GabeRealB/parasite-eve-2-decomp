@@ -21,11 +21,14 @@ extern GpAreaApplyRec   D_8018649C;
 extern char             D_actor_143000_80131EB0[];
 extern char             D_actor_143000_80131EBC[];
 extern TaskDesc         D_actor_143000_80134558;
+extern u8               D_actor_143000_80134570[];
 extern Actor143000Rect  D_actor_143000_80134580[];
 extern s32              D_actor_143000_801351B0;
 extern s32              D_actor_143000_80135870;
 extern s32              D_actor_143000_80135A20;
 extern s32              D_actor_143000_80135AE0;
+extern s32              D_actor_143000_80135C00;
+extern s32              D_actor_143000_80135C04;
 extern Actor143000Spawn D_actor_143000_80135C08;
 extern u8               D_actor_143000_80135C0C;
 extern s32              D_actor_143000_80135C14;
@@ -309,6 +312,128 @@ void func_actor_143000_80132A04(Actor143000* arg0)
     arg0->field_2A = (s16)((u16)arg0->field_2A + 1);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000", func_actor_143000_80132D10);
+void func_actor_143000_80132D10(Actor143000* arg0)
+{
+    Actor143000Work* work;
+    POLY_FT4*        prim;
+    s32              i;
+    s16              y;
+    s16              x1;
+    s16              sx;
+    u8               sv;
+    s16              sy;
+    s16              y1;
+    u8               u;
+    u8               v;
+    u8               v1;
+    u8               u1;
+    s16              clut;
+
+    x1                                      = -0x48;
+    work                                    = arg0->field_1C;
+    D_actor_143000_80135C20[work->field_10] = 0;
+    D_actor_143000_80135C00++;
+    y = 0x10;
+    for (i = 0; i < work->field_10; i++) {
+        y1             = y + 8;
+        u              = 0x58;
+        v              = 0xB8;
+        u1             = u + 8;
+        v1             = v + 8;
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)(prim + 1);
+        SetPolyFT4(prim);
+        setXY4(prim, x1, y, x1 + 8, y, x1, y1, x1 + 8, y1);
+        setUV4(prim, u, v, u1, v, u, v1, u1, v1);
+        prim->tpage = 0x16;
+        prim->clut  = 0x3DC5;
+        setShadeTex(prim, 1);
+        addPrim(&gGpuCurrentOt[0x3FE], prim);
+        x1 += 8;
+    }
+    if (work->field_10 != 0x14 && arg0->field_30 != 7) {
+        u              = 0x60;
+        v              = 0xB8;
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)(prim + 1);
+        SetPolyFT4(prim);
+        setXYWH(prim, x1, y, 8, 8);
+        setUVWH(prim, u, v, 8, 8);
+        prim->tpage = 0x16;
+        prim->clut  = 0x3DC6;
+        setShadeTex(prim, 1);
+        if (D_actor_143000_80135C00 & 0x10) {
+            addPrim(&gGpuCurrentOt[0x3FE], prim);
+        }
+    }
+    if (work->field_12 != 0) {
+        y1 = 0xFE;
+        if (work->field_14 != 0) {
+            y1 = work->field_14;
+        }
+        sx             = -0x78;
+        sy             = -0x48;
+        sv             = (work->field_12 - 1) * 0x10;
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)(prim + 1);
+        SetPolyFT4(prim);
+        setXYWH(prim, sx, sy, y1, 0x10);
+        setUVWH(prim, 0, sv, y1, 0x10);
+        prim->tpage = 0x16;
+        prim->clut  = 0x3DC0;
+        setShadeTex(prim, 1);
+        addPrim(&gGpuCurrentOt[0x3FE], prim);
+    }
+    if (work->field_13 != 0) {
+        sy = sx = -0x28;
+        x1      = 0x18;
+        y1      = -0x10;
+        if (work->field_13 == 1) {
+            u    = 0x70;
+            v    = 0xA0;
+            clut = 0x3DC3;
+        } else {
+            u    = 0x30;
+            v    = 0xA0;
+            clut = 0x3DC4;
+        }
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)(prim + 1);
+        SetPolyFT4(prim);
+        setXY4(prim, sx, sy, x1, sy, sx, y1, x1, y1);
+        setUVWH(prim, u, v, 0x40, 0x18);
+        prim->tpage = 0x16;
+        prim->clut  = clut;
+        setShadeTex(prim, 1);
+        addPrim(&gGpuCurrentOt[0x3FE], prim);
+    }
+    sy             = -0x60;
+    sx             = work->field_16 >> 4;
+    y1             = sy + 0x18;
+    x1             = sx + 0x30;
+    sv             = D_actor_143000_80134570[(D_actor_143000_80135C04 / 16) % 16] * 0x18 - 0x60;
+    v1             = sv + 0x18;
+    clut           = 0x3DC7;
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)(prim + 1);
+    SetPolyFT4(prim);
+    setXY4(prim, sx, sy, x1, sy, sx, y1, x1, y1);
+    setUV4(prim, 0, sv, 0x30, sv, 0, v1, 0x30, v1);
+    prim->tpage = 0x16;
+    prim->clut  = clut;
+    setShadeTex(prim, 1);
+    addPrim(&gGpuCurrentOt[0x3FE], prim);
+    D_actor_143000_80135C04 += work->field_18;
+    if (arg0->field_30 != 7 && arg0->field_30 != 0xA) {
+        work->field_16 -= work->field_18;
+        if (work->field_16 < -0xD00) {
+            work->field_16 = 0xA00;
+        }
+    }
+    work->field_18 -= 4;
+    if (work->field_18 < 0x10) {
+        work->field_18 = 0x10;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000", func_actor_143000_80133334);

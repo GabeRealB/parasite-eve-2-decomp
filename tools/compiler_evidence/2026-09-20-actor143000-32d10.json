@@ -1,0 +1,87 @@
+{
+  "function": "func_actor_143000_80132D10",
+  "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+  "inputs": {
+    "base": "6f7378f48d26f2cb3c3dea0ac4d141586e86c4e3e352c0cb007400812ea0fd24",
+    "base_1": "298d52a2db4cbb56f48a16cc202b5e08207ca77d94b89145b3a3c3e9fab1517a",
+    "base_2": "a7eff425e93ed48fe4beb30cd335511c11d0536658b0b3550cc19574ce8af73f",
+    "base_3": "0b6a58f11d5e1149c881803a5a215a5219c1217a1da93ce66a29b7d94efb1eb1",
+    "base_4": "37f1cd84008fbf0041c15bce4d001553c568d0aec28fd8fa2874ece38f5c1552",
+    "base_5": "9764d4b4f3ecfbebbdcfd929787671d109e5c8806c6c6c6148bc39d57c586696"
+  },
+  "sources": {
+    "base": "ff17947b89c1c4c35be323e115818de6f135b0d52601b2eff5d3f6209a53ba27",
+    "base_1": "d1aa13f3f8005be9920b66f0aa4891f4c7dd85c1b945ec81c2a38a45a64fb26e",
+    "base_2": "ee8eba550cf8e7c50112d5ef4b53ab3cedc080b3c6596c31fd2d4b0efed75a0a",
+    "base_3": "52ee3bfe9b3c706a049094533a57575223159155c6bb950332414a56fd87a2b7",
+    "base_4": "9490345db94d691d335b50d184c819c51645cfab120c0364956b7e0fc4397f4d",
+    "base_5": "36433921df432f3390fc1d27b2cb54a409fb00199b2921ec4ce32a2f38b83fd5"
+  },
+  "observations": {
+    "base_1_alias": {
+      "distance": [
+        755,
+        750
+      ],
+      "sx_before": "6 references / 43 instructions",
+      "sx_after": "3 / 50",
+      "clut_before": "5 / 71",
+      "clut_after": "8 / 89",
+      "meaning": "CSE moves block-3 coordinate lifetime into reused clut; no final use of this alias"
+    },
+    "base_3_entry": {
+      "distance": 355,
+      "penalties": {
+        "regs": 71,
+        "stack": 0,
+        "branch": 0,
+        "reorder": 0,
+        "insert": 0,
+        "delete": 0
+      },
+      "change": "Only one y=16 definition before loop",
+      "sched1": "count load UID935 still does not depend on counter store UID38; adding a y definition changes ready selection, not memory aliasing",
+      "sched2": "count load now v0 and carries anti-dependencies on v0 increment/store (UID36/38)",
+      "limit": "No trace of ready-list/hazard selection was taken; source effect and dump stages are observed"
+    },
+    "base_4_globals": {
+      "distance": 15,
+      "prediction": "Record precedes build; exact predicted homes and reference counts reproduced",
+      "right": "r85 15/83 -> s0",
+      "bottom": "r89 8/61 -> s1",
+      "v": "r91 13/102 -> s3",
+      "u": "r90 13/108 -> s4",
+      "sy": "r88 9/78 -> s5",
+      "sx": "r86 6/43 -> s6",
+      "work": "r81 18/352 -> s7",
+      "clut": "r94 5/71 -> fp",
+      "single_constant_before": "base_3 right and bottom each 3/52 with REG_EQUIV; flow span24 before scheduling"
+    },
+    "base_5_copy": {
+      "distance": 0,
+      "source": "sy = sx = -0x28",
+      "greg": "UID525 sets s6=-40; UID527 sets s5=-40",
+      "sched2": "UID527 becomes s5=s6; depends on UID525",
+      "dbr": "UID525 fills preceding beqz delay slot",
+      "globals": "Same hard-register homes as base_4; final score100 and all penalties0"
+    },
+    "validation": "Unscoped ./tools/build-and-verify.sh: BUILD SUCCEEDED; no cross-overlay copies"
+  },
+  "artifacts": {
+    "base_1.i.cse": "6cb8c0c6fabf1cb9b626777d436d663f06332463df9319292485064be6d7e9cf",
+    "base_1.i.lreg": "e05a0adc0dba19b31213ab0d038b14dc81a667ee7aa16e9f6fd757ca794d27c4",
+    "base_1.i.greg": "f9a6ecf270248a8fac1486e9be9e918097131bda7da80efea3f9577557fedd97",
+    "base_3.i.sched": "6f59b57c55bb9cc3581c6dc2bc95450be8b64e7a467d70d483e29f6b011e8064",
+    "base_3.i.sched2": "0945729ccb00ef651ee4dd5e4bde67a816608dd060496cccaf38d033a2f3a926",
+    "base_3.i.lreg": "e77b6719603a9f151b1ecdf43634357bde775ba481056299a8d05c4f1a66239c",
+    "base_3.i.greg": "07a2b57209f3996a1258f982b35e5ae4d68c1ca7d38e89d66b5b7be0a1c3eb66",
+    "base_4.i.sched": "192665566261fd1caf5ce05b6b66ee0848747ebeb9a8a4329570b191a407deac",
+    "base_4.i.lreg": "c5200979e43afe67713307e79f20cd443773e15dce169a7f5202c1edb4a50ab2",
+    "base_4.i.greg": "97c9f0f8d02902a0eeb2cacea5b974c5f64dae3d89cb2f169a81e0df3232b6ab",
+    "base_4.i.sched2": "8b396b12c83ab51ed21036366eff3ae7399b2d0f76e89ad949320092134ceea6",
+    "base_5.i.sched": "e82432020705f82e9ffd25f21dc31a952a54a8996546644f4b6efe02240a6262",
+    "base_5.i.greg": "97b3ec3be23573a5d0cb1774ceb8757e595870df09880d9eb0f90cb62bb9dbf4",
+    "base_5.i.sched2": "f683a68a1d52f3cc3d337e4389bc30ad8ba495e9378c42fcb9609a5354e0cae5",
+    "base_5.i.dbr": "1f054a7061e82f9d4ff50038d302a82f0df228a622aa7e6bce2f01f165a99fec"
+  }
+}

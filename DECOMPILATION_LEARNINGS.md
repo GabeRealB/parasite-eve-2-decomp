@@ -136023,3 +136023,36 @@ However, putting the conditional inside `SwayInPlace(s32 *value, s32 delta)` ret
 This supports the documented memory-flag mechanism and the observed competition for a branch delay slot, not a universal helper-order rule. The router's best output changed coordinate values and was rejected; its next valid retained output rebuilt worse. The exact result came from independent dump-guided follow-up. Full unscoped verification passed, including the lost-match check.
 
 Inputs: base_3.i SHA-256 `fb7ba71d67cdd2d11e35a1155f95025e77d52ad1d8c38e5da390551ef01b0dba`; exact base_4.i `ed20edd6e8f45480080b80452665c86143277bea32865713d65d90ea464d49a1`. Selected RTL, predictions/build fingerprints and verification: `tools/compiler_evidence/2026-09-20-actor342000-62f28.json`. Full sources, compressed inputs and session notes are retained under `tools/permuter_findings/func_actor_342000_80162F28/`.
+## Reusing disjoint coordinates removes single-definition equivalences and fixes a global register permutation (func_actor_143000_80132D10, 2026-09-20)
+
+After fixing the loop preheader, this renderer had only register differences
+(distance355). The block-4 right and bottom constants each had three references
+and an lreg span of52 with REG_EQUIV; they ranked behind UV and other coordinates.
+Their flow spans were24 before sched1. The target needed right/bottom in s0/s1.
+
+A preplanned experiment reused the first loop's x variable for block-4 right,
+block-3 width for block-4 bottom, and first-loop u/v for block-4 u/v. The merged
+right/bottom values have multiple definitions, more references, and no longer
+carry the same single-constant equivalence. Their measured global inputs become
+15/83 and8/61, respectively. UV inputs become13/108 and13/102. All predicted
+homes occur: right s0, bottom s1, primitive s2, v s3, u s4, y s5, x s6,
+work s7, clut fp. Distance falls355 -> 15 without schedule or spill regressions.
+
+The last difference is the direction of a constant copy. `x = y = -40` defines
+y first; `y = x = -40` defines x first. Both assignments remain constants through
+greg, but the second becomes a copy by sched2. With the latter spelling, UID525
+sets s6=-40 and UID527 becomes s5=s6; dbr puts the first in the branch delay slot.
+The normal-header port scores100 and passes unscoped integration verification.
+Do not interpret an unchanged score on a badly allocated earlier candidate as
+proof that source assignment order emitted identical code.
+
+A separate source correction moves the sole y=16 definition before the loop,
+so zero iterations still initialize y. It fixes entry scheduling without an
+added memory dependency or asm boundary. Dumps show changed sched1 selection
+and then a v0 anti-dependency in sched2; the exact hazard mechanism is untraced
+and is not asserted as a general rule.
+
+Compiler/input hashes, measured inputs and selected observations:
+[2026-09-20-actor143000-32d10.json](tools/compiler_evidence/2026-09-20-actor143000-32d10.json).
+Full controlled sources, dumps, predictions and rejected return-type mutations
+are retained under tools/permuter_findings/func_actor_143000_80132D10/.
