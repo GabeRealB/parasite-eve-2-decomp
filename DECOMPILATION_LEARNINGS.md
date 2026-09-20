@@ -136691,3 +136691,30 @@ Scratch evidence: `nonmatchings/func_actor_107000_80134810-vacuum/LEARNINGS.md`,
 `base_{2,3,4,5}.i.{sched,lreg,greg}`, and the planned/concluded experiments.
 The bounded router ran from base_2 without a discovery; the successful edits
 were independent manual experiments.
+
+
+## An intervening store prevents combine from folding a halfword sign extension back to memory (func_actor_107000_80133E18, 2026-09-20)
+
+A local `s16 heading = rot.vy` followed by magnitude computation and then
+`work->field_2B0 = heading` emitted `lh` plus `lhu`, while the target had
+`lhu; sll16; sra16`. The router moved magnitude evaluation after the store.
+A controlled real-header attempt moved only that assignment, retaining the
+magnitude temporary, and reproduced distance 427 ->20 (98.744% ->99.941%).
+The local snapshot and pure calculation make the reordering behavior-preserving.
+
+Both candidates still contain register shifts at `.cse`. In `.combine`,
+base_2 UID 590 becomes `sign_extend(mem:HI(stack+26))`, whereas base_3
+UIDs 592/593 retain shifts of r88 across UID 590's work store. Patched
+`combine.c:929` checks `use_crosses_set_p`; its memory case at 10645 rejects
+substitution after `mem_last_set`, updated for stores at 10389. The work store
+blocks the memory substitution even though these C objects are distinct.
+This is combine's memory tracking, not ordinary CSE or post-reload CSE.
+The initial CSE hypothesis was corrected after inspecting the passes.
+
+Work=s2 and coord=s3 survived the isolated change. Moving an initial state
+snapshot before the work-pointer definition then fixed the remaining entry
+load order; base_4 reached 100.000% and the unscoped build verified it. No pins
+or asm helpers. Evidence: tools/permuter_findings/func_actor_107000_80133E18/,
+run 3ba39ce02d3d47da, PERMUTER_ANALYSIS.md and controlled base_3 dumps.
+Input hashes: base_2.i `c3419f7463c93fe427e387c29b39a2f915d211958b5a9304f0abd6ea3126630e`,
+base_3.i `0a465d23090c04fb83193ccc5c4d60382b13b8c67c11906122dfbf101de1a23a`. Compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
