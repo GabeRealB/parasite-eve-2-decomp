@@ -827,32 +827,40 @@ fi
 # decides each entry against the picked commit's own parent and refuses (exit 2)
 # only when both sides really changed the same overlay.
 #
-# The difficult list needs a second pass afterwards. It is a union-merged path
-# (see .gitattributes), and a union concatenates both sides, so it cannot
-# express a *removal*: the `difficult_functions: cleared after <fn> matched`
-# commit every retry sweep makes merges to a no-op. Replaying it therefore
-# leaves trunk still advertising a give-up for a function that is now matched -
-# and the no-op pick is what stranded actor_102400's promoted match, because an
-# empty pick used to abort the whole replay. Apply the branch's removals with
-# the same keyed merge the file rewrite path uses.
+# The difficult list needs a second pass afterwards, because replaying it is
+# wrong twice over. It is a union-merged path (see .gitattributes), and a union
+# concatenates both sides, so it can neither express a *removal* nor decline
+# one: the `difficult_functions: cleared after <fn> matched` commit every retry
+# sweep makes either merges to a no-op - which is what stranded actor_102400's
+# promoted match, back when an empty pick aborted the replay - or lands and
+# carries the worktree's whole stale copy of the file in with it, re-adding
+# give-ups trunk cleared while that worktree was live.
+#
+# So the picks may not be trusted to leave this file in a sane state. Reconcile
+# it against the snapshot taken *before* the replay, not against whatever the
+# picks produced, or the resurrected lines look like trunk's own and survive.
 reconcile_difficult() {
     local f=tools/difficult_functions removed
     git -C "$WT" diff --quiet "$BASE" HEAD -- "$f" && return 0
-    python3 - "$WT" "$ROOT" "$BASE" <<'PYEOF' >>"$LOG_FILE" 2>&1 || return 0
+    python3 - "$WT" "$ROOT" "$BASE" "${DIFFICULT_BEFORE:-}" <<'PYEOF' >>"$LOG_FILE" 2>&1 || return 0
 import subprocess, sys
 from pathlib import Path
-wt, root, base = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3]
+wt, root, base, before = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3], sys.argv[4]
 sys.path.insert(0, str(root / "tools"))
 from land_overlay import merge_difficult
 f = "tools/difficult_functions"
 r = subprocess.run(["git", "-C", str(root), "show", f"{base}:{f}"],
                    capture_output=True, text=True)
 dst = root / f
-dst.write_text(merge_difficult(dst.read_text(), (wt / f).read_text(),
+current = Path(before).read_text() if before and Path(before).exists() else dst.read_text()
+dst.write_text(merge_difficult(current, (wt / f).read_text(),
                                r.stdout if r.returncode == 0 else ""))
 PYEOF
     git -C "$ROOT" diff --quiet -- "$f" && return 0
-    removed=$(git -C "$ROOT" diff -- "$f" \
+    # Name what this sweep cleared, which is its own delta. The commit may also
+    # undo a resurrection the picks caused, and attributing those names here
+    # would credit this landing with another lane's match.
+    removed=$(git -C "$WT" diff "$BASE" HEAD -- "$f" \
               | awk '/^-[^-]/{sub(/^-/,""); print $1}' | paste -sd, | sed 's/,/, /g')
     git -C "$ROOT" commit -q -m "difficult_functions: cleared after ${removed:-$OVERLAY} matched" \
         -- "$f" >>"$LOG_FILE" 2>&1 \
@@ -862,8 +870,11 @@ PYEOF
 replay_branch() {                       # $1 = range, returns 0 if fully replayed
     local range="$1" rc gitdir unmerged guard=0
     gitdir=$(git rev-parse --git-dir)
+    DIFFICULT_BEFORE=$(mktemp)
+    git show HEAD:tools/difficult_functions >"$DIFFICULT_BEFORE" 2>/dev/null \
+        || : >"$DIFFICULT_BEFORE"
     if git cherry-pick "$range" >>"$LOG_FILE" 2>&1; then
-        reconcile_difficult; return 0
+reconcile_difficult; rm -f "$DIFFICULT_BEFORE"; return 0
     fi
     while [[ -e "$gitdir/CHERRY_PICK_HEAD" || -d "$gitdir/sequencer" ]]; do
         if (( ++guard > 200 )); then
@@ -879,7 +890,7 @@ replay_branch() {                       # $1 = range, returns 0 if fully replaye
             # replayed underneath, so drop just this pick and carry on.
             log "replay: dropping an empty pick"
             if git cherry-pick --skip >>"$LOG_FILE" 2>&1; then
-                reconcile_difficult; return 0
+        reconcile_difficult; rm -f "$DIFFICULT_BEFORE"; return 0
             fi
             continue
         fi
@@ -895,10 +906,11 @@ replay_branch() {                       # $1 = range, returns 0 if fully replaye
         fi
         git add configs/USA/overlays.toml
         if GIT_EDITOR=true git cherry-pick --continue >>"$LOG_FILE" 2>&1; then
-            reconcile_difficult; return 0
+    reconcile_difficult; rm -f "$DIFFICULT_BEFORE"; return 0
         fi
     done
     git cherry-pick --abort >/dev/null 2>&1 || true
+    rm -f "$DIFFICULT_BEFORE"
     return 1
 }
 
