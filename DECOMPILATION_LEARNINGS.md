@@ -136557,3 +136557,33 @@ depends only on whether anything else in the *function* uses `$a3`. Two
 `mfhi $a3`/`mfhi $t0` mismatches in unrelated blocks were not two problems but
 a symptom of this one: once the multiply constant took `$a3` here, both `mfhi`s
 became `$t0` on their own. Do not chase a reload scratch register directly.
+
+
+## Declaration order can order initial spill slots without changing register homes (func_actor_206100_80149ED0, 2026-09-20)
+
+The matched wave-effect sibling yielded 98.040%; a bounded permuter found an
+independent UV assignment swap, reproduced in normal C as base_2 (98.713%).
+Three temporary stack slots remained cyclically displaced: v1, tpage0,
+tpage1 occupied 0x10, 0x14, 0x18 rather than tpage0, tpage1, v1.
+
+The preplanned base_4 experiment moved only the tpage declarations before the
+UV locals. In .lreg, their pseudos changed 99/100 -> 87/88 and v1 changed 90 -> 92.
+The .greg output changed exactly eight stack-slot operands to the target layout;
+hard-register homes and instruction order were unchanged. Distance fell
+678 -> 638. This does not imply that declaration order selects physical
+registers. The patched compiler's reload1.c:775-780 walks pseudos in ascending
+number, calling alter_reg; alter_reg at 2471 allocates storage for referenced
+pseudos without a register or equivalent. Initial spill order is a concrete
+exception to treating declarations as irrelevant.
+
+Separate top-row load/lifetime and entry alias-dependency fixes reached 100%
+in base_8, followed by unscoped verification and sharing across four actors and
+three rooms. The permutation's precise reload transition remains untraced;
+do not generalize its invariant-order change beyond the controlled reproduction.
+Evidence and failed variants are retained under
+tools/permuter_findings/func_actor_206100_80149ED0/.
+
+Preprocessed input SHA256:
+- base_2.i: `c1fd7a66ae85577b6f63df59f01c2dcc7715664aff541fd0db4b221b72b6f155`
+- base_4.i: `c955f7edd7d9c7a60d566d4a8f5643404ca3c6673ad5ff9f5823deae453f1f62`
+- base_8.i: `a657633af0851db4af3d63599157dfc4c745b505e077d737546f8249ab51d1ff`

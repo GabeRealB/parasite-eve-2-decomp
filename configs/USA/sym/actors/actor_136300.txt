@@ -1,1 +1,6 @@
 // Overlay-local symbols for actor_136300.
+ActorsShared80149ed0 = 0x80131E40; // shared screen-wave task
+ActorsShared80149ed0Context = 0x8013C888; // shared screen-wave data
+ActorsShared80149ed0Columns = 0x8013C88C; // shared screen-wave data
+ActorsShared80149ed0Rows = 0x8013C8DC; // shared screen-wave data
+ActorsShared80149ed0Amplitude = 0x80132ADC; // shared screen-wave data

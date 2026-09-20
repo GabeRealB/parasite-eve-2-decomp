@@ -60,8 +60,6 @@ void func_actor_206100_8014FDE8(Task* task);
 void func_actor_206100_8014AB3C(GsCOORDINATE2* coord, u16 arg1, u16 arg2, s32 arg3);
 void func_actor_206100_8014E228(Task* task);
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_80149ED0);
-
 void func_actor_206100_8014A70C(GsCOORDINATE2* coord, u16 arg1, u16 arg2, u32 arg3)
 {
     SVECTOR vec;

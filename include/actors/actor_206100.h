@@ -501,13 +501,11 @@ STATIC_ASSERT_SIZEOF(Actor206100Msg3E9, 0x18);
 /// `Task_SpawnFromDesc`, and parked by that child in
 /// `D_actor_206100_80158BA8`.
 ///
-/// It is a screen tint the child draws as a full-screen `TILE` packet, so the
-/// child owns the ramp: `state` selects between fading in (0, counting `frame`
-/// up to `span`) and fading out (1, counting down, then handing `field_4` the
-/// next state and retiring).  The colour the packet carries is
-/// `frame * scale / span` per channel, which is why this actor sets `span` to 1
-/// -- its flash reaches full brightness on the second frame.  `blend` picks the
-/// semi-transparent packet code when it is 0 and the opaque one otherwise.
+/// The child draws a textured screen-wave mesh. `state` selects ramp-up (0,
+/// counting `frame` up to `span`) or ramp-down (1, counting down, then moving
+/// to state 2 and retiring). The distortion amplitude is `frame * scale / span`.
+/// `blend` is the texture-shading selector: 0 uses raw texture colour, while
+/// nonzero modulates the texture by `r`, `g` and `b`.
 ///
 /// `func_actor_206100_8014CB68` writes the two `1`s with `blend` between `r`
 /// and `g`, which is not the declaration order and is load-bearing: the
@@ -519,18 +517,18 @@ STATIC_ASSERT_SIZEOF(Actor206100Msg3E9, 0x18);
 /// schedules the same way.
 typedef struct Actor206100FlashArg {
     /* 0x00 */ s16 span;  // frame count the ramp runs over
-    /* 0x02 */ s16 scale; // channel value at the top of the ramp
+    /* 0x02 */ s16 scale; // distortion amplitude at the top of the ramp
     /* 0x04 */ s16 state; // ramp state the child walks
     /* 0x06 */ s16 frame; // ramp position, counted by the child
-    /* 0x08 */ u8  blend; // 0 draws the semi-transparent packet
+    /* 0x08 */ u8  blend; // 0 draws raw texture colour
     /* 0x09 */ u8  r;
     /* 0x0A */ u8  g;
     /* 0x0B */ u8  b;
 } Actor206100FlashArg;
 STATIC_ASSERT_SIZEOF(Actor206100FlashArg, 0xC);
 
-/// The tint `func_actor_206100_8014CB68` arms: pale cyan at half scale, opaque,
-/// over a single frame.
+/// The wave `func_actor_206100_8014CB68` arms: pale cyan modulation with a
+/// one-frame ramp.
 extern Actor206100FlashArg D_actor_206100_80158CCC;
 
 /// Child task `func_actor_206100_8014CB68` starts with the tint above as its

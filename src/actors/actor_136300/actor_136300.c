@@ -28,8 +28,6 @@ extern s32 D_actor_136300_8013B230;
 extern s32 D_actor_136300_8013C5C8;
 extern s32 D_actor_136300_8013C6C0;
 
-INCLUDE_ASM("actors/nonmatchings/actor_136300/actor_136300", func_actor_136300_80131E40);
-
 /// State machine for the capture-event actor: arms the ending, waits for the
 /// capture key, then hands control to the boot loader and spawns the drop-in
 /// task. The two `func_800E8614` calls and the `arg0->state += 1` blocks are

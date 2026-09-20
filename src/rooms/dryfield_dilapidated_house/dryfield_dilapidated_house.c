@@ -38,8 +38,6 @@ extern s32            D_dryfield_dilapidated_house_801855F0;
 extern GpAreaApplyRec D_dryfield_dilapidated_house_80189AA0;
 extern GpAreaApplyRec D_dryfield_dilapidated_house_80189B24;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017D64C);
-
 /// The room's capture task, the body the actor family also carries as
 /// `func_actor_460200_80131E2C`: the whole image area is written into the
 /// display buffer strip by strip and then desaturated in place.

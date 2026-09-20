@@ -13,8 +13,6 @@ extern s16   D_shelter_b4_reservoir_80184F7C;
 extern s32   D_shelter_b4_reservoir_80187510;
 extern Task* D_shelter_b4_reservoir_80184930;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017D650);
-
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", D_shelter_b4_reservoir_8017D5C0);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", RoomsShared8017d878Table);

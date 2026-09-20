@@ -13,8 +13,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80131EB0);
-
 void func_actor_121300_801326EC(Task* arg0)
 {
     Actor121300FadeWork* fade;

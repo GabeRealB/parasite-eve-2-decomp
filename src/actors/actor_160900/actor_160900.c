@@ -24,8 +24,6 @@ extern TaskDesc ActorsShared80136280Desc;
 
 extern u8 D_actor_160900_8013F240[];
 
-INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80131EB0);
-
 s32 func_actor_160900_801326EC(Task* arg0)
 {
     Actor160900Work*     work;
