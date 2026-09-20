@@ -141,5 +141,3 @@ void func_actor_107000_80136E88(GpEnemy* arg0, Task* arg1)
     arg1->msgTable     = D_actor_107000_8013F5E0;
     arg1->state        = 4;
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_8", func_actor_107000_80137220);
