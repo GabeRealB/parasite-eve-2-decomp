@@ -903,7 +903,134 @@ void func_actor_356100_801666B4(Actor356100* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_801668FC);
+void func_actor_356100_801668FC(Actor356100* arg0)
+{
+    Actor356100Work*      work;
+    GpEnemy*              enemy;
+    PlayerStatus*         cfg;
+    McSaveData*           save;
+    GsCOORDINATE2*        coord;
+    GsCOORDINATE2*        root;
+    u8*                   base;
+    u8*                   base2;
+    u8*                   slot;
+    u8*                   slot2;
+    SVECTOR*              v;
+    SVECTOR*              next;
+    Actor356100DeltaFlag* next2;
+    Actor356100DeltaFlag* blk;
+    Actor356100DeltaFlag* s;
+    s32                   val;
+    s32                   mode;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    cfg   = &Player_Status;
+    if (work->field_4 != 0) {
+        work->field_982 = 0x10;
+        work->field_97E = 7;
+        work->field_978 = 2;
+        func_actor_356100_80163508(arg0);
+        D_actor_356100_80173244.field_4 = 3;
+        if (cfg->hp > 0) {
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&D_actor_356100_80173244, 0);
+        }
+        work->field_6 = 0;
+    } else if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0 &&
+               cfg->hp > 0 && work->field_B68 == 1) {
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+        work->field_B68 = 0;
+    }
+    if ((u32)(work->field_5A & 0x3FF) - 0x10 < 7U) {
+        save  = &Mc_SaveData;
+        coord = arg0->field_2C->coords;
+        if ((u8)save->unknown_5C0[1] != 1) {
+            base                       = PSX_SCRATCH;
+            slot                       = *(u8**)(base + 0x3FC);
+            base                       = slot;
+            v                          = (SVECTOR*)(slot - 8);
+            base                       = PSX_SCRATCH;
+            *(SVECTOR**)(base + 0x3FC) = v;
+            base                       = slot;
+            Gfx_MatrixCol2(&coord->coord, v);
+            VectorNormalSS(v, v);
+            gte_lddp(-0x78);
+            gte_ldsv(v);
+            gte_gpf12_real();
+            gte_stsv(v);
+            coord->coord.t[0]         += ((SVECTOR*)(slot - 8))->vx;
+            coord->coord.t[1]         += v->vy;
+            coord->coord.t[2]         += v->vz;
+            coord->flg                 = 0;
+            base                       = PSX_SCRATCH;
+            next                       = (SVECTOR*)(*(SVECTOR**)(base + 0x3FC) + 1);
+            base                       = slot;
+            base                       = PSX_SCRATCH;
+            *(SVECTOR**)(base + 0x3FC) = next;
+            base                       = slot;
+        }
+        root = arg0->field_2C->coords;
+        if ((u8)save->unknown_5C0[1] != 1) {
+            base2                                    = PSX_SCRATCH;
+            slot2                                    = *(u8**)(base2 + 0x3FC);
+            base2                                    = slot2;
+            blk                                      = (Actor356100DeltaFlag*)(slot2 - 0x14);
+            base2                                    = PSX_SCRATCH;
+            *(Actor356100DeltaFlag**)(base2 + 0x3FC) = blk;
+            base2                                    = slot2;
+            s                                        = blk;
+            blk->field_10                            = 0;
+            if (func_800E0C10(&work->field_A58, &blk->delta, 3, NULL) != 0) {
+                root->coord.t[0] += ((Actor356100DeltaFlag*)(slot2 - 0x14))->delta.vx.h.hi;
+                root->coord.t[1] += blk->delta.vy.h.hi;
+                root->coord.t[2] += blk->delta.vz.h.hi;
+                val               = ((Actor356100DeltaFlag*)(slot2 - 0x14))->delta.vx.w;
+                if ((val & 0xFFFF) != 0) {
+                    if (val > 0) {
+                        root->coord.t[0]++;
+                    } else {
+                        root->coord.t[0]--;
+                    }
+                }
+                val = s->delta.vz.w;
+                if ((val & 0xFFFF) != 0) {
+                    if (val > 0) {
+                        root->coord.t[2]++;
+                    } else {
+                        root->coord.t[2]--;
+                    }
+                }
+            }
+            root->coord.t[1] += 0x10;
+            if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+                s->field_10 = 1;
+            }
+            base2                                    = PSX_SCRATCH;
+            next2                                    = (Actor356100DeltaFlag*)(*(Actor356100DeltaFlag**)(base2 + 0x3FC) + 1);
+            base2                                    = slot2;
+            base2                                    = PSX_SCRATCH;
+            *(Actor356100DeltaFlag**)(base2 + 0x3FC) = next2;
+            base2                                    = slot2;
+        }
+        arg0->field_2C->coords->flg = 0;
+    }
+    func_actor_356100_80163508(arg0);
+    if (work->field_68 & 1) {
+        mode = 1;
+
+        val = enemy->node.targeted;
+        if (val != mode) {
+            mode = 6;
+        } else {
+            mode = 0xA;
+        }
+        work->field_0 = mode;
+        if (cfg->hp > 0 && work->field_B68 == 1) {
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+            work->field_B68 = 0;
+        }
+    }
+}
 
 /// Release tick, the sibling of `func_actor_356100_801684F0` below it and the
 /// same body as `Actor01900_Fn06100`. Going live resets the model and starts

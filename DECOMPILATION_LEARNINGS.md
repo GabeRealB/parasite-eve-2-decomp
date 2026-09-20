@@ -135050,3 +135050,58 @@ Predictions, selected RTL, compiler/input hashes and archive location:
 `b0b568f094d5d56115b645905373f09ef1a31de8d2e8f7fe1ab18a993fe4c701`;
 controlled matching input:
 `5a90d677218685bec8d548f711079525bb226f502a96f09454cb657bed222c7c`.
+## Reuse an already-global destination to remove a local hard-register conflict after splitting constant lifetimes (func_actor_356100_801668FC, 2026-09-20)
+
+The archived seed was 99.012%, with matching topology and 253 instructions.
+CSE merged the final two comparison constants into one SI pseudo, keeping 1
+live across the selected-state store and HP read. Retail materializes 1 twice
+in v0. Merely naming or casting the constants had not fixed this.
+
+A state temporary initialized to 1 and then overwritten in both state arms
+preserves the second materialization:
+
+```c
+mode = 1;
+val = enemy->node.targeted;
+if (val != mode) {
+    mode = 6;
+} else {
+    mode = 0xA;
+}
+work->field_0 = mode;
+if (cfg->hp > 0 && work->field_B68 == 1) {
+    /* existing dispatch */
+}
+```
+
+Both `mode` and `val` are s32. With a direct `enemy->node.targeted` comparison,
+this reached 99.862%, but the byte load became a block-local SI pseudo r193
+allocated in v0. The multiply-defined mode r192 was global and therefore saw
+hard register 2 in its initial conflict set; it took v1. Ranking mode higher
+cannot remove a register already occupied by a local quantity.
+
+The successful preplanned intervention was to assign that byte to the
+function's existing `val`, already global because it handles the X/Z delta
+rounding earlier. In base_3, the load writes r96 instead of a new local.
+The .greg conflict set for mode changes from hard [2,29] to [29]; r96 already
+has hard conflict 2 from its earlier ranges and stays in v1. Mode takes v0,
+with both constants still separate and all preceding instructions unchanged:
+100%, every penalty zero. r96 refs/span rise from 6/8 to 8/11 and its global
+rank rises above mode; the decisive change is local eligibility/conflicts,
+not a claim that mode must allocate first.
+
+Counterexample: removing the comparison-temporary reuse while retaining
+explicit arms (base_2) lets jump hoist an arm and CSE share 1 again (98.221%).
+The control-flow spelling alone is insufficient. This result does not imply
+that every reuse helps: check the destination's existing conflicts and that
+its older value is dead. No register pins or new empty asm were used.
+
+Evidence: retained findings under
+`tools/permuter_findings/func_actor_356100_801668FC/`, with plans, C sources,
+function-scoped CSE/lreg/greg extracts, and PERMUTER_ANALYSIS.md. Input hashes:
+base_1 `ebd5570e3979e6b578a876ffd96f29dba6075343d894a30bb08348360c50f328`,
+base_2 `7017b7693bcd4b81c5603dfc8242196f0bf9c8b3d8298d89e464f69f006668d2`,
+base_3 `5a82c26c2c056aaa98ea45078238d657bb7e634405bd02f583fb66b4c8c57180`.
+Compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+The permuter's separate 99.783% route used an entry constant rematerialized
+in t0; its exact reload choice remains unresolved and is not this finding.
