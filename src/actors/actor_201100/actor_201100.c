@@ -1,13 +1,12 @@
 #include "common.h"
 
+#include "actors/actor_101100.h"
 #include "actors/actor_201100.h"
 #include "actors/actors_shared_801511c8.h"
 #include "gameplay/3CD8.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/tmd.h"
-
-extern s32 D_8007216C;
 
 INCLUDE_ASM("actors/nonmatchings/actor_201100/actor_201100", func_actor_201100_80149F08);
 
@@ -59,44 +58,44 @@ INCLUDE_ASM("actors/nonmatchings/actor_201100/actor_201100", func_actor_201100_8
 
 void ActorsShared8013845cSub0(Task* task)
 {
-    Actor201100Work* work;
-    GsCOORDINATE2*   coord;
-    GpEffWork*       eff;
-    GpObj*           obj;
-    GpRec18*         rec;
-    GpMtxWords*      rot;
-    s32              mask;
+    GpEffWork*       effect;
     s32              variant;
+    s32              soundBase;
+    GpRec18*         rec;
+    Actor101100Work* work;
+    s32              area;
     s32              sound;
     s32              pan;
-    s32              key;
+    GpObj*           obj;
+    GsCOORDINATE2*   coord;
+    GpMtxWords*      rotation;
 
     coord   = ((TmdObject*)task->extra)->coords;
-    mask    = D_8007216C & 0xFFFF0000;
-    variant = mask == 0x03200000;
-    work    = memCalloc(0x58, 0);
+    area    = D_8007216C & 0xFFFF0000;
+    variant = area == 0x03200000;
+    work    = memCalloc(sizeof(Actor101100Work), 0);
     if (work == NULL) {
         Task_CallExit(task);
         return;
     }
     task->work = work;
-    sound      = (variant << 22) | 0x400B000C;
-    key        = sound | (D_actor_201100_8015F490 << 8);
+    soundBase  = (variant << 22) | 0x400B000C;
+    sound      = soundBase | (D_actor_201100_8015F490 << 8);
     pan        = (s8)Gp_GetObjPan(coord);
-    SndEvt_EnqueueType6(key, pan, (s8)gpGetObjDepth(coord));
-    eff = Gp_SpawnEff(0x60070, coord, 0xC0031FFF, NULL);
-    if (eff != NULL) {
-        Task_Reparent(task, eff->task);
+    SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
+    effect = Gp_SpawnEff(0x60070, coord, 0xC0031FFF, NULL);
+    if (effect != NULL) {
+        Task_Reparent(task, effect->task);
     }
     task->killCountdown = 0x5A;
-    rot                 = (GpMtxWords*)&coord->coord;
-    obj                 = &work->model;
-    rot->w0             = 0x1000;
-    rot->w1             = 0;
-    rot->w2             = 0x1000;
-    rot->w3             = 0;
-    rot->h4             = 0x1000;
-    rec                 = &work->rec;
+    rotation            = (GpMtxWords*)&coord->coord;
+    obj                 = &work->obj;
+    rotation->w0        = 0x1000;
+    rotation->w1        = 0;
+    rotation->w2        = 0x1000;
+    rotation->w3        = 0;
+    rotation->h4        = 0x1000;
+    rec                 = work->rec;
     coord->flg          = 0;
     coord->coord.t[1]  += 0x30;
     obj->coord          = coord;
@@ -111,7 +110,7 @@ void ActorsShared8013845cSub0(Task* task)
     Gp_LinkObj(3, obj);
     obj->flags        |= 0xC000;
     task->exitCallback = ActorsShared801511c8;
-    task->state       += 1;
+    task->state++;
     ActorsShared8013845cSub1(task);
 }
 

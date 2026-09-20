@@ -1,0 +1,123 @@
+{
+  "function": "ActorsShared8013845cSub0",
+  "status": "supported",
+  "prediction_source": "base_2.c",
+  "result": "Changing only the task work store to a structure member removes the spurious scheduler dependency; 99.474% becomes 100%, preserved by the normal typed port.",
+  "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+  "variants": {
+    "base_1.c": {
+      "source_sha256": "3c69d36b04c4a15674e409b13c6dad9e66e870f5810607407cc710c65312d717",
+      "preprocessed_sha256": "6873a76846b14fa6e9756bce54f3f9bdb6ee0170540f92f3ec35cc6338998674",
+      "assembly_sha256": "f7485098e944c1f6eb37676347726f074be57a2da419b148eb9b3ac8c3eff7fa",
+      "distance": 60,
+      "score": 99.47368421052632,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 1,
+        "stack": 0
+      },
+      "store_rtl": "(insn 56 54 57 (set (mem:SI (plus:SI (reg/v:SI 80)\n                (const_int 28)))\n        (reg/v:SI 85)) -1 (nil)\n    (nil))",
+      "load_greg": "(insn 65 63 263 (set (reg:SI 2 v0)\n        (zero_extend:SI (mem:QI (lo_sum:SI (reg:SI 2 v0)\n                    (symbol_ref:SI (\"D_actor_101100_80147490\")))))) 128 {zero_extendqisi2} (insn_list 56 (insn_list 63 (nil)))\n    (expr_list:REG_DEAD (reg:SI 2 v0)\n        (nil)))",
+      "sched2_selection": [
+        ";; ready list at T-19: 67 (2) 70 (1), now 67 70",
+        ";; ready list at T-20: 70 (1) 61 (1) 66 (2), now 66 61 70",
+        ";; ready list at T-21: 61 (1) 70 (1), now 61 70",
+        ";; launching 65 before 61 with no stalls at T-22",
+        ";; ready list at T-22: 70 (1) 256 (1) 58 (1) 65 (1), now 65 58 70 256",
+        ";; ready list at T-23: 58 (1) 70 (1) 256 (1) 56 (1) 63 (1), now 63 58 56 70 256",
+        ";; insn 56 has a greater potential hazard, now 56 63 58 70 256",
+        ";; ready list at T-24: 63 (1) 58 (1) 70 (1) 256 (1), now 63 58 70 256",
+        ";; ready list at T-25: 58 (1) 70 (1) 256 (1), now 58 70 256",
+        ";; ready list at T-26: 70 (1) 256 (1), now 70 256",
+        ";; ready list at T-27: 256 (1), now 256",
+        ";; ready list at T-28: 255 (1), now 255",
+        ";; added 1 line-number notes",
+        ";; total time = 28",
+        ";; new basic block head = 53",
+        ";; new basic block end = 111",
+        ""
+      ],
+      "register_dispositions": ";; Register dispositions:\n80 in 20  81 in 2  82 in 17  83 in 17  84 in 17  85 in 19  \n86 in 2  87 in 17  88 in 16  89 in 16  90 in 18  91 in 2  \n92 in 3  94 in 2  95 in 2  96 in 3  97 in 3  99 in 2  \n100 in 17  101 in 3  103 in 2  104 in 2  105 in 2  107 in 16  \n110 in 2  113 in 2  114 in 3  117 in 2  118 in 2  119 in 2  \n121 in 4  123 in 2  124 in 2  125 in 2  126 in 2  127 in 2  \n128 in 3  129 in 3  \n\n"
+    },
+    "base_2.c": {
+      "source_sha256": "29e3fe6b6e8d8fa258f18d1acbb91380f29108d7820653b234355273ef53a551",
+      "preprocessed_sha256": "25b3e7b1a1c742bd2b8addc1247751ac7527f04142cd7dec7f4a9291956e8b61",
+      "assembly_sha256": "915f787a6d2222c48cdb400c680a194e678c249fe0c4d893b610c0bea364494c",
+      "distance": 0,
+      "score": 100.0,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "store_rtl": "(insn 56 54 57 (set (mem/s:SI (plus:SI (reg/v:SI 80)\n                (const_int 28)))\n        (reg/v:SI 85)) -1 (nil)\n    (nil))",
+      "load_greg": "(insn 65 63 263 (set (reg:SI 2 v0)\n        (zero_extend:SI (mem:QI (lo_sum:SI (reg:SI 2 v0)\n                    (symbol_ref:SI (\"D_actor_101100_80147490\")))))) 128 {zero_extendqisi2} (insn_list 63 (nil))\n    (expr_list:REG_DEAD (reg:SI 2 v0)\n        (nil)))",
+      "sched2_selection": [
+        ";; ready list at T-19: 67 (2) 56 (1) 70 (1), now 67 56 70",
+        ";; ready list at T-20: 56 (1) 70 (1) 61 (1) 66 (2), now 66 61 56 70",
+        ";; ready list at T-21: 61 (1) 56 (1) 70 (1), now 61 56 70",
+        ";; insn 56 has a greater potential hazard, now 56 61 70",
+        ";; launching 65 before 56 with no stalls at T-22",
+        ";; ready list at T-22: 61 (1) 70 (1) 65 (1)",
+        ";; blocking insn 65 for 1 cycles, now 61 70",
+        ";; launching 65 before 61 with no stalls at T-23",
+        ";; ready list at T-23: 70 (1) 256 (1) 58 (1) 65 (1), now 65 58 70 256",
+        ";; ready list at T-24: 58 (1) 70 (1) 256 (1) 63 (1), now 63 58 70 256",
+        ";; ready list at T-25: 58 (1) 70 (1) 256 (1), now 58 70 256",
+        ";; ready list at T-26: 70 (1) 256 (1), now 70 256",
+        ";; ready list at T-27: 256 (1), now 256",
+        ";; ready list at T-28: 255 (1), now 255",
+        ";; total time = 28",
+        ";; new basic block head = 53",
+        ";; new basic block end = 111"
+      ],
+      "register_dispositions": ";; Register dispositions:\n80 in 20  81 in 2  82 in 17  83 in 17  84 in 17  85 in 19  \n86 in 2  87 in 17  88 in 16  89 in 16  90 in 18  91 in 2  \n92 in 3  94 in 2  95 in 2  96 in 3  97 in 3  99 in 2  \n100 in 17  101 in 3  103 in 2  104 in 2  105 in 2  107 in 16  \n110 in 2  113 in 2  114 in 3  117 in 2  118 in 2  119 in 2  \n121 in 4  123 in 2  124 in 2  125 in 2  126 in 2  127 in 2  \n128 in 3  129 in 3  \n\n"
+    },
+    "base_3.c": {
+      "source_sha256": "c414c40c154dee6bf8b5ef605ca567258ff9724b3a9cab06da28e022edf2a6bf",
+      "preprocessed_sha256": "43bc4d54dd4e87907bd0db9496f44f5574460e0209701f93d12f3330957fd803",
+      "assembly_sha256": "915f787a6d2222c48cdb400c680a194e678c249fe0c4d893b610c0bea364494c",
+      "distance": 0,
+      "score": 100.0,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      }
+    },
+    "base_4.c": {
+      "source_sha256": "08fe92b8a9db3cfdcf62a30c38ae30ea464b7b366b787dbc7c30dd1d09452ebe",
+      "preprocessed_sha256": "1210f963c9d51468ae2a11b966b6b0a11b806ace6b0629ba3fbae15155c5339b",
+      "assembly_sha256": "915f787a6d2222c48cdb400c680a194e678c249fe0c4d893b610c0bea364494c",
+      "distance": 0,
+      "score": 100.0,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      }
+    }
+  },
+  "source_rule": "local/gcc/gcc-2.8.1-psx/sched.c:true_dependence, varying non-QI MEM_IN_STRUCT versus fixed scalar",
+  "router": "Rebuilt the already exact seed; no mutations or search outputs.",
+  "integration": {
+    "scope": "unscoped",
+    "command": "./tools/build-and-verify.sh",
+    "result": "BUILD SUCCEEDED",
+    "landed_overlay": "actor_201100",
+    "promotion": "skipped per explicit lease override",
+    "scratch_builds": 7
+  }
+}

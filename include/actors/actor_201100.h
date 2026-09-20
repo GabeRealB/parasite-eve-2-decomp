@@ -22,6 +22,7 @@ typedef struct Actor201100Extra {
     /* 0x08 */ GsCOORDINATE2* coord;
 } Actor201100Extra;
 
+extern s32       D_8007216C;
 extern GpU16Pair D_actor_201100_80151318;
 extern u8        D_actor_201100_8015F490;
 

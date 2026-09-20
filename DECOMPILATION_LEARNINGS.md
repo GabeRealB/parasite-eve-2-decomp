@@ -135524,3 +135524,22 @@ SHA256 is `c3bee8b331b653204cb0be6cf1810db198be28be047aaa709ae47864083e4e40`.
 Full paired inputs, dumps and trace are in this function's immutable permuter
 findings. The function is shared by actor_402200 and actor_403900; their
 identical index rows use one symbol bound to each overlay's own table address.
+## A typed task-work store resolves two incompatible scheduler orders (ActorsShared8013845cSub0, 2026-09-20)
+
+The archived 99.474% retry alternated between an early `sw` and an early `lui`
+by moving a pointer store across a global byte read. A preplanned controlled
+change from raw `M2C_FIELD(task, s32*, 0x1c)` to a structure member fixed both:
+UID 56 became `MEM/s:SI`, and the fixed scalar byte load UID 65 lost its
+`insn_list 56` dependency. Sched1 kept the same emitted order and register
+allocation stayed identical. In sched2 the store became ready at T-19 instead
+of T-23, won potential-hazard selection at T-21, and blocked the load for one
+cycle while the first OR ran. This produced the exact target order and 100%.
+
+This is the existing `true_dependence` exemption for a varying non-QI structure
+access versus a fixed scalar access (CODEGEN_MODEL §11), not a new scheduler
+ranking rule. Full typing with existing project types retained the match.
+The required router only rebuilt the already exact seed; it contributed no
+mutation. Selected dump evidence, compiler/input hashes and the controlled
+prediction are retained in
+`tools/compiler_evidence/2026-09-20-ActorsShared8013845cSub0.json`; full evidence
+is archived under `tools/permuter_findings/ActorsShared8013845cSub0/`.
