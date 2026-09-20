@@ -826,14 +826,65 @@ fi
 # every one of those conflicts was this shape. tools/resolve_manifest.py
 # decides each entry against the picked commit's own parent and refuses (exit 2)
 # only when both sides really changed the same overlay.
+#
+# The difficult list needs a second pass afterwards. It is a union-merged path
+# (see .gitattributes), and a union concatenates both sides, so it cannot
+# express a *removal*: the `difficult_functions: cleared after <fn> matched`
+# commit every retry sweep makes merges to a no-op. Replaying it therefore
+# leaves trunk still advertising a give-up for a function that is now matched -
+# and the no-op pick is what stranded actor_102400's promoted match, because an
+# empty pick used to abort the whole replay. Apply the branch's removals with
+# the same keyed merge the file rewrite path uses.
+reconcile_difficult() {
+    local f=tools/difficult_functions removed
+    git -C "$WT" diff --quiet "$BASE" HEAD -- "$f" && return 0
+    python3 - "$WT" "$ROOT" "$BASE" <<'PYEOF' >>"$LOG_FILE" 2>&1 || return 0
+import subprocess, sys
+from pathlib import Path
+wt, root, base = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3]
+sys.path.insert(0, str(root / "tools"))
+from land_overlay import merge_difficult
+f = "tools/difficult_functions"
+r = subprocess.run(["git", "-C", str(root), "show", f"{base}:{f}"],
+                   capture_output=True, text=True)
+dst = root / f
+dst.write_text(merge_difficult(dst.read_text(), (wt / f).read_text(),
+                               r.stdout if r.returncode == 0 else ""))
+PYEOF
+    git -C "$ROOT" diff --quiet -- "$f" && return 0
+    removed=$(git -C "$ROOT" diff -- "$f" \
+              | awk '/^-[^-]/{sub(/^-/,""); print $1}' | paste -sd, | sed 's/,/, /g')
+    git -C "$ROOT" commit -q -m "difficult_functions: cleared after ${removed:-$OVERLAY} matched" \
+        -- "$f" >>"$LOG_FILE" 2>&1 \
+        && log "difficult_functions: cleared ${removed:-(none)}"
+}
+
 replay_branch() {                       # $1 = range, returns 0 if fully replayed
-    local range="$1" rc
-    git cherry-pick "$range" >>"$LOG_FILE" 2>&1 && return 0
-    while :; do
-        local unmerged
+    local range="$1" rc gitdir unmerged guard=0
+    gitdir=$(git rev-parse --git-dir)
+    if git cherry-pick "$range" >>"$LOG_FILE" 2>&1; then
+        reconcile_difficult; return 0
+    fi
+    while [[ -e "$gitdir/CHERRY_PICK_HEAD" || -d "$gitdir/sequencer" ]]; do
+        if (( ++guard > 200 )); then
+            log "replay made no progress after $guard steps; aborting"
+            break
+        fi
         unmerged=$(git diff --name-only --diff-filter=U)
+        if [[ -z "$unmerged" ]]; then
+            # Nothing conflicts, yet the pick stopped: its effect is already on
+            # trunk, so it would commit nothing. A `cleared after <fn> matched`
+            # commit lands here every time, by way of the union driver above.
+            # Aborting on it discarded the verified match commits already
+            # replayed underneath, so drop just this pick and carry on.
+            log "replay: dropping an empty pick"
+            if git cherry-pick --skip >>"$LOG_FILE" 2>&1; then
+                reconcile_difficult; return 0
+            fi
+            continue
+        fi
         if [[ "$unmerged" != "configs/USA/overlays.toml" ]]; then
-            [[ -n "$unmerged" ]] && log "replay conflict outside the manifest: $unmerged"
+            log "replay conflict outside the manifest: $unmerged"
             break
         fi
         python3 "$ROOT/tools/resolve_manifest.py" --root "$ROOT" >>"$LOG_FILE" 2>&1
@@ -844,7 +895,7 @@ replay_branch() {                       # $1 = range, returns 0 if fully replaye
         fi
         git add configs/USA/overlays.toml
         if GIT_EDITOR=true git cherry-pick --continue >>"$LOG_FILE" 2>&1; then
-            return 0
+            reconcile_difficult; return 0
         fi
     done
     git cherry-pick --abort >/dev/null 2>&1 || true
