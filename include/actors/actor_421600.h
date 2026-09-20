@@ -253,6 +253,32 @@ typedef struct Actor421600SeekScratch {
 } Actor421600SeekScratch;
 STATIC_ASSERT_SIZEOF(Actor421600SeekScratch, 0xC);
 
+typedef struct Actor421600AvoidScratch {
+    /* 0x00 */ MATRIX   m;
+    /* 0x20 */ SVECTOR  dir;
+    /* 0x28 */ SVECTOR3 eye;
+    /* 0x2E */ byte     pad_2E[0x2];
+    /* 0x30 */ s32      kind;
+    /* 0x34 */ s32      flags;
+    /* 0x38 */ s16      angle[8];
+    /* 0x48 */ s8       ok[8];
+    /* 0x50 */ s16      face;
+    /* 0x52 */ s16      diff;
+    /* 0x54 */ u8       i;
+    /* 0x55 */ u8       j;
+    /* 0x56 */ u8       count;
+    /* 0x57 */ u8       blocked;
+} Actor421600AvoidScratch;
+STATIC_ASSERT_SIZEOF(Actor421600AvoidScratch, 0x58);
+
+typedef struct Actor421600AvoidDelta {
+    /* 0x0 */ s32  vx;
+    /* 0x4 */ s32  vy;
+    /* 0x8 */ s32  vz;
+    /* 0xC */ byte pad_C[0x4];
+} Actor421600AvoidDelta;
+STATIC_ASSERT_SIZEOF(Actor421600AvoidDelta, 0x10);
+
 typedef struct Actor421600TurnScratch {
     /* 0x00 */ SVECTOR vec;
     /* 0x08 */ s16     delta;
