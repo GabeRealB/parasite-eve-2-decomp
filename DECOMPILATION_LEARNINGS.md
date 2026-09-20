@@ -135543,3 +135543,27 @@ mutation. Selected dump evidence, compiler/input hashes and the controlled
 prediction are retained in
 `tools/compiler_evidence/2026-09-20-ActorsShared8013845cSub0.json`; full evidence
 is archived under `tools/permuter_findings/ActorsShared8013845cSub0/`.
+
+An independent bounded follow-up reproduced 99.473684% versus 100% and checked
+the mechanism with two complete, unchanged-output traces. The smallest tested
+reversal keeps the added typedef but restores only the raw store expression:
+the original 99.473684% object and all source-note-normalized RTL passes return.
+This preplanned counterfactual rules out the typedef itself as the cause.
+All allocation/reload events agree between the pair. In sched2 the raw store
+is released by the byte load at cycle 22 and selected at 23; the typed store
+is released by the call at 18 and selected at 21 by potential-hazard weight
+274432. The load then has actual hazard cost 1 at 22, allowing the OR to issue.
+These are backward scheduling cycles, and potential-hazard weights are not
+cycle delays. The existing formatted host body with retained seed headers
+remains exact, and unscoped verification preserves all 7398 matches.
+
+Input SHA-256: raw `6873a76846b14fa6e9756bce54f3f9bdb6ee0170540f92f3ec35cc6338998674`,
+typed `25b3e7b1a1c742bd2b8addc1247751ac7527f04142cd7dec7f4a9291956e8b61`,
+controlled reversal `4a969e633d508fb7a6e3ea7ee18fe7bfe35770681f508f47226d8179a1bc5f9c`.
+The compiler hash, prediction/build timestamps, port hashes and selected trace
+events are in the `independent_followup` entry of
+`tools/compiler_evidence/2026-09-20-ActorsShared8013845cSub0.json`.
+Full sources, traces and manifests are retained in
+`tools/permuter_findings/ActorsShared8013845cSub0/sessions/7ad60b48093e4a05ad7c3c84080dea76/ef54025d91212b46f3e3/PERMUTER_EVIDENCE/followup-20260920/`.
+The four-build follow-up concluded supported. It confirms CODEGEN_MODEL §11
+within this non-QI-store/fixed-scalar-load scope; no broader rule is proposed.

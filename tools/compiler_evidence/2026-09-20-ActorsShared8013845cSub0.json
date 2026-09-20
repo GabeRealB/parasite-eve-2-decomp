@@ -119,5 +119,205 @@
     "landed_overlay": "actor_201100",
     "promotion": "skipped per explicit lease override",
     "scratch_builds": 7
+  },
+  "independent_followup": {
+    "status": "supported",
+    "origin": "Manual member-access experiment; no permuter mutations. Existing actor_201100 integration retained.",
+    "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+    "builds_used": 4,
+    "causal_builds": 3,
+    "port_builds": 1,
+    "trace_invocations": 2,
+    "variants": {
+      "base_5.c": {
+        "source_sha256": "3c69d36b04c4a15674e409b13c6dad9e66e870f5810607407cc710c65312d717",
+        "preprocessed_sha256": "6873a76846b14fa6e9756bce54f3f9bdb6ee0170540f92f3ec35cc6338998674",
+        "assembly_sha256": "f7485098e944c1f6eb37676347726f074be57a2da419b148eb9b3ac8c3eff7fa",
+        "score": 99.47368421052632,
+        "distance": 60,
+        "penalties": {
+          "branch": 0,
+          "delete": 0,
+          "insert": 0,
+          "regs": 0,
+          "reorder": 1,
+          "stack": 0
+        },
+        "at": "2026-09-20T07:12:35.886020+00:00"
+      },
+      "base_6.c": {
+        "source_sha256": "29e3fe6b6e8d8fa258f18d1acbb91380f29108d7820653b234355273ef53a551",
+        "preprocessed_sha256": "25b3e7b1a1c742bd2b8addc1247751ac7527f04142cd7dec7f4a9291956e8b61",
+        "assembly_sha256": "915f787a6d2222c48cdb400c680a194e678c249fe0c4d893b610c0bea364494c",
+        "score": 100.0,
+        "distance": 0,
+        "penalties": {
+          "branch": 0,
+          "delete": 0,
+          "insert": 0,
+          "regs": 0,
+          "reorder": 0,
+          "stack": 0
+        },
+        "at": "2026-09-20T07:12:36.356694+00:00"
+      },
+      "base_7.c": {
+        "source_sha256": "fcb9b68e437cc7fb71a868a558706a4d056610afb9d0ba4eeaad6000bbd3fdc9",
+        "preprocessed_sha256": "4a969e633d508fb7a6e3ea7ee18fe7bfe35770681f508f47226d8179a1bc5f9c",
+        "assembly_sha256": "f7485098e944c1f6eb37676347726f074be57a2da419b148eb9b3ac8c3eff7fa",
+        "score": 99.47368421052632,
+        "distance": 60,
+        "penalties": {
+          "branch": 0,
+          "delete": 0,
+          "insert": 0,
+          "regs": 0,
+          "reorder": 1,
+          "stack": 0
+        },
+        "at": "2026-09-20T07:13:30.586525+00:00"
+      },
+      "base_8.c": {
+        "source_sha256": "79632224aa6cd0260766e7aa874ca47fdb26d50c8250ec65c11076e6425fece8",
+        "preprocessed_sha256": "1210f963c9d51468ae2a11b966b6b0a11b806ace6b0629ba3fbae15155c5339b",
+        "assembly_sha256": "915f787a6d2222c48cdb400c680a194e678c249fe0c4d893b610c0bea364494c",
+        "score": 100.0,
+        "distance": 0,
+        "penalties": {
+          "branch": 0,
+          "delete": 0,
+          "insert": 0,
+          "regs": 0,
+          "reorder": 0,
+          "stack": 0
+        },
+        "at": "2026-09-20T07:14:09.725713+00:00"
+      }
+    },
+    "controlled_prediction": {
+      "at": "2026-09-20T07:13:29.909481+00:00",
+      "event": "plan",
+      "expected": "Reverting only the work store to M2C_FIELD while retaining TaskWorkProbe restores MEM:SI at UID 56, load UID 65 dependency on 56, sched2 store selection at T-23, and raw baseline object: distance 60, reorder=1, 99.473684%; register homes stay unchanged.",
+      "hypothesis": "The member-access expression, rather than adding a typedef or declaration normalization, supplies MEM_IN_STRUCT and removes the scheduling dependency.",
+      "parent": "base_6.c",
+      "pass_name": "rtl",
+      "source": "base_7.c",
+      "source_sha256": null
+    },
+    "observations": {
+      "first_meaningful_rtl_difference": "UID 56 MEM:SI becomes MEM/s:SI; its address task+28 and SI value are identical. This is the only normalized initial RTL difference.",
+      "dependency": "UID 65 scalar byte load loses insn_list 56; retains insn_list 63 (address).",
+      "sched1": "Same emitted instruction order despite earlier typed-store readiness.",
+      "allocation": "All local_choice, global_choice, reload_order and spill trace events identical.",
+      "sched2_raw": "Call 72 leaves UID 56 refs=1; load UID 65 releases it at cycle 22. Store selected at 23.",
+      "sched2_typed": "Call 72 releases UID 56 at cycle 18; ready at 19, potential hazard 274432 selects store at 21 over OR 61 (0). Load 65 actual hazard=1 at 22; OR 61 selected; load selected at 23.",
+      "counterfactual": "base_7 retains typedef and restores only raw work access; all normalized rtl/sched/lreg/greg/sched2/dbr and object assembly reproduce base_5.",
+      "port": "base_8 body extracted from existing host; whitespace-normalized body identical to base_4; headers retained; target assembly identical.",
+      "verification": "./tools/build-and-verify.sh passed; all 7398 matches retained."
+    },
+    "scope": "GCC 2.8.1 PSX with recorded flags: varying non-byte structure store versus fixed scalar load. No claim about byte structure stores or other versions.",
+    "archive": "tools/permuter_findings/ActorsShared8013845cSub0/sessions/7ad60b48093e4a05ad7c3c84080dea76/ef54025d91212b46f3e3",
+    "evidence_root": "tools/permuter_findings/ActorsShared8013845cSub0/sessions/7ad60b48093e4a05ad7c3c84080dea76/ef54025d91212b46f3e3/PERMUTER_EVIDENCE/followup-20260920",
+    "analysis_sha256": "2be0015088442ba0eca3d0f2e8937ccad631e49c4d3bf7adcffd0a32964673a9",
+    "manifest_sha256": "22bbe07f732d9f4c8925cb5e2b3a55e5fc9288c32c96e6dee76d9fd843c35793",
+    "conclusion": {
+      "event": "conclude-permuter",
+      "source": "base_8.c",
+      "source_sha256": "79632224aa6cd0260766e7aa874ca47fdb26d50c8250ec65c11076e6425fece8",
+      "result": "Reproduced the manual raw/member-store pair at 99.473684% versus 100%. The only initial RTL change is MEM_IN_STRUCT on the SI work store; paired complete traces show earlier sched2 dependency release and hazard selection with identical allocation. Predicted base_7 reversal retained the typedef and restored the raw dependency, T-23 store selection, all normalized dumps and baseline object. Header-preserving base_8 remains exact; existing actor_201100 integration passes full verification.",
+      "next": "Keep the verified actor_201100 match and all retained partial sources. Scope is this GCC 2.8.1 non-QI structure-store/fixed-scalar-load pair; no broader scheduling rule or sibling integration is claimed.",
+      "prediction": {
+        "at": "2026-09-20T07:13:29.909481+00:00",
+        "event": "plan",
+        "expected": "Reverting only the work store to M2C_FIELD while retaining TaskWorkProbe restores MEM:SI at UID 56, load UID 65 dependency on 56, sched2 store selection at T-23, and raw baseline object: distance 60, reorder=1, 99.473684%; register homes stay unchanged.",
+        "hypothesis": "The member-access expression, rather than adding a typedef or declaration normalization, supplies MEM_IN_STRUCT and removes the scheduling dependency.",
+        "parent": "base_6.c",
+        "pass_name": "rtl",
+        "source": "base_7.c",
+        "source_sha256": null
+      },
+      "prediction_build": {
+        "assembly_sha256": "f7485098e944c1f6eb37676347726f074be57a2da419b148eb9b3ac8c3eff7fa",
+        "at": "2026-09-20T07:13:30.586525+00:00",
+        "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "distance": 60,
+        "duplicate_of": "base_1.c",
+        "expected": "Reverting only the work store to M2C_FIELD while retaining TaskWorkProbe restores MEM:SI at UID 56, load UID 65 dependency on 56, sched2 store selection at T-23, and raw baseline object: distance 60, reorder=1, 99.473684%; register homes stay unchanged.",
+        "failure": 0,
+        "first_changed_pass": null,
+        "flags": "-I /home/gabriel/pe2-ov-actor_104900/include -I /home/gabriel/pe2-ov-actor_104900/build -I /home/gabriel/pe2-ov-actor_104900/include/psyq -I /home/gabriel/pe2-ov-actor_104900/include/decomp -I /home/gabriel/pe2-ov-actor_104900/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_104900/include -I /home/gabriel/pe2-ov-actor_104900/build -I /home/gabriel/pe2-ov-actor_104900/include/psyq -I /home/gabriel/pe2-ov-actor_104900/include/decomp -I /home/gabriel/pe2-ov-actor_104900/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+        "hypothesis": "The member-access expression, rather than adding a typedef or declaration normalization, supplies MEM_IN_STRUCT and removes the scheduling dependency.",
+        "parent": "base_6.c",
+        "pass_name": "rtl",
+        "penalties": {
+          "branch": 0,
+          "delete": 0,
+          "insert": 0,
+          "regs": 0,
+          "reorder": 1,
+          "stack": 0
+        },
+        "preprocessed_sha256": "4a969e633d508fb7a6e3ea7ee18fe7bfe35770681f508f47226d8179a1bc5f9c",
+        "project": "/home/gabriel/pe2-ov-actor_104900",
+        "score": 99.47368421052632,
+        "source": "base_7.c",
+        "source_sha256": "fcb9b68e437cc7fb71a868a558706a4d056610afb9d0ba4eeaad6000bbd3fdc9",
+        "target_sha256": "7548fb30c0a9b9ea786faa0411e5dd8967848186dd1ba4fd8e123d2d34953b7c"
+      },
+      "status": "supported",
+      "evidence": [
+        {
+          "path": "PERMUTER_ANALYSIS.md",
+          "retained": "PERMUTER_EVIDENCE/conclusions/1674a216c81541db8d70f47e63232eae/0-PERMUTER_ANALYSIS.md",
+          "sha256": "2be0015088442ba0eca3d0f2e8937ccad631e49c4d3bf7adcffd0a32964673a9"
+        },
+        {
+          "path": "PERMUTER_EVIDENCE/followup-20260920/manifest.json",
+          "retained": "PERMUTER_EVIDENCE/conclusions/1674a216c81541db8d70f47e63232eae/1-manifest.json",
+          "sha256": "22bbe07f732d9f4c8925cb5e2b3a55e5fc9288c32c96e6dee76d9fd843c35793"
+        },
+        {
+          "path": "PERMUTER_EVIDENCE/followup-20260920/observations.json",
+          "retained": "PERMUTER_EVIDENCE/conclusions/1674a216c81541db8d70f47e63232eae/2-observations.json",
+          "sha256": "1a99c5e68bc63fae30af26df89a554990175d1a9c036d42facfe420f63d95c78"
+        },
+        {
+          "path": "PERMUTER_EVIDENCE/followup-20260920/analysis/raw/REPORT.txt",
+          "retained": "PERMUTER_EVIDENCE/conclusions/1674a216c81541db8d70f47e63232eae/3-REPORT.txt",
+          "sha256": "55a0654d8279daedd25efe8279d1a7f0ab86a886be0d43a1dadc7bb57ef62c69"
+        },
+        {
+          "path": "PERMUTER_EVIDENCE/followup-20260920/analysis/typed/REPORT.txt",
+          "retained": "PERMUTER_EVIDENCE/conclusions/1674a216c81541db8d70f47e63232eae/4-REPORT.txt",
+          "sha256": "3102c0a8d3bce45099d7448c238c20a1d5b73eec43f569aac01b566c883c8d9b"
+        },
+        {
+          "path": "base_7.c",
+          "retained": "PERMUTER_EVIDENCE/conclusions/1674a216c81541db8d70f47e63232eae/5-base_7.c",
+          "sha256": "fcb9b68e437cc7fb71a868a558706a4d056610afb9d0ba4eeaad6000bbd3fdc9"
+        }
+      ]
+    },
+    "trace_observations": {
+      "raw": [
+        "sched2 cycle 18 scheduled 72: uid 65 refs 2->1, priority 1->1, tick=0",
+        "sched2 cycle 18 scheduled 72: uid 56 refs 2->1, priority 1->1, tick=0",
+        "sched2 cycle 20 scheduled 66: uid 65 refs 1->0, priority 1->1, tick=0",
+        "sched2 cycle 22: ready [65, 58, 70, 256] -> selects 65; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 65, 'unit': 0}, {'cost': 0, 'kind': 'actual', 'uid': 58, 'unit': -1}, {'cost': 0, 'kind': 'actual', 'uid': 70, 'unit': -1}, {'cost': 0, 'kind': 'actual', 'uid': 256, 'unit': -1}, {'cost': 270336, 'kind': 'potential', 'uid': 65, 'unit': 0}, {'cost': 0, 'kind': 'potential', 'uid': 58, 'unit': -1}, {'cost': 0, 'kind': 'potential', 'uid': 70, 'unit': -1}, {'cost': 0, 'kind': 'potential', 'uid': 256, 'unit': -1}]",
+        "sched2 cycle 22 scheduled 65: uid 56 refs 1->0, priority 1->1, tick=0",
+        "sched2 cycle 23: ready [63, 58, 56, 70, 256] -> selects 56; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 63, 'unit': -1}, {'cost': 0, 'kind': 'actual', 'uid': 58, 'unit': -1}, {'cost': 0, 'kind': 'actual', 'uid': 56, 'unit': 0}, {'cost': 0, 'kind': 'actual', 'uid': 70, 'unit': -1}, {'cost': 0, 'kind': 'actual', 'uid': 256, 'unit': -1}, {'cost': 0, 'kind': 'potential', 'uid': 63, 'unit': -1}, {'cost': 0, 'kind': 'potential', 'uid': 58, 'unit': -1}, {'cost': 274432, 'kind': 'potential', 'uid': 56, 'unit': 0}, {'cost': 0, 'kind': 'potential', 'uid': 70, 'unit': -1}, {'cost': 0, 'kind': 'potential', 'uid': 256, 'unit': -1}]"
+      ],
+      "typed": [
+        "sched2 cycle 18 scheduled 72: uid 65 refs 2->1, priority 1->1, tick=0",
+        "sched2 cycle 18 scheduled 72: uid 56 refs 1->0, priority 1->1, tick=0",
+        "sched2 cycle 19: ready [67, 56, 70] -> selects 67; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 67, 'unit': -1}]",
+        "sched2 cycle 20: ready [66, 61, 56, 70] -> selects 66; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 66, 'unit': -1}]",
+        "sched2 cycle 20 scheduled 66: uid 65 refs 1->0, priority 1->1, tick=0",
+        "sched2 cycle 21: ready [61, 56, 70] -> selects 56; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 61, 'unit': -1}, {'cost': 0, 'kind': 'actual', 'uid': 56, 'unit': 0}, {'cost': 0, 'kind': 'actual', 'uid': 70, 'unit': -1}, {'cost': 0, 'kind': 'potential', 'uid': 61, 'unit': -1}, {'cost': 274432, 'kind': 'potential', 'uid': 56, 'unit': 0}, {'cost': 0, 'kind': 'potential', 'uid': 70, 'unit': -1}]",
+        "sched2 cycle 22: ready [61, 65, 70] -> selects 61; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 61, 'unit': -1}, {'cost': 1, 'kind': 'actual', 'uid': 65, 'unit': 0}, {'cost': 0, 'kind': 'actual', 'uid': 70, 'unit': -1}, {'cost': 0, 'kind': 'potential', 'uid': 61, 'unit': -1}, {'cost': 0, 'kind': 'potential', 'uid': 70, 'unit': -1}]",
+        "sched2 cycle 23: ready [65, 58, 70, 256] -> selects 65; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 65, 'unit': 0}, {'cost': 0, 'kind': 'actual', 'uid': 58, 'unit': -1}, {'cost': 0, 'kind': 'actual', 'uid': 70, 'unit': -1}, {'cost': 0, 'kind': 'actual', 'uid': 256, 'unit': -1}, {'cost': 270336, 'kind': 'potential', 'uid': 65, 'unit': 0}, {'cost': 0, 'kind': 'potential', 'uid': 58, 'unit': -1}, {'cost': 0, 'kind': 'potential', 'uid': 70, 'unit': -1}, {'cost': 0, 'kind': 'potential', 'uid': 256, 'unit': -1}]"
+      ]
+    }
   }
 }
