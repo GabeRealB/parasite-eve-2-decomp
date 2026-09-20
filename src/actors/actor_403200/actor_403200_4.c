@@ -282,7 +282,136 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_80138748);
+/// Handles message 0x7DB: records the payload and dispatches the sender's
+/// action to reset the escorts, select an attack, or finish the return pose.
+s32 func_actor_403200_80138748(Task* task, s32 msgId, Actor403200Msg7DB* msg)
+{
+    Actor403200Work* work;
+    Actor403200Work* escorts;
+    Actor403200Work* rebuilt;
+    GpEnemy*         temp_enemy;
+    s16              i;
+    s16              j;
+    s32              sound;
+    s32              pan;
+    s32              action;
+
+    work       = (Actor403200Work*)task->work;
+    temp_enemy = (GpEnemy*)task->spawnArg2;
+
+    work->field_EC4 = msg->b[0];
+    work->field_EC5 = msg->b[1];
+    work->field_EC6 = msg->b[2];
+
+    if (msg->h.id == 0x2704) {
+        action = msg->h.action;
+        switch (action) {
+            case 0:
+                work->field_0   = 0;
+                work->field_E96 = 0xFA0;
+                break;
+
+            case 2:
+                work->field_0   = 5;
+                work->field_7B3 = 0x14;
+                work->field_7B0 = 2;
+                sound           = ((temp_enemy->placeKey >> 0xC) << 8) | 0x40200002;
+                pan             = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
+                SndEvt_EnqueueType6(sound, pan,
+                                    (s8)gpGetObjDepth(((TmdObject*)task->extra)->coords));
+                break;
+
+            case 3:
+                work->field_0   = 5;
+                work->field_2   = -1;
+                work->field_7B3 = 0xD;
+                work->field_7B0 = 1;
+                break;
+
+            case 5:
+                work->field_0                    = 0xA;
+                escorts                          = (Actor403200Work*)task->work;
+                escorts->field_7F3               = 0;
+                ((TmdObject*)task->extra)->flags = 0;
+                for (i = 0; i < 7; i++) {
+                    if (escorts->field_ECC[i] != NULL) {
+                        ((TmdObject*)escorts->field_ECC[i]->task->extra)->flags =
+                            ((TmdObject*)task->extra)->flags;
+                    }
+                }
+                rebuilt = (Actor403200Work*)task->work;
+                Tmd_AllocBuffers((TmdObject*)task->extra);
+                for (j = 0; j < 7; j++) {
+                    if (rebuilt->field_ECC[j] != NULL) {
+                        Tmd_AllocBuffers((TmdObject*)rebuilt->field_ECC[j]->task->extra);
+                    }
+                }
+                work->field_F06 = 0;
+                work->field_F04 = 0;
+                break;
+
+            case 10:
+                work->field_0   = 0xC;
+                work->field_2   = -1;
+                work->field_7B3 = 0x12;
+                work->field_7B0 = 2;
+                work->field_F06 = 7;
+                work->field_F14 = 0;
+                work->field_F04 = 1;
+                break;
+
+            case 11:
+                work->field_0   = 0xC;
+                work->field_2   = -1;
+                work->field_7B3 = 0x12;
+                work->field_F14 = 0x96;
+                work->field_7B0 = 2;
+                work->field_F04 = 1;
+                break;
+
+            case 12:
+                work->field_F06 = 7;
+                work->field_F04 = 0;
+                work->field_0   = 1;
+
+            case 19:
+                work->field_0           = 0xC;
+                work->field_F06         = 4;
+                work->field_2           = -1;
+                work->field_7B3         = 0x12;
+                work->field_F14         = 0x258;
+                work->field_7B0         = 2;
+                work->field_F04         = 0;
+                D_actor_403200_80141C58 = 0x640;
+                break;
+        }
+    }
+
+    if (msg->h.id == 0x2804) {
+        switch (msg->h.action) {
+            case 0:
+                work->field_0 = 0;
+                break;
+
+            case 1:
+                work->field_7B3 = 0xA;
+                work->field_7B0 = 2;
+                work->field_7B6 = 0x7F;
+                func_actor_403200_80133DD8(task);
+                while (work->field_58 & 1) {
+                    func_actor_403200_80133DD8(task);
+                }
+                work->field_7B6                               = 0x10;
+                ((TmdObject*)task->extra)->coords->coord.t[0] = -0xBB8;
+                ((TmdObject*)task->extra)->coords->coord.t[1] = 0;
+                ((TmdObject*)task->extra)->coords->coord.t[2] = -0x992;
+                ((TmdObject*)task->extra)->coords->flg        = 0;
+                work->field_0                                 = 6;
+                break;
+        }
+    }
+    return 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_80138AFC);
 

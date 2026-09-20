@@ -65,6 +65,17 @@ typedef struct Actor403200Msg7DA {
 } Actor403200Msg7DA;
 STATIC_ASSERT_SIZEOF(Actor403200Msg7DA, 0x4);
 
+/// The forwarded 0x7DB payload, saved bytewise and dispatched by its two
+/// halfwords: the sender id and action.
+typedef union Actor403200Msg7DB {
+    u8 b[4];
+    struct {
+        /* 0x0 */ u16 id;
+        /* 0x2 */ u16 action;
+    } h;
+} Actor403200Msg7DB;
+STATIC_ASSERT_SIZEOF(Actor403200Msg7DB, 0x4);
+
 /// Payload of the 0x3F8 query the stand-up state's swipe tick sends the player
 /// before it asks for the hold; `field_14` is the range it asks for. The same
 /// shape as `Actor103700Msg3F8` and `Actor444000Msg3F8`.
@@ -267,7 +278,11 @@ typedef struct Actor403200Work {
     /// Message 0x3FF payload the launch state sends the player. Same slot and
     /// role as `Actor444000Work::anim`.
     /* 0xEB0 */ GpAnimArg field_EB0;
-    /* 0xEC4 */ byte      pad_EC4[0x4];
+    /// First three bytes of the last 0x7DB payload received.
+    /* 0xEC4 */ u8   field_EC4;
+    /* 0xEC5 */ u8   field_EC5;
+    /* 0xEC6 */ u8   field_EC6;
+    /* 0xEC7 */ byte pad_EC7;
     /// Set to 1 while the player holds the animation the stand-up state hands
     /// over in its message 0x3FF. Same slot and role as
     /// `Actor444000Work::field_EC8`.

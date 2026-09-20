@@ -134986,3 +134986,30 @@ Preprocessed SHA256s:
 - exact base_1: 47b73439b1c476d44eb426eba24ae0523b8c5cf3b21a28937615ab244004adc1
 - source-alias base_2: 4b94b39d906873cff6bbef5f0e054bf08021aa6c36085bdb15b3e983b23dc44c
 - direct-read base_3: add60566a4eeaa8b72492967e254e158c2b6a54ae5e5a81febaba112af36ffc3
+
+### Peeling a mandatory first call also fixes the message-handler loop (func_actor_403200_80138748, 2026-09-20)
+
+The newer E2FC sibling finding closed this handler's archived 99.278% stall.
+First removing the permuter's spare task alias and updating the stale callee
+name produced an unpinned 98.641% baseline with exact register allocation.
+Then the preplanned change from `do { tick(task); } while (work->field_58 & 1)`
+to `tick(task); while (work->field_58 & 1) { tick(task); }` reached 100%.
+
+Observed: sched2 retains both calls, with setup490 before the first call's
+three preceding stores and setup508 immediately before the repeated call510.
+Jump2 deletes the first call/test suffix and introduces label674 directly
+before call510. Dbr moves setup490 into the case-select branch slot and
+setup508 into the backedge slot, leaving the call slot empty. Task/work remain
+s3/s2. The normal-header port and full unscoped verifier both pass.
+
+This corrects the archived assumption that cross-jumping was disabled:
+`toplev.c:3548` invokes `jump_optimize(insns, 1, 1, 0)` in the late pass.
+Early invocations with its second argument zero do not describe that pass.
+The setup was not hoisted across a loop boundary. Scheduler selection
+internals were not traced; the supported mechanism is the observed suffix
+merge and delay-slot handling, not a universal claim about peeling loops.
+
+Reproducible prediction, source delta, selected dumps and hashes are retained
+in `tools/compiler_evidence/2026-09-20-actor403200-38748.json`. Unpeeled input:
+`c556a2194c22ecec70a371db7b5116cea7151f90f8a1cbd44f8131d657c8364d`;
+peeled input: `de97bea767cc751b0d923307ec4554ba6e748f8faebf6ac7d9a69e44e30ae1e2`.
