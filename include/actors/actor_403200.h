@@ -11,6 +11,14 @@
 
 typedef struct Actor403200Obj Actor403200Obj;
 
+/// Reference positions used by the distance-based view selector.
+typedef struct Actor403200ViewPoints {
+    /* 0x00 */ SVECTOR v[4];
+} Actor403200ViewPoints;
+STATIC_ASSERT_SIZEOF(Actor403200ViewPoints, 0x20);
+
+extern Actor403200ViewPoints D_actor_403200_80131E64;
+
 /// One of the nine models and spawn arguments used by the formation spawner.
 typedef struct Actor403200SpawnRec {
     /* 0x0 */ void* model;

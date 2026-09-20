@@ -110346,6 +110346,23 @@ base_6.c preprocessed SHA256: 90f32fc92970b2767ce0fad080a8fca8c7e67c74c471f420fd
 
 ## A view dispatch whose tests are `beq` to their bodies is a `goto`, not `if`/`else` and not `switch` (func_actor_403200_80134A14, 2026-09-16)
 
+**Correction (2026-09-20): the source-shape inference below was too strong.**
+This function now matches exactly using the structured dispatch from the matched
+`func_actor_403200_801344C4`: `flag = view`, an outside-pair test, nested per-view
+conditions, and a shared `done: return value`. The case-3 copy retains that
+sibling's `SOFT_TOUCH_REG(flag)`. The earlier goto candidate was a useful partial
+match, not proof that the original source required gotos.
+
+Sharing the return alone scored 90.578%: return-value r85 still conflicted with
+hard register 2 and occupied a0. Adopting the complete sibling dispatch removed
+that conflict, exposed preference 2 and placed r85 in v0 while flag stayed in v1;
+all penalties became zero. The contributions of the individual source edits were
+not isolated in this retry. Full unscoped build verification passed. Sources,
+input/compiler hashes, predictions and allocation headers are retained in
+`tools/compiler_evidence/2026-09-20-actor403200-34a14.json`.
+
+The rest of this section records the superseded retry hypothesis.
+
 **Symptom:** the per-view dispatcher's inner dispatch on a non-adjacent view pair
 `{0x22, 4}` (and `{0x25, 0x19}`) emits two *jump-if-true* compares in source order, each
 branching to its own body, with the default's flag computation falling through the dispatch
