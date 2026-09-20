@@ -134097,3 +134097,52 @@ including source deltas, paired builds and assembly-preserving traces.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Traced base_3 input: `e87b6b499f116fe62e7aff10edf457c429fee3ccbaeeef31bafa3042634ebd25`.
 Traced base_5 input: `adb585d1973d8e39f396f75fd9f8d35b8faeba6523ec02c1afe2a0ab8040ecd3`.
+
+
+## A memory input places a retained unused definition after a conflicting multiply result dies (func_actor_110600_801377FC, 2026-09-20)
+
+The baseline matched 99.845%, with only the Z-square operand in v1 instead of
+v0. Local allocation tied the dying operand to its longer-lived result.
+Keeping the operand live untied them, but perturbed the square schedule and
+made the operand overlap the following radius square.
+
+A retained unused second definition changed eligibility without extending the
+loaded value's lifetime:
+
+```c
+dz = blk->z;
+dz2 = dz * dz;
+blk->z = dz2;
+blk->radius *= blk->radius;
+*(u8**)G_SCRATCH_HEAD = head;
+__asm__("" : "=r"(dz), "+r"(dz2) : "m"(blk->radius));
+return blk->x + dz2 >= blk->radius;
+```
+
+The memory input is decisive. Without it (base_4), the unused definition
+schedules before the radius store. Both base_4 and base_7 have dz r134 with
+two deaths (REG_DEAD at multiply UID165, REG_UNUSED at asm UID177), excluded
+from local allocation and finally in v0. But base_4's .greg lists a symmetric
+r134/r138 conflict: radius result r138 is live over the unused definition,
+and reload places it in a2.
+
+The recorded base_7 prediction added only `"m"(blk->radius)`. Its .lreg
+shows asm UID177 depending on radius store UID172 and order 171,172,177,
+so the radius result dies before the unused definition. The conflict vanishes
+from .greg, reload assigns r138 to v0, and the score becomes 100.000%. The
+cleaned port also matches and the unscoped integration build succeeds.
+
+This extends the retained-unused-output technique: preserve both eligibility
+and the placement of the discarded definition. The asm emits no instructions,
+its live output is read/write, and its output-only value is never read. A
+volatile asm or broad memory clobber would add unrelated dependencies. The
+original C spelling remains unknown; the discarded variants' detailed
+scheduler hazard decisions were not traced.
+
+Evidence: `tools/permuter_findings/func_actor_110600_801377FC/`, retained
+`PERMUTER_EVIDENCE/manual-matching-analysis/`. The router found no discovery;
+these are manual controlled experiments. Preprocessed input SHA256:
+
+- base_4: `1a3f2ffe28228cd734d18d825f85f12f6bf34a9165545d8f7981bf3b6a7793d2`
+- base_7: `57bb671c9c0c39dd9d37fcf40699889469a74fd60b9fddeca545cd8d0cbdfa5b`
+- base_8: `6efff152d378446216e4a23466116f341786e3dff9e9bf7b43006f840f446e0c`

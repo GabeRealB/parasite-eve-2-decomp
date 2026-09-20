@@ -1752,7 +1752,64 @@ void func_actor_110600_80137684(Actor110600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_801377FC);
+static __inline__ s32 Actor110600_OutOfRange(SVECTOR* d)
+{
+    Actor110600RadiusScratch* blk;
+    s32                       dz2;
+    s32                       dz;
+    u8*                       head;
+
+    head                                        = *(u8**)G_SCRATCH_HEAD;
+    blk                                         = (Actor110600RadiusScratch*)(head - 0xC);
+    *(Actor110600RadiusScratch**)G_SCRATCH_HEAD = blk;
+    blk->x                                      = d->vx;
+    blk->z                                      = d->vz;
+    blk->radius                                 = 0xBB8;
+    blk->x                                     *= blk->x;
+    dz                                          = blk->z;
+    dz2                                         = dz * dz;
+    blk->z                                      = dz2;
+    blk->radius                                *= blk->radius;
+    *(u8**)G_SCRATCH_HEAD                       = head;
+    __asm__("" : "=r"(dz), "+r"(dz2) : "m"(blk->radius));
+    return (blk->x + dz2) >= blk->radius;
+}
+
+void func_actor_110600_801377FC(Actor110600* arg0)
+{
+    Actor110600Work* work;
+    TmdObject*       obj;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    SVECTOR          delta;
+    SVECTOR*         d;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        enemy                 = arg0->field_20;
+        obj                   = arg0->field_2C;
+        work->field_892       = 0x22;
+        work->field_88C       = 2;
+        obj->flags            = 0;
+        work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
+        work->field_950.flags = (u16)(work->field_950.flags | 0x4000);
+        enemy->node.flags     = 8;
+        work->field_B82       = 0;
+        work->field_8A4       = 0;
+        work->field_896       = 0x10;
+        work->field_8A2       = 0;
+    }
+    func_actor_110600_80134728(arg0);
+    work->field_8AC = work->field_4E & 0x3FF;
+    coord           = arg0->field_2C->coords;
+    d               = &delta;
+    delta.vx        = (u16)D_80073B8C->t[0] - (u16)coord->coord.t[0];
+    d->vy           = (u16)D_80073B8C->t[1] - (u16)coord->coord.t[1];
+    d->vz           = (u16)D_80073B8C->t[2] - (u16)coord->coord.t[2];
+    if (!Actor110600_OutOfRange(d)) {
+        work->field_0 = 0x15;
+    }
+}
 
 /// Aiming stage that re-arms the model behaviour on a live actor — `field_892`
 /// = 0x15 with `field_88C` = 1, the model object's `field_C` cleared, bit 0x8000
