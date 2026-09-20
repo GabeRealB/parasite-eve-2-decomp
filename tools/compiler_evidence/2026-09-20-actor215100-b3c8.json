@@ -1,0 +1,76 @@
+{
+  "function": "func_actor_215100_8014B3C8",
+  "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+  "inputs": {
+    "base.c": "f2a4e2c64cee7de3557b9a92438bba57c4eae8052be138caff562e435cc7515a",
+    "base.i": "8f849cbb0af7288e598bc7dae359ad72d3cea0b92f8c32afc3a30df05c0eb028",
+    "base_1.c": "a98f00fde2631600efc74527070a32d66d1b5255147e824f756d6fd61ad8f20d",
+    "base_1.i": "72244245abeb83887c882427bb09b6743a0c2f6287b091e10f4ec4be300279cb",
+    "base_2.c": "b8625659a6a8b3906574023c994a73ca2f61f00e7d83fd55dad879bc57e29c93",
+    "base_2.i": "b093d07adc28b2b925294b5340bb9029f265f2ff70a028c749387409b4e302d9"
+  },
+  "before": {
+    "score": 99.6937212863706,
+    "source": "sc = code; palette = (sc >> 10) & 3;",
+    "palette_rtl": "UID 1279: ASHIFTRT by 10 in rtl, ASHIFTRT r560 by 26 in cse"
+  },
+  "prediction": "An explicit unsigned code<<16 shared value supplies logical palette extraction while preserving signed comparisons, a1/a3 allocation and exact scheduling.",
+  "after": {
+    "score": 100.0,
+    "source": "shifted = (u32)code << 16; sc = (s32)shifted >> 16; palette = (shifted >> 26) & 3;",
+    "palette_rtl": "UID 1281: LSHIFTRT r88 by 26 from rtl through combine; r88 becomes a1 in greg",
+    "signed_comparison": "combine UID 936: ASHIFTRT r88 by 16",
+    "code_register": "a3",
+    "cursor_port": "base_2 replaces DR_TPAGE pointer casts with u8 pointer casts; same assembly"
+  },
+  "scope": "One controlled successful function experiment; no claim that named temporaries always survive CSE.",
+  "source_mechanism": "gcc-2.8.1-psx/cse.c fold_rtx, lines 5697-5793: repeated same-kind operators fold by associating constant operands.",
+  "observed_rtl": {
+    "base.i.rtl": [
+      "(insn 931 930 932 (set (reg:SI 560)\n        (ashift:SI (subreg:SI (reg/v:HI 87) 0)\n            (const_int 16))) -1 (nil)\n    (nil))",
+      "(insn 932 931 934 (set (reg:SI 559)\n        (ashiftrt:SI (reg:SI 560)\n            (const_int 16))) -1 (nil)\n    (expr_list:REG_EQUAL (sign_extend:SI (reg/v:HI 87))\n        (nil)))",
+      "(insn 1279 1278 1281 (set (reg:SI 672)\n        (ashiftrt:SI (reg:SI 670)\n            (const_int 10))) -1 (nil)\n    (nil))",
+      "(insn 1284 1283 1285 (set (reg/v:SI 95)\n        (ashiftrt:SI (reg:SI 675)\n            (const_int 16))) -1 (nil)\n    (expr_list:REG_EQUAL (sign_extend:SI (subreg:HI (reg:SI 674) 0))\n        (nil)))"
+    ],
+    "base.i.cse": [
+      "(insn 931 930 932 (set (reg:SI 560)\n        (ashift:SI (subreg:SI (reg/v:HI 93) 0)\n            (const_int 16))) 205 {ashlsi3} (nil)\n    (nil))",
+      "(insn 932 931 934 (set (reg:SI 559)\n        (ashiftrt:SI (reg:SI 560)\n            (const_int 16))) 215 {ashrsi3} (nil)\n    (expr_list:REG_EQUAL (sign_extend:SI (reg/v:HI 93))\n        (nil)))",
+      "(insn 1279 1276 1282 (set (reg:SI 672)\n        (ashiftrt:SI (reg:SI 560)\n            (const_int 26))) 215 {ashrsi3} (nil)\n    (nil))",
+      "(insn 1284 1283 1285 (set (reg/v:SI 95)\n        (ashiftrt:SI (reg:SI 675)\n            (const_int 16))) 215 {ashrsi3} (nil)\n    (expr_list:REG_EQUAL (sign_extend:SI (subreg:HI (reg:SI 674) 0))\n        (nil)))"
+    ],
+    "base.i.combine": [
+      "(insn 931 930 932 (set (reg:SI 560)\n        (ashift:SI (subreg:SI (reg/v:HI 93) 0)\n            (const_int 16))) 205 {ashlsi3} (insn_list 926 (nil))\n    (nil))",
+      "(insn 932 931 934 (set (reg:SI 559)\n        (ashiftrt:SI (reg:SI 560)\n            (const_int 16))) 215 {ashrsi3} (insn_list 931 (nil))\n    (expr_list:REG_EQUAL (sign_extend:SI (reg/v:HI 93))\n        (nil)))",
+      "(insn 1279 1276 1282 (set (reg:SI 672)\n        (ashiftrt:SI (reg:SI 560)\n            (const_int 26))) 215 {ashrsi3} (nil)\n    (expr_list:REG_DEAD (reg:SI 560)\n        (nil)))",
+      "(insn 1284 1283 1285 (set (reg/v:SI 95)\n        (and:SI (reg:SI 672)\n            (const_int 3))) 99 {andsi3} (insn_list 1279 (nil))\n    (expr_list:REG_DEAD (reg:SI 672)\n        (nil)))"
+    ],
+    "base.i.greg": [
+      "(insn 931 930 932 (set (reg:SI 5 a1)\n        (ashift:SI (subreg:SI (reg/v:HI 7 a3) 0)\n            (const_int 16))) 205 {ashlsi3} (insn_list 926 (nil))\n    (nil))",
+      "(insn 932 931 934 (set (reg:SI 3 v1)\n        (ashiftrt:SI (reg:SI 5 a1)\n            (const_int 16))) 215 {ashrsi3} (insn_list 931 (nil))\n    (expr_list:REG_EQUAL (sign_extend:SI (reg/v:HI 7 a3))\n        (nil)))",
+      "(insn 1279 1955 1284 (set (reg:SI 3 v1)\n        (ashiftrt:SI (reg:SI 5 a1)\n            (const_int 26))) 215 {ashrsi3} (nil)\n    (expr_list:REG_DEAD (reg:SI 5 a1)\n        (nil)))",
+      "(insn 1284 1279 1397 (set (reg/v:SI 3 v1)\n        (and:SI (reg:SI 3 v1)\n            (const_int 3))) 99 {andsi3} (insn_list 1279 (nil))\n    (expr_list:REG_DEAD (reg:SI 3 v1)\n        (nil)))"
+    ],
+    "base_1.i.rtl": [
+      "(insn 929 928 930 (set (reg/v:SI 88)\n        (ashift:SI (reg:SI 560)\n            (const_int 16))) -1 (nil)\n    (nil))",
+      "(insn 936 935 938 (set (reg:SI 562)\n        (ashiftrt:SI (reg:SI 563)\n            (const_int 16))) -1 (nil)\n    (expr_list:REG_EQUAL (sign_extend:SI (reg/v:HI 87))\n        (nil)))",
+      "(insn 1281 1280 1282 (set (reg:SI 673)\n        (lshiftrt:SI (reg/v:SI 88)\n            (const_int 26))) -1 (nil)\n    (nil))"
+    ],
+    "base_1.i.cse": [
+      "(insn 929 928 930 (set (reg/v:SI 88)\n        (ashift:SI (reg:SI 560)\n            (const_int 16))) 205 {ashlsi3} (nil)\n    (nil))",
+      "(insn 936 935 938 (set (reg:SI 562)\n        (ashiftrt:SI (reg:SI 563)\n            (const_int 16))) 215 {ashrsi3} (nil)\n    (expr_list:REG_EQUAL (sign_extend:SI (reg/v:HI 87))\n        (nil)))",
+      "(insn 1281 1280 1282 (set (reg:SI 673)\n        (lshiftrt:SI (reg/v:SI 88)\n            (const_int 26))) 225 {lshrsi3} (nil)\n    (nil))"
+    ],
+    "base_1.i.combine": [
+      "(insn 929 928 930 (set (reg/v:SI 88)\n        (ashift:SI (subreg:SI (reg/v:HI 94) 0)\n            (const_int 16))) 205 {ashlsi3} (insn_list 926 (nil))\n    (nil))",
+      "(insn 936 935 938 (set (reg:SI 562)\n        (ashiftrt:SI (reg/v:SI 88)\n            (const_int 16))) 215 {ashrsi3} (insn_list 929 (nil))\n    (nil))",
+      "(insn 1281 1280 1282 (set (reg:SI 673)\n        (lshiftrt:SI (reg/v:SI 88)\n            (const_int 26))) 225 {lshrsi3} (nil)\n    (expr_list:REG_DEAD (reg/v:SI 88)\n        (nil)))"
+    ],
+    "base_1.i.greg": [
+      "(insn 929 927 934 (set (reg/v:SI 5 a1)\n        (ashift:SI (subreg:SI (reg/v:HI 7 a3) 0)\n            (const_int 16))) 205 {ashlsi3} (insn_list 926 (nil))\n    (nil))",
+      "(insn 936 934 938 (set (reg:SI 3 v1)\n        (ashiftrt:SI (reg/v:SI 5 a1)\n            (const_int 16))) 215 {ashrsi3} (insn_list 929 (nil))\n    (nil))",
+      "(insn 1281 1953 1282 (set (reg:SI 3 v1)\n        (lshiftrt:SI (reg/v:SI 5 a1)\n            (const_int 26))) 225 {lshrsi3} (nil)\n    (expr_list:REG_DEAD (reg/v:SI 5 a1)\n        (nil)))"
+    ]
+  },
+  "verification": "Unscoped ./tools/build-and-verify.sh: BUILD SUCCEEDED; 7411 prior matches preserved.",
+  "router": "b8ef78ff9f4c42bf produced no discovery; final change was the preplanned manual experiment."
+}

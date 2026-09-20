@@ -59,6 +59,7 @@ extern GpMsgEntry D_actor_215100_8015E5A0[];
 /// stores it and `func_actor_215100_8014C360` indexes it with a text stream's
 /// `code & 0x3FF`.
 extern GlyphUvwh* D_actor_215100_8015E654;
+extern GlyphUvwh  D_8010FB70[];
 /// Caption script table, and the script currently being played back with the
 /// entry it is up to.
 extern Actor215100Caption** D_actor_215100_8015E650;
@@ -93,7 +94,6 @@ s16                         func_actor_215100_8014BDFC(u16* arg0);
 s16                         func_actor_215100_8014C06C(u16* arg0);
 s16                         func_actor_215100_8014C298(u16* arg0);
 s32                         func_actor_215100_8014C418(s32 arg0);
-void                        func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void                        func_actor_215100_8014BEE8(void);
 
 /// Arms the weapon pickup at this actor's spot while the event flag
@@ -622,7 +622,196 @@ s32 func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100_2", func_actor_215100_8014B3C8);
+s32 func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    u16*       text;
+    u16*       body;
+    s32        title;
+    s16        sc;
+    u32        shifted;
+    s32        titleWidth;
+    s16        lineIdx;
+    s16        x;
+    s32        y;
+    s16        i;
+    u16        code;
+    s16        centered;
+    s32        palette;
+    s16        t;
+    s16        t2;
+    s16        glyphY;
+    s32        top;
+    POLY_G4*   bg;
+    POLY_G4*   bg2;
+    DR_MODE*   dm;
+    POLY_FT4*  ft;
+    POLY_GT4*  gt;
+    POLY_GT4*  gt2;
+    GlyphUvwh* icon;
+
+    lineIdx = 0;
+    title   = arg3;
+    text    = (u16*)arg0;
+    x       = func_actor_215100_8014C17C((u16*)arg0, 0) - 0xA0;
+    y       = (u16)D_actor_215100_8015E65E - 0x78;
+
+    bg             = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)(bg + 1);
+    setlen(bg, 8);
+    setcode(bg, 0x3A);
+    setRGB0(bg, 0, 0, 0);
+    setRGB1(bg, 0, 0, 0);
+    setRGB2(bg, 0, 0x40, 0x20);
+    setRGB3(bg, 0, 0x40, 0x20);
+    bg->x0 = (u16)D_actor_215100_8015E65C - 0xA7;
+    bg->y0 = ((u16)D_actor_215100_8015E660 - 0x77) - gDisplayState.vramYOffset - (u16)D_actor_215100_8015E664;
+    bg->x1 = (u16)D_actor_215100_8015E65C - D_actor_215100_8015E65C * 2 + 0xAB;
+    bg->y1 = ((u16)D_actor_215100_8015E660 - 0x77) - gDisplayState.vramYOffset - (u16)D_actor_215100_8015E664;
+    bg->x2 = (u16)D_actor_215100_8015E65C - 0xA7;
+    bg->y2 = ((u16)D_actor_215100_8015E660 - 0x77) - gDisplayState.vramYOffset - (u16)D_actor_215100_8015E664 + (u16)D_actor_215100_8015E664;
+    bg->x3 = (u16)D_actor_215100_8015E65C - D_actor_215100_8015E65C * 2 + 0xAB;
+    bg->y3 = ((u16)D_actor_215100_8015E660 - 0x77) - gDisplayState.vramYOffset - (u16)D_actor_215100_8015E664 + (u16)D_actor_215100_8015E664;
+    addPrim(&gGpuCurrentOt[3], bg);
+    bg2            = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)(bg2 + 1);
+    *bg2           = *bg;
+    addPrim(&gGpuCurrentOt[3], bg2);
+    dm             = (DR_MODE*)gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)(dm + 1);
+    setlen(dm, 1);
+    dm->code[0] = 0xE100020A;
+    addPrim(&gGpuCurrentOt[3], dm);
+
+    body = text;
+    if (title & 0xFF) {
+        ft             = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)(ft + 1);
+        setlen(ft, 9);
+        setcode(ft, 0x2D);
+        title      = title - 1;
+        top        = ((u16)D_actor_215100_8015E660 - 0x77) - (u16)D_actor_215100_8015E664;
+        ft->x0     = (u16)D_actor_215100_8015E65C - 0xA7;
+        ft->y0     = (top - gDisplayState.vramYOffset) - D_actor_215100_8015E654[title & 0xFF].h;
+        titleWidth = D_actor_215100_8015E654[title & 0xFF].w - 0xA7;
+        ft->x1     = (u16)D_actor_215100_8015E65C + titleWidth;
+        ft->y1     = (top - gDisplayState.vramYOffset) - D_actor_215100_8015E654[title & 0xFF].h;
+        ft->x2     = (u16)D_actor_215100_8015E65C - 0xA7;
+        ft->y2     = top - gDisplayState.vramYOffset;
+        titleWidth = D_actor_215100_8015E654[title & 0xFF].w - 0xA7;
+        ft->x3     = (u16)D_actor_215100_8015E65C + titleWidth;
+        ft->y3     = top - gDisplayState.vramYOffset;
+        ft->u0     = D_actor_215100_8015E654[title & 0xFF].u;
+        ft->v0     = D_actor_215100_8015E654[title & 0xFF].v;
+        ft->u1     = D_actor_215100_8015E654[title & 0xFF].u + D_actor_215100_8015E654[title & 0xFF].w;
+        ft->v1     = D_actor_215100_8015E654[title & 0xFF].v;
+        ft->u2     = D_actor_215100_8015E654[title & 0xFF].u;
+        ft->v2     = D_actor_215100_8015E654[title & 0xFF].v + D_actor_215100_8015E654[title & 0xFF].h;
+        ft->u3     = D_actor_215100_8015E654[title & 0xFF].u + D_actor_215100_8015E654[title & 0xFF].w;
+        ft->v3     = D_actor_215100_8015E654[title & 0xFF].v + D_actor_215100_8015E654[title & 0xFF].h;
+        ft->clut   = 0x3D93;
+        ft->tpage  = getTPage(0, 1, D_actor_215100_801544EC, D_actor_215100_801544EE);
+        addPrim(&gGpuCurrentOt[2], ft);
+    }
+
+    centered = 1;
+    i        = 0;
+    while (1) {
+        code    = body[i];
+        shifted = (u32)code << 16;
+        sc      = (s32)shifted >> 16;
+        if (sc == -1) {
+            break;
+        }
+        if (sc == -2) {
+            t2                      = lineIdx + 1;
+            lineIdx                 = t2;
+            D_actor_215100_8015E66A = y - 2;
+            D_actor_215100_8015E668 = x + 4;
+            y                      += func_actor_215100_8014C360(&body[i + 1]);
+            if (centered != 0) {
+                x = func_actor_215100_8014C17C((u16*)arg0, t2) - 0xA0;
+            } else {
+                x = (u16)D_actor_215100_8015E65C - 0xA0;
+            }
+            i++;
+            continue;
+        } else if (sc == -3) {
+            x += 3;
+            i++;
+            continue;
+        } else if ((code & 0xFF00) == 0x8400) {
+            icon           = &D_8010FB70[code & 0xFF];
+            ft             = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)(ft + 1);
+            setlen(ft, 9);
+            setcode(ft, 0x2D);
+            ft->clut  = 0x3C00;
+            ft->tpage = 0x1E;
+            t         = (y - gDisplayState.vramYOffset) + 1;
+            ft->x0    = x;
+            ft->y0    = t - icon->h;
+            ft->x1    = x + icon->w;
+            ft->y1    = t - icon->h;
+            ft->x2    = x;
+            ft->y2    = t;
+            ft->x3    = x + icon->w;
+            ft->y3    = t;
+            ft->u0    = icon->u;
+            ft->v0    = icon->v;
+            ft->u1    = icon->u + icon->w;
+            ft->v1    = icon->v;
+            ft->u2    = icon->u;
+            ft->v2    = icon->v + icon->h;
+            ft->u3    = icon->u + icon->w;
+            ft->v3    = icon->v + icon->h;
+            addPrim(&gGpuCurrentOt[2], ft);
+            x += icon->w;
+            i++;
+            continue;
+        } else {
+            palette        = (shifted >> 26) & 3;
+            code           = code & 0x3FF;
+            glyphY         = y - gDisplayState.vramYOffset;
+            gt             = (POLY_GT4*)gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)(gt + 1);
+            setcode(gt, 0x3C);
+            setlen(gt, 12);
+            setShadeTex(gt, 1);
+            setRGB0(gt, 0x70, 0x70, 0x70);
+            setRGB1(gt, 0x70, 0x70, 0x70);
+            setRGB2(gt, 0x70, 0x70, 0x70);
+            setRGB3(gt, 0x70, 0x70, 0x70);
+            setSemiTrans(gt, 1);
+            gt->clut  = palette | 0x3D50;
+            gt->x0    = x;
+            gt->tpage = getTPage(0, 1, D_actor_215100_801544EC, D_actor_215100_801544EE);
+            gt->y0    = glyphY - D_actor_215100_8015E654[code & 0x3FF].h;
+            gt->x1    = x + D_actor_215100_8015E654[code & 0x3FF].w;
+            gt->y1    = glyphY - D_actor_215100_8015E654[code & 0x3FF].h;
+            gt->x2    = x;
+            gt->y2    = glyphY;
+            gt->x3    = x + D_actor_215100_8015E654[code & 0x3FF].w;
+            gt->y3    = glyphY;
+            gt->u0    = D_actor_215100_8015E654[code & 0x3FF].u;
+            gt->v0    = D_actor_215100_8015E654[code & 0x3FF].v;
+            gt->u1    = D_actor_215100_8015E654[code & 0x3FF].u + D_actor_215100_8015E654[code & 0x3FF].w;
+            gt->v1    = D_actor_215100_8015E654[code & 0x3FF].v;
+            gt->u2    = D_actor_215100_8015E654[code & 0x3FF].u;
+            gt->v2    = D_actor_215100_8015E654[code & 0x3FF].v + D_actor_215100_8015E654[code & 0x3FF].h;
+            gt->u3    = D_actor_215100_8015E654[code & 0x3FF].u + D_actor_215100_8015E654[code & 0x3FF].w;
+            gt->v3    = D_actor_215100_8015E654[code & 0x3FF].v + D_actor_215100_8015E654[code & 0x3FF].h;
+            addPrim(&gGpuCurrentOt[2], gt);
+            gt2            = (POLY_GT4*)gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)(gt2 + 1);
+            *gt2           = *gt;
+            gt2->tpage     = getTPage(0, 2, D_actor_215100_801544EC, D_actor_215100_801544EE);
+            addPrim(&gGpuCurrentOt[2], gt2);
+            x = D_actor_215100_8015E654[(s16)code].w + x - 1;
+        }
+        i++;
+    }
+    return 0;
+}
 
 /// Top Y of the caption block the text stream `arg0` holds: every line after
 /// the first `-2` adds its height (the tallest glyph's `h + 2`, or 2 when empty)

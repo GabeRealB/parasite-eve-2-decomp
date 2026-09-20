@@ -135445,3 +135445,45 @@ Baseline input: f346fa0d8acb2e7241abd91dcf3b07f6ca462acf664143fa56b41aab29a8ec30
 Exact input: 23a9e3564e2a4522ad42704e1b890ca076cf2f1bac47d8113f2e7cdb445a6965.
 Both traces preserved assembly. Full evidence is archived through
 `tools/permuter_findings/func_actor_800100_80165010/`.
+
+
+## Explicit shared shift preserves signed comparisons and unsigned extraction (func_actor_215100_8014B3C8, 2026-09-20)
+
+The archived caption renderer was 99.694%: its only difference was
+`sra v1,a1,26` where the target had `srl v1,a1,26`, followed by `andi v1,3`.
+Both used a1 for `code<<16`, also consumed by signed control-code comparisons.
+
+`insn.py` located the old shift in **first CSE**, not combine: UID 1279
+started as ASHIFTRT by 10, then became ASHIFTRT of the sign-extension
+intermediate by 26. Patched `cse.c:5697-5793` associates repeated operators
+and adds shift counts. Combine later removed the redundant halfword extension
+around the palette mask. Hunting only in combine missed the first decision.
+
+The preplanned successful intervention made the shared word explicit:
+
+```c
+u32 shifted;
+/* Inside the loop, after code = body[i]: */
+shifted = (u32)code << 16;
+sc = (s32)shifted >> 16;
+/* In the glyph arm: */
+palette = (shifted >> 26) & 3;
+```
+
+UID 1281 is now LSHIFTRT by 26 from initial RTL onward. Combine rewrites
+UID 936, the signed comparison value, to ASHIFTRT of the same shifted pseudo
+by 16. Allocation still places shifted in a1 and code in a3, and the entire
+schedule matches. No pins or asm helpers. This extracts exactly bits 10..11
+for every 16-bit code while retaining its signed control-code interpretation.
+
+The prediction was recorded before base_1 compiled at 100%; base_2 changed
+only obsolete pointer casts and retained identical assembly. This is evidence
+for this shared-value intervention, not a rule that named temporaries always
+survive CSE. The router produced no discovery in this retry. Full integration
+passed the unscoped build and lost-match guard. Selected RTL, compiler hash,
+source/input hashes and observations are in
+`tools/compiler_evidence/2026-09-20-actor215100-b3c8.json`.
+Preprocessed input SHA-256: baseline
+`8f849cbb0af7288e598bc7dae359ad72d3cea0b92f8c32afc3a30df05c0eb028`;
+matched controlled variant
+`72244245abeb83887c882427bb09b6743a0c2f6287b091e10f4ec4be300279cb`.

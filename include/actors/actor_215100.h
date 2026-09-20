@@ -8,6 +8,10 @@
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
+s32 func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+s16 func_actor_215100_8014C17C(u16* arg0, s32 arg1);
+s32 func_actor_215100_8014C360(u16* arg0);
+
 /// One entry of the caption script the `actor_215100` overlay plays back.
 ///
 /// `func_actor_215100_8014B2B8` picks a script out of the table at
