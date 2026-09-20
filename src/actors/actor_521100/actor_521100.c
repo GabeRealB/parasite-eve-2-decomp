@@ -96,7 +96,90 @@ s32 func_actor_521100_80132C70(Actor521100* arg0)
 }
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_80132DE8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_80133104);
+void func_actor_521100_80133104(Actor521100* arg0)
+{
+    GsCOORDINATE2*   coord;
+    SVECTOR*         vec;
+    SVECTOR*         head;
+    s16*             clipPtr;
+    s16              frame2;
+    s16              frame3;
+    s16              frame;
+    s16              clip;
+    s16              speed;
+    s32              snd;
+    s32              pan;
+    GsCOORDINATE2*   effectCoord;
+    s32              effect;
+    s32              kind;
+    SVECTOR*         offset;
+    u16*             tbl;
+    u16              clipId;
+    u16              part;
+    u32              rng;
+    Actor521100Work* work;
+
+    head                                           = (SVECTOR*)((Actor521100ScratchStack*)G_SCRATCH_HEAD)->sp;
+    vec                                            = head - 1;
+    ((Actor521100ScratchStack*)G_SCRATCH_HEAD)->sp = (u32)vec;
+    work                                           = arg0->field_1C;
+    frame                                          = (s16)work->field_68A;
+    clipPtr                                        = &D_actor_521100_8015F894[work->field_686];
+    clip                                           = *clipPtr;
+    clipId                                         = (u16)*clipPtr;
+    coord                                          = arg0->field_2C->field_8;
+    if (frame == (clip + 0x1A)) {
+        effect      = 0x60188;
+        kind        = 0xC;
+        effectCoord = coord;
+        SOFT_TOUCH_REG(effectCoord);
+        offset = NULL;
+        SOFT_TOUCH_REG4(effect, kind, effectCoord, offset);
+        Gp_SpawnEff(effect, &effectCoord[8], kind, offset);
+        Gp_SpawnPadLerp(0xA, 0x40, 0xFF);
+    } else if (frame == (clip + 0x1E)) {
+        vec->vx = -0x320;
+        vec->vy = 0x64;
+        vec->vz = 0;
+        Gp_SpawnEff(0x6009C, work->field_654->field_2C->field_8, 0, vec);
+    }
+    frame2 = (s16)work->field_68A;
+    if (frame2 == ((s16)clipId + 0x1C)) {
+        work->field_6AE    = 1;
+        work->obj57C.flags = (u16)(work->obj57C.flags | 0x8000);
+        work->obj59C.flags = (u16)(work->obj59C.flags | 0x8000);
+        snd                = (((u16)arg0->field_20->placeKey >> 0xC) << 8) | 0x401C0008;
+        pan                = (s8)Gp_GetObjPan(coord);
+        SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
+        speed = 0;
+    } else {
+        speed = 0;
+        if (frame2 == ((s16)clipId + 0x28)) {
+            work->field_6A6    = 0;
+            work->obj57C.flags = (u16)(work->obj57C.flags & 0x7FFF);
+            work->obj59C.flags = (u16)(work->obj59C.flags & 0x7FFF);
+        }
+    }
+    frame3 = (s16)work->field_68A;
+    if (frame3 >= ((s16)clipId + 0x1C)) {
+        if (((s16)clipId + 0x1E) >= frame3) {
+            speed = 0x64;
+        }
+    }
+    work->field_69A = speed;
+    if ((s16)work->field_68A >= ((s16)clipId + 0x7A)) {
+        work->field_686 = 1;
+        tbl             = D_actor_521100_8015F5F4;
+        rng             = (Gp_LcgState * 5) + 0x71357911;
+        work->field_69E = 0;
+        work->field_6A0 = 0;
+        part            = tbl[(rng >> 16) & 0xF];
+        Gp_LcgState     = rng;
+        work->field_6AE = 0;
+        work->field_68E = part;
+    }
+    ((Actor521100ScratchStack*)G_SCRATCH_HEAD)->sp += 8;
+}
 
 /// Runs one frame of the burn-out sequence timed off the clip the slots are
 /// playing: `D_actor_521100_8015F894[field_686]` is the clip's own length, read

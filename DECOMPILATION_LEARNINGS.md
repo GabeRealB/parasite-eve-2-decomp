@@ -134415,3 +134415,26 @@ Preprocessed base_13 SHA256: `fb1043d76cfc697cb4f856617e7d4b1da2412fa1fa2562da7c
 Preprocessed base_14 SHA256: `b469a76c3e891929b14493d74cc331dff17b019f132a8b2c596f5baeda82c06d`.
 Evidence: `tools/permuter_findings/func_actor_421600_80134AD4/sessions/da0e948689f04cd6ba5fd9394bea3708/ad30c8995a19a7c5e02b/PERMUTER_EVIDENCE/retry-20260920/`
 contains the paired dumps, extent pass walk, baseline trace and verification log.
+
+
+## Grouped call inputs can put a coordinate increment in the call delay slot without pins
+
+`func_actor_521100_80133104` needed `li a2,12; move a1,s1; move a3,zero; jal Gp_SpawnEff; addiu a1,a1,640`. A single soft coordinate touch preserved the copy and in-place addition, but ordinary argument setup left the a3 clear in the delay slot (98.767%).
+
+Materializing the four arguments through `SOFT_TOUCH_REG4(effect, kind, effectCoord, offset)` makes the increment depend on every input materialization. In base_3, the outputs coalesced into a0/a2/a1/a3, so the hard-register argument copies disappeared and dbr selected the increment. This reached 99.863%, but reload inserted `move a1,s1` immediately before the grouped asm, after the a3 clear. Adding `SOFT_TOUCH_REG(effectCoord)` before `offset = NULL` moved that reload copy to the earlier touch and matched:
+
+```c
+effect = 0x60188;
+kind = 0xC;
+effectCoord = coord;
+SOFT_TOUCH_REG(effectCoord);
+offset = NULL;
+SOFT_TOUCH_REG4(effect, kind, effectCoord, offset);
+Gp_SpawnEff(effect, &effectCoord[8], kind, offset);
+```
+
+The controlled base_4 prediction required both earlier copy placement and unchanged argument homes/delay-slot fill. `.greg` shows copy UID403 before touch UID71 and null UID74; `.sched2` preserves that order and grouped asm UID76 before addiu UID83; `.dbr` puts UID83 in call UID89's delay slot. All penalties became zero. This is a dependency and reload-placement experiment, not evidence that the original source used empty asm. Output coalescing must be checked for each call; no physical register is pinned here.
+
+The port reuses `Actor521100ScratchStack.sp`. Its fixed member access also matters: base_1's scalar scratch store was absent from the work load's scheduler dependencies; base_2's member store UID21 became a dependency of work-load UID24 and restored the prologue. This confirms the existing MEM_IN_STRUCT rule, without changing it.
+
+Evidence: `tools/permuter_findings/func_actor_521100_80133104/` retains session sources and compressed inputs; selected dumps are under `PERMUTER_EVIDENCE/4e43c88700eb4b09/analysis/manual/`. The router missed; these gains are manual experiments. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; base_3 input `d1a901aab076a90787ad2591cbcb3be5f88c62177db371c99ce14d4fb76731b5`; controlled base_4 input `cbc7dc155ee9d2865608905f5f88a033a26bae75b8ccbcf8b8920c4ab42aee9f`. The readable base_5 port remained exact and passed the full unscoped build.
