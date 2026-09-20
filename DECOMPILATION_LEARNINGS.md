@@ -135840,3 +135840,57 @@ Input hashes: baseline `5e4ccd8a15fba52f7b2222d588181ed7f155876b8619bfc5d9e294e1
 matching prediction `c17bc97dcd99747374a72c8ef3a9f3749caa0073f9c976bd039849c8bee87f1e`.
 Selected observations and source/input fingerprints are retained in
 `tools/compiler_evidence/2026-09-20-actor102400-3277c.json`.
+
+## A rematerialized table pointer can change a different load's register and sched2 hazards (func_actor_141000_801323F0, 2026-09-20)
+
+A controlled normal-header port of a permuter discovery (`base_2`) improved
+345 -> 90 distance. It only assigned D_actor_141000_80134878 to an SVECTOR
+pointer between the identity stores and used that pointer in its two loops.
+The paired normalized baseline was object-identical to the seed. The pointer
+never gets a permanent register: its two-instruction materialization survives
+through lreg and is replaced by reload rematerialization at each loop setup.
+Nevertheless it has already changed two earlier decisions.
+
+First, the extra insns extend two vector-address live spans from 111/114 to
+113/116, straddling x0's unchanged 115. All have five weighted references;
+the actual global trace orders &b, x0, &a, placing them in s2/s3/s4. Second,
+the table high's local quantity takes v0 and overlaps the scale high; the
+scale high therefore takes v1 while the identity constant remains in v0.
+
+Scale still follows the stores in sched1. In sched2 the v1 load is independent
+of the v0 stores. At backward cycle 8 it is ready and preferred by the
+comparator, but the last store wins potential hazard (6860800 vs 6758400).
+Subsequent stores block the load for one cycle each; it finally issues at
+cycle 14, placing it before all stores in forward assembly. Thus the visible
+load reorder depends on an allocation changed by code that reload removed.
+Neither source order nor the comparator alone explains it.
+
+The final exact body uses a simpler independent pair of fixes. The apparent
+scalar D_80071078 is `gDisplayState.screenDistance`, offset 0x110. Reading the
+actual member restores MEM/s and the anti-dependencies from the two
+pointer-based matrix stores to the scale load (preplanned base_1). A read-only
+`USE_REG(x0)` after the first loop adds one reference, giving x0 6/116 and
+placing it before &b 5/111 and &a 5/114 (preplanned base_6). A read-write
+identity is not interchangeable: it adds a second definition, moves the
+initial coordinate load, and can alter loop scheduling. base_3 folded the
+load into its asm input; base_4 kept them separate but sched1 moved both early.
+
+base_6 has only distance10 from equivalent relocation spellings; a scratch
+aggregate alias preserving D_80071078 confirms 100% with zero penalties in
+base_7 and the current-header base_8. Integration uses the actual display
+member. Exact-match verification still requires the unscoped build.
+
+The primary controlled input SHA256 is
+`9e12cfa6fc2d97c70706bc2d1b5c8b6da0f4eebab8f789464328177797945848`;
+the bundled compiler SHA256 is
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+[Selected events, plans and build hashes](tools/compiler_evidence/2026-09-20-actor141000-323f0.json)
+retain the observations. Full trace is archived under the function's
+permuter findings, run `5ecc03bd863947bc/analysis`. Observation leaves assembly
+identical. This is evidence for the specific overlap/hazard chain, not a rule
+that named table pointers improve codegen.
+
+The production port subsequently passed the unscoped
+`./tools/build-and-verify.sh` with `✅ BUILD SUCCEEDED`; the lost-match check
+also passed. Final scratch and integration evidence are preserved in
+`tools/permuter_findings/func_actor_141000_801323F0/sessions/5c4f47d0e4554bffabe46aeeb773071a/cdf68c94da0eb0773bb9`.

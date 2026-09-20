@@ -6,10 +6,16 @@
 #include "gameplay/3CD8.h"
 
 #include "main/display.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include <psyq/inline_c.h>
+
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 extern s32 D_80070F70;
 
@@ -133,7 +139,124 @@ void func_actor_141000_80131E94(Actor141000* arg0, Actor141000Point* arg1, s32 a
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000", func_actor_141000_801323F0);
+void func_actor_141000_801323F0(Actor141000* arg0, Actor141000Point* arg1, s32* arg2, s32* arg3)
+{
+    SVECTOR              a;
+    SVECTOR              b;
+    MATRIX               rot;
+    Actor141000Proj      proj[2];
+    Task*                parent;
+    MATRIX*              mtx;
+    SVECTOR*             src;
+    s16                  t;
+    s16                  r;
+    s32                  scale;
+    Actor141000MatWords* words;
+    s32                  i;
+    u16                  f;
+    u16                  x0;
+    s32                  y0;
+    u16                  x1;
+    s32                  y1;
+    s32                  dx;
+    s32                  dy;
+
+    parent = ((Task*)arg0)->spawnArg2;
+    mtx    = &((TmdObject*)parent->extra)->coords->coord;
+    f      = ((Actor141000CtrlWork*)parent->work)->field_0;
+    a.vx   = D_actor_141000_80134868[0].vx;
+    a.vy   = D_actor_141000_80134868[0].vy;
+    a.vz   = D_actor_141000_80134868[0].vz;
+    src    = &D_actor_141000_80134868[1];
+    b.vx   = src->vx;
+    b.vy   = src->vy;
+    b.vz   = src->vz;
+    gte_SetRotMatrix(mtx);
+    gte_ldv0(&a);
+    gte_rtv0_real();
+    gte_stsv(&a);
+    gte_ldv0(&b);
+    gte_rtv0_real();
+    gte_stsv(&b);
+    t     = (double)(s16)f;
+    b.vx  = a.vx + (b.vx - a.vx) * t / 4096;
+    b.vy  = a.vy + (b.vy - a.vy) * t / 4096;
+    b.vz  = a.vz + (b.vz - a.vz) * t / 4096;
+    a.vx += mtx->t[0];
+    a.vy += mtx->t[1];
+    a.vz += mtx->t[2];
+    b.vx += mtx->t[0];
+    b.vy += mtx->t[1];
+    b.vz += mtx->t[2];
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_ldv0(&a);
+    gte_rtps_real();
+    gte_stsxy(&proj[0].sxy);
+    gte_stdp(&proj[0].z);
+    gte_stflg(arg3);
+    gte_stszotz(arg2);
+    gte_ldv0(&b);
+    gte_rtps_real();
+    gte_stsxy(&proj[1].sxy);
+    gte_stdp(&proj[0].z);
+    gte_stflg(arg3);
+    gte_stszotz(&proj[1].z);
+    dy                                    = proj[0].sxy.vy - proj[1].sxy.vy;
+    dx                                    = proj[1].sxy.vx - proj[0].sxy.vx;
+    x1                                    = proj[1].sxy.vx;
+    x0                                    = proj[0].sxy.vx;
+    y0                                    = proj[0].sxy.vy;
+    y1                                    = proj[1].sxy.vy;
+    i                                     = ratan2(dx, dy);
+    scale                                 = gDisplayState.screenDistance;
+    ((Actor141000MatWords*)&rot)->m00_m01 = 0x1000;
+    ((Actor141000MatWords*)&rot)->m02_m10 = 0;
+    words                                 = (Actor141000MatWords*)&rot;
+    words->m11_m12                        = 0x1000;
+    ((Actor141000MatWords*)&rot)->m20_m21 = 0;
+    words->m22                            = 0x1000;
+    RotMatrixZ(i, &rot);
+    gte_SetRotMatrix(&rot);
+    for (i = 0; i < 6; i++) {
+        a.vx = D_actor_141000_80134878[i].vx * scale / *arg2;
+        a.vy = D_actor_141000_80134878[i].vy * scale / *arg2;
+        gte_ldv0(&a);
+        gte_rtv0_real();
+        gte_stsv(&b);
+        arg1[i].field_0 = b.vx + x0;
+        arg1[i].field_2 = b.vy + y0;
+    }
+    USE_REG(x0);
+    for (i = 0; i < 6; i++) {
+        a.vx = D_actor_141000_801348A8[i].vx * scale / proj[1].z;
+        a.vy = D_actor_141000_801348A8[i].vy * scale / proj[1].z;
+        gte_ldv0(&a);
+        gte_rtv0_real();
+        gte_stsv(&b);
+        arg1[i + 6].field_0 = b.vx + x1;
+        arg1[i + 6].field_2 = b.vy + y1;
+    }
+    r = 0x2000 - rsin(((Task*)arg0)->killCountdown);
+    for (i = 0; i < 6; i++) {
+        a.vx = ((D_actor_141000_80134878[i].vx * r) >> 12) * scale / *arg2;
+        a.vy = ((D_actor_141000_80134878[i].vy * r) >> 12) * scale / *arg2;
+        gte_ldv0(&a);
+        gte_rtv0_real();
+        gte_stsv(&b);
+        arg1[i + 12].field_0 = b.vx + x0;
+        arg1[i + 12].field_2 = b.vy + y0;
+    }
+    for (i = 0; i < 6; i++) {
+        a.vx = ((D_actor_141000_801348A8[i].vx * r) >> 12) * scale / proj[1].z;
+        a.vy = ((D_actor_141000_801348A8[i].vy * r) >> 12) * scale / proj[1].z;
+        gte_ldv0(&a);
+        gte_rtv0_real();
+        gte_stsv(&b);
+        arg1[i + 18].field_0 = b.vx + x1;
+        arg1[i + 18].field_2 = b.vy + y1;
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_141000/actor_141000", D_actor_141000_80131E20);
 

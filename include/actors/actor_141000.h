@@ -18,6 +18,16 @@ typedef struct Actor141000Point {
     /* 0x4 */ byte pad_4[4];
 } Actor141000Point;
 
+typedef struct Actor141000Proj {
+    /* 0x0 */ DVECTOR sxy;
+    /* 0x4 */ s32     z;
+} Actor141000Proj;
+STATIC_ASSERT_SIZEOF(Actor141000Proj, 0x8);
+
+extern SVECTOR D_actor_141000_80134868[2];
+extern SVECTOR D_actor_141000_80134878[];
+extern SVECTOR D_actor_141000_801348A8[];
+
 /// Work block allocated by `func_actor_141000_8013392C` (`memCalloc(0x4CC)`)
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_141000_801339DC` republishes the two matrices
