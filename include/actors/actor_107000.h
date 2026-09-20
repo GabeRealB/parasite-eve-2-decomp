@@ -179,7 +179,8 @@ typedef struct Actor107000Spawn2Work {
     /* 0x24C */ GpRec18        field_24C[4];
     /* 0x2AC */ GpObj          obj3;
     /* 0x2CC */ GpRec18        field_2CC[1];
-    /* 0x2E4 */ byte           pad_2E4[0x78];
+    /* 0x2E4 */ SVECTOR        rotation;  // reaction rotation applied to model coordinates 3 and 5
+    /* 0x2EC */ byte           pad_2EC[0x70];
     /* 0x35C */ GsCOORDINATE2* field_35C; // the model's second coordinate
     /* 0x360 */ u16            field_360;
     /* 0x362 */ u16            field_362;

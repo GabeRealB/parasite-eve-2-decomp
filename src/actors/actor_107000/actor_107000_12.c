@@ -6,8 +6,6 @@
 
 void func_actor_107000_80136094(Task* arg0, s32 arg1);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_12", func_actor_107000_801381B0);
-
 /// Per-frame reaction handler: folds the generic hit flags into the enemy's
 /// flag byte, applies a pending hit, and drops the work to its death pose when
 /// the hit lands.
