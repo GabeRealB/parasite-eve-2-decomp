@@ -7,6 +7,8 @@
 
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/mc.h"
+#include "main/wipsys.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "actors/actor_800100.h"
@@ -509,7 +511,137 @@ void func_actor_800100_801631C8(Task* arg0)
     Gp_ReleaseState1CMem(temp_s1, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_80163214);
+void func_actor_800100_80163214(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    TmdObject*     extra;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* next;
+    GsCOORDINATE2* third;
+    McSaveData*    save;
+    GpRec18*       recs;
+    GpObj*         obj;
+    GpActorD4*     d4;
+    GpEffWork*     eff;
+    Task*          task;
+    SVECTOR3*      scratch;
+    s32            idx;
+    s32            packed;
+    u8             saved;
+    void*          head;
+
+    actor                   = arg0->actor;
+    head                    = *(void**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = head - 8;
+    scratch                 = (SVECTOR3*)(head - 8);
+    extra                   = arg0->extra;
+    coord                   = extra->coords;
+    arg0->state++;
+    arg0->field_24   = &D_actor_800100_80167130;
+    arg0->field_18   = func_actor_800100_80163C04;
+    actor->field_938 = 0x14;
+    Gp_ActorSlots[1] = arg0;
+    coord->sub       = &gGfxViewCoord;
+    coord->flg       = 0;
+    extra->flags     = 0;
+    RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);
+    func_8010BFCC(arg0);
+    actor->field_985 = 0x10;
+    Gp_AnimResetChildSlots(arg0, actor->field_93C);
+    Gp_AnimTickChildSlots(arg0);
+    recs            = actor->field_17C;
+    obj             = (GpObj*)actor->field_AC;
+    actor->field_10 = coord->coord.t[0];
+    actor->field_14 = coord->coord.t[1];
+    actor->field_18 = coord->coord.t[2];
+    obj->ctx.dir    = (GpObjDirRec*)actor->field_88;
+    obj->coord      = coord;
+    actor->field_90 = (s32)recs;
+    save            = &Mc_SaveData;
+    obj->pos.vy     = -0x12C;
+    obj->pos.vx     = 0;
+    obj->pos.vz     = 0;
+    packed          = 0x10000;
+    {
+        s32 temp;
+
+        temp        = save->characterId;
+        obj->radius = 0x12C;
+        obj->flags  = 4;
+        obj->key    = temp | packed | 0x80;
+        Gp_LinkObj(0, obj);
+    }
+    Gp_InitRec18Table((GpRec18*)actor->field_90, 0x12, 0);
+    obj->flags     |= 0xC200;
+    next            = arg0->extra->coords + 4;
+    obj             = (GpObj*)actor->field_CC;
+    obj->ctx.dir    = (GpObjDirRec*)actor->field_94;
+    obj->coord      = next;
+    actor->field_9C = (s32)recs;
+    obj->pos.vx     = 0;
+    obj->pos.vy     = 0x64;
+    obj->pos.vz     = 0;
+    {
+        s32 f = 0x14;
+        s32 temp;
+
+        temp        = save->characterId;
+        obj->radius = 0xDC;
+        obj->flags  = f;
+        obj->key    = temp | packed | 0x80;
+        Gp_LinkObj(0, obj);
+    }
+    obj->flags     |= 0x8000;
+    obj             = (GpObj*)actor->field_EC;
+    third           = arg0->extra->coords;
+    obj->ctx.dir    = (GpObjDirRec*)actor->field_A0;
+    obj->coord      = third + 1;
+    actor->field_A8 = (s32)recs;
+    obj->pos.vx     = 0;
+    obj->pos.vy     = 0x52;
+    obj->pos.vz     = 0;
+    {
+        s32 temp;
+
+        temp        = save->characterId;
+        obj->radius = 0xDC;
+        obj->flags  = 4;
+        obj->key    = temp | packed | 0x80;
+        Gp_LinkObj(0, obj);
+    }
+    obj->flags            |= 0xC000;
+    actor->field_984       = 7;
+    saved                  = Player_Status.field_26;
+    Player_Status.field_26 = save->companionVariant;
+    actor->field_920       = func_80104258(arg0, 0, 5, 1);
+    actor->field_924       = func_80104258(arg0, 1, 5, 1);
+    Player_Status.field_26 = saved;
+    if (actor->field_924 != NULL) {
+        task             = func_80104364((GpActorWork*)actor->field_924, save->companionType + 1, save->companionVariant, 0);
+        actor->field_91C = task;
+        if (task != NULL) {
+            d4  = actor->field_910;
+            idx = D_actor_800100_80167218[save->companionVariant];
+            Gp_AttachActorObj(arg0, idx, D_actor_800100_80167224[save->companionVariant]);
+            actor->field_124 |= 0x80;
+            d4->actionCount   = D_actor_800100_80167230[save->companionVariant];
+            if ((u8)save->companionVariant == 4) {
+                eff = Gp_SpawnEff(0x80060180, ((TmdObject*)actor->field_91C->extra)->coords, idx, 0);
+                if (eff != NULL) {
+                    actor->field_914 = eff->task;
+                    Task_Reparent((Task*)arg0, eff->task);
+                    func_80106350(arg0, idx, 0);
+                }
+            }
+        }
+    }
+    scratch->vx = 0;
+    scratch->vy = -0x200;
+    scratch->vz = 0;
+    Gp_BindActorD4(arg0, scratch, 0x1000);
+    func_8010BF7C(arg0, 0x3C, 0x7F);
+    *(u32*)G_SCRATCH_HEAD += 8;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_801635F4);
 

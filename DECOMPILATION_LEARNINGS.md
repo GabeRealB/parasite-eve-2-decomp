@@ -135315,3 +135315,36 @@ The canonical-member port passed unscoped `./tools/build-and-verify.sh`
 with `✅ BUILD SUCCEEDED`. Selected sources, plans, hashes, UID 113 dumps,
 scheduling orders, register dispositions and verification output are retained
 in `tools/compiler_evidence/2026-09-20-actor800100-66f50.json`.
+
+## A scalar alias of an actor-slot array hides scheduler dependencies (func_actor_800100_80163214, 2026-09-20)
+
+The retry seed reproduced 97.784% after field-name repairs. Its entry published
+`D_80115764 = arg0` early, taking v0 and pushing the scratchpad address into a1.
+The symbol map identifies this address as `Gp_ActorSlots[1]`. Baseline UID 61 is
+`mem:SI` and depends only on its address producer; the fixed-scalar/varying-struct
+exemptions in `sched.c:807-906` remove its memory edges. This is a dependency
+problem, not an unexplained equal-priority scheduler tie: the backward schedule
+has priority 1 for this store and higher priorities for the intervening stores.
+
+The preplanned array-access change made UID 61 `mem/s:SI`. Sched1 added output
+edges from stores 39/45/51/56 and anti-edges from loads 11/29/32/35. The publish
+returned to the target position, scratch r96 returned to v0, and saved homes
+remained unchanged: 98.324%.
+
+The remaining two nops came from obj3 coordinate loads written below its ctx
+store. Moving those loads earlier removed both nops but reusing obj2's `next`
+made that pseudo die twice and become globally allocated in v1, disturbing
+obj2 too. A second preplanned edit gave obj3 its own `third` temporary; both
+coordinate values became local in v0 and all instructions matched. No pins or
+asm helpers were needed. Exact quantity ranking was not traced.
+
+Canonical `Gp_ActorSlots[1]` scores 99.960% only because the object scorer treats
+`Gp_ActorSlots+4` and `D_80115764` as different relocation names. A scratch array
+view `D_80115764[0]` scored 100.000% with all penalties zero. The production
+source uses the canonical array and passed unscoped `./tools/build-and-verify.sh`.
+
+Sources, plans, selected dumps, compiler/input hashes and verification are in
+`tools/compiler_evidence/2026-09-20-actor800100-63214.json`. Baseline input:
+`43161df3820239e05881ee7a4ccf334e0623d5f0cccfd63eb5f2e027626f6fee`;
+array-access input:
+`eba63f09f1c7e8b8e0f20c74225ed64ff37ee9ac8cde746b20b86426ef9bf0db`.

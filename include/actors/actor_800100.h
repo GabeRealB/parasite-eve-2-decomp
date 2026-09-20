@@ -145,6 +145,11 @@ extern u32 Gp_LcgState;
 /// Translation the flare's own coordinate starts at, `(0, 0x200, 0x40)`.
 extern SVECTOR D_actor_800100_80167128;
 
+extern void D_actor_800100_80167130;
+extern s16  D_actor_800100_80167218[];
+extern s16  D_actor_800100_80167224[];
+extern u8   D_actor_800100_80167230[];
+
 void func_actor_800100_80162264(VECTOR3* arg0, u16 arg1, s32 arg2);
 /// Draws one frame of the launched projectile's spinning sprite at `pos`:
 /// `frame` walks the twelve windows of `D_80111E48`, `width` is the flare's
@@ -153,6 +158,7 @@ void func_actor_800100_80162264(VECTOR3* arg0, u16 arg1, s32 arg2);
 void func_actor_800100_80162A14(VECTOR3* pos, u16 frame, u16 width, s16 ang);
 void func_actor_800100_80162E90(VECTOR3* arg0, s32 arg1);
 void func_actor_800100_801631C8(Task* arg0);
+void func_actor_800100_80163214(GpActorWork* arg0);
 void func_actor_800100_80163C04(GpActorWork* arg0);
 void func_actor_800100_80163D54(GpActorWork* arg0);
 void func_actor_800100_801655C0(GpActorWork* arg0);
