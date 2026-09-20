@@ -419,7 +419,184 @@ void func_actor_107000_80132674(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000", func_actor_107000_8013283C);
+void func_actor_107000_8013283C(Task* arg0)
+{
+    s32                        damageState;
+    TmdObject*                 object;
+    GpEnemy*                   enemy;
+    GpRec18*                   effectRec;
+    VECTOR*                    normal;
+    VECTOR*                    delta;
+    s16                        cooldown;
+    s32                        stage;
+    s32                        contactStage;
+    s32                        effect;
+    s32                        pushY;
+    s32                        movement;
+    s32                        dx;
+    s32                        dz;
+    s32                        wallDx;
+    s32                        wallDz;
+    s32                        hitCooldown;
+    s32                        boundedDepth;
+    s32                        distance;
+    s32                        z;
+    u32                        id;
+    u32                        damage;
+    Actor107000Work*           work;
+    GsCOORDINATE2*             coord;
+    void*                      scratchHead;
+    Actor107000ContactScratch* scratch;
+    Actor107000Work*           contact;
+
+    work        = (Actor107000Work*)arg0->work;
+    scratchHead = (void*)(*(u32*)0x1F8003FC -= 0x4C);
+    enemy       = arg0->spawnArg2;
+    object      = arg0->extra;
+    SOFT_TOUCH_REG_USE(object, scratchHead);
+    coord    = object->coords;
+    scratch  = scratchHead;
+    movement = func_800E0C10(work->field_154, &scratch->delta, 4, &scratch->result);
+    switch (movement) {
+        case 0:
+            break;
+        case 1:
+            coord->coord.t[0] = (s32)(coord->coord.t[0] + scratch->delta.vx.h.hi);
+            coord->coord.t[1] = (s32)(coord->coord.t[1] + scratch->delta.vy.h.hi);
+            z                 = coord->coord.t[2] + scratch->delta.vz.h.hi;
+            coord->coord.t[2] = z;
+            break;
+        case 2:
+            coord->coord.t[0] = (s32)work->field_274.vx;
+            coord->coord.t[1] = (s32)work->field_274.vy;
+            z                 = work->field_274.vz;
+            coord->coord.t[2] = z;
+            break;
+    }
+    if (work->field_2CE != 0) {
+        cooldown        = (u16)work->field_2CE - 1;
+        work->field_2CE = cooldown;
+        if ((cooldown << 0x10) <= 0) {
+            work->field_2CE = 0;
+        }
+    }
+    dx                  = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    scratch->delta.vx.w = dx;
+    scratch->delta.vy.w = (s32)(Player_Status.coordMtx->t[1] - coord->coord.t[1]);
+    dz                  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    scratch->delta.vz.w = dz;
+    distance            = SquareRoot0((dx * dx) + (dz * dz));
+    if (distance < 0x320) {
+        stage = work->field_2C8;
+        delta = (VECTOR*)&scratch->delta;
+        if (stage == 1) {
+            work->field_2D2 = stage;
+            work->field_2C8 = 2;
+            goto delta_ready;
+        }
+    } else {
+    delta_ready:
+        delta = (VECTOR*)&scratch->delta;
+    }
+    damageState = 2;
+    contact     = work;
+contact_loop:
+    do {
+        id = contact->field_154[0].key;
+        switch (id & 0xFFFF0000) {
+            case 0x10000:
+                contactStage = work->field_2C8;
+                if (contactStage == 1) {
+                    work->field_2D2 = contactStage;
+                    work->field_2C8 = 2;
+                }
+                break;
+            case 0x20000:
+                if (work->field_2CE == 0) {
+                    damage = Gp_ComputeDamage(id, (u32)distance, 0, 0);
+                    if (Gp_RollEnemyChance(arg0->spawnArg2, contact->field_154[0].key, 0) != 0) {
+                        func_actor_107000_801334C8(arg0, 1U);
+                        arg0->killCountdown = 5;
+                        arg0->state         = damageState;
+                        work->field_2B4     = 0;
+                        enemy->hp           = -1;
+                    } else {
+                        func_800E2C78((GpObj40*)enemy, (s32)contact->field_154[0].key, (s32)damage, 0);
+                        func_actor_107000_80132D8C(arg0, (s32)damage);
+                        effect = Gp_GetIdParam0((s32)contact->field_154[0].key) & 0xFFFF;
+                        if (effect == damageState)
+                            goto effect_flag2;
+                        if (effect < 3) {
+                            if (effect == 1)
+                                goto effect_react;
+                        } else {
+                            if (effect == 3)
+                                goto effect_flag4;
+                            if (effect == 9)
+                                goto effect_flag2;
+                        }
+                        goto effect_done;
+                    effect_react:
+                        work->field_2D2 = effect;
+                        work->field_2C8 = damageState;
+                        goto effect_done;
+                    effect_flag4:
+                        Gp_SetObjFlag4((GpObj5C*)enemy, contact->field_154[0].key, 0);
+                        goto effect_done;
+                    effect_flag2:
+                        Gp_SetObjFlag2((GpObj5D*)enemy, contact->field_154[0].key, 0);
+                    effect_done:
+                        if (enemy->hp > 0) {
+                            func_800FDB18(Gp_GetIdParam1((s32)contact->field_154[0].key) & 0xFFFF, ((TmdObject*)arg0->extra)->coords + 1, NULL, &work->field_284);
+                        }
+                        hitCooldown = Gp_GetIdParam2((s32)contact->field_154[0].key);
+                        if ((hitCooldown << 0x10) > 0) {
+                            work->field_2CE = (s16)hitCooldown;
+                        }
+                    }
+                }
+                break;
+            case 0x30000:
+                wallDx              = coord->workm.t[0] - contact->field_154[0].point.vx;
+                scratch->delta.vy.w = 0;
+                scratch->delta.vx.w = wallDx;
+                wallDz              = coord->workm.t[2] - contact->field_154[0].point.vz;
+                scratch->delta.vz.w = wallDz;
+                distance            = contact->field_154[0].depth - SquareRoot0((wallDx * wallDx) + (wallDz * wallDz));
+                boundedDepth        = distance;
+                if (distance <= 0) {
+                    boundedDepth = 0;
+                }
+                SOFT_TOUCH_REG_USE(boundedDepth, distance);
+                distance            = boundedDepth;
+                scratch->delta.vx.w = (s32)(coord->workm.t[0] - contact->field_154[0].point.vx);
+                normal              = &scratch->normal;
+                scratch->delta.vy.w = (s32)(coord->workm.t[1] - contact->field_154[0].point.vy);
+                scratch->delta.vz.w = (s32)(coord->workm.t[2] - contact->field_154[0].point.vz);
+                VectorNormal(delta, normal);
+                ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, normal, delta);
+                if ((u32)((u16)work->field_2B8 - 1) < 2U) {
+                    coord->coord.t[0] = (s32)(coord->coord.t[0] + ((s32)(distance * scratch->delta.vx.w) >> 0xC));
+                    pushY             = distance * scratch->delta.vy.w;
+                    if (pushY < 0) {
+                        coord->coord.t[1] = (s32)(coord->coord.t[1] + (pushY >> 0xC));
+                    }
+                    coord->coord.t[2] = (s32)(coord->coord.t[2] + ((s32)(distance * scratch->delta.vz.w) >> 0xC));
+                }
+                break;
+        }
+        contact = (Actor107000Work*)((u8*)contact + 0x18);
+        if ((s32)contact < (s32)((u8*)work + 0x60))
+            goto contact_loop;
+    } while (0);
+    Gp_ClearRec18Occupied(work->field_154);
+    effectRec = &work->field_1D4;
+    if ((work->field_2C8 != 0) && (Gp_FindRec18(effectRec, 0) != 0)) {
+        work->field_1D2 = (u16)((u16)work->field_1D2 & 0x7FFF);
+        Gp_ClearRec18Occupied(effectRec);
+    }
+    *(u32*)0x1F8003FC += 0x4C;
+}
 
 /// Damage reaction of the caged specimen. `arg1` is taken off the context's
 /// HP, the same amount is pushed through the lock-slot updater, and a depleted
