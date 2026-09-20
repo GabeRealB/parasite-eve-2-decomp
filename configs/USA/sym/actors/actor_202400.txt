@@ -18,3 +18,7 @@ ActorsShared80133830 = 0x8014B830; // shared body, see src/actors/lib/
 Actor02400_Fn0208C = 0x8014BEAC; // shared body, see src/actors/lib/
 ActorsShared80133d94 = 0x8014BD94; // shared body, see src/actors/lib/
 ActorsShared801333b0 = 0x8014B3B0; // shared body, see src/actors/lib/
+Actor02400_BodyPairs = 0x8014E3C4; // overlay-local data used by shared spawn handler
+Actor02400_Params0 = 0x8014E3D4; // overlay-local data used by shared spawn handler
+Actor02400_Params1 = 0x8014E3E4; // overlay-local data used by shared spawn handler
+ActorsShared8013277c = 0x8014A77C; // shared body, see src/actors/lib/

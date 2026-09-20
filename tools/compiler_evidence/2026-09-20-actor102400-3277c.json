@@ -1,0 +1,23 @@
+{
+  "function": "func_actor_102400_8013277C",
+  "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+  "prediction": "SCHED_BARRIER after hp store prevents the zero argument from crossing that store in sched2, preserving other instruction order and register homes.",
+  "result": "base_1 distance 160 -> base_2 distance 0; base_3 type cleanup remains 0",
+  "inputs": {
+    "base_1.c": "78e9fbceb5d1cd95a5477d7aeceaa150263ff7ecf22ed1483f561db5be3e9e73",
+    "base_1.i": "5e4ccd8a15fba52f7b2222d588181ed7f155876b8619bfc5d9e294e17c97df48",
+    "base_2.c": "ae71226b4d0437f8be56e4ee7724e4a745d6c97241d1b0cb3301b2ac4060c284",
+    "base_2.i": "c17bc97dcd99747374a72c8ef3a9f3749caa0073f9c976bd039849c8bee87f1e",
+    "base_3.c": "5aa5dad708b1e5a9651c23d0318aeac6d88a91cbc89fc073069ee1a26f08a8c2",
+    "base_3.i": "3242a165822d946b48f3fee3292adc60a760c4c6a50c088ed4ba72204083932a"
+  },
+  "observations": [
+    "base_1 sched2 backward T-81: ready 176 priority 1 and 154 priority 2; hp store 154 scheduled, then zero argument 176, then load 152.",
+    "base_2 sched2: basic asm UID 156 has REG_DEP_ANTI to hp store 154; a0=0 UID 178 has REG_DEP_OUTPUT to asm 156.",
+    "All global register dispositions match across base_1/base_2. Task span increases 262->264, coord 69->70, work 122->123.",
+    "Exact resulting sequence: lhu v0,4(v0); nop; sh v0,64(s1); move a0,zero; lw v0,44(s4)."
+  ],
+  "compiler_source": "local/gcc/gcc-2.8.1-psx/sched.c:1973-2000",
+  "scope": "A single basic-asm scheduling boundary, no instruction-emitting asm or register pins. Does not establish a barrier-free original source shape.",
+  "permuter": "Bounded router found no discoveries; no permuter mutation contributed."
+}

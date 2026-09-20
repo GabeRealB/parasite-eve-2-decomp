@@ -135818,3 +135818,25 @@ Matching input hash: `36328c12d489ce6a559888719b524547bd9c9d6b8f51a1c28ace2a75a9
 Selected dump evidence, other input hashes and validation:
 [2026-09-20-actor136100-32748.json](tools/compiler_evidence/2026-09-20-actor136100-32748.json).
 Full sources and dumps are retained in the function's `tools/permuter_findings/` archive.
+
+## Keep an independent zero argument after a halfword store with a scheduling boundary (func_actor_102400_8013277C, 2026-09-20)
+
+The unpinned archived seed reproduced 99.064%: `reorder=1 delete=1`. Sched1
+kept the HP load/store adjacent, but sched2 placed the later call's `a0=0`
+between them. At backward T-81, store UID 154 had priority 2, while the
+independent argument UID 176 had priority 1; the argument filled the load delay.
+A preplanned `SCHED_BARRIER()` immediately after `enemy->hp = enemy->param->hpMax`
+restored `lhu / nop / sh / move a0,zero / lw` and matched exactly.
+
+The new basic asm UID 156 depends on the store, and argument UID 178 gains
+`REG_DEP_OUTPUT` to that asm in sched2. Global allocation dispositions stay
+unchanged despite task/coord/work live spans increasing by 2/1/1. The patched
+`sched.c:1973-2000` handles basic asm as using/clobbering all scheduling registers
+and flushing memory lists. This is a verified boundary mechanism, not evidence
+that the original source used a barrier. No pins or instruction-emitting asm.
+
+Bundled compiler hash: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Input hashes: baseline `5e4ccd8a15fba52f7b2222d588181ed7f155876b8619bfc5d9e294e17c97df48`,
+matching prediction `c17bc97dcd99747374a72c8ef3a9f3749caa0073f9c976bd039849c8bee87f1e`.
+Selected observations and source/input fingerprints are retained in
+`tools/compiler_evidence/2026-09-20-actor102400-3277c.json`.

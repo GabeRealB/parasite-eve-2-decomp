@@ -1,211 +1,125 @@
 #include "common.h"
+#include "actors/actor_102400_fn0208c.h"
+#include "gameplay/3A34.h"
+#include "main/sound.h"
+#include "main/wipsys.h"
 
-#include "actors/actors_shared_801351d4.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/gfx.h"
+/// Declared as an array: a scalar extern lets sched1 hoist the `field_130`
+/// load above the store (`fixed_scalar_and_varying_struct_p`).
+extern s8       D_8011540B[1];
+extern u32      Gp_LcgState;
+extern TaskDesc D_actor_102400_8013647C[];
+/// Frames state 1 waits before spawning, indexed by `field_14E`.
+extern s16 D_actor_102400_801363F4[];
 
-#include <psyq/libgte.h>
-#include <psyq/inline_c.h>
-
-extern s32 D_80115728;
-extern s32 Gp_LcgState;
-
-/// Set nonzero while the game is paused / in a menu; the actor's tick handler
-/// is skipped in that state.
-extern u8  D_801153F4;
-extern s32 D_80115754;
-
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void func_actor_102400_80131E84(GsCOORDINATE2* arg0, s32 arg1);
-s32  func_800E1B24(s32 arg0);
-
-/// The enemy's three state handlers - spawn/setup, per-frame tick and
-/// teardown - dispatched through by state.
-extern GpEnemyTaskFuncTable3 D_actor_102400_80131E24;
-extern GpU16Pair             D_actor_102400_801363C4;
-
-/// Spawn/setup handler (state 0): allocates the work block, attaches the
-/// model 0x15E above the parent through the scratch stack, links the three
-/// display nodes, arms the death timer and moves the task to state 1.
-void func_actor_102400_801345B0(GpEnemy* arg0, Task* arg1)
+/// Grow-and-spawn sequence driven by `field_13E`: state 0 pulses the scale up
+/// until Y passes 0x1C00 (task state 2), state 1 faces the player while Y
+/// wobbles around 0x1C00, state 2 spawns the table entry and plays the sound,
+/// and state 3 shrinks the scale back to its floor before re-arming the
+/// 30..61 frame idle wait.
+void func_actor_102400_801339B0(Actor02400Scale* arg0)
 {
-    ActorsShared801351d4Parent*  parentWork;
-    Task*                        parent;
-    ActorsShared801351d4Work*    work;
-    ActorsShared801351d4Scratch* scratch;
-    void*                        head;
-    GsCOORDINATE2*               objCoord;
-    GsCOORDINATE2*               objCoord2;
-    GsCOORDINATE2*               objCoord3;
-    SVECTOR*                     offset;
-    GsCOORDINATE2*               coord;
-    GsCOORDINATE2*               parentCoord;
+    Actor02400ScaleWork* work;
+    GsCOORDINATE2*       coord;
+    s32                  flags;
+    s32                  sound;
+    s32                  pan;
+    Task**               task;
+    VECTOR*              delta;
+    VECTOR*              scratchEnd;
 
-    head                = *(void**)0x1F8003FC;
-    scratch             = (ActorsShared801351d4Scratch*)((u8*)head - 0x18);
-    *(void**)0x1F8003FC = scratch;
-    offset              = &scratch->offset;
-    parent              = arg1->parent;
-    coord               = ((TmdObject*)arg1->extra)->coords;
-    parentCoord         = ((TmdObject*)parent->extra)->coords;
-    parentWork          = (ActorsShared801351d4Parent*)parent->work;
-    work                = memCalloc(0xB4, 0);
-    if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
-        return;
-    }
-    arg1->work         = (TaskIdMap*)work;
-    scratch->offset.vx = 0;
-    scratch->offset.vy = -0x15E;
-    scratch->offset.vz = 0;
-    gte_SetRotMatrix(&parentCoord->coord);
-    gte_ldv0(offset);
-    __asm__ volatile("nop; nop; .word 0x4A486012");
-    gte_stlvnl(&scratch->result);
-    coord->sub        = &gGfxViewCoord;
-    coord->coord      = parentCoord->coord;
-    coord->coord.t[0] = parentCoord->coord.t[0] + scratch->result.vx;
-    coord->coord.t[1] = parentCoord->coord.t[1] + scratch->result.vy;
-    coord->coord.t[2] = parentCoord->coord.t[2] + scratch->result.vz;
-    coord->flg        = 0;
-    work->field_A8    = parentCoord->coord.m[0][2];
-    work->field_AA    = parentCoord->coord.m[1][2];
-    work->field_AC    = parentCoord->coord.m[2][2];
-
-    objCoord             = ((TmdObject*)arg1->extra)->coords;
-    work->obj_0.ctx.recs = &work->rec_40;
-    work->obj_0.pos.vx   = 0;
-    work->obj_0.pos.vy   = 0;
-    work->obj_0.pos.vz   = 0;
-    work->obj_0.coord    = objCoord;
-    work->obj_0.key      = Gp_PackPair(&D_actor_102400_801363C4, (parentWork->field_14E * 2) | 1);
-    work->obj_0.radius   = 0xC8;
-    work->obj_0.flags    = 1;
-    Gp_LinkObj(3, &work->obj_0);
-    Gp_InitRec18Table(&work->rec_40, 1, 0);
-    work->obj_0.flags    |= 0x8000;
-    objCoord2             = ((TmdObject*)arg1->extra)->coords;
-    work->obj_20.ctx.recs = &work->rec_40;
-    work->obj_20.pos.vx   = 0;
-    work->obj_20.pos.vy   = 0;
-    work->obj_20.pos.vz   = 0;
-    work->obj_20.coord    = objCoord2;
-    if (parentWork->field_14E == 0) {
-        work->obj_20.key = 0x22D2D;
-    } else {
-        work->obj_20.key = 0x22E2E;
-    }
-    work->obj_20.radius = 0xC8;
-    work->obj_20.flags  = 1;
-    Gp_LinkObj(1, &work->obj_20);
-
-    work->pose_78.end1.vz    = -0xD2;
-    work->pose_78.end0Radius = 1;
-    work->pose_78.end1Radius = 1;
-    work->pose_78.end0.vx    = 0;
-    work->pose_78.end0.vy    = 0;
-    work->pose_78.end0.vz    = 0;
-    work->pose_78.end1.vx    = 0;
-    work->pose_78.end1.vy    = 0;
-    work->pose_78.recs       = &work->field_90;
-    work->obj_20.flags      |= 0x8000;
-    objCoord3                = ((TmdObject*)arg1->extra)->coords;
-    work->obj_58.ctx.d4rec   = &work->pose_78;
-    work->obj_58.pos.vx      = 0;
-    work->obj_58.pos.vy      = 0;
-    work->obj_58.pos.vz      = 0;
-    work->obj_58.key         = 0;
-    work->obj_58.radius      = 0;
-    work->obj_58.flags       = 3;
-    work->obj_58.coord       = objCoord3;
-    Gp_LinkObj(3, &work->obj_58);
-    Gp_InitRec18Table(&work->field_90, 1, 0);
-    work->field_B0      = 0x5A;
-    work->obj_58.flags |= 0x4400;
-    Task_DetachFromParent(arg1);
-    arg1->state        = 1;
-    *(u8**)0x1F8003FC += 0x18;
-}
-
-/// Per-frame tick of the state-1 handler: it walks the enemy along the step
-/// held in the work block's `field_A8` / `field_AC`, and once the death timer
-/// `field_B0` runs out (or the collision record `field_90` names an occupied
-/// room slot) spawns the death effect and moves the task to state 2.
-///
-/// `arg0` is the enemy the dispatcher passes first; the task itself is `arg1`
-/// (`GpEnemyTaskFunc`).
-void func_actor_102400_80134910(GpEnemy* arg0, Task* arg1)
-{
-    ActorsShared801351d4Work* work;
-    GsCOORDINATE2*            coord;
-    GpRoomParamRec*           param;
-    s32                       rec;
-    s32                       spawn;
-    u16                       timer;
-
-    coord = ((TmdObject*)arg1->extra)->coords;
-    work  = (ActorsShared801351d4Work*)arg1->work;
-    spawn = 0;
-    switch (D_801153F4) {
-        case 1:
-            func_actor_102400_80131E84(coord, 0x100);
-            return;
-        case 2:
-            return;
+    scratchEnd                         = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC);
+    delta                              = scratchEnd - 1;
+    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = delta;
+    work                               = arg0->field_1C;
+    coord                              = arg0->field_2C->field_8;
+    flags                              = 0;
+    switch (work->field_13E) {
         case 0:
-        default:
-            coord->coord.t[0] += (work->field_A8 * 0x19) >> 9;
-            coord->coord.t[2] += (work->field_AC * 0x19) >> 9;
-            coord->flg         = 0;
-            Gp_UpdateCoord(coord);
-            func_actor_102400_80131E84(coord, 0x100);
-            rec = work->field_90.key;
-            if ((rec != 0) &&
-                (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1]
-                                   [func_800E1B24(rec)]
-                                       ->field_1 == 0)) {
-                spawn = 1;
+            work->field_13A = 0;
+            work->field_138 = 0;
+            if (work->field_142 == 0) {
+                work->field_140 += 0x40;
+                if (work->field_140 >= 0x100) {
+                    work->field_142 = 1;
+                }
+            } else {
+                work->field_140 -= 0x40;
+                if (work->field_140 < -0xFF) {
+                    work->field_142 = 0;
+                }
             }
-            Gp_ClearRec18Occupied(&work->field_90);
-            timer          = work->field_B0 - 1;
-            work->field_B0 = timer;
-            if (((timer << 0x10) <= 0) || (work->rec_40.flags & 1) || (spawn != 0)) {
-                Gp_SpawnEff(D_80115754, coord, 0, NULL);
-                arg1->state    = 2;
-                work->field_B2 = 0;
+            work->field_128 += (u16)work->field_140 + 0x40;
+            work->field_12A += (u16)work->field_140 + 0x40;
+            work->field_12C += (u16)work->field_140 + 0x40;
+            if (work->field_12A > 0x1C00) {
+                work->field_13E = 1;
+                work->field_140 = 0;
+                if (work->field_130 != NULL) {
+                    (*work->field_130)->state = 2;
+                }
+            }
+            break;
+        case 1:
+            work->field_13A   = 0x19;
+            scratchEnd[-1].vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            delta->vy         = 0;
+            delta->vz         = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            work->field_146   = ratan2((s16)scratchEnd[-1].vx, (s16)delta->vz) & 0xFFF;
+            if (work->field_142 == 0) {
+                work->field_12A += 0x80;
+                if (work->field_12A > 0x1D00) {
+                    work->field_142 = 1;
+                }
+            } else {
+                work->field_12A -= 0x80;
+                if (work->field_12A < 0x1B00) {
+                    work->field_142 = 0;
+                }
+            }
+            work->field_140++;
+            if (work->field_140 > D_actor_102400_801363F4[work->field_14E]) {
+                work->field_13E = 2;
+                work->field_140 = 0;
+                work->field_13A = 0;
+            }
+            break;
+        case 2:
+            Gp_SpawnEnemyFromTable(D_actor_102400_8013647C, 1, 0, arg0->field_20);
+            D_8011540B[0]   = 1;
+            work->field_13E = 3;
+            if (work->field_130 != NULL) {
+                (*work->field_130)->state = 3;
+            }
+            work->field_130 = NULL;
+            sound           = ((arg0->field_20->placeKey >> 12) << 8) | 0x40180004;
+            pan             = (s8)Gp_GetObjPan(coord);
+            SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
+            break;
+        case 3:
+            work->field_128 -= 0x80;
+            if (work->field_128 <= 0x1000) {
+                work->field_128 = 0x1000;
+                flags           = 1;
+            }
+            work->field_12A -= 0x80;
+            if (work->field_12A <= 0x600) {
+                work->field_12A = 0x600;
+                flags          |= 2;
+            }
+            work->field_12C -= 0x80;
+            if (work->field_12C <= 0x1000) {
+                work->field_12C = 0x1000;
+                flags          |= 4;
+            }
+            if (flags == 7) {
+                work->field_13C = 1;
+                work->field_13E = 0;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_140 = ((Gp_LcgState >> 16) & 0x1F) + 0x1E;
+                work->field_DE |= 0x8000;
             }
             break;
     }
-}
-
-void func_actor_102400_80134AC4(GsCOORDINATE2* arg0, s32 arg1)
-{
-    SVECTOR sp10;
-    SVECTOR sp18;
-    s32     ang;
-
-    if (Gp_State1C->eventState == 0) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            ang         = ((u32)Gp_LcgState >> 16) & 0xF80;
-            memset(&sp18, 0, sizeof(sp18));
-            sp18.vx = (u32)(rcos(ang) * 5) >> 5;
-            sp18.vz = (u32)(rsin(ang) * 5) >> 5;
-            sp10    = sp18;
-            Gp_SpawnEff(D_80115728, arg0, arg1 | 0x20100200, &sp10);
-        }
-    }
-}
-
-void func_actor_102400_80134BD0(Task* arg0)
-{
-    GpEnemyTaskFuncTable3 sp;
-
-    sp = D_actor_102400_80131E24;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+    *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) += 1;
 }
