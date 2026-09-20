@@ -129914,6 +129914,20 @@ here the refusal is not explained, but the remedy is the same, and it is the
 remedy to reach for whenever the target shows a specific insn in a conditional
 branch's delay slot.
 
+Confirmed again for `func_actor_356100_80163508` (2026-09-20): the archived
+99.701% seed had only `reorder=1`. Moving its first loop's pointer assignment
+above the clip guard reached 100% without pins or barriers. The preplanned
+prediction preserved the pointer/counter homes (`s0`/`s1`): `.sched2` places
+copy UID 24 immediately before branch UID 35; `.dbr` puts that copy in the
+branch's SEQUENCE and leaves counter UID 39 after it. The pointer's live span
+increased from 28 to 29 without changing its home. This confirms the remedy,
+not the still-unresolved reason the old successor-thread scan refused it.
+The normal-header port also matched, and unscoped build verification passed.
+Input SHA256s: baseline `b36c7a7cd6af4418328531168b287b25b8d1fbc3eca435f9b3502955bf1c96b7`,
+controlled hoist `3e0d77ca009e3738aa119783efa92a2e0978fcb28b0cc0f1365a65e3ff0db5a2`.
+Sources, predictions and dumps are retained under
+`tools/permuter_findings/func_actor_356100_80163508/`.
+
 ## A leaf use blocks combine's copy merge; a read-write touch does the same but moves the whole chain (Actor01900_Fn083E8, 2026-09-18)
 
 combine turns `(set tmp expr)` + `(set p tmp)` into `(set p expr)` whenever

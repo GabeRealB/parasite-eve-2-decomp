@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_356100.h"
+#include "actors/actors_shared_80132808.h"
 #include "main/mc.h"
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
@@ -14,6 +15,8 @@
 
 /// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80162258);
 
@@ -192,7 +195,98 @@ void func_actor_356100_801633DC(Actor356100* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80163508);
+void func_actor_356100_80163508(Actor356100* arg0)
+{
+    Actor356100AnimWork* work;
+    s16                  yaw;
+
+    work = (Actor356100AnimWork*)arg0->field_1C;
+    if (work->field_978 == 1) {
+        Actor356100AnimWork* anim;
+        s32                  i;
+
+        anim = (Actor356100AnimWork*)arg0->field_1C;
+        if (work->field_97C != work->field_97E) {
+            for (i = 1; i < 0x15; i++) {
+                anim->slots[i].rate = (u8)anim->field_982;
+                func_800B4114(&anim->anim, i, anim->field_97E, 0,
+                              D_actor_356100_801728CC[anim->field_97C][anim->field_97E]);
+            }
+            anim->field_97C = anim->field_97E;
+        }
+        work->field_978 = 3;
+        work->field_980 = 0;
+        work->field_994 = 0;
+    } else if (work->field_978 == 2) {
+        Actor356100AnimWork* anim;
+        s32                  i;
+
+        anim = (Actor356100AnimWork*)arg0->field_1C;
+        for (i = 1; i < 0x15; i++) {
+            anim->slots[i].rate = (u8)anim->field_982;
+            Gp_AnimResetSlot(&anim->anim, i, anim->field_97E);
+        }
+        anim->field_97C = anim->field_97E;
+        work->field_978 = 3;
+        work->field_980 = 0;
+        work->field_994 = 0;
+    }
+    if (work->field_986 == 2) {
+        Actor356100AnimWork* blend;
+        s32                  i;
+
+        blend            = (Actor356100AnimWork*)arg0->field_1C;
+        blend->field_98A = 0x30;
+        blend->field_98C = 0x800;
+        for (i = 1; i < 0x15; i++) {
+            blend->slots[i].rate = (u8)blend->field_98A;
+            Gp_AnimResetSlot(&blend->blendAnim, i, blend->field_988);
+        }
+        work->field_986 = 3;
+    }
+    work->field_980++;
+    if (work->field_97A == 0) {
+        Actor356100AnimWork* tick;
+        s32                  i;
+
+        tick = (Actor356100AnimWork*)arg0->field_1C;
+        for (i = 1; i < 0x15; i++) {
+            tick->slots[i].rate = (u8)tick->field_982;
+            Gp_AnimTickIndex(&tick->anim, i);
+        }
+    } else {
+        func_actor_356100_801633DC(arg0);
+        if (work->blendSlots[1].flags & 1) {
+            work->field_97A = 0;
+        }
+    }
+    if (work->field_98E > work->field_990) {
+        if (work->field_98E - work->field_990 > 0x100) {
+            work->field_990 += 0x100;
+        } else {
+            work->field_990 = work->field_98E;
+        }
+    } else if (work->field_990 - work->field_98E > 0x100) {
+        work->field_990 -= 0x100;
+    } else {
+        work->field_990 = work->field_98E;
+    }
+    if (work->field_990 != 0) {
+        yaw = work->field_990;
+        if (work->field_990 > 0x400) {
+            yaw = 0x400;
+        }
+        if (work->field_990 < -0x400) {
+            yaw = -0x400;
+        }
+        ActorsShared80132808(&arg0->field_2C->coords[5], (yaw * 2) / 3);
+        ActorsShared80132808(&arg0->field_2C->coords[2], yaw / 2);
+        arg0->field_2C->coords[5].flg = 0;
+        arg0->field_2C->coords[4].flg = 0;
+        arg0->field_2C->coords[3].flg = 0;
+        arg0->field_2C->coords[2].flg = 0;
+    }
+}
 
 /// Initialisation for the state-0x10 clip run: allocates the work block, binds
 /// the model's light / colour matrices, re-seeds the enemy descriptor and both

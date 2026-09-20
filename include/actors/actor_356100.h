@@ -298,7 +298,12 @@ typedef struct Actor356100AnimWork {
 /// slot count.
 void func_actor_356100_801633DC(Actor356100* arg0);
 
+/// Reseeds changed clips, ticks or blends their slots, and eases the two
+/// upper-body coordinates toward the requested yaw.
 void func_actor_356100_80163508(Actor356100* arg0);
+
+/// Per-clip transition values indexed by the current and requested clip.
+extern s8 D_actor_356100_801728CC[][45];
 
 /// The player's coordinate, as `Actor401300` / `Actor01900` name it. The
 /// overlay keeps its own copy like those two do.
