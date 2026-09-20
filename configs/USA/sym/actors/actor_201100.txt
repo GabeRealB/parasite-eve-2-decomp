@@ -18,3 +18,4 @@ ActorsShared801385e0 = 0x801505E0; // shared body, see src/actors/lib/
 ActorsShared80137fb8ActorId = 0x8015F490; // shared body data, see src/actors/lib/actors_shared_80137fb8.c
 D_actor_201100_8015F490 = 0x8015F490; // absolute:True legacy C alias
 ActorsShared80137fb8 = 0x8014FFB8; // shared body, see src/actors/lib/
+ActorsShared80138c6c = 0x80150C6C; // shared body, see src/actors/lib/

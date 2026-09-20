@@ -135619,3 +135619,35 @@ Evidence: tools/permuter_findings/func_actor_104900_80137FB8/, session
 00711bebd77d41c38d01208128d4251f; PERMUTER_EVIDENCE/manual-map-mask/analysis/.
 Scope: this allocation decision is observed and counterfactually tested;
 read/write helpers are not universally free of scheduling effects.
+
+## Store constants in each branch before letting jump2 share the store (func_actor_104900_80138C6C, 2026-09-20)
+
+The archived seed selected a local with nested assignments, then stored it once.
+It had the target's branch layout at 95.776%, but the selected timer/state values
+occupied a0 instead of v0. Baseline `.greg` shows r85/r87 conflict with hard
+register 2: each constant definition shares a block with a later comparison.
+Earlier attempts that only rearranged local assignments lost the branch layout.
+
+Writing ascending `if / else if` arms that directly store their constants into
+the field matched on the first planned experiment. This changes when sharing
+happens: the stores remain separate through allocation. In `base_1.i.lreg`,
+timer constants r106/r108/r110/r111 each have two references over four insns in
+separate blocks, all locally assigned v0. The random mask remains v1.
+`base_1.i.greg` retains stores 55/68/81/91; `.jump2` removes the first three and
+retargets their jumps to the final store, UID 91. `.dbr` inverts the comparisons
+and fills their delay slots with the constants, recovering the target's layout.
+The state-selection chain behaves identically. This is a demonstrated way to
+satisfy both allocation and branch layout when a shared selected-value local
+conflicts with the comparison temporaries.
+
+Porting also established that a direct `u16` zero comparison emits `andi 0xffff`
+here. `((u32)timer << 16) == 0` keeps the required `sll 16` with defined unsigned
+shift semantics. The final source uses no asm helpers or register pins.
+
+Inputs: baseline `811327650772888b8d5c8147c3e628ca549ee99beaf8bed724ac5d0734ff7183`,
+controlled exact candidate `e35aac1fc9f34185b066d06f480cc9be956d963523455eadabb274ddcdd95c45`,
+final port `895cc417ab9bbaaa05fdbdb25e3de4ba9e98a61cac3d2e2239a8c4316a403e40`.
+Sources, plans, dump observations, compiler hash and verification logs are in
+`tools/compiler_evidence/2026-09-20-actor104900-38c6c.json`.
+The shared body serves five actor overlays; unscoped verification passed both
+before and after promotion.

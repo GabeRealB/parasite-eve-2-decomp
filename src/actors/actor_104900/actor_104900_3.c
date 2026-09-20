@@ -111,5 +111,3 @@ void func_actor_104900_80138B5C(GpEnemy* enemy, Task* task, ActorsShared80138efc
     xform->src.vz = 0xC8;
     func_actor_104900_80132D78(enemy, task, work, scratch);
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900_3", func_actor_104900_80138C6C);
