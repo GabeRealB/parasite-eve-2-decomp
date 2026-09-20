@@ -237,6 +237,15 @@ typedef struct Actor421600SeekScratch {
 } Actor421600SeekScratch;
 STATIC_ASSERT_SIZEOF(Actor421600SeekScratch, 0xC);
 
+typedef struct Actor421600TurnScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s16     delta;
+    /* 0x0A */ s16     yaw;
+    /* 0x0C */ s16     steps;
+    /* 0x0E */ s16     pad;
+} Actor421600TurnScratch;
+STATIC_ASSERT_SIZEOF(Actor421600TurnScratch, 0x10);
+
 /// 0xC-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_421600_80133444`
 /// to hold the XZ offset of a `GsCOORDINATE2` from the centre of its circular
 /// arena (`field_0` / `field_4`) together with the radius `field_8` is tested
