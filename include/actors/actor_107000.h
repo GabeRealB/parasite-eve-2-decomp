@@ -57,7 +57,11 @@ typedef struct Actor107000Work {
     /* 0x000 */ byte    pad_0[0x11A];
     /* 0x11A */ u16     field_11A; // flag word of the render node at 0xFC, `Actor107000SpawnWork::objFC.flags`
     /* 0x11C */ GpRec18 field_11C; // that node's collision table, `Actor107000SpawnWork::rec11C`
-    /* 0x134 */ byte    pad_134[0xE0];
+    /* 0x134 */ byte    pad_134[0x9E];
+    /* 0x1D2 */ u16     field_1D2;
+    /* 0x1D4 */ byte    pad_1D4[0x36];
+    /* 0x20A */ u16     field_20A;
+    /* 0x20C */ byte    pad_20C[8];
     /* 0x214 */ GpRec18 field_214; // collision record `func_actor_107000_801364D8` re-rolls
     /* 0x22C */ byte    pad_22C[0x60];
     /* 0x28C */ MATRIX  field_28C; // transform folded onto the model part
@@ -81,7 +85,8 @@ typedef struct Actor107000Work {
     /* 0x2D4 */ u16     field_2D4; // frames the reaction has run; the death branch fires at 5
     /* 0x2D6 */ s16     field_2D6; // selects the sound event's high half
     /* 0x2D8 */ s16     field_2D8; // latched copy of `field_2B8`
-    /* 0x2DA */ byte    pad_2DA[0x90];
+    /* 0x2DA */ s16     field_2DA;
+    /* 0x2DC */ byte    pad_2DC[0x8E];
     /* 0x36A */ s16     field_36A; // reaction sub-state, cleared once applied
     /* 0x36C */ s16     field_36C; // cleared next to `field_36A`
     /* 0x36E */ u16     field_36E; // cleared alongside `field_36A`

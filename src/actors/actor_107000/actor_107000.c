@@ -5,6 +5,7 @@
 #include "actors/actors_shared_8014ca28.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -12,7 +13,7 @@
 #include "main/wipsys.h"
 
 void func_actor_107000_80132474(Task* arg0);
-void func_actor_107000_801334C8(Task* arg0, s32 arg1);
+void func_actor_107000_801334C8(Task* arg0, u8 arg1);
 void func_actor_107000_80134810(Task* arg0, GsCOORDINATE2* arg1);
 void func_actor_107000_80132E9C(Task* arg0);
 
@@ -30,6 +31,10 @@ extern u8 D_actor_107000_80139E78[];
 
 /// Offset the collapse arms spawn the 0x60080 effect at.
 extern SVECTOR D_actor_107000_80139E90;
+
+extern u32     D_actor_107000_80138758[];
+extern u32     D_actor_107000_80138764[];
+extern SVECTOR D_actor_107000_80139E88;
 
 // actor_104600 (func_actor_104600_80131E68), actor_204600
 // (func_actor_204600_80149E68) and actor_207000 (func_actor_207000_80149F0C)
@@ -532,7 +537,45 @@ void func_actor_107000_80132E9C(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000", func_actor_107000_80132FD4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000", func_actor_107000_801334C8);
+void func_actor_107000_801334C8(Task* arg0, u8 arg1)
+{
+    Actor107000Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    s32              soundId;
+
+    obj         = arg0->extra;
+    enemy       = arg0->spawnArg2;
+    work        = (Actor107000Work*)arg0->work;
+    coord       = obj->coords;
+    enemy->hp   = 0;
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    if (((Gp_LcgState >> 0x10) & 2) || (arg1 & 0xFF)) {
+        if (work->field_2D6 != 0) {
+            soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x4046000B;
+            SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+        } else {
+            soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x402E0003;
+            SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+        }
+        work->field_1D2 |= 0x8000;
+        work->field_20A |= 0x8000;
+        Gp_SpawnEff(0x6009C, ((TmdObject*)arg0->extra)->coords, 1, NULL);
+        Gp_SpawnEff(0x60030, ((TmdObject*)arg0->extra)->coords, 0x300, &D_actor_107000_80139E88);
+        Gp_SpawnScript18((s32)&D_actor_107000_80138758, (s32)&D_actor_107000_80138764);
+        work->field_2DA = 1;
+    } else {
+        if (work->field_2D6 != 0) {
+            soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x4046000C;
+            SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+        } else {
+            soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x402E0004;
+            SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+        }
+        work->field_2B2 = 6;
+    }
+}
 
 // actor_104600 (func_actor_104600_801335EC), actor_204600
 // (func_actor_204600_8014B5EC) and actor_207000 (func_actor_207000_8014B690)

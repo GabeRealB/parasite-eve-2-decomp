@@ -7,7 +7,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
-void              func_actor_107000_801334C8(Task* arg0, s32 arg1);
+void              func_actor_107000_801334C8(Task* arg0, u8 arg1);
 void              func_actor_107000_80132E9C(Task* arg0);
 extern GpU16Pair  D_actor_107000_80138744;
 extern GpPairSrcE D_actor_107000_80138748;

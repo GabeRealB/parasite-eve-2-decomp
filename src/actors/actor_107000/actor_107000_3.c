@@ -17,7 +17,7 @@ void func_actor_107000_8013283C(Task* arg0);
 void func_actor_107000_801344DC(Task* arg0);
 void func_actor_107000_80134810(Task* arg0, GsCOORDINATE2* arg1);
 void func_actor_107000_80132D8C(Task* arg0, s32 arg1);
-void func_actor_107000_801334C8(Task* arg0, s32 arg1);
+void func_actor_107000_801334C8(Task* arg0, u8 arg1);
 
 extern u8 D_801153F4;
 

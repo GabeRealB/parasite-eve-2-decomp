@@ -134180,3 +134180,43 @@ Controlled base_4 input: `8d36dde129753e85d16cf83c0a4c56efb93025b4d991f3a2304145
 Evidence: `tools/permuter_findings/func_actor_110600_80136B20/`, session
 `5e2b5a66e8554ac78246385599fff569`; retained `base_4.address-trace.txt`,
 `base_4.compare.txt`, `baseline-address-trace.txt`, and the conclusion bundle.
+
+
+## A byte parameter and independent-store order resolve an entry-block allocation conflict (func_actor_107000_801334C8, 2026-09-20)
+
+The archived seed rebuilt at 93.400% with one extra argument copy; all blocks
+and calls agreed with the target. Two separate source changes were needed.
+
+1. The target masks the second argument to its low byte. Declaring it `u8`
+   instead of `s32` plus an explicit use-site mask raised the score to 95.789%.
+   In `base_1.i`, combine deletes the SI entry copy (UID6) and rewrites the QI
+   copy (UID8) to read hard a1. Sched1 places UID8 after both stores. Its a1
+   input therefore remains live while the LCG locals allocate, putting the
+   address in a2 and increment in a3. In greg UID8 is an a1 self-copy; it is
+   gone by sched2. This observation is specific to this parameter/dataflow;
+   a narrower type is not a universal register-allocation hint.
+2. The two stores, `enemy->hp = 0` and the LCG update, have no dependency on
+   each other, but the HP store depends on the earlier task/coordinate reads.
+   Put the HP clear after those reads and before the LCG update. In
+   `base_2.i.sched` the backward scheduler chooses HP store UID45 before the
+   LCG store UID42 at T-5; in `base_3.i.sched` it chooses LCG store UID45 before
+   HP store UID27. (Identify by the MEM, not UID across sources.) This releases
+   the LCG arithmetic first in reverse scheduling, and the coordinate load
+   precedes the shift in forward order. The extra pointer r85 can now use v0
+   instead of v1. The predicted lifetime and preserved a1 home both hold;
+   `base_3` is 100.000% with all penalties zero.
+
+Prior retries put the HP clear *before* the task/coordinate reads and failed.
+Those loads depend on the store in that arrangement, so it is a different
+experiment. Merely permuting the independent reads had produced identical
+objects. Reading the single LCG result through its global instead of a temp
+(`base_1` -> `base_2`) also produced identical objects.
+
+Evidence: scratch `nonmatchings/func_actor_107000_801334C8-vacuum`, plans and
+conclusions in `experiments.jsonl`, the `.sched`, `.lreg`, `.greg` dumps,
+`insn.py --attempt base_1 6 8`, and `LEARNINGS.md`. `base_4` adds proper API
+prototypes and typed externs without changing the matching object.
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Inputs: base_1.i `69baf9e616b6158aacb5cbc349cda4575a359a229488a41876c1e16ede5eaa26`;
+base_2.i `e9e4b55f778158a01fd6d8e956046f9af939ff64b6a9176a82c336d0382d00fe`;
+base_3.i `f8eaf843c5117de3289a0fba9c2d6cd751d20d76af51b831d16f03e153aac5d8`.
