@@ -200,7 +200,7 @@ typedef struct Actor107000Spawn2Work {
     /* 0x37A */ s16            field_37A;
     /* 0x37C */ byte           pad_37C[2];
     /* 0x37E */ s16            field_37E;
-    /* 0x380 */ byte           pad_380[2];
+    /* 0x380 */ s16            field_380;
     /* 0x382 */ s16            field_382;
     /* 0x384 */ s16            field_384;
     /* 0x386 */ s16            field_386;

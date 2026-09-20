@@ -154,7 +154,86 @@ case1:
 // `overlay_dup_index.py promote` refuses it for that reason; matching it once
 // needs those symbols shared first.
 
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_5", func_actor_107000_80135280);
+void func_actor_107000_80135280(Task* arg0, TmdObject* arg1, s32 arg2)
+{
+    Actor107000Spawn2Work* work;
+    GsCOORDINATE2*         coord;
+    s32                    soundId;
+    s16                    state;
+
+    work  = arg0->work;
+    coord = ((TmdObject*)arg0->extra)->coords;
+    state = work->field_370 - 1;
+    switch (state) {
+        case 0:
+            work->field_36E++;
+            if ((s16)work->field_36E > work->field_390) {
+                work->field_36E = 0;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_390 = (Gp_LcgState >> 16) % 20 + 80;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                if ((u16)((Gp_LcgState >> 16) % 100) < 31U) {
+                    work->field_370 = 2;
+                } else {
+                    work->field_370 = 9;
+                }
+            }
+            work->field_380 = 1;
+            work->field_378 = 0;
+            break;
+        case 1:
+            work->field_380 = 1;
+            work->field_378 = 0;
+            if ((s16)work->field_374 == 10) {
+                soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x40460003;
+                SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+            }
+            if ((s16)work->field_374 == 105) {
+                soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x40460006;
+                SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+            }
+            if ((s16)work->field_374 >= 110) {
+                work->field_370 = 1;
+            }
+            break;
+        case 8:
+            work->field_378 = 0;
+            if ((s16)work->field_374 >= 18) {
+                work->field_38E = 1;
+            }
+            if ((s16)work->field_374 >= work->field_392 + 18) {
+                work->field_38E = 0;
+                work->field_370 = 1;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_392 = (Gp_LcgState >> 16) % 50 + 50;
+            }
+            break;
+        case 4:
+            if ((s16)work->field_374 < 22) {
+                return;
+            }
+            work->field_370 = 2;
+            break;
+        case 5:
+            if ((s16)work->field_374 >= 57) {
+                work->field_36A = 1;
+                work->field_36E = 0;
+                work->field_382 = 0;
+            }
+            break;
+    }
+    if (Gp_CountRec18Hi(work->field_214, 0x10000) != 0 && (u16)work->field_38E != 0) {
+        work->field_36A = 1;
+        work->field_36E = 0;
+        work->field_382 = 0;
+    }
+    if (Gp_CountRec18Hi(work->field_24C, 0x10000) != 0 || work->field_388 != 0) {
+        work->field_36A = 1;
+        work->field_36E = 0;
+        work->field_382 = 2;
+    }
+    Gp_ClearRec18Occupied(work->field_214);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_5", func_actor_107000_8013560C);
 
