@@ -848,7 +848,213 @@ void func_actor_421600_80135F6C(Actor421600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80136138);
+/// Takes an `SVECTOR` off `G_SCRATCH_HEAD`, runs `coord` through
+/// `Gfx_MatrixCol2` and `VectorNormalSS`, scales the resulting direction by
+/// `amount` with the gte `gpf 12` (`-0x55` / `-0xC8` are the two aims
+/// `func_actor_421600_80138D24` picks) and folds the scaled X/Y/Z back into
+/// the coordinate's translation before handing the slot back. Same body and
+/// same gte op as `Actor00100_MoveForward`, sized for one `SVECTOR` of scratch.
+///
+/// Keeping the alloc/use/free block whole matters: `G_SCRATCH_HEAD` is the bare
+/// constant 0x1F8003FC, so an access written straight into a caller that touches
+/// it twice CSEs the address into a callee-saved register, while the inliner
+/// re-expands this body and each access keeps the `lw`/`sw` against the constant
+/// that the assembler turns into the `lui`/`lw` (and `lui $at`/`sw`) pair the
+/// ROM has.
+static __inline__ void Actor421600_MoveForward(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        Gfx_MatrixCol2(&coord->coord, vec);
+        VectorNormalSS(vec, vec);
+        gte_lddp(amount);
+        gte_ldsv(vec);
+        gte_gpf12_real();
+        gte_stsv(vec);
+        coord->coord.t[0]          += head[-1].vx;
+        coord->coord.t[1]          += vec->vy;
+        coord->coord.t[2]          += vec->vz;
+        coord->flg                  = 0;
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+static __inline__ s16 Actor421600_Zone(GsCOORDINATE2* coord)
+{
+    s32 x, z, ix, iz;
+    x = coord->coord.t[0];
+    z = coord->coord.t[2];
+    if (x >= 0xD49)
+        ix = 3;
+    else if (x > 0)
+        ix = 2;
+    else
+        ix = x >= -0xC7F;
+    iz = 0;
+    if (z < 0xBB9) {
+        iz = 1;
+        if (z <= 0) {
+            iz = 3;
+            if (z >= -0xBB7)
+                iz = 2;
+        }
+    }
+    return D_actor_421600_801511C0[ix | (iz * 4)];
+}
+
+void func_actor_421600_80136138(Actor421600* arg0)
+{
+    Actor421600Work*        work;
+    Actor421600SeekScratch *head, *blk;
+    GpEnemy*                ctx;
+    TmdObject*              obj;
+    GsCOORDINATE2 *         coord2, *coord3, *coord4;
+    s16                     playerZone, zone;
+    s16                     nextZone;
+    s16                     angle;
+    s32                     wrapped;
+    s32                     state;
+
+    work = arg0->field_1C;
+    ctx  = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj             = arg0->field_2C;
+        ctx->node.flags = 0;
+        obj->flags      = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_832        = 0x10;
+        work->field_82E        = 0;
+        work->field_828        = 1;
+        work->field_B6C.flags |= 0x4000;
+        func_actor_421600_80134604(arg0);
+        return;
+    }
+    playerZone = Actor421600_Zone(Gp_ActorSlots[0]->extra->coords);
+    zone       = Actor421600_Zone(arg0->field_2C->coords);
+    func_actor_421600_8013285C(arg0->field_2C->coords, &work->field_B8C, 0xC);
+    if (playerZone != zone) {
+        switch ((s16)(playerZone - 1)) {
+            case 0:
+            case 1:
+                if (zone >= 1 && zone <= 3) {
+                    work->field_0 = 0x26;
+                    return;
+                }
+                break;
+            case 2:
+                if (zone >= 1 && zone <= 6) {
+                    work->field_0 = 0x26;
+                    return;
+                }
+                break;
+            case 3:
+            case 4:
+                if (zone >= 3 && zone <= 6) {
+                    work->field_0 = 0x26;
+                    return;
+                }
+                break;
+            case 5:
+                if (zone >= 3 && zone <= 9) {
+                    work->field_0 = 0x26;
+                    return;
+                }
+                break;
+            case 6:
+            case 7:
+                if (zone >= 6 && zone <= 9) {
+                    state = 0x26;
+                    SOFT_TOUCH_REG(state);
+                    work->field_0 = state;
+                    return;
+                }
+                break;
+            case 8:
+                if (zone >= 6 && zone <= 11) {
+                    state = 0x26;
+                    SOFT_TOUCH_REG(state);
+                    work->field_0 = state;
+                    return;
+                }
+                break;
+            case 9:
+            case 10:
+                if (zone >= 9 && zone <= 11) {
+                    state = 0x26;
+                    SOFT_TOUCH_REG(state);
+                    work->field_0 = state;
+                    return;
+                }
+                break;
+            case 11:
+                if (zone >= 0xB) {
+                    work->field_0 = 0x26;
+                    return;
+                }
+                if (zone >= 0xC) {
+                    work->field_0 = 0x26;
+                    return;
+                }
+                break;
+        }
+    } else {
+        work->field_0 = 0x26;
+        return;
+    }
+    func_actor_421600_80134604(arg0);
+    head                                       = *(Actor421600SeekScratch**)G_SCRATCH_HEAD;
+    *(Actor421600SeekScratch**)G_SCRATCH_HEAD -= 1;
+    blk                                        = head - 1;
+    if (zone > playerZone)
+        nextZone = zone - 1;
+    else
+        nextZone = zone + 1;
+    head[-1].vec.vx = D_actor_421600_80151158[nextZone].vx;
+    blk->vec.vy     = D_actor_421600_80151158[nextZone].vy;
+    blk->vec.vz     = D_actor_421600_80151158[nextZone].vz;
+    blk->vec.vx     = blk->vec.vx - (u16)arg0->field_2C->coords->coord.t[0];
+    blk->vec.vy     = 0;
+    blk->vec.vz     = blk->vec.vz - (u16)arg0->field_2C->coords->coord.t[2];
+    coord2          = arg0->field_2C->coords;
+    angle           = ratan2(blk->vec.vx, blk->vec.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
+    if (angle < 0) {
+    loop_neg:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto loop_neg;
+        }
+    } else {
+    loop_pos:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto loop_pos;
+        }
+    }
+    wrapped         = angle;
+    blk->angle      = wrapped;
+    work->field_840 = wrapped;
+    if (blk->angle >= 0x21)
+        blk->angle = 0x20;
+    if (blk->angle < -0x20)
+        blk->angle = -0x20;
+    work->field_83E = blk->angle;
+    coord3          = arg0->field_2C->coords;
+    blk->angle      = blk->angle + ratan2(-coord3->coord.m[2][0], coord3->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->coords->coord, blk->angle, 1);
+    if (work->field_82A == 0) {
+        coord4 = arg0->field_2C->coords;
+        Actor421600_MoveForward(coord4, 0x14);
+    }
+    func_actor_421600_80132310(arg0->field_2C->coords, &work->field_90C, 0xC, &blk->vec);
+    func_actor_421600_80133334(arg0->field_2C->coords);
+    *(Actor421600SeekScratch**)G_SCRATCH_HEAD += 1;
+    arg0->field_2C->coords->flg                = 0;
+}
 
 /// Rebuild `coord`'s Y rotation from its current yaw (`ratan2` of
 /// `-m[2][0], m[2][2]`), scaled by `y` on Y and left at 1.0 on X and Z, through
@@ -1146,42 +1352,6 @@ static __inline__ s16 Actor421600_HasRecord10(Actor421600* arg0)
         }
     }
     return found;
-}
-
-/// Takes an `SVECTOR` off `G_SCRATCH_HEAD`, runs `coord` through
-/// `Gfx_MatrixCol2` and `VectorNormalSS`, scales the resulting direction by
-/// `amount` with the gte `gpf 12` (`-0x55` / `-0xC8` are the two aims
-/// `func_actor_421600_80138D24` picks) and folds the scaled X/Y/Z back into
-/// the coordinate's translation before handing the slot back. Same body and
-/// same gte op as `Actor00100_MoveForward`, sized for one `SVECTOR` of scratch.
-///
-/// Keeping the alloc/use/free block whole matters: `G_SCRATCH_HEAD` is the bare
-/// constant 0x1F8003FC, so an access written straight into a caller that touches
-/// it twice CSEs the address into a callee-saved register, while the inliner
-/// re-expands this body and each access keeps the `lw`/`sw` against the constant
-/// that the assembler turns into the `lui`/`lw` (and `lui $at`/`sw`) pair the
-/// ROM has.
-static __inline__ void Actor421600_MoveForward(GsCOORDINATE2* coord, s16 amount)
-{
-    SVECTOR* head;
-    SVECTOR* vec;
-
-    if (D_80072729 != 1) {
-        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-        vec                        = head - 1;
-        *(SVECTOR**)G_SCRATCH_HEAD = vec;
-        Gfx_MatrixCol2(&coord->coord, vec);
-        VectorNormalSS(vec, vec);
-        gte_lddp(amount);
-        gte_ldsv(vec);
-        gte_gpf12_real();
-        gte_stsv(vec);
-        coord->coord.t[0]          += head[-1].vx;
-        coord->coord.t[1]          += vec->vy;
-        coord->coord.t[2]          += vec->vz;
-        coord->flg                  = 0;
-        *(SVECTOR**)G_SCRATCH_HEAD += 1;
-    }
 }
 
 /// Aim tick: on the live-actor edge it re-arms the model the way

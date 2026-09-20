@@ -1,0 +1,132 @@
+{
+  "function": "func_actor_421600_80136138",
+  "date": "2026-09-20",
+  "scope": "GCC 2.8.1 psx, current repository compiler and standard scratch flags",
+  "candidates": [
+    {
+      "source": "base_2.c",
+      "score": 95.31062670299727,
+      "distance": 1721,
+      "penalties": {
+        "branch": 16,
+        "delete": 16,
+        "insert": 1,
+        "regs": 1,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": "explicit unsigned subtraction lets late cross-jumping merge range tails; original uses signed inclusive bounds and separate final tests",
+      "expected": "range optimization still emits subtract-mask-compare but distinct pseudo lifetimes retain all case bodies; second final predicate survives front-end folding",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "preprocessed_sha256": "a657ca2ae0e87e1031d8b75fad16e8b1cd076bfcafa10f40f26b3ac6bb5d2ce5",
+      "source_sha256": "ef6f3f129c8998603aedde82632d1d6694aef42ccfed628c14bca4eb3aff7435",
+      "assembly_sha256": "79e278359bc3430ce45e94df163748436c7f2938608e0a5b10fb15382647bdc0"
+    },
+    {
+      "source": "base_7.c",
+      "score": 99.9182561307902,
+      "distance": 30,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 6,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": "touching the state value between constant and store stops cross-jump at one matching instruction, below the two-insn minimum, with both delay candidates on usable sides",
+      "expected": "state constant fills conditional delay and final store fills jump delay; no case-tail sharing",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "preprocessed_sha256": "4e4f2cbca4846784c75d8a6b29a3c9a6b871c3345b75d0960549c36ebccd1791",
+      "source_sha256": "5ec00353d1662ec4f319e68ec15b09df03982995cad620f957e8ceba7dcfd0fc",
+      "assembly_sha256": "ae81c2017faa888059325d85fc44eac4e0f0ca92707540aaa39fa5d2f08a94de"
+    },
+    {
+      "source": "base_8.c",
+      "score": 99.9182561307902,
+      "distance": 30,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 6,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": "shared state pseudo spans three arms and becomes global; separate values permit local v0 assignment after predicate dies",
+      "expected": "three local state quantities receive v0, keeping identical topology and delay slots",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "preprocessed_sha256": "825b5ad124f6d5fee9c96ef73049215336b43a51dde1116ce8f3b1bfd2b48af8",
+      "source_sha256": "8eb354ab13cac9d893040218ed4c5eb709e5185d981b3ab873c39f71aeec5e96",
+      "assembly_sha256": "ae81c2017faa888059325d85fc44eac4e0f0ca92707540aaa39fa5d2f08a94de"
+    },
+    {
+      "source": "base_9.c",
+      "score": 99.9182561307902,
+      "distance": 30,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 6,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": "nonvolatile asm is combined into memory store, so reload supplies t0; volatile output retains the register-defining insn for local allocation",
+      "expected": "state quantity allocated v0, no extra copies and all slots preserved",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "preprocessed_sha256": "a4d9cb6f734b98dc199c406ac412f35d2a02532389c26f9951416a313e1bcb76",
+      "source_sha256": "dff95493bf8623c1c7fceb11716bdef80ad9dcfeab0ae2af21cdfa5998e61538",
+      "assembly_sha256": "ae81c2017faa888059325d85fc44eac4e0f0ca92707540aaa39fa5d2f08a94de"
+    },
+    {
+      "source": "base_10.c",
+      "score": 100.0,
+      "distance": 0,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "hypothesis": "HI asm output matches HI destination and combines; SI output requires truncation and retains a register quantity",
+      "expected": "combine retains SI asm result and HI store separately, permitting v0 allocation and preserving delays",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "preprocessed_sha256": "bdd249776d2f66d433105db09b48e1689d375bff43a68996287f6105d6fa9e93",
+      "source_sha256": "46726ccbdafbf591d6da0741af9501da27df5cb149fa1015a90c311051461698",
+      "assembly_sha256": "a2d8db4bb17841a1e156d304f10f6ad062cf74cf7b9ffa84939c9f1d844002ab"
+    }
+  ],
+  "observations": [
+    "base_2 jump2 deletes repeated case comparison tails after sched2 contains the complete sequences.",
+    "base_7 combine UID 341 sets mem/s:HI(r81) from asm_operands with const_int 38 and HI matching input constraint; the original state pseudo has disappeared. greg requests a reload register for UID 341 and spills hard register 8; the resulting constant and store use t0.",
+    "base_8 splits state locals and base_9 changes asm volatility; both still combine to HI memory outputs and retain distance 30.",
+    "base_10 changes only the state declaration from s16 to s32. combine UID 338 sets reg/v:SI 94 from asm_operands; UID 341 stores subreg:HI(r94) separately. greg disposition gives r94 hard register 2 (v0).",
+    "base_10 has all-zero penalties, matching block connections/predicates/calls, and successful unscoped host build."
+  ],
+  "limits": [
+    "No allocation tracer used; exact reload register ranking was not reconstructed.",
+    "This does not establish that every SI asm output avoids combination.",
+    "No claim about original source spelling."
+  ],
+  "verification": "./tools/build-and-verify.sh: BUILD SUCCEEDED",
+  "dump_excerpts": [
+    {
+      "file": "base_7.i.combine",
+      "uid": 341,
+      "text": "(insn 341 339 342 (set (mem/s:HI (reg/v:SI 81))\n        (asm_operands (\"\") (\"=r\") 0[ \n                (const_int 38)\n            ] \n            [ \n                (asm_input:HI (\"0\"))\n            ]  (\"/home/gabriel/pe2-ov-actor_421600/nonmatchings/func_actor_421600_80136138-vacuum/base_7.i\") 7629)) -1 (nil)\n    (expr_list:REG_DEAD (reg/v:SI 81)\n        (nil)))"
+    },
+    {
+      "file": "base_10.i.combine",
+      "uid": 338,
+      "text": "(insn 338 337 339 (set (reg/v:SI 94)\n        (asm_operands (\"\") (\"=r\") 0[ \n                (const_int 38)\n            ] \n            [ \n                (asm_input:SI (\"0\"))\n            ]  (\"/home/gabriel/pe2-ov-actor_421600/nonmatchings/func_actor_421600_80136138-vacuum/base_10.i\") 7629)) -1 (nil)\n    (nil))"
+    },
+    {
+      "file": "base_10.i.combine",
+      "uid": 341,
+      "text": "(insn 341 339 342 (set (mem/s:HI (reg/v:SI 81))\n        (subreg:HI (reg/v:SI 94) 0)) 187 {movhi_internal2} (insn_list 338 (nil))\n    (expr_list:REG_DEAD (reg/v:SI 94)\n        (expr_list:REG_DEAD (reg/v:SI 81)\n            (nil))))"
+    }
+  ]
+}

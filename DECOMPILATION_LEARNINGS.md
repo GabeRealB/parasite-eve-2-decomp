@@ -136718,3 +136718,25 @@ or asm helpers. Evidence: tools/permuter_findings/func_actor_107000_80133E18/,
 run 3ba39ce02d3d47da, PERMUTER_ANALYSIS.md and controlled base_3 dumps.
 Input hashes: base_2.i `c3419f7463c93fe427e387c29b39a2f915d211958b5a9304f0abd6ea3126630e`,
 base_3.i `0a465d23090c04fb83193ccc5c4d60382b13b8c67c11906122dfbf101de1a23a`. Compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+
+## A halfword asm output can combine into its store and bypass ordinary allocation (actor_421600_80136138, 2026-09-20)
+
+An empty read/write asm used between a state constant and its store prevented
+three switch ranges from merging, preserving both required delay slots. Yet
+`s16 state = 0x26; SOFT_TOUCH_REG(state); work->field_0 = state;` used t0
+instead of v0. In base_7.combine UID 341, the destination was already
+`mem/s:HI(r81)` and the asm input was constant 38: no state pseudo remained
+for local/global allocation. Reload requested a scratch register for this
+instruction and selected t0. Splitting the source locals and making the asm
+volatile each produced identical objects.
+
+The preplanned base_10 experiment changed only state to s32. Combine retained
+SI output r94 (UID 338) and a separate HI subreg store (UID 341); greg assigned
+r94 to v0. This matched exactly, including range tails and delay slots, and
+passed the full unscoped integration build. The effect is observed for these
+inputs, not a promise that every widened asm output resists combination.
+Reload's precise scratch ranking was not traced.
+
+Compiler/input hashes and selected dump excerpts:
+`tools/compiler_evidence/2026-09-20-actor421600-36138.json`.
