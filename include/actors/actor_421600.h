@@ -201,17 +201,33 @@ STATIC_ASSERT_SIZEOF(Actor421600Work, 0xEB0);
 /// cannot span the fields `Actor421600Work` names at 0x5A / 0x68, and 0x420 is
 /// not a whole number of slots past 0x30.
 typedef struct Actor421600AnimWork {
-    /* 0x000 */ byte       pad_0[0x1C];
+    /* 0x000 */ s16        field_0;
+    /* 0x002 */ byte       pad_2[0x1A];
     /* 0x01C */ GpAnimCtx  anim;
     /* 0x030 */ GpAnimSlot slots[25];
     /* 0x418 */ byte       pad_418[8];
     /* 0x420 */ GpAnimCtx  blendAnim;
     /* 0x434 */ GpAnimSlot blendSlots[25];
-    /* 0x81C */ byte       pad_81C[0x16];
+    /* 0x81C */ byte       pad_81C[0xC];
+    /* 0x828 */ u16        field_828;
+    /* 0x82A */ s16        field_82A;
+    /* 0x82C */ s16        field_82C;
+    /* 0x82E */ s16        field_82E;
+    /* 0x830 */ u16        field_830;
     /* 0x832 */ u16        field_832;
-    /* 0x834 */ byte       pad_834[6];
+    /* 0x834 */ u16        field_834;
+    /* 0x836 */ s16        field_836;
+    /* 0x838 */ s16        field_838;
     /* 0x83A */ u16        field_83A;
+    /* 0x83C */ s16        field_83C;
+    /* 0x83E */ u16        field_83E;
+    /* 0x840 */ u16        field_840;
+    /* 0x842 */ s16        field_842;
+    /* 0x844 */ s16        field_844;
+    /* 0x846 */ byte       pad_846[2];
+    /* 0x848 */ s32        field_848[18];
 } Actor421600AnimWork;
+STATIC_ASSERT_SIZEOF(Actor421600AnimWork, 0x890);
 
 /// 0x34-byte block taken from the scratchpad head by the shrink tick
 /// `func_actor_421600_801366F4`: a `MATRIX`, the per-axis scale `VECTOR`
@@ -400,5 +416,11 @@ extern s16 D_actor_421600_80151268;
 /// teleports the actor to the corner its `field_8` mode and the progress
 /// counter select and reseeds the state.
 s32 func_actor_421600_80132A00(Actor421600* arg0, s32 arg1, Actor421600Msg* arg2);
+
+/// Signed transition durations, indexed by old animation * 25 + new animation.
+extern s8 D_actor_421600_80150DB4[];
+
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+s32  func_actor_421600_80133CAC(Actor421600* arg0, Actor421600Work* work);
 
 #endif
