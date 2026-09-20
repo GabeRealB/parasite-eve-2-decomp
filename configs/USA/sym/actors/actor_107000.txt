@@ -34,3 +34,4 @@ ActorSpecimenInit = 0x80134C2C; // shared body, see src/actors/lib/
 ActorsShared801381b0 = 0x801381B0; // shared body, see src/actors/lib/
 ActorsShared801339c0 = 0x801339C0; // shared body, see src/actors/lib/
 ActorsShared80137f1c = 0x80137F1C; // shared body, see src/actors/lib/
+ActorsShared80134810 = 0x80134810; // shared body, see src/actors/lib/

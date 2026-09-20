@@ -1,3 +1,4 @@
+#include "actors/actors_shared_80134810.h"
 #include "common.h"
 
 #include "actors/actor_107000.h"
@@ -15,7 +16,6 @@
 
 void func_actor_107000_80132474(Task* arg0);
 void func_actor_107000_801334C8(Task* arg0, u8 arg1);
-void func_actor_107000_80134810(Task* arg0, GsCOORDINATE2* arg1);
 void func_actor_107000_80132E9C(Task* arg0);
 
 /// Node 3's pair table, packed by `Gp_PackPair` into `obj1B4`, and the enemy
@@ -178,7 +178,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_107000/actor_107000", D_actor_107000_8
 // (func_actor_204600_8014A1F4) and actor_207000 (func_actor_207000_8014A298)
 // carry the same body, refused promotion for the reason its sibling below is:
 // its three remaining calls - func_actor_107000_80132474,
-// func_actor_107000_80132674 and func_actor_107000_80134810 - and the effect
+// func_actor_107000_80132674 and ActorsShared80134810 - and the effect
 // offset it spawns at are named in this overlay only, so one shared object
 // could not link into the other three.
 
@@ -192,7 +192,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_107000/actor_107000", D_actor_107000_8
 /// `ActorsShared8013454c` either way.
 ///
 /// 4 and 5 are the two collapse arms. Both drive the model's second coordinate
-/// through `func_actor_107000_80134810`, count `field_2BC` up and spawn the
+/// through `ActorsShared80134810`, count `field_2BC` up and spawn the
 /// 0x60080 effect on the model's coordinate every 0x10 frames; 5 also counts
 /// `field_2D4` and, on the third count, writes the same death sequence the
 /// reaction dispatch does - a five-frame countdown, `field_2B4` cleared and the
@@ -225,7 +225,7 @@ void func_actor_107000_80132298(Task* arg0)
             return;
         case 4:
             work->field_2AC = 0x1000;
-            func_actor_107000_80134810(arg0, &((TmdObject*)arg0->extra)->coords[1]);
+            ActorsShared80134810(arg0, &((TmdObject*)arg0->extra)->coords[1]);
             frames          = work->field_2BC + 1;
             work->field_2BC = frames;
             if ((s16)frames >= 0x10) {
@@ -237,7 +237,7 @@ void func_actor_107000_80132298(Task* arg0)
             return;
         case 5:
             work->field_2AC = 0x1000;
-            func_actor_107000_80134810(arg0, &((TmdObject*)arg0->extra)->coords[1]);
+            ActorsShared80134810(arg0, &((TmdObject*)arg0->extra)->coords[1]);
             frames          = work->field_2BC + 1;
             work->field_2BC = frames;
             if ((s16)frames >= 0x10) {
@@ -616,7 +616,7 @@ void func_actor_107000_80132FD4(GpEnemy* enemy, Task* task)
             }
             if ((u32)((u16)work->field_2B2 - 5) >= 2) {
                 Actor107000_TickAnim(task);
-                func_actor_107000_80134810(task, &((TmdObject*)task->extra)->coords[1]);
+                ActorsShared80134810(task, &((TmdObject*)task->extra)->coords[1]);
                 ((TmdObject*)task->extra)->coords[0].flg = 0;
                 ((TmdObject*)task->extra)->coords[1].flg = 0;
                 Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);

@@ -1,3 +1,4 @@
+#include "actors/actors_shared_80134810.h"
 #include "common.h"
 
 #include "actors/actor_104600.h"
@@ -16,7 +17,6 @@ void func_actor_104600_801321F4(Task* arg0);
 void func_actor_104600_80132798(Task* arg0);
 void func_actor_104600_80134438(Task* arg0);
 void func_actor_104600_80134690(void* arg0, Task* arg1);
-void func_actor_104600_8013476C(Task* arg0, GsCOORDINATE2* arg1);
 
 extern u8 D_801153F4;
 

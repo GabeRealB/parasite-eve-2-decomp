@@ -136658,3 +136658,36 @@ verification passed. Input hashes, actual schedule logs and register homes
 are retained in `tools/compiler_evidence/2026-09-20-actor107000-35c28.json`.
 No tracer was needed; these dumps establish the changed overlap and final
 homes, not unobserved local quantity priorities.
+
+
+## A scratch-head member restores the scale-load dependency; reusing the vector fixes its register (ActorsShared80134810, 2026-09-20)
+
+The m2c seed omitted GTE instructions (20.877%). Reusing existing matrix-column
+and GPF helpers reached 97.702%, but the fixed scalar scratch-head store moved
+past the varying struct scale load and filled the first branch delay slot.
+In `base_2.i.sched`, UID28 (scale load) depended on UID19 (work load), not UID25
+(scratch store). The patched `sched.c:807-856` explains the fixed-scalar versus
+varying non-byte struct exemption described in CODEGEN_MODEL section 11.
+
+A preplanned change to a one-member scratch-head view made the head store
+`MEM/s`; `base_3.i.sched` adds UID25 to UID28's dependencies. Entry scheduling
+and the constant in the branch delay slot became exact (99.912%). The reused
+initial/final `head` pseudo then lived globally in v0, leaving the initial
+load in v0 and decrement result in v1. Splitting the final reload changed the
+initial head to local v0 but emitted identical assembly: compare showed real
+allocation movement without a score change. Loading directly into `vec` and
+then decrementing it made both definitions use global r83 in v1, while the
+independent final reload stayed local v0. That planned prediction produced
+100%, with no pins or empty asm barriers. This is a supported instance of
+existing dependency and pseudo-lifetime rules, not a new allocator rule.
+
+Inputs: base_2.i SHA256
+`275eabc72042dedfe91d4c7db0f82232012b387070105c1426a76424d7760179`;
+base_3.i `60c419f9d7f77439bf45a9a44fb68ba9b0ad1b759325082fe398c5983385a5f0`;
+base_5.i `8c80e48203925892e39daa3614e13efe909c6ee155848331c0d1ae65ebb66b98`.
+Bundled cc1 SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch evidence: `nonmatchings/func_actor_107000_80134810-vacuum/LEARNINGS.md`,
+`base_{2,3,4,5}.i.{sched,lreg,greg}`, and the planned/concluded experiments.
+The bounded router ran from base_2 without a discovery; the successful edits
+were independent manual experiments.

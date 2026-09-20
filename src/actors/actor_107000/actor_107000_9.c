@@ -1,145 +1,135 @@
 #include "common.h"
 
 #include "actors/actor_107000.h"
-#include "actors/actor_specimen_init.h"
+#include "actors/actors_shared_801673f8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
-#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Node 3's pair table, packed by `Gp_PackPair` into `obj3`, and the enemy
-/// record whose `pairTable` points at it; its `hpMax` seeds the enemy's
-/// `field_40`.
-extern GpU16Pair ActorsShared80136938Pair;
+/// The enemy's four main-body handlers, dispatched through by state.
+extern GpEnemyTaskFuncTable4 D_actor_107000_80131E5C;
 
-/// Message dispatch table this spawn parks in `Task::msgTable`.
-extern u8 D_actor_107000_8013F5E0[];
+/// Offset the reveal arm spawns the 0x60080 effect at, `{ 0, -0x12C, 0 }`.
+extern SVECTOR D_actor_107000_8013F5D8;
 
-// actor_207000 (func_actor_207000_8014EE88) carries the same body. Its message
-// table still uses an overlay-local symbol; the parameter record, animation
-// bank and contact identity now resolve through shared symbols.
-
-/// The variant's spawn handler: allocate the `Actor107000Spawn2Work` block,
-/// rebind the model's light and colour matrices into it, link its three `GpObj`
-/// render nodes and their collision tables, and hand the task over to the state
-/// table in `Task::msgTable`.
+/// Message 0x7DB handler of the second form's table (`D_actor_107000_8013F5E0`,
+/// parked in `Task::msgTable` by `func_actor_107000_80136E88`). The payload's
+/// halfword at 0x2 is a command word.
 ///
-/// Node 1 is the odd one: it points its context at the `GpActorD4Rec` at 0x1FC
-/// rather than at a record table, and the record's own `recs` names the one
-/// `GpRec18` beside it - the pair `GpActorD4` keeps, and the three constants it
-/// carries are that record's fields rather than an object's. Node 3's `field_8`
-/// is the model's seventh coordinate (`&coord[6]`), which is the value the
-/// sibling `func_actor_107000_80131F0C` computes for its `part`.
+/// 4 and 5 are the collapse arms: both spawn the 0x60080 effect on the model's
+/// root coordinate, clear the spawn countdown `field_390` and arm the reaction
+/// sub-state `field_36A` to 4; 5 clears the spawn counter `field_392` as well.
 ///
-/// The spawn arg seeds `field_364`/`field_366` the same way it does there, and
-/// a high halfword of 1 kills the specimen instead. The tail draws two numbers
-/// off `Gp_LcgState` for `field_390`/`field_392`, the spawn countdown and the
-/// running total the spawn cue fires on at 5.
-void func_actor_107000_80136E88(GpEnemy* arg0, Task* arg1)
+/// Low byte 1 is the reveal. Unless the task already runs one of the two live
+/// states, the model is placed at the spawn point bits 8..11 select from the
+/// current map's table - `D_8018B74C` on map 0x27, where the appearance sound
+/// is cued through `SndEvt_EnqueueType6` as well, `D_801874C4` on 0x28 - the
+/// buffers are re-armed, the 0x80 and 4 bits are cleared from the model's flag
+/// word, the pose flag `field_14` is zeroed, both render nodes are revealed, and
+/// the model is turned to the spawn point's heading. Low byte 3 is the hide:
+/// the two bits and the pose flag go the other way, both nodes are hidden, the
+/// model's translation and rotation are zeroed, and the task moves to state 4.
+s32 func_actor_107000_801378D8(Task* arg0, s32 arg1, Actor107000Msg* arg2)
 {
     Actor107000Spawn2Work* work;
+    Actor107000Ctx*        ctx;
     TmdObject*             obj;
     GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         part;
-    u32                    draw;
-    s32                    one;
-    s32                    i;
+    SVECTOR                rot;
+    u16                    word;
+    s32                    mode;
+    s32                    sound;
+    s32                    pan;
 
-    obj   = (TmdObject*)arg1->extra;
+    word  = arg2->field_2;
+    obj   = (TmdObject*)arg0->extra;
+    ctx   = arg0->spawnArg2;
+    work  = (Actor107000Spawn2Work*)arg0->work;
+    mode  = word & 0xFFFF;
     coord = obj->coords;
-    part  = &coord[6];
-    one   = 1;
-    if ((s16)(arg1->spawnArg1 >> 16) == one) {
-        Gp_DestroyEnemy(arg0, arg1);
-        return;
+    if (mode == 4) {
+        Gp_SpawnEff(0x60080, coord, 0x400, &D_actor_107000_8013F5D8);
+        work->field_390 = 0;
+        work->field_36A = 4;
+        return 0;
     }
-    work = memCalloc(0x39CU, false);
-    if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
-        return;
+    if (mode == 5) {
+        Gp_SpawnEff(0x60080, coord, 0x400, &D_actor_107000_8013F5D8);
+        work->field_390 = 0;
+        work->field_392 = 0;
+        work->field_36A = 4;
+        return 0;
     }
-    arg1->work      = (TaskIdMap*)work;
-    work->field_366 = (u16)arg1->spawnArg1;
-    work->field_364 = (s16)(arg1->spawnArg1 >> 16);
-    obj->flags     |= 0x80;
-    coord->flg      = 0;
-    obj->lightMtx   = &work->field_1BC;
-    obj->colorMtx   = &work->field_19C;
-    arg0->field_4   = &coord->coord;
-    arg0->field_48  = 0;
-    Gp_LinkNode(&arg0->node);
-    arg0->coord      = coord;
-    arg0->node.flags = one;
-    arg0->bodyPos.vx = 0;
-    arg0->bodyPos.vy = 0;
-    arg0->bodyPos.vz = 0;
-    arg0->param      = &ActorSpecimenInitParams;
-    arg0->hp         = ActorSpecimenInitParams.hpMax;
-    arg0->recs       = &work->field_24C[0];
-    work->field_35C  = &((TmdObject*)arg1->extra)->coords[1];
-    work->field_360  = 0x100;
-    work->field_362  = one;
-    func_800B3F84((GpAnimCtx*)work, ActorSpecimenInitAnimBank, obj, work->field_12C,
-                  (GpAnimSlot*)&work->slots[0]);
-    i = 1;
-    do {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
-        i += 1;
-    } while (i < 7);
-    ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    work->field_370            = 1;
-    work->field_372            = 1;
-    work->field_388            = 0;
-    work->field_384            = 0;
-    work->field_386            = 0;
-    work->field_38E            = 0;
-    work->field_38A            = 0;
-    work->field_1FC.end0.vz    = 0xBB8;
-    work->field_1FC.end0Radius = 0xFA0;
-    work->field_1FC.end1Radius = 0x7D0;
-    work->field_1FC.recs       = work->field_214;
-    work->obj1.ctx.d4rec       = &work->field_1FC;
-    work->obj1.coord           = coord;
-    work->obj1.pos.vx          = 0;
-    work->obj1.pos.vy          = 0;
-    work->obj1.pos.vz          = 0;
-    work->obj1.key             = 0;
-    work->obj1.radius          = 0;
-    work->obj1.flags           = 3U;
-    Gp_LinkObj(3, &work->obj1);
-    Gp_InitRec18Table(work->field_214, 1, 0);
-    work->obj2.coord    = coord;
-    work->obj2.ctx.recs = &work->field_24C[0];
-    work->obj2.pos.vx   = 0;
-    work->obj2.pos.vy   = -0x258;
-    work->obj2.pos.vz   = 0;
-    work->obj2.key      = 0x3002A;
-    work->obj2.radius   = 0x258;
-    work->obj2.flags    = 1U;
-    work->obj1.flags    = (u16)(work->obj1.flags & 0x7FFF);
-    Gp_LinkObj(2, &work->obj2);
-    Gp_InitRec18Table(&work->field_24C[0], 4, 0);
-    work->obj3.coord    = part;
-    work->obj3.ctx.recs = &work->field_2CC[0];
-    work->obj3.pos.vx   = -0x154;
-    work->obj3.pos.vy   = 0;
-    work->obj3.pos.vz   = 0;
-    work->obj2.flags    = (u16)(work->obj2.flags & 0x3DFF);
-    work->obj3.key      = Gp_PackPair(&ActorsShared80136938Pair, 0);
-    work->obj3.radius   = 0x12C;
-    work->obj3.flags    = 1U;
-    Gp_LinkObj(3, &work->obj3);
-    Gp_InitRec18Table(&work->field_2CC[0], 1, 0);
-    work->field_394  = 0;
-    work->field_396  = 0;
-    work->obj3.flags = (u16)(work->obj3.flags & 0x7FFF);
-    draw = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    work->field_390    = (u16)(((u32)draw >> 16) % 20U + 0x50);
-    draw = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    work->field_392    = (u16)(((u32)draw >> 16) % 50U + 0x32);
-    arg1->msgTable     = D_actor_107000_8013F5E0;
-    arg1->state        = 4;
+    if ((word & 0xFF) == 1) {
+        if ((u32)(arg0->state - 1) >= 2U) {
+            if (gGameSession->at4.loc.area == 0x27) {
+                rot.vx            = 0;
+                rot.vy            = D_8018B74C[arg2->field_2 >> 8].heading;
+                rot.vz            = 0;
+                coord->coord.t[0] = D_8018B74C[arg2->field_2 >> 8].x;
+                coord->coord.t[1] = D_8018B74C[arg2->field_2 >> 8].y;
+                coord->coord.t[2] = D_8018B74C[arg2->field_2 >> 8].z;
+                sound             = (((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x54270006);
+                pan               = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
+            } else if (gGameSession->at4.loc.area == 0x28) {
+                rot.vx            = 0;
+                rot.vy            = D_801874C4[arg2->field_2 >> 8].heading;
+                rot.vz            = 0;
+                coord->coord.t[0] = D_801874C4[arg2->field_2 >> 8].x;
+                coord->coord.t[1] = D_801874C4[arg2->field_2 >> 8].y;
+                coord->coord.t[2] = D_801874C4[arg2->field_2 >> 8].z;
+            }
+            Tmd_AllocBuffers((TmdObject*)arg0->extra);
+            ((TmdObject*)arg0->extra)->flags &= 0xFF7F;
+            ((TmdObject*)arg0->extra)->flags &= 0xFFFB;
+            ctx->field_14                     = 0;
+            work->obj1.flags                 |= 0x8000;
+            work->obj2.flags                 |= 0xC200;
+            RotMatrix(&rot, &coord->coord);
+            work->field_378                        = 0xC8;
+            work->field_396                        = 1;
+            work->field_398                        = 0x64;
+            work->field_39A                        = 0;
+            ((TmdObject*)arg0->extra)->coords->flg = 0;
+            Gp_UpdateCoord(((TmdObject*)arg0->extra)->coords);
+        }
+        return 0;
+    }
+    if ((word & 0xFF) == 3) {
+        ((TmdObject*)arg0->extra)->flags |= 0x80;
+        ((TmdObject*)arg0->extra)->flags |= 4;
+        ctx->field_14                     = 1;
+        work->obj1.flags                 &= 0x7FFF;
+        work->obj2.flags                 &= 0x3DFF;
+        rot.vz                            = 0;
+        rot.vy                            = 0;
+        rot.vx                            = 0;
+        RotMatrix(&rot, &coord->coord);
+        coord->coord.t[2]                      = 0;
+        coord->coord.t[1]                      = 0;
+        coord->coord.t[0]                      = 0;
+        ((TmdObject*)arg0->extra)->coords->flg = 0;
+        Gp_UpdateCoord(((TmdObject*)arg0->extra)->coords);
+        arg0->state     = 4;
+        work->field_396 = 0;
+    }
+    return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_9", func_actor_107000_80137220);
+// actor_207000 carries the same body at 0x8014F8D8, but it cannot be shared:
+// the effect offset the two collapse arms spawn with is this overlay's own
+// vector (`D_actor_207000_801575D8` at the twin's address) and the only
+// overlay-local name the body has. `overlay_dup_index.py promote` refuses it
+// for that reason; matching it once needs the vector shared first.
+
+void func_actor_107000_80137C8C(Task* arg0)
+{
+    GpEnemyTaskFuncTable4 sp;
+
+    sp = D_actor_107000_80131E5C;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}

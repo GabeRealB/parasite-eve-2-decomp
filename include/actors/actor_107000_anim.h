@@ -1,6 +1,7 @@
 #ifndef ACTOR_107000_ANIM_H
 #define ACTOR_107000_ANIM_H
 
+#include "actors/actors_shared_80134810.h"
 #include "common.h"
 #include "actors/actor_107000.h"
 #include "gameplay/1BC.h"
@@ -9,7 +10,6 @@
 
 extern u8 D_801153F4;
 void      ActorsShared801349d8(Task*);
-void      func_actor_107000_80134810(Task*, GsCOORDINATE2*);
 
 static __inline__ void Actor107000_TickAnim(Task* task)
 {
