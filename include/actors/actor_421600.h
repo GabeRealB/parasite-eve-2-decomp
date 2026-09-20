@@ -353,6 +353,18 @@ typedef struct {
 } Actor421600ArenaScratch;
 STATIC_ASSERT_SIZEOF(Actor421600ArenaScratch, 0xC);
 
+/// Movement vectors, rotation matrix, and steering angles for the waypoint tick.
+typedef struct Actor421600MoveScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ SVECTOR target;
+    /* 0x10 */ MATRIX  matrix;
+    /* 0x30 */ s16     delta;
+    /* 0x32 */ s16     original;
+    /* 0x34 */ s16     yaw;
+    /* 0x36 */ s16     playerYaw;
+} Actor421600MoveScratch;
+STATIC_ASSERT_SIZEOF(Actor421600MoveScratch, 0x38);
+
 typedef struct Actor421600RadiusScratch {
     /* 0x0 */ s32 x;
     /* 0x4 */ s32 z;
